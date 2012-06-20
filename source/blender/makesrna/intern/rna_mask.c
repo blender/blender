@@ -50,9 +50,13 @@
 #ifdef RNA_RUNTIME
 
 #include "DNA_mask_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_mask.h"
+#include "BKE_tracking.h"
+
+#include "BLI_math.h"
 
 #include "RNA_access.h"
 
@@ -64,6 +68,40 @@ static void rna_Mask_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 
 	WM_main_add_notifier(NC_MASK|ND_DATA, mask);
 	DAG_id_tag_update( &mask->id, 0);
+}
+
+static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	MaskParent *parent = ptr->data;
+
+	if (parent->id) {
+		if (GS(parent->id->name) == ID_MC) {
+			MovieClip *clip = (MovieClip *) parent->id;
+			MovieTracking *tracking = &clip->tracking;
+			MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, parent->parent);
+
+			if (object) {
+				MovieTrackingTrack *track = BKE_tracking_track_get_named(tracking, object, parent->sub_parent);
+
+				if (track) {
+					int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scene->r.cfra);
+					MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_framenr);
+					float marker_pos_ofs[2], parmask_pos[2];
+					MovieClipUser user = {0};
+
+					BKE_movieclip_user_set_frame(&user, scene->r.cfra);
+
+					add_v2_v2v2(marker_pos_ofs, marker->pos, track->offset);
+
+					BKE_mask_coord_from_movieclip(clip, &user, parmask_pos, marker_pos_ofs);
+
+					copy_v2_v2(parent->parent_orig, parmask_pos);
+				}
+			}
+		}
+	}
+
+	rna_Mask_update_data(bmain, scene, ptr);
 }
 
 /* note: this function exists only to avoid id refcounting */
@@ -357,7 +395,7 @@ static void rna_def_maskParent(BlenderRNA *brna)
 	/* note: custom set function is ONLY to avoid rna setting a user for this. */
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_MaskParent_id_set", "rna_MaskParent_id_typef", NULL);
 	RNA_def_property_ui_text(prop, "ID", "ID-block to which masking element would be parented to or to it's property");
-	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+	RNA_def_property_update(prop, 0, "rna_Mask_update_parent");
 
 	prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "id_type");
@@ -366,19 +404,19 @@ static void rna_def_maskParent(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_MaskParent_id_type_set", NULL);
 	//RNA_def_property_editable_func(prop, "rna_MaskParent_id_type_editable");
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used");
-	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+	RNA_def_property_update(prop, 0, "rna_Mask_update_parent");
 
 	/* parent */
 	prop = RNA_def_property(srna, "parent", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Parent", "Name of parent object in specified data block to which parenting happens");
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
-	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+	RNA_def_property_update(prop, 0, "rna_Mask_update_parent");
 
 	/* sub_parent */
 	prop = RNA_def_property(srna, "sub_parent", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Sub Parent", "Name of parent sub-object in specified data block to which parenting happens");
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
-	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+	RNA_def_property_update(prop, 0, "rna_Mask_update_parent");
 }
 
 static void rna_def_maskSplinePointUW(BlenderRNA *brna)
