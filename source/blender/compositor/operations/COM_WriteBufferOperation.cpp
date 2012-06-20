@@ -175,7 +175,8 @@ void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program pr
 	delete clKernelsToCleanUp;
 }
 
-void WriteBufferOperation::readResolutionFromInputSocket() {
+void WriteBufferOperation::readResolutionFromInputSocket()
+{
 	NodeOperation *inputOperation = this->getInputOperation(0);
 	this->setWidth(inputOperation->getWidth());
 	this->setHeight(inputOperation->getHeight());

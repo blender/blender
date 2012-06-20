@@ -31,7 +31,9 @@
 #include "COLLADABUUtils.h"
 #include "collada_internal.h"
 
-MaterialsExporter::MaterialsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryMaterials(sw), export_settings(export_settings) {
+MaterialsExporter::MaterialsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryMaterials(sw), export_settings(export_settings)
+{
+	/* pass */
 }
 
 void MaterialsExporter::exportMaterials(Scene *sce)

@@ -1277,7 +1277,8 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
-struct ARegion *file_buttons_region(struct ScrArea *sa){
+struct ARegion *file_buttons_region(struct ScrArea *sa)
+{
 	ARegion *ar, *arnew;
 	
 	for (ar = sa->regionbase.first; ar; ar = ar->next)

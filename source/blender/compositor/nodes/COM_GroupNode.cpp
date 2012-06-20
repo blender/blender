@@ -37,12 +37,17 @@ void GroupNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 void GroupNode::ungroup(ExecutionSystem &system)
 {
 	bNode *bnode = this->getbNode();
+	bNodeTree *subtree = (bNodeTree *)bnode->id;
 	vector<InputSocket *> &inputsockets = this->getInputSockets();
 	vector<OutputSocket *> &outputsockets = this->getOutputSockets();
 	unsigned int index;
 
 	/* get the node list size _before_ adding proxy nodes, so they are available for linking */
 	int nodes_start = system.getNodes().size();
+
+	/* missing node group datablock can happen with library linking */
+	if(!subtree)
+		return;
 
 	for (index = 0; index < inputsockets.size(); index++) {
 		InputSocket *inputSocket = inputsockets[index];
@@ -64,6 +69,5 @@ void GroupNode::ungroup(ExecutionSystem &system)
 		}
 	}
 
-	bNodeTree *subtree = (bNodeTree *)bnode->id;
 	ExecutionSystemHelper::addbNodeTree(system, nodes_start, subtree, bnode);
 }

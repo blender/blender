@@ -3101,7 +3101,8 @@ static Object *obrel_armature_find(Object *ob)
 	return ob_arm;
 }
 
-static int obrel_is_recursive_child(Object *ob, Object *child) {
+static int obrel_is_recursive_child(Object *ob, Object *child)
+{
 	Object *par;
 	for (par = child->parent; par; par = par->parent) {
 		if (par == ob) {

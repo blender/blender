@@ -240,7 +240,8 @@ static struct GPUTextureState {
 
 /* Mipmap settings */
 
-void GPU_set_gpu_mipmapping(int gpu_mipmap){
+void GPU_set_gpu_mipmapping(int gpu_mipmap)
+{
 	int old_value = GTS.gpu_mipmap;
 
 	/* only actually enable if it's supported */

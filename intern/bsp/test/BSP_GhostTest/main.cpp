@@ -93,8 +93,8 @@ NewTestMesh(
 #endif
 
 
-int main() {
-
+int main()
+{
 	MT_Vector3 min,max;
 	MT_Vector3 min2,max2;
 
