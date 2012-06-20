@@ -71,7 +71,9 @@ void ViewerBaseOperation::initImage()
 		imb_addrectfloatImBuf(ibuf);
 		anImage->ok = IMA_OK_LOADED;
 	}
-	
+
+	imb_freerectviewImBuf_all(ibuf);
+
 	/* now we combine the input with ibuf */
 	this->outputBuffer = ibuf->rect_float;
 	this->outputBufferDisplay = (unsigned char *)ibuf->rect;
@@ -85,6 +87,10 @@ void ViewerBaseOperation:: updateImage(rcti *rect)
 
 void ViewerBaseOperation::deinitExecution()
 {
+	ImBuf *ibuf = BKE_image_acquire_ibuf(this->image, this->imageUser, &this->lock);
+	imb_freerectviewImBuf_all(ibuf);
+	BKE_image_release_ibuf(this->image, this->lock);
+
 	this->outputBuffer = NULL;
 }
 

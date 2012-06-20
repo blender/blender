@@ -705,7 +705,7 @@ void IMB_rect_from_float_with_view_transform(ImBuf *ibuf, int view_transform)
 		                                       ibuf->channels, ibuf->dither, predivide,
 		                                       ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 	}
-	else {
+	else if (ibuf->x && ibuf->y) {
 		ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 		ConstProcessorRcPtr *processor;
 		DisplayTransformRcPtr *dt = OCIO_createDisplayTransform();
