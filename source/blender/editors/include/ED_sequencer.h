@@ -33,4 +33,6 @@ struct Sequence;
 void ED_sequencer_select_sequence_single(struct Scene *scene, struct Sequence *seq, int deselect_all);
 void ED_sequencer_deselect_all(struct Scene *scene);
 
+void ED_operatormacros_sequencer(void);
+
 #endif /*  __ED_SEQUENCER_H__ */

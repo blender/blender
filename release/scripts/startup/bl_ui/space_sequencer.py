@@ -256,7 +256,7 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.rebuild_proxy")
         layout.separator()
 
-        layout.operator("sequencer.duplicate")
+        layout.operator("sequencer.duplicate_move")
         layout.operator("sequencer.delete")
 
         strip = act_strip(context)
