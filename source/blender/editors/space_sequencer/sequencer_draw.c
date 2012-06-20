@@ -72,8 +72,11 @@
 #include "sequencer_intern.h"
 
 
-#define SEQ_LEFTHANDLE      1
-#define SEQ_RIGHTHANDLE 2
+#define SEQ_LEFTHANDLE   1
+#define SEQ_RIGHTHANDLE  2
+
+#define SEQ_HANDLE_SIZE_MIN  7.0f
+#define SEQ_HANDLE_SIZE_MAX 40.0f
 
 
 /* Note, Don't use SEQ_BEGIN/SEQ_END while drawing!
@@ -325,13 +328,19 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 	glDisable(GL_BLEND);
 }
 
+/* clamp handles to defined size in pixel space */
+static float draw_seq_handle_size_get_clamped(Sequence *seq, const float pixelx)
+{
+	const float minhandle = pixelx * SEQ_HANDLE_SIZE_MIN;
+	const float maxhandle = pixelx * SEQ_HANDLE_SIZE_MAX;
+	return CLAMPIS(seq->handsize, minhandle, maxhandle);
+}
+
 /* draw a handle, for each end of a sequence strip */
-static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short direction)
+static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_clamped, const short direction)
 {
 	float v1[2], v2[2], v3[2], rx1 = 0, rx2 = 0; //for triangles and rect
 	float x1, x2, y1, y2;
-	float handsize;
-	float minhandle, maxhandle;
 	char numstr[32];
 	unsigned int whichsel = 0;
 	
@@ -340,31 +349,25 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 	
 	y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
 	y2 = seq->machine + SEQ_STRIP_OFSTOP;
-	
-	/* clamp handles to defined size in pixel space */
-	handsize = seq->handsize;
-	minhandle = 7;
-	maxhandle = 40;
-	CLAMP(handsize, minhandle * pixelx, maxhandle * pixelx);
-	
+
 	/* set up co-ordinates/dimensions for either left or right handle */
 	if (direction == SEQ_LEFTHANDLE) {	
 		rx1 = x1;
-		rx2 = x1 + handsize * 0.75f;
+		rx2 = x1 + handsize_clamped * 0.75f;
 		
-		v1[0] = x1 + handsize / 4; v1[1] = y1 + ( ((y1 + y2) / 2.0f - y1) / 2);
-		v2[0] = x1 + handsize / 4; v2[1] = y2 - ( ((y1 + y2) / 2.0f - y1) / 2);
-		v3[0] = v2[0] + handsize / 4; v3[1] = (y1 + y2) / 2.0f;
+		v1[0] = x1 + handsize_clamped / 4; v1[1] = y1 + ( ((y1 + y2) / 2.0f - y1) / 2);
+		v2[0] = x1 + handsize_clamped / 4; v2[1] = y2 - ( ((y1 + y2) / 2.0f - y1) / 2);
+		v3[0] = v2[0] + handsize_clamped / 4; v3[1] = (y1 + y2) / 2.0f;
 		
 		whichsel = SEQ_LEFTSEL;
 	}
 	else if (direction == SEQ_RIGHTHANDLE) {
-		rx1 = x2 - handsize * 0.75f;
+		rx1 = x2 - handsize_clamped * 0.75f;
 		rx2 = x2;
 		
-		v1[0] = x2 - handsize / 4; v1[1] = y1 + ( ((y1 + y2) / 2.0f - y1) / 2);
-		v2[0] = x2 - handsize / 4; v2[1] = y2 - ( ((y1 + y2) / 2.0f - y1) / 2);
-		v3[0] = v2[0] - handsize / 4; v3[1] = (y1 + y2) / 2.0f;
+		v1[0] = x2 - handsize_clamped / 4; v1[1] = y1 + ( ((y1 + y2) / 2.0f - y1) / 2);
+		v2[0] = x2 - handsize_clamped / 4; v2[1] = y2 - ( ((y1 + y2) / 2.0f - y1) / 2);
+		v3[0] = v2[0] - handsize_clamped / 4; v3[1] = (y1 + y2) / 2.0f;
 		
 		whichsel = SEQ_RIGHTSEL;
 	}
@@ -404,7 +407,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 		}
 		else {
 			BLI_snprintf(numstr, sizeof(numstr), "%d", seq->enddisp - 1);
-			x1 = x2 - handsize * 0.75f;
+			x1 = x2 - handsize_clamped * 0.75f;
 			y1 = y2 + 0.05f;
 		}
 		UI_view2d_text_cache_add(v2d, x1, y1, numstr, col);
@@ -679,6 +682,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	View2D *v2d = &ar->v2d;
 	float x1, x2, y1, y2;
 	unsigned char col[3], background_col[3], is_single_image;
+	const float handsize_clamped = draw_seq_handle_size_get_clamped(seq, pixelx);
 
 	/* we need to know if this is a single image/color or not for drawing */
 	is_single_image = (char)seq_single_check(seq);
@@ -706,8 +710,8 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	if (!is_single_image)
 		draw_seq_extensions(scene, ar, seq);
 	
-	draw_seq_handle(v2d, seq, pixelx, SEQ_LEFTHANDLE);
-	draw_seq_handle(v2d, seq, pixelx, SEQ_RIGHTHANDLE);
+	draw_seq_handle(v2d, seq, handsize_clamped, SEQ_LEFTHANDLE);
+	draw_seq_handle(v2d, seq, handsize_clamped, SEQ_RIGHTHANDLE);
 	
 	/* draw the strip outline */
 	x1 = seq->startdisp;
@@ -766,8 +770,8 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	}
 	
 	/* calculate if seq is long enough to print a name */
-	x1 = seq->startdisp + seq->handsize;
-	x2 = seq->enddisp - seq->handsize;
+	x1 = seq->startdisp + handsize_clamped;
+	x2 = seq->enddisp   - handsize_clamped;
 
 	/* info text on the strip */
 	if (x1 < v2d->cur.xmin) x1 = v2d->cur.xmin;
