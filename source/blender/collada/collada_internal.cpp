@@ -31,7 +31,9 @@
 
 #include "BLI_linklist.h"
 
-UnitConverter::UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP) {
+UnitConverter::UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP)
+{
+	/* pass */
 }
 
 void UnitConverter::read_asset(const COLLADAFW::FileInfo *asset)

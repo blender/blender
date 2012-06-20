@@ -194,7 +194,8 @@ void NodeOperation::COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel ke
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
 }
 
-void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer) {
+void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer)
+{
 	cl_int error;
 	const size_t size[] = {outputMemoryBuffer->getWidth(), outputMemoryBuffer->getHeight()};
 	
@@ -202,7 +203,8 @@ void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel,
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 }
 
-void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex) {
+void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex)
+{
 	cl_int error;
 	const int width = outputMemoryBuffer->getWidth();
 	const int height = outputMemoryBuffer->getHeight();
