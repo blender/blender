@@ -121,7 +121,7 @@ void ED_mask_point_pos__reverse(const bContext *C, float x, float y, float *xr, 
 		co[0] = x;
 		co[1] = y;
 		BKE_mask_coord_to_movieclip(sc->clip, &sc->user, co, co);
-		ED_clip_point_stable_pos__reverse(sc, ar, co, co);
+		ED_clip_point_stable_pos__reverse(C, co, co);
 	}
 	else {
 		/* possible other spaces from which mask editing is available */
@@ -137,8 +137,7 @@ void ED_mask_size(const bContext *C, int *width, int *height)
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacedata.first) {
 		if (sa->spacetype == SPACE_CLIP) {
-			SpaceClip *sc = sa->spacedata.first;
-			ED_space_clip_get_mask_size(sc, width, height);
+			ED_space_clip_get_size(C, width, height);
 			return;
 		}
 		else if (sa->spacetype == SPACE_SEQ) {
@@ -159,7 +158,7 @@ void ED_mask_aspect(const bContext *C, float *aspx, float *aspy)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc) {
-		ED_space_clip_get_mask_aspect(sc, aspx, aspy);
+		ED_space_clip_get_aspect(sc, aspx, aspy);
 	}
 	else {
 		/* possible other spaces from which mask editing is available */
@@ -173,13 +172,12 @@ void ED_mask_pixelspace_factor(const bContext *C, float *scalex, float *scaley)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc) {
-		ARegion *ar = CTX_wm_region(C);
 		int width, height;
 		float zoomx, zoomy, aspx, aspy;
 
-		ED_space_clip_get_clip_size(sc, &width, &height);
-		ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
-		ED_space_clip_get_clip_aspect(sc, &aspx, &aspy);
+		ED_space_clip_get_size(C, &width, &height);
+		ED_space_clip_get_zoom(C, &zoomx, &zoomy);
+		ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
 		*scalex = ((float)width * aspx) * zoomx;
 		*scaley = ((float)height * aspy) * zoomy;

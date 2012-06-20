@@ -1408,19 +1408,23 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	glPopMatrix();
 }
 
-void clip_draw_main(SpaceClip *sc, ARegion *ar, Scene *scene)
+void clip_draw_main(const bContext *C, ARegion *ar)
 {
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
+	Scene *scene = CTX_data_scene(C);
 	ImBuf *ibuf;
 	int width, height;
 	float zoomx, zoomy;
 
-	/* if no clip, nothing to do */
-	if (!clip)
-		return;
+	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_zoom(C, &zoomx, &zoomy);
 
-	ED_space_clip_get_clip_size(sc, &width, &height);
-	ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+	/* if no clip, nothing to do */
+	if (!clip) {
+		ED_region_grid_draw(ar, zoomx, zoomy);
+		return;
+	}
 
 	if (sc->flag & SC_SHOW_STABLE) {
 		float smat[4][4], ismat[4][4];

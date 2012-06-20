@@ -110,15 +110,16 @@ static int mouse_on_crns(float co[2], float pos[2], float crns[4][2], float epsx
 	return dist < MAX2(epsx, epsy);
 }
 
-static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *track)
+static int track_mouse_area(const bContext *C, float co[2], MovieTrackingTrack *track)
 {
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 	float pat_min[2], pat_max[2];
 	float epsx, epsy;
 	int width, height;
 
-	ED_space_clip_get_clip_size(sc, &width, &height);
+	ED_space_clip_get_size(C, &width, &height);
 
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 
@@ -235,7 +236,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	track = find_nearest_track(sc, tracksbase, co);
 
 	if (track) {
-		int area = track_mouse_area(sc, co, track);
+		int area = track_mouse_area(C, co, track);
 
 		if (!extend || !TRACK_VIEW_SELECTED(sc, track))
 			area = TRACK_AREA_ALL;
@@ -412,7 +413,6 @@ void CLIP_OT_select_border(wmOperatorType *ot)
 
 static int do_lasso_select_marker(bContext *C, int mcords[][2], short moves, short select)
 {
-	ARegion *ar = CTX_wm_region(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
@@ -435,7 +435,7 @@ static int do_lasso_select_marker(bContext *C, int mcords[][2], short moves, sho
 				float screen_co[2];
 
 				/* marker in screen coords */
-				ED_clip_point_stable_pos__reverse(sc, ar, marker->pos, screen_co);
+				ED_clip_point_stable_pos__reverse(C, marker->pos, screen_co);
 
 				if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
@@ -520,7 +520,6 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
-	ARegion *ar = CTX_wm_region(C);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
@@ -536,8 +535,8 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	mode = RNA_int_get(op->ptr, "gesture_mode");
 
 	/* compute ellipse and position in unified coordinates */
-	ED_space_clip_get_clip_size(sc, &width, &height);
-	ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_zoom(C, &zoomx, &zoomy);
 
 	ellipse[0] = width * zoomx / radius;
 	ellipse[1] = height * zoomy / radius;

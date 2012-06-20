@@ -69,8 +69,10 @@
 
 /******************** view navigation utilities *********************/
 
-static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float location[2])
+static void sclip_zoom_set(const bContext *C, float zoom, float location[2])
 {
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
 	float oldzoom = sc->zoom;
 	int width, height;
 
@@ -78,7 +80,7 @@ static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float locatio
 
 	if (sc->zoom < 0.1f || sc->zoom > 4.0f) {
 		/* check zoom limits */
-		ED_space_clip_get_clip_size(sc, &width, &height);
+		ED_space_clip_get_size(C, &width, &height);
 
 		width *= sc->zoom;
 		height *= sc->zoom;
@@ -92,22 +94,22 @@ static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float locatio
 	}
 
 	if ((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
-		ED_space_clip_get_clip_size(sc, &width, &height);
+		ED_space_clip_get_size(C, &width, &height);
 
 		sc->xof += ((location[0] - 0.5f) * width - sc->xof) * (sc->zoom - oldzoom) / sc->zoom;
 		sc->yof += ((location[1] - 0.5f) * height - sc->yof) * (sc->zoom - oldzoom) / sc->zoom;
 	}
 }
 
-static void sclip_zoom_set_factor(SpaceClip *sc, ARegion *ar, float zoomfac, float location[2])
+static void sclip_zoom_set_factor(const bContext *C, float zoomfac, float location[2])
 {
-	sclip_zoom_set(sc, ar, sc->zoom*zoomfac, location);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	sclip_zoom_set(C, sc->zoom * zoomfac, location);
 }
 
 static void sclip_zoom_set_factor_exec(bContext *C, wmEvent *event, float factor)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	ARegion *ar = CTX_wm_region(C);
 	float location[2], *mpos = NULL;
 
 	if (event) {
@@ -115,7 +117,7 @@ static void sclip_zoom_set_factor_exec(bContext *C, wmEvent *event, float factor
 		mpos = location;
 	}
 
-	sclip_zoom_set_factor(sc, ar, factor, mpos);
+	sclip_zoom_set_factor(C, factor, mpos);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
@@ -494,10 +496,7 @@ static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 
 static int view_zoom_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	ARegion *ar = CTX_wm_region(C);
-
-	sclip_zoom_set_factor(sc, ar, RNA_float_get(op->ptr, "factor"), NULL);
+	sclip_zoom_set_factor(C, RNA_float_get(op->ptr, "factor"), NULL);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -525,8 +524,6 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	ARegion *ar = CTX_wm_region(C);
 	ViewZoomData *vpd = op->customdata;
 	float factor;
 
@@ -534,7 +531,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 			factor = 1.0f + (vpd->x - event->x + vpd->y - event->y) / 300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
-			sclip_zoom_set(sc, ar, vpd->zoom * factor, vpd->location);
+			sclip_zoom_set(C, vpd->zoom * factor, vpd->location);
 			ED_region_tag_redraw(CTX_wm_region(C));
 			break;
 		default:
@@ -582,13 +579,11 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 
 static int view_zoom_in_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	ARegion *ar = CTX_wm_region(C);
 	float location[2];
 
 	RNA_float_get_array(op->ptr, "location", location);
 
-	sclip_zoom_set_factor(sc, ar, 1.25f, location);
+	sclip_zoom_set_factor(C, 1.25f, location);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -624,13 +619,11 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 
 static int view_zoom_out_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	ARegion *ar = CTX_wm_region(C);
 	float location[2];
 
 	RNA_float_get_array(op->ptr, "location", location);
 
-	sclip_zoom_set_factor(sc, ar, 0.8f, location);
+	sclip_zoom_set_factor(C, 0.8f, location);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -669,9 +662,8 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	ARegion *ar = CTX_wm_region(C);
 
-	sclip_zoom_set(sc, ar, RNA_float_get(op->ptr, "ratio"), NULL);
+	sclip_zoom_set(C, RNA_float_get(op->ptr, "ratio"), NULL);
 
 	/* ensure pixel exact locations for draw */
 	sc->xof = (int) sc->xof;
@@ -713,8 +705,8 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	sc = CTX_wm_space_clip(C);
 	ar = CTX_wm_region(C);
 
-	ED_space_clip_get_clip_size(sc, &w, &h);
-	ED_space_clip_get_clip_aspect(sc, &aspx, &aspy);
+	ED_space_clip_get_size(C, &w, &h);
+	ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
 	w = w * aspx;
 	h = h * aspy;
@@ -729,7 +721,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 		zoomx = (float) width / (w + 2 * margin);
 		zoomy = (float) height / (h + 2 * margin);
 
-		sclip_zoom_set(sc, ar, MIN2(zoomx, zoomy), NULL);
+		sclip_zoom_set(C, MIN2(zoomx, zoomy), NULL);
 	}
 	else {
 		if ((w >= width || h >= height) && (width > 0 && height > 0)) {
@@ -737,10 +729,10 @@ static int view_all_exec(bContext *C, wmOperator *op)
 			zoomy = (float) height / h;
 
 			/* find the zoom value that will fit the image in the image space */
-			sclip_zoom_set(sc, ar, 1.0f / power_of_2(1.0f / MIN2(zoomx, zoomy)), NULL);
+			sclip_zoom_set(C, 1.0f / power_of_2(1.0f / MIN2(zoomx, zoomy)), NULL);
 		}
 		else
-			sclip_zoom_set(sc, ar, 1.0f, NULL);
+			sclip_zoom_set(C, 1.0f, NULL);
 	}
 
 	sc->xof = sc->yof = 0.0f;
@@ -775,7 +767,7 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	sc->xlockof = 0.0f;
 	sc->ylockof = 0.0f;
 
-	ED_clip_view_selection(sc, ar, 1);
+	ED_clip_view_selection(C, ar, 1);
 	ED_region_tag_redraw(CTX_wm_region(C));
 
 	return OPERATOR_FINISHED;
