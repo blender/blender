@@ -265,6 +265,7 @@ static int selected_boundbox(const bContext *C, float min[2], float max[2])
 	MovieTrackingTrack *track;
 	int width, height, ok = FALSE;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	INIT_MINMAX2(min, max);
 
@@ -273,7 +274,7 @@ static int selected_boundbox(const bContext *C, float min[2], float max[2])
 	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track)) {
-			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, sc->user.framenr);
+			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
 			if (marker) {
 				float pos[3];

@@ -643,7 +643,7 @@ static void recalcData_spaceclip(TransInfo *t)
 		MovieClip *clip = ED_space_clip_get_clip(sc);
 		ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 		MovieTrackingTrack *track;
-		int framenr = sc->user.framenr;
+		int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 		flushTransTracking(t);
 

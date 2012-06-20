@@ -1318,7 +1318,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		MovieTrackingTrack *track = BKE_tracking_track_get_active(&sc->clip->tracking);
 
 		if (track) {
-			int framenr = sc->user.framenr;
+			int framenr = ED_space_clip_get_clip_frame_number(sc);
 			MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
 
 			offsx = marker->pos[0];
@@ -1496,7 +1496,7 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 				MovieTrackingTrack *track = BKE_tracking_track_get_active(&sc->clip->tracking);
 
 				if (track) {
-					int framenr = sc->user.framenr;
+					int framenr = ED_space_clip_get_clip_frame_number(sc);
 					/* don't get the exact marker since it may not exist for the frame */
 					MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 					if (marker) {
