@@ -254,6 +254,16 @@ static void xml_read_film(const XMLReadState& state, pugi::xml_node node)
 static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 {
 	Integrator *integrator = state.scene->integrator;
+	
+	xml_read_bool(&integrator->progressive, node, "progressive");
+	
+	if(!integrator->progressive) {
+		xml_read_int(&integrator->diffuse_samples, node, "diffuse_samples");
+		xml_read_int(&integrator->glossy_samples, node, "glossy_samples");
+		xml_read_int(&integrator->transmission_samples, node, "transmission_samples");
+		xml_read_int(&integrator->ao_samples, node, "ao_samples");
+		xml_read_int(&integrator->mesh_light_samples, node, "mesh_light_samples");
+	}
 
 	xml_read_int(&integrator->min_bounce, node, "min_bounce");
 	xml_read_int(&integrator->max_bounce, node, "max_bounce");
@@ -267,8 +277,10 @@ static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 	
 	xml_read_bool(&integrator->transparent_shadows, node, "transparent_shadows");
 	xml_read_bool(&integrator->no_caustics, node, "no_caustics");
+	xml_read_float(&integrator->blur_glossy, node, "blur_glossy");
 	
 	xml_read_int(&integrator->seed, node, "seed");
+	xml_read_float(&integrator->sample_clamp, node, "sample_clamp");
 }
 
 /* Camera */
