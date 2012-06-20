@@ -146,7 +146,7 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, sh
 
 void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	View2D *v2d = &ar->v2d;
 
 	/* frame range */
@@ -256,7 +256,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	View2D *v2d = &ar->v2d;
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking;
 	MovieTrackingDopesheet *dopesheet;
 	MovieTrackingDopesheetChannel *channel;

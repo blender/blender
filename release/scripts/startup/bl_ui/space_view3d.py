@@ -2391,7 +2391,7 @@ class VIEW3D_PT_view3d_display(Panel):
             col.prop(gs, "material_mode", text="")
             col.prop(view, "show_textured_solid")
 
-        col.prop(view, "show_backface_culling")            
+        col.prop(view, "show_backface_culling")
 
         layout.separator()
 
@@ -2556,7 +2556,7 @@ class VIEW3D_PT_background_image(Panel):
                         has_bg = True
 
                 elif bg.source == 'MOVIE_CLIP':
-                    box.prop(bg, 'use_camera_clip')
+                    box.prop(bg, "use_camera_clip")
 
                     column = box.column()
                     column.active = not bg.use_camera_clip

@@ -489,7 +489,7 @@ def keyconfig_set(filepath):
 
     try:
         keyfile = open(filepath)
-        exec(compile(keyfile.read(), filepath, 'exec'), {"__file__": filepath})
+        exec(compile(keyfile.read(), filepath, "exec"), {"__file__": filepath})
         keyfile.close()
     except:
         import traceback

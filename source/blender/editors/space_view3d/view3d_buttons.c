@@ -834,7 +834,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		uiBlockSetHandleFunc(block, do_view3d_vgroup_buttons, NULL);
 
-		col = uiLayoutColumn(pa->layout, 0);
+		col = uiLayoutColumn(pa->layout, FALSE);
 		block = uiLayoutAbsoluteBlock(col);
 
 		uiBlockBeginAlign(block);
@@ -865,7 +865,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *split, *colsub;
 
-	split = uiLayoutSplit(layout, 0.8, 0);
+	split = uiLayoutSplit(layout, 0.8f, FALSE);
 
 	if (ptr->type == &RNA_PoseBone) {
 		PointerRNA boneptr;
@@ -875,19 +875,19 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 		bone = boneptr.data;
 		uiLayoutSetActive(split, !(bone->parent && bone->flag & BONE_CONNECTED));
 	}
-	colsub = uiLayoutColumn(split, 1);
+	colsub = uiLayoutColumn(split, TRUE);
 	uiItemR(colsub, ptr, "location", 0, NULL, ICON_NONE);
-	colsub = uiLayoutColumn(split, 1);
+	colsub = uiLayoutColumn(split, TRUE);
 	uiItemL(colsub, "", ICON_NONE);
 	uiItemR(colsub, ptr, "lock_location", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
-	split = uiLayoutSplit(layout, 0.8, 0);
+	split = uiLayoutSplit(layout, 0.8f, FALSE);
 
 	switch (RNA_enum_get(ptr, "rotation_mode")) {
 		case ROT_MODE_QUAT: /* quaternion */
-			colsub = uiLayoutColumn(split, 1);
+			colsub = uiLayoutColumn(split, TRUE);
 			uiItemR(colsub, ptr, "rotation_quaternion", 0, IFACE_("Rotation"), ICON_NONE);
-			colsub = uiLayoutColumn(split, 1);
+			colsub = uiLayoutColumn(split, TRUE);
 			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, IFACE_("4L"), ICON_NONE);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
 				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE + UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
@@ -896,9 +896,9 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			break;
 		case ROT_MODE_AXISANGLE: /* axis angle */
-			colsub = uiLayoutColumn(split, 1);
+			colsub = uiLayoutColumn(split, TRUE);
 			uiItemR(colsub, ptr, "rotation_axis_angle", 0, IFACE_("Rotation"), ICON_NONE);
-			colsub = uiLayoutColumn(split, 1);
+			colsub = uiLayoutColumn(split, TRUE);
 			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, IFACE_("4L"), ICON_NONE);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
 				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
@@ -907,19 +907,19 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			break;
 		default: /* euler rotations */
-			colsub = uiLayoutColumn(split, 1);
+			colsub = uiLayoutColumn(split, TRUE);
 			uiItemR(colsub, ptr, "rotation_euler", 0, IFACE_("Rotation"), ICON_NONE);
-			colsub = uiLayoutColumn(split, 1);
+			colsub = uiLayoutColumn(split, TRUE);
 			uiItemL(colsub, "", ICON_NONE);
 			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			break;
 	}
 	uiItemR(layout, ptr, "rotation_mode", 0, "", ICON_NONE);
 
-	split = uiLayoutSplit(layout, 0.8, 0);
-	colsub = uiLayoutColumn(split, 1);
+	split = uiLayoutSplit(layout, 0.8f, FALSE);
+	colsub = uiLayoutColumn(split, TRUE);
 	uiItemR(colsub, ptr, "scale", 0, NULL, ICON_NONE);
-	colsub = uiLayoutColumn(split, 1);
+	colsub = uiLayoutColumn(split, TRUE);
 	uiItemL(colsub, "", ICON_NONE);
 	uiItemR(colsub, ptr, "lock_scale", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
@@ -948,7 +948,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 
 	RNA_pointer_create(&ob->id, &RNA_PoseBone, pchan, &pchanptr);
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 
 	/* XXX: RNA buts show data in native types (i.e. quats, 4-component axis/angle, etc.)
 	 * but old-school UI shows in eulers always. Do we want to be able to still display in Eulers?
@@ -972,7 +972,7 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 
 	RNA_pointer_create(&arm->id, &RNA_EditBone, ebone, &eboneptr);
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, &eboneptr, "head", 0, NULL, ICON_NONE);
 	if (ebone->parent && ebone->flag & BONE_CONNECTED) {
 		PointerRNA parptr = RNA_pointer_get(&eboneptr, "parent");
@@ -1002,7 +1002,7 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 
 	RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem, &ptr);
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, &ptr, "co", 0, NULL, ICON_NONE);
 
 	uiItemR(col, &ptr, "radius", 0, NULL, ICON_NONE);
@@ -1010,7 +1010,7 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 
 	uiItemR(col, &ptr, "type", 0, NULL, ICON_NONE);
 
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	switch (RNA_enum_get(&ptr, "type")) {
 		case MB_BALL:
 			break;
@@ -1081,8 +1081,8 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	block = uiLayoutGetBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
-	col = uiLayoutColumn(pa->layout, 0);
-	/* row = uiLayoutRow(col, 0); */ /* UNUSED */
+	col = uiLayoutColumn(pa->layout, FALSE);
+	/* row = uiLayoutRow(col, FALSE); */ /* UNUSED */
 	RNA_id_pointer_create(&ob->id, &obptr);
 
 	if (ob == obedit) {

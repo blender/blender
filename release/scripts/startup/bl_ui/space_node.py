@@ -205,6 +205,7 @@ class NODE_PT_properties(Panel):
         col.prop(snode, "backdrop_y", text="Y")
         col.operator("node.backimage_move", text="Move")
 
+
 class NODE_PT_quality(bpy.types.Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -225,7 +226,7 @@ class NODE_PT_quality(bpy.types.Panel):
         layout.prop(tree, "chunk_size")
         layout.prop(tree, "use_opencl")
 
-        
+
 class NODE_MT_node_color_presets(Menu):
     """Predefined node color"""
     bl_label = "Color Presets"
@@ -240,8 +241,8 @@ class NODE_MT_node_color_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator('node.node_copy_color', icon='COPY_ID')
+        layout.operator("node.node_copy_color", icon='COPY_ID')
 
-        
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

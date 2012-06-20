@@ -91,7 +91,11 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	graph->addOperation(bokeh);
 	
 	VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
-	operation->setQuality(context->getQuality());
+	if (data->preview) {
+		operation->setQuality(COM_QUALITY_LOW);
+	} else {
+		operation->setQuality(context->getQuality());
+	}
 	operation->setMaxBlur(data->maxblur);
 	operation->setThreshold(data->bthresh);
 	addLink(graph, bokeh->getOutputSocket(), operation->getInputSocket(1));

@@ -183,11 +183,11 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		r_vec[2] = 0.0f;
 
 		if (t->options & CTX_MOVIECLIP) {
-			ED_space_clip_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_clip_get_clip_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
 		}
 		else if (t->options & CTX_MASK) {
 			/* TODO - NOT WORKING, this isnt so bad since its only display aspect */
-			ED_space_clip_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_clip_get_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		}
 
 		r_vec[0] *= aspx;
@@ -254,9 +254,9 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 		copy_v2_v2(v, vec);
 
 		if (t->options & CTX_MOVIECLIP)
-			ED_space_clip_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_clip_get_clip_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
 		else if (t->options & CTX_MASK)
-			ED_space_clip_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_clip_get_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
 
 		v[0] /= aspx;
 		v[1] /= aspy;
@@ -317,13 +317,13 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 
 
 			if (t->options & CTX_MOVIECLIP) {
-				ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
+				ED_space_clip_get_clip_aspect_dimension_aware(sc, &aspx, &aspy);
 
 				vec[0] /= aspx;
 				vec[1] /= aspy;
 			}
 			else if (t->options & CTX_MASK) {
-				ED_space_clip_mask_aspect(sc, &aspx, &aspy);
+				ED_space_clip_get_mask_aspect(sc, &aspx, &aspy);
 
 				vec[0] /= aspx;
 				vec[1] /= aspy;
@@ -356,10 +356,10 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 			float aspx = 1.0f, aspy = 1.0f;
 
 			if (t->options & CTX_MOVIECLIP) {
-				ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
+				ED_space_clip_get_clip_aspect_dimension_aware(sc, &aspx, &aspy);
 			}
 			else if (t->options & CTX_MASK) {
-				ED_space_clip_mask_aspect(sc, &aspx, &aspy);
+				ED_space_clip_get_mask_aspect(sc, &aspx, &aspy);
 			}
 
 			vec[0] *= aspx;
@@ -410,16 +410,16 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	else if (t->spacetype == SPACE_CLIP) {
 		SpaceClip *sc = (SpaceClip *)t->sa->spacedata.first;
 
-		if (ED_space_clip_show_trackedit(sc)) {
-			MovieClip *clip = ED_space_clip(sc);
+		if (ED_space_clip_check_show_trackedit(sc)) {
+			MovieClip *clip = ED_space_clip_get_clip(sc);
 
 			/* objects could be parented to tracking data, so send this for viewport refresh */
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
 			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 		}
-		else if (ED_space_clip_show_maskedit(sc)) {
-			Mask *mask = ED_space_clip_mask(sc);
+		else if (ED_space_clip_check_show_maskedit(sc)) {
+			Mask *mask = ED_space_clip_get_mask(sc);
 
 			WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 		}

@@ -887,9 +887,9 @@ if __name__ == "__main__":
     # Example, should be called externally
     # (class, from, to)
     replace_ls = [
-        ('AnimVizMotionPaths', 'frame_after', 'frame_after'),
-        ('AnimVizMotionPaths', 'frame_before', 'frame_before'),
-        ('AnimVizOnionSkinning', 'frame_after', 'frame_after'),
+        ("AnimVizMotionPaths", "frame_after", "frame_after"),
+        ("AnimVizMotionPaths", "frame_before", "frame_before"),
+        ("AnimVizOnionSkinning", "frame_after", "frame_after"),
     ]
 
     update_data_paths(replace_ls)

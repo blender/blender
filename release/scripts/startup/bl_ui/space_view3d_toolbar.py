@@ -987,7 +987,7 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
             col.prop(mesh, "use_mirror_topology")
 
         col.prop(wpaint, "input_samples")
-        
+
         self.unified_paint_settings(col, context)
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
@@ -1138,7 +1138,7 @@ class VIEW3D_MT_tools_projectpaint_stencil(Menu):
 
 
 class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
-    '''default tools for particle mode'''
+    """default tools for particle mode"""
     bl_context = "particlemode"
     bl_label = "Options"
 

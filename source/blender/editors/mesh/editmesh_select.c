@@ -1044,6 +1044,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 //			if (EM_texFaceCheck())
 		
 		/* sets as active, useful for other tools */
+#if 0
 		if (select) {
 			if (em->selectmode & SCE_SELECT_VERTEX) {
 				/* TODO: would be nice if the edge vertex chosen here
@@ -1058,6 +1059,8 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 			 * belongs to the selected edge could be set to
 			 * active here in face select mode */
 		}
+#endif
+		mouse_mesh(C, mval, select, TRUE, FALSE);
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit);
 	}
