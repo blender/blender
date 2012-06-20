@@ -1270,12 +1270,12 @@ void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
 	clip->id.us = 0;
 }
 
-int BKE_movieclip_remap_scene_to_clip_frame(MovieClip *clip, int framenr)
+float BKE_movieclip_remap_scene_to_clip_frame(MovieClip *clip, float framenr)
 {
-	return framenr - clip->start_frame + 1;
+	return framenr - (float) clip->start_frame + 1.0f;
 }
 
-int BKE_movieclip_remap_clip_to_scene_frame(MovieClip *clip, int framenr)
+float BKE_movieclip_remap_clip_to_scene_frame(MovieClip *clip, float framenr)
 {
-	return framenr + clip->start_frame - 1;
+	return framenr + (float) clip->start_frame - 1.0f;
 }
