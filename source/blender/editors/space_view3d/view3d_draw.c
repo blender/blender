@@ -1589,6 +1589,11 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				 * be dereferenced after usage. */
 				freeibuf = ibuf;
 			}
+			else {
+				/* perhaps when loading future files... */
+				BLI_assert(0);
+				copy_v2_fl(image_aspect, 1.0f);
+			}
 
 			if (ibuf == NULL)
 				continue;
