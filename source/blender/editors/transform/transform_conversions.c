@@ -5736,7 +5736,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	if (t->total == 0)
 		return;
 
-	ED_space_clip_get_clip_aspect_dimension_aware(sc, &aspx, &aspy);
+	ED_space_clip_get_aspect_dimension_aware(sc, &aspx, &aspy);
 
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransTracking TransData");
 	td2d = t->data2d = MEM_callocN(t->total * sizeof(TransData2D), "TransTracking TransData2D");
@@ -5992,7 +5992,7 @@ void flushTransTracking(TransInfo *t)
 	int a;
 	float aspx, aspy;
 
-	ED_space_clip_get_clip_aspect_dimension_aware(sc, &aspx, &aspy);
+	ED_space_clip_get_aspect_dimension_aware(sc, &aspx, &aspy);
 
 	if (t->state == TRANS_CANCEL)
 		cancelTransTracking(t);
@@ -6072,7 +6072,7 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
 	tdm->point = point;
 	copy_m3_m3(tdm->vec, bezt->vec);
 
-	ED_space_clip_get_mask_aspect(sc, &aspx, &aspy);
+	ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
 	if (propmode || is_sel_point) {
 		int i;
@@ -6250,7 +6250,7 @@ void flushTransMasking(TransInfo *t)
 	int a;
 	float aspx, aspy, invx, invy;
 
-	ED_space_clip_get_mask_aspect(sc, &aspx, &aspy);
+	ED_space_clip_get_aspect(sc, &aspx, &aspy);
 	invx = 1.0f / aspx;
 	invy = 1.0f / aspy;
 

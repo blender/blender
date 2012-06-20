@@ -581,8 +581,6 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	MaskLayer *masklay;
 	int i;
 
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	ARegion *ar = CTX_wm_region(C);
 	int x, y, radius, width, height, mode, change = FALSE;
 	float zoomx, zoomy, offset[2], ellipse[2];
 
@@ -595,8 +593,8 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
 	/* TODO - make generic! - this is SpaceClip only! */
 	/* compute ellipse and position in unified coordinates */
-	ED_space_clip_get_clip_size(sc, &width, &height);
-	ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_zoom(C, &zoomx, &zoomy);
 	width = height = MAX2(width, height);
 
 	ellipse[0] = width * zoomx / radius;
