@@ -116,7 +116,8 @@ static void draw_spline_parents(MaskLayer *UNUSED(masklay), MaskSpline *spline)
 #endif
 
 /* return non-zero if spline is selected */
-static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline)
+static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
+                               const char UNUSED(draw_flag), const char draw_type)
 {
 	const int is_spline_sel = (spline->flag & SELECT) && (masklay->restrictflag & MASK_RESTRICT_SELECT) == 0;
 	unsigned char rgb_spline[4];
@@ -188,8 +189,20 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline)
 
 		/* draw handle segment */
 		if (has_handle) {
-			glColor3ubv(rgb_spline);
 
+			/* this could be split into its own loop */
+			if (draw_type == MASK_DT_OUTLINE) {
+				const unsigned char rgb_grey[4] = {0x60, 0x60, 0x60, 0xff};
+				glLineWidth(3);
+				glColor4ubv(rgb_grey);
+				glBegin(GL_LINES);
+				glVertex3fv(vert);
+				glVertex3fv(handle);
+				glEnd();
+				glLineWidth(1);
+			}
+
+			glColor3ubv(rgb_spline);
 			glBegin(GL_LINES);
 			glVertex3fv(vert);
 			glVertex3fv(handle);
@@ -415,7 +428,7 @@ static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type
 
 			if (!(masklay->restrictflag & MASK_RESTRICT_SELECT)) {
 				/* ...and then handles over the curve so they're nicely visible */
-				draw_spline_points(masklay, spline);
+				draw_spline_points(masklay, spline, draw_flag, draw_type);
 			}
 
 			/* show undeform for testing */
@@ -425,7 +438,7 @@ static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type
 				spline->points_deform = NULL;
 				draw_spline_curve(masklay, spline, draw_flag, draw_type, is_active, width, height);
 //				draw_spline_parents(masklay, spline);
-				draw_spline_points(masklay, spline);
+				draw_spline_points(masklay, spline, draw_flag, draw_type);
 				spline->points_deform = back;
 			}
 		}

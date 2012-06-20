@@ -22,6 +22,7 @@
 
 #include "COM_DilateErodeOperation.h"
 #include "BLI_math.h"
+#include "COM_OpenCLDevice.h"
 
 // DilateErode Distance Threshold
 DilateErodeThresholdOperation::DilateErodeThresholdOperation() : NodeOperation()
@@ -234,24 +235,24 @@ bool DilateDistanceOperation::determineDependingAreaOfInterest(rcti *input, Read
 }
 
 static cl_kernel dilateKernel = 0;
-void DilateDistanceOperation::executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
+void DilateDistanceOperation::executeOpenCL(OpenCLDevice* device,
                                             MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
                                             MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
                                             list<cl_kernel> *clKernelsToCleanUp)
 {
 	if (!dilateKernel) {
-		dilateKernel = COM_clCreateKernel(program, "dilateKernel", NULL);
+		dilateKernel = device->COM_clCreateKernel("dilateKernel", NULL);
 	}
 	cl_int distanceSquared = this->distance * this->distance;
 	cl_int scope = this->scope;
 	
-	COM_clAttachMemoryBufferToKernelParameter(context, dilateKernel, 0,  2, clMemToCleanUp, inputMemoryBuffers, this->inputProgram);
-	COM_clAttachOutputMemoryBufferToKernelParameter(dilateKernel, 1, clOutputBuffer);
-	COM_clAttachMemoryBufferOffsetToKernelParameter(dilateKernel, 3, outputMemoryBuffer);
+	device->COM_clAttachMemoryBufferToKernelParameter(dilateKernel, 0,  2, clMemToCleanUp, inputMemoryBuffers, this->inputProgram);
+	device->COM_clAttachOutputMemoryBufferToKernelParameter(dilateKernel, 1, clOutputBuffer);
+	device->COM_clAttachMemoryBufferOffsetToKernelParameter(dilateKernel, 3, outputMemoryBuffer);
 	clSetKernelArg(dilateKernel, 4, sizeof(cl_int), &scope);
 	clSetKernelArg(dilateKernel, 5, sizeof(cl_int), &distanceSquared);
-	COM_clAttachSizeToKernelParameter(dilateKernel, 6);
-	COM_clEnqueueRange(queue, dilateKernel, outputMemoryBuffer, 7);
+	device->COM_clAttachSizeToKernelParameter(dilateKernel, 6, this);
+	device->COM_clEnqueueRange(dilateKernel, outputMemoryBuffer, 7, this);
 }
 
 // Erode Distance
@@ -293,24 +294,24 @@ void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuff
 }
 
 static cl_kernel erodeKernel = 0;
-void ErodeDistanceOperation::executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
+void ErodeDistanceOperation::executeOpenCL(OpenCLDevice* device,
                                            MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
                                            MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
                                            list<cl_kernel> *clKernelsToCleanUp)
 {
 	if (!erodeKernel) {
-		erodeKernel = COM_clCreateKernel(program, "erodeKernel", NULL);
+		erodeKernel = device->COM_clCreateKernel("erodeKernel", NULL);
 	}
 	cl_int distanceSquared = this->distance * this->distance;
 	cl_int scope = this->scope;
 	
-	COM_clAttachMemoryBufferToKernelParameter(context, erodeKernel, 0,  2, clMemToCleanUp, inputMemoryBuffers, this->inputProgram);
-	COM_clAttachOutputMemoryBufferToKernelParameter(erodeKernel, 1, clOutputBuffer);
-	COM_clAttachMemoryBufferOffsetToKernelParameter(erodeKernel, 3, outputMemoryBuffer);
+	device->COM_clAttachMemoryBufferToKernelParameter(erodeKernel, 0,  2, clMemToCleanUp, inputMemoryBuffers, this->inputProgram);
+	device->COM_clAttachOutputMemoryBufferToKernelParameter(erodeKernel, 1, clOutputBuffer);
+	device->COM_clAttachMemoryBufferOffsetToKernelParameter(erodeKernel, 3, outputMemoryBuffer);
 	clSetKernelArg(erodeKernel, 4, sizeof(cl_int), &scope);
 	clSetKernelArg(erodeKernel, 5, sizeof(cl_int), &distanceSquared);
-	COM_clAttachSizeToKernelParameter(erodeKernel, 6);
-	COM_clEnqueueRange(queue, erodeKernel, outputMemoryBuffer, 7);
+	device->COM_clAttachSizeToKernelParameter(erodeKernel, 6, this);
+	device->COM_clEnqueueRange(erodeKernel, outputMemoryBuffer, 7, this);
 }
 
 // Dilate step

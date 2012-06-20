@@ -257,7 +257,10 @@ void WorkScheduler::initialize()
 				unsigned int indexDevices;
 				for (indexDevices = 0; indexDevices < totalNumberOfDevices; indexDevices++) {
 					cl_device_id device = cldevices[indexDevices];
-					OpenCLDevice *clDevice = new OpenCLDevice(context, device, program);
+					cl_int vendorID = 0;
+					cl_int error = clGetDeviceInfo(device, CL_DEVICE_VENDOR_ID, sizeof(cl_int), &vendorID, NULL);
+					if (error!= CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
+					OpenCLDevice *clDevice = new OpenCLDevice(context, device, program, vendorID);
 					clDevice->initialize(),
 					    gpudevices.push_back(clDevice);
 					if (G.f & G_DEBUG) {

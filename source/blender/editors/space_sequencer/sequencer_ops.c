@@ -324,7 +324,6 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 void ED_operatormacros_sequencer(void)
 {
 	wmOperatorType *ot;
-	wmOperatorTypeMacro *otmacro;
 
 	ot = WM_operatortype_append_macro("SEQUENCER_OT_duplicate_move", "Duplicate Strips",
 	                                  "Duplicate selected strips and move them", OPTYPE_UNDO | OPTYPE_REGISTER);

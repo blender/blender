@@ -2078,18 +2078,21 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 {
 	View2DString *v2s;
 	int col_pack_prev = 0;
+
+	/* investigate using BLF_ascender() */
+	const float default_height = strings.first ? BLF_height_default("28") : 0.0f;
 	
 	// glMatrixMode(GL_PROJECTION);
 	// glPushMatrix();
 	// glMatrixMode(GL_MODELVIEW);
 	// glPushMatrix();
 	ED_region_pixelspace(ar);
-	
+
 	for (v2s = strings.first; v2s; v2s = v2s->next) {
 		const char *str = (const char *)(v2s + 1);
 		int xofs = 0, yofs;
 
-		yofs = ceil(0.5f * (v2s->rect.ymax - v2s->rect.ymin - BLF_height_default("28")));
+		yofs = ceil(0.5f * (v2s->rect.ymax - v2s->rect.ymin - default_height));
 		if (yofs < 1) yofs = 1;
 
 		if (col_pack_prev != v2s->col.pack) {

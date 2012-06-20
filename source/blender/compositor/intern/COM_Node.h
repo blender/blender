@@ -29,6 +29,7 @@
 #include "COM_CompositorContext.h"
 #include "DNA_node_types.h"
 #include "BKE_text.h"
+#include "COM_ExecutionSystem.h"
 #include <vector>
 #include <string>
 

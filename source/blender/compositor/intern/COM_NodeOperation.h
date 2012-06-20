@@ -22,9 +22,7 @@
 
 #ifndef _COM_NodeOperation_h
 #define _COM_NodeOperation_h
-
-class NodeOperation;
-
+class OpenCLDevice;
 #include "COM_Node.h"
 #include <string>
 #include <sstream>
@@ -150,7 +148,7 @@ public:
 	 * @param memoryBuffers all input MemoryBuffer's needed
 	 * @param outputBuffer the outputbuffer to write to
 	 */
-	virtual void executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, 
+	virtual void executeOpenCLRegion(OpenCLDevice* device, rcti *rect,
 	                                 unsigned int chunkNumber, MemoryBuffer **memoryBuffers, MemoryBuffer *outputBuffer) {}
 
 	/**
@@ -165,7 +163,7 @@ public:
 	 * @param clMemToCleanUp all created cl_mem references must be added to this list. Framework will clean this after execution
 	 * @param clKernelsToCleanUp all created cl_kernel references must be added to this list. Framework will clean this after execution
 	 */
-	virtual void executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp) {}
+	virtual void executeOpenCL(OpenCLDevice* device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp) {}
 	virtual void deinitExecution();
 
 	bool isResolutionSet() {
@@ -272,15 +270,6 @@ protected:
 	 * @brief set if this NodeOperation can be scheduled on a OpenCLDevice
 	 */
 	void setOpenCL(bool openCL) { this->openCL = openCL; }
-
-	static cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_context context, cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader *reader);
-	static void COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel kernel, int offsetIndex, MemoryBuffer *memoryBuffers);
-	static void COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, cl_mem clOutputMemoryBuffer);
-	void COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offsetIndex);
-	static void COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer);
-	void COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex);
-	cl_kernel COM_clCreateKernel(cl_program program, const char *kernelname, list<cl_kernel> *clKernelsToCleanUp);
-
 };
 
 #endif
