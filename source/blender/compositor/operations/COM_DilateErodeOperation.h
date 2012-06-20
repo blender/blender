@@ -99,7 +99,7 @@ public:
 	void setDistance(float distance) { this->distance = distance; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	
-	void executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
+	void executeOpenCL(OpenCLDevice* device,
 	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
 	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
 	                   list<cl_kernel> *clKernelsToCleanUp);
@@ -113,7 +113,7 @@ public:
 	 */
 	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 
-	void executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
+	void executeOpenCL(OpenCLDevice* device,
 	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
 	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
 	                   list<cl_kernel> *clKernelsToCleanUp);

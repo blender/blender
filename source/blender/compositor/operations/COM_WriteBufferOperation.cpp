@@ -23,6 +23,7 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 #include <stdio.h>
+#include "COM_OpenCLDevice.h"
 
 WriteBufferOperation::WriteBufferOperation() : NodeOperation()
 {
@@ -110,7 +111,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 	memoryBuffer->setCreatedState();
 }
 
-void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, unsigned int chunkNumber, MemoryBuffer **inputMemoryBuffers, MemoryBuffer *outputBuffer)
+void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice* device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **inputMemoryBuffers, MemoryBuffer *outputBuffer)
 {
 	float *outputFloatBuffer = outputBuffer->getBuffer();
 	cl_int error;
@@ -131,7 +132,7 @@ void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program pr
 		CL_FLOAT
 	};
 
-	cl_mem clOutputBuffer = clCreateImage2D(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, &imageFormat, outputBufferWidth, outputBufferHeight, 0, outputFloatBuffer, &error);
+	cl_mem clOutputBuffer = clCreateImage2D(device->getContext(), CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, &imageFormat, outputBufferWidth, outputBufferHeight, 0, outputFloatBuffer, &error);
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	
 	// STEP 2
@@ -139,7 +140,7 @@ void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program pr
 	clMemToCleanUp->push_back(clOutputBuffer);
 	list<cl_kernel> *clKernelsToCleanUp = new list<cl_kernel>();
 
-	this->input->executeOpenCL(context, program, queue, outputBuffer, clOutputBuffer, inputMemoryBuffers, clMemToCleanUp, clKernelsToCleanUp);
+	this->input->executeOpenCL(device, outputBuffer, clOutputBuffer, inputMemoryBuffers, clMemToCleanUp, clKernelsToCleanUp);
 
 	// STEP 3
 
@@ -149,9 +150,9 @@ void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program pr
 //	clFlush(queue);
 //	clFinish(queue);
 
-	error = clEnqueueBarrier(queue);
+	error = clEnqueueBarrier(device->getQueue());
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-	error = clEnqueueReadImage(queue, clOutputBuffer, CL_TRUE, origin, region, 0, 0, outputFloatBuffer, 0, NULL, NULL);
+	error = clEnqueueReadImage(device->getQueue(), clOutputBuffer, CL_TRUE, origin, region, 0, 0, outputFloatBuffer, 0, NULL, NULL);
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	
 	this->getMemoryProxy()->getBuffer()->copyContentFrom(outputBuffer);

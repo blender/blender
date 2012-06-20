@@ -22,6 +22,7 @@
 
 #include "COM_BokehBlurOperation.h"
 #include "BLI_math.h"
+#include "COM_OpenCLDevice.h"
 
 extern "C" {
 	#include "RE_pipeline.h"
@@ -160,25 +161,25 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 }
 
 static cl_kernel kernel = 0;
-void BokehBlurOperation::executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
+void BokehBlurOperation::executeOpenCL(OpenCLDevice* device,
                                        MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
                                        MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
                                        list<cl_kernel> *clKernelsToCleanUp) 
 {
 	if (!kernel) {
-		kernel = COM_clCreateKernel(program, "bokehBlurKernel", NULL);
+		kernel = device->COM_clCreateKernel("bokehBlurKernel", NULL);
 	}
 	cl_int radius = this->getWidth() * this->size / 100.0f;
 	cl_int step = this->getStep();
 	
-	COM_clAttachMemoryBufferToKernelParameter(context, kernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->inputBoundingBoxReader);
-	COM_clAttachMemoryBufferToKernelParameter(context, kernel, 1,  4, clMemToCleanUp, inputMemoryBuffers, this->inputProgram);
-	COM_clAttachMemoryBufferToKernelParameter(context, kernel, 2,  -1, clMemToCleanUp, inputMemoryBuffers, this->inputBokehProgram);
-	COM_clAttachOutputMemoryBufferToKernelParameter(kernel, 3, clOutputBuffer);
-	COM_clAttachMemoryBufferOffsetToKernelParameter(kernel, 5, outputMemoryBuffer);
+	device->COM_clAttachMemoryBufferToKernelParameter(kernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->inputBoundingBoxReader);
+	device->COM_clAttachMemoryBufferToKernelParameter(kernel, 1,  4, clMemToCleanUp, inputMemoryBuffers, this->inputProgram);
+	device->COM_clAttachMemoryBufferToKernelParameter(kernel, 2,  -1, clMemToCleanUp, inputMemoryBuffers, this->inputBokehProgram);
+	device->COM_clAttachOutputMemoryBufferToKernelParameter(kernel, 3, clOutputBuffer);
+	device->COM_clAttachMemoryBufferOffsetToKernelParameter(kernel, 5, outputMemoryBuffer);
 	clSetKernelArg(kernel, 6, sizeof(cl_int), &radius);
 	clSetKernelArg(kernel, 7, sizeof(cl_int), &step);
-	COM_clAttachSizeToKernelParameter(kernel, 8);
+	device->COM_clAttachSizeToKernelParameter(kernel, 8, this);
 	
-	COM_clEnqueueRange(queue, kernel, outputMemoryBuffer, 9);	
+	device->COM_clEnqueueRange(kernel, outputMemoryBuffer, 9, this);
 }
