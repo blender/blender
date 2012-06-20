@@ -530,67 +530,67 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 		name = give_seqname(seq);
 
 	if (seq->type == SEQ_TYPE_META || seq->type == SEQ_TYPE_ADJUSTMENT) {
-		BLI_snprintf(str, sizeof(str), "%d | %s", seq->len, name);
+		BLI_snprintf(str, sizeof(str), "%s | %d", name, seq->len);
 	}
 	else if (seq->type == SEQ_TYPE_SCENE) {
 		if (seq->scene) {
 			if (seq->scene_camera) {
-				BLI_snprintf(str, sizeof(str), "%d | %s: %s (%s)",
-				             seq->len, name, seq->scene->id.name + 2, ((ID *)seq->scene_camera)->name + 2);
+				BLI_snprintf(str, sizeof(str), "%s: %s (%s) | %d",
+				             name, seq->scene->id.name + 2, ((ID *)seq->scene_camera)->name + 2, seq->len);
 			}
 			else {
-				BLI_snprintf(str, sizeof(str), "%d | %s: %s",
-				             seq->len, name, seq->scene->id.name + 2);
+				BLI_snprintf(str, sizeof(str), "%s: %s | %d",
+				             name, seq->scene->id.name + 2, seq->len);
 			}
 		}
 		else {
-			BLI_snprintf(str, sizeof(str), "%d | %s",
-			             seq->len, name);
+			BLI_snprintf(str, sizeof(str), "%s | %d",
+			             name, seq->len);
 		}
 	}
 	else if (seq->type == SEQ_TYPE_MOVIECLIP) {
 		if (seq->clip && strcmp(name, seq->clip->id.name + 2) != 0) {
-			BLI_snprintf(str, sizeof(str), "%d | %s: %s",
-			             seq->len, name, seq->clip->id.name + 2);
+			BLI_snprintf(str, sizeof(str), "%s: %s | %d",
+			             name, seq->clip->id.name + 2, seq->len);
 		}
 		else {
-			BLI_snprintf(str, sizeof(str), "%d | %s",
-			             seq->len, name);
+			BLI_snprintf(str, sizeof(str), "%s | %d",
+			             name, seq->len);
 		}
 	}
 	else if (seq->type == SEQ_TYPE_MASK) {
 		if (seq->mask && strcmp(name, seq->mask->id.name + 2) != 0) {
-			BLI_snprintf(str, sizeof(str), "%d | %s: %s",
-			             seq->len, name, seq->mask->id.name + 2);
+			BLI_snprintf(str, sizeof(str), "%s: %s | %d",
+			             name, seq->mask->id.name + 2, seq->len);
 		}
 		else {
-			BLI_snprintf(str, sizeof(str), "%d | %s",
-			             seq->len, name);
+			BLI_snprintf(str, sizeof(str), "%s | %d",
+			             name, seq->len);
 		}
 	}
 	else if (seq->type == SEQ_TYPE_MULTICAM) {
-		BLI_snprintf(str, sizeof(str), "Cam | %s: %d",
+		BLI_snprintf(str, sizeof(str), "Cam %s: %d",
 		             name, seq->multicam_source);
 	}
 	else if (seq->type == SEQ_TYPE_IMAGE) {
-		BLI_snprintf(str, sizeof(str), "%d | %s: %s%s",
-		             seq->len, name, seq->strip->dir, seq->strip->stripdata->name);
+		BLI_snprintf(str, sizeof(str), "%s: %s%s | %d",
+		             name, seq->strip->dir, seq->strip->stripdata->name, seq->len);
 	}
 	else if (seq->type & SEQ_TYPE_EFFECT) {
-		BLI_snprintf(str, sizeof(str), "%d | %s",
-			             seq->len, name);
+		BLI_snprintf(str, sizeof(str), "%s | %d",
+			             name, seq->len);
 	}
 	else if (seq->type == SEQ_TYPE_SOUND_RAM) {
 		if (seq->sound)
-			BLI_snprintf(str, sizeof(str), "%d | %s: %s",
-			             seq->len, name, seq->sound->name);
+			BLI_snprintf(str, sizeof(str), "%s: %s | %d",
+			             name, seq->sound->name, seq->len);
 		else
-			BLI_snprintf(str, sizeof(str), "%d | %s",
-			             seq->len, name);
+			BLI_snprintf(str, sizeof(str), "%s | %d",
+			             name, seq->len);
 	}
 	else if (seq->type == SEQ_TYPE_MOVIE) {
-		BLI_snprintf(str, sizeof(str), "%d | %s: %s%s",
-		             seq->len, name, seq->strip->dir, seq->strip->stripdata->name);
+		BLI_snprintf(str, sizeof(str), "%s: %s%s | %d",
+		             name, seq->strip->dir, seq->strip->stripdata->name, seq->len);
 	}
 	
 	if (seq->flag & SELECT) {
