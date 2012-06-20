@@ -676,6 +676,8 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             row.prop(brush, "jitter", slider=True)
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
+            col.prop(brush, "vertex_tool", text="Blend")
+
         # Vertex Paint Mode #
         elif context.vertex_paint_object and brush:
             col = layout.column()
@@ -694,6 +696,8 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             #row = col.row(align=True)
             #row.prop(brush, "jitter", slider=True)
             #row.prop(brush, "use_pressure_jitter", toggle=True, text="")
+
+            col.prop(brush, "vertex_tool", text="Blend")
 
 
 class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
