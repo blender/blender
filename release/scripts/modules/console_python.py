@@ -96,7 +96,10 @@ def get_console(console_id):
 
         namespace["__builtins__"] = sys.modules["builtins"]
         namespace["bpy"] = bpy
+
+        # weak! - but highly convenient
         namespace["C"] = bpy.context
+        namespace["D"] = bpy.data
 
         replace_help(namespace)
 
@@ -305,6 +308,7 @@ def banner(context):
                    'OUTPUT')
     add_scrollback("Convenience Imports: from mathutils import *; "
                    "from math import *", 'OUTPUT')
+    add_scrollback("Convenience Variables: C = bpy.context, D = bpy.data", 'OUTPUT')
     add_scrollback("", 'OUTPUT')
     sc.prompt = PROMPT
 
