@@ -387,6 +387,19 @@ static int debug_mode_libmv(int UNUSED(argc), const char **UNUSED(argv), void *U
 }
 #endif
 
+static int set_debug_value(int argc, const char **argv, void *UNUSED(data))
+{
+	if (argc > 1) {
+		G.rt = atoi(argv[1]);
+
+		return 1;
+	}
+	else {
+		printf("\nError: you must specify debug value to set.\n");
+		return 0;
+	}
+}
+
 static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 #if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
@@ -1115,6 +1128,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, "-a", NULL, playback_doc, playback_mode, NULL);
 
 	BLI_argsAdd(ba, 1, "-d", "--debug", debug_doc, debug_mode, ba);
+
 #ifdef WITH_FFMPEG
 	BLI_argsAdd(ba, 1, NULL, "--debug-ffmpeg", "\n\tEnable debug messages from FFmpeg library", debug_mode_generic, (void *)G_DEBUG_FFMPEG);
 #endif
@@ -1128,6 +1142,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 #ifdef WITH_LIBMV
 	BLI_argsAdd(ba, 1, NULL, "--debug-libmv", "\n\tEnable debug messages from libmv library", debug_mode_libmv, NULL);
 #endif
+
+	BLI_argsAdd(ba, 1, NULL, "--debug-value", "<value>\n\tSet debug value of <value> on startup\n", set_debug_value, NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--verbose", "<verbose>\n\tSet logging verbosity level.", set_verbosity, NULL);
 
