@@ -46,7 +46,7 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, Memory
 		float *buffer = tile->getBuffer();
 		int size = tile->getWidth() * tile->getHeight();
 		int pixels = 0;
-		float sum;
+		float sum = 0.0f;
 		float mean = this->result;
 		for (int i = 0, offset = 0; i < size; i++, offset += 4) {
 			if (buffer[offset + 3] > 0) {
