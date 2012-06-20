@@ -72,19 +72,20 @@ void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int 
 	float tc[4] = {0, 0, 0, 0};
 	const float v = sc * ((y + 0.5f) - cy) / cy;
 	const float u = sc * ((x + 0.5f) - cx) / cx;
+	const float uv_dot = u * u + v * v;
 	int sta = 0, mid = 0, end = 0;
 
-	if ((t = 1.f - kr4 * (u * u + v * v)) >= 0.f) {
+	if ((t = 1.f - kr4 * uv_dot) >= 0.f) {
 		d = 1.f / (1.f + sqrtf(t));
 		ln[0] = (u * d + 0.5f) * width - 0.5f, ln[1] = (v * d + 0.5f) * height - 0.5f;
 		sta = 1;
 	}
-	if ((t = 1.f - kg4 * (u * u + v * v)) >= 0.f) {
+	if ((t = 1.f - kg4 * uv_dot) >= 0.f) {
 		d = 1.f / (1.f + sqrtf(t));
 		ln[2] = (u * d + 0.5f) * width - 0.5f, ln[3] = (v * d + 0.5f) * height - 0.5f;
 		mid = 1;
 	}
-	if ((t = 1.f - kb4 * (u * u + v * v)) >= 0.f) {
+	if ((t = 1.f - kb4 * uv_dot) >= 0.f) {
 		d = 1.f / (1.f + sqrtf(t));
 		ln[4] = (u * d + 0.5f) * width - 0.5f, ln[5] = (v * d + 0.5f) * height - 0.5f;
 		end = 1;
@@ -103,10 +104,10 @@ void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int 
 
 			for (z = 0; z < ds; ++z) {
 				const float tz = ((float)z + (jit ? BLI_frand() : 0.5f)) * sd;
-				t = 1.f - (kr4 + tz * drg) * (u * u + v * v);
+				t = 1.f - (kr4 + tz * drg) * uv_dot;
 				d = 1.f / (1.f + sqrtf(t));
-				const float nx = (u * d + 0.5f) * getWidth() - 0.5f;
-				const float ny = (v * d + 0.5f) * getHeight() - 0.5f;
+				const float nx = (u * d + 0.5f) * width - 0.5f;
+				const float ny = (v * d + 0.5f) * height - 0.5f;
 				buffer->readCubic(color, nx, ny);
 				tc[0] += (1.f - tz) * color[0], tc[1] += tz * color[1];
 				dr++, dg++;
@@ -121,10 +122,10 @@ void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int 
 
 			for (z = 0; z < ds; ++z) {
 				const float tz = ((float)z + (jit ? BLI_frand() : 0.5f)) * sd;
-				t = 1.f - (kg4 + tz * dgb) * (u * u + v * v);
+				t = 1.f - (kg4 + tz * dgb) * uv_dot;
 				d = 1.f / (1.f + sqrtf(t));
-				const float nx = (u * d + 0.5f) * getWidth() - 0.5f;
-				const float ny = (v * d + 0.5f) * getHeight() - 0.5f;
+				const float nx = (u * d + 0.5f) * width - 0.5f;
+				const float ny = (v * d + 0.5f) * height - 0.5f;
 				buffer->readCubic(color, nx, ny);
 				tc[1] += (1.f - tz) * color[1], tc[2] += tz * color[2];
 				dg++, db++;

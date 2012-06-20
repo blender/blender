@@ -98,19 +98,20 @@ static void lensDistort(CompBuf *dst, CompBuf *src, float kr, float kg, float kb
 				float d, t, ln[6] = {0, 0, 0, 0, 0, 0};
 				fRGB c1, tc = {0, 0, 0, 0};
 				const float u = sc*((x + 0.5f) - cx)/cx;
+				const float uv_dot = u * u + v * v;
 				int sta = 0, mid = 0, end = 0;
 				
-				if ((t = 1.f - kr*(u*u + v*v)) >= 0.f) {
+				if ((t = 1.f - kr*uv_dot) >= 0.f) {
 					d = 1.f/(1.f + sqrtf(t));
 					ln[0] = (u*d + 0.5f)*dst->x - 0.5f, ln[1] = (v*d + 0.5f)*dst->y - 0.5f;
 					sta = 1;
 				}
-				if ((t = 1.f - kg*(u*u + v*v)) >= 0.f) {
+				if ((t = 1.f - kg*uv_dot) >= 0.f) {
 					d = 1.f/(1.f + sqrtf(t));
 					ln[2] = (u*d + 0.5f)*dst->x - 0.5f, ln[3] = (v*d + 0.5f)*dst->y - 0.5f;
 					mid = 1;
 				}
-				if ((t = 1.f - kb*(u*u + v*v)) >= 0.f) {
+				if ((t = 1.f - kb*uv_dot) >= 0.f) {
 					d = 1.f/(1.f + sqrtf(t));
 					ln[4] = (u*d + 0.5f)*dst->x - 0.5f, ln[5] = (v*d + 0.5f)*dst->y - 0.5f;
 					end = 1;
@@ -125,7 +126,7 @@ static void lensDistort(CompBuf *dst, CompBuf *src, float kr, float kg, float kb
 					
 					for (z=0; z<ds; ++z) {
 						const float tz = ((float)z + (jit ? BLI_frand() : 0.5f))*sd;
-						t = 1.f - (kr + tz*drg)*(u*u + v*v);
+						t = 1.f - (kr + tz*drg)*uv_dot;
 						d = 1.f / (1.f + sqrtf(t));
 						qd_getPixelLerp(src, (u*d + 0.5f)*dst->x - 0.5f, (v*d + 0.5f)*dst->y - 0.5f, c1);
 						if (src->type == CB_VAL) c1[1] = c1[2] = c1[0];
@@ -141,7 +142,7 @@ static void lensDistort(CompBuf *dst, CompBuf *src, float kr, float kg, float kb
 						
 						for (z=0; z<ds; ++z) {
 							const float tz = ((float)z + (jit ? BLI_frand() : 0.5f))*sd;
-							t = 1.f - (kg + tz*dgb)*(u*u + v*v);
+							t = 1.f - (kg + tz*dgb)*uv_dot;
 							d = 1.f / (1.f + sqrtf(t));
 							qd_getPixelLerp(src, (u*d + 0.5f)*dst->x - 0.5f, (v*d + 0.5f)*dst->y - 0.5f, c1);
 							if (src->type == CB_VAL) c1[1] = c1[2] = c1[0];
