@@ -156,7 +156,7 @@ public:
 	 * @param editingtree [bNodeTree*]
 	 * @param rendering [true false]
 	 */
-	ExecutionSystem(bNodeTree *editingtree, bool rendering);
+	ExecutionSystem(Scene *scene, bNodeTree *editingtree, bool rendering);
 
 	/**
 	 * Destructor
