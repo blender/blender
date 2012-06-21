@@ -1894,7 +1894,7 @@ static void node_composit_buts_map_uv(uiLayout *layout, bContext *UNUSED(C), Poi
 static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "index", 0, NULL, ICON_NONE);
-	uiItemR(layout, ptr, "use_smooth_mask", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_antialiasing", 0, NULL, ICON_NONE);
 }
 
 /* draw function for file output node sockets, displays only sub-path and format, no value button */
@@ -2431,7 +2431,8 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL);
-	uiItemR(layout, ptr, "smooth_mask", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_antialiasing", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_feather", 0, NULL, ICON_NONE);
 
 }
 

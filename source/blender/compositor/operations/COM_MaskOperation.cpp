@@ -75,8 +75,8 @@ void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers
 		float *buffer;
 
 		buffer = (float *)MEM_callocN(sizeof(float) * width * height, "rasterized mask");
-		BKE_mask_rasterize(mask, width, height, buffer, TRUE, this->smooth);
-		if (this->smooth) {
+		BKE_mask_rasterize(mask, width, height, buffer, TRUE, this->do_smooth, this->do_feather);
+		if (this->do_smooth) {
 			PLX_antialias_buffer(buffer, width, height);
 		}
 

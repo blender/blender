@@ -370,7 +370,7 @@ static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args
 PyDoc_STRVAR(bpy_bm_utils_face_split_doc,
 ".. method:: face_split(face, vert_a, vert_b, coords=(), use_exist=True, example=None)\n"
 "\n"
-"   Split an edge, return the newly created data.\n"
+"   Face split with optional intermediate points.\n"
 "\n"
 "   :arg face: The face to cut.\n"
 "   :type face: :class:`bmesh.types.BMFace`\n"
