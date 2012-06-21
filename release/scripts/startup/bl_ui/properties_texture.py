@@ -23,6 +23,7 @@ from bpy.types import Menu, Panel
 from bpy.types import (Brush,
                        Lamp,
                        Material,
+                       Object,
                        ParticleSettings,
                        Texture,
                        World)
@@ -80,6 +81,15 @@ def context_tex_datablock(context):
     return idblock
 
 
+def id_tex_datablock(bid):
+    if isinstance(bid, Object):
+        if bid.type == 'LAMP':
+            return bid.data
+        return bid.active_material
+
+    return bid
+
+
 class TextureButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -114,7 +124,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
         pin_id = space.pin_id
 
         if space.use_pin_id and not isinstance(pin_id, Texture):
-            idblock = pin_id
+            idblock = id_tex_datablock(pin_id)
             pin_id = None
 
         if not space.use_pin_id:
