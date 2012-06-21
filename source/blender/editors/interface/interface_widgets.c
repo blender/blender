@@ -2032,7 +2032,7 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], int type, float alpha)
 				hsv_to_rgb(dx, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
 				break;
 			case UI_GRAD_H:
-				hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+				hsv_to_rgb(dx + 0.05f, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 				copy_v3_v3(col1[1], col1[0]);
 				copy_v3_v3(col1[2], col1[0]);
 				copy_v3_v3(col1[3], col1[0]);
