@@ -3131,8 +3131,8 @@ static void def_cmp_mask(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "use_feather", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODE_MASK_ELLIPSE);
-	RNA_def_property_ui_text(prop, "Feather", "Apply an anti-aliasing filter to the mask");
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom1", CMP_NODEFLAG_MASK_NO_FEATHER);
+	RNA_def_property_ui_text(prop, "Feather", "Use feather information from the mask");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
