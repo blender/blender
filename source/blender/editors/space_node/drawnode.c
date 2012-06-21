@@ -2134,6 +2134,17 @@ static void node_composit_buts_colorbalance_but(uiLayout *layout, bContext *UNUS
 
 static void node_composit_buts_huecorrect(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+	bNode *node = ptr->data;
+	CurveMapping *cumap = node->storage;
+
+	if (_sample_col[0] != SAMPLE_FLT_ISNONE) {
+		cumap->flag |= CUMA_DRAW_SAMPLE;
+		copy_v3_v3(cumap->sample, _sample_col);
+	}
+	else {
+		cumap->flag &= ~CUMA_DRAW_SAMPLE;
+	}
+
 	uiTemplateCurveMapping(layout, ptr, "mapping", 'h', 0, 0);
 }
 

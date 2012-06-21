@@ -1676,10 +1676,12 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	Scene *scene = CTX_data_scene(C);
 	ImageSampleInfo *info = arg_info;
 
-	ED_image_draw_info(ar, (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
-	                   info->x, info->y, info->col, info->colf,
-	                   NULL, NULL /* zbuf - unused for nodes */
-	                   );
+	if (info->draw) {
+		ED_image_draw_info(ar, (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
+		                   info->x, info->y, info->col, info->colf,
+		                   NULL, NULL /* zbuf - unused for nodes */
+		                   );
+	}
 }
 
 static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
@@ -1694,8 +1696,10 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	
 	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
-	if (!ibuf)
+	if (!ibuf) {
+		info->draw = 0;
 		return;
+	}
 	
 	if (!ibuf->rect) {
 		if (info->color_manage)

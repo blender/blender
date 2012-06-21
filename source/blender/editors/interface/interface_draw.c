@@ -1346,7 +1346,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 
 	cumap = (CurveMapping *)(but->editcumap ? but->editcumap : but->poin);
 	cuma = cumap->cm + cumap->cur;
-	
+
 	/* need scissor test, curve can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
 	scissor_new.xmin = ar->winrct.xmin + rect->xmin;
@@ -1424,7 +1424,19 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	/* sample option */
 
 	if (cumap->flag & CUMA_DRAW_SAMPLE) {
-		if (cumap->cur == 3) {
+		if (but->a1 == UI_GRAD_H) {
+			float tsample[3];
+			float hsv[3];
+			linearrgb_to_srgb_v3_v3(tsample, cumap->sample);
+			rgb_to_hsv_v(tsample, hsv);
+			glColor3ub(240, 240, 240);
+
+			glBegin(GL_LINES);
+			glVertex2f(rect->xmin + zoomx * (hsv[0] - offsx), rect->ymin);
+			glVertex2f(rect->xmin + zoomx * (hsv[0] - offsx), rect->ymax);
+			glEnd();
+		}
+		else if (cumap->cur == 3) {
 			float lum = cumap->sample[0] * 0.35f + cumap->sample[1] * 0.45f + cumap->sample[2] * 0.2f;
 			glColor3ub(240, 240, 240);
 			
