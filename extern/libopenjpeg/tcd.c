@@ -33,7 +33,7 @@
 #include "opj_includes.h"
 
 void tcd_dump(FILE *fd, opj_tcd_t *tcd, opj_tcd_image_t * img) {
-	int tileno, compno, resno, bandno, precno;//, cblkno;
+	int tileno, compno, resno, bandno, precno;/*, cblkno;*/
 
 	fprintf(fd, "image {\n");
 	fprintf(fd, "  tw=%d, th=%d x0=%d x1=%d y0=%d y1=%d\n", 
@@ -290,6 +290,7 @@ void tcd_malloc_encode(opj_tcd_t *tcd, opj_image_t * image, opj_cp_t * cp, int c
 					for (i = 0; i < res->pw * res->ph * 3; i++) {
 						band->precincts[i].imsbtree = NULL;
 						band->precincts[i].incltree = NULL;
+						band->precincts[i].cblks.enc = NULL;
 					}
 					
 					for (precno = 0; precno < res->pw * res->ph; precno++) {
@@ -418,12 +419,19 @@ void tcd_init_encode(opj_tcd_t *tcd, opj_image_t * image, opj_cp_t * cp, int cur
 		/* Modification of the RATE >> */
 		for (j = 0; j < tcp->numlayers; j++) {
 			tcp->rates[j] = tcp->rates[j] ? 
-						((float) (tile->numcomps 
-								* (tile->x1 - tile->x0) 
-								* (tile->y1 - tile->y0) 
-								* image->comps[0].prec))/ 
-						(tcp->rates[j] * 8 * image->comps[0].dx * image->comps[0].dy) 
-						: 0;
+				cp->tp_on ? 
+					(((float) (tile->numcomps 
+					* (tile->x1 - tile->x0) 
+					* (tile->y1 - tile->y0)
+					* image->comps[0].prec))
+					/(tcp->rates[j] * 8 * image->comps[0].dx * image->comps[0].dy)) - (((tcd->cur_totnum_tp - 1) * 14 )/ tcp->numlayers)
+					:
+				((float) (tile->numcomps 
+					* (tile->x1 - tile->x0) 
+					* (tile->y1 - tile->y0) 
+					* image->comps[0].prec))/ 
+					(tcp->rates[j] * 8 * image->comps[0].dx * image->comps[0].dy)
+					: 0;
 
 			if (tcp->rates[j]) {
 				if (j && tcp->rates[j] < tcp->rates[j - 1] + 10) {
@@ -584,7 +592,9 @@ void tcd_init_encode(opj_tcd_t *tcd, opj_image_t * image, opj_cp_t * cp, int cur
 							cblk->y0 = int_max(cblkystart, prc->y0);
 							cblk->x1 = int_min(cblkxend, prc->x1);
 							cblk->y1 = int_min(cblkyend, prc->y1);
-							cblk->data = (unsigned char*) opj_calloc(8192, sizeof(unsigned char));
+							cblk->data = (unsigned char*) opj_calloc(8192+2, sizeof(unsigned char));
+							/* FIXME: mqc_init_enc and mqc_byteout underrun the buffer if we don't do this. Why? */
+							cblk->data += 2;
 							cblk->layers = (opj_tcd_layer_t*) opj_calloc(100, sizeof(opj_tcd_layer_t));
 							cblk->passes = (opj_tcd_pass_t*) opj_calloc(100, sizeof(opj_tcd_pass_t));
 						}
@@ -647,7 +657,7 @@ void tcd_malloc_decode(opj_tcd_t *tcd, opj_image_t * image, opj_cp_t * cp) {
 			tilec->y1 = int_ceildiv(tile->y1, image->comps[i].dy);
 
 			x0 = j == 0 ? tilec->x0 : int_min(x0, (unsigned int) tilec->x0);
-			y0 = j == 0 ? tilec->y0 : int_min(y0,	(unsigned int) tilec->x0);
+			y0 = j == 0 ? tilec->y0 : int_min(y0,	(unsigned int) tilec->y0);
 			x1 = j == 0 ? tilec->x1 : int_max(x1,	(unsigned int) tilec->x1);
 			y1 = j == 0 ? tilec->y1 : int_max(y1,	(unsigned int) tilec->y1);
 		}
@@ -666,6 +676,8 @@ void tcd_malloc_decode_tile(opj_tcd_t *tcd, opj_image_t * image, opj_cp_t * cp, 
 	int compno, resno, bandno, precno, cblkno;
 	opj_tcp_t *tcp;
 	opj_tcd_tile_t *tile;
+
+	OPJ_ARG_NOT_USED(cstr_info);
 
 	tcd->cp = cp;
 	
@@ -988,7 +1000,7 @@ void tcd_makelayer(opj_tcd_t *tcd, int layno, double thresh, int final) {
 	}
 }
 
-bool tcd_rateallocate(opj_tcd_t *tcd, unsigned char *dest, int len, opj_codestream_info_t *cstr_info) {
+opj_bool tcd_rateallocate(opj_tcd_t *tcd, unsigned char *dest, int len, opj_codestream_info_t *cstr_info) {
 	int compno, resno, bandno, precno, cblkno, passno, layno;
 	double min, max;
 	double cumdisto[100];	/* fixed_quality */
@@ -1085,7 +1097,7 @@ bool tcd_rateallocate(opj_tcd_t *tcd, unsigned char *dest, int len, opj_codestre
 			opj_t2_t *t2 = t2_create(tcd->cinfo, tcd->image, cp);
 			double thresh = 0;
 
-			for (i = 0; i < 32; i++) {
+			for (i = 0; i < 128; i++) {
 				int l = 0;
 				double distoachieved = 0;	/* fixed_quality */
 				thresh = (lo + hi) / 2;
@@ -1140,7 +1152,7 @@ bool tcd_rateallocate(opj_tcd_t *tcd, unsigned char *dest, int len, opj_codestre
 		}
 		
 		if (!success) {
-			return false;
+			return OPJ_FALSE;
 		}
 		
 		if(cstr_info) {	/* Threshold for Marcela Index */
@@ -1152,7 +1164,7 @@ bool tcd_rateallocate(opj_tcd_t *tcd, unsigned char *dest, int len, opj_codestre
 		cumdisto[layno] = (layno == 0) ? tcd_tile->distolayer[0] : (cumdisto[layno - 1] + tcd_tile->distolayer[layno]);	
 	}
 
-	return true;
+	return OPJ_TRUE;
 }
 
 int tcd_encode_tile(opj_tcd_t *tcd, int tileno, unsigned char *dest, int len, opj_codestream_info_t *cstr_info) {
@@ -1304,7 +1316,7 @@ int tcd_encode_tile(opj_tcd_t *tcd, int tileno, unsigned char *dest, int len, op
 	return l;
 }
 
-bool tcd_decode_tile(opj_tcd_t *tcd, unsigned char *src, int len, int tileno, opj_codestream_info_t *cstr_info) {
+opj_bool tcd_decode_tile(opj_tcd_t *tcd, unsigned char *src, int len, int tileno, opj_codestream_info_t *cstr_info) {
 	int l;
 	int compno;
 	int eof = 0;
@@ -1340,7 +1352,7 @@ bool tcd_decode_tile(opj_tcd_t *tcd, unsigned char *src, int len, int tileno, op
 				}
 				else {
 					cstr_info->tile[tileno].pdx[resno] = 15;
-					cstr_info->tile[tileno].pdx[resno] = 15;
+					cstr_info->tile[tileno].pdy[resno] = 15;
 				}
 			}
 		}
@@ -1387,7 +1399,7 @@ bool tcd_decode_tile(opj_tcd_t *tcd, unsigned char *src, int len, int tileno, op
 			if (tcd->image->comps[compno].resno_decoded < 0) {				
 				opj_event_msg(tcd->cinfo, EVT_ERROR, "Error decoding tile. The number of resolutions to remove [%d+1] is higher than the number "
 					" of resolutions in the original codestream [%d]\nModify the cp_reduce parameter.\n", tcd->cp->reduce, tile->comps[compno].numresolutions);
-				return false;
+				return OPJ_FALSE;
 			}
 		}
 
@@ -1407,18 +1419,23 @@ bool tcd_decode_tile(opj_tcd_t *tcd, unsigned char *src, int len, int tileno, op
 
 	if (tcd->tcp->mct) {
 		int n = (tile->comps[0].x1 - tile->comps[0].x0) * (tile->comps[0].y1 - tile->comps[0].y0);
-		if (tcd->tcp->tccps[0].qmfbid == 1) {
-			mct_decode(
-					tile->comps[0].data,
-					tile->comps[1].data,
-					tile->comps[2].data, 
-					n);
-		} else {
-			mct_decode_real(
-					(float*)tile->comps[0].data,
-					(float*)tile->comps[1].data,
-					(float*)tile->comps[2].data, 
-					n);
+
+		if (tile->numcomps >= 3 ){
+			if (tcd->tcp->tccps[0].qmfbid == 1) {
+				mct_decode(
+						tile->comps[0].data,
+						tile->comps[1].data,
+						tile->comps[2].data,
+						n);
+			} else {
+				mct_decode_real(
+						(float*)tile->comps[0].data,
+						(float*)tile->comps[1].data,
+						(float*)tile->comps[2].data,
+						n);
+			}
+		} else{
+			opj_event_msg(tcd->cinfo, EVT_WARNING,"Number of components (%d) is inconsistent with a MCT. Skip the MCT step.\n",tile->numcomps);
 		}
 	}
 
@@ -1467,10 +1484,10 @@ bool tcd_decode_tile(opj_tcd_t *tcd, unsigned char *src, int len, int tileno, op
 	opj_event_msg(tcd->cinfo, EVT_INFO, "- tile decoded in %f s\n", tile_time);
 
 	if (eof) {
-		return false;
+		return OPJ_FALSE;
 	}
 	
-	return true;
+	return OPJ_TRUE;
 }
 
 void tcd_free_decode(opj_tcd_t *tcd) {
@@ -1502,5 +1519,6 @@ void tcd_free_decode_tile(opj_tcd_t *tcd, int tileno) {
 	}
 	opj_free(tile->comps);
 }
+
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Hervé Drolon, FreeImage Team
+ * Copyright (c) 2005, Herve Drolon, FreeImage Team
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ Write formatted data to a string and send the string to a user callback.
 @param fmt Format-control string (plus optionnal arguments)
 @return Returns true if successful, returns false otherwise
 */
-bool opj_event_msg(opj_common_ptr cinfo, int event_type, const char *fmt, ...);
+opj_bool opj_event_msg(opj_common_ptr cinfo, int event_type, const char *fmt, ...);
 /* ----------------------------------------------------------------------- */
 /*@}*/
 

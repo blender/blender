@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Hervé Drolon, FreeImage Team
+ * Copyright (c) 2005, Herve Drolon, FreeImage Team
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
 #include "opj_includes.h"
 
 opj_image_t* opj_image_create0(void) {
-	opj_image_t *image = (opj_image_t*)opj_malloc(sizeof(opj_image_t));
+	opj_image_t *image = (opj_image_t*)opj_calloc(1, sizeof(opj_image_t));
 	return image;
 }
 

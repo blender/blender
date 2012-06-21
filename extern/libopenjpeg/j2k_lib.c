@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Hervé Drolon, FreeImage Team
+ * Copyright (c) 2005, Herve Drolon, FreeImage Team
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,18 +24,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/times.h>
-#endif /* WIN32 */
+#endif /* _WIN32 */
 #include "opj_includes.h"
 
 double opj_clock(void) {
-#ifdef WIN32
-	/* WIN32: use QueryPerformance (very accurate) */
+#ifdef _WIN32
+	/* _WIN32: use QueryPerformance (very accurate) */
     LARGE_INTEGER freq , t ;
     /* freq is the clock speed of the CPU */
     QueryPerformanceFrequency(&freq) ;
