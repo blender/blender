@@ -217,63 +217,46 @@ void WorkScheduler::initialize()
 		cl_platform_id *platforms = new cl_platform_id[numberOfPlatforms];
 		error = clGetPlatformIDs(numberOfPlatforms, platforms, 0);
 		unsigned int indexPlatform;
-		cl_uint totalNumberOfDevices = 0;
 		for (indexPlatform = 0; indexPlatform < numberOfPlatforms; indexPlatform++) {
 			cl_platform_id platform = platforms[indexPlatform];
-			cl_uint numberOfDevices;
+			cl_uint numberOfDevices = 0;
 			clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, 0, &numberOfDevices);
-			totalNumberOfDevices += numberOfDevices;
-		}
+			if (numberOfDevices>0) {
+				cl_device_id *cldevices = new cl_device_id[numberOfDevices];
+				clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices, 0);
 
-		cl_device_id *cldevices = new cl_device_id[totalNumberOfDevices];
-		unsigned int numberOfDevicesReceived = 0;
-		for (indexPlatform = 0; indexPlatform < numberOfPlatforms; indexPlatform++) {
-			cl_platform_id platform = platforms[indexPlatform];
-			cl_uint numberOfDevices;
-			clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, 0, &numberOfDevices);
-			clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices + numberOfDevicesReceived * sizeof(cl_device_id), 0);
-			numberOfDevicesReceived += numberOfDevices;
-		}
-		if (totalNumberOfDevices > 0) {
-			context = clCreateContext(NULL, totalNumberOfDevices, cldevices, clContextError, NULL, &error);
-			if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-			program = clCreateProgramWithSource(context, 1, &clkernelstoh_COM_OpenCLKernels_cl, 0, &error);
-			error = clBuildProgram(program, totalNumberOfDevices, cldevices, 0, 0, 0);
-			if (error != CL_SUCCESS) { 
-				cl_int error2;
-				size_t ret_val_size = 0;
-				printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	
-				error2 = clGetProgramBuildInfo(program, cldevices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
-				if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
-				char *build_log =  new char[ret_val_size + 1];
-				error2 = clGetProgramBuildInfo(program, cldevices[0], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
-				if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
-				build_log[ret_val_size] = '\0';
-				printf("%s", build_log);
-				delete build_log;
-				
-			}
-			else {
-				unsigned int indexDevices;
-				for (indexDevices = 0; indexDevices < totalNumberOfDevices; indexDevices++) {
-					cl_device_id device = cldevices[indexDevices];
-					cl_int vendorID = 0;
-					cl_int error = clGetDeviceInfo(device, CL_DEVICE_VENDOR_ID, sizeof(cl_int), &vendorID, NULL);
-					if (error!= CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
-					OpenCLDevice *clDevice = new OpenCLDevice(context, device, program, vendorID);
-					clDevice->initialize(),
-					    gpudevices.push_back(clDevice);
-					if (G.f & G_DEBUG) {
-						char resultString[32];
-						error = clGetDeviceInfo(device, CL_DEVICE_NAME, 32, resultString, 0);
-						printf("OPENCL_DEVICE: %s, ", resultString);
-						error = clGetDeviceInfo(device, CL_DEVICE_VENDOR, 32, resultString, 0);
-						printf("%s\n", resultString);
+				context = clCreateContext(NULL, numberOfDevices, cldevices, clContextError, NULL, &error);
+				if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
+				program = clCreateProgramWithSource(context, 1, &clkernelstoh_COM_OpenCLKernels_cl, 0, &error);
+				error = clBuildProgram(program, numberOfDevices, cldevices, 0, 0, 0);
+				if (error != CL_SUCCESS) { 
+					cl_int error2;
+					size_t ret_val_size = 0;
+					printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	
+					error2 = clGetProgramBuildInfo(program, cldevices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
+					if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
+					char *build_log =  new char[ret_val_size + 1];
+					error2 = clGetProgramBuildInfo(program, cldevices[0], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
+					if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
+					build_log[ret_val_size] = '\0';
+					printf("%s", build_log);
+					delete build_log;
+				}
+				else {
+					unsigned int indexDevices;
+					for (indexDevices = 0; indexDevices < numberOfDevices; indexDevices++) {
+						cl_device_id device = cldevices[indexDevices];
+						cl_int vendorID = 0;
+						cl_int error = clGetDeviceInfo(device, CL_DEVICE_VENDOR_ID, sizeof(cl_int), &vendorID, NULL);
+						if (error!= CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
+						OpenCLDevice *clDevice = new OpenCLDevice(context, device, program, vendorID);
+						clDevice->initialize();
+						gpudevices.push_back(clDevice);
 					}
 				}
+				delete cldevices;
 			}
 		}
-		delete[] cldevices;
 		delete[] platforms;
 	}
 #endif
