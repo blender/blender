@@ -255,9 +255,8 @@ static EnumPropertyItem *group_objects_remove_itemf(bContext *C, PointerRNA *UNU
 			/* item_tmp.icon = ICON_ARMATURE_DATA; */
 			item_tmp.value = i;
 			RNA_enum_item_add(&item, &totitem, &item_tmp);
+			i++;
 		}
-
-		i++;
 	}
 
 	RNA_enum_item_end(&item, &totitem);
