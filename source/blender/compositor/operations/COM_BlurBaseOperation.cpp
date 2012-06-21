@@ -91,7 +91,7 @@ float *BlurBaseOperation::make_gausstab(int rad)
 
 /* normalized distance from the current (inverted so 1.0 is close and 0.0 is far)
  * 'ease' is applied after, looks nicer */
-float *BlurBaseOperation::make_dist_fac_inverse(int rad)
+float *BlurBaseOperation::make_dist_fac_inverse(int rad, int falloff)
 {
 	float *dist_fac_invert, val;
 	int i, n;
@@ -103,9 +103,26 @@ float *BlurBaseOperation::make_dist_fac_inverse(int rad)
 	for (i = -rad; i <= rad; i++) {
 		val = 1.0f - fabsf(((float)i / (float)rad));
 
-		/* ease - gives less hard lines for dilate/erode feather */
-		val = (3.0f * val * val - 2.0f * val * val * val);
-
+		/* keep in sync with proportional_falloff_curve_only_items */
+		switch (falloff) {
+			case PROP_SMOOTH:
+				/* ease - gives less hard lines for dilate/erode feather */
+				val = (3.0f * val * val - 2.0f * val * val * val);
+				break;
+			case PROP_SPHERE:
+				val = sqrtf(2.0f * val - val * val);
+				break;
+			case PROP_ROOT:
+				val = sqrtf(val);
+				break;
+			case PROP_SHARP:
+				val = val * val;
+				break;
+			case PROP_LIN:
+			default:
+				/* nothing */
+				break;
+		}
 		dist_fac_invert[i + rad] = val;
 	}
 

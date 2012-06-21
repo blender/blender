@@ -54,7 +54,7 @@ void GaussianAlphaXBlurOperation::initExecution()
 
 		this->rad = rad;
 		this->gausstab = BlurBaseOperation::make_gausstab(rad);
-		this->distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad);
+		this->distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, this->falloff);
 	}
 }
 
@@ -77,7 +77,7 @@ void GaussianAlphaXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 			rad = 1;
 
 		this->rad = rad;
-		this->distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad);
+		this->distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, this->falloff);
 	}
 }
 

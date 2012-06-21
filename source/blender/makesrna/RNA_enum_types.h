@@ -41,6 +41,7 @@ extern EnumPropertyItem object_mode_items[];
 extern EnumPropertyItem metaelem_type_items[];
 
 extern EnumPropertyItem proportional_falloff_items[];
+extern EnumPropertyItem proportional_falloff_curve_only_items[];
 extern EnumPropertyItem proportional_editing_items[];
 extern EnumPropertyItem snap_target_items[];
 extern EnumPropertyItem snap_element_items[];

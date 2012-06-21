@@ -37,7 +37,7 @@ protected:
 	NodeBlurData *data;
 	BlurBaseOperation(DataType data_type);
 	float *make_gausstab(int rad);
-	float *make_dist_fac_inverse(int rad);
+	float *make_dist_fac_inverse(int rad, int falloff);
 	float size;
 	bool deleteData;
 	bool sizeavailable;
