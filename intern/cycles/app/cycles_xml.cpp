@@ -277,7 +277,7 @@ static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 	
 	xml_read_bool(&integrator->transparent_shadows, node, "transparent_shadows");
 	xml_read_bool(&integrator->no_caustics, node, "no_caustics");
-	xml_read_float(&integrator->blur_glossy, node, "blur_glossy");
+	xml_read_float(&integrator->filter_glossy, node, "blur_glossy");
 	
 	xml_read_int(&integrator->seed, node, "seed");
 	xml_read_float(&integrator->sample_clamp, node, "sample_clamp");
