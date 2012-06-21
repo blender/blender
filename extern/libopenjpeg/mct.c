@@ -29,6 +29,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef __SSE__
+#include <xmmintrin.h>
+#endif
+
 #include "opj_includes.h"
 
 /* <summary> */
@@ -127,6 +131,44 @@ void mct_decode_real(
 		int n)
 {
 	int i;
+#ifdef __SSE__
+	__m128 vrv, vgu, vgv, vbu;
+	vrv = _mm_set1_ps(1.402f);
+	vgu = _mm_set1_ps(0.34413f);
+	vgv = _mm_set1_ps(0.71414f);
+	vbu = _mm_set1_ps(1.772f);
+	for (i = 0; i < (n >> 3); ++i) {
+		__m128 vy, vu, vv;
+		__m128 vr, vg, vb;
+
+		vy = _mm_load_ps(c0);
+		vu = _mm_load_ps(c1);
+		vv = _mm_load_ps(c2);
+		vr = _mm_add_ps(vy, _mm_mul_ps(vv, vrv));
+		vg = _mm_sub_ps(_mm_sub_ps(vy, _mm_mul_ps(vu, vgu)), _mm_mul_ps(vv, vgv));
+		vb = _mm_add_ps(vy, _mm_mul_ps(vu, vbu));
+		_mm_store_ps(c0, vr);
+		_mm_store_ps(c1, vg);
+		_mm_store_ps(c2, vb);
+		c0 += 4;
+		c1 += 4;
+		c2 += 4;
+
+		vy = _mm_load_ps(c0);
+		vu = _mm_load_ps(c1);
+		vv = _mm_load_ps(c2);
+		vr = _mm_add_ps(vy, _mm_mul_ps(vv, vrv));
+		vg = _mm_sub_ps(_mm_sub_ps(vy, _mm_mul_ps(vu, vgu)), _mm_mul_ps(vv, vgv));
+		vb = _mm_add_ps(vy, _mm_mul_ps(vu, vbu));
+		_mm_store_ps(c0, vr);
+		_mm_store_ps(c1, vg);
+		_mm_store_ps(c2, vb);
+		c0 += 4;
+		c1 += 4;
+		c2 += 4;
+	}
+	n &= 7;
+#endif
 	for(i = 0; i < n; ++i) {
 		float y = c0[i];
 		float u = c1[i];

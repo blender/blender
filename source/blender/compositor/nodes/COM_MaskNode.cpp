@@ -55,7 +55,8 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 
 	operation->setMask(mask);
 	operation->setFramenumber(context->getFramenumber());
-	operation->setSmooth((bool)editorNode->custom1);
+	operation->setSmooth((bool)(editorNode->custom1 & CMP_NODEFLAG_MASK_AA) != 0);
+	operation->setFeather((bool)(editorNode->custom1 & CMP_NODE_MASK_FEATHER) != 0);
 
 	graph->addOperation(operation);
 }

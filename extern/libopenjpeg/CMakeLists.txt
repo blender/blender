@@ -54,6 +54,11 @@ set(SRC
 	t2.c
 	tcd.c
 	tgt.c
+	cidx_manager.c
+	phix_manager.c
+	ppix_manager.c
+	thix_manager.c
+	tpix_manager.c
 
 	bio.h
 	cio.h
@@ -78,6 +83,9 @@ set(SRC
 	t2.h
 	tcd.h
 	tgt.h
+	cidx_manager.h
+	indexbox_manager.h
+	opj_config.h
 )
 
 blender_add_lib(extern_openjpeg "${SRC}" "${INC}" "${INC_SYS}")

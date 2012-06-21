@@ -40,7 +40,8 @@ protected:
 	int maskWidth;
 	int maskHeight;
 	int framenumber;
-	bool smooth;
+	bool do_smooth;
+	bool do_feather;
 	float *rasterizedMask;
 
 	/**
@@ -60,7 +61,8 @@ public:
 	void setMaskWidth(int width) { this->maskWidth = width; }
 	void setMaskHeight(int height) { this->maskHeight = height; }
 	void setFramenumber(int framenumber) { this->framenumber = framenumber; }
-	void setSmooth(bool smooth) { this->smooth = smooth; }
+	void setSmooth(bool smooth) { this->do_smooth = smooth; }
+	void setFeather(bool feather) { this->do_feather = feather; }
 
 	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 };

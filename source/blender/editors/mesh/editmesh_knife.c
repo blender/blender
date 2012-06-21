@@ -1468,6 +1468,8 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 
 		if (cure && p) {
 			if (!kcd->ignore_edge_snapping || !(cure->e)) {
+				KnifeVert *edgesnap = NULL;
+
 				if (kcd->snap_midpoints) {
 					mid_v3_v3v3(p, cure->v1->co, cure->v2->co);
 					mid_v3_v3v3(cagep, cure->v1->cageco, cure->v2->cageco);
@@ -1479,6 +1481,13 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 					d = len_v3v3(cagep, cure->v1->cageco) / len_v3v3(cure->v1->cageco, cure->v2->cageco);
 					interp_v3_v3v3(p, cure->v1->co, cure->v2->co, d);
 				}
+
+				/* update mouse coordinates to the snapped-to edge's screen coordinates
+				 * this is important for angle snap, which uses the previous mouse position */
+				edgesnap = new_knife_vert(kcd, p, cagep);
+				kcd->cur.mval[0] = (int)edgesnap->sco[0];
+				kcd->cur.mval[1] = (int)edgesnap->sco[1];
+
 			}
 			else {
 				return NULL;
@@ -1557,6 +1566,11 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 			if (curv && p) {
 				copy_v3_v3(p, curv->co);
 				copy_v3_v3(cagep, curv->cageco);
+
+				/* update mouse coordinates to the snapped-to vertex's screen coordinates
+				 * this is important for angle snap, which uses the previous mouse position */
+				kcd->cur.mval[0] = (int)curv->sco[0];
+				kcd->cur.mval[1] = (int)curv->sco[1];
 			}
 
 			return curv;
@@ -1617,9 +1631,15 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 	kcd->cur.mval[0] = kcd->vc.mval[0];
 	kcd->cur.mval[1] = kcd->vc.mval[1];
 
-	kcd->cur.vert = knife_find_closest_vert(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
-	if (!kcd->cur.vert) {
-		kcd->cur.edge = knife_find_closest_edge(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
+	/* if angle snapping is enabled, don't snap to edges/vertices */
+	if (kcd->angle_snapping == ANGLE_FREE) {
+
+		kcd->cur.vert = knife_find_closest_vert(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
+
+		if (!kcd->cur.vert) {
+			kcd->cur.edge = knife_find_closest_edge(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
+		}
+
 	}
 
 	/* if no hits are found this would normally default to (0, 0, 0) so instead

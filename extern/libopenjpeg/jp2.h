@@ -46,11 +46,64 @@
 #define JP2_COLR 0x636f6c72		/**< Colour specification box */
 #define JP2_JP2C 0x6a703263		/**< Contiguous codestream box */
 #define JP2_URL  0x75726c20		/**< URL box */
-#define JP2_DBTL 0x6474626c		/**< ??? */
+#define JP2_DTBL 0x6474626c		/**< Data Reference box */
 #define JP2_BPCC 0x62706363		/**< Bits per component box */
 #define JP2_JP2  0x6a703220		/**< File type fields */
+#define JP2_PCLR 0x70636c72		/**< Palette box */
+#define JP2_CMAP 0x636d6170		/**< Component Mapping box */
+#define JP2_CDEF 0x63646566		/**< Channel Definition box */
 
 /* ----------------------------------------------------------------------- */
+/** 
+Channel description: channel index, type, assocation
+*/
+typedef struct opj_jp2_cdef_info
+{
+    unsigned short cn, typ, asoc;
+} opj_jp2_cdef_info_t;
+
+/** 
+Channel descriptions and number of descriptions
+*/
+typedef struct opj_jp2_cdef
+{
+    opj_jp2_cdef_info_t *info;
+    unsigned short n;
+} opj_jp2_cdef_t;
+
+/** 
+Component mappings: channel index, mapping type, palette index
+*/
+typedef struct opj_jp2_cmap_comp
+{
+    unsigned short cmp;
+    unsigned char mtyp, pcol;
+} opj_jp2_cmap_comp_t;
+
+/** 
+Palette data: table entries, palette columns
+*/
+typedef struct opj_jp2_pclr
+{
+    unsigned int *entries;
+    unsigned char *channel_sign;
+    unsigned char *channel_size;
+    opj_jp2_cmap_comp_t *cmap;
+    unsigned short nr_entries, nr_channels;
+} opj_jp2_pclr_t;
+
+/** 
+Collector for ICC profile, palette, component mapping, channel description 
+*/
+typedef struct opj_jp2_color
+{
+    unsigned char *icc_profile_buf;
+    int icc_profile_len;
+
+    opj_jp2_cdef_t *jp2_cdef;
+    opj_jp2_pclr_t *jp2_pclr;
+    unsigned char jp2_has_colr;
+} opj_jp2_color_t;
 
 /** 
 JP2 component
@@ -87,6 +140,8 @@ typedef struct opj_jp2 {
 	opj_jp2_comps_t *comps;
 	unsigned int j2k_codestream_offset;
 	unsigned int j2k_codestream_length;
+	opj_bool jpip_on;
+	opj_bool ignore_pclr_cmap_cdef;
 } opj_jp2_t;
 
 /**
@@ -111,9 +166,10 @@ void jp2_write_jp2h(opj_jp2_t *jp2, opj_cio_t *cio);
 Read the JP2H box - JP2 Header box (used in MJ2)
 @param jp2 JP2 handle
 @param cio Input buffer stream
+@param ext Collector for profile, cdef and pclr data
 @return Returns true if successful, returns false otherwise
 */
-bool jp2_read_jp2h(opj_jp2_t *jp2, opj_cio_t *cio);
+opj_bool jp2_read_jp2h(opj_jp2_t *jp2, opj_cio_t *cio, opj_jp2_color_t *color);
 /**
 Creates a JP2 decompression structure
 @param cinfo Codec context info
@@ -139,7 +195,7 @@ Decode an image from a JPEG-2000 file stream
 @param cstr_info Codestream information structure if required, NULL otherwise
 @return Returns a decoded image if successful, returns NULL otherwise
 */
-opj_image_t* jp2_decode(opj_jp2_t *jp2, opj_cio_t *cio, opj_codestream_info_t *cstr_info);
+opj_image_t* opj_jp2_decode(opj_jp2_t *jp2, opj_cio_t *cio, opj_codestream_info_t *cstr_info);
 /**
 Creates a JP2 compression structure
 @param cinfo Codec context info
@@ -167,7 +223,8 @@ Encode an image into a JPEG-2000 file stream
 @param cstr_info Codestream information structure if required, NULL otherwise
 @return Returns true if successful, returns false otherwise
 */
-bool jp2_encode(opj_jp2_t *jp2, opj_cio_t *cio, opj_image_t *image, opj_codestream_info_t *cstr_info);
+opj_bool opj_jp2_encode(opj_jp2_t *jp2, opj_cio_t *cio, opj_image_t *image, opj_codestream_info_t *cstr_info);
+
 /* ----------------------------------------------------------------------- */
 /*@}*/
 

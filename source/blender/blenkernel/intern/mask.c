@@ -2090,7 +2090,8 @@ int BKE_mask_get_duration(Mask *mask)
 
 /* rasterization */
 void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
-                        const short do_aspect_correct, int do_mask_aa)
+                        const short do_aspect_correct, const short do_mask_aa,
+                        const short do_feather)
 {
 	MaskLayer *masklay;
 
@@ -2119,9 +2120,15 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
 			                                                            &tot_diff_point);
 
 			if (tot_diff_point) {
-				diff_feather_points =
-				        BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height,
-				                                                                      &tot_diff_feather_points);
+				if (do_feather) {
+					diff_feather_points =
+					        BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height,
+					                                                                      &tot_diff_feather_points);
+				}
+				else {
+					tot_diff_feather_points = 0;
+					diff_feather_points = NULL;
+				}
 
 				if (do_aspect_correct) {
 					if (width != height) {

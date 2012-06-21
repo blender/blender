@@ -6,6 +6,7 @@
  * Copyright (c) 2003-2007, Francois-Olivier Devaux and Antonin Descampe
  * Copyright (c) 2005, Herve Drolon, FreeImage Team
  * Copyright (c) 2006-2007, Parvatha Elangovan
+ * Copyright (c) 2010-2011, Kaori Hagihara
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +33,6 @@
 #ifndef OPENJPEG_H
 #define OPENJPEG_H
 
-#define OPENJPEG_VERSION "1.3.0"
 
 /* 
 ==========================================================
@@ -40,34 +40,32 @@
 ==========================================================
 */
 
+#if defined(OPJ_STATIC) || !defined(_WIN32)
 #define OPJ_API
 #define OPJ_CALLCONV
-
-#ifndef __cplusplus
-#if defined(HAVE_STDBOOL_H)
-/*
-The C language implementation does correctly provide the standard header
-file "stdbool.h".
- */
-#include <stdbool.h>
 #else
+#define OPJ_CALLCONV __stdcall
 /*
-The C language implementation does not provide the standard header file
-"stdbool.h" as required by ISO/IEC 9899:1999.  Try to compensate for this
-braindamage below.
+The following ifdef block is the standard way of creating macros which make exporting 
+from a DLL simpler. All files within this DLL are compiled with the OPJ_EXPORTS
+symbol defined on the command line. this symbol should not be defined on any project
+that uses this DLL. This way any other project whose source files include this file see 
+OPJ_API functions as being imported from a DLL, wheras this DLL sees symbols
+defined with this macro as being exported.
 */
-#if !defined(bool)
-#define	bool	int
-#endif
-#if !defined(true)
-#define true	1
-#endif
-#if !defined(false)
-#define	false	0
-#endif
-#endif
-#endif /* __cplusplus */
+#if defined(OPJ_EXPORTS) || defined(DLL_EXPORT)
+#define OPJ_API __declspec(dllexport)
+#else
+#define OPJ_API __declspec(dllimport)
+#endif /* OPJ_EXPORTS */
+#endif /* !OPJ_STATIC || !_WIN32 */
 
+typedef int opj_bool;
+#define OPJ_TRUE 1
+#define OPJ_FALSE 0
+
+/* Avoid compile-time warning because parameter is not used */
+#define OPJ_ARG_NOT_USED(x) (void)(x)
 /* 
 ==========================================================
    Useful constant definitions
@@ -130,7 +128,8 @@ typedef enum PROG_ORDER {
 Supported image color spaces
 */
 typedef enum COLOR_SPACE {
-	CLRSPC_UNKNOWN = -1,	/**< place-holder */
+	CLRSPC_UNKNOWN = -1,	/**< not supported by the library */
+	CLRSPC_UNSPECIFIED = 0, /**< not specified in the codestream */ 
 	CLRSPC_SRGB = 1,		/**< sRGB */
 	CLRSPC_GRAY = 2,		/**< grayscale */
 	CLRSPC_SYCC = 3			/**< YUV */
@@ -141,9 +140,9 @@ Supported codec
 */
 typedef enum CODEC_FORMAT {
 	CODEC_UNKNOWN = -1,	/**< place-holder */
-	CODEC_J2K = 0,		/**< JPEG-2000 codestream : read/write */
-	CODEC_JPT = 1,		/**< JPT-stream (JPEG 2000, JPIP) : read only */
-	CODEC_JP2 = 2		/**< JPEG-2000 file format : read/write */
+	CODEC_J2K  = 0,		/**< JPEG-2000 codestream : read/write */
+	CODEC_JPT  = 1,		/**< JPT-stream (JPEG 2000, JPIP) : read only */
+	CODEC_JP2  = 2 		/**< JPEG-2000 file format : read/write */
 } OPJ_CODEC_FORMAT;
 
 /** 
@@ -226,7 +225,7 @@ Compression parameters
 */
 typedef struct opj_cparameters {
 	/** size of tile: tile_size_on = false (not in argument) or = true (in argument) */
-	bool tile_size_on;
+	opj_bool tile_size_on;
 	/** XTOsiz */
 	int cp_tx0;
 	/** YTOsiz */
@@ -308,7 +307,7 @@ typedef struct opj_cparameters {
 	/**@name JPWL encoding parameters */
 	/*@{*/
 	/** enables writing of EPC in MH, thus activating JPWL */
-	bool jpwl_epc_on;
+	opj_bool jpwl_epc_on;
 	/** error protection method for MH (0,1,16,32,37-128) */
 	int jpwl_hprot_MH;
 	/** tile number of header protection specification (>=0) */
@@ -348,7 +347,11 @@ typedef struct opj_cparameters {
 	char tp_flag;
 	/** MCT (multiple component transform) */
 	char tcp_mct;
+	/** Enable JPIP indexing*/
+	opj_bool jpip_on;
 } opj_cparameters_t;
+
+#define OPJ_DPARAMETERS_IGNORE_PCLR_CMAP_CDEF_FLAG	0x0001
 
 /**
 Decompression parameters
@@ -386,7 +389,7 @@ typedef struct opj_dparameters {
 	/**@name JPWL decoding parameters */
 	/*@{*/
 	/** activates the JPWL correction capabilities */
-	bool jpwl_correct;
+	opj_bool jpwl_correct;
 	/** expected number of components */
 	int jpwl_exp_comps;
 	/** maximum number of tiles */
@@ -402,6 +405,7 @@ typedef struct opj_dparameters {
 	*/
 	OPJ_LIMIT_DECODING cp_limit_decoding;
 
+	unsigned int flags;
 } opj_dparameters_t;
 
 /** Common fields between JPEG-2000 compression and decompression master structs. */
@@ -409,7 +413,7 @@ typedef struct opj_dparameters {
 #define opj_common_fields \
 	opj_event_mgr_t *event_mgr;	/**< pointer to the event manager */\
 	void * client_data;			/**< Available for use by application */\
-	bool is_decompressor;		/**< So common code can tell which is which */\
+	opj_bool is_decompressor;	/**< So common code can tell which is which */\
 	OPJ_CODEC_FORMAT codec_format;	/**< selected codec */\
 	void *j2k_handle;			/**< pointer to the J2K codec */\
 	void *jp2_handle;			/**< pointer to the JP2 codec */\
@@ -537,6 +541,10 @@ typedef struct opj_image {
 	OPJ_COLOR_SPACE color_space;
 	/** image components */
 	opj_image_comp_t *comps;
+	/** 'restricted' ICC profile */
+	unsigned char *icc_profile_buf;
+	/** size of ICC profile */
+	int icc_profile_len;
 } opj_image_t;
 
 /**
@@ -583,6 +591,21 @@ typedef struct opj_packet_info {
 	double disto;
 } opj_packet_info_t;
 
+
+/* UniPG>> */
+/**
+Marker structure
+*/
+typedef struct opj_marker_info_t {
+	/** marker type */
+	unsigned short int type;
+	/** position in codestream */
+	int pos;
+	/** length, marker val included */
+	int len;
+} opj_marker_info_t;
+/* <<UniPG */
+
 /**
 Index structure : Information concerning tile-parts
 */
@@ -627,25 +650,17 @@ typedef struct opj_tile_info {
 	int numpix;
 	/** add fixed_quality */
 	double distotile;
+  	/** number of markers */
+	int marknum;
+	/** list of markers */
+	opj_marker_info_t *marker;
+	/** actual size of markers array */
+	int maxmarknum;
 	/** number of tile parts */
 	int num_tps;
 	/** information concerning tile parts */
 	opj_tp_info_t *tp;
 } opj_tile_info_t;
-
-/* UniPG>> */
-/**
-Marker structure
-*/
-typedef struct opj_marker_info_t {
-	/** marker type */
-	unsigned short int type;
-	/** position in codestream */
-	int pos;
-	/** length, marker val included */
-	int len;
-} opj_marker_info_t;
-/* <<UniPG */
 
 /**
 Index structure of the codestream
@@ -865,13 +880,13 @@ Setup the encoder parameters using the current image and using user parameters.
 OPJ_API void OPJ_CALLCONV opj_setup_encoder(opj_cinfo_t *cinfo, opj_cparameters_t *parameters, opj_image_t *image);
 /**
 Encode an image into a JPEG-2000 codestream
-@param cinfo compressor handle
+3@param cinfo compressor handle
 @param cio Output buffer stream
 @param image Image to encode
 @param index Depreacted -> Set to NULL. To extract index, used opj_encode_wci()
 @return Returns true if successful, returns false otherwise
 */
-OPJ_API bool OPJ_CALLCONV opj_encode(opj_cinfo_t *cinfo, opj_cio_t *cio, opj_image_t *image, char *index);
+OPJ_API opj_bool OPJ_CALLCONV opj_encode(opj_cinfo_t *cinfo, opj_cio_t *cio, opj_image_t *image, char *index);
 /**
 Encode an image into a JPEG-2000 codestream and extract the codestream information
 @param cinfo compressor handle
@@ -880,12 +895,13 @@ Encode an image into a JPEG-2000 codestream and extract the codestream informati
 @param cstr_info Codestream information structure if needed afterwards, NULL otherwise
 @return Returns true if successful, returns false otherwise
 */
-OPJ_API bool OPJ_CALLCONV opj_encode_with_info(opj_cinfo_t *cinfo, opj_cio_t *cio, opj_image_t *image, opj_codestream_info_t *cstr_info);
+OPJ_API opj_bool OPJ_CALLCONV opj_encode_with_info(opj_cinfo_t *cinfo, opj_cio_t *cio, opj_image_t *image, opj_codestream_info_t *cstr_info);
 /**
 Destroy Codestream information after compression or decompression
 @param cstr_info Codestream information structure
 */
 OPJ_API void OPJ_CALLCONV opj_destroy_cstr_info(opj_codestream_info_t *cstr_info);
+
 
 #ifdef __cplusplus
 }

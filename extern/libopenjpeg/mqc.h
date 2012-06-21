@@ -70,6 +70,9 @@ typedef struct opj_mqc {
 	unsigned char *end;
 	opj_mqc_state_t *ctxs[MQC_NUMCTXS];
 	opj_mqc_state_t **curctx;
+#ifdef MQC_PERF_OPT
+	unsigned char *buffer;
+#endif
 } opj_mqc_t;
 
 /** @name Exported functions */
@@ -188,7 +191,7 @@ Decode a symbol
 @param mqc MQC handle
 @return Returns the decoded symbol (0 or 1)
 */
-int mqc_decode(opj_mqc_t *mqc);
+int mqc_decode(opj_mqc_t *const mqc);
 /* ----------------------------------------------------------------------- */
 /*@}*/
 

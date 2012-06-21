@@ -2082,7 +2082,9 @@ static ImBuf *seq_render_mask_strip(
 		                   context.rectx, context.recty,
 		                   maskbuf,
 		                   TRUE,
-				   FALSE /*XXX- TODO: make on/off for anti-aliasing*/);
+		                   FALSE, /*XXX- TODO: make on/off for anti-aliasing */
+		                   TRUE   /*XXX- TODO: make on/off for feather */
+		                   );
 
 		fp_src = maskbuf;
 		fp_dst = ibuf->rect_float;
@@ -2106,7 +2108,9 @@ static ImBuf *seq_render_mask_strip(
 		                   context.rectx, context.recty,
 		                   maskbuf,
 		                   TRUE,
-				   FALSE /*XXX- TODO: mask on/off for anti-aliasing*/);
+		                   FALSE, /*XXX- TODO: make on/off for anti-aliasing */
+		                   TRUE   /*XXX- TODO: make on/off for feather */
+		                   );
 
 		fp_src = maskbuf;
 		ub_dst = (unsigned char *)ibuf->rect;

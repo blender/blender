@@ -67,6 +67,7 @@ Encode the packets of a tile to a destination buffer
 @param cstr_info Codestream information structure 
 @param tpnum Tile part number of the current tile
 @param tppos The position of the tile part flag in the progression order
+@param pino 
 @param t2_mode If == 0 In Threshold calculation ,If == 1 Final pass
 @param cur_totnum_tp The total number of tile parts in the current tile
 */
@@ -78,6 +79,7 @@ Decode the packets of a tile from a source buffer
 @param len length of the source buffer
 @param tileno number that identifies the tile for which to decode the packets
 @param tile tile for which to decode the packets
+@param cstr_info Codestream information structure
  */
 int t2_decode_packets(opj_t2_t *t2, unsigned char *src, int len, int tileno, opj_tcd_tile_t *tile, opj_codestream_info_t *cstr_info);
 
