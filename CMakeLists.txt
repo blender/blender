@@ -1489,6 +1489,7 @@ if(WITH_IMAGE_OPENJPEG)
 		# dealt with above
 	else()
 		set(OPENJPEG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/libopenjpeg")
+		add_definitions(-DOPJ_STATIC)
 	endif()
 endif()
 
