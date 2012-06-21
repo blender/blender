@@ -101,6 +101,16 @@ EnumPropertyItem proportional_falloff_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+/* subset of the enum - only curves, missing random and const */
+EnumPropertyItem proportional_falloff_curve_only_items[] = {
+	{PROP_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", "Smooth falloff"},
+	{PROP_SPHERE, "SPHERE", ICON_SPHERECURVE, "Sphere", "Spherical falloff"},
+	{PROP_ROOT, "ROOT", ICON_ROOTCURVE, "Root", "Root falloff"},
+	{PROP_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", "Sharp falloff"},
+	{PROP_LIN, "LINEAR", ICON_LINCURVE, "Linear", "Linear falloff"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 
 EnumPropertyItem proportional_editing_items[] = {
 	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", "Proportional Editing disabled"},

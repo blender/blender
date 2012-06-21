@@ -31,6 +31,7 @@ private:
 	float *gausstab;
 	float *distbuf_inv;
 	bool do_subtract;
+	int falloff;
 	int rad;
 	void updateGauss(MemoryBuffer **memoryBuffers);
 public:
@@ -58,5 +59,6 @@ public:
 	 * Set subtract for Dilate/Erode functionality
 	 */
 	void setSubtract(bool subtract) { this->do_subtract = subtract; }
+	void setFalloff(int falloff) { this->falloff = falloff; }
 };
 #endif

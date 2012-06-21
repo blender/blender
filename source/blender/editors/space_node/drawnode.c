@@ -1768,8 +1768,13 @@ static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C)
 {
 	uiItemR(layout, ptr, "type", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);
-	if (RNA_enum_get(ptr, "type") == CMP_NODE_DILATEERODE_DISTANCE_THRESH) {
-		uiItemR(layout, ptr, "edge", 0, NULL, ICON_NONE);
+	switch (RNA_enum_get(ptr, "type")) {
+		case CMP_NODE_DILATEERODE_DISTANCE_THRESH:
+			uiItemR(layout, ptr, "edge", 0, NULL, ICON_NONE);
+			break;
+		case CMP_NODE_DILATEERODE_DISTANCE_FEATHER:
+			uiItemR(layout, ptr, "falloff", 0, NULL, ICON_NONE);
+			break;
 	}
 }
 

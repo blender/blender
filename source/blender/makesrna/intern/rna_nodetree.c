@@ -2068,10 +2068,20 @@ static void def_cmp_dilate_erode(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
+	/* CMP_NODE_DILATEERODE_DISTANCE_THRESH only */
 	prop = RNA_def_property(srna, "edge", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "custom3");
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Edge", "Edge to inset");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "NodeDilateErode", "storage");
+
+	/* CMP_NODE_DILATEERODE_DISTANCE_FEATHER only */
+	prop = RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "falloff");
+	RNA_def_property_enum_items(prop, proportional_falloff_curve_only_items);
+	RNA_def_property_ui_text(prop, "Falloff", "Falloff type the feather");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

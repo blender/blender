@@ -559,6 +559,11 @@ typedef struct NodeColorspill {
 	float uspillr, uspillg, uspillb;
 } NodeColorspill;
 
+typedef struct NodeDilateErode {
+	char falloff;
+	char pad[7];
+} NodeDilateErode;
+
 typedef struct NodeTexBase {
 	TexMapping tex_mapping;
 	ColorMapping color_mapping;

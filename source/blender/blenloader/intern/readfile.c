@@ -6982,6 +6982,21 @@ static void do_version_ntree_image_user_264(void *UNUSED(data), ID *UNUSED(id), 
 	}
 }
 
+static void do_version_ntree_dilateerode_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_DILATEERODE) {
+			if (node->storage == NULL) {
+				NodeDilateErode *data = MEM_callocN(sizeof(NodeDilateErode), __func__);
+				data->falloff = PROP_SMOOTH;
+				node->storage = data;
+			}
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7787,6 +7802,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (ma = main->mat.first; ma; ma = ma->id.next)
 			if (ma->strand_widthfade == 2.0f)
 				ma->strand_widthfade = 0.0f;
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 13)) {
+		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
+
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_dilateerode_264);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
