@@ -1423,8 +1423,6 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 #endif
 	/* sample option */
 
-	/* XXX 2.48 */
-#if 0
 	if (cumap->flag & CUMA_DRAW_SAMPLE) {
 		if (cumap->cur == 3) {
 			float lum = cumap->sample[0] * 0.35f + cumap->sample[1] * 0.45f + cumap->sample[2] * 0.2f;
@@ -1449,7 +1447,6 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 			glEnd();
 		}
 	}
-#endif
 
 	/* the curve */
 	glColor3ubv((unsigned char *)wcol->item);

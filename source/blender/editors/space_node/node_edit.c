@@ -1745,9 +1745,13 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 			info->colf[2] = fp[2];
 			info->colf[3] = fp[3];
 		}
+
+		ED_node_sample_set(info->colf);
 	}
-	else
+	else {
 		info->draw = 0;
+		ED_node_sample_set(NULL);
+	}
 
 	BKE_image_release_ibuf(ima, lock);
 	
@@ -1758,6 +1762,7 @@ static void sample_exit(bContext *C, wmOperator *op)
 {
 	ImageSampleInfo *info = op->customdata;
 
+	ED_node_sample_set(NULL);
 	ED_region_draw_cb_exit(info->art, info->draw_handle);
 	ED_area_tag_redraw(CTX_wm_area(C));
 	MEM_freeN(info);

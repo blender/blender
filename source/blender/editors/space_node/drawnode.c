@@ -340,25 +340,30 @@ static void node_buts_curvevec(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 	uiTemplateCurveMapping(layout, ptr, "mapping", 'v', 0, 0);
 }
 
-static float *_sample_col = NULL;    // bad bad, 2.5 will do better?
-#if 0
-static void node_curvemap_sample(float *col)
+static float _sample_col[4];    // bad bad, 2.5 will do better?
+#define SAMPLE_FLT_ISNONE FLT_MAX
+void ED_node_sample_set(const float col[4])
 {
-	_sample_col = col;
+	if (col) {
+		copy_v4_v4(_sample_col, col);
+	}
+	else {
+		copy_v4_fl(_sample_col, SAMPLE_FLT_ISNONE);
+	}
 }
-#endif
 
 static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
 	CurveMapping *cumap = node->storage;
 
-	if (_sample_col) {
+	if (_sample_col[0] != SAMPLE_FLT_ISNONE) {
 		cumap->flag |= CUMA_DRAW_SAMPLE;
 		copy_v3_v3(cumap->sample, _sample_col);
 	}
-	else 
+	else {
 		cumap->flag &= ~CUMA_DRAW_SAMPLE;
+	}
 
 	uiTemplateCurveMapping(layout, ptr, "mapping", 'c', 0, 0);
 }
