@@ -798,7 +798,11 @@ static int calculate_structlens(int firststruct)
 							}
 						}
 						
-						/* 2-4 aligned/ */
+						/* 2-4-8 aligned/ */
+						if (type < firststruct && typelens[type] > 4 && (len % 8)) {
+							printf("Align 8 error in struct: %s %s (add %d padding bytes)\n", types[structtype], cp, len % 8);
+							dna_error = 1;
+						}
 						if (typelens[type] > 3 && (len % 4) ) {
 							printf("Align 4 error in struct: %s %s (add %d padding bytes)\n", types[structtype], cp, len % 4);
 							dna_error = 1;
