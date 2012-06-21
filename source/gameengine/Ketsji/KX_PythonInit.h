@@ -61,6 +61,9 @@ int			saveGamePythonConfig( char **marshal_buffer);
 int			loadGamePythonConfig(char *marshal_buffer, int marshal_length);
 #endif
 
+void addImportMain(struct Main *maggie);
+void removeImportMain(struct Main *maggie);
+
 class KX_KetsjiEngine;
 class KX_Scene;
 
