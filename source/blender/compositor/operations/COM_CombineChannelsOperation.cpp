@@ -21,7 +21,7 @@
  */
 
 #include "COM_CombineChannelsOperation.h"
-#include <stdio.h>
+#include "BLI_utildefines.h"
 
 CombineChannelsOperation::CombineChannelsOperation() : NodeOperation()
 {
@@ -36,6 +36,31 @@ CombineChannelsOperation::CombineChannelsOperation() : NodeOperation()
 	this->inputChannel3Operation = NULL;
 	this->inputChannel4Operation = NULL;
 }
+
+bool CombineChannelsOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) 
+{
+	rcti tempOutput;
+	bool first = true;
+	for (int i = 0 ; i < 4 ; i ++) {
+		NodeOperation * inputOperation = this->getInputOperation(i);
+		if (inputOperation->determineDependingAreaOfInterest(input, readOperation, &tempOutput)) {
+			if (first) {
+				output->xmin = tempOutput.xmin;
+				output->ymin = tempOutput.ymin;
+				output->xmax = tempOutput.xmax;
+				output->ymax = tempOutput.ymax;
+				first = false;
+			} else {
+				output->xmin = MIN2(output->xmin, tempOutput.xmin);
+				output->ymin = MIN2(output->ymin, tempOutput.ymin);
+				output->xmax = MAX2(output->xmax, tempOutput.xmax);
+				output->ymax = MAX2(output->ymax, tempOutput.ymax);
+			}
+		}
+	}
+	return !first;
+}
+
 void CombineChannelsOperation::initExecution()
 {
 	this->inputChannel1Operation = this->getInputSocketReader(0);
