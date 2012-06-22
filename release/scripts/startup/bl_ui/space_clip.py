@@ -1326,6 +1326,7 @@ class CLIP_MT_mask_animation(Menu):
         layout.operator("mask.shape_key_clear")
         layout.operator("mask.shape_key_insert")
         layout.operator("mask.shape_key_feather_reset")
+        layout.operator("mask.shape_key_rekey")
 
 
 class CLIP_MT_camera_presets(Menu):

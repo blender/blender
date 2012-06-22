@@ -122,6 +122,7 @@ void BKE_mask_update_display(struct Mask *mask, float ctime);
 
 void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime, const int do_newframe);
 void BKE_mask_evaluate(struct Mask *mask, const float ctime, const int do_newframe);
+void BKE_mask_layer_evaluate(struct MaskLayer *masklay, const float ctime, const int do_newframe);
 void BKE_mask_update_scene(struct Main *bmain, struct Scene *scene, const int do_newframe);
 void BKE_mask_parent_init(struct MaskParent *parent);
 void BKE_mask_calc_handle_adjacent_interp(struct MaskSpline *spline, struct MaskSplinePoint *point, const float u);
