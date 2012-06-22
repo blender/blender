@@ -27,6 +27,7 @@
 
 
 #include <map>
+#include <set>
 
 #include "COLLADASWEffectProfile.h"
 
@@ -39,6 +40,8 @@
 #include "DNA_world_types.h"
 
 #include "BKE_customdata.h"
+#include "BKE_mesh.h"
+#include "BKE_material.h"
 
 #include "collada_internal.h"
 #include "collada_utils.h"
@@ -116,6 +119,54 @@ void EffectsExporter::writePhong(COLLADASW::EffectProfile &ep, Material *ma)
 	// specular
 	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
 	ep.setSpecular(cot, false, "specular");
+}
+
+void EffectsExporter::writeTextures(COLLADASW::EffectProfile &ep,
+									std::string &key,
+									COLLADASW::Sampler *sampler, 
+									MTex *t, Image *ima,
+									std::string &uvname ) {
+		
+	// Image not set for texture
+	if (!ima) return;
+
+	// color
+	if (t->mapto & (MAP_COL | MAP_COLSPEC)) {
+		ep.setDiffuse(createTexture(ima, uvname, sampler), false, "diffuse");
+	}
+	// ambient
+	if (t->mapto & MAP_AMB) {
+		ep.setAmbient(createTexture(ima, uvname, sampler), false, "ambient");
+	}
+	// specular
+	if (t->mapto & MAP_SPEC) {
+		ep.setSpecular(createTexture(ima, uvname, sampler), false, "specular");
+	}
+	// emission
+	if (t->mapto & MAP_EMIT) {
+		ep.setEmission(createTexture(ima, uvname, sampler), false, "emission");
+	}
+	// reflective
+	if (t->mapto & MAP_REF) {
+		ep.setReflective(createTexture(ima, uvname, sampler));
+	}
+	// alpha
+	if (t->mapto & MAP_ALPHA) {
+		ep.setTransparent(createTexture(ima, uvname, sampler));
+	}
+	// extension:
+	// Normal map --> Must be stored with <extra> tag as different technique, 
+	// since COLLADA doesn't support normal maps, even in current COLLADA 1.5.
+	if (t->mapto & MAP_NORM) {
+		COLLADASW::Texture texture(key);
+		texture.setTexcoord(uvname);
+		texture.setSampler(*sampler);
+		// technique FCOLLADA, with the <bump> tag, is most likely the best understood,
+		// most widespread de-facto standard.
+		texture.setProfileName("FCOLLADA");
+		texture.setChildElementName("bump");
+		ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
+	}
 }
 
 void EffectsExporter::operator()(Material *ma, Object *ob)
@@ -256,6 +307,52 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		}
 	}
 
+
+	std::set<Image *> uv_textures;
+	if (ob->type == OB_MESH && ob->totcol) {
+		Mesh *me     = (Mesh *) ob->data;
+		BKE_mesh_tessface_ensure(me);
+		for (int i = 0; i < me->pdata.totlayer; i++) {
+			if (me->pdata.layers[i].type == CD_MTEXPOLY) {
+				MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
+				MFace *mface = me->mface;
+				for (int j = 0; j < me->totpoly; j++, mface++, txface++) {
+
+					Material *mat = give_current_material(ob, mface->mat_nr + 1);
+					if (mat != ma) 
+						continue;
+
+					Image *ima = txface->tpage;
+					if (ima == NULL)
+						continue;
+
+
+					bool not_in_list = uv_textures.find(ima)==uv_textures.end();
+					if (not_in_list) {
+						std::string name = id_name(ima);
+						std::string key(name);
+						key = translate_id(key);
+
+						// create only one <sampler>/<surface> pair for each unique image
+						if (im_samp_map.find(key) == im_samp_map.end()) {
+							//<newparam> <sampler> <source>
+							COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
+													   key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
+													   key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
+							sampler.setImageId(key);
+							samplers[a] = sampler;
+							samp_surf[b][0] = &samplers[a];
+							im_samp_map[key] = b;
+							b++;
+							a++;
+							uv_textures.insert(ima);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	// used as fallback when MTex->uvname is "" (this is pretty common)
 	// it is indeed the correct value to use in that case
 	std::string active_uv(getActiveUVLayerName(ob));
@@ -265,58 +362,25 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	for (a = 0; a < tex_indices.size(); a++) {
 		MTex *t = ma->mtex[tex_indices[a]];
 		Image *ima = t->tex->ima;
-		
-		// Image not set for texture
-		if (!ima) continue;
-
-		// we assume map input is always TEXCO_UV
 
 		std::string key(id_name(ima));
 		key = translate_id(key);
 		int i = im_samp_map[key];
-		COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i][0];
-		//COLLADASW::Surface *surface = (COLLADASW::Surface*)samp_surf[i][1];
-
 		std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
-
-		// color
-		if (t->mapto & (MAP_COL | MAP_COLSPEC)) {
-			ep.setDiffuse(createTexture(ima, uvname, sampler), false, "diffuse");
-		}
-		// ambient
-		if (t->mapto & MAP_AMB) {
-			ep.setAmbient(createTexture(ima, uvname, sampler), false, "ambient");
-		}
-		// specular
-		if (t->mapto & MAP_SPEC) {
-			ep.setSpecular(createTexture(ima, uvname, sampler), false, "specular");
-		}
-		// emission
-		if (t->mapto & MAP_EMIT) {
-			ep.setEmission(createTexture(ima, uvname, sampler), false, "emission");
-		}
-		// reflective
-		if (t->mapto & MAP_REF) {
-			ep.setReflective(createTexture(ima, uvname, sampler));
-		}
-		// alpha
-		if (t->mapto & MAP_ALPHA) {
-			ep.setTransparent(createTexture(ima, uvname, sampler));
-		}
-		// extension:
-		// Normal map --> Must be stored with <extra> tag as different technique, 
-		// since COLLADA doesn't support normal maps, even in current COLLADA 1.5.
-		if (t->mapto & MAP_NORM) {
-			COLLADASW::Texture texture(key);
-			texture.setTexcoord(uvname);
-			texture.setSampler(*sampler);
-			// technique FCOLLADA, with the <bump> tag, is most likely the best understood,
-			// most widespread de-facto standard.
-			texture.setProfileName("FCOLLADA");
-			texture.setChildElementName("bump");
-			ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
-		}
+		COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i][0];
+		writeTextures(ep, key, sampler, t, ima, uvname);
 	}
+
+	std::set<Image *>::iterator uv_t_iter;
+	for(uv_t_iter = uv_textures.begin(); uv_t_iter != uv_textures.end(); uv_t_iter++ ) {
+		Image *ima = *uv_t_iter;
+		std::string key(id_name(ima));
+		key = translate_id(key);
+		int i = im_samp_map[key];
+		COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i][0];
+		ep.setDiffuse(createTexture(ima, active_uv, sampler), false, "diffuse");
+	}
+
 	// performs the actual writing
 	ep.addProfileElements();
 	bool twoSided = false;

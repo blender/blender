@@ -91,16 +91,23 @@ static void rna_Scene_collada_export(
     const char *filepath,
     int apply_modifiers,
 	int export_mesh_type,
-    int selected,
+
+	int selected,
     int include_children,
     int include_armatures,
     int deform_bones_only,
+
+	int active_uv_only,
+	int include_textures,
+	int use_texture_copies,
+
     int use_object_instantiation,
     int sort_by_name,
     int second_life)
 {
 	collada_export(scene, filepath, apply_modifiers, export_mesh_type, selected,  
-	               include_children, include_armatures, deform_bones_only, 
+	               include_children, include_armatures, deform_bones_only,
+				   active_uv_only, include_textures, use_texture_copies,
 	               use_object_instantiation, sort_by_name, second_life);
 }
 
@@ -136,6 +143,11 @@ void RNA_api_scene(StructRNA *srna)
 	parm = RNA_def_boolean(func, "include_children", 0, "Include Children", "Export all children of selected objects (even if not selected)");
 	parm = RNA_def_boolean(func, "include_armatures", 0, "Include Armatures", "Export related armatures (even if not selected)");
 	parm = RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only", "Only export deforming bones with armatures");
+
+	parm = RNA_def_boolean(func, "active_uv_only", 0, "Active UV Layer only", "Export only the active UV Layer");
+	parm = RNA_def_boolean(func, "include_textures", 0, "Include Textures", "Export related textures");
+	parm = RNA_def_boolean(func, "use_texture_copies", 0, "copy", "Copy textures to same folder where the .dae file is exported");
+
 	parm = RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instances", "Instantiate multiple Objects from same Data");
 	parm = RNA_def_boolean(func, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
 	parm = RNA_def_boolean(func, "second_life", 0, "Export for Second Life", "Compatibility mode for Second Life");

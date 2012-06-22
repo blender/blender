@@ -61,6 +61,10 @@ int collada_export(Scene *sce,
                    int include_armatures,
                    int deform_bones_only,
 
+				   int active_uv_only,
+				   int include_uv_textures,
+				   int use_texture_copies,
+
                    int use_object_instantiation,
                    int sort_by_name,
                    int second_life)
@@ -79,11 +83,15 @@ int collada_export(Scene *sce,
 	export_settings.filepath                 = (char *)filepath;
 
 	export_settings.apply_modifiers          = apply_modifiers != 0;
-	export_settings.export_mesh_type        = export_mesh_type;
+	export_settings.export_mesh_type         = export_mesh_type;
 	export_settings.selected                 = selected          != 0;
 	export_settings.include_children         = include_children  != 0;
 	export_settings.include_armatures        = include_armatures != 0;
 	export_settings.deform_bones_only        = deform_bones_only != 0;
+
+	export_settings.active_uv_only           = active_uv_only != 0;
+	export_settings.include_uv_textures      = include_uv_textures;
+	export_settings.use_texture_copies       = use_texture_copies;
 
 	export_settings.use_object_instantiation = use_object_instantiation != 0;
 	export_settings.sort_by_name             = sort_by_name != 0;
