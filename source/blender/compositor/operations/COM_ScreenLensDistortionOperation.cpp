@@ -30,34 +30,24 @@ extern "C" {
 ScreenLensDistortionOperation::ScreenLensDistortionOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
+	this->addInputSocket(COM_DT_VALUE);
+	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
 	this->inputProgram = NULL;
+	this->valuesAvailable = false;
+	this->dispersion = 0.0f;
+	this->distortion = 0.0f;
 }
 void ScreenLensDistortionOperation::initExecution()
 {
 	this->inputProgram = this->getInputSocketReader(0);
-	kg = MAX2(MIN2(this->distortion, 1.f), -0.999f);
-	// smaller dispersion range for somewhat more control
-	const float d = 0.25f * MAX2(MIN2(this->dispersion, 1.f), 0.f);
-	kr = MAX2(MIN2((kg + d), 1.f), -0.999f);
-	kb = MAX2(MIN2((kg - d), 1.f), -0.999f);
-	maxk = MAX3(kr, kg, kb);
-	sc = (this->data->fit && (maxk > 0.f)) ? (1.f / (1.f + 2.f * maxk)) : (1.f / (1.f + maxk));
-	drg = 4.f * (kg - kr);
-	dgb = 4.f * (kb - kg);
-
-	kr4 = kr * 4.f;
-	kg4 = kg * 4.f;
-	kb4 = kb * 4.f;
-	cx = 0.5f * (float)getWidth();
-	cy = 0.5f * (float)getHeight();
-
 }
 
 void *ScreenLensDistortionOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	void *buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
+	updateDispersionAndDistortion(memoryBuffers);
 	return buffer;
 }
 
@@ -170,4 +160,31 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 	newInput.ymax = inputProgram->getHeight();
 	newInput.xmax = inputProgram->getWidth();
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}
+
+void ScreenLensDistortionOperation::updateDispersionAndDistortion(MemoryBuffer **inputBuffers)
+{
+	if (!valuesAvailable) {
+		float result[4];
+		this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST, inputBuffers);
+		this->distortion = result[0];
+		this->getInputSocketReader(2)->read(result, 0, 0, COM_PS_NEAREST, inputBuffers);
+		this->dispersion = result[0];
+		kg = MAX2(MIN2(this->distortion, 1.f), -0.999f);
+		// smaller dispersion range for somewhat more control
+		const float d = 0.25f * MAX2(MIN2(this->dispersion, 1.f), 0.f);
+		kr = MAX2(MIN2((kg + d), 1.f), -0.999f);
+		kb = MAX2(MIN2((kg - d), 1.f), -0.999f);
+		maxk = MAX3(kr, kg, kb);
+		sc = (this->data->fit && (maxk > 0.f)) ? (1.f / (1.f + 2.f * maxk)) : (1.f / (1.f + maxk));
+		drg = 4.f * (kg - kr);
+		dgb = 4.f * (kb - kg);
+	
+		kr4 = kr * 4.f;
+		kg4 = kg * 4.f;
+		kb4 = kb * 4.f;
+		cx = 0.5f * (float)getWidth();
+		cy = 0.5f * (float)getHeight();
+		valuesAvailable = true;
+	}
 }
