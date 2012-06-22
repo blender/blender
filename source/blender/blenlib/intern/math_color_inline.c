@@ -222,6 +222,12 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
 	r_col[2] = ((pack) >> 16) & 0xFF;
 }
 
+/* XXX - investigate when/why rgb_to_bw & rgb_to_grayscale are different,
+ * and why we use both! whats the purpose of this? */
+MINLINE float rgb_to_bw(const float rgb[3])
+{
+	return 0.35f * rgb[0] + 0.45f * rgb[1] + 0.2f * rgb[2];
+}
 
 MINLINE float rgb_to_grayscale(const float rgb[3])
 {

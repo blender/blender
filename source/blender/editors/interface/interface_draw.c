@@ -1438,7 +1438,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 			glEnd();
 		}
 		else if (cumap->cur == 3) {
-			float lum = cumap->sample[0] * 0.35f + cumap->sample[1] * 0.45f + cumap->sample[2] * 0.2f;
+			float lum = rgb_to_bw(cumap->sample);
 			glColor3ub(240, 240, 240);
 			
 			glBegin(GL_LINES);

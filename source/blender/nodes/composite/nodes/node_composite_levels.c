@@ -45,11 +45,6 @@ static bNodeSocketTemplate cmp_node_view_levels_out[]={
 	{-1, 0, ""}
 };
 
-static void rgb_tobw(float r, float g, float b, float* out)
-{
-	*out= r*0.35f + g*0.45f + b*0.2f;
-}
-
 static void fill_bins(bNode* node, CompBuf* in, int* bins)
 {
 	float value[4];
@@ -66,7 +61,7 @@ static void fill_bins(bNode* node, CompBuf* in, int* bins)
 			if (value[3] > 0.0f) { /* don't count transparent pixels */
 				switch (node->custom1) {
 					case 1: { /* all colors */
-						rgb_tobw(value[0], value[1], value[2], &value[0]);
+						value[0] = rgb_to_bw(value);
 						value[0]=value[0]*255; /* scale to 0-255 range */
 						ivalue=(int)value[0];
 						break;
@@ -125,7 +120,7 @@ static float brightness_mean(bNode* node, CompBuf* in)
 				switch (node->custom1) {
 				case 1:
 					{
-						rgb_tobw(value[0], value[1], value[2], &value[0]);
+						value[0] = rgb_to_bw(value);
 						sum+=value[0];
 						break;
 					}
@@ -176,7 +171,7 @@ static float brightness_standard_deviation(bNode* node, CompBuf* in, float mean)
 				switch (node->custom1) {
 				case 1:
 					{
-						rgb_tobw(value[0], value[1], value[2], &value[0]);
+						value[0] = rgb_to_bw(value);
 						sum+=(value[0]-mean)*(value[0]-mean);
 						break;
 					}
