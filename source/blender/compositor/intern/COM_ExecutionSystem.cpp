@@ -41,7 +41,7 @@
 
 #include "BKE_global.h"
 
-ExecutionSystem::ExecutionSystem(Scene *scene, bNodeTree *editingtree, bool rendering)
+ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering)
 {
 	context.setbNodeTree(editingtree);
 	bNode *gnode;
@@ -64,7 +64,7 @@ ExecutionSystem::ExecutionSystem(Scene *scene, bNodeTree *editingtree, bool rend
 
 	ExecutionSystemHelper::addbNodeTree(*this, 0, editingtree, NULL);
 
-	context.setScene(scene);
+	context.setRenderData(rd);
 	this->convertToOperations();
 	this->groupOperations(); /* group operations in ExecutionGroups */
 	unsigned int index;

@@ -47,7 +47,7 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	if (storage->format.imtype == R_IMF_IMTYPE_MULTILAYER) {
 		/* single output operation for the multilayer file */
 		OutputOpenExrMultiLayerOperation *outputOperation = new OutputOpenExrMultiLayerOperation(
-		        context->getScene(), context->getbNodeTree(), storage->base_path, storage->format.exr_codec);
+		        context->getRenderData(), context->getbNodeTree(), storage->base_path, storage->format.exr_codec);
 		
 		int num_inputs = getNumberOfInputSockets();
 		bool hasConnections = false;
@@ -80,7 +80,7 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 				BLI_join_dirfile(path, FILE_MAX, storage->base_path, sockdata->path);
 				
 				OutputSingleLayerOperation *outputOperation = new OutputSingleLayerOperation(
-				        context->getScene(), context->getbNodeTree(), input->getDataType(), format, path);
+				        context->getRenderData(), context->getbNodeTree(), input->getDataType(), format, path);
 				input->relinkConnections(outputOperation->getInputSocket(0));
 				graph->addOperation(outputOperation);
 				if (!previewAdded) {

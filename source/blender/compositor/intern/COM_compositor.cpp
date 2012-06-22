@@ -56,15 +56,9 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 	editingtree->progress(editingtree->prh, 0.0);
 
 	/* initialize execution system */
-	Scene *scene;
-	for (scene = (Scene*)G.main->scene.first; scene != NULL ; scene = (Scene*)scene->id.next) {
-		if (&scene->r == rd) {
-			ExecutionSystem *system = new ExecutionSystem(scene, editingtree, rendering);
-			system->execute();
-			delete system;
-			break;
-		}
-	}
+	ExecutionSystem *system = new ExecutionSystem(rd, editingtree, rendering);
+	system->execute();
+	delete system;
 
 	BLI_mutex_unlock(compositorMutex);
 }

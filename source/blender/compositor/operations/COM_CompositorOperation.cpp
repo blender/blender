@@ -41,7 +41,7 @@ CompositorOperation::CompositorOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 
-	this->setScene(NULL);
+	this->setRenderData(NULL);
 	this->outputBuffer = NULL;
 	this->imageInput = NULL;
 	this->alphaInput = NULL;
@@ -60,8 +60,8 @@ void CompositorOperation::initExecution()
 void CompositorOperation::deinitExecution()
 {
 	if (!isBreaked()) {
-		const Scene *scene = this->scene;
-		Render *re = RE_GetRender(scene->id.name);
+		const RenderData *rd = this->rd;
+		Render *re = RE_GetRender_FromData(rd);
 		RenderResult *rr = RE_AcquireResultWrite(re);
 		if (rr) {
 			if (rr->rectf  != NULL) {
@@ -127,12 +127,12 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, Mem
 
 void CompositorOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
-	int width = this->scene->r.xsch * this->scene->r.size / 100;
-	int height = this->scene->r.ysch * this->scene->r.size / 100;
+	int width = this->rd->xsch * this->rd->size / 100;
+	int height = this->rd->ysch * this->rd->size / 100;
 
 	// check actual render resolution with cropping it may differ with cropped border.rendering
 	// FIX for: [31777] Border Crop gives black (easy)
-	Render *re = RE_GetRender(this->scene->id.name);
+	Render *re = RE_GetRender_FromData(this->rd);
 	if (re) {
 		RenderResult *rr = RE_AcquireResultRead(re);
 		if (rr) {

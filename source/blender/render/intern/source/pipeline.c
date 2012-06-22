@@ -245,6 +245,18 @@ Render *RE_GetRender(const char *name)
 	return re;
 }
 
+Render *RE_GetRender_FromData(const RenderData *rd)
+{
+	Render *re;
+
+	/* search for existing renders */
+	for (re = RenderGlobal.renderlist.first; re; re = re->next)
+		if (&re->r == rd)
+			break;
+
+	return re;
+}
+
 /* if you want to know exactly what has been done */
 RenderResult *RE_AcquireResultRead(Render *re)
 {
