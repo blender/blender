@@ -37,6 +37,8 @@ public:
 	
 	void initExecution();
 	void deinitExecution();
+	
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
 
 #endif

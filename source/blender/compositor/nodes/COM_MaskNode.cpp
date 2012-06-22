@@ -36,7 +36,7 @@ MaskNode::MaskNode(bNode *editorNode) : Node(editorNode)
 
 void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	const RenderData *data = &context->getScene()->r;
+	const RenderData *data = context->getRenderData();
 
 	OutputSocket *outputMask = this->getOutputSocket(0);
 

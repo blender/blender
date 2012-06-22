@@ -51,11 +51,11 @@ private:
 	CompositorQuality quality;
 
 	/**
-	 * @brief Reference to the scene that is being composited.
+	 * @brief Reference to the render data that is being composited.
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
 	 * @see ExecutionSystem
 	 */
-	Scene *scene;
+	RenderData *rd;
 
 	/**
 	 * @brief reference to the bNodeTree
@@ -93,7 +93,7 @@ public:
 	/**
 	 * @brief set the scene of the context
 	 */
-	void setScene(Scene *scene) { this->scene = scene; }
+	void setRenderData(RenderData *rd) { this->rd = rd; }
 
 	/**
 	 * @brief set the bnodetree of the context
@@ -118,7 +118,7 @@ public:
 	/**
 	 * @brief get the scene of the context
 	 */
-	const Scene *getScene() const { return this->scene; }
+	const RenderData *getRenderData() const { return this->rd; }
 
 	/**
 	 * @brief set the quality

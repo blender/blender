@@ -48,14 +48,21 @@ void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigne
 }
 void ReadBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	MemoryBuffer *inputBuffer = inputBuffers[this->offset];
-	if (inputBuffer) {
-		if (sampler == COM_PS_NEAREST) {
-			inputBuffer->read(color, x, y);
+	if (inputBuffers) {
+		MemoryBuffer *inputBuffer = inputBuffers[this->offset];
+		if (inputBuffer) {
+			if (sampler == COM_PS_NEAREST) {
+				inputBuffer->read(color, x, y);
+			}
+			else {
+				inputBuffer->readCubic(color, x, y);
+			}
 		}
-		else {
-			inputBuffer->readCubic(color, x, y);
-		}
+	} else {
+		color[0] = 0.0f;
+		color[1] = 0.0f;
+		color[2] = 0.0f;
+		color[3] = 0.0f;
 	}
 }
 

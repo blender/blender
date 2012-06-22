@@ -467,7 +467,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	
 	/* draw other uvs */
 	if (sima->flag & SI_DRAW_OTHER) {
-		Image *curimage = (activetf) ? activetf->tpage : NULL;
+		Image *curimage = (activetf) ? activetf->tpage : ima;
 
 		draw_uvs_other(scene, obedit, curimage);
 	}

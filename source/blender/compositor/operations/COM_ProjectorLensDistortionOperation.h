@@ -35,6 +35,8 @@ private:
 	NodeLensDist *data;
 	
 	float dispersion;
+	bool dispersionAvailable;
+	
 	float kr, kr2;
 public:
 	ProjectorLensDistortionOperation();
@@ -56,9 +58,10 @@ public:
 	void deinitExecution();
 	
 	void setData(NodeLensDist *data) { this->data = data; }
-	void setDispertion(float dispersion) { this->dispersion = dispersion; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+
+	void updateDispersion(MemoryBuffer** inputBuffers);
 
 };
 #endif

@@ -36,6 +36,7 @@ private:
 	
 	float dispersion;
 	float distortion;
+	bool valuesAvailable;
 	float kr, kg, kb;
 	float kr4, kg4, kb4;
 	float maxk;
@@ -62,13 +63,12 @@ public:
 	void deinitExecution();
 	
 	void setData(NodeLensDist *data) { this->data = data; }
-	void setDispertion(float dispersion) { this->dispersion = dispersion; }
-	void setDistortion(float distortion) { this->distortion = distortion; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
 private:
 	void determineUV(float *result, float x, float y) const;
+	void updateDispersionAndDistortion(MemoryBuffer** inputBuffers);
 
 };
 #endif
