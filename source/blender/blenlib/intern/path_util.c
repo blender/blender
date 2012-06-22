@@ -1547,31 +1547,40 @@ char *BLI_path_basename(char *path)
 
 /**
  * Produce image export path.
- *
- * Fails returning 0 if image filename is empty or if destination path
- * matches image path (i.e. both are the same file).
- *
- * Trailing slash in dest_dir is optional.
+ * 
+ * Returns:
+ * 0        if image filename is empty or if destination path
+ *          matches image path (i.e. both are the same file).
+ * 2        if source is identical to destination.
+ * 1        if rebase was successfull
+ * -------------------------------------------------------------
+ * Hint: Trailing slash in dest_dir is optional.
  *
  * Logic:
  *
- * - if an image is "below" current .blend file directory, rebuild the
- * same dir structure in dest_dir
+ * - if an image is "below" current .blend file directory:
+ *   rebuild the same dir structure in dest_dir
  *
- * For example //textures/foo/bar.png becomes
- * [dest_dir]/textures/foo/bar.png.
+ *   Example: 
+ *   src : //textures/foo/bar.png
+ *   dest: [dest_dir]/textures/foo/bar.png.
  *
  * - if an image is not "below" current .blend file directory,
- * disregard it's path and copy it in the same directory where 3D file
- * goes.
+ *   disregard it's path and copy it into the destination  
+ *   directory.
  *
- * For example //../foo/bar.png becomes [dest_dir]/bar.png.
+ *   Example:
+ *   src : //../foo/bar.png becomes
+ *   dest: [dest_dir]/bar.png.
  *
- * This logic will help ensure that all image paths are relative and
+ * This logic ensures that all image paths are relative and
  * that a user gets his images in one place. It'll also provide
  * consistent behavior across exporters.
+ * IMPORTANT NOTE: If base_dir contains an empty string, then
+ * this function returns wrong results!
+ * XXX: test on empty base_dir and return an error ?
  */
-int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir)
+int BLI_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir)
 {
 	char path[FILE_MAX];
 	char dir[FILE_MAX];
@@ -1590,7 +1599,7 @@ int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 	BLI_split_dir_part(base_dir, blend_dir, sizeof(blend_dir));
 
 	if (src_dir[0] == '\0')
-		return 0;
+		return BLI_REBASE_NO_SRCDIR;
 
 	BLI_strncpy(path, src_dir, sizeof(path));
 
@@ -1637,10 +1646,10 @@ int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 	/* return 2 if src=dest */
 	if (BLI_path_cmp(path, dest_path) == 0) {
 		// if (G.debug & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
-		return 2;
+		return BLI_REBASE_IDENTITY;
 	}
 
-	return 1;
+	return BLI_REBASE_OK;
 }
 
 char *BLI_first_slash(char *string)
