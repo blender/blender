@@ -1208,6 +1208,106 @@ void BKE_imformat_defaults(ImageFormatData *im_format)
 	im_format->compress = 90;
 }
 
+void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *imbuf)
+{
+	BKE_imformat_defaults(im_format);
+
+	// file type
+
+	if (imbuf->ftype == IMAGIC)
+		im_format->imtype = R_IMF_IMTYPE_IRIS;
+
+#ifdef WITH_HDR
+	else if (imbuf->ftype == RADHDR)
+		im_format->imtype = R_IMF_IMTYPE_RADHDR;
+#endif
+
+	else if (imbuf->ftype == PNG)
+		im_format->imtype = R_IMF_IMTYPE_PNG;
+
+#ifdef WITH_DDS
+	else if (imbuf->ftype == DDS)
+		im_format->imtype = R_IMF_IMTYPE_DDS;
+#endif
+
+	else if (imbuf->ftype == BMP)
+		im_format->imtype = R_IMF_IMTYPE_BMP;
+
+#ifdef WITH_TIFF
+	else if (imbuf->ftype & TIF) {
+		im_format->imtype = R_IMF_IMTYPE_TIFF;
+		if (imbuf->ftype & TIF_16BIT)
+			im_format->depth = R_IMF_CHAN_DEPTH_16;
+	}
+#endif
+
+#ifdef WITH_OPENEXR
+	else if (imbuf->ftype & OPENEXR) {
+		im_format->imtype = R_IMF_IMTYPE_OPENEXR; 
+		if (imbuf->ftype & OPENEXR_HALF)
+			im_format->depth = R_IMF_CHAN_DEPTH_16;
+		if (imbuf->ftype & OPENEXR_COMPRESS)
+			im_format->exr_codec = R_IMF_EXR_CODEC_ZIP; // Can't determine compression
+		if (imbuf->zbuf_float)
+			im_format->flag |= R_IMF_FLAG_ZBUF;
+	}
+#endif
+
+#ifdef WITH_CINEON
+	else if (imbuf->ftype == CINEON)
+		im_format->imtype = R_IMF_IMTYPE_CINEON;
+	else if (imbuf->ftype == DPX)
+		im_format->imtype = R_IMF_IMTYPE_DPX;
+#endif
+
+	else if (imbuf->ftype == TGA) {
+		im_format->imtype = R_IMF_IMTYPE_TARGA;
+	}
+	else if (imbuf->ftype == RAWTGA) {
+		im_format->imtype = R_IMF_IMTYPE_RAWTGA;
+	}
+
+#ifdef WITH_OPENJPEG
+	else if (imbuf->ftype & JP2) {
+		im_format->imtype = R_IMF_IMTYPE_JP2;
+		im_format->quality = imbuf->ftype & ~JPG_MSK;
+
+		if (imbuf->ftype & JP2_16BIT)
+			im_format->depth = R_IMF_CHAN_DEPTH_16;
+		else if (imbuf->ftype & JP2_12BIT)
+			im_format->depth = R_IMF_CHAN_DEPTH_12;
+
+		if(imbuf->ftype & JP2_YCC)
+			im_format->jp2_flag |= R_IMF_JP2_FLAG_YCC;
+
+		if(imbuf->ftype & JP2_CINE) {
+			im_format->jp2_flag |= R_IMF_JP2_FLAG_CINE_PRESET;
+			if (imbuf->ftype & JP2_CINE_48FPS)
+				im_format->jp2_flag |= R_IMF_JP2_FLAG_CINE_48;
+		}
+	}
+#endif
+
+	else {
+		im_format->imtype = R_IMF_IMTYPE_JPEG90;
+		im_format->quality = imbuf->ftype & ~JPG_MSK;
+	}
+
+	// planes
+	switch (imbuf->channels) {
+		case 0:
+		case 4: im_format->planes = R_IMF_PLANES_RGBA;
+				break;
+		case 3: im_format->planes = R_IMF_PLANES_RGB;
+				break;
+		case 1: im_format->planes = R_IMF_PLANES_BW;
+				break;
+		default:im_format->planes = R_IMF_PLANES_RGB;
+				break;
+	}
+
+}
+
 /* could allow access externally - 512 is for long names, 64 is for id names */
 typedef struct StampData {
 	char file[512];
