@@ -97,7 +97,7 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
 			{
 				case 1:
 				{
-					sum += buffer[offset] * 0.35f + buffer[offset + 1] * 0.45f + buffer[offset + 2] * 0.2f;
+					sum += rgb_to_bw(&buffer[offset]);
 					break;
 				}
 				case 2:

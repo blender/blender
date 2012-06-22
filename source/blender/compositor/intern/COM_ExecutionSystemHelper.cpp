@@ -39,21 +39,17 @@
 #include "COM_ReadBufferOperation.h"
 #include "COM_ViewerBaseOperation.h"
 
-Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree, bNode *groupnode)
+void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree, bNode *groupnode)
 {
 	vector<Node *>& nodes = system.getNodes();
 	vector<SocketConnection *>& links = system.getConnections();
-	Node *mainnode = NULL;
 	const bNode *activeGroupNode = system.getContext().getActivegNode();
 	bool isActiveGroup = activeGroupNode == groupnode;
 	
 	/* add all nodes of the tree to the node list */
 	bNode *node = (bNode *)tree->nodes.first;
 	while (node != NULL) {
-		Node *execnode = addNode(nodes, node, isActiveGroup);
-		if (node->type == CMP_NODE_COMPOSITE) {
-			mainnode = execnode;
-		}
+		addNode(nodes, node, isActiveGroup);
 		node = (bNode *)node->next;
 	}
 
@@ -74,8 +70,6 @@ Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_sta
 			groupNode->ungroup(system);
 		}
 	}
-
-	return mainnode;
 }
 
 void ExecutionSystemHelper::addNode(vector<Node *>& nodes, Node *node)

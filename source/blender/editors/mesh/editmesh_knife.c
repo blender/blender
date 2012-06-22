@@ -1631,15 +1631,13 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 	kcd->cur.mval[0] = kcd->vc.mval[0];
 	kcd->cur.mval[1] = kcd->vc.mval[1];
 
-	/* if angle snapping is enabled, don't snap to edges/vertices */
-	if (kcd->angle_snapping == ANGLE_FREE) {
+	/* XXX knife_snap_angle updates the view coordinate mouse values to constrained angles,
+	 * which current mouse values are set to current mouse values are then used
+	 * for vertex and edge snap detection, without regard to the exact angle constraint */
+	kcd->cur.vert = knife_find_closest_vert(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
 
-		kcd->cur.vert = knife_find_closest_vert(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
-
-		if (!kcd->cur.vert) {
-			kcd->cur.edge = knife_find_closest_edge(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
-		}
-
+	if (!kcd->cur.vert) {
+		kcd->cur.edge = knife_find_closest_edge(kcd, kcd->cur.co, kcd->cur.cage, &kcd->cur.bmface, &kcd->cur.is_space);
 	}
 
 	/* if no hits are found this would normally default to (0, 0, 0) so instead

@@ -2852,7 +2852,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float col_r[4])
 
 	/* texture output */
 	if (rgb && (mtex->texflag & MTEX_RGBTOINT)) {
-		texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
+		texres.tin = rgb_to_bw(&texres.tr);
 		rgb= 0;
 	}
 	if (mtex->texflag & MTEX_NEGATIVE) {
@@ -2919,7 +2919,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float col_r[4])
 	if (mtex->mapto & MAP_ALPHA) {
 		if (rgb) {
 			if (texres.talpha) texres.tin= texres.ta;
-			else texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
+			else texres.tin = rgb_to_bw(&texres.tr);
 		}
 				
 		col_r[3]*= texres.tin;
@@ -3051,7 +3051,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 			
 			/* texture output */
 			if (rgb && (mtex->texflag & MTEX_RGBTOINT)) {
-				texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
+				texres.tin = rgb_to_bw(&texres.tr);
 				rgb= 0;
 			}
 			if (mtex->texflag & MTEX_NEGATIVE) {
@@ -3124,7 +3124,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 				}
 			}
 			if (mtex->mapto & WOMAP_BLEND) {
-				if (rgb) texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
+				if (rgb) texres.tin = rgb_to_bw(&texres.tr);
 				
 				*blend= texture_value_blend(mtex->def_var, *blend, texres.tin, mtex->blendfac, mtex->blendtype);
 			}
@@ -3264,7 +3264,7 @@ void do_lamp_tex(LampRen *la, const float lavec[3], ShadeInput *shi, float col_r
 
 			/* texture output */
 			if (rgb && (mtex->texflag & MTEX_RGBTOINT)) {
-				texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
+				texres.tin = rgb_to_bw(&texres.tr);
 				rgb= 0;
 			}
 			if (mtex->texflag & MTEX_NEGATIVE) {
@@ -3358,7 +3358,7 @@ int externtex(MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, 
 	rgb= multitex(tex, texvec, dxt, dyt, 0, &texr, thread, mtex->which_output);
 	
 	if (rgb) {
-		texr.tin= (0.35f*texr.tr+0.45f*texr.tg+0.2f*texr.tb);
+		texr.tin = rgb_to_bw(&texr.tr);
 	}
 	else {
 		texr.tr= mtex->r;

@@ -297,7 +297,7 @@ extern "C" {
  *     - output nodes can have different priorities in the WorkScheduler.
  * This is implemented in the COM_execute function.
  */
-void COM_execute(bNodeTree *editingtree, int rendering);
+void COM_execute(RenderData* rd, bNodeTree *editingtree, int rendering);
 
 #ifdef __cplusplus
 }

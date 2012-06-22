@@ -25,6 +25,8 @@
 extern "C" {
 	#include "BLI_threads.h"
 }
+#include "BKE_main.h"
+#include "BKE_global.h"
 
 #include "COM_compositor.h"
 #include "COM_ExecutionSystem.h"
@@ -32,7 +34,7 @@ extern "C" {
 #include "OCL_opencl.h"
 
 static ThreadMutex *compositorMutex;
-void COM_execute(bNodeTree *editingtree, int rendering)
+void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 {
 	if (compositorMutex == NULL) { /// TODO: move to blender startup phase
 		compositorMutex = new ThreadMutex();
@@ -41,7 +43,7 @@ void COM_execute(bNodeTree *editingtree, int rendering)
 		WorkScheduler::initialize(); ///TODO: call workscheduler.deinitialize somewhere
 	}
 	BLI_mutex_lock(compositorMutex);
-	if (editingtree->test_break && editingtree->test_break(editingtree->tbh)) {
+	if (editingtree->test_break(editingtree->tbh)) {
 		// during editing multiple calls to this method can be triggered.
 		// make sure one the last one will be doing the work.
 		BLI_mutex_unlock(compositorMutex);
@@ -49,13 +51,20 @@ void COM_execute(bNodeTree *editingtree, int rendering)
 
 	}
 
+
 	/* set progress bar to 0% and status to init compositing*/
 	editingtree->progress(editingtree->prh, 0.0);
 
 	/* initialize execution system */
-	ExecutionSystem *system = new ExecutionSystem(editingtree, rendering);
-	system->execute();
-	delete system;
+	Scene *scene;
+	for (scene = (Scene*)G.main->scene.first; scene != NULL ; scene = (Scene*)scene->id.next) {
+		if (&scene->r == rd) {
+			ExecutionSystem *system = new ExecutionSystem(scene, editingtree, rendering);
+			system->execute();
+			delete system;
+			break;
+		}
+	}
 
 	BLI_mutex_unlock(compositorMutex);
 }

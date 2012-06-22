@@ -1473,51 +1473,46 @@ void BKE_mask_spline_ensure_deform(MaskSpline *spline)
 	}
 }
 
-void BKE_mask_evaluate(Mask *mask, const float ctime, const int do_newframe)
+void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const int do_newframe)
 {
-	MaskLayer *masklay;
+	/* animation if available */
+	if (do_newframe) {
+		MaskLayerShape *masklay_shape_a;
+		MaskLayerShape *masklay_shape_b;
+		int found;
 
-	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-
-		/* animation if available */
-		if (do_newframe) {
-			MaskLayerShape *masklay_shape_a;
-			MaskLayerShape *masklay_shape_b;
-			int found;
-
-			if ((found = BKE_mask_layer_shape_find_frame_range(masklay, ctime,
-			                                                   &masklay_shape_a, &masklay_shape_b)))
-			{
-				if (found == 1) {
+		if ((found = BKE_mask_layer_shape_find_frame_range(masklay, ctime,
+		                                                   &masklay_shape_a, &masklay_shape_b)))
+		{
+			if (found == 1) {
 #if 0
-					printf("%s: exact %d %d (%d)\n", __func__, (int)ctime, BLI_countlist(&masklay->splines_shapes),
-					       masklay_shape_a->frame);
+				printf("%s: exact %d %d (%d)\n", __func__, (int)ctime, BLI_countlist(&masklay->splines_shapes),
+				       masklay_shape_a->frame);
 #endif
 
-					BKE_mask_layer_shape_to_mask(masklay, masklay_shape_a);
-				}
-				else if (found == 2) {
-					float w = masklay_shape_b->frame - masklay_shape_a->frame;
+				BKE_mask_layer_shape_to_mask(masklay, masklay_shape_a);
+			}
+			else if (found == 2) {
+				float w = masklay_shape_b->frame - masklay_shape_a->frame;
 #if 0
-					printf("%s: tween %d %d (%d %d)\n", __func__, (int)ctime, BLI_countlist(&masklay->splines_shapes),
-					       masklay_shape_a->frame, masklay_shape_b->frame);
+				printf("%s: tween %d %d (%d %d)\n", __func__, (int)ctime, BLI_countlist(&masklay->splines_shapes),
+				       masklay_shape_a->frame, masklay_shape_b->frame);
 #endif
-					BKE_mask_layer_shape_to_mask_interp(masklay, masklay_shape_a, masklay_shape_b,
-					                                    (ctime - masklay_shape_a->frame) / w);
-				}
-				else {
-					/* always fail, should never happen */
-					BLI_assert(found == 2);
-				}
+				BKE_mask_layer_shape_to_mask_interp(masklay, masklay_shape_a, masklay_shape_b,
+				                                    (ctime - masklay_shape_a->frame) / w);
+			}
+			else {
+				/* always fail, should never happen */
+				BLI_assert(found == 2);
 			}
 		}
-		/* animation done... */
 	}
+	/* animation done... */
 
-	BKE_mask_calc_handles(mask);
+	BKE_mask_layer_calc_handles(masklay);
 
-
-	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+	/* update deform */
+	{
 		MaskSpline *spline;
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
@@ -1558,6 +1553,15 @@ void BKE_mask_evaluate(Mask *mask, const float ctime, const int do_newframe)
 			}
 			/* end extra calc handles loop */
 		}
+	}
+}
+
+void BKE_mask_evaluate(Mask *mask, const float ctime, const int do_newframe)
+{
+	MaskLayer *masklay;
+
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		BKE_mask_layer_evaluate(masklay, ctime, do_newframe);
 	}
 }
 

@@ -843,6 +843,14 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 			MEM_freeN(item);
 		}
 	}
+	else if (prop && RNA_property_type(prop) != PROP_ENUM) {
+		RNA_warning("%s.%s, not an enum type", RNA_struct_identifier(ptr.type), propname);
+		return;
+	}
+	else {
+		RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), propname);
+		return;
+	}
 }
 
 void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname)

@@ -104,7 +104,7 @@ static void node_shader_exec_rgbtobw(void *UNUSED(data), bNode *UNUSED(node), bN
 	/* stack order out: bw */
 	/* stack order in: col */
 
-	out[0]->vec[0]= in[0]->vec[0]*0.35f + in[0]->vec[1]*0.45f + in[0]->vec[2]*0.2f;
+	out[0]->vec[0] = rgb_to_bw(in[0]->vec);
 }
 
 static int gpu_shader_rgbtobw(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)

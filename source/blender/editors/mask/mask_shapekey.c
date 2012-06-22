@@ -29,7 +29,11 @@
  *  \ingroup edmask
  */
 
+#include <stdlib.h>
+
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -38,6 +42,9 @@
 #include "DNA_object_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -231,6 +238,175 @@ void MASK_OT_shape_key_feather_reset(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/*
+ * - loop over selected shapekeys.
+ * - find firstsel/lastsel pairs.
+ * - move these into a temp list.
+ * - re-key all the original shapes.
+ * - copy unselected values back from the original.
+ * - free the original.
+ */
+static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	const int frame = CFRA;
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *masklay;
+	int change = FALSE;
+
+	const short do_feather  = RNA_boolean_get(op->ptr, "feather");
+	const short do_location = RNA_boolean_get(op->ptr, "location");
+
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+			continue;
+		}
+
+		/* we need at least one point selected here to bother re-interpolating */
+		if (!ED_mask_layer_select_check(masklay)) {
+			continue;
+		}
+
+		if (masklay->splines_shapes.first) {
+			MaskLayerShape *masklay_shape;
+			MaskLayerShape *masklay_shape_lastsel = NULL;
+
+			for (masklay_shape = masklay->splines_shapes.first;
+			     masklay_shape;
+			     masklay_shape = masklay_shape->next)
+			{
+				MaskLayerShape *masklay_shape_a = NULL;
+				MaskLayerShape *masklay_shape_b = NULL;
+
+				/* find contiguous selections */
+				if (masklay_shape->flag & MASK_SHAPE_SELECT) {
+					if (masklay_shape_lastsel == NULL) {
+						masklay_shape_lastsel = masklay_shape;
+					}
+					if ((masklay_shape->next == NULL) ||
+					    (((MaskLayerShape *)masklay_shape->next)->flag & MASK_SHAPE_SELECT) == 0)
+					{
+						masklay_shape_a = masklay_shape_lastsel;
+						masklay_shape_b = masklay_shape;
+						masklay_shape_lastsel = NULL;
+					}
+				}
+
+				/* we have a from<>to? - re-interpolate! */
+				if (masklay_shape_a && masklay_shape_b) {
+					ListBase shapes_tmp = {NULL, NULL};
+					MaskLayerShape *masklay_shape_tmp;
+					MaskLayerShape *masklay_shape_tmp_next;
+					MaskLayerShape *masklay_shape_tmp_last = masklay_shape_b->next;
+					MaskLayerShape *masklay_shape_tmp_rekey;
+
+					/* move keys */
+					for (masklay_shape_tmp = masklay_shape_a;
+					     masklay_shape_tmp && (masklay_shape_tmp != masklay_shape_tmp_last);
+					     masklay_shape_tmp = masklay_shape_tmp_next)
+					{
+						masklay_shape_tmp_next = masklay_shape_tmp->next;
+						BLI_remlink(&masklay->splines_shapes, masklay_shape_tmp);
+						BLI_addtail(&shapes_tmp, masklay_shape_tmp);
+					}
+
+					/* re-key, note: cant modify the keys here since it messes uop */
+					for (masklay_shape_tmp = shapes_tmp.first;
+					     masklay_shape_tmp;
+					     masklay_shape_tmp = masklay_shape_tmp->next)
+					{
+						BKE_mask_layer_evaluate(masklay, masklay_shape_tmp->frame, TRUE);
+						masklay_shape_tmp_rekey = BKE_mask_layer_shape_varify_frame(masklay, masklay_shape_tmp->frame);
+						BKE_mask_layer_shape_from_mask(masklay, masklay_shape_tmp_rekey);
+						masklay_shape_tmp_rekey->flag = masklay_shape_tmp->flag & MASK_SHAPE_SELECT;
+					}
+
+					/* restore unselected points and free copies */
+					for (masklay_shape_tmp = shapes_tmp.first;
+					     masklay_shape_tmp;
+					     masklay_shape_tmp = masklay_shape_tmp_next)
+					{
+						/* restore */
+						int i_abs = 0;
+						int i;
+						MaskSpline *spline;
+						MaskLayerShapeElem *shape_ele_src;
+						MaskLayerShapeElem *shape_ele_dst;
+
+						masklay_shape_tmp_next = masklay_shape_tmp->next;
+
+						/* we know this exists, added above */
+						masklay_shape_tmp_rekey = BKE_mask_layer_shape_find_frame(masklay, masklay_shape_tmp->frame);
+
+						shape_ele_src = (MaskLayerShapeElem *)masklay_shape_tmp->data;
+						shape_ele_dst = (MaskLayerShapeElem *)masklay_shape_tmp_rekey->data;
+
+						for (spline = masklay->splines.first; spline; spline = spline->next) {
+							for (i = 0; i < spline->tot_point; i++) {
+								MaskSplinePoint *point = &spline->points[i];
+
+								/* not especially efficient but makes this easier to follow */
+								SWAP(MaskLayerShapeElem, *shape_ele_src, *shape_ele_dst);
+
+								if (MASKPOINT_ISSEL_ANY(point)) {
+									if (do_location) {
+										memcpy(shape_ele_dst->value, shape_ele_src->value, sizeof(float) * 6);
+									}
+									if (do_feather) {
+										shape_ele_dst->value[6] = shape_ele_src->value[6];
+									}
+								}
+
+								shape_ele_src++;
+								shape_ele_dst++;
+
+								i_abs++;
+							}
+						}
+
+						BKE_mask_layer_shape_free(masklay_shape_tmp);
+					}
+
+					change = TRUE;
+				}
+			}
+
+			/* re-evaluate */
+			BKE_mask_layer_evaluate(masklay, frame, TRUE);
+		}
+	}
+
+	if (change) {
+		WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
+		DAG_id_tag_update(&mask->id, 0);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void MASK_OT_shape_key_rekey(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Re-Key Points of Selected Shapes";
+	ot->description = "Recalculates animation data on selected points for frames selected in the dopesheet";
+	ot->idname = "MASK_OT_shape_key_rekey";
+
+	/* api callbacks */
+	ot->exec = mask_shape_key_rekey_exec;
+	ot->poll = ED_maskedit_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "location", TRUE, "Location", "");
+	RNA_def_boolean(ot->srna, "feather", TRUE, "Feather", "");
 }
 
 

@@ -56,7 +56,7 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, Memory
 				{
 					case 1:
 					{
-						float value = buffer[offset] * 0.35f + buffer[offset + 1] * 0.45f + buffer[offset + 2] * 0.2f;
+						float value = rgb_to_bw(&buffer[offset]);
 						sum += (value - mean) * (value - mean);
 						break;
 					}
