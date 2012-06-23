@@ -64,7 +64,7 @@ private:
 	void writeBlinn(COLLADASW::EffectProfile &ep, Material *ma);
 	void writeLambert(COLLADASW::EffectProfile &ep, Material *ma);
 	void writePhong(COLLADASW::EffectProfile &ep, Material *ma);
-	void EffectsExporter::writeTextures(COLLADASW::EffectProfile &ep,
+	void writeTextures(COLLADASW::EffectProfile &ep,
 			std::string &key,
 			COLLADASW::Sampler *sampler, 
 			MTex *t, Image *ima,

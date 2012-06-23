@@ -98,7 +98,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 			// So we have to export it. The export will keep the image state intact,
 			// so the exported file will not be associated with the image.
 
-			if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) != 0) {
+			if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == 0) {
 				fprintf(stderr, "Collada export: Cannot export image to:\n%s\n", export_path);
 			}
 			BLI_strncpy(export_path, export_file, sizeof(export_path));
@@ -215,7 +215,9 @@ void ImagesExporter::exportImages(Scene *sce)
 	openLibrary();
 
 	MaterialFunctor mf;
-	mf.forEachMaterialInExportSet<ImagesExporter>(sce, *this, this->export_settings->export_set);
+	if (this->export_settings->include_material_textures) {
+		mf.forEachMaterialInExportSet<ImagesExporter>(sce, *this, this->export_settings->export_set);
+	}
 
 	if (this->export_settings->include_uv_textures) {
 		export_UV_Images();
