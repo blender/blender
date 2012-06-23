@@ -805,19 +805,19 @@ int ED_file_extension_icon(const char *relname)
 	
 	if (type == BLENDERFILE || type == BLENDERFILE_BACKUP)
 		return ICON_FILE_BLEND;
-	else if (type ==  IMAGEFILE)
+	else if (type == IMAGEFILE)
 		return ICON_FILE_IMAGE;
-	else if (type ==  MOVIEFILE)
+	else if (type == MOVIEFILE)
 		return ICON_FILE_MOVIE;
-	else if (type ==  PYSCRIPTFILE)
+	else if (type == PYSCRIPTFILE)
 		return ICON_FILE_SCRIPT;
-	else if (type ==  SOUNDFILE) 
+	else if (type == SOUNDFILE)
 		return ICON_FILE_SOUND;
-	else if (type ==  FTFONTFILE) 
+	else if (type == FTFONTFILE)
 		return ICON_FILE_FONT;
-	else if (type ==  BTXFILE) 
+	else if (type == BTXFILE)
 		return ICON_FILE_BLANK;
-	else if (type ==  COLLADAFILE) 
+	else if (type == COLLADAFILE)
 		return ICON_FILE_BLANK;
 	
 	return ICON_FILE_BLANK;
@@ -831,7 +831,7 @@ static void filelist_setfiletypes(struct FileList *filelist)
 	file = filelist->filelist;
 	
 	for (num = 0; num < filelist->numfiles; num++, file++) {
-		file->type = file->s.st_mode;    /* restore the mess below */
+		file->type = file->s.st_mode;  /* restore the mess below */
 		
 		/* Don't check extensions for directories */ 
 		if (file->type & S_IFDIR) {
@@ -856,7 +856,7 @@ static void filelist_read_dir(struct FileList *filelist)
 	filelist->fidx = NULL;
 	filelist->filelist = NULL;
 
-	BLI_current_working_dir(wdir, sizeof(wdir));     /* backup cwd to restore after */
+	BLI_current_working_dir(wdir, sizeof(wdir));  /* backup cwd to restore after */
 
 	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist->numfiles = BLI_dir_contents(filelist->dir, &(filelist->filelist));
@@ -1108,7 +1108,7 @@ void filelist_from_library(struct FileList *filelist)
 
 	filelist_sort(filelist, FILE_SORT_ALPHA);
 
-	BLI_strncpy(G.main->name, filename, sizeof(filename));  // prevent G.main->name to change
+	BLI_strncpy(G.main->name, filename, sizeof(filename));  /* prevent G.main->name to change */
 
 	filelist->filter = 0;
 	filelist_filter(filelist);

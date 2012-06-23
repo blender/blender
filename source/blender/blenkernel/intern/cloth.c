@@ -106,7 +106,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
  *
  ******************************************************************************/
 /**
- * cloth_init -  creates a new cloth simulation.
+ * cloth_init - creates a new cloth simulation.
  *
  * 1. create object
  * 2. fill object with standard values or with the GUI settings if given
@@ -821,8 +821,9 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 
 					if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF ) {
 						if ( dvert->dw[j].def_nr == (clmd->coll_parms->vgroup_selfcol-1)) {
-							if( dvert->dw [j].weight > 0.0)
+							if (dvert->dw [j].weight > 0.0f) {
 								verts->flags |= CLOTH_VERT_FLAG_NOSELFCOLL;
+							}
 						}
 					}
 					/*

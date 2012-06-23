@@ -592,7 +592,7 @@ static float calc_overlap(StrokeCache *cache, const char symm, const char axis, 
 	distsq = len_squared_v3v3(mirror, cache->true_location);
 
 	if (distsq <= 4.0f * (cache->radius_squared))
-		return (2.0f * (cache->radius) - sqrtf(distsq))  /  (2.0f * (cache->radius));
+		return (2.0f * (cache->radius) - sqrtf(distsq)) / (2.0f * (cache->radius));
 	else
 		return 0;
 }

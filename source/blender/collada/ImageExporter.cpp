@@ -201,7 +201,7 @@ bool ImagesExporter::hasImages(Scene *sce)
 				for (int a = 0; a < num_layers; a++) {
 					MTFace *tface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, a);
 					Image *img = tface->tpage;
-					if(img) return true;
+					if (img) return true;
 				}
 			}
 		}

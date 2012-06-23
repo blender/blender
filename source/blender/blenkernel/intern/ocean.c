@@ -199,7 +199,7 @@ static float Ph(struct Ocean *o, float kx, float kz)
 	}
 
 	// damp out the waves going in the direction opposite the wind
-	tmp = (o->_wx * kx  + o->_wz * kz) / sqrtf(k2);
+	tmp = (o->_wx * kx + o->_wz * kz) / sqrtf(k2);
 	if (tmp < 0) {
 		tmp *= o->_damp_reflections;
 	}

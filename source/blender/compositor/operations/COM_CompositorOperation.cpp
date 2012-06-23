@@ -64,7 +64,7 @@ void CompositorOperation::deinitExecution()
 		Render *re = RE_GetRender_FromData(rd);
 		RenderResult *rr = RE_AcquireResultWrite(re);
 		if (rr) {
-			if (rr->rectf  != NULL) {
+			if (rr->rectf != NULL) {
 				MEM_freeN(rr->rectf);
 			}
 			rr->rectf = outputBuffer;

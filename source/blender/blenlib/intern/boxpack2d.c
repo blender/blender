@@ -63,35 +63,35 @@ typedef struct BoxVert {
 #define TL 2
 #define BR 3
 
-#define BOXLEFT(b)		((b)->v[BL]->x)
-#define BOXRIGHT(b)		((b)->v[TR]->x)
-#define BOXBOTTOM(b)	((b)->v[BL]->y)
-#define BOXTOP(b)		((b)->v[TR]->y)
-#define BOXAREA(b)		((b)->w * (b)->h)
+#define BOXLEFT(b)      ((b)->v[BL]->x)
+#define BOXRIGHT(b)     ((b)->v[TR]->x)
+#define BOXBOTTOM(b)    ((b)->v[BL]->y)
+#define BOXTOP(b)       ((b)->v[TR]->y)
+#define BOXAREA(b)      ((b)->w * (b)->h)
 
-#define UPDATE_V34X(b)	((b)->v[TL]->x = (b)->v[BL]->x); \
-						((b)->v[BR]->x = (b)->v[TR]->x)
-#define UPDATE_V34Y(b)	((b)->v[TL]->y = (b)->v[TR]->y); \
-						((b)->v[BR]->y = (b)->v[BL]->y)
+#define UPDATE_V34X(b)  ((b)->v[TL]->x = (b)->v[BL]->x); \
+                        ((b)->v[BR]->x = (b)->v[TR]->x)
+#define UPDATE_V34Y(b)  ((b)->v[TL]->y = (b)->v[TR]->y); \
+                        ((b)->v[BR]->y = (b)->v[BL]->y)
 #define UPDATE_V34(b) UPDATE_V34X(b); UPDATE_V34Y(b)
 
-#define SET_BOXLEFT(b, f)	(b)->v[TR]->x = f + (b)->w; \
-							(b)->v[BL]->x = f;          \
-							UPDATE_V34X(b)
-#define SET_BOXRIGHT(b, f)	(b)->v[BL]->x = f - (b)->w; \
-							(b)->v[TR]->x = f;          \
-							UPDATE_V34X(b)
-#define SET_BOXBOTTOM(b, f)	(b)->v[TR]->y = f + (b)->h; \
-							(b)->v[BL]->y = f;          \
-							UPDATE_V34Y(b)
-#define SET_BOXTOP(b, f)	(b)->v[BL]->y = f - (b)->h; \
-							(b)->v[TR]->y = f;          \
-							UPDATE_V34Y(b)
+#define SET_BOXLEFT(b, f)   (b)->v[TR]->x = f + (b)->w; \
+                            (b)->v[BL]->x = f;          \
+                            UPDATE_V34X(b)
+#define SET_BOXRIGHT(b, f)  (b)->v[BL]->x = f - (b)->w; \
+                            (b)->v[TR]->x = f;          \
+                            UPDATE_V34X(b)
+#define SET_BOXBOTTOM(b, f) (b)->v[TR]->y = f + (b)->h; \
+                            (b)->v[BL]->y = f;          \
+                            UPDATE_V34Y(b)
+#define SET_BOXTOP(b, f)    (b)->v[BL]->y = f - (b)->h; \
+                            (b)->v[TR]->y = f;          \
+                            UPDATE_V34Y(b)
 #define BOXINTERSECT(b1, b2)                 \
-	!(BOXLEFT(b1)   + EPSILON >= BOXRIGHT(b2) || \
-	  BOXBOTTOM(b1) + EPSILON >= BOXTOP(b2)   || \
-	  BOXRIGHT(b1)  - EPSILON <= BOXLEFT(b2)  || \
-	  BOXTOP(b1)    - EPSILON <= BOXBOTTOM(b2))
+    !(BOXLEFT(b1)   + EPSILON >= BOXRIGHT(b2) || \
+      BOXBOTTOM(b1) + EPSILON >= BOXTOP(b2)   || \
+      BOXRIGHT(b1)  - EPSILON <= BOXLEFT(b2)  || \
+      BOXTOP(b1)    - EPSILON <= BOXBOTTOM(b2))
 
 #define MIN2(x, y)              ((x) < (y) ? (x) : (y))
 #define MAX2(x, y)              ((x) > (y) ? (x) : (y))

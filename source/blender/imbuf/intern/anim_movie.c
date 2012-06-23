@@ -551,8 +551,8 @@ static int startffmpeg(struct anim *anim)
 	anim->pFrameDeinterlaced = avcodec_alloc_frame();
 	anim->pFrameRGB = avcodec_alloc_frame();
 
-	if (avpicture_get_size(PIX_FMT_RGBA, anim->x, anim->y)
-	    != anim->x * anim->y * 4)
+	if (avpicture_get_size(PIX_FMT_RGBA, anim->x, anim->y) !=
+	    anim->x * anim->y * 4)
 	{
 		fprintf(stderr,
 		        "ffmpeg has changed alloc scheme ... ARGHHH!\n");
