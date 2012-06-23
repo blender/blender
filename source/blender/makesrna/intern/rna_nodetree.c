@@ -3611,7 +3611,7 @@ static void def_cmp_keying(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "edge_kernel_radius", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "edge_kernel_radius");
-	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Edge Kernel Radius", "Radius of kernel used to detect whether pixel belongs to edge");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
