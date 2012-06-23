@@ -40,7 +40,7 @@ if(WITH_BINRELOC)
 	add_subdirectory(binreloc)
 endif()
 
-if(WITH_BUILTIN_GLEW)
+if(NOT WITH_SYSTEM_GLEW)
 	add_subdirectory(glew)
 endif()
 

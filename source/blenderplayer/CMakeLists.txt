@@ -153,7 +153,7 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
 	endif()
 
-	if(WITH_BUILTIN_GLEW)
+	if(NOT WITH_SYSTEM_GLEW)
 		list(APPEND BLENDER_SORTED_LIBS extern_glew)
 	endif()
 

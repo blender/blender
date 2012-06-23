@@ -159,7 +159,7 @@ unset(PLATFORM_DEFAULT)
 if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
 	option(WITH_X11_XF86VMODE "Enable X11 video mode switching"	ON)
-	option(WITH_BUILTIN_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
+	option(WITH_SYSTEM_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
 
 	# freebsd doesn't seems to support XDND
 	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
@@ -167,7 +167,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 else()
 	# not an option for other OS's
-	set(WITH_BUILTIN_GLEW ON)
+	set(WITH_SYSTEM_GLEW OFF)
 endif()
 
 # Modifiers
@@ -1540,20 +1540,20 @@ endif()
 #-----------------------------------------------------------------------------
 # Configure GLEW
 
-if(WITH_BUILTIN_GLEW)
-	# set(GLEW_LIBRARY "")  # unused
-	set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew/include")
-else()
+if(WITH_SYSTEM_GLEW)
 	find_package(GLEW)
 
 	if(NOT GLEW_FOUND)
-		message(FATAL_ERROR "GLEW is required to build blender, install it or use WITH_BUILTIN_GLEW")
+		message(FATAL_ERROR "GLEW is required to build blender, install it or disable WITH_SYSTEM_GLEW")
 	endif()
 
 	mark_as_advanced(
 		GLEW_LIBRARY
 		GLEW_INCLUDE_PATH
 	)
+else()
+	# set(GLEW_LIBRARY "")  # unused
+	set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew/include")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -1791,7 +1791,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_INSTALL_PORTABLE)
 	info_cfg_option(WITH_X11_XF86VMODE)
 	info_cfg_option(WITH_X11_XINPUT)
-	info_cfg_option(WITH_BUILTIN_GLEW)
+	info_cfg_option(WITH_SYSTEM_GLEW)
 	info_cfg_option(WITH_MEM_JEMALLOC)
 
 	info_cfg_text("Image Formats:")

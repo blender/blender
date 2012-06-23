@@ -253,7 +253,7 @@ macro(setup_liblinks
 		endif()
 	endif()
 
-	if(NOT WITH_BUILTIN_GLEW)
+	if(WITH_SYSTEM_GLEW)
 		target_link_libraries(${target} ${GLEW_LIBRARY})
 	endif()
 
