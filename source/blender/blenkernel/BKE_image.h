@@ -70,6 +70,7 @@ char    BKE_imtype_valid_depths(const char imtype);
 char    BKE_imtype_from_arg(const char *arg);
 
 void    BKE_imformat_defaults(struct ImageFormatData *im_format);
+void    BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const struct ImBuf *imbuf);
 
 struct anim *openanim(const char *name, int flags, int streamindex);
 

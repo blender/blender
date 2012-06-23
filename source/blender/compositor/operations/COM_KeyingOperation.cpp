@@ -98,23 +98,42 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 
 	int primary_channel = get_pixel_primary_channel(screenColor);
 
-	float saturation = get_pixel_saturation(pixelColor, this->screenBalance, primary_channel);
-	float screen_saturation = get_pixel_saturation(screenColor, this->screenBalance, primary_channel);
-
-	if (saturation < 0) {
+	if (pixelColor[primary_channel] > 1.0f) {
+		/* overexposure doesn't happen on screen itself and usually happens
+		 * on light sources in the shot, this need to be checked separately
+		 * because saturation and falloff calculation is based on the fact
+		 * that pixels are not overexposured
+		 */
 		color[0] = 1.0f;
 	}
-	else if (saturation >= screen_saturation) {
-		color[0] = 0.0f;
-	}
 	else {
-		float distance = 1.0f - saturation / screen_saturation;
+		float saturation = get_pixel_saturation(pixelColor, this->screenBalance, primary_channel);
+		float screen_saturation = get_pixel_saturation(screenColor, this->screenBalance, primary_channel);
 
-		color[0] = distance;
+		if (saturation < 0) {
+			/* means main channel of pixel is different from screen,
+			 * assume this is completely a foreground
+			 */
+			color[0] = 1.0f;
+		}
+		else if (saturation >= screen_saturation) {
+			/* matched main channels and higher saturation on pixel
+			 * is treated as completely background
+			 */
+			color[0] = 0.0f;
+		}
+		else {
+			/* nice alpha falloff on edges */
+			float distance = 1.0f - saturation / screen_saturation;
+
+			color[0] = distance;
+		}
 	}
 
-	color[0] *= (1.0f - garbageValue[0]);
+	/* apply garbage matte */
+	color[0] = MIN2(color[0], 1.0f - garbageValue[0]);
 
+	/* apply core matte */
 	color[0] = MAX2(color[0], coreValue[0]);
 }
 

@@ -275,3 +275,9 @@ bool bc_is_root_bone(Bone *aBone, bool deform_bones_only)
 	else
 		return !(aBone->parent);
 }
+
+int bc_get_active_UVLayer(Object *ob)
+{
+	Mesh *me = (Mesh *)ob->data;
+	return CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
+}
