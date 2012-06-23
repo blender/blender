@@ -141,6 +141,16 @@ bool BL_Action::Play(const char* name,
 		return false;
 	}
 
+	// If we have the same settings, don't play again
+	// This is to resolve potential issues with pulses on sensors such as the ones
+	// reported in bug #29412. The fix is here so it works for both logic bricks and Python.
+	// However, this may eventually lead to issues where a user wants to override an already
+	// playing action with the same action and settings. If this becomes an issue,
+	// then this fix may have to be re-evaluated.
+	if (!IsDone() && m_action == prev_action && m_startframe == start && m_endframe == end
+			&& m_priority == priority && m_speed == playback_speed)
+		return false;
+
 	if (prev_action != m_action)
 	{
 		// First get rid of any old controllers
