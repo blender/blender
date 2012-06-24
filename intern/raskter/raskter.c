@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include "raskter.h"
 
+#define __PLX__FAKE_AA__
+
 /* from BLI_utildefines.h */
 #define MIN2(x, y)               ( (x) < (y) ? (x) : (y) )
 #define MAX2(x, y)               ( (x) > (y) ? (x) : (y) )
@@ -759,12 +761,14 @@ int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts, float (*f
 	return i;                                   /* Return the value returned by the rasterizer. */
 }
 
-int get_range_expanded_pixel_coord(float normalized_value, int max_value)
+#ifndef __PLX__FAKE_AA__
+
+static int get_range_expanded_pixel_coord(float normalized_value, int max_value)
 {
 	return (int)((normalized_value * (float)(max_value)) + 0.5f);
 }
 
-float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y)
+static float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y)
 {
 	if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
 		return 0.0f;
@@ -772,7 +776,7 @@ float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y
 	return buf[(pos_y * buf_y) + buf_x];
 }
 
-float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v)
+static float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v)
 {
 	int a;
 	int b;
@@ -799,14 +803,15 @@ float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, fl
 
 }
 
-void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity)
+static void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity)
 {
 	if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
 		return;
 	}
 	buf[(pos_y * buf_y) + buf_x] = intensity;
 }
-#define __PLX__FAKE_AA__
+#endif
+
 int PLX_antialias_buffer(float *buf, int buf_x, int buf_y)
 {
 #ifdef __PLX__FAKE_AA__
