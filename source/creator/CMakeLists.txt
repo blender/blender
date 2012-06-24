@@ -825,6 +825,7 @@ endif()
 		bf_editor_animation
 		bf_editor_datafiles
 		bf_editor_mask
+		bf_editor_io
 
 		bf_render
 		bf_intern_opennl
@@ -909,7 +910,7 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
 	endif()
 
-	if(WITH_BUILTIN_GLEW)
+	if(NOT WITH_SYSTEM_GLEW)
 		list(APPEND BLENDER_SORTED_LIBS extern_glew)
 	endif()
 

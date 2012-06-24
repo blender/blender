@@ -52,7 +52,7 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 		break;
 		case CMP_SCALE_SCENEPERCENT: {
 			SetValueOperation *scaleFactorOperation = new SetValueOperation();
-			scaleFactorOperation->setValue(context->getScene()->r.size / 100.0f);
+			scaleFactorOperation->setValue(context->getRenderData()->size / 100.0f);
 			ScaleOperation *operation = new ScaleOperation();
 			inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 			addLink(graph, scaleFactorOperation->getOutputSocket(), operation->getInputSocket(1));
@@ -64,7 +64,7 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 		break;
 
 		case CMP_SCALE_RENDERPERCENT: {
-			const RenderData *data = &context->getScene()->r;
+			const RenderData *data = context->getRenderData();
 			ScaleFixedSizeOperation *operation = new ScaleFixedSizeOperation();
 
 			/* framing options */

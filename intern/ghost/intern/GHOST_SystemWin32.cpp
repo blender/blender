@@ -639,8 +639,8 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type, 
 GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow)
 {
 	GHOST_TInt32 x_screen, y_screen;
-	GHOST_SystemWin32 *system = ((GHOST_SystemWin32 * ) getSystem());
-	GHOST_WindowWin32 *window = ( GHOST_WindowWin32 * ) Iwindow;
+	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *) getSystem();
+	GHOST_WindowWin32 *window = (GHOST_WindowWin32 *) Iwindow;
 	
 	system->getCursorPosition(x_screen, y_screen);
 

@@ -133,23 +133,23 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 		{
 		case AUD_FORMAT_U8:
 			m_convert = AUD_convert_float_u8;
-			m_codecCtx->sample_fmt = SAMPLE_FMT_U8;
+			m_codecCtx->sample_fmt = AV_SAMPLE_FMT_U8;
 			break;
 		case AUD_FORMAT_S16:
 			m_convert = AUD_convert_float_s16;
-			m_codecCtx->sample_fmt = SAMPLE_FMT_S16;
+			m_codecCtx->sample_fmt = AV_SAMPLE_FMT_S16;
 			break;
 		case AUD_FORMAT_S32:
 			m_convert = AUD_convert_float_s32;
-			m_codecCtx->sample_fmt = SAMPLE_FMT_S32;
+			m_codecCtx->sample_fmt = AV_SAMPLE_FMT_S32;
 			break;
 		case AUD_FORMAT_FLOAT32:
 			m_convert = AUD_convert_copy<float>;
-			m_codecCtx->sample_fmt = SAMPLE_FMT_FLT;
+			m_codecCtx->sample_fmt = AV_SAMPLE_FMT_FLT;
 			break;
 		case AUD_FORMAT_FLOAT64:
 			m_convert = AUD_convert_float_double;
-			m_codecCtx->sample_fmt = SAMPLE_FMT_DBL;
+			m_codecCtx->sample_fmt = AV_SAMPLE_FMT_DBL;
 			break;
 		default:
 			AUD_THROW(AUD_ERROR_FFMPEG, format_error);

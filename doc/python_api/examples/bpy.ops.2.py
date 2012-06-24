@@ -15,4 +15,3 @@ you would pass {'active_object': object}.
 import bpy
 override = {'selected_bases': list(bpy.context.scene.object_bases)}
 bpy.ops.object.delete(override)
-

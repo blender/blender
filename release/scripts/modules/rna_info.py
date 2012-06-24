@@ -66,9 +66,9 @@ def rna_id_ignore(rna_id):
 
 def range_str(val):
     if val < -10000000:
-        return '-inf'
+        return "-inf"
     elif val > 10000000:
-        return 'inf'
+        return "inf"
     elif type(val) == float:
         return '%g' % val
     else:
@@ -305,8 +305,8 @@ class InfoPropertyRNA:
         return type_str
 
     def __str__(self):
-        txt = ''
-        txt += ' * ' + self.identifier + ': ' + self.description
+        txt = ""
+        txt += " * " + self.identifier + ": " + self.description
 
         return txt
 
@@ -398,7 +398,7 @@ class InfoOperatorRNA:
             return None, None
 
 
-def _GetInfoRNA(bl_rna, cls, parent_id=''):
+def _GetInfoRNA(bl_rna, cls, parent_id=""):
 
     if bl_rna is None:
         return None
@@ -641,7 +641,7 @@ if __name__ == "__main__":
 
         props = [(prop.identifier, prop) for prop in v.properties]
         for prop_id, prop in sorted(props):
-            # if prop.type == 'boolean':
+            # if prop.type == "boolean":
             #     continue
             prop_type = prop.type
             if prop.array_length > 0:

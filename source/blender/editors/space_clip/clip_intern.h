@@ -69,7 +69,7 @@ void clip_draw_dopesheet_channels(const struct bContext *C, struct ARegion *ar);
 void CLIP_OT_dopesheet_select_channel(struct wmOperatorType *ot);
 
 /* clip_draw.c */
-void clip_draw_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
+void clip_draw_main(const struct bContext *C, struct ARegion *ar);
 void clip_draw_grease_pencil(struct bContext *C, int onlyv2d);
 void clip_draw_curfra_label(struct SpaceClip *sc, float x, float y);
 
@@ -125,7 +125,7 @@ void clip_graph_tracking_iterate(struct SpaceClip *sc, int selected_only, int in
 void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track);
 void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
 
-void clip_view_center_to_point(struct SpaceClip *sc, float x, float y);
+void clip_view_center_to_point(const struct bContext *C, float x, float y);
 
 void clip_draw_cfra(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);

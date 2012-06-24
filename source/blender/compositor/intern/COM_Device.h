@@ -23,11 +23,7 @@
 #ifndef _COM_Device_h
 #define _COM_Device_h
 
-#include "COM_ExecutionSystem.h"
 #include "COM_WorkPackage.h"
-#include "COM_NodeOperation.h"
-#include "BLI_rect.h"
-#include "COM_MemoryBuffer.h"
 
 /**
  * @brief Abstract class for device implementations to be used by the Compositor.

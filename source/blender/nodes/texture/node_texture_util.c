@@ -88,9 +88,9 @@ void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread)
 	}
 	
 	if (in->hasoutput && in->sockettype == SOCK_VECTOR) {
-		out[0] = out[0] * .5f + .5f;
-		out[1] = out[1] * .5f + .5f;
-		out[2] = out[2] * .5f + .5f;
+		out[0] = out[0] * 0.5f + 0.5f;
+		out[1] = out[1] * 0.5f + 0.5f;
+		out[2] = out[2] * 0.5f + 0.5f;
 		out[3] = 1;
 	}
 }

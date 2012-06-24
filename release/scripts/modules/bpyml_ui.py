@@ -73,7 +73,7 @@ def _call_recursive(context, base, py_node):
             value = eval(value, {"context": _bpy.context})
             setattr(base, py_node[TAG], value)
         else:
-            value = py_node[ARGS]['value']  # have to have this
+            value = py_node[ARGS]["value"]  # have to have this
             setattr(base, py_node[TAG], value)
     else:
         args = _parse_rna_args(base, py_node)

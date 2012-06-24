@@ -153,12 +153,14 @@ static void view3d_draw_clipping(RegionView3D *rv3d)
 	BoundBox *bb = rv3d->clipbb;
 
 	if (bb) {
-		static unsigned int clipping_index[6][4] = {{0, 1, 2, 3},
-		                                            {0, 4, 5, 1},
-		                                            {4, 7, 6, 5},
-		                                            {7, 3, 2, 6},
-		                                            {1, 5, 6, 2},
-		                                            {7, 4, 0, 3}};
+		static unsigned int clipping_index[6][4] = {
+			{0, 1, 2, 3},
+			{0, 4, 5, 1},
+			{4, 7, 6, 5},
+			{7, 3, 2, 6},
+			{1, 5, 6, 2},
+			{7, 4, 0, 3}
+		};
 
 		/* fill in zero alpha for rendering & re-projection [#31530] */
 		unsigned char col[4];
@@ -1587,6 +1589,11 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				 * be dereferenced after usage. */
 				freeibuf = ibuf;
 			}
+			else {
+				/* perhaps when loading future files... */
+				BLI_assert(0);
+				copy_v2_fl(image_aspect, 1.0f);
+			}
 
 			if (ibuf == NULL)
 				continue;
@@ -2835,7 +2842,7 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 		cliprct.xmax = CLAMPIS(cliprct.xmax, ar->winrct.xmin, ar->winrct.xmax);
 		cliprct.ymax = CLAMPIS(cliprct.ymax, ar->winrct.ymin, ar->winrct.ymax);
 
-		if(cliprct.xmax > cliprct.xmin && cliprct.ymax > cliprct.ymin) {
+		if (cliprct.xmax > cliprct.xmin && cliprct.ymax > cliprct.ymin) {
 			glGetIntegerv(GL_SCISSOR_BOX, scissor);
 			glScissor(cliprct.xmin, cliprct.ymin, cliprct.xmax - cliprct.xmin, cliprct.ymax - cliprct.ymin);
 		}

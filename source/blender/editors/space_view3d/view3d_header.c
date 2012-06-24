@@ -451,7 +451,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 		BMEditMesh *em = BMEdit_FromObject(obedit);
 		uiLayout *row;
 
-		row = uiLayoutRow(layout, 1);
+		row = uiLayoutRow(layout, TRUE);
 		block = uiLayoutGetBlock(row);
 		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select - Shift-Click for multiple modes");
 		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select - Shift-Click for multiple modes");
@@ -494,7 +494,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		v3d->modeselect = OB_MODE_OBJECT;
 	}
 
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene),
 	                  0, 0, 126 * dpi_fac, UI_UNIT_Y, &(v3d->modeselect), 0, 0, 0, 0, TIP_("Mode"));
 	
@@ -512,7 +512,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 				uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			}
 			else {
-				row = uiLayoutRow(layout, 1);
+				row = uiLayoutRow(layout, TRUE);
 				uiItemR(row, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 				uiItemR(row, &meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 			}
@@ -521,7 +521,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	else {
 		const char *str_menu;
 
-		row = uiLayoutRow(layout, 1);
+		row = uiLayoutRow(layout, TRUE);
 		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
 		/* pose/object only however we want to allow in weight paint mode too
@@ -531,7 +531,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 
 		/* Transform widget / manipulators */
-		row = uiLayoutRow(layout, 1);
+		row = uiLayoutRow(layout, TRUE);
 		uiItemR(row, &v3dptr, "show_manipulator", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		block = uiLayoutGetBlock(row);
 		

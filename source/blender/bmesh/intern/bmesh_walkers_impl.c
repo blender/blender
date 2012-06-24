@@ -547,7 +547,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			((vert_edge_tot == 4 || vert_edge_tot == 2) && owalk.is_boundary == FALSE) ||
 
 			/* walk over boundary of faces but stop at corners */
-			(owalk.is_boundary == TRUE && owalk.is_single  == FALSE && vert_edge_tot > 2) ||
+			(owalk.is_boundary == TRUE && owalk.is_single == FALSE && vert_edge_tot > 2) ||
 
 			/* initial edge was a boundary, so is this edge and vertex is only apart of this face
 			 * this lets us walk over the the boundary of an ngon which is handy */

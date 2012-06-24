@@ -68,24 +68,23 @@ FIXME: documentation ???
 @param mqc MQC handle
 @return 
 */
-static int mqc_mpsexchange(opj_mqc_t *mqc);
+static INLINE int mqc_mpsexchange(opj_mqc_t *const mqc);
 /**
 FIXME: documentation ???
 @param mqc MQC handle
 @return 
 */
-static int mqc_lpsexchange(opj_mqc_t *mqc);
+static INLINE int mqc_lpsexchange(opj_mqc_t *const mqc);
 /**
 Input a byte
 @param mqc MQC handle
 */
-static void mqc_bytein(opj_mqc_t *mqc);
+static INLINE void mqc_bytein(opj_mqc_t *const mqc);
 /**
 Renormalize mqc->a and mqc->c while decoding
 @param mqc MQC handle
 */
-static void mqc_renormd(opj_mqc_t *mqc);
-
+static INLINE void mqc_renormd(opj_mqc_t *const mqc);
 /*@}*/
 
 /*@}*/
@@ -271,7 +270,7 @@ static void mqc_setbits(opj_mqc_t *mqc) {
 	}
 }
 
-static int mqc_mpsexchange(opj_mqc_t *mqc) {
+static INLINE int mqc_mpsexchange(opj_mqc_t *const mqc) {
 	int d;
 	if (mqc->a < (*mqc->curctx)->qeval) {
 		d = 1 - (*mqc->curctx)->mps;
@@ -284,7 +283,7 @@ static int mqc_mpsexchange(opj_mqc_t *mqc) {
 	return d;
 }
 
-static int mqc_lpsexchange(opj_mqc_t *mqc) {
+static INLINE int mqc_lpsexchange(opj_mqc_t *const mqc) {
 	int d;
 	if (mqc->a < (*mqc->curctx)->qeval) {
 		mqc->a = (*mqc->curctx)->qeval;
@@ -299,7 +298,15 @@ static int mqc_lpsexchange(opj_mqc_t *mqc) {
 	return d;
 }
 
-static void mqc_bytein(opj_mqc_t *mqc) {
+#ifdef MQC_PERF_OPT
+static INLINE void mqc_bytein(opj_mqc_t *const mqc) {
+	unsigned int i = *((unsigned int *) mqc->bp);
+	mqc->c += i & 0xffff00;
+	mqc->ct = i & 0x0f;
+	mqc->bp += (i >> 2) & 0x04;
+}
+#else
+static void mqc_bytein(opj_mqc_t *const mqc) {
 	if (mqc->bp != mqc->end) {
 		unsigned int c;
 		if (mqc->bp + 1 != mqc->end) {
@@ -326,8 +333,9 @@ static void mqc_bytein(opj_mqc_t *mqc) {
 		mqc->ct = 8;
 	}
 }
+#endif
 
-static void mqc_renormd(opj_mqc_t *mqc) {
+static INLINE void mqc_renormd(opj_mqc_t *const mqc) {
 	do {
 		if (mqc->ct == 0) {
 			mqc_bytein(mqc);
@@ -346,11 +354,19 @@ static void mqc_renormd(opj_mqc_t *mqc) {
 
 opj_mqc_t* mqc_create(void) {
 	opj_mqc_t *mqc = (opj_mqc_t*)opj_malloc(sizeof(opj_mqc_t));
+#ifdef MQC_PERF_OPT
+	mqc->buffer = NULL;
+#endif
 	return mqc;
 }
 
 void mqc_destroy(opj_mqc_t *mqc) {
 	if(mqc) {
+#ifdef MQC_PERF_OPT
+		if (mqc->buffer) {
+			opj_free(mqc->buffer);
+		}
+#endif
 		opj_free(mqc);
 	}
 }
@@ -499,13 +515,51 @@ void mqc_init_dec(opj_mqc_t *mqc, unsigned char *bp, int len) {
 	mqc->bp = bp;
 	if (len==0) mqc->c = 0xff << 16;
 	else mqc->c = *mqc->bp << 16;
+
+#ifdef MQC_PERF_OPT
+	{
+		unsigned int c;
+		unsigned int *ip;
+		unsigned char *end = mqc->end - 1;
+		mqc->buffer = opj_realloc(mqc->buffer, (len + 1) * sizeof(unsigned int));
+		ip = (unsigned int *) mqc->buffer;
+
+		while (bp < end) {
+			c = *(bp + 1);
+			if (*bp == 0xff) {
+				if (c > 0x8f) {
+					break;
+				} else {
+					*ip = 0x00000017 | (c << 9);
+				}
+			} else {
+				*ip = 0x00000018 | (c << 8);
+			}
+			bp++;
+			ip++;
+		}
+
+		/* Handle last byte of data */
+		c = 0xff;
+		if (*bp == 0xff) {
+			*ip = 0x0000ff18;
+		} else {
+			bp++;
+			*ip = 0x00000018 | (c << 8);
+		}
+		ip++;
+
+		*ip = 0x0000ff08;
+		mqc->bp = mqc->buffer;
+	}
+#endif
 	mqc_bytein(mqc);
 	mqc->c <<= 7;
 	mqc->ct -= 7;
 	mqc->a = 0x8000;
 }
 
-int mqc_decode(opj_mqc_t *mqc) {
+int mqc_decode(opj_mqc_t *const mqc) {
 	int d;
 	mqc->a -= (*mqc->curctx)->qeval;
 	if ((mqc->c >> 16) < (*mqc->curctx)->qeval) {

@@ -34,13 +34,13 @@
 
 
 #include <stddef.h>
+#include <math.h>
 
 #include "BoolValue.h"
 #include "IntValue.h"
 #include "FloatValue.h"
 #include "SCA_IActuator.h"
 #include "SCA_RandomActuator.h"
-#include "math.h"
 #include "MT_Transform.h"
 
 /* ------------------------------------------------------------------------- */

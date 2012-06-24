@@ -61,6 +61,9 @@ void ED_node_link_insert(struct ScrArea *sa);
 void ED_node_post_apply_transform(struct bContext *C, struct bNodeTree *ntree);
 
 void ED_node_set_active(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
+
+void ED_node_sample_set(const float col[4]);
+
 /* node ops.c */
 void ED_operatormacros_node(void);
 

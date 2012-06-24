@@ -29,7 +29,9 @@
 
 #include "TransformReader.h"
 
-TransformReader::TransformReader(UnitConverter *conv) : unit_converter(conv) {
+TransformReader::TransformReader(UnitConverter *conv) : unit_converter(conv)
+{
+	/* pass */
 }
 
 void TransformReader::get_node_mat(float mat[][4], COLLADAFW::Node *node, std::map<COLLADAFW::UniqueId, Animation> *animation_map, Object *ob)

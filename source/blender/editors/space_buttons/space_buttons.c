@@ -333,6 +333,9 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			buttons_area_redraw(sa, BCONTEXT_DATA);
 			sbuts->preview = 1;
 			break;
+		case NC_GROUP:
+			buttons_area_redraw(sa, BCONTEXT_OBJECT);
+			break;
 		case NC_BRUSH:
 			buttons_area_redraw(sa, BCONTEXT_TEXTURE);
 			break;

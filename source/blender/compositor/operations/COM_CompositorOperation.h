@@ -34,7 +34,7 @@ private:
 	/**
 	 * @brief local reference to the scene
 	 */
-	const Scene *scene;
+	const RenderData *rd;
 
 	/**
 	 * @brief reference to the output float buffer
@@ -53,7 +53,7 @@ private:
 public:
 	CompositorOperation();
 	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
-	void setScene(const Scene *scene) { this->scene = scene; }
+	void setRenderData(const RenderData *rd) { this->rd = rd; }
 	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
 	void deinitExecution();

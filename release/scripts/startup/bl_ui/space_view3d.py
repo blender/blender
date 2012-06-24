@@ -979,7 +979,9 @@ class VIEW3D_MT_object_group(Menu):
         layout = self.layout
 
         layout.operator("group.create")
+        # layout.operator_menu_enum("group.objects_remove", "group")  # BUGGY
         layout.operator("group.objects_remove")
+        layout.operator("group.objects_remove_all")
 
         layout.separator()
 
@@ -2401,7 +2403,7 @@ class VIEW3D_PT_view3d_display(Panel):
             col.prop(gs, "material_mode", text="")
             col.prop(view, "show_textured_solid")
 
-        col.prop(view, "show_backface_culling")            
+        col.prop(view, "show_backface_culling")
 
         layout.separator()
 
@@ -2568,7 +2570,7 @@ class VIEW3D_PT_background_image(Panel):
                         has_bg = True
 
                 elif bg.source == 'MOVIE_CLIP':
-                    box.prop(bg, 'use_camera_clip')
+                    box.prop(bg, "use_camera_clip")
 
                     column = box.column()
                     column.active = not bg.use_camera_clip

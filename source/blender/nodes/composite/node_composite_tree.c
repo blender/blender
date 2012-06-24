@@ -683,7 +683,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int 
 	if (G.rt == 200)
 		ntreeCompositExecTreeOld(ntree, rd, do_preview);
 	else
-		COM_execute(ntree, rendering);
+		COM_execute(rd, ntree, rendering);
 }
 
 /* *********************************************** */

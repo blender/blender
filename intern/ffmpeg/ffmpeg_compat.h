@@ -40,7 +40,6 @@
 #endif
 
 #include <libswscale/swscale.h>
-#include <libavcodec/opt.h>
 
 #if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 105))
 #define FFMPEG_HAVE_AVIO 1
@@ -74,6 +73,20 @@
 
 #if ((LIBAVUTIL_VERSION_MAJOR > 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR >= 32))
 #define FFMPEG_FFV1_ALPHA_SUPPORTED
+#endif
+
+#if ((LIBAVFORMAT_VERSION_MAJOR < 53) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR < 24)) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR < 24) && (LIBAVFORMAT_VERSION_MICRO < 2)))
+#define avformat_close_input(x) av_close_input_file(*(x))
+#endif
+
+#if ((LIBAVFORMAT_VERSION_MAJOR > 53) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR > 32)) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR == 24) && (LIBAVFORMAT_VERSION_MICRO >= 100)))
+void ff_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp);
+
+static inline
+void av_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
+{
+    ff_update_cur_dts(s, ref_st, timestamp);
+}
 #endif
 
 #ifndef FFMPEG_HAVE_AVIO

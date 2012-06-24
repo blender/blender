@@ -45,12 +45,12 @@ The functions in J2K.C have for goal to read/write the several parts of the code
 #define J2K_CP_CSTY_SOP 0x02
 #define J2K_CP_CSTY_EPH 0x04
 #define J2K_CCP_CSTY_PRT 0x01
-#define J2K_CCP_CBLKSTY_LAZY 0x01
-#define J2K_CCP_CBLKSTY_RESET 0x02
-#define J2K_CCP_CBLKSTY_TERMALL 0x04
-#define J2K_CCP_CBLKSTY_VSC 0x08
-#define J2K_CCP_CBLKSTY_PTERM 0x10
-#define J2K_CCP_CBLKSTY_SEGSYM 0x20
+#define J2K_CCP_CBLKSTY_LAZY 0x01     /**< Selective arithmetic coding bypass */
+#define J2K_CCP_CBLKSTY_RESET 0x02    /**< Reset context probabilities on coding pass boundaries */
+#define J2K_CCP_CBLKSTY_TERMALL 0x04  /**< Termination on each coding pass */
+#define J2K_CCP_CBLKSTY_VSC 0x08      /**< Vertically stripe causal context */
+#define J2K_CCP_CBLKSTY_PTERM 0x10    /**< Predictable termination */
+#define J2K_CCP_CBLKSTY_SEGSYM 0x20   /**< Segmentation symbols are used */
 #define J2K_CCP_QNTSTY_NOQNT 0
 #define J2K_CCP_QNTSTY_SIQNT 1
 #define J2K_CCP_QNTSTY_SEQNT 2
@@ -265,15 +265,15 @@ typedef struct opj_cp {
 /* UniPG>> */
 #ifdef USE_JPWL
 	/** enables writing of EPC in MH, thus activating JPWL */
-	bool epc_on;
+	opj_bool epc_on;
 	/** enables writing of EPB, in case of activated JPWL */
-	bool epb_on;
+	opj_bool epb_on;
 	/** enables writing of ESD, in case of activated JPWL */
-	bool esd_on;
+	opj_bool esd_on;
 	/** enables writing of informative techniques of ESD, in case of activated JPWL */
-	bool info_on;
+	opj_bool info_on;
 	/** enables writing of RED, in case of activated JPWL */
-	bool red_on;
+	opj_bool red_on;
 	/** error protection method for MH (0,1,16,32,37-128) */
 	int hprot_MH;
 	/** tile number of header protection specification (>=0) */
@@ -299,7 +299,7 @@ typedef struct opj_cp {
 	/** sensitivity methods for TPHs (-1,0-7) */
 	int sens_TPH[JPWL_MAX_NO_TILESPECS];
 	/** enables JPWL correction at the decoder */
-	bool correct;
+	opj_bool correct;
 	/** expected number of components at the decoder */
 	int exp_comps;
 	/** maximum number of tiles at the decoder */
@@ -436,7 +436,7 @@ Encode an image into a JPEG-2000 codestream
 @param cstr_info Codestream information structure if required, NULL otherwise
 @return Returns true if successful, returns false otherwise
 */
-bool j2k_encode(opj_j2k_t *j2k, opj_cio_t *cio, opj_image_t *image, opj_codestream_info_t *cstr_info);
+opj_bool j2k_encode(opj_j2k_t *j2k, opj_cio_t *cio, opj_image_t *image, opj_codestream_info_t *cstr_info);
 
 /* ----------------------------------------------------------------------- */
 /*@}*/

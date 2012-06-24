@@ -860,7 +860,7 @@ void BL_ConvertActuators(const char* maggiename,
 				float paraArg1 = 0.0;
 				float paraArg2 = 0.0;
 				
-				switch  (randAct->distribution) {
+				switch (randAct->distribution) {
 				case ACT_RANDOM_BOOL_CONST:
 					modeArg = SCA_RandomActuator::KX_RANDOMACT_BOOL_CONST;
 					paraArg1 = (float) randAct->int_arg_1;

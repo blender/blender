@@ -144,7 +144,8 @@ static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA
 	rna_userdef_update(bmain, scene, ptr);
 }
 
-static void rna_userdef_gl_gpu_mipmaps(Main *bmain, Scene *scene, PointerRNA *ptr) {
+static void rna_userdef_gl_gpu_mipmaps(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
 	GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
 	rna_userdef_update(bmain, scene, ptr);
 }

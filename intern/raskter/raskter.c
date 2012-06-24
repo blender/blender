@@ -67,7 +67,8 @@ struct r_fill_context {
  * just the poly. Since the DEM code could end up being coupled with this, we'll keep it separate
  * for now.
  */
-static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge) {
+static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge)
+{
 	int i;
 	int xbeg;
 	int ybeg;
@@ -165,7 +166,8 @@ static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *v
  * for speed, but waiting on final design choices for curve-data before eliminating data the DEM code will need
  * if it ends up being coupled with this function.
  */
-static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, float intensity) {
+static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, float intensity)
+{
 	int x_curr;                 /* current pixel position in X */
 	int y_curr;                 /* current scan line being drawn */
 	int yp;                     /* y-pixel's position in frame buffer */
@@ -757,18 +759,21 @@ int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts, float (*f
 	return i;                                   /* Return the value returned by the rasterizer. */
 }
 
-int get_range_expanded_pixel_coord(float normalized_value, int max_value) {
+int get_range_expanded_pixel_coord(float normalized_value, int max_value)
+{
 	return (int)((normalized_value * (float)(max_value)) + 0.5f);
 }
 
-float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y) {
+float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y)
+{
 	if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
 		return 0.0f;
 	}
 	return buf[(pos_y * buf_y) + buf_x];
 }
 
-float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v) {
+float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v)
+{
 	int a;
 	int b;
 	int a_plus_1;
@@ -794,14 +799,16 @@ float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, fl
 
 }
 
-void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity) {
+void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity)
+{
 	if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
 		return;
 	}
 	buf[(pos_y * buf_y) + buf_x] = intensity;
 }
 #define __PLX__FAKE_AA__
-int PLX_antialias_buffer(float *buf, int buf_x, int buf_y) {
+int PLX_antialias_buffer(float *buf, int buf_x, int buf_y)
+{
 #ifdef __PLX__FAKE_AA__
 #ifdef __PLX_GREY_AA__
 	int i=0;

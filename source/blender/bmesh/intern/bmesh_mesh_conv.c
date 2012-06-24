@@ -768,7 +768,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 		/* editing the base key should update others */
 		if ((me->key->type == KEY_RELATIVE) && /* only need offsets for relative shape keys */
-		    (actkey   != NULL) &&              /* unlikely, but the active key may not be valid if the
+		    (actkey != NULL) &&                /* unlikely, but the active key may not be valid if the
 		                                        * bmesh and the mesh are out of sync */
 		    (oldverts != NULL))                /* not used here, but 'oldverts' is used later for applying 'ofs' */
 		{

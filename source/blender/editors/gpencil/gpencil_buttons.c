@@ -113,14 +113,14 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 	/* get layout-row + UI-block for header */
 	box = uiLayoutBox(layout);
 	
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
 	block = uiLayoutGetBlock(row); /* err... */
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
 	/* left-align ............................... */
-	sub = uiLayoutRow(row, 0);
+	sub = uiLayoutRow(row, FALSE);
 	
 	/* active */
 	block = uiLayoutGetBlock(sub);
@@ -151,7 +151,7 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 		/* delete button (only if hidden but not locked!) */
 		if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED)) {
 			/* right-align ............................... */
-			sub = uiLayoutRow(row, 1);
+			sub = uiLayoutRow(row, TRUE);
 			uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 			block = uiLayoutGetBlock(sub); /* XXX... err... */
 			
@@ -179,7 +179,7 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 		/* delete 'button' */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		/* right-align ............................... */
-		sub = uiLayoutRow(row, 1);
+		sub = uiLayoutRow(row, TRUE);
 		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 		block = uiLayoutGetBlock(sub); /* XXX... err... */
 		
@@ -190,14 +190,14 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 		
 		/* new backdrop ----------------------------------- */
 		box = uiLayoutBox(layout);
-		split = uiLayoutSplit(box, 0.5f, 0);
+		split = uiLayoutSplit(box, 0.5f, FALSE);
 		
 		/* draw settings ---------------------------------- */
 		/* left column ..................... */
-		col = uiLayoutColumn(split, 0);
+		col = uiLayoutColumn(split, FALSE);
 		
 		/* color */
-		sub = uiLayoutColumn(col, 1);
+		sub = uiLayoutColumn(col, TRUE);
 		uiItemR(sub, &ptr, "color", 0, "", ICON_NONE);
 		uiItemR(sub, &ptr, "alpha", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 		
@@ -210,10 +210,10 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 		}
 		
 		/* right column ................... */
-		col = uiLayoutColumn(split, 0);
+		col = uiLayoutColumn(split, FALSE);
 		
 		/* onion-skinning */
-		sub = uiLayoutColumn(col, 1);
+		sub = uiLayoutColumn(col, TRUE);
 		uiItemR(sub, &ptr, "use_onion_skinning", 0, NULL, ICON_NONE);
 		uiItemR(sub, &ptr, "ghost_range_max", 0, IFACE_("Frames"), ICON_NONE);
 		
@@ -236,14 +236,14 @@ static void draw_gpencil_space_specials(const bContext *C, uiLayout *layout)
 	uiLayout *col, *row;
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 
 	if (sc) {
 		bScreen *screen = CTX_wm_screen(C);
 		PointerRNA sc_ptr;
 
 		RNA_pointer_create(&screen->id, &RNA_SpaceClipEditor, sc, &sc_ptr);
-		row = uiLayoutRow(col, 1);
+		row = uiLayoutRow(col, TRUE);
 		uiItemR(row, &sc_ptr, "grease_pencil_source", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 }
@@ -262,7 +262,7 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	RNA_id_pointer_create((ID *)gpd, &gpd_ptr);
 	
 	/* draw gpd settings first ------------------------------------- */
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 
 	/* current Grease Pencil block */
 	/* TODO: show some info about who owns this? */
@@ -270,7 +270,7 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	
 	/* add new layer button - can be used even when no data, since it can add a new block too */
 	uiItemO(col, IFACE_("New Layer"), ICON_NONE, "GPENCIL_OT_layer_add");
-	row = uiLayoutRow(col, 1);
+	row = uiLayoutRow(col, TRUE);
 	uiItemO(row, IFACE_("Delete Frame"), ICON_NONE, "GPENCIL_OT_active_frame_delete");
 	uiItemO(row, IFACE_("Convert"), ICON_NONE, "GPENCIL_OT_convert");
 	
@@ -280,12 +280,12 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	
 	/* draw each layer --------------------------------------------- */
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		col = uiLayoutColumn(layout, 1);
+		col = uiLayoutColumn(layout, TRUE);
 		gp_drawui_layer(col, gpd, gpl, is_v3d);
 	}
 	
 	/* draw gpd drawing settings first ------------------------------------- */
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	/* label */
 	uiItemL(col, IFACE_("Drawing Settings:"), ICON_NONE);
 		
@@ -298,17 +298,17 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	}
 		
 	/* drawing space options */
-	row = uiLayoutRow(col, 1);
+	row = uiLayoutRow(col, TRUE);
 	uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "VIEW", NULL, ICON_NONE);
 	uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "CURSOR", NULL, ICON_NONE);
 
 	if (sc == NULL) {
-		row = uiLayoutRow(col, 1);
+		row = uiLayoutRow(col, TRUE);
 		uiLayoutSetActive(row, v3d_stroke_opts);
 		uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "SURFACE", NULL, ICON_NONE);
 		uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "STROKE", NULL, ICON_NONE);
 
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiLayoutSetActive(row, v3d_stroke_opts == STROKE_OPTS_V3D_ON);
 		uiItemR(row, &gpd_ptr, "use_stroke_endpoints", 0, NULL, ICON_NONE);
 	}

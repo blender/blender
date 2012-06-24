@@ -111,7 +111,7 @@ static bNodeSocketTemplate cmp_node_rgbtobw_out[]= {
 
 static void do_rgbtobw(bNode *UNUSED(node), float *out, float *in)
 {
-	out[0]= in[0]*0.35f + in[1]*0.45f + in[2]*0.2f;
+	out[0] = rgb_to_bw(in);
 }
 
 static void node_composit_exec_rgbtobw(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)

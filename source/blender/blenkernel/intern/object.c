@@ -1465,7 +1465,7 @@ void BKE_object_rot_to_mat3(Object *ob, float mat[][3])
 		eulO_to_mat3(dmat, ob->drot, ob->rotmode);
 	}
 	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-		/* axis-angle -  not really that great for 3D-changing orientations */
+		/* axis-angle - not really that great for 3D-changing orientations */
 		axis_angle_to_mat3(rmat, ob->rotAxis, ob->rotAngle);
 		axis_angle_to_mat3(dmat, ob->drotAxis, ob->drotAngle);
 	}
@@ -3111,7 +3111,8 @@ static Object *obrel_armature_find(Object *ob)
 	return ob_arm;
 }
 
-static int obrel_is_recursive_child(Object *ob, Object *child) {
+static int obrel_is_recursive_child(Object *ob, Object *child)
+{
 	Object *par;
 	for (par = child->parent; par; par = par->parent) {
 		if (par == ob) {

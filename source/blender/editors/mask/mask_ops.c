@@ -57,7 +57,7 @@
 
 /******************** utility functions *********************/
 
-MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float normal_co[2], int threshold,
+MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float normal_co[2], int threshold,
                                             MaskLayer **masklay_r, MaskSpline **spline_r, int *is_handle_r,
                                             float *score)
 {
@@ -153,7 +153,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float norma
 	return NULL;
 }
 
-int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], int threshold,
+int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[2], int threshold,
                                  MaskLayer **masklay_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
                                  MaskSplinePointUW **uw_r, float *score)
 {

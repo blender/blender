@@ -158,17 +158,17 @@ int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr,
 			name = RNA_property_ui_name(prop);
 
 			if (label_align == 'V') {
-				col = uiLayoutColumn(layout, 1);
+				col = uiLayoutColumn(layout, TRUE);
 
 				if (!is_boolean)
 					uiItemL(col, name, ICON_NONE);
 			}
 			else if (label_align == 'H') {
-				split = uiLayoutSplit(layout, 0.5f, 0);
+				split = uiLayoutSplit(layout, 0.5f, FALSE);
 
-				col = uiLayoutColumn(split, 0);
+				col = uiLayoutColumn(split, FALSE);
 				uiItemL(col, (is_boolean) ? "" : name, ICON_NONE);
-				col = uiLayoutColumn(split, 0);
+				col = uiLayoutColumn(split, FALSE);
 			}
 			else {
 				col = NULL;

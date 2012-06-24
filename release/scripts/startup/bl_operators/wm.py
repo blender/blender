@@ -138,7 +138,7 @@ def execute_context_assign(self, context):
 
 
 class BRUSH_OT_active_index_set(Operator):
-    '''Set active sculpt/paint brush from it's number'''
+    """Set active sculpt/paint brush from it's number"""
     bl_idname = "brush.active_index_set"
     bl_label = "Set Brush Number"
 
@@ -371,8 +371,8 @@ class WM_OT_context_toggle_enum(Operator):
 
 
 class WM_OT_context_cycle_int(Operator):
-    '''Set a context value. Useful for cycling active material, '''
-    '''vertex keys, groups' etc'''
+    """Set a context value. Useful for cycling active material, """
+    """vertex keys, groups' etc"""
     bl_idname = "wm.context_cycle_int"
     bl_label = "Context Int Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -799,7 +799,6 @@ class WM_OT_path_open(Operator):
         return {'FINISHED'}
 
 
-
 def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
     id_split = doc_id.split(".")
     url = rna = None
@@ -832,7 +831,7 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
                 url = ("%s/bpy.types.%s.html#bpy.types.%s.%s" % (url_prefix, class_name, class_name, class_prop))
             else:
                 rna = ("bpy.types.%s.%s" % (class_name, class_prop))
-    
+
     return url if do_url else rna
 
 
@@ -1061,7 +1060,7 @@ class WM_OT_properties_edit(Operator):
             prop_ui["soft_min"] = prop_ui["min"] = prop_type(self.min)
             prop_ui["soft_max"] = prop_ui["max"] = prop_type(self.max)
 
-        prop_ui['description'] = self.description
+        prop_ui["description"] = self.description
 
         # otherwise existing buttons which reference freed
         # memory may crash blender [#26510]
@@ -1597,10 +1596,11 @@ class WM_OT_addon_disable(Operator):
         addon_utils.disable(self.module)
         return {'FINISHED'}
 
+
 class WM_OT_theme_install(Operator):
     "Install a theme"
     bl_idname = "wm.theme_install"
-    bl_label  = "Install Theme..."
+    bl_label = "Install Theme..."
 
     overwrite = BoolProperty(
             name="Overwrite",
@@ -1624,10 +1624,10 @@ class WM_OT_theme_install(Operator):
         import os
         import shutil
         import traceback
-        
+
         xmlfile = self.filepath
 
-        path_themes = bpy.utils.user_resource('SCRIPTS','presets/interface_theme',create=True)
+        path_themes = bpy.utils.user_resource('SCRIPTS', "presets/interface_theme", create=True)
 
         if not path_themes:
             self.report({'ERROR'}, "Failed to get themes path")
@@ -1642,14 +1642,13 @@ class WM_OT_theme_install(Operator):
 
         try:
             shutil.copyfile(xmlfile, path_dest)
-            bpy.ops.script.execute_preset(filepath=path_dest,menu_idname="USERPREF_MT_interface_theme_presets")
+            bpy.ops.script.execute_preset(filepath=path_dest, menu_idname="USERPREF_MT_interface_theme_presets")
 
         except:
             traceback.print_exc()
             return {'CANCELLED'}
 
         return {'FINISHED'}
-
 
     def invoke(self, context, event):
         wm = context.window_manager

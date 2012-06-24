@@ -27,7 +27,7 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation()
+GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
 	this->gausstab = NULL;
 	this->rad = 0;
@@ -72,12 +72,8 @@ void GaussianXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 
 void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	float tempColor[4];
-	tempColor[0] = 0;
-	tempColor[1] = 0;
-	tempColor[2] = 0;
-	tempColor[3] = 0;
-	float overallmultiplyer = 0.0f;
+	float color_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float multiplier_accum = 0.0f;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
 	int bufferwidth = inputBuffer->getWidth();
@@ -99,12 +95,12 @@ void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	int bufferindex = ((minx - bufferstartx) * 4) + ((miny - bufferstarty) * 4 * bufferwidth);
 	for (int nx = minx; nx < maxx; nx += step) {
 		index = (nx - x) + this->rad;
-		const float multiplyer = gausstab[index];
-		madd_v4_v4fl(tempColor, &buffer[bufferindex], multiplyer);
-		overallmultiplyer += multiplyer;
+		const float multiplier = gausstab[index];
+		madd_v4_v4fl(color_accum, &buffer[bufferindex], multiplier);
+		multiplier_accum += multiplier;
 		bufferindex += offsetadd;
 	}
-	mul_v4_v4fl(color, tempColor, 1.0f / overallmultiplyer);
+	mul_v4_v4fl(color, color_accum, 1.0f / multiplier_accum);
 }
 
 void GaussianXBlurOperation::deinitExecution()

@@ -147,7 +147,7 @@ static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
 
 static void draw_tracks_curves(View2D *v2d, SpaceClip *sc)
 {
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 	int width, height;
@@ -181,7 +181,7 @@ static void draw_tracks_curves(View2D *v2d, SpaceClip *sc)
 
 static void draw_frame_curves(SpaceClip *sc)
 {
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
 	int i, lines = 0, prevfra = 0;
@@ -214,7 +214,7 @@ static void draw_frame_curves(SpaceClip *sc)
 
 void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	View2D *v2d = &ar->v2d;
 	View2DGrid *grid;
 	short unitx = V2D_UNIT_FRAMESCALE, unity = V2D_UNIT_VALUES;

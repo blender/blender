@@ -110,15 +110,16 @@ static int mouse_on_crns(float co[2], float pos[2], float crns[4][2], float epsx
 	return dist < MAX2(epsx, epsy);
 }
 
-static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *track)
+static int track_mouse_area(const bContext *C, float co[2], MovieTrackingTrack *track)
 {
-	int framenr = ED_space_clip_clip_framenr(sc);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 	float pat_min[2], pat_max[2];
 	float epsx, epsy;
 	int width, height;
 
-	ED_space_clip_size(sc, &width, &height);
+	ED_space_clip_get_size(C, &width, &height);
 
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 
@@ -187,7 +188,7 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbas
 {
 	MovieTrackingTrack *track = NULL, *cur;
 	float mindist = 0.0f;
-	int framenr = ED_space_clip_clip_framenr(sc);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	cur = tracksbase->first;
 	while (cur) {
@@ -226,7 +227,7 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbas
 static int mouse_select(bContext *C, float co[2], int extend)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
@@ -235,7 +236,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	track = find_nearest_track(sc, tracksbase, co);
 
 	if (track) {
-		int area = track_mouse_area(sc, co, track);
+		int area = track_mouse_area(C, co, track);
 
 		if (!extend || !TRACK_VIEW_SELECTED(sc, track))
 			area = TRACK_AREA_ALL;
@@ -288,7 +289,7 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (track) {
 			SpaceClip *sc = CTX_wm_space_clip(C);
-			MovieClip *clip = ED_space_clip(sc);
+			MovieClip *clip = ED_space_clip_get_clip(sc);
 
 			clip->tracking.act_track = track;
 
@@ -332,14 +333,14 @@ void CLIP_OT_select(wmOperatorType *ot)
 static int border_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	rcti rect;
 	rctf rectf;
 	int change = FALSE, mode, extend;
-	int framenr = ED_space_clip_clip_framenr(sc);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	/* get rectangle from operator */
 	rect.xmin = RNA_int_get(op->ptr, "xmin");
@@ -412,15 +413,14 @@ void CLIP_OT_select_border(wmOperatorType *ot)
 
 static int do_lasso_select_marker(bContext *C, int mcords[][2], short moves, short select)
 {
-	ARegion *ar = CTX_wm_region(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	rcti rect;
 	int change = FALSE;
-	int framenr = ED_space_clip_clip_framenr(sc);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	/* get rectangle from operator */
 	BLI_lasso_boundbox(&rect, mcords, moves);
@@ -435,7 +435,7 @@ static int do_lasso_select_marker(bContext *C, int mcords[][2], short moves, sho
 				float screen_co[2];
 
 				/* marker in screen coords */
-				ED_clip_point_stable_pos__reverse(sc, ar, marker->pos, screen_co);
+				ED_clip_point_stable_pos__reverse(C, marker->pos, screen_co);
 
 				if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
@@ -519,14 +519,13 @@ static int marker_inside_ellipse(MovieTrackingMarker *marker, float offset[2], f
 static int circle_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
-	ARegion *ar = CTX_wm_region(C);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	int x, y, radius, width, height, mode, change = FALSE;
 	float zoomx, zoomy, offset[2], ellipse[2];
-	int framenr = ED_space_clip_clip_framenr(sc);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	/* get operator properties */
 	x = RNA_int_get(op->ptr, "x");
@@ -536,8 +535,8 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	mode = RNA_int_get(op->ptr, "gesture_mode");
 
 	/* compute ellipse and position in unified coordinates */
-	ED_space_clip_size(sc, &width, &height);
-	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
+	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_zoom(C, &zoomx, &zoomy);
 
 	ellipse[0] = width * zoomx / radius;
 	ellipse[1] = height * zoomy / radius;
@@ -602,13 +601,13 @@ void CLIP_OT_select_circle(wmOperatorType *ot)
 static int select_all_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track = NULL;   /* selected track */
 	MovieTrackingMarker *marker;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	int action = RNA_enum_get(op->ptr, "action");
-	int framenr = ED_space_clip_clip_framenr(sc);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	int has_selection = FALSE;
 
 	if (action == SEL_TOGGLE) {
@@ -692,13 +691,13 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 static int select_groped_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	int group = RNA_enum_get(op->ptr, "group");
-	int framenr = ED_space_clip_clip_framenr(sc);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	track = tracksbase->first;
 	while (track) {

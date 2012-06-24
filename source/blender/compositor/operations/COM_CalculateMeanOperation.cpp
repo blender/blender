@@ -88,7 +88,7 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
 	float *buffer = tile->getBuffer();
 	int size = tile->getWidth() * tile->getHeight();
 	int pixels = 0;
-	float sum;
+	float sum = 0.0f;
 	for (int i = 0, offset = 0; i < size; i++, offset += 4) {
 		if (buffer[offset + 3] > 0) {
 			pixels++;
@@ -97,7 +97,7 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
 			{
 				case 1:
 				{
-					sum += buffer[offset] * 0.35f + buffer[offset + 1] * 0.45f + buffer[offset + 2] * 0.2f;
+					sum += rgb_to_bw(&buffer[offset]);
 					break;
 				}
 				case 2:

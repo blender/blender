@@ -1241,6 +1241,8 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 			else
 				WM_cursor_set(win, CURSOR_X_MOVE);
 		}
+		else
+			WM_cursor_set(win, CURSOR_STD);
 	}
 }
 

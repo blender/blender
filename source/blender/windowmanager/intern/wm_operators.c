@@ -157,7 +157,7 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType *))
 		ot->name = N_("Dummy Name");
 	}
 
-	// XXX All ops should have a description but for now allow them not to.
+	/* XXX All ops should have a description but for now allow them not to. */
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description : N_("(undocumented operator)"));
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
@@ -1328,8 +1328,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	
-	split = uiLayoutSplit(layout, 0, 0);
-	col = uiLayoutColumn(split, 0);
+	split = uiLayoutSplit(layout, 0.0f, FALSE);
+	col = uiLayoutColumn(split, FALSE);
 	uiItemL(col, "Links", ICON_NONE);
 	uiItemStringO(col, IFACE_("Donations"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment");
 	uiItemStringO(col, IFACE_("Credits"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/credits");
@@ -1346,7 +1346,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiItemStringO(col, IFACE_("Python API Reference"), ICON_URL, "WM_OT_url_open", "url", url);
 	uiItemL(col, "", ICON_NONE);
 
-	col = uiLayoutColumn(split, 0);
+	col = uiLayoutColumn(split, FALSE);
 
 	if (wm_resource_check_prev()) {
 		uiItemO(col, NULL, ICON_NEW, "WM_OT_copy_prev_settings");
@@ -1646,8 +1646,8 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 	else
 		G.f &= ~G_SCRIPT_AUTOEXEC;
 	
-	// XXX wm in context is not set correctly after WM_read_file -> crash
-	// do it before for now, but is this correct with multiple windows?
+	/* XXX wm in context is not set correctly after WM_read_file -> crash */
+	/* do it before for now, but is this correct with multiple windows? */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	WM_read_file(C, path, op->reports);
@@ -1877,8 +1877,8 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 
 	G.fileflags |= G_FILE_RECOVER;
 
-	// XXX wm in context is not set correctly after WM_read_file -> crash
-	// do it before for now, but is this correct with multiple windows?
+	/* XXX wm in context is not set correctly after WM_read_file -> crash */
+	/* do it before for now, but is this correct with multiple windows? */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	/* load file */
@@ -1909,8 +1909,8 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 
 	G.fileflags |= G_FILE_RECOVER;
 
-	// XXX wm in context is not set correctly after WM_read_file -> crash
-	// do it before for now, but is this correct with multiple windows?
+	/* XXX wm in context is not set correctly after WM_read_file -> crash */
+	/* do it before for now, but is this correct with multiple windows? */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	/* load file */
@@ -2134,203 +2134,6 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
 }
 
-/* XXX: move these collada operators to a more appropriate place */
-#ifdef WITH_COLLADA
-
-#include "../../collada/collada.h"
-
-static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
-{	
-	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-		char filepath[FILE_MAX];
-
-		if (G.main->name[0] == 0)
-			BLI_strncpy(filepath, "untitled", sizeof(filepath));
-		else
-			BLI_strncpy(filepath, G.main->name, sizeof(filepath));
-
-		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
-		RNA_string_set(op->ptr, "filepath", filepath);
-	}
-
-	WM_event_add_fileselect(C, op);
-
-	return OPERATOR_RUNNING_MODAL;
-}
-
-/* function used for WM_OT_save_mainfile too */
-static int wm_collada_export_exec(bContext *C, wmOperator *op)
-{
-	char filepath[FILE_MAX];
-	int selected, second_life; 
-	int include_armatures;
-	int apply_modifiers;
-	int include_children;
-	int use_object_instantiation;
-	int sort_by_name;
-	
-	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-		BKE_report(op->reports, RPT_ERROR, "No filename given");
-		return OPERATOR_CANCELLED;
-	}
-
-	RNA_string_get(op->ptr, "filepath", filepath);
-	BLI_ensure_extension(filepath, sizeof(filepath), ".dae");
-
-	/* Options panel */
-	selected                 = RNA_boolean_get(op->ptr, "selected");
-	apply_modifiers          = RNA_boolean_get(op->ptr, "apply_modifiers");
-	include_armatures        = RNA_boolean_get(op->ptr, "include_armatures");
-	include_children         = RNA_boolean_get(op->ptr, "include_children");
-	use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
-	sort_by_name             = RNA_boolean_get(op->ptr, "sort_by_name");
-	second_life              = RNA_boolean_get(op->ptr, "second_life");
-
-	/* get editmode results */
-	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
-
-	if (collada_export(
-	        CTX_data_scene(C),
-	        filepath,
-	        selected,
-	        apply_modifiers,
-	        include_armatures,
-	        include_children,
-	        use_object_instantiation,
-			sort_by_name,
-	        second_life)) {
-		return OPERATOR_FINISHED;
-	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
-}
-
-
-void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
-{
-	ID *id = imfptr->id.data;
-
-	uiLayout *box, *row;
-
-	// Export Options:
-	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, 0);
-	uiItemL(row, IFACE_("Export Data Options:"), ICON_MESH_DATA);
-
-	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);
-
-	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "selected", 0, NULL, ICON_NONE);
-
-	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "include_armatures", 0, NULL, ICON_NONE);
-	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
-
-	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "include_children", 0, NULL, ICON_NONE);
-	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
-
-
-	// Collada options:
-	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, 0);
-	uiItemL(row, IFACE_("Collada Options:"), ICON_MODIFIER);
-
-	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
-	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
-	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "second_life", 0, NULL, ICON_NONE);
-
-}
-
-static void wm_collada_export_draw(bContext *C, wmOperator *op)
-{
-	PointerRNA ptr;
-
-	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-	uiCollada_exportSettings(op->layout, &ptr);
-}
-
-static void WM_OT_collada_export(wmOperatorType *ot)
-{
-	ot->name = "Export COLLADA";
-	ot->description = "Save a Collada file";
-	ot->idname = "WM_OT_collada_export";
-	
-	ot->invoke = wm_collada_export_invoke;
-	ot->exec = wm_collada_export_exec;
-	ot->poll = WM_operator_winactive;
-
-	ot->flag |= OPTYPE_PRESET;
-
-	ot->ui = wm_collada_export_draw;
-	
-	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-
-
-	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
-	                "Export only selected elements");
-
-	RNA_def_boolean(ot->srna, "include_armatures", 0, "Include Armatures",
-	                "Include armature(s) even if not selected");
-
-	RNA_def_boolean(ot->srna, "include_children", 0, "Include Children",
-	                "Include all children even if not selected");
-
-	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
-	                "Apply modifiers (Preview Resolution)");
-
-	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instances",
-	                "Instantiate multiple Objects from same Data");
-
-	RNA_def_boolean(ot->srna, "sort_by_name", 0, "Sort by Object name",
-	                "Sort exported data by Object name");
-
-	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
-	                "Compatibility mode for Second Life");
-}
-
-
-/* function used for WM_OT_save_mainfile too */
-static int wm_collada_import_exec(bContext *C, wmOperator *op)
-{
-	char filename[FILE_MAX];
-	
-	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-		BKE_report(op->reports, RPT_ERROR, "No filename given");
-		return OPERATOR_CANCELLED;
-	}
-
-	RNA_string_get(op->ptr, "filepath", filename);
-	if (collada_import(C, filename)) return OPERATOR_FINISHED;
-	
-	BKE_report(op->reports, RPT_ERROR, "Errors found during parsing COLLADA document. Please see console for error log.");
-	
-	return OPERATOR_FINISHED;
-}
-
-static void WM_OT_collada_import(wmOperatorType *ot)
-{
-	ot->name = "Import COLLADA";
-	ot->description = "Load a Collada file";
-	ot->idname = "WM_OT_collada_import";
-	
-	ot->invoke = WM_operator_filesel;
-	ot->exec = wm_collada_import_exec;
-	ot->poll = WM_operator_winactive;
-	
-	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-}
-
-#endif
-
-
-/* *********************** */
-
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 {
 	ot->name = "Toggle Fullscreen";
@@ -2539,7 +2342,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 		}
 
 	}
-//	// Allow view navigation???
+//	/* Allow view navigation??? */
 //	else {
 //		return OPERATOR_PASS_THROUGH;
 //	}
@@ -2558,7 +2361,7 @@ int WM_border_select_cancel(bContext *C, wmOperator *op)
 /* works now only for selection or modal paint stuff, calls exec while hold mouse, exit on release */
 
 #ifdef GESTURE_MEMORY
-int circle_select_size = 25; // XXX - need some operator memory thing\!
+int circle_select_size = 25; /* XXX - need some operator memory thing! */
 #endif
 
 int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -2641,7 +2444,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_FINISHED; /* use finish or we don't get an undo */
 		}
 	}
-//	// Allow view navigation???
+//	/* Allow view navigation??? */
 //	else {
 //		return OPERATOR_PASS_THROUGH;
 //	}
@@ -3771,14 +3574,14 @@ static void WM_OT_dependency_relations(wmOperatorType *ot)
 
 static int wm_ndof_sensitivity_exec(bContext *UNUSED(C), wmOperator *op)
 {
-	const float min = 0.25f, max = 4.f; // TODO: get these from RNA property
+	const float min = 0.25f, max = 4.0f; /* TODO: get these from RNA property */
 	float change;
 	float sensitivity = U.ndof_sensitivity;
 
 	if (RNA_boolean_get(op->ptr, "fast"))
-		change = 0.5f;  // 50% change
+		change = 0.5f;  /* 50% change */
 	else
-		change = 0.1f;  // 10%
+		change = 0.1f;  /* 10% */
 
 	if (RNA_boolean_get(op->ptr, "decrease")) {
 		sensitivity -= sensitivity * change; 
@@ -3864,12 +3667,6 @@ void wm_operatortype_init(void)
 #if defined(WIN32)
 	WM_operatortype_append(WM_OT_console_toggle);
 #endif
-
-#ifdef WITH_COLLADA
-	/* XXX: move these */
-	WM_operatortype_append(WM_OT_collada_export);
-	WM_operatortype_append(WM_OT_collada_import);
-#endif
 }
 
 /* circleselect-like modal operators */
@@ -3904,7 +3701,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_SELECT);
 
-#if 0 // Durien guys like this :S
+#if 0 /* Durien guys like this :S */
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_SHIFT, 0, GESTURE_MODAL_DESELECT);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_SHIFT, 0, GESTURE_MODAL_NOP);
 #else
@@ -3983,7 +3780,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, GESTURE_MODAL_SELECT);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_RELEASE, KM_ANY, 0, GESTURE_MODAL_SELECT);
 
-#if 0 // Durian guys like this
+#if 0 /* Durian guys like this */
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_SHIFT, 0, GESTURE_MODAL_BEGIN);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_SHIFT, 0, GESTURE_MODAL_DESELECT);
 #else

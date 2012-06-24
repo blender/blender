@@ -460,7 +460,7 @@ int ED_operator_mask(bContext *C)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 
-	return ED_space_clip_show_maskedit(sc);
+	return ED_space_clip_check_show_maskedit(sc);
 }
 
 /* *************************** action zone operator ************************** */
@@ -1175,7 +1175,7 @@ static int area_split_menu_init(bContext *C, wmOperator *op)
 	sAreaSplitData *sd;
 	
 	/* custom data */
-	sd = (sAreaSplitData *)MEM_callocN(sizeof (sAreaSplitData), "op_area_split");
+	sd = (sAreaSplitData *)MEM_callocN(sizeof(sAreaSplitData), "op_area_split");
 	op->customdata = sd;
 	
 	sd->sarea = CTX_wm_area(C);
@@ -1210,7 +1210,7 @@ static int area_split_init(bContext *C, wmOperator *op)
 	if (dir == 'h' && sa->winy < 2 * areaminy) return 0;
 	
 	/* custom data */
-	sd = (sAreaSplitData *)MEM_callocN(sizeof (sAreaSplitData), "op_area_split");
+	sd = (sAreaSplitData *)MEM_callocN(sizeof(sAreaSplitData), "op_area_split");
 	op->customdata = sd;
 	
 	sd->sarea = sa;
@@ -2180,7 +2180,7 @@ static int area_join_init(bContext *C, wmOperator *op)
 		return 0;
 	}
 	
-	jd = (sAreaJoinData *)MEM_callocN(sizeof (sAreaJoinData), "op_area_join");
+	jd = (sAreaJoinData *)MEM_callocN(sizeof(sAreaJoinData), "op_area_join");
 	
 	jd->sa1 = sa1;
 	jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;

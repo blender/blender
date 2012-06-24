@@ -16,7 +16,7 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/// This file contains all ope
 "	coords += offset;\n" \
 "	float tempBoundingBox;\n" \
 "	float4 color = {0.0f,0.0f,0.0f,0.0f};\n" \
-"	float4 multiplyer = {0.0f,0.0f,0.0f,0.0f};\n" \
+"	float4 multiplier = {0.0f,0.0f,0.0f,0.0f};\n" \
 "	float4 bokeh;\n" \
 "	const float radius2 = radius*2.0f;\n" \
 "	const int2 realCoordinate = coords + offsetOutput;\n" \
@@ -40,10 +40,10 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/// This file contains all ope
 "				uv.x = ((realCoordinate.x-nx)/radius2)*bokehImageDim.x+bokehImageCenter.x;\n" \
 "				bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);\n" \
 "				color += bokeh * read_imagef(inputImage, SAMPLER_NEAREST, inputXy);\n" \
-"				multiplyer += bokeh;\n" \
+"				multiplier += bokeh;\n" \
 "			}\n" \
 "		}\n" \
-"		color /= multiplyer;\n" \
+"		color /= multiplier;\n" \
 "\n" \
 "	} else {\n" \
 "		int2 imageCoordinates = realCoordinate - offsetInput;\n" \

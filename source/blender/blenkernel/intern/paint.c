@@ -96,7 +96,7 @@ Paint *paint_get_active_from_context(const bContext *C)
 			obact = sce->basact->object;
 
 		if (CTX_wm_space_image(C) != NULL) {
-			if (obact->mode == OB_MODE_EDIT) {
+			if (obact && obact->mode == OB_MODE_EDIT) {
 				if (ts->use_uv_sculpt)
 					return &ts->uvsculpt->paint;
 				else

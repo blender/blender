@@ -20,11 +20,12 @@
  *		Monique Dewanchand
  */
 
-#include "COM_Node.h"
-#include "string.h"
+#include <string.h>
 
-#include "COM_NodeOperation.h"
 #include "BKE_node.h"
+
+#include "COM_Node.h"
+#include "COM_NodeOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
 #include "COM_SetColorOperation.h"
@@ -35,7 +36,7 @@
 
 #include "COM_SocketProxyNode.h"
 
-//#include "stdio.h"
+//#include <stdio.h>
 #include "COM_defines.h"
 
 Node::Node(bNode *editorNode, bool create_sockets)
@@ -86,11 +87,15 @@ void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket
 void Node::addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket)
 {
 	if (this->isInActiveGroup()) {
-		PreviewOperation *operation = new PreviewOperation();
-		system->addOperation(operation);
-		operation->setbNode(this->getbNode());
-		operation->setbNodeTree(system->getContext().getbNodeTree());
-		this->addLink(system, outputSocket, operation->getInputSocket(0));
+		if (!(this->getbNode()->flag & NODE_HIDDEN)) { // do not calculate previews of hidden nodes.
+			if (this->getbNode()->flag & NODE_PREVIEW) {
+				PreviewOperation *operation = new PreviewOperation();
+				system->addOperation(operation);
+				operation->setbNode(this->getbNode());
+				operation->setbNodeTree(system->getContext().getbNodeTree());
+				this->addLink(system, outputSocket, operation->getInputSocket(0));
+			}
+		}
 	}
 }
 

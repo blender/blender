@@ -172,7 +172,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
     fileobject.close()
 
     '''
-    print(".", end='')
+    print(".", end="")
     import sys
     sys.stdout.flush()
     '''

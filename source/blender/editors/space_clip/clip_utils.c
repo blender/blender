@@ -69,7 +69,7 @@ void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack 
 		void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord),
 		void (*segment_end)(void *userdata))
 {
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	int width, height, coord;
 
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
@@ -128,7 +128,7 @@ void clip_graph_tracking_values_iterate(SpaceClip *sc, int selected_only, int in
 		void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord),
 		void (*segment_end)(void *userdata))
 {
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	MovieTrackingTrack *track;
@@ -147,7 +147,7 @@ void clip_graph_tracking_values_iterate(SpaceClip *sc, int selected_only, int in
 void clip_graph_tracking_iterate(SpaceClip *sc, int selected_only, int include_hidden, void *userdata,
                                  void (*func)(void *userdata, MovieTrackingMarker *marker))
 {
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	MovieTrackingTrack *track;
@@ -223,13 +223,14 @@ void clip_delete_marker(bContext *C, MovieClip *clip, ListBase *tracksbase,
 	}
 }
 
-void clip_view_center_to_point(SpaceClip *sc, float x, float y)
+void clip_view_center_to_point(const bContext *C, float x, float y)
 {
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	int width, height;
 	float aspx, aspy;
 
-	ED_space_clip_size(sc, &width, &height);
-	ED_space_clip_aspect(sc, &aspx, &aspy);
+	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
 	sc->xof = (x - 0.5f) * width * aspx;
 	sc->yof = (y - 0.5f) * height * aspy;

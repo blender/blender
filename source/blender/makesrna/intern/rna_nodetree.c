@@ -2049,10 +2049,11 @@ static void def_cmp_dilate_erode(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem type_items[] = {
-		{CMP_NODE_DILATEERODE_STEP,            "STEP",      0, "Step",      ""},
+	    {CMP_NODE_DILATEERODE_STEP,            "STEP",      0, "Step",      ""},
 	    {CMP_NODE_DILATEERODE_DISTANCE_THRESH, "THRESHOLD", 0, "Threshold", ""},
 	    {CMP_NODE_DILATEERODE_DISTANCE,        "DISTANCE",  0, "Distance",  ""},
-		{0, NULL, 0, NULL, NULL}
+	    {CMP_NODE_DILATEERODE_DISTANCE_FEATHER,"FEATHER",  0,  "Feather",  ""},
+	    {0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -2067,10 +2068,20 @@ static void def_cmp_dilate_erode(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
+	/* CMP_NODE_DILATEERODE_DISTANCE_THRESH only */
 	prop = RNA_def_property(srna, "edge", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "custom3");
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Edge", "Edge to inset");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "NodeDilateErode", "storage");
+
+	/* CMP_NODE_DILATEERODE_DISTANCE_FEATHER only */
+	prop = RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "falloff");
+	RNA_def_property_enum_items(prop, proportional_falloff_curve_only_items);
+	RNA_def_property_ui_text(prop, "Falloff", "Falloff type the feather");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -2455,9 +2466,9 @@ static void def_cmp_id_mask(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Index", "Pass index number to convert to alpha");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-	prop = RNA_def_property(srna, "use_smooth_mask", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "custom2", 0);
-	RNA_def_property_ui_text(prop, "Smooth Mask", "Apply an anti-aliasing filter to the mask");
+	RNA_def_property_ui_text(prop, "Anti-Aliasing", "Apply an anti-aliasing filter to the mask");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -2561,15 +2572,9 @@ static void def_cmp_defocus(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "use_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "preview", 1);
-	RNA_def_property_ui_text(prop, "Preview", "Enable sampling mode, useful for preview when using low samplecounts");
+	RNA_def_property_ui_text(prop, "Preview", "Enable low quality mode, useful for preview");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "samples");
-	RNA_def_property_range(prop, 16, 256);
-	RNA_def_property_ui_text(prop, "Samples", "Number of samples (16=grainy, higher=less noise)");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
+
 	prop = RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "no_zbuf", 1);
 	RNA_def_property_ui_text(prop, "Use Z-Buffer",
@@ -3114,16 +3119,21 @@ static void def_cmp_mask(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	prop = RNA_def_property(srna, "smooth_mask", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 0);
-	RNA_def_property_ui_text(prop, "Anti-Alias", "Apply an anti-aliasing filter to the mask");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
 	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Mask");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Mask", "");
+
+	prop = RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODEFLAG_MASK_AA);
+	RNA_def_property_ui_text(prop, "Anti-Alias", "Apply an anti-aliasing filter to the mask");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "use_feather", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom1", CMP_NODEFLAG_MASK_NO_FEATHER);
+	RNA_def_property_ui_text(prop, "Feather", "Use feather information from the mask");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void dev_cmd_transform(StructRNA *srna)
@@ -3601,7 +3611,7 @@ static void def_cmp_keying(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "edge_kernel_radius", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "edge_kernel_radius");
-	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Edge Kernel Radius", "Radius of kernel used to detect whether pixel belongs to edge");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 

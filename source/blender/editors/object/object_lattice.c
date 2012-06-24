@@ -102,7 +102,7 @@ void make_editLatt(Object *obedit)
 
 	if (lt->dvert) {
 		int tot = lt->pntsu * lt->pntsv * lt->pntsw;
-		lt->editlatt->latt->dvert = MEM_mallocN(sizeof (MDeformVert) * tot, "Lattice MDeformVert");
+		lt->editlatt->latt->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
 		copy_dverts(lt->editlatt->latt->dvert, lt->dvert, tot);
 	}
 
@@ -162,7 +162,7 @@ void load_editLatt(Object *obedit)
 	if (editlt->dvert) {
 		tot = lt->pntsu * lt->pntsv * lt->pntsw;
 
-		lt->dvert = MEM_mallocN(sizeof (MDeformVert) * tot, "Lattice MDeformVert");
+		lt->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
 		copy_dverts(lt->dvert, editlt->dvert, tot);
 	}
 }

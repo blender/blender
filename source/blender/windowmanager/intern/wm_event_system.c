@@ -582,7 +582,10 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 			wm->op_undo_depth--;
 	}
 	
-	if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED) && repeat == 0)
+	/* XXX Disabled the repeat check to address part 2 of #31840.
+	 *     Carefully checked all calls to wm_operator_exec and WM_operator_repeat, don't see any reason
+	 *     why this was needed, but worth to note it in case something turns bad. (mont29) */
+	if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED)/* && repeat == 0 */)
 		wm_operator_reports(C, op, retval, FALSE);
 	
 	if (retval & OPERATOR_FINISHED) {
@@ -867,7 +870,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		}
 		else {
 			/* debug, important to leave a while, should never happen */
-			printf("invalid operator call '%s'\n", ot->idname);
+			printf("%s: invalid operator call '%s'\n", __func__, ot->idname);
 		}
 		
 		/* Note, if the report is given as an argument then assume the caller will deal with displaying them
@@ -1436,8 +1439,9 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			}
 			
 		}
-		else
-			printf("wm_handler_operator_call error\n");
+		else {
+			printf("%s: error - missing modal\n", __func__);
+		}
 	}
 	else {
 		wmOperatorType *ot = WM_operatortype_find(event->keymap_idname, 0);
@@ -2260,7 +2264,7 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap
 	wmEventHandler *handler;
 
 	if (!keymap) {
-		printf("WM_event_add_keymap_handler called with NULL keymap\n");
+		printf("%s: called with NULL keymap\n", __func__);
 		return NULL;
 	}
 
@@ -2703,7 +2707,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.y = evt->y = (win->sizey - 1) - cy;
 			}
 
-			// Use prevx/prevy so we can calculate the delta later
+			/* Use prevx/prevy so we can calculate the delta later */
 			event.prevx = event.x - pd->deltaX;
 			event.prevy = event.y - (-pd->deltaY);
 			

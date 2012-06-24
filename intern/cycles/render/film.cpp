@@ -20,6 +20,7 @@
 #include "device.h"
 #include "film.h"
 #include "integrator.h"
+#include "mesh.h"
 #include "scene.h"
 
 #include "util_algorithm.h"
@@ -294,6 +295,16 @@ bool Film::modified(const Film& film)
 {
 	return !(exposure == film.exposure
 		&& Pass::equals(passes, film.passes));
+}
+
+void Film::tag_passes_update(Scene *scene, const vector<Pass>& passes_)
+{
+	if(Pass::contains(passes, PASS_UV) != Pass::contains(passes_, PASS_UV))
+		scene->mesh_manager->tag_update(scene);
+	else if(Pass::contains(passes, PASS_MOTION) != Pass::contains(passes_, PASS_MOTION))
+		scene->mesh_manager->tag_update(scene);
+
+	passes = passes_;
 }
 
 void Film::tag_update(Scene *scene)

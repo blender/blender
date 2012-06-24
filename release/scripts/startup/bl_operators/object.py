@@ -34,7 +34,8 @@ class SelectPattern(Operator):
 
     pattern = StringProperty(
             name="Pattern",
-            description="Name filter using '*', '?' and '[abc]' unix style wildcards",
+            description="Name filter using '*', '?' and "
+                        "'[abc]' unix style wildcards",
             maxlen=64,
             default="*",
             )
@@ -130,8 +131,8 @@ class SelectCamera(Operator):
 
 
 class SelectHierarchy(Operator):
-    '''Select object relative to the active object's position ''' \
-    '''in the hierarchy'''
+    """Select object relative to the active object's position """
+    """in the hierarchy"""
     bl_idname = "object.select_hierarchy"
     bl_label = "Select Hierarchy"
     bl_options = {'REGISTER', 'UNDO'}
@@ -277,8 +278,8 @@ class SubdivisionSet(Operator):
 
 
 class ShapeTransfer(Operator):
-    '''Copy another selected objects active shape to this one by ''' \
-    '''applying the relative offsets'''
+    """Copy another selected objects active shape to this one by """
+    """applying the relative offsets"""
 
     bl_idname = "object.shape_key_transfer"
     bl_label = "Transfer Shape Key"

@@ -211,12 +211,12 @@ static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
 		
 		for (ct = st->toolshelf.first; ct; ct = ct->next) {
 			if (0 == strncmp(context, ct->context, OP_MAX_TYPENAME)) {
-				col = uiLayoutColumn(pa->layout, 1);
+				col = uiLayoutColumn(pa->layout, TRUE);
 				uiItemFullO(col, ct->opname, NULL, ICON_NONE, NULL, WM_OP_INVOKE_REGION_WIN, 0);
 			}
 		}
 	}
-	col = uiLayoutColumn(pa->layout, 1);
+	col = uiLayoutColumn(pa->layout, TRUE);
 	uiDefBlockBut(uiLayoutGetBlock(pa->layout), tool_search_menu, &st->toolshelf, "Add Tool", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Add Tool in shelf, gets saved in files");
 }
 

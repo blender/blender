@@ -512,7 +512,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, Image
 	int wmenu1, wmenu2, wmenu3, layer;
 	char *strp;
 
-	uiLayoutRow(layout, 1);
+	uiLayoutRow(layout, TRUE);
 
 	/* layer menu is 1/3 larger than pass */
 	wmenu1 = (2 * w) / 5;
@@ -552,7 +552,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 	uiBut *but;
 	const float dpi_fac = UI_DPI_FAC;
 	
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 
 	if (rr == NULL || iuser == NULL)
 		return;
@@ -693,13 +693,13 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			uiItemR(layout, &imaptr, "source", 0, NULL, ICON_NONE);
 
 			if (ima->source != IMA_SRC_GENERATED) {
-				row = uiLayoutRow(layout, 1);
+				row = uiLayoutRow(layout, TRUE);
 				if (ima->packedfile)
 					uiItemO(row, "", ICON_PACKAGE, "image.unpack");
 				else
 					uiItemO(row, "", ICON_UGLYPACKAGE, "image.pack");
 				
-				row = uiLayoutRow(row, 0);
+				row = uiLayoutRow(row, FALSE);
 				uiLayoutSetEnabled(row, ima->packedfile == NULL);
 				uiItemR(row, &imaptr, "filepath", 0, "", ICON_NONE);
 				uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
@@ -733,26 +733,26 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				if (compact == 0) { /* background image view doesnt need these */
 					uiItemS(layout);
 
-					split = uiLayoutSplit(layout, 0, 0);
+					split = uiLayoutSplit(layout, 0.0f, FALSE);
 
-					col = uiLayoutColumn(split, 0);
+					col = uiLayoutColumn(split, FALSE);
 					/* XXX Why only display fields_per_frame only for video image types?
 					 *     And why allow fields for non-video image types at all??? */
 					if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-						uiLayout *subsplit = uiLayoutSplit(col, 0, 0);
-						uiLayout *subcol = uiLayoutColumn(subsplit, 0);
+						uiLayout *subsplit = uiLayoutSplit(col, 0.0f, FALSE);
+						uiLayout *subcol = uiLayoutColumn(subsplit, FALSE);
 						uiItemR(subcol, &imaptr, "use_fields", 0, NULL, ICON_NONE);
-						subcol = uiLayoutColumn(subsplit, 0);
+						subcol = uiLayoutColumn(subsplit, FALSE);
 						uiLayoutSetActive(subcol, RNA_boolean_get(&imaptr, "use_fields"));
 						uiItemR(subcol, userptr, "fields_per_frame", 0, IFACE_("Fields"), ICON_NONE);
 					}
 					else
 						uiItemR(col, &imaptr, "use_fields", 0, NULL, ICON_NONE);
-					row = uiLayoutRow(col, 0);
+					row = uiLayoutRow(col, FALSE);
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
 					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 					
-					row = uiLayoutRow(layout, 0);
+					row = uiLayoutRow(layout, FALSE);
 					uiItemR(row, &imaptr, "use_premultiply", 0, NULL, ICON_NONE);
 					uiItemR(row, &imaptr, "use_color_unpremultiply", 0, NULL, ICON_NONE);
 				}
@@ -761,24 +761,24 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				uiItemS(layout);
 
-				split = uiLayoutSplit(layout, 0, 0);
+				split = uiLayoutSplit(layout, 0.0f, FALSE);
 
-				col = uiLayoutColumn(split, 0);
+				col = uiLayoutColumn(split, FALSE);
 
 				BLI_snprintf(str, sizeof(str), IFACE_("(%d) Frames"), iuser->framenr);
 				uiItemR(col, userptr, "frame_duration", 0, str, ICON_NONE);
 				uiItemR(col, userptr, "frame_start", 0, IFACE_("Start"), ICON_NONE);
 				uiItemR(col, userptr, "frame_offset", 0, NULL, ICON_NONE);
 
-				col = uiLayoutColumn(split, 0);
+				col = uiLayoutColumn(split, FALSE);
 				uiItemO(col, NULL, ICON_NONE, "IMAGE_OT_match_movie_length");
 				uiItemR(col, userptr, "use_auto_refresh", 0, NULL, ICON_NONE);
 				uiItemR(col, userptr, "use_cyclic", 0, NULL, ICON_NONE);
 			}
 			else if (ima->source == IMA_SRC_GENERATED) {
-				split = uiLayoutSplit(layout, 0, 0);
+				split = uiLayoutSplit(layout, 0.0f, FALSE);
 
-				col = uiLayoutColumn(split, 1);
+				col = uiLayoutColumn(split, TRUE);
 				uiItemR(col, &imaptr, "generated_width", 0, "X", ICON_NONE);
 				uiItemR(col, &imaptr, "generated_height", 0, "Y", ICON_NONE);
 				uiItemR(col, &imaptr, "use_generated_float", 0, NULL, ICON_NONE);
@@ -804,12 +804,12 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	uiLayout *col, *row, *split, *sub;
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 
-	split = uiLayoutSplit(col, 0.5f, 0);
+	split = uiLayoutSplit(col, 0.5f, FALSE);
 	
 	uiItemR(split, imfptr, "file_format", 0, "", ICON_NONE);
-	sub = uiLayoutRow(split, 0);
+	sub = uiLayoutRow(split, FALSE);
 	uiItemR(sub, imfptr, "color_mode", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
 
 	/* only display depth setting if multiple depths can be used */
@@ -821,7 +821,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 	           R_IMF_CHAN_DEPTH_24,
 	           R_IMF_CHAN_DEPTH_32)) == 0)
 	{
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 
@@ -837,7 +837,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 		uiItemR(col, imfptr, "exr_codec", 0, NULL, ICON_NONE);
 	}
 	
-	row = uiLayoutRow(col, 0);
+	row = uiLayoutRow(col, FALSE);
 	if (BKE_imtype_supports_zbuf(imf->imtype)) {
 		uiItemR(row, imfptr, "use_zbuffer", 0, NULL, ICON_NONE);
 	}
@@ -847,7 +847,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 	}
 
 	if (imf->imtype == R_IMF_IMTYPE_JP2) {
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, imfptr, "use_jpeg2k_cinema_preset", 0, NULL, ICON_NONE);
 		uiItemR(row, imfptr, "use_jpeg2k_cinema_48", 0, NULL, ICON_NONE);
 		

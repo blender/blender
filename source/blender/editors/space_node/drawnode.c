@@ -140,7 +140,7 @@ static uiBlock *socket_component_menu(bContext *C, ARegion *ar, void *args_v)
 	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 	
-	layout = uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y + 2, args->width, NODE_DY, UI_GetStyle()), 0);
+	layout = uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y + 2, args->width, NODE_DY, UI_GetStyle()), FALSE);
 	
 	uiItemR(layout, &args->ptr, "default_value", UI_ITEM_R_EXPAND, "", ICON_NONE);
 	
@@ -291,7 +291,7 @@ static void node_buts_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr
 	prop = RNA_struct_find_property(ptr, "outputs");
 	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
 	
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiTemplateColorWheel(col, &sockptr, "default_value", 1, 0, 0, 0);
 	uiItemR(col, &sockptr, "default_value", 0, "", ICON_NONE);
 }
@@ -302,7 +302,7 @@ static void node_buts_mix_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA 
 
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
 
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "blend_type", 0, "", ICON_NONE);
 	if (ntree->type == NTREE_COMPOSIT)
 		uiItemR(row, ptr, "use_alpha", 0, "", ICON_IMAGE_RGB_ALPHA);
@@ -325,7 +325,7 @@ static void node_buts_time(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
 
 	uiTemplateCurveMapping(layout, ptr, "curve", 's', 0, 0);
 
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "frame_start", 0, IFACE_("Sta"), ICON_NONE);
 	uiItemR(row, ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
 }
@@ -340,25 +340,30 @@ static void node_buts_curvevec(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 	uiTemplateCurveMapping(layout, ptr, "mapping", 'v', 0, 0);
 }
 
-static float *_sample_col = NULL;    // bad bad, 2.5 will do better?
-#if 0
-static void node_curvemap_sample(float *col)
+static float _sample_col[4];    // bad bad, 2.5 will do better?
+#define SAMPLE_FLT_ISNONE FLT_MAX
+void ED_node_sample_set(const float col[4])
 {
-	_sample_col = col;
+	if (col) {
+		copy_v4_v4(_sample_col, col);
+	}
+	else {
+		copy_v4_fl(_sample_col, SAMPLE_FLT_ISNONE);
+	}
 }
-#endif
 
 static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
 	CurveMapping *cumap = node->storage;
 
-	if (_sample_col) {
+	if (_sample_col[0] != SAMPLE_FLT_ISNONE) {
 		cumap->flag |= CUMA_DRAW_SAMPLE;
 		copy_v3_v3(cumap->sample, _sample_col);
 	}
-	else 
+	else {
 		cumap->flag &= ~CUMA_DRAW_SAMPLE;
+	}
 
 	uiTemplateCurveMapping(layout, ptr, "mapping", 'c', 0, 0);
 }
@@ -1002,7 +1007,7 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
-	if (node->flag & (NODE_ACTIVE | SELECT) ) {
+	if (node->flag & (NODE_ACTIVE | SELECT)) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		
@@ -1105,7 +1110,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	/* XXX only kept for debugging
 	 * selection state is indicated by socket outline below!
 	 */
-	#if 0
+#if 0
 	/* body */
 	uiSetRoundBox(15);
 	UI_ThemeColor4(TH_NODE);
@@ -1116,18 +1121,18 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	/* outline active and selected emphasis */
 	if (node->flag & (NODE_ACTIVE | SELECT)) {
 		glEnable(GL_BLEND);
-		glEnable( GL_LINE_SMOOTH );
+		glEnable(GL_LINE_SMOOTH);
 			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
-			if( node->flag & NODE_ACTIVE )
+			if (node->flag & NODE_ACTIVE)
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
 			else
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
 			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
 
-		glDisable( GL_LINE_SMOOTH );
+		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
-	#endif
+#endif
 
 	/* only draw input socket. as they all are placed on the same position.
 	 * highlight also if node itself is selected, since we don't display the node body separately!
@@ -1194,10 +1199,10 @@ static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *imap
 	uiLayout *col;
 	int source;
 
-	if(!imaptr->data)
+	if (!imaptr->data)
 		return;
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	
 	uiItemR(col, imaptr, "source", 0, "", ICON_NONE);
 	
@@ -1214,7 +1219,7 @@ static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *imap
 	}
 
 	if (ELEM(source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
-		col = uiLayoutColumn(layout, 1);
+		col = uiLayoutColumn(layout, TRUE);
 		uiItemR(col, iuserptr, "frame_duration", 0, NULL, ICON_NONE);
 		uiItemR(col, iuserptr, "frame_start", 0, NULL, ICON_NONE);
 		uiItemR(col, iuserptr, "frame_offset", 0, NULL, ICON_NONE);
@@ -1222,7 +1227,7 @@ static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *imap
 		uiItemR(col, iuserptr, "use_auto_refresh", UI_ITEM_R_ICON_ONLY, NULL, ICON_NONE);
 	}
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 
 	if (RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER)
 		uiItemR(col, iuserptr, "layer", 0, NULL, ICON_NONE);
@@ -1238,7 +1243,7 @@ static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA 
 	
 	if (!node->id) return;
 	
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "use_diffuse", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "use_specular", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "invert_normal", 0, NULL, ICON_NONE);
@@ -1249,22 +1254,22 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 	uiLayout *row;
 	
 	uiItemL(layout, IFACE_("Location:"), ICON_NONE);
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "translation", 0, "", ICON_NONE);
 	
 	uiItemL(layout, IFACE_("Rotation:"), ICON_NONE);
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "rotation", 0, "", ICON_NONE);
 	
 	uiItemL(layout, IFACE_("Scale:"), ICON_NONE);
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "scale", 0, "", ICON_NONE);
 	
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "use_min", 0, "Min", ICON_NONE);
 	uiItemR(row, ptr, "min", 0, "", ICON_NONE);
 	
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "use_max", 0, "Max", ICON_NONE);
 	uiItemR(row, ptr, "max", 0, "", ICON_NONE);
 }
@@ -1279,7 +1284,7 @@ static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA 
 	PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
 	uiLayout *col;
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 
 	if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
 		PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
@@ -1471,8 +1476,8 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 	
 	if (!node->id) return;
 
-	col = uiLayoutColumn(layout, 0);
-	row = uiLayoutRow(col, 0);
+	col = uiLayoutColumn(layout, FALSE);
+	row = uiLayoutRow(col, FALSE);
 	uiItemR(row, ptr, "layer", 0, "", ICON_NONE);
 	
 	prop = RNA_struct_find_property(ptr, "layer");
@@ -1494,7 +1499,7 @@ static void node_composit_buts_blur(uiLayout *layout, bContext *UNUSED(C), Point
 {
 	uiLayout *col, *row;
 	
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	
 	uiItemR(col, ptr, "filter_type", 0, "", ICON_NONE);
 	if (RNA_enum_get(ptr, "filter_type") != R_FILTER_FAST_GAUSS) {
@@ -1506,15 +1511,15 @@ static void node_composit_buts_blur(uiLayout *layout, bContext *UNUSED(C), Point
 	
 	if (RNA_boolean_get(ptr, "use_relative")) {
 		uiItemL(col, IFACE_("Aspect Correction"), 0);
-		row = uiLayoutRow(layout, 1);
+		row = uiLayoutRow(layout, TRUE);
 		uiItemR(row, ptr, "aspect_correction", UI_ITEM_R_EXPAND, NULL, 0);
 		
-		col = uiLayoutColumn(layout, 1);
+		col = uiLayoutColumn(layout, TRUE);
 		uiItemR(col, ptr, "factor_x", 0, IFACE_("X"), ICON_NONE);
 		uiItemR(col, ptr, "factor_y", 0, IFACE_("Y"), ICON_NONE);
 	}
 	else {
-		col = uiLayoutColumn(layout, 1);
+		col = uiLayoutColumn(layout, TRUE);
 		uiItemR(col, ptr, "size_x", 0, IFACE_("X"), ICON_NONE);
 		uiItemR(col, ptr, "size_y", 0, IFACE_("Y"), ICON_NONE);
 	}
@@ -1527,14 +1532,14 @@ static void node_composit_buts_dblur(uiLayout *layout, bContext *UNUSED(C), Poin
 	uiItemR(layout, ptr, "iterations", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "use_wrap", 0, NULL, ICON_NONE);
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemL(col, IFACE_("Center:"), ICON_NONE);
 	uiItemR(col, ptr, "center_x", 0, IFACE_("X"), ICON_NONE);
 	uiItemR(col, ptr, "center_y", 0, IFACE_("Y"), ICON_NONE);
 	
 	uiItemS(layout);
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "distance", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "angle", 0, NULL, ICON_NONE);
 	
@@ -1548,7 +1553,7 @@ static void node_composit_buts_bilateralblur(uiLayout *layout, bContext *UNUSED(
 {	
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "iterations", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "sigma_color", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "sigma_space", 0, NULL, ICON_NONE);
@@ -1558,29 +1563,26 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *UNUSED(C), Po
 {
 	uiLayout *sub, *col;
 	
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemL(col, IFACE_("Bokeh Type:"), ICON_NONE);
 	uiItemR(col, ptr, "bokeh", 0, "", ICON_NONE);
 	uiItemR(col, ptr, "angle", 0, NULL, ICON_NONE);
 
 	uiItemR(layout, ptr, "use_gamma_correction", 0, NULL, ICON_NONE);
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_zbuffer") == TRUE);
 	uiItemR(col, ptr, "f_stop", 0, NULL, ICON_NONE);
 
 	uiItemR(layout, ptr, "blur_max", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "threshold", 0, NULL, ICON_NONE);
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "use_preview", 0, NULL, ICON_NONE);
-	sub = uiLayoutColumn(col, 0);
-	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_preview"));
-	uiItemR(sub, ptr, "samples", 0, NULL, ICON_NONE);
 	
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "use_zbuffer", 0, NULL, ICON_NONE);
-	sub = uiLayoutColumn(col, 0);
+	sub = uiLayoutColumn(col, FALSE);
 	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_zbuffer") == FALSE);
 	uiItemR(sub, ptr, "z_scale", 0, NULL, ICON_NONE);
 }
@@ -1620,7 +1622,7 @@ static void node_composit_buts_tonemap(uiLayout *layout, bContext *UNUSED(C), Po
 {	
 	uiLayout *col;
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "tonemap_type", 0, "", ICON_NONE);
 	if (RNA_enum_get(ptr, "tonemap_type") == 0) {
 		uiItemR(col, ptr, "key", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -1639,10 +1641,10 @@ static void node_composit_buts_lensdist(uiLayout *layout, bContext *UNUSED(C), P
 {
 	uiLayout *col;
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "use_projector", 0, NULL, ICON_NONE);
 
-	col = uiLayoutColumn(col, 0);
+	col = uiLayoutColumn(col, FALSE);
 	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_projector") == FALSE);
 	uiItemR(col, ptr, "use_jitter", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "use_fit", 0, NULL, ICON_NONE);
@@ -1652,11 +1654,11 @@ static void node_composit_buts_vecblur(uiLayout *layout, bContext *UNUSED(C), Po
 {
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "samples", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "factor", 0, IFACE_("Blur"), ICON_NONE);
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemL(col, IFACE_("Speed:"), ICON_NONE);
 	uiItemR(col, ptr, "speed_min", 0, IFACE_("Min"), ICON_NONE);
 	uiItemR(col, ptr, "speed_max", 0, IFACE_("Max"), ICON_NONE);
@@ -1681,7 +1683,7 @@ static void node_composit_buts_crop(uiLayout *layout, bContext *UNUSED(C), Point
 	uiItemR(layout, ptr, "use_crop_size", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "relative", 0, NULL, ICON_NONE);
 
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	if (RNA_boolean_get(ptr, "relative")) {
 		uiItemR(col, ptr, "rel_min_x", 0, IFACE_("Left"), ICON_NONE);
 		uiItemR(col, ptr, "rel_max_x", 0, IFACE_("Right"), ICON_NONE);
@@ -1700,8 +1702,8 @@ static void node_composit_buts_splitviewer(uiLayout *layout, bContext *UNUSED(C)
 {
 	uiLayout *row, *col;
 	
-	col = uiLayoutColumn(layout, 0);
-	row = uiLayoutRow(col, 0);
+	col = uiLayoutColumn(layout, FALSE);
+	row = uiLayoutRow(col, FALSE);
 	uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	uiItemR(col, ptr, "factor", 0, NULL, ICON_NONE);
 }
@@ -1710,7 +1712,7 @@ static void node_composit_buts_double_edge_mask(uiLayout *layout, bContext *UNUS
 {
 	uiLayout *col;
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 
 	uiItemL(col, IFACE_("Inner Edge:"), ICON_NONE);
 	uiItemR(col, ptr, "inner_mode", 0, "", ICON_NONE);
@@ -1722,19 +1724,19 @@ static void node_composit_buts_map_value(uiLayout *layout, bContext *UNUSED(C), 
 {
 	uiLayout *sub, *col;
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "offset", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "size", 0, NULL, ICON_NONE);
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "use_min", 0, NULL, ICON_NONE);
-	sub = uiLayoutColumn(col, 0);
+	sub = uiLayoutColumn(col, FALSE);
 	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_min"));
 	uiItemR(sub, ptr, "min", 0, "", ICON_NONE);
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "use_max", 0, NULL, ICON_NONE);
-	sub = uiLayoutColumn(col, 0);
+	sub = uiLayoutColumn(col, FALSE);
 	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max"));
 	uiItemR(sub, ptr, "max", 0, "", ICON_NONE);
 }
@@ -1743,7 +1745,7 @@ static void node_composit_buts_alphaover(uiLayout *layout, bContext *UNUSED(C), 
 {	
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "use_premultiply", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "premul", 0, NULL, ICON_NONE);
 }
@@ -1752,7 +1754,7 @@ static void node_composit_buts_zcombine(uiLayout *layout, bContext *UNUSED(C), P
 {	
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "use_alpha", 0, NULL, ICON_NONE);
 }
 
@@ -1761,7 +1763,7 @@ static void node_composit_buts_hue_sat(uiLayout *layout, bContext *UNUSED(C), Po
 {
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "color_hue", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "color_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "color_value", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -1771,8 +1773,13 @@ static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C)
 {
 	uiItemR(layout, ptr, "type", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);
-	if (RNA_enum_get(ptr, "type") == CMP_NODE_DILATEERODE_DISTANCE_THRESH) {
-		uiItemR(layout, ptr, "edge", 0, NULL, ICON_NONE);
+	switch (RNA_enum_get(ptr, "type")) {
+		case CMP_NODE_DILATEERODE_DISTANCE_THRESH:
+			uiItemR(layout, ptr, "edge", 0, NULL, ICON_NONE);
+			break;
+		case CMP_NODE_DILATEERODE_DISTANCE_FEATHER:
+			uiItemR(layout, ptr, "falloff", 0, NULL, ICON_NONE);
+			break;
 	}
 }
 
@@ -1780,7 +1787,7 @@ static void node_composit_buts_diff_matte(uiLayout *layout, bContext *UNUSED(C),
 {
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "tolerance", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "falloff", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
@@ -1789,10 +1796,10 @@ static void node_composit_buts_distance_matte(uiLayout *layout, bContext *UNUSED
 {
 	uiLayout *col, *row;
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
    
 	uiItemL(layout, IFACE_("Color Space:"), ICON_NONE);
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
 	uiItemR(col, ptr, "tolerance", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -1804,15 +1811,15 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
 	uiLayout *row, *col;
 	
 	uiItemL(layout, IFACE_("Despill Channel:"), ICON_NONE);
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
 
 	if (RNA_enum_get(ptr, "limit_method") == 0) {
 		uiItemL(col, IFACE_("Limiting Channel:"), ICON_NONE);
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 
@@ -1829,11 +1836,11 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, bContext *UNUSED(C
 {
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "tolerance", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "threshold", 0, NULL, ICON_NONE);
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	/*uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);  Removed for now */
 	uiItemR(col, ptr, "gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	/*uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, NULL, ICON_NONE);  Removed for now*/
@@ -1843,7 +1850,7 @@ static void node_composit_buts_color_matte(uiLayout *layout, bContext *UNUSED(C)
 {
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "color_hue", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "color_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "color_value", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -1854,20 +1861,20 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext *UNUSED(
 	uiLayout *col, *row;
 
 	uiItemL(layout, IFACE_("Color Space:"), ICON_NONE);
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "color_space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemL(col, IFACE_("Key Channel:"), ICON_NONE);
-	row = uiLayoutRow(col, 0);
+	row = uiLayoutRow(col, FALSE);
 	uiItemR(row, ptr, "matte_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 
 	uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
 	if (RNA_enum_get(ptr, "limit_method") == 0) {
 		uiItemL(col, IFACE_("Limiting Channel:"), ICON_NONE);
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 
@@ -1879,7 +1886,7 @@ static void node_composit_buts_luma_matte(uiLayout *layout, bContext *UNUSED(C),
 {
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "limit_max", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "limit_min", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
@@ -1892,7 +1899,7 @@ static void node_composit_buts_map_uv(uiLayout *layout, bContext *UNUSED(C), Poi
 static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "index", 0, NULL, ICON_NONE);
-	uiItemR(layout, ptr, "use_smooth_mask", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_antialiasing", 0, NULL, ICON_NONE);
 }
 
 /* draw function for file output node sockets, displays only sub-path and format, no value button */
@@ -1907,7 +1914,7 @@ static void node_draw_input_file_output(const bContext *C, uiBlock *block,
 	RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
 	
 	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y + NODE_DY, width, 20, UI_GetStyle());
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	
 	imfptr = RNA_pointer_get(&nodeptr, "format");
 	imtype = RNA_enum_get(&imfptr, "file_format");
@@ -1976,7 +1983,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	/* XXX collection lookup does not return the ID part of the pointer, setting this manually here */
 	active_input_ptr.id.data = ptr->id.data;
 	
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	op_ptr = uiItemFullO(row, "NODE_OT_output_file_move_active_socket", "", ICON_TRIA_UP, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&op_ptr, "direction", 1);
 	op_ptr = uiItemFullO(row, "NODE_OT_output_file_move_active_socket", "", ICON_TRIA_DOWN, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
@@ -1985,30 +1992,30 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	if (active_input_ptr.data) {
 		if (multilayer) {
 			uiLayout *row, *col;
-			col = uiLayoutColumn(layout, 1);
+			col = uiLayoutColumn(layout, TRUE);
 			
 			uiItemL(col, IFACE_("Layer:"), 0);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &active_input_ptr, "name", 0, "", 0);
 			uiItemFullO(row, "NODE_OT_output_file_remove_active_socket", "", ICON_X, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_R_ICON_ONLY);
 		}
 		else {
 			uiLayout *row, *col;
-			col = uiLayoutColumn(layout, 1);
+			col = uiLayoutColumn(layout, TRUE);
 			
 			uiItemL(col, IFACE_("File Path:"), 0);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &active_input_ptr, "path", 0, "", 0);
 			uiItemFullO(row, "NODE_OT_output_file_remove_active_socket", "", ICON_X, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_R_ICON_ONLY);
 			
 			/* format details for individual files */
 			imfptr = RNA_pointer_get(&active_input_ptr, "format");
 			
-			col = uiLayoutColumn(layout, 1);
+			col = uiLayoutColumn(layout, TRUE);
 			uiItemL(col, IFACE_("Format:"), 0);
 			uiItemR(col, &active_input_ptr, "use_node_format", 0, NULL, 0);
 			
-			col = uiLayoutColumn(layout, 0);
+			col = uiLayoutColumn(layout, FALSE);
 			uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format") == FALSE);
 			uiTemplateImageSettings(col, &imfptr);
 		}
@@ -2037,7 +2044,7 @@ static void node_composit_buts_invert(uiLayout *layout, bContext *UNUSED(C), Poi
 {
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, ptr, "invert_rgb", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "invert_alpha", 0, NULL, ICON_NONE);
 }
@@ -2060,39 +2067,39 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C
 	
 	if (RNA_enum_get(ptr, "correction_method") == 0) {
 	
-		split = uiLayoutSplit(layout, 0, 0);
-		col = uiLayoutColumn(split, 0);
+		split = uiLayoutSplit(layout, 0.0f, FALSE);
+		col = uiLayoutColumn(split, FALSE);
 		uiTemplateColorWheel(col, ptr, "lift", 1, 1, 0, 1);
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "lift", 0, NULL, ICON_NONE);
 		
-		col = uiLayoutColumn(split, 0);
+		col = uiLayoutColumn(split, FALSE);
 		uiTemplateColorWheel(col, ptr, "gamma", 1, 1, 1, 1);
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "gamma", 0, NULL, ICON_NONE);
 		
-		col = uiLayoutColumn(split, 0);
+		col = uiLayoutColumn(split, FALSE);
 		uiTemplateColorWheel(col, ptr, "gain", 1, 1, 1, 1);
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "gain", 0, NULL, ICON_NONE);
 
 	}
 	else {
 		
-		split = uiLayoutSplit(layout, 0, 0);
-		col = uiLayoutColumn(split, 0);
+		split = uiLayoutSplit(layout, 0.0f, FALSE);
+		col = uiLayoutColumn(split, FALSE);
 		uiTemplateColorWheel(col, ptr, "offset", 1, 1, 0, 1);
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "offset", 0, NULL, ICON_NONE);
 		
-		col = uiLayoutColumn(split, 0);
+		col = uiLayoutColumn(split, FALSE);
 		uiTemplateColorWheel(col, ptr, "power", 1, 1, 0, 1);
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "power", 0, NULL, ICON_NONE);
 		
-		col = uiLayoutColumn(split, 0);
+		col = uiLayoutColumn(split, FALSE);
 		uiTemplateColorWheel(col, ptr, "slope", 1, 1, 0, 1);
-		row = uiLayoutRow(col, 0);
+		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "slope", 0, NULL, ICON_NONE);
 	}
 
@@ -2127,6 +2134,17 @@ static void node_composit_buts_colorbalance_but(uiLayout *layout, bContext *UNUS
 
 static void node_composit_buts_huecorrect(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+	bNode *node = ptr->data;
+	CurveMapping *cumap = node->storage;
+
+	if (_sample_col[0] != SAMPLE_FLT_ISNONE) {
+		cumap->flag |= CUMA_DRAW_SAMPLE;
+		copy_v3_v3(cumap->sample, _sample_col);
+	}
+	else {
+		cumap->flag &= ~CUMA_DRAW_SAMPLE;
+	}
+
 	uiTemplateCurveMapping(layout, ptr, "mapping", 'h', 0, 0);
 }
 
@@ -2173,12 +2191,12 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext *UNUSE
 {
 	uiLayout *row;
 	
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "red", 0, NULL, ICON_NONE);
 	uiItemR(row, ptr, "green", 0, NULL, ICON_NONE);
 	uiItemR(row, ptr, "blue", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemL(row, "", 0);
 	uiItemL(row, IFACE_("Saturation"), 0);
 	uiItemL(row, IFACE_("Contrast"), 0);
@@ -2186,7 +2204,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext *UNUSE
 	uiItemL(row, IFACE_("Gain"), 0);
 	uiItemL(row, IFACE_("Lift"), 0);
 
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemL(row, IFACE_("Master"), 0);
 	uiItemR(row, ptr, "master_saturation", UI_ITEM_R_SLIDER, "", ICON_NONE);
 	uiItemR(row, ptr, "master_contrast", UI_ITEM_R_SLIDER, "", ICON_NONE);
@@ -2194,7 +2212,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext *UNUSE
 	uiItemR(row, ptr, "master_gain", UI_ITEM_R_SLIDER, "", ICON_NONE);
 	uiItemR(row, ptr, "master_lift", UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemL(row, IFACE_("Highlights"), 0);
 	uiItemR(row, ptr, "highlights_saturation", UI_ITEM_R_SLIDER, "", ICON_NONE);
 	uiItemR(row, ptr, "highlights_contrast", UI_ITEM_R_SLIDER, "", ICON_NONE);
@@ -2202,7 +2220,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext *UNUSE
 	uiItemR(row, ptr, "highlights_gain", UI_ITEM_R_SLIDER, "", ICON_NONE);
 	uiItemR(row, ptr, "highlights_lift", UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemL(row, IFACE_("Midtones"), 0);
 	uiItemR(row, ptr, "midtones_saturation", UI_ITEM_R_SLIDER, "", ICON_NONE);
 	uiItemR(row, ptr, "midtones_contrast", UI_ITEM_R_SLIDER, "", ICON_NONE);
@@ -2210,7 +2228,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext *UNUSE
 	uiItemR(row, ptr, "midtones_gain", UI_ITEM_R_SLIDER, "", ICON_NONE);
 	uiItemR(row, ptr, "midtones_lift", UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemL(row, IFACE_("Shadows"), 0);
 	uiItemR(row, ptr, "shadows_saturation", UI_ITEM_R_SLIDER, "", ICON_NONE);
 	uiItemR(row, ptr, "shadows_contrast", UI_ITEM_R_SLIDER, "", ICON_NONE);
@@ -2218,7 +2236,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext *UNUSE
 	uiItemR(row, ptr, "shadows_gain", UI_ITEM_R_SLIDER, "", ICON_NONE);
 	uiItemR(row, ptr, "shadows_lift", UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "midtones_start", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(row, ptr, "midtones_end", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
@@ -2227,7 +2245,7 @@ static void node_composit_buts_colorcorrection_but(uiLayout *layout, bContext *U
 {
 	uiLayout *row;
 	
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "red", 0, NULL, ICON_NONE);
 	uiItemR(row, ptr, "green", 0, NULL, ICON_NONE);
 	uiItemR(row, ptr, "blue", 0, NULL, ICON_NONE);
@@ -2262,7 +2280,7 @@ static void node_composit_buts_colorcorrection_but(uiLayout *layout, bContext *U
 	uiItemR(row, ptr, "midtones_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(row, ptr, "shadows_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "midtones_start", 0, NULL, ICON_NONE);
 	uiItemR(row, ptr, "midtones_end", 0, NULL, ICON_NONE);
 }
@@ -2276,11 +2294,11 @@ static void node_composit_buts_boxmask(uiLayout *layout, bContext *UNUSED(C), Po
 {
 	uiLayout *row;
 	
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "x", 0, NULL, ICON_NONE);
 	uiItemR(row, ptr, "y", 0, NULL, ICON_NONE);
 	
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(row, ptr, "height", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 
@@ -2403,10 +2421,10 @@ void node_composit_backdrop_ellipsemask(SpaceNode *snode, ImBuf *backdrop, bNode
 static void node_composit_buts_ellipsemask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *row;
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "x", 0, NULL, ICON_NONE);
 	uiItemR(row, ptr, "y", 0, NULL, ICON_NONE);
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, ptr, "width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(row, ptr, "height", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 
@@ -2420,7 +2438,7 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 	
 	uiItemR(layout, ptr, "tile_order", 0, NULL, ICON_NONE);
 	if (RNA_enum_get(ptr, "tile_order") == 0) {
-		col = uiLayoutColumn(layout, 1);
+		col = uiLayoutColumn(layout, TRUE);
 		uiItemR(col, ptr, "center_x", 0, NULL, ICON_NONE);
 		uiItemR(col, ptr, "center_y", 0, NULL, ICON_NONE);
 	}
@@ -2429,7 +2447,8 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL);
-    uiItemR(layout, ptr, "smooth_mask", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_antialiasing", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_feather", 0, NULL, ICON_NONE);
 
 }
 
@@ -2446,7 +2465,7 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
 
 		RNA_pointer_create(&clip->id, &RNA_MovieTracking, &clip->tracking, &tracking_ptr);
 
-		col = uiLayoutColumn(layout, 1);
+		col = uiLayoutColumn(layout, TRUE);
 		uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
 	}
 }
@@ -2675,11 +2694,11 @@ static void node_texture_buts_bricks(uiLayout *layout, bContext *UNUSED(C), Poin
 {
 	uiLayout *col;
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "offset", 0, IFACE_("Offset"), ICON_NONE);
 	uiItemR(col, ptr, "offset_frequency", 0, IFACE_("Frequency"), ICON_NONE);
 	
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, ptr, "squash", 0, IFACE_("Squash"), ICON_NONE);
 	uiItemR(col, ptr, "squash_frequency", 0, IFACE_("Frequency"), ICON_NONE);
 }
@@ -2694,23 +2713,23 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 	
 	RNA_pointer_create(id, &RNA_Texture, tex, &tex_ptr);
 
-	col = uiLayoutColumn(layout, 0);
+	col = uiLayoutColumn(layout, FALSE);
 
 	switch (tex->type) {
 		case TEX_BLEND:
 			uiItemR(col, &tex_ptr, "progression", 0, "", ICON_NONE);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &tex_ptr, "use_flip_axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 			break;
 
 		case TEX_MARBLE:
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &tex_ptr, "marble_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &tex_ptr, "noise_basis", 0, "", ICON_NONE);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &tex_ptr, "noise_basis_2", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 			break;
 
@@ -2719,9 +2738,9 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 			break;
 
 		case TEX_STUCCI:
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &tex_ptr, "stucci_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 			uiItemR(col, &tex_ptr, "noise_basis", 0, "", ICON_NONE);
 			break;
@@ -2729,18 +2748,18 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 		case TEX_WOOD:
 			uiItemR(col, &tex_ptr, "noise_basis", 0, "", ICON_NONE);
 			uiItemR(col, &tex_ptr, "wood_type", 0, "", ICON_NONE);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &tex_ptr, "noise_basis_2", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiLayoutSetActive(row, !(RNA_enum_get(&tex_ptr, "wood_type") == TEX_BAND || RNA_enum_get(&tex_ptr, "wood_type") == TEX_RING));
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 			break;
 			
 		case TEX_CLOUDS:
 			uiItemR(col, &tex_ptr, "noise_basis", 0, "", ICON_NONE);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &tex_ptr, "cloud_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-			row = uiLayoutRow(col, 0);
+			row = uiLayoutRow(col, FALSE);
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 			uiItemR(col, &tex_ptr, "noise_depth", UI_ITEM_R_EXPAND, IFACE_("Depth"), ICON_NONE);
 			break;

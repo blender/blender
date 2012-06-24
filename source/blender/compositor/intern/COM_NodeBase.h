@@ -103,7 +103,7 @@ public:
 	 * @param index
 	 * the index of the needed outputsocket
 	 */
-	OutputSocket *getOutputSocket(const int index);
+	OutputSocket *getOutputSocket(const unsigned int index);
 	
 	/**
 	 * get the reference to the first outputsocket
@@ -117,7 +117,7 @@ public:
 	 * @param index
 	 * the index of the needed inputsocket
 	 */
-	InputSocket *getInputSocket(const int index);
+	InputSocket *getInputSocket(const unsigned int index);
 	
 	
 	virtual bool isStatic() const { return false; }

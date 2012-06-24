@@ -42,6 +42,7 @@
 #include "KX_PhysicsEngineEnums.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_KetsjiEngine.h"
+#include "KX_PythonInit.h" // So we can handle adding new text datablocks for Python to import
 #include "KX_IPhysicsController.h"
 #include "BL_Material.h"
 #include "BL_ActionActuator.h"
@@ -173,9 +174,9 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 #endif
 
 	/* free any data that was dynamically loaded */
-	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++) {
-		Main *main= *it;
-		free_main(main);
+	while (m_DynamicMaggie.size() != 0)
+	{
+		FreeBlendFile(m_DynamicMaggie[0]);
 	}
 
 	m_DynamicMaggie.clear();
@@ -987,6 +988,11 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 
 	load_datablocks(main_newlib, bpy_openlib, path, idcode);
 
+	if (idcode==ID_SCE) {
+		/* assume we want text blocks too */
+		load_datablocks(main_newlib, bpy_openlib, path, ID_TXT);
+	}
+
 	/* now do another round of linking for Scenes so all actions are properly loaded */
 	if (idcode==ID_SCE && options & LIB_LOAD_LOAD_ACTIONS) {
 		load_datablocks(main_newlib, bpy_openlib, path, ID_AC);
@@ -1037,6 +1043,10 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 			// RemoveScene(other); // Don't run this, it frees the entire scene converter data, just delete the scene
 			delete other;
 		}
+
+		/* Handle any text datablocks */
+
+		addImportMain(main_newlib);
 
 		/* Now handle all the actions */
 		if (options & LIB_LOAD_LOAD_ACTIONS) {
@@ -1329,6 +1339,9 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 			meshit++;
 		}
 	}
+
+	/* make sure this maggie is removed from the import list if it's there (this operation is safe if it isn't in the list) */
+	removeImportMain(maggie);
 
 	free_main(maggie);
 

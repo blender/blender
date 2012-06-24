@@ -52,7 +52,7 @@
 #include "mask_intern.h"  /* own include */
 
 
-static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_co[2], int threshold, int feather,
+static int find_nearest_diff_point(const bContext *C, Mask *mask, const float normal_co[2], int threshold, int feather,
                                    MaskLayer **masklay_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
                                    float *u_r, float tangent[2],
                                    const short use_deform)
@@ -176,7 +176,7 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 
 /******************** add vertex *********************/
 
-static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, MaskSplinePoint *new_point,
+static void setup_vertex_point(const bContext *C, Mask *mask, MaskSpline *spline, MaskSplinePoint *new_point,
                                const float point_co[2], const float tangent[2], const float u,
                                MaskSplinePoint *reference_point, const short reference_adjacent)
 {
@@ -365,7 +365,7 @@ static void mask_spline_add_point_at_index(MaskSpline *spline, int point_index)
 	spline->tot_point++;
 }
 
-static int add_vertex_subdivide(bContext *C, Mask *mask, const float co[2])
+static int add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2])
 {
 	MaskLayer *masklay;
 	MaskSpline *spline;
@@ -399,7 +399,7 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, const float co[2])
 	return FALSE;
 }
 
-static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const float co[2])
+static int add_vertex_extrude(const bContext *C, Mask *mask, MaskLayer *masklay, const float co[2])
 {
 	MaskSpline *spline;
 	MaskSplinePoint *point;
@@ -500,7 +500,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const
 	return TRUE;
 }
 
-static int add_vertex_new(bContext *C, Mask *mask, MaskLayer *masklay, const float co[2])
+static int add_vertex_new(const bContext *C, Mask *mask, MaskLayer *masklay, const float co[2])
 {
 	MaskSpline *spline;
 	MaskSplinePoint *point;

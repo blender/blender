@@ -38,7 +38,7 @@ void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, system);
 	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, system);
 	operation->setTexture(texture);
-	operation->setScene(context->getScene());
+	operation->setRenderData(context->getRenderData());
 	system->addOperation(operation);
 	addPreviewOperation(system, operation->getOutputSocket());
 
@@ -48,7 +48,7 @@ void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext
 		addLink(system, operation->getInputSocket(0)->getConnection()->getFromSocket(), alphaOperation->getInputSocket(0));
 		addLink(system, operation->getInputSocket(1)->getConnection()->getFromSocket(), alphaOperation->getInputSocket(1));
 		alphaOperation->setTexture(texture);
-		alphaOperation->setScene(context->getScene());
+		alphaOperation->setRenderData(context->getRenderData());
 		system->addOperation(alphaOperation);
 	}
 }

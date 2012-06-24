@@ -28,9 +28,9 @@
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"
 
-#include "ExportSettings.h"
 #include "DocumentExporter.h"
 #include "DocumentImporter.h"
+#include "ExportSettings.h"
 
 extern "C"
 {
@@ -40,6 +40,7 @@ extern "C"
 /* make dummy file */
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
+#include "BLI_linklist.h"
 
 int collada_import(bContext *C, const char *filepath)
 {
@@ -49,18 +50,25 @@ int collada_import(bContext *C, const char *filepath)
 	return 0;
 }
 
-int collada_export(
-    Scene *sce,
-    const char *filepath,
-    int selected,
-    int apply_modifiers,
+int collada_export(Scene *sce,
+                   const char *filepath,
 
-    int include_armatures,
-    int include_children,
+                   int apply_modifiers,
+				   BC_export_mesh_type export_mesh_type,
 
-    int use_object_instantiation,
-	int sort_by_name,
-    int second_life)
+                   int selected,
+                   int include_children,
+                   int include_armatures,
+                   int deform_bones_only,
+
+				   int active_uv_only,
+				   int include_uv_textures,
+				   int include_material_textures,
+				   int use_texture_copies,
+
+                   int use_object_instantiation,
+                   int sort_by_name,
+                   int second_life)
 {
 	ExportSettings export_settings;
 
@@ -73,15 +81,24 @@ int collada_export(
 	}
 	/* end! */
 
+	export_settings.filepath                 = (char *)filepath;
 
-	export_settings.selected                 = selected != 0;
 	export_settings.apply_modifiers          = apply_modifiers != 0;
+	export_settings.export_mesh_type         = export_mesh_type;
+	export_settings.selected                 = selected          != 0;
+	export_settings.include_children         = include_children  != 0;
 	export_settings.include_armatures        = include_armatures != 0;
-	export_settings.include_children         = include_children != 0;
-	export_settings.second_life              = second_life != 0;
+	export_settings.deform_bones_only        = deform_bones_only != 0;
+
+	export_settings.active_uv_only           = active_uv_only != 0;
+	export_settings.include_uv_textures      = include_uv_textures != 0;
+	export_settings.include_material_textures= include_material_textures != 0;
+	export_settings.use_texture_copies       = use_texture_copies != 0;
+
 	export_settings.use_object_instantiation = use_object_instantiation != 0;
 	export_settings.sort_by_name             = sort_by_name != 0;
-	export_settings.filepath                 = (char *)filepath;
+	export_settings.second_life              = second_life != 0;
+
 
 	int includeFilter = OB_REL_NONE;
 	if (export_settings.include_armatures) includeFilter |= OB_REL_MOD_ARMATURE;

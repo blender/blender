@@ -107,7 +107,6 @@ def boundsEdgeLoop(edges):
     # print len(faces), minx, maxx, miny , maxy
     for ed in edges:
         for pt in ed:
-            print 'ass'
             x= pt[0]
             y= pt[1]
             if x<minx: x= minx
@@ -502,7 +501,6 @@ def mergeUvIslands(islandList):
 
                                 It gives about 10% speedup with minimal errors.
                                 '''
-                                #print 'ass'
                                 # Move the test along its width + SMALL_NUM
                                 #boxLeft += sourceIsland[4] + SMALL_NUM
                                 boxLeft += sourceIsland[4]
@@ -832,7 +830,7 @@ def main(context,
         USER_ONLY_SELECTED_FACES = False
 
     if not obList:
-        raise('error, no selected mesh objects')
+        raise Exception("error, no selected mesh objects")
 
     # Reuse variable
     if len(obList) == 1:

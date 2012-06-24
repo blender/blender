@@ -154,6 +154,7 @@ typedef struct RenderStats {
 /* calling a new render with same name, frees automatic existing render */
 struct Render *RE_NewRender (const char *name);
 struct Render *RE_GetRender(const char *name);
+struct Render *RE_GetRender_FromData(const struct RenderData *rd);
 
 /* returns 1 while render is working (or renders called from within render) */
 int RE_RenderInProgress(struct Render *re);

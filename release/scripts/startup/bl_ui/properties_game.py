@@ -50,6 +50,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
         physics_type = game.physics_type
 
         if physics_type == 'CHARACTER':
+            layout.prop(game, "use_actor")
+            layout.prop(ob, "hide_render", text="Invisible")  # out of place but useful
             layout.prop(game, "step_height", slider=True)
             layout.prop(game, "jump_speed")
             layout.prop(game, "fall_speed")

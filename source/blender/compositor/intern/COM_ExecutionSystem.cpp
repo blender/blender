@@ -22,16 +22,18 @@
 
 #include "COM_ExecutionSystem.h"
 
+#include <sstream>
+#include <stdio.h>
+
 #include "PIL_time.h"
 #include "BKE_node.h"
+
 #include "COM_Converter.h"
-#include <sstream>
 #include "COM_NodeOperation.h"
 #include "COM_ExecutionGroup.h"
 #include "COM_NodeBase.h"
 #include "COM_WorkScheduler.h"
 #include "COM_ReadBufferOperation.h"
-#include "stdio.h"
 #include "COM_GroupNode.h"
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"
@@ -39,7 +41,7 @@
 
 #include "BKE_global.h"
 
-ExecutionSystem::ExecutionSystem(bNodeTree *editingtree, bool rendering)
+ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering)
 {
 	context.setbNodeTree(editingtree);
 	bNode *gnode;
@@ -60,22 +62,18 @@ ExecutionSystem::ExecutionSystem(bNodeTree *editingtree, bool rendering)
 	context.setRendering(rendering);
 	context.setHasActiveOpenCLDevices(WorkScheduler::hasGPUDevices() && (editingtree->flag & NTREE_COM_OPENCL));
 
-	Node *mainOutputNode = NULL;
+	ExecutionSystemHelper::addbNodeTree(*this, 0, editingtree, NULL);
 
-	mainOutputNode = ExecutionSystemHelper::addbNodeTree(*this, 0, editingtree, NULL);
-
-	if (mainOutputNode) {
-		context.setScene((Scene *)mainOutputNode->getbNode()->id);
-		this->convertToOperations();
-		this->groupOperations(); /* group operations in ExecutionGroups */
-		unsigned int index;
-		unsigned int resolution[2];
-		for (index = 0; index < this->groups.size(); index++) {
-			resolution[0] = 0;
-			resolution[1] = 0;
-			ExecutionGroup *executionGroup = groups[index];
-			executionGroup->determineResolution(resolution);
-		}
+	context.setRenderData(rd);
+	this->convertToOperations();
+	this->groupOperations(); /* group operations in ExecutionGroups */
+	unsigned int index;
+	unsigned int resolution[2];
+	for (index = 0; index < this->groups.size(); index++) {
+		resolution[0] = 0;
+		resolution[1] = 0;
+		ExecutionGroup *executionGroup = groups[index];
+		executionGroup->determineResolution(resolution);
 	}
 
 #ifdef COM_DEBUG

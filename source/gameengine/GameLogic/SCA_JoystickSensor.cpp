@@ -191,7 +191,8 @@ bool SCA_JoystickSensor::Evaluate()
 			if (( m_bAllEvents && js->aAnyButtonPressIsPositive()) || (!m_bAllEvents && js->aButtonPressIsPositive(m_button))) {
 				m_istrig = 1;
 				result = true;
-			}else {
+			}
+			else {
 				if (m_istrig) {
 					m_istrig = 0;
 					result = true;

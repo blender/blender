@@ -245,7 +245,7 @@ class USERPREF_PT_interface(Panel):
 
         col.prop(view, "show_splash")
 
-        if os.name == 'nt':
+        if os.name == "nt":
             col.prop(view, "quit_dialog")
 
 
@@ -419,7 +419,7 @@ class USERPREF_PT_system(Panel):
         col.separator()
         col.separator()
 
-        if hasattr(system, 'compute_device'):
+        if hasattr(system, "compute_device"):
             col.label(text="Compute Device:")
             col.row().prop(system, "compute_device_type", expand=True)
             sub = col.row()
@@ -1094,7 +1094,7 @@ class USERPREF_PT_addons(Panel):
 
                 rowsub = row.row()
                 rowsub.active = is_enabled
-                rowsub.label(text='%s: %s' % (info['category'], info["name"]))
+                rowsub.label(text='%s: %s' % (info["category"], info["name"]))
                 if info["warning"]:
                     rowsub.label(icon='ERROR')
 

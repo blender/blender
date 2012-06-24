@@ -2858,7 +2858,7 @@ static void quad_bezier_2d(float *result, float *v1, float *v2, float *ipodata)
 	p1[0]= v1[0];
 	p1[1]= v1[1];
 	
-	/* official formula 2*p2 - .5*p1 - .5*p3 */
+	/* official formula 2*p2 - 0.5*p1 - 0.5*p3 */
 	p2[0]= -0.5f*p1[0] - 0.5f*p3[0];
 	p2[1]= -0.5f*p1[1] - 0.5f*p3[1];
 	

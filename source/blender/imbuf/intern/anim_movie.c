@@ -445,7 +445,7 @@ static int startffmpeg(struct anim *anim)
 	int i, videoStream;
 
 	AVCodec *pCodec;
-	AVFormatContext *pFormatCtx;
+	AVFormatContext *pFormatCtx = NULL;
 	AVCodecContext *pCodecCtx;
 	int frs_num;
 	double frs_den;
@@ -464,7 +464,7 @@ static int startffmpeg(struct anim *anim)
 
 	do_init_ffmpeg();
 
-	if (av_open_input_file(&pFormatCtx, anim->name, NULL, 0, NULL) != 0) {
+	if (avformat_open_input(&pFormatCtx, anim->name, NULL, NULL) != 0) {
 		return -1;
 	}
 
@@ -551,8 +551,8 @@ static int startffmpeg(struct anim *anim)
 	anim->pFrameDeinterlaced = avcodec_alloc_frame();
 	anim->pFrameRGB = avcodec_alloc_frame();
 
-	if (avpicture_get_size(PIX_FMT_RGBA, anim->x, anim->y)
-	    != anim->x * anim->y * 4)
+	if (avpicture_get_size(PIX_FMT_RGBA, anim->x, anim->y) !=
+	    anim->x * anim->y * 4)
 	{
 		fprintf(stderr,
 		        "ffmpeg has changed alloc scheme ... ARGHHH!\n");

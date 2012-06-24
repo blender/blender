@@ -1729,7 +1729,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	}
 
 	/* create items */
-	split = uiLayoutSplit(layout, 0, 0);
+	split = uiLayoutSplit(layout, 0.0f, FALSE);
 
 	for (a = 0; a < md->nitems; a++) {
 		if (a == column_end) {
@@ -1748,7 +1748,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 				}
 			}
 
-			column = uiLayoutColumn(split, 0);
+			column = uiLayoutColumn(split, FALSE);
 		}
 
 		if (block->flag & UI_BLOCK_NO_FLIP)

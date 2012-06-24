@@ -32,6 +32,7 @@ private:
 	SocketReader *inputProgram;
 	SocketReader *inputBokehProgram;
 	SocketReader *inputSizeProgram;
+	SocketReader *inputDepthProgram;
 
 public:
 	VariableSizeBokehBlurOperation();

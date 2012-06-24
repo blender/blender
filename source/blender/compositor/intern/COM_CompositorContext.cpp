@@ -26,7 +26,7 @@
 
 CompositorContext::CompositorContext()
 {
-	this->scene = NULL;
+	this->rd = NULL;
 	this->quality = COM_QUALITY_HIGH;
 	this->hasActiveOpenCLDevices = false;
 	this->activegNode = NULL;
@@ -34,8 +34,8 @@ CompositorContext::CompositorContext()
 
 const int CompositorContext::getFramenumber() const
 {
-	if (this->scene) {
-		return this->scene->r.cfra;
+	if (this->rd) {
+		return this->rd->cfra;
 	}
 	else {
 		return -1; /* this should never happen */
@@ -44,8 +44,8 @@ const int CompositorContext::getFramenumber() const
 
 const int CompositorContext::isColorManaged() const
 {
-	if (this->scene) {
-		return this->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+	if (this->rd) {
+		return this->rd->color_mgt_flag & R_COLOR_MANAGEMENT;
 	}
 	else {
 		return 0; /* this should never happen */

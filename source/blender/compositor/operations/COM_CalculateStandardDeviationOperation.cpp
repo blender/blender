@@ -46,7 +46,7 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, Memory
 		float *buffer = tile->getBuffer();
 		int size = tile->getWidth() * tile->getHeight();
 		int pixels = 0;
-		float sum;
+		float sum = 0.0f;
 		float mean = this->result;
 		for (int i = 0, offset = 0; i < size; i++, offset += 4) {
 			if (buffer[offset + 3] > 0) {
@@ -56,7 +56,7 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, Memory
 				{
 					case 1:
 					{
-						float value = buffer[offset] * 0.35f + buffer[offset + 1] * 0.45f + buffer[offset + 2] * 0.2f;
+						float value = rgb_to_bw(&buffer[offset]);
 						sum += (value - mean) * (value - mean);
 						break;
 					}

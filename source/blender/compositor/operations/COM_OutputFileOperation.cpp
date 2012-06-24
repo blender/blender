@@ -92,9 +92,9 @@ static void write_buffer_rect(rcti *rect, MemoryBuffer **memoryBuffers, const bN
 
 
 OutputSingleLayerOperation::OutputSingleLayerOperation(
-    const Scene *scene, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path)
+    const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path)
 {
-	this->scene = scene;
+	this->rd = rd;
 	this->tree = tree;
 	
 	this->addInputSocket(datatype);
@@ -130,13 +130,13 @@ void OutputSingleLayerOperation::deinitExecution()
 		ibuf->channels = size;
 		ibuf->rect_float = this->outputBuffer;
 		ibuf->mall |= IB_rectfloat; 
-		ibuf->dither = scene->r.dither_intensity;
+		ibuf->dither = this->rd->dither_intensity;
 		
-		if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+		if (this->rd->color_mgt_flag & R_COLOR_MANAGEMENT)
 			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 		
-		BKE_makepicstring(filename, this->path, bmain->name, this->scene->r.cfra, this->format->imtype,
-		                  (this->scene->r.scemode & R_EXTENSION), true);
+		BKE_makepicstring(filename, this->path, bmain->name, this->rd->cfra, this->format->imtype,
+		                  (this->rd->scemode & R_EXTENSION), true);
 		
 		if (0 == BKE_imbuf_write(ibuf, filename, this->format))
 			printf("Cannot save Node File Output to %s\n", filename);
@@ -160,9 +160,9 @@ OutputOpenExrLayer::OutputOpenExrLayer(const char *name, DataType datatype)
 }
 
 OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(
-    const Scene *scene, const bNodeTree *tree, const char *path, char exr_codec)
+    const RenderData *rd, const bNodeTree *tree, const char *path, char exr_codec)
 {
-	this->scene = scene;
+	this->rd = rd;
 	this->tree = tree;
 	
 	BLI_strncpy(this->path, path, sizeof(this->path));
@@ -199,8 +199,8 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 		char filename[FILE_MAX];
 		void *exrhandle = IMB_exr_get_handle();
 		
-		BKE_makepicstring(filename, this->path, bmain->name, this->scene->r.cfra, R_IMF_IMTYPE_MULTILAYER,
-		                  (this->scene->r.scemode & R_EXTENSION), true);
+		BKE_makepicstring(filename, this->path, bmain->name, this->rd->cfra, R_IMF_IMTYPE_MULTILAYER,
+		                  (this->rd->scemode & R_EXTENSION), true);
 		BLI_make_existing_file(filename);
 		
 		for (unsigned int i = 0; i < layers.size(); ++i) {

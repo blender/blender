@@ -85,6 +85,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
             sub.prop(cscene, "ao_samples", text="AO")
             sub.prop(cscene, "mesh_light_samples", text="Mesh Light")
 
+
 class CyclesRender_PT_light_paths(CyclesButtonsPanel, Panel):
     bl_label = "Light Paths"
     bl_options = {'DEFAULT_CLOSED'}
@@ -545,6 +546,7 @@ class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):
         if not panel_node_draw(layout, lamp, 'OUTPUT_LAMP', 'Surface'):
             layout.prop(lamp, "color")
 
+
 class CyclesLamp_PT_spot(CyclesButtonsPanel, Panel):
     bl_label = "Spot Shape"
     bl_context = "data"
@@ -568,6 +570,7 @@ class CyclesLamp_PT_spot(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(lamp, "show_cone")
+
 
 class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"

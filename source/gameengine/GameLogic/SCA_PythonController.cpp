@@ -209,7 +209,7 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	else if (PyObject_TypeCheck(value, &SCA_IActuator::Type)) {
 		PyObjectPlus *value_plus= BGE_PROXY_REF(value);
 		for (it = lacts.begin(); it!= lacts.end(); ++it) {
-			if ( static_cast<SCA_IActuator*>(value_plus) == (*it) ) {
+			if (static_cast<SCA_IActuator*>(value_plus) == (*it)) {
 				return *it;
 			}
 		}

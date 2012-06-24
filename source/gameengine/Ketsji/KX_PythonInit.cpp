@@ -1821,6 +1821,16 @@ static void restorePySysObjects(void)
 //	PyObject_Print(sys_path, stderr, 0);
 }
 
+void addImportMain(struct Main *maggie)
+{
+	bpy_import_main_extra_add(maggie);
+}
+
+void removeImportMain(struct Main *maggie)
+{
+	bpy_import_main_extra_remove(maggie);
+}
+
 // Copied from bpy_interface.c
 static struct _inittab bge_internal_modules[]= {
 	{(char *)"mathutils", PyInit_mathutils},

@@ -332,7 +332,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 	return(ibuf);
 }
 
-//static opj_image_t* rawtoimage(const char *filename, opj_cparameters_t *parameters, raw_cparameters_t *raw_cp) {
+//static opj_image_t* rawtoimage(const char *filename, opj_cparameters_t *parameters, raw_cparameters_t *raw_cp)
 /* prec can be 8, 12, 16 */
 
 /* use inline because the float passed can be a function call that would end up being called many times */

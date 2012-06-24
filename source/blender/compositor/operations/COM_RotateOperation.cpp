@@ -48,7 +48,8 @@ void RotateOperation::deinitExecution()
 	this->degreeSocket = NULL;
 }
 
-inline void RotateOperation::ensureDegree() {
+inline void RotateOperation::ensureDegree()
+{
 	if (!isDegreeSet) {
 		float degree[4];
 		this->degreeSocket->read(degree, 0, 0, COM_PS_NEAREST, NULL);

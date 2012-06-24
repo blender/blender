@@ -39,8 +39,8 @@ void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	ImageUser *imageUser = (ImageUser *) this->getbNode()->storage;
 	if (image1Socket->isConnected() && image2Socket->isConnected()) {
 		SplitViewerOperation *splitViewerOperation = new SplitViewerOperation();
-		splitViewerOperation->setColorManagement(context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT);
-		splitViewerOperation->setColorPredivide(context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
+		splitViewerOperation->setColorManagement(context->getRenderData()->color_mgt_flag & R_COLOR_MANAGEMENT);
+		splitViewerOperation->setColorPredivide(context->getRenderData()->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
 		splitViewerOperation->setImage(image);
 		splitViewerOperation->setImageUser(imageUser);
 		splitViewerOperation->setActive((this->getbNode()->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());

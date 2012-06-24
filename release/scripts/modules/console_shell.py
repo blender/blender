@@ -20,7 +20,7 @@
 import os
 import bpy
 
-language_id = 'shell'
+language_id = "shell"
 
 
 def add_scrollback(text, text_type):

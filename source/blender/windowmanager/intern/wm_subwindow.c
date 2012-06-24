@@ -194,9 +194,8 @@ void wm_subwindow_close(wmWindow *win, int swinid)
 		MEM_freeN(swin);
 	} 
 	else {
-		printf("wm_subwindow_close: Internal error, bad winid: %d\n", swinid);
+		printf("%s: Internal error, bad winid: %d\n", __func__, swinid);
 	}
-
 }
 
 /* pixels go from 0-99 for a 100 pixel window */
@@ -233,7 +232,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 		wmOrtho2(-0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f);
 	}
 	else {
-		printf("wm_subwindow_position: Internal error, bad winid: %d\n", swinid);
+		printf("%s: Internal error, bad winid: %d\n", __func__, swinid);
 	}
 }
 
@@ -250,7 +249,7 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	_curswin = swin_from_swinid(win, swinid);
 	
 	if (_curswin == NULL) {
-		printf("wmSubWindowSet %d: doesn't exist\n", swinid);
+		printf("%s %d: doesn't exist\n", __func__, swinid);
 		return;
 	}
 	

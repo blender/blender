@@ -239,7 +239,7 @@ static void node_menu_add(const bContext *C, Menu *menu)
 	bNodeTreeType *ntreetype= ntreeGetType(snode->treetype);
 
 	if (!snode->nodetree)
-		uiLayoutSetActive(layout, 0);
+		uiLayoutSetActive(layout, FALSE);
 	
 	if (ntreetype && ntreetype->foreach_nodeclass)
 		ntreetype->foreach_nodeclass(scene, layout, node_menu_add_foreach_cb);
