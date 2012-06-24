@@ -47,6 +47,7 @@ protected:
 		VoronoiTriangulationPoint *triangulated_points;
 		int (*triangles)[3];
 		int triangulated_points_total, triangles_total;
+		rctf *triangles_AABB;
 	} TriangulationData;
 
 	MovieClip *movieClip;
