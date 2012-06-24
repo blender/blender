@@ -3582,13 +3582,13 @@ static void def_cmp_keying(StructRNA *srna)
 	prop = RNA_def_property(srna, "clip_black", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "clip_black");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Clip Black", "Value of on-scaled matte pixel which considers as fully background pixel");
+	RNA_def_property_ui_text(prop, "Clip Black", "Value of non-scaled matte pixel which considers as fully background pixel");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "clip_white", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "clip_white");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Clip White", "Value of on-scaled matte pixel which considers as fully foreground pixel");
+	RNA_def_property_ui_text(prop, "Clip White", "Value of non-scaled matte pixel which considers as fully foreground pixel");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "blur_pre", PROP_INT, PROP_NONE);
