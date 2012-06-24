@@ -136,6 +136,19 @@ float angle_v3v3v3(const float v1[3], const float v2[3], const float v3[3])
 	return angle_normalized_v3v3(vec1, vec2);
 }
 
+/* Quicker than full angle computation */
+float cos_v3v3v3(const float p1[3], const float p2[3], const float p3[3])
+{
+	float vec1[3], vec2[3];
+
+	sub_v3_v3v3(vec1, p2, p1);
+	sub_v3_v3v3(vec2, p2, p3);
+	normalize_v3(vec1);
+	normalize_v3(vec2);
+
+	return dot_v3v3(vec1, vec2);
+}
+
 /* Return the shortest angle in radians between the 2 vectors */
 float angle_v3v3(const float v1[3], const float v2[3])
 {
