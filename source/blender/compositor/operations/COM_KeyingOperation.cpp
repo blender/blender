@@ -136,15 +136,3 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 	/* apply core matte */
 	color[0] = MAX2(color[0], coreValue[0]);
 }
-
-bool KeyingOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
-{
-	rcti newInput;
-
-	newInput.xmin = 0;
-	newInput.ymin = 0;
-	newInput.xmax = this->getWidth();
-	newInput.ymax = this->getHeight();
-
-	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
-}

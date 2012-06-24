@@ -282,10 +282,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		step_tot--;
 		if (step_tot < 3) step_tot = 3;
 	
-		maxVerts =  totvert  * step_tot;   /* -1 because we're joining back up */
-		maxEdges =  (totvert * step_tot) + /* these are the edges between new verts */
-		            (totedge * step_tot);  /* -1 because vert edges join */
-		maxPolys =  totedge * step_tot;
+		maxVerts = totvert  * step_tot;   /* -1 because we're joining back up */
+		maxEdges = (totvert * step_tot) + /* these are the edges between new verts */
+		           (totedge * step_tot);  /* -1 because vert edges join */
+		maxPolys = totedge * step_tot;
 
 		screw_ofs = 0.0f;
 	}

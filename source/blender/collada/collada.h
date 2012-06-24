@@ -57,8 +57,9 @@ int collada_export(Scene *sce,
                    int include_armatures,
                    int deform_bones_only,
 
-				   int active_uv,
-				   int include_textures,
+				   int active_uv_only,
+				   int include_uv_textures,
+				   int include_material_textures,
 				   int use_texture_copies,
 
                    int use_object_instantiation,

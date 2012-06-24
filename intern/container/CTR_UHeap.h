@@ -53,47 +53,47 @@
 
 class CTR_UHeapable {
 
-public :
-		int &
+public:
+	int &
 	HeapPos(
-	) {
+	    ) {
 		return m_ind;
 	};
-		float &
+	float &
 	HeapKey(
-	) {
+	    ) {
 		return m_key;
 	};
 
 	const 
-		float &
+	float &
 	HeapKey(
-	) const {
+	    ) const {
 		return m_key;
 	};
 
 	const 
-		int &
+	int &
 	HeapPos(
-	) const {
+	    ) const {
 		return m_ind;
 	};
 
-private :
+private:
 
 	float m_key;
 	int m_ind;
 
-protected :
+protected:
 
 	CTR_UHeapable(
-	) : m_key (0),
-		m_ind (0)
+	    ) : m_key(0),
+		m_ind(0)
 	{
 	};
 
 	~CTR_UHeapable(
-	) {
+	    ) {
 	};
 };
 	
@@ -104,50 +104,50 @@ class CTR_UHeap : public MEM_NonCopyable
 public:		
 
 	static
-		CTR_UHeap *
+	CTR_UHeap *
 	New(
-	) {
+	    ) {
 		return new CTR_UHeap();
 	}
 
-		void
+	void
 	MakeHeap(
-		HeapType *base
-	) {
+	    HeapType *base
+	    ) {
 		int i;
-		int start = Parent(m_vector.size()-1);
-		for (i = start; i >=0; --i) {
-			DownHeap(base,i);
+		int start = Parent(m_vector.size() - 1);
+		for (i = start; i >= 0; --i) {
+			DownHeap(base, i);
 		}
 	}; 
 	
-		void
+	void
 	Insert(
-		HeapType *base,
-		int elem
-	) {
+	    HeapType *base,
+	    int elem
+	    ) {
 		// add element to vector
 		m_vector.push_back(elem);
-		base[elem].HeapPos() = m_vector.size()-1;
+		base[elem].HeapPos() = m_vector.size() - 1;
 
 		// push the element up the heap
-		UpHeap(base,m_vector.size()-1);
+		UpHeap(base, m_vector.size() - 1);
 	}
 
 	// access to the vector for initial loading of elements
 
-		std::vector<int> &
+	std::vector<int> &
 	HeapVector(
-	) {
+	    ) {
 		return m_vector;
 	};
 
 
-		void
+	void
 	Remove(
-		HeapType *base,
-		int i
-	) {
+	    HeapType *base,
+	    int i
+	    ) {
 	
 		// exchange with last element - pop last
 		// element and move up or down the heap as appropriate
@@ -155,37 +155,38 @@ public:
 			assert(false);
 		}
 
-		if (i  != int(m_vector.size())-1) {
+		if (i != int(m_vector.size()) - 1) {
 			
-			Swap(base,i,m_vector.size() - 1);
+			Swap(base, i, m_vector.size() - 1);
 			m_vector.pop_back();
 
 			if (!m_vector.empty()) {
-				UpHeap(base,i);
-				DownHeap(base,i);
+				UpHeap(base, i);
+				DownHeap(base, i);
 			}
-		} else {
+		}
+		else {
 			m_vector.pop_back();
 		}
 	}
 
-		int
+	int
 	Top(
-	) const {
+	    ) const {
 		if (m_vector.empty()) return -1;
 		return m_vector[0];
 	}
 		
 
-		void
+	void
 	SC_Heap(
-		HeapType *base
-	) {
+	    HeapType *base
+	    ) {
 		int i;
-		for (i = 1; i < int(m_vector.size()) ; i++) {
+		for (i = 1; i < int(m_vector.size()); i++) {
 			
-			CTR_UHeapable * elem = base + m_vector[i];			
-			CTR_UHeapable * p_elem = base + m_vector[Parent(i)];			
+			CTR_UHeapable *elem = base + m_vector[i];
+			CTR_UHeapable *p_elem = base + m_vector[Parent(i)];
 
 			assert(p_elem->HeapKey() >= elem->HeapKey());
 			assert(elem->HeapPos() == i);
@@ -195,27 +196,27 @@ public:
 			
 
 	~CTR_UHeap(
-	) {
+	    ) {
 	};	
 
 
 private:
 
 	CTR_UHeap(
-	) {
+	    ) {
 	};
 
 
 	std::vector<int> m_vector;
 		
 private:
-		void 
+	void
 	Swap(
-		HeapType *base,
-		int i, 
-		int j
-	) {
-		std::swap(m_vector[i],m_vector[j]);
+	    HeapType *base,
+	    int i,
+	    int j
+	    ) {
+		std::swap(m_vector[i], m_vector[j]);
 		
 		CTR_UHeapable *heap_i = base + m_vector[i];
 		CTR_UHeapable *heap_j = base + m_vector[j];
@@ -225,77 +226,78 @@ private:
 		heap_j->HeapPos() = j;
 	}
 
-		int 
+	int
 	Parent(
-		unsigned int i
-	) {
-		return (i-1) >> 1;
+	    unsigned int i
+	    ) {
+		return (i - 1) >> 1;
 	}
-		int 
+	int
 	Left(
-		int i
-	) {
-		return (i<<1)+1;
+	    int i
+	    ) {
+		return (i << 1) + 1;
 	}
 
-		int 
+	int
 	Right(
-		int i
-	) {
-		return (i<<1)+2;
+	    int i
+	    ) {
+		return (i << 1) + 2;
 	}
 
-		float
+	float
 	HeapVal(
-		HeapType *base,
-		int i
-	) {
+	    HeapType *base,
+	    int i
+	    ) {
 		return base[m_vector[i]].HeapKey();
 	}
 
-		void
+	void
 	DownHeap(
-		HeapType *base,		
-		int i
-	) {
+	    HeapType *base,
+	    int i
+	    ) {
 		int heap_size = m_vector.size();
 
 		int l = Left(i);
 		int r = Right(i);
 
 		int largest;
-		if (l < heap_size && HeapVal(base,l) > HeapVal(base,i)) {
+		if (l < heap_size && HeapVal(base, l) > HeapVal(base, i)) {
 			largest = l;
-		} else {
+		}
+		else {
 			largest = i;
 		}
 
-		if (r < heap_size && HeapVal(base,r) > HeapVal(base,largest)) {
+		if (r < heap_size && HeapVal(base, r) > HeapVal(base, largest)) {
 			largest = r;
 		}	
 
 		if (largest != i) {
 			// exchange i and largest
-			Swap(base,i,largest);
-			DownHeap(base,largest);
+			Swap(base, i, largest);
+			DownHeap(base, largest);
 		}
 	}
 
-		void
+	void
 	UpHeap(
-		HeapType *base,
-		int i
-	) {
+	    HeapType *base,
+	    int i
+	    ) {
 
 		// swap parents untill it's found a place in the heap < it's parent or
 		// top of heap
 
 		while (i > 0) {
 			int p = Parent(i);
-			if (HeapVal(base,i) < HeapVal(base,p)) {
+			if (HeapVal(base, i) < HeapVal(base, p)) {
 				break;
 			}
-			Swap(base,p,i);
+			Swap(base, p, i);
 			i = p;
 		}
 	}		

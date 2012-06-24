@@ -51,8 +51,8 @@ public:
 private:
 	std::vector<std::string> mImages; // contains list of written images, to avoid duplicates
 
-	void ImagesExporter::export_UV_Images(); 
-	void ImagesExporter::export_UV_Image(Image *image, bool use_texture_copies);
+	void export_UV_Images(); 
+	void export_UV_Image(Image *image, bool use_texture_copies);
 	bool hasImages(Scene *sce);
 	const ExportSettings *export_settings;
 };

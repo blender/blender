@@ -114,10 +114,10 @@ bool KeyingClipOperation::determineDependingAreaOfInterest(rcti *input, ReadBuff
 {
 	rcti newInput;
 
-	newInput.xmin = 0;
-	newInput.ymin = 0;
-	newInput.xmax = this->getWidth();
-	newInput.ymax = this->getHeight();
+	newInput.xmin = input->xmin - this->kernelRadius;
+	newInput.ymin = input->ymin - this->kernelRadius;
+	newInput.xmax = input->xmax + this->kernelRadius;
+	newInput.ymax = input->ymax + this->kernelRadius;
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }

@@ -52,8 +52,6 @@ public:
 	void setScreenBalance(float value) {this->screenBalance = value;}
 
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
-
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
 
 #endif

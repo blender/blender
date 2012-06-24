@@ -46,7 +46,7 @@ void GroupNode::ungroup(ExecutionSystem &system)
 	int nodes_start = system.getNodes().size();
 
 	/* missing node group datablock can happen with library linking */
-	if(!subtree)
+	if (!subtree)
 		return;
 
 	for (index = 0; index < inputsockets.size(); index++) {

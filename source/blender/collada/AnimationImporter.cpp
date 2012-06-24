@@ -473,10 +473,10 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 {
 	COLLADAFW::Transformation::TransformationType tm_type = transform->getTransformationType();
 	bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;
-	bool is_rotation = tm_type  == COLLADAFW::Transformation::ROTATE;
+	bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
 
 	//to check if the no of curves are valid
-	bool xyz = ((tm_type == COLLADAFW::Transformation::TRANSLATE || tm_type  == COLLADAFW::Transformation::SCALE) && binding->animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
+	bool xyz = ((tm_type == COLLADAFW::Transformation::TRANSLATE || tm_type == COLLADAFW::Transformation::SCALE) && binding->animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
 
 
 	if (!((!xyz && curves->size() == 1) || (xyz && curves->size() == 3) || is_matrix)) {

@@ -841,9 +841,11 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData * clmd, float step, flo
 							}
 						}
 
-						if( ( cloth->verts[i].flags & CLOTH_VERT_FLAG_NOSELFCOLL ) || 
-							( cloth->verts[j].flags & CLOTH_VERT_FLAG_NOSELFCOLL ) )
+						if ((cloth->verts[i].flags & CLOTH_VERT_FLAG_NOSELFCOLL) ||
+						    (cloth->verts[j].flags & CLOTH_VERT_FLAG_NOSELFCOLL))
+						{
 							continue;
+						}
 	
 						sub_v3_v3v3(temp, verts[i].tx, verts[j].tx);
 	

@@ -173,7 +173,8 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 {
 	// create a list of indices to textures of type TEX_IMAGE
 	std::vector<int> tex_indices;
-	createTextureIndices(ma, tex_indices);
+	if(this->export_settings->include_material_textures)
+		createTextureIndices(ma, tex_indices);
 
 	openEffect(translate_id(id_name(ma)) + "-effect");
 	
@@ -309,7 +310,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 
 	std::set<Image *> uv_textures;
-	if (ob->type == OB_MESH && ob->totcol) {
+	if (ob->type == OB_MESH && ob->totcol && this->export_settings->include_uv_textures) {
 		Mesh *me     = (Mesh *) ob->data;
 		BKE_mesh_tessface_ensure(me);
 		for (int i = 0; i < me->pdata.totlayer; i++) {

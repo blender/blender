@@ -6244,9 +6244,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				case YKEY:
 				case ZKEY:
 				{
-					if ((event->val == KM_PRESS) &&
+					if ((event->val   == KM_PRESS) &&
 					    (event->shift == FALSE) &&
-					    (event->ctrl ==  FALSE) &&
+					    (event->ctrl  == FALSE) &&
 					    (event->oskey == FALSE))
 					{
 						for (but = block->buttons.first; but; but = but->next) {

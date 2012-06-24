@@ -1455,7 +1455,7 @@ void BKE_object_rot_to_mat3(Object *ob, float mat[][3])
 		eulO_to_mat3(dmat, ob->drot, ob->rotmode);
 	}
 	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-		/* axis-angle -  not really that great for 3D-changing orientations */
+		/* axis-angle - not really that great for 3D-changing orientations */
 		axis_angle_to_mat3(rmat, ob->rotAxis, ob->rotAngle);
 		axis_angle_to_mat3(dmat, ob->drotAxis, ob->drotAngle);
 	}

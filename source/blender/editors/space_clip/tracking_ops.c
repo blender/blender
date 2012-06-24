@@ -3329,7 +3329,7 @@ static int tracking_object_remove_exec(bContext *C, wmOperator *op)
 void CLIP_OT_tracking_object_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Movie Tracking Object";
+	ot->name = "Remove Tracking Object";
 	ot->description = "Remove object for tracking";
 	ot->idname = "CLIP_OT_tracking_object_remove";
 
