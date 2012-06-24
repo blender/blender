@@ -161,7 +161,7 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	OutputSocket *outputImage = this->getOutputSocket(0);
 	OutputSocket *outputMatte = this->getOutputSocket(1);
 	OutputSocket *outputEdges = this->getOutputSocket(2);
-	OutputSocket *postprocessedMatte, *postprocessedImage, *originalImage, *edgesMatte;
+	OutputSocket *postprocessedMatte = NULL, *postprocessedImage = NULL, *originalImage = NULL, *edgesMatte = NULL;
 
 	bNode *editorNode = this->getbNode();
 	NodeKeyingData *keying_data = (NodeKeyingData *) editorNode->storage;
@@ -195,9 +195,11 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 		                               keying_data->clip_black, keying_data->clip_white, false);
 	}
 
-	edgesMatte = setupClip(graph, postprocessedMatte,
-	                       keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
-	                       keying_data->clip_black, keying_data->clip_white, true);
+	if (outputEdges->isConnected()) {
+		edgesMatte = setupClip(graph, postprocessedMatte,
+		                       keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
+		                       keying_data->clip_black, keying_data->clip_white, true);
+	}
 
 	/* apply blur on matte if needed */
 	if (keying_data->blur_post)
@@ -225,7 +227,9 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	/* connect result to output sockets */
 	outputImage->relinkConnections(postprocessedImage);
 	outputMatte->relinkConnections(postprocessedMatte);
-	outputEdges->relinkConnections(edgesMatte);
+
+	if (edgesMatte)
+		outputEdges->relinkConnections(edgesMatte);
 
 	graph->addOperation(alphaOperation);
 }
