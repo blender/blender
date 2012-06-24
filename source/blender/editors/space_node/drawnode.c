@@ -3316,37 +3316,34 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 		do_triple = TRUE;
 	}
 	else {
+		int cycle = 0;
+		
 		/* going to give issues once... */
 		if (link->tosock->flag & SOCK_UNAVAIL)
 			return;
 		if (link->fromsock->flag & SOCK_UNAVAIL)
 			return;
 		
-		/* a bit ugly... but thats how we detect the internal group links */
-		if (!link->fromnode || !link->tonode) {
-			UI_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5f);
-			do_shaded = FALSE;
-		}
-		else {
-			/* check cyclic */
-			if ((link->fromnode->level >= link->tonode->level && link->tonode->level != 0xFFF) && (link->flag & NODE_LINK_VALID)) {
-				/* special indicated link, on drop-node */
-				if (link->flag & NODE_LINKFLAG_HILITE) {
-					th_col1 = th_col2 = TH_ACTIVE;
-				}
-				else {
-					/* regular link */
-					if (link->fromnode->flag & SELECT)
-						th_col1 = TH_EDGE_SELECT;
-					if (link->tonode->flag & SELECT)
-						th_col2 = TH_EDGE_SELECT;
-				}
-				do_shaded = TRUE;
-				do_triple = TRUE;
-			}				
-			else {
-				th_col1 = TH_REDALERT;
+		/* check cyclic */
+		if (link->fromnode && link->tonode)
+			cycle = (link->fromnode->level < link->tonode->level || link->tonode->level == 0xFFF);
+		if (!cycle && (link->flag & NODE_LINK_VALID)) {
+			/* special indicated link, on drop-node */
+			if (link->flag & NODE_LINKFLAG_HILITE) {
+				th_col1 = th_col2 = TH_ACTIVE;
 			}
+			else {
+				/* regular link */
+				if (link->fromnode && link->fromnode->flag & SELECT)
+					th_col1 = TH_EDGE_SELECT;
+				if (link->tonode && link->tonode->flag & SELECT)
+					th_col2 = TH_EDGE_SELECT;
+			}
+			do_shaded = TRUE;
+			do_triple = TRUE;
+		}				
+		else {
+			th_col1 = TH_REDALERT;
 		}
 	}
 	
