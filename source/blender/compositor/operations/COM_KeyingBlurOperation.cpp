@@ -79,10 +79,10 @@ bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuff
 {
 	rcti newInput;
 
-	newInput.xmin = 0;
-	newInput.ymin = 0;
-	newInput.xmax = this->getWidth();
-	newInput.ymax = this->getHeight();
+	newInput.xmin = input->xmin - this->size;
+	newInput.ymin = input->ymin - this->size;
+	newInput.xmax = input->xmax + this->size;
+	newInput.ymax = input->ymax + this->size;
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
