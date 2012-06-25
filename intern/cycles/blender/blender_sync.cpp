@@ -219,7 +219,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			layer = layername.c_str();
 		}
 		else {
-			render_layer.scene_layer = get_layer(b_v3d.layers());
+			render_layer.scene_layer = get_layer(b_v3d.layers(), b_v3d.layers_local_view());
 			render_layer.layer = render_layer.scene_layer;
 			render_layer.holdout_layer = 0;
 			render_layer.material_override = PointerRNA_NULL;
