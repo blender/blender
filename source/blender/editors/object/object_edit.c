@@ -106,7 +106,7 @@
 /* ************* XXX **************** */
 static void error(const char *UNUSED(arg)) {}
 static void waitcursor(int UNUSED(val)) {}
-static int pupmenu(const char *UNUSED(msg)) {return 0;}
+static int pupmenu(const char *UNUSED(msg)) { return 0; }
 
 /* port over here */
 static void error_libdata(void) {}

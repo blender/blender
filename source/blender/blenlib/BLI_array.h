@@ -25,7 +25,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/*
+/** \file BLI_array.h
+ *  \ingroup bli
+ *  \brief A macro array library.
+ *
  * this library needs to be changed to not use macros quite so heavily,
  * and to be more of a complete array API.  The way arrays are
  * exposed to client code as normal C arrays is very useful though, imho.
@@ -118,7 +121,7 @@
 /* grow an array by a specified number of items */
 #define BLI_array_grow_items(arr, num)  (                                     \
 	((void *)(arr) == NULL && (void *)(_##arr##_static) != NULL) ?            \
-	    ((arr = (void *)_##arr##_static), (_##arr##_count += num)) :           \
+	    ((arr = (void *)_##arr##_static), (_##arr##_count += num)) :          \
 	    _bli_array_grow_items(arr, num)                                       \
 )
 
@@ -184,6 +187,5 @@
 	        MEM_mallocN(sizeof(*(arr)) * (realsize), allocstr)                \
 	    )                                                                     \
 
-#define BLI_array_fixedstack_free(arr)                                        \
-	if (_##arr##_is_static) MEM_freeN(arr)                                    \
-
+#define BLI_array_fixedstack_free(arr)  \
+	if (_##arr##_is_static) MEM_freeN(arr)

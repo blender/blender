@@ -506,7 +506,7 @@ struct DualConMesh *dualcon(const struct DualConMesh *input_mesh,
                             float threshold,
                             float hermite_num,
                             float scale,
-                            int depth) {return 0;}
+                            int depth) { return 0; }
 
 /* intern/cycles */
 struct CCLDeviceInfo;
