@@ -29,9 +29,13 @@
   */
 class KeyingNode : public Node {
 protected:
+	NodeBlurData alpha_blur; /* only used for blurring alpha, since the dilate/erode node doesnt have this */
+
 	OutputSocket *setupPreBlur(ExecutionSystem *graph, InputSocket *inputImage, int size, OutputSocket **originalImage);
 	OutputSocket *setupPostBlur(ExecutionSystem *graph, OutputSocket *postBlurInput, int size);
 	OutputSocket *setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance);
+	OutputSocket *setupFeather(ExecutionSystem *graph, CompositorContext *context, OutputSocket *featherInput,
+	                           int falloff, int distance);
 	OutputSocket *setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputSrceen, float factor);
 	OutputSocket *setupClip(ExecutionSystem *graph, OutputSocket *clipInput, int kernelRadius, float kernelTolerance,
 	                        float clipBlack, float clipWhite, bool edgeMatte);

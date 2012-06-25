@@ -116,8 +116,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 
 	sites = (VoronoiSite *) MEM_callocN(sizeof(VoronoiSite) * sites_total, "keyingscreen voronoi sites");
 	track = (MovieTrackingTrack *) tracksbase->first;
-	i = 0;
-	while (track) {
+	for (track = (MovieTrackingTrack *) tracksbase->first, i = 0; track; track = track->next, i++) {
 		VoronoiSite *site = &sites[i];
 		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
 		ImBuf *pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, TRUE, FALSE);
@@ -142,9 +141,6 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 
 		site->co[0] = marker->pos[0] * width;
 		site->co[1] = marker->pos[1] * height;
-
-		track = track->next;
-		i++;
 	}
 
 	IMB_freeImBuf(ibuf);

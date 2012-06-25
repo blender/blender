@@ -2482,6 +2482,8 @@ static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), Poi
 	uiItemR(layout, ptr, "clip_black", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "clip_white", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "dilate_distance", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "feather_falloff", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "feather_distance", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "blur_post", 0, NULL, ICON_NONE);
 }
 

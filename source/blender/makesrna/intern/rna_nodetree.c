@@ -3620,6 +3620,18 @@ static void def_cmp_keying(StructRNA *srna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Edge Kernel Tolerance", "Tolerance to pixels inside kernel which are treating as belonging to the same plane");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "feather_falloff", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "feather_falloff");
+	RNA_def_property_enum_items(prop, proportional_falloff_curve_only_items);
+	RNA_def_property_ui_text(prop, "Feather Falloff", "Falloff type the feather");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "feather_distance", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "feather_distance");
+	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_ui_text(prop, "Feather Distance", "Distance to grow/shrink the feather");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 /* -- Texture Nodes --------------------------------------------------------- */
