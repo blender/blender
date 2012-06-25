@@ -180,7 +180,7 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 // Absolute fixed siez
 ScaleFixedSizeOperation::ScaleFixedSizeOperation() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR);
+	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setResolutionInputSocketIndex(0);
 	this->inputOperation = NULL;
