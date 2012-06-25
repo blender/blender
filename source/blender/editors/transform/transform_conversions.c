@@ -5913,9 +5913,12 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 
 	t->total = 0;
 
+	if (!clip)
+		return;
+
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
-	if (!clip || width == 0 || height == 0)
+	if (width == 0 || height == 0)
 		return;
 
 	if (ar->regiontype == RGN_TYPE_PREVIEW) {
