@@ -33,7 +33,7 @@ extern "C" {
 #include "COM_WorkScheduler.h"
 #include "OCL_opencl.h"
 
-static ThreadMutex compositorMutex = {{0}};
+static ThreadMutex compositorMutex = {(0)};
 static char is_compositorMutex_init = FALSE;
 void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 {
