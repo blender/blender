@@ -19,6 +19,7 @@
 # <pep8-80 compliant>
 
 __all__ = (
+    "mesh_linked_uv_islands",
     "mesh_linked_tessfaces",
     "edge_face_count_dict",
     "edge_face_count",
@@ -27,6 +28,66 @@ __all__ = (
     "ngon_tessellate",
     "face_random_points",
     )
+
+
+def mesh_linked_uv_islands(mesh):
+    """
+    Splits the mesh into connected polygons, use this for seperating cubes from
+    other mesh elements within 1 mesh datablock.
+
+    :arg mesh: the mesh used to group with.
+    :type mesh: :class:`bpy.types.Mesh`
+    :return: lists of lists containing polygon indices
+    :rtype: list
+    """
+    uv_loops = [luv.uv[:] for luv in mesh.uv_layers.active.data]
+    poly_loops = [poly.loop_indices for poly in mesh.polygons]
+    luv_hash = {}
+    luv_hash_get = luv_hash.get
+    luv_hash_ls = [None] * len(uv_loops)
+    for pi, poly_indices in enumerate(poly_loops):
+        for li in poly_indices:
+            uv = uv_loops[li]
+            uv_hub = luv_hash_get(uv)
+            if uv_hub is None:
+                uv_hub = luv_hash[uv] = [pi]
+            else:
+                uv_hub.append(pi)
+            luv_hash_ls[li] = uv_hub
+
+    poly_islands = []
+
+    # 0 = none, 1 = added, 2 = searched
+    poly_tag = [0] * len(poly_loops)
+
+    while True:
+        poly_index = -1
+        for i in range(len(poly_loops)):
+            if poly_tag[i] == 0:
+                poly_index = i
+                break
+
+        if poly_index != -1:
+            island = [poly_index]
+            poly_tag[poly_index] = 1
+            poly_islands.append(island)
+        else:
+            break  # we're done
+
+        added = True
+        while added:
+            added = False
+            for poly_index in island[:]:
+                if poly_tag[poly_index] == 1:
+                    for li in poly_loops[poly_index]:
+                        for poly_index_shared in luv_hash_ls[li]:
+                            if poly_tag[poly_index_shared] == 0:
+                                added = True
+                                poly_tag[poly_index_shared] = 1
+                                island.append(poly_index_shared)
+                    poly_tag[poly_index] = 2
+
+    return poly_islands
 
 
 def mesh_linked_tessfaces(mesh):
