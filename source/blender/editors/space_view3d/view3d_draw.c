@@ -2795,6 +2795,14 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 
 static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit);
 
+static int view3d_main_area_do_render_draw(const bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
+
+	return (type && type->view_update && type->view_draw);
+}
+
 static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw_border)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -3131,7 +3139,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	int draw_border = (rv3d->persp == RV3D_CAMOB && (scene->r.mode & R_BORDER));
 
 	/* draw viewport using opengl */
-	if (v3d->drawtype != OB_RENDER || draw_border) {
+	if (v3d->drawtype != OB_RENDER || !view3d_main_area_do_render_draw(C) || draw_border) {
 		view3d_main_area_draw_objects(C, ar, &grid_unit);
 		ED_region_pixelspace(ar);
 	}

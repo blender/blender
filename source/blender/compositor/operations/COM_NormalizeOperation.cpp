@@ -58,7 +58,8 @@ void NormalizeOperation::deinitExecution()
 bool NormalizeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti imageInput;
-
+	if (this->cachedInstance) return false;
+	
 	NodeOperation *operation = getInputOperation(0);
 	imageInput.xmax = operation->getWidth();
 	imageInput.xmin = 0;
@@ -92,8 +93,12 @@ void *NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 		float value;
 		while (p--) {
 			value = bc[0];
-			maxv = max(value, maxv);
-			minv = min(value, minv);
+			if ((value > maxv) && (value <= BLENDER_ZMAX)) {
+				maxv = value;
+			}
+			if ((value < minv) && (value >= -BLENDER_ZMAX)) {
+				minv = value;
+			}
 			bc += 4;
 		}
 
