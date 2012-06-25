@@ -133,6 +133,11 @@ protected:
 	bool m_settingsInitialized;
 	/** The list with display settings for the main display. */
 	std::vector<GHOST_DisplaySettings> m_settings;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_DisplayManager")
+#endif
 };
 
 

@@ -166,6 +166,10 @@ public:
 	float *convertToValueBuffer();
 private:
 	unsigned int determineBufferSize();
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryBuffer")
+#endif
 };
 
 #endif

@@ -98,6 +98,11 @@ public:
 private:
 	/** The one and only system paths*/
 	static GHOST_ISystemPaths *m_systemPaths;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_ISystemPaths")
+#endif
 };
 
 #endif

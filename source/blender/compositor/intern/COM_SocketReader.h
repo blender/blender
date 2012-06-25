@@ -25,6 +25,10 @@
 #include "BLI_rect.h"
 #include "COM_defines.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 typedef enum PixelSampler {
 	COM_PS_NEAREST,
 	COM_PS_BILINEAR,
@@ -106,6 +110,10 @@ public:
 
 	inline const unsigned int getWidth() const { return this->width; }
 	inline const unsigned int getHeight() const { return this->height; }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:SocketReader")
+#endif
 };
 
-#endif
+#endif /* _COM_SocketReader_h */

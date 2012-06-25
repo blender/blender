@@ -394,7 +394,10 @@ public:
 	 * @see ExecutionSystem.execute
 	 */
 	CompositorPriority getRenderPriotrity();
-	
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionGroup")
+#endif
 };
 
 #endif

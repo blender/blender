@@ -40,6 +40,9 @@
 
 #include "COM_SetAlphaOperation.h"
 
+#include "COM_GaussianAlphaXBlurOperation.h"
+#include "COM_GaussianAlphaYBlurOperation.h"
+
 KeyingNode::KeyingNode(bNode *editorNode) : Node(editorNode)
 {
 	/* pass */
@@ -116,15 +119,15 @@ OutputSocket *KeyingNode::setupPostBlur(ExecutionSystem *graph, OutputSocket *po
 
 OutputSocket *KeyingNode::setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance)
 {
-	DilateStepOperation *dilateErodeOperation;
+	DilateDistanceOperation *dilateErodeOperation;
 
 	if (distance > 0) {
-		dilateErodeOperation = new DilateStepOperation();
-		dilateErodeOperation->setIterations(distance);
+		dilateErodeOperation = new DilateDistanceOperation();
+		dilateErodeOperation->setDistance(distance);
 	}
 	else {
-		dilateErodeOperation = new ErodeStepOperation();
-		dilateErodeOperation->setIterations(-distance);
+		dilateErodeOperation = new ErodeDistanceOperation();
+		dilateErodeOperation->setDistance(-distance);
 	}
 
 	addLink(graph, dilateErodeInput, dilateErodeOperation->getInputSocket(0));
@@ -132,6 +135,46 @@ OutputSocket *KeyingNode::setupDilateErode(ExecutionSystem *graph, OutputSocket 
 	graph->addOperation(dilateErodeOperation);
 
 	return dilateErodeOperation->getOutputSocket(0);
+}
+
+OutputSocket *KeyingNode::setupFeather(ExecutionSystem *graph, CompositorContext *context,
+                                       OutputSocket *featherInput, int falloff, int distance)
+{
+	/* this uses a modified gaussian blur function otherwise its far too slow */
+	CompositorQuality quality = context->getQuality();
+
+	/* initialize node data */
+	NodeBlurData *data = (NodeBlurData *)&this->alpha_blur;
+	memset(data, 0, sizeof(*data));
+	data->filtertype = R_FILTER_GAUSS;
+
+	if (distance > 0) {
+		data->sizex = data->sizey = distance;
+	}
+	else {
+		data->sizex = data->sizey = -distance;
+	}
+
+	GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
+	operationx->setData(data);
+	operationx->setQuality(quality);
+	operationx->setSize(1.0f);
+	operationx->setSubtract(distance < 0);
+	operationx->setFalloff(falloff);
+	graph->addOperation(operationx);
+
+	GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
+	operationy->setData(data);
+	operationy->setQuality(quality);
+	operationy->setSize(1.0f);
+	operationy->setSubtract(distance < 0);
+	operationy->setFalloff(falloff);
+	graph->addOperation(operationy);
+
+	addLink(graph, featherInput, operationx->getInputSocket(0));
+	addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
+
+	return operationy->getOutputSocket();
 }
 
 OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputScreen, float factor)
@@ -223,6 +266,12 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	/* matte dilate/erode */
 	if (keying_data->dilate_distance != 0) {
 		postprocessedMatte = setupDilateErode(graph, postprocessedMatte, keying_data->dilate_distance);
+	}
+
+	/* matte feather */
+	if (keying_data->feather_distance != 0) {
+		postprocessedMatte = setupFeather(graph, context, postprocessedMatte, keying_data->feather_falloff,
+		                                  keying_data->feather_distance);
 	}
 
 	/* set alpha channel to output image */

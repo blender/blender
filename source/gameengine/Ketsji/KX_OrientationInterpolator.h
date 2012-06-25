@@ -56,9 +56,7 @@ private:
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
-private:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_OrientationInterpolator"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_OrientationInterpolator")
 #endif
 };
 

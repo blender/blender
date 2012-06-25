@@ -41,6 +41,10 @@
 
 #include "BKE_global.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering)
 {
 	context.setbNodeTree(editingtree);

@@ -141,6 +141,11 @@ protected:
 	 */
 	void addOutputSocket(DataType datatype);
 	void addOutputSocket(DataType datatype, bNodeSocket *socket);
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeBase")
+#endif
 };
 
 #endif

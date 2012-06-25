@@ -655,6 +655,8 @@ typedef struct NodeKeyingData {
 	float edge_kernel_tolerance;
 	float clip_black, clip_white;
 	int dilate_distance;
+	int feather_distance;
+	int feather_falloff;
 	int blur_pre, blur_post;
 } NodeKeyingData;
 

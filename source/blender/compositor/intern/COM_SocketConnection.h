@@ -118,6 +118,10 @@ public:
 	 * @return needs conversion [true:false]
 	 */
 	bool needsResolutionConversion() const;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:SocketConnection")
+#endif
 };
 
 #endif

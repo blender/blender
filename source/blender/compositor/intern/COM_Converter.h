@@ -66,5 +66,9 @@ public:
 	 * @see SocketConnection - a link between two sockets
 	 */
 	static void convertResolution(SocketConnection *connection, ExecutionSystem *system);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:Converter")
+#endif
 };
 #endif

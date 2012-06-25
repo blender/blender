@@ -123,5 +123,10 @@ public:
 	 * @param system the execution system to dump
 	 */
 	static void debugDump(ExecutionSystem *system);
-};
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystemHelper")
 #endif
+};
+
+#endif /* _COM_ExecutionSystemHelper_h */

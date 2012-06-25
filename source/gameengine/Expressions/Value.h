@@ -164,9 +164,7 @@ public:
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:CAction"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:CAction")
 #endif
 };
 
@@ -436,11 +434,8 @@ public:
 protected:
 	STR_String					m_strNewName;				    // Identification
 
-
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:CPropValue"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:CPropValue")
 #endif
 };
 

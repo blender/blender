@@ -160,9 +160,7 @@ public:
 	bool IsType(KX_ACTUATOR_TYPE type) { return m_type == type; }
 	
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_IActuator"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:SCA_IActuator")
 #endif
 };
 

@@ -69,12 +69,8 @@ protected:
 
 	class RAS_IRenderTools*	m_rendertools;	//needed for drawing routine
 
-#if 0 // WHY COMMENTED? - campbell
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_FontObject"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
-#endif
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_FontObject")
 #endif
 
 #ifdef WITH_PYTHON

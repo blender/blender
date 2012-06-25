@@ -33,20 +33,21 @@ extern "C" {
 #include "COM_WorkScheduler.h"
 #include "OCL_opencl.h"
 
-static ThreadMutex *compositorMutex;
+static ThreadMutex compositorMutex = {{0}};
+static char is_compositorMutex_init = FALSE;
 void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 {
-	if (compositorMutex == NULL) { /// TODO: move to blender startup phase
-		compositorMutex = new ThreadMutex();
-		BLI_mutex_init(compositorMutex);
+	if (is_compositorMutex_init == FALSE) { /// TODO: move to blender startup phase
+		BLI_mutex_init(&compositorMutex);
 		OCL_init();
 		WorkScheduler::initialize(); ///TODO: call workscheduler.deinitialize somewhere
+		is_compositorMutex_init = TRUE;
 	}
-	BLI_mutex_lock(compositorMutex);
+	BLI_mutex_lock(&compositorMutex);
 	if (editingtree->test_break(editingtree->tbh)) {
 		// during editing multiple calls to this method can be triggered.
 		// make sure one the last one will be doing the work.
-		BLI_mutex_unlock(compositorMutex);
+		BLI_mutex_unlock(&compositorMutex);
 		return;
 
 	}
@@ -60,5 +61,5 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 	system->execute();
 	delete system;
 
-	BLI_mutex_unlock(compositorMutex);
+	BLI_mutex_unlock(&compositorMutex);
 }

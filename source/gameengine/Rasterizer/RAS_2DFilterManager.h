@@ -106,12 +106,10 @@ public:
 	void RenderFilters(RAS_ICanvas* canvas);
 
 	void EnableFilter(std::vector<STR_String>& propNames, void* gameObj, RAS_2DFILTER_MODE mode, int pass, STR_String& text);
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_2DFilterManager"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_2DFilterManager")
 #endif
 };
 #endif

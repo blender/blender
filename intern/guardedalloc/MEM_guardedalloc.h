@@ -167,7 +167,27 @@ extern "C" {
 #ifndef NDEBUG
 const char *MEM_name_ptr(void *vmemh);
 #endif
-	
+
+#ifdef __cplusplus
+/* alloc funcs for C++ only */
+#define MEM_CXX_CLASS_ALLOC_FUNCS(_id)                                        \
+public:                                                                       \
+	void *operator new(size_t num_bytes) {                                    \
+		return MEM_mallocN(num_bytes, _id);                                   \
+	}                                                                         \
+	void operator delete(void *mem) {                                         \
+		MEM_freeN(mem);                                                       \
+	}                                                                         \
+	void *operator new[](size_t num_bytes) {                                  \
+		return MEM_mallocN(num_bytes, _id "[]");                              \
+	}                                                                         \
+	void operator delete[](void *mem) {                                       \
+		MEM_freeN(mem);                                                       \
+	}                                                                         \
+
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif

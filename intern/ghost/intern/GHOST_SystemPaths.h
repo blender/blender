@@ -57,7 +57,7 @@ public:
 	 */
 	virtual const GHOST_TUns8 *getSystemDir(int version, const char *versionstr) const = 0;
 
-    /**
+	/**
 	  * Determine the base dir in which user configuration is stored, including versioning.
 	  * If needed, it will create the base directory.
 	  * @return Unsigned char string pointing to user dir (eg ~/.blender/).
@@ -74,7 +74,6 @@ public:
 	 * Add the file to the operating system most recently used files
 	 */
 	virtual void addToSystemRecentFiles(const char *filename) const = 0;
-
 };
 
 #endif

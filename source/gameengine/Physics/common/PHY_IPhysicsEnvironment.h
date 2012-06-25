@@ -87,11 +87,10 @@ public:
 		m_faceUV(faceUV)
 	{
 	}
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IRayCastFilterCallback"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:PHY_IRayCastFilterCallback")
 #endif
 };
 
@@ -179,11 +178,10 @@ class PHY_IPhysicsEnvironment
 		virtual float	getConstraintParam(int constraintId,int param) = 0;
 		
 		virtual void	exportFile(const char* filename) {};
-		
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IPhysicsEnvironment"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:PHY_IPhysicsEnvironment")
 #endif
 };
 

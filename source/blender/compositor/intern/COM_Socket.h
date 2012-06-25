@@ -29,6 +29,10 @@
 #include "DNA_node_types.h"
 #include "COM_defines.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 class SocketConnection;
 class NodeBase;
@@ -74,6 +78,9 @@ public:
 	void setEditorSocket(bNodeSocket *editorSocket) { this->editorSocket = editorSocket; }
 	bNodeSocket *getbNodeSocket() const { return this->editorSocket; }
 	
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:Socket")
+#endif
 };
 
 

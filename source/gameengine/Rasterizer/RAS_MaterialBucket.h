@@ -175,12 +175,10 @@ public:
 	bool IsCulled() { return m_bCulled; }
 #endif
 	void SetCulled(bool culled) { m_bCulled = culled; }
-	
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_MeshSlot"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_MeshSlot")
 #endif
 };
 
@@ -195,9 +193,7 @@ public:
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_MeshMaterial"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_MeshMaterial")
 #endif
 };
 
@@ -254,11 +250,8 @@ private:
 	
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_MaterialBucket"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_MaterialBucket")
 #endif
 };
 
 #endif //__RAS_MATERIAL_BUCKET
-
