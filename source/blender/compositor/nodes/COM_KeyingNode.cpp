@@ -66,13 +66,21 @@ OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inpu
 			addLink(graph, separateOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
 		}
 		else {
-			KeyingBlurOperation *blurOperation = new KeyingBlurOperation();
+			KeyingBlurOperation *blurXOperation = new KeyingBlurOperation();
+			KeyingBlurOperation *blurYOperation = new KeyingBlurOperation();
 
-			blurOperation->setSize(size);
+			blurXOperation->setSize(size);
+			blurXOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_X);
 
-			addLink(graph, separateOperation->getOutputSocket(0), blurOperation->getInputSocket(0));
-			addLink(graph, blurOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
-			graph->addOperation(blurOperation);
+			blurYOperation->setSize(size);
+			blurYOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_Y);
+
+			addLink(graph, separateOperation->getOutputSocket(), blurXOperation->getInputSocket(0));
+			addLink(graph, blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
+			addLink(graph, blurYOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
+
+			graph->addOperation(blurXOperation);
+			graph->addOperation(blurYOperation);
 		}
 	}
 
@@ -86,17 +94,24 @@ OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inpu
 	return convertYCCToRGBOperation->getOutputSocket(0);
 }
 
-OutputSocket *KeyingNode::setupPostBlur(ExecutionSystem *graph, OutputSocket *postBLurInput, int size)
+OutputSocket *KeyingNode::setupPostBlur(ExecutionSystem *graph, OutputSocket *postBlurInput, int size)
 {
-	KeyingBlurOperation *blurOperation = new KeyingBlurOperation();
+	KeyingBlurOperation *blurXOperation = new KeyingBlurOperation();
+	KeyingBlurOperation *blurYOperation = new KeyingBlurOperation();
 
-	blurOperation->setSize(size);
+	blurXOperation->setSize(size);
+	blurXOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_X);
 
-	addLink(graph, postBLurInput, blurOperation->getInputSocket(0));
+	blurYOperation->setSize(size);
+	blurYOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_Y);
 
-	graph->addOperation(blurOperation);
+	addLink(graph, postBlurInput, blurXOperation->getInputSocket(0));
+	addLink(graph, blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
 
-	return blurOperation->getOutputSocket();
+	graph->addOperation(blurXOperation);
+	graph->addOperation(blurYOperation);
+
+	return blurYOperation->getOutputSocket();
 }
 
 OutputSocket *KeyingNode::setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance)

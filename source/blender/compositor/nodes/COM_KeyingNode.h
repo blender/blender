@@ -30,7 +30,7 @@
 class KeyingNode : public Node {
 protected:
 	OutputSocket *setupPreBlur(ExecutionSystem *graph, InputSocket *inputImage, int size, OutputSocket **originalImage);
-	OutputSocket *setupPostBlur(ExecutionSystem *graph, OutputSocket *postBLurInput, int size);
+	OutputSocket *setupPostBlur(ExecutionSystem *graph, OutputSocket *postBlurInput, int size);
 	OutputSocket *setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance);
 	OutputSocket *setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputSrceen, float factor);
 	OutputSocket *setupClip(ExecutionSystem *graph, OutputSocket *clipInput, int kernelRadius, float kernelTolerance,

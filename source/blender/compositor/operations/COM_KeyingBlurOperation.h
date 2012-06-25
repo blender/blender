@@ -32,11 +32,18 @@
 class KeyingBlurOperation : public NodeOperation {
 protected:
 	int size;
+	int axis;
 
 public:
+	enum BlurAxis {
+		BLUR_AXIS_X = 0,
+		BLUR_AXIS_Y = 1
+	};
+
 	KeyingBlurOperation();
 
-	void setSize(float value) {this->size = value;}
+	void setSize(int value) {this->size = value;}
+	void setAxis(int value) {this->axis = value;}
 
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 
