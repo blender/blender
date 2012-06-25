@@ -166,7 +166,7 @@ public:                                                                       \
 	void *operator new(size_t num_bytes) {                                    \
 		return MEM_mallocN(num_bytes, Type.tp_name);                          \
 	}                                                                         \
-	void operator delete( void *mem ) {                                       \
+	void operator delete(void *mem) {                                         \
 		MEM_freeN(mem);                                                       \
 	}                                                                         \
 

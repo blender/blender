@@ -25,6 +25,10 @@
 #include "BLI_rect.h"
 #include "COM_defines.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 typedef enum PixelSampler {
 	COM_PS_NEAREST,
 	COM_PS_BILINEAR,

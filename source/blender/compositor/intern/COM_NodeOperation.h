@@ -270,6 +270,10 @@ protected:
 	 * @brief set if this NodeOperation can be scheduled on a OpenCLDevice
 	 */
 	void setOpenCL(bool openCL) { this->openCL = openCL; }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
+#endif
 };
 
 #endif

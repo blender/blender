@@ -1723,6 +1723,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
 # better not set includes here but this debugging option is off by default.
 if(WITH_CXX_GUARDEDALLOC)
 	include_directories(${CMAKE_SOURCE_DIR}/intern/guardedalloc)
+	add_definitions(-DWITH_CXX_GUARDEDALLOC)
 endif()
 
 if(WITH_ASSERT_ABORT)
