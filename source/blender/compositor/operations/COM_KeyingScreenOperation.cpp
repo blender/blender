@@ -101,7 +101,14 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	else
 		tracksbase = BKE_tracking_get_active_tracks(tracking);
 
-	sites_total = BLI_countlist(tracksbase);
+	/* count sites */
+	for (track = (MovieTrackingTrack *) tracksbase->first, sites_total = 0; track; track = track->next) {
+		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
+
+		if ((marker->flag & MARKER_DISABLED) == 0) {
+			sites_total++;
+		}
+	}
 
 	if (!sites_total)
 		return NULL;
@@ -117,10 +124,16 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	sites = (VoronoiSite *) MEM_callocN(sizeof(VoronoiSite) * sites_total, "keyingscreen voronoi sites");
 	track = (MovieTrackingTrack *) tracksbase->first;
 	for (track = (MovieTrackingTrack *) tracksbase->first, i = 0; track; track = track->next, i++) {
-		VoronoiSite *site = &sites[i];
 		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
-		ImBuf *pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, TRUE, FALSE);
+		VoronoiSite *site;
+		ImBuf *pattern_ibuf;
 		int j;
+
+		if (marker->flag & MARKER_DISABLED)
+			continue;
+
+		site = &sites[i];
+		pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, TRUE, FALSE);
 
 		zero_v3(site->color);
 		for (j = 0; j < pattern_ibuf->x * pattern_ibuf->y; j++) {
