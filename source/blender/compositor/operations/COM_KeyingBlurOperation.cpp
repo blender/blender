@@ -34,7 +34,7 @@ KeyingBlurOperation::KeyingBlurOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_VALUE);
 
 	this->size = 0;
-	this->axis = 0;
+	this->axis = BLUR_AXIS_X;
 
 	this->setComplex(true);
 }
@@ -92,7 +92,7 @@ bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuff
 {
 	rcti newInput;
 
-	if (this->axis == 0) {
+	if (this->axis == BLUR_AXIS_X) {
 		newInput.xmin = input->xmin - this->size;
 		newInput.ymin = input->ymin;
 		newInput.xmax = input->xmax + this->size;
