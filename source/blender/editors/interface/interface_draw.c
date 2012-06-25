@@ -1376,9 +1376,11 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 		ui_draw_gradient(&grid, col, UI_GRAD_H, 1.0f);
 
 		/* grid, hsv uses different grid */
-		gl_shaded_color((unsigned char *)wcol->inner, -16);
-		/* TODO, grid lines does not line up with colors, need to look into this */
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4ub(0, 0, 0, 48);
 		ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.1666666f);
+		glDisable(GL_BLEND);
 	}
 	else {
 		if (cumap->flag & CUMA_DO_CLIP) {
