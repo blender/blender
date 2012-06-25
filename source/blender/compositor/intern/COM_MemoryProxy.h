@@ -102,6 +102,10 @@ public:
 	 * @brief get the allocated memory
 	 */
 	inline MemoryBuffer *getBuffer() { return this->buffer; }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryProxy")
+#endif
 };
 
 #endif

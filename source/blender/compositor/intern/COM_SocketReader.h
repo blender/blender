@@ -106,6 +106,10 @@ public:
 
 	inline const unsigned int getWidth() const { return this->width; }
 	inline const unsigned int getHeight() const { return this->height; }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:SocketReader")
+#endif
 };
 
-#endif
+#endif /* _COM_SocketReader_h */

@@ -84,10 +84,9 @@ private:
 	void RenderAlphaBuckets(const MT_Transform& cameratrans, 
 		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
 
+
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_BucketManager"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_BucketManager")
 #endif
 };
 

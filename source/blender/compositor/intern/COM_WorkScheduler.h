@@ -110,5 +110,10 @@ public:
 	 * @see CompositorContext.getHasActiveOpenCLDevices
 	 */
 	static bool hasGPUDevices();
-};
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:WorkScheduler")
 #endif
+};
+
+#endif /* _COM_WorkScheduler_h_ */

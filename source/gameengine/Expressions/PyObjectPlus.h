@@ -534,21 +534,11 @@ typedef PyTypeObject *PyParentObject;  /* Define the PyParent Object */
 #ifdef WITH_CXX_GUARDEDALLOC
 #define Py_Header                                                             \
 public:                                                                       \
-	void *operator new(size_t num_bytes) {                                    \
-		return MEM_mallocN(num_bytes, "GE:PyObjectPlus");                     \
-	}                                                                         \
-	void operator delete( void *mem ) {                                       \
-		MEM_freeN(mem);                                                       \
-	}                                                                         \
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:PyObjectPlus")                              \
+
 
 #define Py_HeaderPtr                                                          \
-public:                                                                       \
-	void *operator new(size_t num_bytes) {                                    \
-		return MEM_mallocN(num_bytes, "GE:PyObjectPlusPtr");                  \
-	}                                                                         \
-	void operator delete( void *mem ) {                                       \
-	MEM_freeN(mem);                                                           \
-	}                                                                         \
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:PyObjectPlusPtr")                           \
 
 #else // WITH_CXX_GUARDEDALLOC
 
