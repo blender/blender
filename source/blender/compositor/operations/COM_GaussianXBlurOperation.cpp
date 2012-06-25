@@ -31,21 +31,24 @@ GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(COM_DT_COLO
 {
 	this->gausstab = NULL;
 	this->rad = 0;
-
 }
 
 void *GaussianXBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
+	lockMutex();
 	if (!this->sizeavailable) {
 		updateGauss(memoryBuffers);
 	}
 	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	unlockMutex();
 	return buffer;
 }
 
 void GaussianXBlurOperation::initExecution()
 {
 	BlurBaseOperation::initExecution();
+
+	initMutex();
 
 	if (this->sizeavailable) {
 		float rad = size * this->data->sizex;
@@ -66,8 +69,8 @@ void GaussianXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 			rad = 1;
 
 		this->rad = rad;
-		this->gausstab = BlurBaseOperation::make_gausstab(rad);	
-	}	
+		this->gausstab = BlurBaseOperation::make_gausstab(rad);
+	}
 }
 
 void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
@@ -108,6 +111,8 @@ void GaussianXBlurOperation::deinitExecution()
 	BlurBaseOperation::deinitExecution();
 	delete [] this->gausstab;
 	this->gausstab = NULL;
+
+	deinitMutex();
 }
 
 bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

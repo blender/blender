@@ -254,7 +254,7 @@ void WorkScheduler::initialize()
 						gpudevices.push_back(clDevice);
 					}
 				}
-				delete cldevices;
+				delete[] cldevices;
 			}
 		}
 		delete[] platforms;

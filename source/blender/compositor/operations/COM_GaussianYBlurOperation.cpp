@@ -35,15 +35,21 @@ GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation(COM_DT_COLO
 
 void *GaussianYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
+	lockMutex();
 	if (!this->sizeavailable) {
 		updateGauss(memoryBuffers);
 	}
 	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	unlockMutex();
 	return buffer;
 }
 
 void GaussianYBlurOperation::initExecution()
 {
+	BlurBaseOperation::initExecution();
+
+	initMutex();
+
 	if (this->sizeavailable) {
 		float rad = size * this->data->sizey;
 		if (rad < 1)
@@ -61,7 +67,7 @@ void GaussianYBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 		float rad = size * this->data->sizey;
 		if (rad < 1)
 			rad = 1;
-		
+
 		this->rad = rad;
 		this->gausstab = BlurBaseOperation::make_gausstab(rad);
 	}
@@ -86,8 +92,8 @@ void GaussianYBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	maxy = min(maxy, inputBuffer->getRect()->ymax);
 	maxx = min(maxx, inputBuffer->getRect()->xmax);
 
-	int step = getStep();
 	int index;
+	int step = getStep();
 	for (int ny = miny; ny < maxy; ny += step) {
 		index = (ny - y) + this->rad;
 		int bufferindex = ((minx - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
@@ -103,6 +109,8 @@ void GaussianYBlurOperation::deinitExecution()
 	BlurBaseOperation::deinitExecution();
 	delete [] this->gausstab;
 	this->gausstab = NULL;
+
+	deinitMutex();
 }
 
 bool GaussianYBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

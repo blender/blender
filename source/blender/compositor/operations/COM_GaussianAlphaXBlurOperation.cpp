@@ -36,16 +36,20 @@ GaussianAlphaXBlurOperation::GaussianAlphaXBlurOperation() : BlurBaseOperation(C
 
 void *GaussianAlphaXBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
+	lockMutex();
 	if (!this->sizeavailable) {
 		updateGauss(memoryBuffers);
 	}
 	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	unlockMutex();
 	return buffer;
 }
 
 void GaussianAlphaXBlurOperation::initExecution()
 {
 	/* BlurBaseOperation::initExecution(); */ /* until we suppoer size input - comment this */
+
+	initMutex();
 
 	if (this->sizeavailable) {
 		float rad = size * this->data->sizex;
@@ -154,6 +158,8 @@ void GaussianAlphaXBlurOperation::deinitExecution()
 	this->gausstab = NULL;
 	delete [] this->distbuf_inv;
 	this->distbuf_inv = NULL;
+
+	deinitMutex();
 }
 
 bool GaussianAlphaXBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
