@@ -34,16 +34,20 @@ GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(COM
 
 void *GaussianBokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
+	lockMutex();
 	if (!sizeavailable) {
 		updateGauss(memoryBuffers);
 	}
 	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	unlockMutex();
 	return buffer;
 }
 
 void GaussianBokehBlurOperation::initExecution()
 {
 	BlurBaseOperation::initExecution();
+
+	initMutex();
 
 	if (this->sizeavailable) {
 		updateGauss(NULL);
@@ -154,6 +158,8 @@ void GaussianBokehBlurOperation::deinitExecution()
 	BlurBaseOperation::deinitExecution();
 	delete [] this->gausstab;
 	this->gausstab = NULL;
+
+	deinitMutex();
 }
 
 bool GaussianBokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

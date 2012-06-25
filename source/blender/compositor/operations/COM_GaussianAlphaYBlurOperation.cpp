@@ -36,16 +36,20 @@ GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation() : BlurBaseOperation(C
 
 void *GaussianAlphaYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
+	lockMutex();
 	if (!this->sizeavailable) {
 		updateGauss(memoryBuffers);
 	}
 	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	unlockMutex();
 	return buffer;
 }
 
 void GaussianAlphaYBlurOperation::initExecution()
 {
 	/* BlurBaseOperation::initExecution(); */ /* until we suppoer size input - comment this */
+
+	initMutex();
 
 	if (this->sizeavailable) {
 		float rad = size * this->data->sizey;
@@ -65,7 +69,7 @@ void GaussianAlphaYBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 		float rad = size * this->data->sizey;
 		if (rad < 1)
 			rad = 1;
-		
+
 		this->rad = rad;
 		this->gausstab = BlurBaseOperation::make_gausstab(rad);
 	}
@@ -154,6 +158,8 @@ void GaussianAlphaYBlurOperation::deinitExecution()
 	this->gausstab = NULL;
 	delete [] this->distbuf_inv;
 	this->distbuf_inv = NULL;
+
+	deinitMutex();
 }
 
 bool GaussianAlphaYBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
