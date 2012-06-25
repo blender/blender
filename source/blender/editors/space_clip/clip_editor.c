@@ -177,6 +177,13 @@ void ED_space_clip_get_aspect_dimension_aware(SpaceClip *sc, float *aspx, float 
 	 * mainly this is sued for transformation stuff
 	 */
 
+	if (!sc->clip) {
+		*aspx = 1.0f;
+		*aspy = 1.0f;
+
+		return;
+	}
+
 	ED_space_clip_get_aspect(sc, aspx, aspy);
 	BKE_movieclip_get_size(sc->clip, &sc->user, &w, &h);
 
