@@ -33,11 +33,12 @@ extern "C" {
 #include "COM_WorkScheduler.h"
 #include "OCL_opencl.h"
 
-static ThreadMutex compositorMutex = {(0)};
+static ThreadMutex compositorMutex;
 static char is_compositorMutex_init = FALSE;
 void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 {
 	if (is_compositorMutex_init == FALSE) { /// TODO: move to blender startup phase
+		memset(&compositorMutex, 0, sizeof(compositorMutex));
 		BLI_mutex_init(&compositorMutex);
 		OCL_init();
 		WorkScheduler::initialize(); ///TODO: call workscheduler.deinitialize somewhere
