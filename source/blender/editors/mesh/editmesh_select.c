@@ -1001,12 +1001,13 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 	BMEdge *eed;
 	int select = TRUE;
 	int dist = 50;
-	
+	float mvalf[2];
+
 	em_setup_viewcontext(C, &vc);
-	vc.mval[0] = mval[0];
-	vc.mval[1] = mval[1];
+	mvalf[0] = (float)(vc.mval[0] = mval[0]);
+	mvalf[1] = (float)(vc.mval[1] = mval[1]);
 	em = vc.em;
-	
+
 	/* no afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad */
 	view3d_validate_backbuf(&vc);
 
@@ -1041,26 +1042,59 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 		}
 
 		EDBM_selectmode_flush(em);
-//			if (EM_texFaceCheck())
-		
+
 		/* sets as active, useful for other tools */
-#if 0
 		if (select) {
 			if (em->selectmode & SCE_SELECT_VERTEX) {
-				/* TODO: would be nice if the edge vertex chosen here
-				 * was the one closer to the selection pointer, instead
-				 * of arbitrarily selecting the first one */
-				BM_select_history_store(em->bm, eed->v1);
+				/* Find nearest vert from mouse. */
+				float v1_co[2], v2_co[2];
+
+				/* We can't be sure this has already been set... */
+				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
+				project_float_noclip(vc.ar, eed->v1->co, v1_co);
+				project_float_noclip(vc.ar, eed->v2->co, v2_co);
+#if 0
+				printf("mouse to v1: %f\nmouse to v2: %f\n", len_squared_v2v2(mvalf, v1_co),
+				       len_squared_v2v2(mvalf, v2_co));
+#endif
+				if (len_squared_v2v2(mvalf, v1_co) < len_squared_v2v2(mvalf, v2_co))
+					BM_select_history_store(em->bm, eed->v1);
+				else
+					BM_select_history_store(em->bm, eed->v2);
 			}
 			else if (em->selectmode & SCE_SELECT_EDGE) {
 				BM_select_history_store(em->bm, eed);
 			}
-			/* TODO: would be nice if the nearest face that
-			 * belongs to the selected edge could be set to
-			 * active here in face select mode */
+			else if (em->selectmode & SCE_SELECT_FACE) {
+				/* Select the face of eed which is the nearest of mouse. */
+				BMFace *f, *efa = NULL;
+				BMIter iterf;
+				float best_dist = MAXFLOAT;
+
+				/* We can't be sure this has already been set... */
+				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
+
+				BM_ITER_ELEM(f, &iterf, eed, BM_FACES_OF_EDGE) {
+					if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+						float cent[3];
+						float co[2], tdist;
+
+						BM_face_calc_center_mean(f, cent);
+						project_float_noclip(vc.ar, cent, co);
+						tdist = len_squared_v2v2(mvalf, co);
+						if (tdist < best_dist) {
+/*							printf("Best face: %p (%f)\n", f, tdist);*/
+							best_dist = tdist;
+							efa = f;
+						}
+					}
+				}
+				if (efa) {
+					BM_active_face_set(em->bm, efa);
+					BM_select_history_store(em->bm, efa);
+				}
+			}
 		}
-#endif
-		mouse_mesh(C, mval, select, TRUE, FALSE);
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit);
 	}
