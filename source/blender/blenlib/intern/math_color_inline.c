@@ -222,8 +222,16 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
 	r_col[2] = ((pack) >> 16) & 0xFF;
 }
 
-/* XXX - investigate when/why rgb_to_bw & rgb_to_grayscale are different,
- * and why we use both! whats the purpose of this? */
+/* TODO:
+ *
+ * regarding #rgb_to_bw vs #rgb_to_grayscale,
+ * it seems nobody knows why we have both functions which convert color to greys
+ * but with different influences, this is quite stupid, and should be resolved
+ * by someone who knows this stuff: see this thread
+ * http://lists.blender.org/pipermail/bf-committers/2012-June/037180.html
+ *
+ * Only conclusion is that rgb_to_grayscale is used more for compositing.
+ */
 MINLINE float rgb_to_bw(const float rgb[3])
 {
 	return 0.35f * rgb[0] + 0.45f * rgb[1] + 0.2f * rgb[2];
