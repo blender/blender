@@ -3591,7 +3591,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 
 	if (!mvert || !mface || !mat) return;
 	v1=mface[face_index].v1, v2=mface[face_index].v2, v3=mface[face_index].v3;
-	if (hit_quad) {v2=mface[face_index].v3; v3=mface[face_index].v4;}
+	if (hit_quad) { v2 = mface[face_index].v3; v3 = mface[face_index].v4; }
 	normal_tri_v3(normal, mvert[v1].co, mvert[v2].co, mvert[v3].co);
 
 	/* generate shadeinput with data required */

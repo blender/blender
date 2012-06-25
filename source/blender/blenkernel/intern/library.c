@@ -1321,7 +1321,7 @@ void clear_id_newpoins(void)
 	}
 }
 
-#define LIBTAG(a)   if (a && a->id.lib) {a->id.flag &= ~LIB_INDIRECT; a->id.flag |= LIB_EXTERN; } (void)0
+#define LIBTAG(a)   if (a && a->id.lib) { a->id.flag &= ~LIB_INDIRECT; a->id.flag |= LIB_EXTERN; } (void)0
 
 static void lib_indirect_test_id(ID *id, Library *lib)
 {

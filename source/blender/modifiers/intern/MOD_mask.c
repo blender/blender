@@ -178,7 +178,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			return derivedData;
 		}
 		
-		/* verthash gives mapping from original vertex indicies to the new indices (including selected matches only)
+		/* verthash gives mapping from original vertex indices to the new indices (including selected matches only)
 		 * 	key=oldindex, value=newindex 
 		 */
 		vertHash = BLI_ghash_int_new("mask vert gh");

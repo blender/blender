@@ -734,7 +734,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
 
 		/* deactivate zero axises */
 		for (i = 0; i < 3; i++) {
-			if (td[i] < min_dim) {td[i] = 1.0f; axis -= 1; }
+			if (td[i] < min_dim) { td[i] = 1.0f; axis -= 1; }
 		}
 
 		if (axis == 0 || MAX3(td[0], td[1], td[2]) < 0.0001f) {
@@ -2016,11 +2016,11 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 
 			/* Dist to second edge	*/
 			t_dist = dist_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[uindex[1]], tface[cPoint->face_index].uv[uindex[2]]);
-			if (t_dist < dist) {e1_index = cPoint->v2; e2_index = cPoint->v3; edge1_index = uindex[1]; edge2_index = uindex[2]; dist = t_dist; }
+			if (t_dist < dist) { e1_index = cPoint->v2; e2_index = cPoint->v3; edge1_index = uindex[1]; edge2_index = uindex[2]; dist = t_dist; }
 
 			/* Dist to third edge	*/
 			t_dist = dist_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[uindex[2]], tface[cPoint->face_index].uv[uindex[0]]);
-			if (t_dist < dist) {e1_index = cPoint->v3; e2_index = cPoint->v1;  edge1_index = uindex[2]; edge2_index = uindex[0]; dist = t_dist; }
+			if (t_dist < dist) { e1_index = cPoint->v3; e2_index = cPoint->v1;  edge1_index = uindex[2]; edge2_index = uindex[0]; dist = t_dist; }
 
 
 			/*
@@ -2284,7 +2284,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 						u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 						v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-						if ((u > 0) && (v > 0) && (u + v < 1)) {isInside = 1; } /* is inside a triangle */
+						if ((u > 0) && (v > 0) && (u + v < 1)) { isInside = 1; } /* is inside a triangle */
 
 						/*  If collision wasn't found but the face is a quad
 						 *	do another check for the second half */
@@ -2304,7 +2304,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 							u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 							v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-							if ((u > 0) && (v > 0) && (u + v < 1)) {isInside = 2; } /* is inside the second half of the quad */
+							if ((u > 0) && (v > 0) && (u + v < 1)) { isInside = 2; } /* is inside the second half of the quad */
 
 						}
 
@@ -2583,7 +2583,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 	int format = (surface->image_fileformat & MOD_DPAINT_IMGFORMAT_OPENEXR) ? R_IMF_IMTYPE_OPENEXR : R_IMF_IMTYPE_PNG;
 	char output_file[FILE_MAX];
 
-	if (!sData || !sData->type_data) {setError(surface->canvas, "Image save failed: Invalid surface."); return; }
+	if (!sData || !sData->type_data) { setError(surface->canvas, "Image save failed: Invalid surface."); return; }
 	/* if selected format is openexr, but current build doesnt support one */
 	#ifndef WITH_OPENEXR
 	if (format == R_IMF_IMTYPE_OPENEXR) format = R_IMF_IMTYPE_PNG;
@@ -2597,7 +2597,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 
 	/* Init image buffer	*/
 	ibuf = IMB_allocImBuf(surface->image_resolution, surface->image_resolution, 32, IB_rectfloat);
-	if (ibuf == NULL) {setError(surface->canvas, "Image save failed: Not enough free memory."); return; }
+	if (ibuf == NULL) { setError(surface->canvas, "Image save failed: Not enough free memory."); return; }
 
 	#pragma omp parallel for schedule(static)
 	for (index = 0; index < sData->total_points; index++) {
@@ -3287,7 +3287,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 									int v1 = mface[hit.index].v1, v2 = mface[hit.index].v2, v3 = mface[hit.index].v3, quad = (hit.no[0] == 1.0f);
 									float dot;
 
-									if (quad) {v2 = mface[hit.index].v3; v3 = mface[hit.index].v4; }
+									if (quad) { v2 = mface[hit.index].v3; v3 = mface[hit.index].v4; }
 									normal_tri_v3(hit.no, mvert[v1].co, mvert[v2].co, mvert[v3].co);
 									dot = ray_dir[0] * hit.no[0] + ray_dir[1] * hit.no[1] + ray_dir[2] * hit.no[2];
 
@@ -3580,7 +3580,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 
 		/*	for debug purposes check if any NAN particle proceeds
 		 *	For some reason they get past activity check, this should rule most of them out	*/
-		if (isnan(pa->state.co[0]) || isnan(pa->state.co[1]) || isnan(pa->state.co[2])) {invalidParticles++; continue; }
+		if (isnan(pa->state.co[0]) || isnan(pa->state.co[1]) || isnan(pa->state.co[2])) { invalidParticles++; continue; }
 
 		/* make sure particle is close enough to canvas */
 		if (!boundIntersectPoint(&grid->grid_bounds, pa->state.co, range)) continue;
@@ -3953,7 +3953,7 @@ void surface_determineForceTargetPoints(PaintSurfaceData *sData, int index, floa
 		int n_index = sData->adj_data->n_index[index] + i;
 		float dir_dot = dot_v3v3(bNeighs[n_index].dir, force);
 
-		if (dir_dot > closest_d[0] && dir_dot > 0.0f) {closest_d[0] = dir_dot; closest_id[0] = n_index; }
+		if (dir_dot > closest_d[0] && dir_dot > 0.0f) { closest_d[0] = dir_dot; closest_id[0] = n_index; }
 	}
 
 	if (closest_d[0] < 0.0f) return;

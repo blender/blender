@@ -80,12 +80,24 @@
 #endif
 
 #if ((LIBAVFORMAT_VERSION_MAJOR > 53) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR > 32)) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR == 24) && (LIBAVFORMAT_VERSION_MICRO >= 100)))
-void ff_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp);
+static inline
+void my_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
+{
+	int i;
+
+	for (i = 0; i < s->nb_streams; i++) {
+		AVStream *st = s->streams[i];
+
+		st->cur_dts = av_rescale(timestamp,
+		                         st->time_base.den * (int64_t)ref_st->time_base.num,
+		                         st->time_base.num * (int64_t)ref_st->time_base.den);
+	}
+}
 
 static inline
 void av_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
 {
-    ff_update_cur_dts(s, ref_st, timestamp);
+	my_update_cur_dts(s, ref_st, timestamp);
 }
 #endif
 
