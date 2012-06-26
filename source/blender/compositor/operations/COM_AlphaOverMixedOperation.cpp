@@ -24,7 +24,7 @@
 
 AlphaOverMixedOperation::AlphaOverMixedOperation() : MixBaseOperation()
 {
-	this->x = 0.0f;
+	this->m_x = 0.0f;
 }
 
 void AlphaOverMixedOperation::executePixel(float outputValue[4], float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -44,7 +44,7 @@ void AlphaOverMixedOperation::executePixel(float outputValue[4], float x, float 
 		copy_v4_v4(outputValue, inputOverColor);
 	}
 	else {
-		float addfac = 1.0f - this->x + inputOverColor[3] * this->x;
+		float addfac = 1.0f - this->m_x + inputOverColor[3] * this->m_x;
 		float premul = value[0] * addfac;
 		float mul = 1.0f - value[0] * inputOverColor[3];
 

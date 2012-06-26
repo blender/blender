@@ -119,9 +119,9 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		operationy->setSubtract(editorNode->custom2 < 0);
 
 		if (editorNode->storage) {
-			NodeDilateErode *data = (NodeDilateErode *)editorNode->storage;
-			operationx->setFalloff(data->falloff);
-			operationy->setFalloff(data->falloff);
+			NodeDilateErode *data_storage = (NodeDilateErode *)editorNode->storage;
+			operationx->setFalloff(data_storage->falloff);
+			operationy->setFalloff(data_storage->falloff);
 		}
 	}
 	else {

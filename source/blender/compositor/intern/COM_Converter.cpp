@@ -117,253 +117,253 @@
 #include "COM_ViewerNode.h"
 #include "COM_ZCombineNode.h"
 
-Node *Converter::convert(bNode *bNode)
+Node *Converter::convert(bNode *b_node)
 {
 	Node *node;
 
-	if (bNode->flag & NODE_MUTED) {
-		node = new MuteNode(bNode);
+	if (b_node->flag & NODE_MUTED) {
+		node = new MuteNode(b_node);
 		return node;
 	}
 
-	switch (bNode->type) {
+	switch (b_node->type) {
 		case CMP_NODE_COMPOSITE:
-			node = new CompositorNode(bNode);
+			node = new CompositorNode(b_node);
 			break;
 		case CMP_NODE_R_LAYERS:
-			node = new RenderLayersNode(bNode);
+			node = new RenderLayersNode(b_node);
 			break;
 		case CMP_NODE_TEXTURE:
-			node = new TextureNode(bNode);
+			node = new TextureNode(b_node);
 			break;
 		case CMP_NODE_RGBTOBW:
-			node = new ColourToBWNode(bNode);
+			node = new ColourToBWNode(b_node);
 			break;
 		case CMP_NODE_MIX_RGB:
-			node = new MixNode(bNode);
+			node = new MixNode(b_node);
 			break;
 		case CMP_NODE_TRANSLATE:
-			node = new TranslateNode(bNode);
+			node = new TranslateNode(b_node);
 			break;
 		case CMP_NODE_SCALE:
-			node = new ScaleNode(bNode);
+			node = new ScaleNode(b_node);
 			break;
 		case CMP_NODE_ROTATE:
-			node = new RotateNode(bNode);
+			node = new RotateNode(b_node);
 			break;
 		case CMP_NODE_FLIP:
-			node = new FlipNode(bNode);
+			node = new FlipNode(b_node);
 			break;
 		case CMP_NODE_FILTER:
-			node = new FilterNode(bNode);
+			node = new FilterNode(b_node);
 			break;
 		case CMP_NODE_ID_MASK:
-			node = new IDMaskNode(bNode);
+			node = new IDMaskNode(b_node);
 			break;
 		case CMP_NODE_BRIGHTCONTRAST:
-			node = new BrightnessNode(bNode);
+			node = new BrightnessNode(b_node);
 			break;
 		case CMP_NODE_SEPRGBA:
-			node = new SeparateRGBANode(bNode);
+			node = new SeparateRGBANode(b_node);
 			break;
 		case CMP_NODE_COMBRGBA:
-			node = new CombineRGBANode(bNode);
+			node = new CombineRGBANode(b_node);
 			break;
 		case CMP_NODE_SEPHSVA:
-			node = new SeparateHSVANode(bNode);
+			node = new SeparateHSVANode(b_node);
 			break;
 		case CMP_NODE_COMBHSVA:
-			node = new CombineHSVANode(bNode);
+			node = new CombineHSVANode(b_node);
 			break;
 		case CMP_NODE_SEPYUVA:
-			node = new SeparateYUVANode(bNode);
+			node = new SeparateYUVANode(b_node);
 			break;
 		case CMP_NODE_COMBYUVA:
-			node = new CombineYUVANode(bNode);
+			node = new CombineYUVANode(b_node);
 			break;
 		case CMP_NODE_SEPYCCA:
-			node = new SeparateYCCANode(bNode);
+			node = new SeparateYCCANode(b_node);
 			break;
 		case CMP_NODE_COMBYCCA:
-			node = new CombineYCCANode(bNode);
+			node = new CombineYCCANode(b_node);
 			break;
 		case CMP_NODE_ALPHAOVER:
-			node = new AlphaOverNode(bNode);
+			node = new AlphaOverNode(b_node);
 			break;
 		case CMP_NODE_COLORBALANCE:
-			node = new ColorBalanceNode(bNode);
+			node = new ColorBalanceNode(b_node);
 			break;
 		case CMP_NODE_VIEWER:
-			node = new ViewerNode(bNode);
+			node = new ViewerNode(b_node);
 			break;
 		case CMP_NODE_SPLITVIEWER:
-			node = new SplitViewerNode(bNode);
+			node = new SplitViewerNode(b_node);
 			break;
 		case CMP_NODE_INVERT:
-			node = new InvertNode(bNode);
+			node = new InvertNode(b_node);
 			break;
 		case NODE_GROUP:
-			node = new GroupNode(bNode);
+			node = new GroupNode(b_node);
 			break;
 		case CMP_NODE_NORMAL:
-			node = new NormalNode(bNode);
+			node = new NormalNode(b_node);
 			break;
 		case CMP_NODE_NORMALIZE:
-			node = new NormalizeNode(bNode);
+			node = new NormalizeNode(b_node);
 			break;
 		case CMP_NODE_IMAGE:
-			node = new ImageNode(bNode);
+			node = new ImageNode(b_node);
 			break;
 		case CMP_NODE_SETALPHA:
-			node = new SetAlphaNode(bNode);
+			node = new SetAlphaNode(b_node);
 			break;
 		case CMP_NODE_PREMULKEY:
-			node = new ConvertAlphaNode(bNode);
+			node = new ConvertAlphaNode(b_node);
 			break;
 		case CMP_NODE_MATH:
-			node = new MathNode(bNode);
+			node = new MathNode(b_node);
 			break;
 		case CMP_NODE_HUE_SAT:
-			node = new HueSaturationValueNode(bNode);
+			node = new HueSaturationValueNode(b_node);
 			break;
 		case CMP_NODE_COLORCORRECTION:
-			node = new ColorCorrectionNode(bNode);
+			node = new ColorCorrectionNode(b_node);
 			break;
 		case CMP_NODE_MASK_BOX:
-			node = new BoxMaskNode(bNode);
+			node = new BoxMaskNode(b_node);
 			break;
 		case CMP_NODE_MASK_ELLIPSE:
-			node = new EllipseMaskNode(bNode);
+			node = new EllipseMaskNode(b_node);
 			break;
 		case CMP_NODE_GAMMA:
-			node = new GammaNode(bNode);
+			node = new GammaNode(b_node);
 			break;
 		case CMP_NODE_CURVE_RGB:
-			node = new ColorCurveNode(bNode);
+			node = new ColorCurveNode(b_node);
 			break;
 		case CMP_NODE_CURVE_VEC:
-			node = new VectorCurveNode(bNode);
+			node = new VectorCurveNode(b_node);
 			break;
 		case CMP_NODE_HUECORRECT:
-			node = new HueSaturationValueCorrectNode(bNode);
+			node = new HueSaturationValueCorrectNode(b_node);
 			break;
 		case CMP_NODE_MAP_UV:
-			node = new MapUVNode(bNode);
+			node = new MapUVNode(b_node);
 			break;
 		case CMP_NODE_DISPLACE:
-			node = new DisplaceNode(bNode);
+			node = new DisplaceNode(b_node);
 			break;
 		case CMP_NODE_VALTORGB:
-			node = new ColorRampNode(bNode);
+			node = new ColorRampNode(b_node);
 			break;
 		case CMP_NODE_DIFF_MATTE:
-			node = new DifferenceMatteNode(bNode);
+			node = new DifferenceMatteNode(b_node);
 			break;
 		case CMP_NODE_LUMA_MATTE:
-			node = new LuminanceMatteNode(bNode);
+			node = new LuminanceMatteNode(b_node);
 			break;
 		case CMP_NODE_DIST_MATTE:
-			node = new DistanceMatteNode(bNode);
+			node = new DistanceMatteNode(b_node);
 			break;
 		case CMP_NODE_CHROMA_MATTE:
-			node = new ChromaMatteNode(bNode);
+			node = new ChromaMatteNode(b_node);
 			break;
 		case CMP_NODE_COLOR_MATTE:
-			node = new ColorMatteNode(bNode);
+			node = new ColorMatteNode(b_node);
 			break;
 		case CMP_NODE_CHANNEL_MATTE:
-			node = new ChannelMatteNode(bNode);
+			node = new ChannelMatteNode(b_node);
 			break;
 		case CMP_NODE_BLUR:
-			node = new BlurNode(bNode);
+			node = new BlurNode(b_node);
 			break;
 		case CMP_NODE_BOKEHIMAGE:
-			node = new BokehImageNode(bNode);
+			node = new BokehImageNode(b_node);
 			break;
 		case CMP_NODE_BOKEHBLUR:
-			node = new BokehBlurNode(bNode);
+			node = new BokehBlurNode(b_node);
 			break;
 		case CMP_NODE_DILATEERODE:
-			node = new DilateErodeNode(bNode);
+			node = new DilateErodeNode(b_node);
 			break;
 		case CMP_NODE_LENSDIST:
-			node = new LensDistortionNode(bNode);
+			node = new LensDistortionNode(b_node);
 			break;
 		case CMP_NODE_RGB:
-			node = new ColorNode(bNode);
+			node = new ColorNode(b_node);
 			break;
 		case CMP_NODE_VALUE:
-			node = new ValueNode(bNode);
+			node = new ValueNode(b_node);
 			break;
 		case CMP_NODE_TIME:
-			node = new TimeNode(bNode);
+			node = new TimeNode(b_node);
 			break;
 		case CMP_NODE_DBLUR:
-			node = new DirectionalBlurNode(bNode);
+			node = new DirectionalBlurNode(b_node);
 			break;
 		case CMP_NODE_ZCOMBINE:
-			node = new ZCombineNode(bNode);
+			node = new ZCombineNode(b_node);
 			break;
 		case CMP_NODE_TONEMAP:
-			node = new TonemapNode(bNode);
+			node = new TonemapNode(b_node);
 			break;
 		case CMP_NODE_SWITCH:
-			node = new SwitchNode(bNode);
+			node = new SwitchNode(b_node);
 			break;
 		case CMP_NODE_GLARE:
-			node = new GlareNode(bNode);
+			node = new GlareNode(b_node);
 			break;
 		case CMP_NODE_MOVIECLIP:
-			node = new MovieClipNode(bNode);
+			node = new MovieClipNode(b_node);
 			break;
 		case CMP_NODE_COLOR_SPILL:
-			node = new ColorSpillNode(bNode);
+			node = new ColorSpillNode(b_node);
 			break;
 		case CMP_NODE_OUTPUT_FILE:
-			node = new OutputFileNode(bNode);
+			node = new OutputFileNode(b_node);
 			break;
 		case CMP_NODE_MAP_VALUE:
-			node = new MapValueNode(bNode);
+			node = new MapValueNode(b_node);
 			break;
 		case CMP_NODE_TRANSFORM:
-			node = new TransformNode(bNode);
+			node = new TransformNode(b_node);
 			break;
 		case CMP_NODE_STABILIZE2D:
-			node = new Stabilize2dNode(bNode);
+			node = new Stabilize2dNode(b_node);
 			break;
 		case CMP_NODE_BILATERALBLUR:
-			node = new BilateralBlurNode(bNode);
+			node = new BilateralBlurNode(b_node);
 			break;
 		case CMP_NODE_VECBLUR:
-			node = new VectorBlurNode(bNode);
+			node = new VectorBlurNode(b_node);
 			break;
 		case CMP_NODE_MOVIEDISTORTION:
-			node = new MovieDistortionNode(bNode);
+			node = new MovieDistortionNode(b_node);
 			break;
 		case CMP_NODE_VIEW_LEVELS:
-			node = new ViewLevelsNode(bNode);
+			node = new ViewLevelsNode(b_node);
 			break;
 		case CMP_NODE_DEFOCUS:
-			node = new DefocusNode(bNode);
+			node = new DefocusNode(b_node);
 			break;
 		case CMP_NODE_DOUBLEEDGEMASK:
-			node = new DoubleEdgeMaskNode(bNode);
+			node = new DoubleEdgeMaskNode(b_node);
 			break;
 		case CMP_NODE_CROP:
-			node = new CropNode(bNode);
+			node = new CropNode(b_node);
 			break;
 		case CMP_NODE_MASK:
-			node = new MaskNode(bNode);
+			node = new MaskNode(b_node);
 			break;
 		case CMP_NODE_KEYINGSCREEN:
-			node = new KeyingScreenNode(bNode);
+			node = new KeyingScreenNode(b_node);
 			break;
 		case CMP_NODE_KEYING:
-			node = new KeyingNode(bNode);
+			node = new KeyingNode(b_node);
 			break;
 		/* not inplemented yet */
 		default:
-			node = new MuteNode(bNode);
+			node = new MuteNode(b_node);
 			break;
 	}
 	return node;

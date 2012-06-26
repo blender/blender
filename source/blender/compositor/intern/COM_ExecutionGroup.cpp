@@ -333,13 +333,12 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 	const int maxNumberEvaluated = BLI_system_thread_count() * 2;
 
 	while (!finished && !breaked) {
-		unsigned int index;
 		bool startEvaluated = false;
 		finished = true;
 		int numberEvaluated = 0;
 
 		for (index = startIndex; index < this->m_numberOfChunks && numberEvaluated < maxNumberEvaluated; index++) {
-			int chunkNumber = chunkOrder[index];
+			chunkNumber = chunkOrder[index];
 			int yChunk = chunkNumber / this->m_numberOfXChunks;
 			int xChunk = chunkNumber - (yChunk * this->m_numberOfXChunks);
 			const ChunkExecutionState state = this->m_chunkExecutionStates[chunkNumber];

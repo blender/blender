@@ -23,7 +23,6 @@
 #include "COM_ExecutionSystem.h"
 
 #include <sstream>
-#include <stdio.h>
 
 #include "PIL_time.h"
 #include "BKE_node.h"
@@ -209,7 +208,6 @@ void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)
 	 */
 	OutputSocket *outputsocket = operation->getOutputSocket();
 	if (outputsocket->isConnected()) {
-		int index;
 		WriteBufferOperation *writeOperation;
 		writeOperation = new WriteBufferOperation();
 		writeOperation->setbNodeTree(this->getContext().getbNodeTree());

@@ -70,7 +70,7 @@ public:
 	 * @brief Is this node in the active group (the group that is being edited)
 	 * @param isInActiveGroup
 	 */
-	void setIsInActiveGroup(bool isInActiveGroup) { this->m_inActiveGroup = isInActiveGroup; }
+	void setIsInActiveGroup(bool value) { this->m_inActiveGroup = value; }
 	
 	/**
 	 * @brief Is this node part of the active group

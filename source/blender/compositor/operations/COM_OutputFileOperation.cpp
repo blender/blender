@@ -150,10 +150,10 @@ void OutputSingleLayerOperation::deinitExecution()
 }
 
 
-OutputOpenExrLayer::OutputOpenExrLayer(const char *name, DataType datatype)
+OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_)
 {
-	BLI_strncpy(this->name, name, sizeof(this->name));
-	this->datatype = datatype;
+	BLI_strncpy(this->name, name_, sizeof(this->name));
+	this->datatype = datatype_;
 	/* these are created in initExecution */
 	this->outputBuffer = 0;
 	this->imageInput = 0;

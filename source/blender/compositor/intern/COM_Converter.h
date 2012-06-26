@@ -42,7 +42,7 @@ public:
 	 * @see Node
 	 * @see MuteNode
 	 */
-	static Node *convert(bNode *bNode);
+	static Node *convert(bNode *b_node);
 	
 	/**
 	 * @brief This method will add a datetype conversion rule when the to-socket does not support the from-socket actual data type.
