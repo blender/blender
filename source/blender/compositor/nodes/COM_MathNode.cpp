@@ -28,8 +28,7 @@ void MathNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 {
 	MathBaseOperation *operation = NULL;
 	
-	switch (this->getbNode()->custom1)
-	{
+	switch (this->getbNode()->custom1) {
 		case 0: /* Add */
 			operation = new MathAddOperation();
 			break;

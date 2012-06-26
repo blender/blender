@@ -2397,13 +2397,15 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 				
 			case ANIMCONT_GPENCIL:
 			{
-				items = animdata_filter_gpencil(anim_data, data, filter_mode);
+				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+					items = animdata_filter_gpencil(anim_data, data, filter_mode);
 			}
 			break;
 
 			case ANIMCONT_MASK:
 			{
-				items = animdata_filter_mask(anim_data, data, filter_mode);
+				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+					items = animdata_filter_mask(anim_data, data, filter_mode);
 			}
 			break;
 

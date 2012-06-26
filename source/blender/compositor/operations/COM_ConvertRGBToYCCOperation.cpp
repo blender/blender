@@ -36,8 +36,7 @@ void ConvertRGBToYCCOperation::initExecution()
 
 void ConvertRGBToYCCOperation::setMode(int mode)
 {
-	switch (mode)
-	{
+	switch (mode) {
 		case 1:
 			this->m_mode = BLI_YCC_ITU_BT709;
 			break;
