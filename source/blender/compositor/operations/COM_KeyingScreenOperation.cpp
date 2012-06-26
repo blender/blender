@@ -218,9 +218,13 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect, MemoryBuffer **memor
 		unlockMutex();
 	}
 
+	triangulation = this->m_cachedTriangulation;
+
+	if (!triangulation)
+		return NULL;
+
 	BLI_init_rctf(&rect_float, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 
-	triangulation = this->m_cachedTriangulation;
 	tile_data = (TileData *) MEM_callocN(sizeof(TileData), "keying screen tile data");
 
 	for (i = 0; i < triangulation->triangles_total; i++) {
