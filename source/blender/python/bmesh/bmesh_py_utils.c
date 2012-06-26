@@ -457,6 +457,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args,
 		                        py_vert_a->v, py_vert_b->v,
 		                        (float (*)[3])coords, ncoords,
 		                        &l_new, py_edge_example ? py_edge_example->e : NULL);
+		PyMem_Free(coords);
 	}
 	else {
 		f_new = BM_face_split(bm, py_face->f,
