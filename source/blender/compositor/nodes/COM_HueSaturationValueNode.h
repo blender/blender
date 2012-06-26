@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_HueSaturationValueNode_h
-#define _COM_HueSaturationValueNode_h
+#ifndef _COM_HueSaturationValueNode_h_
+#define _COM_HueSaturationValueNode_h_
 
 #include "COM_Node.h"
 

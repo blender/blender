@@ -27,8 +27,8 @@
 
 class SeparateChannelOperation : public NodeOperation {
 private:
-	SocketReader *inputOperation;
-	int channel;
+	SocketReader *m_inputOperation;
+	int m_channel;
 public:
 	SeparateChannelOperation();
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
@@ -36,7 +36,7 @@ public:
 	void initExecution();
 	void deinitExecution();
 	
-	void setChannel(int channel) { this->channel = channel; }
+	void setChannel(int channel) { this->m_channel = channel; }
 };
 
 #endif

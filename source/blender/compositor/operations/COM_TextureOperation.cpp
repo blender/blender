@@ -29,10 +29,10 @@ TextureBaseOperation::TextureBaseOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VECTOR); //offset
 	this->addInputSocket(COM_DT_VECTOR); //size
-	this->texture = NULL;
-	this->inputSize = NULL;
-	this->inputOffset = NULL;
-	this->rd = NULL;
+	this->m_texture = NULL;
+	this->m_inputSize = NULL;
+	this->m_inputOffset = NULL;
+	this->m_rd = NULL;
 }
 TextureOperation::TextureOperation() : TextureBaseOperation()
 {
@@ -45,20 +45,20 @@ TextureAlphaOperation::TextureAlphaOperation() : TextureBaseOperation()
 
 void TextureBaseOperation::initExecution()
 {
-	this->inputOffset = getInputSocketReader(0);
-	this->inputSize = getInputSocketReader(1);
+	this->m_inputOffset = getInputSocketReader(0);
+	this->m_inputSize = getInputSocketReader(1);
 }
 void TextureBaseOperation::deinitExecution()
 {
-	this->inputSize = NULL;
-	this->inputOffset = NULL;
+	this->m_inputSize = NULL;
+	this->m_inputOffset = NULL;
 }
 
 void TextureBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	if (preferredResolution[0] == 0 || preferredResolution[1] == 0) {
-		int width = this->rd->xsch * this->rd->size / 100;
-		int height = this->rd->ysch * this->rd->size / 100;
+		int width = this->m_rd->xsch * this->m_rd->size / 100;
+		int height = this->m_rd->ysch * this->m_rd->size / 100;
 		resolution[0] = width;
 		resolution[1] = height;
 	}
@@ -89,14 +89,14 @@ void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSam
 	const float u = (cx - x) / this->getWidth() * 2;
 	const float v = (cy - y) / this->getHeight() * 2;
 
-	this->inputSize->read(textureSize, x, y, sampler, inputBuffers);
-	this->inputOffset->read(textureOffset, x, y, sampler, inputBuffers);
+	this->m_inputSize->read(textureSize, x, y, sampler, inputBuffers);
+	this->m_inputOffset->read(textureOffset, x, y, sampler, inputBuffers);
 
 	vec[0] = textureSize[0] * (u + textureOffset[0]);
 	vec[1] = textureSize[1] * (v + textureOffset[1]);
 	vec[2] = textureSize[2] * textureOffset[2];
 
-	retval = multitex_ext(this->texture, vec, NULL, NULL, 0, &texres);
+	retval = multitex_ext(this->m_texture, vec, NULL, NULL, 0, &texres);
 
 	if (texres.talpha)
 		color[3] = texres.ta;

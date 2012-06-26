@@ -29,9 +29,9 @@
 
 class ChunkOrderHotspot {
 private:
-	int x;
-	int y;
-	float addition;
+	int m_x;
+	int m_y;
+	float m_addition;
 
 public:
 	ChunkOrderHotspot(int x, int y, float addition);

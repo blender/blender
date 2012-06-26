@@ -49,7 +49,7 @@ private:
 	/**
 	 * @brief the index of the input socket that will be used to determine the resolution
 	 */
-	unsigned int resolutionInputSocketIndex;
+	unsigned int m_resolutionInputSocketIndex;
 
 	/**
 	 * @brief is this operation a complex one.
@@ -57,13 +57,13 @@ private:
 	 * Complex operations are typically doing many reads to calculate the output of a single pixel.
 	 * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
 	 */
-	bool complex;
+	bool m_complex;
 
 	/**
 	 * @brief can this operation be scheduled on an OpenCL device.
 	 * @note Only applicable if complex is True
 	 */
-	bool openCL;
+	bool m_openCL;
 
 	/**
 	 * @brief mutex reference for very special node initializations
@@ -74,12 +74,12 @@ private:
 	 * @see NodeOperation.deinitMutex deinitializes this mutex
 	 * @see NodeOperation.getMutex retrieve a pointer to this mutex.
 	 */
-	ThreadMutex mutex;
+	ThreadMutex m_mutex;
 	
 	/**
 	 * @brief reference to the editing bNodeTree only used for break callback
 	 */
-	const bNodeTree *btree;
+	const bNodeTree *m_btree;
 
 public:
 	/**
@@ -124,7 +124,7 @@ public:
 	virtual int isBufferOperation() { return false; }
 	virtual int isSingleThreaded() { return false; }
 
-	void setbNodeTree(const bNodeTree *tree) { this->btree = tree; }
+	void setbNodeTree(const bNodeTree *tree) { this->m_btree = tree; }
 	virtual void initExecution();
 	
 	/**
@@ -167,7 +167,7 @@ public:
 	virtual void deinitExecution();
 
 	bool isResolutionSet() {
-		return this->width != 0 && height != 0;
+		return this->m_width != 0 && this->m_height != 0;
 	}
 
 	/**
@@ -176,8 +176,8 @@ public:
 	 */
 	void setResolution(unsigned int resolution[]) {
 		if (!isResolutionSet()) {
-			this->width = resolution[0];
-			this->height = resolution[1];
+			this->m_width = resolution[0];
+			this->m_height = resolution[1];
 		}
 	}
 	
@@ -190,7 +190,7 @@ public:
 	 * Complex operations are typically doing many reads to calculate the output of a single pixel.
 	 * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
 	 */
-	const bool isComplex() const { return this->complex; }
+	const bool isComplex() const { return this->m_complex; }
 	virtual const bool isSetOperation() const { return false; }
 
 	/**
@@ -235,20 +235,20 @@ public:
 	 * @see WorkScheduler.schedule
 	 * @see ExecutionGroup.addOperation
 	 */
-	bool isOpenCL() { return this->openCL; }
+	bool isOpenCL() { return this->m_openCL; }
 	
 	virtual bool isViewerOperation() { return false; }
 	virtual bool isPreviewOperation() { return false; }
 	
 	inline bool isBreaked() {
-		return btree->test_break(btree->tbh);
+		return this->m_btree->test_break(this->m_btree->tbh);
 	}
 
 protected:
 	NodeOperation();
 
-	void setWidth(unsigned int width) { this->width = width; }
-	void setHeight(unsigned int height) { this->height = height; }
+	void setWidth(unsigned int width) { this->m_width = width; }
+	void setHeight(unsigned int height) { this->m_height = height; }
 	SocketReader *getInputSocketReader(unsigned int inputSocketindex);
 	NodeOperation *getInputOperation(unsigned int inputSocketindex);
 
@@ -264,12 +264,12 @@ protected:
 	 * Complex operations are typically doing many reads to calculate the output of a single pixel.
 	 * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
 	 */
-	void setComplex(bool complex) { this->complex = complex; }
+	void setComplex(bool complex) { this->m_complex = complex; }
 
 	/**
 	 * @brief set if this NodeOperation can be scheduled on a OpenCLDevice
 	 */
-	void setOpenCL(bool openCL) { this->openCL = openCL; }
+	void setOpenCL(bool openCL) { this->m_openCL = openCL; }
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")

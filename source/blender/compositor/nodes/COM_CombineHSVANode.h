@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_CombineHSVANode_h
-#define _COM_CombineHSVANode_h
+#ifndef _COM_CombineHSVANode_h_
+#define _COM_CombineHSVANode_h_
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"

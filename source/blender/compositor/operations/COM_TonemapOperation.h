@@ -46,17 +46,17 @@ protected:
 	/**
 	 * @brief Cached reference to the reader
 	 */
-	SocketReader *imageReader;
+	SocketReader *m_imageReader;
 	
 	/**
 	 * @brief settings of the Tonemap
 	 */
-	NodeTonemap *data;
+	NodeTonemap *m_data;
 	
 	/**
 	 * @brief temporarily cache of the execution storage
 	 */
-	AvgLogLum *cachedInstance;
+	AvgLogLum *m_cachedInstance;
 
 public:
 	TonemapOperation();
@@ -79,7 +79,7 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setData(NodeTonemap *data) { this->data = data; }
+	void setData(NodeTonemap *data) { this->m_data = data; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 

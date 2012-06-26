@@ -20,6 +20,9 @@
  *		Monique Dewanchand
  */
 
+#ifndef _COM_MovieClipNode_h_
+#define _COM_MovieClipNode_h_
+
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 
@@ -28,10 +31,9 @@
  * @ingroup Node
  */
 class MovieClipNode : public Node {
-
-
 public:
 	MovieClipNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
-
 };
+
+#endif // _COM_MovieClipNode_h_

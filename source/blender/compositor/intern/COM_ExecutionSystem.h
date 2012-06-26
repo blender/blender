@@ -108,27 +108,27 @@ private:
 	/**
 	 * @brief the context used during execution
 	 */
-	CompositorContext context;
+	CompositorContext m_context;
 
 	/**
 	 * @brief vector of nodes
 	 */
-	vector<Node *> nodes;
+	vector<Node *> m_nodes;
 
 	/**
 	 * @brief vector of operations
 	 */
-	vector<NodeOperation *> operations;
+	vector<NodeOperation *> m_operations;
 
 	/**
 	 * @brief vector of groups
 	 */
-	vector<ExecutionGroup *> groups
+	vector<ExecutionGroup *> m_groups;
 
 	/**
 	 * @brief vector of connections
-	 */;
-	vector<SocketConnection *> connections;
+	 */
+	vector<SocketConnection *> m_connections;
 
 private: //methods
 	/**
@@ -200,27 +200,27 @@ public:
 	/**
 	 * @brief get the reference to the compositor context
 	 */
-	CompositorContext& getContext() { return this->context; }
+	CompositorContext& getContext() { return this->m_context; }
 
 	/**
 	 * @brief get the reference to the compositor nodes
 	 */
-	vector<Node *>& getNodes() { return this->nodes; }
+	vector<Node *>& getNodes() { return this->m_nodes; }
 
 	/**
 	 * @brief get the reference to the compositor connections
 	 */
-	vector<SocketConnection *>& getConnections() { return this->connections; }
+	vector<SocketConnection *>& getConnections() { return this->m_connections; }
 
 	/**
 	 * @brief get the reference to the list of execution groups
 	 */
-	vector<ExecutionGroup *>& getExecutionGroups() { return this->groups; }
+	vector<ExecutionGroup *>& getExecutionGroups() { return this->m_groups; }
 
 	/**
 	 * @brief get the reference to the list of operations
 	 */
-	vector<NodeOperation *>& getOperations() { return this->operations; }
+	vector<NodeOperation *>& getOperations() { return this->m_operations; }
 
 private:
 

@@ -27,21 +27,21 @@
 
 class CropBaseOperation : public NodeOperation {
 protected:
-	SocketReader *inputOperation;
-	NodeTwoXYs *settings;
-	bool relative;
-	int xmax;
-	int xmin;
-	int ymax;
-	int ymin;
+	SocketReader *m_inputOperation;
+	NodeTwoXYs *m_settings;
+	bool m_relative;
+	int m_xmax;
+	int m_xmin;
+	int m_ymax;
+	int m_ymin;
 	
 	void updateArea();
 public:
 	CropBaseOperation();	
 	void initExecution();
 	void deinitExecution();
-	void setCropSettings(NodeTwoXYs *settings) { this->settings = settings; }
-	void setRelative(bool rel) { this->relative = rel; }
+	void setCropSettings(NodeTwoXYs *settings) { this->m_settings = settings; }
+	void setRelative(bool rel) { this->m_relative = rel; }
 };
 
 class CropOperation : public CropBaseOperation {

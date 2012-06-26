@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef COM_DistanceMatteNODE_H
-#define COM_DistanceMatteNODE_H
+#ifndef _COM_DistanceMatteNode_h_
+#define _COM_DistanceMatteNode_h_
 
 #include "COM_Node.h"
 
@@ -28,8 +28,7 @@
  * @brief DistanceMatteNode
  * @ingroup Node
  */
-class DistanceMatteNode : public Node
-{
+class DistanceMatteNode : public Node {
 public:
 	DistanceMatteNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);

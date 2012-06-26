@@ -29,8 +29,8 @@
 
 class ViewerOperation : public ViewerBaseOperation {
 private:
-	SocketReader *imageInput;
-	SocketReader *alphaInput;
+	SocketReader *m_imageInput;
+	SocketReader *m_alphaInput;
 
 public:
 	ViewerOperation();

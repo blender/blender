@@ -31,8 +31,8 @@
  */
 class SetAlphaOperation : public NodeOperation {
 private:
-	SocketReader *inputColor;
-	SocketReader *inputAlpha;
+	SocketReader *m_inputColor;
+	SocketReader *m_inputAlpha;
 
 public:
 	/**

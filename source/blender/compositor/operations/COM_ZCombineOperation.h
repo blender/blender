@@ -31,10 +31,10 @@
  */
 class ZCombineOperation : public NodeOperation {
 protected:
-	SocketReader *image1Reader;
-	SocketReader *depth1Reader;
-	SocketReader *image2Reader;
-	SocketReader *depth2Reader;
+	SocketReader *m_image1Reader;
+	SocketReader *m_depth1Reader;
+	SocketReader *m_image2Reader;
+	SocketReader *m_depth2Reader;
 public:
 	/**
 	 * Default constructor

@@ -27,8 +27,8 @@
 
 class GaussianYBlurOperation : public BlurBaseOperation {
 private:
-	float *gausstab;
-	int rad;
+	float *m_gausstab;
+	int m_rad;
 	void updateGauss(MemoryBuffer **memoryBuffers);
 public:
 	GaussianYBlurOperation();

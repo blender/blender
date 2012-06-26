@@ -29,7 +29,6 @@
  * @brief BlurNode
  * @ingroup Node
  */
-
 class BlurNode : public Node {
 public:
 	BlurNode(bNode *editorNode);

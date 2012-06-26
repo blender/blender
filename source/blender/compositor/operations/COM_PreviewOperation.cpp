@@ -42,39 +42,41 @@ extern "C" {
 PreviewOperation::PreviewOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
-	this->outputBuffer = NULL;
-	this->input = NULL;
-	this->divider = 1.0f;
-	this->node = NULL;
+	this->m_outputBuffer = NULL;
+	this->m_input = NULL;
+	this->m_divider = 1.0f;
+	this->m_node = NULL;
 }
 
 void PreviewOperation::initExecution()
 {
-	this->input = getInputSocketReader(0);
-	if (!this->node->preview) {
-		this->node->preview = (bNodePreview *)MEM_callocN(sizeof(bNodePreview), "node preview");
+	this->m_input = getInputSocketReader(0);
+	if (!this->m_node->preview) {
+		this->m_node->preview = (bNodePreview *)MEM_callocN(sizeof(bNodePreview), "node preview");
 	}
 	else {
-		if (this->getWidth() == (unsigned int)this->node->preview->xsize && this->getHeight() == (unsigned int)this->node->preview->ysize) {
-			this->outputBuffer = this->node->preview->rect;
+		if (this->getWidth() == (unsigned int)this->m_node->preview->xsize &&
+		    this->getHeight() == (unsigned int)this->m_node->preview->ysize)
+		{
+			this->m_outputBuffer = this->m_node->preview->rect;
 		}
 	}
 
-	if (this->outputBuffer == NULL) {
-		this->outputBuffer = (unsigned char *)MEM_callocN(sizeof(unsigned char) * 4 * getWidth() * getHeight(), "PreviewOperation");
-		if (this->node->preview->rect) {
-			MEM_freeN(this->node->preview->rect);
+	if (this->m_outputBuffer == NULL) {
+		this->m_outputBuffer = (unsigned char *)MEM_callocN(sizeof(unsigned char) * 4 * getWidth() * getHeight(), "PreviewOperation");
+		if (this->m_node->preview->rect) {
+			MEM_freeN(this->m_node->preview->rect);
 		}
-		this->node->preview->xsize = getWidth();
-		this->node->preview->ysize = getHeight();
-		this->node->preview->rect = outputBuffer;
+		this->m_node->preview->xsize = getWidth();
+		this->m_node->preview->ysize = getHeight();
+		this->m_node->preview->rect = this->m_outputBuffer;
 	}
 }
 
 void PreviewOperation::deinitExecution()
 {
-	this->outputBuffer = NULL;
-	this->input = NULL;
+	this->m_outputBuffer = NULL;
+	this->m_input = NULL;
 }
 
 void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
@@ -84,16 +86,16 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber, Memory
 	for (int y = rect->ymin; y < rect->ymax; y++) {
 		offset = (y * getWidth() + rect->xmin) * 4;
 		for (int x = rect->xmin; x < rect->xmax; x++) {
-			float rx = floor(x / divider);
-			float ry = floor(y / divider);
+			float rx = floor(x / this->m_divider);
+			float ry = floor(y / this->m_divider);
 	
 			color[0] = 0.0f;
 			color[1] = 0.0f;
 			color[2] = 0.0f;
 			color[3] = 1.0f;
-			input->read(color, rx, ry, COM_PS_NEAREST, memoryBuffers);
+			this->m_input->read(color, rx, ry, COM_PS_NEAREST, memoryBuffers);
 			linearrgb_to_srgb_v4(color, color);
-			F4TOCHAR4(color, outputBuffer + offset);
+			F4TOCHAR4(color, this->m_outputBuffer + offset);
 			offset += 4;
 		}
 	}
@@ -102,10 +104,10 @@ bool PreviewOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferO
 {
 	rcti newInput;
 
-	newInput.xmin = input->xmin / divider;
-	newInput.xmax = input->xmax / divider;
-	newInput.ymin = input->ymin / divider;
-	newInput.ymax = input->ymax / divider;
+	newInput.xmin = input->xmin / this->m_divider;
+	newInput.xmax = input->xmax / this->m_divider;
+	newInput.ymin = input->ymin / this->m_divider;
+	newInput.ymax = input->ymax / this->m_divider;
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
@@ -114,15 +116,15 @@ void PreviewOperation::determineResolution(unsigned int resolution[], unsigned i
 	NodeOperation::determineResolution(resolution, preferredResolution);
 	int width = resolution[0];
 	int height = resolution[1];
-	this->divider = 0.0f;
+	this->m_divider = 0.0f;
 	if (width > height) {
-		divider = COM_PREVIEW_SIZE / (width - 1);
+		this->m_divider = COM_PREVIEW_SIZE / (width - 1);
 	}
 	else {
-		divider = COM_PREVIEW_SIZE / (height - 1);
+		this->m_divider = COM_PREVIEW_SIZE / (height - 1);
 	}
-	width = width * divider;
-	height = height * divider;
+	width = width * this->m_divider;
+	height = height * this->m_divider;
 	
 	resolution[0] = width;
 	resolution[1] = height;

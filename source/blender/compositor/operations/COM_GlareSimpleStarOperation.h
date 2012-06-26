@@ -28,8 +28,7 @@
 
 class GlareSimpleStarOperation : public GlareBaseOperation {
 public:
-	GlareSimpleStarOperation() : GlareBaseOperation() {
-	}
+	GlareSimpleStarOperation() : GlareBaseOperation() {}
 protected:
 	void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings);
 };

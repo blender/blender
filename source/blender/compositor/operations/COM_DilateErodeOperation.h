@@ -30,17 +30,17 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
+	SocketReader *m_inputProgram;
 	
-	float distance;
-	float _switch;
-	float inset;
+	float m_distance;
+	float m__switch;
+	float m_inset;
 	
 	/**
 	 * determines the area of interest to track pixels
 	 * keep this one as small as possible for speed gain.
 	 */
-	int scope;
+	int m_scope;
 public:
 	DilateErodeThresholdOperation();
 	
@@ -60,9 +60,9 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setDistance(float distance) { this->distance = distance; }
-	void setSwitch(float sw) { this->_switch = sw; }
-	void setInset(float inset) { this->inset = inset; }
+	void setDistance(float distance) { this->m_distance = distance; }
+	void setSwitch(float sw) { this->m__switch = sw; }
+	void setInset(float inset) { this->m_inset = inset; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
@@ -74,9 +74,9 @@ protected:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
-	float distance;
-	int scope;
+	SocketReader *m_inputProgram;
+	float m_distance;
+	int m_scope;
 public:
 	DilateDistanceOperation();
 	
@@ -96,7 +96,7 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setDistance(float distance) { this->distance = distance; }
+	void setDistance(float distance) { this->m_distance = distance; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	
 	void executeOpenCL(OpenCLDevice* device,
@@ -124,11 +124,11 @@ protected:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
+	SocketReader *m_inputProgram;
 	
-	int iterations;
+	int m_iterations;
 	
-	float *cached_buffer;
+	float *m_cached_buffer;
 public:
 	DilateStepOperation();
 	
@@ -148,7 +148,7 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setIterations(int iterations) { this->iterations = iterations; }
+	void setIterations(int iterations) { this->m_iterations = iterations; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };

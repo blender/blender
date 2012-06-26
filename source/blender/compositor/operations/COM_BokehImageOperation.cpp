@@ -26,35 +26,35 @@
 BokehImageOperation::BokehImageOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_COLOR);
-	this->deleteData = false;
+	this->m_deleteData = false;
 }
 void BokehImageOperation::initExecution()
 {
-	this->centerX = getWidth() / 2;
-	this->centerY = getHeight() / 2;
-	this->center[0] = this->centerX;
-	this->center[1] = this->centerY;
-	this->inverseRounding = 1.0f - this->data->rounding;
-	this->circularDistance = getWidth() / 2;
-	this->flapRad = (float)(M_PI * 2) / this->data->flaps;
-	this->flapRadAdd = (this->data->angle / 360.0f) * (float)(M_PI * 2.0);
-	while (this->flapRadAdd < 0.0f) {
-		this->flapRadAdd += (float)(M_PI * 2.0);
+	this->m_centerX = getWidth() / 2;
+	this->m_centerY = getHeight() / 2;
+	this->m_center[0] = this->m_centerX;
+	this->m_center[1] = this->m_centerY;
+	this->m_inverseRounding = 1.0f - this->m_data->rounding;
+	this->m_circularDistance = getWidth() / 2;
+	this->m_flapRad = (float)(M_PI * 2) / this->m_data->flaps;
+	this->m_flapRadAdd = (this->m_data->angle / 360.0f) * (float)(M_PI * 2.0);
+	while (this->m_flapRadAdd < 0.0f) {
+		this->m_flapRadAdd += (float)(M_PI * 2.0);
 	}
-	while (this->flapRadAdd > (float)M_PI) {
-		this->flapRadAdd -= (float)(M_PI * 2.0);
+	while (this->m_flapRadAdd > (float)M_PI) {
+		this->m_flapRadAdd -= (float)(M_PI * 2.0);
 	}
 }
 void BokehImageOperation::detemineStartPointOfFlap(float r[2], int flapNumber, float distance)
 {
-	r[0] = sinf(flapRad * flapNumber + flapRadAdd) * distance + centerX;
-	r[1] = cosf(flapRad * flapNumber + flapRadAdd) * distance + centerY;
+	r[0] = sinf(this->m_flapRad * flapNumber + this->m_flapRadAdd) * distance + this->m_centerX;
+	r[1] = cosf(this->m_flapRad * flapNumber + this->m_flapRadAdd) * distance + this->m_centerY;
 }
 float BokehImageOperation::isInsideBokeh(float distance, float x, float y)
 {
 	float insideBokeh = 0.0f;
-	const float deltaX = x - centerX;
-	const float deltaY = y - centerY;
+	const float deltaX = x - this->m_centerX;
+	const float deltaY = y - this->m_centerY;
 	float closestPoint[2];
 	float lineP1[2];
 	float lineP2[2];
@@ -62,23 +62,23 @@ float BokehImageOperation::isInsideBokeh(float distance, float x, float y)
 	point[0] = x;
 	point[1] = y;
 
-	const float distanceToCenter = len_v2v2(point, center);
+	const float distanceToCenter = len_v2v2(point, this->m_center);
 	const float bearing = (atan2f(deltaX, deltaY) + (float)(M_PI * 2.0));
-	int flapNumber = (int)((bearing - flapRadAdd) / flapRad);
+	int flapNumber = (int)((bearing - this->m_flapRadAdd) / this->m_flapRad);
 
 	detemineStartPointOfFlap(lineP1, flapNumber, distance);
 	detemineStartPointOfFlap(lineP2, flapNumber + 1, distance);
 	closest_to_line_v2(closestPoint, point, lineP1, lineP2);
 
-	const float distanceLineToCenter = len_v2v2(center, closestPoint);
-	const float distanceRoundingToCenter = inverseRounding * distanceLineToCenter + this->data->rounding * distance;
+	const float distanceLineToCenter = len_v2v2(this->m_center, closestPoint);
+	const float distanceRoundingToCenter = this->m_inverseRounding * distanceLineToCenter + this->m_data->rounding * distance;
 
-	const float catadioptricDistanceToCenter = distanceRoundingToCenter * this->data->catadioptric;
+	const float catadioptricDistanceToCenter = distanceRoundingToCenter * this->m_data->catadioptric;
 	if (distanceRoundingToCenter >= distanceToCenter && catadioptricDistanceToCenter <= distanceToCenter) {
 		if (distanceRoundingToCenter - distanceToCenter < 1.0f) {
 			insideBokeh = (distanceRoundingToCenter - distanceToCenter);
 		}
-		else if (this->data->catadioptric != 0.0f && distanceToCenter - catadioptricDistanceToCenter < 1.0f) {
+		else if (this->m_data->catadioptric != 0.0f && distanceToCenter - catadioptricDistanceToCenter < 1.0f) {
 			insideBokeh = (distanceToCenter - catadioptricDistanceToCenter);
 		}
 		else {
@@ -89,9 +89,9 @@ float BokehImageOperation::isInsideBokeh(float distance, float x, float y)
 }
 void BokehImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	float shift = this->data->lensshift;
+	float shift = this->m_data->lensshift;
 	float shift2 = shift / 2.0f;
-	float distance = this->circularDistance;
+	float distance = this->m_circularDistance;
 	float insideBokehMax = isInsideBokeh(distance, x, y);
 	float insideBokehMed = isInsideBokeh(distance - fabsf(shift2 * distance), x, y);
 	float insideBokehMin = isInsideBokeh(distance - fabsf(shift * distance), x, y);
@@ -110,10 +110,10 @@ void BokehImageOperation::executePixel(float *color, float x, float y, PixelSamp
 
 void BokehImageOperation::deinitExecution()
 {
-	if (deleteData) {
-		if (data) {
-			delete data;
-			data = NULL;
+	if (this->m_deleteData) {
+		if (this->m_data) {
+			delete this->m_data;
+			this->m_data = NULL;
 		}
 	}
 }

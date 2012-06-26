@@ -27,12 +27,12 @@
 
 class TranslateOperation : public NodeOperation {
 private:
-	SocketReader *inputOperation;
-	SocketReader *inputXOperation;
-	SocketReader *inputYOperation;
-	float deltaX;
-	float deltaY;
-	bool isDeltaSet;
+	SocketReader *m_inputOperation;
+	SocketReader *m_inputXOperation;
+	SocketReader *m_inputYOperation;
+	float m_deltaX;
+	float m_deltaY;
+	bool m_isDeltaSet;
 public:
 	TranslateOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
@@ -41,17 +41,17 @@ public:
 	void initExecution();
 	void deinitExecution();
 
-	float getDeltaX() { return this->deltaX; }
-	float getDeltaY() { return this->deltaY; }
+	float getDeltaX() { return this->m_deltaX; }
+	float getDeltaY() { return this->m_deltaY; }
 	
 	inline void ensureDelta() {
-		if (!isDeltaSet) {
+		if (!this->m_isDeltaSet) {
 			float tempDelta[4];
-			this->inputXOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
-			this->deltaX = tempDelta[0];
-			this->inputYOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
-			this->deltaY = tempDelta[0];
-			this->isDeltaSet = true;
+			this->m_inputXOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
+			this->m_deltaX = tempDelta[0];
+			this->m_inputYOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
+			this->m_deltaY = tempDelta[0];
+			this->m_isDeltaSet = true;
 		}
 	}
 };

@@ -30,12 +30,12 @@
 
 NodeOperation::NodeOperation()
 {
-	this->resolutionInputSocketIndex = 0;
-	this->complex = false;
-	this->width = 0;
-	this->height = 0;
-	this->openCL = false;
-	this->btree = NULL;
+	this->m_resolutionInputSocketIndex = 0;
+	this->m_complex = false;
+	this->m_width = 0;
+	this->m_height = 0;
+	this->m_openCL = false;
+	this->m_btree = NULL;
 }
 
 void NodeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
@@ -47,7 +47,7 @@ void NodeOperation::determineResolution(unsigned int resolution[], unsigned int 
 	for (unsigned int index = 0; index < inputsockets.size(); index++) {
 		InputSocket *inputSocket = inputsockets[index];
 		if (inputSocket->isConnected()) {
-			if (index == this->resolutionInputSocketIndex) {
+			if (index == this->m_resolutionInputSocketIndex) {
 				inputSocket->determineResolution(resolution, preferredResolution);
 				temp2[0] = resolution[0];
 				temp2[1] = resolution[1];
@@ -58,7 +58,7 @@ void NodeOperation::determineResolution(unsigned int resolution[], unsigned int 
 	for (unsigned int index = 0; index < inputsockets.size(); index++) {
 		InputSocket *inputSocket = inputsockets[index];
 		if (inputSocket->isConnected()) {
-			if (index != resolutionInputSocketIndex) {
+			if (index != this->m_resolutionInputSocketIndex) {
 				inputSocket->determineResolution(temp, temp2);
 			}
 		}
@@ -66,7 +66,7 @@ void NodeOperation::determineResolution(unsigned int resolution[], unsigned int 
 }
 void NodeOperation::setResolutionInputSocketIndex(unsigned int index)
 {
-	this->resolutionInputSocketIndex = index;
+	this->m_resolutionInputSocketIndex = index;
 }
 void NodeOperation::initExecution()
 {
@@ -75,22 +75,22 @@ void NodeOperation::initExecution()
 
 void NodeOperation::initMutex()
 {
-	BLI_mutex_init(&mutex);
+	BLI_mutex_init(&this->m_mutex);
 }
 
 void NodeOperation::lockMutex()
 {
-	BLI_mutex_lock(&mutex);
+	BLI_mutex_lock(&this->m_mutex);
 }
 
 void NodeOperation::unlockMutex()
 {
-	BLI_mutex_unlock(&mutex);
+	BLI_mutex_unlock(&this->m_mutex);
 }
 
 void NodeOperation::deinitMutex()
 {
-	BLI_mutex_end(&mutex);
+	BLI_mutex_end(&this->m_mutex);
 }
 
 void NodeOperation::deinitExecution()

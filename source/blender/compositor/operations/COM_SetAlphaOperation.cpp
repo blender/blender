@@ -28,28 +28,28 @@ SetAlphaOperation::SetAlphaOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 	
-	this->inputColor = NULL;
-	this->inputAlpha = NULL;
+	this->m_inputColor = NULL;
+	this->m_inputAlpha = NULL;
 }
 
 void SetAlphaOperation::initExecution()
 {
-	this->inputColor = getInputSocketReader(0);
-	this->inputAlpha = getInputSocketReader(1);
+	this->m_inputColor = getInputSocketReader(0);
+	this->m_inputAlpha = getInputSocketReader(1);
 }
 
 void SetAlphaOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float alphaInput[4];
 	
-	this->inputColor->read(outputValue, x, y, sampler, inputBuffers);
-	this->inputAlpha->read(alphaInput, x, y, sampler, inputBuffers);
+	this->m_inputColor->read(outputValue, x, y, sampler, inputBuffers);
+	this->m_inputAlpha->read(alphaInput, x, y, sampler, inputBuffers);
 	
 	outputValue[3] = alphaInput[0];
 }
 
 void SetAlphaOperation::deinitExecution()
 {
-	this->inputColor = NULL;
-	this->inputAlpha = NULL;
+	this->m_inputColor = NULL;
+	this->m_inputAlpha = NULL;
 }

@@ -42,10 +42,10 @@ extern "C" {
  */
 class TextureBaseOperation : public NodeOperation {
 private:
-	Tex *texture;
-	const RenderData *rd;
-	SocketReader *inputSize;
-	SocketReader *inputOffset;
+	Tex *m_texture;
+	const RenderData *m_rd;
+	SocketReader *m_inputSize;
+	SocketReader *m_inputOffset;
 
 protected:
 
@@ -62,10 +62,10 @@ protected:
 public:
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
-	void setTexture(Tex *texture) { this->texture = texture; }
+	void setTexture(Tex *texture) { this->m_texture = texture; }
 	void initExecution();
 	void deinitExecution();
-	void setRenderData(const RenderData *rd) { this->rd = rd; }
+	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
 };
 
 class TextureOperation : public TextureBaseOperation {

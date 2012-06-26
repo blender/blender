@@ -34,26 +34,26 @@ private:
 	/**
 	 * @brief local reference to the scene
 	 */
-	const RenderData *rd;
+	const RenderData *m_rd;
 
 	/**
 	 * @brief reference to the output float buffer
 	 */
-	float *outputBuffer;
+	float *m_outputBuffer;
 
 	/**
 	 * @brief local reference to the input image operation
 	 */
-	SocketReader *imageInput;
+	SocketReader *m_imageInput;
 
 	/**
 	 * @brief local reference to the input alpha operation
 	 */
-	SocketReader *alphaInput;
+	SocketReader *m_alphaInput;
 public:
 	CompositorOperation();
 	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
-	void setRenderData(const RenderData *rd) { this->rd = rd; }
+	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
 	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
 	void deinitExecution();

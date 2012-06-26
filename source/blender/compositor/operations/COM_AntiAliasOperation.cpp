@@ -32,33 +32,33 @@ AntiAliasOperation::AntiAliasOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
-	this->valueReader = NULL;
-	this->buffer = NULL;
+	this->m_valueReader = NULL;
+	this->m_buffer = NULL;
 	this->setComplex(true);
 }
 void AntiAliasOperation::initExecution()
 {
-	this->valueReader = this->getInputSocketReader(0);
+	this->m_valueReader = this->getInputSocketReader(0);
 	NodeOperation::initMutex();
 }
 
 void AntiAliasOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	if (y < 0 || (unsigned int)y >= this->height || x < 0 || (unsigned int)x >= this->width) {
+	if (y < 0 || (unsigned int)y >= this->m_height || x < 0 || (unsigned int)x >= this->m_width) {
 		color[0] = 0.0f;
 	}
 	else {
-		int offset = y * this->width + x;
-		color[0] = buffer[offset] / 255.0f;
+		int offset = y * this->m_width + x;
+		color[0] = this->m_buffer[offset] / 255.0f;
 	}
 	
 }
 
 void AntiAliasOperation::deinitExecution()
 {
-	this->valueReader = NULL;
-	if (this->buffer) {
-		delete buffer;
+	this->m_valueReader = NULL;
+	if (this->m_buffer) {
+		delete this->m_buffer;
 	}
 	NodeOperation::deinitMutex();
 }
@@ -66,7 +66,7 @@ void AntiAliasOperation::deinitExecution()
 bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti imageInput;
-	if (this->buffer) {
+	if (this->m_buffer) {
 		return false;
 	}
 	else {
@@ -84,10 +84,10 @@ bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 
 void *AntiAliasOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	if (this->buffer) {return buffer; }
+	if (this->m_buffer) { return this->m_buffer; }
 	lockMutex();
-	if (this->buffer == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer *)valueReader->initializeTileData(rect, memoryBuffers);
+	if (this->m_buffer == NULL) {
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_valueReader->initializeTileData(rect, memoryBuffers);
 		int size = tile->getHeight() * tile->getWidth();
 		float *input = tile->getBuffer();
 		char *valuebuffer = new char[size];
@@ -98,8 +98,8 @@ void *AntiAliasOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 			valuebuffer[i] = in * 255;
 		}
 		antialias_tagbuf(tile->getWidth(), tile->getHeight(), valuebuffer);
-		this->buffer = valuebuffer;
+		this->m_buffer = valuebuffer;
 	}
 	unlockMutex();
-	return this->buffer;
+	return this->m_buffer;
 }

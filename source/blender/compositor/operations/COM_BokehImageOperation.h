@@ -27,17 +27,17 @@
 
 class BokehImageOperation : public NodeOperation {
 private:
-	NodeBokehImage *data;
+	NodeBokehImage *m_data;
 
-	float center[2];
-	float centerX;
-	float centerY;
-	float inverseRounding;
-	float circularDistance;
-	float flapRad;
-	float flapRadAdd;
+	float m_center[2];
+	float m_centerX;
+	float m_centerY;
+	float m_inverseRounding;
+	float m_circularDistance;
+	float m_flapRad;
+	float m_flapRadAdd;
 	
-	bool deleteData;
+	bool m_deleteData;
 
 	void detemineStartPointOfFlap(float r[2], int flapNumber, float distance);
 	float isInsideBokeh(float distance, float x, float y);
@@ -61,7 +61,7 @@ public:
 	
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 
-	void setData(NodeBokehImage *data) { this->data = data; }
-	void deleteDataOnFinish() { this->deleteData = true; }
+	void setData(NodeBokehImage *data) { this->m_data = data; }
+	void deleteDataOnFinish() { this->m_deleteData = true; }
 };
 #endif

@@ -31,9 +31,9 @@
   */
 class KeyingDespillOperation : public NodeOperation {
 protected:
-	SocketReader *pixelReader;
-	SocketReader *screenReader;
-	float despillFactor;
+	SocketReader *m_pixelReader;
+	SocketReader *m_screenReader;
+	float m_despillFactor;
 
 public:
 	KeyingDespillOperation();
@@ -41,7 +41,7 @@ public:
 	void initExecution();
 	void deinitExecution();
 
-	void setDespillFactor(float value) {this->despillFactor = value;}
+	void setDespillFactor(float value) {this->m_despillFactor = value;}
 
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 };

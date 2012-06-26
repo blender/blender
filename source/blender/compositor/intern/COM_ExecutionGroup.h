@@ -67,81 +67,81 @@ private:
 	/**
 	 * @brief list of operations in this ExecutionGroup
 	 */
-	vector<NodeOperation *> operations;
+	vector<NodeOperation *> m_operations;
 	
 	/**
 	 * @brief is this ExecutionGroup an input ExecutionGroup
 	 * an input execution group is a group that is at the end of the calculation (the output is important for the user)
 	 */
-	int isOutput;
+	int m_isOutput;
 	
 	/**
 	 * @brief Width of the output
 	 */
-	unsigned int width;
+	unsigned int m_width;
 	
 	/**
 	 * @brief Height of the output
 	 */
-	unsigned int height;
+	unsigned int m_height;
 	
 	/**
 	 * @brief size of a single chunk, being Width or of height
 	 * a chunk is always a square, except at the edges of the MemoryBuffer
 	 */
-	unsigned int chunkSize;
+	unsigned int m_chunkSize;
 	
 	/**
 	 * @brief number of chunks in the x-axis
 	 */
-	unsigned int numberOfXChunks;
+	unsigned int m_numberOfXChunks;
 	
 	/**
 	 * @brief number of chunks in the y-axis
 	 */
-	unsigned int numberOfYChunks;
+	unsigned int m_numberOfYChunks;
 	
 	/**
 	 * @brief total number of chunks
 	 */
-	unsigned int numberOfChunks;
+	unsigned int m_numberOfChunks;
 	
 	/**
 	 * @brief contains this ExecutionGroup a complex NodeOperation.
 	 */
-	bool complex;
+	bool m_complex;
 	
 	/**
 	 * @brief can this ExecutionGroup be scheduled on an OpenCLDevice
 	 */
-	bool openCL;
+	bool m_openCL;
 	
 	/**
 	 * @brief Is this Execution group SingleThreaded
 	 */
-	bool singleThreaded;
+	bool m_singleThreaded;
 	
 	/**
 	 * @brief what is the maximum number field of all ReadBufferOperation in this ExecutionGroup.
 	 * @note this is used to construct the MemoryBuffers that will be passed during execution.
 	 */
-	unsigned int cachedMaxReadBufferOffset;
+	unsigned int m_cachedMaxReadBufferOffset;
 	
 	/**
 	 * @brief a cached vector of all read operations in the execution group.
 	 */
-	vector<NodeOperation *> cachedReadOperations;
+	vector<NodeOperation *> m_cachedReadOperations;
 	
 	/**
 	 * @brief reference to the original bNodeTree, this field is only set for the 'top' execution group.
 	 * @note can only be used to call the callbacks for progress, status and break
 	 */
-	const bNodeTree *bTree;
+	const bNodeTree *m_bTree;
 	
 	/**
 	 * @brief total number of chunks that have been calculated for this ExecutionGroup
 	 */
-	unsigned int chunksFinished;
+	unsigned int m_chunksFinished;
 	
 	/**
 	 * @brief the chunkExecutionStates holds per chunk the execution state. this state can be
@@ -149,7 +149,7 @@ private:
 	 *   - COM_ES_SCHEDULED: scheduled
 	 *   - COM_ES_EXECUTED: executed
 	 */
-	ChunkExecutionState *chunkExecutionStates;
+	ChunkExecutionState *m_chunkExecutionStates;
 	
 	/**
 	 * @brief indicator when this ExecutionGroup has valid NodeOperations in its vector for Execution
@@ -160,7 +160,7 @@ private:
 	 * @see complex
 	 * @see openCL
 	 */
-	bool initialized;
+	bool m_initialized;
 	
 	// methods
 	/**
@@ -258,13 +258,13 @@ public:
 	 * @note ViewerOperation, CompositeOperation, PreviewOperation.
 	 * @see NodeOperation.isOutputOperation
 	 */
-	const int isOutputExecutionGroup() const { return this->isOutput; }
+	const int isOutputExecutionGroup() const { return this->m_isOutput; }
 
 	/**
 	 * @brief set whether this ExecutionGroup is an output
 	 * @param isOutput
 	 */
-	void setOutputExecutionGroup(int isOutput) { this->isOutput = isOutput; }
+	void setOutputExecutionGroup(int isOutput) { this->m_isOutput = isOutput; }
 
 	/**
 	 * @brief determine the resolution of this ExecutionGroup
@@ -276,17 +276,17 @@ public:
 	 * @brief set the resolution of this executiongroup
 	 * @param resolution
 	 */
-	void setResolution(unsigned int resolution[]) { this->width = resolution[0]; this->height = resolution[1]; }
+	void setResolution(unsigned int resolution[]) { this->m_width = resolution[0]; this->m_height = resolution[1]; }
 	
 	/**
 	 * @brief get the width of this execution group
 	 */
-	const unsigned int getWidth() { return this->width; }
+	const unsigned int getWidth() { return this->m_width; }
 	
 	/**
 	 * @brief get the height of this execution group
 	 */
-	const unsigned int getHeight() { return this->height; }
+	const unsigned int getHeight() { return this->m_height; }
 	
 	/**
 	 * @brief does this ExecutionGroup contains a complex NodeOperation
@@ -387,7 +387,7 @@ public:
 	 */
 	bool isOpenCL();
 
-	void setChunksize(int chunksize) { this->chunkSize = chunksize; }
+	void setChunksize(int chunksize) { this->m_chunkSize = chunksize; }
 
 	/**
 	 * @brief get the Render priority of this ExecutionGroup

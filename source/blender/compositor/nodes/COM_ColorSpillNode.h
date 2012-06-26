@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef COM_ColorSpillNODE_H
-#define COM_ColorSpillNODE_H
+#ifndef _COM_ColorSpillNode_h_
+#define _COM_ColorSpillNode_h_
 
 #include "COM_Node.h"
 
@@ -29,8 +29,7 @@
  * @brief ColorSpillNode
  * @ingroup Node
  */
-class ColorSpillNode : public Node
-{
+class ColorSpillNode : public Node {
 public:
 	ColorSpillNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);

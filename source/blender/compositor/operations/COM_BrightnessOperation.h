@@ -30,9 +30,9 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
-	SocketReader *inputBrightnessProgram;
-	SocketReader *inputContrastProgram;
+	SocketReader *m_inputProgram;
+	SocketReader *m_inputBrightnessProgram;
+	SocketReader *m_inputContrastProgram;
 
 public:
 	BrightnessOperation();

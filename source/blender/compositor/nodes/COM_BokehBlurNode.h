@@ -29,7 +29,6 @@
  * @brief BokehBlurNode
  * @ingroup Node
  */
-
 class BokehBlurNode : public Node {
 public:
 	BokehBlurNode(bNode *editorNode);

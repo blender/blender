@@ -30,7 +30,7 @@ protected:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	CurveMapping *curveMapping;
+	CurveMapping *m_curveMapping;
 public:
 	CurveBaseOperation();
 	
@@ -39,6 +39,6 @@ public:
 	 */
 	void initExecution();
 	
-	void setCurveMapping(CurveMapping *mapping) { this->curveMapping = mapping; }
+	void setCurveMapping(CurveMapping *mapping) { this->m_curveMapping = mapping; }
 };
 #endif

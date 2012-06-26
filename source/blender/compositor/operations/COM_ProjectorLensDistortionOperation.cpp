@@ -30,19 +30,19 @@ ProjectorLensDistortionOperation::ProjectorLensDistortionOperation() : NodeOpera
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
-	this->inputProgram = NULL;
-	this->dispersionAvailable = false;
-	this->dispersion = 0.0f;
+	this->m_inputProgram = NULL;
+	this->m_dispersionAvailable = false;
+	this->m_dispersion = 0.0f;
 }
 void ProjectorLensDistortionOperation::initExecution()
 {
-	this->inputProgram = this->getInputSocketReader(0);
+	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
 void *ProjectorLensDistortionOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	updateDispersion(memoryBuffers);
-	void *buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
+	void *buffer = this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
 	return buffer;
 }
 
@@ -54,45 +54,45 @@ void ProjectorLensDistortionOperation::executePixel(float *color, int x, int y, 
 	const float v = (y + 0.5f) / height;
 	const float u = (x + 0.5f) / width;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-	inputBuffer->readCubic(inputValue, (u * width + kr2) - 0.5f, v * height - 0.5f);
+	inputBuffer->readCubic(inputValue, (u * width + this->m_kr2) - 0.5f, v * height - 0.5f);
 	color[0] = inputValue[0];
 	inputBuffer->read(inputValue, x, y);
 	color[1] = inputValue[1];
-	inputBuffer->readCubic(inputValue, (u * width - kr2) - 0.5f, v * height - 0.5f);
+	inputBuffer->readCubic(inputValue, (u * width - this->m_kr2) - 0.5f, v * height - 0.5f);
 	color[2] = inputValue[2];
 	color[3] = 1.0f;
 }
 
 void ProjectorLensDistortionOperation::deinitExecution()
 {
-	this->inputProgram = NULL;
+	this->m_inputProgram = NULL;
 }
 
 bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
-	if (dispersionAvailable) {
+	if (this->m_dispersionAvailable) {
 		newInput.ymax = input->ymax;
 		newInput.ymin = input->ymin;
-		newInput.xmin = input->xmin - kr2 - 2;
-		newInput.xmax = input->xmax + kr2 + 2;
+		newInput.xmin = input->xmin - this->m_kr2 - 2;
+		newInput.xmax = input->xmax + this->m_kr2 + 2;
 	} else {
 		newInput.xmin = 0;
 		newInput.ymin = input->ymin;
 		newInput.ymax = input->ymax;
-		newInput.xmax = inputProgram->getWidth();
+		newInput.xmax = this->m_inputProgram->getWidth();
 	}
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
 void ProjectorLensDistortionOperation::updateDispersion(MemoryBuffer **inputBuffers) 
 {
-	if (!dispersionAvailable) {
+	if (!this->m_dispersionAvailable) {
 		float result[4];
 		this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST, inputBuffers);
-		dispersion = result[0];
-		kr = 0.25f * MAX2(MIN2(this->dispersion, 1.f), 0.f);
-		kr2 = kr * 20;
-		dispersionAvailable = true;
+		this->m_dispersion = result[0];
+		this->m_kr = 0.25f * MAX2(MIN2(this->m_dispersion, 1.f), 0.f);
+		this->m_kr2 = this->m_kr * 20;
+		this->m_dispersionAvailable = true;
 	}
 }

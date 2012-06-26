@@ -34,9 +34,9 @@ void MixBlendOperation::executePixel(float *outputValue, float x, float y, Pixel
 	float inputValue[4];
 	float value;
 	
-	inputValueOperation->read(inputValue, x, y, sampler, inputBuffers);
-	inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
-	inputColor2Operation->read(inputColor2, x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(inputValue, x, y, sampler, inputBuffers);
+	this->m_inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
+	this->m_inputColor2Operation->read(inputColor2, x, y, sampler, inputBuffers);
 	value = inputValue[0];
 	
 	if (this->useValueAlphaMultiply()) {

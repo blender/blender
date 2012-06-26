@@ -27,12 +27,12 @@ ConvertPremulToKeyOperation::ConvertPremulToKeyOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 
-	this->inputColor = NULL;
+	this->m_inputColor = NULL;
 }
 
 void ConvertPremulToKeyOperation::initExecution()
 {
-	this->inputColor = getInputSocketReader(0);
+	this->m_inputColor = getInputSocketReader(0);
 }
 
 void ConvertPremulToKeyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -40,7 +40,7 @@ void ConvertPremulToKeyOperation::executePixel(float *outputValue, float x, floa
 	float inputValue[4];
 	float alpha;
 
-	this->inputColor->read(inputValue, x, y, sampler, inputBuffers);
+	this->m_inputColor->read(inputValue, x, y, sampler, inputBuffers);
 	alpha = inputValue[3];
 
 	if (fabsf(alpha) < 1e-5f) {
@@ -56,5 +56,5 @@ void ConvertPremulToKeyOperation::executePixel(float *outputValue, float x, floa
 
 void ConvertPremulToKeyOperation::deinitExecution()
 {
-	this->inputColor = NULL;
+	this->m_inputColor = NULL;
 }

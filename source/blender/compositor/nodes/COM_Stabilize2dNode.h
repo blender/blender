@@ -20,6 +20,9 @@
  *		Monique Dewanchand
  */
 
+#ifndef _COM_Stabilize2dNode_h_
+#define _COM_Stabilize2dNode_h_
+
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 
@@ -32,3 +35,5 @@ public:
 	Stabilize2dNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
+
+#endif

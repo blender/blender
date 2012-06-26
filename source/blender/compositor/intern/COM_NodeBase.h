@@ -47,23 +47,23 @@ private:
 	/**
 	 * @brief the list of actual inputsockets @see InputSocket
 	 */
-	vector<InputSocket *> inputsockets;
+	vector<InputSocket *> m_inputsockets;
 
 	/**
 	 * @brief the list of actual outputsockets @see OutputSocket
 	 */
-	vector<OutputSocket *> outputsockets;
+	vector<OutputSocket *> m_outputsockets;
 
 protected:
 	/**
 	 * @brief get access to the vector of input sockets
 	 */
-	inline vector<InputSocket *>& getInputSockets() { return this->inputsockets; }
+	inline vector<InputSocket *>& getInputSockets() { return this->m_inputsockets; }
 	
 	/**
 	 * @brief get access to the vector of input sockets
 	 */
-	inline vector<OutputSocket *>& getOutputSockets() { return this->outputsockets; }
+	inline vector<OutputSocket *>& getOutputSockets() { return this->m_outputsockets; }
 
 
 public:
@@ -91,12 +91,12 @@ public:
 	/**
 	 * @brief Return the number of input sockets of this node.
 	 */
-	const unsigned int getNumberOfInputSockets() const { return this->inputsockets.size(); }
+	const unsigned int getNumberOfInputSockets() const { return this->m_inputsockets.size(); }
 
 	/**
 	 * @brief Return the number of output sockets of this node.
 	 */
-	const unsigned int getNumberOfOutputSockets() const { return this->outputsockets.size(); }
+	const unsigned int getNumberOfOutputSockets() const { return this->m_outputsockets.size(); }
 
 	/**
 	 * get the reference to a certain outputsocket

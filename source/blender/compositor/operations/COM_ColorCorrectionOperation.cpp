@@ -28,31 +28,31 @@ ColorCorrectionOperation::ColorCorrectionOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
-	this->inputImage = NULL;
-	this->inputMask = NULL;
-	this->redChannelEnabled = true;
-	this->greenChannelEnabled = true;
-	this->blueChannelEnabled = true;
+	this->m_inputImage = NULL;
+	this->m_inputMask = NULL;
+	this->m_redChannelEnabled = true;
+	this->m_greenChannelEnabled = true;
+	this->m_blueChannelEnabled = true;
 }
 void ColorCorrectionOperation::initExecution()
 {
-	this->inputImage = this->getInputSocketReader(0);
-	this->inputMask = this->getInputSocketReader(1);
+	this->m_inputImage = this->getInputSocketReader(0);
+	this->m_inputMask = this->getInputSocketReader(1);
 }
 
 void ColorCorrectionOperation::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float inputImageColor[4];
 	float inputMask[4];
-	this->inputImage->read(inputImageColor, x, y, sampler, inputBuffers);
-	this->inputMask->read(inputMask, x, y, sampler, inputBuffers);
+	this->m_inputImage->read(inputImageColor, x, y, sampler, inputBuffers);
+	this->m_inputMask->read(inputMask, x, y, sampler, inputBuffers);
 	
 	float level = (inputImageColor[0] + inputImageColor[1] + inputImageColor[2]) / 3.0f;
-	float contrast = this->data->master.contrast;
-	float saturation = this->data->master.saturation;
-	float gamma = this->data->master.gamma;
-	float gain = this->data->master.gain;
-	float lift = this->data->master.lift;
+	float contrast = this->m_data->master.contrast;
+	float saturation = this->m_data->master.saturation;
+	float gamma = this->m_data->master.gamma;
+	float gain = this->m_data->master.gain;
+	float lift = this->m_data->master.lift;
 	float r, g, b;
 	
 	float value = inputMask[0];
@@ -64,18 +64,18 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	float levelHighlights = 0.0;
 #define MARGIN 0.10f
 #define MARGIN_DIV (0.5f / MARGIN)
-	if (level < this->data->startmidtones - MARGIN) {
+	if (level < this->m_data->startmidtones - MARGIN) {
 		levelShadows = 1.0f;
 	}
-	else if (level < this->data->startmidtones + MARGIN) {
-		levelMidtones = ((level - this->data->startmidtones) * MARGIN_DIV) + 0.5f;
+	else if (level < this->m_data->startmidtones + MARGIN) {
+		levelMidtones = ((level - this->m_data->startmidtones) * MARGIN_DIV) + 0.5f;
 		levelShadows = 1.0f - levelMidtones;
 	}
-	else if (level < this->data->endmidtones - MARGIN) {
+	else if (level < this->m_data->endmidtones - MARGIN) {
 		levelMidtones = 1.0f;
 	}
-	else if (level < this->data->endmidtones + MARGIN) {
-		levelHighlights = ((level - this->data->endmidtones) * MARGIN_DIV) + 0.5f;
+	else if (level < this->m_data->endmidtones + MARGIN) {
+		levelHighlights = ((level - this->m_data->endmidtones) * MARGIN_DIV) + 0.5f;
 		levelMidtones = 1.0f - levelHighlights;
 	}
 	else {
@@ -83,11 +83,11 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	}
 #undef MARGIN
 #undef MARGIN_DIV
-	contrast *= (levelShadows * this->data->shadows.contrast) + (levelMidtones * this->data->midtones.contrast) + (levelHighlights * this->data->highlights.contrast);
-	saturation *= (levelShadows * this->data->shadows.saturation) + (levelMidtones * this->data->midtones.saturation) + (levelHighlights * this->data->highlights.saturation);
-	gamma *= (levelShadows * this->data->shadows.gamma) + (levelMidtones * this->data->midtones.gamma) + (levelHighlights * this->data->highlights.gamma);
-	gain *= (levelShadows * this->data->shadows.gain) + (levelMidtones * this->data->midtones.gain) + (levelHighlights * this->data->highlights.gain);
-	lift += (levelShadows * this->data->shadows.lift) + (levelMidtones * this->data->midtones.lift) + (levelHighlights * this->data->highlights.lift);
+	contrast *= (levelShadows * this->m_data->shadows.contrast) + (levelMidtones * this->m_data->midtones.contrast) + (levelHighlights * this->m_data->highlights.contrast);
+	saturation *= (levelShadows * this->m_data->shadows.saturation) + (levelMidtones * this->m_data->midtones.saturation) + (levelHighlights * this->m_data->highlights.saturation);
+	gamma *= (levelShadows * this->m_data->shadows.gamma) + (levelMidtones * this->m_data->midtones.gamma) + (levelHighlights * this->m_data->highlights.gamma);
+	gain *= (levelShadows * this->m_data->shadows.gain) + (levelMidtones * this->m_data->midtones.gain) + (levelHighlights * this->m_data->highlights.gain);
+	lift += (levelShadows * this->m_data->shadows.lift) + (levelMidtones * this->m_data->midtones.lift) + (levelHighlights * this->m_data->highlights.lift);
 	
 	float invgamma = 1.0f / gamma;
 	float luma = rgb_to_luma_y(inputImageColor);
@@ -114,19 +114,19 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	g = mvalue * inputImageColor[1] + value * g;
 	b = mvalue * inputImageColor[2] + value * b;
 	
-	if (this->redChannelEnabled) {
+	if (this->m_redChannelEnabled) {
 		output[0] = r;
 	}
 	else {
 		output[0] = inputImageColor[0];
 	}
-	if (this->greenChannelEnabled) {
+	if (this->m_greenChannelEnabled) {
 		output[1] = g;
 	}
 	else {
 		output[1] = inputImageColor[1];
 	}
-	if (this->blueChannelEnabled) {
+	if (this->m_blueChannelEnabled) {
 		output[2] = b;
 	}
 	else {
@@ -137,7 +137,7 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 
 void ColorCorrectionOperation::deinitExecution()
 {
-	this->inputImage = NULL;
-	this->inputMask = NULL;
+	this->m_inputImage = NULL;
+	this->m_inputMask = NULL;
 }
 

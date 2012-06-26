@@ -48,17 +48,17 @@ private:
 	/**
 	 * @brief Startpoint of the connection
 	 */
-	OutputSocket *fromSocket;
+	OutputSocket *m_fromSocket;
 	
 	/**
 	 * @brief Endpoint of the connection
 	 */
-	InputSocket *toSocket;
+	InputSocket *m_toSocket;
 	
 	/**
 	 * @brief has the resize already been done for this connection
 	 */
-	bool ignoreResizeCheck;
+	bool m_ignoreResizeCheck;
 public:
 	SocketConnection();
 	
@@ -104,12 +104,12 @@ public:
 	/**
 	 * @brief set, whether the resize has already been done for this SocketConnection
 	 */
-	void setIgnoreResizeCheck(bool check) { this->ignoreResizeCheck = check; }
+	void setIgnoreResizeCheck(bool check) { this->m_ignoreResizeCheck = check; }
 	
 	/**
 	 * @brief has the resize already been done for this SocketConnection
 	 */
-	bool isIgnoreResizeCheck() const { return this->ignoreResizeCheck; }
+	bool isIgnoreResizeCheck() const { return this->m_ignoreResizeCheck; }
 	
 	/**
 	 * @brief does this SocketConnection need resolution conversion

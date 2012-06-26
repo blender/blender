@@ -26,22 +26,22 @@ SocketProxyOperation::SocketProxyOperation(DataType type) : NodeOperation()
 {
 	this->addInputSocket(type);
 	this->addOutputSocket(type);
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }
 
 void SocketProxyOperation::initExecution()
 {
-	this->inputOperation = this->getInputSocketReader(0);
+	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
 void SocketProxyOperation::deinitExecution()
 {
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }
 
 void SocketProxyOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	if (this->inputOperation) {
-		this->inputOperation->read(color, x, y, sampler, inputBuffers);
+	if (this->m_inputOperation) {
+		this->m_inputOperation->read(color, x, y, sampler, inputBuffers);
 	}
 }

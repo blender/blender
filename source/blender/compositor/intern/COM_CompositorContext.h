@@ -41,38 +41,38 @@ private:
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
 	 * @see ExecutionSystem
 	 */
-	bool rendering;
+	bool m_rendering;
 
 	/**
 	 * @brief The quality of the composite.
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
 	 * @see ExecutionSystem
 	 */
-	CompositorQuality quality;
+	CompositorQuality m_quality;
 
 	/**
 	 * @brief Reference to the render data that is being composited.
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
 	 * @see ExecutionSystem
 	 */
-	RenderData *rd;
+	RenderData *m_rd;
 
 	/**
 	 * @brief reference to the bNodeTree
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
 	 * @see ExecutionSystem
 	 */
-	bNodeTree *bnodetree;
+	bNodeTree *m_bnodetree;
 	
 	/**
 	 * @brief activegNode the group node that is currently being edited.
 	 */
-	bNode *activegNode;
+	bNode *m_activegNode;
 
 	/**
 	 * @brief does this system have active opencl devices?
 	 */
-	bool hasActiveOpenCLDevices;
+	bool m_hasActiveOpenCLDevices;
 
 public:
 	/**
@@ -83,56 +83,52 @@ public:
 	/**
 	 * @brief set the rendering field of the context
 	 */
-	void setRendering(bool rendering) { this->rendering = rendering; }
+	void setRendering(bool rendering) { this->m_rendering = rendering; }
 
 	/**
 	 * @brief get the rendering field of the context
 	 */
-	bool isRendering() const { return this->rendering; }
+	bool isRendering() const { return this->m_rendering; }
 
 	/**
 	 * @brief set the scene of the context
 	 */
-	void setRenderData(RenderData *rd) { this->rd = rd; }
+	void setRenderData(RenderData *rd) { this->m_rd = rd; }
 
 	/**
 	 * @brief set the bnodetree of the context
 	 */
-	void setbNodeTree(bNodeTree *bnodetree) { this->bnodetree = bnodetree; }
+	void setbNodeTree(bNodeTree *bnodetree) { this->m_bnodetree = bnodetree; }
 
 	/**
 	 * @brief get the bnodetree of the context
 	 */
-	const bNodeTree *getbNodeTree() const { return this->bnodetree; }
+	const bNodeTree *getbNodeTree() const { return this->m_bnodetree; }
 
 	/**
 	 * @brief set the active groupnode of the context
 	 */
-	void setActivegNode(bNode *gnode) { this->activegNode = gnode; }
+	void setActivegNode(bNode *gnode) { this->m_activegNode = gnode; }
 
 	/**
 	 * @brief get the active groupnode of the context
 	 */
-	const bNode *getActivegNode() const { return this->activegNode; }
+	const bNode *getActivegNode() const { return this->m_activegNode; }
 
 	/**
 	 * @brief get the scene of the context
 	 */
-	const RenderData *getRenderData() const { return this->rd; }
+	const RenderData *getRenderData() const { return this->m_rd; }
 
 	/**
 	 * @brief set the quality
 	 */
-	void setQuality(CompositorQuality quality) {
-		this->quality = quality;
-	}
+	void setQuality(CompositorQuality quality) { this->m_quality = quality; }
 
 	/**
 	 * @brief get the quality
 	 */
-	const CompositorQuality getQuality() const {
-		return quality;
-	}
+	const CompositorQuality getQuality() const { return this->m_quality; }
 
 	/**
 	 * @brief get the current framenumber of the scene in this context
@@ -142,16 +138,12 @@ public:
 	/**
 	 * @brief has this system active openclDevices?
 	 */
-	const bool getHasActiveOpenCLDevices() const {
-		return this->hasActiveOpenCLDevices;
-	}
+	const bool getHasActiveOpenCLDevices() const { return this->m_hasActiveOpenCLDevices; }
 
 	/**
 	 * @brief set has this system active openclDevices?
 	 */
-	void setHasActiveOpenCLDevices(bool hasAvtiveOpenCLDevices) {
-		this->hasActiveOpenCLDevices = hasAvtiveOpenCLDevices;
-	}
+	void setHasActiveOpenCLDevices(bool hasAvtiveOpenCLDevices) { this->m_hasActiveOpenCLDevices = hasAvtiveOpenCLDevices; }
 	
 	int getChunksize() { return this->getbNodeTree()->chunksize; }
 	

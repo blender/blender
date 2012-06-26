@@ -31,15 +31,15 @@
  */
 class SetSamplerOperation : public NodeOperation {
 private:
-	PixelSampler sampler;
-	SocketReader *reader;
+	PixelSampler m_sampler;
+	SocketReader *m_reader;
 public:
 	/**
 	 * Default constructor
 	 */
 	SetSamplerOperation();
 	
-	void setSampler(PixelSampler sampler) { this->sampler = sampler; }
+	void setSampler(PixelSampler sampler) { this->m_sampler = sampler; }
 	
 	/**
 	 * the inner loop of this program

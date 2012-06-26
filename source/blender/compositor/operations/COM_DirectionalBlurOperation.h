@@ -27,12 +27,12 @@
 
 class DirectionalBlurOperation : public NodeOperation, public QualityStepHelper {
 private:
-	SocketReader *inputProgram;
-	NodeDBlurData *data;
+	SocketReader *m_inputProgram;
+	NodeDBlurData *m_data;
 
-	float center_x_pix, center_y_pix;
-	float tx, ty;
-	float sc, rot;
+	float m_center_x_pix, m_center_y_pix;
+	float m_tx, m_ty;
+	float m_sc, m_rot;
 
 public:
 	DirectionalBlurOperation();
@@ -54,6 +54,6 @@ public:
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	
-	void setData(NodeDBlurData *data) { this->data = data; }
+	void setData(NodeDBlurData *data) { this->m_data = data; }
 };
 #endif

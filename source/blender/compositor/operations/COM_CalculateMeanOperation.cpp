@@ -30,33 +30,33 @@ CalculateMeanOperation::CalculateMeanOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addOutputSocket(COM_DT_VALUE);
-	this->imageReader = NULL;
-	this->iscalculated = false;
-	this->setting = 1;
+	this->m_imageReader = NULL;
+	this->m_iscalculated = false;
+	this->m_setting = 1;
 	this->setComplex(true);
 }
 void CalculateMeanOperation::initExecution()
 {
-	this->imageReader = this->getInputSocketReader(0);
-	this->iscalculated = false;
+	this->m_imageReader = this->getInputSocketReader(0);
+	this->m_iscalculated = false;
 	NodeOperation::initMutex();
 }
 
 void CalculateMeanOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	color[0] = this->result;
+	color[0] = this->m_result;
 }
 
 void CalculateMeanOperation::deinitExecution()
 {
-	this->imageReader = NULL;
+	this->m_imageReader = NULL;
 	NodeOperation::deinitMutex();
 }
 
 bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti imageInput;
-	if (iscalculated) {
+	if (this->m_iscalculated) {
 		return false;
 	}
 	NodeOperation *operation = getInputOperation(0);
@@ -73,10 +73,10 @@ bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 void *CalculateMeanOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	lockMutex();
-	if (!this->iscalculated) {
-		MemoryBuffer *tile = (MemoryBuffer *)imageReader->initializeTileData(rect, memoryBuffers);
+	if (!this->m_iscalculated) {
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect, memoryBuffers);
 		calculateMean(tile);
-		this->iscalculated = true;
+		this->m_iscalculated = true;
 	}
 	unlockMutex();
 	return NULL;
@@ -84,7 +84,7 @@ void *CalculateMeanOperation::initializeTileData(rcti *rect, MemoryBuffer **memo
 
 void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
 {
-	this->result = 0.0f;
+	this->m_result = 0.0f;
 	float *buffer = tile->getBuffer();
 	int size = tile->getWidth() * tile->getHeight();
 	int pixels = 0;
@@ -93,8 +93,7 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
 		if (buffer[offset + 3] > 0) {
 			pixels++;
 	
-			switch (this->setting)
-			{
+			switch (this->m_setting) {
 				case 1:
 				{
 					sum += rgb_to_bw(&buffer[offset]);
@@ -125,5 +124,5 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
 			}
 		}
 	}
-	this->result = sum / pixels;
+	this->m_result = sum / pixels;
 }

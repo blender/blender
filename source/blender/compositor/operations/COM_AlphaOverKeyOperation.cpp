@@ -33,9 +33,9 @@ void AlphaOverKeyOperation::executePixel(float *outputValue, float x, float y, P
 	float inputOverColor[4];
 	float value[4];
 	
-	inputValueOperation->read(value, x, y, sampler, inputBuffers);
-	inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
-	inputColor2Operation->read(inputOverColor, x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(value, x, y, sampler, inputBuffers);
+	this->m_inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
+	this->m_inputColor2Operation->read(inputOverColor, x, y, sampler, inputBuffers);
 	
 	if (inputOverColor[3] <= 0.0f) {
 		copy_v4_v4(outputValue, inputColor1);

@@ -31,23 +31,23 @@
   */
 class KeyingClipOperation : public NodeOperation {
 protected:
-	float clipBlack;
-	float clipWhite;
+	float m_clipBlack;
+	float m_clipWhite;
 
-	int kernelRadius;
-	float kernelTolerance;
+	int m_kernelRadius;
+	float m_kernelTolerance;
 
-	bool isEdgeMatte;
+	bool m_isEdgeMatte;
 public:
 	KeyingClipOperation();
 
-	void setClipBlack(float value) {this->clipBlack = value;}
-	void setClipWhite(float value) {this->clipWhite = value;}
+	void setClipBlack(float value) {this->m_clipBlack = value;}
+	void setClipWhite(float value) {this->m_clipWhite = value;}
 
-	void setKernelRadius(int value) {this->kernelRadius = value;}
-	void setKernelTolerance(float value) {this->kernelTolerance = value;}
+	void setKernelRadius(int value) {this->m_kernelRadius = value;}
+	void setKernelTolerance(float value) {this->m_kernelTolerance = value;}
 
-	void setIsEdgeMatte(bool value) {this->isEdgeMatte = value;}
+	void setIsEdgeMatte(bool value) {this->m_isEdgeMatte = value;}
 
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 

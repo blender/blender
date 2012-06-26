@@ -65,12 +65,12 @@ private:
 	 * @brief connection connected to this InputSocket.
 	 * An input socket can only have a single connection
 	 */
-	SocketConnection *connection;
+	SocketConnection *m_connection;
 	
 	/**
 	 * @brief resize mode of this socket
 	 */
-	InputSocketResizeMode resizeMode;
+	InputSocketResizeMode m_resizeMode;
 	
 	
 public:
@@ -126,7 +126,7 @@ public:
 	 * @param resizeMode the new resize mode.
 	 */
 	void setResizeMode(InputSocketResizeMode resizeMode) {
-		this->resizeMode = resizeMode;
+		this->m_resizeMode = resizeMode;
 	}
 	
 	/**
@@ -134,7 +134,7 @@ public:
 	 * @return InputSocketResizeMode
 	 */
 	InputSocketResizeMode getResizeMode() const {
-		return this->resizeMode;
+		return this->m_resizeMode;
 	}
 	
 	const ChannelInfo *getChannelInfo(const int channelnumber);

@@ -30,8 +30,8 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
-	SocketReader *inputGammaProgram;
+	SocketReader *m_inputProgram;
+	SocketReader *m_inputGammaProgram;
 
 public:
 	GammaOperation();

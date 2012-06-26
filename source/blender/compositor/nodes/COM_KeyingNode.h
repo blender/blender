@@ -24,12 +24,12 @@
 #include "COM_Node.h"
 
 /**
-  * @brief KeyingNode
-  * @ingroup Node
-  */
+ * @brief KeyingNode
+ * @ingroup Node
+ */
 class KeyingNode : public Node {
 protected:
-	NodeBlurData alpha_blur; /* only used for blurring alpha, since the dilate/erode node doesnt have this */
+	NodeBlurData m_alpha_blur; /* only used for blurring alpha, since the dilate/erode node doesnt have this */
 
 	OutputSocket *setupPreBlur(ExecutionSystem *graph, InputSocket *inputImage, int size, OutputSocket **originalImage);
 	OutputSocket *setupPostBlur(ExecutionSystem *graph, OutputSocket *postBlurInput, int size);

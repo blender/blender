@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_DisplaceNode_h
-#define _COM_DisplaceNode_h
+#ifndef _COM_DisplaceNode_h_
+#define _COM_DisplaceNode_h_
 
 #include "COM_Node.h"
 

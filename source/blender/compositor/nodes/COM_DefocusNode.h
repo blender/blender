@@ -29,7 +29,6 @@
  * @brief DefocusNode
  * @ingroup Node
  */
-
 class DefocusNode : public Node {
 public:
 	DefocusNode(bNode *editorNode);

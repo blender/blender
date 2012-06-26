@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_MathNode_h
-#define _COM_MathNode_h
+#ifndef _COM_MathNode_h_
+#define _COM_MathNode_h_
 
 #include "COM_Node.h"
 

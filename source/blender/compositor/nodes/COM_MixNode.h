@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_MixNode_h
-#define _COM_MixNode_h
+#ifndef _COM_MixNode_h_
+#define _COM_MixNode_h_
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"

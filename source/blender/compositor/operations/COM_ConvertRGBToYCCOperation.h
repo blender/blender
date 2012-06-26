@@ -33,12 +33,12 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputOperation;
+	SocketReader *m_inputOperation;
 
 	/**
 	 * YCbCr mode (Jpeg, ITU601, ITU709)
 	 */
-	int mode;
+	int m_mode;
 public:
 	/**
 	 * Default constructor

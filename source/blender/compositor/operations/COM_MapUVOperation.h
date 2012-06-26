@@ -29,10 +29,10 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputUVProgram;
-	SocketReader *inputColorProgram;
+	SocketReader *m_inputUVProgram;
+	SocketReader *m_inputColorProgram;
 
-	float alpha;
+	float m_alpha;
 	
 public:
 	MapUVOperation();
@@ -57,6 +57,6 @@ public:
 	 */
 	void deinitExecution();
 
-	void setAlpha(float alpha) { this->alpha = alpha; }
+	void setAlpha(float alpha) { this->m_alpha = alpha; }
 };
 #endif

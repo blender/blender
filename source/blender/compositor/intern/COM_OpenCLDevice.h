@@ -38,27 +38,27 @@ private:
 	/**
 	 * @brief opencl context
 	 */
-	cl_context context;
+	cl_context m_context;
 	
 	/**
 	 * @brief opencl device
 	 */
-	cl_device_id device;
+	cl_device_id m_device;
 	
 	/**
 	 * @brief opencl program
 	 */
-	cl_program program;
+	cl_program m_program;
 	
 	/**
 	 * @brief opencl command queue
 	 */
-	cl_command_queue queue;
+	cl_command_queue m_queue;
 
 	/**
 	 * @brief opencl vendor ID
 	 */
-	cl_int vendorID;
+	cl_int m_vendorID;
 
 public:
 	/**
@@ -91,9 +91,9 @@ public:
 	 */
 	void execute(WorkPackage *work);
 
-	cl_context getContext(){return this->context;}
+	cl_context getContext(){ return this->m_context; }
 
-	cl_command_queue getQueue(){return this->queue;}
+	cl_command_queue getQueue(){ return this->m_queue; }
 
 	cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader *reader);
 	void COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel kernel, int offsetIndex, MemoryBuffer *memoryBuffers);
