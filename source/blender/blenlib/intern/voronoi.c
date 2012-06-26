@@ -790,16 +790,15 @@ void BLI_voronoi_triangulate(const VoronoiSite *sites, int sites_total, ListBase
 			int ok_start = TRUE, ok_end = TRUE;
 
 			while (test_edge) {
-				float v1[2], v2[2];
-
-				sub_v2_v2v2(v1, edge->start, sites[i].co);
-				sub_v2_v2v2(v2, edge->end, sites[i].co);
-
-				if (ok_start && !testVoronoiEdge(sites[i].co, edge->start, test_edge))
+				if (ok_start && !testVoronoiEdge(sites[i].co, edge->start, test_edge)) {
 					ok_start = FALSE;
+					break;
+				}
 
-				if (ok_end && !testVoronoiEdge(sites[i].co, edge->end, test_edge))
+				if (ok_end && !testVoronoiEdge(sites[i].co, edge->end, test_edge)) {
 					ok_end = FALSE;
+					break;
+				}
 
 				test_edge = test_edge->next;
 			}

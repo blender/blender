@@ -2819,7 +2819,7 @@ static void posttrans_mask_clean(Mask *mask)
 			short added = 0;
 			masklay_shape_new = masklay_shape->next;
 
-			if (masklay_shape->flag & GP_FRAME_SELECT) {
+			if (masklay_shape->flag & MASK_SHAPE_SELECT) {
 				BLI_remlink(&masklay->splines_shapes, masklay_shape);
 
 				/* find place to add them in buffer
