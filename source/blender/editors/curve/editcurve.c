@@ -1199,8 +1199,6 @@ void load_editNurb(Object *obedit)
 
 	if (obedit == NULL) return;
 
-	set_actNurb(obedit, NULL);
-
 	if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = obedit->data;
 		Nurb *nu, *newnu;
@@ -1222,8 +1220,6 @@ void load_editNurb(Object *obedit)
 
 		BKE_nurbList_free(&oldnurb);
 	}
-
-	set_actNurb(obedit, NULL);
 }
 
 /* make copy in cu->editnurb */
@@ -1233,7 +1229,6 @@ void make_editNurb(Object *obedit)
 	EditNurb *editnurb = cu->editnurb;
 	Nurb *nu, *newnu, *nu_act = NULL;
 	KeyBlock *actkey;
-
 
 	set_actNurb(obedit, NULL);
 

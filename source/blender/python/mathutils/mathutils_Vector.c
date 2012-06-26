@@ -54,10 +54,17 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 /* Supports 2D, 3D, and 4D vector objects both int and float values
  * accepted. Mixed float and int values accepted. Ints are parsed to float
  */
-static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED(kwds))
+static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	float *vec = NULL;
 	int size = 3; /* default to a 3D vector */
+
+	if (kwds && PyDict_Size(kwds)) {
+		PyErr_SetString(PyExc_TypeError,
+		                "Vector(): "
+		                "takes no keyword args");
+		return NULL;
+	}
 
 	switch (PyTuple_GET_SIZE(args)) {
 		case 0:
