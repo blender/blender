@@ -28,20 +28,20 @@ DistanceMatteOperation::DistanceMatteOperation() : NodeOperation()
 	addInputSocket(COM_DT_COLOR);
 	addOutputSocket(COM_DT_VALUE);
 
-	inputImageProgram = NULL;
-	inputKeyProgram = NULL;
+	this->m_inputImageProgram = NULL;
+	this->m_inputKeyProgram = NULL;
 }
 
 void DistanceMatteOperation::initExecution()
 {
-	this->inputImageProgram = this->getInputSocketReader(0);
-	this->inputKeyProgram = this->getInputSocketReader(1);
+	this->m_inputImageProgram = this->getInputSocketReader(0);
+	this->m_inputKeyProgram = this->getInputSocketReader(1);
 }
 
 void DistanceMatteOperation::deinitExecution()
 {
-	this->inputImageProgram = NULL;
-	this->inputKeyProgram = NULL;
+	this->m_inputImageProgram = NULL;
+	this->m_inputKeyProgram = NULL;
 }
 
 void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -49,14 +49,14 @@ void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, 
 	float inKey[4];
 	float inImage[4];
 
-	const float tolerence = this->settings->t1;
-	const float falloff = this->settings->t2;
+	const float tolerence = this->m_settings->t1;
+	const float falloff = this->m_settings->t2;
 
 	float distance;
 	float alpha;
 
-	this->inputKeyProgram->read(inKey, x, y, sampler, inputBuffers);
-	this->inputImageProgram->read(inImage, x, y, sampler, inputBuffers);
+	this->m_inputKeyProgram->read(inKey, x, y, sampler, inputBuffers);
+	this->m_inputImageProgram->read(inImage, x, y, sampler, inputBuffers);
 	
 	distance = sqrt(pow((inKey[0] - inImage[0]), 2) +
 	                pow((inKey[1] - inImage[1]), 2) +

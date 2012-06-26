@@ -33,9 +33,9 @@ void MixScreenOperation::executePixel(float *outputValue, float x, float y, Pixe
 	float inputColor2[4];
 	float valuev[4];
 
-	inputValueOperation->read(valuev, x, y, sampler, inputBuffers);
-	inputColor1Operation->read(&inputColor1[0], x, y, sampler, inputBuffers);
-	inputColor2Operation->read(&inputColor2[0], x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(valuev, x, y, sampler, inputBuffers);
+	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler, inputBuffers);
+	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler, inputBuffers);
 
 	float value = valuev[0];
 	if (this->useValueAlphaMultiply()) {

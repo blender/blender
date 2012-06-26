@@ -26,18 +26,18 @@ ConvertValueToVectorOperation::ConvertValueToVectorOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VECTOR);
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }
 
 void ConvertValueToVectorOperation::initExecution()
 {
-	this->inputOperation = this->getInputSocketReader(0);
+	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
 void ConvertValueToVectorOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float input[4];
-	inputOperation->read(input, x, y, sampler, inputBuffers);
+	this->m_inputOperation->read(input, x, y, sampler, inputBuffers);
 	outputValue[0] = input[0];
 	outputValue[1] = input[0];
 	outputValue[2] = input[0];
@@ -46,5 +46,5 @@ void ConvertValueToVectorOperation::executePixel(float *outputValue, float x, fl
 
 void ConvertValueToVectorOperation::deinitExecution()
 {
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }

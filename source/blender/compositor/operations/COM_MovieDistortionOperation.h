@@ -31,100 +31,101 @@ extern "C" {
 
 class DistortionCache {
 private:
-	float k1;
-	float k2;
-	float k3;
-	float principal_x;
-	float principal_y;
-	float pixel_aspect;
-	int width;
-	int height;
-	int calibration_width;
-	int calibration_height;
-	bool inverted;
-	float *buffer;
-	int *bufferCalculated;
+	float m_k1;
+	float m_k2;
+	float m_k3;
+	float m_principal_x;
+	float m_principal_y;
+	float m_pixel_aspect;
+	int m_width;
+	int m_height;
+	int m_calibration_width;
+	int m_calibration_height;
+	bool m_inverted;
+	float *m_buffer;
+	int *m_bufferCalculated;
 public:
 	DistortionCache(MovieClip *movieclip, int width, int height, int calibration_width, int calibration_height, bool inverted) {
-		this->k1 = movieclip->tracking.camera.k1;
-		this->k2 = movieclip->tracking.camera.k2;
-		this->k3 = movieclip->tracking.camera.k3;
-		this->principal_x = movieclip->tracking.camera.principal[0];
-		this->principal_y = movieclip->tracking.camera.principal[1];
-		this->pixel_aspect = movieclip->tracking.camera.pixel_aspect;
-		this->width = width;
-		this->height = height;
-		this->calibration_width = calibration_width;
-		this->calibration_height = calibration_height;
-		this->inverted = inverted;
-		this->bufferCalculated = new int[this->width * this->height];
-		this->buffer = new float[this->width * this->height * 2];
-		for (int i = 0; i < this->width * this->height; i++) {
-			this->bufferCalculated[i] = 0;
+		this->m_k1 = movieclip->tracking.camera.k1;
+		this->m_k2 = movieclip->tracking.camera.k2;
+		this->m_k3 = movieclip->tracking.camera.k3;
+		this->m_principal_x = movieclip->tracking.camera.principal[0];
+		this->m_principal_y = movieclip->tracking.camera.principal[1];
+		this->m_pixel_aspect = movieclip->tracking.camera.pixel_aspect;
+		this->m_width = width;
+		this->m_height = height;
+		this->m_calibration_width = calibration_width;
+		this->m_calibration_height = calibration_height;
+		this->m_inverted = inverted;
+		this->m_bufferCalculated = new int[this->m_width * this->m_height];
+		this->m_buffer = new float[this->m_width * this->m_height * 2];
+		for (int i = 0; i < this->m_width * this->m_height; i++) {
+			this->m_bufferCalculated[i] = 0;
 		}
 	}
 	bool isCacheFor(MovieClip *movieclip, int width, int height, int calibration_width, int claibration_height, bool inverted) {
-		return this->k1 == movieclip->tracking.camera.k1 &&
-		       this->k2 == movieclip->tracking.camera.k2 &&
-		       this->k3 == movieclip->tracking.camera.k3 &&
-		       this->principal_x == movieclip->tracking.camera.principal[0] &&
-		       this->principal_y == movieclip->tracking.camera.principal[1] &&
-		       this->pixel_aspect == movieclip->tracking.camera.pixel_aspect &&
-		       this->inverted == inverted &&
-		       this->width == width &&
-		       this->height == height &&
-		       this->calibration_width == calibration_width &&
-		       this->calibration_height == calibration_height;
+		return this->m_k1 == movieclip->tracking.camera.k1 &&
+		       this->m_k2 == movieclip->tracking.camera.k2 &&
+		       this->m_k3 == movieclip->tracking.camera.k3 &&
+		       this->m_principal_x == movieclip->tracking.camera.principal[0] &&
+		       this->m_principal_y == movieclip->tracking.camera.principal[1] &&
+		       this->m_pixel_aspect == movieclip->tracking.camera.pixel_aspect &&
+		       this->m_inverted == inverted &&
+		       this->m_width == width &&
+		       this->m_height == height &&
+		       this->m_calibration_width == this->m_calibration_width &&
+		       this->m_calibration_height == this->m_calibration_height;
 	}
 	
-	void getUV(MovieTracking *trackingData, int x, int y, float *u, float *v) {
-		if (x < 0 || x >= this->width || y < 0 || y >= this->height) {
+	void getUV(MovieTracking *trackingData, int x, int y, float *u, float *v)
+	{
+		if (x < 0 || x >= this->m_width || y < 0 || y >= this->m_height) {
 			*u = x;
 			*v = y;
 		}
 		else {
-			int offset = y * this->width + x;
+			int offset = y * this->m_width + x;
 			int offset2 = offset * 2;
 
-			if (!bufferCalculated[offset]) {
+			if (!this->m_bufferCalculated[offset]) {
 				//float overscan = 0.0f;
-				float w = (float)this->width /* / (1 + overscan) */;
-				float h = (float)this->height /* / (1 + overscan) */;
-				float aspx = (float)w / this->calibration_width;
-				float aspy = (float)h / this->calibration_height;
+				float w = (float)this->m_width /* / (1 + overscan) */;
+				float h = (float)this->m_height /* / (1 + overscan) */;
+				float aspx = (float)w / this->m_calibration_width;
+				float aspy = (float)h / this->m_calibration_height;
 				float in[2];
 				float out[2];
 
 				in[0] = (x /* - 0.5 * overscan * w */) / aspx;
-				in[1] = (y /* - 0.5 * overscan * h */) / aspy / this->pixel_aspect;
+				in[1] = (y /* - 0.5 * overscan * h */) / aspy / this->m_pixel_aspect;
 
-				if (inverted) {
+				if (this->m_inverted) {
 					BKE_tracking_undistort_v2(trackingData, in, out);
 				}
 				else {
 					BKE_tracking_distort_v2(trackingData, in, out);
 				}
 
-				buffer[offset2] = out[0] * aspx /* + 0.5 * overscan * w */;
-				buffer[offset2 + 1] = (out[1] * aspy /* + 0.5 * overscan * h */) * this->pixel_aspect;
+				this->m_buffer[offset2] = out[0] * aspx /* + 0.5 * overscan * w */;
+				this->m_buffer[offset2 + 1] = (out[1] * aspy /* + 0.5 * overscan * h */) * this->m_pixel_aspect;
 
-				bufferCalculated[offset] = 1;
+				this->m_bufferCalculated[offset] = 1;
 			}
-			*u = buffer[offset2];
-			*v = buffer[offset2 + 1];
+			*u = this->m_buffer[offset2];
+			*v = this->m_buffer[offset2 + 1];
 		}
 	}
 };
 
 class MovieDistortionOperation : public NodeOperation {
 private:
-	DistortionCache *cache;
-	SocketReader *inputOperation;
-	MovieClip *movieClip;
+	DistortionCache *m_cache;
+	SocketReader *m_inputOperation;
+	MovieClip *m_movieClip;
 
 protected:
-	bool distortion;
-	int framenumber;
+	bool m_distortion;
+	int m_framenumber;
 
 public:
 	MovieDistortionOperation(bool distortion);
@@ -134,8 +135,8 @@ public:
 	void initExecution();
 	void deinitExecution();
 	
-	void setMovieClip(MovieClip *clip) { this->movieClip = clip; }
-	void setFramenumber(int framenumber) { this->framenumber = framenumber; }
+	void setMovieClip(MovieClip *clip) { this->m_movieClip = clip; }
+	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
 };
 
 #endif

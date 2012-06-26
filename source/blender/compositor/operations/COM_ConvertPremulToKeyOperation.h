@@ -30,7 +30,7 @@
  */
 class ConvertPremulToKeyOperation : public NodeOperation {
 private:
-	SocketReader *inputColor;
+	SocketReader *m_inputColor;
 public:
 	/**
 	 * Default constructor

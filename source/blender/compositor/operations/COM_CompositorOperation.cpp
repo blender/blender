@@ -42,36 +42,36 @@ CompositorOperation::CompositorOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 
 	this->setRenderData(NULL);
-	this->outputBuffer = NULL;
-	this->imageInput = NULL;
-	this->alphaInput = NULL;
+	this->m_outputBuffer = NULL;
+	this->m_imageInput = NULL;
+	this->m_alphaInput = NULL;
 }
 
 void CompositorOperation::initExecution()
 {
 	// When initializing the tree during initial load the width and height can be zero.
-	this->imageInput = getInputSocketReader(0);
-	this->alphaInput = getInputSocketReader(1);
+	this->m_imageInput = getInputSocketReader(0);
+	this->m_alphaInput = getInputSocketReader(1);
 	if (this->getWidth() * this->getHeight() != 0) {
-		this->outputBuffer = (float *) MEM_callocN(this->getWidth() * this->getHeight() * 4 * sizeof(float), "CompositorOperation");
+		this->m_outputBuffer = (float *) MEM_callocN(this->getWidth() * this->getHeight() * 4 * sizeof(float), "CompositorOperation");
 	}
 }
 
 void CompositorOperation::deinitExecution()
 {
 	if (!isBreaked()) {
-		const RenderData *rd = this->rd;
+		const RenderData *rd = this->m_rd;
 		Render *re = RE_GetRender_FromData(rd);
 		RenderResult *rr = RE_AcquireResultWrite(re);
 		if (rr) {
 			if (rr->rectf != NULL) {
 				MEM_freeN(rr->rectf);
 			}
-			rr->rectf = outputBuffer;
+			rr->rectf = this->m_outputBuffer;
 		}
 		else {
-			if (this->outputBuffer) {
-				MEM_freeN(this->outputBuffer);
+			if (this->m_outputBuffer) {
+				MEM_freeN(this->m_outputBuffer);
 			}
 		}
 
@@ -83,21 +83,21 @@ void CompositorOperation::deinitExecution()
 		}
 	}
 	else {
-		if (this->outputBuffer) {
-			MEM_freeN(this->outputBuffer);
+		if (this->m_outputBuffer) {
+			MEM_freeN(this->m_outputBuffer);
 		}
 	}
 
-	this->outputBuffer = NULL;
-	this->imageInput = NULL;
-	this->alphaInput = NULL;
+	this->m_outputBuffer = NULL;
+	this->m_imageInput = NULL;
+	this->m_alphaInput = NULL;
 }
 
 
 void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
 	float color[8]; // 7 is enough
-	float *buffer = this->outputBuffer;
+	float *buffer = this->m_outputBuffer;
 
 	if (!buffer) return;
 	int x1 = rect->xmin;
@@ -111,9 +111,9 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, Mem
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
-			imageInput->read(color, x, y, COM_PS_NEAREST, memoryBuffers);
-			if (alphaInput != NULL) {
-				alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST, memoryBuffers);
+			this->m_imageInput->read(color, x, y, COM_PS_NEAREST, memoryBuffers);
+			if (this->m_alphaInput != NULL) {
+				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST, memoryBuffers);
 			}
 			copy_v4_v4(buffer + offset, color);
 			offset += COM_NUMBER_OF_CHANNELS;
@@ -127,12 +127,12 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, Mem
 
 void CompositorOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
-	int width = this->rd->xsch * this->rd->size / 100;
-	int height = this->rd->ysch * this->rd->size / 100;
+	int width = this->m_rd->xsch * this->m_rd->size / 100;
+	int height = this->m_rd->ysch * this->m_rd->size / 100;
 
 	// check actual render resolution with cropping it may differ with cropped border.rendering
 	// FIX for: [31777] Border Crop gives black (easy)
-	Render *re = RE_GetRender_FromData(this->rd);
+	Render *re = RE_GetRender_FromData(this->m_rd);
 	if (re) {
 		RenderResult *rr = RE_AcquireResultRead(re);
 		if (rr) {

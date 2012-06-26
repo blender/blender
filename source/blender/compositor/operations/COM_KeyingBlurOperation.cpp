@@ -33,8 +33,8 @@ KeyingBlurOperation::KeyingBlurOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 
-	this->size = 0;
-	this->axis = BLUR_AXIS_X;
+	this->m_size = 0;
+	this->m_axis = BLUR_AXIS_X;
 
 	this->setComplex(true);
 }
@@ -58,8 +58,8 @@ void KeyingBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer 
 
 	float average = 0.0f;
 
-	if (this->axis == 0) {
-		for (i = -this->size + 1; i < this->size; i++) {
+	if (this->m_axis == 0) {
+		for (i = -this->m_size + 1; i < this->m_size; i++) {
 			int cx = x + i;
 
 			if (cx >= 0 && cx < bufferWidth) {
@@ -71,7 +71,7 @@ void KeyingBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer 
 		}
 	}
 	else {
-		for (i = -this->size + 1; i < this->size; i++) {
+		for (i = -this->m_size + 1; i < this->m_size; i++) {
 			int cy = y + i;
 
 			if (cy >= 0 && cy < bufferHeight) {
@@ -92,17 +92,17 @@ bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuff
 {
 	rcti newInput;
 
-	if (this->axis == BLUR_AXIS_X) {
-		newInput.xmin = input->xmin - this->size;
+	if (this->m_axis == BLUR_AXIS_X) {
+		newInput.xmin = input->xmin - this->m_size;
 		newInput.ymin = input->ymin;
-		newInput.xmax = input->xmax + this->size;
+		newInput.xmax = input->xmax + this->m_size;
 		newInput.ymax = input->ymax;
 	}
 	else {
 		newInput.xmin = input->xmin;
-		newInput.ymin = input->ymin - this->size;
+		newInput.ymin = input->ymin - this->m_size;
 		newInput.xmax = input->xmax;
-		newInput.ymax = input->ymax + this->size;
+		newInput.ymax = input->ymax + this->m_size;
 	}
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);

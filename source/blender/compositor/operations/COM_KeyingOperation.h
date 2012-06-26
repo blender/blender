@@ -36,12 +36,12 @@
   */
 class KeyingOperation : public NodeOperation {
 protected:
-	SocketReader *pixelReader;
-	SocketReader *screenReader;
-	SocketReader *garbageReader;
-	SocketReader *coreReader;
+	SocketReader *m_pixelReader;
+	SocketReader *m_screenReader;
+	SocketReader *m_garbageReader;
+	SocketReader *m_coreReader;
 
-	float screenBalance;
+	float m_screenBalance;
 
 public:
 	KeyingOperation();
@@ -49,7 +49,7 @@ public:
 	void initExecution();
 	void deinitExecution();
 
-	void setScreenBalance(float value) {this->screenBalance = value;}
+	void setScreenBalance(float value) {this->m_screenBalance = value;}
 
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 };

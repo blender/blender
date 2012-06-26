@@ -42,22 +42,22 @@ extern "C" {
 KeyingScreenOperation::KeyingScreenOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_COLOR);
-	this->movieClip = NULL;
-	this->framenumber = 0;
-	this->trackingObject[0] = 0;
+	this->m_movieClip = NULL;
+	this->m_framenumber = 0;
+	this->m_trackingObject[0] = 0;
 	setComplex(true);
 }
 
 void KeyingScreenOperation::initExecution()
 {
 	initMutex();
-	this->cachedTriangulation = NULL;
+	this->m_cachedTriangulation = NULL;
 }
 
 void KeyingScreenOperation::deinitExecution()
 {
-	if (this->cachedTriangulation) {
-		TriangulationData *triangulation = cachedTriangulation;
+	if (this->m_cachedTriangulation) {
+		TriangulationData *triangulation = this->m_cachedTriangulation;
 
 		if (triangulation->triangulated_points)
 			MEM_freeN(triangulation->triangulated_points);
@@ -68,9 +68,9 @@ void KeyingScreenOperation::deinitExecution()
 		if (triangulation->triangles_AABB)
 			MEM_freeN(triangulation->triangles_AABB);
 
-		MEM_freeN(this->cachedTriangulation);
+		MEM_freeN(this->m_cachedTriangulation);
 
-		this->cachedTriangulation = NULL;
+		this->m_cachedTriangulation = NULL;
 	}
 }
 
@@ -78,7 +78,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 {
 	MovieClipUser user = {0};
 	TriangulationData *triangulation;
-	MovieTracking *tracking = &movieClip->tracking;
+	MovieTracking *tracking = &this->m_movieClip->tracking;
 	MovieTrackingTrack *track;
 	VoronoiSite *sites;
 	ImBuf *ibuf;
@@ -88,10 +88,10 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	int i;
 	int width = this->getWidth();
 	int height = this->getHeight();
-	int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(this->movieClip, framenumber);
+	int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(this->m_movieClip, this->m_framenumber);
 
-	if (this->trackingObject[0]) {
-		MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, this->trackingObject);
+	if (this->m_trackingObject[0]) {
+		MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, this->m_trackingObject);
 
 		if (!object)
 			return NULL;
@@ -114,7 +114,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 		return NULL;
 
 	BKE_movieclip_user_set_frame(&user, clip_frame);
-	ibuf = BKE_movieclip_get_ibuf(movieClip, &user);
+	ibuf = BKE_movieclip_get_ibuf(this->m_movieClip, &user);
 
 	if (!ibuf)
 		return NULL;
@@ -199,19 +199,19 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 
 void *KeyingScreenOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	if (this->movieClip == NULL)
+	if (this->m_movieClip == NULL)
 		return NULL;
 
-	if (this->cachedTriangulation)
-		return this->cachedTriangulation;
+	if (this->m_cachedTriangulation)
+		return this->m_cachedTriangulation;
 
 	lockMutex();
-	if (this->cachedTriangulation == NULL) {
-		this->cachedTriangulation = buildVoronoiTriangulation();
+	if (this->m_cachedTriangulation == NULL) {
+		this->m_cachedTriangulation = buildVoronoiTriangulation();
 	}
 	unlockMutex();
 
-	return this->cachedTriangulation;
+	return this->m_cachedTriangulation;
 }
 
 void KeyingScreenOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
@@ -219,13 +219,13 @@ void KeyingScreenOperation::determineResolution(unsigned int resolution[], unsig
 	resolution[0] = 0;
 	resolution[1] = 0;
 
-	if (this->movieClip) {
+	if (this->m_movieClip) {
 		MovieClipUser user = {0};
 		int width, height;
-		int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(this->movieClip, framenumber);
+		int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(this->m_movieClip, this->m_framenumber);
 
 		BKE_movieclip_user_set_frame(&user, clip_frame);
-		BKE_movieclip_get_size(this->movieClip, &user, &width, &height);
+		BKE_movieclip_get_size(this->m_movieClip, &user, &width, &height);
 
 		resolution[0] = width;
 		resolution[1] = height;
@@ -239,7 +239,7 @@ void KeyingScreenOperation::executePixel(float *color, int x, int y, MemoryBuffe
 	color[2] = 0.0f;
 	color[3] = 1.0f;
 
-	if (this->movieClip && data) {
+	if (this->m_movieClip && data) {
 		TriangulationData *triangulation = (TriangulationData *) data;
 		int i;
 		float co[2] = {(float) x, (float) y};

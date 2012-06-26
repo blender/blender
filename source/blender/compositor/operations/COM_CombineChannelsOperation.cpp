@@ -31,10 +31,10 @@ CombineChannelsOperation::CombineChannelsOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setResolutionInputSocketIndex(0);
-	this->inputChannel1Operation = NULL;
-	this->inputChannel2Operation = NULL;
-	this->inputChannel3Operation = NULL;
-	this->inputChannel4Operation = NULL;
+	this->m_inputChannel1Operation = NULL;
+	this->m_inputChannel2Operation = NULL;
+	this->m_inputChannel3Operation = NULL;
+	this->m_inputChannel4Operation = NULL;
 }
 
 bool CombineChannelsOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) 
@@ -63,18 +63,18 @@ bool CombineChannelsOperation::determineDependingAreaOfInterest(rcti *input, Rea
 
 void CombineChannelsOperation::initExecution()
 {
-	this->inputChannel1Operation = this->getInputSocketReader(0);
-	this->inputChannel2Operation = this->getInputSocketReader(1);
-	this->inputChannel3Operation = this->getInputSocketReader(2);
-	this->inputChannel4Operation = this->getInputSocketReader(3);
+	this->m_inputChannel1Operation = this->getInputSocketReader(0);
+	this->m_inputChannel2Operation = this->getInputSocketReader(1);
+	this->m_inputChannel3Operation = this->getInputSocketReader(2);
+	this->m_inputChannel4Operation = this->getInputSocketReader(3);
 }
 
 void CombineChannelsOperation::deinitExecution()
 {
-	this->inputChannel1Operation = NULL;
-	this->inputChannel2Operation = NULL;
-	this->inputChannel3Operation = NULL;
-	this->inputChannel4Operation = NULL;
+	this->m_inputChannel1Operation = NULL;
+	this->m_inputChannel2Operation = NULL;
+	this->m_inputChannel3Operation = NULL;
+	this->m_inputChannel4Operation = NULL;
 }
 
 
@@ -82,20 +82,20 @@ void CombineChannelsOperation::executePixel(float *color, float x, float y, Pixe
 {
 	float input[4];
 	/// @todo: remove if statements
-	if (this->inputChannel1Operation) {
-		this->inputChannel1Operation->read(input, x, y, sampler, inputBuffers);
+	if (this->m_inputChannel1Operation) {
+		this->m_inputChannel1Operation->read(input, x, y, sampler, inputBuffers);
 		color[0] = input[0];
 	}
-	if (this->inputChannel2Operation) {
-		this->inputChannel2Operation->read(input, x, y, sampler, inputBuffers);
+	if (this->m_inputChannel2Operation) {
+		this->m_inputChannel2Operation->read(input, x, y, sampler, inputBuffers);
 		color[1] = input[0];
 	}
-	if (this->inputChannel3Operation) {
-		this->inputChannel3Operation->read(input, x, y, sampler, inputBuffers);
+	if (this->m_inputChannel3Operation) {
+		this->m_inputChannel3Operation->read(input, x, y, sampler, inputBuffers);
 		color[2] = input[0];
 	}
-	if (this->inputChannel4Operation) {
-		this->inputChannel4Operation->read(input, x, y, sampler, inputBuffers);
+	if (this->m_inputChannel4Operation) {
+		this->m_inputChannel4Operation->read(input, x, y, sampler, inputBuffers);
 		color[3] = input[0];
 	}
 }

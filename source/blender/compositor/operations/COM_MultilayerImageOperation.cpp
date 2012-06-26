@@ -29,15 +29,15 @@ extern "C" {
 
 MultilayerBaseOperation::MultilayerBaseOperation(int pass) : BaseImageOperation()
 {
-	this->passId = pass;
+	this->m_passId = pass;
 }
 ImBuf *MultilayerBaseOperation::getImBuf()
 {
 	RenderPass *rpass;
-	rpass = (RenderPass *)BLI_findlink(&this->renderlayer->passes, this->passId);
+	rpass = (RenderPass *)BLI_findlink(&this->m_renderlayer->passes, this->m_passId);
 	if (rpass) {
-		this->imageUser->pass = this->passId;
-		BKE_image_multilayer_index(image->rr, this->imageUser);
+		this->m_imageUser->pass = this->m_passId;
+		BKE_image_multilayer_index(this->m_image->rr, this->m_imageUser);
 		return BaseImageOperation::getImBuf();
 	}
 	return NULL;
@@ -47,31 +47,29 @@ void MultilayerColorOperation::executePixel(float *color, float x, float y, Pixe
 {
 	int yi = y;
 	int xi = x;
-	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
+	if (this->m_imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
 		color[0] = 0.0f;
 		color[1] = 0.0f;
 		color[2] = 0.0f;
 		color[3] = 0.0f;
 	}
 	else {
-		if (this->numberOfChannels == 4) {
+		if (this->m_numberOfChannels == 4) {
 			switch (sampler) {
 				case COM_PS_NEAREST:
-					neareast_interpolation_color(this->buffer, NULL, color, x, y);
+					neareast_interpolation_color(this->m_buffer, NULL, color, x, y);
 					break;
 				case COM_PS_BILINEAR:
-					bilinear_interpolation_color(this->buffer, NULL, color, x, y);
+					bilinear_interpolation_color(this->m_buffer, NULL, color, x, y);
 					break;
 				case COM_PS_BICUBIC:
-					bicubic_interpolation_color(this->buffer, NULL, color, x, y);
+					bicubic_interpolation_color(this->m_buffer, NULL, color, x, y);
 					break;
 			}
 		}
 		else {
 			int offset = (yi * this->getWidth() + xi) * 3;
-			color[0] = this->imageBuffer[offset];
-			color[1] = this->imageBuffer[offset + 1];
-			color[2] = this->imageBuffer[offset + 2];
+			copy_v3_v3(color, &this->m_imageBuffer[offset]);
 		}
 	}
 }
@@ -80,11 +78,11 @@ void MultilayerValueOperation::executePixel(float *color, float x, float y, Pixe
 {
 	int yi = y;
 	int xi = x;
-	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
+	if (this->m_imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
 		color[0] = 0.0f;
 	}
 	else {
-		float result = this->imageBuffer[yi * this->getWidth() + xi];
+		float result = this->m_imageBuffer[yi * this->getWidth() + xi];
 		color[0] = result;
 	}
 }
@@ -93,13 +91,11 @@ void MultilayerVectorOperation::executePixel(float *color, float x, float y, Pix
 {
 	int yi = y;
 	int xi = x;
-	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
+	if (this->m_imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
 		color[0] = 0.0f;
 	}
 	else {
 		int offset = (yi * this->getWidth() + xi) * 3;
-		color[0] = this->imageBuffer[offset];
-		color[1] = this->imageBuffer[offset + 1];
-		color[2] = this->imageBuffer[offset + 2];
+		copy_v3_v3(color, &this->m_imageBuffer[offset]);
 	}
 }

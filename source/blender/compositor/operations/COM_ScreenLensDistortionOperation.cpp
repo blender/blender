@@ -34,19 +34,19 @@ ScreenLensDistortionOperation::ScreenLensDistortionOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
-	this->inputProgram = NULL;
-	this->valuesAvailable = false;
-	this->dispersion = 0.0f;
-	this->distortion = 0.0f;
+	this->m_inputProgram = NULL;
+	this->m_valuesAvailable = false;
+	this->m_dispersion = 0.0f;
+	this->m_distortion = 0.0f;
 }
 void ScreenLensDistortionOperation::initExecution()
 {
-	this->inputProgram = this->getInputSocketReader(0);
+	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
 void *ScreenLensDistortionOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	void *buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
+	void *buffer = this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
 	updateDispersionAndDistortion(memoryBuffers);
 	return buffer;
 }
@@ -60,29 +60,29 @@ void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int 
 	int dr = 0, dg = 0, db = 0;
 	float d, t, ln[6] = {0, 0, 0, 0, 0, 0};
 	float tc[4] = {0, 0, 0, 0};
-	const float v = sc * ((y + 0.5f) - cy) / cy;
-	const float u = sc * ((x + 0.5f) - cx) / cx;
+	const float v = this->m_sc * ((y + 0.5f) - this->m_cy) / this->m_cy;
+	const float u = this->m_sc * ((x + 0.5f) - this->m_cx) / this->m_cx;
 	const float uv_dot = u * u + v * v;
 	int sta = 0, mid = 0, end = 0;
 
-	if ((t = 1.f - kr4 * uv_dot) >= 0.f) {
+	if ((t = 1.f - this->m_kr4 * uv_dot) >= 0.f) {
 		d = 1.f / (1.f + sqrtf(t));
 		ln[0] = (u * d + 0.5f) * width - 0.5f, ln[1] = (v * d + 0.5f) * height - 0.5f;
 		sta = 1;
 	}
-	if ((t = 1.f - kg4 * uv_dot) >= 0.f) {
+	if ((t = 1.f - this->m_kg4 * uv_dot) >= 0.f) {
 		d = 1.f / (1.f + sqrtf(t));
 		ln[2] = (u * d + 0.5f) * width - 0.5f, ln[3] = (v * d + 0.5f) * height - 0.5f;
 		mid = 1;
 	}
-	if ((t = 1.f - kb4 * uv_dot) >= 0.f) {
+	if ((t = 1.f - this->m_kb4 * uv_dot) >= 0.f) {
 		d = 1.f / (1.f + sqrtf(t));
 		ln[4] = (u * d + 0.5f) * width - 0.5f, ln[5] = (v * d + 0.5f) * height - 0.5f;
 		end = 1;
 	}
 
 	if (sta && mid && end) {
-		float jit = this->data->jit;
+		float jit = this->m_data->jit;
 		float z;
 		float color[4];
 		{
@@ -94,8 +94,8 @@ void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int 
 
 			for (z = 0; z < ds; ++z) {
 				const float tz = ((float)z + (jit ? BLI_frand() : 0.5f)) * sd;
-				t = 1.f - (kr4 + tz * drg) * uv_dot;
-				d = 1.f / (1.f + sqrtf(t));
+				t = 1.0f - (this->m_kr4 + tz * this->m_drg) * uv_dot;
+				d = 1.0f / (1.f + sqrtf(t));
 				const float nx = (u * d + 0.5f) * width - 0.5f;
 				const float ny = (v * d + 0.5f) * height - 0.5f;
 				buffer->readCubic(color, nx, ny);
@@ -112,7 +112,7 @@ void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int 
 
 			for (z = 0; z < ds; ++z) {
 				const float tz = ((float)z + (jit ? BLI_frand() : 0.5f)) * sd;
-				t = 1.f - (kg4 + tz * dgb) * uv_dot;
+				t = 1.f - (this->m_kg4 + tz * this->m_dgb) * uv_dot;
 				d = 1.f / (1.f + sqrtf(t));
 				const float nx = (u * d + 0.5f) * width - 0.5f;
 				const float ny = (v * d + 0.5f) * height - 0.5f;
@@ -122,9 +122,9 @@ void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int 
 			}
 
 		}
-		if (dr) outputColor[0] = 2.f * tc[0] / (float)dr;
-		if (dg) outputColor[1] = 2.f * tc[1] / (float)dg;
-		if (db) outputColor[2] = 2.f * tc[2] / (float)db;
+		if (dr) outputColor[0] = 2.0f * tc[0] / (float)dr;
+		if (dg) outputColor[1] = 2.0f * tc[1] / (float)dg;
+		if (db) outputColor[2] = 2.0f * tc[2] / (float)db;
 
 		/* set alpha */
 		outputColor[3] = 1.0f;
@@ -139,14 +139,14 @@ void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int 
 
 void ScreenLensDistortionOperation::deinitExecution()
 {
-	this->inputProgram = NULL;
+	this->m_inputProgram = NULL;
 }
 
 void ScreenLensDistortionOperation::determineUV(float result[2], float x, float y) const
 {
-	const float v = sc * ((y + 0.5f) - cy) / cy;
-	const float u = sc * ((x + 0.5f) - cx) / cx;
-	const float t = ABS(MIN3(kr, kg, kb) * 4);
+	const float v = this->m_sc * ((y + 0.5f) - this->m_cy) / this->m_cy;
+	const float u = this->m_sc * ((x + 0.5f) - this->m_cx) / this->m_cx;
+	const float t = ABS(MIN3(this->m_kr, this->m_kg, this->m_kb) * 4);
 	float d = 1.f / (1.f + sqrtf(t));
 	result[0] = (u * d + 0.5f) * getWidth() - 0.5f;
 	result[1] = (v * d + 0.5f) * getHeight() - 0.5f;
@@ -157,34 +157,34 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 	rcti newInput;
 	newInput.xmin = 0;
 	newInput.ymin = 0;
-	newInput.ymax = inputProgram->getHeight();
-	newInput.xmax = inputProgram->getWidth();
+	newInput.ymax = this->m_inputProgram->getHeight();
+	newInput.xmax = this->m_inputProgram->getWidth();
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
 void ScreenLensDistortionOperation::updateDispersionAndDistortion(MemoryBuffer **inputBuffers)
 {
-	if (!valuesAvailable) {
+	if (!this->m_valuesAvailable) {
 		float result[4];
 		this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST, inputBuffers);
-		this->distortion = result[0];
+		this->m_distortion = result[0];
 		this->getInputSocketReader(2)->read(result, 0, 0, COM_PS_NEAREST, inputBuffers);
-		this->dispersion = result[0];
-		kg = MAX2(MIN2(this->distortion, 1.f), -0.999f);
+		this->m_dispersion = result[0];
+		this->m_kg = MAX2(MIN2(this->m_distortion, 1.f), -0.999f);
 		// smaller dispersion range for somewhat more control
-		const float d = 0.25f * MAX2(MIN2(this->dispersion, 1.f), 0.f);
-		kr = MAX2(MIN2((kg + d), 1.f), -0.999f);
-		kb = MAX2(MIN2((kg - d), 1.f), -0.999f);
-		maxk = MAX3(kr, kg, kb);
-		sc = (this->data->fit && (maxk > 0.f)) ? (1.f / (1.f + 2.f * maxk)) : (1.f / (1.f + maxk));
-		drg = 4.f * (kg - kr);
-		dgb = 4.f * (kb - kg);
+		const float d = 0.25f * MAX2(MIN2(this->m_dispersion, 1.f), 0.f);
+		this->m_kr = MAX2(MIN2((this->m_kg + d), 1.0f), -0.999f);
+		this->m_kb = MAX2(MIN2((this->m_kg - d), 1.0f), -0.999f);
+		this->m_maxk = MAX3(this->m_kr, this->m_kg, this->m_kb);
+		this->m_sc = (this->m_data->fit && (this->m_maxk > 0.f)) ? (1.f / (1.f + 2.f * this->m_maxk)) : (1.f / (1.f + this->m_maxk));
+		this->m_drg = 4.f * (this->m_kg - this->m_kr);
+		this->m_dgb = 4.f * (this->m_kb - this->m_kg);
 	
-		kr4 = kr * 4.f;
-		kg4 = kg * 4.f;
-		kb4 = kb * 4.f;
-		cx = 0.5f * (float)getWidth();
-		cy = 0.5f * (float)getHeight();
-		valuesAvailable = true;
+		this->m_kr4 = this->m_kr * 4.0f;
+		this->m_kg4 = this->m_kg * 4.0f;
+		this->m_kb4 = this->m_kb * 4.0f;
+		this->m_cx = 0.5f * (float)getWidth();
+		this->m_cy = 0.5f * (float)getHeight();
+		this->m_valuesAvailable = true;
 	}
 }

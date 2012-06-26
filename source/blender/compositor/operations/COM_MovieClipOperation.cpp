@@ -34,23 +34,23 @@ extern "C" {
 MovieClipOperation::MovieClipOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_COLOR);
-	this->movieClip = NULL;
-	this->movieClipBuffer = NULL;
-	this->movieClipUser = NULL;
-	this->movieClipwidth = 0;
-	this->movieClipheight = 0;
-	this->framenumber = 0;
+	this->m_movieClip = NULL;
+	this->m_movieClipBuffer = NULL;
+	this->m_movieClipUser = NULL;
+	this->m_movieClipwidth = 0;
+	this->m_movieClipheight = 0;
+	this->m_framenumber = 0;
 }
 
 
 void MovieClipOperation::initExecution()
 {
-	if (this->movieClip) {
-		BKE_movieclip_user_set_frame(this->movieClipUser, this->framenumber);
+	if (this->m_movieClip) {
+		BKE_movieclip_user_set_frame(this->m_movieClipUser, this->m_framenumber);
 		ImBuf *ibuf;
-		ibuf = BKE_movieclip_get_ibuf(this->movieClip, this->movieClipUser);
+		ibuf = BKE_movieclip_get_ibuf(this->m_movieClip, this->m_movieClipUser);
 		if (ibuf) {
-			this->movieClipBuffer = ibuf;
+			this->m_movieClipBuffer = ibuf;
 			if (ibuf->rect_float == NULL || ibuf->userflags & IB_RECT_INVALID) {
 				IMB_float_from_rect(ibuf);
 				ibuf->userflags &= ~IB_RECT_INVALID;
@@ -61,10 +61,10 @@ void MovieClipOperation::initExecution()
 
 void MovieClipOperation::deinitExecution()
 {
-	if (this->movieClipBuffer) {
-		IMB_freeImBuf(this->movieClipBuffer);
+	if (this->m_movieClipBuffer) {
+		IMB_freeImBuf(this->m_movieClipBuffer);
 
-		this->movieClipBuffer = NULL;
+		this->m_movieClipBuffer = NULL;
 	}
 }
 
@@ -73,10 +73,10 @@ void MovieClipOperation::determineResolution(unsigned int resolution[], unsigned
 	resolution[0] = 0;
 	resolution[1] = 0;
 
-	if (this->movieClip) {
+	if (this->m_movieClip) {
 		int width, height;
 
-		BKE_movieclip_get_size(this->movieClip, this->movieClipUser, &width, &height);
+		BKE_movieclip_get_size(this->m_movieClip, this->m_movieClipUser, &width, &height);
 
 		resolution[0] = width;
 		resolution[1] = height;
@@ -85,22 +85,19 @@ void MovieClipOperation::determineResolution(unsigned int resolution[], unsigned
 
 void MovieClipOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	if (this->movieClipBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
-		color[0] = 0.0f;
-		color[1] = 0.0f;
-		color[2] = 0.0f;
-		color[3] = 0.0f;
+	if (this->m_movieClipBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
+		zero_v4(color);
 	}
 	else {
 		switch (sampler) {
 			case COM_PS_NEAREST:
-				neareast_interpolation_color(this->movieClipBuffer, NULL, color, x, y);
+				neareast_interpolation_color(this->m_movieClipBuffer, NULL, color, x, y);
 				break;
 			case COM_PS_BILINEAR:
-				bilinear_interpolation_color(this->movieClipBuffer, NULL, color, x, y);
+				bilinear_interpolation_color(this->m_movieClipBuffer, NULL, color, x, y);
 				break;
 			case COM_PS_BICUBIC:
-				bicubic_interpolation_color(this->movieClipBuffer, NULL, color, x, y);
+				bicubic_interpolation_color(this->m_movieClipBuffer, NULL, color, x, y);
 				break;
 		}
 	}

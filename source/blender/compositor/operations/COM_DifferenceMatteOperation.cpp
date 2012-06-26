@@ -29,19 +29,19 @@ DifferenceMatteOperation::DifferenceMatteOperation() : NodeOperation()
 	addInputSocket(COM_DT_COLOR);
 	addOutputSocket(COM_DT_VALUE);
 
-	inputImage1Program = NULL;
-	inputImage2Program = NULL;
+	this->m_inputImage1Program = NULL;
+	this->m_inputImage2Program = NULL;
 }
 
 void DifferenceMatteOperation::initExecution()
 {
-	this->inputImage1Program = this->getInputSocketReader(0);
-	this->inputImage2Program = this->getInputSocketReader(1);
+	this->m_inputImage1Program = this->getInputSocketReader(0);
+	this->m_inputImage2Program = this->getInputSocketReader(1);
 }
 void DifferenceMatteOperation::deinitExecution()
 {
-	this->inputImage1Program = NULL;
-	this->inputImage2Program = NULL;
+	this->m_inputImage1Program = NULL;
+	this->m_inputImage2Program = NULL;
 }
 
 void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -49,13 +49,13 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 	float inColor1[4];
 	float inColor2[4];
 
-	const float tolerence = this->settings->t1;
-	const float falloff = this->settings->t2;
+	const float tolerence = this->m_settings->t1;
+	const float falloff = this->m_settings->t2;
 	float difference;
 	float alpha;
 
-	this->inputImage1Program->read(inColor1, x, y, sampler, inputBuffers);
-	this->inputImage2Program->read(inColor2, x, y, sampler, inputBuffers);
+	this->m_inputImage1Program->read(inColor1, x, y, sampler, inputBuffers);
+	this->m_inputImage2Program->read(inColor2, x, y, sampler, inputBuffers);
 
 	difference = (fabsf(inColor2[0] - inColor1[0]) +
 	              fabsf(inColor2[1] - inColor1[1]) +

@@ -30,14 +30,14 @@ extern "C" {
 
 GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation() : BlurBaseOperation(COM_DT_VALUE)
 {
-	this->gausstab = NULL;
-	this->rad = 0;
+	this->m_gausstab = NULL;
+	this->m_rad = 0;
 }
 
 void *GaussianAlphaYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	lockMutex();
-	if (!this->sizeavailable) {
+	if (!this->m_sizeavailable) {
 		updateGauss(memoryBuffers);
 	}
 	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
@@ -51,37 +51,37 @@ void GaussianAlphaYBlurOperation::initExecution()
 
 	initMutex();
 
-	if (this->sizeavailable) {
-		float rad = size * this->data->sizey;
+	if (this->m_sizeavailable) {
+		float rad = this->m_size * this->m_data->sizey;
 		if (rad < 1)
 			rad = 1;
 
-		this->rad = rad;
-		this->gausstab = BlurBaseOperation::make_gausstab(rad);
-		this->distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, this->falloff);
+		this->m_rad = rad;
+		this->m_gausstab = BlurBaseOperation::make_gausstab(rad);
+		this->m_distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, this->m_falloff);
 	}
 }
 
 void GaussianAlphaYBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 {
-	if (this->gausstab == NULL) {
+	if (this->m_gausstab == NULL) {
 		updateSize(memoryBuffers);
-		float rad = size * this->data->sizey;
+		float rad = this->m_size * this->m_data->sizey;
 		if (rad < 1)
 			rad = 1;
 
-		this->rad = rad;
-		this->gausstab = BlurBaseOperation::make_gausstab(rad);
+		this->m_rad = rad;
+		this->m_gausstab = BlurBaseOperation::make_gausstab(rad);
 	}
 
-	if (this->distbuf_inv == NULL) {
+	if (this->m_distbuf_inv == NULL) {
 		updateSize(memoryBuffers);
-		float rad = size * this->data->sizex;
+		float rad = this->m_size * this->m_data->sizex;
 		if (rad < 1)
 			rad = 1;
 
-		this->rad = rad;
-		this->distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, this->falloff);
+		this->m_rad = rad;
+		this->m_distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, this->m_falloff);
 	}
 }
 
@@ -92,15 +92,15 @@ BLI_INLINE float finv_test(const float f, const bool test)
 
 void GaussianAlphaYBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	const bool do_invert = this->do_subtract;
+	const bool do_invert = this->m_do_subtract;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
 	int bufferwidth = inputBuffer->getWidth();
 	int bufferstartx = inputBuffer->getRect()->xmin;
 	int bufferstarty = inputBuffer->getRect()->ymin;
 
-	int miny = y - this->rad;
-	int maxy = y + this->rad;
+	int miny = y - this->m_rad;
+	int maxy = y + this->m_rad;
 	int minx = x;
 	int maxx = x;
 	miny = max(miny, inputBuffer->getRect()->ymin);
@@ -122,20 +122,20 @@ void GaussianAlphaYBlurOperation::executePixel(float *color, int x, int y, Memor
 	for (int ny = miny; ny < maxy; ny += step) {
 		int bufferindex = ((minx - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
 
-		const int index = (ny - y) + this->rad;
+		const int index = (ny - y) + this->m_rad;
 		float value = finv_test(buffer[bufferindex], do_invert);
 		float multiplier;
 
 		/* gauss */
 		{
-			multiplier = gausstab[index];
+			multiplier = this->m_gausstab[index];
 			alpha_accum += value * multiplier;
 			multiplier_accum += multiplier;
 		}
 
 		/* dilate - find most extreme color */
 		if (value > value_max) {
-			multiplier = distbuf_inv[index];
+			multiplier = this->m_distbuf_inv[index];
 			value *= multiplier;
 			if (value > value_max) {
 				value_max = value;
@@ -154,10 +154,10 @@ void GaussianAlphaYBlurOperation::executePixel(float *color, int x, int y, Memor
 void GaussianAlphaYBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
-	delete [] this->gausstab;
-	this->gausstab = NULL;
-	delete [] this->distbuf_inv;
-	this->distbuf_inv = NULL;
+	delete [] this->m_gausstab;
+	this->m_gausstab = NULL;
+	delete [] this->m_distbuf_inv;
+	this->m_distbuf_inv = NULL;
 
 	deinitMutex();
 }
@@ -179,11 +179,11 @@ bool GaussianAlphaYBlurOperation::determineDependingAreaOfInterest(rcti *input, 
 	else
 #endif
 	{
-		if (this->sizeavailable && this->gausstab != NULL) {
+		if (this->m_sizeavailable && this->m_gausstab != NULL) {
 			newInput.xmax = input->xmax;
 			newInput.xmin = input->xmin;
-			newInput.ymax = input->ymax + rad;
-			newInput.ymin = input->ymin - rad;
+			newInput.ymax = input->ymax + this->m_rad;
+			newInput.ymin = input->ymin - this->m_rad;
 		}
 		else {
 			newInput.xmax = this->getWidth();

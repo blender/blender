@@ -30,11 +30,11 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputValueProgram;
-	SocketReader *inputColorProgram;
+	SocketReader *m_inputValueProgram;
+	SocketReader *m_inputColorProgram;
 	
-	bool alpha;
-	bool color;
+	bool m_alpha;
+	bool m_color;
 
 public:
 	InvertOperation();
@@ -54,7 +54,7 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setColor(bool color) { this->color = color; }
-	void setAlpha(bool alpha) { this->alpha = alpha; }
+	void setColor(bool color) { this->m_color = color; }
+	void setAlpha(bool alpha) { this->m_alpha = alpha; }
 };
 #endif

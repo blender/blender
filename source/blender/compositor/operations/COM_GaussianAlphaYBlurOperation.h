@@ -28,11 +28,11 @@
 
 class GaussianAlphaYBlurOperation : public BlurBaseOperation {
 private:
-	float *gausstab;
-	float *distbuf_inv;
-	bool do_subtract;
-	int falloff;
-	int rad;
+	float *m_gausstab;
+	float *m_distbuf_inv;
+	bool m_do_subtract;
+	int m_falloff;
+	int m_rad;
 	void updateGauss(MemoryBuffer **memoryBuffers);
 public:
 	GaussianAlphaYBlurOperation();
@@ -58,7 +58,7 @@ public:
 	/**
 	 * Set subtract for Dilate/Erode functionality
 	 */
-	void setSubtract(bool subtract) { this->do_subtract = subtract; }
-	void setFalloff(int falloff) { this->falloff = falloff; }
+	void setSubtract(bool subtract) { this->m_do_subtract = subtract; }
+	void setFalloff(int falloff) { this->m_falloff = falloff; }
 };
 #endif

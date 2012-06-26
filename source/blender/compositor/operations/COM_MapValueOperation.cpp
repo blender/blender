@@ -26,19 +26,19 @@ MapValueOperation::MapValueOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }
 
 void MapValueOperation::initExecution()
 {
-	this->inputOperation = this->getInputSocketReader(0);
+	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
 void MapValueOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float src[4];
-	inputOperation->read(src, x, y, sampler, inputBuffers);
-	TexMapping *texmap = this->settings;
+	this->m_inputOperation->read(src, x, y, sampler, inputBuffers);
+	TexMapping *texmap = this->m_settings;
 	float value = (src[0] + texmap->loc[0]) * texmap->size[0];
 	if (texmap->flag & TEXMAP_CLIP_MIN)
 		if (value < texmap->min[0])
@@ -52,5 +52,5 @@ void MapValueOperation::executePixel(float *outputValue, float x, float y, Pixel
 
 void MapValueOperation::deinitExecution()
 {
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }

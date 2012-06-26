@@ -26,12 +26,12 @@ ConvertYCCToRGBOperation::ConvertYCCToRGBOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }
 
 void ConvertYCCToRGBOperation::initExecution()
 {
-	this->inputOperation = this->getInputSocketReader(0);
+	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
 void ConvertYCCToRGBOperation::setMode(int mode)
@@ -39,14 +39,14 @@ void ConvertYCCToRGBOperation::setMode(int mode)
 	switch (mode)
 	{
 		case 1:
-			this->mode = BLI_YCC_ITU_BT709;
+			this->m_mode = BLI_YCC_ITU_BT709;
 			break;
 		case 2:
-			this->mode = BLI_YCC_JFIF_0_255;
+			this->m_mode = BLI_YCC_JFIF_0_255;
 			break;
 		case 0:
 		default:
-			this->mode = BLI_YCC_ITU_BT601;
+			this->m_mode = BLI_YCC_ITU_BT601;
 			break;
 	}
 }
@@ -54,18 +54,18 @@ void ConvertYCCToRGBOperation::setMode(int mode)
 void ConvertYCCToRGBOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float inputColor[4];
-	inputOperation->read(inputColor, x, y, sampler, inputBuffers);
+	this->m_inputOperation->read(inputColor, x, y, sampler, inputBuffers);
 
 	/* need to un-normalize the data */
 	/* R,G,B --> Y,Cb,Cr */
 	mul_v3_fl(inputColor, 255.0f);
 
-	ycc_to_rgb(inputColor[0], inputColor[1], inputColor[2], &outputValue[0], &outputValue[1], &outputValue[2], this->mode);
+	ycc_to_rgb(inputColor[0], inputColor[1], inputColor[2], &outputValue[0], &outputValue[1], &outputValue[2], this->m_mode);
 	outputValue[3] = inputColor[3];
 }
 
 void ConvertYCCToRGBOperation::deinitExecution()
 {
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }
 

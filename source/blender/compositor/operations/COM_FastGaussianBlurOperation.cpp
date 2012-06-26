@@ -28,7 +28,7 @@
 
 FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
-	this->iirgaus = NULL;
+	this->m_iirgaus = NULL;
 }
 
 void FastGaussianBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
@@ -51,7 +51,7 @@ bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, Re
 		return true;
 	}
 	else {
-		if (this->iirgaus) {
+		if (this->m_iirgaus) {
 			return false;
 		}
 		else {
@@ -72,9 +72,9 @@ void FastGaussianBlurOperation::initExecution()
 
 void FastGaussianBlurOperation::deinitExecution() 
 {
-	if (this->iirgaus) {
-		delete this->iirgaus;
-		this->iirgaus = NULL;
+	if (this->m_iirgaus) {
+		delete this->m_iirgaus;
+		this->m_iirgaus = NULL;
 	}
 	BlurBaseOperation::deinitMutex();
 }
@@ -82,33 +82,33 @@ void FastGaussianBlurOperation::deinitExecution()
 void *FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	lockMutex();
-	if (!iirgaus) {
-		MemoryBuffer *newBuf = (MemoryBuffer *)this->inputProgram->initializeTileData(rect, memoryBuffers);
+	if (!this->m_iirgaus) {
+		MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect, memoryBuffers);
 		MemoryBuffer *copy = newBuf->duplicate();
 		updateSize(memoryBuffers);
 
 		int c;
-		sx = data->sizex * this->size / 2.0f;
-		sy = data->sizey * this->size / 2.0f;
+		this->m_sx = this->m_data->sizex * this->m_size / 2.0f;
+		this->m_sy = this->m_data->sizey * this->m_size / 2.0f;
 		
-		if ((sx == sy) && (sx > 0.f)) {
+		if ((this->m_sx == this->m_sy) && (this->m_sx > 0.f)) {
 			for (c = 0; c < COM_NUMBER_OF_CHANNELS; ++c)
-				IIR_gauss(copy, sx, c, 3);
+				IIR_gauss(copy, this->m_sx, c, 3);
 		}
 		else {
-			if (sx > 0.f) {
+			if (this->m_sx > 0.0f) {
 				for (c = 0; c < COM_NUMBER_OF_CHANNELS; ++c)
-					IIR_gauss(copy, sx, c, 1);
+					IIR_gauss(copy, this->m_sx, c, 1);
 			}
-			if (sy > 0.f) {
+			if (this->m_sy > 0.0f) {
 				for (c = 0; c < COM_NUMBER_OF_CHANNELS; ++c)
-					IIR_gauss(copy, sy, c, 2);
+					IIR_gauss(copy, this->m_sy, c, 2);
 			}
 		}
-		this->iirgaus = copy;
+		this->m_iirgaus = copy;
 	}
 	unlockMutex();
-	return iirgaus;
+	return this->m_iirgaus;
 }
 
 void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, unsigned int chan, unsigned int xy)

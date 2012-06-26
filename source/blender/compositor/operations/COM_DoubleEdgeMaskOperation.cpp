@@ -1184,8 +1184,8 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 		 *
 		 * Each version has slightly different criteria for detecting an edge pixel.
 		 */
-		if (this->adjecentOnly) {                // if "adjacent only" inner edge mode is turned on
-			if (this->keepInside) {              // if "keep inside" buffer edge mode is turned on
+		if (this->m_adjecentOnly) {              // if "adjacent only" inner edge mode is turned on
+			if (this->m_keepInside) {            // if "keep inside" buffer edge mode is turned on
 				do_adjacentKeepBorders(t, rw, limask, lomask, lres, res, rsize);
 			}
 			else {                               // "bleed out" buffer edge mode is turned on
@@ -1198,7 +1198,7 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 			do_adjacentEdgeDetection(t, rw, limask, lomask, lres, res, rsize, isz, osz, gsz);
 		}
 		else {                                   // "all" inner edge mode is turned on
-			if (this->keepInside) {              // if "keep inside" buffer edge mode is turned on
+			if (this->m_keepInside) {              // if "keep inside" buffer edge mode is turned on
 				do_allKeepBorders(t, rw, limask, lomask, lres, res, rsize);
 			}
 			else {                               // "bleed out" buffer edge mode is turned on
@@ -1230,16 +1230,16 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
-	this->inputInnerMask = NULL;
-	this->inputOuterMask = NULL;
-	this->adjecentOnly = false;
-	this->keepInside = false;
+	this->m_inputInnerMask = NULL;
+	this->m_inputOuterMask = NULL;
+	this->m_adjecentOnly = false;
+	this->m_keepInside = false;
 	this->setComplex(true);
 }
 
 bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-	if (this->cachedInstance == NULL) {
+	if (this->m_cachedInstance == NULL) {
 		rcti newInput;
 		newInput.xmax = this->getWidth();
 		newInput.xmin = 0;
@@ -1254,30 +1254,31 @@ bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti *input, Read
 
 void DoubleEdgeMaskOperation::initExecution()
 {
-	this->inputInnerMask = this->getInputSocketReader(0);
-	this->inputOuterMask = this->getInputSocketReader(1);
+	this->m_inputInnerMask = this->getInputSocketReader(0);
+	this->m_inputOuterMask = this->getInputSocketReader(1);
 	initMutex();
-	this->cachedInstance = NULL;
+	this->m_cachedInstance = NULL;
 }
 
 void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	if (this->cachedInstance) return this->cachedInstance;
+	if (this->m_cachedInstance)
+		return this->m_cachedInstance;
 	
 	lockMutex();
-	if (this->cachedInstance == NULL) {
-		MemoryBuffer *innerMask = (MemoryBuffer *)inputInnerMask->initializeTileData(rect, memoryBuffers);
-		MemoryBuffer *outerMask = (MemoryBuffer *)inputOuterMask->initializeTileData(rect, memoryBuffers);
+	if (this->m_cachedInstance == NULL) {
+		MemoryBuffer *innerMask = (MemoryBuffer *)this->m_inputInnerMask->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *outerMask = (MemoryBuffer *)this->m_inputOuterMask->initializeTileData(rect, memoryBuffers);
 		float *data = new float[this->getWidth() * this->getHeight()];
 		float *imask = innerMask->convertToValueBuffer();
 		float *omask = outerMask->convertToValueBuffer();
 		doDoubleEdgeMask(imask, omask, data);
 		delete imask;
 		delete omask;
-		this->cachedInstance = data;
+		this->m_cachedInstance = data;
 	}
 	unlockMutex();
-	return this->cachedInstance;
+	return this->m_cachedInstance;
 }
 void DoubleEdgeMaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
@@ -1291,12 +1292,12 @@ void DoubleEdgeMaskOperation::executePixel(float *color, int x, int y, MemoryBuf
 
 void DoubleEdgeMaskOperation::deinitExecution()
 {
-	this->inputInnerMask = NULL;
-	this->inputOuterMask = NULL;
+	this->m_inputInnerMask = NULL;
+	this->m_inputOuterMask = NULL;
 	deinitMutex();
-	if (this->cachedInstance) {
-		delete cachedInstance;
-		this->cachedInstance = NULL;
+	if (this->m_cachedInstance) {
+		delete this->m_cachedInstance;
+		this->m_cachedInstance = NULL;
 	}
 }
 

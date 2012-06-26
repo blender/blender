@@ -33,13 +33,13 @@ protected:
 	/**
 	 * @brief Cached reference to the reader
 	 */
-	SocketReader *imageReader;
+	SocketReader *m_imageReader;
 
 	/**
 	 * @brief temporarily cache of the execution storage
 	 * it stores x->min and y->mult
 	 */
-	NodeTwoFloats *cachedInstance;
+	NodeTwoFloats *m_cachedInstance;
 
 public:
 	NormalizeOperation();

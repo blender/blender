@@ -30,16 +30,16 @@
  */
 class ChannelMatteOperation : public NodeOperation {
 private:
-	SocketReader *inputImageProgram;
+	SocketReader *m_inputImageProgram;
 
-	int color_space;   /* node->custom1 */
-	int matte_channel; /* node->custom2 */
-	int limit_method;  /* node->algorithm */
-	int limit_channel; /* node->channel */
-	float limit_max;     /* node->storage->t1 */
-	float limit_min;     /* node->storage->t2 */
+	int m_color_space;   /* node->custom1 */
+	int m_matte_channel; /* node->custom2 */
+	int m_limit_method;  /* node->algorithm */
+	int m_limit_channel; /* node->channel */
+	float m_limit_max;     /* node->storage->t1 */
+	float m_limit_min;     /* node->storage->t2 */
 
-	float limit_range;
+	float m_limit_range;
 
 	/** ids to use for the operations (max and simple)
 	 * alpha = in[ids[0]] - max(in[ids[1]], in[ids[2]])
@@ -49,7 +49,7 @@ private:
 	 * ids[2] = ids[1]
 	 * alpha = in[ids[0]] - max(in[ids[1]], in[ids[2]])
 	 */
-	int ids[3];
+	int m_ids[3];
 public:
 	/**
 	 * Default constructor
@@ -66,11 +66,11 @@ public:
 
 	void setSettings(NodeChroma *nodeChroma, const int custom2)
 	{
-		this->limit_max = nodeChroma->t1;
-		this->limit_min = nodeChroma->t2;
-		this->limit_method = nodeChroma->algorithm;
-		this->limit_channel = nodeChroma->channel;
-		this->matte_channel = custom2;
+		this->m_limit_max = nodeChroma->t1;
+		this->m_limit_min = nodeChroma->t2;
+		this->m_limit_method = nodeChroma->algorithm;
+		this->m_limit_channel = nodeChroma->channel;
+		this->m_matte_channel = custom2;
 	}
 };
 #endif

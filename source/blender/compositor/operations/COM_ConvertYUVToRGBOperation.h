@@ -33,7 +33,7 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputOperation;
+	SocketReader *m_inputOperation;
 public:
 	/**
 	 * Default constructor

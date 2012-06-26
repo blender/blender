@@ -28,8 +28,7 @@
 
 class GlareGhostOperation : public GlareBaseOperation {
 public:
-	GlareGhostOperation() : GlareBaseOperation() {
-	}
+	GlareGhostOperation() : GlareBaseOperation() {}
 protected:
 	void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings);
 };

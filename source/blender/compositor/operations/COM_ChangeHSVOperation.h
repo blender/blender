@@ -31,11 +31,11 @@
  */
 class ChangeHSVOperation : public NodeOperation {
 private:
-	SocketReader *inputOperation;
+	SocketReader *m_inputOperation;
 
-	float hue;
-	float saturation;
-	float value;
+	float m_hue;
+	float m_saturation;
+	float m_value;
 
 public:
 	/**
@@ -51,9 +51,9 @@ public:
 	 */
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
-	void setHue(float hue) { this->hue = hue; }
-	void setSaturation(float saturation) { this->saturation = saturation; }
-	void setValue(float value) { this->value = value; }
+	void setHue(float hue) { this->m_hue = hue; }
+	void setSaturation(float saturation) { this->m_saturation = saturation; }
+	void setValue(float value) { this->m_value = value; }
 
 };
 #endif

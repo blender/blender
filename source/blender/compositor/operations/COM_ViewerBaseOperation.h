@@ -28,35 +28,35 @@
 
 class ViewerBaseOperation : public NodeOperation {
 protected:
-	float *outputBuffer;
-	unsigned char *outputBufferDisplay;
-	Image *image;
-	ImageUser *imageUser;
-	void *lock;
-	bool active;
-	float centerX;
-	float centerY;
-	OrderOfChunks chunkOrder;
-	bool doColorManagement;
-	bool doColorPredivide;
+	float *m_outputBuffer;
+	unsigned char *m_outputBufferDisplay;
+	Image *m_image;
+	ImageUser *m_imageUser;
+	void *m_lock;
+	bool m_active;
+	float m_centerX;
+	float m_centerY;
+	OrderOfChunks m_chunkOrder;
+	bool m_doColorManagement;
+	bool m_doColorPredivide;
 
 public:
 	bool isOutputOperation(bool rendering) const { return isActiveViewerOutput(); }
 	void initExecution();
 	void deinitExecution();
-	void setImage(Image *image) { this->image = image; }
-	void setImageUser(ImageUser *imageUser) { this->imageUser = imageUser; }
-	const bool isActiveViewerOutput() const { return active; }
-	void setActive(bool active) { this->active = active; }
-	void setCenterX(float centerX) { this->centerX = centerX;}
-	void setCenterY(float centerY) { this->centerY = centerY;}
-	void setChunkOrder(OrderOfChunks tileOrder) { this->chunkOrder = tileOrder; }
-	float getCenterX() { return this->centerX; }
-	float getCenterY() { return this->centerY; }
-	OrderOfChunks getChunkOrder() { return this->chunkOrder; }
+	void setImage(Image *image) { this->m_image = image; }
+	void setImageUser(ImageUser *imageUser) { this->m_imageUser = imageUser; }
+	const bool isActiveViewerOutput() const { return this->m_active; }
+	void setActive(bool active) { this->m_active = active; }
+	void setCenterX(float centerX) { this->m_centerX = centerX;}
+	void setCenterY(float centerY) { this->m_centerY = centerY;}
+	void setChunkOrder(OrderOfChunks tileOrder) { this->m_chunkOrder = tileOrder; }
+	float getCenterX() { return this->m_centerX; }
+	float getCenterY() { return this->m_centerY; }
+	OrderOfChunks getChunkOrder() { return this->m_chunkOrder; }
 	const CompositorPriority getRenderPriority() const;
-	void setColorManagement(bool doColorManagement) { this->doColorManagement = doColorManagement; }
-	void setColorPredivide(bool doColorPredivide) { this->doColorPredivide = doColorPredivide; }
+	void setColorManagement(bool doColorManagement) { this->m_doColorManagement = doColorManagement; }
+	void setColorPredivide(bool doColorPredivide) { this->m_doColorPredivide = doColorPredivide; }
 	bool isViewerOperation() { return true; }
 		
 protected:

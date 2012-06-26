@@ -32,21 +32,21 @@ DisplaceOperation::DisplaceOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
 
-	this->inputColorProgram = NULL;
-	this->inputVectorProgram = NULL;
-	this->inputScaleXProgram = NULL;
-	this->inputScaleYProgram = NULL;
+	this->m_inputColorProgram = NULL;
+	this->m_inputVectorProgram = NULL;
+	this->m_inputScaleXProgram = NULL;
+	this->m_inputScaleYProgram = NULL;
 }
 
 void DisplaceOperation::initExecution()
 {
-	this->inputColorProgram = this->getInputSocketReader(0);
-	this->inputVectorProgram = this->getInputSocketReader(1);
-	this->inputScaleXProgram = this->getInputSocketReader(2);
-	this->inputScaleYProgram = this->getInputSocketReader(3);
+	this->m_inputColorProgram = this->getInputSocketReader(0);
+	this->m_inputVectorProgram = this->getInputSocketReader(1);
+	this->m_inputScaleXProgram = this->getInputSocketReader(2);
+	this->m_inputScaleYProgram = this->getInputSocketReader(3);
 
-	width_x4 = this->getWidth() * 4;
-	height_x4 = this->getHeight() * 4;
+	this->m_width_x4 = this->getWidth() * 4;
+	this->m_height_x4 = this->getHeight() * 4;
 }
 
 
@@ -64,17 +64,17 @@ void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *i
 	float dxt, dyt;
 	float u, v;
 
-	this->inputScaleXProgram->read(inScale, x, y, COM_PS_NEAREST, inputBuffers);
+	this->m_inputScaleXProgram->read(inScale, x, y, COM_PS_NEAREST, inputBuffers);
 	float xs = inScale[0];
-	this->inputScaleYProgram->read(inScale, x, y, COM_PS_NEAREST, inputBuffers);
+	this->m_inputScaleYProgram->read(inScale, x, y, COM_PS_NEAREST, inputBuffers);
 	float ys = inScale[0];
 
 	/* clamp x and y displacement to triple image resolution - 
 	 * to prevent hangs from huge values mistakenly plugged in eg. z buffers */
-	CLAMP(xs, -width_x4, width_x4);
-	CLAMP(ys, -height_x4, height_x4);
+	CLAMP(xs, -this->m_width_x4, this->m_width_x4);
+	CLAMP(ys, -this->m_height_x4, this->m_height_x4);
 
-	this->inputVectorProgram->read(inVector, x, y, COM_PS_NEAREST, inputBuffers);
+	this->m_inputVectorProgram->read(inVector, x, y, COM_PS_NEAREST, inputBuffers);
 	p_dx = inVector[0] * xs;
 	p_dy = inVector[1] * ys;
 
@@ -83,9 +83,9 @@ void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *i
 	v = y - p_dy + 0.5f;
 
 	/* calc derivatives */
-	this->inputVectorProgram->read(inVector, x + 1, y, COM_PS_NEAREST, inputBuffers);
+	this->m_inputVectorProgram->read(inVector, x + 1, y, COM_PS_NEAREST, inputBuffers);
 	d_dx = inVector[0] * xs;
-	this->inputVectorProgram->read(inVector, x, y + 1, COM_PS_NEAREST, inputBuffers);
+	this->m_inputVectorProgram->read(inVector, x, y + 1, COM_PS_NEAREST, inputBuffers);
 	d_dy = inVector[0] * ys;
 
 	/* clamp derivatives to minimum displacement distance in UV space */
@@ -96,15 +96,15 @@ void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *i
 	dyt = signf(dyt) * maxf(fabsf(dyt), DISPLACE_EPSILON) / this->getHeight();
 
 	/* EWA filtering */
-	this->inputColorProgram->read(color, u, v, dxt, dyt, inputBuffers);
+	this->m_inputColorProgram->read(color, u, v, dxt, dyt, inputBuffers);
 }
 
 void DisplaceOperation::deinitExecution()
 {
-	this->inputColorProgram = NULL;
-	this->inputVectorProgram = NULL;
-	this->inputScaleXProgram = NULL;
-	this->inputScaleYProgram = NULL;
+	this->m_inputColorProgram = NULL;
+	this->m_inputVectorProgram = NULL;
+	this->m_inputScaleXProgram = NULL;
+	this->m_inputScaleYProgram = NULL;
 }
 
 bool DisplaceOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
