@@ -61,23 +61,23 @@ private:
 	/**
 	 * @brief the channel number, in the connection. [0-3]
 	 */
-	int number;
+	int m_number;
 
 	/**
 	 * @brief type of channel
 	 */
-	ChannelType type;
+	ChannelType m_type;
 
 	/**
 	 * @brieg Is this value in this channel premultiplied with its alpha
 	 * @note only valid if type = ColorComponent;
 	 */
-	bool premultiplied;
+	bool m_premultiplied;
 
 //	/**
-//	  * Color space of this value.
-//	  * only valid when type = ColorComponent;
-//	  */
+//	 * Color space of this value.
+//	 * only valid when type = ColorComponent;
+//	 */
 //	string colorspacename;
 
 public:
@@ -89,32 +89,32 @@ public:
 	/**
 	 * @brief set the index of this channel in the SocketConnection
 	 */
-	void setNumber(const int number) { this->number = number; }
+	void setNumber(const int number) { this->m_number = number; }
 
 	/**
 	 * @brief get the index of this channel in the SocketConnection
 	 */
-	const int getNumber() const { return this->number; }
+	const int getNumber() const { return this->m_number; }
 
 	/**
 	 * @brief set the type of channel
 	 */
-	void setType(const ChannelType type) { this->type = type; }
+	void setType(const ChannelType type) { this->m_type = type; }
 
 	/**
 	 * @brief get the type of channel
 	 */
-	const ChannelType getType() const { return this->type; }
+	const ChannelType getType() const { return this->m_type; }
 
 	/**
 	 * @brief set the premultiplicatioin of this channel
 	 */
-	void setPremultiplied(const bool premultiplied) { this->premultiplied = premultiplied; }
+	void setPremultiplied(const bool premultiplied) { this->m_premultiplied = premultiplied; }
 
 	/**
 	 * @brief is this channel premultiplied
 	 */
-	const bool isPremultiplied() const { return this->premultiplied; }
+	const bool isPremultiplied() const { return this->m_premultiplied; }
 };
 
 

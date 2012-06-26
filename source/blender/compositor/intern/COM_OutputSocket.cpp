@@ -31,7 +31,7 @@ OutputSocket::OutputSocket(DataType datatype) : Socket(datatype)
 }
 
 int OutputSocket::isOutputSocket() const { return true; }
-const int OutputSocket::isConnected() const { return this->connections.size() != 0; }
+const int OutputSocket::isConnected() const { return this->m_connections.size() != 0; }
 
 void OutputSocket::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
@@ -51,37 +51,37 @@ void OutputSocket::determineResolution(unsigned int resolution[], unsigned int p
 
 void OutputSocket::addConnection(SocketConnection *connection)
 {
-	this->connections.push_back(connection);
+	this->m_connections.push_back(connection);
 }
 
 void OutputSocket::relinkConnections(OutputSocket *relinkToSocket, bool single)
 {
 	if (isConnected()) {
 		if (single) {
-			SocketConnection *connection = this->connections[0];
+			SocketConnection *connection = this->m_connections[0];
 			connection->setFromSocket(relinkToSocket);
 			relinkToSocket->addConnection(connection);
-			this->connections.erase(this->connections.begin());
+			this->m_connections.erase(this->m_connections.begin());
 		}
 		else {
 			unsigned int index;
-			for (index = 0; index < this->connections.size(); index++) {
-				SocketConnection *connection = this->connections[index];
+			for (index = 0; index < this->m_connections.size(); index++) {
+				SocketConnection *connection = this->m_connections[index];
 				connection->setFromSocket(relinkToSocket);
 				relinkToSocket->addConnection(connection);
 			}
-			this->connections.clear();
+			this->m_connections.clear();
 		}
 	}
 }
 void OutputSocket::removeFirstConnection()
 {
-	SocketConnection *connection = this->connections[0];
+	SocketConnection *connection = this->m_connections[0];
 	InputSocket *inputSocket = connection->getToSocket();
 	if (inputSocket != NULL) {
 		inputSocket->setConnection(NULL);
 	}
-	this->connections.erase(this->connections.begin());
+	this->m_connections.erase(this->m_connections.begin());
 }
 
 void OutputSocket::clearConnections()
@@ -94,8 +94,8 @@ void OutputSocket::clearConnections()
 WriteBufferOperation *OutputSocket::findAttachedWriteBufferOperation() const
 {
 	unsigned int index;
-	for (index = 0; index < this->connections.size(); index++) {
-		SocketConnection *connection = this->connections[index];
+	for (index = 0; index < this->m_connections.size(); index++) {
+		SocketConnection *connection = this->m_connections[index];
 		NodeBase *node = connection->getToNode();
 		if (node->isOperation()) {
 			NodeOperation *operation = (NodeOperation *)node;

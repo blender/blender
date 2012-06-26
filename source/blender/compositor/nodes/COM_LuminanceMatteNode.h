@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef COM_LuminanceMatteNODE_H
-#define COM_LuminanceMatteNODE_H
+#ifndef _COM_LuminanceMatteNode_h_
+#define _COM_LuminanceMatteNode_h_
 
 #include "COM_Node.h"
 
@@ -28,11 +28,10 @@
  * @brief LuminanceMatteNode
  * @ingroup Node
  */
-class LuminanceMatteNode : public Node
-{
+class LuminanceMatteNode : public Node {
 public:
 	LuminanceMatteNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // COM_LuminanceMatteNODE_H
+#endif // _COM_LuminanceMatteNode_h_

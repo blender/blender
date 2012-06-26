@@ -39,13 +39,13 @@ NodeBase::NodeBase()
 
 NodeBase::~NodeBase()
 {
-	while (!this->outputsockets.empty()) {
-		delete (this->outputsockets.back());
-		this->outputsockets.pop_back();
+	while (!this->m_outputsockets.empty()) {
+		delete (this->m_outputsockets.back());
+		this->m_outputsockets.pop_back();
 	}
-	while (!this->inputsockets.empty()) {
-		delete (this->inputsockets.back());
-		this->inputsockets.pop_back();
+	while (!this->m_inputsockets.empty()) {
+		delete (this->m_inputsockets.back());
+		this->m_inputsockets.pop_back();
 	}
 }
 
@@ -63,7 +63,7 @@ void NodeBase::addInputSocket(DataType datatype, InputSocketResizeMode resizeMod
 	InputSocket *socket = new InputSocket(datatype, resizeMode);
 	socket->setEditorSocket(bSocket);
 	socket->setNode(this);
-	this->inputsockets.push_back(socket);
+	this->m_inputsockets.push_back(socket);
 }
 
 void NodeBase::addOutputSocket(DataType datatype)
@@ -76,21 +76,21 @@ void NodeBase::addOutputSocket(DataType datatype, bNodeSocket *bSocket)
 	OutputSocket *socket = new OutputSocket(datatype);
 	socket->setEditorSocket(bSocket);
 	socket->setNode(this);
-	this->outputsockets.push_back(socket);
+	this->m_outputsockets.push_back(socket);
 }
 const bool NodeBase::isInputNode() const
 {
-	return this->inputsockets.size() == 0;
+	return this->m_inputsockets.size() == 0;
 }
 
 OutputSocket *NodeBase::getOutputSocket(unsigned int index)
 {
-	BLI_assert(index < this->outputsockets.size());
-	return this->outputsockets[index];
+	BLI_assert(index < this->m_outputsockets.size());
+	return this->m_outputsockets[index];
 }
 
 InputSocket *NodeBase::getInputSocket(unsigned int index)
 {
-	BLI_assert(index < this->inputsockets.size());
-	return this->inputsockets[index];
+	BLI_assert(index < this->m_inputsockets.size());
+	return this->m_inputsockets[index];
 }

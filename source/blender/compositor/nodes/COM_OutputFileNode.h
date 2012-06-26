@@ -21,8 +21,8 @@
  *		Lukas Tönne
  */
 
-#ifndef _COM_OutputFileNode_h
-#define _COM_OutputFileNode_h
+#ifndef _COM_OutputFileNode_h_
+#define _COM_OutputFileNode_h_
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"

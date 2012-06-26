@@ -41,7 +41,7 @@
 
 Node::Node(bNode *editorNode, bool create_sockets)
 {
-	this->editorNode = editorNode;
+	this->m_editorNode = editorNode;
 	
 	if (create_sockets) {
 		bNodeSocket *input = (bNodeSocket *)editorNode->inputs.first;
@@ -66,12 +66,12 @@ Node::Node(bNode *editorNode, bool create_sockets)
 }
 Node::Node()
 {
-	this->editorNode = NULL;
+	this->m_editorNode = NULL;
 }
 
 bNode *Node::getbNode()
 {
-	return this->editorNode;
+	return this->m_editorNode;
 }
 
 void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex)

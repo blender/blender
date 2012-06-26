@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef COM_DifferenceMatteNODE_H
-#define COM_DifferenceMatteNODE_H
+#ifndef _COM_DifferenceMatteNode_h_
+#define _COM_DifferenceMatteNode_h_
 
 #include "COM_Node.h"
 
@@ -29,8 +29,7 @@
  * @brief DifferenceMatteNode
  * @ingroup Node
  */
-class DifferenceMatteNode : public Node
-{
+class DifferenceMatteNode : public Node {
 public:
 	DifferenceMatteNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);

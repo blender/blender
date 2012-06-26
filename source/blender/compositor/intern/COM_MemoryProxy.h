@@ -23,8 +23,8 @@
 class MemoryProxy;
 
 
-#ifndef _COM_MemoryProxy_h
-#define _COM_MemoryProxy_h
+#ifndef _COM_MemoryProxy_h_
+#define _COM_MemoryProxy_h_
 #include "COM_ExecutionGroup.h"
 
 class ExecutionGroup;
@@ -40,27 +40,27 @@ private:
 	/**
 	 * @brief reference to the ouput operation of the executiongroup
 	 */
-	WriteBufferOperation *writeBufferOperation;
+	WriteBufferOperation *m_writeBufferOperation;
 	
 	/**
 	 * @brief reference to the executor. the Execution group that can fill a chunk
 	 */
-	ExecutionGroup *executor;
+	ExecutionGroup *m_executor;
 	
 	/**
 	 * @brief datatype of this MemoryProxy
 	 */
-	DataType datatype;
+	DataType m_datatype;
 	
 	/**
 	 * @brief channel information of this buffer
 	 */
-	ChannelInfo channelInfo[COM_NUMBER_OF_CHANNELS];
+	ChannelInfo m_channelInfo[COM_NUMBER_OF_CHANNELS];
 
 	/**
 	 * @brief the allocated memory
 	 */
-	MemoryBuffer *buffer;
+	MemoryBuffer *m_buffer;
 
 public:
 	MemoryProxy();
@@ -69,24 +69,24 @@ public:
 	 * @brief set the ExecutionGroup that can be scheduled to calculate a certain chunk.
 	 * @param group the ExecutionGroup to set
 	 */
-	void setExecutor(ExecutionGroup *executor) { this->executor = executor; }
+	void setExecutor(ExecutionGroup *executor) { this->m_executor = executor; }
 
 	/**
 	 * @brief get the ExecutionGroup that can be scheduled to calculate a certain chunk.
 	 */
-	ExecutionGroup *getExecutor() { return this->executor; }
+	ExecutionGroup *getExecutor() { return this->m_executor; }
 
 	/**
 	 * @brief set the WriteBufferOperation that is responsible for writing to this MemoryProxy
 	 * @param operation
 	 */
-	void setWriteBufferOperation(WriteBufferOperation *operation) { this->writeBufferOperation = operation; }
+	void setWriteBufferOperation(WriteBufferOperation *operation) { this->m_writeBufferOperation = operation; }
 
 	/**
 	 * @brief get the WriteBufferOperation that is responsible for writing to this MemoryProxy
 	 * @return WriteBufferOperation
 	 */
-	WriteBufferOperation *getWriteBufferOperation() { return this->writeBufferOperation; }
+	WriteBufferOperation *getWriteBufferOperation() { return this->m_writeBufferOperation; }
 
 	/**
 	 * @brief allocate memory of size widht x height
@@ -101,7 +101,7 @@ public:
 	/**
 	 * @brief get the allocated memory
 	 */
-	inline MemoryBuffer *getBuffer() { return this->buffer; }
+	inline MemoryBuffer *getBuffer() { return this->m_buffer; }
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryProxy")

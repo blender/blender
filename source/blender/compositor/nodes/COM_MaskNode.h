@@ -21,6 +21,9 @@
  *		Sergey Sharybin
  */
 
+#ifndef _COM_MaskNode_h_
+#define _COM_MaskNode_h_
+
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 
@@ -29,10 +32,10 @@
  * @ingroup Node
  */
 class MaskNode : public Node {
-
-
 public:
 	MaskNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 
 };
+
+#endif // _COM_MaskNode_h_

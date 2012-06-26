@@ -56,39 +56,39 @@ private:
 	/**
 	 * @brief proxy of the memory (same for all chunks in the same buffer)
 	 */
-	MemoryProxy *memoryProxy;
+	MemoryProxy *m_memoryProxy;
 	
 	/**
 	 * @brief the type of buffer COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR
 	 */
-	DataType datatype;
+	DataType m_datatype;
 	
 	
 	/**
 	 * @brief region of this buffer inside reative to the MemoryProxy
 	 */
-	rcti rect;
+	rcti m_rect;
 	
 	/**
 	 * brief refers to the chunknumber within the executiongroup where related to the MemoryProxy
 	 * @see memoryProxy
 	 */
-	unsigned int chunkNumber;
+	unsigned int m_chunkNumber;
 	
 	/**
 	 * @brief width of the chunk
 	 */
-	unsigned int chunkWidth;
+	unsigned int m_chunkWidth;
 	
 	/**
 	 * @brief state of the buffer
 	 */
-	MemoryBufferState state;
+	MemoryBufferState m_state;
 	
 	/**
 	 * @brief the actual float buffer/data
 	 */
-	float *buffer;
+	float *m_buffer;
 
 public:
 	/**
@@ -109,19 +109,19 @@ public:
 	/**
 	 * @brief read the ChunkNumber of this MemoryBuffer
 	 */
-	unsigned int getChunkNumber() { return this->chunkNumber; }
+	unsigned int getChunkNumber() { return this->m_chunkNumber; }
 	
 	/**
 	 * @brief get the data of this MemoryBuffer
 	 * @note buffer should already be available in memory
 	 */
-	float *getBuffer() { return this->buffer; }
+	float *getBuffer() { return this->m_buffer; }
 	
 	/**
 	 * @brief after execution the state will be set to available by calling this method
 	 */
 	void setCreatedState() {
-		this->state = COM_MB_AVAILABLE;
+		this->m_state = COM_MB_AVAILABLE;
 	}
 	
 	void read(float result[4], int x, int y);
@@ -133,7 +133,7 @@ public:
 	/**
 	 * @brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
 	 */
-	inline const bool isTemporarily() const { return this->state == COM_MB_TEMPORARILY; }
+	inline const bool isTemporarily() const { return this->m_state == COM_MB_TEMPORARILY; }
 	
 	/**
 	 * @brief add the content from otherBuffer to this MemoryBuffer
@@ -144,7 +144,7 @@ public:
 	/**
 	 * @brief get the rect of this MemoryBuffer
 	 */
-	rcti *getRect() { return &this->rect; }
+	rcti *getRect() { return &this->m_rect; }
 	
 	/**
 	 * @brief get the width of this MemoryBuffer

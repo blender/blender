@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_SeparateYCCANode_h
-#define _COM_SeparateYCCANode_h
+#ifndef _COM_SeparateYCCANode_h_
+#define _COM_SeparateYCCANode_h_
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"

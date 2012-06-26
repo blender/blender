@@ -30,7 +30,7 @@
  * @ingroup Node
  */
 class DilateErodeNode : public Node {
-	NodeBlurData alpha_blur; /* only used for blurring alpha, since the dilate/erode node doesnt have this */
+	NodeBlurData m_alpha_blur; /* only used for blurring alpha, since the dilate/erode node doesnt have this */
 public:
 	DilateErodeNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);

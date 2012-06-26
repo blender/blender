@@ -26,16 +26,16 @@
 
 CompositorContext::CompositorContext()
 {
-	this->rd = NULL;
-	this->quality = COM_QUALITY_HIGH;
-	this->hasActiveOpenCLDevices = false;
-	this->activegNode = NULL;
+	this->m_rd = NULL;
+	this->m_quality = COM_QUALITY_HIGH;
+	this->m_hasActiveOpenCLDevices = false;
+	this->m_activegNode = NULL;
 }
 
 const int CompositorContext::getFramenumber() const
 {
-	if (this->rd) {
-		return this->rd->cfra;
+	if (this->m_rd) {
+		return this->m_rd->cfra;
 	}
 	else {
 		return -1; /* this should never happen */
@@ -44,8 +44,8 @@ const int CompositorContext::getFramenumber() const
 
 const int CompositorContext::isColorManaged() const
 {
-	if (this->rd) {
-		return this->rd->color_mgt_flag & R_COLOR_MANAGEMENT;
+	if (this->m_rd) {
+		return this->m_rd->color_mgt_flag & R_COLOR_MANAGEMENT;
 	}
 	else {
 		return 0; /* this should never happen */

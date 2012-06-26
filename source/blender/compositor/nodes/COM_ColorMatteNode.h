@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef COM_ColorMatteNODE_H
-#define COM_ColorMatteNODE_H
+#ifndef _COM_ColorMatteNode_h_
+#define _COM_ColorMatteNode_h_
 
 #include "COM_Node.h"
 
@@ -28,8 +28,7 @@
  * @brief ColorMatteNode
  * @ingroup Node
  */
-class ColorMatteNode : public Node
-{
+class ColorMatteNode : public Node {
 public:
 	ColorMatteNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);

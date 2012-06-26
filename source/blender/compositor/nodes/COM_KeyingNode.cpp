@@ -144,7 +144,7 @@ OutputSocket *KeyingNode::setupFeather(ExecutionSystem *graph, CompositorContext
 	CompositorQuality quality = context->getQuality();
 
 	/* initialize node data */
-	NodeBlurData *data = (NodeBlurData *)&this->alpha_blur;
+	NodeBlurData *data = (NodeBlurData *)&this->m_alpha_blur;
 	memset(data, 0, sizeof(*data));
 	data->filtertype = R_FILTER_GAUSS;
 
