@@ -245,12 +245,12 @@ static BMOpDefine bmo_finddoubles_def = {
  * Finds groups of vertices closer then dist and merges them together,
  * using the weld verts bmop.
  */
-static BMOpDefine bmo_removedoubles_def = {
-	"removedoubles",
+static BMOpDefine bmo_remove_doubles_def = {
+	"remove_doubles",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, //input verts
 	 {BMO_OP_SLOT_FLT,         "dist"}, //minimum distance
 	 {0, /* null-terminating sentinel */}},
-	bmo_removedoubles_exec,
+	bmo_remove_doubles_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
 
@@ -1199,7 +1199,7 @@ BMOpDefine *opdefines[] = {
 	&bmo_contextual_create_def,
 	&bmo_makevert_def,
 	&bmo_weldverts_def,
-	&bmo_removedoubles_def,
+	&bmo_remove_doubles_def,
 	&bmo_finddoubles_def,
 	&bmo_mirror_def,
 	&bmo_edgebisect_def,

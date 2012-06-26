@@ -40,6 +40,7 @@
 #include "bmesh_py_types_customdata.h"
 #include "bmesh_py_types_meshdata.h"
 
+#include "bmesh_py_ops.h"
 #include "bmesh_py_utils.h"
 
 #include "BKE_tessmesh.h"
@@ -140,6 +141,10 @@ PyObject *BPyInit_bmesh(void)
 
 	/* bmesh.types */
 	PyModule_AddObject(mod, "types", (submodule = BPyInit_bmesh_types()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	PyModule_AddObject(mod, "ops", (submodule = BPyInit_bmesh_ops()));
 	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
 	Py_INCREF(submodule);
 

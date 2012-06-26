@@ -57,7 +57,7 @@ void bmo_makevert_exec(BMesh *bm, BMOperator *op);
 void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op);
 void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op);
 void bmo_weldverts_exec(BMesh *bm, BMOperator *op);
-void bmo_removedoubles_exec(BMesh *bm, BMOperator *op);
+void bmo_remove_doubles_exec(BMesh *bm, BMOperator *op);
 void bmo_finddoubles_exec(BMesh *bm, BMOperator *op);
 void bmo_mirror_exec(BMesh *bm, BMOperator *op);
 void bmo_edgebisect_exec(BMesh *bm, BMOperator *op);

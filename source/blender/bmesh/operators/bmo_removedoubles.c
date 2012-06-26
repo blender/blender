@@ -557,7 +557,7 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 	BLI_array_free(verts);
 }
 
-void bmo_removedoubles_exec(BMesh *bm, BMOperator *op)
+void bmo_remove_doubles_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator weldop;
 
