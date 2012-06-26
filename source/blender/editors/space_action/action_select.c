@@ -930,8 +930,25 @@ static void actkeys_mselect_single(bAnimContext *ac, bAnimListElem *ale, short s
 		ED_gpencil_select_frame(ale->data, selx, select_mode);
 	else if (ale->type == ANIMTYPE_MASKLAYER)
 		ED_mask_select_frame(ale->data, selx, select_mode);
-	else
-		ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
+	else {
+		if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK) &&
+		    (ale->type == ANIMTYPE_SUMMARY) && (ale->datatype == ALE_ALL))
+		{
+			ListBase anim_data = {NULL, NULL};
+			int filter;
+			filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY */ | ANIMFILTER_NODUPLIS);
+			ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+			for (ale = anim_data.first; ale; ale = ale->next) {
+				if (ale->type == ANIMTYPE_GPLAYER)
+					ED_gpencil_select_frame(ale->data, selx, select_mode);
+				else if (ale->type == ANIMTYPE_MASKLAYER)
+					ED_mask_select_frame(ale->data, selx, select_mode);
+			}
+		}
+		else {
+			ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
+		}
+	}
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */

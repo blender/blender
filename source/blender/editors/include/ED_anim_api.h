@@ -177,7 +177,7 @@ typedef enum eAnim_KeyType {
 	ALE_NONE = 0,       /* no keyframe data */
 	ALE_FCURVE,         /* F-Curve */
 	ALE_GPFRAME,        /* Grease Pencil Frames */
-	ALE_MASKLAY,           /* Mask */
+	ALE_MASKLAY,        /* Mask */
 	ALE_NLASTRIP,       /* NLA Strips */
 
 	ALE_ALL,            /* All channels summary */
