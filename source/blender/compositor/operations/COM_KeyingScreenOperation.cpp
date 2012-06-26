@@ -133,6 +133,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 			continue;
 
 		site = &sites[i];
+
 		pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, TRUE, FALSE);
 
 		zero_v3(site->color);
@@ -199,19 +200,64 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 
 void *KeyingScreenOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
+	TileData *tile_data;
+	TriangulationData *triangulation;
+	int triangles_allocated = 0;
+	int chunk_size = 20;
+	int i;
+	rctf rect_float;
+
 	if (this->m_movieClip == NULL)
 		return NULL;
 
-	if (this->m_cachedTriangulation)
-		return this->m_cachedTriangulation;
-
-	lockMutex();
-	if (this->m_cachedTriangulation == NULL) {
-		this->m_cachedTriangulation = buildVoronoiTriangulation();
+	if (!this->m_cachedTriangulation) {
+		lockMutex();
+		if (this->m_cachedTriangulation == NULL) {
+			this->m_cachedTriangulation = buildVoronoiTriangulation();
+		}
+		unlockMutex();
 	}
-	unlockMutex();
 
-	return this->m_cachedTriangulation;
+	BLI_init_rctf(&rect_float, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+
+	triangulation = this->m_cachedTriangulation;
+	tile_data = (TileData *) MEM_callocN(sizeof(TileData), "keying screen tile data");
+
+	for (i = 0; i < triangulation->triangles_total; i++) {
+		bool ok = BLI_isect_rctf(&rect_float, &triangulation->triangles_AABB[i], NULL);
+
+		if (ok) {
+			tile_data->triangles_total++;
+
+			if (tile_data->triangles_total > triangles_allocated) {
+				if (!tile_data->triangles) {
+					tile_data->triangles = (int *) MEM_mallocN(sizeof(int) * chunk_size,
+					                                           "keying screen tile triangles chunk");
+				}
+				else {
+					tile_data->triangles = (int *) MEM_reallocN(tile_data->triangles,
+					                                            sizeof(int) * (triangles_allocated + chunk_size));
+				}
+
+				triangles_allocated += chunk_size;
+			}
+
+			tile_data->triangles[tile_data->triangles_total - 1] = i;
+		}
+	}
+
+	return tile_data;
+}
+
+void KeyingScreenOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+{
+	TileData *tile_data = (TileData *) data;
+
+	if (tile_data->triangles) {
+		MEM_freeN(tile_data->triangles);
+	}
+
+	MEM_freeN(tile_data);
 }
 
 void KeyingScreenOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
@@ -240,15 +286,17 @@ void KeyingScreenOperation::executePixel(float *color, int x, int y, MemoryBuffe
 	color[3] = 1.0f;
 
 	if (this->m_movieClip && data) {
-		TriangulationData *triangulation = (TriangulationData *) data;
+		TriangulationData *triangulation = this->m_cachedTriangulation;
+		TileData *tile_data = (TileData *) data;
 		int i;
 		float co[2] = {(float) x, (float) y};
 
-		for (i = 0; i < triangulation->triangles_total; i++) {
-			rctf *rect = &triangulation->triangles_AABB[i];
+		for (i = 0; i < tile_data->triangles_total; i++) {
+			int triangle_idx = tile_data->triangles[i];
+			rctf *rect = &triangulation->triangles_AABB[triangle_idx];
 
 			if (IN_RANGE_INCL(x, rect->xmin, rect->xmax) && IN_RANGE_INCL(y, rect->ymin, rect->ymax)) {
-				int *triangle = triangulation->triangles[i];
+				int *triangle = triangulation->triangles[triangle_idx];
 				VoronoiTriangulationPoint *a = &triangulation->triangulated_points[triangle[0]],
 				                          *b = &triangulation->triangulated_points[triangle[1]],
 				                          *c = &triangulation->triangulated_points[triangle[2]];

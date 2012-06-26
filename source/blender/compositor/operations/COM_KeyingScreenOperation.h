@@ -50,6 +50,11 @@ protected:
 		rctf *triangles_AABB;
 	} TriangulationData;
 
+	typedef struct TileData {
+		int *triangles;
+		int triangles_total;
+	} TileData;
+
 	MovieClip *m_movieClip;
 	int m_framenumber;
 	TriangulationData *m_cachedTriangulation;
@@ -69,6 +74,7 @@ public:
 	void deinitExecution();
 
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data);
 
 	void setMovieClip(MovieClip *clip) {this->m_movieClip = clip;}
 	void setTrackingObject(const char *object) {strncpy(this->m_trackingObject, object, sizeof(this->m_trackingObject));}
