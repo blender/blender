@@ -190,6 +190,17 @@ BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
 }
 
 /**
+ * Get the first loop of a vert. Uses the same initialization code for the first loop of the
+ * iterator API
+ */
+
+BMLoop *BM_vert_find_first_loop(BMVert *v)
+{
+	BMEdge *e = bmesh_disk_faceedge_find_first(v->e, v);
+	return bmesh_radial_faceloop_find_first(e->l, v);
+}
+
+/**
  * Returns TRUE if the vertex is used in a given face.
  */
 
