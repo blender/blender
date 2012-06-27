@@ -699,14 +699,18 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int nvert, const int
 		if (cos1 > cos_threshold) {
 			if (cos1 > fabsf(cos_v3v3v3(larr[i]->v->co, larr[i4]->v->co, larr[i + 2]->v->co)) &&
 			    cos1 > fabsf(cos_v3v3v3(larr[i]->v->co, larr[i + 1]->v->co, larr[i + 2]->v->co)))
+			{
 				i = !i;
+			}
 		}
 		/* Last check we do not get overlapping triangles
 		 * (as much as possible, ther are some cases with no good solution!) */
 		i4 = (i + 3) % 4;
 		if (!bm_face_goodline((float const (*)[3])verts, f, BM_elem_index_get(larr[i4]->v), BM_elem_index_get(larr[i]->v),
 		                      BM_elem_index_get(larr[i + 1]->v), nvert))
+		{
 			i = !i;
+		}
 /*		printf("%d\n", i);*/
 		bestear = larr[i];
 

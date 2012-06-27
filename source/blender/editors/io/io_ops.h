@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editor/io/io_collada.h
+/** \file blender/editor/io/io_ops.h
  *  \ingroup editor/io
  */
 

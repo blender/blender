@@ -1136,9 +1136,9 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 		{0, "WORLD_SPACE", 0, "World Space", "Transforms include effects of parenting/restpose and constraints"},
 		{DTAR_FLAG_LOCALSPACE, "TRANSFORM_SPACE", 0, "Transform Space",
 		                       "Transforms don't include parenting/restpose or constraints"},
-		{DTAR_FLAG_LOCALSPACE|DTAR_FLAG_LOCAL_CONSTS, "LOCAL_SPACE", 0, "Local Space",
-		                                              "Transforms include effects of constraints but not "
-		                                              "parenting/restpose"},
+		{DTAR_FLAG_LOCALSPACE | DTAR_FLAG_LOCAL_CONSTS, "LOCAL_SPACE", 0, "Local Space",
+		                                                "Transforms include effects of constraints but not "
+		                                                "parenting/restpose"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	

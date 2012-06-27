@@ -2089,7 +2089,7 @@ static ImBuf *seq_render_mask_strip(
 		fp_src = maskbuf;
 		fp_dst = ibuf->rect_float;
 		i = context.rectx * context.recty;
-		while(--i) {
+		while (--i) {
 			fp_dst[0] = fp_dst[1] = fp_dst[2] = *fp_src;
 			fp_dst[3] = 1.0f;
 
@@ -2115,7 +2115,7 @@ static ImBuf *seq_render_mask_strip(
 		fp_src = maskbuf;
 		ub_dst = (unsigned char *)ibuf->rect;
 		i = context.rectx * context.recty;
-		while(--i) {
+		while (--i) {
 			ub_dst[0] = ub_dst[1] = ub_dst[2] = (unsigned char)(*fp_src * 255.0f); /* already clamped */
 			ub_dst[3] = 255;
 

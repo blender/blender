@@ -77,32 +77,32 @@ typedef struct InstanceRayObject {
 
 RayObject *RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob)
 {
-	InstanceRayObject *obj= (InstanceRayObject*)MEM_callocN(sizeof(InstanceRayObject), "InstanceRayObject");
-	assert( RE_rayobject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
-	
+	InstanceRayObject *obj = (InstanceRayObject *)MEM_callocN(sizeof(InstanceRayObject), "InstanceRayObject");
+	assert(RE_rayobject_isAligned(obj) );  /* RayObject API assumes real data to be 4-byte aligned */
+
 	obj->rayobj.api = &instance_api;
 	obj->target = target;
 	obj->ob = ob;
 	obj->target_ob = target_ob;
-	
+
 	copy_m4_m4(obj->target2global, transform);
 	invert_m4_m4(obj->global2target, obj->target2global);
-	
-	return RE_rayobject_unalignRayAPI((RayObject*) obj);
+
+	return RE_rayobject_unalignRayAPI((RayObject *) obj);
 }
 
 static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 {
-	InstanceRayObject *obj = (InstanceRayObject*)o;
+	InstanceRayObject *obj = (InstanceRayObject *)o;
 	float start[3], dir[3], idot_axis[3], dist;
 	int changed = 0, i, res;
-	
+
 	// TODO - this is disabling self intersection on instances
 	if (isec->orig.ob == obj->ob && obj->ob) {
 		changed = 1;
 		isec->orig.ob = obj->target_ob;
 	}
-	
+
 	// backup old values
 	copy_v3_v3(start, isec->start);
 	copy_v3_v3(dir, isec->dir);
@@ -113,16 +113,16 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 	mul_m4_v3(obj->global2target, isec->start);
 	mul_mat3_m4_v3(obj->global2target, isec->dir);
 	isec->dist *= normalize_v3(isec->dir);
-	
+
 	// update idot_axis and bv_index
-	for (i=0; i<3; i++) {
-		isec->idot_axis[i]		= 1.0f / isec->dir[i];
-		
-		isec->bv_index[2*i]		= isec->idot_axis[i] < 0.0 ? 1 : 0;
-		isec->bv_index[2*i+1]	= 1 - isec->bv_index[2*i];
-		
-		isec->bv_index[2*i]		= i+3*isec->bv_index[2*i];
-		isec->bv_index[2*i+1]	= i+3*isec->bv_index[2*i+1];
+	for (i = 0; i < 3; i++) {
+		isec->idot_axis[i]        = 1.0f / isec->dir[i];
+
+		isec->bv_index[2 * i]     = isec->idot_axis[i] < 0.0 ? 1 : 0;
+		isec->bv_index[2 * i + 1] = 1 - isec->bv_index[2 * i];
+
+		isec->bv_index[2 * i]     = i + 3 * isec->bv_index[2 * i];
+		isec->bv_index[2 * i + 1] = i + 3 * isec->bv_index[2 * i + 1];
 	}
 
 	// raycast
@@ -143,11 +143,11 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 		isec->dist = len_v3(vec);
 		isec->hit.ob = obj->ob;
 
-#ifdef RT_USE_LAST_HIT	
+#ifdef RT_USE_LAST_HIT
 		// TODO support for last hit optimization in instances that can jump
 		// directly to the last hit face.
 		// For now it jumps directly to the last-hit instance root node.
-		isec->last_hit = RE_rayobject_unalignRayAPI((RayObject*) obj);
+		isec->last_hit = RE_rayobject_unalignRayAPI((RayObject *) obj);
 #endif
 	}
 
@@ -155,19 +155,19 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 	copy_v3_v3(isec->start, start);
 	copy_v3_v3(isec->dir, dir);
 	copy_v3_v3(isec->idot_axis, idot_axis);
-	
+
 	if (changed)
 		isec->orig.ob = obj->ob;
 
 	// restore bv_index
-	for (i=0; i<3; i++) {
-		isec->bv_index[2*i]		= isec->idot_axis[i] < 0.0 ? 1 : 0;
-		isec->bv_index[2*i+1]	= 1 - isec->bv_index[2*i];
-		
-		isec->bv_index[2*i]		= i+3*isec->bv_index[2*i];
-		isec->bv_index[2*i+1]	= i+3*isec->bv_index[2*i+1];
+	for (i = 0; i < 3; i++) {
+		isec->bv_index[2 * i]     = isec->idot_axis[i] < 0.0 ? 1 : 0;
+		isec->bv_index[2 * i + 1] = 1 - isec->bv_index[2 * i];
+
+		isec->bv_index[2 * i]     = i + 3 * isec->bv_index[2 * i];
+		isec->bv_index[2 * i + 1] = i + 3 * isec->bv_index[2 * i + 1];
 	}
-		
+
 	return res;
 }
 
@@ -188,7 +188,7 @@ static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max)
 	//TODO:
 	// *better bb.. calculated without rotations of bb
 	// *maybe cache that better-fitted-BB at the InstanceRayObject
-	InstanceRayObject *obj = (InstanceRayObject*)o;
+	InstanceRayObject *obj = (InstanceRayObject *)o;
 
 	float m[3], M[3], t[3];
 	int i, j;
@@ -196,8 +196,8 @@ static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max)
 	RE_rayobject_merge_bb(obj->target, m, M);
 
 	//There must be a faster way than rotating all the 8 vertexs of the BB
-	for (i=0; i<8; i++) {
-		for (j=0; j<3; j++) t[j] = i&(1<<j) ? M[j] : m[j];
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 3; j++) t[j] = i & (1 << j) ? M[j] : m[j];
 		mul_m4_v3(obj->target2global, t);
 		DO_MINMAX(t, min, max);
 	}

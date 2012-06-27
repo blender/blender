@@ -924,7 +924,7 @@ void BKE_ffmpeg_filepath_get(char *string, RenderData *rd)
 		fe++;
 	}
 
-	if (!*fe) {
+	if (*fe == NULL) {
 		strcat(string, autosplit);
 
 		BLI_path_frame_range(string, rd->sfra, rd->efra, 4);

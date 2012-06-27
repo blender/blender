@@ -57,8 +57,7 @@ void SceneExporter::exportHierarchy(Scene *sce)
 	// Now find all exportable base ojects (highest in export hierarchy)
 	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *) node->link;
-		if (bc_is_base_node(this->export_settings->export_set, ob)) 
-		{
+		if (bc_is_base_node(this->export_settings->export_set, ob)) {
 			switch (ob->type) {
 				case OB_MESH:
 				case OB_CAMERA:
@@ -86,8 +85,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 	// Add associated armature first if available
 	bool armature_exported = false;
 	Object *ob_arm = bc_get_assigned_armature(ob);
-	if (ob_arm != NULL)
-	{
+	if (ob_arm != NULL) {
 		armature_exported = bc_is_in_Export_set(this->export_settings->export_set, ob_arm);
 		if (armature_exported && bc_is_marked(ob_arm)) {
 			bc_remove_mark(ob_arm);

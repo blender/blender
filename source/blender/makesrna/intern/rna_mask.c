@@ -66,7 +66,7 @@ static void rna_Mask_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 {
 	Mask *mask = ptr->id.data;
 
-	WM_main_add_notifier(NC_MASK|ND_DATA, mask);
+	WM_main_add_notifier(NC_MASK | ND_DATA, mask);
 	DAG_id_tag_update( &mask->id, 0);
 }
 
@@ -327,7 +327,7 @@ static MaskLayer *rna_Mask_layer_new(Mask *mask, const char *name)
 {
 	MaskLayer *masklay = BKE_mask_layer_new(mask, name);
 
-	WM_main_add_notifier(NC_MASK|NA_EDITED, mask);
+	WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
 
 	return masklay;
 }
@@ -336,7 +336,7 @@ void rna_Mask_layer_remove(Mask *mask, MaskLayer *masklay)
 {
 	BKE_mask_layer_remove(mask, masklay);
 
-	WM_main_add_notifier(NC_MASK|NA_EDITED, mask);
+	WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
 }
 
 static void rna_MaskLayer_spline_add(ID *id, MaskLayer *masklay, int number)
@@ -347,7 +347,7 @@ static void rna_MaskLayer_spline_add(ID *id, MaskLayer *masklay, int number)
 	for (i = 0; i < number; i++)
 		BKE_mask_spline_add(masklay);
 
-	WM_main_add_notifier(NC_MASK|NA_EDITED, mask);
+	WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
 }
 
 static void rna_Mask_start_frame_set(PointerRNA *ptr, int value)
@@ -526,14 +526,14 @@ static void rna_def_mask_splines(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MaskSpline");
 	RNA_def_property_pointer_funcs(prop, "rna_MaskLayer_active_spline_get", "rna_MaskLayer_active_spline_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
 	RNA_def_property_ui_text(prop, "Active Spline", "Active spline of masking layer");
 
 	/* active point */
 	prop = RNA_def_property(srna, "active_point", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MaskSplinePoint");
 	RNA_def_property_pointer_funcs(prop, "rna_MaskLayer_active_spline_point_get", "rna_MaskLayer_active_spline_point_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
 	RNA_def_property_ui_text(prop, "Active Spline", "Active spline of masking layer");
 }
 
@@ -675,7 +675,7 @@ static void rna_def_masklayers(BlenderRNA *brna, PropertyRNA *cprop)
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MaskLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mask_layer_active_get", "rna_Mask_layer_active_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
 	RNA_def_property_ui_text(prop, "Active Shape", "Active layer in this mask");
 }
 

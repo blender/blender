@@ -830,7 +830,7 @@ void TEXT_OT_paste(wmOperatorType *ot)
 
 static int text_duplicate_line_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Text *text= CTX_data_edit_text(C);
+	Text *text = CTX_data_edit_text(C);
 	
 	txt_duplicate_line(text);
 	
@@ -1341,7 +1341,7 @@ static int move_lines_exec(bContext *C, wmOperator *op)
 	txt_move_lines(text, direction);
 	
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
 	/* run the script while editing, evil but useful */
 	if (CTX_wm_space_text(C)->live_edit)
@@ -1352,7 +1352,7 @@ static int move_lines_exec(bContext *C, wmOperator *op)
 
 void TEXT_OT_move_lines(wmOperatorType *ot)
 {
-	static EnumPropertyItem direction_items[]= {
+	static EnumPropertyItem direction_items[] = {
 		{TXT_MOVE_LINE_UP, "UP", 0, "Up", ""},
 		{TXT_MOVE_LINE_DOWN, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}

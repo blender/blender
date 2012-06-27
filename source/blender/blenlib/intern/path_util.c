@@ -806,7 +806,7 @@ void BLI_getlastdir(const char *dir, char *last, const size_t maxlen)
 const char *BLI_getDefaultDocumentFolder(void)
 {
 #ifndef WIN32
-	const char *xdg_documents_dir= getenv("XDG_DOCUMENTS_DIR");
+	const char *xdg_documents_dir = getenv("XDG_DOCUMENTS_DIR");
 
 	if (xdg_documents_dir)
 		return xdg_documents_dir;
