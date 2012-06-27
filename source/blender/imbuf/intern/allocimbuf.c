@@ -351,7 +351,7 @@ ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar planes, unsigned int
 		ibuf->planes = planes;
 		ibuf->ftype = TGA;
 		ibuf->channels = 4;  /* float option, is set to other values when buffers get assigned */
-		ibuf->ppm[0] = ibuf->ppm[1] = 150.0 / 0.0254; /* 150dpi -> pixels-per-meter */
+		ibuf->ppm[0] = ibuf->ppm[1] = 72.0 / 0.0254; /* 72dpi -> pixels-per-meter */
 		
 		if (flags & IB_rect) {
 			if (imb_addrectImBuf(ibuf) == FALSE) {
