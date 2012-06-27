@@ -72,6 +72,20 @@ Game Types (bge.types)
 
       :type: dictionary {:ref:`keycode<keyboard-keys>`::ref:`status<input-status>`, ...}
 
+
+   .. function:: getClipboard()
+
+      Gets the clipboard text.
+
+      :rtype: string
+
+   .. function:: setClipboard(text)
+
+      Sets the clipboard text.
+
+      :arg text: New clipboard text
+      :type text: string
+
 .. class:: SCA_PythonMouse(PyObjectPlus)
 
    The current mouse.

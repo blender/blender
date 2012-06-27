@@ -28,6 +28,8 @@
 #include "SCA_PythonKeyboard.h"
 #include "SCA_IInputDevice.h"
 
+#include "GHOST_C-api.h"
+
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -55,6 +57,23 @@ SCA_PythonKeyboard::~SCA_PythonKeyboard()
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
 
+/* clipboard */
+static PyObject* gPyGetClipboard(PyObject* args, PyObject* kwds)
+{
+	char *buf = (char *)GHOST_getClipboard(0);
+	return PyUnicode_FromString(buf?buf:"");
+}
+
+static PyObject* gPySetClipboard(PyObject* args, PyObject* value)
+{
+	char* buf;
+	if (!PyArg_ParseTuple(value,"s:setClipboard",&buf))
+		Py_RETURN_NONE;
+
+	GHOST_putClipboard((GHOST_TInt8 *)buf, 0);
+	Py_RETURN_NONE;
+}
+
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_PythonKeyboard::Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -79,6 +98,8 @@ PyTypeObject SCA_PythonKeyboard::Type = {
 };
 
 PyMethodDef SCA_PythonKeyboard::Methods[] = {
+	{"getClipboard", (PyCFunction) gPyGetClipboard, METH_VARARGS, "getCliboard doc"},
+	{"setClipboard", (PyCFunction) gPySetClipboard, METH_VARARGS, "setCliboard doc"},
 	{NULL,NULL} //Sentinel
 };
 
