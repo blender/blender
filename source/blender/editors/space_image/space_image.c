@@ -387,6 +387,12 @@ static SpaceLink *image_new(const bContext *UNUSED(C))
 	simage->zoom = 1;
 	simage->lock = 1;
 
+	/* OCIO_TODO: use default view transform here when OCIO is completely integrated
+	*             and proper versioning stuff is added.
+	*             for now use NONE to be compatible with all current files
+	*/
+	BLI_strncpy(simage->view_transform, "NONE", sizeof(simage->view_transform));
+
 	simage->iuser.ok = 1;
 	simage->iuser.fie_ima = 2;
 	simage->iuser.frames = 100;
@@ -449,6 +455,7 @@ static void image_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 
 static SpaceLink *image_duplicate(SpaceLink *sl)
 {
+	SpaceImage *simage = (SpaceImage *) sl;
 	SpaceImage *simagen = MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
@@ -456,6 +463,8 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
 		simagen->cumap = curvemapping_copy(simagen->cumap);
 
 	scopes_new(&simagen->scopes);
+
+	BLI_strncpy(simagen->view_transform, simage->view_transform, sizeof(simage->view_transform));
 
 	return (SpaceLink *)simagen;
 }
@@ -817,7 +826,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	image_main_area_set_view2d(sima, ar);
 	
 	/* we draw image in pixelspace */
-	draw_image_main(sima, ar, scene);
+	draw_image_main(C, ar);
 
 	/* and uvs in 0.0-1.0 space */
 	UI_view2d_view_ortho(v2d);

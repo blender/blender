@@ -407,8 +407,8 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 	if (!clip->cache) {
 		clip->cache = MEM_callocN(sizeof(MovieClipCache), "movieClipCache");
 
-		clip->cache->moviecache = IMB_moviecache_create(sizeof(MovieClipImBufCacheKey), moviecache_hashhash,
-		                                                moviecache_hashcmp, moviecache_keydata);
+		clip->cache->moviecache = IMB_moviecache_create(sizeof(MovieClipImBufCacheKey), NULL, moviecache_hashhash,
+		                                                moviecache_hashcmp, moviecache_keydata, NULL);
 	}
 
 	key.framenr = user->framenr;

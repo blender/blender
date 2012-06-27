@@ -118,6 +118,11 @@ EnumPropertyItem viewport_shade_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static EnumPropertyItem view_transform_items[] = {
+	{0, "NONE", 0, "None", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -143,6 +148,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #include "ED_sequencer.h"
 #include "ED_clip.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
 static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
@@ -663,6 +669,38 @@ static void rna_SpaceImageEditor_scopes_update(Main *UNUSED(bmain), Scene *scene
 		WM_main_add_notifier(NC_IMAGE, sima->image);
 	}
 	ED_space_image_release_buffer(sima, lock);
+}
+
+static int rna_SpaceImageEditor_view_transform_get(PointerRNA *ptr)
+{
+	SpaceImage *sima = (SpaceImage *) ptr->data;
+
+	return IMB_colormanagement_view_get_named_index(sima->view_transform);
+}
+
+static void rna_SpaceImageEditor_view_transform_set(PointerRNA *ptr, int value)
+{
+	SpaceImage *sima = (SpaceImage*) ptr->data;
+
+	const char *name = IMB_colormanagement_view_get_indexed_name(value);
+
+	if (name) {
+		BLI_strncpy(sima->view_transform, name, sizeof(sima->view_transform));
+	}
+}
+
+static EnumPropertyItem* rna_SpaceImageEditor_view_transform_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	wmWindow *win = CTX_wm_window(C);
+	EnumPropertyItem *items = NULL;
+	int totitem = 0;
+
+	RNA_enum_item_add(&items, &totitem, &view_transform_items[0]);
+	IMB_colormanagement_view_items_add(&items, &totitem, win->display_device);
+	RNA_enum_item_end(&items, &totitem);
+
+	*free = 1;
+	return items;
 }
 
 /* Space Text Editor */
@@ -1922,15 +1960,6 @@ static void rna_def_space_image(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem view_transform_items[] = {
-		{SI_VIEW_TRANSFORM_NONE, "NONE", ICON_NONE, "None", ""},
-		{SI_VIEW_TRANSFORM_ACES_ODT_TONECURVE, "ACES_TOMEMAP", ICON_NONE, "ACES ODT Tonecurve", ""},
-		{SI_VIEW_TRANSFORM_OCIO_RAW, "OCIO_RAW", ICON_NONE, "OCIO RAW", ""},
-		{SI_VIEW_TRANSFORM_OCIO_RRT, "OCIO_RRT", ICON_NONE, "OCIO RRT", ""},
-		{SI_VIEW_TRANSFORM_OCIO_LOG, "OCIO_LOG", ICON_NONE, "OCIO LOG", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "SpaceImageEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceImage");
 	RNA_def_struct_ui_text(srna, "Space Image Editor", "Image and UV editor space data");
@@ -2035,10 +2064,11 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Show UV Editor", "Show UV editing related properties");
 
-	prop = RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "view_transform");
+	prop= RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, view_transform_items);
-	RNA_def_property_ui_text(prop, "View Transform", "Transformation used on linear to sRGB conversion");
+	RNA_def_property_enum_funcs(prop, "rna_SpaceImageEditor_view_transform_get", "rna_SpaceImageEditor_view_transform_set",
+	                            "rna_SpaceImageEditor_view_transform_itemf");
+	RNA_def_property_ui_text(prop, "View Transform", "View transform used for this image editor");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
 	rna_def_space_image_uv(brna);

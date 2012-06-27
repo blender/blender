@@ -107,15 +107,6 @@ class IMAGE_MT_select(Menu):
         layout.operator("uv.select_linked")
 
 
-class IMAGE_PT_view_transform(Panel):
-    bl_label = "View Transform"
-
-    def draw(self, context):
-        layout = self.layout
-
-        sima = context.space_data
-
-        layout.prop(sima, "view_transform")
 class IMAGE_MT_image(Menu):
     bl_label = "Image"
 
@@ -436,17 +427,19 @@ class IMAGE_HT_header(Header):
             layout.prop(sima, "use_realtime_update", text="", icon_only=True, icon='LOCKED')
 
 
-class IMAGE_PT_view_transform(Panel):
+class IMAGE_PT_display_properties(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "View Transform"
+    bl_label = "Display Properties"
 
     def draw(self, context):
         layout = self.layout
 
         sima = context.space_data
+        window = context.window
 
-        layout.prop(sima, "view_transform", text="")
+        layout.prop(window, "display_device", text="Display")
+        layout.prop(sima, "view_transform", text="View")
 
 
 class IMAGE_PT_image_properties(Panel):

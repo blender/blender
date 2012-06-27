@@ -48,9 +48,11 @@ static MEM_CacheLimiterC *limitor = NULL;
 
 typedef struct MovieCache {
 	GHash *hash;
+	MoviKeyDeleterFP keydeleterfp;
 	GHashHashFP hashfp;
 	GHashCmpFP cmpfp;
 	MovieCacheGetKeyDataFP getdatafp;
+	MovieCacheCheckKeyUnusedFP checkkeyunusedfp;
 
 	struct BLI_mempool *keys_pool;
 	struct BLI_mempool *items_pool;
@@ -94,6 +96,12 @@ static void moviecache_keyfree(void *val)
 {
 	MovieCacheKey *key = (MovieCacheKey *)val;
 
+	if (key->cache_owner->keydeleterfp) {
+		key->cache_owner->keydeleterfp(key->userkey);
+	}
+
+	BLI_mempool_free(key->cache_owner->userkeys_pool, key->userkey);
+
 	BLI_mempool_free(key->cache_owner->keys_pool, key);
 }
 
@@ -117,10 +125,16 @@ static void check_unused_keys(MovieCache *cache)
 	while (!BLI_ghashIterator_isDone(iter)) {
 		MovieCacheKey *key = BLI_ghashIterator_getKey(iter);
 		MovieCacheItem *item = BLI_ghashIterator_getValue(iter);
+		int remove = 0;
 
 		BLI_ghashIterator_step(iter);
 
-		if (!item->ibuf)
+		remove = !item->ibuf;
+
+		if (!remove && cache->checkkeyunusedfp)
+			remove = cache->checkkeyunusedfp(key->userkey);
+
+		if (remove)
 			BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
 	}
 
@@ -198,8 +212,10 @@ void IMB_moviecache_destruct(void)
 		delete_MEM_CacheLimiter(limitor);
 }
 
-MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp,
-                                  MovieCacheGetKeyDataFP getdatafp)
+MovieCache *IMB_moviecache_create(int keysize, MoviKeyDeleterFP keydeleterfp,
+                                  GHashHashFP hashfp, GHashCmpFP cmpfp,
+                                  MovieCacheGetKeyDataFP getdatafp,
+                                  MovieCacheCheckKeyUnusedFP checkkeyunusedfp)
 {
 	MovieCache *cache;
 
@@ -209,10 +225,12 @@ MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cm
 	cache->userkeys_pool = BLI_mempool_create(keysize, 64, 64, 0);
 	cache->hash = BLI_ghash_new(moviecache_hashhash, moviecache_hashcmp, "MovieClip ImBuf cache hash");
 
+	cache->keydeleterfp = keydeleterfp;
 	cache->keysize = keysize;
 	cache->hashfp = hashfp;
 	cache->cmpfp = cmpfp;
 	cache->getdatafp = getdatafp;
+	cache->checkkeyunusedfp = checkkeyunusedfp;
 	cache->proxy = -1;
 
 	return cache;

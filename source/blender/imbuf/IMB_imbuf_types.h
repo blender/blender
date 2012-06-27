@@ -76,8 +76,6 @@ typedef struct ImBuf {
 
 	/* pixels */
 	unsigned int *rect;		/* pixel values stored here */
-	unsigned int *rect_view[5];     /* cached view rects which were converted from float buffer */
-	                                /* using different view transforms */
 	float *rect_float;		/* floating point Rect equivalent
 	                         * Linear RGB color space - may need gamma correction to
 	                         * sRGB when generating 8bit representations */
@@ -121,6 +119,12 @@ typedef struct ImBuf {
 	unsigned char *encodedbuffer;     /* Compressed image only used with png currently */
 	unsigned int   encodedsize;       /* Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /* Size of encodedbuffer */
+
+	/* color management */
+	int colormanage_refcounter;
+	unsigned int colormanage_flags;
+	unsigned int display_buffer_flags[16];  /* array of per-display display buffers dirty flags */
+	                                        /* currently supports 16 display spaces and 32 view-transform */
 } ImBuf;
 
 /* Moved from BKE_bmfont_types.h because it is a userflag bit mask. */
@@ -221,5 +225,8 @@ extern const char *imb_ext_image[];
 extern const char *imb_ext_image_qt[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
+
+/* colormanage flags */
+#define IMB_COLORMANAGED		(1 << 0)
 
 #endif

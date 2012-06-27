@@ -243,7 +243,9 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 
 	win->drawmethod = -1;
 	win->drawdata = NULL;
-	
+
+	BLI_strncpy(win->display_device, winorig->display_device, sizeof(win->display_device));
+
 	return win;
 }
 

@@ -43,11 +43,16 @@ struct ImBuf;
 struct MovieCache;
 
 typedef void (*MovieCacheGetKeyDataFP) (void *userkey, int *framenr, int *proxy, int *render_flags);
+typedef void (*MoviKeyDeleterFP) (void *userkey);
+typedef int (*MovieCacheCheckKeyUnusedFP) (void *userkey);
 
 void IMB_moviecache_init(void);
 void IMB_moviecache_destruct(void);
 
-struct MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp, MovieCacheGetKeyDataFP getdatafp);
+struct MovieCache *IMB_moviecache_create(int keysize, MoviKeyDeleterFP keydeleterfp,
+                                         GHashHashFP hashfp, GHashCmpFP cmpfp,
+                                         MovieCacheGetKeyDataFP getdatafp,
+                                         MovieCacheCheckKeyUnusedFP checkkeyunusedfp);
 void IMB_moviecache_put(struct MovieCache *cache, void *userkey, struct ImBuf *ibuf);
 struct ImBuf* IMB_moviecache_get(struct MovieCache *cache, void *userkey);
 void IMB_moviecache_free(struct MovieCache *cache);

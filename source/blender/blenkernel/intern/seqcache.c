@@ -98,8 +98,8 @@ void seq_stripelem_cache_cleanup(void)
 {
 	if (moviecache) {
 		IMB_moviecache_free(moviecache);
-		moviecache = IMB_moviecache_create(sizeof(SeqCacheKey), seqcache_hashhash,
-		                                   seqcache_hashcmp, NULL);
+		moviecache = IMB_moviecache_create(sizeof(SeqCacheKey), NULL, seqcache_hashhash,
+		                                   seqcache_hashcmp, NULL, NULL);
 	}
 }
 
@@ -133,8 +133,8 @@ void seq_stripelem_cache_put(
 	}
 
 	if (!moviecache) {
-		moviecache = IMB_moviecache_create(sizeof(SeqCacheKey), seqcache_hashhash,
-		                                   seqcache_hashcmp, NULL);
+		moviecache = IMB_moviecache_create(sizeof(SeqCacheKey), NULL, seqcache_hashhash,
+		                                   seqcache_hashcmp, NULL, NULL);
 	}
 
 	key.seq = seq;

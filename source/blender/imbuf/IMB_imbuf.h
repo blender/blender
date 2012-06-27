@@ -364,18 +364,8 @@ int imb_get_anim_type(const char *name);
 void IMB_de_interlace(struct ImBuf *ibuf);
 void IMB_interlace(struct ImBuf *ibuf);
 
-/* currently should match eSpaceImage_ViewTransform */
-typedef enum IMB_ViewTransform {
-	IMB_VIEW_TRANSFORM_NONE = 0,
-	IMB_VIEW_TRANSFORM_ACES_ODT_TONECURVE = 1,
-	IMB_VIEW_TRANSFORM_OCIO_RAW = 2,
-	IMB_VIEW_TRANSFORM_OCIO_RRT = 3,
-	IMB_VIEW_TRANSFORM_OCIO_LOG = 4,
-} IMB_ViewTransform;
-
 /* create char buffer, color corrected if necessary, for ImBufs that lack one */ 
 void IMB_rect_from_float(struct ImBuf *ibuf);
-void IMB_rect_from_float_with_view_transform(struct ImBuf *ibuf, int view_transform);
 /* Create char buffer for part of the image, color corrected if necessary,
  * Changed part will be stored in buffer. This is expected to be used for texture painting updates */
 void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h);
@@ -401,6 +391,15 @@ void IMB_buffer_byte_from_byte(unsigned char *rect_to, const unsigned char *rect
 	int profile_to, int profile_from, int predivide,
 	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_float_clamp(float *buf, int width, int height);
+
+/* converting pixel buffers using tobecurve */
+
+typedef void (*imb_tonecurveCb) (float rgbOut[3], const float rgbIn[3]);
+
+void IMB_buffer_byte_from_float_tonecurve(unsigned char *rect_to, const float *rect_from,
+                                          int channels_from, float dither, int profile_to, int profile_from, int predivide,
+                                          int width, int height, int stride_to, int stride_from,
+                                          imb_tonecurveCb tonecurve_func);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from
@@ -507,11 +506,5 @@ void imb_freemipmapImBuf(struct ImBuf *ibuf);
 
 short imb_addtilesImBuf(struct ImBuf *ibuf);
 void imb_freetilesImBuf(struct ImBuf *ibuf);
-
-short imb_addrectviewImBuf(struct ImBuf *ibuf, int view_transform);
-void imb_freerectviewImBuf(struct ImBuf *ibuf, int view_transform);
-void imb_freerectviewImBuf_all(struct ImBuf *ibuf);
-
-unsigned int *imb_getrectviewImBuf(struct ImBuf *ibuf, int view_transform);
 
 #endif

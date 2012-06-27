@@ -356,6 +356,8 @@ class INFO_MT_window(Menu):
     def draw(self, context):
         import sys
 
+        window = context.window
+
         layout = self.layout
 
         layout.operator("wm.window_duplicate")
@@ -363,6 +365,9 @@ class INFO_MT_window(Menu):
         if sys.platform[:3] == "win":
             layout.separator()
             layout.operator("wm.console_toggle", icon='CONSOLE')
+
+        layout.separator()
+        layout.prop_menu_enum(window, "display_device", text="Display")
 
 
 class INFO_MT_help(Menu):

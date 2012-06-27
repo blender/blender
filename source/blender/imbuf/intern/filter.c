@@ -755,7 +755,7 @@ static float rdt_shaper_fwd( float x)
     return y;
 }
 
-void IMB_ratio_preserving_odt_tonecurve_v3(const float rgbIn[3], float rgbOut[3])
+void IMB_ratio_preserving_odt_tonecurve(float rgbOut[3], const float rgbIn[3])
 {
 	//
 	// The "ratio preserving tonecurve" is used to avoid hue/chroma shifts.
@@ -782,11 +782,4 @@ void IMB_ratio_preserving_odt_tonecurve_v3(const float rgbIn[3], float rgbOut[3]
 		rgbOut[1] = rgbIn[1] * normRGBo / normRGB;
 		rgbOut[2] = rgbIn[2] * normRGBo / normRGB;
 	}
-}
-
-void IMB_ratio_preserving_odt_tonecurve_v4(const float rgbIn[4], float rgbOut[4])
-{
-	IMB_ratio_preserving_odt_tonecurve_v3(rgbIn, rgbOut);
-
-	rgbOut[3] = rgbIn[3];
 }

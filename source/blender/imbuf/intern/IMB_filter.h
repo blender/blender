@@ -44,8 +44,7 @@ void IMB_premultiply_rect_float(float *rect_float, char planes, int w, int h);
 void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1);
 
 /* tonecurves corrections */
-void IMB_ratio_preserving_odt_tonecurve_v3(const float rgbIn[3], float rgbOut[3]);
-void IMB_ratio_preserving_odt_tonecurve_v4(const float rgbIn[4], float rgbOut[4]);
+void IMB_ratio_preserving_odt_tonecurve(float rgbOut[3], const float rgbIn[3]);
 
 #endif
 

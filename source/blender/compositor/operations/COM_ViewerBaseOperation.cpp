@@ -35,6 +35,7 @@ extern "C" {
 	#include "MEM_guardedalloc.h"
 	#include "IMB_imbuf.h"
 	#include "IMB_imbuf_types.h"
+	#include "IMB_colormanagement.h"
 }
 
 
@@ -72,7 +73,10 @@ void ViewerBaseOperation::initImage()
 		anImage->ok = IMA_OK_LOADED;
 	}
 
-	imb_freerectviewImBuf_all(ibuf);
+	/* viewer might have been change size, invalidate cached
+	 * display buffers so they'll be used with a proper size
+	 */
+	IMB_display_buffer_invalidate(ibuf);
 
 	/* now we combine the input with ibuf */
 	this->m_outputBuffer = ibuf->rect_float;
@@ -88,7 +92,7 @@ void ViewerBaseOperation:: updateImage(rcti *rect)
 void ViewerBaseOperation::deinitExecution()
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(this->m_image, this->m_imageUser, &this->m_lock);
-	imb_freerectviewImBuf_all(ibuf);
+	IMB_display_buffer_invalidate(ibuf);
 	BKE_image_release_ibuf(this->m_image, this->m_lock);
 
 	this->m_outputBuffer = NULL;

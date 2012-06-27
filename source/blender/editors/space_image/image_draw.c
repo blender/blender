@@ -50,6 +50,7 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -69,6 +70,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
 
 #include "RE_pipeline.h"
 
@@ -76,7 +79,7 @@
 
 #define HEADER_HEIGHT 18
 
-static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage, int view_transform)
+static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 {
 	/* detect if we need to redo the curve map.
 	 * ibuf->rect is zero for compositor and render results after change 
@@ -85,9 +88,7 @@ static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage,
 	 * NOTE: if float buffer changes, we have to manually remove the rect
 	 */
 
-	unsigned int *rect = imb_getrectviewImBuf(ibuf, view_transform);
-
-	if (ibuf->rect_float && (rect == NULL || (ibuf->userflags & IB_RECT_INVALID)) ) {
+	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)) ) {
 		if (color_manage) {
 			if (ima && ima->source == IMA_SRC_VIEWER)
 				ibuf->profile = IB_PROFILE_LINEAR_RGB;
@@ -95,7 +96,7 @@ static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage,
 		else
 			ibuf->profile = IB_PROFILE_NONE;
 
-		IMB_rect_from_float_with_view_transform(ibuf, view_transform);
+		IMB_rect_from_float(ibuf);
 	}
 }
 
@@ -419,7 +420,7 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 	MEM_freeN(rectf);
 }
 
-static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
+static void draw_image_buffer(wmWindow *win, SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
 {
 	int x, y;
 	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
@@ -432,10 +433,8 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 
 	/* this part is generic image display */
 	if (sima->flag & SI_SHOW_ALPHA) {
-		unsigned int *rect = imb_getrectviewImBuf(ibuf, sima->view_transform);
-
-		if (rect)
-			sima_draw_alpha_pixels(x, y, ibuf->x, ibuf->y, rect);
+		if (ibuf->rect)
+			sima_draw_alpha_pixels(x, y, ibuf->x, ibuf->y, ibuf->rect);
 		else if (ibuf->rect_float && ibuf->channels == 4)
 			sima_draw_alpha_pixelsf(x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
@@ -448,7 +447,8 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
 	else {
-		unsigned int *rect;
+		unsigned char *display_buffer;
+		void *cache_handle;
 
 		if (sima->flag & SI_USE_ALPHA) {
 			fdrawcheckerboard(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
@@ -459,17 +459,19 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 
 		/* we don't draw floats buffers directly but
 		 * convert them, and optionally apply curves */
-		image_verify_buffer_float(ima, ibuf, color_manage, sima->view_transform);
+		image_verify_buffer_float(ima, ibuf, color_manage);
 
-		rect = imb_getrectviewImBuf(ibuf, sima->view_transform);
+		display_buffer = IMB_display_buffer_acquire(ibuf, sima->view_transform, win->display_device, &cache_handle);
 
-		if (rect)
-			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+		if (display_buffer)
+			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
 #if 0
 		else
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
 #endif
-		
+
+		IMB_display_buffer_release(cache_handle);
+
 		if (sima->flag & SI_USE_ALPHA)
 			glDisable(GL_BLEND);
 	}
@@ -478,15 +480,14 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 	glPixelZoom(1.0f, 1.0f);
 }
 
-static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty, short endx, short endy, int view_transform)
+static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty, short endx, short endy)
 {
 	unsigned int *rt, *rp, *rectmain;
 	short y, heigth, len;
-	unsigned int *rect = imb_getrectviewImBuf(ibuf, view_transform);
 
 	/* the right offset in rectot */
 
-	rt = rect + (starty * ibuf->x + startx);
+	rt = ibuf->rect + (starty * ibuf->x + startx);
 
 	len = (endx - startx);
 	heigth = (endy - starty);
@@ -517,14 +518,14 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 		sima->curtile = ima->xrep * ima->yrep - 1;
 	
 	/* create char buffer from float if needed */
-	image_verify_buffer_float(ima, ibuf, color_manage, sima->view_transform);
+	image_verify_buffer_float(ima, ibuf, color_manage);
 
 	/* retrieve part of image buffer */
 	dx = ibuf->x / ima->xrep;
 	dy = ibuf->y / ima->yrep;
 	sx = (sima->curtile % ima->xrep) * dx;
 	sy = (sima->curtile / ima->xrep) * dy;
-	rect = get_part_from_ibuf(ibuf, sx, sy, sx + dx, sy + dy, sima->view_transform);
+	rect = get_part_from_ibuf(ibuf, sx, sy, sx + dx, sy + dy);
 	
 	/* draw repeated */
 	for (sy = 0; sy + dy <= ibuf->y; sy += dy) {
@@ -540,7 +541,7 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 	MEM_freeN(rect);
 }
 
-static void draw_image_buffer_repeated(SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float zoomx, float zoomy)
+static void draw_image_buffer_repeated(wmWindow *win, SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float zoomx, float zoomy)
 {
 	const double time_current = PIL_check_seconds_timer();
 
@@ -557,7 +558,7 @@ static void draw_image_buffer_repeated(SpaceImage *sima, ARegion *ar, Scene *sce
 			if (ima && (ima->tpageflag & IMA_TILES))
 				draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
 			else
-				draw_image_buffer(sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
+				draw_image_buffer(win, sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
 
 			/* only draw until running out of time */
 			if ((PIL_check_seconds_timer() - time_current) > 0.25)
@@ -646,19 +647,16 @@ static unsigned char *get_alpha_clone_image(Scene *scene, int *width, int *heigh
 	ImBuf *ibuf;
 	unsigned int size, alpha;
 	unsigned char *rect, *cp;
-	unsigned int *rect_view;
 
 	if (!brush || !brush->clone.image)
 		return NULL;
 	
 	ibuf = BKE_image_get_ibuf(brush->clone.image, NULL);
-	/* XXX: which transform to use here? */
-	rect_view = imb_getrectviewImBuf(ibuf, IMB_VIEW_TRANSFORM_NONE);
 
-	if (!ibuf || !rect_view)
+	if (!ibuf || !ibuf->rect)
 		return NULL;
 
-	rect = MEM_dupallocN(rect_view);
+	rect = MEM_dupallocN(ibuf->rect);
 	if (!rect)
 		return NULL;
 
@@ -709,8 +707,11 @@ static void draw_image_paint_helpers(ARegion *ar, Scene *scene, float zoomx, flo
 
 /* draw main image area */
 
-void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
+void draw_image_main(const bContext *C, ARegion *ar)
 {
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Scene *scene = CTX_data_scene(C);
+	wmWindow *win = CTX_wm_window(C);
 	Image *ima;
 	ImBuf *ibuf;
 	float zoomx, zoomy;
@@ -749,11 +750,11 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	if (ibuf == NULL)
 		ED_region_grid_draw(ar, zoomx, zoomy);
 	else if (sima->flag & SI_DRAW_TILE)
-		draw_image_buffer_repeated(sima, ar, scene, ima, ibuf, zoomx, zoomy);
+		draw_image_buffer_repeated(win, sima, ar, scene, ima, ibuf, zoomx, zoomy);
 	else if (ima && (ima->tpageflag & IMA_TILES))
 		draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, 0.0f, 0.0, zoomx, zoomy);
 	else
-		draw_image_buffer(sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
+		draw_image_buffer(win, sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 	/* paint helpers */
 	if (sima->flag & SI_DRAWTOOL)

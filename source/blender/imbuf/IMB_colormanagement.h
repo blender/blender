@@ -33,7 +33,35 @@
 
 #define BCM_CONFIG_FILE "config.ocio"
 
+struct EnumPropertyItem;
+struct ImBuf;
+struct Main;
+
+/* ** Initialization / De-initialization ** */
+
 void IMB_colormanagement_init(void);
 void IMB_colormanagement_exit(void);
+
+/* ** Public display buffers interfaces ** */
+
+unsigned char *IMB_display_buffer_acquire(struct ImBuf *ibuf, const char *view_transform, const char *display,
+                                          void **cache_handle);
+void IMB_display_buffer_release(void *cache_handle);
+
+void IMB_display_buffer_invalidate(struct ImBuf *ibuf);
+
+void IMB_colormanagement_check_file_config(struct Main *bmain);
+
+/* ** Display funcrions ** */
+int IMB_colormanagement_display_get_named_index(const char *name);
+const char *IMB_colormanagement_display_get_indexed_name(int index);
+
+/* ** View funcrions ** */
+int IMB_colormanagement_view_get_named_index(const char *name);
+const char *IMB_colormanagement_view_get_indexed_name(int index);
+
+/* ** RNA helper functions ** */
+void IMB_colormanagement_display_items_add(struct EnumPropertyItem **items, int *totitem);
+void IMB_colormanagement_view_items_add(struct EnumPropertyItem **items, int *totitem, const char *display_name);
 
 #endif // IMB_COLORMANAGEMENT_H

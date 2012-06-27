@@ -110,9 +110,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_sound.h"
 
-#ifdef WITH_OCIO
 #include "IMB_colormanagement.h"
-#endif
 
 static void wm_init_reports(bContext *C)
 {
@@ -147,6 +145,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();
+
+	/* initialize color management stuff */
+	IMB_colormanagement_init();
+
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL, G.factory_startup);
 
@@ -203,10 +205,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 #endif
 
 	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
-
-#ifdef WITH_OCIO
-	IMB_colormanagement_init();
-#endif
 }
 
 void WM_init_splash(bContext *C)
@@ -340,6 +338,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 
 	sound_exit();
 
+	IMB_colormanagement_exit();
 
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
@@ -460,10 +459,6 @@ void WM_exit_ext(bContext *C, const short do_python)
 		getchar();
 	}
 #endif 
-
-#ifdef WITH_OCIO
-	IMB_colormanagement_exit();
-#endif
 }
 
 void WM_exit(bContext *C)
