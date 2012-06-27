@@ -5004,8 +5004,11 @@ void projectSVData(TransInfo *t, int final)
 	for (i = 0, sv = sld->sv; i < sld->totsv; sv++, i++) {
 		BMIter fiter;
 		BMFace *f;
+		BMIter liter_v;
+		BMLoop *l_v;
+		float uv_med[2] = {0.0, 0.0};
+		int tot_loops = 0;
 		
-
 		/* BMESH_TODO, this interpolates between vertex/loops which are not moved
 		 * (are only apart of a face attached to a slide vert), couldn't we iterate BM_LOOPS_OF_VERT
 		 * here and only interpolate those? */
@@ -5034,6 +5037,8 @@ void projectSVData(TransInfo *t, int final)
 			
 			/* project onto copied projection face */
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				/* only affected verts will get interpolated */
+				char affected = FALSE;
 				f_copy_flip = f_copy;
 
 				if (BM_elem_flag_test(l->e, BM_ELEM_SELECT) || BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT)) {
@@ -5058,6 +5063,8 @@ void projectSVData(TransInfo *t, int final)
 					if (!f_copy_flip) {
 						continue;  /* shouldn't happen, but protection */
 					}
+
+					affected = TRUE;
 				}
 				else {
 					/* the loop is attached to only one vertex and not a selected edge,
@@ -5094,10 +5101,15 @@ void projectSVData(TransInfo *t, int final)
 								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->radial_next->f);
 							}
 						}
+
+						affected = TRUE;
 					}
 
 				}
 				
+				if(!affected)
+					continue;
+
 				/* only loop data, no vertex data since that contains shape keys,
 				 * and we do not want to mess up other shape keys */
 				BM_loop_interp_from_face(em->bm, l, f_copy_flip, FALSE, FALSE);
@@ -5121,8 +5133,23 @@ void projectSVData(TransInfo *t, int final)
 				BM_elem_hide_set(em->bm, f, is_hide);
 			}
 		}
+
+		/* make sure every loop of the vertex has identical uv data. Use this temporarily to
+		 * fix #31581 until proper data correction/ support for islands is done */
+		BM_ITER_ELEM (l_v, &liter_v, sv->v, BM_LOOPS_OF_VERT) {
+			MLoopUV *uv = CustomData_bmesh_get(&em->bm->ldata, l_v->head.data, CD_MLOOPUV);
+			add_v2_v2(uv_med, uv->uv);
+			tot_loops++;
+		}
+
+		mul_v2_fl(uv_med, 1.0/tot_loops);
+
+		BM_ITER_ELEM (l_v, &liter_v, sv->v, BM_LOOPS_OF_VERT) {
+			MLoopUV *uv = CustomData_bmesh_get(&em->bm->ldata, l_v->head.data, CD_MLOOPUV);
+			copy_v2_v2(uv->uv, uv_med);
+		}
 	}
-	
+
 	BLI_smallhash_release(&visit);
 }
 
