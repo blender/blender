@@ -668,13 +668,13 @@ static struct PyMethodDef BPy_BM_utils_methods[] = {
 };
 
 
-PyDoc_STRVAR(BPy_BM_doc,
+PyDoc_STRVAR(BPy_BM_utils_doc,
 "This module provides access to blenders bmesh data structures."
 );
-static struct PyModuleDef BPy_BM_types_module_def = {
+static struct PyModuleDef BPy_BM_utils_module_def = {
     PyModuleDef_HEAD_INIT,
     "bmesh.utils",  /* m_name */
-    BPy_BM_doc,  /* m_doc */
+    BPy_BM_utils_doc,  /* m_doc */
     0,  /* m_size */
     BPy_BM_utils_methods,  /* m_methods */
     NULL,  /* m_reload */
@@ -688,7 +688,7 @@ PyObject *BPyInit_bmesh_utils(void)
 {
 	PyObject *submodule;
 
-	submodule = PyModule_Create(&BPy_BM_types_module_def);
+	submodule = PyModule_Create(&BPy_BM_utils_module_def);
 
 	return submodule;
 }

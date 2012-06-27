@@ -944,6 +944,109 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 	return Vector_CreatePyObject(vec, 3, Py_NEW, NULL);
 }
 
+PyDoc_STRVAR(M_Geometry_points_in_planes_doc,
+".. function:: points_in_planes(planes)\n"
+"\n"
+"   Returns a list of points inside all planes given and a list of index values for the planes used.\n"
+"\n"
+"   :arg planes: List of planes (4D vectors).\n"
+"   :type planes: list of :class:`mathutils.Vector`\n"
+"   :return: two lists, once containing the vertices inside the planes, another containing the plane indicies used\n"
+"   :rtype: pair of lists\n"
+);
+/* note: this function could be optimized by some spatial structure */
+static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *py_planes;
+	float (*planes)[4];
+	unsigned int planes_len;
+
+	if (!PyArg_ParseTuple(args, "O:points_in_planes",
+	                      &py_planes))
+	{
+		return NULL;
+	}
+
+	if ((planes_len = mathutils_array_parse_alloc_v((float **)&planes, 4, py_planes, "points_in_planes")) == -1) {
+		return NULL;
+	}
+	else {
+		/* note, this could be refactored into plain C easy - py bits are noted */
+		const float eps = 0.0001f;
+		const unsigned int len = (unsigned int)planes_len;
+		unsigned int i, j, k, l;
+
+		float n1n2[3], n2n3[3], n3n1[3];
+		float potentialVertex[3];
+		char *planes_used = MEM_callocN(sizeof(char) * len, __func__);
+
+		/* python */
+		PyObject *py_verts = PyList_New(0);
+		PyObject *py_plene_index = PyList_New(0);
+
+		for (i = 0; i < len; i++) {
+			const float *N1 = planes[i];
+			for (j = i + 1; j < len; j++) {
+				const float *N2 = planes[j];
+				cross_v3_v3v3(n1n2, N1, N2);
+				if (len_squared_v3(n1n2) > eps) {
+					for (k = j + 1; k < len; k++) {
+						const float *N3 = planes[k];
+						cross_v3_v3v3(n2n3, N2, N3);
+						if (len_squared_v3(n2n3) > eps) {
+							cross_v3_v3v3(n3n1, N3, N1);
+							if (len_squared_v3(n3n1) > eps) {
+								const float quotient = dot_v3v3(N1, n2n3);
+								if (fabsf(quotient) > eps) {
+									/* potentialVertex = (n2n3 * N1[3] + n3n1 * N2[3] + n1n2 * N3[3]) * (-1.0 / quotient); */
+									const float quotient_ninv = -1.0f / quotient;
+									potentialVertex[0] = ((n2n3[0] * N1[3]) + (n3n1[0] * N2[3]) + (n1n2[0] * N3[3])) * quotient_ninv;
+									potentialVertex[1] = ((n2n3[1] * N1[3]) + (n3n1[1] * N2[3]) + (n1n2[1] * N3[3])) * quotient_ninv;
+									potentialVertex[2] = ((n2n3[2] * N1[3]) + (n3n1[2] * N2[3]) + (n1n2[2] * N3[3])) * quotient_ninv;
+									for (l = 0; l < len; l++) {
+										const float *NP = planes[l];
+										if ((dot_v3v3(NP, potentialVertex) + NP[3]) > 0.000001f) {
+											break;
+										}
+									}
+
+									if (l == len) { /* ok */
+										/* python */
+										PyObject *item = Vector_CreatePyObject(potentialVertex, 3, Py_NEW, NULL);
+										PyList_Append(py_verts, item);
+										Py_DECREF(item);
+
+										planes_used[i] = planes_used[j] = planes_used[k] = TRUE;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		PyMem_Free(planes);
+
+		/* now make a list of used planes */
+		for (i = 0; i < len; i++) {
+			if (planes_used[i]) {
+				PyObject *item = PyLong_FromLong(i);
+				PyList_Append(py_plene_index, item);
+				Py_DECREF(item);
+			}
+		}
+		MEM_freeN(planes_used);
+
+		{
+			PyObject *ret = PyTuple_New(2);
+			PyTuple_SET_ITEM(ret, 0, py_verts);
+			PyTuple_SET_ITEM(ret, 1, py_plene_index);
+			return ret;
+		}
+	}
+}
+
 #ifndef MATH_STANDALONE
 
 PyDoc_STRVAR(M_Geometry_interpolate_bezier_doc,
@@ -1279,6 +1382,7 @@ static PyMethodDef M_Geometry_methods[] = {
 	{"area_tri", (PyCFunction) M_Geometry_area_tri, METH_VARARGS, M_Geometry_area_tri_doc},
 	{"normal", (PyCFunction) M_Geometry_normal, METH_VARARGS, M_Geometry_normal_doc},
 	{"barycentric_transform", (PyCFunction) M_Geometry_barycentric_transform, METH_VARARGS, M_Geometry_barycentric_transform_doc},
+	{"points_in_planes", (PyCFunction) M_Geometry_points_in_planes, METH_VARARGS, M_Geometry_points_in_planes_doc},
 #ifndef MATH_STANDALONE
 	{"interpolate_bezier", (PyCFunction) M_Geometry_interpolate_bezier, METH_VARARGS, M_Geometry_interpolate_bezier_doc},
 	{"tessellate_polygon", (PyCFunction) M_Geometry_tessellate_polygon, METH_O, M_Geometry_tessellate_polygon_doc},
