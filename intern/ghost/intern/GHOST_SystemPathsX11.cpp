@@ -64,7 +64,7 @@ const GHOST_TUns8 *GHOST_SystemPathsX11::getSystemDir(int, const char *versionst
 	if (static_path) {
 		static char system_path[PATH_MAX];
 		snprintf(system_path, sizeof(system_path), "%s/blender/%s", static_path, versionstr);
-		return (GHOST_TUns8*)system_path;
+		return (GHOST_TUns8 *)system_path;
 	}
 
 	return NULL;
@@ -81,22 +81,22 @@ const GHOST_TUns8 *GHOST_SystemPathsX11::getUserDir(int version, const char *ver
 
 		if (home) {
 			snprintf(user_path, sizeof(user_path), "%s/.blender/%s", home, versionstr);
-			return (GHOST_TUns8*)user_path;
+			return (GHOST_TUns8 *)user_path;
 		}
 
 		return NULL;
 	}
 	else {
-		const char *home= getenv("XDG_CONFIG_HOME");
+		const char *home = getenv("XDG_CONFIG_HOME");
 
 		if (home) {
 			snprintf(user_path, sizeof(user_path), "%s/blender/%s", home, versionstr);
 		}
 		else {
-			home= getenv("HOME");
+			home = getenv("HOME");
 
 			if (home == NULL)
-				home= getpwuid(getuid())->pw_dir;
+				home = getpwuid(getuid())->pw_dir;
 
 			snprintf(user_path, sizeof(user_path), "%s/.config/blender/%s", home, versionstr);
 		}

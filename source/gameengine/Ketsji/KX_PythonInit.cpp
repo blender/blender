@@ -1130,8 +1130,8 @@ static int getGLSLSettingFlag(const char *setting)
 }
 
 static PyObject* gPySetGLSLMaterialSetting(PyObject*,
-											PyObject* args,
-											PyObject*)
+                                           PyObject* args,
+                                           PyObject*)
 {
 	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	char *setting;
@@ -1142,7 +1142,7 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 	
 	flag = getGLSLSettingFlag(setting);
 	
-	if  (flag==-1) {
+	if (flag == -1) {
 		PyErr_SetString(PyExc_ValueError, "Rasterizer.setGLSLMaterialSetting(string): glsl setting is not known");
 		return NULL;
 	}
@@ -1173,8 +1173,8 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 }
 
 static PyObject* gPyGetGLSLMaterialSetting(PyObject*, 
-									 PyObject* args, 
-									 PyObject*)
+                                           PyObject* args,
+                                           PyObject*)
 {
 	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	char *setting;
@@ -1185,7 +1185,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 	
 	flag = getGLSLSettingFlag(setting);
 	
-	if  (flag==-1) {
+	if (flag == -1) {
 		PyErr_SetString(PyExc_ValueError, "Rasterizer.getGLSLMaterialSetting(string): glsl setting is not known");
 		return NULL;
 	}
