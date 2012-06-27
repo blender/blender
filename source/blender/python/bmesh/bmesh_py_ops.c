@@ -111,6 +111,78 @@ static PyObject *bpy_bm_ops_convex_hull(PyObject *UNUSED(self), PyObject *args, 
 	Py_RETURN_NONE;
 }
 
+
+
+
+PyDoc_STRVAR(bpy_bm_ops_dissolve_limit_doc,
+".. method:: dissolve_limit(bmesh, filter, dist)\n"
+"\n"
+"   Face split with optional intermediate points.\n"
+"\n"
+"   :arg bmesh: The face to cut.\n"
+"   :type bmesh: :class:`bmesh.types.BMFace`\n"
+"   :arg filter: Set containing vertex flags to apply the operator.\n"
+"   :type filter: set\n"
+"   :arg dist: Distance limit.\n"
+"   :type dist: float\n"
+);
+static PyObject *bpy_bm_ops_dissolve_limit(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
+{
+	static const char *kwlist[] = {"bmesh", "filter_verts", "filter_edges", "angle_limit", NULL};
+
+	BPy_BMesh *py_bm;
+	BMesh *bm;
+
+	PyObject *filter_verts;
+	int filter_verts_flags;
+	PyObject *filter_edges;
+	int filter_edges_flags;
+
+	float angle_limit = 0.0f;
+
+	BMOperator bmop;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "O!O!O!|f:dissolve_limit", (char **)kwlist,
+	                                 &BPy_BMesh_Type, &py_bm,
+	                                 &PySet_Type, &filter_verts,
+	                                 &PySet_Type, &filter_edges,
+	                                 &angle_limit))
+	{
+		return NULL;
+	}
+
+	BPY_BM_CHECK_OBJ(py_bm);
+	bm = py_bm->bm;
+
+	if (filter_verts != NULL && PyC_FlagSet_ToBitfield(bpy_bm_hflag_all_flags, filter_verts,
+	                                                   &filter_verts_flags, "dissolve_limit") == -1)
+	{
+		return NULL;
+	}
+
+	if (filter_edges != NULL && PyC_FlagSet_ToBitfield(bpy_bm_hflag_all_flags, filter_edges,
+	                                                   &filter_edges_flags, "dissolve_limit") == -1)
+	{
+		return NULL;
+	}
+
+	BMO_op_initf(bm, &bmop,
+	             "dissolve_limit verts=%hv edges=%he angle_limit=%f",
+	             filter_verts_flags, filter_edges_flags, angle_limit);
+	BMO_op_exec(bm, &bmop);
+	BMO_op_finish(bm, &bmop);
+
+	if (bpy_bm_op_as_py_error(bm) == -1) {
+		return NULL;
+	}
+
+	/* TODO, return values */
+	Py_RETURN_NONE;
+}
+
+
+
+
 PyDoc_STRVAR(bpy_bm_ops_remove_doubles_doc,
 ".. method:: remove_doubles(bmesh, filter, dist)\n"
 "\n"
@@ -169,6 +241,7 @@ static PyObject *bpy_bm_ops_remove_doubles(PyObject *UNUSED(self), PyObject *arg
 
 static struct PyMethodDef BPy_BM_ops_methods[] = {
     {"convex_hull", (PyCFunction)bpy_bm_ops_convex_hull, METH_VARARGS | METH_KEYWORDS, bpy_bm_ops_convex_hull_doc},
+    {"dissolve_limit", (PyCFunction)bpy_bm_ops_dissolve_limit, METH_VARARGS | METH_KEYWORDS, bpy_bm_ops_dissolve_limit_doc},
     {"remove_doubles", (PyCFunction)bpy_bm_ops_remove_doubles, METH_VARARGS | METH_KEYWORDS, bpy_bm_ops_remove_doubles_doc},
     {NULL, NULL, 0, NULL}
 };
