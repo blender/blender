@@ -97,10 +97,10 @@ extern "C" {
 	void *MEM_dupallocN(void *vmemh) WARN_UNUSED;
 
 	/**
-	  * Reallocates a block of memory, and returns pointer to the newly
-	  * allocated block, the old one is freed. this is not as optimized
-	  * as a system realloc but just makes a new allocation and copies
-	  * over from existing memory. */
+	 * Reallocates a block of memory, and returns pointer to the newly
+	 * allocated block, the old one is freed. this is not as optimized
+	 * as a system realloc but just makes a new allocation and copies
+	 * over from existing memory. */
 	void *MEM_reallocN(void *vmemh, size_t len) WARN_UNUSED;
 
 	/**
@@ -110,13 +110,13 @@ extern "C" {
 	void *MEM_callocN(size_t len, const char * str) WARN_UNUSED;
 	
 	/** Allocate a block of memory of size len, with tag name str. The
-		* name must be a static, because only a pointer to it is stored !
-		* */
+	 * name must be a static, because only a pointer to it is stored !
+	 * */
 	void *MEM_mallocN(size_t len, const char * str) WARN_UNUSED;
 	
 	/** Same as callocN, clears memory and uses mmap (disk cached) if supported.
-		Can be free'd with MEM_freeN as usual.
-		* */
+	 * Can be free'd with MEM_freeN as usual.
+	 * */
 	void *MEM_mapallocN(size_t len, const char * str) WARN_UNUSED;
 
 	/** Print a list of the names and sizes of all allocated memory
@@ -143,7 +143,7 @@ extern "C" {
 	int MEM_check_memory_integrity(void);
 
 	/** Set thread locking functions for safe memory allocation from multiple
-	    threads, pass NULL pointers to disable thread locking again. */
+	 * threads, pass NULL pointers to disable thread locking again. */
 	void MEM_set_lock_callback(void (*lock)(void), void (*unlock)(void));
 	
 	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
@@ -195,4 +195,3 @@ public:                                                                       \
 #endif
 
 #endif
-
