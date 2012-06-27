@@ -120,20 +120,28 @@ class BPyOpsSubModOp(object):
     def _parse_args(args):
         C_dict = None
         C_exec = 'EXEC_DEFAULT'
+        C_undo = False
 
-        if len(args) == 0:
-            pass
-        elif len(args) == 1:
-            if type(args[0]) != str:
-                C_dict = args[0]
+        is_dict = is_exec = is_undo = False
+
+        for i, arg in enumerate(args):
+            if is_dict is False and isinstance(arg, dict):
+                if is_exec is True or is_undo is True:
+                    raise ValueError("dict arg must come first")
+                C_dict = arg
+                is_dict = True
+            elif is_exec is False and isinstance(arg, str):
+                if is_undo is True:
+                    raise ValueError("string arg must come before the boolean")
+                C_exec = arg
+                is_exec = True
+            elif is_undo is False and isinstance(arg, int):
+                C_undo = arg
+                is_undo = True
             else:
-                C_exec = args[0]
-        elif len(args) == 2:
-            C_exec, C_dict = args
-        else:
-            raise ValueError("1 or 2 args execution context is supported")
+                raise ValueError("1-3 args execution context is supported")
 
-        return C_dict, C_exec
+        return C_dict, C_exec, C_undo
 
     @staticmethod
     def _scene_update(context):
@@ -152,7 +160,7 @@ class BPyOpsSubModOp(object):
         self.func = func
 
     def poll(self, *args):
-        C_dict, C_exec = BPyOpsSubModOp._parse_args(args)
+        C_dict, C_exec, C_undo = BPyOpsSubModOp._parse_args(args)
         return op_poll(self.idname_py(), C_dict, C_exec)
 
     def idname(self):
@@ -174,8 +182,8 @@ class BPyOpsSubModOp(object):
         BPyOpsSubModOp._scene_update(context)
 
         if args:
-            C_dict, C_exec = BPyOpsSubModOp._parse_args(args)
-            ret = op_call(self.idname_py(), C_dict, kw, C_exec)
+            C_dict, C_exec, C_undo = BPyOpsSubModOp._parse_args(args)
+            ret = op_call(self.idname_py(), C_dict, kw, C_exec, C_undo)
         else:
             ret = op_call(self.idname_py(), None, kw)
 

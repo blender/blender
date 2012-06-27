@@ -449,7 +449,7 @@ struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet) {retu
 struct GHashIterator *WM_operatortype_iter() {return (struct GHashIterator *) NULL;}
 struct wmOperatorType *WM_operatortype_exists(const char *idname) {return (struct wmOperatorType *) NULL;}
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname) {return (struct wmOperatorTypeMacro *) NULL;}
-int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports) {return 0;}
+int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short context, short is_undo, struct PointerRNA *properties, struct ReportList *reports) {return 0;}
 int WM_operatortype_remove(const char *idname) {return 0;}
 int WM_operator_poll(struct bContext *C, struct wmOperatorType *ot) {return 0;}
 int WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, int context) {return 0;}
