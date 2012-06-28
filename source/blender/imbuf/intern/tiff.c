@@ -811,7 +811,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 		yres = (float)(ibuf->ppm[1] * 0.0254);
 	}
 	else {
-		xres = yres = 150.0f;
+		xres = yres = IMB_DPI_DEFAULT;
 	}
 
 	TIFFSetField(image, TIFFTAG_XRESOLUTION,     xres);

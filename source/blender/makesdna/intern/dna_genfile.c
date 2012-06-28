@@ -659,10 +659,10 @@ static eSDNA_Type sdna_type_nr(const char *dna_type)
 	if     ((strcmp(dna_type, "char") == 0) || (strcmp(dna_type, "const char") == 0))          return SDNA_TYPE_CHAR;
 	else if ((strcmp(dna_type, "uchar") == 0) || (strcmp(dna_type, "unsigned char") == 0))     return SDNA_TYPE_UCHAR;
 	else if ( strcmp(dna_type, "short") == 0)                                                  return SDNA_TYPE_SHORT;
-	else if ((strcmp(dna_type, "ushort") == 0)||(strcmp(dna_type, "unsigned short") == 0))     return SDNA_TYPE_USHORT;
+	else if ((strcmp(dna_type, "ushort") == 0) || (strcmp(dna_type, "unsigned short") == 0))   return SDNA_TYPE_USHORT;
 	else if ( strcmp(dna_type, "int") == 0)                                                    return SDNA_TYPE_INT;
 	else if ( strcmp(dna_type, "long") == 0)                                                   return SDNA_TYPE_LONG;
-	else if ((strcmp(dna_type, "ulong") == 0)||(strcmp(dna_type, "unsigned long") == 0))       return SDNA_TYPE_ULONG;
+	else if ((strcmp(dna_type, "ulong") == 0) || (strcmp(dna_type, "unsigned long") == 0))     return SDNA_TYPE_ULONG;
 	else if ( strcmp(dna_type, "float") == 0)                                                  return SDNA_TYPE_FLOAT;
 	else if ( strcmp(dna_type, "double") == 0)                                                 return SDNA_TYPE_DOUBLE;
 	else if ( strcmp(dna_type, "int64_t") == 0)                                                return SDNA_TYPE_INT64;

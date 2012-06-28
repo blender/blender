@@ -193,13 +193,13 @@ struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *
 
 
 int			WM_operator_poll		(struct bContext *C, struct wmOperatorType *ot);
-int			WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, int context);
+int			WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, short context);
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
 int			WM_operator_call_notest(struct bContext *C, struct wmOperator *op);
 int			WM_operator_repeat		(struct bContext *C, struct wmOperator *op);
 int			WM_operator_repeat_check(const struct bContext *C, struct wmOperator *op);
-int			WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
-int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports);
+int			WM_operator_name_call	(struct bContext *C, const char *opstring, short context, struct PointerRNA *properties);
+int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short context, struct PointerRNA *properties, struct ReportList *reports, short is_undo);
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
 void		WM_operator_properties_sanitize(struct PointerRNA *ptr, const short no_context); /* make props context sensitive or not */

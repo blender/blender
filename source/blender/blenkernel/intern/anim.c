@@ -1490,7 +1490,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			}
 
 			/* only counts visible particles */
-			++index;
+			index++;
 		}
 
 		/* restore objects since they were changed in BKE_object_where_is_calc_time */

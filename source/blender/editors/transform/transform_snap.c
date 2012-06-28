@@ -459,7 +459,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 	}
 	/* use scene defaults only when transform is modal */
 	else if (t->flag & T_MODAL) {
-		if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
+		if (ELEM3(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE)) {
 			if (ts->snap_flag & SCE_SNAP) {
 				t->modifiers |= MOD_SNAP;
 			}

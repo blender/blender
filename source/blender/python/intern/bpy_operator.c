@@ -147,6 +147,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 
 	/* note that context is an int, python does the conversion in this case */
 	int context = WM_OP_EXEC_DEFAULT;
+	int is_undo = FALSE;
 
 	/* XXX Todo, work out a better solution for passing on context,
 	 * could make a tuple from self and pack the name and Context into it... */
@@ -157,7 +158,8 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	}
 	
-	if (!PyArg_ParseTuple(args, "sO|O!s:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context_str))
+	if (!PyArg_ParseTuple(args, "sO|O!si:_bpy.ops.call",
+	                      &opname, &context_dict, &PyDict_Type, &kw, &context_str, &is_undo))
 		return NULL;
 
 	ot = WM_operatortype_find(opname, TRUE);
@@ -236,7 +238,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 				PyThreadState *ts = PyEval_SaveThread();
 #endif
 
-				operator_ret = WM_operator_call_py(C, ot, context, &ptr, reports);
+				operator_ret = WM_operator_call_py(C, ot, context, &ptr, reports, is_undo);
 
 #ifdef BPY_RELEASE_GIL
 				/* regain GIL */

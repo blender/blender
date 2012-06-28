@@ -458,7 +458,7 @@ int ED_operator_editmball(bContext *C)
 
 int ED_operator_mask(bContext *C)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	return ED_space_clip_check_show_maskedit(sc);
 }

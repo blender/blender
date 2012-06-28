@@ -64,7 +64,7 @@ static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline, MaskSplinePoi
 		if (spline->flag & MASK_SPLINE_CYCLIC) {
 			return &points_array[0];
 		}
-		else  {
+		else {
 			return NULL;
 		}
 	}
@@ -79,7 +79,7 @@ static MaskSplinePoint *mask_spline_point_prev(MaskSpline *spline, MaskSplinePoi
 		if (spline->flag & MASK_SPLINE_CYCLIC) {
 			return &points_array[spline->tot_point - 1];
 		}
-		else  {
+		else {
 			return NULL;
 		}
 	}
@@ -94,7 +94,7 @@ static BezTriple *mask_spline_point_next_bezt(MaskSpline *spline, MaskSplinePoin
 		if (spline->flag & MASK_SPLINE_CYCLIC) {
 			return &(points_array[0].bezt);
 		}
-		else  {
+		else {
 			return NULL;
 		}
 	}

@@ -68,7 +68,7 @@ public:
 
 private:
 	void determineUV(float *result, float x, float y) const;
-	void updateDispersionAndDistortion(MemoryBuffer** inputBuffers);
+	void updateDispersionAndDistortion(MemoryBuffer **inputBuffers);
 
 };
 #endif

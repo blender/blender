@@ -58,7 +58,7 @@ void sequencer_buttons_register(ARegionType *art)
 	pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer panel gpencil");
 	strcpy(pt->idname, "SEQUENCER_PT_gpencil");
 	strcpy(pt->label, N_("Grease Pencil"));
-	pt->draw= gpencil_panel_standard;
+	pt->draw = gpencil_panel_standard;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

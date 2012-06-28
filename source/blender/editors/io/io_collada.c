@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/io/collada.c
+/** \file blender/editors/io/io_collada.c
  *  \ingroup collada
  */
 #ifdef WITH_COLLADA
@@ -157,59 +157,59 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	row = uiLayoutRow(box, 0);
 	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
-	col   = uiLayoutColumn(split,0);
+	col   = uiLayoutColumn(split, FALSE);
 	uiItemR(col, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);
-	col   = uiLayoutColumn(split,0);
+	col   = uiLayoutColumn(split, FALSE);
 	uiItemR(col, imfptr, "export_mesh_type_selection", 0, "", ICON_NONE);
 	uiLayoutSetEnabled(col, RNA_boolean_get(imfptr, "apply_modifiers"));
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "selected", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "include_children", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "include_armatures", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
 	// Texture options
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Texture Options:"), ICON_TEXTURE_DATA);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "active_uv_only", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "include_uv_textures", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "include_material_textures", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "use_texture_copies", 1, NULL, ICON_NONE);
 
 
 	// Armature options
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Armature Options:"), ICON_ARMATURE_DATA);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "deform_bones_only", 0, NULL, ICON_NONE);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "second_life", 0, NULL, ICON_NONE);
 
 	/* Collada options: */
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Collada Options:"), ICON_MODIFIER);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
 
 }

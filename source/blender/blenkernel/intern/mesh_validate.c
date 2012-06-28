@@ -50,6 +50,16 @@
 
 #define SELECT 1
 
+typedef union {
+	uint32_t verts[2];
+	int64_t edval;
+} EdgeUUID;
+
+typedef struct SortFace {
+	EdgeUUID		es[4];
+	unsigned int	index;
+} SortFace;
+
 /* Used to detect polys (faces) using exactly the same vertices. */
 /* Used to detect loops used by no (disjoint) or more than one (intersect) polys. */
 typedef struct SortPoly {
@@ -59,6 +69,84 @@ typedef struct SortPoly {
 	unsigned int index;
 	int invalid; /* Poly index. */
 } SortPoly;
+
+static void edge_store_assign(uint32_t verts[2],  const uint32_t v1, const uint32_t v2)
+{
+	if (v1 < v2) {
+		verts[0] = v1;
+		verts[1] = v2;
+	}
+	else {
+		verts[0] = v2;
+		verts[1] = v1;
+	}
+}
+
+static void edge_store_from_mface_quad(EdgeUUID es[4], MFace *mf)
+{
+	edge_store_assign(es[0].verts, mf->v1, mf->v2);
+	edge_store_assign(es[1].verts, mf->v2, mf->v3);
+	edge_store_assign(es[2].verts, mf->v3, mf->v4);
+	edge_store_assign(es[3].verts, mf->v4, mf->v1);
+}
+
+static void edge_store_from_mface_tri(EdgeUUID es[4], MFace *mf)
+{
+	edge_store_assign(es[0].verts, mf->v1, mf->v2);
+	edge_store_assign(es[1].verts, mf->v2, mf->v3);
+	edge_store_assign(es[2].verts, mf->v3, mf->v1);
+	es[3].verts[0] = es[3].verts[1] = UINT_MAX;
+}
+
+static int int64_cmp(const void *v1, const void *v2)
+{
+	const int64_t x1 = *(const int64_t *)v1;
+	const int64_t x2 = *(const int64_t *)v2;
+
+	if (x1 > x2) {
+		return 1;
+	}
+	else if (x1 < x2) {
+		return -1;
+	}
+
+	return 0;
+}
+
+static int search_face_cmp(const void *v1, const void *v2)
+{
+	const SortFace *sfa = v1, *sfb = v2;
+
+	if (sfa->es[0].edval > sfb->es[0].edval) {
+		return 1;
+	}
+	else if	(sfa->es[0].edval < sfb->es[0].edval) {
+		return -1;
+	}
+
+	else if	(sfa->es[1].edval > sfb->es[1].edval) {
+		return 1;
+	}
+	else if	(sfa->es[1].edval < sfb->es[1].edval) {
+		return -1;
+	}
+
+	else if	(sfa->es[2].edval > sfb->es[2].edval) {
+		return 1;
+	}
+	else if	(sfa->es[2].edval < sfb->es[2].edval) {
+		return -1;
+	}
+
+	else if	(sfa->es[3].edval > sfb->es[3].edval) {
+		return 1;
+	}
+	else if	(sfa->es[3].edval < sfb->es[3].edval) {
+		return -1;
+	}
+
+	return 0;
+}
 
 /* TODO check there is not some standard define of this somewhere! */
 static int int_cmp(const void *v1, const void *v2)
@@ -98,6 +186,7 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
 int BKE_mesh_validate_arrays(Mesh *mesh,
                              MVert *mverts, unsigned int totvert,
                              MEdge *medges, unsigned int totedge,
+                             MFace *mfaces, unsigned int totface,
                              MLoop *mloops, unsigned int totloop,
                              MPoly *mpolys, unsigned int totpoly,
                              MDeformVert *dverts, /* assume totvert length */
@@ -117,6 +206,7 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 	int *v;
 
 	short do_edge_free = FALSE;
+	short do_face_free = FALSE;
 	short do_polyloop_free = FALSE; /* This regroups loops and polys! */
 
 	short verts_fixed = FALSE;
@@ -191,6 +281,143 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 		else {
 			REMOVE_EDGE_TAG(me);
 		}
+	}
+
+	if (mfaces && !mpolys) {
+#		define REMOVE_FACE_TAG(_mf) { _mf->v3 = 0; do_face_free = TRUE; } (void)0
+#		define CHECK_FACE_VERT_INDEX(a, b) \
+					if (mf->a == mf->b) { \
+						PRINT("    face %u: verts invalid, " STRINGIFY(a) "/" STRINGIFY(b) " both %u\n", i, mf->a); \
+						remove = do_fixes; \
+					} (void)0
+#		define CHECK_FACE_EDGE(a, b) \
+					if (!BLI_edgehash_haskey(edge_hash, mf->a, mf->b)) { \
+						PRINT("    face %u: edge " STRINGIFY(a) "/" STRINGIFY(b) \
+						      " (%u,%u) is missing egde data\n", i, mf->a, mf->b); \
+						do_edge_recalc = TRUE; \
+					}
+
+		MFace *mf;
+		MFace *mf_prev;
+
+		SortFace *sort_faces = MEM_callocN(sizeof(SortFace) * totface, "search faces");
+		SortFace *sf;
+		SortFace *sf_prev;
+		unsigned int totsortface = 0;
+
+		for (i = 0, mf = mfaces, sf = sort_faces; i < totface; i++, mf++) {
+			int remove = FALSE;
+			int fidx;
+			unsigned int fv[4];
+
+			fidx = mf->v4 ? 3 : 2;
+			do {
+				fv[fidx] = *(&(mf->v1) + fidx);
+				if (fv[fidx] >= totvert) {
+					PRINT("    face %u: 'v%d' index out of range, %u\n", i, fidx + 1, fv[fidx]);
+					remove = do_fixes;
+				}
+			} while (fidx--);
+
+			if (remove == FALSE) {
+				if (mf->v4) {
+					CHECK_FACE_VERT_INDEX(v1, v2);
+					CHECK_FACE_VERT_INDEX(v1, v3);
+					CHECK_FACE_VERT_INDEX(v1, v4);
+
+					CHECK_FACE_VERT_INDEX(v2, v3);
+					CHECK_FACE_VERT_INDEX(v2, v4);
+
+					CHECK_FACE_VERT_INDEX(v3, v4);
+				}
+				else {
+					CHECK_FACE_VERT_INDEX(v1, v2);
+					CHECK_FACE_VERT_INDEX(v1, v3);
+
+					CHECK_FACE_VERT_INDEX(v2, v3);
+				}
+
+				if (remove == FALSE) {
+					if (totedge) {
+						if (mf->v4) {
+							CHECK_FACE_EDGE(v1, v2);
+							CHECK_FACE_EDGE(v2, v3);
+							CHECK_FACE_EDGE(v3, v4);
+							CHECK_FACE_EDGE(v4, v1);
+						}
+						else {
+							CHECK_FACE_EDGE(v1, v2);
+							CHECK_FACE_EDGE(v2, v3);
+							CHECK_FACE_EDGE(v3, v1);
+						}
+					}
+
+					sf->index = i;
+
+					if (mf->v4) {
+						edge_store_from_mface_quad(sf->es, mf);
+
+						qsort(sf->es, 4, sizeof(int64_t), int64_cmp);
+					}
+					else {
+						edge_store_from_mface_tri(sf->es, mf);
+						qsort(sf->es, 3, sizeof(int64_t), int64_cmp);
+					}
+
+					totsortface++;
+					sf++;
+				}
+			}
+
+			if (remove) {
+				REMOVE_FACE_TAG(mf);
+			}
+		}
+
+		qsort(sort_faces, totsortface, sizeof(SortFace), search_face_cmp);
+
+		sf = sort_faces;
+		sf_prev = sf;
+		sf++;
+
+		for (i = 1; i < totsortface; i++, sf++) {
+			int remove = FALSE;
+
+			/* on a valid mesh, code below will never run */
+			if (memcmp(sf->es, sf_prev->es, sizeof(sf_prev->es)) == 0) {
+				mf = mfaces + sf->index;
+
+				if (do_verbose) {
+					mf_prev = mfaces + sf_prev->index;
+
+					if (mf->v4) {
+						PRINT("    face %u & %u: are duplicates (%u,%u,%u,%u) (%u,%u,%u,%u)\n",
+						      sf->index, sf_prev->index, mf->v1, mf->v2, mf->v3, mf->v4,
+						      mf_prev->v1, mf_prev->v2, mf_prev->v3, mf_prev->v4);
+					}
+					else {
+						PRINT("    face %u & %u: are duplicates (%u,%u,%u) (%u,%u,%u)\n",
+						      sf->index, sf_prev->index, mf->v1, mf->v2, mf->v3,
+						      mf_prev->v1, mf_prev->v2, mf_prev->v3);
+					}
+				}
+
+				remove = do_fixes;
+			}
+			else {
+				sf_prev = sf;
+			}
+
+			if (remove) {
+				REMOVE_FACE_TAG(mf);
+			}
+		}
+
+		MEM_freeN(sort_faces);
+
+#		undef REMOVE_FACE_TAG
+#		undef CHECK_FACE_VERT_INDEX
+#		undef CHECK_FACE_EDGE
 	}
 
 	/* Checking loops and polys is a bit tricky, as they are quite intricated...
@@ -535,6 +762,10 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 #   undef REMOVE_POLY_TAG
 
 	if (mesh) {
+		if (do_face_free) {
+			BKE_mesh_strip_loose_faces(mesh);
+		}
+
 		if (do_polyloop_free) {
 			BKE_mesh_strip_loose_polysloops(mesh);
 		}
@@ -605,6 +836,7 @@ int BKE_mesh_validate(Mesh *me, int do_verbose)
 	arrays_fixed = BKE_mesh_validate_arrays(me,
 	                                        me->mvert, me->totvert,
 	                                        me->medge, me->totedge,
+	                                        me->mface, me->totface,
 	                                        me->mloop, me->totloop,
 	                                        me->mpoly, me->totpoly,
 	                                        me->dvert,
@@ -622,6 +854,7 @@ int BKE_mesh_validate_dm(DerivedMesh *dm)
 	return BKE_mesh_validate_arrays(NULL,
 	                                dm->getVertArray(dm), dm->getNumVerts(dm),
 	                                dm->getEdgeArray(dm), dm->getNumEdges(dm),
+	                                dm->getTessFaceArray(dm), dm->getNumTessFaces(dm),
 	                                dm->getLoopArray(dm), dm->getNumLoops(dm),
 	                                dm->getPolyArray(dm), dm->getNumPolys(dm),
 	                                dm->getVertDataArray(dm, CD_MDEFORMVERT),

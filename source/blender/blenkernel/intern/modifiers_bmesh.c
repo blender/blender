@@ -72,8 +72,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	BM_data_layer_add(bm, &bm->edata, CD_BWEIGHT);
 	BM_data_layer_add(bm, &bm->vdata, CD_BWEIGHT);
 
-	vtable = MEM_callocN(sizeof(void**) * totvert, "vert table in BMDM_Copy");
-	etable = MEM_callocN(sizeof(void**) * totedge, "edge table in BMDM_Copy");
+	vtable = MEM_callocN(sizeof(void **) * totvert, "vert table in BMDM_Copy");
+	etable = MEM_callocN(sizeof(void **) * totedge, "edge table in BMDM_Copy");
 
 	/*do verts*/
 	mv = mvert = dm->dupVertArray(dm);

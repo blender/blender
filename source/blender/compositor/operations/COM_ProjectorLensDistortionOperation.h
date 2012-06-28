@@ -61,7 +61,7 @@ public:
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
-	void updateDispersion(MemoryBuffer** inputBuffers);
+	void updateDispersion(MemoryBuffer **inputBuffers);
 
 };
 #endif

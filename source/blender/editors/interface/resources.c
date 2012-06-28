@@ -1888,8 +1888,8 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set(btheme->tact.anim_active,    204, 112, 26, 102); 
 			
 			/* NLA Colors */
-			rgba_char_args_set(btheme->tnla.anim_active,    204, 112, 26, 102); /* same as dopesheet above */
-			rgba_char_args_set(btheme->tnla.anim_non_active,153, 135, 97, 77);
+			rgba_char_args_set(btheme->tnla.anim_active,     204, 112, 26, 102); /* same as dopesheet above */
+			rgba_char_args_set(btheme->tnla.anim_non_active, 153, 135, 97, 77);
 			
 			rgba_char_args_set(btheme->tnla.nla_tweaking,   77, 243, 26, 77);
 			rgba_char_args_set(btheme->tnla.nla_tweakdupli, 217, 0, 0, 255);
