@@ -46,6 +46,10 @@ set(INC
 	../../../intern/guardedalloc
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	COM_compositor.h
 	COM_defines.h

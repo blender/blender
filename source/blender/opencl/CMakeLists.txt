@@ -28,6 +28,10 @@ set(INC
 	.
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
     OCL_opencl.h
     intern/clew.h

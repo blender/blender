@@ -32,6 +32,10 @@ set(INC
 	../../../intern/guardedalloc
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	operators/bmo_bevel.c
 	operators/bmo_connect.c

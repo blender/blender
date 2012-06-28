@@ -31,6 +31,10 @@ set(INC
 	../../collada
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	io_collada.c
 	io_ops.c
