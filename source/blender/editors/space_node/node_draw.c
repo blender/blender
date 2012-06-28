@@ -1095,7 +1095,9 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	snode->aspect= (v2d->cur.xmax - v2d->cur.xmin)/((float)ar->winx);
 	// XXX snode->curfont= uiSetCurFont_ext(snode->aspect);
 
-	UI_view2d_constant_grid_draw(v2d);
+	/* grid */
+	UI_view2d_multi_grid_draw(v2d, 25.0f, 5, 2);
+
 	/* backdrop */
 	draw_nodespace_back_pix(ar, snode, color_manage);
 	

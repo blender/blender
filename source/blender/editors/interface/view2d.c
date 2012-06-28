@@ -1328,6 +1328,54 @@ void UI_view2d_constant_grid_draw(View2D *v2d)
 	glEnd();
 }
 
+/* Draw a multi-level grid in given 2d-region */
+void UI_view2d_multi_grid_draw(View2D *v2d, float step, int level_size, int totlevels)
+{
+	int offset = -10;
+	float lstep = step;
+	int level;
+	
+	for (level = 0; level < totlevels; ++level) {
+		int i;
+		float start;
+		
+		UI_ThemeColorShade(TH_BACK, offset);
+		
+		i = (v2d->cur.xmin >= 0.0f ? -(int)(-v2d->cur.xmin / lstep) : (int)(v2d->cur.xmin / lstep));
+		start = i * lstep;
+		
+		glBegin(GL_LINES);
+		for (; start < v2d->cur.xmax; start += lstep, ++i) {
+			if (i == 0 || (level < totlevels-1 && i % level_size == 0))
+				continue;
+			glVertex2f(start, v2d->cur.ymin);
+			glVertex2f(start, v2d->cur.ymax);
+		}
+		
+		i = (v2d->cur.ymin >= 0.0f ? -(int)(-v2d->cur.ymin / lstep) : (int)(v2d->cur.ymin / lstep));
+		start = i * lstep;
+		
+		for (; start < v2d->cur.ymax; start += lstep, ++i) {
+			if (i == 0 || (level < totlevels-1 && i % level_size == 0))
+				continue;
+			glVertex2f(v2d->cur.xmin, start);
+			glVertex2f(v2d->cur.xmax, start);
+		}
+		
+		/* X and Y axis */
+		UI_ThemeColorShade(TH_BACK, offset-8);
+		glVertex2f(0.0f, v2d->cur.ymin);
+		glVertex2f(0.0f, v2d->cur.ymax);
+		glVertex2f(v2d->cur.xmin, 0.0f);
+		glVertex2f(v2d->cur.xmax, 0.0f);
+		
+		glEnd();
+		
+		lstep *= level_size;
+		offset -= 6;
+	}
+}
+
 /* the price we pay for not exposting structs :( */
 void UI_view2d_grid_size(View2DGrid *grid, float *r_dx, float *r_dy)
 {

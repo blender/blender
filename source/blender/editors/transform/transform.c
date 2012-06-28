@@ -3542,6 +3542,11 @@ void initTranslation(TransInfo *t)
 		t->snap[1] = 0.125f;
 		t->snap[2] = 0.0625f;
 	}
+	else if (t->spacetype == SPACE_NODE) {
+		t->snap[0] = 0.0f;
+		t->snap[1] = 125.0f;
+		t->snap[2] = 25.0f;
+	}
 	else {
 		t->snap[0] = 0.0f;
 		t->snap[1] = t->snap[2] = 1.0f;
