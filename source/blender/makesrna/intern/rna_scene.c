@@ -736,7 +736,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 }
 
 static EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(bContext *C, PointerRNA *ptr,
-                                                                   PropertyRNA *UNUSED(prop), int *free)
+                                                                   PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	ID *id = ptr->id.data;
 	if (id && GS(id->name) == ID_SCE) {

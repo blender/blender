@@ -50,12 +50,12 @@ private:
 	/**
 	 * @brief datatype of this MemoryProxy
 	 */
-	DataType m_datatype;
+	/* DataType m_datatype; */ /* UNUSED */
 	
 	/**
 	 * @brief channel information of this buffer
 	 */
-	ChannelInfo m_channelInfo[COM_NUMBER_OF_CHANNELS];
+	/* ChannelInfo m_channelInfo[COM_NUMBER_OF_CHANNELS]; */ /* UNUSED */
 
 	/**
 	 * @brief the allocated memory

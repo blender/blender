@@ -32,7 +32,7 @@ class ChannelMatteOperation : public NodeOperation {
 private:
 	SocketReader *m_inputImageProgram;
 
-	int m_color_space;   /* node->custom1 */
+	/* int m_color_space; */  /* node->custom1 */ /* UNUSED */ /* TODO ? */
 	int m_matte_channel; /* node->custom2 */
 	int m_limit_method;  /* node->algorithm */
 	int m_limit_channel; /* node->channel */
