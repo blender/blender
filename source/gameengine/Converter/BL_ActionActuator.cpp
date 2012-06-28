@@ -350,6 +350,9 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 
 PyObject* BL_ActionActuator::PyGetChannel(PyObject* value)
 {
+	PyErr_SetString(PyExc_NotImplementedError, "BL_ActionActuator.getChannel() no longer works, please use BL_ArmatureObject.channels instead");
+	return NULL;
+#if 0 // XXX To be removed in a later version (first removed in 2.64)
 	const char *string= _PyUnicode_AsString(value);
 
 	if (GetParent()->GetGameObjectType() != SCA_IObject::OBJ_ARMATURE)
@@ -407,6 +410,7 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* value)
 		pchan->size[0], pchan->size[1], pchan->size[2],
 		pchan->quat[0], pchan->quat[1], pchan->quat[2], pchan->quat[3] );
 #endif
+#endif
 }
 
 /*     setChannel                                                         */
@@ -416,6 +420,10 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 "\t - matrix    : A 4x4 matrix specifying the overriding transformation\n"
 "\t               as an offset from the bone's rest position.\n")
 {
+	PyErr_SetString(PyExc_NotImplementedError, "BL_ActionActuator.setChannel() no longer works, please use BL_ArmatureObject.channels instead");
+	return NULL;
+
+#if 0 // XXX To be removed in a later version (first removed in 2.64)
 	BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
 	char *string;
 	PyObject *pymat= NULL;
@@ -497,6 +505,7 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 	}
 	
 	Py_RETURN_NONE;
+#endif
 }
 
 /* ------------------------------------------------------------------------- */
@@ -583,6 +592,10 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 
 PyObject* BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
+	PyErr_SetString(PyExc_NotImplementedError, "BL_ActionActuator.channelNames no longer works, please use BL_ArmatureObject.channels instead");
+	return NULL;
+
+#if 0 // XXX To be removed in a later version (first removed in 2.64)
 	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
 	PyObject *ret= PyList_New(0);
 	PyObject *item;
@@ -605,6 +618,7 @@ PyObject* BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYA
 	}
 	
 	return ret;
+#endif
 }
 
 PyObject* BL_ActionActuator::pyattr_get_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

@@ -256,12 +256,6 @@ Game Types (bge.types)
 
       :type: string
 
-   .. attribute:: channelNames
-
-      A list of channel names that may be used with :data:`setChannel` and :data:`getChannel`.
-
-      :type: list of strings
-
    .. attribute:: frameStart
 
       Specifies the starting frame of the animation.
@@ -321,26 +315,6 @@ Game Types (bge.types)
       The name of the property that is set to the current frame number.
 
       :type: string
-
-   .. method:: setChannel(channel, matrix)
-
-      Alternative to the 2 arguments, 4 arguments (channel, matrix, loc, size, quat) are also supported.
-
-      :arg channel: A string specifying the name of the bone channel, error raised if not in :data:`channelNames`.
-      :type channel: string
-      :arg matrix: A 4x4 matrix specifying the overriding transformation as an offset from the bone's rest position.
-      :arg  matrix: list [[float]]
-
-      .. note::
-         
-         These values are relative to the bones rest position, currently the api has no way to get this info (which is annoying), but can be worked around by using bones with a rest pose that has no translation.
-
-   .. method:: getChannel(channel)
-
-      :arg channel: A string specifying the name of the bone channel. error raised if not in :data:`channelNames`.
-      :type channel: string
-      :return: (loc, size, quat)
-      :rtype: tuple
 
 .. class:: BL_Shader(PyObjectPlus)
 
