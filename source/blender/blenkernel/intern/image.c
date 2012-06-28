@@ -2851,7 +2851,7 @@ void BKE_image_user_file_path(ImageUser *iuser, Image *ima, char *filepath)
 	if (ima->source == IMA_SRC_SEQUENCE) {
 		char head[FILE_MAX], tail[FILE_MAX];
 		unsigned short numlen;
-		int frame = iuser->framenr;
+		int frame = iuser ? iuser->framenr : ima->lastframe;
 
 		BLI_stringdec(filepath, head, tail, &numlen);
 		BLI_stringenc(filepath, head, tail, numlen, frame);
