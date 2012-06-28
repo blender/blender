@@ -1220,7 +1220,11 @@ static void seq_open_anim_file(Sequence *seq)
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
-		IMB_anim_set_index_dir(seq->anim, seq->strip->proxy->dir);
+		char dir[FILE_MAX];
+		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+		BLI_path_abs(dir, G.main->name);
+
+		IMB_anim_set_index_dir(seq->anim, dir);
 	}
 }
 
