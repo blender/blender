@@ -92,7 +92,8 @@ void ViewerBaseOperation:: updateImage(rcti *rect)
 void ViewerBaseOperation::deinitExecution()
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(this->m_image, this->m_imageUser, &this->m_lock);
-	IMB_display_buffer_invalidate(ibuf);
+	if (ibuf)
+		IMB_display_buffer_invalidate(ibuf);
 	BKE_image_release_ibuf(this->m_image, this->m_lock);
 
 	this->m_outputBuffer = NULL;
