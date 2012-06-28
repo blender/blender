@@ -562,18 +562,20 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 	ColorManagedDisplay *default_display = colormanage_display_get_default();
 	ColorManagedView *default_view = colormanage_view_get_default(default_display);
 
-	for (win = wm->windows.first; win; win = win->next) {
-		if (win->display_device[0] == '\0') {
-			BLI_strncpy(win->display_device, default_display->name, sizeof(win->display_device));
-		}
-		else {
-			ColorManagedDisplay *display = colormanage_display_get_named(win->display_device);
-
-			if (!display) {
-				printf("Blender color management: Window display \"%s\" not found, setting to default (\"%s\").\n",
-				       win->display_device, default_display->name);
-
+	if (wm) {
+		for (win = wm->windows.first; win; win = win->next) {
+			if (win->display_device[0] == '\0') {
 				BLI_strncpy(win->display_device, default_display->name, sizeof(win->display_device));
+			}
+			else {
+				ColorManagedDisplay *display = colormanage_display_get_named(win->display_device);
+
+				if (!display) {
+					printf("Blender color management: Window display \"%s\" not found, setting to default (\"%s\").\n",
+						   win->display_device, default_display->name);
+
+					BLI_strncpy(win->display_device, default_display->name, sizeof(win->display_device));
+				}
 			}
 		}
 	}
