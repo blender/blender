@@ -40,8 +40,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Constructor */
 
-BlenderSync::BlenderSync(BL::BlendData b_data_, BL::Scene b_scene_, Scene *scene_, bool preview_)
-: b_data(b_data_), b_scene(b_scene_),
+BlenderSync::BlenderSync(BL::RenderEngine b_engine_, BL::BlendData b_data_, BL::Scene b_scene_, Scene *scene_, bool preview_)
+: b_engine(b_engine_),
+  b_data(b_data_), b_scene(b_scene_),
   shader_map(&scene_->shaders),
   object_map(&scene_->objects),
   mesh_map(&scene_->meshes),
@@ -284,7 +285,7 @@ bool BlenderSync::get_session_pause(BL::Scene b_scene, bool background)
 	return (background)? false: get_boolean(cscene, "preview_pause");
 }
 
-SessionParams BlenderSync::get_session_params(BL::UserPreferences b_userpref, BL::Scene b_scene, bool background)
+SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::UserPreferences b_userpref, BL::Scene b_scene, bool background)
 {
 	SessionParams params;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -338,25 +339,36 @@ SessionParams BlenderSync::get_session_params(BL::UserPreferences b_userpref, BL
 		}
 	}
 
+	/* tiles */
+	int tile_x = b_engine.tile_x();
+	int tile_y = b_engine.tile_y();
+
+	if(tile_x == 0 || tile_y == 0) {
+		tile_x = get_int(cscene, "debug_tile_size");
+		tile_y = tile_x;
+
+		params.tile_size = make_int2(tile_x, tile_y);
+		params.min_size = get_int(cscene, "debug_min_size");
+	}
+	else {
+		params.tile_size = make_int2(tile_x, tile_y);
+		params.min_size = min(tile_x, tile_y);
+	}
+
 	/* other parameters */
 	params.threads = b_scene.render().threads();
-	params.tile_size = get_int(cscene, "debug_tile_size");
-	params.min_size = get_int(cscene, "debug_min_size");
+
 	params.cancel_timeout = get_float(cscene, "debug_cancel_timeout");
 	params.reset_timeout = get_float(cscene, "debug_reset_timeout");
 	params.text_timeout = get_float(cscene, "debug_text_timeout");
 
 	if(background) {
-		params.progressive = true;
+		params.progressive = false;
 		params.min_size = INT_MAX;
 	}
 	else
 		params.progressive = true;
 	
-	/* todo: multi device only works with single tiles now */
-	if(params.device.type == DEVICE_MULTI)
-		params.tile_size = INT_MAX;
-
 	return params;
 }
 

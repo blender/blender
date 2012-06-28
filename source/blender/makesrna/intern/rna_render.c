@@ -317,6 +317,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 	prop = RNA_def_int(func, "h", 0, 0, INT_MAX, "Height", "", 0, INT_MAX);
 	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop = RNA_def_string(func, "layer", "", 0, "Layer", "Single layer to get render result for");
 	prop = RNA_def_pointer(func, "result", "RenderResult", "Result", "");
 	RNA_def_function_return(func, prop);
 
@@ -326,6 +327,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 
 	func = RNA_def_function(srna, "end_result", "RE_engine_end_result");
 	prop = RNA_def_pointer(func, "result", "RenderResult", "Result", "");
+	prop = RNA_def_boolean(func, "cancel", 0, "Cancel", "Don't merge back results");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "test_break", "RE_engine_test_break");
@@ -359,6 +361,11 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "camera_override", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "camera_override");
 	RNA_def_property_struct_type(prop, "Object");
+
+	prop = RNA_def_property(srna, "tile_x", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "tile_x");
+	prop = RNA_def_property(srna, "tile_y", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "tile_y");
 
 	/* registration */
 

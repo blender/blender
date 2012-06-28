@@ -29,6 +29,7 @@ CCL_NAMESPACE_BEGIN
 
 class Scene;
 class Session;
+class RenderBuffers;
 
 class BlenderSession {
 public:
@@ -46,7 +47,8 @@ public:
 
 	/* offline render */
 	void render();
-	void write_render_result();
+	void write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers);
+	void write_render_buffers(RenderBuffers *buffers);
 
 	/* interactive updates */
 	void synchronize();
@@ -72,8 +74,7 @@ public:
 	BL::Scene b_scene;
 	BL::SpaceView3D b_v3d;
 	BL::RegionView3D b_rv3d;
-	BL::RenderResult b_rr;
-	BL::RenderLayer b_rlay;
+	string b_rlay_name;
 
 	string last_status;
 	float last_progress;

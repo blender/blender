@@ -197,8 +197,16 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
 
         sub = col.column(align=True)
         sub.label(text="Tiles:")
-        sub.prop(cscene, "debug_tile_size")
-        sub.prop(cscene, "debug_min_size")
+
+        sub.prop(rd, "parts_x", text="X")
+        sub.prop(rd, "parts_y", text="Y")
+
+        subsub = sub.column()
+        subsub.enabled = not rd.use_border
+        subsub.prop(rd, "use_save_buffers")
+
+        #sub.prop(cscene, "debug_tile_size")
+        #sub.prop(cscene, "debug_min_size")
 
         col = split.column()
 

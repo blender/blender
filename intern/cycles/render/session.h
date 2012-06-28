@@ -47,7 +47,7 @@ public:
 	bool progressive;
 	bool experimental;
 	int samples;
-	int tile_size;
+	int2 tile_size;
 	int min_size;
 	int threads;
 
@@ -63,7 +63,7 @@ public:
 		progressive = false;
 		experimental = false;
 		samples = INT_MAX;
-		tile_size = 64;
+		tile_size = make_int2(64, 64);
 		min_size = 64;
 		threads = 0;
 
@@ -102,7 +102,10 @@ public:
 	DisplayBuffer *display;
 	Progress progress;
 	SessionParams params;
+	TileManager tile_manager;
 	int sample;
+
+	boost::function<void(RenderBuffers*)> write_render_buffers_cb;
 
 	Session(const SessionParams& params);
 	~Session();
@@ -130,7 +133,7 @@ protected:
 	void update_status_time(bool show_pause = false, bool show_done = false);
 
 	void tonemap();
-	void path_trace(Tile& tile);
+	void path_trace();
 	void reset_(BufferParams& params, int samples);
 
 	void run_cpu();
@@ -141,7 +144,9 @@ protected:
 	bool draw_gpu(BufferParams& params);
 	void reset_gpu(BufferParams& params, int samples);
 
-	TileManager tile_manager;
+	bool acquire_tile(Device *tile_device, RenderTile& tile);
+	void release_tile(RenderTile& tile);
+
 	bool device_use_gl;
 
 	thread *session_thread;
@@ -155,6 +160,9 @@ protected:
 	bool pause;
 	thread_condition_variable pause_cond;
 	thread_mutex pause_mutex;
+	thread_mutex tile_mutex;
+	thread_mutex buffers_mutex;
+	thread_mutex display_mutex;
 
 	bool kernels_loaded;
 

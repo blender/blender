@@ -49,7 +49,7 @@ class ShaderNode;
 
 class BlenderSync {
 public:
-	BlenderSync(BL::BlendData b_data, BL::Scene b_scene, Scene *scene_, bool preview_);
+	BlenderSync(BL::RenderEngine b_engine_, BL::BlendData b_data, BL::Scene b_scene, Scene *scene_, bool preview_);
 	~BlenderSync();
 
 	/* sync */
@@ -61,7 +61,7 @@ public:
 
 	/* get parameters */
 	static SceneParams get_scene_params(BL::Scene b_scene, bool background);
-	static SessionParams get_session_params(BL::UserPreferences b_userpref, BL::Scene b_scene, bool background);
+	static SessionParams get_session_params(BL::RenderEngine b_engine, BL::UserPreferences b_userpref, BL::Scene b_scene, bool background);
 	static bool get_session_pause(BL::Scene b_scene, bool background);
 	static BufferParams get_buffer_params(BL::Scene b_scene, Camera *cam, int width, int height);
 
@@ -96,6 +96,7 @@ private:
 	int object_count_particles(BL::Object b_ob);
 
 	/* variables */
+	BL::RenderEngine b_engine;
 	BL::BlendData b_data;
 	BL::Scene b_scene;
 

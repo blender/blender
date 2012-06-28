@@ -74,6 +74,29 @@ int BufferParams::get_passes_size()
 	return align_up(size, 4);
 }
 
+/* Render Buffer Task */
+
+RenderTile::RenderTile()
+{
+	x = 0;
+	y = 0;
+	w = 0;
+	h = 0;
+
+	start_sample = 0;
+	num_samples = 0;
+	resolution = 0;
+
+	offset = 0;
+	stride = 0;
+
+	buffer = 0;
+	rng_state = 0;
+	rgba = 0;
+
+	buffers = NULL;
+}
+
 /* Render Buffers */
 
 RenderBuffers::RenderBuffers(Device *device_)

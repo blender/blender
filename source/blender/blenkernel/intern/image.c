@@ -2538,7 +2538,11 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	/* free rect buffer if float buffer changes, so it can be recreated with
 	 * the updated result, and also in case we got byte buffer from sequencer,
 	 * so we don't keep reference to freed buffer */
-	if (ibuf->rect_float != rectf || rect || !rectf)
+	
+	/* todo: this fix breaks save buffers render progress 
+	   if (ibuf->rect_float != rectf || rect || !rectf) */
+
+	if (ibuf->rect_float != rectf || rect)
 		imb_freerectImBuf(ibuf);
 
 	if (rect)

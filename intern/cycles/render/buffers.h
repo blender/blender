@@ -67,12 +67,11 @@ class RenderBuffers {
 public:
 	/* buffer parameters */
 	BufferParams params;
+
 	/* float buffer */
 	device_vector<float> buffer;
 	/* random number generator state */
 	device_vector<uint> rng_state;
-	/* mutex, must be locked manually by callers */
-	thread_mutex mutex;
 
 	RenderBuffers(Device *device);
 	~RenderBuffers();
@@ -105,8 +104,6 @@ public:
 	bool transparent;
 	/* byte buffer for tonemapped result */
 	device_vector<uchar4> rgba;
-	/* mutex, must be locked manually by callers */
-	thread_mutex mutex;
 
 	DisplayBuffer(Device *device);
 	~DisplayBuffer();
@@ -122,6 +119,27 @@ protected:
 	void device_free();
 
 	Device *device;
+};
+
+/* Render Tile
+ * Rendering task on a buffer */
+
+class RenderTile {
+public:
+	int x, y, w, h;
+	int start_sample;
+	int num_samples;
+	int resolution;
+	int offset;
+	int stride;
+
+	device_ptr buffer;
+	device_ptr rng_state;
+	device_ptr rgba;
+
+	RenderBuffers *buffers;
+
+	RenderTile();
 };
 
 CCL_NAMESPACE_END
