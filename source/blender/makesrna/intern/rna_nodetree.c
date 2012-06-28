@@ -1944,6 +1944,10 @@ static void def_cmp_image(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 	
+	/* NB: image user properties used in the UI are redefined in def_node_image_user,
+	 * to trigger correct updates of the node editor. RNA design problem that prevents
+	 * updates from nested structs ...
+	 */
 	RNA_def_struct_sdna_from(srna, "ImageUser", "storage");
 	def_node_image_user(srna);
 }
