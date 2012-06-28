@@ -144,7 +144,6 @@
 #include "BKE_sound.h"
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
-#include "IMB_colormanagement.h"
 
 #include "NOD_socket.h"
 
@@ -8008,12 +8007,6 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	fix_relpaths_library(fd->relabase, bfd->main); /* make all relative paths, relative to the open blend file */
 	
 	link_global(fd, bfd);	/* as last */
-
-	/* OCIO_TODO: is there nicer place for this? */
-	/* ... no its not, perhaps setup_app_data? - campbell */
-	if (fd->memfile == NULL) {  /* don't do this for UNDO */
-		IMB_colormanagement_check_file_config(bfd->main);
-	}
 
 	return bfd;
 }
