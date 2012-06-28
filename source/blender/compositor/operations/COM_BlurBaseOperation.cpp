@@ -27,8 +27,9 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-BlurBaseOperation::BlurBaseOperation(DataType data_type=COM_DT_COLOR) : NodeOperation()
+BlurBaseOperation::BlurBaseOperation(DataType data_type) : NodeOperation()
 {
+	/* data_type is almost always COM_DT_COLOR except for alpha-blur */
 	this->addInputSocket(data_type);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(data_type);

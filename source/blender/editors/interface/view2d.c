@@ -1346,7 +1346,7 @@ void UI_view2d_multi_grid_draw(View2D *v2d, float step, int level_size, int totl
 		
 		glBegin(GL_LINES);
 		for (; start < v2d->cur.xmax; start += lstep, ++i) {
-			if (i == 0 || (level < totlevels-1 && i % level_size == 0))
+			if (i == 0 || (level < totlevels - 1 && i % level_size == 0))
 				continue;
 			glVertex2f(start, v2d->cur.ymin);
 			glVertex2f(start, v2d->cur.ymax);
@@ -1356,14 +1356,14 @@ void UI_view2d_multi_grid_draw(View2D *v2d, float step, int level_size, int totl
 		start = i * lstep;
 		
 		for (; start < v2d->cur.ymax; start += lstep, ++i) {
-			if (i == 0 || (level < totlevels-1 && i % level_size == 0))
+			if (i == 0 || (level < totlevels - 1 && i % level_size == 0))
 				continue;
 			glVertex2f(v2d->cur.xmin, start);
 			glVertex2f(v2d->cur.xmax, start);
 		}
 		
 		/* X and Y axis */
-		UI_ThemeColorShade(TH_BACK, offset-8);
+		UI_ThemeColorShade(TH_BACK, offset - 8);
 		glVertex2f(0.0f, v2d->cur.ymin);
 		glVertex2f(0.0f, v2d->cur.ymax);
 		glVertex2f(v2d->cur.xmin, 0.0f);
