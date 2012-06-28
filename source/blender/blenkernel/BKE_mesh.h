@@ -296,6 +296,7 @@ int BKE_mesh_validate_arrays(
         struct Mesh *me,
         struct MVert *mverts, unsigned int totvert,
         struct MEdge *medges, unsigned int totedge,
+        struct MFace *mfaces, unsigned int totface,
         struct MLoop *mloops, unsigned int totloop,
         struct MPoly *mpolys, unsigned int totpoly,
         struct MDeformVert *dverts, /* assume totvert length */
