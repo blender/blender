@@ -5012,9 +5012,7 @@ void projectSVData(TransInfo *t, int final)
 	for (i = 0, sv = sld->sv; i < sld->totsv; sv++, i++) {
 		BMIter fiter;
 		BMFace *f;
-		BMIter liter_v;
-		BMLoop *l_v;
-		
+
 		/* BMESH_TODO, this interpolates between vertex/loops which are not moved
 		 * (are only apart of a face attached to a slide vert), couldn't we iterate BM_LOOPS_OF_VERT
 		 * here and only interpolate those? */
@@ -5137,26 +5135,6 @@ void projectSVData(TransInfo *t, int final)
 				/* this check is a workaround for bug, see note - [#30735],
 				 * without this edge can be hidden and selected */
 				BM_elem_hide_set(em->bm, f, is_hide);
-			}
-		}
-
-		/* make sure every loop of the vertex has identical uv data. Use this temporarily to
-		 * fix #31581 until proper data correction/ support for islands is done */
-		/* XXX - this only does the active UV layer which is not really good, should do _all_ uv's - campbell */
-		if (has_uv) {
-			float uv_med[2] = {0.0, 0.0};
-			int tot_loops = 0;
-			BM_ITER_ELEM (l_v, &liter_v, sv->v, BM_LOOPS_OF_VERT) {
-				MLoopUV *uv = CustomData_bmesh_get(&em->bm->ldata, l_v->head.data, CD_MLOOPUV);
-				add_v2_v2(uv_med, uv->uv);
-				tot_loops++;
-			}
-
-			mul_v2_fl(uv_med, 1.0/tot_loops);
-
-			BM_ITER_ELEM (l_v, &liter_v, sv->v, BM_LOOPS_OF_VERT) {
-				MLoopUV *uv = CustomData_bmesh_get(&em->bm->ldata, l_v->head.data, CD_MLOOPUV);
-				copy_v2_v2(uv->uv, uv_med);
 			}
 		}
 	}
