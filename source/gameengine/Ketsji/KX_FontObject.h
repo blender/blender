@@ -69,10 +69,6 @@ protected:
 
 	class RAS_IRenderTools*	m_rendertools;	//needed for drawing routine
 
-#ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_FontObject")
-#endif
-
 #ifdef WITH_PYTHON
 	static PyObject*	pyattr_get_text(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

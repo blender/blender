@@ -3145,40 +3145,46 @@ static const char *sculpt_tool_name(Sculpt *sd)
 {
 	Brush *brush = paint_brush(&sd->paint);
 
-	switch (brush->sculpt_tool) {
+	switch ((BrushSculptTool)brush->sculpt_tool) {
 		case SCULPT_TOOL_DRAW:
-			return "Draw Brush"; break;
+			return "Draw Brush";
 		case SCULPT_TOOL_SMOOTH:
-			return "Smooth Brush"; break;
+			return "Smooth Brush";
 		case SCULPT_TOOL_CREASE:
-			return "Crease Brush"; break;
+			return "Crease Brush";
 		case SCULPT_TOOL_BLOB:
-			return "Blob Brush"; break;
+			return "Blob Brush";
 		case SCULPT_TOOL_PINCH:
-			return "Pinch Brush"; break;
+			return "Pinch Brush";
 		case SCULPT_TOOL_INFLATE:
-			return "Inflate Brush"; break;
+			return "Inflate Brush";
 		case SCULPT_TOOL_GRAB:
-			return "Grab Brush"; break;
+			return "Grab Brush";
 		case SCULPT_TOOL_NUDGE:
-			return "Nudge Brush"; break;
+			return "Nudge Brush";
 		case SCULPT_TOOL_THUMB:
-			return "Thumb Brush"; break;
+			return "Thumb Brush";
 		case SCULPT_TOOL_LAYER:
-			return "Layer Brush"; break;
+			return "Layer Brush";
 		case SCULPT_TOOL_FLATTEN:
-			return "Flatten Brush"; break;
+			return "Flatten Brush";
 		case SCULPT_TOOL_CLAY:
-			return "Clay Brush"; break;
+			return "Clay Brush";
 		case SCULPT_TOOL_CLAY_STRIPS:
-			return "Clay Strips Brush"; break;
+			return "Clay Strips Brush";
 		case SCULPT_TOOL_FILL:
-			return "Fill Brush"; break;
+			return "Fill Brush";
 		case SCULPT_TOOL_SCRAPE:
-			return "Scrape Brush"; break;
-		default:
-			return "Sculpting"; break;
+			return "Scrape Brush";
+		case SCULPT_TOOL_SNAKE_HOOK:
+			return "Snake Hook Brush";
+		case SCULPT_TOOL_ROTATE:
+			return "Rotate Brush";
+		case SCULPT_TOOL_MASK:
+			return "Mask Brush";
 	}
+
+	return "Sculpting";
 }
 
 /**
