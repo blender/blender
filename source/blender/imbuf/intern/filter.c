@@ -669,7 +669,7 @@ static float rdt_shaper_fwd( float x)
 	// Parameters controlling linear extrapolation.
 	const float LIGHT_SLOPE = 0.023;
 	const float CROSSOVER = pow(10,-KNOT_END);
-	const float REV_CROSSOVER = pow10( -KNOT_DENS[ KNOT_LEN - 1]) - FLARE;
+	const float REV_CROSSOVER = pow(10.0f, -KNOT_DENS[ KNOT_LEN - 1]) - FLARE;
 	const float DARK_SLOPE = REV_CROSSOVER / CROSSOVER;
 
 	// Textbook monomial to basis-function conversion matrix.
@@ -750,7 +750,7 @@ static float rdt_shaper_fwd( float x)
 				}
 			}
         }
-        y = pow10( -out_dens) - FLARE;
+        y = pow(10.0f, -out_dens) - FLARE;
     }
     return y;
 }
