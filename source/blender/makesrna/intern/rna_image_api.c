@@ -178,9 +178,11 @@ static void rna_Image_update(Image *image, ReportList *reports)
 	IMB_rect_from_float(ibuf);
 }
 
-static void rna_Image_scale(Image *image, int width, int height)
+static void rna_Image_scale(Image *image, int width, int height, , ReportList *reports)
 {
-	BKE_image_scale(image, width, height);
+	if (!BKE_image_scale(image, width, height)) {
+		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name + 2);
+	}
 }
 
 static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int mag)
@@ -285,6 +287,7 @@ void RNA_api_image(StructRNA *srna)
 
 	func = RNA_def_function(srna, "scale", "rna_Image_scale");
 	RNA_def_function_ui_description(func, "Scale the image in pixels");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_int(func, "width", 0, 1, 10000, "", "Width", 1, 10000);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_int(func, "height", 0, 1, 10000, "", "Height", 1, 10000);
