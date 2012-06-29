@@ -323,7 +323,7 @@ void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance)
 
 void RAS_2DFilterManager::UpdateOffsetMatrix(RAS_ICanvas* canvas)
 {
-	RAS_Rect canvas_rect = canvas->GetWindowArea();
+	/* RAS_Rect canvas_rect = canvas->GetWindowArea(); */ /* UNUSED */
 	texturewidth = canvas->GetWidth();
 	textureheight = canvas->GetHeight();
 	GLint i,j;

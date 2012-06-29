@@ -24,7 +24,6 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "RNA_access.h"
@@ -36,6 +35,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_scene_types.h"
+
+#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -463,7 +464,8 @@ static FCurve *rna_Driver_from_existing(AnimData *adt, bContext *C, FCurve *src_
 #else
 
 /* helper function for Keying Set -> keying settings */
-static void rna_def_common_keying_flags(StructRNA *srna, short reg)
+/* TODO: use reg option! */
+static void rna_def_common_keying_flags(StructRNA *srna, short UNUSED(reg))
 {
 	PropertyRNA *prop;
 

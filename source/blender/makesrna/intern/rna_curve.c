@@ -24,7 +24,6 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -35,6 +34,8 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
+
+#include "BLI_utildefines.h"
 
 #include "BKE_font.h"
 
@@ -845,7 +846,7 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_Curve_spline_point_path");
 }
 
-static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
+static void rna_def_path(BlenderRNA *UNUSED(brna), StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -894,7 +895,7 @@ static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
-static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna)
+static void rna_def_nurbs(BlenderRNA *UNUSED(brna), StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -905,7 +906,7 @@ static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
-static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
+static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 {
 	PropertyRNA *prop;
 	

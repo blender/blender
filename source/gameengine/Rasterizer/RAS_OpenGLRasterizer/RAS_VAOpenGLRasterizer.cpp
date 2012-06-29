@@ -42,7 +42,7 @@
 	
 RAS_VAOpenGLRasterizer::RAS_VAOpenGLRasterizer(RAS_ICanvas* canvas, bool lock)
 :	RAS_OpenGLRasterizer(canvas),
-	m_Lock(lock && GLEW_EXT_compiled_vertex_array),
+	/* m_Lock(lock && GLEW_EXT_compiled_vertex_array), */ /* UNUSED */
 	m_last_texco_num(0),
 	m_last_attrib_num(0)
 {

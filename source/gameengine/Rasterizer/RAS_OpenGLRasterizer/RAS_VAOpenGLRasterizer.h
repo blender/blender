@@ -37,7 +37,7 @@
 class RAS_VAOpenGLRasterizer : public RAS_OpenGLRasterizer
 {
 	void TexCoordPtr(const RAS_TexVert *tv);
-	bool m_Lock;
+	/* bool m_Lock; */ /* UNUSED */
 
 	TexCoGen		m_last_texco[RAS_MAX_TEXCO];
 	TexCoGen		m_last_attrib[RAS_MAX_ATTRIB];
