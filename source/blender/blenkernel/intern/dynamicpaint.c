@@ -33,6 +33,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_group_types.h" /*GroupObject*/
@@ -46,6 +47,7 @@
 #include "DNA_texture_types.h"
 
 #include "BKE_animsys.h"
+#include "BKE_armature.h"
 #include "BKE_bvhutils.h"   /* bvh tree	*/
 #include "BKE_blender.h"
 #include "BKE_cdderivedmesh.h"
@@ -528,11 +530,6 @@ static int subframe_updateObject(Scene *scene, Object *ob, int flags, float fram
 			}
 		}
 	}
-	/* for curve following objects, parented curve has to be updated too */
-	if (ob->type == OB_CURVE) {
-		Curve *cu = ob->data;
-		BKE_animsys_evaluate_animdata(scene, &cu->id, cu->adt, frame, ADT_RECALC_ANIM);
-	}
 
 	/* was originally OB_RECALC_ALL - TODO - which flags are really needed??? */
 	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
@@ -546,6 +543,18 @@ static int subframe_updateObject(Scene *scene, Object *ob, int flags, float fram
 	}
 	else
 		BKE_object_where_is_calc_time(scene, ob, frame);
+
+	/* for curve following objects, parented curve has to be updated too */
+	if (ob->type == OB_CURVE) {
+		Curve *cu = ob->data;
+		BKE_animsys_evaluate_animdata(scene, &cu->id, cu->adt, frame, ADT_RECALC_ANIM);
+	}
+	/* and armatures... */
+	if (ob->type == OB_ARMATURE) {
+		bArmature *arm = ob->data;
+		BKE_animsys_evaluate_animdata(scene, &arm->id, arm->adt, frame, ADT_RECALC_ANIM);
+		BKE_pose_where_is(scene, ob);
+	}
 
 	return 0;
 }
