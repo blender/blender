@@ -54,7 +54,7 @@
 #include "wm_event_types.h"
 #include "wm.h"
 
-
+#include "PIL_time.h"
 
 /* ********************** Threaded Jobs Manager ****************************** */
 
@@ -127,6 +127,7 @@ struct wmJob {
 	/* we use BLI_threads api, but per job only 1 thread runs */
 	ListBase threads;
 
+	double start_time;
 };
 
 /* finds:
@@ -343,6 +344,9 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 			/* restarted job has timer already */
 			if (steve->wt == NULL)
 				steve->wt = WM_event_add_timer(wm, steve->win, TIMERJOBS, steve->timestep);
+
+			if (G.debug & G_DEBUG_JOBS)
+				steve->start_time = PIL_check_seconds_timer();
 		}
 		else printf("job fails, not initialized\n");
 	}
@@ -464,6 +468,11 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 					
 					// if (steve->stop) printf("job ready but stopped %s\n", steve->name);
 					// else printf("job finished %s\n", steve->name);
+
+					if (G.debug & G_DEBUG_JOBS) {
+						printf("Job '%s' finished in %f seconds\n", steve->name,
+						       PIL_check_seconds_timer() - steve->start_time);
+					}
 
 					steve->running = 0;
 					BLI_end_threads(&steve->threads);
