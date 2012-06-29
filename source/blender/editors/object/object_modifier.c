@@ -844,19 +844,21 @@ static void edit_modifier_properties(wmOperatorType *ot)
 
 static int edit_modifier_invoke_properties(bContext *C, wmOperator *op)
 {
-	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
 	ModifierData *md;
 	
-	if (RNA_struct_property_is_set(op->ptr, "modifier"))
-		return 1;
-	
-	if (ptr.data) {
-		md = ptr.data;
-		RNA_string_set(op->ptr, "modifier", md->name);
-		return 1;
+	if (RNA_struct_property_is_set(op->ptr, "modifier")) {
+		return TRUE;
 	}
-	
-	return 0;
+	else {
+		PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+		if (ptr.data) {
+			md = ptr.data;
+			RNA_string_set(op->ptr, "modifier", md->name);
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 static ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
@@ -916,7 +918,7 @@ void OBJECT_OT_modifier_remove(wmOperatorType *ot)
 	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -955,7 +957,7 @@ void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
 	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -994,7 +996,7 @@ void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
 	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -1042,7 +1044,7 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	RNA_def_enum(ot->srna, "apply_as", modifier_apply_as_items, MODIFIER_APPLY_DATA, "Apply as", "How to apply the modifier to the geometry");
 	edit_modifier_properties(ot);
@@ -1085,7 +1087,7 @@ void OBJECT_OT_modifier_convert(wmOperatorType *ot)
 	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -1124,7 +1126,7 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 	ot->poll = edit_modifier_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -1173,7 +1175,7 @@ void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
 	ot->exec = multires_higher_levels_delete_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -1218,7 +1220,7 @@ void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 	ot->exec = multires_subdivide_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -1282,7 +1284,7 @@ void OBJECT_OT_multires_reshape(wmOperatorType *ot)
 	ot->exec = multires_reshape_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -1357,7 +1359,7 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 	ot->poll = multires_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	WM_operator_properties_filesel(ot, FOLDERFILE | BTXFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 	edit_modifier_properties(ot);
@@ -1429,7 +1431,7 @@ void OBJECT_OT_multires_base_apply(wmOperatorType *ot)
 	ot->exec = multires_base_apply_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -1844,7 +1846,7 @@ void OBJECT_OT_skin_armature_create(wmOperatorType *ot)
 	ot->exec = skin_armature_create_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -1939,7 +1941,7 @@ void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
 	ot->exec = meshdeform_bind_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -1986,7 +1988,7 @@ void OBJECT_OT_explode_refresh(wmOperatorType *ot)
 	ot->exec = explode_refresh_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 
@@ -2201,7 +2203,7 @@ void OBJECT_OT_ocean_bake(wmOperatorType *ot)
 	ot->exec = ocean_bake_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 	
 	RNA_def_boolean(ot->srna, "free", FALSE, "Free", "Free the bake, rather than generating it");
