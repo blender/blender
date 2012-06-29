@@ -178,7 +178,7 @@ static void rna_Image_update(Image *image, ReportList *reports)
 	IMB_rect_from_float(ibuf);
 }
 
-static void rna_Image_scale(Image *image, int width, int height, , ReportList *reports)
+static void rna_Image_scale(Image *image, ReportList *reports, int width, int height)
 {
 	if (!BKE_image_scale(image, width, height)) {
 		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name + 2);
