@@ -65,6 +65,7 @@
 
 #include "ED_node.h"
 #include "ED_gpencil.h"
+#include "ED_space_api.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -1087,6 +1088,8 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	
 	//uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+
 	/* only set once */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MAP1_VERTEX_3);
@@ -1138,6 +1141,8 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	}
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
+	
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
 	/* draw grease-pencil ('canvas' strokes) */
 	if (snode->nodetree)

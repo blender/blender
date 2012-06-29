@@ -41,9 +41,19 @@ struct bNodeTree;
 struct bNode;
 struct bNodeTree;
 struct ScrArea;
+struct View2D;
+
+typedef enum {
+	NODE_TOP    = 1,
+	NODE_BOTTOM = 2,
+	NODE_LEFT   = 4,
+	NODE_RIGHT  = 8
+} NodeBorder;
 
 /* drawnode.c */
 void ED_init_node_butfuncs(void);
+
+void drawnodesnap(struct View2D *v2d, const float cent[2], float size, NodeBorder border);
 
 /* node_draw.c */
 void ED_node_tree_update(struct SpaceNode *snode, struct Scene *scene);

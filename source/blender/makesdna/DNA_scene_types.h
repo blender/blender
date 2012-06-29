@@ -899,7 +899,7 @@ typedef struct ToolSettings {
 
 	/* Subdivide Settings */
 	short cornertype;
-	short pad3;
+	short pad1;
 	/*Triangle to Quad conversion threshold*/
 	float jointrilimit;
 	/* Editmode Tools */
@@ -995,12 +995,13 @@ typedef struct ToolSettings {
 	char edge_mode_live_unwrap;
 
 	/* Transform */
-	char snap_mode;
+	char snap_mode, snap_node_mode;
+	char pad3;
 	short snap_flag, snap_target;
 	short proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
 	char proportional_mask; /* proportional edit, object mode */
-	char pad[4];
+	char pad4[2];
 
 	char auto_normalize; /*auto normalizing mode in wpaint*/
 	char multipaint; /* paint multiple bones in wpaint */
@@ -1012,7 +1013,7 @@ typedef struct ToolSettings {
 	int uv_relax_method;
 	/* XXX: these sculpt_paint_* fields are deprecated, use the
 	 * unified_paint_settings field instead! */
-	short sculpt_paint_settings DNA_DEPRECATED;	short pad1;
+	short sculpt_paint_settings DNA_DEPRECATED;	short pad5;
 	int sculpt_paint_unified_size DNA_DEPRECATED;
 	float sculpt_paint_unified_unprojected_radius DNA_DEPRECATED;
 	float sculpt_paint_unified_alpha DNA_DEPRECATED;
@@ -1370,6 +1371,9 @@ typedef struct Scene {
 #define SCE_SNAP_MODE_EDGE		2
 #define SCE_SNAP_MODE_FACE		3
 #define SCE_SNAP_MODE_VOLUME	4
+#define SCE_SNAP_MODE_NODE_X	5
+#define SCE_SNAP_MODE_NODE_Y	6
+#define SCE_SNAP_MODE_NODE_XY	7
 
 /* toolsettings->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */

@@ -86,6 +86,7 @@ typedef struct TransSnap {
 	float	snapTarget[3]; /* to this point */
 	float	snapNormal[3];
 	float	snapTangent[3];
+	char	snapNodeBorder;
 	ListBase points;
 	TransSnapPoint	*selectedPoint;
 	float	dist; // Distance from snapPoint to snapTarget
