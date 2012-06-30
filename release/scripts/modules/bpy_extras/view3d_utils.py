@@ -77,9 +77,7 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
     :rtype: :class:`mathutils.Vector`
     """
     from mathutils import Vector
-    from mathutils.geometry import intersect_point_line
 
-    persmat = rv3d.perspective_matrix.copy()
     viewinv = rv3d.view_matrix.inverted()
     coord_vec = region_2d_to_vector_3d(region, rv3d, coord)
     depth_location = Vector(depth_location)
@@ -96,10 +94,11 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
                                     view_vec, 1,
                                     )
     else:
+        from mathutils.geometry import intersect_point_line
+        persmat = rv3d.perspective_matrix.copy()
         dx = (2.0 * coord[0] / region.width) - 1.0
         dy = (2.0 * coord[1] / region.height) - 1.0
         persinv = persmat.inverted()
-        viewinv = rv3d.view_matrix.inverted()
         origin_start = ((persinv.col[0].xyz * dx) +
                         (persinv.col[1].xyz * dy) +
                          viewinv.translation)
