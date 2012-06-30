@@ -32,374 +32,343 @@
 #define OCIO_CAPI_IMPLEMENTATION
 #include "ocio_capi.h"
 
-ConstConfigRcPtr* OCIO_getCurrentConfig(void)
+ConstConfigRcPtr *OCIO_getCurrentConfig(void)
 {
-	ConstConfigRcPtr* config =  new ConstConfigRcPtr();
-	try
-	{
+	ConstConfigRcPtr *config =  new ConstConfigRcPtr();
+	try {
 		*config = GetCurrentConfig();
+
 		if(*config)
 			return config;
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
-void OCIO_setCurrentConfig(const ConstConfigRcPtr* config)
+void OCIO_setCurrentConfig(const ConstConfigRcPtr *config)
 {
-	if(config)
-	{
-		try
-		{
-			SetCurrentConfig(*config);
-		}
-		catch(Exception & exception)
-		{
-			std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
-		}
+	try {
+		SetCurrentConfig(*config);
+	}
+	catch (Exception & exception) {
+		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
 }
 
-ConstConfigRcPtr* OCIO_configCreateFromEnv(void)
+ConstConfigRcPtr *OCIO_configCreateFromEnv(void)
 {
-	ConstConfigRcPtr* config =  new ConstConfigRcPtr();
-	try
-	{
+	ConstConfigRcPtr *config =  new ConstConfigRcPtr();
+
+	try {
 		*config = Config::CreateFromEnv();
-		if(*config)
+
+		if (*config)
 			return config;
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
 
-ConstConfigRcPtr* OCIO_configCreateFromFile(const char* filename)
+ConstConfigRcPtr *OCIO_configCreateFromFile(const char *filename)
 {
-	ConstConfigRcPtr* config =  new ConstConfigRcPtr();
-	try
-	{
+	ConstConfigRcPtr *config =  new ConstConfigRcPtr();
+
+	try {
 		*config = Config::CreateFromFile(filename);
-		if(*config)
+
+		if (*config)
 			return config;
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
-void OCIO_configRelease(ConstConfigRcPtr* config)
+void OCIO_configRelease(ConstConfigRcPtr *config)
 {
-	if(config){
-		delete config;
-		config =0;
-	}
+	delete config;
 }
 
-int OCIO_configGetNumColorSpaces(ConstConfigRcPtr* config)
+int OCIO_configGetNumColorSpaces(ConstConfigRcPtr *config)
 {
-	try
-	{
+	try {
 		return (*config)->getNumColorSpaces();
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
+
 	return 0;
 }
 
-const char* OCIO_configGetColorSpaceNameByIndex(ConstConfigRcPtr* config, int index)
+const char *OCIO_configGetColorSpaceNameByIndex(ConstConfigRcPtr *config, int index)
 {
-	try
-	{
+	try {
 		return (*config)->getColorSpaceNameByIndex(index);
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
-ConstColorSpaceRcPtr* OCIO_configGetColorSpace(ConstConfigRcPtr* config, const char* name)
+ConstColorSpaceRcPtr *OCIO_configGetColorSpace(ConstConfigRcPtr *config, const char *name)
 {
-	ConstColorSpaceRcPtr* cs =  new ConstColorSpaceRcPtr();
-	try
-	{
+	ConstColorSpaceRcPtr *cs =  new ConstColorSpaceRcPtr();
+
+	try {
 		*cs = (*config)->getColorSpace(name);
-		if(*cs)
+
+		if (*cs)
 			return cs;
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 		delete cs;
 	}
-	return 0;
+
+	return NULL;
 }
 
-int OCIO_configGetIndexForColorSpace(ConstConfigRcPtr* config, const char* name)
+int OCIO_configGetIndexForColorSpace(ConstConfigRcPtr *config, const char *name)
 {
-	try
-	{
+	try {
 		return (*config)->getIndexForColorSpace(name);
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
+
 	return -1;
 }
 
-const char* OCIO_configGetDefaultDisplay(ConstConfigRcPtr* config)
+const char *OCIO_configGetDefaultDisplay(ConstConfigRcPtr *config)
 {
-	try
-	{
+	try {
 		return (*config)->getDefaultDisplay();
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
 int OCIO_configGetNumDisplays(ConstConfigRcPtr* config)
 {
-	try
-	{
+	try {
 		return (*config)->getNumDisplays();
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
+
 	return 0;
 }
 
-const char* OCIO_configGetDisplay(ConstConfigRcPtr* config, int index)
+const char *OCIO_configGetDisplay(ConstConfigRcPtr *config, int index)
 {
-	try
-	{
+	try {
 		return (*config)->getDisplay(index);
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
-const char* OCIO_configGetDefaultView(ConstConfigRcPtr* config, const char* display)
+const char *OCIO_configGetDefaultView(ConstConfigRcPtr *config, const char *display)
 {
-	try
-	{
+	try {
 		return (*config)->getDefaultView(display);
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
-int OCIO_configGetNumViews(ConstConfigRcPtr* config, const char* display)
+int OCIO_configGetNumViews(ConstConfigRcPtr *config, const char *display)
 {
-	try
-	{
+	try {
 		return (*config)->getNumViews(display);
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
+
 	return 0;
 }
 
-const char* OCIO_configGetView(ConstConfigRcPtr* config, const char* display, int index)
+const char *OCIO_configGetView(ConstConfigRcPtr *config, const char *display, int index)
 {
-	try
-	{
+	try {
 		return (*config)->getView(display, index);
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
-const char* OCIO_configGetDisplayColorSpaceName(ConstConfigRcPtr* config, const char* display, const char* view)
+const char *OCIO_configGetDisplayColorSpaceName(ConstConfigRcPtr *config, const char *display, const char *view)
 {
-	try
-	{
+	try {
 		return (*config)->getDisplayColorSpaceName(display, view);
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
-
-
-
-void OCIO_colorSpaceRelease(ConstColorSpaceRcPtr* cs)
+void OCIO_colorSpaceRelease(ConstColorSpaceRcPtr *cs)
 {
-	if(cs){
-		delete cs;
-		cs =0;
-	}
+	delete cs;
 }
 
-
-
-
-
-ConstProcessorRcPtr* OCIO_configGetProcessorWithNames(ConstConfigRcPtr* config, const char* srcName, const char* dstName)
+ConstProcessorRcPtr *OCIO_configGetProcessorWithNames(ConstConfigRcPtr *config, const char *srcName, const char *dstName)
 {
-	ConstProcessorRcPtr* p =  new ConstProcessorRcPtr();
-	try
-	{
+	ConstProcessorRcPtr *p =  new ConstProcessorRcPtr();
+
+	try {
 		*p = (*config)->getProcessor(srcName, dstName);
-		if(*p)
+
+		if (*p)
 			return p;
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
+
 	return 0;
 }
 
-extern ConstProcessorRcPtr* OCIO_configGetProcessor(ConstConfigRcPtr* config, ConstTransformRcPtr* transform)
+ConstProcessorRcPtr *OCIO_configGetProcessor(ConstConfigRcPtr *config, ConstTransformRcPtr *transform)
 {
-	ConstProcessorRcPtr* p =  new ConstProcessorRcPtr();
-	try
-	{
+	ConstProcessorRcPtr *p =  new ConstProcessorRcPtr();
+
+	try {
 		*p = (*config)->getProcessor(*transform);
-		if(*p)
+
+		if (*p)
 			return p;
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
-void OCIO_processorApply(ConstProcessorRcPtr* processor, PackedImageDesc* img)
+void OCIO_processorApply(ConstProcessorRcPtr *processor, PackedImageDesc *img)
 {
-	try
-	{
+	try {
 		(*processor)->apply(*img);
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
 }
 
-void OCIO_processorApplyRGB(ConstProcessorRcPtr* processor, float* pixel)
+void OCIO_processorApplyRGB(ConstProcessorRcPtr *processor, float *pixel)
 {
 	(*processor)->applyRGB(pixel);
 }
 
-void OCIO_processorApplyRGBA(ConstProcessorRcPtr* processor, float* pixel)
+void OCIO_processorApplyRGBA(ConstProcessorRcPtr *processor, float *pixel)
 {
 	(*processor)->applyRGBA(pixel);
 }
 
-void OCIO_processorRelease(ConstProcessorRcPtr* p)
+void OCIO_processorRelease(ConstProcessorRcPtr *p)
 {
-	if(p){
-		delete p;
-		p = 0;
-	}
+	delete p;
 }
 
-const char* OCIO_colorSpaceGetName(ConstColorSpaceRcPtr* cs)
+const char *OCIO_colorSpaceGetName(ConstColorSpaceRcPtr *cs)
 {
 	return (*cs)->getName();
 }
 
-const char* OCIO_colorSpaceGetFamily(ConstColorSpaceRcPtr* cs)
+const char *OCIO_colorSpaceGetFamily(ConstColorSpaceRcPtr *cs)
 {
 	return (*cs)->getFamily();
 }
 
-
-extern DisplayTransformRcPtr* OCIO_createDisplayTransform(void)
+DisplayTransformRcPtr *OCIO_createDisplayTransform(void)
 {
-	DisplayTransformRcPtr* dt =  new DisplayTransformRcPtr();
+	DisplayTransformRcPtr *dt =  new DisplayTransformRcPtr();
+
 	*dt = DisplayTransform::Create();
+
 	return dt;
 }
 
-extern void OCIO_displayTransformSetInputColorSpaceName(DisplayTransformRcPtr* dt, const char * name)
+void OCIO_displayTransformSetInputColorSpaceName(DisplayTransformRcPtr *dt, const char *name)
 {
 	(*dt)->setInputColorSpaceName(name);
 }
 
-extern void OCIO_displayTransformSetDisplay(DisplayTransformRcPtr* dt, const char * name)
+void OCIO_displayTransformSetDisplay(DisplayTransformRcPtr *dt, const char *name)
 {
 	(*dt)->setDisplay(name);
 }
 
-extern void OCIO_displayTransformSetView(DisplayTransformRcPtr* dt, const char * name)
+void OCIO_displayTransformSetView(DisplayTransformRcPtr *dt, const char *name)
 {
 	(*dt)->setView(name);
 }
 
-extern void OCIO_displayTransformSetDisplayCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *t)
+void OCIO_displayTransformSetDisplayCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *t)
 {
 	(*dt)->setDisplayCC(*t);
 }
 
-extern void OCIO_displayTransformSetLinearCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *t)
+void OCIO_displayTransformSetLinearCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *t)
 {
 	(*dt)->setLinearCC(*t);
 }
 
-extern void OCIO_displayTransformRelease(DisplayTransformRcPtr* dt)
+void OCIO_displayTransformRelease(DisplayTransformRcPtr *dt)
 {
-	if(dt){
-		delete dt;
-		dt = 0;
-	}
+	delete dt;
+	dt = NULL;
 }
 
-PackedImageDesc* OCIO_createPackedImageDesc(float * data, long width, long height, long numChannels,
+PackedImageDesc *OCIO_createPackedImageDesc(float *data, long width, long height, long numChannels,
 											long chanStrideBytes, long xStrideBytes, long yStrideBytes)
 {
-	try
-	{
-		PackedImageDesc* id = new PackedImageDesc(data, width, height, numChannels, chanStrideBytes, xStrideBytes, yStrideBytes);
+	try {
+		PackedImageDesc *id = new PackedImageDesc(data, width, height, numChannels, chanStrideBytes, xStrideBytes, yStrideBytes);
+
 		return id;
 	}
-	catch(Exception & exception)
-	{
+	catch (Exception &exception) {
 		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
 	}
-	return 0;
+
+	return NULL;
 }
 
 void OCIO_packedImageDescRelease(PackedImageDesc* id)
 {
-	if(id){
-		delete id;
-		id = 0;
-	}
+	delete id;
+	id = NULL;
 }
 
 ExponentTransformRcPtr *OCIO_createExponentTransform(void)
@@ -423,7 +392,7 @@ void OCIO_exponentTransformRelease(ExponentTransformRcPtr *et)
 
 MatrixTransformRcPtr *OCIO_createMatrixTransform(void)
 {
-	MatrixTransformRcPtr *mt =  new MatrixTransformRcPtr();
+	MatrixTransformRcPtr *mt = new MatrixTransformRcPtr();
 
 	*mt = MatrixTransform::Create();
 

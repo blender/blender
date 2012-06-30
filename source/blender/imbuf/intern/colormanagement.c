@@ -73,6 +73,7 @@ static ListBase global_displays = {NULL};
 static ListBase global_views = {NULL};
 
 static int global_tot_display = 0;
+static int global_tot_view = 0;
 
 /*********************** Color managed cache *************************/
 
@@ -448,8 +449,8 @@ void IMB_colormanagement_init(void)
 #ifdef WITH_OCIO
 	const char *ocio_env;
 	const char *configdir;
-	char configfile[FILE_MAXDIR+FILE_MAXFILE];
-	ConstConfigRcPtr* config;
+	char configfile[FILE_MAX];
+	ConstConfigRcPtr *config = NULL;
 
 	ocio_env = getenv("OCIO");
 
@@ -461,9 +462,9 @@ void IMB_colormanagement_init(void)
 
 		if (configdir) 	{
 			BLI_join_dirfile(configfile, sizeof(configfile), configdir, BCM_CONFIG_FILE);
-		}
 
-		config = OCIO_configCreateFromFile(configfile);
+			config = OCIO_configCreateFromFile(configfile);
+		}
 	}
 
 	if (config) {
@@ -618,7 +619,7 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
                                                             float exposure, float gamma)
 {
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
-	DisplayTransformRcPtr *dt = OCIO_createDisplayTransform();
+	DisplayTransformRcPtr *dt;
 	ExponentTransformRcPtr *et;
 	MatrixTransformRcPtr *mt;
 	ConstProcessorRcPtr *processor;
@@ -629,6 +630,14 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 	float gain = powf(2.0f, exposure);
 	const float scale4f[] = {gain, gain, gain, gain};
 	float m44[16], offset4[4];
+
+	if (!config) {
+		/* there's no valid OCIO configuration, can't create processor */
+
+		return NULL;
+	}
+
+	dt = OCIO_createDisplayTransform();
 
 	/* OCIO_TODO: get rid of hardcoded input and display spaces */
 	OCIO_displayTransformSetInputColorSpaceName(dt, "aces");
@@ -683,6 +692,9 @@ static void display_buffer_apply_ocio(ImBuf *ibuf, unsigned char *display_buffer
 
 void IMB_colormanage_flags_allocate(ImBuf *ibuf)
 {
+	if (global_tot_display == 0)
+		return;
+
 	ibuf->display_buffer_flags = MEM_callocN(sizeof(unsigned int) * global_tot_display, "imbuf display_buffer_flags");
 }
 
@@ -717,7 +729,11 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		return NULL;
 
 	/* OCIO_TODO: support colormanaged byte buffers */
-	if (!strcmp(view_transform, "NONE") || !ibuf->rect_float) {
+	if (!strcmp(view_transform, "NONE") ||
+	    !ibuf->rect_float ||
+	    global_tot_display == 0 ||
+	    global_tot_view == 0)
+	{
 		/* currently only view-transformation is allowed, input and display
 		 * spaces are hard-coded, so if there's no view transform applying
 		 * it's safe to suppose standard byte buffer is used for display
@@ -851,8 +867,22 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 	wmWindow *win;
 	bScreen *sc;
 
-	ColorManagedDisplay *default_display = colormanage_display_get_default();
-	ColorManagedView *default_view = colormanage_view_get_default(default_display);
+	ColorManagedDisplay *default_display;
+	ColorManagedView *default_view;
+
+	default_display = colormanage_display_get_default();
+
+	if (!default_display) {
+		/* happens when OCIO configuration is incorrect */
+		return;
+	}
+
+	default_view = colormanage_view_get_default(default_display);
+
+	if (!default_view) {
+		/* happens when OCIO configuration is incorrect */
+		return;
+	}
 
 	if (wm) {
 		for (win = wm->windows.first; win; win = win->next) {
@@ -920,7 +950,15 @@ const ColorManagedViewSettings *IMB_view_settings_get_effective(wmWindow *win,
 ColorManagedDisplay *colormanage_display_get_default(void)
 {
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
-	const char *display = OCIO_configGetDefaultDisplay(config);
+	const char *display;
+
+	if (!config) {
+		/* no valid OCIO configuration, can't get default display */
+
+		return NULL;
+	}
+
+	display = OCIO_configGetDefaultDisplay(config);
 
 	OCIO_configRelease(config);
 
@@ -1003,7 +1041,16 @@ const char *IMB_colormanagement_display_get_indexed_name(int index)
 ColorManagedView *colormanage_view_get_default(const ColorManagedDisplay *display)
 {
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
-	const char *name = OCIO_configGetDefaultView(config, display->name);
+	const char *name;
+
+	if (!config) {
+		/* no valid OCIO configuration, can't get default view */
+
+		return NULL;
+	}
+
+	name = OCIO_configGetDefaultView(config, display->name);
+
 	OCIO_configRelease(config);
 
 	if (name[0] == '\0')
@@ -1016,19 +1063,15 @@ ColorManagedView *colormanage_view_get_default(const ColorManagedDisplay *displa
 ColorManagedView *colormanage_view_add(const char *name)
 {
 	ColorManagedView *view;
-	int index = 0;
-
-	if (global_views.last) {
-		ColorManagedView *last_view = global_views.last;
-
-		index = last_view->index;
-	}
+	int index = global_tot_view;
 
 	view = MEM_callocN(sizeof(ColorManagedView), "ColorManagedView");
 	view->index = index + 1;
 	BLI_strncpy(view->name, name, sizeof(view->name));
 
 	BLI_addtail(&global_views, view);
+
+	global_tot_view++;
 
 	return view;
 }
