@@ -182,11 +182,9 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_aces_rrt_srgb.3dl, interpolation: linear}
-        # That's an original transformation which ere baked
-        # - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
-        # - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
-        # - !<FileTransform> {src: rrt_ut33_sRGB.spi3d, interpolation: tetrahedral}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
+        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
+        - !<FileTransform> {src: rrt_ut33_sRGB.spi3d, interpolation: tetrahedral}
 
   - !<ColorSpace>
     name: rrt_rec709
@@ -212,11 +210,9 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_aces_rrt_p3dci.3dl, interpolation: linear}
-        # That's an original transformation which ere baked
-        # - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
-        # - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
-        # - !<FileTransform> {src: rrt_ut33_p3dci.spi3d, interpolation: tetrahedral}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
+        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
+        - !<FileTransform> {src: rrt_ut33_p3dci.spi3d, interpolation: tetrahedral}
 
   - !<ColorSpace>
     name: rrt_p3d60
@@ -242,8 +238,6 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_aces_rrt_xyz.3dl, interpolation: linear}
-        # That's an original transformation which ere baked
-        # - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
-        # - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
-        # - !<FileTransform> {src: rrt_ut33_dcdm.spi3d, interpolation: tetrahedral}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
+        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
+        - !<FileTransform> {src: rrt_ut33_dcdm.spi3d, interpolation: tetrahedral}

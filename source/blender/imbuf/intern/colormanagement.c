@@ -506,12 +506,13 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const char *view_transfor
 		int display_index = IMB_colormanagement_display_get_named_index(display);
 		int view_transform_flag = 1 << (view_transform_index - 1);
 
-		display_buffer = colormanage_cache_get(ibuf, view_transform_index, display_index, cache_handle);
+		/* check whether display buffer isn't marked as dirty and if so try to get buffer from cache */
+		if (ibuf->display_buffer_flags[display_index - 1] & view_transform_flag) {
+			display_buffer = colormanage_cache_get(ibuf, view_transform_index, display_index, cache_handle);
 
-		if (display_buffer) {
-			/* check whether display buffer isn't marked as dirty */
-			if (ibuf->display_buffer_flags[display_index - 1] & view_transform_flag)
+			if (display_buffer) {
 				return display_buffer;
+			}
 		}
 
 		/* OCIO_TODO: in case when image is being resized it is possible
@@ -566,6 +567,7 @@ void IMB_display_buffer_invalidate(ImBuf *ibuf)
 	memset(ibuf->display_buffer_flags, 0, sizeof(ibuf->display_buffer_flags));
 }
 
+#ifdef WITH_OCIO
 static void colormanage_check_space_view_transform(char *view_transform, int max_view_transform, const char *editor,
                                                    const ColorManagedView *default_view)
 {
@@ -586,6 +588,7 @@ static void colormanage_check_space_view_transform(char *view_transform, int max
 		}
 	}
 }
+#endif
 
 void IMB_colormanagement_check_file_config(Main *bmain)
 {
@@ -882,13 +885,15 @@ typedef struct PartialBufferUpdateItem {
 
 	int display, view;
 
+#ifdef WITH_OCIO
 	DisplayTransformRcPtr *dt;
+	ConstProcessorRcPtr *processor;
+#endif
+
 	imb_tonecurveCb tonecurve_func;
 } PartialBufferUpdateItem;
 
 typedef struct PartialBufferUpdateContext {
-	ConstConfigRcPtr *config;
-
 	int buffer_width;
 	int dither, predivide;
 
@@ -897,15 +902,17 @@ typedef struct PartialBufferUpdateContext {
 
 PartialBufferUpdateContext *IMB_partial_buffer_update_context_new(ImBuf *ibuf)
 {
+	PartialBufferUpdateContext *context = NULL;
+
+#ifdef WITH_OCIO
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
-	PartialBufferUpdateContext *context;
+
 	int display;
 	int tot_display = sizeof(ibuf->display_buffer_flags) / sizeof(ibuf->display_buffer_flags[0]);
 
 	context = MEM_callocN(sizeof(PartialBufferUpdateContext), "partial buffer update context");
 
 	context->buffer_width = ibuf->x;
-	context->config = config;
 
 	context->predivide = ibuf->flags & IB_cm_predivide;
 	context->dither = ibuf->dither;
@@ -940,6 +947,7 @@ PartialBufferUpdateContext *IMB_partial_buffer_update_context_new(ImBuf *ibuf)
 					}
 					else {
 						DisplayTransformRcPtr *dt = OCIO_createDisplayTransform();
+						ConstProcessorRcPtr *processor;
 
 						/* OCIO_TODO: get rid of hardcoded input and display spaces */
 						OCIO_displayTransformSetInputColorSpaceName(dt, "aces");
@@ -947,7 +955,10 @@ PartialBufferUpdateContext *IMB_partial_buffer_update_context_new(ImBuf *ibuf)
 						OCIO_displayTransformSetView(dt, view_name);
 						OCIO_displayTransformSetDisplay(dt, display_name);
 
+						processor = OCIO_configGetProcessor(config, (ConstTransformRcPtr *) dt);
+
 						item->dt = dt;
+						item->processor = processor;
 					}
 
 					BLI_addtail(&context->items, item);
@@ -958,23 +969,20 @@ PartialBufferUpdateContext *IMB_partial_buffer_update_context_new(ImBuf *ibuf)
 			view++;
 		}
 	}
+#else
+	(void) ibuf;
+#endif
 
 	return context;
 }
 
 void IMB_partial_buffer_update_rect(PartialBufferUpdateContext *context, const float *linear_buffer, struct rcti *rect)
 {
-	ConstConfigRcPtr *config = context->config;
+#ifdef WITH_OCIO
 	PartialBufferUpdateItem *item;
 
 	for (item = context->items.first; item; item = item->next) {
-		DisplayTransformRcPtr *dt = item->dt;
-		ConstProcessorRcPtr *processor = NULL;
-
-		if (!item->tonecurve_func)
-			processor = OCIO_configGetProcessor(config, (ConstTransformRcPtr *) dt);
-
-		if (processor || item->tonecurve_func) {
+		if (item->processor || item->tonecurve_func) {
 			unsigned char *display_buffer = item->display_buffer;
 			int x, y;
 
@@ -983,10 +991,10 @@ void IMB_partial_buffer_update_rect(PartialBufferUpdateContext *context, const f
 					int index = (y * context->buffer_width + x) * 4;
 					float pixel[4];
 
-					if (processor) {
+					if (item->processor) {
 						copy_v4_v4(pixel, (float *)linear_buffer + index);
 
-						OCIO_processorApplyRGBA(processor, pixel);
+						OCIO_processorApplyRGBA(item->processor, pixel);
 
 						rgba_float_to_uchar(display_buffer + index, pixel);
 					}
@@ -997,14 +1005,18 @@ void IMB_partial_buffer_update_rect(PartialBufferUpdateContext *context, const f
 					}
 				}
 			}
-
-			OCIO_processorRelease(processor);
 		}
 	}
+#else
+	(void) context;
+	(void) linear_buffer;
+	(void) rect;
+#endif
 }
 
 void IMB_partial_buffer_update_free(PartialBufferUpdateContext *context, ImBuf *ibuf)
 {
+#ifdef WITH_OCIO
 	PartialBufferUpdateItem *item;
 
 	IMB_display_buffer_invalidate(ibuf);
@@ -1018,6 +1030,7 @@ void IMB_partial_buffer_update_free(PartialBufferUpdateContext *context, ImBuf *
 
 		colormanage_cache_handle_release(item->cache_handle);
 
+		OCIO_processorRelease(item->processor);
 		OCIO_displayTransformRelease(item->dt);
 
 		MEM_freeN(item);
@@ -1025,7 +1038,9 @@ void IMB_partial_buffer_update_free(PartialBufferUpdateContext *context, ImBuf *
 		item = item_next;
 	}
 
-	OCIO_configRelease(context->config);
-
 	MEM_freeN(context);
+#else
+	(void) context;
+	(void) ibuf;
+#endif
 }
