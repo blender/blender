@@ -31,6 +31,7 @@
  *  \ingroup bke
  */
 
+struct ColorManagedViewSettings;
 struct CurveMapping;
 struct CurveMap;
 struct CurveMapPoint;
@@ -80,5 +81,8 @@ void                scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, int
 void                scopes_free(struct Scopes *scopes);
 void                scopes_new(struct Scopes *scopes);
 
-#endif
+void BKE_color_managed_view_settings_init(struct ColorManagedViewSettings *settings);
+void BKE_color_managed_view_settings_copy(struct ColorManagedViewSettings *new_settings,
+                                          const struct ColorManagedViewSettings *settings);
 
+#endif

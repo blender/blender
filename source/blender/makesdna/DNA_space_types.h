@@ -35,7 +35,7 @@
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_color_types.h"        /* for Histogram */
+#include "DNA_color_types.h"        /* for Histogram and color management */
 #include "DNA_vec_types.h"
 #include "DNA_outliner_types.h"     /* for TreeStoreElem */
 #include "DNA_image_types.h"        /* ImageUser */
@@ -690,8 +690,8 @@ typedef struct SpaceImage {
 	char dt_uvstretch;
 	char around;
 
-	/* color transformation  */
-	char view_transform[64];
+	ColorManagedViewSettings view_settings;
+	int pad1;
 } SpaceImage;
 
 
@@ -875,8 +875,8 @@ typedef struct SpaceNode {
 	
 	struct bGPdata *gpd;        /* grease-pencil data */
 
-	/* color transformation  */
-	char view_transform[64];
+	ColorManagedViewSettings view_settings;
+	int pad2;
 } SpaceNode;
 
 /* snode->flag */

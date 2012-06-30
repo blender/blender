@@ -46,6 +46,7 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_node.h"
@@ -104,12 +105,7 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 	/* backdrop */
 	snode->zoom = 1.0f;
 
-
-	/* OCIO_TODO: use default view transform here when OCIO is completely integrated
-	 *             and proper versioning stuff is added.
-	 *             for now use NONE to be compatible with all current files
-	 */
-	BLI_strncpy(snode->view_transform, "NONE", sizeof(snode->view_transform));
+	BKE_color_managed_view_settings_init(&snode->view_settings);
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for node");
@@ -322,13 +318,14 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 
 static SpaceLink *node_duplicate(SpaceLink *sl)
 {
+	SpaceImage *snode = (SpaceImage *) sl;
 	SpaceNode *snoden= MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
 	snoden->nodetree= NULL;
 	snoden->linkdrag.first= snoden->linkdrag.last= NULL;
 
-	BLI_strncpy(snoden->view_transform, snoden->view_transform, sizeof(snoden->view_transform));
+	BKE_color_managed_view_settings_copy(&snoden->view_settings, &snode->view_settings);
 
 	return (SpaceLink *)snoden;
 }

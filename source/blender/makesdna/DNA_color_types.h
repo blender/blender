@@ -158,6 +158,16 @@ typedef struct Scopes {
 #define SCOPES_WAVEFRM_YCC_709	3
 #define SCOPES_WAVEFRM_YCC_JPEG	4
 
+typedef struct ColorManagedViewSettings {
+	int flag;                  /* assodted flags such as using global settings from window and so */
+	char view_transform[64];   /* view transform which is being applied when displaying buffer on the screen */
+	float exposure;            /* fstop exposure */
+	float gamma;               /* post-display gamma transform */
+} ColorManagedViewSettings;
+
+enum {
+	COLORMANAGE_VIEW_USE_GLOBAL = (1 << 0)    /* use global display settings instead of per-space setting */
+};
 
 #endif
 

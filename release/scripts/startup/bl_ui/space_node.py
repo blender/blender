@@ -194,9 +194,17 @@ class NODE_PT_display_properties(Panel):
 
         snode = context.space_data
         window = context.window
+        view_settings = snode.view_settings
 
-        layout.prop(window, "display_device", text="Display")
-        layout.prop(snode, "view_transform", text="View")
+        # OCIO_TODO: de-duplicate this between different spaces
+        col = layout.column()
+        col.prop(window, "display_device", text="Display")
+        col.prop(view_settings, "view_transform", text="View")
+
+        col = layout.column()
+        col.active = view_settings.view_transform not in {'ACES ODT Tonecurve', 'NONE'}
+        col.prop(view_settings, "exposure")
+        col.prop(view_settings, "gamma")
 
 
 # Node Backdrop options

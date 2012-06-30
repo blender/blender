@@ -387,11 +387,7 @@ static SpaceLink *image_new(const bContext *UNUSED(C))
 	simage->zoom = 1;
 	simage->lock = 1;
 
-	/* OCIO_TODO: use default view transform here when OCIO is completely integrated
-	*             and proper versioning stuff is added.
-	*             for now use NONE to be compatible with all current files
-	*/
-	BLI_strncpy(simage->view_transform, "NONE", sizeof(simage->view_transform));
+	BKE_color_managed_view_settings_init(&simage->view_settings);
 
 	simage->iuser.ok = 1;
 	simage->iuser.fie_ima = 2;
@@ -464,7 +460,7 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
 
 	scopes_new(&simagen->scopes);
 
-	BLI_strncpy(simagen->view_transform, simage->view_transform, sizeof(simage->view_transform));
+	BKE_color_managed_view_settings_copy(&simagen->view_settings, &simage->view_settings);
 
 	return (SpaceLink *)simagen;
 }

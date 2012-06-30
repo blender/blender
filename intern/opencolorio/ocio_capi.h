@@ -49,6 +49,8 @@ extern "C" {
 	OCIO_DECLARE_HANDLE(PackedImageDesc);
 	OCIO_DECLARE_HANDLE(DisplayTransformRcPtr);
 	OCIO_DECLARE_HANDLE(ConstTransformRcPtr);
+	OCIO_DECLARE_HANDLE(ExponentTransformRcPtr);
+	OCIO_DECLARE_HANDLE(MatrixTransformRcPtr);
 #endif
 
 
@@ -92,12 +94,24 @@ extern DisplayTransformRcPtr* OCIO_createDisplayTransform(void);
 extern void OCIO_displayTransformSetInputColorSpaceName(DisplayTransformRcPtr* dt, const char * name);
 extern void OCIO_displayTransformSetDisplay(DisplayTransformRcPtr* dt, const char * name);
 extern void OCIO_displayTransformSetView(DisplayTransformRcPtr* dt, const char * name);
+extern void OCIO_displayTransformSetDisplayCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *et);
+extern void OCIO_displayTransformSetLinearCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *et);
 extern void OCIO_displayTransformRelease(DisplayTransformRcPtr* dt);
 
 PackedImageDesc* OCIO_createPackedImageDesc(float * data, long width, long height, long numChannels,
 											long chanStrideBytes, long xStrideBytes, long yStrideBytes);
 
 extern void OCIO_packedImageDescRelease(PackedImageDesc* p);
+
+ExponentTransformRcPtr *OCIO_createExponentTransform(void);
+void OCIO_exponentTransformSetValue(ExponentTransformRcPtr *et, const float *exponent);
+void OCIO_exponentTransformRelease(ExponentTransformRcPtr *et);
+
+MatrixTransformRcPtr *OCIO_createMatrixTransform(void);
+void OCIO_matrixTransformSetValue(MatrixTransformRcPtr *et, const float *m44, const float *offset4);
+void OCIO_matrixTransformRelease(MatrixTransformRcPtr *mt);
+
+void OCIO_matrixTransformScale(float * m44, float * offset4, const float * scale4);
 
 #ifdef __cplusplus
 }

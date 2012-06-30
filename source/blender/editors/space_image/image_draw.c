@@ -461,7 +461,8 @@ static void draw_image_buffer(wmWindow *win, SpaceImage *sima, ARegion *ar, Scen
 		 * convert them, and optionally apply curves */
 		image_verify_buffer_float(ima, ibuf, color_manage);
 
-		display_buffer = IMB_display_buffer_acquire(ibuf, sima->view_transform, win->display_device, &cache_handle);
+		display_buffer = IMB_display_buffer_acquire(ibuf, &sima->view_settings,
+		                                            win->display_device, &cache_handle);
 
 		if (display_buffer)
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);

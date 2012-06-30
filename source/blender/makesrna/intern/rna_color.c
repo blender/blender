@@ -34,6 +34,14 @@
 #include "DNA_color_types.h"
 #include "DNA_texture_types.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
+static EnumPropertyItem view_transform_items[] = {
+	{0, "NONE", 0, "None", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "RNA_access.h"
@@ -48,10 +56,9 @@
 #include "BKE_node.h"
 #include "BKE_texture.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "ED_node.h"
+
+#include "IMB_colormanagement.h"
 
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {
@@ -335,6 +342,38 @@ static void rna_Scopes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointer
 {
 	Scopes *s = (Scopes *)ptr->data;
 	s->ok = 0;
+}
+
+static int rna_ColorManagedViewSettings_view_transform_get(PointerRNA *ptr)
+{
+	ColorManagedViewSettings *view = (ColorManagedViewSettings *) ptr->data;
+
+	return IMB_colormanagement_view_get_named_index(view->view_transform);
+}
+
+static void rna_ColorManagedViewSettings_view_transform_set(PointerRNA *ptr, int value)
+{
+	ColorManagedViewSettings *view = (ColorManagedViewSettings *) ptr->data;
+
+	const char *name = IMB_colormanagement_view_get_indexed_name(value);
+
+	if (name) {
+		BLI_strncpy(view->view_transform, name, sizeof(view->view_transform));
+	}
+}
+
+static EnumPropertyItem* rna_ColorManagedViewSettings_view_transform_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	wmWindow *win = CTX_wm_window(C);
+	EnumPropertyItem *items = NULL;
+	int totitem = 0;
+
+	RNA_enum_item_add(&items, &totitem, &view_transform_items[0]);
+	IMB_colormanagement_view_items_add(&items, &totitem, win->display_device);
+	RNA_enum_item_end(&items, &totitem);
+
+	*free = 1;
+	return items;
 }
 
 #else
@@ -676,6 +715,39 @@ static void rna_def_scopes(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vectorscope Opacity", "Opacity of the points");
 }
 
+static void rna_def_colormanage(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "ColorManagedViewSettings", NULL);
+	RNA_def_struct_ui_text(srna, "ColorManagedViewSettings", "Color management settings used for displaying images on the display");
+
+	prop = RNA_def_property(srna, "use_global_settings", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLORMANAGE_VIEW_USE_GLOBAL);
+	RNA_def_property_ui_text(prop, "Use Global Settings", "Use global display settings instead of per-space setting");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, view_transform_items);
+	RNA_def_property_enum_funcs(prop, "rna_ColorManagedViewSettings_view_transform_get",
+	                                  "rna_ColorManagedViewSettings_view_transform_set",
+	                                  "rna_ColorManagedViewSettings_view_transform_itemf");
+	RNA_def_property_ui_text(prop, "View Transform", "View transform used for this image editor");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "exposure");
+	RNA_def_property_range(prop, -10.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Exposure", "Exposure (stops) applied on displaying image buffers");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "gamma");
+	RNA_def_property_range(prop, 0.0f, 5.0f);
+	RNA_def_property_ui_text(prop, "Gamma", "Amount f gamma modification for displaying image buffers");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+}
 
 void RNA_def_color(BlenderRNA *brna)
 {
@@ -686,6 +758,7 @@ void RNA_def_color(BlenderRNA *brna)
 	rna_def_color_ramp(brna);
 	rna_def_histogram(brna);
 	rna_def_scopes(brna);
+	rna_def_colormanage(brna);
 }
 
 #endif

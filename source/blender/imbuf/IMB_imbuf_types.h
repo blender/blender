@@ -123,8 +123,9 @@ typedef struct ImBuf {
 	/* color management */
 	int colormanage_refcounter;
 	unsigned int colormanage_flags;
-	unsigned int display_buffer_flags[16];  /* array of per-display display buffers dirty flags */
-	                                        /* currently supports 16 display spaces and 32 view-transform */
+	unsigned int *display_buffer_flags;  /* array of per-display display buffers dirty flags */
+	void *colormanage_cache_data;        /* cache data which is being assigned when */
+	                                     /* put ImBuf to colormanage cache */
 } ImBuf;
 
 /* Moved from BKE_bmfont_types.h because it is a userflag bit mask. */

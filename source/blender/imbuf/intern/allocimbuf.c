@@ -163,6 +163,8 @@ void IMB_freeImBuf(ImBuf *ibuf)
 			IMB_freezbuffloatImBuf(ibuf);
 			freeencodedbufferImBuf(ibuf);
 			IMB_metadata_free(ibuf);
+			IMB_colormanage_flags_free(ibuf);
+			IMB_colormanage_cache_data_free(ibuf);
 			MEM_freeN(ibuf);
 		}
 	}
@@ -443,6 +445,8 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	*ibuf2 = tbuf;
 
 	IMB_display_buffer_invalidate(ibuf2);
+	IMB_colormanage_cache_data_free(ibuf2);
+
 	ibuf2->colormanage_flags &= ~ IMB_COLORMANAGED;
 
 	return(ibuf2);

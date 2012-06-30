@@ -437,9 +437,17 @@ class IMAGE_PT_display_properties(Panel):
 
         sima = context.space_data
         window = context.window
+        view_settings = sima.view_settings
 
-        layout.prop(window, "display_device", text="Display")
-        layout.prop(sima, "view_transform", text="View")
+        # OCIO_TODO: de-duplicate this between different spaces
+        col = layout.column()
+        col.prop(window, "display_device", text="Display")
+        col.prop(view_settings, "view_transform", text="View")
+
+        col = layout.column()
+        col.active = view_settings.view_transform not in {'ACES ODT Tonecurve', 'NONE'}
+        col.prop(view_settings, "exposure")
+        col.prop(view_settings, "gamma")
 
 
 class IMAGE_PT_image_properties(Panel):

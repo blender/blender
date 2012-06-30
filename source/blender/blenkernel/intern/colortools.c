@@ -1207,3 +1207,21 @@ void scopes_new(Scopes *scopes)
 	scopes->waveform_3 = NULL;
 	scopes->vecscope = NULL;
 }
+
+void BKE_color_managed_view_settings_init(ColorManagedViewSettings *settings)
+{
+	/* OCIO_TODO: use default view transform here when OCIO is completely integrated
+	*             and proper versioning stuff is added.
+	*             for now use NONE to be compatible with all current files
+	*/
+	BLI_strncpy(settings->view_transform, "NONE", sizeof(settings->view_transform));
+
+	settings->gamma = 1.0f;
+	settings->exposure = 0.5f;
+}
+
+void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,
+                                          const ColorManagedViewSettings *settings)
+{
+	*new_settings = *settings;
+}

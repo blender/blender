@@ -361,6 +361,16 @@ extern void OCIO_displayTransformSetView(DisplayTransformRcPtr* dt, const char *
 	(*dt)->setView(name);
 }
 
+extern void OCIO_displayTransformSetDisplayCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *t)
+{
+	(*dt)->setDisplayCC(*t);
+}
+
+extern void OCIO_displayTransformSetLinearCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *t)
+{
+	(*dt)->setLinearCC(*t);
+}
+
 extern void OCIO_displayTransformRelease(DisplayTransformRcPtr* dt)
 {
 	if(dt){
@@ -392,3 +402,45 @@ void OCIO_packedImageDescRelease(PackedImageDesc* id)
 	}
 }
 
+ExponentTransformRcPtr *OCIO_createExponentTransform(void)
+{
+	ExponentTransformRcPtr *et =  new ExponentTransformRcPtr();
+
+	*et = ExponentTransform::Create();
+
+	return et;
+}
+
+void OCIO_exponentTransformSetValue(ExponentTransformRcPtr *et, const float *exponent)
+{
+	(*et)->setValue(exponent);
+}
+
+void OCIO_exponentTransformRelease(ExponentTransformRcPtr *et)
+{
+	delete et;
+}
+
+MatrixTransformRcPtr *OCIO_createMatrixTransform(void)
+{
+	MatrixTransformRcPtr *mt =  new MatrixTransformRcPtr();
+
+	*mt = MatrixTransform::Create();
+
+	return mt;
+}
+
+void OCIO_matrixTransformSetValue(MatrixTransformRcPtr *mt, const float *m44, const float *offset4)
+{
+	(*mt)->setValue(m44, offset4);
+}
+
+void OCIO_matrixTransformRelease(MatrixTransformRcPtr *mt)
+{
+	delete mt;
+}
+
+void OCIO_matrixTransformScale(float * m44, float * offset4, const float *scale4f)
+{
+	MatrixTransform::Scale(m44, offset4, scale4f);
+}

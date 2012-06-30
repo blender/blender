@@ -2984,7 +2984,8 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
 			
 
-			display_buffer = IMB_display_buffer_acquire(ibuf, snode->view_transform, win->display_device, &cache_handle);
+			display_buffer = IMB_display_buffer_acquire(ibuf, &snode->view_settings,
+			                                            win->display_device, &cache_handle);
 
 			if (display_buffer) {
 				if (snode->flag & SNODE_SHOW_ALPHA) {

@@ -118,11 +118,6 @@ EnumPropertyItem viewport_shade_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem view_transform_items[] = {
-	{0, "NONE", 0, "None", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -671,38 +666,6 @@ static void rna_SpaceImageEditor_scopes_update(Main *UNUSED(bmain), Scene *scene
 	ED_space_image_release_buffer(sima, lock);
 }
 
-static int rna_SpaceImageEditor_view_transform_get(PointerRNA *ptr)
-{
-	SpaceImage *sima = (SpaceImage *) ptr->data;
-
-	return IMB_colormanagement_view_get_named_index(sima->view_transform);
-}
-
-static void rna_SpaceImageEditor_view_transform_set(PointerRNA *ptr, int value)
-{
-	SpaceImage *sima = (SpaceImage*) ptr->data;
-
-	const char *name = IMB_colormanagement_view_get_indexed_name(value);
-
-	if (name) {
-		BLI_strncpy(sima->view_transform, name, sizeof(sima->view_transform));
-	}
-}
-
-static EnumPropertyItem* rna_SpaceImageEditor_view_transform_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
-{
-	wmWindow *win = CTX_wm_window(C);
-	EnumPropertyItem *items = NULL;
-	int totitem = 0;
-
-	RNA_enum_item_add(&items, &totitem, &view_transform_items[0]);
-	IMB_colormanagement_view_items_add(&items, &totitem, win->display_device);
-	RNA_enum_item_end(&items, &totitem);
-
-	*free = 1;
-	return items;
-}
-
 /* Space Text Editor */
 
 static void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
@@ -1013,38 +976,6 @@ static void rna_SpaceNodeEditor_node_tree_update(Main *UNUSED(bmain), Scene *sce
 	SpaceNode *snode = (SpaceNode *)ptr->data;
 	
 	ED_node_tree_update(snode, scene);
-}
-
-static int rna_SpaceNodeEditor_view_transform_get(PointerRNA *ptr)
-{
-	SpaceNode *snode = (SpaceNode *)ptr->data;
-
-	return IMB_colormanagement_view_get_named_index(snode->view_transform);
-}
-
-static void rna_SpaceNodeEditor_view_transform_set(PointerRNA *ptr, int value)
-{
-	SpaceNode *snode = (SpaceNode *)ptr->data;
-
-	const char *name = IMB_colormanagement_view_get_indexed_name(value);
-
-	if (name) {
-		BLI_strncpy(snode->view_transform, name, sizeof(snode->view_transform));
-	}
-}
-
-static EnumPropertyItem *rna_SpaceNodeEditor_view_transform_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
-{
-	wmWindow *win = CTX_wm_window(C);
-	EnumPropertyItem *items = NULL;
-	int totitem = 0;
-
-	RNA_enum_item_add(&items, &totitem, &view_transform_items[0]);
-	IMB_colormanagement_view_items_add(&items, &totitem, win->display_device);
-	RNA_enum_item_end(&items, &totitem);
-
-	*free = 1;
-	return items;
 }
 
 static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr),
@@ -2096,12 +2027,10 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Show UV Editor", "Show UV editing related properties");
 
-	prop= RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, view_transform_items);
-	RNA_def_property_enum_funcs(prop, "rna_SpaceImageEditor_view_transform_get", "rna_SpaceImageEditor_view_transform_set",
-	                            "rna_SpaceImageEditor_view_transform_itemf");
-	RNA_def_property_ui_text(prop, "View Transform", "View transform used for this image editor");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
+	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
+	RNA_def_property_ui_text(prop, "View Settings", "Sampled colors alongColor management settings used for displaying images on the display");
 
 	rna_def_space_image_uv(brna);
 }
@@ -3004,12 +2933,10 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Channels", "Channels of the image to draw");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 
-	prop= RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, view_transform_items);
-	RNA_def_property_enum_funcs(prop, "rna_SpaceNodeEditor_view_transform_get", "rna_SpaceNodeEditor_view_transform_set",
-	                            "rna_SpaceNodeEditor_view_transform_itemf");
-	RNA_def_property_ui_text(prop, "View Transform", "View transform used for this node editor");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
+	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
+	RNA_def_property_ui_text(prop, "View Settings", "Sampled colors alongColor management settings used for displaying images on the display");
 }
 
 static void rna_def_space_logic(BlenderRNA *brna)
