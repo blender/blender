@@ -632,12 +632,12 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int rectw, int recth, int mipmap, int use_high_bit_depth, Image *ima)
 {
 	unsigned int *scalerect = NULL;
-    float *fscalerect = NULL;
-    
-    int tpx = rectw;
-    int tpy = recth;
-    
-	/* scale if not a power of two. this is not strictly necessary for newer 
+	float *fscalerect = NULL;
+
+	int tpx = rectw;
+	int tpy = recth;
+
+	/* scale if not a power of two. this is not strictly necessary for newer
 	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures */
 	if (!is_pow2_limit(rectw) || !is_pow2_limit(recth)) {
 		rectw= smaller_pow2_limit(rectw);
@@ -749,14 +749,16 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 
 	return 1;
 #else
-    return 0;
+	(void)ibuf;
+	return 0;
 #endif
 }
 
 void GPU_create_gl_tex_compressed(unsigned int *bind, unsigned int *pix, int x, int y, int mipmap, Image *ima, ImBuf *ibuf)
 {
 #ifndef WITH_DDS
-	// Fall back to uncompressed if DDS isn't enabled
+	(void)ibuf;
+	/* Fall back to uncompressed if DDS isn't enabled */
 	GPU_create_gl_tex(bind, pix, NULL, x, y, mipmap, 0, ima);
 #else
 

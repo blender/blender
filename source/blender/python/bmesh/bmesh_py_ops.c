@@ -238,7 +238,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 					/* keep this last */
 					else if (PySequence_Check(value)) {
 						BMElem **elem_array = NULL;
-						int elem_array_len;
+						Py_ssize_t elem_array_len;
 
 						elem_array = BPy_BMElem_PySeq_As_Array(&bm, value, 0, PY_SSIZE_T_MAX,
 						                                       &elem_array_len, BM_VERT | BM_EDGE | BM_FACE,
