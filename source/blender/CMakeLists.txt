@@ -99,7 +99,6 @@ add_subdirectory(blenfont)
 add_subdirectory(blenloader)
 add_subdirectory(ikplugin)
 add_subdirectory(gpu)
-add_subdirectory(opencl)
 add_subdirectory(imbuf)
 add_subdirectory(avi)
 add_subdirectory(nodes)
@@ -108,6 +107,7 @@ add_subdirectory(makesdna)
 add_subdirectory(makesrna)
 
 if(WITH_COMPOSITOR)
+	add_subdirectory(opencl)  # later on this may be used more generally
 	add_subdirectory(compositor)
 endif()
 
