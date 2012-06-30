@@ -739,11 +739,13 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "exposure");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
+	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_ui_text(prop, "Exposure", "Exposure (stops) applied on displaying image buffers");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "gamma");
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Gamma", "Amount f gamma modification for displaying image buffers");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);

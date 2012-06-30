@@ -447,6 +447,7 @@ static void draw_image_buffer(wmWindow *win, SpaceImage *sima, ARegion *ar, Scen
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
 	else {
+		const ColorManagedViewSettings *view_settings;
 		unsigned char *display_buffer;
 		void *cache_handle;
 
@@ -461,8 +462,8 @@ static void draw_image_buffer(wmWindow *win, SpaceImage *sima, ARegion *ar, Scen
 		 * convert them, and optionally apply curves */
 		image_verify_buffer_float(ima, ibuf, color_manage);
 
-		display_buffer = IMB_display_buffer_acquire(ibuf, &sima->view_settings,
-		                                            win->display_device, &cache_handle);
+		view_settings = IMB_view_settings_get_effective(win, &sima->view_settings);
+		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, win->display_device, &cache_handle);
 
 		if (display_buffer)
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);

@@ -31,6 +31,7 @@
 #ifndef __DNA_WINDOWMANAGER_TYPES_H__
 #define __DNA_WINDOWMANAGER_TYPES_H__
 
+#include "DNA_color_types.h"  /* for color management */
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
@@ -196,7 +197,11 @@ typedef struct wmWindow {
 	ListBase subwindows;	/* opengl stuff for sub windows, see notes in wm_subwindow.c */
 	ListBase gesture;		/* gesture stuff */
 
+	/* color management */
+
 	char display_device[64];	/* color managed display device name */
+	ColorManagedViewSettings view_settings;  /* global view settings */
+	int pad1;
 } wmWindow;
 
 /* should be something like DNA_EXCLUDE 

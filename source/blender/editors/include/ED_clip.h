@@ -81,7 +81,7 @@ void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mas
 
 /* textures buffer */
 int ED_space_clip_texture_buffer_supported(struct SpaceClip *sc);
-int ED_space_clip_load_movieclip_buffer(struct SpaceClip *sc, struct ImBuf *ibuf);
+int ED_space_clip_load_movieclip_buffer(struct SpaceClip *sc, struct ImBuf *ibuf, const unsigned char *display_buffer);
 void ED_space_clip_unload_movieclip_buffer(struct SpaceClip *sc);
 void ED_space_clip_free_texture_buffer(struct SpaceClip *sc);
 

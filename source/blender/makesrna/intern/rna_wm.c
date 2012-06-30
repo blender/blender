@@ -1634,6 +1634,11 @@ static void rna_def_window(BlenderRNA *brna)
 	                            "rna_Window_display_device_itemf");
 	RNA_def_property_ui_text(prop, "Display Device", "Display device name used for this window");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
+	RNA_def_property_ui_text(prop, "View Settings", "Global color management settings used for displaying images on the display");
 }
 
 /* curve.splines */

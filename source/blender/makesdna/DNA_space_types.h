@@ -1020,6 +1020,10 @@ typedef struct SpaceClip {
 	char mask_draw_flag;
 	char mask_draw_type;
 	char pad3[6];
+
+	/* **** color management **** */
+	ColorManagedViewSettings view_settings;
+	int pad1;
 } SpaceClip;
 
 /* SpaceClip->flag */

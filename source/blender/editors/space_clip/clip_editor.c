@@ -533,6 +533,7 @@ typedef struct SpaceClipDrawContext {
 	GLuint texture;			/* OGL texture ID */
 	short texture_allocated;	/* flag if texture was allocated by glGenTextures */
 	struct ImBuf *texture_ibuf;	/* image buffer for which texture was created */
+	const unsigned char *display_buffer; /* display buffer for which texture was created */
 	int image_width, image_height;	/* image width and height for which texture was created */
 	unsigned last_texture;		/* ID of previously used texture, so it'll be restored after clip drawing */
 
@@ -563,7 +564,7 @@ int ED_space_clip_texture_buffer_supported(SpaceClip *sc)
 	return context->buffers_supported;
 }
 
-int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
+int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf, const unsigned char *display_buffer)
 {
 	SpaceClipDrawContext *context = sc->draw_context;
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -575,6 +576,7 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 	 * assuming displaying happens of footage frames only on which painting doesn't heppen.
 	 * so not changed image buffer pointer means unchanged image content */
 	need_rebind |= context->texture_ibuf != ibuf;
+	need_rebind |= context->display_buffer != display_buffer;
 	need_rebind |= context->framenr != sc->user.framenr;
 	need_rebind |= context->render_size != sc->user.render_size;
 	need_rebind |= context->render_flag != sc->user.render_flag;
@@ -620,16 +622,12 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 			glBindTexture(GL_TEXTURE_2D, context->texture);
 		}
 
-		if (ibuf->rect_float) {
-			if (ibuf->rect == NULL)
-				IMB_rect_from_float(ibuf);
-		}
-
-		if (ibuf->rect)
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+		if (display_buffer)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
 
 		/* store settings */
 		context->texture_allocated = 1;
+		context->display_buffer = display_buffer;
 		context->texture_ibuf = ibuf;
 		context->image_width = ibuf->x;
 		context->image_height = ibuf->y;

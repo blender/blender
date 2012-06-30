@@ -20,6 +20,7 @@
 
 import bpy
 from bpy.types import Panel, Header, Menu
+from bl_ui.properties_color_management import ColorManagedViewSettingsPanel
 
 
 class CLIP_HT_header(Header):
@@ -1000,6 +1001,13 @@ class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
 
         col.prop(sc.clip_user, "proxy_render_size", text="")
         col.prop(sc.clip_user, "use_render_undistorted")
+
+
+class CLIP_PT_display_properties(Panel, ColorManagedViewSettingsPanel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Display Properties"
+    bl_options = {'DEFAULT_CLOSED'}
 
 
 class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):

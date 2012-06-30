@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 from bl_ui.properties_paint_common import UnifiedPaintPanel
+from bl_ui.properties_color_management import ColorManagedViewSettingsPanel
 
 
 class ImagePaintPanel(UnifiedPaintPanel):
@@ -427,27 +428,10 @@ class IMAGE_HT_header(Header):
             layout.prop(sima, "use_realtime_update", text="", icon_only=True, icon='LOCKED')
 
 
-class IMAGE_PT_display_properties(Panel):
+class IMAGE_PT_display_properties(Panel, ColorManagedViewSettingsPanel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Display Properties"
-
-    def draw(self, context):
-        layout = self.layout
-
-        sima = context.space_data
-        window = context.window
-        view_settings = sima.view_settings
-
-        # OCIO_TODO: de-duplicate this between different spaces
-        col = layout.column()
-        col.prop(window, "display_device", text="Display")
-        col.prop(view_settings, "view_transform", text="View")
-
-        col = layout.column()
-        col.active = view_settings.view_transform not in {'ACES ODT Tonecurve', 'NONE'}
-        col.prop(view_settings, "exposure")
-        col.prop(view_settings, "gamma")
 
 
 class IMAGE_PT_image_properties(Panel):

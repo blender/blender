@@ -2936,7 +2936,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
-	RNA_def_property_ui_text(prop, "View Settings", "Sampled colors alongColor management settings used for displaying images on the display");
+	RNA_def_property_ui_text(prop, "View Settings", "Color management settings used for displaying images on the display");
 }
 
 static void rna_def_space_logic(BlenderRNA *brna)
@@ -3271,6 +3271,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, pivot_items);
 	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+	/* color management view settings */
+	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
+	RNA_def_property_ui_text(prop, "View Settings", "Color management settings used for displaying images on the display");
 }
 
 

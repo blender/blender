@@ -2962,6 +2962,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 		if (ibuf) {
 			SpaceNode *snode = CTX_wm_space_node(C);
 			wmWindow *win = CTX_wm_window(C);
+			const ColorManagedViewSettings *view_settings;
 			float x, y; 
 			unsigned char *display_buffer;
 			void *cache_handle;
@@ -2984,8 +2985,8 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
 			
 
-			display_buffer = IMB_display_buffer_acquire(ibuf, &snode->view_settings,
-			                                            win->display_device, &cache_handle);
+			view_settings = IMB_view_settings_get_effective(win, &snode->view_settings);
+			display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, win->display_device, &cache_handle);
 
 			if (display_buffer) {
 				if (snode->flag & SNODE_SHOW_ALPHA) {

@@ -42,6 +42,7 @@
 #include "BKE_tracking.h"
 #include "BKE_mask.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -251,7 +252,7 @@ static void verify_buffer_float(ImBuf *ibuf)
 	}
 }
 
-static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
+static void draw_movieclip_buffer(wmWindow *win, SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
                                   int width, int height, float zoomx, float zoomy)
 {
 	int x, y;
@@ -265,13 +266,20 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 		glRectf(x, y, x + zoomx * width, y + zoomy * height);
 	}
 	else {
+		const ColorManagedViewSettings *view_settings;
+		unsigned char *display_buffer;
+		void *cache_handle;
+
 		verify_buffer_float(ibuf);
 
-		if (ibuf->rect) {
+		view_settings = IMB_view_settings_get_effective(win, &sc->view_settings);
+		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, win->display_device, &cache_handle);
+
+		if (display_buffer) {
 			int need_fallback = 1;
 
 			if (ED_space_clip_texture_buffer_supported(sc)) {
-				if (ED_space_clip_load_movieclip_buffer(sc, ibuf)) {
+				if (ED_space_clip_load_movieclip_buffer(sc, ibuf, display_buffer)) {
 					glPushMatrix();
 					glTranslatef(x, y, 0.0f);
 					glScalef(zoomx, zoomy, 1.0f);
@@ -297,12 +305,14 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 				/* set zoom */
 				glPixelZoom(zoomx * width / ibuf->x, zoomy * height / ibuf->y);
 
-				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
 
 				/* reset zoom */
 				glPixelZoom(1.0f, 1.0f);
 			}
 		}
+
+		IMB_display_buffer_release(cache_handle);
 	}
 
 	/* draw boundary border for frame if stabilization is enabled */
@@ -1410,6 +1420,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 void clip_draw_main(const bContext *C, ARegion *ar)
 {
+	wmWindow *win = CTX_wm_window(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	Scene *scene = CTX_data_scene(C);
@@ -1460,7 +1471,7 @@ void clip_draw_main(const bContext *C, ARegion *ar)
 	}
 
 	if (ibuf) {
-		draw_movieclip_buffer(sc, ar, ibuf, width, height, zoomx, zoomy);
+		draw_movieclip_buffer(win, sc, ar, ibuf, width, height, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
 	}
 	else {

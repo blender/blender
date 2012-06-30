@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
+from bl_ui.properties_color_management import ColorManagedViewSettingsPanel
 
 
 class NODE_HT_header(Header):
@@ -184,27 +185,10 @@ class NODE_MT_node(Menu):
         layout.operator("node.read_fullsamplelayers")
 
 
-class NODE_PT_display_properties(Panel):
+class NODE_PT_display_properties(Panel, ColorManagedViewSettingsPanel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Display Properties"
-
-    def draw(self, context):
-        layout = self.layout
-
-        snode = context.space_data
-        window = context.window
-        view_settings = snode.view_settings
-
-        # OCIO_TODO: de-duplicate this between different spaces
-        col = layout.column()
-        col.prop(window, "display_device", text="Display")
-        col.prop(view_settings, "view_transform", text="View")
-
-        col = layout.column()
-        col.active = view_settings.view_transform not in {'ACES ODT Tonecurve', 'NONE'}
-        col.prop(view_settings, "exposure")
-        col.prop(view_settings, "gamma")
 
 
 # Node Backdrop options

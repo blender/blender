@@ -636,13 +636,13 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 	OCIO_displayTransformSetView(dt, view_transform);
 	OCIO_displayTransformSetDisplay(dt, display);
 
-    /* fstop exposure control */
+	/* fstop exposure control */
 	OCIO_matrixTransformScale(m44, offset4, scale4f);
 	mt = OCIO_createMatrixTransform();
 	OCIO_matrixTransformSetValue(mt, m44, offset4);
 	OCIO_displayTransformSetLinearCC(dt, (ConstTransformRcPtr *) mt);
 
-    /* post-display gamma transform */
+	/* post-display gamma transform */
 	et = OCIO_createExponentTransform();
 	OCIO_exponentTransformSetValue(et, exponent4f);
 	OCIO_displayTransformSetDisplayCC(dt, (ConstTransformRcPtr *) et);
@@ -704,7 +704,7 @@ void IMB_colormanage_cache_data_free(ImBuf *ibuf)
 	}
 }
 
-unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, ColorManagedViewSettings *view_settings,
+unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
                                           const char *display, void **cache_handle)
 {
 	const char *view_transform = view_settings->view_transform;
@@ -828,7 +828,7 @@ static void colormanage_check_view_settings(ColorManagedViewSettings *view_setti
 		ColorManagedView *view = colormanage_view_get_named(view_settings->view_transform);
 
 		if (!view) {
-			printf("Blender color management: %s editor view \"%s\" not found, setting default \"%s\".\n",
+			printf("Blender color management: %s view \"%s\" not found, setting default \"%s\".\n",
 			       editor, view_settings->view_transform, default_view->name);
 
 			BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
@@ -837,7 +837,8 @@ static void colormanage_check_view_settings(ColorManagedViewSettings *view_setti
 
 	/* OCIO_TODO: move to do_versions() */
 	if (view_settings->exposure == 0.0f && view_settings->gamma == 0.0f) {
-		view_settings->exposure = 0.5f;
+		view_settings->flag |= COLORMANAGE_VIEW_USE_GLOBAL;
+		view_settings->exposure = 0.0f;
 		view_settings->gamma = 1.0f;
 	}
 }
@@ -868,6 +869,8 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 					BLI_strncpy(win->display_device, default_display->name, sizeof(win->display_device));
 				}
 			}
+
+			colormanage_check_view_settings(&win->view_settings, "window", default_view);
 		}
 	}
 
@@ -881,12 +884,17 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 				if (sl->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = (SpaceImage *) sl;
 
-					colormanage_check_view_settings(&sima->view_settings, "image", default_view);
+					colormanage_check_view_settings(&sima->view_settings, "image editor", default_view);
 				}
 				else if (sl->spacetype == SPACE_NODE) {
 					SpaceNode *snode = (SpaceNode *) sl;
 
-					colormanage_check_view_settings(&snode->view_settings, "node", default_view);
+					colormanage_check_view_settings(&snode->view_settings, "node editor", default_view);
+				}
+				else if (sl->spacetype == SPACE_CLIP) {
+					SpaceClip *sclip = (SpaceClip *) sl;
+
+					colormanage_check_view_settings(&sclip->view_settings, "clip editor", default_view);
 				}
 			}
 		}
@@ -894,6 +902,16 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 #else
 	(void) bmain;
 #endif
+}
+
+const ColorManagedViewSettings *IMB_view_settings_get_effective(wmWindow *win,
+		const ColorManagedViewSettings *view_settings)
+{
+	if (view_settings->flag & COLORMANAGE_VIEW_USE_GLOBAL) {
+		return &win->view_settings;
+	}
+
+	return view_settings;
 }
 
 /*********************** Display functions *************************/
