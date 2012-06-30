@@ -50,6 +50,7 @@
 #include "BLI_math_color.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_main.h"
@@ -429,14 +430,125 @@ void IMB_colormanagement_exit(void)
 /*********************** Public display buffers interfaces *************************/
 
 #ifdef WITH_OCIO
+typedef struct DisplayBufferThread {
+	void *processor;
+
+	float *buffer;
+	unsigned char *display_buffer;
+
+	int width;
+	int start_line;
+	int tot_line;
+
+	int channels;
+	int dither;
+	int predivide;
+} DisplayBufferThread;
+
+static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned char *display_buffer,
+                                          void *processor, void *(do_thread) (void *))
+{
+	DisplayBufferThread handles[BLENDER_MAX_THREADS];
+	ListBase threads;
+
+	int predivide = ibuf->flags & IB_cm_predivide;
+	int i, tot_thread = BLI_system_thread_count();
+	int start_line, tot_line;
+
+	BLI_init_threads(&threads, do_thread, tot_thread);
+
+	start_line = 0;
+	tot_line = ((float)(ibuf->y / tot_thread)) + 0.5f;
+
+	for (i = 0; i < tot_thread; i++) {
+		int offset = ibuf->channels * start_line * ibuf->x;
+
+		handles[i].processor = processor;
+
+		handles[i].buffer = buffer + offset;
+		handles[i].display_buffer = display_buffer + offset;
+		handles[i].width = ibuf->x;
+
+		handles[i].start_line = start_line;
+
+		if (i < tot_thread - 1) {
+			handles[i].tot_line = tot_line;
+		}
+		else {
+			handles[i].tot_line = ibuf->y - start_line;
+		}
+
+		handles[i].channels = ibuf->channels;
+		handles[i].dither = ibuf->dither;
+		handles[i].predivide = predivide;
+
+		if (tot_thread > 1)
+			BLI_insert_thread(&threads, &handles[i]);
+
+		start_line += tot_line;
+	}
+
+	if (tot_thread > 1)
+		BLI_end_threads(&threads);
+	else
+		do_thread(&handles[0]);
+}
+
+static void *do_display_buffer_apply_tonemap_thread(void *handle_v)
+{
+	DisplayBufferThread *handle = (DisplayBufferThread *) handle_v;
+	imb_tonecurveCb tonecurve_func = (imb_tonecurveCb) handle->processor;
+
+	float *buffer = handle->buffer;
+	unsigned char *display_buffer = handle->display_buffer;
+
+	int channels = handle->channels;
+	int width = handle->width;
+	int height = handle->tot_line;
+	int dither = handle->dither;
+	int predivide = handle->predivide;
+
+	IMB_buffer_byte_from_float_tonecurve(display_buffer, buffer, channels, dither,
+	                                     IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
+	                                     predivide, width, height, width, width,
+										 tonecurve_func);
+
+	return NULL;
+}
+
 static void display_buffer_apply_tonemap(ImBuf *ibuf, unsigned char *display_buffer,
                                          imb_tonecurveCb tonecurve_func)
 {
-	int predivide = ibuf->flags & IB_cm_predivide;
+	display_buffer_apply_threaded(ibuf, ibuf->rect_float, display_buffer, tonecurve_func,
+	                              do_display_buffer_apply_tonemap_thread);
+}
 
-	IMB_buffer_byte_from_float_tonecurve(display_buffer, ibuf->rect_float,
-	                                      ibuf->channels, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
-	                                      predivide, ibuf->x, ibuf->y, ibuf->x, ibuf->x, tonecurve_func);
+static void *do_display_buffer_apply_ocio_thread(void *handle_v)
+{
+	DisplayBufferThread *handle = (DisplayBufferThread *) handle_v;
+	ConstProcessorRcPtr *processor = (ConstProcessorRcPtr *) handle->processor;
+	PackedImageDesc *img;
+	float *buffer = handle->buffer;
+	unsigned char *display_buffer = handle->display_buffer;
+	int channels = handle->channels;
+	int width = handle->width;
+	int height = handle->tot_line;
+	int dither = handle->dither;
+	int predivide = handle->predivide;
+
+	img = OCIO_createPackedImageDesc(buffer, width, height, channels, sizeof(float),
+	                                 channels * sizeof(float), channels * sizeof(float) * width);
+
+	OCIO_processorApply(processor, img);
+
+	OCIO_packedImageDescRelease(img);
+
+	/* do conversion */
+	IMB_buffer_byte_from_float(display_buffer, buffer,
+	                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
+							   predivide, width, height, width, width);
+
+	return NULL;
 }
 
 static void display_buffer_apply_ocio(ImBuf *ibuf, unsigned char *display_buffer,
@@ -445,13 +557,10 @@ static void display_buffer_apply_ocio(ImBuf *ibuf, unsigned char *display_buffer
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	DisplayTransformRcPtr *dt = OCIO_createDisplayTransform();
 	ConstProcessorRcPtr *processor;
+
 	float *rect_float;
-	int predivide = ibuf->flags & IB_cm_predivide;
-	PackedImageDesc *img;
 
 	rect_float = MEM_dupallocN(ibuf->rect_float);
-	img = OCIO_createPackedImageDesc(rect_float, ibuf->x, ibuf->y, ibuf->channels, sizeof(float),
-	                                 ibuf->channels * sizeof(float), ibuf->channels * sizeof(float)*ibuf->x);
 
 	/* OCIO_TODO: get rid of hardcoded input and display spaces */
 	OCIO_displayTransformSetInputColorSpaceName(dt, "aces");
@@ -459,18 +568,13 @@ static void display_buffer_apply_ocio(ImBuf *ibuf, unsigned char *display_buffer
 	OCIO_displayTransformSetView(dt, view_transform);
 	OCIO_displayTransformSetDisplay(dt, display);
 
-	processor = OCIO_configGetProcessor(config, (ConstTransformRcPtr*)dt);
+	processor = OCIO_configGetProcessor(config, (ConstTransformRcPtr *) dt);
 
 	if (processor) {
-		OCIO_processorApply(processor, img);
-
-		/* do conversion */
-		IMB_buffer_byte_from_float(display_buffer, rect_float,
-		                           ibuf->channels, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-								   predivide, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+		display_buffer_apply_threaded(ibuf, rect_float, display_buffer, processor,
+		                              do_display_buffer_apply_ocio_thread);
 	}
 
-	OCIO_packedImageDescRelease(img);
 	OCIO_displayTransformRelease(dt);
 	OCIO_processorRelease(processor);
 	OCIO_configRelease(config);
