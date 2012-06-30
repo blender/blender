@@ -707,6 +707,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
  */
 int GPU_upload_dxt_texture(ImBuf *ibuf)
 {
+#if WITH_DDS
 	GLint format, err;
 	int blocksize, height, width, i, size, offset = 0;
 
@@ -747,6 +748,9 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 	}
 
 	return 1;
+#else
+    return 0;
+#endif
 }
 
 void GPU_create_gl_tex_compressed(unsigned int *bind, unsigned int *pix, int x, int y, int mipmap, Image *ima, ImBuf *ibuf)
