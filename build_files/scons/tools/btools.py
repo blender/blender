@@ -108,6 +108,7 @@ def validate_arguments(args, bc):
             'WITH_BF_STATICFFMPEG', 'BF_FFMPEG_LIB_STATIC',
             'WITH_BF_OGG', 'BF_OGG', 'BF_OGG_LIB',
             'WITH_BF_FRAMESERVER',
+            'WITH_BF_COMPOSITOR',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
             'WITH_BF_OPENJPEG', 'BF_OPENJPEG', 'BF_OPENJPEG_INC', 'BF_OPENJPEG_LIB', 'BF_OPENJPEG_LIBPATH',
             'WITH_BF_REDCODE', 'BF_REDCODE', 'BF_REDCODE_INC', 'BF_REDCODE_LIB', 'BF_REDCODE_LIBPATH',
@@ -531,6 +532,8 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_CARVE', 'Enable carve library for mesh boolean operations', True)),
         
         (BoolVariable('WITH_BF_LIBMV', 'Enable libmv structure from motion library', True)),
+        
+        (BoolVariable('WITH_BF_COMPOSITOR', 'Enable the tile based nodal compositor', True)),
 
         ('BF_X264_CONFIG', 'configuration flags for x264', ''),
         ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),

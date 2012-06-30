@@ -1,7 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-SConscript(['blender/SConscript', 'creator/SConscript'])
+SConscript(['blender/SConscript'])
 
 if env['WITH_BF_GAMEENGINE']:
     SConscript (['gameengine/SConscript'])
