@@ -314,7 +314,7 @@ static void BKE_mesh_copy(BMOperator *op, BMesh *source, BMesh *target)
  * BMOP_DUPE_FNEW: Buffer containing pointers to the new mesh faces
  */
 
-void bmo_dupe_exec(BMesh *bm, BMOperator *op)
+void bmo_duplicate_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator *dupeop = op;
 	BMesh *bm2 = BMO_slot_ptr_get(op, "dest");
@@ -345,7 +345,7 @@ void BMO_dupe_from_flag(BMesh *bm, int htype, const char hflag)
 {
 	BMOperator dupeop;
 
-	BMO_op_init(bm, &dupeop, "dupe");
+	BMO_op_init(bm, &dupeop, "duplicate");
 	BMO_slot_buffer_from_enabled_hflag(bm, &dupeop, "geom", htype, hflag);
 
 	BMO_op_exec(bm, &dupeop);
@@ -381,8 +381,8 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 	const short use_only_faces = BMO_slot_bool_get(op, "use_only_faces");
 
 	/* initialize our sub-operator */
-	BMO_op_init(bm, &dupeop, "dupe");
-	BMO_op_init(bm, &delop, "del");
+	BMO_op_init(bm, &dupeop, "duplicate");
+	BMO_op_init(bm, &delop, "delete");
 	
 	BMO_slot_copy(splitop, &dupeop, "geom", "geom");
 	BMO_op_exec(bm, &dupeop);
@@ -443,7 +443,7 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 }
 
 
-void bmo_del_exec(BMesh *bm, BMOperator *op)
+void bmo_delete_exec(BMesh *bm, BMOperator *op)
 {
 #define DEL_INPUT 1
 

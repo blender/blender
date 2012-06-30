@@ -672,7 +672,7 @@ typedef struct SubDFaceData {
 	BMFace *face;
 } SubDFaceData;
 
-void bmo_esubd_exec(BMesh *bm, BMOperator *op)
+void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *einput;
 	SubDPattern *pat;
@@ -1038,7 +1038,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	
 	/* use_sphere isnt exposed here since its only used for new primitives */
 	BMO_op_initf(bm, &op,
-	             "esubd edges=%he "
+	             "subdivide_edges edges=%he "
 	             "smooth=%f fractal=%f along_normal=%f "
 	             "numcuts=%i "
 	             "quadcornertype=%i "
@@ -1096,7 +1096,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	BMO_op_finish(bm, &op);
 }
 
-void bmo_edgebisect_exec(BMesh *bm, BMOperator *op)
+void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e;

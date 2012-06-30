@@ -97,8 +97,8 @@
  *
  * Smooths vertices by using a basic vertex averaging scheme.
  */
-static BMOpDefine bmo_vertexsmooth_def = {
-	"vertexsmooth",
+static BMOpDefine bmo_smooth_vert_def = {
+	"smooth_vert",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, //input vertices
 	 {BMO_OP_SLOT_BOOL, "mirror_clip_x"}, //set vertices close to the x axis before the operation to 0
 	 {BMO_OP_SLOT_BOOL, "mirror_clip_y"}, //set vertices close to the y axis before the operation to 0
@@ -106,7 +106,7 @@ static BMOpDefine bmo_vertexsmooth_def = {
 	 {BMO_OP_SLOT_FLT, "clipdist"}, //clipping threshod for the above three slots
 	{0} /* null-terminating sentinel */,
 	},
-	bmo_vertexsmooth_exec,
+	bmo_smooth_vert_exec,
 	0
 };
 
@@ -116,13 +116,13 @@ static BMOpDefine bmo_vertexsmooth_def = {
  * Computes an "outside" normal for the specified input faces.
  */
 
-static BMOpDefine bmo_righthandfaces_def = {
-	"righthandfaces",
+static BMOpDefine bmo_recalc_face_normals_def = {
+	"recalc_face_normals",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},
 	 {BMO_OP_SLOT_BOOL, "do_flip"}, //internal flag, used by bmesh_rationalize_normals
 	 {0} /* null-terminating sentinel */,
 	},
-	bmo_righthandfaces_exec,
+	bmo_recalc_face_normals_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
 
@@ -136,15 +136,15 @@ static BMOpDefine bmo_righthandfaces_def = {
  * if usefaces is 0 then geomout spits out verts and edges,
  * otherwise it spits out faces.
  */
-static BMOpDefine bmo_regionextend_def = {
-	"regionextend",
+static BMOpDefine bmo_region_extend_def = {
+	"region_extend",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, //input geometry
 	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"}, //output slot, computed boundary geometry.
 	 {BMO_OP_SLOT_BOOL, "constrict"}, //find boundary inside the regions, not outside.
 	 {BMO_OP_SLOT_BOOL, "use_faces"}, //extend from faces instead of edges
 	 {0} /* null-terminating sentinel */,
 	},
-	bmo_regionextend_exec,
+	bmo_region_extend_exec,
 	0
 };
 
@@ -154,14 +154,14 @@ static BMOpDefine bmo_regionextend_def = {
  * Rotates edges topologically.  Also known as "spin edge" to some people.
  * Simple example: [/] becomes [|] then [\].
  */
-static BMOpDefine bmo_edgerotate_def = {
-	"edgerotate",
+static BMOpDefine bmo_rotate_edges_def = {
+	"rotate_edges",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, //input edges
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, //newly spun edges
 	 {BMO_OP_SLOT_BOOL, "ccw"}, //rotate edge counter-clockwise if true, othewise clockwise
 	 {0} /* null-terminating sentinel */,
 	},
-	bmo_edgerotate_exec,
+	bmo_rotate_edges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
@@ -171,12 +171,12 @@ static BMOpDefine bmo_edgerotate_def = {
  * Reverses the winding (vertex order) of faces.  This has the effect of
  * flipping the normal.
  */
-static BMOpDefine bmo_reversefaces_def = {
-	"reversefaces",
+static BMOpDefine bmo_reverse_faces_def = {
+	"reverse_faces",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, //input faces
 	 {0} /* null-terminating sentinel */,
 	},
-	bmo_reversefaces_exec,
+	bmo_reverse_faces_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
 
@@ -186,14 +186,14 @@ static BMOpDefine bmo_reversefaces_def = {
  * Splits input edges (but doesn't do anything else).
  * This creates a 2-valence vert.
  */
-static BMOpDefine bmo_edgebisect_def = {
-	"edgebisect",
+static BMOpDefine bmo_bisect_edges_def = {
+	"bisect_edges",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, //input edges
 	 {BMO_OP_SLOT_INT, "numcuts"}, //number of cuts
 	 {BMO_OP_SLOT_ELEMENT_BUF, "outsplit"}, //newly created vertices and edges
 	 {0} /* null-terminating sentinel */,
 	},
-	bmo_edgebisect_exec,
+	bmo_bisect_edges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
@@ -225,17 +225,17 @@ static BMOpDefine bmo_mirror_def = {
  * Takes input verts and find vertices they should weld to.  Outputs a
  * mapping slot suitable for use with the weld verts bmop.
  *
- * If keepverts is used, vertices outside that set can only be merged
+ * If keep_verts is used, vertices outside that set can only be merged
  * with vertices in that set.
  */
-static BMOpDefine bmo_finddoubles_def = {
-	"finddoubles",
+static BMOpDefine bmo_find_doubles_def = {
+	"find_doubles",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, //input vertices
-	 {BMO_OP_SLOT_ELEMENT_BUF, "keepverts"}, //list of verts to keep
+	 {BMO_OP_SLOT_ELEMENT_BUF, "keep_verts"}, //list of verts to keep
 	 {BMO_OP_SLOT_FLT,         "dist"}, //minimum distance
 	 {BMO_OP_SLOT_MAPPING, "targetmapout"},
 	 {0, /* null-terminating sentinel */}},
-	bmo_finddoubles_exec,
+	bmo_find_doubles_exec,
 	0,
 };
 
@@ -305,11 +305,11 @@ static BMOpDefine bmo_pointmerge_facedata_def = {
  * the bounding box center. (I know, it's not averaging but
  * the vert_snap_to_bb_center is just too long).
  */
-static BMOpDefine bmo_vert_average_facedata_def = {
-	"vert_average_facedata",
+static BMOpDefine bmo_average_vert_facedata_def = {
+	"average_vert_facedata",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertice */
 	 {0, /* null-terminating sentinel */}},
-	bmo_vert_average_facedata_exec,
+	bmo_average_vert_facedata_exec,
 	0,
 };
 
@@ -321,7 +321,7 @@ static BMOpDefine bmo_vert_average_facedata_def = {
 static BMOpDefine bmo_pointmerge_def = {
 	"pointmerge",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertice */
-	 {BMO_OP_SLOT_VEC,         "mergeco"},
+	 {BMO_OP_SLOT_VEC,         "merge_co"},
 	 {0, /* null-terminating sentinel */}},
 	bmo_pointmerge_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
@@ -347,11 +347,11 @@ static BMOpDefine bmo_collapse_uvs_def = {
  * use or will use this bmop).  You pass in mappings from vertices to the vertices
  * they weld with.
  */
-static BMOpDefine bmo_weldverts_def = {
-	"weldverts",
+static BMOpDefine bmo_weld_verts_def = {
+	"weld_verts",
 	{{BMO_OP_SLOT_MAPPING, "targetmap"}, /* maps welded vertices to verts they should weld to */
 	 {0, /* null-terminating sentinel */}},
-	bmo_weldverts_exec,
+	bmo_weld_verts_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
 
@@ -361,12 +361,12 @@ static BMOpDefine bmo_weldverts_def = {
  * Creates a single vertex; this bmop was necessary
  * for click-create-vertex.
  */
-static BMOpDefine bmo_makevert_def = {
-	"makevert",
+static BMOpDefine bmo_create_vert_def = {
+	"create_vert",
 	{{BMO_OP_SLOT_VEC, "co"}, //the coordinate of the new vert
 	 {BMO_OP_SLOT_ELEMENT_BUF, "newvertout"}, //the new vert
 	 {0, /* null-terminating sentinel */}},
-	bmo_makevert_exec,
+	bmo_create_vert_exec,
 	0,
 };
 
@@ -572,13 +572,13 @@ static BMOpDefine bmo_mesh_to_bmesh_def = {
  *
  * Extrudes faces individually.
  */
-static BMOpDefine bmo_extrude_indivface_def = {
-	"extrude_face_indiv",
+static BMOpDefine bmo_extrude_discrete_faces_def = {
+	"extrude_discrete_faces",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, //input faces
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, //output faces
 	 {BMO_OP_SLOT_ELEMENT_BUF, "skirtout"}, //output skirt geometry, faces and edges
 	 {0} /* null-terminating sentinel */},
-	bmo_extrude_face_indiv_exec,
+	bmo_extrude_discrete_faces_exec,
 	0
 };
 
@@ -612,12 +612,12 @@ static BMOpDefine bmo_extrude_vert_indiv_def = {
 	0
 };
 
-static BMOpDefine bmo_connectverts_def = {
-	"connectverts",
+static BMOpDefine bmo_connect_verts_def = {
+	"connect_verts",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"},
 	 {0} /* null-terminating sentinel */},
-	bmo_connectverts_exec,
+	bmo_connect_verts_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
@@ -691,8 +691,8 @@ static BMOpDefine bmo_triangulate_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
-static BMOpDefine bmo_esubd_def = {
-	"esubd",
+static BMOpDefine bmo_subdivide_edges_def = {
+	"subdivide_edges",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},
 	 {BMO_OP_SLOT_FLT, "smooth"},
 	 {BMO_OP_SLOT_FLT, "fractal"},
@@ -714,21 +714,21 @@ static BMOpDefine bmo_esubd_def = {
 
 	 {0} /* null-terminating sentinel */,
 	},
-	bmo_esubd_exec,
+	bmo_subdivide_edges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
-static BMOpDefine bmo_del_def = {
-	"del",
+static BMOpDefine bmo_delete_def = {
+	"delete",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},
 	 {BMO_OP_SLOT_INT, "context"},
 	 {0} /* null-terminating sentinel */},
-	bmo_del_exec,
+	bmo_delete_exec,
 	0
 };
 
-static BMOpDefine bmo_dupe_def = {
-	"dupe",
+static BMOpDefine bmo_duplicate_def = {
+	"duplicate",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "origout"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "newout"},
@@ -739,7 +739,7 @@ static BMOpDefine bmo_dupe_def = {
 	 {BMO_OP_SLOT_MAPPING, "isovertmap"},
 	 {BMO_OP_SLOT_PNT, "dest"}, /* destination bmesh, if NULL will use current on */
 	 {0} /* null-terminating sentinel */},
-	bmo_dupe_exec,
+	bmo_duplicate_exec,
 	0
 };
 
@@ -783,14 +783,14 @@ static BMOpDefine bmo_spin_def = {
  *
  * Find similar faces (area/material/perimeter, ...).
  */
-static BMOpDefine bmo_similarfaces_def = {
-	"similarfaces",
+static BMOpDefine bmo_similar_faces_def = {
+	"similar_faces",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* output faces */
 	 {BMO_OP_SLOT_INT, "type"},			/* type of selection */
 	 {BMO_OP_SLOT_FLT, "thresh"},		/* threshold of selection */
 	 {0} /* null-terminating sentinel */},
-	bmo_similarfaces_exec,
+	bmo_similar_faces_exec,
 	0
 };
 
@@ -799,14 +799,14 @@ static BMOpDefine bmo_similarfaces_def = {
  *
  *  Find similar edges (length, direction, edge, seam, ...).
  */
-static BMOpDefine bmo_similaredges_def = {
-	"similaredges",
+static BMOpDefine bmo_similar_edges_def = {
+	"similar_edges",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edges */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, /* output edges */
 	 {BMO_OP_SLOT_INT, "type"},			/* type of selection */
 	 {BMO_OP_SLOT_FLT, "thresh"},		/* threshold of selection */
 	 {0} /* null-terminating sentinel */},
-	bmo_similaredges_exec,
+	bmo_similar_edges_exec,
 	0
 };
 
@@ -815,14 +815,14 @@ static BMOpDefine bmo_similaredges_def = {
  *
  * Find similar vertices (normal, face, vertex group, ...).
  */
-static BMOpDefine bmo_similarverts_def = {
-	"similarverts",
+static BMOpDefine bmo_similar_verts_def = {
+	"similar_verts",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertices */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"}, /* output vertices */
 	 {BMO_OP_SLOT_INT, "type"},			/* type of selection */
 	 {BMO_OP_SLOT_FLT, "thresh"},		/* threshold of selection */
 	 {0} /* null-terminating sentinel */},
-	bmo_similarverts_exec,
+	bmo_similar_verts_exec,
 	0
 };
 
@@ -830,12 +830,12 @@ static BMOpDefine bmo_similarverts_def = {
  * uv rotation
  * cycle the uvs
  */
-static BMOpDefine bmo_face_rotateuvs_def = {
-	"face_rotateuvs",
+static BMOpDefine bmo_rotate_uvs_def = {
+	"rotate_uvs",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {BMO_OP_SLOT_INT, "dir"},			/* direction */
 	 {0} /* null-terminating sentinel */},
-	bmo_face_rotateuvs_exec,
+	bmo_rotate_uvs_exec,
 	0
 };
 
@@ -843,11 +843,11 @@ static BMOpDefine bmo_face_rotateuvs_def = {
  * uv reverse
  * reverse the uvs
  */
-static BMOpDefine bmo_face_reverseuvs_def = {
-	"face_reverseuvs",
+static BMOpDefine bmo_reverse_uvs_def = {
+	"reverse_uvs",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {0} /* null-terminating sentinel */},
-	bmo_face_reverseuvs_exec,
+	bmo_reverse_uvs_exec,
 	0
 };
 
@@ -855,12 +855,12 @@ static BMOpDefine bmo_face_reverseuvs_def = {
  * color rotation
  * cycle the colors
  */
-static BMOpDefine bmo_face_rotatecolors_def = {
-	"face_rotatecolors",
+static BMOpDefine bmo_rotate_colors_def = {
+	"rotate_colors",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {BMO_OP_SLOT_INT, "dir"},			/* direction */
 	 {0} /* null-terminating sentinel */},
-	bmo_rotatecolors_exec,
+	bmo_rotate_colors_exec,
 	0
 };
 
@@ -868,11 +868,11 @@ static BMOpDefine bmo_face_rotatecolors_def = {
  * color reverse
  * reverse the colors
  */
-static BMOpDefine bmo_face_reversecolors_def = {
-	"face_reversecolors",
+static BMOpDefine bmo_reverse_colors_def = {
+	"reverse_colors",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, /* input faces */
 	 {0} /* null-terminating sentinel */},
-	bmo_face_reversecolors_exec,
+	bmo_reverse_colors_exec,
 	0
 };
 
@@ -881,14 +881,14 @@ static BMOpDefine bmo_face_reversecolors_def = {
  *
  * Find similar vertices (normal, face, vertex group, ...).
  */
-static BMOpDefine bmo_vertexshortestpath_def = {
-	"vertexshortestpath",
+static BMOpDefine bmo_shortest_path_def = {
+	"shortest_path",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "startv"}, /* start vertex */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "endv"}, /* end vertex */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"}, /* output vertices */
 	 {BMO_OP_SLOT_INT, "type"},			/* type of selection */
 	 {0} /* null-terminating sentinel */},
-	bmo_vertexshortestpath_exec,
+	bmo_shortest_path_exec,
 	0
 };
 
@@ -897,15 +897,15 @@ static BMOpDefine bmo_vertexshortestpath_def = {
  *
  * Disconnects faces along input edges.
  */
-static BMOpDefine bmo_edgesplit_def = {
-	"edgesplit",
+static BMOpDefine bmo_split_edges_def = {
+	"split_edges",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edges */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, /* old output disconnected edges */
 	 /* needed for vertex rip so we can rip only half an edge at a boundary wich would otherwise split off */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* optional tag verts, use to have greater control of splits */
 	 {BMO_OP_SLOT_BOOL,        "use_verts"}, /* use 'verts' for splitting, else just find verts to split from edges */
 	 {0} /* null-terminating sentinel */},
-	bmo_edgesplit_exec,
+	bmo_split_edges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
@@ -1134,14 +1134,14 @@ static BMOpDefine bmo_wireframe_def = {
  *
  * Translates vertes along an edge
  */
-static BMOpDefine bmo_vertex_slide_def = {
-	"vertex_slide",
+static BMOpDefine bmo_slide_vert_def = {
+	"slide_vert",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "vert"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edge"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"},
 	 {BMO_OP_SLOT_FLT, "distance_t"},
 	 {0} /* null-terminating sentinel */},
-	bmo_vertex_slide_exec,
+	bmo_slide_vert_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
@@ -1176,75 +1176,76 @@ static BMOpDefine bmo_convex_hull_def = {
 };
 
 BMOpDefine *opdefines[] = {
-	&bmo_split_def,
-	&bmo_spin_def,
-	&bmo_dupe_def,
-	&bmo_del_def,
-	&bmo_esubd_def,
-	&bmo_triangulate_def,
-	&bmo_dissolve_faces_def,
-	&bmo_dissolve_edges_def,
-	&bmo_dissolve_edge_loop_def,
-	&bmo_dissolve_verts_def,
-	&bmo_dissolve_limit_def,
-	&bmo_extrude_face_region_def,
-	&bmo_connectverts_def,
-	&bmo_extrude_vert_indiv_def,
-	&bmo_mesh_to_bmesh_def,
-	&bmo_object_load_bmesh_def,
-	&bmo_transform_def,
-	&bmo_translate_def,
-	&bmo_rotate_def,
-	&bmo_edgenet_fill_def,
-	&bmo_contextual_create_def,
-	&bmo_makevert_def,
-	&bmo_weldverts_def,
-	&bmo_remove_doubles_def,
-	&bmo_finddoubles_def,
-	&bmo_mirror_def,
-	&bmo_edgebisect_def,
-	&bmo_reversefaces_def,
-	&bmo_edgerotate_def,
-	&bmo_regionextend_def,
-	&bmo_righthandfaces_def,
-	&bmo_vertexsmooth_def,
-	&bmo_extrude_edge_only_def,
-	&bmo_extrude_indivface_def,
-	&bmo_collapse_uvs_def,
-	&bmo_pointmerge_def,
-	&bmo_collapse_def,
-	&bmo_similarfaces_def,
-	&bmo_similaredges_def,
-	&bmo_similarverts_def,
-	&bmo_pointmerge_facedata_def,
-	&bmo_vert_average_facedata_def,
-	&bmo_face_rotateuvs_def,
-	&bmo_bmesh_to_mesh_def,
-	&bmo_face_reverseuvs_def,
-	&bmo_edgenet_prepare_def,
-	&bmo_face_rotatecolors_def,
-	&bmo_face_reversecolors_def,
-	&bmo_vertexshortestpath_def,
-	&bmo_scale_def,
-	&bmo_edgesplit_def,
 	&bmo_automerge_def,
-	&bmo_create_uvsphere_def,
+	&bmo_average_vert_facedata_def,
+	&bmo_beautify_fill_def,
+	&bmo_bevel_def,
+	&bmo_bisect_edges_def,
+	&bmo_bmesh_to_mesh_def,
+	&bmo_bridge_loops_def,
+	&bmo_collapse_def,
+	&bmo_collapse_uvs_def,
+	&bmo_connect_verts_def,
+	&bmo_contextual_create_def,
+	&bmo_convex_hull_def,
+	&bmo_create_circle_def,
+	&bmo_create_cone_def,
+	&bmo_create_cube_def,
 	&bmo_create_grid_def,
 	&bmo_create_icosphere_def,
 	&bmo_create_monkey_def,
-	&bmo_create_cube_def,
-	&bmo_create_circle_def,
-	&bmo_create_cone_def,
-	&bmo_join_triangles_def,
-	&bmo_bevel_def,
-	&bmo_beautify_fill_def,
-	&bmo_triangle_fill_def,
-	&bmo_bridge_loops_def,
-	&bmo_solidify_def,
+	&bmo_create_uvsphere_def,
+	&bmo_create_vert_def,
+	&bmo_delete_def,
+	&bmo_dissolve_edge_loop_def,
+	&bmo_dissolve_edges_def,
+	&bmo_dissolve_faces_def,
+	&bmo_dissolve_limit_def,
+	&bmo_dissolve_verts_def,
+	&bmo_duplicate_def,
+	&bmo_edgenet_fill_def,
+	&bmo_edgenet_prepare_def,
+	&bmo_extrude_discrete_faces_def,
+	&bmo_extrude_edge_only_def,
+	&bmo_extrude_face_region_def,
+	&bmo_extrude_vert_indiv_def,
+	&bmo_find_doubles_def,
 	&bmo_inset_def,
+	&bmo_join_triangles_def,
+	&bmo_mesh_to_bmesh_def,
+	&bmo_mirror_def,
+	&bmo_object_load_bmesh_def,
+	&bmo_pointmerge_def,
+	&bmo_pointmerge_facedata_def,
+	&bmo_recalc_face_normals_def,
+	&bmo_region_extend_def,
+	&bmo_remove_doubles_def,
+	&bmo_reverse_colors_def,
+	&bmo_reverse_faces_def,
+	&bmo_reverse_uvs_def,
+	&bmo_rotate_colors_def,
+	&bmo_rotate_def,
+	&bmo_rotate_edges_def,
+	&bmo_rotate_uvs_def,
+	&bmo_scale_def,
+	&bmo_shortest_path_def,
+	&bmo_similar_edges_def,
+	&bmo_similar_faces_def,
+	&bmo_similar_verts_def,
+	&bmo_slide_vert_def,
+	&bmo_smooth_vert_def,
+	&bmo_solidify_def,
+	&bmo_spin_def,
+	&bmo_split_def,
+	&bmo_split_edges_def,
+	&bmo_subdivide_edges_def,
+	&bmo_transform_def,
+	&bmo_translate_def,
+	&bmo_triangle_fill_def,
+	&bmo_triangulate_def,
+	&bmo_weld_verts_def,
 	&bmo_wireframe_def,
-	&bmo_vertex_slide_def,
-	&bmo_convex_hull_def,
+
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void *));

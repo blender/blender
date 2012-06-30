@@ -1320,7 +1320,7 @@ static int bmo_opname_to_opcode(const char *opname)
 }
 
 /* Example:
- * BMO_op_callf(bm, "del %i %hv", DEL_ONLYFACES, BM_ELEM_SELECT);
+ * BMO_op_callf(bm, "delete %i %hv", DEL_ONLYFACES, BM_ELEM_SELECT);
  *
  *  i - int
  *  b - boolean (same as int but 1/0 only)

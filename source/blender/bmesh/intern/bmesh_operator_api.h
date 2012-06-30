@@ -194,7 +194,7 @@ int BMO_mesh_disabled_flag_count(BMesh *bm, const char htype, const short oflag)
  * this system is used to execute or initialize an operator,
  * using a formatted-string system.
  *
- * for example, BMO_op_callf(bm, "del geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES);
+ * for example, BMO_op_callf(bm, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES);
  * . . .will execute the delete operator, feeding in selected faces, deleting them.
  *
  * the basic format for the format string is:

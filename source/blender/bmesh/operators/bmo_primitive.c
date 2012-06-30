@@ -427,7 +427,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		BMOperator bmop;
 
 		BMO_op_initf(bm, &bmop,
-		             "esubd edges=%fe "
+		             "subdivide_edges edges=%fe "
 		             "smooth=%f "
 		             "numcuts=%i "
 		             "use_gridfill=%b use_sphere=%b",

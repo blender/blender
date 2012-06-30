@@ -84,7 +84,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_op_callf(bm, "scale verts=%fv vec=%v", ELE_NEW, scale);
 	BMO_op_callf(bm, "transform verts=%fv mat=%m4", ELE_NEW, imtx);
 	
-	BMO_op_init(bm, &weldop, "weldverts");
+	BMO_op_init(bm, &weldop, "weld_verts");
 
 	v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	for (i = 0; i < ototvert; i++) {

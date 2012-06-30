@@ -211,7 +211,7 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 		if (other_d < vso->snap_threshold) {
 			BM_vert_select_set(bm, other, TRUE);
 			BM_vert_select_set(bm, vso->start_vtx, TRUE);
-			EDBM_op_callf(em, op, "pointmerge verts=%hv mergeco=%v", BM_ELEM_SELECT, other->co);
+			EDBM_op_callf(em, op, "pointmerge verts=%hv merge_co=%v", BM_ELEM_SELECT, other->co);
 			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 		}
 		else {
@@ -687,7 +687,7 @@ static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
 
 	/* Prepare operator */
 	if (!EDBM_op_init(em, &bmop, op,
-	                  "vertex_slide vert=%e edge=%hev distance_t=%f",
+	                  "slide_vert vert=%e edge=%hev distance_t=%f",
 	                  start_vert, BM_ELEM_SELECT, distance_t))
 	{
 		return OPERATOR_CANCELLED;
