@@ -145,7 +145,8 @@ PyObject *BPyInit_bmesh(void)
 	Py_INCREF(submodule);
 
 	PyModule_AddObject(mod, "ops", (submodule = BPyInit_bmesh_ops()));
-	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	/* PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule); */
+	PyDict_SetItemString(sys_modules, "bmesh.ops", submodule); /* fake module */
 	Py_INCREF(submodule);
 
 	PyModule_AddObject(mod, "utils", (submodule = BPyInit_bmesh_utils()));

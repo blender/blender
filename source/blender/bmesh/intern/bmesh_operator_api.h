@@ -352,6 +352,9 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag);
 void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slot_name,
                           const char hflag, const short oflag);
 
+void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot_name,
+                              const char htype);
+
 /* this part of the API is used to iterate over element buffer or
  * mapping slots.
  *

@@ -225,9 +225,9 @@ int BMO_slot_exists(BMOperator *op, const char *slot_name)
  *
  * Returns a pointer to the slot of type 'slot_code'
  */
-BMOpSlot *BMO_slot_get(BMOperator *op, const char *slot_namee)
+BMOpSlot *BMO_slot_get(BMOperator *op, const char *slot_name)
 {
-	int slot_code = bmo_name_to_slotcode_check(opdefines[op->type], slot_namee);
+	int slot_code = bmo_name_to_slotcode_check(opdefines[op->type], slot_name);
 
 	if (slot_code < 0) {
 		return &BMOpEmptySlot;
@@ -645,7 +645,7 @@ static void *bmo_slot_buffer_alloc(BMOperator *op, const char *slot_name, int le
  *
  * Copies all elements of a certain type into an operator slot.
  */
-static void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot_name, const char htype)
+void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot_name, const char htype)
 {
 	BMOpSlot *output = BMO_slot_get(op, slot_name);
 	int totelement = 0, i = 0;
