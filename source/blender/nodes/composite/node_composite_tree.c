@@ -59,7 +59,10 @@
 
 #include "NOD_composite.h"
 #include "node_composite_util.h"
-#include "COM_compositor.h"
+
+#ifdef WITH_COMPOSITOR
+#  include "COM_compositor.h"
+#endif
 
 static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 {
@@ -351,6 +354,8 @@ void ntreeCompositEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 	}
 }
 
+#ifdef WITH_COMPOSITOR
+
 /* ***************************** threaded version for execute composite nodes ************* */
 /* these are nodes without input, only giving values */
 /* or nodes with only value inputs */
@@ -586,7 +591,6 @@ static  void ntree_composite_texnode(bNodeTree *ntree, int init)
 }
 
 /* optimized tree execute test for compositing */
-/* optimized tree execute test for compositing */
 static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_preview)
 {
 	bNodeExec *nodeexec;
@@ -677,13 +681,18 @@ static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_pr
 	/* XXX top-level tree uses the ntree->execdata pointer */
 	ntreeCompositEndExecTree(exec, 1);
 }
+#endif
 
 void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int do_preview)
 {
+#ifdef WITH_COMPOSITOR
 	if (G.rt == 200)
 		ntreeCompositExecTreeOld(ntree, rd, do_preview);
 	else
 		COM_execute(rd, ntree, rendering);
+#else
+	(void)ntree, (void)rd, (void)rendering, (void)do_preview;
+#endif
 }
 
 /* *********************************************** */
