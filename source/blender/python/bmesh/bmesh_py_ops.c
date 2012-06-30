@@ -200,27 +200,58 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 					 "%.200s: keyword \"%.200s\" " type_string " are from another bmesh", \
 					 self->opname, slot_name, slot->slot_type);                           \
 		return NULL;                                                                      \
-	}
+	} (void)0
 
 					if (BPy_BMVertSeq_Check(value)) {
-						BPY_BM_GENERIC_MESH_TEST("verts")
+						BPY_BM_GENERIC_MESH_TEST("verts");
 						BMO_slot_buffer_from_all(bm, &bmop, slot_name, BM_VERT);
 					}
 					else if (BPy_BMEdgeSeq_Check(value)) {
-						BPY_BM_GENERIC_MESH_TEST("edges")
+						BPY_BM_GENERIC_MESH_TEST("edges");
 						BMO_slot_buffer_from_all(bm, &bmop, slot_name, BM_EDGE);
 					}
 					else if (BPy_BMFaceSeq_Check(value)) {
-						BPY_BM_GENERIC_MESH_TEST("faces")
+						BPY_BM_GENERIC_MESH_TEST("faces");
 						BMO_slot_buffer_from_all(bm, &bmop, slot_name, BM_FACE);
 					}
 					else if (BPy_BMElemSeq_Check(value)) {
-						BPY_BM_GENERIC_MESH_TEST("elements")
+						BMIter iter;
+						BMHeader *ele;
+						int tot;
+						unsigned int i;
 
-						PyErr_Format(PyExc_NotImplementedError,
-						             "%.200s: keyword \"%.200s\" parsing element lists not working yet!",
-						             self->opname, slot_name, slot->slot_type);
-						return NULL;
+						BPY_BM_GENERIC_MESH_TEST("elements");
+
+						/* this will loop over all elements which is a shame but
+						 * we need to know this before alloc */
+						/* calls bpy_bmelemseq_length() */
+						tot = Py_TYPE(value)->tp_as_sequence->sq_length((PyObject *)self);
+
+						BMO_slot_buffer_alloc(&bmop, slot_name, tot);
+
+						i = 0;
+						BM_ITER_BPY_BM_SEQ (ele, &iter, ((BPy_BMElemSeq *)value)) {
+							((void **)slot->data.buf)[i] = (void *)ele;
+							i++;
+						}
+					}
+					/* keep this last */
+					else if (PySequence_Check(value)) {
+						BMElem **elem_array = NULL;
+						int elem_array_len;
+
+						elem_array = BPy_BMElem_PySeq_As_Array(&bm, value, 0, PY_SSIZE_T_MAX,
+						                                       &elem_array_len, BM_VERT | BM_EDGE | BM_FACE,
+						                                       TRUE, TRUE, slot_name);
+
+						/* error is set above */
+						if (elem_array == NULL) {
+							return NULL;
+						}
+
+						BMO_slot_buffer_alloc(&bmop, slot_name, elem_array_len);
+						memcpy(slot->data.buf, elem_array, sizeof(void *) * elem_array_len);
+						PyMem_FREE(elem_array);
 					}
 					else {
 						PyErr_Format(PyExc_TypeError,

@@ -625,7 +625,7 @@ void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slot_name,
 	}
 }
 
-static void *bmo_slot_buffer_alloc(BMOperator *op, const char *slot_name, int len)
+void *BMO_slot_buffer_alloc(BMOperator *op, const char *slot_name, const int len)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
@@ -658,7 +658,7 @@ void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot_name, 
 		BMIter iter;
 		BMHeader *ele;
 
-		bmo_slot_buffer_alloc(op, slot_name, totelement);
+		BMO_slot_buffer_alloc(op, slot_name, totelement);
 
 		/* TODO - collapse these loops into one */
 
@@ -709,7 +709,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 		BMIter iter;
 		BMElem *ele;
 
-		bmo_slot_buffer_alloc(op, slot_name, totelement);
+		BMO_slot_buffer_alloc(op, slot_name, totelement);
 
 		/* TODO - collapse these loops into one */
 
@@ -821,7 +821,7 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 		BMHeader *ele;
 		BMHeader **ele_array;
 
-		bmo_slot_buffer_alloc(op, slot_name, totelement);
+		BMO_slot_buffer_alloc(op, slot_name, totelement);
 
 		ele_array = (BMHeader **)slot->data.p;
 
