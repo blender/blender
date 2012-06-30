@@ -184,6 +184,21 @@ class NODE_MT_node(Menu):
         layout.operator("node.read_fullsamplelayers")
 
 
+class NODE_PT_display_properties(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Display Properties"
+
+    def draw(self, context):
+        layout = self.layout
+
+        snode = context.space_data
+        window = context.window
+
+        layout.prop(window, "display_device", text="Display")
+        layout.prop(snode, "view_transform", text="View")
+
+
 # Node Backdrop options
 class NODE_PT_properties(Panel):
     bl_space_type = 'NODE_EDITOR'

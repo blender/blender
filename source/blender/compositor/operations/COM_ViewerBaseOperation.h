@@ -40,6 +40,7 @@ protected:
 	bool m_doColorManagement;
 	bool m_doColorPredivide;
 
+	struct PartialBufferUpdateContext *m_partialBufferUpdate;
 public:
 	bool isOutputOperation(bool rendering) const { return isActiveViewerOutput(); }
 	void initExecution();

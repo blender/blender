@@ -874,6 +874,9 @@ typedef struct SpaceNode {
 	ListBase linkdrag;  /* temporary data for modal linking operator */
 	
 	struct bGPdata *gpd;        /* grease-pencil data */
+
+	/* color transformation  */
+	char view_transform[64];
 } SpaceNode;
 
 /* snode->flag */

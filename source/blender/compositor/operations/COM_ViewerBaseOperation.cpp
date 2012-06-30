@@ -60,7 +60,7 @@ void ViewerBaseOperation::initImage()
 {
 	Image *anImage = this->m_image;
 	ImBuf *ibuf = BKE_image_acquire_ibuf(anImage, this->m_imageUser, &this->m_lock);
-	
+
 	if (!ibuf) return;
 	if (ibuf->x != (int)getWidth() || ibuf->y != (int)getHeight()) {
 		imb_freerectImBuf(ibuf);
@@ -73,27 +73,27 @@ void ViewerBaseOperation::initImage()
 		anImage->ok = IMA_OK_LOADED;
 	}
 
-	/* viewer might have been change size, invalidate cached
-	 * display buffers so they'll be used with a proper size
-	 */
-	IMB_display_buffer_invalidate(ibuf);
+	this->m_partialBufferUpdate = IMB_partial_buffer_update_context_new(ibuf);
 
 	/* now we combine the input with ibuf */
 	this->m_outputBuffer = ibuf->rect_float;
 	this->m_outputBufferDisplay = (unsigned char *)ibuf->rect;
-	
+
 	BKE_image_release_ibuf(this->m_image, this->m_lock);
 }
 void ViewerBaseOperation:: updateImage(rcti *rect)
 {
+	IMB_partial_buffer_update_rect(this->m_partialBufferUpdate, this->m_outputBuffer, rect);
+
 	WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
 }
 
 void ViewerBaseOperation::deinitExecution()
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(this->m_image, this->m_imageUser, &this->m_lock);
-	if (ibuf)
-		IMB_display_buffer_invalidate(ibuf);
+
+	IMB_partial_buffer_update_free(this->m_partialBufferUpdate, ibuf);
+
 	BKE_image_release_ibuf(this->m_image, this->m_lock);
 
 	this->m_outputBuffer = NULL;
