@@ -122,6 +122,9 @@ void GPU_paint_update_image(struct Image *ima, int x, int y, int w, int h, int m
 void GPU_update_images_framechange(void);
 int GPU_update_image_time(struct Image *ima, double time);
 int GPU_verify_image(struct Image *ima, struct ImageUser *iuser, int tftile, int compare, int mipmap);
+void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float *frect, int rectw, int recth, int mipmap, int use_hight_bit_depth, struct Image *ima);
+void GPU_create_gl_tex_compressed(unsigned int *bind, unsigned int *pix, int x, int y, int mipmap, struct Image *ima, struct ImBuf *ibuf);
+int GPU_upload_dxt_texture(struct ImBuf *ibuf);
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(void);
 void GPU_free_images_anim(void);

@@ -144,7 +144,15 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 
 	mNeedsDeleted = 1;
 	glGenTextures(1, (GLuint*)&mTexture);
+
+#ifdef WITH_DDS
+	if (ibuf->ftype & DDS)
+		InitGLCompressedTex(ibuf, mipmap);
+	else
+		InitGLTex(ibuf->rect, ibuf->x, ibuf->y, mipmap);
+#else
 	InitGLTex(ibuf->rect, ibuf->x, ibuf->y, mipmap);
+#endif
 
 	// track created units
 	BL_TextureObject obj;
@@ -183,6 +191,26 @@ void BL_Texture::InitGLTex(unsigned int *pix,int x,int y,bool mipmap)
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
+void BL_Texture::InitGLCompressedTex(ImBuf* ibuf, bool mipmap)
+{
+#ifndef WITH_DDS
+	// Fall back to uncompressed if DDS isn't enabled
+	InitGLTex(ibuf->rect, ibuf->x, ibuf->y, mipmap);
+	return;
+#else
+	glBindTexture(GL_TEXTURE_2D, mTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	
+	if (GPU_upload_dxt_texture(ibuf) == 0) {
+		InitGLTex(ibuf->rect, ibuf->x, ibuf->y, mipmap);
+		return;
+	}
+#endif
+}
 
 void BL_Texture::InitNonPow2Tex(unsigned int *pix,int x,int y,bool mipmap)
 {

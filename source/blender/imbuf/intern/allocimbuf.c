@@ -162,6 +162,8 @@ void IMB_freeImBuf(ImBuf *ibuf)
 			IMB_freezbuffloatImBuf(ibuf);
 			freeencodedbufferImBuf(ibuf);
 			IMB_metadata_free(ibuf);
+			if (ibuf->dds_data.data != NULL)
+				free(ibuf->dds_data.data); /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
 			MEM_freeN(ibuf);
 		}
 	}

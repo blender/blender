@@ -221,6 +221,10 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
+if(WITH_IMAGE_DDS)
+	add_definitions(-DWITH_DDS)
+endif()
+
 if(WITH_SDL)
 	list(APPEND INC_SYS
 		${SDL_INCLUDE_DIR}

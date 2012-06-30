@@ -427,8 +427,8 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
 	int rectw, recth, tpx=0, tpy=0, y;
-	unsigned int *tilerect= NULL, *scalerect= NULL, *rect= NULL;
-	float *ftilerect= NULL, *fscalerect = NULL, *frect = NULL;
+	unsigned int *tilerect= NULL, *rect= NULL;
+	float *ftilerect= NULL, *frect = NULL;
 	float *srgb_frect = NULL;
 	short texwindx, texwindy, texwinsx, texwinsy;
 	/* flag to determine whether high resolution format is used */
@@ -611,7 +611,32 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 			rect= tilerect;
 		}
 	}
+#ifdef WITH_DDS
+	if (ibuf->ftype & DDS)
+		GPU_create_gl_tex_compressed(bind, rect, rectw, recth, mipmap, ima, ibuf);
+	else
+#endif
+		GPU_create_gl_tex(bind, rect, frect, rectw, recth, mipmap, use_high_bit_depth, ima);
 
+	/* clean up */
+	if (tilerect)
+		MEM_freeN(tilerect);
+	if (ftilerect)
+		MEM_freeN(ftilerect);
+	if (srgb_frect)
+		MEM_freeN(srgb_frect);
+
+	return *bind;
+}
+
+void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int rectw, int recth, int mipmap, int use_high_bit_depth, Image *ima)
+{
+	unsigned int *scalerect = NULL;
+    float *fscalerect = NULL;
+    
+    int tpx = rectw;
+    int tpy = recth;
+    
 	/* scale if not a power of two. this is not strictly necessary for newer 
 	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures */
 	if (!is_pow2_limit(rectw) || !is_pow2_limit(recth)) {
@@ -626,9 +651,9 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		}
 		else {
 			scalerect= MEM_mallocN(rectw*recth*sizeof(*scalerect), "scalerect");
-			gluScaleImage(GL_RGBA, tpx, tpy, GL_UNSIGNED_BYTE, rect, rectw, recth, GL_UNSIGNED_BYTE, scalerect);
+			gluScaleImage(GL_RGBA, tpx, tpy, GL_UNSIGNED_BYTE, pix, rectw, recth, GL_UNSIGNED_BYTE, scalerect);
 
-			rect= scalerect;
+			pix= scalerect;
 		}
 	}
 
@@ -640,7 +665,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		if (use_high_bit_depth)
 			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 		else
-			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, pix);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 	}
@@ -649,14 +674,14 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 			if (use_high_bit_depth)
 				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 			else
-				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, pix);
 
 			glGenerateMipmapEXT(GL_TEXTURE_2D);
 		} else {
 			if (use_high_bit_depth)
 				gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA16, rectw, recth, GL_RGBA, GL_FLOAT, frect);
 			else
-				gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+				gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, pix);
 		}
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
@@ -668,21 +693,84 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
 	/* set to modulate with vertex color */
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		
-	/* clean up */
-	if (tilerect)
-		MEM_freeN(tilerect);
-	if (ftilerect)
-		MEM_freeN(ftilerect);
+
 	if (scalerect)
 		MEM_freeN(scalerect);
 	if (fscalerect)
 		MEM_freeN(fscalerect);
-	if (srgb_frect)
-		MEM_freeN(srgb_frect);
-	return *bind;
 }
 
+/**
+ * GPU_upload_dxt_texture() assumes that the texture is already bound and ready to go.
+ * This is so the viewport and the BGE can share some code.
+ * Returns 0 if the provided ImBuf doesn't have a supported DXT compression format
+ */
+int GPU_upload_dxt_texture(ImBuf *ibuf)
+{
+	GLint format, err;
+	int blocksize, height, width, i, size, offset = 0;
+
+	height = ibuf->x;
+	width = ibuf->y;	
+	
+	if (ibuf->dds_data.fourcc == FOURCC_DXT1)
+		format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+	else if (ibuf->dds_data.fourcc == FOURCC_DXT3)
+		format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+	else if (ibuf->dds_data.fourcc == FOURCC_DXT5)
+		format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+	else {
+		printf("Unable to find a suitable DXT compression, falling back to uncompressed\n");
+		return 0;
+	}
+
+	blocksize = (format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ? 8 : 16;
+	for (i=0; i<ibuf->dds_data.nummipmaps && (width||height); ++i) {
+		if (width == 0)
+			width = 1;
+		if (height == 0)
+			height = 1;
+
+		size = ((width+3)/4)*((height+3)/4)*blocksize;
+
+		glCompressedTexImage2D(GL_TEXTURE_2D, i, format, width, height,
+			0, size, ibuf->dds_data.data + offset);
+
+		err = glGetError();
+
+		if (err != GL_NO_ERROR)
+			printf("OpenGL error: %s\nFormat: %x\n", gluErrorString(err), format);
+
+		offset += size;
+		width >>= 1;
+		height >>= 1;
+	}
+
+	return 1;
+}
+
+void GPU_create_gl_tex_compressed(unsigned int *bind, unsigned int *pix, int x, int y, int mipmap, Image *ima, ImBuf *ibuf)
+{
+#ifndef WITH_DDS
+	// Fall back to uncompressed if DDS isn't enabled
+	GPU_create_gl_tex(bind, pix, NULL, x, y, mipmap, 0, ima);
+#else
+
+
+	glGenTextures(1, (GLuint *)bind);
+	glBindTexture(GL_TEXTURE_2D, *bind);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
+
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	if (GPU_upload_dxt_texture(ibuf) == 0) {
+		glDeleteTextures(1, (GLuint*)bind);
+		GPU_create_gl_tex(bind, pix, NULL, x, y, mipmap, 0, ima);
+	}
+#endif
+}
 static void gpu_verify_repeat(Image *ima)
 {
 	/* set either clamp or repeat in X/Y */

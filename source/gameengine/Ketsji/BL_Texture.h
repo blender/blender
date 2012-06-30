@@ -35,6 +35,7 @@ private:
 
 	void InitNonPow2Tex(unsigned int *p,int x,int y,bool mipmap );
 	void InitGLTex(unsigned int *p,int x,int y,bool mipmap );
+	void InitGLCompressedTex(struct ImBuf *p, bool mipmap);
 public:
 	BL_Texture();
 	~BL_Texture( );
