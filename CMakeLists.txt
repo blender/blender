@@ -994,8 +994,8 @@ elseif(WIN32)
 				set(BOOST_POSTFIX "vc100-mt-s-1_47.lib")
 				set(BOOST_DEBUG_POSTFIX "vc100-mt-sgd-1_47.lib")
 			else()
-				set(BOOST_POSTFIX "vc90-mt-s-1_47.lib")
-				set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_47.lib")					
+				set(BOOST_POSTFIX "vc90-mt-s-1_49.lib")
+				set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_49.lib")					
 			endif()
 			set(BOOST_LIBRARIES
 				optimized libboost_date_time-${BOOST_POSTFIX} optimized libboost_filesystem-${BOOST_POSTFIX}
