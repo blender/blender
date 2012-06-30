@@ -487,7 +487,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(op, op, "geom", "lastout");
 	for (a = 0; a < steps; a++) {
 		if (do_dupli) {
-			BMO_op_initf(bm, &dupop, "dupe geom=%s", op, "lastout");
+			BMO_op_initf(bm, &dupop, "duplicate geom=%s", op, "lastout");
 			BMO_op_exec(bm, &dupop);
 			BMO_op_callf(bm, "rotate cent=%v mat=%m3 verts=%s",
 			             cent, rmat, &dupop, "newout");

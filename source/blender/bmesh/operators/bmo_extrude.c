@@ -195,7 +195,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, e->v2, EXT_INPUT);
 	}
 
-	BMO_op_initf(bm, &dupeop, "dupe geom=%fve", EXT_INPUT);
+	BMO_op_initf(bm, &dupeop, "duplicate geom=%fve", EXT_INPUT);
 	BMO_op_exec(bm, &dupeop);
 
 	/* disable root flag on all new skin nodes */

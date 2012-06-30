@@ -1271,7 +1271,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(ob);
 	BMOperator bmop;
 
-	EDBM_op_init(em, &bmop, op, "dupe geom=%hvef", BM_ELEM_SELECT);
+	EDBM_op_init(em, &bmop, op, "duplicate geom=%hvef", BM_ELEM_SELECT);
 	
 	BMO_op_exec(em->bm, &bmop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -2819,7 +2819,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 
 	ED_base_object_select(basenew, BA_DESELECT);
 	
-	EDBM_op_callf(em, wmop, "dupe geom=%hvef dest=%p", BM_ELEM_SELECT, bm_new);
+	EDBM_op_callf(em, wmop, "duplicate geom=%hvef dest=%p", BM_ELEM_SELECT, bm_new);
 	EDBM_op_callf(em, wmop, "delete geom=%hvef context=%i", BM_ELEM_SELECT, DEL_FACES);
 
 	/* clean up any loose edges */

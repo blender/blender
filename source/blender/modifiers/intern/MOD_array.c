@@ -412,7 +412,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if (amd->flags & MOD_ARR_MERGE)
 		BMO_op_init(em->bm, &weld_op, "weld_verts");
 
-	BMO_op_initf(em->bm, &dupe_op, "dupe geom=%avef");
+	BMO_op_initf(em->bm, &dupe_op, "duplicate geom=%avef");
 	first_dupe_op = dupe_op;
 
 	for (j = 0; j < count - 1; j++) {
@@ -422,7 +422,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		BMOIter oiter;
 
 		if (j != 0)
-			BMO_op_initf(em->bm, &dupe_op, "dupe geom=%s", &old_dupe_op, "newout");
+			BMO_op_initf(em->bm, &dupe_op, "duplicate geom=%s", &old_dupe_op, "newout");
 		BMO_op_exec(em->bm, &dupe_op);
 
 		geom_slot = BMO_slot_get(&dupe_op, "geom");

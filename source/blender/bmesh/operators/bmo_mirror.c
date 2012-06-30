@@ -62,7 +62,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_mat4_get(op, "mat", mtx);
 	invert_m4_m4(imtx, mtx);
 	
-	BMO_op_initf(bm, &dupeop, "dupe geom=%s", op, "geom");
+	BMO_op_initf(bm, &dupeop, "duplicate geom=%s", op, "geom");
 	BMO_op_exec(bm, &dupeop);
 	
 	BMO_slot_buffer_flag_enable(bm, &dupeop, "newout", BM_ALL, ELE_NEW);
