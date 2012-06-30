@@ -26,8 +26,8 @@
  */
 
 /** \file blender/nodes/composite/nodes/node_composite_diffMatte.c
-*  \ingroup cmpnodes
-*/
+ *  \ingroup cmpnodes
+ */
 
 
 #include "node_composite_util.h"

@@ -177,8 +177,8 @@ protected:
 
 public:
 	/***************************************************************************************
-	** Time(r) functionality
-	***************************************************************************************/
+	 * Time(r) functionality
+	 ***************************************************************************************/
 
 	/**
 	 * Returns the system time.
@@ -211,8 +211,8 @@ public:
 	virtual GHOST_TSuccess removeTimer(GHOST_ITimerTask *timerTask) = 0;
 
 	/***************************************************************************************
-	** Display/window management functionality
-	***************************************************************************************/
+	 * Display/window management functionality
+	 ***************************************************************************************/
 
 	/**
 	 * Returns the number of displays on this system.
@@ -296,8 +296,8 @@ public:
 	virtual bool getFullScreen(void) = 0;
 
 	/***************************************************************************************
-	** Event management functionality
-	***************************************************************************************/
+	 * Event management functionality
+	 ***************************************************************************************/
 
 	/**
 	 * Retrieves events from the system and stores them in the queue.
@@ -327,8 +327,8 @@ public:
 	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer *consumer) = 0;
 
 	/***************************************************************************************
-	** Cursor management functionality
-	***************************************************************************************/
+	 * Cursor management functionality
+	 ***************************************************************************************/
 
 	/**
 	 * Returns the current location of the cursor (location in screen coordinates)
@@ -348,8 +348,8 @@ public:
 	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) = 0;
 
 	/***************************************************************************************
-	** Access to mouse button and keyboard states.
-	***************************************************************************************/
+	 * Access to mouse button and keyboard states.
+	 ***************************************************************************************/
 
 	/**
 	 * Returns the state of a modifier key (ouside the message queue).
@@ -379,8 +379,8 @@ public:
 	virtual int toggleConsole(int action) = 0;
 	
 	/***************************************************************************************
-	** Access to clipboard.
-	***************************************************************************************/
+	 * Access to clipboard.
+	 ***************************************************************************************/
 	
 	/**
 	 * Returns the selection buffer

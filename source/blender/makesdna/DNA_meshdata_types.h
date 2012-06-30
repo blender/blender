@@ -259,19 +259,19 @@ typedef struct GridPaintMask {
 
 typedef enum MVertSkinFlag {
 	/* Marks a vertex as the edge-graph root, used for calculating
-	   rotations for all connected edges (recursively.) Also used to
-	   choose a root when generating an armature. */
+	 * rotations for all connected edges (recursively.) Also used to
+	 * choose a root when generating an armature. */
 	MVERT_SKIN_ROOT = 1,
 
 	/* Marks a branch vertex (vertex with more than two connected
-	   edges) so that it's neighbors are directly hulled together,
-	   rather than the default of generating intermediate frames. */
+	 * edges) so that it's neighbors are directly hulled together,
+	 * rather than the default of generating intermediate frames. */
 	MVERT_SKIN_LOOSE = 2
 } MVertSkinFlag;
 
 typedef struct MVertSkin {
 	/* Radii of the skin, define how big the generated frames
-	   are. Currently only the first two elements are used. */
+	 * are. Currently only the first two elements are used. */
 	float radius[3];
 
 	/* MVertSkinFlag */

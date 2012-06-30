@@ -318,9 +318,9 @@ CValue* SCA_PropertySensor::FindIdentifier(const STR_String& identifiername)
 
 int SCA_PropertySensor::validValueForProperty(void *self, const PyAttributeDef*)
 {
-	/*  If someone actually do type checking please make sure the 'max' and 'min'
-		are checked as well (currently they are calling the PrecalculateRangeExpression
-		function directly	*/
+	/* If someone actually do type checking please make sure the 'max' and 'min'
+	 * are checked as well (currently they are calling the PrecalculateRangeExpression
+	 * function directly */
 
 	/*  There is no type checking at this moment, unfortunately...           */
 	return 0;

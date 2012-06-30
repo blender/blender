@@ -141,8 +141,8 @@ static void hull_add_triangle(BMesh *bm, GHash *hull_triangles, BLI_mempool *poo
 static int hull_point_tri_side(const HullTriangle *t, const float co[3])
 {
 	/* Added epsilon to fix bug [#31941], improves output when some
-	   vertices are nearly coplanar. Might need further tweaking for
-	   other cases though. */
+	 * vertices are nearly coplanar. Might need further tweaking for
+	 * other cases though. */
 	float p[3], d, epsilon = 0.0001;
 	sub_v3_v3v3(p, co, t->v[0]->co);
 	d = dot_v3v3(t->no, p);

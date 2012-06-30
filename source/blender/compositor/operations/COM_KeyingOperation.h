@@ -32,8 +32,8 @@
 #include "BLI_listbase.h"
 
 /**
-  * Class with implementation of keying node
-  */
+ * Class with implementation of keying node
+ */
 class KeyingOperation : public NodeOperation {
 protected:
 	SocketReader *m_pixelReader;

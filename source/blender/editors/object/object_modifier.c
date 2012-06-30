@@ -176,7 +176,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 /* Return TRUE if the object has a modifier of type 'type' other than
  * the modifier pointed to be 'exclude', otherwise returns FALSE. */
 static int object_has_modifier(const Object *ob, const ModifierData *exclude,
-							   ModifierType type)
+                               ModifierType type)
 {
 	ModifierData *md;
 
@@ -195,10 +195,10 @@ static int object_has_modifier(const Object *ob, const ModifierData *exclude,
  * 
  * If the callback ever returns TRUE, iteration will stop and the
  * function value will be TRUE. Otherwise the function returns FALSE.
-*/
+ */
 int ED_object_iter_other(Main *bmain, Object *orig_ob, int include_orig,
-						 int (*callback)(Object *ob, void *callback_data),
-						 void *callback_data)
+                         int (*callback)(Object *ob, void *callback_data),
+                         void *callback_data)
 {
 	ID *ob_data_id = orig_ob->data;
 	int users = ob_data_id->us;
@@ -239,8 +239,8 @@ static int object_has_modifier_cb(Object *ob, void *data)
 }
 
 /* Use with ED_object_iter_other(). Sets the total number of levels
-   for any multires modifiers on the object to the int pointed to by
-   callback_data. */
+ * for any multires modifiers on the object to the int pointed to by
+ * callback_data. */
 int ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v)
 {
 	ModifierData *md;
@@ -257,16 +257,16 @@ int ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v)
 
 /* Return TRUE if no modifier of type 'type' other than 'exclude' */
 static int object_modifier_safe_to_delete(Main *bmain, Object *ob,
-										  ModifierData *exclude,
-										  ModifierType type)
+                                          ModifierData *exclude,
+                                          ModifierType type)
 {
 	return (!object_has_modifier(ob, exclude, type) &&
-			!ED_object_iter_other(bmain, ob, FALSE,
-								  object_has_modifier_cb, &type));
+	        !ED_object_iter_other(bmain, ob, FALSE,
+	                              object_has_modifier_cb, &type));
 }
 
 static int object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
-								  int *sort_depsgraph)
+                                  int *sort_depsgraph)
 {
 	ModifierData *obmd;
 
@@ -1756,7 +1756,7 @@ static Object *modifier_skin_armature_create(struct Scene *scene,
 	edges_visited = BLI_BITMAP_NEW(me->totedge, "edge_visited");
 
 	/* note: we use EditBones here, easier to set them up and use
-	* edit-armature functions to convert back to regular bones */
+	 * edit-armature functions to convert back to regular bones */
 	for (v = 0; v < me->totvert; v++) {
 		if (mvert_skin[v].flag & MVERT_SKIN_ROOT) {
 			EditBone *bone = NULL;

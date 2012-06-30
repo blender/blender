@@ -224,8 +224,8 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 	BMIter iter;
 
 	/* Add the DerivedMesh's elements to the BMesh. The pre-existing
-	   elements were already tagged, so the new elements can be
-	   identified by not having the BM_ELEM_TAG flag set. */
+	 * elements were already tagged, so the new elements can be
+	 * identified by not having the BM_ELEM_TAG flag set. */
 	DM_to_bmesh_ex(dm, bm);
 
 	if (amd->flags & MOD_ARR_MERGE) {

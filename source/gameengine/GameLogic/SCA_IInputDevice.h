@@ -274,14 +274,14 @@ public:
 
 protected:
 	/**  
-		m_eventStatusTables are two tables that contain current and previous
-		status of all events
-	*/
+	 * m_eventStatusTables are two tables that contain current and previous
+	 * status of all events
+	 */
 
 	SCA_InputEvent	m_eventStatusTables[2][SCA_IInputDevice::KX_MAX_KEYS];
 	/**  
-		m_currentTable is index for m_keyStatusTable that toggle between 0 or 1 
-	*/
+	 * m_currentTable is index for m_keyStatusTable that toggle between 0 or 1
+	 */
 	int				m_currentTable; 
 	void			ClearStatusTable(int tableid);
 

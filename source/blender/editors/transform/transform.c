@@ -2176,8 +2176,8 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 		if (td->ext->rotOrder == ROT_MODE_QUAT) {
 			/* quats */
 			/* objects and bones do normalization first too, otherwise
-			* we don't necessarily end up with a rotation matrix, and
-			* then conversion back to quat gives a different result */
+			 * we don't necessarily end up with a rotation matrix, and
+			 * then conversion back to quat gives a different result */
 			float quat[4];
 			normalize_qt_qt(quat, td->ext->quat);
 			quat_to_mat4(cob->matrix, quat);

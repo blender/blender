@@ -60,7 +60,7 @@ public:
 	 *
 	 * @note Conversion logic is implemented in this method
 	 * @see InputSocketResizeMode for the possible conversions.
-
+	 *
 	 * @param connection the SocketConnection what needs conversion
 	 * @param system the ExecutionSystem to add the conversion to.
 	 * @see SocketConnection - a link between two sockets

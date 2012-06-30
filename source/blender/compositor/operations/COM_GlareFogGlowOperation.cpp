@@ -120,8 +120,8 @@ static void FHT(fREAL *data, unsigned int M, unsigned int inverse)
 }
 //------------------------------------------------------------------------------
 /* 2D Fast Hartley Transform, Mx/My -> log2 of width/height,
-    nzp -> the row where zero pad data starts,
-    inverse -> see above */
+ * nzp -> the row where zero pad data starts,
+ * inverse -> see above */
 static void FHT2D(fREAL *data, unsigned int Mx, unsigned int My,
                   unsigned int nzp, unsigned int inverse)
 {

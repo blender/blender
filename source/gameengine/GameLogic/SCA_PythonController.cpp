@@ -71,21 +71,19 @@ SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj, int mode)
 	
 }
 
-/*
+#if 0
 //debugging
-CValue*		SCA_PythonController::AddRef()
+CValue *SCA_PythonController::AddRef()
 {
 	//printf("AddRef refcount = %i\n",GetRefCount());
 	return CValue::AddRef();
 }
-int			SCA_PythonController::Release()
+int SCA_PythonController::Release()
 {
 	//printf("Release refcount = %i\n",GetRefCount());
 	return CValue::Release();
 }
-*/
-
-
+#endif
 
 SCA_PythonController::~SCA_PythonController()
 {
@@ -122,13 +120,14 @@ CValue* SCA_PythonController::GetReplica()
 	if (m_pythondictionary)
 		replica->m_pythondictionary = PyDict_Copy(m_pythondictionary);
 		
-	/*
+#if 0
 	// The other option is to incref the replica->m_pythondictionary -
 	// the replica objects can then share data.
 	if (m_pythondictionary)
 		Py_INCREF(replica->m_pythondictionary);
-	*/
 #endif
+
+#endif /* WITH_PYTHON */
 	
 	// this will copy properties and so on...
 	replica->ProcessReplica();

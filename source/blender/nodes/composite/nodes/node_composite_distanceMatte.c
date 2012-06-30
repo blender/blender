@@ -26,8 +26,8 @@
  */
 
 /** \file blender/nodes/composite/nodes/node_composite_distanceMatte.c
-*  \ingroup cmpnodes
-*/
+ *  \ingroup cmpnodes
+ */
 
 
 #include "node_composite_util.h"
@@ -139,9 +139,9 @@ static void do_chroma_distance_matte(bNode *node, float *out, float *in)
 static void node_composit_exec_distance_matte(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/*
-	Loosely based on the Sequencer chroma key plug-in, but enhanced to work in other color spaces and
-	uses a different difference function (suggested in forums of vfxtalk.com).
-	*/
+	 * Loosely based on the Sequencer chroma key plug-in, but enhanced to work in other color spaces and
+	 * uses a different difference function (suggested in forums of vfxtalk.com).
+	 */
 	CompBuf *workbuf;
 	CompBuf *inbuf;
 	NodeChroma *c;

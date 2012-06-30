@@ -276,7 +276,7 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 			sub_v3_v3v3(out, i1, t_con_center);
 
 			/* possible some values become nan when
-			* viewpoint and object are both zero */
+			 * viewpoint and object are both zero */
 			if (!finite(out[0])) out[0] = 0.0f;
 			if (!finite(out[1])) out[1] = 0.0f;
 			if (!finite(out[2])) out[2] = 0.0f;

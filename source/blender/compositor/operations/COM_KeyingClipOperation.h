@@ -27,8 +27,8 @@
 #include "COM_NodeOperation.h"
 
 /**
-  * Class with implementation of black/white clipping for keying node
-  */
+ * Class with implementation of black/white clipping for keying node
+ */
 class KeyingClipOperation : public NodeOperation {
 protected:
 	float m_clipBlack;

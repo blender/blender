@@ -172,7 +172,7 @@ static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e
 }
 
 /* Disable the skin root flag on the input vert, assumes that the vert
-   data includes an CD_MVERT_SKIN layer */
+ * data includes an CD_MVERT_SKIN layer */
 static void bm_extrude_disable_skin_root(BMesh *bm, BMVert *v)
 {
 	MVertSkin *vs;

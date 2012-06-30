@@ -35,13 +35,13 @@
 #include "PHY_IPhysicsEnvironment.h"
 
 /**
-*	DummyPhysicsEnvironment  is an empty placeholder
-*   Alternatives are ODE,Sumo and Dynamo PhysicsEnvironments
-*	Use DummyPhysicsEnvironment as a base to integrate your own physics engine
-*	Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
-*
-*	A derived class may be able to 'construct' entities by loading and/or converting
-*/
+ * DummyPhysicsEnvironment  is an empty placeholder
+ * Alternatives are ODE,Sumo and Dynamo PhysicsEnvironments
+ * Use DummyPhysicsEnvironment as a base to integrate your own physics engine
+ * Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
+ *
+ * A derived class may be able to 'construct' entities by loading and/or converting
+ */
 class DummyPhysicsEnvironment  : public PHY_IPhysicsEnvironment
 {
 
