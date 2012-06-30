@@ -4998,7 +4998,6 @@ void projectSVData(TransInfo *t, int final)
 	BMEditMesh *em = sld->em;
 	SmallHash visit;
 	int i;
-	short has_uv;
 
 	if (!em)
 		return;
@@ -5010,8 +5009,6 @@ void projectSVData(TransInfo *t, int final)
 	 * accidentally break uv maps or vertex colors then */
 	if (em->bm->shapenr > 1)
 		return;
-
-	has_uv = CustomData_has_layer(&(em->bm->ldata), CD_MLOOPUV);
 
 	BLI_smallhash_init(&visit);
 	
