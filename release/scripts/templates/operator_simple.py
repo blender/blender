@@ -7,7 +7,7 @@ def main(context):
 
 
 class SimpleOperator(bpy.types.Operator):
-    '''Tooltip'''
+    """Tooltip"""
     bl_idname = "object.simple_operator"
     bl_label = "Simple Object Operator"
 
