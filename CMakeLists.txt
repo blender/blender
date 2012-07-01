@@ -667,7 +667,6 @@ if(UNIX AND NOT APPLE)
 
 		if(NOT OPENIMAGEIO_FOUND)
 			set(WITH_OPENIMAGEIO OFF)
-			set(WITH_CYCLES OFF)
 			message(STATUS "OpenImageIO not found, disabling WITH_CYCLES")
 		endif()
 	endif()
@@ -1457,6 +1456,16 @@ if(APPLE OR WIN32)
 		message(FATAL_ERROR "Apple and Windows require pre-compiled libs at: '${LIBDIR}'")
 	endif()
 endif()
+
+if(WITH_CYCLES)
+	if(NOT WITH_OPENIMAGEIO)
+		message(FATAL_ERROR "Cycles reqires WITH_OPENIMAGEIO, the library may not have been found. Configure OIIO or disable WITH_CYCLES")
+	endif()
+	if(NOT WITH_BOOST)
+		message(FATAL_ERROR "Cycles reqires WITH_BOOST, the library may not have been found. Configure BOOST or disable WITH_CYCLES")
+	endif()
+endif()
+
 
 # See TEST_SSE_SUPPORT() for how this is defined.
 
