@@ -703,26 +703,29 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
 /**
  * GPU_upload_dxt_texture() assumes that the texture is already bound and ready to go.
  * This is so the viewport and the BGE can share some code.
- * Returns 0 if the provided ImBuf doesn't have a supported DXT compression format
+ * Returns FALSE if the provided ImBuf doesn't have a supported DXT compression format
  */
 int GPU_upload_dxt_texture(ImBuf *ibuf)
 {
 #if WITH_DDS
-	GLint format, err;
+	GLint format = 0;
 	int blocksize, height, width, i, size, offset = 0;
 
 	height = ibuf->x;
-	width = ibuf->y;	
-	
-	if (ibuf->dds_data.fourcc == FOURCC_DXT1)
-		format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-	else if (ibuf->dds_data.fourcc == FOURCC_DXT3)
-		format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-	else if (ibuf->dds_data.fourcc == FOURCC_DXT5)
-		format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-	else {
+	width = ibuf->y;
+
+	if (GLEW_EXT_texture_compression_s3tc) {
+		if (ibuf->dds_data.fourcc == FOURCC_DXT1)
+			format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+		else if (ibuf->dds_data.fourcc == FOURCC_DXT3)
+			format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+		else if (ibuf->dds_data.fourcc == FOURCC_DXT5)
+			format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+	}
+
+	if (format == 0) {
 		printf("Unable to find a suitable DXT compression, falling back to uncompressed\n");
-		return 0;
+		return FALSE;
 	}
 
 	blocksize = (format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ? 8 : 16;
@@ -737,20 +740,15 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 		glCompressedTexImage2D(GL_TEXTURE_2D, i, format, width, height,
 			0, size, ibuf->dds_data.data + offset);
 
-		err = glGetError();
-
-		if (err != GL_NO_ERROR)
-			printf("OpenGL error: %s\nFormat: %x\n", gluErrorString(err), format);
-
 		offset += size;
 		width >>= 1;
 		height >>= 1;
 	}
 
-	return 1;
+	return TRUE;
 #else
 	(void)ibuf;
-	return 0;
+	return FALSE;
 #endif
 }
 
