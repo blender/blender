@@ -915,12 +915,11 @@ void render_result_exr_file_begin(Render *re)
 	RenderResult *rr;
 	RenderLayer *rl;
 	char str[FILE_MAX];
-	
-	for (rr = re->result; rr; rr = rr->next) {
-		printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 
+	for (rr = re->result; rr; rr = rr->next) {
 		for (rl = rr->layers.first; rl; rl = rl->next) {
 			render_result_exr_file_path(re->scene, rl->name, rr->sample_nr, str);
+			printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 			IMB_exrtile_begin_write(rl->exrhandle, str, 0, rr->rectx, rr->recty, re->partx, re->party);
 		}
 	}
