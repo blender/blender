@@ -115,23 +115,23 @@ public:
 	void				Replace(int pos, int num, rcSTR_String str);
 
 	// Substrings
-	inline STR_String	Left(int num) const								{ num = (num < Len ? num:Len ); return STR_String(pData, num); }
-	inline STR_String	Right(int num) const							{ num = (num < Len ? num:Len ); return STR_String(pData+Len-num, num); }
-	inline STR_String	Mid(int pos, int num = INT_MAX) const			{ pos = (pos < Len ? pos:Len ); num = (num < (Len - pos) ? num : (Len - pos)); return STR_String(pData+pos, num); }
+	inline STR_String	Left(int num) const							{ num = (num < Len ? num:Len ); return STR_String(pData, num); }
+	inline STR_String	Right(int num) const						{ num = (num < Len ? num:Len ); return STR_String(pData+Len-num, num); }
+	inline STR_String	Mid(int pos, int num = INT_MAX) const		{ pos = (pos < Len ? pos:Len ); num = (num < (Len - pos) ? num : (Len - pos)); return STR_String(pData+pos, num); }
 
 	// Comparison
-	int				Compare(rcSTR_String rhs) const;
-	int				CompareNoCase(rcSTR_String rhs) const;
-	inline bool		IsEqual(rcSTR_String rhs) const					{ return (Compare(rhs)==0); }
-	inline bool		IsEqualNoCase(rcSTR_String rhs) const				{ return (CompareNoCase(rhs)==0); }
+	int					Compare(rcSTR_String rhs) const;
+	int					CompareNoCase(rcSTR_String rhs) const;
+	inline bool			IsEqual(rcSTR_String rhs) const					{ return (Compare(rhs)==0); }
+	inline bool			IsEqualNoCase(rcSTR_String rhs) const			{ return (CompareNoCase(rhs)==0); }
 
 	// Search/replace
-	int				Find(char c, int pos = 0) const;
-	int				Find(const char *str, int pos = 0) const;
-	int				Find(rcSTR_String str, int pos = 0) const;
-	int				RFind(char c) const;
-	int				FindOneOf(const char *set, int pos = 0) const;
-	int				RFindOneOf(const char *set, int pos = 0) const;
+	int					Find(char c, int pos = 0) const;
+	int					Find(const char *str, int pos = 0) const;
+	int					Find(rcSTR_String str, int pos = 0) const;
+	int					RFind(char c) const;
+	int					FindOneOf(const char *set, int pos = 0) const;
+	int					RFindOneOf(const char *set, int pos = 0) const;
 
 	std::vector<STR_String> Explode(char c) const;
 
@@ -148,42 +148,42 @@ public:
 	STR_String&			TrimQuotes();
 
 	// Conversions
-//	inline operator char*()												{ return pData; }
-	inline operator const char *() const								{ return pData; }
-	inline char *Ptr()													{ return pData; }
-	inline const char *ReadPtr() const									{ return pData; }
-	inline float	ToFloat() const										{ float x=(float)(atof(pData)); return x; }
-	inline int		ToInt() const										{ return atoi(pData); }
+//	inline operator char*()								{ return pData; }
+	inline operator const char *() const				{ return pData; }
+	inline char *Ptr()									{ return pData; }
+	inline const char *ReadPtr() const					{ return pData; }
+	inline float	ToFloat() const						{ float x=(float)(atof(pData)); return x; }
+	inline int		ToInt() const						{ return atoi(pData); }
 
 	// Operators
-	inline rcSTR_String	operator=(const byte *rhs)						{ return Copy((const char *)rhs, strlen((const char *)rhs)); }
-	inline rcSTR_String	operator=(rcSTR_String rhs)						{ return Copy(rhs.ReadPtr(), rhs.Length()); }
-	inline rcSTR_String	operator=(char rhs)								{ return Copy(&rhs, 1); }
-	inline rcSTR_String	operator=(const char *rhs)						{ return Copy(rhs, strlen(rhs)); }
+	inline rcSTR_String	operator=(const byte *rhs)		{ return Copy((const char *)rhs, strlen((const char *)rhs)); }
+	inline rcSTR_String	operator=(rcSTR_String rhs)		{ return Copy(rhs.ReadPtr(), rhs.Length()); }
+	inline rcSTR_String	operator=(char rhs)				{ return Copy(&rhs, 1); }
+	inline rcSTR_String	operator=(const char *rhs)		{ return Copy(rhs, strlen(rhs)); }
 
-	inline rcSTR_String	operator+=(const char *rhs)						{ return Concat(rhs, strlen(rhs)); }
-	inline rcSTR_String	operator+=(rcSTR_String rhs)						{ return Concat(rhs.ReadPtr(), rhs.Length()); }
-	inline rcSTR_String	operator+=(char rhs)							{ return Concat(&rhs, 1); }
+	inline rcSTR_String	operator+=(const char *rhs)		{ return Concat(rhs, strlen(rhs)); }
+	inline rcSTR_String	operator+=(rcSTR_String rhs)	{ return Concat(rhs.ReadPtr(), rhs.Length()); }
+	inline rcSTR_String	operator+=(char rhs)			{ return Concat(&rhs, 1); }
 
-	
-	inline friend bool operator<(rcSTR_String      lhs, rcSTR_String		rhs)	{ return (strcmp(lhs, rhs)<0); }
-	inline friend bool operator<(rcSTR_String      lhs, const char		*rhs)	{ return (strcmp(lhs, rhs)<0); };
-	inline friend bool operator<(const char		*lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)<0); }
-	inline friend bool operator>(rcSTR_String      lhs, rcSTR_String		rhs)	{ return (strcmp(lhs, rhs)>0); }
-	inline friend bool operator>(rcSTR_String      lhs, const char		*rhs)	{ return (strcmp(lhs, rhs)>0); }
-	inline friend bool operator>(const char		*lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)>0); }
-	inline friend bool operator<=(rcSTR_String     lhs, rcSTR_String		rhs)	{ return (strcmp(lhs, rhs)<=0); }
-	inline friend bool operator<=(rcSTR_String     lhs, const char		*rhs)	{ return (strcmp(lhs, rhs)<=0); }
-	inline friend bool operator<=(const char	*lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)<=0); }
-	inline friend bool operator>=(rcSTR_String     lhs, rcSTR_String		rhs)	{ return (strcmp(lhs, rhs)>=0); }
-	inline friend bool operator>=(rcSTR_String     lhs, const char		*rhs)	{ return (strcmp(lhs, rhs)>=0); }
-	inline friend bool operator>=(const char	*lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)>=0); }
-	inline friend bool operator==(rcSTR_String     lhs, rcSTR_String		rhs)	{ return ((lhs.Length() == rhs.Length()) && (memcmp(lhs, rhs, lhs.Length())==0)); }
-	inline friend bool operator==(rcSTR_String     lhs, const char		*rhs)	{ return (memcmp(lhs, rhs, lhs.Length()+1)==0); }
-	inline friend bool operator==(const char	*lhs, rcSTR_String     rhs)	{ return (memcmp(lhs, rhs, rhs.Length()+1)==0); }
-	inline friend bool operator!=(rcSTR_String     lhs, rcSTR_String		rhs)	{ return ((lhs.Length() != rhs.Length()) || (memcmp(lhs, rhs, lhs.Length())!=0)); }
-	inline friend bool operator!=(rcSTR_String     lhs, const char		*rhs)	{ return (memcmp(lhs, rhs, lhs.Length()+1)!=0); }
-	inline friend bool operator!=(const char	*lhs, rcSTR_String     rhs)	{ return (memcmp(lhs, rhs, rhs.Length()+1)!=0); }
+
+	inline friend bool operator<(rcSTR_String      lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)<0); }
+	inline friend bool operator<(rcSTR_String      lhs, const char      *rhs)	{ return (strcmp(lhs, rhs)<0); }
+	inline friend bool operator<(const char       *lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)<0); }
+	inline friend bool operator>(rcSTR_String      lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)>0); }
+	inline friend bool operator>(rcSTR_String      lhs, const char      *rhs)	{ return (strcmp(lhs, rhs)>0); }
+	inline friend bool operator>(const char       *lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)>0); }
+	inline friend bool operator<=(rcSTR_String     lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)<=0); }
+	inline friend bool operator<=(rcSTR_String     lhs, const char      *rhs)	{ return (strcmp(lhs, rhs)<=0); }
+	inline friend bool operator<=(const char      *lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)<=0); }
+	inline friend bool operator>=(rcSTR_String     lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)>=0); }
+	inline friend bool operator>=(rcSTR_String     lhs, const char      *rhs)	{ return (strcmp(lhs, rhs)>=0); }
+	inline friend bool operator>=(const char      *lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)>=0); }
+	inline friend bool operator==(rcSTR_String     lhs, rcSTR_String     rhs)	{ return ((lhs.Length() == rhs.Length()) && (memcmp(lhs, rhs, lhs.Length())==0)); }
+	inline friend bool operator==(rcSTR_String     lhs, const char      *rhs)	{ return (memcmp(lhs, rhs, lhs.Length()+1)==0); }
+	inline friend bool operator==(const char      *lhs, rcSTR_String     rhs)	{ return (memcmp(lhs, rhs, rhs.Length()+1)==0); }
+	inline friend bool operator!=(rcSTR_String     lhs, rcSTR_String     rhs)	{ return ((lhs.Length() != rhs.Length()) || (memcmp(lhs, rhs, lhs.Length())!=0)); }
+	inline friend bool operator!=(rcSTR_String     lhs, const char      *rhs)	{ return (memcmp(lhs, rhs, lhs.Length()+1)!=0); }
+	inline friend bool operator!=(const char       *lhs, rcSTR_String    rhs)	{ return (memcmp(lhs, rhs, rhs.Length()+1)!=0); }
 
 	// serializing
 	//int			Serialize(pCStream stream);
@@ -198,7 +198,7 @@ protected:
 	static bool		isUpper(char c)									{ return (c>='A') && (c <= 'Z'); }
 	static bool		isSpace(char c)									{ return (c==' ') || (c=='\t'); }
 
-	char   *pData;													// -> STR_String data
+	char  *pData;													// -> STR_String data
 	int	   Len;														// Data length
 	int	   Max;														// Space in data buffer
 
@@ -209,10 +209,10 @@ protected:
 };
 
 inline  STR_String operator+(rcSTR_String    lhs, rcSTR_String   rhs)	{ return STR_String(lhs.ReadPtr(), lhs.Length(), rhs.ReadPtr(), rhs.Length()); }
-inline  STR_String operator+(rcSTR_String    lhs, char        rhs)	{ return STR_String(lhs.ReadPtr(), lhs.Length(), &rhs, 1); }
-inline  STR_String operator+(char         lhs, rcSTR_String   rhs)	{ return STR_String(&lhs, 1, rhs.ReadPtr(), rhs.Length()); }
-inline  STR_String operator+(rcSTR_String    lhs, const char *rhs)	{ return STR_String(lhs.ReadPtr(), lhs.Length(), rhs, strlen(rhs)); }
-inline  STR_String operator+(const char  *lhs, rcSTR_String   rhs)	{ return STR_String(lhs, strlen(lhs), rhs.ReadPtr(), rhs.Length()); }
+inline  STR_String operator+(rcSTR_String    lhs, char        rhs)		{ return STR_String(lhs.ReadPtr(), lhs.Length(), &rhs, 1); }
+inline  STR_String operator+(char            lhs, rcSTR_String   rhs)	{ return STR_String(&lhs, 1, rhs.ReadPtr(), rhs.Length()); }
+inline  STR_String operator+(rcSTR_String    lhs, const char *rhs)		{ return STR_String(lhs.ReadPtr(), lhs.Length(), rhs, strlen(rhs)); }
+inline  STR_String operator+(const char      *lhs, rcSTR_String   rhs)	{ return STR_String(lhs, strlen(lhs), rhs.ReadPtr(), rhs.Length()); }
 
 
 #endif //__STR_STRING_H__
