@@ -348,8 +348,8 @@ static void colormanage_cache_handle_release(void *cache_handle)
 /*********************** Initialization / De-initialization *************************/
 
 #ifdef WITH_OCIO
-static void colormanage_role_color_space_name_get(ConstConfigRcPtr *config, char *colorspace_name, int max_colorspace_name,
-                                                  const char *role, const char *role_name)
+static void colormanage_role_color_space_name_get(ConstConfigRcPtr *config, char *colorspace_name,
+                                                  int max_colorspace_name, const char *role, const char *role_name)
 {
 	ConstColorSpaceRcPtr *ociocs;
 
@@ -937,7 +937,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 		}
 	}
 
-	for(sc = bmain->screen.first; sc; sc= sc->id.next) {
+	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 		ScrArea *sa;
 
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
