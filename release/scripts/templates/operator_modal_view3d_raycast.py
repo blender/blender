@@ -25,12 +25,12 @@ def main(context, event, ray_max=10000.0):
             if obj.type == 'MESH':
                 yield (obj, obj.matrix_world.copy())
 
-        if obj.dupli_type != 'NONE':
-            obj.dupli_list_create(scene)
-            for dob in obj.dupli_list:
-                obj_dupli = dob.object
-                if obj_dupli.type == 'MESH':
-                    yield (obj_dupli, dob.matrix.copy())
+            if obj.dupli_type != 'NONE':
+                obj.dupli_list_create(scene)
+                for dob in obj.dupli_list:
+                    obj_dupli = dob.object
+                    if obj_dupli.type == 'MESH':
+                        yield (obj_dupli, dob.matrix.copy())
 
             obj.dupli_list_clear()
 
