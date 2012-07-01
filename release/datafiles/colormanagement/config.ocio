@@ -26,13 +26,16 @@ displays:
     - !<View> {name: Raw, colorspace: raw}
     - !<View> {name: Log, colorspace: adx10}
     - !<View> {name: RRT, colorspace: rrt_srgb}
+    - !<View> {name: SPI Film, colorspace: srgb8}
+    - !<View> {name: SPI Log, colorspace: lg10}
+    - !<View> {name: Nuke rec709, colorspace: rec709}
   xyz:
     - !<View> {name: Raw, colorspace: raw}
     - !<View> {name: Log, colorspace: adx10}
     - !<View> {name: RRT, colorspace: rrt_xyz}
 
 active_displays: [sRGB, p3dci, xyz]
-active_views: [RRT, Log, Raw]
+active_views: [RRT, Log, SPI Film, SPI Log, Raw]
 
 colorspaces:
   - !<ColorSpace>
@@ -241,3 +244,43 @@ colorspaces:
         - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_dcdm.spi3d, interpolation: tetrahedral}
+
+  # spi-vfx
+
+  - !<ColorSpace>
+    name: lg10
+    family: lg
+    equalitygroup:
+    bitdepth: 10ui
+    description: |
+      lg10 : conversion from film log
+    isdata: false
+    allocation: uniform
+    to_reference: !<FileTransform> {src: lg10.spi1d, interpolation: nearest}
+
+  - !<ColorSpace>
+    name: srgb8
+    family: srgb
+    equalitygroup:
+    bitdepth: 8ui
+    description: |
+      srgb8 :rgb display space for the srgb standard.
+    isdata: false
+    allocation: uniform
+    from_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: aces, dst: lg10}
+        - !<FileTransform> {src: spi_ocio_srgb_test.spi3d, interpolation: linear}
+
+  # nuke-default
+  - !<ColorSpace>
+    name: rec709
+    family: ""
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      Rec. 709 (Full Range) Display Space
+    isdata: false
+    allocation: uniform
+    allocationvars: [-0.125, 1.125]
+    to_reference: !<FileTransform> {src: rec709.spi1d, interpolation: linear}

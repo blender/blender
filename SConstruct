@@ -611,12 +611,24 @@ if env['OURPLATFORM']!='darwin':
                     scriptinstall.append(env.Install(dir=dir,source=cubin_file))
 
     if env['WITH_BF_OCIO']:
-        dir=os.path.join(env['BF_INSTALLDIR'], VERSION, 'datafiles', 'colormanagement')
-        source=os.listdir('release/datafiles/colormanagement')
-        if '.svn' in source: source.remove('.svn')
-        if '_svn' in source: source.remove('_svn')
-        source=['release/datafiles/colormanagement/'+s for s in source]
-        scriptinstall.append(env.Install(dir=dir,source=source))
+        colormanagement = os.path.join('release', 'datafiles', 'colormanagement')
+
+        for dp, dn, df in os.walk(colormanagement):
+            if '.svn' in dn:
+                dn.remove('.svn')
+            if '_svn' in dn:
+                dn.remove('_svn')
+
+            dir = os.path.join(env['BF_INSTALLDIR'], VERSION, 'datafiles')
+            dir += os.sep + os.path.basename(colormanagement) + dp[len(colormanagement):]
+
+            source = [os.path.join(dp, f) for f in df if not f.endswith(".pyc")]
+
+            # To ensure empty dirs are created too
+            if len(source) == 0:
+                env.Execute(Mkdir(dir))
+
+            scriptinstall.append(env.Install(dir=dir,source=source))
 
     if env['WITH_BF_INTERNATIONAL']:
         internationalpaths=['release' + os.sep + 'datafiles']

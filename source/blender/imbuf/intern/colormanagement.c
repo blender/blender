@@ -67,6 +67,11 @@
 /* ** list of all supported color spaces, displays and views */
 #ifdef WITH_OCIO
 static ListBase global_colorspaces = {NULL};
+
+static char global_role_linear[64];
+static char global_role_color_picking[64];
+static char global_role_texture_painting[64];
+
 #endif
 
 static ListBase global_displays = {NULL};
@@ -343,11 +348,39 @@ static void colormanage_cache_handle_release(void *cache_handle)
 /*********************** Initialization / De-initialization *************************/
 
 #ifdef WITH_OCIO
-static void colormanage_load_config(ConstConfigRcPtr* config)
+static void colormanage_role_color_space_name_get(ConstConfigRcPtr *config, char *colorspace_name, int max_colorspace_name,
+                                                  const char *role, const char *role_name)
+{
+	ConstColorSpaceRcPtr *ociocs;
+
+	ociocs = OCIO_configGetColorSpace(config, role);
+
+	if (ociocs) {
+		const char *name = OCIO_colorSpaceGetName(ociocs);
+
+		BLI_strncpy(colorspace_name, name, max_colorspace_name);
+		OCIO_colorSpaceRelease(ociocs);
+	}
+	else {
+		printf("Blender color management: Error could not find %s role.\n", role_name);
+	}
+}
+
+static void colormanage_load_config(ConstConfigRcPtr *config)
 {
 	ConstColorSpaceRcPtr *ociocs;
 	int tot_colorspace, tot_display, tot_display_view, index, viewindex, viewindex2;
 	const char *name;
+
+	/* get roles */
+	colormanage_role_color_space_name_get(config, global_role_linear, sizeof(global_role_linear),
+	                                      OCIO_ROLE_SCENE_LINEAR, "scene linear");
+
+	colormanage_role_color_space_name_get(config, global_role_color_picking, sizeof(global_role_color_picking),
+	                                      OCIO_ROLE_COLOR_PICKING, "color picking");
+
+	colormanage_role_color_space_name_get(config, global_role_texture_painting, sizeof(global_role_texture_painting),
+	                                      OCIO_ROLE_TEXTURE_PAINT, "texture_painting");
 
 	/* load colorspaces */
 	tot_colorspace = OCIO_configGetNumColorSpaces(config);
@@ -639,8 +672,8 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 
 	dt = OCIO_createDisplayTransform();
 
-	/* OCIO_TODO: get rid of hardcoded input and display spaces */
-	OCIO_displayTransformSetInputColorSpaceName(dt, "aces");
+	/* OCIO_TODO: get rid of hardcoded input space */
+	OCIO_displayTransformSetInputColorSpaceName(dt, global_role_linear);
 
 	OCIO_displayTransformSetView(dt, view_transform);
 	OCIO_displayTransformSetDisplay(dt, display);
