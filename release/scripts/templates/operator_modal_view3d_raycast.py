@@ -9,7 +9,7 @@ def main(context, event, ray_max=10000.0):
     scene = context.scene
     region = context.region
     rv3d = context.region_data
-    coord = event.mouse_x, event.mouse_y
+    coord = event.mouse_region_x, event.mouse_region_y
 
     # get the ray from the viewport and mouse
     view_vector = view3d_utils.region_2d_to_vector_3d(region, rv3d, coord)
@@ -56,7 +56,7 @@ def main(context, event, ray_max=10000.0):
 
     for obj, matrix in visible_objects_and_duplis():
         if obj.type == 'MESH':
-            hit, normal, face_index = obj_ray_cast(obj, obj.matrix_world)
+            hit, normal, face_index = obj_ray_cast(obj, matrix)
             if hit is not None:
                 length_squared = (hit - ray_origin).length_squared
                 if length_squared < best_length_squared:
