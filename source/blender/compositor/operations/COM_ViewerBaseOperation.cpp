@@ -47,10 +47,13 @@ ViewerBaseOperation::ViewerBaseOperation() : NodeOperation()
 	this->m_outputBufferDisplay = NULL;
 	this->m_active = false;
 	this->m_doColorManagement = true;
+	this->m_partialBufferUpdate = NULL;
 }
 
 void ViewerBaseOperation::initExecution()
 {
+	this->m_partialBufferUpdate = NULL;
+
 	if (isActiveViewerOutput()) {
 		initImage();
 	}
@@ -90,11 +93,15 @@ void ViewerBaseOperation:: updateImage(rcti *rect)
 
 void ViewerBaseOperation::deinitExecution()
 {
-	ImBuf *ibuf = BKE_image_acquire_ibuf(this->m_image, this->m_imageUser, &this->m_lock);
+	if (this->m_partialBufferUpdate) {
+		/* partial buffer context could be NULL if it's not active viewer node */
 
-	IMB_partial_buffer_update_free(this->m_partialBufferUpdate, ibuf);
+		ImBuf *ibuf = BKE_image_acquire_ibuf(this->m_image, this->m_imageUser, &this->m_lock);
 
-	BKE_image_release_ibuf(this->m_image, this->m_lock);
+		IMB_partial_buffer_update_free(this->m_partialBufferUpdate, ibuf);
+
+		BKE_image_release_ibuf(this->m_image, this->m_lock);
+	}
 
 	this->m_outputBuffer = NULL;
 }
