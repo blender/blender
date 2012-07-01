@@ -20,6 +20,7 @@
 
 __all__ = (
     "region_2d_to_vector_3d",
+    "region_2d_to_origin_3d",
     "region_2d_to_location_3d",
     "location_3d_to_region_2d",
     )
@@ -58,6 +59,40 @@ def region_2d_to_vector_3d(region, rv3d, coord):
         return viewinv.col[2].xyz.normalized()
 
 
+def region_2d_to_origin_3d(region, rv3d, coord):
+    """
+    Return the 3d view origin from the region relative 2d coords.
+
+    :arg region: region of the 3D viewport, typically bpy.context.region.
+    :type region: :class:`bpy.types.Region`
+    :arg rv3d: 3D region data, typically bpy.context.space_data.region_3d.
+    :type rv3d: :class:`bpy.types.RegionView3D`
+    :arg coord: 2d coordinates relative to the region;
+       (event.mouse_region_x, event.mouse_region_y) for example.
+    :type coord: 2d vector
+    :return: The origin of the viewpoint in 3d space.
+    :rtype: :class:`mathutils.Vector`
+    """
+    from mathutils import Vector
+
+    viewinv = rv3d.view_matrix.inverted()
+
+    if rv3d.is_perspective:
+        from mathutils.geometry import intersect_line_plane
+
+        origin_start = viewinv.translation.copy()
+    else:
+        from mathutils.geometry import intersect_point_line
+        persmat = rv3d.perspective_matrix.copy()
+        dx = (2.0 * coord[0] / region.width) - 1.0
+        dy = (2.0 * coord[1] / region.height) - 1.0
+        persinv = persmat.inverted()
+        origin_start = ((persinv.col[0].xyz * dx) +
+                        (persinv.col[1].xyz * dy) +
+                         viewinv.translation)
+    return origin_start
+
+
 def region_2d_to_location_3d(region, rv3d, coord, depth_location):
     """
     Return a 3d location from the region relative 2d coords, aligned with
@@ -78,15 +113,15 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
     """
     from mathutils import Vector
 
-    viewinv = rv3d.view_matrix.inverted()
     coord_vec = region_2d_to_vector_3d(region, rv3d, coord)
     depth_location = Vector(depth_location)
 
+    origin_start = region_2d_to_origin_3d(region, rv3d, coord)
+    origin_end = origin_start + coord_vec
+
     if rv3d.is_perspective:
         from mathutils.geometry import intersect_line_plane
-
-        origin_start = viewinv.translation.copy()
-        origin_end = origin_start + coord_vec
+        viewinv = rv3d.view_matrix.inverted()
         view_vec = viewinv.col[2].copy()
         return intersect_line_plane(origin_start,
                                     origin_end,
@@ -95,14 +130,6 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
                                     )
     else:
         from mathutils.geometry import intersect_point_line
-        persmat = rv3d.perspective_matrix.copy()
-        dx = (2.0 * coord[0] / region.width) - 1.0
-        dy = (2.0 * coord[1] / region.height) - 1.0
-        persinv = persmat.inverted()
-        origin_start = ((persinv.col[0].xyz * dx) +
-                        (persinv.col[1].xyz * dy) +
-                         viewinv.translation)
-        origin_end = origin_start + coord_vec
         return intersect_point_line(depth_location,
                                     origin_start,
                                     origin_end,
