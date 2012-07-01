@@ -159,52 +159,52 @@
 #include <errno.h>
 
 /*
- Remark: still a weak point is the newaddress() function, that doesnt solve reading from
- multiple files at the same time
-
- (added remark: oh, i thought that was solved? will look at that... (ton)
-
-READ
-- Existing Library (Main) push or free
-- allocate new Main
-- load file
-- read SDNA
-- for each LibBlock
-	- read LibBlock
-	- if a Library
-		- make a new Main
-		- attach ID's to it
-	- else
-		- read associated 'direct data'
-		- link direct data (internal and to LibBlock)
-- read FileGlobal
-- read USER data, only when indicated (file is ~/X.XX/startup.blend)
-- free file
-- per Library (per Main)
-	- read file
-	- read SDNA
-	- find LibBlocks and attach IDs to Main
-		- if external LibBlock
-			- search all Main's
-				- or it's already read,
-				- or not read yet
-				- or make new Main
-	- per LibBlock
-		- read recursive
-		- read associated direct data
-		- link direct data (internal and to LibBlock)
-	- free file
-- per Library with unread LibBlocks
-	- read file
-	- read SDNA
-	- per LibBlock
-			   - read recursive
-			   - read associated direct data
-			   - link direct data (internal and to LibBlock)
-		- free file
-- join all Mains
-- link all LibBlocks and indirect pointers to libblocks
-- initialize FileGlobal and copy pointers to Global
+ * Remark: still a weak point is the newaddress() function, that doesnt solve reading from
+ * multiple files at the same time
+ *
+ * (added remark: oh, i thought that was solved? will look at that... (ton)
+ *
+ * READ
+ * - Existing Library (Main) push or free
+ * - allocate new Main
+ * - load file
+ * - read SDNA
+ * - for each LibBlock
+ *     - read LibBlock
+ *     - if a Library
+ *         - make a new Main
+ *         - attach ID's to it
+ *     - else
+ *         - read associated 'direct data'
+ *         - link direct data (internal and to LibBlock)
+ * - read FileGlobal
+ * - read USER data, only when indicated (file is ~/X.XX/startup.blend)
+ * - free file
+ * - per Library (per Main)
+ *     - read file
+ *     - read SDNA
+ *     - find LibBlocks and attach IDs to Main
+ *         - if external LibBlock
+ *             - search all Main's
+ *                 - or it's already read,
+ *                 - or not read yet
+ *                 - or make new Main
+ *     - per LibBlock
+ *         - read recursive
+ *         - read associated direct data
+ *         - link direct data (internal and to LibBlock)
+ *     - free file
+ * - per Library with unread LibBlocks
+ *     - read file
+ *     - read SDNA
+ *     - per LibBlock
+ *                - read recursive
+ *                - read associated direct data
+ *                - link direct data (internal and to LibBlock)
+ *         - free file
+ * - join all Mains
+ * - link all LibBlocks and indirect pointers to libblocks
+ * - initialize FileGlobal and copy pointers to Global
 */
 
 /* also occurs in library.c */
@@ -4426,7 +4426,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		}
 		else if (md->type == eModifierType_Collision) {
 			CollisionModifierData *collmd = (CollisionModifierData *)md;
-			/*
+#if 0
 			// TODO: CollisionModifier should use pointcache 
 			// + have proper reset events before enabling this
 			collmd->x = newdataadr(fd, collmd->x);
@@ -4436,7 +4436,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->current_x = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_x");
 			collmd->current_xnew = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_xnew");
 			collmd->current_v = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_v");
-			*/
+#endif
 			
 			collmd->x = NULL;
 			collmd->xnew = NULL;
@@ -5496,7 +5496,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						v3d->localvd->camera = sc->scene->camera;
 						
 						/* localview can become invalid during undo/redo steps, so we exit it when no could be found */
-						/* XXX  regionlocalview ?
+#if 0					/* XXX  regionlocalview ? */
 						for (base= sc->scene->base.first; base; base= base->next) {
 							if (base->lay & v3d->lay) break;
 						}
@@ -5506,7 +5506,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 							MEM_freeN(v3d->localvd); 
 							v3d->localvd= NULL;
 						}
-						*/
+#endif
 					}
 					else if (v3d->scenelock) v3d->lay = sc->scene->lay;
 					
@@ -7421,7 +7421,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 263) {
 		/* set fluidsim rate. the version patch for this in 2.62 was wrong, so
-		try to correct it, if rate is 0.0 that's likely not intentional */
+		 * try to correct it, if rate is 0.0 that's likely not intentional */
 		Object *ob;
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {

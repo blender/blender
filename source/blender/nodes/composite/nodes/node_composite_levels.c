@@ -291,10 +291,11 @@ static void node_composit_exec_view_levels(void *data, bNode *node, bNodeStack *
 	mean=brightness_mean(node, in[0]->data);
 	std_dev=brightness_standard_deviation(node, in[0]->data, mean);
 
-	/*  Printf debuging ;) 
+	/*  Printf debuging ;) */
+#if 0
 	printf("Mean: %f\n", mean);
 	printf("Std Dev: %f\n", std_dev);
-	*/
+#endif
 
 	if (out[0]->hasoutput)
 			out[0]->vec[0]= mean;

@@ -165,6 +165,10 @@ void IMB_freeImBuf(ImBuf *ibuf)
 			IMB_metadata_free(ibuf);
 			IMB_colormanage_flags_free(ibuf);
 			IMB_colormanage_cache_data_free(ibuf);
+
+			if (ibuf->dds_data.data != NULL) {
+				free(ibuf->dds_data.data); /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
+			}
 			MEM_freeN(ibuf);
 		}
 	}

@@ -1643,7 +1643,7 @@ int BLI_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 		strncat(rel, base, rel_len);
 	}
 
-	/* return 2 if src=dest */
+	/* return 2 if (src == dest) */
 	if (BLI_path_cmp(path, dest_path) == 0) {
 		// if (G.debug & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
 		return BLI_REBASE_IDENTITY;

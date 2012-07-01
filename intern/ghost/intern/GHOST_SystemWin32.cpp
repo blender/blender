@@ -1093,7 +1093,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					system->storeModifierKeys(modifiers);
 					event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate, window);
 					/* WARNING: Let DefWindowProc handle WM_ACTIVATE, otherwise WM_MOUSEWHEEL
-					   will not be dispatched to OUR active window if we minimize one of OUR windows. */
+					 * will not be dispatched to OUR active window if we minimize one of OUR windows. */
 					lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
 					break;
 				}
@@ -1230,11 +1230,11 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 			// Event found for a window before the pointer to the class has been set.
 			GHOST_PRINT("GHOST_SystemWin32::wndProc: GHOST window event before creation\n");
 			/* These are events we typically miss at this point:
-			   WM_GETMINMAXINFO	0x24
-			   WM_NCCREATE			0x81
-			   WM_NCCALCSIZE		0x83
-			   WM_CREATE			0x01
-			   We let DefWindowProc do the work.
+			 * WM_GETMINMAXINFO	0x24
+			 * WM_NCCREATE			0x81
+			 * WM_NCCALCSIZE		0x83
+			 * WM_CREATE			0x01
+			 * We let DefWindowProc do the work.
 			 */
 		}
 	}
@@ -1274,7 +1274,7 @@ GHOST_TUns8 *GHOST_SystemWin32::getClipboard(bool selection) const
 		temp_buff = alloc_utf_8_from_16(buffer, 0);
 		
 		/* Buffer mustn't be accessed after CloseClipboard
-		   it would like accessing free-d memory */
+		 * it would like accessing free-d memory */
 		GlobalUnlock(hData);
 		CloseClipboard();
 		
@@ -1300,7 +1300,7 @@ GHOST_TUns8 *GHOST_SystemWin32::getClipboard(bool selection) const
 		temp_buff[len] = '\0';
 		
 		/* Buffer mustn't be accessed after CloseClipboard
-		   it would like accessing free-d memory */
+		 * it would like accessing free-d memory */
 		GlobalUnlock(hData);
 		CloseClipboard();
 		

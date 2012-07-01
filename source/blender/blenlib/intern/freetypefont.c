@@ -545,90 +545,90 @@ typedef struct  FT_Outline_
 
 #endif
 
-/***//*
-from: http://www.freetype.org/freetype2/docs/glyphs/glyphs-6.html#section-1
-
-Vectorial representation of Freetype glyphs
-
-The source format of outlines is a collection of closed paths called "contours". Each contour is
-made of a series of line segments and bezier arcs. Depending on the file format, these can be
-second-order or third-order polynomials. The former are also called quadratic or conic arcs, and
-they come from the TrueType format. The latter are called cubic arcs and mostly come from the
-Type1 format.
-
-Each arc is described through a series of start, end and control points. Each point of the outline
-has a specific tag which indicates wether it is used to describe a line segment or an arc.
-
-
-The following rules are applied to decompose the contour's points into segments and arcs :
-
-# two successive "on" points indicate a line segment joining them.
-
-# one conic "off" point amidst two "on" points indicates a conic bezier arc, the "off" point being
-  the control point, and the "on" ones the start and end points.
-
-# Two successive cubic "off" points amidst two "on" points indicate a cubic bezier arc. There must
-  be exactly two cubic control points and two on points for each cubic arc (using a single cubic 
-  "off" point between two "on" points is forbidden, for example).
-
-# finally, two successive conic "off" points forces the rasterizer to create (during the scan-line
-  conversion process exclusively) a virtual "on" point amidst them, at their exact middle. This
-  greatly facilitates the definition of successive conic bezier arcs. Moreover, it's the way
-  outlines are described in the TrueType specification.
-
-Note that it is possible to mix conic and cubic arcs in a single contour, even though no current
-font driver produces such outlines.
-
-								  *            # on      
-											   * off
-							   __---__
-  #-__                      _--       -_
-	  --__                _-            -
-		  --__           #               \
-			  --__                        #
-				  -#
-						   Two "on" points
-   Two "on" points       and one "conic" point
-							between them
-
-
-
-				*
-  #            __      Two "on" points with two "conic"
-   \          -  -     points between them. The point
-	\        /    \    marked '0' is the middle of the
-	 -      0      \   "off" points, and is a 'virtual'
-	  -_  _-       #   "on" point where the curve passes.
-		--             It does not appear in the point
-					   list.
-		*
-
-
-
-
-		*                # on
-				   *     * off
-		 __---__
-	  _--       -_
-	_-            -
-   #               \
-					#
-
-     Two "on" points
-   and two "cubic" point
-	  between them
-
-
-Each glyph's original outline points are located on a grid of indivisible units. The points are stored
-in the font file as 16-bit integer grid coordinates, with the grid origin's being at (0, 0); they thus
-range from -16384 to 16383.
-
-Convert conic to bezier arcs:
-Conic P0 P1 P2
-Bezier B0 B1 B2 B3
-B0=P0
-B1=(P0+2*P1)/3
-B2=(P2+2*P1)/3
-B3=P2
-
-*//****/
+/*
+ * from: http://www.freetype.org/freetype2/docs/glyphs/glyphs-6.html#section-1
+ *
+ * Vectorial representation of Freetype glyphs
+ *
+ * The source format of outlines is a collection of closed paths called "contours". Each contour is
+ * made of a series of line segments and bezier arcs. Depending on the file format, these can be
+ * second-order or third-order polynomials. The former are also called quadratic or conic arcs, and
+ * they come from the TrueType format. The latter are called cubic arcs and mostly come from the
+ * Type1 format.
+ *
+ * Each arc is described through a series of start, end and control points. Each point of the outline
+ * has a specific tag which indicates wether it is used to describe a line segment or an arc.
+ *
+ *
+ * The following rules are applied to decompose the contour's points into segments and arcs :
+ *
+ * # two successive "on" points indicate a line segment joining them.
+ *
+ * # one conic "off" point amidst two "on" points indicates a conic bezier arc, the "off" point being
+ *   the control point, and the "on" ones the start and end points.
+ *
+ * # Two successive cubic "off" points amidst two "on" points indicate a cubic bezier arc. There must
+ *   be exactly two cubic control points and two on points for each cubic arc (using a single cubic
+ *   "off" point between two "on" points is forbidden, for example).
+ *
+ * # finally, two successive conic "off" points forces the rasterizer to create (during the scan-line
+ *   conversion process exclusively) a virtual "on" point amidst them, at their exact middle. This
+ *   greatly facilitates the definition of successive conic bezier arcs. Moreover, it's the way
+ *   outlines are described in the TrueType specification.
+ *
+ * Note that it is possible to mix conic and cubic arcs in a single contour, even though no current
+ * font driver produces such outlines.
+ *
+ *                                   *            # on
+ *                                                * off
+ *                                __---__
+ *   #-__                      _--       -_
+ *       --__                _-            -
+ *           --__           #               \
+ *               --__                        #
+ *                   -#
+ *                            Two "on" points
+ *    Two "on" points       and one "conic" point
+ *                             between them
+ *
+ *
+ *
+ *                 *
+ *   #            __      Two "on" points with two "conic"
+ *    \          -  -     points between them. The point
+ *     \        /    \    marked '0' is the middle of the
+ *      -      0      \   "off" points, and is a 'virtual'
+ *       -_  _-       #   "on" point where the curve passes.
+ *         --             It does not appear in the point
+ *                        list.
+ *         *
+ *
+ *
+ *
+ *
+ *         *                # on
+ *                    *     * off
+ *          __---__
+ *       _--       -_
+ *     _-            -
+ *    #               \
+ *                     #
+ *
+ *      Two "on" points
+ *    and two "cubic" point
+ *       between them
+ *
+ *
+ * Each glyph's original outline points are located on a grid of indivisible units. The points are stored
+ * in the font file as 16-bit integer grid coordinates, with the grid origin's being at (0, 0); they thus
+ * range from -16384 to 16383.
+ *
+ * Convert conic to bezier arcs:
+ * Conic P0 P1 P2
+ * Bezier B0 B1 B2 B3
+ * B0=P0
+ * B1=(P0+2*P1)/3
+ * B2=(P2+2*P1)/3
+ * B3=P2
+ *
+ */

@@ -485,7 +485,7 @@ void EDBM_select_more(BMEditMesh *em)
 	int use_faces = em->selectmode == SCE_SELECT_FACE;
 
 	BMO_op_initf(em->bm, &bmop,
-	             "regionextend geom=%hvef constrict=%b use_faces=%b",
+	             "region_extend geom=%hvef constrict=%b use_faces=%b",
 	             BM_ELEM_SELECT, FALSE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
 	/* don't flush selection in edge/vertex mode  */
@@ -501,7 +501,7 @@ void EDBM_select_less(BMEditMesh *em)
 	int use_faces = em->selectmode == SCE_SELECT_FACE;
 
 	BMO_op_initf(em->bm, &bmop,
-	             "regionextend geom=%hvef constrict=%b use_faces=%b",
+	             "region_extend geom=%hvef constrict=%b use_faces=%b",
 	             BM_ELEM_SELECT, TRUE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
 	/* don't flush selection in edge/vertex mode  */

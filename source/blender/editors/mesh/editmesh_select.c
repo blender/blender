@@ -710,7 +710,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	float thresh = RNA_float_get(op->ptr, "threshold");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_op_init(em, &bmop, op, "similarfaces faces=%hf type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
+	EDBM_op_init(em, &bmop, op, "similar_faces faces=%hf type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -748,7 +748,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	float thresh = RNA_float_get(op->ptr, "threshold");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_op_init(em, &bmop, op, "similaredges edges=%he type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
+	EDBM_op_init(em, &bmop, op, "similar_edges edges=%he type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -789,7 +789,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	float thresh = RNA_float_get(op->ptr, "threshold");
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_op_init(em, &bmop, op, "similarverts verts=%hv type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
+	EDBM_op_init(em, &bmop, op, "similar_verts verts=%hv type=%i thresh=%f", BM_ELEM_SELECT, type, thresh);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);

@@ -31,7 +31,6 @@
 
 
 /**
-
  * Copyright (C) 2001 NaN Technologies B.V.
  * @author	Maarten Gribnau
  * @date	May 10, 2001

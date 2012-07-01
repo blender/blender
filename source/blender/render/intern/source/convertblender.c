@@ -327,16 +327,16 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 
 #define UVTOINDEX(u,v) (startvlak + (u) * sizev + (v))
 /*
-
-NOTE THAT U/V COORDINATES ARE SOMETIMES SWAPPED !!
-	
-^	()----p4----p3----()
-|	|     |     |     |
-u	|     |  F1 |  F2 |
-	|     |     |     |
-	()----p1----p2----()
-		   v ->
-*/
+ *
+ * NOTE THAT U/V COORDINATES ARE SOMETIMES SWAPPED !!
+ *
+ * ^   ()----p4----p3----()
+ * |   |     |     |     |
+ * u   |     |  F1 |  F2 |
+ *     |     |     |     |
+ *     ()----p1----p2----()
+ *            v ->
+ */
 
 /* ------------------------------------------------------------------------- */
 
@@ -3226,12 +3226,15 @@ static void init_camera_inside_volumes(Render *re)
 		}
 	}
 
-	/* debug {
-	MatInside *m;
-	for (m=re->render_volumes_inside.first; m; m=m->next) {
-		printf("matinside: ma: %s\n", m->ma->id.name+2);
+
+#if 0 /* debug */
+	{
+		MatInside *m;
+		for (m = re->render_volumes_inside.first; m; m = m->next) {
+			printf("matinside: ma: %s\n", m->ma->id.name + 2);
+		}
 	}
-	}*/
+#endif
 }
 
 static void add_volume(Render *re, ObjectRen *obr, Material *ma)

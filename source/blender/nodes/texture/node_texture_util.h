@@ -97,7 +97,7 @@ typedef struct TexParams {
 	int osatex;
 
 	/* optional. we don't really want these here, but image
-	   textures need to do mapping & color correction */
+	 * textures need to do mapping & color correction */
 	ShadeInput *shi;
 	MTex *mtex;
 } TexParams;

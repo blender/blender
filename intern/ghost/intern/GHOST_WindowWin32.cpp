@@ -31,7 +31,6 @@
 
 
 /**
-
  * Copyright (C) 2001 NaN Technologies B.V.
  * @author	Maarten Gribnau
  * @date	May 10, 2001
@@ -106,10 +105,10 @@ static PIXELFORMATDESCRIPTOR sPreferredFormat = {
 };
 
 /* Intel videocards don't work fine with multiple contexts and
-   have to share the same context for all windows.
-   But if we just share context for all windows it could work incorrect
-   with multiple videocards configuration. Suppose, that Intel videocards
-   can't be in multiple-devices configuration. */
+ * have to share the same context for all windows.
+ * But if we just share context for all windows it could work incorrect
+ * with multiple videocards configuration. Suppose, that Intel videocards
+ * can't be in multiple-devices configuration. */
 static int is_crappy_intel_card(void)
 {
 	int crappy = 0;
@@ -1279,8 +1278,8 @@ GHOST_TSuccess GHOST_WindowWin32::endProgressBar()
 	return GHOST_kFailure;
 }
 
-/*  Ron Fosner's code for weighting pixel formats and forcing software.
-    See http://www.opengl.org/resources/faq/technical/weight.cpp */
+/* Ron Fosner's code for weighting pixel formats and forcing software.
+ * See http://www.opengl.org/resources/faq/technical/weight.cpp */
 
 static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd)
 {
@@ -1335,7 +1334,7 @@ static int EnumPixelFormats(HDC hdc)
 	                              sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
 	/* choose a pixel format using the useless Windows function in case
-	    we come up empty handed */
+	 * we come up empty handed */
 	iPixelFormat = ::ChoosePixelFormat(hdc, &sPreferredFormat);
 
 	if (!iPixelFormat) return 0;  /* couldn't find one to use */

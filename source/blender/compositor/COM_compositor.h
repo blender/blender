@@ -224,7 +224,7 @@ extern "C" {
  * For every CPUcore a working thread is created. These working threads will ask the WorkScheduler if there is work
  * for a specific Device.
  * the workscheduler will find work for the device and the device will be asked to execute the WorkPackage
-
+ *
  * @subsection singlethread Single threaded
  * For debugging reasons the multi-threading can be disabled. This is done by changing the COM_CURRENT_THREADING_MODEL
  * to COM_TM_NOTHREAD. When compiling the workscheduler
@@ -268,7 +268,7 @@ extern "C" {
  *
  * @section executePixel executing a pixel
  * Finally the last step, the node functionality :)
-
+ *
  * @page newnode Creating new nodes
  */
 

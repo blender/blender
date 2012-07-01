@@ -781,10 +781,10 @@ static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *l
 			if (!limask[a]) {             // if the inner mask is empty
 				if (lomask[a]) {          // if the outer mask is full
 					/*
-					   Next we test all 4 directions around the current pixel: next/prev/up/down
-					   The test ensures that the outer mask is empty and that the inner mask
-					   is also empty. If both conditions are true for any one of the 4 adjacent pixels
-					   then the current pixel is counted as being a true outer edge pixel.
+					 * Next we test all 4 directions around the current pixel: next/prev/up/down
+					 * The test ensures that the outer mask is empty and that the inner mask
+					 * is also empty. If both conditions are true for any one of the 4 adjacent pixels
+					 * then the current pixel is counted as being a true outer edge pixel.
 					 */
 					if ((!lomask[pix_nextCol] && !limask[pix_nextCol]) ||
 					    (!lomask[pix_prevCol] && !limask[pix_prevCol]) ||
@@ -843,10 +843,10 @@ static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned i
 			if (!limask[a]) {                    // if the inner mask is empty
 				if (lomask[a]) {                 // if the outer mask is full
 					/*
-					   Next we test all 4 directions around the current pixel: next/prev/up/down
-					   The test ensures that the outer mask is empty and that the inner mask
-					   is also empty. If both conditions are true for any one of the 4 adjacent pixels
-					   then the current pixel is counted as being a true outer edge pixel.
+					 * Next we test all 4 directions around the current pixel: next/prev/up/down
+					 * The test ensures that the outer mask is empty and that the inner mask
+					 * is also empty. If both conditions are true for any one of the 4 adjacent pixels
+					 * then the current pixel is counted as being a true outer edge pixel.
 					 */
 					if ((!lomask[pix_nextCol] && !limask[pix_nextCol]) ||
 					    (!lomask[pix_prevCol] && !limask[pix_prevCol]) ||
@@ -902,65 +902,65 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 	unsigned int outerAccum = 0;       // for looping outer edge pixel indexes, represents current position from offset
 	unsigned int gradientAccum = 0;    // for looping gradient pixel indexes, represents current position from offset
 	/*
-	   Here we compute the size of buffer needed to hold (row,col) coordinates
-	   for each pixel previously determined to be either gradient, inner edge,
-	   or outer edge.
-
-	   Allocation is done by requesting 4 bytes "sizeof(int)" per pixel, even
-	   though gbuf[] is declared as unsigned short* (2 bytes) because we don't
-	   store the pixel indexes, we only store x,y location of pixel in buffer.
-
-	   This does make the assumption that x and y can fit in 16 unsigned bits
-	   so if Blender starts doing renders greater than 65536 in either direction
-	   this will need to allocate gbuf[] as unsigned int *and allocate 8 bytes
-	   per flagged pixel.
-
-	   In general, the buffer on-screen:
-
-	   Example:  9 by 9 pixel block
-
-	   . = pixel non-white in both outer and inner mask
-	   o = pixel white in outer, but not inner mask, adjacent to "." pixel
-	   g = pixel white in outer, but not inner mask, not adjacent to "." pixel
-	   i = pixel white in inner mask, adjacent to "g" or "." pixel
-	   F = pixel white in inner mask, only adjacent to other pixels white in the inner mask
-
-
-	   .........   <----- pixel #80
-	   ..oooo...
-	   .oggggo..
-	   .oggiggo.
-	   .ogiFigo.
-	   .oggiggo.
-	   .oggggo..
-	   ..oooo...
-	   pixel #00 -----> .........
-
-	   gsz = 18   (18 "g" pixels above)
-	   isz = 4    (4 "i" pixels above)
-	   osz = 18   (18 "o" pixels above)
-
-
-	   The memory in gbuf[] after filling will look like this:
-
-	   gradientFillOffset (0 pixels)                   innerEdgeOffset (18 pixels)    outerEdgeOffset (22 pixels)
-	   /                                               /                              /
-	   /                                               /                              /
-	   |X   Y   X   Y   X   Y   X   Y   >     <X   Y   X   Y   >     <X   Y   X   Y   X   Y   >     <X   Y   X   Y   | <- (x,y)
-	   +-------------------------------->     <---------------->     <------------------------>     <----------------+
-	   |0   2   4   6   8   10  12  14  > ... <68  70  72  74  > ... <80  82  84  86  88  90  > ... <152 154 156 158 | <- bytes
-	   +-------------------------------->     <---------------->     <------------------------>     <----------------+
-	   |g0  g0  g1  g1  g2  g2  g3  g3  >     <g17 g17 i0  i0  >     <i2  i2  i3  i3  o0  o0  >     <o16 o16 o17 o17 | <- pixel
-	         /                              /                              /
-	        /                              /                              /
-	          /                              /                              /
-	   +---------- gradientAccum (18) ---------+      +--- innerAccum (22) ---+      +--- outerAccum (40) ---+
-
-
-	   Ultimately we do need the pixel's memory buffer index to set the output
-	   pixel color, but it's faster to reconstruct the memory buffer location
-	   each iteration of the final gradient calculation than it is to deconstruct
-	   a memory location into x,y pairs each round.
+	 * Here we compute the size of buffer needed to hold (row,col) coordinates
+	 * for each pixel previously determined to be either gradient, inner edge,
+	 * or outer edge.
+	 *
+	 * Allocation is done by requesting 4 bytes "sizeof(int)" per pixel, even
+	 * though gbuf[] is declared as unsigned short* (2 bytes) because we don't
+	 * store the pixel indexes, we only store x,y location of pixel in buffer.
+	 *
+	 * This does make the assumption that x and y can fit in 16 unsigned bits
+	 * so if Blender starts doing renders greater than 65536 in either direction
+	 * this will need to allocate gbuf[] as unsigned int *and allocate 8 bytes
+	 * per flagged pixel.
+	 *
+	 * In general, the buffer on-screen:
+	 *
+	 * Example:  9 by 9 pixel block
+	 *
+	 * . = pixel non-white in both outer and inner mask
+	 * o = pixel white in outer, but not inner mask, adjacent to "." pixel
+	 * g = pixel white in outer, but not inner mask, not adjacent to "." pixel
+	 * i = pixel white in inner mask, adjacent to "g" or "." pixel
+	 * F = pixel white in inner mask, only adjacent to other pixels white in the inner mask
+	 *
+	 *
+	 * .........   <----- pixel #80
+	 * ..oooo...
+	 * .oggggo..
+	 * .oggiggo.
+	 * .ogiFigo.
+	 * .oggiggo.
+	 * .oggggo..
+	 * ..oooo...
+	 * pixel #00 -----> .........
+	 *
+	 * gsz = 18   (18 "g" pixels above)
+	 * isz = 4    (4 "i" pixels above)
+	 * osz = 18   (18 "o" pixels above)
+	 *
+	 *
+	 * The memory in gbuf[] after filling will look like this:
+	 *
+	 * gradientFillOffset (0 pixels)                   innerEdgeOffset (18 pixels)    outerEdgeOffset (22 pixels)
+	 * /                                               /                              /
+	 * /                                               /                              /
+	 * |X   Y   X   Y   X   Y   X   Y   >     <X   Y   X   Y   >     <X   Y   X   Y   X   Y   >     <X   Y   X   Y   | <- (x,y)
+	 * +-------------------------------->     <---------------->     <------------------------>     <----------------+
+	 * |0   2   4   6   8   10  12  14  > ... <68  70  72  74  > ... <80  82  84  86  88  90  > ... <152 154 156 158 | <- bytes
+	 * +-------------------------------->     <---------------->     <------------------------>     <----------------+
+	 * |g0  g0  g1  g1  g2  g2  g3  g3  >     <g17 g17 i0  i0  >     <i2  i2  i3  i3  o0  o0  >     <o16 o16 o17 o17 | <- pixel
+	 *       /                              /                              /
+	 *      /                              /                              /
+	 *        /                              /                              /
+	 * +---------- gradientAccum (18) ---------+      +--- innerAccum (22) ---+      +--- outerAccum (40) ---+
+	 *
+	 *
+	 * Ultimately we do need the pixel's memory buffer index to set the output
+	 * pixel color, but it's faster to reconstruct the memory buffer location
+	 * each iteration of the final gradient calculation than it is to deconstruct
+	 * a memory location into x,y pairs each round.
 	 */
 
 

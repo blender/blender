@@ -3645,8 +3645,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 }
 
 /* Returns true iff any of the smoothing modes are active (currently
-   one of smooth brush, autosmooth, mask smooth, or shift-key
-   smooth) */
+ * one of smooth brush, autosmooth, mask smooth, or shift-key
+ * smooth) */
 static int sculpt_any_smooth_mode(const Brush *brush,
                                   StrokeCache *cache,
                                   int stroke_mode)

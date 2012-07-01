@@ -37,7 +37,7 @@
 
 double PIL_check_seconds_timer(void) 
 {
-	static int hasperfcounter = -1; /* -1==unknown */
+	static int hasperfcounter = -1; /* (-1 == unknown) */
 	static double perffreq;
 
 	if (hasperfcounter == -1) {

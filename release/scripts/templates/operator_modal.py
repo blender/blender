@@ -3,7 +3,7 @@ from bpy.props import IntProperty, FloatProperty
 
 
 class ModalOperator(bpy.types.Operator):
-    '''Move an object with the mouse, example.'''
+    """Move an object with the mouse, example"""
     bl_idname = "object.modal_operator"
     bl_label = "Simple Modal Operator"
 

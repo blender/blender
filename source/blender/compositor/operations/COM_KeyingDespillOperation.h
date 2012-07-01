@@ -27,8 +27,8 @@
 #include "COM_NodeOperation.h"
 
 /**
-  * Class with implementation of keying despill node
-  */
+ * Class with implementation of keying despill node
+ */
 class KeyingDespillOperation : public NodeOperation {
 protected:
 	SocketReader *m_pixelReader;

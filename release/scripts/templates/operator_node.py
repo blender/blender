@@ -33,7 +33,7 @@ def main(operator, context):
 
 
 class NodeOperator(bpy.types.Operator):
-    '''Tooltip'''
+    """Tooltip"""
     bl_idname = "node.simple_operator"
     bl_label = "Simple Node Operator"
 

@@ -62,8 +62,8 @@ public:
 	~GHOST_SystemCocoa();
 
 	/***************************************************************************************
-	** Time(r) functionality
-	***************************************************************************************/
+	 * Time(r) functionality
+	 ***************************************************************************************/
 
 	/**
 	 * Returns the system time.
@@ -74,8 +74,8 @@ public:
 	virtual GHOST_TUns64 getMilliSeconds() const;
 
 	/***************************************************************************************
-	** Display/window management functionality
-	***************************************************************************************/
+	 * Display/window management functionality
+	 ***************************************************************************************/
 
 	/**
 	 * Returns the number of displays on this system.
@@ -119,8 +119,8 @@ public:
 	    );
 	
 	/***************************************************************************************
-	** Event management functionality
-	***************************************************************************************/
+	 * Event management functionality
+	 ***************************************************************************************/
 
 	/**
 	 * Gets events from the system and stores them in the queue.
@@ -154,8 +154,8 @@ public:
 	                                   GHOST_WindowCocoa *window, int mouseX, int mouseY, void *data);
 	
 	/***************************************************************************************
-	** Cursor management functionality
-	***************************************************************************************/
+	 * Cursor management functionality
+	 ***************************************************************************************/
 
 	/**
 	 * Returns the current location of the cursor (location in screen coordinates)
@@ -174,8 +174,8 @@ public:
 	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
 	
 	/***************************************************************************************
-	** Access to mouse button and keyboard states.
-	***************************************************************************************/
+	 * Access to mouse button and keyboard states.
+	 ***************************************************************************************/
 
 	/**
 	 * Returns the state of all modifier keys.

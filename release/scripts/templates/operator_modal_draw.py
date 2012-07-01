@@ -31,7 +31,7 @@ def draw_callback_px(self, context):
 
 
 class ModalDrawOperator(bpy.types.Operator):
-    '''Draw a line with the mouse'''
+    """Draw a line with the mouse"""
     bl_idname = "view3d.modal_operator"
     bl_label = "Simple Modal View3D Operator"
 

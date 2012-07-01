@@ -49,7 +49,7 @@ enum {
 #define VERT_NONMAN 2
 #define EDGE_NONMAN 2
 
-void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
+void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMIter liter, liter2;
@@ -118,7 +118,7 @@ void bmo_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 
 	BLI_array_free(edges);
 
-	BMO_op_callf(bm, "del geom=%ff context=%i", EXT_DEL, DEL_ONLYFACES);
+	BMO_op_callf(bm, "delete geom=%ff context=%i", EXT_DEL, DEL_ONLYFACES);
 	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, EXT_KEEP);
 }
 
@@ -172,7 +172,7 @@ static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e
 }
 
 /* Disable the skin root flag on the input vert, assumes that the vert
-   data includes an CD_MVERT_SKIN layer */
+ * data includes an CD_MVERT_SKIN layer */
 static void bm_extrude_disable_skin_root(BMesh *bm, BMVert *v)
 {
 	MVertSkin *vs;
@@ -195,7 +195,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, e->v2, EXT_INPUT);
 	}
 
-	BMO_op_initf(bm, &dupeop, "dupe geom=%fve", EXT_INPUT);
+	BMO_op_initf(bm, &dupeop, "duplicate geom=%fve", EXT_INPUT);
 	BMO_op_exec(bm, &dupeop);
 
 	/* disable root flag on all new skin nodes */
@@ -273,7 +273,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	int found, fwd, delorig = FALSE;
 
 	/* initialize our sub-operators */
-	BMO_op_init(bm, &dupeop, "dupe");
+	BMO_op_init(bm, &dupeop, "duplicate");
 	
 	BMO_slot_buffer_flag_enable(bm, op, "edgefacein", BM_EDGE | BM_FACE, EXT_INPUT);
 	
@@ -341,7 +341,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (delorig == TRUE) {
-		BMO_op_initf(bm, &delop, "del geom=%fvef context=%i",
+		BMO_op_initf(bm, &delop, "delete geom=%fvef context=%i",
 		             EXT_DEL, DEL_ONLYTAGGED);
 	}
 
@@ -647,7 +647,7 @@ void bmo_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	thickness = BMO_slot_float_get(op, "thickness");
 
 	/* Flip original faces (so the shell is extruded inward) */
-	BMO_op_init(bm, &reverseop, "reversefaces");
+	BMO_op_init(bm, &reverseop, "reverse_faces");
 	BMO_slot_copy(op, &reverseop, "geom", "faces");
 	BMO_op_exec(bm, &reverseop);
 	BMO_op_finish(bm, &reverseop);

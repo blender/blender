@@ -50,6 +50,13 @@ struct ImMetaData;
 #define IB_MIPMAP_LEVELS	20
 #define IB_FILENAME_SIZE	1024
 
+typedef struct DDSData {
+	unsigned int fourcc; /* DDS fourcc info */
+	unsigned int nummipmaps; /* The number of mipmaps in the dds file */
+	unsigned char *data; /* The compressed image data */
+	unsigned int size; /* The size of the compressed data */
+} DDSData;
+
 /**
  * \ingroup imbuf
  * This is the abstraction of an image.  ImBuf is the basic type used for all
@@ -126,6 +133,8 @@ typedef struct ImBuf {
 	unsigned int *display_buffer_flags;  /* array of per-display display buffers dirty flags */
 	void *colormanage_cache_data;        /* cache data which is being assigned when */
 	                                     /* put ImBuf to colormanage cache */
+	/* information for compressed textures */
+	struct DDSData dds_data;
 } ImBuf;
 
 /* Moved from BKE_bmfont_types.h because it is a userflag bit mask. */
@@ -222,6 +231,28 @@ typedef struct ImBuf {
 #define IB_PROFILE_SRGB			2
 #define IB_PROFILE_CUSTOM		3
 
+/* dds */
+#ifdef WITH_DDS
+#ifndef MAKEFOURCC
+#define MAKEFOURCC(ch0, ch1, ch2, ch3)\
+	((unsigned long)(unsigned char)(ch0) | \
+	((unsigned long)(unsigned char)(ch1) << 8) | \
+	((unsigned long)(unsigned char)(ch2) << 16) | \
+	((unsigned long)(unsigned char)(ch3) << 24))
+#endif //MAKEFOURCC
+
+/*
+ * FOURCC codes for DX compressed-texture pixel formats
+ */
+
+#define FOURCC_DDS   (MAKEFOURCC('D','D','S',' '))
+#define FOURCC_DXT1  (MAKEFOURCC('D','X','T','1'))
+#define FOURCC_DXT2  (MAKEFOURCC('D','X','T','2'))
+#define FOURCC_DXT3  (MAKEFOURCC('D','X','T','3'))
+#define FOURCC_DXT4  (MAKEFOURCC('D','X','T','4'))
+#define FOURCC_DXT5  (MAKEFOURCC('D','X','T','5'))
+
+#endif // DDS
 extern const char *imb_ext_image[];
 extern const char *imb_ext_image_qt[];
 extern const char *imb_ext_movie[];

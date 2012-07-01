@@ -235,8 +235,8 @@ public:
 	virtual const GHOST_TabletData *GetTabletData() = 0;
 	
 	/***************************************************************************************
-	** Progress bar functionality
-	***************************************************************************************/
+	 * Progress bar functionality
+	 ***************************************************************************************/
 	
 	/**
 	 * Sets the progress bar value displayed in the window/application icon
@@ -250,8 +250,8 @@ public:
 	virtual GHOST_TSuccess endProgressBar() = 0;
 	
 	/***************************************************************************************
-	** Cursor management functionality
-	***************************************************************************************/
+	 * Cursor management functionality
+	 ***************************************************************************************/
 
 	/**
 	 * Returns the current cursor shape.
