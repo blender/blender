@@ -1298,7 +1298,7 @@ void FLUID_3D::addVorticity(int zBegin, int zEnd)
 					N[2] = (_vorticity[out] - _vorticity[in]) * dz;
 
 					float magnitude = sqrtf(N[0] * N[0] + N[1] * N[1] + N[2] * N[2]);
-					if (magnitude > 0.0f)
+					if (magnitude > FLT_EPSILON)
 					{
 						magnitude = 1.0f / magnitude;
 						N[0] *= magnitude;
@@ -1306,8 +1306,8 @@ void FLUID_3D::addVorticity(int zBegin, int zEnd)
 						N[2] *= magnitude;
 
 						_xForce[index] += (N[1] * _zVorticity[vIndex] - N[2] * _yVorticity[vIndex]) * _dx * eps;
-						_yForce[index] += (N[0] * _zVorticity[vIndex] - N[2] * _xVorticity[vIndex]) * _dx * eps;
-						_zForce[index] -= (N[0] * _yVorticity[vIndex] - N[1] * _xVorticity[vIndex]) * _dx * eps;
+						_yForce[index] += (N[2] * _xVorticity[vIndex] - N[0] * _zVorticity[vIndex]) * _dx * eps;
+						_zForce[index] += (N[0] * _yVorticity[vIndex] - N[1] * _xVorticity[vIndex]) * _dx * eps;
 					}
 					}	// if
 					vIndex++;
