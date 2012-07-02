@@ -453,16 +453,13 @@ static int set_env(int argc, const char **argv, void *UNUSED(data))
 	return 1;
 }
 
-static int playback_mode(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+static int playback_mode(int argc, const char **argv, void *UNUSED(data))
 {
+	extern void playanim(int argc, const char **argv);
+
 	/* not if -b was given first */
 	if (G.background == 0) {
-#if 0   /* TODO, bring player back? */
 		playanim(argc, argv); /* not the same argc and argv as before */
-#else
-		fprintf(stderr, "Playback mode not supported in blender 2.6x\n");
-		exit(0);
-#endif
 	}
 
 	return -2;
