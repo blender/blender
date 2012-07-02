@@ -2986,7 +2986,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			
 
 			view_settings = IMB_view_settings_get_effective(win, &snode->view_settings);
-			display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, win->display_device, &cache_handle);
+			display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, &win->display_settings, &cache_handle);
 
 			if (display_buffer) {
 				if (snode->flag & SNODE_SHOW_ALPHA) {

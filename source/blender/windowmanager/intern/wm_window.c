@@ -49,6 +49,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
@@ -244,7 +245,7 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	win->drawmethod = -1;
 	win->drawdata = NULL;
 
-	BLI_strncpy(win->display_device, winorig->display_device, sizeof(win->display_device));
+	BKE_color_managed_display_settings_copy(&win->display_settings, &winorig->display_settings);
 
 	return win;
 }

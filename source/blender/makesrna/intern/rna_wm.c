@@ -572,36 +572,6 @@ static void rna_Window_screen_update(bContext *C, PointerRNA *ptr)
 	}
 }
 
-static int rna_Window_display_device_get(struct PointerRNA *ptr)
-{
-	wmWindow *win = (wmWindow *) ptr->data;
-
-	return IMB_colormanagement_display_get_named_index(win->display_device);
-}
-
-static void rna_Window_display_device_set(struct PointerRNA *ptr, int value)
-{
-	wmWindow *win = (wmWindow *) ptr->data;
-	const char *name = IMB_colormanagement_display_get_indexed_name(value);
-
-	if (name) {
-		BLI_strncpy(win->display_device, name, sizeof(win->display_device));
-	}
-}
-
-static EnumPropertyItem *rna_Window_display_device_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
-{
-	EnumPropertyItem *items = NULL;
-	int totitem = 0;
-
-	IMB_colormanagement_display_items_add(&items, &totitem);
-	RNA_enum_item_end(&items, &totitem);
-
-	*free = TRUE;
-
-	return items;
-}
-
 static PointerRNA rna_KeyMapItem_properties_get(PointerRNA *ptr)
 {
 	wmKeyMapItem *kmi = ptr->data;
@@ -1609,11 +1579,6 @@ static void rna_def_window(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem display_device_items[] = {
-		{0, "DEFAULT", 0, "Default", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "Window", NULL);
 	RNA_def_struct_ui_text(srna, "Window", "Open window");
 	RNA_def_struct_sdna(srna, "wmWindow");
@@ -1628,12 +1593,10 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Window_screen_update");
 
 	/* Color Management Display */
-	prop= RNA_def_property(srna, "display_device", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, display_device_items);
-	RNA_def_property_enum_funcs(prop, "rna_Window_display_device_get", "rna_Window_display_device_set",
-	                            "rna_Window_display_device_itemf");
-	RNA_def_property_ui_text(prop, "Display Device", "Display device name used for this window");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	prop = RNA_def_property(srna, "display_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "display_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedDisplaySettings");
+	RNA_def_property_ui_text(prop, "Display Settings", "Display device settings used by this window");
 
 	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");

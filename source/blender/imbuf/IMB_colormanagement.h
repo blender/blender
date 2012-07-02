@@ -33,6 +33,7 @@
 
 #define BCM_CONFIG_FILE "config.ocio"
 
+struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct EnumPropertyItem;
 struct ImBuf;
@@ -54,7 +55,7 @@ void IMB_colormanage_flags_free(struct ImBuf *ibuf);
 void IMB_colormanage_cache_data_free(struct ImBuf *ibuf);
 
 unsigned char *IMB_display_buffer_acquire(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
-                                          const char *display, void **cache_handle);
+                                          const struct ColorManagedDisplaySettings *display_settings, void **cache_handle);
 void IMB_display_buffer_release(void *cache_handle);
 
 void IMB_display_buffer_invalidate(struct ImBuf *ibuf);
@@ -67,6 +68,7 @@ const struct ColorManagedViewSettings *IMB_view_settings_get_effective(struct wm
 /* ** Display funcrions ** */
 int IMB_colormanagement_display_get_named_index(const char *name);
 const char *IMB_colormanagement_display_get_indexed_name(int index);
+const char *IMB_colormanagement_display_get_default_name(void);
 
 /* ** View funcrions ** */
 int IMB_colormanagement_view_get_named_index(const char *name);

@@ -124,9 +124,28 @@ static int global_tot_view = 0;
  *   becoming zero, original ImBuf is being freed completely.
  */
 
+/* NOTE: ColormanageCacheViewSettings and ColormanageCacheDisplaySettings are
+ *       quite the same as ColorManagedViewSettings and ColorManageDisplaySettings
+ *       but they holds indexes of all transformations and color spaces, not
+ *       their names.
+ *
+ *       This helps avoid extra colorsmace / display / view lookup without
+ *       requiring to pass all variables which affects on display buffer
+ *       to color management cache system and keeps calls small and nice.
+ */
+typedef struct ColormanageCacheViewSettings {
+	int view;
+	float exposure;
+	float gamma;
+} ColormanageCacheViewSettings;
+
+typedef struct ColormanageCacheDisplaySettings {
+	int display;
+} ColormanageCacheDisplaySettings;
+
 typedef struct ColormanageCacheKey {
 	ImBuf *ibuf;         /* image buffer for which display buffer was created */
-	int view_transform;  /* view transformation used for display buffer */
+	int view;            /* view transformation used for display buffer */
 	int display;         /* display device name */
 } ColormanageCacheKey;
 
@@ -156,9 +175,9 @@ static int colormanage_hashcmp(const void *av, const void *bv)
 	else if (a->ibuf > b->ibuf)
 		return 1;
 
-	if (a->view_transform < b->view_transform)
+	if (a->view < b->view)
 		return -1;
-	else if (a->view_transform > b->view_transform)
+	else if (a->view > b->view)
 		return 1;
 
 	if (a->display < b->display)
@@ -201,28 +220,62 @@ static void colormanage_cache_exit(void)
 }
 
 #ifdef WITH_OCIO
-static ImBuf *colormanage_cache_get_ibuf(ImBuf *ibuf, int view_transform, int display, void **cache_handle)
+static void colormanage_view_settings_to_cache(ColormanageCacheViewSettings *cache_view_settings,
+                                               const ColorManagedViewSettings *view_settings)
+{
+	int view = IMB_colormanagement_view_get_named_index(view_settings->view_transform);
+
+	cache_view_settings->view = view;
+	cache_view_settings->exposure = view_settings->exposure;
+	cache_view_settings->gamma = view_settings->gamma;
+}
+
+static void colormanage_display_settings_to_cache(ColormanageCacheDisplaySettings *cache_display_settings,
+                                                  const ColorManagedDisplaySettings *display_settings)
+{
+	int display = IMB_colormanagement_display_get_named_index(display_settings->display_device);
+
+	cache_display_settings->display = display;
+}
+
+static void colormanage_settings_to_key(ColormanageCacheKey *key, ImBuf *ibuf,
+                                        const ColormanageCacheViewSettings *view_settings,
+                                        const ColormanageCacheDisplaySettings *display_settings)
+{
+	key->ibuf = ibuf;
+	key->view = view_settings->view;
+	key->display = display_settings->display;
+}
+
+static ImBuf *colormanage_cache_get_ibuf(ColormanageCacheKey *key, void **cache_handle)
 {
 	ImBuf *cache_ibuf;
-	ColormanageCacheKey key;
 
 	*cache_handle = NULL;
 
-	key.ibuf = ibuf;
-	key.view_transform = view_transform;
-	key.display = display;
-
-	cache_ibuf = IMB_moviecache_get(colormanage_cache, &key);
+	cache_ibuf = IMB_moviecache_get(colormanage_cache, key);
 
 	*cache_handle = cache_ibuf;
 
 	return cache_ibuf;
 }
 
-static unsigned char *colormanage_cache_get(ImBuf *ibuf, int view_transform, int display,
-                                            float exposure, float gamma, void **cache_handle)
+static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheViewSettings *view_settings,
+                                            const ColormanageCacheDisplaySettings *display_settings,
+                                            void **cache_handle)
 {
-	ImBuf *cache_ibuf = colormanage_cache_get_ibuf(ibuf, view_transform, display, cache_handle);
+	ColormanageCacheKey key;
+	ImBuf *cache_ibuf;
+	int view_flag = 1 << (view_settings->view - 1);
+
+	colormanage_settings_to_key(&key, ibuf, view_settings, display_settings);
+
+	/* check whether image was marked as dirty for requested transform */
+	if ((ibuf->display_buffer_flags[display_settings->display - 1] & view_flag) == 0) {
+		return NULL;
+	}
+
+	cache_ibuf = colormanage_cache_get_ibuf(&key, cache_handle);
 
 	if (cache_ibuf) {
 		ColormnaageCacheImBufData *cache_data;
@@ -235,7 +288,10 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, int view_transform, int
 		 * different from requested buffer should be re-generated
 		 */
 		cache_data = (ColormnaageCacheImBufData *) cache_ibuf->colormanage_cache_data;
-		if (cache_data->exposure != exposure || cache_data->gamma != gamma) {
+
+		if (cache_data->exposure != view_settings->exposure ||
+			cache_data->gamma != view_settings->gamma)
+		{
 			IMB_freeImBuf(cache_ibuf);
 
 			return NULL;
@@ -247,16 +303,19 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, int view_transform, int
 	return NULL;
 }
 
-static void colormanage_cache_put(ImBuf *ibuf, int view_transform, int display, float exposure, float gamma,
+static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSettings *view_settings,
+                                  const ColormanageCacheDisplaySettings *display_settings,
                                   unsigned char *display_buffer, void **cache_handle)
 {
 	ColormanageCacheKey key;
 	ImBuf *cache_ibuf;
 	ColormnaageCacheImBufData *cache_data;
+	int view_flag = 1 << (view_settings->view - 1);
 
-	key.ibuf = ibuf;
-	key.view_transform = view_transform;
-	key.display = display;
+	colormanage_settings_to_key(&key, ibuf, view_settings, display_settings);
+
+	/* mark display buffer as valid */
+	ibuf->display_buffer_flags[display_settings->display - 1] |= view_flag;
 
 	/* buffer itself */
 	cache_ibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, 0);
@@ -267,8 +326,8 @@ static void colormanage_cache_put(ImBuf *ibuf, int view_transform, int display, 
 
 	/* store data which is needed to check whether cached buffer could be used for color managed display settings */
 	cache_data = MEM_callocN(sizeof(ColormnaageCacheImBufData), "color manage cache imbuf data");
-	cache_data->exposure = exposure;
-	cache_data->gamma = gamma;
+	cache_data->exposure = view_settings->exposure;
+	cache_data->gamma = view_settings->gamma;
 
 	cache_ibuf->colormanage_cache_data = cache_data;
 
@@ -295,24 +354,33 @@ static void colormanage_cache_put(ImBuf *ibuf, int view_transform, int display, 
  * used by partial buffer update functions which uses the same exposure / gamma
  * settings as cached buffer had
  */
-static unsigned char *colormanage_cache_get_validated(ImBuf *ibuf, int view_transform, int display, void **cache_handle)
+static unsigned char *colormanage_cache_get_validated(ImBuf *ibuf, const ColormanageCacheViewSettings *view_settings,
+                                                      const ColormanageCacheDisplaySettings *display_settings,
+                                                      void **cache_handle)
 {
-	ImBuf *cache_ibuf = colormanage_cache_get_ibuf(ibuf, view_transform, display, cache_handle);
+	ColormanageCacheKey key;
+	ImBuf *cache_ibuf;
+
+	colormanage_settings_to_key(&key, ibuf, view_settings, display_settings);
+
+	cache_ibuf = colormanage_cache_get_ibuf(&key, cache_handle);
 
 	if (cache_ibuf) {
 		if (cache_ibuf->x != ibuf->x || cache_ibuf->y != ibuf->y) {
+			ColormanageCacheViewSettings new_view_settings = *view_settings;
 			ColormnaageCacheImBufData *cache_data;
 			unsigned char *display_buffer;
 			int buffer_size;
 
 			/* use the same settings as original cached buffer  */
 			cache_data = (ColormnaageCacheImBufData *) cache_ibuf->colormanage_cache_data;
+			new_view_settings.exposure = cache_data->exposure;
+			new_view_settings.gamma = cache_data->gamma;
 
 			buffer_size = ibuf->channels * ibuf->x * ibuf->y * sizeof(float);
 			display_buffer = MEM_callocN(buffer_size, "imbuf validated display buffer");
 
-			colormanage_cache_put(ibuf, view_transform, display, cache_data->exposure, cache_data->gamma,
-			                      display_buffer, cache_handle);
+			colormanage_cache_put(ibuf, &new_view_settings, display_settings, display_buffer, cache_handle);
 
 			IMB_freeImBuf(cache_ibuf);
 
@@ -700,12 +768,13 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 
 static void display_buffer_apply_ocio(ImBuf *ibuf, unsigned char *display_buffer,
                                       const ColorManagedViewSettings *view_settings,
-                                      const char *display)
+                                      const ColorManagedDisplaySettings *display_settings)
 {
 	ConstProcessorRcPtr *processor;
 	const float gamma = view_settings->gamma;
 	const float exposure = view_settings->exposure;
 	const char *view_transform = view_settings->view_transform;
+	const char *display = display_settings->display_device;
 	float *rect_float;
 
 	rect_float = MEM_dupallocN(ibuf->rect_float);
@@ -750,7 +819,7 @@ void IMB_colormanage_cache_data_free(ImBuf *ibuf)
 }
 
 unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
-                                          const char *display, void **cache_handle)
+                                          const ColorManagedDisplaySettings *display_settings, void **cache_handle)
 {
 	const char *view_transform = view_settings->view_transform;
 
@@ -780,25 +849,20 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 	else {
 		unsigned char *display_buffer;
 		int buffer_size;
-		int view_transform_index = IMB_colormanagement_view_get_named_index(view_transform);
-		int display_index = IMB_colormanagement_display_get_named_index(display);
-		int view_transform_flag = 1 << (view_transform_index - 1);
+		ColormanageCacheViewSettings cache_view_settings;
+		ColormanageCacheDisplaySettings cache_display_settings;
 
-		float exposure = view_settings->exposure;
-		float gamma = view_settings->gamma;
+		colormanage_view_settings_to_cache(&cache_view_settings, view_settings);
+		colormanage_display_settings_to_cache(&cache_display_settings, display_settings);
 
 		/* ensure color management bit fields exists */
 		if (!ibuf->display_buffer_flags)
 			IMB_colormanage_flags_allocate(ibuf);
 
-		/* check whether display buffer isn't marked as dirty and if so try to get buffer from cache */
-		if (ibuf->display_buffer_flags[display_index - 1] & view_transform_flag) {
-			display_buffer = colormanage_cache_get(ibuf, view_transform_index, display_index,
-			                                       exposure, gamma, cache_handle);
+		display_buffer = colormanage_cache_get(ibuf, &cache_view_settings, &cache_display_settings, cache_handle);
 
-			if (display_buffer) {
-				return display_buffer;
-			}
+		if (display_buffer) {
+			return display_buffer;
 		}
 
 		/* OCIO_TODO: in case when image is being resized it is possible
@@ -819,13 +883,10 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 			display_buffer_apply_tonemap(ibuf, display_buffer, IMB_ratio_preserving_odt_tonecurve);
 		}
 		else {
-			display_buffer_apply_ocio(ibuf, display_buffer, view_settings, display);
+			display_buffer_apply_ocio(ibuf, display_buffer, view_settings, display_settings);
 		}
 
-		colormanage_cache_put(ibuf, view_transform_index, display_index, exposure, gamma,
-		                      display_buffer, cache_handle);
-
-		ibuf->display_buffer_flags[display_index - 1] |= view_transform_flag;
+		colormanage_cache_put(ibuf, &cache_view_settings, &cache_display_settings, display_buffer, cache_handle);
 
 		return display_buffer;
 	}
@@ -836,7 +897,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 
 	(void) view_settings;
 	(void) view_transform;
-	(void) display;
+	(void) display_settings;
 
 	if (!ibuf->rect) {
 		IMB_rect_from_float(ibuf);
@@ -864,6 +925,25 @@ void IMB_display_buffer_invalidate(ImBuf *ibuf)
 }
 
 #ifdef WITH_OCIO
+static void colormanage_check_display_settings(ColorManagedDisplaySettings *display_settings,
+                                               const ColorManagedDisplay *default_display)
+{
+	if (display_settings->display_device[0] == '\0') {
+		BLI_strncpy(display_settings->display_device, default_display->name, sizeof(display_settings->display_device));
+	}
+	else {
+		ColorManagedDisplay *display = colormanage_display_get_named(display_settings->display_device);
+
+		if (!display) {
+			printf("Blender color management: Window display \"%s\" not found, setting to default (\"%s\").\n",
+			        display_settings->display_device, default_display->name);
+
+			BLI_strncpy(display_settings->display_device, default_display->name,
+			            sizeof(display_settings->display_device));
+		}
+	}
+}
+
 static void colormanage_check_view_settings(ColorManagedViewSettings *view_settings, const char *editor,
                                             const ColorManagedView *default_view)
 {
@@ -919,19 +999,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 
 	if (wm) {
 		for (win = wm->windows.first; win; win = win->next) {
-			if (win->display_device[0] == '\0') {
-				BLI_strncpy(win->display_device, default_display->name, sizeof(win->display_device));
-			}
-			else {
-				ColorManagedDisplay *display = colormanage_display_get_named(win->display_device);
-
-				if (!display) {
-					printf("Blender color management: Window display \"%s\" not found, setting to default (\"%s\").\n",
-						   win->display_device, default_display->name);
-
-					BLI_strncpy(win->display_device, default_display->name, sizeof(win->display_device));
-				}
-			}
+			colormanage_check_display_settings(&win->display_settings, default_display);
 
 			colormanage_check_view_settings(&win->view_settings, "window", default_view);
 		}
@@ -1066,6 +1134,17 @@ const char *IMB_colormanagement_display_get_indexed_name(int index)
 	}
 
 	return NULL;
+}
+
+const char *IMB_colormanagement_display_get_default_name(void)
+{
+#ifdef WITH_OCIO
+	ColorManagedDisplay *display = colormanage_display_get_default();
+
+	return display->name;
+#else
+	return NULL;
+#endif
 }
 
 /*********************** View functions *************************/
@@ -1264,18 +1343,25 @@ PartialBufferUpdateContext *IMB_partial_buffer_update_context_new(ImBuf *ibuf)
 	}
 
 	for (display = 0; display < global_tot_display; display++) {
+		ColormanageCacheDisplaySettings display_settings = {0};
 		int display_index = display + 1; /* displays in configuration are 1-based */
 		const char *display_name = IMB_colormanagement_display_get_indexed_name(display_index);
 		int view_flags = ibuf->display_buffer_flags[display];
 		int view = 0;
 
+		display_settings.display = display_index;
+
 		while (view_flags != 0) {
 			if (view_flags % 2 == 1) {
+				ColormanageCacheViewSettings view_settings = {0};
 				unsigned char *display_buffer;
 				void *cache_handle;
 				int view_index = view + 1; /* views in configuration are 1-based */
 
-				display_buffer = colormanage_cache_get_validated(ibuf, view_index, display_index, &cache_handle);
+				view_settings.view = view_index;
+
+				display_buffer =
+					colormanage_cache_get_validated(ibuf, &view_settings, &display_settings, &cache_handle);
 
 				if (display_buffer) {
 					PartialBufferUpdateItem *item;

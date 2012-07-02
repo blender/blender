@@ -199,8 +199,8 @@ typedef struct wmWindow {
 
 	/* color management */
 
-	char display_device[64];	/* color managed display device name */
-	ColorManagedViewSettings view_settings;  /* global view settings */
+	ColorManagedDisplaySettings display_settings;  /* display-specific settings */
+	ColorManagedViewSettings view_settings;        /* global view settings */
 	int pad1;
 } wmWindow;
 

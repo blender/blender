@@ -31,6 +31,7 @@
  *  \ingroup bke
  */
 
+struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct CurveMapping;
 struct CurveMap;
@@ -80,6 +81,10 @@ void                BKE_histogram_update_sample_line(struct Histogram *hist, str
 void                scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, int use_color_management);
 void                scopes_free(struct Scopes *scopes);
 void                scopes_new(struct Scopes *scopes);
+
+void BKE_color_managed_display_settings_init(struct ColorManagedDisplaySettings *settings);
+void BKE_color_managed_display_settings_copy(struct ColorManagedDisplaySettings *new_settings,
+                                             const struct ColorManagedDisplaySettings *settings);
 
 void BKE_color_managed_view_settings_init(struct ColorManagedViewSettings *settings);
 void BKE_color_managed_view_settings_copy(struct ColorManagedViewSettings *new_settings,

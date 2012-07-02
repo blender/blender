@@ -273,7 +273,7 @@ static void draw_movieclip_buffer(wmWindow *win, SpaceClip *sc, ARegion *ar, ImB
 		verify_buffer_float(ibuf);
 
 		view_settings = IMB_view_settings_get_effective(win, &sc->view_settings);
-		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, win->display_device, &cache_handle);
+		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, &win->display_settings, &cache_handle);
 
 		if (display_buffer) {
 			int need_fallback = 1;

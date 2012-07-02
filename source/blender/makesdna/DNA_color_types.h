@@ -169,5 +169,9 @@ enum {
 	COLORMANAGE_VIEW_USE_GLOBAL = (1 << 0)    /* use global display settings instead of per-space setting */
 };
 
+typedef struct ColorManagedDisplaySettings {
+	char display_device[64];
+} ColorManagedDisplaySettings;
+
 #endif
 

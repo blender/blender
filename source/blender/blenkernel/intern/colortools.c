@@ -49,6 +49,7 @@
 #include "BKE_fcurve.h"
 
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -1208,6 +1209,19 @@ void scopes_new(Scopes *scopes)
 	scopes->vecscope = NULL;
 }
 
+void BKE_color_managed_display_settings_init(ColorManagedDisplaySettings *settings)
+{
+	const char *display_name = IMB_colormanagement_display_get_default_name();
+
+	BLI_strncpy(settings->display_device, display_name, sizeof(settings->display_device));
+}
+
+void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_settings,
+                                             const ColorManagedDisplaySettings *settings)
+{
+	BLI_strncpy(new_settings->display_device, settings->display_device, sizeof(new_settings->display_device));
+}
+
 void BKE_color_managed_view_settings_init(ColorManagedViewSettings *settings)
 {
 	/* OCIO_TODO: use default view transform here when OCIO is completely integrated
@@ -1223,5 +1237,8 @@ void BKE_color_managed_view_settings_init(ColorManagedViewSettings *settings)
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,
                                           const ColorManagedViewSettings *settings)
 {
-	*new_settings = *settings;
+	BLI_strncpy(new_settings->view_transform, new_settings->view_transform, sizeof(new_settings->view_transform));
+
+	new_settings->exposure = settings->exposure;
+	new_settings->gamma = settings->gamma;
 }

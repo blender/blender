@@ -344,6 +344,36 @@ static void rna_Scopes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointer
 	s->ok = 0;
 }
 
+static int rna_ColorManagedDisplaySettings_display_device_get(struct PointerRNA *ptr)
+{
+	ColorManagedDisplaySettings *display = (ColorManagedDisplaySettings *) ptr->data;
+
+	return IMB_colormanagement_display_get_named_index(display->display_device);
+}
+
+static void rna_ColorManagedDisplaySettings_display_device_set(struct PointerRNA *ptr, int value)
+{
+	ColorManagedDisplaySettings *display = (ColorManagedDisplaySettings *) ptr->data;
+	const char *name = IMB_colormanagement_display_get_indexed_name(value);
+
+	if (name) {
+		BLI_strncpy(display->display_device, name, sizeof(display->display_device));
+	}
+}
+
+static EnumPropertyItem *rna_ColorManagedDisplaySettings_display_device_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	EnumPropertyItem *items = NULL;
+	int totitem = 0;
+
+	IMB_colormanagement_display_items_add(&items, &totitem);
+	RNA_enum_item_end(&items, &totitem);
+
+	*free = TRUE;
+
+	return items;
+}
+
 static int rna_ColorManagedViewSettings_view_transform_get(PointerRNA *ptr)
 {
 	ColorManagedViewSettings *view = (ColorManagedViewSettings *) ptr->data;
@@ -366,10 +396,11 @@ static EnumPropertyItem* rna_ColorManagedViewSettings_view_transform_itemf(bCont
 {
 	wmWindow *win = CTX_wm_window(C);
 	EnumPropertyItem *items = NULL;
+	ColorManagedDisplaySettings *display_settings = &win->display_settings;
 	int totitem = 0;
 
 	RNA_enum_item_add(&items, &totitem, &view_transform_items[0]);
-	IMB_colormanagement_view_items_add(&items, &totitem, win->display_device);
+	IMB_colormanagement_view_items_add(&items, &totitem, display_settings->display_device);
 	RNA_enum_item_end(&items, &totitem);
 
 	*free = 1;
@@ -720,6 +751,24 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem display_device_items[] = {
+		{0, "DEFAULT", 0, "Default", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* ** Display Settings  **  */
+	srna = RNA_def_struct(brna, "ColorManagedDisplaySettings", NULL);
+	RNA_def_struct_ui_text(srna, "ColorManagedDisplaySettings", "Color management specific to display device");
+
+	prop= RNA_def_property(srna, "display_device", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, display_device_items);
+	RNA_def_property_enum_funcs(prop, "rna_ColorManagedDisplaySettings_display_device_get",
+	                                  "rna_ColorManagedDisplaySettings_display_device_set",
+	                                  "rna_ColorManagedDisplaySettings_display_device_itemf");
+	RNA_def_property_ui_text(prop, "Display Device", "Display device name");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	/* ** View Settings  **  */
 	srna = RNA_def_struct(brna, "ColorManagedViewSettings", NULL);
 	RNA_def_struct_ui_text(srna, "ColorManagedViewSettings", "Color management settings used for displaying images on the display");
 

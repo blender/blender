@@ -25,6 +25,7 @@ class ColorManagedViewSettingsPanel:
 
         space = context.space_data
         window = context.window
+        display_settings = context.window.display_settings
         space_view_settings = space.view_settings
 
         if space_view_settings.use_global_settings:
@@ -34,7 +35,7 @@ class ColorManagedViewSettingsPanel:
 
         col = layout.column()
         col.prop(space_view_settings, "use_global_settings")
-        col.prop(window, "display_device", text="Display")
+        col.prop(display_settings, "display_device", text="Display")
         col.prop(view_settings, "view_transform", text="View")
 
         col = layout.column()
