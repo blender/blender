@@ -5909,11 +5909,20 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				}
 			}
 			else if (sl->spacetype == SPACE_SEQ) {
+				/* grease pencil data is not a direct data and can't be linked from direct_link*
+				 * functions, it should be linked from lib_link* funcrions instead
+				 *
+				 * otherwise it'll lead to lost grease data on open because it'll likely be
+				 * read from file after all other users of grease pencil and newdataadr would
+				 * simple return NULL here (sergey)
+				 */
+#if 0
 				SpaceSeq *sseq = (SpaceSeq *)sl;
 				if (sseq->gpd) {
 					sseq->gpd = newdataadr(fd, sseq->gpd);
 					direct_link_gpencil(fd, sseq->gpd);
 				}
+#endif
 			}
 			else if (sl->spacetype == SPACE_BUTS) {
 				SpaceButs *sbuts = (SpaceButs *)sl;

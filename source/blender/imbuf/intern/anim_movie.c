@@ -64,7 +64,7 @@
 #include <io.h>
 #endif
 
-#include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail
+#include "BLI_blenlib.h" /* BLI_remlink BLI_file_descriptor_size BLI_addtail
                           * BLI_countlist BLI_stringdec */
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
