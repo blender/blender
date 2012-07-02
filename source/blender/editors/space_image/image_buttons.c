@@ -798,11 +798,14 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 {
 	ImageFormatData *imf = imfptr->data;
 	ID *id = imfptr->id.data;
+	PointerRNA display_settings_ptr, view_settings_ptr;
+	PropertyRNA *prop;
 	const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
 	/* some settings depend on this being a scene thats rendered */
 	const short is_render_out = (id && GS(id->name) == ID_SCE);
 
 	uiLayout *col, *row, *split, *sub;
+	int show_preview = FALSE;
 
 	col = uiLayoutColumn(layout, FALSE);
 
@@ -843,6 +846,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 	}
 
 	if (is_render_out && (imf->imtype == R_IMF_IMTYPE_OPENEXR)) {
+		show_preview = TRUE;
 		uiItemR(row, imfptr, "use_preview", 0, NULL, ICON_NONE);
 	}
 
@@ -863,6 +867,26 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 		uiItemR(col, imfptr, "cineon_white", 0, NULL, ICON_NONE);
 		uiItemR(col, imfptr, "cineon_gamma", 0, NULL, ICON_NONE);
 #endif
+	}
+
+	/* color management */
+	if (!BKE_imtype_supports_float(imf->imtype) ||
+	    (show_preview && imf->flag & R_IMF_FLAG_PREVIEW_JPG))
+	{
+		prop = RNA_struct_find_property(imfptr, "display_settings");
+		display_settings_ptr = RNA_property_pointer_get(imfptr, prop);
+
+		prop = RNA_struct_find_property(imfptr, "view_settings");
+		view_settings_ptr = RNA_property_pointer_get(imfptr, prop);
+
+		col = uiLayoutColumn(layout, FALSE);
+		uiItemL(col, IFACE_("Color Management"), ICON_NONE);
+
+		uiItemR(col, &display_settings_ptr, "display_device", 0, NULL, ICON_NONE);
+
+		uiItemR(col, &view_settings_ptr, "view_transform", 0, NULL, ICON_NONE);
+		uiItemR(col, &view_settings_ptr, "exposure", 0, NULL, ICON_NONE);
+		uiItemR(col, &view_settings_ptr, "gamma", 0, NULL, ICON_NONE);
 	}
 }
 

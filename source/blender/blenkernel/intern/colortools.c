@@ -1237,7 +1237,7 @@ void BKE_color_managed_view_settings_init(ColorManagedViewSettings *settings)
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,
                                           const ColorManagedViewSettings *settings)
 {
-	BLI_strncpy(new_settings->view_transform, new_settings->view_transform, sizeof(new_settings->view_transform));
+	BLI_strncpy(new_settings->view_transform, settings->view_transform, sizeof(new_settings->view_transform));
 
 	new_settings->exposure = settings->exposure;
 	new_settings->gamma = settings->gamma;

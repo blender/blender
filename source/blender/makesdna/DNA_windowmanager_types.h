@@ -201,7 +201,6 @@ typedef struct wmWindow {
 
 	ColorManagedDisplaySettings display_settings;  /* display-specific settings */
 	ColorManagedViewSettings view_settings;        /* global view settings */
-	int pad1;
 } wmWindow;
 
 /* should be something like DNA_EXCLUDE 

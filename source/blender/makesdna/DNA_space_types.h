@@ -691,7 +691,6 @@ typedef struct SpaceImage {
 	char around;
 
 	ColorManagedViewSettings view_settings;
-	int pad1;
 } SpaceImage;
 
 
@@ -876,7 +875,6 @@ typedef struct SpaceNode {
 	struct bGPdata *gpd;        /* grease-pencil data */
 
 	ColorManagedViewSettings view_settings;
-	int pad2;
 } SpaceNode;
 
 /* snode->flag */
@@ -1023,7 +1021,6 @@ typedef struct SpaceClip {
 
 	/* **** color management **** */
 	ColorManagedViewSettings view_settings;
-	int pad1;
 } SpaceClip;
 
 /* SpaceClip->flag */

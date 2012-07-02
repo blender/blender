@@ -55,6 +55,7 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -1082,12 +1083,14 @@ static char imtype_best_depth(ImBuf *ibuf, const char imtype)
 	}
 }
 
-static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, Scene *scene, const short guess_path)
+static int save_image_options_init(bContext *C, SaveImageOptions *simopts, SpaceImage *sima, Scene *scene, const short guess_path)
 {
 	void *lock;
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
 
 	if (ibuf) {
+		wmWindow *win = CTX_wm_window(C);
+		const ColorManagedViewSettings *view_settings;
 		Image *ima = sima->image;
 		short is_depth_set = FALSE;
 
@@ -1136,6 +1139,12 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 			}
 			BLI_path_abs(simopts->filepath, G.main->name);
 		}
+
+		/* color management */
+		view_settings = IMB_view_settings_get_effective(win, &sima->view_settings);
+
+		BKE_color_managed_display_settings_copy(&simopts->im_format.display_settings, &win->display_settings);
+		BKE_color_managed_view_settings_copy(&simopts->im_format.view_settings, view_settings);
 	}
 
 	ED_space_image_release_buffer(sima, lock);
@@ -1164,6 +1173,29 @@ static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
 	RNA_string_set(op->ptr, "filepath", simopts->filepath);
 }
 
+static ImBuf *save_image_colormanaged_imbuf_acquire(ImBuf *ibuf, SaveImageOptions *simopts, void **cache_handle)
+{
+	ImageFormatData *imf = &simopts->im_format;
+	ImBuf *colormanaged_ibuf;
+	int do_colormanagement;
+
+	*cache_handle = NULL;
+	do_colormanagement = !BKE_imtype_supports_float(imf->imtype);
+
+	if (do_colormanagement) {
+		unsigned char *display_buffer =
+			IMB_display_buffer_acquire(ibuf, &imf->view_settings, &imf->display_settings, cache_handle);
+
+		colormanaged_ibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, 0);
+		colormanaged_ibuf->rect = (unsigned int *) display_buffer;
+	}
+	else {
+		colormanaged_ibuf = ibuf;
+	}
+
+	return colormanaged_ibuf;
+}
+
 /* assumes name is FILE_MAX */
 /* ima->name and ibuf->name should end up the same */
 static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveImageOptions *simopts, int do_newpath)
@@ -1173,6 +1205,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
 
 	if (ibuf) {
+		void *cache_handle;
+		ImBuf *colormanaged_ibuf;
 		const char *relbase = ID_BLEND_PATH(CTX_data_main(C), &ima->id);
 		const short relative = (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
 		const short save_copy = (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
@@ -1199,7 +1233,9 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 				ibuf->planes = BKE_imbuf_alpha_test(ibuf) ? 32 : 24;
 			}
 		}
-		
+
+		colormanaged_ibuf = save_image_colormanaged_imbuf_acquire(ibuf, simopts, &cache_handle);
+
 		if (simopts->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
 			Scene *scene = CTX_data_scene(C);
 			RenderResult *rr = BKE_image_acquire_renderresult(scene, ima);
@@ -1213,7 +1249,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else {
-			if (BKE_imbuf_write_as(ibuf, simopts->filepath, &simopts->im_format, save_copy)) {
+			if (BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, &simopts->im_format, save_copy)) {
 				ok = TRUE;
 			}
 		}
@@ -1262,6 +1298,13 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 		WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, sima->image);
 
 		WM_cursor_wait(0);
+
+		if (cache_handle) {
+			colormanaged_ibuf->rect = NULL;
+			IMB_freeImBuf(colormanaged_ibuf);
+
+			IMB_display_buffer_release(cache_handle);
+		}
 	}
 
 	ED_space_image_release_buffer(sima, lock);
@@ -1284,7 +1327,7 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 
 	/* just in case to initialize values,
 	 * these should be set on invoke or by the caller. */
-	save_image_options_init(&simopts, sima, CTX_data_scene(C), 0);
+	save_image_options_init(C, &simopts, sima, CTX_data_scene(C), 0);
 
 	save_image_options_from_op(&simopts, op);
 
@@ -1313,7 +1356,7 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 
 	save_image_options_defaults(&simopts);
 
-	if (save_image_options_init(&simopts, sima, scene, TRUE) == 0)
+	if (save_image_options_init(C, &simopts, sima, scene, TRUE) == 0)
 		return OPERATOR_CANCELLED;
 	save_image_options_to_op(&simopts, op);
 
@@ -1398,7 +1441,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	SaveImageOptions simopts;
 
-	if (save_image_options_init(&simopts, sima, scene, FALSE) == 0)
+	if (save_image_options_init(C, &simopts, sima, scene, FALSE) == 0)
 		return OPERATOR_CANCELLED;
 	save_image_options_from_op(&simopts, op);
 

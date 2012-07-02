@@ -35,6 +35,7 @@
 #include <math.h>
 
 #include "DNA_color_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
@@ -790,6 +791,25 @@ static void display_buffer_apply_ocio(ImBuf *ibuf, unsigned char *display_buffer
 
 	MEM_freeN(rect_float);
 }
+
+static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *display_buffer,
+                                               const ColorManagedViewSettings *view_settings,
+                                               const ColorManagedDisplaySettings *display_settings)
+{
+	const char *view_transform = view_settings->view_transform;
+
+	if (!strcmp(view_transform, "ACES ODT Tonecurve")) {
+		/* special case for Mango team, this does not actually apply
+		 * any input space -> display space conversion and just applies
+		 * a tonecurve for better linear float -> sRGB byte conversion
+		 */
+		display_buffer_apply_tonemap(ibuf, display_buffer, IMB_ratio_preserving_odt_tonecurve);
+	}
+	else {
+		display_buffer_apply_ocio(ibuf, display_buffer, view_settings, display_settings);
+	}
+
+}
 #endif
 
 void IMB_colormanage_flags_allocate(ImBuf *ibuf)
@@ -875,16 +895,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		buffer_size = ibuf->channels * ibuf->x * ibuf->y * sizeof(float);
 		display_buffer = MEM_callocN(buffer_size, "imbuf display buffer");
 
-		if (!strcmp(view_transform, "ACES ODT Tonecurve")) {
-			/* special case for Mango team, this does not actually apply
-			 * any input space -> display space conversion and just applies
-			 * a tonecurve for better linear float -> sRGB byte conversion
-			 */
-			display_buffer_apply_tonemap(ibuf, display_buffer, IMB_ratio_preserving_odt_tonecurve);
-		}
-		else {
-			display_buffer_apply_ocio(ibuf, display_buffer, view_settings, display_settings);
-		}
+		colormanage_display_buffer_process(ibuf, display_buffer, view_settings, display_settings);
 
 		colormanage_cache_put(ibuf, &cache_view_settings, &cache_display_settings, display_buffer, cache_handle);
 
@@ -907,6 +918,39 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 #endif
 }
 
+void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
+                                      const ColorManagedDisplaySettings *display_settings)
+{
+#ifdef WITH_OCIO
+	const char *view_transform = view_settings->view_transform;
+
+	if (!ibuf->rect_float)
+		return;
+
+	if (!strcmp(view_transform, "NONE") ||
+	    !ibuf->rect_float ||
+	    global_tot_display == 0 ||
+	    global_tot_view == 0)
+	{
+		if (!ibuf->rect)
+			IMB_rect_from_float(ibuf);
+	}
+	else {
+		if (!ibuf->rect) {
+			imb_addrectImBuf(ibuf);
+		}
+
+		colormanage_display_buffer_process(ibuf, (unsigned char *) ibuf->rect, view_settings, display_settings);
+	}
+#else
+	(void) view_settings;
+	(void) display_settings;
+
+	if (!ibuf->rect)
+		IMB_rect_from_float(ibuf);
+#endif
+}
+
 void IMB_display_buffer_release(void *cache_handle)
 {
 	if (cache_handle) {
@@ -925,7 +969,7 @@ void IMB_display_buffer_invalidate(ImBuf *ibuf)
 }
 
 #ifdef WITH_OCIO
-static void colormanage_check_display_settings(ColorManagedDisplaySettings *display_settings,
+static void colormanage_check_display_settings(ColorManagedDisplaySettings *display_settings, const char *what,
                                                const ColorManagedDisplay *default_display)
 {
 	if (display_settings->display_device[0] == '\0') {
@@ -935,8 +979,8 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
 		ColorManagedDisplay *display = colormanage_display_get_named(display_settings->display_device);
 
 		if (!display) {
-			printf("Blender color management: Window display \"%s\" not found, setting to default (\"%s\").\n",
-			        display_settings->display_device, default_display->name);
+			printf("Blender color management: display \"%s\" used by %s not found, setting to default (\"%s\").\n",
+			       display_settings->display_device, what, default_display->name);
 
 			BLI_strncpy(display_settings->display_device, default_display->name,
 			            sizeof(display_settings->display_device));
@@ -944,7 +988,7 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
 	}
 }
 
-static void colormanage_check_view_settings(ColorManagedViewSettings *view_settings, const char *editor,
+static void colormanage_check_view_settings(ColorManagedViewSettings *view_settings, const char *what,
                                             const ColorManagedView *default_view)
 {
 	if (view_settings->view_transform[0] == '\0') {
@@ -958,7 +1002,7 @@ static void colormanage_check_view_settings(ColorManagedViewSettings *view_setti
 
 		if (!view) {
 			printf("Blender color management: %s view \"%s\" not found, setting default \"%s\".\n",
-			       editor, view_settings->view_transform, default_view->name);
+			       what, view_settings->view_transform, default_view->name);
 
 			BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
 		}
@@ -979,6 +1023,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 	wmWindowManager *wm = bmain->wm.first;
 	wmWindow *win;
 	bScreen *sc;
+	Scene *scene;
 
 	ColorManagedDisplay *default_display;
 	ColorManagedView *default_view;
@@ -999,7 +1044,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 
 	if (wm) {
 		for (win = wm->windows.first; win; win = win->next) {
-			colormanage_check_display_settings(&win->display_settings, default_display);
+			colormanage_check_display_settings(&win->display_settings, "window", default_display);
 
 			colormanage_check_view_settings(&win->view_settings, "window", default_view);
 		}
@@ -1029,6 +1074,14 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 				}
 			}
 		}
+	}
+
+	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+		ImageFormatData *imf = 	&scene->r.im_format;
+
+		colormanage_check_display_settings(&imf->display_settings, "scene", default_display);
+
+		colormanage_check_view_settings(&imf->view_settings, "scene", default_view);
 	}
 #else
 	(void) bmain;

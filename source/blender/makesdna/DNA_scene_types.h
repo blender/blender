@@ -41,6 +41,7 @@
 extern "C" {
 #endif
 
+#include "DNA_color_types.h"  // color management
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
@@ -273,6 +274,9 @@ typedef struct ImageFormatData {
 
 	char pad[7];
 
+	/* --- color management --- */
+	ColorManagedViewSettings view_settings;
+	ColorManagedDisplaySettings display_settings;
 } ImageFormatData;
 
 

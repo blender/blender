@@ -67,6 +67,7 @@
 #include "BLI_callbacks.h"
 
 #include "PIL_time.h"
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -2077,6 +2078,15 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	G.rendering = 0;
 }
 
+static void colormanage_image_for_write(ImBuf *ibuf, Scene *scene)
+{
+	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->r.im_format.view_settings,
+	                                 &scene->r.im_format.display_settings);
+
+	if (ibuf)
+		imb_freerectfloatImBuf(ibuf);
+}
+
 static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovieHandle *mh, const char *name_override)
 {
 	char name[FILE_MAX];
@@ -2118,6 +2128,12 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		}
 		else {
 			ImBuf *ibuf = render_result_rect_to_ibuf(&rres, &scene->r);
+			int do_colormanagement;
+
+			do_colormanagement = !BKE_imtype_supports_float(scene->r.im_format.imtype);
+
+			if (do_colormanagement)
+				colormanage_image_for_write(ibuf, scene);
 
 			ok = BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
 			
@@ -2135,6 +2151,9 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 					name[strlen(name) - 4] = 0;
 				BKE_add_image_extension(name, R_IMF_IMTYPE_JPEG90);
 				ibuf->planes = 24;
+
+				colormanage_image_for_write(ibuf, scene);
+
 				BKE_imbuf_write_stamp(scene, camera, ibuf, name, &imf);
 				printf("\nSaved: %s", name);
 			}

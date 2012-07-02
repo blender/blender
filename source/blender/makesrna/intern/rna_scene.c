@@ -2961,6 +2961,17 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "G", "Log conversion gamma");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	/* color management */
+	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
+	RNA_def_property_ui_text(prop, "View Settings", "Color management settings applied on image before saving");
+
+	prop = RNA_def_property(srna, "display_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "display_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedDisplaySettings");
+	RNA_def_property_ui_text(prop, "Display Settings", "Settings of device saved image would be displayed on");
 }
 
 static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)

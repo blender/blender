@@ -56,6 +56,9 @@ void IMB_colormanage_cache_data_free(struct ImBuf *ibuf);
 
 unsigned char *IMB_display_buffer_acquire(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                           const struct ColorManagedDisplaySettings *display_settings, void **cache_handle);
+void IMB_display_buffer_to_imbuf_rect(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
+                                      const struct ColorManagedDisplaySettings *display_settings);
+
 void IMB_display_buffer_release(void *cache_handle);
 
 void IMB_display_buffer_invalidate(struct ImBuf *ibuf);
