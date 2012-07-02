@@ -518,9 +518,9 @@ void Stroke::Resample(int iNPoints)
   int nsegments = 0;
   while(((it!=itend)&&(next!=itend)))
   { 
-    Vec3r a((it)->point2d());
-    Vec3r b((next)->point2d());
-    Vec3r vec_tmp(b - a);
+    Vec2r a((it)->getPoint());
+    Vec2r b((next)->getPoint());
+    Vec2r vec_tmp(b - a);
     real norm_var = vec_tmp.norm();
     int numberOfPointsToAdd = (int)floor((iNPoints-strokeVerticesSize())*norm_var/_Length);
     float csampling = norm_var/(float)(numberOfPointsToAdd+1);
