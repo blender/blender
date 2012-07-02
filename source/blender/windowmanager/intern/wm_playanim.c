@@ -1,4 +1,3 @@
-#if 0
 /**
  * $Id: playanim.c 17755 2008-12-09 04:57:42Z bdiego $
  *
@@ -51,12 +50,10 @@
 #include <math.h>
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+#include "BLI_math.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
-#include "BDR_editcurve.h"
 
 #include "BKE_blender.h"
 #include "BKE_global.h"
@@ -64,10 +61,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_screen.h"
-#include "BIF_mywindow.h"
-
-#include "BMF_Api.h"
 
 #ifdef WITH_QUICKTIME
 #ifdef _WIN32
@@ -78,14 +71,26 @@
 #endif /* __APPLE__ */
 #endif /* WITH_QUICKTIME */
 
-#include "playanim_ext.h"
-#include "mydevice.h"
-#include "blendef.h"
-#include "winlay.h"
+#include "DNA_scene_types.h"
+#include "BLI_utildefines.h"
+#include "wm_event_types.h"
+#include "GHOST_C-api.h"
+
+#define WINCLOSE -1
+#define REDRAW -3
+#define RESHAPE -2
+#define WINQUIT -4
+
+static int qtest(void)
+{
+	return 0;
+}
 
 /* ***************** gl_util.c ****************** */
 
-static Window *g_window = NULL;
+static GHOST_SystemHandle g_system = NULL;
+static void *g_window = NULL;
+
 static int qualN = 0;
 
 #define LSHIFT  (1 << 0)
@@ -93,7 +98,7 @@ static int qualN = 0;
 #define SHIFT   (LSHIFT | RSHIFT)
 #define LALT    (1 << 2)
 #define RALT    (1 << 3)
-#define ALT     (LALT | RALT)
+#define ALT (LALT | RALT)
 #define LCTRL   (1 << 4)
 #define RCTRL   (1 << 5)
 #define LMOUSE  (1 << 16)
@@ -103,11 +108,23 @@ static int qualN = 0;
 
 unsigned short screen_qread(short *val, char *ascii);
 
+void playanim_window_get_size(int *width_r, int *height_r)
+{
+	GHOST_RectangleHandle bounds = GHOST_GetClientBounds(g_window);
+	*width_r = GHOST_GetWidthRectangle(bounds);
+	*height_r = GHOST_GetHeightRectangle(bounds);
+	GHOST_DisposeRectangle(bounds);
+}
+
 /* implementation */
 static int qreadN(short *val)
 {
+#if 0 // XXX25
 	char ascii;
 	int event = screen_qread(val, &ascii);
+#else
+	int event = 123456789;
+#endif
 
 	switch (event) {
 		case LEFTMOUSE:
@@ -211,17 +228,19 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 		cpack(-1);
 		glRasterPos2f(0.02f,  0.03f);
 		sprintf(str, "%s | %.2f frames/s\n", picture->name, fstep / swaptime);
+#if 0 // XXX25
 		BMF_DrawString(G.fonts, str);
+#endif
 	}
 
-	window_swap_buffers(g_window);
+	GHOST_SwapWindowBuffers(g_window);
 }
 
 static void build_pict_list(char *first, int totframes, int fstep)
 {
 	int size, pic, file;
 	char *mem, name[512];
-	short val;
+//	short val;
 	struct pict *picture = 0;
 	struct ImBuf *ibuf = 0;
 	int count = 0;
@@ -229,15 +248,15 @@ static void build_pict_list(char *first, int totframes, int fstep)
 	struct anim *anim;
 
 	if (IMB_isanim(first)) {
-		anim = IMB_open_anim(first, IB_rect);
+		anim = IMB_open_anim(first, IB_rect, 0);
 		if (anim) {
-			ibuf = IMB_anim_absolute(anim, 0);
+			ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
 			if (ibuf) {
 				toscreen(NULL, ibuf);
 				IMB_freeImBuf(ibuf);
 			}
 
-			for (pic = 0; pic < IMB_anim_get_duration(anim); pic++) {
+			for (pic = 0; pic < IMB_anim_get_duration(anim, IMB_TC_NONE); pic++) {
 				picture = (Pict *)MEM_callocN(sizeof(Pict), "Pict");
 				picture->anim = anim;
 				picture->frame = pic;
@@ -276,7 +295,7 @@ static void build_pict_list(char *first, int totframes, int fstep)
 				close(file);
 				return;
 			}
-			size = BLI_filesize(file);
+			size = BLI_file_descriptor_size(file);
 
 			if (size < 1) {
 				close(file);
@@ -315,7 +334,7 @@ static void build_pict_list(char *first, int totframes, int fstep)
 			pupdate_time();
 
 			if (ptottime > 1.0) {
-				if (picture->mem) ibuf = IMB_ibImageFromMemory((int *) picture->mem, picture->size, picture->IB_flags);
+				if (picture->mem) ibuf = IMB_ibImageFromMemory((unsigned char *)picture->mem, picture->size, picture->IB_flags, picture->name);
 				else ibuf = IMB_loadiffname(picture->name, picture->IB_flags);
 				if (ibuf) {
 					toscreen(picture, ibuf);
@@ -327,6 +346,7 @@ static void build_pict_list(char *first, int totframes, int fstep)
 
 			BLI_newname(name, +fstep);
 
+#if 0 // XXX25
 			while (qtest()) {
 				switch (qreadN(&val)) {
 					case ESCKEY:
@@ -334,19 +354,63 @@ static void build_pict_list(char *first, int totframes, int fstep)
 						break;
 				}
 			}
+#endif
 			totframes--;
 		}
 	}
 	return;
 }
 
-void playanim(int argc, char **argv)
+static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr)
+{
+	(void)evt;
+	(void)C_void_ptr;
+
+	return 1;
+}
+
+void playanim_window_open(const char *title, int posx, int posy, int sizex, int sizey, int start_maximized)
+{
+	GHOST_TWindowState inital_state;
+	GHOST_TUns32 scr_w, scr_h;
+
+	GHOST_GetMainDisplayDimensions(g_system, &scr_w, &scr_h);
+
+	posy = (scr_h - posy - sizey);
+
+	if (start_maximized == G_WINDOWSTATE_FULLSCREEN)
+		inital_state = start_maximized ? GHOST_kWindowStateFullScreen : GHOST_kWindowStateNormal;
+	else
+		inital_state = start_maximized ? GHOST_kWindowStateMaximized : GHOST_kWindowStateNormal;
+#ifdef __APPLE__
+	inital_state += macPrefState;
+#endif
+
+	g_window = GHOST_CreateWindow(g_system,
+	                              title,
+	                              posx, posy, sizex, sizey,
+	                              inital_state,
+	                              GHOST_kDrawingContextTypeOpenGL,
+	                              FALSE /* no stereo */, FALSE);
+
+	//if (ghostwin) {
+	//if (win) {
+	// GHOST_SetWindowUserData(ghostwin, win);
+	//} else {
+	//	GHOST_DisposeWindow(g_system, ghostwin);
+	//}
+	//}
+}
+
+
+void playanim(int argc, const char **argv)
 {
 	struct ImBuf *ibuf = 0;
 	struct pict *picture = 0;
 	char name[512];
 	short val = 0, go = TRUE, ibufx = 0, ibufy = 0;
-	int event, stopped = FALSE, maxwinx, maxwiny;
+	int event, stopped = FALSE;
+	GHOST_TUns32 maxwinx, maxwiny;
 	short /*  c233 = FALSE, */ /*  yuvx = FALSE, */ once = FALSE, sstep = FALSE, wait2 = FALSE, /*  resetmap = FALSE, */ pause = 0;
 	short pingpong = FALSE, direction = 1, next = 1, turbo = FALSE, /*  doubleb = TRUE, */ noskip = FALSE;
 	int sizex, sizey, ofsx, ofsy, i;
@@ -439,14 +503,14 @@ void playanim(int argc, char **argv)
 
 	if (argc > 1) strcpy(name, argv[1]);
 	else {
-		BLI_getwdN(name);
+		BLI_current_working_dir(name, sizeof(name));
 		if (name[strlen(name) - 1] != '/') strcat(name, "/");
 	}
 
 	if (IMB_isanim(name)) {
-		anim = IMB_open_anim(name, IB_rect);
+		anim = IMB_open_anim(name, IB_rect, 0);
 		if (anim) {
-			ibuf = IMB_anim_absolute(anim, 0);
+			ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
 			IMB_close_anim(anim);
 			anim = NULL;
 		}
@@ -461,18 +525,26 @@ void playanim(int argc, char **argv)
 		exit(1);
 	}
 
+#if 0 //XXX25
 	#if !defined(WIN32) && !defined(__APPLE__)
 	if (fork()) exit(0);
 	#endif
-
-	winlay_get_screensize(&maxwinx, &maxwiny);
+#endif //XXX25
 
 	/* XXX, fixme zr */
 	{
-		extern void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char ascii);
+//		extern void add_to_mainqueue(wmWindow *win, void *user_data, short evt, short val, char ascii);
 
-		g_window = window_open("Blender:Anim", start_x, start_y, ibuf->x, ibuf->y, 0);
-		window_set_handler(g_window, add_to_mainqueue, NULL);
+		void *some_handle = NULL; // XXX25, fixme
+		GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(ghost_event_proc, some_handle);
+
+		g_system = GHOST_CreateSystem();
+		GHOST_AddEventConsumer(g_system, consumer);
+
+
+
+		playanim_window_open("Blender:Anim", start_x, start_y, ibuf->x, ibuf->y, 0);
+//XXX25		window_set_handler(g_window, add_to_mainqueue, NULL);
 
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -480,7 +552,11 @@ void playanim(int argc, char **argv)
 		glMatrixMode(GL_MODELVIEW);
 	}
 
+	GHOST_GetMainDisplayDimensions(g_system, &maxwinx, &maxwiny);
+
+#if 0 //XXX25
 	G.fonts = BMF_GetFont(BMF_kHelvetica10);
+#endif
 
 	ibufx = ibuf->x;
 	ibufy = ibuf->y;
@@ -491,7 +567,7 @@ void playanim(int argc, char **argv)
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	window_swap_buffers(g_window);
+	GHOST_SwapWindowBuffers(g_window);
 
 	if (sfra == -1 || efra == -1) {
 		/* one of the frames was invalid, just use all images */
@@ -529,11 +605,11 @@ void playanim(int argc, char **argv)
 		if (ptottime > 0.0) ptottime = 0.0;
 
 		while (picture) {
-			if (ibuf != 0 && ibuf->type == 0) IMB_freeImBuf(ibuf);
+			if (ibuf != 0 && ibuf->ftype == 0) IMB_freeImBuf(ibuf);
 
 			if (picture->ibuf) ibuf = picture->ibuf;
-			else if (picture->anim) ibuf = IMB_anim_absolute(picture->anim, picture->frame);
-			else if (picture->mem) ibuf = IMB_ibImageFromMemory((int *) picture->mem, picture->size, picture->IB_flags);
+			else if (picture->anim) ibuf = IMB_anim_absolute(picture->anim, picture->frame, IMB_TC_NONE, IMB_PROXY_NONE);
+			else if (picture->mem) ibuf = IMB_ibImageFromMemory((unsigned char *) picture->mem, picture->size, picture->IB_flags, picture->name);
 			else ibuf = IMB_loadiffname(picture->name, picture->IB_flags);
 
 			if (ibuf) {
@@ -644,7 +720,7 @@ void playanim(int argc, char **argv)
 					case LEFTMOUSE:
 					case MOUSEX:
 						if (qualN & LMOUSE) {
-							window_get_size(g_window, &sizex, &sizey);
+							playanim_window_get_size(&sizex, &sizey);
 							picture = picsbase->first;
 							i = 0;
 							while (picture) {
@@ -745,21 +821,21 @@ void playanim(int argc, char **argv)
 						if (val == 0) break;
 						if (zoomx > 1.0) zoomx -= 1.0;
 						if (zoomy > 1.0) zoomy -= 1.0;
-						window_get_position(g_window, &ofsx, &ofsy);
-						window_get_size(g_window, &sizex, &sizey);
+						// playanim_window_get_position(&ofsx, &ofsy);
+						playanim_window_get_size(&sizex, &sizey);
 						ofsx += sizex / 2;
 						ofsy += sizey / 2;
 						sizex = zoomx * ibufx;
 						sizey = zoomy * ibufy;
 						ofsx -= sizex / 2;
 						ofsy -= sizey / 2;
-/*                  window_set_position(g_window,sizex,sizey); */
-						window_set_size(g_window, sizex, sizey);
+						// window_set_position(g_window,sizex,sizey);
+						GHOST_SetClientSize(g_window, sizex, sizey);
 						break;
 					case RESHAPE:
 					case REDRAW:
-						window_get_size(g_window, &sizex, &sizey);
-						window_make_active(g_window);
+						playanim_window_get_size(&sizey, &sizey);
+						GHOST_ActivateWindowDrawingContext(g_window);
 
 						glViewport(0,  0, sizex, sizey);
 						glScissor(0,  0, sizex, sizey);
@@ -848,19 +924,11 @@ void playanim(int argc, char **argv)
 	if (ibuf) IMB_freeImBuf(ibuf);
 	BLI_freelistN(picsbase);
 	free_blender();
-	window_destroy(g_window);
+	GHOST_DisposeWindow(g_system, g_window);
 
 	totblock = MEM_get_memory_blocks_in_use();
 	if (totblock != 0) {
 		printf("Error Totblock: %d\n", totblock);
 		MEM_printmemlist();
 	}
-}
-
-#endif
-
-void playanim(int argc, const char **argv)
-{
-	(void)argc;
-	(void)argv;
 }
