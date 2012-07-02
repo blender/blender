@@ -1001,45 +1001,33 @@ Stroke* createStroke(Interface1D& inter) {
   Interface0DIterator it = inter.verticesBegin(), itend = inter.verticesEnd();
   Interface0DIterator itfirst = it;
 
-  Vec3r current(it->getProjectedX(), it->getProjectedY(), it->getProjectedZ());
-  Vec3r previous = current;
+  Vec2r current(it->getPoint2D());
+  Vec2r previous = current;
   SVertex* sv;
   CurvePoint* cp;
   StrokeVertex* stroke_vertex = NULL;  
+  bool hasSingularity = false;
 
   do {
     cp = dynamic_cast<CurvePoint*>(&(*it));
     if (!cp) {
       sv = dynamic_cast<SVertex*>(&(*it));
       if (!sv) {
-	cerr << "Warning: unexpected Vertex type" << endl;
-	continue;
+  cerr << "Warning: unexpected Vertex type" << endl;
+  continue;
       }
       stroke_vertex = new StrokeVertex(sv);
     }
     else
       stroke_vertex = new StrokeVertex(cp);
-    current = stroke_vertex->point2d();
-    Vec3r vec_tmp(current - previous);
-    real vec_tmp_norm = vec_tmp.norm();
-    if((stroke->strokeVerticesSize() > 0) && (vec_tmp_norm < 1.e-06)){
-      // The point we just created is superimposed with the 
-      // previous one. We remove it to avoid having to deal
-      // with this kind of singularities in the strip creation
-      delete stroke_vertex;
-	  /*
-	   * This seems a wrong place to clean stroke topology, since just
-	   * deleting this `stroke_vertex' possibly breaks the continuity of
-	   * the underlying series of FEdges on top of which the stroke has
-	   * been built.  Such a break of linked FEdges will cause a failure
-	   * of CurvePoint::getFEdge(). (22 Feb 2011, T.K.)
-	   */
-    }else{
-      currentCurvilignAbscissa += vec_tmp.norm();
-      stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
-      stroke->push_back(stroke_vertex);
-      previous = current;
-    }
+    current = stroke_vertex->getPoint2D();
+    Vec2r vec_tmp(current - previous);
+  real dist = vec_tmp.norm();
+  if (dist < 1e-6) hasSingularity = true;
+  currentCurvilignAbscissa += dist;
+  stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
+  stroke->push_back(stroke_vertex);
+  previous = current;
     ++it;
   } while((it != itend) && (it != itfirst));
 
@@ -1049,25 +1037,19 @@ Stroke* createStroke(Interface1D& inter) {
     if (!cp) {
       sv = dynamic_cast<SVertex*>(&(*it));
       if (!sv)
-	cerr << "Warning: unexpected Vertex type" << endl;
+  cerr << "Warning: unexpected Vertex type" << endl;
       else
-	stroke_vertex = new StrokeVertex(sv);
+  stroke_vertex = new StrokeVertex(sv);
     }
     else
       stroke_vertex = new StrokeVertex(cp);
-    current = stroke_vertex->point2d();
-    Vec3r vec_tmp(current - previous);
-    real vec_tmp_norm = vec_tmp.norm();
-    if((stroke->strokeVerticesSize() > 0) && (vec_tmp_norm < 1.e-06)){
-      // The point we just created is superimposed with the 
-      // previous one. We remove it to avoid having to deal
-      // with this kind of singularities in the strip creation
-      delete stroke_vertex;
-    }else{
-      currentCurvilignAbscissa += vec_tmp.norm();
-      stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
-      stroke->push_back(stroke_vertex);
-    }
+    current = stroke_vertex->getPoint2D();
+    Vec2r vec_tmp(current - previous);
+  real dist = vec_tmp.norm();
+  if (dist < 1e-6) hasSingularity = true;
+  currentCurvilignAbscissa += dist;
+    stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
+    stroke->push_back(stroke_vertex);
   }
   // Discard the stroke if the number of stroke vertices is less than two
   if (stroke->strokeVerticesSize() < 2) {
@@ -1075,6 +1057,100 @@ Stroke* createStroke(Interface1D& inter) {
     return NULL;
   }
   stroke->setLength(currentCurvilignAbscissa);
+  if (hasSingularity) {
+    // Try to address singular points such that the distance between two
+    // subsequent vertices are smaller than epsilon.
+    Interface0DIterator v = stroke->verticesBegin();
+    Interface0DIterator vnext = v; ++vnext;
+    Vec2r next((*v).getPoint2D());
+    while (!vnext.isEnd()) {
+      current = next;
+      next = (*vnext).getPoint2D();
+      if ((next - current).norm() < 1e-6) {
+        Interface0DIterator vprevious = v;
+        if (!vprevious.isBegin())
+          --vprevious;
+
+        // collect a set of overlapping vertices (except the first one)
+        std::vector<Interface0D *> overlapping_vertices;
+        do {
+          overlapping_vertices.push_back(&(*vnext));
+          current = next;
+          ++v; ++vnext;
+          if (vnext.isEnd())
+            break;
+          next = (*vnext).getPoint2D();
+        } while ((next - current).norm() < 1e-6);
+
+        Vec2r target;
+        bool reverse;
+        if (!vnext.isEnd()) {
+          target = (*vnext).getPoint2D();
+          reverse = false;
+        } else if (!vprevious.isBegin()) {
+          target = (*vprevious).getPoint2D();
+          reverse = true;
+        } else {
+          // Discard the stroke because all stroke vertices are overlapping
+          delete stroke;
+          return NULL;
+        }
+        Vec2r dir(target - current);
+        real dist = dir.norm();
+        real len = 1e-3; // default offset length
+        int nvert = overlapping_vertices.size();
+        if (dist < len * nvert) {
+          len = dist / (nvert + 1);
+        }
+        dir.normalize();
+        Vec2r offset(dir * len);
+        //cout << "#vert " << nvert << " len " << len << " reverse? " << reverse << endl;
+
+        // add the offset to the overlapping vertices
+        StrokeVertex* sv;
+        std::vector<Interface0D *>::iterator it = overlapping_vertices.begin(),
+          itend = overlapping_vertices.end();
+        if (!reverse) {
+          int n = 1;
+          for (; it != itend; ++it) {
+            sv = dynamic_cast<StrokeVertex*>(*it);
+            sv->setPoint(sv->getPoint() + offset * n);
+            ++n;
+          }
+        } else {
+          int n = nvert;
+          for (; it != itend; ++it) {
+            sv = dynamic_cast<StrokeVertex*>(*it);
+            sv->setPoint(sv->getPoint() + offset * n);
+            --n;
+          }
+        }
+
+        if (vnext.isEnd())
+          break;
+      }
+      ++v; ++vnext;
+    }
+  }
+  {
+    // Check if the stroke no longer contains singular points
+    Interface0DIterator v = stroke->verticesBegin();
+    Interface0DIterator vnext = v; ++vnext;
+    Vec2r next((*v).getPoint2D());
+    bool warning = false;
+    while (!vnext.isEnd()) {
+      current = next;
+      next = (*vnext).getPoint2D();
+      if ((next - current).norm() < 1e-6) {
+        warning = true;
+        break;
+      }
+      ++v; ++vnext;
+    }
+    if (warning) {
+      printf("Warning: stroke contains singular points.\n");
+    }
+  }
   return stroke;
 }
 
