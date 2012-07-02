@@ -43,7 +43,7 @@
 #include <sys/wait.h>
 #else
 #include <io.h>
-#endif   
+#endif
 #include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"
@@ -88,18 +88,18 @@
 static Window *g_window = NULL;
 static int qualN = 0;
 
-#define LSHIFT	(1<<0)
-#define RSHIFT	(1<<1)
-#define SHIFT	(LSHIFT | RSHIFT)
-#define LALT	(1<<2)
-#define RALT	(1<<3)
-#define ALT	(LALT | RALT)
-#define LCTRL	(1<<4)
-#define RCTRL	(1<<5)
-#define LMOUSE	(1<<16)
-#define MMOUSE	(1<<17)
-#define RMOUSE	(1<<18)
-#define MOUSE	(LMOUSE | MMOUSE | RMOUSE)
+#define LSHIFT  (1 << 0)
+#define RSHIFT  (1 << 1)
+#define SHIFT   (LSHIFT | RSHIFT)
+#define LALT    (1 << 2)
+#define RALT    (1 << 3)
+#define ALT     (LALT | RALT)
+#define LCTRL   (1 << 4)
+#define RCTRL   (1 << 5)
+#define LMOUSE  (1 << 16)
+#define MMOUSE  (1 << 17)
+#define RMOUSE  (1 << 18)
+#define MOUSE   (LMOUSE | MMOUSE | RMOUSE)
 
 unsigned short screen_qread(short *val, char *ascii);
 
@@ -109,43 +109,43 @@ static int qreadN(short *val)
 	char ascii;
 	int event = screen_qread(val, &ascii);
 
-	switch(event){
-	case LEFTMOUSE:
-		if (*val) qualN |= LMOUSE;
-		else qualN &= ~LMOUSE;
-		break;
-	case MIDDLEMOUSE:
-		if (*val) qualN |= MMOUSE;
-		else qualN &= ~MMOUSE;
-		break;
-	case RIGHTMOUSE:
-		if (*val) qualN |= RMOUSE;
-		else qualN &= ~RMOUSE;
-		break;
-	case LEFTSHIFTKEY:
-		if (*val) qualN |= LSHIFT;
-		else qualN &= ~LSHIFT;
-		break;
-	case RIGHTSHIFTKEY:
-		if (*val) qualN |= RSHIFT;
-		else qualN &= ~RSHIFT;
-		break;
-	case LEFTCTRLKEY:
-		if (*val) qualN |= LCTRL;
-		else qualN &= ~LCTRL;
-		break;
-	case RIGHTCTRLKEY:
-		if (*val) qualN |= RCTRL;
-		else qualN &= ~RCTRL;
-		break;
-	case LEFTALTKEY:
-		if (*val) qualN |= LALT;
-		else qualN &= ~LALT;
-		break;
-	case RIGHTALTKEY:
-		if (*val) qualN |= RALT;
-		else qualN &= ~RALT;
-		break;
+	switch (event) {
+		case LEFTMOUSE:
+			if (*val) qualN |= LMOUSE;
+			else qualN &= ~LMOUSE;
+			break;
+		case MIDDLEMOUSE:
+			if (*val) qualN |= MMOUSE;
+			else qualN &= ~MMOUSE;
+			break;
+		case RIGHTMOUSE:
+			if (*val) qualN |= RMOUSE;
+			else qualN &= ~RMOUSE;
+			break;
+		case LEFTSHIFTKEY:
+			if (*val) qualN |= LSHIFT;
+			else qualN &= ~LSHIFT;
+			break;
+		case RIGHTSHIFTKEY:
+			if (*val) qualN |= RSHIFT;
+			else qualN &= ~RSHIFT;
+			break;
+		case LEFTCTRLKEY:
+			if (*val) qualN |= LCTRL;
+			else qualN &= ~LCTRL;
+			break;
+		case RIGHTCTRLKEY:
+			if (*val) qualN |= RCTRL;
+			else qualN &= ~RCTRL;
+			break;
+		case LEFTALTKEY:
+			if (*val) qualN |= LALT;
+			else qualN &= ~LALT;
+			break;
+		case RIGHTALTKEY:
+			if (*val) qualN |= RALT;
+			else qualN &= ~RALT;
+			break;
 	}
 
 	return(event);
@@ -156,7 +156,7 @@ static int qreadN(short *val)
 
 
 
-typedef struct pict{
+typedef struct pict {
 	struct pict *next, *prev;
 	char *mem;
 	int size;
@@ -167,11 +167,11 @@ typedef struct pict{
 	int IB_flags;
 }Pict;
 
-static struct ListBase _picsbase = {0,0};
+static struct ListBase _picsbase = {0, 0};
 static struct ListBase *picsbase = &_picsbase;
 static int fromdisk = FALSE;
-static int fstep = 1; 
-static float zoomx = 1.0 , zoomy = 1.0;
+static int fstep = 1;
+static float zoomx = 1.0, zoomy = 1.0;
 static double ptottime = 0.0, swaptime = 0.04;
 
 static int pupdate_time(void)
@@ -188,46 +188,46 @@ static int pupdate_time(void)
 
 static void toscreen(Pict *picture, struct ImBuf *ibuf)
 {
-	
-	if (ibuf == 0){
+
+	if (ibuf == 0) {
 		printf("no ibuf !\n");
 		return;
 	}
-	if (ibuf->rect==NULL && ibuf->rect_float) {
+	if (ibuf->rect == NULL && ibuf->rect_float) {
 		IMB_rect_from_float(ibuf);
 		imb_freerectfloatImBuf(ibuf);
 	}
-	if (ibuf->rect==NULL)
+	if (ibuf->rect == NULL)
 		return;
 
 	glRasterPos2f(0.0f, 0.0f);
 
 	glDrawPixels(ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-	
+
 	pupdate_time();
 
-	if(picture && (qualN & (SHIFT|LMOUSE))) {
+	if (picture && (qualN & (SHIFT | LMOUSE))) {
 		char str[512];
 		cpack(-1);
 		glRasterPos2f(0.02f,  0.03f);
 		sprintf(str, "%s | %.2f frames/s\n", picture->name, fstep / swaptime);
 		BMF_DrawString(G.fonts, str);
 	}
-	
+
 	window_swap_buffers(g_window);
 }
 
-static void build_pict_list(char * first, int totframes, int fstep)
+static void build_pict_list(char *first, int totframes, int fstep)
 {
-	int size,pic,file;
+	int size, pic, file;
 	char *mem, name[512];
 	short val;
-	struct pict * picture = 0;
+	struct pict *picture = 0;
 	struct ImBuf *ibuf = 0;
 	int count = 0;
 	char str[512];
-	struct anim * anim;
-	
+	struct anim *anim;
+
 	if (IMB_isanim(first)) {
 		anim = IMB_open_anim(first, IB_rect);
 		if (anim) {
@@ -236,9 +236,9 @@ static void build_pict_list(char * first, int totframes, int fstep)
 				toscreen(NULL, ibuf);
 				IMB_freeImBuf(ibuf);
 			}
-			
-			for (pic = 0; pic < IMB_anim_get_duration(anim); pic ++) {
-				picture = (Pict*)MEM_callocN(sizeof(Pict),"Pict");
+
+			for (pic = 0; pic < IMB_anim_get_duration(anim); pic++) {
+				picture = (Pict *)MEM_callocN(sizeof(Pict), "Pict");
 				picture->anim = anim;
 				picture->frame = pic;
 				picture->IB_flags = IB_rect;
@@ -246,16 +246,16 @@ static void build_pict_list(char * first, int totframes, int fstep)
 				picture->name = strdup(str);
 				BLI_addtail(picsbase, picture);
 			}
-		} 
+		}
 		else printf("couldn't open anim %s\n", first);
-	} 
+	}
 	else {
-	
-		strcpy(name,first);
-	
+
+		strcpy(name, first);
+
 		pupdate_time();
 		ptottime = 1.0;
-		
+
 /*
      O_DIRECT
             If set, all reads and writes on the resulting file descriptor will
@@ -265,13 +265,13 @@ static void build_pict_list(char * first, int totframes, int fstep)
             information about how to determine the alignment constraints.
             O_DIRECT is a Silicon Graphics extension and is only supported on
             local EFS and XFS file systems.
-*/
-		
-		while(IMB_ispic(name) && totframes){
-			file = open(name, O_BINARY|O_RDONLY, 0);
+ */
+
+		while (IMB_ispic(name) && totframes) {
+			file = open(name, O_BINARY | O_RDONLY, 0);
 			if (file < 0) return;
-			picture = (struct pict*)MEM_callocN(sizeof(struct pict), "picture");
-			if (picture == 0){
+			picture = (struct pict *)MEM_callocN(sizeof(struct pict), "picture");
+			if (picture == 0) {
 				printf("Not enough memory for pict struct \n");
 				close(file);
 				return;
@@ -286,34 +286,35 @@ static void build_pict_list(char * first, int totframes, int fstep)
 
 			picture->size = size;
 			picture->IB_flags = IB_rect;
-						
+
 			if (fromdisk == FALSE) {
-				mem=(char *)MEM_mallocN(size, "build pic list");
-				if (mem==0){
+				mem = (char *)MEM_mallocN(size, "build pic list");
+				if (mem == 0) {
 					printf("Couldn't get memory\n");
 					close(file);
 					MEM_freeN(picture);
 					return;
 				}
-		
-				if (read(file,mem,size) != size){
-					printf("Error while reading %s\n",name);
+
+				if (read(file, mem, size) != size) {
+					printf("Error while reading %s\n", name);
 					close(file);
 					MEM_freeN(picture);
 					MEM_freeN(mem);
 					return;
 				}
-			} else mem = 0;
-			
+			}
+			else mem = 0;
+
 			picture->mem = mem;
 			picture->name = strdup(name);
 			close(file);
-			BLI_addtail(picsbase,picture);
+			BLI_addtail(picsbase, picture);
 			count++;
-			
+
 			pupdate_time();
-			
-			if (ptottime > 1.0) {				
+
+			if (ptottime > 1.0) {
 				if (picture->mem) ibuf = IMB_ibImageFromMemory((int *) picture->mem, picture->size, picture->IB_flags);
 				else ibuf = IMB_loadiffname(picture->name, picture->IB_flags);
 				if (ibuf) {
@@ -323,14 +324,14 @@ static void build_pict_list(char * first, int totframes, int fstep)
 				pupdate_time();
 				ptottime = 0.0;
 			}
-			
+
 			BLI_newname(name, +fstep);
-			
-			while(qtest()){
-				switch(qreadN(&val)){
-				case ESCKEY:
-					if (val) return;
-					break;
+
+			while (qtest()) {
+				switch (qreadN(&val)) {
+					case ESCKEY:
+						if (val) return;
+						break;
 				}
 			}
 			totframes--;
@@ -350,57 +351,59 @@ void playanim(int argc, char **argv)
 	short pingpong = FALSE, direction = 1, next = 1, turbo = FALSE, /*  doubleb = TRUE, */ noskip = FALSE;
 	int sizex, sizey, ofsx, ofsy, i;
 	/* This was done to disambiguate the name for use under c++. */
-	struct anim * anim = 0;
- 	int start_x= 0, start_y= 0;
-	int sfra= -1;
-	int efra= -1;
+	struct anim *anim = 0;
+	int start_x = 0, start_y = 0;
+	int sfra = -1;
+	int efra = -1;
 	int totblock;
-	
+
 	while (argc > 1) {
-		if (argv[1][0] == '-'){
-			switch(argv[1][1]) {
+		if (argv[1][0] == '-') {
+			switch (argv[1][1]) {
 				case 'm':
 					fromdisk = TRUE;
 					break;
 				case 'p':
-					if (argc>3) {
-						start_x= atoi(argv[2]);
-						start_y= atoi(argv[3]);
-						argc-= 2; 
-						argv+= 2;
-					} else {
+					if (argc > 3) {
+						start_x = atoi(argv[2]);
+						start_y = atoi(argv[3]);
+						argc -= 2;
+						argv += 2;
+					}
+					else {
 						printf("too few arguments for -p (need 2): skipping\n");
 					}
 					break;
 				case 'f':
-					if (argc>3) {
+					if (argc > 3) {
 						double fps = atof(argv[2]);
-						double fps_base= atof(argv[3]);
+						double fps_base = atof(argv[3]);
 						if (fps == 0) {
 							fps = 1;
 							printf("invalid fps,"
 							       "forcing 1\n");
 						}
 						swaptime = fps_base / fps;
-						argc-= 2; 
-						argv+= 2;
-					} else {
+						argc -= 2;
+						argv += 2;
+					}
+					else {
 						printf("too few arguments for -f (need 2): skipping\n");
 					}
 					break;
 				case 's':
-					sfra= MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
+					sfra = MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
 					argc--;
 					argv++;
 					break;
 				case 'e':
-					efra= MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
+					efra = MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
 					argc--;
 					argv++;
 					break;
 				case 'j':
-					fstep= MIN2(MAXFRAME, MAX2(1, atoi(argv[2])));
-					swaptime*= fstep;
+					fstep = MIN2(MAXFRAME, MAX2(1, atoi(argv[2])));
+					swaptime *= fstep;
 					argc--;
 					argv++;
 					break;
@@ -410,17 +413,18 @@ void playanim(int argc, char **argv)
 			}
 			argc--;
 			argv++;
-		} else break;
+		}
+		else break;
 	}
-	
+
 #ifdef WITH_QUICKTIME
-#if defined (_WIN32) || defined (__APPLE__)
+#if defined(_WIN32) || defined(__APPLE__)
 	/* Initialize QuickTime */
 #ifndef noErr
 #define noErr 0
 #endif
 
-#ifdef _WIN32	
+#ifdef _WIN32
 	if (InitializeQTML(0) != noErr)
 		G.have_quicktime = FALSE;
 	else
@@ -430,15 +434,15 @@ void playanim(int argc, char **argv)
 		G.have_quicktime = FALSE;
 	else
 #endif /* _WIN32 || __APPLE__ */
-		G.have_quicktime = TRUE;
+	G.have_quicktime = TRUE;
 #endif /* WITH_QUICKTIME */
 
-	if (argc > 1) strcpy(name,argv[1]);
+	if (argc > 1) strcpy(name, argv[1]);
 	else {
 		BLI_getwdN(name);
-		if (name[strlen(name)-1] != '/') strcat(name,"/");
+		if (name[strlen(name) - 1] != '/') strcat(name, "/");
 	}
-		
+
 	if (IMB_isanim(name)) {
 		anim = IMB_open_anim(name, IB_rect);
 		if (anim) {
@@ -446,95 +450,96 @@ void playanim(int argc, char **argv)
 			IMB_close_anim(anim);
 			anim = NULL;
 		}
-	} else if (!IMB_ispic(name)) {
+	}
+	else if (!IMB_ispic(name)) {
 		exit(1);
 	}
 
 	if (ibuf == 0) ibuf = IMB_loadiffname(name, IB_rect);
-	if (ibuf == 0){
-		printf("couldn't open %s\n",name);
+	if (ibuf == 0) {
+		printf("couldn't open %s\n", name);
 		exit(1);
 	}
-	
+
 	#if !defined(WIN32) && !defined(__APPLE__)
 	if (fork()) exit(0);
 	#endif
-	
+
 	winlay_get_screensize(&maxwinx, &maxwiny);
 
-		/* XXX, fixme zr */
+	/* XXX, fixme zr */
 	{
 		extern void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char ascii);
 
 		g_window = window_open("Blender:Anim", start_x, start_y, ibuf->x, ibuf->y, 0);
 		window_set_handler(g_window, add_to_mainqueue, NULL);
-		
+
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		glOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
 		glMatrixMode(GL_MODELVIEW);
 	}
 
-	G.fonts= BMF_GetFont(BMF_kHelvetica10);
-	
+	G.fonts = BMF_GetFont(BMF_kHelvetica10);
+
 	ibufx = ibuf->x;
 	ibufy = ibuf->y;
-	
+
 	if (maxwinx % ibuf->x) maxwinx = ibuf->x * (1 + (maxwinx / ibuf->x));
 	if (maxwiny % ibuf->y) maxwiny = ibuf->y * (1 + (maxwiny / ibuf->y));
-	
+
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	window_swap_buffers(g_window);
-	
+
 	if (sfra == -1 || efra == -1) {
 		/* one of the frames was invalid, just use all images */
 		sfra = 1;
 		efra = MAXFRAME;
 	}
-	
+
 	build_pict_list(name, (efra - sfra) + 1, fstep);
-	
-	for (i = 2; i < argc; i++){
+
+	for (i = 2; i < argc; i++) {
 		strcpy(name, argv[i]);
 		build_pict_list(name, (efra - sfra) + 1, fstep);
 	}
 
-	IMB_freeImBuf(ibuf); 
+	IMB_freeImBuf(ibuf);
 	ibuf = 0;
 
 	pupdate_time();
 	ptottime = 0;
 
-	while (go){
+	while (go) {
 		if (pingpong) direction = -direction;
 
 		if (direction == 1) picture = picsbase->first;
 		else picture = picsbase->last;
 
-		if (picture == 0){
+		if (picture == 0) {
 			printf("couldn't find pictures\n");
 			go = FALSE;
 		}
-		if (pingpong){
+		if (pingpong) {
 			if (direction == 1) picture = picture->next;
 			else picture = picture->prev;
 		}
 		if (ptottime > 0.0) ptottime = 0.0;
 
-		while (picture){
+		while (picture) {
 			if (ibuf != 0 && ibuf->type == 0) IMB_freeImBuf(ibuf);
 
 			if (picture->ibuf) ibuf = picture->ibuf;
 			else if (picture->anim) ibuf = IMB_anim_absolute(picture->anim, picture->frame);
 			else if (picture->mem) ibuf = IMB_ibImageFromMemory((int *) picture->mem, picture->size, picture->IB_flags);
 			else ibuf = IMB_loadiffname(picture->name, picture->IB_flags);
-			
-			if (ibuf){
+
+			if (ibuf) {
 				strcpy(ibuf->name, picture->name);
-				
-#ifdef _WIN32	
+
+#ifdef _WIN32
 				window_set_title(g_window, picture->name);
 #endif
 
@@ -546,253 +551,260 @@ void playanim(int argc, char **argv)
 				printf("error: can't play this image type\n");
 				exit(0);
 			}
-			
-			if (once){
+
+			if (once) {
 				if (picture->next == 0) wait2 = TRUE;
 				else if (picture->prev == 0) wait2 = TRUE;
 			}
-			
+
 			next = direction;
-			
-			while ((qtest() != 0 ) || ( wait2 != 0)){
+
+			while ((qtest() != 0) || (wait2 != 0)) {
 				if (wait2 && stopped) {
 					stopped = FALSE;
 				}
-			
+
 				event = qreadN(&val);
 				/* printf("%d %d\n", event, val); */
-				
-				if (wait2){
+
+				if (wait2) {
 					pupdate_time();
 					ptottime = 0;
 				}
-				switch (event){
-				case AKEY:
-					if (val)
-						noskip = !noskip;
-					break;
-				case PKEY:
-					if (val)
-						pingpong = !pingpong;
-					break;
-				case SLASHKEY:
-					if (val) {
-						if (qualN & SHIFT) {
-							if (ibuf)
-								printf(" Name: %s | Speed: %.2f frames/s\n", ibuf->name, fstep / swaptime);
-						} else {
-							swaptime = fstep / 5.0;
+				switch (event) {
+					case AKEY:
+						if (val)
+							noskip = !noskip;
+						break;
+					case PKEY:
+						if (val)
+							pingpong = !pingpong;
+						break;
+					case SLASHKEY:
+						if (val) {
+							if (qualN & SHIFT) {
+								if (ibuf)
+									printf(" Name: %s | Speed: %.2f frames/s\n", ibuf->name, fstep / swaptime);
+							}
+							else {
+								swaptime = fstep / 5.0;
+							}
 						}
-					}
-					break;
-				case LEFTARROWKEY:
-					if (val){
-						sstep = TRUE;
-						wait2 = FALSE;
-						if (qualN & SHIFT) {
-							picture = picsbase->first;
-							next = 0;
-						} else {
-							next = -1;
-						}
-					}
-					break;
-				case DOWNARROWKEY:
-					if (val){
-						wait2 = FALSE;
-						if (qualN & SHIFT) {
-							next = direction = -1;
-						} else {
-							next = -10;
+						break;
+					case LEFTARROWKEY:
+						if (val) {
 							sstep = TRUE;
-						}
-					}
-					break;
-				case RIGHTARROWKEY:
-					if (val){
-						sstep = TRUE;
-						wait2 = FALSE;
-						if (qualN & SHIFT) {
-							picture = picsbase->last;
-							next = 0;
-						} else {
-							next = 1;
-						}
-					}
-					break;
-				case UPARROWKEY:
-					if (val){
-						wait2 = FALSE;
-						if (qualN & SHIFT) {
-							next = direction = 1;
-						} else {
-							next = 10;
-							sstep = TRUE;
-						}
-					}
-					break;
-				case LEFTMOUSE:
-				case MOUSEX:
-					if (qualN & LMOUSE) {
-						window_get_size(g_window,&sizex,&sizey);
-						picture = picsbase->first;
-						i = 0;
-						while (picture){
-							i ++;
-							picture = picture->next;
-						}
-						i = (i * val) / sizex;
-						picture = picsbase->first;
-						for (; i > 0; i--){
-							if (picture->next == 0) break;
-							picture = picture->next;
-						}
-						sstep = TRUE;
-						wait2 = FALSE;
-						next = 0;
-					}
-					break;
-					go= FALSE;
-					break;
-				case EQUALKEY:
-					if (val) {
-						if (qualN & SHIFT) {
-							pause ++;
-							printf("pause:%d\n", pause);
-						} else swaptime /= 1.1;
-					}
-					break;
-				case MINUSKEY:
-					if (val) {
-						if (qualN & SHIFT) {
-							pause --;
-							printf("pause:%d\n", pause);
-						} else swaptime *= 1.1;
-					}
-					break;
-				case PAD0:
-					if (val){
-						if (once) once = wait2 = FALSE;
-						else {
-							picture = 0;
-							once = TRUE;
 							wait2 = FALSE;
+							if (qualN & SHIFT) {
+								picture = picsbase->first;
+								next = 0;
+							}
+							else {
+								next = -1;
+							}
 						}
-					}
-					break;
-				case RETKEY:
-				case PADENTER:
-					if (val){
-						wait2 = sstep = FALSE;
-					}
-					break;
-				case PADPERIOD:
-					if (val){
-						if (sstep) wait2 = FALSE;
-						else {
+						break;
+					case DOWNARROWKEY:
+						if (val) {
+							wait2 = FALSE;
+							if (qualN & SHIFT) {
+								next = direction = -1;
+							}
+							else {
+								next = -10;
+								sstep = TRUE;
+							}
+						}
+						break;
+					case RIGHTARROWKEY:
+						if (val) {
 							sstep = TRUE;
-							wait2 = !wait2;
+							wait2 = FALSE;
+							if (qualN & SHIFT) {
+								picture = picsbase->last;
+								next = 0;
+							}
+							else {
+								next = 1;
+							}
 						}
-					}
-					break;
-				case PAD1:
-					swaptime = fstep / 60.0;
-					break;
-				case PAD2:
-					swaptime = fstep / 50.0;
-					break;
-				case PAD3:
-					swaptime = fstep / 30.0;
-					break;
-				case PAD4:
-					if (qualN & SHIFT)
-						swaptime = fstep / 24.0;
-					else
-						swaptime = fstep / 25.0;
-					break;
-				case PAD5:
-					swaptime = fstep / 20.0;
-					break;
-				case PAD6:
-					swaptime = fstep / 15.0;
-					break;
-				case PAD7:
-					swaptime = fstep / 12.0;
-					break;
-				case PAD8:
-					swaptime = fstep / 10.0;
-					break;
-				case PAD9:
-					swaptime = fstep / 6.0;
-					break;
-				case PADPLUSKEY:
-					if (val == 0) break;
-					zoomx += 2.0;
-					zoomy += 2.0;
-				case PADMINUS:
-					if (val == 0) break;
-					if (zoomx > 1.0) zoomx -= 1.0;
-					if (zoomy > 1.0) zoomy -= 1.0;
-					window_get_position(g_window,&ofsx,&ofsy);
-					window_get_size(g_window,&sizex,&sizey);
-					ofsx += sizex/2;
-					ofsy += sizey/2;
-					sizex = zoomx * ibufx;
-					sizey = zoomy * ibufy;
-					ofsx -= sizex/2;
-					ofsy -= sizey/2;
-/* 					window_set_position(g_window,sizex,sizey); */
-					window_set_size(g_window,sizex,sizey);
-					break;
-				case RESHAPE:
-				case REDRAW:
-					window_get_size(g_window,&sizex,&sizey);
-					window_make_active(g_window);
-					
-					glViewport(0,  0, sizex, sizey);
-					glScissor(0,  0, sizex, sizey);
+						break;
+					case UPARROWKEY:
+						if (val) {
+							wait2 = FALSE;
+							if (qualN & SHIFT) {
+								next = direction = 1;
+							}
+							else {
+								next = 10;
+								sstep = TRUE;
+							}
+						}
+						break;
+					case LEFTMOUSE:
+					case MOUSEX:
+						if (qualN & LMOUSE) {
+							window_get_size(g_window, &sizex, &sizey);
+							picture = picsbase->first;
+							i = 0;
+							while (picture) {
+								i++;
+								picture = picture->next;
+							}
+							i = (i * val) / sizex;
+							picture = picsbase->first;
+							for (; i > 0; i--) {
+								if (picture->next == 0) break;
+								picture = picture->next;
+							}
+							sstep = TRUE;
+							wait2 = FALSE;
+							next = 0;
+						}
+						break;
+						go = FALSE;
+						break;
+					case EQUALKEY:
+						if (val) {
+							if (qualN & SHIFT) {
+								pause++;
+								printf("pause:%d\n", pause);
+							}
+							else swaptime /= 1.1;
+						}
+						break;
+					case MINUSKEY:
+						if (val) {
+							if (qualN & SHIFT) {
+								pause--;
+								printf("pause:%d\n", pause);
+							}
+							else swaptime *= 1.1;
+						}
+						break;
+					case PAD0:
+						if (val) {
+							if (once) once = wait2 = FALSE;
+							else {
+								picture = 0;
+								once = TRUE;
+								wait2 = FALSE;
+							}
+						}
+						break;
+					case RETKEY:
+					case PADENTER:
+						if (val) {
+							wait2 = sstep = FALSE;
+						}
+						break;
+					case PADPERIOD:
+						if (val) {
+							if (sstep) wait2 = FALSE;
+							else {
+								sstep = TRUE;
+								wait2 = !wait2;
+							}
+						}
+						break;
+					case PAD1:
+						swaptime = fstep / 60.0;
+						break;
+					case PAD2:
+						swaptime = fstep / 50.0;
+						break;
+					case PAD3:
+						swaptime = fstep / 30.0;
+						break;
+					case PAD4:
+						if (qualN & SHIFT)
+							swaptime = fstep / 24.0;
+						else
+							swaptime = fstep / 25.0;
+						break;
+					case PAD5:
+						swaptime = fstep / 20.0;
+						break;
+					case PAD6:
+						swaptime = fstep / 15.0;
+						break;
+					case PAD7:
+						swaptime = fstep / 12.0;
+						break;
+					case PAD8:
+						swaptime = fstep / 10.0;
+						break;
+					case PAD9:
+						swaptime = fstep / 6.0;
+						break;
+					case PADPLUSKEY:
+						if (val == 0) break;
+						zoomx += 2.0;
+						zoomy += 2.0;
+					case PADMINUS:
+						if (val == 0) break;
+						if (zoomx > 1.0) zoomx -= 1.0;
+						if (zoomy > 1.0) zoomy -= 1.0;
+						window_get_position(g_window, &ofsx, &ofsy);
+						window_get_size(g_window, &sizex, &sizey);
+						ofsx += sizex / 2;
+						ofsy += sizey / 2;
+						sizex = zoomx * ibufx;
+						sizey = zoomy * ibufy;
+						ofsx -= sizex / 2;
+						ofsy -= sizey / 2;
+/*                  window_set_position(g_window,sizex,sizey); */
+						window_set_size(g_window, sizex, sizey);
+						break;
+					case RESHAPE:
+					case REDRAW:
+						window_get_size(g_window, &sizex, &sizey);
+						window_make_active(g_window);
 
-					zoomx = (float) sizex / ibufx;
-					zoomy = (float) sizey / ibufy;
-					zoomx = floor(zoomx + 0.5);
-					zoomy = floor(zoomy + 0.5);
-					if (zoomx < 1.0) zoomx = 1.0;
-					if (zoomy < 1.0) zoomy = 1.0;
+						glViewport(0,  0, sizex, sizey);
+						glScissor(0,  0, sizex, sizey);
 
-					sizex = zoomx * ibufx;
-					sizey = zoomy * ibufy;
+						zoomx = (float) sizex / ibufx;
+						zoomy = (float) sizey / ibufy;
+						zoomx = floor(zoomx + 0.5);
+						zoomy = floor(zoomy + 0.5);
+						if (zoomx < 1.0) zoomx = 1.0;
+						if (zoomy < 1.0) zoomy = 1.0;
 
-					glPixelZoom(zoomx, zoomy);
-					glEnable(GL_DITHER);
-					ptottime = 0.0;
-					toscreen(picture, ibuf);
-					while (qtest()) qreadN(&val);
-					
-					break;
-				case ESCKEY:
-				case WINCLOSE:
-				case WINQUIT:
-					go = FALSE;
-					break;
+						sizex = zoomx * ibufx;
+						sizey = zoomy * ibufy;
+
+						glPixelZoom(zoomx, zoomy);
+						glEnable(GL_DITHER);
+						ptottime = 0.0;
+						toscreen(picture, ibuf);
+						while (qtest()) qreadN(&val);
+
+						break;
+					case ESCKEY:
+					case WINCLOSE:
+					case WINQUIT:
+						go = FALSE;
+						break;
 				}
 				if (go == FALSE) break;
 			}
-			
+
 			wait2 = sstep;
-			
+
 			if (wait2 == 0 && stopped == 0) {
 				stopped = TRUE;
 			}
 
 			pupdate_time();
-					
+
 			if (picture && next) {
 				/* always at least set one step */
-				while (picture){
+				while (picture) {
 					if (next < 0) picture = picture->prev;
 					else picture = picture->next;
-	
-					if (once && picture != 0){
+
+					if (once && picture != 0) {
 						if (picture->next == 0) wait2 = TRUE;
 						else if (picture->prev == 0) wait2 = TRUE;
 					}
@@ -802,7 +814,7 @@ void playanim(int argc, char **argv)
 				}
 				if (picture == 0 && sstep) {
 					if (next < 0) picture = picsbase->last;
-					else if (next > 0) picture = picsbase->first;									
+					else if (next > 0) picture = picsbase->first;
 				}
 			}
 			if (go == FALSE) break;
@@ -816,14 +828,14 @@ void playanim(int argc, char **argv)
 			anim = picture->anim;
 			IMB_close_anim(anim);
 		}
-		if(picture->ibuf) IMB_freeImBuf(picture->ibuf);
-		if(picture->mem) MEM_freeN(picture->mem);
-		
+		if (picture->ibuf) IMB_freeImBuf(picture->ibuf);
+		if (picture->mem) MEM_freeN(picture->mem);
+
 		picture = picture->next;
 	}
 #ifdef WITH_QUICKTIME
-#if defined (_WIN32) || defined (__APPLE__)
-	if(G.have_quicktime) {
+#if defined(_WIN32) || defined(__APPLE__)
+	if (G.have_quicktime) {
 		ExitMovies();
 #ifdef _WIN32
 		TerminateQTML();
@@ -833,14 +845,14 @@ void playanim(int argc, char **argv)
 #endif /* WITH_QUICKTIME */
 
 	/* cleanup */
-	if(ibuf) IMB_freeImBuf(ibuf); 
+	if (ibuf) IMB_freeImBuf(ibuf);
 	BLI_freelistN(picsbase);
 	free_blender();
 	window_destroy(g_window);
 
-	totblock= MEM_get_memory_blocks_in_use();
-	if(totblock!=0) {
-		printf("Error Totblock: %d\n",totblock);
+	totblock = MEM_get_memory_blocks_in_use();
+	if (totblock != 0) {
+		printf("Error Totblock: %d\n", totblock);
 		MEM_printmemlist();
 	}
 }
