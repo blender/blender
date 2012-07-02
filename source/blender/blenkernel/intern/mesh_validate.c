@@ -211,6 +211,7 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 
 	short verts_fixed = FALSE;
 	short vert_weights_fixed = FALSE;
+	int msel_fixed = FALSE;
 
 	int do_edge_recalc = FALSE;
 
@@ -754,8 +755,6 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 		}
 	}
 
-	PRINT("BKE_mesh_validate: finished\n\n");
-
 #   undef REMOVE_EDGE_TAG
 #   undef IS_REMOVED_EDGE
 #   undef REMOVE_LOOP_TAG
@@ -779,7 +778,51 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 		}
 	}
 
-	return (verts_fixed || vert_weights_fixed || do_polyloop_free || do_edge_free || do_edge_recalc);
+	if (mesh && mesh->mselect) {
+		MSelect *msel;
+		int free_msel = FALSE;
+
+		for (i = 0, msel = mesh->mselect; i < mesh->totselect; i++, msel++) {
+			int tot_elem;
+
+			if (msel->index < 0) {
+				PRINT("Mesh select element %d type %d index is negative, "
+				      "resetting selection stack.\n", i, msel->type);
+				free_msel = TRUE;
+				break;
+			}
+
+			switch (msel->type) {
+				case ME_VSEL:
+					tot_elem = mesh->totvert;
+					break;
+				case ME_ESEL:
+					tot_elem = mesh->totedge;
+					break;
+				case ME_FSEL:
+					tot_elem = mesh->totface;
+					break;
+			}
+
+			if (msel->index > tot_elem) {
+				PRINT("Mesh select element %d type %d index %d is larger than data array size %d, "
+				      "resetting selection stack.\n", i, msel->type, msel->index, tot_elem);
+
+				free_msel = TRUE;
+				break;
+			}
+		}
+
+		if (free_msel) {
+			MEM_freeN(mesh->mselect);
+			mesh->mselect = NULL;
+			mesh->totselect = 0;
+		}
+	}
+
+	PRINT("BKE_mesh_validate: finished\n\n");
+
+	return (verts_fixed || vert_weights_fixed || do_polyloop_free || do_edge_free || do_edge_recalc || msel_fixed);
 }
 
 static int mesh_validate_customdata(CustomData *data, short do_verbose, const short do_fixes)
