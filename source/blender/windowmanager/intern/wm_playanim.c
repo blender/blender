@@ -1,6 +1,4 @@
-/**
- * $Id: playanim.c 17755 2008-12-09 04:57:42Z bdiego $
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +20,16 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/windowmanager/intern/wm_playanim.c
+ *  \ingroup wm
+ *
+ * \note This file uses ghost directly and none of the WM definitions.
+ *       this could be made into its own module, alongside creator/
  */
 
 #include <sys/types.h>
@@ -32,16 +37,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
-#include <unistd.h>
-#include <sys/times.h>
-#include <sys/wait.h>
+#  include <unistd.h>
+#  include <sys/times.h>
+#  include <sys/wait.h>
 #else
-#include <io.h>
+#  include <io.h>
 #endif
 #include "MEM_guardedalloc.h"
 
@@ -63,12 +64,12 @@
 #include "BIF_glutil.h"
 
 #ifdef WITH_QUICKTIME
-#ifdef _WIN32
-#include <QTML.h>
-#include <Movies.h>
-#elif defined(__APPLE__)
-#include <QuickTime/Movies.h>
-#endif /* __APPLE__ */
+#  ifdef _WIN32
+#    include <QTML.h>
+#    include <Movies.h>
+#  elif defined(__APPLE__)
+#    include <QuickTime/Movies.h>
+#  endif /* __APPLE__ */
 #endif /* WITH_QUICKTIME */
 
 #include "DNA_scene_types.h"
@@ -168,13 +169,8 @@ static int qreadN(short *val)
 	return(event);
 }
 
-/* ***************** gl_util.c ****************** */
-
-
-
-
-typedef struct pict {
-	struct pict *next, *prev;
+typedef struct PlayAnimPict {
+	struct PlayAnimPict *next, *prev;
 	char *mem;
 	int size;
 	char *name;
@@ -182,9 +178,9 @@ typedef struct pict {
 	struct anim *anim;
 	int frame;
 	int IB_flags;
-}Pict;
+} PlayAnimPict;
 
-static struct ListBase _picsbase = {0, 0};
+static struct ListBase _picsbase = {NULL, NULL};
 static struct ListBase *picsbase = &_picsbase;
 static int fromdisk = FALSE;
 static int fstep = 1;
@@ -203,10 +199,10 @@ static int pupdate_time(void)
 	return (ptottime < 0);
 }
 
-static void toscreen(Pict *picture, struct ImBuf *ibuf)
+static void toscreen(PlayAnimPict *picture, struct ImBuf *ibuf)
 {
 
-	if (ibuf == 0) {
+	if (ibuf == NULL) {
 		printf("no ibuf !\n");
 		return;
 	}
@@ -224,10 +220,10 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 	pupdate_time();
 
 	if (picture && (qualN & (SHIFT | LMOUSE))) {
-		char str[512];
+		char str[32 + FILE_MAX];
 		cpack(-1);
-		glRasterPos2f(0.02f,  0.03f);
-		sprintf(str, "%s | %.2f frames/s\n", picture->name, fstep / swaptime);
+		glRasterPos2f(0.02f, 0.03f);
+		BLI_snprintf(str, sizeof(str), "%s | %.2f frames/s\n", picture->name, fstep / swaptime);
 #if 0 // XXX25
 		BMF_DrawString(G.fonts, str);
 #endif
@@ -239,12 +235,12 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 static void build_pict_list(char *first, int totframes, int fstep)
 {
 	int size, pic, file;
-	char *mem, name[512];
+	char *mem, filepath[FILE_MAX];
 //	short val;
-	struct pict *picture = 0;
-	struct ImBuf *ibuf = 0;
+	PlayAnimPict *picture = NULL;
+	struct ImBuf *ibuf = NULL;
 	int count = 0;
-	char str[512];
+	char str[32 + FILE_MAX];
 	struct anim *anim;
 
 	if (IMB_isanim(first)) {
@@ -257,40 +253,42 @@ static void build_pict_list(char *first, int totframes, int fstep)
 			}
 
 			for (pic = 0; pic < IMB_anim_get_duration(anim, IMB_TC_NONE); pic++) {
-				picture = (Pict *)MEM_callocN(sizeof(Pict), "Pict");
+				picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "Pict");
 				picture->anim = anim;
 				picture->frame = pic;
 				picture->IB_flags = IB_rect;
-				sprintf(str, "%s : %d", first, pic + 1);
+				BLI_snprintf(str, sizeof(str), "%s : %d", first, pic + 1);
 				picture->name = strdup(str);
 				BLI_addtail(picsbase, picture);
 			}
 		}
-		else printf("couldn't open anim %s\n", first);
+		else {
+			printf("couldn't open anim %s\n", first);
+		}
 	}
 	else {
 
-		strcpy(name, first);
+		BLI_strncpy(filepath, first, sizeof(filepath));
 
 		pupdate_time();
 		ptottime = 1.0;
 
-/*
-     O_DIRECT
-            If set, all reads and writes on the resulting file descriptor will
-            be performed directly to or from the user program buffer, provided
-            appropriate size and alignment restrictions are met.  Refer to the
-            F_SETFL and F_DIOINFO commands in the fcntl(2) manual entry for
-            information about how to determine the alignment constraints.
-            O_DIRECT is a Silicon Graphics extension and is only supported on
-            local EFS and XFS file systems.
- */
+		/* O_DIRECT
+		 *
+		 * If set, all reads and writes on the resulting file descriptor will
+		 * be performed directly to or from the user program buffer, provided
+		 * appropriate size and alignment restrictions are met.  Refer to the
+		 * F_SETFL and F_DIOINFO commands in the fcntl(2) manual entry for
+		 * information about how to determine the alignment constraints.
+		 * O_DIRECT is a Silicon Graphics extension and is only supported on
+		 * local EFS and XFS file systems.
+		 */
 
-		while (IMB_ispic(name) && totframes) {
-			file = open(name, O_BINARY | O_RDONLY, 0);
+		while (IMB_ispic(filepath) && totframes) {
+			file = open(filepath, O_BINARY | O_RDONLY, 0);
 			if (file < 0) return;
-			picture = (struct pict *)MEM_callocN(sizeof(struct pict), "picture");
-			if (picture == 0) {
+			picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
+			if (picture == NULL) {
 				printf("Not enough memory for pict struct \n");
 				close(file);
 				return;
@@ -308,7 +306,7 @@ static void build_pict_list(char *first, int totframes, int fstep)
 
 			if (fromdisk == FALSE) {
 				mem = (char *)MEM_mallocN(size, "build pic list");
-				if (mem == 0) {
+				if (mem == NULL) {
 					printf("Couldn't get memory\n");
 					close(file);
 					MEM_freeN(picture);
@@ -316,17 +314,19 @@ static void build_pict_list(char *first, int totframes, int fstep)
 				}
 
 				if (read(file, mem, size) != size) {
-					printf("Error while reading %s\n", name);
+					printf("Error while reading %s\n", filepath);
 					close(file);
 					MEM_freeN(picture);
 					MEM_freeN(mem);
 					return;
 				}
 			}
-			else mem = 0;
+			else {
+				mem = NULL;
+			}
 
 			picture->mem = mem;
-			picture->name = strdup(name);
+			picture->name = strdup(filepath);
 			close(file);
 			BLI_addtail(picsbase, picture);
 			count++;
@@ -334,8 +334,13 @@ static void build_pict_list(char *first, int totframes, int fstep)
 			pupdate_time();
 
 			if (ptottime > 1.0) {
-				if (picture->mem) ibuf = IMB_ibImageFromMemory((unsigned char *)picture->mem, picture->size, picture->IB_flags, picture->name);
-				else ibuf = IMB_loadiffname(picture->name, picture->IB_flags);
+				if (picture->mem) {
+					ibuf = IMB_ibImageFromMemory((unsigned char *)picture->mem, picture->size,
+					                             picture->IB_flags, picture->name);
+				}
+				else {
+					ibuf = IMB_loadiffname(picture->name, picture->IB_flags);
+				}
 				if (ibuf) {
 					toscreen(picture, ibuf);
 					IMB_freeImBuf(ibuf);
@@ -344,7 +349,7 @@ static void build_pict_list(char *first, int totframes, int fstep)
 				ptottime = 0.0;
 			}
 
-			BLI_newname(name, +fstep);
+			BLI_newname(filepath, +fstep);
 
 #if 0 // XXX25
 			while (qtest()) {
@@ -406,12 +411,13 @@ void playanim_window_open(const char *title, int posx, int posy, int sizex, int 
 void playanim(int argc, const char **argv)
 {
 	struct ImBuf *ibuf = 0;
-	struct pict *picture = 0;
-	char name[512];
+	PlayAnimPict *picture = 0;
+	char filepath[FILE_MAX];
 	short val = 0, go = TRUE, ibufx = 0, ibufy = 0;
 	int event, stopped = FALSE;
 	GHOST_TUns32 maxwinx, maxwiny;
-	short /*  c233 = FALSE, */ /*  yuvx = FALSE, */ once = FALSE, sstep = FALSE, wait2 = FALSE, /*  resetmap = FALSE, */ pause = 0;
+	/* short c233 = FALSE, yuvx = FALSE; */ /* UNUSED */
+	short once = FALSE, sstep = FALSE, wait2 = FALSE, /*  resetmap = FALSE, */ pause = 0;
 	short pingpong = FALSE, direction = 1, next = 1, turbo = FALSE, /*  doubleb = TRUE, */ noskip = FALSE;
 	int sizex, sizey, ofsx, ofsy, i;
 	/* This was done to disambiguate the name for use under c++. */
@@ -442,7 +448,7 @@ void playanim(int argc, const char **argv)
 					if (argc > 3) {
 						double fps = atof(argv[2]);
 						double fps_base = atof(argv[3]);
-						if (fps == 0) {
+						if (fps == 0.0) {
 							fps = 1;
 							printf("invalid fps,"
 							       "forcing 1\n");
@@ -478,7 +484,9 @@ void playanim(int argc, const char **argv)
 			argc--;
 			argv++;
 		}
-		else break;
+		else {
+			break;
+		}
 	}
 
 #ifdef WITH_QUICKTIME
@@ -501,27 +509,32 @@ void playanim(int argc, const char **argv)
 	G.have_quicktime = TRUE;
 #endif /* WITH_QUICKTIME */
 
-	if (argc > 1) strcpy(name, argv[1]);
+	if (argc > 1) {
+		BLI_strncpy(filepath, argv[1], sizeof(filepath));
+	}
 	else {
-		BLI_current_working_dir(name, sizeof(name));
-		if (name[strlen(name) - 1] != '/') strcat(name, "/");
+		BLI_current_working_dir(filepath, sizeof(filepath));
+		BLI_add_slash(filepath);
 	}
 
-	if (IMB_isanim(name)) {
-		anim = IMB_open_anim(name, IB_rect, 0);
+	if (IMB_isanim(filepath)) {
+		anim = IMB_open_anim(filepath, IB_rect, 0);
 		if (anim) {
 			ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
 			IMB_close_anim(anim);
 			anim = NULL;
 		}
 	}
-	else if (!IMB_ispic(name)) {
+	else if (!IMB_ispic(filepath)) {
 		exit(1);
 	}
 
-	if (ibuf == 0) ibuf = IMB_loadiffname(name, IB_rect);
-	if (ibuf == 0) {
-		printf("couldn't open %s\n", name);
+	if (ibuf == NULL) {
+		ibuf = IMB_loadiffname(filepath, IB_rect);
+	}
+
+	if (ibuf == NULL) {
+		printf("couldn't open %s\n", filepath);
 		exit(1);
 	}
 
@@ -575,15 +588,15 @@ void playanim(int argc, const char **argv)
 		efra = MAXFRAME;
 	}
 
-	build_pict_list(name, (efra - sfra) + 1, fstep);
+	build_pict_list(filepath, (efra - sfra) + 1, fstep);
 
 	for (i = 2; i < argc; i++) {
-		strcpy(name, argv[i]);
-		build_pict_list(name, (efra - sfra) + 1, fstep);
+		BLI_strncpy(filepath, argv[i], sizeof(filepath));
+		build_pict_list(filepath, (efra - sfra) + 1, fstep);
 	}
 
 	IMB_freeImBuf(ibuf);
-	ibuf = 0;
+	ibuf = NULL;
 
 	pupdate_time();
 	ptottime = 0;
@@ -591,29 +604,46 @@ void playanim(int argc, const char **argv)
 	while (go) {
 		if (pingpong) direction = -direction;
 
-		if (direction == 1) picture = picsbase->first;
-		else picture = picsbase->last;
+		if (direction == 1) {
+			picture = picsbase->first;
+		}
+		else {
+			picture = picsbase->last;
+		}
 
-		if (picture == 0) {
+		if (picture == NULL) {
 			printf("couldn't find pictures\n");
 			go = FALSE;
 		}
 		if (pingpong) {
-			if (direction == 1) picture = picture->next;
-			else picture = picture->prev;
+			if (direction == 1) {
+				picture = picture->next;
+			}
+			else {
+				picture = picture->prev;
+			}
 		}
 		if (ptottime > 0.0) ptottime = 0.0;
 
 		while (picture) {
-			if (ibuf != 0 && ibuf->ftype == 0) IMB_freeImBuf(ibuf);
+			if (ibuf != NULL && ibuf->ftype == 0) IMB_freeImBuf(ibuf);
 
-			if (picture->ibuf) ibuf = picture->ibuf;
-			else if (picture->anim) ibuf = IMB_anim_absolute(picture->anim, picture->frame, IMB_TC_NONE, IMB_PROXY_NONE);
-			else if (picture->mem) ibuf = IMB_ibImageFromMemory((unsigned char *) picture->mem, picture->size, picture->IB_flags, picture->name);
-			else ibuf = IMB_loadiffname(picture->name, picture->IB_flags);
+			if (picture->ibuf) {
+				ibuf = picture->ibuf;
+			}
+			else if (picture->anim) {
+				ibuf = IMB_anim_absolute(picture->anim, picture->frame, IMB_TC_NONE, IMB_PROXY_NONE);
+			}
+			else if (picture->mem) {
+				ibuf = IMB_ibImageFromMemory((unsigned char *) picture->mem, picture->size,
+				                             picture->IB_flags, picture->name);
+			}
+			else {
+				ibuf = IMB_loadiffname(picture->name, picture->IB_flags);
+			}
 
 			if (ibuf) {
-				strcpy(ibuf->name, picture->name);
+				BLI_strncpy(ibuf->name, picture->name, sizeof(ibuf->name));
 
 #ifdef _WIN32
 				window_set_title(g_window, picture->name);
@@ -629,8 +659,12 @@ void playanim(int argc, const char **argv)
 			}
 
 			if (once) {
-				if (picture->next == 0) wait2 = TRUE;
-				else if (picture->prev == 0) wait2 = TRUE;
+				if (picture->next == NULL) {
+					wait2 = TRUE;
+				}
+				else if (picture->prev == NULL) {
+					wait2 = TRUE;
+				}
 			}
 
 			next = direction;
@@ -730,7 +764,7 @@ void playanim(int argc, const char **argv)
 							i = (i * val) / sizex;
 							picture = picsbase->first;
 							for (; i > 0; i--) {
-								if (picture->next == 0) break;
+								if (picture->next == NULL) break;
 								picture = picture->next;
 							}
 							sstep = TRUE;
@@ -746,7 +780,9 @@ void playanim(int argc, const char **argv)
 								pause++;
 								printf("pause:%d\n", pause);
 							}
-							else swaptime /= 1.1;
+							else {
+								swaptime /= 1.1;
+							}
 						}
 						break;
 					case MINUSKEY:
@@ -755,7 +791,9 @@ void playanim(int argc, const char **argv)
 								pause--;
 								printf("pause:%d\n", pause);
 							}
-							else swaptime *= 1.1;
+							else {
+								swaptime *= 1.1;
+							}
 						}
 						break;
 					case PAD0:
@@ -837,8 +875,8 @@ void playanim(int argc, const char **argv)
 						playanim_window_get_size(&sizey, &sizey);
 						GHOST_ActivateWindowDrawingContext(g_window);
 
-						glViewport(0,  0, sizex, sizey);
-						glScissor(0,  0, sizex, sizey);
+						glViewport(0, 0, sizex, sizey);
+						glScissor(0, 0, sizex, sizey);
 
 						zoomx = (float) sizex / ibufx;
 						zoomy = (float) sizey / ibufy;
@@ -877,20 +915,32 @@ void playanim(int argc, const char **argv)
 			if (picture && next) {
 				/* always at least set one step */
 				while (picture) {
-					if (next < 0) picture = picture->prev;
-					else picture = picture->next;
+					if (next < 0) {
+						picture = picture->prev;
+					}
+					else {
+						picture = picture->next;
+					}
 
-					if (once && picture != 0) {
-						if (picture->next == 0) wait2 = TRUE;
-						else if (picture->prev == 0) wait2 = TRUE;
+					if (once && picture != NULL) {
+						if (picture->next == NULL) {
+							wait2 = TRUE;
+						}
+						else if (picture->prev == NULL) {
+							wait2 = TRUE;
+						}
 					}
 
 					if (wait2 || ptottime < swaptime || turbo || noskip) break;
 					ptottime -= swaptime;
 				}
-				if (picture == 0 && sstep) {
-					if (next < 0) picture = picsbase->last;
-					else if (next > 0) picture = picsbase->first;
+				if (picture == NULL && sstep) {
+					if (next < 0) {
+						picture = picsbase->last;
+					}
+					else if (next > 0) {
+						picture = picsbase->first;
+					}
 				}
 			}
 			if (go == FALSE) break;
