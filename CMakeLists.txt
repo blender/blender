@@ -366,7 +366,7 @@ if(WITH_CYCLES)
 endif()
 
 # auto enable boost for cycles and carve
-if(WITH_CYCLES OR WITH_CARVE)
+if(WITH_CYCLES OR WITH_CARVE OR WITH_OPENCOLORIO)
 	set(WITH_BOOST ON)
 endif()
 

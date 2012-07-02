@@ -301,6 +301,15 @@ if(WITH_INTERNATIONAL)
 	)
 endif()
 
+# color management
+if(WITH_OPENCOLORIO)
+	install(
+		DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/colormanagement
+		DESTINATION ${TARGETDIR_VER}/datafiles
+		PATTERN ".svn" EXCLUDE
+	)
+endif()
+
 # helpful tip when using make
 if("${CMAKE_GENERATOR}" MATCHES ".*Makefiles.*")
 	# message after building.
@@ -392,13 +401,6 @@ if(UNIX AND NOT APPLE)
 		install(
 			FILES ${BLENDER_TEXT_FILES}
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
-		)
-	endif()
-
-	if(WITH_OPENCOLORIO)
-		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/colormanagement
-			DESTINATION ${TARGETDIR_VER}/datafiles
 		)
 	endif()
 

@@ -40,4 +40,10 @@ set(SRC
 add_definitions(
 )
 
+if(WIN32 AND NOT MINGW)
+	list(APPEND INC
+		${BOOST_INCLUDE_DIR}
+	)
+endif()
+
 blender_add_lib(bf_intern_opencolorio "${SRC}" "${INC}" "${INC_SYS}")

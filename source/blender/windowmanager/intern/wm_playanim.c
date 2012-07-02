@@ -649,7 +649,7 @@ void playanim(int argc, const char **argv)
 				BLI_strncpy(ibuf->name, picture->name, sizeof(ibuf->name));
 
 #ifdef _WIN32
-				window_set_title(g_window, picture->name);
+				GHOST_SetTitle(g_window, picture->name);
 #endif
 
 				while (pupdate_time()) PIL_sleep_ms(1);
