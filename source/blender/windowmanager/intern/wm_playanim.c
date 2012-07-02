@@ -234,18 +234,17 @@ static void toscreen(PlayAnimPict *picture, struct ImBuf *ibuf)
 
 static void build_pict_list(char *first, int totframes, int fstep)
 {
-	int size, pic, file;
 	char *mem, filepath[FILE_MAX];
 //	short val;
 	PlayAnimPict *picture = NULL;
 	struct ImBuf *ibuf = NULL;
-	int count = 0;
 	char str[32 + FILE_MAX];
 	struct anim *anim;
 
 	if (IMB_isanim(first)) {
 		anim = IMB_open_anim(first, IB_rect, 0);
 		if (anim) {
+			int pic;
 			ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
 			if (ibuf) {
 				toscreen(NULL, ibuf);
@@ -267,6 +266,7 @@ static void build_pict_list(char *first, int totframes, int fstep)
 		}
 	}
 	else {
+		int count = 0;
 
 		BLI_strncpy(filepath, first, sizeof(filepath));
 
@@ -285,6 +285,9 @@ static void build_pict_list(char *first, int totframes, int fstep)
 		 */
 
 		while (IMB_ispic(filepath) && totframes) {
+			size_t size;
+			int file;
+
 			file = open(filepath, O_BINARY | O_RDONLY, 0);
 			if (file < 0) return;
 			picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
@@ -410,8 +413,8 @@ void playanim_window_open(const char *title, int posx, int posy, int sizex, int 
 
 void playanim(int argc, const char **argv)
 {
-	struct ImBuf *ibuf = 0;
-	PlayAnimPict *picture = 0;
+	struct ImBuf *ibuf = NULL;
+	PlayAnimPict *picture = NULL;
 	char filepath[FILE_MAX];
 	short val = 0, go = TRUE, ibufx = 0, ibufy = 0;
 	int event, stopped = FALSE;
@@ -419,9 +422,9 @@ void playanim(int argc, const char **argv)
 	/* short c233 = FALSE, yuvx = FALSE; */ /* UNUSED */
 	short once = FALSE, sstep = FALSE, wait2 = FALSE, /*  resetmap = FALSE, */ pause = 0;
 	short pingpong = FALSE, direction = 1, next = 1, turbo = FALSE, /*  doubleb = TRUE, */ noskip = FALSE;
-	int sizex, sizey, ofsx, ofsy, i;
+	int sizex, sizey, i;
 	/* This was done to disambiguate the name for use under c++. */
-	struct anim *anim = 0;
+	struct anim *anim = NULL;
 	int start_x = 0, start_y = 0;
 	int sfra = -1;
 	int efra = -1;
@@ -772,8 +775,6 @@ void playanim(int argc, const char **argv)
 							next = 0;
 						}
 						break;
-						go = FALSE;
-						break;
 					case EQUALKEY:
 						if (val) {
 							if (qualN & SHIFT) {
@@ -800,7 +801,7 @@ void playanim(int argc, const char **argv)
 						if (val) {
 							if (once) once = wait2 = FALSE;
 							else {
-								picture = 0;
+								picture = NULL;
 								once = TRUE;
 								wait2 = FALSE;
 							}
@@ -856,20 +857,24 @@ void playanim(int argc, const char **argv)
 						zoomx += 2.0;
 						zoomy += 2.0;
 					case PADMINUS:
+					{
+						/* int ofsx, ofsy; */ /* UNUSED */
+
 						if (val == 0) break;
 						if (zoomx > 1.0) zoomx -= 1.0;
 						if (zoomy > 1.0) zoomy -= 1.0;
 						// playanim_window_get_position(&ofsx, &ofsy);
 						playanim_window_get_size(&sizex, &sizey);
-						ofsx += sizex / 2;
-						ofsy += sizey / 2;
+						/* ofsx += sizex / 2; */ /* UNUSED */
+						/* ofsy += sizey / 2; */ /* UNUSED */
 						sizex = zoomx * ibufx;
 						sizey = zoomy * ibufy;
-						ofsx -= sizex / 2;
-						ofsy -= sizey / 2;
+						/* ofsx -= sizex / 2; */ /* UNUSED */
+						/* ofsy -= sizey / 2; */ /* UNUSED */
 						// window_set_position(g_window,sizex,sizey);
 						GHOST_SetClientSize(g_window, sizex, sizey);
 						break;
+					}
 					case RESHAPE:
 					case REDRAW:
 						playanim_window_get_size(&sizey, &sizey);
