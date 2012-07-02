@@ -163,6 +163,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						PyErr_Format(PyExc_TypeError,
 						             "%.200s: keyword \"%.200s\" expected an int, not %.200s",
 						             self->opname, slot_name, Py_TYPE(value)->tp_name);
+						return NULL;
 					}
 					else {
 						slot->data.i = (int)param;
@@ -176,9 +177,44 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						PyErr_Format(PyExc_TypeError,
 						             "%.200s: keyword \"%.200s\" expected a float, not %.200s",
 						             self->opname, slot_name, Py_TYPE(value)->tp_name);
+						return NULL;
 					}
 					else {
 						slot->data.f = param;
+					}
+					break;
+				}
+				case BMO_OP_SLOT_MAT:
+				{
+					/* XXX - BMesh operator design is crappy here, operator slot should define matrix size,
+					 * not the caller! */
+					unsigned short size;
+					if (!MatrixObject_Check(value)) {
+						PyErr_Format(PyExc_TypeError,
+						             "%.200s: keyword \"%.200s\" expected a Matrix, not %.200s",
+						             self->opname, slot_name, Py_TYPE(value)->tp_name);
+						return NULL;
+					}
+					else if (BaseMath_ReadCallback((MatrixObject *)value) == -1) {
+						return NULL;
+					}
+					else if (((size = ((MatrixObject *)value)->num_col) != ((MatrixObject *)value)->num_row) ||
+					         (ELEM(size, 3, 4) == FALSE))
+					{
+						PyErr_Format(PyExc_TypeError,
+						             "%.200s: keyword \"%.200s\" expected a 3x3 or 4x4 matrix Matrix",
+						             self->opname, slot_name);
+						return NULL;
+					}
+
+					BMO_slot_mat_set(&bmop, slot_name, ((MatrixObject *)value)->matrix, size);
+					break;
+				}
+				case BMO_OP_SLOT_VEC:
+				{
+					/* passing slot name here is a bit non-descriptive */
+					if (mathutils_array_parse(slot->data.vec, 3, 3, value, slot_name) == -1) {
+						return NULL;
 					}
 					break;
 				}
@@ -194,12 +230,12 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 					 *   ('VERT', {'TAG'})
 					 */
 
-#define BPY_BM_GENERIC_MESH_TEST(type_string)                                             \
+#define BPY_BM_GENERIC_MESH_TEST(type_string)  \
 	if (((BPy_BMGeneric *)value)->bm != bm) {                                             \
-		PyErr_Format(PyExc_NotImplementedError,                                           \
-					 "%.200s: keyword \"%.200s\" " type_string " are from another bmesh", \
-					 self->opname, slot_name, slot->slot_type);                           \
-		return NULL;                                                                      \
+	    PyErr_Format(PyExc_NotImplementedError,                                           \
+	                 "%.200s: keyword \"%.200s\" " type_string " are from another bmesh", \
+	                 self->opname, slot_name, slot->slot_type);                           \
+	    return NULL;                                                                      \
 	} (void)0
 
 					if (BPy_BMVertSeq_Check(value)) {
@@ -258,6 +294,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						             "%.200s: keyword \"%.200s\" expected "
 						             "a bmesh sequence, list, (htype, flag) pair, not %.200s",
 						             self->opname, slot_name, Py_TYPE(value)->tp_name);
+						return NULL;
 					}
 
 #undef BPY_BM_GENERIC_MESH_TEST

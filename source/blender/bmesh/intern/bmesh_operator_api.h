@@ -99,7 +99,7 @@ enum {
 
 	/* normally store pointers to object, scene,
 	 * _never_ store arrays corresponding to mesh elements with this */
-	BMO_OP_SLOT_PNT = 4,
+	BMO_OP_SLOT_PTR = 4,
 	BMO_OP_SLOT_MAT = 5,
 	BMO_OP_SLOT_VEC = 8,
 
