@@ -58,6 +58,18 @@
 
 #include "raskter.h"
 
+#ifdef USE_MANGO_MASK_CACHE_HACK
+typedef struct MaskRasterCache {
+	float *buffer;
+	int width, height;
+	short do_aspect_correct;
+	short do_mask_aa;
+	short do_feather;
+
+	ListBase layers;
+} MaskRasterCache;
+#endif
+
 static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline, MaskSplinePoint *points_array, MaskSplinePoint *point)
 {
 	if (point == &points_array[spline->tot_point - 1]) {
@@ -1068,6 +1080,30 @@ void BKE_mask_layer_free(MaskLayer *masklay)
 	MEM_freeN(masklay);
 }
 
+#ifdef USE_MANGO_MASK_CACHE_HACK
+void BKE_mask_raster_cache_free(Mask *mask)
+{
+	MaskRasterCache *cache = mask->raster_cache;
+
+	if (cache) {
+		MaskLayer *layer;
+
+		layer = cache->layers.first;
+		while (layer) {
+			MaskLayer *layer_next = layer->next;
+
+			BKE_mask_layer_free(layer);
+			layer = layer_next;
+		}
+
+		MEM_freeN(cache->buffer);
+		MEM_freeN(cache);
+
+		mask->raster_cache = NULL;
+	}
+}
+#endif
+
 void BKE_mask_free(Mask *mask)
 {
 	MaskLayer *masklay = mask->masklayers.first;
@@ -1080,6 +1116,14 @@ void BKE_mask_free(Mask *mask)
 
 		masklay = next_masklay;
 	}
+
+#ifdef USE_MANGO_MASK_CACHE_HACK
+	if (mask->raster_cache) {
+		BKE_mask_raster_cache_free(mask);
+
+		mask->raster_cache = NULL;
+	}
+#endif
 }
 
 void BKE_mask_unlink(Main *bmain, Mask *mask)
@@ -2092,18 +2136,195 @@ int BKE_mask_get_duration(Mask *mask)
 	return MAX2(1, mask->efra - mask->sfra);
 }
 
+#ifdef USE_MANGO_MASK_CACHE_HACK
+static void mask_splines_duplicate(ListBase *base_new, ListBase *base)
+{
+	MaskSpline *spline;
+
+	for (spline = base->first; spline; spline = spline->next) {
+		MaskSpline *spline_new = BKE_mask_spline_copy(spline);
+
+		BLI_addtail(base_new, spline_new);
+	}
+}
+
+static MaskLayer *mask_layer_duplicate(MaskLayer *layer)
+{
+	MaskLayer *layer_new;
+
+	layer_new = MEM_callocN(sizeof(MaskLayer), "new mask layer");
+
+	BLI_strncpy(layer_new->name, layer->name, sizeof(layer_new->name));
+
+	layer_new->alpha = layer->alpha;
+	layer_new->blend = layer->blend;
+	layer_new->blend_flag = layer->blend_flag;
+	layer_new->flag = layer->flag;
+	layer_new->restrictflag = layer->restrictflag;
+
+	mask_splines_duplicate(&layer_new->splines, &layer->splines);
+
+	return layer_new;
+}
+
+static void mask_layers_duplicate(ListBase *base_new, ListBase *base)
+{
+	MaskLayer *layer;
+
+	for (layer = base->first; layer; layer = layer->next) {
+		MaskLayer *layer_new = mask_layer_duplicate(layer);
+
+		BLI_addtail(base_new, layer_new);
+	}
+}
+
+static int mask_point_compare(MaskSplinePoint *point_a, MaskSplinePoint *point_b)
+{
+	if (point_a->tot_uw != point_b->tot_uw) {
+		return FALSE;
+	}
+
+	if (memcmp(&point_a->bezt, &point_b->bezt, sizeof(BezTriple))) {
+		return FALSE;
+	}
+
+	if (memcmp(&point_a->uw, &point_b->uw, 2 * point_a->tot_uw * sizeof(float))) {
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static int mask_points_compare(MaskSplinePoint *points_a, MaskSplinePoint *points_b, int tot_point)
+{
+	MaskSplinePoint *point_a = points_a;
+	MaskSplinePoint *point_b = points_b;
+	int a = tot_point;
+
+	while (a--) {
+		if (!mask_point_compare(point_a, point_b)) {
+			return FALSE;
+		}
+
+		point_a++;
+		point_b++;
+	}
+
+	return TRUE;
+}
+
+static int mask_spline_compare(MaskSpline *spline_a, MaskSpline *spline_b)
+{
+	if (spline_a->flag != spline_b->flag ||
+	    spline_a->tot_point != spline_b->tot_point ||
+	    spline_a->weight_interp != spline_b->weight_interp)
+	{
+		return FALSE;
+	}
+
+	return mask_points_compare(spline_a->points, spline_b->points, spline_a->tot_point);
+}
+
+static int mask_splines_compare(ListBase *base_a, ListBase *base_b)
+{
+	MaskSpline *spline_a, *spline_b;
+
+	for (spline_a = base_a->first, spline_b = base_b->first;
+	     spline_a && spline_b;
+	     spline_a = spline_a->next, spline_b = spline_b->next)
+	{
+		if (!mask_spline_compare(spline_a, spline_b)) {
+			return FALSE;
+		}
+	}
+
+	if (spline_a || spline_b)
+		return FALSE;
+
+	return TRUE;
+}
+
+static int mask_layer_compare(MaskLayer *layer_a, MaskLayer *layer_b)
+{
+	if (layer_a->alpha != layer_b->alpha ||
+	    layer_a->blend != layer_b->blend ||
+	    layer_a->blend_flag != layer_b->blend_flag ||
+	    layer_a->flag != layer_b->flag ||
+	    layer_a->restrictflag != layer_b->restrictflag)
+	{
+		return FALSE;
+	}
+
+	if (strcmp(layer_a->name, layer_b->name))
+		return FALSE;
+
+	return mask_splines_compare(&layer_a->splines, &layer_b->splines);
+}
+
+static int mask_layers_compare(ListBase *base_a, ListBase *base_b)
+{
+	MaskLayer *layer_a, *layer_b;
+
+	for (layer_a = base_a->first, layer_b = base_b->first;
+	     layer_a && layer_b;
+	     layer_a = layer_a->next, layer_b = layer_b->next)
+	{
+		if (!mask_layer_compare(layer_a, layer_b)) {
+			return FALSE;
+		}
+	}
+
+	if (layer_a || layer_b)
+		return FALSE;
+
+	return TRUE;
+}
+#endif
+
 /* rasterization */
 void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
                         const short do_aspect_correct, const short do_mask_aa,
                         const short do_feather)
 {
+	MaskRasterCache *cache = mask->raster_cache;
 	MaskLayer *masklay;
 
 	/* temp blending buffer */
 	const int buffer_size = width * height;
-	float *buffer_tmp = MEM_mallocN(sizeof(float) * buffer_size, __func__);
+	float *buffer_tmp;
 
+#ifdef USE_MANGO_MASK_CACHE_HACK
+	if (cache &&
+	    cache->width == width &&
+	    cache->height == height &&
+	    cache->do_aspect_correct == do_aspect_correct &&
+	    cache->do_mask_aa == do_mask_aa &&
+	    cache->do_feather == do_feather &&
+	    mask_layers_compare(&cache->layers, &mask->masklayers))
+	{
+		memcpy(buffer, cache->buffer, sizeof(float) * buffer_size);
+		return;
+	}
+
+	BKE_mask_raster_cache_free(mask);
+
+	cache = MEM_callocN(sizeof(MaskRasterCache), "mask raster cache");
+
+	/* duplicate first to be sure rasterization happens with the same
+	 * configuration as is being cached, otherwise could be threading issues
+	 * with transformation code -- in some circumstances deformation could
+	 * happen at the same time as deformating spline is rasterizing
+	 */
+	mask_layers_duplicate(&cache->layers, &mask->masklayers);
+#endif
+
+	buffer_tmp = MEM_mallocN(sizeof(float) * buffer_size, __func__);
+
+#ifdef USE_MANGO_MASK_CACHE_HACK
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+#else
+	for (masklay = cache->layers.first; masklay; masklay = masklay->next) {
+#endif
 		MaskSpline *spline;
 		float alpha;
 
@@ -2225,4 +2446,17 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
 	}
 
 	MEM_freeN(buffer_tmp);
+
+#ifdef USE_MANGO_MASK_CACHE_HACK
+	cache->buffer = MEM_mallocN(sizeof(float) * buffer_size, "mask raster cache buffer");
+	memcpy(cache->buffer, buffer, sizeof(float) * buffer_size);
+
+	cache->width = width;
+	cache->height = height;
+	cache->do_aspect_correct = do_aspect_correct;
+	cache->do_mask_aa = do_mask_aa;
+	cache->do_feather = do_feather;
+
+	mask->raster_cache = cache;
+#endif
 }
