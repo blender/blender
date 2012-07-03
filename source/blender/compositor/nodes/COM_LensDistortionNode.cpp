@@ -48,13 +48,21 @@ void LensDistortionNode::convertToOperations(ExecutionSystem *graph, CompositorC
 	}
 	else {
 		ScreenLensDistortionOperation *operation = new ScreenLensDistortionOperation();
+		operation->setData(data);
+		if (!(this->getInputSocket(1)->isConnected() || this->getInputSocket(2)->isConnected())) 
+		{
+			// no nodes connected to the distortion and dispersion. We can precalculate some values
+			float distortion = ((const bNodeSocketValueFloat *)this->getInputSocket(1)->getbNodeSocket()->default_value)->value;
+			float dispersion = ((const bNodeSocketValueFloat *)this->getInputSocket(2)->getbNodeSocket()->default_value)->value;
+			operation->setDistortionAndDispersion(distortion, dispersion);
+		}
 
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
 		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, graph);
+
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 
-		operation->setData(data);
 		graph->addOperation(operation);
 	}
 

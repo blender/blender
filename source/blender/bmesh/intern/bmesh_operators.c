@@ -378,8 +378,8 @@ void BMO_slot_mat3_set(BMOperator *op, const char *slot_name, float r_mat[3][3])
 void BMO_slot_ptr_set(BMOperator *op, const char *slot_name, void *p)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slot_name);
-	BLI_assert(slot->slot_type == BMO_OP_SLOT_PNT);
-	if (!(slot->slot_type == BMO_OP_SLOT_PNT))
+	BLI_assert(slot->slot_type == BMO_OP_SLOT_PTR);
+	if (!(slot->slot_type == BMO_OP_SLOT_PTR))
 		return;
 
 	slot->data.p = p;
@@ -430,8 +430,8 @@ int BMO_slot_bool_get(BMOperator *op, const char *slot_name)
 void *BMO_slot_ptr_get(BMOperator *op, const char *slot_name)
 {
 	BMOpSlot *slot = BMO_slot_get(op, slot_name);
-	BLI_assert(slot->slot_type == BMO_OP_SLOT_PNT);
-	if (!(slot->slot_type == BMO_OP_SLOT_PNT))
+	BLI_assert(slot->slot_type == BMO_OP_SLOT_PTR);
+	if (!(slot->slot_type == BMO_OP_SLOT_PTR))
 		return NULL;
 
 	return slot->data.p;

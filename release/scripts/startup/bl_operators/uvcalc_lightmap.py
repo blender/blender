@@ -197,12 +197,12 @@ def lightmap_uvpack(meshes,
                       PREF_BOX_DIV=8,
                       PREF_MARGIN_DIV=512
                       ):
-    '''
+    """
     BOX_DIV if the maximum division of the UV map that
     a box may be consolidated into.
     Basically, a lower value will be slower but waist less space
     and a higher value will have more clumpy boxes but more wasted space
-    '''
+    """
     import time
     from math import sqrt
 
@@ -545,7 +545,7 @@ from bpy.props import BoolProperty, FloatProperty, IntProperty
 
 
 class LightMapPack(Operator):
-    '''Follow UVs from active quads along continuous face loops'''
+    """Follow UVs from active quads along continuous face loops"""
     bl_idname = "uv.lightmap_pack"
     bl_label = "Lightmap Pack"
 

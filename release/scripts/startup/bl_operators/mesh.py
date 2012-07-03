@@ -25,7 +25,7 @@ from bpy.props import EnumProperty
 
 
 class MeshMirrorUV(Operator):
-    '''Copy mirror UV coordinates on the X axis based on a mirrored mesh'''
+    """Copy mirror UV coordinates on the X axis based on a mirrored mesh"""
     bl_idname = "mesh.faces_mirror_uv"
     bl_label = "Copy Mirrored UV coords"
     bl_options = {'REGISTER', 'UNDO'}

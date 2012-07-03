@@ -485,14 +485,18 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
 	float chunkSizef = this->m_chunkSize;
 
 	int indexx, indexy;
-	const int minxchunk = floor(area->xmin / chunkSizef);
-	const int maxxchunk = ceil((area->xmax - 1) / chunkSizef);
-	const int minychunk = floor(area->ymin / chunkSizef);
-	const int maxychunk = ceil((area->ymax - 1) / chunkSizef);
+	int minxchunk = floor(area->xmin / chunkSizef);
+	int maxxchunk = ceil((area->xmax - 1) / chunkSizef);
+	int minychunk = floor(area->ymin / chunkSizef);
+	int maxychunk = ceil((area->ymax - 1) / chunkSizef);
+	minxchunk = MAX2(minxchunk, 0);
+	minychunk = MAX2(minychunk, 0);
+	maxxchunk = MIN2(maxxchunk, this->m_numberOfXChunks);
+	maxychunk = MIN2(maxychunk, this->m_numberOfYChunks);
 
 	bool result = true;
-	for (indexx = max(minxchunk, 0); indexx < maxxchunk; indexx++) {
-		for (indexy = max(minychunk, 0); indexy < maxychunk; indexy++) {
+	for (indexx = minxchunk; indexx < maxxchunk; indexx++) {
+		for (indexy = minychunk; indexy < maxychunk; indexy++) {
 			if (!scheduleChunkWhenPossible(graph, indexx, indexy)) {
 				result = false;
 			}

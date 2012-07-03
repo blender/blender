@@ -528,8 +528,8 @@ static BMOpDefine bmo_transform_def = {
  */
 static BMOpDefine bmo_object_load_bmesh_def = {
 	"object_load_bmesh",
-	{{BMO_OP_SLOT_PNT, "scene"},
-	 {BMO_OP_SLOT_PNT, "object"},
+	{{BMO_OP_SLOT_PTR, "scene"},
+	 {BMO_OP_SLOT_PTR, "object"},
 	 {0, /* null-terminating sentinel */}},
 	bmo_object_load_bmesh_exec,
 	0,
@@ -543,8 +543,8 @@ static BMOpDefine bmo_object_load_bmesh_def = {
  */
 static BMOpDefine bmo_bmesh_to_mesh_def = {
 	"bmesh_to_mesh",
-	{{BMO_OP_SLOT_PNT, "mesh"}, //pointer to a mesh structure to fill in
-	 {BMO_OP_SLOT_PNT, "object"}, //pointer to an object structure
+	{{BMO_OP_SLOT_PTR, "mesh"}, //pointer to a mesh structure to fill in
+	 {BMO_OP_SLOT_PTR, "object"}, //pointer to an object structure
 	 {BMO_OP_SLOT_BOOL, "notessellation"}, //don't calculate mfaces
 	 {0, /* null-terminating sentinel */}},
 	bmo_bmesh_to_mesh_exec,
@@ -559,8 +559,8 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
  */
 static BMOpDefine bmo_mesh_to_bmesh_def = {
 	"mesh_to_bmesh",
-	{{BMO_OP_SLOT_PNT, "mesh"}, //pointer to a Mesh structure
-	 {BMO_OP_SLOT_PNT, "object"}, //pointer to an Object structure
+	{{BMO_OP_SLOT_PTR, "mesh"}, //pointer to a Mesh structure
+	 {BMO_OP_SLOT_PTR, "object"}, //pointer to an Object structure
 	 {BMO_OP_SLOT_BOOL, "set_shapekey"}, //load active shapekey coordinates into verts
 	 {0, /* null-terminating sentinel */}},
 	bmo_mesh_to_bmesh_exec,
@@ -737,7 +737,7 @@ static BMOpDefine bmo_duplicate_def = {
 	 {BMO_OP_SLOT_MAPPING, "facemap"},
 	 {BMO_OP_SLOT_MAPPING, "boundarymap"},
 	 {BMO_OP_SLOT_MAPPING, "isovertmap"},
-	 {BMO_OP_SLOT_PNT, "dest"}, /* destination bmesh, if NULL will use current on */
+	 {BMO_OP_SLOT_PTR, "dest"}, /* destination bmesh, if NULL will use current on */
 	 {0} /* null-terminating sentinel */},
 	bmo_duplicate_exec,
 	0
@@ -749,7 +749,7 @@ static BMOpDefine bmo_split_def = {
 	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"},
 	 {BMO_OP_SLOT_MAPPING, "boundarymap"},
 	 {BMO_OP_SLOT_MAPPING, "isovertmap"},
-	 {BMO_OP_SLOT_PNT, "dest"}, /* destination bmesh, if NULL will use current on */
+	 {BMO_OP_SLOT_PTR, "dest"}, /* destination bmesh, if NULL will use current on */
 	 {BMO_OP_SLOT_BOOL, "use_only_faces"}, /* when enabled. don't duplicate loose verts/edges */
 	 {0} /* null-terminating sentinel */},
 	bmo_split_exec,

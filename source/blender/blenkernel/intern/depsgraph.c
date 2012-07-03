@@ -66,6 +66,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -311,7 +312,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 	for (fcu = adt->drivers.first; fcu; fcu = fcu->next) {
 		ChannelDriver *driver = fcu->driver;
 		DriverVar *dvar;
-		int isdata_fcu = isdata || (fcu->rna_path && strstr(fcu->rna_path, "modifiers["));
+		int isdata_fcu = (isdata) || (fcu->rna_path && strstr(fcu->rna_path, "modifiers["));
 		
 		/* loop over variables to get the target relationships */
 		for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
@@ -344,6 +345,48 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 			}
 			DRIVER_TARGETS_LOOPER_END
 		}
+	}
+}
+
+/* XXX: forward def for material driver handling... */
+static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Material *ma);
+
+/* recursive handling for material nodetree drivers */
+static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *node, bNodeTree *ntree)
+{
+	bNode *n;
+	
+	/* nodetree itself */
+	if (ntree->adt) {
+		dag_add_driver_relation(ntree->adt, dag, node, 1);
+	}
+	
+	/* nodetree's nodes... */
+	for (n = ntree->nodes.first; n; n = n->next) {
+		if (n->id && GS(n->id->name) == ID_MA) {
+			dag_add_material_driver_relations(dag, node, (Material *)n->id);
+		}
+		else if (n->type == NODE_GROUP && n->id) {
+			dag_add_material_nodetree_driver_relations(dag, node, (bNodeTree *)n->id);
+		}
+	}
+}
+
+/* recursive handling for material drivers */
+static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Material *ma)
+{
+	/* material itself */
+	if (ma->adt) {
+		dag_add_driver_relation(ma->adt, dag, node, 1);
+	}
+	
+	/* textures */
+	// TODO...
+	//dag_add_texture_driver_relations(DagForest *dag, DagNode *node, ID *id);
+	
+	/* material's nodetree */
+	if (ma->nodetree) {
+		dag_add_material_nodetree_driver_relations(dag, node, ma->nodetree);
 	}
 }
 
@@ -570,6 +613,20 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			}
 		}
 		break;
+	}
+	
+	/* material drivers */
+	if (ob->totcol) {
+		int a;
+		
+		for (a = 1; a <= ob->totcol; a++) {
+			Material *ma = give_current_material(ob, a);
+			
+			if (ma) {
+				/* recursively figure out if there are drivers, and hook these up to this object */
+				dag_add_material_driver_relations(dag, node, ma);
+			}
+		}
 	}
 	
 	/* particles */

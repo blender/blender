@@ -27,7 +27,7 @@ from bpy.props import (StringProperty,
 
 
 class SelectPattern(Operator):
-    '''Select objects matching a naming pattern'''
+    """Select objects matching a naming pattern"""
     bl_idname = "object.select_pattern"
     bl_label = "Select Pattern"
     bl_options = {'REGISTER', 'UNDO'}
@@ -105,7 +105,7 @@ class SelectPattern(Operator):
 
 
 class SelectCamera(Operator):
-    '''Select the active camera'''
+    """Select the active camera"""
     bl_idname = "object.select_camera"
     bl_label = "Select Camera"
     bl_options = {'REGISTER', 'UNDO'}
@@ -131,7 +131,7 @@ class SelectCamera(Operator):
 
 
 class SelectHierarchy(Operator):
-    """Select object relative to the active object's position """
+    """Select object relative to the active object's position """ \
     """in the hierarchy"""
     bl_idname = "object.select_hierarchy"
     bl_label = "Select Hierarchy"
@@ -198,7 +198,7 @@ class SelectHierarchy(Operator):
 
 
 class SubdivisionSet(Operator):
-    '''Sets a Subdivision Surface Level (1-5)'''
+    """Sets a Subdivision Surface Level (1-5)"""
 
     bl_idname = "object.subdivision_set"
     bl_label = "Subdivision Set"
@@ -278,7 +278,7 @@ class SubdivisionSet(Operator):
 
 
 class ShapeTransfer(Operator):
-    """Copy another selected objects active shape to this one by """
+    """Copy another selected objects active shape to this one by """ \
     """applying the relative offsets"""
 
     bl_idname = "object.shape_key_transfer"
@@ -468,7 +468,7 @@ class ShapeTransfer(Operator):
 
 
 class JoinUVs(Operator):
-    '''Copy UV Layout to objects with matching geometry'''
+    """Copy UV Layout to objects with matching geometry"""
     bl_idname = "object.join_uvs"
     bl_label = "Join as UVs"
 
@@ -547,7 +547,7 @@ class JoinUVs(Operator):
 
 
 class MakeDupliFace(Operator):
-    '''Make linked objects into dupli-faces'''
+    """Make linked objects into dupli-faces"""
     bl_idname = "object.make_dupli_face"
     bl_label = "Make Dupli-Face"
 
@@ -642,7 +642,7 @@ class IsolateTypeRender(Operator):
 
 
 class ClearAllRestrictRender(Operator):
-    '''Reveal all render objects by setting the hide render flag'''
+    """Reveal all render objects by setting the hide render flag"""
     bl_idname = "object.hide_render_clear_all"
     bl_label = "Clear All Restrict Render"
     bl_options = {'REGISTER', 'UNDO'}
@@ -654,7 +654,7 @@ class ClearAllRestrictRender(Operator):
 
 
 class TransformsToDeltasAnim(Operator):
-    '''Convert object animation for normal transforms to delta transforms'''
+    """Convert object animation for normal transforms to delta transforms"""
     bl_idname = "object.anim_transforms_to_deltas"
     bl_label = "Animated Transforms to Deltas"
     bl_options = {'REGISTER', 'UNDO'}
@@ -700,7 +700,7 @@ class TransformsToDeltasAnim(Operator):
 
 
 class DupliOffsetFromCursor(Operator):
-    '''Set offset used for DupliGroup based on cursor position'''
+    """Set offset used for DupliGroup based on cursor position"""
     bl_idname = "object.dupli_offset_from_cursor"
     bl_label = "Set Offset From Cursor"
     bl_options = {'REGISTER', 'UNDO'}

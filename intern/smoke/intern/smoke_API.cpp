@@ -198,8 +198,8 @@ extern "C" void smoke_export(FLUID_3D *fluid, float *dt, float *dx, float **dens
 	*vyold = fluid->_yVelocityOld;
 	*vzold = fluid->_zVelocityOld;
 	*obstacles = fluid->_obstacles;
-	dt = &(fluid->_dt);
-	dx = &(fluid->_dx);
+	*dt = fluid->_dt;
+	*dx = fluid->_dx;
 
 }
 

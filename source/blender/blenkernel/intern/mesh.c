@@ -3146,19 +3146,17 @@ void BKE_mesh_translate(Mesh *me, float offset[3], int do_keys)
 	}
 }
 
-
 void BKE_mesh_ensure_navmesh(Mesh *me)
 {
 	if (!CustomData_has_layer(&me->pdata, CD_RECAST)) {
 		int i;
 		int numFaces = me->totpoly;
 		int *recastData;
-		CustomData_add_layer_named(&me->pdata, CD_RECAST, CD_CALLOC, NULL, numFaces, "recastData");
-		recastData = (int *)CustomData_get_layer(&me->pdata, CD_RECAST);
+		recastData = (int *)MEM_mallocN(numFaces * sizeof(int), __func__);
 		for (i = 0; i < numFaces; i++) {
 			recastData[i] = i + 1;
 		}
-		CustomData_add_layer_named(&me->pdata, CD_RECAST, CD_REFERENCE, recastData, numFaces, "recastData");
+		CustomData_add_layer_named(&me->pdata, CD_RECAST, CD_ASSIGN, recastData, numFaces, "recastData");
 	}
 }
 
