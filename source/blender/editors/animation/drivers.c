@@ -416,6 +416,7 @@ static char *get_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 	char *basepath = RNA_path_from_ID_to_property(ptr, prop);
 	char *path = basepath; /* in case no remapping is needed */
 	
+	
 	/* Remapping will only be performed in the Properties Editor, as only this 
 	 * restricts the subspace of options to the 'active' data (a manageable state)
 	 */
@@ -426,23 +427,6 @@ static char *get_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 		if (ob && id) {
 			/* only id-types which can be remapped to go through objects should be considered */
 			switch (GS(id->name)) {
-				case ID_MA: /* materials */
-				{
-					Material *ma = give_current_material(ob, ob->actcol);
-					
-					/* assumes: material will only be shown if it is active objects's active material it's ok */
-					if ((ID *)ma == id) {
-						/* create new path */
-						// TODO: use RNA path functions to construct instead?
-						path = BLI_sprintfN("material_slots[\"%s\"].material.%s",
-						                    ma->id.name + 2, basepath);
-							
-						/* free old one */
-						MEM_freeN(basepath);
-					}
-				}
-				break;
-					
 				case ID_TE: /* textures */
 				{
 					Material *ma = give_current_material(ob, ob->actcol);
@@ -452,6 +436,7 @@ static char *get_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 					if ((ID *)tex == id) {
 						/* create new path */
 						// TODO: use RNA path functions to construct step by step instead?
+						// FIXME: maybe this isn't even needed anymore...
 						path = BLI_sprintfN("material_slots[\"%s\"].material.texture_slots[\"%s\"].texture.%s", 
 						                    ma->id.name + 2, tex->id.name + 2, basepath);
 							

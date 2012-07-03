@@ -66,6 +66,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -311,7 +312,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 	for (fcu = adt->drivers.first; fcu; fcu = fcu->next) {
 		ChannelDriver *driver = fcu->driver;
 		DriverVar *dvar;
-		int isdata_fcu = isdata || (fcu->rna_path && strstr(fcu->rna_path, "modifiers["));
+		int isdata_fcu = (isdata) || (fcu->rna_path && strstr(fcu->rna_path, "modifiers["));
 		
 		/* loop over variables to get the target relationships */
 		for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
@@ -378,6 +379,10 @@ static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Mat
 	if (ma->adt) {
 		dag_add_driver_relation(ma->adt, dag, node, 1);
 	}
+	
+	/* textures */
+	// TODO...
+	//dag_add_texture_driver_relations(DagForest *dag, DagNode *node, ID *id);
 	
 	/* material's nodetree */
 	if (ma->nodetree) {
