@@ -2143,6 +2143,18 @@ static void mask_splines_duplicate(ListBase *base_new, ListBase *base)
 
 	for (spline = base->first; spline; spline = spline->next) {
 		MaskSpline *spline_new = BKE_mask_spline_copy(spline);
+		int i;
+
+		if (spline->points_deform) {
+			spline_new->points_deform = MEM_dupallocN(spline->points_deform);
+
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point_deform = &spline_new->points_deform[i];
+
+				if (point_deform->uw)
+					point_deform->uw = MEM_dupallocN(point_deform->uw);
+			}
+		}
 
 		BLI_addtail(base_new, spline_new);
 	}
@@ -2222,7 +2234,11 @@ static int mask_spline_compare(MaskSpline *spline_a, MaskSpline *spline_b)
 		return FALSE;
 	}
 
-	return mask_points_compare(spline_a->points, spline_b->points, spline_a->tot_point);
+	if (!mask_points_compare(spline_a->points, spline_b->points, spline_a->tot_point)) {
+		return FALSE;
+	}
+
+	return mask_points_compare(spline_a->points_deform, spline_b->points_deform, spline_a->tot_point);
 }
 
 static int mask_splines_compare(ListBase *base_a, ListBase *base_b)
