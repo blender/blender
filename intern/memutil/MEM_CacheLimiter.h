@@ -32,7 +32,7 @@
  * @section MEM_CacheLimiter
  * This class defines a generic memory cache management system
  * to limit memory usage to a fixed global maximum.
- * 
+ *
  * Please use the C-API in MEM_CacheLimiterC-Api.h for code written in C.
  *
  * Usage example:
@@ -41,12 +41,12 @@
  * public:
  *       ~BigFatImage() { tell_everyone_we_are_gone(this); }
  * };
- * 
+ *
  * void doit() {
  *     MEM_Cache<BigFatImage> BigFatImages;
  *
  *     MEM_Cache_Handle<BigFatImage>* h = BigFatImages.insert(new BigFatImage);
- * 
+ *
  *     BigFatImages.enforce_limits();
  *     h->ref();
  *
@@ -67,36 +67,44 @@ class MEM_CacheLimiter;
 
 #ifndef __MEM_CACHELIMITERC_API_H__
 extern "C" {
-	extern void MEM_CacheLimiter_set_maximum(size_t m);
-	extern size_t MEM_CacheLimiter_get_maximum();
+	void MEM_CacheLimiter_set_maximum(size_t m);
+	size_t MEM_CacheLimiter_get_maximum();
 };
 #endif
 
 template<class T>
 class MEM_CacheLimiterHandle {
 public:
-	explicit MEM_CacheLimiterHandle(T * data_, 
-					 MEM_CacheLimiter<T> * parent_) 
-		: data(data_), refcount(0), parent(parent_) { }
+	explicit MEM_CacheLimiterHandle(T * data_,MEM_CacheLimiter<T> *parent_) :
+		data(data_),
+		refcount(0),
+		parent(parent_)
+	{ }
 
-	void ref() { 
-		refcount++; 
+	void ref() {
+		refcount++;
 	}
-	void unref() { 
-		refcount--; 
+
+	void unref() {
+		refcount--;
 	}
-	T * get() { 
-		return data; 
+
+	T *get() {
+		return data;
 	}
-	const T * get() const { 
-		return data; 
+
+	const T *get() const {
+		return data;
 	}
-	int get_refcount() const { 
-		return refcount; 
+
+	int get_refcount() const {
+		return refcount;
 	}
-	bool can_destroy() const { 
-		return !data || !refcount; 
+
+	bool can_destroy() const {
+		return !data || !refcount;
 	}
+
 	bool destroy_if_possible() {
 		if (can_destroy()) {
 			delete data;
@@ -106,26 +114,30 @@ public:
 		}
 		return false;
 	}
+
 	void unmanage() {
 		parent->unmanage(this);
 	}
+
 	void touch() {
 		parent->touch(this);
 	}
+
 	void set_priority(int priority) {
 		this->priority = priority;
 	}
+
 	int get_priority(void) {
 		return this->priority;
 	}
+
 private:
 	friend class MEM_CacheLimiter<T>;
 
 	T * data;
 	int refcount;
 	int priority;
-	typename std::list<MEM_CacheLimiterHandle<T> *,
-	  MEM_Allocator<MEM_CacheLimiterHandle<T> *> >::iterator me;
+	typename std::list<MEM_CacheLimiterHandle<T> *, MEM_Allocator<MEM_CacheLimiterHandle<T> *> >::iterator me;
 	MEM_CacheLimiter<T> * parent;
 };
 
@@ -133,26 +145,31 @@ template<class T>
 class MEM_CacheLimiter {
 public:
 	typedef size_t (*MEM_CacheLimiter_DataSize_Func) (void *data);
-	typedef int (*MEM_CacheLimiter_ItemPriority_Func) (void *item, int default_priority);
+	typedef int    (*MEM_CacheLimiter_ItemPriority_Func) (void *item, int default_priority);
+
 	MEM_CacheLimiter(MEM_CacheLimiter_DataSize_Func getDataSize_)
 		: getDataSize(getDataSize_) {
 	}
+
 	~MEM_CacheLimiter() {
 		for (iterator it = queue.begin(); it != queue.end(); it++) {
 			delete *it;
 		}
 	}
-	MEM_CacheLimiterHandle<T> * insert(T * elem) {
+
+	MEM_CacheLimiterHandle<T> *insert(T * elem) {
 		queue.push_back(new MEM_CacheLimiterHandle<T>(elem, this));
 		iterator it = queue.end();
 		--it;
 		queue.back()->me = it;
 		return queue.back();
 	}
-	void unmanage(MEM_CacheLimiterHandle<T> * handle) {
+
+	void unmanage(MEM_CacheLimiterHandle<T> *handle) {
 		queue.erase(handle->me);
 		delete handle;
 	}
+
 	void enforce_limits() {
 		MEM_CachePriorityQueue priority_queue;
 		size_t max = MEM_CacheLimiter_get_maximum();
@@ -177,23 +194,24 @@ public:
 		while (!priority_queue.empty() && mem_in_use > max) {
 			MEM_CacheElementPtr elem = priority_queue.top();
 
+			priority_queue.pop();
+
 			if(getDataSize) {
 				cur_size = getDataSize(elem->get()->get_data());
 			} else {
 				cur_size = mem_in_use;
 			}
 
-			elem->destroy_if_possible();
-
-			priority_queue.pop();
-
-			if (getDataSize) {
-				mem_in_use -= cur_size;
-			} else {
-				mem_in_use -= cur_size - MEM_get_memory_in_use();
+			if (elem->destroy_if_possible()) {
+				if (getDataSize) {
+					mem_in_use -= cur_size;
+				} else {
+					mem_in_use -= cur_size - MEM_get_memory_in_use();
+				}
 			}
 		}
 	}
+
 	void touch(MEM_CacheLimiterHandle<T> * handle) {
 		queue.push_back(handle);
 		queue.erase(handle->me);
@@ -201,9 +219,11 @@ public:
 		--it;
 		handle->me = it;
 	}
+
 	void set_item_priority_func(MEM_CacheLimiter_ItemPriority_Func item_priority_func) {
 		getItemPriority = item_priority_func;
 	}
+
 private:
 	typedef MEM_CacheLimiterHandle<T> *MEM_CacheElementPtr;
 	typedef std::list<MEM_CacheElementPtr, MEM_Allocator<MEM_CacheElementPtr> > MEM_CacheQueue;
