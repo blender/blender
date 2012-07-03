@@ -159,7 +159,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
+        obj = context.object
 
         row = layout.row(align=True)
         row.operator("object.group_link", text="Add to Group")
@@ -167,8 +167,13 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
 
         # XXX, this is bad practice, yes, I wrote it :( - campbell
         index = 0
+        obj_name = obj.name
         for group in bpy.data.groups:
-            if ob.name in group.objects:
+            # XXX this is slow and stupid!, we need 2 checks, one thats fast
+            # and another that we can be sure its not a name collission
+            # from linked library data
+            group_objects = group.objects
+            if obj_name in group.objects and obj in group_objects[:]:
                 col = layout.column(align=True)
 
                 col.context_pointer_set("group", group)

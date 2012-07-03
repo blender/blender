@@ -873,7 +873,7 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
 		if (path) {
 			if (GS(id->name) == ID_NT) { /* nodetree paths are not accurate */
 				ret = PyUnicode_FromFormat("bpy.data...%s",
-										   path);
+				                           path);
 			}
 			else {
 				ret = PyUnicode_FromFormat("bpy.data.%s[%R].%s",
@@ -980,7 +980,7 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 	if (path) {
 		if (GS(id->name) == ID_NT) { /* nodetree paths are not accurate */
 			ret = PyUnicode_FromFormat("bpy.data...%s",
-									   path);
+			                           path);
 		}
 		else {
 			ret = PyUnicode_FromFormat("bpy.data.%s[%R].%s",
@@ -2040,12 +2040,12 @@ static int pyrna_prop_collection_bool(BPy_PropertyRNA *self)
  * This is done for faster lookups. */
 #define PYRNA_PROP_COLLECTION_ABS_INDEX(ret_err)                              \
 	if (keynum < 0) {                                                         \
-		keynum_abs += RNA_property_collection_length(&self->ptr, self->prop); \
-		if (keynum_abs < 0) {                                                 \
-			PyErr_Format(PyExc_IndexError,                                    \
-			             "bpy_prop_collection[%d]: out of range.", keynum);   \
-			return ret_err;                                                   \
-		}                                                                     \
+	    keynum_abs += RNA_property_collection_length(&self->ptr, self->prop); \
+	    if (keynum_abs < 0) {                                                 \
+	        PyErr_Format(PyExc_IndexError,                                    \
+	                     "bpy_prop_collection[%d]: out of range.", keynum);   \
+	        return ret_err;                                                   \
+	    }                                                                     \
 	} (void)0
 
 
@@ -3508,8 +3508,8 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 							PyList_Append(ret, linkptr);
 							Py_DECREF(linkptr);
 						}
+						break;
 					}
-					break;
 					default:
 						/* should never happen */
 						BLI_assert(!"Invalid context type");
