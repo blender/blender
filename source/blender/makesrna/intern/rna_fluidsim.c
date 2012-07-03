@@ -461,8 +461,9 @@ static void rna_def_fluidsim_volume(StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "domainNovecgen", 0);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Export Animated Mesh",
-	                         "Export this mesh as an animated one (slower, only use if really necessary [e.g. "
-	                         "armatures or parented objects], animated pos/rot/scale F-Curves do not require it)");
+	                         "Export this mesh as an animated one (slower and enforces No Splip, only use if really "
+	                         "necessary [e.g. armatures or parented objects], animated pos/rot/scale F-Curves "
+	                         "do not require it)");
 }
 
 static void rna_def_fluidsim_active(StructRNA *srna)

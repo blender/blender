@@ -148,7 +148,7 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 	/* the frame number, even if we cant */
 	if (ima->source == IMA_SRC_SEQUENCE) {
 		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
-		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0);
+		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0, NULL);
 		ofs += sprintf(str + ofs, IFACE_(", Frame: %d"), framenr);
 	}
 

@@ -117,10 +117,14 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
             col.prop(fluid, "use_animated_mesh")
 
             col = split.column()
-            col.label(text="Slip Type:")
-            col.prop(fluid, "slip_type", text="")
+            subsplit = col.split()
+            subcol = subsplit.column()
+            if fluid.use_animated_mesh:
+                subcol.enabled = False
+            subcol.label(text="Slip Type:")
+            subcol.prop(fluid, "slip_type", text="")
             if fluid.slip_type == 'PARTIALSLIP':
-                col.prop(fluid, "partial_slip_factor", slider=True, text="Amount")
+                subcol.prop(fluid, "partial_slip_factor", slider=True, text="Amount")
 
             col.label(text="Impact:")
             col.prop(fluid, "impact_factor", text="Factor")

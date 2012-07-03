@@ -2892,11 +2892,9 @@ static int mesh_separate_material(Main *bmain, Scene *scene, Base *editbase, wmO
 static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOperator *wmop)
 {
 	int i;
-	BMVert *v;
 	BMEdge *e;
 	BMVert *v_seed;
 	BMWalker walker;
-	BMIter iter;
 	int result = FALSE;
 	Object *obedit = editbase->object;
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2913,11 +2911,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 	 * original mesh.*/
 	for (i = 0; i < max_iter; i++) {
 		/* Get a seed vertex to start the walk */
-		v_seed = NULL;
-		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-			v_seed = v;
-			break;
-		}
+		v_seed = BM_iter_at_index(bm, BM_VERTS_OF_MESH, NULL, 0);
 
 		/* No vertices available, can't do anything */
 		if (v_seed == NULL) {
