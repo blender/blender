@@ -2607,8 +2607,10 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 				for (a = 1; a <= ob->totcol; a++) {
 					Material *ma = give_current_material(ob, a);
 					
-					/* recursively update drivers for this material */
-					material_drivers_update(scene, ma, ctime);
+					if (ma) {
+						/* recursively update drivers for this material */
+						material_drivers_update(scene, ma, ctime);
+					}
 				}
 			}
 			
