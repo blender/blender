@@ -81,6 +81,7 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	operation->setMovieClip(movieClip);
 	operation->setMovieClipUser(movieClipUser);
 	operation->setFramenumber(context->getFramenumber());
+	operation->setCacheFrame(!context->isRendering());
 	graph->addOperation(operation);
 
 	MovieTrackingStabilization *stab = &movieClip->tracking.stabilization;
