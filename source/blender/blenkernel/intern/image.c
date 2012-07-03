@@ -2784,9 +2784,13 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	return BKE_image_acquire_ibuf(ima, iuser, NULL);
 }
 
-int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr)
+int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, short *r_is_in_range)
 {
 	const int len = (iuser->fie_ima * iuser->frames) / 2;
+
+	if (r_is_in_range) {
+		*r_is_in_range = FALSE;
+	}
 
 	if (len == 0) {
 		return 0;
@@ -2800,10 +2804,23 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr)
 			cfra = ((cfra) % len);
 			if (cfra < 0) cfra += len;
 			if (cfra == 0) cfra = len;
+
+			if (r_is_in_range) {
+				*r_is_in_range = TRUE;
+			}
 		}
 
-		if (cfra < 0) cfra = 0;
-		else if (cfra > len) cfra = len;
+		if (cfra < 0) {
+			cfra = 0;
+		}
+		else if (cfra > len) {
+			cfra = len;
+		}
+		else {
+			if (r_is_in_range) {
+				*r_is_in_range = TRUE;
+			}
+		}
 
 		/* convert current frame to current field */
 		cfra = 2 * (cfra);
@@ -2827,7 +2844,15 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr)
 void BKE_image_user_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 {
 	if (iuser) {
-		const int framenr = BKE_image_user_frame_get(iuser, cfra, fieldnr);
+		short is_in_range;
+		const int framenr = BKE_image_user_frame_get(iuser, cfra, fieldnr, &is_in_range);
+
+		if (is_in_range) {
+			iuser->flag |= IMA_USER_FRAME_IN_RANGE;
+		}
+		else {
+			iuser->flag &= ~IMA_USER_FRAME_IN_RANGE;
+		}
 
 		/* allows image users to handle redraws */
 		if (iuser->flag & IMA_ANIM_ALWAYS)

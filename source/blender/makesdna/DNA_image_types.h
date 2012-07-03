@@ -122,6 +122,7 @@ typedef struct Image {
 #define IMA_OLD_PREMUL		128
 #define IMA_CM_PREDIVIDE	256
 #define IMA_USED_FOR_RENDER	512
+#define IMA_USER_FRAME_IN_RANGE	1024 /* for image user, but these flags are mixed */
 
 /* Image.tpageflag */
 #define IMA_TILES			1
