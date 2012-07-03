@@ -201,7 +201,7 @@ FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
 					grp = (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
 					if (grp) {
 						agrp->customCol = grp->customCol;
-						action_group_colors_sync(agrp);
+						action_group_colors_sync(agrp, grp);
 					}
 				}
 			}
