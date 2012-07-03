@@ -66,9 +66,23 @@ public:
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
+	/**
+	 * @brief Set the distortion and dispersion and precalc some values
+	 * @param distortion
+	 * @param dispersion
+	 */
+	void setDistortionAndDispersion(float distortion, float dispersion) {
+		this->m_distortion = distortion;
+		this->m_dispersion = dispersion;
+		updateVariables(distortion, dispersion);
+		this->m_valuesAvailable = true;
+	}
+
 private:
-	void determineUV(float *result, float x, float y) const;
+	void determineUV(float result[4], float x, float y) const;
+	void determineUV(float result[4], float x, float y, float distortion, float dispersion);
 	void updateDispersionAndDistortion(MemoryBuffer **inputBuffers);
+	void updateVariables(float distortion, float dispersion);
 
 };
 #endif
