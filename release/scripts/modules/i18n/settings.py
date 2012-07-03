@@ -66,9 +66,32 @@ PYGETTEXT_CONTEXTS_DEFSRC = os.path.join("source", "blender", "blenfont",
 PYGETTEXT_CONTEXTS = "#define\\s+(BLF_I18NCONTEXT_[A-Z_0-9]+)\\s+\"([^\"]*)\""
 
 # Keywords' regex.
-_str_whole_re = ("(?P<{_}>[\"'])(?:[^(?P={_})]|(?<=\\\\)(?P={_})|"
-                 "(?:(?P={_})\\s*\\+?\\s*(?P={_})))+(?P={_})")
-str_clean_re = "(?P<_grp>[\"'])(?P<clean>(?:[^(?P=_grp)]|(?<=\\\\)(?P=_grp))+)(?P=_grp)"
+# XXX Most unfortunately, we can't use named backreferences inside character sets,
+#     which makes the regexes even more twisty... :/
+_str_base = (
+    # Match void string
+    "(?P<{_}1>[\"'])(?P={_}1)"  # Get opening quote (' or "), and closing immediately.
+    "|"
+    # Or match non-void string
+    "(?P<{_}2>[\"'])"  # Get opening quote (' or ").
+        "(?{capt}(?:"
+            # This one is for crazy things like "hi \\\\\" folks!"...
+            r"(?:(?!<\\)(?:\\\\)*\\(?=(?P={_}2)))|"
+            # The most common case.
+            ".(?!(?P={_}2))"
+        ")+.)"  # Don't forget the last char!
+    "(?P={_}2)"  # And closing quote.
+)
+str_clean_re = _str_base.format(_="g", capt="P<clean>")
+# Here we have to consider two different cases (empty string and other).
+_str_whole_re = (
+    _str_base.format(_="{_}1_", capt=":") +
+    # Optional loop start, this handles "split" strings...
+    "(?:(?<=[\"'])\\s*(?=[\"'])(?:"
+        + _str_base.format(_="{_}2_", capt=":") +
+    # End of loop.
+    "))*"
+)
 _ctxt_re = r"(?P<ctxt_raw>(?:" + _str_whole_re.format(_="_ctxt") + r")|(?:[A-Z_0-9]+))"
 _msg_re = r"(?P<msg_raw>" + _str_whole_re.format(_="_msg") + r")"
 PYGETTEXT_KEYWORDS = (() +

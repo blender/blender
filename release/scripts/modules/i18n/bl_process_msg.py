@@ -466,6 +466,8 @@ def dump_messages(do_messages, do_checks):
         keys = set()
         for c in check_ctxt.values():
             keys |= c
+        # XXX Temp, see below
+        c -= check_ctxt["multi_rnatip"]
         for key in keys:
             if key in check_ctxt["undoc_ops"]:
                 print("\tThe following operators are undocumented:")
