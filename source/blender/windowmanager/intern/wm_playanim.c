@@ -239,17 +239,23 @@ static void toscreen(PlayAnimPict *picture, struct ImBuf *ibuf, int fontid)
 	pupdate_time();
 
 	if (picture && (qualN & (SHIFT | LMOUSE)) && (fontid != -1)) {
+		int sizex, sizey;
+		float fsizex_inv, fsizey_inv;
 		char str[32 + FILE_MAX];
 		cpack(-1);
 //		glRasterPos2f(0.02f, 0.03f);
 		BLI_snprintf(str, sizeof(str), "%s | %.2f frames/s", picture->name, fstep / swaptime);
 //		BMF_DrawString(font, str);
 
+		playanim_window_get_size(&sizex, &sizey);
+		fsizex_inv = 1.0f / sizex;
+		fsizey_inv = 1.0f / sizey;
+
 		BLF_enable(fontid, BLF_ASPECT);
-		BLF_aspect(fontid, 1.0f / ibuf->x, 1.0f / ibuf->y, 1.0f);
-		BLF_position(fontid, 0.02f, 0.03f, 0.0f);
+		BLF_aspect(fontid, fsizex_inv, fsizey_inv, 1.0f);
+		BLF_position(fontid, 10.0f * fsizex_inv, 10.0f * fsizey_inv, 0.0f);
 		BLF_draw(fontid, str, 256); // XXX
-		printf("Drawing text '%s'\n", str);
+		// printf("Drawing text '%s'\n", str);
 	}
 
 	GHOST_SwapWindowBuffers(g_window);
@@ -279,7 +285,7 @@ static void build_pict_list(char *first, int totframes, int fstep, int fontid)
 				picture->anim = anim;
 				picture->frame = pic;
 				picture->IB_flags = IB_rect;
-				BLI_snprintf(str, sizeof(str), "%s : %d", first, pic + 1);
+				BLI_snprintf(str, sizeof(str), "%s : %4.d", first, pic + 1);
 				picture->name = strdup(str);
 				BLI_addtail(picsbase, picture);
 			}
@@ -515,31 +521,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						}
 					}
 					break;
-#if 0
-				case LEFTMOUSE:
-				case MOUSEX:
-					if (qualN & LMOUSE) {
-						int sizex, sizey;
-						int i;
-						playanim_window_get_size(&sizex, &sizey);
-						ps->picture = picsbase->first;
-						i = 0;
-						while (ps->picture) {
-							i++;
-							ps->picture = ps->picture->next;
-						}
-						i = (i * val) / sizex;
-						ps->picture = picsbase->first;
-						for (; i > 0; i--) {
-							if (ps->picture->next == NULL) break;
-							ps->picture = ps->picture->next;
-						}
-						ps->sstep = TRUE;
-						ps->wait2 = FALSE;
-						ps->next = 0;
-					}
-					break;
-#endif
 				case GHOST_kKeyEqual:
 					if (val) {
 						if (qualN & SHIFT) {
@@ -619,6 +600,37 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					break;
 				default:
 					break;
+			}
+			break;
+		}
+		case GHOST_kEventCursorMove:
+		{
+			if (qualN & LMOUSE) {
+				int sizex, sizey;
+				int i;
+
+				GHOST_TEventCursorData *cd = GHOST_GetEventData(evt);
+				int cx, cy;
+
+				GHOST_ScreenToClient(g_window, cd->x, cd->y, &cx, &cy);
+
+				playanim_window_get_size(&sizex, &sizey);
+				ps->picture = picsbase->first;
+				/* TODO - store in ps direct? */
+				i = 0;
+				while (ps->picture) {
+					i++;
+					ps->picture = ps->picture->next;
+				}
+				i = (i * cx) / sizex;
+				ps->picture = picsbase->first;
+				for (; i > 0; i--) {
+					if (ps->picture->next == NULL) break;
+					ps->picture = ps->picture->next;
+				}
+				ps->sstep = TRUE;
+				ps->wait2 = FALSE;
+				ps->next = 0;
 			}
 			break;
 		}
@@ -986,6 +998,11 @@ void playanim(int argc, const char **argv)
 				if (hasevent) {
 					GHOST_DispatchEvents(g_system);
 				}
+			}
+
+			/* XXX25 - we should not have to do this, but it makes scrubbing functional! */
+			if (qualN & LMOUSE) {
+				ps.next = 0;
 			}
 
 			ps.wait2 = ps.sstep;
