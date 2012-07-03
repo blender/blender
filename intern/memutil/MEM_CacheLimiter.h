@@ -58,6 +58,8 @@
  */
 
 #include <list>
+#include <queue>
+#include <vector>
 #include "MEM_Allocator.h"
 
 template<class T>
@@ -110,11 +112,18 @@ public:
 	void touch() {
 		parent->touch(this);
 	}
+	void set_priority(int priority) {
+		this->priority = priority;
+	}
+	int get_priority(void) {
+		return this->priority;
+	}
 private:
 	friend class MEM_CacheLimiter<T>;
 
 	T * data;
 	int refcount;
+	int priority;
 	typename std::list<MEM_CacheLimiterHandle<T> *,
 	  MEM_Allocator<MEM_CacheLimiterHandle<T> *> >::iterator me;
 	MEM_CacheLimiter<T> * parent;
@@ -123,9 +132,8 @@ private:
 template<class T>
 class MEM_CacheLimiter {
 public:
-	typedef typename std::list<MEM_CacheLimiterHandle<T> *,
-	  MEM_Allocator<MEM_CacheLimiterHandle<T> *> >::iterator iterator;
 	typedef size_t (*MEM_CacheLimiter_DataSize_Func) (void *data);
+	typedef int (*MEM_CacheLimiter_ItemPriority_Func) (void *item, int default_priority);
 	MEM_CacheLimiter(MEM_CacheLimiter_DataSize_Func getDataSize_)
 		: getDataSize(getDataSize_) {
 	}
@@ -146,6 +154,7 @@ public:
 		delete handle;
 	}
 	void enforce_limits() {
+		MEM_CachePriorityQueue priority_queue;
 		size_t max = MEM_CacheLimiter_get_maximum();
 		size_t mem_in_use, cur_size;
 
@@ -159,24 +168,29 @@ public:
 			mem_in_use = MEM_get_memory_in_use();
 		}
 
-		for (iterator it = queue.begin(); 
-		     it != queue.end() && mem_in_use > max;)
-		{
-			iterator jt = it;
-			++it;
+		if (mem_in_use <= max) {
+			return;
+		}
+
+		priority_queue = get_priority_queue();
+
+		while (!priority_queue.empty() && mem_in_use > max) {
+			MEM_CacheElementPtr elem = priority_queue.top();
 
 			if(getDataSize) {
-				cur_size= getDataSize((*jt)->get()->get_data());
+				cur_size = getDataSize(elem->get()->get_data());
 			} else {
-				cur_size= mem_in_use;
+				cur_size = mem_in_use;
 			}
 
-			(*jt)->destroy_if_possible();
+			elem->destroy_if_possible();
 
-			if(getDataSize) {
-				mem_in_use-= cur_size;
+			priority_queue.pop();
+
+			if (getDataSize) {
+				mem_in_use -= cur_size;
 			} else {
-				mem_in_use-= cur_size - MEM_get_memory_in_use();
+				mem_in_use -= cur_size - MEM_get_memory_in_use();
 			}
 		}
 	}
@@ -187,7 +201,22 @@ public:
 		--it;
 		handle->me = it;
 	}
+	void set_item_priority_func(MEM_CacheLimiter_ItemPriority_Func item_priority_func) {
+		getItemPriority = item_priority_func;
+	}
 private:
+	typedef MEM_CacheLimiterHandle<T> *MEM_CacheElementPtr;
+	typedef std::list<MEM_CacheElementPtr, MEM_Allocator<MEM_CacheElementPtr> > MEM_CacheQueue;
+	typedef typename MEM_CacheQueue::iterator iterator;
+
+	struct compare_element_priority : public std::binary_function<MEM_CacheElementPtr, MEM_CacheElementPtr, bool> {
+		bool operator()(const MEM_CacheElementPtr left_elem, const MEM_CacheElementPtr right_elem) const {
+			return left_elem->get_priority() > right_elem->get_priority();
+		}
+	};
+
+	typedef std::priority_queue<MEM_CacheElementPtr, std::vector<MEM_CacheElementPtr>, compare_element_priority > MEM_CachePriorityQueue;
+
 	size_t total_size() {
 		size_t size = 0;
 		for (iterator it = queue.begin(); it != queue.end(); it++) {
@@ -196,9 +225,32 @@ private:
 		return size;
 	}
 
-	std::list<MEM_CacheLimiterHandle<T>*,
-	  MEM_Allocator<MEM_CacheLimiterHandle<T> *> > queue;
+	MEM_CachePriorityQueue get_priority_queue(void) {
+		MEM_CachePriorityQueue priority_queue;
+		iterator it;
+		int i;
+
+		for (it = queue.begin(), i = 0; it != queue.end(); it++, i++) {
+			MEM_CacheElementPtr elem = *it;
+			int priority;
+
+			priority = i;
+
+			if (getItemPriority) {
+				priority = getItemPriority(elem->get()->get_data(), priority);
+			}
+
+			elem->set_priority(priority);
+
+			priority_queue.push(elem);
+		}
+
+		return priority_queue;
+	}
+
+	MEM_CacheQueue queue;
 	MEM_CacheLimiter_DataSize_Func getDataSize;
+	MEM_CacheLimiter_ItemPriority_Func getItemPriority;
 };
 
 #endif // __MEM_CACHELIMITER_H__

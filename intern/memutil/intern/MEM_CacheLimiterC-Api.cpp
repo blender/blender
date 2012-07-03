@@ -197,3 +197,9 @@ void * MEM_CacheLimiter_get(MEM_CacheLimiterHandleC * handle)
 {
 	return cast(handle)->get()->get_data();
 }
+
+void MEM_CacheLimiter_ItemPriority_Func_set(MEM_CacheLimiterC *This,
+                                            MEM_CacheLimiter_ItemPriority_Func item_priority_func)
+{
+	cast(This)->get_cache()->set_item_priority_func(item_priority_func);
+}

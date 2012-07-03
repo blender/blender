@@ -210,9 +210,10 @@ static void colormanage_keydeleter(void *key_v)
 
 static void colormanage_cache_init(void)
 {
-	colormanage_cache = IMB_moviecache_create(sizeof(ColormanageCacheKey), colormanage_keydeleter,
-	                                          colormanage_hashhash, colormanage_hashcmp,
-	                                          NULL, colormanage_checkkeyunused);
+	colormanage_cache = IMB_moviecache_create(sizeof(ColormanageCacheKey), colormanage_hashhash, colormanage_hashcmp);
+
+	IMB_moviecache_set_key_deleter_callback(colormanage_cache, colormanage_keydeleter);
+	IMB_moviecache_set_check_unused_callback(colormanage_cache, colormanage_checkkeyunused);
 }
 
 static void colormanage_cache_exit(void)

@@ -48,18 +48,23 @@ static MEM_CacheLimiterC *limitor = NULL;
 
 typedef struct MovieCache {
 	GHash *hash;
-	MoviKeyDeleterFP keydeleterfp;
+	MovieCacheKeyDeleterFP keydeleterfp;
 	GHashHashFP hashfp;
 	GHashCmpFP cmpfp;
 	MovieCacheGetKeyDataFP getdatafp;
 	MovieCacheCheckKeyUnusedFP checkkeyunusedfp;
+
+	MovieCacheGetPriorityDataFP getprioritydatafp;
+	MovieCacheGetItemPriorityFP getitempriorityfp;
+	MovieCachePriorityDeleterFP prioritydeleterfp;
 
 	struct BLI_mempool *keys_pool;
 	struct BLI_mempool *items_pool;
 	struct BLI_mempool *userkeys_pool;
 
 	int keysize;
-	unsigned long curtime;
+
+	void *last_userkey;
 
 	int totseg, *points, proxy, render_flags;  /* for visual statistics optimization */
 	int pad;
@@ -74,7 +79,7 @@ typedef struct MovieCacheItem {
 	MovieCache *cache_owner;
 	ImBuf *ibuf;
 	MEM_CacheLimiterHandleC *c_handle;
-	unsigned long last_access;
+	void *priority_data;
 } MovieCacheItem;
 
 static unsigned int moviecache_hashhash(const void *keyv)
@@ -108,10 +113,15 @@ static void moviecache_keyfree(void *val)
 static void moviecache_valfree(void *val)
 {
 	MovieCacheItem *item = (MovieCacheItem *)val;
+	MovieCache *cache = item->cache_owner;
 
 	if (item->ibuf) {
 		MEM_CacheLimiter_unmanage(item->c_handle);
 		IMB_freeImBuf(item->ibuf);
+	}
+
+	if (item->priority_data && cache->prioritydeleterfp) {
+		cache->prioritydeleterfp(item->priority_data);
 	}
 
 	BLI_mempool_free(item->cache_owner->items_pool, item);
@@ -201,9 +211,22 @@ static size_t get_item_size(void *p)
 	return size;
 }
 
+static int get_item_priority(void *item_v, int default_priority)
+{
+	MovieCacheItem *item = (MovieCacheItem *) item_v;
+	MovieCache *cache = item->cache_owner;
+
+	if (!cache->getitempriorityfp)
+		return default_priority;
+
+	return cache->getitempriorityfp(cache->last_userkey, item->priority_data);
+}
+
 void IMB_moviecache_init(void)
 {
 	limitor = new_MEM_CacheLimiter(IMB_moviecache_destructor, get_item_size);
+
+	MEM_CacheLimiter_ItemPriority_Func_set(limitor, get_item_priority);
 }
 
 void IMB_moviecache_destruct(void)
@@ -212,28 +235,47 @@ void IMB_moviecache_destruct(void)
 		delete_MEM_CacheLimiter(limitor);
 }
 
-MovieCache *IMB_moviecache_create(int keysize, MoviKeyDeleterFP keydeleterfp,
-                                  GHashHashFP hashfp, GHashCmpFP cmpfp,
-                                  MovieCacheGetKeyDataFP getdatafp,
-                                  MovieCacheCheckKeyUnusedFP checkkeyunusedfp)
+MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp)
 {
 	MovieCache *cache;
 
 	cache = MEM_callocN(sizeof(MovieCache), "MovieCache");
+
 	cache->keys_pool = BLI_mempool_create(sizeof(MovieCacheKey), 64, 64, 0);
 	cache->items_pool = BLI_mempool_create(sizeof(MovieCacheItem), 64, 64, 0);
 	cache->userkeys_pool = BLI_mempool_create(keysize, 64, 64, 0);
 	cache->hash = BLI_ghash_new(moviecache_hashhash, moviecache_hashcmp, "MovieClip ImBuf cache hash");
 
-	cache->keydeleterfp = keydeleterfp;
 	cache->keysize = keysize;
 	cache->hashfp = hashfp;
 	cache->cmpfp = cmpfp;
-	cache->getdatafp = getdatafp;
-	cache->checkkeyunusedfp = checkkeyunusedfp;
 	cache->proxy = -1;
 
 	return cache;
+}
+
+void IMB_moviecache_set_key_deleter_callback(MovieCache *cache, MovieCacheKeyDeleterFP keydeleterfp)
+{
+	cache->keydeleterfp = keydeleterfp;
+}
+
+void IMB_moviecache_set_getdata_callback(MovieCache *cache, MovieCacheGetKeyDataFP getdatafp)
+{
+	cache->getdatafp = getdatafp;
+}
+
+void IMB_moviecache_set_check_unused_callback(MovieCache *cache, MovieCacheCheckKeyUnusedFP checkkeyunusedfp)
+{
+	cache->checkkeyunusedfp = checkkeyunusedfp;
+}
+
+void IMB_moviecache_set_priority_callback(struct MovieCache *cache, MovieCacheGetPriorityDataFP getprioritydatafp,
+                                          MovieCacheGetItemPriorityFP getitempriorityfp,
+                                          MovieCachePriorityDeleterFP prioritydeleterfp)
+{
+	cache->getprioritydatafp = getprioritydatafp;
+	cache->getitempriorityfp = getitempriorityfp;
+	cache->prioritydeleterfp = prioritydeleterfp;
 }
 
 void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
@@ -254,17 +296,25 @@ void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 	item = BLI_mempool_alloc(cache->items_pool);
 	item->ibuf = ibuf;
 	item->cache_owner = cache;
-	item->last_access = cache->curtime++;
 	item->c_handle = NULL;
+	item->priority_data = NULL;
+
+	if (cache->getprioritydatafp) {
+		item->priority_data = cache->getprioritydatafp(userkey);
+	}
 
 	BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
 	BLI_ghash_insert(cache->hash, key, item);
 
 	item->c_handle = MEM_CacheLimiter_insert(limitor, item);
 
+	cache->last_userkey = userkey;
+
 	MEM_CacheLimiter_ref(item->c_handle);
 	MEM_CacheLimiter_enforce_limits(limitor);
 	MEM_CacheLimiter_unref(item->c_handle);
+
+	cache->last_userkey = NULL;
 
 	/* cache limiter can't remove unused keys which points to destoryed values */
 	check_unused_keys(cache);
@@ -285,8 +335,6 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey)
 	item = (MovieCacheItem *)BLI_ghash_lookup(cache->hash, &key);
 
 	if (item) {
-		item->last_access = cache->curtime++;
-
 		if (item->ibuf) {
 			MEM_CacheLimiter_touch(item->c_handle);
 			IMB_refImBuf(item->ibuf);
