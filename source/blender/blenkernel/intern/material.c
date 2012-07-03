@@ -1071,7 +1071,7 @@ static void material_node_drivers_update(Scene *scene, bNodeTree *ntree, float c
 			/* TODO: prevent infinite recursion here... */
 			material_drivers_update(scene, (Material *)node->id, ctime);
 		}
-		else if (node->type == NODE_GROUP) {
+		else if (node->type == NODE_GROUP && node->id) {
 			material_node_drivers_update(scene, (bNodeTree *)node->id, ctime);
 		}
 	}

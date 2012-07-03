@@ -366,7 +366,7 @@ static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *
 		if (n->id && GS(n->id->name) == ID_MA) {
 			dag_add_material_driver_relations(dag, node, (Material *)n->id);
 		}
-		else if (n->type == NODE_GROUP) {
+		else if (n->type == NODE_GROUP && n->id) {
 			dag_add_material_nodetree_driver_relations(dag, node, (bNodeTree *)n->id);
 		}
 	}
