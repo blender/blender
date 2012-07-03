@@ -2829,13 +2829,15 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, shor
 		/* transform to images space */
 		framenr = (cfra + iuser->fie_ima - 2) / iuser->fie_ima;
 		if (framenr > iuser->frames) framenr = iuser->frames;
-		framenr += iuser->offset;
 
 		if (iuser->cycl) {
 			framenr = ((framenr) % len);
 			while (framenr < 0) framenr += len;
 			if (framenr == 0) framenr = len;
 		}
+
+		/* important to apply after else we cant loop on frames 100 - 110 for eg. */
+		framenr += iuser->offset;
 
 		return framenr;
 	}
