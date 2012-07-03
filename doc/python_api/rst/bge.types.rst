@@ -3574,7 +3574,7 @@ Game Types (bge.types)
 
       Gets the normal vector of this vertex.
 
-      :return: normalised normal vector.
+      :return: normalized normal vector.
       :rtype: list [nx, ny, nz]
 
    .. method:: setNormal(normal)

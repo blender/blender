@@ -89,7 +89,7 @@ static void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 			UI_GetThemeColor4fv(TH_ANIM_ACTIVE, color);
 		}
 		else {
-			/* greyish-red color */
+			/* grayish-red color */
 			UI_GetThemeColor4fv(TH_ANIM_INACTIVE, color);
 		}
 	}
@@ -217,7 +217,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc)
 {
 	const float yheight = ymaxc - yminc;
 	
-	/* drawing color is simply a light-grey */
+	/* drawing color is simply a light-gray */
 	// TODO: is this color suitable?
 	// XXX nasty hacked color for now... which looks quite bad too...
 	glColor3f(0.7f, 0.7f, 0.7f);
@@ -480,7 +480,7 @@ static void nla_draw_strip_text(AnimData *adt, NlaTrack *nlt, NlaStrip *strip, i
 static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, View2D *v2d, float UNUSED(yminc), float ymaxc)
 {
 	const float ytol = 1.0f; /* small offset to vertical positioning of text, for legibility */
-	const char col[4] = {220, 220, 220, 255}; /* light grey */
+	const char col[4] = {220, 220, 220, 255}; /* light gray */
 	char numstr[32] = "";
 	
 	
@@ -551,7 +551,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					/* draw each strip in the track (if visible) */
 					for (strip = nlt->strips.first, index = 1; strip; strip = strip->next, index++) {
 						if (BKE_nlastrip_within_bounds(strip, v2d->cur.xmin, v2d->cur.xmax)) {
-							/* draw the visualisation of the strip */
+							/* draw the visualization of the strip */
 							nla_draw_strip(snla, adt, nlt, strip, v2d, yminc, ymaxc);
 							
 							/* add the text for this strip to the cache */

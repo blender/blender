@@ -69,7 +69,7 @@
 #include "outliner_intern.h"
 
 /* ****************************************************** */
-/* Outliner Selection (grey-blue highlight for rows) */
+/* Outliner Selection (gray-blue highlight for rows) */
 
 static int outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *selecting)
 {

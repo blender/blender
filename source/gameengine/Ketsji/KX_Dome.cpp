@@ -469,7 +469,7 @@ bool KX_Dome::ParseWarpMesh(STR_String text)
 	 * First line is the image type the mesh is support to be applied to: 2 = fisheye, 1=radial
 	 * Tthe next line has the mesh dimensions
 	 * Rest of the lines are the nodes of the mesh. Each line has x y u v i
-	 *   (x,y) are the normalised screen coordinates
+	 *   (x,y) are the normalized screen coordinates
 	 *   (u,v) texture coordinates
 	 *   i a multiplicative intensity factor
 	 *

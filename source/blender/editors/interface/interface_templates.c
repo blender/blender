@@ -1051,7 +1051,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		 *	as that poses problems when restoring them, so disable the "up" button where
 		 *	it may cause this situation. 
 		 *
-		 *  Up/Down buttons should only be shown (or not greyed - todo) if they serve some purpose.
+		 *  Up/Down buttons should only be shown (or not grayed - todo) if they serve some purpose.
 		 */
 		if (proxylocked_constraints_owner(ob, pchan)) {
 			if (con->prev) {
@@ -2679,7 +2679,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	but->col[3] = 255;
 
 	but = uiDefBut(block, ROUNDBOX, 0, "", UI_UNIT_X + 10, 0, UI_UNIT_X + width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-	but->col[0] = but->col[1] = but->col[2] = FTOCHAR(rti->greyscale);
+	but->col[0] = but->col[1] = but->col[2] = FTOCHAR(rti->grayscale);
 	but->col[3] = 255;
 
 	uiBlockEndAlign(block);

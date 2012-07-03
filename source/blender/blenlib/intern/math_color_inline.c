@@ -225,7 +225,7 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
 /* TODO:
  *
  * regarding #rgb_to_bw vs #rgb_to_grayscale,
- * it seems nobody knows why we have both functions which convert color to greys
+ * it seems nobody knows why we have both functions which convert color to grays
  * but with different influences, this is quite stupid, and should be resolved
  * by someone who knows this stuff: see this thread
  * http://lists.blender.org/pipermail/bf-committers/2012-June/037180.html

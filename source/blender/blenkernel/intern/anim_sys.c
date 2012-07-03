@@ -1857,7 +1857,7 @@ static void nlastrip_evaluate_transition(PointerRNA *ptr, ListBase *channels, Li
 	/* prepare template for 'evaluation strip' 
 	 *	- based on the transition strip's evaluation strip data
 	 *	- strip_mode is NES_TIME_TRANSITION_* based on which endpoint
-	 *	- strip_time is the 'normalised' (i.e. in-strip) time for evaluation,
+	 *	- strip_time is the 'normalized' (i.e. in-strip) time for evaluation,
 	 *	  which doubles up as an additional weighting factor for the strip influences
 	 *	  which allows us to appear to be 'interpolating' between the two extremes
 	 */

@@ -919,7 +919,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 		if (ui_but_update_from_old_block(C, block, &but))
 			ui_check_but(but);
 		
-		/* temp? Proper check for greying out */
+		/* temp? Proper check for graying out */
 		if (but->optype) {
 			wmOperatorType *ot = but->optype;
 

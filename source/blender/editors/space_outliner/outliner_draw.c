@@ -1541,7 +1541,7 @@ static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegio
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
 	outliner_draw_selection(ar, soops, &soops->tree, &starty);
 	
-	// grey hierarchy lines
+	// gray hierarchy lines
 	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.4f);
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y / 2 - OL_Y_OFFSET;
 	startx = 6;

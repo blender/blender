@@ -3028,9 +3028,9 @@ static unsigned char *detect_get_frame_ucharbuf(ImBuf *ibuf)
 
 			if (ibuf->rect_float) {
 				const float *rrgbf = ibuf->rect_float + pixel * 4;
-				const float grey_f = 0.2126f * rrgbf[0] + 0.7152f * rrgbf[1] + 0.0722f * rrgbf[2];
+				const float gray_f = 0.2126f * rrgbf[0] + 0.7152f * rrgbf[1] + 0.0722f * rrgbf[2];
 
-				*cp = FTOCHAR(grey_f);
+				*cp = FTOCHAR(gray_f);
 			}
 			else {
 				const unsigned char *rrgb = (unsigned char *)ibuf->rect + pixel * 4;
