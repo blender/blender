@@ -31,16 +31,16 @@ op_get_instance = ops_module.get_instance
 
 
 class BPyOps(object):
-    '''
+    """
     Fake module like class.
 
      bpy.ops
-    '''
+    """
 
     def __getattr__(self, module):
-        '''
+        """
         gets a bpy.ops submodule
-        '''
+        """
         if module.startswith('__'):
             raise AttributeError(module)
         return BPyOpsSubMod(module)
@@ -69,20 +69,20 @@ class BPyOps(object):
 
 
 class BPyOpsSubMod(object):
-    '''
+    """
     Utility class to fake submodules.
 
     eg. bpy.ops.object
-    '''
+    """
     __keys__ = ("module",)
 
     def __init__(self, module):
         self.module = module
 
     def __getattr__(self, func):
-        '''
+        """
         gets a bpy.ops.submodule function
-        '''
+        """
         if func.startswith('__'):
             raise AttributeError(func)
         return BPyOpsSubModOp(self.module, func)
@@ -105,11 +105,11 @@ class BPyOpsSubMod(object):
 
 
 class BPyOpsSubModOp(object):
-    '''
+    """
     Utility class to fake submodule operators.
 
     eg. bpy.ops.object.somefunc
-    '''
+    """
 
     __keys__ = ("module", "func")
 

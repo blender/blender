@@ -492,7 +492,7 @@ def mergeUvIslands(islandList):
                                 pass
 
                             if Intersect == 2:  # Source inside target
-                                '''
+                                """
                                 We have an intersection, if we are inside the target
                                 then move us 1 whole width across,
                                 Its possible this is a bad idea since 2 skinny Angular faces
@@ -500,7 +500,7 @@ def mergeUvIslands(islandList):
                                 since we have already tested for it.
 
                                 It gives about 10% speedup with minimal errors.
-                                '''
+                                """
                                 # Move the test along its width + SMALL_NUM
                                 #boxLeft += sourceIsland[4] + SMALL_NUM
                                 boxLeft += sourceIsland[4]
@@ -694,11 +694,11 @@ def packIslands(islandList):
             islandIdx -=1
             continue
 
-        '''Save the offset to be applied later,
+        """Save the offset to be applied later,
         we could apply to the UVs now and allign them to the bottom left hand area
         of the UV coords like the box packer imagines they are
         but, its quicker just to remember their offset and
-        apply the packing and offset in 1 pass '''
+        apply the packing and offset in 1 pass """
         islandOffsetList.append((minx, miny))
 
         # Add to boxList. use the island idx for the BOX id.
@@ -1104,8 +1104,9 @@ from bpy.props import FloatProperty
 
 
 class SmartProject(Operator):
-    '''This script projection unwraps the selected faces of a mesh ''' \
-    '''(it operates on all selected mesh objects, and can be used to unwrap selected faces, or all faces)'''
+    """This script projection unwraps the selected faces of a mesh """ \
+    """(it operates on all selected mesh objects, and can be used """ \
+    """to unwrap selected faces, or all faces)"""
     bl_idname = "uv.smart_project"
     bl_label = "Smart UV Project"
     bl_options = {'REGISTER', 'UNDO'}

@@ -31,7 +31,8 @@ from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
 
 class MESH_OT_delete_edgeloop(Operator):
-    '''Delete an edge loop by merging the faces on each side to a single face loop'''
+    """Delete an edge loop by merging the faces on each side """ \
+    """to a single face loop"""
     bl_idname = "mesh.delete_edgeloop"
     bl_label = "Delete Edge Loop"
 
@@ -173,7 +174,7 @@ class BRUSH_OT_active_index_set(Operator):
 
 
 class WM_OT_context_set_boolean(Operator):
-    '''Set a context value'''
+    """Set a context value"""
     bl_idname = "wm.context_set_boolean"
     bl_label = "Context Set Boolean"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -189,7 +190,7 @@ class WM_OT_context_set_boolean(Operator):
 
 
 class WM_OT_context_set_int(Operator):  # same as enum
-    '''Set a context value'''
+    """Set a context value"""
     bl_idname = "wm.context_set_int"
     bl_label = "Context Set"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -206,7 +207,7 @@ class WM_OT_context_set_int(Operator):  # same as enum
 
 
 class WM_OT_context_scale_int(Operator):
-    '''Scale an int context value'''
+    """Scale an int context value"""
     bl_idname = "wm.context_scale_int"
     bl_label = "Context Set"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -249,7 +250,7 @@ class WM_OT_context_scale_int(Operator):
 
 
 class WM_OT_context_set_float(Operator):  # same as enum
-    '''Set a context value'''
+    """Set a context value"""
     bl_idname = "wm.context_set_float"
     bl_label = "Context Set Float"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -266,7 +267,7 @@ class WM_OT_context_set_float(Operator):  # same as enum
 
 
 class WM_OT_context_set_string(Operator):  # same as enum
-    '''Set a context value'''
+    """Set a context value"""
     bl_idname = "wm.context_set_string"
     bl_label = "Context Set String"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -282,7 +283,7 @@ class WM_OT_context_set_string(Operator):  # same as enum
 
 
 class WM_OT_context_set_enum(Operator):
-    '''Set a context value'''
+    """Set a context value"""
     bl_idname = "wm.context_set_enum"
     bl_label = "Context Set Enum"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -298,7 +299,7 @@ class WM_OT_context_set_enum(Operator):
 
 
 class WM_OT_context_set_value(Operator):
-    '''Set a context value'''
+    """Set a context value"""
     bl_idname = "wm.context_set_value"
     bl_label = "Context Set Value"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -319,7 +320,7 @@ class WM_OT_context_set_value(Operator):
 
 
 class WM_OT_context_toggle(Operator):
-    '''Toggle a context value'''
+    """Toggle a context value"""
     bl_idname = "wm.context_toggle"
     bl_label = "Context Toggle"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -338,7 +339,7 @@ class WM_OT_context_toggle(Operator):
 
 
 class WM_OT_context_toggle_enum(Operator):
-    '''Toggle a context value'''
+    """Toggle a context value"""
     bl_idname = "wm.context_toggle_enum"
     bl_label = "Context Toggle Values"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -371,7 +372,7 @@ class WM_OT_context_toggle_enum(Operator):
 
 
 class WM_OT_context_cycle_int(Operator):
-    """Set a context value. Useful for cycling active material, """
+    """Set a context value. Useful for cycling active material, """ \
     """vertex keys, groups' etc"""
     bl_idname = "wm.context_cycle_int"
     bl_label = "Context Int Cycle"
@@ -406,7 +407,7 @@ class WM_OT_context_cycle_int(Operator):
 
 
 class WM_OT_context_cycle_enum(Operator):
-    '''Toggle a context value'''
+    """Toggle a context value"""
     bl_idname = "wm.context_cycle_enum"
     bl_label = "Context Enum Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -458,8 +459,8 @@ class WM_OT_context_cycle_enum(Operator):
 
 
 class WM_OT_context_cycle_array(Operator):
-    '''Set a context array value. '''
-    '''Useful for cycling the active mesh edit mode'''
+    """Set a context array value """ \
+    """(useful for cycling the active mesh edit mode)"""
     bl_idname = "wm.context_cycle_array"
     bl_label = "Context Array Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -519,7 +520,7 @@ class WM_OT_context_menu_enum(Operator):
 
 
 class WM_OT_context_set_id(Operator):
-    '''Toggle a context value'''
+    """Toggle a context value"""
     bl_idname = "wm.context_set_id"
     bl_label = "Set Library ID"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -575,7 +576,7 @@ data_path_item = StringProperty(
 
 
 class WM_OT_context_collection_boolean_set(Operator):
-    '''Set boolean values for a collection of items'''
+    """Set boolean values for a collection of items"""
     bl_idname = "wm.context_collection_boolean_set"
     bl_label = "Context Collection Boolean Set"
     bl_options = {'UNDO', 'REGISTER', 'INTERNAL'}
@@ -634,7 +635,7 @@ class WM_OT_context_collection_boolean_set(Operator):
 
 
 class WM_OT_context_modal_mouse(Operator):
-    '''Adjust arbitrary values with mouse input'''
+    """Adjust arbitrary values with mouse input"""
     bl_idname = "wm.context_modal_mouse"
     bl_label = "Context Modal Mouse"
     bl_options = {'GRAB_POINTER', 'BLOCKING', 'UNDO', 'INTERNAL'}
@@ -836,7 +837,7 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
 
 
 class WM_OT_doc_view_manual(Operator):
-    '''Load online manual'''
+    """Load online manual"""
     bl_idname = "wm.doc_view_manual"
     bl_label = "View Manual"
 
@@ -881,7 +882,7 @@ class WM_OT_doc_view_manual(Operator):
 
 
 class WM_OT_doc_view(Operator):
-    '''Load online reference docs'''
+    """Load online reference docs"""
     bl_idname = "wm.doc_view"
     bl_label = "View Documentation"
 
@@ -905,7 +906,7 @@ class WM_OT_doc_view(Operator):
 
 
 class WM_OT_doc_edit(Operator):
-    '''Load online reference docs'''
+    """Load online reference docs"""
     bl_idname = "wm.doc_edit"
     bl_label = "Edit Documentation"
 
@@ -1008,7 +1009,7 @@ rna_max = FloatProperty(
 
 
 class WM_OT_properties_edit(Operator):
-    '''Internal use (edit a property data_path)'''
+    """Internal use (edit a property data_path)"""
     bl_idname = "wm.properties_edit"
     bl_label = "Edit Property"
     bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
@@ -1094,7 +1095,7 @@ class WM_OT_properties_edit(Operator):
 
 
 class WM_OT_properties_add(Operator):
-    '''Internal use (edit a property data_path)'''
+    """Internal use (edit a property data_path)"""
     bl_idname = "wm.properties_add"
     bl_label = "Add Property"
     bl_options = {'UNDO'}
@@ -1137,7 +1138,7 @@ class WM_OT_properties_context_change(Operator):
 
 
 class WM_OT_properties_remove(Operator):
-    '''Internal use (edit a property data_path)'''
+    """Internal use (edit a property data_path)"""
     bl_idname = "wm.properties_remove"
     bl_label = "Remove Property"
     bl_options = {'UNDO'}
@@ -1203,7 +1204,7 @@ class WM_OT_appconfig_activate(Operator):
 
 
 class WM_OT_sysinfo(Operator):
-    '''Generate System Info'''
+    """Generate System Info"""
     bl_idname = "wm.sysinfo"
     bl_label = "System Info"
 
@@ -1214,7 +1215,7 @@ class WM_OT_sysinfo(Operator):
 
 
 class WM_OT_copy_prev_settings(Operator):
-    '''Copy settings from previous version'''
+    """Copy settings from previous version"""
     bl_idname = "wm.copy_prev_settings"
     bl_label = "Copy Previous Settings"
 
@@ -1251,7 +1252,7 @@ class WM_OT_copy_prev_settings(Operator):
 
 
 class WM_OT_blenderplayer_start(Operator):
-    '''Launch the blender-player with the current blend-file'''
+    """Launch the blender-player with the current blend-file"""
     bl_idname = "wm.blenderplayer_start"
     bl_label = "Start Game In Player"
 

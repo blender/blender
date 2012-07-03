@@ -46,11 +46,11 @@ def extend(obj, operator, EXTEND_MODE):
     OTHER_INDEX = 2, 3, 0, 1
 
     def extend_uvs(face_source, face_target, edge_key):
-        '''
+        """
         Takes 2 faces,
         Projects its extends its UV coords onto the face next to it.
         Both faces must share an edge
-        '''
+        """
 
         def face_edge_vs(vi):
             vlen = len(vi)
@@ -224,7 +224,7 @@ def main(context, operator):
 
 
 class FollowActiveQuads(Operator):
-    '''Follow UVs from active quads along continuous face loops'''
+    """Follow UVs from active quads along continuous face loops"""
     bl_idname = "uv.follow_active_quads"
     bl_label = "Follow Active Quads"
     bl_options = {'REGISTER', 'UNDO'}

@@ -437,9 +437,9 @@ def BuildRNAInfo():
     # rna_functions_dict = {}  # store all functions directly in this type (not inherited)
 
     def full_rna_struct_path(rna_struct):
-        '''
+        """
         Needed when referencing one struct from another
-        '''
+        """
         nested = rna_struct.nested
         if nested:
             return "%s.%s" % (full_rna_struct_path(nested), rna_struct.identifier)
