@@ -813,7 +813,7 @@ void playanim(int argc, const char **argv)
 	}
 
 #ifdef WITH_QUICKTIME
-#if defined(_WIN32) // || defined(__APPLE__)
+#if defined(_WIN32) || defined(__APPLE__) && !defined(GHOST_COCOA)
 	/* Initialize QuickTime */
 #ifndef noErr
 #define noErr 0
@@ -828,7 +828,7 @@ void playanim(int argc, const char **argv)
 	if (EnterMovies() != noErr)
 		G.have_quicktime = FALSE;
 	else
-#endif /* _WIN32 //|| __APPLE__ */
+#endif /* _WIN32 || __APPLE__  && !defined(GHOST_COCOA)*/
 	G.have_quicktime = TRUE;
 #endif /* WITH_QUICKTIME */
 
@@ -1066,14 +1066,14 @@ void playanim(int argc, const char **argv)
 		ps.picture = ps.picture->next;
 	}
 #ifdef WITH_QUICKTIME
-#if defined(_WIN32) // || defined(__APPLE__)
+#if defined(_WIN32) || defined(__APPLE__) && !defined(GHOST_COCOA)
 	if (G.have_quicktime) {
 		ExitMovies();
 #ifdef _WIN32
 		TerminateQTML();
 #endif /* _WIN32 */
 	}
-#endif /* _WIN32 // || __APPLE__ */
+#endif /* _WIN32 || __APPLE__ && !defined(GHOST_COCOA) */
 #endif /* WITH_QUICKTIME */
 
 	/* cleanup */
