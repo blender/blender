@@ -186,4 +186,13 @@ char     *BPy_BMElem_StringFromHType(const char htype);
 	     ele;                                                                 \
 	     ele = BM_iter_step(iter))
 
+
+#ifdef __PY_CAPI_UTILS_H__
+struct PyC_FlagSet;
+extern struct PyC_FlagSet bpy_bm_scene_vert_edge_face_flags[];
+extern struct PyC_FlagSet bpy_bm_htype_vert_edge_face_flags[];
+extern struct PyC_FlagSet bpy_bm_htype_all_flags[];
+extern struct PyC_FlagSet bpy_bm_hflag_all_flags[];
+#endif
+
 #endif /* __BMESH_TYPES_H__ */

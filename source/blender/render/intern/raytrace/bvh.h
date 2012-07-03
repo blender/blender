@@ -75,7 +75,7 @@ inline int test_bb_group4(__m128 *bb_group, const Isect *isec)
  * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
  *  [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
  */
-static int rayobject_bb_intersect_test(const Isect *isec, const float *_bb)
+static inline int rayobject_bb_intersect_test(const Isect *isec, const float *_bb)
 {
 	const float *bb = _bb;
 	

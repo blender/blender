@@ -119,6 +119,11 @@ protected:
 	typedef std::vector<GHOST_TimerTask *> TTimerVector;
 	/** The list with event consumers. */
 	TTimerVector m_timers;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_TimerManager")
+#endif
 };
 
 #endif // __GHOST_TIMERMANAGER_H__

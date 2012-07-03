@@ -237,13 +237,15 @@ static int group_objects_remove_exec(bContext *C, wmOperator *op)
 /* can be called with C == NULL */
 static EnumPropertyItem *group_objects_remove_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
-	Object *ob = ED_object_context(C);
+	Object *ob;
 	EnumPropertyItem *item = NULL, item_tmp = {0};
 	int totitem = 0;
 
 	if (C == NULL) {
 		return DummyRNA_NULL_items;
 	}
+
+	ob = ED_object_context(C);
 
 	/* check that the action exists */
 	if (ob) {

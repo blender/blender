@@ -35,5 +35,5 @@
 //void BPY_text_free_code(void) {}
 void BPY_pyconstraint_exec(void) {}
 void BPY_pyconstraint_target(void) {}
-int BPY_is_pyconstraint(void) {return 0;}
+int BPY_is_pyconstraint(void) { return 0;}
 void BPY_pyconstraint_update(void) {}

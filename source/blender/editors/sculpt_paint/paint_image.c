@@ -4935,7 +4935,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		if (BKE_brush_size_get(scene, brush) < 2)
 			BKE_brush_size_set(scene, brush, 2);
 
-		/* allocate and initialize spacial data structures */
+		/* allocate and initialize spatial data structures */
 		project_paint_begin(&pop->ps);
 		
 		if (pop->ps.dm == NULL)
@@ -5728,7 +5728,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
 	                      image_undo_restore, image_undo_free);
 
-	/* allocate and initialize spacial data structures */
+	/* allocate and initialize spatial data structures */
 	project_paint_begin(&ps);
 
 	if (ps.dm == NULL) {

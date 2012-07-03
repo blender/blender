@@ -37,57 +37,57 @@ MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperat
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setResolutionInputSocketIndex(0);
-	this->inputOperation = NULL;
-	this->movieClip = NULL;
-	this->cache = NULL;
-	this->distortion = distortion;
+	this->m_inputOperation = NULL;
+	this->m_movieClip = NULL;
+	this->m_cache = NULL;
+	this->m_distortion = distortion;
 }
 void MovieDistortionOperation::initExecution()
 {
-	this->inputOperation = this->getInputSocketReader(0);
-	if (this->movieClip) {
+	this->m_inputOperation = this->getInputSocketReader(0);
+	if (this->m_movieClip) {
 		MovieClipUser clipUser = {0};
 		int calibration_width, calibration_height;
 
-		BKE_movieclip_user_set_frame(&clipUser, this->framenumber);
-		BKE_movieclip_get_size(this->movieClip, &clipUser, &calibration_width, &calibration_height);
+		BKE_movieclip_user_set_frame(&clipUser, this->m_framenumber);
+		BKE_movieclip_get_size(this->m_movieClip, &clipUser, &calibration_width, &calibration_height);
 
 		for (unsigned int i = 0; i < s_cache.size(); i++) {
 			DistortionCache *c = (DistortionCache *)s_cache[i];
-			if (c->isCacheFor(this->movieClip, this->width, this->height,
-			                  calibration_width, calibration_height, this->distortion))
+			if (c->isCacheFor(this->m_movieClip, this->m_width, this->m_height,
+			                  calibration_width, calibration_height, this->m_distortion))
 			{
-				this->cache = c;
+				this->m_cache = c;
 				return;
 			}
 		}
-		DistortionCache *newC = new DistortionCache(this->movieClip, this->width, this->height,
-		                                            calibration_width, calibration_height, this->distortion);
+		DistortionCache *newC = new DistortionCache(this->m_movieClip, this->m_width, this->m_height,
+		                                            calibration_width, calibration_height, this->m_distortion);
 		s_cache.push_back(newC);
-		this->cache = newC;
+		this->m_cache = newC;
 	}
 	else {
-		this->cache = NULL;
+		this->m_cache = NULL;
 	}
 }
 
 void MovieDistortionOperation::deinitExecution()
 {
-	this->inputOperation = NULL;
-	this->movieClip = NULL;
+	this->m_inputOperation = NULL;
+	this->m_movieClip = NULL;
 }
 
 
 void MovieDistortionOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	
-	if (this->cache != NULL) {
+	if (this->m_cache != NULL) {
 		float u, v;
-		this->cache->getUV(&this->movieClip->tracking, x, y, &u, &v);
-		this->inputOperation->read(color, u, v, sampler, inputBuffers);
+		this->m_cache->getUV(&this->m_movieClip->tracking, x, y, &u, &v);
+		this->m_inputOperation->read(color, u, v, sampler, inputBuffers);
 	} 
 	else {
-		this->inputOperation->read(color, x, y, sampler, inputBuffers);
+		this->m_inputOperation->read(color, x, y, sampler, inputBuffers);
 	}
 }
 

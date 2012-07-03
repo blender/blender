@@ -25,9 +25,9 @@
 #include "DNA_node_types.h"
 
 /**
-  * @brief KeyingScreenNode
-  * @ingroup Node
-  */
+ * @brief KeyingScreenNode
+ * @ingroup Node
+ */
 class KeyingScreenNode : public Node {
 public:
 	KeyingScreenNode(bNode *editorNode);

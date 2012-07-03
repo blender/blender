@@ -33,9 +33,9 @@ void MixSoftLightOperation::executePixel(float *outputValue, float x, float y, P
 	float inputColor2[4];
 	float value;
 	
-	inputValueOperation->read(&value, x, y, sampler, inputBuffers);
-	inputColor1Operation->read(&inputColor1[0], x, y, sampler, inputBuffers);
-	inputColor2Operation->read(&inputColor2[0], x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(&value, x, y, sampler, inputBuffers);
+	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler, inputBuffers);
+	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler, inputBuffers);
 	
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];

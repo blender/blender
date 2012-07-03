@@ -58,7 +58,7 @@ public:
 	 * @param bNode node to add
 	 * @return Node that represents the bNode or null when not able to convert.
 	 */
-	static Node *addNode(vector<Node *>& nodes, bNode *bNode, bool isInActiveGroup);
+	static Node *addNode(vector<Node *>& nodes, bNode *b_node, bool isInActiveGroup);
 
 	/**
 	 * @brief Add a Node to a list
@@ -123,5 +123,10 @@ public:
 	 * @param system the execution system to dump
 	 */
 	static void debugDump(ExecutionSystem *system);
-};
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystemHelper")
 #endif
+};
+
+#endif /* _COM_ExecutionSystemHelper_h */

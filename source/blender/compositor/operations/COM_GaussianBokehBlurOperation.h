@@ -28,8 +28,8 @@
 
 class GaussianBokehBlurOperation : public BlurBaseOperation {
 private:
-	float *gausstab;
-	int radx, rady;
+	float *m_gausstab;
+	int m_radx, m_rady;
 	void updateGauss(MemoryBuffer **memoryBuffers);
 
 public:

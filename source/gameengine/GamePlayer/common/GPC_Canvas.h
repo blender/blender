@@ -87,7 +87,7 @@ protected:
 	/** Height of the context. */
 	int m_height;
 	/** Rect that defines the area used for rendering,
-	    relative to the context */
+	 * relative to the context */
 	RAS_Rect m_displayarea;
 
 	/** Storage for the banners to display. */

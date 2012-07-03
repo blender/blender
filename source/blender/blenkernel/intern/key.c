@@ -771,7 +771,7 @@ void do_rel_key(const int start, int end, const int tot, char *basispoin, Key *k
 					
 					ofsp = ofs;
 					
-					while (cp[0]) {     /* cp[0]==amount */
+					while (cp[0]) {  /* (cp[0] == amount) */
 						
 						switch (cp[1]) {
 							case IPO_FLOAT:
@@ -936,7 +936,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 		
 		ofsp = ofs;
 
-		while (cp[0]) {     /* cp[0]==amount */
+		while (cp[0]) {  /* (cp[0] == amount) */
 
 			switch (cp[1]) {
 				case IPO_FLOAT:

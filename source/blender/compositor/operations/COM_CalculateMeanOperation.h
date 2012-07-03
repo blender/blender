@@ -34,11 +34,11 @@ protected:
 	/**
 	 * @brief Cached reference to the reader
 	 */
-	SocketReader *imageReader;
+	SocketReader *m_imageReader;
 	
-	bool iscalculated;
-	float result;
-	int setting;
+	bool m_iscalculated;
+	float m_result;
+	int m_setting;
 
 public:
 	CalculateMeanOperation();
@@ -61,7 +61,7 @@ public:
 	void deinitExecution();
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void setSetting(int setting) { this->setting = setting; }
+	void setSetting(int setting) { this->m_setting = setting; }
 	
 protected:
 	void calculateMean(MemoryBuffer *tile);

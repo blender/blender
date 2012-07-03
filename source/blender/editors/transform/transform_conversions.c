@@ -2819,7 +2819,7 @@ static void posttrans_mask_clean(Mask *mask)
 			short added = 0;
 			masklay_shape_new = masklay_shape->next;
 
-			if (masklay_shape->flag & GP_FRAME_SELECT) {
+			if (masklay_shape->flag & MASK_SHAPE_SELECT) {
 				BLI_remlink(&masklay->splines_shapes, masklay_shape);
 
 				/* find place to add them in buffer
@@ -5516,8 +5516,11 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	}
 
 	td->loc = td2d->loc;
-	copy_v3_v3(td->center, td->loc);
 	copy_v3_v3(td->iloc, td->loc);
+	/* use node center instead of origin (top-left corner) */
+	td->center[0] = node->locx + 0.5f * (node->totr.xmax - node->totr.xmin);
+	td->center[1] = node->locy - 0.5f * (node->totr.ymax - node->totr.ymin);	/* node height is used negative */
+	td->center[2] = 0.0f;
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
@@ -5529,6 +5532,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 
 	unit_m3(td->mtx);
 	unit_m3(td->smtx);
+
+	td->extra = node;
 }
 
 static void createTransNodeData(bContext *C, TransInfo *t)
@@ -5913,9 +5918,12 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 
 	t->total = 0;
 
+	if (!clip)
+		return;
+
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
-	if (!clip || width == 0 || height == 0)
+	if (width == 0 || height == 0)
 		return;
 
 	if (ar->regiontype == RGN_TYPE_PREVIEW) {
@@ -6321,7 +6329,7 @@ void createTransData(bContext *C, TransInfo *t)
 #endif
 	}
 	else if (t->spacetype == SPACE_NODE) {
-		t->flag |= T_2D_EDIT | T_POINTS;
+		t->flag |= T_POINTS | T_2D_EDIT;
 		createTransNodeData(C, t);
 		if (t->data && (t->flag & T_PROP_EDIT)) {
 			sort_trans_data(t); // makes selected become first in array

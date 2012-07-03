@@ -236,8 +236,7 @@ macro(setup_liblinks
 			${OPENGL_glu_LIBRARY}
 			${PNG_LIBRARIES}
 			${ZLIB_LIBRARIES}
-			${FREETYPE_LIBRARY}
-			${LAPACK_LIBRARIES})
+			${FREETYPE_LIBRARY})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
 	if(WITH_PYTHON)  # AND NOT WITH_PYTHON_MODULE  # WIN32 needs
@@ -346,7 +345,9 @@ macro(setup_liblinks
 	if(WITH_INPUT_NDOF)
 		target_link_libraries(${target} ${NDOF_LIBRARIES})
 	endif()
-
+	if(WITH_MOD_CLOTH_ELTOPO)
+		target_link_libraries(${target} ${LAPACK_LIBRARIES})
+	endif()
 	if(WIN32 AND NOT UNIX)
 		target_link_libraries(${target} ${PTHREADS_LIBRARIES})
 	endif()
@@ -450,6 +451,12 @@ macro(remove_strict_flags)
 
 		# negate flags implied by '-Wall'
 		add_cc_flag("${CC_REMOVE_STRICT_FLAGS}")
+	endif()
+
+	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		remove_cc_flag("-Wunused-parameter")
+		remove_cc_flag("-Wunused-variable")
+		remove_cc_flag("-Werror")
 	endif()
 
 	if(MSVC)

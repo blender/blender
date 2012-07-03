@@ -27,15 +27,8 @@
 
 /** \file ghost/intern/GHOST_C-api.cpp
  *  \ingroup GHOST
- */
-
-
-/*
-
- * GHOST_C-Api.cpp
  *
  * C Api for GHOST
- *
  */
 
 #include <stdlib.h>

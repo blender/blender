@@ -313,7 +313,7 @@ int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size)
 {
 	switch (pr_size) {
 		case IMB_PROXY_NONE: /* if we got here, something is broken anyways,
-		                        so sane defaults... */
+		                      * so sane defaults... */
 			return 0;
 		case IMB_PROXY_25:
 			return 0;
@@ -333,7 +333,7 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
 {
 	switch (tc) {
 		case IMB_TC_NONE: /* if we got here, something is broken anyways,
-		                     so sane defaults... */
+		                   * so sane defaults... */
 			return 0;
 		case IMB_TC_RECORD_RUN:
 			return 0;
@@ -906,11 +906,11 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 			                pts_time_base * frame_rate + 0.5f);
 
 			/* decoding starts *always* on I-Frames,
-			   so: P-Frames won't work, even if all the
-			   information is in place, when we seek
-			   to the I-Frame presented *after* the P-Frame,
-			   but located before the P-Frame within
-			   the stream */
+			 * so: P-Frames won't work, even if all the
+			 * information is in place, when we seek
+			 * to the I-Frame presented *after* the P-Frame,
+			 * but located before the P-Frame within
+			 * the stream */
 
 			if (pts < seek_pos_pts) {
 				s_pos = last_seek_pos;
@@ -966,7 +966,7 @@ static AviMovie *alloc_proxy_output_avi(
 	double framerate;
 	AviMovie *avi;
 	short frs_sec = 25;      /* it doesn't really matter for proxies,
-	                            but sane defaults help anyways...*/
+	                          * but sane defaults help anyways...*/
 	float frs_sec_base = 1.0;
 
 	IMB_anim_get_fps(anim, &frs_sec, &frs_sec_base);

@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ZCombineNode_h
-#define _COM_ZCombineNode_h
+#ifndef _COM_ZCombineNode_h_
+#define _COM_ZCombineNode_h_
 
 #include "COM_Node.h"
 

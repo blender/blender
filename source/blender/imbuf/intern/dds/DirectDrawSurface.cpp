@@ -1016,6 +1016,10 @@ uint DirectDrawSurface::mipmapCount() const
 	else return 1;
 }
 
+uint DirectDrawSurface::fourCC() const
+{
+	return header.pf.fourcc;
+}
 
 uint DirectDrawSurface::width() const
 {
@@ -1129,6 +1133,29 @@ void DirectDrawSurface::mipmap(Image * img, uint face, uint mipmap)
 			readBlockImage(img);
 		}
 	}
+}
+
+// It was easier to copy this function from upstream than to resync.
+// This should be removed if a resync ever occurs.
+void* DirectDrawSurface::readData(uint &rsize)
+{
+	uint header_size = 128; // sizeof(DDSHeader);
+	if (header.hasDX10Header())
+	{
+		header_size += 20; // sizeof(DDSHeader10);
+	}
+
+	uint size = stream.size - header_size;
+	rsize = size;
+
+	unsigned char *data = new unsigned char[size];
+
+	stream.seek(header_size);
+	mem_read(stream, data, size);
+
+	// Maybe check if size == rsize? assert() isn't in this scope...
+
+	return data;
 }
 
 void DirectDrawSurface::readLinearImage(Image * img)

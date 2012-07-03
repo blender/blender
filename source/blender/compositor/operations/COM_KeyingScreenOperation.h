@@ -39,39 +39,46 @@ extern "C" {
 }
 
 /**
-  * Class with implementation of green screen gradient rasterization
-  */
+ * Class with implementation of green screen gradient rasterization
+ */
 class KeyingScreenOperation : public NodeOperation {
 protected:
 	typedef struct TriangulationData {
 		VoronoiTriangulationPoint *triangulated_points;
 		int (*triangles)[3];
 		int triangulated_points_total, triangles_total;
+		rctf *triangles_AABB;
 	} TriangulationData;
 
-	MovieClip *movieClip;
-	int framenumber;
-	TriangulationData *cachedTriangulation;
-	char trackingObject[64];
+	typedef struct TileData {
+		int *triangles;
+		int triangles_total;
+	} TileData;
+
+	MovieClip *m_movieClip;
+	int m_framenumber;
+	TriangulationData *m_cachedTriangulation;
+	char m_trackingObject[64];
 
 	/**
-	  * Determine the output resolution. The resolution is retrieved from the Renderer
-	  */
+	 * Determine the output resolution. The resolution is retrieved from the Renderer
+	 */
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 
 	TriangulationData *buildVoronoiTriangulation();
 
- public:
+public:
 	KeyingScreenOperation();
 
 	void initExecution();
 	void deinitExecution();
 
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data);
 
-	void setMovieClip(MovieClip *clip) {this->movieClip = clip;}
-	void setTrackingObject(char *object) {strncpy(this->trackingObject, object, sizeof(this->trackingObject));}
-	void setFramenumber(int framenumber) {this->framenumber = framenumber;}
+	void setMovieClip(MovieClip *clip) {this->m_movieClip = clip;}
+	void setTrackingObject(const char *object) {strncpy(this->m_trackingObject, object, sizeof(this->m_trackingObject));}
+	void setFramenumber(int framenumber) {this->m_framenumber = framenumber;}
 
 	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 };

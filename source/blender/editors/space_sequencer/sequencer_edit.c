@@ -2694,8 +2694,11 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	sound_remove_scene_sound(scene, seq_act->scene_sound);
-	sound_remove_scene_sound(scene, seq_other->scene_sound);
+	if (seq_act->scene_sound)
+		sound_remove_scene_sound(scene, seq_act->scene_sound);
+
+	if (seq_other->scene_sound)
+		sound_remove_scene_sound(scene, seq_other->scene_sound);
 
 	seq_act->scene_sound = NULL;
 	seq_other->scene_sound = NULL;

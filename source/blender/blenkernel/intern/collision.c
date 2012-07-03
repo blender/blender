@@ -325,8 +325,7 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 
 			result = 1;
 		}
-		else
-		{
+		else {
 			// Apply repulse impulse if distance too short
 			// I_r = -min(dt*kd, max(0, 1d/dt - v_n))
 			// DG: this formula ineeds to be changed for this code since we apply impulses/repulses like this:

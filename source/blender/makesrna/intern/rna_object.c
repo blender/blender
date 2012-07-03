@@ -174,6 +174,11 @@ static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA
 	rna_Object_internal_update(bmain, scene, ptr);
 }
 
+static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	DAG_id_type_tag(bmain, ID_OB);
+}
+
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
 {
 	Object *ob = ptr->id.data;
@@ -947,8 +952,8 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 			break;
 		case OB_BODY_TYPE_CHARACTER:
 			ob->gameflag |= OB_COLLISION | OB_GHOST | OB_CHARACTER;
-			ob->gameflag &= ~(OB_SENSOR | OB_OCCLUDER | OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_ACTOR
-		                     | OB_ANISOTROPIC_FRICTION | OB_DO_FH | OB_ROT_FH | OB_COLLISION_RESPONSE | OB_NAVMESH);
+			ob->gameflag &= ~(OB_SENSOR | OB_OCCLUDER | OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_ACTOR |
+		                      OB_ANISOTROPIC_FRICTION | OB_DO_FH | OB_ROT_FH | OB_COLLISION_RESPONSE | OB_NAVMESH);
 		break;
 		case OB_BODY_TYPE_STATIC:
 			ob->gameflag |= OB_COLLISION;
@@ -1539,17 +1544,17 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Velocity Max", "Clamp velocity to this maximum speed");
 	
-	prop= RNA_def_property(srna, "step_height", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "step_height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "step_height");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Step Height", "Maximum height of steps the character can run over");
 
-	prop= RNA_def_property(srna, "jump_speed", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "jump_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "jump_speed");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Jump Force", "Upward velocity applied to the character when jumping (with the Motion actuator)");
 
-	prop= RNA_def_property(srna, "fall_speed", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "fall_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fall_speed");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Fall Speed Max", "Maximum speed at which the character will fall");
@@ -1971,6 +1976,12 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_layer_update");
 
+	prop = RNA_def_property(srna, "layers_local_view", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "lay", 0x01000000);
+	RNA_def_property_array(prop, 8);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Local View Layers", "3D local view layers the object is on");
+
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
 	RNA_def_property_ui_text(prop, "Select", "Object selection state");
@@ -2308,7 +2319,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEW);
 	RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
 
 	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_SELECT);
@@ -2320,7 +2331,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_RENDER);
 	RNA_def_property_ui_text(prop, "Restrict Render", "Restrict renderability");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
 
 	/* anim */
 	rna_def_animdata_common(srna);
@@ -2579,6 +2590,12 @@ static void rna_def_object_base(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Layers", "Layers the object base is on");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Base_layer_set");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Base_layer_update");
+
+	prop = RNA_def_property(srna, "layers_local_view", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "lay", 0x01000000);
+	RNA_def_property_array(prop, 8);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Local View Layers", "3D local view layers the object base is on");
 	
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BA_SELECT);

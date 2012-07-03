@@ -235,8 +235,8 @@ public:
 	virtual const GHOST_TabletData *GetTabletData() = 0;
 	
 	/***************************************************************************************
-	** Progress bar functionality
-	***************************************************************************************/
+	 * Progress bar functionality
+	 ***************************************************************************************/
 	
 	/**
 	 * Sets the progress bar value displayed in the window/application icon
@@ -250,8 +250,8 @@ public:
 	virtual GHOST_TSuccess endProgressBar() = 0;
 	
 	/***************************************************************************************
-	** Cursor management functionality
-	***************************************************************************************/
+	 * Cursor management functionality
+	 ***************************************************************************************/
 
 	/**
 	 * Returns the current cursor shape.
@@ -306,9 +306,7 @@ public:
 	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds) { return GHOST_kSuccess; }
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GHOST:GHOST_IWindow"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IWindow")
 #endif
 };
 

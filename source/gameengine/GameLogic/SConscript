@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('*.cpp') + env.Glob('Joystick/*.cpp')
 
-incs = '. #/intern/string #intern/container'
+incs = '. #/intern/string #intern/container #intern/ghost'
 incs += ' #/source/gameengine/Expressions #/intern/moto/include'
 incs += ' #/source/gameengine/Rasterizer #/source/gameengine/SceneGraph'
 incs += ' #/source/blender/blenlib'

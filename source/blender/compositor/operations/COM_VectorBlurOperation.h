@@ -31,16 +31,16 @@ private:
 	/**
 	 * @brief Cached reference to the inputProgram
 	 */
-	SocketReader *inputImageProgram;
-	SocketReader *inputSpeedProgram;
-	SocketReader *inputZProgram;
+	SocketReader *m_inputImageProgram;
+	SocketReader *m_inputSpeedProgram;
+	SocketReader *m_inputZProgram;
 	
 	/**
 	 * @brief settings of the glare node.
 	 */
-	NodeBlurData *settings;
+	NodeBlurData *m_settings;
 	
-	float *cachedInstance;
+	float *m_cachedInstance;
 
 public:
 	VectorBlurOperation();
@@ -62,7 +62,7 @@ public:
 
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 
-	void setVectorBlurSettings(NodeBlurData *settings) { this->settings = settings; }
+	void setVectorBlurSettings(NodeBlurData *settings) { this->m_settings = settings; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 protected:
 	

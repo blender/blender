@@ -173,7 +173,7 @@ static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
 	int *index_map, i;
 
 	BMO_op_initf(bm, &find_op,
-	             "finddoubles verts=%av dist=%f keepverts=%s",
+	             "find_doubles verts=%av dist=%f keep_verts=%s",
 	             amd->merge_dist, dupe_op, "geom");
 
 	BMO_op_exec(bm, &find_op);
@@ -224,8 +224,8 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 	BMIter iter;
 
 	/* Add the DerivedMesh's elements to the BMesh. The pre-existing
-	   elements were already tagged, so the new elements can be
-	   identified by not having the BM_ELEM_TAG flag set. */
+	 * elements were already tagged, so the new elements can be
+	 * identified by not having the BM_ELEM_TAG flag set. */
 	DM_to_bmesh_ex(dm, bm);
 
 	if (amd->flags & MOD_ARR_MERGE) {
@@ -235,7 +235,7 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 		BMOperator find_op;
 
 		BMO_op_initf(bm, &find_op,
-		             "finddoubles verts=%Hv dist=%f keepverts=%s",
+		             "find_doubles verts=%Hv dist=%f keep_verts=%s",
 		             BM_ELEM_TAG, amd->merge_dist,
 		             dupe_op, dupe_slot_name);
 
@@ -287,7 +287,7 @@ static void merge_first_last(BMesh *bm,
 	BMVert *v, *v2;
 
 	BMO_op_initf(bm, &find_op,
-	             "finddoubles verts=%s dist=%f keepverts=%s",
+	             "find_doubles verts=%s dist=%f keep_verts=%s",
 	             dupe_first, "geom", amd->merge_dist,
 	             dupe_first, "geom");
 
@@ -410,9 +410,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	bmesh_edit_begin(em->bm, 0);
 
 	if (amd->flags & MOD_ARR_MERGE)
-		BMO_op_init(em->bm, &weld_op, "weldverts");
+		BMO_op_init(em->bm, &weld_op, "weld_verts");
 
-	BMO_op_initf(em->bm, &dupe_op, "dupe geom=%avef");
+	BMO_op_initf(em->bm, &dupe_op, "duplicate geom=%avef");
 	first_dupe_op = dupe_op;
 
 	for (j = 0; j < count - 1; j++) {
@@ -422,7 +422,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		BMOIter oiter;
 
 		if (j != 0)
-			BMO_op_initf(em->bm, &dupe_op, "dupe geom=%s", &old_dupe_op, "newout");
+			BMO_op_initf(em->bm, &dupe_op, "duplicate geom=%s", &old_dupe_op, "newout");
 		BMO_op_exec(em->bm, &dupe_op);
 
 		geom_slot = BMO_slot_get(&dupe_op, "geom");

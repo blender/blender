@@ -1699,6 +1699,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceView3D_layer_set");
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible in this 3D View");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_layer_update");
+
+	prop = RNA_def_property(srna, "layers_local_view", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "lay", 0x01000000);
+	RNA_def_property_array(prop, 8);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Local View Layers", "Local view layers visible in this 3D View");
 	
 	prop = RNA_def_property(srna, "layers_used", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay_used", 1);

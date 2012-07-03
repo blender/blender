@@ -67,7 +67,7 @@ int uopen(const char *filename, int oflag, int pmode)
 	UTF16_UN_ENCODE(filename);
 
 	if (f == -1) {
-		if ((f=open(filename,oflag, pmode)) != -1) {
+		if ((f = open(filename,oflag, pmode)) != -1) {
 			printf("WARNING: %s is not utf path. Please update it.\n",filename);
 		}
 	}

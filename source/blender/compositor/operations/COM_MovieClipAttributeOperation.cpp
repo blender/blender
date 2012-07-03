@@ -28,40 +28,40 @@ extern "C" {
 MovieClipAttributeOperation::MovieClipAttributeOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_VALUE);
-	this->valueSet = false;
-	this->framenumber = 0;
-	this->attribute = MCA_X;
+	this->m_valueSet = false;
+	this->m_framenumber = 0;
+	this->m_attribute = MCA_X;
 }
 
 void MovieClipAttributeOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	if (!valueSet) {
+	if (!this->m_valueSet) {
 		float loc[2], scale, angle;
 		loc[0] = 0.0f;
 		loc[1] = 0.0f;
 		scale = 1.0f;
 		angle = 0.0f;
-		if (clip) {
-			int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, framenumber);
-			BKE_tracking_stabilization_data_get(&clip->tracking, clip_framenr, getWidth(), getHeight(), loc, &scale, &angle);
+		if (this->m_clip) {
+			int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_clip, this->m_framenumber);
+			BKE_tracking_stabilization_data_get(&this->m_clip->tracking, clip_framenr, getWidth(), getHeight(), loc, &scale, &angle);
 		}
-		switch (this->attribute) {
+		switch (this->m_attribute) {
 			case MCA_SCALE:
-				this->value = scale;
+				this->m_value = scale;
 				break;
 			case MCA_ANGLE:
-				this->value = angle;
+				this->m_value = angle;
 				break;
 			case MCA_X:
-				this->value = loc[0];
+				this->m_value = loc[0];
 				break;
 			case MCA_Y:
-				this->value = loc[1];
+				this->m_value = loc[1];
 				break;
 		}
-		valueSet = true;
+		this->m_valueSet = true;
 	}
-	outputValue[0] = this->value;
+	outputValue[0] = this->m_value;
 }
 
 void MovieClipAttributeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])

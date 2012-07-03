@@ -29,23 +29,23 @@ ConvertColorProfileOperation::ConvertColorProfileOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
-	this->inputOperation = NULL;
-	this->predivided = false;
+	this->m_inputOperation = NULL;
+	this->m_predivided = false;
 }
 
 void ConvertColorProfileOperation::initExecution()
 {
-	this->inputOperation = this->getInputSocketReader(0);
+	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
 void ConvertColorProfileOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float color[4];
-	inputOperation->read(color, x, y, sampler, inputBuffers);
-	IMB_buffer_float_from_float(outputValue, color, 4, this->toProfile, this->fromProfile, this->predivided, 1, 1, 0, 0);
+	this->m_inputOperation->read(color, x, y, sampler, inputBuffers);
+	IMB_buffer_float_from_float(outputValue, color, 4, this->m_toProfile, this->m_fromProfile, this->m_predivided, 1, 1, 0, 0);
 }
 
 void ConvertColorProfileOperation::deinitExecution()
 {
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }

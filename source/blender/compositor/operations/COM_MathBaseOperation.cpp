@@ -30,21 +30,21 @@ MathBaseOperation::MathBaseOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
-	this->inputValue1Operation = NULL;
-	this->inputValue2Operation = NULL;
+	this->m_inputValue1Operation = NULL;
+	this->m_inputValue2Operation = NULL;
 }
 
 void MathBaseOperation::initExecution()
 {
-	this->inputValue1Operation = this->getInputSocketReader(0);
-	this->inputValue2Operation = this->getInputSocketReader(1);
+	this->m_inputValue1Operation = this->getInputSocketReader(0);
+	this->m_inputValue2Operation = this->getInputSocketReader(1);
 }
 
 
 void MathBaseOperation::deinitExecution()
 {
-	this->inputValue1Operation = NULL;
-	this->inputValue2Operation = NULL;
+	this->m_inputValue1Operation = NULL;
+	this->m_inputValue2Operation = NULL;
 }
 
 void MathBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
@@ -69,8 +69,8 @@ void MathAddOperation::executePixel(float *outputValue, float x, float y, PixelS
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = inputValue1[0] + inputValue2[0];
 }
@@ -80,8 +80,8 @@ void MathSubtractOperation::executePixel(float *outputValue, float x, float y, P
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = inputValue1[0] - inputValue2[0];
 }
@@ -91,8 +91,8 @@ void MathMultiplyOperation::executePixel(float *outputValue, float x, float y, P
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = inputValue1[0] * inputValue2[0];
 }
@@ -102,8 +102,8 @@ void MathDivideOperation::executePixel(float *outputValue, float x, float y, Pix
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	if (inputValue2[0] == 0) /* We don't want to divide by zero. */
 		outputValue[0] = 0.0;
@@ -116,8 +116,8 @@ void MathSineOperation::executePixel(float *outputValue, float x, float y, Pixel
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = sin(inputValue1[0]);
 }
@@ -127,8 +127,8 @@ void MathCosineOperation::executePixel(float *outputValue, float x, float y, Pix
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = cos(inputValue1[0]);
 }
@@ -138,8 +138,8 @@ void MathTangentOperation::executePixel(float *outputValue, float x, float y, Pi
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = tan(inputValue1[0]);
 }
@@ -149,8 +149,8 @@ void MathArcSineOperation::executePixel(float *outputValue, float x, float y, Pi
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	if (inputValue1[0] <= 1 && inputValue1[0] >= -1)
 		outputValue[0] = asin(inputValue1[0]);
@@ -163,8 +163,8 @@ void MathArcCosineOperation::executePixel(float *outputValue, float x, float y, 
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	if (inputValue1[0] <= 1 && inputValue1[0] >= -1)
 		outputValue[0] = acos(inputValue1[0]);
@@ -177,8 +177,8 @@ void MathArcTangentOperation::executePixel(float *outputValue, float x, float y,
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = atan(inputValue1[0]);
 }
@@ -188,8 +188,8 @@ void MathPowerOperation::executePixel(float *outputValue, float x, float y, Pixe
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	if (inputValue1[0] >= 0) {
 		outputValue[0] = pow(inputValue1[0], inputValue2[0]);
@@ -211,8 +211,8 @@ void MathLogarithmOperation::executePixel(float *outputValue, float x, float y, 
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	if (inputValue1[0] > 0  && inputValue2[0] > 0)
 		outputValue[0] = log(inputValue1[0]) / log(inputValue2[0]);
@@ -225,8 +225,8 @@ void MathMinimumOperation::executePixel(float *outputValue, float x, float y, Pi
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = min(inputValue1[0], inputValue2[0]);
 }
@@ -236,8 +236,8 @@ void MathMaximumOperation::executePixel(float *outputValue, float x, float y, Pi
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = max(inputValue1[0], inputValue2[0]);
 }
@@ -247,8 +247,8 @@ void MathRoundOperation::executePixel(float *outputValue, float x, float y, Pixe
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = round(inputValue1[0]);
 }
@@ -258,8 +258,8 @@ void MathLessThanOperation::executePixel(float *outputValue, float x, float y, P
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = inputValue1[0] < inputValue2[0] ? 1.0f : 0.0f;
 }
@@ -269,8 +269,8 @@ void MathGreaterThanOperation::executePixel(float *outputValue, float x, float y
 	float inputValue1[4];
 	float inputValue2[4];
 	
-	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
-	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
+	this->m_inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
+	this->m_inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
 	outputValue[0] = inputValue1[0] > inputValue2[0] ? 1.0f : 0.0f;
 }

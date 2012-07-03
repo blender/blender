@@ -46,7 +46,7 @@ void ConvolutionEdgeFilterOperation::executePixel(float *color, int x, int y, Me
 	CLAMP(y3, 0, getHeight() - 1);
 	
 	float value[4];
-	this->inputValueOperation->read(value, x2, y2, inputBuffers, NULL);
+	this->m_inputValueOperation->read(value, x2, y2, inputBuffers, NULL);
 	float mval = 1.0f - value[0];
 	
 	res1[0] = 0.0f;
@@ -58,41 +58,41 @@ void ConvolutionEdgeFilterOperation::executePixel(float *color, int x, int y, Me
 	res2[2] = 0.0f;
 	res2[3] = 0.0f;
 	
-	this->inputOperation->read(in1, x1, y1, inputBuffers, NULL);
-	madd_v3_v3fl(res1, in1, this->filter[0]);
-	madd_v3_v3fl(res2, in1, this->filter[0]);
+	this->m_inputOperation->read(in1, x1, y1, inputBuffers, NULL);
+	madd_v3_v3fl(res1, in1, this->m_filter[0]);
+	madd_v3_v3fl(res2, in1, this->m_filter[0]);
 	
-	this->inputOperation->read(in1, x2, y1, inputBuffers, NULL);
-	madd_v3_v3fl(res1, in1, this->filter[1]);
-	madd_v3_v3fl(res2, in1, this->filter[3]);
+	this->m_inputOperation->read(in1, x2, y1, inputBuffers, NULL);
+	madd_v3_v3fl(res1, in1, this->m_filter[1]);
+	madd_v3_v3fl(res2, in1, this->m_filter[3]);
 	
-	this->inputOperation->read(in1, x3, y1, inputBuffers, NULL);
-	madd_v3_v3fl(res1, in1, this->filter[2]);
-	madd_v3_v3fl(res2, in1, this->filter[6]);
+	this->m_inputOperation->read(in1, x3, y1, inputBuffers, NULL);
+	madd_v3_v3fl(res1, in1, this->m_filter[2]);
+	madd_v3_v3fl(res2, in1, this->m_filter[6]);
 	
-	this->inputOperation->read(in1, x1, y2, inputBuffers, NULL);
-	madd_v3_v3fl(res1, in1, this->filter[3]);
-	madd_v3_v3fl(res2, in1, this->filter[1]);
+	this->m_inputOperation->read(in1, x1, y2, inputBuffers, NULL);
+	madd_v3_v3fl(res1, in1, this->m_filter[3]);
+	madd_v3_v3fl(res2, in1, this->m_filter[1]);
 	
-	this->inputOperation->read(in2, x2, y2, inputBuffers, NULL);
-	madd_v3_v3fl(res1, in2, this->filter[4]);
-	madd_v3_v3fl(res2, in2, this->filter[4]);
+	this->m_inputOperation->read(in2, x2, y2, inputBuffers, NULL);
+	madd_v3_v3fl(res1, in2, this->m_filter[4]);
+	madd_v3_v3fl(res2, in2, this->m_filter[4]);
 	
-	this->inputOperation->read(in1, x3, y2, inputBuffers, NULL);
-	madd_v3_v3fl(res1, in1, this->filter[5]);
-	madd_v3_v3fl(res2, in1, this->filter[7]);
+	this->m_inputOperation->read(in1, x3, y2, inputBuffers, NULL);
+	madd_v3_v3fl(res1, in1, this->m_filter[5]);
+	madd_v3_v3fl(res2, in1, this->m_filter[7]);
 	
-	this->inputOperation->read(in1, x1, y3, inputBuffers, NULL);
-	madd_v3_v3fl(res1, in1, this->filter[6]);
-	madd_v3_v3fl(res2, in1, this->filter[2]);
+	this->m_inputOperation->read(in1, x1, y3, inputBuffers, NULL);
+	madd_v3_v3fl(res1, in1, this->m_filter[6]);
+	madd_v3_v3fl(res2, in1, this->m_filter[2]);
 	
-	this->inputOperation->read(in1, x2, y3, inputBuffers, NULL);
-	madd_v3_v3fl(res1, in1, this->filter[7]);
-	madd_v3_v3fl(res2, in1, this->filter[5]);
+	this->m_inputOperation->read(in1, x2, y3, inputBuffers, NULL);
+	madd_v3_v3fl(res1, in1, this->m_filter[7]);
+	madd_v3_v3fl(res2, in1, this->m_filter[5]);
 	
-	this->inputOperation->read(in1, x3, y3, inputBuffers, NULL);
-	madd_v3_v3fl(res1, in1, this->filter[8]);
-	madd_v3_v3fl(res2, in1, this->filter[8]);
+	this->m_inputOperation->read(in1, x3, y3, inputBuffers, NULL);
+	madd_v3_v3fl(res1, in1, this->m_filter[8]);
+	madd_v3_v3fl(res2, in1, this->m_filter[8]);
 	
 	color[0] = sqrt(res1[0] * res1[0] + res2[0] * res2[0]);
 	color[1] = sqrt(res1[1] * res1[1] + res2[1] * res2[1]);

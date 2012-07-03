@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_AlphaOverNode_h
-#define _COM_AlphaOverNode_h
+#ifndef _COM_AlphaOverNode_h_
+#define _COM_AlphaOverNode_h_
 
 #include "COM_Node.h"
 

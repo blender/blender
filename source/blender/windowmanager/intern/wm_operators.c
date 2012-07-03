@@ -1052,7 +1052,10 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 
 	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_RET_1 | UI_BLOCK_MOVEMOUSE_QUIT);
+
+	/* intentionally don't use 'UI_BLOCK_MOVEMOUSE_QUIT', some dialogs have many items
+	 * where quitting by accident is very annoying */
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_RET_1);
 
 	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, style);
 	
@@ -2062,12 +2065,17 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->check = blend_save_check;
 	/* ommit window poll so this can work in background mode */
 
-	WM_operator_properties_filesel(ot, FOLDERFILE | BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH,
+	                               FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
-	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative", "Remap relative paths when saving in a different directory");
-	RNA_def_boolean(ot->srna, "copy", 0, "Save Copy", "Save a copy of the actual working state but does not make saved file active");
+	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative",
+	                "Remap relative paths when saving in a different directory");
+	RNA_def_boolean(ot->srna, "copy", 0, "Save Copy",
+	                "Save a copy of the actual working state but does not make saved file active");
 #ifdef USE_BMESH_SAVE_AS_COMPAT
-	RNA_def_boolean(ot->srna, "use_mesh_compat", 0, "Legacy Mesh Format", "Save using legacy mesh format (no ngons)");
+	RNA_def_boolean(ot->srna, "use_mesh_compat", 0, "Legacy Mesh Format",
+	                "Save using legacy mesh format (no ngons) - WARNING: only saves tris and quads, other ngons will "
+	                "be lost (no implicit triangulation)");
 #endif
 }
 

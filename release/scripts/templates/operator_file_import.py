@@ -21,7 +21,7 @@ from bpy.types import Operator
 
 
 class ImportSomeData(Operator, ImportHelper):
-    '''This appears in the tooltip of the operator and in the generated docs'''
+    """This appears in the tooltip of the operator and in the generated docs"""
     bl_idname = "import_test.some_data"  # important since its how bpy.ops.import_test.some_data is constructed
     bl_label = "Import Some Data"
 

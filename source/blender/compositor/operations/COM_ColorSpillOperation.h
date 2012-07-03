@@ -30,13 +30,13 @@
  */
 class ColorSpillOperation : public NodeOperation {
 protected:
-	NodeColorspill *settings;
-	SocketReader *inputImageReader;
-	SocketReader *inputFacReader;
-	int spillChannel;
-	int channel2;
-	int channel3;
-	float rmut, gmut, bmut;
+	NodeColorspill *m_settings;
+	SocketReader *m_inputImageReader;
+	SocketReader *m_inputFacReader;
+	int m_spillChannel;
+	int m_channel2;
+	int m_channel3;
+	float m_rmut, m_gmut, m_bmut;
 public:
 	/**
 	 * Default constructor
@@ -51,8 +51,8 @@ public:
 	void initExecution();
 	void deinitExecution();
 
-	void setSettings(NodeColorspill *nodeColorSpill) { this->settings = nodeColorSpill; }
-	void setSpillChannel(int channel) { this->spillChannel = channel; }
+	void setSettings(NodeColorspill *nodeColorSpill) { this->m_settings = nodeColorSpill; }
+	void setSpillChannel(int channel) { this->m_spillChannel = channel; }
 	
 	float calculateMapValue(float fac, float *input);
 };

@@ -27,8 +27,8 @@ CropBaseOperation::CropBaseOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addOutputSocket(COM_DT_COLOR);
-	this->inputOperation = NULL;
-	this->settings = NULL;
+	this->m_inputOperation = NULL;
+	this->m_settings = NULL;
 }
 
 void CropBaseOperation::updateArea()
@@ -36,36 +36,36 @@ void CropBaseOperation::updateArea()
 	SocketReader *inputReference = this->getInputSocketReader(0);
 	float width = inputReference->getWidth();
 	float height = inputReference->getHeight();
-	if (this->relative) {
-		settings->x1 = width * settings->fac_x1;
-		settings->x2 = width * settings->fac_x2;
-		settings->y1 = height * settings->fac_y1;
-		settings->y2 = height * settings->fac_y2;
+	if (this->m_relative) {
+		this->m_settings->x1 = width * this->m_settings->fac_x1;
+		this->m_settings->x2 = width * this->m_settings->fac_x2;
+		this->m_settings->y1 = height * this->m_settings->fac_y1;
+		this->m_settings->y2 = height * this->m_settings->fac_y2;
 	}
-	if (width <= settings->x1 + 1)
-		settings->x1 = width - 1;
-	if (height <= settings->y1 + 1)
-		settings->y1 = height - 1;
-	if (width <= settings->x2 + 1)
-		settings->x2 = width - 1;
-	if (height <= settings->y2 + 1)
-		settings->y2 = height - 1;
+	if (width <= this->m_settings->x1 + 1)
+		this->m_settings->x1 = width - 1;
+	if (height <= this->m_settings->y1 + 1)
+		this->m_settings->y1 = height - 1;
+	if (width <= this->m_settings->x2 + 1)
+		this->m_settings->x2 = width - 1;
+	if (height <= this->m_settings->y2 + 1)
+		this->m_settings->y2 = height - 1;
 	
-	this->xmax = MAX2(settings->x1, settings->x2) + 1;
-	this->xmin = MIN2(settings->x1, settings->x2);
-	this->ymax = MAX2(settings->y1, settings->y2) + 1;
-	this->ymin = MIN2(settings->y1, settings->y2);
+	this->m_xmax = MAX2(this->m_settings->x1, this->m_settings->x2) + 1;
+	this->m_xmin = MIN2(this->m_settings->x1, this->m_settings->x2);
+	this->m_ymax = MAX2(this->m_settings->y1, this->m_settings->y2) + 1;
+	this->m_ymin = MIN2(this->m_settings->y1, this->m_settings->y2);
 }
 
 void CropBaseOperation::initExecution()
 {
-	this->inputOperation = this->getInputSocketReader(0);
+	this->m_inputOperation = this->getInputSocketReader(0);
 	updateArea();
 }
 
 void CropBaseOperation::deinitExecution()
 {
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }
 
 CropOperation::CropOperation() : CropBaseOperation()
@@ -75,14 +75,11 @@ CropOperation::CropOperation() : CropBaseOperation()
 
 void CropOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	if ((x < this->xmax && x >= xmin) && (y < ymax && y >= ymin)) {
-		inputOperation->read(color, x, y, sampler, inputBuffers);
+	if ((x < this->m_xmax && x >= this->m_xmin) && (y < this->m_ymax && y >= this->m_ymin)) {
+		this->m_inputOperation->read(color, x, y, sampler, inputBuffers);
 	}
 	else {
-		color[0] = 0.0f;
-		color[1] = 0.0f;
-		color[2] = 0.0f;
-		color[3] = 0.0f;
+		zero_v4(color);
 	}
 }
 
@@ -95,10 +92,10 @@ bool CropImageOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 {
 	rcti newInput;
 	
-	newInput.xmax = input->xmax + this->xmin;
-	newInput.xmin = input->xmin + this->xmin;
-	newInput.ymax = input->ymax + this->ymin;
-	newInput.ymin = input->ymin + this->ymin;
+	newInput.xmax = input->xmax + this->m_xmin;
+	newInput.xmin = input->xmin + this->m_xmin;
+	newInput.ymax = input->ymax + this->m_ymin;
+	newInput.ymin = input->ymin + this->m_ymin;
 	
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
@@ -107,11 +104,11 @@ void CropImageOperation::determineResolution(unsigned int resolution[], unsigned
 {
 	NodeOperation::determineResolution(resolution, preferedResolution);
 	updateArea();
-	resolution[0] = this->xmax - this->xmin;
-	resolution[1] = this->ymax - this->ymin;
+	resolution[0] = this->m_xmax - this->m_xmin;
+	resolution[1] = this->m_ymax - this->m_ymin;
 }
 
 void CropImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	this->inputOperation->read(color, (x + this->xmin), (y + this->ymin), sampler, inputBuffers);
+	this->m_inputOperation->read(color, (x + this->m_xmin), (y + this->m_ymin), sampler, inputBuffers);
 }

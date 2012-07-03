@@ -33,27 +33,26 @@ CalculateStandardDeviationOperation::CalculateStandardDeviationOperation() : Cal
 
 void CalculateStandardDeviationOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	color[0] = this->standardDeviation;
+	color[0] = this->m_standardDeviation;
 }
 
 void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	lockMutex();
-	if (!this->iscalculated) {
-		MemoryBuffer *tile = (MemoryBuffer *)imageReader->initializeTileData(rect, memoryBuffers);
+	if (!this->m_iscalculated) {
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect, memoryBuffers);
 		CalculateMeanOperation::calculateMean(tile);
-		this->standardDeviation = 0.0f;
+		this->m_standardDeviation = 0.0f;
 		float *buffer = tile->getBuffer();
 		int size = tile->getWidth() * tile->getHeight();
 		int pixels = 0;
 		float sum = 0.0f;
-		float mean = this->result;
+		float mean = this->m_result;
 		for (int i = 0, offset = 0; i < size; i++, offset += 4) {
 			if (buffer[offset + 3] > 0) {
 				pixels++;
 		
-				switch (this->setting)
-				{
+				switch (this->m_setting) {
 					case 1:
 					{
 						float value = rgb_to_bw(&buffer[offset]);
@@ -90,8 +89,8 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, Memory
 				}
 			}
 		}
-		this->standardDeviation = sqrt(sum / (float)(pixels - 1));
-		this->iscalculated = true;
+		this->m_standardDeviation = sqrt(sum / (float)(pixels - 1));
+		this->m_iscalculated = true;
 	}
 	unlockMutex();
 	return NULL;

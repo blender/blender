@@ -566,7 +566,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				}
 				else if (status == XLookupKeySym) {
 					/* this key doesn't have a text representation, it is a command
-					   key of some sort */;
+					 * key of some sort */;
 				}
 				else {
 					printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
@@ -745,11 +745,11 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case LeaveNotify:
 		{
 			/* XCrossingEvents pointer leave enter window.
-			   also do cursor move here, MotionNotify only
-			   happens when motion starts & ends inside window.
-			   we only do moves when the crossing mode is 'normal'
-			   (really crossing between windows) since some windowmanagers
-			   also send grab/ungrab crossings for mousewheel events.
+			 * also do cursor move here, MotionNotify only
+			 * happens when motion starts & ends inside window.
+			 * we only do moves when the crossing mode is 'normal'
+			 * (really crossing between windows) since some windowmanagers
+			 * also send grab/ungrab crossings for mousewheel events.
 			 */
 			XCrossingEvent &xce = xe->xcrossing;
 			if (xce.mode == NotifyNormal) {
@@ -1077,15 +1077,15 @@ convertXKey(KeySym key)
 		type = GHOST_TKey(key - XK_F1 + int(GHOST_kKeyF1));
 #if defined(__sun) || defined(__sun__) 
 		/* This is a bit of a hack, but it looks like sun
-		   Used F11 and friends for its special keys Stop,again etc..
-		   So this little patch enables F11 and F12 to work as expected
-		   following link has documentation on it: 
-		   http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4734408
-		   also from /usr/include/X11/Sunkeysym.h 
-		   #define SunXK_F36               0x1005FF10      // Labeled F11
-		   #define SunXK_F37               0x1005FF11      // Labeled F12
-
-		        mein@cs.umn.edu
+		 * Used F11 and friends for its special keys Stop,again etc..
+		 * So this little patch enables F11 and F12 to work as expected
+		 * following link has documentation on it:
+		 * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4734408
+		 * also from /usr/include/X11/Sunkeysym.h
+		 * #define SunXK_F36               0x1005FF10      // Labeled F11
+		 * #define SunXK_F37               0x1005FF11      // Labeled F12
+		 *
+		 *      mein@cs.umn.edu
 		 */
 		
 	}

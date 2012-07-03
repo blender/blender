@@ -891,7 +891,7 @@ typedef enum eAnimData_Flag {
 typedef enum eAnimData_Recalc {
 	ADT_RECALC_DRIVERS		= (1<<0),
 	ADT_RECALC_ANIM			= (1<<1),
-	ADT_RECALC_ALL			= (ADT_RECALC_DRIVERS|ADT_RECALC_ANIM)
+	ADT_RECALC_ALL			= (ADT_RECALC_DRIVERS | ADT_RECALC_ANIM)
 } eAnimData_Recalc;
 
 /* Base Struct for Anim ------------------------------------- */

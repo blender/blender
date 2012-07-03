@@ -28,42 +28,42 @@
 WriteBufferOperation::WriteBufferOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
-	this->memoryProxy = new MemoryProxy();
-	this->memoryProxy->setWriteBufferOperation(this);
-	this->memoryProxy->setExecutor(NULL);
+	this->m_memoryProxy = new MemoryProxy();
+	this->m_memoryProxy->setWriteBufferOperation(this);
+	this->m_memoryProxy->setExecutor(NULL);
 }
 WriteBufferOperation::~WriteBufferOperation()
 {
-	if (this->memoryProxy) {
-		delete this->memoryProxy;
-		this->memoryProxy = NULL;
+	if (this->m_memoryProxy) {
+		delete this->m_memoryProxy;
+		this->m_memoryProxy = NULL;
 	}
 }
 
 void WriteBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	input->read(color, x, y, sampler, inputBuffers);
+	this->m_input->read(color, x, y, sampler, inputBuffers);
 }
 
 void WriteBufferOperation::initExecution()
 {
-	this->input = this->getInputOperation(0);
-	this->memoryProxy->allocate(this->width, this->height);
+	this->m_input = this->getInputOperation(0);
+	this->m_memoryProxy->allocate(this->m_width, this->m_height);
 }
 
 void WriteBufferOperation::deinitExecution()
 {
-	this->input = NULL;
-	this->memoryProxy->free();
+	this->m_input = NULL;
+	this->m_memoryProxy->free();
 }
 
 void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
 	//MemoryBuffer *memoryBuffer = MemoryManager::getMemoryBuffer(this->getMemoryProxy(), tileNumber);
-	MemoryBuffer *memoryBuffer = this->memoryProxy->getBuffer();
+	MemoryBuffer *memoryBuffer = this->m_memoryProxy->getBuffer();
 	float *buffer = memoryBuffer->getBuffer();
-	if (this->input->isComplex()) {
-		void *data = this->input->initializeTileData(rect, memoryBuffers);
+	if (this->m_input->isComplex()) {
+		void *data = this->m_input->initializeTileData(rect, memoryBuffers);
 		int x1 = rect->xmin;
 		int y1 = rect->ymin;
 		int x2 = rect->xmax;
@@ -74,7 +74,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 		for (y = y1; y < y2 && (!breaked); y++) {
 			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
 			for (x = x1; x < x2; x++) {
-				input->read(&(buffer[offset4]), x, y, memoryBuffers, data);
+				this->m_input->read(&(buffer[offset4]), x, y, memoryBuffers, data);
 				offset4 += COM_NUMBER_OF_CHANNELS;
 
 			}
@@ -84,7 +84,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 
 		}
 		if (data) {
-			this->input->deinitializeTileData(rect, memoryBuffers, data);
+			this->m_input->deinitializeTileData(rect, memoryBuffers, data);
 			data = NULL;
 		}
 	}
@@ -100,7 +100,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 		for (y = y1; y < y2 && (!breaked); y++) {
 			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
 			for (x = x1; x < x2; x++) {
-				input->read(&(buffer[offset4]), x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_input->read(&(buffer[offset4]), x, y, COM_PS_NEAREST, memoryBuffers);
 				offset4 += COM_NUMBER_OF_CHANNELS;
 			}
 			if (isBreaked()) {
@@ -140,7 +140,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice* device, rcti *rect,
 	clMemToCleanUp->push_back(clOutputBuffer);
 	list<cl_kernel> *clKernelsToCleanUp = new list<cl_kernel>();
 
-	this->input->executeOpenCL(device, outputBuffer, clOutputBuffer, inputMemoryBuffers, clMemToCleanUp, clKernelsToCleanUp);
+	this->m_input->executeOpenCL(device, outputBuffer, clOutputBuffer, inputMemoryBuffers, clMemToCleanUp, clKernelsToCleanUp);
 
 	// STEP 3
 

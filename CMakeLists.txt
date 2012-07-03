@@ -123,13 +123,14 @@ mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they rea
 mark_as_advanced(WITH_PYTHON_SECURITY)  # some distrobutions see this as a security issue, rather than have them patch it, make a build option.
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
-option(WITH_PYTHON_MODULE "Enable building as a python module (experimental, only enable for development)" OFF)
+option(WITH_PYTHON_MODULE "Enable building as a python module which runs without a user interface, like running regular blender in background mode (experimental, only enable for development)" OFF)
 option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)
 option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
 option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
+option(WITH_COMPOSITOR    "Enable the tile based nodal compositor" ON)
 
 # GHOST Windowing Library Options
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
@@ -462,11 +463,6 @@ set(PLATFORM_LINKFLAGS_DEBUG "")
 
 if(UNIX AND NOT APPLE)
 
-	# needed for ubuntu 11.04
-	if(EXISTS "/usr/lib/x86_64-linux-gnu")
-		set(CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu;${CMAKE_LIBRARY_PATH}")
-	endif()
-
 	# set lib directory if it exists
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
@@ -671,7 +667,6 @@ if(UNIX AND NOT APPLE)
 
 		if(NOT OPENIMAGEIO_FOUND)
 			set(WITH_OPENIMAGEIO OFF)
-			set(WITH_CYCLES OFF)
 			message(STATUS "OpenImageIO not found, disabling WITH_CYCLES")
 		endif()
 	endif()
@@ -998,8 +993,8 @@ elseif(WIN32)
 				set(BOOST_POSTFIX "vc100-mt-s-1_47.lib")
 				set(BOOST_DEBUG_POSTFIX "vc100-mt-sgd-1_47.lib")
 			else()
-				set(BOOST_POSTFIX "vc90-mt-s-1_47.lib")
-				set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_47.lib")					
+				set(BOOST_POSTFIX "vc90-mt-s-1_49.lib")
+				set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_49.lib")					
 			endif()
 			set(BOOST_LIBRARIES
 				optimized libboost_date_time-${BOOST_POSTFIX} optimized libboost_filesystem-${BOOST_POSTFIX}
@@ -1462,6 +1457,16 @@ if(APPLE OR WIN32)
 	endif()
 endif()
 
+if(WITH_CYCLES)
+	if(NOT WITH_OPENIMAGEIO)
+		message(FATAL_ERROR "Cycles reqires WITH_OPENIMAGEIO, the library may not have been found. Configure OIIO or disable WITH_CYCLES")
+	endif()
+	if(NOT WITH_BOOST)
+		message(FATAL_ERROR "Cycles reqires WITH_BOOST, the library may not have been found. Configure BOOST or disable WITH_CYCLES")
+	endif()
+endif()
+
+
 # See TEST_SSE_SUPPORT() for how this is defined.
 
 if(WITH_RAYOPTIMIZATION)
@@ -1723,6 +1728,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
 # better not set includes here but this debugging option is off by default.
 if(WITH_CXX_GUARDEDALLOC)
 	include_directories(${CMAKE_SOURCE_DIR}/intern/guardedalloc)
+	add_definitions(-DWITH_CXX_GUARDEDALLOC)
 endif()
 
 if(WITH_ASSERT_ABORT)

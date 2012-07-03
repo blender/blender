@@ -32,9 +32,9 @@ extern "C" {
 
 CurveBaseOperation::CurveBaseOperation() : NodeOperation()
 {
-	this->curveMapping = NULL;
+	this->m_curveMapping = NULL;
 }
 void CurveBaseOperation::initExecution()
 {
-	curvemapping_initialize(this->curveMapping);
+	curvemapping_initialize(this->m_curveMapping);
 }

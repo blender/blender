@@ -45,6 +45,7 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -418,8 +419,17 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			}
 
 			if (me->totloop) {
-				if (base->object != ob)
+				if (base->object != ob) {
+					MultiresModifierData *mmd;
+
 					multiresModifier_prepare_join(scene, base->object, ob);
+
+					if ((mmd = get_multires_modifier(scene, base->object, TRUE))) {
+						ED_object_iter_other(bmain, base->object, TRUE,
+											 ED_object_multires_update_totlevels_cb,
+											 &mmd->totlvl);
+					}
+				}
 				
 				CustomData_merge(&me->ldata, &ldata, CD_MASK_MESH, CD_DEFAULT, totloop);
 				CustomData_copy_data(&me->ldata, &ldata, 0, loopofs, me->totloop);
@@ -888,7 +898,7 @@ int mesh_mirrtopo_table(Object *ob, char mode)
 	return 0;
 }
 
-static int mesh_get_x_mirror_vert_spacial(Object *ob, int index)
+static int mesh_get_x_mirror_vert_spatial(Object *ob, int index)
 {
 	Mesh *me = ob->data;
 	MVert *mvert;
@@ -916,12 +926,12 @@ int mesh_get_x_mirror_vert(Object *ob, int index)
 		return mesh_get_x_mirror_vert_topo(ob, index);
 	}
 	else {
-		return mesh_get_x_mirror_vert_spacial(ob, index);
+		return mesh_get_x_mirror_vert_spatial(ob, index);
 	}
 	return 0;
 }
 
-static BMVert *editbmesh_get_x_mirror_vert_spacial(Object *ob, BMEditMesh *em, const float co[3])
+static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, const float co[3])
 {
 	float vec[3];
 	intptr_t poinval;
@@ -979,7 +989,7 @@ BMVert *editbmesh_get_x_mirror_vert(Object *ob, struct BMEditMesh *em, BMVert *e
 		return editbmesh_get_x_mirror_vert_topo(ob, em, eve, index);
 	}
 	else {
-		return editbmesh_get_x_mirror_vert_spacial(ob, em, co);
+		return editbmesh_get_x_mirror_vert_spatial(ob, em, co);
 	}
 }
 

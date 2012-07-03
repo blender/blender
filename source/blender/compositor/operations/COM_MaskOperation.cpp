@@ -38,69 +38,69 @@ extern "C" {
 MaskOperation::MaskOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_VALUE);
-	this->mask = NULL;
-	this->maskWidth = 0;
-	this->maskHeight = 0;
-	this->framenumber = 0;
-	this->rasterizedMask = NULL;
+	this->m_mask = NULL;
+	this->m_maskWidth = 0;
+	this->m_maskHeight = 0;
+	this->m_framenumber = 0;
+	this->m_rasterizedMask = NULL;
 	setComplex(true);
 }
 
 void MaskOperation::initExecution()
 {
 	initMutex();
-	this->rasterizedMask = NULL;
+	this->m_rasterizedMask = NULL;
 }
 
 void MaskOperation::deinitExecution()
 {
-	if (this->rasterizedMask) {
-		MEM_freeN(rasterizedMask);
-		this->rasterizedMask = NULL;
+	if (this->m_rasterizedMask) {
+		MEM_freeN(this->m_rasterizedMask);
+		this->m_rasterizedMask = NULL;
 	}
 }
 
 void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	if (this->rasterizedMask)
-		return this->rasterizedMask;
+	if (this->m_rasterizedMask)
+		return this->m_rasterizedMask;
 
-	if (!this->mask)
+	if (!this->m_mask)
 		return NULL;
 
 	lockMutex();
-	if (this->rasterizedMask == NULL) {
+	if (this->m_rasterizedMask == NULL) {
 		int width = this->getWidth();
 		int height = this->getHeight();
 		float *buffer;
 
 		buffer = (float *)MEM_callocN(sizeof(float) * width * height, "rasterized mask");
-		BKE_mask_rasterize(mask, width, height, buffer, TRUE, this->do_smooth, this->do_feather);
-		if (this->do_smooth) {
+		BKE_mask_rasterize(this->m_mask, width, height, buffer, TRUE, this->m_do_smooth, this->m_do_feather);
+		if (this->m_do_smooth) {
 			PLX_antialias_buffer(buffer, width, height);
 		}
 
-		this->rasterizedMask = buffer;
+		this->m_rasterizedMask = buffer;
 	}
 	unlockMutex();
-	return this->rasterizedMask;
+	return this->m_rasterizedMask;
 }
 
 void MaskOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
-	if (maskWidth == 0 || maskHeight == 0) {
+	if (this->m_maskWidth == 0 || this->m_maskHeight == 0) {
 		NodeOperation::determineResolution(resolution, preferredResolution);
 	}
 	else {
 		unsigned int nr[2];
 
-		nr[0] = maskWidth;
-		nr[1] = maskHeight;
+		nr[0] = this->m_maskWidth;
+		nr[1] = this->m_maskHeight;
 
 		NodeOperation::determineResolution(resolution, nr);
 
-		resolution[0] = maskWidth;
-		resolution[1] = maskHeight;
+		resolution[0] = this->m_maskWidth;
+		resolution[1] = this->m_maskHeight;
 	}
 }
 

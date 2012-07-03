@@ -514,17 +514,21 @@ void BKE_image_merge(Image *dest, Image *source)
 }
 
 /* note, we could be clever and scale all imbuf's but since some are mipmaps its not so simple */
-void BKE_image_scale(Image *image, int width, int height)
+int BKE_image_scale(Image *image, int width, int height)
 {
 	ImBuf *ibuf;
 	void *lock;
 
 	ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 
-	IMB_scaleImBuf(ibuf, width, height);
-	ibuf->userflags |= IB_BITMAPDIRTY;
+	if (ibuf) {
+		IMB_scaleImBuf(ibuf, width, height);
+		ibuf->userflags |= IB_BITMAPDIRTY;
+	}
 
 	BKE_image_release_ibuf(image, lock);
+
+	return (ibuf != NULL);
 }
 
 Image *BKE_image_load(const char *filepath)
@@ -2851,7 +2855,7 @@ void BKE_image_user_file_path(ImageUser *iuser, Image *ima, char *filepath)
 	if (ima->source == IMA_SRC_SEQUENCE) {
 		char head[FILE_MAX], tail[FILE_MAX];
 		unsigned short numlen;
-		int frame = iuser->framenr;
+		int frame = iuser ? iuser->framenr : ima->lastframe;
 
 		BLI_stringdec(filepath, head, tail, &numlen);
 		BLI_stringenc(filepath, head, tail, numlen, frame);

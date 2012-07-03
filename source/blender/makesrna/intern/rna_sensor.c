@@ -231,7 +231,7 @@ static void rna_Sensor_level_set(struct PointerRNA *ptr, int value)
 		sens->tap = 0;
 }
 
-static void rna_Sensor_Armature_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sensor_Armature_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	bSensor *sens = (bSensor *)ptr->data;
 	bArmatureSensor *as = sens->data;

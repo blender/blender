@@ -42,7 +42,7 @@ public:
 	 * @see Node
 	 * @see MuteNode
 	 */
-	static Node *convert(bNode *bNode);
+	static Node *convert(bNode *b_node);
 	
 	/**
 	 * @brief This method will add a datetype conversion rule when the to-socket does not support the from-socket actual data type.
@@ -60,11 +60,15 @@ public:
 	 *
 	 * @note Conversion logic is implemented in this method
 	 * @see InputSocketResizeMode for the possible conversions.
-
+	 *
 	 * @param connection the SocketConnection what needs conversion
 	 * @param system the ExecutionSystem to add the conversion to.
 	 * @see SocketConnection - a link between two sockets
 	 */
 	static void convertResolution(SocketConnection *connection, ExecutionSystem *system);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:Converter")
+#endif
 };
 #endif

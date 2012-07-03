@@ -33,12 +33,12 @@ protected:
 	/**
 	 * Prefetched reference to the inputProgram
 	 */
-	SocketReader *inputValueOperation;
-	SocketReader *inputColorOperation;
+	SocketReader *m_inputValueOperation;
+	SocketReader *m_inputColorOperation;
 	
-	float gain[3];
-	float lift[3];
-	float gamma[3];
+	float m_gain[3];
+	float m_lift[3];
+	float m_gamma[3];
 
 public:
 	/**
@@ -61,8 +61,8 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setGain(float gain[3]) { copy_v3_v3(this->gain, gain); }
-	void setLift(float lift[3]) { copy_v3_v3(this->lift, lift); }
-	void setGamma(float gamma[3]) { copy_v3_v3(this->gamma, gamma); }
+	void setGain(float gain[3]) { copy_v3_v3(this->m_gain, gain); }
+	void setLift(float lift[3]) { copy_v3_v3(this->m_lift, lift); }
+	void setGamma(float gamma[3]) { copy_v3_v3(this->m_gamma, gamma); }
 };
 #endif

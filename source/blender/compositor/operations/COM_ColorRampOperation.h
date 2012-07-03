@@ -30,8 +30,8 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
-	ColorBand *colorBand;
+	SocketReader *m_inputProgram;
+	ColorBand *m_colorBand;
 public:
 	ColorRampOperation();
 	
@@ -51,7 +51,7 @@ public:
 	void deinitExecution();
 	
 	void setColorBand(ColorBand *colorBand) {
-		this->colorBand = colorBand;
+		this->m_colorBand = colorBand;
 	}
 
 

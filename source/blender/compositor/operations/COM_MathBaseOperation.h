@@ -34,8 +34,8 @@ protected:
 	/**
 	 * Prefetched reference to the inputProgram
 	 */
-	SocketReader *inputValue1Operation;
-	SocketReader *inputValue2Operation;
+	SocketReader *m_inputValue1Operation;
+	SocketReader *m_inputValue2Operation;
 
 protected:
 	/**

@@ -25,8 +25,8 @@
 
 SocketConnection::SocketConnection()
 {
-	this->fromSocket = NULL;
-	this->toSocket = NULL;
+	this->m_fromSocket = NULL;
+	this->m_toSocket = NULL;
 	this->setIgnoreResizeCheck(false);
 }
 
@@ -35,19 +35,19 @@ void SocketConnection::setFromSocket(OutputSocket *fromsocket)
 	if (fromsocket == NULL) {
 		throw "ERROR";
 	}
-	this->fromSocket = fromsocket;
+	this->m_fromSocket = fromsocket;
 }
 
-OutputSocket *SocketConnection::getFromSocket() const { return this->fromSocket; }
+OutputSocket *SocketConnection::getFromSocket() const { return this->m_fromSocket; }
 void SocketConnection::setToSocket(InputSocket *tosocket)
 {
 	if (tosocket == NULL) {
 		throw "ERROR";
 	}
-	this->toSocket = tosocket;
+	this->m_toSocket = tosocket;
 }
 
-InputSocket *SocketConnection::getToSocket() const { return this->toSocket; }
+InputSocket *SocketConnection::getToSocket() const { return this->m_toSocket; }
 
 NodeBase *SocketConnection::getFromNode() const
 {
@@ -79,10 +79,10 @@ bool SocketConnection::isValid() const
 
 bool SocketConnection::needsResolutionConversion() const
 {
-	if (this->ignoreResizeCheck) { return false; }
+	if (this->m_ignoreResizeCheck) { return false; }
 	NodeOperation *fromOperation = (NodeOperation *)this->getFromNode();
 	NodeOperation *toOperation = (NodeOperation *)this->getToNode();
-	if (this->toSocket->getResizeMode() == COM_SC_NO_RESIZE) { return false; }
+	if (this->m_toSocket->getResizeMode() == COM_SC_NO_RESIZE) { return false; }
 	const unsigned int fromWidth = fromOperation->getWidth();
 	const unsigned int fromHeight = fromOperation->getHeight();
 	const unsigned int toWidth = toOperation->getWidth();

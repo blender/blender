@@ -1586,14 +1586,15 @@ static int clear_track_path_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
+	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	int action = RNA_enum_get(op->ptr, "action");
 	int clear_active = RNA_boolean_get(op->ptr, "clear_active");
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	if (clear_active) {
-		track = BKE_tracking_track_get_active(&clip->tracking);
+		track = BKE_tracking_track_get_active(tracking);
 		BKE_tracking_track_path_clear(track, framenr, action);
 	}
 	else {
@@ -1606,6 +1607,7 @@ static int clear_track_path_exec(bContext *C, wmOperator *op)
 		}
 	}
 
+	BKE_tracking_dopesheet_tag_update(tracking);
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 
 	return OPERATOR_FINISHED;
@@ -2606,6 +2608,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 
 	IMB_freeImBuf(ibuf);
 
+	BKE_tracking_dopesheet_tag_update(tracking);
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -3329,7 +3332,7 @@ static int tracking_object_remove_exec(bContext *C, wmOperator *op)
 void CLIP_OT_tracking_object_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Movie Tracking Object";
+	ot->name = "Remove Tracking Object";
 	ot->description = "Remove object for tracking";
 	ot->idname = "CLIP_OT_tracking_object_remove";
 

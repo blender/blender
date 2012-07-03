@@ -32,43 +32,43 @@ unsigned int MemoryBuffer::determineBufferSize()
 
 int MemoryBuffer::getWidth() const
 {
-	return this->rect.xmax - this->rect.xmin;
+	return this->m_rect.xmax - this->m_rect.xmin;
 }
 int MemoryBuffer::getHeight() const
 {
-	return this->rect.ymax - this->rect.ymin;
+	return this->m_rect.ymax - this->m_rect.ymin;
 }
 
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect)
 {
-	BLI_init_rcti(&this->rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
-	this->memoryProxy = memoryProxy;
-	this->chunkNumber = chunkNumber;
-	this->buffer = (float *)MEM_mallocN(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
-	this->state = COM_MB_ALLOCATED;
-	this->datatype = COM_DT_COLOR;
-	this->chunkWidth = this->rect.xmax - this->rect.xmin;
+	BLI_init_rcti(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+	this->m_memoryProxy = memoryProxy;
+	this->m_chunkNumber = chunkNumber;
+	this->m_buffer = (float *)MEM_mallocN(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
+	this->m_state = COM_MB_ALLOCATED;
+	this->m_datatype = COM_DT_COLOR;
+	this->m_chunkWidth = this->m_rect.xmax - this->m_rect.xmin;
 }
 
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect)
 {
-	BLI_init_rcti(&this->rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
-	this->memoryProxy = memoryProxy;
-	this->chunkNumber = -1;
-	this->buffer = (float *)MEM_mallocN(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
-	this->state = COM_MB_TEMPORARILY;
-	this->datatype = COM_DT_COLOR;
-	this->chunkWidth = this->rect.xmax - this->rect.xmin;
+	BLI_init_rcti(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+	this->m_memoryProxy = memoryProxy;
+	this->m_chunkNumber = -1;
+	this->m_buffer = (float *)MEM_mallocN(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
+	this->m_state = COM_MB_TEMPORARILY;
+	this->m_datatype = COM_DT_COLOR;
+	this->m_chunkWidth = this->m_rect.xmax - this->m_rect.xmin;
 }
 MemoryBuffer *MemoryBuffer::duplicate()
 {
-	MemoryBuffer *result = new MemoryBuffer(this->memoryProxy, &this->rect);
-	memcpy(result->buffer, this->buffer, this->determineBufferSize() * COM_NUMBER_OF_CHANNELS * sizeof(float));
+	MemoryBuffer *result = new MemoryBuffer(this->m_memoryProxy, &this->m_rect);
+	memcpy(result->m_buffer, this->m_buffer, this->determineBufferSize() * COM_NUMBER_OF_CHANNELS * sizeof(float));
 	return result;
 }
 void MemoryBuffer::clear()
 {
-	memset(this->buffer, 0, this->determineBufferSize() * COM_NUMBER_OF_CHANNELS * sizeof(float));
+	memset(this->m_buffer, 0, this->determineBufferSize() * COM_NUMBER_OF_CHANNELS * sizeof(float));
 }
 
 float *MemoryBuffer::convertToValueBuffer()
@@ -78,7 +78,7 @@ float *MemoryBuffer::convertToValueBuffer()
 
 	float *result = new float[size];
 
-	const float *fp_src = this->buffer;
+	const float *fp_src = this->m_buffer;
 	float       *fp_dst = result;
 
 	for (i = 0; i < size; i++, fp_dst++, fp_src += COM_NUMBER_OF_CHANNELS) {
@@ -90,9 +90,9 @@ float *MemoryBuffer::convertToValueBuffer()
 
 MemoryBuffer::~MemoryBuffer()
 {
-	if (this->buffer) {
-		MEM_freeN(this->buffer);
-		this->buffer = NULL;
+	if (this->m_buffer) {
+		MEM_freeN(this->m_buffer);
+		this->m_buffer = NULL;
 	}
 }
 
@@ -102,30 +102,30 @@ void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer)
 		return;
 	}
 	unsigned int otherY;
-	unsigned int minX = max(this->rect.xmin, otherBuffer->rect.xmin);
-	unsigned int maxX = min(this->rect.xmax, otherBuffer->rect.xmax);
-	unsigned int minY = max(this->rect.ymin, otherBuffer->rect.ymin);
-	unsigned int maxY = min(this->rect.ymax, otherBuffer->rect.ymax);
+	unsigned int minX = max(this->m_rect.xmin, otherBuffer->m_rect.xmin);
+	unsigned int maxX = min(this->m_rect.xmax, otherBuffer->m_rect.xmax);
+	unsigned int minY = max(this->m_rect.ymin, otherBuffer->m_rect.ymin);
+	unsigned int maxY = min(this->m_rect.ymax, otherBuffer->m_rect.ymax);
 	int offset;
 	int otherOffset;
 
 
 	for (otherY = minY; otherY < maxY; otherY++) {
-		otherOffset = ((otherY - otherBuffer->rect.ymin) * otherBuffer->chunkWidth + minX - otherBuffer->rect.xmin) * COM_NUMBER_OF_CHANNELS;
-		offset = ((otherY - this->rect.ymin) * this->chunkWidth + minX - this->rect.xmin) * COM_NUMBER_OF_CHANNELS;
-		memcpy(&this->buffer[offset], &otherBuffer->buffer[otherOffset], (maxX - minX) * COM_NUMBER_OF_CHANNELS * sizeof(float));
+		otherOffset = ((otherY - otherBuffer->m_rect.ymin) * otherBuffer->m_chunkWidth + minX - otherBuffer->m_rect.xmin) * COM_NUMBER_OF_CHANNELS;
+		offset = ((otherY - this->m_rect.ymin) * this->m_chunkWidth + minX - this->m_rect.xmin) * COM_NUMBER_OF_CHANNELS;
+		memcpy(&this->m_buffer[offset], &otherBuffer->m_buffer[otherOffset], (maxX - minX) * COM_NUMBER_OF_CHANNELS * sizeof(float));
 	}
 }
 
 void MemoryBuffer::read(float result[4], int x, int y)
 {
-	if (x >= this->rect.xmin && x < this->rect.xmax &&
-	    y >= this->rect.ymin && y < this->rect.ymax)
+	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
+	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
-		const int dx = x - this->rect.xmin;
-		const int dy = y - this->rect.ymin;
-		const int offset = (this->chunkWidth * dy + dx) * COM_NUMBER_OF_CHANNELS;
-		copy_v4_v4(result, &this->buffer[offset]);
+		const int dx = x - this->m_rect.xmin;
+		const int dy = y - this->m_rect.ymin;
+		const int offset = (this->m_chunkWidth * dy + dx) * COM_NUMBER_OF_CHANNELS;
+		copy_v4_v4(result, &this->m_buffer[offset]);
 	}
 	else {
 		zero_v4(result);
@@ -133,21 +133,21 @@ void MemoryBuffer::read(float result[4], int x, int y)
 }
 void MemoryBuffer::writePixel(int x, int y, const float color[4])
 {
-	if (x >= this->rect.xmin && x < this->rect.xmax &&
-	    y >= this->rect.ymin && y < this->rect.ymax)
+	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
+	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
-		const int offset = (this->chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
-		copy_v4_v4(&this->buffer[offset], color);
+		const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
+		copy_v4_v4(&this->m_buffer[offset], color);
 	}
 }
 
 void MemoryBuffer::addPixel(int x, int y, const float color[4])
 {
-	if (x >= this->rect.xmin && x < this->rect.xmax &&
-	    y >= this->rect.ymin && y < this->rect.ymax)
+	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
+	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
-		const int offset = (this->chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
-		add_v4_v4(&this->buffer[offset], color);
+		const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
+		add_v4_v4(&this->m_buffer[offset], color);
 	}
 }
 

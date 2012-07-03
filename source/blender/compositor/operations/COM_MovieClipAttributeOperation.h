@@ -37,11 +37,11 @@ typedef enum MovieClipAttribute {
  */
 class MovieClipAttributeOperation : public NodeOperation {
 private:
-	MovieClip *clip;
-	float value;
-	bool valueSet;
-	int framenumber;
-	MovieClipAttribute attribute;
+	MovieClip *m_clip;
+	float m_value;
+	bool m_valueSet;
+	int m_framenumber;
+	MovieClipAttribute m_attribute;
 public:
 	/**
 	 * Default constructor
@@ -54,8 +54,8 @@ public:
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 
-	void setMovieClip(MovieClip *clip) { this->clip = clip; }
-	void setFramenumber(int framenumber) { this->framenumber = framenumber; }
-	void setAttribute(MovieClipAttribute attribute) { this->attribute = attribute; }
+	void setMovieClip(MovieClip *clip) { this->m_clip = clip; }
+	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
+	void setAttribute(MovieClipAttribute attribute) { this->m_attribute = attribute; }
 };
 #endif

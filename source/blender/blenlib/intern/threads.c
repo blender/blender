@@ -96,7 +96,7 @@ static void *thread_tls_data;
  *         }
  *         // conditions to exit loop 
  *         if (if escape loop event) {
- *             if (BLI_available_threadslots(&lb)==maxthreads)
+ *             if (BLI_available_threadslots(&lb) == maxthreads)
  *                 break;
  *         }
  *     }

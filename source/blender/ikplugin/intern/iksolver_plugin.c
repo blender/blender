@@ -21,7 +21,7 @@
  * The Original Code is: all of this file.
  *
  * Original author: Benoit Bolsee
- * Contributor(s): 
+ * Contributor(s):
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -29,7 +29,6 @@
 /** \file blender/ikplugin/intern/iksolver_plugin.c
  *  \ingroup ikplugin
  */
-
 
 #include "MEM_guardedalloc.h"
 
@@ -75,25 +74,25 @@ static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_t
 		}
 	}
 	if (con == NULL) return;
-	
+
 	/* exclude tip from chain? */
 	if (!(data->flag & CONSTRAINT_IK_TIP))
 		pchan_tip = pchan_tip->parent;
-	
+
 	/* Find the chain's root & count the segments needed */
 	for (curchan = pchan_tip; curchan; curchan = curchan->parent) {
 		pchan_root = curchan;
-		
+
 		curchan->flag |= POSE_CHAIN;    // don't forget to clear this
 		chanlist[segcount] = curchan;
 		segcount++;
-		
+
 		if (segcount == data->rootbone || segcount > 255) break;  // 255 is weak
 	}
 	if (!segcount) return;
 
 	/* setup the chain data */
-	
+
 	/* we make tree-IK, unless all existing targets are in this chain */
 	for (tree = pchan_root->iktree.first; tree; tree = tree->next) {
 		for (target = tree->targets.first; target; target = target->next) {
@@ -116,11 +115,11 @@ static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_t
 		tree = MEM_callocN(sizeof(PoseTree), "posetree");
 
 		tree->type = CONSTRAINT_TYPE_KINEMATIC;
-		
+
 		tree->iterations = data->iterations;
 		tree->totchannel = segcount;
 		tree->stretch = (data->flag & CONSTRAINT_IK_STRETCH);
-		
+
 		tree->pchan = MEM_callocN(segcount * sizeof(void *), "ik tree pchan");
 		tree->parent = MEM_callocN(segcount * sizeof(int), "ik tree parent");
 		for (a = 0; a < segcount; a++) {
@@ -128,7 +127,7 @@ static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_t
 			tree->parent[a] = a - 1;
 		}
 		target->tip = segcount - 1;
-		
+
 		/* AND! link the tree to the root */
 		BLI_addtail(&pchan_root->iktree, tree);
 	}
@@ -154,7 +153,7 @@ static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_t
 			for (parent = a - 1; parent < tree->totchannel; parent++)
 				if (tree->pchan[parent] == chanlist[segcount - 1]->parent)
 					break;
-			
+
 			/* shouldn't happen, but could with dependency cycles */
 			if (parent == tree->totchannel)
 				parent = a - 1;
@@ -177,7 +176,7 @@ static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_t
 				tree->parent[tree->totchannel + a] = tree->totchannel + a - 1;
 			}
 			tree->parent[tree->totchannel] = parent;
-			
+
 			tree->totchannel = newsize;
 		}
 
@@ -210,12 +209,12 @@ static void make_dmats(bPoseChannel *pchan)
 static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = to detect if this is first bone
 {
 	float vec[3], ikmat[4][4];
-	
+
 	copy_m4_m3(ikmat, ik_mat);
-	
+
 	if (pchan->parent)
 		mul_serie_m4(pchan->pose_mat, pchan->parent->pose_mat, pchan->chan_mat, ikmat, NULL, NULL, NULL, NULL, NULL);
-	else 
+	else
 		mult_m4_m4m4(pchan->pose_mat, pchan->chan_mat, ikmat);
 
 	/* calculate head */
@@ -253,13 +252,13 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 
 	if (tree->totchannel == 0)
 		return;
-	
+
 	iktree = MEM_mallocN(sizeof(void *) * tree->totchannel, "ik tree");
 
 	for (a = 0; a < tree->totchannel; a++) {
 		pchan = tree->pchan[a];
 		bone = pchan->bone;
-		
+
 		/* set DoF flag */
 		flag = 0;
 		if (!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP))
@@ -268,72 +267,72 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			flag |= IK_YDOF;
 		if (!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP))
 			flag |= IK_ZDOF;
-		
+
 		if (tree->stretch && (pchan->ikstretch > 0.0f)) {
 			flag |= IK_TRANS_YDOF;
 			hasstretch = 1;
 		}
-		
+
 		seg = iktree[a] = IK_CreateSegment(flag);
-		
+
 		/* find parent */
 		if (a == 0)
 			parent = NULL;
 		else
 			parent = iktree[tree->parent[a]];
-			
+
 		IK_SetParent(seg, parent);
-			
+
 		/* get the matrix that transforms from prevbone into this bone */
 		copy_m3_m4(R_bonemat, pchan->pose_mat);
-		
+
 		/* gather transformations for this IK segment */
-		
+
 		if (pchan->parent)
 			copy_m3_m4(R_parmat, pchan->parent->pose_mat);
 		else
 			unit_m3(R_parmat);
-		
+
 		/* bone offset */
 		if (pchan->parent && (a > 0))
 			sub_v3_v3v3(start, pchan->pose_head, pchan->parent->pose_tail);
 		else
 			/* only root bone (a = 0) has no parent */
 			start[0] = start[1] = start[2] = 0.0f;
-		
+
 		/* change length based on bone size */
 		length = bone->length * len_v3(R_bonemat[1]);
-		
+
 		/* compute rest basis and its inverse */
 		copy_m3_m3(rest_basis, bone->bone_mat);
 		copy_m3_m3(irest_basis, bone->bone_mat);
 		transpose_m3(irest_basis);
-		
+
 		/* compute basis with rest_basis removed */
 		invert_m3_m3(iR_parmat, R_parmat);
 		mul_m3_m3m3(full_basis, iR_parmat, R_bonemat);
 		mul_m3_m3m3(basis, irest_basis, full_basis);
-		
+
 		/* basis must be pure rotation */
 		normalize_m3(basis);
-		
+
 		/* transform offset into local bone space */
 		normalize_m3(iR_parmat);
 		mul_m3_v3(iR_parmat, start);
-		
+
 		IK_SetTransform(seg, start, rest_basis, basis, length);
-		
+
 		if (pchan->ikflag & BONE_IK_XLIMIT)
 			IK_SetLimit(seg, IK_X, pchan->limitmin[0], pchan->limitmax[0]);
 		if (pchan->ikflag & BONE_IK_YLIMIT)
 			IK_SetLimit(seg, IK_Y, pchan->limitmin[1], pchan->limitmax[1]);
 		if (pchan->ikflag & BONE_IK_ZLIMIT)
 			IK_SetLimit(seg, IK_Z, pchan->limitmin[2], pchan->limitmax[2]);
-		
+
 		IK_SetStiffness(seg, IK_X, pchan->stiffness[0]);
 		IK_SetStiffness(seg, IK_Y, pchan->stiffness[1]);
 		IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
-		
+
 		if (tree->stretch && (pchan->ikstretch > 0.0f)) {
 			float ikstretch = pchan->ikstretch * pchan->ikstretch;
 			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0f - ikstretch, 0.99f));
@@ -359,31 +358,31 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 	else
 		unit_m4(rootmat);
 	copy_v3_v3(rootmat[3], pchan->pose_head);
-	
+
 	mult_m4_m4m4(imat, ob->obmat, rootmat);
 	invert_m4_m4(goalinv, imat);
-	
+
 	for (target = tree->targets.first; target; target = target->next) {
 		float polepos[3];
 		int poleconstrain = 0;
-		
+
 		data = (bKinematicConstraint *)target->con->data;
-		
+
 		/* 1.0=ctime, we pass on object for auto-ik (owner-type here is object, even though
 		 * strictly speaking, it is a posechannel)
 		 */
 		get_constraint_target_matrix(scene, target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
-		
+
 		/* and set and transform goal */
 		mult_m4_m4m4(goal, goalinv, rootmat);
-		
+
 		copy_v3_v3(goalpos, goal[3]);
 		copy_m3_m4(goalrot, goal);
-		
+
 		/* same for pole vector target */
 		if (data->poletar) {
 			get_constraint_target_matrix(scene, target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
-			
+
 			if (data->flag & CONSTRAINT_IK_SETANGLE) {
 				/* don't solve IK when we are setting the pole angle */
 				break;
@@ -398,7 +397,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 				 * a smooth transition */
 				resultblend = 1;
 				resultinf = target->con->enforce;
-				
+
 				if (data->flag & CONSTRAINT_IK_GETANGLE) {
 					poleangledata = data;
 					data->flag &= ~CONSTRAINT_IK_GETANGLE;
@@ -411,28 +410,28 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			float q1[4], q2[4], q[4];
 			float fac = target->con->enforce;
 			float mfac = 1.0f - fac;
-			
+
 			pchan = tree->pchan[target->tip];
-			
+
 			/* end effector in world space */
 			copy_m4_m4(end_pose, pchan->pose_mat);
 			copy_v3_v3(end_pose[3], pchan->pose_tail);
 			mul_serie_m4(world_pose, goalinv, ob->obmat, end_pose, NULL, NULL, NULL, NULL, NULL);
-			
+
 			/* blend position */
 			goalpos[0] = fac * goalpos[0] + mfac * world_pose[3][0];
 			goalpos[1] = fac * goalpos[1] + mfac * world_pose[3][1];
 			goalpos[2] = fac * goalpos[2] + mfac * world_pose[3][2];
-			
+
 			/* blend rotation */
 			mat3_to_quat(q1, goalrot);
 			mat4_to_quat(q2, world_pose);
 			interp_qt_qtqt(q, q1, q2, mfac);
 			quat_to_mat3(goalrot, q);
 		}
-		
+
 		iktarget = iktree[target->tip];
-		
+
 		if (data->weight != 0.0f) {
 			if (poleconstrain)
 				IK_SolverSetPoleVectorConstraint(solver, iktarget, goalpos,
@@ -457,30 +456,30 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 	tree->basis_change = MEM_mallocN(sizeof(float[3][3]) * tree->totchannel, "ik basis change");
 	if (hasstretch)
 		ikstretch = MEM_mallocN(sizeof(float) * tree->totchannel, "ik stretch");
-	
+
 	for (a = 0; a < tree->totchannel; a++) {
 		IK_GetBasisChange(iktree[a], tree->basis_change[a]);
-		
+
 		if (hasstretch) {
 			/* have to compensate for scaling received from parent */
 			float parentstretch, stretch;
-			
+
 			pchan = tree->pchan[a];
 			parentstretch = (tree->parent[a] >= 0) ? ikstretch[tree->parent[a]] : 1.0f;
-			
+
 			if (tree->stretch && (pchan->ikstretch > 0.0f)) {
 				float trans[3], length;
-				
+
 				IK_GetTranslationChange(iktree[a], trans);
 				length = pchan->bone->length * len_v3(pchan->pose_mat[1]);
-				
+
 				ikstretch[a] = (length == 0.0f) ? 1.0f : (trans[1] + length) / length;
 			}
 			else
 				ikstretch[a] = 1.0;
-			
+
 			stretch = (parentstretch == 0.0f) ? 1.0f : ikstretch[a] / parentstretch;
-			
+
 			mul_v3_fl(tree->basis_change[a][0], stretch);
 			mul_v3_fl(tree->basis_change[a][1], stretch);
 			mul_v3_fl(tree->basis_change[a][2], stretch);
@@ -491,10 +490,10 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			blend_m3_m3m3(tree->basis_change[a], identity,
 			              tree->basis_change[a], resultinf);
 		}
-		
+
 		IK_FreeSegment(iktree[a]);
 	}
-	
+
 	MEM_freeN(iktree);
 	if (ikstretch) MEM_freeN(ikstretch);
 }
@@ -514,7 +513,7 @@ static void free_posetree(PoseTree *tree)
 void iksolver_initialize_tree(struct Scene *UNUSED(scene), struct Object *ob, float UNUSED(ctime))
 {
 	bPoseChannel *pchan;
-	
+
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		if (pchan->constflag & PCHAN_HAS_IK) // flag is set on editing constraints
 			initialize_posetree(ob, pchan);  // will attach it to root!
@@ -527,11 +526,11 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 	while (pchan->iktree.first) {
 		PoseTree *tree = pchan->iktree.first;
 		int a;
-		
+
 		/* stop on the first tree that isn't a standard IK chain */
 		if (tree->type != CONSTRAINT_TYPE_KINEMATIC)
 			return;
-		
+
 		/* 4. walk over the tree for regular solving */
 		for (a = 0; a < tree->totchannel; a++) {
 			if (!(tree->pchan[a]->flag & POSE_DONE))    // successive trees can set the flag
@@ -541,18 +540,18 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 		}
 		/* 5. execute the IK solver */
 		execute_posetree(scene, ob, tree);
-		
-		/* 6. apply the differences to the channels, 
+
+		/* 6. apply the differences to the channels,
 		 *    we need to calculate the original differences first */
 		for (a = 0; a < tree->totchannel; a++) {
 			make_dmats(tree->pchan[a]);
 		}
-		
+
 		for (a = 0; a < tree->totchannel; a++) {
 			/* sets POSE_DONE */
 			where_is_ik_bone(tree->pchan[a], tree->basis_change[a]);
 		}
-		
+
 		/* 7. and free */
 		BLI_remlink(&pchan->iktree, tree);
 		free_posetree(tree);

@@ -35,12 +35,12 @@ VectorCurveOperation::VectorCurveOperation() : CurveBaseOperation()
 	this->addInputSocket(COM_DT_VECTOR);
 	this->addOutputSocket(COM_DT_VECTOR);
 
-	this->inputProgram = NULL;
+	this->m_inputProgram = NULL;
 }
 void VectorCurveOperation::initExecution()
 {
 	CurveBaseOperation::initExecution();
-	this->inputProgram = this->getInputSocketReader(0);
+	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
 void VectorCurveOperation::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -48,13 +48,13 @@ void VectorCurveOperation::executePixel(float *output, float x, float y, PixelSa
 	float input[4];
 
 
-	this->inputProgram->read(input, x, y, sampler, inputBuffers);
+	this->m_inputProgram->read(input, x, y, sampler, inputBuffers);
 
-	curvemapping_evaluate_premulRGBF(this->curveMapping, output, input);
+	curvemapping_evaluate_premulRGBF(this->m_curveMapping, output, input);
 	output[3] = input[3];
 }
 
 void VectorCurveOperation::deinitExecution()
 {
-	this->inputProgram = NULL;
+	this->m_inputProgram = NULL;
 }

@@ -30,10 +30,10 @@ SetVectorOperation::SetVectorOperation() : NodeOperation()
 
 void SetVectorOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	outputValue[0] = this->x;
-	outputValue[1] = this->y;
-	outputValue[2] = this->z;
-	outputValue[3] = this->w;
+	outputValue[0] = this->m_x;
+	outputValue[1] = this->m_y;
+	outputValue[2] = this->m_z;
+	outputValue[3] = this->m_w;
 }
 
 void SetVectorOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])

@@ -30,14 +30,14 @@ SetSamplerOperation::SetSamplerOperation() : NodeOperation()
 
 void SetSamplerOperation::initExecution()
 {
-	this->reader = this->getInputSocketReader(0);
+	this->m_reader = this->getInputSocketReader(0);
 }
 void SetSamplerOperation::deinitExecution()
 {
-	this->reader = NULL;
+	this->m_reader = NULL;
 }
 
 void SetSamplerOperation::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	reader->read(output, x, y, this->sampler, inputBuffers);
+	this->m_reader->read(output, x, y, this->m_sampler, inputBuffers);
 }

@@ -1199,8 +1199,6 @@ void load_editNurb(Object *obedit)
 
 	if (obedit == NULL) return;
 
-	set_actNurb(obedit, NULL);
-
 	if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = obedit->data;
 		Nurb *nu, *newnu;
@@ -1222,8 +1220,6 @@ void load_editNurb(Object *obedit)
 
 		BKE_nurbList_free(&oldnurb);
 	}
-
-	set_actNurb(obedit, NULL);
 }
 
 /* make copy in cu->editnurb */
@@ -1233,7 +1229,6 @@ void make_editNurb(Object *obedit)
 	EditNurb *editnurb = cu->editnurb;
 	Nurb *nu, *newnu, *nu_act = NULL;
 	KeyBlock *actkey;
-
 
 	set_actNurb(obedit, NULL);
 
@@ -3937,7 +3932,6 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	ListBase *nubase = object_editcurve_get(obedit);
 	Nurb *nu, *nu1 = NULL, *nu2 = NULL;
 	BPoint *bp;
-	float *fp, offset;
 	int a, ok = 0;
 
 	/* first decide if this is a surface merge! */
@@ -4053,25 +4047,12 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 
 				/* now join the knots */
 				if (nu1->type == CU_NURBS) {
-					if (nu1->knotsu == NULL) {
-						BKE_nurb_knot_calc_u(nu1);
-					}
-					else {
-						fp = MEM_mallocN(sizeof(float) * KNOTSU(nu1), "addsegment3");
-						memcpy(fp, nu1->knotsu, sizeof(float) * a);
+					if (nu1->knotsu != NULL) {
 						MEM_freeN(nu1->knotsu);
-						nu1->knotsu = fp;
-						
-						
-						offset = nu1->knotsu[a - 1] + 1.0f;
-						fp = nu1->knotsu + a;
-						for (a = 0; a < nu2->pntsu; a++, fp++) {
-							if (nu2->knotsu) 
-								*fp = offset + nu2->knotsu[a + 1];
-							else 
-								*fp = offset;
-						}
+						nu1->knotsu = NULL;
 					}
+
+					BKE_nurb_knot_calc_u(nu1);
 				}
 				BKE_nurb_free(nu2); nu2 = NULL;
 			}

@@ -28,9 +28,9 @@
 
 class FastGaussianBlurOperation : public BlurBaseOperation {
 private:
-	float sx;
-	float sy;
-	MemoryBuffer *iirgaus;
+	float m_sx;
+	float m_sy;
+	MemoryBuffer *m_iirgaus;
 public:
 	FastGaussianBlurOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);

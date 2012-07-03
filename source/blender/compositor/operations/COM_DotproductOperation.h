@@ -27,8 +27,8 @@
 
 class DotproductOperation : public NodeOperation {
 private:
-	SocketReader *input1Operation;
-	SocketReader *input2Operation;
+	SocketReader *m_input1Operation;
+	SocketReader *m_input2Operation;
 public:
 	DotproductOperation();
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);

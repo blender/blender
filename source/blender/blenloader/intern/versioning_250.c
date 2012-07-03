@@ -2580,8 +2580,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 						act->type = act->otype = ACT_ACTION;
 
 						/* Fix for converting 2.4x files: if we don't have an action, but we have an
-						   object IPO, then leave the actuator as an IPO actuator for now and let the
-						   IPO conversion code handle it */
+						 * object IPO, then leave the actuator as an IPO actuator for now and let the
+						 * IPO conversion code handle it */
 						if (ob->ipo && !aa->act)
 							act->type = ACT_IPO;
 					}

@@ -18,7 +18,7 @@ from bpy.types import Operator
 
 
 class ExportSomeData(Operator, ExportHelper):
-    '''This appears in the tooltip of the operator and in the generated docs'''
+    """This appears in the tooltip of the operator and in the generated docs"""
     bl_idname = "export_test.some_data"  # important since its how bpy.ops.import_test.some_data is constructed
     bl_label = "Export Some Data"
 

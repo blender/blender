@@ -139,6 +139,8 @@ def modules(module_cache):
 
             return mod
         else:
+            print("fake_module: addon missing 'bl_info' "
+                  "gives bad performance!: %r" % mod_path)
             return None
 
     modules_stale = set(module_cache.keys())

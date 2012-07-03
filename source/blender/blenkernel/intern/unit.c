@@ -125,7 +125,7 @@ static struct bUnitDef buMetricLenDef[] = {
 #endif
 	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buMetricLenCollecton = {buMetricLenDef, 3, 0, sizeof(buMetricLenDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buMetricLenCollecton = {buMetricLenDef, 3, 0, sizeof(buMetricLenDef) / sizeof(bUnitDef)};
 
 static struct bUnitDef buImperialLenDef[] = {
 	{"mile", "miles",		"mi", "m", "Miles",		UN_SC_MI, 0.0,	B_UNIT_DEF_NONE},
@@ -137,7 +137,7 @@ static struct bUnitDef buImperialLenDef[] = {
 	{"thou", "thou",		"thou", "mil", "Thou",	UN_SC_MIL, 0.0,	B_UNIT_DEF_NONE}, /* plural for thou has no 's' */
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buImperialLenCollecton = {buImperialLenDef, 4, 0, sizeof(buImperialLenDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buImperialLenCollecton = {buImperialLenDef, 4, 0, sizeof(buImperialLenDef) / sizeof(bUnitDef)};
 
 /* Areas */
 static struct bUnitDef buMetricAreaDef[] = {
@@ -151,7 +151,7 @@ static struct bUnitDef buMetricAreaDef[] = {
 	{"square micrometer", "square micrometers",	"µm²", "um2",	"Square Micrometers", UN_SC_UM*UN_SC_UM, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buMetricAreaCollecton = {buMetricAreaDef, 3, 0, sizeof(buMetricAreaDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buMetricAreaCollecton = {buMetricAreaDef, 3, 0, sizeof(buMetricAreaDef) / sizeof(bUnitDef)};
 
 static struct bUnitDef buImperialAreaDef[] = {
 	{"square mile", "square miles",			"sq mi", "sq m","Square Miles", UN_SC_MI*UN_SC_MI, 0.0,		B_UNIT_DEF_NONE},
@@ -163,7 +163,7 @@ static struct bUnitDef buImperialAreaDef[] = {
 	{"square thou", "square thous",			"sq mil",NULL,	"Square Thous", UN_SC_MIL*UN_SC_MIL, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buImperialAreaCollecton = {buImperialAreaDef, 4, 0, sizeof(buImperialAreaDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buImperialAreaCollecton = {buImperialAreaDef, 4, 0, sizeof(buImperialAreaDef) / sizeof(bUnitDef)};
 
 /* Volumes */
 static struct bUnitDef buMetricVolDef[] = {
@@ -177,7 +177,7 @@ static struct bUnitDef buMetricVolDef[] = {
 	{"cubic micrometer", "cubic micrometers",	"µm³", "um3",	"Cubic Micrometers", UN_SC_UM*UN_SC_UM*UN_SC_UM, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buMetricVolCollecton = {buMetricVolDef, 3, 0, sizeof(buMetricVolDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buMetricVolCollecton = {buMetricVolDef, 3, 0, sizeof(buMetricVolDef) / sizeof(bUnitDef)};
 
 static struct bUnitDef buImperialVolDef[] = {
 	{"cubic mile", "cubic miles",		"cu mi", "cu m","Cubic Miles", UN_SC_MI*UN_SC_MI*UN_SC_MI, 0.0,		B_UNIT_DEF_NONE},
@@ -189,7 +189,7 @@ static struct bUnitDef buImperialVolDef[] = {
 	{"cubic thou", "cubic thous",		"cu mil",NULL,	"Cubic Thous", UN_SC_MIL*UN_SC_MIL*UN_SC_MIL, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buImperialVolCollecton = {buImperialVolDef, 4, 0, sizeof(buImperialVolDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buImperialVolCollecton = {buImperialVolDef, 4, 0, sizeof(buImperialVolDef) / sizeof(bUnitDef)};
 
 /* Mass */
 static struct bUnitDef buMetricMassDef[] = {
@@ -201,7 +201,7 @@ static struct bUnitDef buMetricMassDef[] = {
 	{"gram", "grams",			"g",  NULL,	"Grams", UN_SC_G, 0.0,				B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buMetricMassCollecton = {buMetricMassDef, 2, 0, sizeof(buMetricMassDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buMetricMassCollecton = {buMetricMassDef, 2, 0, sizeof(buMetricMassDef) / sizeof(bUnitDef)};
 
 static struct bUnitDef buImperialMassDef[] = {
 	{"ton", "tonnes",	"ton", "t",	"Tonnes", UN_SC_ITON, 0.0,		B_UNIT_DEF_NONE},
@@ -211,7 +211,7 @@ static struct bUnitDef buImperialMassDef[] = {
 	{"ounce", "ounces",	"oz", NULL,		"Ounces", UN_SC_OZ, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buImperialMassCollecton = {buImperialMassDef, 3, 0, sizeof(buImperialMassDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buImperialMassCollecton = {buImperialMassDef, 3, 0, sizeof(buImperialMassDef) / sizeof(bUnitDef)};
 
 /* Even if user scales the system to a point where km^3 is used, velocity and
  * acceleration aren't scaled: that's why we have so few units for them */
@@ -222,27 +222,27 @@ static struct bUnitDef buMetricVelDef[] = {
 	{"kilometer per hour", "kilometers per hour",	"km/h", NULL,	"Kilometers per hour", UN_SC_KM/3600.0f, 0.0, B_UNIT_DEF_SUPPRESS},
 	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buMetricVelCollecton = {buMetricVelDef, 0, 0, sizeof(buMetricVelDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buMetricVelCollecton = {buMetricVelDef, 0, 0, sizeof(buMetricVelDef) / sizeof(bUnitDef)};
 
 static struct bUnitDef buImperialVelDef[] = {
 	{"foot per second", "feet per second",	"ft/s", "fps",	"Feet per second", UN_SC_FT, 0.0,		B_UNIT_DEF_NONE}, /* base unit */
 	{"mile per hour", "miles per hour",		"mph", NULL,	"Miles per hour", UN_SC_MI/3600.0f, 0.0,B_UNIT_DEF_SUPPRESS},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buImperialVelCollecton = {buImperialVelDef, 0, 0, sizeof(buImperialVelDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buImperialVelCollecton = {buImperialVelDef, 0, 0, sizeof(buImperialVelDef) / sizeof(bUnitDef)};
 
 /* Acceleration */
 static struct bUnitDef buMetricAclDef[] = {
 	{"meter per second squared", "meters per second squared", "m/s²", "m/s2", "Meters per second squared", UN_SC_M, 0.0, B_UNIT_DEF_NONE}, /* base unit */
 	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buMetricAclCollecton = {buMetricAclDef, 0, 0, sizeof(buMetricAclDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buMetricAclCollecton = {buMetricAclDef, 0, 0, sizeof(buMetricAclDef) / sizeof(bUnitDef)};
 
 static struct bUnitDef buImperialAclDef[] = {
 	{"foot per second squared", "feet per second squared", "ft/s²", "ft/s2", "Feet per second squared", UN_SC_FT, 0.0, B_UNIT_DEF_NONE}, /* base unit */
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buImperialAclCollecton = {buImperialAclDef, 0, 0, sizeof(buImperialAclDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buImperialAclCollecton = {buImperialAclDef, 0, 0, sizeof(buImperialAclDef) / sizeof(bUnitDef)};
 
 /* Time */
 static struct bUnitDef buNaturalTimeDef[] = {
@@ -255,7 +255,7 @@ static struct bUnitDef buNaturalTimeDef[] = {
 	{"microsecond", "microseconds",	"µs", "us",	"Microseconds",	0.000001, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buNaturalTimeCollecton = {buNaturalTimeDef, 3, 0, sizeof(buNaturalTimeDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buNaturalTimeCollecton = {buNaturalTimeDef, 3, 0, sizeof(buNaturalTimeDef) / sizeof(bUnitDef)};
 
 
 static struct bUnitDef buNaturalRotDef[] = {
@@ -264,7 +264,7 @@ static struct bUnitDef buNaturalRotDef[] = {
 //	{"turn", "turns",				"t", NULL, "Turns",			1.0/(M_PI*2.0), 0.0,B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buNaturalRotCollection = {buNaturalRotDef, 0, 0, sizeof(buNaturalRotDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buNaturalRotCollection = {buNaturalRotDef, 0, 0, sizeof(buNaturalRotDef) / sizeof(bUnitDef)};
 
 #define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / 9) / sizeof(void *)) - 1)
 static struct bUnitCollection *bUnitSystems[][9] = {

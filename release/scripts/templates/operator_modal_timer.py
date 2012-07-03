@@ -2,7 +2,7 @@ import bpy
 
 
 class ModalTimerOperator(bpy.types.Operator):
-    '''Operator which runs its self from a timer.'''
+    """Operator which runs its self from a timer"""
     bl_idname = "wm.modal_timer_operator"
     bl_label = "Modal Timer Operator"
 

@@ -25,10 +25,10 @@
 
 ChunkOrder::ChunkOrder()
 {
-	this->distance = 0.0;
-	this->number = 0;
-	this->x = 0;
-	this->y = 0;
+	this->m_distance = 0.0;
+	this->m_number = 0;
+	this->m_x = 0;
+	this->m_y = 0;
 }
 
 void ChunkOrder::determineDistance(ChunkOrderHotspot **hotspots, unsigned int numberOfHotspots)
@@ -37,15 +37,15 @@ void ChunkOrder::determineDistance(ChunkOrderHotspot **hotspots, unsigned int nu
 	double distance = MAXFLOAT;
 	for (index = 0; index < numberOfHotspots; index++) {
 		ChunkOrderHotspot *hotspot = hotspots[index];
-		double ndistance = hotspot->determineDistance(this->x, this->y);
+		double ndistance = hotspot->determineDistance(this->m_x, this->m_y);
 		if (ndistance < distance) {
 			distance = ndistance;
 		}
 	}
-	this->distance = distance;
+	this->m_distance = distance;
 }
 
 bool operator<(const ChunkOrder& a, const ChunkOrder& b)
 {
-	return a.distance < b.distance;
+	return a.m_distance < b.m_distance;
 }

@@ -30,11 +30,11 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputOuterMask;
-	SocketReader *inputInnerMask;
-	bool adjecentOnly;
-	bool keepInside;
-	float *cachedInstance;
+	SocketReader *m_inputOuterMask;
+	SocketReader *m_inputInnerMask;
+	bool m_adjecentOnly;
+	bool m_keepInside;
+	float *m_cachedInstance;
 public:
 	DoubleEdgeMaskOperation();
 
@@ -58,7 +58,7 @@ public:
 
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	
-	void setAdjecentOnly(bool adjecentOnly) { this->adjecentOnly = adjecentOnly; }
-	void setKeepInside(bool keepInside) { this->keepInside = keepInside; }
+	void setAdjecentOnly(bool adjecentOnly) { this->m_adjecentOnly = adjecentOnly; }
+	void setKeepInside(bool keepInside) { this->m_keepInside = keepInside; }
 };
 #endif

@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_ConvertAlphaNode_h
-#define _COM_ConvertAlphaNode_h
+#ifndef _COM_ConvertAlphaNode_h_
+#define _COM_ConvertAlphaNode_h_
 
 #include "COM_Node.h"
 

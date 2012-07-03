@@ -47,6 +47,9 @@ struct Scene;
 /* Delete mesh mdisps and grid paint masks */
 void multires_customdata_delete(struct Mesh *me);
 
+void multires_set_tot_level(struct Object *ob,
+							struct MultiresModifierData *mmd, int lvl);
+
 void multires_mark_as_modified(struct Object *ob, enum MultiresModifiedFlags flags);
 
 void multires_force_update(struct Object *ob);

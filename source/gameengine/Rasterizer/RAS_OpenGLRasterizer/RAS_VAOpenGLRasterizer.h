@@ -37,7 +37,7 @@
 class RAS_VAOpenGLRasterizer : public RAS_OpenGLRasterizer
 {
 	void TexCoordPtr(const RAS_TexVert *tv);
-	bool m_Lock;
+	/* bool m_Lock; */ /* UNUSED */
 
 	TexCoGen		m_last_texco[RAS_MAX_TEXCO];
 	TexCoGen		m_last_attrib[RAS_MAX_ATTRIB];
@@ -63,9 +63,7 @@ private:
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_VAOpenGLRasterizer"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_VAOpenGLRasterizer")
 #endif
 };
 

@@ -26,23 +26,23 @@ ConvertRGBToYUVOperation::ConvertRGBToYUVOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }
 
 void ConvertRGBToYUVOperation::initExecution()
 {
-	this->inputOperation = this->getInputSocketReader(0);
+	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
 void ConvertRGBToYUVOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float inputColor[4];
-	inputOperation->read(inputColor, x, y, sampler, inputBuffers);
+	this->m_inputOperation->read(inputColor, x, y, sampler, inputBuffers);
 	rgb_to_yuv(inputColor[0], inputColor[1], inputColor[2], &outputValue[0], &outputValue[1], &outputValue[2]);
 	outputValue[3] = inputColor[3];
 }
 
 void ConvertRGBToYUVOperation::deinitExecution()
 {
-	this->inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }

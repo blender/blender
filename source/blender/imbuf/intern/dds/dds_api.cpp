@@ -123,6 +123,8 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags)
 
 	ibuf->ftype = DDS;
 	ibuf->profile = IB_PROFILE_SRGB;
+	ibuf->dds_data.fourcc = dds.fourCC();
+	ibuf->dds_data.nummipmaps = dds.mipmapCount();
 
 	if ((flags & IB_test) == 0) {
 		if (!imb_addrectImBuf(ibuf)) return(ibuf);
@@ -136,10 +138,18 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags)
 			cp[0] = pixel.r; /* set R component of col */
 			cp[1] = pixel.g; /* set G component of col */
 			cp[2] = pixel.b; /* set B component of col */
-			if (bits_per_pixel == 32)
+			if (dds.hasAlpha())
 				cp[3] = pixel.a; /* set A component of col */
 			rect[i] = col;
 		}
+
+		if (ibuf->dds_data.fourcc != FOURCC_DDS)
+			ibuf->dds_data.data = (unsigned char*)dds.readData(ibuf->dds_data.size);
+		else {
+			ibuf->dds_data.data = NULL;
+			ibuf->dds_data.size = 0;
+		}
+
 		IMB_flipy(ibuf);
 	}
 

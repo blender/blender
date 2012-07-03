@@ -35,8 +35,8 @@ protected:
 	/**
 	 * @brief Cached reference to the reader
 	 */
-	SocketReader *valueReader;
-	char *buffer;
+	SocketReader *m_valueReader;
+	char *m_buffer;
 public:
 	AntiAliasOperation();
 	

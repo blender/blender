@@ -166,6 +166,28 @@ static inline uint get_layer(BL::Array<int, 20> array)
 	return layer;
 }
 
+static inline uint get_layer(BL::Array<int, 20> array, BL::Array<int, 8> local_array, bool is_light = false)
+{
+	uint layer = 0;
+
+	for(uint i = 0; i < 20; i++)
+		if(array[i])
+			layer |= (1 << i);
+
+	if(is_light) {
+		/* consider lamps on all local view layers */
+		for(uint i = 0; i < 8; i++)
+			layer |= (1 << (20+i));
+	}
+	else {
+		for(uint i = 0; i < 8; i++)
+			if(local_array[i])
+				layer |= (1 << (20+i));
+	}
+	
+	return layer;
+}
+
 #if 0
 static inline float3 get_float3(PointerRNA& ptr, const char *name)
 {

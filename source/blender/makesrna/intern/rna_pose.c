@@ -1118,8 +1118,8 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 		{ITASC_INITIAL_REITERATION, "INITIAL", 0, "Initial",
 		                            "The solver reiterates (converges) on the first frame but not on "
 		                            "subsequent frame"},
-		{ITASC_INITIAL_REITERATION|ITASC_REITERATION, "ALWAYS", 0, "Always",
-		                                              "The solver reiterates (converges) on all frames"},
+		{ITASC_INITIAL_REITERATION | ITASC_REITERATION, "ALWAYS", 0, "Always",
+		                                                "The solver reiterates (converges) on all frames"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

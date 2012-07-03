@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@
  */
 
 /**
-
  * Copyright (C) 2001 NaN Technologies B.V.
  * Simple test file for the GHOST library.
  * The OpenGL gear code is taken from the Qt sample code which,
@@ -344,27 +343,27 @@ void StereoProjection(float left, float right, float bottom, float top, float ne
 		float zero_plane, float dist,
 		float eye)
 /* Perform the perspective projection for one eye's subfield.
-   The projection is in the direction of the negative z axis.
-
-   -6.0, 6.0, -4.8, 4.8,
-   left, right, bottom, top = the coordinate range, in the plane of zero
-   parallax setting, which will be displayed on the screen.  The
-   ratio between (right-left) and (top-bottom) should equal the aspect
-   ratio of the display.
-
-   6.0, -6.0,
-   near, far = the z-coordinate values of the clipping planes.
-
-   0.0,
-   zero_plane = the z-coordinate of the plane of zero parallax setting.
-
-   14.5,
-   dist = the distance from the center of projection to the plane
-   of zero parallax.
-
-   -0.31
-   eye = half the eye separation; positive for the right eye subfield,
-   negative for the left eye subfield.
+ * The projection is in the direction of the negative z axis.
+ *
+ * -6.0, 6.0, -4.8, 4.8,
+ * left, right, bottom, top = the coordinate range, in the plane of zero
+ * parallax setting, which will be displayed on the screen.  The
+ * ratio between (right-left) and (top-bottom) should equal the aspect
+ * ratio of the display.
+ *
+ * 6.0, -6.0,
+ * near, far = the z-coordinate values of the clipping planes.
+ *
+ * 0.0,
+ * zero_plane = the z-coordinate of the plane of zero parallax setting.
+ *
+ * 14.5,
+ * dist = the distance from the center of projection to the plane
+ * of zero parallax.
+ *
+ * -0.31
+ * eye = half the eye separation; positive for the right eye subfield,
+ * negative for the left eye subfield.
  */
 {
 	float xmid, ymid, clip_near, clip_far, topw, bottomw, leftw, rightw,
@@ -462,13 +461,14 @@ bool Application::processEvent(GHOST_IEvent *event)
 	bool handled = true;
 
 	switch (event->getType()) {
-/*	case GHOST_kEventUnknown:
-        break;
-    case GHOST_kEventCursorButton:
-        std::cout << "GHOST_kEventCursorButton"; break;
-    case GHOST_kEventCursorMove:
-        std::cout << "GHOST_kEventCursorMove"; break;
- */
+#if 0
+	case GHOST_kEventUnknown:
+		break;
+	case GHOST_kEventCursorButton:
+		std::cout << "GHOST_kEventCursorButton"; break;
+	case GHOST_kEventCursorMove:
+		std::cout << "GHOST_kEventCursorMove"; break;
+ #endif
 		case GHOST_kEventWheel:
 		{
 			GHOST_TEventWheelData *wheelData = (GHOST_TEventWheelData *) event->getData();

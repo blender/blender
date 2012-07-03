@@ -27,13 +27,13 @@
 
 class ConvolutionFilterOperation : public NodeOperation {
 private:
-	int filterWidth;
-	int filterHeight;
+	int m_filterWidth;
+	int m_filterHeight;
 
 protected:
-	SocketReader *inputOperation;
-	SocketReader *inputValueOperation;
-	float *filter;
+	SocketReader *m_inputOperation;
+	SocketReader *m_inputValueOperation;
+	float *m_filter;
 
 public:
 	ConvolutionFilterOperation();

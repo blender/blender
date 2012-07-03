@@ -34,7 +34,6 @@ extern "C" {
  * @ingroup Node
  */
 class ImageNode : public Node {
-
 private:
 	NodeOperation *doMultilayerCheck(ExecutionSystem *system, RenderLayer *rl, Image *image, ImageUser *user, int framenumber, int outputsocketIndex, int pass, DataType datatype);
 public:

@@ -26,7 +26,6 @@
  */
 
 /**
-
  * Copyright (C) 2001 NaN Technologies B.V.
  *
  * Simple test file for the GHOST library.
@@ -294,14 +293,14 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 	
 	switch (GHOST_GetEventType(hEvent))
 	{
-		/*
-		   case GHOST_kEventUnknown:
-		    break;
-		   case GHOST_kEventCursorButton:
-		    break;
-		   case GHOST_kEventCursorMove:
-		    break;
-		 */
+#if 0
+		case GHOST_kEventUnknown:
+			break;
+		case GHOST_kEventCursorButton:
+			break;
+		case GHOST_kEventCursorMove:
+			break;
+#endif
 		case GHOST_kEventWheel:
 		{
 			wheelData = (GHOST_TEventWheelData *)GHOST_GetEventData(hEvent);
@@ -345,10 +344,10 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 						setting.yPixels = 480;
 
 						/*
-						   setting.bpp = 16;
-						   setting.frequency = 75;
-						   setting.xPixels = 640;
-						   setting.yPixels = 480;
+						 * setting.bpp = 16;
+						 * setting.frequency = 75;
+						 * setting.xPixels = 640;
+						 * setting.yPixels = 480;
 						 */
 
 						sFullScreenWindow = GHOST_BeginFullScreen(shSystem, &setting,

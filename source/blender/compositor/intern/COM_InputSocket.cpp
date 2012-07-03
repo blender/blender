@@ -27,37 +27,37 @@
 
 InputSocket::InputSocket(DataType datatype) : Socket(datatype)
 {
-	this->connection = NULL;
-	this->resizeMode = COM_SC_CENTER;
+	this->m_connection = NULL;
+	this->m_resizeMode = COM_SC_CENTER;
 }
 InputSocket::InputSocket(DataType datatype, InputSocketResizeMode resizeMode) : Socket(datatype)
 {
-	this->connection = NULL;
-	this->resizeMode = resizeMode;
+	this->m_connection = NULL;
+	this->m_resizeMode = resizeMode;
 }
 
 InputSocket::InputSocket(InputSocket *from) : Socket(from->getDataType())
 {
-	this->connection = NULL;
-	this->resizeMode = from->getResizeMode();
+	this->m_connection = NULL;
+	this->m_resizeMode = from->getResizeMode();
 }
 
 int InputSocket::isInputSocket() const { return true; }
-const int InputSocket::isConnected() const { return this->connection != NULL; }
+const int InputSocket::isConnected() const { return this->m_connection != NULL; }
 
 void InputSocket::setConnection(SocketConnection *connection)
 {
-	this->connection = connection;
+	this->m_connection = connection;
 }
 SocketConnection *InputSocket::getConnection()
 {
-	return this->connection;
+	return this->m_connection;
 }
 
 void InputSocket::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	if (this->isConnected()) {
-		this->connection->getFromSocket()->determineResolution(resolution, preferredResolution);
+		this->m_connection->getFromSocket()->determineResolution(resolution, preferredResolution);
 	}
 	else {
 		return;
@@ -140,7 +140,7 @@ SocketReader *InputSocket::getReader()
 NodeOperation *InputSocket::getOperation() const
 {
 	if (isConnected()) {
-		return (NodeOperation *)this->connection->getFromSocket()->getNode();
+		return (NodeOperation *)this->m_connection->getFromSocket()->getNode();
 	}
 	else {
 		return NULL;

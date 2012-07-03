@@ -32,6 +32,7 @@ class NODE_HT_header(Header):
         snode = context.space_data
         snode_id = snode.id
         id_from = snode.id_from
+        toolsettings = context.tool_settings
 
         row = layout.row(align=True)
         row.template_header()
@@ -85,6 +86,13 @@ class NODE_HT_header(Header):
             layout.prop(snode, "use_auto_render")
 
         layout.separator()
+
+        # Snap
+        row = layout.row(align=True)
+        row.prop(toolsettings, "use_snap", text="")
+        row.prop(toolsettings, "snap_node_element", text="", icon_only=True)
+        if toolsettings.snap_node_element != 'INCREMENT':
+            row.prop(toolsettings, "snap_target", text="")
 
         layout.template_running_jobs()
 
