@@ -219,6 +219,14 @@ static int get_item_priority(void *item_v, int default_priority)
 	if (!cache->getitempriorityfp)
 		return default_priority;
 
+	if (!cache->last_userkey) {
+		/* happens when cache was overflow when adding element to one cache
+		 * and elements from other cache are being measured as well
+		 */
+
+		return default_priority;
+	}
+
 	return cache->getitempriorityfp(cache->last_userkey, item->priority_data);
 }
 

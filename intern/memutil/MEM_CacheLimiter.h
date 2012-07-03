@@ -254,7 +254,8 @@ private:
 			MEM_CacheElementPtr elem = *it;
 			int priority;
 
-			priority = i;
+			/* by default 0 means higherst priority element */
+			priority = queue.size() - i - 1;
 
 			if (getItemPriority) {
 				priority = getItemPriority(elem->get()->get_data(), priority);
