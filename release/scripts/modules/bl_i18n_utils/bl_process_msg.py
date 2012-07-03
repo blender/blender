@@ -27,7 +27,7 @@ import os
 # Quite an ugly hack… But the simplest solution for now!
 #import sys
 #sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-import i18n.settings as settings
+import bl_i18n_utils.settings as settings
 
 
 #classes = set()
