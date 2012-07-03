@@ -3932,7 +3932,8 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	ListBase *nubase = object_editcurve_get(obedit);
 	Nurb *nu, *nu1 = NULL, *nu2 = NULL;
 	BPoint *bp;
-	int a, ok = 0;
+	int ok = 0;
+	/* int a; */ /* UNUSED */
 
 	/* first decide if this is a surface merge! */
 	if (obedit->type == OB_SURF) nu = nubase->first;
@@ -4040,7 +4041,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				MEM_freeN(nu1->bp);
 				nu1->bp = bp;
 
-				a = nu1->pntsu + nu1->orderu;
+				/* a = nu1->pntsu + nu1->orderu; */ /* UNUSED */
 
 				nu1->pntsu += nu2->pntsu;
 				BLI_remlink(nubase, nu2);

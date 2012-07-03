@@ -1640,7 +1640,7 @@ static PyObject *Matrix_richcmpr(PyObject *a, PyObject *b, int op)
  * sequence length */
 static int Matrix_len(MatrixObject *self)
 {
-	return (self->num_row);
+	return self->num_row;
 }
 /*----------------------------object[]---------------------------
  * sequence accessor (get)
