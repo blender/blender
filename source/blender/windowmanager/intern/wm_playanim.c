@@ -693,8 +693,11 @@ void playanim_window_open(const char *title, int posx, int posy, int sizex, int 
 		inital_state = start_maximized ? GHOST_kWindowStateFullScreen : GHOST_kWindowStateNormal;
 	else
 		inital_state = start_maximized ? GHOST_kWindowStateMaximized : GHOST_kWindowStateNormal;
-#ifdef __APPLE__
-	inital_state += macPrefState;
+#if defined(__APPLE__) && !defined(GHOST_COCOA)
+	{
+		extern int macPrefState; /* creator.c */
+		initial_state += macPrefState;
+	}
 #endif
 
 	g_window = GHOST_CreateWindow(g_system,
@@ -810,7 +813,7 @@ void playanim(int argc, const char **argv)
 	}
 
 #ifdef WITH_QUICKTIME
-#if defined(_WIN32) || defined(__APPLE__)
+#if defined(_WIN32) // || defined(__APPLE__)
 	/* Initialize QuickTime */
 #ifndef noErr
 #define noErr 0
@@ -825,7 +828,7 @@ void playanim(int argc, const char **argv)
 	if (EnterMovies() != noErr)
 		G.have_quicktime = FALSE;
 	else
-#endif /* _WIN32 || __APPLE__ */
+#endif /* _WIN32 //|| __APPLE__ */
 	G.have_quicktime = TRUE;
 #endif /* WITH_QUICKTIME */
 
@@ -1063,14 +1066,14 @@ void playanim(int argc, const char **argv)
 		ps.picture = ps.picture->next;
 	}
 #ifdef WITH_QUICKTIME
-#if defined(_WIN32) || defined(__APPLE__)
+#if defined(_WIN32) // || defined(__APPLE__)
 	if (G.have_quicktime) {
 		ExitMovies();
 #ifdef _WIN32
 		TerminateQTML();
 #endif /* _WIN32 */
 	}
-#endif /* _WIN32 || __APPLE__ */
+#endif /* _WIN32 // || __APPLE__ */
 #endif /* WITH_QUICKTIME */
 
 	/* cleanup */
