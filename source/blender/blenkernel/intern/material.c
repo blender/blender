@@ -36,6 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -1049,6 +1050,52 @@ int material_in_material(Material *parmat, Material *mat)
 		return material_in_nodetree(parmat->nodetree, mat);
 	else
 		return 0;
+}
+
+
+/* ****************** */
+
+/* Update drivers for materials in a nodetree */
+static void material_node_drivers_update(Scene *scene, bNodeTree *ntree, float ctime)
+{
+	bNode *node;
+	
+	/* nodetree itself */
+	if (ntree->adt && ntree->adt->drivers.first) {
+		BKE_animsys_evaluate_animdata(scene, &ntree->id, ntree->adt, ctime, ADT_RECALC_DRIVERS);
+	}
+	
+	/* nodes... */
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->id && GS(node->id->name) == ID_MA) {
+			/* TODO: prevent infinite recursion here... */
+			material_drivers_update(scene, (Material *)node->id, ctime);
+		}
+		else if (node->type == NODE_GROUP) {
+			material_node_drivers_update(scene, (bNodeTree *)node->id, ctime);
+		}
+	}
+}
+
+/* Calculate all drivers for materials 
+ * FIXME: this is really a terrible method which may result in some things being calculated
+ * multiple times. However, without proper despgraph support for these things, we are forced
+ * into this sort of thing...
+ */
+void material_drivers_update(Scene *scene, Material *ma, float ctime)
+{
+	//if (G.f & G_DEBUG)
+	//	printf("material_drivers_update(%s, %s)\n", scene->id.name, ma->id.name);
+	
+	/* material itself */
+	if (ma->adt && ma->adt->drivers.first) {
+		BKE_animsys_evaluate_animdata(scene, &ma->id, ma->adt, ctime, ADT_RECALC_DRIVERS);
+	}
+	
+	/* nodes */
+	if (ma->nodetree) {
+		material_node_drivers_update(scene, ma->nodetree, ctime);
+	}
 }
 	
 /* ****************** */
