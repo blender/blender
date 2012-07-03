@@ -203,7 +203,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
                 col.operator("poselib.pose_remove", icon='ZOOMOUT', text="")
                 col.operator("poselib.apply_pose", icon='ZOOM_SELECTED', text="").pose_index = poselib.pose_markers.active_index
 
-            col.operator("poselib.action_sanitise", icon='HELP', text="")  # XXX: put in menu?
+            col.operator("poselib.action_sanitize", icon='HELP', text="")  # XXX: put in menu?
 
             # properties for active marker
             if pose_marker_active is not None:

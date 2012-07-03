@@ -2368,7 +2368,7 @@ void CURVE_OT_smooth_radius(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Smooth Curve Radius";
-	ot->description = "Flatten radiuses of selected points";
+	ot->description = "Flatten radii of selected points";
 	ot->idname = "CURVE_OT_smooth_radius";
 	
 	/* api clastbacks */

@@ -288,7 +288,7 @@ void POSELIB_OT_unlink(wmOperatorType *ot)
 /* This tool automagically generates/validates poselib data so that it corresponds to the data 
  * in the action. This is for use in making existing actions usable as poselibs.
  */
-static int poselib_sanitise_exec(bContext *C, wmOperator *op)
+static int poselib_sanitize_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = get_poselib_object(C);
 	bAction *act = (ob) ? ob->poselib : NULL;
@@ -353,15 +353,15 @@ static int poselib_sanitise_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSELIB_OT_action_sanitise(wmOperatorType *ot)
+void POSELIB_OT_action_sanitize(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Sanitise Pose Library Action";
-	ot->idname = "POSELIB_OT_action_sanitise";
+	ot->name = "Sanitize Pose Library Action";
+	ot->idname = "POSELIB_OT_action_sanitize";
 	ot->description = "Make action suitable for use as a Pose Library";
 	
 	/* callbacks */
-	ot->exec = poselib_sanitise_exec;
+	ot->exec = poselib_sanitize_exec;
 	ot->poll = has_poselib_pose_data_poll;
 	
 	/* flags */

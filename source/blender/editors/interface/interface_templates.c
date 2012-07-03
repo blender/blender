@@ -782,7 +782,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 			if (modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) {
 				/* -- convert to rna ? */
 				but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, UI_UNIT_X - 2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
-				                       TIP_("Apply modifier to editing cage during Editmode"));
+				                       TIP_("Apply modifier to editing cage during Edit mode"));
 				if (index < cageIndex)
 					uiButSetFlag(but, UI_BUT_DISABLED);
 				uiButSetFunc(but, modifiers_setOnCage, ob, md);
@@ -2699,7 +2699,8 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
 	if (reports->list.first != reports->list.last)
-		uiDefIconButO(block, BUT, "UI_OT_reports_to_textblock", WM_OP_INVOKE_REGION_WIN, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, TIP_("Click to see rest of reports in textblock: 'Recent Reports'"));
+		uiDefIconButO(block, BUT, "UI_OT_reports_to_textblock", WM_OP_INVOKE_REGION_WIN, icon, 2, 0,
+		              UI_UNIT_X, UI_UNIT_Y, TIP_("Click to see the remaining reports in text block: 'Recent Reports'"));
 	else
 		uiDefIconBut(block, LABEL, 0, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
 
