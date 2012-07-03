@@ -5533,6 +5533,11 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						if (ads->filter_grp)
 							ads->filter_grp = restore_pointer_by_name(newmain, (ID *)ads->filter_grp, 0);
 					}
+					
+					/* force recalc of list of channels (i.e. includes calculating F-Curve colors)
+					 * thus preventing the "black curves" problem post-undo
+					 */
+					sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
 				}
 				else if (sl->spacetype == SPACE_BUTS) {
 					SpaceButs *sbuts = (SpaceButs *)sl;
@@ -5547,10 +5552,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceAction *saction = (SpaceAction *)sl;
 					
 					saction->action = restore_pointer_by_name(newmain, (ID *)saction->action, 1);
-					saction->ads.source= restore_pointer_by_name(newmain, (ID *)saction->ads.source, 1);
+					saction->ads.source = restore_pointer_by_name(newmain, (ID *)saction->ads.source, 1);
 					
 					if (saction->ads.filter_grp)
-						saction->ads.filter_grp= restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, 0);
+						saction->ads.filter_grp = restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, 0);
 						
 					
 					/* force recalc of list of channels, potentially updating the active action 
