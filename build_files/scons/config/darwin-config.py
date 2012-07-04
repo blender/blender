@@ -280,7 +280,7 @@ BF_OIIO_LIBPATH = BF_OIIO + '/lib'
 WITH_BF_OCIO = True
 BF_OCIO = LIBDIR + '/opencolorio'
 BF_OCIO_INC = BF_OCIO + '/include'
-BF_OCIO_LIB = 'OpenColorIO tinyxml yaml-cpp.a'
+BF_OCIO_LIB = 'OpenColorIO tinyxml yaml-cpp'
 BF_OCIO_LIBPATH = BF_OCIO + '/lib'
 
 WITH_BF_BOOST = True
