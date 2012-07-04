@@ -184,10 +184,12 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 		/* image not found */
 		if(!color_out->links.empty()) {
 			compiler.add_node(NODE_VALUE_V, color_out->stack_offset);
-			compiler.add_node(NODE_VALUE_V, make_float3(0, 0, 0));
+			compiler.add_node(NODE_VALUE_V, make_float3(TEX_IMAGE_MISSING_R,
+			                                            TEX_IMAGE_MISSING_G,
+			                                            TEX_IMAGE_MISSING_B));
 		}
 		if(!alpha_out->links.empty())
-			compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), alpha_out->stack_offset);
+			compiler.add_node(NODE_VALUE_F, __float_as_int(TEX_IMAGE_MISSING_A), alpha_out->stack_offset);
 	}
 }
 
@@ -288,10 +290,12 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 		/* image not found */
 		if(!color_out->links.empty()) {
 			compiler.add_node(NODE_VALUE_V, color_out->stack_offset);
-			compiler.add_node(NODE_VALUE_V, make_float3(0, 0, 0));
+			compiler.add_node(NODE_VALUE_V, make_float3(TEX_IMAGE_MISSING_R,
+			                                            TEX_IMAGE_MISSING_G,
+			                                            TEX_IMAGE_MISSING_B));
 		}
 		if(!alpha_out->links.empty())
-			compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), alpha_out->stack_offset);
+			compiler.add_node(NODE_VALUE_F, __float_as_int(TEX_IMAGE_MISSING_A), alpha_out->stack_offset);
 	}
 }
 
