@@ -1039,7 +1039,7 @@ static BMOpDefine bmo_bevel_def = {
 	 {BMO_OP_SLOT_BOOL, "use_dist"}, /* corner vert placement: evaluate percent as a distance,
 	                                  * modifier uses this. We could do this as another float setting */
 	 {BMO_OP_SLOT_INT, "lengthlayer"}, /* which PROP_FLT layer to us */
-	 {BMO_OP_SLOT_FLT, "percent"}, /* percentage to expand bevelled edge */
+	 {BMO_OP_SLOT_FLT, "percent"}, /* percentage to expand beveled edge */
 	 {0} /* null-terminating sentinel */},
 	bmo_bevel_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES

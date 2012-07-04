@@ -38,6 +38,7 @@ dict_uimsgs = {
     "betweens",  # yuck! in-betweens!
     "boolean", "booleans",
     "decrement",
+    "derivate",
     "doesn",  # doesn't
     "fader",
     "hoc",  # ad-hoc
@@ -88,7 +89,7 @@ dict_uimsgs = {
     "fullscreen",
     "gridline",
     "hemi",
-    "inscatter",
+    "inscatter", "inscattering",
     "lightless",
     "lookup", "lookups",
     "mathutils",
@@ -161,6 +162,7 @@ dict_uimsgs = {
     "unspill",
     "unstitchable",
     "vectorscope",
+    "whitespace",
     "worldspace",
     "workflow",
 
@@ -182,6 +184,7 @@ dict_uimsgs = {
     "polygonization",
     "selectability",
     "slurph",
+    "stitchable",
     "trackability",
     "transmissivity",
     "rasterized", "rasterization",
@@ -332,6 +335,7 @@ dict_uimsgs = {
     "dupligroup",
     "duplivert",
     "editbone",
+    "editmode",
     "fcurve", "fcurves",
     "fluidsim",
     "frameserver",

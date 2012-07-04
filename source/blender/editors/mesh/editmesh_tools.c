@@ -4181,11 +4181,11 @@ void MESH_OT_sort_elements(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
 		{SRT_VIEW_ZAXIS, "VIEW_ZAXIS", 0, "View Z Axis",
-		                 "Sort selected elements from farest to nearest one in current view"},
+		                 "Sort selected elements from farthest to nearest one in current view"},
 		{SRT_VIEW_XAXIS, "VIEW_XAXIS", 0, "View X Axis",
 		                 "Sort selected elements from left to right one in current view"},
 		{SRT_CURSOR_DISTANCE, "CURSOR_DISTANCE", 0, "Cursor Distance",
-		                      "Sort selected elements from nearest to farest from 3D cursor"},
+		                      "Sort selected elements from nearest to farthest from 3D cursor"},
 		{SRT_MATERIAL, "MATERIAL", 0, "Material",
 		               "Sort selected elements from smallest to greatest material index (faces only!)"},
 		{SRT_SELECTED, "SELECTED", 0, "Selected",

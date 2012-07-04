@@ -679,7 +679,7 @@ typedef struct bActionChannel {
 /* Action Channel flags (ONLY USED FOR DO_VERSIONS...) */
 typedef enum ACHAN_FLAG {
 	ACHAN_SELECTED  = (1 << 0),
-	ACHAN_HILIGHTED = (1 << 1),
+	ACHAN_HIGHLIGHTED = (1 << 1),
 	ACHAN_HIDDEN    = (1 << 2),
 	ACHAN_PROTECTED = (1 << 3),
 	ACHAN_EXPANDED  = (1 << 4),

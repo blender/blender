@@ -603,7 +603,7 @@ else
 	
 			/* Suspension holds the physics and logic processing for an
 			 * entire scene. Objects can be suspended individually, and
-			 * the settings for that preceed the logic and physics
+			 * the settings for that precede the logic and physics
 			 * update. */
 			m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
 

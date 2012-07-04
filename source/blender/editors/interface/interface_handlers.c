@@ -5009,7 +5009,7 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		ui_window_to_block(ar, block, &mx, &my);
 
 		for (but = block->buttons.first; but; but = but->next) {
-			/* note, LABEL is included for hilights, this allows drags */
+			/* note, LABEL is included for highlights, this allows drags */
 			if (but->type == LABEL && but->dragpoin == NULL)
 				continue;
 			if (ELEM3(but->type, ROUNDBOX, SEPR, LISTBOX))

@@ -73,7 +73,7 @@ PyDoc_STRVAR(bpy_bm_from_edit_mesh_doc,
 "\n"
 "   Return a BMesh from this mesh, currently the mesh must already be in editmode.\n"
 "\n"
-"   :return: the BMesh assosiated with this mesh.\n"
+"   :return: the BMesh associated with this mesh.\n"
 "   :rtype: :class:`bmesh.types.BMesh`\n"
 );
 static PyObject *bpy_bm_from_edit_mesh(PyObject *UNUSED(self), PyObject *value)

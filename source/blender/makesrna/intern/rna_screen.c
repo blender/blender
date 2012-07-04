@@ -296,7 +296,7 @@ static void rna_def_screen(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_fullscreen", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Screen_fullscreen_get", NULL);
-	RNA_def_property_ui_text(prop, "Fullscreen", "An area is maximised, filling this screen");
+	RNA_def_property_ui_text(prop, "Fullscreen", "An area is maximized, filling this screen");
 
 	/* Define Anim Playback Areas */
 	prop = RNA_def_property(srna, "use_play_top_left_3d_editor", PROP_BOOLEAN, PROP_NONE);

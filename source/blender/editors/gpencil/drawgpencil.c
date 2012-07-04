@@ -281,7 +281,7 @@ static void gp_draw_stroke(bGPDspoint *points, int totpoints, short thickness_s,
 	}
 	
 	/* tessellation code - draw stroke as series of connected quads with connection
-	 * edges rotated to minimise shrinking artifacts, and rounded endcaps
+	 * edges rotated to minimize shrinking artifacts, and rounded endcaps
 	 */
 	else {
 		bGPDspoint *pt1, *pt2;

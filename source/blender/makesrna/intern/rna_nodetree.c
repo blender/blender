@@ -3259,7 +3259,7 @@ static void def_cmp_ellipsemask(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "rotation");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1000.0f, 1000.0f);
-	RNA_def_property_ui_text(prop, "Rotation", "Rotationangle of the box");
+	RNA_def_property_ui_text(prop, "Rotation", "Rotation angle of the box");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -4270,7 +4270,8 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "two_pass", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_TWO_PASS);
-	RNA_def_property_ui_text(prop, "Two Pass", "Use two pass execution during editing; First calculate fast nodes, second pass calculate all nodes.");
+	RNA_def_property_ui_text(prop, "Two Pass", "Use two pass execution during editing: first calculate fast nodes, "
+	                                           "second pass calculate all nodes");
 }
 
 static void rna_def_shader_nodetree(BlenderRNA *brna)
