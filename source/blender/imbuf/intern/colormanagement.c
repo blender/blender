@@ -678,7 +678,7 @@ static void *do_display_buffer_apply_tonemap_thread(void *handle_v)
 	IMB_buffer_byte_from_float_tonecurve(display_buffer, buffer, channels, dither,
 	                                     IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
 	                                     predivide, width, height, width, width,
-										 tonecurve_func);
+	                                     tonecurve_func);
 
 	return NULL;
 }
@@ -713,7 +713,7 @@ static void *do_display_buffer_apply_ocio_thread(void *handle_v)
 	/* do conversion */
 	IMB_buffer_byte_from_float(display_buffer, buffer,
 	                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-							   predivide, width, height, width, width);
+	                           predivide, width, height, width, width);
 
 	return NULL;
 }
