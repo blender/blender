@@ -349,7 +349,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "simulation_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "realsize");
 	RNA_def_property_range(prop, 0.001, 10);
-	RNA_def_property_ui_text(prop, "Real World Size", "Size of the simulation domain in metres");
+	RNA_def_property_ui_text(prop, "Real World Size", "Size of the simulation domain in meters");
 	
 	prop = RNA_def_property(srna, "simulation_rate", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "animRate");
