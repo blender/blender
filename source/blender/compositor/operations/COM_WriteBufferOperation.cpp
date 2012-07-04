@@ -63,6 +63,9 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 	MemoryBuffer *memoryBuffer = this->m_memoryProxy->getBuffer();
 	float *buffer = memoryBuffer->getBuffer();
 	if (this->m_input->isComplex()) {
+		bNode* bnode = this->m_input->getbNode();
+		if (bnode&& bnode->new_node) bnode->new_node->highlight++;
+
 		void *data = this->m_input->initializeTileData(rect, memoryBuffers);
 		int x1 = rect->xmin;
 		int y1 = rect->ymin;
@@ -87,6 +90,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 			this->m_input->deinitializeTileData(rect, memoryBuffers, data);
 			data = NULL;
 		}
+		if (bnode&& bnode->new_node) bnode->new_node->highlight++;
 	}
 	else {
 		int x1 = rect->xmin;
@@ -139,6 +143,8 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice* device, rcti *rect,
 	list<cl_mem> *clMemToCleanUp = new list<cl_mem>();
 	clMemToCleanUp->push_back(clOutputBuffer);
 	list<cl_kernel> *clKernelsToCleanUp = new list<cl_kernel>();
+	bNode* bnode = this->m_input->getbNode();
+	if (bnode&& bnode->new_node) bnode->new_node->highlight++;
 
 	this->m_input->executeOpenCL(device, outputBuffer, clOutputBuffer, inputMemoryBuffers, clMemToCleanUp, clKernelsToCleanUp);
 
@@ -156,7 +162,8 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice* device, rcti *rect,
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	
 	this->getMemoryProxy()->getBuffer()->copyContentFrom(outputBuffer);
-	
+
+	if (bnode&& bnode->new_node) bnode->new_node->highlight++;
 	// STEP 4
 
 	

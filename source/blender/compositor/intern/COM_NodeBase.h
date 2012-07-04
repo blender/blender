@@ -54,6 +54,11 @@ private:
 	 */
 	vector<OutputSocket *> m_outputsockets;
 
+	/**
+	 * @brief stores the reference to the SDNA bNode struct
+	 */
+	bNode *m_editorNode;
+
 protected:
 	/**
 	 * @brief get access to the vector of input sockets
@@ -72,6 +77,18 @@ public:
 	 * clean up memory related to this NodeBase.
 	 */
 	virtual ~NodeBase();
+	
+	/**
+	 * @brief get the reference to the SDNA bNode struct
+	 */
+	bNode *getbNode() {return m_editorNode;}
+	
+	/**
+	 * @brief set the reference to the bNode
+	 * @note used in Node instances to receive the storage/settings and complex node for highlight during execution
+	 * @param bNode
+	 */
+	void setbNode(bNode *bNode) {this->m_editorNode = bNode;}
 	
 	/**
 	 * @brief is this node an operation?

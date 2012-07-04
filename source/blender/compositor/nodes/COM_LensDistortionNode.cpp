@@ -37,7 +37,7 @@ void LensDistortionNode::convertToOperations(ExecutionSystem *graph, CompositorC
 	NodeLensDist *data = (NodeLensDist *)editorNode->storage;
 	if (data->proj) {
 		ProjectorLensDistortionOperation *operation = new ProjectorLensDistortionOperation();
-
+		operation->setbNode(editorNode);
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(1), 2, graph);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
@@ -48,6 +48,7 @@ void LensDistortionNode::convertToOperations(ExecutionSystem *graph, CompositorC
 	}
 	else {
 		ScreenLensDistortionOperation *operation = new ScreenLensDistortionOperation();
+		operation->setbNode(editorNode);
 		operation->setData(data);
 		if (!(this->getInputSocket(1)->isConnected() || this->getInputSocket(2)->isConnected())) 
 		{

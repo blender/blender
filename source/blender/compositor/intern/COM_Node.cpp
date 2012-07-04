@@ -39,9 +39,9 @@
 //#include <stdio.h>
 #include "COM_defines.h"
 
-Node::Node(bNode *editorNode, bool create_sockets)
+Node::Node(bNode *editorNode, bool create_sockets): NodeBase()
 {
-	this->m_editorNode = editorNode;
+	setbNode(editorNode);
 	
 	if (create_sockets) {
 		bNodeSocket *input = (bNodeSocket *)editorNode->inputs.first;
@@ -63,15 +63,6 @@ Node::Node(bNode *editorNode, bool create_sockets)
 			output = (bNodeSocket *)output->next;
 		}
 	}
-}
-Node::Node()
-{
-	this->m_editorNode = NULL;
-}
-
-bNode *Node::getbNode()
-{
-	return this->m_editorNode;
 }
 
 void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex)

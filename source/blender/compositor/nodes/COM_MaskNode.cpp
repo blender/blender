@@ -45,7 +45,7 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 
 	// always connect the output image
 	MaskOperation *operation = new MaskOperation();
-
+	operation->setbNode(editorNode);
 	operation->setMaskWidth(data->xsch * data->size / 100.0f);
 	operation->setMaskHeight(data->ysch * data->size / 100.0f);
 

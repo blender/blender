@@ -177,10 +177,11 @@ typedef struct bNode {
 	char label[64];			/* custom user-defined label, MAX_NAME */
 	short custom1, custom2;	/* to be abused for buttons */
 	float custom3, custom4;
+	int highlight;			/* 0 = not highlighted, 1-N = highlighted*/
+	int pad;
 	
 	short need_exec, exec;	/* need_exec is set as UI execution event, exec is flag during exec */
 	void *threaddata;		/* optional extra storage for use in thread (read only then!) */
-	
 	rctf totr;				/* entire boundbox */
 	rctf butr;				/* optional buttons area */
 	rctf prvr;				/* optional preview area */

@@ -49,6 +49,7 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	if (data->filtertype == R_FILTER_FAST_GAUSS) {
 		FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();
 		operationfgb->setData(data);
+		operationfgb->setbNode(editorNode);
 		this->getInputSocket(0)->relinkConnections(operationfgb->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operationfgb->getInputSocket(1), 1, graph);
 		this->getOutputSocket(0)->relinkConnections(operationfgb->getOutputSocket(0));
@@ -58,12 +59,14 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	else if (!data->bokeh) {
 		GaussianXBlurOperation *operationx = new GaussianXBlurOperation();
 		operationx->setData(data);
+		operationx->setbNode(editorNode);
 		operationx->setQuality(quality);
 		this->getInputSocket(0)->relinkConnections(operationx->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph);
 		graph->addOperation(operationx);
 		GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
 		operationy->setData(data);
+		operationy->setbNode(editorNode);
 		operationy->setQuality(quality);
 		this->getOutputSocket(0)->relinkConnections(operationy->getOutputSocket());
 		graph->addOperation(operationy);
@@ -79,6 +82,7 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	else {
 		GaussianBokehBlurOperation *operation = new GaussianBokehBlurOperation();
 		operation->setData(data);
+		operation->setbNode(editorNode);
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
 		operation->setQuality(quality);

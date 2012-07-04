@@ -28,7 +28,7 @@
 #include "COM_SocketConnection.h"
 #include "COM_defines.h"
 
-NodeOperation::NodeOperation()
+NodeOperation::NodeOperation() : NodeBase()
 {
 	this->m_resolutionInputSocketIndex = 0;
 	this->m_complex = false;
