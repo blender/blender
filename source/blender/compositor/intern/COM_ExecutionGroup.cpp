@@ -25,11 +25,6 @@
 #include <sstream>
 #include <stdlib.h>
 
-#include "BLI_math.h"
-#include "PIL_time.h"
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "COM_ExecutionGroup.h"
 #include "COM_InputSocket.h"
 #include "COM_SocketConnection.h"
@@ -42,6 +37,11 @@
 #include "COM_ViewerOperation.h"
 #include "COM_ChunkOrder.h"
 #include "COM_ExecutionSystemHelper.h"
+
+#include "BLI_math.h"
+#include "PIL_time.h"
+#include "WM_api.h"
+#include "WM_types.h"
 
 ExecutionGroup::ExecutionGroup()
 {
