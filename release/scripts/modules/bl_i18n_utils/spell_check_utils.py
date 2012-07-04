@@ -162,7 +162,7 @@ dict_uimsgs = {
     "unspill",
     "unstitchable",
     "vectorscope",
-    "whitespace",
+    "whitespace", "whitespaces",
     "worldspace",
     "workflow",
 

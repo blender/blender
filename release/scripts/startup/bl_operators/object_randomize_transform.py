@@ -120,7 +120,7 @@ class RandomizeLocRotSize(Operator):
             )
     loc = FloatVectorProperty(
             name="Location",
-            description=("Maximun distance the objects "
+            description=("Maximum distance the objects "
                          "can spread over each axis"),
             min=-100.0,
             max=100.0,
@@ -134,7 +134,7 @@ class RandomizeLocRotSize(Operator):
             )
     rot = FloatVectorProperty(
             name="Rotation",
-            description="Maximun rotation over each axis",
+            description="Maximum rotation over each axis",
             min=-3.141592,  # math.pi
             max=+3.141592,
             default=(0.0, 0.0, 0.0),

@@ -1924,7 +1924,7 @@ static void rna_def_msticky(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MeshSticky", NULL);
 	RNA_def_struct_sdna(srna, "MSticky");
-	RNA_def_struct_ui_text(srna, "Mesh Vertex Sticky Texture Coordinate", "Stricky texture coordinate");
+	RNA_def_struct_ui_text(srna, "Mesh Vertex Sticky Texture Coordinate", "Sticky texture coordinate");
 	RNA_def_struct_path_func(srna, "rna_MeshSticky_path");
 
 	prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_XYZ);

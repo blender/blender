@@ -228,7 +228,8 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of metaelems to select randomly", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent",
+	                         "Percentage of metaelements to select randomly", 0.0001f, 1.0f);
 }
 
 /***************************** Duplicate operator *****************************/

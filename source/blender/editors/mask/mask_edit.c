@@ -310,7 +310,8 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	// WM_keymap_add_item(keymap, "MASK_OT_feather_weight_clear", SKEY, KM_PRESS, KM_ALT, 0);
 	/* ... matches curve editmode */
-	RNA_enum_set(WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", TFM_MASK_SHRINKFATTEN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0)->ptr,
+	             "mode", TFM_MASK_SHRINKFATTEN);
 
 	/* relationships */
 	WM_keymap_add_item(keymap, "MASK_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
@@ -329,13 +330,15 @@ void ED_operatormacros_mask(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 
-	ot = WM_operatortype_append_macro("MASK_OT_add_vertex_slide", "Add Vertex and Slide", "Add new vertex and slide it", OPTYPE_UNDO | OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("MASK_OT_add_vertex_slide", "Add Vertex and Slide",
+	                                  "Add new vertex and slide it", OPTYPE_UNDO | OPTYPE_REGISTER);
 	ot->description = "Add new vertex and slide it";
 	WM_operatortype_macro_define(ot, "MASK_OT_add_vertex");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_boolean_set(otmacro->ptr, "release_confirm", TRUE);
 
-	ot = WM_operatortype_append_macro("MASK_OT_add_feather_vertex_slide", "Add Feather Vertex and Slide", "Add new vertex to feater and slide it", OPTYPE_UNDO | OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("MASK_OT_add_feather_vertex_slide", "Add Feather Vertex and Slide",
+	                                  "Add new vertex to feather and slide it", OPTYPE_UNDO | OPTYPE_REGISTER);
 	ot->description = "Add new feather vertex and slide it";
 	WM_operatortype_macro_define(ot, "MASK_OT_add_feather_vertex");
 	otmacro = WM_operatortype_macro_define(ot, "MASK_OT_slide_point");

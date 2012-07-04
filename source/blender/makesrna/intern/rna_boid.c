@@ -50,7 +50,7 @@ EnumPropertyItem boidrule_type_items[] = {
 	{eBoidRuleType_Goal, "GOAL", 0, "Goal", "Go to assigned object or loudest assigned signal source"},
 	{eBoidRuleType_Avoid, "AVOID", 0, "Avoid", "Get away from assigned object or loudest assigned signal source"},
 	{eBoidRuleType_AvoidCollision, "AVOID_COLLISION", 0, "Avoid Collision",
-	                               "Manoeuvre to avoid collisions with other boids and deflector objects in "
+	                               "Maneuver to avoid collisions with other boids and deflector objects in "
 	                               "near future"},
 	{eBoidRuleType_Separate, "SEPARATE", 0, "Separate", "Keep from going through other boids"},
 	{eBoidRuleType_Flock, "FLOCK", 0, "Flock", "Move to center of neighbors and match their velocity"},

@@ -316,7 +316,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "passes", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ao_approx_passes");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Passes", "Number of preprocessing passes to reduce overocclusion");
+	RNA_def_property_ui_text(prop, "Passes", "Number of preprocessing passes to reduce over-occlusion");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
