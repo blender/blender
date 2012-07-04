@@ -419,10 +419,10 @@ set(SRC
 	operations/COM_PreviewOperation.cpp
 	operations/COM_SplitViewerOperation.h
 	operations/COM_SplitViewerOperation.cpp
-	operations/COM_ConvertValueToColourProg.h
-	operations/COM_ConvertValueToColourProg.cpp
-	operations/COM_ConvertColourToValueProg.h
-	operations/COM_ConvertColourToValueProg.cpp
+	operations/COM_ConvertValueToColorProg.h
+	operations/COM_ConvertValueToColorProg.cpp
+	operations/COM_ConvertColorToValueProg.h
+	operations/COM_ConvertColorToValueProg.cpp
 	operations/COM_ConvertColorToBWOperation.h
 	operations/COM_ConvertColorToBWOperation.cpp
 	operations/COM_ConvertColorToVectorOperation.h

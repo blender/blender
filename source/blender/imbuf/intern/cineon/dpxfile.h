@@ -62,7 +62,7 @@ typedef struct {
 		R32		 ref_high_quantity;/* reference high quantity represented */
 		U8		 designator1;
 		U8		 transfer_characteristics;
-		U8		 colourimetry;
+		U8		 colorimetry;
 		U8		 bits_per_pixel;
 		U16		 packing;
 		U16		 encoding;

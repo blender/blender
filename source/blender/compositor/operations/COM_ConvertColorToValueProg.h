@@ -20,28 +20,40 @@
  *		Monique Dewanchand
  */
 
-#include "COM_ConvertColourToValueProg.h"
+#ifndef _COM_ConvertColorToValueProg_h
+#define _COM_ConvertColorToValueProg_h
+#include "COM_NodeOperation.h"
 
-ConvertColourToValueProg::ConvertColourToValueProg() : NodeOperation()
-{
-	this->addInputSocket(COM_DT_COLOR);
-	this->addOutputSocket(COM_DT_VALUE);
-	this->m_inputOperation = NULL;
-}
 
-void ConvertColourToValueProg::initExecution()
-{
-	this->m_inputOperation = this->getInputSocketReader(0);
-}
-
-void ConvertColourToValueProg::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
-{
-	float inputColor[4];
-	this->m_inputOperation->read(&inputColor[0], x, y, sampler, inputBuffers);
-	outputValue[0] = (inputColor[0] + inputColor[1] + inputColor[2]) / 3.0f;
-}
-
-void ConvertColourToValueProg::deinitExecution()
-{
-	this->m_inputOperation = NULL;
-}
+/**
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
+ */
+class ConvertColorToValueProg : public NodeOperation {
+private:
+	/**
+	 * Cached reference to the inputProgram
+	 */
+	SocketReader *m_inputOperation;
+public:
+	/**
+	 * Default constructor
+	 */
+	ConvertColorToValueProg();
+	
+	/**
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	
+	/**
+	 * Initialize the execution
+	 */
+	void initExecution();
+	
+	/**
+	 * Deinitialize the execution
+	 */
+	void deinitExecution();
+};
+#endif

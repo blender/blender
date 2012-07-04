@@ -20,34 +20,30 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ConvertValueToColourProg_h
-#define _COM_ConvertValueToColourProg_h
-#include "COM_NodeOperation.h"
+#include "COM_ConvertValueToColorProg.h"
 
+ConvertValueToColorProg::ConvertValueToColorProg() : NodeOperation()
+{
+	this->addInputSocket(COM_DT_VALUE);
+	this->addOutputSocket(COM_DT_COLOR);
+	this->m_inputProgram = NULL;
+}
+void ConvertValueToColorProg::initExecution()
+{
+	this->m_inputProgram = this->getInputSocketReader(0);
+}
 
-class ConvertValueToColourProg : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *m_inputProgram;
-public:
-	ConvertValueToColourProg();
-	
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
-	
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
-	
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+void ConvertValueToColorProg::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
+	float inputValue[4];
+	this->m_inputProgram->read(inputValue, x, y, sampler, inputBuffers);
+	color[0] = inputValue[0];
+	color[1] = inputValue[0];
+	color[2] = inputValue[0];
+	color[3] = 1.0f;
+}
 
-};
-#endif
+void ConvertValueToColorProg::deinitExecution()
+{
+	this->m_inputProgram = NULL;
+}

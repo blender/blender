@@ -3362,7 +3362,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmND
 	ui_get_but_vectorf(but, rgb);
 	rgb_to_hsv_compat_v(rgb, hsv);
 	
-	/* Convert current colour on hue/sat disc to circular coordinates phi, r */
+	/* Convert current color on hue/sat disc to circular coordinates phi, r */
 	phi = fmodf(hsv[0] + 0.25f, 1.0f) * -2.0f * (float)M_PI;
 	r = hsv[1];
 	/* sqr= r>0.f?sqrtf(r):1; */ /* UNUSED */

@@ -48,7 +48,7 @@
         % python ./scons/scons.py
 
     This will start the build process with default values. Depending
-    on your platform you may see colour in your output (non-Windows
+    on your platform you may see color in your output (non-Windows
     machines). In the the beginning an overview of targets and arguments
     from the command-line is given, then all libraries and binaries to
     build are configured.
@@ -123,11 +123,11 @@
 
     This rewrite features a cleaner output during the build process. If
     you need to see the full command-line for compiles, then you can
-    change that behaviour. Also the use of colours can be changed:
+    change that behaviour. Also the use of colors can be changed:
 
         % python scons\scons.py BF_FANCY=0
 
-    This will disable the use of colours.
+    This will disable the use of colors.
 
         % python scons\scons.py BF_QUIET=0
 

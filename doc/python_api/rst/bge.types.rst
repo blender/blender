@@ -1683,7 +1683,7 @@ Game Types (bge.types)
       light = co.owner
 
       light.energy = 1.0
-      light.colour = [1.0, 0.0, 0.0]
+      light.color = [1.0, 0.0, 0.0]
 
    .. data:: SPOT
 
@@ -1719,15 +1719,15 @@ Game Types (bge.types)
 
       :type: float
 
-   .. attribute:: colour
+   .. attribute:: color
 
-      The colour of this light. Black = [0.0, 0.0, 0.0], White = [1.0, 1.0, 1.0].
+      The color of this light. Black = [0.0, 0.0, 0.0], White = [1.0, 1.0, 1.0].
 
       :type: list [r, g, b]
 
-   .. attribute:: color
+   .. attribute:: colour
 
-      Synonym for colour.
+      Synonym for color.
 
    .. attribute:: lin_attenuation
 
@@ -1782,7 +1782,7 @@ Game Types (bge.types)
       #. They are at the same position
       #. UV coordinates are the same
       #. Their normals are the same (both polygons are "Set Smooth")
-      #. They are the same colour, for example: a cube has 24 vertices: 6 faces with 4 vertices per face.
+      #. They are the same color, for example: a cube has 24 vertices: 6 faces with 4 vertices per face.
 
    The correct method of iterating over every :class:`KX_VertexProxy` in a game object
    
@@ -1798,8 +1798,8 @@ Game Types (bge.types)
             for v_index in range(mesh.getVertexArrayLength(m_index)):
                vertex = mesh.getVertex(m_index, v_index)
                # Do something with vertex here...
-               # ... eg: colour the vertex red.
-               vertex.colour = [1.0, 0.0, 0.0, 1.0]
+               # ... eg: color the vertex red.
+               vertex.color = [1.0, 0.0, 0.0, 1.0]
 
    .. attribute:: materials
 
@@ -2538,13 +2538,13 @@ Game Types (bge.types)
 
    .. attribute:: diffuse
 
-      The diffuse colour of the material. black = [0.0, 0.0, 0.0] white = [1.0, 1.0, 1.0].
+      The diffuse color of the material. black = [0.0, 0.0, 0.0] white = [1.0, 1.0, 1.0].
 
       :type: list [r, g, b]
 
    .. attribute:: specular
 
-      The specular colour of the material. black = [0.0, 0.0, 0.0] white = [1.0, 1.0, 1.0].
+      The specular color of the material. black = [0.0, 0.0, 0.0] white = [1.0, 1.0, 1.0].
 
       :type: list [r, g, b]
 
@@ -3381,7 +3381,7 @@ Game Types (bge.types)
 
 .. class:: KX_VertexProxy(SCA_IObject)
 
-   A vertex holds position, UV, colour and normal information.
+   A vertex holds position, UV, color and normal information.
 
    Note:
    The physics simulation is NOT currently updated - physics will not respond
@@ -3405,17 +3405,17 @@ Game Types (bge.types)
 
       :type: list [nx, ny, nz]
 
-   .. attribute:: colour
+   .. attribute:: color
 
-      The colour of the vertex.
+      The color of the vertex.
 
       :type: list [r, g, b, a]
 
       Black = [0.0, 0.0, 0.0, 1.0], White = [1.0, 1.0, 1.0, 1.0]
 
-   .. attribute:: color
+   .. attribute:: colour
 
-      Synonym for colour.
+      Synonym for color.
 
    .. attribute:: x
 
@@ -3461,25 +3461,25 @@ Game Types (bge.types)
 
    .. attribute:: r
 
-      The red component of the vertex colour. 0.0 <= r <= 1.0.
+      The red component of the vertex color. 0.0 <= r <= 1.0.
 
       :type: float
 
    .. attribute:: g
 
-      The green component of the vertex colour. 0.0 <= g <= 1.0.
+      The green component of the vertex color. 0.0 <= g <= 1.0.
 
       :type: float
 
    .. attribute:: b
 
-      The blue component of the vertex colour. 0.0 <= b <= 1.0.
+      The blue component of the vertex color. 0.0 <= b <= 1.0.
 
       :type: float
 
    .. attribute:: a
 
-      The alpha component of the vertex colour. 0.0 <= a <= 1.0.
+      The alpha component of the vertex color. 0.0 <= a <= 1.0.
 
       :type: float
 
@@ -3529,15 +3529,15 @@ Game Types (bge.types)
 
    .. method:: getRGBA()
 
-      Gets the colour of this vertex.
+      Gets the color of this vertex.
 
-      The colour is represented as four bytes packed into an integer value.  The colour is
+      The color is represented as four bytes packed into an integer value.  The color is
       packed as RGBA.
 
       Since Python offers no way to get each byte without shifting, you must use the struct module to
-      access colour in an machine independent way.
+      access color in an machine independent way.
 
-      Because of this, it is suggested you use the r, g, b and a attributes or the colour attribute instead.
+      Because of this, it is suggested you use the r, g, b and a attributes or the color attribute instead.
 
       .. code-block:: python
 
@@ -3547,17 +3547,17 @@ Game Types (bge.types)
          # black = (  0, 0, 0, 255)
          # white = (255, 255, 255, 255)
 
-      :return: packed colour. 4 byte integer with one byte per colour channel in RGBA format.
+      :return: packed color. 4 byte integer with one byte per color channel in RGBA format.
       :rtype: integer
 
    .. method:: setRGBA(col)
 
-      Sets the colour of this vertex.
+      Sets the color of this vertex.
 
       See getRGBA() for the format of col, and its relevant problems.  Use the r, g, b and a attributes
-      or the colour attribute instead.
+      or the color attribute instead.
 
-      setRGBA() also accepts a four component list as argument col.  The list represents the colour as [r, g, b, a]
+      setRGBA() also accepts a four component list as argument col.  The list represents the color as [r, g, b, a]
       with black = [0.0, 0.0, 0.0, 1.0] and white = [1.0, 1.0, 1.0, 1.0]
 
       .. code-block:: python
@@ -3567,7 +3567,7 @@ Game Types (bge.types)
          v.setRGBA([1.0, 0.0, 0.0, 1.0]) # Red
          v.setRGBA([0.0, 1.0, 0.0, 1.0]) # Green on all platforms.
 
-      :arg col: the new colour of this vertex in packed RGBA format.
+      :arg col: the new color of this vertex in packed RGBA format.
       :type col: integer or list [r, g, b, a]
 
    .. method:: getNormal()

@@ -34,12 +34,12 @@ void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	InputSocket *imageSocket = this->getInputSocket(0);
 	InputSocket *alphaSocket = this->getInputSocket(1);
 	if (imageSocket->isConnected()) {
-		CompositorOperation *colourAlphaProg = new CompositorOperation();
-		colourAlphaProg->setRenderData(context->getRenderData());
-		colourAlphaProg->setbNodeTree(context->getbNodeTree());
-		imageSocket->relinkConnections(colourAlphaProg->getInputSocket(0));
-		alphaSocket->relinkConnections(colourAlphaProg->getInputSocket(1));
-		graph->addOperation(colourAlphaProg);
-		addPreviewOperation(graph, colourAlphaProg->getInputSocket(0));
+		CompositorOperation *colorAlphaProg = new CompositorOperation();
+		colorAlphaProg->setRenderData(context->getRenderData());
+		colorAlphaProg->setbNodeTree(context->getbNodeTree());
+		imageSocket->relinkConnections(colorAlphaProg->getInputSocket(0));
+		alphaSocket->relinkConnections(colorAlphaProg->getInputSocket(1));
+		graph->addOperation(colorAlphaProg);
+		addPreviewOperation(graph, colorAlphaProg->getInputSocket(0));
 	}
 }
