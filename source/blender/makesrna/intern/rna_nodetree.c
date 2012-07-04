@@ -4267,6 +4267,10 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_opencl", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_COM_OPENCL);
 	RNA_def_property_ui_text(prop, "OpenCL", "Enable GPU calculations");
+
+	prop = RNA_def_property(srna, "two_pass", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_TWO_PASS);
+	RNA_def_property_ui_text(prop, "Two Pass", "Use two pass execution during editing; First calculate fast nodes, second pass calculate all nodes.");
 }
 
 static void rna_def_shader_nodetree(BlenderRNA *brna)
