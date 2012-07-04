@@ -191,7 +191,7 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 	 * If the number of verts specified to render as a polygon is less than 3,
 	 * return immediately. Obviously we cant render a poly with sides < 3. The
 	 * return for this we set to 1, simply so it can be distinguished from the
-	 * next place we could return, /home/guest/blender-svn/soc-2011-tomato/intern/raskter/raskter.
+	 * next place we could return.
 	 * which is a failure to allocate memory.
 	 */
 	if (num_verts < 3) {
@@ -214,6 +214,12 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 	 * the edge properties and can "flip" some edges so sorting works correctly.
 	 */
 	preprocess_all_edges(ctx, verts, num_verts, edgbuf);
+
+	/* can happen with a zero area mask */
+	if (ctx->all_edges == NULL) {
+		free(edgbuf);
+		return(0);
+	}
 
 	/*
 	 * Set the pointer for tracking the edges currently in processing to NULL to make sure
@@ -387,7 +393,7 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
                    float *buf, int buf_x, int buf_y, int do_mask_AA)
 {
-	int subdiv_AA = (do_mask_AA != 0)? 8:0;
+	int subdiv_AA = (do_mask_AA != 0) ? 8 : 0;
 	int i;                                   /* i: Loop counter. */
 	int sAx;
 	int sAy;
@@ -395,7 +401,7 @@ int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
 	struct r_fill_context ctx = {0};
 	const float buf_x_f = (float)(buf_x);
 	const float buf_y_f = (float)(buf_y);
-	float div_offset=(1.0f / (float)(subdiv_AA));
+	float div_offset = (1.0f / (float)(subdiv_AA));
 	float div_offset_static = 0.5f * (float)(subdiv_AA) * div_offset;
 	/*
 	 * Allocate enough memory for our poly_vert list. It'll be the size of the poly_vert
@@ -420,22 +426,22 @@ int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
 	 * drawn will be 1.0f in value, there is no anti-aliasing.
 	 */
 
-	if(!subdiv_AA) {
+	if (!subdiv_AA) {
 		for (i = 0; i < num_base_verts; i++) {                     /* Loop over all base_verts. */
 			ply[i].x = (int)((base_verts[i][0] * buf_x_f) + 0.5f); /* Range expand normalized X to integer buffer-space X. */
 			ply[i].y = (int)((base_verts[i][1] * buf_y_f) + 0.5f); /* Range expand normalized Y to integer buffer-space Y. */
 		}
-		
-		i = rast_scan_fill(&ctx, ply, num_base_verts,1.0f);  /* Call our rasterizer, passing in the integer coords for each vert. */
+
+		i = rast_scan_fill(&ctx, ply, num_base_verts, 1.0f);  /* Call our rasterizer, passing in the integer coords for each vert. */
 	}
 	else {
-		for(sAx=0; sAx < subdiv_AA; sAx++) {
-			for(sAy=0; sAy < subdiv_AA; sAy++) {
-				for(i=0; i < num_base_verts; i++) {
-					ply[i].x = (int)((base_verts[i][0]*buf_x_f)+0.5f - div_offset_static + (div_offset*(float)(sAx)));
-					ply[i].y = (int)((base_verts[i][1]*buf_y_f)+0.5f - div_offset_static + (div_offset*(float)(sAy)));
+		for (sAx = 0; sAx < subdiv_AA; sAx++) {
+			for (sAy = 0; sAy < subdiv_AA; sAy++) {
+				for (i = 0; i < num_base_verts; i++) {
+					ply[i].x = (int)((base_verts[i][0] * buf_x_f) + 0.5f - div_offset_static + (div_offset * (float)(sAx)));
+					ply[i].y = (int)((base_verts[i][1] * buf_y_f) + 0.5f - div_offset_static + (div_offset * (float)(sAy)));
 				}
-				i = rast_scan_fill(&ctx, ply, num_base_verts,(1.0f / (float)(subdiv_AA*subdiv_AA)));
+				i = rast_scan_fill(&ctx, ply, num_base_verts, (1.0f / (float)(subdiv_AA * subdiv_AA)));
 			}
 		}
 	}
@@ -501,6 +507,12 @@ static int rast_scan_feather(struct r_fill_context *ctx,
 	 * 3 sides.
 	 */
 	if ((edgbuf = (struct e_status *)(malloc(sizeof(struct e_status) * num_feather_verts))) == NULL) {
+		return(0);
+	}
+
+	/* can happen with a zero area mask */
+	if (ctx->all_edges == NULL) {
+		free(edgbuf);
 		return(0);
 	}
 
