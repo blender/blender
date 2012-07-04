@@ -1395,8 +1395,8 @@ class WM_OT_keyconfig_export(Operator):
         if not self.filepath:
             raise Exception("Filepath not set")
 
-        if not self.filepath.endswith('.py'):
-            self.filepath += '.py'
+        if not self.filepath.endswith(".py"):
+            self.filepath += ".py"
 
         wm = context.window_manager
 

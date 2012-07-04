@@ -497,7 +497,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
                 fg = rlayers[0]
                 fg.name = 'Foreground'
             else:
-                fg = scene.render.layers.new('Foreground')
+                fg = scene.render.layers.new("Foreground")
 
             fg.use_sky = False
             fg.layers = [True] + [False] * 19
@@ -505,7 +505,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
             fg.use_pass_vector = True
 
         if not scene.render.layers.get("Background"):
-            bg = scene.render.layers.new('Background')
+            bg = scene.render.layers.new("Background")
             bg.use_pass_shadow = True
             bg.use_pass_ambient_occlusion = True
             bg.layers = [False] * 10 + [True] + [False] * 9
@@ -560,7 +560,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
             space.show_backdrop = True
 
         CLIP_spaces_walk(context, True, 'NODE_EDITOR', 'NODE_EDITOR',
-                          setup_space)
+                         setup_space)
 
         sc = context.space_data
         scene = context.scene
@@ -612,46 +612,46 @@ class CLIP_OT_setup_tracking_scene(Operator):
         add_shadow.blend_type = 'ADD'
 
         mul_shadow.blend_type = 'MULTIPLY'
-        mul_shadow.inputs['Fac'].default_value = 0.8
+        mul_shadow.inputs["Fac"].default_value = 0.8
 
         mul_image.blend_type = 'MULTIPLY'
-        mul_image.inputs['Fac'].default_value = 0.8
+        mul_image.inputs["Fac"].default_value = 0.8
 
         vector_blur.factor = 0.75
 
         # create links
-        tree.links.new(movieclip.outputs['Image'], distortion.inputs['Image'])
+        tree.links.new(movieclip.outputs["Image"], distortion.inputs["Image"])
 
         if need_stabilization:
-            tree.links.new(distortion.outputs['Image'],
-                stabilize.inputs['Image'])
-            tree.links.new(stabilize.outputs['Image'], scale.inputs['Image'])
+            tree.links.new(distortion.outputs["Image"],
+                stabilize.inputs["Image"])
+            tree.links.new(stabilize.outputs["Image"], scale.inputs["Image"])
         else:
-            tree.links.new(distortion.outputs['Image'], scale.inputs['Image'])
+            tree.links.new(distortion.outputs["Image"], scale.inputs["Image"])
 
-        tree.links.new(rlayer_bg.outputs['Alpha'], invert.inputs['Color'])
+        tree.links.new(rlayer_bg.outputs["Alpha"], invert.inputs["Color"])
 
-        tree.links.new(invert.outputs['Color'], add_shadow.inputs[1])
-        tree.links.new(rlayer_bg.outputs['Shadow'], add_shadow.inputs[2])
+        tree.links.new(invert.outputs["Color"], add_shadow.inputs[1])
+        tree.links.new(rlayer_bg.outputs["Shadow"], add_shadow.inputs[2])
 
-        tree.links.new(invert.outputs['Color'], add_ao.inputs[1])
-        tree.links.new(rlayer_bg.outputs['AO'], add_ao.inputs[2])
+        tree.links.new(invert.outputs["Color"], add_ao.inputs[1])
+        tree.links.new(rlayer_bg.outputs["AO"], add_ao.inputs[2])
 
-        tree.links.new(add_ao.outputs['Image'], mul_shadow.inputs[1])
-        tree.links.new(add_shadow.outputs['Image'], mul_shadow.inputs[2])
+        tree.links.new(add_ao.outputs["Image"], mul_shadow.inputs[1])
+        tree.links.new(add_shadow.outputs["Image"], mul_shadow.inputs[2])
 
-        tree.links.new(scale.outputs['Image'], mul_image.inputs[1])
-        tree.links.new(mul_shadow.outputs['Image'], mul_image.inputs[2])
+        tree.links.new(scale.outputs["Image"], mul_image.inputs[1])
+        tree.links.new(mul_shadow.outputs["Image"], mul_image.inputs[2])
 
-        tree.links.new(rlayer_fg.outputs['Image'], vector_blur.inputs['Image'])
-        tree.links.new(rlayer_fg.outputs['Z'], vector_blur.inputs['Z'])
-        tree.links.new(rlayer_fg.outputs['Speed'], vector_blur.inputs['Speed'])
+        tree.links.new(rlayer_fg.outputs["Image"], vector_blur.inputs["Image"])
+        tree.links.new(rlayer_fg.outputs["Z"], vector_blur.inputs["Z"])
+        tree.links.new(rlayer_fg.outputs["Speed"], vector_blur.inputs["Speed"])
 
-        tree.links.new(mul_image.outputs['Image'], alphaover.inputs[1])
-        tree.links.new(vector_blur.outputs['Image'], alphaover.inputs[2])
+        tree.links.new(mul_image.outputs["Image"], alphaover.inputs[1])
+        tree.links.new(vector_blur.outputs["Image"], alphaover.inputs[2])
 
-        tree.links.new(alphaover.outputs['Image'], composite.inputs['Image'])
-        tree.links.new(alphaover.outputs['Image'], viewer.inputs['Image'])
+        tree.links.new(alphaover.outputs["Image"], composite.inputs["Image"])
+        tree.links.new(alphaover.outputs["Image"], viewer.inputs["Image"])
 
         # place nodes
         movieclip.location = Vector((-300.0, 350.0))

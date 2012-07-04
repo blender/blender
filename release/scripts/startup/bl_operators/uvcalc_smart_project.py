@@ -709,7 +709,7 @@ def packIslands(islandList):
     # with the islands.
 
     #print '\tPacking UV Islands...'
-#XXX	Window.DrawProgressBar(0.7, 'Packing %i UV Islands...' % len(packBoxes) )
+#XXX	Window.DrawProgressBar(0.7, "Packing %i UV Islands..." % len(packBoxes) )
 
     # time1 = time.time()
     packWidth, packHeight = geometry.box_pack_2d(packBoxes)
@@ -720,7 +720,7 @@ def packIslands(islandList):
     #	raise "Error packed boxes differs from original length"
 
     #print '\tWriting Packed Data to faces'
-#XXX	Window.DrawProgressBar(0.8, 'Writing Packed Data to faces')
+#XXX	Window.DrawProgressBar(0.8, "Writing Packed Data to faces")
 
     # Sort by ID, so there in sync again
     islandIdx = len(islandList)
