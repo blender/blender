@@ -968,8 +968,9 @@ void playanim(int argc, const char **argv)
 			if (ibuf) {
 				BLI_strncpy(ibuf->name, ps.picture->name, sizeof(ibuf->name));
 
+				/* why only windows? (from 2.4x) - campbell */
 #ifdef _WIN32
-				GHOST_SetTitle(g_window, picture->name);
+				GHOST_SetTitle(g_window, ps.picture->name);
 #endif
 
 				while (pupdate_time()) PIL_sleep_ms(1);
