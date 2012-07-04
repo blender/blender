@@ -2153,7 +2153,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 		}
 	}
 
-	/* note, we don't convert FGons at all, these are not even real ngons,
+	/* note, we don't convert NGons at all, these are not even real ngons,
 	 * they have their own UV's, colors etc - its more an editing feature. */
 
 	BLI_edgehash_free(eh, NULL);

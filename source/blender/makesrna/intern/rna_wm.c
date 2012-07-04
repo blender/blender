@@ -183,7 +183,7 @@ EnumPropertyItem event_type_items[] = {
 	{SELECTMOUSE, "SELECTMOUSE", 0, "Select Mouse", ""},
 	{0, "", 0, NULL, NULL},
 	{MOUSEMOVE, "MOUSEMOVE", 0, "Mouse Move", ""},
-	{INBETWEEN_MOUSEMOVE, "INBETWEEN_MOUSEMOVE", 0, "Inbetween Move", ""},
+	{INBETWEEN_MOUSEMOVE, "INBETWEEN_MOUSEMOVE", 0, "In-between Move", ""},
 	{MOUSEPAN, "TRACKPADPAN", 0, "Mouse/Trackpad Pan", ""},
 	{MOUSEZOOM, "TRACKPADZOOM", 0, "Mouse/Trackpad Zoom", ""},
 	{MOUSEROTATE, "MOUSEROTATE", 0, "Mouse/Trackpad Rotate", ""},

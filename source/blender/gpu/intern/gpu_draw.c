@@ -537,7 +537,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
 						ibuf->channels, IB_PROFILE_SRGB, ibuf->profile, 0,
 						ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-					/* clamp buffer colours to 1.0 to avoid artifacts due to glu for hdr images */
+					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
 					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
 					frect= srgb_frect + texwinsy*ibuf->x + texwinsx;
 				}
@@ -562,7 +562,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
 							ibuf->channels, IB_PROFILE_SRGB, ibuf->profile, 0,
 							ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-					/* clamp buffer colours to 1.0 to avoid artifacts due to glu for hdr images */
+					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
 					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
 				}
 				else

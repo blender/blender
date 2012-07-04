@@ -1449,7 +1449,8 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 		                      "Collision Sensor, detects static and dynamic objects but not the other "
 		                      "collision sensor objects"},
 		{OB_BODY_TYPE_NAVMESH, "NAVMESH", 0, "Navigation Mesh", "Navigation mesh"},
-		{OB_BODY_TYPE_CHARACTER, "CHARACTER", 0, "Character", "Simple kinematic physics appropiate for game characters"},
+		{OB_BODY_TYPE_CHARACTER, "CHARACTER", 0, "Character",
+		                         "Simple kinematic physics appropriate for game characters"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

@@ -22,7 +22,7 @@
 
 #include "COM_HueSaturationValueNode.h"
 
-#include "COM_ConvertColourToValueProg.h"
+#include "COM_ConvertColorToValueProg.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_ConvertRGBToHSVOperation.h"
 #include "COM_ConvertHSVToRGBOperation.h"
@@ -40,7 +40,7 @@ HueSaturationValueNode::HueSaturationValueNode(bNode *editorNode) : Node(editorN
 void HueSaturationValueNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *valueSocket = this->getInputSocket(0);
-	InputSocket *colourSocket = this->getInputSocket(1);
+	InputSocket *colorSocket = this->getInputSocket(1);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	bNode *editorsnode = getbNode();
 	NodeHueSat *storage = (NodeHueSat *)editorsnode->storage;
@@ -50,7 +50,7 @@ void HueSaturationValueNode::convertToOperations(ExecutionSystem *graph, Composi
 	ChangeHSVOperation *changeHSV = new ChangeHSVOperation();
 	MixBlendOperation *blend = new MixBlendOperation();
 
-	colourSocket->relinkConnections(rgbToHSV->getInputSocket(0), 0, graph);
+	colorSocket->relinkConnections(rgbToHSV->getInputSocket(0), 0, graph);
 	addLink(graph, rgbToHSV->getOutputSocket(), changeHSV->getInputSocket(0));
 	addLink(graph, changeHSV->getOutputSocket(), hsvToRGB->getInputSocket(0));
 	addLink(graph, hsvToRGB->getOutputSocket(), blend->getInputSocket(2));

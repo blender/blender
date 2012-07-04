@@ -9,9 +9,9 @@ diff -r 47dfdaff1dd5 include/carve/csg_triangulator.hpp
        }
  
        carve::mesh::MeshSet<3>::face_t *mergeQuad(edge_map_t::iterator i, edge_map_t &edge_map) {
-diff -r 47dfdaff1dd5 src/selfintersect.cpp
---- a/src/selfintersect.cpp	Thu Jan 12 15:49:04 2012 -0500
-+++ b/src/selfintersect.cpp	Fri Jan 13 03:13:32 2012 +0600
+diff -r 47dfdaff1dd5 lib/selfintersect.cpp
+--- a/lib/selfintersect.cpp	Thu Jan 12 15:49:04 2012 -0500
++++ b/lib/selfintersect.cpp	Fri Jan 13 03:13:32 2012 +0600
 @@ -465,6 +465,7 @@
  
  // returns true if no intersection, based upon edge^a_i and edge^b_j separating axis.

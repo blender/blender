@@ -94,11 +94,11 @@ Functions
    If filename starts with // the image will be saved relative to the current directory.
    If the filename contains # it will be replaced with the frame number.
    
-   The standalone player saves .png files. It does not support colour space conversion 
+   The standalone player saves .png files. It does not support color space conversion 
    or gamma correction.
    
    When run from Blender, makeScreenshot supports Iris, IrisZ, TGA, Raw TGA, PNG, HamX, and Jpeg.
-   Gamma, Colourspace conversion and Jpeg compression are taken from the Render settings panels.
+   Gamma, Colorspace conversion and Jpeg compression are taken from the Render settings panels.
    
    :type filename: string
 
@@ -125,14 +125,14 @@ Functions
 
 .. function:: setBackgroundColor(rgba)
 
-   Sets the window background colour.
+   Sets the window background color.
    
    :type rgba: list [r, g, b, a]
 
 
 .. function:: setMistColor(rgb)
 
-   Sets the mist colour.
+   Sets the mist color.
    
    :type rgb: list [r, g, b]
 
@@ -153,8 +153,8 @@ Functions
 
 .. function:: setMistEnd(end)
 
-   Sets the mist end value.  Objects further away from this will be coloured solid with
-   the colour set by setMistColor().
+   Sets the mist end value.  Objects further away from this will be colored solid with
+   the color set by setMistColor().
    
    :type end: float
 

@@ -3362,7 +3362,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmND
 	ui_get_but_vectorf(but, rgb);
 	rgb_to_hsv_compat_v(rgb, hsv);
 	
-	/* Convert current colour on hue/sat disc to circular coordinates phi, r */
+	/* Convert current color on hue/sat disc to circular coordinates phi, r */
 	phi = fmodf(hsv[0] + 0.25f, 1.0f) * -2.0f * (float)M_PI;
 	r = hsv[1];
 	/* sqr= r>0.f?sqrtf(r):1; */ /* UNUSED */
@@ -5009,7 +5009,7 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		ui_window_to_block(ar, block, &mx, &my);
 
 		for (but = block->buttons.first; but; but = but->next) {
-			/* note, LABEL is included for hilights, this allows drags */
+			/* note, LABEL is included for highlights, this allows drags */
 			if (but->type == LABEL && but->dragpoin == NULL)
 				continue;
 			if (ELEM3(but->type, ROUNDBOX, SEPR, LISTBOX))

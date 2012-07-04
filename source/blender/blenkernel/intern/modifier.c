@@ -331,6 +331,13 @@ int modifiers_isClothEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
+int modifiers_isModifierEnabled(Object *ob, int modifierType)
+{
+	ModifierData *md = modifiers_findByType(ob, modifierType);
+
+	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
+}
+
 int modifiers_isParticleEnabled(Object *ob)
 {
 	ModifierData *md = modifiers_findByType(ob, eModifierType_ParticleSystem);

@@ -1434,7 +1434,7 @@ static struct uiWidgetColors wcol_menu_back = {
 	25, -20
 };
 
-/* tooltip colour */
+/* tooltip color */
 static struct uiWidgetColors wcol_tooltip = {
 	{0, 0, 0, 255},
 	{25, 25, 25, 230},

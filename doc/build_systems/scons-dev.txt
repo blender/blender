@@ -37,7 +37,7 @@
     Much of the actual functionality can be found in the python scripts
     in the directory $BLENDERHOME/tools, with Blender.py defining the
     bulk of the functionality. btools.py has some helper functions, and
-    bcolors.py is for the terminal colours. mstoolkit.py and crossmingw.py
+    bcolors.py is for the terminal colors. mstoolkit.py and crossmingw.py
     are modules which set up SCons for the MS VC++ 2003 toolkit and
     the cross-compile toolset for compiling Windows binaries on Linux
     respectively. Note: the cross-compile doesn't work yet for Blender,

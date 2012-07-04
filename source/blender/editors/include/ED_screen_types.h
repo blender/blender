@@ -76,10 +76,10 @@ typedef struct ScreenFrameRateInfo {
 
 /* Enum for Action Zone Edges. Which edge of area is action zone. */
 typedef enum {
-	AE_RIGHT_TO_TOPLEFT,    /* Region located on the left, _right_ edge is action zone. Region minimised to the top left */
-	AE_LEFT_TO_TOPRIGHT,    /* Region located on the right, _left_ edge is action zone. Region minimised to the top right */
-	AE_TOP_TO_BOTTOMRIGHT,  /* Region located at the bottom, _top_ edge is action zone. Region minimised to the bottom right */
-	AE_BOTTOM_TO_TOPLEFT    /* Region located at the top, _bottom_edge is action zone. Region minimised to the top left */
+	AE_RIGHT_TO_TOPLEFT,    /* Region located on the left, _right_ edge is action zone. Region minimized to the top left */
+	AE_LEFT_TO_TOPRIGHT,    /* Region located on the right, _left_ edge is action zone. Region minimized to the top right */
+	AE_TOP_TO_BOTTOMRIGHT,  /* Region located at the bottom, _top_ edge is action zone. Region minimized to the bottom right */
+	AE_BOTTOM_TO_TOPLEFT    /* Region located at the top, _bottom_edge is action zone. Region minimized to the top left */
 } AZEdge;
 
 /* for editing areas/regions */

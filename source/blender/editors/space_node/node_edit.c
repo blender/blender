@@ -1643,7 +1643,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Background Image Zoom";
 	ot->idname = "NODE_OT_backimage_zoom";
-	ot->description = "Zoom in/out the brackground image";
+	ot->description = "Zoom in/out the background image";
 	
 	/* api callbacks */
 	ot->exec = backimage_zoom;

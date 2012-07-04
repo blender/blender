@@ -1391,7 +1391,7 @@ static void BKE_nlastrip_validate_autoblends(NlaTrack *nlt, NlaStrip *nls)
 		
 	/* set overlaps for this strip 
 	 *	- don't use the values obtained though if the end in question 
-	 *	  is directly followed/preceeded by another strip, forming an 
+	 *	  is directly followed/preceded by another strip, forming an 
 	 *	  'island' of continuous strips
 	 */
 	if ((ps || ns) && ((nls->prev == NULL) || IS_EQF(nls->prev->end, nls->start) == 0)) {

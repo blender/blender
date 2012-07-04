@@ -20,15 +20,15 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_RenderLayersColourProg_h
-#define _COM_RenderLayersColourProg_h
+#ifndef _COM_RenderLayersColorProg_h
+#define _COM_RenderLayersColorProg_h
 
 #include "COM_RenderLayersBaseProg.h"
 
 /// @TODO rename to image operation
-class RenderLayersColourProg : public RenderLayersBaseProg {
+class RenderLayersColorProg : public RenderLayersBaseProg {
 public:
-	RenderLayersColourProg();
+	RenderLayersColorProg();
 };
 
 #endif

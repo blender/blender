@@ -166,6 +166,7 @@ typedef struct bNode {
 	struct bNode *parent;	/* parent node */
 	struct ID *id;			/* optional link to libdata */
 	void *storage;			/* custom data, must be struct, for storage in file */
+	struct bNode *original;	/* the original node in the tree (for localized tree) */
 	
 	float locx, locy;		/* root offset for drawing */
 	float width, height;	/* node custom width and height */

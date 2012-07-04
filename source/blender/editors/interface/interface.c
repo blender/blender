@@ -498,7 +498,7 @@ static int ui_but_float_precision(uiBut *but, double value)
 	return prec;
 }
 
-static void ui_draw_linkline(uiLinkLine *line, int hilightActiveLines)
+static void ui_draw_linkline(uiLinkLine *line, int highlightActiveLines)
 {
 	rcti rect;
 
@@ -511,7 +511,7 @@ static void ui_draw_linkline(uiLinkLine *line, int hilightActiveLines)
 	
 	if (line->flag & UI_SELECT)
 		glColor3ub(100, 100, 100);
-	else if (hilightActiveLines && ((line->from->flag & UI_ACTIVE) || (line->to->flag & UI_ACTIVE)))
+	else if (highlightActiveLines && ((line->from->flag & UI_ACTIVE) || (line->to->flag & UI_ACTIVE)))
 		UI_ThemeColor(TH_TEXT_HI);
 	else 
 		glColor3ub(0, 0, 0);

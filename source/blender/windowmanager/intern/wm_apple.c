@@ -41,7 +41,7 @@
 #include <Carbon/Carbon.h>
 
 /* To avoid killing small end comps, we want to allow
- * blender to start maximised if all the followings are true :
+ * blender to start maximized if all the followings are true :
  * - Renderer is OpenGL capable
  * - Hardware acceleration
  * - VRAM > 16 Mo

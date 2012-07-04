@@ -19,7 +19,7 @@
 # <pep8-80 compliant>
 
 """
-Utility modules assosiated with the bpy module.
+Utility modules associated with the bpy module.
 """
 
 __all__ = (

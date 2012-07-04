@@ -2475,7 +2475,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_desktop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "playerflag", GAME_PLAYER_DESKTOP_RESOLUTION);
-	RNA_def_property_ui_text(prop, "Desktop", "Uses the current desktop resultion in fullscreen mode");
+	RNA_def_property_ui_text(prop, "Desktop", "Use the current desktop resolution in fullscreen mode");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* Framing */

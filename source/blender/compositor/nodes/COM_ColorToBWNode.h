@@ -20,18 +20,18 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ColourToBWNode_h_
-#define _COM_ColourToBWNode_h_
+#ifndef _COM_ColorToBWNode_h_
+#define _COM_ColorToBWNode_h_
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 /**
- * @brief ColourToBWNode
+ * @brief ColorToBWNode
  * @ingroup Node
  */
-class ColourToBWNode : public Node {
+class ColorToBWNode : public Node {
 public:
-	ColourToBWNode(bNode *editorNode);
+	ColorToBWNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 #endif
