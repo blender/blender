@@ -105,8 +105,6 @@ def CLIP_default_settings_from_track(clip, track):
     search[0] = search[0] * width
     search[1] = search[1] * height
 
-    settings.default_tracker = track.tracker
-    settings.default_pyramid_levels = track.pyramid_levels
     settings.default_correlation_min = track.correlation_min
     settings.default_pattern_size = max(pattern[0], pattern[1])
     settings.default_search_size = max(search[0], search[1])
