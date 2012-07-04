@@ -30,12 +30,12 @@ private:
 	/**
 	 * @brief Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
+	SocketReader *m_inputProgram;
 
 	/**
 	 * @brief settings of the glare node.
 	 */
-	NodeGlare *settings;
+	NodeGlare *m_settings;
 public:
 	GlareThresholdOperation();
 
@@ -55,7 +55,7 @@ public:
 	void deinitExecution();
 
 	void setGlareSettings(NodeGlare *settings) {
-		this->settings = settings;
+		this->m_settings = settings;
 	}
 	
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);

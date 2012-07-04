@@ -35,6 +35,7 @@ private:
 
 	void InitNonPow2Tex(unsigned int *p,int x,int y,bool mipmap );
 	void InitGLTex(unsigned int *p,int x,int y,bool mipmap );
+	void InitGLCompressedTex(struct ImBuf *p, bool mipmap);
 public:
 	BL_Texture();
 	~BL_Texture( );
@@ -74,9 +75,7 @@ public:
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_Texture"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:BL_Texture")
 #endif
 };
 

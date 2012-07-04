@@ -368,7 +368,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		if (win->eventstate == NULL)
 			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
 		
-		/* until screens get drawn, make it nice grey */
+		/* until screens get drawn, make it nice gray */
 		glClearColor(0.55, 0.55, 0.55, 0.0);
 		/* Crash on OSS ATI: bugs.launchpad.net/ubuntu/+source/mesa/+bug/656100 */
 		if (!GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {

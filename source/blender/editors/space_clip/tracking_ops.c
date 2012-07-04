@@ -81,8 +81,9 @@
 
 /********************** add marker operator *********************/
 
-static void add_marker(SpaceClip *sc, float x, float y)
+static void add_marker(const bContext *C, float x, float y)
 {
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
@@ -90,7 +91,7 @@ static void add_marker(SpaceClip *sc, float x, float y)
 	int width, height;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-	ED_space_clip_get_clip_size(sc, &width, &height);
+	ED_space_clip_get_size(C, &width, &height);
 
 	track = BKE_tracking_track_add(tracking, tracksbase, x, y, framenr, width, height);
 
@@ -106,14 +107,14 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 	float pos[2];
 	int width, height;
 
-	ED_space_clip_get_clip_size(sc, &width, &height);
+	ED_space_clip_get_size(C, &width, &height);
 
 	if (!width || !height)
 		return OPERATOR_CANCELLED;
 
 	RNA_float_get_array(op->ptr, "location", pos);
 
-	add_marker(sc, pos[0], pos[1]);
+	add_marker(C, pos[0], pos[1]);
 
 	/* reset offset from locked position, so frame jumping wouldn't be so confusing */
 	sc->xlockof = 0;
@@ -532,7 +533,7 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event, int
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	int action = -1, area = 0, corner = -1;
 
-	ED_space_clip_get_clip_size(sc, &width, &height);
+	ED_space_clip_get_size(C, &width, &height);
 
 	if (width == 0 || height == 0)
 		return NULL;
@@ -628,7 +629,7 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	int area, action, corner;
 
-	ED_space_clip_get_clip_size(sc, &width, &height);
+	ED_space_clip_get_size(C, &width, &height);
 
 	if (width == 0 || height == 0)
 		return NULL;
@@ -1585,14 +1586,15 @@ static int clear_track_path_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
+	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	int action = RNA_enum_get(op->ptr, "action");
 	int clear_active = RNA_boolean_get(op->ptr, "clear_active");
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	if (clear_active) {
-		track = BKE_tracking_track_get_active(&clip->tracking);
+		track = BKE_tracking_track_get_active(tracking);
 		BKE_tracking_track_path_clear(track, framenr, action);
 	}
 	else {
@@ -1605,6 +1607,7 @@ static int clear_track_path_exec(bContext *C, wmOperator *op)
 		}
 	}
 
+	BKE_tracking_dopesheet_tag_update(tracking);
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 
 	return OPERATOR_FINISHED;
@@ -2605,6 +2608,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 
 	IMB_freeImBuf(ibuf);
 
+	BKE_tracking_dopesheet_tag_update(tracking);
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -3328,7 +3332,7 @@ static int tracking_object_remove_exec(bContext *C, wmOperator *op)
 void CLIP_OT_tracking_object_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Movie Tracking Object";
+	ot->name = "Remove Tracking Object";
 	ot->description = "Remove object for tracking";
 	ot->idname = "CLIP_OT_tracking_object_remove";
 

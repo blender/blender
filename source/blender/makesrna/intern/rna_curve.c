@@ -24,7 +24,6 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -35,6 +34,8 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
+
+#include "BLI_utildefines.h"
 
 #include "BKE_font.h"
 
@@ -753,7 +754,7 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "radius");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for bevelling");
+	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for beveling");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	RNA_def_struct_path_func(srna, "rna_Curve_spline_point_path");
@@ -839,13 +840,13 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "radius");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for bevelling");
+	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for beveling");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	RNA_def_struct_path_func(srna, "rna_Curve_spline_point_path");
 }
 
-static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
+static void rna_def_path(BlenderRNA *UNUSED(brna), StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -894,7 +895,7 @@ static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
-static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna)
+static void rna_def_nurbs(BlenderRNA *UNUSED(brna), StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -905,7 +906,7 @@ static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
-static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
+static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
@@ -1002,7 +1003,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
 	RNA_def_property_ui_text(prop, "Object Font",
 	                         "Use Blender Objects as font characters (give font objects a common name "
-	                         "followed by the character they represent, eg. familya, familyb, etc, "
+	                         "followed by the character they represent, eg. family_a, family_b, etc, "
 	                         "and turn on Verts Duplication)");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
@@ -1187,7 +1188,7 @@ static void rna_def_curve_spline_points(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a spline from a curve");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 #endif
 }
 
@@ -1435,7 +1436,7 @@ static void rna_def_curve(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_fill_caps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FILL_CAPS);
-	RNA_def_property_ui_text(prop, "Fill Caps", "Fill caps for bevelled curves");
+	RNA_def_property_ui_text(prop, "Fill Caps", "Fill caps for beveled curves");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* texture space */
@@ -1639,7 +1640,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "hide", 1);
-	RNA_def_property_ui_text(prop, "Hide", "Hide this curve in editmode");
+	RNA_def_property_ui_text(prop, "Hide", "Hide this curve in Edit mode");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);

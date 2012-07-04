@@ -29,8 +29,8 @@
 
 class MultilayerBaseOperation : public BaseImageOperation {
 private:
-	int passId;
-	RenderLayer *renderlayer;
+	int m_passId;
+	RenderLayer *m_renderlayer;
 protected:
 	ImBuf *getImBuf();
 public:
@@ -38,7 +38,7 @@ public:
 	 * Constructor
 	 */
 	MultilayerBaseOperation(int pass);
-	void setRenderLayer(RenderLayer *renderlayer) { this->renderlayer = renderlayer; }
+	void setRenderLayer(RenderLayer *renderlayer) { this->m_renderlayer = renderlayer; }
 };
 
 class MultilayerColorOperation : public MultilayerBaseOperation {

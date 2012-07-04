@@ -40,30 +40,30 @@ SplitViewerOperation::SplitViewerOperation() : ViewerBaseOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);
-	this->image1Input = NULL;
-	this->image2Input = NULL;
+	this->m_image1Input = NULL;
+	this->m_image2Input = NULL;
 }
 
 void SplitViewerOperation::initExecution()
 {
 	// When initializing the tree during initial load the width and height can be zero.
-	this->image1Input = getInputSocketReader(0);
-	this->image2Input = getInputSocketReader(1);
+	this->m_image1Input = getInputSocketReader(0);
+	this->m_image2Input = getInputSocketReader(1);
 	ViewerBaseOperation::initExecution();
 }
 
 void SplitViewerOperation::deinitExecution()
 {
-	this->image1Input = NULL;
-	this->image2Input = NULL;
+	this->m_image1Input = NULL;
+	this->m_image2Input = NULL;
 	ViewerBaseOperation::deinitExecution();
 }
 
 
 void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
-	float *buffer = this->outputBuffer;
-	unsigned char *bufferDisplay = this->outputBufferDisplay;
+	float *buffer = this->m_outputBuffer;
+	unsigned char *bufferDisplay = this->m_outputBufferDisplay;
 	
 	if (!buffer) return;
 	int x1 = rect->xmin;
@@ -73,21 +73,21 @@ void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 	int offset = (y1 * this->getWidth() + x1) * 4;
 	int x;
 	int y;
-	int perc = xSplit ? this->splitPercentage *getWidth() / 100.0f : this->splitPercentage *getHeight() / 100.0f;
+	int perc = this->m_xSplit ? this->m_splitPercentage * this->getWidth() / 100.0f : this->m_splitPercentage * this->getHeight() / 100.0f;
 	for (y = y1; y < y2; y++) {
 		for (x = x1; x < x2; x++) {
 			bool image1;
 			float srgb[4];
-			image1 = xSplit ? x > perc : y > perc;
+			image1 = this->m_xSplit ? x > perc : y > perc;
 			if (image1) {
-				image1Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_image1Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
 			}
 			else {
-				image2Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_image2Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
 			}
 			/// @todo: linear conversion only when scene color management is selected, also check predivide.
-			if (this->doColorManagement) {
-				if (this->doColorPredivide) {
+			if (this->m_doColorManagement) {
+				if (this->m_doColorPredivide) {
 					linearrgb_to_srgb_predivide_v4(srgb, buffer + offset);
 				}
 				else {

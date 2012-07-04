@@ -63,6 +63,8 @@ void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext *
 	SetValueOperation *mixvalueoperation = new SetValueOperation();
 	MixGlareOperation *mixoperation = new MixGlareOperation();
 	mixoperation->getInputSocket(2)->setResizeMode(COM_SC_FIT);
+	thresholdOperation->setbNode(node);
+	glareoperation->setbNode(node);
 
 	this->getInputSocket(0)->relinkConnections(thresholdOperation->getInputSocket(0), 0, system);
 	addLink(system, thresholdOperation->getOutputSocket(), glareoperation->getInputSocket(0));

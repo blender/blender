@@ -119,7 +119,8 @@ enum {
 	G_DEBUG_FFMPEG =    (1 << 1),
 	G_DEBUG_PYTHON =    (1 << 2), /* extra python info */
 	G_DEBUG_EVENTS =    (1 << 3), /* input/window/screen events */
-	G_DEBUG_WM =        (1 << 4)  /* operator, undo */
+	G_DEBUG_WM =        (1 << 4), /* operator, undo */
+	G_DEBUG_JOBS =      (1 << 5)  /* jobs time profiling */
 };
 
 #define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM)

@@ -25,12 +25,12 @@
 
 
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class ConvertPremulToKeyOperation : public NodeOperation {
 private:
-	SocketReader *inputColor;
+	SocketReader *m_inputColor;
 public:
 	/**
 	 * Default constructor

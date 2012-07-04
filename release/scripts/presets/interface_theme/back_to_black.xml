@@ -2,7 +2,7 @@
   <Theme>
     <view_3d>
       <ThemeView3D object_active="#ff8c19"
-                   editmesh_active="#ffffff80"
+                   editmesh_active="#ff020080"
                    act_spline="#db2512"
                    handle_align="#803060"
                    handle_sel_align="#f090a0"
@@ -461,7 +461,7 @@
       <ThemeTextEditor cursor="#ff0000"
                        syntax_special="#969629"
                        line_numbers_background="#191919"
-                       selected_text="#ffffff"
+                       selected_text="#202020"
                        syntax_builtin="#cf3d99"
                        syntax_comment="#249d60"
                        syntax_numbers="#3c68ff"

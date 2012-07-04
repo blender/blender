@@ -319,7 +319,7 @@ void node_socket_copy_default_value(int type, void *to_default_value, void *from
  * In the interface this could be implemented by a pseudo-script textbox on linked inputs,
  * with quick selection from a predefined list of conversion options. Some Examples:
  * - vector component 'z' (vector->float):						"z"
- * - greyscale color (float->color):							"grey"
+ * - grayscale color (float->color):							"gray"
  * - color luminance (color->float):							"lum"
  * - matrix column 2 length (matrix->vector->float):			"col[1].len"
  * - mesh vertex coordinate 'y' (mesh->vertex->vector->float):	"vertex.co.y"

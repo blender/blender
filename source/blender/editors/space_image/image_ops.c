@@ -1926,6 +1926,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if (ibuf == NULL) {
 		ED_space_image_release_buffer(sima, lock);
+		info->draw = 0;
 		return;
 	}
 
@@ -2018,8 +2019,9 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		}
 #endif
 	}
-	else
+	else {
 		info->draw = 0;
+	}
 
 	ED_space_image_release_buffer(sima, lock);
 	ED_area_tag_redraw(CTX_wm_area(C));

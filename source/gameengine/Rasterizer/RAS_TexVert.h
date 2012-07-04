@@ -141,11 +141,10 @@ public:
 	// compare two vertices, to test if they can be shared, used for
 	// splitting up based on uv's, colors, etc
 	bool				closeTo(const RAS_TexVert* other);
-	
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_TexVert"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_TexVert")
 #endif
 };
 

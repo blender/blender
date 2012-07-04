@@ -47,23 +47,28 @@ private:
 	/**
 	 * @brief the list of actual inputsockets @see InputSocket
 	 */
-	vector<InputSocket *> inputsockets;
+	vector<InputSocket *> m_inputsockets;
 
 	/**
 	 * @brief the list of actual outputsockets @see OutputSocket
 	 */
-	vector<OutputSocket *> outputsockets;
+	vector<OutputSocket *> m_outputsockets;
+
+	/**
+	 * @brief stores the reference to the SDNA bNode struct
+	 */
+	bNode *m_editorNode;
 
 protected:
 	/**
 	 * @brief get access to the vector of input sockets
 	 */
-	inline vector<InputSocket *>& getInputSockets() { return this->inputsockets; }
+	inline vector<InputSocket *>& getInputSockets() { return this->m_inputsockets; }
 	
 	/**
 	 * @brief get access to the vector of input sockets
 	 */
-	inline vector<OutputSocket *>& getOutputSockets() { return this->outputsockets; }
+	inline vector<OutputSocket *>& getOutputSockets() { return this->m_outputsockets; }
 
 
 public:
@@ -72,6 +77,18 @@ public:
 	 * clean up memory related to this NodeBase.
 	 */
 	virtual ~NodeBase();
+	
+	/**
+	 * @brief get the reference to the SDNA bNode struct
+	 */
+	bNode *getbNode() {return m_editorNode;}
+	
+	/**
+	 * @brief set the reference to the bNode
+	 * @note used in Node instances to receive the storage/settings and complex node for highlight during execution
+	 * @param bNode
+	 */
+	void setbNode(bNode *bNode) {this->m_editorNode = bNode;}
 	
 	/**
 	 * @brief is this node an operation?
@@ -91,12 +108,12 @@ public:
 	/**
 	 * @brief Return the number of input sockets of this node.
 	 */
-	const unsigned int getNumberOfInputSockets() const { return this->inputsockets.size(); }
+	const unsigned int getNumberOfInputSockets() const { return this->m_inputsockets.size(); }
 
 	/**
 	 * @brief Return the number of output sockets of this node.
 	 */
-	const unsigned int getNumberOfOutputSockets() const { return this->outputsockets.size(); }
+	const unsigned int getNumberOfOutputSockets() const { return this->m_outputsockets.size(); }
 
 	/**
 	 * get the reference to a certain outputsocket
@@ -141,6 +158,11 @@ protected:
 	 */
 	void addOutputSocket(DataType datatype);
 	void addOutputSocket(DataType datatype, bNodeSocket *socket);
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeBase")
+#endif
 };
 
 #endif

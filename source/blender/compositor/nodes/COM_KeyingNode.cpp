@@ -34,12 +34,14 @@
 #include "COM_CombineChannelsOperation.h"
 #include "COM_ConvertRGBToYCCOperation.h"
 #include "COM_ConvertYCCToRGBOperation.h"
-#include "COM_GaussianBokehBlurOperation.h"
 #include "COM_SetValueOperation.h"
 
 #include "COM_DilateErodeOperation.h"
 
 #include "COM_SetAlphaOperation.h"
+
+#include "COM_GaussianAlphaXBlurOperation.h"
+#include "COM_GaussianAlphaYBlurOperation.h"
 
 KeyingNode::KeyingNode(bNode *editorNode) : Node(editorNode)
 {
@@ -67,13 +69,23 @@ OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inpu
 			addLink(graph, separateOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
 		}
 		else {
-			KeyingBlurOperation *blurOperation = new KeyingBlurOperation();
+			KeyingBlurOperation *blurXOperation = new KeyingBlurOperation();
+			KeyingBlurOperation *blurYOperation = new KeyingBlurOperation();
 
-			blurOperation->setSize(size);
+			blurXOperation->setSize(size);
+			blurXOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_X);
+			blurXOperation->setbNode(this->getbNode());
 
-			addLink(graph, separateOperation->getOutputSocket(0), blurOperation->getInputSocket(0));
-			addLink(graph, blurOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
-			graph->addOperation(blurOperation);
+			blurYOperation->setSize(size);
+			blurYOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_Y);
+			blurYOperation->setbNode(this->getbNode());
+
+			addLink(graph, separateOperation->getOutputSocket(), blurXOperation->getInputSocket(0));
+			addLink(graph, blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
+			addLink(graph, blurYOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
+
+			graph->addOperation(blurXOperation);
+			graph->addOperation(blurYOperation);
 		}
 	}
 
@@ -87,37 +99,89 @@ OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inpu
 	return convertYCCToRGBOperation->getOutputSocket(0);
 }
 
-OutputSocket *KeyingNode::setupPostBlur(ExecutionSystem *graph, OutputSocket *postBLurInput, int size)
+OutputSocket *KeyingNode::setupPostBlur(ExecutionSystem *graph, OutputSocket *postBlurInput, int size)
 {
-	KeyingBlurOperation *blurOperation = new KeyingBlurOperation();
+	KeyingBlurOperation *blurXOperation = new KeyingBlurOperation();
+	KeyingBlurOperation *blurYOperation = new KeyingBlurOperation();
 
-	blurOperation->setSize(size);
+	blurXOperation->setSize(size);
+	blurXOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_X);
+	blurXOperation->setbNode(this->getbNode());
 
-	addLink(graph, postBLurInput, blurOperation->getInputSocket(0));
+	blurYOperation->setSize(size);
+	blurYOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_Y);
+	blurYOperation->setbNode(this->getbNode());
 
-	graph->addOperation(blurOperation);
+	addLink(graph, postBlurInput, blurXOperation->getInputSocket(0));
+	addLink(graph, blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
 
-	return blurOperation->getOutputSocket();
+	graph->addOperation(blurXOperation);
+	graph->addOperation(blurYOperation);
+
+	return blurYOperation->getOutputSocket();
 }
 
 OutputSocket *KeyingNode::setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance)
 {
-	DilateStepOperation *dilateErodeOperation;
+	DilateDistanceOperation *dilateErodeOperation;
 
 	if (distance > 0) {
-		dilateErodeOperation = new DilateStepOperation();
-		dilateErodeOperation->setIterations(distance);
+		dilateErodeOperation = new DilateDistanceOperation();
+		dilateErodeOperation->setDistance(distance);
 	}
 	else {
-		dilateErodeOperation = new ErodeStepOperation();
-		dilateErodeOperation->setIterations(-distance);
+		dilateErodeOperation = new ErodeDistanceOperation();
+		dilateErodeOperation->setDistance(-distance);
 	}
+	dilateErodeOperation->setbNode(this->getbNode());
 
 	addLink(graph, dilateErodeInput, dilateErodeOperation->getInputSocket(0));
 
 	graph->addOperation(dilateErodeOperation);
 
 	return dilateErodeOperation->getOutputSocket(0);
+}
+
+OutputSocket *KeyingNode::setupFeather(ExecutionSystem *graph, CompositorContext *context,
+                                       OutputSocket *featherInput, int falloff, int distance)
+{
+	/* this uses a modified gaussian blur function otherwise its far too slow */
+	CompositorQuality quality = context->getQuality();
+
+	/* initialize node data */
+	NodeBlurData *data = (NodeBlurData *)&this->m_alpha_blur;
+	memset(data, 0, sizeof(*data));
+	data->filtertype = R_FILTER_GAUSS;
+
+	if (distance > 0) {
+		data->sizex = data->sizey = distance;
+	}
+	else {
+		data->sizex = data->sizey = -distance;
+	}
+
+	GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
+	operationx->setData(data);
+	operationx->setQuality(quality);
+	operationx->setSize(1.0f);
+	operationx->setSubtract(distance < 0);
+	operationx->setFalloff(falloff);
+	operationx->setbNode(this->getbNode());
+	graph->addOperation(operationx);
+	
+	GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
+	operationy->setData(data);
+	operationy->setQuality(quality);
+	operationy->setSize(1.0f);
+	operationy->setSubtract(distance < 0);
+	operationy->setFalloff(falloff);
+	operationy->setbNode(this->getbNode());
+	graph->addOperation(operationy);
+
+	addLink(graph, featherInput, operationx->getInputSocket(0));
+	addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
+
+	return operationy->getOutputSocket();
 }
 
 OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputScreen, float factor)
@@ -162,7 +226,7 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	OutputSocket *outputImage = this->getOutputSocket(0);
 	OutputSocket *outputMatte = this->getOutputSocket(1);
 	OutputSocket *outputEdges = this->getOutputSocket(2);
-	OutputSocket *postprocessedMatte, *postprocessedImage, *originalImage, *edgesMatte;
+	OutputSocket *postprocessedMatte = NULL, *postprocessedImage = NULL, *originalImage = NULL, *edgesMatte = NULL;
 
 	bNode *editorNode = this->getbNode();
 	NodeKeyingData *keying_data = (NodeKeyingData *) editorNode->storage;
@@ -196,9 +260,11 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 		                               keying_data->clip_black, keying_data->clip_white, false);
 	}
 
-	edgesMatte = setupClip(graph, postprocessedMatte,
-	                       keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
-	                       keying_data->clip_black, keying_data->clip_white, true);
+	if (outputEdges->isConnected()) {
+		edgesMatte = setupClip(graph, postprocessedMatte,
+		                       keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
+		                       keying_data->clip_black, keying_data->clip_white, true);
+	}
 
 	/* apply blur on matte if needed */
 	if (keying_data->blur_post)
@@ -207,6 +273,12 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	/* matte dilate/erode */
 	if (keying_data->dilate_distance != 0) {
 		postprocessedMatte = setupDilateErode(graph, postprocessedMatte, keying_data->dilate_distance);
+	}
+
+	/* matte feather */
+	if (keying_data->feather_distance != 0) {
+		postprocessedMatte = setupFeather(graph, context, postprocessedMatte, keying_data->feather_falloff,
+		                                  keying_data->feather_distance);
 	}
 
 	/* set alpha channel to output image */
@@ -226,7 +298,9 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	/* connect result to output sockets */
 	outputImage->relinkConnections(postprocessedImage);
 	outputMatte->relinkConnections(postprocessedMatte);
-	outputEdges->relinkConnections(edgesMatte);
+
+	if (edgesMatte)
+		outputEdges->relinkConnections(edgesMatte);
 
 	graph->addOperation(alphaOperation);
 }

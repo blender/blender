@@ -158,6 +158,7 @@ public:
 	bool hasAlpha() const;
 	
 	uint mipmapCount() const;
+	uint fourCC() const;
 	uint width() const;
 	uint height() const;
 	uint depth() const;
@@ -171,6 +172,7 @@ public:
         void setUserVersion(int version);
 	
 	void mipmap(Image * img, uint f, uint m);
+	void* readData(uint &size);
 	//	void mipmap(FloatImage * img, uint f, uint m);
 	
 	void printInfo() const;

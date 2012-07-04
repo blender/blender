@@ -122,7 +122,7 @@ typedef struct Object {
 	
 	struct bGPdata *gpd;	/* Grease Pencil data */
 	
-	bAnimVizSettings avs;	/* settings for visualisation of object-transform animation */
+	bAnimVizSettings avs;	/* settings for visualization of object-transform animation */
 	bMotionPath *mpath;		/* motion path cache for this object */
 	
 	ListBase constraintChannels  DNA_DEPRECATED; // XXX depreceated... old animation system
@@ -258,6 +258,7 @@ typedef struct Object {
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
 
 	struct DerivedMesh *derivedDeform, *derivedFinal;
+	int *pad;
 	uint64_t lastDataMask;   /* the custom data layer mask that was last used to calculate derivedDeform and derivedFinal */
 	uint64_t customdata_mask; /* (extra) custom data layer mask to use for creating derivedmesh, set by depsgraph */
 	unsigned int state;			/* bit masks of game controllers that are active */
@@ -336,7 +337,7 @@ typedef struct DupliObject {
 
 /* check if the object type supports materials */
 #define OB_TYPE_SUPPORT_MATERIAL(_type) \
-	((_type)  >= OB_MESH && (_type) <= OB_MBALL)
+	((_type) >= OB_MESH && (_type) <= OB_MBALL)
 #define OB_TYPE_SUPPORT_VGROUP(_type) \
 	(ELEM(_type, OB_MESH, OB_LATTICE))
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \

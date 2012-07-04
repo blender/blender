@@ -51,6 +51,13 @@
 #  define __func__ __FUNCTION__
 #endif
 
+/* copied from BKE_utildefines.h ugh */
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) x
+#endif
+
 /* Replace if different */
 #define TMP_EXT ".tmp"
 
@@ -310,7 +317,7 @@ static void rna_print_data_get(FILE *f, PropertyDefRNA *dp)
 		fprintf(f, "	%s *data= (%s*)(ptr->data);\n", dp->dnastructname, dp->dnastructname);
 }
 
-static void rna_print_id_get(FILE *f, PropertyDefRNA *dp)
+static void rna_print_id_get(FILE *f, PropertyDefRNA *UNUSED(dp))
 {
 	fprintf(f, "	ID *id= ptr->id.data;\n");
 }
@@ -1179,7 +1186,7 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 	return func;
 }
 
-static char *rna_def_property_next_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *dp,
+static char *rna_def_property_next_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *UNUSED(dp),
                                         const char *manualfunc)
 {
 	char *func, *getfunc;
@@ -1206,7 +1213,7 @@ static char *rna_def_property_next_func(FILE *f, StructRNA *srna, PropertyRNA *p
 	return func;
 }
 
-static char *rna_def_property_end_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *dp,
+static char *rna_def_property_end_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *UNUSED(dp),
                                        const char *manualfunc)
 {
 	char *func;
@@ -2006,7 +2013,7 @@ static void rna_generate_blender(BlenderRNA *brna, FILE *f)
 	fprintf(f, "};\n\n");
 }
 
-static void rna_generate_property_prototypes(BlenderRNA *brna, StructRNA *srna, FILE *f)
+static void rna_generate_property_prototypes(BlenderRNA *UNUSED(brna), StructRNA *srna, FILE *f)
 {
 	PropertyRNA *prop;
 	StructRNA *base;
@@ -2029,7 +2036,7 @@ static void rna_generate_property_prototypes(BlenderRNA *brna, StructRNA *srna, 
 	fprintf(f, "\n");
 }
 
-static void rna_generate_parameter_prototypes(BlenderRNA *brna, StructRNA *srna, FunctionRNA *func, FILE *f)
+static void rna_generate_parameter_prototypes(BlenderRNA *UNUSED(brna), StructRNA *srna, FunctionRNA *func, FILE *f)
 {
 	PropertyRNA *parm;
 
@@ -2068,7 +2075,7 @@ static void rna_generate_function_prototypes(BlenderRNA *brna, StructRNA *srna, 
 		fprintf(f, "\n");
 }
 
-static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA *srna, FunctionDefRNA *dfunc, FILE *f)
+static void rna_generate_static_parameter_prototypes(BlenderRNA *UNUSED(brna), StructRNA *srna, FunctionDefRNA *dfunc, FILE *f)
 {
 	FunctionRNA *func;
 	PropertyDefRNA *dparm;
@@ -2483,7 +2490,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	}
 }
 
-static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
+static void rna_generate_struct(BlenderRNA *UNUSED(brna), StructRNA *srna, FILE *f)
 {
 	FunctionRNA *func;
 	FunctionDefRNA *dfunc;
@@ -2761,7 +2768,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 	}
 }
 
-static void rna_generate_header(BlenderRNA *brna, FILE *f)
+static void rna_generate_header(BlenderRNA *UNUSED(brna), FILE *f)
 {
 	StructDefRNA *ds;
 	PropertyDefRNA *dp;
@@ -2929,7 +2936,7 @@ static const char *cpp_classes = ""
 "};\n"
 "\n";
 
-static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
+static void rna_generate_header_cpp(BlenderRNA *UNUSED(brna), FILE *f)
 {
 	StructDefRNA *ds;
 	PropertyDefRNA *dp;

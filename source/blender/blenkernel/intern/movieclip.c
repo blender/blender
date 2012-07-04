@@ -1067,6 +1067,9 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 			int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
 			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
+			scopes->marker = marker;
+			scopes->track = track;
+
 			if (marker->flag & MARKER_DISABLED) {
 				scopes->track_disabled = TRUE;
 			}
@@ -1074,8 +1077,6 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, user);
 
 				scopes->track_disabled = FALSE;
-				scopes->marker = marker;
-				scopes->track = track;
 
 				if (ibuf && (ibuf->rect || ibuf->rect_float)) {
 					ImBuf *search_ibuf;
@@ -1270,12 +1271,12 @@ void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
 	clip->id.us = 0;
 }
 
-int BKE_movieclip_remap_scene_to_clip_frame(MovieClip *clip, int framenr)
+float BKE_movieclip_remap_scene_to_clip_frame(MovieClip *clip, float framenr)
 {
-	return framenr - clip->start_frame + 1;
+	return framenr - (float) clip->start_frame + 1.0f;
 }
 
-int BKE_movieclip_remap_clip_to_scene_frame(MovieClip *clip, int framenr)
+float BKE_movieclip_remap_clip_to_scene_frame(MovieClip *clip, float framenr)
 {
-	return framenr + clip->start_frame - 1;
+	return framenr + (float) clip->start_frame - 1.0f;
 }

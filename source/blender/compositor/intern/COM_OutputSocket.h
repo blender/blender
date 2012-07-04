@@ -42,7 +42,7 @@ class WriteBufferOperation;
  */
 class OutputSocket : public Socket {
 private:
-	vector<SocketConnection *> connections;
+	vector<SocketConnection *> m_connections;
 		
 	void removeFirstConnection();
 public:
@@ -50,7 +50,7 @@ public:
 	OutputSocket(DataType datatype, int inputSocketDataTypeDeterminatorIndex);
 	OutputSocket(OutputSocket *from);
 	void addConnection(SocketConnection *connection);
-	SocketConnection *getConnection(unsigned int index) { return this->connections[index]; }
+	SocketConnection *getConnection(unsigned int index) { return this->m_connections[index]; }
 	const int isConnected() const;
 	int isOutputSocket() const;
 	
@@ -66,7 +66,7 @@ public:
 	 */
 	void relinkConnections(OutputSocket *relinkToSocket) { this->relinkConnections(relinkToSocket, false); };
 	void relinkConnections(OutputSocket *relinkToSocket, bool single);
-	const int getNumberOfConnections() { return connections.size(); }
+	const int getNumberOfConnections() { return this->m_connections.size(); }
 	
 	void clearConnections();
 	

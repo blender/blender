@@ -636,7 +636,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "default_margin");
 	RNA_def_property_range(prop, 0, 300);
-	RNA_def_property_ui_text(prop, "Margin", "Default distance from image boudary at which marker stops tracking");
+	RNA_def_property_ui_text(prop, "Margin", "Default distance from image boundary at which marker stops tracking");
 
 	/* default_tracking_motion_model */
 	prop = RNA_def_property(srna, "default_motion_model", PROP_ENUM, PROP_NONE);
@@ -952,7 +952,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "margin");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0, 300);
-	RNA_def_property_ui_text(prop, "Margin", "Distance from image boudary at which marker stops tracking");
+	RNA_def_property_ui_text(prop, "Margin", "Distance from image boundary at which marker stops tracking");
 
 	/* tracking motion model */
 	prop = RNA_def_property(srna, "motion_model", PROP_ENUM, PROP_NONE);

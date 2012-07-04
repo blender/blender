@@ -89,7 +89,16 @@ void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen);
 void BLI_split_file_part(const char *string, char *file, const size_t filelen);
 void BLI_join_dirfile(char *string, const size_t maxlen, const char *dir, const char *file);
 char *BLI_path_basename(char *path);
-int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir);
+
+typedef enum bli_rebase_state {
+	BLI_REBASE_NO_SRCDIR = 0,
+	BLI_REBASE_OK        = 1,
+	BLI_REBASE_IDENTITY  = 2
+} bli_rebase_state;
+
+int BLI_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir);
+#define BKE_rebase_path BLI_rebase_path /* remove after a 2012 */
+
 char *BLI_last_slash(const char *string);
 int   BLI_add_slash(char *string);
 void  BLI_del_slash(char *string);

@@ -39,9 +39,9 @@
 //#include <stdio.h>
 #include "COM_defines.h"
 
-Node::Node(bNode *editorNode, bool create_sockets)
+Node::Node(bNode *editorNode, bool create_sockets): NodeBase()
 {
-	this->editorNode = editorNode;
+	setbNode(editorNode);
 	
 	if (create_sockets) {
 		bNodeSocket *input = (bNodeSocket *)editorNode->inputs.first;
@@ -64,15 +64,6 @@ Node::Node(bNode *editorNode, bool create_sockets)
 		}
 	}
 }
-Node::Node()
-{
-	this->editorNode = NULL;
-}
-
-bNode *Node::getbNode()
-{
-	return this->editorNode;
-}
 
 void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex)
 {
@@ -87,11 +78,15 @@ void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket
 void Node::addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket)
 {
 	if (this->isInActiveGroup()) {
-		PreviewOperation *operation = new PreviewOperation();
-		system->addOperation(operation);
-		operation->setbNode(this->getbNode());
-		operation->setbNodeTree(system->getContext().getbNodeTree());
-		this->addLink(system, outputSocket, operation->getInputSocket(0));
+		if (!(this->getbNode()->flag & NODE_HIDDEN)) { // do not calculate previews of hidden nodes.
+			if (this->getbNode()->flag & NODE_PREVIEW) {
+				PreviewOperation *operation = new PreviewOperation();
+				system->addOperation(operation);
+				operation->setbNode(this->getbNode());
+				operation->setbNodeTree(system->getContext().getbNodeTree());
+				this->addLink(system, outputSocket, operation->getInputSocket(0));
+			}
+		}
 	}
 }
 

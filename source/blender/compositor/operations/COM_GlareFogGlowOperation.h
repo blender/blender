@@ -28,8 +28,7 @@
 
 class GlareFogGlowOperation : public GlareBaseOperation {
 public:
-	GlareFogGlowOperation() : GlareBaseOperation() {
-	}
+	GlareFogGlowOperation() : GlareBaseOperation() {}
 protected:
 	void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings);
 };

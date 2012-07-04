@@ -57,7 +57,7 @@
  * lets you count the allocations so as to find the allocator of unfreed memory
  * in situations where the leak is predictable */
 
-// #define DEBUG_MEMCOUNTER
+//#define DEBUG_MEMCOUNTER
 
 #ifdef DEBUG_MEMCOUNTER
    /* set this to the value that isn't being freed */

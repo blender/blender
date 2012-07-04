@@ -1548,12 +1548,12 @@ void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "BlendDataMasks");
-	srna= RNA_def_struct(brna, "BlendDataMasks", NULL);
+	srna = RNA_def_struct(brna, "BlendDataMasks", NULL);
 	RNA_def_struct_sdna(srna, "Main");
 	RNA_def_struct_ui_text(srna, "Main Masks", "Collection of masks");
 
-	func= RNA_def_function(srna, "tag", "rna_Main_masks_tag");
-	parm= RNA_def_boolean(func, "value", 0, "Value", "");
+	func = RNA_def_function(srna, "tag", "rna_Main_masks_tag");
+	parm = RNA_def_boolean(func, "value", 0, "Value", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* new func */
@@ -1565,10 +1565,10 @@ void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_return(func, parm);
 
 	/* remove func */
-	func= RNA_def_function(srna, "remove", "rna_Main_masks_remove");
+	func = RNA_def_function(srna, "remove", "rna_Main_masks_remove");
 	RNA_def_function_ui_description(func, "Remove a masks from the current blendfile.");
-	parm= RNA_def_pointer(func, "mask", "Mask", "", "Mask to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	parm = RNA_def_pointer(func, "mask", "Mask", "", "Mask to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 }
 
 #endif

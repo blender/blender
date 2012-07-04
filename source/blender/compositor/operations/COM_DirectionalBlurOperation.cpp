@@ -33,20 +33,20 @@ DirectionalBlurOperation::DirectionalBlurOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
 
-	this->inputProgram = NULL;
+	this->m_inputProgram = NULL;
 }
 
 void DirectionalBlurOperation::initExecution()
 {
-	this->inputProgram = getInputSocketReader(0);
+	this->m_inputProgram = getInputSocketReader(0);
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
-	const float angle = this->data->angle;
-	const float zoom = this->data->zoom;
-	const float spin = this->data->spin;
-	const float iterations = this->data->iter;
-	const float distance = this->data->distance;
-	const float center_x = this->data->center_x;
-	const float center_y = this->data->center_y;
+	const float angle = this->m_data->angle;
+	const float zoom = this->m_data->zoom;
+	const float spin = this->m_data->spin;
+	const float iterations = this->m_data->iter;
+	const float distance = this->m_data->distance;
+	const float center_x = this->m_data->center_x;
+	const float center_y = this->m_data->center_y;
 	const float width = getWidth();
 	const float height = getHeight();
 
@@ -55,43 +55,46 @@ void DirectionalBlurOperation::initExecution()
 	float D;
 
 	D = distance * sqrtf(width * width + height * height);
-	center_x_pix = center_x * width;
-	center_y_pix = center_y * height;
+	this->m_center_x_pix = center_x * width;
+	this->m_center_y_pix = center_y * height;
 
-	tx  =  itsc * D * cosf(a);
-	ty  = -itsc *D *sinf(a);
-	sc  =  itsc * zoom;
-	rot =  itsc * spin;
+	this->m_tx  =  itsc * D * cosf(a);
+	this->m_ty  = -itsc *D *sinf(a);
+	this->m_sc  =  itsc * zoom;
+	this->m_rot =  itsc * spin;
 
 }
 
 void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	const int iterations = pow(2.f, this->data->iter);
+	const int iterations = pow(2.0f, this->m_data->iter);
 	float col[4] = {0, 0, 0, 0};
 	float col2[4] = {0, 0, 0, 0};
-	this->inputProgram->read(col2, x, y, COM_PS_NEAREST, inputBuffers);
-	float ltx = tx;
-	float lty = ty;
-	float lsc = sc;
-	float lrot = rot;
+	this->m_inputProgram->read(col2, x, y, COM_PS_NEAREST, inputBuffers);
+	float ltx = this->m_tx;
+	float lty = this->m_ty;
+	float lsc = this->m_sc;
+	float lrot = this->m_rot;
 	/* blur the image */
 	for (int i = 0; i < iterations; ++i) {
 		const float cs = cos(lrot), ss = sin(lrot);
-		const float isc = 1.f / (1.f + lsc);
+		const float isc = 1.0f / (1.0f + lsc);
 
-		const float v = isc * (y - center_y_pix) + lty;
-		const float u = isc * (x - center_x_pix) + ltx;
+		const float v = isc * (y - this->m_center_y_pix) + lty;
+		const float u = isc * (x - this->m_center_x_pix) + ltx;
 
-		this->inputProgram->read(col, cs * u + ss * v + center_x_pix, cs * v - ss * u + center_y_pix, COM_PS_NEAREST, inputBuffers);
+		this->m_inputProgram->read(col,
+		                           cs * u + ss * v + this->m_center_x_pix,
+		                           cs * v - ss * u + this->m_center_y_pix,
+		                           COM_PS_NEAREST, inputBuffers);
 
 		add_v4_v4(col2, col);
 
 		/* double transformations */
-		ltx += tx;
-		lty += ty;
-		lrot += rot;
-		lsc += sc;
+		ltx += this->m_tx;
+		lty += this->m_ty;
+		lrot += this->m_rot;
+		lsc += this->m_sc;
 	}
 
 	mul_v4_v4fl(color, col2, 1.0f / iterations);
@@ -99,7 +102,7 @@ void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBu
 
 void DirectionalBlurOperation::deinitExecution()
 {
-	this->inputProgram = NULL;
+	this->m_inputProgram = NULL;
 }
 
 bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

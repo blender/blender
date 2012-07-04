@@ -276,7 +276,7 @@ static void draw_fcurve_vertices(SpaceIpo *sipo, ARegion *ar, FCurve *fcu, short
 	View2D *v2d = &ar->v2d;
 	
 	/* only draw points if curve is visible 
-	 *  - draw unselected points before selected points as separate passes to minimise color-changing overhead
+	 *  - draw unselected points before selected points as separate passes to minimize color-changing overhead
 	 *	   (XXX dunno if this is faster than drawing all in one pass though) 
 	 *     and also to make sure in the case of overlapping points that the selected is always visible
 	 *	- draw handles before keyframes, so that keyframes will overlap handles (keyframes are more important for users)
@@ -851,7 +851,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				setlinestyle(2);
 			}
 			if ( ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED) ) {
-				/* muted curves are drawn in a greyish hue */
+				/* muted curves are drawn in a grayish hue */
 				// XXX should we have some variations?
 				UI_ThemeColorShade(TH_HEADER, 50);
 			}

@@ -120,13 +120,13 @@ class BONE_PT_transform_locks(BoneButtonsPanel, Panel):
         pchan = ob.pose.bones[bone.name]
 
         split = layout.split(percentage=0.1)
-        
+
         col = split.column(align=True)
         col.label(text="")
         col.label(text="X:")
         col.label(text="Y:")
         col.label(text="Z:")
-        
+
         col = split.row()
         sub = col.row()
         sub.active = not (bone.parent and bone.use_connect)
@@ -137,7 +137,7 @@ class BONE_PT_transform_locks(BoneButtonsPanel, Panel):
         if pchan.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
             row = layout.row()
             row.prop(pchan, "lock_rotations_4d", text="Lock Rotation")
-            
+
             sub = row.row()
             sub.active = pchan.lock_rotations_4d
             sub.prop(pchan, "lock_rotation_w", text="W")

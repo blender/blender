@@ -133,7 +133,7 @@ static void draw_uvs_shadow(Object *obedit)
 	BMIter iter, liter;
 	MLoopUV *luv;
 
-	/* draws the grey mesh when painting */
+	/* draws the gray mesh when painting */
 	glColor3ub(112, 112, 112);
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -467,7 +467,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	
 	/* draw other uvs */
 	if (sima->flag & SI_DRAW_OTHER) {
-		Image *curimage = (activetf) ? activetf->tpage : NULL;
+		Image *curimage = (activetf) ? activetf->tpage : ima;
 
 		draw_uvs_other(scene, obedit, curimage);
 	}

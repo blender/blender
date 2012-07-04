@@ -20,18 +20,18 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_AlphaOverMixedOperation_h
-#define _COM_AlphaOverMixedOperation_h
+#ifndef _COM_AlphaOverMixedOperation_h_
+#define _COM_AlphaOverMixedOperation_h_
 #include "COM_MixBaseOperation.h"
 
 
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class AlphaOverMixedOperation : public MixBaseOperation {
 private:
-	float x;
+	float m_x;
 public:
 	/**
 	 * Default constructor
@@ -43,6 +43,6 @@ public:
 	 */
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
-	void setX(float x) { this->x = x; }
+	void setX(float x) { this->m_x = x; }
 };
 #endif

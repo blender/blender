@@ -1199,8 +1199,6 @@ void load_editNurb(Object *obedit)
 
 	if (obedit == NULL) return;
 
-	set_actNurb(obedit, NULL);
-
 	if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = obedit->data;
 		Nurb *nu, *newnu;
@@ -1222,8 +1220,6 @@ void load_editNurb(Object *obedit)
 
 		BKE_nurbList_free(&oldnurb);
 	}
-
-	set_actNurb(obedit, NULL);
 }
 
 /* make copy in cu->editnurb */
@@ -1233,7 +1229,6 @@ void make_editNurb(Object *obedit)
 	EditNurb *editnurb = cu->editnurb;
 	Nurb *nu, *newnu, *nu_act = NULL;
 	KeyBlock *actkey;
-
 
 	set_actNurb(obedit, NULL);
 
@@ -2373,7 +2368,7 @@ void CURVE_OT_smooth_radius(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Smooth Curve Radius";
-	ot->description = "Flatten radiuses of selected points";
+	ot->description = "Flatten radii of selected points";
 	ot->idname = "CURVE_OT_smooth_radius";
 	
 	/* api clastbacks */
@@ -3937,8 +3932,8 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	ListBase *nubase = object_editcurve_get(obedit);
 	Nurb *nu, *nu1 = NULL, *nu2 = NULL;
 	BPoint *bp;
-	float *fp, offset;
-	int a, ok = 0;
+	int ok = 0;
+	/* int a; */ /* UNUSED */
 
 	/* first decide if this is a surface merge! */
 	if (obedit->type == OB_SURF) nu = nubase->first;
@@ -4046,32 +4041,19 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				MEM_freeN(nu1->bp);
 				nu1->bp = bp;
 
-				a = nu1->pntsu + nu1->orderu;
+				/* a = nu1->pntsu + nu1->orderu; */ /* UNUSED */
 
 				nu1->pntsu += nu2->pntsu;
 				BLI_remlink(nubase, nu2);
 
 				/* now join the knots */
 				if (nu1->type == CU_NURBS) {
-					if (nu1->knotsu == NULL) {
-						BKE_nurb_knot_calc_u(nu1);
-					}
-					else {
-						fp = MEM_mallocN(sizeof(float) * KNOTSU(nu1), "addsegment3");
-						memcpy(fp, nu1->knotsu, sizeof(float) * a);
+					if (nu1->knotsu != NULL) {
 						MEM_freeN(nu1->knotsu);
-						nu1->knotsu = fp;
-						
-						
-						offset = nu1->knotsu[a - 1] + 1.0f;
-						fp = nu1->knotsu + a;
-						for (a = 0; a < nu2->pntsu; a++, fp++) {
-							if (nu2->knotsu) 
-								*fp = offset + nu2->knotsu[a + 1];
-							else 
-								*fp = offset;
-						}
+						nu1->knotsu = NULL;
 					}
+
+					BKE_nurb_knot_calc_u(nu1);
 				}
 				BKE_nurb_free(nu2); nu2 = NULL;
 			}

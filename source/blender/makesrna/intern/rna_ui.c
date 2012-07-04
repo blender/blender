@@ -617,7 +617,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
-	RNA_def_property_ui_text(prop, "Enabled", "When false, this (sub)layout is greyed out");
+	RNA_def_property_ui_text(prop, "Enabled", "When false, this (sub)layout is grayed out");
 	
 	prop = RNA_def_property(srna, "alert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_alert_get", "rna_UILayout_alert_set");

@@ -253,7 +253,7 @@ void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 }
 
 /* Sync colors used for action/bone group with theme settings */
-void action_group_colors_sync(bActionGroup *grp)
+void action_group_colors_sync(bActionGroup *grp, const bActionGroup *ref_grp)
 {
 	/* only do color copying if using a custom color (i.e. not default color)  */
 	if (grp->customCol) {
@@ -265,9 +265,15 @@ void action_group_colors_sync(bActionGroup *grp)
 			memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
 		}
 		else {
-			/* init custom colors with a generic multi-color rgb set, if not initialized already
-			 * (for custom color set) */
-			if (grp->cs.solid[0] == 0) {
+			/* if a reference group is provided, use the custom color from there... */
+			if (ref_grp) {
+				/* assumption: reference group has a color set */
+				memcpy(&grp->cs, &ref_grp->cs, sizeof(ThemeWireColor));
+			}
+			/* otherwise, init custom color with a generic/placeholder color set if
+			 * no previous theme color was used that we can just keep using
+			 */
+			else if (grp->cs.solid[0] == 0) {
 				/* define for setting colors in theme below */
 				rgba_char_args_set(grp->cs.solid, 0xff, 0x00, 0x00, 255);
 				rgba_char_args_set(grp->cs.select, 0x81, 0xe6, 0x14, 255);

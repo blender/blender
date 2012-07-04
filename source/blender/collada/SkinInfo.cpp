@@ -57,7 +57,9 @@ static const char *bc_get_joint_name(T *node)
 // This is used to store data passed in write_controller_data.
 // Arrays from COLLADAFW::SkinControllerData lose ownership, so do this class members
 // so that arrays don't get freed until we free them explicitly.
-SkinInfo::SkinInfo() {
+SkinInfo::SkinInfo()
+{
+	/* pass */
 }
 
 SkinInfo::SkinInfo(const SkinInfo& skin) : weights(skin.weights),

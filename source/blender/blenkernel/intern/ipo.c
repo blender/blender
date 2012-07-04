@@ -46,6 +46,7 @@
 /* since we have versioning code here */
 #define DNA_DEPRECATED_ALLOW
 
+#include "DNA_actuator_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
@@ -1753,6 +1754,24 @@ void do_versions_ipos_to_animato(Main *main)
 				ipo_to_animdata(id, ob->ipo, NULL, NULL, NULL);
 				ob->ipo->id.us--;
 				ob->ipo = NULL;
+
+				{
+					/* If we have any empty action actuators, assume they were
+					   converted IPO Actuators using the object IPO */
+					bActuator *act;
+					bActionActuator *aa;
+
+					for (act = ob->actuators.first; act; act = act->next) {
+						/* Any actuators set to ACT_IPO at this point are actually Action Actuators that
+						   need this converted IPO to finish converting the actuator. */
+						if (act->type == ACT_IPO)
+						{
+							aa = (bActionActuator*)act->data;
+							aa->act = ob->adt->action;
+							act->type = ACT_ACTION;
+						}
+					}
+				}
 			}
 		}
 		

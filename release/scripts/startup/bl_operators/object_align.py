@@ -341,7 +341,7 @@ from bpy.props import EnumProperty, BoolProperty
 
 
 class AlignObjects(Operator):
-    '''Align Objects'''
+    """Align Objects"""
     bl_idname = "object.align"
     bl_label = "Align Objects"
     bl_options = {'REGISTER', 'UNDO'}

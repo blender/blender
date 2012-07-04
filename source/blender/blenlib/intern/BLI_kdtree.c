@@ -399,7 +399,7 @@ int BLI_kdtree_range_search(KDTree *tree, float range, const float co[3], const 
 	}
 	else {
 		dist2 = squared_distance(root->co, co, root->nor, nor);
-		if (dist2  <= range2)
+		if (dist2 <= range2)
 			add_in_range(&foundstack, found++, &totfoundstack, root->index, dist2, root->co);
 
 		if (root->left)

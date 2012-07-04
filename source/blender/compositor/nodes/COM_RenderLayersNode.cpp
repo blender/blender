@@ -82,7 +82,7 @@ void RenderLayersNode::testSocketConnection(ExecutionSystem *system, int outputS
 
 void RenderLayersNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	testSocketConnection(graph, 0, new RenderLayersColourProg());
+	testSocketConnection(graph, 0, new RenderLayersColorProg());
 	testSocketConnection(graph, 1, new RenderLayersAlphaProg());
 	testSocketConnection(graph, 2, new RenderLayersDepthProg());
 	testSocketConnection(graph, 3, new RenderLayersNormalOperation());

@@ -36,6 +36,7 @@ void DoubleEdgeMaskNode::convertToOperations(ExecutionSystem *system, Compositor
 	bNode *bnode = this->getbNode();
 	
 	operation = new DoubleEdgeMaskOperation();
+	operation->setbNode(bnode);
 	operation->setAdjecentOnly(bnode->custom1);
 	operation->setKeepInside(bnode->custom2);
 	

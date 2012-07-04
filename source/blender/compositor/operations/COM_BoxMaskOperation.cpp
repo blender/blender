@@ -29,19 +29,19 @@ BoxMaskOperation::BoxMaskOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
-	this->inputMask = NULL;
-	this->inputValue = NULL;
-	this->cosine = 0.0f;
-	this->sine = 0.0f;
+	this->m_inputMask = NULL;
+	this->m_inputValue = NULL;
+	this->m_cosine = 0.0f;
+	this->m_sine = 0.0f;
 }
 void BoxMaskOperation::initExecution()
 {
-	this->inputMask = this->getInputSocketReader(0);
-	this->inputValue = this->getInputSocketReader(1);
-	const double rad = DEG2RAD((double)this->data->rotation);
-	this->cosine = cos(rad);
-	this->sine = sin(rad);
-	this->aspectRatio = ((float)this->getWidth()) / this->getHeight();
+	this->m_inputMask = this->getInputSocketReader(0);
+	this->m_inputValue = this->getInputSocketReader(1);
+	const double rad = DEG2RAD((double)this->m_data->rotation);
+	this->m_cosine = cos(rad);
+	this->m_sine = sin(rad);
+	this->m_aspectRatio = ((float)this->getWidth()) / this->getHeight();
 }
 
 void BoxMaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -52,22 +52,22 @@ void BoxMaskOperation::executePixel(float *color, float x, float y, PixelSampler
 	float rx = x / this->getWidth();
 	float ry = y / this->getHeight();
 	
-	const float dy = (ry - this->data->y) / this->aspectRatio;
-	const float dx = rx - this->data->x;
-	rx = this->data->x + (this->cosine * dx + this->sine * dy);
-	ry = this->data->y + (-this->sine * dx + this->cosine * dy);
+	const float dy = (ry - this->m_data->y) / this->m_aspectRatio;
+	const float dx = rx - this->m_data->x;
+	rx = this->m_data->x + (this->m_cosine * dx + this->m_sine * dy);
+	ry = this->m_data->y + (-this->m_sine * dx + this->m_cosine * dy);
 	
-	this->inputMask->read(inputMask, x, y, sampler, inputBuffers);
-	this->inputValue->read(inputValue, x, y, sampler, inputBuffers);
+	this->m_inputMask->read(inputMask, x, y, sampler, inputBuffers);
+	this->m_inputValue->read(inputValue, x, y, sampler, inputBuffers);
 	
-	float halfHeight = this->data->height / 2.0f;
-	float halfWidth = this->data->width / 2.0f;
-	bool inside = (rx > this->data->x - halfWidth &&
-	               rx < this->data->x + halfWidth &&
-	               ry > this->data->y - halfHeight &&
-	               ry < this->data->y + halfHeight);
+	float halfHeight = this->m_data->height / 2.0f;
+	float halfWidth = this->m_data->width / 2.0f;
+	bool inside = (rx > this->m_data->x - halfWidth &&
+	               rx < this->m_data->x + halfWidth &&
+	               ry > this->m_data->y - halfHeight &&
+	               ry < this->m_data->y + halfHeight);
 	
-	switch (this->maskType) {
+	switch (this->m_maskType) {
 		case CMP_NODE_MASKTYPE_ADD:
 			if (inside) {
 				color[0] = max(inputMask[0], inputValue[0]);
@@ -113,7 +113,7 @@ void BoxMaskOperation::executePixel(float *color, float x, float y, PixelSampler
 
 void BoxMaskOperation::deinitExecution()
 {
-	this->inputMask = NULL;
-	this->inputValue = NULL;
+	this->m_inputMask = NULL;
+	this->m_inputValue = NULL;
 }
 

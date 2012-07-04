@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_CombineYUVANode_h
-#define _COM_CombineYUVANode_h
+#ifndef _COM_CombineYUVANode_h_
+#define _COM_CombineYUVANode_h_
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"

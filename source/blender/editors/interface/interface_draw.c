@@ -1310,7 +1310,7 @@ static void ui_draw_but_curve_grid(rcti *rect, float zoomx, float zoomy, float o
 	fx = rect->xmin + zoomx * (-offsx);
 	if (fx > rect->xmin) fx -= dx * (floorf(fx - rect->xmin));
 	while (fx < rect->xmax) {
-		glVertex2f(fx, rect->ymin); 
+		glVertex2f(fx, rect->ymin);
 		glVertex2f(fx, rect->ymax);
 		fx += dx;
 	}
@@ -1319,7 +1319,7 @@ static void ui_draw_but_curve_grid(rcti *rect, float zoomx, float zoomy, float o
 	fy = rect->ymin + zoomy * (-offsy);
 	if (fy > rect->ymin) fy -= dy * (floorf(fy - rect->ymin));
 	while (fy < rect->ymax) {
-		glVertex2f(rect->xmin, fy); 
+		glVertex2f(rect->xmin, fy);
 		glVertex2f(rect->xmax, fy);
 		fy += dy;
 	}
@@ -1346,7 +1346,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 
 	cumap = (CurveMapping *)(but->editcumap ? but->editcumap : but->poin);
 	cuma = cumap->cm + cumap->cur;
-	
+
 	/* need scissor test, curve can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
 	scissor_new.xmin = ar->winrct.xmin + rect->xmin;
@@ -1363,53 +1363,56 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	offsy = cumap->curr.ymin - but->aspect / zoomy;
 	
 	/* backdrop */
-	if (cumap->flag & CUMA_DO_CLIP) {
-		gl_shaded_color((unsigned char *)wcol->inner, -20);
-		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-		glColor3ubv((unsigned char *)wcol->inner);
-		glRectf(rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
-		        rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
-		        rect->xmin + zoomx * (cumap->clipr.xmax - offsx),
-		        rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
+	if (but->a1 == UI_GRAD_H) {
+		/* magic trigger for curve backgrounds */
+		rcti grid;
+		float col[3] = {0.0f, 0.0f, 0.0f}; /* dummy arg */
+
+		grid.xmin = rect->xmin + zoomx * (-offsx);
+		grid.xmax = rect->xmax + zoomx * (-offsx);
+		grid.ymin = rect->ymin + zoomy * (-offsy);
+		grid.ymax = rect->ymax + zoomy * (-offsy);
+
+		ui_draw_gradient(&grid, col, UI_GRAD_H, 1.0f);
+
+		/* grid, hsv uses different grid */
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4ub(0, 0, 0, 48);
+		ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.1666666f);
+		glDisable(GL_BLEND);
 	}
 	else {
-		glColor3ubv((unsigned char *)wcol->inner);
-		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-	}
-		
-	/* grid, every 0.25 step */
-	gl_shaded_color((unsigned char *)wcol->inner, -16);
-	ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.25f);
-	/* grid, every 1.0 step */
-	gl_shaded_color((unsigned char *)wcol->inner, -24);
-	ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 1.0f);
-	/* axes */
-	gl_shaded_color((unsigned char *)wcol->inner, -50);
-	glBegin(GL_LINES);
-	glVertex2f(rect->xmin, rect->ymin + zoomy * (-offsy));
-	glVertex2f(rect->xmax, rect->ymin + zoomy * (-offsy));
-	glVertex2f(rect->xmin + zoomx * (-offsx), rect->ymin);
-	glVertex2f(rect->xmin + zoomx * (-offsx), rect->ymax);
-	glEnd();
-	
-	/* magic trigger for curve backgrounds */
-	if (but->a1 != -1) {
-		if (but->a1 == UI_GRAD_H) {
-			rcti grid;
-			float col[3] = {0.0f, 0.0f, 0.0f}; /* dummy arg */
-			
-			grid.xmin = rect->xmin + zoomx * (-offsx);
-			grid.xmax = rect->xmax + zoomx * (-offsx);
-			grid.ymin = rect->ymin + zoomy * (-offsy);
-			grid.ymax = rect->ymax + zoomy * (-offsy);
-			
-			glEnable(GL_BLEND);
-			ui_draw_gradient(&grid, col, UI_GRAD_H, 0.5f);
-			glDisable(GL_BLEND);
+		if (cumap->flag & CUMA_DO_CLIP) {
+			gl_shaded_color((unsigned char *)wcol->inner, -20);
+			glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+			glColor3ubv((unsigned char *)wcol->inner);
+			glRectf(rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
+			        rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
+			        rect->xmin + zoomx * (cumap->clipr.xmax - offsx),
+			        rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
 		}
+		else {
+			glColor3ubv((unsigned char *)wcol->inner);
+			glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+		}
+
+		/* grid, every 0.25 step */
+		gl_shaded_color((unsigned char *)wcol->inner, -16);
+		ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.25f);
+		/* grid, every 1.0 step */
+		gl_shaded_color((unsigned char *)wcol->inner, -24);
+		ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 1.0f);
+		/* axes */
+		gl_shaded_color((unsigned char *)wcol->inner, -50);
+		glBegin(GL_LINES);
+		glVertex2f(rect->xmin, rect->ymin + zoomy * (-offsy));
+		glVertex2f(rect->xmax, rect->ymin + zoomy * (-offsy));
+		glVertex2f(rect->xmin + zoomx * (-offsx), rect->ymin);
+		glVertex2f(rect->xmin + zoomx * (-offsx), rect->ymax);
+		glEnd();
 	}
-	
-	
+
 	/* cfra option */
 	/* XXX 2.48 */
 #if 0
@@ -1423,11 +1426,21 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 #endif
 	/* sample option */
 
-	/* XXX 2.48 */
-#if 0
 	if (cumap->flag & CUMA_DRAW_SAMPLE) {
-		if (cumap->cur == 3) {
-			float lum = cumap->sample[0] * 0.35f + cumap->sample[1] * 0.45f + cumap->sample[2] * 0.2f;
+		if (but->a1 == UI_GRAD_H) {
+			float tsample[3];
+			float hsv[3];
+			linearrgb_to_srgb_v3_v3(tsample, cumap->sample);
+			rgb_to_hsv_v(tsample, hsv);
+			glColor3ub(240, 240, 240);
+
+			glBegin(GL_LINES);
+			glVertex2f(rect->xmin + zoomx * (hsv[0] - offsx), rect->ymin);
+			glVertex2f(rect->xmin + zoomx * (hsv[0] - offsx), rect->ymax);
+			glEnd();
+		}
+		else if (cumap->cur == 3) {
+			float lum = rgb_to_bw(cumap->sample);
 			glColor3ub(240, 240, 240);
 			
 			glBegin(GL_LINES);
@@ -1449,7 +1462,6 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 			glEnd();
 		}
 	}
-#endif
 
 	/* the curve */
 	glColor3ubv((unsigned char *)wcol->item);

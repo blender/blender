@@ -1,6 +1,6 @@
 """
 Calling Operators
-+++++++++++++++++
+-----------------
 
 Provides python access to calling operators, this includes operators written in
 C, Python or Macros.
@@ -18,6 +18,26 @@ there is a poll() method to avoid this problem.
 
 Note that the operator ID (bl_idname) in this example is 'mesh.subdivide',
 'bpy.ops' is just the access path for python.
+
+
+Keywords and Positional Arguments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For calling operators keywords are used for operator properties and
+positional arguments are used to define how the operator is called.
+
+There are 3 optional positional arguments (documented in detail below).
+
+.. code-block:: python
+
+   bpy.ops.test.operator(override_context, execution_context, undo)
+
+* override_context - dict type
+* execution_context - string (enum)
+* undo - boolean
+
+
+Each of these arguments is optional, but must be given in the order above.
 """
 import bpy
 

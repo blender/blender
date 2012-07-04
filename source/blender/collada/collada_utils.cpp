@@ -187,8 +187,7 @@ Object *bc_get_assigned_armature(Object *ob)
 Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob) 
 {
 	Object *ancestor = ob;
-	while (ob->parent && bc_is_marked(ob->parent))
-	{
+	while (ob->parent && bc_is_marked(ob->parent)) {
 		ob = ob->parent;
 		ancestor = ob;
 	}
@@ -260,7 +259,8 @@ void bc_bubble_sort_by_Object_name(LinkNode *export_set)
  * can be root bones. Otherwise the top most deform bones in the hierarchy
  * are root bones.
  */
-bool bc_is_root_bone(Bone *aBone, bool deform_bones_only) {
+bool bc_is_root_bone(Bone *aBone, bool deform_bones_only)
+{
 	if (deform_bones_only) {
 		Bone *root = NULL;
 		Bone *bone = aBone;
@@ -273,4 +273,10 @@ bool bc_is_root_bone(Bone *aBone, bool deform_bones_only) {
 	}
 	else
 		return !(aBone->parent);
+}
+
+int bc_get_active_UVLayer(Object *ob)
+{
+	Mesh *me = (Mesh *)ob->data;
+	return CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
 }

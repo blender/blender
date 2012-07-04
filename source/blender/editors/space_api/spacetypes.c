@@ -63,6 +63,7 @@
 #include "ED_logic.h"
 #include "ED_clip.h"
 #include "ED_mask.h"
+#include "ED_sequencer.h"
 
 #include "io_ops.h"
 
@@ -139,7 +140,8 @@ void ED_spacetypes_init(void)
 	ED_operatormacros_clip();
 	ED_operatormacros_curve();
 	ED_operatormacros_mask();
-	
+	ED_operatormacros_sequencer();
+
 	/* register dropboxes (can use macros) */
 	spacetypes = BKE_spacetypes_list();
 	for (type = spacetypes->first; type; type = type->next) {

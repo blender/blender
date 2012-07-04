@@ -56,7 +56,7 @@ SCA_LogicManager::~SCA_LogicManager()
 	assert(m_activeActuators.Empty());
 }
 
-/*
+#if 0
 // this kind of fixes bug 398 but breakes games, so better leave it out for now.
 // a removed object's gameobject (and logicbricks and stuff) didn't get released
 // because it was still in the m_mapStringToGameObjects map.
@@ -77,7 +77,7 @@ void SCA_LogicManager::RemoveGameObject(const STR_String& gameobjname)
 
 	m_mapStringToGameObjects.remove(gameobjname);
 }
-*/
+#endif
 
 
 void SCA_LogicManager::RegisterEventManager(SCA_EventManager* eventmgr)

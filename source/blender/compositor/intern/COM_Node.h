@@ -29,6 +29,7 @@
 #include "COM_CompositorContext.h"
 #include "DNA_node_types.h"
 #include "BKE_text.h"
+#include "COM_ExecutionSystem.h"
 #include <vector>
 #include <string>
 
@@ -47,29 +48,20 @@ typedef pair<NodeIterator, NodeIterator> NodeRange;
  */
 class Node : public NodeBase {
 private:
-	/**
-	 * @brief stores the reference to the SDNA bNode struct
-	 */
-	bNode *editorNode;
 
 	/**
 	 * @brief Is this node part of the active group
 	 */
-	bool inActiveGroup;
+	bool m_inActiveGroup;
 
 public:
 	Node(bNode *editorNode, bool create_sockets = true);
-	
-	/**
-	 * @brief get the reference to the SDNA bNode struct
-	 */
-	bNode *getbNode();
-	
+
 	/**
 	 * @brief Is this node in the active group (the group that is being edited)
 	 * @param isInActiveGroup
 	 */
-	void setIsInActiveGroup(bool isInActiveGroup) { this->inActiveGroup = isInActiveGroup; }
+	void setIsInActiveGroup(bool value) { this->m_inActiveGroup = value; }
 	
 	/**
 	 * @brief Is this node part of the active group
@@ -77,7 +69,7 @@ public:
 	 * the active group will be the main tree (all nodes that are not part of a group will be active)
 	 * @return bool [false:true]
 	 */
-	inline bool isInActiveGroup() { return this->inActiveGroup; }
+	inline bool isInActiveGroup() { return this->m_inActiveGroup; }
 
 	/**
 	 * @brief convert node to operation
@@ -136,9 +128,6 @@ public:
 	 */
 	OutputSocket *findOutputSocketBybNodeSocket(bNodeSocket *socket);
 protected:
-	
-	Node();
-	
 	void addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket);
 	void addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket);
 	

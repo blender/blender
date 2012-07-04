@@ -27,7 +27,7 @@
 ReadBufferOperation::ReadBufferOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_COLOR);
-	this->offset = 0;
+	this->m_offset = 0;
 }
 
 void *ReadBufferOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
@@ -37,31 +37,40 @@ void *ReadBufferOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 
 void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
-	if (this->memoryProxy != NULL) {
-		WriteBufferOperation *operation = memoryProxy->getWriteBufferOperation();
+	if (this->m_memoryProxy != NULL) {
+		WriteBufferOperation *operation = this->m_memoryProxy->getWriteBufferOperation();
 		operation->determineResolution(resolution, preferredResolution);
 		operation->setResolution(resolution);
 
 		/// @todo: may not occur!, but does with blur node
-		if (memoryProxy->getExecutor()) memoryProxy->getExecutor()->setResolution(resolution);
+		if (this->m_memoryProxy->getExecutor()) {
+			this->m_memoryProxy->getExecutor()->setResolution(resolution);
+		}
 	}
 }
 void ReadBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	MemoryBuffer *inputBuffer = inputBuffers[this->offset];
-	if (inputBuffer) {
-		if (sampler == COM_PS_NEAREST) {
-			inputBuffer->read(color, x, y);
+	if (inputBuffers) {
+		MemoryBuffer *inputBuffer = inputBuffers[this->m_offset];
+		if (inputBuffer) {
+			if (sampler == COM_PS_NEAREST) {
+				inputBuffer->read(color, x, y);
+			}
+			else {
+				inputBuffer->readCubic(color, x, y);
+			}
 		}
-		else {
-			inputBuffer->readCubic(color, x, y);
-		}
+	} else {
+		color[0] = 0.0f;
+		color[1] = 0.0f;
+		color[2] = 0.0f;
+		color[3] = 0.0f;
 	}
 }
 
 void ReadBufferOperation::executePixel(float *color, float x, float y, float dx, float dy, MemoryBuffer *inputBuffers[])
 {
-	MemoryBuffer *inputBuffer = inputBuffers[this->offset];
+	MemoryBuffer *inputBuffer = inputBuffers[this->m_offset];
 	if (inputBuffer) {
 		inputBuffer->readEWA(color, x, y, dx, dy);
 	}
@@ -76,9 +85,10 @@ bool ReadBufferOperation::determineDependingAreaOfInterest(rcti *input, ReadBuff
 	return false;
 }
 
-void ReadBufferOperation::readResolutionFromWriteBuffer() {
-	if (this->memoryProxy != NULL) {
-		WriteBufferOperation *operation = memoryProxy->getWriteBufferOperation();
+void ReadBufferOperation::readResolutionFromWriteBuffer()
+{
+	if (this->m_memoryProxy != NULL) {
+		WriteBufferOperation *operation = this->m_memoryProxy->getWriteBufferOperation();
 		this->setWidth(operation->getWidth());
 		this->setHeight(operation->getHeight());
 	}

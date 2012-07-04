@@ -17,4 +17,7 @@ incs += ' ' + env['BF_OPENGL_INC']
 if env['WITH_BF_SMOKE']:
     defs.append('WITH_SMOKE')
 
+if env['WITH_BF_DDS']:
+	defs.append('WITH_DDS')
+
 env.BlenderLib ( 'bf_gpu', sources, Split(incs), defines = defs, libtype=['core','player'], priority=[160,110] )

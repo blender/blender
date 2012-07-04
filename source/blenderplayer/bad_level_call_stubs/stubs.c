@@ -228,7 +228,7 @@ void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct ToolSett
 
 void ED_screen_set_scene(struct bContext *C, struct Scene *scene) {}
 void ED_space_clip_set_clip(struct bContext *C, struct SpaceClip *sc, struct MovieClip *clip) {}
-void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mask *mask){}
+void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mask *mask) {}
 
 void ED_area_tag_redraw_regiontype(struct ScrArea *sa, int regiontype) {}
 void ED_render_engine_changed(struct Main *bmain) {}
@@ -449,7 +449,7 @@ struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet) {retu
 struct GHashIterator *WM_operatortype_iter() {return (struct GHashIterator *) NULL;}
 struct wmOperatorType *WM_operatortype_exists(const char *idname) {return (struct wmOperatorType *) NULL;}
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname) {return (struct wmOperatorTypeMacro *) NULL;}
-int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports) {return 0;}
+int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short context, short is_undo, struct PointerRNA *properties, struct ReportList *reports) {return 0;}
 int WM_operatortype_remove(const char *idname) {return 0;}
 int WM_operator_poll(struct bContext *C, struct wmOperatorType *ot) {return 0;}
 int WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, int context) {return 0;}
@@ -506,7 +506,7 @@ struct DualConMesh *dualcon(const struct DualConMesh *input_mesh,
                             float threshold,
                             float hermite_num,
                             float scale,
-                            int depth) {return 0;}
+                            int depth) { return 0; }
 
 /* intern/cycles */
 struct CCLDeviceInfo;

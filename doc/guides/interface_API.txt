@@ -173,7 +173,7 @@ drawtype:
 	UI_EMBOSSN		2	/* Button with no border */
 	UI_EMBOSSF		3	/* Square embossed button (file select) */
 	UI_EMBOSSM		4	/* Colored, for pulldown menus */
-	UI_EMBOSSP		5	/* Simple borderless coloured button (like blender sensors) */
+	UI_EMBOSSP		5	/* Simple borderless colored button (like blender sensors) */
 
 font:
 	UI_HELV			0	/* normal font */

@@ -40,15 +40,15 @@ extern "C" {
  */
 class BaseImageOperation : public NodeOperation {
 protected:
-	ImBuf *buffer;
-	Image *image;
-	ImageUser *imageUser;
-	float *imageBuffer;
-	float *depthBuffer;
-	int imageheight;
-	int imagewidth;
-	int framenumber;
-	int numberOfChannels;
+	ImBuf *m_buffer;
+	Image *m_image;
+	ImageUser *m_imageUser;
+	float *m_imageBuffer;
+	float *m_depthBuffer;
+	int m_imageheight;
+	int m_imagewidth;
+	int m_framenumber;
+	int m_numberOfChannels;
 	
 	BaseImageOperation();
 	/**
@@ -62,10 +62,10 @@ public:
 	
 	void initExecution();
 	void deinitExecution();
-	void setImage(Image *image) { this->image = image; }
-	void setImageUser(ImageUser *imageuser) { this->imageUser = imageuser; }
+	void setImage(Image *image) { this->m_image = image; }
+	void setImageUser(ImageUser *imageuser) { this->m_imageUser = imageuser; }
 
-	void setFramenumber(int framenumber) { this->framenumber = framenumber; }
+	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
 };
 class ImageOperation : public BaseImageOperation {
 public:

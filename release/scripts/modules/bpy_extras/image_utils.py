@@ -71,7 +71,7 @@ def load_image(imagepath,
     def _image_load_placeholder(path):
         name = bpy.path.basename(path)
         if type(name) == bytes:
-            name = name.decode('utf-8', "replace")
+            name = name.decode("utf-8", "replace")
         image = bpy.data.images.new(name, 128, 128)
         # allow the path to be resolved later
         image.filepath = path

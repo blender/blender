@@ -3752,7 +3752,7 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, co
 }
 
 #define SET_PARTICLE_TEXTURE(type, pvalue, texfac)  \
-	if ((event & mtex->mapto) & type) {pvalue = texture_value_blend(def, pvalue, value, texfac, blend); } (void)0
+	if ((event & mtex->mapto) & type) { pvalue = texture_value_blend(def, pvalue, value, texfac, blend); } (void)0
 
 #define CLAMP_PARTICLE_TEXTURE_POS(type, pvalue)  \
 	if (event & type) { if (pvalue < 0.0f) pvalue = 1.0f + pvalue; CLAMP(pvalue, 0.0f, 1.0f); } (void)0

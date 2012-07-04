@@ -1008,13 +1008,14 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 /********************* main region ********************/
 
 /* sets up the fields of the View2D from zoom and offset */
-static void movieclip_main_area_set_view2d(SpaceClip *sc, ARegion *ar)
+static void movieclip_main_area_set_view2d(const bContext *C, ARegion *ar)
 {
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	float x1, y1, w, h;
 	int width, height, winx, winy;
 
-	ED_space_clip_get_clip_size(sc, &width, &height);
+	ED_space_clip_get_size(C, &width, &height);
 
 	w = width;
 	h = height;
@@ -1074,11 +1075,54 @@ static void clip_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
+static void clip_main_area_draw_mask(const bContext *C, ARegion *ar)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	int x, y;
+	int width, height;
+	float zoomx, zoomy;
+
+	/* frame image */
+	float maxdim;
+	float xofs, yofs;
+
+	/* find window pixel coordinates of origin */
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_zoom(C, &zoomx, &zoomy);
+
+	/* frame the image */
+	maxdim = maxf(width, height);
+	if (width == height) {
+		xofs = yofs = 0;
+	}
+	else if (width < height) {
+		xofs = ((height - width) / -2.0f) * zoomx;
+		yofs = 0.0f;
+	}
+	else { /* (width > height) */
+		xofs = 0.0f;
+		yofs = ((width - height) / -2.0f) * zoomy;
+	}
+
+	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
+	glPushMatrix();
+	glTranslatef(x + xofs, y + yofs, 0);
+	glScalef(maxdim * zoomx, maxdim * zoomy, 0);
+	glMultMatrixf(sc->stabmat);
+
+	ED_mask_draw(C, sc->mask_draw_flag, sc->mask_draw_type);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+
+	glPopMatrix();
+}
+
 static void clip_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	Scene *scene = CTX_data_scene(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 
 	/* if tracking is in progress, we should synchronize framenr from clipuser
@@ -1093,7 +1137,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 			tmpibuf = ED_space_clip_get_stable_buffer(sc, NULL, NULL, NULL);
 		}
 
-		if (ED_clip_view_selection(sc, ar, 0)) {
+		if (ED_clip_view_selection(C, ar, 0)) {
 			sc->xof += sc->xlockof;
 			sc->yof += sc->ylockof;
 		}
@@ -1107,51 +1151,12 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* data... */
-	movieclip_main_area_set_view2d(sc, ar);
+	movieclip_main_area_set_view2d(C, ar);
 
-	clip_draw_main(sc, ar, scene);
+	clip_draw_main(C, ar);
 
 	if (sc->mode == SC_MODE_MASKEDIT) {
-		int x, y;
-		int width, height;
-		float zoomx, zoomy, aspx, aspy;
-
-		/* frame image */
-		float maxdim;
-		float xofs, yofs;
-
-		/* find window pixel coordinates of origin */
-		UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
-
-		ED_space_clip_get_clip_size(sc, &width, &height);
-		ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
-		ED_space_clip_get_clip_aspect(sc, &aspx, &aspy);
-
-		/* frame the image */
-		maxdim = maxf(width, height);
-		if (width == height) {
-			xofs = yofs = 0;
-		}
-		else if (width < height) {
-			xofs = ((height - width) / -2.0f) * zoomx;
-			yofs = 0.0f;
-		}
-		else { /* (width > height) */
-			xofs = 0.0f;
-			yofs = ((width - height) / -2.0f) * zoomy;
-		}
-
-		/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
-		glPushMatrix();
-		glTranslatef(x + xofs, y + yofs, 0);
-		glScalef(maxdim * zoomx, maxdim * zoomy, 0);
-		glMultMatrixf(sc->stabmat);
-
-		ED_mask_draw(C, sc->mask_draw_flag, sc->mask_draw_type);
-
-		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
-
-		glPopMatrix();
+		clip_main_area_draw_mask(C, ar);
 	}
 
 	/* Grease Pencil */

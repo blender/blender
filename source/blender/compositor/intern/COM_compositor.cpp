@@ -25,37 +25,57 @@
 extern "C" {
 	#include "BLI_threads.h"
 }
+#include "BKE_main.h"
+#include "BKE_global.h"
 
 #include "COM_compositor.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_WorkScheduler.h"
 #include "OCL_opencl.h"
 
-static ThreadMutex *compositorMutex;
-void COM_execute(bNodeTree *editingtree, int rendering)
+static ThreadMutex compositorMutex;
+static char is_compositorMutex_init = FALSE;
+void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 {
-	if (compositorMutex == NULL) { /// TODO: move to blender startup phase
-		compositorMutex = new ThreadMutex();
-		BLI_mutex_init(compositorMutex);
+	if (is_compositorMutex_init == FALSE) { /// TODO: move to blender startup phase
+		memset(&compositorMutex, 0, sizeof(compositorMutex));
+		BLI_mutex_init(&compositorMutex);
 		OCL_init();
 		WorkScheduler::initialize(); ///TODO: call workscheduler.deinitialize somewhere
+		is_compositorMutex_init = TRUE;
 	}
-	BLI_mutex_lock(compositorMutex);
-	if (editingtree->test_break && editingtree->test_break(editingtree->tbh)) {
+	BLI_mutex_lock(&compositorMutex);
+	if (editingtree->test_break(editingtree->tbh)) {
 		// during editing multiple calls to this method can be triggered.
 		// make sure one the last one will be doing the work.
-		BLI_mutex_unlock(compositorMutex);
+		BLI_mutex_unlock(&compositorMutex);
 		return;
 
 	}
 
+
 	/* set progress bar to 0% and status to init compositing*/
 	editingtree->progress(editingtree->prh, 0.0);
 
+	bool twopass = (editingtree->flag&NTREE_TWO_PASS) > 0 || rendering;
 	/* initialize execution system */
-	ExecutionSystem *system = new ExecutionSystem(editingtree, rendering);
+	if (twopass) {
+		ExecutionSystem *system = new ExecutionSystem(rd, editingtree, rendering, twopass);
+		system->execute();
+		delete system;
+		
+		if (editingtree->test_break(editingtree->tbh)) {
+			// during editing multiple calls to this method can be triggered.
+			// make sure one the last one will be doing the work.
+			BLI_mutex_unlock(&compositorMutex);
+			return;
+		}
+	}
+
+	
+	ExecutionSystem *system = new ExecutionSystem(rd, editingtree, rendering, false);
 	system->execute();
 	delete system;
 
-	BLI_mutex_unlock(compositorMutex);
+	BLI_mutex_unlock(&compositorMutex);
 }

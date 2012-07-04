@@ -2374,7 +2374,7 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a vertex color layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 #endif
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
@@ -2551,7 +2551,7 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a vertex color layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 #endif
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
@@ -2859,7 +2859,8 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEDGES);
-	RNA_def_property_ui_text(prop, "Draw Edges", "Display selected edges using hilights in the 3D view and UV editor");
+	RNA_def_property_ui_text(prop, "Draw Edges",
+	                         "Display selected edges using highlights in the 3D view and UV editor");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
 	prop = RNA_def_property(srna, "show_all_edges", PROP_BOOLEAN, PROP_NONE);

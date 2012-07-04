@@ -26,16 +26,16 @@
 #include "DNA_texture_types.h"
 
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class MapValueOperation : public NodeOperation {
 private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputOperation;
-	TexMapping *settings;
+	SocketReader *m_inputOperation;
+	TexMapping *m_settings;
 public:
 	/**
 	 * Default constructor
@@ -60,7 +60,7 @@ public:
 	/**
 	 * @brief set the TexMapping settings
 	 */
-	void setSettings(TexMapping *settings) { this->settings = settings; }
+	void setSettings(TexMapping *settings) { this->m_settings = settings; }
 	
 };
 #endif

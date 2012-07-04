@@ -526,7 +526,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
         if ffmpeg.format in {'AVI', 'QUICKTIME', 'MKV', 'OGG'}:
             split.prop(ffmpeg, "codec")
         elif rd.ffmpeg.format == 'H264':
-            split.prop(ffmpeg, 'use_lossless_output')
+            split.prop(ffmpeg, "use_lossless_output")
         else:
             split.label()
 
@@ -575,7 +575,7 @@ class RENDER_PT_bake(RenderButtonsPanel, Panel):
 
         multires_bake = False
         if rd.bake_type in ['NORMALS', 'DISPLACEMENT']:
-            layout.prop(rd, 'use_bake_multires')
+            layout.prop(rd, "use_bake_multires")
             multires_bake = rd.use_bake_multires
 
         if not multires_bake:

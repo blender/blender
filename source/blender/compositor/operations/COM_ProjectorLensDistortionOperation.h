@@ -30,12 +30,14 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
+	SocketReader *m_inputProgram;
 	
-	NodeLensDist *data;
+	NodeLensDist *m_data;
 	
-	float dispersion;
-	float kr, kr2;
+	float m_dispersion;
+	bool m_dispersionAvailable;
+	
+	float m_kr, m_kr2;
 public:
 	ProjectorLensDistortionOperation();
 	
@@ -55,10 +57,11 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setData(NodeLensDist *data) { this->data = data; }
-	void setDispertion(float dispersion) { this->dispersion = dispersion; }
+	void setData(NodeLensDist *data) { this->m_data = data; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+
+	void updateDispersion(MemoryBuffer **inputBuffers);
 
 };
 #endif

@@ -115,16 +115,14 @@ public:
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_Tree"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:SG_Tree")
 #endif
 };
 
 
 /**
  *  SG_TreeFactory generates an SG_Tree from a list of SG_Nodes.
- *  It joins pairs of SG_Nodes to minimise the size of the resultant
+ *  It joins pairs of SG_Nodes to minimize the size of the resultant
  *  bounding box.
  *  cf building an optimized Huffman tree.
  *  \warning O(n^3)!!!
@@ -158,9 +156,7 @@ public:
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_TreeFactory"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:SG_TreeFactory")
 #endif
 };
 

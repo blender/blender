@@ -26,13 +26,13 @@
 
 
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class SetAlphaOperation : public NodeOperation {
 private:
-	SocketReader *inputColor;
-	SocketReader *inputAlpha;
+	SocketReader *m_inputColor;
+	SocketReader *m_inputAlpha;
 
 public:
 	/**

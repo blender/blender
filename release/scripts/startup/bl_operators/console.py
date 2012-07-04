@@ -77,7 +77,7 @@ class ConsoleBanner(Operator):
 
         # default to python
         if not sc.language:
-            sc.language = 'python'
+            sc.language = "python"
 
         module = _lang_module_get(sc)
         banner = getattr(module, "banner", None)

@@ -901,8 +901,8 @@ static int getLowestRoot(const float a, const float b, const float c, const floa
 
 	// If determinant is negative it means no solutions.
 	if (determinant >= 0.0f) {
-		// calculate the two roots: (if determinant == 0 then
-		// x1==x2 but lets disregard that slight optimization)
+		/* calculate the two roots: (if determinant == 0 then
+		 * x1==x2 but lets disregard that slight optimization) */
 		float sqrtD = (float)sqrt(determinant);
 		float r1 = (-b - sqrtD) / (2.0f * a);
 		float r2 = (-b + sqrtD) / (2.0f * a);

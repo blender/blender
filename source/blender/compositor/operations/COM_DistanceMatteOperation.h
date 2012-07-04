@@ -25,14 +25,14 @@
 
 
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class DistanceMatteOperation : public NodeOperation {
 private:
-	NodeChroma *settings;
-	SocketReader *inputImageProgram;
-	SocketReader *inputKeyProgram;
+	NodeChroma *m_settings;
+	SocketReader *m_inputImageProgram;
+	SocketReader *m_inputKeyProgram;
 public:
 	/**
 	 * Default constructor
@@ -47,6 +47,6 @@ public:
 	void initExecution();
 	void deinitExecution();
 	
-	void setSettings(NodeChroma *nodeChroma) { this->settings = nodeChroma; }
+	void setSettings(NodeChroma *nodeChroma) { this->m_settings = nodeChroma; }
 };
 #endif

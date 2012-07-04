@@ -23,7 +23,6 @@
 #include "COM_ExecutionSystem.h"
 
 #include <sstream>
-#include <stdio.h>
 
 #include "PIL_time.h"
 #include "BKE_node.h"
@@ -41,43 +40,44 @@
 
 #include "BKE_global.h"
 
-ExecutionSystem::ExecutionSystem(bNodeTree *editingtree, bool rendering)
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
+ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation)
 {
-	context.setbNodeTree(editingtree);
+	this->m_context.setbNodeTree(editingtree);
+	this->m_context.setFastCalculation(fastcalculation);
 	bNode *gnode;
 	for (gnode = (bNode *)editingtree->nodes.first; gnode; gnode = (bNode *)gnode->next) {
 		if (gnode->type == NODE_GROUP && gnode->typeinfo->group_edit_get(gnode)) {
-			context.setActivegNode(gnode);
+			this->m_context.setActivegNode(gnode);
 			break;
 		}
 	}
 
 	/* initialize the CompositorContext */
 	if (rendering) {
-		context.setQuality((CompositorQuality)editingtree->render_quality);
+		this->m_context.setQuality((CompositorQuality)editingtree->render_quality);
 	}
 	else {
-		context.setQuality((CompositorQuality)editingtree->edit_quality);
+		this->m_context.setQuality((CompositorQuality)editingtree->edit_quality);
 	}
-	context.setRendering(rendering);
-	context.setHasActiveOpenCLDevices(WorkScheduler::hasGPUDevices() && (editingtree->flag & NTREE_COM_OPENCL));
+	this->m_context.setRendering(rendering);
+	this->m_context.setHasActiveOpenCLDevices(WorkScheduler::hasGPUDevices() && (editingtree->flag & NTREE_COM_OPENCL));
 
-	Node *mainOutputNode = NULL;
+	ExecutionSystemHelper::addbNodeTree(*this, 0, editingtree, NULL);
 
-	mainOutputNode = ExecutionSystemHelper::addbNodeTree(*this, 0, editingtree, NULL);
-
-	if (mainOutputNode) {
-		context.setScene((Scene *)mainOutputNode->getbNode()->id);
-		this->convertToOperations();
-		this->groupOperations(); /* group operations in ExecutionGroups */
-		unsigned int index;
-		unsigned int resolution[2];
-		for (index = 0; index < this->groups.size(); index++) {
-			resolution[0] = 0;
-			resolution[1] = 0;
-			ExecutionGroup *executionGroup = groups[index];
-			executionGroup->determineResolution(resolution);
-		}
+	this->m_context.setRenderData(rd);
+	this->convertToOperations();
+	this->groupOperations(); /* group operations in ExecutionGroups */
+	unsigned int index;
+	unsigned int resolution[2];
+	for (index = 0; index < this->m_groups.size(); index++) {
+		resolution[0] = 0;
+		resolution[1] = 0;
+		ExecutionGroup *executionGroup = this->m_groups[index];
+		executionGroup->determineResolution(resolution);
 	}
 
 #ifdef COM_DEBUG
@@ -88,32 +88,32 @@ ExecutionSystem::ExecutionSystem(bNodeTree *editingtree, bool rendering)
 ExecutionSystem::~ExecutionSystem()
 {
 	unsigned int index;
-	for (index = 0; index < this->connections.size(); index++) {
-		SocketConnection *connection = this->connections[index];
+	for (index = 0; index < this->m_connections.size(); index++) {
+		SocketConnection *connection = this->m_connections[index];
 		delete connection;
 	}
-	this->connections.clear();
-	for (index = 0; index < this->nodes.size(); index++) {
-		Node *node = this->nodes[index];
+	this->m_connections.clear();
+	for (index = 0; index < this->m_nodes.size(); index++) {
+		Node *node = this->m_nodes[index];
 		delete node;
 	}
-	this->nodes.clear();
-	for (index = 0; index < this->operations.size(); index++) {
-		NodeOperation *operation = this->operations[index];
+	this->m_nodes.clear();
+	for (index = 0; index < this->m_operations.size(); index++) {
+		NodeOperation *operation = this->m_operations[index];
 		delete operation;
 	}
-	this->operations.clear();
-	for (index = 0; index < this->groups.size(); index++) {
-		ExecutionGroup *group = this->groups[index];
+	this->m_operations.clear();
+	for (index = 0; index < this->m_groups.size(); index++) {
+		ExecutionGroup *group = this->m_groups[index];
 		delete group;
 	}
-	this->groups.clear();
+	this->m_groups.clear();
 }
 
 void ExecutionSystem::execute()
 {
 	unsigned int order = 0;
-	for (vector<NodeOperation *>::iterator iter = this->operations.begin(); iter != operations.end(); ++iter) {
+	for (vector<NodeOperation *>::iterator iter = this->m_operations.begin(); iter != this->m_operations.end(); ++iter) {
 		NodeBase *node = *iter;
 		NodeOperation *operation = (NodeOperation *) node;
 		if (operation->isReadBufferOperation()) {
@@ -124,32 +124,34 @@ void ExecutionSystem::execute()
 	}
 	unsigned int index;
 
-	for (index = 0; index < this->operations.size(); index++) {
-		NodeOperation *operation = this->operations[index];
-		operation->setbNodeTree(this->context.getbNodeTree());
+	for (index = 0; index < this->m_operations.size(); index++) {
+		NodeOperation *operation = this->m_operations[index];
+		operation->setbNodeTree(this->m_context.getbNodeTree());
 		operation->initExecution();
 	}
-	for (index = 0; index < this->groups.size(); index++) {
-		ExecutionGroup *executionGroup = this->groups[index];
-		executionGroup->setChunksize(context.getChunksize());
+	for (index = 0; index < this->m_groups.size(); index++) {
+		ExecutionGroup *executionGroup = this->m_groups[index];
+		executionGroup->setChunksize(this->m_context.getChunksize());
 		executionGroup->initExecution();
 	}
 
-	WorkScheduler::start(this->context);
+	WorkScheduler::start(this->m_context);
 
 	executeGroups(COM_PRIORITY_HIGH);
-	executeGroups(COM_PRIORITY_MEDIUM);
-	executeGroups(COM_PRIORITY_LOW);
+	if (!this->getContext().isFastCalculation()) {
+		executeGroups(COM_PRIORITY_MEDIUM);
+		executeGroups(COM_PRIORITY_LOW);
+	}
 
 	WorkScheduler::finish();
 	WorkScheduler::stop();
 
-	for (index = 0; index < this->operations.size(); index++) {
-		NodeOperation *operation = this->operations[index];
+	for (index = 0; index < this->m_operations.size(); index++) {
+		NodeOperation *operation = this->m_operations[index];
 		operation->deinitExecution();
 	}
-	for (index = 0; index < this->groups.size(); index++) {
-		ExecutionGroup *executionGroup = this->groups[index];
+	for (index = 0; index < this->m_groups.size(); index++) {
+		ExecutionGroup *executionGroup = this->m_groups[index];
 		executionGroup->deinitExecution();
 	}
 }
@@ -168,7 +170,7 @@ void ExecutionSystem::executeGroups(CompositorPriority priority)
 
 void ExecutionSystem::addOperation(NodeOperation *operation)
 {
-	ExecutionSystemHelper::addOperation(this->operations, operation);
+	ExecutionSystemHelper::addOperation(this->m_operations, operation);
 //	operation->setBTree
 }
 
@@ -209,7 +211,6 @@ void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)
 	 */
 	OutputSocket *outputsocket = operation->getOutputSocket();
 	if (outputsocket->isConnected()) {
-		int index;
 		WriteBufferOperation *writeOperation;
 		writeOperation = new WriteBufferOperation();
 		writeOperation->setbNodeTree(this->getContext().getbNodeTree());
@@ -231,13 +232,13 @@ void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)
 void ExecutionSystem::convertToOperations()
 {
 	unsigned int index;
-	for (index = 0; index < this->nodes.size(); index++) {
-		Node *node = (Node *)this->nodes[index];
-		node->convertToOperations(this, &this->context);
+	for (index = 0; index < this->m_nodes.size(); index++) {
+		Node *node = (Node *)this->m_nodes[index];
+		node->convertToOperations(this, &this->m_context);
 	}
 
-	for (index = 0; index < this->connections.size(); index++) {
-		SocketConnection *connection = this->connections[index];
+	for (index = 0; index < this->m_connections.size(); index++) {
+		SocketConnection *connection = this->m_connections[index];
 		if (connection->isValid()) {
 			if (connection->getFromSocket()->getDataType() != connection->getToSocket()->getDataType()) {
 				Converter::convertDataType(connection, this);
@@ -246,18 +247,18 @@ void ExecutionSystem::convertToOperations()
 	}
 
 	// determine all resolutions of the operations (Width/Height)
-	for (index = 0; index < this->operations.size(); index++) {
-		NodeOperation *operation = this->operations[index];
-		if (operation->isOutputOperation(context.isRendering()) && !operation->isPreviewOperation()) {
+	for (index = 0; index < this->m_operations.size(); index++) {
+		NodeOperation *operation = this->m_operations[index];
+		if (operation->isOutputOperation(this->m_context.isRendering()) && !operation->isPreviewOperation()) {
 			unsigned int resolution[2] = {0, 0};
 			unsigned int preferredResolution[2] = {0, 0};
 			operation->determineResolution(resolution, preferredResolution);
 			operation->setResolution(resolution);
 		}
 	}
-	for (index = 0; index < this->operations.size(); index++) {
-		NodeOperation *operation = this->operations[index];
-		if (operation->isOutputOperation(context.isRendering()) && operation->isPreviewOperation()) {
+	for (index = 0; index < this->m_operations.size(); index++) {
+		NodeOperation *operation = this->m_operations[index];
+		if (operation->isOutputOperation(this->m_context.isRendering()) && operation->isPreviewOperation()) {
 			unsigned int resolution[2] = {0, 0};
 			unsigned int preferredResolution[2] = {0, 0};
 			operation->determineResolution(resolution, preferredResolution);
@@ -266,8 +267,8 @@ void ExecutionSystem::convertToOperations()
 	}
 
 	// add convert resolution operations when needed.
-	for (index = 0; index < this->connections.size(); index++) {
-		SocketConnection *connection = this->connections[index];
+	for (index = 0; index < this->m_connections.size(); index++) {
+		SocketConnection *connection = this->m_connections[index];
 		if (connection->isValid()) {
 			if (connection->needsResolutionConversion()) {
 				Converter::convertResolution(connection, this);
@@ -282,13 +283,13 @@ void ExecutionSystem::groupOperations()
 	NodeOperation *operation;
 	unsigned int index;
 	// surround complex operations with ReadBufferOperation and WriteBufferOperation
-	for (index = 0; index < this->operations.size(); index++) {
-		operation = this->operations[index];
+	for (index = 0; index < this->m_operations.size(); index++) {
+		operation = this->m_operations[index];
 		if (operation->isComplex()) {
 			this->addReadWriteBufferOperations(operation);
 		}
 	}
-	ExecutionSystemHelper::findOutputNodeOperations(&outputOperations, this->getOperations(), this->context.isRendering());
+	ExecutionSystemHelper::findOutputNodeOperations(&outputOperations, this->getOperations(), this->m_context.isRendering());
 	for (vector<NodeOperation *>::iterator iter = outputOperations.begin(); iter != outputOperations.end(); ++iter) {
 		operation = *iter;
 		ExecutionGroup *group = new ExecutionGroup();
@@ -300,15 +301,15 @@ void ExecutionSystem::groupOperations()
 
 void ExecutionSystem::addSocketConnection(SocketConnection *connection)
 {
-	this->connections.push_back(connection);
+	this->m_connections.push_back(connection);
 }
 
 
 void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result, CompositorPriority priority) const
 {
 	unsigned int index;
-	for (index = 0; index < this->groups.size(); index++) {
-		ExecutionGroup *group = this->groups[index];
+	for (index = 0; index < this->m_groups.size(); index++) {
+		ExecutionGroup *group = this->m_groups[index];
 		if (group->isOutputExecutionGroup() && group->getRenderPriotrity() == priority) {
 			result->push_back(group);
 		}
@@ -318,8 +319,8 @@ void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result,
 void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result) const
 {
 	unsigned int index;
-	for (index = 0; index < this->groups.size(); index++) {
-		ExecutionGroup *group = this->groups[index];
+	for (index = 0; index < this->m_groups.size(); index++) {
+		ExecutionGroup *group = this->m_groups[index];
 		if (group->isOutputExecutionGroup()) {
 			result->push_back(group);
 		}

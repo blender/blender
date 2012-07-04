@@ -144,7 +144,8 @@ static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA
 	rna_userdef_update(bmain, scene, ptr);
 }
 
-static void rna_userdef_gl_gpu_mipmaps(Main *bmain, Scene *scene, PointerRNA *ptr) {
+static void rna_userdef_gl_gpu_mipmaps(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
 	GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
 	rna_userdef_update(bmain, scene, ptr);
 }
@@ -462,7 +463,7 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "shadowcolor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Shadow Brightness", "Shadow color in grey value");
+	RNA_def_property_ui_text(prop, "Shadow Brightness", "Shadow color in gray value");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
@@ -2092,7 +2093,7 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "marker_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "marker_outline");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Marker Outline Color", "Color of marker's outile");
+	RNA_def_property_ui_text(prop, "Marker Outline Color", "Color of marker's outline");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "marker", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -2755,7 +2756,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "ipo_new");
 	RNA_def_property_ui_text(prop, "New Interpolation Type",
 	                         "Interpolation mode used for first keyframe on newly added F-Curves "
-	                         "(subsequent keyframes take interpolation from preceeding keyframe)");
+	                         "(subsequent keyframes take interpolation from preceding keyframe)");
 	
 	prop = RNA_def_property(srna, "keyframe_new_handle_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, keyframe_handle_type_items);

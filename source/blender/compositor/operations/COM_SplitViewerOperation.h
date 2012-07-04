@@ -28,17 +28,17 @@
 
 class SplitViewerOperation : public ViewerBaseOperation {
 private:
-	SocketReader *image1Input;
-	SocketReader *image2Input;
+	SocketReader *m_image1Input;
+	SocketReader *m_image2Input;
 
-	float splitPercentage;
-	bool xSplit;
+	float m_splitPercentage;
+	bool m_xSplit;
 public:
 	SplitViewerOperation();
 	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
 	void initExecution();
 	void deinitExecution();
-	void setSplitPercentage(float splitPercentage) { this->splitPercentage = splitPercentage; }
-	void setXSplit(bool xsplit) { this->xSplit = xsplit; }
+	void setSplitPercentage(float splitPercentage) { this->m_splitPercentage = splitPercentage; }
+	void setXSplit(bool xsplit) { this->m_xSplit = xsplit; }
 };
 #endif

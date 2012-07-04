@@ -25,6 +25,10 @@
 #include "BLI_rect.h"
 #include "COM_defines.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 typedef enum PixelSampler {
 	COM_PS_NEAREST,
 	COM_PS_BILINEAR,
@@ -43,12 +47,12 @@ protected:
 	/**
 	 * @brief Holds the width of the output of this operation.
 	 */
-	unsigned int width;
+	unsigned int m_width;
 
 	/**
 	 * @brief Holds the height of the output of this operation.
 	 */
-	unsigned int height;
+	unsigned int m_height;
 
 
 	/**
@@ -104,8 +108,12 @@ public:
 	virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) { return 0; }
 
 
-	inline const unsigned int getWidth() const { return this->width; }
-	inline const unsigned int getHeight() const { return this->height; }
+	inline const unsigned int getWidth() const { return this->m_width; }
+	inline const unsigned int getHeight() const { return this->m_height; }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:SocketReader")
+#endif
 };
 
-#endif
+#endif /* _COM_SocketReader_h */

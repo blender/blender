@@ -26,30 +26,30 @@
 
 
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class ConvertColorProfileOperation : public NodeOperation {
 private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputOperation;
+	SocketReader *m_inputOperation;
 	
 	/**
 	 * @brief color profile where to convert from
 	 */
-	int fromProfile;
+	int m_fromProfile;
 	
 	/**
 	 * @brief color profile where to convert to
 	 */
-	int toProfile;
+	int m_toProfile;
 	
 	/**
 	 * @brief is color predivided
 	 */
-	bool predivided;
+	bool m_predivided;
 public:
 	/**
 	 * Default constructor
@@ -71,8 +71,8 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setFromColorProfile(int colorProfile) { this->fromProfile = colorProfile; }
-	void setToColorProfile(int colorProfile) { this->toProfile = colorProfile; }
-	void setPredivided(bool predivided) { this->predivided = predivided; }
+	void setFromColorProfile(int colorProfile) { this->m_fromProfile = colorProfile; }
+	void setToColorProfile(int colorProfile) { this->m_toProfile = colorProfile; }
+	void setPredivided(bool predivided) { this->m_predivided = predivided; }
 };
 #endif

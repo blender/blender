@@ -20,7 +20,7 @@
 
 """
 This module contains utility functions specific to blender but
-not assosiated with blenders internal data.
+not associated with blenders internal data.
 """
 
 __all__ = (
@@ -253,8 +253,8 @@ _scripts = (_os.path.normpath(_scripts), )
 
 
 def user_script_path():
-    prefs = _bpy.context.user_preferences
-    path = prefs.filepaths.script_directory
+    # returns the env var and falls back to userprefs
+    path = _user_resource('SCRIPTS')
 
     if path:
         path = _os.path.normpath(path)
@@ -281,7 +281,7 @@ def script_paths(subdir=None, user_pref=True, check_all=False):
     prefs = _bpy.context.user_preferences
 
     # add user scripts dir
-    user_script = prefs.filepaths.script_directory if user_pref else None
+    user_script = user_script_path()
 
     if check_all:
         # all possible paths
@@ -489,7 +489,7 @@ def keyconfig_set(filepath):
 
     try:
         keyfile = open(filepath)
-        exec(compile(keyfile.read(), filepath, 'exec'), {"__file__": filepath})
+        exec(compile(keyfile.read(), filepath, "exec"), {"__file__": filepath})
         keyfile.close()
     except:
         import traceback

@@ -36,12 +36,14 @@
  */
 class MaskOperation : public NodeOperation {
 protected:
-	Mask *mask;
-	int maskWidth;
-	int maskHeight;
-	int framenumber;
-	bool smooth;
-	float *rasterizedMask;
+	Mask *m_mask;
+	int m_maskWidth;
+	int m_maskHeight;
+	int m_framenumber;
+	bool m_do_smooth;
+	bool m_do_feather;
+	float *m_rasterizedMask;
+	ListBase m_maskLayers;
 
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -56,11 +58,12 @@ public:
 
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 
-	void setMask(Mask *mask) { this->mask = mask; }
-	void setMaskWidth(int width) { this->maskWidth = width; }
-	void setMaskHeight(int height) { this->maskHeight = height; }
-	void setFramenumber(int framenumber) { this->framenumber = framenumber; }
-	void setSmooth(bool smooth) { this->smooth = smooth; }
+	void setMask(Mask *mask) { this->m_mask = mask; }
+	void setMaskWidth(int width) { this->m_maskWidth = width; }
+	void setMaskHeight(int height) { this->m_maskHeight = height; }
+	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
+	void setSmooth(bool smooth) { this->m_do_smooth = smooth; }
+	void setFeather(bool feather) { this->m_do_feather = feather; }
 
 	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 };

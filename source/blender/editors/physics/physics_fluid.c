@@ -567,11 +567,14 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 		if (deform) {
 			fsmesh.channelSizeVertices = length;
 			fsmesh.channelVertices = fobj->VertexCache;
-				
-			// remove channels
+			
+			/* remove channels */
 			fsmesh.channelTranslation      = 
 			fsmesh.channelRotation         = 
-			fsmesh.channelScale            = NULL; 
+			fsmesh.channelScale            = NULL;
+			
+			/* Override user settings, only noslip is supported here! */
+			fsmesh.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
 		}
 		
 		elbeemAddMesh(&fsmesh);

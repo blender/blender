@@ -87,12 +87,12 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 	uiLayoutSetAlignment(pa->layout, UI_LAYOUT_ALIGN_LEFT);
 	block = uiLayoutGetBlock(pa->layout);
 	box = uiLayoutBox(pa->layout);
-	col = uiLayoutColumn(box, 1);
+	col = uiLayoutColumn(box, TRUE);
 
 	for (i_iter = 0; i_iter < nentries; ++i_iter) {
 		char dir[FILE_MAX];
 		char temp[FILE_MAX];
-		uiLayout *layout = uiLayoutRow(col, 0);
+		uiLayout *layout = uiLayoutRow(col, FALSE);
 		char *entry;
 
 		i = reverse ? nentries - (i_iter + 1) : i_iter;
@@ -143,7 +143,7 @@ static void file_panel_bookmarks(const bContext *C, Panel *pa)
 	uiLayout *row;
 
 	if (sfile) {
-		row = uiLayoutRow(pa->layout, 0);
+		row = uiLayoutRow(pa->layout, FALSE);
 		uiItemO(row, IFACE_("Add"), ICON_ZOOMIN, "file.bookmark_add");
 		uiItemL(row, NULL, ICON_NONE);
 

@@ -261,8 +261,9 @@ void GeometryExporter::createPolylist(short material_index,
 		
 	// sets material name
 	if (ma) {
+		std::string material_id = get_material_id(ma);
 		std::ostringstream ostr;
-		ostr << translate_id(id_name(ma));
+		ostr << translate_id(material_id);
 		polylist.setMaterial(ostr.str());
 	}
 			
@@ -436,33 +437,38 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 
 	// write <source> for each layer
 	// each <source> will get id like meshName + "map-channel-1"
+	int map_index = 0;
+	int active_uv_index = CustomData_get_active_layer_index(&me->fdata, CD_MTFACE)-1;
 	for (int a = 0; a < num_layers; a++) {
-		MTFace *tface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, a);
-		// char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, a);
-		
-		COLLADASW::FloatSourceF source(mSW);
-		std::string layer_id = makeTexcoordSourceId(geom_id, a);
-		source.setId(layer_id);
-		source.setArrayId(layer_id + ARRAY_ID_SUFFIX);
-		
-		source.setAccessorCount(totuv);
-		source.setAccessorStride(2);
-		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		param.push_back("S");
-		param.push_back("T");
-		
-		source.prepareToAppendValues();
-		
-		for (i = 0; i < totfaces; i++) {
-			MFace *f = &mfaces[i];
+
+		if (!this->export_settings->active_uv_only || a == active_uv_index) {
+			MTFace *tface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, a);
+			// char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, a);
 			
-			for (int j = 0; j < (f->v4 == 0 ? 3 : 4); j++) {
-				source.appendValues(tface[i].uv[j][0],
-				                    tface[i].uv[j][1]);
+			COLLADASW::FloatSourceF source(mSW);
+			std::string layer_id = makeTexcoordSourceId(geom_id, map_index++);
+			source.setId(layer_id);
+			source.setArrayId(layer_id + ARRAY_ID_SUFFIX);
+			
+			source.setAccessorCount(totuv);
+			source.setAccessorStride(2);
+			COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+			param.push_back("S");
+			param.push_back("T");
+			
+			source.prepareToAppendValues();
+			
+			for (i = 0; i < totfaces; i++) {
+				MFace *f = &mfaces[i];
+				
+				for (int j = 0; j < (f->v4 == 0 ? 3 : 4); j++) {
+					source.appendValues(tface[i].uv[j][0],
+										tface[i].uv[j][1]);
+				}
 			}
+			
+			source.finish();
 		}
-		
-		source.finish();
 	}
 }
 

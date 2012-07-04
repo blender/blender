@@ -458,7 +458,7 @@ int ED_operator_editmball(bContext *C)
 
 int ED_operator_mask(bContext *C)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	return ED_space_clip_check_show_maskedit(sc);
 }
@@ -2826,7 +2826,7 @@ static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *U
 	
 	uiItemS(layout);
 	
-	/* file browser should be fullscreen all the time, but other regions can be maximised/restored... */
+	/* file browser should be fullscreen all the time, but other regions can be maximized/restored... */
 	if (sa->spacetype != SPACE_FILE) {
 		if (sa->full) 
 			uiItemO(layout, "Tile Area", ICON_NONE, "SCREEN_OT_screen_full_area");

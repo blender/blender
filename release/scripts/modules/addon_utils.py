@@ -139,6 +139,8 @@ def modules(module_cache):
 
             return mod
         else:
+            print("fake_module: addon missing 'bl_info' "
+                  "gives bad performance!: %r" % mod_path)
             return None
 
     modules_stale = set(module_cache.keys())
@@ -183,8 +185,8 @@ def modules(module_cache):
     del modules_stale
 
     mod_list = list(module_cache.values())
-    mod_list.sort(key=lambda mod: (mod.bl_info['category'],
-                                   mod.bl_info['name'],
+    mod_list.sort(key=lambda mod: (mod.bl_info["category"],
+                                   mod.bl_info["name"],
                                    ))
     return mod_list
 

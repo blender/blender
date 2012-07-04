@@ -276,7 +276,7 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 			sub_v3_v3v3(out, i1, t_con_center);
 
 			/* possible some values become nan when
-			* viewpoint and object are both zero */
+			 * viewpoint and object are both zero */
 			if (!finite(out[0])) out[0] = 0.0f;
 			if (!finite(out[1])) out[1] = 0.0f;
 			if (!finite(out[2])) out[2] = 0.0f;
@@ -306,7 +306,7 @@ static void planeProjection(TransInfo *t, float in[3], float out[3])
 }
 
 /*
- * Generic callback for constant spacial constraints applied to linear motion
+ * Generic callback for constant spatial constraints applied to linear motion
  *
  * The IN vector in projected into the constrained space and then further
  * projected along the view vector.
@@ -404,9 +404,7 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, float in[3], f
 }
 
 /*
- * Generic callback for constant spacial constraints applied to resize motion
- *
- *
+ * Generic callback for constant spatial constraints applied to resize motion
  */
 
 static void applyAxisConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
@@ -430,9 +428,7 @@ static void applyAxisConstraintSize(TransInfo *t, TransData *td, float smat[3][3
 }
 
 /*
- * Callback for object based spacial constraints applied to resize motion
- *
- *
+ * Callback for object based spatial constraints applied to resize motion
  */
 
 static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
@@ -459,7 +455,7 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
 }
 
 /*
- * Generic callback for constant spacial constraints applied to rotations
+ * Generic callback for constant spatial constraints applied to rotations
  *
  * The rotation axis is copied into VEC.
  *
@@ -501,7 +497,7 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3], fl
 }
 
 /*
- * Callback for object based spacial constraints applied to rotations
+ * Callback for object based spatial constraints applied to rotations
  *
  * The rotation axis is copied into VEC.
  *
@@ -644,7 +640,7 @@ void drawConstraint(TransInfo *t)
 {
 	TransCon *tc = &(t->con);
 
-	if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE))
+	if (!ELEM3(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE))
 		return;
 	if (!(tc->mode & CON_APPLY))
 		return;

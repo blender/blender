@@ -22,9 +22,7 @@
 
 #ifndef _COM_NodeOperation_h
 #define _COM_NodeOperation_h
-
-class NodeOperation;
-
+class OpenCLDevice;
 #include "COM_Node.h"
 #include <string>
 #include <sstream>
@@ -51,7 +49,7 @@ private:
 	/**
 	 * @brief the index of the input socket that will be used to determine the resolution
 	 */
-	unsigned int resolutionInputSocketIndex;
+	unsigned int m_resolutionInputSocketIndex;
 
 	/**
 	 * @brief is this operation a complex one.
@@ -59,13 +57,13 @@ private:
 	 * Complex operations are typically doing many reads to calculate the output of a single pixel.
 	 * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
 	 */
-	bool complex;
+	bool m_complex;
 
 	/**
 	 * @brief can this operation be scheduled on an OpenCL device.
 	 * @note Only applicable if complex is True
 	 */
-	bool openCL;
+	bool m_openCL;
 
 	/**
 	 * @brief mutex reference for very special node initializations
@@ -76,12 +74,12 @@ private:
 	 * @see NodeOperation.deinitMutex deinitializes this mutex
 	 * @see NodeOperation.getMutex retrieve a pointer to this mutex.
 	 */
-	ThreadMutex mutex;
+	ThreadMutex m_mutex;
 	
 	/**
 	 * @brief reference to the editing bNodeTree only used for break callback
 	 */
-	const bNodeTree *btree;
+	const bNodeTree *m_btree;
 
 public:
 	/**
@@ -126,7 +124,7 @@ public:
 	virtual int isBufferOperation() { return false; }
 	virtual int isSingleThreaded() { return false; }
 
-	void setbNodeTree(const bNodeTree *tree) { this->btree = tree; }
+	void setbNodeTree(const bNodeTree *tree) { this->m_btree = tree; }
 	virtual void initExecution();
 	
 	/**
@@ -150,7 +148,7 @@ public:
 	 * @param memoryBuffers all input MemoryBuffer's needed
 	 * @param outputBuffer the outputbuffer to write to
 	 */
-	virtual void executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, 
+	virtual void executeOpenCLRegion(OpenCLDevice* device, rcti *rect,
 	                                 unsigned int chunkNumber, MemoryBuffer **memoryBuffers, MemoryBuffer *outputBuffer) {}
 
 	/**
@@ -165,11 +163,11 @@ public:
 	 * @param clMemToCleanUp all created cl_mem references must be added to this list. Framework will clean this after execution
 	 * @param clKernelsToCleanUp all created cl_kernel references must be added to this list. Framework will clean this after execution
 	 */
-	virtual void executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp) {}
+	virtual void executeOpenCL(OpenCLDevice* device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp) {}
 	virtual void deinitExecution();
 
 	bool isResolutionSet() {
-		return this->width != 0 && height != 0;
+		return this->m_width != 0 && this->m_height != 0;
 	}
 
 	/**
@@ -178,8 +176,8 @@ public:
 	 */
 	void setResolution(unsigned int resolution[]) {
 		if (!isResolutionSet()) {
-			this->width = resolution[0];
-			this->height = resolution[1];
+			this->m_width = resolution[0];
+			this->m_height = resolution[1];
 		}
 	}
 	
@@ -192,7 +190,7 @@ public:
 	 * Complex operations are typically doing many reads to calculate the output of a single pixel.
 	 * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
 	 */
-	const bool isComplex() const { return this->complex; }
+	const bool isComplex() const { return this->m_complex; }
 	virtual const bool isSetOperation() const { return false; }
 
 	/**
@@ -237,20 +235,20 @@ public:
 	 * @see WorkScheduler.schedule
 	 * @see ExecutionGroup.addOperation
 	 */
-	bool isOpenCL() { return this->openCL; }
+	bool isOpenCL() { return this->m_openCL; }
 	
 	virtual bool isViewerOperation() { return false; }
 	virtual bool isPreviewOperation() { return false; }
 	
 	inline bool isBreaked() {
-		return btree->test_break(btree->tbh);
+		return this->m_btree->test_break(this->m_btree->tbh);
 	}
 
 protected:
 	NodeOperation();
 
-	void setWidth(unsigned int width) { this->width = width; }
-	void setHeight(unsigned int height) { this->height = height; }
+	void setWidth(unsigned int width) { this->m_width = width; }
+	void setHeight(unsigned int height) { this->m_height = height; }
 	SocketReader *getInputSocketReader(unsigned int inputSocketindex);
 	NodeOperation *getInputOperation(unsigned int inputSocketindex);
 
@@ -266,21 +264,16 @@ protected:
 	 * Complex operations are typically doing many reads to calculate the output of a single pixel.
 	 * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
 	 */
-	void setComplex(bool complex) { this->complex = complex; }
+	void setComplex(bool complex) { this->m_complex = complex; }
 
 	/**
 	 * @brief set if this NodeOperation can be scheduled on a OpenCLDevice
 	 */
-	void setOpenCL(bool openCL) { this->openCL = openCL; }
+	void setOpenCL(bool openCL) { this->m_openCL = openCL; }
 
-	static cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_context context, cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader *reader);
-	static void COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel kernel, int offsetIndex, MemoryBuffer *memoryBuffers);
-	static void COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, cl_mem clOutputMemoryBuffer);
-	void COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offsetIndex);
-	static void COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer);
-	void COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex);
-	cl_kernel COM_clCreateKernel(cl_program program, const char *kernelname, list<cl_kernel> *clKernelsToCleanUp);
-
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
+#endif
 };
 
 #endif

@@ -146,6 +146,13 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 	}
 }
 
+static void node_composit_init_dilateerode(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+{
+	NodeDilateErode *data = MEM_callocN(sizeof(NodeDilateErode), "NodeDilateErode");
+	data->falloff = PROP_SMOOTH;
+	node->storage = data;
+}
+
 void register_node_type_cmp_dilateerode(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -153,7 +160,10 @@ void register_node_type_cmp_dilateerode(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_DILATEERODE, "Dilate/Erode", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_dilateerode_in, cmp_node_dilateerode_out);
 	node_type_size(&ntype, 130, 100, 320);
+	node_type_init(&ntype, node_composit_init_dilateerode);
 	node_type_exec(&ntype, node_composit_exec_dilateerode);
 	
+	node_type_storage(&ntype, "NodeDilateErode", node_free_standard_storage, node_copy_standard_storage);
+
 	nodeRegisterType(ttype, &ntype);
 }

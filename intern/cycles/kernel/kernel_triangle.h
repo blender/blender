@@ -191,7 +191,7 @@ __device int triangle_find_attribute(KernelGlobals *kg, ShaderData *sd, uint id)
 		attr_map = kernel_tex_fetch(__attributes_map, ++attr_offset);
 
 	/* return result */
-	return (attr_map.y == ATTR_ELEMENT_NONE)? ATTR_STD_NOT_FOUND: attr_map.z;
+	return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : attr_map.z;
 }
 
 __device float4 triangle_motion_vector(KernelGlobals *kg, ShaderData *sd)

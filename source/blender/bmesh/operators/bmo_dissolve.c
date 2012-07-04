@@ -164,7 +164,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
 	}
 
-	BMO_op_callf(bm, "del geom=%ff context=%i", FACE_ORIG, DEL_FACES);
+	BMO_op_callf(bm, "delete geom=%ff context=%i", FACE_ORIG, DEL_FACES);
 
 
 	if (use_verts) {

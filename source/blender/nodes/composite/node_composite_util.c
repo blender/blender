@@ -207,7 +207,7 @@ void typecheck_compbuf_color(float *out, float *in, int outtype, int intype)
 			*out= 0.333333f*(in[0]+in[1]+in[2]);
 		}
 		else if (intype==CB_RGBA) {
-			*out= in[0]*0.35f + in[1]*0.45f + in[2]*0.2f;
+			*out = rgb_to_bw(in);
 		}
 	}
 	else if (outtype==CB_VEC2) {
@@ -300,7 +300,7 @@ CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 			}
 			else if (inbuf->type==CB_RGBA) {
 				for (; x>0; x--, outrf+= 1, inrf+= 4)
-					*outrf= inrf[0]*0.35f + inrf[1]*0.45f + inrf[2]*0.2f;
+					*outrf = rgb_to_bw(inrf);
 			}
 		}
 		else if (type==CB_VEC2) {
@@ -872,8 +872,8 @@ static void FHT(fREAL* data, unsigned int M, unsigned int inverse)
 }
 //------------------------------------------------------------------------------
 /* 2D Fast Hartley Transform, Mx/My -> log2 of width/height,
-	nzp -> the row where zero pad data starts,
-	inverse -> see above */
+ * nzp -> the row where zero pad data starts,
+ * inverse -> see above */
 static void FHT2D(fREAL *data, unsigned int Mx, unsigned int My,
 		unsigned int nzp, unsigned int inverse)
 {

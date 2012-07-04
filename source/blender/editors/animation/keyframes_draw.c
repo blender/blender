@@ -847,9 +847,17 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 		/* loop through each F-Curve, grabbing the keyframes */
-		for (ale = anim_data.first; ale; ale = ale->next)
+		for (ale = anim_data.first; ale; ale = ale->next) {
 			fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
-		
+
+			if (ale->datatype == ALE_MASKLAY) {
+				mask_to_keylist(ac->ads, ale->data, keys);
+			}
+			else if (ale->datatype == ALE_GPFRAME) {
+				gpl_to_keylist(ac->ads, ale->data, keys);
+			}
+		}
+
 		BLI_freelistN(&anim_data);
 	}
 }

@@ -109,7 +109,7 @@ static EnumPropertyItem owner_space_pchan_items[] = {
 	                            "The constraint is applied relative to the local coordinate system of the object, "
 	                            "with the parent transformation added"},
 	{CONSTRAINT_SPACE_LOCAL,    "LOCAL", 0, "Local Space",
-	                            "The constraint is applied relative to the local coordinate sytem of the object"},
+	                            "The constraint is applied relative to the local coordinate system of the object"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1116,7 +1116,7 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Object Action",
 	                         "Bones only: apply the object's transformation channels of the action "
 	                         "to the constrained bone, instead of bone's channels");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");

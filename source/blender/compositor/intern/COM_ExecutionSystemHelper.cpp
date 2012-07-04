@@ -39,21 +39,17 @@
 #include "COM_ReadBufferOperation.h"
 #include "COM_ViewerBaseOperation.h"
 
-Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree, bNode *groupnode)
+void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree, bNode *groupnode)
 {
 	vector<Node *>& nodes = system.getNodes();
 	vector<SocketConnection *>& links = system.getConnections();
-	Node *mainnode = NULL;
 	const bNode *activeGroupNode = system.getContext().getActivegNode();
 	bool isActiveGroup = activeGroupNode == groupnode;
 	
 	/* add all nodes of the tree to the node list */
 	bNode *node = (bNode *)tree->nodes.first;
 	while (node != NULL) {
-		Node *execnode = addNode(nodes, node, isActiveGroup);
-		if (node->type == CMP_NODE_COMPOSITE) {
-			mainnode = execnode;
-		}
+		addNode(nodes, node, isActiveGroup, system.getContext().isFastCalculation());
 		node = (bNode *)node->next;
 	}
 
@@ -74,8 +70,6 @@ Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_sta
 			groupNode->ungroup(system);
 		}
 	}
-
-	return mainnode;
 }
 
 void ExecutionSystemHelper::addNode(vector<Node *>& nodes, Node *node)
@@ -83,11 +77,11 @@ void ExecutionSystemHelper::addNode(vector<Node *>& nodes, Node *node)
 	nodes.push_back(node);
 }
 
-Node *ExecutionSystemHelper::addNode(vector<Node *>& nodes, bNode *bNode, bool inActiveGroup)
+Node *ExecutionSystemHelper::addNode(vector<Node *>& nodes, bNode *b_node, bool inActiveGroup, bool fast)
 {
 	Converter converter;
 	Node *node;
-	node = converter.convert(bNode);
+	node = converter.convert(b_node, fast);
 	node->setIsInActiveGroup(inActiveGroup);
 	if (node != NULL) {
 		addNode(nodes, node);
@@ -159,17 +153,17 @@ static OutputSocket *find_output(NodeRange &node_range, bNode *bnode, bNodeSocke
 	}
 	return NULL;
 }
-SocketConnection *ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vector<SocketConnection *>& links, bNodeLink *bNodeLink)
+SocketConnection *ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vector<SocketConnection *>& links, bNodeLink *b_nodelink)
 {
 	/// @note: cyclic lines will be ignored. This has been copied from node.c
-	if (bNodeLink->tonode != 0 && bNodeLink->fromnode != 0) {
-		if (!(bNodeLink->fromnode->level >= bNodeLink->tonode->level && bNodeLink->tonode->level != 0xFFF)) { // only add non cyclic lines! so execution will procede
+	if (b_nodelink->tonode != 0 && b_nodelink->fromnode != 0) {
+		if (!(b_nodelink->fromnode->level >= b_nodelink->tonode->level && b_nodelink->tonode->level != 0xFFF)) { // only add non cyclic lines! so execution will procede
 			return NULL;
 		}
 	}
 
-	InputSocket *inputSocket = find_input(node_range, bNodeLink->tonode, bNodeLink->tosock);
-	OutputSocket *outputSocket = find_output(node_range, bNodeLink->fromnode, bNodeLink->fromsock);
+	InputSocket *inputSocket = find_input(node_range, b_nodelink->tonode, b_nodelink->tosock);
+	OutputSocket *outputSocket = find_output(node_range, b_nodelink->fromnode, b_nodelink->fromsock);
 	if (inputSocket == NULL || outputSocket == NULL) {
 		return NULL;
 	}

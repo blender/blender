@@ -365,7 +365,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		len2 = len_v3v3(vec, vec2);
 
 		/* use shortest segment length divided by 3 as merge threshold */
-		BMO_op_callf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, MIN2(len, len2) / 3.0f);
+		BMO_op_callf(bm, "remove_doubles verts=%fv dist=%f", VERT_MARK, MIN2(len, len2) / 3.0f);
 	}
 
 	/* and now do imat */
@@ -427,7 +427,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		BMOperator bmop;
 
 		BMO_op_initf(bm, &bmop,
-		             "esubd edges=%fe "
+		             "subdivide_edges edges=%fe "
 		             "smooth=%f "
 		             "numcuts=%i "
 		             "use_gridfill=%b use_sphere=%b",
@@ -661,7 +661,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	
 	BM_face_create_quad_tri(bm, v1, v2, firstv2, firstv1, NULL, FALSE);
 
-	BMO_op_callf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, 0.000001);
+	BMO_op_callf(bm, "remove_doubles verts=%fv dist=%f", VERT_MARK, 0.000001);
 	BMO_slot_buffer_from_enabled_flag(bm, op, "vertout", BM_VERT, VERT_MARK);
 }
 

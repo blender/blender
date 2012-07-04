@@ -31,20 +31,20 @@
 
  
 /*
-	HOW TEXTURE NODES WORK
-
-	In contrast to Shader nodes, which place a color into the output
-	stack when executed, Texture nodes place a TexDelegate* there. To
-	obtain a color value from this, a node further up the chain reads
-	the TexDelegate* from its input stack, and uses tex_call_delegate to
-	retrieve the color from the delegate.
- 
-	comments: (ton)
-
-	This system needs recode, a node system should rely on the stack, and 
-	callbacks for nodes only should evaluate own node, not recursively go
-	over other previous ones.
-*/
+ * HOW TEXTURE NODES WORK
+ *
+ * In contrast to Shader nodes, which place a color into the output
+ * stack when executed, Texture nodes place a TexDelegate* there. To
+ * obtain a color value from this, a node further up the chain reads
+ * the TexDelegate* from its input stack, and uses tex_call_delegate to
+ * retrieve the color from the delegate.
+ *
+ * comments: (ton)
+ *
+ * This system needs recode, a node system should rely on the stack, and
+ * callbacks for nodes only should evaluate own node, not recursively go
+ * over other previous ones.
+ */
 
 #include <assert.h>
 #include "node_texture_util.h"

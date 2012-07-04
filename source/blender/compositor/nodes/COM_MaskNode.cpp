@@ -36,7 +36,7 @@ MaskNode::MaskNode(bNode *editorNode) : Node(editorNode)
 
 void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	const RenderData *data = &context->getScene()->r;
+	const RenderData *data = context->getRenderData();
 
 	OutputSocket *outputMask = this->getOutputSocket(0);
 
@@ -45,7 +45,7 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 
 	// always connect the output image
 	MaskOperation *operation = new MaskOperation();
-
+	operation->setbNode(editorNode);
 	operation->setMaskWidth(data->xsch * data->size / 100.0f);
 	operation->setMaskHeight(data->ysch * data->size / 100.0f);
 
@@ -55,7 +55,8 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 
 	operation->setMask(mask);
 	operation->setFramenumber(context->getFramenumber());
-	operation->setSmooth((bool)editorNode->custom1);
+	operation->setSmooth((bool)(editorNode->custom1 & CMP_NODEFLAG_MASK_AA) != 0);
+	operation->setFeather((bool)(editorNode->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
 
 	graph->addOperation(operation);
 }

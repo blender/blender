@@ -29,6 +29,10 @@
 #include "DNA_node_types.h"
 #include "COM_defines.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 using namespace std;
 class SocketConnection;
 class NodeBase;
@@ -49,15 +53,15 @@ private:
 	/**
 	 * Reference to the node where this Socket belongs to
 	 */
-	NodeBase *node;
+	NodeBase *m_node;
 	
 	/**
 	 * the datatype of this socket. Is used for automatically data transformation.
 	 * @section data-conversion
 	 */
-	DataType datatype;
+	DataType m_datatype;
 	
-	bNodeSocket *editorSocket;
+	bNodeSocket *m_editorSocket;
 public:
 	Socket(DataType datatype);
 	
@@ -71,9 +75,12 @@ public:
 	int isOutputSocket() const;
 	virtual void determineResolution(int resolution[], unsigned int preferredResolution[]) {}
 
-	void setEditorSocket(bNodeSocket *editorSocket) { this->editorSocket = editorSocket; }
-	bNodeSocket *getbNodeSocket() const { return this->editorSocket; }
+	void setEditorSocket(bNodeSocket *editorSocket) { this->m_editorSocket = editorSocket; }
+	bNodeSocket *getbNodeSocket() const { return this->m_editorSocket; }
 	
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("COM:Socket")
+#endif
 };
 
 

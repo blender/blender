@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/io/collada.c
+/** \file blender/editors/io/io_collada.c
  *  \ingroup collada
  */
 #ifdef WITH_COLLADA
@@ -83,6 +83,12 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int include_children;
 	int include_armatures;
 	int deform_bones_only;
+
+	int include_uv_textures;
+	int include_material_textures;
+	int use_texture_copies;
+	int active_uv_only;
+
 	int use_object_instantiation;
 	int sort_by_name;
 	int second_life; 
@@ -97,11 +103,17 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 	/* Options panel */
 	apply_modifiers          = RNA_boolean_get(op->ptr, "apply_modifiers");
-	export_mesh_type       = RNA_enum_get(op->ptr, "export_mesh_type_selection");
+	export_mesh_type         = RNA_enum_get(op->ptr,    "export_mesh_type_selection");
 	selected                 = RNA_boolean_get(op->ptr, "selected");
 	include_children         = RNA_boolean_get(op->ptr, "include_children");
 	include_armatures        = RNA_boolean_get(op->ptr, "include_armatures");
 	deform_bones_only        = RNA_boolean_get(op->ptr, "deform_bones_only");
+
+	include_uv_textures      = RNA_boolean_get(op->ptr, "include_uv_textures");
+	include_material_textures= RNA_boolean_get(op->ptr, "include_material_textures");
+	use_texture_copies       = RNA_boolean_get(op->ptr, "use_texture_copies");
+	active_uv_only           = RNA_boolean_get(op->ptr, "active_uv_only");
+
 	use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
 	sort_by_name             = RNA_boolean_get(op->ptr, "sort_by_name");
 	second_life              = RNA_boolean_get(op->ptr, "second_life");
@@ -118,6 +130,12 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	        include_children,
 	        include_armatures,
 	        deform_bones_only,
+
+			active_uv_only,
+			include_uv_textures,
+			include_material_textures,
+			use_texture_copies,
+
 	        use_object_instantiation,
 	        sort_by_name,
 	        second_life)) {
@@ -130,7 +148,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 {
-	uiLayout *box, *row, *col, *sub, *split;
+	uiLayout *box, *row, *col, *split;
 
 	/* Export Options: */
 	box = uiLayoutBox(layout);
@@ -138,49 +156,60 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemL(row, IFACE_("Export Data Options:"), ICON_MESH_DATA);
 
 	row = uiLayoutRow(box, 0);
-	col = uiLayoutColumn(row, 0);
-	split = uiLayoutSplit(col, 0.5f, 0);
-	uiItemR(split, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);	
-	sub = uiLayoutRow(split, 0);
-	uiItemR(sub, imfptr, "export_mesh_type_selection", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
-	uiLayoutSetEnabled(sub, RNA_boolean_get(imfptr, "apply_modifiers"));
+	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
+	col   = uiLayoutColumn(split, FALSE);
+	uiItemR(col, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);
+	col   = uiLayoutColumn(split, FALSE);
+	uiItemR(col, imfptr, "export_mesh_type_selection", 0, "", ICON_NONE);
+	uiLayoutSetEnabled(col, RNA_boolean_get(imfptr, "apply_modifiers"));
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "selected", 0, NULL, ICON_NONE);
 
-	row = uiLayoutRow(box, 0);
-	col = uiLayoutColumn(row, 0);
-	split = uiLayoutSplit(col, 0.1f, 0);
-	sub = uiLayoutRow(split, 0);
-	uiItemR(split, imfptr, "include_children", 0, NULL, ICON_NONE);
+	row = uiLayoutRow(box, FALSE);
+	uiItemR(row, imfptr, "include_children", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
-	row = uiLayoutRow(box, 0);
-	col = uiLayoutColumn(row, 0);
-	split = uiLayoutSplit(col, 0.1f, 0);
-	sub = uiLayoutRow(split, 0);
-	uiItemR(split, imfptr, "include_armatures", 0, NULL, ICON_NONE);
+	row = uiLayoutRow(box, FALSE);
+	uiItemR(row, imfptr, "include_armatures", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
+
+	// Texture options
+	box = uiLayoutBox(layout);
+	row = uiLayoutRow(box, FALSE);
+	uiItemL(row, IFACE_("Texture Options:"), ICON_TEXTURE_DATA);
+
+	row = uiLayoutRow(box, FALSE);
+	uiItemR(row, imfptr, "active_uv_only", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, FALSE);
+	uiItemR(row, imfptr, "include_uv_textures", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, FALSE);
+	uiItemR(row, imfptr, "include_material_textures", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, FALSE);
+	uiItemR(row, imfptr, "use_texture_copies", 1, NULL, ICON_NONE);
 
 
 	// Armature options
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Armature Options:"), ICON_ARMATURE_DATA);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "deform_bones_only", 0, NULL, ICON_NONE);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "second_life", 0, NULL, ICON_NONE);
 
 	/* Collada options: */
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Collada Options:"), ICON_MODIFIER);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
 
 }
@@ -215,8 +244,9 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
-	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
-	                "Apply modifiers");
+	RNA_def_boolean(ot->srna,
+	                "apply_modifiers", 0, "Apply Modifiers",
+	                "Apply modifiers to exported mesh (non destructive))");
 
 	RNA_def_int(ot->srna, "export_mesh_type", 0, INT_MIN, INT_MAX,
 	            "Resolution", "Modifier resolution for export", INT_MIN, INT_MAX);
@@ -235,6 +265,19 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "deform_bones_only", 0, "Deform Bones only",
 	                "Only export deforming bones with armatures");
+
+
+	RNA_def_boolean(ot->srna, "active_uv_only", 0, "Only Active UV layer",
+					"Export textures assigned to the object UV maps");
+
+	RNA_def_boolean(ot->srna, "include_uv_textures", 0, "Include UV Textures",
+					"Export textures assigned to the object UV maps");
+
+	RNA_def_boolean(ot->srna, "include_material_textures", 0, "Include Material Textures",
+					"Export textures assigned to the object Materials");
+
+	RNA_def_boolean(ot->srna, "use_texture_copies", 1, "Copy", 
+	                "Copy textures to same folder where the .dae file is exported");
 
 
 	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instances",

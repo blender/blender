@@ -2344,8 +2344,8 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	/* Use tf_uv_pxoffset instead of tf->uv so we can offset the UV half a pixel
 	 * this is done so we can avoid offsetting all the pixels by 0.5 which causes
 	 * problems when wrapping negative coords */
-	xhalfpx = (0.5f +   (PROJ_GEOM_TOLERANCE / 3.0f)   ) / ibuf_xf;
-	yhalfpx = (0.5f +   (PROJ_GEOM_TOLERANCE / 4.0f)   ) / ibuf_yf;
+	xhalfpx = (0.5f + (PROJ_GEOM_TOLERANCE / 3.0f)) / ibuf_xf;
+	yhalfpx = (0.5f + (PROJ_GEOM_TOLERANCE / 4.0f)) / ibuf_yf;
 	
 	/* Note about (PROJ_GEOM_TOLERANCE/x) above...
 	 * Needed to add this offset since UV coords are often quads aligned to pixels.
@@ -4935,7 +4935,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		if (BKE_brush_size_get(scene, brush) < 2)
 			BKE_brush_size_set(scene, brush, 2);
 
-		/* allocate and initialize spacial data structures */
+		/* allocate and initialize spatial data structures */
 		project_paint_begin(&pop->ps);
 		
 		if (pop->ps.dm == NULL)
@@ -5728,7 +5728,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
 	                      image_undo_restore, image_undo_free);
 
-	/* allocate and initialize spacial data structures */
+	/* allocate and initialize spatial data structures */
 	project_paint_begin(&ps);
 
 	if (ps.dm == NULL) {

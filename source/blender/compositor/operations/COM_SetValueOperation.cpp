@@ -29,7 +29,7 @@ SetValueOperation::SetValueOperation() : NodeOperation()
 
 void SetValueOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	outputValue[0] = this->value;
+	outputValue[0] = this->m_value;
 }
 
 void SetValueOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])

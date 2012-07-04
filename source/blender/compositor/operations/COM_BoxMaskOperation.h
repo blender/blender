@@ -30,15 +30,15 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputMask;
-	SocketReader *inputValue;
+	SocketReader *m_inputMask;
+	SocketReader *m_inputValue;
 	
-	float sine;
-	float cosine;
-	float aspectRatio;
-	int maskType;
+	float m_sine;
+	float m_cosine;
+	float m_aspectRatio;
+	int m_maskType;
 	
-	NodeBoxMask *data;
+	NodeBoxMask *m_data;
 public:
 	BoxMaskOperation();
 	
@@ -57,9 +57,9 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setData(NodeBoxMask *data) { this->data = data; }
+	void setData(NodeBoxMask *data) { this->m_data = data; }
 
-	void setMaskType(int maskType) { this->maskType = maskType; }
+	void setMaskType(int maskType) { this->m_maskType = maskType; }
 
 };
 #endif

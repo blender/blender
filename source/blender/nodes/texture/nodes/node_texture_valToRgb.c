@@ -91,8 +91,7 @@ static void rgbtobw_valuefn(float *out, TexParams *p, bNode *UNUSED(node), bNode
 {
 	float cin[4];
 	tex_input_rgba(cin, in[0], p, thread);
-	
-	*out = cin[0] * 0.35f + cin[1] * 0.45f + cin[2] * 0.2f;
+	*out = rgb_to_bw(cin);
 }
 
 static void rgbtobw_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

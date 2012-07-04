@@ -3320,7 +3320,7 @@ static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeR
 			}
 		}
 
-		/* stickness was possibly added before, so cancel that before calculating new normal velocity */
+		/* stickiness was possibly added before, so cancel that before calculating new normal velocity */
 		/* otherwise particles go flying out of the surface because of high reversed sticky velocity */
 		if (v0_dot < 0.0f) {
 			v0_dot += pd->pdef_stickness;
@@ -3379,7 +3379,7 @@ static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeR
 				madd_v3_v3fl(pa->state.vel, nor, -dot);
 		}
 
-		/* add stickness to surface */
+		/* add stickiness to surface */
 		madd_v3_v3fl(pa->state.vel, pce->nor, -pd->pdef_stickness);
 
 		/* set coordinates for next iteration */

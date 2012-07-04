@@ -27,23 +27,23 @@ GlareBaseOperation::GlareBaseOperation() : SingleThreadedNodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
-	this->settings = NULL;
+	this->m_settings = NULL;
 }
 void GlareBaseOperation::initExecution()
 {
 	SingleThreadedNodeOperation::initExecution();
-	this->inputProgram = getInputSocketReader(0);
+	this->m_inputProgram = getInputSocketReader(0);
 }
 
 void GlareBaseOperation::deinitExecution()
 {
-	this->inputProgram = NULL;
+	this->m_inputProgram = NULL;
 	SingleThreadedNodeOperation::deinitExecution();
 }
 
 MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2, MemoryBuffer **memoryBuffers)
 {
-	MemoryBuffer *tile = (MemoryBuffer *)inputProgram->initializeTileData(rect2, memoryBuffers);
+	MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect2, memoryBuffers);
 	rcti rect;
 	rect.xmin = 0;
 	rect.ymin = 0;
@@ -51,7 +51,7 @@ MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2, MemoryBuffer *
 	rect.ymax = getHeight();
 	MemoryBuffer *result = new MemoryBuffer(NULL, &rect);
 	float *data = result->getBuffer();
-	this->generateGlare(data, tile, this->settings);
+	this->generateGlare(data, tile, this->m_settings);
 	return result;
 }
 

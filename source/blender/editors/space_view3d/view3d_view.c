@@ -1564,13 +1564,15 @@ static void endlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 
 static int localview_exec(bContext *C, wmOperator *UNUSED(unused))
 {
+	Main *bmain = CTX_data_main(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	
 	if (v3d->localvd)
 		endlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
 	else
 		initlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
-	
+
+	DAG_id_type_tag(bmain, ID_OB);
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;

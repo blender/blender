@@ -356,7 +356,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	/* on first read, find active file */
 	if (params->active_file == -1) {
 		wmEvent *event = CTX_wm_window(C)->eventstate;
-		file_hilight_set(sfile, ar, event->x, event->y);
+		file_highlight_set(sfile, ar, event->x, event->y);
 	}
 	
 	file_draw_list(C, ar);

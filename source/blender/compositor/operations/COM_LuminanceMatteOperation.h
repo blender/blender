@@ -25,13 +25,13 @@
 
 
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class LuminanceMatteOperation : public NodeOperation {
 private:
-	NodeChroma *settings;
-	SocketReader *inputImageProgram;
+	NodeChroma *m_settings;
+	SocketReader *m_inputImageProgram;
 public:
 	/**
 	 * Default constructor
@@ -46,6 +46,6 @@ public:
 	void initExecution();
 	void deinitExecution();
 	
-	void setSettings(NodeChroma *nodeChroma) { this->settings = nodeChroma; }
+	void setSettings(NodeChroma *nodeChroma) { this->m_settings = nodeChroma; }
 };
 #endif

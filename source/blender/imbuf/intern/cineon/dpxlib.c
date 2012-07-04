@@ -53,7 +53,7 @@ fillDpxChannelInfo(DpxFile* dpx, DpxChannelInformation* chan, int des) {
 	chan->ref_high_quantity = htonf(2.046);
 	chan->designator1 = des;
 	chan->transfer_characteristics = 0;
-	chan->colourimetry = 0;
+	chan->colorimetry = 0;
 	chan->bits_per_pixel = 10;
 	chan->packing = htons(1);
 	chan->encoding = 0;

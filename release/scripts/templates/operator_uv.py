@@ -27,7 +27,7 @@ def main(context):
 
 
 class UvOperator(bpy.types.Operator):
-    '''UV Operator description'''
+    """UV Operator description"""
     bl_idname = "uv.simple_operator"
     bl_label = "Simple UV Operator"
 

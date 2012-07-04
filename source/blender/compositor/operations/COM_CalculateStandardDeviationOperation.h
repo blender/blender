@@ -31,7 +31,7 @@
  */
 class CalculateStandardDeviationOperation : public CalculateMeanOperation {
 protected:
-	float standardDeviation;
+	float m_standardDeviation;
 
 public:
 	CalculateStandardDeviationOperation();

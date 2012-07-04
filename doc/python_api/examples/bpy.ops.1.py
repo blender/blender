@@ -1,22 +1,17 @@
 """
-Execution Context
-+++++++++++++++++
+Overriding Context
+------------------
 
-When calling an operator you may want to pass the execution context.
+It is possible to override context members that the operator sees, so that they
+act on specified rather than the selected or active data, or to execute an
+operator in the different part of the user interface.
 
-This determines the context thats given to the operator to run in, and weather
-invoke() is called or execute().
-
-'EXEC_DEFAULT' is used by default but you may want the operator to take user
-interaction with 'INVOKE_DEFAULT'.
-
-The execution context is as a non keyword, string argument in:
-('INVOKE_DEFAULT', 'INVOKE_REGION_WIN', 'INVOKE_REGION_CHANNELS',
-'INVOKE_REGION_PREVIEW', 'INVOKE_AREA', 'INVOKE_SCREEN', 'EXEC_DEFAULT',
-'EXEC_REGION_WIN', 'EXEC_REGION_CHANNELS', 'EXEC_REGION_PREVIEW', 'EXEC_AREA',
-'EXEC_SCREEN')
+The context overrides are passed as a dictionary, with keys matching the context
+member names in bpy.context. For example to override bpy.context.active_object,
+you would pass {'active_object': object}.
 """
 
-# group add popup
+# remove all objects in scene rather than the selected ones
 import bpy
-bpy.ops.object.group_instance_add('INVOKE_DEFAULT')
+override = {'selected_bases': list(bpy.context.scene.object_bases)}
+bpy.ops.object.delete(override)

@@ -100,7 +100,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
 }
 
 /* keep this operator fast, its used in a modifier */
-void bmo_edgesplit_exec(BMesh *bm, BMOperator *op)
+void bmo_split_edges_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e;

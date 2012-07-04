@@ -166,6 +166,7 @@ typedef struct bNode {
 	struct bNode *parent;	/* parent node */
 	struct ID *id;			/* optional link to libdata */
 	void *storage;			/* custom data, must be struct, for storage in file */
+	struct bNode *original;	/* the original node in the tree (for localized tree) */
 	
 	float locx, locy;		/* root offset for drawing */
 	float width, height;	/* node custom width and height */
@@ -177,10 +178,11 @@ typedef struct bNode {
 	char label[64];			/* custom user-defined label, MAX_NAME */
 	short custom1, custom2;	/* to be abused for buttons */
 	float custom3, custom4;
+	int highlight;			/* 0 = not highlighted, 1-N = highlighted*/
+	int pad;
 	
 	short need_exec, exec;	/* need_exec is set as UI execution event, exec is flag during exec */
 	void *threaddata;		/* optional extra storage for use in thread (read only then!) */
-	
 	rctf totr;				/* entire boundbox */
 	rctf butr;				/* optional buttons area */
 	rctf prvr;				/* optional preview area */
@@ -302,6 +304,7 @@ typedef struct bNodeTree {
 /* ntree->flag */
 #define NTREE_DS_EXPAND		1	/* for animation editors */
 #define NTREE_COM_OPENCL	2	/* use opencl */
+#define NTREE_TWO_PASS		4	/* two pass */
 /* XXX not nice, but needed as a temporary flags
  * for group updates after library linking.
  */
@@ -347,21 +350,31 @@ typedef struct bNodeSocketValueRGBA {
 
 
 /* data structs, for node->storage */
+enum {
+	CMP_NODE_MASKTYPE_ADD         = 0,
+	CMP_NODE_MASKTYPE_SUBTRACT    = 1,
+	CMP_NODE_MASKTYPE_MULTIPLY    = 2,
+	CMP_NODE_MASKTYPE_NOT         = 3
+};
 
-#define CMP_NODE_MASKTYPE_ADD       	0
-#define CMP_NODE_MASKTYPE_SUBTRACT  	1
-#define CMP_NODE_MASKTYPE_MULTIPLY  	2
-#define CMP_NODE_MASKTYPE_NOT       	3
+enum {
+	CMP_NODE_LENSFLARE_GHOST   = 1,
+	CMP_NODE_LENSFLARE_GLOW    = 2,
+	CMP_NODE_LENSFLARE_CIRCLE  = 4,
+	CMP_NODE_LENSFLARE_STREAKS = 8
+};
 
-#define CMP_NODE_LENSFLARE_GHOST   1
-#define CMP_NODE_LENSFLARE_GLOW    2
-#define CMP_NODE_LENSFLARE_CIRCLE  4
-#define CMP_NODE_LENSFLARE_STREAKS 8
+enum {
+	CMP_NODE_DILATEERODE_STEP             = 0,
+	CMP_NODE_DILATEERODE_DISTANCE_THRESH  = 1,
+	CMP_NODE_DILATEERODE_DISTANCE         = 2,
+	CMP_NODE_DILATEERODE_DISTANCE_FEATHER = 3
+};
 
-#define CMP_NODE_DILATEERODE_STEP            0
-#define CMP_NODE_DILATEERODE_DISTANCE_THRESH 1
-#define CMP_NODE_DILATEERODE_DISTANCE        2
-#define CMP_NODE_DILATEERODE_DISTANCE_FEATHER 3
+enum {
+	CMP_NODEFLAG_MASK_AA         = (1 << 0),
+	CMP_NODEFLAG_MASK_NO_FEATHER = (1 << 1)
+};
 
 typedef struct NodeFrame {
 	short flag;
@@ -559,6 +572,11 @@ typedef struct NodeColorspill {
 	float uspillr, uspillg, uspillb;
 } NodeColorspill;
 
+typedef struct NodeDilateErode {
+	char falloff;
+	char pad[7];
+} NodeDilateErode;
+
 typedef struct NodeTexBase {
 	TexMapping tex_mapping;
 	ColorMapping color_mapping;
@@ -640,6 +658,8 @@ typedef struct NodeKeyingData {
 	float edge_kernel_tolerance;
 	float clip_black, clip_white;
 	int dilate_distance;
+	int feather_distance;
+	int feather_falloff;
 	int blur_pre, blur_post;
 } NodeKeyingData;
 

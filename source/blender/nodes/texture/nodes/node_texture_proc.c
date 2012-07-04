@@ -36,8 +36,8 @@
 #include "RE_shader_ext.h"
 
 /* 
-	In this file: wrappers to use procedural textures as nodes
-*/
+ * In this file: wrappers to use procedural textures as nodes
+ */
 
 
 static bNodeSocketTemplate outputs_both[]= {

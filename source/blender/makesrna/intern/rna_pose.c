@@ -142,9 +142,9 @@ void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
 	/* ensure only valid values get set */
 	if ((value >= -1) && (value < 21)) {
 		grp->customCol = value;
-	
+		
 		/* sync colors stored with theme colors based on the index specified */
-		action_group_colors_sync(grp);
+		action_group_colors_sync(grp, NULL);
 	}
 }
 
@@ -1118,8 +1118,8 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 		{ITASC_INITIAL_REITERATION, "INITIAL", 0, "Initial",
 		                            "The solver reiterates (converges) on the first frame but not on "
 		                            "subsequent frame"},
-		{ITASC_INITIAL_REITERATION|ITASC_REITERATION, "ALWAYS", 0, "Always",
-		                                              "The solver reiterates (converges) on all frames"},
+		{ITASC_INITIAL_REITERATION | ITASC_REITERATION, "ALWAYS", 0, "Always",
+		                                                "The solver reiterates (converges) on all frames"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

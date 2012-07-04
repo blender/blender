@@ -279,7 +279,7 @@ void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW:
 	TagsMap::iterator etit;
 	ExtraTags *et = 0;
 	etit = uid_tags_map.find(node->getUniqueId().toAscii());
-	if (etit !=  uid_tags_map.end()) {
+	if (etit != uid_tags_map.end()) {
 		et = etit->second;
 		//else return;
 

@@ -168,6 +168,11 @@ protected:
 
 	/** The list with event consumers. */
 	TConsumerVector m_consumers;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_EventManager")
+#endif
 };
 
 #endif // __GHOST_EVENTMANAGER_H__

@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SwitchNode_h
-#define _COM_SwitchNode_h
+#ifndef _COM_SwitchNode_h_
+#define _COM_SwitchNode_h_
 
 #include "COM_Node.h"
 #include "COM_NodeOperation.h"

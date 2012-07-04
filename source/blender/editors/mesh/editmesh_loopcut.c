@@ -313,10 +313,13 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		edgering_sel(lcd, cuts, 1);
 		
 		if (lcd->do_cut) {
+			/* Enable gridfill, so that intersecting loopcut works as one would expect.
+			 * Note though that it will break edgeslide in this specific case.
+			 * See [#31939]. */
 			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
 			                   0.0f, 0.0f, 0.0f,
 			                   cuts,
-			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, FALSE, 0);
+			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, TRUE, 0);
 
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {
@@ -336,7 +339,8 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			DAG_id_tag_update(lcd->ob->data, 0);
 		}
 		else {
-			
+			/* XXX Is this piece of code ever used now? Simple loop select is now
+			 *     in editmesh_select.c (around line 1000)... */
 			/* sets as active, useful for other tools */
 			if (em->selectmode & SCE_SELECT_VERTEX)
 				BM_select_history_store(em->bm, lcd->eed->v1);  /* low priority TODO, get vertrex close to mouse */

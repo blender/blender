@@ -41,9 +41,19 @@ struct bNodeTree;
 struct bNode;
 struct bNodeTree;
 struct ScrArea;
+struct View2D;
+
+typedef enum {
+	NODE_TOP    = 1,
+	NODE_BOTTOM = 2,
+	NODE_LEFT   = 4,
+	NODE_RIGHT  = 8
+} NodeBorder;
 
 /* drawnode.c */
 void ED_init_node_butfuncs(void);
+
+void drawnodesnap(struct View2D *v2d, const float cent[2], float size, NodeBorder border);
 
 /* node_draw.c */
 void ED_node_tree_update(struct SpaceNode *snode, struct Scene *scene);
@@ -61,6 +71,9 @@ void ED_node_link_insert(struct ScrArea *sa);
 void ED_node_post_apply_transform(struct bContext *C, struct bNodeTree *ntree);
 
 void ED_node_set_active(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
+
+void ED_node_sample_set(const float col[4]);
+
 /* node ops.c */
 void ED_operatormacros_node(void);
 

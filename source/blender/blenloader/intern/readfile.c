@@ -159,52 +159,52 @@
 #include <errno.h>
 
 /*
- Remark: still a weak point is the newaddress() function, that doesnt solve reading from
- multiple files at the same time
-
- (added remark: oh, i thought that was solved? will look at that... (ton)
-
-READ
-- Existing Library (Main) push or free
-- allocate new Main
-- load file
-- read SDNA
-- for each LibBlock
-	- read LibBlock
-	- if a Library
-		- make a new Main
-		- attach ID's to it
-	- else
-		- read associated 'direct data'
-		- link direct data (internal and to LibBlock)
-- read FileGlobal
-- read USER data, only when indicated (file is ~/X.XX/startup.blend)
-- free file
-- per Library (per Main)
-	- read file
-	- read SDNA
-	- find LibBlocks and attach IDs to Main
-		- if external LibBlock
-			- search all Main's
-				- or it's already read,
-				- or not read yet
-				- or make new Main
-	- per LibBlock
-		- read recursive
-		- read associated direct data
-		- link direct data (internal and to LibBlock)
-	- free file
-- per Library with unread LibBlocks
-	- read file
-	- read SDNA
-	- per LibBlock
-			   - read recursive
-			   - read associated direct data
-			   - link direct data (internal and to LibBlock)
-		- free file
-- join all Mains
-- link all LibBlocks and indirect pointers to libblocks
-- initialize FileGlobal and copy pointers to Global
+ * Remark: still a weak point is the newaddress() function, that doesnt solve reading from
+ * multiple files at the same time
+ *
+ * (added remark: oh, i thought that was solved? will look at that... (ton)
+ *
+ * READ
+ * - Existing Library (Main) push or free
+ * - allocate new Main
+ * - load file
+ * - read SDNA
+ * - for each LibBlock
+ *     - read LibBlock
+ *     - if a Library
+ *         - make a new Main
+ *         - attach ID's to it
+ *     - else
+ *         - read associated 'direct data'
+ *         - link direct data (internal and to LibBlock)
+ * - read FileGlobal
+ * - read USER data, only when indicated (file is ~/X.XX/startup.blend)
+ * - free file
+ * - per Library (per Main)
+ *     - read file
+ *     - read SDNA
+ *     - find LibBlocks and attach IDs to Main
+ *         - if external LibBlock
+ *             - search all Main's
+ *                 - or it's already read,
+ *                 - or not read yet
+ *                 - or make new Main
+ *     - per LibBlock
+ *         - read recursive
+ *         - read associated direct data
+ *         - link direct data (internal and to LibBlock)
+ *     - free file
+ * - per Library with unread LibBlocks
+ *     - read file
+ *     - read SDNA
+ *     - per LibBlock
+ *                - read recursive
+ *                - read associated direct data
+ *                - link direct data (internal and to LibBlock)
+ *         - free file
+ * - join all Mains
+ * - link all LibBlocks and indirect pointers to libblocks
+ * - initialize FileGlobal and copy pointers to Global
 */
 
 /* also occurs in library.c */
@@ -4426,7 +4426,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		}
 		else if (md->type == eModifierType_Collision) {
 			CollisionModifierData *collmd = (CollisionModifierData *)md;
-			/*
+#if 0
 			// TODO: CollisionModifier should use pointcache 
 			// + have proper reset events before enabling this
 			collmd->x = newdataadr(fd, collmd->x);
@@ -4436,7 +4436,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->current_x = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_x");
 			collmd->current_xnew = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_xnew");
 			collmd->current_v = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_v");
-			*/
+#endif
 			
 			collmd->x = NULL;
 			collmd->xnew = NULL;
@@ -5496,7 +5496,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						v3d->localvd->camera = sc->scene->camera;
 						
 						/* localview can become invalid during undo/redo steps, so we exit it when no could be found */
-						/* XXX  regionlocalview ?
+#if 0					/* XXX  regionlocalview ? */
 						for (base= sc->scene->base.first; base; base= base->next) {
 							if (base->lay & v3d->lay) break;
 						}
@@ -5506,7 +5506,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 							MEM_freeN(v3d->localvd); 
 							v3d->localvd= NULL;
 						}
-						*/
+#endif
 					}
 					else if (v3d->scenelock) v3d->lay = sc->scene->lay;
 					
@@ -5533,6 +5533,11 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						if (ads->filter_grp)
 							ads->filter_grp = restore_pointer_by_name(newmain, (ID *)ads->filter_grp, 0);
 					}
+					
+					/* force recalc of list of channels (i.e. includes calculating F-Curve colors)
+					 * thus preventing the "black curves" problem post-undo
+					 */
+					sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
 				}
 				else if (sl->spacetype == SPACE_BUTS) {
 					SpaceButs *sbuts = (SpaceButs *)sl;
@@ -5547,10 +5552,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceAction *saction = (SpaceAction *)sl;
 					
 					saction->action = restore_pointer_by_name(newmain, (ID *)saction->action, 1);
-					saction->ads.source= restore_pointer_by_name(newmain, (ID *)saction->ads.source, 1);
+					saction->ads.source = restore_pointer_by_name(newmain, (ID *)saction->ads.source, 1);
 					
 					if (saction->ads.filter_grp)
-						saction->ads.filter_grp= restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, 0);
+						saction->ads.filter_grp = restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, 0);
 						
 					
 					/* force recalc of list of channels, potentially updating the active action 
@@ -5909,11 +5914,20 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				}
 			}
 			else if (sl->spacetype == SPACE_SEQ) {
+				/* grease pencil data is not a direct data and can't be linked from direct_link*
+				 * functions, it should be linked from lib_link* funcrions instead
+				 *
+				 * otherwise it'll lead to lost grease data on open because it'll likely be
+				 * read from file after all other users of grease pencil and newdataadr would
+				 * simple return NULL here (sergey)
+				 */
+#if 0
 				SpaceSeq *sseq = (SpaceSeq *)sl;
 				if (sseq->gpd) {
 					sseq->gpd = newdataadr(fd, sseq->gpd);
 					direct_link_gpencil(fd, sseq->gpd);
 				}
+#endif
 			}
 			else if (sl->spacetype == SPACE_BUTS) {
 				SpaceButs *sbuts = (SpaceButs *)sl;
@@ -6982,6 +6996,21 @@ static void do_version_ntree_image_user_264(void *UNUSED(data), ID *UNUSED(id), 
 	}
 }
 
+static void do_version_ntree_dilateerode_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_DILATEERODE) {
+			if (node->storage == NULL) {
+				NodeDilateErode *data = MEM_callocN(sizeof(NodeDilateErode), __func__);
+				data->falloff = PROP_SMOOTH;
+				node->storage = data;
+			}
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7406,7 +7435,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 263) {
 		/* set fluidsim rate. the version patch for this in 2.62 was wrong, so
-		try to correct it, if rate is 0.0 that's likely not intentional */
+		 * try to correct it, if rate is 0.0 that's likely not intentional */
 		Object *ob;
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -7787,6 +7816,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (ma = main->mat.first; ma; ma = ma->id.next)
 			if (ma->strand_widthfade == 2.0f)
 				ma->strand_widthfade = 0.0f;
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 13)) {
+		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
+
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_dilateerode_264);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -28,20 +28,20 @@ ChromaMatteOperation::ChromaMatteOperation() : NodeOperation()
 	addInputSocket(COM_DT_COLOR);
 	addOutputSocket(COM_DT_VALUE);
 
-	inputImageProgram = NULL;
-	inputKeyProgram = NULL;
+	this->m_inputImageProgram = NULL;
+	this->m_inputKeyProgram = NULL;
 }
 
 void ChromaMatteOperation::initExecution()
 {
-	this->inputImageProgram = this->getInputSocketReader(0);
-	this->inputKeyProgram = this->getInputSocketReader(1);
+	this->m_inputImageProgram = this->getInputSocketReader(0);
+	this->m_inputKeyProgram = this->getInputSocketReader(1);
 }
 
 void ChromaMatteOperation::deinitExecution()
 {
-	this->inputImageProgram = NULL;
-	this->inputKeyProgram = NULL;
+	this->m_inputImageProgram = NULL;
+	this->m_inputKeyProgram = NULL;
 }
 
 void ChromaMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -49,16 +49,16 @@ void ChromaMatteOperation::executePixel(float *outputValue, float x, float y, Pi
 	float inKey[4];
 	float inImage[4];
 
-	const float acceptance = this->settings->t1; /* in radians */
-	const float cutoff = this->settings->t2; /* in radians */
-	const float gain = this->settings->fstrength;
+	const float acceptance = this->m_settings->t1; /* in radians */
+	const float cutoff = this->m_settings->t2; /* in radians */
+	const float gain = this->m_settings->fstrength;
 
 	float x_angle, z_angle, alpha;
 	float theta, beta;
 	float kfg;
 
-	this->inputKeyProgram->read(inKey, x, y, sampler, inputBuffers);
-	this->inputImageProgram->read(inImage, x, y, sampler, inputBuffers);
+	this->m_inputKeyProgram->read(inKey, x, y, sampler, inputBuffers);
+	this->m_inputImageProgram->read(inImage, x, y, sampler, inputBuffers);
 
 	/* store matte(alpha) value in [0] to go with
 	 * COM_SetAlphaOperation and the Value output

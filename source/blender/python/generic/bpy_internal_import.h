@@ -62,4 +62,8 @@ extern PyMethodDef bpy_reload_meth;
 struct Main *bpy_import_main_get(void);
 void bpy_import_main_set(struct Main *maggie);
 
+/* This is used for importing text from dynamically loaded libraries in the game engine */
+void bpy_import_main_extra_add(struct Main *maggie);
+void bpy_import_main_extra_remove(struct Main *maggie);
+
 #endif				/* __BPY_INTERNAL_IMPORT_H__ */

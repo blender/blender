@@ -2269,7 +2269,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 	}
 }
 
-/* ****************************** Armature Visualisation ******************************** */
+/* ****************************** Armature Visualization ******************************** */
 
 /* ---------- Paths --------- */
 

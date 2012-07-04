@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,39 +15,21 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
- *		Monique Dewanchand
+ * The Original Code is Copyright (C) 2012 Blender Foundation.
+ * All rights reserved.
+ *
+ * Contributor(s): Campbell Barton
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef _COM_ConvertValueToColourProg_h
-#define _COM_ConvertValueToColourProg_h
-#include "COM_NodeOperation.h"
+/** \file blender/python/bmesh/bmesh_py_ops.h
+ *  \ingroup pybmesh
+ */
 
+#ifndef __BMESH_PY_OPS_H__
+#define __BMESH_PY_OPS_H__
 
-class ConvertValueToColourProg : public NodeOperation {
-private:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *inputProgram;
-public:
-	ConvertValueToColourProg();
-	
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
-	
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
-	
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
+PyObject *BPyInit_bmesh_ops(void);
 
-};
-#endif
+#endif /* __BMESH_PY_OPS_H__ */

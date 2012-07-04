@@ -218,7 +218,7 @@ void BlenderSession::render()
 		}
 
 		buffer_params.passes = passes;
-		scene->film->passes = passes;
+		scene->film->tag_passes_update(scene, passes);
 		scene->film->tag_update(scene);
 		scene->integrator->tag_update(scene);
 

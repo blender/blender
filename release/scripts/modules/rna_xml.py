@@ -352,7 +352,7 @@ def xml_file_run(context, filepath, rna_map):
 
 def xml_file_write(context, filepath, rna_map):
 
-    file = open(filepath, 'w', encoding='utf-8')
+    file = open(filepath, "w", encoding="utf-8")
     fw = file.write
 
     fw("<bpy>\n")

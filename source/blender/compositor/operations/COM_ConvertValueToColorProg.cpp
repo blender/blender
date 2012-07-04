@@ -20,28 +20,30 @@
  *		Monique Dewanchand
  */
 
-#include "COM_ConvertColourToValueProg.h"
+#include "COM_ConvertValueToColorProg.h"
 
-ConvertColourToValueProg::ConvertColourToValueProg() : NodeOperation()
+ConvertValueToColorProg::ConvertValueToColorProg() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR);
-	this->addOutputSocket(COM_DT_VALUE);
-	this->inputOperation = NULL;
+	this->addInputSocket(COM_DT_VALUE);
+	this->addOutputSocket(COM_DT_COLOR);
+	this->m_inputProgram = NULL;
+}
+void ConvertValueToColorProg::initExecution()
+{
+	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void ConvertColourToValueProg::initExecution()
+void ConvertValueToColorProg::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	this->inputOperation = this->getInputSocketReader(0);
+	float inputValue[4];
+	this->m_inputProgram->read(inputValue, x, y, sampler, inputBuffers);
+	color[0] = inputValue[0];
+	color[1] = inputValue[0];
+	color[2] = inputValue[0];
+	color[3] = 1.0f;
 }
 
-void ConvertColourToValueProg::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ConvertValueToColorProg::deinitExecution()
 {
-	float inputColor[4];
-	inputOperation->read(&inputColor[0], x, y, sampler, inputBuffers);
-	outputValue[0] = (inputColor[0] + inputColor[1] + inputColor[2]) / 3.0f;
-}
-
-void ConvertColourToValueProg::deinitExecution()
-{
-	this->inputOperation = NULL;
+	this->m_inputProgram = NULL;
 }

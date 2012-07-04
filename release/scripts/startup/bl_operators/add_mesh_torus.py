@@ -84,7 +84,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
 
 
 class AddTorus(Operator, object_utils.AddObjectHelper):
-    '''Add a torus mesh'''
+    """Add a torus mesh"""
     bl_idname = "mesh.primitive_torus_add"
     bl_label = "Add Torus"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

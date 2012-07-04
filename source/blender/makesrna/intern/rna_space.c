@@ -1699,6 +1699,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceView3D_layer_set");
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible in this 3D View");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_layer_update");
+
+	prop = RNA_def_property(srna, "layers_local_view", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "lay", 0x01000000);
+	RNA_def_property_array(prop, 8);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Local View Layers", "Local view layers visible in this 3D View");
 	
 	prop = RNA_def_property(srna, "layers_used", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay_used", 1);
@@ -2297,7 +2303,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_group_colors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SACTION_NODRAWGCOLORS);
 	RNA_def_property_ui_text(prop, "Show Group Colors",
-	                         "Draw groups and channels with colours matching their corresponding groups");
+	                         "Draw groups and channels with colors matching their corresponding groups");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, NULL);
 	
 	/* editing */
@@ -2408,7 +2414,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_group_colors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NODRAWGCOLORS);
 	RNA_def_property_ui_text(prop, "Show Group Colors",
-	                         "Draw groups and channels with colours matching their corresponding groups");
+	                         "Draw groups and channels with colors matching their corresponding groups");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 	
 	/* editing */
@@ -2919,6 +2925,11 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, backdrop_channels_items);
 	RNA_def_property_ui_text(prop, "Draw Channels", "Channels of the image to draw");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
+
+	prop = RNA_def_property(srna, "show_highlight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_SHOW_HIGHLIGHT);
+	RNA_def_property_ui_text(prop, "Highlight", "Highlight nodes that are being calculated");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 }
 

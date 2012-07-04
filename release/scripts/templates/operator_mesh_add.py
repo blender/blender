@@ -37,7 +37,7 @@ from bpy.props import FloatProperty, BoolProperty, FloatVectorProperty
 
 
 class AddBox(bpy.types.Operator):
-    '''Add a simple box mesh'''
+    """Add a simple box mesh"""
     bl_idname = "mesh.primitive_box_add"
     bl_label = "Add Box"
     bl_options = {'REGISTER', 'UNDO'}

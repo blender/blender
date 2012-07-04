@@ -227,7 +227,7 @@ class BakeAction(Operator):
         self.frame_start = scene.frame_start
         self.frame_end = scene.frame_end
         self.bake_types = {'POSE'} if context.mode == 'POSE' else {'OBJECT'}
-        
+
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

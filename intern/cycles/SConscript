@@ -14,7 +14,7 @@ sources.remove(path.join('kernel', 'kernel_optimized.cpp'))
 
 incs = [] 
 defs = []
-cxxflags = []
+cxxflags = Split(env['CXXFLAGS'])
 
 defs.append('CCL_NAMESPACE_BEGIN=namespace ccl {')
 defs.append('CCL_NAMESPACE_END=}')
@@ -58,9 +58,9 @@ if env['WITH_BF_RAYOPTIMIZATION']:
     optim_sources = [path.join('kernel', 'kernel_optimized.cpp')]
 
     cycles_optim = cycles.Clone()
-    cycles_optim.BlenderLib('bf_intern_cycles_optimized', optim_sources, incs, optim_defs, libtype=['intern'], priority=[10], compileflags=[None], cxx_compileflags=optim_cxxflags)
+    cycles_optim.BlenderLib('bf_intern_cycles_optimized', optim_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=optim_cxxflags)
 
-cycles.BlenderLib('bf_intern_cycles', sources, incs, defs, libtype=['intern'], priority=[0], compileflags=[None], cxx_compileflags=cxxflags)
+cycles.BlenderLib('bf_intern_cycles', sources, incs, defs, libtype=['intern'], priority=[0], cxx_compileflags=cxxflags)
 
 # cuda kernel binaries
 if env['WITH_BF_CYCLES_CUDA_BINARIES']:

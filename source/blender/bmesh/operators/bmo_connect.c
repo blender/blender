@@ -40,7 +40,7 @@
 #define EDGE_MARK	4
 #define EDGE_DONE	8
 
-void bmo_connectverts_exec(BMesh *bm, BMOperator *op)
+void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
 	BMFace *f, *nf;

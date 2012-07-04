@@ -32,18 +32,18 @@
 /* Writes the image to a single-layer file. */
 class OutputSingleLayerOperation : public NodeOperation {
 private:
-	const Scene *scene;
-	const bNodeTree *tree;
+	const RenderData *m_rd;
+	const bNodeTree *m_tree;
 	
-	ImageFormatData *format;
-	char path[FILE_MAX];
+	ImageFormatData *m_format;
+	char m_path[FILE_MAX];
 	
-	float *outputBuffer;
-	DataType datatype;
-	SocketReader *imageInput;
+	float *m_outputBuffer;
+	DataType m_datatype;
+	SocketReader *m_imageInput;
 
 public:
-	OutputSingleLayerOperation(const Scene *scene, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path);
+	OutputSingleLayerOperation(const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path);
 	
 	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
 	bool isOutputOperation(bool rendering) const { return true; }
@@ -67,15 +67,15 @@ class OutputOpenExrMultiLayerOperation : public NodeOperation {
 private:
 	typedef std::vector<OutputOpenExrLayer> LayerList;
 	
-	const Scene *scene;
-	const bNodeTree *tree;
+	const RenderData *m_rd;
+	const bNodeTree *m_tree;
 	
-	char path[FILE_MAX];
-	char exr_codec;
-	LayerList layers;
+	char m_path[FILE_MAX];
+	char m_exr_codec;
+	LayerList m_layers;
 	
 public:
-	OutputOpenExrMultiLayerOperation(const Scene *scene, const bNodeTree *tree, const char *path, char exr_codec);
+	OutputOpenExrMultiLayerOperation(const RenderData *rd, const bNodeTree *tree, const char *path, char exr_codec);
 	
 	void add_layer(const char *name, DataType datatype);
 	

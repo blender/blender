@@ -44,6 +44,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_clip.h"  /* frame remapping functions */
 #include "ED_mask.h"  /* own include */
 
 #include "mask_intern.h"  /* own include */
@@ -104,8 +105,10 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 	MovieClip *clip;
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
-	MovieTrackingObject *tracking;
+	MovieTrackingObject *tracking_object;
 	/* done */
+
+	int framenr;
 
 	float marker_pos_ofs[2];
 	float parmask_pos[2];
@@ -113,11 +116,13 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 	if ((NULL == (sc = CTX_wm_space_clip(C))) ||
 	    (NULL == (clip = sc->clip)) ||
 	    (NULL == (track = clip->tracking.act_track)) ||
-	    (NULL == (marker = BKE_tracking_marker_get(track, sc->user.framenr))) ||
-	    (NULL == (tracking = BKE_tracking_object_get_active(&clip->tracking))))
+	    (NULL == (tracking_object = BKE_tracking_object_get_active(&clip->tracking))))
 	{
 		return OPERATOR_CANCELLED;
 	}
+
+	framenr = ED_space_clip_get_clip_frame_number(sc);
+	marker = BKE_tracking_marker_get(track, framenr);
 
 	add_v2_v2v2(marker_pos_ofs, marker->pos, track->offset);
 
@@ -138,7 +143,7 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 				if (MASKPOINT_ISSEL_ANY(point)) {
 					point->parent.id_type = ID_MC;
 					point->parent.id = &clip->id;
-					strcpy(point->parent.parent, tracking->name);
+					strcpy(point->parent.parent, tracking_object->name);
 					strcpy(point->parent.sub_parent, track->name);
 
 					copy_v2_v2(point->parent.parent_orig, parmask_pos);

@@ -347,7 +347,7 @@ static int multires_get_level(Object *ob, MultiresModifierData *mmd, int render)
 		return (mmd->modifier.scene) ? get_render_subsurf_level(&mmd->modifier.scene->r, mmd->lvl) : mmd->lvl;
 }
 
-static void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl)
+void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl)
 {
 	mmd->totlvl = lvl;
 
@@ -2105,6 +2105,8 @@ void multires_load_old(Object *ob, Mesh *me)
 	me->mr = NULL;
 }
 
+/* If 'ob' and 'to_ob' both have multires modifiers, syncronize them
+ * such that 'ob' has the same total number of levels as 'to_ob'. */
 static void multires_sync_levels(Scene *scene, Object *ob, Object *to_ob)
 {
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 1);
@@ -2119,10 +2121,12 @@ static void multires_sync_levels(Scene *scene, Object *ob, Object *to_ob)
 		multires_customdata_delete(ob->data);
 	}
 
-	if (!mmd || !to_mmd) return;
-
-	if (mmd->totlvl > to_mmd->totlvl) multires_del_higher(mmd, ob, to_mmd->totlvl);
-	else multires_subdivide(mmd, ob, to_mmd->totlvl, 0, mmd->simple);
+	if (mmd && to_mmd) {
+		if (mmd->totlvl > to_mmd->totlvl)
+			multires_del_higher(mmd, ob, to_mmd->totlvl);
+		else
+			multires_subdivide(mmd, ob, to_mmd->totlvl, 0, mmd->simple);
+	}
 }
 
 static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])

@@ -25,7 +25,7 @@ from bpy.props import EnumProperty
 
 
 class MeshMirrorUV(Operator):
-    '''Copy mirror UV coordinates on the X axis based on a mirrored mesh'''
+    """Copy mirror UV coordinates on the X axis based on a mirrored mesh"""
     bl_idname = "mesh.faces_mirror_uv"
     bl_label = "Copy Mirrored UV coords"
     bl_options = {'REGISTER', 'UNDO'}
@@ -58,12 +58,9 @@ class MeshMirrorUV(Operator):
         vcos = (v.co.to_tuple(5) for v in mesh.vertices)
 
         for i, co in enumerate(vcos):
-            if co[0] > 0.0:
+            if co[0] >= 0.0:
                 mirror_gt[co] = i
-            elif co[0] < 0.0:
-                mirror_lt[co] = i
-            else:
-                mirror_gt[co] = i
+            if co[0] <= 0.0:
                 mirror_lt[co] = i
 
         #for i, v in enumerate(mesh.vertices):
@@ -97,14 +94,13 @@ class MeshMirrorUV(Operator):
             puvsel[i] = (False not in
                                (uv.select for uv in uv_loops[lstart:lend]))
             # Vert idx of the poly.
-            vidxs[i] = tuple(sorted(l.vertex_index
-                                    for l in loops[lstart:lend]))
+            vidxs[i] = tuple(l.vertex_index for l in loops[lstart:lend])
             # As we have no poly.center yet...
             pcents[i] = tuple(map(lambda x: x / p.loop_total,
                                   map(sum, zip(*(verts[idx].co
                                                  for idx in vidxs[i])))))
             # Preparing next step finding matching polys.
-            mirror_pm[vidxs[i]] = i
+            mirror_pm[tuple(sorted(vidxs[i]))] = i
 
         for i in range(nbr_polys):
             # Find matching mirror poly.

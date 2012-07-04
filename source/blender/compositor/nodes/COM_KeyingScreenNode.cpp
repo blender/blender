@@ -45,6 +45,7 @@ void KeyingScreenNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 
 	// always connect the output image
 	KeyingScreenOperation *operation = new KeyingScreenOperation();
+	operation->setbNode(editorNode);
 
 	if (outputScreen->isConnected()) {
 		outputScreen->relinkConnections(operation->getOutputSocket());

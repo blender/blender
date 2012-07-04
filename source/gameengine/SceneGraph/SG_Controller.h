@@ -43,12 +43,6 @@
 class SG_Controller 
 {
 public:
-
-#ifdef WITH_CXX_GUARDEDALLOC
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "SG_Controller"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
-#endif
-
 	SG_Controller(
 	) :
 		m_pObject(NULL) {
@@ -122,6 +116,9 @@ public:
 protected:
 	SG_IObject*		m_pObject;
 
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:SG_Controller")
+#endif
 };
 
 #endif //__SG_CONTROLLER_H__

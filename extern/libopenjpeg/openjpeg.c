@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Hervé Drolon, FreeImage Team
+ * Copyright (c) 2005, Herve Drolon, FreeImage Team
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,17 +24,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
+#include "opj_config.h"
 #include "opj_includes.h"
 
 /* ---------------------------------------------------------------------- */
-#ifdef WIN32
+#ifdef _WIN32
 #ifndef OPJ_STATIC
 BOOL APIENTRY
 DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
+
+	OPJ_ARG_NOT_USED(lpReserved);
+	OPJ_ARG_NOT_USED(hModule);
+
 	switch (ul_reason_for_call) {
 		case DLL_PROCESS_ATTACH :
 			break;
@@ -48,19 +53,19 @@ DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
     return TRUE;
 }
 #endif /* OPJ_STATIC */
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 /* ---------------------------------------------------------------------- */
 
 
 const char* OPJ_CALLCONV opj_version(void) {
-    return OPENJPEG_VERSION;
+    return PACKAGE_VERSION;
 }
 
 opj_dinfo_t* OPJ_CALLCONV opj_create_decompress(OPJ_CODEC_FORMAT format) {
-	opj_dinfo_t *dinfo = (opj_dinfo_t*)opj_malloc(sizeof(opj_dinfo_t));
+	opj_dinfo_t *dinfo = (opj_dinfo_t*)opj_calloc(1, sizeof(opj_dinfo_t));
 	if(!dinfo) return NULL;
-	dinfo->is_decompressor = true;
+	dinfo->is_decompressor = OPJ_TRUE;
 	switch(format) {
 		case CODEC_J2K:
 		case CODEC_JPT:
@@ -120,9 +125,10 @@ void OPJ_CALLCONV opj_set_default_decoder_parameters(opj_dparameters_t *paramete
 
 		parameters->decod_format = -1;
 		parameters->cod_format = -1;
+		parameters->flags = 0;		
 /* UniPG>> */
 #ifdef USE_JPWL
-		parameters->jpwl_correct = false;
+		parameters->jpwl_correct = OPJ_FALSE;
 		parameters->jpwl_exp_comps = JPWL_EXPECTED_COMPONENTS;
 		parameters->jpwl_max_tiles = JPWL_MAXIMUM_TILES;
 #endif /* USE_JPWL */
@@ -159,7 +165,7 @@ opj_image_t* OPJ_CALLCONV opj_decode_with_info(opj_dinfo_t *dinfo, opj_cio_t *ci
 			case CODEC_JPT:
 				return j2k_decode_jpt_stream((opj_j2k_t*)dinfo->j2k_handle, cio, cstr_info);
 			case CODEC_JP2:
-				return jp2_decode((opj_jp2_t*)dinfo->jp2_handle, cio, cstr_info);
+				return opj_jp2_decode((opj_jp2_t*)dinfo->jp2_handle, cio, cstr_info);
 			case CODEC_UNKNOWN:
 			default:
 				break;
@@ -169,9 +175,9 @@ opj_image_t* OPJ_CALLCONV opj_decode_with_info(opj_dinfo_t *dinfo, opj_cio_t *ci
 }
 
 opj_cinfo_t* OPJ_CALLCONV opj_create_compress(OPJ_CODEC_FORMAT format) {
-	opj_cinfo_t *cinfo = (opj_cinfo_t*)opj_malloc(sizeof(opj_cinfo_t));
+	opj_cinfo_t *cinfo = (opj_cinfo_t*)opj_calloc(1, sizeof(opj_cinfo_t));
 	if(!cinfo) return NULL;
-	cinfo->is_decompressor = false;
+	cinfo->is_decompressor = OPJ_FALSE;
 	switch(format) {
 		case CODEC_J2K:
 			/* get a J2K coder handle */
@@ -238,9 +244,15 @@ void OPJ_CALLCONV opj_set_default_encoder_parameters(opj_cparameters_t *paramete
 		parameters->tp_on = 0;
 		parameters->decod_format = -1;
 		parameters->cod_format = -1;
+		parameters->tcp_rates[0] = 0;   
+		parameters->tcp_numlayers = 0;
+    parameters->cp_disto_alloc = 0;
+		parameters->cp_fixed_alloc = 0;
+		parameters->cp_fixed_quality = 0;
+		parameters->jpip_on = OPJ_FALSE;
 /* UniPG>> */
 #ifdef USE_JPWL
-		parameters->jpwl_epc_on = false;
+		parameters->jpwl_epc_on = OPJ_FALSE;
 		parameters->jpwl_hprot_MH = -1; /* -1 means unassigned */
 		{
 			int i;
@@ -290,7 +302,7 @@ void OPJ_CALLCONV opj_setup_encoder(opj_cinfo_t *cinfo, opj_cparameters_t *param
 	}
 }
 
-bool OPJ_CALLCONV opj_encode(opj_cinfo_t *cinfo, opj_cio_t *cio, opj_image_t *image, char *index) {
+opj_bool OPJ_CALLCONV opj_encode(opj_cinfo_t *cinfo, opj_cio_t *cio, opj_image_t *image, char *index) {
 	if (index != NULL)
 		opj_event_msg((opj_common_ptr)cinfo, EVT_WARNING, "Set index to NULL when calling the opj_encode function.\n"
 		"To extract the index, use the opj_encode_with_info() function.\n"
@@ -298,20 +310,20 @@ bool OPJ_CALLCONV opj_encode(opj_cinfo_t *cinfo, opj_cio_t *cio, opj_image_t *im
 	return opj_encode_with_info(cinfo, cio, image, NULL);
 }
 
-bool OPJ_CALLCONV opj_encode_with_info(opj_cinfo_t *cinfo, opj_cio_t *cio, opj_image_t *image, opj_codestream_info_t *cstr_info) {
+opj_bool OPJ_CALLCONV opj_encode_with_info(opj_cinfo_t *cinfo, opj_cio_t *cio, opj_image_t *image, opj_codestream_info_t *cstr_info) {
 	if(cinfo && cio && image) {
 		switch(cinfo->codec_format) {
 			case CODEC_J2K:
 				return j2k_encode((opj_j2k_t*)cinfo->j2k_handle, cio, image, cstr_info);
 			case CODEC_JP2:
-				return jp2_encode((opj_jp2_t*)cinfo->jp2_handle, cio, image, cstr_info);
+				return opj_jp2_encode((opj_jp2_t*)cinfo->jp2_handle, cio, image, cstr_info);	    
 			case CODEC_JPT:
 			case CODEC_UNKNOWN:
 			default:
 				break;
 		}
 	}
-	return false;
+	return OPJ_FALSE;
 }
 
 void OPJ_CALLCONV opj_destroy_cstr_info(opj_codestream_info_t *cstr_info) {
@@ -322,8 +334,10 @@ void OPJ_CALLCONV opj_destroy_cstr_info(opj_codestream_info_t *cstr_info) {
 			opj_free(tile_info->thresh);
 			opj_free(tile_info->packet);
 			opj_free(tile_info->tp);
+			opj_free(tile_info->marker);
 		}
 		opj_free(cstr_info->tile);
 		opj_free(cstr_info->marker);
+		opj_free(cstr_info->numdecompos);
 	}
 }

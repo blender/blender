@@ -11,10 +11,10 @@ if(WITH_CYCLES_TEST)
 	include_directories(${GLUT_INCLUDE_DIR})
 endif()
 
-if(WITH_BUILTIN_GLEW)
-	set(CYCLES_GLEW_LIBRARY extern_glew)
-else()
+if(WITH_SYSTEM_GLEW)
 	set(CYCLES_GLEW_LIBRARY ${GLEW_LIBRARY})
+else()
+	set(CYCLES_GLEW_LIBRARY extern_glew)
 endif()
 
 ###########################################################################

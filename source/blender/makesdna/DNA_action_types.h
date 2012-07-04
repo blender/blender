@@ -43,7 +43,7 @@ struct Group;
 struct GHash;
 
 /* ************************************************ */
-/* Visualisation */
+/* Visualization */
 
 /* Motion Paths ------------------------------------ */
 /* (used for Pose Channels and Objects) */
@@ -83,10 +83,10 @@ typedef enum eMotionPath_Flag {
 	MOTIONPATH_FLAG_EDIT        = (1 << 1)
 } eMotionPath_Flag;
 
-/* Visualisation General --------------------------- */
+/* Visualization General --------------------------- */
 /* for Objects or Poses (but NOT PoseChannels) */
 
-/* Animation Visualisation Settings (avs) */
+/* Animation Visualization Settings (avs) */
 typedef struct bAnimVizSettings {
 	/* Onion-Skinning Settings ----------------- */
 	int ghost_sf, ghost_ef;         /* start and end frames of ghost-drawing range (only used for GHOST_TYPE_RANGE) */
@@ -254,7 +254,7 @@ typedef enum ePchan_Flag {
 	/* IK/Pose solving*/
 	POSE_CHAIN      =   (1 << 9),
 	POSE_DONE       =   (1 << 10),
-	/* visualisation */
+	/* visualization */
 	POSE_KEY        =   (1 << 11),
 	POSE_STRIDE     =   (1 << 12),
 	/* standard IK solving */
@@ -679,7 +679,7 @@ typedef struct bActionChannel {
 /* Action Channel flags (ONLY USED FOR DO_VERSIONS...) */
 typedef enum ACHAN_FLAG {
 	ACHAN_SELECTED  = (1 << 0),
-	ACHAN_HILIGHTED = (1 << 1),
+	ACHAN_HIGHLIGHTED = (1 << 1),
 	ACHAN_HIDDEN    = (1 << 2),
 	ACHAN_PROTECTED = (1 << 3),
 	ACHAN_EXPANDED  = (1 << 4),

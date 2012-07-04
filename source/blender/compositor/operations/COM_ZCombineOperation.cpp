@@ -31,19 +31,19 @@ ZCombineOperation::ZCombineOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 
-	this->image1Reader = NULL;
-	this->depth1Reader = NULL;
-	this->image2Reader = NULL;
-	this->depth2Reader = NULL;
+	this->m_image1Reader = NULL;
+	this->m_depth1Reader = NULL;
+	this->m_image2Reader = NULL;
+	this->m_depth2Reader = NULL;
 
 }
 
 void ZCombineOperation::initExecution()
 {
-	this->image1Reader = this->getInputSocketReader(0);
-	this->depth1Reader = this->getInputSocketReader(1);
-	this->image2Reader = this->getInputSocketReader(2);
-	this->depth2Reader = this->getInputSocketReader(3);
+	this->m_image1Reader = this->getInputSocketReader(0);
+	this->m_depth1Reader = this->getInputSocketReader(1);
+	this->m_image2Reader = this->getInputSocketReader(2);
+	this->m_depth2Reader = this->getInputSocketReader(3);
 }
 
 void ZCombineOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -51,13 +51,13 @@ void ZCombineOperation::executePixel(float *color, float x, float y, PixelSample
 	float depth1[4];
 	float depth2[4];
 
-	this->depth1Reader->read(depth1, x, y, sampler, inputBuffers);
-	this->depth2Reader->read(depth2, x, y, sampler, inputBuffers);
+	this->m_depth1Reader->read(depth1, x, y, sampler, inputBuffers);
+	this->m_depth2Reader->read(depth2, x, y, sampler, inputBuffers);
 	if (depth1[0] < depth2[0]) {
-		this->image1Reader->read(color, x, y, sampler, inputBuffers);
+		this->m_image1Reader->read(color, x, y, sampler, inputBuffers);
 	}
 	else {
-		this->image2Reader->read(color, x, y, sampler, inputBuffers);
+		this->m_image2Reader->read(color, x, y, sampler, inputBuffers);
 	}
 }
 void ZCombineAlphaOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -67,15 +67,15 @@ void ZCombineAlphaOperation::executePixel(float *color, float x, float y, PixelS
 	float color1[4];
 	float color2[4];
 
-	this->depth1Reader->read(depth1, x, y, sampler, inputBuffers);
-	this->depth2Reader->read(depth2, x, y, sampler, inputBuffers);
+	this->m_depth1Reader->read(depth1, x, y, sampler, inputBuffers);
+	this->m_depth2Reader->read(depth2, x, y, sampler, inputBuffers);
 	if (depth1[0] < depth2[0]) {
-		this->image1Reader->read(color1, x, y, sampler, inputBuffers);
-		this->image2Reader->read(color2, x, y, sampler, inputBuffers);
+		this->m_image1Reader->read(color1, x, y, sampler, inputBuffers);
+		this->m_image2Reader->read(color2, x, y, sampler, inputBuffers);
 	}
 	else {
-		this->image1Reader->read(color2, x, y, sampler, inputBuffers);
-		this->image2Reader->read(color1, x, y, sampler, inputBuffers);
+		this->m_image1Reader->read(color2, x, y, sampler, inputBuffers);
+		this->m_image2Reader->read(color1, x, y, sampler, inputBuffers);
 	}
 	float fac = color1[3];
 	float ifac = 1.0f - fac;
@@ -87,8 +87,8 @@ void ZCombineAlphaOperation::executePixel(float *color, float x, float y, PixelS
 
 void ZCombineOperation::deinitExecution()
 {
-	this->image1Reader = NULL;
-	this->depth1Reader = NULL;
-	this->image2Reader = NULL;
-	this->depth2Reader = NULL;
+	this->m_image1Reader = NULL;
+	this->m_depth1Reader = NULL;
+	this->m_image2Reader = NULL;
+	this->m_depth2Reader = NULL;
 }

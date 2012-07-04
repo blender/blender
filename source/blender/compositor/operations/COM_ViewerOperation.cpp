@@ -44,30 +44,30 @@ ViewerOperation::ViewerOperation() : ViewerBaseOperation()
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 
-	this->imageInput = NULL;
-	this->alphaInput = NULL;
+	this->m_imageInput = NULL;
+	this->m_alphaInput = NULL;
 }
 
 void ViewerOperation::initExecution()
 {
 	// When initializing the tree during initial load the width and height can be zero.
-	this->imageInput = getInputSocketReader(0);
-	this->alphaInput = getInputSocketReader(1);
+	this->m_imageInput = getInputSocketReader(0);
+	this->m_alphaInput = getInputSocketReader(1);
 	ViewerBaseOperation::initExecution();
 }
 
 void ViewerOperation::deinitExecution()
 {
-	this->imageInput = NULL;
-	this->alphaInput = NULL;
+	this->m_imageInput = NULL;
+	this->m_alphaInput = NULL;
 	ViewerBaseOperation::deinitExecution();
 }
 
 
 void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
-	float *buffer = this->outputBuffer;
-	unsigned char *bufferDisplay = this->outputBufferDisplay;
+	float *buffer = this->m_outputBuffer;
+	unsigned char *bufferDisplay = this->m_outputBufferDisplay;
 	if (!buffer) return;
 	const int x1 = rect->xmin;
 	const int y1 = rect->ymin;
@@ -82,14 +82,14 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryB
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2; x++) {
-			imageInput->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
-			if (alphaInput != NULL) {
-				alphaInput->read(alpha, x, y, COM_PS_NEAREST, memoryBuffers);
+			this->m_imageInput->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
+			if (this->m_alphaInput != NULL) {
+				this->m_alphaInput->read(alpha, x, y, COM_PS_NEAREST, memoryBuffers);
 				buffer[offset + 3] = alpha[0];
 			}
 			/// @todo: linear conversion only when scene color management is selected, also check predivide.
-			if (this->doColorManagement) {
-				if (this->doColorPredivide) {
+			if (this->m_doColorManagement) {
+				if (this->m_doColorPredivide) {
 					linearrgb_to_srgb_predivide_v4(srgb, buffer + offset);
 				}
 				else {

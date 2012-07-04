@@ -190,9 +190,7 @@ public:
 	GHOST_TInt32 m_b;
 
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GHOST:GHOST_Rect"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_Rect")
 #endif
 };
 

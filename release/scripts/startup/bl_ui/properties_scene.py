@@ -165,7 +165,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
             row.label(text="Array Target:")
             row.prop(ksp, "use_entire_array", text="All Items")
             if ksp.use_entire_array:
-                row.label(text=" ") # padding
+                row.label(text=" ")  # padding
             else:
                 row.prop(ksp, "array_index", text="Index")
 
@@ -177,7 +177,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
             col.prop(ksp, "group_method", text="")
             if ksp.group_method == 'NAMED':
                 col.prop(ksp, "group")
-            
+
             col = row.column(align=True)
             col.label(text="Keyframing Settings:")
             col.prop(ksp, "bl_options")

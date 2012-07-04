@@ -133,6 +133,7 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 	}
 }
 
+/* on error, -1 is returned and no allocation is made */
 int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, const char *error_prefix)
 {
 	int size;
@@ -164,6 +165,7 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 	{
 		PyObject *value_fast = NULL;
 		// *array = NULL;
+		int ret;
 
 		/* non list/tuple cases */
 		if (!(value_fast = PySequence_Fast(value, error_prefix))) {
@@ -182,7 +184,13 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 
 		*array = PyMem_Malloc(size * sizeof(float));
 
-		return mathutils_array_parse_fast(*array, size, value_fast, error_prefix);
+		ret = mathutils_array_parse_fast(*array, size, value_fast, error_prefix);
+
+		if (ret == -1) {
+			PyMem_Free(*array);
+		}
+
+		return ret;
 	}
 }
 

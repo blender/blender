@@ -183,11 +183,11 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		r_vec[2] = 0.0f;
 
 		if (t->options & CTX_MOVIECLIP) {
-			ED_space_clip_get_clip_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_clip_get_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
 		}
 		else if (t->options & CTX_MASK) {
 			/* TODO - NOT WORKING, this isnt so bad since its only display aspect */
-			ED_space_clip_get_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_clip_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		}
 
 		r_vec[0] *= aspx;
@@ -254,9 +254,9 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 		copy_v2_v2(v, vec);
 
 		if (t->options & CTX_MOVIECLIP)
-			ED_space_clip_get_clip_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_clip_get_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
 		else if (t->options & CTX_MASK)
-			ED_space_clip_get_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_clip_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
 
 		v[0] /= aspx;
 		v[1] /= aspy;
@@ -317,13 +317,13 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 
 
 			if (t->options & CTX_MOVIECLIP) {
-				ED_space_clip_get_clip_aspect_dimension_aware(sc, &aspx, &aspy);
+				ED_space_clip_get_aspect_dimension_aware(sc, &aspx, &aspy);
 
 				vec[0] /= aspx;
 				vec[1] /= aspy;
 			}
 			else if (t->options & CTX_MASK) {
-				ED_space_clip_get_mask_aspect(sc, &aspx, &aspy);
+				ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
 				vec[0] /= aspx;
 				vec[1] /= aspy;
@@ -356,10 +356,10 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 			float aspx = 1.0f, aspy = 1.0f;
 
 			if (t->options & CTX_MOVIECLIP) {
-				ED_space_clip_get_clip_aspect_dimension_aware(sc, &aspx, &aspy);
+				ED_space_clip_get_aspect_dimension_aware(sc, &aspx, &aspy);
 			}
 			else if (t->options & CTX_MASK) {
-				ED_space_clip_get_mask_aspect(sc, &aspx, &aspy);
+				ED_space_clip_get_aspect(sc, &aspx, &aspy);
 			}
 
 			vec[0] *= aspx;
@@ -1655,6 +1655,12 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
 	}
+	else if (t->spacetype == SPACE_NODE) {
+		unit_m3(t->spacemtx);
+		/*t->draw_handle_apply = ED_region_draw_cb_activate(t->ar->type, drawTransformApply, t, REGION_DRAW_PRE_VIEW);*/
+		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+		/*t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), helpline_poll, drawHelpline, t);*/
+	}
 	else
 		unit_m3(t->spacemtx);
 
@@ -2170,8 +2176,8 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 		if (td->ext->rotOrder == ROT_MODE_QUAT) {
 			/* quats */
 			/* objects and bones do normalization first too, otherwise
-			* we don't necessarily end up with a rotation matrix, and
-			* then conversion back to quat gives a different result */
+			 * we don't necessarily end up with a rotation matrix, and
+			 * then conversion back to quat gives a different result */
 			float quat[4];
 			normalize_qt_qt(quat, td->ext->quat);
 			quat_to_mat4(cob->matrix, quat);
@@ -3541,6 +3547,11 @@ void initTranslation(TransInfo *t)
 		t->snap[0] = 0.0f;
 		t->snap[1] = 0.125f;
 		t->snap[2] = 0.0625f;
+	}
+	else if (t->spacetype == SPACE_NODE) {
+		t->snap[0] = 0.0f;
+		t->snap[1] = 125.0f;
+		t->snap[2] = 25.0f;
 	}
 	else {
 		t->snap[0] = 0.0f;
@@ -5004,7 +5015,6 @@ void projectSVData(TransInfo *t, int final)
 	for (i = 0, sv = sld->sv; i < sld->totsv; sv++, i++) {
 		BMIter fiter;
 		BMFace *f;
-		
 
 		/* BMESH_TODO, this interpolates between vertex/loops which are not moved
 		 * (are only apart of a face attached to a slide vert), couldn't we iterate BM_LOOPS_OF_VERT
@@ -5034,6 +5044,8 @@ void projectSVData(TransInfo *t, int final)
 			
 			/* project onto copied projection face */
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				/* only affected verts will get interpolated */
+				char affected = FALSE;
 				f_copy_flip = f_copy;
 
 				if (BM_elem_flag_test(l->e, BM_ELEM_SELECT) || BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT)) {
@@ -5058,6 +5070,8 @@ void projectSVData(TransInfo *t, int final)
 					if (!f_copy_flip) {
 						continue;  /* shouldn't happen, but protection */
 					}
+
+					affected = TRUE;
 				}
 				else {
 					/* the loop is attached to only one vertex and not a selected edge,
@@ -5094,10 +5108,15 @@ void projectSVData(TransInfo *t, int final)
 								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->radial_next->f);
 							}
 						}
+
+						affected = TRUE;
 					}
 
 				}
 				
+				if(!affected)
+					continue;
+
 				/* only loop data, no vertex data since that contains shape keys,
 				 * and we do not want to mess up other shape keys */
 				BM_loop_interp_from_face(em->bm, l, f_copy_flip, FALSE, FALSE);
@@ -5122,7 +5141,7 @@ void projectSVData(TransInfo *t, int final)
 			}
 		}
 	}
-	
+
 	BLI_smallhash_release(&visit);
 }
 

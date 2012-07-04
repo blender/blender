@@ -136,7 +136,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD grfKeyState, POINTL pt, 
 	}
 	else {
 		*pdwEffect = DROPEFFECT_NONE;
-		//*pdwEffect = DROPEFFECT_COPY; // XXX Uncomment to test drop. Drop will not be called if pdwEffect == DROPEFFECT_NONE.
+		// *pdwEffect = DROPEFFECT_COPY; // XXX Uncomment to test drop. Drop will not be called if pdwEffect == DROPEFFECT_NONE.
 	}
 	m_system->pushDragDropEvent(GHOST_kEventDraggingUpdated, m_draggedObjectType, m_window, pt.x, pt.y, NULL);
 	return S_OK;

@@ -469,7 +469,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ANTIALIAS);
-	RNA_def_property_ui_text(prop, "Anti-aliasing", "Use 5x multisampling to smoothen paint edges");
+	RNA_def_property_ui_text(prop, "Anti-aliasing", "Use 5x multisampling to smooth paint edges");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 
 	prop = RNA_def_property(srna, "brush_influence_scale", PROP_FLOAT, PROP_FACTOR);
@@ -677,7 +677,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "wave_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 5.0);
 	RNA_def_property_ui_range(prop, 0.20, 4.0, 1, 2);
-	RNA_def_property_ui_text(prop, "Speed", "Wave propogation speed");
+	RNA_def_property_ui_text(prop, "Speed", "Wave propagation speed");
 
 	prop = RNA_def_property(srna, "wave_timescale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 3.0);

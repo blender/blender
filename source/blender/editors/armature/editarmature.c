@@ -4563,7 +4563,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 					DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
 				}
 			}
-			/* if there are some dependencies for visualising armature state 
+			/* if there are some dependencies for visualizing armature state 
 			 * (e.g. Mask Modifier in 'Armature' mode), force update 
 			 */
 			else if (arm->flag & ARM_HAS_VIZ_DEPS) {
@@ -4828,6 +4828,9 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	if (numbones == 0)
 		return;
 	
+	if (ED_vgroup_data_create(ob->data) == FALSE)
+		return;
+
 	/* create an array of pointer to bones that are skinnable
 	 * and fill it with all of the skinnable bones */
 	bonelist = MEM_callocN(numbones * sizeof(Bone *), "bonelist");

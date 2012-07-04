@@ -228,7 +228,7 @@ GHOST_WindowX11(
 		m_visual = glXChooseVisual(m_display, DefaultScreen(m_display), attributes);
 
 		/* Any sample level or even zero, which means oversampling disabled, is good
-		   but we need a valid visual to continue */
+		 * but we need a valid visual to continue */
 		if (m_visual == NULL) {
 			if (samples == 0) {
 				/* All options exhausted, cannot continue */
@@ -1155,8 +1155,8 @@ setOrder(
 		Atom atom;
 
 		/* We use both XRaiseWindow and _NET_ACTIVE_WINDOW, since some
-		   window managers ignore the former (e.g. kwin from kde) and others
-		   don't implement the latter (e.g. fluxbox pre 0.9.9) */
+		 * window managers ignore the former (e.g. kwin from kde) and others
+		 * don't implement the latter (e.g. fluxbox pre 0.9.9) */
 
 		XRaiseWindow(m_display, m_window);
 

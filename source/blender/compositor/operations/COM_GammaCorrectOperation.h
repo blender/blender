@@ -30,7 +30,7 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
+	SocketReader *m_inputProgram;
 
 public:
 	GammaCorrectOperation();
@@ -56,7 +56,7 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
+	SocketReader *m_inputProgram;
 
 public:
 	GammaUncorrectOperation();

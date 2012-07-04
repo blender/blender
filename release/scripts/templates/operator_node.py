@@ -1,7 +1,7 @@
 import bpy
 
 
-def main(operator, context):
+def main(context):
     space = context.space_data
     node_tree = space.node_tree
     node_active = context.active_node
@@ -33,7 +33,7 @@ def main(operator, context):
 
 
 class NodeOperator(bpy.types.Operator):
-    '''Tooltip'''
+    """Tooltip"""
     bl_idname = "node.simple_operator"
     bl_label = "Simple Node Operator"
 

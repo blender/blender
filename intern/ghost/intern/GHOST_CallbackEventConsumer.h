@@ -73,6 +73,10 @@ protected:
 	GHOST_EventCallbackProcPtr m_eventCallback;
 	/** The data passed back though the call-back routine. */
 	GHOST_TUserDataPtr m_userData;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_CallbackEventConsumer")
+#endif
 };
 
 #endif // __GHOST_CALLBACKEVENTCONSUMER_H__

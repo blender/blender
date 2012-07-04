@@ -4,7 +4,7 @@ from bpy.props import FloatVectorProperty
 
 
 class ViewOperator(bpy.types.Operator):
-    '''Translate the view using mouse events.'''
+    """Translate the view using mouse events"""
     bl_idname = "view3d.modal_operator"
     bl_label = "Simple View Operator"
 

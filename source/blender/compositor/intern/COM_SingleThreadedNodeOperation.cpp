@@ -24,7 +24,7 @@
 
 SingleThreadedNodeOperation::SingleThreadedNodeOperation() : NodeOperation()
 {
-	this->cachedInstance = NULL;
+	this->m_cachedInstance = NULL;
 	setComplex(true);
 }
 
@@ -35,26 +35,26 @@ void SingleThreadedNodeOperation::initExecution()
 
 void SingleThreadedNodeOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	this->cachedInstance->read(color, x, y);
+	this->m_cachedInstance->read(color, x, y);
 }
 
 void SingleThreadedNodeOperation::deinitExecution()
 {
 	deinitMutex();
-	if (this->cachedInstance) {
-		delete cachedInstance;
-		this->cachedInstance = NULL;
+	if (this->m_cachedInstance) {
+		delete this->m_cachedInstance;
+		this->m_cachedInstance = NULL;
 	}
 }
 void *SingleThreadedNodeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	if (this->cachedInstance) return this->cachedInstance;
+	if (this->m_cachedInstance) return this->m_cachedInstance;
 	
 	lockMutex();
-	if (this->cachedInstance == NULL) {
+	if (this->m_cachedInstance == NULL) {
 		//
-		this->cachedInstance = createMemoryBuffer(rect, memoryBuffers);
+		this->m_cachedInstance = createMemoryBuffer(rect, memoryBuffers);
 	}
 	unlockMutex();
-	return this->cachedInstance;
+	return this->m_cachedInstance;
 }

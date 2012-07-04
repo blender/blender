@@ -40,6 +40,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	bNode *editorNode = this->getbNode();
 	if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE_THRESH) {
 		DilateErodeThresholdOperation *operation = new DilateErodeThresholdOperation();
+		operation->setbNode(editorNode);
 		operation->setDistance(editorNode->custom2);
 		operation->setInset(editorNode->custom3);
 		
@@ -59,6 +60,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	else if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE) {
 		if (editorNode->custom2 > 0) {
 			DilateDistanceOperation *operation = new DilateDistanceOperation();
+			operation->setbNode(editorNode);
 			operation->setDistance(editorNode->custom2);
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
@@ -66,6 +68,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		}
 		else {
 			ErodeDistanceOperation *operation = new ErodeDistanceOperation();
+			operation->setbNode(editorNode);
 			operation->setDistance(-editorNode->custom2);
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
@@ -77,7 +80,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		CompositorQuality quality = context->getQuality();
 
 		/* initialize node data */
-		NodeBlurData *data = (NodeBlurData *)&this->alpha_blur;
+		NodeBlurData *data = (NodeBlurData *)&this->m_alpha_blur;
 		memset(data, 0, sizeof(*data));
 		data->filtertype = R_FILTER_GAUSS;
 
@@ -90,12 +93,14 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		}
 
 		GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
+		operationx->setbNode(editorNode);
 		operationx->setData(data);
 		operationx->setQuality(quality);
 		this->getInputSocket(0)->relinkConnections(operationx->getInputSocket(0), 0, graph);
 		// this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph); // no size input yet
 		graph->addOperation(operationx);
 		GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
+		operationy->setbNode(editorNode);
 		operationy->setData(data);
 		operationy->setQuality(quality);
 		this->getOutputSocket(0)->relinkConnections(operationy->getOutputSocket());
@@ -117,10 +122,17 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 #endif
 		operationx->setSubtract(editorNode->custom2 < 0);
 		operationy->setSubtract(editorNode->custom2 < 0);
+
+		if (editorNode->storage) {
+			NodeDilateErode *data_storage = (NodeDilateErode *)editorNode->storage;
+			operationx->setFalloff(data_storage->falloff);
+			operationy->setFalloff(data_storage->falloff);
+		}
 	}
 	else {
 		if (editorNode->custom2 > 0) {
 			DilateStepOperation *operation = new DilateStepOperation();
+			operation->setbNode(editorNode);
 			operation->setIterations(editorNode->custom2);
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
@@ -128,6 +140,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		}
 		else {
 			ErodeStepOperation *operation = new ErodeStepOperation();
+			operation->setbNode(editorNode);
 			operation->setIterations(-editorNode->custom2);
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));

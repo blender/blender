@@ -56,6 +56,7 @@ public:
 	void device_free(Device *device, DeviceScene *dscene);
 
 	bool modified(const Film& film);
+	void tag_passes_update(Scene *scene, const vector<Pass>& passes_);
 	void tag_update(Scene *scene);
 };
 

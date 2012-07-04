@@ -270,7 +270,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	{
 		if (nr == 1) {
 			// XXX old animation system
-			//if (base->object->ipo==ipo) base->flag |= SELECT;
+			//if (base->object->ipo == ipo) base->flag |= SELECT;
 			//changed = 1;
 		}
 		else if (nr == 2) {

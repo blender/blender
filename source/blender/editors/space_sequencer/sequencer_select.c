@@ -587,14 +587,14 @@ static int select_more_less_seq__internal(Scene *scene, int sel, int linked)
 				/* only get unselected nabours */
 				neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_LEFT, isel);
 				if (neighbor) {
-					if (sel) {neighbor->flag |= SELECT; recurs_sel_seq(neighbor); }
+					if (sel) { neighbor->flag |= SELECT; recurs_sel_seq(neighbor); }
 					else neighbor->flag &= ~SELECT;
 					if (linked == 0) neighbor->tmp = (Sequence *)1;
 					change = 1;
 				}
 				neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_RIGHT, isel);
 				if (neighbor) {
-					if (sel) {neighbor->flag |= SELECT; recurs_sel_seq(neighbor); }
+					if (sel) { neighbor->flag |= SELECT; recurs_sel_seq(neighbor); }
 					else neighbor->flag &= ~SELECT;
 					if (linked == 0) neighbor->tmp = (void *)1;
 					change = 1;

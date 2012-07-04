@@ -65,7 +65,7 @@ int    BLI_is_dir(const char *path);
 int    BLI_is_file(const char *path);
 void   BLI_dir_create_recursive(const char *dir);
 double BLI_dir_free_space(const char *dir);
-char  *BLI_current_working_dir(char *dir, const int maxlen);
+char  *BLI_current_working_dir(char *dir, const size_t maxlen);
 
 unsigned int BLI_dir_contents(const char *dir, struct direntry **filelist);
 

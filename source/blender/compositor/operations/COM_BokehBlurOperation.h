@@ -27,13 +27,13 @@
 
 class BokehBlurOperation : public NodeOperation, public QualityStepHelper {
 private:
-	SocketReader *inputProgram;
-	SocketReader *inputBokehProgram;
-	SocketReader *inputBoundingBoxReader;
-	float size;
-	float bokehMidX;
-	float bokehMidY;
-	float bokehDimension;
+	SocketReader *m_inputProgram;
+	SocketReader *m_inputBokehProgram;
+	SocketReader *m_inputBoundingBoxReader;
+	float m_size;
+	float m_bokehMidX;
+	float m_bokehMidY;
+	float m_bokehDimension;
 public:
 	BokehBlurOperation();
 
@@ -55,8 +55,8 @@ public:
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
-	void setSize(float size) { this->size = size; }
+	void setSize(float size) { this->m_size = size; }
 	
-	void executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp);
+	void executeOpenCL(OpenCLDevice* device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp);
 };
 #endif

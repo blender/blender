@@ -252,19 +252,19 @@ static void nla_panel_animdata(const bContext *C, Panel *pa)
 	
 	/* Active Action Properties ------------------------------------- */
 	/* action */
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiTemplateID(row, (bContext *)C, &adt_ptr, "action", "ACTION_OT_new", NULL, NULL /*"ACTION_OT_unlink"*/);     // XXX: need to make these operators
 	
 	/* extrapolation */
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, &adt_ptr, "action_extrapolation", 0, NULL, ICON_NONE);
 	
 	/* blending */
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, &adt_ptr, "action_blend_type", 0, NULL, ICON_NONE);
 		
 	/* influence */
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, &adt_ptr, "action_influence", 0, NULL, ICON_NONE);
 }
 
@@ -284,7 +284,7 @@ static void nla_panel_track(const bContext *C, Panel *pa)
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
 	
 	/* Info - Active NLA-Context:Track ----------------------  */
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, &nlt_ptr, "name", 0, NULL, ICON_NLA);
 }
 
@@ -305,12 +305,12 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	
 	/* Strip Properties ------------------------------------- */
 	/* strip type */
-	row = uiLayoutColumn(layout, 1);
+	row = uiLayoutColumn(layout, TRUE);
 	uiItemR(row, &strip_ptr, "name", 0, NULL, ICON_NLA);     // XXX icon?
 	uiItemR(row, &strip_ptr, "type", 0, NULL, ICON_NONE);
 	
 	/* strip extents */
-	column = uiLayoutColumn(layout, 1);
+	column = uiLayoutColumn(layout, TRUE);
 	uiItemL(column, "Strip Extents:", ICON_NONE);
 	uiItemR(column, &strip_ptr, "frame_start", 0, NULL, ICON_NONE);
 	uiItemR(column, &strip_ptr, "frame_end", 0, NULL, ICON_NONE);
@@ -324,27 +324,27 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	/* only show if allowed to... */
 	if (showEvalProps) {
 		/* extrapolation */
-		row = uiLayoutRow(layout, 1);
+		row = uiLayoutRow(layout, TRUE);
 		uiItemR(row, &strip_ptr, "extrapolation", 0, NULL, ICON_NONE);
 		
 		/* blending */
-		row = uiLayoutRow(layout, 1);
+		row = uiLayoutRow(layout, TRUE);
 		uiItemR(row, &strip_ptr, "blend_type", 0, NULL, ICON_NONE);
 			
 		/* blend in/out + autoblending
 		 *	- blend in/out can only be set when autoblending is off
 		 */
-		column = uiLayoutColumn(layout, 1);
+		column = uiLayoutColumn(layout, TRUE);
 		uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_animated_influence") == FALSE);
 		uiItemR(column, &strip_ptr, "use_auto_blend", 0, NULL, ICON_NONE);     // XXX as toggle?
 
-		sub = uiLayoutColumn(column, 1);
+		sub = uiLayoutColumn(column, TRUE);
 		uiLayoutSetActive(sub, RNA_boolean_get(&strip_ptr, "use_auto_blend") == FALSE);
 		uiItemR(sub, &strip_ptr, "blend_in", 0, NULL, ICON_NONE);
 		uiItemR(sub, &strip_ptr, "blend_out", 0, NULL, ICON_NONE);
 			
 		/* settings */
-		column = uiLayoutColumn(layout, 1);
+		column = uiLayoutColumn(layout, TRUE);
 		uiLayoutSetActive(column, !(RNA_boolean_get(&strip_ptr, "use_animated_influence") || RNA_boolean_get(&strip_ptr, "use_animated_time")));
 		uiItemL(column, "Playback Settings:", ICON_NONE);
 		uiItemR(column, &strip_ptr, "mute", 0, NULL, ICON_NONE);
@@ -370,19 +370,19 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 		
 	/* Strip Properties ------------------------------------- */
 	/* action pointer */
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiItemR(row, &strip_ptr, "action", 0, NULL, ICON_ACTION);
 		
 	/* action extents */
 	// XXX custom names were used here (to avoid the prefixes)... probably not necessary in future?
-	column = uiLayoutColumn(layout, 1);
+	column = uiLayoutColumn(layout, TRUE);
 	uiItemL(column, "Action Extents:", ICON_NONE);
 	uiItemR(column, &strip_ptr, "action_frame_start", 0, "Start Frame", ICON_NONE);
 	uiItemR(column, &strip_ptr, "action_frame_end", 0, "End Frame", ICON_NONE);
 	uiItemO(column, NULL, ICON_NONE, "NLA_OT_action_sync_length");
 		
 	/* action usage */
-	column = uiLayoutColumn(layout, 1);
+	column = uiLayoutColumn(layout, TRUE);
 	uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_animated_time") == FALSE);
 	uiItemL(column, "Playback Settings:", ICON_NONE);
 	uiItemR(column, &strip_ptr, "scale", 0, NULL, ICON_NONE);
@@ -404,19 +404,19 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 	block = uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
 		
-	col = uiLayoutColumn(layout, 1);
+	col = uiLayoutColumn(layout, TRUE);
 	uiItemR(col, &strip_ptr, "use_animated_influence", 0, NULL, ICON_NONE);
 	
-	sub = uiLayoutColumn(col, 1);
+	sub = uiLayoutColumn(col, TRUE);
 	uiLayoutSetEnabled(sub, RNA_boolean_get(&strip_ptr, "use_animated_influence"));	
 	uiItemR(sub, &strip_ptr, "influence", 0, NULL, ICON_NONE);
 
-	col = uiLayoutColumn(layout, 1);
-	sub = uiLayoutRow(col, 0);
+	col = uiLayoutColumn(layout, TRUE);
+	sub = uiLayoutRow(col, FALSE);
 	uiItemR(sub, &strip_ptr, "use_animated_time", 0, NULL, ICON_NONE);
 	uiItemR(sub, &strip_ptr, "use_animated_time_cyclic", 0, NULL, ICON_NONE);
 
-	sub = uiLayoutRow(col, 0);
+	sub = uiLayoutRow(col, FALSE);
 	uiLayoutSetEnabled(sub, RNA_boolean_get(&strip_ptr, "use_animated_time"));
 	uiItemR(sub, &strip_ptr, "strip_time", 0, NULL, ICON_NONE);
 }
@@ -440,7 +440,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *pa)
 	
 	/* 'add modifier' button at top of panel */
 	{
-		row = uiLayoutRow(pa->layout, 0);
+		row = uiLayoutRow(pa->layout, FALSE);
 		block = uiLayoutGetBlock(row);
 		
 		// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
@@ -449,14 +449,14 @@ static void nla_panel_modifiers(const bContext *C, Panel *pa)
 		          TIP_("Adds a new F-Modifier for the active NLA Strip"));
 		
 		/* copy/paste (as sub-row)*/
-		row = uiLayoutRow(row, 1);
+		row = uiLayoutRow(row, TRUE);
 		uiItemO(row, "", ICON_COPYDOWN, "NLA_OT_fmodifier_copy");
 		uiItemO(row, "", ICON_PASTEDOWN, "NLA_OT_fmodifier_paste");
 	}
 	
 	/* draw each modifier */
 	for (fcm = strip->modifiers.first; fcm; fcm = fcm->next) {
-		col = uiLayoutColumn(pa->layout, 1);
+		col = uiLayoutColumn(pa->layout, TRUE);
 		
 		ANIM_uiTemplate_fmodifier_draw(col, strip_ptr.id.data, &strip->modifiers, fcm);
 	}

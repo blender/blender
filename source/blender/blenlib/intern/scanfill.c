@@ -288,7 +288,7 @@ static void mergepolysSimp(ScanFillContext *sf_ctx, PolyFill *pf1, PolyFill *pf2
 }
 
 static short testedgeside(const float v1[2], const float v2[2], const float v3[2])
-/* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
+/* is v3 to the right of v1-v2 ? With exception: v3 == v1 || v3 == v2 */
 {
 	float inp;
 

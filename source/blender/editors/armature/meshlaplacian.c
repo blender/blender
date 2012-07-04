@@ -667,25 +667,27 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	*err_str = NULL;
 
 	/* count triangles and create mask */
-	if (     (use_face_sel = (me->editflag & ME_EDIT_PAINT_MASK) != 0) ||
-	         (use_vert_sel = ((me->editflag & ME_EDIT_VERT_SEL) != 0)))
+	if ((use_face_sel = (me->editflag & ME_EDIT_PAINT_MASK) != 0) ||
+	    (use_vert_sel = ((me->editflag & ME_EDIT_VERT_SEL) != 0)))
 	{
 		mask = MEM_callocN(sizeof(int) * me->totvert, "heat_bone_weighting mask");
-	}
 
-	for (a = 0, mp = me->mpoly; a < me->totpoly; mp++, a++) {
 		/*  (added selectedVerts content for vertex mask, they used to just equal 1) */
 		if (use_vert_sel) {
-			for (j = 0, ml = me->mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
-				if (use_vert_sel) {
-					mask[ml->v] = (mvert[ml->v].flag & SELECT) != 0;
+			for (a = 0, mp = me->mpoly; a < me->totpoly; mp++, a++) {
+				for (j = 0, ml = me->mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
+					if (use_vert_sel) {
+						mask[ml->v] = (mvert[ml->v].flag & SELECT) != 0;
+					}
 				}
 			}
 		}
 		else if (use_face_sel) {
-			if (mp->flag & ME_FACE_SEL) {
-				for (j = 0, ml = me->mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
-					mask[ml->v] = 1;
+			for (a = 0, mp = me->mpoly; a < me->totpoly; mp++, a++) {
+				if (mp->flag & ME_FACE_SEL) {
+					for (j = 0, ml = me->mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
+						mask[ml->v] = 1;
+					}
 				}
 			}
 		}

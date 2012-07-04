@@ -73,5 +73,6 @@ extern char *bc_CustomData_get_active_layer_name(const CustomData *data, int typ
 
 extern void bc_bubble_sort_by_Object_name(LinkNode *export_set);
 extern bool bc_is_root_bone(Bone *aBone, bool deform_bones_only);
+extern int  bc_get_active_UVLayer(Object *ob);
 
 #endif

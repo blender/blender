@@ -26,11 +26,11 @@
 
 class SingleThreadedNodeOperation : public NodeOperation {
 private:
-	MemoryBuffer *cachedInstance;
+	MemoryBuffer *m_cachedInstance;
 	
 protected:
 	inline bool isCached() {
-		return cachedInstance != NULL;
+		return this->m_cachedInstance != NULL;
 	}
 
 public:

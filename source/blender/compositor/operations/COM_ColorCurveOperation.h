@@ -31,10 +31,10 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputFacProgram;
-	SocketReader *inputImageProgram;
-	SocketReader *inputBlackProgram;
-	SocketReader *inputWhiteProgram;
+	SocketReader *m_inputFacProgram;
+	SocketReader *m_inputImageProgram;
+	SocketReader *m_inputBlackProgram;
+	SocketReader *m_inputWhiteProgram;
 public:
 	ColorCurveOperation();
 	
@@ -59,10 +59,10 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputFacProgram;
-	SocketReader *inputImageProgram;
-	float black[3];
-	float white[3];
+	SocketReader *m_inputFacProgram;
+	SocketReader *m_inputImageProgram;
+	float m_black[3];
+	float m_white[3];
 	
 public:
 	ConstantLevelColorCurveOperation();
@@ -82,8 +82,8 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setBlackLevel(float black[3]) { this->black[0] = black[0]; this->black[1] = black[1]; this->black[2] = black[2]; }
-	void setWhiteLevel(float white[3]) { this->white[0] = white[0]; this->white[1] = white[1]; this->white[2] = white[2]; }
+	void setBlackLevel(float black[3]) { this->m_black[0] = black[0]; this->m_black[1] = black[1]; this->m_black[2] = black[2]; }
+	void setWhiteLevel(float white[3]) { this->m_white[0] = white[0]; this->m_white[1] = white[1]; this->m_white[2] = white[2]; }
 };
 
 #endif

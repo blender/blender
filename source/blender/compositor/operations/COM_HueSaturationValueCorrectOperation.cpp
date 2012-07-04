@@ -37,30 +37,30 @@ HueSaturationValueCorrectOperation::HueSaturationValueCorrectOperation() : Curve
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 
-	this->inputProgram = NULL;
+	this->m_inputProgram = NULL;
 }
 void HueSaturationValueCorrectOperation::initExecution()
 {
 	CurveBaseOperation::initExecution();
-	this->inputProgram = this->getInputSocketReader(0);
+	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
 void HueSaturationValueCorrectOperation::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float hsv[4], f;
 
-	this->inputProgram->read(hsv, x, y, sampler, inputBuffers);
+	this->m_inputProgram->read(hsv, x, y, sampler, inputBuffers);
 
 	/* adjust hue, scaling returned default 0.5 up to 1 */
-	f = curvemapping_evaluateF(this->curveMapping, 0, hsv[0]);
+	f = curvemapping_evaluateF(this->m_curveMapping, 0, hsv[0]);
 	hsv[0] += f - 0.5f;
 
 	/* adjust saturation, scaling returned default 0.5 up to 1 */
-	f = curvemapping_evaluateF(this->curveMapping, 1, hsv[0]);
+	f = curvemapping_evaluateF(this->m_curveMapping, 1, hsv[0]);
 	hsv[1] *= (f * 2.f);
 
 	/* adjust value, scaling returned default 0.5 up to 1 */
-	f = curvemapping_evaluateF(this->curveMapping, 2, hsv[0]);
+	f = curvemapping_evaluateF(this->m_curveMapping, 2, hsv[0]);
 	hsv[2] *= (f * 2.f);
 
 	hsv[0] = hsv[0] - floorf(hsv[0]);  /* mod 1.0 */
@@ -74,5 +74,5 @@ void HueSaturationValueCorrectOperation::executePixel(float *output, float x, fl
 
 void HueSaturationValueCorrectOperation::deinitExecution()
 {
-	this->inputProgram = NULL;
+	this->m_inputProgram = NULL;
 }

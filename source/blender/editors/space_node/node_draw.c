@@ -65,6 +65,7 @@
 
 #include "ED_node.h"
 #include "ED_gpencil.h"
+#include "ED_space_api.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -723,6 +724,12 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	if (node->flag & NODE_MUTED)
 		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 
+	if (ntree->type == NTREE_COMPOSIT && (snode->flag&SNODE_SHOW_HIGHLIGHT)) {
+		if (node->highlight) {
+			UI_ThemeColorBlend(color_id, TH_ACTIVE, 0.5f);
+			node->highlight = 0;
+		}
+	}
 	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
 	
@@ -804,7 +811,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
-	if ( node->flag & (NODE_ACTIVE|SELECT) ) {
+	if ( node->flag & (NODE_ACTIVE|SELECT)) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		
@@ -861,7 +868,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	node->block= NULL;
 }
 
-static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, bNode *node)
+static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock;
 	rctf *rct= &node->totr;
@@ -878,10 +885,18 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	UI_ThemeColor(color_id);
 	if (node->flag & NODE_MUTED)
 		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
+
+	if (ntree->type == NTREE_COMPOSIT && (snode->flag&SNODE_SHOW_HIGHLIGHT)) {
+		if (node->highlight) {
+			UI_ThemeColorBlend(color_id, TH_ACTIVE, 0.5f);
+			node->highlight = 0;
+		}
+	}
+	
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 	
 	/* outline active and selected emphasis */
-	if ( node->flag & (NODE_ACTIVE|SELECT) ) {
+	if ( node->flag & (NODE_ACTIVE|SELECT)) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		
@@ -1004,7 +1019,7 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode)
 void node_draw_default(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *node)
 {
 	if (node->flag & NODE_HIDDEN)
-		node_draw_hidden(C, ar, snode, node);
+		node_draw_hidden(C, ar, snode, ntree, node);
 	else
 		node_draw_basis(C, ar, snode, ntree, node);
 }
@@ -1087,6 +1102,8 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	
 	//uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+
 	/* only set once */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MAP1_VERTEX_3);
@@ -1095,7 +1112,9 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	snode->aspect= (v2d->cur.xmax - v2d->cur.xmin)/((float)ar->winx);
 	// XXX snode->curfont= uiSetCurFont_ext(snode->aspect);
 
-	UI_view2d_constant_grid_draw(v2d);
+	/* grid */
+	UI_view2d_multi_grid_draw(v2d, 25.0f, 5, 2);
+
 	/* backdrop */
 	draw_nodespace_back_pix(ar, snode, color_manage);
 	
@@ -1136,6 +1155,8 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	}
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
+	
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
 	/* draw grease-pencil ('canvas' strokes) */
 	if (snode->nodetree)

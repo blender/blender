@@ -354,12 +354,12 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **r_l
 
 			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 			do {
-				BM_loop_interp_from_face(bm, l_iter, of, FALSE, TRUE);
+				BM_loop_interp_multires(bm, l_iter, of);
 			} while ((l_iter = l_iter->next) != l_first);
 
 			l_iter = l_first = BM_FACE_FIRST_LOOP(nf);
 			do {
-				BM_loop_interp_from_face(bm, l_iter, of, FALSE, TRUE);
+				BM_loop_interp_multires(bm, l_iter, of);
 			} while ((l_iter = l_iter->next) != l_first);
 
 			BM_face_kill(bm, of);

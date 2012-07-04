@@ -61,10 +61,10 @@ GHOST_SystemPathsX11::~GHOST_SystemPathsX11()
 const GHOST_TUns8 *GHOST_SystemPathsX11::getSystemDir(int, const char *versionstr) const
 {
 	/* no prefix assumes a portable build which only uses bundled scripts */
-	if(static_path) {
+	if (static_path) {
 		static char system_path[PATH_MAX];
 		snprintf(system_path, sizeof(system_path), "%s/blender/%s", static_path, versionstr);
-		return (GHOST_TUns8*)system_path;
+		return (GHOST_TUns8 *)system_path;
 	}
 
 	return NULL;
@@ -76,27 +76,27 @@ const GHOST_TUns8 *GHOST_SystemPathsX11::getUserDir(int version, const char *ver
 
 	/* in blender 2.64, we migrate to XDG. to ensure the copy previous settings
 	 * operator works we give a different path depending on the requested version */
-	if(version < 264) {
+	if (version < 264) {
 		const char *home = getenv("HOME");
 
-		if(home) {
+		if (home) {
 			snprintf(user_path, sizeof(user_path), "%s/.blender/%s", home, versionstr);
-			return (GHOST_TUns8*)user_path;
+			return (GHOST_TUns8 *)user_path;
 		}
 
 		return NULL;
 	}
 	else {
-		const char *home= getenv("XDG_CONFIG_HOME");
+		const char *home = getenv("XDG_CONFIG_HOME");
 
 		if (home) {
 			snprintf(user_path, sizeof(user_path), "%s/blender/%s", home, versionstr);
 		}
 		else {
-			home= getenv("HOME");
+			home = getenv("HOME");
 
 			if (home == NULL)
-				home= getpwuid(getuid())->pw_dir;
+				home = getpwuid(getuid())->pw_dir;
 
 			snprintf(user_path, sizeof(user_path), "%s/.config/blender/%s", home, versionstr);
 		}

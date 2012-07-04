@@ -25,20 +25,20 @@
 
 
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class ConvertRGBToYCCOperation : public NodeOperation {
 private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputOperation;
+	SocketReader *m_inputOperation;
 
 	/**
 	 * YCbCr mode (Jpeg, ITU601, ITU709)
 	 */
-	int mode;
+	int m_mode;
 public:
 	/**
 	 * Default constructor

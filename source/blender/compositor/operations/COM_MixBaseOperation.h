@@ -26,18 +26,18 @@
 
 
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class MixBaseOperation : public NodeOperation {
 protected:
 	/**
 	 * Prefetched reference to the inputProgram
 	 */
-	SocketReader *inputValueOperation;
-	SocketReader *inputColor1Operation;
-	SocketReader *inputColor2Operation;
-	bool valueAlphaMultiply;
+	SocketReader *m_inputValueOperation;
+	SocketReader *m_inputColor1Operation;
+	SocketReader *m_inputColor2Operation;
+	bool m_valueAlphaMultiply;
 public:
 	/**
 	 * Default constructor
@@ -61,7 +61,7 @@ public:
 	
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	
-	void setUseValueAlphaMultiply(const bool value) { this->valueAlphaMultiply = value; }
-	bool useValueAlphaMultiply() { return this->valueAlphaMultiply; }
+	void setUseValueAlphaMultiply(const bool value) { this->m_valueAlphaMultiply = value; }
+	bool useValueAlphaMultiply() { return this->m_valueAlphaMultiply; }
 };
 #endif

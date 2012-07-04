@@ -59,7 +59,10 @@
 
 #include "NOD_composite.h"
 #include "node_composite_util.h"
-#include "COM_compositor.h"
+
+#ifdef WITH_COMPOSITOR
+#  include "COM_compositor.h"
+#endif
 
 static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 {
@@ -115,7 +118,6 @@ static void update_node(bNodeTree *ntree, bNode *node)
 		}
 	}
 	node->need_exec= 1;
-	
 	/* individual node update call */
 	if (node->typeinfo->updatefunc)
 		node->typeinfo->updatefunc(ntree, node);
@@ -130,6 +132,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	for (node= ntree->nodes.first; node; node= node->next) {
 		/* ensure new user input gets handled ok */
 		node->need_exec= 0;
+		node->new_node->original = node;
 		
 		/* move over the compbufs */
 		/* right after ntreeCopyTree() oldsock pointers are valid */
@@ -197,6 +200,7 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 					lnode->new_node->preview= lnode->preview;
 					lnode->preview= NULL;
 				}
+				
 			}
 		}
 	}
@@ -218,8 +222,8 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 			}
 			else if (lnode->type==CMP_NODE_MOVIEDISTORTION) {
 				/* special case for distortion node: distortion context is allocating in exec function
-				   and to achive much better performance on further calls this context should be
-				   copied back to original node */
+				 * and to achive much better performance on further calls this context should be
+				 * copied back to original node */
 				if (lnode->storage) {
 					if (lnode->new_node->storage)
 						BKE_tracking_distortion_free(lnode->new_node->storage);
@@ -350,6 +354,8 @@ void ntreeCompositEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 		}
 	}
 }
+
+#ifdef WITH_COMPOSITOR
 
 /* ***************************** threaded version for execute composite nodes ************* */
 /* these are nodes without input, only giving values */
@@ -586,7 +592,6 @@ static  void ntree_composite_texnode(bNodeTree *ntree, int init)
 }
 
 /* optimized tree execute test for compositing */
-/* optimized tree execute test for compositing */
 static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_preview)
 {
 	bNodeExec *nodeexec;
@@ -677,13 +682,18 @@ static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_pr
 	/* XXX top-level tree uses the ntree->execdata pointer */
 	ntreeCompositEndExecTree(exec, 1);
 }
+#endif
 
 void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int do_preview)
 {
+#ifdef WITH_COMPOSITOR
 	if (G.rt == 200)
 		ntreeCompositExecTreeOld(ntree, rd, do_preview);
 	else
-		COM_execute(ntree, rendering);
+		COM_execute(rd, ntree, rendering);
+#else
+	(void)ntree, (void)rd, (void)rendering, (void)do_preview;
+#endif
 }
 
 /* *********************************************** */

@@ -30,9 +30,9 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *inputProgram;
+	SocketReader *m_inputProgram;
 	
-	float objectIndex;
+	float m_objectIndex;
 public:
 	IDMaskOperation();
 	
@@ -51,7 +51,7 @@ public:
 	 */
 	void deinitExecution();
 	
-	void setObjectIndex(float objectIndex) { this->objectIndex = objectIndex; }
+	void setObjectIndex(float objectIndex) { this->m_objectIndex = objectIndex; }
 
 };
 #endif

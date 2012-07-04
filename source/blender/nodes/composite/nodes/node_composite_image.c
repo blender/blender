@@ -368,9 +368,11 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 		stackbuf->malloc= alloc;
 	}
 	
-	/*code to respect the premul flag of images; I'm
-	  not sure if this is a good idea for multilayer images,
-	  since it never worked before for them.
+	/* code to respect the premul flag of images; I'm
+	 * not sure if this is a good idea for multilayer images,
+	 * since it never worked before for them.
+	 */
+#if 0
 	if (type==CB_RGBA && ima->flag & IMA_DO_PREMUL) {
 		//premul the image
 		int i;
@@ -382,7 +384,7 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 			pixel[2] *= pixel[3];
 		}
 	}
-	*/
+#endif
 	return stackbuf;
 }
 
@@ -481,8 +483,8 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 					int i;
 					float *pixel;
 			
-					/*first duplicate stackbuf->rect, since it's just a pointer
-					  to the source imbuf, and we don't want to change that.*/
+					/* first duplicate stackbuf->rect, since it's just a pointer
+					 * to the source imbuf, and we don't want to change that.*/
 					stackbuf->rect = MEM_dupallocN(stackbuf->rect);
 					
 					/* since stackbuf now has allocated memory, rather than just a pointer,

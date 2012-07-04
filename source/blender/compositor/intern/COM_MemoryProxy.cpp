@@ -25,8 +25,8 @@
 
 MemoryProxy::MemoryProxy()
 {
-	this->writeBufferOperation = NULL;
-	this->executor = NULL;
+	this->m_writeBufferOperation = NULL;
+	this->m_executor = NULL;
 }
 
 void MemoryProxy::allocate(unsigned int width, unsigned int height)
@@ -37,14 +37,14 @@ void MemoryProxy::allocate(unsigned int width, unsigned int height)
 	result.ymin = 0;
 	result.ymax = height;
 
-	buffer = new MemoryBuffer(this, 1, &result);
+	this->m_buffer = new MemoryBuffer(this, 1, &result);
 }
 
 void MemoryProxy::free()
 {
-	if (buffer) {
-		delete buffer;
-		buffer = NULL;
+	if (this->m_buffer) {
+		delete this->m_buffer;
+		this->m_buffer = NULL;
 	}
 }
 

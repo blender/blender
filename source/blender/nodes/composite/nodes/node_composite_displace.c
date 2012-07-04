@@ -126,7 +126,7 @@ static void do_displace(bNode *node, CompBuf *stackbuf, CompBuf *cbuf, CompBuf *
 	
 	
 /* simple method for reference, linear interpolation */
-/*	
+#if 0
 	int x, y;
 	float dx, dy;
 	float u, v;
@@ -147,7 +147,7 @@ static void do_displace(bNode *node, CompBuf *stackbuf, CompBuf *cbuf, CompBuf *
 			qd_setPixel(stackbuf, x, y, col);
 		}
 	}
-*/
+#endif
 }
 
 

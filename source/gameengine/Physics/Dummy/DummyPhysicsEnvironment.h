@@ -35,13 +35,13 @@
 #include "PHY_IPhysicsEnvironment.h"
 
 /**
-*	DummyPhysicsEnvironment  is an empty placeholder
-*   Alternatives are ODE,Sumo and Dynamo PhysicsEnvironments
-*	Use DummyPhysicsEnvironment as a base to integrate your own physics engine
-*	Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
-*
-*	A derived class may be able to 'construct' entities by loading and/or converting
-*/
+ * DummyPhysicsEnvironment  is an empty placeholder
+ * Alternatives are ODE,Sumo and Dynamo PhysicsEnvironments
+ * Use DummyPhysicsEnvironment as a base to integrate your own physics engine
+ * Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
+ *
+ * A derived class may be able to 'construct' entities by loading and/or converting
+ */
 class DummyPhysicsEnvironment  : public PHY_IPhysicsEnvironment
 {
 
@@ -98,9 +98,7 @@ public:
 
 		
 #ifdef WITH_CXX_GUARDEDALLOC
-public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:DummyPhysicsEnvironment"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:DummyPhysicsEnvironment")
 #endif
 };
 

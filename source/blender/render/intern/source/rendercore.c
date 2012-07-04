@@ -1866,7 +1866,7 @@ static void renderflare(RenderResult *rr, float *rectf, HaloRen *har)
 	alfa= har->alfa;
 	
 	visifac= R.ycor*(har->pixels);
-	/* all radials added / r^3  == 1.0f! */
+	/* all radials added / r^3 == 1.0f! */
 	visifac /= (har->rad*har->rad*har->rad);
 	visifac*= visifac;
 

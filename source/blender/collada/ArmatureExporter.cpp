@@ -111,7 +111,7 @@ bool ArmatureExporter::add_instance_controller(Object *ob)
 		write_bone_URLs(ins, ob_arm, bone);
 	}
 
-	InstanceWriter::add_material_bindings(ins.getBindMaterial(), ob);
+	InstanceWriter::add_material_bindings(ins.getBindMaterial(), ob, this->export_settings->active_uv_only);
 		
 	ins.add();
 	return true;

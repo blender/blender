@@ -384,7 +384,7 @@ int bmesh_elem_check(void *element, const char htype)
 				err |= 256;
 			if (l->e->head.htype != BM_EDGE)
 				err |= 512;
-			if (l->v->head.htype !=  BM_VERT)
+			if (l->v->head.htype != BM_VERT)
 				err |= 1024;
 			if (!BM_vert_in_edge(l->e, l->v)) {
 				fprintf(stderr, "%s: fatal bmesh error (vert not in edge)! (bmesh internal error)\n", __func__);

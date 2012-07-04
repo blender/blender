@@ -417,7 +417,7 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 }
 
 /* sets up the new context and calls 'wm_operator_invoke()' with poll_only */
-int WM_operator_poll_context(bContext *C, wmOperatorType *ot, int context)
+int WM_operator_poll_context(bContext *C, wmOperatorType *ot, short context)
 {
 	return wm_operator_call_internal(C, ot, NULL, NULL, context, TRUE);
 }
@@ -1068,7 +1068,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 
 
 /* invokes operator in context */
-int WM_operator_name_call(bContext *C, const char *opstring, int context, PointerRNA *properties)
+int WM_operator_name_call(bContext *C, const char *opstring, short context, PointerRNA *properties)
 {
 	wmOperatorType *ot = WM_operatortype_find(opstring, 0);
 	if (ot)
@@ -1082,7 +1082,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
  * - poll() must be called by python before this runs.
  * - reports can be passed to this function (so python can report them as exceptions)
  */
-int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA *properties, ReportList *reports)
+int WM_operator_call_py(bContext *C, wmOperatorType *ot, short context, PointerRNA *properties, ReportList *reports, short is_undo)
 {
 	int retval = OPERATOR_CANCELLED;
 
@@ -1091,13 +1091,13 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 	op = wm_operator_create(wm, ot, properties, reports);
 
 	if (op->type->exec) {
-		if (op->type->flag & OPTYPE_UNDO)
+		if (is_undo && op->type->flag & OPTYPE_UNDO)
 			wm->op_undo_depth++;
 
 		retval = op->type->exec(C, op);
 		OPERATOR_RETVAL_CHECK(retval);
 
-		if (op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
+		if (is_undo && op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 			wm->op_undo_depth--;
 	}
 	else
@@ -1110,11 +1110,11 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 	 * we could have some more obvious way of doing this like passing a flag.
 	 */
 	wmWindowManager *wm = CTX_wm_manager(C);
-	if (wm) wm->op_undo_depth++;
+	if (!is_undo && wm) wm->op_undo_depth++;
 
 	retval = wm_operator_call_internal(C, ot, properties, reports, context, FALSE);
 	
-	if (wm && (wm == CTX_wm_manager(C))) wm->op_undo_depth--;
+	if (!is_undo && wm && (wm == CTX_wm_manager(C))) wm->op_undo_depth--;
 
 	/* keep the reports around if needed later */
 	if ((retval & OPERATOR_RUNNING_MODAL) ||

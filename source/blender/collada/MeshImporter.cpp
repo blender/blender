@@ -294,8 +294,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)  // checks if mesh has su
 				
 		}
 
-		else if (type == COLLADAFW::MeshPrimitive::LINES)
-		{
+		else if (type == COLLADAFW::MeshPrimitive::LINES) {
 			// TODO: Add Checker for line syntax here
 		}
 
@@ -582,8 +581,7 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
 			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
 
 			int type = mp->getPrimitiveType();
-			if (type == COLLADAFW::MeshPrimitive::LINES)
-			{
+			if (type == COLLADAFW::MeshPrimitive::LINES) {
 				unsigned int edge_count  = mp->getFaceCount();
 				unsigned int *indices    = mp->getPositionIndices().getData();
 				
@@ -857,8 +855,7 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) //T
 				indices += vcount;
 			}
 		}
-		else if (type == COLLADAFW::MeshPrimitive::LINES)
-		{
+		else if (type == COLLADAFW::MeshPrimitive::LINES) {
 			continue; // read the lines later after all the rest is done
 		}
 

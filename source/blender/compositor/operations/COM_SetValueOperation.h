@@ -26,12 +26,12 @@
 
 
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class SetValueOperation : public NodeOperation {
 private:
-	float value;
+	float m_value;
 
 public:
 	/**
@@ -39,8 +39,8 @@ public:
 	 */
 	SetValueOperation();
 	
-	const float getValue() { return this->value; }
-	void setValue(float value) { this->value = value; }
+	const float getValue() { return this->m_value; }
+	void setValue(float value) { this->m_value = value; }
 	
 	
 	/**

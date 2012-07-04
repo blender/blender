@@ -157,8 +157,8 @@ def find_path_new(id_data, data_path, rna_update_dict, rna_update_from_map):
 
 
 def update_data_paths(rna_update):
-    ''' rna_update triple [(class_name, from, to), ...]
-    '''
+    """ rna_update triple [(class_name, from, to), ...]
+    """
 
     # make a faster lookup dict
     rna_update_dict = {}
@@ -887,9 +887,9 @@ if __name__ == "__main__":
     # Example, should be called externally
     # (class, from, to)
     replace_ls = [
-        ('AnimVizMotionPaths', 'frame_after', 'frame_after'),
-        ('AnimVizMotionPaths', 'frame_before', 'frame_before'),
-        ('AnimVizOnionSkinning', 'frame_after', 'frame_after'),
+        ("AnimVizMotionPaths", "frame_after", "frame_after"),
+        ("AnimVizMotionPaths", "frame_before", "frame_before"),
+        ("AnimVizOnionSkinning", "frame_after", "frame_after"),
     ]
 
     update_data_paths(replace_ls)

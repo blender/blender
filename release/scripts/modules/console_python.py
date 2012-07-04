@@ -48,14 +48,14 @@ def replace_help(namespace):
 
 
 def get_console(console_id):
-    '''
+    """
     helper function for console operators
     currently each text data block gets its own
     console - code.InteractiveConsole()
     ...which is stored in this function.
 
     console_id can be any hashable type
-    '''
+    """
     from code import InteractiveConsole
 
     consoles = getattr(get_console, "consoles", None)
@@ -96,7 +96,10 @@ def get_console(console_id):
 
         namespace["__builtins__"] = sys.modules["builtins"]
         namespace["bpy"] = bpy
+
+        # weak! - but highly convenient
         namespace["C"] = bpy.context
+        namespace["D"] = bpy.data
 
         replace_help(namespace)
 
@@ -305,6 +308,7 @@ def banner(context):
                    'OUTPUT')
     add_scrollback("Convenience Imports: from mathutils import *; "
                    "from math import *", 'OUTPUT')
+    add_scrollback("Convenience Variables: C = bpy.context, D = bpy.data", 'OUTPUT')
     add_scrollback("", 'OUTPUT')
     sc.prompt = PROMPT
 

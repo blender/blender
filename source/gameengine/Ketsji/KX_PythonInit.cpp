@@ -1130,8 +1130,8 @@ static int getGLSLSettingFlag(const char *setting)
 }
 
 static PyObject* gPySetGLSLMaterialSetting(PyObject*,
-											PyObject* args,
-											PyObject*)
+                                           PyObject* args,
+                                           PyObject*)
 {
 	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	char *setting;
@@ -1142,7 +1142,7 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 	
 	flag = getGLSLSettingFlag(setting);
 	
-	if  (flag==-1) {
+	if (flag == -1) {
 		PyErr_SetString(PyExc_ValueError, "Rasterizer.setGLSLMaterialSetting(string): glsl setting is not known");
 		return NULL;
 	}
@@ -1173,8 +1173,8 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 }
 
 static PyObject* gPyGetGLSLMaterialSetting(PyObject*, 
-									 PyObject* args, 
-									 PyObject*)
+                                           PyObject* args,
+                                           PyObject*)
 {
 	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	char *setting;
@@ -1185,7 +1185,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 	
 	flag = getGLSLSettingFlag(setting);
 	
-	if  (flag==-1) {
+	if (flag == -1) {
 		PyErr_SetString(PyExc_ValueError, "Rasterizer.getGLSLMaterialSetting(string): glsl setting is not known");
 		return NULL;
 	}
@@ -1819,6 +1819,16 @@ static void restorePySysObjects(void)
 	
 //	fprintf(stderr, "\nRestore Path: %d ", PyList_GET_SIZE(sys_path));
 //	PyObject_Print(sys_path, stderr, 0);
+}
+
+void addImportMain(struct Main *maggie)
+{
+	bpy_import_main_extra_add(maggie);
+}
+
+void removeImportMain(struct Main *maggie)
+{
+	bpy_import_main_extra_remove(maggie);
 }
 
 // Copied from bpy_interface.c

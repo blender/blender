@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Hervé Drolon, FreeImage Team
+ * Copyright (c) 2005, Herve Drolon, FreeImage Team
  * Copyright (c) 2007, Callum Lerwick <seg@haxxed.com>
  * All rights reserved.
  *
@@ -45,7 +45,11 @@ Allocate an uninitialized memory block
 @param size Bytes to allocate
 @return Returns a void pointer to the allocated space, or NULL if there is insufficient memory available
 */
+#ifdef ALLOC_PERF_OPT
+void * OPJ_CALLCONV opj_malloc(size_t size);
+#else
 #define opj_malloc(size) malloc(size)
+#endif
 
 /**
 Allocate a memory block with elements initialized to 0
@@ -53,7 +57,11 @@ Allocate a memory block with elements initialized to 0
 @param size Bytes per block to allocate
 @return Returns a void pointer to the allocated space, or NULL if there is insufficient memory available
 */
+#ifdef ALLOC_PERF_OPT
+void * OPJ_CALLCONV opj_calloc(size_t _NumOfElements, size_t _SizeOfElements);
+#else
 #define opj_calloc(num, size) calloc(num, size)
+#endif
 
 /**
 Allocate memory aligned to a 16 byte boundry
@@ -61,7 +69,7 @@ Allocate memory aligned to a 16 byte boundry
 @return Returns a void pointer to the allocated space, or NULL if there is insufficient memory available
 */
 /* FIXME: These should be set with cmake tests, but we're currently not requiring use of cmake */
-#ifdef WIN32
+#ifdef _WIN32
 	/* Someone should tell the mingw people that their malloc.h ought to provide _mm_malloc() */
 	#ifdef __GNUC__
 		#include <mm_malloc.h>
@@ -72,22 +80,15 @@ Allocate memory aligned to a 16 byte boundry
 			#define HAVE_MM_MALLOC
 		#endif
 	#endif
-#else /* Not WIN32 */
+#else /* Not _WIN32 */
 	#if defined(__sun)
-			#define HAVE_MEMALIGN
-		#elif defined(__GNUC__)
-                        #if !defined(__APPLE__) && !defined(__FreeBSD__)
-			    #define HAVE_MEMALIGN
-			    #include <malloc.h>
-                        #endif
-		/* Linux x86_64 and OSX always align allocations to 16 bytes */
-		#elif !defined(__amd64__) && !defined(__APPLE__)	
-			/* FIXME: Yes, this is a big assumption */
-			#define HAVE_POSIX_MEMALIGN
+		#define HAVE_MEMALIGN
+	/* Linux x86_64 and OSX always align allocations to 16 bytes */
+	#elif !defined(__amd64__) && !defined(__APPLE__)	
+		#define HAVE_MEMALIGN
+		#include <malloc.h>			
 	#endif
 #endif
-
-
 
 #define opj_aligned_malloc(size) malloc(size)
 #define opj_aligned_free(m) free(m)
@@ -120,19 +121,34 @@ Allocate memory aligned to a 16 byte boundry
 	#define opj_aligned_free(m) free(m)
 #endif
 
+#ifdef ALLOC_PERF_OPT
+	#undef opj_aligned_malloc
+	#define opj_aligned_malloc(size) opj_malloc(size)
+	#undef opj_aligned_free
+	#define opj_aligned_free(m) opj_free(m)
+#endif
+
 /**
 Reallocate memory blocks.
-@param memblock Pointer to previously allocated memory block
-@param size New size in bytes
+@param m Pointer to previously allocated memory block
+@param s New size in bytes
 @return Returns a void pointer to the reallocated (and possibly moved) memory block
 */
+#ifdef ALLOC_PERF_OPT
+void * OPJ_CALLCONV opj_realloc(void * m, size_t s);
+#else
 #define opj_realloc(m, s) realloc(m, s)
+#endif
 
 /**
 Deallocates or frees a memory block.
-@param memblock Previously allocated memory block to be freed
+@param m Previously allocated memory block to be freed
 */
+#ifdef ALLOC_PERF_OPT
+void OPJ_CALLCONV opj_free(void * m);
+#else
 #define opj_free(m) free(m)
+#endif
 
 #ifdef __GNUC__
 #pragma GCC poison malloc calloc realloc free

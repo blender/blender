@@ -518,7 +518,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	ibuf = BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
 
 	if (ibuf) {
-		/* color -> greyscale */
+		/* color -> grayscale */
 		/* editing directly would alter the render view */
 		if (scene->r.im_format.planes == R_IMF_PLANES_BW) {
 			ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);

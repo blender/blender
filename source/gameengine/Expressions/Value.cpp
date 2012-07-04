@@ -406,7 +406,7 @@ CValue* CValue::GetProperty(int inIndex)
 		std::map<STR_String,CValue*>::iterator it;
 		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 		{
-			if (count++==inIndex)
+			if (count++ == inIndex)
 			{
 				result = (*it).second;
 				break;

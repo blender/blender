@@ -515,7 +515,7 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
 }
 
-int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
+int file_highlight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 {
 	View2D *v2d = &ar->v2d;
 	FileSelectParams *params;
@@ -555,7 +555,7 @@ static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 	ARegion *ar = CTX_wm_region(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
-	if (!file_hilight_set(sfile, ar, event->x, event->y))
+	if (!file_highlight_set(sfile, ar, event->x, event->y))
 		return OPERATOR_CANCELLED;
 
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -1277,7 +1277,8 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
-struct ARegion *file_buttons_region(struct ScrArea *sa){
+struct ARegion *file_buttons_region(struct ScrArea *sa)
+{
 	ARegion *ar, *arnew;
 	
 	for (ar = sa->regionbase.first; ar; ar = ar->next)

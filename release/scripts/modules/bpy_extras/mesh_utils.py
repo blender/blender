@@ -19,6 +19,7 @@
 # <pep8-80 compliant>
 
 __all__ = (
+    "mesh_linked_uv_islands",
     "mesh_linked_tessfaces",
     "edge_face_count_dict",
     "edge_face_count",
@@ -27,6 +28,66 @@ __all__ = (
     "ngon_tessellate",
     "face_random_points",
     )
+
+
+def mesh_linked_uv_islands(mesh):
+    """
+    Splits the mesh into connected polygons, use this for seperating cubes from
+    other mesh elements within 1 mesh datablock.
+
+    :arg mesh: the mesh used to group with.
+    :type mesh: :class:`bpy.types.Mesh`
+    :return: lists of lists containing polygon indices
+    :rtype: list
+    """
+    uv_loops = [luv.uv[:] for luv in mesh.uv_layers.active.data]
+    poly_loops = [poly.loop_indices for poly in mesh.polygons]
+    luv_hash = {}
+    luv_hash_get = luv_hash.get
+    luv_hash_ls = [None] * len(uv_loops)
+    for pi, poly_indices in enumerate(poly_loops):
+        for li in poly_indices:
+            uv = uv_loops[li]
+            uv_hub = luv_hash_get(uv)
+            if uv_hub is None:
+                uv_hub = luv_hash[uv] = [pi]
+            else:
+                uv_hub.append(pi)
+            luv_hash_ls[li] = uv_hub
+
+    poly_islands = []
+
+    # 0 = none, 1 = added, 2 = searched
+    poly_tag = [0] * len(poly_loops)
+
+    while True:
+        poly_index = -1
+        for i in range(len(poly_loops)):
+            if poly_tag[i] == 0:
+                poly_index = i
+                break
+
+        if poly_index != -1:
+            island = [poly_index]
+            poly_tag[poly_index] = 1
+            poly_islands.append(island)
+        else:
+            break  # we're done
+
+        added = True
+        while added:
+            added = False
+            for poly_index in island[:]:
+                if poly_tag[poly_index] == 1:
+                    for li in poly_loops[poly_index]:
+                        for poly_index_shared in luv_hash_ls[li]:
+                            if poly_tag[poly_index_shared] == 0:
+                                added = True
+                                poly_tag[poly_index_shared] = 1
+                                island.append(poly_index_shared)
+                    poly_tag[poly_index] = 2
+
+    return poly_islands
 
 
 def mesh_linked_tessfaces(mesh):
@@ -258,7 +319,7 @@ def edge_loops_from_edges(mesh, edges=None):
 
 
 def ngon_tessellate(from_data, indices, fix_loops=True):
-    '''
+    """
     Takes a polyline of indices (fgon) and returns a list of face
     indicie lists. Designed to be used for importers that need indices for an
     fgon to create from existing verts.
@@ -268,7 +329,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
        to fill, and can be a subset of the data given.
     fix_loops: If this is enabled polylines that use loops to make multiple
        polylines are delt with correctly.
-    '''
+    """
 
     from mathutils.geometry import tessellate_polygon
     from mathutils import Vector
@@ -291,9 +352,9 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
             return v1[1], v2[1]
 
     if not fix_loops:
-        '''
+        """
         Normal single concave loop filling
-        '''
+        """
         if type(from_data) in {tuple, list}:
             verts = [Vector(from_data[i]) for ii, i in enumerate(indices)]
         else:
@@ -307,10 +368,10 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
         fill = tessellate_polygon([verts])
 
     else:
-        '''
+        """
         Seperate this loop into multiple loops be finding edges that are
         used twice. This is used by lightwave LWO files a lot
-        '''
+        """
 
         if type(from_data) in {tuple, list}:
             verts = [vert_treplet(Vector(from_data[i]), ii)
@@ -414,7 +475,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
 
         fill = tessellate_polygon([[v[0] for v in loop] for loop in loop_list])
         #draw_loops(loop_list)
-        #raise 'done loop'
+        #raise Exception("done loop")
         # map to original indices
         fill = [[vert_map[i] for i in reversed(f)] for f in fill]
 

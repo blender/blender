@@ -28,8 +28,7 @@
 
 class GlareStreaksOperation : public GlareBaseOperation {
 public:
-	GlareStreaksOperation() : GlareBaseOperation() {
-	}
+	GlareStreaksOperation() : GlareBaseOperation() {}
 protected:
 	void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings);
 };

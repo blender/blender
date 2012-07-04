@@ -27,16 +27,18 @@
 
 class CombineChannelsOperation : public NodeOperation {
 private:
-	SocketReader *inputChannel1Operation;
-	SocketReader *inputChannel2Operation;
-	SocketReader *inputChannel3Operation;
-	SocketReader *inputChannel4Operation;
+	SocketReader *m_inputChannel1Operation;
+	SocketReader *m_inputChannel2Operation;
+	SocketReader *m_inputChannel3Operation;
+	SocketReader *m_inputChannel4Operation;
 public:
 	CombineChannelsOperation();
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	void initExecution();
 	void deinitExecution();
+	
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
 
 #endif

@@ -6442,7 +6442,7 @@ static void draw_hooks(Object *ob)
 	}
 }
 
-static void drawRBpivot(bRigidBodyJointConstraint *data, const unsigned char ob_wire_col[4])
+static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const unsigned char ob_wire_col[4])
 {
 	const char *axis_str[3] = {"px", "py", "pz"};
 	int axis;
@@ -7068,12 +7068,13 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			if (con->type == CONSTRAINT_TYPE_RIGIDBODYJOINT) {
 				bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint *)con->data;
 				if (data->flag & CONSTRAINT_DRAW_PIVOT)
-					drawRBpivot(data, ob_wire_col);
+					draw_rigid_body_pivot(data, ob_wire_col);
 			}
 		}
 
 		if (ob->gameflag & OB_BOUNDS) {
 			if (ob->boundtype != ob->collision_boundtype || (dtx & OB_BOUNDBOX) == 0) {
+
 				setlinestyle(2);
 				draw_bounding_volume(scene, ob, ob->collision_boundtype);
 				setlinestyle(0);
@@ -7108,8 +7109,11 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	if (dt <= OB_SOLID && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-		if ((ob->gameflag & OB_DYNAMIC) ||
-		    ((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE)))
+		if (((ob->gameflag & OB_DYNAMIC) &&
+		     !ELEM(ob->collision_boundtype, OB_BOUND_TRIANGLE_MESH, OB_BOUND_CONVEX_HULL)) ||
+
+		    ((ob->gameflag & OB_BOUNDS) &&
+		     (ob->boundtype == OB_BOUND_SPHERE)))
 		{
 			float imat[4][4], vec[3] = {0.0f, 0.0f, 0.0f};
 

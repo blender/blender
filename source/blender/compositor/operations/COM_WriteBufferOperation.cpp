@@ -23,46 +23,50 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 #include <stdio.h>
+#include "COM_OpenCLDevice.h"
 
 WriteBufferOperation::WriteBufferOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
-	this->memoryProxy = new MemoryProxy();
-	this->memoryProxy->setWriteBufferOperation(this);
-	this->memoryProxy->setExecutor(NULL);
+	this->m_memoryProxy = new MemoryProxy();
+	this->m_memoryProxy->setWriteBufferOperation(this);
+	this->m_memoryProxy->setExecutor(NULL);
 }
 WriteBufferOperation::~WriteBufferOperation()
 {
-	if (this->memoryProxy) {
-		delete this->memoryProxy;
-		this->memoryProxy = NULL;
+	if (this->m_memoryProxy) {
+		delete this->m_memoryProxy;
+		this->m_memoryProxy = NULL;
 	}
 }
 
 void WriteBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	input->read(color, x, y, sampler, inputBuffers);
+	this->m_input->read(color, x, y, sampler, inputBuffers);
 }
 
 void WriteBufferOperation::initExecution()
 {
-	this->input = this->getInputOperation(0);
-	this->memoryProxy->allocate(this->width, this->height);
+	this->m_input = this->getInputOperation(0);
+	this->m_memoryProxy->allocate(this->m_width, this->m_height);
 }
 
 void WriteBufferOperation::deinitExecution()
 {
-	this->input = NULL;
-	this->memoryProxy->free();
+	this->m_input = NULL;
+	this->m_memoryProxy->free();
 }
 
 void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
 	//MemoryBuffer *memoryBuffer = MemoryManager::getMemoryBuffer(this->getMemoryProxy(), tileNumber);
-	MemoryBuffer *memoryBuffer = this->memoryProxy->getBuffer();
+	MemoryBuffer *memoryBuffer = this->m_memoryProxy->getBuffer();
 	float *buffer = memoryBuffer->getBuffer();
-	if (this->input->isComplex()) {
-		void *data = this->input->initializeTileData(rect, memoryBuffers);
+	if (this->m_input->isComplex()) {
+		bNode* bnode = this->m_input->getbNode();
+		if (bnode&& bnode->original) bnode->original->highlight++;
+
+		void *data = this->m_input->initializeTileData(rect, memoryBuffers);
 		int x1 = rect->xmin;
 		int y1 = rect->ymin;
 		int x2 = rect->xmax;
@@ -73,7 +77,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 		for (y = y1; y < y2 && (!breaked); y++) {
 			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
 			for (x = x1; x < x2; x++) {
-				input->read(&(buffer[offset4]), x, y, memoryBuffers, data);
+				this->m_input->read(&(buffer[offset4]), x, y, memoryBuffers, data);
 				offset4 += COM_NUMBER_OF_CHANNELS;
 
 			}
@@ -83,9 +87,10 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 
 		}
 		if (data) {
-			this->input->deinitializeTileData(rect, memoryBuffers, data);
+			this->m_input->deinitializeTileData(rect, memoryBuffers, data);
 			data = NULL;
 		}
+		if (bnode&& bnode->original) bnode->original->highlight++;
 	}
 	else {
 		int x1 = rect->xmin;
@@ -99,7 +104,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 		for (y = y1; y < y2 && (!breaked); y++) {
 			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
 			for (x = x1; x < x2; x++) {
-				input->read(&(buffer[offset4]), x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_input->read(&(buffer[offset4]), x, y, COM_PS_NEAREST, memoryBuffers);
 				offset4 += COM_NUMBER_OF_CHANNELS;
 			}
 			if (isBreaked()) {
@@ -110,7 +115,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 	memoryBuffer->setCreatedState();
 }
 
-void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, unsigned int chunkNumber, MemoryBuffer **inputMemoryBuffers, MemoryBuffer *outputBuffer)
+void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice* device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **inputMemoryBuffers, MemoryBuffer *outputBuffer)
 {
 	float *outputFloatBuffer = outputBuffer->getBuffer();
 	cl_int error;
@@ -131,15 +136,17 @@ void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program pr
 		CL_FLOAT
 	};
 
-	cl_mem clOutputBuffer = clCreateImage2D(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, &imageFormat, outputBufferWidth, outputBufferHeight, 0, outputFloatBuffer, &error);
+	cl_mem clOutputBuffer = clCreateImage2D(device->getContext(), CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, &imageFormat, outputBufferWidth, outputBufferHeight, 0, outputFloatBuffer, &error);
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	
 	// STEP 2
 	list<cl_mem> *clMemToCleanUp = new list<cl_mem>();
 	clMemToCleanUp->push_back(clOutputBuffer);
 	list<cl_kernel> *clKernelsToCleanUp = new list<cl_kernel>();
+	bNode* bnode = this->m_input->getbNode();
+	if (bnode&& bnode->original) bnode->original->highlight++;
 
-	this->input->executeOpenCL(context, program, queue, outputBuffer, clOutputBuffer, inputMemoryBuffers, clMemToCleanUp, clKernelsToCleanUp);
+	this->m_input->executeOpenCL(device, outputBuffer, clOutputBuffer, inputMemoryBuffers, clMemToCleanUp, clKernelsToCleanUp);
 
 	// STEP 3
 
@@ -149,13 +156,14 @@ void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program pr
 //	clFlush(queue);
 //	clFinish(queue);
 
-	error = clEnqueueBarrier(queue);
+	error = clEnqueueBarrier(device->getQueue());
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-	error = clEnqueueReadImage(queue, clOutputBuffer, CL_TRUE, origin, region, 0, 0, outputFloatBuffer, 0, NULL, NULL);
+	error = clEnqueueReadImage(device->getQueue(), clOutputBuffer, CL_TRUE, origin, region, 0, 0, outputFloatBuffer, 0, NULL, NULL);
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	
 	this->getMemoryProxy()->getBuffer()->copyContentFrom(outputBuffer);
-	
+
+	if (bnode&& bnode->original) bnode->original->highlight++;
 	// STEP 4
 
 	
@@ -175,7 +183,8 @@ void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program pr
 	delete clKernelsToCleanUp;
 }
 
-void WriteBufferOperation::readResolutionFromInputSocket() {
+void WriteBufferOperation::readResolutionFromInputSocket()
+{
 	NodeOperation *inputOperation = this->getInputOperation(0);
 	this->setWidth(inputOperation->getWidth());
 	this->setHeight(inputOperation->getHeight());

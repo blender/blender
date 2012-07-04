@@ -59,7 +59,7 @@ static bNodeSocketTemplate cmp_node_bilateralblur_out[] = {
      (c1[3] - c2[3]) * (c1[3] - c2[3]))
 
 /* this is the main kernel function for comparing color distances
-   and adding them weighted to the final color */
+ * and adding them weighted to the final color */
 #define KERNEL_ELEMENT_C3(k)                                                  \
     temp_color = src + deltas[k];                                             \
     ref_color = ref + deltas[k];                                              \

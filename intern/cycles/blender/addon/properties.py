@@ -143,7 +143,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.min_bounces = IntProperty(
                 name="Min Bounces",
-                description="Minimum number of bounces, setting this lower than the maximum enables probalistic path termination (faster but noisier)",
+                description="Minimum number of bounces, setting this lower "
+                            "than the maximum enables probabilistic path "
+                            "termination (faster but noisier)",
                 min=0, max=1024,
                 default=3,
                 )
@@ -175,7 +177,10 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.transparent_min_bounces = IntProperty(
                 name="Transparent Min Bounces",
-                description="Minimum number of transparent bounces, setting this lower than the maximum enables probalistic path termination (faster but noisier)",
+                description="Minimum number of transparent bounces, setting "
+                            "this lower than the maximum enables "
+                            "probabilistic path termination (faster but "
+                            "noisier)",
                 min=0, max=1024,
                 default=8,
                 )
@@ -336,7 +341,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
         cls.fisheye_fov = FloatProperty(
                 name="Field of View",
                 description="Field of view for the fisheye lens",
-                min=0.1745, soft_max=2*math.pi, max=10.0*math.pi,
+                min=0.1745, soft_max=2 * math.pi, max=10.0 * math.pi,
                 subtype='ANGLE',
                 default=math.pi,
                 )
