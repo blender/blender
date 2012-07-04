@@ -2811,8 +2811,8 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 		{MOD_WVG_MIX_SUB, "SUB", 0, "Subtract", "Subtract VGroup B's weights from VGroup A's ones"},
 		{MOD_WVG_MIX_MUL, "MUL", 0, "Multiply", "Multiply VGroup A's weights by VGroup B's ones"},
 		{MOD_WVG_MIX_DIV, "DIV", 0, "Divide", "Divide VGroup A's weights by VGroup B's ones"},
-		{MOD_WVG_MIX_DIF, "DIF", 0, "Difference", "Difference between VGroup A's and VGroup B's weigths"},
-		{MOD_WVG_MIX_AVG, "AVG", 0, "Average", "Average value of VGroup A's and VGroup B's weigths"},
+		{MOD_WVG_MIX_DIF, "DIF", 0, "Difference", "Difference between VGroup A's and VGroup B's weights"},
+		{MOD_WVG_MIX_AVG, "AVG", 0, "Average", "Average value of VGroup A's and VGroup B's weights"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3236,17 +3236,17 @@ static void rna_def_modifier_skin(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_x_symmetry", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "symmetry_axes", MOD_SKIN_SYMM_X);
-	RNA_def_property_ui_text(prop, "X", "Avoid making unsymmetric quads across the X axis");
+	RNA_def_property_ui_text(prop, "X", "Avoid making unsymmetrical quads across the X axis");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_y_symmetry", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "symmetry_axes", MOD_SKIN_SYMM_Y);
-	RNA_def_property_ui_text(prop, "Y", "Avoid making unsymmetric quads across the Y axis");
+	RNA_def_property_ui_text(prop, "Y", "Avoid making unsymmetrical quads across the Y axis");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_z_symmetry", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "symmetry_axes", MOD_SKIN_SYMM_Z);
-	RNA_def_property_ui_text(prop, "Z", "Avoid making unsymmetric quads across the Z axis");
+	RNA_def_property_ui_text(prop, "Z", "Avoid making unsymmetrical quads across the Z axis");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
@@ -3292,7 +3292,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "show_in_editmode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Editmode);
-	RNA_def_property_ui_text(prop, "Editmode", "Use modifier while in the edit mode");
+	RNA_def_property_ui_text(prop, "Edit Mode", "Use modifier while in the Edit mode");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	RNA_def_property_ui_icon(prop, ICON_EDITMODE_HLT, 0);
 	

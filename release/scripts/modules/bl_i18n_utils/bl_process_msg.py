@@ -24,9 +24,8 @@
 
 import os
 
-# Quite an ugly hack… But the simplest solution for now!
-#import sys
-#sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+# XXX Relative import does not work here when used from Blender...
+#from . import settings
 import bl_i18n_utils.settings as settings
 
 

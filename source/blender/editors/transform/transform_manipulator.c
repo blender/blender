@@ -745,7 +745,7 @@ static char axisBlendAngle(float angle)
 }
 
 /* three colors can be set;
- * grey for ghosting
+ * gray for ghosting
  * moving: in transform theme color
  * else the red/green/blue
  */

@@ -851,7 +851,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				setlinestyle(2);
 			}
 			if ( ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED) ) {
-				/* muted curves are drawn in a greyish hue */
+				/* muted curves are drawn in a grayish hue */
 				// XXX should we have some variations?
 				UI_ThemeColorShade(TH_HEADER, 50);
 			}

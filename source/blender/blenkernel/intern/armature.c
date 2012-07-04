@@ -2207,7 +2207,7 @@ void BKE_pchan_to_mat4(bPoseChannel *pchan, float chan_mat[4][4])
 		axis_angle_to_mat3(rmat, pchan->rotAxis, pchan->rotAngle);
 	}
 	else {
-		/* quats are normalised before use to eliminate scaling issues */
+		/* quats are normalized before use to eliminate scaling issues */
 		float quat[4];
 
 		/* NOTE: we now don't normalize the stored values anymore, since this was kindof evil in some cases

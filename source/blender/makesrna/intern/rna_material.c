@@ -776,7 +776,7 @@ static void rna_def_material_gamesettings(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem prop_face_orientation_items[] = {
-		{GEMAT_NORMAL, "NORMAL", 0, "Normal", "No tranformation"},
+		{GEMAT_NORMAL, "NORMAL", 0, "Normal", "No transformation"},
 		{GEMAT_HALO, "HALO", 0, "Halo", "Screen aligned billboard"},
 		{GEMAT_BILLBOARD, "BILLBOARD", 0, "Billboard", "Billboard with Z-axis constraint"},
 		{GEMAT_SHADOW, "SHADOW", 0, "Shadow", "Faces are used for shadow"},

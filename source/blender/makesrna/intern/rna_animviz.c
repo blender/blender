@@ -183,7 +183,7 @@ static void rna_def_animviz_ghosts(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "AnimVizOnionSkinning", NULL);
 	RNA_def_struct_sdna(srna, "bAnimVizSettings");
 	RNA_def_struct_nested(brna, srna, "AnimViz");
-	RNA_def_struct_ui_text(srna, "Onion Skinning Settings", "Onion Skinning settings for animation visualisation");
+	RNA_def_struct_ui_text(srna, "Onion Skinning Settings", "Onion Skinning settings for animation visualization");
 
 	/* Enums */
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -256,7 +256,7 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "AnimVizMotionPaths", NULL);
 	RNA_def_struct_sdna(srna, "bAnimVizSettings");
 	RNA_def_struct_nested(brna, srna, "AnimViz");
-	RNA_def_struct_ui_text(srna, "Motion Path Settings", "Motion Path settings for animation visualisation");
+	RNA_def_struct_ui_text(srna, "Motion Path Settings", "Motion Path settings for animation visualization");
 	
 	/* Enums */
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -343,10 +343,10 @@ void rna_def_animviz_common(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	prop = RNA_def_property(srna, "animation_visualisation", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "animation_visualization", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "avs");
-	RNA_def_property_ui_text(prop, "Animation Visualisation", "Animation data for this datablock");
+	RNA_def_property_ui_text(prop, "Animation Visualization", "Animation data for this datablock");
 }
 
 static void rna_def_animviz(BlenderRNA *brna)
@@ -356,21 +356,21 @@ static void rna_def_animviz(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "AnimViz", NULL);
 	RNA_def_struct_sdna(srna, "bAnimVizSettings");
-	RNA_def_struct_ui_text(srna, "Animation Visualisation", "Settings for the visualisation of motion");
+	RNA_def_struct_ui_text(srna, "Animation Visualization", "Settings for the visualization of motion");
 	
 	/* onion-skinning settings (nested struct) */
 	prop = RNA_def_property(srna, "onion_skin_frames", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "AnimVizOnionSkinning");
 	RNA_def_property_pointer_funcs(prop, "rna_AnimViz_onion_skinning_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Onion Skinning", "Onion Skinning (ghosting) settings for visualisation");
+	RNA_def_property_ui_text(prop, "Onion Skinning", "Onion Skinning (ghosting) settings for visualization");
 	
 	/* motion path settings (nested struct) */
 	prop = RNA_def_property(srna, "motion_path", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "AnimVizMotionPaths");
 	RNA_def_property_pointer_funcs(prop, "rna_AnimViz_motion_paths_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Motion Paths", "Motion Path settings for visualisation");
+	RNA_def_property_ui_text(prop, "Motion Paths", "Motion Path settings for visualization");
 }
 
 /* --- */

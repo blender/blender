@@ -843,7 +843,7 @@ Object *BKE_object_add_only_object(int type, const char *name)
 
 	ob->pc_ids.first = ob->pc_ids.last = NULL;
 	
-	/* Animation Visualisation defaults */
+	/* Animation Visualization defaults */
 	animviz_settings_init(&ob->avs);
 
 	return ob;
@@ -1460,7 +1460,7 @@ void BKE_object_rot_to_mat3(Object *ob, float mat[][3])
 		axis_angle_to_mat3(dmat, ob->drotAxis, ob->drotAngle);
 	}
 	else {
-		/* quats are normalised before use to eliminate scaling issues */
+		/* quats are normalized before use to eliminate scaling issues */
 		float tquat[4];
 		
 		normalize_qt_qt(tquat, ob->quat);

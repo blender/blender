@@ -763,7 +763,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
 	const char is_render = (id && GS(id->name) == ID_SCE);
 
 	/* note, we need to act differently for render
-	 * where 'BW' will force greyscale even if the output format writes
+	 * where 'BW' will force grayscale even if the output format writes
 	 * as RGBA, this is age old blender convention and not sure how useful
 	 * it really is but keep it for now - campbell */
 	char chan_flag = BKE_imtype_valid_channels(imf->imtype) | (is_render ? IMA_CHAN_FLAG_BW : 0);
@@ -2869,7 +2869,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, image_color_mode_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageFormatSettings_color_mode_itemf");
 	RNA_def_property_ui_text(prop, "Color Mode",
-	                         "Choose BW for saving greyscale images, RGB for saving red, green and blue channels, "
+	                         "Choose BW for saving grayscale images, RGB for saving red, green and blue channels, "
 	                         "and RGBA for saving red, green, blue and alpha channels");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 

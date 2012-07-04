@@ -862,7 +862,7 @@ static void draw_join_shape(ScrArea *sa, char dir)
 		draw_horizontal_join_shape(sa, dir);
 }
 
-/* draw screen area darker with arrow (visualisation of future joining) */
+/* draw screen area darker with arrow (visualization of future joining) */
 static void scrarea_draw_shape_dark(ScrArea *sa, char dir)
 {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

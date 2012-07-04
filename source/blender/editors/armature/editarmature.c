@@ -4563,7 +4563,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 					DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
 				}
 			}
-			/* if there are some dependencies for visualising armature state 
+			/* if there are some dependencies for visualizing armature state 
 			 * (e.g. Mask Modifier in 'Armature' mode), force update 
 			 */
 			else if (arm->flag & ARM_HAS_VIZ_DEPS) {

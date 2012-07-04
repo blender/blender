@@ -1,7 +1,7 @@
 import bpy
 
 
-def main(operator, context):
+def main(context):
     space = context.space_data
     node_tree = space.node_tree
     node_active = context.active_node

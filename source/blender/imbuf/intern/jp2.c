@@ -175,13 +175,13 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 	h = image->comps[0].h;
 	
 	switch (image->numcomps) {
-		case 1: /* Greyscale */
+		case 1: /* Grayscale */
 		case 3: /* Color */
 			planes = 24;
 			use_alpha = FALSE;
 			break;
-		default: /* 2 or 4 - Greyscale or Color + alpha */
-			planes = 32; /* greyscale + alpha */
+		default: /* 2 or 4 - Grayscale or Color + alpha */
+			planes = 32; /* grayscale + alpha */
 			use_alpha = TRUE;
 			break;
 	}
@@ -220,7 +220,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 			r = image->comps[0].data;
 			a = (use_alpha) ? image->comps[1].data : NULL;
 
-			/* greyscale 12bits+ */
+			/* grayscale 12bits+ */
 			if (use_alpha) {
 				a = image->comps[1].data;
 				PIXEL_LOOPER_BEGIN(rect_float) {
@@ -272,7 +272,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 			r = image->comps[0].data;
 			a = (use_alpha) ? image->comps[1].data : NULL;
 
-			/* greyscale */
+			/* grayscale */
 			if (use_alpha) {
 				a = image->comps[3].data;
 				PIXEL_LOOPER_BEGIN(rect_uchar) {

@@ -203,7 +203,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
                 col.operator("poselib.pose_remove", icon='ZOOMOUT', text="")
                 col.operator("poselib.apply_pose", icon='ZOOM_SELECTED', text="").pose_index = poselib.pose_markers.active_index
 
-            col.operator("poselib.action_sanitise", icon='HELP', text="")  # XXX: put in menu?
+            col.operator("poselib.action_sanitize", icon='HELP', text="")  # XXX: put in menu?
 
             # properties for active marker
             if pose_marker_active is not None:
@@ -304,7 +304,7 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
         layout = self.layout
 
         ob = context.object
-        avs = ob.pose.animation_visualisation
+        avs = ob.pose.animation_visualization
 
         pchan = context.active_pose_bone
         mpath = pchan.motion_path if pchan else None
@@ -323,7 +323,7 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit from
 
     def draw(self, context):
         ob = context.object
-        self.draw_settings(context, ob.pose.animation_visualisation, bones=True)
+        self.draw_settings(context, ob.pose.animation_visualization, bones=True)
 
 
 class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):

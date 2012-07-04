@@ -782,7 +782,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 			if (modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) {
 				/* -- convert to rna ? */
 				but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, UI_UNIT_X - 2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
-				                       TIP_("Apply modifier to editing cage during Editmode"));
+				                       TIP_("Apply modifier to editing cage during Edit mode"));
 				if (index < cageIndex)
 					uiButSetFlag(but, UI_BUT_DISABLED);
 				uiButSetFunc(but, modifiers_setOnCage, ob, md);
@@ -1051,7 +1051,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		 *	as that poses problems when restoring them, so disable the "up" button where
 		 *	it may cause this situation. 
 		 *
-		 *  Up/Down buttons should only be shown (or not greyed - todo) if they serve some purpose.
+		 *  Up/Down buttons should only be shown (or not grayed - todo) if they serve some purpose.
 		 */
 		if (proxylocked_constraints_owner(ob, pchan)) {
 			if (con->prev) {
@@ -2679,7 +2679,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	but->col[3] = 255;
 
 	but = uiDefBut(block, ROUNDBOX, 0, "", UI_UNIT_X + 10, 0, UI_UNIT_X + width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-	but->col[0] = but->col[1] = but->col[2] = FTOCHAR(rti->greyscale);
+	but->col[0] = but->col[1] = but->col[2] = FTOCHAR(rti->grayscale);
 	but->col[3] = 255;
 
 	uiBlockEndAlign(block);
@@ -2699,7 +2699,8 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
 	if (reports->list.first != reports->list.last)
-		uiDefIconButO(block, BUT, "UI_OT_reports_to_textblock", WM_OP_INVOKE_REGION_WIN, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, TIP_("Click to see rest of reports in textblock: 'Recent Reports'"));
+		uiDefIconButO(block, BUT, "UI_OT_reports_to_textblock", WM_OP_INVOKE_REGION_WIN, icon, 2, 0,
+		              UI_UNIT_X, UI_UNIT_Y, TIP_("Click to see the remaining reports in text block: 'Recent Reports'"));
 	else
 		uiDefIconBut(block, LABEL, 0, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
 

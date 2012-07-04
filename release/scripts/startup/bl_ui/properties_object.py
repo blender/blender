@@ -309,7 +309,7 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
         layout = self.layout
 
         ob = context.object
-        avs = ob.animation_visualisation
+        avs = ob.animation_visualization
         mpath = ob.motion_path
 
         self.draw_settings(context, avs, mpath)
@@ -326,7 +326,7 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit fr
     def draw(self, context):
         ob = context.object
 
-        self.draw_settings(context, ob.animation_visualisation)
+        self.draw_settings(context, ob.animation_visualization)
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):

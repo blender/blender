@@ -1076,7 +1076,7 @@ static void draw_seq_backdrop(View2D *v2d)
 {
 	int i;
 	
-	/* darker grey overlay over the view backdrop */
+	/* darker gray overlay over the view backdrop */
 	UI_ThemeColorShade(TH_BACK, -20);
 	glRectf(v2d->cur.xmin,  -1.0,  v2d->cur.xmax,  1.0);
 

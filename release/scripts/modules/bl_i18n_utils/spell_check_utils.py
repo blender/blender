@@ -165,6 +165,7 @@ dict_uimsgs = {
     "workflow",
 
     # Neologisms, slangs
+    "affectable",
     "automagic", "automagically",
     "blobby",
     "blockiness", "blocky",
@@ -330,6 +331,7 @@ dict_uimsgs = {
     "dupliobject", "dupliob",
     "dupligroup",
     "duplivert",
+    "editbone",
     "fcurve", "fcurves",
     "fluidsim",
     "frameserver",

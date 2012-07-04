@@ -83,7 +83,7 @@ static ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, 
 	
 	logImageGetSize(image, &width, &height, &depth);
 	
-	if (depth != 3) { /*need to do greyscale loading eventually.*/
+	if (depth != 3) { /*need to do grayscale loading eventually.*/
 		logImageClose(image);
 		return NULL;
 	}

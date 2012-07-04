@@ -1360,7 +1360,7 @@ void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->idname = "OUTLINER_OT_keyingset_add_selected";
 	ot->name = "Keying Set Add Selected";
-	ot->description = "Add selected items (blue-grey rows) to active Keying Set";
+	ot->description = "Add selected items (blue-gray rows) to active Keying Set";
 	
 	/* api callbacks */
 	ot->exec = outliner_keyingset_additems_exec;
@@ -1397,7 +1397,7 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->idname = "OUTLINER_OT_keyingset_remove_selected";
 	ot->name = "Keying Set Remove Selected";
-	ot->description = "Remove selected items (blue-grey rows) from active Keying Set";
+	ot->description = "Remove selected items (blue-gray rows) from active Keying Set";
 	
 	/* api callbacks */
 	ot->exec = outliner_keyingset_removeitems_exec;
