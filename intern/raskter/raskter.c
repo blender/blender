@@ -34,8 +34,8 @@
 #define __PLX__FAKE_AA__
 
 /* from BLI_utildefines.h */
-#define MIN2(x, y)               ( (x) < (y) ? (x) : (y) )
-#define MAX2(x, y)               ( (x) > (y) ? (x) : (y) )
+#define MIN2(x, y)      ( (x) < (y) ? (x) : (y) )
+#define MAX2(x, y)      ( (x) > (y) ? (x) : (y) )
 #define ABS(a)          ( (a) < 0 ? (-(a)) : (a) )
 
 struct e_status {
@@ -96,7 +96,8 @@ static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *v
 			/* we're not at the last vert, so end of the edge is the previous vertex */
 			xend = v[i - 1].x;
 			yend = v[i - 1].y;
-		} else {
+		}
+		else {
 			/* we're at the first vertex, so the "end" of this edge is the last vertex */
 			xend = v[num_verts - 1].x;
 			yend = v[num_verts - 1].y;
@@ -125,7 +126,8 @@ static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *v
 			if (dx > 0) {
 				e_new->xdir = 1;
 				xdist = dx;
-			} else {
+			}
+			else {
 				e_new->xdir = -1;
 				xdist = -dx;
 			}
@@ -138,13 +140,15 @@ static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *v
 			/* calculate deltas for incremental drawing */
 			if (dx >= 0) {
 				e_new->drift = 0;
-			} else {
+			}
+			else {
 				e_new->drift = -dy + 1;
 			}
 			if (dy >= xdist) {
 				e_new->drift_inc = xdist;
 				e_new->xshift = 0;
-			} else {
+			}
+			else {
 				e_new->drift_inc = xdist % dy;
 				e_new->xshift = (xdist / dy) * e_new->xdir;
 			}
@@ -258,7 +262,8 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 					edgec = &ctx->all_edges->e_next;     /* Set our list to the next edge's location in memory. */
 					ctx->all_edges = e_temp;             /* Skip the NULL or bad X edge, set pointer to next edge. */
 					break;                               /* Stop looping edges (since we ran out or hit empty X span. */
-				} else {
+				}
+				else {
 					edgec = &e_curr->e_next;             /* Set the pointer to the edge list the "next" edge. */
 				}
 			}
@@ -320,7 +325,8 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 		for (edgec = &ctx->possible_edges; (e_curr = *edgec); ) {
 			if (!(--(e_curr->num))) {
 				*edgec = e_curr->e_next;
-			} else {
+			}
+			else {
 				e_curr->x += e_curr->xshift;
 				if ((e_curr->drift += e_curr->drift_inc) > 0) {
 					e_curr->x += e_curr->xdir;
@@ -379,7 +385,8 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 }
 
 int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
-				   float *buf, int buf_x, int buf_y, int do_mask_AA) {
+                   float *buf, int buf_x, int buf_y, int do_mask_AA)
+{
 	int subdiv_AA = (do_mask_AA != 0)? 8:0;
 	int i;                                   /* i: Loop counter. */
 	int sAx;
@@ -414,13 +421,14 @@ int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
 	 */
 
 	if(!subdiv_AA) {
-	for (i = 0; i < num_base_verts; i++) {                          /* Loop over all base_verts. */
-			ply[i].x = (int)((base_verts[i][0] * buf_x_f) + 0.5f);       /* Range expand normalized X to integer buffer-space X. */
+		for (i = 0; i < num_base_verts; i++) {                     /* Loop over all base_verts. */
+			ply[i].x = (int)((base_verts[i][0] * buf_x_f) + 0.5f); /* Range expand normalized X to integer buffer-space X. */
 			ply[i].y = (int)((base_verts[i][1] * buf_y_f) + 0.5f); /* Range expand normalized Y to integer buffer-space Y. */
-	}
-
+		}
+		
 		i = rast_scan_fill(&ctx, ply, num_base_verts,1.0f);  /* Call our rasterizer, passing in the integer coords for each vert. */
-	} else {
+	}
+	else {
 		for(sAx=0; sAx < subdiv_AA; sAx++) {
 			for(sAy=0; sAy < subdiv_AA; sAy++) {
 				for(i=0; i < num_base_verts; i++) {
@@ -442,7 +450,8 @@ int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
  */
 static int rast_scan_feather(struct r_fill_context *ctx,
                              float (*base_verts_f)[2], int num_base_verts,
-							 struct poly_vert *feather_verts, float(*feather_verts_f)[2], int num_feather_verts) {
+                             struct poly_vert *feather_verts, float(*feather_verts_f)[2], int num_feather_verts)
+{
 	int x_curr;                 /* current pixel position in X */
 	int y_curr;                 /* current scan line being drawn */
 	int yp;                     /* y-pixel's position in frame buffer */
@@ -548,7 +557,8 @@ static int rast_scan_feather(struct r_fill_context *ctx,
 					edgec = &ctx->all_edges->e_next;     /* Set our list to the next edge's location in memory. */
 					ctx->all_edges = e_temp;             /* Skip the NULL or bad X edge, set pointer to next edge. */
 					break;                               /* Stop looping edges (since we ran out or hit empty X span. */
-				} else {
+				}
+				else {
 					edgec = &e_curr->e_next;             /* Set the pointer to the edge list the "next" edge. */
 				}
 			}
@@ -658,7 +668,8 @@ static int rast_scan_feather(struct r_fill_context *ctx,
 		for (edgec = &ctx->possible_edges; (e_curr = *edgec); ) {
 			if (!(--(e_curr->num))) {
 				*edgec = e_curr->e_next;
-			} else {
+			}
+			else {
 				e_curr->x += e_curr->xshift;
 				if ((e_curr->drift += e_curr->drift_inc) > 0) {
 					e_curr->x += e_curr->xdir;
@@ -992,7 +1003,8 @@ int PLX_antialias_buffer(float *buf, int buf_x, int buf_y)
 			if(!horzSpan) {
 				lumaN = lumaW;
 				lumaS = lumaE;
-			} else {
+			}
+			else {
 				lengthSign = 1.0f / (float)(buf_y);
 			}
 			subpixB = (subpixA * (1.0f/12.0f)) - lumaM;
@@ -1014,7 +1026,8 @@ int PLX_antialias_buffer(float *buf, int buf_x, int buf_y)
 			offNP_y = (horzSpan) ? 0.0f:(1.0f / (float)(buf_y));
 			if(!horzSpan) {
 				posB_x += lengthSign * 0.5f;
-			} else {
+			}
+			else {
 				posB_y += lengthSign * 0.5f;
 			}
 
@@ -1324,7 +1337,8 @@ int PLX_antialias_buffer(float *buf, int buf_x, int buf_y)
 			pixelOffsetSubpix = MAX2(pixelOffsetGood, subpixH);
 			if(!horzSpan) {
 				posM_x += pixelOffsetSubpix * lengthSign;
-			} else {
+			}
+			else {
 				posM_y += pixelOffsetSubpix * lengthSign;
 			}
 			//may need bilinear filtered get_pixel_intensity() here...
