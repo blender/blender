@@ -132,6 +132,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	for (node= ntree->nodes.first; node; node= node->next) {
 		/* ensure new user input gets handled ok */
 		node->need_exec= 0;
+		node->new_node->original = node;
 		
 		/* move over the compbufs */
 		/* right after ntreeCopyTree() oldsock pointers are valid */
@@ -191,8 +192,6 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 	
 	/* move over the compbufs and previews */
 	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
-		lnode->new_node->new_node = lnode;
-		lnode->highlight = 0;
 		if ( (lnode->exec & NODE_READY) && !(lnode->exec & NODE_SKIPPED) ) {
 			if (ntreeNodeExists(ntree, lnode->new_node)) {
 				
@@ -214,7 +213,6 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 	
 	/* move over the compbufs and previews */
 	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
-		lnode->highlight = 0;
 		if (ntreeNodeExists(ntree, lnode->new_node)) {
 			if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
