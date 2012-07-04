@@ -29,10 +29,6 @@
 #ifndef __AUD_C_API_H__
 #define __AUD_C_API_H__
 
-#ifdef WITH_PYTHON
-#include "Python.h"
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -740,14 +736,14 @@ extern AUD_Device* AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound* seque
  * \param sound The sound factory.
  * \return The python factory.
  */
-extern PyObject* AUD_getPythonFactory(AUD_Sound* sound);
+extern void* AUD_getPythonFactory(AUD_Sound* sound);
 
 /**
  * Retrieves the sound factory of a python factory.
  * \param sound The python factory.
  * \return The sound factory.
  */
-extern AUD_Sound* AUD_getPythonSound(PyObject* sound);
+extern AUD_Sound* AUD_getPythonSound(void* sound);
 #endif
 
 #ifdef __cplusplus
