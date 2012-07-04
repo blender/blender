@@ -48,10 +48,6 @@ typedef pair<NodeIterator, NodeIterator> NodeRange;
  */
 class Node : public NodeBase {
 private:
-	/**
-	 * @brief stores the reference to the SDNA bNode struct
-	 */
-	bNode *m_editorNode;
 
 	/**
 	 * @brief Is this node part of the active group
@@ -60,12 +56,7 @@ private:
 
 public:
 	Node(bNode *editorNode, bool create_sockets = true);
-	
-	/**
-	 * @brief get the reference to the SDNA bNode struct
-	 */
-	bNode *getbNode();
-	
+
 	/**
 	 * @brief Is this node in the active group (the group that is being edited)
 	 * @param isInActiveGroup
@@ -137,9 +128,6 @@ public:
 	 */
 	OutputSocket *findOutputSocketBybNodeSocket(bNodeSocket *socket);
 protected:
-	
-	Node();
-	
 	void addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket);
 	void addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket);
 	

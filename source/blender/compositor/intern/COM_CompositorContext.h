@@ -73,6 +73,11 @@ private:
 	 * @brief does this system have active opencl devices?
 	 */
 	bool m_hasActiveOpenCLDevices;
+	
+	/**
+	 * @brief Skip slow nodes
+	 */
+	bool m_fastCalculation;
 
 public:
 	/**
@@ -148,6 +153,9 @@ public:
 	int getChunksize() { return this->getbNodeTree()->chunksize; }
 	
 	const int isColorManaged() const;
+	
+	void setFastCalculation(bool fastCalculation) {this->m_fastCalculation = fastCalculation;}
+	bool isFastCalculation() {return this->m_fastCalculation;}
 };
 
 

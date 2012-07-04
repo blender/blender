@@ -74,9 +74,11 @@ OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inpu
 
 			blurXOperation->setSize(size);
 			blurXOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_X);
+			blurXOperation->setbNode(this->getbNode());
 
 			blurYOperation->setSize(size);
 			blurYOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_Y);
+			blurYOperation->setbNode(this->getbNode());
 
 			addLink(graph, separateOperation->getOutputSocket(), blurXOperation->getInputSocket(0));
 			addLink(graph, blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
@@ -104,9 +106,11 @@ OutputSocket *KeyingNode::setupPostBlur(ExecutionSystem *graph, OutputSocket *po
 
 	blurXOperation->setSize(size);
 	blurXOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_X);
+	blurXOperation->setbNode(this->getbNode());
 
 	blurYOperation->setSize(size);
 	blurYOperation->setAxis(KeyingBlurOperation::BLUR_AXIS_Y);
+	blurYOperation->setbNode(this->getbNode());
 
 	addLink(graph, postBlurInput, blurXOperation->getInputSocket(0));
 	addLink(graph, blurXOperation->getOutputSocket(), blurYOperation->getInputSocket(0));
@@ -129,6 +133,7 @@ OutputSocket *KeyingNode::setupDilateErode(ExecutionSystem *graph, OutputSocket 
 		dilateErodeOperation = new ErodeDistanceOperation();
 		dilateErodeOperation->setDistance(-distance);
 	}
+	dilateErodeOperation->setbNode(this->getbNode());
 
 	addLink(graph, dilateErodeInput, dilateErodeOperation->getInputSocket(0));
 
@@ -161,14 +166,16 @@ OutputSocket *KeyingNode::setupFeather(ExecutionSystem *graph, CompositorContext
 	operationx->setSize(1.0f);
 	operationx->setSubtract(distance < 0);
 	operationx->setFalloff(falloff);
+	operationx->setbNode(this->getbNode());
 	graph->addOperation(operationx);
-
+	
 	GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
 	operationy->setData(data);
 	operationy->setQuality(quality);
 	operationy->setSize(1.0f);
 	operationy->setSubtract(distance < 0);
 	operationy->setFalloff(falloff);
+	operationy->setbNode(this->getbNode());
 	graph->addOperation(operationy);
 
 	addLink(graph, featherInput, operationx->getInputSocket(0));

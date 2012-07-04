@@ -34,6 +34,7 @@ void VectorBlurNode::convertToOperations(ExecutionSystem *system, CompositorCont
 	bNode *node = this->getbNode();
 	NodeBlurData *vectorBlurSettings = (NodeBlurData *)node->storage;
 	VectorBlurOperation *operation = new VectorBlurOperation();
+	operation->setbNode(node);
 	operation->setVectorBlurSettings(vectorBlurSettings);
 	operation->setQuality(context->getQuality());
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, system);

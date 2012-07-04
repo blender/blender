@@ -33,7 +33,7 @@
 
 NodeBase::NodeBase()
 {
-	/* pass */
+	this->m_editorNode = NULL;
 }
 
 

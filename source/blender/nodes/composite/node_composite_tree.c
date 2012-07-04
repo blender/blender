@@ -118,7 +118,6 @@ static void update_node(bNodeTree *ntree, bNode *node)
 		}
 	}
 	node->need_exec= 1;
-	
 	/* individual node update call */
 	if (node->typeinfo->updatefunc)
 		node->typeinfo->updatefunc(ntree, node);
@@ -192,6 +191,8 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 	
 	/* move over the compbufs and previews */
 	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+		lnode->new_node->new_node = lnode;
+		lnode->highlight = 0;
 		if ( (lnode->exec & NODE_READY) && !(lnode->exec & NODE_SKIPPED) ) {
 			if (ntreeNodeExists(ntree, lnode->new_node)) {
 				
@@ -200,6 +201,7 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 					lnode->new_node->preview= lnode->preview;
 					lnode->preview= NULL;
 				}
+				
 			}
 		}
 	}
@@ -212,6 +214,7 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 	
 	/* move over the compbufs and previews */
 	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+		lnode->highlight = 0;
 		if (ntreeNodeExists(ntree, lnode->new_node)) {
 			if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {

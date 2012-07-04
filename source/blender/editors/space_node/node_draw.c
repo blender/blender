@@ -724,6 +724,12 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	if (node->flag & NODE_MUTED)
 		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 
+	if (ntree->type == NTREE_COMPOSIT && (snode->flag&SNODE_SHOW_HIGHLIGHT)) {
+		if (node->highlight) {
+			UI_ThemeColorBlend(color_id, TH_ACTIVE, 0.5f);
+			node->highlight = 0;
+		}
+	}
 	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
 	
@@ -805,7 +811,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
-	if ( node->flag & (NODE_ACTIVE|SELECT) ) {
+	if ( node->flag & (NODE_ACTIVE|SELECT)) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		
@@ -862,7 +868,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	node->block= NULL;
 }
 
-static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, bNode *node)
+static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock;
 	rctf *rct= &node->totr;
@@ -879,10 +885,18 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	UI_ThemeColor(color_id);
 	if (node->flag & NODE_MUTED)
 		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
+
+	if (ntree->type == NTREE_COMPOSIT && (snode->flag&SNODE_SHOW_HIGHLIGHT)) {
+		if (node->highlight) {
+			UI_ThemeColorBlend(color_id, TH_ACTIVE, 0.5f);
+			node->highlight = 0;
+		}
+	}
+	
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 	
 	/* outline active and selected emphasis */
-	if ( node->flag & (NODE_ACTIVE|SELECT) ) {
+	if ( node->flag & (NODE_ACTIVE|SELECT)) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		
@@ -1005,7 +1019,7 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode)
 void node_draw_default(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree, bNode *node)
 {
 	if (node->flag & NODE_HIDDEN)
-		node_draw_hidden(C, ar, snode, node);
+		node_draw_hidden(C, ar, snode, ntree, node);
 	else
 		node_draw_basis(C, ar, snode, ntree, node);
 }

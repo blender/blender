@@ -25,6 +25,7 @@
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
+
 class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepHelper {
 private:
 	int m_maxBlur;
@@ -33,6 +34,9 @@ private:
 	SocketReader *m_inputBokehProgram;
 	SocketReader *m_inputSizeProgram;
 	SocketReader *m_inputDepthProgram;
+#ifdef COM_DEFOCUS_SEARCH
+	SocketReader *inputSearchProgram;
+#endif
 
 public:
 	VariableSizeBokehBlurOperation();
@@ -60,4 +64,42 @@ public:
 
 
 };
+
+#ifdef COM_DEFOCUS_SEARCH
+class InverseSearchRadiusOperation : public NodeOperation {
+private:
+	int maxBlur;
+	float threshold;
+	SocketReader *inputDepth;
+	SocketReader *inputRadius;
+public:
+	static const int DIVIDER = 4;
+	
+	InverseSearchRadiusOperation();
+
+	/**
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	
+	/**
+	 * Initialize the execution
+	 */
+	void initExecution();
+	void* initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data);
+	
+	/**
+	 * Deinitialize the execution
+	 */
+	void deinitExecution();
+	
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	
+	void setMaxBlur(int maxRadius) { this->maxBlur = maxRadius; }
+
+	void setThreshold(float threshold) { this->threshold = threshold; }
+};
+#endif
 #endif

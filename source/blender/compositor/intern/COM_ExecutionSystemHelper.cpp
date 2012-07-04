@@ -49,7 +49,7 @@ void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_star
 	/* add all nodes of the tree to the node list */
 	bNode *node = (bNode *)tree->nodes.first;
 	while (node != NULL) {
-		addNode(nodes, node, isActiveGroup);
+		addNode(nodes, node, isActiveGroup, system.getContext().isFastCalculation());
 		node = (bNode *)node->next;
 	}
 
@@ -77,11 +77,11 @@ void ExecutionSystemHelper::addNode(vector<Node *>& nodes, Node *node)
 	nodes.push_back(node);
 }
 
-Node *ExecutionSystemHelper::addNode(vector<Node *>& nodes, bNode *b_node, bool inActiveGroup)
+Node *ExecutionSystemHelper::addNode(vector<Node *>& nodes, bNode *b_node, bool inActiveGroup, bool fast)
 {
 	Converter converter;
 	Node *node;
-	node = converter.convert(b_node);
+	node = converter.convert(b_node, fast);
 	node->setIsInActiveGroup(inActiveGroup);
 	if (node != NULL) {
 		addNode(nodes, node);

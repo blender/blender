@@ -73,7 +73,7 @@ void FilterNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 			operation->set3x3Filter(0, 0, 0, 0, 1, 0, 0, 0, 0);
 			break;
 	}
-	
+	operation->setbNode(this->getbNode());
 	inputImageSocket->relinkConnections(operation->getInputSocket(0), 1, graph);
 	inputSocket->relinkConnections(operation->getInputSocket(1), 0, graph);
 	outputSocket->relinkConnections(operation->getOutputSocket());

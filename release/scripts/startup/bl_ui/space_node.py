@@ -224,7 +224,7 @@ class NODE_PT_properties(Panel):
 class NODE_PT_quality(bpy.types.Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Quality"
+    bl_label = "Performance"
 
     @classmethod
     def poll(cls, context):
@@ -240,7 +240,9 @@ class NODE_PT_quality(bpy.types.Panel):
         layout.prop(tree, "edit_quality", text="Edit")
         layout.prop(tree, "chunk_size")
         layout.prop(tree, "use_opencl")
-
+        layout.prop(tree, "two_pass")
+        layout.prop(snode, "show_highlight")
+        
 
 class NODE_MT_node_color_presets(Menu):
     """Predefined node color"""

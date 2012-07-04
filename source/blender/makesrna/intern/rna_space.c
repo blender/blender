@@ -2937,6 +2937,11 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
 	RNA_def_property_ui_text(prop, "View Settings", "Color management settings used for displaying images on the display");
+
+	prop = RNA_def_property(srna, "show_highlight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_SHOW_HIGHLIGHT);
+	RNA_def_property_ui_text(prop, "Highlight", "Highlight nodes that are being calculated");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 }
 
 static void rna_def_space_logic(BlenderRNA *brna)
