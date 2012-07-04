@@ -5114,7 +5114,7 @@ void projectSVData(TransInfo *t, int final)
 
 				}
 				
-				if(!affected)
+				if (!affected)
 					continue;
 
 				/* only loop data, no vertex data since that contains shape keys,

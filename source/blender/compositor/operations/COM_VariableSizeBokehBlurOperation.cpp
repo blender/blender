@@ -74,7 +74,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 
 #ifdef COM_DEFOCUS_SEARCH
 	float search[4];
-	this->inputSearchProgram->read(search, x/InverseSearchRadiusOperation::DIVIDER, y/InverseSearchRadiusOperation::DIVIDER, inputBuffers, NULL);
+	this->inputSearchProgram->read(search, x/InverseSearchRadiusOperation::DIVIDER, y / InverseSearchRadiusOperation::DIVIDER, inputBuffers, NULL);
 	int minx = search[0];
 	int miny = search[1];
 	int maxx = search[2];
@@ -168,10 +168,10 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(rcti *inpu
 	}
 #ifdef COM_DEFOCUS_SEARCH
 	rcti searchInput;
-	searchInput.xmax = (input->xmax/InverseSearchRadiusOperation::DIVIDER)+1;
-	searchInput.xmin = (input->xmin/InverseSearchRadiusOperation::DIVIDER)-1;
-	searchInput.ymax = (input->ymax/InverseSearchRadiusOperation::DIVIDER)+1;
-	searchInput.ymin = (input->ymin/InverseSearchRadiusOperation::DIVIDER)-1;
+	searchInput.xmax = (input->xmax / InverseSearchRadiusOperation::DIVIDER) + 1;
+	searchInput.xmin = (input->xmin / InverseSearchRadiusOperation::DIVIDER) - 1;
+	searchInput.ymax = (input->ymax / InverseSearchRadiusOperation::DIVIDER) + 1;
+	searchInput.ymin = (input->ymin / InverseSearchRadiusOperation::DIVIDER) - 1;
 	operation = getInputOperation(4);
 	if (operation->determineDependingAreaOfInterest(&searchInput, readOperation, output) ) {
 		return true;

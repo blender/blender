@@ -2873,7 +2873,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			break;
 
 		case RV3D_VIEW_BACK:
-			axis_set_view(C, v3d, ar, 0.0, 0.0, (float)-cos(M_PI / 4.0), (float)-cos(M_PI / 4.0),
+			axis_set_view(C, v3d, ar, 0.0, 0.0, -cosf(M_PI / 4.0), -cosf(M_PI / 4.0),
 			              viewnum, nextperspo, align_active);
 			break;
 
@@ -2888,7 +2888,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			break;
 
 		case RV3D_VIEW_FRONT:
-			axis_set_view(C, v3d, ar, (float)cos(M_PI / 4.0), (float)-sin(M_PI / 4.0), 0.0, 0.0,
+			axis_set_view(C, v3d, ar, cosf(M_PI / 4.0), -sinf(M_PI / 4.0), 0.0, 0.0,
 			              viewnum, nextperspo, align_active);
 			break;
 
