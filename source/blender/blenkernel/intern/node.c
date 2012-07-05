@@ -633,8 +633,12 @@ bNodeTree *ntreeAddTree(const char *name, int type, int nodetype)
  *	- this gets called when executing compositing updates (for threaded previews)
  *	- when the nodetree datablock needs to be copied (i.e. when users get copied)
  *	- for scene duplication use ntreeSwapID() after so we don't have stale pointers.
+ *
+ * do_make_extern: keep enabled for general use, only reason _not_ to enable is when
+ * copying for internal use (threads for eg), where you wont want it to modify the
+ * scene data.
  */
-bNodeTree *ntreeCopyTree(bNodeTree *ntree)
+static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_make_extern)
 {
 	bNodeTree *newtree;
 	bNode *node /*, *nnode */ /* UNUSED */, *last;
@@ -664,6 +668,11 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 	
 	last = ntree->nodes.last;
 	for (node= ntree->nodes.first; node; node= node->next) {
+
+		if (do_make_extern) {
+			id_lib_extern(node->id);
+		}
+
 		node->new_node= NULL;
 		/* nnode= */ nodeCopyNode(newtree, node);	/* sets node->new */
 		
@@ -707,6 +716,11 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 	}
 	
 	return newtree;
+}
+
+bNodeTree *ntreeCopyTree(bNodeTree *ntree)
+{
+	return ntreeCopyTree_internal(ntree, TRUE);
 }
 
 /* use when duplicating scenes */
@@ -1131,7 +1145,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	}
 
 	/* node copy func */
-	ltree= ntreeCopyTree(ntree);
+	ltree = ntreeCopyTree_internal(ntree, FALSE);
 
 	if (adt) {
 		AnimData *ladt= BKE_animdata_from_id(&ltree->id);
