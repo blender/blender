@@ -769,13 +769,13 @@ if env['OURPLATFORM'] == 'win64-mingw':
     if env['WITH_BF_SDL']:
         dllsources.append('${LCGDIR}/sdl/lib/SDL.dll')
 	
-	if(env['WITH_BF_OPENMP'])
+	if(env['WITH_BF_OPENMP']):
 		dllsources.append('${LCGDIR}/binaries/libgomp-1.dll')
 	
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
     dllsources.append('${LCGDIR}/binaries/libgcc_s_sjlj-1.dll')
-	dllsources.append('${LCGDIR}/binaries/libwinpthread-1.dll')
-	dllsources.append('${LCGDIR}/binaries/libstdc++-6.dll)')
+    dllsources.append('${LCGDIR}/binaries/libwinpthread-1.dll')
+    dllsources.append('${LCGDIR}/binaries/libstdc++-6.dll)')
     dllsources.append('#source/icons/blender.exe.manifest')
 
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
