@@ -63,11 +63,9 @@ typedef struct MovieCache {
 	char name[64];
 
 	GHash *hash;
-	MovieCacheKeyDeleterFP keydeleterfp;
 	GHashHashFP hashfp;
 	GHashCmpFP cmpfp;
 	MovieCacheGetKeyDataFP getdatafp;
-	MovieCacheCheckKeyUnusedFP checkkeyunusedfp;
 
 	MovieCacheGetPriorityDataFP getprioritydatafp;
 	MovieCacheGetItemPriorityFP getitempriorityfp;
@@ -116,10 +114,6 @@ static void moviecache_keyfree(void *val)
 {
 	MovieCacheKey *key = (MovieCacheKey *)val;
 
-	if (key->cache_owner->keydeleterfp) {
-		key->cache_owner->keydeleterfp(key->userkey);
-	}
-
 	BLI_mempool_free(key->cache_owner->userkeys_pool, key->userkey);
 
 	BLI_mempool_free(key->cache_owner->keys_pool, key);
@@ -160,13 +154,6 @@ static void check_unused_keys(MovieCache *cache)
 
 		if (remove)
 			PRINT("%s: cache '%s' remove item %p without buffer\n", __func__, cache->name, item);
-
-		if (!remove && cache->checkkeyunusedfp) {
-			remove = cache->checkkeyunusedfp(key->userkey);
-
-			if (remove)
-				PRINT("%s: cache '%s' remove unused item %p\n", __func__, cache->name, item);
-		}
 
 		if (remove)
 			BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
@@ -299,19 +286,9 @@ MovieCache *IMB_moviecache_create(const char *name, int keysize, GHashHashFP has
 	return cache;
 }
 
-void IMB_moviecache_set_key_deleter_callback(MovieCache *cache, MovieCacheKeyDeleterFP keydeleterfp)
-{
-	cache->keydeleterfp = keydeleterfp;
-}
-
 void IMB_moviecache_set_getdata_callback(MovieCache *cache, MovieCacheGetKeyDataFP getdatafp)
 {
 	cache->getdatafp = getdatafp;
-}
-
-void IMB_moviecache_set_check_unused_callback(MovieCache *cache, MovieCacheCheckKeyUnusedFP checkkeyunusedfp)
-{
-	cache->checkkeyunusedfp = checkkeyunusedfp;
 }
 
 void IMB_moviecache_set_priority_callback(struct MovieCache *cache, MovieCacheGetPriorityDataFP getprioritydatafp,
