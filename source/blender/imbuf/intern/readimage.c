@@ -90,7 +90,7 @@ ImBuf *IMB_loadifffile(int file, int flags, const char *descr)
 	size = BLI_file_descriptor_size(file);
 
 	mem = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
-	if (mem == (unsigned char *)-1) {
+	if (mem == (unsigned char *) -1) {
 		fprintf(stderr, "%s: couldn't get mapping %s\n", __func__, descr);
 		return NULL;
 	}
@@ -178,7 +178,7 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
 	size = BLI_file_descriptor_size(file);
 
 	mem = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
-	if (mem == (unsigned char *)-1) {
+	if (mem == (unsigned char *) -1) {
 		fprintf(stderr, "Couldn't get memory mapping for %s\n", ibuf->cachename);
 		return;
 	}

@@ -317,9 +317,6 @@ if(WITH_PYTHON)
 	list(APPEND INC
 		../python
 	)
-	list(APPEND INC_SYS
-		${PYTHON_INCLUDE_DIRS}
-	)
 	add_definitions(-DWITH_PYTHON)
 
 	if(WITH_PYTHON_SECURITY)

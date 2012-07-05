@@ -135,7 +135,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 
 		COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(export_path)), translated_name, translated_name); /* set name also to mNameNC. This helps other viewers import files exported from Blender better */
 		img.add(mSW);
-		fprintf(stdout, "Collada export: Added image: %s\n",export_file);
+		fprintf(stdout, "Collada export: Added image: %s\n", export_file);
 		mImages.push_back(translated_name);
 	}
 }
@@ -145,7 +145,7 @@ void ImagesExporter::export_UV_Images()
 	std::set<Image *> uv_textures;
 	LinkNode *node;
 	bool use_copies = this->export_settings->use_texture_copies;
-	for (node=this->export_settings->export_set; node; node=node->next) {
+	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *)node->link;
 		if (ob->type == OB_MESH && ob->totcol) {
 			Mesh *me     = (Mesh *) ob->data;
@@ -160,7 +160,7 @@ void ImagesExporter::export_UV_Images()
 						if (ima == NULL)
 							continue;
 
-						bool not_in_list = uv_textures.find(ima)==uv_textures.end();
+						bool not_in_list = uv_textures.find(ima) == uv_textures.end();
 						if (not_in_list) {
 								uv_textures.insert(ima);
 								export_UV_Image(ima, use_copies);
@@ -177,7 +177,7 @@ bool ImagesExporter::hasImages(Scene *sce)
 {
 	LinkNode *node;
 	
-	for (node=this->export_settings->export_set; node; node=node->next) {
+	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *)node->link;
 		int a;
 		for (a = 0; a < ob->totcol; a++) {

@@ -275,7 +275,7 @@ SPELL_CACHE = os.path.join("/tmp", ".spell_cache")
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 try:
-    from i18n_override_settings import *
+    from bl_i18n_override_settings import *
 except ImportError:  # If no i18n_override_settings available, it’s no error!
     pass
 

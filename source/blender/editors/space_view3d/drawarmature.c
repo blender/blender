@@ -709,9 +709,9 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 		glBegin(GL_QUAD_STRIP);
 		
 		for (a = 0; a < 16; a++) {
-			vec[0] = -*(si + a) * dirvec[0] + *(co + a) * norvec[0];
-			vec[1] = -*(si + a) * dirvec[1] + *(co + a) * norvec[1];
-			vec[2] = -*(si + a) * dirvec[2] + *(co + a) * norvec[2];
+			vec[0] = -si[a] * dirvec[0] + co[a] * norvec[0];
+			vec[1] = -si[a] * dirvec[1] + co[a] * norvec[1];
+			vec[2] = -si[a] * dirvec[2] + co[a] * norvec[2];
 
 			madd_v3_v3v3fl(vec1, headvec, vec, head);
 			madd_v3_v3v3fl(vec2, headvec, vec, head + dist);
@@ -723,9 +723,9 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 		}
 		
 		for (a = 15; a >= 0; a--) {
-			vec[0] = *(si + a) * dirvec[0] + *(co + a) * norvec[0];
-			vec[1] = *(si + a) * dirvec[1] + *(co + a) * norvec[1];
-			vec[2] = *(si + a) * dirvec[2] + *(co + a) * norvec[2];
+			vec[0] = si[a] * dirvec[0] + co[a] * norvec[0];
+			vec[1] = si[a] * dirvec[1] + co[a] * norvec[1];
+			vec[2] = si[a] * dirvec[2] + co[a] * norvec[2];
 
 			madd_v3_v3v3fl(vec1, tailvec, vec, tail);
 			madd_v3_v3v3fl(vec2, tailvec, vec, tail + dist);
@@ -737,9 +737,9 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 		}
 		/* make it cyclic... */
 		
-		vec[0] = -*(si) * dirvec[0] + *(co) * norvec[0];
-		vec[1] = -*(si) * dirvec[1] + *(co) * norvec[1];
-		vec[2] = -*(si) * dirvec[2] + *(co) * norvec[2];
+		vec[0] = -si[0] * dirvec[0] + co[0] * norvec[0];
+		vec[1] = -si[0] * dirvec[1] + co[0] * norvec[1];
+		vec[2] = -si[0] * dirvec[2] + co[0] * norvec[2];
 
 		madd_v3_v3v3fl(vec1, headvec, vec, head);
 		madd_v3_v3v3fl(vec2, headvec, vec, head + dist);

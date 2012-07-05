@@ -1284,6 +1284,63 @@ int isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min
 	        min2[0] < max1[0] && min2[1] < max1[1] && min2[2] < max1[2]);
 }
 
+void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_start[3], const float ray_direction[3])
+{
+	copy_v3_v3(data->ray_start, ray_start);
+
+	data->ray_inv_dir[0] = 1.0f / ray_direction[0];
+	data->ray_inv_dir[1] = 1.0f / ray_direction[1];
+	data->ray_inv_dir[2] = 1.0f / ray_direction[2];
+
+	data->sign[0] = data->ray_inv_dir[0] < 0;
+	data->sign[1] = data->ray_inv_dir[1] < 0;
+	data->sign[2] = data->ray_inv_dir[2] < 0;
+}
+
+/* Adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
+int isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
+				   const float bb_max[3], float *tmin_out)
+{
+	float bbox[2][3];
+	float tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+	copy_v3_v3(bbox[0], bb_min);
+	copy_v3_v3(bbox[1], bb_max);
+
+	tmin = (bbox[data->sign[0]][0] - data->ray_start[0]) * data->ray_inv_dir[0];
+	tmax = (bbox[1 - data->sign[0]][0] - data->ray_start[0]) * data->ray_inv_dir[0];
+
+	tymin = (bbox[data->sign[1]][1] - data->ray_start[1]) * data->ray_inv_dir[1];
+	tymax = (bbox[1 - data->sign[1]][1] - data->ray_start[1]) * data->ray_inv_dir[1];
+
+	if ((tmin > tymax) || (tymin > tmax))
+		return FALSE;
+
+	if (tymin > tmin)
+		tmin = tymin;
+
+	if (tymax < tmax)
+		tmax = tymax;
+
+	tzmin = (bbox[data->sign[2]][2] - data->ray_start[2]) * data->ray_inv_dir[2];
+	tzmax = (bbox[1 - data->sign[2]][2] - data->ray_start[2]) * data->ray_inv_dir[2];
+
+	if ((tmin > tzmax) || (tzmin > tmax))
+		return FALSE;
+
+	if (tzmin > tmin)
+		tmin = tzmin;
+
+	// XXX jwilkins: tmax does not need to be updated since we don't use it
+	// keeping this here for future reference
+	//if (tzmax < tmax) tmax = tzmax; 
+
+	if (tmin_out)
+		(*tmin_out) = tmin;
+
+	return TRUE;
+}
+
 /* find closest point to p on line through l1,l2 and return lambda,
  * where (0 <= lambda <= 1) when cp is in the line segement l1,l2
  */

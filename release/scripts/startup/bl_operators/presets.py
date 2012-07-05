@@ -436,8 +436,6 @@ class AddPresetTrackingSettings(AddPresetBase, Operator):
     ]
 
     preset_values = [
-        "settings.default_tracker",
-        "settings.default_pyramid_levels",
         "settings.default_correlation_min",
         "settings.default_pattern_size",
         "settings.default_search_size",

@@ -433,7 +433,7 @@ PyObject* KX_SoundActuator::pyattr_get_sound(void *self, const struct KX_PYATTRI
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	if (!actuator->m_sound.isNull())
-		return AUD_getPythonFactory(&actuator->m_sound);
+		return (PyObject *)AUD_getPythonFactory(&actuator->m_sound);
 	else
 		Py_RETURN_NONE;
 }
@@ -547,7 +547,7 @@ int KX_SoundActuator::pyattr_set_sound(void *self, const struct KX_PYATTRIBUTE_D
 	if (!PyArg_Parse(value, "O", &sound))
 		return PY_SET_ATTR_FAIL;
 
-	AUD_Reference<AUD_IFactory>* snd = reinterpret_cast<AUD_Reference<AUD_IFactory>*>(AUD_getPythonSound(sound));
+	AUD_Reference<AUD_IFactory>* snd = reinterpret_cast<AUD_Reference<AUD_IFactory>*>(AUD_getPythonSound((void *)sound));
 	if (snd)
 	{
 		actuator->m_sound = *snd;

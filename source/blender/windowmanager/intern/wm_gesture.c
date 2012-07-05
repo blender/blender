@@ -224,7 +224,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 	glutil_draw_lined_arc(0.0, M_PI * 2.0, rect->xmax, 40);
 	
 	glDisable(GL_LINE_STIPPLE);
-	glTranslatef((float)-rect->xmin, (float)-rect->ymin, 0.0f);
+	glTranslatef(-rect->xmin, -rect->ymin, 0.0f);
 	
 }
 

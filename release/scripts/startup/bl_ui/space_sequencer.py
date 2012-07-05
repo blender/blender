@@ -117,7 +117,7 @@ class SEQUENCER_MT_view(Menu):
             layout.operator_context = 'INVOKE_DEFAULT'
 
             # # XXX, invokes in the header view
-            # layout.operator("sequencer.view_ghost_border", text='Overlay Border')
+            # layout.operator("sequencer.view_ghost_border", text="Overlay Border")
 
         layout.operator("sequencer.view_selected")
 
@@ -820,7 +820,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
             col.label(text="Build JPEG quality")
             col.prop(strip.proxy, "quality")
 
-            if strip.type == "MOVIE":
+            if strip.type == 'MOVIE':
                 col = layout.column()
                 col.label(text="Use timecode index:")
 

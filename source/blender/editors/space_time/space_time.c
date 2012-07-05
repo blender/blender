@@ -208,6 +208,9 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 		if (pid->cache->flag & PTCACHE_BAKED) {
 			col[0] -= 0.4f; col[1] -= 0.4f; col[2] -= 0.4f;
 		}
+		else if (pid->cache->flag & PTCACHE_OUTDATED) {
+			col[0] += 0.4f; col[1] += 0.4f; col[2] += 0.4f;
+		}
 		glColor4fv(col);
 		
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -699,4 +702,3 @@ void ED_spacetype_time(void)
 		
 	BKE_spacetype_register(st);
 }
-

@@ -1742,7 +1742,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	ID *id;
 	int a, b, mode = RNA_enum_get(op->ptr, "type");
 	
-	if (mode == 3) {
+	if (mode == 4) {
 		BKE_library_make_local(bmain, NULL, 0); /* NULL is all libs */
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 		return OPERATOR_FINISHED;
@@ -1770,7 +1770,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	{
 		id = ob->data;
 			
-		if (id && mode > 1) {
+		if (id && (mode == 2 || mode == 3)) {
 			id_make_local(id, 0);
 			adt = BKE_animdata_from_id(id);
 			if (adt) BKE_animdata_make_local(adt);
@@ -1794,7 +1794,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	if (mode > 1) {
+	if (mode == 3) {
 		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 		{
 			if (ob->type == OB_LAMP) {
@@ -1834,7 +1834,8 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 	static EnumPropertyItem type_items[] = {
 		{1, "SELECTED_OBJECTS", 0, "Selected Objects", ""},
 		{2, "SELECTED_OBJECTS_DATA", 0, "Selected Objects and Data", ""},
-		{3, "ALL", 0, "All", ""},
+		{3, "SELECTED_OBJECTS_DATA_MAT", 0, "Selected Objects, Data and Materials", ""},
+		{4, "ALL", 0, "All", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */

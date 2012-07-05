@@ -159,14 +159,24 @@ void isect_point_quad_uv_v2(const float v0[2], const float v1[2], const float v2
 void isect_point_face_uv_v2(const int isquad, const float v0[2], const float v1[2], const float v2[2],
                             const float v3[2], const float pt[2], float r_uv[2]);
 
+/* axis-aligned bounding box */
+int isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3]);
+
+typedef struct {
+	float ray_start[3];
+	float ray_inv_dir[3];
+	int sign[3];
+} IsectRayAABBData;
+
+void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_start[3], const float ray_direction[3]);
+int isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3], const float bb_max[3], float *tmin);
+
 /* other */
 int isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const float radius,
                                  const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float ipoint[3]);
 
 int isect_axial_line_tri_v3(const int axis, const float co1[3], const float co2[3],
                             const float v0[3], const float v1[3], const float v2[3], float *r_lambda);
-
-int isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3]);
 
 int clip_line_plane(float p1[3], float p2[3], const float plane[4]);
 

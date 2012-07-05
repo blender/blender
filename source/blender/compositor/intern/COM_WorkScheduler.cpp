@@ -30,6 +30,7 @@
 #include "COM_OpenCLDevice.h"
 #include "COM_OpenCLKernels.cl.h"
 #include "OCL_opencl.h"
+#include "COM_WriteBufferOperation.h"
 
 #include "PIL_time.h"
 #include "BLI_threads.h"
@@ -65,6 +66,25 @@ static bool g_openclActive = false;
 #endif
 #endif
 
+#define HIGHLIGHT(wp) \
+{ \
+	ExecutionGroup* group = wp->getExecutionGroup(); \
+	if (group->isComplex()) { \
+		NodeOperation* operation = group->getOutputNodeOperation(); \
+		if (operation->isWriteBufferOperation()) {\
+			WriteBufferOperation *writeOperation = (WriteBufferOperation*)operation;\
+			NodeOperation *complexOperation = writeOperation->getInput(); \
+			bNode *node = complexOperation->getbNode(); \
+			if (node) { \
+				if (node->original) { \
+					node->original->highlight = 1;\
+				} else {\
+					node->highlight = 1; \
+				}\
+			} \
+		} \
+	} \
+}
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 void *WorkScheduler::thread_execute_cpu(void *data)
@@ -73,6 +93,7 @@ void *WorkScheduler::thread_execute_cpu(void *data)
 	WorkPackage *work;
 	
 	while ((work = (WorkPackage *)BLI_thread_queue_pop(g_cpuqueue))) {
+		HIGHLIGHT(work);
 		device->execute(work);
 		delete work;
 	}
@@ -86,6 +107,7 @@ void *WorkScheduler::thread_execute_gpu(void *data)
 	WorkPackage *work;
 	
 	while ((work = (WorkPackage *)BLI_thread_queue_pop(g_gpuqueue))) {
+		HIGHLIGHT(work);
 		device->execute(work);
 		delete work;
 	}

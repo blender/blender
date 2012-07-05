@@ -232,7 +232,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		return true;
 	}
 
-#define MARGIN 64
+#define MARGIN 96
 
 #define UPDATE_INPUT \
 		newInput.xmin = MIN3(newInput.xmin, coords[0], coords[2]); \
@@ -256,7 +256,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		UPDATE_INPUT;
 		determineUV(coords, input->xmax, input->ymin);
 		UPDATE_INPUT;
-		margin = (ABS(this->m_distortion)+this->m_dispersion)*MARGIN;
+		margin = (ABS(this->m_distortion) + this->m_dispersion) * MARGIN + 2.0f;
 	} 
 	else 
 	{
@@ -283,7 +283,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		UPDATE_INPUT;
 		determineUV(coords, input->xmax, input->ymin, 1.0f, 1.0f);
 		UPDATE_INPUT;
-		margin=MARGIN;
+		margin = MARGIN;
 	}
 
 #undef UPDATE_INPUT
