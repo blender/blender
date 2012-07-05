@@ -218,7 +218,7 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 	/* can happen with a zero area mask */
 	if (ctx->all_edges == NULL) {
 		free(edgbuf);
-		return(0);
+		return(1);
 	}
 
 	/*
@@ -492,7 +492,7 @@ static int rast_scan_feather(struct r_fill_context *ctx,
 	 * If the number of verts specified to render as a polygon is less than 3,
 	 * return immediately. Obviously we cant render a poly with sides < 3. The
 	 * return for this we set to 1, simply so it can be distinguished from the
-	 * next place we could return, /home/guest/blender-svn/soc-2011-tomato/intern/raskter/raskter
+	 * next place we could return,
 	 * which is a failure to allocate memory.
 	 */
 	if (num_feather_verts < 3) {
@@ -510,17 +510,17 @@ static int rast_scan_feather(struct r_fill_context *ctx,
 		return(0);
 	}
 
-	/* can happen with a zero area mask */
-	if (ctx->all_edges == NULL) {
-		free(edgbuf);
-		return(0);
-	}
-
 	/*
 	 * Do some preprocessing on all edges. This constructs a table structure in memory of all
 	 * the edge properties and can "flip" some edges so sorting works correctly.
 	 */
 	preprocess_all_edges(ctx, feather_verts, num_feather_verts, edgbuf);
+
+	/* can happen with a zero area mask */
+	if (ctx->all_edges == NULL) {
+		free(edgbuf);
+		return(1);
+	}
 
 	/*
 	 * Set the pointer for tracking the edges currently in processing to NULL to make sure

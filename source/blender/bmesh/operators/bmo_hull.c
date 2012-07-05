@@ -37,6 +37,8 @@
 
 #include "bmesh.h"
 
+#define HULL_EPSILON_FLT 0.0001f
+
 /* Internal operator flags */
 typedef enum {
 	HULL_FLAG_INPUT =           (1 << 0),
@@ -143,11 +145,11 @@ static int hull_point_tri_side(const HullTriangle *t, const float co[3])
 	/* Added epsilon to fix bug [#31941], improves output when some
 	 * vertices are nearly coplanar. Might need further tweaking for
 	 * other cases though. */
-	float p[3], d, epsilon = 0.0001;
+	float p[3], d;
 	sub_v3_v3v3(p, co, t->v[0]->co);
 	d = dot_v3v3(t->no, p);
-	if (d < -epsilon) return -1;
-	else if (d > epsilon) return 1;
+	if      (d < -HULL_EPSILON_FLT) return -1;
+	else if (d >  HULL_EPSILON_FLT) return  1;
 	else return 0;
 }
 
@@ -464,7 +466,7 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 	}
 
 	/* Check for colinear vertices */
-	if (largest_dist < 0.0001f)
+	if (largest_dist < HULL_EPSILON_FLT)
 		return TRUE;
 
 	/* Choose fourth point farthest from existing plane */
@@ -487,7 +489,7 @@ static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
 		return TRUE;
 	}
 
-	if (largest_dist < 0.0001f)
+	if (largest_dist < HULL_EPSILON_FLT)
 		return TRUE;
 
 	return FALSE;
