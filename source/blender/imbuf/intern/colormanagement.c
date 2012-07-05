@@ -622,7 +622,8 @@ static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned c
 	int i, tot_thread = BLI_system_thread_count();
 	int start_line, tot_line;
 
-	BLI_init_threads(&threads, do_thread, tot_thread);
+	if (tot_thread > 1)
+		BLI_init_threads(&threads, do_thread, tot_thread);
 
 	start_line = 0;
 	tot_line = ((float)(ibuf->y / tot_thread)) + 0.5f;
