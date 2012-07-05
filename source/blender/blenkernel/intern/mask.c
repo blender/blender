@@ -2215,6 +2215,11 @@ static int mask_points_compare(MaskSplinePoint *points_a, MaskSplinePoint *point
 	MaskSplinePoint *point_b = points_b;
 	int a = tot_point;
 
+	/* deform points can be NULL */
+	if (point_a == NULL || point_b == NULL) {
+		return ((point_a == NULL) && (point_b == NULL));
+	}
+
 	while (a--) {
 		if (!mask_point_compare(point_a, point_b)) {
 			return FALSE;
