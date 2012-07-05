@@ -437,9 +437,12 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 	if (!clip->cache) {
 		struct MovieCache *moviecache;
 
+		// char cache_name[64];
+		// BLI_snprintf(cache_name, sizeof(cache_name), "movie %s", clip->id.name);
+
 		clip->cache = MEM_callocN(sizeof(MovieClipCache), "movieClipCache");
 
-		moviecache = IMB_moviecache_create(sizeof(MovieClipImBufCacheKey), moviecache_hashhash, moviecache_hashcmp);
+		moviecache = IMB_moviecache_create("movieclip", sizeof(MovieClipImBufCacheKey), moviecache_hashhash, moviecache_hashcmp);
 
 		IMB_moviecache_set_getdata_callback(moviecache, moviecache_keydata);
 		IMB_moviecache_set_priority_callback(moviecache, moviecache_getprioritydata, moviecache_getitempriority,

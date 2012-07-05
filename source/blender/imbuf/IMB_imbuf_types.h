@@ -128,11 +128,9 @@ typedef struct ImBuf {
 	unsigned int   encodedbuffersize; /* Size of encodedbuffer */
 
 	/* color management */
-	int colormanage_refcounter;
-	unsigned int colormanage_flags;
 	unsigned int *display_buffer_flags;  /* array of per-display display buffers dirty flags */
-	void *colormanage_cache_data;        /* cache data which is being assigned when */
-	                                     /* put ImBuf to colormanage cache */
+	struct ColormanageCache *colormanage_cache;  /* cache used by color management */
+
 	/* information for compressed textures */
 	struct DDSData dds_data;
 } ImBuf;
@@ -257,8 +255,5 @@ extern const char *imb_ext_image[];
 extern const char *imb_ext_image_qt[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
-
-/* colormanage flags */
-#define IMB_COLORMANAGED		(1 << 0)
 
 #endif

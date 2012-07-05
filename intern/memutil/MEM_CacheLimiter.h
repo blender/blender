@@ -255,7 +255,7 @@ private:
 			int priority;
 
 			/* by default 0 means higherst priority element */
-			priority = queue.size() - i - 1;
+			priority = -(queue.size() - i - 1);
 
 			if (getItemPriority) {
 				priority = getItemPriority(elem->get()->get_data(), priority);

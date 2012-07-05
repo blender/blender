@@ -83,46 +83,59 @@ static int global_tot_view = 0;
 
 /*********************** Color managed cache *************************/
 
-/* Currently it's original ImBuf pointer is used to distinguish which
- * datablock, frame number, possible postprocessing display buffer was
- * created for.
+/* Cache Implementation Notes
+ * ==========================
  *
- * This makes it's possible to easy define key for color managed cache
- * which would work for Images, Movie Clips, Sequencer Strips and so.
+ * All color management cache stuff is stored in two properties of
+ * image buffers:
  *
- * This also allows to easily control memory usage -- all color managed
- * buffers are concentrated in single cache and it's really easy to
- * control maximal memory usage for all color management related stuff
- * (currently supports only maximal memory usage, but it could be
- * improved further to support removing buffers when they are not needed
- * anymore but memory usage didn't exceed it's limit).
+ *   1. display_buffer_flags
  *
- * This ImBuf is being referenced by cache key, so it could accessed
- * anytime on runtime while cache element is valid. This is needed to
- * support removing display buffers from cache when ImBuf they were
- * created for is being freed.
+ *      This is a bit field which used to mark calculated transformations
+ *      for particular image buffer. Index inside of this array means index
+ *      of a color managed display. Element with given index matches view
+ *      transformations applied for a given display. So if bit B of array
+ *      element B is set to 1, this means display buffer with display index
+ *      of A and view transform of B was ever calculated for this imbuf.
  *
- * Technically it works in the following way:
- * - ImBuf is being referenced first time when display buffer is
- *   creating for it and being put into the cache
- * - On any further display buffer created for this ImBuf user
- *   reference counter is not being incremented
- * - There's count of color management users in ImBuf which is
- *   being incremented every time display buffer is creating for
- *   giver ImBuf.
- * - Hence, we always know how many display buffers is created
- *   for the ImBuf and if there's any display buffers created
- *   this ImBuf would be referenced by color management stuff and
- *   actual data for it wouldn't be freed even when this ImBuf is
- *   being freed by user, who created it.
- * - When all external users finished working with this ImBuf it's
- *   reference counter would be 0.
- * - On every new display buffer adding to the cache review of
- *   the cache happens and all cached display buffers who's ImBuf's
- *   user counter is zero are being removed from the cache.
- * - On every display buffer removed from the cache ImBuf's color
- *   management user counter is being decremented. As soon as it's
- *   becoming zero, original ImBuf is being freed completely.
+ *      In contrast with indices in global lists of displays and views this
+ *      indices are 0-based, not 1-based. This is needed to save some bytes
+ *      of memory.
+ *
+ *   2. colormanage_cache
+ *
+ *      This is a pointer to a structure which holds all data which is
+ *      needed for color management cache to work.
+ *
+ *      It contains two parts:
+ *        - data
+ *        - moviecache
+ *
+ *      Data field is used to store additional information about cached
+ *      buffers which affects on whether cached buffer could be used.
+ *      This data can't go to cache key because changes in this data
+ *      shouldn't lead extra buffers adding to cache, it shall
+ *      invalidate cached images.
+ *
+ *      Currently such a data contains only exposure and gamma, but
+ *      would likely extended further.
+ *
+ *      data field is not null only for elements of cache, not used for
+ *      original image buffers.
+ *
+ *      Color management cache is using generic MovieCache implementation
+ *      to make it easier to deal with memory limitation.
+ *
+ *      Currently color management is using the same memory limitation
+ *      pool as sequencer and clip editor are using which means color
+ *      managed buffers would be removed from the cache as soon as new
+ *      frames are loading for the movie clip and there's no space in
+ *      cache.
+ *
+ *      Every image buffer has got own movie cache instance, which
+ *      means keys for color managed buffers could be really simple
+ *      and look up in this cache would be fast and independent from
+ *      overall amount of color managed images.
  */
 
 /* NOTE: ColormanageCacheViewSettings and ColormanageCacheDisplaySettings are
@@ -145,23 +158,43 @@ typedef struct ColormanageCacheDisplaySettings {
 } ColormanageCacheDisplaySettings;
 
 typedef struct ColormanageCacheKey {
-	ImBuf *ibuf;         /* image buffer for which display buffer was created */
 	int view;            /* view transformation used for display buffer */
 	int display;         /* display device name */
 } ColormanageCacheKey;
 
-typedef struct ColormnaageCacheImBufData {
+typedef struct ColormnaageCacheData {
 	float exposure;  /* exposure value cached buffer is calculated with */
 	float gamma;     /* gamma value cached buffer is calculated with */
-} ColormnaageCacheImBufData;
+} ColormnaageCacheData;
 
-static struct MovieCache *colormanage_cache = NULL;
+typedef struct ColormanageCache {
+	struct MovieCache *moviecache;
 
+	ColormnaageCacheData *data;
+} ColormanageCache;
+
+static struct MovieCache *colormanage_moviecache_get(const ImBuf *ibuf)
+{
+	if (!ibuf->colormanage_cache)
+		return NULL;
+
+	return ibuf->colormanage_cache->moviecache;
+}
+
+static ColormnaageCacheData *colormanage_cachedata_get(const ImBuf *ibuf)
+{
+	if (!ibuf->colormanage_cache)
+		return NULL;
+
+	return ibuf->colormanage_cache->data;
+}
+
+#ifdef WITH_OCIO
 static unsigned int colormanage_hashhash(const void *key_v)
 {
 	ColormanageCacheKey *key = (ColormanageCacheKey *)key_v;
 
-	unsigned int rval = *(unsigned int *) key->ibuf;
+	unsigned int rval = (key->display << 16) | (key->view % 0xffff);
 
 	return rval;
 }
@@ -170,11 +203,6 @@ static int colormanage_hashcmp(const void *av, const void *bv)
 {
 	const ColormanageCacheKey *a = (ColormanageCacheKey *) av;
 	const ColormanageCacheKey *b = (ColormanageCacheKey *) bv;
-
-	if (a->ibuf < b->ibuf)
-		return -1;
-	else if (a->ibuf > b->ibuf)
-		return 1;
 
 	if (a->view < b->view)
 		return -1;
@@ -189,39 +217,32 @@ static int colormanage_hashcmp(const void *av, const void *bv)
 	return 0;
 }
 
-static int colormanage_checkkeyunused(void *key_v)
+static struct MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 {
-	ColormanageCacheKey *key = (ColormanageCacheKey *)key_v;
-
-	return key->ibuf->refcounter == 0;
-}
-
-static void colormanage_keydeleter(void *key_v)
-{
-	ColormanageCacheKey *key = (ColormanageCacheKey *)key_v;
-	ImBuf *cache_ibuf = key->ibuf;
-
-	cache_ibuf->colormanage_refcounter--;
-
-	if (cache_ibuf->colormanage_refcounter == 0) {
-		IMB_freeImBuf(key->ibuf);
+	if (!ibuf->colormanage_cache) {
+		ibuf->colormanage_cache = MEM_callocN(sizeof(ColormanageCache), "imbuf colormanage ca cache");
 	}
+
+	if (!ibuf->colormanage_cache->moviecache) {
+		struct MovieCache *moviecache;
+
+		moviecache = IMB_moviecache_create("colormanage cache", sizeof(ColormanageCacheKey), colormanage_hashhash, colormanage_hashcmp);
+
+		ibuf->colormanage_cache->moviecache = moviecache;
+	}
+
+	return ibuf->colormanage_cache->moviecache;
 }
 
-static void colormanage_cache_init(void)
+static void colormanage_cachedata_set(ImBuf *ibuf, ColormnaageCacheData *data)
 {
-	colormanage_cache = IMB_moviecache_create(sizeof(ColormanageCacheKey), colormanage_hashhash, colormanage_hashcmp);
+	if (!ibuf->colormanage_cache) {
+		ibuf->colormanage_cache = MEM_callocN(sizeof(ColormanageCache), "imbuf colormanage ca cache");
+	}
 
-	IMB_moviecache_set_key_deleter_callback(colormanage_cache, colormanage_keydeleter);
-	IMB_moviecache_set_check_unused_callback(colormanage_cache, colormanage_checkkeyunused);
+	ibuf->colormanage_cache->data = data;
 }
 
-static void colormanage_cache_exit(void)
-{
-	IMB_moviecache_free(colormanage_cache);
-}
-
-#ifdef WITH_OCIO
 static void colormanage_view_settings_to_cache(ColormanageCacheViewSettings *cache_view_settings,
                                                const ColorManagedViewSettings *view_settings)
 {
@@ -240,22 +261,28 @@ static void colormanage_display_settings_to_cache(ColormanageCacheDisplaySetting
 	cache_display_settings->display = display;
 }
 
-static void colormanage_settings_to_key(ColormanageCacheKey *key, ImBuf *ibuf,
+static void colormanage_settings_to_key(ColormanageCacheKey *key,
                                         const ColormanageCacheViewSettings *view_settings,
                                         const ColormanageCacheDisplaySettings *display_settings)
 {
-	key->ibuf = ibuf;
 	key->view = view_settings->view;
 	key->display = display_settings->display;
 }
 
-static ImBuf *colormanage_cache_get_ibuf(ColormanageCacheKey *key, void **cache_handle)
+static ImBuf *colormanage_cache_get_ibuf(ImBuf *ibuf, ColormanageCacheKey *key, void **cache_handle)
 {
 	ImBuf *cache_ibuf;
+	struct MovieCache *moviecache = colormanage_moviecache_get(ibuf);
+
+	if (!moviecache) {
+		/* if there's no moviecache it means no color management was applied before */
+
+		return NULL;
+	}
 
 	*cache_handle = NULL;
 
-	cache_ibuf = IMB_moviecache_get(colormanage_cache, key);
+	cache_ibuf = IMB_moviecache_get(moviecache, key);
 
 	*cache_handle = cache_ibuf;
 
@@ -270,17 +297,17 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 	ImBuf *cache_ibuf;
 	int view_flag = 1 << (view_settings->view - 1);
 
-	colormanage_settings_to_key(&key, ibuf, view_settings, display_settings);
+	colormanage_settings_to_key(&key, view_settings, display_settings);
 
 	/* check whether image was marked as dirty for requested transform */
 	if ((ibuf->display_buffer_flags[display_settings->display - 1] & view_flag) == 0) {
 		return NULL;
 	}
 
-	cache_ibuf = colormanage_cache_get_ibuf(&key, cache_handle);
+	cache_ibuf = colormanage_cache_get_ibuf(ibuf, &key, cache_handle);
 
 	if (cache_ibuf) {
-		ColormnaageCacheImBufData *cache_data;
+		ColormnaageCacheData *cache_data;
 
 		/* only buffers with different color space conversions are being stored
 		 * in cache separately. buffer which were used only different exposure/gamma
@@ -289,7 +316,7 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 		 * check here which exposure/gamma was used for cached buffer and if they're
 		 * different from requested buffer should be re-generated
 		 */
-		cache_data = (ColormnaageCacheImBufData *) cache_ibuf->colormanage_cache_data;
+		cache_data = colormanage_cachedata_get(cache_ibuf);
 
 		if (cache_data->exposure != view_settings->exposure ||
 			cache_data->gamma != view_settings->gamma)
@@ -311,10 +338,11 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 {
 	ColormanageCacheKey key;
 	ImBuf *cache_ibuf;
-	ColormnaageCacheImBufData *cache_data;
+	ColormnaageCacheData *cache_data;
 	int view_flag = 1 << (view_settings->view - 1);
+	struct MovieCache *moviecache = colormanage_moviecache_ensure(ibuf);
 
-	colormanage_settings_to_key(&key, ibuf, view_settings, display_settings);
+	colormanage_settings_to_key(&key, view_settings, display_settings);
 
 	/* mark display buffer as valid */
 	ibuf->display_buffer_flags[display_settings->display - 1] |= view_flag;
@@ -327,24 +355,15 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 	cache_ibuf->flags |= IB_rect;
 
 	/* store data which is needed to check whether cached buffer could be used for color managed display settings */
-	cache_data = MEM_callocN(sizeof(ColormnaageCacheImBufData), "color manage cache imbuf data");
+	cache_data = MEM_callocN(sizeof(ColormnaageCacheData), "color manage cache imbuf data");
 	cache_data->exposure = view_settings->exposure;
 	cache_data->gamma = view_settings->gamma;
 
-	cache_ibuf->colormanage_cache_data = cache_data;
+	colormanage_cachedata_set(cache_ibuf, cache_data);
 
 	*cache_handle = cache_ibuf;
 
-	/* mark source buffer as having color managed buffer and increment color managed buffers count for it */
-	if ((ibuf->colormanage_flags & IMB_COLORMANAGED) == 0) {
-		ibuf->colormanage_flags |= IMB_COLORMANAGED;
-
-		IMB_refImBuf(ibuf);
-	}
-
-	ibuf->colormanage_refcounter++;
-
-	IMB_moviecache_put(colormanage_cache, &key, cache_ibuf);
+	IMB_moviecache_put(moviecache, &key, cache_ibuf);
 }
 
 /* validation function checks whether there's buffer with given display transform
@@ -363,19 +382,19 @@ static unsigned char *colormanage_cache_get_validated(ImBuf *ibuf, const Colorma
 	ColormanageCacheKey key;
 	ImBuf *cache_ibuf;
 
-	colormanage_settings_to_key(&key, ibuf, view_settings, display_settings);
+	colormanage_settings_to_key(&key, view_settings, display_settings);
 
-	cache_ibuf = colormanage_cache_get_ibuf(&key, cache_handle);
+	cache_ibuf = colormanage_cache_get_ibuf(ibuf, &key, cache_handle);
 
 	if (cache_ibuf) {
 		if (cache_ibuf->x != ibuf->x || cache_ibuf->y != ibuf->y) {
 			ColormanageCacheViewSettings new_view_settings = *view_settings;
-			ColormnaageCacheImBufData *cache_data;
+			ColormnaageCacheData *cache_data;
 			unsigned char *display_buffer;
 			int buffer_size;
 
 			/* use the same settings as original cached buffer  */
-			cache_data = (ColormnaageCacheImBufData *) cache_ibuf->colormanage_cache_data;
+			cache_data = colormanage_cachedata_get(cache_ibuf);
 			new_view_settings.exposure = cache_data->exposure;
 			new_view_settings.gamma = cache_data->gamma;
 
@@ -399,9 +418,9 @@ static unsigned char *colormanage_cache_get_validated(ImBuf *ibuf, const Colorma
 static void colormanage_cache_get_cache_data(void *cache_handle, float *exposure, float *gamma)
 {
 	ImBuf *cache_ibuf = (ImBuf *) cache_handle;
-	ColormnaageCacheImBufData *cache_data;
+	ColormnaageCacheData *cache_data;
 
-	cache_data = (ColormnaageCacheImBufData *) cache_ibuf->colormanage_cache_data;
+	cache_data = colormanage_cachedata_get(cache_ibuf);
 
 	*exposure = cache_data->exposure;
 	*gamma = cache_data->gamma;
@@ -581,8 +600,6 @@ void IMB_colormanagement_init(void)
 	/* special views, which does not depend on OCIO  */
 	colormanage_view_add("ACES ODT Tonecurve");
 #endif
-
-	colormanage_cache_init();
 }
 
 void IMB_colormanagement_exit(void)
@@ -590,8 +607,6 @@ void IMB_colormanagement_exit(void)
 #ifdef WITH_OCIO
 	colormanage_free_config();
 #endif
-
-	colormanage_cache_exit();
 }
 
 /*********************** Public display buffers interfaces *************************/
@@ -812,31 +827,39 @@ static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *displ
 	}
 
 }
-#endif
 
-void IMB_colormanage_flags_allocate(ImBuf *ibuf)
+static void colormanage_flags_allocate(ImBuf *ibuf)
 {
 	if (global_tot_display == 0)
 		return;
 
 	ibuf->display_buffer_flags = MEM_callocN(sizeof(unsigned int) * global_tot_display, "imbuf display_buffer_flags");
 }
+#endif
 
-void IMB_colormanage_flags_free(ImBuf *ibuf)
+void IMB_colormanage_cache_free(ImBuf *ibuf)
 {
 	if (ibuf->display_buffer_flags) {
 		MEM_freeN(ibuf->display_buffer_flags);
 
 		ibuf->display_buffer_flags = NULL;
 	}
-}
 
-void IMB_colormanage_cache_data_free(ImBuf *ibuf)
-{
-	if (ibuf->colormanage_cache_data) {
-		MEM_freeN(ibuf->colormanage_cache_data);
+	if (ibuf->colormanage_cache) {
+		ColormnaageCacheData *cache_data = colormanage_cachedata_get(ibuf);
+		struct MovieCache *moviecache = colormanage_moviecache_get(ibuf);
 
-		ibuf->colormanage_cache_data = NULL;
+		if (cache_data) {
+			MEM_freeN(cache_data);
+		}
+
+		if (moviecache) {
+			IMB_moviecache_free(moviecache);
+		}
+
+		MEM_freeN(ibuf->colormanage_cache);
+
+		ibuf->colormanage_cache = NULL;
 	}
 }
 
@@ -879,7 +902,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 
 		/* ensure color management bit fields exists */
 		if (!ibuf->display_buffer_flags)
-			IMB_colormanage_flags_allocate(ibuf);
+			colormanage_flags_allocate(ibuf);
 
 		display_buffer = colormanage_cache_get(ibuf, &cache_view_settings, &cache_display_settings, cache_handle);
 

@@ -49,10 +49,7 @@ void IMB_colormanagement_exit(void);
 
 /* ** Public display buffers interfaces ** */
 
-void IMB_colormanage_flags_allocate(struct ImBuf *ibuf);
-void IMB_colormanage_flags_free(struct ImBuf *ibuf);
-
-void IMB_colormanage_cache_data_free(struct ImBuf *ibuf);
+void IMB_colormanage_cache_free(struct ImBuf *ibuf);
 
 unsigned char *IMB_display_buffer_acquire(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                           const struct ColorManagedDisplaySettings *display_settings, void **cache_handle);

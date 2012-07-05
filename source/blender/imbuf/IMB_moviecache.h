@@ -53,7 +53,7 @@ typedef void   (*MovieCachePriorityDeleterFP) (void *priority_data);
 void IMB_moviecache_init(void);
 void IMB_moviecache_destruct(void);
 
-struct MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp);
+struct MovieCache *IMB_moviecache_create(const char *name, int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp);
 void IMB_moviecache_set_key_deleter_callback(struct MovieCache *cache, MovieCacheKeyDeleterFP keydeleterfp);
 void IMB_moviecache_set_getdata_callback(struct MovieCache *cache, MovieCacheGetKeyDataFP getdatafp);
 void IMB_moviecache_set_check_unused_callback(struct MovieCache *cache, MovieCacheCheckKeyUnusedFP checkkeyunusedfp);

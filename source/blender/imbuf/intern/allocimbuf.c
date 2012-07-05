@@ -163,8 +163,7 @@ void IMB_freeImBuf(ImBuf *ibuf)
 			IMB_freezbuffloatImBuf(ibuf);
 			freeencodedbufferImBuf(ibuf);
 			IMB_metadata_free(ibuf);
-			IMB_colormanage_flags_free(ibuf);
-			IMB_colormanage_cache_data_free(ibuf);
+			IMB_colormanage_cache_free(ibuf);
 
 			if (ibuf->dds_data.data != NULL) {
 				free(ibuf->dds_data.data); /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
@@ -448,10 +447,7 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 
 	*ibuf2 = tbuf;
 
-	IMB_display_buffer_invalidate(ibuf2);
-	IMB_colormanage_cache_data_free(ibuf2);
-
-	ibuf2->colormanage_flags &= ~ IMB_COLORMANAGED;
+	IMB_colormanage_cache_free(ibuf2);
 
 	return(ibuf2);
 }
