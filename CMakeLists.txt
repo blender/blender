@@ -148,7 +148,7 @@ mark_as_advanced(WITH_AUDASPACE)
 
 
 # (unix defaults to OpenMP On)
-if(UNIX AND NOT APPLE)
+if((UNIX AND NOT APPLE) OR (MINGW))
 	set(PLATFORM_DEFAULT ON)
 else()
 	set(PLATFORM_DEFAULT OFF)

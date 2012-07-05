@@ -551,9 +551,20 @@ elseif(WIN32)
 			)
 		elseif(WITH_MINGW64)
 			install(
-				FILES ${LIBDIR}/binaries/pthreadGC2-w64.dll
+				FILES 
+					${LIBDIR}/binaries/libgcc_s_sjlj-1.dll
+					${LIBDIR}/binaries/libwinpthread-1.dll
+					${LIBDIR}/binaries/libstdc++-6.dll
 				DESTINATION ${TARGETDIR}
 			)
+			
+			if(WITH_OPENMP)
+				install(
+					FILES 
+					${LIBDIR}/binaries/libgomp-1.dll
+					DESTINATION ${TARGETDIR}
+				)
+			endif()
 		endif()
 	endif()
 
