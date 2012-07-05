@@ -79,9 +79,8 @@ void ExecutionSystemHelper::addNode(vector<Node *>& nodes, Node *node)
 
 Node *ExecutionSystemHelper::addNode(vector<Node *>& nodes, bNode *b_node, bool inActiveGroup, bool fast)
 {
-	Converter converter;
 	Node *node;
-	node = converter.convert(b_node, fast);
+	node = Converter::convert(b_node, fast);
 	node->setIsInActiveGroup(inActiveGroup);
 	if (node != NULL) {
 		addNode(nodes, node);
