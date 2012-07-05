@@ -232,7 +232,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		return true;
 	}
 
-#define MARGIN 64
+#define MARGIN 96
 
 #define UPDATE_INPUT \
 		newInput.xmin = MIN3(newInput.xmin, coords[0], coords[2]); \
