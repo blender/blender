@@ -245,12 +245,18 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 		ED_region_info_draw(ar, str, block, 0.6f);
 }
 
+/* OCIO_TODO: after finishing proper color management pipeline integration
+ *            this wouldn't be needed -- color managed display buffer
+ *            would be used unstead
+ */
+#if 0
 static void verify_buffer_float(ImBuf *ibuf)
 {
 	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID))) {
 		IMB_rect_from_float(ibuf);
 	}
 }
+#endif
 
 static void draw_movieclip_buffer(wmWindow *win, SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
                                   int width, int height, float zoomx, float zoomy)
@@ -270,7 +276,8 @@ static void draw_movieclip_buffer(wmWindow *win, SpaceClip *sc, ARegion *ar, ImB
 		unsigned char *display_buffer;
 		void *cache_handle;
 
-		verify_buffer_float(ibuf);
+		/* OCIO_TODO: finally get rid of this stuff */
+		/* verify_buffer_float(ibuf); */
 
 		view_settings = IMB_view_settings_get_effective(win, &sc->view_settings);
 		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, &win->display_settings, &cache_handle);

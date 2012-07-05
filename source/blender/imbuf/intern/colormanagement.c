@@ -702,6 +702,13 @@ static void *do_display_buffer_apply_tonemap_thread(void *handle_v)
 static void display_buffer_apply_tonemap(ImBuf *ibuf, unsigned char *display_buffer,
                                          imb_tonecurveCb tonecurve_func)
 {
+	/* XXX: IMB_buffer_byte_from_float_tonecurve isn't thread-safe because of
+	 *      possible non-initialized sRGB conversion stuff. Make sure it's properly
+	 *      initialized before starting threads, but likely this stuff should be
+	 *      initialized somewhere before to avoid possible issues in other issues.
+	 */
+	BLI_init_srgb_conversion();
+
 	display_buffer_apply_threaded(ibuf, ibuf->rect_float, display_buffer, tonecurve_func,
 	                              do_display_buffer_apply_tonemap_thread);
 }

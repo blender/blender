@@ -79,6 +79,10 @@
 
 #define HEADER_HEIGHT 18
 
+/* OCIO_TODO: after finishing proper color management pipeline integration
+ *            this wouldn't be needed -- color managed display buffer
+ *            would be used unstead
+ */
 static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 {
 	/* detect if we need to redo the curve map.
@@ -96,7 +100,12 @@ static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 		else
 			ibuf->profile = IB_PROFILE_NONE;
 
-		IMB_rect_from_float(ibuf);
+		/* OCIO_TODO: currently only get rid of old-style color managed byte
+		 *            buffer calculation to save some time on buffer display,
+		 *            but still need to set image buffer's profile to prevent
+		 *            comatibility breackage
+		 */
+		/* IMB_rect_from_float(ibuf); */
 	}
 }
 
