@@ -46,6 +46,9 @@ public:
 	void deinitExecution();
 	void executeOpenCLRegion(OpenCLDevice* device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **memoryBuffers, MemoryBuffer *outputBuffer);
 	void readResolutionFromInputSocket();
+	inline NodeOperation *getInput() {
+		return m_input;
+	}
 
 };
 #endif
