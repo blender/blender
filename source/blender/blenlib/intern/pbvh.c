@@ -1424,56 +1424,21 @@ void BLI_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *pro
 /********************************* Raycast ***********************************/
 
 typedef struct {
-	/* Ray */
-	float start[3];
-	int sign[3];
-	float inv_dir[3];
+	IsectRayAABBData ray;
 	int original;
 } RaycastData;
 
-/* Adapted from here: http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
 static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 {
-	RaycastData *ray = data_v;
-	float bbox[2][3];
-	float tmin, tmax, tymin, tymax, tzmin, tzmax;
+	RaycastData *rcd = data_v;
+	float bb_min[3], bb_max[3];
 
-	if (ray->original)
-		BLI_pbvh_node_get_original_BB(node, bbox[0], bbox[1]);
+	if (rcd->original)
+		BLI_pbvh_node_get_original_BB(node, bb_min, bb_max);
 	else
-		BLI_pbvh_node_get_BB(node, bbox[0], bbox[1]);
+		BLI_pbvh_node_get_BB(node, bb_min, bb_max);
 
-	tmin = (bbox[ray->sign[0]][0] - ray->start[0]) * ray->inv_dir[0];
-	tmax = (bbox[1 - ray->sign[0]][0] - ray->start[0]) * ray->inv_dir[0];
-
-	tymin = (bbox[ray->sign[1]][1] - ray->start[1]) * ray->inv_dir[1];
-	tymax = (bbox[1 - ray->sign[1]][1] - ray->start[1]) * ray->inv_dir[1];
-
-	if ((tmin > tymax) || (tymin > tmax))
-		return 0;
-
-	if (tymin > tmin)
-		tmin = tymin;
-
-	if (tymax < tmax)
-		tmax = tymax;
-
-	tzmin = (bbox[ray->sign[2]][2] - ray->start[2]) * ray->inv_dir[2];
-	tzmax = (bbox[1 - ray->sign[2]][2] - ray->start[2]) * ray->inv_dir[2];
-
-	if ((tmin > tzmax) || (tzmin > tmax))
-		return 0;
-
-	if (tzmin > tmin)
-		tmin = tzmin;
-
-	// XXX jwilkins: tmax does not need to be updated since we don't use it
-	// keeping this here for future reference
-	//if (tzmax < tmax) tmax = tzmax; 
-
-	node->tmin = tmin;
-
-	return 1;
+	return isect_ray_aabb(&rcd->ray, bb_min, bb_max, &node->tmin);
 }
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
@@ -1482,13 +1447,7 @@ void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
 {
 	RaycastData rcd;
 
-	copy_v3_v3(rcd.start, ray_start);
-	rcd.inv_dir[0] = 1.0f / ray_normal[0];
-	rcd.inv_dir[1] = 1.0f / ray_normal[1];
-	rcd.inv_dir[2] = 1.0f / ray_normal[2];
-	rcd.sign[0] = rcd.inv_dir[0] < 0;
-	rcd.sign[1] = rcd.inv_dir[1] < 0;
-	rcd.sign[2] = rcd.inv_dir[2] < 0;
+	isect_ray_aabb_initialize(&rcd.ray, ray_start, ray_normal);
 	rcd.original = original;
 
 	BLI_pbvh_search_callback_occluded(bvh, ray_aabb_intersect, &rcd, cb, data);
