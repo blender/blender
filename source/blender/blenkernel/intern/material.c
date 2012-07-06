@@ -1056,10 +1056,11 @@ int material_in_material(Material *parmat, Material *mat)
 /* ****************** */
 
 /* Update drivers for materials in a nodetree */
-static void material_node_drivers_update(Scene *scene, bNodeTree *ntree, float ctime)
+static void material_node_drivers_update(Scene *scene, bNodeTree *ntree, float ctime, Material *rootma)
 {
 	bNode *node;
-	
+	Material *ma;
+
 	/* nodetree itself */
 	if (ntree->adt && ntree->adt->drivers.first) {
 		BKE_animsys_evaluate_animdata(scene, &ntree->id, ntree->adt, ctime, ADT_RECALC_DRIVERS);
@@ -1069,10 +1070,14 @@ static void material_node_drivers_update(Scene *scene, bNodeTree *ntree, float c
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id && GS(node->id->name) == ID_MA) {
 			/* TODO: prevent infinite recursion here... */
-			material_drivers_update(scene, (Material *)node->id, ctime);
+            ma = (Material *)node->id;
+            if (ma != rootma) {
+                material_drivers_update(scene, ma, ctime);
+            }
 		}
 		else if (node->type == NODE_GROUP && node->id) {
-			material_node_drivers_update(scene, (bNodeTree *)node->id, ctime);
+			material_node_drivers_update(scene, (bNodeTree *)node->id,
+                                         ctime, rootma);
 		}
 	}
 }
@@ -1094,7 +1099,7 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 	
 	/* nodes */
 	if (ma->nodetree) {
-		material_node_drivers_update(scene, ma->nodetree, ctime);
+		material_node_drivers_update(scene, ma->nodetree, ctime, ma);
 	}
 }
 	
