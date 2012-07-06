@@ -443,7 +443,7 @@ static int edbm_extrude_mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 			nr = 3;  // pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
 		else if (em->bm->totfacesel == 1)
 			nr = 1;  // pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
-		else 
+		else
 			nr = 1;  // pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
 	}
 	else if (em->selectmode & SCE_SELECT_EDGE) {

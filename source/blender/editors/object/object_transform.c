@@ -119,7 +119,7 @@ static void object_clear_rot(Object *ob)
 				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
 					ob->quat[3] = ob->dquat[3] = 0.0f;
 					
-				// TODO: does this quat need normalizing now?
+				/* TODO: does this quat need normalizing now? */
 			}
 			else {
 				/* the flag may have been set for the other modes, so just ignore the extra flag... */
@@ -133,7 +133,7 @@ static void object_clear_rot(Object *ob)
 		}
 		else {
 			/* perform clamping using euler form (3-components) */
-			// FIXME: deltas are not handled for these cases yet...
+			/* FIXME: deltas are not handled for these cases yet... */
 			float eul[3], oldeul[3], quat1[4] = {0};
 			
 			if (ob->rotmode == ROT_MODE_QUAT) {

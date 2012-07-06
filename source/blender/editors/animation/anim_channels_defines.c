@@ -3009,28 +3009,28 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 			offset += ICON_WIDTH; 
 		}
 	}
-	
+
 	/* step 5) draw name ............................................... */
-	// TODO: when renaming, we might not want to draw this, especially if name happens to be longer than channel
+	/* TODO: when renaming, we might not want to draw this, especially if name happens to be longer than channel */
 	if (acf->name) {
 		char name[ANIM_CHAN_NAME_SIZE]; /* hopefully this will be enough! */
-		
+
 		/* set text color */
-		// XXX: if active, highlight differently?
+		/* XXX: if active, highlight differently? */
 		if (selected)
 			UI_ThemeColor(TH_TEXT_HI);
 		else
 			UI_ThemeColor(TH_TEXT);
-			
+
 		/* get name */
 		acf->name(ale, name);
-		
+
 		offset += 3;
 		UI_DrawString(offset, ytext, name);
-		
+
 		/* draw red underline if channel is disabled */
 		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) {
-			// FIXME: replace hardcoded color here, and check on extents!
+			/* FIXME: replace hardcoded color here, and check on extents! */
 			glColor3f(1.0f, 0.0f, 0.0f);
 			glLineWidth(2.0);
 			fdrawline((float)(offset), yminc,
@@ -3038,13 +3038,13 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 			glLineWidth(1.0);
 		}
 	}
-	
+
 	/* step 6) draw backdrops behidn mute+protection toggles + (sliders) ....................... */
 	/* reset offset - now goes from RHS of panel */
 	offset = 0;
-	
-	// TODO: when drawing sliders, make those draw instead of these toggles if not enough space
-	
+
+	/* TODO: when drawing sliders, make those draw instead of these toggles if not enough space */
+
 	if (v2d) {
 		short draw_sliders = 0;
 		float color[3];

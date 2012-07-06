@@ -243,32 +243,32 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, float *val)
 			 *	- numerator should be larger than denominator to 'expand' the result
 			 *	- perform this weighting a number of times given by the percentage...
 			 */
-			int iters = (int)ceil(10.0f * pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
-			
+			int iters = (int)ceil(10.0f * pso->percentage); /* TODO: maybe a sensitivity ctrl on top of this is needed */
+
 			while (iters-- > 0) {
 				(*val) = (-((sVal * w2) + (eVal * w1)) + ((*val) * 6.0f) ) / 5.0f;
 			}
 		}
 		break;
-			
+
 		case POSESLIDE_RELAX: /* make the current pose more like its surrounding ones */
 		{
 			/* perform a weighted average here, favoring the middle pose
 			 *	- numerator should be smaller than denominator to 'relax' the result
 			 *	- perform this weighting a number of times given by the percentage...
 			 */
-			int iters = (int)ceil(10.0f * pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
-			
+			int iters = (int)ceil(10.0f * pso->percentage); /* TODO: maybe a sensitivity ctrl on top of this is needed */
+
 			while (iters-- > 0) {
 				(*val) = ( ((sVal * w2) + (eVal * w1)) + ((*val) * 5.0f) ) / 6.0f;
 			}
 		}
 		break;
-			
+
 		case POSESLIDE_BREAKDOWN: /* make the current pose slide around between the endpoints */
 		{
 			/* perform simple linear interpolation - coefficient for start must come from pso->percentage... */
-			// TODO: make this use some kind of spline interpolation instead?
+			/* TODO: make this use some kind of spline interpolation instead? */
 			(*val) = ((sVal * w2) + (eVal * w1));
 		}
 		break;
@@ -415,11 +415,11 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 		}
 		else if (pso->mode == POSESLIDE_PUSH) {
 			float quat_diff[4], quat_orig[4];
-			
+
 			/* calculate the delta transform from the previous to the current */
-			// TODO: investigate ways to favour one transform more?
+			/* TODO: investigate ways to favour one transform more? */
 			sub_qt_qtqt(quat_diff, pchan->quat, quat_prev);
-			
+
 			/* make a copy of the original rotation */
 			copy_qt_qt(quat_orig, pchan->quat);
 			
@@ -428,8 +428,8 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 		}
 		else {
 			float quat_interp[4], quat_orig[4];
-			int iters = (int)ceil(10.0f * pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
-			
+			int iters = (int)ceil(10.0f * pso->percentage); /* TODO: maybe a sensitivity ctrl on top of this is needed */
+
 			/* perform this blending several times until a satisfactory result is reached */
 			while (iters-- > 0) {
 				/* calculate the interpolation between the endpoints */

@@ -306,11 +306,11 @@ static int poselib_sanitize_exec(bContext *C, wmOperator *op)
 	BLI_dlrbTree_init(&keys);
 	action_to_keylist(NULL, act, &keys, NULL);
 	BLI_dlrbTree_linkedlist_sync(&keys);
-	
+
 	/* for each key, make sure there is a corresponding pose */
 	for (ak = keys.first; ak; ak = ak->next) {
 		/* check if any pose matches this */
-		// TODO: don't go looking through the list like this every time...
+		/* TODO: don't go looking through the list like this every time... */
 		for (marker = act->markers.first; marker; marker = marker->next) {
 			if (IS_EQ(marker->frame, (double)ak->cfra)) {
 				marker->flag = -1;
@@ -819,12 +819,12 @@ static void poselib_backup_restore(tPoseLib_PreviewData *pld)
 	for (plb = pld->backups.first; plb; plb = plb->next) {
 		/* copy most of data straight back */
 		memcpy(plb->pchan, &plb->olddata, sizeof(bPoseChannel));
-		
+
 		/* just overwrite values of properties from the stored copies (there should be some) */
 		if (plb->oldprops)
 			IDP_SyncGroupValues(plb->pchan->prop, plb->oldprops);
-			
-		// TODO: constraints settings aren't restored yet, even though these could change (though not that likely)
+
+		/* TODO: constraints settings aren't restored yet, even though these could change (though not that likely) */
 	}
 }
 
@@ -832,10 +832,10 @@ static void poselib_backup_restore(tPoseLib_PreviewData *pld)
 static void poselib_backup_free_data(tPoseLib_PreviewData *pld)
 {
 	tPoseLib_Backup *plb, *plbn;
-	
+
 	for (plb = pld->backups.first; plb; plb = plbn) {
 		plbn = plb->next;
-		
+
 		/* free custom data */
 		if (plb->oldprops) {
 			IDP_FreeProperty(plb->oldprops);
@@ -1658,11 +1658,11 @@ void POSELIB_OT_apply_pose(wmOperatorType *ot)
 	/* callbacks */
 	ot->exec = poselib_preview_exec;
 	ot->poll = has_poselib_pose_data_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
-	/* properties */	
-	// TODO: make the pose_index into a proper enum instead of a cryptic int...
+
+	/* properties */
+	/* TODO: make the pose_index into a proper enum instead of a cryptic int... */
 	ot->prop = RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
 }

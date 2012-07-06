@@ -1295,8 +1295,8 @@ void init_userdef_do_versions(void)
 	/* transform widget settings */
 	if (U.tw_hotspot == 0) {
 		U.tw_hotspot = 14;
-		U.tw_size = 20;          // percentage of window size
-		U.tw_handlesize = 16;    // percentage of widget radius
+		U.tw_size = 20;          /* percentage of window size */
+		U.tw_handlesize = 16;    /* percentage of widget radius */
 	}
 	if (U.pad_rot_angle == 0)
 		U.pad_rot_angle = 15;

@@ -1727,17 +1727,17 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 	tGPsdata *p = op->customdata;
 	int estate = OPERATOR_PASS_THROUGH; /* default exit state - not handled, so let others have a share of the pie */
 	
-	// if (event->type == NDOF_MOTION)
-	//	return OPERATOR_PASS_THROUGH;
-	// -------------------------------
-	// [mce] Not quite what I was looking
-	// for, but a good start! GP continues to
-	// draw on the screen while the 3D mouse
-	// moves the viewpoint. Problem is that
-	// the stroke is converted to 3D only after
-	// it is finished. This approach should work
-	// better in tools that immediately apply
-	// in 3D space.
+	/* if (event->type == NDOF_MOTION)
+	 *    return OPERATOR_PASS_THROUGH;
+	 * -------------------------------
+	 * [mce] Not quite what I was looking
+	 * for, but a good start! GP continues to
+	 * draw on the screen while the 3D mouse
+	 * moves the viewpoint. Problem is that
+	 * the stroke is converted to 3D only after
+	 * it is finished. This approach should work
+	 * better in tools that immediately apply
+	 * in 3D space. */
 
 	//printf("\tGP - handle modal event...\n");
 	

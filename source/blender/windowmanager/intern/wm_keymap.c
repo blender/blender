@@ -329,7 +329,7 @@ static void keymap_item_set_id(wmKeyMap *keymap, wmKeyMapItem *kmi)
 		kmi->id = keymap->kmi_id;
 	}
 	else {
-		kmi->id = -keymap->kmi_id; // User defined keymap entries have negative ids
+		kmi->id = -keymap->kmi_id; /* User defined keymap entries have negative ids */
 	}
 }
 

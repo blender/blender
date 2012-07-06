@@ -397,7 +397,7 @@ static void object_hook_select(Object *ob, HookModifierData *hmd)
 }
 
 /* special poll operators for hook operators */
-// TODO: check for properties window modifier context too as alternative?
+/* TODO: check for properties window modifier context too as alternative? */
 static int hook_op_edit_poll(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);

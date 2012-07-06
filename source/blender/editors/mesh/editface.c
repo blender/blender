@@ -329,7 +329,7 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]
 	if (me == NULL || me->totpoly == 0) return;
 
 	if (mode == 0 || mode == 1) {
-		// XXX - Causes glitches, not sure why
+		/* XXX - Causes glitches, not sure why */
 #if 0
 		if (!facesel_face_pick(C, me, mval, &index, 1))
 			return;

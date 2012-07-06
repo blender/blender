@@ -537,27 +537,27 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 
 	glColor3ub(0,  0,  0);
 	for (y = 0; y < 6; y++) {
-		// Do not draw more than the category allows
+		/* Do not draw more than the category allows */
 		if (cs > charmax) break;
 
 		for (x = 0; x < 12; x++)
 		{
-			// Do not draw more than the category allows
+			/* Do not draw more than the category allows */
 			if (cs > charmax) break;
 
-			// Draw one grid cell
+			/* Draw one grid cell */
 			glBegin(GL_LINE_LOOP);
 			glVertex2f(sx, sy);
 			glVertex2f(ex, sy);
 			glVertex2f(ex, ey);
 			glVertex2f(sx, ey);
-			glEnd();	
+			glEnd();
 
-			// Draw character inside the cell
+			/* Draw character inside the cell */
 			memset(wstr, 0, sizeof(wchar_t) * 2);
 			memset(ustr, 0, 16);
 
-			// Set the font to be either unicode or FO_BUILTIN_NAME	
+			/* Set the font to be either unicode or FO_BUILTIN_NAME */
 			wstr[0] = cs;
 			if (strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
 				BLI_strncpy_wchar_as_utf8((char *)ustr, (wchar_t *)wstr, sizeof(ustr));
@@ -580,17 +580,17 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 				float dx, dy;
 				float px, py;
 	
-				// Calculate the position
+				/* Calculate the position */
 				wid = FTF_GetStringWidth((char *) ustr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 				FTF_GetBoundingBox((char *) ustr, &llx, &lly, &llz, &urx, &ury, &urz, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 				dx = urx - llx;
 				dy = ury - lly;
 
-				// This isn't fully functional since the but->aspect isn't working like I suspected
+				/* This isn't fully functional since the but->aspect isn't working like I suspected */
 				px = sx + ((butw / but->aspect) - dx) / 2;
 				py = sy + ((buth / but->aspect) - dy) / 2;
 
-				// Set the position and draw the character
+				/* Set the position and draw the character */
 				ui_rasterpos_safe(px, py, but->aspect);
 				FTF_DrawString((char *) ustr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 			}
@@ -598,8 +598,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 				ui_rasterpos_safe(sx + butw / 2, sy + buth / 2, but->aspect);
 				UI_DrawString(but->font, (char *) ustr, 0);
 			}
-	
-			// Calculate the next position and character
+
+			/* Calculate the next position and character */
 			sx += butw; ex += butw;
 			cs++;
 		}
@@ -1571,9 +1571,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		if (tmpibuf->rect_float)
 			IMB_rect_from_float(tmpibuf);
 
-		// XXX: for debug only
-		// tmpibuf->ftype = PNG;
-		// IMB_saveiff(tmpibuf, "sample.png", IB_rect);
+		/* XXX: for debug only
+		 * tmpibuf->ftype = PNG;
+		 * IMB_saveiff(tmpibuf, "sample.png", IB_rect); */
 
 		if (tmpibuf->rect)
 			scopes->track_preview = tmpibuf;

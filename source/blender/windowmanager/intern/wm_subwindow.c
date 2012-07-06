@@ -331,12 +331,12 @@ unsigned int index_to_framebuffer(int index)
 			break;
 		case 24:
 			break;
-		default: // 18 bits...
+		default: /* 18 bits... */
 			i = ((i & 0x3F000) << 6) + ((i & 0xFC0) << 4) + ((i & 0x3F) << 2);
 			i |= 0x010101;
 			break;
 	}
-	
+
 	return i;
 }
 
@@ -365,7 +365,7 @@ unsigned int index_to_framebuffer(int index)
 			break;
 		case 24:
 			break;
-		default:    // 18 bits...
+		default:    /* 18 bits... */
 			i = ((i & 0x3F000) << 6) + ((i & 0xFC0) << 4) + ((i & 0x3F) << 2);
 			i |= 0x030303;
 			break;

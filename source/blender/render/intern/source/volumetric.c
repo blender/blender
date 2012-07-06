@@ -253,9 +253,9 @@ static float metadensity(Object *ob, const float co[3])
 		/* element rotation transform */
 		float tp[3] = {ml->x - tco[0], ml->y - tco[1], ml->z - tco[2]};
 		quat_to_mat3(bmat, ml->quat);
-		transpose_m3(bmat); // rot.only, so inverse == transpose
+		transpose_m3(bmat); /* rot.only, so inverse == transpose */
 		mul_m3_v3(bmat, tp);
-		
+
 		/* MB_BALL default */
 		switch (ml->type) {
 			case MB_ELIPSOID:
@@ -263,14 +263,14 @@ static float metadensity(Object *ob, const float co[3])
 				break;
 			case MB_CUBE:
 				tp[2] = (tp[2] > ml->expz) ? (tp[2] - ml->expz) : ((tp[2] < -ml->expz) ? (tp[2] + ml->expz) : 0.f);
-			// no break, xy as plane
+			/* no break, xy as plane */
 			case MB_PLANE:
 				tp[1] = (tp[1] > ml->expy) ? (tp[1] - ml->expy) : ((tp[1] < -ml->expy) ? (tp[1] + ml->expy) : 0.f);
-			// no break, x as tube
+			/* no break, x as tube */
 			case MB_TUBE:
 				tp[0] = (tp[0] > ml->expx) ? (tp[0] - ml->expx) : ((tp[0] < -ml->expx) ? (tp[0] + ml->expx) : 0.f);
 		}
-		
+
 		/* ml->rad2 is not set */
 		dist2 = 1.0f - (dot_v3v3(tp, tp) / (ml->rad * ml->rad));
 		if (dist2 > 0.f)

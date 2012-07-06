@@ -1346,7 +1346,7 @@ int main(int argc, const char **argv)
 	 * WM_init() before #BPY_python_start() crashes Blender at startup.
 	 */
 
-	// TODO - U.pythondir
+	/* TODO - U.pythondir */
 #else
 	printf("\n* WARNING * - Blender compiled without Python!\nthis is not intended for typical usage\n\n");
 #endif

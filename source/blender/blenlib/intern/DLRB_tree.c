@@ -134,12 +134,12 @@ DLRBT_Node *BLI_dlrbTree_search(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, vo
 {
 	DLRBT_Node *node = (tree) ? tree->root : NULL;
 	short found = 0;
-	
+
 	/* check that there is a comparator to use */
-	// TODO: if no comparator is supplied, try using the one supplied with the tree...
+	/* TODO: if no comparator is supplied, try using the one supplied with the tree... */
 	if (cmp_cb == NULL)
 		return NULL;
-	
+
 	/* iteratively perform this search */
 	while (node && found == 0) {
 		/* check if traverse further or not 
@@ -177,7 +177,7 @@ DLRBT_Node *BLI_dlrbTree_search_exact(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_
 	short found = 0;
 	
 	/* check that there is a comparator to use */
-	// TODO: if no comparator is supplied, try using the one supplied with the tree...
+	/* TODO: if no comparator is supplied, try using the one supplied with the tree... */
 	if (cmp_cb == NULL)
 		return NULL;
 	
@@ -217,7 +217,7 @@ DLRBT_Node *BLI_dlrbTree_search_prev(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_c
 	DLRBT_Node *node;
 	
 	/* check that there is a comparator to use */
-	// TODO: if no comparator is supplied, try using the one supplied with the tree...
+	/* TODO: if no comparator is supplied, try using the one supplied with the tree... */
 	if (cmp_cb == NULL)
 		return NULL;
 	
@@ -242,9 +242,9 @@ DLRBT_Node *BLI_dlrbTree_search_prev(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_c
 DLRBT_Node *BLI_dlrbTree_search_next(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *search_data)
 {
 	DLRBT_Node *node;
-	
+
 	/* check that there is a comparator to use */
-	// TODO: if no comparator is supplied, try using the one supplied with the tree...
+	/* TODO: if no comparator is supplied, try using the one supplied with the tree... */
 	if (cmp_cb == NULL)
 		return NULL;
 	
@@ -512,18 +512,18 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb,
 	/* sanity checks */
 	if (tree == NULL)
 		return NULL;
-		
-	// TODO: if no comparator is supplied, try using the one supplied with the tree...
+
+	/* TODO: if no comparator is supplied, try using the one supplied with the tree... */
 	if (cmp_cb == NULL)
 		return NULL;
-	// TODO: if no allocator is supplied, try using the one supplied with the tree...
+	/* TODO: if no allocator is supplied, try using the one supplied with the tree... */
 	if (new_cb == NULL)
 		return NULL;
-	// TODO: if no updater is supplied, try using the one supplied with the tree...
-		
+	/* TODO: if no updater is supplied, try using the one supplied with the tree... */
+
 	/* try to find the nearest node to this one */
 	parNode = BLI_dlrbTree_search(tree, cmp_cb, data);
-	
+
 	/* add new node to the BST in the 'standard way' as appropriate 
 	 * NOTE: we do not support duplicates in our tree...
 	 */
@@ -586,6 +586,6 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb,
 /* *********************************************** */
 /* Remove */
 
-// TODO: this hasn't been coded yet, since this functionality was not needed by the author
+/* TODO: this hasn't been coded yet, since this functionality was not needed by the author */
 
 /* *********************************************** */

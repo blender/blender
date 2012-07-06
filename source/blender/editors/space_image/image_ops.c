@@ -1660,7 +1660,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 
 	int i;
 
-	if (ibuf == NULL)  // TODO: this should actually never happen, but does for render-results -> cleanup
+	if (ibuf == NULL)  /* TODO: this should actually never happen, but does for render-results -> cleanup */
 		return OPERATOR_CANCELLED;
 
 	/* TODO: make this into an IMB_invert_channels(ibuf,r,g,b,a) method!? */

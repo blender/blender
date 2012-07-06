@@ -673,23 +673,23 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	/* draw keys */
 	if (keys) {
 		/* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
-		// TODO: allow this opacity factor to be themed?
+		/* TODO: allow this opacity factor to be themed? */
 		float kalpha = (channelLocked) ? 0.35f : 1.0f;
-		
+
 		for (ak = keys->first; ak; ak = ak->next) {
-			/* optimization: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw 
+			/* optimization: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw
 			 *	- this might give some improvements, since we current have to flip between view/region matrices
 			 */
 			if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax) == 0)
 				continue;
-			
+
 			/* draw using OpenGL - uglier but faster */
-			// NOTE1: a previous version of this didn't work nice for some intel cards
-			// NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3;
+			/* NOTE1: a previous version of this didn't work nice for some intel cards
+			 * NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3; */
 			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH, kalpha);
-		}	
+		}
 	}
-	
+
 	glDisable(GL_BLEND);
 }
 

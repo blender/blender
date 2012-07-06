@@ -174,7 +174,7 @@ void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_b
 
 	DirectionToThetaPhi(sunsky->toSun, &sunsky->theta, &sunsky->phi);
 
-	sunsky->sunSolidAngle = 0.25 * M_PI * 1.39 * 1.39 / (150 * 150);   // = 6.7443e-05
+	sunsky->sunSolidAngle = 0.25 * M_PI * 1.39 * 1.39 / (150 * 150);   /* = 6.7443e-05 */
 
 	theta2 = sunsky->theta * sunsky->theta;
 	theta3 = theta2 * sunsky->theta;
@@ -183,7 +183,7 @@ void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_b
 
 	chi = (4.0f / 9.0f - T / 120.0f) * ((float)M_PI - 2.0f * sunsky->theta);
 	sunsky->zenith_Y = (4.0453f * T - 4.9710f) * tanf(chi) - 0.2155f * T + 2.4192f;
-	sunsky->zenith_Y *= 1000;   // conversion from kcd/m^2 to cd/m^2
+	sunsky->zenith_Y *= 1000;   /* conversion from kcd/m^2 to cd/m^2 */
 
 	if (sunsky->zenith_Y <= 0)
 		sunsky->zenith_Y = 1e-6;
@@ -340,13 +340,13 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 	m =  1.0f / (cosf(theta) + 0.15f * powf(93.885f - theta / (float)M_PI * 180.0f, -1.253f));
 
 	for (i = 0; i < 3; i++) {
-		// Rayleigh Scattering
+		/* Rayleigh Scattering */
 		fTauR = expf(-m * 0.008735f * powf(fLambda[i], (float)(-4.08f)));
 
-		// Aerosal (water + dust) attenuation
+		/* Aerosal (water + dust) attenuation */
 		fTauA = exp(-m * fBeta * powf(fLambda[i], -fAlpha));
 
-		fTau[i] = fTauR * fTauA; 
+		fTau[i] = fTauR * fTauA;
 	}
 }
 
@@ -457,23 +457,23 @@ void AtmospherePixleShader(struct SunSky *sunSky, float view[3], float s, float 
 	sunDirection[0] = sunSky->toSun[0];
 	sunDirection[1] = sunSky->toSun[1];
 	sunDirection[2] = sunSky->toSun[2];
-	
-	costheta = dot_v3v3(view, sunDirection); // cos(theta)
-	Phase_1 = 1 + (costheta * costheta); // Phase_1
-	
+
+	costheta = dot_v3v3(view, sunDirection); /* cos(theta) */
+	Phase_1 = 1 + (costheta * costheta); /* Phase_1 */
+
 	VEC3OPF(sunSky->atm_BetaRay, sunSky->atm_BetaRay, *, sunSky->atm_BetaRayMultiplier);
 	VEC3OPF(sunSky->atm_BetaMie, sunSky->atm_BetaMie, *, sunSky->atm_BetaMieMultiplier);
 	VEC3OPV(sunSky->atm_BetaRM, sunSky->atm_BetaRay, +, sunSky->atm_BetaMie);
-	
-	//e^(-(beta_1 + beta_2) * s) = E1
+
+	/* e^(-(beta_1 + beta_2) * s) = E1 */
 	VEC3OPF(E1, sunSky->atm_BetaRM, *, -s / (float)M_LN2);
 	E1[0] = exp(E1[0]);
 	E1[1] = exp(E1[1]);
 	E1[2] = exp(E1[2]);
 
 	copy_v3_v3(E, E1);
-		
-	//Phase2(theta) = (1-g^2)/(1+g-2g*cos(theta))^(3/2)
+
+	/* Phase2(theta) = (1-g^2)/(1+g-2g*cos(theta))^(3/2) */
 	fTemp = 1 + sunSky->atm_HGg - 2 * sunSky->atm_HGg * costheta;
 	fTemp = fTemp * sqrtf(fTemp);
 	Phase_2 = (1 - sunSky->atm_HGg * sunSky->atm_HGg) / fTemp;
@@ -491,8 +491,8 @@ void AtmospherePixleShader(struct SunSky *sunSky, float view[3], float s, float 
 		
 	VEC3OPF(I, I, *, sunSky->atm_InscatteringMultiplier);
 	VEC3OPF(E, E, *, sunSky->atm_ExtinctionMultiplier);
-		
-	//scale to color sun
+
+	/* scale to color sun */
 	ComputeAttenuatedSunlight(sunSky->theta, sunSky->turbidity, sunColor);
 	VEC3OPV(E, E, *, sunColor);
 

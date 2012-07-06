@@ -261,14 +261,14 @@ static void lightcache_filter2(VolumePrecache *vp)
 }
 #endif
 
-BLI_INLINE int ms_I(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
-{ 
+BLI_INLINE int ms_I(int x, int y, int z, int *n) /* has a pad of 1 voxel surrounding the core for boundary simulation */
+{
 	/* different ordering to light cache */
-	return x*(n[1]+2)*(n[2]+2) + y*(n[2]+2) + z; 	
+	return x*(n[1]+2)*(n[2]+2) + y*(n[2]+2) + z;
 }
 
-BLI_INLINE int v_I_pad(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
-{ 
+BLI_INLINE int v_I_pad(int x, int y, int z, int *n) /* has a pad of 1 voxel surrounding the core for boundary simulation */
+{
 	/* same ordering to light cache, with padding */
 	return z*(n[1]+2)*(n[0]+2) + y*(n[0]+2) + x;  	
 }
@@ -526,10 +526,10 @@ static void *vol_precache_part(void *data)
 					
 					/* convert from world->camera space for shading */
 					mul_v3_m4v3(cco, pa->viewmat, co);
-					
+
 					i = BLI_VOXEL_INDEX(x, y, z, res);
-					
-					// don't bother if the point is not inside the volume mesh
+
+					/* don't bother if the point is not inside the volume mesh */
 					if (!point_inside_obi(tree, obi, cco)) {
 						obi->volume_precache->data_r[i] = -1.0f;
 						obi->volume_precache->data_g[i] = -1.0f;
@@ -563,7 +563,7 @@ static void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Materi
 	shi->mask= 1;
 	shi->mat = ma;
 	shi->vlr = NULL;
-	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
+	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	/* note, keep this synced with render_types.h */
 	shi->har= shi->mat->har;
 	shi->obi= obi;
 	shi->obr= obi->obr;
@@ -757,7 +757,8 @@ static void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *o
 	BLI_freelistN(&re->volume_precache_parts);
 	
 	if (tree) {
-		//TODO: makeraytree_object creates a tree and saves it on OBI, if we free this tree we should also clear other pointers to it
+		/* TODO: makeraytree_object creates a tree and saves it on OBI,
+		 * if we free this tree we should also clear other pointers to it */
 		//RE_rayobject_free(tree);
 		//tree= NULL;
 	}

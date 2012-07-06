@@ -1469,20 +1469,20 @@ void BKE_nla_validate_state(AnimData *adt)
  * for normal editing only (i.e. not in editmode for some strip's action),
  * so no checks for this are performed.
  */
-// TODO: maybe we should have checks for this too...
+/* TODO: maybe we should have checks for this too... */
 void BKE_nla_action_pushdown(AnimData *adt)
 {
 	NlaStrip *strip;
-	
+
 	/* sanity checks */
-	// TODO: need to report the error for this
+	/* TODO: need to report the error for this */
 	if (ELEM(NULL, adt, adt->action))
 		return;
-		
-	/* if the action is empty, we also shouldn't try to add to stack, 
+
+	/* if the action is empty, we also shouldn't try to add to stack,
 	 * as that will cause us grief down the track
 	 */
-	// TODO: what about modifiers?
+	/* TODO: what about modifiers? */
 	if (action_has_motion(adt->action) == 0) {
 		printf("BKE_nla_action_pushdown(): action has no data\n");
 		return;

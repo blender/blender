@@ -1316,7 +1316,7 @@ static void followpath_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
 		bFollowPathConstraint *data = con->data;
 		
 		/* get Object transform (loc/rot/size) to determine transformation from path */
-		// TODO: this used to be local at one point, but is probably more useful as-is
+		/* TODO: this used to be local at one point, but is probably more useful as-is */
 		copy_m4_m4(obmat, cob->matrix);
 		
 		/* get scaling of object before applying constraint */
@@ -4435,9 +4435,9 @@ static bConstraint *add_new_constraint(Object *ob, bPoseChannel *pchan, const ch
 		/* make this constraint the active one */
 		constraints_set_active(list, con);
 	}
-	
+
 	/* set type+owner specific immutable settings */
-	// TODO: does action constraint need anything here - i.e. spaceonce?
+	/* TODO: does action constraint need anything here - i.e. spaceonce? */
 	switch (type) {
 		case CONSTRAINT_TYPE_CHILDOF:
 		{

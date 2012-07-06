@@ -1447,21 +1447,21 @@ void zspan_scanconvert_strand(ZSpan *zspan, void *handle, float *v1, float *v2, 
 	zxd= -(double)x0/(double)z0;
 	zyd= -(double)y0/(double)z0;
 	zy0= ((double)my2)*zyd + (double)xx1;
-	
-	z1= 1.0f; // (u1 - u2)
-	z2= 0.0f; // (u2 - u3)
+
+	z1= 1.0f; /* (u1 - u2) */
+	z2= 0.0f; /* (u2 - u3) */
 
 	x0= y1*z2-z1*y2;
 	y0= z1*x2-x1*z2;
-	
-	xx1= (x0*v1[0] + y0*v1[1])/z0 + 1.0f;	
+
+	xx1= (x0*v1[0] + y0*v1[1])/z0 + 1.0f;
 	uxd= -(double)x0/(double)z0;
 	uyd= -(double)y0/(double)z0;
 	uy0= ((double)my2)*uyd + (double)xx1;
 
-	z1= -1.0f; // (v1 - v2)
-	z2= 1.0f;  // (v2 - v3)
-	
+	z1= -1.0f; /* (v1 - v2) */
+	z2= 1.0f;  /* (v2 - v3) */
+
 	x0= y1*z2-z1*y2;
 	y0= z1*x2-x1*z2;
 	
@@ -1535,23 +1535,23 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
 	y1= v1[1]- v2[1];
 	y2= v2[1]- v3[1];
 	
-	z1= 1.0f; // (u1 - u2)
-	z2= 0.0f; // (u2 - u3)
-	
+	z1= 1.0f; /* (u1 - u2) */
+	z2= 0.0f; /* (u2 - u3) */
+
 	x0= y1*z2-z1*y2;
 	y0= z1*x2-x1*z2;
 	z0= x1*y2-y1*x2;
-	
+
 	if (z0==0.0f) return;
-	
-	xx1= (x0*v1[0] + y0*v1[1])/z0 + 1.0f;	
+
+	xx1= (x0*v1[0] + y0*v1[1])/z0 + 1.0f;
 	uxd= -(double)x0/(double)z0;
 	uyd= -(double)y0/(double)z0;
 	uy0= ((double)my2)*uyd + (double)xx1;
 
-	z1= -1.0f; // (v1 - v2)
-	z2= 1.0f;  // (v2 - v3)
-	
+	z1= -1.0f; /* (v1 - v2) */
+	z2= 1.0f;  /* (v2 - v3) */
+
 	x0= y1*z2-z1*y2;
 	y0= z1*x2-x1*z2;
 	

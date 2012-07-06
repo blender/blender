@@ -952,9 +952,9 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 	if (scene->adt && scene->adt->drivers.first) {
 		BKE_animsys_evaluate_animdata(scene, &scene->id, scene->adt, ctime, ADT_RECALC_DRIVERS);
 	}
-	
+
 	/* world */
-	// TODO: what about world textures? but then those have nodes too...
+	/* TODO: what about world textures? but then those have nodes too... */
 	if (scene->world) {
 		ID *wid = (ID *)scene->world;
 		AnimData *adt = BKE_animdata_from_id(wid);

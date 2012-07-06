@@ -301,8 +301,8 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		//setscreen(G.curscreen);
 	}
 	
-	// FIXME: this version patching should really be part of the file-reading code, 
-	// but we still get too many unrelated data-corruption crashes otherwise...
+	/* FIXME: this version patching should really be part of the file-reading code,
+	 * but we still get too many unrelated data-corruption crashes otherwise... */
 	if (G.main->versionfile < 250)
 		do_versions_ipos_to_animato(G.main);
 	

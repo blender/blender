@@ -120,13 +120,13 @@ void space_transform_invert(const SpaceTransform *data, float co[3])
 static void space_transform_apply_normal(const SpaceTransform *data, float no[3])
 {
 	mul_mat3_m4_v3(((SpaceTransform *)data)->local2target, no);
-	normalize_v3(no); // TODO: could we just determine de scale value from the matrix?
+	normalize_v3(no); /* TODO: could we just determine de scale value from the matrix? */
 }
 
 static void space_transform_invert_normal(const SpaceTransform *data, float no[3])
 {
 	mul_mat3_m4_v3(((SpaceTransform *)data)->target2local, no);
-	normalize_v3(no); // TODO: could we just determine de scale value from the matrix?
+	normalize_v3(no); /* TODO: could we just determine de scale value from the matrix? */
 }
 
 /*

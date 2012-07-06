@@ -240,7 +240,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 				copy_v3_v3_int(vd->resol, smd->domain->res);
 				totRes = vd_resol_size(vd);
 
-				// scaling heat values from -2.0-2.0 to 0.0-1.0
+				/* scaling heat values from -2.0-2.0 to 0.0-1.0 */
 				vd->dataset = MEM_mapallocN(sizeof(float) * (totRes), "smoke data");
 
 
@@ -250,7 +250,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 					vd->dataset[i] = (heat[i] + 2.0f) / 4.0f;
 				}
 
-				//vd->dataset = smoke_get_heat(smd->domain->fluid);
+				/* vd->dataset = smoke_get_heat(smd->domain->fluid); */
 			}
 			else if (vd->smoked_type == TEX_VD_SMOKEVEL) {
 				size_t totRes;
@@ -260,7 +260,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 				copy_v3_v3_int(vd->resol, smd->domain->res);
 				totRes = vd_resol_size(vd);
 
-				// scaling heat values from -2.0-2.0 to 0.0-1.0
+				/* scaling heat values from -2.0-2.0 to 0.0-1.0 */
 				vd->dataset = MEM_mapallocN(sizeof(float) * (totRes), "smoke data");
 
 				xvel = smoke_get_velocity_x(smd->domain->fluid);

@@ -408,12 +408,12 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = NULL;
 	int ok = 0;
-	
+
 	if (scene->id.lib) return;
-	
+
 	if (sa && sa->spacetype == SPACE_VIEW3D)
 		v3d = sa->spacedata.first;
-	
+
 	if ((flag & EM_IGNORE_LAYER) == 0) {
 		base = CTX_data_active_base(C); /* active layer checked here for view3d */
 
@@ -428,12 +428,12 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if (ELEM3(NULL, base, base->object, base->object->data)) return;
 
 	ob = base->object;
-	
+
 	if (BKE_object_obdata_is_libdata(ob)) {
 		error_libdata();
 		return;
 	}
-	
+
 	if (flag & EM_WAITCURSOR) waitcursor(1);
 
 	ob->restore_mode = ob->mode;
@@ -444,7 +444,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		ED_object_toggle_modes(C, ob->mode);
 
 	ob->mode = OB_MODE_EDIT;
-	
+
 	if (ob->type == OB_MESH) {
 		BMEditMesh *em;
 		ok = 1;
@@ -457,7 +457,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 			/* order doesn't matter */
 			EDBM_mesh_normals_update(em);
 			BMEdit_RecalcTessellation(em);
-			
+
 			BM_mesh_select_mode_flush(em->bm);
 		}
 
@@ -482,48 +482,48 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit = ob;
 		ED_armature_to_edit(ob);
 		/* to ensure all goes in restposition and without striding */
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); // XXX: should this be OB_RECALC_DATA?
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); /* XXX: should this be OB_RECALC_DATA? */
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_ARMATURE, scene);
 	}
 	else if (ob->type == OB_FONT) {
-		scene->obedit = ob; // XXX for context
+		scene->obedit = ob; /* XXX for context */
 		ok = 1;
 		make_editText(ob);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_TEXT, scene);
 	}
 	else if (ob->type == OB_MBALL) {
-		scene->obedit = ob; // XXX for context
+		scene->obedit = ob; /* XXX for context */
 		ok = 1;
 		make_editMball(ob);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_MBALL, scene);
 	}
 	else if (ob->type == OB_LATTICE) {
-		scene->obedit = ob; // XXX for context
+		scene->obedit = ob; /* XXX for context */
 		ok = 1;
 		make_editLatt(ob);
-		
+
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_LATTICE, scene);
 	}
 	else if (ob->type == OB_SURF || ob->type == OB_CURVE) {
 		ok = 1;
-		scene->obedit = ob; // XXX for context
+		scene->obedit = ob; /* XXX for context */
 		make_editNurb(ob);
-		
+
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_CURVE, scene);
 	}
-	
+
 	if (ok) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {
-		scene->obedit = NULL; // XXX for context
+		scene->obedit = NULL; /* XXX for context */
 		ob->mode &= ~OB_MODE_EDIT;
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 	}
-	
+
 	if (flag & EM_DO_UNDO) ED_undo_push(C, "Enter Editmode");
 	if (flag & EM_WAITCURSOR) waitcursor(0);
 }

@@ -587,7 +587,7 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
 		uiItemL(row, "ID-Block:", ICON_NONE);
 	
 	/* ID-Type Selector - just have a menu of icons */
-	// FIXME: the icon-only setting doesn't work when we supply a blank name
+	/* FIXME: the icon-only setting doesn't work when we supply a blank name */
 	uiItemFullR(row, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	
 	/* ID-Block Selector - just use pointer widget... */
@@ -622,7 +622,7 @@ void uiTemplatePathBuilder(uiLayout *layout, PointerRNA *ptr, const char *propna
 	/* Path (existing string) Widget */
 	uiItemR(row, ptr, propname, 0, text, ICON_RNA);
 	
-	// TODO: attach something to this to make allow searching of nested properties to 'build' the path
+	/* TODO: attach something to this to make allow searching of nested properties to 'build' the path */
 }
 
 /************************ Modifier Template *************************/
@@ -741,7 +741,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
 		block = uiLayoutGetBlock(row);
 		/* VIRTUAL MODIFIER */
-		// XXX this is not used now, since these cannot be accessed via RNA
+		/* XXX this is not used now, since these cannot be accessed via RNA */
 		BLI_snprintf(str, sizeof(str), "%s parent deform", md->name);
 		uiDefBut(block, LABEL, 0, str, 0, 0, 185, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
 		
@@ -821,7 +821,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		uiBlockEndAlign(block);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		// When Modifier is a simulation, show button to switch to context rather than the delete button. 
+		/* When Modifier is a simulation, show button to switch to context rather than the delete button. */
 		if (modifier_can_delete(md) && !modifier_is_simulation(md))
 			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
 		if (modifier_is_simulation(md) == 1)
@@ -908,7 +908,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	/* find modifier and draw it */
 	cageIndex = modifiers_getCageIndex(scene, ob, &lastCageIndex, 0);
 
-	// XXX virtual modifiers are not accesible for python
+	/* XXX virtual modifiers are not accesible for python */
 	vmd = modifiers_getVirtualModifierList(ob);
 
 	for (i = 0; vmd; i++, vmd = vmd->next) {
@@ -945,20 +945,20 @@ static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 
 	switch (event) {
 		case B_CONSTRAINT_TEST:
-			break; // no handling
+			break; /* no handling */
 		case B_CONSTRAINT_CHANGETARGET:
-			if (ob->pose) ob->pose->flag |= POSE_RECALC;  // checks & sorts pose channels
+			if (ob->pose) ob->pose->flag |= POSE_RECALC;  /* checks & sorts pose channels */
 			DAG_scene_sort(bmain, scene);
 			break;
 		default:
 			break;
 	}
 
-	// note: RNA updates now call this, commenting else it gets called twice.
-	// if there are problems because of this, then rna needs changed update functions.
-	// 
-	// object_test_constraints(ob);
-	// if (ob->pose) BKE_pose_update_constraint_flags(ob->pose);
+	/* note: RNA updates now call this, commenting else it gets called twice.
+	 * if there are problems because of this, then rna needs changed update functions.
+	 *
+	 * object_test_constraints(ob);
+	 * if (ob->pose) BKE_pose_update_constraint_flags(ob->pose); */
 	
 	if (ob->type == OB_ARMATURE) DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);
@@ -1984,14 +1984,14 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
 				RNA_property_boolean_set_index(&but->rnapoin, but->rnaprop, i, FALSE);
 		}
 	}
-	
+
 	/* view3d layer change should update depsgraph (invisible object changed maybe) */
 	/* see view3d_header.c */
 }
 
-// TODO:
-//	- for now, grouping of layers is determined by dividing up the length of 
-//	  the array of layer bitflags
+/* TODO:
+ * - for now, grouping of layers is determined by dividing up the length of
+ *   the array of layer bitflags */
 
 void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, const char *propname,
                       PointerRNA *used_ptr, const char *used_propname, int active_layer)

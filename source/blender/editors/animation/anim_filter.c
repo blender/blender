@@ -164,21 +164,21 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			
 			ac->mode = saction->mode;
 			return 1;
-			
-		case SACTCONT_GPENCIL: /* Grease Pencil */ // XXX review how this mode is handled...
+
+		case SACTCONT_GPENCIL: /* Grease Pencil */ /* XXX review how this mode is handled... */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 			saction->ads.source = (ID *)ac->scene;
-			
+
 			ac->datatype = ANIMCONT_GPENCIL;
 			ac->data = &saction->ads;
-			
+
 			ac->mode = saction->mode;
 			return 1;
-			
-		case SACTCONT_MASK: /* Grease Pencil */ // XXX review how this mode is handled...
+
+		case SACTCONT_MASK: /* Grease Pencil */ /* XXX review how this mode is handled... */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 {
-			// TODO, other methods to get the mask
+			/* TODO, other methods to get the mask */
 			// Sequence *seq = BKE_sequencer_active_get(ac->scene);
 			//MovieClip *clip = ac->scene->clip;
 //			struct Mask *mask = seq ? seq->mask : NULL;
@@ -1890,9 +1890,9 @@ static size_t animdata_filter_ds_obanim(bAnimContext *ac, ListBase *anim_data, b
 	AnimData *adt = ob->adt;
 	short type = 0, expanded = 1;
 	void *cdata = NULL;
-	
+
 	/* determine the type of expander channels to use */
-	// this is the best way to do this for now...
+	/* this is the best way to do this for now... */
 	ANIMDATA_FILTER_CASES(ob,
 		{ /* AnimData - no channel, but consider data */ },
 		{ /* NLA - no channel, but consider data */ },
@@ -2122,11 +2122,11 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac, ListBase *anim_d
 		if ((ntree) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
 			tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)sce, ntree, filter_mode);
 		}
-		
-		// TODO: one day, when sequencer becomes its own datatype, perhaps it should be included here
+
+		/* TODO: one day, when sequencer becomes its own datatype, perhaps it should be included here */
 	}
 	END_ANIMFILTER_SUBCHANNELS;
-	
+
 	/* if we collected some channels, add these to the new list... */
 	if (tmp_items) {
 		/* firstly add object expander if required */

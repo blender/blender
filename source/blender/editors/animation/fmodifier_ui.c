@@ -506,10 +506,10 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	row = uiLayoutRow(col, TRUE);
 	uiItemR(row, &ptr, "default_min", 0, IFACE_("Min"), ICON_NONE);
 	uiItemR(row, &ptr, "default_max", 0, IFACE_("Max"), ICON_NONE);
-			
+
 	/* control points header */
-	// TODO: move this control-point control stuff to using the new special widgets for lists
-	// the current way is far too cramped
+	/* TODO: move this control-point control stuff to using the new special widgets for lists
+	 * the current way is far too cramped */
 	row = uiLayoutRow(layout, FALSE);
 	block = uiLayoutGetBlock(row);
 		

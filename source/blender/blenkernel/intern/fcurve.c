@@ -634,9 +634,9 @@ short fcurve_are_keyframes_usable(FCurve *fcu)
 	/* if it has modifiers, none of these should "drastically" alter the curve */
 	if (fcu->modifiers.first) {
 		FModifier *fcm;
-		
+
 		/* check modifiers from last to first, as last will be more influential */
-		// TODO: optionally, only check modifier if it is the active one...
+		/* TODO: optionally, only check modifier if it is the active one... */
 		for (fcm = fcu->modifiers.last; fcm; fcm = fcm->prev) {
 			/* ignore if muted/disabled */
 			if (fcm->flag & (FMODIFIER_FLAG_DISABLED | FMODIFIER_FLAG_MUTED))
@@ -748,7 +748,7 @@ void fcurve_store_samples(FCurve *fcu, void *data, int start, int end, FcuSample
 	int cfra;
 	
 	/* sanity checks */
-	// TODO: make these tests report errors using reports not printf's
+	/* TODO: make these tests report errors using reports not printf's */
 	if (ELEM(NULL, fcu, sample_cb)) {
 		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
 		return;
@@ -1018,7 +1018,7 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
 	id = dtar_id_ensure_proxy_from(dtar->id);
 	
 	/* error check for missing pointer... */
-	// TODO: tag the specific target too as having issues
+	/* TODO: tag the specific target too as having issues */
 	if (id == NULL) {
 		printf("Error: driver has an invalid target to use\n");
 		if (G.debug & G_DEBUG) printf("\tpath = %s\n", dtar->rna_path);
@@ -1152,7 +1152,7 @@ static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
 }
 
 /* evaluate 'location difference' driver variable */
-// TODO: this needs to take into account space conversions...
+/* TODO: this needs to take into account space conversions... */
 static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 {
 	float loc1[3] = {0.0f, 0.0f, 0.0f};

@@ -374,7 +374,7 @@ void uiStyleInit(void)
 		ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT);
 	}
 	
-	// XXX, this should be moved into a style, but for now best only load the monospaced font once.
+	/* XXX, this should be moved into a style, but for now best only load the monospaced font once. */
 	if (blf_mono_font == -1)
 		blf_mono_font = BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 

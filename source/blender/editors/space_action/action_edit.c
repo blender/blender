@@ -489,15 +489,15 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	
+
 	/* copy keyframes */
 	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
-		// FIXME...
+		/* FIXME... */
 		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for Grease Pencil mode");
 		return OPERATOR_CANCELLED;
 	}
 	else if (ac.datatype == ANIMCONT_MASK) {
-		// FIXME...
+		/* FIXME... */
 		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for mask mode");
 		return OPERATOR_CANCELLED;
 	}

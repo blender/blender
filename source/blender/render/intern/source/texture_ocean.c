@@ -81,12 +81,12 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 		if (omd->oceancache && omd->cached == TRUE) {
 
 			CLAMP(cfra, omd->bakestart, omd->bakeend);
-			cfra -= omd->bakestart;	// shift to 0 based
+			cfra -= omd->bakestart;	/* shift to 0 based */
 
 			BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
 
 		}
-		else {	// non-cached
+		else {	/* non-cached */
 
 			if (G.rendering)
 				BKE_ocean_eval_uv_catrom(omd->ocean, &ocr, u, v);

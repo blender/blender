@@ -191,8 +191,8 @@ void ED_operatormacros_armature(void)
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
 	}
 	
-	// XXX would it be nicer to just be able to have standard extrude_move, but set the forked property separate?
-	// that would require fixing a properties bug 19733
+	/* XXX would it be nicer to just be able to have standard extrude_move, but set the forked property separate?
+	 * that would require fixing a properties bug 19733 */
 	ot = WM_operatortype_append_macro("ARMATURE_OT_extrude_forked", "Extrude Forked",
 	                                  "Create new bones from the selected joints and move them",
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
@@ -321,7 +321,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_apply", AKEY, KM_PRESS, KM_CTRL, 0);
 	
-	// TODO: clear pose
+	/* TODO: clear pose */
 	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);

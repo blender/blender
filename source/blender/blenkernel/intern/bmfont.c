@@ -96,9 +96,9 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 	ysize = (bytes + (ibuf->x - 1)) / ibuf->x;
 	
 	if (ysize < ibuf->y) {
-		// we're first going to copy all data into a liniar buffer.
-		// step can be 4 or 1 bytes, and the data is not sequential because
-		// the bitmap was flipped vertically.
+		/* we're first going to copy all data into a liniar buffer.
+		 * step can be 4 or 1 bytes, and the data is not sequential because
+		 * the bitmap was flipped vertically. */
 		
 		buffer = MEM_mallocN(bytes, "readBitmapFontVersion0:buffer");
 		
@@ -113,7 +113,7 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 			}
 		}
 		
-		// we're now going to endian convert the data
+		/* we're now going to endian convert the data */
 		
 		bmfont = MEM_mallocN(bytes, "readBitmapFontVersion0:bmfont");
 		index = 0;
@@ -151,16 +151,16 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 			printf("bytes = %d\n", bytes);
 		}
 
-		// we've read the data from the image. Now we're going
-		// to crop the image vertically so only the bitmap data
-		// remains visible
-		
+		/* we've read the data from the image. Now we're going
+		 * to crop the image vertically so only the bitmap data
+		 * remains visible */
+
 		ibuf->y -= ysize;
 		ibuf->userdata = bmfont;
 		ibuf->userflags |= IB_BITMAPFONT;
 
 		if (ibuf->planes < 32) {
-			// we're going to fake alpha here:
+			/* we're going to fake alpha here: */
 			calcAlpha(ibuf);
 		}
 	}
@@ -176,32 +176,32 @@ void detectBitmapFont(ImBuf *ibuf)
 	int i;
 	
 	if (ibuf != NULL && ibuf->rect != NULL) {
-			// bitmap must have an x size that is a power of two
+			/* bitmap must have an x size that is a power of two */
 		if (is_power_of_two(ibuf->x)) {
 			rect = (unsigned char *) (ibuf->rect + (ibuf->x * (ibuf->y - 1)));
-			// printf ("starts with: %s %c %c %c %c\n", rect, rect[0], rect[1], rect[2], rect[3]);
+			/* printf ("starts with: %s %c %c %c %c\n", rect, rect[0], rect[1], rect[2], rect[3]); */
 			if (rect[0] == 'B' && rect[1] == 'F' && rect[2] == 'N' && rect[3] == 'T') {
-				// printf("found 8bit font !\n");
-				// round y size down
-				// do the 8 bit font stuff. (not yet)
+				/* printf("found 8bit font !\n");
+				 * round y size down
+				 * do the 8 bit font stuff. (not yet) */
 			}
 			else {
-				// we try all 4 possible combinations
+				/* we try all 4 possible combinations */
 				for (i = 0; i < 4; i++) {
 					if (rect[0] == 'B' && rect[4] == 'F' && rect[8] == 'N' && rect[12] == 'T') {
-						// printf("found 24bit font !\n");
-						// We're going to parse the file:
-						
+						/* printf("found 24bit font !\n");
+						 * We're going to parse the file: */
+
 						version = (rect[16] << 8) | rect[20];
-						
+
 						if (version == 0) {
 							readBitmapFontVersion0(ibuf, rect, 4);
 						}
 						else {
 							printf("detectBitmapFont :Unsupported version %d\n", version);
 						}
-						
-						// on succes ibuf->userdata points to the bitmapfont
+
+						/* on succes ibuf->userdata points to the bitmapfont */
 						if (ibuf->userdata) {
 							break;
 						}
@@ -221,23 +221,23 @@ int locateGlyph(bmFont *bmfont, unsigned short unicode)
 		min = 0;
 		max = bmfont->glyphcount;
 		while (1) {
-			// look halfway for glyph
+			/* look halfway for glyph */
 			current = (min + max) >> 1;
 
 			if (bmfont->glyphs[current].unicode == unicode) {
 				break;
 			}
 			else if (bmfont->glyphs[current].unicode < unicode) {
-				// have to move up
+				/* have to move up */
 				min = current;
 			}
 			else {
-				// have to move down
+				/* have to move down */
 				max = current;
 			}
-			
+
 			if (max - min <= 1) {
-				// unable to locate glyph
+				/* unable to locate glyph */
 				current = 0;
 				break;
 			}

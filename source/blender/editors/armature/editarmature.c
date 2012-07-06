@@ -657,12 +657,12 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature"); //error_libdata();
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	/* helpful warnings... */
-	// TODO: add warnings to be careful about actions, applying deforms first, etc.
-	if (ob->adt && ob->adt->action) 
+	/* TODO: add warnings to be careful about actions, applying deforms first, etc. */
+	if (ob->adt && ob->adt->action)
 		BKE_report(op->reports, RPT_WARNING, "Actions on this armature will be destroyed by this new rest pose as the transforms stored are relative to the old rest pose");
-	
+
 	/* Get editbones of active armature to alter */
 	ED_armature_to_edit(ob);	
 	
@@ -1192,9 +1192,9 @@ static int separate_armature_exec(bContext *C, wmOperator *UNUSED(op))
 	 *	4. fix constraint links
 	 *	5. make original armature active and enter editmode
 	 */
-	
+
 	/* 1) only edit-base selected */
-	// TODO: use context iterators for this?
+	/* TODO: use context iterators for this? */
 	CTX_DATA_BEGIN(C, Base *, base, visible_bases)
 	{
 		if (base->object == obedit) base->flag |= 1;

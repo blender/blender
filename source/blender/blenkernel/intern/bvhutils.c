@@ -330,7 +330,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 		}
 	}
 
-	// Account for numerical round-off error
+	/* Account for numerical round-off error */
 	if (sqrDist < FLT_EPSILON)
 		sqrDist = 0.0f;
 	
@@ -345,7 +345,7 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
 		add_v3_v3v3(z, z, y);
 		//sub_v3_v3v3(d, p, z);
 		copy_v3_v3(nearest, z);
-		// d = p - ( v0 + S * e0 + T * e1 );
+		//d = p - ( v0 + S * e0 + T * e1 );
 	}
 	*v = lv;
 	*e = le;

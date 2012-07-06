@@ -463,7 +463,7 @@ static void fcm_envelope_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float *cv
 	}
 	else {
 		/* evaltime occurs somewhere between segments */
-		// TODO: implement binary search for this to make it faster?
+		/* TODO: implement binary search for this to make it faster? */
 		for (a = 0; prevfed && fed && (a < env->totvert - 1); a++, prevfed = fed, fed++) {
 			/* evaltime occurs within the interval defined by these two envelope points */
 			if ((prevfed->time <= evaltime) && (fed->time >= evaltime)) {
@@ -1005,7 +1005,7 @@ FModifier *add_fmodifier(ListBase *modifiers, int type)
 	/* special checks for whether modifier can be added */
 	if ((modifiers->first) && (type == FMODIFIER_TYPE_CYCLES)) {
 		/* cycles modifier must be first in stack, so for now, don't add if it can't be */
-		// TODO: perhaps there is some better way, but for now, 
+		/* TODO: perhaps there is some better way, but for now, */
 		printf("Error: Cannot add 'Cycles' modifier to F-Curve, as 'Cycles' modifier can only be first in stack.\n");
 		return NULL;
 	}
@@ -1343,7 +1343,7 @@ void fcurve_bake_modifiers(FCurve *fcu, int start, int end)
 	ChannelDriver *driver;
 	
 	/* sanity checks */
-	// TODO: make these tests report errors using reports not printf's
+	/* TODO: make these tests report errors using reports not printf's */
 	if (ELEM(NULL, fcu, fcu->modifiers.first)) {
 		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
 		return;

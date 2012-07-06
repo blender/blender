@@ -462,7 +462,7 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 						if (type == CONSTRAINT_OBTYPE_BONE) {
 							if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), ct->subtarget)) {
 								/* bone must exist in armature... */
-								// TODO: clear subtarget?
+								/* TODO: clear subtarget? */
 								curcon->flag |= CONSTRAINT_DISABLE;
 							}
 							else if (strcmp(pchan->name, ct->subtarget) == 0) {
@@ -1518,16 +1518,16 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	
 	/* do type-specific tweaking to the constraint settings  */
 	switch (type) {
-		case CONSTRAINT_TYPE_PYTHON: // FIXME: this code is not really valid anymore
+		case CONSTRAINT_TYPE_PYTHON: /* FIXME: this code is not really valid anymore */
 		{
 #ifdef WITH_PYTHON
 			char *menustr;
 			int scriptint = 0;
 			/* popup a list of usable scripts */
 			menustr = buildmenu_pyconstraints(NULL, &scriptint);
-			// XXX scriptint = pupmenu(menustr);
+			/* XXX scriptint = pupmenu(menustr); */
 			MEM_freeN(menustr);
-			
+
 			/* only add constraint if a script was chosen */
 			if (scriptint) {
 				/* add constraint */

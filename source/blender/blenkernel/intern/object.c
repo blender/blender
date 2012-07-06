@@ -223,7 +223,7 @@ void BKE_object_link_modifiers(struct Object *ob, struct Object *from)
 	BKE_object_copy_particlesystems(ob, from);
 	BKE_object_copy_softbody(ob, from);
 
-	// TODO: smoke?, cloth?
+	/* TODO: smoke?, cloth? */
 }
 
 /* here we will collect all local displist stuff */
@@ -376,7 +376,7 @@ void BKE_object_unlink(Object *ob)
 	unlink_actuators(&ob->actuators);
 	
 	/* check all objects: parents en bevels and fields, also from libraries */
-	// FIXME: need to check all animation blocks (drivers)
+	/* FIXME: need to check all animation blocks (drivers) */
 	obt = bmain->object.first;
 	while (obt) {
 		if (obt->proxy == ob)
@@ -1376,7 +1376,7 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 	BKE_object_copy_proxy_drivers(ob, target);
 
 	/* skip constraints? */
-	// FIXME: this is considered by many as a bug
+	/* FIXME: this is considered by many as a bug */
 	
 	/* set object type and link to data */
 	ob->type = target->type;
@@ -1971,7 +1971,7 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[]
 		// external usable originmat 
 		copy_m3_m4(originmat, tmat);
 		
-		// origin, voor help line
+		/* origin, for help line */
 		if ((ob->partype & PARTYPE) == PARSKEL) {
 			copy_v3_v3(ob->orig, par->obmat[3]);
 		}
@@ -1987,7 +1987,7 @@ static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[
 	float fac1, fac2;
 	int a;
 
-	// include framerate
+	/* include framerate */
 	fac1 = (1.0f / (1.0f + fabsf(ob->sf)) );
 	if (fac1 >= 1.0f) return 0;
 	fac2 = 1.0f - fac1;

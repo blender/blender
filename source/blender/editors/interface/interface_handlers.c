@@ -3478,13 +3478,13 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		else if (event->type == WHEELDOWNMOUSE) {
 			float *hsv = ui_block_hsv_get(but->block);
 			hsv[2] = CLAMPIS(hsv[2] - 0.05f, 0.0f, 1.0f);
-			ui_set_but_hsv(but);    // converts to rgb
+			ui_set_but_hsv(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);
 		}
 		else if (event->type == WHEELUPMOUSE) {
 			float *hsv = ui_block_hsv_get(but->block);
 			hsv[2] = CLAMPIS(hsv[2] + 0.05f, 0.0f, 1.0f);
-			ui_set_but_hsv(but);    // converts to rgb
+			ui_set_but_hsv(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);
 		}
 		else if (event->type == MOUSEMOVE) {
@@ -4505,7 +4505,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		}
 		
 		/* Keying Sets */
-		// TODO: check on modifyability of Keying Set when doing this
+		/* TODO: check on modifyability of Keying Set when doing this */
 		if (is_anim) {
 			uiItemS(layout);
 
@@ -4529,8 +4529,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		
 		/* Property Operators */
 		
-		//Copy Property Value
-		//Paste Property Value
+		/*Copy Property Value
+		 *Paste Property Value */
 		
 		if (length) {
 			uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset All to Default Values"),

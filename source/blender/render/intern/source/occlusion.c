@@ -175,8 +175,8 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 	
 	/* cache for shadow */
 	shi->samplenr++;
-	
-	shi->xs= 0; // TODO
+
+	shi->xs= 0; /* TODO */
 	shi->ys= 0;
 	
 	shade_input_set_normals(shi);
