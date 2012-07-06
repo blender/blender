@@ -184,11 +184,13 @@ OutputSocket *KeyingNode::setupFeather(ExecutionSystem *graph, CompositorContext
 	return operationy->getOutputSocket();
 }
 
-OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputScreen, float factor)
+OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputScreen,
+                                       float factor, float colorBalance)
 {
 	KeyingDespillOperation *despillOperation = new KeyingDespillOperation();
 
 	despillOperation->setDespillFactor(factor);
+	despillOperation->setColorBalance(colorBalance);
 
 	addLink(graph, despillInput, despillOperation->getInputSocket(0));
 	addLink(graph, inputScreen, despillOperation->getInputSocket(1));
@@ -292,7 +294,8 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	if (keying_data->despill_factor > 0.0f) {
 		postprocessedImage = setupDespill(graph, postprocessedImage,
 		                                  keyingOperation->getInputSocket(1)->getConnection()->getFromSocket(),
-		                                  keying_data->despill_factor);
+		                                  keying_data->despill_factor,
+		                                  keying_data->despill_balance);
 	}
 
 	/* connect result to output sockets */

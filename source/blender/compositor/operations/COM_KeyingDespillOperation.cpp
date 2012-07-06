@@ -47,6 +47,7 @@ KeyingDespillOperation::KeyingDespillOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 
 	this->m_despillFactor = 0.5f;
+	this->m_colorBalance = 0.5f;
 
 	this->m_pixelReader = NULL;
 	this->m_screenReader = NULL;
@@ -73,16 +74,22 @@ void KeyingDespillOperation::executePixel(float *color, float x, float y, PixelS
 	this->m_screenReader->read(screenColor, x, y, sampler, inputBuffers);
 
 	int screen_primary_channel = get_pixel_primary_channel(screenColor);
+	int other_1 = (screen_primary_channel + 1) % 3;
+	int other_2 = (screen_primary_channel + 2) % 3;
+
+	int min_channel = MIN2(other_1, other_2);
+	int max_channel = MAX2(other_1, other_2);
+
 	float average_value, amount;
 
-	average_value = (pixelColor[0] + pixelColor[1] + pixelColor[2] - pixelColor[screen_primary_channel]) / 2.0f;
-	amount = pixelColor[screen_primary_channel] - average_value;
+	average_value = this->m_colorBalance * pixelColor[min_channel] + (1.0f - this->m_colorBalance) * pixelColor[max_channel];
+	amount = (pixelColor[screen_primary_channel] - average_value);
 
 	color[0] = pixelColor[0];
 	color[1] = pixelColor[1];
 	color[2] = pixelColor[2];
 	color[3] = pixelColor[3];
-	
+
 	if (this->m_despillFactor * amount > 0) {
 		color[screen_primary_channel] = pixelColor[screen_primary_channel] - this->m_despillFactor * amount;
 	}
