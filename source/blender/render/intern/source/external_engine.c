@@ -176,12 +176,16 @@ RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, 
 	result = render_result_new(re, &disprect, 0, RR_USE_MEM, layername);
 
 	/* todo: make this thread safe */
-	BLI_addtail(&engine->fullresult, result);
-	
-	result->tilerect.xmin += re->disprect.xmin;
-	result->tilerect.xmax += re->disprect.xmin;
-	result->tilerect.ymin += re->disprect.ymin;
-	result->tilerect.ymax += re->disprect.ymin;
+
+	/* can be NULL if we CLAMP the width or height to 0 */
+	if (result) {
+		BLI_addtail(&engine->fullresult, result);
+
+		result->tilerect.xmin += re->disprect.xmin;
+		result->tilerect.xmax += re->disprect.xmin;
+		result->tilerect.ymin += re->disprect.ymin;
+		result->tilerect.ymax += re->disprect.ymin;
+	}
 
 	return result;
 }
