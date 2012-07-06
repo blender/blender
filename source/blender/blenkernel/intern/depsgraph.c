@@ -352,10 +352,11 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Material *ma);
 
 /* recursive handling for material nodetree drivers */
-static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *node, bNodeTree *ntree)
+static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *node, bNodeTree *ntree, Material *rootma)
 {
 	bNode *n;
-	
+	Material *ma;
+
 	/* nodetree itself */
 	if (ntree->adt) {
 		dag_add_driver_relation(ntree->adt, dag, node, 1);
@@ -364,10 +365,13 @@ static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *
 	/* nodetree's nodes... */
 	for (n = ntree->nodes.first; n; n = n->next) {
 		if (n->id && GS(n->id->name) == ID_MA) {
-			dag_add_material_driver_relations(dag, node, (Material *)n->id);
+            ma = (Material *)n->id;
+            if (ma != rootma) {
+                dag_add_material_driver_relations(dag, node, ma);
+            }
 		}
 		else if (n->type == NODE_GROUP && n->id) {
-			dag_add_material_nodetree_driver_relations(dag, node, (bNodeTree *)n->id);
+			dag_add_material_nodetree_driver_relations(dag, node, (bNodeTree *)n->id, rootma);
 		}
 	}
 }
@@ -386,7 +390,7 @@ static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Mat
 	
 	/* material's nodetree */
 	if (ma->nodetree) {
-		dag_add_material_nodetree_driver_relations(dag, node, ma->nodetree);
+		dag_add_material_nodetree_driver_relations(dag, node, ma->nodetree, ma);
 	}
 }
 

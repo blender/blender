@@ -38,6 +38,9 @@
 #include "bmesh.h"
 
 #define HULL_EPSILON_FLT 0.0001f
+/* values above 0.0001 cause errors, see below for details, don't increase
+ * without checking against bug [#32027] */
+#define HULL_EPSILON_DOT_FLT 0.00000001f
 
 /* Internal operator flags */
 typedef enum {
@@ -72,23 +75,23 @@ typedef struct HullBoundaryEdge {
 
 /*************************** Boundary Edges ***************************/
 
-static int edge_match(BMVert *e1_0, BMVert *e1_1, BMVert *e2[2])
+static int edge_match(BMVert *e1_v1, BMVert *e1_v2, BMVert *e2[2])
 {
-	return (e1_0 == e2[0] && e1_1 == e2[1]) ||
-	       (e1_0 == e2[1] && e1_1 == e2[0]);
+	return (e1_v1 == e2[0] && e1_v2 == e2[1]) ||
+	       (e1_v1 == e2[1] && e1_v2 == e2[0]);
 }
 
 /* Returns true if the edge (e1, e2) is already in edges; that edge is
  * deleted here as well. if not found just returns 0 */
 static int check_for_dup(ListBase *edges, BLI_mempool *pool,
-                         BMVert *e1, BMVert *e2)
+                         BMVert *v1, BMVert *v2)
 {
-	HullBoundaryEdge *e, *next;
+	HullBoundaryEdge *e, *e_next;
 
-	for (e = edges->first; e; e = next) {
-		next = e->next;
+	for (e = edges->first; e; e = e_next) {
+		e_next = e->next;
 
-		if (edge_match(e1, e2, e->v)) {
+		if (edge_match(v1, v2, e->v)) {
 			/* remove the interior edge */
 			BLI_remlink(edges, e);
 			BLI_mempool_free(pool, e);
@@ -102,17 +105,17 @@ static int check_for_dup(ListBase *edges, BLI_mempool *pool,
 static void expand_boundary_edges(ListBase *edges, BLI_mempool *edge_pool,
                                   const HullTriangle *t)
 {
-	HullBoundaryEdge *new;
+	HullBoundaryEdge *e_new;
 	int i;
 
 	/* Insert each triangle edge into the boundary list; if any of
 	 * its edges are already in there, remove the edge entirely */
 	for (i = 0; i < 3; i++) {
 		if (!check_for_dup(edges, edge_pool, t->v[i], t->v[(i + 1) % 3])) {
-			new = BLI_mempool_calloc(edge_pool);
-			new->v[0] = t->v[i];
-			new->v[1] = t->v[(i + 1) % 3];
-			BLI_addtail(edges, new);
+			e_new = BLI_mempool_calloc(edge_pool);
+			e_new->v[0] = t->v[i];
+			e_new->v[1] = t->v[(i + 1) % 3];
+			BLI_addtail(edges, e_new);
 		}
 	}
 }
@@ -144,12 +147,16 @@ static int hull_point_tri_side(const HullTriangle *t, const float co[3])
 {
 	/* Added epsilon to fix bug [#31941], improves output when some
 	 * vertices are nearly coplanar. Might need further tweaking for
-	 * other cases though. */
+	 * other cases though.
+	 * ...
+	 * Update: epsilon of 0.0001 causes [#32027], use HULL_EPSILON_DOT_FLT
+	 * and give it a much smaller value
+	 * */
 	float p[3], d;
 	sub_v3_v3v3(p, co, t->v[0]->co);
 	d = dot_v3v3(t->no, p);
-	if      (d < -HULL_EPSILON_FLT) return -1;
-	else if (d >  HULL_EPSILON_FLT) return  1;
+	if      (d < -HULL_EPSILON_DOT_FLT) return -1;
+	else if (d >  HULL_EPSILON_DOT_FLT) return  1;
 	else return 0;
 }
 
@@ -179,7 +186,7 @@ static void add_point(BMesh *bm, GHash *hull_triangles, BLI_mempool *hull_pool,
                       BLI_mempool *edge_pool, GHash *outside, BMVert *v)
 {
 	ListBase edges = {NULL, NULL};
-	HullBoundaryEdge *e, *next;
+	HullBoundaryEdge *e, *e_next;
 	GHashIterator iter;
 
 	GHASH_ITER (iter, outside) {
@@ -198,8 +205,8 @@ static void add_point(BMesh *bm, GHash *hull_triangles, BLI_mempool *hull_pool,
 	}
 
 	/* Fill hole boundary with triangles to new point */
-	for (e = edges.first; e; e = next) {
-		next = e->next;
+	for (e = edges.first; e; e = e_next) {
+		e_next = e->next;
 		hull_add_triangle(bm, hull_triangles, hull_pool, e->v[0], e->v[1], v);
 		BLI_mempool_free(edge_pool, e);
 	}
@@ -356,7 +363,8 @@ static void hull_add_tetrahedron(BMesh *bm, GHash *hull_triangles, BLI_mempool *
 		{0, 1, 2},
 		{0, 2, 3},
 		{1, 0, 3},
-		{2, 1, 3}};
+		{2, 1, 3}
+	};
 
 	/* Calculate center */
 	zero_v3(center);
