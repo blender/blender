@@ -2852,9 +2852,10 @@ static void rna_def_space_node(BlenderRNA *brna)
 		{SNODE_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha",
 		                  "Draw image with RGB colors and alpha transparency"},
 		{SNODE_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel"},
-		{SNODE_SHOW_R, "RED", 0, "Red", ""},
-		{SNODE_SHOW_G, "GREEN", 0, "Green", ""},
-		{SNODE_SHOW_B, "BLUE", 0, "Blue", ""},
+		                        /* XXX, we could use better icons here  */
+		{SNODE_SHOW_R, "RED",   ICON_COLOR, "Red", ""},
+		{SNODE_SHOW_G, "GREEN", ICON_COLOR, "Green", ""},
+		{SNODE_SHOW_B, "BLUE",  ICON_COLOR, "Blue", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
