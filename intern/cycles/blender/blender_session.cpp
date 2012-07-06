@@ -199,6 +199,12 @@ void BlenderSession::write_render_buffers(RenderBuffers *buffers)
 
 	/* get render result */
 	BL::RenderResult b_rr = begin_render_result(b_engine, x, y, w, h, b_rlay_name.c_str());
+
+	/* can happen if the intersected rectangle gives 0 width or height */
+	if (b_rr.ptr.data == NULL) {
+		return;
+	}
+
 	BL::RenderResult::layers_iterator b_single_rlay;
 	b_rr.layers.begin(b_single_rlay);
 	BL::RenderLayer b_rlay = *b_single_rlay;
