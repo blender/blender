@@ -38,6 +38,9 @@
 #include "bmesh.h"
 
 #define HULL_EPSILON_FLT 0.0001f
+/* values above 0.0001 cause errors, see below for details, don't increase
+ * without checking against bug [#32027] */
+#define HULL_EPSILON_DOT_FLT 0.00000001f
 
 /* Internal operator flags */
 typedef enum {
@@ -144,12 +147,16 @@ static int hull_point_tri_side(const HullTriangle *t, const float co[3])
 {
 	/* Added epsilon to fix bug [#31941], improves output when some
 	 * vertices are nearly coplanar. Might need further tweaking for
-	 * other cases though. */
+	 * other cases though.
+	 * ...
+	 * Update: epsilon of 0.0001 causes [#32027], use HULL_EPSILON_DOT_FLT
+	 * and give it a much smaller value
+	 * */
 	float p[3], d;
 	sub_v3_v3v3(p, co, t->v[0]->co);
 	d = dot_v3v3(t->no, p);
-	if      (d < -HULL_EPSILON_FLT) return -1;
-	else if (d >  HULL_EPSILON_FLT) return  1;
+	if      (d < -HULL_EPSILON_DOT_FLT) return -1;
+	else if (d >  HULL_EPSILON_DOT_FLT) return  1;
 	else return 0;
 }
 
