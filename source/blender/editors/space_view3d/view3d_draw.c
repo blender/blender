@@ -1574,6 +1574,8 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			else if (bgpic->source == V3D_BGPIC_MOVIE) {
 				clip = NULL;
 
+				/* TODO: skip drawing when out of frame range (as image sequences do above) */
+
 				if (bgpic->flag & V3D_BGPIC_CAMERACLIP) {
 					if (scene->camera)
 						clip = BKE_object_movieclip_get(scene, scene->camera, 1);

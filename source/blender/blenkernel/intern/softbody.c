@@ -1718,15 +1718,15 @@ static int choose_winner(float*w, float* pos, float*a, float*b, float*c, float*c
 {
 	float mindist, cp;
 	int winner =1;
-	mindist = ABS(dot_v3v3(pos, a));
+	mindist = fabsf(dot_v3v3(pos, a));
 
-	cp = ABS(dot_v3v3(pos, b));
+	cp = fabsf(dot_v3v3(pos, b));
 	if ( mindist < cp ) {
 		mindist = cp;
 		winner =2;
 	}
 
-	cp = ABS(dot_v3v3(pos, c));
+	cp = fabsf(dot_v3v3(pos, c));
 	if (mindist < cp ) {
 		mindist = cp;
 		winner =3;

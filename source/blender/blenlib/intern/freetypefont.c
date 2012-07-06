@@ -266,17 +266,19 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 						}
 					}
 
-					// get the handles that are aligned, tricky...
-					// dist_to_line_v2, check if the three beztriple points are on one line
-					// len_squared_v2v2, see if there's a distance between the three points
-					// len_squared_v2v2 again, to check the angle between the handles 
-					// finally, check if one of them is a vector handle 
-					if ((dist_to_line_v2(bezt->vec[0], bezt->vec[1], bezt->vec[2]) < 0.001f) &&
+					/* get the handles that are aligned, tricky...
+					 * dist_to_line_v2, check if the three beztriple points are on one line
+					 * len_squared_v2v2, see if there's a distance between the three points
+					 * len_squared_v2v2 again, to check the angle between the handles
+					 * finally, check if one of them is a vector handle */
+					if ((bezt->h1 != HD_VECT && bezt->h2 != HD_VECT) &&
+					    (dist_to_line_v2(bezt->vec[0], bezt->vec[1], bezt->vec[2]) < 0.001f) &&
 					    (len_squared_v2v2(bezt->vec[0], bezt->vec[1]) > 0.0001f * 0.0001f) &&
 					    (len_squared_v2v2(bezt->vec[1], bezt->vec[2]) > 0.0001f * 0.0001f) &&
 					    (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) > 0.0002f * 0.0001f) &&
-					    (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) > MAX2(len_squared_v2v2(bezt->vec[0], bezt->vec[1]), len_squared_v2v2(bezt->vec[1], bezt->vec[2]))) &&
-					    bezt->h1 != HD_VECT && bezt->h2 != HD_VECT)
+					    (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) >
+					     maxf(len_squared_v2v2(bezt->vec[0], bezt->vec[1]),
+					          len_squared_v2v2(bezt->vec[1], bezt->vec[2]))))
 					{
 						bezt->h1 = bezt->h2 = HD_ALIGN;
 					}

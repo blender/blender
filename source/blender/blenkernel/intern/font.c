@@ -699,7 +699,7 @@ makebreak:
 
 			yof -= linedist;
 
-			maxlen = MAX2(maxlen, (xof - tb->x / cu->fsize));
+			maxlen = maxf(maxlen, (xof - tb->x / cu->fsize));
 			linedata[lnr] = xof - tb->x / cu->fsize;
 			linedata2[lnr] = cnr;
 			linedata3[lnr] = tb->w / cu->fsize;

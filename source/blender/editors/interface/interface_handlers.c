@@ -3833,7 +3833,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 	}
 	else {
 		/* scale histogram values */
-		const float yfac = MIN2(powf(hist->ymax, 2.f), 1.f) * 0.5f;
+		const float yfac = minf(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
 		hist->ymax += dy * yfac;
 	
 		CLAMP(hist->ymax, 1.f, 100.f);

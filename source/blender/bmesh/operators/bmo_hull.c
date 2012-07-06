@@ -31,6 +31,13 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+/*XXX: This operator doesn't work well (at all?) for flat surfaces with
+ * >3 sides - creating overlapping faces at times.
+ * An easy workaround is to add in some noise but this is
+ * weak and unreliable, ideally this would detect flat surfaces
+ * (possibly making them into ngons) - see
+ */
+
 /* XXX: using 128 for totelem and pchunk of mempool, no idea what good
  * values would be though */
 #include "BLI_mempool.h"

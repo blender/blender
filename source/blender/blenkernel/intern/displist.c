@@ -1386,17 +1386,18 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						ListBase top_capbase = {NULL, NULL};
 
 						for (dlb = dlbev.first; dlb; dlb = dlb->next) {
-							int i, start, steps;
-							float bevfac1 = MIN2(cu->bevfac1, cu->bevfac2), bevfac2 = MAX2(cu->bevfac1, cu->bevfac2);
+							const float bevfac1 = minf(cu->bevfac1, cu->bevfac2);
+							const float bevfac2 = maxf(cu->bevfac1, cu->bevfac2);
 							float firstblend = 0.0f, lastblend = 0.0f;
+							int i, start, steps;
 
-							if (cu->bevfac1 - cu->bevfac2 == 0.0f)
+							if (bevfac2 - bevfac1 == 0.0f)
 								continue;
 
 							start = (int)(bevfac1 * (bl->nr - 1));
 							steps = 2 + (int)((bevfac2) * (bl->nr - 1)) - start;
-							firstblend = 1.0f - ((float)bevfac1 * (bl->nr - 1) - (int)((float)bevfac1 * (bl->nr - 1)));
-							lastblend  = (float)bevfac2 * (bl->nr - 1) - (int)((float)bevfac2 * (bl->nr - 1));
+							firstblend = 1.0f - (bevfac1 * (bl->nr - 1) - (int)(bevfac1 * (bl->nr - 1)));
+							lastblend  =         bevfac2 * (bl->nr - 1) - (int)(bevfac2 * (bl->nr - 1));
 
 							if (steps > bl->nr) {
 								steps = bl->nr;
