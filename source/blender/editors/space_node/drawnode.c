@@ -2951,7 +2951,25 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			}
 
 			if (ibuf->rect) {
-				if (snode->flag & SNODE_SHOW_ALPHA) {
+				if (snode->flag & (SNODE_SHOW_R | SNODE_SHOW_G | SNODE_SHOW_B)) {
+					int ofs;
+
+					if      (snode->flag & SNODE_SHOW_R) ofs = 1;
+					else if (snode->flag & SNODE_SHOW_G) ofs = 2;
+					else                                 ofs = 3;
+
+					if (ENDIAN_ORDER == B_ENDIAN) {
+						ofs = 3 - ofs;
+					}
+
+					glPixelZoom(snode->zoom, snode->zoom);
+					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
+
+					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT, ((unsigned char *)ibuf->rect) + ofs);
+
+					glPixelZoom(1.0f, 1.0f);
+				}
+				else if (snode->flag & SNODE_SHOW_ALPHA) {
 					glPixelZoom(snode->zoom, snode->zoom);
 					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
 					if (ENDIAN_ORDER == B_ENDIAN)
