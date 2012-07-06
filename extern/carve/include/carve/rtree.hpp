@@ -49,8 +49,6 @@ namespace carve {
 
       aabb_t getAABB() const { return bbox; }
 
-
-
       struct data_aabb_t {
         aabb_t bbox;
         data_t data;
@@ -162,6 +160,17 @@ namespace carve {
       template<typename iter_t>
       RTreeNode(iter_t begin, iter_t end) : bbox(), child(NULL), sibling(NULL), data() {
         _fill(begin, end, typename std::iterator_traits<iter_t>::value_type());
+      }
+
+      ~RTreeNode() {
+        if (child) {
+          RTreeNode *next = child;
+          while (next) {
+            RTreeNode *curr = next;
+            next = next->sibling;
+            delete curr;
+          }
+        }
       }
 
 

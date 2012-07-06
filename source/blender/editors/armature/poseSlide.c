@@ -220,7 +220,7 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, float *val)
 	else {
 		/*	- these weights are derived from the relative distance of these 
 		 *	  poses from the current frame
-		 *	- they then get normalised so that they only sum up to 1
+		 *	- they then get normalized so that they only sum up to 1
 		 */
 		float wtot; 
 		

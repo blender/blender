@@ -875,11 +875,15 @@ typedef struct SpaceNode {
 
 /* snode->flag */
 typedef enum eSpaceNode_Flag {
-	SNODE_BACKDRAW     = (1 << 1),
-/*  SNODE_DISPGP       = (1 << 2), */ /* XXX: Grease Pencil - deprecated? */
-	SNODE_USE_ALPHA    = (1 << 3),
-	SNODE_SHOW_ALPHA   = (1 << 4),
-	SNODE_AUTO_RENDER  = (1 << 5),
+	SNODE_BACKDRAW       = (1 << 1),
+/*  SNODE_DISPGP         = (1 << 2), */ /* XXX: Grease Pencil - deprecated? */
+	SNODE_USE_ALPHA      = (1 << 3),
+	SNODE_SHOW_ALPHA     = (1 << 4),
+	SNODE_SHOW_R         = (1 << 7),
+	SNODE_SHOW_G         = (1 << 8),
+	SNODE_SHOW_B         = (1 << 9),
+	SNODE_AUTO_RENDER    = (1 << 5),
+	SNODE_SHOW_HIGHLIGHT = (1 << 6),
 } eSpaceNode_Flag;
 
 /* snode->texfrom */

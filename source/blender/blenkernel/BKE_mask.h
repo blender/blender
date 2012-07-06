@@ -27,6 +27,7 @@
 #ifndef __BKE_MASK_H__
 #define __BKE_MASK_H__
 
+struct ListBase;
 struct Main;
 struct Mask;
 struct MaskParent;
@@ -50,11 +51,15 @@ void BKE_mask_layer_remove(struct Mask *mask, struct MaskLayer *masklay);
 
 void BKE_mask_layer_free_shapes(struct MaskLayer *masklay);
 void BKE_mask_layer_free(struct MaskLayer *masklay);
+void BKE_mask_layer_free_list(struct ListBase *masklayers);
 void BKE_mask_spline_free(struct MaskSpline *spline);
 struct MaskSpline *BKE_mask_spline_copy(struct MaskSpline *spline);
 void BKE_mask_point_free(struct MaskSplinePoint *point);
 
 void BKE_mask_layer_unique_name(struct Mask *mask, struct MaskLayer *masklay);
+
+struct MaskLayer *BKE_mask_layer_copy(struct MaskLayer *layer);
+void BKE_mask_layer_copy_list(struct ListBase *masklayers_new, struct ListBase *masklayers);
 
 /* splines */
 struct MaskSpline *BKE_mask_spline_add(struct MaskLayer *masklay);
@@ -170,6 +175,11 @@ void BKE_mask_layer_shape_changed_remove(struct MaskLayer *masklay, int index, i
 
 /* rasterization */
 int BKE_mask_get_duration(struct Mask *mask);
+
+void BKE_mask_rasterize_layers(struct ListBase *masklayers, int width, int height, float *buffer,
+                               const short do_aspect_correct, const short do_mask_aa,
+                               const short do_feather);
+
 void BKE_mask_rasterize(struct Mask *mask, int width, int height, float *buffer,
                         const short do_aspect_correct, const short do_mask_aa,
                         const short do_feather);

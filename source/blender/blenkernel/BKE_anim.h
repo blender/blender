@@ -43,7 +43,7 @@ struct bPoseChannel;
 struct ReportList;
 
 /* ---------------------------------------------------- */
-/* Animation Visualisation */
+/* Animation Visualization */
 
 void animviz_settings_init(struct bAnimVizSettings *avs);
 

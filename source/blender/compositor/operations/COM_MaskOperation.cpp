@@ -49,11 +49,19 @@ MaskOperation::MaskOperation() : NodeOperation()
 void MaskOperation::initExecution()
 {
 	initMutex();
+
 	this->m_rasterizedMask = NULL;
+	this->m_maskLayers.first = this->m_maskLayers.last = NULL;
+
+	if (this->m_mask) {
+		BKE_mask_layer_copy_list(&this->m_maskLayers, &this->m_mask->masklayers);
+	}
 }
 
 void MaskOperation::deinitExecution()
 {
+	BKE_mask_layer_free_list(&this->m_maskLayers);
+
 	if (this->m_rasterizedMask) {
 		MEM_freeN(this->m_rasterizedMask);
 		this->m_rasterizedMask = NULL;
@@ -75,7 +83,10 @@ void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers
 		float *buffer;
 
 		buffer = (float *)MEM_callocN(sizeof(float) * width * height, "rasterized mask");
-		BKE_mask_rasterize(this->m_mask, width, height, buffer, TRUE, this->m_do_smooth, this->m_do_feather);
+
+		BKE_mask_rasterize_layers(&this->m_maskLayers, width, height, buffer, TRUE,
+		                          this->m_do_smooth, this->m_do_feather);
+
 		if (this->m_do_smooth) {
 			PLX_antialias_buffer(buffer, width, height);
 		}

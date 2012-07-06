@@ -2315,10 +2315,10 @@ static int tracking_check_marker_margin(MovieTrackingTrack *track, MovieTracking
 	/* margin from frame boundaries */
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 	sub_v2_v2v2(dim, pat_max, pat_min);
-	margin[0] = margin[1] = MAX2(dim[0], dim[1]) / 2.0f;
+	margin[0] = margin[1] = maxf(dim[0], dim[1]) / 2.0f;
 
-	margin[0] = MAX2(margin[0], (float)track->margin / frame_width);
-	margin[1] = MAX2(margin[1], (float)track->margin / frame_height);
+	margin[0] = maxf(margin[0], (float)track->margin / frame_width);
+	margin[1] = maxf(margin[1], (float)track->margin / frame_height);
 
 	/* do not track markers which are too close to boundary */
 	if (marker->pos[0] < margin[0] || marker->pos[0] > 1.0f - margin[0] ||
@@ -3028,9 +3028,9 @@ static unsigned char *detect_get_frame_ucharbuf(ImBuf *ibuf)
 
 			if (ibuf->rect_float) {
 				const float *rrgbf = ibuf->rect_float + pixel * 4;
-				const float grey_f = 0.2126f * rrgbf[0] + 0.7152f * rrgbf[1] + 0.0722f * rrgbf[2];
+				const float gray_f = 0.2126f * rrgbf[0] + 0.7152f * rrgbf[1] + 0.0722f * rrgbf[2];
 
-				*cp = FTOCHAR(grey_f);
+				*cp = FTOCHAR(gray_f);
 			}
 			else {
 				const unsigned char *rrgb = (unsigned char *)ibuf->rect + pixel * 4;

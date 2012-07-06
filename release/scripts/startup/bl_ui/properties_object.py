@@ -159,7 +159,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
+        obj = context.object
 
         row = layout.row(align=True)
         row.operator("object.group_link", text="Add to Group")
@@ -167,8 +167,13 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
 
         # XXX, this is bad practice, yes, I wrote it :( - campbell
         index = 0
+        obj_name = obj.name
         for group in bpy.data.groups:
-            if ob.name in group.objects:
+            # XXX this is slow and stupid!, we need 2 checks, one thats fast
+            # and another that we can be sure its not a name collission
+            # from linked library data
+            group_objects = group.objects
+            if obj_name in group.objects and obj in group_objects[:]:
                 col = layout.column(align=True)
 
                 col.context_pointer_set("group", group)
@@ -214,7 +219,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         col = split.column()
         col.prop(ob, "show_name", text="Name")
         col.prop(ob, "show_axis", text="Axis")
-        if ob.type in {"MESH", "CURVE", "SURFACE", "META", "FONT"}:
+        if ob.type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT'}:
             # Makes no sense for cameras, armtures, etc.!
             col.prop(ob, "show_wire", text="Wire")
             # Only useful with object having faces/materials...
@@ -304,7 +309,7 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
         layout = self.layout
 
         ob = context.object
-        avs = ob.animation_visualisation
+        avs = ob.animation_visualization
         mpath = ob.motion_path
 
         self.draw_settings(context, avs, mpath)
@@ -321,7 +326,7 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit fr
     def draw(self, context):
         ob = context.object
 
-        self.draw_settings(context, ob.animation_visualisation)
+        self.draw_settings(context, ob.animation_visualization)
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):

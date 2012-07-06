@@ -399,7 +399,7 @@ void paste_gpdata(Scene *scene)
 				/* this should be the right frame... as it may be a pre-existing frame, 
 				 * must make sure that only compatible stroke types get copied over 
 				 *	- we cannot just add a duplicate frame, as that would cause errors
-				 *	- need to check for compatible types to minimise memory usage (copying 'junk' over)
+				 *	- need to check for compatible types to minimize memory usage (copying 'junk' over)
 				 */
 				for (gps = gpfs->strokes.first; gps; gps = gps->next) {
 					short stroke_ok;

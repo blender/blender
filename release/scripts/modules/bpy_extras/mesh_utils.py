@@ -319,7 +319,7 @@ def edge_loops_from_edges(mesh, edges=None):
 
 
 def ngon_tessellate(from_data, indices, fix_loops=True):
-    '''
+    """
     Takes a polyline of indices (fgon) and returns a list of face
     indicie lists. Designed to be used for importers that need indices for an
     fgon to create from existing verts.
@@ -329,7 +329,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
        to fill, and can be a subset of the data given.
     fix_loops: If this is enabled polylines that use loops to make multiple
        polylines are delt with correctly.
-    '''
+    """
 
     from mathutils.geometry import tessellate_polygon
     from mathutils import Vector
@@ -352,9 +352,9 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
             return v1[1], v2[1]
 
     if not fix_loops:
-        '''
+        """
         Normal single concave loop filling
-        '''
+        """
         if type(from_data) in {tuple, list}:
             verts = [Vector(from_data[i]) for ii, i in enumerate(indices)]
         else:
@@ -368,10 +368,10 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
         fill = tessellate_polygon([verts])
 
     else:
-        '''
+        """
         Seperate this loop into multiple loops be finding edges that are
         used twice. This is used by lightwave LWO files a lot
-        '''
+        """
 
         if type(from_data) in {tuple, list}:
             verts = [vert_treplet(Vector(from_data[i]), ii)

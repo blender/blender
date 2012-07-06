@@ -31,6 +31,12 @@ CCL_NAMESPACE_BEGIN
 #define TEX_IMAGE_MAX			(TEX_NUM_IMAGES + TEX_NUM_FLOAT_IMAGES)
 #define TEX_IMAGE_FLOAT_START	TEX_NUM_IMAGES
 
+/* color to use when textures are not found */
+#define TEX_IMAGE_MISSING_R 1
+#define TEX_IMAGE_MISSING_G 0
+#define TEX_IMAGE_MISSING_B 1
+#define TEX_IMAGE_MISSING_A 1
+
 class Device;
 class DeviceScene;
 class Progress;

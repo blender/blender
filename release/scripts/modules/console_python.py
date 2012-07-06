@@ -48,14 +48,14 @@ def replace_help(namespace):
 
 
 def get_console(console_id):
-    '''
+    """
     helper function for console operators
     currently each text data block gets its own
     console - code.InteractiveConsole()
     ...which is stored in this function.
 
     console_id can be any hashable type
-    '''
+    """
     from code import InteractiveConsole
 
     consoles = getattr(get_console, "consoles", None)

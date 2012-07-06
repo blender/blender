@@ -345,6 +345,7 @@ void          modifiers_clearErrors(struct Object *ob);
 int           modifiers_getCageIndex(struct Scene *scene, struct Object *ob,
                                      int *lastPossibleCageIndex_r, int virtual_);
 
+int           modifiers_isModifierEnabled(struct Object *ob, int modifierType);
 int           modifiers_isSoftbodyEnabled(struct Object *ob);
 int           modifiers_isClothEnabled(struct Object *ob);
 int           modifiers_isParticleEnabled(struct Object *ob);

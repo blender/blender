@@ -395,7 +395,7 @@ void GHOST_NDOFManager::setDeadZone(float dz)
 		dz = 0.f;
 	}
 	else if (dz > 0.5f) {
-		// warn the rogue user/programmer, but allow it
+		// warn the rogue user/developer, but allow it
 		GHOST_PRINTF("ndof: dead zone of %.2f is rather high...\n", dz);
 	}
 	m_deadZone = dz;

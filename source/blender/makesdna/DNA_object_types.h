@@ -122,7 +122,7 @@ typedef struct Object {
 	
 	struct bGPdata *gpd;	/* Grease Pencil data */
 	
-	bAnimVizSettings avs;	/* settings for visualisation of object-transform animation */
+	bAnimVizSettings avs;	/* settings for visualization of object-transform animation */
 	bMotionPath *mpath;		/* motion path cache for this object */
 	
 	ListBase constraintChannels  DNA_DEPRECATED; // XXX depreceated... old animation system

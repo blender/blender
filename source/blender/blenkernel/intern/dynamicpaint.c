@@ -1686,7 +1686,7 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
 												c[1] = material->g;
 												c[2] = material->b;
 											}
-											else { /* default grey */
+											else { /* default gray */
 												c[0] = 0.65f;
 												c[1] = 0.65f;
 												c[2] = 0.65f;

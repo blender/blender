@@ -463,12 +463,10 @@ static void initSnappingMode(TransInfo *t)
 			t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
 		}
 	}
-	else if (t->spacetype == SPACE_NODE)
-	{
+	else if (t->spacetype == SPACE_NODE) {
 		setSnappingCallback(t);
 		
-		if (t->tsnap.applySnap != NULL)
-		{
+		if (t->tsnap.applySnap != NULL) {
 			t->tsnap.modeSelect = SNAP_NOT_SELECTED;
 		}
 		else {

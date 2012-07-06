@@ -971,8 +971,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column(align=True)
-        col.operator("object.skin_loose_mark_clear", text="Mark Loose").action = "MARK"
-        col.operator("object.skin_loose_mark_clear", text="Clear Loose").action = "CLEAR"
+        col.operator("object.skin_loose_mark_clear", text="Mark Loose").action = 'MARK'
+        col.operator("object.skin_loose_mark_clear", text="Clear Loose").action = 'CLEAR'
 
         col = split.column()
         col.operator("object.skin_root_mark", text="Mark Root")

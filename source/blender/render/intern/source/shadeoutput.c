@@ -798,7 +798,6 @@ static float OrenNayar_Diff(float nl, const float n[3], const float l[3], const 
 /* Minnaert diffuse */
 static float Minnaert_Diff(float nl, const float n[3], const float v[3], float darkness)
 {
-
 	float i, nv;
 
 	/* nl = dot product between surface normal and light vector */
@@ -806,12 +805,12 @@ static float Minnaert_Diff(float nl, const float n[3], const float v[3], float d
 		return 0.0f;
 
 	/* nv = dot product between surface normal and view vector */
-	nv = n[0]*v[0]+n[1]*v[1]+n[2]*v[2];
+	nv = dot_v3v3(n, v);
 	if (nv < 0.0f)
 		nv = 0.0f;
 
 	if (darkness <= 1.0f)
-		i = nl * pow(MAX2(nv*nl, 0.1f), (darkness - 1.0f) ); /*The Real model*/
+		i = nl * pow(maxf(nv * nl, 0.1f), (darkness - 1.0f) ); /*The Real model*/
 	else
 		i = nl * pow( (1.001f - nv), (darkness  - 1.0f) ); /*Nvidia model*/
 

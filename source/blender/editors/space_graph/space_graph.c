@@ -189,6 +189,8 @@ static void graph_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 		sipo->ads->source = (ID *)(G.main->scene.first); // FIXME: this is a really nasty hack here for now...
 	}
 	
+	/* force immediate init of any invalid F-Curve colors */
+	sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
 	ED_area_tag_refresh(sa);
 }
 
@@ -477,7 +479,13 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 			if (wmn->data == ND_SPACE_GRAPH)
 				ED_area_tag_redraw(sa);
 			break;
-		
+		case NC_WINDOW:
+			if (sipo->flag & SIPO_TEMP_NEEDCHANSYNC) {
+				/* force redraw/refresh after undo/redo - prevents "black curve" problem */
+				ED_area_tag_refresh(sa);
+			}
+			break;
+			
 			// XXX: restore the case below if not enough updates occur...
 			//default:
 			//	if (wmn->data==ND_KEYS)

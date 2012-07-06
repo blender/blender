@@ -1939,7 +1939,7 @@ static void rna_def_msticky(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MeshSticky", NULL);
 	RNA_def_struct_sdna(srna, "MSticky");
-	RNA_def_struct_ui_text(srna, "Mesh Vertex Sticky Texture Coordinate", "Stricky texture coordinate");
+	RNA_def_struct_ui_text(srna, "Mesh Vertex Sticky Texture Coordinate", "Sticky texture coordinate");
 	RNA_def_struct_path_func(srna, "rna_MeshSticky_path");
 
 	prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_XYZ);
@@ -2874,7 +2874,8 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEDGES);
-	RNA_def_property_ui_text(prop, "Draw Edges", "Display selected edges using hilights in the 3D view and UV editor");
+	RNA_def_property_ui_text(prop, "Draw Edges",
+	                         "Display selected edges using highlights in the 3D view and UV editor");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
 	prop = RNA_def_property(srna, "show_all_edges", PROP_BOOLEAN, PROP_NONE);

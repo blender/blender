@@ -32,7 +32,6 @@ if env['WITH_BF_FRAMESERVER']:
 
 if env['WITH_BF_PYTHON']:
     incs += ' ../python'
-    incs += ' ' + env['BF_PYTHON_INC']
     defs.append('WITH_PYTHON')
     if env['BF_DEBUG']:
         defs.append('DEBUG')

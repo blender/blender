@@ -78,9 +78,9 @@
 static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4], int par_index, int level, int animated);
 
 /* ******************************************************************** */
-/* Animation Visualisation */
+/* Animation Visualization */
 
-/* Initialize the default settings for animation visualisation */
+/* Initialize the default settings for animation visualization */
 void animviz_settings_init(bAnimVizSettings *avs)
 {
 	/* sanity check */

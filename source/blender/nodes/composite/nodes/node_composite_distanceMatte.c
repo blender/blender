@@ -50,10 +50,10 @@ static bNodeSocketTemplate cmp_node_distance_matte_out[]={
 static void do_distance_matte(bNode *node, float *out, float *in)
 {
 	NodeChroma *c= (NodeChroma *)node->storage;
-	float tolerence=c->t1;
+	float tolerance=c->t1;
 	float fper=c->t2;
-	/* get falloff amount over tolerence size */
-	float falloff=(1.0f-fper) * tolerence;
+	/* get falloff amount over tolerance size */
+	float falloff=(1.0f-fper) * tolerance;
 	float distance;
 	float alpha;
 
@@ -63,13 +63,13 @@ static void do_distance_matte(bNode *node, float *out, float *in)
 
 	copy_v3_v3(out, in);
 
-	if (distance <= tolerence) {
+	if (distance <= tolerance) {
 		if (distance <= falloff) {
 			alpha = 0.0f;
 		}
 		else {
 			/* alpha as percent (distance / tolerance), each modified by falloff amount (in pixels)*/
-			alpha=(distance-falloff)/(tolerence-falloff);
+			alpha=(distance-falloff)/(tolerance-falloff);
 		}
 
 		/*only change if more transparent than before */
@@ -88,10 +88,10 @@ static void do_distance_matte(bNode *node, float *out, float *in)
 static void do_chroma_distance_matte(bNode *node, float *out, float *in)
 {
 	NodeChroma *c= (NodeChroma *)node->storage;
-	float tolerence=c->t1;
+	float tolerance=c->t1;
 	float fper=c->t2;
-	/* get falloff amount over tolerence size */
-	float falloff=(1.0f-fper) * tolerence;
+	/* get falloff amount over tolerance size */
+	float falloff=(1.0f-fper) * tolerance;
 	float y_key, cb_key, cr_key;
 	float y_pix, cb_pix, cr_pix;
 	float distance;
@@ -114,13 +114,13 @@ static void do_chroma_distance_matte(bNode *node, float *out, float *in)
 
 	copy_v3_v3(out, in);
 
-	if (distance <= tolerence) {
+	if (distance <= tolerance) {
 		if (distance <= falloff) {
 			alpha = 0.0f;
 		}
 		else {
 			/* alpha as percent (distance / tolerance), each modified by falloff amount (in pixels)*/
-			alpha=(distance-falloff)/(tolerence-falloff);
+			alpha=(distance-falloff)/(tolerance-falloff);
 		}
 
 		/*only change if more transparent than before */

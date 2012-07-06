@@ -85,10 +85,10 @@ def _call_recursive(context, base, py_node):
 
 
 class BPyML_BaseUI():
-    '''
+    """
     This is a mix-in class that defines a draw function
     which checks for draw_data
-    '''
+    """
 
     def draw(self, context):
         layout = self.layout

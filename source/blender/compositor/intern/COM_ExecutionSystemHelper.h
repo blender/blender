@@ -58,7 +58,7 @@ public:
 	 * @param bNode node to add
 	 * @return Node that represents the bNode or null when not able to convert.
 	 */
-	static Node *addNode(vector<Node *>& nodes, bNode *b_node, bool isInActiveGroup);
+	static Node *addNode(vector<Node *>& nodes, bNode *b_node, bool isInActiveGroup, bool fast);
 
 	/**
 	 * @brief Add a Node to a list

@@ -2049,7 +2049,8 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		cross_v3_v3v3(raxis, rmat[1], splineVec);
 
 		rangle = dot_v3v3(rmat[1], splineVec);
-		rangle = acos(MAX2(-1.0f, MIN2(1.0f, rangle)));
+		CLAMP(rangle, -1.0f, 1.0f);
+		rangle = acosf(rangle);
 
 		/* multiply the magnitude of the angle by the influence of the constraint to
 		 * control the influence of the SplineIK effect
@@ -2207,7 +2208,7 @@ void BKE_pchan_to_mat4(bPoseChannel *pchan, float chan_mat[4][4])
 		axis_angle_to_mat3(rmat, pchan->rotAxis, pchan->rotAngle);
 	}
 	else {
-		/* quats are normalised before use to eliminate scaling issues */
+		/* quats are normalized before use to eliminate scaling issues */
 		float quat[4];
 
 		/* NOTE: we now don't normalize the stored values anymore, since this was kindof evil in some cases

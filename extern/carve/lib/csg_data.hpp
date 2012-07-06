@@ -30,7 +30,7 @@ struct carve::csg::detail::Data {
   VVMap vmap;
 
   // map from intersected edge to intersection points.
-  EVSMap emap;
+  EIntMap emap;
 
   // map from intersected face to intersection points.
   FVSMap fmap;
@@ -39,7 +39,7 @@ struct carve::csg::detail::Data {
   VFSMap fmap_rev;
 
   // created by divideEdges().
-  // holds, for each edge, a 
+  // holds, for each edge, an ordered vector of inserted vertices.
   EVVMap divided_edges;
 
   // created by faceSplitEdges.

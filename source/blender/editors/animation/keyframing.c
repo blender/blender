@@ -201,7 +201,7 @@ FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
 					grp = (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
 					if (grp) {
 						agrp->customCol = grp->customCol;
-						action_group_colors_sync(agrp);
+						action_group_colors_sync(agrp, grp);
 					}
 				}
 			}
@@ -1581,7 +1581,7 @@ void ANIM_OT_keyframe_delete_button(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyframes from all elements of the array");
 }
 
 /* ******************************************* */

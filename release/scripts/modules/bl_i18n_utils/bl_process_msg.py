@@ -24,10 +24,9 @@
 
 import os
 
-# Quite an ugly hack… But the simplest solution for now!
-#import sys
-#sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-import i18n.settings as settings
+# XXX Relative import does not work here when used from Blender...
+#from . import settings
+import bl_i18n_utils.settings as settings
 
 
 #classes = set()
@@ -108,8 +107,10 @@ def dump_messages_rna(messages, check_ctxt):
         path_resolve = type(bpy.context).__base__.path_resolve
         for idname in op_ids:
             op = get_instance(idname)
-            if 'INTERNAL' in path_resolve(op, "bl_options"):
-                blacklist_rna_class.append(idname)
+            # XXX Do not skip INTERNAL's anymore, some of those ops
+            #     show up in UI now!
+#            if 'INTERNAL' in path_resolve(op, "bl_options"):
+#                blacklist_rna_class.append(idname)
 
         # ---------------------------------------------------------------------
         # Collect builtin classes we don't need to doc
@@ -466,6 +467,8 @@ def dump_messages(do_messages, do_checks):
         keys = set()
         for c in check_ctxt.values():
             keys |= c
+        # XXX Temp, see below
+        keys -= check_ctxt["multi_rnatip"]
         for key in keys:
             if key in check_ctxt["undoc_ops"]:
                 print("\tThe following operators are undocumented:")

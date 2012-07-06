@@ -48,8 +48,8 @@
 #include "COM_CompositorNode.h"
 #include "COM_ConvertAlphaNode.h"
 #include "COM_ConvertColorToVectorOperation.h"
-#include "COM_ConvertColourToValueProg.h"
-#include "COM_ConvertValueToColourProg.h"
+#include "COM_ConvertColorToValueProg.h"
+#include "COM_ConvertValueToColorProg.h"
 #include "COM_ConvertValueToVectorOperation.h"
 #include "COM_ConvertVectorToColorOperation.h"
 #include "COM_ConvertVectorToValueOperation.h"
@@ -117,13 +117,29 @@
 #include "COM_ViewerNode.h"
 #include "COM_ZCombineNode.h"
 
-Node *Converter::convert(bNode *b_node)
+Node *Converter::convert(bNode *b_node, bool fast)
 {
 	Node *node;
 
 	if (b_node->flag & NODE_MUTED) {
 		node = new MuteNode(b_node);
 		return node;
+	}
+	if (fast) {
+		if (b_node->type == CMP_NODE_BLUR ||
+		        b_node->type == CMP_NODE_VECBLUR ||
+		        b_node->type == CMP_NODE_BILATERALBLUR ||
+		        b_node->type == CMP_NODE_DEFOCUS ||
+		        b_node->type == CMP_NODE_BOKEHBLUR ||
+		        b_node->type == CMP_NODE_GLARE ||
+		        b_node->type == CMP_NODE_DBLUR ||
+		        b_node->type == CMP_NODE_MOVIEDISTORTION ||
+		        b_node->type == CMP_NODE_LENSDIST ||
+		        b_node->type == CMP_NODE_DOUBLEEDGEMASK ||
+		        b_node->type == CMP_NODE_DILATEERODE) 
+		{
+			return new MuteNode(b_node);
+		}
 	}
 
 	switch (b_node->type) {
@@ -137,7 +153,7 @@ Node *Converter::convert(bNode *b_node)
 			node = new TextureNode(b_node);
 			break;
 		case CMP_NODE_RGBTOBW:
-			node = new ColourToBWNode(b_node);
+			node = new ColorToBWNode(b_node);
 			break;
 		case CMP_NODE_MIX_RGB:
 			node = new MixNode(b_node);
@@ -376,13 +392,13 @@ void Converter::convertDataType(SocketConnection *connection, ExecutionSystem *s
 	DataType toDatatype = inputSocket->getDataType();
 	NodeOperation *converter = NULL;
 	if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_COLOR) {
-		converter = new ConvertValueToColourProg();
+		converter = new ConvertValueToColorProg();
 	}
 	else if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_VECTOR) {
 		converter = new ConvertValueToVectorOperation();
 	}
 	else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VALUE) {
-		converter = new ConvertColourToValueProg();
+		converter = new ConvertColorToValueProg();
 	}
 	else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VECTOR) {
 		converter = new ConvertColorToVectorOperation();

@@ -49,7 +49,7 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 	float inColor1[4];
 	float inColor2[4];
 
-	const float tolerence = this->m_settings->t1;
+	const float tolerance = this->m_settings->t1;
 	const float falloff = this->m_settings->t2;
 	float difference;
 	float alpha;
@@ -65,12 +65,12 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 	difference = difference / 3.0f;
 
 	/*make 100% transparent*/
-	if (difference < tolerence) {
+	if (difference < tolerance) {
 		outputValue[0] = 0.0f;
 	}
 	/*in the falloff region, make partially transparent */
-	else if (difference < falloff + tolerence) {
-		difference = difference - tolerence;
+	else if (difference < falloff + tolerance) {
+		difference = difference - tolerance;
 		alpha = difference / falloff;
 		/*only change if more transparent than before */
 		if (alpha < inColor1[3]) {

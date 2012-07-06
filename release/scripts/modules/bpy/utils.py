@@ -20,7 +20,7 @@
 
 """
 This module contains utility functions specific to blender but
-not assosiated with blenders internal data.
+not associated with blenders internal data.
 """
 
 __all__ = (

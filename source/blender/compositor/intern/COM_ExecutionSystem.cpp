@@ -44,9 +44,10 @@
 #include "MEM_guardedalloc.h"
 #endif
 
-ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering)
+ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation)
 {
 	this->m_context.setbNodeTree(editingtree);
+	this->m_context.setFastCalculation(fastcalculation);
 	bNode *gnode;
 	for (gnode = (bNode *)editingtree->nodes.first; gnode; gnode = (bNode *)gnode->next) {
 		if (gnode->type == NODE_GROUP && gnode->typeinfo->group_edit_get(gnode)) {
@@ -137,8 +138,10 @@ void ExecutionSystem::execute()
 	WorkScheduler::start(this->m_context);
 
 	executeGroups(COM_PRIORITY_HIGH);
-	executeGroups(COM_PRIORITY_MEDIUM);
-	executeGroups(COM_PRIORITY_LOW);
+	if (!this->getContext().isFastCalculation()) {
+		executeGroups(COM_PRIORITY_MEDIUM);
+		executeGroups(COM_PRIORITY_LOW);
+	}
 
 	WorkScheduler::finish();
 	WorkScheduler::stop();

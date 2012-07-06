@@ -330,7 +330,7 @@ path_reference_mode = EnumProperty(
         description="Method used to reference paths",
         items=(('AUTO', "Auto", "Use Relative paths with subdirectories only"),
                ('ABSOLUTE', "Absolute", "Always write absolute paths"),
-               ('RELATIVE', "Relative", "Always write relative patsh "
+               ('RELATIVE', "Relative", "Always write relative paths "
                                         "(where possible)"),
                ('MATCH', "Match", "Match Absolute/Relative "
                                   "setting with input path"),

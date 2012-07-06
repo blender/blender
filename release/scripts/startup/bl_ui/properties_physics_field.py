@@ -195,7 +195,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
             col = split.column()
             col.label(text="Particle:")
             col.prop(settings, "permeability", slider=True)
-            col.prop(settings, "stickness")
+            col.prop(settings, "stickiness")
             col.prop(settings, "use_particle_kill")
             col.label(text="Particle Damping:")
             sub = col.column(align=True)

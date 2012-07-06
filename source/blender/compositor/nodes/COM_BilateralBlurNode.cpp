@@ -35,6 +35,7 @@ void BilateralBlurNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 {
 	NodeBilateralBlurData *data = (NodeBilateralBlurData *)this->getbNode()->storage;
 	BilateralBlurOperation *operation = new BilateralBlurOperation();
+	operation->setbNode(this->getbNode());
 	operation->setQuality(context->getQuality());
 	operation->setData(data);
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);

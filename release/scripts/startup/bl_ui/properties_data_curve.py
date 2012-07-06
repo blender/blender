@@ -33,7 +33,7 @@ class CurveButtonsPanel():
 
 
 class CurveButtonsPanelCurve(CurveButtonsPanel):
-    '''Same as above but for curves only'''
+    """Same as above but for curves only"""
 
     @classmethod
     def poll(cls, context):
@@ -41,7 +41,7 @@ class CurveButtonsPanelCurve(CurveButtonsPanel):
 
 
 class CurveButtonsPanelActive(CurveButtonsPanel):
-    '''Same as above but for curves only'''
+    """Same as above but for curves only"""
 
     @classmethod
     def poll(cls, context):

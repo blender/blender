@@ -244,7 +244,7 @@ PyObject* AUD_initPython()
 	return module;
 }
 
-PyObject* AUD_getPythonFactory(AUD_Sound* sound)
+void* AUD_getPythonFactory(AUD_Sound* sound)
 {
 	if(sound)
 	{
@@ -259,9 +259,9 @@ PyObject* AUD_getPythonFactory(AUD_Sound* sound)
 	return NULL;
 }
 
-AUD_Sound* AUD_getPythonSound(PyObject* sound)
+AUD_Sound* AUD_getPythonSound(void* sound)
 {
-	Factory* factory = checkFactory(sound);
+	Factory* factory = checkFactory((PyObject *)sound);
 
 	if(!factory)
 		return NULL;

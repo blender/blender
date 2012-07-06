@@ -454,7 +454,7 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, Panel):
 
         rd = context.scene.game_settings.recast_data
 
-        layout.operator("mesh.navmesh_make", text='Build navigation mesh')
+        layout.operator("mesh.navmesh_make", text="Build navigation mesh")
 
         col = layout.column()
         col.label(text="Rasterization:")

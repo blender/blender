@@ -109,7 +109,7 @@ static EnumPropertyItem owner_space_pchan_items[] = {
 	                            "The constraint is applied relative to the local coordinate system of the object, "
 	                            "with the parent transformation added"},
 	{CONSTRAINT_SPACE_LOCAL,    "LOCAL", 0, "Local Space",
-	                            "The constraint is applied relative to the local coordinate sytem of the object"},
+	                            "The constraint is applied relative to the local coordinate system of the object"},
 	{0, NULL, 0, NULL, NULL}
 };
 

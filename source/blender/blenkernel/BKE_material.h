@@ -42,6 +42,7 @@ struct ID;
 struct Object;
 struct Mesh;
 struct MTFace;
+struct Scene;
 
 /* materials */
 
@@ -91,6 +92,9 @@ void end_render_materials(struct Main *);
 int material_in_material(struct Material *parmat, struct Material *mat);
 
 void ramp_blend(int type, float r_col[3], const float fac, const float col[3]);
+
+/* driver update hacks */
+void material_drivers_update(struct Scene *scene, struct Material *mat, float ctime);
 
 /* copy/paste */
 void clear_matcopybuf(void);

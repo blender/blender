@@ -21,23 +21,23 @@ def main():
 
     # Some example functions, remove to write your own script.
     # check for a positive sensor, will run on any object without errors.
-    print('Logic info for KX_GameObject', own.name)
+    print("Logic info for KX_GameObject", own.name)
     input = False
 
     for sens in cont.sensors:
         # The sensor can be on another object, we may want to use it
         own_sens = sens.owner
-        print('    sensor:', sens.name, end=' ')
+        print("    sensor:", sens.name, end=" ")
         if sens.positive:
-            print('(true)')
+            print("(true)")
             input = True
         else:
-            print('(false)')
+            print("(false)")
 
     for actu in cont.actuators:
         # The actuator can be on another object, we may want to use it
         own_actu = actu.owner
-        print('    actuator:', actu.name)
+        print("    actuator:", actu.name)
 
         # This runs the actuator or turns it off
         # note that actuators will continue to run unless explicitly turned off.
@@ -49,25 +49,25 @@ def main():
     # Its also good practice to get sensors and actuators by name
     # rather then index so any changes to their order wont break the script.
 
-    # sens_key = cont.sensors['key_sensor']
-    # actu_motion = cont.actuators['motion']
+    # sens_key = cont.sensors["key_sensor"]
+    # actu_motion = cont.actuators["motion"]
 
     # Loop through all other objects in the scene
     sce = bge.logic.getCurrentScene()
-    print('Scene Objects:', sce.name)
+    print("Scene Objects:", sce.name)
     for ob in sce.objects:
-        print('   ', ob.name, ob.worldPosition)
+        print("   ", ob.name, ob.worldPosition)
 
     # Example where collision objects are checked for their properties
     # adding to our objects "life" property
     """
-    actu_collide = cont.sensors['collision_sens']
+    actu_collide = cont.sensors["collision_sens"]
     for ob in actu_collide.objectHitList:
         # Check to see the object has this property
-        if ob.has_key('life'):
-            own['life'] += ob['life']
-            ob['life'] = 0
-    print(own['life'])
+        if "life" in ob:
+            own["life"] += ob["life"]
+            ob["life"] = 0
+    print(own["life"])
     """
 
 main()

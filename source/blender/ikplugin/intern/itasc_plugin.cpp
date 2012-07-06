@@ -812,7 +812,7 @@ static bool joint_callback(const iTaSC::Timestamp& timestamp, iTaSC::ConstraintV
 			axis_angle_to_mat3(rmat, &chan->quat[1], chan->quat[0]);
 		}
 		else {
-			/* quats are normalised before use to eliminate scaling issues */
+			/* quats are normalized before use to eliminate scaling issues */
 			normalize_qt(chan->quat);
 			quat_to_mat3(rmat, chan->quat);
 		}

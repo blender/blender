@@ -114,14 +114,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	ParticleSimulationData sim;
 	ParticleSystem *psys = NULL;
 	ParticleData *pa = NULL, *pars = NULL;
-	MFace *mface, *orig_mface;
+	MPoly *mpoly, *orig_mpoly;
+	MLoop *mloop, *orig_mloop;
 	MVert *mvert, *orig_mvert;
-	int i, totvert, totpart = 0, totface, maxvert, maxface, first_particle = 0;
+	int i, totvert, totpoly, totloop, maxvert, maxpoly, maxloop, totpart = 0, first_particle = 0;
 	short track = ob->trackflag % 3, trackneg, axis = pimd->axis;
 	float max_co = 0.0, min_co = 0.0, temp_co[3], cross[3];
 	float *size = NULL;
-
-	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
 	trackneg = ((ob->trackflag > 2) ? 1 : 0);
 
@@ -175,15 +174,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	pars = psys->particles;
 
 	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumTessFaces(dm);
+	totpoly = dm->getNumPolys(dm);
+	totloop = dm->getNumLoops(dm);
 
 	maxvert = totvert * totpart;
-	maxface = totface * totpart;
+	maxpoly = totpoly * totpart;
+	maxloop = totloop * totpart;
 
 	psys->lattice = psys_get_lattice(&sim);
 
 	if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
-
 		float min_r[3], max_r[3];
 		INIT_MINMAX(min_r, max_r);
 		dm->getMinMax(dm, min_r, max_r);
@@ -191,7 +191,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		max_co = max_r[track];
 	}
 
-	result = CDDM_from_template(dm, maxvert, dm->getNumEdges(dm) * totpart, maxface, 0, 0);
+	result = CDDM_from_template(dm, maxvert, dm->getNumEdges(dm) * totpart, 0, maxloop, maxpoly);
 
 	mvert = result->getVertArray(result);
 	orig_mvert = dm->getVertArray(dm);
@@ -263,29 +263,31 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		add_v3_v3(mv->co, state.co);
 	}
 
-	mface = result->getTessFaceArray(result);
-	orig_mface = dm->getTessFaceArray(dm);
+	mpoly = result->getPolyArray(result);
+	orig_mpoly = dm->getPolyArray(dm);
+	mloop = result->getLoopArray(result);
+	orig_mloop = dm->getLoopArray(dm);
 
-	for (i = 0; i < maxface; i++) {
-		MFace *inMF;
-		MFace *mf = mface + i;
+	for (i = 0; i < maxpoly; i++) {
+		MPoly *inMP = orig_mpoly + i % totpoly;
+		MPoly *mp = mpoly + i;
 
 		if (pimd->flag & eParticleInstanceFlag_Parents) {
-			if (i / totface >= psys->totpart) {
+			if (i / totpoly >= psys->totpart) {
 				if (psys->part->childtype == PART_CHILD_PARTICLES) {
-					pa = psys->particles + (psys->child + i / totface - psys->totpart)->parent;
+					pa = psys->particles + (psys->child + i / totpoly - psys->totpart)->parent;
 				}
 				else {
 					pa = NULL;
 				}
 			}
 			else {
-				pa = pars + i / totface;
+				pa = pars + i / totpoly;
 			}
 		}
 		else {
 			if (psys->part->childtype == PART_CHILD_PARTICLES) {
-				pa = psys->particles + (psys->child + i / totface)->parent;
+				pa = psys->particles + (psys->child + i / totpoly)->parent;
 			}
 			else {
 				pa = NULL;
@@ -298,19 +300,23 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			if (pa->alive == PARS_DEAD && (pimd->flag & eParticleInstanceFlag_Dead) == 0) continue;
 		}
 
-		inMF = orig_mface + i % totface;
-		DM_copy_poly_data(dm, result, i % totface, i, 1);
-		*mf = *inMF;
+		DM_copy_poly_data(dm, result, i % totpoly, i, 1);
+		*mp = *inMP;
+		mp->loopstart += (i / totpoly) * totloop;
 
-		mf->v1 += (i / totface) * totvert;
-		mf->v2 += (i / totface) * totvert;
-		mf->v3 += (i / totface) * totvert;
-		if (mf->v4) {
-			mf->v4 += (i / totface) * totvert;
+		{
+			MLoop *inML = orig_mloop + inMP->loopstart;
+			MLoop *ml = mloop + mp->loopstart;
+			int j = mp->totloop;
+
+			DM_copy_loop_data(dm, result, inMP->loopstart, mp->loopstart, j);
+			for (; j; j--, ml++, inML++) {
+				ml->v = inML->v + ((i / totpoly) * totvert);
+			}
 		}
 	}
 
-	CDDM_calc_edges_tessface(result);
+	CDDM_calc_edges(result);
 
 	if (psys->lattice) {
 		end_latt_deform(psys->lattice);
@@ -320,7 +326,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (size)
 		MEM_freeN(size);
 
-	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
 	CDDM_calc_normals(result);
 
 	return result;

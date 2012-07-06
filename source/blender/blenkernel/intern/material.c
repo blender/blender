@@ -36,6 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -1051,6 +1052,57 @@ int material_in_material(Material *parmat, Material *mat)
 	else
 		return 0;
 }
+
+
+/* ****************** */
+
+/* Update drivers for materials in a nodetree */
+static void material_node_drivers_update(Scene *scene, bNodeTree *ntree, float ctime, Material *rootma)
+{
+	bNode *node;
+	Material *ma;
+
+	/* nodetree itself */
+	if (ntree->adt && ntree->adt->drivers.first) {
+		BKE_animsys_evaluate_animdata(scene, &ntree->id, ntree->adt, ctime, ADT_RECALC_DRIVERS);
+	}
+	
+	/* nodes... */
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->id && GS(node->id->name) == ID_MA) {
+			/* TODO: prevent infinite recursion here... */
+            ma = (Material *)node->id;
+            if (ma != rootma) {
+                material_drivers_update(scene, ma, ctime);
+            }
+		}
+		else if (node->type == NODE_GROUP && node->id) {
+			material_node_drivers_update(scene, (bNodeTree *)node->id,
+                                         ctime, rootma);
+		}
+	}
+}
+
+/* Calculate all drivers for materials 
+ * FIXME: this is really a terrible method which may result in some things being calculated
+ * multiple times. However, without proper despgraph support for these things, we are forced
+ * into this sort of thing...
+ */
+void material_drivers_update(Scene *scene, Material *ma, float ctime)
+{
+	//if (G.f & G_DEBUG)
+	//	printf("material_drivers_update(%s, %s)\n", scene->id.name, ma->id.name);
+	
+	/* material itself */
+	if (ma->adt && ma->adt->drivers.first) {
+		BKE_animsys_evaluate_animdata(scene, &ma->id, ma->adt, ctime, ADT_RECALC_DRIVERS);
+	}
+	
+	/* nodes */
+	if (ma->nodetree) {
+		material_node_drivers_update(scene, ma->nodetree, ctime, ma);
+	}
+}
 	
 /* ****************** */
 #if 0 /* UNUSED */
@@ -1061,19 +1113,19 @@ static char colname_array[125][20]= {
 "LightGreen", "Chartreuse", "YellowGreen", "Yellow", "Gold",
 "Green", "LawnGreen", "GreenYellow", "LightOlive", "Yellow",
 "DarkBlue", "DarkPurple", "HotPink", "VioletPink", "RedPink",
-"SlateGray", "DarkGrey", "PalePurple", "IndianRed", "Tomato",
+"SlateGray", "DarkGray", "PalePurple", "IndianRed", "Tomato",
 "SeaGreen", "PaleGreen", "GreenKhaki", "LightBrown", "LightSalmon",
 "SpringGreen", "PaleGreen", "MediumOlive", "YellowBrown", "LightGold",
 "LightGreen", "LightGreen", "LightGreen", "GreenYellow", "PaleYellow",
 "HalfBlue", "DarkSky", "HalfMagenta", "VioletRed", "DeepPink",
 "SteelBlue", "SkyBlue", "Orchid", "LightHotPink", "HotPink",
-"SeaGreen", "SlateGray", "MediumGrey", "Burlywood", "LightPink",
+"SeaGreen", "SlateGray", "MediumGray", "Burlywood", "LightPink",
 "SpringGreen", "Aquamarine", "PaleGreen", "Khaki", "PaleOrange",
 "SpringGreen", "SeaGreen", "PaleGreen", "PaleWhite", "YellowWhite",
 "LightBlue", "Purple", "MediumOrchid", "Magenta", "Magenta",
 "RoyalBlue", "SlateBlue", "MediumOrchid", "Orchid", "Magenta",
 "DeepSkyBlue", "LightSteelBlue", "LightSkyBlue", "Violet", "LightPink",
-"Cyan", "DarkTurquoise", "SkyBlue", "Grey", "Snow",
+"Cyan", "DarkTurquoise", "SkyBlue", "Gray", "Snow",
 "Mint", "Mint", "Aquamarine", "MintCream", "Ivory",
 "Blue", "Blue", "DarkMagenta", "DarkOrchid", "Magenta",
 "SkyBlue", "RoyalBlue", "LightSlateBlue", "MediumOrchid", "Magenta",

@@ -276,7 +276,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "include_material_textures", 0, "Include Material Textures",
 					"Export textures assigned to the object Materials");
 
-	RNA_def_boolean(ot->srna, "use_texture_copies", 1, "copy", 
+	RNA_def_boolean(ot->srna, "use_texture_copies", 1, "Copy", 
 	                "Copy textures to same folder where the .dae file is exported");
 
 

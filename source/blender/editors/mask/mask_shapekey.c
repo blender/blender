@@ -229,7 +229,7 @@ void MASK_OT_shape_key_feather_reset(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Feather Reset Animation";
-	ot->description = "Resets fearther weights on all selected points animation values";
+	ot->description = "Reset feather weights on all selected points animation values";
 	ot->idname = "MASK_OT_shape_key_feather_reset";
 
 	/* api callbacks */
@@ -394,7 +394,7 @@ void MASK_OT_shape_key_rekey(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Re-Key Points of Selected Shapes";
-	ot->description = "Recalculates animation data on selected points for frames selected in the dopesheet";
+	ot->description = "Recalculate animation data on selected points for frames selected in the dopesheet";
 	ot->idname = "MASK_OT_shape_key_rekey";
 
 	/* api callbacks */

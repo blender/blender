@@ -853,7 +853,7 @@ Object *BKE_object_add_only_object(int type, const char *name)
 
 	ob->pc_ids.first = ob->pc_ids.last = NULL;
 	
-	/* Animation Visualisation defaults */
+	/* Animation Visualization defaults */
 	animviz_settings_init(&ob->avs);
 
 	return ob;
@@ -1470,7 +1470,7 @@ void BKE_object_rot_to_mat3(Object *ob, float mat[][3])
 		axis_angle_to_mat3(dmat, ob->drotAxis, ob->drotAngle);
 	}
 	else {
-		/* quats are normalised before use to eliminate scaling issues */
+		/* quats are normalized before use to eliminate scaling issues */
 		float tquat[4];
 		
 		normalize_qt_qt(tquat, ob->quat);
@@ -2548,7 +2548,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 				printf("recalcdata %s\n", ob->id.name + 2);
 
 			if (adt) {
-				/* evaluate drivers */
+				/* evaluate drivers - datalevel */
 				// XXX: for mesh types, should we push this to derivedmesh instead?
 				BKE_animsys_evaluate_animdata(scene, data_id, adt, ctime, ADT_RECALC_DRIVERS);
 			}
@@ -2605,8 +2605,26 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 					BKE_lattice_modifiers_calc(scene, ob);
 					break;
 			}
-
-
+			
+			/* related materials */
+			/* XXX: without depsgraph tagging, this will always need to be run, which will be slow! 
+			 * However, not doing anything (or trying to hack around this lack) is not an option 
+			 * anymore, especially due to Cycles [#31834] 
+			 */
+			if (ob->totcol) {
+				int a;
+				
+				for (a = 1; a <= ob->totcol; a++) {
+					Material *ma = give_current_material(ob, a);
+					
+					if (ma) {
+						/* recursively update drivers for this material */
+						material_drivers_update(scene, ma, ctime);
+					}
+				}
+			}
+			
+			/* particles */
 			if (ob->particlesystem.first) {
 				ParticleSystem *tpsys, *psys;
 				DerivedMesh *dm;

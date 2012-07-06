@@ -116,7 +116,7 @@ typedef struct BPoint {
 	float vec[4];
 	float alfa, weight;		/* alfa: tilt in 3D View, weight: used for softbody goal weight */
 	short f1, hide;			/* f1: selection status,  hide: is point hidden or not */
-	float radius, pad;		/* user-set radius per point for bevelling etc */
+	float radius, pad;		/* user-set radius per point for beveling etc */
 } BPoint;
 
 typedef struct Nurb {

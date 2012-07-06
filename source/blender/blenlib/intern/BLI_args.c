@@ -173,7 +173,8 @@ static bArgDoc *internalDocs(struct bArgs *ba, const char *short_arg, const char
 	return d;
 }
 
-static void internalAdd(struct bArgs *ba, const char *arg, int pass, int case_str, BA_ArgCallback cb, void *data, bArgDoc *d)
+static void internalAdd(struct bArgs *ba, const char *arg, int pass,
+                        int case_str, BA_ArgCallback cb, void *data, bArgDoc *d)
 {
 	bArgument *a;
 	bAKey *key;
@@ -182,8 +183,10 @@ static void internalAdd(struct bArgs *ba, const char *arg, int pass, int case_st
 
 	if (a) {
 		printf("WARNING: conflicting argument\n");
-		printf("\ttrying to add '%s' on pass %i, %scase sensitive\n", arg, pass, case_str == 1 ? "not " : "");
-		printf("\tconflict with '%s' on pass %i, %scase sensitive\n\n", a->key->arg, (int)a->key->pass, a->key->case_str == 1 ? "not " : "");
+		printf("\ttrying to add '%s' on pass %i, %scase sensitive\n",
+		       arg, pass, case_str == 1 ? "not " : "");
+		printf("\tconflict with '%s' on pass %i, %scase sensitive\n\n",
+		       a->key->arg, (int)a->key->pass, a->key->case_str == 1 ? "not " : "");
 	}
 
 	a = MEM_callocN(sizeof(bArgument), "bArgument");
@@ -201,7 +204,10 @@ static void internalAdd(struct bArgs *ba, const char *arg, int pass, int case_st
 	BLI_ghash_insert(ba->items, key, a);
 }
 
-void BLI_argsAddCase(struct bArgs *ba, int pass, const char *short_arg, int short_case, const char *long_arg, int long_case, const char *doc, BA_ArgCallback cb, void *data)
+void BLI_argsAddCase(struct bArgs *ba, int pass,
+                     const char *short_arg, int short_case,
+                     const char *long_arg, int long_case,
+                     const char *doc, BA_ArgCallback cb, void *data)
 {
 	bArgDoc *d = internalDocs(ba, short_arg, long_arg, doc);
 
@@ -214,7 +220,9 @@ void BLI_argsAddCase(struct bArgs *ba, int pass, const char *short_arg, int shor
 
 }
 
-void BLI_argsAdd(struct bArgs *ba, int pass, const char *short_arg, const char *long_arg, const char *doc, BA_ArgCallback cb, void *data)
+void BLI_argsAdd(struct bArgs *ba, int pass,
+                 const char *short_arg, const char *long_arg,
+                 const char *doc, BA_ArgCallback cb, void *data)
 {
 	BLI_argsAddCase(ba, pass, short_arg, 0, long_arg, 0, doc, cb, data);
 }

@@ -118,7 +118,6 @@ static void update_node(bNodeTree *ntree, bNode *node)
 		}
 	}
 	node->need_exec= 1;
-	
 	/* individual node update call */
 	if (node->typeinfo->updatefunc)
 		node->typeinfo->updatefunc(ntree, node);
@@ -133,6 +132,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 	for (node= ntree->nodes.first; node; node= node->next) {
 		/* ensure new user input gets handled ok */
 		node->need_exec= 0;
+		node->new_node->original = node;
 		
 		/* move over the compbufs */
 		/* right after ntreeCopyTree() oldsock pointers are valid */
@@ -200,6 +200,7 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 					lnode->new_node->preview= lnode->preview;
 					lnode->preview= NULL;
 				}
+				
 			}
 		}
 	}

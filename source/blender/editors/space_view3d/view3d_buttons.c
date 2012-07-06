@@ -856,7 +856,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 		uiDefBut(block, BUT, B_VGRP_PNL_NORMALIZE, IFACE_("Normalize"), 0, yco, 100, 20,
 		         NULL, 0, 0, 0, 0, TIP_("Normalize active vertex weights"));
 		uiDefBut(block, BUT, B_VGRP_PNL_COPY, IFACE_("Copy"), 100, yco, 100, 20,
-		         NULL, 0, 0, 0, 0, TIP_("Copy active vertex to other seleted verts"));
+		         NULL, 0, 0, 0, 0, TIP_("Copy active vertex to other selected verts"));
 		uiBlockEndAlign(block);
 	}
 }

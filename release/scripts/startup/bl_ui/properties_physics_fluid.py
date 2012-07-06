@@ -117,10 +117,14 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
             col.prop(fluid, "use_animated_mesh")
 
             col = split.column()
-            col.label(text="Slip Type:")
-            col.prop(fluid, "slip_type", text="")
+            subsplit = col.split()
+            subcol = subsplit.column()
+            if fluid.use_animated_mesh:
+                subcol.enabled = False
+            subcol.label(text="Slip Type:")
+            subcol.prop(fluid, "slip_type", text="")
             if fluid.slip_type == 'PARTIALSLIP':
-                col.prop(fluid, "partial_slip_factor", slider=True, text="Amount")
+                subcol.prop(fluid, "partial_slip_factor", slider=True, text="Amount")
 
             col.label(text="Impact:")
             col.prop(fluid, "impact_factor", text="Factor")
@@ -223,10 +227,10 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
             col.label(text="Use Scene Size Units", icon='SCENE_DATA')
             sub = col.column()
             sub.enabled = False
-            sub.prop(fluid, "simulation_scale", text="Metres")
+            sub.prop(fluid, "simulation_scale", text="Meters")
         else:
             col.label(text="Real World Size:")
-            col.prop(fluid, "simulation_scale", text="Metres")
+            col.prop(fluid, "simulation_scale", text="Meters")
 
         col = split.column()
         col.label(text="Viscosity Presets:")

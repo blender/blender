@@ -30,6 +30,7 @@ CompositorContext::CompositorContext()
 	this->m_quality = COM_QUALITY_HIGH;
 	this->m_hasActiveOpenCLDevices = false;
 	this->m_activegNode = NULL;
+	this->m_fastCalculation = false;
 }
 
 const int CompositorContext::getFramenumber() const

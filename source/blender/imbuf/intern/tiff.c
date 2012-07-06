@@ -36,7 +36,7 @@
  * high-level routine that loads all images as 32-bit RGBA, handling all the
  * required conversions between many different TIFF types internally.
  * 
- * Saving supports RGB, RGBA and BW (greyscale) images correctly, with
+ * Saving supports RGB, RGBA and BW (grayscale) images correctly, with
  * 8 bits per channel in all cases.  The "deflate" compression algorithm is
  * used to compress images.
  */
@@ -765,7 +765,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 		             PHOTOMETRIC_RGB);
 	}
 	else if (samplesperpixel == 1) {
-		/* greyscale images, 1 channel */
+		/* grayscale images, 1 channel */
 		TIFFSetField(image, TIFFTAG_PHOTOMETRIC,
 		             PHOTOMETRIC_MINISBLACK);
 	}

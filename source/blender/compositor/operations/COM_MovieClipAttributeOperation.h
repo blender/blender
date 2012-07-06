@@ -32,8 +32,8 @@ typedef enum MovieClipAttribute {
 	MCA_ANGLE
 } MovieClipAttribute;
 /**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
  */
 class MovieClipAttributeOperation : public NodeOperation {
 private:

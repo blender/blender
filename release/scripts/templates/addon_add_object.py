@@ -65,7 +65,7 @@ def add_object_button(self, context):
     self.layout.operator(
         OBJECT_OT_add_object.bl_idname,
         text="Add Object",
-        icon="PLUGIN")
+        icon='PLUGIN')
 
 
 def register():

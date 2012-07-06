@@ -91,7 +91,7 @@ int file_directory_exec(bContext *C, struct wmOperator *unused);
 int file_directory_new_exec(bContext *C, struct wmOperator *unused);
 int file_delete_exec(bContext *C, struct wmOperator *unused);
 
-int file_hilight_set(struct SpaceFile *sfile, struct ARegion *ar, int mx, int my);
+int file_highlight_set(struct SpaceFile *sfile, struct ARegion *ar, int mx, int my);
 
 void file_sfile_to_operator(struct wmOperator *op, struct SpaceFile *sfile, char *filepath);
 void file_operator_to_sfile(struct SpaceFile *sfile, struct wmOperator *op);

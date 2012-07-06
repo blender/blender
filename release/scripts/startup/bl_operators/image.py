@@ -24,7 +24,7 @@ from bpy.props import StringProperty
 
 
 class EditExternally(Operator):
-    '''Edit image in an external application'''
+    """Edit image in an external application"""
     bl_idname = "image.external_edit"
     bl_label = "Image Edit Externally"
     bl_options = {'REGISTER'}

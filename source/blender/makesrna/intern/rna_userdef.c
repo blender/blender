@@ -463,7 +463,7 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "shadowcolor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Shadow Brightness", "Shadow color in grey value");
+	RNA_def_property_ui_text(prop, "Shadow Brightness", "Shadow color in gray value");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
@@ -2103,7 +2103,7 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "marker_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "marker_outline");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Marker Outline Color", "Color of marker's outile");
+	RNA_def_property_ui_text(prop, "Marker Outline Color", "Color of marker's outline");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "marker", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -2766,7 +2766,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "ipo_new");
 	RNA_def_property_ui_text(prop, "New Interpolation Type",
 	                         "Interpolation mode used for first keyframe on newly added F-Curves "
-	                         "(subsequent keyframes take interpolation from preceeding keyframe)");
+	                         "(subsequent keyframes take interpolation from preceding keyframe)");
 	
 	prop = RNA_def_property(srna, "keyframe_new_handle_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, keyframe_handle_type_items);
@@ -2989,10 +2989,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{ 1, "ENGLISH", 0, "English (English)", "en_US"},
 		{ 8, "FRENCH", 0, "French (Français)", "fr_FR"},
 		{ 4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
+		{ 2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
 		{15, "RUSSIAN", 0, "Russian (Русский)", "ru_RU"},
 		{13, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese (简体中文)", "zh_CN"},
 		{ 9, "SPANISH", 0, "Spanish (Español)", "es"},
 		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
+		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
 		{ 0, "", 0, N_("In progress"), ""},
 		/* using the utf8 flipped form of Arabic (العربية) */
 		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
@@ -3006,7 +3008,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
 		{31, "HUNGARIAN", 0, "Hungarian (magyar)", "hu_HU"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
-		{ 2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
 		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ky_KG"},
 /*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"}, */ /* XXX No po's yet. */
 		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
@@ -3019,7 +3020,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr_RS@latin"},
 		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
 		{30, "TURKISH", 0, "Turkish (Türkçe)", "tr_TR"},
-		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
 		{ 0, NULL, 0, NULL, NULL}
 	};
 

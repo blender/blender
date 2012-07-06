@@ -797,12 +797,12 @@ class IMAGE_UV_sculpt_curve(Panel):
         layout.template_curve_mapping(brush, "curve")
 
         row = layout.row(align=True)
-        row.operator("brush.curve_preset", icon="SMOOTHCURVE", text="").shape = 'SMOOTH'
-        row.operator("brush.curve_preset", icon="SPHERECURVE", text="").shape = 'ROUND'
-        row.operator("brush.curve_preset", icon="ROOTCURVE", text="").shape = 'ROOT'
-        row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
-        row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
-        row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+        row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+        row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+        row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+        row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+        row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
+        row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
 class IMAGE_UV_sculpt(Panel, ImagePaintPanel):

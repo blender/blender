@@ -43,6 +43,7 @@ protected:
 	bool m_do_smooth;
 	bool m_do_feather;
 	float *m_rasterizedMask;
+	ListBase m_maskLayers;
 
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer

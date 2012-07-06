@@ -26,8 +26,8 @@
 
 
 /**
- * this program converts an input colour to an output Sampler.
- * it assumes we are in sRGB colour space.
+ * this program converts an input color to an output Sampler.
+ * it assumes we are in sRGB color space.
  */
 class SetSamplerOperation : public NodeOperation {
 private:

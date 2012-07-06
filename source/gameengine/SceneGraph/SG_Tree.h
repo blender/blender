@@ -122,7 +122,7 @@ public:
 
 /**
  *  SG_TreeFactory generates an SG_Tree from a list of SG_Nodes.
- *  It joins pairs of SG_Nodes to minimise the size of the resultant
+ *  It joins pairs of SG_Nodes to minimize the size of the resultant
  *  bounding box.
  *  cf building an optimized Huffman tree.
  *  \warning O(n^3)!!!

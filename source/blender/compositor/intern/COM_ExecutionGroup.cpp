@@ -25,9 +25,6 @@
 #include <sstream>
 #include <stdlib.h>
 
-#include "BLI_math.h"
-#include "PIL_time.h"
-
 #include "COM_ExecutionGroup.h"
 #include "COM_InputSocket.h"
 #include "COM_SocketConnection.h"
@@ -40,6 +37,11 @@
 #include "COM_ViewerOperation.h"
 #include "COM_ChunkOrder.h"
 #include "COM_ExecutionSystemHelper.h"
+
+#include "BLI_math.h"
+#include "PIL_time.h"
+#include "WM_api.h"
+#include "WM_types.h"
 
 ExecutionGroup::ExecutionGroup()
 {
@@ -347,6 +349,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 				finished = false;
 				startEvaluated = true;
 				numberEvaluated++;
+
+				WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
 			}
 			else if (state == COM_ES_SCHEDULED) {
 				finished = false;

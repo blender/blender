@@ -159,7 +159,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSELIB_OT_new);
 	WM_operatortype_append(POSELIB_OT_unlink);
 	
-	WM_operatortype_append(POSELIB_OT_action_sanitise);
+	WM_operatortype_append(POSELIB_OT_action_sanitize);
 	
 	/* POSE SLIDING */
 	WM_operatortype_append(POSE_OT_push);

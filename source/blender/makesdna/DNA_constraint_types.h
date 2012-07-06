@@ -464,7 +464,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_CLAMPTO = 18, 			/* clampto constraint */
 	CONSTRAINT_TYPE_TRANSFORM = 19,			/* transformation (loc/rot/size -> loc/rot/size) constraint */
 	CONSTRAINT_TYPE_SHRINKWRAP = 20,		/* shrinkwrap (loc/rot) constraint */
-	CONSTRAINT_TYPE_DAMPTRACK = 21,			/* New Tracking constraint that minimises twisting */
+	CONSTRAINT_TYPE_DAMPTRACK = 21,			/* New Tracking constraint that minimizes twisting */
 	CONSTRAINT_TYPE_SPLINEIK = 22,			/* Spline-IK - Align 'n' bones to a curve */
 	CONSTRAINT_TYPE_TRANSLIKE = 23,			/* Copy transform matrix */
 	CONSTRAINT_TYPE_SAMEVOL = 24,			/* Maintain volume during scaling */

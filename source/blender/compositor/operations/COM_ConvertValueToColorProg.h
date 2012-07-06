@@ -20,26 +20,19 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ConvertColourToValueProg_h
-#define _COM_ConvertColourToValueProg_h
+#ifndef _COM_ConvertValueToColorProg_h
+#define _COM_ConvertValueToColorProg_h
 #include "COM_NodeOperation.h"
 
 
-/**
- * this program converts an input colour to an output value.
- * it assumes we are in sRGB colour space.
- */
-class ConvertColourToValueProg : public NodeOperation {
+class ConvertValueToColorProg : public NodeOperation {
 private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader *m_inputOperation;
+	SocketReader *m_inputProgram;
 public:
-	/**
-	 * Default constructor
-	 */
-	ConvertColourToValueProg();
+	ConvertValueToColorProg();
 	
 	/**
 	 * the inner loop of this program
@@ -55,5 +48,6 @@ public:
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
+
 };
 #endif

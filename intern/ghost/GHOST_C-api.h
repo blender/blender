@@ -328,7 +328,8 @@ extern GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle
  * @param windowhandle The handle to the window
  * @param	bitmap	The bitmap data for the cursor.
  * @param	mask	The mask data for the cursor.
- * @parm    sizex, sizey  The size of the cursor
+ * @param	sizex	The width of the cursor
+ * @param	sizey	The height of the cursor
  * @param	hotX	The X coordinate of the cursor hotspot.
  * @param	hotY	The Y coordinate of the cursor hotspot.
  * @param   fg_color, bg_color  Colors of the cursor

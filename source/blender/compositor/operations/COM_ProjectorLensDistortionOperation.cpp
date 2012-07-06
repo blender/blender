@@ -79,10 +79,10 @@ bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(rcti *in
 		newInput.xmin = input->xmin - this->m_kr2 - 2;
 		newInput.xmax = input->xmax + this->m_kr2 + 2;
 	} else {
-		newInput.xmin = input->xmin-7; //(0.25f*20*1)+2 == worse case dispersion
+		newInput.xmin = input->xmin - 7; //(0.25f*20*1)+2 == worse case dispersion
 		newInput.ymin = input->ymin;
 		newInput.ymax = input->ymax;
-		newInput.xmax = input->xmax+7; //(0.25f*20*1)+2 == worse case dispersion
+		newInput.xmax = input->xmax + 7; //(0.25f*20*1)+2 == worse case dispersion
 	}
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }

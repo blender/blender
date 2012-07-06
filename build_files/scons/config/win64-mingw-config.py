@@ -169,8 +169,8 @@ BF_BOOST_LIBPATH = BF_BOOST + '/lib'
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-mmmx', '-msse', '-msse2']
 
-#Produces errors while rendering with subsurf/multires,
-WITH_BF_OPENMP = False
+#May produce errors with unsupported MinGW-w64 builds
+WITH_BF_OPENMP = True
 
 ##
 CC = 'gcc'

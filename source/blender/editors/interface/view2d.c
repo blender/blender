@@ -431,7 +431,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 		/* curRatio = height / width; */ /* UNUSED */
 		winRatio = winy / winx;
 		
-		/* both sizes change (area/region maximised)  */
+		/* both sizes change (area/region maximized)  */
 		if (do_x == do_y) {
 			if (do_x && do_y) {
 				/* here is 1,1 case, so all others must be 0,0 */

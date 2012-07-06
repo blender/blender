@@ -2892,11 +2892,9 @@ static int mesh_separate_material(Main *bmain, Scene *scene, Base *editbase, wmO
 static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOperator *wmop)
 {
 	int i;
-	BMVert *v;
 	BMEdge *e;
 	BMVert *v_seed;
 	BMWalker walker;
-	BMIter iter;
 	int result = FALSE;
 	Object *obedit = editbase->object;
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -2913,11 +2911,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 	 * original mesh.*/
 	for (i = 0; i < max_iter; i++) {
 		/* Get a seed vertex to start the walk */
-		v_seed = NULL;
-		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-			v_seed = v;
-			break;
-		}
+		v_seed = BM_iter_at_index(bm, BM_VERTS_OF_MESH, NULL, 0);
 
 		/* No vertices available, can't do anything */
 		if (v_seed == NULL) {
@@ -4187,11 +4181,11 @@ void MESH_OT_sort_elements(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
 		{SRT_VIEW_ZAXIS, "VIEW_ZAXIS", 0, "View Z Axis",
-		                 "Sort selected elements from farest to nearest one in current view"},
+		                 "Sort selected elements from farthest to nearest one in current view"},
 		{SRT_VIEW_XAXIS, "VIEW_XAXIS", 0, "View X Axis",
 		                 "Sort selected elements from left to right one in current view"},
 		{SRT_CURSOR_DISTANCE, "CURSOR_DISTANCE", 0, "Cursor Distance",
-		                      "Sort selected elements from nearest to farest from 3D cursor"},
+		                      "Sort selected elements from nearest to farthest from 3D cursor"},
 		{SRT_MATERIAL, "MATERIAL", 0, "Material",
 		               "Sort selected elements from smallest to greatest material index (faces only!)"},
 		{SRT_SELECTED, "SELECTED", 0, "Selected",

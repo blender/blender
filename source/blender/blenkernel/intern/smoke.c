@@ -141,7 +141,7 @@ struct SmokeModifierData;
 
 /* forward declerations */
 static void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int numfaces, int numtris, int **tridivs, float cell_len);
-static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct);
+static void get_cell(const float p0[3], const int res[3], float dx, const float pos[3], int cell[3], int correct);
 static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs);
 
 #else /* WITH_SMOKE */
@@ -1977,7 +1977,7 @@ static void bresenham_linie_3D(int x1, int y1, int z1, int x2, int y2, int z2, f
 	cb(result, input, res, pixel, tRay, correct);
 }
 
-static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct)
+static void get_cell(const float p0[3], const int res[3], float dx, const float pos[3], int cell[3], int correct)
 {
 	float tmp[3];
 

@@ -188,6 +188,41 @@ void BKE_mask_layer_unique_name(Mask *mask, MaskLayer *masklay)
 	BLI_uniquename(&mask->masklayers, masklay, "MaskLayer", '.', offsetof(MaskLayer, name), sizeof(masklay->name));
 }
 
+MaskLayer *BKE_mask_layer_copy(MaskLayer *layer)
+{
+	MaskLayer *layer_new;
+	MaskSpline *spline;
+
+	layer_new = MEM_callocN(sizeof(MaskLayer), "new mask layer");
+
+	BLI_strncpy(layer_new->name, layer->name, sizeof(layer_new->name));
+
+	layer_new->alpha = layer->alpha;
+	layer_new->blend = layer->blend;
+	layer_new->blend_flag = layer->blend_flag;
+	layer_new->flag = layer->flag;
+	layer_new->restrictflag = layer->restrictflag;
+
+	for (spline = layer->splines.first; spline; spline = spline->next) {
+		MaskSpline *spline_new = BKE_mask_spline_copy(spline);
+
+		BLI_addtail(&layer_new->splines, spline_new);
+	}
+
+	return layer_new;
+}
+
+void BKE_mask_layer_copy_list(ListBase *masklayers_new, ListBase *masklayers)
+{
+	MaskLayer *layer;
+
+	for (layer = masklayers->first; layer; layer = layer->next) {
+		MaskLayer *layer_new = BKE_mask_layer_copy(layer);
+
+		BLI_addtail(masklayers_new, layer_new);
+	}
+}
+
 /* splines */
 
 MaskSpline *BKE_mask_spline_add(MaskLayer *masklay)
@@ -988,21 +1023,34 @@ void BKE_mask_spline_free(MaskSpline *spline)
 	MEM_freeN(spline);
 }
 
+static MaskSplinePoint *mask_spline_points_copy(MaskSplinePoint *points, int tot_point)
+{
+	MaskSplinePoint *npoints;
+	int i;
+
+	npoints = MEM_dupallocN(points);
+
+	for (i = 0; i < tot_point; i++) {
+		MaskSplinePoint *point = &npoints[i];
+
+		if (point->uw)
+			point->uw = MEM_dupallocN(point->uw);
+	}
+
+	return npoints;
+}
+
 MaskSpline *BKE_mask_spline_copy(MaskSpline *spline)
 {
 	MaskSpline *nspline = MEM_callocN(sizeof(MaskSpline), "new spline");
-	int i;
 
 	*nspline = *spline;
 
 	nspline->points_deform = NULL;
-	nspline->points = MEM_dupallocN(nspline->points);
+	nspline->points = mask_spline_points_copy(spline->points, spline->tot_point);
 
-	for (i = 0; i < nspline->tot_point; i++) {
-		MaskSplinePoint *point = &nspline->points[i];
-
-		if (point->uw)
-			point->uw = MEM_dupallocN(point->uw);
+	if (spline->points_deform) {
+		nspline->points_deform = mask_spline_points_copy(spline->points_deform, spline->tot_point);
 	}
 
 	return nspline;
@@ -1068,18 +1116,23 @@ void BKE_mask_layer_free(MaskLayer *masklay)
 	MEM_freeN(masklay);
 }
 
-void BKE_mask_free(Mask *mask)
+void BKE_mask_layer_free_list(ListBase *masklayers)
 {
-	MaskLayer *masklay = mask->masklayers.first;
+	MaskLayer *masklay = masklayers->first;
 
 	while (masklay) {
-		MaskLayer *next_masklay = masklay->next;
+		MaskLayer *masklay_next = masklay->next;
 
-		BLI_remlink(&mask->masklayers, masklay);
+		BLI_remlink(masklayers, masklay);
 		BKE_mask_layer_free(masklay);
 
-		masklay = next_masklay;
+		masklay = masklay_next;
 	}
+}
+
+void BKE_mask_free(Mask *mask)
+{
+	BKE_mask_layer_free_list(&mask->masklayers);
 }
 
 void BKE_mask_unlink(Main *bmain, Mask *mask)
@@ -2093,9 +2146,9 @@ int BKE_mask_get_duration(Mask *mask)
 }
 
 /* rasterization */
-void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
-                        const short do_aspect_correct, const short do_mask_aa,
-                        const short do_feather)
+void BKE_mask_rasterize_layers(ListBase *masklayers, int width, int height, float *buffer,
+                               const short do_aspect_correct, const short do_mask_aa,
+                               const short do_feather)
 {
 	MaskLayer *masklay;
 
@@ -2103,7 +2156,7 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
 	const int buffer_size = width * height;
 	float *buffer_tmp = MEM_mallocN(sizeof(float) * buffer_size, __func__);
 
-	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+	for (masklay = masklayers->first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 		float alpha;
 
@@ -2225,4 +2278,11 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
 	}
 
 	MEM_freeN(buffer_tmp);
+}
+
+void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
+                        const short do_aspect_correct, const short do_mask_aa,
+                        const short do_feather)
+{
+	BKE_mask_rasterize_layers(&mask->masklayers, width, height, buffer, do_aspect_correct, do_mask_aa, do_feather);
 }

@@ -1732,6 +1732,13 @@ static void make_local_makelocalmaterial(Material *ma)
 	/* nodetree? XXX */
 }
 
+enum {
+	MAKE_LOCAL_SELECT_OB,
+	MAKE_LOCAL_SELECT_OBDATA,
+	MAKE_LOCAL_SELECT_OBDATA_MATERIAL,
+	MAKE_LOCAL_ALL
+};
+
 static int make_local_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
@@ -1742,7 +1749,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	ID *id;
 	int a, b, mode = RNA_enum_get(op->ptr, "type");
 	
-	if (mode == 3) {
+	if (mode == MAKE_LOCAL_ALL) {
 		BKE_library_make_local(bmain, NULL, 0); /* NULL is all libs */
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 		return OPERATOR_FINISHED;
@@ -1770,7 +1777,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	{
 		id = ob->data;
 			
-		if (id && mode > 1) {
+		if (id && (ELEM(mode, MAKE_LOCAL_SELECT_OBDATA, MAKE_LOCAL_SELECT_OBDATA_MATERIAL))) {
 			id_make_local(id, 0);
 			adt = BKE_animdata_from_id(id);
 			if (adt) BKE_animdata_make_local(adt);
@@ -1794,7 +1801,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	if (mode > 1) {
+	if (mode == MAKE_LOCAL_SELECT_OBDATA_MATERIAL) {
 		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 		{
 			if (ob->type == OB_LAMP) {
@@ -1832,10 +1839,12 @@ static int make_local_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_make_local(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
-		{1, "SELECTED_OBJECTS", 0, "Selected Objects", ""},
-		{2, "SELECTED_OBJECTS_DATA", 0, "Selected Objects and Data", ""},
-		{3, "ALL", 0, "All", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{MAKE_LOCAL_SELECT_OB, "SELECT_OBJECT", 0, "Selected Objects", ""},
+		{MAKE_LOCAL_SELECT_OBDATA, "SELECT_OBDATA", 0, "Selected Objects and Data", ""},
+		{MAKE_LOCAL_SELECT_OBDATA_MATERIAL, "SELECT_OBDATA_MATERIAL", 0, "Selected Objects, Data and Materials", ""},
+		{MAKE_LOCAL_ALL, "ALL", 0, "All", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Make Local";
