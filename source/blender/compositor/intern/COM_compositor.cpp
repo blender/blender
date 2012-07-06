@@ -57,7 +57,7 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 	/* set progress bar to 0% and status to init compositing*/
 	editingtree->progress(editingtree->prh, 0.0);
 
-	bool twopass = (editingtree->flag&NTREE_TWO_PASS) > 0 || rendering;
+	bool twopass = (editingtree->flag&NTREE_TWO_PASS) > 0 && !rendering;
 	/* initialize execution system */
 	if (twopass) {
 		ExecutionSystem *system = new ExecutionSystem(rd, editingtree, rendering, twopass);

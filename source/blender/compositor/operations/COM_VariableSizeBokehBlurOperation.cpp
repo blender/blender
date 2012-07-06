@@ -22,6 +22,7 @@
 
 #include "COM_VariableSizeBokehBlurOperation.h"
 #include "BLI_math.h"
+#include "COM_OpenCLDevice.h"
 
 extern "C" {
 	#include "RE_pipeline.h"
@@ -38,6 +39,7 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation() : NodeOperation
 #endif
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
+	this->setOpenCL(true);
 
 	this->m_inputProgram = NULL;
 	this->m_inputBokehProgram = NULL;
@@ -126,6 +128,33 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 		color[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
 	}
 
+}
+
+static cl_kernel defocusKernel = 0;
+void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice* device,
+                                       MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
+                                       MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
+                                       list<cl_kernel> *clKernelsToCleanUp) 
+{
+	if (!defocusKernel) {
+		defocusKernel = device->COM_clCreateKernel("defocusKernel", NULL);
+	}
+	cl_int step = this->getStep();
+	cl_int maxBlur = this->m_maxBlur;
+	cl_float threshold = this->m_threshold;
+	
+	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputProgram);
+	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 1,  -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputBokehProgram);
+	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 2,  5, clMemToCleanUp, inputMemoryBuffers, this->m_inputDepthProgram);
+	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 3,  -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputSizeProgram);
+	device->COM_clAttachOutputMemoryBufferToKernelParameter(defocusKernel, 4, clOutputBuffer);
+	device->COM_clAttachMemoryBufferOffsetToKernelParameter(defocusKernel, 6, outputMemoryBuffer);
+	clSetKernelArg(defocusKernel, 7, sizeof(cl_int), &step);
+	clSetKernelArg(defocusKernel, 8, sizeof(cl_int), &maxBlur);
+	clSetKernelArg(defocusKernel, 9, sizeof(cl_float), &threshold);
+	device->COM_clAttachSizeToKernelParameter(defocusKernel, 10, this);
+	
+	device->COM_clEnqueueRange(defocusKernel, outputMemoryBuffer, 11, this);
 }
 
 void VariableSizeBokehBlurOperation::deinitExecution()
