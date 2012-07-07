@@ -297,7 +297,7 @@ static Object *AddNewBlenderMesh(Scene *scene, Base *base)
 	/* Initialize the mesh data associated with this object. */
 	ob_new->data = BKE_mesh_add("Mesh");
 
-	/* Finally assign the object type */.
+	/* Finally assign the object type. */
 	ob_new->type = OB_MESH;
 
 	return ob_new;
