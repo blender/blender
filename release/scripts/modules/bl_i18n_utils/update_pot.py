@@ -59,16 +59,6 @@ NC_ALLOWED = settings.WARN_MSGID_NOT_CAPITALIZED_ALLOWED
 SPELL_CACHE = settings.SPELL_CACHE
 
 
-#def generate_valid_potfiles(final_potfiles):
-#    "Generates a temp potfiles.in with aboslute paths."
-#    with open(FILE_NAME_POTFILES, 'r', 'utf-8') as f, \
-#         open(final_potfiles, 'w', 'utf-8') as w:
-#        for line in f:
-#            line = utils.stripeol(line)
-#            if line:
-#                w.write("".join((os.path.join(SOURCE_DIR,
-#                                              os.path.normpath(line)), "\n")))
-
 # Do this only once!
 # Get contexts defined in blf.
 CONTEXTS = {}
@@ -79,7 +69,7 @@ with open(os.path.join(SOURCE_DIR, settings.PYGETTEXT_CONTEXTS_DEFSRC)) as f:
     # (key=C_macro_name, value=C_string).
     CONTEXTS = dict(m.groups() for m in reg.finditer(f))
 
-# Build regexes to extract messages (with optinal contexts) from C source.
+# Build regexes to extract messages (with optional contexts) from C source.
 pygettexts = tuple(re.compile(r).search
                    for r in settings.PYGETTEXT_KEYWORDS)
 _clean_str = re.compile(settings.str_clean_re).finditer
@@ -203,6 +193,8 @@ def gen_empty_pot():
     return utils.gen_empty_messages(blender_rev, time_str, year_str)
 
 
+escape_re = tuple(re.compile(r[0]) for r in settings.ESCAPE_RE)
+escape = lambda s, n: escape_re[n].sub(settings.ESCAPE_RE[n][1], s)
 def merge_messages(msgs, states, messages, do_checks, spell_cache):
     num_added = num_present = 0
     for (context, msgid), srcs in messages.items():
@@ -214,9 +206,8 @@ def merge_messages(msgs, states, messages, do_checks, spell_cache):
                 print("\tFrom:\n\t\t" + "\n\t\t".join(srcs))
 
         # Escape some chars in msgid!
-        msgid = msgid.replace("\\", "\\\\")
-        msgid = msgid.replace("\"", "\\\"")
-        msgid = msgid.replace("\t", "\\t")
+        for n in range(len(escape_re)):
+            msgid = escape(msgid, n)
 
         srcs = [COMMENT_PREFIX_SOURCE + s for s in srcs]
 
