@@ -518,7 +518,7 @@ typedef enum eSpaceSeq_Proxy_RenderSize {
 
 /* Config and Input for File Selector */
 typedef struct FileSelectParams {
-	char title[32]; /* title, also used for the text of the execute button */
+	char title[96]; /* title, also used for the text of the execute button */
 	char dir[1056]; /* directory, FILE_MAX_LIBEXTRA, 1024 + 32, this is for extreme case when 1023 length path
 	                 * needs to be linked in, where foo.blend/Armature need adding  */
 	char file[256]; /* file */
