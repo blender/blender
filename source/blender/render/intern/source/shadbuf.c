@@ -1561,9 +1561,9 @@ static void isb_bsp_split(ISBBranch *root, MemArena *mem)
 	right= root->right= BLI_memarena_alloc(mem, sizeof(ISBBranch));
 
 	/* new sample array */
-	left->samples= BLI_memarena_alloc(mem, BSPMAX_SAMPLE*sizeof(void *));
-	right->samples= samples; // tmp
-	
+	left->samples = BLI_memarena_alloc(mem, BSPMAX_SAMPLE*sizeof(void *));
+	right->samples = samples;  /* tmp */
+
 	/* split samples */
 	for (a=BSPMAX_SAMPLE-1; a>=0; a--) {
 		int comp= 0;

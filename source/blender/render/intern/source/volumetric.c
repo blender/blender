@@ -289,7 +289,7 @@ float vol_get_density(struct ShadeInput *shi, const float co[3])
 	if (shi->mat->mapto_textured & MAP_DENSITY)
 		do_volume_tex(shi, co, MAP_DENSITY, NULL, &density, &R);
 	
-	// if meta-object, modulate by metadensity without increasing it
+	/* if meta-object, modulate by metadensity without increasing it */
 	if (shi->obi->obr->ob->type == OB_MBALL) {
 		const float md = metadensity(shi->obi->obr->ob, co);
 		if (md < 1.f) density *= md;

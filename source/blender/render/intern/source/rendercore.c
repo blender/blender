@@ -2098,12 +2098,12 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 
 			normalize_v3(nor); /* in case object has scaling */
 
-			// The invert of the red channel is to make
-			// the normal map compliant with the outside world.
-			// It needs to be done because in Blender
-			// the normal used in the renderer points inward. It is generated
-			// this way in calc_vertexnormals(). Should this ever change
-			// this negate must be removed.
+			/* The invert of the red channel is to make
+			 * the normal map compliant with the outside world.
+			 * It needs to be done because in Blender
+			 * the normal used in the renderer points inward. It is generated
+			 * this way in calc_vertexnormals(). Should this ever change
+			 * this negate must be removed. */
 			shr.combined[0]= (-nor[0])/2.0f + 0.5f;
 			shr.combined[1]= nor[1]/2.0f + 0.5f;
 			shr.combined[2]= nor[2]/2.0f + 0.5f;

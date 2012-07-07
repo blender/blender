@@ -2528,7 +2528,7 @@ static ImBuf *seq_render_strip_stack(
 
 #if 0 /* commentind since this breaks keyframing, since it resets the value on draw */
 	if (scene->r.cfra != cfra) {
-		// XXX for prefetch and overlay offset!..., very bad!!!
+		/* XXX for prefetch and overlay offset!..., very bad!!! */
 		AnimData *adt = BKE_animdata_from_id(&scene->id);
 		BKE_animsys_evaluate_animdata(scene, &scene->id, adt, cfra, ADT_RECALC_ANIM);
 	}

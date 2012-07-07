@@ -880,7 +880,7 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 	parameters.tcp_rates[0] = ((100 - quality) / 90.0f * 99.0f) + 1;
 
 	
-	parameters.tcp_numlayers = 1; // only one resolution
+	parameters.tcp_numlayers = 1; /* only one resolution */
 	parameters.cp_disto_alloc = 1;
 
 	image = ibuftoimage(ibuf, &parameters);

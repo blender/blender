@@ -64,8 +64,8 @@
 /* headers around with more freedom.                                         */
 static const char *includefiles[] = {
 
-	// if you add files here, please add them at the end
-	// of makesdna.c (this file) as well
+	/* if you add files here, please add them at the end
+	 * of makesdna.c (this file) as well */
 
 	"DNA_listBase.h",
 	"DNA_vec_types.h",
@@ -80,8 +80,8 @@ static const char *includefiles[] = {
 	"DNA_lamp_types.h",
 	"DNA_material_types.h",
 	"DNA_vfont_types.h",
-	// if you add files here, please add them at the end
-	// of makesdna.c (this file) as well
+	/* if you add files here, please add them at the end
+	 * of makesdna.c (this file) as well */
 	"DNA_meta_types.h",
 	"DNA_curve_types.h",
 	"DNA_mesh_types.h",
@@ -122,8 +122,8 @@ static const char *includefiles[] = {
 	"DNA_particle_types.h",
 	"DNA_cloth_types.h",
 	"DNA_gpencil_types.h",
-	// if you add files here, please add them at the end
-	// of makesdna.c (this file) as well
+	/* if you add files here, please add them at the end
+	 * of makesdna.c (this file) as well */
 	"DNA_windowmanager_types.h",
 	"DNA_anim_types.h",
 	"DNA_boid_types.h",
@@ -134,7 +134,7 @@ static const char *includefiles[] = {
 	"DNA_dynamicpaint_types.h",
 	"DNA_mask_types.h",
 
-	// empty string to indicate end of includefiles
+	/* empty string to indicate end of includefiles */
 	""
 };
 
@@ -450,7 +450,7 @@ static int preprocess_include(char *maindata, int len)
 
 	memcpy(temp, maindata, len);
 	
-	// remove all c++ comments
+	/* remove all c++ comments */
 	/* replace all enters/tabs/etc with spaces */
 	cp = temp;
 	a = len;
@@ -829,8 +829,8 @@ static int calculate_structlens(int firststruct)
 				else {
 					typelens[structtype] = len;
 					alphalens[structtype] = alphalen;
-					// two ways to detect if a struct contains a pointer:
-					// has_pointer is set or alphalen != len
+					/* two ways to detect if a struct contains a pointer:
+					 * has_pointer is set or alphalen != len */
 					if (has_pointer || alphalen != len) {
 						if (alphalen % 8) {
 							printf("Sizeerror 8 in struct: %s (add %d bytes)\n", types[structtype], alphalen % 8);
@@ -972,7 +972,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 	add_type("uint64_t", 8); /* SDNA_TYPE_UINT64 */
 	add_type("void", 0);     /* SDNA_TYPE_VOID */
 
-	// the defines above shouldn't be output in the padding file...
+	/* the defines above shouldn't be output in the padding file... */
 	firststruct = nr_types;
 	
 	/* add all include files defined in the global array                     */
@@ -990,7 +990,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 	if (debugSDNA) printf("\tFinished scanning %d headers.\n", i); 
 
 	if (calculate_structlens(firststruct)) {
-		// error
+		/* error */
 		return(1);
 	}
 
@@ -1091,7 +1091,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 			if (fp == NULL) ;
 			else {
 
-				// add all include files defined in the global array
+				/* add all include files defined in the global array */
 				for (i = 0; strlen(includefiles[i]); i++) {
 					fprintf(fp, "#include \"%s%s\"\n", baseDirectory, includefiles[i]);
 				}
@@ -1168,7 +1168,7 @@ int main(int argc, char **argv)
 
 			fprintf(file, "unsigned char DNAstr[]= {\n");
 			if (make_structDNA(baseDirectory, file)) {
-				// error
+				/* error */
 				fclose(file);
 				make_bad_file(argv[1], __LINE__);
 				return_status = 1;

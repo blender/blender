@@ -441,7 +441,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 
 	w = (rect->xmax - rect->xmin);
 	h = (rect->ymax - rect->ymin);
-	// prevent drawing outside widget area
+	/* prevent drawing outside widget area */
 	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + rect->xmin, ar->winrct.ymin + rect->ymin, w, h);
 #endif
@@ -509,7 +509,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 
 	/* Set the font, in case it is not FO_BUILTIN_NAME font */
 	if (G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
-		// Is the font file packed, if so then use the packed file
+		/* Is the font file packed, if so then use the packed file */
 		if (G.selfont->packedfile) {
 			pf = G.selfont->packedfile;		
 			FTF_SetFont(pf->data, pf->size, 14.0);

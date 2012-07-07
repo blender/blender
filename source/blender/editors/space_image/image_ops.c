@@ -1652,7 +1652,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 	Image *ima = CTX_data_edit_image(C);
 	ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
 
-	// flags indicate if this channel should be inverted
+	/* flags indicate if this channel should be inverted */
 	const short r = RNA_boolean_get(op->ptr, "invert_r");
 	const short g = RNA_boolean_get(op->ptr, "invert_g");
 	const short b = RNA_boolean_get(op->ptr, "invert_b");

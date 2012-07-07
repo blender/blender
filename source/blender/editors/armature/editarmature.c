@@ -1402,7 +1402,7 @@ static void selectconnected_posebonechildren(Object *ob, Bone *bone, int extend)
 	if (!(bone->flag & BONE_CONNECTED) || (bone->flag & BONE_UNSELECTABLE))
 		return;
 	
-	// XXX old cruft! use notifiers instead
+	/* XXX old cruft! use notifiers instead */
 	//select_actionchannel_by_name (ob->action, bone->name, !(shift));
 	
 	if (extend)
@@ -5404,7 +5404,7 @@ static int hide_unselected_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr
 	bArmature *arm = ob->data;
 	
 	if (arm->layer & bone->layer) {
-		// hrm... typo here?
+		/* hrm... typo here? */
 		if ((bone->flag & BONE_SELECTED) == 0) {
 			bone->flag |= BONE_HIDDEN_P;
 			if (arm->act_bone == bone)

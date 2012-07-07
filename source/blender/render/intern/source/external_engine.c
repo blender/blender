@@ -192,7 +192,7 @@ void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
 	Render *re = engine->re;
 
 	if (result) {
-		result->renlay = result->layers.first; // weak, draws first layer always
+		result->renlay = result->layers.first; /* weak, draws first layer always */
 		re->display_draw(re->ddh, result, NULL);
 	}
 }
@@ -210,7 +210,7 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result)
 
 	/* draw */
 	if (!re->test_break(re->tbh)) {
-		result->renlay = result->layers.first; // weak, draws first layer always
+		result->renlay = result->layers.first; /* weak, draws first layer always */
 		re->display_draw(re->ddh, result, NULL);
 	}
 

@@ -230,7 +230,7 @@ DLRBT_Node *BLI_dlrbTree_search_prev(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_c
 			return node;
 		
 		/* return the previous node otherwise */
-		// NOTE: what happens if there is no previous node?
+		/* NOTE: what happens if there is no previous node? */
 		return node->prev;
 	}
 	
@@ -257,7 +257,7 @@ DLRBT_Node *BLI_dlrbTree_search_next(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_c
 			return node;
 		
 		/* return the previous node otherwise */
-		// NOTE: what happens if there is no previous node?
+		/* NOTE: what happens if there is no previous node? */
 		return node->next;
 	}
 	

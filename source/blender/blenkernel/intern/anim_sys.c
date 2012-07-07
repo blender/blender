@@ -936,7 +936,7 @@ KS_Path *BKE_keyingset_find_path(KeyingSet *ks, ID *id, const char group_name[],
 			
 		/* group */
 		if (group_name) {
-			// FIXME: these checks need to be coded... for now, it's not too important though
+			/* FIXME: these checks need to be coded... for now, it's not too important though */
 		}
 			
 		/* if all aspects are ok, return */
@@ -1116,11 +1116,13 @@ void BKE_keyingsets_free(ListBase *list)
 static short animsys_remap_path(AnimMapper *UNUSED(remap), char *path, char **dst)
 {
 	/* is there a valid remapping table to use? */
-	//if (remap) {
-	/* find a matching entry... to use to remap */
-	// ...TODO...
-	//}
-	
+#if 0
+	if (remap) {
+		/* find a matching entry... to use to remap */
+		/* ...TODO... */
+	}
+#endif
+
 	/* nothing suitable found, so just set dst to look at path (i.e. no alloc/free needed) */
 	*dst = path;
 	return 0;
@@ -1997,7 +1999,7 @@ void nladata_flush_channels(ListBase *channels)
 				RNA_property_enum_set(ptr, prop, (int)value);
 				break;
 			default:
-				// can't do anything with other types of property....
+				/* can't do anything with other types of property.... */
 				break;
 		}
 	}

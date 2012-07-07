@@ -37,7 +37,7 @@
 void ED_operatortypes_io(void) 
 {
 #ifdef WITH_COLLADA
-	// Collada operators:
+	/* Collada operators: */
 	WM_operatortype_append(WM_OT_collada_export);
 	WM_operatortype_append(WM_OT_collada_import);
 #endif

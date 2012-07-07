@@ -303,7 +303,7 @@ void BPY_python_end(void)
 
 	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 	
-	// free other python data.
+	/* free other python data. */
 	pyrna_free_types();
 
 	/* clear all python data from structs */
@@ -317,7 +317,7 @@ void BPY_python_end(void)
 	Py_Finalize();
 	
 #ifdef TIME_PY_RUN
-	// measure time since py started
+	/* measure time since py started */
 	bpy_timer = PIL_check_seconds_timer() - bpy_timer;
 
 	printf("*bpy stats* - ");

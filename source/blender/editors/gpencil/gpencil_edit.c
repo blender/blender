@@ -93,8 +93,8 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 			{
 				Object *ob = CTX_data_active_object(C);
 				
-				// TODO: we can include other data-types such as bones later if need be...
-				
+				/* TODO: we can include other data-types such as bones later if need be... */
+
 				/* just in case no active object */
 				if (ob) {
 					/* for now, as long as there's an object, default to using that in 3D-View */
@@ -126,18 +126,18 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 				SpaceSeq *sseq = (SpaceSeq *)CTX_wm_space_data(C);
 				
 				/* for now, Grease Pencil data is associated with the space (actually preview region only) */
-				// XXX our convention for everything else is to link to data though...
+				/* XXX our convention for everything else is to link to data though... */
 				if (ptr) RNA_pointer_create(screen_id, &RNA_SpaceSequenceEditor, sseq, ptr);
 				return &sseq->gpd;
 			}
 			break;
-				
+
 			case SPACE_IMAGE: /* Image/UV Editor */
 			{
 				SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
-				
+
 				/* for now, Grease Pencil data is associated with the space... */
-				// XXX our convention for everything else is to link to data though...
+				/* XXX our convention for everything else is to link to data though... */
 				if (ptr) RNA_pointer_create(screen_id, &RNA_SpaceImageEditor, sima, ptr);
 				return &sima->gpd;
 			}

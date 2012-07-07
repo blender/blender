@@ -173,7 +173,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		p1[1]= shi->co[1]-lar->co[1];
 		p1[2]= -lar->co[2];
 		mul_m3_v3(lar->imat, p1);
-		copy_v3db_v3fl(npos, p1);	// npos is double!
+		copy_v3db_v3fl(npos, p1);  /* npos is double! */
 		
 		/* pre-scale */
 		npos[2] *= (double)lar->sh_zfac;
@@ -371,11 +371,12 @@ void renderspothalo(ShadeInput *shi, float col[4], float alpha)
 				continue;
 			
 			spothalo(lar, shi, &i);
-			if (i>0.0f) {
-				col[3]+= i*alpha;			// all premul
-				col[0]+= i*lar->r*alpha;
-				col[1]+= i*lar->g*alpha;
-				col[2]+= i*lar->b*alpha;	
+			if (i > 0.0f) {
+				const float i_alpha = i * alpha;
+				col[0] += i_alpha * lar->r;
+				col[1] += i_alpha * lar->g;
+				col[2] += i_alpha * lar->b;
+				col[3] += i_alpha;  /* all premul */
 			}
 		}
 	}
@@ -519,7 +520,7 @@ static float area_lamp_energy_multisample(LampRen *lar, const float co[3], float
 	}
 	intens /= (float)lar->ray_totsamp;
 	
-	return pow(intens*lar->areasize, lar->k);	// corrected for buttons size and lar->dist^2
+	return pow(intens * lar->areasize, lar->k);	/* corrected for buttons size and lar->dist^2 */
 }
 
 static float spec(float inp, int hard)	
@@ -932,7 +933,7 @@ static void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, floa
 		
 		/* MA_RAMP_IN_RESULT is exceptional */
 		if (ma->rampin_col==MA_RAMP_IN_RESULT) {
-			// normal add
+			/* normal add */
 			diff[0] += r * shi->r;
 			diff[1] += g * shi->g;
 			diff[2] += b * shi->b;
@@ -1368,10 +1369,10 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	
 	/* diffuse shaders */
 	if (lar->mode & LA_NO_DIFF) {
-		is= 0.0f;	// skip shaders
+		is = 0.0f;  /* skip shaders */
 	}
 	else if (lar->type==LA_HEMI) {
-		is= 0.5f*inp + 0.5f;
+		is = 0.5f * inp + 0.5f;
 	}
 	else {
 		
@@ -1383,12 +1384,13 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		else if (ma->diff_shader==MA_DIFF_TOON) is= Toon_Diff(vn, lv, view, ma->param[0], ma->param[1]);
 		else if (ma->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(inp, vn, view, ma->darkness);
 		else if (ma->diff_shader==MA_DIFF_FRESNEL) is= Fresnel_Diff(vn, lv, view, ma->param[0], ma->param[1]);
-		else is= inp;	// Lambert
+		else is= inp;  /* Lambert */
 	}
-	
+
 	/* 'is' is diffuse */
-	if ((ma->shade_flag & MA_CUBIC) && is>0.0f && is<1.0f)
-		is= 3.0f*is*is - 2.0f*is*is*is;	// nicer termination of shades
+	if ((ma->shade_flag & MA_CUBIC) && is > 0.0f && is < 1.0f) {
+		is= 3.0f * is * is - 2.0f * is * is * is;  /* nicer termination of shades */
+	}
 
 	i= is*phongcorr;
 	
@@ -1397,7 +1399,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	}
 	i_noshad= i;
 	
-	vn= shi->vn;	// bring back original vector, we use special specular shaders for tangent
+	vn = shi->vn;  /* bring back original vector, we use special specular shaders for tangent */
 	if (ma->mode & MA_TANGENT_V)
 		vn= shi->tang;
 	
@@ -1728,7 +1730,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		return;
 	}
 
-	if ( (ma->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))== MA_VERTEXCOL ) {	// vertexcolor light
+	if ( (ma->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))== MA_VERTEXCOL ) {	/* vertexcolor light */
 		shr->emit[0]= shi->r*(shi->emit+shi->vcol[0]*shi->vcol[3]);
 		shr->emit[1]= shi->g*(shi->emit+shi->vcol[1]*shi->vcol[3]);
 		shr->emit[2]= shi->b*(shi->emit+shi->vcol[2]*shi->vcol[3]);
@@ -1749,8 +1751,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				if (shi->depth || shi->volume_depth)
 					ambient_occlusion(shi);
 				copy_v3_v3(shr->ao, shi->ao);
-				copy_v3_v3(shr->env, shi->env); // XXX multiply
-				copy_v3_v3(shr->indirect, shi->indirect); // XXX multiply
+				copy_v3_v3(shr->env, shi->env); /* XXX multiply */
+				copy_v3_v3(shr->indirect, shi->indirect); /* XXX multiply */
 			}
 		}
 	}

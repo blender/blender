@@ -465,7 +465,7 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 
 
 
-#if 0 // debug stuff
+#if 0  /* debug stuff */
 static void *vol_precache_part_test(void *data)
 {
 	VolPrecachePart *pa = data;

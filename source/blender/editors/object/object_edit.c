@@ -1145,7 +1145,7 @@ static int object_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *U
 	}
 	
 	/* show popup dialog to allow editing of range... */
-	// FIXME: hardcoded dimensions here are just arbitrary
+	/* FIXME: hardcoded dimensions here are just arbitrary */
 	return WM_operator_props_dialog_popup(C, op, 200, 200);
 }
 

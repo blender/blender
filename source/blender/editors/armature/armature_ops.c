@@ -218,7 +218,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SKETCH_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SKETCH_OT_finish_stroke", RIGHTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SKETCH_OT_cancel_stroke", ESCKEY, KM_PRESS, 0, 0);
-	// Already part of view3d select
+	/* Already part of view3d select */
 	//WM_keymap_add_item(keymap, "SKETCH_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 
 	/* sketch poll checks mode */	

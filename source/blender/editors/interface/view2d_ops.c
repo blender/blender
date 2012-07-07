@@ -1133,7 +1133,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		 */
 		float zoom, center, size;
 		
-		// TODO: is this zoom factor calculation valid? It seems to produce same results everytime...
+		/* TODO: is this zoom factor calculation valid? It seems to produce same results everytime... */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
 			size = (v2d->cur.xmax - v2d->cur.xmin);
 			zoom = size / (rect.xmax - rect.xmin);

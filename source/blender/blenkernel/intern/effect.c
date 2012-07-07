@@ -393,7 +393,7 @@ void pd_point_from_soft(Scene *scene, float *loc, float *vel, int index, Effecte
 // triangle - ray callback function
 static void eff_tri_ray_hit(void *UNUSED(userData), int UNUSED(index), const BVHTreeRay *UNUSED(ray), BVHTreeRayHit *hit)
 {	
-	// whenever we hit a bounding box, we don't check further
+	/* whenever we hit a bounding box, we don't check further */
 	hit->dist = -1;
 	hit->index = 1;
 }
@@ -418,24 +418,24 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 	negate_v3_v3(norm, efd->vec_to_point);
 	len = normalize_v3(norm);
 	
-	// check all collision objects
+	/* check all collision objects */
 	for (col = colls->first; col; col = col->next) {
 		CollisionModifierData *collmd = col->collmd;
 
 		if (col->ob == eff->ob)
 			continue;
-		
+
 		if (collmd->bvhtree) {
 			BVHTreeRayHit hit;
-			
+
 			hit.index = -1;
 			hit.dist = len + FLT_EPSILON;
-			
-			// check if the way is blocked
+
+			/* check if the way is blocked */
 			if (BLI_bvhtree_ray_cast(collmd->bvhtree, point->loc, norm, 0.0f, &hit, eff_tri_ray_hit, NULL)>=0) {
 				absorption= col->ob->pd->absorption;
 
-				// visibility is only between 0 and 1, calculated from 1-absorption
+				/* visibility is only between 0 and 1, calculated from 1-absorption */
 				visibility *= CLAMPIS(1.0f-absorption, 0.0f, 1.0f);
 				
 				if (visibility <= 0.0f)
@@ -1006,7 +1006,7 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 
 					do_physical_effector(eff, &efd, point, force);
 					
-					// for softbody backward compatibility
+					/* for softbody backward compatibility */
 					if (point->flag & PE_WIND_AS_SPEED && impulse) {
 						sub_v3_v3v3(temp2, force, temp1);
 						sub_v3_v3v3(impulse, impulse, temp2);

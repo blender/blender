@@ -466,7 +466,7 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], co
 		vergz= v1[2];
 		vergz-= zspan->polygon_offset;
 		dz= (v2[2]-v1[2])/dx;
-		if (vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
+		if (vergz>0x50000000 && dz>0) maxtest= 1;  /* prevent overflow */
 		
 		rectz= (int *)(zspan->arectz+zspan->rectx*(oldy) +start);
 		rectmask= (int *)(zspan->rectmask+zspan->rectx*(oldy) +start);
@@ -537,7 +537,7 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], co
 		vergz= v1[2];
 		vergz-= zspan->polygon_offset;
 		dz= (v2[2]-v1[2])/dy;
-		if (vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
+		if (vergz>0x50000000 && dz>0) maxtest= 1;  /* prevent overflow */
 
 		rectz= (int *)( zspan->arectz+ (start)*zspan->rectx+ oldx );
 		rectmask= (int *)( zspan->rectmask+ (start)*zspan->rectx+ oldx );
@@ -619,7 +619,7 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], cons
 		
 		vergz= floor(v1[2]);
 		dz= floor((v2[2]-v1[2])/dx);
-		if (vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
+		if (vergz>0x50000000 && dz>0) maxtest= 1;  /* prevent overflow */
 		
 		rectz= zspan->rectz + oldy*zspan->rectx+ start;
 		rectp= zspan->rectp + oldy*zspan->rectx+ start;
@@ -678,7 +678,7 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], cons
 		
 		vergz= floor(v1[2]);
 		dz= floor((v2[2]-v1[2])/dy);
-		if (vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
+		if (vergz>0x50000000 && dz>0) maxtest= 1;  /* prevent overflow */
 		
 		rectz= zspan->rectz + start*zspan->rectx+ oldx;
 		rectp= zspan->rectp + start*zspan->rectx+ oldx;
@@ -749,7 +749,7 @@ static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), con
 		
 		vergz= floor(v1[2]);
 		dz= floor((v2[2]-v1[2])/dx);
-		if (vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
+		if (vergz>0x50000000 && dz>0) maxtest= 1;  /* prevent overflow */
 		
 		rectz= zspan->rectz + oldy*zspan->rectx+ start;
 		if (zspan->rectz1)
@@ -806,8 +806,8 @@ static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), con
 		
 		vergz= floor(v1[2]);
 		dz= floor((v2[2]-v1[2])/dy);
-		if (vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
-		
+		if (vergz>0x50000000 && dz>0) maxtest= 1;  /* prevent overflow */
+
 		rectz= zspan->rectz + start*zspan->rectx+ oldx;
 		if (zspan->rectz1)
 			rectz1= zspan->rectz1 + start*zspan->rectx+ oldx;

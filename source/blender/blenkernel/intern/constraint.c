@@ -2163,7 +2163,7 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 			Object workob;
 			
 			/* evaluate using workob */
-			// FIXME: we don't have any consistent standards on limiting effects on object...
+			/* FIXME: we don't have any consistent standards on limiting effects on object... */
 			what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
 			BKE_object_to_mat4(&workob, ct->matrix);
 		}
@@ -2623,7 +2623,7 @@ static void distlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 			}
 			/* if soft-distance is enabled, start fading once owner is dist-soft from the target */
 			else if (data->flag & LIMITDIST_USESOFT) {
-				// FIXME: there's a problem with "jumping" when this kicks in
+				/* FIXME: there's a problem with "jumping" when this kicks in */
 				if (dist >= (data->dist - data->soft)) {
 					sfac = (float)(data->soft * (1.0f - expf(-(dist - data->dist) / data->soft)) + data->dist);
 					if (dist != 0.0f) sfac /= dist;
@@ -2989,7 +2989,7 @@ static void rbj_new_data(void *cdata)
 {
 	bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint *)cdata;
 	
-	// removed code which set target of this constraint  
+	/* removed code which set target of this constraint */
 	data->type = 1;
 }
 
@@ -3608,7 +3608,7 @@ static void damptrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		
 		if (normalize_v3(tarvec) == 0.0f) {
 			/* the target is sitting on the owner, so just make them use the same direction vectors */
-			// FIXME: or would it be better to use the pure direction vector?
+			/* FIXME: or would it be better to use the pure direction vector? */
 			copy_v3_v3(tarvec, obvec);
 			//copy_v3_v3(tarvec, track_dir_vecs[data->trackflag]);
 		}
@@ -3839,7 +3839,7 @@ static void pivotcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *ta
 	}
 	
 	/* get rotation matrix representing the rotation of the owner */
-	// TODO: perhaps we might want to include scaling based on the pivot too?
+	/* TODO: perhaps we might want to include scaling based on the pivot too? */
 	copy_m3_m4(rotMat, cob->matrix);
 	normalize_m3(rotMat);
 
@@ -4395,7 +4395,7 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
 	}
 	else {
 		/* if no name is provided, use the generic "Const" name */
-		// NOTE: any constraint type that gets here really shouldn't get added...
+		/* NOTE: any constraint type that gets here really shouldn't get added... */
 		newName = (name && name[0]) ? name : "Const";
 	}
 	

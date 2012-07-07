@@ -52,7 +52,7 @@
 
 typedef struct BVHNode {
 	struct BVHNode **children;
-	struct BVHNode *parent; // some user defined traversed need that
+	struct BVHNode *parent; /* some user defined traversed need that */
 	struct BVHNode *skip[2];
 	float *bv;      /* Bounding volume of all nodes, max 13 axis */
 	int index;      /* face, edge, vertex index */
@@ -104,16 +104,15 @@ typedef struct BVHRayCastData {
 
 	BVHTreeRayHit hit;
 } BVHRayCastData;
-////////////////////////////////////////m
 
 
-////////////////////////////////////////////////////////////////////////
-// Bounding Volume Hierarchy Definition
-// 
-// Notes: From OBB until 26-DOP --> all bounding volumes possible, just choose type below
-// Notes: You have to choose the type at compile time ITM
-// Notes: You can choose the tree type --> binary, quad, octree, choose below
-////////////////////////////////////////////////////////////////////////
+/*
+ * Bounding Volume Hierarchy Definition
+ *
+ * Notes: From OBB until 26-DOP --> all bounding volumes possible, just choose type below
+ * Notes: You have to choose the type at compile time ITM
+ * Notes: You can choose the tree type --> binary, quad, octree, choose below
+ */
 
 static float KDOP_AXES[13][3] = {
 	{1.0, 0, 0}, {0, 1.0, 0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {1.0, 1.0, -1.0},
@@ -188,13 +187,15 @@ static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, in
 }
 #endif
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-// Introsort 
-// with permission deriven from the following Java code:
-// http://ralphunden.net/content/tutorials/a-guide-to-introsort/
-// and he derived it from the SUN STL 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+ * Introsort
+ * with permission deriven from the following Java code:
+ * http://ralphunden.net/content/tutorials/a-guide-to-introsort/
+ * and he derived it from the SUN STL
+ */
+
 //static int size_threshold = 16;
+
 /*
  * Common methods for all algorithms
  */
@@ -336,9 +337,9 @@ static void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 }
 #endif
 
-//after a call to this function you can expect one of:
-//      every node to left of a[n] are smaller or equal to it
-//      every node to the right of a[n] are greater or equal to it
+/* after a call to this function you can expect one of:
+ * - every node to left of a[n] are smaller or equal to it
+ * - every node to the right of a[n] are greater or equal to it */
 static int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis)
 {
 	int begin = _begin, end = _end, cut;
@@ -354,7 +355,7 @@ static int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int a
 	return n;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+/* --- */
 static void build_skip_links(BVHTree *tree, BVHNode *node, BVHNode *left, BVHNode *right)
 {
 	int i;
@@ -381,8 +382,8 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, const float *co, int 
 	float *bv = node->bv;
 	int i, k;
 	
-	// don't init boudings for the moving case
-	if (!moving) {
+	/* don't init boudings for the moving case */
+		if (!moving) {
 		for (i = tree->start_axis; i < tree->stop_axis; i++) {
 			bv[2 * i] = FLT_MAX;
 			bv[2 * i + 1] = -FLT_MAX;
@@ -401,7 +402,7 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, const float *co, int 
 	}
 }
 
-// depends on the fact that the BVH's for each face is already build
+/* depends on the fact that the BVH's for each face is already build */
 static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 {
 	float newmin, newmax;
@@ -429,31 +430,31 @@ static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 
 }
 
-// only supports x,y,z axis in the moment
-// but we should use a plain and simple function here for speed sake
+/* only supports x,y,z axis in the moment
+ * but we should use a plain and simple function here for speed sake */
 static char get_largest_axis(float *bv)
 {
 	float middle_point[3];
 
-	middle_point[0] = (bv[1]) - (bv[0]); // x axis
-	middle_point[1] = (bv[3]) - (bv[2]); // y axis
-	middle_point[2] = (bv[5]) - (bv[4]); // z axis
+	middle_point[0] = (bv[1]) - (bv[0]); /* x axis */
+	middle_point[1] = (bv[3]) - (bv[2]); /* y axis */
+	middle_point[2] = (bv[5]) - (bv[4]); /* z axis */
 	if (middle_point[0] > middle_point[1]) {
 		if (middle_point[0] > middle_point[2])
-			return 1;  // max x axis
+			return 1;  /* max x axis */
 		else
-			return 5;  // max z axis
+			return 5;  /* max z axis */
 	}
 	else {
 		if (middle_point[1] > middle_point[2])
-			return 3;  // max y axis
+			return 3;  /* max y axis */
 		else
-			return 5;  // max z axis
+			return 5;  /* max z axis */
 	}
 }
 
-// bottom-up update of bvh node BV
-// join the children on the parent BV
+/* bottom-up update of bvh node BV
+ * join the children on the parent BV */
 static void node_join(BVHTree *tree, BVHNode *node)
 {
 	int i, j;
@@ -466,11 +467,11 @@ static void node_join(BVHTree *tree, BVHNode *node)
 	for (i = 0; i < tree->tree_type; i++) {
 		if (node->children[i]) {
 			for (j = tree->start_axis; j < tree->stop_axis; j++) {
-				// update minimum 
-				if (node->children[i]->bv[(2 * j)] < node->bv[(2 * j)]) 
+				/* update minimum */
+				if (node->children[i]->bv[(2 * j)] < node->bv[(2 * j)])
 					node->bv[(2 * j)] = node->children[i]->bv[(2 * j)];
-				
-				// update maximum 
+
+				/* update maximum */
 				if (node->children[i]->bv[(2 * j) + 1] > node->bv[(2 * j) + 1])
 					node->bv[(2 * j) + 1] = node->children[i]->bv[(2 * j) + 1];
 			}
@@ -523,7 +524,7 @@ static void verify_tree(BVHTree *tree)
 {
 	int i, j, check = 0;
 	
-	// check the pointer list
+	/* check the pointer list */
 	for (i = 0; i < tree->totleaf; i++)
 	{
 		if (tree->nodes[i]->parent == NULL) {
@@ -543,7 +544,7 @@ static void verify_tree(BVHTree *tree)
 		}
 	}
 	
-	// check the leaf list
+	/* check the leaf list */
 	for (i = 0; i < tree->totleaf; i++)
 	{
 		if (tree->nodearray[i].parent == NULL) {
@@ -567,8 +568,8 @@ static void verify_tree(BVHTree *tree)
 }
 #endif
 
-//Helper data and structures to build a min-leaf generalized implicit tree
-//This code can be easily reduced (basicly this is only method to calculate pow(k, n) in O(1).. and stuff like that)
+/* Helper data and structures to build a min-leaf generalized implicit tree
+ * This code can be easily reduced (basicly this is only method to calculate pow(k, n) in O(1).. and stuff like that) */
 typedef struct BVHBuildHelper {
 	int tree_type;              /* */
 	int totleafs;               /* */
@@ -589,7 +590,7 @@ static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
 	data->totleafs = tree->totleaf;
 	data->tree_type = tree->tree_type;
 
-	//Calculate the smallest tree_type^n such that tree_type^n >= num_leafs
+	/* Calculate the smallest tree_type^n such that tree_type^n >= num_leafs */
 	for (data->leafs_per_child[0] = 1;
 	     data->leafs_per_child[0] <  data->totleafs;
 	     data->leafs_per_child[0] *= data->tree_type)
@@ -599,7 +600,7 @@ static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
 
 	data->branches_on_level[0] = 1;
 
-	//We could stop the loop first (but I am lazy to find out when)
+	/* We could stop the loop first (but I am lazy to find out when) */
 	for (depth = 1; depth < 32; depth++) {
 		data->branches_on_level[depth] = data->branches_on_level[depth - 1] * data->tree_type;
 		data->leafs_per_child[depth] = data->leafs_per_child[depth - 1] / data->tree_type;
@@ -700,18 +701,18 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 	int i;
 
 	const int tree_type   = tree->tree_type;
-	const int tree_offset = 2 - tree->tree_type; //this value is 0 (on binary trees) and negative on the others
+	const int tree_offset = 2 - tree->tree_type; /* this value is 0 (on binary trees) and negative on the others */
 	const int num_branches = implicit_needed_branches(tree_type, num_leafs);
 
 	BVHBuildHelper data;
 	int depth;
 	
-	// set parent from root node to NULL
+	/* set parent from root node to NULL */
 	BVHNode *tmp = branches_array + 0;
 	tmp->parent = NULL;
 
-	//Most of bvhtree code relies on 1-leaf trees having at least one branch
-	//We handle that special case here
+	/*Most of bvhtree code relies on 1-leaf trees having at least one branch
+	 *We handle that special case here */
 	if (num_leafs == 1) {
 		BVHNode *root = branches_array + 0;
 		refit_kdop_hull(tree, root, 0, num_leafs);
@@ -722,17 +723,17 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 		return;
 	}
 
-	branches_array--;   //Implicit trees use 1-based indexs
-	
+	branches_array--;  /* Implicit trees use 1-based indexs */
+
 	build_implicit_tree_helper(tree, &data);
 
-	//Loop tree levels (log N) loops
+	/* Loop tree levels (log N) loops */
 	for (i = 1, depth = 1; i <= num_branches; i = i * tree_type + tree_offset, depth++) {
 		const int first_of_next_level = i * tree_type + tree_offset;
-		const int end_j = MIN2(first_of_next_level, num_branches + 1);  //index of last branch on this level
+		const int end_j = MIN2(first_of_next_level, num_branches + 1);  /* index of last branch on this level */
 		int j;
 
-		//Loop all branches on this level
+		/* Loop all branches on this level */
 #pragma omp parallel for private(j) schedule(static)
 		for (j = i; j < end_j; j++) {
 			int k;
@@ -744,34 +745,34 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 			int parent_leafs_begin = implicit_leafs_index(&data, depth, parent_level_index);
 			int parent_leafs_end   = implicit_leafs_index(&data, depth, parent_level_index + 1);
 
-			//This calculates the bounding box of this branch
-			//and chooses the largest axis as the axis to divide leafs
+			/* This calculates the bounding box of this branch
+			 * and chooses the largest axis as the axis to divide leafs */
 			refit_kdop_hull(tree, parent, parent_leafs_begin, parent_leafs_end);
 			split_axis = get_largest_axis(parent->bv);
 
-			//Save split axis (this can be used on raytracing to speedup the query time)
+			/* Save split axis (this can be used on raytracing to speedup the query time) */
 			parent->main_axis = split_axis / 2;
 
-			//Split the childs along the split_axis, note: its not needed to sort the whole leafs array
-			//Only to assure that the elements are partioned on a way that each child takes the elements
-			//it would take in case the whole array was sorted.
-			//Split_leafs takes care of that "sort" problem.
+			/* Split the childs along the split_axis, note: its not needed to sort the whole leafs array
+			 * Only to assure that the elements are partioned on a way that each child takes the elements
+			 * it would take in case the whole array was sorted.
+			 * Split_leafs takes care of that "sort" problem. */
 			nth_positions[0] = parent_leafs_begin;
 			nth_positions[tree_type] = parent_leafs_end;
 			for (k = 1; k < tree_type; k++) {
 				int child_index = j * tree_type + tree_offset + k;
-				int child_level_index = child_index - first_of_next_level; //child level index
+				int child_level_index = child_index - first_of_next_level; /* child level index */
 				nth_positions[k] = implicit_leafs_index(&data, depth + 1, child_level_index);
 			}
 
 			split_leafs(leafs_array, nth_positions, tree_type, split_axis);
 
 
-			//Setup children and totnode counters
-			//Not really needed but currently most of BVH code relies on having an explicit children structure
+			/* Setup children and totnode counters
+			 * Not really needed but currently most of BVH code relies on having an explicit children structure */
 			for (k = 0; k < tree_type; k++) {
 				int child_index = j * tree_type + tree_offset + k;
-				int child_level_index = child_index - first_of_next_level; //child level index
+				int child_level_index = child_index - first_of_next_level; /* child level index */
 
 				int child_leafs_begin = implicit_leafs_index(&data, depth + 1, child_level_index);
 				int child_leafs_end   = implicit_leafs_index(&data, depth + 1, child_level_index + 1);
@@ -803,20 +804,20 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 	BVHTree *tree;
 	int numnodes, i;
 	
-	// theres not support for trees below binary-trees :P
+	/* theres not support for trees below binary-trees :P */
 	if (tree_type < 2)
 		return NULL;
-	
+
 	if (tree_type > MAX_TREETYPE)
 		return NULL;
 
 	tree = (BVHTree *)MEM_callocN(sizeof(BVHTree), "BVHTree");
 
-	//tree epsilon must be >= FLT_EPSILON
-	//so that tangent rays can still hit a bounding volume..
-	//this bug would show up when casting a ray aligned with a kdop-axis and with an edge of 2 faces
+	/* tree epsilon must be >= FLT_EPSILON
+	 * so that tangent rays can still hit a bounding volume..
+	 * this bug would show up when casting a ray aligned with a kdop-axis and with an edge of 2 faces */
 	epsilon = MAX2(FLT_EPSILON, epsilon);
-	
+
 	if (tree) {
 		tree->epsilon = epsilon;
 		tree->tree_type = tree_type; 
@@ -910,59 +911,59 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	BVHNode *branches_array = tree->nodearray + tree->totleaf;
 	BVHNode **leafs_array    = tree->nodes;
 
-	//This function should only be called once (some big bug goes here if its being called more than once per tree)
+	/* This function should only be called once (some big bug goes here if its being called more than once per tree) */
 	assert(tree->totbranch == 0);
 
-	//Build the implicit tree
+	/* Build the implicit tree */
 	non_recursive_bvh_div_nodes(tree, branches_array, leafs_array, tree->totleaf);
 
-	//current code expects the branches to be linked to the nodes array
-	//we perform that linkage here
+	/*current code expects the branches to be linked to the nodes array
+	 *we perform that linkage here */
 	tree->totbranch = implicit_needed_branches(tree->tree_type, tree->totleaf);
 	for (i = 0; i < tree->totbranch; i++)
 		tree->nodes[tree->totleaf + i] = branches_array + i;
 
 	build_skip_links(tree, tree->nodes[tree->totleaf], NULL, NULL);
-	//bvhtree_info(tree);
+	/* bvhtree_info(tree); */
 }
 
 int BLI_bvhtree_insert(BVHTree *tree, int index, const float *co, int numpoints)
 {
 	int i;
 	BVHNode *node = NULL;
-	
-	// insert should only possible as long as tree->totbranch is 0
+
+	/* insert should only possible as long as tree->totbranch is 0 */
 	if (tree->totbranch > 0)
 		return 0;
-	
+
 	if (tree->totleaf + 1 >= MEM_allocN_len(tree->nodes) / sizeof(*(tree->nodes)))
 		return 0;
-	
-	// TODO check if have enough nodes in array
-	
+
+	/* TODO check if have enough nodes in array */
+
 	node = tree->nodes[tree->totleaf] = &(tree->nodearray[tree->totleaf]);
 	tree->totleaf++;
-	
+
 	create_kdop_hull(tree, node, co, numpoints, 0);
 	node->index = index;
-	
-	// inflate the bv with some epsilon
+
+	/* inflate the bv with some epsilon */
 	for (i = tree->start_axis; i < tree->stop_axis; i++) {
-		node->bv[(2 * i)] -= tree->epsilon; // minimum 
-		node->bv[(2 * i) + 1] += tree->epsilon; // maximum 
+		node->bv[(2 * i)] -= tree->epsilon; /* minimum */
+		node->bv[(2 * i) + 1] += tree->epsilon; /* maximum */
 	}
 
 	return 1;
 }
 
 
-// call before BLI_bvhtree_update_tree()
+/* call before BLI_bvhtree_update_tree() */
 int BLI_bvhtree_update_node(BVHTree *tree, int index, const float *co, const float *co_moving, int numpoints)
 {
 	int i;
 	BVHNode *node = NULL;
 	
-	// check if index exists
+	/* check if index exists */
 	if (index > tree->totleaf)
 		return 0;
 	
@@ -982,12 +983,12 @@ int BLI_bvhtree_update_node(BVHTree *tree, int index, const float *co, const flo
 	return 1;
 }
 
-// call BLI_bvhtree_update_node() first for every node/point/triangle
+/* call BLI_bvhtree_update_node() first for every node/point/triangle */
 void BLI_bvhtree_update_tree(BVHTree *tree)
 {
-	//Update bottom=>top
-	//TRICKY: the way we build the tree all the childs have an index greater than the parent
-	//This allows us todo a bottom up update by starting on the biger numbered branch
+	/* Update bottom=>top
+	 * TRICKY: the way we build the tree all the childs have an index greater than the parent
+	 * This allows us todo a bottom up update by starting on the biger numbered branch */
 
 	BVHNode **root  = tree->nodes + tree->totleaf;
 	BVHNode **index = tree->nodes + tree->totleaf + tree->totbranch - 1;
@@ -1004,8 +1005,8 @@ float BLI_bvhtree_getepsilon(BVHTree *tree)
 
 /*
  * BLI_bvhtree_overlap
- */
-// overlap - is it possbile for 2 bv's to collide ?
+ *
+ * overlap - is it possbile for 2 bv's to collide ? */
 static int tree_overlap(BVHNode *node1, BVHNode *node2, int start_axis, int stop_axis)
 {
 	float *bv1 = node1->bv;
@@ -1016,31 +1017,31 @@ static int tree_overlap(BVHNode *node1, BVHNode *node2, int start_axis, int stop
 	bv1 += start_axis << 1;
 	bv2 += start_axis << 1;
 	
-	// test all axis if min + max overlap
+	/* test all axis if min + max overlap */
 	for (; bv1 != bv1_end; bv1 += 2, bv2 += 2) {
-		if ((*(bv1) > *(bv2 + 1)) || (*(bv2) > *(bv1 + 1))) 
+		if ((*(bv1) > *(bv2 + 1)) || (*(bv2) > *(bv1 + 1)))
 			return 0;
 	}
-	
+
 	return 1;
 }
 
 static void traverse(BVHOverlapData *data, BVHNode *node1, BVHNode *node2)
 {
 	int j;
-	
+
 	if (tree_overlap(node1, node2, data->start_axis, data->stop_axis)) {
-		// check if node1 is a leaf
+		/* check if node1 is a leaf */
 		if (!node1->totnode) {
-			// check if node2 is a leaf
+			/* check if node2 is a leaf */
 			if (!node2->totnode) {
-				
+
 				if (node1 == node2) {
 					return;
 				}
-					
+
 				if (data->i >= data->max_overlap) {
-					// try to make alloc'ed memory bigger
+					/* try to make alloc'ed memory bigger */
 					data->overlap = realloc(data->overlap, sizeof(BVHTreeOverlap) * data->max_overlap * 2);
 					
 					if (!data->overlap) {
@@ -1222,14 +1223,14 @@ PUSH_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size)
 static void NodeDistance_pop_heap(NodeDistance *heap, int heap_size)
 POP_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size)
 
-//NN function that uses an heap.. this functions leads to an optimal number of min-distance
-//but for normal tri-faces and BV 6-dop.. a simple dfs with local heuristics (as implemented
-//in source/blender/blenkernel/intern/shrinkwrap.c) works faster.
-//
-//It may make sense to use this function if the callback queries are very slow.. or if its impossible
-//to get a nice heuristic
-//
-//this function uses "malloc/free" instead of the MEM_* because it intends to be openmp safe
+/* NN function that uses an heap.. this functions leads to an optimal number of min-distance
+ * but for normal tri-faces and BV 6-dop.. a simple dfs with local heuristics (as implemented
+ * in source/blender/blenkernel/intern/shrinkwrap.c) works faster.
+ *
+ * It may make sense to use this function if the callback queries are very slow.. or if its impossible
+ * to get a nice heuristic
+ *
+ * this function uses "malloc/free" instead of the MEM_* because it intends to be openmp safe */
 static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 {
 	int i;
@@ -1327,11 +1328,11 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
 		data.nearest.dist = FLT_MAX;
 	}
 
-	//dfs search
+	/* dfs search */
 	if (root)
 		dfs_find_nearest_begin(&data, root);
 
-	//copy back results
+	/* copy back results */
 	if (nearest) {
 		memcpy(nearest, &data.nearest, sizeof(*nearest));
 	}
@@ -1347,7 +1348,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
  */
 
 
-//Determines the distance that the ray must travel to hit the bounding volume of the given node
+/* Determines the distance that the ray must travel to hit the bounding volume of the given node */
 static float ray_nearest_hit(BVHRayCastData *data, float *bv)
 {
 	int i;
@@ -1382,11 +1383,11 @@ static float ray_nearest_hit(BVHRayCastData *data, float *bv)
 	return low;
 }
 
-//Determines the distance that the ray must travel to hit the bounding volume of the given node
-//Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
-//[http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
-//
-//TODO this doens't has data->ray.radius in consideration
+/* Determines the distance that the ray must travel to hit the bounding volume of the given node
+ * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
+ * [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
+ *
+ * TODO this doens't has data->ray.radius in consideration */
 static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *node)
 {
 	const float *bv = node->bv;
@@ -1413,8 +1414,8 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 {
 	int i;
 
-	//ray-bv is really fast.. and simple tests revealed its worth to test it
-	//before calling the ray-primitive functions
+	/* ray-bv is really fast.. and simple tests revealed its worth to test it
+	 * before calling the ray-primitive functions */
 	/* XXX: temporary solution for particles until fast_ray_nearest_hit supports ray.radius */
 	float dist = (data->ray.radius > 0.0f) ? ray_nearest_hit(data, node->bv) : fast_ray_nearest_hit(data, node);
 	if (dist >= data->hit.dist) return;
@@ -1430,7 +1431,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 		}
 	}
 	else {
-		//pick loop direction to dive into the tree (based on ray direction and split axis)
+		/* pick loop direction to dive into the tree (based on ray direction and split axis) */
 		if (data->ray_dot_axis[(int)node->main_axis] > 0.0f) {
 			for (i = 0; i != node->totnode; i++) {
 				dfs_raycast(data, node->children[i]);

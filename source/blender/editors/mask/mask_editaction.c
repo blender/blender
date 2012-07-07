@@ -243,7 +243,7 @@ void ED_masklayer_frames_duplicate(MaskLayer *masklay)
 			mask_shape_dupe = BKE_mask_layer_shape_duplicate(masklay_shape);
 			masklay_shape->flag &= ~MASK_SHAPE_SELECT;
 
-			// XXX - how to handle duplicate frames?
+			/* XXX - how to handle duplicate frames? */
 			BLI_insertlinkafter(&masklay->splines_shapes, masklay_shape, mask_shape_dupe);
 		}
 	}

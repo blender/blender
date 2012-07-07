@@ -718,7 +718,7 @@ static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con,
 	unit_m4(invmat);
 	
 	/* try to find a pose channel - assume that this is the constraint owner */
-	// TODO: get from context instead?
+	/* TODO: get from context instead? */
 	if (ob && ob->pose)
 		pchan = BKE_pose_channel_active(ob);
 	
@@ -974,7 +974,7 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 	ListBase *lb = get_constraint_lb(ob, con, NULL);
 	
 	/* lets be nice and escape if its active already */
-	// NOTE: this assumes that the stack doesn't have other active ones set...
+	/* NOTE: this assumes that the stack doesn't have other active ones set... */
 	if ((lb && con) && (con->flag & CONSTRAINT_ACTIVE))
 		return;
 	
@@ -1787,7 +1787,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		bConstraint *con, *next;
 		
-		// TODO: should we be checking if these contraints were local before we try and remove them?
+		/* TODO: should we be checking if these contraints were local before we try and remove them? */
 		for (con = pchan->constraints.first; con; con = next) {
 			next = con->next;
 			if (con->type == CONSTRAINT_TYPE_KINEMATIC) {

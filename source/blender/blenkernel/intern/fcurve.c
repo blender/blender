@@ -422,7 +422,7 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, short 
 	if (loopbreaker == (maxloop - 1)) {
 		printf("Error: binarysearch_bezt_index() was taking too long\n");
 		
-		// include debug info 
+		/* include debug info */
 		printf("\tround = %d: start = %d, end = %d, arraylen = %d\n", loopbreaker, start, end, arraylen);
 	}
 	
@@ -1159,7 +1159,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 	float loc2[3] = {0.0f, 0.0f, 0.0f};
 	
 	/* get two location values */
-	// NOTE: for now, these are all just worldspace
+	/* NOTE: for now, these are all just worldspace */
 	DRIVER_TARGETS_USED_LOOPER(dvar)
 	{
 		/* get pointer to loc values to store in */
@@ -1206,7 +1206,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 			/* object */
 			if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
 				if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
-					// XXX: this should practically be the same as transform space...
+					/* XXX: this should practically be the same as transform space... */
 					float mat[4][4];
 					
 					/* extract transform just like how the constraints do it! */
@@ -1796,7 +1796,7 @@ static int findzero(float x, float q0, float q1, float q2, float q3, float *o)
 		c = c0;
 		
 		if (a != 0.0) {
-			// discriminant
+			/* discriminant */
 			p = b * b - 4 * a * c;
 			
 			if (p > 0) {

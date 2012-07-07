@@ -258,11 +258,11 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 	y1 = (int)floor(v);
 	y2 = (int)ceil(v);
 
-	// sample area entirely outside image? 
+	/* sample area entirely outside image? */
 	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) return;
 
 	if (outF) {
-		// sample including outside of edges of image 
+		/* sample including outside of edges of image */
 		if (x1 < 0 || y1 < 0) row1 = empty;
 		else row1 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x1;
 		
@@ -285,7 +285,7 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 		outF[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3];
 	}
 	if (outI) {
-		// sample including outside of edges of image 
+		/* sample including outside of edges of image */
 		if (x1 < 0 || y1 < 0) row1I = emptyI;
 		else row1I = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x1;
 		
@@ -332,18 +332,18 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 	y1 = (int)floor(v);
 	y2 = (int)ceil(v);
 
-	// sample area entirely outside image? 
+	/* sample area entirely outside image? */
 	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) return;
-	
+
 	/* wrap interpolation pixels - main difference from bilinear_interpolation_color  */
 	if (x1 < 0) x1 = in->x + x1;
 	if (y1 < 0) y1 = in->y + y1;
-	
+
 	if (x2 >= in->x) x2 = x2 - in->x;
 	if (y2 >= in->y) y2 = y2 - in->y;
 
 	if (outF) {
-		// sample including outside of edges of image 
+		/* sample including outside of edges of image */
 		row1 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x1;
 		row2 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x1;
 		row3 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x2;
@@ -359,7 +359,7 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 		outF[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3];
 	}
 	if (outI) {
-		// sample including outside of edges of image 
+		/* sample including outside of edges of image */
 		row1I = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x1;
 		row2I = (unsigned char *)in->rect + in->x * y2 * 4 + 4 * x1;
 		row3I = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x2;
@@ -404,10 +404,10 @@ void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 	x1 = (int)(u);
 	y1 = (int)(v);
 
-	// sample area entirely outside image? 
+	/* sample area entirely outside image? */
 	if (x1 < 0 || x1 > in->x - 1 || y1 < 0 || y1 > in->y - 1) return;
-	
-	// sample including outside of edges of image 
+
+	/* sample including outside of edges of image */
 	if (x1 < 0 || y1 < 0) {
 		if (outI) {
 			outI[0] = 0;

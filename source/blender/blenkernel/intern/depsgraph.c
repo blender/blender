@@ -320,7 +320,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 			DRIVER_TARGETS_USED_LOOPER(dvar) 
 			{
 				if (dtar->id) {
-					// FIXME: other data types need to be added here so that they can work!
+					/* FIXME: other data types need to be added here so that they can work! */
 					if (GS(dtar->id->name) == ID_OB) {
 						Object *ob = (Object *)dtar->id;
 						
@@ -399,8 +399,8 @@ static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Objec
 	Base *base;
 	DagNode *node2;
 
-	// would be nice to have a list of colliders here
-	// so for now walk all objects in scene check 'same layer rule'
+	/* would be nice to have a list of colliders here
+	 * so for now walk all objects in scene check 'same layer rule' */
 	for (base = scene->base.first; base; base = base->next) {
 		if ((base->lay & ob->lay) && base->object->pd) {
 			Object *ob1 = base->object;
@@ -858,7 +858,7 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 		}
 	}
 	
-	// cycle detection and solving
+	/* cycle detection and solving */
 	// solve_cycles(dag);	
 	
 	return dag;
@@ -1567,7 +1567,7 @@ DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob)
 	
 	node = dag_find_node(dag, ob);
 	
-	// need to go over the whole dag for adj list
+	/* need to go over the whole dag for adj list */
 	nqueue = queue_create(node->ancestor_count);
 	
 	node1 = dag->DagNode.first;
@@ -2205,8 +2205,8 @@ static int object_modifiers_use_time(Object *ob)
 				return 1;
 		}
 		
-		// XXX: also, should check NLA strips, though for now assume that nobody uses
-		// that and we can omit that for performance reasons...
+		/* XXX: also, should check NLA strips, though for now assume that nobody uses
+		 * that and we can omit that for performance reasons... */
 	}
 	
 	return 0;

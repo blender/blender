@@ -1342,7 +1342,7 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 		int a;
 
 #if 0   /* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
-		// XXX old animation system! --------------------------------------
+		/* XXX old animation system! -------------------------------------- */
 		{
 			bActionStrip *strip;
 			for (strip = ob->nlastrips.first; strip; strip = strip->next) {
@@ -1351,7 +1351,7 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 				LIBTAG(strip->ipo);
 			}
 		}
-		// XXX: new animation system needs something like this?
+		/* XXX: new animation system needs something like this? */
 #endif
 
 		for (a = 0; a < ob->totcol; a++) {

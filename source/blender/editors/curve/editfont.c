@@ -753,7 +753,7 @@ static int paste_selection(Object *obedit, ReportList *reports)
 	EditFont *ef = cu->editfont;
 	int len = wcslen(ef->copybuf);
 
-	// Verify that the copy buffer => [copy buffer len] + cu->len < MAXTEXT
+	/* Verify that the copy buffer => [copy buffer len] + cu->len < MAXTEXT */
 	if (cu->len + len <= MAXTEXT) {
 		if (len) {	
 			int size = (cu->len * sizeof(wchar_t)) - (cu->pos * sizeof(wchar_t)) + sizeof(wchar_t);
@@ -1773,10 +1773,10 @@ static void *editFont_to_undoFont(void *ecu, void *UNUSED(obdata))
 	EditFont *ef = cu->editfont;
 	char *str;
 	
-	// The undo buffer includes [MAXTEXT+6]=actual string and [MAXTEXT+4]*sizeof(CharInfo)=charinfo
+	/* The undo buffer includes [MAXTEXT+6]=actual string and [MAXTEXT+4]*sizeof(CharInfo)=charinfo */
 	str = MEM_callocN((MAXTEXT + 6) * sizeof(wchar_t) + (MAXTEXT + 4) * sizeof(CharInfo), "string undo");
 
-	// Copy the string and string information
+	/* Copy the string and string information */
 	memcpy(str + 4, ef->textbuf, (cu->len + 1) * sizeof(wchar_t));
 	memcpy(str + 4 + (cu->len + 1) * sizeof(wchar_t), ef->textbufinfo, cu->len * sizeof(CharInfo));
 

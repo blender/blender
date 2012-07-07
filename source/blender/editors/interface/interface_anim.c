@@ -141,7 +141,7 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 	}
 	
 	/* make sure we have animdata for this */
-	// FIXME: until materials can be handled by depsgraph, don't allow drivers to be created for them
+	/* FIXME: until materials can be handled by depsgraph, don't allow drivers to be created for them */
 	id = (ID *)but->rnapoin.id.data;
 	if ((id == NULL) || (GS(id->name) == ID_MA) || (GS(id->name) == ID_TE)) {
 		if (G.debug & G_DEBUG)

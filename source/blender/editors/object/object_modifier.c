@@ -1353,7 +1353,7 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 	ot->description = "Save displacements to an external file";
 	ot->idname = "OBJECT_OT_multires_external_save";
 
-	// XXX modifier no longer in context after file browser .. ot->poll = multires_poll;
+	/* XXX modifier no longer in context after file browser .. ot->poll = multires_poll; */
 	ot->exec = multires_external_save_exec;
 	ot->invoke = multires_external_save_invoke;
 	ot->poll = multires_poll;
@@ -1375,7 +1375,7 @@ static int multires_external_pack_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
-	// XXX don't remove..
+	/* XXX don't remove.. */
 	CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
 	
 	return OPERATOR_FINISHED;

@@ -117,7 +117,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 					if (go->ob) {
 						SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
 						
-						// check for initialized smoke object
+						/* check for initialized smoke object */
 						if (smd2 && (smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) {
 							DagNode *curNode = dag_get_node(forest, go->ob);
 							dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Smoke Flow");
@@ -130,7 +130,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 					if (go->ob) {
 						SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
 						
-						// check for initialized smoke object
+						/* check for initialized smoke object */
 						if (smd2 && (smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll) {
 							DagNode *curNode = dag_get_node(forest, go->ob);
 							dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Smoke Coll");

@@ -554,29 +554,29 @@ static short IsectLLPt2Df(const float x0, const float y0, const float x1, const 
 	 * compute slopes, note the cludge for infinity, however, this will
 	 * be close enough
 	 */
-	if (fabs(x1 - x0) > 0.000001)
+	if (fabs(x1 - x0) > 0.000001f)
 		m1 = (y1 - y0) / (x1 - x0);
 	else
-		return -1; /*m1 = (float)1e+10;*/ // close enough to infinity
+		return -1; /*m1 = (float)1e+10;*/ /* close enough to infinity */
 
-	if (fabs(x3 - x2) > 0.000001)
+	if (fabs(x3 - x2) > 0.000001f)
 		m2 = (y3 - y2) / (x3 - x2);
 	else
-		return -1; /*m2 = (float)1e+10;*/ // close enough to infinity
+		return -1; /*m2 = (float)1e+10;*/ /* close enough to infinity */
 
-	if (fabs(m1 - m2) < 0.000001)
+	if (fabs(m1 - m2) < 0.000001f)
 		return -1;  /* parallel lines */
 
-	// compute constants
+	/* compute constants */
 
 	c1 = (y0 - m1 * x0);
 	c2 = (y2 - m2 * x2);
 
-	// compute the inverse of the determinate
+	/* compute the inverse of the determinate */
 
 	det_inv = 1.0f / (-m1 + m2);
 
-	// use Kramers rule to compute xi and yi
+	/* use Kramers rule to compute xi and yi */
 
 	*xi = ((-c2 + c1) * det_inv);
 	*yi = ((m2 * c1 - m1 * c2) * det_inv);
@@ -1123,15 +1123,17 @@ int isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3]
 	float u, v, f;
 	int a0 = axis, a1 = (axis + 1) % 3, a2 = (axis + 2) % 3;
 
-	//return isect_line_tri_v3(p1,p2,v0,v1,v2,lambda);
+#if 0
+	return isect_line_tri_v3(p1,p2,v0,v1,v2,lambda);
 
-	///* first a simple bounding box test */
-	//if (MIN3(v0[a1],v1[a1],v2[a1]) > p1[a1]) return 0;
-	//if (MIN3(v0[a2],v1[a2],v2[a2]) > p1[a2]) return 0;
-	//if (MAX3(v0[a1],v1[a1],v2[a1]) < p1[a1]) return 0;
-	//if (MAX3(v0[a2],v1[a2],v2[a2]) < p1[a2]) return 0;
+	/* first a simple bounding box test */
+	if (MIN3(v0[a1],v1[a1],v2[a1]) > p1[a1]) return 0;
+	if (MIN3(v0[a2],v1[a2],v2[a2]) > p1[a2]) return 0;
+	if (MAX3(v0[a1],v1[a1],v2[a1]) < p1[a1]) return 0;
+	if (MAX3(v0[a2],v1[a2],v2[a2]) < p1[a2]) return 0;
 
-	///* then a full intersection test */
+	/* then a full intersection test */
+#endif
 
 	sub_v3_v3v3(e1, v1, v0);
 	sub_v3_v3v3(e2, v2, v0);
@@ -1331,9 +1333,9 @@ int isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
 	if (tzmin > tmin)
 		tmin = tzmin;
 
-	// XXX jwilkins: tmax does not need to be updated since we don't use it
-	// keeping this here for future reference
-	//if (tzmax < tmax) tmax = tzmax; 
+	/* XXX jwilkins: tmax does not need to be updated since we don't use it
+	 * keeping this here for future reference */
+	//if (tzmax < tmax) tmax = tzmax;
 
 	if (tmin_out)
 		(*tmin_out) = tmin;
@@ -2803,21 +2805,21 @@ static int ff_visible_quad(const float p[3], const float n[3],
 	if (sd[0] > 0) {
 		if (sd[1] > 0) {
 			if (sd[2] > 0) {
-				// +++
+				/* +++ */
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
 			else if (sd[2] < 0) {
-				// ++-
+				/* ++- */
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				vec_add_dir(q2, v1, v2, (sd[1] / (sd[1] - sd[2])));
 				vec_add_dir(q3, v0, v2, (sd[0] / (sd[0] - sd[2])));
 			}
 			else {
-				// ++0
+				/* ++0 */
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
@@ -2826,21 +2828,21 @@ static int ff_visible_quad(const float p[3], const float n[3],
 		}
 		else if (sd[1] < 0) {
 			if (sd[2] > 0) {
-				// +-+
+				/* +-+ */
 				copy_v3_v3(q0, v0);
 				vec_add_dir(q1, v0, v1, (sd[0] / (sd[0] - sd[1])));
 				vec_add_dir(q2, v1, v2, (sd[1] / (sd[1] - sd[2])));
 				copy_v3_v3(q3, v2);
 			}
 			else if (sd[2] < 0) {
-				// +--
+				/* +-- */
 				copy_v3_v3(q0, v0);
 				vec_add_dir(q1, v0, v1, (sd[0] / (sd[0] - sd[1])));
 				vec_add_dir(q2, v0, v2, (sd[0] / (sd[0] - sd[2])));
 				copy_v3_v3(q3, q2);
 			}
 			else {
-				// +-0
+				/* +-0 */
 				copy_v3_v3(q0, v0);
 				vec_add_dir(q1, v0, v1, (sd[0] / (sd[0] - sd[1])));
 				copy_v3_v3(q2, v2);
@@ -2849,21 +2851,21 @@ static int ff_visible_quad(const float p[3], const float n[3],
 		}
 		else {
 			if (sd[2] > 0) {
-				// +0+
+				/* +0+ */
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
 			else if (sd[2] < 0) {
-				// +0-
+				/* +0- */
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				vec_add_dir(q2, v0, v2, (sd[0] / (sd[0] - sd[2])));
 				copy_v3_v3(q3, q2);
 			}
 			else {
-				// +00
+				/* +00 */
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
@@ -2874,21 +2876,21 @@ static int ff_visible_quad(const float p[3], const float n[3],
 	else if (sd[0] < 0) {
 		if (sd[1] > 0) {
 			if (sd[2] > 0) {
-				// -++
+				/* -++ */
 				vec_add_dir(q0, v0, v1, (sd[0] / (sd[0] - sd[1])));
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				vec_add_dir(q3, v0, v2, (sd[0] / (sd[0] - sd[2])));
 			}
 			else if (sd[2] < 0) {
-				// -+-
+				/* -+- */
 				vec_add_dir(q0, v0, v1, (sd[0] / (sd[0] - sd[1])));
 				copy_v3_v3(q1, v1);
 				vec_add_dir(q2, v1, v2, (sd[1] / (sd[1] - sd[2])));
 				copy_v3_v3(q3, q2);
 			}
 			else {
-				// -+0
+				/* -+0 */
 				vec_add_dir(q0, v0, v1, (sd[0] / (sd[0] - sd[1])));
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
@@ -2897,35 +2899,35 @@ static int ff_visible_quad(const float p[3], const float n[3],
 		}
 		else if (sd[1] < 0) {
 			if (sd[2] > 0) {
-				// --+
+				/* --+ */
 				vec_add_dir(q0, v0, v2, (sd[0] / (sd[0] - sd[2])));
 				vec_add_dir(q1, v1, v2, (sd[1] / (sd[1] - sd[2])));
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
 			else if (sd[2] < 0) {
-				// ---
+				/* --- */
 				return 0;
 			}
 			else {
-				// --0
+				/* --0 */
 				return 0;
 			}
 		}
 		else {
 			if (sd[2] > 0) {
-				// -0+
+				/* -0+ */
 				vec_add_dir(q0, v0, v2, (sd[0] / (sd[0] - sd[2])));
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
 			else if (sd[2] < 0) {
-				// -0-
+				/* -0- */
 				return 0;
 			}
 			else {
-				// -00
+				/* -00 */
 				return 0;
 			}
 		}
@@ -2933,21 +2935,21 @@ static int ff_visible_quad(const float p[3], const float n[3],
 	else {
 		if (sd[1] > 0) {
 			if (sd[2] > 0) {
-				// 0++
+				/* 0++ */
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
 			else if (sd[2] < 0) {
-				// 0+-
+				/* 0+- */
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				vec_add_dir(q2, v1, v2, (sd[1] / (sd[1] - sd[2])));
 				copy_v3_v3(q3, q2);
 			}
 			else {
-				// 0+0
+				/* 0+0 */
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
@@ -2956,35 +2958,35 @@ static int ff_visible_quad(const float p[3], const float n[3],
 		}
 		else if (sd[1] < 0) {
 			if (sd[2] > 0) {
-				// 0-+
+				/* 0-+ */
 				copy_v3_v3(q0, v0);
 				vec_add_dir(q1, v1, v2, (sd[1] / (sd[1] - sd[2])));
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
 			else if (sd[2] < 0) {
-				// 0--
+				/* 0-- */
 				return 0;
 			}
 			else {
-				// 0-0
+				/* 0-0 */
 				return 0;
 			}
 		}
 		else {
 			if (sd[2] > 0) {
-				// 00+
+				/* 00+ */
 				copy_v3_v3(q0, v0);
 				copy_v3_v3(q1, v1);
 				copy_v3_v3(q2, v2);
 				copy_v3_v3(q3, q2);
 			}
 			else if (sd[2] < 0) {
-				// 00-
+				/* 00- */
 				return 0;
 			}
 			else {
-				// 000
+				/* 000 */
 				return 0;
 			}
 		}

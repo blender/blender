@@ -1413,11 +1413,11 @@ int BKE_texture_dependsOnTime(const struct Tex *texture)
 		return 1;
 	}
 	else if (texture->adt) {
-		// assume anything in adt means the texture is animated
+		/* assume anything in adt means the texture is animated */
 		return 1;
 	}
 	else if (texture->type == TEX_NOISE) {
-		// noise always varies with time
+		/* noise always varies with time */
 		return 1;
 	}
 	return 0;

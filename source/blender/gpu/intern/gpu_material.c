@@ -1032,7 +1032,9 @@ static void do_material_tex(GPUShadeInput *shi)
 				if (tex->imaflag & TEX_USEALPHA)
 					talpha= 1;
 			}
-			else continue;
+			else {
+				continue;
+			}
 
 			/* texture output */
 			if ((rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {

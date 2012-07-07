@@ -107,7 +107,7 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 			buffer[i] = rect[index];
 			index += step;
 			if (index >= linelength) {
-				// we've read one line, no skip to the line *before* that
+				/* we've read one line, no skip to the line *before* that */
 				rect -= linelength;
 				index -= linelength;
 			}
@@ -118,7 +118,7 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 		bmfont = MEM_mallocN(bytes, "readBitmapFontVersion0:bmfont");
 		index = 0;
 		
-		// first read the header
+		/* first read the header */
 		bmfont->magic[0]    = buffer[index++];
 		bmfont->magic[1]    = buffer[index++];
 		bmfont->magic[2]    = buffer[index++];
@@ -278,7 +278,7 @@ void matrixGlyph(ImBuf * ibuf, unsigned short unicode,
 				*centerx = bmfont->glyphs[0].locx / (float) ibuf->x;
 				*centery = (ibuf->y - bmfont->glyphs[0].locy) / (float) ibuf->y;
 
-				// 2.0 units is the default size of an object
+				/* 2.0 units is the default size of an object */
 				
 				*movey = 1.0f - *sizey + 2.0f * (bmfont->glyphs[index].ofsy - bmfont->glyphs[0].ofsy) / (float) bmfont->glyphs[0].sizey;
 				*movex = *sizex - 1.0f + 2.0f * (bmfont->glyphs[index].ofsx - bmfont->glyphs[0].ofsx) / (float) bmfont->glyphs[0].sizex;

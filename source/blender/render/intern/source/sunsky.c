@@ -272,7 +272,7 @@ void GetSkyXYZRadiance(struct SunSky *sunsky, float theta, float phi, float colo
 
 	gamma = AngleBetween(theta, phi, sunsky->theta, sunsky->phi);
 	
-	// Compute xyY values
+	/* Compute xyY values */
 	x = PerezFunction(sunsky, sunsky->perez_x, theta, gamma, sunsky->zenith_x);
 	y = PerezFunction(sunsky, sunsky->perez_y, theta, gamma, sunsky->zenith_y);
 	Y = 6.666666667e-5f *nfade *hfade *PerezFunction(sunsky, sunsky->perez_Y, theta, gamma, sunsky->zenith_Y);
@@ -366,7 +366,7 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
                     float inscattf, float extincf, float disf)
 {
 	const float pi = M_PI;
-	const float n = 1.003f; // refractive index
+	const float n = 1.003f;  /* refractive index */
 	const float N = 2.545e25;
 	const float pn = 0.035f;
 	const float T = 2.0f;
@@ -406,16 +406,16 @@ void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float r
 	vLambda4[1] = fLambda4[1];
 	vLambda4[2] = fLambda4[2];
 
-	// Rayleigh scattering constants.
+	/* Rayleigh scattering constants. */
 	fTemp = pi * pi * (n * n - 1) * (n * n - 1) * (6 + 3 * pn) / (6 - 7 * pn) / N;
 	fBeta = 8 * fTemp * pi / 3;
-		
+
 	VEC3OPF(sunSky->atm_BetaRay, vLambda4, *, fBeta);
 	fBetaDash = fTemp / 2;
 	VEC3OPF(sunSky->atm_BetaDashRay, vLambda4, *, fBetaDash);
-	
 
-	// Mie scattering constants.
+
+	/* Mie scattering constants. */
 	fTemp2 = 0.434f * c * (2 * pi) * (2 * pi) * 0.5f;
 	VEC3OPF(sunSky->atm_BetaDashMie, vLambda2, *, fTemp2);
 	

@@ -1958,8 +1958,8 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[]
 			break;
 	}
 	
-	// total 
-	mul_serie_m4(tmat, totmat, ob->parentinv,         
+	/* total */
+	mul_serie_m4(tmat, totmat, ob->parentinv,
 	             NULL, NULL, NULL, NULL, NULL, NULL);
 	mul_serie_m4(obmat, tmat, locmat,         
 	             NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1968,7 +1968,7 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[]
 
 	}
 	else {
-		// external usable originmat 
+		/* external usable originmat */
 		copy_m3_m4(originmat, tmat);
 		
 		/* origin, for help line */
@@ -2503,7 +2503,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 
 		/* XXX new animsys warning: depsgraph tag OB_RECALC_DATA should not skip drivers, 
 		 * which is only in BKE_object_where_is_calc now */
-		// XXX: should this case be OB_RECALC_OB instead?
+		/* XXX: should this case be OB_RECALC_OB instead? */
 		if (ob->recalc & OB_RECALC_ALL) {
 			
 			if (G.debug & G_DEBUG)
@@ -2539,7 +2539,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 
 			if (adt) {
 				/* evaluate drivers - datalevel */
-				// XXX: for mesh types, should we push this to derivedmesh instead?
+				/* XXX: for mesh types, should we push this to derivedmesh instead? */
 				BKE_animsys_evaluate_animdata(scene, data_id, adt, ctime, ADT_RECALC_DRIVERS);
 			}
 
@@ -3163,7 +3163,7 @@ struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet 
 	/* iterate over all selected and visible objects */
 	for (base = scene->base.first; base; base = base->next) {
 		if (objectSet == OB_SET_ALL) {
-			// as we get all anyways just add it
+			/* as we get all anyways just add it */
 			Object *ob = base->object;
 			obrel_list_add(&links, ob);
 		}

@@ -524,8 +524,8 @@ static void ui_draw_links(uiBlock *block)
 	uiBut *but;
 	uiLinkLine *line;
 
-	// Draw the inactive lines (lines with neither button being hovered over).
-	// As we go, remember if we see any active or selected lines.
+	/* Draw the inactive lines (lines with neither button being hovered over).
+	 * As we go, remember if we see any active or selected lines. */
 	int foundselectline = 0;
 	int foundactiveline = 0;
 	for (but = block->buttons.first; but; but = but->next) {
@@ -542,8 +542,8 @@ static void ui_draw_links(uiBlock *block)
 		}
 	}	
 
-	// Draw any active lines (lines with either button being hovered over).
-	// Do this last so they appear on top of inactive lines.
+	/* Draw any active lines (lines with either button being hovered over).
+	 * Do this last so they appear on top of inactive lines. */
 	if (foundactiveline) {
 		for (but = block->buttons.first; but; but = but->next) {
 			if (but->type == LINK && but->link) {
@@ -2486,7 +2486,7 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 		
 		/* merge coordinates */
 		if (prev) {
-			// simple cases 
+			/* simple cases */
 			if (rows == 0) {
 				but->x1 = (prev->x2 + but->x1) / 2.0f;
 				prev->x2 = but->x1;
@@ -3432,7 +3432,7 @@ int uiButGetUnitType(uiBut *but)
 	/* own unit define always takes precedence over RNA provided, allowing for overriding 
 	 * default value provided in RNA in a few special cases (i.e. Active Keyframe in Graph Edit)
 	 */
-	// XXX: this doesn't allow clearing unit completely, though the same could be said for icons
+	/* XXX: this doesn't allow clearing unit completely, though the same could be said for icons */
 	if ((ownUnit != 0) || (but->rnaprop == NULL)) {
 		return ownUnit << 16;
 	}

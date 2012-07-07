@@ -433,7 +433,7 @@ static void fcm_envelope_verify(FModifier *fcm)
 	
 	/* if the are points, perform bubble-sort on them, as user may have changed the order */
 	if (env->data) {
-		// XXX todo...
+		/* XXX todo... */
 	}
 }
 
@@ -539,7 +539,7 @@ static float fcm_cycles_time(FCurve *fcu, FModifier *fcm, float UNUSED(cvalue), 
 	int cycles = 0, ofs = 0;
 	
 	/* check if modifier is first in stack, otherwise disable ourself... */
-	// FIXME...
+	/* FIXME... */
 	if (fcm->prev) {
 		fcm->flag |= FMODIFIER_FLAG_DISABLED;
 		return evaltime;
@@ -883,7 +883,7 @@ static void fcm_stepped_new_data(void *mdata)
 	FMod_Stepped *data = (FMod_Stepped *)mdata;
 	
 	/* just need to set the step-size to 2-frames by default */
-	// XXX: or would 5 be more normal?
+	/* XXX: or would 5 be more normal? */
 	data->step_size = 2.0f;
 }
 
@@ -1104,7 +1104,7 @@ int remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 		return 1;
 	} 
 	else {
-		// XXX this case can probably be removed some day, as it shouldn't happen...
+		/* XXX this case can probably be removed some day, as it shouldn't happen... */
 		printf("remove_fmodifier() - no modifier stack given\n");
 		MEM_freeN(fcm);
 		return 0;

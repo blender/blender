@@ -407,7 +407,7 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
 	
 	/* reversed = play strip backwards */
 	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
-		// FIXME: this won't work right with Graph Editor?
+		/* FIXME: this won't work right with Graph Editor? */
 		if (mode == NLATIME_CONVERT_MAP) {
 			return strip->end - scale * (cframe - strip->actstart);
 		}
@@ -1154,7 +1154,7 @@ static short nlastrip_is_first(AnimData *adt, NlaStrip *strip)
 		return 0;
 		
 	/* check other tracks to see if they have a strip that's earlier */
-	// TODO: or should we check that the strip's track is also the first?
+	/* TODO: or should we check that the strip's track is also the first? */
 	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
 		/* only check the first strip, assuming that they're all in order */
 		ns = nlt->strips.first;
@@ -1234,7 +1234,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 			/* store path - make copy, and store that */
 			fcu->rna_path = BLI_strdupn("influence", 9);
 			
-			// TODO: insert a few keyframes to ensure default behavior?
+			/* TODO: insert a few keyframes to ensure default behavior? */
 		}
 	}
 	
@@ -1255,7 +1255,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 			/* store path - make copy, and store that */
 			fcu->rna_path = BLI_strdupn("strip_time", 10);
 			
-			// TODO: insert a few keyframes to ensure default behavior?
+			/* TODO: insert a few keyframes to ensure default behavior? */
 		}
 	}
 }
@@ -1340,7 +1340,7 @@ static void nlastrip_get_endpoint_overlaps(NlaStrip *strip, NlaTrack *track, flo
 	/* find strips that overlap over the start/end of the given strip,
 	 * but which don't cover the entire length 
 	 */
-	// TODO: this scheme could get quite slow for doing this on many strips...
+	/* TODO: this scheme could get quite slow for doing this on many strips... */
 	for (nls = track->strips.first; nls; nls = nls->next) {
 		/* check if strip overlaps (extends over or exactly on) the entire range of the strip we're validating */
 		if ((nls->start <= strip->start) && (nls->end >= strip->end)) {
@@ -1443,7 +1443,7 @@ void BKE_nla_validate_state(AnimData *adt)
 			/* apart from 'nothing' option which user has to explicitly choose, we don't really know if 
 			 * we should be overwriting the extend setting (but assume that's what the user wanted)
 			 */
-			// TODO: 1 solution is to tie this in with auto-blending...
+			/* TODO: 1 solution is to tie this in with auto-blending... */
 			if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
 				/* 1) First strip must be set to extend hold, otherwise, stuff before acts dodgy
 				 * 2) Only overwrite extend mode if *not* changing it will most probably result in 
@@ -1505,7 +1505,7 @@ void BKE_nla_action_pushdown(AnimData *adt)
 			/* not first, so extend mode can only be NLASTRIP_EXTEND_HOLD_FORWARD not NLASTRIP_EXTEND_HOLD,
 			 * so that it doesn't override strips in previous tracks
 			 */
-			// FIXME: this needs to be more automated, since user can rearrange strips
+			/* FIXME: this needs to be more automated, since user can rearrange strips */
 			strip->extendmode = NLASTRIP_EXTEND_HOLD_FORWARD;
 		}
 		
@@ -1632,8 +1632,8 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 	if ((adt->flag & ADT_NLA_EDIT_ON) == 0)
 		return;
 		
-	// TODO: need to sync the user-strip with the new state of the action!
-		
+	/* TODO: need to sync the user-strip with the new state of the action! */
+
 	/* for all Tracks, clear the 'disabled' flag
 	 * for all Strips, clear the 'tweak-user' flag
 	 */

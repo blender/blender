@@ -525,7 +525,7 @@ typedef struct {
 
 } SRenderMeshToTangent;
 
-// interface
+/* interface */
 #include "mikktspace.h"
 
 static int GetNumFaces(const SMikkTSpaceContext * pContext)
@@ -1029,7 +1029,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 	static int second=0;
 	
 	sub_v3_v3v3(nor, vec, vec1);
-	normalize_v3(nor);		// nor needed as tangent 
+	normalize_v3(nor);  /* nor needed as tangent */
 	cross_v3_v3v3(cross, vec, nor);
 
 	/* turn cross in pixelsize */
@@ -1089,7 +1089,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		add_v3_v3(vlr->v1->co, cross);
 		copy_v3_v3(vlr->v1->n, nor);
 		vlr->v1->orco= sd->orco;
-		vlr->v1->accum= -1.0f;	// accum abuse for strand texco
+		vlr->v1->accum = -1.0f;  /* accum abuse for strand texco */
 		
 		copy_v3_v3(vlr->v2->co, vec);
 		sub_v3_v3v3(vlr->v2->co, vlr->v2->co, cross);
@@ -1101,8 +1101,8 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		add_v3_v3(vlr->v4->co, cross);
 		copy_v3_v3(vlr->v4->n, nor);
 		vlr->v4->orco= sd->orco;
-		vlr->v4->accum= 1.0f;	// accum abuse for strand texco
-		
+		vlr->v4->accum = 1.0f;  /* accum abuse for strand texco */
+
 		copy_v3_v3(vlr->v3->co, vec1);
 		sub_v3_v3v3(vlr->v3->co, vlr->v3->co, cross);
 		copy_v3_v3(vlr->v3->n, nor);
@@ -1163,7 +1163,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		add_v3_v3(v1->co, cross);
 		copy_v3_v3(v1->n, nor);
 		v1->orco= sd->orco;
-		v1->accum= -1.0f;	// accum abuse for strand texco
+		v1->accum = -1.0f;  /* accum abuse for strand texco */
 		
 		copy_v3_v3(v2->co, vec);
 		sub_v3_v3v3(v2->co, v2->co, cross);
@@ -1180,11 +1180,11 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 			vlr->v2= v2;
 			vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
 			vlr->v4= RE_findOrAddVert(obr, obr->totvert++);
-			
-			v1= vlr->v4; // cycle
-			v2= vlr->v3; // cycle
 
-			
+			v1= vlr->v4; /* cycle */
+			v2= vlr->v3; /* cycle */
+
+
 			if (sd->adapt) {
 				second=0;
 				copy_v3_v3(anor, nor);
@@ -1209,9 +1209,9 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 				vlr->v2= v2;
 				vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
 				vlr->v4= RE_findOrAddVert(obr, obr->totvert++);
-				
-				v1= vlr->v4; // cycle
-				v2= vlr->v3; // cycle
+
+				v1= vlr->v4; /* cycle */
+				v2= vlr->v3; /* cycle */
 
 				copy_v3_v3(anor, nor);
 				copy_v3_v3(avec, vec);
@@ -1225,8 +1225,8 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		add_v3_v3(vlr->v4->co, cross);
 		copy_v3_v3(vlr->v4->n, nor);
 		vlr->v4->orco= sd->orco;
-		vlr->v4->accum= -1.0f + 2.0f*sd->time;	// accum abuse for strand texco
-		
+		vlr->v4->accum= -1.0f + 2.0f * sd->time;  /* accum abuse for strand texco */
+
 		copy_v3_v3(vlr->v3->co, vec);
 		sub_v3_v3v3(vlr->v3->co, vlr->v3->co, cross);
 		copy_v3_v3(vlr->v3->n, nor);
@@ -1309,7 +1309,7 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, const float vec[3
 		vlr->v3= vlr->v2;
 		vlr->v4= NULL;
 		
-		v1= vlr->v2; // cycle
+		v1= vlr->v2; /* cycle */
 		copy_v3_v3(v1->co, vec);
 		
 		sub_v3_v3v3(vlr->n, vec, vec1);
@@ -1630,12 +1630,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* 2.1 setup material stff */
 	ma= give_render_material(re, ob, part->omat);
 	
-#if 0 // XXX old animation system
+#if 0  /* XXX old animation system */
 	if (ma->ipo) {
 		calc_ipo(ma->ipo, cfra);
 		execute_ipo((ID *)ma, ma->ipo);
 	}
-#endif // XXX old animation system
+#endif  /* XXX old animation system */
 
 	hasize = ma->hasize;
 	seed = ma->seed1;
@@ -2087,10 +2087,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		strandbuf->surface= cache_strand_surface(re, obr, psmd->dm, mat, timeoffset);
 
 /* 4. clean up */
-#if 0 // XXX old animation system
+#if 0  /* XXX old animation system */
 	if (ma) do_mat_ipo(re->scene, ma);
-#endif // XXX old animation system
-	
+#endif  /* XXX old animation system */
+
 	if (orco1)
 		MEM_freeN(sd.orco);
 
@@ -3267,7 +3267,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	int a, a1, ok, vertofs;
 	int end, do_autosmooth = FALSE, totvert = 0;
 	int use_original_normals = FALSE;
-	int recalc_normals = 0;	// false by default
+	int recalc_normals = 0;	/* false by default */
 	int negative_scale;
 
 	me= ob->data;
@@ -3471,7 +3471,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 										int t;
 										mtf= RE_vlakren_get_tface(obr, vlr, mtfn++, &name, 1);
 										mtface= (MTFace*)layer->data;
-										*mtf= mtface[a];	// copy face info
+										*mtf = mtface[a];  /* copy face info */
 										for (vindex=0; vindex<nr_verts; vindex++)
 											for (t=0; t<2; t++)
 												mtf->uv[vindex][t]=mtface[a].uv[rev_tab[vindex]][t];
@@ -3733,7 +3733,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->shdwb= la->shdwb;
 	lar->k= la->k;
 
-	// area
+	/* area */
 	lar->ray_samp= la->ray_samp;
 	lar->ray_sampy= la->ray_sampy;
 	lar->ray_sampz= la->ray_sampz;
@@ -3784,7 +3784,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		}
 
 		area_lamp_vectors(lar);
-		init_jitter_plane(lar);	// subsamples
+		init_jitter_plane(lar);	 /* subsamples */
 	}
 	else if (lar->type==LA_SUN) {
 		lar->ray_totsamp= lar->ray_samp*lar->ray_samp;
@@ -3819,7 +3819,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 
 	memcpy(lar->mtex, la->mtex, MAX_MTEX*sizeof(void *));
 
-	lar->lay= ob->lay & 0xFFFFFF;	// higher 8 bits are localview layers
+	lar->lay = ob->lay & 0xFFFFFF;  /* higher 8 bits are localview layers */
 
 	lar->falloff_type = la->falloff_type;
 	lar->ld1= la->att1;
@@ -3904,7 +3904,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 				/* Per lamp, one shadow buffer is made. */
 				lar->bufflag= la->bufflag;
 				copy_m4_m4(mat, ob->obmat);
-				initshadowbuf(re, lar, mat);	// mat is altered
+				initshadowbuf(re, lar, mat);  /* mat is altered */
 			}
 			
 			
@@ -4247,8 +4247,8 @@ static void check_non_flat_quads(ObjectRen *obr)
 				
 				xn = dot_v3v3(nor, vlr->n);
 
-				if (ABS(xn) < 0.999995f ) {	// checked on noisy fractal grid
-					
+				if (ABS(xn) < 0.999995f ) {  /* checked on noisy fractal grid */
+
 					float d1, d2;
 
 					vlr1= RE_vlakren_copy(obr, vlr);
@@ -5478,7 +5478,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		else
 			ver++;
 
-		// get fluid velocity
+		/* get fluid velocity */
 		fsvec[3] = 0.0f;
 		//fsvec[0] = fsvec[1] = fsvec[2] = fsvec[3] = 0.0; fsvec[2] = 2.0f; // NT fixed test
 		for (j=0;j<3;j++) fsvec[j] = velarray[a].vel[j];
@@ -5490,31 +5490,31 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 			fsvec[2] = avgvel[2];
 		}
 		
-		// transform (=rotate) to cam space
+		/* transform (=rotate) to cam space */
 		camco[0] = dot_v3v3(imat[0], fsvec);
 		camco[1] = dot_v3v3(imat[1], fsvec);
 		camco[2] = dot_v3v3(imat[2], fsvec);
 
-		// get homogenous coordinates
+		/* get homogenous coordinates */
 		projectvert(camco, winmat, hoco);
 		projectvert(ver->co, winmat, ho);
 		
 		/* now map hocos to screenspace, uses very primitive clip still */
-		// use ho[3] of original vertex, xy component of vel. direction
+		/* use ho[3] of original vertex, xy component of vel. direction */
 		if (ho[3]<0.1f) div= 10.0f;
 		else div= 1.0f/ho[3];
 		zco[0]= zmulx*hoco[0]*div;
 		zco[1]= zmuly*hoco[1]*div;
 		
-		// maximize speed as usual
+		/* maximize speed as usual */
 		len= zco[0]*zco[0] + zco[1]*zco[1];
 		if (len > winsq) {
 			len= winroot/sqrtf(len);
 			zco[0]*= len; zco[1]*= len;
 		}
-		
+
 		speed= RE_vertren_get_winspeed(obi, ver, 1);
-		// set both to the same value
+		/* set both to the same value */
 		speed[0]= speed[2]= zco[0];
 		speed[1]= speed[3]= zco[1];
 		//if (a < 20) fprintf(stderr,"speed %d %f,%f | camco %f,%f,%f | hoco %f,%f,%f,%f\n", a, speed[0], speed[1], camco[0],camco[1], camco[2], hoco[0],hoco[1], hoco[2],hoco[3]); // NT DEBUG
@@ -5651,7 +5651,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 					continue;
 				}
 
-				// NT check for fluidsim special treatment
+				/* NT check for fluidsim special treatment */
 				fluidmd = (FluidsimModifierData *)modifiers_findByType(obi->ob, eModifierType_Fluidsim);
 				if (fluidmd && fluidmd->fss && (fluidmd->fss->type & OB_FLUIDSIM_DOMAIN)) {
 					/* use preloaded per vertex simulation data, only does calculation for step=1 */
@@ -5664,7 +5664,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 						calculate_speedvectors(re, obi, oldobi->vectors, step);
 					else
 						printf("Warning: object %s has different amount of vertices or strands on other frame\n", obi->ob->id.name+2);
-				} // not fluidsim
+				}  /* not fluidsim */
 
 				oldobi= oldobi->next;
 			}
