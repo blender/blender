@@ -69,8 +69,10 @@ def main():
                                                  "under {}.".format(TRUNK_MO_DIR))
     parser.add_argument('langs', metavar='ISO_code', nargs='*',
                         help="Restrict processed languages to those.")
-    parser.add_argument('po', help="Only process that po file (implies --mo).")
-    parser.add_argument('mo', help="Mo file to generate (implies --po).")
+    parser.add_argument('po', help="Only process that po file (implies --mo).",
+                        nargs='?')
+    parser.add_argument('mo', help="Mo file to generate (implies --po).",
+                        nargs='?')
     args = parser.parse_args()
 
     ret = 0
