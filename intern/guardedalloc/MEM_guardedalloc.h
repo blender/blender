@@ -73,18 +73,13 @@ extern "C" {
 	size_t MEM_allocN_len(void *vmemh)
 #ifdef __GNUC__
 	__attribute__((warn_unused_result))
-	__attribute__((nonnull))
 #endif
 	;
 
 	/**
 	 * Release memory previously allocatred by this module. 
 	 */
-	short MEM_freeN(void *vmemh)
-#ifdef __GNUC__
-	__attribute__((nonnull))
-#endif
-	;
+	short MEM_freeN(void *vmemh);
 
 	/**
 	 * Return zero if memory is not in allocated list
@@ -97,7 +92,6 @@ extern "C" {
 	void *MEM_dupallocN(void *vmemh)
 #ifdef __GNUC__
 	__attribute__((warn_unused_result))
-	__attribute__((nonnull))
 #endif
 	;
 
@@ -109,7 +103,6 @@ extern "C" {
 	void *MEM_reallocN(void *vmemh, size_t len)
 #ifdef __GNUC__
 	__attribute__((warn_unused_result))
-	__attribute__((nonnull))
 	__attribute__((alloc_size(2)))
 #endif
 	;
