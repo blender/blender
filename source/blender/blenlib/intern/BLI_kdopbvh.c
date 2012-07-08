@@ -29,23 +29,17 @@
  *  \ingroup bli
  */
 
-
 #include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-
-
-
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-
 
 #define MAX_TREETYPE 32
 #define DEFAULT_FIND_NEAREST_HEAP_SIZE 1024

@@ -26,7 +26,7 @@
 
 CompositorContext::CompositorContext()
 {
-	this->m_rd = 0;
+	this->m_rd = NULL;
 	this->m_quality = COM_QUALITY_HIGH;
 	this->m_hasActiveOpenCLDevices = false;
 	this->m_activegNode = NULL;
