@@ -60,15 +60,30 @@ typedef union IDPropertyTemplate {
 
 /* note: as a start to move away from the stupid IDP_New function, this type
  * has it's own allocation function.*/
-IDProperty *IDP_NewIDPArray(const char *name);
-IDProperty *IDP_CopyIDPArray(IDProperty *array);
+IDProperty *IDP_NewIDPArray(const char *name)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
+IDProperty *IDP_CopyIDPArray(IDProperty *array)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
 
 void IDP_FreeIDPArray(IDProperty *prop);
 
 /* shallow copies item */
 void IDP_SetIndexArray(struct IDProperty *prop, int index, struct IDProperty *item);
-struct IDProperty *IDP_GetIndexArray(struct IDProperty *prop, int index);
-struct IDProperty *IDP_AppendArray(struct IDProperty *prop, struct IDProperty *item);
+struct IDProperty *IDP_GetIndexArray(struct IDProperty *prop, int index)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
+void IDP_AppendArray(struct IDProperty *prop, struct IDProperty *item);
 void IDP_ResizeIDPArray(struct IDProperty *prop, int len);
 
 /* ----------- Numeric Array Type ----------- */
@@ -77,11 +92,33 @@ void IDP_ResizeArray(struct IDProperty *prop, int newlen);
 void IDP_FreeArray(struct IDProperty *prop);
 
 /* ---------- String Type ------------ */
-IDProperty *IDP_NewString(const char *st, const char *name, int maxlen); /* maxlen excludes '\0' */
-void IDP_AssignString(struct IDProperty *prop, const char *st, int maxlen); /* maxlen excludes '\0' */
-void IDP_ConcatStringC(struct IDProperty *prop, const char *st);
-void IDP_ConcatString(struct IDProperty *str1, struct IDProperty *append);
-void IDP_FreeString(struct IDProperty *prop);
+IDProperty *IDP_NewString(const char *st, const char *name, int maxlen) /* maxlen excludes '\0' */
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
+
+void IDP_AssignString(struct IDProperty *prop, const char *st, int maxlen) /* maxlen excludes '\0' */
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
+void IDP_ConcatStringC(struct IDProperty *prop, const char *st)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
+void IDP_ConcatString(struct IDProperty *str1, struct IDProperty *append)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
+void IDP_FreeString(struct IDProperty *prop)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
 
 /*-------- ID Type -------*/
 void IDP_LinkID(struct IDProperty *prop, ID *id);
@@ -90,17 +127,29 @@ void IDP_UnlinkID(struct IDProperty *prop);
 /*-------- Group Functions -------*/
 
 /** Sync values from one group to another, only where they match */
-void IDP_SyncGroupValues(struct IDProperty *dest, struct IDProperty *src);
+void IDP_SyncGroupValues(struct IDProperty *dest, struct IDProperty *src)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
 
 /**
  * replaces all properties with the same name in a destination group from a source group.
  */
-void IDP_ReplaceGroupInGroup(struct IDProperty *dest, struct IDProperty *src);
+void IDP_ReplaceGroupInGroup(struct IDProperty *dest, struct IDProperty *src)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
 
 /**
  * Checks if a property with the same name as prop exists, and if so replaces it.
  * Use this to preserve order!*/
-void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop);
+void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
 
 /**
  * This function has a sanity check to make sure ID properties with the same name don't
@@ -117,12 +166,20 @@ void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop);
  * struct.  In the future this will just be IDP_FreeProperty and the code will
  * be reorganized to work properly.
  */
-int IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop);
+int IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
 
 /** this is the same as IDP_AddToGroup, only you pass an item
  * in the group list to be inserted after. */
 int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous, 
-                      struct IDProperty *pnew);
+                      struct IDProperty *pnew)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
 
 /** \note this does not free the property!!
  *
@@ -130,18 +187,36 @@ int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous,
  * IDP_FreeProperty(prop); //free all subdata
  * MEM_freeN(prop); //free property struct itself
  */
-void IDP_RemFromGroup(struct IDProperty *group, struct IDProperty *prop);
+void IDP_RemFromGroup(struct IDProperty *group, struct IDProperty *prop)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
 
-IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop, const char *name);
+IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop, const char *name)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
 /** same as above but ensure type match */
-IDProperty *IDP_GetPropertyTypeFromGroup(struct IDProperty *prop, const char *name, const char type);
+IDProperty *IDP_GetPropertyTypeFromGroup(struct IDProperty *prop, const char *name, const char type)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
 
 /**
  * Get an iterator to iterate over the members of an id property group.
  * Note that this will automatically free the iterator once iteration is complete;
  * if you stop the iteration before hitting the end, make sure to call
  * IDP_FreeIterBeforeEnd(). */
-void *IDP_GetGroupIterator(struct IDProperty *prop);
+void *IDP_GetGroupIterator(struct IDProperty *prop)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+#endif
+;
 
 /**
  * Returns the next item in the iteration.  To use, simple for a loop like the following:
@@ -149,21 +224,45 @@ void *IDP_GetGroupIterator(struct IDProperty *prop);
  *     ...
  * }
  */
-IDProperty *IDP_GroupIterNext(void *vself);
+IDProperty *IDP_GroupIterNext(void *vself)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
 
 /**
  * Frees the iterator pointed to at vself, only use this if iteration is stopped early; 
  * when the iterator hits the end of the list it'll automatically free itself.*/
-void IDP_FreeIterBeforeEnd(void *vself);
+void IDP_FreeIterBeforeEnd(void *vself)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
 
 /*-------- Main Functions --------*/
 /** Get the Group property that contains the id properties for ID id.  Set create_if_needed
  * to create the Group property and attach it to id if it doesn't exist; otherwise
  * the function will return NULL if there's no Group property attached to the ID.*/
-struct IDProperty *IDP_GetProperties(struct ID *id, int create_if_needed);
-struct IDProperty *IDP_CopyProperty(struct IDProperty *prop);
+struct IDProperty *IDP_GetProperties(struct ID *id, int create_if_needed)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
+struct IDProperty *IDP_CopyProperty(struct IDProperty *prop)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
 
-int IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2);
+int IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
 
 /**
  * Allocate a new ID.
@@ -190,7 +289,12 @@ int IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2);
  * IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
  * a memory leak.
  */
-struct IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *name);
+struct IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *name)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
 
 /** \note this will free all child properties of list arrays and groups!
  * Also, note that this does NOT unlink anything!  Plus it doesn't free

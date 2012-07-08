@@ -36,6 +36,8 @@
 
 #include "BLO_sys_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_mesh.h"
 #include "ED_mesh.h"
 
