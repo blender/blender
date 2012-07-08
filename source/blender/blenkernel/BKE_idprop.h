@@ -77,6 +77,9 @@ void IDP_FreeIDPArray(IDProperty *prop);
 
 /* shallow copies item */
 void IDP_SetIndexArray(struct IDProperty *prop, int index, struct IDProperty *item);
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
 struct IDProperty *IDP_GetIndexArray(struct IDProperty *prop, int index)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
@@ -95,7 +98,7 @@ void IDP_FreeArray(struct IDProperty *prop);
 IDProperty *IDP_NewString(const char *st, const char *name, int maxlen) /* maxlen excludes '\0' */
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
-__attribute__((nonnull))
+__attribute__((nonnull (2))) /* 'name' arg */
 #endif
 ;
 
@@ -260,7 +263,6 @@ __attribute__((nonnull))
 int IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
-__attribute__((nonnull))
 #endif
 ;
 

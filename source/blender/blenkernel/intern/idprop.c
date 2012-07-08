@@ -604,7 +604,9 @@ IDProperty *IDP_CopyProperty(IDProperty *prop)
 
 IDProperty *IDP_GetProperties(ID *id, int create_if_needed)
 {
-	if (id->properties) return id->properties;
+	if (id->properties) {
+		return id->properties;
+	}
 	else {
 		if (create_if_needed) {
 			id->properties = MEM_callocN(sizeof(IDProperty), "IDProperty");
