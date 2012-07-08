@@ -1392,29 +1392,31 @@ int ED_view3d_scene_layer_set(int lay, const int *values, int *active)
 	return lay;
 }
 
-static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
+static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportList *reports)
 {
 	View3D *v3d = sa->spacedata.first;
 	Base *base;
 	float size = 0.0, min[3], max[3], box[3];
 	unsigned int locallay;
-	int ok = 0;
+	int ok = FALSE;
 
-	if (v3d->localvd) return;
+	if (v3d->localvd) {
+		return ok;
+	}
 
 	INIT_MINMAX(min, max);
 
 	locallay = free_localbit(bmain);
 
 	if (locallay == 0) {
-		printf("Sorry, no more than 8 localviews\n");  /* XXX error */
-		ok = 0;
+		BKE_reportf(reports, RPT_ERROR, "No more than 8 localviews");
+		ok = FALSE;
 	}
 	else {
 		if (scene->obedit) {
 			BKE_object_minmax(scene->obedit, min, max);
 			
-			ok = 1;
+			ok = TRUE;
 		
 			BASACT->lay |= locallay;
 			scene->obedit->lay = BASACT->lay;
@@ -1425,7 +1427,7 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 					BKE_object_minmax(base->object, min, max);
 					base->lay |= locallay;
 					base->object->lay = base->lay;
-					ok = 1;
+					ok = TRUE;
 				}
 			}
 		}
@@ -1437,7 +1439,7 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 		if (size <= 0.01f) size = 0.01f;
 	}
 	
-	if (ok) {
+	if (ok == TRUE) {
 		ARegion *ar;
 		
 		v3d->localvd = MEM_mallocN(sizeof(View3D), "localview");
@@ -1486,9 +1488,10 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 				if (base->object != scene->obedit) base->flag |= SELECT;
 				base->object->lay = base->lay;
 			}
-		}		
+		}
 	}
 
+	return ok;
 }
 
 static void restore_localviewdata(ScrArea *sa, int free)
@@ -1531,7 +1534,7 @@ static void restore_localviewdata(ScrArea *sa, int free)
 	}
 }
 
-static void endlocalview(Main *bmain, Scene *scene, ScrArea *sa)
+static int view3d_localview_exit(Main *bmain, Scene *scene, ScrArea *sa)
 {
 	View3D *v3d = sa->spacedata.first;
 	struct Base *base;
@@ -1559,23 +1562,38 @@ static void endlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 		}
 		
 		DAG_on_visible_update(bmain, FALSE);
+
+		return TRUE;
 	} 
+	else {
+		return FALSE;
+	}
 }
 
-static int localview_exec(bContext *C, wmOperator *UNUSED(unused))
+static int localview_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = CTX_wm_view3d(C);
+	int change;
 	
-	if (v3d->localvd)
-		endlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
-	else
-		initlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
+	if (v3d->localvd) {
+		change = view3d_localview_exit(bmain, scene, sa);
+	}
+	else {
+		change = view3d_localview_init(bmain, scene, sa, op->reports);
+	}
 
-	DAG_id_type_tag(bmain, ID_OB);
-	ED_area_tag_redraw(CTX_wm_area(C));
-	
-	return OPERATOR_FINISHED;
+	if (change) {
+		DAG_id_type_tag(bmain, ID_OB);
+		ED_area_tag_redraw(CTX_wm_area(C));
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void VIEW3D_OT_localview(wmOperatorType *ot)
