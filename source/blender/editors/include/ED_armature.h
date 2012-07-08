@@ -180,6 +180,3 @@ void mesh_deform_bind(struct Scene *scene,
 #endif
 
 #endif /* __ED_ARMATURE_H__ */
-
-
-

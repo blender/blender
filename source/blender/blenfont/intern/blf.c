@@ -227,7 +227,7 @@ void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size)
 	}
 }
 
-int BLF_load_mem(const char *name, unsigned char *mem, int mem_size)
+int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
 {
 	FontBLF *font;
 	int i;
@@ -262,7 +262,7 @@ int BLF_load_mem(const char *name, unsigned char *mem, int mem_size)
 	return i;
 }
 
-int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size)
+int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size)
 {
 	FontBLF *font;
 	int i;

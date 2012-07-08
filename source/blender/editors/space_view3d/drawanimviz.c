@@ -43,7 +43,6 @@
 #include "DNA_view3d_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_dlrbTree.h"
 
@@ -64,8 +63,8 @@
 /* ************************************ Motion Paths ************************************* */
 
 /* TODO:
- *	- options to draw paths with lines
- *	- include support for editing the path verts */
+ * - options to draw paths with lines
+ * - include support for editing the path verts */
 
 /* Set up drawing environment for drawing motion paths */
 void draw_motion_paths_init(View3D *v3d, ARegion *ar) 
@@ -80,7 +79,7 @@ void draw_motion_paths_init(View3D *v3d, ARegion *ar)
 
 /* Draw the given motion path for an Object or a Bone 
  *  - assumes that the viewport has already been initialized properly
- *		i.e. draw_motion_paths_init() has been called
+ *    i.e. draw_motion_paths_init() has been called
  */
 void draw_motion_path_instance(Scene *scene, 
                                Object *ob, bPoseChannel *pchan, bAnimVizSettings *avs, bMotionPath *mpath)
