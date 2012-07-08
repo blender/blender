@@ -135,10 +135,10 @@ void draw_motion_path_instance(Scene *scene,
 	/* draw curve-line of path */
 	glShadeModel(GL_SMOOTH);
 	
-	glBegin(GL_LINE_STRIP); 				
+	glBegin(GL_LINE_STRIP);
 	for (i = 0, mpv = mpv_start; i < len; i++, mpv++) {
 		short sel = (pchan) ? (pchan->bone->flag & BONE_SELECTED) : (ob->flag & SELECT);
-		float intensity; /* how faint */
+		float intensity;  /* how faint */
 		
 		/* set color
 		 * - more intense for active/selected bones, less intense for unselected bones
@@ -223,7 +223,7 @@ void draw_motion_path_instance(Scene *scene,
 		UI_ThemeColor(TH_TEXT_HI);
 	}
 	
-	// XXX, this isn't up to date but probably should be kept so.
+	/* XXX, this isn't up to date but probably should be kept so. */
 	invert_m4_m4(ob->imat, ob->obmat);
 	
 	/* Draw frame numbers at each framestep value */
