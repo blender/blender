@@ -180,7 +180,7 @@ __attribute__((nonnull))
 int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous, 
                       struct IDProperty *pnew)
 #ifdef __GNUC__
-__attribute__((nonnull))
+__attribute__((nonnull  (1, 3))) /* 'group', 'pnew' */
 #endif
 ;
 
