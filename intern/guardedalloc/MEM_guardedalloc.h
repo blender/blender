@@ -71,6 +71,14 @@
 #  endif
 #endif
 
+#ifndef ALLOC_SIZE
+#  ifdef __GNUC__
+#    define ALLOC_SIZE(arg_pos)  __attribute__((alloc_size(arg_pos)))
+#  else
+#    define ALLOC_SIZE(arg_pos)
+#  endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -101,23 +109,23 @@ extern "C" {
 	 * allocated block, the old one is freed. this is not as optimized
 	 * as a system realloc but just makes a new allocation and copies
 	 * over from existing memory. */
-	void *MEM_reallocN(void *vmemh, size_t len) WARN_UNUSED;
+	void *MEM_reallocN(void *vmemh, size_t len) WARN_UNUSED ALLOC_SIZE(2);
 
 	/**
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */
-	void *MEM_callocN(size_t len, const char * str) WARN_UNUSED;
+	void *MEM_callocN(size_t len, const char * str) WARN_UNUSED ALLOC_SIZE(1);
 	
 	/** Allocate a block of memory of size len, with tag name str. The
 	 * name must be a static, because only a pointer to it is stored !
 	 * */
-	void *MEM_mallocN(size_t len, const char * str) WARN_UNUSED;
+	void *MEM_mallocN(size_t len, const char * str) WARN_UNUSED ALLOC_SIZE(1);
 	
 	/** Same as callocN, clears memory and uses mmap (disk cached) if supported.
 	 * Can be free'd with MEM_freeN as usual.
 	 * */
-	void *MEM_mapallocN(size_t len, const char * str) WARN_UNUSED;
+	void *MEM_mapallocN(size_t len, const char * str) WARN_UNUSED ALLOC_SIZE(1);
 
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. as a python dict for easy investigation */ 
