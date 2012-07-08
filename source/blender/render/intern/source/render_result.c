@@ -582,7 +582,7 @@ RenderResult *render_result_new_full_sample(Render *re, ListBase *lb, rcti *part
 }
 
 /* callbacks for render_result_new_from_exr */
-static void *ml_addlayer_cb(void *base, char *str)
+static void *ml_addlayer_cb(void *base, const char *str)
 {
 	RenderResult *rr = base;
 	RenderLayer *rl;
@@ -594,7 +594,7 @@ static void *ml_addlayer_cb(void *base, char *str)
 	return rl;
 }
 
-static void ml_addpass_cb(void *UNUSED(base), void *lay, char *str, float *rect, int totchan, char *chan_id)
+static void ml_addpass_cb(void *UNUSED(base), void *lay, const char *str, float *rect, int totchan, const char *chan_id)
 {
 	RenderLayer *rl = lay;
 	RenderPass *rpass = MEM_callocN(sizeof(RenderPass), "loaded pass");
@@ -618,7 +618,7 @@ static void ml_addpass_cb(void *UNUSED(base), void *lay, char *str, float *rect,
 /* from imbuf, if a handle was returned we convert this to render result */
 RenderResult *render_result_new_from_exr(void *exrhandle, int rectx, int recty)
 {
-	RenderResult *rr = MEM_callocN(sizeof(RenderResult), "loaded render result");
+	RenderResult *rr = MEM_callocN(sizeof(RenderResult), __func__);
 	RenderLayer *rl;
 	RenderPass *rpass;
 	

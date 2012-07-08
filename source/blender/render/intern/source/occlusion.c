@@ -768,6 +768,8 @@ static void vec_add_dir(float r[3], const float v1[3], const float v2[3], const 
 	r[2] = v1[2] + fac * (v2[2] - v1[2]);
 }
 
+/* TODO: exact duplicate of ff_visible_quad() in math_geom.c
+ *       why not de-duplicate? (also above helper func) */
 static int occ_visible_quad(const float p[3], const float n[3],
                             const float v0[3], const float v1[3], const float v2[3],
                             float q0[3], float q1[3], float q2[3], float q3[3])
@@ -1129,6 +1131,8 @@ static void normalizef(float *n)
 	} 
 }
 
+/* TODO: exact duplicate of ff_quad_form_factor() in math_geom.c
+ *       why not de-duplicate? (also above helper func) */
 static float occ_quad_form_factor(const float p[3], const float n[3], const float q0[3], const float q1[3], const float q2[3], const float q3[3])
 {
 	float r0[3], r1[3], r2[3], r3[3], g0[3], g1[3], g2[3], g3[3];

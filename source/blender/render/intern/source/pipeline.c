@@ -166,9 +166,9 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 	}
 	else {
 		if (rs->tothalo)
-			fprintf(stdout, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
+			fprintf(stdout, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", rs->scene_name, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
 		else
-			fprintf(stdout, "Sce: %s Ve:%d Fa:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->totlamp);
+			fprintf(stdout, "Sce: %s Ve:%d Fa:%d La:%d", rs->scene_name, rs->totvert, rs->totface, rs->totlamp);
 	}
 
 	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
