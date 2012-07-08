@@ -328,7 +328,7 @@ void *MEM_mallocN(size_t len, const char *str)
 	}
 	mem_unlock_thread();
 	print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
-	            SIZET_ARG(len), str, mem_in_use);
+	            SIZET_ARG(len), str, (unsigned int) mem_in_use);
 	return NULL;
 }
 
@@ -354,7 +354,7 @@ void *MEM_callocN(size_t len, const char *str)
 	}
 	mem_unlock_thread();
 	print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
-	            SIZET_ARG(len), str, mem_in_use);
+	            SIZET_ARG(len), str, (unsigned int) mem_in_use);
 	return NULL;
 }
 
@@ -387,7 +387,7 @@ void *MEM_mapallocN(size_t len, const char *str)
 		mem_unlock_thread();
 		print_error("Mapalloc returns null, fallback to regular malloc: "
 		            "len=" SIZET_FORMAT " in %s, total %u\n",
-		            SIZET_ARG(len), str, mmap_in_use);
+		            SIZET_ARG(len), str, (unsigned int) mmap_in_use);
 		return MEM_callocN(len, str);
 	}
 }

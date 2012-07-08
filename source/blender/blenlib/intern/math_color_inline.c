@@ -237,6 +237,10 @@ MINLINE float rgb_to_bw(const float rgb[3])
 	return 0.35f * rgb[0] + 0.45f * rgb[1] + 0.2f * rgb[2];
 }
 
+/* non-linear luma from ITU-R BT.601-2
+ * see: http://www.poynton.com/notes/colour_and_gamma/ColorFAQ.html#RTFToC11
+ * note: the values used for are not exact matches to those documented above,
+ * but they are from the same */
 MINLINE float rgb_to_grayscale(const float rgb[3])
 {
 	return 0.3f * rgb[0] + 0.58f * rgb[1] + 0.12f * rgb[2];

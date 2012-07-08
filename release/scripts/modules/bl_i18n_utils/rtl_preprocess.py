@@ -35,8 +35,12 @@
 import sys
 import ctypes
 
-import settings
-import utils
+try:
+    import settings
+    import utils
+except:
+    from . import (settings, utils)
+
 
 FRIBIDI_LIB = settings.FRIBIDI_LIB
 

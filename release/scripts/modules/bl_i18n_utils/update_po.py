@@ -28,8 +28,12 @@ import sys
 from codecs import open
 import shutil
 
-import settings
-import utils
+try:
+    import settings
+    import utils
+except:
+    from . import (settings, utils)
+
 
 GETTEXT_MSGMERGE_EXECUTABLE = settings.GETTEXT_MSGMERGE_EXECUTABLE
 BRANCHES_DIR  = settings.BRANCHES_DIR
