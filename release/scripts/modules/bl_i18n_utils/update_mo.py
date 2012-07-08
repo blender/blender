@@ -26,8 +26,11 @@ import subprocess
 import os
 import sys
 
-import settings
-import utils
+try:
+    import settings
+    import utils
+except:
+    from . import (settings, utils)
 
 
 GETTEXT_MSGFMT_EXECUTABLE = settings.GETTEXT_MSGFMT_EXECUTABLE
@@ -39,17 +42,19 @@ TRUNK_PO_DIR = settings.TRUNK_PO_DIR
 DOMAIN = settings.DOMAIN
 
 
-def process_po(po, lang):
-    mo_dir = os.path.join(TRUNK_MO_DIR, lang, "LC_MESSAGES")
+def process_po(po, lang, mo=None):
+    if not mo:
+        mo_dir = os.path.join(TRUNK_MO_DIR, lang, "LC_MESSAGES")
+        # Create dirs if not existing!
+        if not os.path.isdir(mo_dir):
+            os.makedirs(mo_dir, exist_ok = True)
 
-    # Create dirs if not existing!
-    os.makedirs(mo_dir, exist_ok = True)
     # show stats
     cmd = (GETTEXT_MSGFMT_EXECUTABLE,
         "--statistics",
         po,
         "-o",
-        os.path.join(mo_dir, ".".join((DOMAIN, "mo"))),
+        mo or os.path.join(mo_dir, ".".join((DOMAIN, "mo"))),
         )
 
     print("Running ", " ".join(cmd))
@@ -64,11 +69,18 @@ def main():
                                                  "under {}.".format(TRUNK_MO_DIR))
     parser.add_argument('langs', metavar='ISO_code', nargs='*',
                         help="Restrict processed languages to those.")
+    parser.add_argument('po', help="Only process that po file (implies --mo).")
+    parser.add_argument('mo', help="Mo file to generate (implies --po).")
     args = parser.parse_args()
 
     ret = 0
 
-    if args.langs:
+    if args.po and args.mo:
+        if os.path.exists(args.po):
+            t = process_po(args.po, None, args.mo)
+            if t:
+                ret = t
+    elif args.langs:
         for lang in args.langs:
             po = os.path.join(TRUNK_PO_DIR, ".".join((lang, "po")))
             if os.path.exists(po):

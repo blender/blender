@@ -29,9 +29,11 @@
 # never merged from sources.
 
 import sys
-from codecs import open
 
-import utils
+try:
+    import utils
+except:
+    from . import utils
 
 
 def main():

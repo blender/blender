@@ -31,8 +31,11 @@ import argparse
 import time
 import pickle
 
-import settings
-import utils
+try:
+    import settings
+    import utils
+except:
+    from . import (settings, utils)
 
 
 COMMENT_PREFIX = settings.COMMENT_PREFIX

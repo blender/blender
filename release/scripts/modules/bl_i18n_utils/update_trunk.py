@@ -33,7 +33,10 @@ import os
 import sys
 import shutil
 
-import settings
+try:
+    import settings
+except:
+    from . import settings
 
 TRUNK_PO_DIR = settings.TRUNK_PO_DIR
 TRUNK_MO_DIR = settings.TRUNK_MO_DIR

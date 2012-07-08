@@ -28,9 +28,12 @@ import sys
 import subprocess
 from codecs import open
 
-import settings
-import utils
-import rtl_preprocess
+try:
+    import settings
+    import utils
+    import rtl_preprocess
+except:
+    from . import (settings, utils, rtl_preprocess)
 
 
 TRUNK_PO_DIR = settings.TRUNK_PO_DIR

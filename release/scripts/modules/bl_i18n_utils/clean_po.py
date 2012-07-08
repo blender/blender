@@ -25,10 +25,13 @@
 import os
 import sys
 import collections
-from codecs import open
 
-import settings
-import utils
+try:
+    import settings
+    import utils
+except:
+    from . import (settings, utils)
+
 
 TRUNK_PO_DIR = settings.TRUNK_PO_DIR
 BRANCHES_DIR = settings.BRANCHES_DIR
