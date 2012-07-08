@@ -539,6 +539,13 @@ static void DeleteBulletShape(btCollisionShape* shape, bool free)
 		if (meshInterface)
 			delete meshInterface;
 	}
+	else if (shape->getShapeType() == GIMPACT_SHAPE_PROXYTYPE)
+	{
+		btGImpactMeshShape* meshShape = static_cast<btGImpactMeshShape*>(shape);
+		btStridingMeshInterface* meshInterface = meshShape->getMeshInterface();
+		if (meshInterface)
+			delete meshInterface;
+	}
 	if (free) {
 		delete shape;
 	}
@@ -2125,7 +2132,6 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 						&m_vertexArray[0],
 						3*sizeof(btScalar)
 				);
-				
 				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(indexVertexArrays);
 				gimpactShape->setMargin(margin);
 				collisionShape = gimpactShape;
