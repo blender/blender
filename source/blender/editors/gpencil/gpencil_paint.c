@@ -1623,12 +1623,12 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else
 		p = op->customdata;
-	
-	// TODO: set any additional settings that we can take from the events?
-	// TODO? if tablet is erasing, force eraser to be on?
-	
-	// TODO: move cursor setting stuff to stroke-start so that paintmode can be changed midway...
-	
+
+	/* TODO: set any additional settings that we can take from the events?
+	 * TODO? if tablet is erasing, force eraser to be on? */
+
+	/* TODO: move cursor setting stuff to stroke-start so that paintmode can be changed midway... */
+
 	/* if eraser is on, draw radial aid */
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
 		gpencil_draw_toggle_eraser_cursor(C, p, TRUE);
@@ -1692,8 +1692,8 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	//printf("\t\tGP - start stroke\n");
 
 	/* we may need to set up paint env again if we're resuming */
-	// XXX: watch it with the paintmode! in future, it'd be nice to allow changing paint-mode when in sketching-sessions
-	// XXX: with tablet events, we may event want to check for eraser here, for nicer tablet support
+	/* XXX: watch it with the paintmode! in future, it'd be nice to allow changing paint-mode when in sketching-sessions */
+	/* XXX: with tablet events, we may event want to check for eraser here, for nicer tablet support */
 
 	if (gp_session_initdata(C, p))
 		gp_paint_initstroke(p, p->paintmode);
@@ -1727,17 +1727,17 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 	tGPsdata *p = op->customdata;
 	int estate = OPERATOR_PASS_THROUGH; /* default exit state - not handled, so let others have a share of the pie */
 	
-	// if (event->type == NDOF_MOTION)
-	//	return OPERATOR_PASS_THROUGH;
-	// -------------------------------
-	// [mce] Not quite what I was looking
-	// for, but a good start! GP continues to
-	// draw on the screen while the 3D mouse
-	// moves the viewpoint. Problem is that
-	// the stroke is converted to 3D only after
-	// it is finished. This approach should work
-	// better in tools that immediately apply
-	// in 3D space.
+	/* if (event->type == NDOF_MOTION)
+	 *    return OPERATOR_PASS_THROUGH;
+	 * -------------------------------
+	 * [mce] Not quite what I was looking
+	 * for, but a good start! GP continues to
+	 * draw on the screen while the 3D mouse
+	 * moves the viewpoint. Problem is that
+	 * the stroke is converted to 3D only after
+	 * it is finished. This approach should work
+	 * better in tools that immediately apply
+	 * in 3D space. */
 
 	//printf("\tGP - handle modal event...\n");
 	

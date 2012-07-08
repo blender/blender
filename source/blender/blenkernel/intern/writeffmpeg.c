@@ -516,7 +516,7 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 		c->qmax = 51;
 	}
 	
-	// Keep lossless encodes in the RGB domain.
+	/* Keep lossless encodes in the RGB domain. */
 	if (codec_id == CODEC_ID_HUFFYUV) {
 		/* HUFFYUV was PIX_FMT_YUV422P before */
 		c->pix_fmt = PIX_FMT_RGB32;
@@ -572,12 +572,12 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	}
 
 	if (codec_id == CODEC_ID_QTRLE) {
-		// normally it should be enough to have buffer with actual image size,
-		// but some codecs like QTRLE might store extra information in this buffer,
-		// so it should be a way larger
+		/* normally it should be enough to have buffer with actual image size,
+		 * but some codecs like QTRLE might store extra information in this buffer,
+		 * so it should be a way larger */
 
-		// maximum video buffer size is 6-bytes per pixel, plus DPX header size (1664)
-		// (from FFmpeg sources)
+		/* maximum video buffer size is 6-bytes per pixel, plus DPX header size (1664)
+		 * (from FFmpeg sources) */
 		int size = c->width * c->height;
 		video_buffersize = 7 * size + 10000;
 	}

@@ -160,15 +160,13 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	return false;
 }
 
-static cl_kernel kernel = 0;
 void BokehBlurOperation::executeOpenCL(OpenCLDevice* device,
                                        MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
                                        MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
                                        list<cl_kernel> *clKernelsToCleanUp) 
 {
-	if (!kernel) {
-		kernel = device->COM_clCreateKernel("bokehBlurKernel", NULL);
-	}
+	cl_kernel kernel = device->COM_clCreateKernel("bokehBlurKernel", NULL);
+
 	cl_int radius = this->getWidth() * this->m_size / 100.0f;
 	cl_int step = this->getStep();
 	

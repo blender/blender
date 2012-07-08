@@ -804,7 +804,7 @@ static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
 			break;
 	}
 
-	// only works if the sensor and the actuator are from the same object
+	/* only works if the sensor and the actuator are from the same object */
 	if (!act_iter) return;
 
 	/* (3) add a new controller */
@@ -3478,13 +3478,13 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		else if (event->type == WHEELDOWNMOUSE) {
 			float *hsv = ui_block_hsv_get(but->block);
 			hsv[2] = CLAMPIS(hsv[2] - 0.05f, 0.0f, 1.0f);
-			ui_set_but_hsv(but);    // converts to rgb
+			ui_set_but_hsv(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);
 		}
 		else if (event->type == WHEELUPMOUSE) {
 			float *hsv = ui_block_hsv_get(but->block);
 			hsv[2] = CLAMPIS(hsv[2] + 0.05f, 0.0f, 1.0f);
-			ui_set_but_hsv(but);    // converts to rgb
+			ui_set_but_hsv(but);    /* converts to rgb */
 			ui_numedit_apply(C, block, but, data);
 		}
 		else if (event->type == MOUSEMOVE) {
@@ -3810,7 +3810,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 
 static int in_scope_resize_zone(uiBut *but, int UNUSED(x), int y)
 {
-	// bottom corner return (x > but->x2 - SCOPE_RESIZE_PAD) && (y < but->y1 + SCOPE_RESIZE_PAD);
+	/* bottom corner return (x > but->x2 - SCOPE_RESIZE_PAD) && (y < but->y1 + SCOPE_RESIZE_PAD); */
 	return (y < but->y1 + SCOPE_RESIZE_PAD);
 }
 
@@ -3833,7 +3833,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 	}
 	else {
 		/* scale histogram values */
-		const float yfac = MIN2(powf(hist->ymax, 2.f), 1.f) * 0.5f;
+		const float yfac = minf(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
 		hist->ymax += dy * yfac;
 	
 		CLAMP(hist->ymax, 1.f, 100.f);
@@ -4505,7 +4505,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		}
 		
 		/* Keying Sets */
-		// TODO: check on modifyability of Keying Set when doing this
+		/* TODO: check on modifyability of Keying Set when doing this */
 		if (is_anim) {
 			uiItemS(layout);
 
@@ -4529,8 +4529,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		
 		/* Property Operators */
 		
-		//Copy Property Value
-		//Paste Property Value
+		/*Copy Property Value
+		 *Paste Property Value */
 		
 		if (length) {
 			uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset All to Default Values"),
@@ -4566,7 +4566,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		/* keyboard shortcuts */
 		if ((kmi) && ISKEYBOARD(kmi->type)) {
 
-			// would rather use a block but, but gets weirdly positioned...
+			/* would rather use a block but, but gets weirdly positioned... */
 			//uiDefBlockBut(block, menu_change_shortcut, but, "Change Shortcut", 0, 0, uiLayoutGetWidth(layout), UI_UNIT_Y, "");
 			
 			but2 = uiDefIconTextBut(block, BUT, 0, 0, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"),

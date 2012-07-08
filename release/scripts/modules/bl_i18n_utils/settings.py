@@ -100,8 +100,11 @@ PYGETTEXT_KEYWORDS = (() +
     tuple((r"{}\(\s*" + _ctxt_re + r"\s*,\s*"+ _msg_re + r"\s*\)").format(it)
           for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_N_"))
 )
-#GETTEXT_KEYWORDS = ("IFACE_", "CTX_IFACE_:1c,2", "TIP_", "CTX_TIP_:1c,2",
-#                    "N_", "CTX_N_:1c,2")
+
+ESCAPE_RE = (
+    ('((?<!\\\\)"|(?<!\\\\)\\\\(?!\\\\|"))', r"\\\1"),
+    ('\t', r"\\t"),
+)
 
 # Should po parser warn when finding a first letter not capitalized?
 WARN_MSGID_NOT_CAPITALIZED = True

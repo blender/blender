@@ -818,7 +818,7 @@ void shade_input_set_normals(ShadeInput *shi)
 		shi->vn[1]= l*n3[1]-u*n1[1]-v*n2[1];
 		shi->vn[2]= l*n3[2]-u*n1[2]-v*n2[2];
 
-		// use unnormalized normal (closer to games)
+		/* use unnormalized normal (closer to games) */
 		copy_v3_v3(shi->nmapnorm, shi->vn);
 		
 		normalize_v3(shi->vn);
@@ -851,7 +851,7 @@ void shade_input_set_vertex_normals(ShadeInput *shi)
 		shi->vn[1]= l*n3[1]-u*n1[1]-v*n2[1];
 		shi->vn[2]= l*n3[2]-u*n1[2]-v*n2[2];
 		
-		// use unnormalized normal (closer to games)
+		/* use unnormalized normal (closer to games) */
 		copy_v3_v3(shi->nmapnorm, shi->vn);
 		
 		normalize_v3(shi->vn);
@@ -968,22 +968,22 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				copy_v3_v3(c1, &tangent[j2*4]);
 				copy_v3_v3(c2, &tangent[j3*4]);
 
-				// keeping tangents normalized at vertex level
-				// corresponds better to how it's done in game engines
+				/* keeping tangents normalized at vertex level
+				 * corresponds better to how it's done in game engines */
 				if (obi->flag & R_TRANSFORMED) {
 					mul_mat3_m4_v3(obi->mat, c0); normalize_v3(c0);
 					mul_mat3_m4_v3(obi->mat, c1); normalize_v3(c1);
 					mul_mat3_m4_v3(obi->mat, c2); normalize_v3(c2);
 				}
-				
-				// we don't normalize the interpolated TBN tangent
-				// corresponds better to how it's done in game engines
+
+				/* we don't normalize the interpolated TBN tangent
+				 * corresponds better to how it's done in game engines */
 				shi->nmaptang[0]= (tl*c2[0] - tu*c0[0] - tv*c1[0]);
 				shi->nmaptang[1]= (tl*c2[1] - tu*c0[1] - tv*c1[1]);
 				shi->nmaptang[2]= (tl*c2[2] - tu*c0[2] - tv*c1[2]);
 
-				// the sign is the same for all 3 vertices of any
-				// non degenerate triangle.
+				/* the sign is the same for all 3 vertices of any
+				 * non degenerate triangle. */
 				shi->nmaptang[3]= tangent[j1*4+3];
 			}
 		}

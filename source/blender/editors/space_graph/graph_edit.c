@@ -260,8 +260,8 @@ void GRAPH_OT_view_all(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = graphkeys_viewall_exec;
-	ot->poll = ED_operator_graphedit_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
-	
+	ot->poll = ED_operator_graphedit_active; /* XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier... */
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
@@ -279,7 +279,7 @@ void GRAPH_OT_view_selected(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = graphkeys_view_selected_exec;
-	ot->poll = ED_operator_graphedit_active; // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
+	ot->poll = ED_operator_graphedit_active; /* XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier... */
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1641,7 +1641,7 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 		int f;
 		
 		/* sanity check: ensure that there are enough F-Curves to work on in this group */
-		// TODO: also enforce assumption that there be a full set of keyframes at each position by ensuring that totvert counts are same?
+		/* TODO: also enforce assumption that there be a full set of keyframes at each position by ensuring that totvert counts are same? */
 		if (ELEM3(NULL, euf->fcurves[0], euf->fcurves[1], euf->fcurves[2])) {
 			/* report which components are missing */
 			BKE_reportf(op->reports, RPT_WARNING,
@@ -1655,9 +1655,9 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 			failed++;
 			continue;
 		}
-		
+
 		/* simple method: just treat any difference between keys of greater than 180 degrees as being a flip */
-		// FIXME: there are more complicated methods that will be needed to fix more cases than just some
+		/* FIXME: there are more complicated methods that will be needed to fix more cases than just some */
 		for (f = 0; f < 3; f++) {
 			FCurve *fcu = euf->fcurves[f];
 			BezTriple *bezt, *prev = NULL;
@@ -2217,10 +2217,10 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
 	/* if this exists, call the copy F-Modifiers API function */
 	if (ale && ale->data) {
 		FCurve *fcu = (FCurve *)ale->data;
-		
-		// TODO: when 'active' vs 'all' boolean is added, change last param!
+
+		/* TODO: when 'active' vs 'all' boolean is added, change last param! */
 		ok = ANIM_fmodifiers_copy_to_buf(&fcu->modifiers, 0);
-		
+
 		/* free temp data now */
 		MEM_freeN(ale);
 	}
@@ -2272,11 +2272,11 @@ static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 	/* paste modifiers */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->data;
-		
-		// TODO: do we want to replace existing modifiers? add user pref for that!
+
+		/* TODO: do we want to replace existing modifiers? add user pref for that! */
 		ok += ANIM_fmodifiers_paste_from_buf(&fcu->modifiers, 0);
 	}
-	
+
 	/* clean up */
 	BLI_freelistN(&anim_data);
 	

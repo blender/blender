@@ -3417,7 +3417,9 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 								sampleStrength *= sample_factor;
 							}
-							else continue;
+							else {
+								continue;
+							}
 
 							/* velocity brush, only do on main sample */
 							if (brush->flags & MOD_DPAINT_USES_VELOCITY && ss == 0 && brushVelocity) {

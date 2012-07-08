@@ -311,7 +311,7 @@ int SCA_Joystick::pAxisTest(int axisnum)
 	short i2= m_axis_array[(axisnum*2)+1];
 	
 	/* long winded way to do
-	 *   return MAX2(abs(i1), abs(i2))
+	 *   return maxf(absf(i1), absf(i2))
 	 * avoid abs from math.h */
 	if (i1 < 0) i1 = -i1;
 	if (i2 < 0) i2 = -i2;

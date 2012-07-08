@@ -130,15 +130,13 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 
 }
 
-static cl_kernel defocusKernel = 0;
 void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice* device,
                                        MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
                                        MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
                                        list<cl_kernel> *clKernelsToCleanUp) 
 {
-	if (!defocusKernel) {
-		defocusKernel = device->COM_clCreateKernel("defocusKernel", NULL);
-	}
+	cl_kernel defocusKernel = device->COM_clCreateKernel("defocusKernel", NULL);
+
 	cl_int step = this->getStep();
 	cl_int maxBlur = this->m_maxBlur;
 	cl_float threshold = this->m_threshold;

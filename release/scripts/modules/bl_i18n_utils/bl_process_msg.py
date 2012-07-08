@@ -25,8 +25,7 @@
 import os
 
 # XXX Relative import does not work here when used from Blender...
-#from . import settings
-import bl_i18n_utils.settings as settings
+from bl_i18n_utils import settings
 
 
 #classes = set()

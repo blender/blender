@@ -51,7 +51,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
-void *BKE_lamp_add(const char *name)
+Lamp *BKE_lamp_add(const char *name)
 {
 	Lamp *la;
 	

@@ -195,7 +195,7 @@ void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
 	Render *re = engine->re;
 
 	if (result) {
-		result->renlay = result->layers.first; // weak, draws first layer always
+		result->renlay = result->layers.first; /* weak, draws first layer always */
 		re->display_draw(re->ddh, result, NULL);
 	}
 }
@@ -227,7 +227,7 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 
 		/* draw */
 		if (!re->test_break(re->tbh)) {
-			result->renlay = result->layers.first; // weak, draws first layer always
+			result->renlay = result->layers.first; /* weak, draws first layer always */
 			re->display_draw(re->ddh, result, NULL);
 		}
 	}
@@ -327,7 +327,7 @@ int RE_engine_render(Render *re, int do_all)
 
 	/* set render info */
 	re->i.cfra = re->scene->r.cfra;
-	BLI_strncpy(re->i.scenename, re->scene->id.name + 2, sizeof(re->i.scenename));
+	BLI_strncpy(re->i.scene_name, re->scene->id.name + 2, sizeof(re->i.scene_name));
 	re->i.totface = re->i.totvert = re->i.totstrand = re->i.totlamp = re->i.tothalo = 0;
 
 	/* render */

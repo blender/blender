@@ -1230,7 +1230,7 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 {
 	BKE_imformat_defaults(im_format);
 
-	// file type
+	/* file type */
 
 	if (imbuf->ftype == IMAGIC)
 		im_format->imtype = R_IMF_IMTYPE_IRIS;
@@ -1311,7 +1311,7 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 		im_format->quality = imbuf->ftype & ~JPG_MSK;
 	}
 
-	// planes
+	/* planes */
 	switch (imbuf->channels) {
 		case 0:
 		case 4: im_format->planes = R_IMF_PLANES_RGBA;

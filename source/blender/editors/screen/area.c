@@ -1149,7 +1149,7 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 {
 	/* note, add-handler checks if it already exists */
 	
-	// XXX it would be good to have boundbox checks for some of these...
+	/* XXX it would be good to have boundbox checks for some of these... */
 	if (flag & ED_KEYMAP_UI) {
 		/* user interface widgets */
 		UI_add_region_handlers(handlers);
@@ -1654,7 +1654,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
 		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 		
-		// don't jump back when panels close or hide
+		/* don't jump back when panels close or hide */
 		if (!newcontext)
 			y = MAX2(-y, -v2d->cur.ymin);
 		else
@@ -1669,14 +1669,14 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
 		v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
 		v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_HIDE;
-		
-		// don't jump back when panels close or hide
+
+		/* don't jump back when panels close or hide */
 		if (!newcontext)
 			x = MAX2(x, v2d->cur.xmax);
 		y = -y;
 	}
 
-	// +V2D_SCROLL_HEIGHT is workaround to set the actual height
+	/* +V2D_SCROLL_HEIGHT is workaround to set the actual height */
 	UI_view2d_totRect_set(v2d, x + V2D_SCROLL_WIDTH, y + V2D_SCROLL_HEIGHT);
 
 	/* set the view */
@@ -1698,17 +1698,17 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	
-	// XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
-	// scrollbars for button regions
+	/* XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
+	 * scrollbars for button regions */
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
 	ar->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
 	ar->v2d.scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 	ar->v2d.keepzoom |= V2D_KEEPZOOM;
 
-	// correctly initialized User-Prefs?
+	/* correctly initialized User-Prefs? */
 	if (!(ar->v2d.align & V2D_ALIGN_NO_POS_Y))
 		ar->v2d.flag &= ~V2D_IS_INITIALISED;
-	
+
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 
 	keymap = WM_keymap_find(wm->defaultconf, "View2D Buttons List", 0, 0);

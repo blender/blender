@@ -163,6 +163,9 @@ static int malloc_debug_memset = 0;
 /* implementation                                                        */
 /* --------------------------------------------------------------------- */
 
+#ifdef __GNUC__
+__attribute__ ((format(printf, 1, 2)))
+#endif
 static void print_error(const char *str, ...)
 {
 	char buf[512];

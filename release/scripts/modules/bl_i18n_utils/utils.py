@@ -23,9 +23,8 @@
 import os
 import sys
 import collections
-from codecs import open
 
-import settings
+from bl_i18n_utils import settings
 
 
 COMMENT_PREFIX = settings.COMMENT_PREFIX
@@ -145,7 +144,7 @@ def parse_messages(fname):
         clean_vars()
 
 
-    with open(fname, 'r', "utf-8") as f:
+    with open(fname, 'r', encoding="utf-8") as f:
         for line_nr, line in enumerate(f):
             line = stripeol(line)
             if line == "":
@@ -248,7 +247,7 @@ def write_messages(fname, messages, commented, fuzzy):
     "returned values). commented and fuzzy are two sets containing msgid. " \
     "Returns the number of written messages."
     num = 0
-    with open(fname, 'w', "utf-8") as f:
+    with open(fname, 'w', encoding="utf-8") as f:
         for msgkey, val in messages.items():
             msgctxt, msgid = msgkey
             f.write("\n".join(val["comment_lines"]))

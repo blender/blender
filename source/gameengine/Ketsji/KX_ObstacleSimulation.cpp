@@ -378,13 +378,14 @@ static MT_Point3 nearestPointToObstacle(MT_Point3& pos ,KX_Obstacle* obstacle)
 		MT_Vector3 ab = obstacle->m_pos2 - obstacle->m_pos;
 		if (!ab.fuzzyZero())
 		{
+			const MT_Scalar dist = ab.length();
 			MT_Vector3 abdir = ab.normalized();
 			MT_Vector3  v = pos - obstacle->m_pos;
 			MT_Scalar proj = abdir.dot(v);
-			CLAMP(proj, 0, ab.length());
+			CLAMP(proj, 0, dist);
 			MT_Point3 res = obstacle->m_pos + abdir*proj;
 			return res;
-		}		
+		}
 	}
 	case KX_OBSTACLE_CIRCLE :
 	default:

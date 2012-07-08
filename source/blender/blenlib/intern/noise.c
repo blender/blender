@@ -282,8 +282,8 @@ static float npfade(float t)
 
 static float grad(int hash, float x, float y, float z)
 {
-	int h = hash & 15;                     // CONVERT LO 4 BITS OF HASH CODE
-	float u = h < 8 ? x : y,                 // INTO 12 GRADIENT DIRECTIONS.
+	int h = hash & 15;                     /* CONVERT LO 4 BITS OF HASH CODE */
+	float u = h < 8 ? x : y,               /* INTO 12 GRADIENT DIRECTIONS. */
 	      v = h < 4 ? y : h == 12 || h == 14 ? x : z;
 	return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
 }
@@ -293,21 +293,21 @@ static float newPerlin(float x, float y, float z)
 {
 	int A, AA, AB, B, BA, BB;
 	float u = floor(x), v = floor(y), w = floor(z);
-	int X = ((int)u) & 255, Y = ((int)v) & 255, Z = ((int)w) & 255;   // FIND UNIT CUBE THAT CONTAINS POINT
-	x -= u;             // FIND RELATIVE X,Y,Z
-	y -= v;             // OF POINT IN CUBE.
+	int X = ((int)u) & 255, Y = ((int)v) & 255, Z = ((int)w) & 255;   /* FIND UNIT CUBE THAT CONTAINS POINT */
+	x -= u;             /* FIND RELATIVE X,Y,Z */
+	y -= v;             /* OF POINT IN CUBE. */
 	z -= w;
-	u = npfade(x);      // COMPUTE FADE CURVES
-	v = npfade(y);      // FOR EACH OF X,Y,Z.
+	u = npfade(x);      /* COMPUTE FADE CURVES */
+	v = npfade(y);      /* FOR EACH OF X,Y,Z. */
 	w = npfade(z);
-	A = hash[X  ]+Y;  AA = hash[A]+Z;  AB = hash[A+1]+Z;      // HASH COORDINATES OF
-	B = hash[X+1]+Y;  BA = hash[B]+Z;  BB = hash[B+1]+Z;      // THE 8 CUBE CORNERS,
-	return lerp(w, lerp(v, lerp(u, grad(hash[AA   ],  x,     y,     z    ),   // AND ADD
-	                               grad(hash[BA   ],  x - 1, y,     z    )),  // BLENDED
-	                       lerp(u, grad(hash[AB   ],  x,     y - 1, z    ),   // RESULTS
-	                               grad(hash[BB   ],  x - 1, y - 1, z    ))), // FROM  8
-	               lerp(v, lerp(u, grad(hash[AA + 1], x,     y,     z - 1),   // CORNERS
-	                               grad(hash[BA + 1], x - 1, y,     z - 1)),  // OF CUBE
+	A = hash[X  ]+Y;  AA = hash[A]+Z;  AB = hash[A+1]+Z;      /* HASH COORDINATES OF */
+	B = hash[X+1]+Y;  BA = hash[B]+Z;  BB = hash[B+1]+Z;      /* THE 8 CUBE CORNERS, */
+	return lerp(w, lerp(v, lerp(u, grad(hash[AA   ],  x,     y,     z    ),   /* AND ADD */
+	                               grad(hash[BA   ],  x - 1, y,     z    )),  /* BLENDED */
+	                       lerp(u, grad(hash[AB   ],  x,     y - 1, z    ),   /* RESULTS */
+	                               grad(hash[BB   ],  x - 1, y - 1, z    ))), /* FROM  8 */
+	               lerp(v, lerp(u, grad(hash[AA + 1], x,     y,     z - 1),   /* CORNERS */
+	                               grad(hash[BA + 1], x - 1, y,     z - 1)),  /* OF CUBE */
 	                       lerp(u, grad(hash[AB + 1], x,     y - 1, z - 1),
 	                               grad(hash[BB + 1], x - 1, y - 1, z - 1))));
 }

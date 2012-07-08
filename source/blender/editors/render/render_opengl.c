@@ -477,11 +477,9 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	const short view_context = (oglrender->v3d != NULL);
 	Object *camera = NULL;
 
-	/* update animated image textures for gpu, etc,
-	 * call before BKE_scene_update_for_newframe so modifiers with textures don't lag 1 frame */
-	ED_image_update_frame(bmain, scene->r.cfra);
-
 	/* go to next frame */
+	if (CFRA < oglrender->nfra)
+		CFRA++;
 	while (CFRA < oglrender->nfra) {
 		unsigned int lay = screen_opengl_layers(oglrender);
 
@@ -491,6 +489,10 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		BKE_scene_update_for_newframe(bmain, scene, lay);
 		CFRA++;
 	}
+
+	/* update animated image textures for gpu, etc,
+	 * call before BKE_scene_update_for_newframe so modifiers with textures don't lag 1 frame */
+	ED_image_update_frame(bmain, CFRA);
 
 	BKE_scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
 
@@ -569,10 +571,9 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
 	/* go to next frame */
 	oglrender->nfra += scene->r.frame_step;
-	scene->r.cfra++;
 
 	/* stop at the end or on error */
-	if (scene->r.cfra > PEFRA || !ok) {
+	if (CFRA >= PEFRA || !ok) {
 		screen_opengl_render_end(C, op->customdata);
 		return 0;
 	}

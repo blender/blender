@@ -274,12 +274,12 @@ int BLI_move(const char *file, const char *to)
 {
 	int err;
 
-	// windows doesn't support moveing to a directory
-	// it has to be 'mv filename filename' and not
-	// 'mv filename destdir'
+	/* windows doesn't support moveing to a directory
+	 * it has to be 'mv filename filename' and not
+	 * 'mv filename destdir' */
 
 	BLI_strncpy(str, to, sizeof(str));
-	// points 'to' to a directory ?
+	/* points 'to' to a directory ? */
 	if (BLI_last_slash(str) == (str + strlen(str) - 1)) {
 		if (BLI_last_slash(file) != NULL) {
 			strcat(str, BLI_last_slash(file) + 1);
@@ -305,12 +305,12 @@ int BLI_copy(const char *file, const char *to)
 {
 	int err;
 
-	// windows doesn't support copying to a directory
-	// it has to be 'cp filename filename' and not
-	// 'cp filename destdir'
+	/* windows doesn't support copying to a directory
+	 * it has to be 'cp filename filename' and not
+	 * 'cp filename destdir' */
 
 	BLI_strncpy(str, to, sizeof(str));
-	// points 'to' to a directory ?
+	/* points 'to' to a directory ? */
 	if (BLI_last_slash(str) == (str + strlen(str) - 1)) {
 		if (BLI_last_slash(file) != NULL) {
 			strcat(str, BLI_last_slash(file) + 1);

@@ -129,9 +129,9 @@ struct anim {
 	float frs_sec_base;
 	int x, y;
 	
-	/* voor op nummer */
+	/* for number */
 	char name[1024];
-	/* voor sequence */
+	/* for sequence */
 	char first[1024];
 
 	/* movie */

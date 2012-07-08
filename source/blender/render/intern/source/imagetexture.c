@@ -231,13 +231,13 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 
 	if (texres->nor) {
 		if (tex->imaflag & TEX_NORMALMAP) {
-			// qdn: normal from color
-			// The invert of the red channel is to make
-			// the normal map compliant with the outside world.
-			// It needs to be done because in Blender
-			// the normal used in the renderer points inward. It is generated
-			// this way in calc_vertexnormals(). Should this ever change
-			// this negate must be removed.
+			/* qdn: normal from color
+			 * The invert of the red channel is to make
+			 * the normal map compliant with the outside world.
+			 * It needs to be done because in Blender
+			 * the normal used in the renderer points inward. It is generated
+			 * this way in calc_vertexnormals(). Should this ever change
+			 * this negate must be removed. */
 			texres->nor[0] = -2.f*(texres->tr - 0.5f);
 			texres->nor[1] = 2.f*(texres->tg - 0.5f);
 			texres->nor[2] = 2.f*(texres->tb - 0.5f);
@@ -619,36 +619,36 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	}
 }	
 
-//-----------------------------------------------------------------------------------------------------------------
-// from here, some functions only used for the new filtering
+/*-----------------------------------------------------------------------------------------------------------------
+ * from here, some functions only used for the new filtering */
 
-// anisotropic filters, data struct used instead of long line of (possibly unused) func args
+/* anisotropic filters, data struct used instead of long line of (possibly unused) func args */
 typedef struct afdata_t {
 	float dxt[2], dyt[2];
 	int intpol, extflag;
-	// feline only
+	/* feline only */
 	float majrad, minrad, theta;
 	int iProbes;
 	float dusc, dvsc;
 } afdata_t;
 
-// this only used here to make it easier to pass extend flags as single int
-enum {TXC_XMIR=1, TXC_YMIR, TXC_REPT, TXC_EXTD};
+/* this only used here to make it easier to pass extend flags as single int */
+enum {TXC_XMIR = 1, TXC_YMIR, TXC_REPT, TXC_EXTD};
 
-// similar to ibuf_get_color() but clips/wraps coords according to repeat/extend flags
-// returns true if out of range in clipmode
+/* similar to ibuf_get_color() but clips/wraps coords according to repeat/extend flags
+ * returns true if out of range in clipmode */
 static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extflag)
 {
 	int clip = 0;
 	switch (extflag) {
-		case TXC_XMIR:	// y rep
+		case TXC_XMIR:	/* y rep */
 			x %= 2*ibuf->x;
 			x += x < 0 ? 2*ibuf->x : 0;
 			x = x >= ibuf->x ? 2*ibuf->x - x - 1 : x;
 			y %= ibuf->y;
 			y += y < 0 ? ibuf->y : 0;
 			break;
-		case TXC_YMIR:	// x rep
+		case TXC_YMIR:	/* x rep */
 			x %= ibuf->x;
 			x += x < 0 ? ibuf->x : 0;
 			y %= 2*ibuf->y;
@@ -665,11 +665,12 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
 			y %= ibuf->y;
 			y += (y < 0) ? ibuf->y : 0;
 			break;
-		default:	{	// as extend, if clipped, set alpha to 0.0
-			if (x < 0) { x = 0;  } // TXF alpha: clip = 1; }
-			if (x >= ibuf->x) { x = ibuf->x - 1; } // TXF alpha:  clip = 1; }
-			if (y < 0) { y = 0; } // TXF alpha:  clip = 1; }
-			if (y >= ibuf->y) { y = ibuf->y - 1; } // TXF alpha:  clip = 1; }
+		default:
+		{	/* as extend, if clipped, set alpha to 0.0 */
+			if (x < 0) { x = 0;  } /* TXF alpha: clip = 1; } */
+			if (x >= ibuf->x) { x = ibuf->x - 1; } /* TXF alpha:  clip = 1; } */
+			if (y < 0) { y = 0; } /* TXF alpha:  clip = 1; } */
+			if (y >= ibuf->y) { y = ibuf->y - 1; } /* TXF alpha:  clip = 1; } */
 		}
 	}
 
@@ -694,7 +695,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
 	return clip;
 }
 
-// as above + bilerp
+/* as above + bilerp */
 static int ibuf_get_color_clip_bilerp(float col[4], ImBuf *ibuf, float u, float v, int intpol, int extflag)
 {
 	if (intpol) {
@@ -749,12 +750,12 @@ static void area_sample(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata
 	texr->tr *= xsd;
 	texr->tg *= xsd;
 	texr->tb *= xsd;
-	// clipping can be ignored if alpha used, texr->ta already includes filtered edge
+	/* clipping can be ignored if alpha used, texr->ta already includes filtered edge */
 	texr->ta = texr->talpha ? texr->ta*xsd : (clip ? cw*xsd : 1.f);
 }
 
-// table of (exp(ar) - exp(a)) / (1 - exp(a)) for r in range [0, 1] and a = -2
-// used instead of actual gaussian, otherwise at high texture magnifications circular artifacts are visible
+/* table of (exp(ar) - exp(a)) / (1 - exp(a)) for r in range [0, 1] and a = -2
+ * used instead of actual gaussian, otherwise at high texture magnifications circular artifacts are visible */
 #define EWA_MAXIDX 255
 static float EWA_WTS[EWA_MAXIDX + 1] =
 { 1.f, 0.990965f, 0.982f, 0.973105f, 0.96428f, 0.955524f, 0.946836f, 0.938216f, 0.929664f,
@@ -791,9 +792,9 @@ static float EWA_WTS[EWA_MAXIDX + 1] =
  0.00754159f, 0.00625989f, 0.00498819f, 0.00372644f, 0.00247454f, 0.00123242f, 0.f
 };
 
-// test if a float value is 'nan'
-// there is a C99 function for this: isnan(), but blender seems to use C90 (according to gcc warns),
-// and may not be supported by other compilers either
+/* test if a float value is 'nan'
+ * there is a C99 function for this: isnan(), but blender seems to use C90 (according to gcc warns),
+ * and may not be supported by other compilers either */
 #ifndef ISNAN
 #define ISNAN(x) ((x) != (x))
 #endif
@@ -802,7 +803,7 @@ static float EWA_WTS[EWA_MAXIDX + 1] =
 static void radangle2imp(float a2, float b2, float th, float* A, float* B, float* C, float* F)
 {
 	float ct2 = cosf(th);
-	const float st2 = 1.f - ct2*ct2;	// <- sin(th)^2
+	const float st2 = 1.0f - ct2 * ct2;	/* <- sin(th)^2 */
 	ct2 *= ct2;
 	*A = a2*st2 + b2*ct2;
 	*B = (b2 - a2)*sinf(2.f*th);
@@ -810,10 +811,10 @@ static void radangle2imp(float a2, float b2, float th, float* A, float* B, float
 	*F = a2*b2;
 }
 
-// all tests here are done to make sure possible overflows are hopefully minimized
+/* all tests here are done to make sure possible overflows are hopefully minimized */
 static void imp2radangle(float A, float B, float C, float F, float* a, float* b, float* th, float* ecc)
 {
-	if (F <= 1e-5f) {	// use arbitrary major radius, zero minor, infinite eccentricity
+	if (F <= 1e-5f) {	/* use arbitrary major radius, zero minor, infinite eccentricity */
 		*a = sqrtf(A > C ? A : C);
 		*b = 0.f;
 		*ecc = 1e10f;
@@ -833,31 +834,31 @@ static void imp2radangle(float A, float B, float C, float F, float* a, float* b,
 			*b = sqrtf(F2 / d);
 			*ecc = *a / *b;
 		}
-		// incr theta by 0.5*pi (angle of major axis)
+		/* incr theta by 0.5*pi (angle of major axis) */
 		*th = 0.5f*(atan2f(B, AmC) + (float)M_PI);
 	}
 }
 
 static void ewa_eval(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata_t* AFD)
 {
-	// scaling dxt/dyt by full resolution can cause overflow because of huge A/B/C and esp. F values,
-	// scaling by aspect ratio alone does the opposite, so try something in between instead...
+	/* scaling dxt/dyt by full resolution can cause overflow because of huge A/B/C and esp. F values,
+	 * scaling by aspect ratio alone does the opposite, so try something in between instead... */
 	const float ff2 = ibuf->x, ff = sqrtf(ff2), q = ibuf->y / ff;
 	const float Ux = AFD->dxt[0]*ff, Vx = AFD->dxt[1]*q, Uy = AFD->dyt[0]*ff, Vy = AFD->dyt[1]*q;
 	float A = Vx*Vx + Vy*Vy;
 	float B = -2.f*(Ux*Vx + Uy*Vy);
 	float C = Ux*Ux + Uy*Uy;
 	float F = A*C - B*B*0.25f;
-	float a, b, th, ecc, a2, b2, ue, ve, U0, V0, DDQ, U, ac1, ac2, BU, d; // TXF alpha: cw = 0.f;
-	int u, v, u1, u2, v1, v2; // TXF alpha: clip = 0;
+	float a, b, th, ecc, a2, b2, ue, ve, U0, V0, DDQ, U, ac1, ac2, BU, d; /* TXF alpha: cw = 0.f; */
+	int u, v, u1, u2, v1, v2; /* TXF alpha: clip = 0; */
 
-	// The so-called 'high' quality ewa method simply adds a constant of 1 to both A & C,
-	// so the ellipse always covers at least some texels. But since the filter is now always larger,
-	// it also means that everywhere else it's also more blurry then ideally should be the case.
-	// So instead here the ellipse radii are modified instead whenever either is too low.
-	// Use a different radius based on interpolation switch, just enough to anti-alias when interpolation is off,
-	// and slightly larger to make result a bit smoother than bilinear interpolation when interpolation is on
-	// (minimum values: const float rmin = intpol ? 1.f : 0.5f;)
+	/* The so-called 'high' quality ewa method simply adds a constant of 1 to both A & C,
+	 * so the ellipse always covers at least some texels. But since the filter is now always larger,
+	 * it also means that everywhere else it's also more blurry then ideally should be the case.
+	 * So instead here the ellipse radii are modified instead whenever either is too low.
+	 * Use a different radius based on interpolation switch, just enough to anti-alias when interpolation is off,
+	 * and slightly larger to make result a bit smoother than bilinear interpolation when interpolation is on
+	 * (minimum values: const float rmin = intpol ? 1.f : 0.5f;) */
 	const float rmin = (AFD->intpol ? 1.5625f : 0.765625f)/ff2;
 	imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
 	if ((b2 = b*b) < rmin) {
@@ -903,8 +904,8 @@ static void ewa_eval(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata_t*
 				float tc[4];
 				const float wt = EWA_WTS[(Q < 0.f) ? 0 : (unsigned int)Q];
 				/*const int out =*/ ibuf_get_color_clip(tc, ibuf, u, v, AFD->extflag);
-				// TXF alpha: clip |= out;
-				// TXF alpha: cw += out ? 0.f : wt;
+				/* TXF alpha: clip |= out;
+				 * TXF alpha: cw += out ? 0.f : wt; */
 				texr->tr += tc[0]*wt;
 				texr->tg += tc[1]*wt;
 				texr->tb += tc[2]*wt;
@@ -916,13 +917,13 @@ static void ewa_eval(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata_t*
 		}
 	}
 
-	// d should hopefully never be zero anymore
+	/* d should hopefully never be zero anymore */
 	d = 1.f/d;
 	texr->tr *= d;
 	texr->tg *= d;
 	texr->tb *= d;
-	// clipping can be ignored if alpha used, texr->ta already includes filtered edge
-	texr->ta = texr->talpha ? texr->ta*d : 1.f; // TXF alpha (clip ? cw*d : 1.f);
+	/* clipping can be ignored if alpha used, texr->ta already includes filtered edge */
+	texr->ta = texr->talpha ? texr->ta*d : 1.f; /* TXF alpha (clip ? cw*d : 1.f); */
 }
 
 static void feline_eval(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata_t* AFD)
@@ -931,11 +932,11 @@ static void feline_eval(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata
 	const float ll = ((AFD->majrad == AFD->minrad) ? 2.f*AFD->majrad : 2.f*(AFD->majrad - AFD->minrad)) / (maxn ? (float)maxn : 1.f);
 	float du = maxn ? cosf(AFD->theta)*ll : 0.f;
 	float dv = maxn ? sinf(AFD->theta)*ll : 0.f;
-	//const float D = -0.5f*(du*du + dv*dv) / (AFD->majrad*AFD->majrad);
+	/* const float D = -0.5f*(du*du + dv*dv) / (AFD->majrad*AFD->majrad); */
 	const float D = (EWA_MAXIDX + 1)*0.25f*(du*du + dv*dv) / (AFD->majrad*AFD->majrad);
-	float d; // TXF alpha: cw = 0.f;
-	int n; // TXF alpha: clip = 0;
-	// have to use same scaling for du/dv here as for Ux/Vx/Uy/Vy (*after* D calc.)
+	float d; /* TXF alpha: cw = 0.f; */
+	int n; /* TXF alpha: clip = 0; */
+	/* have to use same scaling for du/dv here as for Ux/Vx/Uy/Vy (*after* D calc.) */
 	du *= AFD->dusc;
 	dv *= AFD->dvsc;
 	d = texr->tr = texr->tb = texr->tg = texr->ta = 0.f;
@@ -943,12 +944,12 @@ static void feline_eval(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata
 		float tc[4];
 		const float hn = n*0.5f;
 		const float u = fx + hn*du, v = fy + hn*dv;
-		//const float wt = expf(n*n*D);
-		// can use ewa table here too
+		/*const float wt = expf(n*n*D);
+		 * can use ewa table here too */
 		const float wt = EWA_WTS[(int)(n*n*D)];
 		/*const int out =*/ ibuf_get_color_clip_bilerp(tc, ibuf, ibuf->x*u, ibuf->y*v, AFD->intpol, AFD->extflag);
-		// TXF alpha: clip |= out;
-		// TXF alpha: cw += out ? 0.f : wt;
+		/* TXF alpha: clip |= out;
+		 * TXF alpha: cw += out ? 0.f : wt; */
 		texr->tr += tc[0]*wt;
 		texr->tg += tc[1]*wt;
 		texr->tb += tc[2]*wt;
@@ -960,7 +961,7 @@ static void feline_eval(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata
 	texr->tr *= d;
 	texr->tg *= d;
 	texr->tb *= d;
-	// clipping can be ignored if alpha used, texr->ta already includes filtered edge
+	/* clipping can be ignored if alpha used, texr->ta already includes filtered edge */
 	texr->ta = texr->talpha ? texr->ta*d : 1.f; // TXF alpha: (clip ? cw*d : 1.f);
 }
 #undef EWA_MAXIDX
@@ -970,8 +971,8 @@ static void alpha_clip_aniso(ImBuf *ibuf, float minx, float miny, float maxx, fl
 	float alphaclip;
 	rctf rf;
 
-	// TXF apha: we're doing the same alphaclip here as boxsample, but i'm doubting
-	// if this is actually correct for the all the filtering algorithms ..
+	/* TXF apha: we're doing the same alphaclip here as boxsample, but i'm doubting
+	 * if this is actually correct for the all the filtering algorithms .. */
 
 	if (!(extflag == TXC_REPT || extflag == TXC_EXTD)) {
 		rf.xmin = minx*(ibuf->x);
@@ -1040,13 +1041,13 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 
 	texres->tin = texres->ta = texres->tr = texres->tg = texres->tb = 0.f;
 
-	// we need to set retval OK, otherwise texture code generates normals itself...
+	/* we need to set retval OK, otherwise texture code generates normals itself... */
 	retval = texres->nor ? 3 : 1;
 
-	// quick tests
+	/* quick tests */
 	if (ibuf==NULL && ima==NULL) return retval;
 
-	if (ima) {	// hack for icon render
+	if (ima) {	/* hack for icon render */
 		if ((ima->ibufs.first == NULL) && (R.r.scemode & R_NO_IMAGE_LOAD)) return retval;
 		ibuf = BKE_image_get_ibuf(ima, &tex->iuser); 
 	}
@@ -1079,18 +1080,18 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 		}
 	}
 
-	// pixel coordinates
+	/* pixel coordinates */
 	minx = MIN3(dxt[0], dyt[0], dxt[0] + dyt[0]);
 	maxx = MAX3(dxt[0], dyt[0], dxt[0] + dyt[0]);
 	miny = MIN3(dxt[1], dyt[1], dxt[1] + dyt[1]);
 	maxy = MAX3(dxt[1], dyt[1], dxt[1] + dyt[1]);
 
-	// tex_sharper has been removed
+	/* tex_sharper has been removed */
 	minx = (maxx - minx)*0.5f;
 	miny = (maxy - miny)*0.5f;
 
 	if (tex->imaflag & TEX_FILTER_MIN) {
-		// make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy)
+		/* make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy) */
 		const float addval = (0.5f * tex->filtersize) / (float)MIN2(ibuf->x, ibuf->y);
 		if (addval > minx) minx = addval;
 		if (addval > miny) miny = addval;
@@ -1107,9 +1108,9 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	if (tex->imaflag & TEX_IMAROT) {
 		float t;
 		SWAP(float, minx, miny);
-		// must rotate dxt/dyt 90 deg
-		// yet another blender problem is that swapping X/Y axes (or any tex proj switches) should do something similar,
-		// but it doesn't, it only swaps coords, so filter area will be incorrect in those cases.
+		/* must rotate dxt/dyt 90 deg
+		 * yet another blender problem is that swapping X/Y axes (or any tex proj switches) should do something similar,
+		 * but it doesn't, it only swaps coords, so filter area will be incorrect in those cases. */
 		t = dxt[0];
 		dxt[0] = dxt[1];
 		dxt[1] = -t;
@@ -1118,11 +1119,11 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 		dyt[1] = -t;
 	}
 
-	// side faces of unit-cube
+	/* side faces of unit-cube */
 	minx = (minx > 0.25f) ? 0.25f : ((minx < 1e-5f) ? 1e-5f : minx);
 	miny = (miny > 0.25f) ? 0.25f : ((miny < 1e-5f) ? 1e-5f : miny);
 
-	// repeat and clip
+	/* repeat and clip */
 
 	if (tex->extend == TEX_REPEAT) {
 		if ((tex->flag & (TEX_REPEAT_XMIR | TEX_REPEAT_YMIR)) == (TEX_REPEAT_XMIR | TEX_REPEAT_YMIR))
@@ -1139,7 +1140,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 
 	if (tex->extend == TEX_CHECKER) {
 		int xs = (int)floorf(fx), ys = (int)floorf(fy);
-		// both checkers available, no boundary exceptions, checkerdist will eat aliasing
+		/* both checkers available, no boundary exceptions, checkerdist will eat aliasing */
 		if ((tex->flag & TEX_CHECKER_ODD) && (tex->flag & TEX_CHECKER_EVEN)) {
 			fx -= xs;
 			fy -= ys;
@@ -1166,7 +1167,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 				fy -= ys;
 			}
 		}
-		// scale around center, (0.5, 0.5)
+		/* scale around center, (0.5, 0.5) */
 		if (tex->checkerdist < 1.f) {
 			const float omcd = 1.f / (1.f - tex->checkerdist);
 			fx = (fx - 0.5f)*omcd + 0.5f;
@@ -1195,34 +1196,34 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 
 	intpol = tex->imaflag & TEX_INTERPOL;
 
-	// warning no return!
+	/* warning no return! */
 	if ((R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields))
 		ibuf->rect += ibuf->x*ibuf->y;
 
-	// struct common data
+	/* struct common data */
 	copy_v2_v2(AFD.dxt, dxt);
 	copy_v2_v2(AFD.dyt, dyt);
 	AFD.intpol = intpol;
 	AFD.extflag = extflag;
 
-	// brecht: added stupid clamping here, large dx/dy can give very large
-	// filter sizes which take ages to render, it may be better to do this
-	// more intelligently later in the code .. probably it's not noticeable
+	/* brecht: added stupid clamping here, large dx/dy can give very large
+	 * filter sizes which take ages to render, it may be better to do this
+	 * more intelligently later in the code .. probably it's not noticeable */
 	if (AFD.dxt[0]*AFD.dxt[0] + AFD.dxt[1]*AFD.dxt[1] > 2.0f*2.0f)
 		mul_v2_fl(AFD.dxt, 2.0f/len_v2(AFD.dxt));
 	if (AFD.dyt[0]*AFD.dyt[0] + AFD.dyt[1]*AFD.dyt[1] > 2.0f*2.0f)
 		mul_v2_fl(AFD.dyt, 2.0f/len_v2(AFD.dyt));
 
-	// choice:
+	/* choice: */
 	if (tex->imaflag & TEX_MIPMAP) {
 		ImBuf *previbuf, *curibuf;
 		float levf;
 		int maxlev;
 		ImBuf* mipmaps[IB_MIPMAP_LEVELS + 1];
 
-		// modify ellipse minor axis if too eccentric, use for area sampling as well
-		// scaling dxt/dyt as done in pbrt is not the same
-		// (as in ewa_eval(), scale by sqrt(ibuf->x) to maximize precision)
+		/* modify ellipse minor axis if too eccentric, use for area sampling as well
+		 * scaling dxt/dyt as done in pbrt is not the same
+		 * (as in ewa_eval(), scale by sqrt(ibuf->x) to maximize precision) */
 		const float ff = sqrtf(ibuf->x), q = ibuf->y/ff;
 		const float Ux = dxt[0]*ff, Vx = dxt[1]*q, Uy = dyt[0]*ff, Vy = dyt[1]*q;
 		const float A = Vx*Vx + Vy*Vy;
@@ -1248,7 +1249,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			AFD.dusc = 1.f/ff;
 			AFD.dvsc = ff / (float)ibuf->y;
 		}
-		else {	// EWA & area
+		else {	/* EWA & area */
 			if (ecc > (float)tex->afmax) b = a / (float)tex->afmax;
 			b *= ff;
 		}
@@ -1264,8 +1265,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			curmap++;
 		}
 
-		// mipmap level
-		if (levf < 0.f) {	// original image only
+		/* mipmap level */
+		if (levf < 0.f) {  /* original image only */
 			previbuf = curibuf = mipmaps[0];
 			levf = 0.f;
 		}
@@ -1281,39 +1282,39 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			levf -= floorf(levf);
 		}
 
-		// filter functions take care of interpolation themselves, no need to modify dxt/dyt here
+		/* filter functions take care of interpolation themselves, no need to modify dxt/dyt here */
 
 		if (texres->nor && ((tex->imaflag & TEX_NORMALMAP) == 0)) {
-			// color & normal
+			/* color & normal */
 			filterfunc(texres, curibuf, fx, fy, &AFD);
 			val1 = texres->tr + texres->tg + texres->tb;
 			filterfunc(&texr, curibuf, fx + dxt[0], fy + dxt[1], &AFD);
 			val2 = texr.tr + texr.tg + texr.tb;
 			filterfunc(&texr, curibuf, fx + dyt[0], fy + dyt[1], &AFD);
 			val3 = texr.tr + texr.tg + texr.tb;
-			// don't switch x or y!
+			/* don't switch x or y! */
 			texres->nor[0] = val1 - val2;
 			texres->nor[1] = val1 - val3;
-			if (previbuf != curibuf) {  // interpolate
+			if (previbuf != curibuf) {  /* interpolate */
 				filterfunc(&texr, previbuf, fx, fy, &AFD);
-				// rgb
+				/* rgb */
 				texres->tr += levf*(texr.tr - texres->tr);
 				texres->tg += levf*(texr.tg - texres->tg);
 				texres->tb += levf*(texr.tb - texres->tb);
 				texres->ta += levf*(texr.ta - texres->ta);
-				// normal
+				/* normal */
 				val1 += levf*((texr.tr + texr.tg + texr.tb) - val1);
 				filterfunc(&texr, previbuf, fx + dxt[0], fy + dxt[1], &AFD);
 				val2 += levf*((texr.tr + texr.tg + texr.tb) - val2);
 				filterfunc(&texr, previbuf, fx + dyt[0], fy + dyt[1], &AFD);
 				val3 += levf*((texr.tr + texr.tg + texr.tb) - val3);
-				texres->nor[0] = val1 - val2;	// vals have been interpolated above!
+				texres->nor[0] = val1 - val2;  /* vals have been interpolated above! */
 				texres->nor[1] = val1 - val3;
 			}
 		}
-		else {	// color
+		else {  /* color */
 			filterfunc(texres, curibuf, fx, fy, &AFD);
-			if (previbuf != curibuf) {  // interpolate
+			if (previbuf != curibuf) {  /* interpolate */
 				filterfunc(&texr, previbuf, fx, fy, &AFD);
 				texres->tr += levf*(texr.tr - texres->tr);
 				texres->tg += levf*(texr.tg - texres->tg);
@@ -1324,8 +1325,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			alpha_clip_aniso(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, extflag, texres);
 		}
 	}
-	else {	// no mipmap
-		// filter functions take care of interpolation themselves, no need to modify dxt/dyt here
+	else {	/* no mipmap */
+		/* filter functions take care of interpolation themselves, no need to modify dxt/dyt here */
 		if (tex->texfilter == TXF_FELINE) {
 			const float ff = sqrtf(ibuf->x), q = ibuf->y/ff;
 			const float Ux = dxt[0]*ff, Vx = dxt[1]*q, Uy = dyt[0]*ff, Vy = dyt[1]*q;
@@ -1340,7 +1341,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			a = MAX2(a, 1.f);
 			b = MAX2(b, 1.f);
 			fProbes = 2.f*(a / b) - 1.f;
-			// no limit to number of Probes here
+			/* no limit to number of Probes here */
 			AFD.iProbes = (int)floorf(fProbes + 0.5f);
 			if (AFD.iProbes < fProbes) b = 2.f*a / (float)(AFD.iProbes + 1);
 			AFD.majrad = a/ff;
@@ -1350,14 +1351,14 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			AFD.dvsc = ff / (float)ibuf->y;
 		}
 		if (texres->nor && ((tex->imaflag & TEX_NORMALMAP) == 0)) {
-			// color & normal
+			/* color & normal */
 			filterfunc(texres, ibuf, fx, fy, &AFD);
 			val1 = texres->tr + texres->tg + texres->tb;
 			filterfunc(&texr, ibuf, fx + dxt[0], fy + dxt[1], &AFD);
 			val2 = texr.tr + texr.tg + texr.tb;
 			filterfunc(&texr, ibuf, fx + dyt[0], fy + dyt[1], &AFD);
 			val3 = texr.tr + texr.tg + texr.tb;
-			// don't switch x or y!
+			/* don't switch x or y! */
 			texres->nor[0] = val1 - val2;
 			texres->nor[1] = val1 - val3;
 		}
@@ -1376,23 +1377,23 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	if ((R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields))
 		ibuf->rect -= ibuf->x*ibuf->y;
 
-	if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) {	// normal from color
-		// The invert of the red channel is to make
-		// the normal map compliant with the outside world.
-		// It needs to be done because in Blender
-		// the normal used in the renderer points inward. It is generated
-		// this way in calc_vertexnormals(). Should this ever change
-		// this negate must be removed.
+	if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) {	/* normal from color */
+		/* The invert of the red channel is to make
+		 * the normal map compliant with the outside world.
+		 * It needs to be done because in Blender
+		 * the normal used in the renderer points inward. It is generated
+		 * this way in calc_vertexnormals(). Should this ever change
+		 * this negate must be removed. */
 		texres->nor[0] = -2.f*(texres->tr - 0.5f);
 		texres->nor[1] = 2.f*(texres->tg - 0.5f);
 		texres->nor[2] = 2.f*(texres->tb - 0.5f);
 	}
-	
-	// de-premul, this is being premulled in shade_input_do_shade()
-	// TXF: this currently does not (yet?) work properly, destroys edge AA in clip/checker mode, so for now commented out
-	// also disabled in imagewraposa() to be able to compare results with blender's default texture filtering
 
-	// brecht: tried to fix this, see "TXF alpha" comments
+	/* de-premul, this is being premulled in shade_input_do_shade()
+	 * TXF: this currently does not (yet?) work properly, destroys edge AA in clip/checker mode, so for now commented out
+	 * also disabled in imagewraposa() to be able to compare results with blender's default texture filtering */
+
+	/* brecht: tried to fix this, see "TXF alpha" comments */
 
 	if (texres->ta != 1.f && (texres->ta > 1e-4f)) {
 		fx = 1.f/texres->ta;
@@ -1414,12 +1415,12 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	float maxd, pixsize, val1, val2, val3;
 	int curmap, retval, imaprepeat, imapextend;
 
-	// TXF: since dxt/dyt might be modified here and since they might be needed after imagewraposa() call,
-	// make a local copy here so that original vecs remain untouched
+	/* TXF: since dxt/dyt might be modified here and since they might be needed after imagewraposa() call,
+	 * make a local copy here so that original vecs remain untouched */
 	copy_v3_v3(dxt, DXT);
 	copy_v3_v3(dyt, DYT);
 
-	// anisotropic filtering
+	/* anisotropic filtering */
 	if (tex->texfilter != TXF_BOX)
 		return imagewraposa_aniso(tex, ima, ibuf, texvec, dxt, dyt, texres);
 
@@ -1530,7 +1531,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		xs= (int)floor(fx);
 		ys= (int)floor(fy);
 		
-		// both checkers available, no boundary exceptions, checkerdist will eat aliasing
+		/* both checkers available, no boundary exceptions, checkerdist will eat aliasing */
 		if ( (tex->flag & TEX_CHECKER_ODD) && (tex->flag & TEX_CHECKER_EVEN) ) {
 			fx-= xs;
 			fy-= ys;
@@ -1765,18 +1766,18 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	}
 
 	if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) {
-		// qdn: normal from color
-		// The invert of the red channel is to make
-		// the normal map compliant with the outside world.
-		// It needs to be done because in Blender
-		// the normal used in the renderer points inward. It is generated
-		// this way in calc_vertexnormals(). Should this ever change
-		// this negate must be removed.
+		/* qdn: normal from color
+		 * The invert of the red channel is to make
+		 * the normal map compliant with the outside world.
+		 * It needs to be done because in Blender
+		 * the normal used in the renderer points inward. It is generated
+		 * this way in calc_vertexnormals(). Should this ever change
+		 * this negate must be removed. */
 		texres->nor[0] = -2.f*(texres->tr - 0.5f);
 		texres->nor[1] = 2.f*(texres->tg - 0.5f);
 		texres->nor[2] = 2.f*(texres->tb - 0.5f);
 	}
-	
+
 	/* de-premul, this is being premulled in shade_input_do_shade() */
 	if (texres->ta!=1.0f && texres->ta>1e-4f) {
 		fx= 1.0f/texres->ta;

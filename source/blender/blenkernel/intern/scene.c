@@ -257,10 +257,10 @@ void BKE_scene_free(Scene *sce)
 	/* do not free objects! */
 	
 	if (sce->gpd) {
-#if 0   // removed since this can be invalid memory when freeing everything
-		// since the grease pencil data is freed before the scene.
-		// since grease pencil data is not (yet?), shared between objects
-		// its probably safe not to do this, some save and reload will free this.
+#if 0   /* removed since this can be invalid memory when freeing everything */
+		/* since the grease pencil data is freed before the scene.
+		 * since grease pencil data is not (yet?), shared between objects
+		 * its probably safe not to do this, some save and reload will free this. */
 		sce->gpd->id.us--;
 #endif
 		sce->gpd = NULL;
@@ -952,9 +952,9 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 	if (scene->adt && scene->adt->drivers.first) {
 		BKE_animsys_evaluate_animdata(scene, &scene->id, scene->adt, ctime, ADT_RECALC_DRIVERS);
 	}
-	
+
 	/* world */
-	// TODO: what about world textures? but then those have nodes too...
+	/* TODO: what about world textures? but then those have nodes too... */
 	if (scene->world) {
 		ID *wid = (ID *)scene->world;
 		AnimData *adt = BKE_animdata_from_id(wid);
@@ -1060,7 +1060,7 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	sound_set_cfra(sce->r.cfra);
 	
 	/* clear animation overrides */
-	// XXX TODO...
+	/* XXX TODO... */
 
 	for (sce_iter = sce; sce_iter; sce_iter = sce_iter->set) {
 		if (sce_iter->theDag == NULL)

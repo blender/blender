@@ -116,8 +116,8 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	xco -= UI_UNIT_X;
-	
-	// Default panels
+
+	/* Default panels */
 
 	uiBlockBeginAlign(block);
 

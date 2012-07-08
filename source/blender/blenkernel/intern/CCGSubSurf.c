@@ -2210,7 +2210,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss)
 			VertDataAdd(co, r, ss);
 		}
 
-		// edge flags cleared later
+		/* edge flags cleared later */
 	}
 	for (ptrIdx = 0; ptrIdx < numEffectedV; ptrIdx++) {
 		CCGVert *v = effectedV[ptrIdx];
@@ -2337,7 +2337,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss)
 			VertDataAdd(nCo, r, ss);
 		}
 
-		// vert flags cleared later
+		/* vert flags cleared later */
 	}
 
 	if (ss->useAgeCounts) {

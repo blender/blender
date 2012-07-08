@@ -134,7 +134,7 @@ void BKE_action_make_local(bAction *act)
 	if (act->id.lib == NULL)
 		return;
 	
-	// XXX: double-check this; it used to be just single-user check, but that was when fake-users were still default
+	/* XXX: double-check this; it used to be just single-user check, but that was when fake-users were still default */
 	if ((act->id.flag & LIB_FAKEUSER) && (act->id.us <= 1)) {
 		id_clear_lib_data(bmain, &act->id);
 		return;
@@ -547,7 +547,7 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, int copycon)
 	outPose->ikparam = MEM_dupallocN(src->ikparam);
 	
 	for (pchan = outPose->chanbase.first; pchan; pchan = pchan->next) {
-		// TODO: rename this argument...
+		/* TODO: rename this argument... */
 		if (copycon) {
 			copy_constraints(&listb, &pchan->constraints, TRUE);  // copy_constraints NULLs listb
 			pchan->constraints = listb;
@@ -807,7 +807,7 @@ void framechange_poses_clear_unkeyed(void)
 	bPoseChannel *pchan;
 	
 	/* This needs to be done for each object that has a pose */
-	// TODO: proxies may/may not be correctly handled here... (this needs checking) 
+	/* TODO: proxies may/may not be correctly handled here... (this needs checking) */
 	for (ob = G.main->object.first; ob; ob = ob->id.next) {
 		/* we only need to do this on objects with a pose */
 		if ( (pose = ob->pose) ) {
@@ -907,7 +907,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				float nmin, nmax;
 				
 				/* get extents for this curve */
-				// TODO: allow enabling/disabling this?
+				/* TODO: allow enabling/disabling this? */
 				calc_fcurve_range(fcu, &nmin, &nmax, FALSE, TRUE);
 				
 				/* compare to the running tally */
@@ -949,7 +949,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 					}
 					break;
 						
-					// TODO: function modifier may need some special limits
+					/* TODO: function modifier may need some special limits */
 						
 					default: /* all other standard modifiers are on the infinite range... */
 						min = MINAFRAMEF;
@@ -1129,7 +1129,7 @@ void BKE_pose_copy_result(bPose *to, bPose *from)
 	bPoseChannel *pchanto, *pchanfrom;
 	
 	if (to == NULL || from == NULL) {
-		printf("pose result copy error to:%p from:%p\n", (void *)to, (void *)from); // debug temp
+		printf("pose result copy error to:%p from:%p\n", (void *)to, (void *)from); /* debug temp */
 		return;
 	}
 
@@ -1378,12 +1378,12 @@ static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip
 			/* now we need to go pdist further (or less) on cu path */
 			where_on_path(ob, (pathdist) / path->totdist, vec1, dir); /* vec needs size 4 */
 			if (pdistNewNormalized <= 1) {
-				// search for correction in positive path-direction
+				/* search for correction in positive path-direction */
 				where_on_path(ob, pdistNewNormalized, vec2, dir);   /* vec needs size 4 */
 				sub_v3_v3v3(stride_offset, vec2, vec1);
 			}
 			else {
-				// we reached the end of the path, search backwards instead
+				/* we reached the end of the path, search backwards instead */
 				where_on_path(ob, (pathdist - pdist) / path->totdist, vec2, dir);   /* vec needs size 4 */
 				sub_v3_v3v3(stride_offset, vec1, vec2);
 			}

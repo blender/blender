@@ -1454,21 +1454,21 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		
 		/* when you are outside parent button, safety there should be smaller */
 		
-		// parent button to left
+		/* parent button to left */
 		if (midx < block->minx) block->safety.xmin = block->minx - 3;
 		else block->safety.xmin = block->minx - 40;
-		// parent button to right
+		/* parent button to right */
 		if (midx > block->maxx) block->safety.xmax = block->maxx + 3;
 		else block->safety.xmax = block->maxx + 40;
-		
-		// parent button on bottom
+
+		/* parent button on bottom */
 		if (midy < block->miny) block->safety.ymin = block->miny - 3;
 		else block->safety.ymin = block->miny - 40;
-		// parent button on top
+		/* parent button on top */
 		if (midy > block->maxy) block->safety.ymax = block->maxy + 3;
 		else block->safety.ymax = block->maxy + 40;
-		
-		// exception for switched pulldowns...
+
+		/* exception for switched pulldowns... */
 		if (dir1 && (dir1 & block->direction) == 0) {
 			if (dir2 == UI_RIGHT) block->safety.xmax = block->maxx + 3;
 			if (dir2 == UI_LEFT) block->safety.xmin = block->minx - 3;
@@ -1862,7 +1862,7 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3])
 	 */
 	rgb_to_hsv_compat_v(rgb, hsv);
 	
-	// this updates button strings, is hackish... but button pointers are on stack of caller function
+	/* this updates button strings, is hackish... but button pointers are on stack of caller function */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
 		if (bt->rnaprop) {
 			
@@ -2130,8 +2130,8 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("B "),  0, -100, butwidth, UI_UNIT_Y, ptr, prop, 2, 0.0, 0.0, 0, 3, TIP_("Blue"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 
-	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NONE);
-	// but need to use uiButSetFunc for updating other fake buttons
+	/* could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NONE);
+	 * but need to use uiButSetFunc for updating other fake buttons */
 	
 	/* HSV values */
 	uiBlockBeginAlign(block);

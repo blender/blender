@@ -961,9 +961,9 @@ static void nearest_fcurve_vert_store(ListBase *matches, View2D *v2d, FCurve *fc
 		}
 	}
 	else if (fpt) {
-		// TODO...
+		/* TODO... */
 	}
-} 
+}
 
 /* helper for find_nearest_fcurve_vert() - build the list of nearest matches */
 static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], ListBase *matches)

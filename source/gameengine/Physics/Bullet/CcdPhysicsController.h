@@ -267,6 +267,7 @@ struct CcdConstructionInfo
 		m_bRigid(false),
 		m_bSoft(false),
 		m_bSensor(false),
+		m_bCharacter(false),
 		m_bGimpact(false),
 		m_collisionFilterGroup(DefaultFilter),
 		m_collisionFilterMask(AllFilter),

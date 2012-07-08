@@ -1007,7 +1007,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 			}
 		}
 		bestIndex = -1;
-		// find the best change with an acceptable horizontal change
+		/* find the best change with an acceptable horizontal change */
 		for (i = 0; i < totweight; i++) {
 			if (fabs(changes[i][0]) > fabs(changes[i][1] * 2.0f)) {
 				bestIndex = i;
@@ -1016,8 +1016,8 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 		}
 		if (bestIndex != -1) {
 			wasChange = TRUE;
-			// it is a good place to stop if it tries to move the opposite direction
-			// (relative to the plane) of last time
+			/* it is a good place to stop if it tries to move the opposite direction
+			 * (relative to the plane) of last time */
 			if (lastIndex != -1) {
 				if (wasUp != upDown[bestIndex]) {
 					wasChange = FALSE;

@@ -4267,7 +4267,7 @@ static int foreach_parse_args(BPy_PropertyRNA *self, PyObject *args,
 		return -1;
 	}
 
-	*tot = PySequence_Size(*seq); // TODO - buffer may not be a sequence! array.array() is tho.
+	*tot = PySequence_Size(*seq); /* TODO - buffer may not be a sequence! array.array() is tho. */
 
 	if (*tot > 0) {
 		foreach_attr_type(self, *attr, raw_type, attr_tot, attr_signed);

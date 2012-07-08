@@ -224,26 +224,26 @@ static BVHTree *bvhtree_build_from_cloth (ClothModifierData *clmd, float epsilon
 	verts = cloth->verts;
 	mfaces = cloth->mfaces;
 	
-	// in the moment, return zero if no faces there
+	/* in the moment, return zero if no faces there */
 	if (!cloth->numfaces)
 		return NULL;
-	
-	// create quadtree with k=26
+
+	/* create quadtree with k=26 */
 	bvhtree = BLI_bvhtree_new(cloth->numfaces, epsilon, 4, 26);
-	
-	// fill tree
+
+	/* fill tree */
 	for (i = 0; i < cloth->numfaces; i++, mfaces++) {
 		copy_v3_v3(&co[0*3], verts[mfaces->v1].xold);
 		copy_v3_v3(&co[1*3], verts[mfaces->v2].xold);
 		copy_v3_v3(&co[2*3], verts[mfaces->v3].xold);
-		
+
 		if (mfaces->v4)
 			copy_v3_v3(&co[3*3], verts[mfaces->v4].xold);
-		
+
 		BLI_bvhtree_insert(bvhtree, i, co, (mfaces->v4 ? 4 : 3));
 	}
-	
-	// balance tree
+
+	/* balance tree */
 	BLI_bvhtree_balance(bvhtree);
 	
 	return bvhtree;
@@ -313,23 +313,23 @@ void bvhselftree_update_from_cloth(ClothModifierData *clmd, int moving)
 		return;
 	
 	mfaces = cloth->mfaces;
-	
+
 	// update vertex position in bvh tree
 	if (verts && mfaces) {
 		for (i = 0; i < cloth->numverts; i++, verts++) {
 			copy_v3_v3(&co[0*3], verts->txold);
-			
+
 			// copy new locations into array
 			if (moving) {
 				// update moving positions
 				copy_v3_v3(&co_moving[0*3], verts->tx);
-				
+
 				ret = BLI_bvhtree_update_node(bvhtree, i, co, co_moving, 1);
 			}
 			else {
 				ret = BLI_bvhtree_update_node(bvhtree, i, co, NULL, 1);
 			}
-			
+
 			// check if tree is already full
 			if (!ret)
 				break;
@@ -673,7 +673,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
 	if ( cloth ) {
 		if (G.rt > 0)
 			printf("cloth_free_modifier_extern in\n");
-		
+
 		// If our solver provides a free function, call it
 		if ( solvers [clmd->sim_parms->solver_type].free ) {
 			solvers [clmd->sim_parms->solver_type].free ( clmd );
@@ -691,12 +691,12 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
 			LinkNode *search = cloth->springs;
 			while (search) {
 				ClothSpring *spring = search->link;
-						
+
 				MEM_freeN ( spring );
 				search = search->next;
 			}
 			BLI_linklist_free(cloth->springs, NULL);
-		
+
 			cloth->springs = NULL;
 		}
 
@@ -713,11 +713,11 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
 		// we save our faces for collision objects
 		if ( cloth->mfaces )
 			MEM_freeN ( cloth->mfaces );
-		
+
 		if (cloth->edgehash)
 			BLI_edgehash_free ( cloth->edgehash, NULL );
-		
-		
+
+
 		/*
 		if (clmd->clothObject->facemarks)
 		MEM_freeN(clmd->clothObject->facemarks);
@@ -875,10 +875,10 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 	cloth_from_mesh ( clmd, dm );
 
-	// create springs 
+	// create springs
 	clmd->clothObject->springs = NULL;
 	clmd->clothObject->numsprings = -1;
-	
+
 	if ( clmd->sim_parms->shapekey_rest )
 		shapekey_rest = dm->getVertDataArray ( dm, CD_CLOTH_ORCO );
 
@@ -1127,13 +1127,13 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	for (i = 0; i < numverts; i++) {
 		cloth->verts[i].avg_spring_len = cloth->verts[i].avg_spring_len * 0.49f / ((float)cloth->verts[i].spring_count);
 	}
-	
+
 	// shear springs
 	for ( i = 0; i < numfaces; i++ ) {
 		// triangle faces already have shear springs due to structural geometry
 		if ( !mface[i].v4 )
-			continue; 
-		
+			continue;
+
 		spring = ( ClothSpring *) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 		
 		if (!spring) {
@@ -1174,7 +1174,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 		BLI_linklist_prepend ( &cloth->springs, spring );
 	}
-	
+
 	if (numfaces) {
 		// bending springs
 		search2 = cloth->springs;
@@ -1187,14 +1187,14 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			while ( search ) {
 				tspring = search->link;
 				index2 = ( ( tspring->ij==tspring2->kl ) ? ( tspring->kl ) : ( tspring->ij ) );
-				
+
 				// check for existing spring
 				// check also if startpoint is equal to endpoint
 				if (!BLI_edgehash_haskey(edgehash, MIN2(tspring2->ij, index2), MAX2(tspring2->ij, index2)) &&
 				    (index2 != tspring2->ij))
 				{
 					spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
-					
+
 					if (!spring) {
 						cloth_free_errorsprings(cloth, edgehash, edgelist);
 						return 0;

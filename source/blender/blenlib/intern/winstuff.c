@@ -98,10 +98,10 @@ void RegisterBlendExtension(void)
 	printf("Registering file extension...");
 	GetModuleFileName(0, BlPath, MAX_PATH);
 
-	// root is HKLM by default
+	/* root is HKLM by default */
 	lresult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
 	if (lresult != ERROR_SUCCESS) {
-		// try HKCU on failure
+		/* try HKCU on failure */
 		usr_mode = TRUE;
 		lresult = RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
 		if (lresult != ERROR_SUCCESS)

@@ -1400,9 +1400,10 @@ static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
 {
 	float density = (float)knife_sample_screen_density(kcd, maxsize * 2.0f);
 
-	density = MAX2(density, 1);
+	if (density < 1.0f)
+		density = 1.0f;
 
-	return MIN2(maxsize / (density * 0.5f), maxsize);
+	return minf(maxsize / (density * 0.5f), maxsize);
 }
 
 /* p is closest point on edge to the mouse cursor */

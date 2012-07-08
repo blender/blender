@@ -895,7 +895,7 @@ static char *get_rna_access(int blocktype, int adrcode, char actname[], char con
 			/* special case for rotdiff drivers... we don't need a property for this... */
 			break;
 			
-		// TODO... add other blocktypes...
+		/* TODO... add other blocktypes... */
 		default:
 			printf("IPO2ANIMATO WARNING: No path for blocktype %d, adrcode %d yet\n", blocktype, adrcode);
 			break;
@@ -1588,9 +1588,9 @@ static void action_to_animdata(ID *id, bAction *act)
 
 /* ------------------------- */
 
-// TODO:
-//	- NLA group duplicators info
-//	- NLA curve/stride modifiers...
+/* TODO:
+ * - NLA group duplicators info
+ * - NLA curve/stride modifiers... */
 
 /* Convert NLA-Strip to new system */
 static void nlastrips_to_animdata(ID *id, ListBase *strips)

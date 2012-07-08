@@ -546,7 +546,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
 			psys->totchild = 0;
 		}
 		
-		// check if we are last non-visible particle system
+		/* check if we are last non-visible particle system */
 		for (tpsys = ob->particlesystem.first; tpsys; tpsys = tpsys->next) {
 			if (tpsys->part) {
 				if (ELEM(tpsys->part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
@@ -555,7 +555,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
 				}
 			}
 		}
-		// clear do-not-draw-flag
+		/* clear do-not-draw-flag */
 		if (!nr)
 			ob->transflag &= ~OB_DUPLIPARTS;
 

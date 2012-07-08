@@ -103,7 +103,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 			return;
 	}
 	
-	// XXX: disabled as this would otherwise cause a nasty loop...
+	/* XXX: disabled as this would otherwise cause a nasty loop... */
 	//ED_object_toggle_modes(C, ob->mode);
 }
 
@@ -253,14 +253,14 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 		animviz_verify_motionpaths(op->reports, scene, ob, pchan);
 	}
 	CTX_DATA_END;
-	
+
 	/* calculate the bones that now have motionpaths... */
-	// TODO: only make for the selected bones?
+	/* TODO: only make for the selected bones? */
 	ED_pose_recalculate_paths(scene, ob);
-	
+
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	
+
 	return OPERATOR_FINISHED; 
 }
 
@@ -299,9 +299,9 @@ static int pose_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	if (ELEM(NULL, ob, scene))
 		return OPERATOR_CANCELLED;
-		
+
 	/* calculate the bones that now have motionpaths... */
-	// TODO: only make for the selected bones?
+	/* TODO: only make for the selected bones? */
 	ED_pose_recalculate_paths(scene, ob);
 	
 	/* notifiers for updates */

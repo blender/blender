@@ -665,9 +665,9 @@ void IMB_exr_read_channels(void *handle)
 }
 
 void IMB_exr_multilayer_convert(void *handle, void *base,
-                                void * (*addlayer)(void *base, char *str),
-                                void (*addpass)(void *base, void *lay, char *str,
-                                                float *rect, int totchan, char *chan_id))
+                                void * (*addlayer)(void *base, const char *str),
+                                void (*addpass)(void *base, void *lay, const char *str,
+                                                float *rect, int totchan, const char *chan_id))
 {
 	ExrHandle *data = (ExrHandle *)handle;
 	ExrLayer *lay;
@@ -907,14 +907,6 @@ static ExrHandle *imb_exr_begin_read_mem(InputFile *file, int width, int height)
 
 
 /* ********************************************************* */
-
-typedef struct RGBA {
-	float r;
-	float g;
-	float b;
-	float a;
-} RGBA;
-
 
 /* debug only */
 static void exr_print_filecontents(InputFile *file)

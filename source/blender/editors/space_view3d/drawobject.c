@@ -2118,7 +2118,7 @@ static void drawSelectedVertices__mapFunc(void *userData, int index, const float
 	if (!(mv->flag & ME_HIDE)) {
 		const char sel = mv->flag & SELECT;
 
-		// TODO define selected color
+		/* TODO define selected color */
 		if (sel) {
 			glColor3f(1.0f, 1.0f, 0.0f);
 		}

@@ -1618,13 +1618,13 @@ static void decode_tfaceflag(Material *ma, int flag, int convertall)
 /* boolean check to see if the mesh needs a material */
 static int check_tfaceneedmaterial(int flag)
 {
-	// check if the flags we have are not deprecated != than default material options
-	// also if only flags are visible and collision see if all objects using this mesh have this option in physics
+	/* check if the flags we have are not deprecated != than default material options
+	 * also if only flags are visible and collision see if all objects using this mesh have this option in physics */
 
 	/* flag is shifted in 1 to make 0 != no flag yet (see encode_tfaceflag) */
 	flag -= 1;
 
-	// deprecated flags
+	/* deprecated flags */
 	flag &= ~TF_OBCOL;
 	flag &= ~TF_SHAREDVERT;
 	flag &= ~TF_SHAREDCOL;
@@ -1632,12 +1632,12 @@ static int check_tfaceneedmaterial(int flag)
 	/* light tface flag is ignored in GLSL mode */
 	flag &= ~TF_LIGHT;
 	
-	// automatic detected if tex image has alpha
+	/* automatic detected if tex image has alpha */
 	flag &= ~(TF_ALPHA << 15);
-	// automatic detected if using texture
+	/* automatic detected if using texture */
 	flag &= ~TF_TEX;
 
-	// settings for the default NoMaterial
+	/* settings for the default NoMaterial */
 	if (flag == TF_DYNAMIC)
 		return 0;
 
@@ -1646,7 +1646,7 @@ static int check_tfaceneedmaterial(int flag)
 }
 
 /* return number of digits of an integer */
-// XXX to be optmized or replaced by an equivalent blender internal function
+/* XXX to be optmized or replaced by an equivalent blender internal function */
 static int integer_getdigits(int number)
 {
 	int i = 0;
@@ -1661,9 +1661,9 @@ static int integer_getdigits(int number)
 
 static void calculate_tface_materialname(char *matname, char *newname, int flag)
 {
-	// if flag has only light and collision and material matches those values
-	// you can do strcpy(name, mat_name);
-	// otherwise do:
+	/* if flag has only light and collision and material matches those values
+	 * you can do strcpy(name, mat_name);
+	 * otherwise do: */
 	int digits = integer_getdigits(flag);
 	/* clamp the old name, remove the MA prefix and add the .TF.flag suffix
 	 * e.g. matname = "MALoooooooooooooongName"; newname = "Loooooooooooooon.TF.2" */
@@ -1736,9 +1736,9 @@ static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 			set_facetexture_flags(ma, tf->tpage);
 
 			decode_tfaceflag(ma, flag, 1);
-			// the final decoding will happen after, outside the main loop
-			// for now store the flag into the material and change light/tex/collision 
-			// store the flag as a negative number
+			/* the final decoding will happen after, outside the main loop
+			 * for now store the flag into the material and change light/tex/collision
+			 * store the flag as a negative number */
 			ma->game.flag = -flag;
 			id_us_min((ID *)ma);	
 		}

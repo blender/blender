@@ -174,7 +174,7 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(row, imfptr, "include_armatures", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
-	// Texture options
+	/* Texture options */
 	box = uiLayoutBox(layout);
 	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Texture Options:"), ICON_TEXTURE_DATA);
@@ -192,7 +192,7 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(row, imfptr, "use_texture_copies", 1, NULL, ICON_NONE);
 
 
-	// Armature options
+	/* Armature options */
 	box = uiLayoutBox(layout);
 	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Armature Options:"), ICON_ARMATURE_DATA);

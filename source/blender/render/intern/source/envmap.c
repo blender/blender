@@ -49,7 +49,7 @@
 
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_image.h"   // BKE_imbuf_write 
+#include "BKE_image.h"   /* BKE_imbuf_write */
 #include "BKE_texture.h"
 
 
@@ -579,7 +579,7 @@ void make_envmaps(Render *re)
 		re->display_clear(re->dch, re->result);
 		// re->flag |= R_REDRAW_PRV;
 	}	
-	// restore
+	/* restore */
 	re->r.mode |= trace;
 
 }

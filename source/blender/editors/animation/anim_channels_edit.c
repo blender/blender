@@ -400,7 +400,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 		/* compare data, and type as main way of identifying the channel */
 		if ((ale->data == ale_setting->data) && (ale->type == ale_setting->type)) {
 			/* we also have to check the ID, this is assigned to, since a block may have multiple users */
-			// TODO: is the owner-data more revealing?
+			/* TODO: is the owner-data more revealing? */
 			if (ale->id == ale_setting->id) {
 				match = ale;
 				break;
@@ -576,13 +576,13 @@ static int animedit_poll_channels_active(bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	
 	/* channels region test */
-	// TODO: could enhance with actually testing if channels region?
+	/* TODO: could enhance with actually testing if channels region? */
 	if (ELEM(NULL, sa, CTX_wm_region(C)))
 		return 0;
 	/* animation editor test */
 	if (ELEM3(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA) == 0)
 		return 0;
-		
+
 	return 1;
 }
 
@@ -591,9 +591,9 @@ static int animedit_poll_channels_nla_tweakmode_off(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
-	
+
 	/* channels region test */
-	// TODO: could enhance with actually testing if channels region?
+	/* TODO: could enhance with actually testing if channels region? */
 	if (ELEM(NULL, sa, CTX_wm_region(C)))
 		return 0;
 	/* animation editor test */
@@ -1314,16 +1314,16 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 	/* make all the selected channels visible */
 	filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	
+
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		/* hack: skip object channels for now, since flushing those will always flush everything, but they are always included */
-		// TODO: find out why this is the case, and fix that
+		/* TODO: find out why this is the case, and fix that */
 		if (ale->type == ANIMTYPE_OBJECT)
 			continue;
-		
+
 		/* enable the setting */
 		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, ACHANNEL_SETFLAG_ADD);
-		
+
 		/* now, also flush selection status up/down as appropriate */
 		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, 1);
 	}
@@ -1394,13 +1394,13 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *UNUSED(o
 	/* Now set the flags */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		/* hack: skip object channels for now, since flushing those will always flush everything, but they are always included */
-		// TODO: find out why this is the case, and fix that
+		/* TODO: find out why this is the case, and fix that */
 		if (ale->type == ANIMTYPE_OBJECT)
 			continue;
-		
+
 		/* change the setting */
 		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, vis);
-		
+
 		/* now, also flush selection status up/down as appropriate */
 		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, (vis == ACHANNEL_SETFLAG_ADD));
 	}
@@ -1734,9 +1734,9 @@ static void ANIM_OT_channels_collapse(wmOperatorType *ot)
 static int animchannels_enable_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	
+
 	/* channels region test */
-	// TODO: could enhance with actually testing if channels region?
+	/* TODO: could enhance with actually testing if channels region? */
 	if (ELEM(NULL, sa, CTX_wm_region(C)))
 		return 0;
 		
@@ -2103,17 +2103,17 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 		BLI_freelistN(&anim_data);
 		return 0;
 	}
-	
+
 	/* selectmode -1 is a special case for ActionGroups only, which selects all of the channels underneath it only... */
-	// TODO: should this feature be extended to work with other channel types too?
+	/* TODO: should this feature be extended to work with other channel types too? */
 	if ((selectmode == -1) && (ale->type != ANIMTYPE_GROUP)) {
 		/* normal channels should not behave normally in this case */
 		BLI_freelistN(&anim_data);
 		return 0;
 	}
-	
+
 	/* action to take depends on what channel we've got */
-	// WARNING: must keep this in sync with the equivalent function in nla_channels.c
+	/* WARNING: must keep this in sync with the equivalent function in nla_channels.c */
 	switch (ale->type) {
 		case ANIMTYPE_SCENE:
 		{
@@ -2152,9 +2152,9 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 			}
 			else {
 				Base *b;
-				
+
 				/* deselect all */
-				// TODO: should this deselect all other types of channels too?
+				/* TODO: should this deselect all other types of channels too? */
 				for (b = sce->base.first; b; b = b->next) {
 					b->flag &= ~SELECT;
 					b->object->flag = b->flag;
@@ -2438,10 +2438,10 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_setting_enable);
 	WM_operatortype_append(ANIM_OT_channels_setting_disable);
 	WM_operatortype_append(ANIM_OT_channels_setting_toggle);
-	
+
 	WM_operatortype_append(ANIM_OT_channels_delete);
-	
-	// XXX does this need to be a separate operator?
+
+	/* XXX does this need to be a separate operator? */
 	WM_operatortype_append(ANIM_OT_channels_editable_toggle);
 	
 	WM_operatortype_append(ANIM_OT_channels_move);
@@ -2463,11 +2463,11 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 
 	/* selection */
 	/* click-select */
-	// XXX for now, only leftmouse....
+	/* XXX for now, only leftmouse.... */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", TRUE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "children_only", TRUE);
-	
+
 	/* rename */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	

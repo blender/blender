@@ -265,11 +265,11 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							key->totkey++;
 							if (key->totkey == 1) key->refkey = kbn;
 							
-							// XXX 2.5 Animato
+							/* XXX 2.5 Animato */
 #if 0
 							/* also, copy corresponding ipo-curve to ipo-block if applicable */
 							if (me->key->ipo && key->ipo) {
-								// FIXME... this is a luxury item!
+								/* FIXME... this is a luxury item! */
 								puts("FIXME: ignoring IPO's when joining shapekeys on Meshes for now...");
 							}
 #endif
@@ -530,7 +530,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	
 	/* free temp copy of destination shapekeys (if applicable) */
 	if (nkey) {
-		// XXX 2.5 Animato
+		/* XXX 2.5 Animato */
 #if 0
 		/* free it's ipo too - both are not actually freed from memory yet as ID-blocks */
 		if (nkey->ipo) {

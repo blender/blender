@@ -183,7 +183,7 @@ RayObject *RE_rayobject_svbvh_create(int size)
 
 #else
 
-RayObject *RE_rayobject_svbvh_create(int size)
+RayObject *RE_rayobject_svbvh_create(int UNUSED(size))
 {
 	puts("WARNING: SSE disabled at compile time\n");
 	return NULL;

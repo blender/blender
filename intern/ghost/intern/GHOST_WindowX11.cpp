@@ -419,8 +419,8 @@ GHOST_WindowX11(
 	x_image = XCreateImage(display, m_visual->visual, 24, ZPixmap, 0, NULL, BLENDER_ICON_WIDTH, BLENDER_ICON_HEIGHT, 32, 0);
 	mask_image = XCreateImage(display, m_visual->visual, 1, ZPixmap, 0, NULL,  BLENDER_ICON_WIDTH, BLENDER_ICON_HEIGHT, 8, 0);
 	
-	x_image->data = (char *)malloc(x_image->bytes_per_line * BLENDER_ICON_HEIGHT);
-	mask_image->data = (char *)malloc(mask_image->bytes_per_line * BLENDER_ICON_HEIGHT);
+	x_image->data = (char *)calloc(x_image->bytes_per_line * BLENDER_ICON_HEIGHT, 1);
+	mask_image->data = (char *)calloc(mask_image->bytes_per_line * BLENDER_ICON_HEIGHT, 1);
 	
 	/* copy the BLENDER_ICON_48x48x24 into the XImage */
 	unsigned char *col = BLENDER_ICON_48x48x24;
@@ -429,7 +429,11 @@ GHOST_WindowX11(
 		for (py = 0; py < BLENDER_ICON_HEIGHT; py++, col += 3) {
 			/* mask out pink */
 			if (col[0] == 255 && col[1] == 0 && col[2] == 255) {
+#if 0
+				/* instead, use calloc above */
+				XPutPixel(x_image, px, py, 0); /* avoid uninitialized memory, otherwise not needed */
 				XPutPixel(mask_image, px, py, 0);
+#endif
 			}
 			else {
 				XPutPixel(x_image, px, py, (col[0] << 16) + (col[1] << 8) + col[2]);
@@ -1143,7 +1147,6 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
 }
 
 #include <iostream>
-using namespace std;
 
 GHOST_TSuccess
 GHOST_WindowX11::

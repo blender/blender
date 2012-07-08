@@ -372,7 +372,7 @@ static char *slot_menu(void)
 static char *layer_menu(RenderResult *rr, short *UNUSED(curlay))
 {
 	RenderLayer *rl;
-	int len = 64 + 32 * BLI_countlist(&rr->layers);
+	int len = 64 + RE_MAXNAME * BLI_countlist(&rr->layers);
 	short a, nr = 0;
 	char *str = MEM_callocN(len, "menu layers");
 	

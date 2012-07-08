@@ -71,6 +71,8 @@ def process_po(po, lang):
     # update po file
     cmd = (GETTEXT_MSGMERGE_EXECUTABLE,
            "--update",
+           "-w", "1",  # XXX Ugly hack to prevent msgmerge merging
+                       #     short source comments together!
            "--no-wrap",
            "--backup=none",
            "--lang={}".format(lang),

@@ -2315,10 +2315,10 @@ static int tracking_check_marker_margin(MovieTrackingTrack *track, MovieTracking
 	/* margin from frame boundaries */
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 	sub_v2_v2v2(dim, pat_max, pat_min);
-	margin[0] = margin[1] = MAX2(dim[0], dim[1]) / 2.0f;
+	margin[0] = margin[1] = maxf(dim[0], dim[1]) / 2.0f;
 
-	margin[0] = MAX2(margin[0], (float)track->margin / frame_width);
-	margin[1] = MAX2(margin[1], (float)track->margin / frame_height);
+	margin[0] = maxf(margin[0], (float)track->margin / frame_width);
+	margin[1] = maxf(margin[1], (float)track->margin / frame_height);
 
 	/* do not track markers which are too close to boundary */
 	if (marker->pos[0] < margin[0] || marker->pos[0] > 1.0f - margin[0] ||

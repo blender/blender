@@ -48,8 +48,8 @@ void	IMB_exrtile_write_channels	(void *handle, int partx, int party, int level) 
 void	IMB_exrtile_clear_channels	(void *handle) { (void)handle; }
 
 void    IMB_exr_multilayer_convert	(void *handle, void *base,  
-									 void * (*addlayer)(void *base, char *str), 
-									 void (*addpass)(void *base, void *lay, char *str, float *rect, int totchan, char *chan_id))
+									 void * (*addlayer)(void *base, const char *str),
+									 void (*addpass)(void *base, void *lay, const char *str, float *rect, int totchan, const char *chan_id))
 									{
 										(void)handle; (void)base; (void)addlayer; (void)addpass;
 									}

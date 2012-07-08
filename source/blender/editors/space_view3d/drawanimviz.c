@@ -63,9 +63,9 @@
 
 /* ************************************ Motion Paths ************************************* */
 
-// TODO: 
-//	- options to draw paths with lines
-//	- include support for editing the path verts
+/* TODO:
+ *	- options to draw paths with lines
+ *	- include support for editing the path verts */
 
 /* Set up drawing environment for drawing motion paths */
 void draw_motion_paths_init(View3D *v3d, ARegion *ar) 
