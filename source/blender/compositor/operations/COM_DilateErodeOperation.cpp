@@ -234,15 +234,13 @@ bool DilateDistanceOperation::determineDependingAreaOfInterest(rcti *input, Read
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-static cl_kernel dilateKernel = 0;
 void DilateDistanceOperation::executeOpenCL(OpenCLDevice* device,
                                             MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
                                             MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
                                             list<cl_kernel> *clKernelsToCleanUp)
 {
-	if (!dilateKernel) {
-		dilateKernel = device->COM_clCreateKernel("dilateKernel", NULL);
-	}
+	cl_kernel dilateKernel = device->COM_clCreateKernel("dilateKernel", NULL);
+
 	cl_int distanceSquared = this->m_distance * this->m_distance;
 	cl_int scope = this->m_scope;
 	
@@ -293,15 +291,13 @@ void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuff
 	color[0] = value;
 }
 
-static cl_kernel erodeKernel = 0;
 void ErodeDistanceOperation::executeOpenCL(OpenCLDevice* device,
                                            MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
                                            MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
                                            list<cl_kernel> *clKernelsToCleanUp)
 {
-	if (!erodeKernel) {
-		erodeKernel = device->COM_clCreateKernel("erodeKernel", NULL);
-	}
+	cl_kernel erodeKernel = device->COM_clCreateKernel("erodeKernel", NULL);
+
 	cl_int distanceSquared = this->m_distance * this->m_distance;
 	cl_int scope = this->m_scope;
 	
