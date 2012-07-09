@@ -785,8 +785,9 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		uiLayout *layout;
 		PointerRNA ptr;
 		rctf rect = gnode->totr;
-		float node_group_frame = U.dpi * NODE_GROUP_FRAME / 72;
-		float group_header = 26 * U.dpi / 72;
+		const float dpi_fac = U.dpi / 72.0f;
+		float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
+		float group_header = 26 * dpi_fac;
 		
 		int index;
 		
@@ -841,7 +842,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColor(TH_TEXT_HI);
 	
 		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-		                       (int)(rect.xmin + NODE_MARGIN_X), (int)(rect.ymax + group_header),
+		                       (int)(rect.xmin + NODE_MARGIN_X), (int)(rect.ymax + (group_header - (2.5f * dpi_fac))),
 		                       MIN2((int)(rect.xmax - rect.xmin - 18.0f), node_group_frame + 20), group_header, UI_GetStyle());
 		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
 		uiTemplateIDBrowse(layout, (bContext *)C, &ptr, "node_tree", NULL, NULL, NULL);
