@@ -360,13 +360,14 @@ typedef struct MVertSkin {
 
 
 /* mtface->unwrap */
-#define TF_DEPRECATED1	1
-#define TF_DEPRECATED2	2
-#define TF_DEPRECATED3	4
-#define TF_DEPRECATED4	8
-#define TF_PIN1		    16
-#define TF_PIN2		    32
-#define TF_PIN3	   		64
-#define TF_PIN4	    	128
+#define TF_DEPRECATED1     1
+#define TF_DEPRECATED2     2
+#define TF_DEPRECATED3     4
+#define TF_DEPRECATED4     8
+#define TF_PIN1            16
+#define TF_PIN2	           32
+#define TF_PIN3	   	       64
+#define TF_PIN4	           128
+#define TF_CORRECT_ASPECT  256
 
 #endif
