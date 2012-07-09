@@ -378,10 +378,19 @@ void BVH::pack_instances(size_t nodes_size)
 		int mesh_tri_offset = mesh->tri_offset;
 
 		/* fill in node indexes for instances */
-		if(bvh->pack.is_leaf[0])
+		if(
+		   /* XXX, brecht. check this is needed!. it could be a bug elsewhere
+		    * /mango/pro/scenes/04_2e/04_2e.blend r2158. on Ian's system 192.168.3.27  - campbell */
+		   (bvh->pack.is_leaf.size() != 0) &&
+
+		   /* previously only checked this */
+		   bvh->pack.is_leaf[0])
+		{
 			pack.object_node[object_offset++] = -noffset-1;
-		else
+		}
+		else {
 			pack.object_node[object_offset++] = noffset;
+		}
 
 		mesh_map[mesh] = pack.object_node[object_offset-1];
 
