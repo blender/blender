@@ -83,7 +83,7 @@
 
 /* width of socket columns in group display */
 #define NODE_GROUP_FRAME  120
-// XXX interface.h
+/* XXX interface.h */
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int select);
 
 /* XXX update functions for node editor are a mess, needs a clear concept */
@@ -349,7 +349,8 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 			if (aspect <= 1.0f)
 				node->prvr.ymin = dy - aspect * (node->width - NODE_DY);
 			else {
-				float dx = (node->width - NODE_DYS) - (node->width - NODE_DYS) / aspect;    /* width correction of image */
+				/* width correction of image */
+				float dx = (node->width - NODE_DYS) - (node->width - NODE_DYS) / aspect;
 				
 				node->prvr.ymin = dy - (node->width - NODE_DY);
 				
@@ -776,7 +777,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		/* XXX button uses a custom triangle draw below, so make it invisible without icon */
 		uiBlockSetEmboss(node->block, UI_EMBOSSN);
 		but = uiDefBut(node->block, TOGBUT, B_REDR, "",
-		               rct->xmin + 10.0f - but_size / 2, rct->ymax - NODE_DY / 2.0f - but_size / 2, but_size, but_size, NULL, 0, 0, 0, 0, "");
+		               rct->xmin + 10.0f - but_size / 2, rct->ymax - NODE_DY / 2.0f - but_size / 2,
+		               but_size, but_size, NULL, 0, 0, 0, 0, "");
 		uiButSetFunc(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
 		uiBlockSetEmboss(node->block, UI_EMBOSS);
 		
@@ -795,7 +797,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
 	
 	//if (node->flag & NODE_MUTED)
-	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - don't print into self!
+	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
 	
 	uiDefBut(node->block, LABEL, 0, showname,
 	         (int)(rct->xmin + (NODE_MARGIN_X / snode->aspect_sqrt)), (int)(rct->ymax - NODE_DY),
@@ -841,7 +843,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE, sock->flag & SELECT);
 		
 		node->typeinfo->drawinputfunc(C, node->block, ntree, node, sock, IFACE_(sock->name),
-		                              sock->locx + (NODE_DYS / snode->aspect_sqrt), sock->locy - NODE_DYS, node->width - NODE_DY);
+		                              sock->locx + (NODE_DYS / snode->aspect_sqrt), sock->locy - NODE_DYS,
+		                              node->width - NODE_DY);
 	}
 	
 	/* socket outputs */
@@ -852,7 +855,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE, sock->flag & SELECT);
 		
 		node->typeinfo->drawoutputfunc(C, node->block, ntree, node, sock, IFACE_(sock->name),
-		                               sock->locx - node->width + (NODE_DYS / snode->aspect_sqrt), sock->locy - NODE_DYS, node->width - NODE_DY);
+		                               sock->locx - node->width + (NODE_DYS / snode->aspect_sqrt), sock->locy - NODE_DYS,
+		                               node->width - NODE_DY);
 	}
 	
 	/* preview */
@@ -925,7 +929,8 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		/* XXX button uses a custom triangle draw below, so make it invisible without icon */
 		uiBlockSetEmboss(node->block, UI_EMBOSSN);
 		but = uiDefBut(node->block, TOGBUT, B_REDR, "",
-		               rct->xmin + 10.0f - but_size / 2, centy - but_size / 2, but_size, but_size, NULL, 0, 0, 0, 0, "");
+		               rct->xmin + 10.0f - but_size / 2, centy - but_size / 2,
+		               but_size, but_size, NULL, 0, 0, 0, 0, "");
 		uiButSetFunc(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
 		uiBlockSetEmboss(node->block, UI_EMBOSS);
 		
@@ -946,7 +951,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
 		
 		//if (node->flag & NODE_MUTED)
-		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - don't print into self!
+		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
 
 		uiDefBut(node->block, LABEL, 0, showname,
 		         (int)(rct->xmin + (NODE_MARGIN_X / snode->aspect_sqrt)), (int)(centy - 10),
