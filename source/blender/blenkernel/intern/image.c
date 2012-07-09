@@ -1312,6 +1312,31 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 
 }
 
+static void timecode_simple_string(char *text, size_t text_size, const int cfra, int const frs_sec)
+{
+	int f = (int)(cfra % frs_sec);
+	int s = (int)(cfra / frs_sec);
+	int h = 0;
+	int m = 0;
+
+	if (s) {
+		m = (int)(s / 60);
+		s %= 60;
+
+		if (m) {
+			h = (int)(m / 60);
+			m %= 60;
+		}
+	}
+
+	if (frs_sec < 100) {
+		BLI_snprintf(text, text_size, "%02d:%02d:%02d.%02d", h, m, s, f);
+	}
+	else {
+		BLI_snprintf(text, text_size, "%02d:%02d:%02d.%03d", h, m, s, f);
+	}
+}
+
 /* could allow access externally - 512 is for long names, 64 is for id names */
 typedef struct StampData {
 	char file[512];
@@ -1371,26 +1396,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	}
 
 	if (scene->r.stamp & R_STAMP_TIME) {
-		int f = (int)(scene->r.cfra % scene->r.frs_sec);
-		int s = (int)(scene->r.cfra / scene->r.frs_sec);
-		int h = 0;
-		int m = 0;
-
-		if (s) {
-			m = (int)(s / 60);
-			s %= 60;
-
-			if (m) {
-				h = (int)(m / 60);
-				m %= 60;
-			}
-		}
-
-		if (scene->r.frs_sec < 100)
-			BLI_snprintf(text, sizeof(text), "%02d:%02d:%02d.%02d", h, m, s, f);
-		else
-			BLI_snprintf(text, sizeof(text), "%02d:%02d:%02d.%03d", h, m, s, f);
-
+		timecode_simple_string(text, sizeof(text), scene->r.cfra, scene->r.frs_sec);
 		BLI_snprintf(stamp_data->time, sizeof(stamp_data->time), do_prefix ? "Time %s" : "%s", text);
 	}
 	else {
