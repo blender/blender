@@ -994,7 +994,7 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	float alpha;
 	
 	UI_GetThemeColor4ubv(TH_NODE_FRAME, color);
-	alpha = (float)(color[3]) / 255.0f;
+	alpha = (float)(color[3])/255.0f;
 	
 	/* skip if out of view */
 	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
@@ -1074,7 +1074,7 @@ static void node_buts_frame_details(uiLayout *layout, bContext *UNUSED(C), Point
 }
 
 
-#define NODE_REROUTE_SIZE  8.0f
+#define NODE_REROUTE_SIZE	8.0f
 
 static void node_update_reroute(const bContext *UNUSED(C), bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -1086,36 +1086,36 @@ static void node_update_reroute(const bContext *UNUSED(C), bNodeTree *UNUSED(ntr
 	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 	
 	/* reroute node has exactly one input and one output, both in the same place */
-	nsock = node->outputs.first;
-	nsock->locx = locx;
-	nsock->locy = locy;
+	nsock= node->outputs.first;
+	nsock->locx= locx;
+	nsock->locy= locy;
 
-	nsock = node->inputs.first;
-	nsock->locx = locx;
-	nsock->locy = locy;
-
-	node->width = size * 2.0f;
-	node->totr.xmin = locx - size;
-	node->totr.xmax = locx + size;
-	node->totr.ymax = locy + size;
-	node->totr.ymin = locy - size;
+	nsock= node->inputs.first;
+	nsock->locx= locx;
+	nsock->locy= locy;
+	
+	node->width = size*2;
+	node->totr.xmin= locx - size;
+	node->totr.xmax= locx + size;
+	node->totr.ymax= locy + size;
+	node->totr.ymin= locy - size;
 }
 
 static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(snode),  bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock;
-	#if 0   /* UNUSED */
-	rctf *rct = &node->totr;
+	#if 0	/* UNUSED */
+	rctf *rct= &node->totr;
 	float size = NODE_REROUTE_SIZE;
 	#endif
-	float socket_size = NODE_SOCKSIZE;
+	float socket_size= NODE_SOCKSIZE;
 
 	/* skip if out of view */
 	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
-	    node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax)
-	{
+			node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax) {
+
 		uiEndBlock(C, node->block);
-		node->block = NULL;
+		node->block= NULL;
 		return;
 	}
 
@@ -1134,12 +1134,12 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	if (node->flag & (NODE_ACTIVE | SELECT)) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
-		/* using different shades of TH_TEXT_HI for the empasis, like triangle */
-		if (node->flag & NODE_ACTIVE)
-			UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
-		else
-			UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
-		uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
+			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
+			if (node->flag & NODE_ACTIVE)
+				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
+			else
+				UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
+			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
@@ -1149,13 +1149,13 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	/* only draw input socket. as they all are placed on the same position.
 	 * highlight also if node itself is selected, since we don't display the node body separately!
 	 */
-	for (sock = node->inputs.first; sock; sock = sock->next) {
+	for (sock= node->inputs.first; sock; sock= sock->next) {
 		node_socket_circle_draw(ntree, sock, socket_size, (sock->flag & SELECT) || (node->flag & SELECT));
 	}
 
 	uiEndBlock(C, node->block);
 	uiDrawBlock(C, node->block);
-	node->block = NULL;
+	node->block= NULL;
 }
 
 /* Special tweak area for reroute node.
@@ -1164,12 +1164,12 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 static int node_tweak_area_reroute(bNode *node, int x, int y)
 {
 	/* square of tweak radius */
-	static const float tweak_radius_sq = 576;   /* 24*24 */
+	static const float tweak_radius_sq = 576;	/* 24*24 */
 	
 	bNodeSocket *sock = node->inputs.first;
 	float dx = sock->locx - x;
 	float dy = sock->locy - y;
-	return (dx * dx + dy * dy <= tweak_radius_sq);
+	return (dx*dx + dy*dy <= tweak_radius_sq);
 }
 
 static void node_common_set_butfunc(bNodeType *ntype)
@@ -1197,9 +1197,9 @@ static void node_common_set_butfunc(bNodeType *ntype)
 			ntype->resize_area_func = node_resize_area_frame;
 			break;
 		case NODE_REROUTE:
-			ntype->drawfunc = node_draw_reroute;
-			ntype->drawupdatefunc = node_update_reroute;
-			ntype->tweak_area_func = node_tweak_area_reroute;
+			ntype->drawfunc= node_draw_reroute;
+			ntype->drawupdatefunc= node_update_reroute;
+			ntype->tweak_area_func= node_tweak_area_reroute;
 			break;
 	}
 }
@@ -2468,7 +2468,7 @@ static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *p
 
 static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	bNode *node = ptr->data;
+	bNode *node= ptr->data;
 
 	uiTemplateID(layout, C, ptr, "clip", NULL, NULL, NULL);
 
@@ -2691,7 +2691,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			ntype->uibackdropfunc = node_composit_backdrop_viewer;
 			break;
 		case CMP_NODE_MASK:
-			ntype->uifunc = node_composit_buts_mask;
+			ntype->uifunc= node_composit_buts_mask;
 			break;
 		case CMP_NODE_KEYINGSCREEN:
 			ntype->uifunc = node_composit_buts_keyingscreen;
@@ -3123,31 +3123,27 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 	deltay = vec[3][1] - vec[0][1];
 	/* check direction later, for top sockets */
 	if (fromreroute) {
-		if (ABS(deltax) > ABS(deltay)) {
-			vec[1][1] = vec[0][1];
-			vec[1][0] = vec[0][0] + (deltax > 0 ? dist : -dist);
+		if (ABS(deltax)>ABS(deltay)) {
+			vec[1][1]= vec[0][1];
+			vec[1][0]= vec[0][0]+(deltax>0?dist:-dist);
+		} else {
+			vec[1][0]= vec[0][0];
+			vec[1][1]= vec[0][1]+(deltay>0?dist:-dist);
 		}
-		else {
-			vec[1][0] = vec[0][0];
-			vec[1][1] = vec[0][1] + (deltay > 0 ? dist : -dist);
-		}
-	}
-	else {
+	} else {
 		vec[1][0] = vec[0][0] + dist;
 		vec[1][1] = vec[0][1];
 	}
 	if (toreroute) {
-		if (ABS(deltax) > ABS(deltay)) {
-			vec[2][1] = vec[3][1];
-			vec[2][0] = vec[3][0] + (deltax > 0 ? -dist : dist);
-		}
-		else {
-			vec[2][0] = vec[3][0];
-			vec[2][1] = vec[3][1] + (deltay > 0 ? -dist : dist);
+		if (ABS(deltax)>ABS(deltay)) {
+			vec[2][1]= vec[3][1];
+			vec[2][0]= vec[3][0]+ (deltax>0?-dist:dist);
+		} else {
+			vec[2][0]= vec[3][0];
+			vec[2][1]= vec[3][1]+(deltay>0?-dist:dist);
 		}
 
-	}
-	else {
+	} else {
 		vec[2][0] = vec[3][0] - dist;
 		vec[2][1] = vec[3][1];
 	}
@@ -3165,8 +3161,8 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 }
 
 #define LINK_RESOL  24
-#define LINK_ARROW  12  /* position of arrow on the link, LINK_RESOL/2 */
-#define ARROW_SIZE  7
+#define LINK_ARROW	12	/* position of arrow on the link, LINK_RESOL/2 */
+#define ARROW_SIZE 7
 void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3)
 {
 	float coord_array[LINK_RESOL + 1][2];
