@@ -797,8 +797,10 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	//if (node->flag & NODE_MUTED)
 	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - don't print into self!
 	
-	uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(rct->ymax-NODE_DY), 
-			 (int)(iconofs - rct->xmin-18.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
+	uiDefBut(node->block, LABEL, 0, showname,
+	         (int)(rct->xmin + 15), (int)(rct->ymax - NODE_DY),
+	         (short)(iconofs - rct->xmin - 18.0f), (short)NODE_DY,
+	         NULL, 0, 0, 0, 0, "");
 
 	/* body */
 	if (node->flag & NODE_CUSTOM_COLOR)
@@ -946,8 +948,10 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		//if (node->flag & NODE_MUTED)
 		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - don't print into self!
 
-		uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(centy-10), 
-				 (int)(rct->xmax - rct->xmin-18.0f -12.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
+		uiDefBut(node->block, LABEL, 0, showname,
+		         (int)(rct->xmin + 15), (int)(centy - 10),
+		         (short)(rct->xmax - rct->xmin-18.0f -12.0f), (short)NODE_DY,
+		         NULL, 0, 0, 0, 0, "");
 	}	
 
 	/* scale widget thing */

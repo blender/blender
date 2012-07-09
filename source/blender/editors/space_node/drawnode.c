@@ -221,8 +221,10 @@ static void node_draw_output_default(const bContext *C, uiBlock *block,
 		ofs++;
 		slen = snode->aspect_sqrt * UI_GetStringWidth(ui_name + ofs);
 	}
-	uiDefBut(block, LABEL, 0, ui_name + ofs, (short)(sock->locx - (15.0f * snode->aspect_sqrt) - slen), (short)(sock->locy - 9.0f),
-	         (short)(node->width - NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, ui_name + ofs,
+	         (int)(sock->locx - (15.0f * snode->aspect_sqrt) - slen), (int)(sock->locy - 9.0f),
+	         (short)(node->width - NODE_DY), (short)NODE_DY,
+	         NULL, 0, 0, 0, 0, "");
 }
 
 /* ****************** BASE DRAW FUNCTIONS FOR NEW OPERATOR NODES ***************** */
@@ -387,8 +389,8 @@ static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *
 	uiBut *bt;
 	
 	bt = uiDefButF(block, BUT_NORMAL, B_NODE_EXEC, "",
-	               (short)butr->xmin, (short)butr->xmin,
-	               butr->xmax - butr->xmin, butr->xmax - butr->xmin,
+	               (int)butr->xmin, (int)butr->xmin,
+	               (short)(butr->xmax - butr->xmin), (short)(butr->xmax - butr->xmin),
 	               nor, 0.0f, 1.0f, 0, 0, "");
 	uiButSetFunc(bt, node_normal_cb, ntree, node);
 }
@@ -827,7 +829,8 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		/* backdrop title */
 		UI_ThemeColor(TH_TEXT_HI);
 	
-		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, (short)(rect.xmin + 15), (short)(rect.ymax + group_header),
+		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
+		                       (int)(rect.xmin + 15), (int)(rect.ymax + group_header),
 		                       MIN2((int)(rect.xmax - rect.xmin - 18.0f), node_group_frame + 20), group_header, UI_GetStyle());
 		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
 		uiTemplateIDBrowse(layout, (bContext *)C, &ptr, "node_tree", NULL, NULL, NULL);
