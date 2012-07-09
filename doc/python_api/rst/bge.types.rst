@@ -1335,17 +1335,9 @@ Game Types (bge.types)
 
       Rigid body physics allows the object to roll on collisions.
 
-      .. note::
-         
-         This is not working with bullet physics yet.
-
    .. method:: disableRigidBody()
 
       Disables rigid body physics for this object.
-
-      .. note::
-
-         This is not working with bullet physics yet. The angular is removed but rigid body physics can still rotate it later.
 
    .. method:: setParent(parent, compound=True, ghost=True)
 

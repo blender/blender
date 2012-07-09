@@ -102,7 +102,7 @@ static void special_transvert_update(Object *obedit)
 		
 		if (obedit->type == OB_MESH) {
 			Mesh *me = obedit->data;
-			BM_mesh_normals_update(me->edit_btmesh->bm, TRUE);  // does face centers too
+			BM_mesh_normals_update(me->edit_btmesh->bm, TRUE);  /* does face centers too */
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = obedit->data;
@@ -223,8 +223,8 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 	float total, center[3], centroid[3];
 	int a;
 
-	tottrans = 0; // global!
-	
+	tottrans = 0; /* global! */
+
 	INIT_MINMAX(min, max);
 	zero_v3(centroid);
 	
@@ -239,7 +239,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 		/* abuses vertex index all over, set, just set dirty here,
 		 * perhaps this could use its own array instead? - campbell */
 
-		// transform now requires awareness for select mode, so we tag the f1 flags in verts
+		/* transform now requires awareness for select mode, so we tag the f1 flags in verts */
 		tottrans = 0;
 		if (em->selectmode & SCE_SELECT_VERTEX) {
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
@@ -304,7 +304,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 					copy_v3_v3(tv->oldloc, eve->co);
 					tv->loc = eve->co;
 					if (eve->no[0] != 0.0f || eve->no[1] != 0.0f || eve->no[2] != 0.0f)
-						tv->nor = eve->no;  // note this is a hackish signal (ton)
+						tv->nor = eve->no;  /* note this is a hackish signal (ton) */
 					tv->flag = BM_elem_index_get(eve) & SELECT;
 					tv++;
 					a++;
@@ -794,8 +794,8 @@ static int snap_curs_to_grid(bContext *C, wmOperator *UNUSED(op))
 	curs[1] = gridf * floorf(0.5f + curs[1] / gridf);
 	curs[2] = gridf * floorf(0.5f + curs[2] / gridf);
 	
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);    // hrm
-	
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);  /* hrm */
+
 	return OPERATOR_FINISHED;
 }
 

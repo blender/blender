@@ -47,7 +47,7 @@ int blf_font_init(void);
 void blf_font_exit(void);
 
 struct FontBLF *blf_font_new(const char *name, const char *filename);
-struct FontBLF *blf_font_new_from_mem(const char *name, unsigned char *mem, int mem_size);
+struct FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int mem_size);
 void blf_font_attach_from_mem(struct FontBLF *font, const unsigned char *mem, int mem_size);
 
 void blf_font_size(struct FontBLF *font, int size, int dpi);

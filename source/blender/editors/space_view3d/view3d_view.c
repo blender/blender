@@ -71,7 +71,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "view3d_intern.h"  // own include
+#include "view3d_intern.h"  /* own include */
 
 /* use this call when executing an operator,
  * event system doesn't set for each event the
@@ -184,7 +184,7 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 
 			/* original values */
 			if (oldcamera) {
-				sms.orig_dist = rv3d->dist; // below function does weird stuff with it...
+				sms.orig_dist = rv3d->dist;  /* below function does weird stuff with it... */
 				ED_view3d_from_object(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
 			}
 			else {
@@ -1100,14 +1100,14 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 			rv3d->dist = 0.0;
 			
 			ED_view3d_from_object(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
-			smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
-			
+			smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); /* XXX */
+
 			rv3d->persp = RV3D_CAMOB; /* just to be polite, not needed */
 			
 		}
 		else {
 			mat3_to_quat(new_quat, tmat);
-			smooth_view(NULL, NULL, NULL, NULL, NULL, NULL, new_quat, NULL, NULL); // XXX
+			smooth_view(NULL, NULL, NULL, NULL, NULL, NULL, new_quat, NULL, NULL); /* XXX */
 		}
 	}
 	else {
@@ -1211,7 +1211,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	
 	/* case not a border select */
 	if (input->xmin == input->xmax) {
-		rect.xmin = input->xmin - 12; // seems to be default value for bones only now
+		rect.xmin = input->xmin - 12;  /* seems to be default value for bones only now */
 		rect.xmax = input->xmin + 12;
 		rect.ymin = input->ymin - 12;
 		rect.ymax = input->ymin + 12;
@@ -1252,7 +1252,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	else {
 		Base *base;
 		
-		v3d->xray = TRUE;    // otherwise it postpones drawing
+		v3d->xray = TRUE;  /* otherwise it postpones drawing */
 		for (base = scene->base.first; base; base = base->next) {
 			if (base->lay & v3d->lay) {
 				
@@ -1294,7 +1294,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 				}				
 			}
 		}
-		v3d->xray = FALSE;   // restore
+		v3d->xray = FALSE;  /* restore */
 	}
 	
 	glPopName();    /* see above (pushname) */
@@ -1313,8 +1313,8 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_disable();
 	
-	if (hits < 0) printf("Too many objects in select buffer\n");  // XXX make error message
-	
+	if (hits < 0) printf("Too many objects in select buffer\n");  /* XXX make error message */
+
 	return hits;
 }
 
@@ -1392,29 +1392,31 @@ int ED_view3d_scene_layer_set(int lay, const int *values, int *active)
 	return lay;
 }
 
-static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
+static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportList *reports)
 {
 	View3D *v3d = sa->spacedata.first;
 	Base *base;
 	float size = 0.0, min[3], max[3], box[3];
 	unsigned int locallay;
-	int ok = 0;
+	int ok = FALSE;
 
-	if (v3d->localvd) return;
+	if (v3d->localvd) {
+		return ok;
+	}
 
 	INIT_MINMAX(min, max);
 
 	locallay = free_localbit(bmain);
 
 	if (locallay == 0) {
-		printf("Sorry, no more than 8 localviews\n");   // XXX error
-		ok = 0;
+		BKE_reportf(reports, RPT_ERROR, "No more than 8 localviews");
+		ok = FALSE;
 	}
 	else {
 		if (scene->obedit) {
 			BKE_object_minmax(scene->obedit, min, max);
 			
-			ok = 1;
+			ok = TRUE;
 		
 			BASACT->lay |= locallay;
 			scene->obedit->lay = BASACT->lay;
@@ -1425,7 +1427,7 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 					BKE_object_minmax(base->object, min, max);
 					base->lay |= locallay;
 					base->object->lay = base->lay;
-					ok = 1;
+					ok = TRUE;
 				}
 			}
 		}
@@ -1437,7 +1439,7 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 		if (size <= 0.01f) size = 0.01f;
 	}
 	
-	if (ok) {
+	if (ok == TRUE) {
 		ARegion *ar;
 		
 		v3d->localvd = MEM_mallocN(sizeof(View3D), "localview");
@@ -1460,7 +1462,7 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 				if (rv3d->persp == RV3D_ORTHO)
 					rv3d->dist *= 0.7f;
 
-				// correction for window aspect ratio
+				/* correction for window aspect ratio */
 				if (ar->winy > 2 && ar->winx > 2) {
 					float asp = (float)ar->winx / (float)ar->winy;
 					if (asp < 1.0f) asp = 1.0f / asp;
@@ -1486,9 +1488,10 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 				if (base->object != scene->obedit) base->flag |= SELECT;
 				base->object->lay = base->lay;
 			}
-		}		
+		}
 	}
 
+	return ok;
 }
 
 static void restore_localviewdata(ScrArea *sa, int free)
@@ -1531,7 +1534,7 @@ static void restore_localviewdata(ScrArea *sa, int free)
 	}
 }
 
-static void endlocalview(Main *bmain, Scene *scene, ScrArea *sa)
+static int view3d_localview_exit(Main *bmain, Scene *scene, ScrArea *sa)
 {
 	View3D *v3d = sa->spacedata.first;
 	struct Base *base;
@@ -1541,7 +1544,7 @@ static void endlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 		
 		locallay = v3d->lay & 0xFF000000;
 		
-		restore_localviewdata(sa, 1); // 1 = free
+		restore_localviewdata(sa, 1); /* 1 = free */
 
 		/* for when in other window the layers have changed */
 		if (v3d->scenelock) v3d->lay = scene->lay;
@@ -1559,23 +1562,38 @@ static void endlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 		}
 		
 		DAG_on_visible_update(bmain, FALSE);
+
+		return TRUE;
 	} 
+	else {
+		return FALSE;
+	}
 }
 
-static int localview_exec(bContext *C, wmOperator *UNUSED(unused))
+static int localview_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = CTX_wm_view3d(C);
+	int change;
 	
-	if (v3d->localvd)
-		endlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
-	else
-		initlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
+	if (v3d->localvd) {
+		change = view3d_localview_exit(bmain, scene, sa);
+	}
+	else {
+		change = view3d_localview_init(bmain, scene, sa, op->reports);
+	}
 
-	DAG_id_type_tag(bmain, ID_OB);
-	ED_area_tag_redraw(CTX_wm_area(C));
-	
-	return OPERATOR_FINISHED;
+	if (change) {
+		DAG_id_type_tag(bmain, ID_OB);
+		ED_area_tag_redraw(CTX_wm_area(C));
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void VIEW3D_OT_localview(wmOperatorType *ot)
@@ -1681,7 +1699,7 @@ static void game_set_commmandline_options(GameData *gm)
 	}
 }
 
-#endif // WITH_GAMEENGINE
+#endif /* WITH_GAMEENGINE */
 
 static int game_engine_poll(bContext *C)
 {
@@ -1722,7 +1740,7 @@ int ED_view3d_context_activate(bContext *C)
 	if (!ar)
 		return 0;
 	
-	// bad context switch ..
+	/* bad context switch .. */
 	CTX_wm_area_set(C, sa);
 	CTX_wm_region_set(C, ar);
 
@@ -1741,7 +1759,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 
 	(void)op; /* unused */
 	
-	// bad context switch ..
+	/* bad context switch .. */
 	if (!ED_view3d_context_activate(C))
 		return OPERATOR_CANCELLED;
 	
@@ -1854,11 +1872,11 @@ static void UNUSED_FUNCTION(view3d_align_axis_to_vector)(View3D *v3d, RegionView
 		rv3d->persp = RV3D_PERSP;
 		rv3d->dist = 0.0;
 		ED_view3d_from_object(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
-		smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
+		smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); /* XXX */
 	}
 	else {
 		if (rv3d->persp == RV3D_CAMOB) rv3d->persp = RV3D_PERSP;  /* switch out of camera mode */
-		smooth_view(NULL, NULL, NULL, NULL, NULL, NULL, new_quat, NULL, NULL); // XXX
+		smooth_view(NULL, NULL, NULL, NULL, NULL, NULL, new_quat, NULL, NULL); /* XXX */
 	}
 }
 

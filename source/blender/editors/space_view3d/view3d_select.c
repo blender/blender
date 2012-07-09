@@ -92,9 +92,9 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "view3d_intern.h"  // own include
+#include "view3d_intern.h"  /* own include */
 
-// TODO: should return whether there is valid context to continue
+/* TODO: should return whether there is valid context to continue */
 void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 {
 	memset(vc, 0, sizeof(ViewContext));
@@ -1825,7 +1825,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 	unsigned int *col;          /* color in buffer	*/
 	int bone_only;
 	int bone_selected = 0;
-	int totobj = MAXPICKBUF; // XXX solve later
+	int totobj = MAXPICKBUF; /* XXX solve later */
 	short hits;
 	
 	if ((ob) && (ob->mode & OB_MODE_POSE))
@@ -2370,7 +2370,7 @@ static void lattice_circle_select(ViewContext *vc, int select, const int mval[2]
 }
 
 
-// NOTE: pose-bone case is copied from editbone case...
+/* NOTE: pose-bone case is copied from editbone case... */
 static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, int x, int y)
 {
 	CircleSelectUserData *data = userData;
@@ -2403,7 +2403,7 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 	ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d); /* for foreach's screen/vert projection */
 	
 	/* check each PoseChannel... */
-	// TODO: could be optimized at some point
+	/* TODO: could be optimized at some point */
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 		short sco1[2], sco2[2], didpoint = 0;
 		float vec[3];
@@ -2475,7 +2475,7 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	
 	/* check each EditBone... */
-	// TODO: could be optimized at some point
+	/* TODO: could be optimized at some point */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		short sco1[2], sco2[2], didpoint = 0;
 		float vec[3];
@@ -2497,7 +2497,7 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 			didpoint = 1;
 			
 		/* only if the endpoints didn't get selected, deal with the middle of the bone too */
-		// XXX should we just do this always?
+		/* XXX should we just do this always? */
 		if ( (didpoint == 0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1]) ) {
 			if (select) 
 				ebone->flag |= BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED;

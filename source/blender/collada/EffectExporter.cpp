@@ -173,7 +173,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 {
 	// create a list of indices to textures of type TEX_IMAGE
 	std::vector<int> tex_indices;
-	if(this->export_settings->include_material_textures)
+	if (this->export_settings->include_material_textures)
 		createTextureIndices(ma, tex_indices);
 
 	openEffect(translate_id(id_name(ma)) + "-effect");

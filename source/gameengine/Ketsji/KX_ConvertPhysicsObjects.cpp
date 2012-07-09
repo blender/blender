@@ -118,6 +118,12 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	ci.m_MotionState = motionstate;
 	ci.m_gravity = btVector3(0,0,0);
+	ci.m_linearFactor = btVector3(objprop->m_lockXaxis? 0 : 1,
+									objprop->m_lockYaxis? 0 : 1,
+									objprop->m_lockZaxis? 0 : 1);
+	ci.m_angularFactor = btVector3(objprop->m_lockXRotaxis? 0 : 1,
+									objprop->m_lockYRotaxis? 0 : 1,
+									objprop->m_lockZRotaxis? 0 : 1);
 	ci.m_localInertiaTensor =btVector3(0,0,0);
 	ci.m_mass = objprop->m_dyna ? shapeprops->m_mass : 0.f;
 	ci.m_clamp_vel_min = shapeprops->m_clamp_vel_min;
@@ -441,16 +447,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		{
 			if (objprop->m_angular_rigidbody)
 			{
-				btVector3 linearFactor(
-					objprop->m_lockXaxis? 0 : 1,
-					objprop->m_lockYaxis? 0 : 1,
-					objprop->m_lockZaxis? 0 : 1);
-				btVector3 angularFactor(
-					objprop->m_lockXRotaxis? 0 : 1,
-					objprop->m_lockYRotaxis? 0 : 1,
-					objprop->m_lockZRotaxis? 0 : 1);
-				rbody->setLinearFactor(linearFactor);
-				rbody->setAngularFactor(angularFactor);
+				rbody->setLinearFactor(ci.m_linearFactor);
+				rbody->setAngularFactor(ci.m_angularFactor);
 			}
 
 			if (rbody && objprop->m_disableSleeping)
