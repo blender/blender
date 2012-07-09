@@ -46,7 +46,7 @@
  * just the poly. Since the DEM code could end up being coupled with this, we'll keep it separate
  * for now.
  */
-static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge) {
+void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge) {
     int i;
     int xbeg;
     int ybeg;

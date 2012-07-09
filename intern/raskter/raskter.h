@@ -84,7 +84,7 @@ struct r_fill_context {
 extern "C" {
 #endif
 
-static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge);
+void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge);
 int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
                    float *buf, int buf_x, int buf_y, int do_mask_AA);
 int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts,

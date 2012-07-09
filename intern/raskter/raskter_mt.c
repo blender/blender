@@ -266,7 +266,7 @@ static int rast_scan_init(struct r_fill_context *ctx, struct poly_vert *verts, i
     return 1;
 }
 
-static void init_base_data(float(*base_verts)[2], int num_base_verts,
+/* static */ int init_base_data(float(*base_verts)[2], int num_base_verts,
                    float *buf, int buf_x, int buf_y) {
     int i;                                   /* i: Loop counter. */
     struct poly_vert *ply;                   /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
