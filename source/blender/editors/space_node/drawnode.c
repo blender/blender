@@ -216,12 +216,12 @@ static void node_draw_output_default(const bContext *C, uiBlock *block,
 	int ofs = 0;
 	const char *ui_name = IFACE_(name);
 	UI_ThemeColor(TH_TEXT);
-	slen = snode->aspect * UI_GetStringWidth(ui_name);
+	slen = snode->aspect_sqrt * UI_GetStringWidth(ui_name);
 	while (slen > node->width) {
 		ofs++;
-		slen = snode->aspect * UI_GetStringWidth(ui_name + ofs);
+		slen = snode->aspect_sqrt * UI_GetStringWidth(ui_name + ofs);
 	}
-	uiDefBut(block, LABEL, 0, ui_name + ofs, (short)(sock->locx - 15.0f - slen), (short)(sock->locy - 9.0f),
+	uiDefBut(block, LABEL, 0, ui_name + ofs, (short)(sock->locx - (15.0f * snode->aspect_sqrt) - slen), (short)(sock->locy - 9.0f),
 	         (short)(node->width - NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
 }
 
@@ -3178,17 +3178,16 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 		
 		drawarrow = (link->tonode && (link->tonode->type == NODE_REROUTE)) && (link->fromnode && (link->fromnode->type == NODE_REROUTE));
 		if (drawarrow) {
-			// draw arrow in line segment LINK_ARROW
-			float dx, dy, len;
-			dx = coord_array[LINK_ARROW][0]-coord_array[LINK_ARROW-1][0];
-			dy = coord_array[LINK_ARROW][1]-coord_array[LINK_ARROW-1][1];
-			len = sqrtf(dx*dx+dy*dy);
-			dx = dx /len*ARROW_SIZE;
-			dy = dy /len*ARROW_SIZE;
-			arrow1[0] = coord_array[LINK_ARROW][0]-dx+dy;
-			arrow1[1] = coord_array[LINK_ARROW][1]-dy-dx;
-			arrow2[0] = coord_array[LINK_ARROW][0]-dx-dy;
-			arrow2[1] = coord_array[LINK_ARROW][1]-dy+dx;
+			/* draw arrow in line segment LINK_ARROW */
+			float d_xy[2], len;
+
+			sub_v2_v2v2(d_xy, coord_array[LINK_ARROW], coord_array[LINK_ARROW - 1]);
+			len = len_v2(d_xy);
+			mul_v2_fl(d_xy, 1.0f / (len * ARROW_SIZE));
+			arrow1[0] = coord_array[LINK_ARROW][0] - d_xy[0] + d_xy[1];
+			arrow1[1] = coord_array[LINK_ARROW][1] - d_xy[1] - d_xy[0];
+			arrow2[0] = coord_array[LINK_ARROW][0] - d_xy[0] - d_xy[1];
+			arrow2[1] = coord_array[LINK_ARROW][1] - d_xy[1] + d_xy[0];
 			arrow[0] = coord_array[LINK_ARROW][0];
 			arrow[1] = coord_array[LINK_ARROW][1];
 		}

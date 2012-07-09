@@ -856,10 +856,10 @@ typedef struct SpaceNode {
 	
 	struct ID *id, *from;       /* context, no need to save in file? well... pinning... */
 	short flag, pad1;           /* menunr: browse id block in header */
-	float aspect;
+	float aspect, aspect_sqrt;
 	
 	float xof, yof;     /* offset for drawing the backdrop */
-	float zoom, padf;   /* zoom for backdrop */
+	float zoom;   /* zoom for backdrop */
 	float mx, my;       /* mousepos for drawing socketless link */
 	
 	struct bNodeTree *nodetree, *edittree;
