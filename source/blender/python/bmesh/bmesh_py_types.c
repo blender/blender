@@ -2438,21 +2438,21 @@ static int bpy_bmelem_ass_subscript(BPy_BMElem *self, BPy_BMLayerItem *key, PyOb
 }
 
 static PySequenceMethods bpy_bmelemseq_as_sequence = {
-    (lenfunc)bpy_bmelemseq_length,                  /* sq_length */
+    (lenfunc)bpy_bmelemseq_length,               /* sq_length */
     NULL,                                        /* sq_concat */
     NULL,                                        /* sq_repeat */
-    (ssizeargfunc)bpy_bmelemseq_subscript_int,      /* sq_item */ /* Only set this so PySequence_Check() returns True */
+    (ssizeargfunc)bpy_bmelemseq_subscript_int,   /* sq_item */ /* Only set this so PySequence_Check() returns True */
     NULL,                                        /* sq_slice */
     (ssizeobjargproc)NULL,                       /* sq_ass_item */
     NULL,                                        /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmelemseq_contains,             /* sq_contains */
+    (objobjproc)bpy_bmelemseq_contains,          /* sq_contains */
     (binaryfunc) NULL,                           /* sq_inplace_concat */
     (ssizeargfunc) NULL,                         /* sq_inplace_repeat */
 };
 
 static PyMappingMethods bpy_bmelemseq_as_mapping = {
-    (lenfunc)bpy_bmelemseq_length,                  /* mp_length */
-    (binaryfunc)bpy_bmelemseq_subscript,            /* mp_subscript */
+    (lenfunc)bpy_bmelemseq_length,               /* mp_length */
+    (binaryfunc)bpy_bmelemseq_subscript,         /* mp_subscript */
     (objobjargproc)NULL,                         /* mp_ass_subscript */
 };
 
@@ -2859,7 +2859,7 @@ static struct PyModuleDef BPy_BM_types_module_def = {
     PyModuleDef_HEAD_INIT,
     "bmesh.types",  /* m_name */
     NULL,  /* m_doc */
-    0,  /* m_size */
+    0,     /* m_size */
     NULL,  /* m_methods */
     NULL,  /* m_reload */
     NULL,  /* m_traverse */
