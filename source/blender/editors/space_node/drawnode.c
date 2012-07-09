@@ -216,15 +216,17 @@ static void node_draw_output_default(const bContext *C, uiBlock *block,
 	int ofs = 0;
 	const char *ui_name = IFACE_(name);
 	UI_ThemeColor(TH_TEXT);
-	slen = snode->aspect_sqrt * UI_GetStringWidth(ui_name);
+	slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
 	while (slen > node->width) {
 		ofs++;
-		slen = snode->aspect_sqrt * UI_GetStringWidth(ui_name + ofs);
+		slen = (UI_GetStringWidth(ui_name + ofs) + NODE_MARGIN_X) * snode->aspect_sqrt;
 	}
 	uiDefBut(block, LABEL, 0, ui_name + ofs,
-	         (int)(sock->locx - (15.0f * snode->aspect_sqrt) - slen), (int)(sock->locy - 9.0f),
+	         (int)(sock->locx - slen), (int)(sock->locy - 9.0f),
 	         (short)(node->width - NODE_DY), (short)NODE_DY,
 	         NULL, 0, 0, 0, 0, "");
+
+	(void)snode;
 }
 
 /* ****************** BASE DRAW FUNCTIONS FOR NEW OPERATOR NODES ***************** */
@@ -830,7 +832,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColor(TH_TEXT_HI);
 	
 		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-		                       (int)(rect.xmin + 15), (int)(rect.ymax + group_header),
+		                       (int)(rect.xmin + NODE_MARGIN_X), (int)(rect.ymax + group_header),
 		                       MIN2((int)(rect.xmax - rect.xmin - 18.0f), node_group_frame + 20), group_header, UI_GetStyle());
 		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
 		uiTemplateIDBrowse(layout, (bContext *)C, &ptr, "node_tree", NULL, NULL, NULL);

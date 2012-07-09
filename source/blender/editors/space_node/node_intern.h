@@ -196,6 +196,7 @@ extern const char *node_context_dir[];
 #define BASIS_RAD		8.0f
 #define NODE_DYS		(U.widget_unit/2)
 #define NODE_DY			U.widget_unit
+#define NODE_MARGIN_X   15
 #define NODE_SOCKSIZE	5
 
 // XXX button events (butspace)

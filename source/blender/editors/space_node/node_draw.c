@@ -798,7 +798,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - don't print into self!
 	
 	uiDefBut(node->block, LABEL, 0, showname,
-	         (int)(rct->xmin + 15), (int)(rct->ymax - NODE_DY),
+	         (int)(rct->xmin + (NODE_MARGIN_X / snode->aspect_sqrt)), (int)(rct->ymax - NODE_DY),
 	         (short)(iconofs - rct->xmin - 18.0f), (short)NODE_DY,
 	         NULL, 0, 0, 0, 0, "");
 
@@ -841,7 +841,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE, sock->flag & SELECT);
 		
 		node->typeinfo->drawinputfunc(C, node->block, ntree, node, sock, IFACE_(sock->name),
-		                              sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY);
+		                              sock->locx + (NODE_DYS / snode->aspect_sqrt), sock->locy-NODE_DYS, node->width-NODE_DY);
 	}
 	
 	/* socket outputs */
@@ -852,7 +852,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE, sock->flag & SELECT);
 		
 		node->typeinfo->drawoutputfunc(C, node->block, ntree, node, sock, IFACE_(sock->name),
-		                               sock->locx-node->width+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY);
+		                               sock->locx - node->width + (NODE_DYS / snode->aspect_sqrt), sock->locy-NODE_DYS, node->width-NODE_DY);
 	}
 	
 	/* preview */
@@ -949,7 +949,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - don't print into self!
 
 		uiDefBut(node->block, LABEL, 0, showname,
-		         (int)(rct->xmin + 15), (int)(centy - 10),
+		         (int)(rct->xmin + (NODE_MARGIN_X / snode->aspect_sqrt)), (int)(centy - 10),
 		         (short)(rct->xmax - rct->xmin-18.0f -12.0f), (short)NODE_DY,
 		         NULL, 0, 0, 0, 0, "");
 	}	
