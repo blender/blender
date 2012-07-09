@@ -153,8 +153,7 @@ void ImagesExporter::export_UV_Images()
 			for (int i = 0; i < me->pdata.totlayer; i++) {
 				if (me->pdata.layers[i].type == CD_MTEXPOLY) {
 					MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
-					MFace *mface = me->mface;
-					for (int j = 0; j < me->totpoly; j++, mface++, txface++) {
+					for (int j = 0; j < me->totpoly; j++, txface++) {
 
 						Image *ima = txface->tpage;
 						if (ima == NULL)
