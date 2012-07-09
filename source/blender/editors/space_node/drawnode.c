@@ -946,11 +946,8 @@ static void node_update_frame(const bContext *UNUSED(C), bNodeTree *ntree, bNode
 	node->totr = rect;
 }
 
-static void node_draw_frame_label(View2D *v2d, bNode *node)
+static void node_draw_frame_label(bNode *node, const float aspect)
 {
-	const float aspx = (v2d->cur.xmax - v2d->cur.xmin) / (v2d->mask.xmax - v2d->mask.xmin);
-	const float aspy = (v2d->cur.ymax - v2d->cur.ymin) / (v2d->mask.ymax - v2d->mask.ymin);
-
 	/* XXX font id is crap design */
 	const int fontid = blf_mono_font;
 	NodeFrame *data = (NodeFrame *)node->storage;
@@ -960,22 +957,23 @@ static void node_draw_frame_label(View2D *v2d, bNode *node)
 	/* XXX a bit hacky, should use separate align values for x and y */
 	float width, ascender;
 	float x, y;
-	const int font_size = data->label_size / aspx;
+	const int font_size = data->label_size / aspect;
 	
 	BLI_strncpy(label, nodeLabel(node), sizeof(label));
 
 	BLF_enable(fontid, BLF_ASPECT);
-	BLF_aspect(fontid, aspx, aspy, 1.0f);
+	BLF_aspect(fontid, aspect, aspect, 1.0f);
 	BLF_size(fontid, MIN2(24, font_size), U.dpi); /* clamp otherwise it can suck up a LOT of memory */
 	
 	/* title color */
 	UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.8f, 10);
 
 	width = BLF_width(fontid, label);
-	ascender = BLF_ascender(fontid) * aspy;
+	ascender = BLF_ascender(fontid);
 	
+	/* 'x' doesn't need aspect correction */
 	x = 0.5f * (rct->xmin + rct->xmax) - 0.5f * width;
-	y = rct->ymax - NODE_DYS - ascender;
+	y = rct->ymax - NODE_DYS - (ascender * aspect);
 	
 	BLF_position(fontid, x, y, 0);
 	BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
@@ -1032,7 +1030,7 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	}
 	
 	/* label */
-	node_draw_frame_label(&ar->v2d, node);
+	node_draw_frame_label(node, snode->aspect);
 	
 	UI_ThemeClearColor(color_id);
 		
