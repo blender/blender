@@ -112,7 +112,8 @@ static const char *locales[] = {
 void BLF_lang_init(void)
 {
 	char *messagepath = BLI_get_folder(BLENDER_DATAFILES, "locale");
-	
+/*	printf("%s\n", messagepath);*/
+
 	BLI_strncpy(global_encoding_name, SYSTEM_ENCODING_DEFAULT, sizeof(global_encoding_name));
 	
 	if (messagepath) {
@@ -276,6 +277,11 @@ void BLF_lang_set(const char *str)
 	bind_textdomain_codeset(TEXT_DOMAIN_NAME, global_encoding_name);
 }
 
+const char *BLF_lang_get(void)
+{
+	return locales[2 * U.language + 1];
+}
+
 void BLF_lang_encoding(const char *str)
 {
 	BLI_strncpy(global_encoding_name, str, sizeof(global_encoding_name));
@@ -299,6 +305,11 @@ void BLF_lang_set(const char *str)
 {
 	(void)str;
 	return;
+}
+
+const char *BLF_lang_get(void)
+{
+	return "";
 }
 
 #endif /* WITH_INTERNATIONAL */

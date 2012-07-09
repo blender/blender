@@ -3510,6 +3510,12 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	                         "startup, addons & modules (requires restart)");
 	/* TODO, editing should reset sys.path! */
 
+	prop = RNA_def_property(srna, "i18n_branches_directory", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "i18ndir");
+	RNA_def_property_ui_text(prop, "Translation Branches Directory",
+	                         "The path to the '/branches' directory of your local svn-translation copy, "
+	                         "to allow translating from the UI");
+
 	prop = RNA_def_property(srna, "sound_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "sounddir");
 	RNA_def_property_ui_text(prop, "Sounds Directory", "The default directory to search for sounds");

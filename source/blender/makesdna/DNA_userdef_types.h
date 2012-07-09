@@ -347,6 +347,7 @@ typedef struct UserDef {
 	char textudir[768];
 	char pythondir[768];
 	char sounddir[768];
+	char i18ndir[768];
 	char image_editor[1024];	/* 1024 = FILE_MAX */
 	char anim_player[1024];	/* 1024 = FILE_MAX */
 	int anim_player_preset;

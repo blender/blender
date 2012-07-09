@@ -417,11 +417,19 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	static ARegionType type;
 	ARegion *ar;
 	uiTooltipData *data;
-	IDProperty *prop;
+/*	IDProperty *prop;*/
 	char buf[512];
 	float fonth, fontw, aspect = but->block->aspect;
 	float x1f, x2f, y1f, y2f;
 	int x1, x2, y1, y2, winx, winy, ofsx, ofsy, w, h, a;
+
+	const int nbr_info = 6;
+	uiStringInfo but_tip = {BUT_GET_TIP, NULL};
+	uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
+	uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
+	uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, NULL};
+	uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
+	uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
 
 	if (but->flag & UI_BUT_NO_TOOLTIP)
 		return NULL;
@@ -429,8 +437,11 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* create tooltip data */
 	data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
+	uiButGetStrInfo(C, but, nbr_info, &but_tip, &enum_label, &enum_tip, &op_keymap, &rna_struct, &rna_prop);
+
 	/* special case, enum rna buttons only have enum item description,
 	 * use general enum description too before the specific one */
+#if 0
 	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
 		const char *descr = RNA_property_description(but->rnaprop);
 		if (descr && descr[0]) {
@@ -441,7 +452,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		if (ELEM(but->type, ROW, MENU)) {
 			EnumPropertyItem *item;
-			int i, totitem, free;
+			int totitem, free;
 			int value = (but->type == ROW) ? (int)but->hardmax : (int)ui_get_but_val(but);
 
 			RNA_property_enum_items_gettexted(C, &but->rnapoin, but->rnaprop, &item, &totitem, &free);
@@ -469,7 +480,23 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->color_id[data->totline] = UI_TIP_LC_MAIN;
 		data->totline++;
 	}
+#else
+	/* Tip */
+	if (but_tip.strinfo) {
+		BLI_strncpy(data->lines[data->totline], but_tip.strinfo, sizeof(data->lines[0]));
+		data->color_id[data->totline] = UI_TIP_LC_MAIN;
+		data->totline++;
+	}
+	/* Enum item label & tip */
+	if (enum_label.strinfo && enum_tip.strinfo) {
+		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
+		             "%s: %s", enum_label.strinfo, enum_tip.strinfo);
+		data->color_id[data->totline] = UI_TIP_LC_SUBMENU;
+		data->totline++;
+	}
+#endif
 
+#if 0
 	if (but->optype && !(but->block->flag & UI_BLOCK_LOOP)) {
 		/* operator keymap (not menus, they already have it) */
 		prop = (but->opptr) ? but->opptr->data : NULL;
@@ -482,6 +509,14 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			data->totline++;
 		}
 	}
+#else
+	/* Op shortcut */
+	if (op_keymap.strinfo) {
+		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), op_keymap.strinfo);
+		data->color_id[data->totline] = UI_TIP_LC_NORMAL;
+		data->totline++;
+	}
+#endif
 
 	if (ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		/* full string */
@@ -515,7 +550,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 				data->totline++;
 			}
 		}
-
+#if 0
 		/* rna info */
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s.%s"),
@@ -523,7 +558,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			data->color_id[data->totline] = UI_TIP_LC_PYTHON;
 			data->totline++;
 		}
-		
+#endif
 		if (but->rnapoin.id.data) {
 			ID *id = but->rnapoin.id.data;
 			if (id->lib && id->lib->name) {
@@ -558,10 +593,11 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			if (poll_msg) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Disabled: %s"), poll_msg);
 				data->color_id[data->totline] = UI_TIP_LC_ALERT; /* alert */
-				data->totline++;			
+				data->totline++;
 			}
 		}
 	}
+#if 0
 	else if (ELEM(but->type, MENU, PULLDOWN)) {
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
 			MenuType *mt = uiButGetMenuType(but);
@@ -571,8 +607,34 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 				data->totline++;
 			}
 		}
-
 	}
+#else
+	if ((U.flag & USER_TOOLTIPS_PYTHON) == 0 && !but->optype && rna_struct.strinfo) {
+		if (rna_prop.strinfo)
+			/* Struct and prop */
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
+			             TIP_("Python: %s.%s"), rna_struct.strinfo, rna_prop.strinfo);
+		else
+			/* Only struct (e.g. menus) */
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s"), rna_struct.strinfo);
+		data->color_id[data->totline] = UI_TIP_LC_PYTHON;
+		data->totline++;
+	}
+#endif
+
+	/* Free strinfo's... */
+	if (but_tip.strinfo)
+		MEM_freeN(but_tip.strinfo);
+	if (enum_label.strinfo)
+		MEM_freeN(enum_label.strinfo);
+	if (enum_tip.strinfo)
+		MEM_freeN(enum_tip.strinfo);
+	if (op_keymap.strinfo)
+		MEM_freeN(op_keymap.strinfo);
+	if (rna_struct.strinfo)
+		MEM_freeN(rna_struct.strinfo);
+	if (rna_prop.strinfo)
+		MEM_freeN(rna_prop.strinfo);
 
 	assert(data->totline < MAX_TOOLTIP_LINES);
 	
