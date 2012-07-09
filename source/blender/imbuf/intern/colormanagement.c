@@ -893,7 +893,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		 * it's safe to suppose standard byte buffer is used for display
 		 */
 
-		if (!ibuf->rect)
+		if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)))
 			IMB_rect_from_float(ibuf);
 
 		return (unsigned char *) ibuf->rect;
@@ -942,9 +942,8 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 	(void) view_transform;
 	(void) display_settings;
 
-	if (!ibuf->rect) {
+	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)))
 		IMB_rect_from_float(ibuf);
-	}
 
 	return (unsigned char*) ibuf->rect;
 #endif
