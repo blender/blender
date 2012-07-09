@@ -694,7 +694,7 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
 		/* only items related to this object will be relevant */
 		if ((ksp->id == &ob->id) && (ksp->rna_path != NULL)) {
 			if (strstr(ksp->rna_path, "bones")) {
-				char *boneName = BLI_getQuotedStr(ksp->rna_path, "bones[");
+				char *boneName = BLI_str_quoted_substrN(ksp->rna_path, "bones[");
 				
 				if (boneName) {
 					bPoseChannel *pchan = BKE_pose_channel_find_name(pose, boneName);
