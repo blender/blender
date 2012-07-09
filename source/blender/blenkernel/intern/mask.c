@@ -59,6 +59,9 @@
 #include "raskter.h"
 
 #ifdef USE_MANGO_MASK_CACHE_HACK
+
+#include "BLI_threads.h"
+
 typedef struct MaskRasterCache {
 	float *buffer;
 	int width, height;
@@ -2321,6 +2324,8 @@ void BKE_mask_rasterize_layers(Mask *mask, ListBase *masklayers, int width, int 
 	float *buffer_tmp;
 
 #ifdef USE_MANGO_MASK_CACHE_HACK
+	BLI_lock_thread(LOCK_CUSTOM1);
+
 	if (cache &&
 	    cache->width == width &&
 	    cache->height == height &&
@@ -2330,10 +2335,13 @@ void BKE_mask_rasterize_layers(Mask *mask, ListBase *masklayers, int width, int 
 	    mask_layers_compare(&cache->layers, &mask->masklayers))
 	{
 		memcpy(buffer, cache->buffer, sizeof(float) * buffer_size);
+
+		BLI_unlock_thread(LOCK_CUSTOM1);
+
 		return;
 	}
 
-	BKE_mask_raster_cache_free(mask);
+	BLI_unlock_thread(LOCK_CUSTOM1);
 #endif
 
 	buffer_tmp = MEM_mallocN(sizeof(float) * buffer_size, __func__);
@@ -2462,6 +2470,10 @@ void BKE_mask_rasterize_layers(Mask *mask, ListBase *masklayers, int width, int 
 	MEM_freeN(buffer_tmp);
 
 #ifdef USE_MANGO_MASK_CACHE_HACK
+	BLI_lock_thread(LOCK_CUSTOM1);
+
+	BKE_mask_raster_cache_free(mask);
+
 	cache = MEM_callocN(sizeof(MaskRasterCache), "mask raster cache");
 
 	cache->buffer = MEM_mallocN(sizeof(float) * buffer_size, "mask raster cache buffer");
@@ -2477,6 +2489,8 @@ void BKE_mask_rasterize_layers(Mask *mask, ListBase *masklayers, int width, int 
 	cache->do_feather = do_feather;
 
 	mask->raster_cache = cache;
+
+	BLI_unlock_thread(LOCK_CUSTOM1);
 #endif
 }
 
