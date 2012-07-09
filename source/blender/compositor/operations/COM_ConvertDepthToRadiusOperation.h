@@ -24,7 +24,7 @@
 #define _COM_ConvertDepthToRadiusOperation_h
 #include "COM_NodeOperation.h"
 #include "DNA_object_types.h"
-
+#include "COM_FastGaussianBlurOperation.h"
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -43,6 +43,8 @@ private:
 	float m_cam_lens;
 	float m_dof_sp;
 	Object *m_cameraObject;
+	
+	FastGaussianBlurValueOperation *m_blurPostOperation;
 public:
 	/**
 	 * Default constructor
@@ -68,5 +70,7 @@ public:
 	void setMaxRadius(float maxRadius) { this->m_maxRadius = maxRadius; }
 	void setCameraObject(Object *camera) { this->m_cameraObject = camera; }
 	float determineFocalDistance();
+	void setPostBlur(FastGaussianBlurValueOperation *operation) {this->m_blurPostOperation = operation;}
+	
 };
 #endif

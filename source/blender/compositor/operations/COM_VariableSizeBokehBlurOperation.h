@@ -33,7 +33,6 @@ private:
 	SocketReader *m_inputProgram;
 	SocketReader *m_inputBokehProgram;
 	SocketReader *m_inputSizeProgram;
-	SocketReader *m_inputDepthProgram;
 #ifdef COM_DEFOCUS_SEARCH
 	SocketReader *inputSearchProgram;
 #endif

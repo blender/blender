@@ -32,6 +32,7 @@ ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation() : NodeOperation()
 	this->m_fStop = 128.0f;
 	this->m_cameraObject = NULL;
 	this->m_maxRadius = 32.0f;
+	this->m_blurPostOperation = NULL;
 }
 
 float ConvertDepthToRadiusOperation::determineFocalDistance()
@@ -68,6 +69,10 @@ void ConvertDepthToRadiusOperation::initExecution()
 	this->m_aperture = 0.5f * (this->m_cam_lens / (this->m_aspect * 32.0f)) / this->m_fStop;
 	float minsz = MIN2(getWidth(), getHeight());
 	this->m_dof_sp = (float)minsz / (16.f / this->m_cam_lens);    // <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
+	
+	if (this->m_blurPostOperation) {
+		m_blurPostOperation->setSigma(m_aperture*128.0f);
+	}
 }
 
 void ConvertDepthToRadiusOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -88,7 +93,7 @@ void ConvertDepthToRadiusOperation::executePixel(float *outputValue, float x, fl
 #endif
 		radius = 0.5f * fabsf(this->m_aperture * (this->m_dof_sp * (this->m_inverseFocalDistance - iZ) - 1.f));
 		// 'bug' #6615, limit minimum radius to 1 pixel, not really a solution, but somewhat mitigates the problem
-		if (radius < 0.5f) radius = 0.5f;
+		if (radius < 0.0f) radius = 0.0f;
 		if (radius > this->m_maxRadius) {
 			radius = this->m_maxRadius;
 		}

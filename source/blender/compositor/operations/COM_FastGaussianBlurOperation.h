@@ -40,7 +40,23 @@ public:
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	void deinitExecution();
 	void initExecution();
-	
 };
+
+class FastGaussianBlurValueOperation : public NodeOperation {
+private:
+	float m_sigma;
+	MemoryBuffer *m_iirgaus;
+	SocketReader *m_inputprogram;
+public:
+	FastGaussianBlurValueOperation();
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void deinitExecution();
+	void initExecution();
+	void setSigma(float sigma) { this->m_sigma = sigma; }
+};
+
 #endif
 

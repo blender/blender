@@ -33,7 +33,6 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation() : NodeOperation
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE); // do not resize the bokeh image.
 	this->addInputSocket(COM_DT_VALUE); // radius
-	this->addInputSocket(COM_DT_VALUE); // depth
 #ifdef COM_DEFOCUS_SEARCH
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE); // inverse search radius optimization structure.
 #endif
@@ -44,7 +43,6 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation() : NodeOperation
 	this->m_inputProgram = NULL;
 	this->m_inputBokehProgram = NULL;
 	this->m_inputSizeProgram = NULL;
-	this->m_inputDepthProgram = NULL;
 	this->m_maxBlur = 32.0f;
 	this->m_threshold = 1.0f;
 #ifdef COM_DEFOCUS_SEARCH
@@ -58,7 +56,6 @@ void VariableSizeBokehBlurOperation::initExecution()
 	this->m_inputProgram = getInputSocketReader(0);
 	this->m_inputBokehProgram = getInputSocketReader(1);
 	this->m_inputSizeProgram = getInputSocketReader(2);
-	this->m_inputDepthProgram = getInputSocketReader(3);
 #ifdef COM_DEFOCUS_SEARCH
 	this->m_inputSearchProgram = getInputSocketReader(4);
 #endif
@@ -70,7 +67,6 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	float readColor[4];
 	float bokeh[4];
 	float tempSize[4];
-	float tempDepth[4];
 	float multiplier_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	float color_accum[4]      = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -89,43 +85,39 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 #endif
 	{
 		this->m_inputSizeProgram->read(tempSize, x, y, COM_PS_NEAREST, inputBuffers);
-		this->m_inputDepthProgram->read(tempDepth, x, y, COM_PS_NEAREST, inputBuffers);
 		this->m_inputProgram->read(readColor, x, y, COM_PS_NEAREST, inputBuffers);
 		add_v4_v4(color_accum, readColor);
 		add_v4_fl(multiplier_accum, 1.0f);
 		float sizeCenter = tempSize[0];
-		float centerDepth = tempDepth[0] + this->m_threshold;
 		
 		for (int ny = miny; ny < maxy; ny += QualityStepHelper::getStep()) {
 			for (int nx = minx; nx < maxx; nx += QualityStepHelper::getStep()) {
 				if (nx >= 0 && nx < this->getWidth() && ny >= 0 && ny < getHeight()) {
-					this->m_inputDepthProgram->read(tempDepth, nx, ny, COM_PS_NEAREST, inputBuffers);
-					if (tempDepth[0] < centerDepth) {
-						this->m_inputSizeProgram->read(tempSize, nx, ny, COM_PS_NEAREST, inputBuffers);
-						float size = tempSize[0];
-						if ((sizeCenter > this->m_threshold && size > this->m_threshold) || size <= this->m_threshold) {
-							float dx = nx - x;
-							float dy = ny - y;
-							if (nx == x && ny == y) {
-							}
-							else if (size >= fabsf(dx) && size >= fabsf(dy)) {
-								float u = 256 + dx * 256 / size;
-								float v = 256 + dy * 256 / size;
-								this->m_inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
-								this->m_inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
-								madd_v4_v4v4(color_accum, bokeh, readColor);
-								add_v4_v4(multiplier_accum, bokeh);
-							}
+					this->m_inputSizeProgram->read(tempSize, nx, ny, COM_PS_NEAREST, inputBuffers);
+					float size = tempSize[0];
+					float fsize = fabsf(size);
+					if (sizeCenter > this->m_threshold && size > this->m_threshold) {
+						float dx = nx - x;
+						float dy = ny - y;
+						if (nx == x && ny == y) {
+						}
+						else if (fsize > fabsf(dx) && fsize > fabsf(dy)) {
+							float u = (256 + (dx/size) * 256);
+							float v = (256 + (dy/size) * 256);
+							this->m_inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
+							this->m_inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
+							madd_v4_v4v4(color_accum, bokeh, readColor);
+							add_v4_v4(multiplier_accum, bokeh);
 						}
 					}
 				}
 			}
 		}
 
-		color[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
-		color[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
-		color[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
-		color[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
+		color[0] = color_accum[0] / multiplier_accum[0];
+		color[1] = color_accum[1] / multiplier_accum[1];
+		color[2] = color_accum[2] / multiplier_accum[2];
+		color[3] = color_accum[3] / multiplier_accum[3];
 	}
 
 }
@@ -143,16 +135,15 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice* device,
 	
 	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputProgram);
 	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 1,  -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputBokehProgram);
-	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 2,  5, clMemToCleanUp, inputMemoryBuffers, this->m_inputDepthProgram);
-	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 3,  -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputSizeProgram);
-	device->COM_clAttachOutputMemoryBufferToKernelParameter(defocusKernel, 4, clOutputBuffer);
-	device->COM_clAttachMemoryBufferOffsetToKernelParameter(defocusKernel, 6, outputMemoryBuffer);
-	clSetKernelArg(defocusKernel, 7, sizeof(cl_int), &step);
-	clSetKernelArg(defocusKernel, 8, sizeof(cl_int), &maxBlur);
-	clSetKernelArg(defocusKernel, 9, sizeof(cl_float), &threshold);
-	device->COM_clAttachSizeToKernelParameter(defocusKernel, 10, this);
+	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 2,  4, clMemToCleanUp, inputMemoryBuffers, this->m_inputSizeProgram);
+	device->COM_clAttachOutputMemoryBufferToKernelParameter(defocusKernel, 3, clOutputBuffer);
+	device->COM_clAttachMemoryBufferOffsetToKernelParameter(defocusKernel, 5, outputMemoryBuffer);
+	clSetKernelArg(defocusKernel, 6, sizeof(cl_int), &step);
+	clSetKernelArg(defocusKernel, 7, sizeof(cl_int), &maxBlur);
+	clSetKernelArg(defocusKernel, 8, sizeof(cl_float), &threshold);
+	device->COM_clAttachSizeToKernelParameter(defocusKernel, 9, this);
 	
-	device->COM_clEnqueueRange(defocusKernel, outputMemoryBuffer, 11, this);
+	device->COM_clEnqueueRange(defocusKernel, outputMemoryBuffer, 10, this);
 }
 
 void VariableSizeBokehBlurOperation::deinitExecution()
@@ -160,7 +151,6 @@ void VariableSizeBokehBlurOperation::deinitExecution()
 	this->m_inputProgram = NULL;
 	this->m_inputBokehProgram = NULL;
 	this->m_inputSizeProgram = NULL;
-	this->m_inputDepthProgram = NULL;
 #ifdef COM_DEFOCUS_SEARCH
 	this->m_inputSearchProgram = NULL;
 #endif
@@ -187,10 +177,6 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(rcti *inpu
 	}
 	operation = getInputOperation(1);
 	if (operation->determineDependingAreaOfInterest(&bokehInput, readOperation, output) ) {
-		return true;
-	}
-	operation = getInputOperation(3);
-	if (operation->determineDependingAreaOfInterest(&newInput, readOperation, output) ) {
 		return true;
 	}
 #ifdef COM_DEFOCUS_SEARCH
