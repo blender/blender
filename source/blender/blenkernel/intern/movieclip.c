@@ -322,6 +322,8 @@ typedef struct MovieClipCache {
 
 	/* cache for stable shot */
 	struct {
+		ImBuf *reference_ibuf;
+
 		ImBuf *ibuf;
 		int framenr;
 		int postprocess_flag;
@@ -655,9 +657,6 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 	MovieTrackingCamera *camera = &clip->tracking.camera;
 	ImBuf *postproc_ibuf = NULL;
 
-	if (cache->postprocessed.ibuf)
-		IMB_freeImBuf(cache->postprocessed.ibuf);
-
 	cache->postprocessed.framenr = user->framenr;
 	cache->postprocessed.flag = postprocess_flag;
 
@@ -695,13 +694,10 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 
 	IMB_refImBuf(postproc_ibuf);
 
-	cache->postprocessed.ibuf = postproc_ibuf;
+	if (cache->postprocessed.ibuf)
+		IMB_freeImBuf(cache->postprocessed.ibuf);
 
-	if (cache->stabilized.ibuf) {
-		/* force stable buffer be re-calculated */
-		IMB_freeImBuf(cache->stabilized.ibuf);
-		cache->stabilized.ibuf = NULL;
-	}
+	cache->postprocessed.ibuf = postproc_ibuf;
 
 	return postproc_ibuf;
 }
@@ -777,7 +773,8 @@ ImBuf *BKE_movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *user
 	return movieclip_get_postprocessed_ibuf(clip, user, clip->flag, postprocess_flag, 0);
 }
 
-static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int framenr, int postprocess_flag)
+static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, ImBuf *reference_ibuf,
+                                      int framenr, int postprocess_flag)
 {
 	MovieClipCache *cache = clip->cache;
 	MovieTracking *tracking = &clip->tracking;
@@ -794,6 +791,9 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 
 	/* there's no cached frame or it was calculated for another frame */
 	if (!cache->stabilized.ibuf || cache->stabilized.framenr != framenr)
+		return NULL;
+
+	if (cache->stabilized.reference_ibuf != reference_ibuf)
 		return NULL;
 
 	/* cached ibuf used different proxy settings */
@@ -836,12 +836,7 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 	float tloc[2], tscale, tangle;
 	int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, framenr);
 
-	if (cache->stabilized.ibuf)
-		IMB_freeImBuf(cache->stabilized.ibuf);
-
 	stableibuf = BKE_tracking_stabilize_frame(&clip->tracking, clip_framenr, ibuf, tloc, &tscale, &tangle);
-
-	cache->stabilized.ibuf = stableibuf;
 
 	copy_v2_v2(cache->stabilized.loc, tloc);
 
@@ -862,6 +857,11 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 
 	cache->stabilized.postprocess_flag = postprocess_flag;
 
+	if (cache->stabilized.ibuf)
+		IMB_freeImBuf(cache->stabilized.ibuf);
+
+	cache->stabilized.ibuf = stableibuf;
+
 	IMB_refImBuf(stableibuf);
 
 	return stableibuf;
@@ -881,7 +881,7 @@ ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float
 	if (clip->tracking.stabilization.flag & TRACKING_2D_STABILIZATION) {
 		MovieClipCache *cache = clip->cache;
 
-		stableibuf = get_stable_cached_frame(clip, user, framenr, postprocess_flag);
+		stableibuf = get_stable_cached_frame(clip, user, ibuf, framenr, postprocess_flag);
 
 		if (!stableibuf)
 			stableibuf = put_stabilized_frame_to_cache(clip, user, ibuf, framenr, postprocess_flag);
