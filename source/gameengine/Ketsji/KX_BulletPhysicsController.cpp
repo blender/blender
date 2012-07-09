@@ -232,6 +232,7 @@ MT_Vector3	KX_BulletPhysicsController::getReactionForce()
 }
 void	KX_BulletPhysicsController::setRigidBody(bool rigid)
 {
+	CcdPhysicsController::setRigidBody(rigid);
 }
 
 /* This function dynamically adds the collision shape of another controller to

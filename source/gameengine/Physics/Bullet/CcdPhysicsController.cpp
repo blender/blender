@@ -1294,17 +1294,16 @@ void		CcdPhysicsController::getReactionForce(float& forceX,float& forceY,float& 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
 void		CcdPhysicsController::setRigidBody(bool rigid)
 {
-	if (!rigid)
+	btRigidBody* body = GetRigidBody();
+	if (body)
 	{
-		btRigidBody* body = GetRigidBody();
-		if (body)
-		{
-			//fake it for now
-			btVector3 inertia = body->getInvInertiaDiagLocal();
-			inertia[1] = 0.f;
-			body->setInvInertiaDiagLocal(inertia);
-			body->updateInertiaTensor();
+		m_cci.m_bRigid = rigid;
+		if (!rigid) {
+			body->setAngularFactor(0.f);
+			body->setAngularVelocity(btVector3(0.f, 0.f, 0.f));
 		}
+		else
+			body->setAngularFactor(m_cci.m_angularFactor);
 	}
 }
 
