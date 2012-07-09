@@ -2219,7 +2219,7 @@ void BKE_mask_rasterize_layers(ListBase *masklayers, int width, int height, floa
 
 				if (tot_diff_point) {
 					PLX_raskterize(diff_points, tot_diff_point,
-					               buffer_tmp, width, height, do_mask_aa);
+                                   buffer_tmp, width, height,do_mask_aa);
 
 					if (tot_diff_feather_points) {
 						PLX_raskterize_feather(diff_points, tot_diff_point,
@@ -2273,10 +2273,12 @@ void BKE_mask_rasterize_layers(ListBase *masklayers, int width, int height, floa
 			}
 		}
 
+		if(do_mask_aa){
+			//PLX_antialias_buffer(buffer,width,height);
+		}
 		/* clamp at the end */
 		clamp_vn_vn(buffer, buffer_size);
 	}
-
 	MEM_freeN(buffer_tmp);
 }
 

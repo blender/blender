@@ -27,27 +27,64 @@
 /** \file raskter.h
  *  \ingroup RASKTER
  */
+/* from BLI_utildefines.h */
+#define MIN2(x, y)               ( (x) < (y) ? (x) : (y) )
+#define MAX2(x, y)               ( (x) > (y) ? (x) : (y) )
+#define ABS(a)                   ( (a) < 0 ? (-(a)) : (a) )
 
 struct poly_vert {
-	int x;
-	int y;
+    int x;
+    int y;
 };
 
 struct scan_line {
-	int xstart;
-	int xend;
+    int xstart;
+    int xend;
 };
 
 struct scan_line_batch {
-	int num;
-	int ystart;
-	struct scan_line *slines;
+    int num;
+    int ystart;
+    struct scan_line *slines;
+};
+
+struct e_status {
+    int x;
+    int ybeg;
+    int xshift;
+    int xdir;
+    int drift;
+    int drift_inc;
+    int drift_dec;
+    int num;
+    struct e_status *e_next;
+};
+
+struct r_buffer_stats {
+    float *buf;
+    int sizex;
+    int sizey;
+    int ymin;
+    int ymax;
+    int xmin;
+    int xmax;
+};
+
+struct r_fill_context {
+    struct e_status *all_edges, *possible_edges;
+    struct r_buffer_stats rb;
+    struct scan_line *bounds;
+    void *kdo;  //only used with kd tree
+    void *kdi;  //only used with kd tree
+    int *bound_indexes;
+    int bounds_length;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge);
 int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
                    float *buf, int buf_x, int buf_y, int do_mask_AA);
 int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts,
