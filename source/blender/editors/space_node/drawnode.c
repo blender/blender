@@ -969,17 +969,15 @@ static void node_update_frame(const bContext *UNUSED(C), bNodeTree *ntree, bNode
 static void node_draw_frame_label(bNode *node, const float aspect)
 {
 	/* XXX font id is crap design */
-	const int fontid = blf_mono_font;
+	const int fontid = UI_GetStyle()->widgetlabel.uifont_id;
 	NodeFrame *data = (NodeFrame *)node->storage;
 	rctf *rct = &node->totr;
 	int color_id = node_get_colorid(node);
-	char label[128];
+	const char *label = nodeLabel(node);
 	/* XXX a bit hacky, should use separate align values for x and y */
 	float width, ascender;
 	float x, y;
 	const int font_size = data->label_size / aspect;
-	
-	BLI_strncpy(label, nodeLabel(node), sizeof(label));
 
 	BLF_enable(fontid, BLF_ASPECT);
 	BLF_aspect(fontid, aspect, aspect, 1.0f);
@@ -993,8 +991,8 @@ static void node_draw_frame_label(bNode *node, const float aspect)
 	
 	/* 'x' doesn't need aspect correction */
 	x = 0.5f * (rct->xmin + rct->xmax) - 0.5f * width;
-	y = rct->ymax - NODE_DYS - (ascender * aspect);
-	
+	y = rct->ymax - (((NODE_DY / 4) / aspect) + (ascender * aspect));
+
 	BLF_position(fontid, x, y, 0);
 	BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
 
@@ -1008,9 +1006,6 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	unsigned char color[4];
 	float alpha;
 	
-	UI_GetThemeColor4ubv(TH_NODE_FRAME, color);
-	alpha = (float)(color[3]) / 255.0f;
-	
 	/* skip if out of view */
 	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
 	    node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax) {
@@ -1019,6 +1014,9 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		node->block = NULL;
 		return;
 	}
+
+	UI_GetThemeColor4ubv(TH_NODE_FRAME, color);
+	alpha = (float)(color[3]) / 255.0f;
 	
 	/* shadow */
 	node_draw_shadow(snode, node, BASIS_RAD, alpha);
