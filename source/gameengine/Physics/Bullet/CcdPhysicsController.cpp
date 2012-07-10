@@ -2048,6 +2048,15 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 		m_forceReInstance= true;
 	}
 
+	// Make sure to also replace the mesh in the shape map! Otherwise we leave dangling references when we free.
+	// Note, this whole business could cause issues with shared meshes. If we update one mesh, do we replace
+	// them all?
+	std::map<RAS_MeshObject*,CcdShapeConstructionInfo*>::iterator mit = m_meshShapeMap.find(m_meshObject);
+	if (mit != m_meshShapeMap.end()) {
+		m_meshShapeMap.erase(mit);
+		m_meshShapeMap[meshobj] = this;
+	}
+
 	m_meshObject= meshobj;
 	
 	if (dm) {
