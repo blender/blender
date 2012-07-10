@@ -31,6 +31,10 @@
 #include "BLI_listbase.h"
 #include "IMB_imbuf_types.h"
 
+#ifdef __PLX_RASKTER_MT__
+#include "../../../../intern/raskter/raskter.h"
+#endif
+
 /**
  * Class with implementation of mask rasterization
  */
@@ -43,6 +47,7 @@ protected:
 	bool m_do_smooth;
 	bool m_do_feather;
 	float *m_rasterizedMask;
+	
 	ListBase m_maskLayers;
 
 	/**

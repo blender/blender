@@ -814,14 +814,14 @@ int get_range_expanded_pixel_coord(float normalized_value, int max_value) {
     return (int)((normalized_value * (float)(max_value)) + 0.5f);
 }
 
-float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y) {
+inline float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y) {
     if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
         return 0.0f;
     }
     return buf[(pos_y * buf_x) + pos_x];
 }
 
-float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v) {
+inline float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v) {
     int a;
     int b;
     int a_plus_1;
@@ -847,7 +847,7 @@ float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, fl
 
 }
 
-void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity) {
+inline void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity) {
     if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
         return;
     }
@@ -869,114 +869,114 @@ int PLX_antialias_buffer(float *buf, int buf_x, int buf_y) {
     (void)buf;
     return 1;
 #else
-    const float p0 = 1.0f;
-    const float p1 = 1.0f;
-    const float p2 = 1.0f;
-    const float p3 = 1.0f;
-    const float p4 = 1.0f;
-    const float p5 = 1.5f;
-    const float p6 = 2.0f;
-    const float p7 = 2.0f;
-    const float p8 = 2.0f;
-    const float p9 = 2.0f;
-    const float p10 = 4.0f;
-    const float p11 = 8.0f;
+    const float jump01 = 1.0f;
+    const float jump02 = 1.0f;
+    const float jump03 = 1.0f;
+    const float jump04 = 1.0f;
+    const float jump05 = 1.0f;
+    const float jump06 = 1.5f;
+    const float jump07 = 2.0f;
+    const float jump08 = 2.0f;
+    const float jump09 = 2.0f;
+    const float jump10 = 2.0f;
+    const float jump11 = 4.0f;
+    const float jump12 = 8.0f;
 
     const float edge_threshold = 0.063f;
     const float edge_threshold_min = 0.0312f;
     const float quality_subpix = 1.0f;
 
-    float posM_x,posM_y;
-    float posB_x,posB_y;
-    float posN_x,posN_y;
-    float posP_x,posP_y;
-    float offNP_x,offNP_y;
-    float lumaM;
-    float lumaS;
-    float lumaE;
-    float lumaN;
-    float lumaW;
-    float lumaNW;
-    float lumaSE;
-    float lumaNE;
-    float lumaSW;
-    float lumaNS;
-    float lumaWE;
-    float lumaNESE;
-    float lumaNWNE;
-    float lumaNWSW;
-    float lumaSWSE;
-    float lumaNN;
-    float lumaSS;
-    float lumaEndN;
-    float lumaEndP;
-    float lumaMM;
-    float lumaMLTZero;
-    float subpixNWSWNESE;
-    float subpixRcpRange;
-    float subpixNSWE;
-    float maxSM;
-    float minSM;
-    float maxESM;
-    float minESM;
-    float maxWN;
-    float minWN;
-    float rangeMax;
-    float rangeMin;
-    float rangeMaxScaled;
-    float range;
-    float rangeMaxClamped;
-    float edgeHorz;
-    float edgeVert;
-    float edgeHorz1;
-    float edgeVert1;
-    float edgeHorz2;
-    float edgeVert2;
-    float edgeHorz3;
-    float edgeVert3;
-    float edgeHorz4;
-    float edgeVert4;
-    float lengthSign;
-    float subpixA;
-    float subpixB;
-    float subpixC;
-    float subpixD;
-    float subpixE;
-    float subpixF;
-    float subpixG;
-    float subpixH;
-    float gradientN;
-    float gradientS;
-    float gradient;
-    float gradientScaled;
-    float dstN;
-    float dstP;
+    float fpcx,fpcy;
+    float fpsqx,fpsqy;
+    float fprevx,fprevy;
+    float fpfowx,fpfowy;
+    float offset_dgx,offset_dgy;
+    float pci;
+    float pdi;
+    float pri;
+    float pui;
+    float pli;
+    float uli;
+    float dri;
+    float uri;
+    float dli;
+    float udi;
+    float lri;
+    float fsi;
+    float ti;
+    float cdi;
+    float bi;
+    float uui;
+    float ddi;
+    float eri;
+    float efi;
+    float cci;
+    float ltz;
+    float spX;
+    float inv_r;
+    float spP;
+    float gdc;
+    float sdc;
+    float gedc;
+    float sedc;
+    float glu;
+    float slu;
+    float gr;
+    float sr;
+    float grexp;
+    float r;
+    float grc;
+    float lre;
+    float ude;
+    float lre0;
+    float ude0;
+    float lre1;
+    float ude1;
+    float lre2;
+    float ude2;
+    float lre3;
+    float ude3;
+    float sdst;
+    float tg0;
+    float tg1;
+    float tg2;
+    float tg3;
+    float tg4;
+    float tg5;
+    float tg6;
+    float tg7;
+    float ugrad;
+    float dgrad;
+    float grad;
+    float gradexp;
+    float revdst;
+    float fowdst;
     float dst;
-    float spanLength;
-    float spanLengthRcp;
-    float pixelOffset;
-    float pixelOffsetGood;
-    float pixelOffsetSubpix;
+    float dsts;
+    float inv_dsts;
+    float pxOff;
+    float gpxOff;
+    float tgpxOff;
     float opx;
     float opy;
-    int directionN;
-    int goodSpan;
-    int goodSpanN;
-    int goodSpanP;
-    int horzSpan;
-    int earlyExit;
-    int pairN;
-    int doneN;
-    int doneP;
-    int doneNP;
+    int uls;
+    int sph;
+    int revsph;
+    int fowsph;
+    int lrsp;
+    int done;
+    int revpp;
+    int revdone;
+    int fowdone;
+    int tug_of_war;
     int curr_x=0;
     int curr_y=0;
     opx = (1.0f / (float)(buf_x));
     opy = (1.0f / (float)(buf_y));
     for(curr_y=0; curr_y < buf_y; curr_y++) {
         for(curr_x=0; curr_x < buf_x; curr_x++) {
-            posM_x = ((float)(curr_x) + 0.5f) * opx;
-            posM_y = ((float)(curr_y) + 0.5f) * opy;
+            fpcx = ((float)(curr_x) + 0.5f) * opx;
+            fpcy = ((float)(curr_y) + 0.5f) * opy;
 //#define __PLX_BILINEAR_INITIAL_SAMPLES__ 1
 #ifdef __PLX_BILINEAR_INITIAL_SAMPLES__
             lumaM = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posM_x, posM_y);
@@ -985,398 +985,397 @@ int PLX_antialias_buffer(float *buf, int buf_x, int buf_y) {
             lumaN = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posM_x, posM_y - opy);
             lumaW = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posM_x - opx, posM_y);
 #else
-    lumaM = get_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y);
-    lumaS = get_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y + 1);
-    lumaE = get_pixel_intensity(buf, buf_x, buf_y, curr_x + 1, curr_y);
-    lumaN = get_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y - 1);
-    lumaW = get_pixel_intensity(buf, buf_x, buf_y, curr_x - 1, curr_y);
+    pci = get_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y);
+    pdi = get_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y + 1);
+    pri = get_pixel_intensity(buf, buf_x, buf_y, curr_x + 1, curr_y);
+    pui = get_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y - 1);
+    pli = get_pixel_intensity(buf, buf_x, buf_y, curr_x - 1, curr_y);
 #endif
-            maxSM = MAX2(lumaS, lumaM);
-            minSM = MIN2(lumaS, lumaM);
-            maxESM = MAX2(lumaE, maxSM);
-            minESM = MIN2(lumaE, minSM);
-            maxWN = MAX2(lumaN, lumaW);
-            minWN = MIN2(lumaN, lumaW);
-            rangeMax = MAX2(maxWN, maxESM);
-            rangeMin = MIN2(minWN, minESM);
-            rangeMaxScaled = rangeMax * edge_threshold;
-            range = rangeMax - rangeMin;
-            rangeMaxClamped = MAX2(edge_threshold_min, rangeMaxScaled);
+            gdc = MAX2(pdi, pci);
+            sdc = MIN2(pdi, pci);
+            gedc = MAX2(pri, gdc);
+            sedc = MIN2(pri, sdc);
+            glu = MAX2(pui, pli);
+            slu = MIN2(pui, pli);
+            gr = MAX2(glu, gedc);
+            sr = MIN2(slu, sedc);
+            grexp = gr * edge_threshold;
+            r = gr - sr;
+            grc = MAX2(edge_threshold_min, grexp);
 
-            earlyExit = range < rangeMaxClamped ? 1:0;
-            if(earlyExit) {
-                set_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y, lumaM);
+            done = r < grc ? 1:0;
+            if(done) {
+                set_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y, pci);
             } else {
 
-                lumaNW = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posM_x - opx, posM_y - opy);
-                lumaSE = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posM_x + opx, posM_y + opy);
-                lumaNE = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posM_x + opx, posM_y - opy);
-                lumaSW = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posM_x - opx, posM_y + opy);
+                uli = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpcx - opx, fpcy - opy);
+                dri = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpcx + opx, fpcy + opy);
+                uri = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpcx + opx, fpcy - opy);
+                dli = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpcx - opx, fpcy + opy);
 
-                lumaNS = lumaN + lumaS;
-                lumaWE = lumaW + lumaE;
-                subpixRcpRange = 1.0f/range;
-                subpixNSWE = lumaNS + lumaWE;
-                edgeHorz1 = (-2.0f * lumaM) + lumaNS;
-                edgeVert1 = (-2.0f * lumaM) + lumaWE;
+                udi = pui + pdi;
+                lri = pli + pri;
+                inv_r = 1.0f/r;
+                spP = udi + lri;
+                lre0 = (-2.0f * pci) + udi;
+                ude0 = (-2.0f * pci) + lri;
 
-                lumaNESE = lumaNE + lumaSE;
-                lumaNWNE = lumaNW + lumaNE;
-                edgeHorz2 = (-2.0f * lumaE) + lumaNESE;
-                edgeVert2 = (-2.0f * lumaN) + lumaNWNE;
+                fsi = uri + dri;
+                ti = uli + uri;
+                lre1 = (-2.0f * pri) + fsi;
+                ude1 = (-2.0f * pui) + ti;
 
-                lumaNWSW = lumaNW + lumaSW;
-                lumaSWSE = lumaSW + lumaSE;
-                edgeHorz4 = (ABS(edgeHorz1) * 2.0f) + ABS(edgeHorz2);
-                edgeVert4 = (ABS(edgeVert1) * 2.0f) + ABS(edgeVert2);
-                edgeHorz3 = (-2.0f * lumaW) + lumaNWSW;
-                edgeVert3 = (-2.0f * lumaS) + lumaSWSE;
-                edgeHorz = ABS(edgeHorz3) + edgeHorz4;
-                edgeVert = ABS(edgeVert3) + edgeVert4;
+                cdi = uli + dli;
+                bi = dli + dri;
+                lre3 = (ABS(lre0) * 2.0f) + ABS(lre1);
+                ude3 = (ABS(ude0) * 2.0f) + ABS(ude1);
+                lre2 = (-2.0f * pli) + cdi;
+                ude2 = (-2.0f * pdi) + bi;
+                lre = ABS(lre2) + lre3;
+                ude = ABS(ude2) + ude3;
 
-                subpixNWSWNESE = lumaNWSW + lumaNESE;
-                lengthSign = 1.0f / (float)(buf_x);
-                horzSpan = edgeHorz >= edgeVert ? 1:0;
-                subpixA = subpixNSWE * 2.0f + subpixNWSWNESE;
+                spX = cdi + fsi;
+                sdst = 1.0f / (float)(buf_x);
+                lrsp = lre >= ude ? 1:0;
+                tg0 = spP * 2.0f + spX;
 
-                if(!horzSpan) {
-                    lumaN = lumaW;
-                    lumaS = lumaE;
+                if(!lrsp) {
+                    pui = pli;
+                    pdi = pri;
                 } else {
-                    lengthSign = 1.0f / (float)(buf_y);
+                    sdst = 1.0f / (float)(buf_y);
                 }
-                subpixB = (subpixA * (1.0f/12.0f)) - lumaM;
+                tg1 = (tg0 * (1.0f/12.0f)) - pci;
 
-                gradientN = lumaN - lumaM;
-                gradientS = lumaS - lumaM;
-                lumaNN = lumaN + lumaM;
-                lumaSS = lumaS + lumaM;
-                pairN = (ABS(gradientN)) >= (ABS(gradientS)) ? 1:0;
-                gradient = MAX2(ABS(gradientN), ABS(gradientS));
-                if(pairN) {
-                    lengthSign = -lengthSign;
+                ugrad = pui - pci;
+                dgrad = pdi - pci;
+                uui = pui + pci;
+                ddi = pdi + pci;
+                revpp = (ABS(ugrad)) >= (ABS(dgrad)) ? 1:0;
+                grad = MAX2(ABS(ugrad), ABS(dgrad));
+                if(revpp) {
+                    sdst = -sdst;
                 }
-                subpixC = MAX2(MIN2(ABS(subpixB) * subpixRcpRange,1.0f),0.0f);
+                tg2 = MAX2(MIN2(ABS(tg1) * inv_r,1.0f),0.0f);
 
-                posB_x = posM_x;
-                posB_y = posM_y;
-                offNP_x = (!horzSpan) ? 0.0f:(1.0f / (float)(buf_x));
-                offNP_y = (horzSpan) ? 0.0f:(1.0f / (float)(buf_y));
-                if(!horzSpan) {
-                    posB_x += lengthSign * 0.5f;
+                fpsqx = fpcx;
+                fpsqy = fpcy;
+                offset_dgx = (!lrsp) ? 0.0f:(1.0f / (float)(buf_x));
+                offset_dgy = (lrsp) ? 0.0f:(1.0f / (float)(buf_y));
+                if(!lrsp) {
+                    fpsqx += sdst * 0.5f;
                 } else {
-                    posB_y += lengthSign * 0.5f;
+                    fpsqy += sdst * 0.5f;
                 }
 
-                posN_x = posB_x - offNP_x * p0;
-                posN_y = posB_y - offNP_y * p0;
-                posP_x = posB_x + offNP_x * p0;
-                posP_y = posB_y + offNP_y * p0;
-                subpixD = ((-2.0f)*subpixC) + 3.0f;
-                lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
-                subpixE = subpixC * subpixC;
-                lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+                fprevx = fpsqx - offset_dgx * jump01;
+                fprevy = fpsqy - offset_dgy * jump01;
+                fpfowx = fpsqx + offset_dgx * jump01;
+                fpfowy = fpsqy + offset_dgy * jump01;
+                tg3 = ((-2.0f)*tg2) + 3.0f;
+                eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y,fprevx,fprevy);
+                tg4 = tg2 * tg2;
+                efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx,fpfowy);
 
-                if(!pairN) {
-                    lumaNN = lumaSS;
+                if(!revpp) {
+                    uui = ddi;
                 }
-                gradientScaled = gradient * 1.0f/4.0f;
-                lumaMM =lumaM - lumaNN * 0.5f;
-                subpixF = subpixD * subpixE;
-                lumaMLTZero = lumaMM < 0.0f ? 1:0;
+                gradexp = grad * 1.0f/4.0f;
+                cci =pci - uui * 0.5f;
+                tg5 = tg3 * tg4;
+                ltz = cci < 0.0f ? 1:0;
 
-                lumaEndN -= lumaNN * 0.5f;
-                lumaEndP -= lumaNN * 0.5f;
-                doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                if(!doneN) {
-                    posN_x -= offNP_x * p1;
-                    posN_y -= offNP_y * p1;
+                eri -= uui * 0.5f;
+                efi -= uui * 0.5f;
+                revdone = (ABS(eri)) >= gradexp ? 1:0;
+                fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                if(!revdone) {
+                    fprevx -= offset_dgx * jump02;
+                    fprevy -= offset_dgy * jump02;
                 }
-                doneNP = (!doneN) || (!doneP) ? 1:0;
-                if(!doneP) {
-                    posP_x += offNP_x * p1;
-                    posP_y += offNP_y * p1;
-                }
-
-                if(doneNP) {
-                    if(!doneN) {
-                        lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posN_x,posN_y);
-                    }
-                    if(!doneP) {
-                        lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x, posP_y);
-                    }
-                    if(!doneN) {
-                        lumaEndN = lumaEndN - lumaNN * 0.5;
-                    }
-                    if(!doneP) {
-                        lumaEndP = lumaEndP - lumaNN * 0.5;
-                    }
-                    doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                    doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                    if(!doneN) {
-                        posN_x -= offNP_x * p2;
-                        posN_y -= offNP_y * p2;
-                    }
-                    doneNP = (!doneN) || (!doneP) ? 1:0;
-                    if(!doneP) {
-                        posP_x += offNP_x * p2;
-                        posP_y += offNP_y * p2;
-                    }
-                    if(doneNP) {
-                        if(!doneN) {
-                            lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
-                        }
-                        if(!doneP) {
-                            lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
-                        }
-                        if(!doneN) {
-                            lumaEndN = lumaEndN - lumaNN * 0.5;
-                        }
-                        if(!doneP) {
-                            lumaEndP = lumaEndP - lumaNN * 0.5;
-                        }
-                        doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                        doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                        if(!doneN) {
-                            posN_x -= offNP_x * p3;
-                            posN_y -= offNP_y * p3;
-                        }
-                        doneNP = (!doneN) || (!doneP) ? 1:0;
-                        if(!doneP) {
-                            posP_x += offNP_x * p3;
-                            posP_y += offNP_y * p3;
-                        }
-                        if(doneNP) {
-                            if(!doneN) {
-                                lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
-                            }
-                            if(!doneP) {
-                                lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
-                            }
-                            if(!doneN) {
-                                lumaEndN = lumaEndN - lumaNN * 0.5;
-                            }
-                            if(!doneP) {
-                                lumaEndP = lumaEndP - lumaNN * 0.5;
-                            }
-                            doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                            doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                            if(!doneN) {
-                                posN_x -= offNP_x * p4;
-                                posN_y -= offNP_y * p4;
-                            }
-                            doneNP = (!doneN) || (!doneP) ? 1:0;
-                            if(!doneP) {
-                                posP_x += offNP_x * p4;
-                                posP_y += offNP_y * p4;
-                            }
-                            if(doneNP) {
-                                if(!doneN) {
-                                    lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
-                                }
-                                if(!doneP) {
-                                    lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
-                                }
-                                if(!doneN) {
-                                    lumaEndN = lumaEndN - lumaNN * 0.5;
-                                }
-                                if(!doneP) {
-                                    lumaEndP = lumaEndP - lumaNN * 0.5;
-                                }
-                                doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                                doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                                if(!doneN) {
-                                    posN_x -= offNP_x * p5;
-                                    posN_y -= offNP_y * p5;
-                                }
-                                doneNP = (!doneN) || (!doneP) ? 1:0;
-                                if(!doneP) {
-                                    posP_x += offNP_x * p5;
-                                    posP_y += offNP_y * p5;
-                                }
-                                if(doneNP) {
-                                    if(!doneN) {
-                                        lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
-                                    }
-                                    if(!doneP) {
-                                        lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
-                                    }
-                                    if(!doneN) {
-                                        lumaEndN = lumaEndN - lumaNN * 0.5;
-                                    }
-                                    if(!doneP) {
-                                        lumaEndP = lumaEndP - lumaNN * 0.5;
-                                    }
-                                    doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                                    doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                                    if(!doneN) {
-                                        posN_x -= offNP_x * p6;
-                                        posN_y -= offNP_y * p6;
-                                    }
-                                    doneNP = (!doneN) || (!doneP) ? 1:0;
-                                    if(!doneP) {
-                                        posP_x += offNP_x * p6;
-                                        posP_y += offNP_y * p6;
-                                    }
-                                    if(doneNP) {
-                                        if(!doneN) {
-                                            lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
-                                        }
-                                        if(!doneP) {
-                                            lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
-                                        }
-                                        if(!doneN) {
-                                            lumaEndN = lumaEndN - lumaNN * 0.5;
-                                        }
-                                        if(!doneP) {
-                                            lumaEndP = lumaEndP - lumaNN * 0.5;
-                                        }
-                                        doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                                        doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                                        if(!doneN) {
-                                            posN_x -= offNP_x * p7;
-                                            posN_y -= offNP_y * p7;
-                                        }
-                                        doneNP = (!doneN) || (!doneP) ? 1:0;
-                                        if(!doneP) {
-                                            posP_x += offNP_x * p7;
-                                            posP_y += offNP_y * p7;
-                                        }
-                                        if(doneNP) {
-                                            if(!doneN) {
-                                                lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
-                                            }
-                                            if(!doneP) {
-                                                lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
-                                            }
-                                            if(!doneN) {
-                                                lumaEndN = lumaEndN - lumaNN * 0.5;
-                                            }
-                                            if(!doneP) {
-                                                lumaEndP = lumaEndP - lumaNN * 0.5;
-                                            }
-                                            doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                                            doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                                            if(!doneN) {
-                                                posN_x -= offNP_x * p8;
-                                                posN_y -= offNP_y * p8;
-                                            }
-                                            doneNP = (!doneN) || (!doneP) ? 1:0;
-                                            if(!doneP) {
-                                                posP_x += offNP_x * p8;
-                                                posP_y += offNP_y * p8;
-                                            }
-                                            if(doneNP) {
-                                                if(!doneN) {
-                                                    lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
-                                                }
-                                                if(!doneP) {
-                                                    lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
-                                                }
-                                                if(!doneN) {
-                                                    lumaEndN = lumaEndN - lumaNN * 0.5;
-                                                }
-                                                if(!doneP) {
-                                                    lumaEndP = lumaEndP - lumaNN * 0.5;
-                                                }
-                                                doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                                                doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                                                if(!doneN) {
-                                                    posN_x -= offNP_x * p9;
-                                                    posN_y -= offNP_y * p9;
-                                                }
-                                                doneNP = (!doneN) || (!doneP) ? 1:0;
-                                                if(!doneP) {
-                                                    posP_x += offNP_x * p9;
-                                                    posP_y += offNP_y * p9;
-                                                }
-                                                if(doneNP) {
-                                                    if(!doneN) {
-                                                        lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
-                                                    }
-                                                    if(!doneP) {
-                                                        lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
-                                                    }
-                                                    if(!doneN) {
-                                                        lumaEndN = lumaEndN - lumaNN * 0.5;
-                                                    }
-                                                    if(!doneP) {
-                                                        lumaEndP = lumaEndP - lumaNN * 0.5;
-                                                    }
-                                                    doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                                                    doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                                                    if(!doneN) {
-                                                        posN_x -= offNP_x * p10;
-                                                        posN_y -= offNP_y * p10;
-                                                    }
-                                                    doneNP = (!doneN) || (!doneP) ? 1:0;
-                                                    if(!doneP) {
-                                                        posP_x += offNP_x * p10;
-                                                        posP_y += offNP_y * p10;
-                                                    }
-                                                    if(doneNP) {
-                                                        if(!doneN) {
-                                                            lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
-                                                        }
-                                                        if(!doneP) {
-                                                            lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
-                                                        }
-                                                        if(!doneN) {
-                                                            lumaEndN = lumaEndN - lumaNN * 0.5;
-                                                        }
-                                                        if(!doneP) {
-                                                            lumaEndP = lumaEndP - lumaNN * 0.5;
-                                                        }
-                                                        doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
-                                                        doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
-                                                        if(!doneN) {
-                                                            posN_x -= offNP_x * p11;
-                                                            posN_y -= offNP_y * p11;
-                                                        }
-                                                        doneNP = (!doneN) || (!doneP) ? 1:0;
-                                                        if(!doneP) {
-                                                            posP_x += offNP_x * p11;
-                                                            posP_y += offNP_y * p11;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                dstN = posM_x - posN_x;
-                dstP = posP_x - posM_x;
-                if(!horzSpan) {
-                    dstN = posM_y - posN_y;
-                    dstP = posP_y - posM_y;
+                tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                if(!fowdone) {
+                    fpfowx += offset_dgx * jump02;
+                    fpfowy += offset_dgy * jump02;
                 }
 
-                goodSpanN = ((lumaEndN < 0.0f) ? 1:0) != lumaMLTZero ? 1:0;
-                spanLength = (dstP + dstN);
-                goodSpanP = ((lumaEndP < 0.0f) ? 1:0) != lumaMLTZero ? 1:0;
-                spanLengthRcp = 1.0f/spanLength;
+                if(tug_of_war) {
+                    if(!revdone) {
+                        eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fprevx,fprevy);
+                    }
+                    if(!fowdone) {
+                        efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx, fpfowy);
+                    }
+                    if(!revdone) {
+                        eri = eri - uui * 0.5;
+                    }
+                    if(!fowdone) {
+                        efi = efi - uui * 0.5;
+                    }
+                    revdone = (ABS(eri)) >= gradexp ? 1:0;
+                    fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                    if(!revdone) {
+                        fprevx -= offset_dgx * jump03;
+                        fprevy -= offset_dgy * jump03;
+                    }
+                    tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                    if(!fowdone) {
+                        fpfowx += offset_dgx * jump03;
+                        fpfowy += offset_dgy * jump03;
+                    }
+                    if(tug_of_war) {
+                        if(!revdone) {
+                            eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y,fprevx,fprevy);
+                        }
+                        if(!fowdone) {
+                            efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx,fpfowy);
+                        }
+                        if(!revdone) {
+                            eri = eri - uui * 0.5;
+                        }
+                        if(!fowdone) {
+                            efi = efi - uui * 0.5;
+                        }
+                        revdone = (ABS(eri)) >= gradexp ? 1:0;
+                        fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                        if(!revdone) {
+                            fprevx -= offset_dgx * jump04;
+                            fprevy -= offset_dgy * jump04;
+                        }
+                        tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                        if(!fowdone) {
+                            fpfowx += offset_dgx * jump04;
+                            fpfowy += offset_dgy * jump04;
+                        }
+                        if(tug_of_war) {
+                            if(!revdone) {
+                                eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y,fprevx,fprevy);
+                            }
+                            if(!fowdone) {
+                                efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx,fpfowy);
+                            }
+                            if(!revdone) {
+                                eri = eri - uui * 0.5;
+                            }
+                            if(!fowdone) {
+                                efi = efi - uui * 0.5;
+                            }
+                            revdone = (ABS(eri)) >= gradexp ? 1:0;
+                            fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                            if(!revdone) {
+                                fprevx -= offset_dgx * jump05;
+                                fprevy -= offset_dgy * jump05;
+                            }
+                            tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                            if(!fowdone) {
+                                fpfowx += offset_dgx * jump05;
+                                fpfowy += offset_dgy * jump05;
+                            }
+                            if(tug_of_war) {
+                                if(!revdone) {
+                                    eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y,fprevx,fprevy);
+                                }
+                                if(!fowdone) {
+                                    efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx,fpfowy);
+                                }
+                                if(!revdone) {
+                                    eri = eri - uui * 0.5;
+                                }
+                                if(!fowdone) {
+                                    efi = efi - uui * 0.5;
+                                }
+                                revdone = (ABS(eri)) >= gradexp ? 1:0;
+                                fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                                if(!revdone) {
+                                    fprevx -= offset_dgx * jump06;
+                                    fprevy -= offset_dgy * jump06;
+                                }
+                                tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                                if(!fowdone) {
+                                    fpfowx += offset_dgx * jump06;
+                                    fpfowy += offset_dgy * jump06;
+                                }
+                                if(tug_of_war) {
+                                    if(!revdone) {
+                                        eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y,fprevx,fprevy);
+                                    }
+                                    if(!fowdone) {
+                                        efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx,fpfowy);
+                                    }
+                                    if(!revdone) {
+                                        eri = eri - uui * 0.5;
+                                    }
+                                    if(!fowdone) {
+                                        efi = efi - uui * 0.5;
+                                    }
+                                    revdone = (ABS(eri)) >= gradexp ? 1:0;
+                                    fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                                    if(!revdone) {
+                                        fprevx -= offset_dgx * jump07;
+                                        fprevy -= offset_dgy * jump07;
+                                    }
+                                    tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                                    if(!fowdone) {
+                                        fpfowx += offset_dgx * jump07;
+                                        fpfowy += offset_dgy * jump07;
+                                    }
+                                    if(tug_of_war) {
+                                        if(!revdone) {
+                                            eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y,fprevx,fprevy);
+                                        }
+                                        if(!fowdone) {
+                                            efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx,fpfowy);
+                                        }
+                                        if(!revdone) {
+                                            eri = eri - uui * 0.5;
+                                        }
+                                        if(!fowdone) {
+                                            efi = efi - uui * 0.5;
+                                        }
+                                        revdone = (ABS(eri)) >= gradexp ? 1:0;
+                                        fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                                        if(!revdone) {
+                                            fprevx -= offset_dgx * jump08;
+                                            fprevy -= offset_dgy * jump08;
+                                        }
+                                        tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                                        if(!fowdone) {
+                                            fpfowx += offset_dgx * jump08;
+                                            fpfowy += offset_dgy * jump08;
+                                        }
+                                        if(tug_of_war) {
+                                            if(!revdone) {
+                                                eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y,fprevx,fprevy);
+                                            }
+                                            if(!fowdone) {
+                                                efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx,fpfowy);
+                                            }
+                                            if(!revdone) {
+                                                eri = eri - uui * 0.5;
+                                            }
+                                            if(!fowdone) {
+                                                efi = efi - uui * 0.5;
+                                            }
+                                            revdone = (ABS(eri)) >= gradexp ? 1:0;
+                                            fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                                            if(!revdone) {
+                                                fprevx -= offset_dgx * jump09;
+                                                fprevy -= offset_dgy * jump09;
+                                            }
+                                            tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                                            if(!fowdone) {
+                                                fpfowx += offset_dgx * jump09;
+                                                fpfowy += offset_dgy * jump09;
+                                            }
+                                            if(tug_of_war) {
+                                                if(!revdone) {
+                                                    eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y,fprevx,fprevy);
+                                                }
+                                                if(!fowdone) {
+                                                    efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx,fpfowy);
+                                                }
+                                                if(!revdone) {
+                                                    eri = eri - uui * 0.5;
+                                                }
+                                                if(!fowdone) {
+                                                    efi = efi - uui * 0.5;
+                                                }
+                                                revdone = (ABS(eri)) >= gradexp ? 1:0;
+                                                fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                                                if(!revdone) {
+                                                    fprevx -= offset_dgx * jump10;
+                                                    fprevy -= offset_dgy * jump10;
+                                                }
+                                                tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                                                if(!fowdone) {
+                                                    fpfowx += offset_dgx * jump10;
+                                                    fpfowy += offset_dgy * jump10;
+                                                }
+                                                if(tug_of_war) {
+                                                    if(!revdone) {
+                                                        eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y,fprevx,fprevy);
+                                                    }
+                                                    if(!fowdone) {
+                                                        efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx,fpfowy);
+                                                    }
+                                                    if(!revdone) {
+                                                        eri = eri - uui * 0.5;
+                                                    }
+                                                    if(!fowdone) {
+                                                        efi = efi - uui * 0.5;
+                                                    }
+                                                    revdone = (ABS(eri)) >= gradexp ? 1:0;
+                                                    fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                                                    if(!revdone) {
+                                                        fprevx -= offset_dgx * jump11;
+                                                        fprevy -= offset_dgy * jump11;
+                                                    }
+                                                    tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                                                    if(!fowdone) {
+                                                        fpfowx += offset_dgx * jump11;
+                                                        fpfowy += offset_dgy * jump11;
+                                                    }
+                                                    if(tug_of_war) {
+                                                        if(!revdone) {
+                                                            eri = get_pixel_intensity_bilinear(buf, buf_x, buf_y,fprevx,fprevy);
+                                                        }
+                                                        if(!fowdone) {
+                                                            efi = get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpfowx,fpfowy);
+                                                        }
+                                                        if(!revdone) {
+                                                            eri = eri - uui * 0.5;
+                                                        }
+                                                        if(!fowdone) {
+                                                            efi = efi - uui * 0.5;
+                                                        }
+                                                        revdone = (ABS(eri)) >= gradexp ? 1:0;
+                                                        fowdone = (ABS(efi)) >= gradexp ? 1:0;
+                                                        if(!revdone) {
+                                                            fprevx -= offset_dgx * jump12;
+                                                            fprevy -= offset_dgy * jump12;
+                                                        }
+                                                        tug_of_war = (!revdone) || (!fowdone) ? 1:0;
+                                                        if(!fowdone) {
+                                                            fpfowx += offset_dgx * jump12;
+                                                            fpfowy += offset_dgy * jump12;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                revdst = fpcx - fprevx;
+                fowdst = fpfowx - fpcx;
+                if(!lrsp) {
+                    revdst = fpcy - fprevy;
+                    fowdst = fpfowy - fpcy;
+                }
 
-                directionN = dstN < dstP ? 1:0;
-                dst = MIN2(dstN, dstP);
-                goodSpan = (directionN==1) ? goodSpanN:goodSpanP;
-                subpixG = subpixF * subpixF;
-                pixelOffset = (dst * (-spanLengthRcp)) + 0.5f;
-                subpixH = subpixG * quality_subpix;
+                revsph = ((eri < 0.0f) ? 1:0) != ltz ? 1:0;
+                dsts = (fowdst + revdst);
+                fowsph = ((efi < 0.0f) ? 1:0) != ltz ? 1:0;
+                inv_dsts = 1.0f/dsts;
 
-                pixelOffsetGood = (goodSpan==1) ? pixelOffset : 0.0f;
-                pixelOffsetSubpix = MAX2(pixelOffsetGood, subpixH);
-                if(!horzSpan) {
-                    posM_x += pixelOffsetSubpix * lengthSign;
+                uls = revdst < fowdst ? 1:0;
+                dst = MIN2(revdst, fowdst);
+                sph = (uls==1) ? revsph:fowsph;
+                tg6 = tg5 * tg5;
+                pxOff = (dst * (-inv_dsts)) + 0.5f;
+                tg7 = tg6 * quality_subpix;
+
+                gpxOff = (sph==1) ? pxOff : 0.0f;
+                tgpxOff = MAX2(gpxOff, tg7);
+                if(!lrsp) {
+                    fpcx += tgpxOff * sdst;
                 } else {
-                    posM_y += pixelOffsetSubpix * lengthSign;
+                    fpcy += tgpxOff * sdst;
                 }
-                //may need bilinear filtered get_pixel_intensity() here...
-                set_pixel_intensity(buf,buf_x,buf_y,curr_x,curr_y,get_pixel_intensity_bilinear(buf, buf_x, buf_y, posM_x,posM_y));
+                set_pixel_intensity(buf,buf_x,buf_y,curr_x,curr_y,get_pixel_intensity_bilinear(buf, buf_x, buf_y, fpcx,fpcy));
             }
         }
     }
@@ -1385,82 +1384,82 @@ int PLX_antialias_buffer(float *buf, int buf_x, int buf_y) {
 #endif
 }
 
-#define SWAP_POLYVERT(a,b)	ptemp[0]=(a)[0]; ptemp[1]=(a)[1]; (a)[0]=(b)[0]; (a)[1]=(b)[1]; (b)[0]=ptemp[0]; (b)[1]=ptemp[1];
+#define SWAP_POLYVERT(a,b)	point_temp[0]=(a)[0]; point_temp[1]=(a)[1]; (a)[0]=(b)[0]; (a)[1]=(b)[1]; (b)[0]=point_temp[0]; (b)[1]=point_temp[1];
 #define __PLX_SMALL_COUNT__ 13
 void plx_floatsort(float(*f)[2], unsigned int n, int sortby) {
-    unsigned int i;
-    unsigned int ir;
-    unsigned int j;
-    unsigned int k;
-    unsigned int l=1;
-    unsigned int istack[50];
-    int jstack=0;
-    float a[2];
-    float ptemp[2];
+    unsigned int a;
+    unsigned int b;
+    unsigned int c;
+    unsigned int d=1;
+    unsigned int hold;
+    unsigned int index_list[50];
+    int index_offset=0;
+    float t[2];
+    float point_temp[2];
 
-    ir=n;
+    hold=n;
     for(;;) {
-        if(ir-l < __PLX_SMALL_COUNT__) {
-            for(j=l+1; j<=ir; j++) {
-                a[1]=f[j][1];
-                a[0]=f[j][0];
-                for(i=j-1; i>=l; i--) {
-                    if(f[i][sortby] <= a[sortby]) {
+        if(hold-d < __PLX_SMALL_COUNT__) {
+            for(b=d+1; b<=hold; b++) {
+                t[1]=f[b][1];
+                t[0]=f[b][0];
+                for(a=b-1; a>=d; a--) {
+                    if(f[a][sortby] <= t[sortby]) {
                         break;
                     }
-                    f[i+1][1]=f[i][1];
-                    f[i+1][0]=f[i][0];
+                    f[a+1][1]=f[a][1];
+                    f[a+1][0]=f[a][0];
                 }
-                f[i+1][1]=a[1];
-                f[i+1][0]=a[0];
+                f[a+1][1]=t[1];
+                f[a+1][0]=t[0];
             }
-            if(jstack < 0) {
+            if(index_offset < 0) {
                 break;
             }
-            ir=istack[jstack--];
-            l=istack[jstack--];
+            hold=index_list[index_offset--];
+            d=index_list[index_offset--];
         } else {
-            k=(l+ir) >> 1;
-            SWAP_POLYVERT(f[k],f[l+1])
-            if(f[l][sortby] > f[ir][sortby]) {
-                SWAP_POLYVERT(f[l],f[ir])
+            c=(d+hold) >> 1;
+            SWAP_POLYVERT(f[c],f[d+1])
+            if(f[d][sortby] > f[hold][sortby]) {
+                SWAP_POLYVERT(f[d],f[hold])
             }
-            if(f[l+1][sortby] > f[ir][sortby]) {
-                SWAP_POLYVERT(f[l+1],f[ir])
+            if(f[d+1][sortby] > f[hold][sortby]) {
+                SWAP_POLYVERT(f[d+1],f[hold])
             }
-            if(f[l][sortby] > f[l+1][sortby]) {
-                SWAP_POLYVERT(f[l],f[l+1])
+            if(f[d][sortby] > f[d+1][sortby]) {
+                SWAP_POLYVERT(f[d],f[d+1])
             }
-            i=l+1;
-            j=ir;
-            a[0]=f[l+1][0];
-            a[1]=f[l+1][1];
+            a=d+1;
+            b=hold;
+            t[0]=f[d+1][0];
+            t[1]=f[d+1][1];
             for(;;) {
-                do i++;
-                while(f[i][sortby] < a[sortby]);
-                do j--;
-                while(f[j][sortby] > a[sortby]);
-                if(j < i) {
+                do a++;
+                while(f[a][sortby] < t[sortby]);
+                do b--;
+                while(f[b][sortby] > t[sortby]);
+                if(b < a) {
                     break;
                 }
-                SWAP_POLYVERT(f[i],f[j])
+                SWAP_POLYVERT(f[a],f[b])
             }
-            f[l+1][0]=f[j][0];
-            f[l+1][1]=f[j][1];
-            f[j][0]=a[0];
-            f[j][1]=a[1];
-            jstack+=2;
-            if(jstack > __PLX_SMALL_COUNT__) {
+            f[d+1][0]=f[b][0];
+            f[d+1][1]=f[b][1];
+            f[b][0]=t[0];
+            f[b][1]=t[1];
+            index_offset+=2;
+            if(index_offset > __PLX_SMALL_COUNT__) {
                 return;
             }
-            if(ir-i+1 >= j-l) {
-                istack[jstack]=ir;
-                istack[jstack-1]=i;
-                ir=j-1;
+            if(hold-a+1 >= b-d) {
+                index_list[index_offset]=hold;
+                index_list[index_offset-1]=a;
+                hold=b-1;
             } else {
-                istack[jstack]=j-1;
-                istack[jstack-1]=l;
-                l=i;
+                index_list[index_offset]=b-1;
+                index_list[index_offset-1]=d;
+                d=a;
             }
         }
     }
@@ -1521,3 +1520,4 @@ int plx_find_upper_bound(float v, float(*a)[2], int num_feather_verts) {
         return num_feather_verts;
     }
 }
+

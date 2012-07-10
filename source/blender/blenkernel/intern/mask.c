@@ -2282,6 +2282,77 @@ void BKE_mask_rasterize_layers(ListBase *masklayers, int width, int height, floa
 	MEM_freeN(buffer_tmp);
 }
 
+#ifdef __PLX_RASKTER_MT__
+void BKE_mask_init_layers(Mask *mask, struct layer_init_data *mlayer_data, int width, int height, const short do_aspect_correct){
+	MaskLayer *masklay;
+	int numLayers=0;
+	int currLayer=0;
+	for (masklay = mask->masklayers->first; masklay; masklay = masklay->next) {
+		numLayers++;
+	}
+	mlayer_data = MEM_mallocN(sizeof(struct layer_init_data) * numLayers, __func__); //size correct?
+	
+	
+	for (masklay = mask->masklayers->first; masklay; masklay = masklay->next) {
+		MaskSpline *spline;
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			float (*diff_points)[2];
+			int tot_diff_point;
+
+			float (*diff_feather_points)[2];
+			int tot_diff_feather_points;
+
+			diff_points = BKE_mask_spline_differentiate_with_resolution(spline, width, height,
+			                                                            &tot_diff_point);
+
+			if (tot_diff_point) {
+				if (do_feather) {
+					diff_feather_points =
+					        BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height,
+					                                                                      &tot_diff_feather_points);
+				}
+				else {
+					tot_diff_feather_points = 0;
+					diff_feather_points = NULL;
+				}
+
+				if (do_aspect_correct) {
+					if (width != height) {
+						float *fp;
+						float *ffp;
+						int i;
+						float asp;
+
+						if (width < height) {
+							fp = &diff_points[0][0];
+							ffp = tot_diff_feather_points ? &diff_feather_points[0][0] : NULL;
+							asp = (float)width / (float)height;
+						}
+						else {
+							fp = &diff_points[0][1];
+							ffp = tot_diff_feather_points ? &diff_feather_points[0][1] : NULL;
+							asp = (float)height / (float)width;
+						}
+
+						for (i = 0; i < tot_diff_point; i++, fp += 2) {
+							(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
+						}
+
+						if (tot_diff_feather_points) {
+							for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
+								(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
+							}
+						}
+					}
+				}
+				PLX_init_base_data(mlayer_data[currLayer], diff_points, tot_diff_points, width, height);
+				currLayer++;
+			}
+		}
+	}
+}
+#endif
+
 void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
                         const short do_aspect_correct, const short do_mask_aa,
                         const short do_feather)

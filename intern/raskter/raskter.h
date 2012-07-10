@@ -80,11 +80,21 @@ struct r_fill_context {
     int bounds_length;
 };
 
+struct layer_init_data {
+	struct poly_vert *imask;
+	struct poly_vert *omask;
+	struct scan_line *bounds;
+	int *bound_indexes;
+	int bounds_length;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge);
+int PLX_init_base_data(struct layer_init_data *mlayer_data, float(*base_verts)[2], int num_base_verts, 
+							float *buf, int buf_x, int buf_y);
 int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
                    float *buf, int buf_x, int buf_y, int do_mask_AA);
 int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts,

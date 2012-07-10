@@ -30,7 +30,7 @@
 #include <stdlib.h>
 
 #include "raskter.h"
-static int rast_scan_init(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts) {
+static int rast_scan_init(struct layer_init_data *mlayer_data, struct r_fill_context *ctx, struct poly_vert *verts, int num_verts) {
     int x_curr;                 /* current pixel position in X */
     int y_curr;                 /* current scan line being drawn */
     int yp;                     /* y-pixel's position in frame buffer */
@@ -54,7 +54,7 @@ static int rast_scan_init(struct r_fill_context *ctx, struct poly_vert *verts, i
     }
 
     /* set initial bounds length to 0 */
-    ctx->bounds_length=0;
+    mlayer_data->bounds_length=0;
 
     /* round 1, count up all the possible spans in the base buffer */
     preprocess_all_edges(ctx, verts, num_verts, edgbuf);
@@ -96,7 +96,7 @@ static int rast_scan_init(struct r_fill_context *ctx, struct poly_vert *verts, i
             mpxl = spxl + MIN2(e_curr->x, ctx->rb.sizex) - 1;
 
             if((y_curr >= 0) && (y_curr < ctx->rb.sizey)) {
-                ctx->bounds_length++;
+                mlayer_data->bounds_length++;
             }
         }
 
@@ -152,16 +152,16 @@ static int rast_scan_init(struct r_fill_context *ctx, struct poly_vert *verts, i
 
 /*initialize index buffer and bounds buffers*/
     //gets the +1 for dummy at the end
-    if((ctx->bound_indexes = (int *)(malloc(sizeof(int) * ctx->rb.sizey+1)))==NULL) {
+    if((mlayer_data->bound_indexes = (int *)(malloc(sizeof(int) * ctx->rb.sizey+1)))==NULL) {
         return(0);
     }
     //gets the +1 for dummy at the start
-    if((ctx->bounds = (struct scan_line *)(malloc(sizeof(struct scan_line) * ctx->bounds_length+1)))==NULL){
+    if((mlayer_data->bounds = (struct scan_line *)(malloc(sizeof(struct scan_line) * mlayer_data->bounds_length+1)))==NULL){
         return(0);
     }
     //init all the indexes to zero (are they already zeroed from malloc???)
     for(i=0;i<ctx->rb.sizey+1;i++){
-        ctx->bound_indexes[i]=0;
+        mlayer_data->bound_indexes[i]=0;
     }
     /* round 2, fill in the full list of bounds, and create indexes to the list... */
     preprocess_all_edges(ctx, verts, num_verts, edgbuf);
@@ -207,8 +207,8 @@ static int rast_scan_init(struct r_fill_context *ctx, struct poly_vert *verts, i
             mpxl = spxl + MIN2(e_curr->x, ctx->rb.sizex) - 1;
 
             if((y_curr >= 0) && (y_curr < ctx->rb.sizey)) {
-                ctx->bounds[i].xstart=cpxl-spxl;
-                ctx->bounds[i].xend=mpxl-spxl;
+                mlayer_data->bounds[i].xstart=cpxl-spxl;
+                mlayer_data->bounds[i].xend=mpxl-spxl;
                 i++;
             }
         }
@@ -266,7 +266,7 @@ static int rast_scan_init(struct r_fill_context *ctx, struct poly_vert *verts, i
     return 1;
 }
 
-/* static */ int init_base_data(float(*base_verts)[2], int num_base_verts,
+/* static */ int PLX_init_base_data(struct layer_init_data *mlayer_data, float(*base_verts)[2], int num_base_verts,
                    float *buf, int buf_x, int buf_y) {
     int i;                                   /* i: Loop counter. */
     struct poly_vert *ply;                   /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
@@ -283,7 +283,7 @@ static int rast_scan_init(struct r_fill_context *ctx, struct poly_vert *verts, i
         ply[i].x = (int)((base_verts[i][0] * buf_x_f) + 0.5f);       /* Range expand normalized X to integer buffer-space X. */
         ply[i].y = (int)((base_verts[i][1] * buf_y_f) + 0.5f); /* Range expand normalized Y to integer buffer-space Y. */
     }
-    i = rast_scan_init(&ctx, ply, num_base_verts);  /* Call our rasterizer, passing in the integer coords for each vert. */
+    i = rast_scan_init(mlayer_data, &ctx, ply, num_base_verts);  /* Call our rasterizer, passing in the integer coords for each vert. */
     free(ply);                                      /* Free the memory allocated for the integer coordinate table. */
     return(i);                                      /* Return the value returned by the rasterizer. */
 }
