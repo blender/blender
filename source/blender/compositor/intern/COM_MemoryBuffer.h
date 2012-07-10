@@ -28,11 +28,11 @@ class MemoryBuffer;
 #include "COM_ExecutionGroup.h"
 #include "BLI_rect.h"
 #include "COM_MemoryProxy.h"
-#include "BLI_math.h"
 
-//extern "C" {
-//	#include "BLI_threads.h"
-//}
+extern "C" {
+	//#include "BLI_threads.h"
+	#include "BLI_math.h"
+}
 //#include <vector>
 
 /**
