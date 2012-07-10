@@ -31,6 +31,9 @@
 /** \file BLI_threads.h
  *  \ingroup bli
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <pthread.h>
 
@@ -138,6 +141,10 @@ int BLI_thread_queue_size(ThreadQueue *queue);
 
 void BLI_thread_queue_wait_finish(ThreadQueue *queue);
 void BLI_thread_queue_nowait(ThreadQueue *queue);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

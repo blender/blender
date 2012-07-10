@@ -54,6 +54,8 @@ void BLF_lang_init(void);
 
 /* Set the current locale. */
 void BLF_lang_set(const char *);
+/* Get the current locale (short code, e.g. es_ES). */
+const char *BLF_lang_get(void);
 
 /* Set the current encoding name. */
 void BLF_lang_encoding(const char *str);

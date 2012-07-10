@@ -105,7 +105,7 @@ __attribute__((nonnull))
  * Assume that the strings returned must be freed afterwards, and that the inputs will contain
  * data we want...
  */
-char *BLI_getQuotedStr(const char *str, const char *prefix)
+char *BLI_str_quoted_substrN(const char *str, const char *prefix)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
 __attribute__((nonnull))

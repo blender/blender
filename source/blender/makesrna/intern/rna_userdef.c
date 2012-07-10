@@ -2976,6 +2976,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	static EnumPropertyItem language_items[] = {
 		{ 0, "", 0, N_("Nearly done"), ""},
 		{ 0, "DEFAULT", 0, "Default (Default)", ""},
+		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
 		{ 1, "ENGLISH", 0, "English (English)", "en_US"},
 		{ 8, "FRENCH", 0, "French (Français)", "fr_FR"},
 		{ 4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
@@ -2987,7 +2988,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
 		{ 0, "", 0, N_("In progress"), ""},
 		/* using the utf8 flipped form of Arabic (العربية) */
-		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
 		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
 		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
 		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
@@ -3509,6 +3509,12 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	                         "Alternate script path, matching the default layout with subdirs: "
 	                         "startup, addons & modules (requires restart)");
 	/* TODO, editing should reset sys.path! */
+
+	prop = RNA_def_property(srna, "i18n_branches_directory", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "i18ndir");
+	RNA_def_property_ui_text(prop, "Translation Branches Directory",
+	                         "The path to the '/branches' directory of your local svn-translation copy, "
+	                         "to allow translating from the UI");
 
 	prop = RNA_def_property(srna, "sound_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "sounddir");

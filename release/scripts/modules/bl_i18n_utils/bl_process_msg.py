@@ -434,10 +434,7 @@ def dump_messages(do_messages, do_checks):
         # we could filter out different strings here
         return False
 
-    if hasattr(collections, 'OrderedDict'):
-        messages = collections.OrderedDict()
-    else:
-        messages = {}
+    messages = getattr(collections, 'OrderedDict', dict)()
 
     messages[(CONTEXT_DEFAULT, "")] = []
 

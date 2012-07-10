@@ -168,8 +168,10 @@ escape_finish:
  *
  * Assume that the strings returned must be freed afterwards, and that the inputs will contain 
  * data we want...
+ *
+ * TODO, return the offset and a length so as to avoid doing an allocation.
  */
-char *BLI_getQuotedStr(const char *str, const char *prefix)
+char *BLI_str_quoted_substrN(const char *str, const char *prefix)
 {
 	size_t prefixLen = strlen(prefix);
 	char *startMatch, *endMatch;

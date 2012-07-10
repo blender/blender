@@ -880,7 +880,7 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 			char *bone_name;
 			
 			/* get bone-name, and check if this bone is selected */
-			bone_name = BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
+			bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
 			pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 			if (bone_name) MEM_freeN(bone_name);
 			
@@ -916,7 +916,7 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 			char *seq_name;
 			
 			/* get strip name, and check if this strip is selected */
-			seq_name = BLI_getQuotedStr(fcu->rna_path, "sequences_all[");
+			seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
 			seq = get_seq_by_name(ed->seqbasep, seq_name, FALSE);
 			if (seq_name) MEM_freeN(seq_name);
 			
@@ -936,7 +936,7 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 			char *node_name;
 			
 			/* get strip name, and check if this strip is selected */
-			node_name = BLI_getQuotedStr(fcu->rna_path, "nodes[");
+			node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes[");
 			node = nodeFindNodebyName(ntree, node_name);
 			if (node_name) MEM_freeN(node_name);
 			

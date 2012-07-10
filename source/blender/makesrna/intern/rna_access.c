@@ -527,6 +527,11 @@ const char *RNA_struct_ui_description(StructRNA *type)
 	return TIP_(type->description);
 }
 
+const char *RNA_struct_translation_context(StructRNA *type)
+{
+	return type->translation_context ? type->translation_context : BLF_I18NCONTEXT_DEFAULT;
+}
+
 PropertyRNA *RNA_struct_name_property(StructRNA *type)
 {
 	return type->nameproperty;
@@ -1361,6 +1366,12 @@ const char *RNA_property_ui_name(PropertyRNA *prop)
 const char *RNA_property_ui_description(PropertyRNA *prop)
 {
 	return rna_ensure_property_description(prop);
+}
+
+const char *RNA_property_translation_context(PropertyRNA *_prop)
+{
+	PropertyRNA *prop = rna_ensure_property(_prop);
+	return prop->translation_context ? prop->translation_context : BLF_I18NCONTEXT_DEFAULT;
 }
 
 int RNA_property_ui_icon(PropertyRNA *prop)

@@ -515,6 +515,34 @@ struct PointerRNA *uiButGetOperatorPtrRNA(uiBut *but);
 void uiButSetUnitType(uiBut *but, const int unit_type);
 int uiButGetUnitType(uiBut *but);
 
+enum {
+	BUT_GET_RNAPROP_IDENTIFIER = 1,
+	BUT_GET_RNASTRUCT_IDENTIFIER,
+	BUT_GET_RNAENUM_IDENTIFIER,
+	BUT_GET_LABEL,
+	BUT_GET_RNA_LABEL,
+	BUT_GET_RNAENUM_LABEL,
+	BUT_GET_RNA_LABEL_CONTEXT, /* Context specified in CTX_XXX_ macros are just unreachable! */
+	BUT_GET_TIP,
+	BUT_GET_RNA_TIP,
+	BUT_GET_RNAENUM_TIP,
+	BUT_GET_OP_KEYMAP,
+};
+
+typedef struct uiStringInfo {
+	int type;
+	char *strinfo;
+} uiStringInfo; 
+
+/* Note: Expects pointers to uiStringInfo structs as parameters.
+ *       Will fill them with translated strings, when possible.
+ *       Strings in uiStringInfo must be MEM_freeN'ed by caller. */
+void uiButGetStrInfo(struct bContext *C, uiBut *but, const int nbr, ...);
+
+/* Edit i18n stuff. */
+/* Name of the main py op from i18n addon. */
+#define EDTSRC_I18N_OP_NAME "UI_OT_edittranslation"
+
 /* Special Buttons
  *
  * Buttons with a more specific purpose:

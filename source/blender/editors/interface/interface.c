@@ -3691,6 +3691,134 @@ void uiButSetFocusOnEnter(wmWindow *win, uiBut *but)
 	wm_event_add(win, &event);
 }
 
+void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
+{
+	va_list args;
+
+	EnumPropertyItem *items = NULL, *item = NULL;
+	int totitems, free_items = FALSE;
+
+	va_start(args, nbr);
+	while (nbr--) {
+		uiStringInfo *si = (uiStringInfo*) va_arg(args, void*);
+		int type = si->type;
+		char *tmp = NULL;
+
+		if (type == BUT_GET_LABEL) {
+			if (but->str) {
+				/* Menu labels can have some complex formating stuff marked by pipes, we don't want those here! */
+				char *tc = strchr(but->str, '|');
+				if (tc)
+					tmp = BLI_strdupn(but->str, tc - but->str);
+				else
+					tmp = BLI_strdup(but->str);
+			}
+			else
+				type = BUT_GET_RNA_LABEL; /* Fail-safe solution... */
+		}
+		else if (type == BUT_GET_TIP) {
+			if (but->tip && but->tip[0])
+				tmp = BLI_strdup(but->tip);
+			else
+				type = BUT_GET_RNA_TIP; /* Fail-safe solution... */
+		}
+		if (type == BUT_GET_RNAPROP_IDENTIFIER) {
+			if (but->rnaprop)
+				tmp = BLI_strdup(RNA_property_identifier(but->rnaprop));
+		}
+		else if (type == BUT_GET_RNASTRUCT_IDENTIFIER) {
+			if (but->rnaprop)
+				tmp = BLI_strdup(RNA_struct_identifier(but->rnapoin.type));
+			else if (but->optype)
+				tmp = BLI_strdup(but->optype->idname);
+			else if (ELEM(but->type, MENU, PULLDOWN)) {
+				MenuType *mt = uiButGetMenuType(but);
+				if (mt)
+					tmp = BLI_strdup(mt->idname);
+			}
+		}
+		else if (ELEM(type, BUT_GET_RNA_LABEL, BUT_GET_RNA_TIP)) {
+			if (but->rnaprop) {
+				if (type == BUT_GET_RNA_LABEL)
+					tmp = BLI_strdup(RNA_property_ui_name(but->rnaprop));
+				else {
+					const char *t = RNA_property_ui_description(but->rnaprop);
+					if (t && t[0])
+						tmp = BLI_strdup(t);
+				}
+			}
+			else if (but->optype) {
+				if (type == BUT_GET_RNA_LABEL)
+					tmp = BLI_strdup(RNA_struct_ui_name(but->optype->srna));
+				else {
+					const char *t = RNA_struct_ui_description(but->optype->srna);
+					if (t && t[0])
+						tmp = BLI_strdup(t);
+				}
+			}
+			else if (ELEM(but->type, MENU, PULLDOWN)) {
+				MenuType *mt = uiButGetMenuType(but);
+				if (mt) {
+					if (type == BUT_GET_RNA_LABEL)
+						tmp = BLI_strdup(RNA_struct_ui_name(mt->ext.srna));
+					else {
+						const char *t = RNA_struct_ui_description(mt->ext.srna);
+						if (t && t[0])
+							tmp = BLI_strdup(t);
+					}
+				}
+			}
+		}
+		else if (type == BUT_GET_RNA_LABEL_CONTEXT) {
+			if (but->rnaprop)
+				tmp = BLI_strdup(RNA_property_translation_context(but->rnaprop));
+			else if (but->optype)
+				tmp = BLI_strdup(RNA_struct_translation_context(but->optype->srna));
+			else if (ELEM(but->type, MENU, PULLDOWN)) {
+				MenuType *mt = uiButGetMenuType(but);
+				if (mt)
+					tmp = BLI_strdup(RNA_struct_translation_context(mt->ext.srna));
+			}
+		}
+		else if (ELEM3(type, BUT_GET_RNAENUM_IDENTIFIER, BUT_GET_RNAENUM_LABEL, BUT_GET_RNAENUM_TIP)) {
+			if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
+				if (!item) {
+					int i;
+					int value = (but->type == ROW) ? (int)but->hardmax : (int)ui_get_but_val(but);
+					RNA_property_enum_items_gettexted(C, &but->rnapoin, but->rnaprop, &items, &totitems, &free_items);
+
+					for (i = 0, item = items; i < totitems; i++, item++) {
+						if (item->identifier[0] && item->value == value)
+							break;
+					}
+				}
+				if (type == BUT_GET_RNAENUM_IDENTIFIER)
+					tmp = BLI_strdup(item->identifier);
+				else if (type == BUT_GET_RNAENUM_LABEL)
+					tmp = BLI_strdup(item->name);
+				else if (item->description && item->description[0])
+					tmp = BLI_strdup(item->description);
+			}
+		}
+		else if (type == BUT_GET_OP_KEYMAP) {
+			if (but->optype && !(but->block->flag & UI_BLOCK_LOOP)) {
+				/* operator keymap (not menus, they already have it) */
+				IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
+				char buf[512];
+
+				if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
+				                                 buf, sizeof(buf)))
+					tmp = BLI_strdup(buf);
+			}
+		}
+
+		si->strinfo = tmp;
+	}
+
+	if (free_items && items)
+		MEM_freeN(items);
+}
+
 /* Program Init/Exit */
 
 void UI_init(void)

@@ -104,8 +104,8 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			 */
 			if (strstr(fcu->rna_path, "bones") && strstr(fcu->rna_path, "constraints")) {
 				/* perform string 'chopping' to get "Bone Name : Constraint Name" */
-				char *pchanName = BLI_getQuotedStr(fcu->rna_path, "bones[");
-				char *constName = BLI_getQuotedStr(fcu->rna_path, "constraints[");
+				char *pchanName = BLI_str_quoted_substrN(fcu->rna_path, "bones[");
+				char *constName = BLI_str_quoted_substrN(fcu->rna_path, "constraints[");
 				
 				/* assemble the string to display in the UI... */
 				structname = BLI_sprintfN("%s : %s", pchanName, constName);

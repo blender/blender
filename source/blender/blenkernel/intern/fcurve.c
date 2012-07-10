@@ -285,12 +285,12 @@ int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix,
 	for (fcu = src->first; fcu; fcu = fcu->next) {
 		/* check if quoted string matches the path */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, dataPrefix)) {
-			char *quotedName = BLI_getQuotedStr(fcu->rna_path, dataPrefix);
+			char *quotedName = BLI_str_quoted_substrN(fcu->rna_path, dataPrefix);
 			
 			if (quotedName) {
 				/* check if the quoted name matches the required name */
 				if (strcmp(quotedName, dataName) == 0) {
-					LinkData *ld = MEM_callocN(sizeof(LinkData), "list_find_data_fcurves");
+					LinkData *ld = MEM_callocN(sizeof(LinkData), __func__);
 					
 					ld->data = fcu;
 					BLI_addtail(dst, ld);

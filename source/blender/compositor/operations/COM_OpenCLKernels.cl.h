@@ -55,7 +55,7 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/// This file contains all ope
 "\n" \
 "//KERNEL --- DEFOCUS /VARIABLESIZEBOKEHBLUR ---\n" \
 "__kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2d_t bokehImage,\n" \
-"					 __read_only image2d_t inputDepth,  __read_only image2d_t inputSize,\n" \
+"					__read_only image2d_t inputSize,\n" \
 "					__write_only image2d_t output, int2 offsetInput, int2 offsetOutput,\n" \
 "					int step, int maxBlur, float threshold, int2 dimension, int2 offset)\n" \
 "{\n" \
@@ -67,7 +67,6 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/// This file contains all ope
 "	float4 readColor;\n" \
 "	float4 bokeh;\n" \
 "	float tempSize;\n" \
-"	float tempDepth;\n" \
 "	float4 multiplier_accum = {1.0f, 1.0f, 1.0f, 1.0f};\n" \
 "	float4 color_accum;\n" \
 "\n" \
@@ -79,7 +78,6 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/// This file contains all ope
 "	{\n" \
 "		int2 inputCoordinate = realCoordinate - offsetInput;\n" \
 "		float size = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
-"		float depth = read_imagef(inputDepth, SAMPLER_NEAREST, inputCoordinate).s0 + threshold;\n" \
 "		color_accum = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);\n" \
 "\n" \
 "		for (int ny = miny; ny < maxy; ny += step) {\n" \
@@ -87,21 +85,17 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/// This file contains all ope
 "				if (nx >= 0 && nx < dimension.s0 && ny >= 0 && ny < dimension.s1) {\n" \
 "					inputCoordinate.s0 = nx - offsetInput.s0;\n" \
 "					inputCoordinate.s1 = ny - offsetInput.s1;\n" \
-"					tempDepth = read_imagef(inputDepth, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
-"					if (tempDepth < depth) {\n" \
-"						tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
-"\n" \
-"						if ((size > threshold && tempSize > threshold) || tempSize <= threshold) {\n" \
-"							float dx = nx - realCoordinate.s0;\n" \
-"							float dy = ny - realCoordinate.s1;\n" \
-"							if (dx != 0 || dy != 0) {\n" \
-"								if (tempSize >= fabs(dx) && tempSize >= fabs(dy)) {\n" \
-"									float2 uv = { 256.0f + dx * 256.0f / tempSize, 256.0f + dy * 256.0f / tempSize};\n" \
-"									bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);\n" \
-"									readColor = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);\n" \
-"									color_accum += bokeh*readColor;\n" \
-"									multiplier_accum += bokeh;\n" \
-"								}\n" \
+"					tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
+"					if (size > threshold && tempSize > threshold) {\n" \
+"						float dx = nx - realCoordinate.s0;\n" \
+"						float dy = ny - realCoordinate.s1;\n" \
+"						if (dx != 0 || dy != 0) {\n" \
+"							if (tempSize >= fabs(dx) && tempSize >= fabs(dy)) {\n" \
+"								float2 uv = { 256.0f + dx * 256.0f / tempSize, 256.0f + dy * 256.0f / tempSize};\n" \
+"								bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);\n" \
+"								readColor = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);\n" \
+"								color_accum += bokeh*readColor;\n" \
+"								multiplier_accum += bokeh;\n" \
 "							}\n" \
 "						}\n" \
 "					}\n" \

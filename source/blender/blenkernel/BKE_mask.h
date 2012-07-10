@@ -184,6 +184,12 @@ void BKE_mask_rasterize(struct Mask *mask, int width, int height, float *buffer,
                         const short do_aspect_correct, const short do_mask_aa,
                         const short do_feather);
 
+/* initialization for tiling */
+#ifdef __PLX_RASKTER_MT__
+void BKE_mask_init_layers(Mask *mask, struct layer_init_data *mlayer_data, int width, int height,
+							 const short do_aspect_correct);
+#endif
+
 #define MASKPOINT_ISSEL_ANY(p)          ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT)
 #define MASKPOINT_ISSEL_KNOT(p)         ( (p)->bezt.f2 & SELECT)
 #define MASKPOINT_ISSEL_HANDLE_ONLY(p)  ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) && (((p)->bezt.f2 & SELECT) == 0) )

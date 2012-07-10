@@ -196,7 +196,15 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 	}
 	else {
 		/* old shading system, assign image to selected faces */
-		
+		float prev_aspect[2], fprev_aspect;
+		float aspect[2], faspect;
+
+		ED_image_uv_aspect(previma, prev_aspect, prev_aspect + 1);
+		ED_image_uv_aspect(ima, aspect, aspect + 1);
+
+		fprev_aspect = prev_aspect[0]/prev_aspect[1];
+		faspect = aspect[0]/aspect[1];
+
 		/* ensure we have a uv map */
 		if (!CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
 			BM_data_layer_add(em->bm, &em->bm->pdata, CD_MTEXPOLY);
@@ -214,6 +222,19 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 					
 					if (ima->id.us == 0) id_us_plus(&ima->id);
 					else id_lib_extern(&ima->id);
+
+					/* we also need to correct the aspect of uvs */
+					if(tf->unwrap & TF_CORRECT_ASPECT) {
+						BMIter liter;
+						BMLoop *l;
+
+						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+							MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+
+							luv->uv[0] *= fprev_aspect;
+							luv->uv[0] /= faspect;
+						}
+					}
 				}
 				else {
 					tf->tpage = NULL;

@@ -787,6 +787,7 @@ class USERPREF_PT_file(Panel):
         sub.label(text="Scripts:")
         sub.label(text="Sounds:")
         sub.label(text="Temp:")
+        sub.label(text="I18n Branches:")
         sub.label(text="Image Editor:")
         sub.label(text="Animation Player:")
 
@@ -797,6 +798,7 @@ class USERPREF_PT_file(Panel):
         sub.prop(paths, "script_directory", text="")
         sub.prop(paths, "sound_directory", text="")
         sub.prop(paths, "temporary_directory", text="")
+        sub.prop(paths, "i18n_branches_directory", text="")
         sub.prop(paths, "image_editor", text="")
         subsplit = sub.split(percentage=0.3)
         subsplit.prop(paths, "animation_player_preset", text="")

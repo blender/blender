@@ -644,6 +644,7 @@ StructRNA *RNA_struct_find(const char *identifier);
 const char *RNA_struct_identifier(StructRNA *type);
 const char *RNA_struct_ui_name(StructRNA *type);
 const char *RNA_struct_ui_description(StructRNA *type);
+const char *RNA_struct_translation_context(StructRNA *type);
 int RNA_struct_ui_icon(StructRNA *type);
 
 PropertyRNA *RNA_struct_name_property(StructRNA *type);
@@ -709,6 +710,7 @@ int RNA_property_string_maxlength(PropertyRNA *prop);
 
 const char *RNA_property_ui_name(PropertyRNA *prop);
 const char *RNA_property_ui_description(PropertyRNA *prop);
+const char *RNA_property_translation_context(PropertyRNA *prop);
 int RNA_property_ui_icon(PropertyRNA *prop);
 
 /* Dynamic Property Information */
