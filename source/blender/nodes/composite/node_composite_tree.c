@@ -61,7 +61,7 @@
 #include "node_composite_util.h"
 
 #ifdef WITH_COMPOSITOR
-#  include "COM_compositor.h"
+	#include "COM_compositor.h"
 #endif
 
 static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)

@@ -1157,6 +1157,9 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		BLI_remlink(&wgroup->nodes, node);
 		BLI_addtail(&ntree->nodes, node);
 		
+		/* ensure unique node name in the nodee tree */
+		nodeUniqueName(ntree, node);
+		
 		node->locx += gnode->locx;
 		node->locy += gnode->locy;
 		
@@ -1369,6 +1372,9 @@ static int node_group_separate_selected(bNodeTree *ntree, bNode *gnode, int make
 		/* migrate node */
 		BLI_remlink(&ngroup->nodes, newnode);
 		BLI_addtail(&ntree->nodes, newnode);
+		
+		/* ensure unique node name in the node tree */
+		nodeUniqueName(ntree, newnode);
 		
 		newnode->locx += gnode->locx;
 		newnode->locy += gnode->locy;
@@ -3710,11 +3716,14 @@ static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
 			BLI_remlink(&ntree->nodes, node);
 			BLI_addtail(&ngroup->nodes, node);
 			
+			/* ensure unique node name in the ngroup */
+			nodeUniqueName(ngroup, node);
+			
 			node->locx -= 0.5f * (min[0] + max[0]);
 			node->locy -= 0.5f * (min[1] + max[1]);
 		}
 	}
-
+	
 	/* move animation data over */
 	if (ntree->adt) {
 		LinkData *ld, *ldn = NULL;
