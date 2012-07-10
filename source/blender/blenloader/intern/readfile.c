@@ -7840,7 +7840,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_dilateerode_264);
 	}
 
-	{
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 14)) {
 		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
 
 		if (ntreetype && ntreetype->foreach_nodetree)
