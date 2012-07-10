@@ -652,6 +652,7 @@ typedef struct NodeKeyingScreenData {
 typedef struct NodeKeyingData {
 	float screen_balance;
 	float despill_factor;
+	float despill_balance;
 	int edge_kernel_radius;
 	float edge_kernel_tolerance;
 	float clip_black, clip_white;

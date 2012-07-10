@@ -3590,7 +3590,13 @@ static void def_cmp_keying(StructRNA *srna)
 	prop = RNA_def_property(srna, "despill_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "despill_factor");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Despill", "Factor of despilling screen color from image");
+	RNA_def_property_ui_text(prop, "Despill Factor", "Factor of despilling screen color from image");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "despill_balance", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "despill_balance");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Despill Balance", "Balance between non-key colors used to detect amount of key color to be removed");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "clip_black", PROP_FLOAT, PROP_FACTOR);

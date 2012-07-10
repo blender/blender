@@ -2516,6 +2516,7 @@ static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), Poi
 	uiItemR(layout, ptr, "blur_pre", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "screen_balance", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "despill_factor", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "despill_balance", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "edge_kernel_radius", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "edge_kernel_tolerance", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "clip_black", 0, NULL, ICON_NONE);

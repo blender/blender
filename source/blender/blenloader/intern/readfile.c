@@ -7011,6 +7011,21 @@ static void do_version_ntree_dilateerode_264(void *UNUSED(data), ID *UNUSED(id),
 	}
 }
 
+static void do_version_ntree_keying_despill_balance(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_KEYING) {
+			NodeKeyingData *data = node->storage;
+
+			if (data->despill_balance == 0.0f) {
+				data->despill_balance = 0.5f;
+			}
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7823,6 +7838,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		if (ntreetype && ntreetype->foreach_nodetree)
 			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_dilateerode_264);
+	}
+
+	{
+		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
+
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_keying_despill_balance);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
