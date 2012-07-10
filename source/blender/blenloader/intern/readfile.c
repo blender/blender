@@ -1389,7 +1389,7 @@ void blo_make_mask_pointer_map(FileData *fd, Main *oldmain)
 
 	fd->maskmap = oldnewmap_new();
 
-	for (mask = oldmain->movieclip.first; mask; mask = mask->id.next) {
+	for (mask = oldmain->mask.first; mask; mask = mask->id.next) {
 		if (mask->raster_cache)
 			oldnewmap_insert(fd->maskmap, mask->raster_cache, mask->raster_cache, 0);
 	}
@@ -1399,12 +1399,12 @@ void blo_make_mask_pointer_map(FileData *fd, Main *oldmain)
 /* this works because freeing old main only happens after this call */
 void blo_end_mask_pointer_map(FileData *fd, Main *oldmain)
 {
-	OldNew *entry = fd->movieclipmap->entries;
+	OldNew *entry = fd->maskmap->entries;
 	Mask *mask;
 	int i;
 
 	/* used entries were restored, so we put them to zero */
-	for (i = 0; i < fd->movieclipmap->nentries; i++, entry++) {
+	for (i = 0; i < fd->maskmap->nentries; i++, entry++) {
 		if (entry->nr > 0)
 			entry->newp = NULL;
 	}
