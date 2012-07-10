@@ -152,8 +152,9 @@ static void check_unused_keys(MovieCache *cache)
 
 		remove = !item->ibuf;
 
-		if (remove)
+		if (remove) {
 			PRINT("%s: cache '%s' remove item %p without buffer\n", __func__, cache->name, item);
+		}
 
 		if (remove)
 			BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
