@@ -71,6 +71,7 @@ static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode* node, bNo
 	data = MEM_callocN(sizeof(NodeKeyingData), "node keying data");
 
 	data->screen_balance = 0.5f;
+	data->despill_balance = 0.5f;
 	data->despill_factor = 1.0f;
 	data->edge_kernel_radius = 3;
 	data->edge_kernel_tolerance = 0.1f;
