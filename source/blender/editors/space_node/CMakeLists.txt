@@ -31,6 +31,7 @@ set(INC
 	../../nodes
 	../../render/extern/include
 	../../windowmanager
+	../../compositor
 	../../../../intern/guardedalloc
 	../../../../intern/opennl/extern
 )

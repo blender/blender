@@ -299,6 +299,19 @@ extern "C" {
  */
 void COM_execute(RenderData* rd, bNodeTree *editingtree, int rendering);
 
+/**
+ * @brief Return a list of highlighted bnodes pointers.
+ * @return 
+ */
+void COM_startReadHighlights();
+
+/**
+ * @brief check if a bnode is highlighted
+ * @param bnode
+ * @return 
+ */
+int COM_isHighlightedbNode(bNode* bnode);
+
 #ifdef __cplusplus
 }
 #endif

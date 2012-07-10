@@ -80,6 +80,7 @@
 #include "intern/node_util.h"
 
 #include "node_intern.h"
+#include "COM_compositor.h"
 
 /* width of socket columns in group display */
 #define NODE_GROUP_FRAME  120
@@ -726,9 +727,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 
 	if (ntree->type == NTREE_COMPOSIT && (snode->flag & SNODE_SHOW_HIGHLIGHT)) {
-		if (node->highlight) {
+		if (COM_isHighlightedbNode(node)) {
 			UI_ThemeColorBlend(color_id, TH_ACTIVE, 0.5f);
-			node->highlight = 0;
 		}
 	}
 	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
@@ -893,9 +893,8 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 
 	if (ntree->type == NTREE_COMPOSIT && (snode->flag & SNODE_SHOW_HIGHLIGHT)) {
-		if (node->highlight) {
+		if (COM_isHighlightedbNode(node)) {
 			UI_ThemeColorBlend(color_id, TH_ACTIVE, 0.5f);
-			node->highlight = 0;
 		}
 	}
 	
@@ -1133,6 +1132,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	
 	if (snode->nodetree) {
 		bNode *node;
+		void** highlights = 0;
 		
 		node_uiblocks_init(C, snode->nodetree);
 		
@@ -1145,6 +1145,9 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 		}
 		
 		node_update_nodetree(C, snode->nodetree, 0.0f, 0.0f);
+		if (snode->nodetree->type == NTREE_COMPOSIT) {
+			COM_startReadHighlights();
+		} 
 		node_draw_nodetree(C, ar, snode, snode->nodetree);
 		
 		#if 0
