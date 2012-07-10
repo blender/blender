@@ -48,7 +48,16 @@ void MovieClipOperation::initExecution()
 	if (this->m_movieClip) {
 		BKE_movieclip_user_set_frame(this->m_movieClipUser, this->m_framenumber);
 		ImBuf *ibuf;
-		ibuf = BKE_movieclip_get_ibuf(this->m_movieClip, this->m_movieClipUser);
+
+		if (this->m_cacheFrame) {
+			ibuf = BKE_movieclip_get_ibuf(this->m_movieClip, this->m_movieClipUser);
+		}
+		else {
+			int flag = this->m_movieClip->flag & MCLIP_TIMECODE_FLAGS;
+
+			ibuf = BKE_movieclip_get_ibuf_flag(this->m_movieClip, this->m_movieClipUser, flag, MOVIECLIP_CACHE_SKIP);
+		}
+
 		if (ibuf) {
 			this->m_movieClipBuffer = ibuf;
 			if (ibuf->rect_float == NULL || ibuf->userflags & IB_RECT_INVALID) {

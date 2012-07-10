@@ -43,6 +43,7 @@ protected:
 	int m_movieClipheight;
 	int m_movieClipwidth;
 	int m_framenumber;
+	bool m_cacheFrame;
 	
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -56,6 +57,7 @@ public:
 	void deinitExecution();
 	void setMovieClip(MovieClip *image) { this->m_movieClip = image; }
 	void setMovieClipUser(MovieClipUser *imageuser) { this->m_movieClipUser = imageuser; }
+	void setCacheFrame(bool value) { this->m_cacheFrame = value; }
 
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
