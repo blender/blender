@@ -47,10 +47,8 @@ BokehBlurOperation::BokehBlurOperation() : NodeOperation()
 
 void *BokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	//void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
 	lockMutex();
 	if (!this->m_sizeavailable) {
-		//updateGauss(memoryBuffers);
 		updateSize(memoryBuffers);
 	}
 	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
@@ -197,7 +195,9 @@ void BokehBlurOperation::executeOpenCL(OpenCLDevice* device,
                                        list<cl_kernel> *clKernelsToCleanUp) 
 {
 	cl_kernel kernel = device->COM_clCreateKernel("bokehBlurKernel", NULL);
-
+	if (!this->m_sizeavailable) {
+		updateSize(inputMemoryBuffers);
+	}
 	cl_int radius = this->getWidth() * this->m_size / 100.0f;
 	cl_int step = this->getStep();
 	
