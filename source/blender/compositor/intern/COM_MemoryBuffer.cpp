@@ -22,8 +22,7 @@
 
 #include "COM_MemoryBuffer.h"
 #include "MEM_guardedalloc.h"
-#include "BLI_math.h"
-#include "BKE_global.h"
+//#include "BKE_global.h"
 
 unsigned int MemoryBuffer::determineBufferSize()
 {
@@ -117,20 +116,6 @@ void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer)
 	}
 }
 
-void MemoryBuffer::read(float result[4], int x, int y)
-{
-	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
-	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
-	{
-		const int dx = x - this->m_rect.xmin;
-		const int dy = y - this->m_rect.ymin;
-		const int offset = (this->m_chunkWidth * dy + dx) * COM_NUMBER_OF_CHANNELS;
-		copy_v4_v4(result, &this->m_buffer[offset]);
-	}
-	else {
-		zero_v4(result);
-	}
-}
 void MemoryBuffer::writePixel(int x, int y, const float color[4])
 {
 	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
@@ -149,44 +134,6 @@ void MemoryBuffer::addPixel(int x, int y, const float color[4])
 		const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
 		add_v4_v4(&this->m_buffer[offset], color);
 	}
-}
-
-void MemoryBuffer::readCubic(float result[4], float x, float y)
-{
-	int x1 = floor(x);
-	int x2 = x1 + 1;
-	int y1 = floor(y);
-	int y2 = y1 + 1;
-	
-	float valuex = x - x1;
-	float valuey = y - y1;
-	float mvaluex = 1.0f - valuex;
-	float mvaluey = 1.0f - valuey;
-	
-	float color1[4];
-	float color2[4];
-	float color3[4];
-	float color4[4];
-	
-	read(color1, x1, y1);
-	read(color2, x1, y2);
-	read(color3, x2, y1);
-	read(color4, x2, y2);
-	
-	color1[0] = color1[0] * mvaluey + color2[0] * valuey;
-	color1[1] = color1[1] * mvaluey + color2[1] * valuey;
-	color1[2] = color1[2] * mvaluey + color2[2] * valuey;
-	color1[3] = color1[3] * mvaluey + color2[3] * valuey;
-
-	color3[0] = color3[0] * mvaluey + color4[0] * valuey;
-	color3[1] = color3[1] * mvaluey + color4[1] * valuey;
-	color3[2] = color3[2] * mvaluey + color4[2] * valuey;
-	color3[3] = color3[3] * mvaluey + color4[3] * valuey;
-
-	result[0] = color1[0] * mvaluex + color3[0] * valuex;
-	result[1] = color1[1] * mvaluex + color3[1] * valuex;
-	result[2] = color1[2] * mvaluex + color3[2] * valuex;
-	result[3] = color1[3] * mvaluex + color3[3] * valuex;
 }
 
 
