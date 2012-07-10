@@ -340,6 +340,10 @@ typedef struct MovieClipImBufCacheKey {
 	short render_flag;
 } MovieClipImBufCacheKey;
 
+typedef struct MovieClipCachePriorityData {
+	int framenr;
+} MovieClipCachePriorityData;
+
 static void moviecache_keydata(void *userkey, int *framenr, int *proxy, int *render_flags)
 {
 	MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey *)userkey;
@@ -380,6 +384,32 @@ static int moviecache_hashcmp(const void *av, const void *bv)
 	return 0;
 }
 
+void *moviecache_getprioritydata(void *key_v)
+{
+	MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey *) key_v;
+	MovieClipCachePriorityData *priority_data;
+
+	priority_data = MEM_callocN(sizeof(priority_data), "movie cache clip priority data");
+	priority_data->framenr = key->framenr;
+
+	return priority_data;
+}
+
+int moviecache_getitempriority(void *last_userkey_v, void *priority_data_v)
+{
+	MovieClipImBufCacheKey *last_userkey = (MovieClipImBufCacheKey *) last_userkey_v;
+	MovieClipCachePriorityData *priority_data = (MovieClipCachePriorityData *) priority_data_v;
+
+	return -abs(last_userkey->framenr - priority_data->framenr);
+}
+
+void moviecache_prioritydeleter(void *priority_data_v)
+{
+	MovieClipCachePriorityData *priority_data = (MovieClipCachePriorityData *) priority_data_v;
+
+	MEM_freeN(priority_data);
+}
+
 static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 {
 	if (clip->cache) {
@@ -407,10 +437,20 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 	MovieClipImBufCacheKey key;
 
 	if (!clip->cache) {
+		struct MovieCache *moviecache;
+
+		// char cache_name[64];
+		// BLI_snprintf(cache_name, sizeof(cache_name), "movie %s", clip->id.name);
+
 		clip->cache = MEM_callocN(sizeof(MovieClipCache), "movieClipCache");
 
-		clip->cache->moviecache = IMB_moviecache_create(sizeof(MovieClipImBufCacheKey), moviecache_hashhash,
-		                                                moviecache_hashcmp, moviecache_keydata);
+		moviecache = IMB_moviecache_create("movieclip", sizeof(MovieClipImBufCacheKey), moviecache_hashhash, moviecache_hashcmp);
+
+		IMB_moviecache_set_getdata_callback(moviecache, moviecache_keydata);
+		IMB_moviecache_set_priority_callback(moviecache, moviecache_getprioritydata, moviecache_getitempriority,
+		                                     moviecache_prioritydeleter);
+
+		clip->cache->moviecache = moviecache;
 	}
 
 	key.framenr = user->framenr;

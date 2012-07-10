@@ -44,10 +44,19 @@ struct MovieCache;
 
 typedef void (*MovieCacheGetKeyDataFP) (void *userkey, int *framenr, int *proxy, int *render_flags);
 
+typedef void  *(*MovieCacheGetPriorityDataFP) (void *userkey);
+typedef int    (*MovieCacheGetItemPriorityFP) (void *last_userkey, void *priority_data);
+typedef void   (*MovieCachePriorityDeleterFP) (void *priority_data);
+
 void IMB_moviecache_init(void);
 void IMB_moviecache_destruct(void);
 
-struct MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp, MovieCacheGetKeyDataFP getdatafp);
+struct MovieCache *IMB_moviecache_create(const char *name, int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp);
+void IMB_moviecache_set_getdata_callback(struct MovieCache *cache, MovieCacheGetKeyDataFP getdatafp);
+void IMB_moviecache_set_priority_callback(struct MovieCache *cache, MovieCacheGetPriorityDataFP getprioritydatafp,
+                                          MovieCacheGetItemPriorityFP getitempriorityfp,
+                                          MovieCachePriorityDeleterFP prioritydeleterfp);
+
 void IMB_moviecache_put(struct MovieCache *cache, void *userkey, struct ImBuf *ibuf);
 struct ImBuf* IMB_moviecache_get(struct MovieCache *cache, void *userkey);
 void IMB_moviecache_free(struct MovieCache *cache);
