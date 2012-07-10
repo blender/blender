@@ -263,6 +263,9 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr + 1);
 	}
+	else if (t->spacetype == SPACE_NODE) {
+		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], adr, adr + 1);
+	}
 }
 
 void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
