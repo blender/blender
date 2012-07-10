@@ -100,7 +100,7 @@ void OCIO_displayTransformSetLinearCC(DisplayTransformRcPtr *dt, ConstTransformR
 void OCIO_displayTransformRelease(DisplayTransformRcPtr *dt);
 
 PackedImageDesc *OCIO_createPackedImageDesc(float *data, long width, long height, long numChannels,
-											long chanStrideBytes, long xStrideBytes, long yStrideBytes);
+                                            long chanStrideBytes, long xStrideBytes, long yStrideBytes);
 
 void OCIO_packedImageDescRelease(PackedImageDesc *p);
 

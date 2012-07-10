@@ -392,7 +392,7 @@ void IMB_buffer_byte_from_byte(unsigned char *rect_to, const unsigned char *rect
 	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_float_clamp(float *buf, int width, int height);
 
-/* converting pixel buffers using tobecurve */
+/* converting pixel buffers using tonecurve */
 
 typedef void (*imb_tonecurveCb) (float rgbOut[3], const float rgbIn[3]);
 
