@@ -1132,7 +1132,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	
 	if (snode->nodetree) {
 		bNode *node;
-		void** highlights = 0;
+		/* void** highlights = 0; */ /* UNUSED */
 		
 		node_uiblocks_init(C, snode->nodetree);
 		

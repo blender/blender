@@ -303,7 +303,7 @@ void COM_execute(RenderData* rd, bNodeTree *editingtree, int rendering);
  * @brief Return a list of highlighted bnodes pointers.
  * @return 
  */
-void COM_startReadHighlights();
+void COM_startReadHighlights(void);
 
 /**
  * @brief check if a bnode is highlighted
