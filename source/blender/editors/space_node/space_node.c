@@ -192,10 +192,6 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
-		case NC_WM:
-			if (wmn->data == ND_FILEREAD)
-				ED_area_tag_refresh(sa);
-			break;
 
 		/* future: add ID checks? */
 		case NC_MATERIAL:
