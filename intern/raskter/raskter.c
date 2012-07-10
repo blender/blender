@@ -814,14 +814,14 @@ int get_range_expanded_pixel_coord(float normalized_value, int max_value) {
     return (int)((normalized_value * (float)(max_value)) + 0.5f);
 }
 
-inline float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y) {
+__inline float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y) {
     if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
         return 0.0f;
     }
     return buf[(pos_y * buf_x) + pos_x];
 }
 
-inline float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v) {
+__inline float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v) {
     int a;
     int b;
     int a_plus_1;
@@ -847,7 +847,7 @@ inline float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, floa
 
 }
 
-inline void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity) {
+__inline void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity) {
     if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
         return;
     }
