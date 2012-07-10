@@ -663,6 +663,11 @@ typedef struct NodeKeyingData {
 	int blur_pre, blur_post;
 } NodeKeyingData;
 
+typedef struct NodeTrackPosData {
+	char tracking_object[64];
+	char track_name[64];
+} NodeTrackPosData;
+
 /* frame node flags */
 #define NODE_FRAME_SHRINK		1	/* keep the bounding box minimal */
 #define NODE_FRAME_RESIZEABLE	2	/* test flag, if frame can be resized by user */

@@ -103,6 +103,7 @@ set(SRC
 	composite/nodes/node_composite_stabilize2d.c
 	composite/nodes/node_composite_texture.c
 	composite/nodes/node_composite_tonemap.c
+	composite/nodes/node_composite_trackpos.c
 	composite/nodes/node_composite_transform.c
 	composite/nodes/node_composite_translate.c
 	composite/nodes/node_composite_valToRgb.c

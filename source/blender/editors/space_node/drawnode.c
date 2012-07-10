@@ -52,6 +52,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_tracking.h"
 
 #include "BLF_api.h"
 #include "BLF_translation.h"
@@ -2525,6 +2526,41 @@ static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), Poi
 	uiItemR(layout, ptr, "blur_post", 0, NULL, ICON_NONE);
 }
 
+static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node= ptr->data;
+
+	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+
+	if (node->id) {
+		MovieClip *clip = (MovieClip *) node->id;
+		MovieTracking *tracking = &clip->tracking;
+		MovieTrackingObject *object;
+		uiLayout *col;
+		PointerRNA tracking_ptr;
+		NodeTrackPosData *data = node->storage;
+
+		RNA_pointer_create(&clip->id, &RNA_MovieTracking, tracking, &tracking_ptr);
+
+		col = uiLayoutColumn(layout, 0);
+		uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+
+		object = BKE_tracking_object_get_named(tracking, data->tracking_object);
+		if (object) {
+			PointerRNA object_ptr;
+
+			RNA_pointer_create(&clip->id, &RNA_MovieTrackingObject, object, &object_ptr);
+
+			uiItemPointerR(col, ptr, "track_name", &object_ptr, "tracks", "", ICON_ANIM_DATA);
+		}
+		else {
+			uiItemR(layout, ptr, "track_name", 0, "", ICON_ANIM_DATA);
+		}
+
+		uiItemR(layout, ptr, "use_relative", 0, NULL, ICON_NONE);
+	}
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2722,6 +2758,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_KEYING:
 			ntype->uifunc = node_composit_buts_keying;
+			break;
+		case CMP_NODE_TRACKPOS:
+			ntype->uifunc = node_composit_buts_trackpos;
 			break;
 		default:
 			ntype->uifunc = NULL;
