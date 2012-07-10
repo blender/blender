@@ -53,5 +53,7 @@ void MixDarkenOperation::executePixel(float *outputValue, float x, float y, Pixe
 	else outputValue[2] = inputColor1[2];
 	
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }
 

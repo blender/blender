@@ -88,5 +88,7 @@ void MixDodgeOperation::executePixel(float *outputValue, float x, float y, Pixel
 		outputValue[2] = 0.0f;
 	
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }
 

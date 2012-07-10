@@ -54,4 +54,6 @@ void MixLinearLightOperation::executePixel(float *outputValue, float x, float y,
 		outputValue[2] = inputColor1[2] + value * (2.0f * (inputColor2[2]) - 1.0f);
 	
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }

@@ -51,5 +51,7 @@ void MixLightenOperation::executePixel(float *outputValue, float x, float y, Pix
 	if (tmp > inputColor1[2]) outputValue[2] = tmp;
 	else outputValue[2] = inputColor1[2];
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }
 

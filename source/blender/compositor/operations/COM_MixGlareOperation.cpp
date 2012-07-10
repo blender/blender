@@ -44,4 +44,6 @@ void MixGlareOperation::executePixel(float *outputValue, float x, float y, Pixel
 	outputValue[1] = mf * ((inputColor1[1]) + value * (inputColor2[1] - inputColor1[1]));
 	outputValue[2] = mf * ((inputColor1[2]) + value * (inputColor2[2] - inputColor1[2]));
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }
