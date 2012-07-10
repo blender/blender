@@ -30,7 +30,9 @@ private:
 	SocketReader *m_inputProgram;
 	SocketReader *m_inputBokehProgram;
 	SocketReader *m_inputBoundingBoxReader;
+	void updateSize(MemoryBuffer **memoryBuffers);
 	float m_size;
+	bool m_sizeavailable;
 	float m_bokehMidX;
 	float m_bokehMidY;
 	float m_bokehDimension;
@@ -55,7 +57,7 @@ public:
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
-	void setSize(float size) { this->m_size = size; }
+	void setSize(float size) { this->m_size = size; this->m_sizeavailable = true; }
 	
 	void executeOpenCL(OpenCLDevice* device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp);
 };

@@ -33,12 +33,13 @@ BokehBlurOperation::BokehBlurOperation() : NodeOperation()
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addInputSocket(COM_DT_VALUE);
+	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
 	this->setOpenCL(true);
 
 	this->m_size = 1.0f;
-
+	this->m_sizeavailable = false;
 	this->m_inputProgram = NULL;
 	this->m_inputBokehProgram = NULL;
 	this->m_inputBoundingBoxReader = NULL;
@@ -46,12 +47,20 @@ BokehBlurOperation::BokehBlurOperation() : NodeOperation()
 
 void *BokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
+	//void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	lockMutex();
+	if (!this->m_sizeavailable) {
+		//updateGauss(memoryBuffers);
+		updateSize(memoryBuffers);
+	}
 	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	unlockMutex();
 	return buffer;
 }
 
 void BokehBlurOperation::initExecution()
 {
+	initMutex();
 	this->m_inputProgram = getInputSocketReader(0);
 	this->m_inputBokehProgram = getInputSocketReader(1);
 	this->m_inputBoundingBoxReader = getInputSocketReader(2);
@@ -87,7 +96,10 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *
 		int bufferstartx = inputBuffer->getRect()->xmin;
 		int bufferstarty = inputBuffer->getRect()->ymin;
 		int pixelSize = this->m_size * this->getWidth() / 100.0f;
-
+		if (pixelSize==0){
+			this->m_inputProgram->read(color, x, y, COM_PS_NEAREST, inputBuffers);
+			return;
+		}
 		int miny = y - pixelSize;
 		int maxy = y + pixelSize;
 		int minx = x - pixelSize;
@@ -126,6 +138,7 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *
 
 void BokehBlurOperation::deinitExecution()
 {
+	deinitMutex();
 	this->m_inputProgram = NULL;
 	this->m_inputBokehProgram = NULL;
 	this->m_inputBoundingBoxReader = NULL;
@@ -136,10 +149,17 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	rcti newInput;
 	rcti bokehInput;
 
-	newInput.xmax = input->xmax + (this->m_size * this->getWidth() / 100.0f);
-	newInput.xmin = input->xmin - (this->m_size * this->getWidth() / 100.0f);
-	newInput.ymax = input->ymax + (this->m_size * this->getWidth() / 100.0f);
-	newInput.ymin = input->ymin - (this->m_size * this->getWidth() / 100.0f);
+	if (this->m_sizeavailable) {
+		newInput.xmax = input->xmax + (this->m_size * this->getWidth() / 100.0f);
+		newInput.xmin = input->xmin - (this->m_size * this->getWidth() / 100.0f);
+		newInput.ymax = input->ymax + (this->m_size * this->getWidth() / 100.0f);
+		newInput.ymin = input->ymin - (this->m_size * this->getWidth() / 100.0f);
+	} else {
+		newInput.xmax = input->xmax + (10.0f * this->getWidth() / 100.0f);
+		newInput.xmin = input->xmin - (10.0f * this->getWidth() / 100.0f);
+		newInput.ymax = input->ymax + (10.0f * this->getWidth() / 100.0f);
+		newInput.ymin = input->ymin - (10.0f * this->getWidth() / 100.0f);
+	}
 
 	NodeOperation *operation = getInputOperation(1);
 	bokehInput.xmax = operation->getWidth();
@@ -156,6 +176,17 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	operation = getInputOperation(2);
 	if (operation->determineDependingAreaOfInterest(input, readOperation, output) ) {
 		return true;
+	}
+	if (!this->m_sizeavailable) {
+		rcti sizeInput;
+		sizeInput.xmin = 0;
+		sizeInput.ymin = 0;
+		sizeInput.xmax = 5;
+		sizeInput.ymax = 5;
+		operation = getInputOperation(3);
+		if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output) ) {
+			return true;
+		}
 	}
 	return false;
 }
@@ -180,4 +211,15 @@ void BokehBlurOperation::executeOpenCL(OpenCLDevice* device,
 	device->COM_clAttachSizeToKernelParameter(kernel, 8, this);
 	
 	device->COM_clEnqueueRange(kernel, outputMemoryBuffer, 9, this);
+}
+
+void BokehBlurOperation::updateSize(MemoryBuffer **memoryBuffers)
+{
+	if (!this->m_sizeavailable) {
+		float result[4];
+		this->getInputSocketReader(3)->read(result, 0, 0, COM_PS_NEAREST, memoryBuffers);
+		this->m_size = result[0];
+		CLAMP(this->m_size, 0.0f, 10.0f);
+		this->m_sizeavailable = true;
+	}
 }
