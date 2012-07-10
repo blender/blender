@@ -54,4 +54,6 @@ void MixSaturationOperation::executePixel(float *outputValue, float x, float y, 
 		hsv_to_rgb(rH, (valuem * rS + value * colS), rV, &outputValue[0], &outputValue[1], &outputValue[2]);
 	}
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }

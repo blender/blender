@@ -46,5 +46,7 @@ void MixDifferenceOperation::executePixel(float *outputValue, float x, float y, 
 	outputValue[1] = valuem * inputColor1[1] + value *fabsf(inputColor1[1] - inputColor2[1]);
 	outputValue[2] = valuem * inputColor1[2] + value *fabsf(inputColor1[2] - inputColor2[2]);
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }
 

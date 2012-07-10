@@ -38,6 +38,9 @@ protected:
 	SocketReader *m_inputColor1Operation;
 	SocketReader *m_inputColor2Operation;
 	bool m_valueAlphaMultiply;
+	bool m_useClamp;
+
+	void clampIfNeeded(float *color);
 public:
 	/**
 	 * Default constructor
@@ -63,5 +66,6 @@ public:
 	
 	void setUseValueAlphaMultiply(const bool value) { this->m_valueAlphaMultiply = value; }
 	bool useValueAlphaMultiply() { return this->m_valueAlphaMultiply; }
+	void setUseClamp(bool value) { this->m_useClamp = value; }
 };
 #endif

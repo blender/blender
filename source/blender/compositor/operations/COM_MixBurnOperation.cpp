@@ -83,5 +83,7 @@ void MixBurnOperation::executePixel(float *outputValue, float x, float y, PixelS
 	}
 	
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }
 

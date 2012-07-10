@@ -58,5 +58,7 @@ void MixColorOperation::executePixel(float *outputValue, float x, float y, Pixel
 		outputValue[2] = valuem * (inputColor1[2]) + value * tmpb;
 	}
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }
 

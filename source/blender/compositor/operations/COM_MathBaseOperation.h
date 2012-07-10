@@ -37,11 +37,15 @@ protected:
 	SocketReader *m_inputValue1Operation;
 	SocketReader *m_inputValue2Operation;
 
+	bool m_useClamp;
+
 protected:
 	/**
 	 * Default constructor
 	 */
 	MathBaseOperation();
+
+	void clampIfNeeded(float *color);
 public:
 	/**
 	 * the inner loop of this program
@@ -62,6 +66,8 @@ public:
 	 * Determine resolution
 	 */
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+
+	void setUseClamp(bool value) { this->m_useClamp = value; }
 };
 
 class MathAddOperation : public MathBaseOperation {

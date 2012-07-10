@@ -62,5 +62,7 @@ void MixOverlayOperation::executePixel(float *outputValue, float x, float y, Pix
 		outputValue[2] = 1.0f - (valuem + 2.0f * value * (1.0f - inputColor2[2])) * (1.0f - inputColor1[2]);
 	}
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }
 

@@ -28,7 +28,7 @@ MixSoftLightOperation::MixSoftLightOperation() : MixBaseOperation()
 }
 
 void MixSoftLightOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) \
-	{
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
@@ -52,5 +52,7 @@ void MixSoftLightOperation::executePixel(float *outputValue, float x, float y, P
 	outputValue[1] = valuem * (inputColor1[1]) + value * (((1.0f - inputColor1[1]) * inputColor2[1] * (inputColor1[1])) + (inputColor1[1] * scg));
 	outputValue[2] = valuem * (inputColor1[2]) + value * (((1.0f - inputColor1[2]) * inputColor2[2] * (inputColor1[2])) + (inputColor1[2] * scb));
 	outputValue[3] = inputColor1[3];
-	}
+
+	clampIfNeeded(outputValue);
+}
 

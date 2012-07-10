@@ -303,14 +303,17 @@ static void node_buts_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr
 
 static void node_buts_mix_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {	
-	uiLayout *row;
+	uiLayout *row, *col;
 
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
 
-	row = uiLayoutRow(layout, TRUE);
+	col = uiLayoutColumn(layout, FALSE);
+	row = uiLayoutRow(col, TRUE);
 	uiItemR(row, ptr, "blend_type", 0, "", ICON_NONE);
 	if (ntree->type == NTREE_COMPOSIT)
 		uiItemR(row, ptr, "use_alpha", 0, "", ICON_IMAGE_RGB_ALPHA);
+
+	uiItemR(col, ptr, "use_clamp", 0, NULL, ICON_NONE);
 }
 
 static void node_buts_time(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -452,6 +455,7 @@ static void node_buts_texture(uiLayout *layout, bContext *UNUSED(C), PointerRNA 
 static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 { 
 	uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "use_clamp", 0, NULL, ICON_NONE);
 }
 
 static int node_resize_area_default(bNode *node, int x, int y)

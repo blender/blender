@@ -47,5 +47,7 @@ void MixScreenOperation::executePixel(float *outputValue, float x, float y, Pixe
 	outputValue[1] = 1.0f - (valuem + value * (1.0f - inputColor2[1])) * (1.0f - inputColor1[1]);
 	outputValue[2] = 1.0f - (valuem + value * (1.0f - inputColor2[2])) * (1.0f - inputColor1[2]);
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }
 
