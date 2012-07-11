@@ -625,6 +625,8 @@ typedef struct DisplayBufferThread {
 	int channels;
 	int dither;
 	int predivide;
+
+	int buffer_in_srgb;
 } DisplayBufferThread;
 
 static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned char *display_buffer,
@@ -637,8 +639,16 @@ static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned c
 	int i, tot_thread = BLI_system_thread_count();
 	int start_line, tot_line;
 
-	if (tot_thread > 1)
+	if (tot_thread > 1) {
+		/* XXX: IMB_buffer_byte_from_float_tonecurve isn't thread-safe because of
+		 *      possible non-initialized sRGB conversion stuff. Make sure it's properly
+		 *      initialized before starting threads, but likely this stuff should be
+		 *      initialized somewhere before to avoid possible issues in other issues.
+		 */
+		BLI_init_srgb_conversion();
+
 		BLI_init_threads(&threads, do_thread, tot_thread);
+	}
 
 	start_line = 0;
 	tot_line = ((float)(ibuf->y / tot_thread)) + 0.5f;
@@ -664,6 +674,7 @@ static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned c
 		handles[i].channels = ibuf->channels;
 		handles[i].dither = ibuf->dither;
 		handles[i].predivide = predivide;
+		handles[i].buffer_in_srgb = ibuf->colormanagement_flags & IMB_COLORMANAGEMENT_SRGB_SOURCE;
 
 		if (tot_thread > 1)
 			BLI_insert_thread(&threads, &handles[i]);
@@ -675,6 +686,30 @@ static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned c
 		BLI_end_threads(&threads);
 	else
 		do_thread(&handles[0]);
+}
+
+static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
+{
+	float *linear_buffer = handle->buffer;
+
+	if (handle->buffer_in_srgb) {
+		float *buffer = handle->buffer;
+
+		int channels = handle->channels;
+		int width = handle->width;
+		int height = handle->tot_line;
+		int predivide = handle->predivide;
+
+		int buffer_size = 4 * channels * width * height;
+
+		linear_buffer = MEM_callocN(buffer_size * sizeof(float), "color conversion linear buffer");
+
+		IMB_buffer_float_from_float(linear_buffer, buffer, channels,
+		                            IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB,
+		                            predivide, width, height, width, width);
+	}
+
+	return linear_buffer;
 }
 
 static void *do_display_buffer_apply_tonemap_thread(void *handle_v)
@@ -691,10 +726,15 @@ static void *do_display_buffer_apply_tonemap_thread(void *handle_v)
 	int dither = handle->dither;
 	int predivide = handle->predivide;
 
-	IMB_buffer_byte_from_float_tonecurve(display_buffer, buffer, channels, dither,
+	float *linear_buffer = display_buffer_apply_get_linear_buffer(handle);
+
+	IMB_buffer_byte_from_float_tonecurve(display_buffer, linear_buffer, channels, dither,
 	                                     IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
 	                                     predivide, width, height, width, width,
 	                                     tonecurve_func);
+
+	if (linear_buffer != buffer)
+		MEM_freeN(linear_buffer);
 
 	return NULL;
 }
@@ -702,13 +742,6 @@ static void *do_display_buffer_apply_tonemap_thread(void *handle_v)
 static void display_buffer_apply_tonemap(ImBuf *ibuf, unsigned char *display_buffer,
                                          imb_tonecurveCb tonecurve_func)
 {
-	/* XXX: IMB_buffer_byte_from_float_tonecurve isn't thread-safe because of
-	 *      possible non-initialized sRGB conversion stuff. Make sure it's properly
-	 *      initialized before starting threads, but likely this stuff should be
-	 *      initialized somewhere before to avoid possible issues in other issues.
-	 */
-	BLI_init_srgb_conversion();
-
 	display_buffer_apply_threaded(ibuf, ibuf->rect_float, display_buffer, tonecurve_func,
 	                              do_display_buffer_apply_tonemap_thread);
 }
@@ -726,7 +759,9 @@ static void *do_display_buffer_apply_ocio_thread(void *handle_v)
 	int dither = handle->dither;
 	int predivide = handle->predivide;
 
-	img = OCIO_createPackedImageDesc(buffer, width, height, channels, sizeof(float),
+	float *linear_buffer = display_buffer_apply_get_linear_buffer(handle);
+
+	img = OCIO_createPackedImageDesc(linear_buffer, width, height, channels, sizeof(float),
 	                                 channels * sizeof(float), channels * sizeof(float) * width);
 
 	OCIO_processorApply(processor, img);
@@ -734,9 +769,12 @@ static void *do_display_buffer_apply_ocio_thread(void *handle_v)
 	OCIO_packedImageDescRelease(img);
 
 	/* do conversion */
-	IMB_buffer_byte_from_float(display_buffer, buffer,
+	IMB_buffer_byte_from_float(display_buffer, linear_buffer,
 	                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
 	                           predivide, width, height, width, width);
+
+	if (linear_buffer != buffer)
+		MEM_freeN(linear_buffer);
 
 	return NULL;
 }
@@ -1102,6 +1140,11 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 					SpaceClip *sclip = (SpaceClip *) sl;
 
 					colormanage_check_view_settings(&sclip->view_settings, "clip editor", default_view);
+				}
+				else if (sl->spacetype == SPACE_SEQ) {
+					SpaceSeq *sseq = (SpaceSeq *) sl;
+
+					colormanage_check_view_settings(&sseq->view_settings, "sequencer editor", default_view);
 				}
 			}
 		}

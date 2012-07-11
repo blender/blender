@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
+from bl_ui.properties_color_management import ColorManagedViewSettingsPanel
 
 
 def act_strip(context):
@@ -859,6 +860,9 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
         elif st.display_mode == 'WAVEFORM':
             col.prop(st, "show_separate_color")
         col.prop(st, "proxy_render_size")
+
+class SEQUENCER_PT_display_properties(SequencerButtonsPanel_Output, Panel, ColorManagedViewSettingsPanel):
+    bl_label = "Display Properties"
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

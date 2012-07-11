@@ -473,6 +473,9 @@ typedef struct SpaceSeq {
 	int pad;
 
 	struct bGPdata *gpd;        /* grease-pencil data */
+
+	/* **** color management **** */
+	ColorManagedViewSettings view_settings;
 } SpaceSeq;
 
 
@@ -690,6 +693,7 @@ typedef struct SpaceImage {
 	char dt_uvstretch;
 	char around;
 
+	/* **** color management **** */
 	ColorManagedViewSettings view_settings;
 } SpaceImage;
 
@@ -874,6 +878,7 @@ typedef struct SpaceNode {
 	
 	struct bGPdata *gpd;        /* grease-pencil data */
 
+	/* **** color management **** */
 	ColorManagedViewSettings view_settings;
 } SpaceNode;
 

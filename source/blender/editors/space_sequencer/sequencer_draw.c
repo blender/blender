@@ -52,6 +52,7 @@
 
 #include "BKE_sound.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
 #include "BIF_gl.h"
@@ -67,6 +68,9 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 /* own include */
 #include "sequencer_intern.h"
@@ -812,6 +816,8 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	GLuint texid;
 	GLuint last_texid;
 	SeqRenderData context;
+	unsigned char *display_buffer;
+	void *cache_handle = NULL;
 
 	render_size = sseq->render_size;
 	if (render_size == 0) {
@@ -892,12 +898,23 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if (scope) {
 		IMB_freeImBuf(ibuf);
 		ibuf = scope;
+
+		if (ibuf->rect_float && ibuf->rect == NULL) {
+			IMB_rect_from_float(ibuf);
+		}
+
+		display_buffer = (unsigned char *)ibuf->rect;
+	}
+	else {
+		const ColorManagedViewSettings *view_settings;
+		wmWindow *win = CTX_wm_window(C);
+
+		ibuf->colormanagement_flags |= IMB_COLORMANAGEMENT_SRGB_SOURCE;
+
+		view_settings = IMB_view_settings_get_effective(win, &sseq->view_settings);
+		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, &win->display_settings, &cache_handle);
 	}
 
-	if (ibuf->rect_float && ibuf->rect == NULL) {
-		IMB_rect_from_float(ibuf);	
-	}
-	
 	/* setting up the view - actual drawing starts here */
 	UI_view2d_view_ortho(v2d);
 
@@ -910,7 +927,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
 	glBegin(GL_QUADS);
 
 	if (frame_ofs) {
@@ -1042,6 +1059,8 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		}
 	}
 
+	if (cache_handle)
+		IMB_display_buffer_release(cache_handle);
 }
 
 #if 0

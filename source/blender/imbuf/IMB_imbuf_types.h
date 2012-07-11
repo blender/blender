@@ -128,6 +128,7 @@ typedef struct ImBuf {
 	unsigned int   encodedbuffersize; /* Size of encodedbuffer */
 
 	/* color management */
+	unsigned int colormanagement_flags;  /* flags filed used by color management rutines */
 	unsigned int *display_buffer_flags;  /* array of per-display display buffers dirty flags */
 	struct ColormanageCache *colormanage_cache;  /* cache used by color management */
 
@@ -255,5 +256,13 @@ extern const char *imb_ext_image[];
 extern const char *imb_ext_image_qt[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
+
+/* imbuf->colormanagement_flags */
+
+/* special flag used for color management of compositor results,
+ * which are in sRGB space and requires extra step in color conversions
+ * could be replaced with something more general in the future
+ */
+#define IMB_COLORMANAGEMENT_SRGB_SOURCE    (1 << 0)
 
 #endif
