@@ -365,10 +365,10 @@ static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *
 	/* nodetree's nodes... */
 	for (n = ntree->nodes.first; n; n = n->next) {
 		if (n->id && GS(n->id->name) == ID_MA) {
-            ma = (Material *)n->id;
-            if (ma != rootma) {
-                dag_add_material_driver_relations(dag, node, ma);
-            }
+			ma = (Material *)n->id;
+			if (ma != rootma) {
+				dag_add_material_driver_relations(dag, node, ma);
+			}
 		}
 		else if (n->type == NODE_GROUP && n->id) {
 			dag_add_material_nodetree_driver_relations(dag, node, (bNodeTree *)n->id, rootma);
