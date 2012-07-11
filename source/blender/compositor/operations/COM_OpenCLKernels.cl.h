@@ -23,7 +23,7 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/// This file contains all ope
 "\n" \
 "	tempBoundingBox = read_imagef(boundingBox, SAMPLER_NEAREST, coords).s0;\n" \
 "\n" \
-"	if (tempBoundingBox > 0.0f) {\n" \
+"	if (tempBoundingBox > 0.0f && radius > 0 ) {\n" \
 "		const int2 bokehImageDim = get_image_dim(bokehImage);\n" \
 "		const int2 bokehImageCenter = bokehImageDim/2;\n" \
 "		const int2 minXY = max(realCoordinate - radius, zero);\n" \

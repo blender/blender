@@ -39,7 +39,7 @@
 #include "BLI_voronoi.h"
 #include "BLI_utildefines.h"
 
-#define VORONOI_EPS 1e-3
+#define VORONOI_EPS 1e-2
 
 enum {
 	voronoiEventType_Site = 0,

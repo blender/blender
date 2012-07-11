@@ -21,7 +21,7 @@ __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only ima
 
 	tempBoundingBox = read_imagef(boundingBox, SAMPLER_NEAREST, coords).s0;
 
-	if (tempBoundingBox > 0.0f) {
+	if (tempBoundingBox > 0.0f && radius > 0 ) {
 		const int2 bokehImageDim = get_image_dim(bokehImage);
 		const int2 bokehImageCenter = bokehImageDim/2;
 		const int2 minXY = max(realCoordinate - radius, zero);

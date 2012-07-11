@@ -169,7 +169,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 
 void BL_Texture::InitGLTex(unsigned int *pix,int x,int y,bool mipmap)
 {
-	if (!is_power_of_2_i(x) || !is_power_of_2_i(y) ) {
+	if (!GLEW_ARB_texture_non_power_of_two && (!is_power_of_2_i(x) || !is_power_of_2_i(y)) ) {
 		InitNonPow2Tex(pix, x,y,mipmap);
 		return;
 	}

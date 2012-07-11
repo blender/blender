@@ -104,10 +104,20 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	/* count sites */
 	for (track = (MovieTrackingTrack *) tracksbase->first, sites_total = 0; track; track = track->next) {
 		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
+		float pos[2];
 
-		if ((marker->flag & MARKER_DISABLED) == 0) {
-			sites_total++;
+		if (marker->flag & MARKER_DISABLED)
+			continue;
+
+		add_v2_v2v2(pos, marker->pos, track->offset);
+
+		if (!IN_RANGE_INCL(pos[0], 0.0f, 1.0f) ||
+		    !IN_RANGE_INCL(pos[1], 0.0f, 1.0f))
+		{
+			continue;
 		}
+
+		sites_total++;
 	}
 
 	if (!sites_total)
@@ -128,9 +138,18 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 		VoronoiSite *site;
 		ImBuf *pattern_ibuf;
 		int j;
+		float pos[2];
 
 		if (marker->flag & MARKER_DISABLED)
 			continue;
+
+		add_v2_v2v2(pos, marker->pos, track->offset);
+
+		if (!IN_RANGE_INCL(pos[0], 0.0f, 1.0f) ||
+		    !IN_RANGE_INCL(pos[1], 0.0f, 1.0f))
+		{
+			continue;
+		}
 
 		site = &sites[i];
 
@@ -153,8 +172,8 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 		mul_v3_fl(site->color, 1.0f / (pattern_ibuf->x * pattern_ibuf->y));
 		IMB_freeImBuf(pattern_ibuf);
 
-		site->co[0] = marker->pos[0] * width;
-		site->co[1] = marker->pos[1] * height;
+		site->co[0] = pos[0] * width;
+		site->co[1] = pos[1] * height;
 	}
 
 	IMB_freeImBuf(ibuf);
@@ -308,9 +327,11 @@ void KeyingScreenOperation::executePixel(float *color, int x, int y, MemoryBuffe
 
 				if (barycentric_coords_v2(a->co, b->co, c->co, co, w)) {
 					if (barycentric_inside_triangle_v2(w)) {
-						color[0] += a->color[0] * w[0] + b->color[0] * w[1] + c->color[0] * w[2];
-						color[1] += a->color[1] * w[0] + b->color[1] * w[1] + c->color[1] * w[2];
-						color[2] += a->color[2] * w[0] + b->color[2] * w[1] + c->color[2] * w[2];
+						color[0] = a->color[0] * w[0] + b->color[0] * w[1] + c->color[0] * w[2];
+						color[1] = a->color[1] * w[0] + b->color[1] * w[1] + c->color[1] * w[2];
+						color[2] = a->color[2] * w[0] + b->color[2] * w[1] + c->color[2] * w[2];
+
+						break;
 					}
 				}
 			}
