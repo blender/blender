@@ -383,7 +383,7 @@ int BKE_frameserver_append(RenderData *UNUSED(rd), int UNUSED(start_frame), int 
 		connsock = -1;
 	}
 
-	return 0;
+	return 1;
 }
 
 void BKE_frameserver_end(void)
