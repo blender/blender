@@ -1618,7 +1618,7 @@ static void execute_scene(Scene *blscene, IK_Scene *ikscene, bItasc *ikparam, fl
 			timestep = sts / 1000.0;
 		}
 	}
-	// don't cache if we are reiterating because we don't want to distroy the cache unnecessarily
+	// don't cache if we are reiterating because we don't want to destroy the cache unnecessarily
 	ikscene->scene->update(timestamp, timestep, numstep, false, !reiterate, simulation);
 	if (reiterate) {
 		// how many times do we reiterate?

@@ -583,7 +583,7 @@ static int project_bucket_offset_safe(const ProjPaintState *ps, const float proj
 }
 
 /* still use 2D X,Y space but this works for verts transformed by a perspective matrix, using their 4th component as a weight */
-static void barycentric_weights_v2_persp(float v1[4], float v2[4], float v3[4], float co[2], float w[3])
+static void barycentric_weights_v2_persp(const float v1[4], const float v2[4], const float v3[4], const float co[2], float w[3])
 {
 	float wtot_inv, wtot;
 
@@ -603,13 +603,17 @@ static void barycentric_weights_v2_persp(float v1[4], float v2[4], float v3[4], 
 		w[0] = w[1] = w[2] = 1.0f / 3.0f;
 }
 
-static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
+static float VecZDepthOrtho(const float pt[2],
+                            const float v1[3], const float v2[3], const float v3[3],
+                            float w[3])
 {
 	barycentric_weights_v2(v1, v2, v3, pt, w);
 	return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]);
 }
 
-static float VecZDepthPersp(float pt[2], float v1[4], float v2[4], float v3[4], float w[3])
+static float VecZDepthPersp(const float pt[2],
+                            const float v1[4], const float v2[4], const float v3[4],
+                            float w[3])
 {
 	float wtot_inv, wtot;
 	float w_tmp[3];
