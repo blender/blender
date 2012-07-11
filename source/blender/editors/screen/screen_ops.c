@@ -49,6 +49,7 @@
 #include "DNA_mask_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -829,7 +830,11 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rect = sa->totrct;
 	BLI_translate_rcti(&rect, win->posx, win->posy);
 	newwin = WM_window_open(C, &rect);
-	
+
+	/* copy color management settings from the current window */
+	BKE_color_managed_display_settings_copy(&newwin->display_settings, &win->display_settings);
+	BKE_color_managed_view_settings_copy(&newwin->view_settings, &win->view_settings);
+
 	/* allocs new screen and adds to newly created window, using window size */
 	newsc = ED_screen_add(newwin, CTX_data_scene(C), sc->id.name + 2);
 	newwin->screen = newsc;
