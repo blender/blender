@@ -253,7 +253,7 @@ static void draw_filled_lasso(wmGesture *gt)
 	
 	/* highly unlikely this will fail, but could crash if (gt->points == 0) */
 	if (sf_vert_first) {
-		float zvec[3] = {0.0f, 0.0f, 1.0f};
+		const float zvec[3] = {0.0f, 0.0f, 1.0f};
 		BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
 		BLI_scanfill_calc_ex(&sf_ctx, FALSE, zvec);
 	

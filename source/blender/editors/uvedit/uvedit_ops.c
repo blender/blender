@@ -2479,7 +2479,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 				uv_poly_center(em, efa, cent);
-				if (BLI_in_rctf(&rectf, cent[0], cent[1])) {
+				if (BLI_in_rctf_v(&rectf, cent)) {
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 					change = 1;
 				}
@@ -2504,15 +2504,13 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				if (!pinned || (ts->uv_flag & UV_SYNC_SELECTION) ) {
 
 					/* UV_SYNC_SELECTION - can't do pinned selection */
-					if (BLI_in_rctf(&rectf, luv->uv[0], luv->uv[1])) {
+					if (BLI_in_rctf_v(&rectf, luv->uv)) {
 						if (select) uvedit_uv_select_enable(em, scene, l, FALSE);
 						else uvedit_uv_select_disable(em, scene, l);
 					}
 				}
 				else if (pinned) {
-					if ((luv->flag & MLOOPUV_PINNED) && 
-					    BLI_in_rctf(&rectf, luv->uv[0], luv->uv[1]))
-					{
+					if ((luv->flag & MLOOPUV_PINNED) && BLI_in_rctf_v(&rectf, luv->uv)) {
 						if (select) uvedit_uv_select_enable(em, scene, l, FALSE);
 						else uvedit_uv_select_disable(em, scene, l);
 					}
@@ -2685,7 +2683,7 @@ static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, sh
 				float cent[2];
 				uv_poly_center(em, efa, cent);
 				UI_view2d_view_to_region(&ar->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]);
-				if (BLI_in_rcti(&rect, screen_uv[0], screen_uv[1]) &&
+				if (BLI_in_rcti_v(&rect, screen_uv) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
 				{
 					uvedit_face_select_enable(scene, em, efa, FALSE);
@@ -2702,7 +2700,7 @@ static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, sh
 					if ((select) != (uvedit_uv_select_test(em, scene, l))) {
 						MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 						UI_view2d_view_to_region(&ar->v2d, luv->uv[0], luv->uv[1], &screen_uv[0], &screen_uv[1]);
-						if (BLI_in_rcti(&rect, screen_uv[0], screen_uv[1]) &&
+						if (BLI_in_rcti_v(&rect, screen_uv) &&
 						    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
 						{
 							if (select) {

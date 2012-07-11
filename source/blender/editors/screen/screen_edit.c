@@ -1219,7 +1219,7 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 	ScrArea *sa;
 	
 	for (sa = win->screen->areabase.first; sa; sa = sa->next)
-		if ((az = is_in_area_actionzone(sa, event->x, event->y)))
+		if ((az = is_in_area_actionzone(sa, &event->x)))
 			break;
 	
 	if (sa) {
@@ -1262,12 +1262,12 @@ void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 		for (sa = scr->areabase.first; sa; sa = sa->next) {
 			if (event->x > sa->totrct.xmin && event->x < sa->totrct.xmax)
 				if (event->y > sa->totrct.ymin && event->y < sa->totrct.ymax)
-					if (NULL == is_in_area_actionzone(sa, event->x, event->y))
+					if (NULL == is_in_area_actionzone(sa, &event->x))
 						break;
 		}
 		if (sa) {
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (BLI_in_rcti(&ar->winrct, event->x, event->y))
+				if (BLI_in_rcti_v(&ar->winrct, &event->x))
 					scr->subwinactive = ar->swinid;
 			}
 		}
@@ -1314,7 +1314,7 @@ int ED_screen_area_active(const bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 
 	if (win && sc && sa) {
-		AZone *az = is_in_area_actionzone(sa, win->eventstate->x, win->eventstate->y);
+		AZone *az = is_in_area_actionzone(sa, &win->eventstate->x);
 		ARegion *ar;
 		
 		if (az && az->type == AZONE_REGION)

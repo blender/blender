@@ -1824,7 +1824,7 @@ static void isb_bsp_face_inside(ISBBranch *bspn, BSPFace *face)
 			
 			if ((samp->facenr!=face->facenr || samp->obi!=face->obi) && samp->shadfac) {
 				if (face->box.zmin < samp->zco[2]) {
-					if (BLI_in_rctf((rctf *)&face->box, samp->zco[0], samp->zco[1])) {
+					if (BLI_in_rctf_v((rctf *)&face->box, samp->zco)) {
 						int inshadow= 0;
 						
 						if (face->type) {

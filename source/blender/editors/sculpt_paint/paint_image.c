@@ -1615,7 +1615,7 @@ static int line_clip_rect2f(
 		
 		
 		if (fabsf(l1[0] - l2[0]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
-			if (BLI_in_rctf(rect, l1[0], l1[1])) {
+			if (BLI_in_rctf_v(rect, l1)) {
 				copy_v2_v2(l1_clip, l1);
 				copy_v2_v2(l2_clip, l2);
 				return 1;
@@ -1643,7 +1643,7 @@ static int line_clip_rect2f(
 		}
 		
 		if (fabsf(l1[1] - l2[1]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
-			if (BLI_in_rctf(rect, l1[0], l1[1])) {
+			if (BLI_in_rctf_v(rect, l1)) {
 				copy_v2_v2(l1_clip, l1);
 				copy_v2_v2(l2_clip, l2);
 				return 1;
@@ -1667,12 +1667,12 @@ static int line_clip_rect2f(
 		/* Done with vertical lines */
 		
 		/* are either of the points inside the rectangle ? */
-		if (BLI_in_rctf(rect, l1[0], l1[1])) {
+		if (BLI_in_rctf_v(rect, l1)) {
 			copy_v2_v2(l1_clip, l1);
 			ok1 = 1;
 		}
 		
-		if (BLI_in_rctf(rect, l2[0], l2[1])) {
+		if (BLI_in_rctf_v(rect, l2)) {
 			copy_v2_v2(l2_clip, l2);
 			ok2 = 1;
 		}
@@ -1820,7 +1820,7 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 	 * this is even less work then an intersection test
 	 */
 #if 0
-	if (BLI_in_rctf(bucket_bounds, cent[0], cent[1]))
+	if (BLI_in_rctf_v(bucket_bounds, cent))
 		return 1;
 #endif
 	
@@ -1987,9 +1987,9 @@ static void project_bucket_clip_face(
 	float bucket_bounds_ss[4][2];
 
 	/* get the UV space bounding box */
-	inside_bucket_flag |= BLI_in_rctf(bucket_bounds, v1coSS[0], v1coSS[1]);
-	inside_bucket_flag |= BLI_in_rctf(bucket_bounds, v2coSS[0], v2coSS[1]) << 1;
-	inside_bucket_flag |= BLI_in_rctf(bucket_bounds, v3coSS[0], v3coSS[1]) << 2;
+	inside_bucket_flag |= BLI_in_rctf_v(bucket_bounds, v1coSS);
+	inside_bucket_flag |= BLI_in_rctf_v(bucket_bounds, v2coSS) << 1;
+	inside_bucket_flag |= BLI_in_rctf_v(bucket_bounds, v3coSS) << 2;
 	
 	if (inside_bucket_flag == ISECT_ALL3) {
 		/* all screenspace points are inside the bucket bounding box, this means we don't need to clip and can simply return the UVs */
@@ -2816,7 +2816,7 @@ static int project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int bucke
 	fidx = mf->v4 ? 3 : 2;
 	do {
 		v = ps->screenCoords[(*(&mf->v1 + fidx))];
-		if (BLI_in_rctf(&bucket_bounds, v[0], v[1])) {
+		if (BLI_in_rctf_v(&bucket_bounds, v)) {
 			return 1;
 		}
 	} while (fidx--);

@@ -65,7 +65,8 @@ typedef struct ScanFillVert {
 	union {
 		struct ScanFillVert *v;
 		void                *p;
-		intptr_t l;
+		intptr_t             l;
+		unsigned int         u;
 	} tmp;
 	float co[3]; /* vertex location */
 	float xy[2]; /* 2D copy of vertex location (using dominant axis) */
