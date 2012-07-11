@@ -1,9 +1,32 @@
 /* clkernelstoh output of file <COM_OpenCLKernels_cl> */
 
-const char * clkernelstoh_COM_OpenCLKernels_cl = "/// This file contains all opencl kernels for node-operation implementations\n" \
+const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
+" * Copyright 2011, Blender Foundation.\n" \
+" *\n" \
+" * This program is free software; you can redistribute it and/or\n" \
+" * modify it under the terms of the GNU General Public License\n" \
+" * as published by the Free Software Foundation; either version 2\n" \
+" * of the License, or (at your option) any later version.\n" \
+" *\n" \
+" * This program is distributed in the hope that it will be useful,\n" \
+" * but WITHOUT ANY WARRANTY; without even the implied warranty of\n" \
+" * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n" \
+" * GNU General Public License for more details.\n" \
+" *\n" \
+" * You should have received a copy of the GNU General Public License\n" \
+" * along with this program; if not, write to the Free Software Foundation,\n" \
+" * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.\n" \
+" *\n" \
+" * Contributor:\n" \
+" *		Jeroen Bakker\n" \
+" *		Monique Dewanchand\n" \
+" */\n" \
+"\n" \
+"/// This file contains all opencl kernels for node-operation implementations\n" \
 "\n" \
 "// Global SAMPLERS\n" \
-"const sampler_t SAMPLER_NEAREST      = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;\n" \
+"const sampler_t SAMPLER_NEAREST       = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;\n" \
+"const sampler_t SAMPLER_NEAREST_CLAMP = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;\n" \
 "\n" \
 "__constant const int2 zero = {0,0};\n" \
 "\n" \
@@ -169,5 +192,46 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/// This file contains all ope
 "\n" \
 "	float4 color = {value,0.0f,0.0f,0.0f};\n" \
 "	write_imagef(output, coords, color);\n" \
+"}\n" \
+"\n" \
+"// KERNEL --- DIRECTIONAL BLUR ---\n" \
+"__kernel void directionalBlurKernel(__read_only image2d_t inputImage,  __write_only image2d_t output,\n" \
+"                           int2 offsetOutput, int iterations, float scale, float rotation, float2 translate,\n" \
+"                           float2 center, int2 offset)\n" \
+"{\n" \
+"	int2 coords = {get_global_id(0), get_global_id(1)};\n" \
+"	coords += offset;\n" \
+"	const int2 realCoordinate = coords + offsetOutput;\n" \
+"\n" \
+"	float4 col;\n" \
+"	float2 ltxy = translate;\n" \
+"	float lsc = scale;\n" \
+"	float lrot = rotation;\n" \
+"\n" \
+"	col = read_imagef(inputImage, SAMPLER_NEAREST, realCoordinate);\n" \
+"\n" \
+"	/* blur the image */\n" \
+"	for (int i = 0; i < iterations; ++i) {\n" \
+"		const float cs = cos(lrot), ss = sin(lrot);\n" \
+"		const float isc = 1.0f / (1.0f + lsc);\n" \
+"\n" \
+"		const float v = isc * (realCoordinate.s1 - center.s1) + ltxy.s1;\n" \
+"		const float u = isc * (realCoordinate.s0 - center.s0) + ltxy.s0;\n" \
+"		float2 uv = {\n" \
+"			cs * u + ss * v + center.s0,\n" \
+"			cs * v - ss * u + center.s1\n" \
+"		};\n" \
+"\n" \
+"		col += read_imagef(inputImage, SAMPLER_NEAREST_CLAMP, uv);\n" \
+"\n" \
+"		/* double transformations */\n" \
+"		ltxy += translate;\n" \
+"		lrot += rotation;\n" \
+"		lsc += scale;\n" \
+"	}\n" \
+"\n" \
+"	col *= (1.0f/(iterations+1));\n" \
+"\n" \
+"	write_imagef(output, coords, col);\n" \
 "}\n" \
 "\0";

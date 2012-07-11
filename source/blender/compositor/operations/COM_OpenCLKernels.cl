@@ -1,7 +1,30 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor: 
+ *		Jeroen Bakker 
+ *		Monique Dewanchand
+ */
+
 /// This file contains all opencl kernels for node-operation implementations 
 
 // Global SAMPLERS
-const sampler_t SAMPLER_NEAREST      = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+const sampler_t SAMPLER_NEAREST       = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+const sampler_t SAMPLER_NEAREST_CLAMP = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
 __constant const int2 zero = {0,0};
 
@@ -167,4 +190,45 @@ __kernel void erodeKernel(__read_only image2d_t inputImage,  __write_only image2
 
 	float4 color = {value,0.0f,0.0f,0.0f};
 	write_imagef(output, coords, color);
+}
+
+// KERNEL --- DIRECTIONAL BLUR ---
+__kernel void directionalBlurKernel(__read_only image2d_t inputImage,  __write_only image2d_t output,
+                           int2 offsetOutput, int iterations, float scale, float rotation, float2 translate,
+                           float2 center, int2 offset)
+{
+	int2 coords = {get_global_id(0), get_global_id(1)}; 
+	coords += offset;
+	const int2 realCoordinate = coords + offsetOutput;
+
+	float4 col;
+	float2 ltxy = translate;
+	float lsc = scale;
+	float lrot = rotation;
+	
+	col = read_imagef(inputImage, SAMPLER_NEAREST, realCoordinate);
+
+	/* blur the image */
+	for (int i = 0; i < iterations; ++i) {
+		const float cs = cos(lrot), ss = sin(lrot);
+		const float isc = 1.0f / (1.0f + lsc);
+
+		const float v = isc * (realCoordinate.s1 - center.s1) + ltxy.s1;
+		const float u = isc * (realCoordinate.s0 - center.s0) + ltxy.s0;
+		float2 uv = {
+			cs * u + ss * v + center.s0,
+			cs * v - ss * u + center.s1
+		};
+
+		col += read_imagef(inputImage, SAMPLER_NEAREST_CLAMP, uv);
+
+		/* double transformations */
+		ltxy += translate;
+		lrot += rotation;
+		lsc += scale;
+	}
+
+	col *= (1.0f/(iterations+1));
+
+	write_imagef(output, coords, col);
 }

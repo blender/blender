@@ -55,5 +55,11 @@ public:
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	
 	void setData(NodeDBlurData *data) { this->m_data = data; }
+
+	void executeOpenCL(OpenCLDevice* device,
+	                                       MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
+	                                       MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
+	                                       list<cl_kernel> *clKernelsToCleanUp);
+	
 };
 #endif
