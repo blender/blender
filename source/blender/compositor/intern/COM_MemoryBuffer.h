@@ -140,6 +140,13 @@ public:
 		}
 	}
 
+	inline void readNoCheck(float result[4], int x, int y)  {
+		const int dx = x - this->m_rect.xmin;
+		const int dy = y - this->m_rect.ymin;
+		const int offset = (this->m_chunkWidth * dy + dx) * COM_NUMBER_OF_CHANNELS;
+		copy_v4_v4(result, &this->m_buffer[offset]);
+	}
+	
 	void writePixel(int x, int y, const float color[4]);
 	void addPixel(int x, int y, const float color[4]);
 	inline void readCubic(float result[4], float x, float y)

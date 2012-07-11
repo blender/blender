@@ -103,16 +103,16 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "		float size = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
 "		color_accum = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);\n" \
 "\n" \
-"		for (int ny = miny; ny < maxy; ny += step) {\n" \
-"			for (int nx = minx; nx < maxx; nx += step) {\n" \
-"				if (nx >= 0 && nx < dimension.s0 && ny >= 0 && ny < dimension.s1) {\n" \
-"					inputCoordinate.s0 = nx - offsetInput.s0;\n" \
-"					inputCoordinate.s1 = ny - offsetInput.s1;\n" \
-"					tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
-"					if (size > threshold && tempSize > threshold) {\n" \
-"						float dx = nx - realCoordinate.s0;\n" \
-"						float dy = ny - realCoordinate.s1;\n" \
-"						if (dx != 0 || dy != 0) {\n" \
+"		if (size > threshold) {\n" \
+"			for (int ny = miny; ny < maxy; ny += step) {\n" \
+"				inputCoordinate.s1 = ny - offsetInput.s1;\n" \
+"				float dy = ny - realCoordinate.s1;\n" \
+"				for (int nx = minx; nx < maxx; nx += step) {\n" \
+"					float dx = nx - realCoordinate.s0;\n" \
+"					if (dx != 0 || dy != 0) {\n" \
+"						inputCoordinate.s0 = nx - offsetInput.s0;\n" \
+"						tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
+"						if (tempSize > threshold) {\n" \
 "							if (tempSize >= fabs(dx) && tempSize >= fabs(dy)) {\n" \
 "								float2 uv = { 256.0f + dx * 256.0f / tempSize, 256.0f + dy * 256.0f / tempSize};\n" \
 "								bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);\n" \

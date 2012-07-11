@@ -101,16 +101,16 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 		float size = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
 		color_accum = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);
 
-		for (int ny = miny; ny < maxy; ny += step) {
-			for (int nx = minx; nx < maxx; nx += step) {
-				if (nx >= 0 && nx < dimension.s0 && ny >= 0 && ny < dimension.s1) {
-					inputCoordinate.s0 = nx - offsetInput.s0;
-					inputCoordinate.s1 = ny - offsetInput.s1;
-					tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
-					if (size > threshold && tempSize > threshold) {
-						float dx = nx - realCoordinate.s0;
-						float dy = ny - realCoordinate.s1;
-						if (dx != 0 || dy != 0) {
+		if (size > threshold) {
+			for (int ny = miny; ny < maxy; ny += step) {
+				inputCoordinate.s1 = ny - offsetInput.s1;
+				float dy = ny - realCoordinate.s1;
+				for (int nx = minx; nx < maxx; nx += step) {
+					float dx = nx - realCoordinate.s0;
+					if (dx != 0 || dy != 0) {
+						inputCoordinate.s0 = nx - offsetInput.s0;
+						tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
+						if (tempSize > threshold) {
 							if (tempSize >= fabs(dx) && tempSize >= fabs(dy)) {
 								float2 uv = { 256.0f + dx * 256.0f / tempSize, 256.0f + dy * 256.0f / tempSize};
 								bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);
@@ -121,8 +121,8 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 						}
 					}
 				}
-			}
-		} 
+			} 
+		}
 	}
 
 	color = color_accum * (1.0f / multiplier_accum);

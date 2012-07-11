@@ -62,8 +62,29 @@ void VariableSizeBokehBlurOperation::initExecution()
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
+void *VariableSizeBokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
+	MemoryBuffer** result = new MemoryBuffer*[3];
+	result[0] = (MemoryBuffer*)this->m_inputProgram->initializeTileData(rect, memoryBuffers);
+	result[1] = (MemoryBuffer*)this->m_inputBokehProgram->initializeTileData(rect, memoryBuffers);
+	result[2] = (MemoryBuffer*)this->m_inputSizeProgram->initializeTileData(rect, memoryBuffers);
+	return result;
+}
+
+void VariableSizeBokehBlurOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+{
+	MemoryBuffer** result = (MemoryBuffer**)data;
+	delete[] result;
+}
+
 void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
+	MemoryBuffer** buffers = (MemoryBuffer**)data;
+	MemoryBuffer* inputProgramBuffer = buffers[0];
+	MemoryBuffer* inputBokehBuffer = buffers[1];
+	MemoryBuffer* inputSizeBuffer = buffers[2];
+	float* inputSizeFloatBuffer = inputSizeBuffer->getBuffer();
+	float* inputProgramFloatBuffer = inputProgramBuffer->getBuffer();
 	float readColor[4];
 	float bokeh[4];
 	float tempSize[4];
@@ -84,32 +105,37 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	int maxy = MIN2(y + this->m_maxBlur, m_height);
 #endif
 	{
-		this->m_inputSizeProgram->read(tempSize, x, y, COM_PS_NEAREST, inputBuffers);
-		this->m_inputProgram->read(readColor, x, y, COM_PS_NEAREST, inputBuffers);
+		inputSizeBuffer->readNoCheck(tempSize, x, y);
+		inputProgramBuffer->readNoCheck(readColor, x, y);
+
 		add_v4_v4(color_accum, readColor);
 		add_v4_fl(multiplier_accum, 1.0f);
 		float sizeCenter = tempSize[0];
 		
-		for (int ny = miny; ny < maxy; ny += QualityStepHelper::getStep()) {
-			for (int nx = minx; nx < maxx; nx += QualityStepHelper::getStep()) {
-				if (nx >= 0 && nx < this->getWidth() && ny >= 0 && ny < getHeight()) {
-					this->m_inputSizeProgram->read(tempSize, nx, ny, COM_PS_NEAREST, inputBuffers);
-					float size = tempSize[0];
-					float fsize = fabsf(size);
-					if (sizeCenter > this->m_threshold && size > this->m_threshold) {
-						float dx = nx - x;
-						float dy = ny - y;
-						if (nx == x && ny == y) {
-						}
-						else if (fsize > fabsf(dx) && fsize > fabsf(dy)) {
-							float u = (256 + (dx/size) * 256);
-							float v = (256 + (dy/size) * 256);
-							this->m_inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
-							this->m_inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
-							madd_v4_v4v4(color_accum, bokeh, readColor);
-							add_v4_v4(multiplier_accum, bokeh);
+		const int addXStep = QualityStepHelper::getStep()*COM_NUMBER_OF_CHANNELS;
+		
+		if (sizeCenter > this->m_threshold) {
+			for (int ny = miny; ny < maxy; ny += QualityStepHelper::getStep()) {
+				float dy = ny - y;
+				int offsetNy = ny * inputSizeBuffer->getWidth() * COM_NUMBER_OF_CHANNELS;
+				int offsetNxNy = offsetNy + (minx*COM_NUMBER_OF_CHANNELS);
+				for (int nx = minx; nx < maxx; nx += QualityStepHelper::getStep()) {
+					if (nx != x || ny != y) 
+					{
+						float size = inputSizeFloatBuffer[offsetNxNy];
+						if (size > this->m_threshold) {
+							float fsize = fabsf(size);
+							float dx = nx - x;
+							if (fsize > fabsf(dx) && fsize > fabsf(dy)) {
+								float u = (256.0f + (dx/size) * 256.0f);
+								float v = (256.0f + (dy/size) * 256.0f);
+								inputBokehBuffer->readNoCheck(bokeh, u, v);
+								madd_v4_v4v4(color_accum, bokeh, &inputProgramFloatBuffer[offsetNxNy]);
+								add_v4_v4(multiplier_accum, bokeh);
+							}
 						}
 					}
+					offsetNxNy += addXStep;
 				}
 			}
 		}
