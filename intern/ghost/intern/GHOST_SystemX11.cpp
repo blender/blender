@@ -93,9 +93,12 @@ GHOST_SystemX11(
 		abort(); //was return before, but this would just mean it will crash later
 	}
 
-	/* Open a connection to the X input manager */
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-	m_xim = XOpenIM(m_display, NULL, (char *)GHOST_X11_RES_NAME, (char *)GHOST_X11_RES_CLASS);
+	/* note -- don't open connection to XIM server here, because the locale
+	 * has to be set before opening the connection but setlocale() has not
+	 * been called yet.  the connection will be opened after entering
+	 * the event loop. */
+	m_xim = NULL;
 #endif
 
 	m_delete_window_atom 
@@ -273,6 +276,35 @@ createWindow(
 	return window;
 }
 
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+static void destroyIMCallback(XIM xim, XPointer ptr, XPointer data)
+{
+	GHOST_PRINT("XIM server died\n");
+
+	if (ptr)
+		*(XIM *)ptr = NULL;
+}
+
+bool GHOST_SystemX11::openX11_IM()
+{
+	if (!m_display)
+		return false;
+
+	/* set locale modifiers such as "@im=ibus" specified by XMODIFIERS */
+	XSetLocaleModifiers("");
+
+	m_xim = XOpenIM(m_display, NULL, (char *)GHOST_X11_RES_NAME, (char *)GHOST_X11_RES_CLASS);
+	if (!m_xim)
+		return false;
+
+	XIMCallback destroy;
+	destroy.callback = (XIMProc)destroyIMCallback;
+	destroy.client_data = (XPointer)&m_xim;
+	XSetIMValues(m_xim, XNDestroyCallback, &destroy, NULL);
+	return true;
+}
+#endif
+
 GHOST_WindowX11 *
 GHOST_SystemX11::
 findGhostWindow(
@@ -408,6 +440,38 @@ processEvents(
 		while (XPending(m_display)) {
 			XEvent xevent;
 			XNextEvent(m_display, &xevent);
+
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+			/* open connection to XIM server and create input context (XIC)
+			 * when receiving the first FocusIn or KeyPress event after startup,
+			 * or recover XIM and XIC when the XIM server has been restarted */
+			if (xevent.type == FocusIn || xevent.type == KeyPress) {
+				if (!m_xim && openX11_IM()) {
+					GHOST_PRINT("Connected to XIM server\n");
+				}
+
+				if (m_xim) {
+					GHOST_WindowX11 * window = findGhostWindow(xevent.xany.window);
+					if (window && !window->getX11_XIC() && window->createX11_XIC()) {
+						GHOST_PRINT("XIM input context created\n");
+						if (xevent.type == KeyPress)
+							/* we can assume the window has input focus
+							 * here, because key events are received only
+							 * when the window is focused. */
+							XSetICFocus(window->getX11_XIC());
+					}
+				}
+			}
+
+			/* dispatch event to XIM server */
+			if ((XFilterEvent(&xevent, (Window)NULL) == True) && (xevent.type != KeyRelease)) {
+				/* do nothing now, the event is consumed by XIM.
+				 * however, KeyRelease event should be processed
+				 * here, otherwise modifiers remain activated.   */
+				continue;
+			}
+#endif
+
 			processEvent(&xevent);
 			anyProcessed = true;
 		}
@@ -535,7 +599,19 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			XKeyEvent *xke = &(xe->xkey);
 			KeySym key_sym = XLookupKeysym(xke, 0);
 			char ascii;
-			char utf8_buf[6]; /* 6 is enough for a utf8 char */
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+			/* utf8_array[] is initial buffer used for Xutf8LookupString().
+			 * if the length of the utf8 string exceeds this array, allocate
+			 * another memory area and call Xutf8LookupString() again.
+			 * the last 5 bytes are used to avoid segfault that might happen
+			 * at the end of this buffer when the constructor of GHOST_EventKey
+			 * reads 6 bytes regardless of the effective data length. */
+			char utf8_array[16 * 6 + 5]; /* 16 utf8 characters */
+			char *utf8_buf = utf8_array;
+			int len = 1; /* at least one null character will be stored */
+#else
+			char *utf8_buf = NULL;
+#endif
 			
 			GHOST_TKey gkey = convertXKey(key_sym);
 			GHOST_TEventType type = (xke->type == KeyPress) ? 
@@ -547,13 +623,18 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 			/* getting unicode on key-up events gives XLookupNone status */
-			if (xke->type == KeyPress) {
+			XIC xic = window->getX11_XIC();
+			if (xic && xke->type == KeyPress) {
 				Status status;
-				int len;
 
 				/* use utf8 because its not locale depentant, from xorg docs */
-				if (!(len = Xutf8LookupString(window->getX11_XIC(), xke, utf8_buf, sizeof(utf8_buf), &key_sym, &status))) {
+				if (!(len = Xutf8LookupString(xic, xke, utf8_buf, sizeof(utf8_array) - 5, &key_sym, &status))) {
 					utf8_buf[0] = '\0';
+				}
+
+				if (status == XBufferOverflow) {
+					utf8_buf = (char *) malloc(len + 5);
+					len = Xutf8LookupString(xic, xke, utf8_buf, len, &key_sym, &status);
 				}
 
 				if ((status == XLookupChars || status == XLookupBoth)) {
@@ -571,19 +652,16 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				else {
 					printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
 					       (unsigned int) key_sym,
-					       (status == XBufferOverflow ? "BufferOverflow" :
-					        status == XLookupNone ? "XLookupNone" :
+					       (status == XLookupNone ? "XLookupNone" :
 					        status == XLookupKeySym ? "XLookupKeySym" :
 					        "Unknown status"));
 
-					printf("'%.*s' %p %p\n", len, utf8_buf, window->getX11_XIC(), m_xim);
+					printf("'%.*s' %p %p\n", len, utf8_buf, xic, m_xim);
 				}
 			}
 			else {
 				utf8_buf[0] = '\0';
 			}
-#else
-			utf8_buf[0] = '\0';
 #endif
 
 			g_event = new
@@ -595,6 +673,42 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			    ascii,
 			    utf8_buf
 			    );
+
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+			/* when using IM for some languages such as Japanese,
+			 * one event inserts multiple utf8 characters */
+			if (xic && xke->type == KeyPress) {
+				unsigned char c;
+				int i = 0;
+				while (1) {
+					/* search character boundary */
+					if ((unsigned char)utf8_buf[i++] > 0x7f) {
+						for (; i < len; ++i) {
+							c = utf8_buf[i];
+							if (c < 0x80 || c > 0xbf) break;
+						}
+					}
+
+					if (i >= len) break;
+
+					/* enqueue previous character */
+					pushEvent(g_event);
+
+					g_event = new
+					          GHOST_EventKey(
+					    getMilliSeconds(),
+					    type,
+					    window,
+					    gkey,
+					    '\0',
+					    &utf8_buf[i]
+					    );
+				}
+			}
+
+			if (utf8_buf != utf8_array)
+				free(utf8_buf);
+#endif
 			
 			break;
 		}
@@ -674,6 +788,16 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 									
 			GHOST_TEventType gtype = (xfe.type == FocusIn) ? 
 			                         GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate;
+
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+			XIC xic = window->getX11_XIC();
+			if (xic) {
+				if (xe->type == FocusIn)
+					XSetICFocus(xic);
+				else
+					XUnsetICFocus(xic);
+			}
+#endif
 
 			g_event = new 
 			          GHOST_Event(

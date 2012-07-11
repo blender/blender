@@ -401,10 +401,7 @@ GHOST_WindowX11(
 	}
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-	m_xic = XCreateIC(m_system->getX11_XIM(), XNClientWindow, m_window, XNFocusWindow, m_window,
-	                  XNInputStyle, XIMPreeditNothing | XIMStatusNothing,
-	                  XNResourceName, GHOST_X11_RES_NAME, XNResourceClass,
-	                  GHOST_X11_RES_CLASS, NULL);
+	m_xic = NULL;
 #endif
 
 	// Set the window icon
@@ -477,6 +474,47 @@ GHOST_WindowX11(
 
 	XFlush(m_display);
 }
+
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+static void destroyICCallback(XIC xic, XPointer ptr, XPointer data)
+{
+	GHOST_PRINT("XIM input context destroyed\n");
+
+	if (ptr) {
+		*(XIC *)ptr = NULL;
+	}
+}
+
+bool GHOST_WindowX11::createX11_XIC()
+{
+	XIM xim = m_system->getX11_XIM();
+	if (!xim)
+		return false;
+
+	XICCallback destroy;
+	destroy.callback = (XICProc)destroyICCallback;
+	destroy.client_data = (XPointer)&m_xic;
+	m_xic = XCreateIC(xim, XNClientWindow, m_window, XNFocusWindow, m_window,
+	                  XNInputStyle, XIMPreeditNothing | XIMStatusNothing,
+	                  XNResourceName, GHOST_X11_RES_NAME,
+	                  XNResourceClass, GHOST_X11_RES_CLASS,
+	                  XNDestroyCallback, &destroy,
+	                  NULL);
+	if (!m_xic)
+		return false;
+
+	unsigned long fevent;
+	XGetICValues(m_xic, XNFilterEvents, &fevent, NULL);
+	XSelectInput(m_display, m_window,
+	             ExposureMask | StructureNotifyMask |
+	             KeyPressMask | KeyReleaseMask |
+	             EnterWindowMask | LeaveWindowMask |
+	             ButtonPressMask | ButtonReleaseMask |
+	             PointerMotionMask | FocusChangeMask |
+	             PropertyChangeMask | fevent);
+	return true;
+}
+#endif
 
 #ifdef WITH_X11_XINPUT
 /* 

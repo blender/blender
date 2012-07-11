@@ -238,6 +238,9 @@ void ED_operatortypes_mask(void)
 	WM_operatortype_append(MASK_OT_shape_key_clear);
 	WM_operatortype_append(MASK_OT_shape_key_feather_reset);
 	WM_operatortype_append(MASK_OT_shape_key_rekey);
+
+	/* layers */
+	WM_operatortype_append(MASK_OT_layer_move);
 }
 
 void ED_keymap_mask(wmKeyConfig *keyconf)

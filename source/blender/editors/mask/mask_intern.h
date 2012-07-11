@@ -70,6 +70,8 @@ struct MaskSplinePoint *ED_mask_point_find_nearest(
         struct MaskLayer **masklay_r, struct MaskSpline **spline_r, int *is_handle_r,
         float *score);
 
+void MASK_OT_layer_move(struct wmOperatorType *ot);
+
 /* mask_relationships.c */
 void MASK_OT_parent_set(struct wmOperatorType *ot);
 void MASK_OT_parent_clear(struct wmOperatorType *ot);
