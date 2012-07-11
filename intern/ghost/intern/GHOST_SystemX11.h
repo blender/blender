@@ -309,6 +309,10 @@ private:
 	 * X11 window xwind
 	 */
 
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+	bool openX11_IM();
+#endif
+
 	GHOST_WindowX11 *
 	findGhostWindow(
 	    Window xwind
