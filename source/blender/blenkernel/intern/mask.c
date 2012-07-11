@@ -314,14 +314,14 @@ static int BKE_mask_spline_feather_resolution(MaskSpline *spline, int width, int
 	return resol;
 }
 
-float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline, int width, int height,
-                                                      int *tot_diff_point))[2]
+float (*BKE_mask_spline_differentiate_with_resolution_ex(MaskSpline *spline, const int resol,
+                                                         int *tot_diff_point))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 	MaskSplinePoint *point, *prev;
 	float (*diff_points)[2], (*fp)[2];
-	int a, len, resol = BKE_mask_spline_resolution(spline, width, height);
+	int a, len;
 
 	if (spline->tot_point <= 1) {
 		/* nothing to differentiate */
@@ -378,18 +378,26 @@ float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline, int wi
 	return diff_points;
 }
 
+float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline, int width, int height,
+                                                      int *tot_diff_point))[2]
+{
+	int resol = BKE_mask_spline_resolution(spline, width, height);
+
+	return BKE_mask_spline_differentiate_with_resolution_ex(spline, resol, tot_diff_point);
+}
+
 float (*BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point))[2]
 {
 	return BKE_mask_spline_differentiate_with_resolution(spline, 0, 0, tot_diff_point);
 }
 
-float (*BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline *spline, int width, int height,
-                                                                      int *tot_feather_point))[2]
+float (*BKE_mask_spline_feather_differentiated_points_with_resolution_ex(MaskSpline *spline, const int resol,
+                                                                         int *tot_feather_point))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 	float (*feather)[2], (*fp)[2];
-	int i, j, tot, resol = BKE_mask_spline_feather_resolution(spline, width, height);
+	int i, j, tot;
 
 	tot = resol * spline->tot_point;
 	feather = fp = MEM_mallocN(tot * sizeof(*feather), "mask spline feather diff points");
@@ -414,6 +422,14 @@ float (*BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline
 	*tot_feather_point = tot;
 
 	return feather;
+}
+
+float (*BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline *spline, int width, int height,
+                                                                      int *tot_feather_point))[2]
+{
+	int resol = BKE_mask_spline_feather_resolution(spline, width, height);
+
+	return BKE_mask_spline_feather_differentiated_points_with_resolution_ex(spline, resol, tot_feather_point);
 }
 
 float (*BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *tot_feather_point))[2]
