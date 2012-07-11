@@ -677,26 +677,36 @@ class CLIP_PT_mask_layers(Panel):
 
         sc = context.space_data
         mask = sc.mask
+        active_layer = mask.layers.active
+
+        rows = 5 if active_layer else 2
 
         row = layout.row()
         row.template_list(mask, "layers",
-                          mask, "active_layer_index", rows=3)
+                          mask, "active_layer_index", rows=rows)
 
         sub = row.column(align=True)
 
         sub.operator("mask.layer_new", icon='ZOOMIN', text="")
         sub.operator("mask.layer_remove", icon='ZOOMOUT', text="")
 
-        active = mask.layers.active
-        if active:
-            layout.prop(active, "name")
+        if active_layer:
+            sub.separator()
+
+            props = sub.operator("mask.layer_move", icon='TRIA_UP', text="")
+            props.direction = 'UP'
+
+            props = sub.operator("mask.layer_move", icon='TRIA_DOWN', text="")
+            props.direction = 'DOWN'
+
+            layout.prop(active_layer, "name")
 
             # blending
             row = layout.row(align=True)
-            row.prop(active, "alpha")
-            row.prop(active, "invert", text="", icon='IMAGE_ALPHA')
+            row.prop(active_layer, "alpha")
+            row.prop(active_layer, "invert", text="", icon='IMAGE_ALPHA')
 
-            layout.prop(active, "blend")
+            layout.prop(active_layer, "blend")
 
 
 class CLIP_PT_active_mask_spline(Panel):

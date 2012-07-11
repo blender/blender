@@ -1341,3 +1341,74 @@ void MASK_OT_feather_weight_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/******************** move mask layer operator *********************/
+
+static int mask_layer_move_poll(bContext *C)
+{
+	if (ED_maskedit_mask_poll(C)) {
+		Mask *mask = CTX_data_edit_mask(C);
+
+		return mask->masklay_tot > 0;
+	}
+
+	return FALSE;
+}
+
+static int mask_layer_move_exec(bContext *C, wmOperator *op)
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *mask_layer = BLI_findlink(&mask->masklayers, mask->masklay_act);
+	MaskLayer *mask_layer_other;
+	int direction = RNA_enum_get(op->ptr, "direction");
+
+	if (!mask_layer)
+		return OPERATOR_CANCELLED;
+
+	if (direction == -1) {
+		mask_layer_other = mask_layer->prev;
+
+		if (!mask_layer_other)
+			return OPERATOR_CANCELLED;
+
+		BLI_remlink(&mask->masklayers, mask_layer);
+		BLI_insertlinkbefore(&mask->masklayers, mask_layer_other, mask_layer);
+		mask->masklay_act--;
+	}
+	else if (direction == 1) {
+		mask_layer_other = mask_layer->next;
+
+		if (!mask_layer_other)
+			return OPERATOR_CANCELLED;
+
+		BLI_remlink(&mask->masklayers, mask_layer);
+		BLI_insertlinkafter(&mask->masklayers, mask_layer_other, mask_layer);
+		mask->masklay_act++;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void MASK_OT_layer_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem direction_items[] = {
+		{-1, "UP", 0, "Up", ""},
+		{1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Move Layer";
+	ot->description = "Move the active layer up/down in the list";
+	ot->idname = "MASK_OT_layer_move";
+
+	/* api callbacks */
+	ot->exec = mask_layer_move_exec;
+	ot->poll = mask_layer_move_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to move the active layer");
+}
