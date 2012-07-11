@@ -64,7 +64,7 @@ void ViewerOperation::deinitExecution()
 }
 
 
-void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	float *buffer = this->m_outputBuffer;
 	unsigned char *bufferDisplay = this->m_outputBufferDisplay;
@@ -82,9 +82,9 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryB
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2; x++) {
-			this->m_imageInput->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
+			this->m_imageInput->read(&(buffer[offset]), x, y, COM_PS_NEAREST, NULL);
 			if (this->m_alphaInput != NULL) {
-				this->m_alphaInput->read(alpha, x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_alphaInput->read(alpha, x, y, COM_PS_NEAREST, NULL);
 				buffer[offset + 3] = alpha[0];
 			}
 			/// @todo: linear conversion only when scene color management is selected, also check predivide.

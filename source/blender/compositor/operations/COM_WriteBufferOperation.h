@@ -41,7 +41,7 @@ public:
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	const bool isWriteBufferOperation() const { return true; }
 	
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void initExecution();
 	void deinitExecution();
 	void executeOpenCLRegion(OpenCLDevice* device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **memoryBuffers, MemoryBuffer *outputBuffer);

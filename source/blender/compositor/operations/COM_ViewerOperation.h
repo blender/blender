@@ -34,7 +34,7 @@ private:
 
 public:
 	ViewerOperation();
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void initExecution();
 	void deinitExecution();
 };

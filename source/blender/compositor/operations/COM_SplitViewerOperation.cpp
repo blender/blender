@@ -60,7 +60,7 @@ void SplitViewerOperation::deinitExecution()
 }
 
 
-void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	float *buffer = this->m_outputBuffer;
 	unsigned char *bufferDisplay = this->m_outputBufferDisplay;
@@ -80,10 +80,10 @@ void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 			float srgb[4];
 			image1 = this->m_xSplit ? x > perc : y > perc;
 			if (image1) {
-				this->m_image1Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_image1Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, NULL);
 			}
 			else {
-				this->m_image2Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_image2Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, NULL);
 			}
 			/// @todo: linear conversion only when scene color management is selected, also check predivide.
 			if (this->m_doColorManagement) {

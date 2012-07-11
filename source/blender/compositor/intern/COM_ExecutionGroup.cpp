@@ -372,23 +372,6 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 	delete[] chunkOrder;
 }
 
-MemoryBuffer **ExecutionGroup::getInputBuffersCPU()
-{
-	vector<MemoryProxy *> memoryproxies;
-	unsigned int index;
-
-	this->determineDependingMemoryProxies(&memoryproxies);
-	MemoryBuffer **memoryBuffers = new MemoryBuffer *[this->m_cachedMaxReadBufferOffset];
-	for (index = 0; index < this->m_cachedMaxReadBufferOffset; index++) {
-		memoryBuffers[index] = NULL;
-	}
-	for (index = 0; index < this->m_cachedReadOperations.size(); index++) {
-		ReadBufferOperation *readOperation = (ReadBufferOperation *)this->m_cachedReadOperations[index];
-		memoryBuffers[readOperation->getOffset()] = readOperation->getMemoryProxy()->getBuffer();
-	}
-	return memoryBuffers;
-}
-
 MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 {
 	rcti rect;

@@ -94,7 +94,7 @@ void CompositorOperation::deinitExecution()
 }
 
 
-void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	float color[8]; // 7 is enough
 	float *buffer = this->m_outputBuffer;
@@ -111,9 +111,9 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, Mem
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
-			this->m_imageInput->read(color, x, y, COM_PS_NEAREST, memoryBuffers);
+			this->m_imageInput->read(color, x, y, COM_PS_NEAREST, NULL);
 			if (this->m_alphaInput != NULL) {
-				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST, NULL);
 			}
 			copy_v4_v4(buffer + offset, color);
 			offset += COM_NUMBER_OF_CHANNELS;
