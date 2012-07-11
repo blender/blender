@@ -404,6 +404,8 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			if(b_image)
 				image->filename = image_user_file_path(b_image_node.image_user(), b_image, b_scene.frame_current());
 			image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
+			image->projection = ImageTextureNode::projection_enum[(int)b_image_node.projection()];
+			image->projection_blend = b_image_node.projection_blend();
 			get_tex_mapping(&image->tex_mapping, b_image_node.texture_mapping());
 			node = image;
 			break;

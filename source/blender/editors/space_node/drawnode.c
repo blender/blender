@@ -1340,6 +1340,10 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
+
+	if(RNA_enum_get(ptr, "projection") == SHD_PROJ_BOX)
+		uiItemR(layout, ptr, "projection_blend", 0, "blend", ICON_NONE);
 
 	/* note: image user properties used directly here, unlike compositor image node,
 	 * which redefines them in the node struct RNA to get proper updates.

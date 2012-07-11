@@ -112,7 +112,18 @@ static ShaderEnum color_space_init()
 	return enm;
 }
 
+static ShaderEnum image_projection_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Flat", 0);
+	enm.insert("Box", 1);
+
+	return enm;
+}
+
 ShaderEnum ImageTextureNode::color_space_enum = color_space_init();
+ShaderEnum ImageTextureNode::projection_enum = image_projection_init();
 
 ImageTextureNode::ImageTextureNode()
 : TextureNode("image_texture")
@@ -122,6 +133,8 @@ ImageTextureNode::ImageTextureNode()
 	is_float = false;
 	filename = "";
 	color_space = ustring("Color");
+	projection = ustring("Flat");;
+	projection_blend = 0.0f;
 
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_UV);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -169,13 +182,25 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 			tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
 		}
 
-		compiler.add_node(NODE_TEX_IMAGE,
-			slot,
-			compiler.encode_uchar4(
-				vector_offset,
-				color_out->stack_offset,
-				alpha_out->stack_offset,
-				srgb));
+		if(projection == "Flat") {
+			compiler.add_node(NODE_TEX_IMAGE,
+				slot,
+				compiler.encode_uchar4(
+					vector_offset,
+					color_out->stack_offset,
+					alpha_out->stack_offset,
+					srgb));
+		}
+		else {
+			compiler.add_node(NODE_TEX_IMAGE_BOX,
+				slot,
+				compiler.encode_uchar4(
+					vector_offset,
+					color_out->stack_offset,
+					alpha_out->stack_offset,
+					srgb),
+				__float_as_int(projection_blend));
+		}
 	
 		if(vector_offset != vector_in->stack_offset)
 			compiler.stack_clear_offset(vector_in->type, vector_offset);
@@ -205,7 +230,7 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 
 /* Environment Texture */
 
-static ShaderEnum projection_init()
+static ShaderEnum env_projection_init()
 {
 	ShaderEnum enm;
 
@@ -216,7 +241,7 @@ static ShaderEnum projection_init()
 }
 
 ShaderEnum EnvironmentTextureNode::color_space_enum = color_space_init();
-ShaderEnum EnvironmentTextureNode::projection_enum = projection_init();
+ShaderEnum EnvironmentTextureNode::projection_enum = env_projection_init();
 
 EnvironmentTextureNode::EnvironmentTextureNode()
 : TextureNode("environment_texture")

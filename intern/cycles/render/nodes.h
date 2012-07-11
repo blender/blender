@@ -70,8 +70,11 @@ public:
 	bool is_float;
 	string filename;
 	ustring color_space;
+	ustring projection;
+	float projection_blend;
 
 	static ShaderEnum color_space_enum;
+	static ShaderEnum projection_enum;
 };
 
 class EnvironmentTextureNode : public TextureNode {
