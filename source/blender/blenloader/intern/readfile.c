@@ -8519,7 +8519,6 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
 static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 {
 	CustomDataLayer *layer;
-	MTFace *mtf;
 	TFace *tf;
 	int a, i;
 	
@@ -8541,14 +8540,34 @@ static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 		}
 	}
 
-	for (a = 0; a < me->fdata.totlayer; a++) {
-		layer = &me->fdata.layers[a];
-		
-		if (layer->type == CD_MTFACE) {
-			mtf = (MTFace*)layer->data;
-			for (i = 0; i < me->totface; i++, mtf++) {
-				if (mtf->tpage)
-					expand_doit(fd, mainvar, mtf->tpage);
+	if (me->mface && !me->mpoly) {
+		MTFace *mtf;
+
+		for (a = 0; a < me->fdata.totlayer; a++) {
+			layer = &me->fdata.layers[a];
+
+			if (layer->type == CD_MTFACE) {
+				mtf = (MTFace *) layer->data;
+				for (i = 0; i < me->totface; i++, mtf++) {
+					if (mtf->tpage)
+						expand_doit(fd, mainvar, mtf->tpage);
+				}
+			}
+		}
+	}
+	else {
+		MTexPoly *mtp;
+
+		for (a = 0; a < me->pdata.totlayer; a++) {
+			layer = &me->pdata.layers[a];
+
+			if (layer->type == CD_MTEXPOLY) {
+				mtp = (MTexPoly *) layer->data;
+
+				for (i = 0; i < me->totpoly; i++, mtp++) {
+					if (mtp->tpage)
+						expand_doit(fd, mainvar, mtp->tpage);
+				}
 			}
 		}
 	}
