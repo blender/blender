@@ -120,7 +120,7 @@ void NodeOperation::getConnectedInputSockets(vector<InputSocket *> *sockets)
 bool NodeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	if (this->isInputNode()) {
-		BLI_init_rcti(output, input->xmin, input->xmax, input->ymin, input->ymax);
+		BLI_rcti_init(output, input->xmin, input->xmax, input->ymin, input->ymax);
 		return false;
 	}
 	else {

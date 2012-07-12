@@ -40,7 +40,7 @@ int MemoryBuffer::getHeight() const
 
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect)
 {
-	BLI_init_rcti(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+	BLI_rcti_init(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 	this->m_memoryProxy = memoryProxy;
 	this->m_chunkNumber = chunkNumber;
 	this->m_buffer = (float *)MEM_mallocN(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
@@ -51,7 +51,7 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, r
 
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect)
 {
-	BLI_init_rcti(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+	BLI_rcti_init(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 	this->m_memoryProxy = memoryProxy;
 	this->m_chunkNumber = -1;
 	this->m_buffer = (float *)MEM_mallocN(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");

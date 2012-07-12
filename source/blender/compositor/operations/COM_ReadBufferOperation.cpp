@@ -67,7 +67,7 @@ void ReadBufferOperation::executePixel(float *color, float x, float y, float dx,
 bool ReadBufferOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	if (this == readOperation) {
-		BLI_init_rcti(output, input->xmin, input->xmax, input->ymin, input->ymax);
+		BLI_rcti_init(output, input->xmin, input->xmax, input->ymin, input->ymax);
 		return true;
 	}
 	return false;

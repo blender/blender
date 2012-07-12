@@ -41,6 +41,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_rect.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -80,8 +81,7 @@ int paint_convert_bb_to_rect(rcti *rect,
 	float projection_mat[4][4];
 	int i, j, k;
 
-	rect->xmin = rect->ymin = INT_MAX;
-	rect->xmax = rect->ymax = INT_MIN;
+	BLI_rcti_init_minmax(rect);
 
 	/* return zero if the bounding box has non-positive volume */
 	if (bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2])

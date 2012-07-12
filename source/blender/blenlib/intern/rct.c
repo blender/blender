@@ -35,6 +35,9 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <limits.h>
+#include <float.h>
+
 #include "DNA_vec_types.h"
 #include "BLI_rect.h"
 
@@ -57,6 +60,13 @@ int BLI_in_rcti(const rcti *rect, const int x, const int y)
 	return 1;
 }
 
+/**
+ * Determine if a rect is empty. An empty
+ * rect is one with a zero (or negative)
+ * width or height.
+ *
+ * \return True if \a rect is empty.
+ */
 int BLI_in_rcti_v(const rcti *rect, const int xy[2])
 {
 	if (xy[0] < rect->xmin) return 0;
@@ -149,7 +159,7 @@ void BLI_union_rcti(rcti *rct1, const rcti *rct2)
 	if (rct1->ymax < rct2->ymax) rct1->ymax = rct2->ymax;
 }
 
-void BLI_init_rctf(rctf *rect, float xmin, float xmax, float ymin, float ymax)
+void BLI_rctf_init(rctf *rect, float xmin, float xmax, float ymin, float ymax)
 {
 	if (xmin <= xmax) {
 		rect->xmin = xmin;
@@ -169,7 +179,7 @@ void BLI_init_rctf(rctf *rect, float xmin, float xmax, float ymin, float ymax)
 	}
 }
 
-void BLI_init_rcti(rcti *rect, int xmin, int xmax, int ymin, int ymax)
+void BLI_rcti_init(rcti *rect, int xmin, int xmax, int ymin, int ymax)
 {
 	if (xmin <= xmax) {
 		rect->xmin = xmin;
@@ -187,6 +197,18 @@ void BLI_init_rcti(rcti *rect, int xmin, int xmax, int ymin, int ymax)
 		rect->ymax = ymin;
 		rect->ymin = ymax;
 	}
+}
+
+void BLI_rcti_init_minmax(struct rcti *rect)
+{
+	rect->xmin = rect->ymin = INT_MAX;
+	rect->xmax = rect->ymax = INT_MIN;
+}
+
+void BLI_rctf_init_minmax(struct rctf *rect)
+{
+	rect->xmin = rect->ymin = FLT_MAX;
+	rect->xmax = rect->ymax = FLT_MIN;
 }
 
 void BLI_translate_rcti(rcti *rect, int x, int y)

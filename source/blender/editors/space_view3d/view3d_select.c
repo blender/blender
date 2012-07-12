@@ -1130,19 +1130,19 @@ static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buff
 	short a, hits15, hits9 = 0, hits5 = 0;
 	short has_bones15 = 0, has_bones9 = 0, has_bones5 = 0;
 	
-	BLI_init_rcti(&rect, mval[0] - 14, mval[0] + 14, mval[1] - 14, mval[1] + 14);
+	BLI_rcti_init(&rect, mval[0] - 14, mval[0] + 14, mval[1] - 14, mval[1] + 14);
 	hits15 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect);
 	if (hits15 > 0) {
 		for (a = 0; a < hits15; a++) if (buffer[4 * a + 3] & 0xFFFF0000) has_bones15 = 1;
 
 		offs = 4 * hits15;
-		BLI_init_rcti(&rect, mval[0] - 9, mval[0] + 9, mval[1] - 9, mval[1] + 9);
+		BLI_rcti_init(&rect, mval[0] - 9, mval[0] + 9, mval[1] - 9, mval[1] + 9);
 		hits9 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect);
 		if (hits9 > 0) {
 			for (a = 0; a < hits9; a++) if (buffer[offs + 4 * a + 3] & 0xFFFF0000) has_bones9 = 1;
 
 			offs += 4 * hits9;
-			BLI_init_rcti(&rect, mval[0] - 5, mval[0] + 5, mval[1] - 5, mval[1] + 5);
+			BLI_rcti_init(&rect, mval[0] - 5, mval[0] + 5, mval[1] - 5, mval[1] + 5);
 			hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect);
 			if (hits5 > 0) {
 				for (a = 0; a < hits5; a++) if (buffer[offs + 4 * a + 3] & 0xFFFF0000) has_bones5 = 1;

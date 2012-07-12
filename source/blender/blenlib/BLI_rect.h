@@ -40,18 +40,12 @@ struct rcti;
 extern "C" {
 #endif
 
-/* BLI_rct.c */
-/**
- * Determine if a rect is empty. An empty
- * rect is one with a zero (or negative)
- * width or height.
- *
- * \return True if \a rect is empty.
- */
 int  BLI_rcti_is_empty(const struct rcti *rect);
 int  BLI_rctf_is_empty(const struct rctf *rect);
-void BLI_init_rctf(struct rctf *rect, float xmin, float xmax, float ymin, float ymax);
-void BLI_init_rcti(struct rcti *rect, int xmin, int xmax, int ymin, int ymax);
+void BLI_rctf_init(struct rctf *rect, float xmin, float xmax, float ymin, float ymax);
+void BLI_rcti_init(struct rcti *rect, int xmin, int xmax, int ymin, int ymax);
+void BLI_rcti_init_minmax(struct rcti *rect);
+void BLI_rctf_init_minmax(struct rctf *rect);
 void BLI_translate_rctf(struct rctf *rect, float x, float y);
 void BLI_translate_rcti(struct rcti *rect, int x, int y);
 void BLI_resize_rcti(struct rcti *rect, int x, int y);

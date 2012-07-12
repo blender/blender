@@ -71,7 +71,7 @@ CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, floa
 	clipmaxx = MAX2(minx, maxx);
 	clipmaxy = MAX2(miny, maxy);
 	
-	BLI_init_rctf(&cumap->curr, clipminx, clipmaxx, clipminy, clipmaxy);
+	BLI_rctf_init(&cumap->curr, clipminx, clipmaxx, clipminy, clipmaxy);
 	cumap->clipr = cumap->curr;
 	
 	cumap->white[0] = cumap->white[1] = cumap->white[2] = 1.0f;
