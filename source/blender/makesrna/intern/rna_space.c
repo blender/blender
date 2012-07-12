@@ -118,6 +118,15 @@ EnumPropertyItem viewport_shade_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem clip_editor_mode_items[] = {
+	{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
+	{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction",
+	                         "Show tracking/reconstruction tools"},
+	{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
+	{SC_MODE_MASKEDIT, "MASKEDIT", ICON_MOD_MASK, "Mask editing", "Show mask editing tools"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -3011,15 +3020,6 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem mode_items[] = {
-		{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
-		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction",
-		                         "Show tracking/reconstruction tools"},
-		{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
-		{SC_MODE_MASKEDIT, "MASKEDIT", ICON_MOD_MASK, "Mask editing", "Show mask editing tools"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static EnumPropertyItem view_items[] = {
 		{SC_VIEW_CLIP, "CLIP", ICON_SEQUENCE, "Clip", "Show editing clip preview"},
 		{SC_VIEW_GRAPH, "GRAPH", ICON_IPO, "Graph", "Show graph view for active element"},
@@ -3086,7 +3086,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	/* mode */
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
-	RNA_def_property_enum_items(prop, mode_items);
+	RNA_def_property_enum_items(prop, clip_editor_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceClipEditor_clip_mode_update");
 

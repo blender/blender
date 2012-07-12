@@ -1301,6 +1301,17 @@ class CLIP_MT_mask(Menu):
         layout.menu("CLIP_MT_mask_animation")
 
 
+class CLIP_MT_select_mode(Menu):
+    bl_label = "Select Mode"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator_enum("clip.mode_set", "mode")
+
+
 class CLIP_MT_mask_visibility(Menu):
     bl_label = "Show/Hide"
 

@@ -62,6 +62,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "UI_view2d.h"
 
@@ -1074,15 +1075,8 @@ static int mode_set_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	int mode = RNA_enum_get(op->ptr, "mode");
-	int toggle = RNA_boolean_get(op->ptr, "toggle");
 
-	if (sc->mode == mode) {
-		if (toggle)
-			sc->mode = SC_MODE_TRACKING;
-	}
-	else {
-		sc->mode = mode;
-	}
+	sc->mode = mode;
 
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CLIP, NULL);
 
@@ -1091,13 +1085,6 @@ static int mode_set_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_mode_set(wmOperatorType *ot)
 {
-	static EnumPropertyItem mode_items[] = {
-		{SC_MODE_TRACKING, "TRACKING", 0, "Tracking", "Show tracking and solving tools"},
-		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", 0, "Reconstruction", "Show tracking/reconstruction tools"},
-		{SC_MODE_DISTORTION, "DISTORTION", 0, "Distortion", "Show distortion tools"},
-		{0, NULL, 0, NULL, NULL}};
-
-
 	/* identifiers */
 	ot->name = "Set Clip Mode";
 	ot->description = "Set the clip interaction mode";
@@ -1109,8 +1096,7 @@ void CLIP_OT_mode_set(wmOperatorType *ot)
 	ot->poll = ED_space_clip_poll;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "mode", mode_items, SC_MODE_TRACKING, "Mode", "");
-	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+	RNA_def_enum(ot->srna, "mode", clip_editor_mode_items, SC_MODE_TRACKING, "Mode", "");
 }
 
 /********************** macroses *********************/
