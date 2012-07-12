@@ -26,8 +26,6 @@
 #include "util_path.h"
 #include "util_types.h"
 
-#define BOOST_FILESYSTEM_VERSION 2
-
 #include <boost/filesystem.hpp> 
 #include <boost/algorithm/string.hpp>
 
@@ -117,7 +115,7 @@ void Cache::clear_except(const string& name, const set<string>& except)
 		boost::filesystem::directory_iterator it(dir), it_end;
 
 		for(; it != it_end; it++) {
-			string filename = it->path().filename();
+			string filename = it->path().filename().string();
 
 			if(boost::starts_with(filename, name))
 				if(except.find(filename) == except.end())

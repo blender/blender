@@ -52,7 +52,7 @@ private:
 	SocketReader *m_alphaInput;
 public:
 	CompositorOperation();
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
 	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();

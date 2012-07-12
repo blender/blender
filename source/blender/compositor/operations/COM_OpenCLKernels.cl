@@ -1,7 +1,30 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor: 
+ *		Jeroen Bakker 
+ *		Monique Dewanchand
+ */
+
 /// This file contains all opencl kernels for node-operation implementations 
 
 // Global SAMPLERS
-const sampler_t SAMPLER_NEAREST      = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+const sampler_t SAMPLER_NEAREST       = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+const sampler_t SAMPLER_NEAREST_CLAMP = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
 __constant const int2 zero = {0,0};
 
@@ -78,16 +101,16 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 		float size = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
 		color_accum = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);
 
-		for (int ny = miny; ny < maxy; ny += step) {
-			for (int nx = minx; nx < maxx; nx += step) {
-				if (nx >= 0 && nx < dimension.s0 && ny >= 0 && ny < dimension.s1) {
-					inputCoordinate.s0 = nx - offsetInput.s0;
-					inputCoordinate.s1 = ny - offsetInput.s1;
-					tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
-					if (size > threshold && tempSize > threshold) {
-						float dx = nx - realCoordinate.s0;
-						float dy = ny - realCoordinate.s1;
-						if (dx != 0 || dy != 0) {
+		if (size > threshold) {
+			for (int ny = miny; ny < maxy; ny += step) {
+				inputCoordinate.s1 = ny - offsetInput.s1;
+				float dy = ny - realCoordinate.s1;
+				for (int nx = minx; nx < maxx; nx += step) {
+					float dx = nx - realCoordinate.s0;
+					if (dx != 0 || dy != 0) {
+						inputCoordinate.s0 = nx - offsetInput.s0;
+						tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
+						if (tempSize > threshold) {
 							if (tempSize >= fabs(dx) && tempSize >= fabs(dy)) {
 								float2 uv = { 256.0f + dx * 256.0f / tempSize, 256.0f + dy * 256.0f / tempSize};
 								bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);
@@ -98,8 +121,8 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 						}
 					}
 				}
-			}
-		} 
+			} 
+		}
 	}
 
 	color = color_accum * (1.0f / multiplier_accum);
@@ -167,4 +190,45 @@ __kernel void erodeKernel(__read_only image2d_t inputImage,  __write_only image2
 
 	float4 color = {value,0.0f,0.0f,0.0f};
 	write_imagef(output, coords, color);
+}
+
+// KERNEL --- DIRECTIONAL BLUR ---
+__kernel void directionalBlurKernel(__read_only image2d_t inputImage,  __write_only image2d_t output,
+                           int2 offsetOutput, int iterations, float scale, float rotation, float2 translate,
+                           float2 center, int2 offset)
+{
+	int2 coords = {get_global_id(0), get_global_id(1)}; 
+	coords += offset;
+	const int2 realCoordinate = coords + offsetOutput;
+
+	float4 col;
+	float2 ltxy = translate;
+	float lsc = scale;
+	float lrot = rotation;
+	
+	col = read_imagef(inputImage, SAMPLER_NEAREST, realCoordinate);
+
+	/* blur the image */
+	for (int i = 0; i < iterations; ++i) {
+		const float cs = cos(lrot), ss = sin(lrot);
+		const float isc = 1.0f / (1.0f + lsc);
+
+		const float v = isc * (realCoordinate.s1 - center.s1) + ltxy.s1;
+		const float u = isc * (realCoordinate.s0 - center.s0) + ltxy.s0;
+		float2 uv = {
+			cs * u + ss * v + center.s0,
+			cs * v - ss * u + center.s1
+		};
+
+		col += read_imagef(inputImage, SAMPLER_NEAREST_CLAMP, uv);
+
+		/* double transformations */
+		ltxy += translate;
+		lrot += rotation;
+		lsc += scale;
+	}
+
+	col *= (1.0f/(iterations+1));
+
+	write_imagef(output, coords, col);
 }

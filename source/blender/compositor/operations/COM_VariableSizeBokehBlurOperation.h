@@ -50,6 +50,10 @@ public:
 	 */
 	void initExecution();
 	
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	
+	void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data);
+	
 	/**
 	 * Deinitialize the execution
 	 */

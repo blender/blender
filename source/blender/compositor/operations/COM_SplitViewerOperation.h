@@ -35,7 +35,7 @@ private:
 	bool m_xSplit;
 public:
 	SplitViewerOperation();
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void initExecution();
 	void deinitExecution();
 	void setSplitPercentage(float splitPercentage) { this->m_splitPercentage = splitPercentage; }

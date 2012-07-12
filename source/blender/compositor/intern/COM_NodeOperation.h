@@ -134,7 +134,7 @@ public:
 	 * @param chunkNumber the chunkNumber to be calculated
 	 * @param memoryBuffers all input MemoryBuffer's needed
 	 */
-	virtual void executeRegion(rcti *rect, unsigned int chunkNumber, MemoryBuffer **memoryBuffers) {}
+	virtual void executeRegion(rcti *rect, unsigned int chunkNumber) {}
 
 	/**
 	 * @brief when a chunk is executed by an OpenCLDevice, this method is called

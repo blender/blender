@@ -26,8 +26,6 @@ OIIO_NAMESPACE_USING
 
 #include <stdio.h>
 
-#define BOOST_FILESYSTEM_VERSION 2
-
 #include <boost/filesystem.hpp> 
 #include <boost/algorithm/string.hpp>
 
@@ -60,7 +58,7 @@ string path_user_get(const string& sub)
 
 string path_filename(const string& path)
 {
-	return boost::filesystem::path(path).filename();
+	return boost::filesystem::path(path).filename().string();
 }
 
 string path_dirname(const string& path)

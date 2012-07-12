@@ -129,6 +129,13 @@ void ExecutionSystem::execute()
 		operation->setbNodeTree(this->m_context.getbNodeTree());
 		operation->initExecution();
 	}
+	for (index = 0; index < this->m_operations.size(); index++) {
+		NodeOperation *operation = this->m_operations[index];
+		if (operation->isReadBufferOperation()) {
+			ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
+			readOperation->updateMemoryBuffer();
+		}
+	}
 	for (index = 0; index < this->m_groups.size(); index++) {
 		ExecutionGroup *executionGroup = this->m_groups[index];
 		executionGroup->setChunksize(this->m_context.getChunksize());

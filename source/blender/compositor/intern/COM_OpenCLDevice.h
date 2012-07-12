@@ -28,6 +28,7 @@ class OpenCLDevice;
 #include "COM_Device.h"
 #include "OCL_opencl.h"
 #include "COM_WorkScheduler.h"
+#include "COM_ReadBufferOperation.h"
 
 /**
  * @brief device representing an GPU OpenCL device.
@@ -96,6 +97,7 @@ public:
 	cl_command_queue getQueue(){ return this->m_queue; }
 
 	cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader *reader);
+	cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, ReadBufferOperation *reader);
 	void COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel kernel, int offsetIndex, MemoryBuffer *memoryBuffers);
 	void COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, cl_mem clOutputMemoryBuffer);
 	void COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offsetIndex, NodeOperation* operation);

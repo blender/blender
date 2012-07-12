@@ -365,10 +365,10 @@ static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *
 	/* nodetree's nodes... */
 	for (n = ntree->nodes.first; n; n = n->next) {
 		if (n->id && GS(n->id->name) == ID_MA) {
-            ma = (Material *)n->id;
-            if (ma != rootma) {
-                dag_add_material_driver_relations(dag, node, ma);
-            }
+			ma = (Material *)n->id;
+			if (ma != rootma) {
+				dag_add_material_driver_relations(dag, node, ma);
+			}
 		}
 		else if (n->type == NODE_GROUP && n->id) {
 			dag_add_material_nodetree_driver_relations(dag, node, (bNodeTree *)n->id, rootma);
@@ -672,7 +672,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				 * engine instancing assumes particular ordering of objects in list */
 				dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Object Visualization");
 				if (part->dup_ob->type == OB_MBALL)
-					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Object Visualization");
+					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Object Visualization");
 			}
 
 			if (part->ren_as == PART_DRAW_GR && part->dup_group) {

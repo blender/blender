@@ -127,6 +127,8 @@ extern EnumPropertyItem ramp_blend_items[];
 
 extern EnumPropertyItem prop_dynamicpaint_type_items[];
 
+extern EnumPropertyItem clip_editor_mode_items[];
+
 struct bContext;
 struct PointerRNA;
 struct PropertyRNA;

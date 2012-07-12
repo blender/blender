@@ -607,7 +607,7 @@ static void area_azone_initialize(ScrArea *sa)
 	az->y1 = sa->totrct.ymin - 1;
 	az->x2 = sa->totrct.xmin + (AZONESPOT - 1);
 	az->y2 = sa->totrct.ymin + (AZONESPOT - 1);
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 	
 	az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
@@ -616,7 +616,7 @@ static void area_azone_initialize(ScrArea *sa)
 	az->y1 = sa->totrct.ymax + 1;
 	az->x2 = sa->totrct.xmax - (AZONESPOT - 1);
 	az->y2 = sa->totrct.ymax - (AZONESPOT - 1);
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
 #define AZONEPAD_EDGE   4
@@ -650,7 +650,7 @@ static void region_azone_edge(AZone *az, ARegion *ar)
 			break;
 	}
 
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
 static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
@@ -692,7 +692,7 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 			break;
 	}
 
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 	
 	/* if more azones on 1 spot, set offset */
 	for (azt = sa->actionzones.first; azt; azt = azt->next) {
@@ -706,7 +706,7 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 					az->y1 -= AZONESPOT;
 					az->y2 -= AZONESPOT;
 				}
-				BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+				BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 			}
 		}
 	}
@@ -753,7 +753,7 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 			break;
 	}
 	/* rect needed for mouse pointer test */
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }	
 
 
@@ -798,7 +798,7 @@ static void region_azone_tab(ScrArea *sa, AZone *az, ARegion *ar)
 			break;
 	}
 	/* rect needed for mouse pointer test */
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }	
 
 #define AZONEPAD_TRIAW  16
@@ -843,7 +843,7 @@ static void region_azone_tria(ScrArea *sa, AZone *az, ARegion *ar)
 			break;
 	}
 	/* rect needed for mouse pointer test */
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }	
 
 
@@ -911,7 +911,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		return;
 	
 	/* no returns in function, winrct gets set in the end again */
-	BLI_init_rcti(&ar->winrct, 0, 0, 0, 0);
+	BLI_rcti_init(&ar->winrct, 0, 0, 0, 0);
 	
 	/* for test; allow split of previously defined region */
 	if (ar->alignment & RGN_SPLIT_PREV)
@@ -947,7 +947,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	else if (alignment == RGN_ALIGN_NONE) {
 		/* typically last region */
 		ar->winrct = *remainder;
-		BLI_init_rcti(remainder, 0, 0, 0, 0);
+		BLI_rcti_init(remainder, 0, 0, 0, 0);
 	}
 	else if (alignment == RGN_ALIGN_TOP || alignment == RGN_ALIGN_BOTTOM) {
 		
@@ -1007,7 +1007,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 				remainder->xmin = ar->winrct.xmax + 1;
 			}
 			else {
-				BLI_init_rcti(remainder, 0, 0, 0, 0);
+				BLI_rcti_init(remainder, 0, 0, 0, 0);
 			}
 		}
 		else {
@@ -1016,7 +1016,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 				remainder->ymin = ar->winrct.ymax + 1;
 			}
 			else {
-				BLI_init_rcti(remainder, 0, 0, 0, 0);
+				BLI_rcti_init(remainder, 0, 0, 0, 0);
 			}
 		}
 	}
@@ -1036,7 +1036,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 			
 			if (count != 4) {
 				/* let's stop adding regions */
-				BLI_init_rcti(remainder, 0, 0, 0, 0);
+				BLI_rcti_init(remainder, 0, 0, 0, 0);
 				if (G.debug & G_DEBUG)
 					printf("region quadsplit failed\n");
 			}
@@ -1058,7 +1058,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 			else {  /* right top */
 				ar->winrct.xmin = 1 + (remainder->xmin + remainder->xmax) / 2;
 				ar->winrct.ymin = 1 + (remainder->ymin + remainder->ymax) / 2;
-				BLI_init_rcti(remainder, 0, 0, 0, 0);
+				BLI_rcti_init(remainder, 0, 0, 0, 0);
 			}
 
 			quad++;

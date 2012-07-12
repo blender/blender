@@ -104,7 +104,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
 
 int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float *dir, float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
 
-float BLI_bvhtree_bb_raycast(float *bv, const float light_start[3], const float light_end[3], float pos[3]);
+float BLI_bvhtree_bb_raycast(const float *bv, const float light_start[3], const float light_end[3], float pos[3]);
 
 /* range query */
 int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHTree_RangeQuery callback, void *userdata);

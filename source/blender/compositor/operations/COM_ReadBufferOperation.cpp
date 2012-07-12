@@ -28,11 +28,12 @@ ReadBufferOperation::ReadBufferOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_COLOR);
 	this->m_offset = 0;
+	this->m_buffer = NULL;
 }
 
 void *ReadBufferOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	return getInputMemoryBuffer(memoryBuffers);
+	return m_buffer;
 }
 
 void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
@@ -50,36 +51,23 @@ void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigne
 }
 void ReadBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	if (inputBuffers) {
-		MemoryBuffer *inputBuffer = inputBuffers[this->m_offset];
-		if (inputBuffer) {
-			if (sampler == COM_PS_NEAREST) {
-				inputBuffer->read(color, x, y);
-			}
-			else {
-				inputBuffer->readCubic(color, x, y);
-			}
-		}
-	} else {
-		color[0] = 0.0f;
-		color[1] = 0.0f;
-		color[2] = 0.0f;
-		color[3] = 0.0f;
+	if (sampler == COM_PS_NEAREST) {
+		m_buffer->read(color, x, y);
+	}
+	else {
+		m_buffer->readCubic(color, x, y);
 	}
 }
 
 void ReadBufferOperation::executePixel(float *color, float x, float y, float dx, float dy, MemoryBuffer *inputBuffers[])
 {
-	MemoryBuffer *inputBuffer = inputBuffers[this->m_offset];
-	if (inputBuffer) {
-		inputBuffer->readEWA(color, x, y, dx, dy);
-	}
+	m_buffer->readEWA(color, x, y, dx, dy);
 }
 
 bool ReadBufferOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	if (this == readOperation) {
-		BLI_init_rcti(output, input->xmin, input->xmax, input->ymin, input->ymax);
+		BLI_rcti_init(output, input->xmin, input->xmax, input->ymin, input->ymax);
 		return true;
 	}
 	return false;
@@ -92,4 +80,10 @@ void ReadBufferOperation::readResolutionFromWriteBuffer()
 		this->setWidth(operation->getWidth());
 		this->setHeight(operation->getHeight());
 	}
+}
+
+void ReadBufferOperation::updateMemoryBuffer() 
+{
+	this->m_buffer = this->getMemoryProxy()->getBuffer();
+	
 }

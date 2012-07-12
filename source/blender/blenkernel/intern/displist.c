@@ -499,16 +499,14 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
 				/* vert data */
 				f1 = dlnew->verts;
 				totvert = 0;
-				sf_vert = sf_ctx.fillvertbase.first;
-				while (sf_vert) {
+
+				for (sf_vert = sf_ctx.fillvertbase.first; sf_vert; sf_vert = sf_vert->next) {
 					copy_v3_v3(f1, sf_vert->co);
 					f1 += 3;
 
 					/* index number */
 					sf_vert->tmp.l = totvert;
 					totvert++;
-
-					sf_vert = sf_vert->next;
 				}
 
 				/* index data */

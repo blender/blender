@@ -59,7 +59,7 @@ static float *init_buffer(unsigned int width, unsigned int height, DataType data
 		return NULL;
 }
 
-static void write_buffer_rect(rcti *rect, MemoryBuffer **memoryBuffers, const bNodeTree *tree,
+static void write_buffer_rect(rcti *rect, const bNodeTree *tree,
                               SocketReader *reader, float *buffer, unsigned int width, DataType datatype)
 {
 	float color[4];
@@ -77,7 +77,7 @@ static void write_buffer_rect(rcti *rect, MemoryBuffer **memoryBuffers, const bN
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
-			reader->read(color, x, y, COM_PS_NEAREST, memoryBuffers);
+			reader->read(color, x, y, COM_PS_NEAREST, NULL);
 			
 			for (i = 0; i < size; ++i)
 				buffer[offset + i] = color[i];
@@ -113,9 +113,9 @@ void OutputSingleLayerOperation::initExecution()
 	this->m_outputBuffer = init_buffer(this->getWidth(), this->getHeight(), this->m_datatype);
 }
 
-void OutputSingleLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+void OutputSingleLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
-	write_buffer_rect(rect, memoryBuffers, this->m_tree, this->m_imageInput, this->m_outputBuffer, this->getWidth(), this->m_datatype);
+	write_buffer_rect(rect, this->m_tree, this->m_imageInput, this->m_outputBuffer, this->getWidth(), this->m_datatype);
 }
 
 void OutputSingleLayerOperation::deinitExecution()
@@ -183,10 +183,10 @@ void OutputOpenExrMultiLayerOperation::initExecution()
 	}
 }
 
-void OutputOpenExrMultiLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+void OutputOpenExrMultiLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
-		write_buffer_rect(rect, memoryBuffers, this->m_tree, this->m_layers[i].imageInput, this->m_layers[i].outputBuffer, this->getWidth(), this->m_layers[i].datatype);
+		write_buffer_rect(rect, this->m_tree, this->m_layers[i].imageInput, this->m_layers[i].outputBuffer, this->getWidth(), this->m_layers[i].datatype);
 	}
 }
 

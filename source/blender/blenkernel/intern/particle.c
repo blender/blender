@@ -3400,6 +3400,12 @@ void psys_mat_hair_to_object(Object *UNUSED(ob), DerivedMesh *dm, short from, Pa
 {
 	float vec[3];
 
+	/* can happen when called from a different object's modifier */
+	if (!dm) {
+		unit_m4(hairmat);
+		return;
+	}
+	
 	psys_face_mat(0, dm, pa, hairmat, 0);
 	psys_particle_on_dm(dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, 0, 0);
 	copy_v3_v3(hairmat[3], vec);

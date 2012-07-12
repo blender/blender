@@ -242,7 +242,7 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect, MemoryBuffer **memor
 	if (!triangulation)
 		return NULL;
 
-	BLI_init_rctf(&rect_float, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+	BLI_rctf_init(&rect_float, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 
 	tile_data = (TileData *) MEM_callocN(sizeof(TileData), "keying screen tile data");
 

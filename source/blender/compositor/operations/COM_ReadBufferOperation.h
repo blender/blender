@@ -30,6 +30,7 @@ class ReadBufferOperation : public NodeOperation {
 private:
 	MemoryProxy *m_memoryProxy;
 	unsigned int m_offset;
+	MemoryBuffer *m_buffer;
 public:
 	ReadBufferOperation();
 	int isBufferOperation() { return true; }
@@ -46,6 +47,7 @@ public:
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) { return memoryBuffers[this->m_offset]; }
 	void readResolutionFromWriteBuffer();
+	void updateMemoryBuffer();
 };
 
 #endif

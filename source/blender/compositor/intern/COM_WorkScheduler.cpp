@@ -94,7 +94,7 @@ void ** g_highlightedNodesRead;
 }
 void COM_startReadHighlights() {
 	if (g_highlightedNodesRead) {
-		delete g_highlightedNodesRead;
+		delete [] g_highlightedNodesRead;
 	}
 	
 	g_highlightedNodesRead = g_highlightedNodes;

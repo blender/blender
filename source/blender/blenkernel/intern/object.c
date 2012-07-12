@@ -2300,14 +2300,21 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 	}
 
 	if (change == FALSE) {
+		float size[3];
+
+		copy_v3_v3(size, ob->size);
+		if (ob->type == OB_EMPTY) {
+			mul_v3_fl(size, ob->empty_drawsize);
+		}
+
 		minmax_v3v3_v3(min_r, max_r, ob->obmat[3]);
 
 		copy_v3_v3(vec, ob->obmat[3]);
-		add_v3_v3(vec, ob->size);
+		add_v3_v3(vec, size);
 		minmax_v3v3_v3(min_r, max_r, vec);
 
 		copy_v3_v3(vec, ob->obmat[3]);
-		sub_v3_v3(vec, ob->size);
+		sub_v3_v3(vec, size);
 		minmax_v3v3_v3(min_r, max_r, vec);
 	}
 }

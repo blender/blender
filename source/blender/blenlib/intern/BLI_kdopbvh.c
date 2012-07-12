@@ -1343,7 +1343,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
 
 
 /* Determines the distance that the ray must travel to hit the bounding volume of the given node */
-static float ray_nearest_hit(BVHRayCastData *data, float *bv)
+static float ray_nearest_hit(BVHRayCastData *data, const float *bv)
 {
 	int i;
 
@@ -1521,7 +1521,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 	return data.hit.index;
 }
 
-float BLI_bvhtree_bb_raycast(float *bv, const float light_start[3], const float light_end[3], float pos[3])
+float BLI_bvhtree_bb_raycast(const float *bv, const float light_start[3], const float light_end[3], float pos[3])
 {
 	BVHRayCastData data;
 	float dist = 0.0;
