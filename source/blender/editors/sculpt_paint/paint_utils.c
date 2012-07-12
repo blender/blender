@@ -93,16 +93,19 @@ int paint_convert_bb_to_rect(rcti *rect,
 		for (j = 0; j < 2; ++j) {
 			for (k = 0; k < 2; ++k) {
 				float vec[3], proj[2];
+				int proj_i[2];
 				vec[0] = i ? bb_min[0] : bb_max[0];
 				vec[1] = j ? bb_min[1] : bb_max[1];
 				vec[2] = k ? bb_min[2] : bb_max[2];
 				/* convert corner to screen space */
 				ED_view3d_project_float_v2(ar, vec, proj, projection_mat);
 				/* expand 2D rectangle */
-				rect->xmin = MIN2(rect->xmin, proj[0]);
-				rect->xmax = MAX2(rect->xmax, proj[0]);
-				rect->ymin = MIN2(rect->ymin, proj[1]);
-				rect->ymax = MAX2(rect->ymax, proj[1]);
+
+				/* we could project directly to int? */
+				proj_i[0] = proj[0];
+				proj_i[1] = proj[1];
+
+				BLI_rcti_do_minmax_v(rect, proj_i);
 			}
 		}
 	}
