@@ -1200,7 +1200,8 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 			nodeRemLink(wgroup, link);
 	}
 	/* restore links from internal nodes */
-	for (link = wgroup->links.first; link; link = link->next) {
+	for (link = wgroup->links.first; link; link = linkn) {
+		linkn = link->next;
 		/* indicates link to group input */
 		if (!link->fromnode) {
 			/* NB: can't use find_group_node_input here,

@@ -466,7 +466,8 @@ static DMDrawOption draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
 		return DM_DRAW_OPTION_NORMAL; /* Set color from mcol */
 	}
 }
-static void add_tface_color_layer(DerivedMesh *dm)
+
+static void update_tface_color_layer(DerivedMesh *dm)
 {
 	MTFace *tface = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	MFace *mface = dm->getTessFaceArray(dm);
@@ -476,7 +477,15 @@ static void add_tface_color_layer(DerivedMesh *dm)
 	if (!mcol)
 		mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
 
-	finalCol = MEM_mallocN(sizeof(MCol) * 4 * dm->getNumTessFaces(dm), "add_tface_color_layer");
+	if (CustomData_has_layer(&dm->faceData, CD_TEXTURE_MCOL)) {
+		finalCol = CustomData_get_layer(&dm->faceData, CD_TEXTURE_MCOL);
+	}
+	else {
+		finalCol = MEM_mallocN(sizeof(MCol) * 4 * dm->getNumTessFaces(dm), "add_tface_color_layer");
+
+		CustomData_add_layer(&dm->faceData, CD_TEXTURE_MCOL, CD_ASSIGN, finalCol, dm->numTessFaceData);
+	}
+
 	for (i = 0; i < dm->getNumTessFaces(dm); i++) {
 		Material *ma = give_current_material(Gtexdraw.ob, mface[i].mat_nr + 1);
 
@@ -542,7 +551,6 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		}
 	}
-	CustomData_add_layer(&dm->faceData, CD_TEXTURE_MCOL, CD_ASSIGN, finalCol, dm->numTessFaceData);
 }
 
 static DMDrawOption draw_tface_mapped__set_draw(void *userData, int index)
@@ -797,8 +805,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 		else {
 			drawTFace_userData userData;
 
-			if (!CustomData_has_layer(&dm->faceData, CD_TEXTURE_MCOL))
-				add_tface_color_layer(dm);
+			update_tface_color_layer(dm);
 
 			userData.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
 			userData.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
