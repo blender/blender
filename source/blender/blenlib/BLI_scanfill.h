@@ -70,7 +70,7 @@ typedef struct ScanFillVert {
 	} tmp;
 	float co[3]; /* vertex location */
 	float xy[2]; /* 2D copy of vertex location (using dominant axis) */
-	int keyindex; /* original index #, for restoring  key information */
+	unsigned int keyindex; /* original index #, for restoring  key information */
 	short poly_nr;
 	unsigned char f, h;
 } ScanFillVert;
@@ -80,6 +80,9 @@ typedef struct ScanFillEdge {
 	struct ScanFillVert *v1, *v2;
 	short poly_nr;
 	unsigned char f;
+	union {
+		unsigned char c;
+	} tmp;
 } ScanFillEdge;
 
 typedef struct ScanFillFace {

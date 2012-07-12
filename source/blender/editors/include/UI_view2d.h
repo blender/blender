@@ -120,8 +120,8 @@ enum {
 /* Macros:								*/
 
 /* test if mouse in a scrollbar (assume that scroller availability has been tested) */
-#define IN_2D_VERT_SCROLL(v2d, co) (BLI_in_rcti(&v2d->vert, co[0], co[1]))
-#define IN_2D_HORIZ_SCROLL(v2d, co) (BLI_in_rcti(&v2d->hor, co[0], co[1]))
+#define IN_2D_VERT_SCROLL(v2d, co)   (BLI_in_rcti_v(&v2d->vert, co))
+#define IN_2D_HORIZ_SCROLL(v2d, co)  (BLI_in_rcti_v(&v2d->hor,  co))
 
 /* ------------------------------------------ */
 /* Type definitions:                          */
