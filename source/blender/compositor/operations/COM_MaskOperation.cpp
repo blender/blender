@@ -30,8 +30,10 @@
 
 #include "DNA_scene_types.h"
 
+
+#ifdef USE_RASKTER
+
 extern "C" {
-	#include "BKE_mask.h"
 	#include "../../../../intern/raskter/raskter.h"
 }
 
@@ -127,3 +129,72 @@ void MaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *input
 		color[0] = buffer[index];
 	}
 }
+
+#else /* mask rasterizer by campbell wip */
+
+MaskOperation::MaskOperation() : NodeOperation()
+{
+	this->addOutputSocket(COM_DT_VALUE);
+	this->m_mask = NULL;
+	this->m_maskWidth = 0;
+	this->m_maskHeight = 0;
+	this->m_framenumber = 0;
+	this->m_rasterMaskHandle = NULL;
+	setComplex(true);
+}
+
+void MaskOperation::initExecution()
+{
+	initMutex();
+
+	if (this->m_rasterMaskHandle == NULL) {
+		const int width = this->getWidth();
+		const int height = this->getHeight();
+
+		this->m_rasterMaskHandle = BLI_maskrasterize_handle_new();
+
+		BLI_maskrasterize_handle_init(this->m_rasterMaskHandle, this->m_mask, width, height, TRUE, this->m_do_smooth, this->m_do_feather);
+	}
+}
+
+void MaskOperation::deinitExecution()
+{
+	if (this->m_rasterMaskHandle) {
+		BLI_maskrasterize_handle_free(this->m_rasterMaskHandle);
+		this->m_rasterMaskHandle = NULL;
+	}
+
+	deinitMutex();
+}
+
+void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
+	/* pass */
+	return NULL;
+}
+
+void MaskOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
+	if (this->m_maskWidth == 0 || this->m_maskHeight == 0) {
+		NodeOperation::determineResolution(resolution, preferredResolution);
+	}
+	else {
+		unsigned int nr[2];
+
+		nr[0] = this->m_maskWidth;
+		nr[1] = this->m_maskHeight;
+
+		NodeOperation::determineResolution(resolution, nr);
+
+		resolution[0] = this->m_maskWidth;
+		resolution[1] = this->m_maskHeight;
+	}
+}
+
+void MaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
+	const float xy[2] = {x / (float)this->m_maskWidth, y / (float)this->m_maskHeight};
+	color[0] = BLI_maskrasterize_handle_sample(this->m_rasterMaskHandle, xy);
+}
+
+#endif /* USE_RASKTER */

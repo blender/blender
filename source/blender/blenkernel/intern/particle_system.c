@@ -1576,7 +1576,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 	}
 }
 
-static void get_angular_velocity_vector(short avemode, ParticleKey *state, float *vec)
+static void get_angular_velocity_vector(short avemode, ParticleKey *state, float vec[3])
 {
 	switch (avemode) {
 		case PART_AVE_VELOCITY:

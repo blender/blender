@@ -314,7 +314,7 @@ static int BKE_mask_spline_feather_resolution(MaskSpline *spline, int width, int
 	return resol;
 }
 
-static int mask_spline_points_calc_tot(const MaskSpline *spline, const int resol)
+int BKE_mask_spline_differentiate_calc_total(const MaskSpline *spline, const int resol)
 {
 	int len;
 
@@ -338,7 +338,7 @@ float (*BKE_mask_spline_differentiate_with_resolution_ex(MaskSpline *spline, con
 
 	MaskSplinePoint *point, *prev;
 	float (*diff_points)[2], (*fp)[2];
-	const int tot = mask_spline_points_calc_tot(spline, resol);
+	const int tot = BKE_mask_spline_differentiate_calc_total(spline, resol);
 	int a;
 
 	if (spline->tot_point <= 1) {
@@ -412,7 +412,7 @@ float (*BKE_mask_spline_feather_differentiated_points_with_resolution_ex(MaskSpl
 	MaskSplinePoint *point, *prev;
 	float (*feather)[2], (*fp)[2];
 
-	const int tot = mask_spline_points_calc_tot(spline, resol);
+	const int tot = BKE_mask_spline_differentiate_calc_total(spline, resol);
 	int a;
 
 	/* tot+1 because of 'forward_diff_bezier' function */
