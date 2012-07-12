@@ -3792,12 +3792,14 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 							break;
 					}
 				}
-				if (type == BUT_GET_RNAENUM_IDENTIFIER)
-					tmp = BLI_strdup(item->identifier);
-				else if (type == BUT_GET_RNAENUM_LABEL)
-					tmp = BLI_strdup(item->name);
-				else if (item->description && item->description[0])
-					tmp = BLI_strdup(item->description);
+				if (item && item->identifier) {
+					if (type == BUT_GET_RNAENUM_IDENTIFIER)
+						tmp = BLI_strdup(item->identifier);
+					else if (type == BUT_GET_RNAENUM_LABEL)
+						tmp = BLI_strdup(item->name);
+					else if (item->description && item->description[0])
+						tmp = BLI_strdup(item->description);
+				}
 			}
 		}
 		else if (type == BUT_GET_OP_KEYMAP) {
