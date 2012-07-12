@@ -45,12 +45,13 @@ void MixBaseOperation::executePixel(float *outputColor, float x, float y, PixelS
 {
 	float inputColor1[4];
 	float inputColor2[4];
-	float value;
+	float inputValue[4];
 	
-	this->m_inputValueOperation->read(&value, x, y, sampler, inputBuffers);
-	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler, inputBuffers);
-	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(inputValue, x, y, sampler, inputBuffers);
+	this->m_inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
+	this->m_inputColor2Operation->read(inputColor2, x, y, sampler, inputBuffers);
 	
+	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}
@@ -92,14 +93,4 @@ void MixBaseOperation::determineResolution(unsigned int resolution[], unsigned i
 		}
 	}
 	NodeOperation::determineResolution(resolution, preferredResolution);
-}
-
-void MixBaseOperation::clampIfNeeded(float *color)
-{
-	if (this->m_useClamp) {
-		CLAMP(color[0], 0.0f, 1.0f);
-		CLAMP(color[1], 0.0f, 1.0f);
-		CLAMP(color[2], 0.0f, 1.0f);
-		CLAMP(color[3], 0.0f, 1.0f);
-	}
 }

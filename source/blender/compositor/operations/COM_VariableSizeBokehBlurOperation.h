@@ -25,6 +25,7 @@
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
+//#define COM_DEFOCUS_SEARCH
 
 class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepHelper {
 private:
@@ -34,7 +35,7 @@ private:
 	SocketReader *m_inputBokehProgram;
 	SocketReader *m_inputSizeProgram;
 #ifdef COM_DEFOCUS_SEARCH
-	SocketReader *inputSearchProgram;
+	SocketReader *m_inputSearchProgram;
 #endif
 
 public:
@@ -71,10 +72,8 @@ public:
 #ifdef COM_DEFOCUS_SEARCH
 class InverseSearchRadiusOperation : public NodeOperation {
 private:
-	int maxBlur;
-	float threshold;
-	SocketReader *inputDepth;
-	SocketReader *inputRadius;
+	int m_maxBlur;
+	SocketReader *m_inputRadius;
 public:
 	static const int DIVIDER = 4;
 	
@@ -100,9 +99,7 @@ public:
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	
-	void setMaxBlur(int maxRadius) { this->maxBlur = maxRadius; }
-
-	void setThreshold(float threshold) { this->threshold = threshold; }
+	void setMaxBlur(int maxRadius) { this->m_maxBlur = maxRadius; }
 };
 #endif
 #endif

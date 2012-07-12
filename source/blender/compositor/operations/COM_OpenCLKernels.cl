@@ -112,7 +112,7 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 						tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
 						if (tempSize > threshold) {
 							if (tempSize >= fabs(dx) && tempSize >= fabs(dy)) {
-								float2 uv = { 256.0f + dx * 256.0f / tempSize, 256.0f + dy * 256.0f / tempSize};
+								float2 uv = { 256.0f + dx * 255.0f / tempSize, 256.0f + dy * 255.0f / tempSize};
 								bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);
 								readColor = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);
 								color_accum += bokeh*readColor;

@@ -40,7 +40,16 @@ protected:
 	bool m_valueAlphaMultiply;
 	bool m_useClamp;
 
-	void clampIfNeeded(float *color);
+	inline void clampIfNeeded(float *color)
+	{
+		if (m_useClamp) {
+			CLAMP(color[0], 0.0f, 1.0f);
+			CLAMP(color[1], 0.0f, 1.0f);
+			CLAMP(color[2], 0.0f, 1.0f);
+			CLAMP(color[3], 0.0f, 1.0f);
+		}
+	}
+	
 public:
 	/**
 	 * Default constructor

@@ -118,17 +118,19 @@ void GaussianXBlurOperation::deinitExecution()
 bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
-	rcti sizeInput;
-	sizeInput.xmin = 0;
-	sizeInput.ymin = 0;
-	sizeInput.xmax = 5;
-	sizeInput.ymax = 5;
 	
-	NodeOperation *operation = this->getInputOperation(1);
-	if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
-		return true;
+	if (!this->m_sizeavailable) {
+		rcti sizeInput;
+		sizeInput.xmin = 0;
+		sizeInput.ymin = 0;
+		sizeInput.xmax = 5;
+		sizeInput.ymax = 5;
+		NodeOperation *operation = this->getInputOperation(1);
+		if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
+			return true;
+		}
 	}
-	else {
+	{
 		if (this->m_sizeavailable && this->m_gausstab != NULL) {
 			newInput.xmax = input->xmax + this->m_rad;
 			newInput.xmin = input->xmin - this->m_rad;
