@@ -672,7 +672,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				 * engine instancing assumes particular ordering of objects in list */
 				dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Object Visualization");
 				if (part->dup_ob->type == OB_MBALL)
-					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Object Visualization");
+					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Object Visualization");
 			}
 
 			if (part->ren_as == PART_DRAW_GR && part->dup_group) {
