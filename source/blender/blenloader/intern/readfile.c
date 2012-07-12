@@ -3688,7 +3688,14 @@ static void lib_link_mesh(FileData *fd, Main *main)
 				
 				G.main = gmain;
 			}
-			
+		}
+	}
+
+	/* convert texface options to material */
+	convert_tface_mt(fd, main);
+
+	for (me = main->mesh.first; me; me = me->id.next) {
+		if (me->id.flag & LIB_NEEDLINK) {
 			/*
 			 * Re-tessellate, even if the polys were just created from tessfaces, this
 			 * is important because it:
@@ -3704,13 +3711,10 @@ static void lib_link_mesh(FileData *fd, Main *main)
 #else
 			BKE_mesh_tessface_clear(me);
 #endif
-			
+
 			me->id.flag -= LIB_NEEDLINK;
 		}
 	}
-	
-	/* convert texface options to material */
-	convert_tface_mt(fd, main);
 }
 
 static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
