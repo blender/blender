@@ -91,6 +91,7 @@ typedef enum {
 	CAP_START = 1,
 	CAP_END = 2,
 	SEAM_FRAME = 4,
+	ROOT = 8
 } SkinNodeFlag;
 
 typedef struct Frame {
@@ -502,6 +503,9 @@ static void end_node_frames(int v, SkinNode *skin_nodes, const MVert *mvert,
 		/* End frame */
 		create_frame(&skin_nodes[v].frames[0], mvert[v].co, rad, mat, 0);
 	}
+
+	if (nodes[v].flag & MVERT_SKIN_ROOT)
+		skin_nodes[v].flag |= ROOT;
 }
 
 /* Returns 1 for seam, 0 otherwise */
@@ -1493,18 +1497,27 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes,
 		}
 
 		if (sn->flag & CAP_START) {
-			add_poly(so,
-			         sn->frames[0].verts[3],
-			         sn->frames[0].verts[2],
-			         sn->frames[0].verts[1],
-			         sn->frames[0].verts[0]);
+			if (sn->flag & ROOT) {
+				add_poly(so,
+						 sn->frames[0].verts[0],
+						 sn->frames[0].verts[1],
+						 sn->frames[0].verts[2],
+						 sn->frames[0].verts[3]);
+			}
+			else {
+				add_poly(so,
+						 sn->frames[0].verts[3],
+						 sn->frames[0].verts[2],
+						 sn->frames[0].verts[1],
+						 sn->frames[0].verts[0]);
+			}
 		}
 		if (sn->flag & CAP_END) {
 			add_poly(so,
-			         sn->frames[1].verts[3],
-			         sn->frames[1].verts[2],
+			         sn->frames[1].verts[0],
 			         sn->frames[1].verts[1],
-			         sn->frames[1].verts[0]);
+			         sn->frames[1].verts[2],
+			         sn->frames[1].verts[3]);
 		}
 	}
 }
