@@ -239,11 +239,11 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		strncpy(path, U.textudir, sizeof(path));
 	}
 
+	if (RNA_struct_property_is_set(op->ptr, "files"))
+		return open_exec(C, op);
+
 	if (!RNA_struct_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
-
-	if (RNA_struct_property_is_set(op->ptr, "filepath"))
-		return open_exec(C, op);
 
 	open_init(C, op);
 
