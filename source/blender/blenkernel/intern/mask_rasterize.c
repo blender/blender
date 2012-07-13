@@ -46,7 +46,7 @@
 
 #ifndef USE_RASKTER
 
-#define RESOL 64
+#define RESOL 32
 
 /**
  * A single #MaskRasterHandle contains multile #MaskRasterLayer's,
@@ -512,11 +512,17 @@ static void maskrasterize_layer_bvh_cb(void *userdata, int index, const BVHTreeR
 		    (cos[2][2] < dist_orig))
 		{
 			if (isect_point_tri_v2(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]])) {
+				/* we know all tris are close for now */
+#if 0
 				const float dist = maskrasterize_layer_z_depth_tri(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]]);
 				if (dist < dist_orig) {
 					hit->index = index;
 					hit->dist = dist;
 				}
+#else
+				hit->index = index;
+				hit->dist = 0.0f;
+#endif
 			}
 		}
 	}
@@ -529,6 +535,8 @@ static void maskrasterize_layer_bvh_cb(void *userdata, int index, const BVHTreeR
 		    (cos[2][2] < dist_orig) ||
 		    (cos[3][2] < dist_orig))
 		{
+
+			/* needs work */
 #if 0
 			if (isect_point_quad_v2(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]], cos[tri[3]])) {
 				const float dist = maskrasterize_layer_z_depth_quad(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]], cos[tri[3]]);
