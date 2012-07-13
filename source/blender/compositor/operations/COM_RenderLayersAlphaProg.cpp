@@ -27,7 +27,7 @@ RenderLayersAlphaProg::RenderLayersAlphaProg() : RenderLayersBaseProg(SCE_PASS_C
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void RenderLayersAlphaProg::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void RenderLayersAlphaProg::executePixel(float *output, float x, float y, PixelSampler sampler)
 {
 	int ix = x;
 	int iy = y;

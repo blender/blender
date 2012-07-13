@@ -62,22 +62,22 @@ void VariableSizeBokehBlurOperation::initExecution()
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
-void *VariableSizeBokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *VariableSizeBokehBlurOperation::initializeTileData(rcti *rect)
 {
 	MemoryBuffer** result = new MemoryBuffer*[3];
-	result[0] = (MemoryBuffer*)this->m_inputProgram->initializeTileData(rect, memoryBuffers);
-	result[1] = (MemoryBuffer*)this->m_inputBokehProgram->initializeTileData(rect, memoryBuffers);
-	result[2] = (MemoryBuffer*)this->m_inputSizeProgram->initializeTileData(rect, memoryBuffers);
+	result[0] = (MemoryBuffer*)this->m_inputProgram->initializeTileData(rect);
+	result[1] = (MemoryBuffer*)this->m_inputBokehProgram->initializeTileData(rect);
+	result[2] = (MemoryBuffer*)this->m_inputSizeProgram->initializeTileData(rect);
 	return result;
 }
 
-void VariableSizeBokehBlurOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+void VariableSizeBokehBlurOperation::deinitializeTileData(rcti *rect, void *data)
 {
 	MemoryBuffer** result = (MemoryBuffer**)data;
 	delete[] result;
 }
 
-void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
 	MemoryBuffer** buffers = (MemoryBuffer**)data;
 	MemoryBuffer* inputProgramBuffer = buffers[0];
@@ -93,7 +93,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 
 #ifdef COM_DEFOCUS_SEARCH
 	float search[4];
-	this->m_inputSearchProgram->read(search, x/InverseSearchRadiusOperation::DIVIDER, y / InverseSearchRadiusOperation::DIVIDER, inputBuffers, NULL);
+	this->m_inputSearchProgram->read(search, x/InverseSearchRadiusOperation::DIVIDER, y / InverseSearchRadiusOperation::DIVIDER, NULL);
 	int minx = search[0];
 	int miny = search[1];
 	int maxx = search[2];
@@ -238,7 +238,7 @@ void InverseSearchRadiusOperation::initExecution()
 	this->m_inputRadius = this->getInputSocketReader(0);
 }
 
-void* InverseSearchRadiusOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) 
+void* InverseSearchRadiusOperation::initializeTileData(rcti *rect) 
 {
 	MemoryBuffer * data = new MemoryBuffer(NULL, rect);
 	float* buffer = data->getBuffer();
@@ -268,7 +268,7 @@ void* InverseSearchRadiusOperation::initializeTileData(rcti *rect, MemoryBuffer 
 	
 //			for (int x2 = 0 ; x2 < DIVIDER ; x2 ++) {
 //				for (int y2 = 0 ; y2 < DIVIDER ; y2 ++) {
-//					this->m_inputRadius->read(temp, rx+x2, ry+y2, COM_PS_NEAREST, NULL);
+//					this->m_inputRadius->read(temp, rx+x2, ry+y2, COM_PS_NEAREST);
 //					if (radius < temp[0]) {
 //						radius = temp[0];
 //						maxx = x2;
@@ -292,13 +292,13 @@ void* InverseSearchRadiusOperation::initializeTileData(rcti *rect, MemoryBuffer 
 	return data;
 }
 
-void InverseSearchRadiusOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data) 
+void InverseSearchRadiusOperation::executePixel(float *color, int x, int y, void *data) 
 {
 	MemoryBuffer *buffer = (MemoryBuffer*)data;
 	buffer->readNoCheck(color, x, y);
 }
 
-void InverseSearchRadiusOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data) 
+void InverseSearchRadiusOperation::deinitializeTileData(rcti *rect, void *data) 
 {
 	if (data) {
 		MemoryBuffer* mb = (MemoryBuffer*)data;

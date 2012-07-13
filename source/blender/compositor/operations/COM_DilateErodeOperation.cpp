@@ -54,13 +54,13 @@ void DilateErodeThresholdOperation::initExecution()
 	}
 }
 
-void *DilateErodeThresholdOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *DilateErodeThresholdOperation::initializeTileData(rcti *rect)
 {
-	void *buffer = this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
+	void *buffer = this->m_inputProgram->initializeTileData(NULL);
 	return buffer;
 }
 
-void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, void *data)
 {
 	float inputValue[4];
 	const float sw = this->m__switch;
@@ -80,7 +80,7 @@ void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, Mem
 	const int bufferWidth = rect->xmax - rect->xmin;
 	int offset;
 
-	this->m_inputProgram->read(inputValue, x, y, inputBuffers, NULL);
+	this->m_inputProgram->read(inputValue, x, y, NULL);
 	if (inputValue[0] > sw) {
 		for (int yi = miny; yi < maxy; yi++) {
 			const float dy = yi - y;
@@ -179,13 +179,13 @@ void DilateDistanceOperation::initExecution()
 	}
 }
 
-void *DilateDistanceOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *DilateDistanceOperation::initializeTileData(rcti *rect)
 {
-	void *buffer = this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
+	void *buffer = this->m_inputProgram->initializeTileData(NULL);
 	return buffer;
 }
 
-void DilateDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DilateDistanceOperation::executePixel(float *color, int x, int y, void *data)
 {
 	const float distance = this->m_distance;
 	const float mindist = distance * distance;
@@ -259,7 +259,7 @@ ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation()
 	/* pass */
 }
 
-void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void ErodeDistanceOperation::executePixel(float *color, int x, int y, void *data)
 {
 	const float distance = this->m_distance;
 	const float mindist = distance * distance;
@@ -325,14 +325,14 @@ void DilateStepOperation::initExecution()
 	this->initMutex();
 }
 
-void *DilateStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *DilateStepOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_cached_buffer != NULL) {
 		return this->m_cached_buffer;
 	}
 	lockMutex();
 	if (this->m_cached_buffer == NULL) {
-		MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
+		MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
 		float *rectf = buffer->convertToValueBuffer();
 		int x, y, i;
 		float *p;
@@ -374,7 +374,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 }
 
 
-void DilateStepOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DilateStepOperation::executePixel(float *color, int x, int y, void *data)
 {
 	color[0] = this->m_cached_buffer[y * this->getWidth() + x];
 }
@@ -412,14 +412,14 @@ ErodeStepOperation::ErodeStepOperation() : DilateStepOperation()
 	/* pass */
 }
 
-void *ErodeStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *ErodeStepOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_cached_buffer != NULL) {
 		return this->m_cached_buffer;
 	}
 	lockMutex();
 	if (this->m_cached_buffer == NULL) {
-		MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
+		MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
 		float *rectf = buffer->convertToValueBuffer();
 		int x, y, i;
 		float *p;

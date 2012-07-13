@@ -39,7 +39,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution
@@ -51,9 +51,9 @@ public:
 	 */
 	void deinitExecution();
 
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 
-	virtual MemoryBuffer *createMemoryBuffer(rcti *rect, MemoryBuffer **memoryBuffers) = 0;
+	virtual MemoryBuffer *createMemoryBuffer(rcti *rect) = 0;
 	
 	int isSingleThreaded() { return true; }
 };

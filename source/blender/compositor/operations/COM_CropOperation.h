@@ -48,7 +48,7 @@ class CropOperation : public CropBaseOperation {
 private:
 public:
 	CropOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 };
 
 class CropImageOperation : public CropBaseOperation {
@@ -57,7 +57,7 @@ public:
 	CropImageOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void determineResolution(unsigned int resolution[], unsigned int preferedResolution[]);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 
 };
 #endif

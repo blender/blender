@@ -48,7 +48,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution
@@ -60,7 +60,7 @@ public:
 	 */
 	void deinitExecution();
 
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 
 	void setVectorBlurSettings(NodeBlurData *settings) { this->m_settings = settings; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);

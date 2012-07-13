@@ -38,9 +38,9 @@ public:
 	MemoryProxy *getMemoryProxy() { return this->m_memoryProxy; }
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
-	void executePixel(float *color, float x, float y, float dx, float dy, MemoryBuffer * inputBuffers[]);
+	void *initializeTileData(rcti *rect);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float *color, float x, float y, float dx, float dy);
 	const bool isReadBufferOperation() const { return true; }
 	void setOffset(unsigned int offset) { this->m_offset = offset; }
 	unsigned int getOffset() { return this->m_offset; }

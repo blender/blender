@@ -40,9 +40,9 @@ WriteBufferOperation::~WriteBufferOperation()
 	}
 }
 
-void WriteBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void WriteBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
-	this->m_input->read(color, x, y, sampler, inputBuffers);
+	this->m_input->read(color, x, y, sampler);
 }
 
 void WriteBufferOperation::initExecution()
@@ -62,7 +62,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 	MemoryBuffer *memoryBuffer = this->m_memoryProxy->getBuffer();
 	float *buffer = memoryBuffer->getBuffer();
 	if (this->m_input->isComplex()) {
-		void *data = this->m_input->initializeTileData(rect, NULL);
+		void *data = this->m_input->initializeTileData(rect);
 		int x1 = rect->xmin;
 		int y1 = rect->ymin;
 		int x2 = rect->xmax;
@@ -73,7 +73,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 		for (y = y1; y < y2 && (!breaked); y++) {
 			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
 			for (x = x1; x < x2; x++) {
-				this->m_input->read(&(buffer[offset4]), x, y, NULL, data);
+				this->m_input->read(&(buffer[offset4]), x, y, data);
 				offset4 += COM_NUMBER_OF_CHANNELS;
 
 			}
@@ -83,7 +83,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 
 		}
 		if (data) {
-			this->m_input->deinitializeTileData(rect, NULL, data);
+			this->m_input->deinitializeTileData(rect, data);
 			data = NULL;
 		}
 	}
@@ -99,7 +99,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 		for (y = y1; y < y2 && (!breaked); y++) {
 			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
 			for (x = x1; x < x2; x++) {
-				this->m_input->read(&(buffer[offset4]), x, y, COM_PS_NEAREST, NULL);
+				this->m_input->read(&(buffer[offset4]), x, y, COM_PS_NEAREST);
 				offset4 += COM_NUMBER_OF_CHANNELS;
 			}
 			if (isBreaked()) {

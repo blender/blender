@@ -111,9 +111,9 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
-			this->m_imageInput->read(color, x, y, COM_PS_NEAREST, NULL);
+			this->m_imageInput->read(color, x, y, COM_PS_NEAREST);
 			if (this->m_alphaInput != NULL) {
-				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST, NULL);
+				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST);
 			}
 			copy_v4_v4(buffer + offset, color);
 			offset += COM_NUMBER_OF_CHANNELS;

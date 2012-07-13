@@ -28,7 +28,7 @@
 class ConvolutionEdgeFilterOperation : public ConvolutionFilterOperation {
 public:
 	ConvolutionEdgeFilterOperation();
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 };
 
 #endif

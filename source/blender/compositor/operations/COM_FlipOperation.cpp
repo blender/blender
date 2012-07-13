@@ -42,12 +42,12 @@ void FlipOperation::deinitExecution()
 }
 
 
-void FlipOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void FlipOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float nx = this->m_flipX ? this->getWidth() - 1 - x : x;
 	float ny = this->m_flipY ? this->getHeight() - 1 - y : y;
 	
-	this->m_inputOperation->read(color, nx, ny, sampler, inputBuffers);
+	this->m_inputOperation->read(color, nx, ny, sampler);
 }
 
 bool FlipOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

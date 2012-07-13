@@ -65,13 +65,13 @@ void KeyingDespillOperation::deinitExecution()
 	this->m_screenReader = NULL;
 }
 
-void KeyingDespillOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void KeyingDespillOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float pixelColor[4];
 	float screenColor[4];
 
-	this->m_pixelReader->read(pixelColor, x, y, sampler, inputBuffers);
-	this->m_screenReader->read(screenColor, x, y, sampler, inputBuffers);
+	this->m_pixelReader->read(pixelColor, x, y, sampler);
+	this->m_screenReader->read(screenColor, x, y, sampler);
 
 	int screen_primary_channel = get_pixel_primary_channel(screenColor);
 	int other_1 = (screen_primary_channel + 1) % 3;

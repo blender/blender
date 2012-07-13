@@ -34,7 +34,7 @@ protected:
 	float *make_gausstab(int rad);
 	float *make_dist_fac_inverse(int rad, int falloff);
 
-	void updateSize(MemoryBuffer **memoryBuffers);
+	void updateSize();
 
 	/**
 	 * Cached reference to the inputProgram

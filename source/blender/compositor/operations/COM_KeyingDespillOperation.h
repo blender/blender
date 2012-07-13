@@ -45,7 +45,7 @@ public:
 	void setDespillFactor(float value) {this->m_despillFactor = value;}
 	void setColorBalance(float value) {this->m_colorBalance = value;}
 
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 };
 
 #endif

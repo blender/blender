@@ -33,10 +33,10 @@ void ConvertValueToColorProg::initExecution()
 	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void ConvertValueToColorProg::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ConvertValueToColorProg::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
-	this->m_inputProgram->read(inputValue, x, y, sampler, inputBuffers);
+	this->m_inputProgram->read(inputValue, x, y, sampler);
 	color[0] = inputValue[0];
 	color[1] = inputValue[0];
 	color[2] = inputValue[0];

@@ -34,10 +34,10 @@ void ConvertColorToValueProg::initExecution()
 	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertColorToValueProg::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ConvertColorToValueProg::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputOperation->read(&inputColor[0], x, y, sampler, inputBuffers);
+	this->m_inputOperation->read(&inputColor[0], x, y, sampler);
 	outputValue[0] = (inputColor[0] + inputColor[1] + inputColor[2]) / 3.0f;
 }
 

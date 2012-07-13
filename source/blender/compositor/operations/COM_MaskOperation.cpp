@@ -70,7 +70,7 @@ void MaskOperation::deinitExecution()
 	}
 }
 
-void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *MaskOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_rasterizedMask)
 		return this->m_rasterizedMask;
@@ -117,7 +117,7 @@ void MaskOperation::determineResolution(unsigned int resolution[], unsigned int 
 	}
 }
 
-void MaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void MaskOperation::executePixel(float *color, int x, int y, void *data)
 {
 	if (!data) {
 		color[0] = 0.0f;
@@ -167,7 +167,7 @@ void MaskOperation::deinitExecution()
 	deinitMutex();
 }
 
-void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *MaskOperation::initializeTileData(rcti *rect)
 {
 	/* pass */
 	return NULL;
@@ -191,7 +191,7 @@ void MaskOperation::determineResolution(unsigned int resolution[], unsigned int 
 	}
 }
 
-void MaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void MaskOperation::executePixel(float *color, int x, int y, void *data)
 {
 	const float xy[2] = {x / (float)this->m_maskWidth, y / (float)this->m_maskHeight};
 	color[0] = BLI_maskrasterize_handle_sample(this->m_rasterMaskHandle, xy);

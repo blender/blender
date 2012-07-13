@@ -42,7 +42,7 @@ void AntiAliasOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void AntiAliasOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void AntiAliasOperation::executePixel(float *color, int x, int y, void *data)
 {
 	if (y < 0 || (unsigned int)y >= this->m_height || x < 0 || (unsigned int)x >= this->m_width) {
 		color[0] = 0.0f;
@@ -82,12 +82,12 @@ bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	return false;
 }
 
-void *AntiAliasOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *AntiAliasOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_buffer) { return this->m_buffer; }
 	lockMutex();
 	if (this->m_buffer == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer *)this->m_valueReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_valueReader->initializeTileData(rect);
 		int size = tile->getHeight() * tile->getWidth();
 		float *input = tile->getBuffer();
 		char *valuebuffer = new char[size];

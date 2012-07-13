@@ -33,13 +33,13 @@ GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(COM_DT_COLO
 	this->m_rad = 0;
 }
 
-void *GaussianXBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *GaussianXBlurOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
 	if (!this->m_sizeavailable) {
-		updateGauss(memoryBuffers);
+		updateGauss();
 	}
-	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	void *buffer = getInputOperation(0)->initializeTileData(NULL);
 	unlockMutex();
 	return buffer;
 }
@@ -60,10 +60,10 @@ void GaussianXBlurOperation::initExecution()
 	}
 }
 
-void GaussianXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
+void GaussianXBlurOperation::updateGauss()
 {
 	if (this->m_gausstab == NULL) {
-		updateSize(memoryBuffers);
+		updateSize();
 		float rad = this->m_size * this->m_data->sizex;
 		if (rad < 1)
 			rad = 1;
@@ -73,7 +73,7 @@ void GaussianXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 	}
 }
 
-void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void GaussianXBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
 	float color_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	float multiplier_accum = 0.0f;

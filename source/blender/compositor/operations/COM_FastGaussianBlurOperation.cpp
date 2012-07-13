@@ -31,7 +31,7 @@ FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(COM_D
 	this->m_iirgaus = NULL;
 }
 
-void FastGaussianBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void FastGaussianBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
 	MemoryBuffer *newData = (MemoryBuffer *)data;
 	newData->read(color, x, y);	
@@ -79,13 +79,13 @@ void FastGaussianBlurOperation::deinitExecution()
 	BlurBaseOperation::deinitMutex();
 }
 
-void *FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
 	if (!this->m_iirgaus) {
-		MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect);
 		MemoryBuffer *copy = newBuf->duplicate();
-		updateSize(memoryBuffers);
+		updateSize();
 
 		int c;
 		this->m_sx = this->m_data->sizex * this->m_size / 2.0f;
@@ -233,7 +233,7 @@ FastGaussianBlurValueOperation::FastGaussianBlurValueOperation() : NodeOperation
 	setComplex(true);
 }
 
-void FastGaussianBlurValueOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void FastGaussianBlurValueOperation::executePixel(float *color, int x, int y, void *data)
 {
 	MemoryBuffer *newData = (MemoryBuffer *)data;
 	newData->read(color, x, y);	
@@ -270,11 +270,11 @@ void FastGaussianBlurValueOperation::deinitExecution()
 	deinitMutex();
 }
 
-void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
 	if (!this->m_iirgaus) {
-		MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputprogram->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputprogram->initializeTileData(rect);
 		MemoryBuffer *copy = newBuf->duplicate();
 		FastGaussianBlurOperation::IIR_gauss(copy, this->m_sigma, 0, 3);
 		this->m_iirgaus = copy;

@@ -49,9 +49,9 @@ public:
 
 	void setIsEdgeMatte(bool value) {this->m_isEdgeMatte = value;}
 
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };

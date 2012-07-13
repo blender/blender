@@ -32,13 +32,13 @@ GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(COM
 	this->m_gausstab = NULL;
 }
 
-void *GaussianBokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *GaussianBokehBlurOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
 	if (!this->m_sizeavailable) {
-		updateGauss(memoryBuffers);
+		updateGauss();
 	}
-	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	void *buffer = getInputOperation(0)->initializeTileData(NULL);
 	unlockMutex();
 	return buffer;
 }
@@ -50,11 +50,11 @@ void GaussianBokehBlurOperation::initExecution()
 	initMutex();
 
 	if (this->m_sizeavailable) {
-		updateGauss(NULL);
+		updateGauss();
 	}
 }
 
-void GaussianBokehBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
+void GaussianBokehBlurOperation::updateGauss()
 {
 	if (this->m_gausstab == NULL) {
 		float radxf;
@@ -67,7 +67,7 @@ void GaussianBokehBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 		const float width = this->getWidth();
 		const float height = this->getHeight();
 		if (!this->m_sizeavailable) {
-			updateSize(memoryBuffers);
+			updateSize();
 		}
 		radxf = this->m_size * (float)this->m_data->sizex;
 		if (radxf > width / 2.0f)
@@ -112,7 +112,7 @@ void GaussianBokehBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 	}
 }
 
-void GaussianBokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void GaussianBokehBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
 	float tempColor[4];
 	tempColor[0] = 0;
@@ -207,9 +207,9 @@ GaussianBokehBlurReferenceOperation::GaussianBokehBlurReferenceOperation() : Nod
 	this->m_inputSize = NULL;
 }
 
-void *GaussianBokehBlurReferenceOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *GaussianBokehBlurReferenceOperation::initializeTileData(rcti *rect)
 {
-	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	void *buffer = getInputOperation(0)->initializeTileData(NULL);
 	return buffer;
 }
 
@@ -263,7 +263,7 @@ void GaussianBokehBlurReferenceOperation::updateGauss()
 	this->m_gausstab = ddgauss;
 }
 
-void GaussianBokehBlurReferenceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void GaussianBokehBlurReferenceOperation::executePixel(float *color, int x, int y, void *data)
 {
 	float tempColor[4];
 	float tempSize[4];
@@ -277,14 +277,14 @@ void GaussianBokehBlurReferenceOperation::executePixel(float *color, int x, int 
 	int bufferwidth = inputBuffer->getWidth();
 	int bufferstartx = inputBuffer->getRect()->xmin;
 	int bufferstarty = inputBuffer->getRect()->ymin;
-	this->m_inputSize->read(tempSize, x, y, inputBuffers, data);
+	this->m_inputSize->read(tempSize, x, y, data);
 	float size = tempSize[0];
 	CLAMP(size, 0.0f, 1.0f);
 	float sizeX = ceil(this->m_data->sizex * size);
 	float sizeY = ceil(this->m_data->sizey * size);
 
 	if (sizeX <= 0.5f && sizeY <= 0.5f) {
-		this->m_inputImage->read(color, x, y, inputBuffers, data);
+		this->m_inputImage->read(color, x, y, data);
 		return;
 	}
 	

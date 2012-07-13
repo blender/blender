@@ -78,24 +78,24 @@ void CombineChannelsOperation::deinitExecution()
 }
 
 
-void CombineChannelsOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void CombineChannelsOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float input[4];
 	/// @todo: remove if statements
 	if (this->m_inputChannel1Operation) {
-		this->m_inputChannel1Operation->read(input, x, y, sampler, inputBuffers);
+		this->m_inputChannel1Operation->read(input, x, y, sampler);
 		color[0] = input[0];
 	}
 	if (this->m_inputChannel2Operation) {
-		this->m_inputChannel2Operation->read(input, x, y, sampler, inputBuffers);
+		this->m_inputChannel2Operation->read(input, x, y, sampler);
 		color[1] = input[0];
 	}
 	if (this->m_inputChannel3Operation) {
-		this->m_inputChannel3Operation->read(input, x, y, sampler, inputBuffers);
+		this->m_inputChannel3Operation->read(input, x, y, sampler);
 		color[2] = input[0];
 	}
 	if (this->m_inputChannel4Operation) {
-		this->m_inputChannel4Operation->read(input, x, y, sampler, inputBuffers);
+		this->m_inputChannel4Operation->read(input, x, y, sampler);
 		color[3] = input[0];
 	}
 }

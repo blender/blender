@@ -34,10 +34,10 @@ void MapValueOperation::initExecution()
 	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
-void MapValueOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MapValueOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float src[4];
-	this->m_inputOperation->read(src, x, y, sampler, inputBuffers);
+	this->m_inputOperation->read(src, x, y, sampler);
 	TexMapping *texmap = this->m_settings;
 	float value = (src[0] + texmap->loc[0]) * texmap->size[0];
 	if (texmap->flag & TEXMAP_CLIP_MIN)

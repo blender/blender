@@ -34,10 +34,10 @@ void ConvertValueToVectorOperation::initExecution()
 	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertValueToVectorOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ConvertValueToVectorOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float input[4];
-	this->m_inputOperation->read(input, x, y, sampler, inputBuffers);
+	this->m_inputOperation->read(input, x, y, sampler);
 	outputValue[0] = input[0];
 	outputValue[1] = input[0];
 	outputValue[2] = input[0];

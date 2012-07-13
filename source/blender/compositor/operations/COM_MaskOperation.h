@@ -72,7 +72,7 @@ public:
 	void initExecution();
 	void deinitExecution();
 
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 
 	void setMask(Mask *mask) { this->m_mask = mask; }
 	void setMaskWidth(int width) { this->m_maskWidth = width; }
@@ -81,7 +81,7 @@ public:
 	void setSmooth(bool smooth) { this->m_do_smooth = smooth; }
 	void setFeather(bool feather) { this->m_do_feather = feather; }
 
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 };
 
 #endif

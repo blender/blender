@@ -1260,15 +1260,15 @@ void DoubleEdgeMaskOperation::initExecution()
 	this->m_cachedInstance = NULL;
 }
 
-void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_cachedInstance)
 		return this->m_cachedInstance;
 	
 	lockMutex();
 	if (this->m_cachedInstance == NULL) {
-		MemoryBuffer *innerMask = (MemoryBuffer *)this->m_inputInnerMask->initializeTileData(rect, memoryBuffers);
-		MemoryBuffer *outerMask = (MemoryBuffer *)this->m_inputOuterMask->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *innerMask = (MemoryBuffer *)this->m_inputInnerMask->initializeTileData(rect);
+		MemoryBuffer *outerMask = (MemoryBuffer *)this->m_inputOuterMask->initializeTileData(rect);
 		float *data = new float[this->getWidth() * this->getHeight()];
 		float *imask = innerMask->convertToValueBuffer();
 		float *omask = outerMask->convertToValueBuffer();
@@ -1280,7 +1280,7 @@ void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect, MemoryBuffer **mem
 	unlockMutex();
 	return this->m_cachedInstance;
 }
-void DoubleEdgeMaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DoubleEdgeMaskOperation::executePixel(float *color, int x, int y, void *data)
 {
 	float *buffer = (float *) data;
 	int index = (y * this->getWidth() + x);

@@ -47,15 +47,15 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
 
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
-	void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data);
+	void *initializeTileData(rcti *rect);
+	void deinitializeTileData(rcti *rect, void *data);
 
 	/**
 	 * Deinitialize the execution

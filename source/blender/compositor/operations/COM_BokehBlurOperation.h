@@ -30,7 +30,7 @@ private:
 	SocketReader *m_inputProgram;
 	SocketReader *m_inputBokehProgram;
 	SocketReader *m_inputBoundingBoxReader;
-	void updateSize(MemoryBuffer **memoryBuffers);
+	void updateSize();
 	float m_size;
 	bool m_sizeavailable;
 	float m_bokehMidX;
@@ -39,11 +39,11 @@ private:
 public:
 	BokehBlurOperation();
 
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution

@@ -37,13 +37,13 @@ void GammaOperation::initExecution()
 	this->m_inputGammaProgram = this->getInputSocketReader(1);
 }
 
-void GammaOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void GammaOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
 	float inputGamma[4];
 	
-	this->m_inputProgram->read(inputValue, x, y, sampler, inputBuffers);
-	this->m_inputGammaProgram->read(inputGamma, x, y, sampler, inputBuffers);
+	this->m_inputProgram->read(inputValue, x, y, sampler);
+	this->m_inputGammaProgram->read(inputGamma, x, y, sampler);
 	const float gamma = inputGamma[0];
 	/* check for negative to avoid nan's */
 	color[0] = inputValue[0] > 0.0f ? powf(inputValue[0], gamma) : inputValue[0];

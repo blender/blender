@@ -84,12 +84,12 @@ void ColorSpillOperation::deinitExecution()
 	this->m_inputFacReader = NULL;
 }
 
-void ColorSpillOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ColorSpillOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float fac[4];
 	float input[4];
-	this->m_inputFacReader->read(fac, x, y, sampler, inputBuffers);
-	this->m_inputImageReader->read(input, x, y, sampler, inputBuffers);
+	this->m_inputFacReader->read(fac, x, y, sampler);
+	this->m_inputImageReader->read(input, x, y, sampler);
 	float rfac = min(1.0f, fac[0]);
 	float map = calculateMapValue(rfac, input);
 	if (map > 0.0f) {

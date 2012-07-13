@@ -93,7 +93,7 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 			color[1] = 0.0f;
 			color[2] = 0.0f;
 			color[3] = 1.0f;
-			this->m_input->read(color, rx, ry, COM_PS_NEAREST, NULL);
+			this->m_input->read(color, rx, ry, COM_PS_NEAREST);
 			linearrgb_to_srgb_v4(color, color);
 			F4TOCHAR4(color, this->m_outputBuffer + offset);
 			offset += 4;

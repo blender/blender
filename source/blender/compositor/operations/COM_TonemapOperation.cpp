@@ -41,12 +41,12 @@ void TonemapOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void TonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void TonemapOperation::executePixel(float *color, int x, int y, void *data)
 {
 	AvgLogLum *avg = (AvgLogLum *)data;
 
 	float output[4];
-	this->m_imageReader->read(output, x, y, inputBuffers, NULL);
+	this->m_imageReader->read(output, x, y, NULL);
 	mul_v3_fl(output, avg->al);
 	float dr = output[0] + this->m_data->offset;
 	float dg = output[1] + this->m_data->offset;
@@ -63,7 +63,7 @@ void TonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *in
 
 	copy_v4_v4(color, output);
 }
-void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, void *data)
 {
 	AvgLogLum *avg = (AvgLogLum *)data;
 	NodeTonemap *ntm = this->m_data;
@@ -73,7 +73,7 @@ void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, Mem
 	const float ic = 1.0f - ntm->c, ia = 1.0f - ntm->a;
 
 	float output[4];
-	this->m_imageReader->read(output, x, y, inputBuffers, NULL);
+	this->m_imageReader->read(output, x, y, NULL);
 
 	const float L = rgb_to_luma_y(output);
 	float I_l = output[0] + ic * (L - output[0]);
@@ -116,11 +116,11 @@ bool TonemapOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferO
 	return false;
 }
 
-void *TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *TonemapOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
 	if (this->m_cachedInstance == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect);
 		AvgLogLum *data = new AvgLogLum();
 
 		float *buffer = tile->getBuffer();
@@ -154,7 +154,7 @@ void *TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuff
 	return this->m_cachedInstance;
 }
 
-void TonemapOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+void TonemapOperation::deinitializeTileData(rcti *rect, void *data)
 {
 	/* pass */
 }

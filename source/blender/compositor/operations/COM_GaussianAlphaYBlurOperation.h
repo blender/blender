@@ -33,14 +33,14 @@ private:
 	bool m_do_subtract;
 	int m_falloff;
 	int m_rad;
-	void updateGauss(MemoryBuffer **memoryBuffers);
+	void updateGauss();
 public:
 	GaussianAlphaYBlurOperation();
 	
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 	
 	/**
 	 * @brief initialize the execution
@@ -52,7 +52,7 @@ public:
 	 */
 	void deinitExecution();
 	
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
 	/**
