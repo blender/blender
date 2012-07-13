@@ -61,7 +61,7 @@ typedef struct MaskRasterLayer {
 	rctf bounds;
 
 	/* geometry */
-	unsigned int (*tri_array)[3];  /* access coords */
+	unsigned int (*tri_array)[4];  /* access coords tri/quad */
 	float        (*tri_coords)[3]; /* xy, z 0-1 (1.0 == filled) */
 
 
@@ -186,6 +186,8 @@ void maskrasterize_spline_differentiate_point_inset(float (*diff_feather_points)
 		k_next++;
 	}
 }
+
+#define TRI_VERT ((unsigned int) -1)
 
 void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mask,
                                    const int width, const int height,
@@ -356,14 +358,14 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		}
 
 		if (sf_ctx.fillvertbase.first) {
-			unsigned int (*tri_array)[3], *tri;  /* access coords */
+			unsigned int (*tri_array)[4], *tri;  /* access coords */
 			float        (*tri_coords)[3], *cos; /* xy, z 0-1 (1.0 == filled) */
 			int sf_tri_tot;
 			rctf bounds;
 			int tri_index;
 
 			BVHTree *bvhtree;
-			float bvhcos[3][3];
+			float bvhcos[4][3];
 
 			/* now we have all the splines */
 			tri_coords = MEM_mallocN((sizeof(float) * 3) * sf_vert_tot, "maskrast_tri_coords");
@@ -391,10 +393,10 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			/* main scanfill */
 			sf_tri_tot = BLI_scanfill_calc_ex(&sf_ctx, FALSE, zvec);
 
-			tri_array = MEM_mallocN((sizeof(unsigned int) * 3) * (sf_tri_tot + (tot_feather_quads * 8)), "maskrast_tri_index");
+			tri_array = MEM_mallocN(sizeof(*tri_array) * (sf_tri_tot + tot_feather_quads), "maskrast_tri_index");
 
 			/* */
-			bvhtree = BLI_bvhtree_new(sf_tri_tot + (tot_feather_quads * 2), 0.000001f, 4, 6);
+			bvhtree = BLI_bvhtree_new(sf_tri_tot + tot_feather_quads, 0.000001f, 4, 6);
 
 			/* tri's */
 			tri = (unsigned int *)tri_array;
@@ -402,16 +404,17 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				*(tri++) = sf_tri->v1->tmp.u;
 				*(tri++) = sf_tri->v2->tmp.u;
 				*(tri++) = sf_tri->v3->tmp.u;
+				*(tri++) = TRI_VERT;
 
-				copy_v3_v3(bvhcos[0], tri_coords[*(tri - 3)]);
-				copy_v3_v3(bvhcos[1], tri_coords[*(tri - 2)]);
-				copy_v3_v3(bvhcos[2], tri_coords[*(tri - 1)]);
+				copy_v3_v3(bvhcos[0], tri_coords[*(tri - 4)]);
+				copy_v3_v3(bvhcos[1], tri_coords[*(tri - 3)]);
+				copy_v3_v3(bvhcos[2], tri_coords[*(tri - 2)]);
 
 				BLI_bvhtree_insert(bvhtree, tri_index, (float *)bvhcos, 3);
 			}
 
 			/* start of feather faces... if we have this set,
-			 * 'j' is kept from loop above */
+			 * 'tri_index' is kept from loop above */
 
 			BLI_assert(tri_index == sf_tri_tot);
 
@@ -420,44 +423,24 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 				for (sf_edge = sf_ctx.filledgebase.first; sf_edge; sf_edge = sf_edge->next) {
 					if (sf_edge->tmp.c == SF_EDGE_IS_BOUNDARY) {
-						unsigned int quad[4] = {
-							sf_edge->v1->tmp.u,
-							sf_edge->v2->tmp.u,
+						*(tri++) = sf_edge->v1->tmp.u;
+						*(tri++) = sf_edge->v2->tmp.u;
+						*(tri++) = sf_edge->v2->keyindex;
+						*(tri++) = sf_edge->v1->keyindex;
 
-							sf_edge->v2->keyindex,
-							sf_edge->v1->keyindex,
-						};
+						copy_v3_v3(bvhcos[0], tri_coords[*(tri - 4)]);
+						copy_v3_v3(bvhcos[1], tri_coords[*(tri - 3)]);
+						copy_v3_v3(bvhcos[2], tri_coords[*(tri - 2)]);
+						copy_v3_v3(bvhcos[3], tri_coords[*(tri - 1)]);
 
-						/* tri 1 */
-						*(tri++) = quad[0];
-						*(tri++) = quad[1];
-						*(tri++) = quad[2];
-
-						/* tri 2 */
-						*(tri++) = quad[0];
-						*(tri++) = quad[2];
-						*(tri++) = quad[3];
-
-						/* tri 1 */
-						copy_v3_v3(bvhcos[0], tri_coords[quad[0]]);
-						copy_v3_v3(bvhcos[1], tri_coords[quad[1]]);
-						copy_v3_v3(bvhcos[2], tri_coords[quad[2]]);
-
-						BLI_bvhtree_insert(bvhtree, tri_index++, (const float *)bvhcos, 3);
-
-						/* tri 2 */
-						copy_v3_v3(bvhcos[0], tri_coords[quad[0]]);
-						copy_v3_v3(bvhcos[1], tri_coords[quad[2]]);
-						copy_v3_v3(bvhcos[2], tri_coords[quad[3]]);
-
-						BLI_bvhtree_insert(bvhtree, tri_index++, (const float *)bvhcos, 3);
+						BLI_bvhtree_insert(bvhtree, tri_index++, (const float *)bvhcos, 4);
 					}
 				}
 			}
 
-			fprintf(stderr, "%d %d\n", tri_index, sf_tri_tot + (tot_feather_quads * 2));
+			fprintf(stderr, "%d %d\n", tri_index, sf_tri_tot + tot_feather_quads);
 
-			BLI_assert(tri_index == sf_tri_tot + (tot_feather_quads * 2));
+			BLI_assert(tri_index == sf_tri_tot + tot_feather_quads);
 
 			BLI_bvhtree_balance(bvhtree);
 
@@ -478,7 +461,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				BLI_union_rctf(&mr_handle->bounds, &bounds);
 			}
 
-			PRINT_MASK_DEBUG("tris %d, feather tris %d\n", sf_tri_tot, (tot_feather_quads * 2));
+			PRINT_MASK_DEBUG("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads);
 		}
 
 		/* add trianges */
@@ -487,11 +470,20 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 }
 
 /* 2D ray test */
-static float maskrasterize_layer_z_depth(const float pt[2], float v1[3], float v2[3], float v3[3])
+static float maskrasterize_layer_z_depth_tri(const float pt[2],
+                                             const float v1[3], const float v2[3], const float v3[3])
 {
 	float w[3];
 	barycentric_weights_v2(v1, v2, v3, pt, w);
 	return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]);
+}
+
+static float maskrasterize_layer_z_depth_quad(const float pt[2],
+                                              const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	float w[4];
+	barycentric_weights_v2_quad(v1, v2, v3, v4, pt, w);
+	return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]) + (v4[2] * w[3]);
 }
 
 static void maskrasterize_layer_bvh_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
@@ -502,15 +494,38 @@ static void maskrasterize_layer_bvh_cb(void *userdata, int index, const BVHTreeR
 	const float dist_orig = hit->dist;
 
 	/* we always cast from same place only need xy */
+	if (tri[3] == TRI_VERT) {
+		/* --- tri --- */
 
-	/* not essential but avoids unneeded extra lookups */
-	if (cos[0][2] < dist_orig || cos[1][2] < dist_orig || cos[2][2] < dist_orig) {
+		/* not essential but avoids unneeded extra lookups */
+		if ((cos[0][2] < dist_orig) ||
+		    (cos[1][2] < dist_orig) ||
+		    (cos[2][2] < dist_orig))
+		{
+			if (isect_point_tri_v2(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]])) {
+				const float dist = maskrasterize_layer_z_depth_tri(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]]);
+				if (dist < dist_orig) {
+					hit->index = index;
+					hit->dist = dist;
+				}
+			}
+		}
+	}
+	else {
+		/* --- quad --- */
 
-		if (isect_point_tri_v2(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]])) {
-			const float dist = maskrasterize_layer_z_depth(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]]);
-			if (dist < dist_orig) {
-				hit->index = index;
-				hit->dist = dist;
+		/* not essential but avoids unneeded extra lookups */
+		if ((cos[0][2] < dist_orig) ||
+		    (cos[1][2] < dist_orig) ||
+		    (cos[2][2] < dist_orig) ||
+		    (cos[3][2] < dist_orig))
+		{
+			if (isect_point_quad_v2(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]], cos[tri[3]])) {
+				const float dist = maskrasterize_layer_z_depth_quad(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]], cos[tri[3]]);
+				if (dist < dist_orig) {
+					hit->index = index;
+					hit->dist = dist;
+				}
 			}
 		}
 	}
