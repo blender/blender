@@ -121,7 +121,7 @@ void MemoryBuffer::writePixel(int x, int y, const float color[4])
 	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
 	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
-		const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
+		const int offset = (this->m_chunkWidth * (y-this->m_rect.ymin) + x-this->m_rect.xmin) * COM_NUMBER_OF_CHANNELS;
 		copy_v4_v4(&this->m_buffer[offset], color);
 	}
 }
@@ -131,7 +131,7 @@ void MemoryBuffer::addPixel(int x, int y, const float color[4])
 	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
 	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
-		const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
+		const int offset = (this->m_chunkWidth * (y-this->m_rect.ymin) + x-this->m_rect.xmin) * COM_NUMBER_OF_CHANNELS;
 		add_v4_v4(&this->m_buffer[offset], color);
 	}
 }

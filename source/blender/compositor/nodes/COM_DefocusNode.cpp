@@ -99,9 +99,7 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 #ifdef COM_DEFOCUS_SEARCH	
 	InverseSearchRadiusOperation *search = new InverseSearchRadiusOperation();
 	addLink(graph, radiusOperation->getOutputSocket(0), search->getInputSocket(0));
-	addLink(graph, depthOperation, search->getInputSocket(1));
 	search->setMaxBlur(data->maxblur);
-	search->setThreshold(data->bthresh);
 	graph->addOperation(search);
 #endif
 	VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
@@ -116,7 +114,7 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	addLink(graph, bokeh->getOutputSocket(), operation->getInputSocket(1));
 	addLink(graph, radiusOperation->getOutputSocket(), operation->getInputSocket(2));
 #ifdef COM_DEFOCUS_SEARCH
-	addLink(graph, search->getOutputSocket(), operation->getInputSocket(4));
+	addLink(graph, search->getOutputSocket(), operation->getInputSocket(3));
 #endif
 	if (data->gamco) {
 		GammaCorrectOperation *correct = new GammaCorrectOperation();

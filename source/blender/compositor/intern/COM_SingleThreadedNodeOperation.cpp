@@ -35,7 +35,7 @@ void SingleThreadedNodeOperation::initExecution()
 
 void SingleThreadedNodeOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	this->m_cachedInstance->read(color, x, y);
+	this->m_cachedInstance->readNoCheck(color, x, y);
 }
 
 void SingleThreadedNodeOperation::deinitExecution()

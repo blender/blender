@@ -25,6 +25,11 @@
 #ifndef _COM_MaskOperation_h
 #define _COM_MaskOperation_h
 
+/* XXX, remove when the USE_RASKTER option is also removed */
+extern "C" {
+	#include "BKE_mask.h"
+}
+
 #include "COM_NodeOperation.h"
 #include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
@@ -46,9 +51,15 @@ protected:
 	int m_framenumber;
 	bool m_do_smooth;
 	bool m_do_feather;
+
+#ifdef USE_RASKTER
 	float *m_rasterizedMask;
 	
 	ListBase m_maskLayers;
+
+#else /* USE_RASKTER */
+	struct MaskRasterHandle *m_rasterMaskHandle;
+#endif /* USE_RASKTER */
 
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer

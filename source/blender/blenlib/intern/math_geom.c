@@ -1942,6 +1942,46 @@ void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3
 	}
 }
 
+/* same as #barycentric_weights_v2 but works with a quad,
+ * note: untested for values outside the quad's bounds.
+ * note: there may be a more efficient method to do this, just figured it out - campbell */
+void barycentric_weights_v2_quad(const float v1[2], const float v2[2], const float v3[2], const float v4[2],
+                                 const float co[2], float w[4])
+{
+	float wtot;
+
+	const float areas_co[4] = {
+	    area_tri_signed_v2(v1, v2, co),
+	    area_tri_signed_v2(v2, v3, co),
+	    area_tri_signed_v2(v3, v4, co),
+	    area_tri_signed_v2(v4, v1, co),
+	};
+
+	const float areas_diag[4] = {
+	    area_tri_signed_v2(v4, v1, v2),
+	    area_tri_signed_v2(v1, v2, v3),
+	    area_tri_signed_v2(v2, v3, v4),
+	    area_tri_signed_v2(v3, v4, v1),
+	};
+
+	const float u = areas_co[3] / (areas_co[1] + areas_co[3]);
+	const float v = areas_co[0] / (areas_co[0] + areas_co[2]);
+
+	w[0] = ((1.0f - u) * (1.0f - v)) * sqrtf(areas_diag[0] / areas_diag[2]);
+	w[1] = ((       u) * (1.0f - v)) * sqrtf(areas_diag[1] / areas_diag[3]);
+	w[2] = ((       u) * (       v)) * sqrtf(areas_diag[2] / areas_diag[0]);
+	w[3] = ((1.0f - u) * (       v)) * sqrtf(areas_diag[3] / areas_diag[1]);
+
+	wtot = w[0] + w[1] + w[2] + w[3];
+
+	if (wtot != 0.0f) {
+		mul_v4_fl(w, 1.0f / wtot);
+	}
+	else { /* dummy values for zero area face */
+		copy_v4_fl(w, 1.0f / 4.0f);
+	}
+}
+
 /* given 2 triangles in 3D space, and a point in relation to the first triangle.
  * calculate the location of a point in relation to the second triangle.
  * Useful for finding relative positions with geometry */
