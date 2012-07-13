@@ -86,7 +86,7 @@ void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *i
 	this->m_inputVectorProgram->read(inVector, x + 1, y, COM_PS_NEAREST, inputBuffers);
 	d_dx = inVector[0] * xs;
 	this->m_inputVectorProgram->read(inVector, x, y + 1, COM_PS_NEAREST, inputBuffers);
-	d_dy = inVector[0] * ys;
+	d_dy = inVector[1] * ys;
 
 	/* clamp derivatives to minimum displacement distance in UV space */
 	dxt = p_dx - d_dx;
