@@ -71,7 +71,7 @@
 #include "ED_mesh.h"
 #include "ED_uvedit.h"
 
-#include "view3d_intern.h"  // own include
+#include "view3d_intern.h"  /* own include */
 
 /* user data structures for derived mesh callbacks */
 typedef struct drawMeshFaceSelect_userData {
@@ -214,7 +214,7 @@ void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 	dm->drawMappedEdges(dm, draw_mesh_face_select__setSelectOpts, &data);
 	setlinestyle(0);
 
-	bglPolygonOffset(rv3d->dist, 0.0);  // resets correctly now, even after calling accumulated offsets
+	bglPolygonOffset(rv3d->dist, 0.0);  /* resets correctly now, even after calling accumulated offsets */
 
 	BLI_edgehash_free(data.eh, NULL);
 }
@@ -223,7 +223,7 @@ void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 
 static Material *give_current_material_or_def(Object *ob, int matnr)
 {
-	extern Material defmaterial;    // render module abuse...
+	extern Material defmaterial;  /* render module abuse... */
 	Material *ma = give_current_material(ob, matnr);
 
 	return ma ? ma : &defmaterial;
@@ -248,7 +248,7 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 	static int c_lit;
 	static int c_has_texface;
 
-	Object *litob = NULL; //to get mode to turn off mipmap in painting mode
+	Object *litob = NULL;  /* to get mode to turn off mipmap in painting mode */
 	int backculled = GEMAT_BACKCULL;
 	int alphablend = 0;
 	int textured = 0;
@@ -317,7 +317,7 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 	if (lit != c_lit || ma != c_ma) {
 		if (lit) {
 			float spec[4];
-			if (!ma) ma = give_current_material_or_def(NULL, 0);  //default material
+			if (!ma) ma = give_current_material_or_def(NULL, 0);  /* default material */
 
 			spec[0] = ma->spec * ma->specr;
 			spec[1] = ma->spec * ma->specg;
@@ -345,7 +345,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	unsigned char obcol[4];
 	int is_tex, solidtex;
 
-	// XXX scene->obedit warning
+	/* XXX scene->obedit warning */
 
 	/* texture draw is abused for mask selection mode, do this so wire draw
 	 * with face selection in weight paint is not lit. */
@@ -466,7 +466,8 @@ static DMDrawOption draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
 		return DM_DRAW_OPTION_NORMAL; /* Set color from mcol */
 	}
 }
-static void add_tface_color_layer(DerivedMesh *dm)
+
+static void update_tface_color_layer(DerivedMesh *dm)
 {
 	MTFace *tface = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	MFace *mface = dm->getTessFaceArray(dm);
@@ -476,7 +477,15 @@ static void add_tface_color_layer(DerivedMesh *dm)
 	if (!mcol)
 		mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
 
-	finalCol = MEM_mallocN(sizeof(MCol) * 4 * dm->getNumTessFaces(dm), "add_tface_color_layer");
+	if (CustomData_has_layer(&dm->faceData, CD_TEXTURE_MCOL)) {
+		finalCol = CustomData_get_layer(&dm->faceData, CD_TEXTURE_MCOL);
+	}
+	else {
+		finalCol = MEM_mallocN(sizeof(MCol) * 4 * dm->getNumTessFaces(dm), "add_tface_color_layer");
+
+		CustomData_add_layer(&dm->faceData, CD_TEXTURE_MCOL, CD_ASSIGN, finalCol, dm->numTessFaceData);
+	}
+
 	for (i = 0; i < dm->getNumTessFaces(dm); i++) {
 		Material *ma = give_current_material(Gtexdraw.ob, mface[i].mat_nr + 1);
 
@@ -542,7 +551,6 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		}
 	}
-	CustomData_add_layer(&dm->faceData, CD_TEXTURE_MCOL, CD_ASSIGN, finalCol, dm->numTessFaceData);
 }
 
 static DMDrawOption draw_tface_mapped__set_draw(void *userData, int index)
@@ -640,7 +648,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 		short matnr = mp->mat_nr;
 		int mf_smooth = mp->flag & ME_SMOOTH;
 		Material *mat = me->mat[matnr];
-		int mode = mat->game.flag;
+		int mode = mat ? mat->game.flag : GEMAT_INVISIBLE;
 
 		if (!(mode & GEMAT_INVISIBLE) && (mode & GEMAT_TEXT) && mp->totloop >= 3) {
 			/* get the polygon as a tri/quad */
@@ -705,8 +713,8 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 
 
-			// The BM_FONT handling is in the gpu module, shared with the
-			// game engine, was duplicated previously
+			/* The BM_FONT handling is in the gpu module, shared with the
+			 * game engine, was duplicated previously */
 
 			set_property_valstr(prop, string);
 			characters = strlen(string);
@@ -797,8 +805,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 		else {
 			drawTFace_userData userData;
 
-			if (!CustomData_has_layer(&dm->faceData, CD_TEXTURE_MCOL))
-				add_tface_color_layer(dm);
+			update_tface_color_layer(dm);
 
 			userData.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
 			userData.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
@@ -1062,7 +1069,7 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *d
 		 * rather than the shading, this is also forced in wire view */
 
 		bglPolygonOffset(rv3d->dist, 1.0);
-		glDepthMask(0); // disable write in zbuffer, selected edge wires show better
+		glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
 
 		glEnable(GL_BLEND);
 		glColor4ub(255, 255, 255, 96);

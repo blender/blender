@@ -234,6 +234,8 @@ public:
 	XIC getX11_XIC() {
 		return m_xic;
 	}
+
+	bool createX11_XIC();
 #endif
 
 #ifdef WITH_XDND

@@ -47,14 +47,14 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
 	
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 	/**
 	 * Deinitialize the execution
 	 */
@@ -83,14 +83,14 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
 	
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 	/**
 	 * Deinitialize the execution
 	 */
@@ -111,7 +111,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 
 	void executeOpenCL(OpenCLDevice* device,
 	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
@@ -135,14 +135,14 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
 	
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 	/**
 	 * Deinitialize the execution
 	 */
@@ -157,7 +157,7 @@ class ErodeStepOperation : public DilateStepOperation {
 public:
 	ErodeStepOperation();
 	
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 };
 
 #endif

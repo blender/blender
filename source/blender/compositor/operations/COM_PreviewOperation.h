@@ -44,7 +44,7 @@ public:
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const;
 	
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	void setbNode(bNode *node) { this->m_node = node; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);

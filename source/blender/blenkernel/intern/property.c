@@ -223,8 +223,8 @@ int compare_property(bProperty *prop, const char *str)
 
 		case GPROP_FLOAT:
 		case GPROP_TIME:
-			// WARNING: untested for GPROP_TIME
-			// function isn't used currently
+			/* WARNING: untested for GPROP_TIME
+			 * function isn't used currently */
 			fvalue = *((float *)&prop->data);
 			ftest = (float)atof(str);
 			if (fvalue > ftest) return 1;

@@ -1191,6 +1191,11 @@ static void def_math(StructRNA *srna)
 	RNA_def_property_enum_items(prop, node_math_items);
 	RNA_def_property_ui_text(prop, "Operation", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom2", 1);
+	RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0..1 range");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_vector_math(StructRNA *srna)
@@ -1271,6 +1276,11 @@ static void def_mix_rgb(StructRNA *srna)
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "custom2", 1);
 	RNA_def_property_ui_text(prop, "Alpha", "Include alpha of second input in this operation");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom2", 2);
+	RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0..1 range");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -3580,7 +3590,13 @@ static void def_cmp_keying(StructRNA *srna)
 	prop = RNA_def_property(srna, "despill_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "despill_factor");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Despill", "Factor of despilling screen color from image");
+	RNA_def_property_ui_text(prop, "Despill Factor", "Factor of despilling screen color from image");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "despill_balance", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "despill_balance");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Despill Balance", "Balance between non-key colors used to detect amount of key color to be removed");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "clip_black", PROP_FLOAT, PROP_FACTOR);
@@ -3636,6 +3652,35 @@ static void def_cmp_keying(StructRNA *srna)
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Feather Distance", "Distance to grow/shrink the feather");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_trackpos(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "MovieClip");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Movie Clip", "");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "use_relative", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
+	RNA_def_property_ui_text(prop, "Relative", "Return relative position to first track's marker");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "NodeTrackPosData", "storage");
+
+	prop = RNA_def_property(srna, "tracking_object", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "tracking_object");
+	RNA_def_property_ui_text(prop, "Tracking Object", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "track_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "track_name");
+	RNA_def_property_ui_text(prop, "Track", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
 /* -- Texture Nodes --------------------------------------------------------- */

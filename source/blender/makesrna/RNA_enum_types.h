@@ -127,6 +127,8 @@ extern EnumPropertyItem ramp_blend_items[];
 
 extern EnumPropertyItem prop_dynamicpaint_type_items[];
 
+extern EnumPropertyItem clip_editor_mode_items[];
+
 extern EnumPropertyItem linestyle_color_modifier_type_items[];
 extern EnumPropertyItem linestyle_alpha_modifier_type_items[];
 extern EnumPropertyItem linestyle_thickness_modifier_type_items[];

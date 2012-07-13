@@ -92,9 +92,9 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "view3d_intern.h"  // own include
+#include "view3d_intern.h"  /* own include */
 
-// TODO: should return whether there is valid context to continue
+/* TODO: should return whether there is valid context to continue */
 void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 {
 	memset(vc, 0, sizeof(ViewContext));
@@ -758,7 +758,7 @@ static void do_lasso_select_node(int mcords[][2], short moves, short select)
 	
 	bNode *node;
 	rcti rect;
-	short node_cent[2];
+	int node_cent[2];
 	float node_centf[2];
 	
 	BLI_lasso_boundbox(&rect, mcords, moves);
@@ -770,7 +770,7 @@ static void do_lasso_select_node(int mcords[][2], short moves, short select)
 		node_centf[1] = (node->totr.ymin + node->totr.ymax) / 2;
 		
 		ipoco_to_areaco_noclip(G.v2d, node_centf, node_cent);
-		if (BLI_in_rcti(&rect, node_cent[0], node_cent[1]) && BLI_lasso_is_point_inside(mcords, moves, node_cent[0], node_cent[1])) {
+		if (BLI_in_rcti_v(&rect, node_cent) && BLI_lasso_is_point_inside(mcords, moves, node_cent[0], node_cent[1])) {
 			if (select) {
 				node->flag |= SELECT;
 			}
@@ -1130,19 +1130,19 @@ static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buff
 	short a, hits15, hits9 = 0, hits5 = 0;
 	short has_bones15 = 0, has_bones9 = 0, has_bones5 = 0;
 	
-	BLI_init_rcti(&rect, mval[0] - 14, mval[0] + 14, mval[1] - 14, mval[1] + 14);
+	BLI_rcti_init(&rect, mval[0] - 14, mval[0] + 14, mval[1] - 14, mval[1] + 14);
 	hits15 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect);
 	if (hits15 > 0) {
 		for (a = 0; a < hits15; a++) if (buffer[4 * a + 3] & 0xFFFF0000) has_bones15 = 1;
 
 		offs = 4 * hits15;
-		BLI_init_rcti(&rect, mval[0] - 9, mval[0] + 9, mval[1] - 9, mval[1] + 9);
+		BLI_rcti_init(&rect, mval[0] - 9, mval[0] + 9, mval[1] - 9, mval[1] + 9);
 		hits9 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect);
 		if (hits9 > 0) {
 			for (a = 0; a < hits9; a++) if (buffer[offs + 4 * a + 3] & 0xFFFF0000) has_bones9 = 1;
 
 			offs += 4 * hits9;
-			BLI_init_rcti(&rect, mval[0] - 5, mval[0] + 5, mval[1] - 5, mval[1] + 5);
+			BLI_rcti_init(&rect, mval[0] - 5, mval[0] + 5, mval[1] - 5, mval[1] + 5);
 			hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect);
 			if (hits5 > 0) {
 				for (a = 0; a < hits5; a++) if (buffer[offs + 4 * a + 3] & 0xFFFF0000) has_bones5 = 1;
@@ -1825,7 +1825,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 	unsigned int *col;          /* color in buffer	*/
 	int bone_only;
 	int bone_selected = 0;
-	int totobj = MAXPICKBUF; // XXX solve later
+	int totobj = MAXPICKBUF; /* XXX solve later */
 	short hits;
 	
 	if ((ob) && (ob->mode & OB_MODE_POSE))
@@ -2370,7 +2370,7 @@ static void lattice_circle_select(ViewContext *vc, int select, const int mval[2]
 }
 
 
-// NOTE: pose-bone case is copied from editbone case...
+/* NOTE: pose-bone case is copied from editbone case... */
 static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, int x, int y)
 {
 	CircleSelectUserData *data = userData;
@@ -2403,7 +2403,7 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 	ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d); /* for foreach's screen/vert projection */
 	
 	/* check each PoseChannel... */
-	// TODO: could be optimized at some point
+	/* TODO: could be optimized at some point */
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 		short sco1[2], sco2[2], didpoint = 0;
 		float vec[3];
@@ -2475,7 +2475,7 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	
 	/* check each EditBone... */
-	// TODO: could be optimized at some point
+	/* TODO: could be optimized at some point */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		short sco1[2], sco2[2], didpoint = 0;
 		float vec[3];
@@ -2497,7 +2497,7 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 			didpoint = 1;
 			
 		/* only if the endpoints didn't get selected, deal with the middle of the bone too */
-		// XXX should we just do this always?
+		/* XXX should we just do this always? */
 		if ( (didpoint == 0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1]) ) {
 			if (select) 
 				ebone->flag |= BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED;

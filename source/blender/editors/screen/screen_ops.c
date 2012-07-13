@@ -524,15 +524,15 @@ static int actionzone_area_poll(bContext *C)
 	return 0;
 }
 
-AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
+AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2])
 {
 	AZone *az = NULL;
 	
 	for (az = sa->actionzones.first; az; az = az->next) {
-		if (BLI_in_rcti(&az->rect, x, y)) {
+		if (BLI_in_rcti_v(&az->rect, xy)) {
 			if (az->type == AZONE_AREA) {
 				/* no triangle intersect but a hotspot circle based on corner */
-				int radius = (x - az->x1) * (x - az->x1) + (y - az->y1) * (y - az->y1);
+				int radius = (xy[0] - az->x1) * (xy[0] - az->x1) + (xy[1] - az->y1) * (xy[1] - az->y1);
 				
 				if (radius <= AZONESPOT * AZONESPOT)
 					break;
@@ -577,7 +577,7 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
 
 static int actionzone_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	AZone *az = is_in_area_actionzone(CTX_wm_area(C), event->x, event->y);
+	AZone *az = is_in_area_actionzone(CTX_wm_area(C), &event->x);
 	sActionzoneData *sad;
 	
 	/* quick escape */

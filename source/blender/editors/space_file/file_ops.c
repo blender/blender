@@ -81,7 +81,7 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile, struct ARegion *ar, 
 	UI_view2d_region_to_view(v2d, rect->xmin, rect->ymin, &fxmin, &fymin);
 	UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax, &fxmax, &fymax);
 
-	BLI_init_rcti(&rect_view, (int)(v2d->tot.xmin + fxmin), (int)(v2d->tot.xmin + fxmax), (int)(v2d->tot.ymax - fymin), (int)(v2d->tot.ymax - fymax));
+	BLI_rcti_init(&rect_view, (int)(v2d->tot.xmin + fxmin), (int)(v2d->tot.xmin + fxmax), (int)(v2d->tot.ymax - fymin), (int)(v2d->tot.ymax - fymax));
 
 	sel  = ED_fileselect_layout_offset_rect(sfile->layout, &rect_view);
 	

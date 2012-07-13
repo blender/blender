@@ -25,8 +25,7 @@
 import os
 
 # XXX Relative import does not work here when used from Blender...
-#from . import settings
-import bl_i18n_utils.settings as settings
+from bl_i18n_utils import settings
 
 
 #classes = set()
@@ -435,10 +434,7 @@ def dump_messages(do_messages, do_checks):
         # we could filter out different strings here
         return False
 
-    if hasattr(collections, 'OrderedDict'):
-        messages = collections.OrderedDict()
-    else:
-        messages = {}
+    messages = getattr(collections, 'OrderedDict', dict)()
 
     messages[(CONTEXT_DEFAULT, "")] = []
 

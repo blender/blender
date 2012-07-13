@@ -559,13 +559,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
 
 	/* mode */
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "mode", SC_MODE_RECONSTRUCTION);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
-
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "mode", SC_MODE_DISTORTION);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
+	WM_keymap_add_menu(keymap, "CLIP_MT_select_mode", TABKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_solve_camera", SKEY, KM_PRESS, KM_SHIFT, 0);
 
@@ -792,8 +786,16 @@ static int clip_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(eve
 
 static void clip_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	/* copy drag path to properties */
-	RNA_string_set(drop->ptr, "filepath", drag->path);
+	PointerRNA itemptr;
+	char dir[FILE_MAX], file[FILE_MAX];
+
+	BLI_split_dirfile(drag->path, dir, file, sizeof(dir), sizeof(file));
+
+	RNA_string_set(drop->ptr, "directory", dir);
+
+	RNA_collection_clear(drop->ptr, "files");
+	RNA_collection_add(drop->ptr, "files", &itemptr);
+	RNA_string_set(&itemptr, "name", file);
 }
 
 /* area+region dropbox definition */

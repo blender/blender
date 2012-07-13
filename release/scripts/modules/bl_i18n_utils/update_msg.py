@@ -26,7 +26,10 @@ import os
 import sys
 import subprocess
 
-import settings
+try:
+    import settings
+except:
+    from . import settings
 
 
 BLENDER_ARGS = [

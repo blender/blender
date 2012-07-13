@@ -317,7 +317,7 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 	char header[7];
 	int retval;
 
-	// make sure we're not trying to read a directory....
+	/* make sure we're not trying to read a directory.... */
 
 	len = strlen(name);
 	if (ELEM(name[len - 1], '/', '\\')) {

@@ -1508,25 +1508,25 @@ int mouse_mesh(bContext *C, const int mval[2], short extend, short deselect, sho
 	BMVert *eve = NULL;
 	BMEdge *eed = NULL;
 	BMFace *efa = NULL;
-	
+
 	/* setup view context for argument to callbacks */
 	em_setup_viewcontext(C, &vc);
 	vc.mval[0] = mval[0];
 	vc.mval[1] = mval[1];
-	
+
 	if (unified_findnearest(&vc, &eve, &eed, &efa)) {
-		
-		// Deselect everything
+
+		/* Deselect everything */
 		if (extend == 0 && deselect == 0 && toggle == 0)
 			EDBM_flag_disable_all(vc.em, BM_ELEM_SELECT);
-		
+
 		if (efa) {
 			if (extend) {
-				// set the last selected face
+				/* set the last selected face */
 				BM_active_face_set(vc.em->bm, efa);
-				
-				// Work-around: deselect first, so we can guarantee it will
-				// be active even if it was already selected
+
+				/* Work-around: deselect first, so we can guarantee it will */
+				/* be active even if it was already selected */
 				BM_select_history_remove(vc.em->bm, efa);
 				BM_face_select_set(vc.em->bm, efa, FALSE);
 				BM_select_history_store(vc.em->bm, efa);
@@ -1537,9 +1537,9 @@ int mouse_mesh(bContext *C, const int mval[2], short extend, short deselect, sho
 				BM_face_select_set(vc.em->bm, efa, FALSE);
 			}
 			else {
-				// set the last selected face
+				/* set the last selected face */
 				BM_active_face_set(vc.em->bm, efa);
-			
+
 				if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 					BM_select_history_store(vc.em->bm, efa);
 					BM_face_select_set(vc.em->bm, efa, TRUE);
@@ -1552,8 +1552,8 @@ int mouse_mesh(bContext *C, const int mval[2], short extend, short deselect, sho
 		}
 		else if (eed) {
 			if (extend) {
-				// Work-around: deselect first, so we can guarantee it will
-				// be active even if it was already selected
+				/* Work-around: deselect first, so we can guarantee it will */
+				/* be active even if it was already selected */
 				BM_select_history_remove(vc.em->bm, eed);
 				BM_edge_select_set(vc.em->bm, eed, FALSE);
 				BM_select_history_store(vc.em->bm, eed);
@@ -1576,8 +1576,8 @@ int mouse_mesh(bContext *C, const int mval[2], short extend, short deselect, sho
 		}
 		else if (eve) {
 			if (extend) {
-				// Work-around: deselect first, so we can guarantee it will
-				// be active even if it was already selected
+				/* Work-around: deselect first, so we can guarantee it will */
+				/* be active even if it was already selected */
 				BM_select_history_remove(vc.em->bm, eve);
 				BM_vert_select_set(vc.em->bm, eve, FALSE);
 				BM_select_history_store(vc.em->bm, eve);
@@ -1598,9 +1598,9 @@ int mouse_mesh(bContext *C, const int mval[2], short extend, short deselect, sho
 				}
 			}
 		}
-		
+
 		EDBM_selectmode_flush(vc.em);
-		  
+
 		/* change active material on object */
 		if (efa && efa->mat_nr != vc.obedit->actcol - 1) {
 			vc.obedit->actcol = efa->mat_nr + 1;

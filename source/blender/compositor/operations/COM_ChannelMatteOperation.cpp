@@ -83,7 +83,7 @@ void ChannelMatteOperation::deinitExecution()
 	this->m_inputImageProgram = NULL;
 }
 
-void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float inColor[4];
 	float alpha;
@@ -92,7 +92,7 @@ void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, P
 	const float limit_min = this->m_limit_min;
 	const float limit_range = this->m_limit_range;
 
-	this->m_inputImageProgram->read(inColor, x, y, sampler, inputBuffers);
+	this->m_inputImageProgram->read(inColor, x, y, sampler);
 
 	/* matte operation */
 	alpha = inColor[this->m_ids[0]] - max(inColor[this->m_ids[1]], inColor[this->m_ids[2]]);

@@ -179,15 +179,15 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const c
 			}
 		}
 		else {
-			// if we're bookmarking this, file should come 
-			// before the last separator, only automatically added
-			// current dir go after the last sep.
+			/* if we're bookmarking this, file should come
+			 * before the last separator, only automatically added
+			 * current dir go after the last sep. */
 			if (save) {
 				break;
 			}
 		}
 	}
-	
+
 	fsme = MEM_mallocN(sizeof(*fsme), "fsme");
 	fsme->path = BLI_strdup(path);
 	fsme->save = save;
@@ -247,7 +247,7 @@ void fsmenu_write_file(struct FSMenu *fsmenu, const char *filename)
 	}
 	fprintf(fp, "[Recent]\n");
 	nskip = fsmenu_get_nentries(fsmenu, FS_CATEGORY_RECENT) - FSMENU_RECENT_MAX;
-	// skip first entries if list too long
+	/* skip first entries if list too long */
 	for (fsme = fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT); fsme && (nskip > 0); fsme = fsme->next, --nskip) {
 		/* pass */
 	}

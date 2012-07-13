@@ -280,6 +280,8 @@ protected:
 
 		class CcdOverlapFilterCallBack* m_filterCallback;
 
+		class btGhostPairCallback*	m_ghostPairCallback;
+
 		class btDispatcher* m_ownDispatcher;
 
 		bool	m_scalingPropagated;

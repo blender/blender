@@ -63,14 +63,6 @@
 #include <stdio.h> /* needed for FILE* */
 #include "MEM_sys_types.h" /* needed for uintptr_t */
 
-#ifndef WARN_UNUSED
-#  ifdef __GNUC__
-#    define WARN_UNUSED  __attribute__((warn_unused_result))
-#  else
-#    define WARN_UNUSED
-#  endif
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -78,13 +70,16 @@ extern "C" {
 	/** Returns the length of the allocated memory segment pointed at
 	 * by vmemh. If the pointer was not previously allocated by this
 	 * module, the result is undefined.*/
-	size_t MEM_allocN_len(void *vmemh) WARN_UNUSED;
+	size_t MEM_allocN_len(void *vmemh)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+#endif
+	;
 
 	/**
 	 * Release memory previously allocatred by this module. 
 	 */
 	short MEM_freeN(void *vmemh);
-
 
 	/**
 	 * Return zero if memory is not in allocated list
@@ -94,30 +89,57 @@ extern "C" {
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
-	void *MEM_dupallocN(void *vmemh) WARN_UNUSED;
+	void *MEM_dupallocN(void *vmemh)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+#endif
+	;
 
 	/**
 	 * Reallocates a block of memory, and returns pointer to the newly
 	 * allocated block, the old one is freed. this is not as optimized
 	 * as a system realloc but just makes a new allocation and copies
 	 * over from existing memory. */
-	void *MEM_reallocN(void *vmemh, size_t len) WARN_UNUSED;
+	void *MEM_reallocN(void *vmemh, size_t len)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+	__attribute__((alloc_size(2)))
+#endif
+	;
 
 	/**
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */
-	void *MEM_callocN(size_t len, const char * str) WARN_UNUSED;
+	void *MEM_callocN(size_t len, const char * str)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+	__attribute__((nonnull))
+	__attribute__((alloc_size(1)))
+#endif
+	;
 	
 	/** Allocate a block of memory of size len, with tag name str. The
 	 * name must be a static, because only a pointer to it is stored !
 	 * */
-	void *MEM_mallocN(size_t len, const char * str) WARN_UNUSED;
+	void *MEM_mallocN(size_t len, const char * str)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+	__attribute__((nonnull))
+	__attribute__((alloc_size(1)))
+#endif
+	;
 	
 	/** Same as callocN, clears memory and uses mmap (disk cached) if supported.
 	 * Can be free'd with MEM_freeN as usual.
 	 * */
-	void *MEM_mapallocN(size_t len, const char * str) WARN_UNUSED;
+	void *MEM_mapallocN(size_t len, const char * str)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+	__attribute__((nonnull))
+	__attribute__((alloc_size(1)))
+#endif
+	;
 
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. as a python dict for easy investigation */ 
@@ -162,7 +184,11 @@ extern "C" {
 	void MEM_reset_peak_memory(void);
 
 	/** Get the peak memory usage in bytes, including mmap allocations. */
-	uintptr_t MEM_get_peak_memory(void) WARN_UNUSED;
+	uintptr_t MEM_get_peak_memory(void)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+#endif
+	;
 
 #ifndef NDEBUG
 const char *MEM_name_ptr(void *vmemh);

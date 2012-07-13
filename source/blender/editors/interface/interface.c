@@ -524,8 +524,8 @@ static void ui_draw_links(uiBlock *block)
 	uiBut *but;
 	uiLinkLine *line;
 
-	// Draw the inactive lines (lines with neither button being hovered over).
-	// As we go, remember if we see any active or selected lines.
+	/* Draw the inactive lines (lines with neither button being hovered over).
+	 * As we go, remember if we see any active or selected lines. */
 	int foundselectline = 0;
 	int foundactiveline = 0;
 	for (but = block->buttons.first; but; but = but->next) {
@@ -542,8 +542,8 @@ static void ui_draw_links(uiBlock *block)
 		}
 	}	
 
-	// Draw any active lines (lines with either button being hovered over).
-	// Do this last so they appear on top of inactive lines.
+	/* Draw any active lines (lines with either button being hovered over).
+	 * Do this last so they appear on top of inactive lines. */
 	if (foundactiveline) {
 		for (but = block->buttons.first; but; but = but->next) {
 			if (but->type == LINK && but->link) {
@@ -2486,7 +2486,7 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 		
 		/* merge coordinates */
 		if (prev) {
-			// simple cases 
+			/* simple cases */
 			if (rows == 0) {
 				but->x1 = (prev->x2 + but->x1) / 2.0f;
 				prev->x2 = but->x1;
@@ -3432,7 +3432,7 @@ int uiButGetUnitType(uiBut *but)
 	/* own unit define always takes precedence over RNA provided, allowing for overriding 
 	 * default value provided in RNA in a few special cases (i.e. Active Keyframe in Graph Edit)
 	 */
-	// XXX: this doesn't allow clearing unit completely, though the same could be said for icons
+	/* XXX: this doesn't allow clearing unit completely, though the same could be said for icons */
 	if ((ownUnit != 0) || (but->rnaprop == NULL)) {
 		return ownUnit << 16;
 	}
@@ -3689,6 +3689,136 @@ void uiButSetFocusOnEnter(wmWindow *win, uiBut *but)
 	event.customdatafree = FALSE;
 	
 	wm_event_add(win, &event);
+}
+
+void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
+{
+	va_list args;
+
+	EnumPropertyItem *items = NULL, *item = NULL;
+	int totitems, free_items = FALSE;
+
+	va_start(args, nbr);
+	while (nbr--) {
+		uiStringInfo *si = (uiStringInfo*) va_arg(args, void*);
+		int type = si->type;
+		char *tmp = NULL;
+
+		if (type == BUT_GET_LABEL) {
+			if (but->str) {
+				/* Menu labels can have some complex formating stuff marked by pipes, we don't want those here! */
+				char *tc = strchr(but->str, '|');
+				if (tc)
+					tmp = BLI_strdupn(but->str, tc - but->str);
+				else
+					tmp = BLI_strdup(but->str);
+			}
+			else
+				type = BUT_GET_RNA_LABEL; /* Fail-safe solution... */
+		}
+		else if (type == BUT_GET_TIP) {
+			if (but->tip && but->tip[0])
+				tmp = BLI_strdup(but->tip);
+			else
+				type = BUT_GET_RNA_TIP; /* Fail-safe solution... */
+		}
+		if (type == BUT_GET_RNAPROP_IDENTIFIER) {
+			if (but->rnaprop)
+				tmp = BLI_strdup(RNA_property_identifier(but->rnaprop));
+		}
+		else if (type == BUT_GET_RNASTRUCT_IDENTIFIER) {
+			if (but->rnaprop)
+				tmp = BLI_strdup(RNA_struct_identifier(but->rnapoin.type));
+			else if (but->optype)
+				tmp = BLI_strdup(but->optype->idname);
+			else if (ELEM(but->type, MENU, PULLDOWN)) {
+				MenuType *mt = uiButGetMenuType(but);
+				if (mt)
+					tmp = BLI_strdup(mt->idname);
+			}
+		}
+		else if (ELEM(type, BUT_GET_RNA_LABEL, BUT_GET_RNA_TIP)) {
+			if (but->rnaprop) {
+				if (type == BUT_GET_RNA_LABEL)
+					tmp = BLI_strdup(RNA_property_ui_name(but->rnaprop));
+				else {
+					const char *t = RNA_property_ui_description(but->rnaprop);
+					if (t && t[0])
+						tmp = BLI_strdup(t);
+				}
+			}
+			else if (but->optype) {
+				if (type == BUT_GET_RNA_LABEL)
+					tmp = BLI_strdup(RNA_struct_ui_name(but->optype->srna));
+				else {
+					const char *t = RNA_struct_ui_description(but->optype->srna);
+					if (t && t[0])
+						tmp = BLI_strdup(t);
+				}
+			}
+			else if (ELEM(but->type, MENU, PULLDOWN)) {
+				MenuType *mt = uiButGetMenuType(but);
+				if (mt) {
+					if (type == BUT_GET_RNA_LABEL)
+						tmp = BLI_strdup(RNA_struct_ui_name(mt->ext.srna));
+					else {
+						const char *t = RNA_struct_ui_description(mt->ext.srna);
+						if (t && t[0])
+							tmp = BLI_strdup(t);
+					}
+				}
+			}
+		}
+		else if (type == BUT_GET_RNA_LABEL_CONTEXT) {
+			if (but->rnaprop)
+				tmp = BLI_strdup(RNA_property_translation_context(but->rnaprop));
+			else if (but->optype)
+				tmp = BLI_strdup(RNA_struct_translation_context(but->optype->srna));
+			else if (ELEM(but->type, MENU, PULLDOWN)) {
+				MenuType *mt = uiButGetMenuType(but);
+				if (mt)
+					tmp = BLI_strdup(RNA_struct_translation_context(mt->ext.srna));
+			}
+		}
+		else if (ELEM3(type, BUT_GET_RNAENUM_IDENTIFIER, BUT_GET_RNAENUM_LABEL, BUT_GET_RNAENUM_TIP)) {
+			if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
+				if (!item) {
+					int i;
+					int value = (but->type == ROW) ? (int)but->hardmax : (int)ui_get_but_val(but);
+					RNA_property_enum_items_gettexted(C, &but->rnapoin, but->rnaprop, &items, &totitems, &free_items);
+
+					for (i = 0, item = items; i < totitems; i++, item++) {
+						if (item->identifier[0] && item->value == value)
+							break;
+					}
+				}
+				if (item && item->identifier) {
+					if (type == BUT_GET_RNAENUM_IDENTIFIER)
+						tmp = BLI_strdup(item->identifier);
+					else if (type == BUT_GET_RNAENUM_LABEL)
+						tmp = BLI_strdup(item->name);
+					else if (item->description && item->description[0])
+						tmp = BLI_strdup(item->description);
+				}
+			}
+		}
+		else if (type == BUT_GET_OP_KEYMAP) {
+			if (but->optype && !(but->block->flag & UI_BLOCK_LOOP)) {
+				/* operator keymap (not menus, they already have it) */
+				IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
+				char buf[512];
+
+				if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
+				                                 buf, sizeof(buf)))
+					tmp = BLI_strdup(buf);
+			}
+		}
+
+		si->strinfo = tmp;
+	}
+
+	if (free_items && items)
+		MEM_freeN(items);
 }
 
 /* Program Init/Exit */

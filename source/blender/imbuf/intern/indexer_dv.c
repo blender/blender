@@ -129,7 +129,7 @@ static void parse_packet(indexer_dv_context *This, unsigned char *p)
 	b = bitstream_new(p + 1);
 
 	switch (type) {
-		case 0x62: // Record date
+		case 0x62: /* Record date */
 			parse_num(&b, 8);
 			This->rec_curr_day = parse_bcd(&b, 6);
 			parse_num(&b, 2);
@@ -144,7 +144,7 @@ static void parse_packet(indexer_dv_context *This, unsigned char *p)
 			}
 			This->got_record_date = 1;
 			break;
-		case 0x63: // Record time
+		case 0x63: /* Record time */
 			This->rec_curr_frame = parse_bcd(&b, 6);
 			parse_num(&b, 2);
 			This->rec_curr_second = parse_bcd(&b, 7);
@@ -322,7 +322,7 @@ static void proc_frame(indexer_dv_context *This,
 			}
 		}
 		else if (This->ref_time_read_new == This->ref_time_read) {
-			// do nothing
+			/* do nothing */
 		}
 		else {
 			This->gap_start = This->ref_time_read;

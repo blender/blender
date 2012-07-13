@@ -81,7 +81,7 @@
 
 #include "PIL_time.h" /* smoothview */
 
-#include "view3d_intern.h"  // own include
+#include "view3d_intern.h"  /* own include */
 
 /* ********************** view3d_edit: view manipulations ********************* */
 
@@ -444,7 +444,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 				float my_pivot[3]; /* view */
 				float dvec[3];
 
-				// locals for dist correction
+				/* locals for dist correction */
 				float mat[3][3];
 				float upvec[3];
 
@@ -1517,13 +1517,13 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 			fac = -fac;
 		}
 
-		// oldstyle zoom
+		/* oldstyle zoom */
 		zfac = 1.0f + ((fac / 20.0f) * time_step);
 		vod->timer_lastdraw = time;
 	}
 	else if (viewzoom == USER_ZOOM_SCALE) {
 		int ctr[2], len1, len2;
-		// method which zooms based on how far you move the mouse
+		/* method which zooms based on how far you move the mouse */
 
 		ctr[0] = (vod->ar->winrct.xmax + vod->ar->winrct.xmin) / 2;
 		ctr[1] = (vod->ar->winrct.ymax + vod->ar->winrct.ymin) / 2;
@@ -2100,7 +2100,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 		new_ofs[1] = -(min[1] + max[1]) / 2.0f;
 		new_ofs[2] = -(min[2] + max[2]) / 2.0f;
 
-		// correction for window aspect ratio
+		/* correction for window aspect ratio */
 		if (ar->winy > 2 && ar->winx > 2) {
 			size = (float)ar->winx / (float)ar->winy;
 			if (size < 1.0f) size = 1.0f / size;
@@ -3402,7 +3402,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 	if (mval[0] != IS_CLIPPED) {
 		short depth_used = 0;
 
-		if (U.uiflag & USER_ORBIT_ZBUF) { /* maybe this should be accessed some other way */
+		if (U.uiflag & USER_ORBIT_ZBUF) {  /* maybe this should be accessed some other way */
 			view3d_operator_needs_opengl(C);
 			if (ED_view3d_autodist(scene, ar, v3d, event->mval, fp))
 				depth_used = 1;
@@ -3596,7 +3596,7 @@ int ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d, const int mval[2]
 	return 1;
 }
 
-int ED_view3d_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //, float *autodist )
+int ED_view3d_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 {
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	switch (mode) {
@@ -3611,9 +3611,9 @@ int ED_view3d_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //
 	return 1;
 }
 
-// no 4x4 sampling, run view_autodist_init first
+/* no 4x4 sampling, run view_autodist_init first */
 int ED_view3d_autodist_simple(ARegion *ar, const int mval[2], float mouse_worldloc[3],
-                              int margin, float *force_depth) //, float *autodist )
+                              int margin, float *force_depth)
 {
 	bglMats mats; /* ZBuffer depth vars, could cache? */
 	float depth;

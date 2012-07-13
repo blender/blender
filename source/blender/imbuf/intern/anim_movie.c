@@ -42,8 +42,8 @@
 #include <vfw.h>
 #endif
 
-#undef AVIIF_KEYFRAME // redefined in AVI_avi.h
-#undef AVIIF_LIST // redefined in AVI_avi.h
+#undef AVIIF_KEYFRAME /* redefined in AVI_avi.h */
+#undef AVIIF_LIST /* redefined in AVI_avi.h */
 
 #define FIXCC(fcc) \
 	{ \
@@ -324,10 +324,10 @@ static int startavi(struct anim *anim)
 					if (anim->pgf) {
 						firstvideo = i;
 
-						// get stream length
+						/* get stream length */
 						anim->avi->header->TotalFrames = AVIStreamLength(anim->pavi[i]);
-						
-						// get information about images inside the stream
+
+						/* get information about images inside the stream */
 						l = sizeof(abFormat);
 						AVIStreamReadFormat(anim->pavi[i], 0, &abFormat, &l);
 						lpbi = (LPBITMAPINFOHEADER)abFormat;
@@ -344,12 +344,12 @@ static int startavi(struct anim *anim)
 				}
 			}
 
-			// register number of opened avistreams
+			/* register number of opened avistreams */
 			anim->avistreams = i;
 
-			//
-			// Couldn't get any video streams out of this file
-			//
+			/*
+			 * Couldn't get any video streams out of this file
+			 */
 			if ((anim->avistreams == 0) || (firstvideo == -1)) {
 				avierror = AVI_ERROR_FORMAT;
 			}

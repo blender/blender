@@ -34,13 +34,13 @@ GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation() : BlurBaseOperation(C
 	this->m_rad = 0;
 }
 
-void *GaussianAlphaYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *GaussianAlphaYBlurOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
 	if (!this->m_sizeavailable) {
-		updateGauss(memoryBuffers);
+		updateGauss();
 	}
-	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	void *buffer = getInputOperation(0)->initializeTileData(NULL);
 	unlockMutex();
 	return buffer;
 }
@@ -62,10 +62,10 @@ void GaussianAlphaYBlurOperation::initExecution()
 	}
 }
 
-void GaussianAlphaYBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
+void GaussianAlphaYBlurOperation::updateGauss()
 {
 	if (this->m_gausstab == NULL) {
-		updateSize(memoryBuffers);
+		updateSize();
 		float rad = this->m_size * this->m_data->sizey;
 		if (rad < 1)
 			rad = 1;
@@ -75,7 +75,7 @@ void GaussianAlphaYBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 	}
 
 	if (this->m_distbuf_inv == NULL) {
-		updateSize(memoryBuffers);
+		updateSize();
 		float rad = this->m_size * this->m_data->sizex;
 		if (rad < 1)
 			rad = 1;
@@ -90,7 +90,7 @@ BLI_INLINE float finv_test(const float f, const bool test)
 	return (LIKELY(test == false)) ? f : 1.0f - f;
 }
 
-void GaussianAlphaYBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void GaussianAlphaYBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
 	const bool do_invert = this->m_do_subtract;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;

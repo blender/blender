@@ -22,7 +22,7 @@
 
 #include "COM_DirectionalBlurOperation.h"
 #include "BLI_math.h"
-
+#include "COM_OpenCLDevice.h"
 extern "C" {
 	#include "RE_pipeline.h"
 }
@@ -33,6 +33,7 @@ DirectionalBlurOperation::DirectionalBlurOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
 
+	this->setOpenCL(true);
 	this->m_inputProgram = NULL;
 }
 
@@ -65,12 +66,12 @@ void DirectionalBlurOperation::initExecution()
 
 }
 
-void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DirectionalBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
 	const int iterations = pow(2.0f, this->m_data->iter);
 	float col[4] = {0, 0, 0, 0};
 	float col2[4] = {0, 0, 0, 0};
-	this->m_inputProgram->read(col2, x, y, COM_PS_NEAREST, inputBuffers);
+	this->m_inputProgram->read(col2, x, y, COM_PS_NEAREST);
 	float ltx = this->m_tx;
 	float lty = this->m_ty;
 	float lsc = this->m_sc;
@@ -86,7 +87,7 @@ void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBu
 		this->m_inputProgram->read(col,
 		                           cs * u + ss * v + this->m_center_x_pix,
 		                           cs * v - ss * u + this->m_center_y_pix,
-		                           COM_PS_NEAREST, inputBuffers);
+		                           COM_PS_NEAREST);
 
 		add_v4_v4(col2, col);
 
@@ -97,8 +98,34 @@ void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBu
 		lsc += this->m_sc;
 	}
 
-	mul_v4_v4fl(color, col2, 1.0f / iterations);
+	mul_v4_v4fl(color, col2, 1.0f / (iterations+1));
 }
+
+void DirectionalBlurOperation::executeOpenCL(OpenCLDevice* device,
+                                       MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
+                                       MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
+                                       list<cl_kernel> *clKernelsToCleanUp) 
+{
+	cl_kernel directionalBlurKernel = device->COM_clCreateKernel("directionalBlurKernel", NULL);
+
+	cl_int iterations = pow(2.0f, this->m_data->iter);
+	cl_float2 ltxy = {this->m_tx,  this->m_ty};
+	cl_float2 centerpix = {this->m_center_x_pix, this->m_center_y_pix};
+	cl_float lsc = this->m_sc;
+	cl_float lrot = this->m_rot;
+	
+	device->COM_clAttachMemoryBufferToKernelParameter(directionalBlurKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputProgram);
+	device->COM_clAttachOutputMemoryBufferToKernelParameter(directionalBlurKernel, 1, clOutputBuffer);
+	device->COM_clAttachMemoryBufferOffsetToKernelParameter(directionalBlurKernel, 2, outputMemoryBuffer);
+	clSetKernelArg(directionalBlurKernel, 3, sizeof(cl_int), &iterations);
+	clSetKernelArg(directionalBlurKernel, 4, sizeof(cl_float), &lsc);
+	clSetKernelArg(directionalBlurKernel, 5, sizeof(cl_float), &lrot);
+	clSetKernelArg(directionalBlurKernel, 6, sizeof(cl_float2), &ltxy);
+	clSetKernelArg(directionalBlurKernel, 7, sizeof(cl_float2), &centerpix);
+	
+	device->COM_clEnqueueRange(directionalBlurKernel, outputMemoryBuffer, 8, this);
+}
+
 
 void DirectionalBlurOperation::deinitExecution()
 {

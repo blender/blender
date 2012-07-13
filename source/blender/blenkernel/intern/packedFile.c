@@ -132,7 +132,7 @@ int countPackedFiles(Main *bmain)
 	bSound *sound;
 	int count = 0;
 	
-	// let's check if there are packed files...
+	/* let's check if there are packed files... */
 	for (ima = bmain->image.first; ima; ima = ima->id.next)
 		if (ima->packedfile)
 			count++;
@@ -181,13 +181,13 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 
 	//XXX waitcursor(1);
 	
-	// convert relative filenames to absolute filenames
-	
+	/* convert relative filenames to absolute filenames */
+
 	BLI_strncpy(name, filename, sizeof(name));
 	BLI_path_abs(name, basepath);
-	
-	// open the file
-	// and create a PackedFile structure
+
+	/* open the file
+	 * and create a PackedFile structure */
 
 	file = BLI_open(name, O_BINARY | O_RDONLY, 0);
 	if (file <= 0) {
@@ -197,8 +197,8 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 		filelen = BLI_file_descriptor_size(file);
 
 		if (filelen == 0) {
-			// MEM_mallocN complains about MEM_mallocN(0, "bla");
-			// we don't care....
+			/* MEM_mallocN complains about MEM_mallocN(0, "bla");
+			 * we don't care.... */
 			data = MEM_mallocN(1, "packFile");
 		}
 		else {
@@ -294,7 +294,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 		}
 	}
 	
-	// make sure the path to the file exists...
+	/* make sure the path to the file exists... */
 	BLI_make_existing_file(name);
 	
 	file = BLI_open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
@@ -354,23 +354,23 @@ int checkPackedFile(const char *filename, PackedFile *pf)
 		ret_val = PF_DIFFERS;
 	}
 	else {
-		// we'll have to compare the two...
-		
+		/* we'll have to compare the two... */
+
 		file = BLI_open(name, O_BINARY | O_RDONLY, 0);
 		if (file < 0) {
 			ret_val = PF_NOFILE;
 		}
 		else {
 			ret_val = PF_EQUAL;
-			
+
 			for (i = 0; i < pf->size; i += sizeof(buf)) {
 				len = pf->size - i;
 				if (len > sizeof(buf)) {
 					len = sizeof(buf);
 				}
-				
+
 				if (read(file, buf, len) != len) {
-					// read error ...
+					/* read error ... */
 					ret_val = PF_DIFFERS;
 					break;
 				}
@@ -412,24 +412,24 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 				temp = abs_name;
 				break;
 			case PF_USE_LOCAL:
-				// if file exists use it
+				/* if file exists use it */
 				if (BLI_exists(local_name)) {
 					temp = local_name;
 					break;
 				}
-			// else fall through and create it
+			/* else fall through and create it */
 			case PF_WRITE_LOCAL:
 				if (writePackedFile(reports, local_name, pf, 1) == RET_OK) {
 					temp = local_name;
 				}
 				break;
 			case PF_USE_ORIGINAL:
-				// if file exists use it
+				/* if file exists use it */
 				if (BLI_exists(abs_name)) {
 					temp = abs_name;
 					break;
 				}
-			// else fall through and create it
+			/* else fall through and create it */
 			case PF_WRITE_ORIGINAL:
 				if (writePackedFile(reports, abs_name, pf, 1) == RET_OK) {
 					temp = abs_name;

@@ -168,8 +168,10 @@ escape_finish:
  *
  * Assume that the strings returned must be freed afterwards, and that the inputs will contain 
  * data we want...
+ *
+ * TODO, return the offset and a length so as to avoid doing an allocation.
  */
-char *BLI_getQuotedStr(const char *str, const char *prefix)
+char *BLI_str_quoted_substrN(const char *str, const char *prefix)
 {
 	size_t prefixLen = strlen(prefix);
 	char *startMatch, *endMatch;
@@ -178,8 +180,8 @@ char *BLI_getQuotedStr(const char *str, const char *prefix)
 	startMatch = strstr(str, prefix) + prefixLen + 1;
 	
 	/* get the end point (i.e. where the next occurance of " is after the starting point) */
-	endMatch = strchr(startMatch, '"'); // "  NOTE: this comment here is just so that my text editor still shows the functions ok...
-	
+	endMatch = strchr(startMatch, '"'); /* "  NOTE: this comment here is just so that my text editor still shows the functions ok... */
+
 	/* return the slice indicated */
 	return BLI_strdupn(startMatch, (size_t)(endMatch - startMatch));
 }
@@ -187,8 +189,9 @@ char *BLI_getQuotedStr(const char *str, const char *prefix)
 /* Replaces all occurrences of oldText with newText in str, returning a new string that doesn't 
  * contain the 'replaced' occurrences.
  */
-// A rather wasteful string-replacement utility, though this shall do for now...
-// Feel free to replace this with an even safe + nicer alternative 
+
+/* A rather wasteful string-replacement utility, though this shall do for now...
+ * Feel free to replace this with an even safe + nicer alternative */
 char *BLI_replacestr(char *str, const char *oldText, const char *newText)
 {
 	DynStr *ds = NULL;

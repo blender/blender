@@ -43,7 +43,6 @@
 #include "DNA_view3d_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_dlrbTree.h"
 
@@ -63,9 +62,9 @@
 
 /* ************************************ Motion Paths ************************************* */
 
-// TODO: 
-//	- options to draw paths with lines
-//	- include support for editing the path verts
+/* TODO:
+ * - options to draw paths with lines
+ * - include support for editing the path verts */
 
 /* Set up drawing environment for drawing motion paths */
 void draw_motion_paths_init(View3D *v3d, ARegion *ar) 
@@ -80,7 +79,7 @@ void draw_motion_paths_init(View3D *v3d, ARegion *ar)
 
 /* Draw the given motion path for an Object or a Bone 
  *  - assumes that the viewport has already been initialized properly
- *		i.e. draw_motion_paths_init() has been called
+ *    i.e. draw_motion_paths_init() has been called
  */
 void draw_motion_path_instance(Scene *scene, 
                                Object *ob, bPoseChannel *pchan, bAnimVizSettings *avs, bMotionPath *mpath)
@@ -135,10 +134,10 @@ void draw_motion_path_instance(Scene *scene,
 	/* draw curve-line of path */
 	glShadeModel(GL_SMOOTH);
 	
-	glBegin(GL_LINE_STRIP); 				
+	glBegin(GL_LINE_STRIP);
 	for (i = 0, mpv = mpv_start; i < len; i++, mpv++) {
 		short sel = (pchan) ? (pchan->bone->flag & BONE_SELECTED) : (ob->flag & SELECT);
-		float intensity; /* how faint */
+		float intensity;  /* how faint */
 		
 		/* set color
 		 * - more intense for active/selected bones, less intense for unselected bones
@@ -223,7 +222,7 @@ void draw_motion_path_instance(Scene *scene,
 		UI_ThemeColor(TH_TEXT_HI);
 	}
 	
-	// XXX, this isn't up to date but probably should be kept so.
+	/* XXX, this isn't up to date but probably should be kept so. */
 	invert_m4_m4(ob->imat, ob->obmat);
 	
 	/* Draw frame numbers at each framestep value */

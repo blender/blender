@@ -683,7 +683,7 @@ void draw_gpencil_2dimage(const bContext *C)
 		{
 			
 			/* just draw using standard scaling (settings here are currently ignored anyways) */
-			// FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled
+			/* FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled */
 			offsx = 0;
 			offsy = 0;
 			sizex = ar->winx;
@@ -740,7 +740,7 @@ void draw_gpencil_view2d(const bContext *C, short onlyv2d)
 	if (gpd == NULL) return;
 	
 	/* special hack for Image Editor */
-	// FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled
+	/* FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled */
 	if (ELEM(sa->spacetype, SPACE_IMAGE, SPACE_CLIP))
 		dflag |= GP_DRAWDATA_IEDITHACK;
 	

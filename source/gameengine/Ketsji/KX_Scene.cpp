@@ -2268,7 +2268,7 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 		return NULL;
 
 	if (!m_inactivelist->SearchValue(ob)) {
-		PyErr_Format(PyExc_ValueError, "scene.addObject(object, other, time): KX_Scene (second argument): object does not belong to scene");
+		PyErr_Format(PyExc_ValueError, "scene.addObject(object, other, time): KX_Scene (first argument): object must be in an inactive layer");
 		return NULL;
 	}
 	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, other, time);

@@ -31,16 +31,16 @@ CalculateStandardDeviationOperation::CalculateStandardDeviationOperation() : Cal
 	/* pass */
 }
 
-void CalculateStandardDeviationOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void CalculateStandardDeviationOperation::executePixel(float *color, int x, int y, void *data)
 {
 	color[0] = this->m_standardDeviation;
 }
 
-void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
 	if (!this->m_iscalculated) {
-		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect);
 		CalculateMeanOperation::calculateMean(tile);
 		this->m_standardDeviation = 0.0f;
 		float *buffer = tile->getBuffer();

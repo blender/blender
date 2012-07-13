@@ -372,23 +372,6 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 	delete[] chunkOrder;
 }
 
-MemoryBuffer **ExecutionGroup::getInputBuffersCPU()
-{
-	vector<MemoryProxy *> memoryproxies;
-	unsigned int index;
-
-	this->determineDependingMemoryProxies(&memoryproxies);
-	MemoryBuffer **memoryBuffers = new MemoryBuffer *[this->m_cachedMaxReadBufferOffset];
-	for (index = 0; index < this->m_cachedMaxReadBufferOffset; index++) {
-		memoryBuffers[index] = NULL;
-	}
-	for (index = 0; index < this->m_cachedReadOperations.size(); index++) {
-		ReadBufferOperation *readOperation = (ReadBufferOperation *)this->m_cachedReadOperations[index];
-		memoryBuffers[readOperation->getOffset()] = readOperation->getMemoryProxy()->getBuffer();
-	}
-	return memoryBuffers;
-}
-
 MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 {
 	rcti rect;
@@ -449,12 +432,12 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
 inline void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int xChunk, const unsigned int yChunk) const
 {
 	if (this->m_singleThreaded) {
-		BLI_init_rcti(rect, 0, this->m_width, 0, this->m_height);
+		BLI_rcti_init(rect, 0, this->m_width, 0, this->m_height);
 	}
 	else {
 		const unsigned int minx = xChunk * this->m_chunkSize;
 		const unsigned int miny = yChunk * this->m_chunkSize;
-		BLI_init_rcti(rect, minx, min(minx + this->m_chunkSize, this->m_width), miny, min(miny + this->m_chunkSize, this->m_height));
+		BLI_rcti_init(rect, minx, min(minx + this->m_chunkSize, this->m_width), miny, min(miny + this->m_chunkSize, this->m_height));
 	}
 }
 
@@ -551,7 +534,7 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph, int xChun
 
 	for (index = 0; index < this->m_cachedReadOperations.size(); index++) {
 		ReadBufferOperation *readOperation = (ReadBufferOperation *)this->m_cachedReadOperations[index];
-		BLI_init_rcti(&area, 0, 0, 0, 0);
+		BLI_rcti_init(&area, 0, 0, 0, 0);
 		MemoryProxy *memoryProxy = memoryProxies[index];
 		determineDependingAreaOfInterest(&rect, readOperation, &area);
 		ExecutionGroup *group = memoryProxy->getExecutor();

@@ -351,11 +351,11 @@ void filelist_filter(FileList *filelist)
 {
 	int num_filtered = 0;
 	int i, j;
-	
+
 	if (!filelist->filelist)
 		return;
 
-	// How many files are left after filter ?
+	/* How many files are left after filter ? */
 	for (i = 0; i < filelist->numfiles; ++i) {
 		struct direntry *file = &filelist->filelist[i];
 		if (filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot) ) {
@@ -428,7 +428,7 @@ void folderlist_popdir(struct ListBase *folderlist, char *dir)
 	folder = folderlist->last;
 
 	if (folder) {
-		// remove the current directory
+		/* remove the current directory */
 		MEM_freeN(folder->foldername);
 		BLI_freelinkN(folderlist, folder);
 
@@ -438,7 +438,7 @@ void folderlist_popdir(struct ListBase *folderlist, char *dir)
 			BLI_strncpy(dir, prev_dir, FILE_MAXDIR);
 		}
 	}
-	// delete the folder next or use setdir directly before PREVIOUS OP
+	/* delete the folder next or use setdir directly before PREVIOUS OP */
 }
 
 void folderlist_pushdir(ListBase *folderlist, const char *dir)
@@ -446,21 +446,21 @@ void folderlist_pushdir(ListBase *folderlist, const char *dir)
 	struct FolderList *folder, *previous_folder;
 	previous_folder = folderlist->last;
 
-	// check if already exists
+	/* check if already exists */
 	if (previous_folder && previous_folder->foldername) {
 		if (BLI_path_cmp(previous_folder->foldername, dir) == 0) {
 			return;
 		}
 	}
 
-	// create next folder element
+	/* create next folder element */
 	folder = (FolderList *)MEM_mallocN(sizeof(FolderList), "FolderList");
 	folder->foldername = (char *)MEM_mallocN(sizeof(char) * (strlen(dir) + 1), "foldername");
 	folder->foldername[0] = '\0';
 
 	BLI_strncpy(folder->foldername, dir, FILE_MAXDIR);
 
-	// add it to the end of the list
+	/* add it to the end of the list */
 	BLI_addtail(folderlist, folder);
 }
 
@@ -468,16 +468,16 @@ int folderlist_clear_next(struct SpaceFile *sfile)
 {
 	struct FolderList *folder;
 
-	// if there is no folder_next there is nothing we can clear
+	/* if there is no folder_next there is nothing we can clear */
 	if (!sfile->folders_next)
 		return 0;
 
-	// if previous_folder, next_folder or refresh_folder operators are executed it doesn't clear folder_next
+	/* if previous_folder, next_folder or refresh_folder operators are executed it doesn't clear folder_next */
 	folder = sfile->folders_prev->last;
 	if ((!folder) || (BLI_path_cmp(folder->foldername, sfile->params->dir) == 0))
 		return 0;
 
-	// eventually clear flist->folders_next
+	/* eventually clear flist->folders_next */
 	return 1;
 }
 

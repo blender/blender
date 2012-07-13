@@ -99,7 +99,7 @@ static RayObject*  RE_rayobject_create(Render *re, int type, int size)
 	RayObject * res = NULL;
 
 	if (type == R_RAYSTRUCTURE_AUTO) {
-		//TODO
+		/* TODO */
 		//if (detect_simd())
 #ifdef __SSE__
 		type = BLI_cpu_support_sse2()? R_RAYSTRUCTURE_SIMD_SVBVH: R_RAYSTRUCTURE_VBVH;
@@ -216,12 +216,12 @@ static int is_raytraceable(Render *re, ObjectInstanceRen *obi)
 
 RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 {
-	//TODO
-	// out-of-memory safeproof
-	// break render
-	// update render stats
+	/*TODO
+	 * out-of-memory safeproof
+	 * break render
+	 * update render stats */
 	ObjectRen *obr = obi->obr;
-	
+
 	if (obr->raytree == NULL) {
 		RayObject *raytree;
 		RayFace *face = NULL;
@@ -421,8 +421,8 @@ void makeraytree(Render *re)
 		re->stats_draw(re->sdh, &re->i);
 	}
 	else {
-		//Calculate raytree max_size
-		//This is ONLY needed to kept a bogus behavior of SUN and HEMI lights
+		/* Calculate raytree max_size
+		 * This is ONLY needed to kept a bogus behavior of SUN and HEMI lights */
 		INIT_MINMAX(min, max);
 		RE_rayobject_merge_bb(re->raytree, min, max);
 		for (i=0; i<3; i++) {
@@ -739,8 +739,8 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 				tracol[0]= shi.r;
 				tracol[1]= shi.g;
 				tracol[2]= shi.b;
-				tracol[3]= col[3];	// we pass on and accumulate alpha
-				
+				tracol[3]= col[3];	/* we pass on and accumulate alpha */
+
 				if ((shi.mat->mode & MA_TRANSP) && (shi.mat->mode & MA_RAYTRANSP)) {
 					/* don't overwrite traflag, it's value is used in mirror reflection */
 					int new_traflag = traflag;
@@ -883,12 +883,12 @@ static void DP_energy(float *table, float vec[2], int tot, float xsize, float ys
 	}
 	vec[0] += 0.1f*min*result[0]/(float)tot;
 	vec[1] += 0.1f*min*result[1]/(float)tot;
-	// cyclic clamping
+	/* cyclic clamping */
 	vec[0]= vec[0] - xsize*floorf(vec[0]/xsize + 0.5f);
 	vec[1]= vec[1] - ysize*floorf(vec[1]/ysize + 0.5f);
 }
 
-// random offset of 1 in 2
+/* random offset of 1 in 2 */
 static void jitter_plane_offset(float *jitter1, float *jitter2, int tot, float sizex, float sizey, float ofsx, float ofsy)
 {
 	float dsizex= sizex*ofsx;
@@ -974,10 +974,10 @@ static float *give_jitter_plane(LampRen *lar, int thread, int xs, int ys)
 
 static void halton_sample(double *ht_invprimes, double *ht_nums, double *v)
 {
-	// incremental halton sequence generator, from:
-	// "Instant Radiosity", Keller A.
+	/* incremental halton sequence generator, from:
+	 * "Instant Radiosity", Keller A. */
 	unsigned int i;
-	
+
 	for (i = 0; i < 2; i++) {
 		double r = fabs((1.0 - ht_nums[i]) - 1e-10);
 		
@@ -1812,7 +1812,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys, in
 		float *sphere;
 		int a;
 		
-		// always returns table
+		/* always returns table */
 		sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
 
 		/* total random sampling. NOT THREADSAFE! (should be removed, is not useful) */
@@ -1827,7 +1827,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys, in
 		float *sphere;
 		float *vec1;
 		
-		// returns table if xs and ys were equal to last call, and not resetting
+		/* returns table if xs and ys were equal to last call, and not resetting */
 		sphere= (reset)? NULL: threadsafe_table_sphere(1, thread, xs, ys, tot);
 		if (sphere==NULL) {
 			float cosfi, sinfi, cost, sint;
@@ -1836,7 +1836,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys, in
 
 			sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
 			
-			// random rotation
+			/* random rotation */
 			ang= BLI_thread_frand(thread);
 			sinfi= sin(ang); cosfi= cos(ang);
 			ang= BLI_thread_frand(thread);
@@ -2056,7 +2056,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float ao[3], float env[3])
 	 * for strand render we always require a new sampler because x/y are not set */
 	vec= sphere_sampler(R.wrld.aomode, resol, shi->thread, shi->xs, shi->ys, shi->strand != NULL);
 	
-	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
+	/* warning: since we use full sphere now, and dotproduct is below, we do twice as much */
 	tot= 2*resol*resol;
 
 	if (envcolor == WO_AOSKYTEX) {
@@ -2116,7 +2116,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float ao[3], float env[3])
 				skyadded++;
 			}
 		}
-		// samples
+		/* samples */
 		vec+= 3;
 	}
 	
@@ -2436,7 +2436,7 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, const float lampco[
 		shadfac[3] /= div;
 	}
 	else {
-		// sqrt makes nice umbra effect
+		/* sqrt makes nice umbra effect */
 		if (lar->ray_samp_type & LA_SAMP_UMBRA)
 			shadfac[3]= sqrt(1.0f-fac/div);
 		else
@@ -2501,8 +2501,8 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float shadfac[4])
 			isec.orig.ob   = shi->obi;
 			isec.orig.face = shi->vlr;
 			
-			shadfac[3]= 1.0f; // 1.0=full light
-			
+			shadfac[3]= 1.0f;  /* 1.0=full light */
+
 			/* set up isec.dir */
 			copy_v3_v3(isec.start, shi->co);
 			sub_v3_v3v3(isec.dir, lampco, isec.start);

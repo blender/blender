@@ -27,15 +27,15 @@ MixScreenOperation::MixScreenOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixScreenOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MixScreenOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float valuev[4];
 
-	this->m_inputValueOperation->read(valuev, x, y, sampler, inputBuffers);
-	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler, inputBuffers);
-	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(valuev, x, y, sampler);
+	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler);
+	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler);
 
 	float value = valuev[0];
 	if (this->useValueAlphaMultiply()) {
@@ -47,5 +47,7 @@ void MixScreenOperation::executePixel(float *outputValue, float x, float y, Pixe
 	outputValue[1] = 1.0f - (valuem + value * (1.0f - inputColor2[1])) * (1.0f - inputColor1[1]);
 	outputValue[2] = 1.0f - (valuem + value * (1.0f - inputColor2[2])) * (1.0f - inputColor1[2]);
 	outputValue[3] = inputColor1[3];
+
+	clampIfNeeded(outputValue);
 }
 

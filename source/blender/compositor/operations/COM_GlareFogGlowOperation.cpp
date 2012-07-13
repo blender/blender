@@ -379,7 +379,7 @@ void GlareFogGlowOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	// temp. src image
 	// make the convolution kernel
 	rcti kernelRect;
-	BLI_init_rcti(&kernelRect, 0, sz, 0, sz);
+	BLI_rcti_init(&kernelRect, 0, sz, 0, sz);
 	ckrn = new MemoryBuffer(NULL, &kernelRect);
 
 	scale = 0.25f * sqrtf((float)(sz * sz));

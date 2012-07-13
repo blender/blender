@@ -68,16 +68,16 @@ void TextureBaseOperation::determineResolution(unsigned int resolution[], unsign
 	}
 }
 
-void TextureAlphaOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void TextureAlphaOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
-	TextureBaseOperation::executePixel(color, x, y, sampler, inputBuffers);
+	TextureBaseOperation::executePixel(color, x, y, sampler);
 	color[0] = color[3];
 	color[1] = 0.0f;
 	color[2] = 0.0f;
 	color[3] = 0.0f;
 }
 
-void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float textureSize[4];
@@ -89,8 +89,8 @@ void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSam
 	const float u = (cx - x) / this->getWidth() * 2;
 	const float v = (cy - y) / this->getHeight() * 2;
 
-	this->m_inputSize->read(textureSize, x, y, sampler, inputBuffers);
-	this->m_inputOffset->read(textureOffset, x, y, sampler, inputBuffers);
+	this->m_inputSize->read(textureSize, x, y, sampler);
+	this->m_inputOffset->read(textureOffset, x, y, sampler);
 
 	vec[0] = textureSize[0] * (u + textureOffset[0]);
 	vec[1] = textureSize[1] * (v + textureOffset[1]);

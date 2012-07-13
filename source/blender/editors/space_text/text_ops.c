@@ -2928,8 +2928,11 @@ static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	// if (!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if (!RNA_string_length(op->ptr, "text")) {
-		/* if alt/ctrl/super are pressed pass through */
-		if (event->ctrl || event->oskey) {
+		/* if alt/ctrl/super are pressed pass through except for utf8 character event
+		 * (when input method are used for utf8 inputs, the user may assign key event
+		 * including alt/ctrl/super like ctrl+m to commit utf8 string.  in such case,
+		 * the modifiers in the utf8 character event make no sense.) */
+		if ((event->ctrl || event->oskey) && !event->utf8_buf[0]) {
 			return OPERATOR_PASS_THROUGH;
 		}
 		else {

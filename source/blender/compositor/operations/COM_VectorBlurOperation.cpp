@@ -52,7 +52,7 @@ void VectorBlurOperation::initExecution()
 	
 }
 
-void VectorBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void VectorBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
 	float *buffer = (float *) data;
 	int index = (y * this->getWidth() + x) * COM_NUMBER_OF_CHANNELS;
@@ -70,7 +70,7 @@ void VectorBlurOperation::deinitExecution()
 		this->m_cachedInstance = NULL;
 	}
 }
-void *VectorBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *VectorBlurOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_cachedInstance) {
 		return this->m_cachedInstance;
@@ -78,9 +78,9 @@ void *VectorBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 	
 	lockMutex();
 	if (this->m_cachedInstance == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect, memoryBuffers);
-		MemoryBuffer *speed = (MemoryBuffer *)this->m_inputSpeedProgram->initializeTileData(rect, memoryBuffers);
-		MemoryBuffer *z = (MemoryBuffer *)this->m_inputZProgram->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect);
+		MemoryBuffer *speed = (MemoryBuffer *)this->m_inputSpeedProgram->initializeTileData(rect);
+		MemoryBuffer *z = (MemoryBuffer *)this->m_inputZProgram->initializeTileData(rect);
 		float *data = new float[this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS];
 		memcpy(data, tile->getBuffer(), this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
 		this->generateVectorBlur(data, tile, speed, z);

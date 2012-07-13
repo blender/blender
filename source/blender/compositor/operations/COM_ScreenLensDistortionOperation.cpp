@@ -48,14 +48,14 @@ void ScreenLensDistortionOperation::initExecution()
 	
 }
 
-void *ScreenLensDistortionOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *ScreenLensDistortionOperation::initializeTileData(rcti *rect)
 {
-	void *buffer = this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
-	updateDispersionAndDistortion(memoryBuffers);
+	void *buffer = this->m_inputProgram->initializeTileData(NULL);
+	updateDispersionAndDistortion();
 	return buffer;
 }
 
-void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int y, void *data)
 {
 	const float height = this->getHeight();
 	const float width = this->getWidth();
@@ -316,16 +316,16 @@ void ScreenLensDistortionOperation::updateVariables(float distortion, float disp
 	this->m_kb4 = this->m_kb * 4.0f;	
 }
 
-void ScreenLensDistortionOperation::updateDispersionAndDistortion(MemoryBuffer **inputBuffers)
+void ScreenLensDistortionOperation::updateDispersionAndDistortion()
 {
 	if (this->m_valuesAvailable) return;
 	
 	this->lockMutex();
 	if (!this->m_valuesAvailable) {
 		float result[4];
-		this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST, inputBuffers);
+		this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST);
 		this->m_distortion = result[0];
-		this->getInputSocketReader(2)->read(result, 0, 0, COM_PS_NEAREST, inputBuffers);
+		this->getInputSocketReader(2)->read(result, 0, 0, COM_PS_NEAREST);
 		this->m_dispersion = result[0];
 		updateVariables(this->m_distortion, this->m_dispersion);
 		this->m_valuesAvailable = true;

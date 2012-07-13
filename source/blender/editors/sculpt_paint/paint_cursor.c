@@ -294,7 +294,7 @@ static int project_brush_radius(ViewContext *vc,
 
 	ED_view3d_global_to_vector(vc->rv3d, location, view);
 
-	// create a vector that is not orthogonal to view
+	/* create a vector that is not orthogonal to view */
 
 	if (fabsf(view[0]) < 0.1f) {
 		nonortho[0] = view[0] + 1.0f;
@@ -312,19 +312,19 @@ static int project_brush_radius(ViewContext *vc,
 		nonortho[2] = view[2] + 1.0f;
 	}
 
-	// get a vector in the plane of the view
+	/* get a vector in the plane of the view */
 	cross_v3_v3v3(ortho, nonortho, view);
 	normalize_v3(ortho);
 
-	// make a point on the surface of the brush tagent to the view
+	/* make a point on the surface of the brush tagent to the view */
 	mul_v3_fl(ortho, radius);
 	add_v3_v3v3(offset, location, ortho);
 
-	// project the center of the brush, and the tangent point to the view onto the screen
+	/* project the center of the brush, and the tangent point to the view onto the screen */
 	project_float(vc->ar, location, p1);
 	project_float(vc->ar, offset, p2);
 
-	// the distance between these points is the size of the projected brush in pixels
+	/* the distance between these points is the size of the projected brush in pixels */
 	return len_v2v2(p1, p2);
 }
 

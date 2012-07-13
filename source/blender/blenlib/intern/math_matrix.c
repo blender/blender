@@ -1271,7 +1271,7 @@ int is_negative_m4(float mat[][4])
 
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
-// TODO: need to have a version that allows for rotation order...
+/* TODO: need to have a version that allows for rotation order... */
 
 void loc_eul_size_to_mat4(float mat[4][4], const float loc[3], const float eul[3], const float size[3])
 {

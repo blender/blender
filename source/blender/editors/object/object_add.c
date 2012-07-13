@@ -558,8 +558,8 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
-	
-	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
+
+	object_add_generic_invoke_options(C, op); /* XXX these props don't get set right when only exec() is called */
 
 	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
@@ -629,7 +629,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	float loc[3], rot[3];
 	
-	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
+	object_add_generic_invoke_options(C, op); /* XXX these props don't get set right when only exec() is called */
 	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
 	
@@ -669,18 +669,18 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	int enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
-	
-	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
+
+	object_add_generic_invoke_options(C, op); /* XXX these props don't get set right when only exec() is called */
 	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
-	
+
 	if ((obedit == NULL) || (obedit->type != OB_ARMATURE)) {
 		obedit = ED_object_add_type(C, OB_ARMATURE, loc, rot, TRUE, layer);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
 	else DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
-	
+
 	if (obedit == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot create editmode armature");
 		return OPERATOR_CANCELLED;

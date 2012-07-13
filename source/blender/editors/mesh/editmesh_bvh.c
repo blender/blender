@@ -55,7 +55,7 @@ typedef struct BMBVHTree {
 	BMesh *bm;
 	BVHTree *tree;
 	float epsilon;
-	float maxdist; //for nearest point search
+	float maxdist; /* for nearest point search */
 	float uv[2];
 	
 	/* stuff for topological vert search */

@@ -40,10 +40,10 @@ void BLF_exit(void);
 void BLF_cache_clear(void);
 
 int BLF_load(const char *name);
-int BLF_load_mem(const char *name, unsigned char *mem, int mem_size);
+int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size);
 
 int BLF_load_unique(const char *name);
-int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size);
+int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size);
 
 void BLF_unload(const char *name);
 

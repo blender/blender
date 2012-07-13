@@ -1335,17 +1335,9 @@ Game Types (bge.types)
 
       Rigid body physics allows the object to roll on collisions.
 
-      .. note::
-         
-         This is not working with bullet physics yet.
-
    .. method:: disableRigidBody()
 
       Disables rigid body physics for this object.
-
-      .. note::
-
-         This is not working with bullet physics yet. The angular is removed but rigid body physics can still rotate it later.
 
    .. method:: setParent(parent, compound=True, ghost=True)
 
@@ -4222,6 +4214,10 @@ Game Types (bge.types)
    .. attribute:: projection_matrix
 
       This camera's 4x4 projection matrix.
+	  
+      .. note::
+      
+         This is the identity matrix prior to rendering the first frame (any Python done on frame 1). 
 
       :type: 4x4 Matrix [[float]]
 
@@ -4233,7 +4229,7 @@ Game Types (bge.types)
 
       .. note::
       
-         This matrix is regenerated every frame from the camera's position and orientation. 
+         This matrix is regenerated every frame from the camera's position and orientation. Also, this is the identity matrix prior to rendering the first frame (any Python done on frame 1).
 
    .. attribute:: camera_to_world
 

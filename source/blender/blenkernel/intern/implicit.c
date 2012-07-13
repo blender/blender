@@ -185,7 +185,7 @@ DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
 /* create long vector */
 DO_INLINE lfVector *create_lfvector(unsigned int verts)
 {
-	// TODO: check if memory allocation was successfull */
+	/* TODO: check if memory allocation was successfull */
 	return  (lfVector *)MEM_callocN(verts * sizeof(lfVector), "cloth_implicit_alloc_vector");
 	// return (lfVector *)cloth_aligned_malloc(&MEMORY_BASE, verts * sizeof(lfVector));
 }
@@ -529,8 +529,8 @@ DO_INLINE void del_bfmatrix(fmatrix3x3 *matrix)
 
 /* copy big matrix */
 DO_INLINE void cp_bfmatrix(fmatrix3x3 *to, fmatrix3x3 *from)
-{	
-	// TODO bounds checking	
+{
+	// TODO bounds checking
 	memcpy(to, from, sizeof(fmatrix3x3) * (from[0].vcount+from[0].scount));
 }
 
@@ -1239,13 +1239,13 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
 			k = clmd->sim_parms->structural;
-				
+
 			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_struct-k);
-			
+
 			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
-			
+
 			// TODO: verify, half verified (couldn't see error)
-			mul_fvector_S(stretch_force, dir, k*(length-L)); 
+			mul_fvector_S(stretch_force, dir, k*(length-L));
 
 			VECADD(s->f, s->f, stretch_force);
 
@@ -1833,11 +1833,11 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			for (i=0, cv=cloth->verts; i<cloth->numverts; i++, cv++) {
 				copy_v3_v3(initial_cos[i], cv->tx);
 			}
-			
+
 			// call collision function
 			// TODO: check if "step" or "step+dt" is correct - dg
 			do_extra_solve = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
-						
+
 			// copy corrected positions back to simulation
 			for (i = 0; i < numverts; i++) {
 				// correct velocity again, just to be sure we had to change it due to adaptive collisions

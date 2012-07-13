@@ -43,7 +43,7 @@ ImBuf *MultilayerBaseOperation::getImBuf()
 	return NULL;
 }
 
-void MultilayerColorOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MultilayerColorOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	int yi = y;
 	int xi = x;
@@ -74,7 +74,7 @@ void MultilayerColorOperation::executePixel(float *color, float x, float y, Pixe
 	}
 }
 
-void MultilayerValueOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MultilayerValueOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	int yi = y;
 	int xi = x;
@@ -87,7 +87,7 @@ void MultilayerValueOperation::executePixel(float *color, float x, float y, Pixe
 	}
 }
 
-void MultilayerVectorOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MultilayerVectorOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	int yi = y;
 	int xi = x;

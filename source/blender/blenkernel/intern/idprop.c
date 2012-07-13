@@ -33,10 +33,12 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "BLI_utildefines.h"
+#include "BLI_string.h"
+#include "BLI_listbase.h"
+
 #include "BKE_idprop.h"
 #include "BKE_library.h"
-
-#include "BLI_blenlib.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -122,11 +124,10 @@ IDProperty *IDP_GetIndexArray(IDProperty *prop, int index)
 	return GETPROP(prop, index);
 }
 
-IDProperty *IDP_AppendArray(IDProperty *prop, IDProperty *item)
+void IDP_AppendArray(IDProperty *prop, IDProperty *item)
 {
 	IDP_ResizeIDPArray(prop, prop->len + 1);
 	IDP_SetIndexArray(prop, prop->len - 1, item);
-	return item;
 }
 
 void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
@@ -603,7 +604,9 @@ IDProperty *IDP_CopyProperty(IDProperty *prop)
 
 IDProperty *IDP_GetProperties(ID *id, int create_if_needed)
 {
-	if (id->properties) return id->properties;
+	if (id->properties) {
+		return id->properties;
+	}
 	else {
 		if (create_if_needed) {
 			id->properties = MEM_callocN(sizeof(IDProperty), "IDProperty");

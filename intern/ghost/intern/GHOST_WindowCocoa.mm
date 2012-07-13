@@ -1235,9 +1235,11 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
         
         // Progress fill
         progressBox = NSInsetRect(progressBox, 1, 1);
-        [[NSColor knobColor] setFill];
+        
         progressBox.size.width = progressBox.size.width * progress;
-		NSRectFill(progressBox);
+        NSGradient *gradient = [[NSGradient alloc] initWithStartingColor:[NSColor darkGrayColor] endingColor:[NSColor lightGrayColor]];
+        [gradient drawInRect:progressBox angle:90];
+        [gradient release];
 		
 		[dockIcon unlockFocus];
 		

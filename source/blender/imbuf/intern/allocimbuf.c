@@ -424,7 +424,7 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	/* silly trick to copy the entire contents of ibuf1 struct over to ibuf */
 	tbuf = *ibuf1;
 	
-	// fix pointers 
+	/* fix pointers */
 	tbuf.rect          = ibuf2->rect;
 	tbuf.rect_float    = ibuf2->rect_float;
 	tbuf.encodedbuffer = ibuf2->encodedbuffer;
@@ -433,12 +433,12 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	for (a = 0; a < IB_MIPMAP_LEVELS; a++)
 		tbuf.mipmap[a] = NULL;
 	
-	// set malloc flag
+	/* set malloc flag */
 	tbuf.mall               = ibuf2->mall;
 	tbuf.c_handle           = NULL;
 	tbuf.refcounter         = 0;
 
-	// for now don't duplicate metadata
+	/* for now don't duplicate metadata */
 	tbuf.metadata = NULL;
 
 	*ibuf2 = tbuf;

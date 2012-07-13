@@ -505,7 +505,7 @@ static short ok_bezier_region(KeyframeEditData *ked, BezTriple *bezt)
 	if (ked->data) {
 		short ok = 0;
 		
-		#define KEY_CHECK_OK(_index) BLI_in_rctf(ked->data, bezt->vec[_index][0], bezt->vec[_index][1])
+		#define KEY_CHECK_OK(_index) BLI_in_rctf_v(ked->data, bezt->vec[_index])
 		KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
 		#undef KEY_CHECK_OK
 		

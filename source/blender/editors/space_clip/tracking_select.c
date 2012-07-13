@@ -361,7 +361,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
 			if (MARKER_VISIBLE(sc, track, marker)) {
-				if (BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
+				if (BLI_in_rctf_v(&rectf, marker->pos)) {
 					if (mode == GESTURE_MODAL_SELECT)
 						BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
 					else

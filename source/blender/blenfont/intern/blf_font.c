@@ -560,12 +560,12 @@ void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, int mem_s
 	FT_Open_Args open;
 
 	open.flags = FT_OPEN_MEMORY;
-	open.memory_base = (FT_Byte *)mem;
+	open.memory_base = (const FT_Byte *)mem;
 	open.memory_size = mem_size;
 	FT_Attach_Stream(font->face, &open);
 }
 
-FontBLF *blf_font_new_from_mem(const char *name, unsigned char *mem, int mem_size)
+FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int mem_size)
 {
 	FontBLF *font;
 	FT_Error err;

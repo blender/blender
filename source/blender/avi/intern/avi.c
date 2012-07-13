@@ -870,7 +870,7 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 			}
 		}
 		else if (movie->streams[i].sh.Type == FCC("auds")) {
-			// pass
+			/* pass */
 		}
 #endif
 		}

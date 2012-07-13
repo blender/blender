@@ -130,7 +130,7 @@ protected:
 public:
 	MovieDistortionOperation(bool distortion);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 
 	void initExecution();
 	void deinitExecution();

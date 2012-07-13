@@ -63,6 +63,11 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 	if (not_yet_exported) {
 
 		ImBuf *imbuf       = BKE_image_get_ibuf(image, NULL);
+		if(!imbuf) {
+			fprintf(stderr, "Collada export: image does not exist:\n%s\n", image->name);
+			return;
+		}
+
 		bool  is_dirty     = imbuf->userflags & IB_BITMAPDIRTY;
 
 		ImageFormatData imageFormat;
@@ -100,6 +105,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 
 			if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == 0) {
 				fprintf(stderr, "Collada export: Cannot export image to:\n%s\n", export_path);
+				return;
 			}
 			BLI_strncpy(export_path, export_file, sizeof(export_path));
 		}
@@ -119,6 +125,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 
 				if (BLI_copy(source_path, export_path) != 0) {
 					fprintf(stderr, "Collada export: Cannot copy image:\n source:%s\ndest :%s\n", source_path, export_path);
+					return;
 				}
 
 				BLI_strncpy(export_path, export_file, sizeof(export_path));
@@ -153,8 +160,7 @@ void ImagesExporter::export_UV_Images()
 			for (int i = 0; i < me->pdata.totlayer; i++) {
 				if (me->pdata.layers[i].type == CD_MTEXPOLY) {
 					MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
-					MFace *mface = me->mface;
-					for (int j = 0; j < me->totpoly; j++, mface++, txface++) {
+					for (int j = 0; j < me->totpoly; j++, txface++) {
 
 						Image *ima = txface->tpage;
 						if (ima == NULL)

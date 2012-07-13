@@ -185,7 +185,7 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 	/* old optimize trick... this enforces to bypass the depgraph 
 	 *	- note: code copied from transform_generics.c -> recalcData()
 	 */
-	// FIXME: shouldn't this use the builtin stuff?
+	/* FIXME: shouldn't this use the builtin stuff? */
 	if ((arm->flag & ARM_DELAYDEFORM) == 0)
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 	else

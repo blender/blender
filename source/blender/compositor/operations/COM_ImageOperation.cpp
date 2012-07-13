@@ -108,7 +108,7 @@ void BaseImageOperation::determineResolution(unsigned int resolution[], unsigned
 	}
 }
 
-void ImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	if (this->m_imageBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
 		zero_v4(color);
@@ -128,7 +128,7 @@ void ImageOperation::executePixel(float *color, float x, float y, PixelSampler s
 	}
 }
 
-void ImageAlphaOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ImageAlphaOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float tempcolor[4];
 
@@ -152,7 +152,7 @@ void ImageAlphaOperation::executePixel(float *color, float x, float y, PixelSamp
 	}
 }
 
-void ImageDepthOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ImageDepthOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	if (this->m_depthBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
 		color[0] = 0.0f;

@@ -196,7 +196,15 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 	}
 	else {
 		/* old shading system, assign image to selected faces */
-		
+		float prev_aspect[2], fprev_aspect;
+		float aspect[2], faspect;
+
+		ED_image_uv_aspect(previma, prev_aspect, prev_aspect + 1);
+		ED_image_uv_aspect(ima, aspect, aspect + 1);
+
+		fprev_aspect = prev_aspect[0]/prev_aspect[1];
+		faspect = aspect[0]/aspect[1];
+
 		/* ensure we have a uv map */
 		if (!CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
 			BM_data_layer_add(em->bm, &em->bm->pdata, CD_MTEXPOLY);
@@ -214,6 +222,19 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 					
 					if (ima->id.us == 0) id_us_plus(&ima->id);
 					else id_lib_extern(&ima->id);
+
+					/* we also need to correct the aspect of uvs */
+					if(tf->unwrap & TF_CORRECT_ASPECT) {
+						BMIter liter;
+						BMLoop *l;
+
+						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+							MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+
+							luv->uv[0] *= fprev_aspect;
+							luv->uv[0] /= faspect;
+						}
+					}
 				}
 				else {
 					tf->tpage = NULL;
@@ -2458,7 +2479,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 				uv_poly_center(em, efa, cent);
-				if (BLI_in_rctf(&rectf, cent[0], cent[1])) {
+				if (BLI_in_rctf_v(&rectf, cent)) {
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 					change = 1;
 				}
@@ -2483,15 +2504,13 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				if (!pinned || (ts->uv_flag & UV_SYNC_SELECTION) ) {
 
 					/* UV_SYNC_SELECTION - can't do pinned selection */
-					if (BLI_in_rctf(&rectf, luv->uv[0], luv->uv[1])) {
+					if (BLI_in_rctf_v(&rectf, luv->uv)) {
 						if (select) uvedit_uv_select_enable(em, scene, l, FALSE);
 						else uvedit_uv_select_disable(em, scene, l);
 					}
 				}
 				else if (pinned) {
-					if ((luv->flag & MLOOPUV_PINNED) && 
-					    BLI_in_rctf(&rectf, luv->uv[0], luv->uv[1]))
-					{
+					if ((luv->flag & MLOOPUV_PINNED) && BLI_in_rctf_v(&rectf, luv->uv)) {
 						if (select) uvedit_uv_select_enable(em, scene, l, FALSE);
 						else uvedit_uv_select_disable(em, scene, l);
 					}
@@ -2664,7 +2683,7 @@ static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, sh
 				float cent[2];
 				uv_poly_center(em, efa, cent);
 				UI_view2d_view_to_region(&ar->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]);
-				if (BLI_in_rcti(&rect, screen_uv[0], screen_uv[1]) &&
+				if (BLI_in_rcti_v(&rect, screen_uv) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
 				{
 					uvedit_face_select_enable(scene, em, efa, FALSE);
@@ -2681,7 +2700,7 @@ static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, sh
 					if ((select) != (uvedit_uv_select_test(em, scene, l))) {
 						MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 						UI_view2d_view_to_region(&ar->v2d, luv->uv[0], luv->uv[1], &screen_uv[0], &screen_uv[1]);
-						if (BLI_in_rcti(&rect, screen_uv[0], screen_uv[1]) &&
+						if (BLI_in_rcti_v(&rect, screen_uv) &&
 						    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
 						{
 							if (select) {

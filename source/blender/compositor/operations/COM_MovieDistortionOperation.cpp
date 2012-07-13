@@ -78,16 +78,16 @@ void MovieDistortionOperation::deinitExecution()
 }
 
 
-void MovieDistortionOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MovieDistortionOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	
 	if (this->m_cache != NULL) {
 		float u, v;
 		this->m_cache->getUV(&this->m_movieClip->tracking, x, y, &u, &v);
-		this->m_inputOperation->read(color, u, v, sampler, inputBuffers);
+		this->m_inputOperation->read(color, u, v, sampler);
 	} 
 	else {
-		this->m_inputOperation->read(color, x, y, sampler, inputBuffers);
+		this->m_inputOperation->read(color, x, y, sampler);
 	}
 }
 

@@ -30,7 +30,11 @@ import os
 import sys
 import tempfile
 
-import settings
+try:
+    import settings
+except:
+    from . import settings
+
 
 PY3 = settings.PYTHON3_EXEC
 

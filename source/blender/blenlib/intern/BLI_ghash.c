@@ -35,8 +35,6 @@
 
 #include "MEM_guardedalloc.h"
 
-// #include "BLI_blenlib.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_mempool.h"
 #include "BLI_ghash.h"

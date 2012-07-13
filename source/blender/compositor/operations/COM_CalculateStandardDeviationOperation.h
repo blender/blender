@@ -39,9 +39,9 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 
 };
 #endif

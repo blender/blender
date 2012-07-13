@@ -115,8 +115,8 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 #define B_REDR      122
 #define B_NOP       123
 
-// XXX quickly ported across
-static void handle_view3d_lock(bContext *C) 
+/* XXX quickly ported across */
+static void handle_view3d_lock(bContext *C)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);

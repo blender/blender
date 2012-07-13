@@ -74,7 +74,7 @@
 static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #endif
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "BLO_sys_types.h" /* for intptr_t support */
 
 #include "GL/glew.h"
 
@@ -956,22 +956,22 @@ void weight_to_rgb(float r_rgb[3], const float weight)
 {
 	const float blend = ((weight / 2.0f) + 0.5f);
 
-	if (weight <= 0.25f) {    // blue->cyan
+	if (weight <= 0.25f) {    /* blue->cyan */
 		r_rgb[0] = 0.0f;
 		r_rgb[1] = blend * weight * 4.0f;
 		r_rgb[2] = blend;
 	}
-	else if (weight <= 0.50f) {   // cyan->green
+	else if (weight <= 0.50f) {  /* cyan->green */
 		r_rgb[0] = 0.0f;
 		r_rgb[1] = blend;
 		r_rgb[2] = blend * (1.0f - ((weight - 0.25f) * 4.0f));
 	}
-	else if (weight <= 0.75f) { // green->yellow
+	else if (weight <= 0.75f) {  /* green->yellow */
 		r_rgb[0] = blend * ((weight - 0.50f) * 4.0f);
 		r_rgb[1] = blend;
 		r_rgb[2] = 0.0f;
 	}
-	else if (weight <= 1.0f) { // yellow->red
+	else if (weight <= 1.0f) {  /* yellow->red */
 		r_rgb[0] = blend;
 		r_rgb[1] = blend * (1.0f - ((weight - 0.75f) * 4.0f));
 		r_rgb[2] = 0.0f;
@@ -2379,16 +2379,16 @@ float *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 
 typedef struct {
 	float *precomputedFaceNormals;
-	MTFace *mtface;     // texture coordinates
-	MFace *mface;       // indices
-	MVert *mvert;       // vertices & normals
+	MTFace *mtface;     /* texture coordinates */
+	MFace *mface;       /* indices */
+	MVert *mvert;       /* vertices & normals */
 	float (*orco)[3];
-	float (*tangent)[4];    // destination
+	float (*tangent)[4];    /* destination */
 	int numTessFaces;
 
 } SGLSLMeshToTangent;
 
-// interface
+/* interface */
 #include "mikktspace.h"
 
 static int GetNumFaces(const SMikkTSpaceContext *pContext)
@@ -2508,7 +2508,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	BLI_memarena_use_calloc(arena);
 	vtangents = MEM_callocN(sizeof(VertexTangent *) * totvert, "VertexTangent");
 
-	// new computation method
+	/* new computation method */
 	iCalcNewMethod = 1;
 	if (iCalcNewMethod != 0) {
 		SGLSLMeshToTangent mesh2tangent = {0};
@@ -2532,7 +2532,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 		sInterface.m_getNormal = GetNormal;
 		sInterface.m_setTSpaceBasic = SetTSpace;
 
-		// 0 if failed
+		/* 0 if failed */
 		iCalcNewMethod = genTangSpaceDefault(&sContext);
 	}
 
@@ -2638,7 +2638,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 					tex_coords[3] = mtface[f].uv[3];
 				}
 
-				// discard degenerate faces
+				/* discard degenerate faces */
 				is_degenerate = 0;
 				if (equals_v3v3(verts[0], verts[1]) || equals_v3v3(verts[0], verts[2]) || equals_v3v3(verts[1], verts[2]) ||
 				    equals_v2v2(tex_coords[0], tex_coords[1]) || equals_v2v2(tex_coords[0], tex_coords[2]) || equals_v2v2(tex_coords[1], tex_coords[2]))
@@ -2646,7 +2646,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 					is_degenerate = 1;
 				}
 
-				// verify last vertex as well if this is a quad
+				/* verify last vertex as well if this is a quad */
 				if (is_degenerate == 0 && nr_verts == 4) {
 					if (equals_v3v3(verts[3], verts[0]) || equals_v3v3(verts[3], verts[1]) || equals_v3v3(verts[3], verts[2]) ||
 					    equals_v2v2(tex_coords[3], tex_coords[0]) || equals_v2v2(tex_coords[3], tex_coords[1]) || equals_v2v2(tex_coords[3], tex_coords[2]))
@@ -2654,7 +2654,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 						is_degenerate = 1;
 					}
 
-					// verify the winding is consistent
+					/* verify the winding is consistent */
 					if (is_degenerate == 0) {
 						float prev_edge[2];
 						int is_signed = 0;
@@ -2681,11 +2681,11 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 					}
 				}
 
-				// proceed if not a degenerate face
+				/* proceed if not a degenerate face */
 				if (is_degenerate == 0) {
 					int nr_tris_to_pile = 0;
-					// quads split at shortest diagonal
-					int offs = 0;       // initial triangulation is 0,1,2 and 0, 2, 3
+					/* quads split at shortest diagonal */
+					int offs = 0;  /* initial triangulation is 0,1,2 and 0, 2, 3 */
 					if (nr_verts == 4) {
 						float pos_len_diag0, pos_len_diag1;
 						float vtmp[3];
@@ -2743,7 +2743,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 			}
 		}
 
-		// finalize
+		/* finalize */
 		{
 			const float avg_area_ratio = (nr_accumulated > 0) ? ((float)(dsum / nr_accumulated)) : 1.0f;
 			const float use_as_render_bump_scale = sqrtf(avg_area_ratio);       // use width of average surface ratio as your bump scale

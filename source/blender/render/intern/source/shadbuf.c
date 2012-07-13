@@ -1561,9 +1561,9 @@ static void isb_bsp_split(ISBBranch *root, MemArena *mem)
 	right= root->right= BLI_memarena_alloc(mem, sizeof(ISBBranch));
 
 	/* new sample array */
-	left->samples= BLI_memarena_alloc(mem, BSPMAX_SAMPLE*sizeof(void *));
-	right->samples= samples; // tmp
-	
+	left->samples = BLI_memarena_alloc(mem, BSPMAX_SAMPLE*sizeof(void *));
+	right->samples = samples;  /* tmp */
+
 	/* split samples */
 	for (a=BSPMAX_SAMPLE-1; a>=0; a--) {
 		int comp= 0;
@@ -1824,7 +1824,7 @@ static void isb_bsp_face_inside(ISBBranch *bspn, BSPFace *face)
 			
 			if ((samp->facenr!=face->facenr || samp->obi!=face->obi) && samp->shadfac) {
 				if (face->box.zmin < samp->zco[2]) {
-					if (BLI_in_rctf((rctf *)&face->box, samp->zco[0], samp->zco[1])) {
+					if (BLI_in_rctf_v((rctf *)&face->box, samp->zco)) {
 						int inshadow= 0;
 						
 						if (face->type) {

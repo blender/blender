@@ -338,6 +338,7 @@ m_enableSatCollisionDetection(false),
 m_solver(NULL),
 m_ownPairCache(NULL),
 m_filterCallback(NULL),
+m_ghostPairCallback(NULL),
 m_ownDispatcher(NULL),
 m_scalingPropagated(false)
 {
@@ -369,8 +370,9 @@ m_scalingPropagated(false)
 	}
 
 	m_filterCallback = new CcdOverlapFilterCallBack(this);
+	m_ghostPairCallback = new btGhostPairCallback();
 	m_broadphase->getOverlappingPairCache()->setOverlapFilterCallback(m_filterCallback);
-	m_broadphase->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
+	m_broadphase->getOverlappingPairCache()->setInternalGhostPairCallback(m_ghostPairCallback);
 
 	setSolverType(1);//issues with quickstep and memory allocations
 //	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
@@ -1885,6 +1887,9 @@ CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 
 	if (NULL != m_filterCallback)
 		delete m_filterCallback;
+
+	if (NULL != m_ghostPairCallback)
+		delete m_ghostPairCallback;
 
 	if (NULL != m_collisionConfiguration)
 		delete m_collisionConfiguration;

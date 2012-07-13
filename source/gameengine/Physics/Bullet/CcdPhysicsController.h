@@ -229,6 +229,8 @@ struct CcdConstructionInfo
 	    :m_localInertiaTensor(1.f, 1.f, 1.f),
 		m_gravity(0,0,0),
 		m_scaling(1.f,1.f,1.f),
+		m_linearFactor(0.f, 0.f, 0.f),
+		m_angularFactor(0.f, 0.f, 0.f),
 		m_mass(0.f),
 		m_clamp_vel_min(-1.f),
 		m_clamp_vel_max(-1.f),
@@ -267,6 +269,7 @@ struct CcdConstructionInfo
 		m_bRigid(false),
 		m_bSoft(false),
 		m_bSensor(false),
+		m_bCharacter(false),
 		m_bGimpact(false),
 		m_collisionFilterGroup(DefaultFilter),
 		m_collisionFilterMask(AllFilter),
@@ -291,6 +294,8 @@ struct CcdConstructionInfo
 	btVector3	m_localInertiaTensor;
 	btVector3	m_gravity;
 	btVector3	m_scaling;
+	btVector3	m_linearFactor;
+	btVector3	m_angularFactor;
 	btScalar	m_mass;
 	btScalar	m_clamp_vel_min;  
 	btScalar	m_clamp_vel_max;  

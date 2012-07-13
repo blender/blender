@@ -46,7 +46,7 @@ public:
 	MultilayerColorOperation(int pass) : MultilayerBaseOperation(pass) {
 		this->addOutputSocket(COM_DT_COLOR);
 	}
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 };
 
 class MultilayerValueOperation : public MultilayerBaseOperation {
@@ -54,7 +54,7 @@ public:
 	MultilayerValueOperation(int pass) : MultilayerBaseOperation(pass) {
 		this->addOutputSocket(COM_DT_VALUE);
 	}
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 };
 
 class MultilayerVectorOperation : public MultilayerBaseOperation {
@@ -62,7 +62,7 @@ public:
 	MultilayerVectorOperation(int pass) : MultilayerBaseOperation(pass) {
 		this->addOutputSocket(COM_DT_VECTOR);
 	}
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 };
 
 #endif

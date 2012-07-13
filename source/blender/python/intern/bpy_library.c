@@ -39,18 +39,18 @@
 
 #include "BLO_readfile.h"
 
+#include "BLI_utildefines.h"
+#include "BLI_string.h"
+#include "BLI_linklist.h"
+#include "BLI_path_util.h"
+#include "BLI_listbase.h"
+
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_idcode.h"
 #include "BKE_report.h"
 #include "BKE_context.h"
-
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
-#include "BLI_linklist.h"
-#include "BLI_path_util.h"
-#include "BLI_listbase.h"
 
 #include "DNA_space_types.h" /* FILE_LINK, FILE_RELPATH */
 

@@ -728,10 +728,20 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	/* retrieve the image and information about it */
 	ima = ED_space_image(sima);
 	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
-	ibuf = ED_space_image_acquire_buffer(sima, &lock);
 
 	show_viewer = (ima && ima->source == IMA_SRC_VIEWER);
 	show_render = (show_viewer && ima->type == IMA_TYPE_R_RESULT);
+
+	if (show_viewer) {
+		/* use locked draw for drawing viewer image buffer since the conpositor
+		 * is running in separated thread and compositor could free this buffers.
+		 * other images are not modifying in such a way so they does not require
+		 * lock (sergey)
+		 */
+		BLI_lock_thread(LOCK_DRAW_IMAGE);
+	}
+
+	ibuf = ED_space_image_acquire_buffer(sima, &lock);
 
 	/* draw the image or grid */
 	if (ibuf == NULL)
@@ -770,5 +780,8 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	/* render info */
 	if (ima && show_render)
 		draw_render_info(scene, ima, ar);
-}
 
+	if (show_viewer) {
+		BLI_unlock_thread(LOCK_DRAW_IMAGE);
+	}
+}

@@ -91,7 +91,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 	
 	if (btheme) {
 	
-		// first check for ui buttons theme
+		/* first check for ui buttons theme */
 		if (colorid < TH_THEMEUI) {
 		
 			switch (colorid) {
@@ -942,7 +942,7 @@ void UI_SetTheme(int spacetype, int regionid)
 		theme_regionid = RGN_TYPE_WINDOW;
 	}
 	else {
-		// later on, a local theme can be found too
+		/* later on, a local theme can be found too */
 		theme_active = U.themes.first;
 		theme_spacetype = spacetype;
 		theme_regionid = regionid;
@@ -1301,8 +1301,8 @@ void init_userdef_do_versions(void)
 	/* transform widget settings */
 	if (U.tw_hotspot == 0) {
 		U.tw_hotspot = 14;
-		U.tw_size = 20;          // percentage of window size
-		U.tw_handlesize = 16;    // percentage of widget radius
+		U.tw_size = 20;          /* percentage of window size */
+		U.tw_handlesize = 16;    /* percentage of widget radius */
 	}
 	if (U.pad_rot_angle == 0)
 		U.pad_rot_angle = 15;
@@ -1359,7 +1359,7 @@ void init_userdef_do_versions(void)
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			/* check for (alpha == 0) is safe, then color was never set */
 			if (btheme->ttime.back[3] == 0) {
-				// copied from ui_theme_init_default
+				/* copied from ui_theme_init_default */
 				btheme->ttime = btheme->tv3d;
 				rgba_char_args_set_fl(btheme->ttime.back,   0.45, 0.45, 0.45, 1.0);
 				rgba_char_args_set_fl(btheme->ttime.grid,   0.36, 0.36, 0.36, 1.0);

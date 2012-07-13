@@ -165,21 +165,21 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			
 			ac->mode = saction->mode;
 			return 1;
-			
-		case SACTCONT_GPENCIL: /* Grease Pencil */ // XXX review how this mode is handled...
+
+		case SACTCONT_GPENCIL: /* Grease Pencil */ /* XXX review how this mode is handled... */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 			saction->ads.source = (ID *)ac->scene;
-			
+
 			ac->datatype = ANIMCONT_GPENCIL;
 			ac->data = &saction->ads;
-			
+
 			ac->mode = saction->mode;
 			return 1;
-			
-		case SACTCONT_MASK: /* Grease Pencil */ // XXX review how this mode is handled...
+
+		case SACTCONT_MASK: /* Grease Pencil */ /* XXX review how this mode is handled... */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 {
-			// TODO, other methods to get the mask
+			/* TODO, other methods to get the mask */
 			// Sequence *seq = BKE_sequencer_active_get(ac->scene);
 			//MovieClip *clip = ac->scene->clip;
 //			struct Mask *mask = seq ? seq->mask : NULL;
@@ -894,7 +894,7 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 			char *bone_name;
 			
 			/* get bone-name, and check if this bone is selected */
-			bone_name = BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
+			bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
 			pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 			if (bone_name) MEM_freeN(bone_name);
 			
@@ -930,7 +930,7 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 			char *seq_name;
 			
 			/* get strip name, and check if this strip is selected */
-			seq_name = BLI_getQuotedStr(fcu->rna_path, "sequences_all[");
+			seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
 			seq = get_seq_by_name(ed->seqbasep, seq_name, FALSE);
 			if (seq_name) MEM_freeN(seq_name);
 			
@@ -950,7 +950,7 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 			char *node_name;
 			
 			/* get strip name, and check if this strip is selected */
-			node_name = BLI_getQuotedStr(fcu->rna_path, "nodes[");
+			node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes[");
 			node = nodeFindNodebyName(ntree, node_name);
 			if (node_name) MEM_freeN(node_name);
 			
@@ -1952,9 +1952,9 @@ static size_t animdata_filter_ds_obanim(bAnimContext *ac, ListBase *anim_data, b
 	AnimData *adt = ob->adt;
 	short type = 0, expanded = 1;
 	void *cdata = NULL;
-	
+
 	/* determine the type of expander channels to use */
-	// this is the best way to do this for now...
+	/* this is the best way to do this for now... */
 	ANIMDATA_FILTER_CASES(ob,
 		{ /* AnimData - no channel, but consider data */ },
 		{ /* NLA - no channel, but consider data */ },
@@ -2190,10 +2190,10 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac, ListBase *anim_d
 			tmp_items += animdata_filter_ds_linestyle(ac, &tmp_data, ads, sce, filter_mode);
 		}
 		
-		// TODO: one day, when sequencer becomes its own datatype, perhaps it should be included here
+		/* TODO: one day, when sequencer becomes its own datatype, perhaps it should be included here */
 	}
 	END_ANIMFILTER_SUBCHANNELS;
-	
+
 	/* if we collected some channels, add these to the new list... */
 	if (tmp_items) {
 		/* firstly add object expander if required */

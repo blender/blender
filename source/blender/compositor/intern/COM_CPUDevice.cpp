@@ -29,10 +29,9 @@ void CPUDevice::execute(WorkPackage *work)
 	rcti rect;
 
 	executionGroup->determineChunkRect(&rect, chunkNumber);
-	MemoryBuffer **inputBuffers = executionGroup->getInputBuffersCPU();
 
-	executionGroup->getOutputNodeOperation()->executeRegion(&rect, chunkNumber, inputBuffers);
+	executionGroup->getOutputNodeOperation()->executeRegion(&rect, chunkNumber);
 
-	executionGroup->finalizeChunkExecution(chunkNumber, inputBuffers);
+	executionGroup->finalizeChunkExecution(chunkNumber, NULL);
 }
 

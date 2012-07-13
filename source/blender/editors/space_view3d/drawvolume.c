@@ -45,7 +45,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_curve.h"
-#include "BKE_constraint.h" // for the get_constraint_target function
+#include "BKE_constraint.h"  /* for the get_constraint_target function */
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
@@ -148,7 +148,7 @@ static int intersect_edges(float *points, float a, float b, float c, float d, fl
 
 static int convex(const float p0[3], const float up[3], const float a[3], const float b[3])
 {
-	// Vec3 va = a-p0, vb = b-p0;
+	/* Vec3 va = a-p0, vb = b-p0; */
 	float va[3], vb[3], tmp[3];
 	sub_v3_v3v3(va, a, p0);
 	sub_v3_v3v3(vb, b, p0);
@@ -175,7 +175,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 		{1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f}
 	};
 
-	// edges have the form edges[n][0][xyz] + t*edges[n][1][xyz]
+	/* edges have the form edges[n][0][xyz] + t*edges[n][1][xyz] */
 	float edges[12][2][3] = {
 		{{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
 		{{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 2.0f}},
@@ -226,54 +226,54 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 
 	sub_v3_v3v3(size, max, min);
 
-	// maxx, maxy, maxz
+	/* maxx, maxy, maxz */
 	cv[0][0] = max[0];
 	cv[0][1] = max[1];
 	cv[0][2] = max[2];
-	// minx, maxy, maxz
+	/* minx, maxy, maxz */
 	cv[1][0] = min[0];
 	cv[1][1] = max[1];
 	cv[1][2] = max[2];
-	// minx, miny, maxz
+	/* minx, miny, maxz */
 	cv[2][0] = min[0];
 	cv[2][1] = min[1];
 	cv[2][2] = max[2];
-	// maxx, miny, maxz
+	/* maxx, miny, maxz */
 	cv[3][0] = max[0];
 	cv[3][1] = min[1];
 	cv[3][2] = max[2];
 
-	// maxx, maxy, minz
+	/* maxx, maxy, minz */
 	cv[4][0] = max[0];
 	cv[4][1] = max[1];
 	cv[4][2] = min[2];
-	// minx, maxy, minz
+	/* minx, maxy, minz */
 	cv[5][0] = min[0];
 	cv[5][1] = max[1];
 	cv[5][2] = min[2];
-	// minx, miny, minz
+	/* minx, miny, minz */
 	cv[6][0] = min[0];
 	cv[6][1] = min[1];
 	cv[6][2] = min[2];
-	// maxx, miny, minz
+	/* maxx, miny, minz */
 	cv[7][0] = max[0];
 	cv[7][1] = min[1];
 	cv[7][2] = min[2];
 
-	copy_v3_v3(edges[0][0], cv[4]); // maxx, maxy, minz
-	copy_v3_v3(edges[1][0], cv[5]); // minx, maxy, minz
-	copy_v3_v3(edges[2][0], cv[6]); // minx, miny, minz
-	copy_v3_v3(edges[3][0], cv[7]); // maxx, miny, minz
+	copy_v3_v3(edges[0][0], cv[4]); /* maxx, maxy, minz */
+	copy_v3_v3(edges[1][0], cv[5]); /* minx, maxy, minz */
+	copy_v3_v3(edges[2][0], cv[6]); /* minx, miny, minz */
+	copy_v3_v3(edges[3][0], cv[7]); /* maxx, miny, minz */
 
-	copy_v3_v3(edges[4][0], cv[3]); // maxx, miny, maxz
-	copy_v3_v3(edges[5][0], cv[2]); // minx, miny, maxz
-	copy_v3_v3(edges[6][0], cv[6]); // minx, miny, minz
-	copy_v3_v3(edges[7][0], cv[7]); // maxx, miny, minz
+	copy_v3_v3(edges[4][0], cv[3]); /* maxx, miny, maxz */
+	copy_v3_v3(edges[5][0], cv[2]); /* minx, miny, maxz */
+	copy_v3_v3(edges[6][0], cv[6]); /* minx, miny, minz */
+	copy_v3_v3(edges[7][0], cv[7]); /* maxx, miny, minz */
 
-	copy_v3_v3(edges[8][0], cv[1]); // minx, maxy, maxz
-	copy_v3_v3(edges[9][0], cv[2]); // minx, miny, maxz
-	copy_v3_v3(edges[10][0], cv[6]); // minx, miny, minz
-	copy_v3_v3(edges[11][0], cv[5]); // minx, maxy, minz
+	copy_v3_v3(edges[8][0], cv[1]); /* minx, maxy, maxz */
+	copy_v3_v3(edges[9][0], cv[2]); /* minx, miny, maxz */
+	copy_v3_v3(edges[10][0], cv[6]); /* minx, miny, minz */
+	copy_v3_v3(edges[11][0], cv[5]); /* minx, maxy, minz */
 
 	// printf("size x: %f, y: %f, z: %f\n", size[0], size[1], size[2]);
 	// printf("min[2]: %f, max[2]: %f\n", min[2], max[2]);
@@ -311,11 +311,11 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 	printf("%f, %f, %f\n", rv3d->viewinv[2][0], rv3d->viewinv[2][1], rv3d->viewinv[2][2]);
 #endif
 
-	// get view vector
+	/* get view vector */
 	copy_v3_v3(viewnormal, rv3d->viewinv[2]);
 	normalize_v3(viewnormal);
 
-	// find cube vertex that is closest to the viewer
+	/* find cube vertex that is closest to the viewer */
 	for (i = 0; i < 8; i++) {
 		float x, y, z;
 
@@ -346,9 +346,9 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, prog);
 		glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(text), text);
 
-		// cell spacing
+		/* cell spacing */
 		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 0, dx, dx, dx, 1.0);
-		// custom parameter for smoke style (higher = thicker)
+		/* custom parameter for smoke style (higher = thicker) */
 		glProgramLocalParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 1, 7.0, 7.0, 7.0, 1.0);
 	}
 	else
@@ -366,10 +366,10 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 		cor[2] = (float)res[2] / (float)power_of_2_max_i(res[2]);
 	}
 
-	// our slices are defined by the plane equation a*x + b*y +c*z + d = 0
-	// (a,b,c), the plane normal, are given by viewdir
-	// d is the parameter along the view direction. the first d is given by
-	// inserting previously found vertex into the plane equation
+	/* our slices are defined by the plane equation a*x + b*y +c*z + d = 0
+	 * (a,b,c), the plane normal, are given by viewdir
+	 * d is the parameter along the view direction. the first d is given by
+	 * inserting previously found vertex into the plane equation */
 
 	/* d0 = (viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]); */ /* UNUSED */
 	ds = (ABS(viewnormal[0]) * size[0] + ABS(viewnormal[1]) * size[1] + ABS(viewnormal[2]) * size[2]);
@@ -395,8 +395,8 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 
 		// printf("my d: %f\n", d);
 
-		// intersect_edges returns the intersection points of all cube edges with
-		// the given plane that lie within the cube
+		/* intersect_edges returns the intersection points of all cube edges with
+		 * the given plane that lie within the cube */
 		numpoints = intersect_edges(points, viewnormal[0], viewnormal[1], viewnormal[2], -d, edges);
 
 		// printf("points: %d\n", numpoints);
@@ -404,7 +404,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 		if (numpoints > 2) {
 			copy_v3_v3(p0, points);
 
-			// sort points to get a convex polygon
+			/* sort points to get a convex polygon */
 			for (i = 1; i < numpoints - 1; i++) {
 				for (j = i + 1; j < numpoints; j++) {
 					if (!convex(p0, viewnormal, &points[j * 3], &points[i * 3])) {
@@ -454,4 +454,3 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 		glDepthMask(GL_TRUE);	
 	}
 }
-

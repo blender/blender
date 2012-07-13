@@ -63,7 +63,7 @@ protected:
 	 * @param y the y-coordinate of the pixel to calculate in image space
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 */
-	virtual void executePixel(float *result, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {}
+	virtual void executePixel(float *result, float x, float y, PixelSampler sampler) {}
 
 	/**
 	 * @brief calculate a single pixel
@@ -74,8 +74,8 @@ protected:
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 * @param chunkData chunk specific data a during execution time.
 	 */
-	virtual void executePixel(float *result, int x, int y, MemoryBuffer *inputBuffers[], void *chunkData) {
-		executePixel(result, x, y, COM_PS_NEAREST, inputBuffers);
+	virtual void executePixel(float *result, int x, int y, void *chunkData) {
+		executePixel(result, x, y, COM_PS_NEAREST);
 	}
 
 	/**
@@ -88,21 +88,21 @@ protected:
 	 * @param dy
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 */
-	virtual void executePixel(float *result, float x, float y, float dx, float dy, MemoryBuffer *inputBuffers[]) {}
+	virtual void executePixel(float *result, float x, float y, float dx, float dy) {}
 
 public:
-	inline void read(float *result, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
-		executePixel(result, x, y, sampler, inputBuffers);
+	inline void read(float *result, float x, float y, PixelSampler sampler) {
+		executePixel(result, x, y, sampler);
 	}
-	inline void read(float *result, int x, int y, MemoryBuffer *inputBuffers[], void *chunkData) {
-		executePixel(result, x, y, inputBuffers, chunkData);
+	inline void read(float *result, int x, int y, void *chunkData) {
+		executePixel(result, x, y, chunkData);
 	}
-	inline void read(float *result, float x, float y, float dx, float dy, MemoryBuffer *inputBuffers[]) {
-		executePixel(result, x, y, dx, dy, inputBuffers);
+	inline void read(float *result, float x, float y, float dx, float dy) {
+		executePixel(result, x, y, dx, dy);
 	}
 
-	virtual void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) { return 0; }
-	virtual void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data) {
+	virtual void *initializeTileData(rcti *rect) { return 0; }
+	virtual void deinitializeTileData(rcti *rect, void *data) {
 	}
 	
 	virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) { return 0; }

@@ -65,11 +65,16 @@ void OpenCLDevice::execute(WorkPackage *work)
 	
 	executionGroup->finalizeChunkExecution(chunkNumber, inputBuffers);
 }
-
 cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader *reader)
 {
+	return COM_clAttachMemoryBufferToKernelParameter(kernel, parameterIndex, offsetIndex, cleanup, inputMemoryBuffers, (ReadBufferOperation*)reader);
+}
+
+cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, ReadBufferOperation *reader)
+{
 	cl_int error;
-	MemoryBuffer *result = (MemoryBuffer *)reader->initializeTileData(NULL, inputMemoryBuffers);
+	
+	MemoryBuffer *result = (MemoryBuffer *)reader->getInputMemoryBuffer(inputMemoryBuffers);
 
 	const cl_image_format imageFormat = {
 		CL_RGBA,

@@ -67,7 +67,7 @@ void ConvolutionFilterOperation::deinitExecution()
 }
 
 
-void ConvolutionFilterOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void ConvolutionFilterOperation::executePixel(float *color, int x, int y, void *data)
 {
 	float in1[4];
 	float in2[4];
@@ -84,27 +84,27 @@ void ConvolutionFilterOperation::executePixel(float *color, int x, int y, Memory
 	CLAMP(y2, 0, getHeight() - 1);
 	CLAMP(y3, 0, getHeight() - 1);
 	float value[4];
-	this->m_inputValueOperation->read(value, x2, y2, inputBuffers, NULL);
+	this->m_inputValueOperation->read(value, x2, y2, NULL);
 	const float mval = 1.0f - value[0];
 
 	zero_v4(color);
-	this->m_inputOperation->read(in1, x1, y1, inputBuffers, NULL);
+	this->m_inputOperation->read(in1, x1, y1, NULL);
 	madd_v4_v4fl(color, in1, this->m_filter[0]);
-	this->m_inputOperation->read(in1, x2, y1, inputBuffers, NULL);
+	this->m_inputOperation->read(in1, x2, y1, NULL);
 	madd_v4_v4fl(color, in1, this->m_filter[1]);
-	this->m_inputOperation->read(in1, x3, y1, inputBuffers, NULL);
+	this->m_inputOperation->read(in1, x3, y1, NULL);
 	madd_v4_v4fl(color, in1, this->m_filter[2]);
-	this->m_inputOperation->read(in1, x1, y2, inputBuffers, NULL);
+	this->m_inputOperation->read(in1, x1, y2, NULL);
 	madd_v4_v4fl(color, in1, this->m_filter[3]);
-	this->m_inputOperation->read(in2, x2, y2, inputBuffers, NULL);
+	this->m_inputOperation->read(in2, x2, y2, NULL);
 	madd_v4_v4fl(color, in2, this->m_filter[4]);
-	this->m_inputOperation->read(in1, x3, y2, inputBuffers, NULL);
+	this->m_inputOperation->read(in1, x3, y2, NULL);
 	madd_v4_v4fl(color, in1, this->m_filter[5]);
-	this->m_inputOperation->read(in1, x1, y3, inputBuffers, NULL);
+	this->m_inputOperation->read(in1, x1, y3, NULL);
 	madd_v4_v4fl(color, in1, this->m_filter[6]);
-	this->m_inputOperation->read(in1, x2, y3, inputBuffers, NULL);
+	this->m_inputOperation->read(in1, x2, y3, NULL);
 	madd_v4_v4fl(color, in1, this->m_filter[7]);
-	this->m_inputOperation->read(in1, x3, y3, inputBuffers, NULL);
+	this->m_inputOperation->read(in1, x3, y3, NULL);
 	madd_v4_v4fl(color, in1, this->m_filter[8]);
 	
 	color[0] = color[0] * value[0] + in2[0] * mval;

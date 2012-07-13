@@ -546,7 +546,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
 			psys->totchild = 0;
 		}
 		
-		// check if we are last non-visible particle system
+		/* check if we are last non-visible particle system */
 		for (tpsys = ob->particlesystem.first; tpsys; tpsys = tpsys->next) {
 			if (tpsys->part) {
 				if (ELEM(tpsys->part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
@@ -555,7 +555,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
 				}
 			}
 		}
-		// clear do-not-draw-flag
+		/* clear do-not-draw-flag */
 		if (!nr)
 			ob->transflag &= ~OB_DUPLIPARTS;
 
@@ -3400,6 +3400,12 @@ void psys_mat_hair_to_object(Object *UNUSED(ob), DerivedMesh *dm, short from, Pa
 {
 	float vec[3];
 
+	/* can happen when called from a different object's modifier */
+	if (!dm) {
+		unit_m4(hairmat);
+		return;
+	}
+	
 	psys_face_mat(0, dm, pa, hairmat, 0);
 	psys_particle_on_dm(dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, 0, 0);
 	copy_v3_v3(hairmat[3], vec);

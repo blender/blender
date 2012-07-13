@@ -466,7 +466,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 	if (success) {
 		ibuf->profile = (bitspersample == 32) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_SRGB;
 
-//		Code seems to be not needed for 16 bits tif, on PPC G5 OSX (ton)
+		/* Code seems to be not needed for 16 bits tif, on PPC G5 OSX (ton) */
 		if (bitspersample < 16)
 			if (ENDIAN_ORDER == B_ENDIAN)
 				IMB_convert_rgba_to_abgr(tmpibuf);

@@ -337,12 +337,12 @@ static void layerSwap_tface(void *data, const int *corner_indices)
 
 		copy_v2_v2(uv[j], tf->uv[source_index]);
 
-		// swap pinning flags around
+		/* swap pinning flags around */
 		if (tf->unwrap & pin_flags[source_index]) {
 			unwrap |= pin_flags[j];
 		}
 
-		// swap selection flags around
+		/* swap selection flags around */
 		if (tf->flag & sel_flags[source_index]) {
 			flag |= sel_flags[j];
 		}

@@ -41,9 +41,9 @@ void GlareBaseOperation::deinitExecution()
 	SingleThreadedNodeOperation::deinitExecution();
 }
 
-MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2, MemoryBuffer **memoryBuffers)
+MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2)
 {
-	MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect2, memoryBuffers);
+	MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect2);
 	rcti rect;
 	rect.xmin = 0;
 	rect.ymin = 0;

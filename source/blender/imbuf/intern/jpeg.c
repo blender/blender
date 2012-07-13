@@ -86,9 +86,9 @@ int imb_is_a_jpeg(unsigned char *mem)
 	return 0;
 }
 
-//----------------------------------------------------------
-//	JPG ERROR HANDLING
-//----------------------------------------------------------
+/*----------------------------------------------------------
+ * JPG ERROR HANDLING
+ *---------------------------------------------------------- */
 
 typedef struct my_error_mgr {
 	struct jpeg_error_mgr pub;  /* "public" fields */
@@ -112,9 +112,9 @@ static void jpeg_error(j_common_ptr cinfo)
 	longjmp(err->setjmp_buffer, 1);
 }
 
-//----------------------------------------------------------
-//	INPUT HANDLER FROM MEMORY
-//----------------------------------------------------------
+/*----------------------------------------------------------
+ * INPUT HANDLER FROM MEMORY
+ *---------------------------------------------------------- */
 
 typedef struct {
 	unsigned char  *buffer;
@@ -159,7 +159,7 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 	my_src_ptr src = (my_src_ptr) cinfo->src;
 
 	if (num_bytes > 0) {
-		// prevent skipping over file end
+		/* prevent skipping over file end */
 		size_t skip_size = (size_t)num_bytes <= src->pub.bytes_in_buffer ? num_bytes : src->pub.bytes_in_buffer;
 
 		src->pub.next_input_byte = src->pub.next_input_byte + skip_size;

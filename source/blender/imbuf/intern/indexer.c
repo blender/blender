@@ -181,12 +181,12 @@ struct anim_index *IMB_indexer_open(const char *name)
 	fseek(fp, 0, SEEK_END);
 
 	idx->num_entries = (ftell(fp) - 12) /
-	                   (sizeof(int) + // framepos
-	                    sizeof(unsigned long long) + // seek_pos
-	                    sizeof(unsigned long long) + // seek_pos_dts
-	                    sizeof(unsigned long long) // pts
+	                   (sizeof(int) +                /* framepos */
+	                    sizeof(unsigned long long) + /* seek_pos */
+	                    sizeof(unsigned long long) + /* seek_pos_dts */
+	                    sizeof(unsigned long long)   /* pts */
 	                   );
-	
+
 	fseek(fp, 12, SEEK_SET);
 
 	idx->entries = MEM_callocN(sizeof(struct anim_index_entry) *
@@ -472,7 +472,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 	char fname[FILE_MAX];
 	int ffmpeg_quality;
 
-	// JPEG requires this
+	/* JPEG requires this */
 	width = round_up(width, 8);
 	height = round_up(height, 8);
 

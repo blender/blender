@@ -583,7 +583,7 @@ static int project_bucket_offset_safe(const ProjPaintState *ps, const float proj
 }
 
 /* still use 2D X,Y space but this works for verts transformed by a perspective matrix, using their 4th component as a weight */
-static void barycentric_weights_v2_persp(float v1[4], float v2[4], float v3[4], float co[2], float w[3])
+static void barycentric_weights_v2_persp(const float v1[4], const float v2[4], const float v3[4], const float co[2], float w[3])
 {
 	float wtot_inv, wtot;
 
@@ -603,13 +603,17 @@ static void barycentric_weights_v2_persp(float v1[4], float v2[4], float v3[4], 
 		w[0] = w[1] = w[2] = 1.0f / 3.0f;
 }
 
-static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
+static float VecZDepthOrtho(const float pt[2],
+                            const float v1[3], const float v2[3], const float v3[3],
+                            float w[3])
 {
 	barycentric_weights_v2(v1, v2, v3, pt, w);
 	return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]);
 }
 
-static float VecZDepthPersp(float pt[2], float v1[4], float v2[4], float v3[4], float w[3])
+static float VecZDepthPersp(const float pt[2],
+                            const float v1[4], const float v2[4], const float v3[4],
+                            float w[3])
 {
 	float wtot_inv, wtot;
 	float w_tmp[3];
@@ -1455,8 +1459,8 @@ static float project_paint_uvpixel_mask(
 		} /* otherwise no mask normal is needed, were within the limit */
 	}
 	
-	// This only works when the opacity dosnt change while painting, stylus pressure messes with this
-	// so don't use it.
+	/* This only works when the opacity dosnt change while painting, stylus pressure messes with this
+	 * so don't use it. */
 	// if (ps->is_airbrush==0) mask *= BKE_brush_alpha_get(ps->brush);
 	
 	return mask;
@@ -1611,7 +1615,7 @@ static int line_clip_rect2f(
 		
 		
 		if (fabsf(l1[0] - l2[0]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
-			if (BLI_in_rctf(rect, l1[0], l1[1])) {
+			if (BLI_in_rctf_v(rect, l1)) {
 				copy_v2_v2(l1_clip, l1);
 				copy_v2_v2(l2_clip, l2);
 				return 1;
@@ -1639,7 +1643,7 @@ static int line_clip_rect2f(
 		}
 		
 		if (fabsf(l1[1] - l2[1]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
-			if (BLI_in_rctf(rect, l1[0], l1[1])) {
+			if (BLI_in_rctf_v(rect, l1)) {
 				copy_v2_v2(l1_clip, l1);
 				copy_v2_v2(l2_clip, l2);
 				return 1;
@@ -1663,12 +1667,12 @@ static int line_clip_rect2f(
 		/* Done with vertical lines */
 		
 		/* are either of the points inside the rectangle ? */
-		if (BLI_in_rctf(rect, l1[0], l1[1])) {
+		if (BLI_in_rctf_v(rect, l1)) {
 			copy_v2_v2(l1_clip, l1);
 			ok1 = 1;
 		}
 		
-		if (BLI_in_rctf(rect, l2[0], l2[1])) {
+		if (BLI_in_rctf_v(rect, l2)) {
 			copy_v2_v2(l2_clip, l2);
 			ok2 = 1;
 		}
@@ -1816,7 +1820,7 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 	 * this is even less work then an intersection test
 	 */
 #if 0
-	if (BLI_in_rctf(bucket_bounds, cent[0], cent[1]))
+	if (BLI_in_rctf_v(bucket_bounds, cent))
 		return 1;
 #endif
 	
@@ -1983,9 +1987,9 @@ static void project_bucket_clip_face(
 	float bucket_bounds_ss[4][2];
 
 	/* get the UV space bounding box */
-	inside_bucket_flag |= BLI_in_rctf(bucket_bounds, v1coSS[0], v1coSS[1]);
-	inside_bucket_flag |= BLI_in_rctf(bucket_bounds, v2coSS[0], v2coSS[1]) << 1;
-	inside_bucket_flag |= BLI_in_rctf(bucket_bounds, v3coSS[0], v3coSS[1]) << 2;
+	inside_bucket_flag |= BLI_in_rctf_v(bucket_bounds, v1coSS);
+	inside_bucket_flag |= BLI_in_rctf_v(bucket_bounds, v2coSS) << 1;
+	inside_bucket_flag |= BLI_in_rctf_v(bucket_bounds, v3coSS) << 2;
 	
 	if (inside_bucket_flag == ISECT_ALL3) {
 		/* all screenspace points are inside the bucket bounding box, this means we don't need to clip and can simply return the UVs */
@@ -2812,7 +2816,7 @@ static int project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int bucke
 	fidx = mf->v4 ? 3 : 2;
 	do {
 		v = ps->screenCoords[(*(&mf->v1 + fidx))];
-		if (BLI_in_rctf(&bucket_bounds, v[0], v[1])) {
+		if (BLI_in_rctf_v(&bucket_bounds, v)) {
 			return 1;
 		}
 	} while (fidx--);

@@ -86,24 +86,24 @@ void animviz_settings_init(bAnimVizSettings *avs)
 	/* sanity check */
 	if (avs == NULL)
 		return;
-		
+
 	/* ghosting settings */
 	avs->ghost_bc = avs->ghost_ac = 10;
-	
-	avs->ghost_sf = 1; // xxx - take from scene instead?
-	avs->ghost_ef = 250; // xxx - take from scene instead?
-	
+
+	avs->ghost_sf = 1; /* xxx - take from scene instead? */
+	avs->ghost_ef = 250; /* xxx - take from scene instead? */
+
 	avs->ghost_step = 1;
-	
-	
+
+
 	/* path settings */
 	avs->path_bc = avs->path_ac = 10;
-	
-	avs->path_sf = 1; // xxx - take from scene instead?
-	avs->path_ef = 250; // xxx - take from scene instead?
-	
+
+	avs->path_sf = 1; /* xxx - take from scene instead? */
+	avs->path_ef = 250; /* xxx - take from scene instead? */
+
 	avs->path_viewflag = (MOTIONPATH_VIEW_KFRAS | MOTIONPATH_VIEW_KFNOS);
-	
+
 	avs->path_step = 1;
 }
 
@@ -246,7 +246,7 @@ typedef struct MPathTarget {
 /* get list of motion paths to be baked for the given object
  *  - assumes the given list is ready to be used
  */
-// TODO: it would be nice in future to be able to update objects dependent on these bones too?
+/* TODO: it would be nice in future to be able to update objects dependent on these bones too? */
 void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 {
 	MPathTarget *mpt;
@@ -309,7 +309,9 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 				BLI_addhead(&scene->base, base);
 				
 				mpt->ob->flag |= BA_TEMP_TAG;
-				break; // we really don't need to continue anymore once this happens, but this line might really 'break'
+
+				/* we really don't need to continue anymore once this happens, but this line might really 'break' */
+				break;
 			}
 		}
 	}
@@ -328,17 +330,17 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	DAG_scene_update_flags(G.main, scene, scene->lay, TRUE);
 	
 	/* find the last object with the tag 
-	 *	- all those afterwards are assumed to not be relevant for our calculations
+	 * - all those afterwards are assumed to not be relevant for our calculations
 	 */
-	// optimize further by moving out...
+	/* optimize further by moving out... */
 	for (base = scene->base.first; base; base = base->next) {
 		if (base->object->flag & BA_TEMP_TAG)
 			last = base;
 	}
 	
 	/* perform updates for tagged objects */
-	// XXX: this will break if rigs depend on scene or other data that 
-	// is animated but not attached to/updatable from objects
+	/* XXX: this will break if rigs depend on scene or other data that
+	 * is animated but not attached to/updatable from objects */
 	for (base = scene->base.first; base; base = base->next) {
 		/* update this object */
 		BKE_object_handle_update(scene, base->object);
@@ -353,7 +355,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	   *    that doesn't force complete update, but for now, this is the
 	   *    most accurate way!
 	   */
-	BKE_scene_update_for_newframe(G.main, scene, scene->lay); // XXX this is the best way we can get anything moving
+	BKE_scene_update_for_newframe(G.main, scene, scene->lay); /* XXX this is the best way we can get anything moving */
 #endif
 }
 
@@ -401,9 +403,9 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 /* Perform baking of the given object's and/or its bones' transforms to motion paths 
  *	- scene: current scene
  *	- ob: object whose flagged motionpaths should get calculated
- *	- recalc: whether we need to 
+ *	- recalc: whether we need to
  */
-// TODO: include reports pointer?
+/* TODO: include reports pointer? */
 void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 {
 	MPathTarget *mpt;
@@ -418,9 +420,9 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	cfra = CFRA;
 	sfra = efra = cfra;
 	
-	// TODO: this method could be improved...
-	//	1) max range for standard baking
-	//	2) minimum range for recalc baking (i.e. between keyframes, but how?)
+	/* TODO: this method could be improved...
+	 * 1) max range for standard baking
+	 * 2) minimum range for recalc baking (i.e. between keyframes, but how?) */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {
 		/* try to increase area to do (only as much as needed) */
 		sfra = MIN2(sfra, mpt->mpath->start_frame);
@@ -429,7 +431,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	if (efra <= sfra) return;
 	
 	/* optimize the depsgraph for faster updates */
-	// TODO: whether this is used should depend on some setting for the level of optimisations used
+	/* TODO: whether this is used should depend on some setting for the level of optimisations used */
 	motionpaths_calc_optimise_depsgraph(scene, targets);
 	
 	/* calculate path over requested range */

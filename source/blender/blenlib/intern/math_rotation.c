@@ -1199,12 +1199,12 @@ typedef struct RotOrderInfo {
  */
 static RotOrderInfo rotOrders[] = {
 	/* i, j, k, n */
-	{{0, 1, 2}, 0}, // XYZ
-	{{0, 2, 1}, 1}, // XZY
-	{{1, 0, 2}, 1}, // YXZ
-	{{1, 2, 0}, 0}, // YZX
-	{{2, 0, 1}, 0}, // ZXY
-	{{2, 1, 0}, 1}  // ZYX
+	{{0, 1, 2}, 0}, /* XYZ */
+	{{0, 2, 1}, 1}, /* XZY */
+	{{1, 0, 2}, 1}, /* YXZ */
+	{{1, 2, 0}, 0}, /* YZX */
+	{{2, 0, 1}, 0}, /* ZXY */
+	{{2, 1, 0}, 1}  /* ZYX */
 };
 
 /* Get relevant pointer to rotation order set from the array

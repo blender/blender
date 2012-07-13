@@ -46,7 +46,7 @@ void BilateralBlurOperation::initExecution()
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
-void BilateralBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void BilateralBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
 	// read the determinator color at x, y, this will be used as the reference color for the determinator
 	float determinatorReferenceColor[4];
@@ -61,20 +61,20 @@ void BilateralBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	int miny = floor(y - space);
 	int maxy = ceil(y + space);
 	float deltaColor;
-	this->m_inputDeterminatorProgram->read(determinatorReferenceColor, x, y, inputBuffers, data);
+	this->m_inputDeterminatorProgram->read(determinatorReferenceColor, x, y, data);
 
 	zero_v4(blurColor);
 	blurDivider = 0.0f;
 	for (int yi = miny; yi < maxy; yi += QualityStepHelper::getStep()) {
 		for (int xi = minx; xi < maxx; xi += QualityStepHelper::getStep()) {
 			// read determinator
-			this->m_inputDeterminatorProgram->read(determinator, xi, yi, inputBuffers, data);
+			this->m_inputDeterminatorProgram->read(determinator, xi, yi, data);
 			deltaColor = (fabsf(determinatorReferenceColor[0] - determinator[0]) +
 			              fabsf(determinatorReferenceColor[1] - determinator[1]) +
 			              fabsf(determinatorReferenceColor[2] - determinator[2])); // do not take the alpha channel into account
 			if (deltaColor < sigmacolor) {
 				// add this to the blur
-				this->m_inputColorProgram->read(tempColor, xi, yi, inputBuffers, data);
+				this->m_inputColorProgram->read(tempColor, xi, yi, data);
 				add_v4_v4(blurColor, tempColor);
 				blurDivider += 1.0f;
 			}

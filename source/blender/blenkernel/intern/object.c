@@ -225,7 +225,7 @@ void BKE_object_link_modifiers(struct Object *ob, struct Object *from)
 	BKE_object_copy_particlesystems(ob, from);
 	BKE_object_copy_softbody(ob, from);
 
-	// TODO: smoke?, cloth?
+	/* TODO: smoke?, cloth? */
 }
 
 /* here we will collect all local displist stuff */
@@ -378,7 +378,7 @@ void BKE_object_unlink(Object *ob)
 	unlink_actuators(&ob->actuators);
 	
 	/* check all objects: parents en bevels and fields, also from libraries */
-	// FIXME: need to check all animation blocks (drivers)
+	/* FIXME: need to check all animation blocks (drivers) */
 	obt = bmain->object.first;
 	while (obt) {
 		if (obt->proxy == ob)
@@ -1386,7 +1386,7 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 	BKE_object_copy_proxy_drivers(ob, target);
 
 	/* skip constraints? */
-	// FIXME: this is considered by many as a bug
+	/* FIXME: this is considered by many as a bug */
 	
 	/* set object type and link to data */
 	ob->type = target->type;
@@ -1968,8 +1968,8 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[]
 			break;
 	}
 	
-	// total 
-	mul_serie_m4(tmat, totmat, ob->parentinv,         
+	/* total */
+	mul_serie_m4(tmat, totmat, ob->parentinv,
 	             NULL, NULL, NULL, NULL, NULL, NULL);
 	mul_serie_m4(obmat, tmat, locmat,         
 	             NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1978,10 +1978,10 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[]
 
 	}
 	else {
-		// external usable originmat 
+		/* external usable originmat */
 		copy_m3_m4(originmat, tmat);
 		
-		// origin, voor help line
+		/* origin, for help line */
 		if ((ob->partype & PARTYPE) == PARSKEL) {
 			copy_v3_v3(ob->orig, par->obmat[3]);
 		}
@@ -1997,7 +1997,7 @@ static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[
 	float fac1, fac2;
 	int a;
 
-	// include framerate
+	/* include framerate */
 	fac1 = (1.0f / (1.0f + fabsf(ob->sf)) );
 	if (fac1 >= 1.0f) return 0;
 	fac2 = 1.0f - fac1;
@@ -2310,14 +2310,21 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 	}
 
 	if (change == FALSE) {
+		float size[3];
+
+		copy_v3_v3(size, ob->size);
+		if (ob->type == OB_EMPTY) {
+			mul_v3_fl(size, ob->empty_drawsize);
+		}
+
 		minmax_v3v3_v3(min_r, max_r, ob->obmat[3]);
 
 		copy_v3_v3(vec, ob->obmat[3]);
-		add_v3_v3(vec, ob->size);
+		add_v3_v3(vec, size);
 		minmax_v3v3_v3(min_r, max_r, vec);
 
 		copy_v3_v3(vec, ob->obmat[3]);
-		sub_v3_v3(vec, ob->size);
+		sub_v3_v3(vec, size);
 		minmax_v3v3_v3(min_r, max_r, vec);
 	}
 }
@@ -2513,7 +2520,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 
 		/* XXX new animsys warning: depsgraph tag OB_RECALC_DATA should not skip drivers, 
 		 * which is only in BKE_object_where_is_calc now */
-		// XXX: should this case be OB_RECALC_OB instead?
+		/* XXX: should this case be OB_RECALC_OB instead? */
 		if (ob->recalc & OB_RECALC_ALL) {
 			
 			if (G.debug & G_DEBUG)
@@ -2549,7 +2556,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 
 			if (adt) {
 				/* evaluate drivers - datalevel */
-				// XXX: for mesh types, should we push this to derivedmesh instead?
+				/* XXX: for mesh types, should we push this to derivedmesh instead? */
 				BKE_animsys_evaluate_animdata(scene, data_id, adt, ctime, ADT_RECALC_DRIVERS);
 			}
 
@@ -3173,7 +3180,7 @@ struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet 
 	/* iterate over all selected and visible objects */
 	for (base = scene->base.first; base; base = base->next) {
 		if (objectSet == OB_SET_ALL) {
-			// as we get all anyways just add it
+			/* as we get all anyways just add it */
 			Object *ob = base->object;
 			obrel_list_add(&links, ob);
 		}

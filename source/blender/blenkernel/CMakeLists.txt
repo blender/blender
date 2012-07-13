@@ -103,6 +103,7 @@ set(SRC
 	intern/lattice.c
 	intern/library.c
 	intern/linestyle.c
+	intern/mask_rasterize.c
 	intern/mask.c
 	intern/material.c
 	intern/mball.c

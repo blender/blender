@@ -513,7 +513,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				}
 				break;
 			case P_FINISHING:
-				// stop keeping track of 3D mouse position
+				/* stop keeping track of 3D mouse position */
 #ifdef NDOF_FLY_DEBUG
 				puts("stop keeping track of 3D mouse position");
 #endif

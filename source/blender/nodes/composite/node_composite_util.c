@@ -647,7 +647,7 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 		if (stackbuf_use!=stackbuf)
 			free_compbuf(stackbuf_use);
 
-		BLI_lock_thread(LOCK_PREVIEW);
+		// BLI_lock_thread(LOCK_PREVIEW);
 
 		if (preview->rect)
 			MEM_freeN(preview->rect);
@@ -655,7 +655,7 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 		preview->ysize= ysize;
 		preview->rect= rect;
 
-		BLI_unlock_thread(LOCK_PREVIEW);
+		// BLI_unlock_thread(LOCK_PREVIEW);
 	}
 }
 

@@ -338,6 +338,11 @@ set(SRC
 	operations/COM_KeyingScreenOperation.cpp
 	operations/COM_KeyingScreenOperation.h
 
+	nodes/COM_TrackPositionNode.cpp
+	nodes/COM_TrackPositionNode.h
+	operations/COM_TrackPositionOperation.cpp
+	operations/COM_TrackPositionOperation.h
+
 	nodes/COM_KeyingNode.cpp
 	nodes/COM_KeyingNode.h
 	operations/COM_KeyingOperation.cpp

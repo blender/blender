@@ -140,15 +140,15 @@ static void deformVerts(ModifierData *md, Object *ob,
 		if ((current_time > collmd->time_xnew) || (BKE_ptcache_get_continue_physics())) {
 			unsigned int i;
 
-			// check if mesh has changed
+			/* check if mesh has changed */
 			if (collmd->x && (numverts != collmd->numverts))
 				freeData((ModifierData *)collmd);
-			
+
 			if (collmd->time_xnew == -1000) { /* first time */
-				collmd->x = dm->dupVertArray(dm); // frame start position
-				
+				collmd->x = dm->dupVertArray(dm); /* frame start position */
+
 				for (i = 0; i < numverts; i++) {
-					// we save global positions
+					/* we save global positions */
 					mul_m4_v3(ob->obmat, collmd->x[i].co);
 				}
 				
@@ -164,22 +164,22 @@ static void deformVerts(ModifierData *md, Object *ob,
 				collmd->mfaces = dm->dupTessFaceArray(dm);
 				collmd->numfaces = dm->getNumTessFaces(dm);
 				
-				// create bounding box hierarchy
+				/* create bounding box hierarchy */
 				collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
-				
+
 				collmd->time_x = collmd->time_xnew = current_time;
 			}
 			else if (numverts == collmd->numverts) {
-				// put positions to old positions
+				/* put positions to old positions */
 				tempVert = collmd->x;
 				collmd->x = collmd->xnew;
 				collmd->xnew = tempVert;
 				collmd->time_x = collmd->time_xnew;
-				
+
 				memcpy(collmd->xnew, dm->getVertArray(dm), numverts * sizeof(MVert));
-				
+
 				for (i = 0; i < numverts; i++) {
-					// we save global positions
+					/* we save global positions */
 					mul_m4_v3(ob->obmat, collmd->xnew[i].co);
 				}
 				
@@ -200,7 +200,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 					collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 				}
 				else {
-					// recalc static bounding boxes
+					/* recalc static bounding boxes */
 					bvhtree_update_from_mvert(collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1);
 				}
 				

@@ -28,7 +28,6 @@
  *  \ingroup spview3d
  */
 
-
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -65,7 +64,7 @@
 #include "BKE_movieclip.h"
 
 #include "RE_engine.h"
-#include "RE_pipeline.h"    // make_stars
+#include "RE_pipeline.h"  /* make_stars */
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -92,8 +91,7 @@
 #include "GPU_material.h"
 #include "GPU_extensions.h"
 
-#include "view3d_intern.h"  // own include
-
+#include "view3d_intern.h"  /* own include */
 
 
 static void star_stuff_init_func(void)
@@ -299,7 +297,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	dx = fabs(x - (wx) * fx / fw);
 	if (dx == 0) dx = fabs(y - (wy) * fy / fw);
 	
-	glDepthMask(0);     // disable write in zbuffer
+	glDepthMask(0);     /* disable write in zbuffer */
 
 	/* check zoom out */
 	UI_ThemeColor(TH_GRID);
@@ -361,7 +359,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 					}
 				}
-				else {  // start blending out
+				else {  /* start blending out */
 					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 
@@ -369,7 +367,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					drawgrid_draw(ar, wx, wy, x, y, sublines * dx);
 				}
 			}
-			else {  // start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX*10))
+			else {  /* start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX*10)) */
 				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 
@@ -378,10 +376,10 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 			}
 		}
 		else {
-			if (dx > (GRID_MIN_PX_D * 10.0)) {      // start blending in
+			if (dx > (GRID_MIN_PX_D * 10.0)) {  /* start blending in */
 				rv3d->gridview /= sublines;
 				dx /= sublines;
-				if (dx > (GRID_MIN_PX_D * 10.0)) {      // start blending in
+				if (dx > (GRID_MIN_PX_D * 10.0)) {  /* start blending in */
 					rv3d->gridview /= sublines;
 					dx /= sublines;
 					if (dx > (GRID_MIN_PX_D * 10.0)) {
@@ -435,7 +433,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 	fdrawline(x, 0.0, x, (float)ar->winy); 
 
-	glDepthMask(1);     // enable write in zbuffer
+	glDepthMask(1);  /* enable write in zbuffer */
 }
 #undef GRID_MIN_PX
 
@@ -473,7 +471,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 	grid_scale = ED_view3d_grid_scale(scene, v3d, grid_unit);
 	grid = gridlines * grid_scale;
 
-	if (v3d->zbuf && scene->obedit) glDepthMask(0);  // for zbuffer-select
+	if (v3d->zbuf && scene->obedit)
+		glDepthMask(0);  /* for zbuffer-select */
 
 	UI_GetThemeColor3ubv(TH_GRID, col_grid);
 
@@ -665,10 +664,10 @@ static void draw_view_axis(RegionView3D *rv3d)
 /* draw center and axis of rotation for ongoing 3D mouse navigation */
 static void draw_rotation_guide(RegionView3D *rv3d)
 {
-	float o[3]; // center of rotation
-	float end[3]; // endpoints for drawing
+	float o[3];    /* center of rotation */
+	float end[3];  /* endpoints for drawing */
 
-	float color[4] = {0.0f, 0.4235f, 1.0f, 1.0f}; // bright blue so it matches device LEDs
+	float color[4] = {0.0f, 0.4235f, 1.0f, 1.0f};  /* bright blue so it matches device LEDs */
 
 	negate_v3_v3(o, rv3d->ofs);
 
@@ -677,25 +676,25 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	glShadeModel(GL_SMOOTH);
 	glPointSize(5);
 	glEnable(GL_POINT_SMOOTH);
-	glDepthMask(0); // don't overwrite zbuf
+	glDepthMask(0);  /* don't overwrite zbuf */
 
 	if (rv3d->rot_angle != 0.f) {
-		// -- draw rotation axis --
+		/* -- draw rotation axis -- */
 		float scaled_axis[3];
 		const float scale = rv3d->dist;
 		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
 
 
 		glBegin(GL_LINE_STRIP);
-		color[3] = 0.f; // more transparent toward the ends
+		color[3] = 0.f;  /* more transparent toward the ends */
 		glColor4fv(color);
 		add_v3_v3v3(end, o, scaled_axis);
 		glVertex3fv(end);
 
-		// color[3] = 0.2f + fabsf(rv3d->rot_angle); // modulate opacity with angle
+		// color[3] = 0.2f + fabsf(rv3d->rot_angle);  /* modulate opacity with angle */
 		// ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2
 
-		color[3] = 0.5f; // more opaque toward the center
+		color[3] = 0.5f;  /* more opaque toward the center */
 		glColor4fv(color);
 		glVertex3fv(o);
 
@@ -705,7 +704,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 		glVertex3fv(end);
 		glEnd();
 		
-		// -- draw ring around rotation center --
+		/* -- draw ring around rotation center -- */
 		{
 #define     ROT_AXIS_DETAIL 13
 
@@ -714,7 +713,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 			float angle;
 			int i;
 
-			float q[4]; // rotate ring so it's perpendicular to axis
+			float q[4];  /* rotate ring so it's perpendicular to axis */
 			const int upright = fabsf(rv3d->rot_axis[2]) >= 0.95f;
 			if (!upright) {
 				const float up[3] = {0.f, 0.f, 1.f};
@@ -725,7 +724,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 				axis_angle_to_quat(q, vis_axis, vis_angle);
 			}
 
-			color[3] = 0.25f; // somewhat faint
+			color[3] = 0.25f;  /* somewhat faint */
 			glColor4fv(color);
 			glBegin(GL_LINE_LOOP);
 			for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step) {
@@ -743,21 +742,23 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 #undef      ROT_AXIS_DETAIL
 		}
 
-		color[3] = 1.f; // solid dot
+		color[3] = 1.0f;  /* solid dot */
 	}
 	else
-		color[3] = 0.5f;  // see-through dot
+		color[3] = 0.5f;  /* see-through dot */
 
-	// -- draw rotation center --
+	/* -- draw rotation center -- */
 	glColor4fv(color);
 	glBegin(GL_POINTS);
 	glVertex3fv(o);
 	glEnd();
 
-	// find screen coordinates for rotation center, then draw pretty icon
-	// mul_m4_v3(rv3d->persinv, rot_center);
-	// UI_icon_draw(rot_center[0], rot_center[1], ICON_NDOF_TURN);
-	// ^^ just playing around, does not work
+	/* find screen coordinates for rotation center, then draw pretty icon */
+#if 0
+	mul_m4_v3(rv3d->persinv, rot_center);
+	UI_icon_draw(rot_center[0], rot_center[1], ICON_NDOF_TURN);
+#endif
+	/* ^^ just playing around, does not work */
 
 	glDisable(GL_BLEND);
 	glDisable(GL_POINT_SMOOTH);
@@ -1319,12 +1320,14 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 	if (!(v3d->flag & V3D_INVALID_BACKBUF) ) return;
 
-//	if (test) {
-//		if (qtest()) {
-//			addafterqueue(ar->win, BACKBUFDRAW, 1);
-//			return;
-//		}
-//	}
+#if 0
+	if (test) {
+		if (qtest()) {
+			addafterqueue(ar->win, BACKBUFDRAW, 1);
+			return;
+		}
+	}
+#endif
 
 	if (v3d->drawtype > OB_WIRE) v3d->zbuf = TRUE;
 	
@@ -1370,7 +1373,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		ED_view3d_clipping_disable();
 
 	/* it is important to end a view in a transform compatible with buttons */
-//	persp(PERSP_WIN);  // set ortho
+//	persp(PERSP_WIN);  /* set ortho */
 
 }
 
@@ -1493,20 +1496,20 @@ unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int 
 		
 		for (a = 0; a < 2; a++) {
 			for (b = 0; b < nr; b++, distance++) {
-				if (*tbuf && *tbuf >= min && *tbuf < max) { //we got a hit
+				if (*tbuf && *tbuf >= min && *tbuf < max) {  /* we got a hit */
 					if (strict) {
 						indexok =  indextest(handle, *tbuf - min + 1);
 						if (indexok) {
 							*dist = (short) sqrt( (float)distance);
 							index = *tbuf - min + 1;
 							goto exit; 
-						}						
+						}
 					}
 					else {
-						*dist = (short) sqrt( (float)distance); // XXX, this distance is wrong -
-						index = *tbuf - min + 1; // messy yah, but indices start at 1
+						*dist = (short) sqrt( (float)distance);  /* XXX, this distance is wrong - */
+						index = *tbuf - min + 1;  /* messy yah, but indices start at 1 */
 						goto exit;
-					}			
+					}
 				}
 				
 				tbuf += (dirvec[rc][0] + dirvec[rc][1]);
@@ -1912,7 +1915,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	
 	tbase.flag = OB_FROMDUPLI | base->flag;
 	lb = object_duplilist(scene, base->object);
-	// BLI_sortlist(lb, dupli_ob_sort); // might be nice to have if we have a dupli list with mixed objects.
+	// BLI_sortlist(lb, dupli_ob_sort); /* might be nice to have if we have a dupli list with mixed objects. */
 
 	dob = dupli_step(lb->first);
 	if (dob) dob_next = dupli_step(dob->next);
@@ -2174,7 +2177,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *))
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	glLoadMatrixf(rv3d->viewmat);
-//	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
+//	persp(PERSP_STORE);  /* store correct view for persp(PERSP_VIEW) calls */
 	
 	if (rv3d->rflag & RV3D_CLIPPING) {
 		ED_view3d_clipping_set(rv3d);
@@ -2640,7 +2643,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 
 	glPopMatrix();
 
-	// XXX, without this the sequencer flickers with opengl draw enabled, need to find out why - campbell
+	/* XXX, without this the sequencer flickers with opengl draw enabled, need to find out why - campbell */
 	glColor4ub(255, 255, 255, 255);
 
 	G.f &= ~G_RENDER_OGL;
@@ -2686,9 +2689,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 		GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
 	else if (ibuf->rect)
 		GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, ibuf->rect);
-	
-	//if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
-	//	BKE_stamp_buf(scene, NULL, rr->rectf, rr->rectx, rr->recty, 4);
 
 	/* unbind */
 	GPU_offscreen_unbind(ofs);
@@ -2951,7 +2951,7 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		glEnable(GL_MULTISAMPLE_ARB);
 #endif
 
-	// needs to be done always, gridview is adjusted in drawgrid() now
+	/* needs to be done always, gridview is adjusted in drawgrid() now */
 	rv3d->gridview = v3d->grid;
 
 	if ((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
@@ -3049,7 +3049,7 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 	/* Transp and X-ray afterdraw stuff */
 	if (v3d->afterdraw_transp.first) view3d_draw_transp(scene, ar, v3d);
-	if (v3d->afterdraw_xray.first) view3d_draw_xray(scene, ar, v3d, 1);         // clears zbuffer if it is used!
+	if (v3d->afterdraw_xray.first) view3d_draw_xray(scene, ar, v3d, 1);  /* clears zbuffer if it is used! */
 	if (v3d->afterdraw_xraytransp.first) view3d_draw_xraytransp(scene, ar, v3d, 1);
 	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
@@ -3078,7 +3078,7 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	}
 
 	if ((U.ndof_flag & NDOF_SHOW_GUIDE) && (rv3d->viewlock != RV3D_LOCKED) && (rv3d->persp != RV3D_CAMOB))
-		// TODO: draw something else (but not this) during fly mode
+		/* TODO: draw something else (but not this) during fly mode */
 		draw_rotation_guide(rv3d);
 
 }

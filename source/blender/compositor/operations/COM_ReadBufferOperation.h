@@ -30,6 +30,7 @@ class ReadBufferOperation : public NodeOperation {
 private:
 	MemoryProxy *m_memoryProxy;
 	unsigned int m_offset;
+	MemoryBuffer *m_buffer;
 public:
 	ReadBufferOperation();
 	int isBufferOperation() { return true; }
@@ -37,15 +38,16 @@ public:
 	MemoryProxy *getMemoryProxy() { return this->m_memoryProxy; }
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
-	void executePixel(float *color, float x, float y, float dx, float dy, MemoryBuffer * inputBuffers[]);
+	void *initializeTileData(rcti *rect);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float *color, float x, float y, float dx, float dy);
 	const bool isReadBufferOperation() const { return true; }
 	void setOffset(unsigned int offset) { this->m_offset = offset; }
 	unsigned int getOffset() { return this->m_offset; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) { return memoryBuffers[this->m_offset]; }
 	void readResolutionFromWriteBuffer();
+	void updateMemoryBuffer();
 };
 
 #endif

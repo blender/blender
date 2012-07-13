@@ -418,7 +418,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				/* TODO: handles? */
 				/* TODO: uw? */
 
-				if (BLI_in_rctf(&rectf, point_deform->bezt.vec[1][0], point_deform->bezt.vec[1][1])) {
+				if (BLI_in_rctf_v(&rectf, point_deform->bezt.vec[1])) {
 					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
 					BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
 				}

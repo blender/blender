@@ -51,8 +51,8 @@ struct EnvMap;
 /* this include is what is exposed of render to outside world */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-
-#define RE_MAXNAME	32
+/* length of the scene name + passname */
+#define RE_MAXNAME	((MAX_ID_NAME - 2) + 10)
 
 /* only used as handle */
 typedef struct Render Render;
@@ -81,7 +81,7 @@ typedef struct RenderLayer {
 	struct RenderLayer *next, *prev;
 	
 	/* copy of RenderData */
-	char name[RE_MAXNAME];		
+	char name[RE_MAXNAME];
 	unsigned int lay, lay_zmask, lay_exclude;
 	int layflag, passflag, pass_xor;		
 	
@@ -144,8 +144,7 @@ typedef struct RenderStats {
 	short curfield, curblur, curpart, partsdone, convertdone, curfsa;
 	double starttime, lastframetime;
 	const char *infostr, *statstr;
-	char scenename[32];
-	
+	char scene_name[MAX_ID_NAME - 2];
 } RenderStats;
 
 /* *********************** API ******************** */

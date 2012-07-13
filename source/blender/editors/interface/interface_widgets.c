@@ -1952,8 +1952,8 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const floa
 	int a;
 	float h = hsv[0], s = hsv[1], v = hsv[2];
 	float dx, dy, sx1, sx2, sy;
-	float col0[4][3];   // left half, rect bottom to top
-	float col1[4][3];   // right half, rect bottom to top
+	float col0[4][3];   /* left half, rect bottom to top */
+	float col1[4][3];   /* right half, rect bottom to top */
 
 	/* draw series of gouraud rects */
 	glShadeModel(GL_SMOOTH);
@@ -2542,12 +2542,12 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 		
 	ui_get_but_vectorf(but, col);
-	
+
 	if (state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_REDALERT)) {
-		// draw based on state - color for keyed etc
+		/* draw based on state - color for keyed etc */
 		widgetbase_draw(&wtb, wcol);
-		
-		// inset to draw swatch color
+
+		/* inset to draw swatch color */
 		rect->xmin += SWATCH_KEYED_BORDER;
 		rect->xmax -= SWATCH_KEYED_BORDER;
 		rect->ymin += SWATCH_KEYED_BORDER;

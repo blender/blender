@@ -1753,18 +1753,18 @@ int filterSmartReebGraph(ReebGraph *UNUSED(rg), float UNUSED(threshold))
 #endif
 			
 			arc->angle = avg_angle;
-			
+
 			if (avg_angle > threshold)
 				merging = 1;
-			
+
 			if (merging) {
 				ReebNode *terminalNode = NULL;
 				ReebNode *middleNode = NULL;
 				ReebNode *newNode = NULL;
 				ReebNode *removedNode = NULL;
 				int merging = 0;
-				
-				// Assign terminal and middle nodes
+
+				/* Assign terminal and middle nodes */
 				if (arc->head->degree == 1) {
 					terminalNode = arc->head;
 					middleNode = arc->tail;
@@ -1773,31 +1773,31 @@ int filterSmartReebGraph(ReebGraph *UNUSED(rg), float UNUSED(threshold))
 					terminalNode = arc->tail;
 					middleNode = arc->head;
 				}
-				
-				// If middle node is a normal node, merge to terminal node
+
+				/* If middle node is a normal node, merge to terminal node */
 				if (middleNode->degree == 2) {
 					merging = 1;
 					newNode = terminalNode;
 					removedNode = middleNode;
 				}
-				// Otherwise, just plain remove of the arc
+				/* Otherwise, just plain remove of the arc */
 				else {
 					merging = 0;
 					newNode = middleNode;
 					removedNode = terminalNode;
 				}
-				
-				// Merging arc
+
+				/* Merging arc */
 				if (merging) {
 					filterArc(rg, newNode, removedNode, arc, 1);
 				}
 				else {
-					// removing arc, so we need to decrease the degree of the remaining node
-					//newNode->degree--;
+					/* removing arc, so we need to decrease the degree of the remaining node
+					 *newNode->degree--; */
 					NodeDegreeDecrement(rg, newNode);
 				}
-	
-				// Reset nextArc, it might have changed
+
+				/* Reset nextArc, it might have changed */
 				nextArc = arc->next;
 				
 				BLI_remlink(&rg->arcs, arc);

@@ -1074,7 +1074,7 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
 		const int radius = BKE_brush_size_get(scene, brush);
 		const int diameter = 2 * radius;
 
-		// find random position within a circle of diameter 1
+		/* find random position within a circle of diameter 1 */
 		do {
 			rand_pos[0] = BLI_frand() - 0.5f;
 			rand_pos[1] = BLI_frand() - 0.5f;

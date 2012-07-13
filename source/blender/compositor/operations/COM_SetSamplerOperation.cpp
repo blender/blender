@@ -37,7 +37,7 @@ void SetSamplerOperation::deinitExecution()
 	this->m_reader = NULL;
 }
 
-void SetSamplerOperation::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void SetSamplerOperation::executePixel(float *output, float x, float y, PixelSampler sampler)
 {
-	this->m_reader->read(output, x, y, this->m_sampler, inputBuffers);
+	this->m_reader->read(output, x, y, this->m_sampler);
 }

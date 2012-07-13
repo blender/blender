@@ -314,14 +314,32 @@ static int BKE_mask_spline_feather_resolution(MaskSpline *spline, int width, int
 	return resol;
 }
 
-float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline, int width, int height,
-                                                      int *tot_diff_point))[2]
+int BKE_mask_spline_differentiate_calc_total(const MaskSpline *spline, const int resol)
+{
+	int len;
+
+	/* count */
+	len = (spline->tot_point - 1) * resol;
+
+	if (spline->flag & MASK_SPLINE_CYCLIC) {
+		len += resol;
+	}
+	else {
+		len++;
+	}
+
+	return len;
+}
+
+float (*BKE_mask_spline_differentiate_with_resolution_ex(MaskSpline *spline, const int resol,
+                                                         int *tot_diff_point))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 	MaskSplinePoint *point, *prev;
 	float (*diff_points)[2], (*fp)[2];
-	int a, len, resol = BKE_mask_spline_resolution(spline, width, height);
+	const int tot = BKE_mask_spline_differentiate_calc_total(spline, resol);
+	int a;
 
 	if (spline->tot_point <= 1) {
 		/* nothing to differentiate */
@@ -329,17 +347,9 @@ float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline, int wi
 		return NULL;
 	}
 
-	/* count */
-	len = (spline->tot_point - 1) * resol;
-
-	if (spline->flag & MASK_SPLINE_CYCLIC)
-		len += resol;
-	else
-		len++;
-
 	/* len+1 because of 'forward_diff_bezier' function */
-	*tot_diff_point = len;
-	diff_points = fp = MEM_mallocN((len + 1) * sizeof(*diff_points), "mask spline vets");
+	*tot_diff_point = tot;
+	diff_points = fp = MEM_mallocN((tot + 1) * sizeof(*diff_points), "mask spline vets");
 
 	a = spline->tot_point - 1;
 	if (spline->flag & MASK_SPLINE_CYCLIC)
@@ -378,24 +388,54 @@ float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline, int wi
 	return diff_points;
 }
 
+float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline, int width, int height,
+                                                      int *tot_diff_point))[2]
+{
+	int resol = BKE_mask_spline_resolution(spline, width, height);
+
+	return BKE_mask_spline_differentiate_with_resolution_ex(spline, resol, tot_diff_point);
+}
+
 float (*BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point))[2]
 {
 	return BKE_mask_spline_differentiate_with_resolution(spline, 0, 0, tot_diff_point);
 }
 
-float (*BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline *spline, int width, int height,
-                                                                      int *tot_feather_point))[2]
+/**
+ * values align with #BKE_mask_spline_differentiate_with_resolution_ex
+ * when \a resol arguments match.
+ */
+float (*BKE_mask_spline_feather_differentiated_points_with_resolution_ex(MaskSpline *spline, const int resol,
+                                                                         int *tot_feather_point))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
-
+	MaskSplinePoint *point, *prev;
 	float (*feather)[2], (*fp)[2];
-	int i, j, tot, resol = BKE_mask_spline_feather_resolution(spline, width, height);
 
-	tot = resol * spline->tot_point;
-	feather = fp = MEM_mallocN(tot * sizeof(*feather), "mask spline feather diff points");
+	const int tot = BKE_mask_spline_differentiate_calc_total(spline, resol);
+	int a;
 
-	for (i = 0; i < spline->tot_point; i++) {
-		MaskSplinePoint *point = &points_array[i];
+	/* tot+1 because of 'forward_diff_bezier' function */
+	feather = fp = MEM_mallocN((tot + 1) * sizeof(*feather), "mask spline feather diff points");
+
+	a = spline->tot_point - 1;
+	if (spline->flag & MASK_SPLINE_CYCLIC)
+		a++;
+
+	prev = points_array;
+	point = prev + 1;
+
+	while (a--) {
+		/* BezTriple *prevbezt; */  /* UNUSED */
+		/* BezTriple *bezt; */      /* UNUSED */
+		int j;
+
+		if (a == 0 && (spline->flag & MASK_SPLINE_CYCLIC))
+			point = points_array;
+
+
+		/* prevbezt = &prev->bezt; */
+		/* bezt = &point->bezt; */
 
 		for (j = 0; j < resol; j++, fp++) {
 			float u = (float) j / resol, weight;
@@ -403,17 +443,39 @@ float (*BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline
 
 			/* TODO - these calls all calculate similar things
 			 * could be unified for some speed */
-			BKE_mask_point_segment_co(spline, point, u, co);
-			BKE_mask_point_normal(spline, point, u, n);
-			weight = BKE_mask_point_weight(spline, point, u);
+			BKE_mask_point_segment_co(spline, prev, u, co);
+			BKE_mask_point_normal(spline, prev, u, n);
+			weight = BKE_mask_point_weight(spline, prev, u);
 
 			madd_v2_v2v2fl(*fp, co, n, weight);
 		}
+
+		if (a == 0 && (spline->flag & MASK_SPLINE_CYCLIC) == 0) {
+			float u = 1.0f, weight;
+			float co[2], n[2];
+
+			BKE_mask_point_segment_co(spline, prev, u, co);
+			BKE_mask_point_normal(spline, prev, u, n);
+			weight = BKE_mask_point_weight(spline, prev, u);
+
+			madd_v2_v2v2fl(*fp, co, n, weight);
+		}
+
+		prev = point;
+		point++;
 	}
 
 	*tot_feather_point = tot;
 
 	return feather;
+}
+
+float (*BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline *spline, int width, int height,
+                                                                      int *tot_feather_point))[2]
+{
+	int resol = BKE_mask_spline_feather_resolution(spline, width, height);
+
+	return BKE_mask_spline_feather_differentiated_points_with_resolution_ex(spline, resol, tot_feather_point);
 }
 
 float (*BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *tot_feather_point))[2]
@@ -2219,7 +2281,7 @@ void BKE_mask_rasterize_layers(ListBase *masklayers, int width, int height, floa
 
 				if (tot_diff_point) {
 					PLX_raskterize(diff_points, tot_diff_point,
-					               buffer_tmp, width, height, do_mask_aa);
+                                   buffer_tmp, width, height,do_mask_aa);
 
 					if (tot_diff_feather_points) {
 						PLX_raskterize_feather(diff_points, tot_diff_point,
@@ -2273,12 +2335,85 @@ void BKE_mask_rasterize_layers(ListBase *masklayers, int width, int height, floa
 			}
 		}
 
+		if(do_mask_aa){
+			//PLX_antialias_buffer(buffer,width,height);
+		}
 		/* clamp at the end */
 		clamp_vn_vn(buffer, buffer_size);
 	}
-
 	MEM_freeN(buffer_tmp);
 }
+
+#ifdef __PLX_RASKTER_MT__
+void BKE_mask_init_layers(Mask *mask, struct layer_init_data *mlayer_data, int width, int height, const short do_aspect_correct){
+	MaskLayer *masklay;
+	int numLayers=0;
+	int currLayer=0;
+	for (masklay = mask->masklayers->first; masklay; masklay = masklay->next) {
+		numLayers++;
+	}
+	mlayer_data = MEM_mallocN(sizeof(struct layer_init_data) * numLayers, __func__); //size correct?
+	
+	
+	for (masklay = mask->masklayers->first; masklay; masklay = masklay->next) {
+		MaskSpline *spline;
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			float (*diff_points)[2];
+			int tot_diff_point;
+
+			float (*diff_feather_points)[2];
+			int tot_diff_feather_points;
+
+			diff_points = BKE_mask_spline_differentiate_with_resolution(spline, width, height,
+			                                                            &tot_diff_point);
+
+			if (tot_diff_point) {
+				if (do_feather) {
+					diff_feather_points =
+					        BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height,
+					                                                                      &tot_diff_feather_points);
+				}
+				else {
+					tot_diff_feather_points = 0;
+					diff_feather_points = NULL;
+				}
+
+				if (do_aspect_correct) {
+					if (width != height) {
+						float *fp;
+						float *ffp;
+						int i;
+						float asp;
+
+						if (width < height) {
+							fp = &diff_points[0][0];
+							ffp = tot_diff_feather_points ? &diff_feather_points[0][0] : NULL;
+							asp = (float)width / (float)height;
+						}
+						else {
+							fp = &diff_points[0][1];
+							ffp = tot_diff_feather_points ? &diff_feather_points[0][1] : NULL;
+							asp = (float)height / (float)width;
+						}
+
+						for (i = 0; i < tot_diff_point; i++, fp += 2) {
+							(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
+						}
+
+						if (tot_diff_feather_points) {
+							for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
+								(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
+							}
+						}
+					}
+				}
+				PLX_init_base_data(mlayer_data[currLayer], diff_points, tot_diff_points, width, height);
+				currLayer++;
+			}
+		}
+	}
+}
+#endif
 
 void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
                         const short do_aspect_correct, const short do_mask_aa,
