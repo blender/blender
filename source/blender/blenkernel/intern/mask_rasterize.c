@@ -46,6 +46,8 @@
 
 #ifndef USE_RASKTER
 
+#define RESOL 64
+
 /**
  * A single #MaskRasterHandle contains multile #MaskRasterLayer's,
  * each #MaskRasterLayer does its own lookup which contributes to
@@ -195,7 +197,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
                                    const short do_feather)
 {
 	/* TODO: real size */
-	const int resol = 16;
+	const int resol = RESOL;
 	const float aa_filter_size = 1.0f / MIN2(width, height);
 
 	const float zvec[3] = {0.0f, 0.0f, 1.0f};
@@ -244,58 +246,58 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				diff_feather_points = NULL;
 			}
 
-			if (do_aspect_correct) {
-				if (width != height) {
-					float *fp;
-					float *ffp;
-					int i;
-					float asp;
-
-					if (width < height) {
-						fp = &diff_points[0][0];
-						ffp = tot_diff_feather_points ? &diff_feather_points[0][0] : NULL;
-						asp = (float)width / (float)height;
-					}
-					else {
-						fp = &diff_points[0][1];
-						ffp = tot_diff_feather_points ? &diff_feather_points[0][1] : NULL;
-						asp = (float)height / (float)width;
-					}
-
-					for (i = 0; i < tot_diff_point; i++, fp += 2) {
-						(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
-					}
-
-					if (tot_diff_feather_points) {
-						for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
-							(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
-						}
-					}
-				}
-			}
-
-			/* fake aa, using small feather */
-			if (do_mask_aa == TRUE) {
-				if (do_feather == FALSE) {
-					tot_diff_feather_points = tot_diff_point;
-					diff_feather_points = MEM_mallocN(sizeof(*diff_feather_points) * tot_diff_feather_points, __func__);
-					/* add single pixel feather */
-					maskrasterize_spline_differentiate_point_inset(diff_feather_points, diff_points,
-					                                               tot_diff_point, aa_filter_size, FALSE);
-				}
-				else {
-					/* ensure single pixel feather, on any zero feather areas */
-					maskrasterize_spline_differentiate_point_inset(diff_feather_points, diff_points,
-					                                               tot_diff_point, aa_filter_size, TRUE);
-				}
-			}
-
 			if (tot_diff_point > 3) {
 				ScanFillVert *sf_vert_prev;
 				int j;
 
 				float co[3];
 				co[2] = 0.0f;
+
+				if (do_aspect_correct) {
+					if (width != height) {
+						float *fp;
+						float *ffp;
+						int i;
+						float asp;
+
+						if (width < height) {
+							fp = &diff_points[0][0];
+							ffp = tot_diff_feather_points ? &diff_feather_points[0][0] : NULL;
+							asp = (float)width / (float)height;
+						}
+						else {
+							fp = &diff_points[0][1];
+							ffp = tot_diff_feather_points ? &diff_feather_points[0][1] : NULL;
+							asp = (float)height / (float)width;
+						}
+
+						for (i = 0; i < tot_diff_point; i++, fp += 2) {
+							(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
+						}
+
+						if (tot_diff_feather_points) {
+							for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
+								(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
+							}
+						}
+					}
+				}
+
+				/* fake aa, using small feather */
+				if (do_mask_aa == TRUE) {
+					if (do_feather == FALSE) {
+						tot_diff_feather_points = tot_diff_point;
+						diff_feather_points = MEM_mallocN(sizeof(*diff_feather_points) * tot_diff_feather_points, __func__);
+						/* add single pixel feather */
+						maskrasterize_spline_differentiate_point_inset(diff_feather_points, diff_points,
+						                                               tot_diff_point, aa_filter_size, FALSE);
+					}
+					else {
+						/* ensure single pixel feather, on any zero feather areas */
+						maskrasterize_spline_differentiate_point_inset(diff_feather_points, diff_points,
+						                                               tot_diff_point, aa_filter_size, TRUE);
+					}
+				}
 
 				copy_v2_v2(co, diff_points[0]);
 				sf_vert_prev = BLI_scanfill_vert_add(&sf_ctx, co);
@@ -396,7 +398,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			tri_array = MEM_mallocN(sizeof(*tri_array) * (sf_tri_tot + tot_feather_quads), "maskrast_tri_index");
 
 			/* */
-			bvhtree = BLI_bvhtree_new(sf_tri_tot + tot_feather_quads, 0.000001f, 4, 6);
+			bvhtree = BLI_bvhtree_new(sf_tri_tot + tot_feather_quads, 0.000001f, 8, 6);
 
 			/* tri's */
 			tri = (unsigned int *)tri_array;
@@ -469,6 +471,11 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 	}
 }
 
+//static void tri_flip_tri(unsigned int tri[3])
+//{
+
+//}
+
 /* 2D ray test */
 static float maskrasterize_layer_z_depth_tri(const float pt[2],
                                              const float v1[3], const float v2[3], const float v3[3])
@@ -478,6 +485,7 @@ static float maskrasterize_layer_z_depth_tri(const float pt[2],
 	return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]);
 }
 
+#if 0
 static float maskrasterize_layer_z_depth_quad(const float pt[2],
                                               const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
@@ -485,6 +493,7 @@ static float maskrasterize_layer_z_depth_quad(const float pt[2],
 	barycentric_weights_v2_quad(v1, v2, v3, v4, pt, w);
 	return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]) + (v4[2] * w[3]);
 }
+#endif
 
 static void maskrasterize_layer_bvh_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
@@ -520,6 +529,7 @@ static void maskrasterize_layer_bvh_cb(void *userdata, int index, const BVHTreeR
 		    (cos[2][2] < dist_orig) ||
 		    (cos[3][2] < dist_orig))
 		{
+#if 0
 			if (isect_point_quad_v2(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]], cos[tri[3]])) {
 				const float dist = maskrasterize_layer_z_depth_quad(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]], cos[tri[3]]);
 				if (dist < dist_orig) {
@@ -527,6 +537,25 @@ static void maskrasterize_layer_bvh_cb(void *userdata, int index, const BVHTreeR
 					hit->dist = dist;
 				}
 			}
+#elif 1
+			if (isect_point_tri_v2(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]])) {
+				const float dist = maskrasterize_layer_z_depth_tri(ray->origin, cos[tri[0]], cos[tri[1]], cos[tri[2]]);
+				if (dist < dist_orig) {
+					hit->index = index;
+					hit->dist = dist;
+				}
+			}
+			else if (isect_point_tri_v2(ray->origin, cos[tri[0]], cos[tri[2]], cos[tri[3]])) {
+				const float dist = maskrasterize_layer_z_depth_tri(ray->origin, cos[tri[0]], cos[tri[2]], cos[tri[3]]);
+				if (dist < dist_orig) {
+					hit->index = index;
+					hit->dist = dist;
+				}
+			}
+#else
+			/* cheat - we know first 2 verts are z0.0f and second 2 are z 1.0f */
+			/* ... worth looking into */
+#endif
 		}
 	}
 }
