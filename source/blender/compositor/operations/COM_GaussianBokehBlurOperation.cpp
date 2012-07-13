@@ -138,8 +138,10 @@ void GaussianBokehBlurOperation::executePixel(float *color, int x, int y, void *
 	int index;
 	int step = QualityStepHelper::getStep();
 	int offsetadd = QualityStepHelper::getOffsetAdd();
+	const int addConst = (minx - x + this->m_radx);
+	const int mulConst = (this->m_radx * 2 + 1);
 	for (int ny = miny; ny < maxy; ny += step) {
-		index = ((ny - y) + this->m_rady) * (this->m_radx * 2 + 1) + (minx - x + this->m_radx);
+		index = ((ny - y) + this->m_rady) * mulConst + addConst;
 		int bufferindex = ((minx - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
 		for (int nx = minx; nx < maxx; nx += step) {
 			const float multiplier = this->m_gausstab[index];

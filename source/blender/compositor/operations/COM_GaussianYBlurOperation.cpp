@@ -94,9 +94,10 @@ void GaussianYBlurOperation::executePixel(float *color, int x, int y, void *data
 
 	int index;
 	int step = getStep();
+	const int bufferIndexx = ((minx - bufferstartx) * 4) ;
 	for (int ny = miny; ny < maxy; ny += step) {
 		index = (ny - y) + this->m_rad;
-		int bufferindex = ((minx - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
+		int bufferindex = bufferIndexx + ((ny - bufferstarty) * 4 * bufferwidth);
 		const float multiplier = this->m_gausstab[index];
 		madd_v4_v4fl(color_accum, &buffer[bufferindex], multiplier);
 		multiplier_accum += multiplier;

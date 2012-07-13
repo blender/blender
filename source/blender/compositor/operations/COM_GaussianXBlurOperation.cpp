@@ -92,12 +92,10 @@ void GaussianXBlurOperation::executePixel(float *color, int x, int y, void *data
 	maxy = min(maxy, inputBuffer->getRect()->ymax);
 	maxx = min(maxx, inputBuffer->getRect()->xmax);
 
-	int index;
 	int step = getStep();
 	int offsetadd = getOffsetAdd();
 	int bufferindex = ((minx - bufferstartx) * 4) + ((miny - bufferstarty) * 4 * bufferwidth);
-	for (int nx = minx; nx < maxx; nx += step) {
-		index = (nx - x) + this->m_rad;
+	for (int nx = minx, index = (minx - x) + this->m_rad; nx < maxx; nx += step, index += step) {
 		const float multiplier = this->m_gausstab[index];
 		madd_v4_v4fl(color_accum, &buffer[bufferindex], multiplier);
 		multiplier_accum += multiplier;
