@@ -49,7 +49,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 
 	void setHue(float hue) { this->m_hue = hue; }
 	void setSaturation(float saturation) { this->m_saturation = saturation; }

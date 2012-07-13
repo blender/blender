@@ -27,6 +27,7 @@
 #include "BKE_image.h"
 
 extern "C" {
+	#include "BLI_threads.h"
 	#include "RE_pipeline.h"
 	#include "RE_shader_ext.h"
 	#include "RE_render_ext.h"
@@ -63,6 +64,7 @@ void CompositorOperation::deinitExecution()
 		const RenderData *rd = this->m_rd;
 		Render *re = RE_GetRender_FromData(rd);
 		RenderResult *rr = RE_AcquireResultWrite(re);
+
 		if (rr) {
 			if (rr->rectf != NULL) {
 				MEM_freeN(rr->rectf);
@@ -75,7 +77,9 @@ void CompositorOperation::deinitExecution()
 			}
 		}
 
+		BLI_lock_thread(LOCK_DRAW_IMAGE);
 		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
+		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 
 		if (re) {
 			RE_ReleaseResult(re);
@@ -111,9 +115,9 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
-			this->m_imageInput->read(color, x, y, COM_PS_NEAREST, NULL);
+			this->m_imageInput->read(color, x, y, COM_PS_NEAREST);
 			if (this->m_alphaInput != NULL) {
-				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST, NULL);
+				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST);
 			}
 			copy_v4_v4(buffer + offset, color);
 			offset += COM_NUMBER_OF_CHANNELS;

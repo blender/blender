@@ -73,14 +73,14 @@ public:
 	void initExecution();
 	void deinitExecution();
 
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
-	void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data);
+	void *initializeTileData(rcti *rect);
+	void deinitializeTileData(rcti *rect, void *data);
 
 	void setMovieClip(MovieClip *clip) {this->m_movieClip = clip;}
 	void setTrackingObject(const char *object) {strncpy(this->m_trackingObject, object, sizeof(this->m_trackingObject));}
 	void setFramenumber(int framenumber) {this->m_framenumber = framenumber;}
 
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, void *data);
 };
 
 #endif

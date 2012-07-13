@@ -34,10 +34,10 @@ void GammaCorrectOperation::initExecution()
 	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void GammaCorrectOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void GammaCorrectOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputProgram->read(inputColor, x, y, sampler, inputBuffers);
+	this->m_inputProgram->read(inputColor, x, y, sampler);
 	if (inputColor[3] > 0.0f) {
 		inputColor[0] /= inputColor[3];
 		inputColor[1] /= inputColor[3];
@@ -75,10 +75,10 @@ void GammaUncorrectOperation::initExecution()
 	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void GammaUncorrectOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void GammaUncorrectOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputProgram->read(inputColor, x, y, sampler, inputBuffers);
+	this->m_inputProgram->read(inputColor, x, y, sampler);
 
 	if (inputColor[3] > 0.0f) {
 		inputColor[0] /= inputColor[3];

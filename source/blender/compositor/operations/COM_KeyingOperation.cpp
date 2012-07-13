@@ -85,17 +85,17 @@ void KeyingOperation::deinitExecution()
 	this->m_coreReader = NULL;
 }
 
-void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float pixelColor[4];
 	float screenColor[4];
 	float garbageValue[4];
 	float coreValue[4];
 
-	this->m_pixelReader->read(pixelColor, x, y, sampler, inputBuffers);
-	this->m_screenReader->read(screenColor, x, y, sampler, inputBuffers);
-	this->m_garbageReader->read(garbageValue, x, y, sampler, inputBuffers);
-	this->m_coreReader->read(coreValue, x, y, sampler, inputBuffers);
+	this->m_pixelReader->read(pixelColor, x, y, sampler);
+	this->m_screenReader->read(screenColor, x, y, sampler);
+	this->m_garbageReader->read(garbageValue, x, y, sampler);
+	this->m_coreReader->read(coreValue, x, y, sampler);
 
 	int primary_channel = get_pixel_primary_channel(screenColor);
 

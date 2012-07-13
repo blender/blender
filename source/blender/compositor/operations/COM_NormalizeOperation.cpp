@@ -35,13 +35,13 @@ void NormalizeOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void NormalizeOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void NormalizeOperation::executePixel(float *color, int x, int y, void *data)
 {
 	/* using generic two floats struct to store x: min  y: mult */
 	NodeTwoFloats *minmult = (NodeTwoFloats *)data;
 
 	float output[4];
-	this->m_imageReader->read(output, x, y, inputBuffers, NULL);
+	this->m_imageReader->read(output, x, y, NULL);
 
 	color[0] = (output[0] - minmult->x) * minmult->y;
 }
@@ -75,11 +75,11 @@ bool NormalizeOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 /* The code below assumes all data is inside range +- this, and that input buffer is single channel */
 #define BLENDER_ZMAX 10000.0f
 
-void *NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *NormalizeOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
 	if (this->m_cachedInstance == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect);
 		/* using generic two floats struct to store x: min  y: mult */
 		NodeTwoFloats *minmult = new NodeTwoFloats();
 
@@ -113,7 +113,7 @@ void *NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 	return this->m_cachedInstance;
 }
 
-void NormalizeOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+void NormalizeOperation::deinitializeTileData(rcti *rect, void *data)
 {
 	/* pass */
 }

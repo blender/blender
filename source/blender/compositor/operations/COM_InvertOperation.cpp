@@ -39,12 +39,12 @@ void InvertOperation::initExecution()
 	this->m_inputColorProgram = this->getInputSocketReader(1);
 }
 
-void InvertOperation::executePixel(float *out, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void InvertOperation::executePixel(float *out, float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
 	float inputColor[4];
-	this->m_inputValueProgram->read(inputValue, x, y, sampler, inputBuffers);
-	this->m_inputColorProgram->read(inputColor, x, y, sampler, inputBuffers);
+	this->m_inputValueProgram->read(inputValue, x, y, sampler);
+	this->m_inputColorProgram->read(inputColor, x, y, sampler);
 	
 	const float value = inputValue[0];
 	const float invertedValue = 1.0f - value;

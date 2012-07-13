@@ -38,10 +38,10 @@ void ConvertColorProfileOperation::initExecution()
 	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertColorProfileOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ConvertColorProfileOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float color[4];
-	this->m_inputOperation->read(color, x, y, sampler, inputBuffers);
+	this->m_inputOperation->read(color, x, y, sampler);
 	IMB_buffer_float_from_float(outputValue, color, 4, this->m_toProfile, this->m_fromProfile, this->m_predivided, 1, 1, 0, 0);
 }
 

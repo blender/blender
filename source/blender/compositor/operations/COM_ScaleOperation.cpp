@@ -54,7 +54,7 @@ void ScaleOperation::deinitExecution()
 }
 
 
-void ScaleOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ScaleOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 #ifdef USE_FORCE_BICUBIC
 	sampler = COM_PS_BICUBIC;
@@ -63,15 +63,15 @@ void ScaleOperation::executePixel(float *color, float x, float y, PixelSampler s
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, x, y, sampler, inputBuffers);
-	this->m_inputYOperation->read(scaleY, x, y, sampler, inputBuffers);
+	this->m_inputXOperation->read(scaleX, x, y, sampler);
+	this->m_inputYOperation->read(scaleY, x, y, sampler);
 
 	const float scx = scaleX[0];
 	const float scy = scaleY[0];
 
 	float nx = this->m_centerX + (x - this->m_centerX) / scx;
 	float ny = this->m_centerY + (y - this->m_centerY) / scy;
-	this->m_inputOperation->read(color, nx, ny, sampler, inputBuffers);
+	this->m_inputOperation->read(color, nx, ny, sampler);
 }
 
 bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -80,8 +80,8 @@ bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOpe
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, 0, 0, COM_PS_NEAREST, NULL);
-	this->m_inputYOperation->read(scaleY, 0, 0, COM_PS_NEAREST, NULL);
+	this->m_inputXOperation->read(scaleX, 0, 0, COM_PS_NEAREST);
+	this->m_inputYOperation->read(scaleY, 0, 0, COM_PS_NEAREST);
 
 	const float scx = scaleX[0];
 	const float scy = scaleY[0];
@@ -124,7 +124,7 @@ void ScaleAbsoluteOperation::deinitExecution()
 }
 
 
-void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 #ifdef USE_FORCE_BICUBIC
 	sampler = COM_PS_BICUBIC;
@@ -133,8 +133,8 @@ void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelS
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, x, y, sampler, inputBuffers);
-	this->m_inputYOperation->read(scaleY, x, y, sampler, inputBuffers);
+	this->m_inputXOperation->read(scaleX, x, y, sampler);
+	this->m_inputYOperation->read(scaleY, x, y, sampler);
 
 	const float scx = scaleX[0]; // target absolute scale
 	const float scy = scaleY[0]; // target absolute scale
@@ -148,7 +148,7 @@ void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelS
 	float nx = this->m_centerX + (x - this->m_centerX) / relativeXScale;
 	float ny = this->m_centerY + (y - this->m_centerY) / relativeYScale;
 
-	this->m_inputOperation->read(color, nx, ny, sampler, inputBuffers);
+	this->m_inputOperation->read(color, nx, ny, sampler);
 }
 
 bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -157,8 +157,8 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, 0, 0, COM_PS_NEAREST, NULL);
-	this->m_inputYOperation->read(scaleY, 0, 0, COM_PS_NEAREST, NULL);
+	this->m_inputXOperation->read(scaleX, 0, 0, COM_PS_NEAREST);
+	this->m_inputYOperation->read(scaleY, 0, 0, COM_PS_NEAREST);
 
 	const float scx = scaleX[0];
 	const float scy = scaleY[0];
@@ -244,7 +244,7 @@ void ScaleFixedSizeOperation::deinitExecution()
 }
 
 
-void ScaleFixedSizeOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ScaleFixedSizeOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 #ifdef USE_FORCE_BICUBIC
 	sampler = COM_PS_BICUBIC;
@@ -253,10 +253,10 @@ void ScaleFixedSizeOperation::executePixel(float *color, float x, float y, Pixel
 	if (this->m_is_offset) {
 		float nx = ((x - this->m_offsetX) * this->m_relX);
 		float ny = ((y - this->m_offsetY) * this->m_relY);
-		this->m_inputOperation->read(color, nx, ny, sampler, inputBuffers);
+		this->m_inputOperation->read(color, nx, ny, sampler);
 	}
 	else {
-		this->m_inputOperation->read(color, x * this->m_relX, y * this->m_relY, sampler, inputBuffers);
+		this->m_inputOperation->read(color, x * this->m_relX, y * this->m_relY, sampler);
 	}
 }
 

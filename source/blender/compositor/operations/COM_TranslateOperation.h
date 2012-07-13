@@ -36,7 +36,7 @@ private:
 public:
 	TranslateOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 
 	void initExecution();
 	void deinitExecution();
@@ -47,9 +47,9 @@ public:
 	inline void ensureDelta() {
 		if (!this->m_isDeltaSet) {
 			float tempDelta[4];
-			this->m_inputXOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
+			this->m_inputXOperation->read(tempDelta, 0, 0, COM_PS_NEAREST);
 			this->m_deltaX = tempDelta[0];
-			this->m_inputYOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
+			this->m_inputYOperation->read(tempDelta, 0, 0, COM_PS_NEAREST);
 			this->m_deltaY = tempDelta[0];
 			this->m_isDeltaSet = true;
 		}

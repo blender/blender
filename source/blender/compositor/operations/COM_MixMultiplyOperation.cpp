@@ -27,15 +27,15 @@ MixMultiplyOperation::MixMultiplyOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixMultiplyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MixMultiplyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 	
-	this->m_inputValueOperation->read(inputValue, x, y, sampler, inputBuffers);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
 	
 	float value = inputValue[0];
 	if (this->useValueAlphaMultiply()) {

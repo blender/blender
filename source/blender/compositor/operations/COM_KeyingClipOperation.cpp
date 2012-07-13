@@ -44,14 +44,14 @@ KeyingClipOperation::KeyingClipOperation() : NodeOperation()
 	this->setComplex(true);
 }
 
-void *KeyingClipOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *KeyingClipOperation::initializeTileData(rcti *rect)
 {
-	void *buffer = getInputOperation(0)->initializeTileData(rect, memoryBuffers);
+	void *buffer = getInputOperation(0)->initializeTileData(rect);
 
 	return buffer;
 }
 
-void KeyingClipOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void KeyingClipOperation::executePixel(float *color, int x, int y, void *data)
 {
 	const int delta = this->m_kernelRadius;
 	const float tolerance = this->m_kernelTolerance;

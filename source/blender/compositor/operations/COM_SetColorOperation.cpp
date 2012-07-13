@@ -27,7 +27,7 @@ SetColorOperation::SetColorOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void SetColorOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void SetColorOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	outputValue[0] = this->m_channel1;
 	outputValue[1] = this->m_channel2;

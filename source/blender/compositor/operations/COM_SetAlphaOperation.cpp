@@ -38,12 +38,12 @@ void SetAlphaOperation::initExecution()
 	this->m_inputAlpha = getInputSocketReader(1);
 }
 
-void SetAlphaOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void SetAlphaOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float alphaInput[4];
 	
-	this->m_inputColor->read(outputValue, x, y, sampler, inputBuffers);
-	this->m_inputAlpha->read(alphaInput, x, y, sampler, inputBuffers);
+	this->m_inputColor->read(outputValue, x, y, sampler);
+	this->m_inputAlpha->read(alphaInput, x, y, sampler);
 	
 	outputValue[3] = alphaInput[0];
 }

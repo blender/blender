@@ -39,9 +39,9 @@ void SeparateChannelOperation::deinitExecution()
 }
 
 
-void SeparateChannelOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void SeparateChannelOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float input[4];
-	this->m_inputOperation->read(input, x, y, sampler, inputBuffers);
+	this->m_inputOperation->read(input, x, y, sampler);
 	color[0] = input[this->m_channel];
 }

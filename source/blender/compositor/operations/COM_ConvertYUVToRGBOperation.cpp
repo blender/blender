@@ -34,10 +34,10 @@ void ConvertYUVToRGBOperation::initExecution()
 	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertYUVToRGBOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ConvertYUVToRGBOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
-	this->m_inputOperation->read(inputColor, x, y, sampler, inputBuffers);
+	this->m_inputOperation->read(inputColor, x, y, sampler);
 	yuv_to_rgb(inputColor[0], inputColor[1], inputColor[2], &outputValue[0], &outputValue[1], &outputValue[2]);
 	outputValue[3] = inputColor[3];
 }

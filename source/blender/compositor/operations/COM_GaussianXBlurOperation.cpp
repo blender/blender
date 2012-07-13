@@ -33,13 +33,13 @@ GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(COM_DT_COLO
 	this->m_rad = 0;
 }
 
-void *GaussianXBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *GaussianXBlurOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
 	if (!this->m_sizeavailable) {
-		updateGauss(memoryBuffers);
+		updateGauss();
 	}
-	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	void *buffer = getInputOperation(0)->initializeTileData(NULL);
 	unlockMutex();
 	return buffer;
 }
@@ -60,10 +60,10 @@ void GaussianXBlurOperation::initExecution()
 	}
 }
 
-void GaussianXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
+void GaussianXBlurOperation::updateGauss()
 {
 	if (this->m_gausstab == NULL) {
-		updateSize(memoryBuffers);
+		updateSize();
 		float rad = this->m_size * this->m_data->sizex;
 		if (rad < 1)
 			rad = 1;
@@ -73,7 +73,7 @@ void GaussianXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 	}
 }
 
-void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void GaussianXBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
 	float color_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	float multiplier_accum = 0.0f;
@@ -92,12 +92,10 @@ void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	maxy = min(maxy, inputBuffer->getRect()->ymax);
 	maxx = min(maxx, inputBuffer->getRect()->xmax);
 
-	int index;
 	int step = getStep();
 	int offsetadd = getOffsetAdd();
 	int bufferindex = ((minx - bufferstartx) * 4) + ((miny - bufferstarty) * 4 * bufferwidth);
-	for (int nx = minx; nx < maxx; nx += step) {
-		index = (nx - x) + this->m_rad;
+	for (int nx = minx, index = (minx - x) + this->m_rad; nx < maxx; nx += step, index += step) {
 		const float multiplier = this->m_gausstab[index];
 		madd_v4_v4fl(color_accum, &buffer[bufferindex], multiplier);
 		multiplier_accum += multiplier;

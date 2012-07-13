@@ -54,7 +54,7 @@ void DisplaceOperation::initExecution()
  * in order to take effect */
 #define DISPLACE_EPSILON    0.01f
 
-void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DisplaceOperation::executePixel(float *color, int x, int y, void *data)
 {
 	float inVector[4];
 	float inScale[4];
@@ -64,9 +64,9 @@ void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *i
 	float dxt, dyt;
 	float u, v;
 
-	this->m_inputScaleXProgram->read(inScale, x, y, COM_PS_NEAREST, inputBuffers);
+	this->m_inputScaleXProgram->read(inScale, x, y, COM_PS_NEAREST);
 	float xs = inScale[0];
-	this->m_inputScaleYProgram->read(inScale, x, y, COM_PS_NEAREST, inputBuffers);
+	this->m_inputScaleYProgram->read(inScale, x, y, COM_PS_NEAREST);
 	float ys = inScale[0];
 
 	/* clamp x and y displacement to triple image resolution - 
@@ -74,7 +74,7 @@ void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *i
 	CLAMP(xs, -this->m_width_x4, this->m_width_x4);
 	CLAMP(ys, -this->m_height_x4, this->m_height_x4);
 
-	this->m_inputVectorProgram->read(inVector, x, y, COM_PS_NEAREST, inputBuffers);
+	this->m_inputVectorProgram->read(inVector, x, y, COM_PS_NEAREST);
 	p_dx = inVector[0] * xs;
 	p_dy = inVector[1] * ys;
 
@@ -83,9 +83,9 @@ void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *i
 	v = y - p_dy + 0.5f;
 
 	/* calc derivatives */
-	this->m_inputVectorProgram->read(inVector, x + 1, y, COM_PS_NEAREST, inputBuffers);
+	this->m_inputVectorProgram->read(inVector, x + 1, y, COM_PS_NEAREST);
 	d_dx = inVector[0] * xs;
-	this->m_inputVectorProgram->read(inVector, x, y + 1, COM_PS_NEAREST, inputBuffers);
+	this->m_inputVectorProgram->read(inVector, x, y + 1, COM_PS_NEAREST);
 	d_dy = inVector[1] * ys;
 
 	/* clamp derivatives to minimum displacement distance in UV space */
@@ -96,7 +96,7 @@ void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *i
 	dyt = signf(dyt) * maxf(fabsf(dyt), DISPLACE_EPSILON) / this->getHeight();
 
 	/* EWA filtering */
-	this->m_inputColorProgram->read(color, u, v, dxt, dyt, inputBuffers);
+	this->m_inputColorProgram->read(color, u, v, dxt, dyt);
 }
 
 void DisplaceOperation::deinitExecution()

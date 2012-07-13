@@ -66,6 +66,8 @@ void ViewerBaseOperation::initImage()
 
 	if (!ibuf) return;
 	if (ibuf->x != (int)getWidth() || ibuf->y != (int)getHeight()) {
+		BLI_lock_thread(LOCK_DRAW_IMAGE);
+
 		imb_freerectImBuf(ibuf);
 		imb_freerectfloatImBuf(ibuf);
 		IMB_freezbuffloatImBuf(ibuf);
@@ -74,6 +76,8 @@ void ViewerBaseOperation::initImage()
 		imb_addrectImBuf(ibuf);
 		imb_addrectfloatImBuf(ibuf);
 		anImage->ok = IMA_OK_LOADED;
+
+		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 	}
 
 	this->m_partialBufferUpdate = IMB_partial_buffer_update_context_new(ibuf);

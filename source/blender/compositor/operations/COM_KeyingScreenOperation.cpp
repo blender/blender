@@ -217,7 +217,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	return triangulation;
 }
 
-void *KeyingScreenOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *KeyingScreenOperation::initializeTileData(rcti *rect)
 {
 	TileData *tile_data;
 	TriangulationData *triangulation;
@@ -272,7 +272,7 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect, MemoryBuffer **memor
 	return tile_data;
 }
 
-void KeyingScreenOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+void KeyingScreenOperation::deinitializeTileData(rcti *rect, void *data)
 {
 	TileData *tile_data = (TileData *) data;
 
@@ -301,7 +301,7 @@ void KeyingScreenOperation::determineResolution(unsigned int resolution[], unsig
 	}
 }
 
-void KeyingScreenOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void KeyingScreenOperation::executePixel(float *color, int x, int y, void *data)
 {
 	color[0] = 0.0f;
 	color[1] = 0.0f;

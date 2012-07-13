@@ -43,11 +43,11 @@ void ColorRampOperation::initExecution()
 	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void ColorRampOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ColorRampOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float values[4];
 
-	this->m_inputProgram->read(values, x, y, sampler, inputBuffers);
+	this->m_inputProgram->read(values, x, y, sampler);
 	do_colorband(this->m_colorBand, values[0], color);
 }
 

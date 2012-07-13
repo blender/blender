@@ -33,7 +33,7 @@ void SingleThreadedNodeOperation::initExecution()
 	initMutex();
 }
 
-void SingleThreadedNodeOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void SingleThreadedNodeOperation::executePixel(float *color, int x, int y, void *data)
 {
 	this->m_cachedInstance->readNoCheck(color, x, y);
 }
@@ -46,14 +46,14 @@ void SingleThreadedNodeOperation::deinitExecution()
 		this->m_cachedInstance = NULL;
 	}
 }
-void *SingleThreadedNodeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *SingleThreadedNodeOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_cachedInstance) return this->m_cachedInstance;
 	
 	lockMutex();
 	if (this->m_cachedInstance == NULL) {
 		//
-		this->m_cachedInstance = createMemoryBuffer(rect, memoryBuffers);
+		this->m_cachedInstance = createMemoryBuffer(rect);
 	}
 	unlockMutex();
 	return this->m_cachedInstance;

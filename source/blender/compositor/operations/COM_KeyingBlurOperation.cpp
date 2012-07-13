@@ -39,14 +39,14 @@ KeyingBlurOperation::KeyingBlurOperation() : NodeOperation()
 	this->setComplex(true);
 }
 
-void *KeyingBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *KeyingBlurOperation::initializeTileData(rcti *rect)
 {
-	void *buffer = getInputOperation(0)->initializeTileData(rect, memoryBuffers);
+	void *buffer = getInputOperation(0)->initializeTileData(rect);
 
 	return buffer;
 }
 
-void KeyingBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void KeyingBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();

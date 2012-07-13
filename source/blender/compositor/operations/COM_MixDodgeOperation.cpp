@@ -27,16 +27,16 @@ MixDodgeOperation::MixDodgeOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixDodgeOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MixDodgeOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
 	float tmp;
 
-	this->m_inputValueOperation->read(&value, x, y, sampler, inputBuffers);
-	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler, inputBuffers);
-	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(&value, x, y, sampler);
+	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler);
+	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler);
 
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];

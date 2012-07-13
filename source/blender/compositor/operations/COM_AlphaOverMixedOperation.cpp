@@ -27,15 +27,15 @@ AlphaOverMixedOperation::AlphaOverMixedOperation() : MixBaseOperation()
 	this->m_x = 0.0f;
 }
 
-void AlphaOverMixedOperation::executePixel(float outputValue[4], float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void AlphaOverMixedOperation::executePixel(float outputValue[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputOverColor[4];
 	float value[4];
 	
-	this->m_inputValueOperation->read(value, x, y, sampler, inputBuffers);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
-	this->m_inputColor2Operation->read(inputOverColor, x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(value, x, y, sampler);
+	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->read(inputOverColor, x, y, sampler);
 	
 	if (inputOverColor[3] <= 0.0f) {
 		copy_v4_v4(outputValue, inputColor1);

@@ -60,7 +60,7 @@ public:
 	void setCacheFrame(bool value) { this->m_cacheFrame = value; }
 
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 };
 
 #endif

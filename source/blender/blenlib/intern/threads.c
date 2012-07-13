@@ -106,7 +106,7 @@ static void *thread_tls_data;
  ************************************************ */
 static pthread_mutex_t _malloc_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _image_lock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t _preview_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t _image_draw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _viewer_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _rcache_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -337,8 +337,8 @@ void BLI_lock_thread(int type)
 {
 	if (type == LOCK_IMAGE)
 		pthread_mutex_lock(&_image_lock);
-	else if (type == LOCK_PREVIEW)
-		pthread_mutex_lock(&_preview_lock);
+	else if (type == LOCK_DRAW_IMAGE)
+		pthread_mutex_lock(&_image_draw_lock);
 	else if (type == LOCK_VIEWER)
 		pthread_mutex_lock(&_viewer_lock);
 	else if (type == LOCK_CUSTOM1)
@@ -357,8 +357,8 @@ void BLI_unlock_thread(int type)
 {
 	if (type == LOCK_IMAGE)
 		pthread_mutex_unlock(&_image_lock);
-	else if (type == LOCK_PREVIEW)
-		pthread_mutex_unlock(&_preview_lock);
+	else if (type == LOCK_DRAW_IMAGE)
+		pthread_mutex_unlock(&_image_draw_lock);
 	else if (type == LOCK_VIEWER)
 		pthread_mutex_unlock(&_viewer_lock);
 	else if (type == LOCK_CUSTOM1)

@@ -44,7 +44,7 @@ void BoxMaskOperation::initExecution()
 	this->m_aspectRatio = ((float)this->getWidth()) / this->getHeight();
 }
 
-void BoxMaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void BoxMaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float inputMask[4];
 	float inputValue[4];
@@ -57,8 +57,8 @@ void BoxMaskOperation::executePixel(float *color, float x, float y, PixelSampler
 	rx = this->m_data->x + (this->m_cosine * dx + this->m_sine * dy);
 	ry = this->m_data->y + (-this->m_sine * dx + this->m_cosine * dy);
 	
-	this->m_inputMask->read(inputMask, x, y, sampler, inputBuffers);
-	this->m_inputValue->read(inputValue, x, y, sampler, inputBuffers);
+	this->m_inputMask->read(inputMask, x, y, sampler);
+	this->m_inputValue->read(inputValue, x, y, sampler);
 	
 	float halfHeight = this->m_data->height / 2.0f;
 	float halfWidth = this->m_data->width / 2.0f;

@@ -31,7 +31,7 @@ ReadBufferOperation::ReadBufferOperation() : NodeOperation()
 	this->m_buffer = NULL;
 }
 
-void *ReadBufferOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *ReadBufferOperation::initializeTileData(rcti *rect)
 {
 	return m_buffer;
 }
@@ -49,7 +49,7 @@ void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigne
 		}
 	}
 }
-void ReadBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ReadBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	if (sampler == COM_PS_NEAREST) {
 		m_buffer->read(color, x, y);
@@ -59,7 +59,7 @@ void ReadBufferOperation::executePixel(float *color, float x, float y, PixelSamp
 	}
 }
 
-void ReadBufferOperation::executePixel(float *color, float x, float y, float dx, float dy, MemoryBuffer *inputBuffers[])
+void ReadBufferOperation::executePixel(float *color, float x, float y, float dx, float dy)
 {
 	m_buffer->readEWA(color, x, y, dx, dy);
 }

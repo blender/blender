@@ -77,7 +77,7 @@ static void write_buffer_rect(rcti *rect, const bNodeTree *tree,
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
-			reader->read(color, x, y, COM_PS_NEAREST, NULL);
+			reader->read(color, x, y, COM_PS_NEAREST);
 			
 			for (i = 0; i < size; ++i)
 				buffer[offset + i] = color[i];

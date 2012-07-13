@@ -82,12 +82,11 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2; x++) {
-			this->m_imageInput->read(&(buffer[offset]), x, y, COM_PS_NEAREST, NULL);
+			this->m_imageInput->read(&(buffer[offset]), x, y, COM_PS_NEAREST);
 			if (this->m_alphaInput != NULL) {
-				this->m_alphaInput->read(alpha, x, y, COM_PS_NEAREST, NULL);
+				this->m_alphaInput->read(alpha, x, y, COM_PS_NEAREST);
 				buffer[offset + 3] = alpha[0];
 			}
-			/// @todo: linear conversion only when scene color management is selected, also check predivide.
 			if (this->m_doColorManagement) {
 				if (this->m_doColorPredivide) {
 					linearrgb_to_srgb_predivide_v4(srgb, buffer + offset);

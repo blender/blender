@@ -335,9 +335,6 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 
 	/* preview rect? */
 	if (node->flag & NODE_PREVIEW) {
-		/* only recalculate size when there's a preview actually, otherwise we use stored result */
-		BLI_lock_thread(LOCK_PREVIEW);
-
 		if (node->preview && node->preview->rect) {
 			float aspect = 1.0f;
 			
@@ -374,8 +371,6 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 			node->prvr.ymin = dy - oldh;
 			dy = node->prvr.ymin - NODE_DYS / 2;
 		}
-
-		BLI_unlock_thread(LOCK_PREVIEW);
 	}
 
 	/* buttons rect? */
@@ -861,10 +856,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	
 	/* preview */
 	if (node->flag & NODE_PREVIEW) {
-		BLI_lock_thread(LOCK_PREVIEW);
 		if (node->preview && node->preview->rect && !BLI_rctf_is_empty(&node->prvr))
 			node_draw_preview(node->preview, &node->prvr);
-		BLI_unlock_thread(LOCK_PREVIEW);
 	}
 	
 	UI_ThemeClearColor(color_id);

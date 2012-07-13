@@ -44,7 +44,7 @@ void DistanceMatteOperation::deinitExecution()
 	this->m_inputKeyProgram = NULL;
 }
 
-void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	float inKey[4];
 	float inImage[4];
@@ -55,8 +55,8 @@ void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, 
 	float distance;
 	float alpha;
 
-	this->m_inputKeyProgram->read(inKey, x, y, sampler, inputBuffers);
-	this->m_inputImageProgram->read(inImage, x, y, sampler, inputBuffers);
+	this->m_inputKeyProgram->read(inKey, x, y, sampler);
+	this->m_inputImageProgram->read(inImage, x, y, sampler);
 	
 	distance = sqrt(pow((inKey[0] - inImage[0]), 2) +
 	                pow((inKey[1] - inImage[1]), 2) +
