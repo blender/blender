@@ -27,6 +27,7 @@
 #include "BKE_image.h"
 
 extern "C" {
+	#include "BLI_threads.h"
 	#include "RE_pipeline.h"
 	#include "RE_shader_ext.h"
 	#include "RE_render_ext.h"
@@ -63,6 +64,7 @@ void CompositorOperation::deinitExecution()
 		const RenderData *rd = this->m_rd;
 		Render *re = RE_GetRender_FromData(rd);
 		RenderResult *rr = RE_AcquireResultWrite(re);
+
 		if (rr) {
 			if (rr->rectf != NULL) {
 				MEM_freeN(rr->rectf);
@@ -75,7 +77,9 @@ void CompositorOperation::deinitExecution()
 			}
 		}
 
+		BLI_lock_thread(LOCK_DRAW_IMAGE);
 		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
+		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 
 		if (re) {
 			RE_ReleaseResult(re);

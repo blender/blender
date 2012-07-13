@@ -70,7 +70,7 @@ int     BLI_system_thread_count(void); /* gets the number of threads the system 
  * One custom lock available now. can be extended. */
 
 #define LOCK_IMAGE      0
-#define LOCK_PREVIEW    1
+#define LOCK_DRAW_IMAGE 1
 #define LOCK_VIEWER     2
 #define LOCK_CUSTOM1    3
 #define LOCK_RCACHE     4
