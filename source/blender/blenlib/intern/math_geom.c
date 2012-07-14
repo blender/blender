@@ -3278,3 +3278,10 @@ int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], c
 	/* linetests, the 2 diagonals have to instersect to be convex */
 	return (isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0) ? TRUE : FALSE;
 }
+
+int is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
+{
+	/* linetests, the 2 diagonals have to instersect to be convex */
+	return (isect_line_line_v2(v1, v3, v2, v4) > 0) ? TRUE : FALSE;
+}
+

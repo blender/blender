@@ -232,6 +232,10 @@
 #define SET_INT_IN_POINTER(i)    ((void *)(intptr_t)(i))
 #define GET_INT_FROM_POINTER(i)  ((int)(intptr_t)(i))
 
+#define SET_UINT_IN_POINTER(i)    ((void *)(uintptr_t)(i))
+#define GET_UINT_FROM_POINTER(i)  ((unsigned int)(uintptr_t)(i))
+
+
 /* Macro to convert a value to string in the preprocessor
  * STRINGIFY_ARG: gives the argument as a string
  * STRINGIFY_APPEND: appends any argument 'b' onto the string argument 'a',

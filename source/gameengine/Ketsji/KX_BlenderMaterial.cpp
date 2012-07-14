@@ -154,15 +154,8 @@ void KX_BlenderMaterial::ReleaseMaterial()
 		mBlenderShader->ReloadMaterial();
 }
 
-void KX_BlenderMaterial::OnConstruction(int layer)
+void KX_BlenderMaterial::InitTextures()
 {
-	if (mConstructed)
-		// when material are reused between objects
-		return;
-	
-	if (mMaterial->glslmat)
-		SetBlenderGLSLShader(layer);
-
 	// for each unique material...
 	int i;
 	for (i=0; i<mMaterial->num_enabled; i++) {
@@ -177,7 +170,7 @@ void KX_BlenderMaterial::OnConstruction(int layer)
 		} 
 		// If we're using glsl materials, the textures are handled by bf_gpu, so don't load them twice!
 		// However, if we're using a custom shader, then we still need to load the textures ourselves.
-		else if (!mMaterial->glslmat || mBlenderShader) {
+		else if (!mMaterial->glslmat || mShader) {
 			if ( mMaterial->img[i] ) {
 				if ( ! mTextures[i].InitFromImage(i, mMaterial->img[i], (mMaterial->flag[i] &MIPMAP)!=0 ))
 					spit("unable to initialize image("<<i<<") in "<< 
@@ -185,6 +178,18 @@ void KX_BlenderMaterial::OnConstruction(int layer)
 			}
 		}
 	}
+}
+
+void KX_BlenderMaterial::OnConstruction(int layer)
+{
+	if (mConstructed)
+		// when material are reused between objects
+		return;
+	
+	if (mMaterial->glslmat)
+		SetBlenderGLSLShader(layer);
+
+	InitTextures();
 
 	mBlendFunc[0] =0;
 	mBlendFunc[1] =0;
@@ -892,6 +897,9 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 		if (!mShader && !mModified) {
 			mShader = new BL_Shader();
 			mModified = true;
+
+			// Using a custom shader, make sure to initialize textures
+			InitTextures();
 		}
 
 		if (mShader && !mShader->GetError()) {

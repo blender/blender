@@ -992,6 +992,9 @@ static void grid_tangent_matrix(float mat[3][3], const CCGKey *key,
 	copy_v3_v3(mat[2], CCG_grid_elem_no(key, grid, x, y));
 }
 
+/* XXX WARNING: subsurf elements from dm and oldGridData *must* be of the same format (size),
+ *              because this code uses CCGKey's info from dm to access oldGridData's normals
+ *              (through the call to grid_tangent_matrix())! */
 static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, CCGElem **oldGridData, int totlvl)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
@@ -2069,6 +2072,21 @@ void multires_load_old(Object *ob, Mesh *me)
 		me->mface[i].mat_nr = lvl->faces[i].mat_nr;
 	}
 
+	/* Copy the first-level data to the mesh */
+	/* XXX We must do this before converting tessfaces to polys/lopps! */
+	for (i = 0, l = me->mr->vdata.layers; i < me->mr->vdata.totlayer; ++i, ++l)
+		CustomData_add_layer(&me->vdata, l->type, CD_REFERENCE, l->data, me->totvert);
+	for (i = 0, l = me->mr->fdata.layers; i < me->mr->fdata.totlayer; ++i, ++l)
+		CustomData_add_layer(&me->fdata, l->type, CD_REFERENCE, l->data, me->totface);
+	memset(&me->mr->vdata, 0, sizeof(CustomData));
+	memset(&me->mr->fdata, 0, sizeof(CustomData));
+
+	multires_load_old_vcols(me);
+	multires_load_old_face_flags(me);
+
+	/* multiresModifier_subdivide (actually, multires_subdivide) expects polys, not tessfaces! */
+	BKE_mesh_convert_mfaces_to_mpolys(me);
+
 	/* Add a multires modifier to the object */
 	md = ob->modifiers.first;
 	while (md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform)
@@ -2081,24 +2099,18 @@ void multires_load_old(Object *ob, Mesh *me)
 
 	mmd->lvl = mmd->totlvl;
 	orig = CDDM_from_mesh(me, NULL);
-	dm = multires_make_derived_from_derived(orig, mmd, ob, 0);
-					   
+	/* XXX We *must* alloc paint mask here, else we have some kind of mismatch in
+	 *     multires_modifier_update_mdisps() (called by dm->release(dm)), which always creates the
+	 *     reference subsurfed dm with this option, before calling multiresModifier_disp_run(),
+	 *     which implitely expects both subsurfs from its first dm and oldGridData parameters to
+	 *     be of the same "format"! */
+	dm = multires_make_derived_from_derived(orig, mmd, ob, MULTIRES_ALLOC_PAINT_MASK);
+
 	multires_load_old_dm(dm, me, mmd->totlvl + 1);
 
 	multires_dm_mark_as_modified(dm, MULTIRES_COORDS_MODIFIED);
 	dm->release(dm);
 	orig->release(orig);
-
-	/* Copy the first-level data to the mesh */
-	for (i = 0, l = me->mr->vdata.layers; i < me->mr->vdata.totlayer; ++i, ++l)
-		CustomData_add_layer(&me->vdata, l->type, CD_REFERENCE, l->data, me->totvert);
-	for (i = 0, l = me->mr->fdata.layers; i < me->mr->fdata.totlayer; ++i, ++l)
-		CustomData_add_layer(&me->fdata, l->type, CD_REFERENCE, l->data, me->totface);
-	memset(&me->mr->vdata, 0, sizeof(CustomData));
-	memset(&me->mr->fdata, 0, sizeof(CustomData));
-
-	multires_load_old_vcols(me);
-	multires_load_old_face_flags(me);
 
 	/* Remove the old multires */
 	multires_free(me->mr);

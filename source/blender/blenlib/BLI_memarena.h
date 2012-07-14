@@ -50,16 +50,43 @@ extern "C" {
 struct MemArena;
 typedef struct MemArena MemArena;
 
+struct MemArena    *BLI_memarena_new(const int bufsize, const char *name)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull(2)))
+#endif
+;
 
-struct MemArena    *BLI_memarena_new(int bufsize, const char *name);
-void                BLI_memarena_free(struct MemArena *ma);
+void                BLI_memarena_free(struct MemArena *ma)
+#ifdef __GNUC__
+__attribute__((nonnull(1)))
+#endif
+;
 
-void                BLI_memarena_use_malloc(struct MemArena *ma);
-void                BLI_memarena_use_calloc(struct MemArena *ma);
+void                BLI_memarena_use_malloc(struct MemArena *ma)
+#ifdef __GNUC__
+__attribute__((nonnull(1)))
+#endif
+;
+void                BLI_memarena_use_calloc(struct MemArena *ma)
+#ifdef __GNUC__
+__attribute__((nonnull(1)))
+#endif
+;
 
-void                BLI_memarena_use_align(struct MemArena *ma, int align);
+void                BLI_memarena_use_align(struct MemArena *ma, const int align)
+#ifdef __GNUC__
+__attribute__((nonnull(1)))
+#endif
+;
 
-void               *BLI_memarena_alloc(struct MemArena *ma, int size);
+void               *BLI_memarena_alloc(struct MemArena *ma, int size)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull(1)))
+__attribute__((alloc_size(2)))
+#endif
+;
 
 #ifdef __cplusplus
 }
