@@ -148,13 +148,14 @@ void BLI_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 
 
 void maskrasterize_spline_differentiate_point_inset(float (*diff_feather_points)[2], float (*diff_points)[2],
-                                                    const int tot_diff_point, const float ofs, const int do_test)
+                                                    const unsigned int tot_diff_point, const float ofs,
+                                                    const short do_test)
 {
-	int k_prev = tot_diff_point - 2;
-	int k_curr = tot_diff_point - 1;
-	int k_next = 0;
+	unsigned int k_prev = tot_diff_point - 2;
+	unsigned int k_curr = tot_diff_point - 1;
+	unsigned int k_next = 0;
 
-	int k;
+	unsigned int k;
 
 	float d_prev[2];
 	float d_next[2];
@@ -173,9 +174,6 @@ void maskrasterize_spline_differentiate_point_inset(float (*diff_feather_points)
 	/* precalc */
 	sub_v2_v2v2(d_prev, co_prev, co_curr);
 	normalize_v2(d_prev);
-
-	/* TODO, speedup by only doing one normalize per iter */
-
 
 	for (k = 0; k < tot_diff_point; k++) {
 
@@ -223,7 +221,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 	const float zvec[3] = {0.0f, 0.0f, 1.0f};
 	MaskLayer *masklay;
-	int masklay_index;
+	unsigned int masklay_index;
 
 	mr_handle->layers_tot = BLI_countlist(&mask->masklayers);
 	mr_handle->layers = MEM_mallocN(sizeof(MaskRasterLayer) * mr_handle->layers_tot, STRINGIFY(MaskRasterLayer));
@@ -506,6 +504,7 @@ static float maskrasterize_layer_isect(unsigned int *tri, float (*cos)[3], const
 	if (tri[3] == TRI_VERT) {
 		/* --- tri --- */
 
+#if 0
 		/* not essential but avoids unneeded extra lookups */
 		if ((cos[0][2] < dist_orig) ||
 		    (cos[1][2] < dist_orig) ||
@@ -513,13 +512,17 @@ static float maskrasterize_layer_isect(unsigned int *tri, float (*cos)[3], const
 		{
 			if (isect_point_tri_v2(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]])) {
 				/* we know all tris are close for now */
-#if 0
 				return maskrasterize_layer_z_depth_tri(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]]);
-#else
-				return 0.0f;
-#endif
 			}
 		}
+#else
+        /* we know all tris are close for now */
+		if (1) {
+			if (isect_point_tri_v2(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]])) {
+				return 0.0f;
+			}
+		}
+#endif
 	}
 	else {
 		/* --- quad --- */
@@ -558,8 +561,8 @@ static void layer_bucket_init(MaskRasterLayer *layer)
 	MemArena *arena = BLI_memarena_new(1 << 16, __func__);
 
 	/* TODO - calculate best bucket size */
-	layer->buckets_x = 128;
-	layer->buckets_y = 128;
+	layer->buckets_x = 256;
+	layer->buckets_y = 256;
 
 	layer->buckets_xy_scalar[0] = (1.0f / ((layer->bounds.xmax - layer->bounds.xmin) + FLT_EPSILON)) * layer->buckets_x;
 	layer->buckets_xy_scalar[1] = (1.0f / ((layer->bounds.ymax - layer->bounds.ymin) + FLT_EPSILON)) * layer->buckets_y;
@@ -684,8 +687,9 @@ static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2
 			unsigned int *tri = layer->tri_array[*tri_index];
 			if ((test_dist = maskrasterize_layer_isect(tri, cos, best_dist, xy)) < best_dist) {
 				best_dist = test_dist;
-				/* bail early */
-				if (best_dist <= 0.0f) {
+                /* comparing with 0.0f is OK here because triangles are always zero depth */
+				if (best_dist == 0.0f) {
+                    /* bail early, we're as close as possible  */
 					return 0.0f;
 				}
 			}
@@ -701,8 +705,6 @@ static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2
 
 float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2])
 {
-	/* TODO - AA jitter */
-
 	if (BLI_in_rctf_v(&mr_handle->bounds, xy)) {
 		const unsigned int layers_tot = mr_handle->layers_tot;
 		unsigned int i;
