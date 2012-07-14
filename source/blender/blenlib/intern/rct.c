@@ -41,6 +41,13 @@
 #include "DNA_vec_types.h"
 #include "BLI_rect.h"
 
+/**
+ * Determine if a rect is empty. An empty
+ * rect is one with a zero (or negative)
+ * width or height.
+ *
+ * \return True if \a rect is empty.
+ */
 int BLI_rcti_is_empty(const rcti *rect)
 {
 	return ((rect->xmax <= rect->xmin) || (rect->ymax <= rect->ymin));

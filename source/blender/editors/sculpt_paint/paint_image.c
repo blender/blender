@@ -560,14 +560,14 @@ static int project_bucket_offset(const ProjPaintState *ps, const float projCoSS[
 	 * ps->bucketRect[x + (y*ps->buckets_y)] */
 	
 	/* please explain?
-	 * projCoSS[0] - ps->screenMin[0]	: zero origin
-	 * ... / ps->screen_width				: range from 0.0 to 1.0
-	 * ... * ps->buckets_x		: use as a bucket index
+	 * projCoSS[0] - ps->screenMin[0]   : zero origin
+	 * ... / ps->screen_width           : range from 0.0 to 1.0
+	 * ... * ps->buckets_x              : use as a bucket index
 	 *
 	 * Second multiplication does similar but for vertical offset
 	 */
-	return (   (int)(((projCoSS[0] - ps->screenMin[0]) / ps->screen_width)  * ps->buckets_x)) +
-	       (   (   (int)(((projCoSS[1] - ps->screenMin[1])  / ps->screen_height) * ps->buckets_y)) * ps->buckets_x);
+	return ( (int)(((projCoSS[0] - ps->screenMin[0]) / ps->screen_width)  * ps->buckets_x)) +
+	       (((int)(((projCoSS[1] - ps->screenMin[1]) / ps->screen_height) * ps->buckets_y)) * ps->buckets_x);
 }
 
 static int project_bucket_offset_safe(const ProjPaintState *ps, const float projCoSS[2])
