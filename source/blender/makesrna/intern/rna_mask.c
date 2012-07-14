@@ -566,6 +566,13 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MASK_SPLINE_CYCLIC);
 	RNA_def_property_ui_text(prop, "Cyclic", "Make this spline a closed loop");
 	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+
+	/* fill */
+	prop = RNA_def_property(srna, "use_fill", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MASK_SPLINE_NOFILL);
+	RNA_def_property_ui_text(prop, "Fill", "Make this spline filled");
+	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 }
 
 static void rna_def_mask_layer(BlenderRNA *brna)

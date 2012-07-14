@@ -733,7 +733,9 @@ class CLIP_PT_active_mask_spline(Panel):
 
         col = layout.column()
         col.prop(spline, "weight_interpolation")
-        col.prop(spline, "use_cyclic")
+        rowsub = col.row()
+        rowsub.prop(spline, "use_cyclic")
+        rowsub.prop(spline, "use_fill")
 
 
 class CLIP_PT_active_mask_point(Panel):

@@ -467,7 +467,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		BLI_scanfill_begin(&sf_ctx);
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
-			const unsigned int is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
+			const unsigned int is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
 			float (*diff_points)[2];
 			int tot_diff_point;
@@ -541,7 +541,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					}
 				}
 
-				if (is_cyclic) {
+				if (is_fill) {
 					copy_v2_v2(co, diff_points[0]);
 					sf_vert_prev = BLI_scanfill_vert_add(&sf_ctx, co);
 					sf_vert_prev->tmp.u = sf_vert_tot;
@@ -597,14 +597,13 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					}
 				}
 				else {
-					/* unfilled spline (non cyclic) */
+					/* unfilled spline */
 					if (diff_feather_points) {
 
 						float co_diff[3];
 
 						float co_feather[3];
 						co_feather[2] = 1.0f;
-
 
 						open_spline_ranges[open_spline_index ][0] = sf_vert_tot;
 						open_spline_ranges[open_spline_index ][1] = tot_diff_point;
