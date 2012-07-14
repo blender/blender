@@ -46,6 +46,15 @@
 
 #ifndef USE_RASKTER
 
+#define SPLINE_RESOL 32
+
+#define SF_EDGE_IS_BOUNDARY 0xff
+#define SF_KEYINDEX_TEMP_ID ((unsigned int) -1)
+
+#define TRI_TERMINATOR_ID   ((unsigned int) -1)
+#define TRI_VERT            ((unsigned int) -1)
+
+
 /**
  * A single #MaskRasterHandle contains multile #MaskRasterLayer's,
  * each #MaskRasterLayer does its own lookup which contributes to
@@ -81,6 +90,11 @@ typedef struct MaskRasterLayer {
 } MaskRasterLayer;
 
 static void layer_bucket_init(MaskRasterLayer *layer);
+
+
+/* --------------------------------------------------------------------- */
+/* alloc / free functions                                                */
+/* --------------------------------------------------------------------- */
 
 /**
  * opaque local struct for mask pixel lookup, each MaskLayer needs one of these
@@ -136,15 +150,6 @@ void BLI_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 	MEM_freeN(mr_handle->layers);
 	MEM_freeN(mr_handle);
 }
-
-#define RESOL 32
-
-#define PRINT_MASK_DEBUG printf
-
-#define SF_EDGE_IS_BOUNDARY 0xff
-
-#define SF_KEYINDEX_TEMP_ID ((unsigned int) -1)
-#define TRI_TERMINATOR_ID   ((unsigned int) -1)
 
 
 void maskrasterize_spline_differentiate_point_inset(float (*diff_feather_points)[2], float (*diff_points)[2],
@@ -208,7 +213,117 @@ void maskrasterize_spline_differentiate_point_inset(float (*diff_feather_points)
 	}
 }
 
-#define TRI_VERT ((unsigned int) -1)
+
+static void layer_bucket_init(MaskRasterLayer *layer)
+{
+	MemArena *arena = BLI_memarena_new(1 << 16, __func__);
+
+	/* TODO - calculate best bucket size */
+	layer->buckets_x = 256;
+	layer->buckets_y = 256;
+
+	layer->buckets_xy_scalar[0] = (1.0f / ((layer->bounds.xmax - layer->bounds.xmin) + FLT_EPSILON)) * layer->buckets_x;
+	layer->buckets_xy_scalar[1] = (1.0f / ((layer->bounds.ymax - layer->bounds.ymin) + FLT_EPSILON)) * layer->buckets_y;
+
+	{
+		unsigned int *tri = &layer->tri_array[0][0];
+		float (*cos)[3] = layer->tri_coords;
+
+		const unsigned int   bucket_tot = layer->buckets_x * layer->buckets_y;
+		LinkNode     **bucketstore     = MEM_callocN(bucket_tot * sizeof(LinkNode *),  __func__);
+		unsigned int  *bucketstore_tot = MEM_callocN(bucket_tot * sizeof(unsigned int), __func__);
+
+		unsigned int tri_index;
+
+		for (tri_index = 0; tri_index < layer->tri_tot; tri_index++, tri += 4) {
+			float xmin;
+			float xmax;
+			float ymin;
+			float ymax;
+
+			if (tri[3] == TRI_VERT) {
+				const float *v1 = cos[tri[0]];
+				const float *v2 = cos[tri[1]];
+				const float *v3 = cos[tri[2]];
+
+				xmin = fminf(v1[0], fminf(v2[0], v3[0]));
+				xmax = fmaxf(v1[0], fmaxf(v2[0], v3[0]));
+				ymin = fminf(v1[1], fminf(v2[1], v3[1]));
+				ymax = fmaxf(v1[1], fmaxf(v2[1], v3[1]));
+			}
+			else {
+				const float *v1 = cos[tri[0]];
+				const float *v2 = cos[tri[1]];
+				const float *v3 = cos[tri[2]];
+				const float *v4 = cos[tri[3]];
+
+				xmin = fminf(v1[0], fminf(v2[0], fminf(v3[0], v4[0])));
+				xmax = fmaxf(v1[0], fmaxf(v2[0], fmaxf(v3[0], v4[0])));
+				ymin = fminf(v1[1], fminf(v2[1], fminf(v3[1], v4[1])));
+				ymax = fmaxf(v1[1], fmaxf(v2[1], fmaxf(v3[1], v4[1])));
+			}
+
+
+			/* not essential but may as will skip any faces outside the view */
+			if (!((xmax < 0.0f) || (ymax < 0.0f) || (xmin > 1.0f) || (ymin > 1.0f))) {
+				const unsigned int xi_min = (unsigned int) ((xmin - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
+				const unsigned int xi_max = (unsigned int) ((xmax - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
+				const unsigned int yi_min = (unsigned int) ((ymin - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
+				const unsigned int yi_max = (unsigned int) ((ymax - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
+
+				unsigned int xi, yi;
+
+				for (xi = xi_min; xi <= xi_max; xi++) {
+					for (yi = yi_min; yi <= yi_max; yi++) {
+						unsigned int bucket_index = (layer->buckets_x * yi) + xi;
+
+						BLI_assert(xi < layer->buckets_x);
+						BLI_assert(yi < layer->buckets_y);
+						BLI_assert(bucket_index < bucket_tot);
+
+						BLI_linklist_prepend_arena(&bucketstore[bucket_index],
+						                           SET_UINT_IN_POINTER(tri_index),
+						                           arena);
+
+						bucketstore_tot[bucket_index]++;
+					}
+				}
+			}
+		}
+
+		if (1) {
+			/* now convert linknodes into arrays for faster per pixel access */
+			unsigned int  **buckets_tri = MEM_mallocN(bucket_tot * sizeof(unsigned int **), __func__);
+			unsigned int bucket_index;
+
+			for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
+				if (bucketstore_tot[bucket_index]) {
+					unsigned int  *bucket = MEM_mallocN((bucketstore_tot[bucket_index] + 1) * sizeof(unsigned int),
+					                                    __func__);
+					LinkNode *bucket_node;
+
+					buckets_tri[bucket_index] = bucket;
+
+					for (bucket_node = bucketstore[bucket_index]; bucket_node; bucket_node = bucket_node->next) {
+						*bucket = GET_UINT_FROM_POINTER(bucket_node->link);
+						bucket++;
+					}
+					*bucket = TRI_TERMINATOR_ID;
+				}
+				else {
+					buckets_tri[bucket_index] = NULL;
+				}
+			}
+
+			layer->buckets_tri = buckets_tri;
+		}
+
+		MEM_freeN(bucketstore);
+		MEM_freeN(bucketstore_tot);
+	}
+
+	BLI_memarena_free(arena);
+}
 
 void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mask,
                                    const int width, const int height,
@@ -216,8 +331,8 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
                                    const short do_feather)
 {
 	/* TODO: real size */
-	const int resol = RESOL;
-	const float aa_filter_size = 1.0f / MIN2(width, height);
+	const int resol = SPLINE_RESOL;
+	const float pixel_size = 1.0f / MIN2(width, height);
 
 	const float zvec[3] = {0.0f, 0.0f, 1.0f};
 	MaskLayer *masklay;
@@ -254,11 +369,13 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			float (*diff_feather_points)[2];
 			int tot_diff_feather_points;
 
-			diff_points = BKE_mask_spline_differentiate_with_resolution_ex(spline, resol, &tot_diff_point);
+			diff_points = BKE_mask_spline_differentiate_with_resolution_ex(
+			                  spline, resol, &tot_diff_point);
 
 			/* dont ch*/
 			if (do_feather) {
-				diff_feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution_ex(spline, resol, &tot_diff_feather_points);
+				diff_feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution_ex(
+				                          spline, resol, &tot_diff_feather_points);
 			}
 			else {
 				tot_diff_feather_points = 0;
@@ -306,15 +423,16 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				if (do_mask_aa == TRUE) {
 					if (do_feather == FALSE) {
 						tot_diff_feather_points = tot_diff_point;
-						diff_feather_points = MEM_mallocN(sizeof(*diff_feather_points) * tot_diff_feather_points, __func__);
+						diff_feather_points = MEM_mallocN(sizeof(*diff_feather_points) * tot_diff_feather_points,
+						                                  __func__);
 						/* add single pixel feather */
 						maskrasterize_spline_differentiate_point_inset(diff_feather_points, diff_points,
-						                                               tot_diff_point, aa_filter_size, FALSE);
+						                                               tot_diff_point, pixel_size, FALSE);
 					}
 					else {
 						/* ensure single pixel feather, on any zero feather areas */
 						maskrasterize_spline_differentiate_point_inset(diff_feather_points, diff_points,
-						                                               tot_diff_point, aa_filter_size, TRUE);
+						                                               tot_diff_point, pixel_size, TRUE);
 					}
 				}
 
@@ -471,13 +589,18 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				BLI_union_rctf(&mr_handle->bounds, &bounds);
 			}
 
-			PRINT_MASK_DEBUG("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads);
+			/* printf("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads); */
 		}
 
 		/* add trianges */
 		BLI_scanfill_end(&sf_ctx);
 	}
 }
+
+
+/* --------------------------------------------------------------------- */
+/* functions that run inside the sampling thread (keep fast!)            */
+/* --------------------------------------------------------------------- */
 
 /* 2D ray test */
 static float maskrasterize_layer_z_depth_tri(const float pt[2],
@@ -516,7 +639,7 @@ static float maskrasterize_layer_isect(unsigned int *tri, float (*cos)[3], const
 			}
 		}
 #else
-        /* we know all tris are close for now */
+		/* we know all tris are close for now */
 		if (1) {
 			if (isect_point_tri_v2(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]])) {
 				return 0.0f;
@@ -556,116 +679,6 @@ static float maskrasterize_layer_isect(unsigned int *tri, float (*cos)[3], const
 	return 1.0f;
 }
 
-static void layer_bucket_init(MaskRasterLayer *layer)
-{
-	MemArena *arena = BLI_memarena_new(1 << 16, __func__);
-
-	/* TODO - calculate best bucket size */
-	layer->buckets_x = 256;
-	layer->buckets_y = 256;
-
-	layer->buckets_xy_scalar[0] = (1.0f / ((layer->bounds.xmax - layer->bounds.xmin) + FLT_EPSILON)) * layer->buckets_x;
-	layer->buckets_xy_scalar[1] = (1.0f / ((layer->bounds.ymax - layer->bounds.ymin) + FLT_EPSILON)) * layer->buckets_y;
-
-	{
-		unsigned int *tri = &layer->tri_array[0][0];
-		float (*cos)[3] = layer->tri_coords;
-
-		const unsigned int   bucket_tot = layer->buckets_x * layer->buckets_y;
-		LinkNode     **bucketstore     = MEM_callocN(bucket_tot * sizeof(LinkNode *),  __func__);
-		unsigned int  *bucketstore_tot = MEM_callocN(bucket_tot * sizeof(unsigned int), __func__);
-
-		unsigned int tri_index;
-
-		for (tri_index = 0; tri_index < layer->tri_tot; tri_index++, tri += 4) {
-			float xmin;
-			float xmax;
-			float ymin;
-			float ymax;
-
-			if (tri[3] == TRI_VERT) {
-				const float *v1 = cos[tri[0]];
-				const float *v2 = cos[tri[1]];
-				const float *v3 = cos[tri[2]];
-
-				xmin = fminf(v1[0], fminf(v2[0], v3[0]));
-				xmax = fmaxf(v1[0], fmaxf(v2[0], v3[0]));
-				ymin = fminf(v1[1], fminf(v2[1], v3[1]));
-				ymax = fmaxf(v1[1], fmaxf(v2[1], v3[1]));
-			}
-			else {
-				const float *v1 = cos[tri[0]];
-				const float *v2 = cos[tri[1]];
-				const float *v3 = cos[tri[2]];
-				const float *v4 = cos[tri[3]];
-
-				xmin = fminf(v1[0], fminf(v2[0], fminf(v3[0], v4[0])));
-				xmax = fmaxf(v1[0], fmaxf(v2[0], fmaxf(v3[0], v4[0])));
-				ymin = fminf(v1[1], fminf(v2[1], fminf(v3[1], v4[1])));
-				ymax = fmaxf(v1[1], fmaxf(v2[1], fmaxf(v3[1], v4[1])));
-			}
-
-
-			/* not essential but may as will skip any faces outside the view */
-			if (!((xmax < 0.0f) || (ymax < 0.0f) || (xmin > 1.0f) || (ymin > 1.0f))) {
-				const unsigned int xi_min = (unsigned int) ((xmin - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
-				const unsigned int xi_max = (unsigned int) ((xmax - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
-				const unsigned int yi_min = (unsigned int) ((ymin - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
-				const unsigned int yi_max = (unsigned int) ((ymax - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
-
-				unsigned int xi, yi;
-
-				for (xi = xi_min; xi <= xi_max; xi++) {
-					for (yi = yi_min; yi <= yi_max; yi++) {
-						unsigned int bucket_index = (layer->buckets_x * yi) + xi;
-
-						BLI_assert(xi < layer->buckets_x);
-						BLI_assert(yi < layer->buckets_y);
-						BLI_assert(bucket_index < bucket_tot);
-
-						BLI_linklist_prepend_arena(&bucketstore[bucket_index],
-                                                   SET_UINT_IN_POINTER(tri_index),
-                                                   arena);
-
-						bucketstore_tot[bucket_index]++;
-					}
-				}
-			}
-		}
-
-		if (1) {
-            /* now convert linknodes into arrays for faster per pixel access */
-			unsigned int  **buckets_tri = MEM_mallocN(bucket_tot * sizeof(unsigned int **), __func__);
-			unsigned int bucket_index;
-
-			for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
-				if (bucketstore_tot[bucket_index]) {
-					unsigned int  *bucket = MEM_mallocN((bucketstore_tot[bucket_index] + 1) * sizeof(unsigned int), __func__);
-					LinkNode *bucket_node;
-
-					buckets_tri[bucket_index] = bucket;
-
-					for (bucket_node = bucketstore[bucket_index]; bucket_node; bucket_node = bucket_node->next) {
-						*bucket = GET_UINT_FROM_POINTER(bucket_node->link);
-						bucket++;
-					}
-					*bucket = TRI_TERMINATOR_ID;
-				}
-				else {
-					buckets_tri[bucket_index] = NULL;
-				}
-			}
-
-			layer->buckets_tri = buckets_tri;
-		}
-
-		MEM_freeN(bucketstore);
-		MEM_freeN(bucketstore_tot);
-	}
-
-	BLI_memarena_free(arena);
-}
-
 static unsigned int layer_bucket_index_from_xy(MaskRasterLayer *layer, const float xy[2])
 {
 	BLI_assert(BLI_in_rctf_v(&layer->bounds, xy));
@@ -687,9 +700,9 @@ static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2
 			unsigned int *tri = layer->tri_array[*tri_index];
 			if ((test_dist = maskrasterize_layer_isect(tri, cos, best_dist, xy)) < best_dist) {
 				best_dist = test_dist;
-                /* comparing with 0.0f is OK here because triangles are always zero depth */
+				/* comparing with 0.0f is OK here because triangles are always zero depth */
 				if (best_dist == 0.0f) {
-                    /* bail early, we're as close as possible  */
+					/* bail early, we're as close as possible  */
 					return 0.0f;
 				}
 			}
@@ -701,7 +714,6 @@ static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2
 		return 1.0f;
 	}
 }
-
 
 float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2])
 {
@@ -717,31 +729,31 @@ float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 
 		for (i = 0; i < layers_tot; i++, layer++) {
 			if (BLI_in_rctf_v(&layer->bounds, xy)) {
-                /* --- hit (start) --- */
-                const float dist = 1.0f - layer_bucket_depth_from_xy(layer, xy);
-                const float dist_ease = (3.0f * dist * dist - 2.0f * dist * dist * dist);
+				/* --- hit (start) --- */
+				const float dist = 1.0f - layer_bucket_depth_from_xy(layer, xy);
+				const float dist_ease = (3.0f * dist * dist - 2.0f * dist * dist * dist);
 
-                float v;
-                /* apply alpha */
-                v = dist_ease * layer->alpha;
+				float v;
+				/* apply alpha */
+				v = dist_ease * layer->alpha;
 
-                if (layer->blend_flag & MASK_BLENDFLAG_INVERT) {
-                    v = 1.0f - v;
-                }
+				if (layer->blend_flag & MASK_BLENDFLAG_INVERT) {
+					v = 1.0f - v;
+				}
 
-                switch (layer->blend) {
-                    case MASK_BLEND_SUBTRACT:
-                    {
-                        value -= v;
-                        break;
-                    }
-                    case MASK_BLEND_ADD:
-                    default:
-                    {
-                        value += v;
-                        break;
-                    }
-                }
+				switch (layer->blend) {
+					case MASK_BLEND_SUBTRACT:
+					{
+						value -= v;
+						break;
+					}
+					case MASK_BLEND_ADD:
+					default:
+					{
+						value += v;
+						break;
+					}
+				}
 				/* --- hit (end) --- */
 
 			}
