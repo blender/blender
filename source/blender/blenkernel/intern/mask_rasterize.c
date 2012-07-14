@@ -96,6 +96,12 @@ typedef struct MaskRasterLayer {
 
 } MaskRasterLayer;
 
+typedef struct MaskRasterSplineInfo {
+	unsigned int vertex_offset;
+	unsigned int vertex_total;
+	unsigned int is_cyclic;
+} MaskRasterSplineInfo;
+
 /**
  * opaque local struct for mask pixel lookup, each MaskLayer needs one of these
  */
@@ -106,7 +112,6 @@ struct MaskRasterHandle {
 	/* 2d bounds (to quickly skip bucket lookup) */
 	rctf bounds;
 };
-
 
 /* --------------------------------------------------------------------- */
 /* alloc / free functions                                                */
@@ -446,7 +451,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 		const unsigned int tot_splines = BLI_countlist(&masklay->splines);
 		/* we need to store vertex ranges for open splines for filling */
-		unsigned int (*open_spline_ranges)[2] = MEM_callocN(sizeof(open_spline_ranges) * tot_splines, __func__);
+		MaskRasterSplineInfo *open_spline_ranges = MEM_callocN(sizeof(*open_spline_ranges) * tot_splines, __func__);
 		unsigned int   open_spline_index = 0;
 
 		MaskSpline *spline;
@@ -467,6 +472,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		BLI_scanfill_begin(&sf_ctx);
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			const unsigned int is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
 			const unsigned int is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
 			float (*diff_points)[2];
@@ -605,8 +611,9 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 						float co_feather[3];
 						co_feather[2] = 1.0f;
 
-						open_spline_ranges[open_spline_index ][0] = sf_vert_tot;
-						open_spline_ranges[open_spline_index ][1] = tot_diff_point;
+						open_spline_ranges[open_spline_index].vertex_offset = sf_vert_tot;
+						open_spline_ranges[open_spline_index].vertex_total = tot_diff_point;
+						open_spline_ranges[open_spline_index].is_cyclic = is_cyclic;
 						open_spline_index++;
 
 
@@ -639,7 +646,10 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 							tot_feather_quads += 2;
 						}
-						tot_feather_quads -= 2;
+
+						if (!is_cyclic) {
+							tot_feather_quads -= 2;
+						}
 
 						MEM_freeN(diff_feather_points);
 
@@ -723,8 +733,8 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 			/* feather only splines */
 			while (open_spline_index > 0) {
-				unsigned int start_vidx          = open_spline_ranges[--open_spline_index][0];
-				unsigned int tot_diff_point_sub1 = open_spline_ranges[  open_spline_index][1] - 1;
+				unsigned int start_vidx          = open_spline_ranges[--open_spline_index].vertex_offset;
+				unsigned int tot_diff_point_sub1 = open_spline_ranges[  open_spline_index].vertex_total - 1;
 				unsigned int k, j;
 
 				j = start_vidx;
@@ -734,17 +744,33 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 					BLI_assert(j == start_vidx + (k * 3));
 
-					*(face++) = j + 0;
-					*(face++) = j + 1;
-					*(face++) = j + 4; /* next span */
-					*(face++) = j + 3; /* next span */
+					*(face++) = j + 3; /* next span */ /* z 1 */
+					*(face++) = j + 0;                 /* z 1 */
+					*(face++) = j + 1;                 /* z 0 */
+					*(face++) = j + 4; /* next span */ /* z 0 */
 
 					face_index++;
 
-					*(face++) = j + 0;
-					*(face++) = j + 3; /* next span */
-					*(face++) = j + 5; /* next span */
-					*(face++) = j + 2;
+					*(face++) = j + 0;                 /* z 1 */
+					*(face++) = j + 3; /* next span */ /* z 1 */
+					*(face++) = j + 5; /* next span */ /* z 0 */
+					*(face++) = j + 2;                 /* z 0 */
+
+					face_index++;
+				}
+
+				if (open_spline_ranges[open_spline_index].is_cyclic) {
+					*(face++) = start_vidx + 3; /* next span */ /* z 1 */
+					*(face++) = j          + 0;                 /* z 1 */
+					*(face++) = j          + 1;                 /* z 0 */
+					*(face++) = start_vidx + 4; /* next span */ /* z 0 */
+
+					face_index++;
+
+					*(face++) = j          + 0;                 /* z 1 */
+					*(face++) = start_vidx + 3; /* next span */ /* z 1 */
+					*(face++) = start_vidx + 5; /* next span */ /* z 0 */
+					*(face++) = j          + 2;                 /* z 0 */
 
 					face_index++;
 				}
