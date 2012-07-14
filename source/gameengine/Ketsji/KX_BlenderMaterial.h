@@ -138,6 +138,8 @@ private:
 	bool			mModified;
 	bool			mConstructed;			// if false, don't clean on exit
 
+	void InitTextures();
+
 	void SetBlenderGLSLShader(int layer);
 
 	void ActivatGLMaterials( RAS_IRasterizer* rasty )const;
