@@ -31,7 +31,7 @@
 /** \file BLI_mempool.h
  *  \ingroup bli
  *  \author Geoffrey Bantle
- *  \brief Simple fast memory allocator.
+ *  \brief Simple fast memory allocator for fixed size chunks.
  */
 
 #ifdef __cplusplus

@@ -26,8 +26,8 @@
 
 /** \file blender/editors/space_node/node_draw.c
  *  \ingroup spnode
+ *  \brief higher level node drawing for the node editor.
  */
-
 
 #include <math.h>
 #include <stdio.h>
