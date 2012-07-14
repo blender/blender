@@ -48,16 +48,47 @@ typedef struct BLI_mempool BLI_mempool;
  * first four bytes of the elements never contain the character string
  * 'free'.  use with care.*/
 
-BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag);
-void *BLI_mempool_alloc(BLI_mempool *pool);
-void *BLI_mempool_calloc(BLI_mempool *pool);
-void  BLI_mempool_free(BLI_mempool *pool, void *addr);
-void  BLI_mempool_destroy(BLI_mempool *pool);
-int   BLI_mempool_count(BLI_mempool *pool);
-void *BLI_mempool_findelem(BLI_mempool *pool, int index);
+BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+#endif
+;
+void        *BLI_mempool_alloc(BLI_mempool *pool)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull(1)))
+#endif
+;
+void        *BLI_mempool_calloc(BLI_mempool *pool)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull(1)))
+#endif
+;
+void         BLI_mempool_free(BLI_mempool *pool, void *addr)
+#ifdef __GNUC__
+__attribute__((nonnull(1, 2)))
+#endif
+;
+void         BLI_mempool_destroy(BLI_mempool *pool)
+#ifdef __GNUC__
+__attribute__((nonnull(1)))
+#endif
+;
+int          BLI_mempool_count(BLI_mempool *pool)
+#ifdef __GNUC__
+__attribute__((nonnull(1)))
+#endif
+;
+void        *BLI_mempool_findelem(BLI_mempool *pool, int index)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull(1)))
+#endif
+;
 
 /** iteration stuff.  note: this may easy to produce bugs with **/
-/*private structure*/
+/* private structure */
 typedef struct BLI_mempool_iter {
 	BLI_mempool *pool;
 	struct BLI_mempool_chunk *curchunk;
@@ -70,11 +101,20 @@ enum {
 	BLI_MEMPOOL_ALLOW_ITER = (1 << 1)
 };
 
-void  BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter);
-void *BLI_mempool_iterstep(BLI_mempool_iter *iter);
+void  BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
+#ifdef __GNUC__
+__attribute__((nonnull(1, 2)))
+#endif
+;
+void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull(1)))
+#endif
+;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif  /* __BLI_MEMPOOL_H__ */
