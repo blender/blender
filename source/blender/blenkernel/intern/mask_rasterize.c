@@ -239,8 +239,8 @@ static int layer_bucket_isect_test(MaskRasterLayer *layer, unsigned int face_ind
 	const float xmax = xmin + bucket_size_x;
 	const float ymax = ymin + bucket_size_y;
 
-	float cent[2] = {(xmin + xmax) * 0.5f,
-	                 (ymin + ymax) * 0.5f};
+	const float cent[2] = {(xmin + xmax) * 0.5f,
+	                       (ymin + ymax) * 0.5f};
 
 	if (face[3] == TRI_VERT) {
 		const float *v1 = cos[face[0]];
@@ -809,53 +809,54 @@ static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2
 
 float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2])
 {
-	if (BLI_in_rctf_v(&mr_handle->bounds, xy)) {
-		const unsigned int layers_tot = mr_handle->layers_tot;
-		unsigned int i;
-		MaskRasterLayer *layer = mr_handle->layers;
+	/* can't do this because some layers may invert */
+	/* if (BLI_in_rctf_v(&mr_handle->bounds, xy)) */
 
-		/* raycast vars*/
+	const unsigned int layers_tot = mr_handle->layers_tot;
+	unsigned int i;
+	MaskRasterLayer *layer = mr_handle->layers;
 
-		/* return */
-		float value = 0.0f;
+	/* raycast vars*/
 
-		for (i = 0; i < layers_tot; i++, layer++) {
-			if (BLI_in_rctf_v(&layer->bounds, xy)) {
-				/* --- hit (start) --- */
-				const float dist = 1.0f - layer_bucket_depth_from_xy(layer, xy);
-				const float dist_ease = (3.0f * dist * dist - 2.0f * dist * dist * dist);
+	/* return */
+	float value = 0.0f;
 
-				float v;
-				/* apply alpha */
-				v = dist_ease * layer->alpha;
+	for (i = 0; i < layers_tot; i++, layer++) {
+		float dist_ease;
+		float v;
 
-				if (layer->blend_flag & MASK_BLENDFLAG_INVERT) {
-					v = 1.0f - v;
-				}
-
-				switch (layer->blend) {
-					case MASK_BLEND_SUBTRACT:
-					{
-						value -= v;
-						break;
-					}
-					case MASK_BLEND_ADD:
-					default:
-					{
-						value += v;
-						break;
-					}
-				}
-				/* --- hit (end) --- */
-
-			}
+		if (BLI_in_rctf_v(&layer->bounds, xy)) {
+			/* --- hit (start) --- */
+			const float dist = 1.0f - layer_bucket_depth_from_xy(layer, xy);
+			dist_ease = (3.0f * dist * dist - 2.0f * dist * dist * dist);
+		}
+		else {
+			dist_ease = 0.0f;
 		}
 
-		return CLAMPIS(value, 0.0f, 1.0f);
+		/* apply alpha */
+		v = dist_ease * layer->alpha;
+
+		if (layer->blend_flag & MASK_BLENDFLAG_INVERT) {
+			v = 1.0f - v;
+		}
+
+		switch (layer->blend) {
+			case MASK_BLEND_SUBTRACT:
+			{
+				value -= v;
+				break;
+			}
+			case MASK_BLEND_ADD:
+			default:
+			{
+				value += v;
+				break;
+			}
+		}
 	}
-	else {
-		return 0.0f;
-	}
+
+	return CLAMPIS(value, 0.0f, 1.0f);
 }
 
 #endif /* USE_RASKTER */
