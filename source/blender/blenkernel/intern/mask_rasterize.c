@@ -46,6 +46,7 @@
 
 #ifndef USE_RASKTER
 
+#define SPLINE_RESOL_CAP 32
 #define SPLINE_RESOL 32
 #define BUCKET_PIXELS_PER_CELL 8
 
@@ -443,6 +444,11 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 	for (masklay = mask->masklayers.first, masklay_index = 0; masklay; masklay = masklay->next, masklay_index++) {
 
+		const unsigned int tot_splines = BLI_countlist(&masklay->splines);
+		/* we need to store vertex ranges for open splines for filling */
+		unsigned int (*open_spline_ranges)[2] = MEM_callocN(sizeof(open_spline_ranges) * tot_splines, __func__);
+		unsigned int   open_spline_index = 0;
+
 		MaskSpline *spline;
 
 		/* scanfill */
@@ -461,7 +467,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		BLI_scanfill_begin(&sf_ctx);
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
-			// const unsigned int is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
+			const unsigned int is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
 
 			float (*diff_points)[2];
 			int tot_diff_point;
@@ -535,58 +541,115 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					}
 				}
 
-				copy_v2_v2(co, diff_points[0]);
-				sf_vert_prev = BLI_scanfill_vert_add(&sf_ctx, co);
-				sf_vert_prev->tmp.u = sf_vert_tot;
-				sf_vert_prev->keyindex = sf_vert_tot + tot_diff_point; /* absolute index of feather vert */
-				sf_vert_tot++;
-
-				/* TODO, an alternate functions so we can avoid double vector copy! */
-				for (j = 1; j < tot_diff_point; j++) {
-					copy_v2_v2(co, diff_points[j]);
-					sf_vert = BLI_scanfill_vert_add(&sf_ctx, co);
-					sf_vert->tmp.u = sf_vert_tot;
-					sf_vert->keyindex = sf_vert_tot + tot_diff_point; /* absolute index of feather vert */
+				if (is_cyclic) {
+					copy_v2_v2(co, diff_points[0]);
+					sf_vert_prev = BLI_scanfill_vert_add(&sf_ctx, co);
+					sf_vert_prev->tmp.u = sf_vert_tot;
+					sf_vert_prev->keyindex = sf_vert_tot + tot_diff_point; /* absolute index of feather vert */
 					sf_vert_tot++;
-				}
 
-				sf_vert = sf_vert_prev;
-				sf_vert_prev = sf_ctx.fillvertbase.last;
-
-				for (j = 0; j < tot_diff_point; j++) {
-					ScanFillEdge *sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_vert);
-					sf_edge->tmp.c = SF_EDGE_IS_BOUNDARY;
-
-					sf_vert_prev = sf_vert;
-					sf_vert = sf_vert->next;
-				}
-
-				if (diff_feather_points) {
-					float co_feather[3];
-					co_feather[2] = 1.0f;
-
-					BLI_assert(tot_diff_feather_points == tot_diff_point);
-
-					/* note: only added for convenience, we don't infact use these to scanfill,
-					 * only to create feather faces after scanfill */
-					for (j = 0; j < tot_diff_feather_points; j++) {
-						copy_v2_v2(co_feather, diff_feather_points[j]);
-						sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
-
-						/* no need for these attrs */
-#if 0
+					/* TODO, an alternate functions so we can avoid double vector copy! */
+					for (j = 1; j < tot_diff_point; j++) {
+						copy_v2_v2(co, diff_points[j]);
+						sf_vert = BLI_scanfill_vert_add(&sf_ctx, co);
 						sf_vert->tmp.u = sf_vert_tot;
 						sf_vert->keyindex = sf_vert_tot + tot_diff_point; /* absolute index of feather vert */
-#endif
-						sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
 						sf_vert_tot++;
 					}
 
-					if (diff_feather_points) {
-						MEM_freeN(diff_feather_points);
+					sf_vert = sf_vert_prev;
+					sf_vert_prev = sf_ctx.fillvertbase.last;
+
+					for (j = 0; j < tot_diff_point; j++) {
+						ScanFillEdge *sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_vert);
+						sf_edge->tmp.c = SF_EDGE_IS_BOUNDARY;
+
+						sf_vert_prev = sf_vert;
+						sf_vert = sf_vert->next;
 					}
 
-					tot_feather_quads += tot_diff_point;
+					if (diff_feather_points) {
+						float co_feather[3];
+						co_feather[2] = 1.0f;
+
+						BLI_assert(tot_diff_feather_points == tot_diff_point);
+
+						/* note: only added for convenience, we don't infact use these to scanfill,
+						 * only to create feather faces after scanfill */
+						for (j = 0; j < tot_diff_feather_points; j++) {
+							copy_v2_v2(co_feather, diff_feather_points[j]);
+							sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
+
+							/* no need for these attrs */
+	#if 0
+							sf_vert->tmp.u = sf_vert_tot;
+							sf_vert->keyindex = sf_vert_tot + tot_diff_point; /* absolute index of feather vert */
+	#endif
+							sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
+							sf_vert_tot++;
+						}
+
+						if (diff_feather_points) {
+							MEM_freeN(diff_feather_points);
+						}
+
+						tot_feather_quads += tot_diff_point;
+					}
+				}
+				else {
+					/* unfilled spline (non cyclic) */
+					if (diff_feather_points) {
+
+						float co_diff[3];
+
+						float co_feather[3];
+						co_feather[2] = 1.0f;
+
+
+						open_spline_ranges[open_spline_index ][0] = sf_vert_tot;
+						open_spline_ranges[open_spline_index ][1] = tot_diff_point;
+						open_spline_index++;
+
+
+						/* TODO, an alternate functions so we can avoid double vector copy! */
+						for (j = 0; j < tot_diff_point; j++) {
+
+							/* center vert */
+							copy_v2_v2(co, diff_points[j]);
+							sf_vert = BLI_scanfill_vert_add(&sf_ctx, co);
+							sf_vert->tmp.u = sf_vert_tot;
+							sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
+							sf_vert_tot++;
+
+
+							/* feather vert A */
+							copy_v2_v2(co_feather, diff_feather_points[j]);
+							sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
+							sf_vert->tmp.u = sf_vert_tot;
+							sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
+							sf_vert_tot++;
+
+
+							/* feather vert B */
+							sub_v2_v2v2(co_diff, co, co_feather);
+							add_v2_v2v2(co_feather, co, co_diff);
+							sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
+							sf_vert->tmp.u = sf_vert_tot;
+							sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
+							sf_vert_tot++;
+
+							tot_feather_quads += 2;
+						}
+						tot_feather_quads -= 2;
+
+						MEM_freeN(diff_feather_points);
+
+						/* ack these are infact tris, but they are extra faces so no matter,
+						 * +1 becausing adding one vert results in 2 tris (joining the existing endpoints)
+						 */
+						// tot_feather_quads + ((SPLINE_RESOL_CAP + 1) * 2);
+
+					}
 				}
 			}
 
@@ -658,6 +721,37 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					}
 				}
 			}
+
+			/* feather only splines */
+			while (open_spline_index > 0) {
+				unsigned int start_vidx          = open_spline_ranges[--open_spline_index][0];
+				unsigned int tot_diff_point_sub1 = open_spline_ranges[  open_spline_index][1] - 1;
+				unsigned int k, j;
+
+				j = start_vidx;
+
+				/* subtract one since we reference next vertex triple */
+				for (k = 0; k < tot_diff_point_sub1; k++, j += 3) {
+
+					BLI_assert(j == start_vidx + (k * 3));
+
+					*(face++) = j + 0;
+					*(face++) = j + 1;
+					*(face++) = j + 4; /* next span */
+					*(face++) = j + 3; /* next span */
+
+					face_index++;
+
+					*(face++) = j + 0;
+					*(face++) = j + 3; /* next span */
+					*(face++) = j + 5; /* next span */
+					*(face++) = j + 2;
+
+					face_index++;
+				}
+			}
+
+			MEM_freeN(open_spline_ranges);
 
 			// fprintf(stderr, "%d %d\n", face_index, sf_face_tot + tot_feather_quads);
 
