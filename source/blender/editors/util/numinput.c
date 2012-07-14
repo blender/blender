@@ -66,6 +66,7 @@ void outputNumInput(NumInput *n, char *str)
 	char cur;
 	char inv[] = "1/";
 	short i, j;
+	const int ln = NUM_STR_REP_LEN;
 
 	for (j = 0; j <= n->idx_max; j++) {
 		/* if AFFECTALL and no number typed and cursor not on number, use first number */
@@ -85,34 +86,34 @@ void outputNumInput(NumInput *n, char *str)
 			inv[0] = 0;
 
 		if (n->val[i] > 1e10f || n->val[i] < -1e10f)
-			BLI_snprintf(&str[j * 20], 20, "%s%.4e%c", inv, n->val[i], cur);
+			BLI_snprintf(&str[j * ln], ln, "%s%.4e%c", inv, n->val[i], cur);
 		else
 			switch (n->ctrl[i]) {
 				case 0:
-					BLI_snprintf(&str[j * 20], 20, "%sNONE%c", inv, cur);
+					BLI_snprintf(&str[j * ln], ln, "%sNONE%c", inv, cur);
 					break;
 				case 1:
 				case -1:
-					BLI_snprintf(&str[j * 20], 20, "%s%.0f%c", inv, n->val[i], cur);
+					BLI_snprintf(&str[j * ln], ln, "%s%.0f%c", inv, n->val[i], cur);
 					break;
 				case 10:
 				case -10:
-					BLI_snprintf(&str[j * 20], 20, "%s%.f.%c", inv, n->val[i], cur);
+					BLI_snprintf(&str[j * ln], ln, "%s%.f.%c", inv, n->val[i], cur);
 					break;
 				case 100:
 				case -100:
-					BLI_snprintf(&str[j * 20], 20, "%s%.1f%c", inv, n->val[i], cur);
+					BLI_snprintf(&str[j * ln], ln, "%s%.1f%c", inv, n->val[i], cur);
 					break;
 				case 1000:
 				case -1000:
-					BLI_snprintf(&str[j * 20], 20, "%s%.2f%c", inv, n->val[i], cur);
+					BLI_snprintf(&str[j * ln], ln, "%s%.2f%c", inv, n->val[i], cur);
 					break;
 				case 10000:
 				case -10000:
-					BLI_snprintf(&str[j * 20], 20, "%s%.3f%c", inv, n->val[i], cur);
+					BLI_snprintf(&str[j * ln], ln, "%s%.3f%c", inv, n->val[i], cur);
 					break;
 				default:
-					BLI_snprintf(&str[j * 20], 20, "%s%.4e%c", inv, n->val[i], cur);
+					BLI_snprintf(&str[j * ln], ln, "%s%.4e%c", inv, n->val[i], cur);
 			}
 	}
 }

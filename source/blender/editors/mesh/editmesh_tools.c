@@ -58,6 +58,7 @@
 #include "WM_types.h"
 
 #include "ED_mesh.h"
+#include "ED_numinput.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -4305,23 +4306,31 @@ typedef struct {
 	int mcenter[2];
 	float initial_length;
 	int is_modal;
+	NumInput num_input;
+	float shift_factor; /* The current factor when shift is pressed. Negative when shift not active. */
 } BevelData;
 
 #define HEADER_LENGTH 180
 
 static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 {
-	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), factor: %f, Use Dist (D): %s: Use Even (E): %s";
+	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), factor: %s, Use Dist (D): %s: Use Even (E): %s";
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
+	BevelData *opdata = op->customdata;
 
 	if (sa) {
+		char factor_str[NUM_STR_REP_LEN];
+		if (hasNumInput(&opdata->num_input))
+			outputNumInput(&opdata->num_input, factor_str);
+		else
+			BLI_snprintf(factor_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "percent"));
 		BLI_snprintf(msg, HEADER_LENGTH, str,
-		             RNA_float_get(op->ptr, "percent"),
+		             factor_str,
 		             RNA_boolean_get(op->ptr, "use_dist") ? "On" : "Off",
 		             RNA_boolean_get(op->ptr, "use_even") ? "On" : "Off"
-		             );
+		            );
 
 		ED_area_headerprint(sa, msg);
 	}
@@ -4384,7 +4393,11 @@ static int edbm_bevel_init(bContext *C, wmOperator *op, int is_modal)
 	opdata->li = li;
 	opdata->weights = NULL;
 	opdata->is_modal = is_modal;
-	
+	opdata->shift_factor = -1.0f;
+
+	initNumInput(&opdata->num_input);
+	opdata->num_input.flag = NUM_NO_NEGATIVE;
+
 	/* avoid the cost of allocating a bm copy */
 	if (is_modal)
 		opdata->mesh_backup = EDBM_redo_state_store(em);
@@ -4523,8 +4536,21 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	BevelData *opdata = op->customdata;
-//	Scene *scene = CTX_data_scene(C);
 
+	if (event->val == KM_PRESS) {
+		/* Try to handle numeric inputs... */
+		float factor;
+
+		if (handleNumInput(&opdata->num_input, event)) {
+			applyNumInput(&opdata->num_input, &factor);
+			CLAMP(factor, 0.0f, 1.0f);
+			RNA_float_set(op->ptr, "percent", factor);
+
+			edbm_bevel_calc(C, op);
+			edbm_bevel_update_header(op, C);
+			return OPERATOR_RUNNING_MODAL;
+		}
+	}
 	switch (event->type) {
 		case ESCKEY:
 		case RIGHTMOUSE:
@@ -4532,22 +4558,32 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_CANCELLED;
 
 		case MOUSEMOVE:
-		{
-			float factor;
-			float mdiff[2];
+			if (!hasNumInput(&opdata->num_input)) {
+				float factor;
+				float mdiff[2];
 
-			mdiff[0] = opdata->mcenter[0] - event->mval[0];
-			mdiff[1] = opdata->mcenter[1] - event->mval[1];
+				mdiff[0] = opdata->mcenter[0] - event->mval[0];
+				mdiff[1] = opdata->mcenter[1] - event->mval[1];
 
-			factor = len_v2(mdiff) / opdata->initial_length;
-			factor = MAX2(1.0f - factor, 0.0f);
+				factor = -len_v2(mdiff) / opdata->initial_length + 1.0f;
 
-			RNA_float_set(op->ptr, "percent", factor);
+				/* Fake shift-transform... */
+				if (event->shift) {
+					if (opdata->shift_factor < 0.0f)
+						opdata->shift_factor = RNA_float_get(op->ptr, "percent");
+					factor = (factor - opdata->shift_factor) * 0.1f + opdata->shift_factor;
+				}
+				else if (opdata->shift_factor >= 0.0f)
+					opdata->shift_factor = -1.0f;
 
-			edbm_bevel_calc(C, op);
-			edbm_bevel_update_header(op, C);
+				CLAMP(factor, 0.0f, 1.0f);
+
+				RNA_float_set(op->ptr, "percent", factor);
+
+				edbm_bevel_calc(C, op);
+				edbm_bevel_update_header(op, C);
+			}
 			return OPERATOR_RUNNING_MODAL;
-		}
 
 		case LEFTMOUSE:
 		case PADENTER:
@@ -4598,8 +4634,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "percent", 0.0f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
-//  XXX, disabled for 2.63 release, needs to work much better without overlap before we can give to users.
-//	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
+	/* XXX, disabled for 2.63 release, needs to work much better without overlap before we can give to users. */
+/*	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8); */
 
 	RNA_def_boolean(ot->srna, "use_even", FALSE, "Even",     "Calculate evenly spaced bevel");
 	RNA_def_boolean(ot->srna, "use_dist", FALSE, "Distance", "Interpret the percent in blender units");
@@ -4643,26 +4679,36 @@ typedef struct {
 	int modify_depth;
 	int is_modal;
 	float initial_length;
+	int shift;
+	float shift_amount;
 	BMBackup backup;
 	BMEditMesh *em;
+	NumInput num_input;
 } InsetData;
 
 static void edbm_inset_update_header(wmOperator *op, bContext *C)
 {
 	InsetData *opdata = op->customdata;
 
-	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RClick), thickness: %f, depth (Ctrl to tweak): %f (%s), Outset (O): (%s)";
+	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RClick), thickness: %s, depth (Ctrl to tweak): %s (%s), Outset (O): (%s)";
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
 
 	if (sa) {
+		char flts_str[NUM_STR_REP_LEN * 2];
+		if (hasNumInput(&opdata->num_input))
+			outputNumInput(&opdata->num_input, flts_str);
+		else {
+			BLI_snprintf(flts_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "thickness"));
+			BLI_snprintf(flts_str + NUM_STR_REP_LEN, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "depth"));
+		}
 		BLI_snprintf(msg, HEADER_LENGTH, str,
-		             RNA_float_get(op->ptr,   "thickness"),
-		             RNA_float_get(op->ptr,   "depth"),
+		             flts_str,
+		             flts_str + NUM_STR_REP_LEN,
 		             opdata->modify_depth ? "On" : "Off",
 		             RNA_boolean_get(op->ptr, "use_outset") ? "On" : "Off"
-		             );
+		            );
 
 		ED_area_headerprint(sa, msg);
 	}
@@ -4680,8 +4726,13 @@ static int edbm_inset_init(bContext *C, wmOperator *op, int is_modal)
 	opdata->old_thickness = 0.01;
 	opdata->old_depth = 0.0;
 	opdata->modify_depth = FALSE;
+	opdata->shift = FALSE;
+	opdata->shift_amount = 0.0f;
 	opdata->is_modal = is_modal;
 	opdata->em = em;
+
+	initNumInput(&opdata->num_input);
+	opdata->num_input.idx_max = 1; /* Two elements. */
 
 	if (is_modal)
 		opdata->backup = EDBM_redo_state_store(em);
@@ -4814,34 +4865,17 @@ static int edbm_inset_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	InsetData *opdata;
+	InsetData *opdata = op->customdata;
 
-	opdata = op->customdata;
+	if (event->val == KM_PRESS) {
+		/* Try to handle numeric inputs... */
+		float amounts[2];
 
-	switch (event->type) {
-		case ESCKEY:
-		case RIGHTMOUSE:
-			edbm_inset_cancel(C, op);
-			return OPERATOR_CANCELLED;
-
-		case MOUSEMOVE:
-		{
-			float mdiff[2];
-			float amount;
-
-			mdiff[0] = opdata->mcenter[0] - event->mval[0];
-			mdiff[1] = opdata->mcenter[1] - event->mval[1];
-
-			if (opdata->modify_depth) {
-				amount = opdata->old_depth + (len_v2(mdiff) - opdata->initial_length) / opdata->initial_length;
-				RNA_float_set(op->ptr, "depth", amount);
-			}
-			else {
-				amount = opdata->old_thickness - (len_v2(mdiff) - opdata->initial_length) / opdata->initial_length;
-				amount = MAX2(amount, 0.0f);
-
-				RNA_float_set(op->ptr, "thickness", amount);
-			}
+		if (handleNumInput(&opdata->num_input, event)) {
+			applyNumInput(&opdata->num_input, amounts);
+			amounts[0] = MAX2(amounts[0], 0.0f);
+			RNA_float_set(op->ptr, "thickness", amounts[0]);
+			RNA_float_set(op->ptr, "depth", amounts[1]);
 
 			if (edbm_inset_calc(C, op)) {
 				edbm_inset_update_header(op, C);
@@ -4852,6 +4886,45 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_CANCELLED;
 			}
 		}
+	}
+	switch (event->type) {
+		case ESCKEY:
+		case RIGHTMOUSE:
+			edbm_inset_cancel(C, op);
+			return OPERATOR_CANCELLED;
+
+		case MOUSEMOVE:
+			if (!hasNumInput(&opdata->num_input)) {
+				float mdiff[2];
+				float amount;
+
+				mdiff[0] = opdata->mcenter[0] - event->mval[0];
+				mdiff[1] = opdata->mcenter[1] - event->mval[1];
+
+				if (opdata->modify_depth)
+					amount = opdata->old_depth + len_v2(mdiff) / opdata->initial_length - 1.0f;
+				else
+					amount = opdata->old_thickness - len_v2(mdiff) / opdata->initial_length + 1.0f;
+
+				/* Fake shift-transform... */
+				if (opdata->shift)
+					amount = (amount - opdata->shift_amount) * 0.1f + opdata->shift_amount;
+
+				if (opdata->modify_depth)
+					RNA_float_set(op->ptr, "depth", amount);
+				else {
+					amount = MAX2(amount, 0.0f);
+					RNA_float_set(op->ptr, "thickness", amount);
+				}
+
+				if (edbm_inset_calc(C, op))
+					edbm_inset_update_header(op, C);
+				else {
+					edbm_inset_cancel(C, op);
+					return OPERATOR_CANCELLED;
+				}
+			}
+			return OPERATOR_RUNNING_MODAL;
 
 		case LEFTMOUSE:
 		case PADENTER:
@@ -4860,6 +4933,20 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 			edbm_inset_exit(C, op);
 			return OPERATOR_FINISHED;
 
+		case LEFTSHIFTKEY:
+		case RIGHTSHIFTKEY:
+			if (event->val == KM_PRESS) {
+				if (opdata->modify_depth)
+					opdata->shift_amount = RNA_float_get(op->ptr, "depth");
+				else
+					opdata->shift_amount = RNA_float_get(op->ptr, "thickness");
+				opdata->shift = TRUE;
+			}
+			else {
+				opdata->shift_amount = 0.0f;
+				opdata->shift = FALSE;
+			}
+			return OPERATOR_RUNNING_MODAL;
 
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
@@ -4871,10 +4958,14 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			if (event->val == KM_PRESS) {
 				opdata->old_thickness = RNA_float_get(op->ptr, "thickness");
+				if (opdata->shift)
+					opdata->shift_amount = opdata->old_thickness;
 				opdata->modify_depth = TRUE;
 			}
 			else {
 				opdata->old_depth = RNA_float_get(op->ptr, "depth");
+				if (opdata->shift)
+					opdata->shift_amount = opdata->old_depth;
 				opdata->modify_depth = FALSE;
 			}
 			opdata->initial_length = len_v2(mlen);

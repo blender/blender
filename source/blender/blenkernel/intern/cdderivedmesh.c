@@ -1709,10 +1709,10 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 
 DerivedMesh *CDDM_from_curve(Object *ob)
 {
-	return CDDM_from_curve_customDB(ob, &ob->disp);
+	return CDDM_from_curve_displist(ob, &ob->disp);
 }
 
-DerivedMesh *CDDM_from_curve_customDB(Object *ob, ListBase *dispbase)
+DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
 {
 	DerivedMesh *dm;
 	CDDerivedMesh *cddm;
@@ -1722,7 +1722,7 @@ DerivedMesh *CDDM_from_curve_customDB(Object *ob, ListBase *dispbase)
 	MPoly *allpoly;
 	int totvert, totedge, totloop, totpoly;
 
-	if (BKE_mesh_nurbs_to_mdata_customdb(ob, dispbase, &allvert, &totvert, &alledge,
+	if (BKE_mesh_nurbs_displist_to_mdata(ob, dispbase, &allvert, &totvert, &alledge,
 	                                     &totedge, &allloop, &allpoly, &totloop, &totpoly) != 0)
 	{
 		/* Error initializing mdata. This often happens when curve is empty */

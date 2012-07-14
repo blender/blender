@@ -60,7 +60,8 @@ int is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], c
 /********************************* Distance **********************************/
 
 float dist_to_line_v2(const float p[2], const float l1[2], const float l2[2]);
-float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
+float dist_squared_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
+float         dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
 void closest_to_line_segment_v2(float closest[2], const float p[2], const float l1[2], const float l2[2]);
 
 float dist_to_plane_normalized_v3(const float p[3], const float plane_co[3], const float plane_no_unit[3]);

@@ -20,19 +20,19 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Brecht Van Lommel
+ *                 Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file MEM_guardedalloc.h
- *  \ingroup MEM
+/**
+ * \file MEM_guardedalloc.h
+ * \ingroup MEM
  *
- *  \author Copyright (C) 2001 NaN Technologies B.V.
- *  \brief Read \ref MEMPage
- */
-
-/** 
+ * \author Copyright (C) 2001 NaN Technologies B.V.
+ * \brief Read \ref MEMPage
+ *
  * \page MEMPage Guarded memory(de)allocation
  *
  * \section aboutmem c-style guarded memory allocation
@@ -118,8 +118,9 @@ extern "C" {
 	__attribute__((alloc_size(1)))
 #endif
 	;
-	
-	/** Allocate a block of memory of size len, with tag name str. The
+
+	/**
+	 * Allocate a block of memory of size len, with tag name str. The
 	 * name must be a static, because only a pointer to it is stored !
 	 * */
 	void *MEM_mallocN(size_t len, const char *str)
@@ -129,8 +130,9 @@ extern "C" {
 	__attribute__((alloc_size(1)))
 #endif
 	;
-	
-	/** Same as callocN, clears memory and uses mmap (disk cached) if supported.
+
+	/**
+	 * Same as callocN, clears memory and uses mmap (disk cached) if supported.
 	 * Can be free'd with MEM_freeN as usual.
 	 * */
 	void *MEM_mapallocN(size_t len, const char *str)
@@ -171,7 +173,8 @@ extern "C" {
 	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
 	void MEM_set_memory_debug(void);
 
-	/** Memory usage stats
+	/**
+	 * Memory usage stats
 	 * - MEM_get_memory_in_use is all memory
 	 * - MEM_get_mapped_memory_in_use is a subset of all memory */
 	uintptr_t MEM_get_memory_in_use(void);

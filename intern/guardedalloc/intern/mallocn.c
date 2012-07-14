@@ -20,7 +20,8 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Brecht Van Lommel
+ *                 Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -904,6 +905,4 @@ const char *MEM_name_ptr(void *vmemh)
 		return "MEM_name_ptr(NULL)";
 	}
 }
-#endif
-
-/* eof */
+#endif  /* NDEBUG */
