@@ -47,6 +47,7 @@
 #ifndef USE_RASKTER
 
 #define SPLINE_RESOL 32
+#define BUCKET_PIXELS_PER_CELL 8
 
 #define SF_EDGE_IS_BOUNDARY 0xff
 #define SF_KEYINDEX_TEMP_ID ((unsigned int) -1)
@@ -62,7 +63,8 @@
 /**
  * A single #MaskRasterHandle contains multile #MaskRasterLayer's,
  * each #MaskRasterLayer does its own lookup which contributes to
- * the final pixel with its own blending mode and the final pixel is blended between these.
+ * the final pixel with its own blending mode and the final pixel
+ * is blended between these.
  */
 
 /* internal use only */
@@ -122,30 +124,30 @@ void BLI_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 {
 	const unsigned int layers_tot = mr_handle->layers_tot;
 	unsigned int i;
-	MaskRasterLayer *raslayers = mr_handle->layers;
+	MaskRasterLayer *layer = mr_handle->layers;
 
 	/* raycast vars */
-	for (i = 0; i < layers_tot; i++, raslayers++) {
+	for (i = 0; i < layers_tot; i++, layer++) {
 
-		if (raslayers->face_array) {
-			MEM_freeN(raslayers->face_array);
+		if (layer->face_array) {
+			MEM_freeN(layer->face_array);
 		}
 
-		if (raslayers->face_coords) {
-			MEM_freeN(raslayers->face_coords);
+		if (layer->face_coords) {
+			MEM_freeN(layer->face_coords);
 		}
 
-		if (raslayers->buckets_face) {
-			const unsigned int   bucket_tot = raslayers->buckets_x * raslayers->buckets_y;
+		if (layer->buckets_face) {
+			const unsigned int   bucket_tot = layer->buckets_x * layer->buckets_y;
 			unsigned int bucket_index;
 			for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
-				unsigned int *face_index = raslayers->buckets_face[bucket_index];
+				unsigned int *face_index = layer->buckets_face[bucket_index];
 				if (face_index) {
 					MEM_freeN(face_index);
 				}
 			}
 
-			MEM_freeN(raslayers->buckets_face);
+			MEM_freeN(layer->buckets_face);
 		}
 	}
 
@@ -154,9 +156,9 @@ void BLI_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 }
 
 
-void maskrasterize_spline_differentiate_point_inset(float (*diff_feather_points)[2], float (*diff_points)[2],
-                                                    const unsigned int tot_diff_point, const float ofs,
-                                                    const short do_test)
+void maskrasterize_spline_differentiate_point_outset(float (*diff_feather_points)[2], float (*diff_points)[2],
+                                                     const unsigned int tot_diff_point, const float ofs,
+                                                     const short do_test)
 {
 	unsigned int k_prev = tot_diff_point - 2;
 	unsigned int k_curr = tot_diff_point - 1;
@@ -184,7 +186,7 @@ void maskrasterize_spline_differentiate_point_inset(float (*diff_feather_points)
 
 	for (k = 0; k < tot_diff_point; k++) {
 
-		co_prev = diff_points[k_prev];
+		/* co_prev = diff_points[k_prev]; */ /* precalc */
 		co_curr = diff_points[k_curr];
 		co_next = diff_points[k_next];
 
@@ -209,23 +211,32 @@ void maskrasterize_spline_differentiate_point_inset(float (*diff_feather_points)
 		/* use next iter */
 		copy_v2_v2(d_prev, d_next);
 
-		k_prev = k_curr;
+		/* k_prev = k_curr; */ /* precalc */
 		k_curr = k_next;
 		k_next++;
 	}
 }
 
 
-static void layer_bucket_init(MaskRasterLayer *layer)
+static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 {
 	MemArena *arena = BLI_memarena_new(1 << 16, __func__);
 
-	/* TODO - calculate best bucket size */
-	layer->buckets_x = 256;
-	layer->buckets_y = 256;
+	{
+		const float dims[2] = {layer->bounds.xmax - layer->bounds.xmin,
+		                       layer->bounds.ymax - layer->bounds.ymin};
 
-	layer->buckets_xy_scalar[0] = (1.0f / ((layer->bounds.xmax - layer->bounds.xmin) + FLT_EPSILON)) * layer->buckets_x;
-	layer->buckets_xy_scalar[1] = (1.0f / ((layer->bounds.ymax - layer->bounds.ymin) + FLT_EPSILON)) * layer->buckets_y;
+		layer->buckets_x = (dims[0] / pixel_size) / (float)BUCKET_PIXELS_PER_CELL;
+		layer->buckets_y = (dims[1] / pixel_size) / (float)BUCKET_PIXELS_PER_CELL;
+
+//		printf("bucket size %ux%u\n", layer->buckets_x, layer->buckets_y);
+
+		CLAMP(layer->buckets_x, 8, 512);
+		CLAMP(layer->buckets_y, 8, 512);
+
+		layer->buckets_xy_scalar[0] = (1.0f / (dims[0] + FLT_EPSILON)) * layer->buckets_x;
+		layer->buckets_xy_scalar[1] = (1.0f / (dims[1] + FLT_EPSILON)) * layer->buckets_y;
+	}
 
 	{
 		unsigned int *face = &layer->face_array[0][0];
@@ -428,12 +439,12 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 						diff_feather_points = MEM_mallocN(sizeof(*diff_feather_points) * tot_diff_feather_points,
 						                                  __func__);
 						/* add single pixel feather */
-						maskrasterize_spline_differentiate_point_inset(diff_feather_points, diff_points,
+						maskrasterize_spline_differentiate_point_outset(diff_feather_points, diff_points,
 						                                               tot_diff_point, pixel_size, FALSE);
 					}
 					else {
 						/* ensure single pixel feather, on any zero feather areas */
-						maskrasterize_spline_differentiate_point_inset(diff_feather_points, diff_points,
+						maskrasterize_spline_differentiate_point_outset(diff_feather_points, diff_points,
 						                                               tot_diff_point, pixel_size, TRUE);
 					}
 				}
@@ -505,8 +516,6 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			rctf bounds;
 			int face_index;
 
-			float bvhcos[4][3];
-
 			/* now we have all the splines */
 			face_coords = MEM_mallocN((sizeof(float) * 3) * sf_vert_tot, "maskrast_face_coords");
 
@@ -559,11 +568,6 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 						*(face++) = sf_edge->v2->keyindex;
 						*(face++) = sf_edge->v1->keyindex;
 
-						copy_v3_v3(bvhcos[0], face_coords[*(face - 4)]);
-						copy_v3_v3(bvhcos[1], face_coords[*(face - 3)]);
-						copy_v3_v3(bvhcos[2], face_coords[*(face - 2)]);
-						copy_v3_v3(bvhcos[3], face_coords[*(face - 1)]);
-
 						face_index++;
 					}
 				}
@@ -574,19 +578,19 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			BLI_assert(face_index == sf_tri_tot + tot_feather_quads);
 
 			{
-				MaskRasterLayer *raslayer = &mr_handle->layers[masklay_index];
+				MaskRasterLayer *layer = &mr_handle->layers[masklay_index];
 
-				raslayer->face_tot = sf_tri_tot + tot_feather_quads;
-				raslayer->face_coords = face_coords;
-				raslayer->face_array  = face_array;
-				raslayer->bounds  = bounds;
+				layer->face_tot = sf_tri_tot + tot_feather_quads;
+				layer->face_coords = face_coords;
+				layer->face_array  = face_array;
+				layer->bounds  = bounds;
 
 				/* copy as-is */
-				raslayer->alpha = masklay->alpha;
-				raslayer->blend = masklay->blend;
-				raslayer->blend_flag = masklay->blend_flag;
+				layer->alpha = masklay->alpha;
+				layer->blend = masklay->blend;
+				layer->blend_flag = masklay->blend_flag;
 
-				layer_bucket_init(raslayer);
+				layer_bucket_init(layer, pixel_size);
 
 				BLI_union_rctf(&mr_handle->bounds, &bounds);
 			}
