@@ -55,6 +55,10 @@
 #define TRI_VERT            ((unsigned int) -1)
 
 
+/* --------------------------------------------------------------------- */
+/* local structs for mask rasterizeing                                   */
+/* --------------------------------------------------------------------- */
+
 /**
  * A single #MaskRasterHandle contains multile #MaskRasterLayer's,
  * each #MaskRasterLayer does its own lookup which contributes to
@@ -64,19 +68,19 @@
 /* internal use only */
 typedef struct MaskRasterLayer {
 	/* geometry */
-	unsigned int   tri_tot;
-	unsigned int (*tri_array)[4];  /* access coords tri/quad */
-	float        (*tri_coords)[3]; /* xy, z 0-1 (1.0 == filled) */
+	unsigned int   face_tot;
+	unsigned int (*face_array)[4];  /* access coords tri/quad */
+	float        (*face_coords)[3]; /* xy, z 0-1 (1.0 == filled) */
 
 
-	/* 2d bounds (to quickly skip raytree lookup) */
+	/* 2d bounds (to quickly skip bucket lookup) */
 	rctf bounds;
 
 
 	/* buckets */
-	unsigned int **buckets_tri;
+	unsigned int **buckets_face;
 	/* cache divide and subtract */
-	float buckets_xy_scalar[2]; /* 1.0 / (buckets_width + FLT_EPSILON) */
+	float buckets_xy_scalar[2]; /* (1.0 / (buckets_width + FLT_EPSILON)) * buckets_x */
 	unsigned int buckets_x;
 	unsigned int buckets_y;
 
@@ -89,13 +93,6 @@ typedef struct MaskRasterLayer {
 
 } MaskRasterLayer;
 
-static void layer_bucket_init(MaskRasterLayer *layer);
-
-
-/* --------------------------------------------------------------------- */
-/* alloc / free functions                                                */
-/* --------------------------------------------------------------------- */
-
 /**
  * opaque local struct for mask pixel lookup, each MaskLayer needs one of these
  */
@@ -103,9 +100,14 @@ struct MaskRasterHandle {
 	MaskRasterLayer *layers;
 	unsigned int     layers_tot;
 
-	/* 2d bounds (to quickly skip raytree lookup) */
+	/* 2d bounds (to quickly skip bucket lookup) */
 	rctf bounds;
 };
+
+
+/* --------------------------------------------------------------------- */
+/* alloc / free functions                                                */
+/* --------------------------------------------------------------------- */
 
 MaskRasterHandle *BLI_maskrasterize_handle_new(void)
 {
@@ -125,25 +127,25 @@ void BLI_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 	/* raycast vars */
 	for (i = 0; i < layers_tot; i++, raslayers++) {
 
-		if (raslayers->tri_array) {
-			MEM_freeN(raslayers->tri_array);
+		if (raslayers->face_array) {
+			MEM_freeN(raslayers->face_array);
 		}
 
-		if (raslayers->tri_coords) {
-			MEM_freeN(raslayers->tri_coords);
+		if (raslayers->face_coords) {
+			MEM_freeN(raslayers->face_coords);
 		}
 
-		if (raslayers->buckets_tri) {
+		if (raslayers->buckets_face) {
 			const unsigned int   bucket_tot = raslayers->buckets_x * raslayers->buckets_y;
 			unsigned int bucket_index;
 			for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
-				unsigned int *tri_index = raslayers->buckets_tri[bucket_index];
-				if (tri_index) {
-					MEM_freeN(tri_index);
+				unsigned int *face_index = raslayers->buckets_face[bucket_index];
+				if (face_index) {
+					MEM_freeN(face_index);
 				}
 			}
 
-			MEM_freeN(raslayers->buckets_tri);
+			MEM_freeN(raslayers->buckets_face);
 		}
 	}
 
@@ -226,25 +228,25 @@ static void layer_bucket_init(MaskRasterLayer *layer)
 	layer->buckets_xy_scalar[1] = (1.0f / ((layer->bounds.ymax - layer->bounds.ymin) + FLT_EPSILON)) * layer->buckets_y;
 
 	{
-		unsigned int *tri = &layer->tri_array[0][0];
-		float (*cos)[3] = layer->tri_coords;
+		unsigned int *face = &layer->face_array[0][0];
+		float (*cos)[3] = layer->face_coords;
 
-		const unsigned int   bucket_tot = layer->buckets_x * layer->buckets_y;
+		const unsigned int  bucket_tot = layer->buckets_x * layer->buckets_y;
 		LinkNode     **bucketstore     = MEM_callocN(bucket_tot * sizeof(LinkNode *),  __func__);
 		unsigned int  *bucketstore_tot = MEM_callocN(bucket_tot * sizeof(unsigned int), __func__);
 
-		unsigned int tri_index;
+		unsigned int face_index;
 
-		for (tri_index = 0; tri_index < layer->tri_tot; tri_index++, tri += 4) {
+		for (face_index = 0; face_index < layer->face_tot; face_index++, face += 4) {
 			float xmin;
 			float xmax;
 			float ymin;
 			float ymax;
 
-			if (tri[3] == TRI_VERT) {
-				const float *v1 = cos[tri[0]];
-				const float *v2 = cos[tri[1]];
-				const float *v3 = cos[tri[2]];
+			if (face[3] == TRI_VERT) {
+				const float *v1 = cos[face[0]];
+				const float *v2 = cos[face[1]];
+				const float *v3 = cos[face[2]];
 
 				xmin = fminf(v1[0], fminf(v2[0], v3[0]));
 				xmax = fmaxf(v1[0], fmaxf(v2[0], v3[0]));
@@ -252,10 +254,10 @@ static void layer_bucket_init(MaskRasterLayer *layer)
 				ymax = fmaxf(v1[1], fmaxf(v2[1], v3[1]));
 			}
 			else {
-				const float *v1 = cos[tri[0]];
-				const float *v2 = cos[tri[1]];
-				const float *v3 = cos[tri[2]];
-				const float *v4 = cos[tri[3]];
+				const float *v1 = cos[face[0]];
+				const float *v2 = cos[face[1]];
+				const float *v3 = cos[face[2]];
+				const float *v4 = cos[face[3]];
 
 				xmin = fminf(v1[0], fminf(v2[0], fminf(v3[0], v4[0])));
 				xmax = fmaxf(v1[0], fmaxf(v2[0], fmaxf(v3[0], v4[0])));
@@ -282,7 +284,7 @@ static void layer_bucket_init(MaskRasterLayer *layer)
 						BLI_assert(bucket_index < bucket_tot);
 
 						BLI_linklist_prepend_arena(&bucketstore[bucket_index],
-						                           SET_UINT_IN_POINTER(tri_index),
+						                           SET_UINT_IN_POINTER(face_index),
 						                           arena);
 
 						bucketstore_tot[bucket_index]++;
@@ -293,7 +295,7 @@ static void layer_bucket_init(MaskRasterLayer *layer)
 
 		if (1) {
 			/* now convert linknodes into arrays for faster per pixel access */
-			unsigned int  **buckets_tri = MEM_mallocN(bucket_tot * sizeof(unsigned int **), __func__);
+			unsigned int  **buckets_face = MEM_mallocN(bucket_tot * sizeof(unsigned int **), __func__);
 			unsigned int bucket_index;
 
 			for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
@@ -302,7 +304,7 @@ static void layer_bucket_init(MaskRasterLayer *layer)
 					                                    __func__);
 					LinkNode *bucket_node;
 
-					buckets_tri[bucket_index] = bucket;
+					buckets_face[bucket_index] = bucket;
 
 					for (bucket_node = bucketstore[bucket_index]; bucket_node; bucket_node = bucket_node->next) {
 						*bucket = GET_UINT_FROM_POINTER(bucket_node->link);
@@ -311,11 +313,11 @@ static void layer_bucket_init(MaskRasterLayer *layer)
 					*bucket = TRI_TERMINATOR_ID;
 				}
 				else {
-					buckets_tri[bucket_index] = NULL;
+					buckets_face[bucket_index] = NULL;
 				}
 			}
 
-			layer->buckets_tri = buckets_tri;
+			layer->buckets_face = buckets_face;
 		}
 
 		MEM_freeN(bucketstore);
@@ -497,22 +499,22 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		}
 
 		if (sf_ctx.fillvertbase.first) {
-			unsigned int (*tri_array)[4], *tri;  /* access coords */
-			float        (*tri_coords)[3], *cos; /* xy, z 0-1 (1.0 == filled) */
+			unsigned int (*face_array)[4], *face;  /* access coords */
+			float        (*face_coords)[3], *cos; /* xy, z 0-1 (1.0 == filled) */
 			int sf_tri_tot;
 			rctf bounds;
-			int tri_index;
+			int face_index;
 
 			float bvhcos[4][3];
 
 			/* now we have all the splines */
-			tri_coords = MEM_mallocN((sizeof(float) * 3) * sf_vert_tot, "maskrast_tri_coords");
+			face_coords = MEM_mallocN((sizeof(float) * 3) * sf_vert_tot, "maskrast_face_coords");
 
 			/* init bounds */
 			BLI_rctf_init_minmax(&bounds);
 
 			/* coords */
-			cos = (float *)tri_coords;
+			cos = (float *)face_coords;
 			for (sf_vert = sf_ctx.fillvertbase.first; sf_vert; sf_vert = sf_vert_next) {
 				sf_vert_next = sf_vert->next;
 				copy_v3_v3(cos, sf_vert->co);
@@ -531,52 +533,52 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			/* main scanfill */
 			sf_tri_tot = BLI_scanfill_calc_ex(&sf_ctx, FALSE, zvec);
 
-			tri_array = MEM_mallocN(sizeof(*tri_array) * (sf_tri_tot + tot_feather_quads), "maskrast_tri_index");
+			face_array = MEM_mallocN(sizeof(*face_array) * (sf_tri_tot + tot_feather_quads), "maskrast_face_index");
 
 			/* tri's */
-			tri = (unsigned int *)tri_array;
-			for (sf_tri = sf_ctx.fillfacebase.first, tri_index = 0; sf_tri; sf_tri = sf_tri->next, tri_index++) {
-				*(tri++) = sf_tri->v1->tmp.u;
-				*(tri++) = sf_tri->v2->tmp.u;
-				*(tri++) = sf_tri->v3->tmp.u;
-				*(tri++) = TRI_VERT;
+			face = (unsigned int *)face_array;
+			for (sf_tri = sf_ctx.fillfacebase.first, face_index = 0; sf_tri; sf_tri = sf_tri->next, face_index++) {
+				*(face++) = sf_tri->v1->tmp.u;
+				*(face++) = sf_tri->v2->tmp.u;
+				*(face++) = sf_tri->v3->tmp.u;
+				*(face++) = TRI_VERT;
 			}
 
 			/* start of feather faces... if we have this set,
-			 * 'tri_index' is kept from loop above */
+			 * 'face_index' is kept from loop above */
 
-			BLI_assert(tri_index == sf_tri_tot);
+			BLI_assert(face_index == sf_tri_tot);
 
 			if (tot_feather_quads) {
 				ScanFillEdge *sf_edge;
 
 				for (sf_edge = sf_ctx.filledgebase.first; sf_edge; sf_edge = sf_edge->next) {
 					if (sf_edge->tmp.c == SF_EDGE_IS_BOUNDARY) {
-						*(tri++) = sf_edge->v1->tmp.u;
-						*(tri++) = sf_edge->v2->tmp.u;
-						*(tri++) = sf_edge->v2->keyindex;
-						*(tri++) = sf_edge->v1->keyindex;
+						*(face++) = sf_edge->v1->tmp.u;
+						*(face++) = sf_edge->v2->tmp.u;
+						*(face++) = sf_edge->v2->keyindex;
+						*(face++) = sf_edge->v1->keyindex;
 
-						copy_v3_v3(bvhcos[0], tri_coords[*(tri - 4)]);
-						copy_v3_v3(bvhcos[1], tri_coords[*(tri - 3)]);
-						copy_v3_v3(bvhcos[2], tri_coords[*(tri - 2)]);
-						copy_v3_v3(bvhcos[3], tri_coords[*(tri - 1)]);
+						copy_v3_v3(bvhcos[0], face_coords[*(face - 4)]);
+						copy_v3_v3(bvhcos[1], face_coords[*(face - 3)]);
+						copy_v3_v3(bvhcos[2], face_coords[*(face - 2)]);
+						copy_v3_v3(bvhcos[3], face_coords[*(face - 1)]);
 
-						tri_index++;
+						face_index++;
 					}
 				}
 			}
 
-			fprintf(stderr, "%d %d\n", tri_index, sf_tri_tot + tot_feather_quads);
+			// fprintf(stderr, "%d %d\n", face_index, sf_face_tot + tot_feather_quads);
 
-			BLI_assert(tri_index == sf_tri_tot + tot_feather_quads);
+			BLI_assert(face_index == sf_tri_tot + tot_feather_quads);
 
 			{
 				MaskRasterLayer *raslayer = &mr_handle->layers[masklay_index];
 
-				raslayer->tri_tot = sf_tri_tot + tot_feather_quads;
-				raslayer->tri_coords = tri_coords;
-				raslayer->tri_array  = tri_array;
+				raslayer->face_tot = sf_tri_tot + tot_feather_quads;
+				raslayer->face_coords = face_coords;
+				raslayer->face_array  = face_array;
 				raslayer->bounds  = bounds;
 
 				/* copy as-is */
@@ -621,10 +623,10 @@ static float maskrasterize_layer_z_depth_quad(const float pt[2],
 }
 #endif
 
-static float maskrasterize_layer_isect(unsigned int *tri, float (*cos)[3], const float dist_orig, const float xy[2])
+static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], const float dist_orig, const float xy[2])
 {
 	/* we always cast from same place only need xy */
-	if (tri[3] == TRI_VERT) {
+	if (face[3] == TRI_VERT) {
 		/* --- tri --- */
 
 #if 0
@@ -633,15 +635,15 @@ static float maskrasterize_layer_isect(unsigned int *tri, float (*cos)[3], const
 		    (cos[1][2] < dist_orig) ||
 		    (cos[2][2] < dist_orig))
 		{
-			if (isect_point_tri_v2(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]])) {
+			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
 				/* we know all tris are close for now */
-				return maskrasterize_layer_z_depth_tri(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]]);
+				return maskrasterize_layer_z_depth_tri(xy, cos[face[0]], cos[face[1]], cos[face[2]]);
 			}
 		}
 #else
 		/* we know all tris are close for now */
 		if (1) {
-			if (isect_point_tri_v2(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]])) {
+			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
 				return 0.0f;
 			}
 		}
@@ -659,15 +661,15 @@ static float maskrasterize_layer_isect(unsigned int *tri, float (*cos)[3], const
 
 			/* needs work */
 #if 0
-			if (isect_point_quad_v2(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]], cos[tri[3]])) {
-				return maskrasterize_layer_z_depth_quad(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]], cos[tri[3]]);
+			if (isect_point_quad_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]])) {
+				return maskrasterize_layer_z_depth_quad(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]);
 			}
 #elif 1
-			if (isect_point_tri_v2(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]])) {
-				return maskrasterize_layer_z_depth_tri(xy, cos[tri[0]], cos[tri[1]], cos[tri[2]]);
+			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
+				return maskrasterize_layer_z_depth_tri(xy, cos[face[0]], cos[face[1]], cos[face[2]]);
 			}
-			else if (isect_point_tri_v2(xy, cos[tri[0]], cos[tri[2]], cos[tri[3]])) {
-				return maskrasterize_layer_z_depth_tri(xy, cos[tri[0]], cos[tri[2]], cos[tri[3]]);
+			else if (isect_point_tri_v2(xy, cos[face[0]], cos[face[2]], cos[face[3]])) {
+				return maskrasterize_layer_z_depth_tri(xy, cos[face[0]], cos[face[2]], cos[face[3]]);
 			}
 #else
 			/* cheat - we know first 2 verts are z0.0f and second 2 are z 1.0f */
@@ -679,7 +681,7 @@ static float maskrasterize_layer_isect(unsigned int *tri, float (*cos)[3], const
 	return 1.0f;
 }
 
-static unsigned int layer_bucket_index_from_xy(MaskRasterLayer *layer, const float xy[2])
+BLI_INLINE unsigned int layer_bucket_index_from_xy(MaskRasterLayer *layer, const float xy[2])
 {
 	BLI_assert(BLI_in_rctf_v(&layer->bounds, xy));
 
@@ -690,23 +692,23 @@ static unsigned int layer_bucket_index_from_xy(MaskRasterLayer *layer, const flo
 static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2])
 {
 	unsigned int index = layer_bucket_index_from_xy(layer, xy);
-	unsigned int *tri_index = layer->buckets_tri[index];
+	unsigned int *face_index = layer->buckets_face[index];
 
-	if (tri_index) {
-		float (*cos)[3] = layer->tri_coords;
+	if (face_index) {
+		unsigned int (*face_array)[4] = layer->face_array;
+		float        (*cos)[3]        = layer->face_coords;
 		float best_dist = 1.0f;
-		float test_dist;
-		while (*tri_index != TRI_TERMINATOR_ID) {
-			unsigned int *tri = layer->tri_array[*tri_index];
-			if ((test_dist = maskrasterize_layer_isect(tri, cos, best_dist, xy)) < best_dist) {
+		while (*face_index != TRI_TERMINATOR_ID) {
+			const float test_dist = maskrasterize_layer_isect(face_array[*face_index], cos, best_dist, xy);
+			if (test_dist < best_dist) {
 				best_dist = test_dist;
 				/* comparing with 0.0f is OK here because triangles are always zero depth */
 				if (best_dist == 0.0f) {
-					/* bail early, we're as close as possible  */
+					/* bail early, we're as close as possible */
 					return 0.0f;
 				}
 			}
-			tri_index++;
+			face_index++;
 		}
 		return best_dist;
 	}
