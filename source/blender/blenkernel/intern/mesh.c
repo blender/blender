@@ -1230,7 +1230,7 @@ int BKE_mesh_nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
                             MEdge **alledge, int *totedge, MLoop **allloop, MPoly **allpoly,
                             int *totloop, int *totpoly)
 {
-	return BKE_mesh_nurbs_to_mdata_customdb(ob, &ob->disp,
+	return BKE_mesh_nurbs_displist_to_mdata(ob, &ob->disp,
 	                                        allvert, totvert,
 	                                        alledge, totedge,
 	                                        allloop, allpoly,
@@ -1242,7 +1242,7 @@ int BKE_mesh_nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
 
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* use specified dispbase  */
-int BKE_mesh_nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase,
+int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
                                      MVert **allvert, int *_totvert,
                                      MEdge **alledge, int *_totedge,
                                      MLoop **allloop, MPoly **allpoly,
@@ -1462,7 +1462,7 @@ int BKE_mesh_nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase,
 }
 
 /* this may fail replacing ob->data, be sure to check ob->type */
-void BKE_mesh_from_nurbs(Object *ob)
+void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase)
 {
 	Main *bmain = G.main;
 	Object *ob1;
@@ -1478,9 +1478,9 @@ void BKE_mesh_from_nurbs(Object *ob)
 	cu = ob->data;
 
 	if (dm == NULL) {
-		if (BKE_mesh_nurbs_to_mdata(ob, &allvert, &totvert,
-		                            &alledge, &totedge, &allloop,
-		                            &allpoly, &totloop, &totpoly) != 0)
+		if (BKE_mesh_nurbs_displist_to_mdata(ob, dispbase, &allvert, &totvert,
+		                                     &alledge, &totedge, &allloop,
+		                                     &allpoly, &totloop, &totpoly) != 0)
 		{
 			/* Error initializing */
 			return;
@@ -1532,6 +1532,11 @@ void BKE_mesh_from_nurbs(Object *ob)
 		}
 		ob1 = ob1->id.next;
 	}
+}
+
+void BKE_mesh_from_nurbs(Object *ob)
+{
+	return BKE_mesh_from_nurbs_displist(ob, &ob->disp);
 }
 
 typedef struct EdgeLink {

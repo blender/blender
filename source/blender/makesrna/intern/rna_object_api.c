@@ -84,7 +84,9 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 	switch (ob->type) {
 		case OB_FONT:
 		case OB_CURVE:
-		case OB_SURF:
+		case OB_SURF: {
+			ListBase dispbase = {NULL, NULL};
+			DerivedMesh *derivedFinal = NULL;
 
 			/* copies object and modifiers (but not the data) */
 			tmpobj = BKE_object_copy(ob);
@@ -105,12 +107,16 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			copycu->editnurb = tmpcu->editnurb;
 
 			/* get updated display list, and convert to a mesh */
-			BKE_displist_make_curveTypes(sce, tmpobj, 0);
+			BKE_displist_make_curveTypes_forRender(sce, tmpobj, &dispbase, &derivedFinal, FALSE);
 
 			copycu->editfont = NULL;
 			copycu->editnurb = NULL;
 
-			BKE_mesh_from_nurbs(tmpobj);
+			tmpobj->derivedFinal = derivedFinal;
+
+			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase);
+
+			BKE_displist_free(&dispbase);
 
 			/* BKE_mesh_from_nurbs changes the type to a mesh, check it worked */
 			if (tmpobj->type != OB_MESH) {
@@ -121,6 +127,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			tmpmesh = tmpobj->data;
 			BKE_libblock_free_us(&G.main->object, tmpobj);
 			break;
+		}
 
 		case OB_MBALL: {
 			/* metaballs don't have modifiers, so just convert to mesh */

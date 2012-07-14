@@ -66,7 +66,7 @@ struct DerivedMesh *CDDM_from_curve(struct Object *ob);
 
 /* creates a CDDerivedMesh from the given curve object and specified dispbase */
 /* useful for OrcoDM creation for curves with constructive modifiers */
-DerivedMesh *CDDM_from_curve_customDB(struct Object *ob, struct ListBase *dispbase);
+DerivedMesh *CDDM_from_curve_displist(struct Object *ob, struct ListBase *dispbase);
 
 /* Copies the given DerivedMesh with verts, faces & edges stored as
  * custom element data.
