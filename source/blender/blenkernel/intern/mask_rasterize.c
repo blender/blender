@@ -461,6 +461,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		BLI_scanfill_begin(&sf_ctx);
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			// const unsigned int is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
 
 			float (*diff_points)[2];
 			int tot_diff_point;
@@ -471,7 +472,6 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			diff_points = BKE_mask_spline_differentiate_with_resolution_ex(
 			                  spline, resol, &tot_diff_point);
 
-			/* dont ch*/
 			if (do_feather) {
 				diff_feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution_ex(
 				                          spline, resol, &tot_diff_feather_points);
@@ -567,7 +567,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 					BLI_assert(tot_diff_feather_points == tot_diff_point);
 
-					/* note: only added for convenience, we dont infact use these to scanfill,
+					/* note: only added for convenience, we don't infact use these to scanfill,
 					 * only to create feather faces after scanfill */
 					for (j = 0; j < tot_diff_feather_points; j++) {
 						copy_v2_v2(co_feather, diff_feather_points[j]);
@@ -816,41 +816,37 @@ float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 	unsigned int i;
 	MaskRasterLayer *layer = mr_handle->layers;
 
-	/* raycast vars*/
-
-	/* return */
+	/* return value */
 	float value = 0.0f;
 
 	for (i = 0; i < layers_tot; i++, layer++) {
-		float dist_ease;
-		float v;
+		float value_layer;
 
 		if (BLI_in_rctf_v(&layer->bounds, xy)) {
-			/* --- hit (start) --- */
 			const float dist = 1.0f - layer_bucket_depth_from_xy(layer, xy);
-			dist_ease = (3.0f * dist * dist - 2.0f * dist * dist * dist);
+			const float dist_ease = (3.0f * dist * dist - 2.0f * dist * dist * dist);
+
+			/* apply alpha */
+			value_layer = dist_ease * layer->alpha;
 		}
 		else {
-			dist_ease = 0.0f;
+			value_layer = 0.0f;
 		}
 
-		/* apply alpha */
-		v = dist_ease * layer->alpha;
-
 		if (layer->blend_flag & MASK_BLENDFLAG_INVERT) {
-			v = 1.0f - v;
+			value_layer = 1.0f - value_layer;
 		}
 
 		switch (layer->blend) {
 			case MASK_BLEND_SUBTRACT:
 			{
-				value -= v;
+				value -= value_layer;
 				break;
 			}
 			case MASK_BLEND_ADD:
 			default:
 			{
-				value += v;
+				value += value_layer;
 				break;
 			}
 		}
