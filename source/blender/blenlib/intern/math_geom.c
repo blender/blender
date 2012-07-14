@@ -162,51 +162,51 @@ float area_poly_v3(int nr, float verts[][3], const float normal[3])
 
 /********************************* Distance **********************************/
 
-/* distance v1 to line v2-v3
+/* distance p to line v1-v2
  * using Hesse formula, NO LINE PIECE! */
-float dist_to_line_v2(const float v1[2], const float v2[2], const float v3[2])
+float dist_to_line_v2(const float p[2], const float l1[2], const float l2[2])
 {
 	float a[2], deler;
 
-	a[0] = v2[1] - v3[1];
-	a[1] = v3[0] - v2[0];
+	a[0] = l1[1] - l2[1];
+	a[1] = l2[0] - l1[0];
 	deler = (float)sqrt(a[0] * a[0] + a[1] * a[1]);
 	if (deler == 0.0f) return 0;
 
-	return fabsf((v1[0] - v2[0]) * a[0] + (v1[1] - v2[1]) * a[1]) / deler;
+	return fabsf((p[0] - l1[0]) * a[0] + (p[1] - l1[1]) * a[1]) / deler;
 
 }
 
-/* distance v1 to line-piece v2-v3 */
-float dist_to_line_segment_v2(const float v1[2], const float v2[2], const float v3[2])
+/* distance p to line-piece v1-v2 */
+float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2])
 {
 	float labda, rc[2], pt[2], len;
 
-	rc[0] = v3[0] - v2[0];
-	rc[1] = v3[1] - v2[1];
+	rc[0] = l2[0] - l1[0];
+	rc[1] = l2[1] - l1[1];
 	len = rc[0] * rc[0] + rc[1] * rc[1];
 	if (len == 0.0f) {
-		rc[0] = v1[0] - v2[0];
-		rc[1] = v1[1] - v2[1];
+		rc[0] = p[0] - l1[0];
+		rc[1] = p[1] - l1[1];
 		return (float)(sqrt(rc[0] * rc[0] + rc[1] * rc[1]));
 	}
 
-	labda = (rc[0] * (v1[0] - v2[0]) + rc[1] * (v1[1] - v2[1])) / len;
+	labda = (rc[0] * (p[0] - l1[0]) + rc[1] * (p[1] - l1[1])) / len;
 	if (labda <= 0.0f) {
-		pt[0] = v2[0];
-		pt[1] = v2[1];
+		pt[0] = l1[0];
+		pt[1] = l1[1];
 	}
 	else if (labda >= 1.0f) {
-		pt[0] = v3[0];
-		pt[1] = v3[1];
+		pt[0] = l2[0];
+		pt[1] = l2[1];
 	}
 	else {
-		pt[0] = labda * rc[0] + v2[0];
-		pt[1] = labda * rc[1] + v2[1];
+		pt[0] = labda * rc[0] + l1[0];
+		pt[1] = labda * rc[1] + l1[1];
 	}
 
-	rc[0] = pt[0] - v1[0];
-	rc[1] = pt[1] - v1[1];
+	rc[0] = pt[0] - p[0];
+	rc[1] = pt[1] - p[1];
 	return sqrtf(rc[0] * rc[0] + rc[1] * rc[1]);
 }
 
