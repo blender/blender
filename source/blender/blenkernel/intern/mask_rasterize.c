@@ -760,16 +760,16 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				}
 
 				if (open_spline_ranges[open_spline_index].is_cyclic) {
-					*(face++) = start_vidx + 3; /* next span */ /* z 1 */
+					*(face++) = start_vidx + 0; /* next span */ /* z 1 */
 					*(face++) = j          + 0;                 /* z 1 */
 					*(face++) = j          + 1;                 /* z 0 */
-					*(face++) = start_vidx + 4; /* next span */ /* z 0 */
+					*(face++) = start_vidx + 1; /* next span */ /* z 0 */
 
 					face_index++;
 
 					*(face++) = j          + 0;                 /* z 1 */
-					*(face++) = start_vidx + 3; /* next span */ /* z 1 */
-					*(face++) = start_vidx + 5; /* next span */ /* z 0 */
+					*(face++) = start_vidx + 0; /* next span */ /* z 1 */
+					*(face++) = start_vidx + 2; /* next span */ /* z 0 */
 					*(face++) = j          + 2;                 /* z 0 */
 
 					face_index++;
