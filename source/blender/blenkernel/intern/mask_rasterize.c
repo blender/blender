@@ -217,73 +217,52 @@ void maskrasterize_spline_differentiate_point_outset(float (*diff_feather_points
 	}
 }
 
+/* this function is not exact, sometimes it retuns false positives,
+ * the main point of it is to clear out _almost_ all bucket/face non-intersections,
+ * returning TRUE in corner cases is ok but missing an intersection is NOT.
+ *
+ * method used
+ * - check if the center of the buckets bounding box is intersecting the face
+ * - if not get the max radius to a corner of the bucket and see how close we
+ *   are to any of the triangle edges.
+ */
 static int layer_bucket_isect_test(MaskRasterLayer *layer, unsigned int face_index,
                                    const unsigned int bucket_x, const unsigned int bucket_y,
-                                   const float bucket_x_size, const float bucket_y_size)
+                                   const float bucket_size_x, const float bucket_size_y,
+                                   const float bucket_max_rad_squared)
 {
-	const float xmin = layer->bounds.xmin + (bucket_x_size * bucket_x);
-	const float ymin = layer->bounds.ymin + (bucket_y_size * bucket_y);
-	const float xmax = xmin + bucket_x_size;
-	const float ymax = ymin + bucket_y_size;
-
-	const float bucket_quad[4][2] = {{xmin, ymin},
-	                                 {xmin, ymax},
-	                                 {xmax, ymax},
-	                                 {xmax, ymin}};
-
 	unsigned int *face = layer->face_array[face_index];
 	float (*cos)[3] = layer->face_coords;
 
-//	float dummy_lambda;
+	const float xmin = layer->bounds.xmin + (bucket_size_x * bucket_x);
+	const float ymin = layer->bounds.ymin + (bucket_size_y * bucket_y);
+	const float xmax = xmin + bucket_size_x;
+	const float ymax = ymin + bucket_size_y;
+
+	float cent[2] = {(xmin + xmax) * 0.5f,
+	                 (ymin + ymax) * 0.5f};
 
 	if (face[3] == TRI_VERT) {
 		const float *v1 = cos[face[0]];
 		const float *v2 = cos[face[1]];
 		const float *v3 = cos[face[2]];
 
-		/* bucket corner in tri? */
-		if (isect_point_tri_v2(bucket_quad[0], v1, v2, v3) ||
-		    isect_point_tri_v2(bucket_quad[1], v1, v2, v3) ||
-		    isect_point_tri_v2(bucket_quad[2], v1, v2, v3) ||
-		    isect_point_tri_v2(bucket_quad[3], v1, v2, v3))
-		{
+		if (isect_point_tri_v2(cent, v1, v2, v3)) {
 			return TRUE;
 		}
-
-		/* line intersect */
-#if 1
-		if (isect_line_line_v2(bucket_quad[0], bucket_quad[1], v1, v2) ||
-		    isect_line_line_v2(bucket_quad[0], bucket_quad[1], v2, v3) ||
-		    isect_line_line_v2(bucket_quad[0], bucket_quad[1], v3, v1) ||
-
-		    isect_line_line_v2(bucket_quad[1], bucket_quad[2], v1, v2) ||
-		    isect_line_line_v2(bucket_quad[1], bucket_quad[2], v2, v3) ||
-		    isect_line_line_v2(bucket_quad[1], bucket_quad[2], v3, v1) ||
-
-		    isect_line_line_v2(bucket_quad[2], bucket_quad[3], v1, v2) ||
-		    isect_line_line_v2(bucket_quad[2], bucket_quad[3], v2, v3) ||
-		    isect_line_line_v2(bucket_quad[2], bucket_quad[3], v3, v1) ||
-
-		    isect_line_line_v2(bucket_quad[3], bucket_quad[0], v1, v2) ||
-		    isect_line_line_v2(bucket_quad[3], bucket_quad[0], v2, v3) ||
-		    isect_line_line_v2(bucket_quad[3], bucket_quad[0], v3, v1)
-
-		    )
-		{
-			return TRUE;
-		}
-#else
-		/* line intersect */
-		if (isect_line_tri_v3(bucket_quad[0], bucket_quad[1], v1, v2, v3, &dummy_lambda, NULL) ||
-		    isect_line_tri_v3(bucket_quad[1], bucket_quad[2], v1, v2, v3, &dummy_lambda, NULL) ||
-		    isect_line_tri_v3(bucket_quad[2], bucket_quad[3], v1, v2, v3, &dummy_lambda, NULL) ||
-		    isect_line_tri_v3(bucket_quad[3], bucket_quad[0], v1, v2, v3, &dummy_lambda, NULL))
-		{
-			return TRUE;
+		else {
+			if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
+				(dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
+				(dist_squared_to_line_segment_v2(cent, v3, v1) < bucket_max_rad_squared))
+			{
+				return TRUE;
+			}
+			else {
+				// printf("skip tri\n");
+				return FALSE;
+			}
 		}
 
-#endif
-		return FALSE;
 	}
 	else {
 		const float *v1 = cos[face[0]];
@@ -291,66 +270,25 @@ static int layer_bucket_isect_test(MaskRasterLayer *layer, unsigned int face_ind
 		const float *v3 = cos[face[2]];
 		const float *v4 = cos[face[3]];
 
-		/* bucket corner in tri? */
-		if (isect_point_tri_v2(bucket_quad[0], v1, v2, v3) ||
-		    isect_point_tri_v2(bucket_quad[1], v1, v2, v3) ||
-		    isect_point_tri_v2(bucket_quad[2], v1, v2, v3) ||
-		    isect_point_tri_v2(bucket_quad[3], v1, v2, v3))
-		{
+		if (isect_point_tri_v2(cent, v1, v2, v3)) {
 			return TRUE;
 		}
-		else if (isect_point_tri_v2(bucket_quad[0], v1, v3, v4) ||
-		         isect_point_tri_v2(bucket_quad[1], v1, v3, v4) ||
-		         isect_point_tri_v2(bucket_quad[2], v1, v3, v4) ||
-		         isect_point_tri_v2(bucket_quad[3], v1, v3, v4))
-		{
+		else if (isect_point_tri_v2(cent, v1, v3, v4)) {
 			return TRUE;
 		}
-
-		/* line intersect */
-#if 1
-		if (isect_line_line_v2(bucket_quad[0], bucket_quad[1], v1, v2) ||
-		    isect_line_line_v2(bucket_quad[0], bucket_quad[1], v2, v3) ||
-		    isect_line_line_v2(bucket_quad[0], bucket_quad[1], v3, v4) ||
-		    isect_line_line_v2(bucket_quad[0], bucket_quad[1], v4, v1) ||
-
-		    isect_line_line_v2(bucket_quad[1], bucket_quad[2], v1, v2) ||
-		    isect_line_line_v2(bucket_quad[1], bucket_quad[2], v2, v3) ||
-		    isect_line_line_v2(bucket_quad[1], bucket_quad[2], v3, v4) ||
-		    isect_line_line_v2(bucket_quad[1], bucket_quad[2], v4, v1) ||
-
-		    isect_line_line_v2(bucket_quad[2], bucket_quad[3], v1, v2) ||
-		    isect_line_line_v2(bucket_quad[2], bucket_quad[3], v2, v3) ||
-		    isect_line_line_v2(bucket_quad[2], bucket_quad[3], v3, v4) ||
-		    isect_line_line_v2(bucket_quad[2], bucket_quad[3], v4, v1) ||
-
-		    isect_line_line_v2(bucket_quad[3], bucket_quad[0], v1, v2) ||
-		    isect_line_line_v2(bucket_quad[3], bucket_quad[0], v2, v3) ||
-		    isect_line_line_v2(bucket_quad[3], bucket_quad[0], v3, v4) ||
-		    isect_line_line_v2(bucket_quad[3], bucket_quad[0], v4, v1)
-
-		    )
-		{
-			return TRUE;
+		else {
+			if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
+			    (dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
+			    (dist_squared_to_line_segment_v2(cent, v3, v4) < bucket_max_rad_squared) ||
+			    (dist_squared_to_line_segment_v2(cent, v4, v1) < bucket_max_rad_squared))
+			{
+				return TRUE;
+			}
+			else {
+				// printf("skip quad\n");
+				return FALSE;
+			}
 		}
-#else
-		if (isect_line_tri_v3(bucket_quad[0], bucket_quad[1], v1, v2, v3, &dummy_lambda, NULL) ||
-		    isect_line_tri_v3(bucket_quad[1], bucket_quad[2], v1, v2, v3, &dummy_lambda, NULL) ||
-		    isect_line_tri_v3(bucket_quad[2], bucket_quad[3], v1, v2, v3, &dummy_lambda, NULL) ||
-		    isect_line_tri_v3(bucket_quad[3], bucket_quad[0], v1, v2, v3, &dummy_lambda, NULL))
-		{
-			return TRUE;
-		}
-		else if (isect_line_tri_v3(bucket_quad[0], bucket_quad[1], v1, v3, v4, &dummy_lambda, NULL) ||
-		         isect_line_tri_v3(bucket_quad[1], bucket_quad[2], v1, v3, v4, &dummy_lambda, NULL) ||
-		         isect_line_tri_v3(bucket_quad[2], bucket_quad[3], v1, v3, v4, &dummy_lambda, NULL) ||
-		         isect_line_tri_v3(bucket_quad[3], bucket_quad[0], v1, v3, v4, &dummy_lambda, NULL))
-		{
-			return TRUE;
-		}
-#endif
-
-		return FALSE;
 	}
 }
 
@@ -374,8 +312,10 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 
 	{
 		/* width and height of each bucket */
-		const float bucket_size_x = bucket_dim_x / layer->buckets_x;
-		const float bucket_size_y = bucket_dim_y / layer->buckets_y;
+		const float bucket_size_x = (bucket_dim_x + FLT_EPSILON) / layer->buckets_x;
+		const float bucket_size_y = (bucket_dim_y + FLT_EPSILON) / layer->buckets_y;
+		const float bucket_max_rad = (maxf(bucket_size_x, bucket_size_y) * M_SQRT2) + FLT_EPSILON;
+		const float bucket_max_rad_squared = bucket_max_rad * bucket_max_rad;
 
 		unsigned int *face = &layer->face_array[0][0];
 		float (*cos)[3] = layer->face_coords;
@@ -438,7 +378,11 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 						/* note: there is a tradeoff here since checking box/tri intersections isn't
 						 * as optimal as it could be, but checking pixels against faces they will never intersect
 						 * with is likely the greater slowdown here - so check if the cell intersects the face */
-						if (layer_bucket_isect_test(layer, face_index, xi, yi, bucket_size_x, bucket_size_y)) {
+						if (layer_bucket_isect_test(layer, face_index,
+						                            xi, yi,
+						                            bucket_size_x, bucket_size_y,
+						                            bucket_max_rad_squared))
+						{
 							BLI_linklist_prepend_arena(&bucketstore[bucket_index], face_index_void, arena);
 							bucketstore_tot[bucket_index]++;
 						}

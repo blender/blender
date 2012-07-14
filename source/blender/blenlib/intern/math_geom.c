@@ -178,7 +178,7 @@ float dist_to_line_v2(const float p[2], const float l1[2], const float l2[2])
 }
 
 /* distance p to line-piece v1-v2 */
-float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2])
+float dist_squared_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2])
 {
 	float labda, rc[2], pt[2], len;
 
@@ -207,7 +207,12 @@ float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l
 
 	rc[0] = pt[0] - p[0];
 	rc[1] = pt[1] - p[1];
-	return sqrtf(rc[0] * rc[0] + rc[1] * rc[1]);
+	return (rc[0] * rc[0] + rc[1] * rc[1]);
+}
+
+float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2])
+{
+	return sqrtf(dist_squared_to_line_segment_v2(p, l1, l2));
 }
 
 /* point closest to v1 on line v2-v3 in 2D */
