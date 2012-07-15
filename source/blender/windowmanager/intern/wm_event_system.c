@@ -1636,7 +1636,7 @@ static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 	if (handler->bbwin) {
 		if (handler->bblocal) {
 			rcti rect = *handler->bblocal;
-			BLI_translate_rcti(&rect, handler->bbwin->xmin, handler->bbwin->ymin);
+			BLI_rcti_translate(&rect, handler->bbwin->xmin, handler->bbwin->ymin);
 
 			if (BLI_in_rcti_v(&rect, &event->x))
 				return 1;

@@ -2124,7 +2124,7 @@ static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 	float facx = (v2d->mask.xmax - v2d->mask.xmin) / winx;
 	float facy = (v2d->mask.ymax - v2d->mask.ymin) / winy;
 
-	BLI_resize_rctf(&v2d->cur, (int)(winx * facx * ratio) + 1, (int)(winy * facy * ratio) + 1);
+	BLI_rctf_resize(&v2d->cur, (int)(winx * facx * ratio) + 1, (int)(winy * facy * ratio) + 1);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 

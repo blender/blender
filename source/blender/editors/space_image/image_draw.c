@@ -801,11 +801,11 @@ void draw_image_main(const bContext *C, ARegion *ar)
 
 	ED_space_image_release_buffer(sima, lock);
 
-	/* render info */
-	if (ima && show_render)
-		draw_render_info(scene, ima, ar);
-
 	if (show_viewer) {
 		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 	}
+
+	/* render info */
+	if (ima && show_render)
+		draw_render_info(scene, ima, ar);
 }

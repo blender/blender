@@ -193,7 +193,7 @@ static void wm_flush_regions_down(bScreen *screen, rcti *dirty)
 
 	for (sa = screen->areabase.first; sa; sa = sa->next) {
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (BLI_isect_rcti(dirty, &ar->winrct, NULL)) {
+			if (BLI_rcti_isect(dirty, &ar->winrct, NULL)) {
 				ar->do_draw = RGN_DRAW;
 				memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 				ar->swap = WIN_NONE_OK;
@@ -208,7 +208,7 @@ static void wm_flush_regions_up(bScreen *screen, rcti *dirty)
 	ARegion *ar;
 	
 	for (ar = screen->regionbase.first; ar; ar = ar->next) {
-		if (BLI_isect_rcti(dirty, &ar->winrct, NULL)) {
+		if (BLI_rcti_isect(dirty, &ar->winrct, NULL)) {
 			ar->do_draw = RGN_DRAW;
 			memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 			ar->swap = WIN_NONE_OK;

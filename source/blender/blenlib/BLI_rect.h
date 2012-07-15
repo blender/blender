@@ -49,23 +49,23 @@ void BLI_rctf_init_minmax(struct rctf *rect);
 void BLI_rcti_do_minmax_v(struct rcti *rect, const int xy[2]);
 void BLI_rctf_do_minmax_v(struct rctf *rect, const float xy[2]);
 
-void BLI_translate_rctf(struct rctf *rect, float x, float y);
-void BLI_translate_rcti(struct rcti *rect, int x, int y);
-void BLI_resize_rcti(struct rcti *rect, int x, int y);
-void BLI_resize_rctf(struct rctf *rect, float x, float y);
+void BLI_rctf_translate(struct rctf *rect, float x, float y);
+void BLI_rcti_translate(struct rcti *rect, int x, int y);
+void BLI_rcti_resize(struct rcti *rect, int x, int y);
+void BLI_rctf_resize(struct rctf *rect, float x, float y);
 int  BLI_in_rcti(const struct rcti *rect, const int x, const int y);
 int  BLI_in_rcti_v(const struct rcti *rect, const int xy[2]);
 int  BLI_in_rctf(const struct rctf *rect, const float x, const float y);
 int  BLI_in_rctf_v(const struct rctf *rect, const float xy[2]);
-int  BLI_segment_in_rcti(const struct rcti *rect, const int s1[2], const int s2[2]);
+int  BLI_rcti_isect_segment(const struct rcti *rect, const int s1[2], const int s2[2]);
 #if 0 /* NOT NEEDED YET */
-int  BLI_segment_in_rctf(struct rcti *rect, int s1[2], int s2[2]);
+int  BLI_rctf_isect_segment(struct rcti *rect, int s1[2], int s2[2]);
 #endif
-int  BLI_isect_rctf(const struct rctf *src1, const struct rctf *src2, struct rctf *dest);
-int  BLI_isect_rcti(const struct rcti *src1, const struct rcti *src2, struct rcti *dest);
-void BLI_union_rctf(struct rctf *rctf1, const struct rctf *rctf2);
-void BLI_union_rcti(struct rcti *rcti1, const struct rcti *rcti2);
-void BLI_copy_rcti_rctf(struct rcti *tar, const struct rctf *src);
+int  BLI_rctf_isect(const struct rctf *src1, const struct rctf *src2, struct rctf *dest);
+int  BLI_rcti_isect(const struct rcti *src1, const struct rcti *src2, struct rcti *dest);
+void BLI_rctf_union(struct rctf *rctf1, const struct rctf *rctf2);
+void BLI_rcti_union(struct rcti *rcti1, const struct rcti *rcti2);
+void BLI_rcti_rctf_copy(struct rcti *tar, const struct rctf *src);
 
 void print_rctf(const char *str, const struct rctf *rect);
 void print_rcti(const char *str, const struct rcti *rect);

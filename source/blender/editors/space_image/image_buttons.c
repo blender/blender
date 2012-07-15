@@ -280,7 +280,7 @@ static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
 	ui_graphics_to_window_rct(sa->win, &dispf, disprect);
 	
 	/* correction for gla draw */
-	BLI_translate_rcti(disprect, -curarea->winrct.xmin, -curarea->winrct.ymin);
+	BLI_rcti_translate(disprect, -curarea->winrct.xmin, -curarea->winrct.ymin);
 	
 	calc_image_view(sima, 'p');
 //	printf("winrct %d %d %d %d\n", disprect->xmin, disprect->ymin,disprect->xmax, disprect->ymax);

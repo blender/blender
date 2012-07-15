@@ -32,6 +32,7 @@
 
 #include "DNA_vec_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_scanfill.h"
@@ -93,8 +94,15 @@ typedef struct MaskRasterLayer {
 	float  alpha;
 	char   blend;
 	char   blend_flag;
+	char   falloff;
 
 } MaskRasterLayer;
+
+typedef struct MaskRasterSplineInfo {
+	unsigned int vertex_offset;
+	unsigned int vertex_total;
+	unsigned int is_cyclic;
+} MaskRasterSplineInfo;
 
 /**
  * opaque local struct for mask pixel lookup, each MaskLayer needs one of these
@@ -106,7 +114,6 @@ struct MaskRasterHandle {
 	/* 2d bounds (to quickly skip bucket lookup) */
 	rctf bounds;
 };
-
 
 /* --------------------------------------------------------------------- */
 /* alloc / free functions                                                */
@@ -293,6 +300,17 @@ static int layer_bucket_isect_test(MaskRasterLayer *layer, unsigned int face_ind
 	}
 }
 
+static void layer_bucket_init_dummy(MaskRasterLayer *layer)
+{
+	layer->buckets_x = 0;
+	layer->buckets_y = 0;
+
+	layer->buckets_xy_scalar[0] = 0.0f;
+	layer->buckets_xy_scalar[1] = 0.0f;
+
+	layer->buckets_face = NULL;
+}
+
 static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 {
 	MemArena *arena = BLI_memarena_new(1 << 16, __func__);
@@ -358,34 +376,42 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 
 			/* not essential but may as will skip any faces outside the view */
 			if (!((xmax < 0.0f) || (ymax < 0.0f) || (xmin > 1.0f) || (ymin > 1.0f))) {
-				const unsigned int xi_min = (unsigned int) ((xmin - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
-				const unsigned int xi_max = (unsigned int) ((xmax - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
-				const unsigned int yi_min = (unsigned int) ((ymin - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
-				const unsigned int yi_max = (unsigned int) ((ymax - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
-				void *face_index_void = SET_UINT_IN_POINTER(face_index);
 
-				unsigned int xi, yi;
+				CLAMP(xmin, 0.0f,  1.0f);
+				CLAMP(ymin, 0.0f,  1.0f);
+				CLAMP(xmax, 0.0f,  1.0f);
+				CLAMP(ymax, 0.0f,  1.0f);
 
-				for (yi = yi_min; yi <= yi_max; yi++) {
-					unsigned int bucket_index = (layer->buckets_x * yi) + xi_min;
-					for (xi = xi_min; xi <= xi_max; xi++, bucket_index++) {
-						// unsigned int bucket_index = (layer->buckets_x * yi) + xi; /* correct but do in outer loop */
+				{
+					const unsigned int xi_min = (unsigned int) ((xmin - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
+					const unsigned int xi_max = (unsigned int) ((xmax - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
+					const unsigned int yi_min = (unsigned int) ((ymin - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
+					const unsigned int yi_max = (unsigned int) ((ymax - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
+					void *face_index_void = SET_UINT_IN_POINTER(face_index);
 
-						BLI_assert(xi < layer->buckets_x);
-						BLI_assert(yi < layer->buckets_y);
-						BLI_assert(bucket_index < bucket_tot);
+					unsigned int xi, yi;
 
-						/* check if the bucket intersects with the face */
-						/* note: there is a tradeoff here since checking box/tri intersections isn't
-						 * as optimal as it could be, but checking pixels against faces they will never intersect
-						 * with is likely the greater slowdown here - so check if the cell intersects the face */
-						if (layer_bucket_isect_test(layer, face_index,
-						                            xi, yi,
-						                            bucket_size_x, bucket_size_y,
-						                            bucket_max_rad_squared))
-						{
-							BLI_linklist_prepend_arena(&bucketstore[bucket_index], face_index_void, arena);
-							bucketstore_tot[bucket_index]++;
+					for (yi = yi_min; yi <= yi_max; yi++) {
+						unsigned int bucket_index = (layer->buckets_x * yi) + xi_min;
+						for (xi = xi_min; xi <= xi_max; xi++, bucket_index++) {
+							// unsigned int bucket_index = (layer->buckets_x * yi) + xi; /* correct but do in outer loop */
+
+							BLI_assert(xi < layer->buckets_x);
+							BLI_assert(yi < layer->buckets_y);
+							BLI_assert(bucket_index < bucket_tot);
+
+							/* check if the bucket intersects with the face */
+							/* note: there is a tradeoff here since checking box/tri intersections isn't
+							 * as optimal as it could be, but checking pixels against faces they will never intersect
+							 * with is likely the greater slowdown here - so check if the cell intersects the face */
+							if (layer_bucket_isect_test(layer, face_index,
+							                            xi, yi,
+							                            bucket_size_x, bucket_size_y,
+							                            bucket_max_rad_squared))
+							{
+								BLI_linklist_prepend_arena(&bucketstore[bucket_index], face_index_void, arena);
+								bucketstore_tot[bucket_index]++;
+							}
 						}
 					}
 				}
@@ -431,6 +457,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
                                    const short do_aspect_correct, const short do_mask_aa,
                                    const short do_feather)
 {
+	const rctf default_bounds = {0.0f, 1.0f, 0.0f, 1.0f};
 	const int resol = SPLINE_RESOL;  /* TODO: real size */
 	const float pixel_size = 1.0f / MIN2(width, height);
 
@@ -446,7 +473,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 		const unsigned int tot_splines = BLI_countlist(&masklay->splines);
 		/* we need to store vertex ranges for open splines for filling */
-		unsigned int (*open_spline_ranges)[2] = MEM_callocN(sizeof(open_spline_ranges) * tot_splines, __func__);
+		MaskRasterSplineInfo *open_spline_ranges = MEM_callocN(sizeof(*open_spline_ranges) * tot_splines, __func__);
 		unsigned int   open_spline_index = 0;
 
 		MaskSpline *spline;
@@ -467,6 +494,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		BLI_scanfill_begin(&sf_ctx);
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			const unsigned int is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
 			const unsigned int is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
 			float (*diff_points)[2];
@@ -605,8 +633,9 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 						float co_feather[3];
 						co_feather[2] = 1.0f;
 
-						open_spline_ranges[open_spline_index ][0] = sf_vert_tot;
-						open_spline_ranges[open_spline_index ][1] = tot_diff_point;
+						open_spline_ranges[open_spline_index].vertex_offset = sf_vert_tot;
+						open_spline_ranges[open_spline_index].vertex_total = tot_diff_point;
+						open_spline_ranges[open_spline_index].is_cyclic = is_cyclic;
 						open_spline_index++;
 
 
@@ -639,7 +668,10 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 							tot_feather_quads += 2;
 						}
-						tot_feather_quads -= 2;
+
+						if (!is_cyclic) {
+							tot_feather_quads -= 2;
+						}
 
 						MEM_freeN(diff_feather_points);
 
@@ -723,8 +755,8 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 			/* feather only splines */
 			while (open_spline_index > 0) {
-				unsigned int start_vidx          = open_spline_ranges[--open_spline_index][0];
-				unsigned int tot_diff_point_sub1 = open_spline_ranges[  open_spline_index][1] - 1;
+				unsigned int start_vidx          = open_spline_ranges[--open_spline_index].vertex_offset;
+				unsigned int tot_diff_point_sub1 = open_spline_ranges[  open_spline_index].vertex_total - 1;
 				unsigned int k, j;
 
 				j = start_vidx;
@@ -734,17 +766,33 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 					BLI_assert(j == start_vidx + (k * 3));
 
-					*(face++) = j + 0;
-					*(face++) = j + 1;
-					*(face++) = j + 4; /* next span */
-					*(face++) = j + 3; /* next span */
+					*(face++) = j + 3; /* next span */ /* z 1 */
+					*(face++) = j + 0;                 /* z 1 */
+					*(face++) = j + 1;                 /* z 0 */
+					*(face++) = j + 4; /* next span */ /* z 0 */
 
 					face_index++;
 
-					*(face++) = j + 0;
-					*(face++) = j + 3; /* next span */
-					*(face++) = j + 5; /* next span */
-					*(face++) = j + 2;
+					*(face++) = j + 0;                 /* z 1 */
+					*(face++) = j + 3; /* next span */ /* z 1 */
+					*(face++) = j + 5; /* next span */ /* z 0 */
+					*(face++) = j + 2;                 /* z 0 */
+
+					face_index++;
+				}
+
+				if (open_spline_ranges[open_spline_index].is_cyclic) {
+					*(face++) = start_vidx + 0; /* next span */ /* z 1 */
+					*(face++) = j          + 0;                 /* z 1 */
+					*(face++) = j          + 1;                 /* z 0 */
+					*(face++) = start_vidx + 1; /* next span */ /* z 0 */
+
+					face_index++;
+
+					*(face++) = j          + 0;                 /* z 1 */
+					*(face++) = start_vidx + 0; /* next span */ /* z 1 */
+					*(face++) = start_vidx + 2; /* next span */ /* z 0 */
+					*(face++) = j          + 2;                 /* z 0 */
 
 					face_index++;
 				}
@@ -759,19 +807,34 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			{
 				MaskRasterLayer *layer = &mr_handle->layers[masklay_index];
 
-				layer->face_tot = sf_tri_tot + tot_feather_quads;
-				layer->face_coords = face_coords;
-				layer->face_array  = face_array;
-				layer->bounds  = bounds;
+				if (BLI_rctf_isect(&default_bounds, &bounds, &bounds)) {
+					layer->face_tot = sf_tri_tot + tot_feather_quads;
+					layer->face_coords = face_coords;
+					layer->face_array  = face_array;
+					layer->bounds = bounds;
+
+					layer_bucket_init(layer, pixel_size);
+
+					BLI_rctf_union(&mr_handle->bounds, &bounds);
+				}
+				else {
+					MEM_freeN(face_coords);
+					MEM_freeN(face_array);
+
+					layer->face_tot = 0;
+					layer->face_coords = NULL;
+					layer->face_array  = NULL;
+
+					layer_bucket_init_dummy(layer);
+
+					BLI_rctf_init(&layer->bounds, -1.0f, -1.0f, -1.0f, -1.0f);
+				}
 
 				/* copy as-is */
 				layer->alpha = masklay->alpha;
 				layer->blend = masklay->blend;
 				layer->blend_flag = masklay->blend_flag;
-
-				layer_bucket_init(layer, pixel_size);
-
-				BLI_union_rctf(&mr_handle->bounds, &bounds);
+				layer->falloff = masklay->falloff;
 			}
 
 			/* printf("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads); */
@@ -916,11 +979,29 @@ float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 		float value_layer;
 
 		if (BLI_in_rctf_v(&layer->bounds, xy)) {
-			const float dist = 1.0f - layer_bucket_depth_from_xy(layer, xy);
-			const float dist_ease = (3.0f * dist * dist - 2.0f * dist * dist * dist);
+			float val = 1.0f - layer_bucket_depth_from_xy(layer, xy);
 
-			/* apply alpha */
-			value_layer = dist_ease * layer->alpha;
+			switch (layer->falloff) {
+				case PROP_SMOOTH:
+					/* ease - gives less hard lines for dilate/erode feather */
+					val = (3.0f * val * val - 2.0f * val * val * val);
+					break;
+				case PROP_SPHERE:
+					val = sqrtf(2.0f * val - val * val);
+					break;
+				case PROP_ROOT:
+					val = sqrtf(val);
+					break;
+				case PROP_SHARP:
+					val = val * val;
+					break;
+				case PROP_LIN:
+				default:
+					/* nothing */
+					break;
+			}
+
+			value_layer = val * layer->alpha;
 		}
 		else {
 			value_layer = 0.0f;

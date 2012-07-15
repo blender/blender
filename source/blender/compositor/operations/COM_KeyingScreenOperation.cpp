@@ -247,7 +247,7 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect)
 	tile_data = (TileData *) MEM_callocN(sizeof(TileData), "keying screen tile data");
 
 	for (i = 0; i < triangulation->triangles_total; i++) {
-		bool ok = BLI_isect_rctf(&rect_float, &triangulation->triangles_AABB[i], NULL);
+		bool ok = BLI_rctf_isect(&rect_float, &triangulation->triangles_AABB[i], NULL);
 
 		if (ok) {
 			tile_data->triangles_total++;

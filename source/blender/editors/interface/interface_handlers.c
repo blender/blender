@@ -5937,14 +5937,13 @@ static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *men
 	newp[0] = mx;
 	newp[1] = my;
 
-	if (len_v2v2(oldp, newp) < 4.0f)
+	if (len_squared_v2v2(oldp, newp) < (4.0f * 4.0f))
 		return menu->dotowards;
 
-	closer = 0;
-	closer |= isect_point_tri_v2(newp, oldp, p1, p2);
-	closer |= isect_point_tri_v2(newp, oldp, p2, p3);
-	closer |= isect_point_tri_v2(newp, oldp, p3, p4);
-	closer |= isect_point_tri_v2(newp, oldp, p4, p1);
+	closer = (isect_point_tri_v2(newp, oldp, p1, p2) ||
+	          isect_point_tri_v2(newp, oldp, p2, p3) ||
+	          isect_point_tri_v2(newp, oldp, p3, p4) ||
+	          isect_point_tri_v2(newp, oldp, p4, p1));
 
 	if (!closer)
 		menu->dotowards = 0;

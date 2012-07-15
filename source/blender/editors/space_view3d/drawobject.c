@@ -2162,7 +2162,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 				/* make an int copy */
 				int s_int[2][2] = {{s[0][0], s[0][1]},
 				                   {s[1][0], s[1][1]}};
-				if (!BLI_segment_in_rcti(&data->win_rect, s_int[0], s_int[1])) {
+				if (!BLI_rcti_isect_segment(&data->win_rect, s_int[0], s_int[1])) {
 					return;
 				}
 			}

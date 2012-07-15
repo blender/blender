@@ -1815,7 +1815,7 @@ static void isb_bsp_face_inside(ISBBranch *bspn, BSPFace *face)
 			return;
 		
 		/* if face boundbox is outside of branch rect, give up */
-		if (0==BLI_isect_rctf((rctf *)&face->box, (rctf *)&bspn->box, NULL))
+		if (0==BLI_rctf_isect((rctf *)&face->box, (rctf *)&bspn->box, NULL))
 			return;
 		
 		/* test all points inside branch */
