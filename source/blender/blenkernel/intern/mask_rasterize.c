@@ -298,6 +298,17 @@ static int layer_bucket_isect_test(MaskRasterLayer *layer, unsigned int face_ind
 	}
 }
 
+static void layer_bucket_init_dummy(MaskRasterLayer *layer)
+{
+	layer->buckets_x = 0;
+	layer->buckets_y = 0;
+
+	layer->buckets_xy_scalar[0] = 0.0f;
+	layer->buckets_xy_scalar[1] = 0.0f;
+
+	layer->buckets_face = NULL;
+}
+
 static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 {
 	MemArena *arena = BLI_memarena_new(1 << 16, __func__);
@@ -363,34 +374,42 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 
 			/* not essential but may as will skip any faces outside the view */
 			if (!((xmax < 0.0f) || (ymax < 0.0f) || (xmin > 1.0f) || (ymin > 1.0f))) {
-				const unsigned int xi_min = (unsigned int) ((xmin - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
-				const unsigned int xi_max = (unsigned int) ((xmax - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
-				const unsigned int yi_min = (unsigned int) ((ymin - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
-				const unsigned int yi_max = (unsigned int) ((ymax - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
-				void *face_index_void = SET_UINT_IN_POINTER(face_index);
 
-				unsigned int xi, yi;
+				CLAMP(xmin, 0.0f,  1.0f);
+				CLAMP(ymin, 0.0f,  1.0f);
+				CLAMP(xmax, 0.0f,  1.0f);
+				CLAMP(ymax, 0.0f,  1.0f);
 
-				for (yi = yi_min; yi <= yi_max; yi++) {
-					unsigned int bucket_index = (layer->buckets_x * yi) + xi_min;
-					for (xi = xi_min; xi <= xi_max; xi++, bucket_index++) {
-						// unsigned int bucket_index = (layer->buckets_x * yi) + xi; /* correct but do in outer loop */
+				{
+					const unsigned int xi_min = (unsigned int) ((xmin - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
+					const unsigned int xi_max = (unsigned int) ((xmax - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
+					const unsigned int yi_min = (unsigned int) ((ymin - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
+					const unsigned int yi_max = (unsigned int) ((ymax - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
+					void *face_index_void = SET_UINT_IN_POINTER(face_index);
 
-						BLI_assert(xi < layer->buckets_x);
-						BLI_assert(yi < layer->buckets_y);
-						BLI_assert(bucket_index < bucket_tot);
+					unsigned int xi, yi;
 
-						/* check if the bucket intersects with the face */
-						/* note: there is a tradeoff here since checking box/tri intersections isn't
-						 * as optimal as it could be, but checking pixels against faces they will never intersect
-						 * with is likely the greater slowdown here - so check if the cell intersects the face */
-						if (layer_bucket_isect_test(layer, face_index,
-						                            xi, yi,
-						                            bucket_size_x, bucket_size_y,
-						                            bucket_max_rad_squared))
-						{
-							BLI_linklist_prepend_arena(&bucketstore[bucket_index], face_index_void, arena);
-							bucketstore_tot[bucket_index]++;
+					for (yi = yi_min; yi <= yi_max; yi++) {
+						unsigned int bucket_index = (layer->buckets_x * yi) + xi_min;
+						for (xi = xi_min; xi <= xi_max; xi++, bucket_index++) {
+							// unsigned int bucket_index = (layer->buckets_x * yi) + xi; /* correct but do in outer loop */
+
+							BLI_assert(xi < layer->buckets_x);
+							BLI_assert(yi < layer->buckets_y);
+							BLI_assert(bucket_index < bucket_tot);
+
+							/* check if the bucket intersects with the face */
+							/* note: there is a tradeoff here since checking box/tri intersections isn't
+							 * as optimal as it could be, but checking pixels against faces they will never intersect
+							 * with is likely the greater slowdown here - so check if the cell intersects the face */
+							if (layer_bucket_isect_test(layer, face_index,
+														xi, yi,
+														bucket_size_x, bucket_size_y,
+														bucket_max_rad_squared))
+							{
+								BLI_linklist_prepend_arena(&bucketstore[bucket_index], face_index_void, arena);
+								bucketstore_tot[bucket_index]++;
+							}
 						}
 					}
 				}
@@ -436,6 +455,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
                                    const short do_aspect_correct, const short do_mask_aa,
                                    const short do_feather)
 {
+	const rctf default_bounds = {0.0f, 1.0f, 0.0f, 1.0f};
 	const int resol = SPLINE_RESOL;  /* TODO: real size */
 	const float pixel_size = 1.0f / MIN2(width, height);
 
@@ -785,19 +805,33 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			{
 				MaskRasterLayer *layer = &mr_handle->layers[masklay_index];
 
-				layer->face_tot = sf_tri_tot + tot_feather_quads;
-				layer->face_coords = face_coords;
-				layer->face_array  = face_array;
-				layer->bounds  = bounds;
+				if (BLI_isect_rctf(&default_bounds, &bounds, &bounds)) {
+					layer->face_tot = sf_tri_tot + tot_feather_quads;
+					layer->face_coords = face_coords;
+					layer->face_array  = face_array;
+					layer->bounds = bounds;
+
+					layer_bucket_init(layer, pixel_size);
+
+					BLI_union_rctf(&mr_handle->bounds, &bounds);
+				}
+				else {
+					MEM_freeN(face_coords);
+					MEM_freeN(face_array);
+
+					layer->face_tot = 0;
+					layer->face_coords = NULL;
+					layer->face_array  = NULL;
+
+					layer_bucket_init_dummy(layer);
+
+					BLI_rctf_init(&layer->bounds, -1.0f, -1.0f, -1.0f, -1.0f);
+				}
 
 				/* copy as-is */
 				layer->alpha = masklay->alpha;
 				layer->blend = masklay->blend;
 				layer->blend_flag = masklay->blend_flag;
-
-				layer_bucket_init(layer, pixel_size);
-
-				BLI_union_rctf(&mr_handle->bounds, &bounds);
 			}
 
 			/* printf("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads); */
