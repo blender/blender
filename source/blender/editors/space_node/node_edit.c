@@ -1573,11 +1573,13 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
 	NodeViewMove *nvm;
 	Image *ima;
 	ImBuf *ibuf;
-	int pad = 10;
+	const float pad = 32.0f; /* better be bigger then scrollbars */
+
 	void *lock;
 	
 	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
@@ -1593,10 +1595,10 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	nvm->mvalo[0] = event->mval[0];
 	nvm->mvalo[1] = event->mval[1];
 
-	nvm->xmin = -(ar->winx / 2) - ibuf->x / 2 + pad;
-	nvm->xmax = ar->winx / 2 + ibuf->x / 2 - pad;
-	nvm->ymin = -(ar->winy / 2) - ibuf->y / 2 + pad;
-	nvm->ymax = ar->winy / 2 + ibuf->y / 2 - pad;
+	nvm->xmin = -(ar->winx / 2) - (ibuf->x * (0.5f * snode->zoom)) + pad;
+	nvm->xmax =  (ar->winx / 2) + (ibuf->x * (0.5f * snode->zoom)) - pad;
+	nvm->ymin = -(ar->winy / 2) - (ibuf->y * (0.5f * snode->zoom)) + pad;
+	nvm->ymax =  (ar->winy / 2) + (ibuf->y * (0.5f * snode->zoom)) - pad;
 
 	BKE_image_release_ibuf(ima, lock);
 	
