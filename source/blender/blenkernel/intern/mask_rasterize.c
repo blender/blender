@@ -356,10 +356,10 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 				const float *v2 = cos[face[1]];
 				const float *v3 = cos[face[2]];
 
-				xmin = fminf(v1[0], fminf(v2[0], v3[0]));
-				xmax = fmaxf(v1[0], fmaxf(v2[0], v3[0]));
-				ymin = fminf(v1[1], fminf(v2[1], v3[1]));
-				ymax = fmaxf(v1[1], fmaxf(v2[1], v3[1]));
+				xmin = minf(v1[0], minf(v2[0], v3[0]));
+				xmax = maxf(v1[0], maxf(v2[0], v3[0]));
+				ymin = minf(v1[1], minf(v2[1], v3[1]));
+				ymax = maxf(v1[1], maxf(v2[1], v3[1]));
 			}
 			else {
 				const float *v1 = cos[face[0]];
@@ -367,10 +367,10 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 				const float *v3 = cos[face[2]];
 				const float *v4 = cos[face[3]];
 
-				xmin = fminf(v1[0], fminf(v2[0], fminf(v3[0], v4[0])));
-				xmax = fmaxf(v1[0], fmaxf(v2[0], fmaxf(v3[0], v4[0])));
-				ymin = fminf(v1[1], fminf(v2[1], fminf(v3[1], v4[1])));
-				ymax = fmaxf(v1[1], fmaxf(v2[1], fmaxf(v3[1], v4[1])));
+				xmin = minf(v1[0], minf(v2[0], minf(v3[0], v4[0])));
+				xmax = maxf(v1[0], maxf(v2[0], maxf(v3[0], v4[0])));
+				ymin = minf(v1[1], minf(v2[1], minf(v3[1], v4[1])));
+				ymax = maxf(v1[1], maxf(v2[1], maxf(v3[1], v4[1])));
 			}
 
 
