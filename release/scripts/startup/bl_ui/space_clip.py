@@ -707,6 +707,7 @@ class CLIP_PT_mask_layers(Panel):
             row.prop(active_layer, "invert", text="", icon='IMAGE_ALPHA')
 
             layout.prop(active_layer, "blend")
+            layout.prop(active_layer, "falloff")
 
 
 class CLIP_PT_active_mask_spline(Panel):

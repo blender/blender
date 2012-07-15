@@ -32,6 +32,7 @@
 
 #include "DNA_vec_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_scanfill.h"
@@ -93,6 +94,7 @@ typedef struct MaskRasterLayer {
 	float  alpha;
 	char   blend;
 	char   blend_flag;
+	char   falloff;
 
 } MaskRasterLayer;
 
@@ -832,6 +834,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				layer->alpha = masklay->alpha;
 				layer->blend = masklay->blend;
 				layer->blend_flag = masklay->blend_flag;
+				layer->falloff = masklay->falloff;
 			}
 
 			/* printf("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads); */
@@ -976,11 +979,29 @@ float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 		float value_layer;
 
 		if (BLI_in_rctf_v(&layer->bounds, xy)) {
-			const float dist = 1.0f - layer_bucket_depth_from_xy(layer, xy);
-			const float dist_ease = (3.0f * dist * dist - 2.0f * dist * dist * dist);
+			float val = 1.0f - layer_bucket_depth_from_xy(layer, xy);
 
-			/* apply alpha */
-			value_layer = dist_ease * layer->alpha;
+			switch (layer->falloff) {
+				case PROP_SMOOTH:
+					/* ease - gives less hard lines for dilate/erode feather */
+					val = (3.0f * val * val - 2.0f * val * val * val);
+					break;
+				case PROP_SPHERE:
+					val = sqrtf(2.0f * val - val * val);
+					break;
+				case PROP_ROOT:
+					val = sqrtf(val);
+					break;
+				case PROP_SHARP:
+					val = val * val;
+					break;
+				case PROP_LIN:
+				default:
+					/* nothing */
+					break;
+			}
+
+			value_layer = val * layer->alpha;
 		}
 		else {
 			value_layer = 0.0f;

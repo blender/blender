@@ -127,6 +127,8 @@ typedef struct MaskLayer {
 	float  alpha;
 	char   blend;
 	char   blend_flag;
+	char   falloff;
+	char   pad[7];
 
 	char   flag;             /* for animation */
 	char   restrictflag;     /* matching 'Object' flag of the same name - eventually use in the outliner  */
