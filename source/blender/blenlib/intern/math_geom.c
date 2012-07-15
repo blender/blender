@@ -317,6 +317,21 @@ int isect_line_line_v2_int(const int v1[2], const int v2[2], const int v3[2], co
 	return ISECT_LINE_LINE_NONE;
 }
 
+/* intersect Line-Line, floats - gives intersection point */
+int isect_line_line_v2_point(const float v1[2], const float v2[2], const float v3[2], const float v4[2], float vi[2])
+{
+	float div;
+
+	div = (v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]);
+	if (div == 0.0f) return ISECT_LINE_LINE_COLINEAR;
+
+	vi[0] = ((v3[0] - v4[0]) * (v1[0] * v2[1] - v1[1] * v2[0]) - (v1[0] - v2[0]) * (v3[0] * v4[1] - v3[1] * v4[0])) / div;
+	vi[1] = ((v3[1] - v4[1]) * (v1[0] * v2[1] - v1[1] * v2[0]) - (v1[1] - v2[1]) * (v3[0] * v4[1] - v3[1] * v4[0])) / div;
+
+	return ISECT_LINE_LINE_CROSS;
+}
+
+
 /* intersect Line-Line, floats */
 int isect_line_line_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
