@@ -2666,7 +2666,7 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "kr_derivative_epsilon", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dkr_epsilon");
-	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_range(prop, -1000.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Kr Derivative Epsilon", "Kr derivative epsilon for computing suggestive contours");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 

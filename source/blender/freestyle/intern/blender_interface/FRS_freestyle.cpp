@@ -343,7 +343,7 @@ extern "C" {
 		}
 		
 		// set parameters
-		if (config->mode == FREESTYLE_CONTROL_SCRIPT_MODE && (config->flags & FREESTYLE_ADVANCED_OPTIONS_FLAG)) {
+		if (config->flags & FREESTYLE_ADVANCED_OPTIONS_FLAG) {
 			controller->setSphereRadius( config->sphere_radius );
 			controller->setSuggestiveContourKrDerivativeEpsilon( config->dkr_epsilon );
 		} else {
