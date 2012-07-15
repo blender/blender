@@ -1186,8 +1186,17 @@ static ImBuf *save_image_colormanaged_imbuf_acquire(ImBuf *ibuf, SaveImageOption
 		unsigned char *display_buffer =
 			IMB_display_buffer_acquire(ibuf, &imf->view_settings, &imf->display_settings, cache_handle);
 
-		colormanaged_ibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, 0);
-		colormanaged_ibuf->rect = (unsigned int *) display_buffer;
+		if (*cache_handle) {
+			colormanaged_ibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, 0);
+			colormanaged_ibuf->rect = (unsigned int *) display_buffer;
+		}
+		else {
+			/* no cache handle means color management didn't run transformation
+			 * or performed transformation to image's byte buffer which doesn't
+			 * require allocating new image buffer
+			 */
+			colormanaged_ibuf = ibuf;
+		}
 	}
 	else {
 		colormanaged_ibuf = ibuf;

@@ -65,11 +65,14 @@
 
 /*********************** Global declarations *************************/
 
+/* define this to allow byte buffers be color managed */
+#undef COLORMANAGE_BYTE_BUFFER
+
 /* ** list of all supported color spaces, displays and views */
 #ifdef WITH_OCIO
 static ListBase global_colorspaces = {NULL};
 
-static char global_role_linear[64];
+static char global_role_scene_linear[64];
 static char global_role_color_picking[64];
 static char global_role_texture_painting[64];
 
@@ -462,7 +465,7 @@ static void colormanage_load_config(ConstConfigRcPtr *config)
 	const char *name;
 
 	/* get roles */
-	colormanage_role_color_space_name_get(config, global_role_linear, sizeof(global_role_linear),
+	colormanage_role_color_space_name_get(config, global_role_scene_linear, sizeof(global_role_scene_linear),
 	                                      OCIO_ROLE_SCENE_LINEAR, "scene linear");
 
 	colormanage_role_color_space_name_get(config, global_role_color_picking, sizeof(global_role_color_picking),
@@ -616,6 +619,7 @@ typedef struct DisplayBufferThread {
 	void *processor;
 
 	float *buffer;
+	unsigned char *byte_buffer;
 	unsigned char *display_buffer;
 
 	int width;
@@ -629,7 +633,8 @@ typedef struct DisplayBufferThread {
 	int buffer_in_srgb;
 } DisplayBufferThread;
 
-static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned char *display_buffer,
+static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned char *byte_buffer,
+                                          unsigned char *display_buffer,
                                           void *processor, void *(do_thread) (void *))
 {
 	DisplayBufferThread handles[BLENDER_MAX_THREADS];
@@ -656,9 +661,16 @@ static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned c
 	for (i = 0; i < tot_thread; i++) {
 		int offset = ibuf->channels * start_line * ibuf->x;
 
+		memset(&handles[i], 0, sizeof(handles[i]));
+
 		handles[i].processor = processor;
 
-		handles[i].buffer = buffer + offset;
+		if (buffer)
+			handles[i].buffer = buffer + offset;
+
+		if (byte_buffer)
+			handles[i].byte_buffer = byte_buffer + offset;
+
 		handles[i].display_buffer = display_buffer + offset;
 		handles[i].width = ibuf->x;
 
@@ -690,23 +702,52 @@ static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned c
 
 static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 {
-	float *linear_buffer = handle->buffer;
+	float *linear_buffer = NULL;
 
-	if (handle->buffer_in_srgb) {
+	int channels = handle->channels;
+	int width = handle->width;
+	int height = handle->tot_line;
+
+	int buffer_size = channels * width * height;
+
+	/* TODO: do we actually need to handle alpha premultiply in some way here? */
+	int predivide = handle->predivide;
+
+	linear_buffer = MEM_callocN(buffer_size * sizeof(float), "color conversion linear buffer");
+
+	if (!handle->buffer) {
+		unsigned char *byte_buffer = handle->byte_buffer;
+
+		/* OCIO_TODO: for now assume byte buffers are in sRGB space,
+		 *            in the future it shall use color space specified
+		 *            by user
+		 */
+		IMB_buffer_float_from_byte(linear_buffer, byte_buffer,
+		                           IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB,
+		                           predivide, width, height, width, width);
+	}
+	else if (handle->buffer_in_srgb) {
+		/* sequencer is working with float buffers which are in sRGB space,
+		 * so we need to ensure float buffer is in linear space before
+		 * applying all the view transformations
+		 */
 		float *buffer = handle->buffer;
-
-		int channels = handle->channels;
-		int width = handle->width;
-		int height = handle->tot_line;
-		int predivide = handle->predivide;
-
-		int buffer_size = 4 * channels * width * height;
-
-		linear_buffer = MEM_callocN(buffer_size * sizeof(float), "color conversion linear buffer");
 
 		IMB_buffer_float_from_float(linear_buffer, buffer, channels,
 		                            IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB,
 		                            predivide, width, height, width, width);
+	}
+	else {
+		/* some processors would want to modify float original buffer
+		 * before converting it into display byte buffer, so we need to
+		 * make sure original's ImBuf buffers wouldn't be modified by
+		 * using duplicated buffer here
+		 *
+		 * NOTE: MEM_dupallocN can't be used because buffer could be
+		 *       specified as an offset inside allocated buffer
+		 */
+
+		memcpy(linear_buffer, handle->buffer, buffer_size * sizeof(float));
 	}
 
 	return linear_buffer;
@@ -742,7 +783,8 @@ static void *do_display_buffer_apply_tonemap_thread(void *handle_v)
 static void display_buffer_apply_tonemap(ImBuf *ibuf, unsigned char *display_buffer,
                                          imb_tonecurveCb tonecurve_func)
 {
-	display_buffer_apply_threaded(ibuf, ibuf->rect_float, display_buffer, tonecurve_func,
+	display_buffer_apply_threaded(ibuf, ibuf->rect_float, (unsigned char *)ibuf->rect,
+	                              display_buffer, tonecurve_func,
 	                              do_display_buffer_apply_tonemap_thread);
 }
 
@@ -804,7 +846,7 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 	dt = OCIO_createDisplayTransform();
 
 	/* OCIO_TODO: get rid of hardcoded input space */
-	OCIO_displayTransformSetInputColorSpaceName(dt, global_role_linear);
+	OCIO_displayTransformSetInputColorSpaceName(dt, global_role_scene_linear);
 
 	OCIO_displayTransformSetView(dt, view_transform);
 	OCIO_displayTransformSetDisplay(dt, display);
@@ -838,20 +880,15 @@ static void display_buffer_apply_ocio(ImBuf *ibuf, unsigned char *display_buffer
 	const float exposure = view_settings->exposure;
 	const char *view_transform = view_settings->view_transform;
 	const char *display = display_settings->display_device;
-	float *rect_float;
-
-	rect_float = MEM_dupallocN(ibuf->rect_float);
 
 	processor = create_display_buffer_processor(view_transform, display, exposure, gamma);
 
 	if (processor) {
-		display_buffer_apply_threaded(ibuf, rect_float, display_buffer, processor,
-		                              do_display_buffer_apply_ocio_thread);
+		display_buffer_apply_threaded(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect,
+	                                      display_buffer, processor, do_display_buffer_apply_ocio_thread);
 	}
 
 	OCIO_processorRelease(processor);
-
-	MEM_freeN(rect_float);
 }
 
 static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *display_buffer,
@@ -908,6 +945,12 @@ void IMB_colormanage_cache_free(ImBuf *ibuf)
 	}
 }
 
+static void imbuf_verify_float(ImBuf *ibuf)
+{
+	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)))
+		IMB_rect_from_float(ibuf);
+}
+
 unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
                                           const ColorManagedDisplaySettings *display_settings, void **cache_handle)
 {
@@ -920,9 +963,16 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 	if (!ibuf->x || !ibuf->y)
 		return NULL;
 
+#if !defined(COLORMANAGE_BYTE_BUFFER)
+	if (!ibuf->rect_float) {
+		imbuf_verify_float(ibuf);
+
+		return (unsigned char *) ibuf->rect;
+	}
+#endif
+
 	/* OCIO_TODO: support colormanaged byte buffers */
 	if (!strcmp(view_transform, "NONE") ||
-	    !ibuf->rect_float ||
 	    global_tot_display == 0 ||
 	    global_tot_view == 0)
 	{
@@ -931,8 +981,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		 * it's safe to suppose standard byte buffer is used for display
 		 */
 
-		if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)))
-			IMB_rect_from_float(ibuf);
+		imbuf_verify_float(ibuf);
 
 		return (unsigned char *) ibuf->rect;
 	}
@@ -980,8 +1029,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 	(void) view_transform;
 	(void) display_settings;
 
-	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)))
-		IMB_rect_from_float(ibuf);
+	imbuf_verify_float(ibuf);
 
 	return (unsigned char*) ibuf->rect;
 #endif
@@ -993,16 +1041,16 @@ void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSetting
 #ifdef WITH_OCIO
 	const char *view_transform = view_settings->view_transform;
 
+#if !defined(COLORMANAGE_BYTE_BUFFER)
 	if (!ibuf->rect_float)
 		return;
+#endif
 
 	if (!strcmp(view_transform, "NONE") ||
-	    !ibuf->rect_float ||
 	    global_tot_display == 0 ||
 	    global_tot_view == 0)
 	{
-		if (!ibuf->rect)
-			IMB_rect_from_float(ibuf);
+		imbuf_verify_float(ibuf);
 	}
 	else {
 		if (!ibuf->rect) {
@@ -1015,8 +1063,7 @@ void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSetting
 	(void) view_settings;
 	(void) display_settings;
 
-	if (!ibuf->rect)
-		IMB_rect_from_float(ibuf);
+	imbuf_verify_float(ibuf);
 #endif
 }
 
