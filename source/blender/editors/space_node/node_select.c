@@ -474,7 +474,7 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 	
 	for (node= snode->edittree->nodes.first; node; node= node->next) {
-		if (BLI_isect_rctf(&rectf, &node->totr, NULL)) {
+		if (BLI_rctf_isect(&rectf, &node->totr, NULL)) {
 			if (gesture_mode==GESTURE_MODAL_SELECT)
 				node_select(node);
 			else

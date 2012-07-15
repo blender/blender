@@ -403,9 +403,9 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 							 * as optimal as it could be, but checking pixels against faces they will never intersect
 							 * with is likely the greater slowdown here - so check if the cell intersects the face */
 							if (layer_bucket_isect_test(layer, face_index,
-														xi, yi,
-														bucket_size_x, bucket_size_y,
-														bucket_max_rad_squared))
+							                            xi, yi,
+							                            bucket_size_x, bucket_size_y,
+							                            bucket_max_rad_squared))
 							{
 								BLI_linklist_prepend_arena(&bucketstore[bucket_index], face_index_void, arena);
 								bucketstore_tot[bucket_index]++;
@@ -805,7 +805,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			{
 				MaskRasterLayer *layer = &mr_handle->layers[masklay_index];
 
-				if (BLI_isect_rctf(&default_bounds, &bounds, &bounds)) {
+				if (BLI_rctf_isect(&default_bounds, &bounds, &bounds)) {
 					layer->face_tot = sf_tri_tot + tot_feather_quads;
 					layer->face_coords = face_coords;
 					layer->face_array  = face_array;
@@ -813,7 +813,7 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 					layer_bucket_init(layer, pixel_size);
 
-					BLI_union_rctf(&mr_handle->bounds, &bounds);
+					BLI_rctf_union(&mr_handle->bounds, &bounds);
 				}
 				else {
 					MEM_freeN(face_coords);

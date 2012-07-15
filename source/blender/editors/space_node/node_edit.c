@@ -1521,7 +1521,7 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 	bNode *node;
 	
 	for (node = snode->edittree->nodes.last; node; node = node->prev) {
-		if (BLI_isect_rctf(&node->totr, rct, NULL))
+		if (BLI_rctf_isect(&node->totr, rct, NULL))
 			break;
 	}
 	return node;

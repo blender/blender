@@ -827,7 +827,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* adds window to WM */
 	rect = sa->totrct;
-	BLI_translate_rcti(&rect, win->posx, win->posy);
+	BLI_rcti_translate(&rect, win->posx, win->posy);
 	newwin = WM_window_open(C, &rect);
 	
 	/* allocs new screen and adds to newly created window, using window size */

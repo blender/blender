@@ -369,7 +369,7 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	ss = ob->sculpt;
 	if (ss->cache) {
 		if (!BLI_rcti_is_empty(&ss->cache->previous_r))
-			BLI_union_rcti(rect, &ss->cache->previous_r);
+			BLI_rcti_union(rect, &ss->cache->previous_r);
 	}
 
 	return 1;

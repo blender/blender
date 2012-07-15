@@ -248,7 +248,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 		rect.xmax = RNA_int_get(op->ptr, "xmax");
 		rect.ymax = RNA_int_get(op->ptr, "ymax");
 
-		BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
+		BLI_rcti_isect(&(ar->v2d.mask), &rect, &rect);
 
 		sel = file_selection_get(C, &rect, 0);
 		if ( (sel.first != params->sel_first) || (sel.last != params->sel_last) ) {
@@ -288,7 +288,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 		file_deselect_all(sfile, SELECTED_FILE);
 	}
 
-	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
+	BLI_rcti_isect(&(ar->v2d.mask), &rect, &rect);
 
 	ret = file_select(C, &rect, select ? FILE_SEL_ADD : FILE_SEL_REMOVE, 0);
 	if (FILE_SELECT_DIR == ret) {

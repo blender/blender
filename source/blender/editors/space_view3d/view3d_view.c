@@ -1786,7 +1786,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 		cam_frame.xmax = cam_framef.xmax + ar->winrct.xmin;
 		cam_frame.ymin = cam_framef.ymin + ar->winrct.ymin;
 		cam_frame.ymax = cam_framef.ymax + ar->winrct.ymin;
-		BLI_isect_rcti(&ar->winrct, &cam_frame, &cam_frame);
+		BLI_rcti_isect(&ar->winrct, &cam_frame, &cam_frame);
 	}
 	else {
 		cam_frame.xmin = ar->winrct.xmin;

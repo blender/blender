@@ -523,7 +523,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 				counter = 0;
 			}
 			else
-				BLI_union_rctf(rect, &node->totr);
+				BLI_rctf_union(rect, &node->totr);
 		}
 		
 		/* add some room for links to group sockets */
@@ -954,7 +954,7 @@ static void node_update_frame(const bContext *UNUSED(C), bNodeTree *ntree, bNode
 			data->flag &= ~NODE_FRAME_RESIZEABLE;
 		}
 		else
-			BLI_union_rctf(&rect, &noderect);
+			BLI_rctf_union(&rect, &noderect);
 	}
 	
 	/* now adjust the frame size from view-space bounding box */

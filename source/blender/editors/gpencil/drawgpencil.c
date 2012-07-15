@@ -769,7 +769,7 @@ void draw_gpencil_view3d(Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 	if ((rv3d->persp == RV3D_CAMOB) && !(G.f & G_RENDER_OGL)) {
 		rctf rectf;
 		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &rectf, TRUE); /* no shift */
-		BLI_copy_rcti_rctf(&rect, &rectf);
+		BLI_rcti_rctf_copy(&rect, &rectf);
 	}
 	else {
 		rect.xmin = 0;

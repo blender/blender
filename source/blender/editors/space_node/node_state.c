@@ -78,7 +78,7 @@ static void snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode* snode)
 				ar->v2d.cur= node->totr;
 			}
 			else {
-				BLI_union_rctf(cur, &node->totr);
+				BLI_rctf_union(cur, &node->totr);
 			}
 		}
 	}
