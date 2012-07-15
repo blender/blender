@@ -2078,7 +2078,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	G.rendering = 0;
 }
 
-static void colormanage_image_for_write(ImBuf *ibuf, Scene *scene)
+static void colormanage_image_for_write(Scene *scene, ImBuf *ibuf)
 {
 	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->r.im_format.view_settings,
 	                                 &scene->r.im_format.display_settings);
@@ -2099,19 +2099,27 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	/* write movie or image */
 	if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		int do_free = FALSE;
-		unsigned int *rect32 = (unsigned int *)rres.rect32;
+		ImBuf *ibuf = render_result_rect_to_ibuf(&rres, &scene->r);
+
 		/* note; the way it gets 32 bits rects is weak... */
-		if (rres.rect32 == NULL) {
-			rect32 = MEM_mapallocN(sizeof(int) * rres.rectx * rres.recty, "temp 32 bits rect");
-			RE_ResultGet32(re, rect32);
+		if (ibuf->rect == NULL) {
+			ibuf->rect = MEM_mapallocN(sizeof(int) * rres.rectx * rres.recty, "temp 32 bits rect");
+			RE_ResultGet32(re, ibuf->rect);
 			do_free = TRUE;
 		}
 
-		ok = mh->append_movie(&re->r, scene->r.sfra, scene->r.cfra, (int *)rect32,
-		                      rres.rectx, rres.recty, re->reports);
+		colormanage_image_for_write(scene, ibuf);
+
+		ok = mh->append_movie(&re->r, scene->r.sfra, scene->r.cfra, (int *) ibuf->rect,
+		                      ibuf->x, ibuf->y, re->reports);
 		if (do_free) {
-			MEM_freeN(rect32);
+			MEM_freeN(ibuf->rect);
+			ibuf->rect = NULL;
 		}
+
+		/* imbuf knows which rects are not part of ibuf */
+		IMB_freeImBuf(ibuf);
+
 		printf("Append frame %d", scene->r.cfra);
 	} 
 	else {
@@ -2133,7 +2141,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 			do_colormanagement = !BKE_imtype_supports_float(scene->r.im_format.imtype);
 
 			if (do_colormanagement)
-				colormanage_image_for_write(ibuf, scene);
+				colormanage_image_for_write(scene, ibuf);
 
 			ok = BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
 			
@@ -2152,7 +2160,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 				BKE_add_image_extension(name, R_IMF_IMTYPE_JPEG90);
 				ibuf->planes = 24;
 
-				colormanage_image_for_write(ibuf, scene);
+				colormanage_image_for_write(scene, ibuf);
 
 				BKE_imbuf_write_stamp(scene, camera, ibuf, name, &imf);
 				printf("\nSaved: %s", name);
