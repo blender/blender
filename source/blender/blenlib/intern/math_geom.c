@@ -606,6 +606,20 @@ static short IsectLLPt2Df(const float x0, const float y0, const float x1, const 
 
 /* point in tri */
 
+/* only single direction */
+int isect_point_tri_v2_cw(const float pt[2], const float v1[2], const float v2[2], const float v3[2])
+{
+	if (line_point_side_v2(v1, v2, pt) >= 0.0f) {
+		if (line_point_side_v2(v2, v3, pt) >= 0.0f) {
+			if (line_point_side_v2(v3, v1, pt) >= 0.0f) {
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 int isect_point_tri_v2(const float pt[2], const float v1[2], const float v2[2], const float v3[2])
 {
 	if (line_point_side_v2(v1, v2, pt) >= 0.0f) {

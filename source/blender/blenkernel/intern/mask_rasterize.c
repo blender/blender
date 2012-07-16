@@ -727,9 +727,9 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			/* tri's */
 			face = (unsigned int *)face_array;
 			for (sf_tri = sf_ctx.fillfacebase.first, face_index = 0; sf_tri; sf_tri = sf_tri->next, face_index++) {
-				*(face++) = sf_tri->v1->tmp.u;
-				*(face++) = sf_tri->v2->tmp.u;
 				*(face++) = sf_tri->v3->tmp.u;
+				*(face++) = sf_tri->v2->tmp.u;
+				*(face++) = sf_tri->v1->tmp.u;
 				*(face++) = TRI_VERT;
 			}
 
@@ -881,7 +881,7 @@ static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], cons
 		    (cos[1][2] < dist_orig) ||
 		    (cos[2][2] < dist_orig))
 		{
-			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
+			if (isect_point_tri_v2_cw(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
 				/* we know all tris are close for now */
 				return maskrasterize_layer_z_depth_tri(xy, cos[face[0]], cos[face[1]], cos[face[2]]);
 			}
@@ -889,7 +889,7 @@ static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], cons
 #else
 		/* we know all tris are close for now */
 		if (1) {
-			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
+			if (isect_point_tri_v2_cw(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
 				return 0.0f;
 			}
 		}
@@ -911,6 +911,8 @@ static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], cons
 				return maskrasterize_layer_z_depth_quad(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]);
 			}
 #elif 1
+			/* don't use isect_point_tri_v2_cw because we could have bowtie quads */
+
 			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
 				return maskrasterize_layer_z_depth_tri(xy, cos[face[0]], cos[face[1]], cos[face[2]]);
 			}
