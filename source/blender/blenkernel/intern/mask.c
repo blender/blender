@@ -463,15 +463,24 @@ static void feather_bucket_check_intersect(float (*feather_points)[2], FeatherEd
 	}
 }
 
+static int feather_bucket_index_from_coord(float co[2], float min[2], float max[2], const int buckets_per_side, const float bucket_size)
+{
+#define BUCKET_SIDE_INDEX(co, min, max) ((int) ((co - min) / (max - min) / bucket_size))
+
+	int x = BUCKET_SIDE_INDEX(co[0], min[0], max[0]);
+	int y = BUCKET_SIDE_INDEX(co[1], min[1], max[1]);
+
+	x = MIN2(x, buckets_per_side - 1);
+	y = MIN2(y, buckets_per_side - 1);
+
+	return y * buckets_per_side + x;
+#undef BUCKET_SIDE_INDEX
+}
+
 static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int tot_feather_point)
 {
-#define BUCKET_SIDE_INDEX(co, min, max) ((int) ((co - min) / (max - min + FLT_EPSILON) / bucket_size))
-
-#define BUCKET_INDEX_DELTA(co, dx, dy) \
-	BUCKET_SIDE_INDEX(co[1] + dy, min[1], max[1]) * buckets_per_side + \
-		BUCKET_SIDE_INDEX(co[0] + dx, min[0], max[0])
-
-#define BUCKET_INDEX(co) BUCKET_INDEX_DELTA(co, 0, 0)
+#define BUCKET_INDEX(co) \
+	feather_bucket_index_from_coord(co, min, max, buckets_per_side, bucket_size)
 
 	const int buckets_per_side = 10;
 	const int tot_bucket = buckets_per_side * buckets_per_side;
@@ -532,7 +541,6 @@ static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int 
 	MEM_freeN(buckets);
 
 #undef BUCKET_INDEX
-#undef BUCKET_SIZE_INDEX
 }
 
 /**
