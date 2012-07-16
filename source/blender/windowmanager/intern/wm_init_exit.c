@@ -199,6 +199,12 @@ void WM_init(bContext *C, int argc, const char **argv)
 #endif
 
 	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
+
+	if (1) {
+		extern void *COM_linker_hack;
+		extern void *COM_execute;
+		COM_linker_hack = COM_execute;
+	}
 }
 
 void WM_init_splash(bContext *C)

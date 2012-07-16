@@ -909,10 +909,9 @@ endif()
 	)
 
 	if(WITH_COMPOSITOR)
-		#added for opencl compositor
-		list(APPEND BLENDER_SORTED_LIBS bf_compositor)
-		list(APPEND BLENDER_SORTED_LIBS bf_opencl)
-		list(APPEND BLENDER_SORTED_LIBS bf_blenkernel)  # hrmf, needed for BKE_mask only
+		# added for opencl compositor
+		list_insert_before(BLENDER_SORTED_LIBS "bf_blenkernel" "bf_compositor")
+		list_insert_after(BLENDER_SORTED_LIBS "bf_compositor" "bf_opencl")
 	endif()
 
 	if(WITH_LIBMV)
