@@ -471,7 +471,6 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
                                    const short do_feather)
 {
 	const rctf default_bounds = {0.0f, 1.0f, 0.0f, 1.0f};
-	const int resol = SPLINE_RESOL;  /* TODO: real size */
 	const float pixel_size = 1.0f / MIN2(width, height);
 
 	const float zvec[3] = {0.0f, 0.0f, 1.0f};
@@ -521,6 +520,10 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 			float (*diff_feather_points)[2];
 			int tot_diff_feather_points;
+
+			const int resol_a = BKE_mask_spline_resolution(spline, width, height) / 4;
+			const int resol_b = BKE_mask_spline_feather_resolution(spline, width, height) / 4;
+			const int resol = CLAMPIS(MAX2(resol_a, resol_b), 4, 512);
 
 			diff_points = BKE_mask_spline_differentiate_with_resolution_ex(
 			                  spline, resol, &tot_diff_point);

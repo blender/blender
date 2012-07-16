@@ -2242,13 +2242,13 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		}
 	}
 	else if (itemptr->type == &RNA_MaskLayer) {
-		split = uiLayoutSplit(sub, 0.5f, FALSE);
+		split = uiLayoutRow(sub, FALSE);
 
 		uiItemL(split, name, icon);
 
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		row = uiLayoutRow(split, TRUE);
-		// uiItemR(row, itemptr, "alpha", 0, "", ICON_NONE); // enable when used
+		uiItemR(row, itemptr, "alpha", 0, "", ICON_NONE); // enable when used
 		uiItemR(row, itemptr, "hide", 0, "", 0);
 		uiItemR(row, itemptr, "hide_select", 0, "", 0);
 		uiItemR(row, itemptr, "hide_render", 0, "", 0);
