@@ -14,7 +14,7 @@ roles:
   default: raw
   matte_paint: raw
   reference: aces
-  scene_linear: aces
+  scene_linear: rec709
   texture_paint: raw
 
 displays:
@@ -28,7 +28,7 @@ displays:
     - !<View> {name: RRT, colorspace: rrt_srgb}
     - !<View> {name: SPI Film, colorspace: srgb8}
     - !<View> {name: SPI Log, colorspace: lg10}
-    - !<View> {name: Nuke rec709, colorspace: rec709}
+    - !<View> {name: Nuke rec709, colorspace: nuke_rec709}
   xyz:
     - !<View> {name: Raw, colorspace: raw}
     - !<View> {name: Log, colorspace: adx10}
@@ -41,7 +41,7 @@ colorspaces:
   - !<ColorSpace>
     name: aces
     family: aces
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 32f
     isdata: false
     allocation: lg2
@@ -50,7 +50,7 @@ colorspaces:
   - !<ColorSpace>
     name: raw
     family: raw
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 32f
     isdata: true
     allocation: uniform
@@ -59,11 +59,11 @@ colorspaces:
   - !<ColorSpace>
     name: adx10
     family: adx
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 10ui
     description: |
       Film Scan, using the 10-bit Academy Density Encoding
-      
+
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
@@ -78,11 +78,11 @@ colorspaces:
   - !<ColorSpace>
     name: adx16
     family: adx
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 16ui
     description: |
       Film Scan, using the 16-bit Academy Density Encoding
-      
+
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
@@ -97,11 +97,11 @@ colorspaces:
   - !<ColorSpace>
     name: slogf35
     family: sony
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 10ui
     description: |
       Sony 10-bit S-Log, with f35 color primaries
-      
+
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
@@ -113,11 +113,11 @@ colorspaces:
   - !<ColorSpace>
     name: slogf65_3200
     family: sony
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 10ui
     description: |
       Sony 10-bit S-Log, with f65 color primaries
-      
+
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
@@ -129,11 +129,11 @@ colorspaces:
   - !<ColorSpace>
     name: slogf65_5500
     family: sony
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 10ui
     description: |
       Sony 10-bit S-Log, with f65 color primaries
-      
+
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
@@ -145,11 +145,11 @@ colorspaces:
   - !<ColorSpace>
     name: logc
     family: arri
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 10ui
     description: |
       Arri Alexa LogC, V3, Exposure Index 800
-      
+
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
@@ -161,13 +161,13 @@ colorspaces:
   - !<ColorSpace>
     name: log
     family: log
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 32f
     description: |
       A mathematically idealized log space, which spans the dynamic range
       currently being utilized by the ACES RRT. Note: this does not correspond
       to scanned plates, adx10 is preferred for that purpose.
-      
+
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
@@ -176,77 +176,83 @@ colorspaces:
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
 
   - !<ColorSpace>
+    name: rec709
+    family: ""
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      Rec. 709 (Full Range) Display Space
+    isdata: false
+    allocation: uniform
+    allocationvars: [-0.125, 1.125]
+    to_reference: !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
+
+  - !<ColorSpace>
     name: rrt_srgb
     family: rrt
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 32f
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_sRGB.spi3d, interpolation: tetrahedral}
 
   - !<ColorSpace>
     name: rrt_rec709
     family: rrt
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 32f
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_rec709.spi3d, interpolation: tetrahedral}
 
   - !<ColorSpace>
     name: rrt_p3dci
     family: rrt
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 32f
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_p3dci.spi3d, interpolation: tetrahedral}
 
   - !<ColorSpace>
     name: rrt_p3d60
     family: rrt
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 32f
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_p3d60.spi3d, interpolation: tetrahedral}
 
   - !<ColorSpace>
     name: rrt_xyz
     family: rrt
-    equalitygroup: 
+    equalitygroup:
     bitdepth: 32f
     isdata: false
     allocation: uniform
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_dcdm.spi3d, interpolation: tetrahedral}
 
   # spi-vfx
-
   - !<ColorSpace>
     name: lg10
     family: lg
@@ -256,7 +262,10 @@ colorspaces:
       lg10 : conversion from film log
     isdata: false
     allocation: uniform
-    to_reference: !<FileTransform> {src: lg10.spi1d, interpolation: nearest}
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: lg10.spi1d, interpolation: nearest}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
 
   - !<ColorSpace>
     name: srgb8
@@ -274,7 +283,7 @@ colorspaces:
 
   # nuke-default
   - !<ColorSpace>
-    name: rec709
+    name: nuke_rec709
     family: ""
     equalitygroup: ""
     bitdepth: 32f
@@ -283,4 +292,7 @@ colorspaces:
     isdata: false
     allocation: uniform
     allocationvars: [-0.125, 1.125]
-    to_reference: !<FileTransform> {src: rec709.spi1d, interpolation: linear}
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: rec709.spi1d, interpolation: linear}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
