@@ -246,7 +246,7 @@ MaskSpline *BKE_mask_spline_add(MaskLayer *masklay)
 	return spline;
 }
 
-static int BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
+int BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
 {
 	float max_segment = 0.01f;
 	int i, resol = 1;
@@ -284,7 +284,7 @@ static int BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
 	return resol;
 }
 
-static int BKE_mask_spline_feather_resolution(MaskSpline *spline, int width, int height)
+int BKE_mask_spline_feather_resolution(MaskSpline *spline, int width, int height)
 {
 	const float max_segment = 0.005;
 	int resol = BKE_mask_spline_resolution(spline, width, height);

@@ -64,6 +64,9 @@ void BKE_mask_layer_copy_list(struct ListBase *masklayers_new, struct ListBase *
 /* splines */
 struct MaskSpline *BKE_mask_spline_add(struct MaskLayer *masklay);
 
+int BKE_mask_spline_resolution(struct MaskSpline *spline, int width, int height);
+int BKE_mask_spline_feather_resolution(struct MaskSpline *spline, int width, int height);
+
 int BKE_mask_spline_differentiate_calc_total(const struct MaskSpline *spline, const int resol);
 
 float (*BKE_mask_spline_differentiate(struct MaskSpline *spline, int *tot_diff_point))[2];
