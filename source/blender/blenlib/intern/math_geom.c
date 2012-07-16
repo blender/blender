@@ -1977,34 +1977,44 @@ void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3
 }
 
 /* same as #barycentric_weights_v2 but works with a quad,
- * note: untested for values outside the quad's bounds.
- * note: there may be a more efficient method to do this, just figured it out - campbell */
+ * note: untested for values outside the quad's bounds
+ * this is #interp_weights_poly_v2 expanded for quads only */
 void barycentric_weights_v2_quad(const float v1[2], const float v2[2], const float v3[2], const float v4[2],
                                  const float co[2], float w[4])
 {
-	float wtot;
+#define MEAN_VALUE_HALF_TAN_V2(_area, i1, i2) ((_area = cross_v2v2(dirs[i1], dirs[i2])) != 0.0f ? \
+	                                           (((lens[i1] * lens[i2]) - dot_v2v2(dirs[i1], dirs[i2])) / _area) : 0.0f)
 
-	const float areas_co[4] = {
-	    area_tri_signed_v2(v1, v2, co),
-	    area_tri_signed_v2(v2, v3, co),
-	    area_tri_signed_v2(v3, v4, co),
-	    area_tri_signed_v2(v4, v1, co),
+	float wtot, area;
+
+	const float dirs[4][2] = {
+	    {v1[0] - co[0], v1[1] - co[1]},
+	    {v2[0] - co[0], v2[1] - co[1]},
+	    {v3[0] - co[0], v3[1] - co[1]},
+	    {v4[0] - co[0], v4[1] - co[1]},
 	};
 
-	const float areas_diag[4] = {
-	    area_tri_signed_v2(v4, v1, v2),
-	    area_tri_signed_v2(v1, v2, v3),
-	    area_tri_signed_v2(v2, v3, v4),
-	    area_tri_signed_v2(v3, v4, v1),
+	const float lens[4] = {
+	    len_v2(dirs[0]),
+	    len_v2(dirs[1]),
+	    len_v2(dirs[2]),
+	    len_v2(dirs[3]),
 	};
 
-	const float u = areas_co[3] / (areas_co[1] + areas_co[3]);
-	const float v = areas_co[0] / (areas_co[0] + areas_co[2]);
+	/* inline mean_value_half_tan four times here */
+	float t[4] = {
+	    MEAN_VALUE_HALF_TAN_V2(area, 0, 1),
+	    MEAN_VALUE_HALF_TAN_V2(area, 1, 2),
+	    MEAN_VALUE_HALF_TAN_V2(area, 2, 3),
+	    MEAN_VALUE_HALF_TAN_V2(area, 3, 0),
+	};
 
-	w[0] = ((1.0f - u) * (1.0f - v)) * sqrtf(areas_diag[0] / areas_diag[2]);
-	w[1] = ((       u) * (1.0f - v)) * sqrtf(areas_diag[1] / areas_diag[3]);
-	w[2] = ((       u) * (       v)) * sqrtf(areas_diag[2] / areas_diag[0]);
-	w[3] = ((1.0f - u) * (       v)) * sqrtf(areas_diag[3] / areas_diag[1]);
+#undef MEAN_VALUE_HALF_TAN_V2
+
+	w[0] = (t[3] + t[0]) / lens[0];
+	w[1] = (t[0] + t[1]) / lens[1];
+	w[2] = (t[1] + t[2]) / lens[2];
+	w[3] = (t[2] + t[3]) / lens[3];
 
 	wtot = w[0] + w[1] + w[2] + w[3];
 
@@ -2190,6 +2200,7 @@ static float mean_value_half_tan_v2(const float v1[2], const float v2[2], const 
 
 void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[3])
 {
+	/* TODO: t1 and t2 overlap each iter, we could call this only once per iter and reuse previous value */
 	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
 	int i;
 
@@ -2217,6 +2228,7 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 
 void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[2])
 {
+	/* TODO: t1 and t2 overlap each iter, we could call this only once per iter and reuse previous value */
 	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
 	int i;
 
