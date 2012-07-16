@@ -2148,7 +2148,7 @@ int interp_sparse_array(float *array, int const list_size, const float skipval)
 
 /* Mean value weights - smooth interpolation weights for polygons with
  * more than 3 vertices */
-static float mean_value_half_tan(const float v1[3], const float v2[3], const float v3[3])
+static float mean_value_half_tan_v3(const float v1[3], const float v2[3], const float v3[3])
 {
 	float d2[3], d3[3], cross[3], area, dot, len;
 
@@ -2160,10 +2160,32 @@ static float mean_value_half_tan(const float v1[3], const float v2[3], const flo
 	dot = dot_v3v3(d2, d3);
 	len = len_v3(d2) * len_v3(d3);
 
-	if (area == 0.0f)
-		return 0.0f;
-	else
+	if (LIKELY(area != 0.0f)) {
 		return (len - dot) / area;
+	}
+	else {
+		return 0.0f;
+	}
+}
+static float mean_value_half_tan_v2(const float v1[2], const float v2[2], const float v3[2])
+{
+	float d2[2], d3[2], area, dot, len;
+
+	sub_v2_v2v2(d2, v2, v1);
+	sub_v2_v2v2(d3, v3, v1);
+
+	/* different from the 3d version but still correct */
+	area = cross_v2v2(d2, d3);
+
+	dot = dot_v2v2(d2, d3);
+	len = len_v2(d2) * len_v2(d3);
+
+	if (LIKELY(area != 0.0f)) {
+		return (len - dot) / area;
+	}
+	else {
+		return 0.0f;
+	}
 }
 
 void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[3])
@@ -2178,17 +2200,46 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 		vprev = (i == 0) ? v[n - 1] : v[i - 1];
 		vnext = (i == n - 1) ? v[0] : v[i + 1];
 
-		t1 = mean_value_half_tan(co, vprev, vmid);
-		t2 = mean_value_half_tan(co, vmid, vnext);
+		t1 = mean_value_half_tan_v3(co, vprev, vmid);
+		t2 = mean_value_half_tan_v3(co, vmid, vnext);
 
 		len = len_v3v3(co, vmid);
 		w[i] = (t1 + t2) / len;
 		totweight += w[i];
 	}
 
-	if (totweight != 0.0f)
-		for (i = 0; i < n; i++)
+	if (totweight != 0.0f) {
+		for (i = 0; i < n; i++) {
 			w[i] /= totweight;
+		}
+	}
+}
+
+void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[2])
+{
+	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
+	int i;
+
+	totweight = 0.0f;
+
+	for (i = 0; i < n; i++) {
+		vmid = v[i];
+		vprev = (i == 0) ? v[n - 1] : v[i - 1];
+		vnext = (i == n - 1) ? v[0] : v[i + 1];
+
+		t1 = mean_value_half_tan_v2(co, vprev, vmid);
+		t2 = mean_value_half_tan_v2(co, vmid, vnext);
+
+		len = len_v2v2(co, vmid);
+		w[i] = (t1 + t2) / len;
+		totweight += w[i];
+	}
+
+	if (totweight != 0.0f) {
+		for (i = 0; i < n; i++) {
+			w[i] /= totweight;
+		}
+	}
 }
 
 /* (x1,v1)(t1=0)------(x2,v2)(t2=1), 0<t<1 --> (x,v)(t) */
