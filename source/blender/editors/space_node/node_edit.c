@@ -3986,9 +3986,9 @@ static int node_hide_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	node_flag_toggle_exec(snode, NODE_HIDDEN);
-	
-	snode_notify(C, snode);
-	
+
+	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -4049,7 +4049,7 @@ static int node_options_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 	node_flag_toggle_exec(snode, NODE_OPTIONS);
 
-	snode_notify(C, snode);
+	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -4100,7 +4100,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ntreeUpdateTree(snode->edittree);
 
-	snode_notify(C, snode);
+	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 
 	return OPERATOR_FINISHED;
 }
