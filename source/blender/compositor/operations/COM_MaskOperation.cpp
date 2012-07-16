@@ -152,9 +152,9 @@ void MaskOperation::initExecution()
 			const int width = this->getWidth();
 			const int height = this->getHeight();
 
-			this->m_rasterMaskHandle = BLI_maskrasterize_handle_new();
+			this->m_rasterMaskHandle = BKE_maskrasterize_handle_new();
 
-			BLI_maskrasterize_handle_init(this->m_rasterMaskHandle, this->m_mask, width, height, TRUE, this->m_do_smooth, this->m_do_feather);
+			BKE_maskrasterize_handle_init(this->m_rasterMaskHandle, this->m_mask, width, height, TRUE, this->m_do_smooth, this->m_do_feather);
 		}
 	}
 }
@@ -162,7 +162,7 @@ void MaskOperation::initExecution()
 void MaskOperation::deinitExecution()
 {
 	if (this->m_rasterMaskHandle) {
-		BLI_maskrasterize_handle_free(this->m_rasterMaskHandle);
+		BKE_maskrasterize_handle_free(this->m_rasterMaskHandle);
 		this->m_rasterMaskHandle = NULL;
 	}
 
@@ -197,7 +197,7 @@ void MaskOperation::executePixel(float *color, int x, int y, void *data)
 {
 	const float xy[2] = {x / (float)this->m_maskWidth, y / (float)this->m_maskHeight};
 	if (this->m_rasterMaskHandle) {
-		color[0] = BLI_maskrasterize_handle_sample(this->m_rasterMaskHandle, xy);
+		color[0] = BKE_maskrasterize_handle_sample(this->m_rasterMaskHandle, xy);
 	}
 	else {
 		color[0] = 0.0f;

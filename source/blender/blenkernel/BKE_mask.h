@@ -213,13 +213,13 @@ void BKE_mask_init_layers(Mask *mask, struct layer_init_data *mlayer_data, int w
 struct MaskRasterHandle;
 typedef struct MaskRasterHandle MaskRasterHandle;
 
-MaskRasterHandle *BLI_maskrasterize_handle_new(void);
-void              BLI_maskrasterize_handle_free(MaskRasterHandle *mr_handle);
-void              BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mask,
+MaskRasterHandle *BKE_maskrasterize_handle_new(void);
+void              BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle);
+void              BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mask,
                                                 const int width, const int height,
                                                 const short do_aspect_correct, const short do_mask_aa,
                                                 const short do_feather);
-float             BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2]);
+float             BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2]);
 #endif /* USE_RASKTER */
 
 #endif /* __BKE_MASK_H__ */
