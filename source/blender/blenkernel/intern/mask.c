@@ -411,7 +411,7 @@ typedef struct FeatherEdgesBucket {
 
 static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int end)
 {
-	const int alloc_delta = 20;
+	const int alloc_delta = 32;
 
 	if (bucket->tot_segment >= bucket->alloc_segment) {
 		if (!bucket->segments) {
@@ -431,7 +431,8 @@ static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int e
 	bucket->tot_segment++;
 }
 
-static void feather_bucket_check_intersect(float (*feather_points)[2], FeatherEdgesBucket *bucket, int cur_a, int cur_b)
+static void feather_bucket_check_intersect(float (*feather_points)[2], int tot_feather_point, FeatherEdgesBucket *bucket,
+                                           int cur_a, int cur_b)
 {
 	int i;
 
@@ -449,21 +450,35 @@ static void feather_bucket_check_intersect(float (*feather_points)[2], FeatherEd
 			continue;
 
 		if (isect_seg_seg_v2(v1, v2, v3, v4)) {
-			int k;
+			int k, len;
 			float p[2];
 
 			isect_seg_seg_v2_point(v1, v2, v3, v4, p);
 
-			for (k = check_b; k <= cur_a; k++) {
-				copy_v2_v2(feather_points[k], p);
+			/* TODO: for now simply choose the shortest loop, could be made smarter in some way */
+			len = cur_a - check_b;
+			if (len < tot_feather_point - len) {
+				for (k = check_b; k <= cur_a; k++) {
+					copy_v2_v2(feather_points[k], p);
+				}
 			}
+			else {
+				for (k = 0; k <= check_a; k++) {
+					copy_v2_v2(feather_points[k], p);
+				}
 
-			break;
+				if (cur_b != 0) {
+					for (k = cur_b; k < tot_feather_point; k++) {
+						copy_v2_v2(feather_points[k], p);
+					}
+				}
+			}
 		}
 	}
 }
 
-static int feather_bucket_index_from_coord(float co[2], float min[2], float max[2], const int buckets_per_side, const float bucket_size)
+static int feather_bucket_index_from_coord(float co[2], float min[2], float max[2],
+                                           const int buckets_per_side, const float bucket_size)
 {
 #define BUCKET_SIDE_INDEX(co, min, max) ((int) ((co - min) / (max - min) / bucket_size))
 
@@ -526,10 +541,10 @@ static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int 
 		FeatherEdgesBucket *start_bucket = &buckets[start_bucket_index];
 		FeatherEdgesBucket *end_bucket = &buckets[end_bucket_index];
 
-		feather_bucket_check_intersect(feather_points, start_bucket, cur_a, cur_b);
+		feather_bucket_check_intersect(feather_points, tot_feather_point, start_bucket, cur_a, cur_b);
 
 		if (start_bucket != end_bucket)
-			feather_bucket_check_intersect(feather_points, end_bucket, cur_a, cur_b);
+			feather_bucket_check_intersect(feather_points, tot_feather_point, end_bucket, cur_a, cur_b);
 	}
 
 	/* free buckets */
