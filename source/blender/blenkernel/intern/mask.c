@@ -401,6 +401,140 @@ float (*BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point))[
 	return BKE_mask_spline_differentiate_with_resolution(spline, 0, 0, tot_diff_point);
 }
 
+/* ** feather points self-intersection collapse routine ** */
+
+typedef struct FeatherEdgesBucket {
+	int tot_segment;
+	int (*segments)[2];
+	int alloc_segment;
+} FeatherEdgesBucket;
+
+static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int end)
+{
+	const int alloc_delta = 20;
+
+	if (bucket->tot_segment >= bucket->alloc_segment) {
+		if (!bucket->segments) {
+			bucket->segments = MEM_callocN(alloc_delta * sizeof(*bucket->segments), "feather bucket segments");
+		}
+		else {
+			bucket->segments = MEM_reallocN(bucket->segments,
+					(alloc_delta + bucket->tot_segment) * sizeof(*bucket->segments));
+		}
+
+		bucket->alloc_segment += alloc_delta;
+	}
+
+	bucket->segments[bucket->tot_segment][0] = start;
+	bucket->segments[bucket->tot_segment][1] = end;
+
+	bucket->tot_segment++;
+}
+
+static void feather_bucket_check_intersect(float (*feather_points)[2], FeatherEdgesBucket *bucket, int cur_a, int cur_b)
+{
+	int i;
+
+	float *v1 = (float *) feather_points[cur_a];
+	float *v2 = (float *) feather_points[cur_b];
+
+	for (i = 0; i< bucket->tot_segment; i++) {
+		int check_a = bucket->segments[i][0];
+		int check_b = bucket->segments[i][1];
+
+		float *v3 = (float *) feather_points[check_a];
+		float *v4 = (float *) feather_points[check_b];
+
+		if (check_a >= cur_a - 1 || cur_b == check_a)
+			continue;
+
+		if (isect_seg_seg_v2(v1, v2, v3, v4)) {
+			int k;
+			float p[2];
+
+			isect_seg_seg_v2_point(v1, v2, v3, v4, p);
+
+			for (k = check_b; k <= cur_a; k++) {
+				copy_v2_v2(feather_points[k], p);
+			}
+
+			break;
+		}
+	}
+}
+
+static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int tot_feather_point)
+{
+#define BUCKET_SIDE_INDEX(co, min, max) ((int) ((co - min) / (max - min + FLT_EPSILON) / bucket_size))
+
+#define BUCKET_INDEX_DELTA(co, dx, dy) \
+	BUCKET_SIDE_INDEX(co[1] + dy, min[1], max[1]) * buckets_per_side + \
+		BUCKET_SIDE_INDEX(co[0] + dx, min[0], max[0])
+
+#define BUCKET_INDEX(co) BUCKET_INDEX_DELTA(co, 0, 0)
+
+	const int buckets_per_side = 10;
+	const int tot_bucket = buckets_per_side * buckets_per_side;
+	const float bucket_size = 1.0f / buckets_per_side;
+
+	FeatherEdgesBucket *buckets;
+
+	int i;
+	float min[2], max[2];
+
+	/* find min/max corners of mask to build buckets in that space */
+	INIT_MINMAX2(min, max);
+
+	for (i = 0; i < tot_feather_point; i++) {
+		DO_MINMAX2(feather_points[i], min, max);
+	}
+
+	/* fill in buckets' edges */
+	buckets = MEM_callocN(sizeof(FeatherEdgesBucket) * tot_bucket, "feather buckets");
+
+	for (i = 0; i < tot_feather_point; i++) {
+		int start = i;
+		int end = (i + 1) % tot_feather_point;
+
+		int start_bucket_index = BUCKET_INDEX(feather_points[start]);
+		int end_bucket_index = BUCKET_INDEX(feather_points[end]);
+
+		feather_bucket_add_edge(&buckets[start_bucket_index], start, end);
+
+		if (start_bucket_index != end_bucket_index) {
+			feather_bucket_add_edge(&buckets[end_bucket_index], start, end);
+		}
+	}
+
+	/* check all edges for intersection with edges from their buckets */
+	for (i = 0; i < tot_feather_point; i++) {
+		int cur_a = i;
+		int cur_b = (i + 1) % tot_feather_point;
+
+		int start_bucket_index = BUCKET_INDEX(feather_points[cur_a]);
+		int end_bucket_index = BUCKET_INDEX(feather_points[cur_b]);
+
+		FeatherEdgesBucket *start_bucket = &buckets[start_bucket_index];
+		FeatherEdgesBucket *end_bucket = &buckets[end_bucket_index];
+
+		feather_bucket_check_intersect(feather_points, start_bucket, cur_a, cur_b);
+
+		if (start_bucket != end_bucket)
+			feather_bucket_check_intersect(feather_points, end_bucket, cur_a, cur_b);
+	}
+
+	/* free buckets */
+	for (i = 0; i < tot_bucket; i++) {
+		if (buckets[i].segments)
+			MEM_freeN(buckets[i].segments);
+	}
+
+	MEM_freeN(buckets);
+
+#undef BUCKET_INDEX
+#undef BUCKET_SIZE_INDEX
+}
+
 /**
  * values align with #BKE_mask_spline_differentiate_with_resolution_ex
  * when \a resol arguments match.
@@ -466,6 +600,8 @@ float (*BKE_mask_spline_feather_differentiated_points_with_resolution_ex(MaskSpl
 	}
 
 	*tot_feather_point = tot;
+
+	spline_feather_collapse_inner_loops(feather, tot);
 
 	return feather;
 }
