@@ -731,15 +731,8 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			}
 
 			if (ima->source != IMA_SRC_GENERATED) {
-				PointerRNA colorspace_settings_ptr;
-
-				/* OCIO_TODO: de-duplicate this with clip space and other areas */
-				prop = RNA_struct_find_property(&imaptr, "colorspace_settings");
-				colorspace_settings_ptr = RNA_property_pointer_get(&imaptr, prop);
-
 				col = uiLayoutColumn(layout, FALSE);
-				uiItemL(col, "Color Space:", ICON_NONE);
-				uiItemR(col, &colorspace_settings_ptr, "name", 0, "", ICON_NONE);
+				uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
 
 				if (compact == 0) { /* background image view doesnt need these */
 					uiItemS(layout);
@@ -809,7 +802,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 {
 	ImageFormatData *imf = imfptr->data;
 	ID *id = imfptr->id.data;
-	PointerRNA display_settings_ptr, view_settings_ptr;
+	PointerRNA display_settings_ptr;
 	PropertyRNA *prop;
 	const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
 	/* some settings depend on this being a scene thats rendered */
@@ -887,17 +880,12 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 		prop = RNA_struct_find_property(imfptr, "display_settings");
 		display_settings_ptr = RNA_property_pointer_get(imfptr, prop);
 
-		prop = RNA_struct_find_property(imfptr, "view_settings");
-		view_settings_ptr = RNA_property_pointer_get(imfptr, prop);
-
 		col = uiLayoutColumn(layout, FALSE);
 		uiItemL(col, IFACE_("Color Management"), ICON_NONE);
 
 		uiItemR(col, &display_settings_ptr, "display_device", 0, NULL, ICON_NONE);
 
-		uiItemR(col, &view_settings_ptr, "view_transform", 0, NULL, ICON_NONE);
-		uiItemR(col, &view_settings_ptr, "exposure", 0, NULL, ICON_NONE);
-		uiItemR(col, &view_settings_ptr, "gamma", 0, NULL, ICON_NONE);
+		uiTemplateColormanagedViewSettings(col, NULL, imfptr, "view_settings", FALSE);
 	}
 }
 

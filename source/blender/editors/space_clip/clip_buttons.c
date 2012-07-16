@@ -119,7 +119,6 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 
 	if (clip) {
 		uiLayout *col;
-		PointerRNA colorspace_settings_ptr;
 
 		row = uiLayoutRow(layout, FALSE);
 		block = uiLayoutGetBlock(row);
@@ -132,13 +131,8 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 		uiItemR(row, &clipptr, "filepath", 0, "", ICON_NONE);
 		uiItemO(row, "", ICON_FILE_REFRESH, "clip.reload");
 
-		/* OCIO_TODO: de-duplicate this with image space and other areas */
-		prop = RNA_struct_find_property(&clipptr, "colorspace_settings");
-		colorspace_settings_ptr = RNA_property_pointer_get(&clipptr, prop);
-
 		col = uiLayoutColumn(layout, FALSE);
-		uiItemL(col, "Color Space:", ICON_NONE);
-		uiItemR(col, &colorspace_settings_ptr, "name", 0, "", ICON_NONE);
+		uiTemplateColorspaceSettings(col, &clipptr, "colorspace_settings");
 	}
 }
 

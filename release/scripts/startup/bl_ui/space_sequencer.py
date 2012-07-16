@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-from bl_ui.properties_color_management import ColorManagedViewSettingsPanel
 
 
 def act_strip(context):
@@ -861,8 +860,11 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
             col.prop(st, "show_separate_color")
         col.prop(st, "proxy_render_size")
 
-class SEQUENCER_PT_display_properties(SequencerButtonsPanel_Output, Panel, ColorManagedViewSettingsPanel):
-    bl_label = "Display Properties"
+        col = layout.column()
+        col.separator()
+        col.label(text="Color Management:")
+        col.template_colormanaged_view_settings(st, "view_settings", True)
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

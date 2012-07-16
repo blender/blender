@@ -496,6 +496,17 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "introspect", "uiLayoutIntrospect");
 	parm = RNA_def_string(func, "string", "", 1024 * 1024, "Descr", "DESCR");
 	RNA_def_function_return(func, parm);
+
+	/* color management templates */
+	func = RNA_def_function(srna, "template_colorspace_settings", "uiTemplateColorspaceSettings");
+	RNA_def_function_ui_description(func, "Item. A widget to control input color space settings.");
+	api_ui_item_rna_common(func);
+
+	func = RNA_def_function(srna, "template_colormanaged_view_settings", "uiTemplateColormanagedViewSettings");
+	RNA_def_function_ui_description(func, "Item. A widget to control color managed view settings settings.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	api_ui_item_rna_common(func);
+	RNA_def_boolean(func, "show_global_settings", 0, "", "Show widgets to control global color management settings");
 }
 
 #endif

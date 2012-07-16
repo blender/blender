@@ -1158,7 +1158,6 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 	}
 #endif
 
-	/* OCIO_TODO: support colormanaged byte buffers */
 	if (!strcmp(view_transform, "NONE") ||
 	    global_tot_display == 0 ||
 	    global_tot_view == 0)
@@ -1190,13 +1189,6 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		if (display_buffer) {
 			return display_buffer;
 		}
-
-		/* OCIO_TODO: in case when image is being resized it is possible
-		 *            to save buffer allocation here
-		 *
-		 *            actually not because there might be other users of
-		 *            that buffer which better not to change
-		 */
 
 		buffer_size = ibuf->channels * ibuf->x * ibuf->y * sizeof(float);
 		display_buffer = MEM_callocN(buffer_size, "imbuf display buffer");
