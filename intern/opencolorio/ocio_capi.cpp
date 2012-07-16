@@ -305,6 +305,11 @@ const char *OCIO_colorSpaceGetName(ConstColorSpaceRcPtr *cs)
 	return (*cs)->getName();
 }
 
+const char *OCIO_colorSpaceGetDescription(ConstColorSpaceRcPtr *cs)
+{
+	return (*cs)->getDescription();
+}
+
 const char *OCIO_colorSpaceGetFamily(ConstColorSpaceRcPtr *cs)
 {
 	return (*cs)->getFamily();

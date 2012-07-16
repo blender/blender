@@ -39,6 +39,7 @@ typedef struct ColorSpace {
 	struct ColorSpace *next, *prev;
 	int index;
 	char name[64];
+	char description[64];
 } ColorSpace;
 
 typedef struct ColorManagedDisplay {
@@ -64,7 +65,7 @@ struct ColorManagedView *colormanage_view_add(const char *name);
 struct ColorManagedView *colormanage_view_get_indexed(int index);
 struct ColorManagedView *colormanage_view_get_named(const char *name);
 
-struct ColorSpace *colormanage_colorspace_add(const char *name);
+struct ColorSpace *colormanage_colorspace_add(const char *name, const char *description);
 struct ColorSpace *colormanage_colorspace_get_named(const char *name);
 struct ColorSpace *colormanage_colorspace_get_indexed(int index);
 

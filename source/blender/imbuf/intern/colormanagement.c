@@ -478,9 +478,17 @@ static void colormanage_load_config(ConstConfigRcPtr *config)
 	/* load colorspaces */
 	tot_colorspace = OCIO_configGetNumColorSpaces(config);
 	for (index = 0 ; index < tot_colorspace; index++) {
+		ConstColorSpaceRcPtr *ocio_colorspace;
+		const char *description;
+
 		name = OCIO_configGetColorSpaceNameByIndex(config, index);
 
-		colormanage_colorspace_add(name);
+		ocio_colorspace = OCIO_configGetColorSpace(config, name);
+		description = OCIO_colorSpaceGetDescription(ocio_colorspace);
+
+		colormanage_colorspace_add(name, description);
+
+		OCIO_colorSpaceRelease(ocio_colorspace);
 	}
 
 	/* load displays */
@@ -1620,7 +1628,27 @@ const char *IMB_colormanagement_view_get_indexed_name(int index)
 
 /*********************** Color space functions *************************/
 
-ColorSpace *colormanage_colorspace_add(const char *name)
+static void colormanage_description_strip(char *description)
+{
+	int i, n;
+
+	for (i = strlen(description) - 1; i >= 0; i--) {
+		if (ELEM(description[i], '\r', '\n')) {
+			description[i] = '\0';
+		}
+		else {
+			break;
+		}
+	}
+
+	for (i = 0, n = strlen(description); i < n; i++) {
+		if (ELEM(description[i], '\r', '\n')) {
+			description[i] = ' ';
+		}
+	}
+}
+
+ColorSpace *colormanage_colorspace_add(const char *name, const char *description)
 {
 	ColorSpace *colorspace;
 
@@ -1628,6 +1656,12 @@ ColorSpace *colormanage_colorspace_add(const char *name)
 	colorspace->index = global_tot_colorspace + 1;
 
 	BLI_strncpy(colorspace->name, name, sizeof(colorspace->name));
+
+	if (description) {
+		BLI_strncpy(colorspace->description, description, sizeof(colorspace->description));
+
+		colormanage_description_strip(colorspace->description);
+	}
 
 	BLI_addtail(&global_colorspaces, colorspace);
 
@@ -1745,7 +1779,11 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
 		item.name = colorspace->name;
 		item.identifier = colorspace->name;
 		item.icon = 0;
-		item.description = "";
+
+		if (colorspace->description)
+			item.description = colorspace->description;
+		else
+			item.description = "";
 
 		RNA_enum_item_add(items, totitem, &item);
 	}

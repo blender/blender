@@ -87,8 +87,8 @@ void OCIO_processorApplyRGBA(ConstProcessorRcPtr *processor, float *pixel);
 
 void OCIO_processorRelease(ConstProcessorRcPtr *p);
 
-
 const char *OCIO_colorSpaceGetName(ConstColorSpaceRcPtr *cs);
+const char *OCIO_colorSpaceGetDescription(ConstColorSpaceRcPtr *cs);
 const char *OCIO_colorSpaceGetFamily(ConstColorSpaceRcPtr *cs);
 
 DisplayTransformRcPtr *OCIO_createDisplayTransform(void);

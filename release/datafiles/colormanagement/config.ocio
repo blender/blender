@@ -181,7 +181,7 @@ colorspaces:
     equalitygroup: ""
     bitdepth: 32f
     description: |
-      Rec. 709 (Full Range) Display Space
+      Rec. 709 (Full Range), Blender native internal space
     isdata: false
     allocation: uniform
     allocationvars: [-0.125, 1.125]

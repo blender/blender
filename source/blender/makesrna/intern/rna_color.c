@@ -38,12 +38,12 @@
 #include "WM_types.h"
 
 static EnumPropertyItem view_transform_items[] = {
-	{0, "NONE", 0, "None", ""},
+	{0, "NONE", 0, "None", "Do not perform any color transform on display, use old non-color managed technique for display"},
 	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem color_space_items[] = {
-	{0, "NONE", 0, "None", ""},
+	{0, "NONE", 0, "None", "Do not perform any color transform on load, treat colors as in scene linear space already"},
 	{0, NULL, 0, NULL, NULL}
 };
 
