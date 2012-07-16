@@ -540,6 +540,8 @@ typedef struct SpaceClipDrawContext {
 	/* fields to check if cache is still valid */
 	int framenr, start_frame, frame_offset;
 	short render_size, render_flag;
+
+	char colorspace[64];
 } SpaceClipDrawContext;
 
 int ED_space_clip_texture_buffer_supported(SpaceClip *sc)
@@ -582,6 +584,15 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf, const unsign
 	need_rebind |= context->render_flag != sc->user.render_flag;
 	need_rebind |= context->start_frame != clip->start_frame;
 	need_rebind |= context->frame_offset != clip->frame_offset;
+
+	if (!need_rebind) {
+		/* OCIO_TODO: not entirely nice, but currently it seems to be easiest way
+		 *            to deal with changing input color space settings
+		 *            pointer-based check could fail due to new buffers could be
+		 *            be allocated on on old memory
+		 */
+		need_rebind = strcmp(context->colorspace, clip->colorspace_settings.name) != 0;
+	}
 
 	if (need_rebind) {
 		int width = ibuf->x, height = ibuf->y;
@@ -636,6 +647,8 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf, const unsign
 		context->render_flag = sc->user.render_flag;
 		context->start_frame = clip->start_frame;
 		context->frame_offset = clip->frame_offset;
+
+		strcpy(context->colorspace, clip->colorspace_settings.name);
 	}
 	else {
 		/* displaying exactly the same image which was loaded t oa texture,

@@ -613,6 +613,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	uiLayout *row, *split, *col;
 	uiBlock *block;
 	char str[128];
+
 	void *lock;
 
 	if (!ptr->data)
@@ -728,8 +729,18 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					uiItemL(layout, str, ICON_NONE);
 				}
 			}
-			
+
 			if (ima->source != IMA_SRC_GENERATED) {
+				PointerRNA colorspace_settings_ptr;
+
+				/* OCIO_TODO: de-duplicate this with clip space and other areas */
+				prop = RNA_struct_find_property(&imaptr, "colorspace_settings");
+				colorspace_settings_ptr = RNA_property_pointer_get(&imaptr, prop);
+
+				col = uiLayoutColumn(layout, FALSE);
+				uiItemL(col, "Color Space:", ICON_NONE);
+				uiItemR(col, &colorspace_settings_ptr, "name", 0, "", ICON_NONE);
+
 				if (compact == 0) { /* background image view doesnt need these */
 					uiItemS(layout);
 

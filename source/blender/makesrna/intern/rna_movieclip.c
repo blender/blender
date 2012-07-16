@@ -299,6 +299,12 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frame Offset", "Offset of footage first frame relative to it's file name "
 	                         "(affects only how footage is loading, does not change data associated with a clip)");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClip_reload_update");
+
+	/* color management */
+	prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedColorspaceSettings");
+	RNA_def_property_ui_text(prop, "Colorspace Settings", "Input color space settings");
 }
 
 void RNA_def_movieclip(BlenderRNA *brna)

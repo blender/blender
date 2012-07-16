@@ -33,6 +33,7 @@
 
 #define BCM_CONFIG_FILE "config.ocio"
 
+struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct EnumPropertyItem;
@@ -46,6 +47,13 @@ struct wmWindow;
 
 void IMB_colormanagement_init(void);
 void IMB_colormanagement_exit(void);
+
+/* ** Color space transformation functions ** */
+void IMB_colormanagement_colorspace_transform(float *buffer, int width, int height, int channels,
+                                              const char *from_colorspace, const char *to_colorspace);
+
+void IMB_colormanagement_imbuf_make_scene_linear(struct ImBuf *ibuf,
+		struct ColorManagedColorspaceSettings *colorspace_settings);
 
 /* ** Public display buffers interfaces ** */
 
@@ -74,9 +82,14 @@ const char *IMB_colormanagement_display_get_default_name(void);
 int IMB_colormanagement_view_get_named_index(const char *name);
 const char *IMB_colormanagement_view_get_indexed_name(int index);
 
+/* ** Color space functions ** */
+int IMB_colormanagement_colorspace_get_named_index(const char *name);
+const char *IMB_colormanagement_colorspace_get_indexed_name(int index);
+
 /* ** RNA helper functions ** */
 void IMB_colormanagement_display_items_add(struct EnumPropertyItem **items, int *totitem);
 void IMB_colormanagement_view_items_add(struct EnumPropertyItem **items, int *totitem, const char *display_name);
+void IMB_colormanagement_colorspace_items_add(struct EnumPropertyItem **items, int *totitem);
 
 /* Tile-based buffer management */
 struct PartialBufferUpdateContext *IMB_partial_buffer_update_context_new(struct ImBuf *ibuf);

@@ -42,17 +42,26 @@ static EnumPropertyItem view_transform_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static EnumPropertyItem color_space_items[] = {
+	{0, "NONE", 0, "None", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "RNA_access.h"
 
+#include "DNA_image_types.h"
 #include "DNA_material_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
+#include "BKE_image.h"
+#include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
 
@@ -403,8 +412,57 @@ static EnumPropertyItem* rna_ColorManagedViewSettings_view_transform_itemf(bCont
 	IMB_colormanagement_view_items_add(&items, &totitem, display_settings->display_device);
 	RNA_enum_item_end(&items, &totitem);
 
-	*free = 1;
+	*free = TRUE;
 	return items;
+}
+
+static int rna_ColorManagedColorspaceSettings_colorspace_get(struct PointerRNA *ptr)
+{
+	ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *) ptr->data;
+
+	return IMB_colormanagement_colorspace_get_named_index(colorspace->name);
+}
+
+static void rna_ColorManagedColorspaceSettings_colorspace_set(struct PointerRNA *ptr, int value)
+{
+	ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *) ptr->data;
+	const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
+
+	if (name) {
+		BLI_strncpy(colorspace->name, name, sizeof(colorspace->name));
+	}
+}
+
+static EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	EnumPropertyItem *items = NULL;
+	int totitem = 0;
+
+	RNA_enum_item_add(&items, &totitem, &color_space_items[0]);
+	IMB_colormanagement_colorspace_items_add(&items, &totitem);
+	RNA_enum_item_end(&items, &totitem);
+
+	*free = TRUE;
+
+	return items;
+}
+
+static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+
+	if (GS(id->name) == ID_IM) {
+		Image *ima = (Image *) id;
+
+		BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+		WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
+	}
+	else if (GS(id->name) == ID_MC) {
+		MovieClip *clip = (MovieClip *) id;
+
+		BKE_movieclip_reload(clip);
+		WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
+	}
 }
 
 #else
@@ -798,6 +856,18 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Gamma", "Amount f gamma modification for displaying image buffers");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	/* ** Colorspace **  */
+	srna = RNA_def_struct(brna, "ColorManagedColorspaceSettings", NULL);
+	RNA_def_struct_ui_text(srna, "ColorManagedColorspaceSettings", "Input color space settings");
+
+	prop= RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, color_space_items);
+	RNA_def_property_enum_funcs(prop, "rna_ColorManagedColorspaceSettings_colorspace_get",
+	                                  "rna_ColorManagedColorspaceSettings_colorspace_set",
+	                                  "rna_ColorManagedColorspaceSettings_colorspace_itemf");
+	RNA_def_property_ui_text(prop, "Color Space", "Input color space name");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
 }
 
 void RNA_def_color(BlenderRNA *brna)

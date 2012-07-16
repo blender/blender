@@ -47,6 +47,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -2189,6 +2190,9 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 /* common stuff to do with images after loading */
 static void image_initialize_after_load(Image *ima, ImBuf *ibuf)
 {
+	/* make float buffer stored in ImBuf scene linear space */
+	IMB_colormanagement_imbuf_make_scene_linear(ibuf, &ima->colorspace_settings);
+
 	/* preview is NULL when it has never been used as an icon before */
 	if (G.background == 0 && ima->preview == NULL)
 		BKE_icon_changed(BKE_icon_getid(&ima->id));

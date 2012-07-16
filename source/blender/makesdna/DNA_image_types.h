@@ -33,6 +33,7 @@
 #define __DNA_IMAGE_TYPES_H__
 
 #include "DNA_ID.h"
+#include "DNA_color_types.h"  /* for color management */
 
 struct PackedFile;
 struct Scene;
@@ -107,6 +108,9 @@ typedef struct Image {
 	
 	/* display aspect - for UV editing images resized for faster openGL display */
 	float aspx, aspy;
+
+	/* color management */
+	ColorManagedColorspaceSettings colorspace_settings;
 } Image;
 
 

@@ -37,6 +37,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_tracking_types.h"
+#include "DNA_color_types.h"  /* for color management */
 
 struct anim;
 struct AnimData;
@@ -94,6 +95,9 @@ typedef struct MovieClip {
 	                    /* from a file. affects only a way how scene frame is mapping */
 	                    /* to a file name and not touches other data associated with */
 	                    /* a clip */
+
+	/* color management */
+	ColorManagedColorspaceSettings colorspace_settings;
 } MovieClip;
 
 typedef struct MovieClipScopes {

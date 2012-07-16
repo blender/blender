@@ -2039,7 +2039,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
-	RNA_def_property_ui_text(prop, "View Settings", "Sampled colors alongColor management settings used for displaying images on the display");
+	RNA_def_property_ui_text(prop, "View Settings", "Color management settings used for displaying images on the display");
 
 	rna_def_space_image_uv(brna);
 }
@@ -2156,7 +2156,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
-	RNA_def_property_ui_text(prop, "View Settings", "Sampled colors alongColor management settings used for displaying images on the display");
+	RNA_def_property_ui_text(prop, "View Settings", "Color management settings used for displaying images on the display");
 }
 
 static void rna_def_space_text(BlenderRNA *brna)

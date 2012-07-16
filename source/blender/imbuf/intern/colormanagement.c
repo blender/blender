@@ -35,6 +35,8 @@
 #include <math.h>
 
 #include "DNA_color_types.h"
+#include "DNA_image_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -70,17 +72,16 @@
 
 /* ** list of all supported color spaces, displays and views */
 #ifdef WITH_OCIO
-static ListBase global_colorspaces = {NULL};
-
 static char global_role_scene_linear[64];
 static char global_role_color_picking[64];
 static char global_role_texture_painting[64];
-
 #endif
 
+static ListBase global_colorspaces = {NULL};
 static ListBase global_displays = {NULL};
 static ListBase global_views = {NULL};
 
+static int global_tot_colorspace = 0;
 static int global_tot_display = 0;
 static int global_tot_view = 0;
 
@@ -229,7 +230,8 @@ static struct MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 	if (!ibuf->colormanage_cache->moviecache) {
 		struct MovieCache *moviecache;
 
-		moviecache = IMB_moviecache_create("colormanage cache", sizeof(ColormanageCacheKey), colormanage_hashhash, colormanage_hashcmp);
+		moviecache = IMB_moviecache_create("colormanage cache", sizeof(ColormanageCacheKey),
+		                                   colormanage_hashhash, colormanage_hashcmp);
 
 		ibuf->colormanage_cache->moviecache = moviecache;
 	}
@@ -460,7 +462,6 @@ static void colormanage_role_color_space_name_get(ConstConfigRcPtr *config, char
 
 static void colormanage_load_config(ConstConfigRcPtr *config)
 {
-	ConstColorSpaceRcPtr *ociocs;
 	int tot_colorspace, tot_display, tot_display_view, index, viewindex, viewindex2;
 	const char *name;
 
@@ -477,19 +478,9 @@ static void colormanage_load_config(ConstConfigRcPtr *config)
 	/* load colorspaces */
 	tot_colorspace = OCIO_configGetNumColorSpaces(config);
 	for (index = 0 ; index < tot_colorspace; index++) {
-		ColorSpace *colorspace;
-
 		name = OCIO_configGetColorSpaceNameByIndex(config, index);
-		ociocs = OCIO_configGetColorSpace(config, name);
 
-		colorspace = MEM_callocN(sizeof(ColorSpace), "ColorSpace");
-		colorspace->index = index + 1;
-
-		BLI_strncpy(colorspace->name, name, sizeof(colorspace->name));
-
-		BLI_addtail(&global_colorspaces, colorspace);
-
-		OCIO_colorSpaceRelease(ociocs);
+		colormanage_colorspace_add(name);
 	}
 
 	/* load displays */
@@ -612,9 +603,53 @@ void IMB_colormanagement_exit(void)
 #endif
 }
 
-/*********************** Public display buffers interfaces *************************/
+/*********************** Threaded display buffer transform routines *************************/
 
 #ifdef WITH_OCIO
+static void colormanage_processor_apply_threaded(int buffer_lines, int handle_size, void *init_customdata,
+                                                 void (init_handle) (void *handle, int start_line, int tot_line,
+                                                                     void *customdata),
+                                                 void *(do_thread) (void *))
+{
+	void *handles;
+	ListBase threads;
+
+	int i, tot_thread = BLI_system_thread_count();
+	int start_line, tot_line;
+
+	handles = MEM_callocN(handle_size * tot_thread, "processor apply threaded handles");
+
+	if (tot_thread > 1)
+		BLI_init_threads(&threads, do_thread, tot_thread);
+
+	start_line = 0;
+	tot_line = ((float)(buffer_lines / tot_thread)) + 0.5f;
+
+	for (i = 0; i < tot_thread; i++) {
+		int cur_tot_line;
+		void *handle = ((char *) handles) + handle_size * i;
+
+		if (i < tot_thread - 1)
+			cur_tot_line = tot_line;
+		else
+			cur_tot_line = buffer_lines - start_line;
+
+		init_handle(handle, start_line, cur_tot_line, init_customdata);
+
+		if (tot_thread > 1)
+			BLI_insert_thread(&threads, handle);
+
+		start_line += tot_line;
+	}
+
+	if (tot_thread > 1)
+		BLI_end_threads(&threads);
+	else
+		do_thread(handles);
+
+	MEM_freeN(handles);
+}
+
 typedef struct DisplayBufferThread {
 	void *processor;
 
@@ -633,71 +668,72 @@ typedef struct DisplayBufferThread {
 	int buffer_in_srgb;
 } DisplayBufferThread;
 
+typedef struct DisplayBufferInitData {
+	ImBuf *ibuf;
+	void *processor;
+	float *buffer;
+	unsigned char *byte_buffer;
+	unsigned char *display_buffer;
+	int width;
+} DisplayBufferInitData;
+
+static void display_buffer_init_handle(void *handle_v, int start_line, int tot_line, void *init_data_v)
+{
+	DisplayBufferThread *handle = (DisplayBufferThread *) handle_v;
+	DisplayBufferInitData *init_data = (DisplayBufferInitData *) init_data_v;
+	ImBuf *ibuf = init_data->ibuf;
+
+	int predivide = ibuf->flags & IB_cm_predivide;
+	int channels = ibuf->channels;
+	int dither = ibuf->dither;
+
+	int offset = channels * start_line * ibuf->x;
+
+	memset(handle, 0, sizeof(DisplayBufferThread));
+
+	handle->processor = init_data->processor;
+
+	if (init_data->buffer)
+		handle->buffer = init_data->buffer + offset;
+
+	if (init_data->byte_buffer)
+		handle->byte_buffer = init_data->byte_buffer + offset;
+
+	handle->display_buffer = init_data->display_buffer + offset;
+
+	handle->width = ibuf->x;
+
+	handle->start_line = start_line;
+	handle->tot_line = tot_line;
+
+	handle->channels = channels;
+	handle->dither = dither;
+	handle->predivide = predivide;
+
+	handle->buffer_in_srgb = ibuf->colormanagement_flags & IMB_COLORMANAGEMENT_SRGB_SOURCE;
+}
+
 static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned char *byte_buffer,
                                           unsigned char *display_buffer,
                                           void *processor, void *(do_thread) (void *))
 {
-	DisplayBufferThread handles[BLENDER_MAX_THREADS];
-	ListBase threads;
+	DisplayBufferInitData init_data;
 
-	int predivide = ibuf->flags & IB_cm_predivide;
-	int i, tot_thread = BLI_system_thread_count();
-	int start_line, tot_line;
+	/* XXX: IMB_buffer_byte_from_float_tonecurve isn't thread-safe because of
+	 *      possible non-initialized sRGB conversion stuff. Make sure it's properly
+	 *      initialized before starting threads, but likely this stuff should be
+	 *      initialized somewhere before to avoid possible issues in other issues.
+	 */
+	BLI_init_srgb_conversion();
 
-	if (tot_thread > 1) {
-		/* XXX: IMB_buffer_byte_from_float_tonecurve isn't thread-safe because of
-		 *      possible non-initialized sRGB conversion stuff. Make sure it's properly
-		 *      initialized before starting threads, but likely this stuff should be
-		 *      initialized somewhere before to avoid possible issues in other issues.
-		 */
-		BLI_init_srgb_conversion();
+	init_data.ibuf = ibuf;
+	init_data.processor = processor;
+	init_data.buffer = buffer;
+	init_data.byte_buffer = byte_buffer;
+	init_data.display_buffer = display_buffer;
 
-		BLI_init_threads(&threads, do_thread, tot_thread);
-	}
-
-	start_line = 0;
-	tot_line = ((float)(ibuf->y / tot_thread)) + 0.5f;
-
-	for (i = 0; i < tot_thread; i++) {
-		int offset = ibuf->channels * start_line * ibuf->x;
-
-		memset(&handles[i], 0, sizeof(handles[i]));
-
-		handles[i].processor = processor;
-
-		if (buffer)
-			handles[i].buffer = buffer + offset;
-
-		if (byte_buffer)
-			handles[i].byte_buffer = byte_buffer + offset;
-
-		handles[i].display_buffer = display_buffer + offset;
-		handles[i].width = ibuf->x;
-
-		handles[i].start_line = start_line;
-
-		if (i < tot_thread - 1) {
-			handles[i].tot_line = tot_line;
-		}
-		else {
-			handles[i].tot_line = ibuf->y - start_line;
-		}
-
-		handles[i].channels = ibuf->channels;
-		handles[i].dither = ibuf->dither;
-		handles[i].predivide = predivide;
-		handles[i].buffer_in_srgb = ibuf->colormanagement_flags & IMB_COLORMANAGEMENT_SRGB_SOURCE;
-
-		if (tot_thread > 1)
-			BLI_insert_thread(&threads, &handles[i]);
-
-		start_line += tot_line;
-	}
-
-	if (tot_thread > 1)
-		BLI_end_threads(&threads);
-	else
-		do_thread(&handles[0]);
+	colormanage_processor_apply_threaded(ibuf->y, sizeof(DisplayBufferThread), &init_data,
+	                                     display_buffer_init_handle, do_thread);
 }
 
 static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
@@ -845,9 +881,8 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 
 	dt = OCIO_createDisplayTransform();
 
-	/* OCIO_TODO: get rid of hardcoded input space */
+	/* assuming handling buffer was already converted to scene linear space */
 	OCIO_displayTransformSetInputColorSpaceName(dt, global_role_scene_linear);
-
 	OCIO_displayTransformSetView(dt, view_transform);
 	OCIO_displayTransformSetDisplay(dt, display);
 
@@ -885,7 +920,7 @@ static void display_buffer_apply_ocio(ImBuf *ibuf, unsigned char *display_buffer
 
 	if (processor) {
 		display_buffer_apply_threaded(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect,
-	                                      display_buffer, processor, do_display_buffer_apply_ocio_thread);
+		                              display_buffer, processor, do_display_buffer_apply_ocio_thread);
 	}
 
 	OCIO_processorRelease(processor);
@@ -910,6 +945,148 @@ static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *displ
 
 }
 
+/*********************** Threaded color space transform routines *************************/
+
+typedef struct ColorspaceTransformThread {
+	void *processor;
+	float *buffer;
+	int width;
+	int start_line;
+	int tot_line;
+	int channels;
+} ColorspaceTransformThread;
+
+typedef struct ColorspaceTransformInit {
+	void *processor;
+	float *buffer;
+	int width;
+	int height;
+	int channels;
+} ColorspaceTransformInitData;
+
+static void colorspace_transform_init_handle(void *handle_v, int start_line, int tot_line, void *init_data_v)
+{
+	ColorspaceTransformThread *handle = (ColorspaceTransformThread *) handle_v;
+	ColorspaceTransformInitData *init_data = (ColorspaceTransformInitData *) init_data_v;
+
+	int channels = init_data->channels;
+	int width = init_data->width;
+
+	int offset = channels * start_line * width;
+
+	memset(handle, 0, sizeof(ColorspaceTransformThread));
+
+	handle->processor = init_data->processor;
+
+	handle->buffer = init_data->buffer + offset;
+
+	handle->width = width;
+
+	handle->start_line = start_line;
+	handle->tot_line = tot_line;
+
+	handle->channels = channels;
+}
+
+static void colorspace_transform_apply_threaded(float *buffer, int width, int height, int channels,
+                                                void *processor, void *(do_thread) (void *))
+{
+	ColorspaceTransformInitData init_data;
+
+	init_data.processor = processor;
+	init_data.buffer = buffer;
+	init_data.width = width;
+	init_data.height = height;
+	init_data.channels = channels;
+
+	colormanage_processor_apply_threaded(height, sizeof(ColorspaceTransformThread), &init_data,
+	                                     colorspace_transform_init_handle, do_thread);
+}
+
+static void *do_color_space_transform_thread(void *handle_v)
+{
+	ColorspaceTransformThread *handle = (ColorspaceTransformThread *) handle_v;
+	ConstProcessorRcPtr *processor = (ConstProcessorRcPtr *) handle->processor;
+	PackedImageDesc *img;
+	float *buffer = handle->buffer;
+	int channels = handle->channels;
+	int width = handle->width;
+	int height = handle->tot_line;
+
+	img = OCIO_createPackedImageDesc(buffer, width, height, channels, sizeof(float),
+	                                 channels * sizeof(float), channels * sizeof(float) * width);
+
+	OCIO_processorApply(processor, img);
+
+	OCIO_packedImageDescRelease(img);
+
+	return NULL;
+}
+
+static ConstProcessorRcPtr *create_colorspace_transform_processor(const char *from_colorspace,
+                                                                  const char *to_colorspace)
+{
+	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+	ConstProcessorRcPtr *processor;
+
+	processor = OCIO_configGetProcessorWithNames(config, from_colorspace, to_colorspace);
+
+	return processor;
+}
+#endif
+
+void IMB_colormanagement_colorspace_transform(float *buffer, int width, int height, int channels,
+                                              const char *from_colorspace, const char *to_colorspace)
+{
+#ifdef WITH_OCIO
+	ConstProcessorRcPtr *processor;
+
+	if (!strcmp(from_colorspace, "NONE")) {
+		return;
+	}
+
+	if (!strcmp(from_colorspace, to_colorspace)) {
+		/* if source and destination color spaces are identical, skip
+		 * threading overhead and simply do nothing
+		 */
+		return;
+	}
+
+	processor = create_colorspace_transform_processor(from_colorspace, to_colorspace);
+
+	if (processor) {
+		colorspace_transform_apply_threaded(buffer, width, height, channels,
+		                                    processor, do_color_space_transform_thread);
+
+		OCIO_processorRelease(processor);
+	}
+#else
+	(void) buffer;
+	(void) width;
+	(void) height;
+	(void) channels;
+	(void) from_colorspace;
+	(void) to_colorspace;
+#endif
+}
+
+void IMB_colormanagement_imbuf_make_scene_linear(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
+{
+#ifdef WITH_OCIO
+	if (ibuf->rect_float) {
+		const char *from_colorspace = colorspace_settings->name;
+		const char *to_colorspace = global_role_scene_linear;
+
+		IMB_colormanagement_colorspace_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
+		                                         from_colorspace, to_colorspace);
+	}
+#else
+	(void) ibuf;
+	(void) colorspace_settings;
+#endif
+}
+
+#ifdef WITH_OCIO
 static void colormanage_flags_allocate(ImBuf *ibuf)
 {
 	if (global_tot_display == 0)
@@ -918,6 +1095,14 @@ static void colormanage_flags_allocate(ImBuf *ibuf)
 	ibuf->display_buffer_flags = MEM_callocN(sizeof(unsigned int) * global_tot_display, "imbuf display_buffer_flags");
 }
 #endif
+
+static void imbuf_verify_float(ImBuf *ibuf)
+{
+	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)))
+		IMB_rect_from_float(ibuf);
+}
+
+/*********************** Public display buffers interfaces *************************/
 
 void IMB_colormanage_cache_free(ImBuf *ibuf)
 {
@@ -943,12 +1128,6 @@ void IMB_colormanage_cache_free(ImBuf *ibuf)
 
 		ibuf->colormanage_cache = NULL;
 	}
-}
-
-static void imbuf_verify_float(ImBuf *ibuf)
-{
-	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)))
-		IMB_rect_from_float(ibuf);
 }
 
 unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
@@ -1131,6 +1310,28 @@ static void colormanage_check_view_settings(ColorManagedViewSettings *view_setti
 		view_settings->gamma = 1.0f;
 	}
 }
+
+static void colormanage_check_colorspace_settings(ColorManagedColorspaceSettings *colorspace_settings, const char *what)
+{
+	if (colorspace_settings->name[0] == '\0') {
+		BLI_strncpy(colorspace_settings->name, "NONE", sizeof(colorspace_settings->name));
+	}
+	else if (!strcmp(colorspace_settings->name, "NONE")) {
+		/* pass */
+	}
+	else {
+		ColorSpace *colorspace = colormanage_colorspace_get_named(colorspace_settings->name);
+
+		if (!colorspace) {
+			printf("Blender color management: %s colorspace \"%s\" not found, setting NONE instead.\n",
+			       what, colorspace_settings->name);
+
+			BLI_strncpy(colorspace_settings->name, "NONE", sizeof(colorspace_settings->name));
+		}
+	}
+
+	(void) what;
+}
 #endif
 
 void IMB_colormanagement_check_file_config(Main *bmain)
@@ -1140,6 +1341,8 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 	wmWindow *win;
 	bScreen *sc;
 	Scene *scene;
+	Image *image;
+	MovieClip *clip;
 
 	ColorManagedDisplay *default_display;
 	ColorManagedView *default_view;
@@ -1158,6 +1361,8 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 		return;
 	}
 
+	/* ** check display device settings ** */
+
 	if (wm) {
 		for (win = wm->windows.first; win; win = win->next) {
 			colormanage_check_display_settings(&win->display_settings, "window", default_display);
@@ -1166,6 +1371,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 		}
 	}
 
+	/* ** check view transform settings ** */
 	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 		ScrArea *sa;
 
@@ -1203,6 +1409,16 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 		colormanage_check_display_settings(&imf->display_settings, "scene", default_display);
 
 		colormanage_check_view_settings(&imf->view_settings, "scene", default_view);
+	}
+
+	/* ** check input color space settings ** */
+
+	for (image = bmain->image.first; image; image = image->id.next) {
+		colormanage_check_colorspace_settings(&image->colorspace_settings, "image");
+	}
+
+	for (clip = bmain->movieclip.first; clip; clip = clip->id.next) {
+		colormanage_check_colorspace_settings(&clip->colorspace_settings, "image");
 	}
 #else
 	(void) bmain;
@@ -1402,6 +1618,68 @@ const char *IMB_colormanagement_view_get_indexed_name(int index)
 	return "NONE";
 }
 
+/*********************** Color space functions *************************/
+
+ColorSpace *colormanage_colorspace_add(const char *name)
+{
+	ColorSpace *colorspace;
+
+	colorspace = MEM_callocN(sizeof(ColorSpace), "ColorSpace");
+	colorspace->index = global_tot_colorspace + 1;
+
+	BLI_strncpy(colorspace->name, name, sizeof(colorspace->name));
+
+	BLI_addtail(&global_colorspaces, colorspace);
+
+	global_tot_colorspace++;
+
+	return colorspace;
+}
+
+ColorSpace *colormanage_colorspace_get_named(const char *name)
+{
+	ColorSpace *colorspace;
+
+	for (colorspace = global_colorspaces.first; colorspace; colorspace = colorspace->next) {
+		if (!strcmp(colorspace->name, name))
+			return colorspace;
+	}
+
+	return NULL;
+}
+
+ColorSpace *colormanage_colorspace_get_indexed(int index)
+{
+	/* display indices are 1-based */
+	return BLI_findlink(&global_colorspaces, index - 1);
+}
+
+int IMB_colormanagement_colorspace_get_named_index(const char *name)
+{
+	ColorSpace *colorspace;
+
+	colorspace = colormanage_colorspace_get_named(name);
+
+	if (colorspace) {
+		return colorspace->index;
+	}
+
+	return 0;
+}
+
+const char *IMB_colormanagement_colorspace_get_indexed_name(int index)
+{
+	ColorSpace *colorspace;
+
+	colorspace = colormanage_colorspace_get_indexed(index);
+
+	if (colorspace) {
+		return colorspace->name;
+	}
+
+	return "NONE";
+}
+
 /*********************** RNA helper functions *************************/
 
 void IMB_colormanagement_display_items_add(EnumPropertyItem **items, int *totitem)
@@ -1453,6 +1731,23 @@ void IMB_colormanagement_view_items_add(EnumPropertyItem **items, int *totitem, 
 
 			colormanagement_view_item_add(items, totitem, view);
 		}
+	}
+}
+
+void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *totitem)
+{
+	ColorSpace *colorspace;
+
+	for (colorspace = global_colorspaces.first; colorspace; colorspace = colorspace->next) {
+		EnumPropertyItem item;
+
+		item.value = colorspace->index;
+		item.name = colorspace->name;
+		item.identifier = colorspace->name;
+		item.icon = 0;
+		item.description = "";
+
+		RNA_enum_item_add(items, totitem, &item);
 	}
 }
 

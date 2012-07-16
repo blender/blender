@@ -74,6 +74,7 @@
 #include "BKE_image.h"  /* openanim */
 #include "BKE_tracking.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_moviecache.h"
@@ -775,6 +776,11 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 		}
 		else {
 			ibuf = movieclip_load_movie_file(clip, user, framenr, flag);
+		}
+
+		if (ibuf) {
+			/* make float buffer stored in ImBuf scene linear space */
+			IMB_colormanagement_imbuf_make_scene_linear(ibuf, &clip->colorspace_settings);
 		}
 
 		if (ibuf && (cache_flag & MOVIECLIP_CACHE_SKIP) == 0)

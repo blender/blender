@@ -1037,6 +1037,7 @@ class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
 
         col = layout.column()
         col.template_movieclip(sc, "clip", compact=True)
+        col.separator()
         col.prop(clip, "start_frame")
         col.prop(clip, "frame_offset")
 

@@ -174,5 +174,9 @@ typedef struct ColorManagedDisplaySettings {
 	char display_device[64];
 } ColorManagedDisplaySettings;
 
+typedef struct ColorManagedColorspaceSettings {
+	char name[64];
+} ColorManagedColorspaceSettings;
+
 #endif
 
