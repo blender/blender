@@ -426,7 +426,7 @@ typedef struct FeatherEdgesBucket {
 
 static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int end)
 {
-	const int alloc_delta = 20;
+	const int alloc_delta = 32;
 
 	if (bucket->tot_segment >= bucket->alloc_segment) {
 		if (!bucket->segments) {
@@ -478,24 +478,16 @@ static void feather_bucket_check_intersect(float (*feather_points)[2], int tot_f
 				}
 			}
 			else {
-				if (cur_b < check_a) {
-					/* special case when intersection happens with first segment */
-					for (k = cur_b; k <= check_a; k++) {
-						copy_v2_v2(feather_points[k], p);
-					}
+				for (k = 0; k <= check_a; k++) {
+					copy_v2_v2(feather_points[k], p);
 				}
-				else {
-					for (k = 0; k <= check_a; k++) {
-						copy_v2_v2(feather_points[k], p);
-					}
 
+				if (cur_b != 0) {
 					for (k = cur_b; k < tot_feather_point; k++) {
 						copy_v2_v2(feather_points[k], p);
 					}
 				}
 			}
-
-			break;
 		}
 	}
 }
