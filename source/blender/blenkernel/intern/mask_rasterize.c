@@ -383,13 +383,20 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 				CLAMP(ymax, 0.0f,  1.0f);
 
 				{
-					const unsigned int xi_min = (unsigned int) ((xmin - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
-					const unsigned int xi_max = (unsigned int) ((xmax - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
-					const unsigned int yi_min = (unsigned int) ((ymin - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
-					const unsigned int yi_max = (unsigned int) ((ymax - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
+					unsigned int xi_min = (unsigned int) ((xmin - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
+					unsigned int xi_max = (unsigned int) ((xmax - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
+					unsigned int yi_min = (unsigned int) ((ymin - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
+					unsigned int yi_max = (unsigned int) ((ymax - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
 					void *face_index_void = SET_UINT_IN_POINTER(face_index);
 
 					unsigned int xi, yi;
+
+					/* this should _almost_ never happen but since it can in extreme cases,
+					 * we have to clamp the values or we overrun the buffer and crash */
+					CLAMP(xi_min, 0, layer->buckets_x - 1);
+					CLAMP(xi_max, 0, layer->buckets_x - 1);
+					CLAMP(yi_min, 0, layer->buckets_y - 1);
+					CLAMP(yi_max, 0, layer->buckets_y - 1);
 
 					for (yi = yi_min; yi <= yi_max; yi++) {
 						unsigned int bucket_index = (layer->buckets_x * yi) + xi_min;
@@ -866,7 +873,7 @@ static float maskrasterize_layer_z_depth_quad(const float pt[2],
 	float w[4];
 	barycentric_weights_v2_quad(v1, v2, v3, v4, pt, w);
 	//return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]) + (v4[2] * w[3]);
-	return (1.0f * w[2]) + (1.0f * w[3]);  /* we can make this assumption for small speedup */
+	return w[2] + w[3];  /* we can make this assumption for small speedup */
 }
 #endif
 
