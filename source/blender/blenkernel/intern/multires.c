@@ -1067,9 +1067,12 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 			/* if needed, reallocate multires paint mask */
 			if (gpm && gpm->level < key.level) {
 				gpm->level = key.level;
-				if (gpm->data)
-					MEM_freeN(gpm->data);
-				gpm->data = MEM_callocN(sizeof(float) * key.grid_area, "gpm.data");
+				#pragma omp critical
+				{
+					if (gpm->data)
+						MEM_freeN(gpm->data);
+					gpm->data = MEM_callocN(sizeof(float) * key.grid_area, "gpm.data");
+				}
 			}
 
 			for (y = 0; y < gridSize; y++) {
