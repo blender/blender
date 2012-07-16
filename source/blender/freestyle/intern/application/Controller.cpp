@@ -93,6 +93,7 @@ Controller::Controller()
   _winged_edge = NULL;
   
   _pView = NULL;
+  _pRenderMonitor = NULL;
 
   _edgeTesselationNature = (Nature::SILHOUETTE | Nature::BORDER | Nature::CREASE);
 
@@ -181,6 +182,11 @@ void Controller::setView(AppView *iView)
   _Canvas->setViewer(_pView);
 }
 
+void Controller::setRenderMonitor(RenderMonitor *iRenderMonitor)
+{
+  _pRenderMonitor = iRenderMonitor;
+}
+
 void Controller::setPassDiffuse(float *buf, int width, int height)
 {
   AppCanvas *app_canvas = dynamic_cast<AppCanvas *>(_Canvas);
@@ -206,6 +212,8 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
 {
   
   BlenderFileLoader loader(re, srl);
+
+  loader.setRenderMonitor(_pRenderMonitor);
   
   _Chrono.start();
   
@@ -242,11 +250,15 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
   _pView->setModel(_RootNode);
   //_pView->FitBBox();
 
+  if (_pRenderMonitor->testBreak())
+    return 0;
+
 
   _Chrono.start();
 
   
   WXEdgeBuilder wx_builder;
+  wx_builder.setRenderMonitor(_pRenderMonitor);
   blenderScene->accept(wx_builder);
   _winged_edge = wx_builder.getWingedEdge();
 
@@ -465,10 +477,14 @@ void Controller::ComputeViewMap()
   edgeDetector.setCreaseAngle(_creaseAngle);
   edgeDetector.setSphereRadius(_sphereRadius);
   edgeDetector.setSuggestiveContourKrDerivativeEpsilon(_suggestiveContourKrDerivativeEpsilon);
+  edgeDetector.setRenderMonitor(_pRenderMonitor);
   edgeDetector.processShapes(*_winged_edge);
 
   real duration = _Chrono.stop();
   printf("Feature lines    : %lf\n", duration);
+
+  if (_pRenderMonitor->testBreak())
+    return;
 
   // Builds the view map structure from the flagged WSEdge structure:
   //----------------------------------------------------------
@@ -478,6 +494,7 @@ void Controller::ComputeViewMap()
   vmBuilder.setTransform( mv, proj,viewport, _pView->GetFocalLength(), _pView->GetAspect(), _pView->GetFovyRadian());
   vmBuilder.setFrustum(_pView->znear(), _pView->zfar());  
   vmBuilder.setGrid(&_Grid);
+  vmBuilder.setRenderMonitor(_pRenderMonitor);
   
   // Builds a tesselated form of the silhouette for display purpose:
   //---------------------------------------------------------------

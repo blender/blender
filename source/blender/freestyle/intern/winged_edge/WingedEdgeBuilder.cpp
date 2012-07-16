@@ -26,6 +26,8 @@
 using namespace std;
 
 void WingedEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs) {
+  if (_pRenderMonitor && _pRenderMonitor->testBreak())
+    return;
   WShape *shape = new WShape;
   buildWShape(*shape, ifs);
   shape->setId(ifs.getId().getFirst());

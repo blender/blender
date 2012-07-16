@@ -18,29 +18,30 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "WXEdgeBuilder.h"
-#include "WXEdge.h"
+#ifndef RENDERMONITOR_H
+#define RENDERMONITOR_H
 
-void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs)
+extern "C" {
+#include "render_types.h"
+}
+
+class RenderMonitor
 {
-  if (_pRenderMonitor && _pRenderMonitor->testBreak())
-    return;
-  WXShape *shape = new WXShape;
-  buildWShape(*shape, ifs);
-  shape->setId(ifs.getId().getFirst());
-  shape->setName(ifs.getName());
-  //ifs.setId(shape->GetId());
-}
+public:
 
-void WXEdgeBuilder::buildWVertices(WShape& shape,
-			       const real *vertices,
-			       unsigned vsize) {
-  WXVertex *vertex;
-  for (unsigned i = 0; i < vsize; i += 3) {
-    vertex = new WXVertex(Vec3r(vertices[i],
-				      vertices[i + 1],
-				      vertices[i + 2]));
-    vertex->setId(i / 3);
-    shape.AddVertex(vertex);
+  inline RenderMonitor(Render *re) {
+    _re = re;
   }
-}
+
+  virtual ~RenderMonitor() {}
+
+  inline bool testBreak() {
+    return _re && _re->test_break(_re->tbh);
+  }
+ 
+protected:
+
+  Render *_re;
+};
+
+#endif // RENDERMONITOR_H

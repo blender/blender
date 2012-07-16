@@ -40,6 +40,7 @@
 # include "../geometry/GeomUtils.h"
 # include "../geometry/Grid.h"
 # include "../system/ProgressBar.h"
+# include "../system/RenderMonitor.h"
 # include "../geometry/SweepLine.h"
 # include "ViewMap.h"
 # include "SilhouetteGeomEngine.h"
@@ -58,6 +59,7 @@ private:
   ViewMap * _ViewMap; // result
   //SilhouetteGeomEngine _GeomEngine;
   ProgressBar *_pProgressBar;
+  RenderMonitor *_pRenderMonitor;
   Vec3r _viewpoint;
   bool _orthographicProjection;
   Grid* _Grid;
@@ -91,6 +93,7 @@ public:
   inline ViewMapBuilder()
   {
     _pProgressBar = 0;
+    _pRenderMonitor = 0;
     _Grid = 0;
     _currentId = 1;
     _currentFId = 0;
@@ -185,6 +188,7 @@ public:
  
   /*! Modifiers */
   inline void setProgressBar(ProgressBar *iProgressBar) {_pProgressBar = iProgressBar;}
+  inline void setRenderMonitor(RenderMonitor *iRenderMonitor) {_pRenderMonitor = iRenderMonitor;}
   inline void setEnableQI(bool iBool) {_EnableQI = iBool;}
 
 protected:

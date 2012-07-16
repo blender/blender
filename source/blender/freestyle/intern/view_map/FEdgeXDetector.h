@@ -38,6 +38,7 @@
 # include "../winged_edge/WXEdge.h"
 # include "../winged_edge/Curvature.h"
 # include "../system/ProgressBar.h"
+# include "../system/RenderMonitor.h"
 
 using namespace Geometry;
 
@@ -50,6 +51,7 @@ public:
 
   FEdgeXDetector() {
     _pProgressBar = 0;
+    _pRenderMonitor = 0;
     _computeViewIndependant = true;
     _bbox_diagonal = 1.0;
     _meanEdgeSize = 0;
@@ -165,6 +167,8 @@ public:
 
   inline void setProgressBar(ProgressBar *iProgressBar) {_pProgressBar = iProgressBar;}
 
+  inline void setRenderMonitor(RenderMonitor *iRenderMonitor) {_pRenderMonitor = iRenderMonitor;}
+
 protected:
 
   Vec3r _Viewpoint;
@@ -193,6 +197,7 @@ protected:
   real _kr_derivative_epsilon;
 
   ProgressBar *_pProgressBar;
+  RenderMonitor *_pRenderMonitor;
 };
 
 #endif // FEDGEDXETECTOR_H

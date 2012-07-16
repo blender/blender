@@ -40,6 +40,8 @@ NodeGroup* BlenderFileLoader::Load()
 
 	int id = 0;
 	for(obi= (ObjectInstanceRen *) _re->instancetable.first; obi; obi=obi->next) {
+		if (_pRenderMonitor && _pRenderMonitor->testBreak())
+			break;
 		if (!(obi->lay & _srl->lay))
 			continue;
 		char *name = obi->ob->id.name;

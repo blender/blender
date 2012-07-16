@@ -5,6 +5,7 @@
 # include <float.h>
 
 # include "../system/FreestyleConfig.h"
+# include "../system/RenderMonitor.h"
 # include "../scene_graph/NodeGroup.h"
 # include "../scene_graph/NodeTransform.h"
 # include "../scene_graph/NodeShape.h"
@@ -64,6 +65,9 @@ public:
   /*! Gets the smallest edge size read */
   inline real minEdgeSize() {return _minEdgeSize;}
 
+  /*! Modifiers */
+  inline void setRenderMonitor(RenderMonitor *iRenderMonitor) {_pRenderMonitor = iRenderMonitor;}
+
 protected:
 	void insertShapeNode(ObjectInstanceRen *obi, int id);
 	int testDegenerateTriangle(float v1[3], float v2[3], float v3[3]);
@@ -93,6 +97,8 @@ protected:
 	float _viewplane_bottom;
 	float _viewplane_top;
 	float _z_near, _z_far;
+
+	RenderMonitor *_pRenderMonitor;
 };
 
 #endif // BLENDER_FILE_LOADER_H

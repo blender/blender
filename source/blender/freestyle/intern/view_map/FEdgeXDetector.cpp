@@ -42,6 +42,8 @@ void FEdgeXDetector::processShapes(WingedEdge& we) {
   for(vector<WShape*>::const_iterator it = wshapes.begin();
   it != wshapes.end();
   it++){
+    if (_pRenderMonitor && _pRenderMonitor->testBreak())
+      break;
     wxs = dynamic_cast<WXShape*>(*it);
     wxs->bbox(Min, Max);
     _bbox_diagonal = (Max-Min).norm();

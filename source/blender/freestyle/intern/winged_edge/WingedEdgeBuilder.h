@@ -33,6 +33,7 @@
 # define WINGED_EDGE_BUILDER_H
 
 # include "../system/FreestyleConfig.h"
+# include "../system/RenderMonitor.h"
 # include "../scene_graph/SceneVisitor.h"
 # include "WEdge.h"
 # include "../scene_graph/IndexedFaceSet.h"
@@ -47,6 +48,7 @@ class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
     _current_frs_material = NULL;
     _current_matrix = NULL;
     _winged_edge = new WingedEdge; // Not deleted by the destructor
+    _pRenderMonitor = NULL;
   }
 
   virtual ~WingedEdgeBuilder() {
@@ -101,12 +103,18 @@ class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
   //    _current_matrix = matrix;
   //  }
 
+  inline void setRenderMonitor(RenderMonitor *iRenderMonitor) {
+    _pRenderMonitor = iRenderMonitor;
+  }
+
  protected:
 
   virtual void buildWShape(WShape& shape, IndexedFaceSet& ifs);
   virtual void buildWVertices(WShape& shape,
 			      const real *vertices,
 			      unsigned vsize);
+
+  RenderMonitor *_pRenderMonitor;
 
  private:
 

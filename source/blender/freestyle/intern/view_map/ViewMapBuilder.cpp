@@ -378,7 +378,7 @@ cout << "\t\tIs occluder" << endl;
 // a QI of 22 because 3 out of 6 occluders have QI <= 22.
 
 template <typename G, typename I>
-static void computeCumulativeVisibility(ViewMap *ioViewMap, G& grid, real epsilon)
+static void computeCumulativeVisibility(ViewMap *ioViewMap, G& grid, real epsilon, RenderMonitor *iRenderMonitor)
 {
   vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
 
@@ -391,6 +391,8 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap, G& grid, real epsilo
   unsigned maxIndex, maxCard;
   unsigned qiMajority;
   for(vector<ViewEdge*>::iterator ve=vedges.begin(), veend=vedges.end(); ve!=veend; ve++) {
+    if (iRenderMonitor && iRenderMonitor->testBreak())
+      break;
 #if logging > 0
 cout << "Processing ViewEdge " << (*ve)->getId() << endl;
 #endif
@@ -538,7 +540,7 @@ cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << 
 }
 
 template <typename G, typename I>
-static void computeDetailedVisibility(ViewMap *ioViewMap, G& grid, real epsilon)
+static void computeDetailedVisibility(ViewMap *ioViewMap, G& grid, real epsilon, RenderMonitor *iRenderMonitor)
 {
   vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
 
@@ -551,6 +553,8 @@ static void computeDetailedVisibility(ViewMap *ioViewMap, G& grid, real epsilon)
   unsigned maxIndex, maxCard;
   unsigned qiMajority;
   for(vector<ViewEdge*>::iterator ve=vedges.begin(), veend=vedges.end(); ve!=veend; ve++) {
+    if (iRenderMonitor && iRenderMonitor->testBreak())
+      break;
 #if logging > 0
 cout << "Processing ViewEdge " << (*ve)->getId() << endl;
 #endif
@@ -1115,6 +1119,9 @@ void ViewMapBuilder::computeInitialViewEdges(WingedEdge& we)
   for (vector<WShape*>::const_iterator it = wshapes.begin();
        it != wshapes.end();
        it++) {
+    if (_pRenderMonitor && _pRenderMonitor->testBreak())
+      break;
+
     // create the embedding
     psShape = new SShape;
     psShape->setId((*it)->GetId());
@@ -1151,6 +1158,8 @@ void ViewMapBuilder::computeCusps(ViewMap *ioViewMap){
   for(;
   ve!=veend;
   ++ve){
+    if (_pRenderMonitor && _pRenderMonitor->testBreak())
+      break;
     if((!((*ve)->getNature() & Nature::SILHOUETTE)) || (!((*ve)->fedgeA()->isSmooth())))
       continue;
     FEdge *fe = (*ve)->fedgeA();
@@ -1236,10 +1245,10 @@ void ViewMapBuilder::ComputeCumulativeVisibility(ViewMap *ioViewMap,
 
 	if ( _orthographicProjection ) {
 		BoxGrid grid(*source, *density, ioViewMap, _viewpoint, _EnableQI);
-		computeCumulativeVisibility<BoxGrid, BoxGrid::Iterator>(ioViewMap, grid, epsilon);
+		computeCumulativeVisibility<BoxGrid, BoxGrid::Iterator>(ioViewMap, grid, epsilon, _pRenderMonitor);
 	} else {
 		SphericalGrid grid(*source, *density, ioViewMap, _viewpoint, _EnableQI);
-		computeCumulativeVisibility<SphericalGrid, SphericalGrid::Iterator>(ioViewMap, grid, epsilon);
+		computeCumulativeVisibility<SphericalGrid, SphericalGrid::Iterator>(ioViewMap, grid, epsilon, _pRenderMonitor);
 	}
 }
 
@@ -1265,10 +1274,10 @@ void ViewMapBuilder::ComputeDetailedVisibility(ViewMap *ioViewMap,
 
 	if ( _orthographicProjection ) {
 		BoxGrid grid(*source, *density, ioViewMap, _viewpoint, _EnableQI);
-		computeDetailedVisibility<BoxGrid, BoxGrid::Iterator>(ioViewMap, grid, epsilon);
+		computeDetailedVisibility<BoxGrid, BoxGrid::Iterator>(ioViewMap, grid, epsilon, _pRenderMonitor);
 	} else {
 		SphericalGrid grid(*source, *density, ioViewMap, _viewpoint, _EnableQI);
-		computeDetailedVisibility<SphericalGrid, SphericalGrid::Iterator>(ioViewMap, grid, epsilon);
+		computeDetailedVisibility<SphericalGrid, SphericalGrid::Iterator>(ioViewMap, grid, epsilon, _pRenderMonitor);
 	}
 }
 
@@ -1378,6 +1387,8 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
   ve!=veend;
   ve++)
   {
+    if (_pRenderMonitor && _pRenderMonitor->testBreak())
+      break;
 #if logging > 0
 cout << "Processing ViewEdge " << (*ve)->getId() << endl;
 #endif
@@ -1525,6 +1536,9 @@ void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, real ep
   ve!=veend;
   ve++)
   {
+    if (_pRenderMonitor && _pRenderMonitor->testBreak())
+      break;
+
     festart = (*ve)->fedgeA();
     fe = (*ve)->fedgeA();
     qiMajority = 1;
@@ -1653,6 +1667,9 @@ void ViewMapBuilder::ComputeVeryFastRayCastingVisibility(ViewMap *ioViewMap, rea
   ve!=veend;
   ve++)
   {
+    if (_pRenderMonitor && _pRenderMonitor->testBreak())
+      break;
+
     set<ViewShape*> occluders;
 
     fe = (*ve)->fedgeA();
@@ -2136,6 +2153,9 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
   sv!=svend;
   sv++)
   {
+    if (_pRenderMonitor && _pRenderMonitor->testBreak())
+      break;
+
     const vector<FEdge*>& vedges = (*sv)->fedges();
     
     for(vector<FEdge*>::const_iterator sve=vedges.begin(), sveend=vedges.end();
@@ -2157,6 +2177,19 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
       }
     }
     vsegments.clear();
+  }
+
+  if (_pRenderMonitor && _pRenderMonitor->testBreak()) {
+    // delete segments
+    if(!segments.empty()){
+      vector<segment* >::iterator s, send;
+      for(s=segments.begin(),send=segments.end();
+      s!=send;
+      s++){
+        delete *s;
+      }
+    }
+    return;
   }
 
   // reset userdata:

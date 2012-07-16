@@ -462,6 +462,9 @@ extern "C" {
 	Render* FRS_do_stroke_rendering(Render* re, SceneRenderLayer *srl) {
 		
 		Render* freestyle_render = NULL;
+
+		RenderMonitor monitor(re);
+		controller->setRenderMonitor(&monitor);
 		
 		cout << "\n----------------------------------------------------------" << endl;
 		cout << "|  " << (re->scene->id.name+2) << "|" << srl->name << endl;
@@ -476,6 +479,7 @@ extern "C" {
 
         if( re->test_break(re->tbh) ) {
 			controller->CloseFile();
+			cout << "Break" << endl;
             return NULL;
         }
 

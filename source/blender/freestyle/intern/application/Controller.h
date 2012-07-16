@@ -38,6 +38,7 @@
 # include "../system/ProgressBar.h"
 # include "../system/Precision.h"
 # include "../system/Interpreter.h"
+# include "../system/RenderMonitor.h"
 # include "../view_map/FEdgeXDetector.h"
 
 class AppView;
@@ -69,6 +70,7 @@ public:
   ~Controller() ;
   
   void setView(AppView *iView);
+  void setRenderMonitor(RenderMonitor *iRenderMonitor);
   void setPassDiffuse(float *buf, int width, int height);
   void setPassZ(float *buf, int width, int height);
   void setContext(bContext *C);
@@ -177,6 +179,8 @@ private:
   //Viewer2DWindow *_pView2DWindow;
   //Viewer2D *_pView2D;
   
+  RenderMonitor *_pRenderMonitor;
+
   //Model
   // Drawing Structure
   NodeGroup *_RootNode;
