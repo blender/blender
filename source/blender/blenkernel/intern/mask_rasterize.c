@@ -499,10 +499,10 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		unsigned int sf_vert_tot = 0;
 		unsigned int tot_feather_quads = 0;
 
-		if (masklay->restrictflag & MASK_RESTRICT_RENDER || masklay->alpha == 0.0f) {
-			MaskRasterLayer *layer = &mr_handle->layers[masklay_index];
-			layer_bucket_init_dummy(layer);
-			layer->alpha = 0.0f; /* signal to skip this layer */
+		if (masklay->restrictflag & MASK_RESTRICT_RENDER) {
+			/* skip the layer */
+			mr_handle->layers_tot--;
+			masklay_index--;
 			continue;
 		}
 
@@ -1002,11 +1002,7 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 		float value_layer;
 
 		/* also used as signal for unused layer (when render is disabled) */
-		if (layer->alpha == 0.0f) {
-			continue;
-		}
-
-		if (BLI_in_rctf_v(&layer->bounds, xy)) {
+		if (layer->alpha != 0.0f && BLI_in_rctf_v(&layer->bounds, xy)) {
 			value_layer = 1.0f - layer_bucket_depth_from_xy(layer, xy);
 
 			switch (layer->falloff) {
