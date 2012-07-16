@@ -310,7 +310,7 @@ static void do_alphaunder_effect_byte(
 
 			/* rt = rt1 under rt2  (alpha from rt2) */
 
-			/* this complex optimalisation is because the
+			/* this complex optimization is because the
 			 * 'skybuf' can be crossed in
 			 */
 			if (rt2[3] == 0 && fac2 == 256) *( (unsigned int *)rt) = *( (unsigned int *)rt1);
@@ -379,7 +379,7 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,
 
 			/* rt = rt1 under rt2  (alpha from rt2) */
 
-			/* this complex optimalisation is because the
+			/* this complex optimization is because the
 			 * 'skybuf' can be crossed in
 			 */
 			if (rt2[3] <= 0 && fac2 >= 1.0f) {

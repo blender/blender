@@ -235,7 +235,7 @@ int BMO_op_callf(BMesh *bm, const char *fmt, ...);
 
 /* initializes, but doesn't execute an operator.  this is so you can
  * gain access to the outputs of the operator.  note that you have
- * to execute/finitsh (BMO_op_exec and BMO_op_finish) yourself. */
+ * to execute/finish (BMO_op_exec and BMO_op_finish) yourself. */
 int BMO_op_initf(BMesh *bm, BMOperator *op, const char *fmt, ...);
 
 /* va_list version, used to implement the above two functions,

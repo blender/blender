@@ -307,7 +307,7 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 	} (void)0
 
 /* terse macros for error checks shared between all funcs cant use function
- * calls because of static strins passed to pyrna_set_to_enum_bitfield */
+ * calls because of static strings passed to pyrna_set_to_enum_bitfield */
 #define BPY_PROPDEF_CHECK(_func, _property_flag_items)                        \
 	if (id_len >= MAX_IDPROP_NAME) {                                          \
 		PyErr_Format(PyExc_TypeError,                                         \

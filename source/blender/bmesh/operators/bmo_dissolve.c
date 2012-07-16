@@ -214,7 +214,7 @@ void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 			BMO_elem_flag_enable(bm, e->v2, VERT_MARK);
 
 			/* BMESH_TODO - check on delaying edge removal since we may end up removing more then
-			 * one edge, and later referene a removed edge */
+			 * one edge, and later reference a removed edge */
 			BM_faces_join_pair(bm, fa, fb, e, TRUE);
 		}
 	}
@@ -270,7 +270,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 			/* join faces */
 
 			/* BMESH_TODO - check on delaying edge removal since we may end up removing more then
-			 * one edge, and later referene a removed edge */
+			 * one edge, and later reference a removed edge */
 			BM_faces_join_pair(bm, fa, fb, e, TRUE);
 		}
 	}

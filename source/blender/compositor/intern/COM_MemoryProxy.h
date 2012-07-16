@@ -89,7 +89,7 @@ public:
 	WriteBufferOperation *getWriteBufferOperation() { return this->m_writeBufferOperation; }
 
 	/**
-	 * @brief allocate memory of size widht x height
+	 * @brief allocate memory of size width x height
 	 */
 	void allocate(unsigned int width, unsigned int height);
 

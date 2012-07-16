@@ -2105,7 +2105,7 @@ void multires_load_old(Object *ob, Mesh *me)
 	/* XXX We *must* alloc paint mask here, else we have some kind of mismatch in
 	 *     multires_modifier_update_mdisps() (called by dm->release(dm)), which always creates the
 	 *     reference subsurfed dm with this option, before calling multiresModifier_disp_run(),
-	 *     which implitely expects both subsurfs from its first dm and oldGridData parameters to
+	 *     which implicitly expects both subsurfs from its first dm and oldGridData parameters to
 	 *     be of the same "format"! */
 	dm = multires_make_derived_from_derived(orig, mmd, ob, MULTIRES_ALLOC_PAINT_MASK);
 
@@ -2120,7 +2120,7 @@ void multires_load_old(Object *ob, Mesh *me)
 	me->mr = NULL;
 }
 
-/* If 'ob' and 'to_ob' both have multires modifiers, syncronize them
+/* If 'ob' and 'to_ob' both have multires modifiers, synchronize them
  * such that 'ob' has the same total number of levels as 'to_ob'. */
 static void multires_sync_levels(Scene *scene, Object *ob, Object *to_ob)
 {

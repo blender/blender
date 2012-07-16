@@ -92,7 +92,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
  * \brief Main function for creating a new edge.
  *
  * \note Duplicate edges are supported by the API however users should _never_ see them.
- * so unless you need a unique edge or know the edge won't exist, you should call wih \a nodouble = TRUE
+ * so unless you need a unique edge or know the edge won't exist, you should call with \a nodouble = TRUE
  */
 BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble)
 {

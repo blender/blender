@@ -3017,7 +3017,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 			}
 		}
 
-		/* next frame overriden by user action (pressed jump to first/last frame) */
+		/* next frame overridden by user action (pressed jump to first/last frame) */
 		if (sad->flag & ANIMPLAY_FLAG_USE_NEXT_FRAME) {
 			scene->r.cfra = sad->nextfra;
 			sad->flag &= ~ANIMPLAY_FLAG_USE_NEXT_FRAME;

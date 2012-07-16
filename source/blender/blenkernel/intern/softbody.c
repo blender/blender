@@ -2914,7 +2914,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	aabbmin[0]=aabbmin[1]=aabbmin[2] = 1e20f;
 	aabbmax[0]=aabbmax[1]=aabbmax[2] = -1e20f;
 
-	/* old one with homogenous masses  */
+	/* old one with homogeneous masses  */
 	/* claim a minimum mass for vertex */
 	/*
 	if (sb->nodemass > 0.009999f) timeovermass = forcetime/sb->nodemass;
@@ -3297,7 +3297,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		   /* I'd like to have it  .. if (sb->namedVG_Goal[0]) */
 
 			get_scalar_from_vertexgroup(ob, a, (short) (sb->vertgroup-1), &bp->goal);
-			/* do this always, regardless successfull read from vertex group */
+			/* do this always, regardless successful read from vertex group */
 			/* this is where '2.5 every thing is animatable' goes wrong in the first place jow_go_for2_5 */
 			/* 1st coding action to take : move this to frame level */
 			/* reads: leave the bp->goal as it was read from vertex group / or default .. we will need it at per frame call */
@@ -3811,7 +3811,7 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
  * that is:
  * a precise position vector denoting the motion of the center of mass
  * give a rotation/scale matrix using averaging method, that's why estimate and not calculate
- * see: this is kind of reverse engeneering: having to states of a point cloud and recover what happend
+ * see: this is kind of reverse engineering: having to states of a point cloud and recover what happend
  * our advantage here we know the identity of the vertex
  * there are others methods giving other results.
  * lloc, lrot, lscale are allowed to be NULL, just in case you don't need it.

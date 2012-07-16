@@ -628,7 +628,7 @@ int WM_operator_call(bContext *C, wmOperator *op)
 
 /* this is intended to be used when an invoke operator wants to call exec on its self
  * and is basically like running op->type->exec() directly, no poll checks no freeing,
- * since we assume whoever called invokle will take care of that */
+ * since we assume whoever called invoke will take care of that */
 int WM_operator_call_notest(bContext *C, wmOperator *op)
 {
 	return wm_operator_exec_notest(C, op);

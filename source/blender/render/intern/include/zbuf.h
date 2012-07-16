@@ -46,7 +46,7 @@ struct StrandShadeCache;
 void fillrect(int *rect, int x, int y, int val);
 
 /**
- * Converts a world coordinate into a homogenous coordinate in view
+ * Converts a world coordinate into a homogeneous coordinate in view
  * coordinates. 
  */
 void projectvert(const float v1[3], float winmat[][4], float adr[4]);
@@ -95,7 +95,7 @@ typedef struct ZSpan {
 	
 	float zmulx, zmuly, zofsx, zofsy;		/* transform from hoco to zbuf co */
 	
-	int *rectz, *arectz;					/* zbuffers, arectz is for transparant */
+	int *rectz, *arectz;					/* zbuffers, arectz is for transparent */
 	int *rectz1;							/* seconday z buffer for shadowbuffer (2nd closest z) */
 	int *rectp;								/* polygon index buffer */
 	int *recto;								/* object buffer */

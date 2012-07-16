@@ -2985,7 +2985,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 				}
 				else {
 					/* this value has no angle, the vector is directly along the view.
-					 * avoide divide by zero and use a dummy value. */
+					 * avoid divide by zero and use a dummy value. */
 					tempvec[0]= 1.0f;
 					tempvec[1]= 0.0;
 					tempvec[2]= 0.0;

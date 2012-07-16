@@ -1552,7 +1552,7 @@ char *BLI_path_basename(char *path)
  * 0        if image filename is empty or if destination path
  *          matches image path (i.e. both are the same file).
  * 2        if source is identical to destination.
- * 1        if rebase was successfull
+ * 1        if rebase was successful
  * -------------------------------------------------------------
  * Hint: Trailing slash in dest_dir is optional.
  *

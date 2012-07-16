@@ -185,7 +185,7 @@ DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
 /* create long vector */
 DO_INLINE lfVector *create_lfvector(unsigned int verts)
 {
-	/* TODO: check if memory allocation was successfull */
+	/* TODO: check if memory allocation was successful */
 	return  (lfVector *)MEM_callocN(verts * sizeof(lfVector), "cloth_implicit_alloc_vector");
 	// return (lfVector *)cloth_aligned_malloc(&MEMORY_BASE, verts * sizeof(lfVector));
 }
@@ -513,7 +513,7 @@ static void print_bfmatrix(fmatrix3x3 *m3)
 /* create big matrix */
 DO_INLINE fmatrix3x3 *create_bfmatrix(unsigned int verts, unsigned int springs)
 {
-	// TODO: check if memory allocation was successfull */
+	// TODO: check if memory allocation was successful */
 	fmatrix3x3 *temp = (fmatrix3x3 *)MEM_callocN(sizeof(fmatrix3x3) * (verts + springs), "cloth_implicit_alloc_matrix");
 	temp[0].vcount = verts;
 	temp[0].scount = springs;

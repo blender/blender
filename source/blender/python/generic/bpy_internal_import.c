@@ -287,7 +287,7 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	}
 	else {
 		/* no blender text was found that could import the module
-		 * rause the original error from PyImport_ImportModuleEx */
+		 * reuse the original error from PyImport_ImportModuleEx */
 		PyErr_Restore(exception, err, tb);
 	}
 	return newmodule;

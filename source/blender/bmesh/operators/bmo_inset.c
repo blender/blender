@@ -280,7 +280,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 							BMFace *f_b = e_info_b->l->f;
 
 							/* we use this as either the normal OR to find the right direction for the
-							 * crpss product between both face normals */
+							 * cross product between both face normals */
 							add_v3_v3v3(tvec, e_info_a->no, e_info_b->no);
 
 							if ((f_a == f_b) || compare_v3v3(f_a->no, f_b->no, 0.00001f)) {

@@ -255,7 +255,7 @@ static void convert_tface_mt(FileData *fd, Main *main);
  * in the case of libraray linking errors this is important!
  *
  * bit kludge but better then doubling up on prints,
- * we could alternatively have a versions of a report function which foces printing - campbell
+ * we could alternatively have a versions of a report function which forces printing - campbell
  */
 static void BKE_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
 {
@@ -5919,7 +5919,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if (sl->spacetype == SPACE_SEQ) {
 				/* grease pencil data is not a direct data and can't be linked from direct_link*
-				 * functions, it should be linked from lib_link* funcrions instead
+				 * functions, it should be linked from lib_link* functions instead
 				 *
 				 * otherwise it'll lead to lost grease data on open because it'll likely be
 				 * read from file after all other users of grease pencil and newdataadr would
@@ -5948,7 +5948,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				//for (cl= sconsole->scrollback.first; cl; cl= cl->next)
 				//	cl->line= newdataadr(fd, cl->line);
 				
-				/* comma expressions, (e.g. expr1, expr2, expr3) evalutate each expression,
+				/* comma expressions, (e.g. expr1, expr2, expr3) evaluate each expression,
 				 * from left to right.  the right-most expression sets the result of the comma
 				 * expression as a whole*/
 				for (cl = sconsole->history.first; cl; cl = cl_next) {
@@ -8174,7 +8174,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					 * This line is NEEDED, the case is that you have 3 blend files...
 					 * user.blend, lib.blend and lib_indirect.blend - if user.blend already references a "tree" from
 					 * lib_indirect.blend but lib.blend does too, linking in a Scene or Group from lib.blend can result in an
-					 * empty without the dupli group referenced. Once you save and reload the group would appier. - Campbell */
+					 * empty without the dupli group referenced. Once you save and reload the group would appear. - Campbell */
 					/* This crashes files, must look further into it */
 					
 					/* Update: the issue is that in file reading, the oldnewmap is OK, but for existing data, it has to be

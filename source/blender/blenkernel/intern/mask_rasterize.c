@@ -134,7 +134,6 @@ void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 	unsigned int i;
 	MaskRasterLayer *layer = mr_handle->layers;
 
-	/* raycast vars */
 	for (i = 0; i < layers_tot; i++, layer++) {
 
 		if (layer->face_array) {
@@ -225,7 +224,7 @@ void maskrasterize_spline_differentiate_point_outset(float (*diff_feather_points
 	}
 }
 
-/* this function is not exact, sometimes it retuns false positives,
+/* this function is not exact, sometimes it returns false positives,
  * the main point of it is to clear out _almost_ all bucket/face non-intersections,
  * returning TRUE in corner cases is ok but missing an intersection is NOT.
  *

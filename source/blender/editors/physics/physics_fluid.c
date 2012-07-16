@@ -913,7 +913,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 		return 0;
 	}
 	
-	/* these both have to be valid, otherwise we wouldnt be here */
+	/* these both have to be valid, otherwise we wouldn't be here */
 	fluidmd = (FluidsimModifierData *)modifiers_findByType(fsDomain, eModifierType_Fluidsim);
 	domainSettings = fluidmd->fss;
 	mesh = fsDomain->data;

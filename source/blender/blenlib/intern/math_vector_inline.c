@@ -521,7 +521,7 @@ MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3])
 }
 
 /* Newell's Method */
-/* excuse this fairly spesific function,
+/* excuse this fairly specific function,
  * its used for polygon normals all over the place
  * could use a better name */
 MINLINE void add_newell_cross_v3_v3v3(float n[3], const float v_prev[3], const float v_curr[3])

@@ -2443,7 +2443,7 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
 
 
 /* ----------------------------------------------------------------------------
- * special type for alaternate access */
+ * special type for alternate access */
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */

@@ -34,7 +34,7 @@
  * The lowest level of functionality for manipulating bmesh structures.
  * None of these functions should ever be exported to the rest of Blender.
  *
- * in the vast majority of cases thes should not be used directly.
+ * in the vast majority of cases there shouldn't be used directly.
  * if absolutely necessary, see function definitions in code for
  * descriptive comments.  but seriously, don't use this stuff.
  */

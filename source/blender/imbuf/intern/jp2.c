@@ -864,7 +864,7 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 	
 	/*
 	 * configure the event callbacks (not required)
-	 * setting of each callback is optionnal
+	 * setting of each callback is optional
 	 */
 	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
 	event_mgr.error_handler = error_callback;

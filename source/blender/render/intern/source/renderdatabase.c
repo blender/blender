@@ -49,7 +49,7 @@
  * - If the entry has no block allocated for it yet, memory is
  * allocated.
  *
- * The pointer to the correct entry is returned. Memory is guarateed
+ * The pointer to the correct entry is returned. Memory is guaranteed
  * to exist (as long as the malloc does not break). Since guarded
  * allocation is used, memory _must_ be available. Otherwise, an
  * exit(0) would occur.

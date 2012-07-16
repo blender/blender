@@ -195,7 +195,7 @@ int anim_is_quicktime(const char *name)
 	if (BLI_testextensie(name, ".swf") ||
 	    BLI_testextensie(name, ".txt") ||
 	    BLI_testextensie(name, ".mpg") ||
-	    BLI_testextensie(name, ".avi") ||  /* wouldnt be appropriate ;) */
+	    BLI_testextensie(name, ".avi") ||  /* wouldn't be appropriate ;) */
 	    BLI_testextensie(name, ".tga") ||
 	    BLI_testextensie(name, ".png") ||
 	    BLI_testextensie(name, ".bmp") ||

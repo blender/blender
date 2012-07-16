@@ -2843,7 +2843,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 	int pass;
 	unsigned char wireCol[4], selCol[4], actCol[4];
 
-	/* since this function does transparant... */
+	/* since this function does transparent... */
 	UI_GetThemeColor4ubv(TH_EDGE_SELECT, selCol);
 	UI_GetThemeColor4ubv(TH_WIRE, wireCol);
 	UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, actCol);
@@ -2854,7 +2854,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 		wireCol[3] = 0;
 
 	for (pass = 0; pass < 2; pass++) {
-		/* show wires in transparant when no zbuf clipping for select */
+		/* show wires in transparent when no zbuf clipping for select */
 		if (pass == 0) {
 			if (v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT) == 0) {
 				glEnable(GL_BLEND);

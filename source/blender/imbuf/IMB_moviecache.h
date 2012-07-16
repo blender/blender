@@ -35,7 +35,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
-/* Cache system for movie data - now supports stoting ImBufs only
+/* Cache system for movie data - now supports storing ImBufs only
  * Supposed to provide unified cache system for movie clips, sequencer and
  * other movie-related areas */
 

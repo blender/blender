@@ -712,7 +712,7 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int use_beauty, floa
 			}
 		}
 		/* Last check we do not get overlapping triangles
-		 * (as much as possible, ther are some cases with no good solution!) */
+		 * (as much as possible, there are some cases with no good solution!) */
 		i4 = (i + 3) % 4;
 		if (!bm_face_goodline((float const (*)[3])verts, f, BM_elem_index_get(larr[i4]->v),
 		                      BM_elem_index_get(larr[i]->v), BM_elem_index_get(larr[i + 1]->v)))

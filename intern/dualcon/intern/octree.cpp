@@ -54,7 +54,7 @@ Octree::Octree(ModelReader *mr,
 	   After playing around with this option, the only case I could
 	   find where this option gives different results is on
 	   relatively thin corners. Sometimes along these corners two
-	   vertices from seperate sides will be placed in the same
+	   vertices from separate sides will be placed in the same
 	   position, so hole gets filled with a 5-sided face, where two
 	   of those vertices are in the same 3D location. If
 	   `use_manifold' is disabled, then the modifier doesn't

@@ -774,7 +774,7 @@ static void q_scale_float(float *in, float *out, int in_width,
  * Should be comparable in speed to the ImBuf ..._fast functions at least
  * for byte-buffers.
  *
- * NOTE: disabled, due to inacceptable inaccuracy and quality loss, see bug #18609 (ton)
+ * NOTE: disabled, due to unacceptable inaccuracy and quality loss, see bug #18609 (ton)
  */
 static int q_scale_linear_interpolation(
         struct ImBuf *ibuf, int newx, int newy)
@@ -1460,7 +1460,7 @@ struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int
 	scalefast_Z_ImBuf(ibuf, newx, newy);
 
 	/* try to scale common cases in a fast way */
-	/* disabled, quality loss is inacceptable, see report #18609  (ton) */
+	/* disabled, quality loss is unacceptable, see report #18609  (ton) */
 	if (0 && q_scale_linear_interpolation(ibuf, newx, newy)) {
 		return ibuf;
 	}
