@@ -617,10 +617,6 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 							sf_vert_tot++;
 						}
 
-						if (diff_feather_points) {
-							MEM_freeN(diff_feather_points);
-						}
-
 						tot_feather_quads += tot_diff_point;
 					}
 				}
@@ -673,8 +669,6 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 							tot_feather_quads -= 2;
 						}
 
-						MEM_freeN(diff_feather_points);
-
 						/* ack these are infact tris, but they are extra faces so no matter,
 						 * +1 becausing adding one vert results in 2 tris (joining the existing endpoints)
 						 */
@@ -687,9 +681,13 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			if (diff_points) {
 				MEM_freeN(diff_points);
 			}
+
+			if (diff_feather_points) {
+				MEM_freeN(diff_feather_points);
+			}
 		}
 
-		if (sf_ctx.fillvertbase.first) {
+		{
 			unsigned int (*face_array)[4], *face;  /* access coords */
 			float        (*face_coords)[3], *cos; /* xy, z 0-1 (1.0 == filled) */
 			int sf_tri_tot;
