@@ -581,6 +581,10 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 	static EnumPropertyItem masklay_blend_mode_items[] = {
 		{MASK_BLEND_ADD, "ADD", 0, "Add", ""},
 		{MASK_BLEND_SUBTRACT, "SUBTRACT", 0, "Subtract", ""},
+		{MASK_BLEND_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
+		{MASK_BLEND_DARKEN, "DARKEN", 0, "Darken", ""},
+		{MASK_BLEND_MUL, "MUL", 0, "Multiply", ""},
+		{MASK_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

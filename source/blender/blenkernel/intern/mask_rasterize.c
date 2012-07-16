@@ -979,21 +979,21 @@ float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 		float value_layer;
 
 		if (BLI_in_rctf_v(&layer->bounds, xy)) {
-			float val = 1.0f - layer_bucket_depth_from_xy(layer, xy);
+			value_layer = 1.0f - layer_bucket_depth_from_xy(layer, xy);
 
 			switch (layer->falloff) {
 				case PROP_SMOOTH:
 					/* ease - gives less hard lines for dilate/erode feather */
-					val = (3.0f * val * val - 2.0f * val * val * val);
+					value_layer = (3.0f * value_layer * value_layer - 2.0f * value_layer * value_layer * value_layer);
 					break;
 				case PROP_SPHERE:
-					val = sqrtf(2.0f * val - val * val);
+					value_layer = sqrtf(2.0f * value_layer - value_layer * value_layer);
 					break;
 				case PROP_ROOT:
-					val = sqrtf(val);
+					value_layer = sqrtf(value_layer);
 					break;
 				case PROP_SHARP:
-					val = val * val;
+					value_layer = value_layer * value_layer;
 					break;
 				case PROP_LIN:
 				default:
@@ -1001,7 +1001,9 @@ float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 					break;
 			}
 
-			value_layer = val * layer->alpha;
+			if (layer->blend != MASK_BLEND_REPLACE) {
+				value_layer *= layer->alpha;
+			}
 		}
 		else {
 			value_layer = 0.0f;
@@ -1012,17 +1014,28 @@ float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 		}
 
 		switch (layer->blend) {
-			case MASK_BLEND_SUBTRACT:
-			{
-				value -= value_layer;
-				break;
-			}
 			case MASK_BLEND_ADD:
-			default:
-			{
 				value += value_layer;
 				break;
-			}
+			case MASK_BLEND_SUBTRACT:
+				value -= value_layer;
+				break;
+			case MASK_BLEND_LIGHTEN:
+				value = maxf(value, value_layer);
+				break;
+			case MASK_BLEND_DARKEN:
+				value = minf(value, value_layer);
+				break;
+			case MASK_BLEND_MUL:
+				value *= value_layer;
+				break;
+			case MASK_BLEND_REPLACE:
+				value = (value * (1.0f - layer->alpha)) + (value_layer * layer->alpha);
+				break;
+			default: /* same as add */
+				BLI_assert(0);
+				value += value_layer;
+				break;
 		}
 	}
 

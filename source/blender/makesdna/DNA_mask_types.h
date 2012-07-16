@@ -168,7 +168,11 @@ enum {
 /* masklay->blend */
 enum {
 	MASK_BLEND_ADD      = 0,
-	MASK_BLEND_SUBTRACT = 1
+	MASK_BLEND_SUBTRACT = 1,
+	MASK_BLEND_LIGHTEN  = 2,
+	MASK_BLEND_DARKEN   = 3,
+	MASK_BLEND_MUL      = 4,
+	MASK_BLEND_REPLACE  = 5,
 };
 
 /* masklay->blend_flag */
