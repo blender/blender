@@ -356,10 +356,10 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 				const float *v2 = cos[face[1]];
 				const float *v3 = cos[face[2]];
 
-				xmin = fminf(v1[0], fminf(v2[0], v3[0]));
-				xmax = fmaxf(v1[0], fmaxf(v2[0], v3[0]));
-				ymin = fminf(v1[1], fminf(v2[1], v3[1]));
-				ymax = fmaxf(v1[1], fmaxf(v2[1], v3[1]));
+				xmin = minf(v1[0], minf(v2[0], v3[0]));
+				xmax = maxf(v1[0], maxf(v2[0], v3[0]));
+				ymin = minf(v1[1], minf(v2[1], v3[1]));
+				ymax = maxf(v1[1], maxf(v2[1], v3[1]));
 			}
 			else {
 				const float *v1 = cos[face[0]];
@@ -367,10 +367,10 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 				const float *v3 = cos[face[2]];
 				const float *v4 = cos[face[3]];
 
-				xmin = fminf(v1[0], fminf(v2[0], fminf(v3[0], v4[0])));
-				xmax = fmaxf(v1[0], fmaxf(v2[0], fmaxf(v3[0], v4[0])));
-				ymin = fminf(v1[1], fminf(v2[1], fminf(v3[1], v4[1])));
-				ymax = fmaxf(v1[1], fmaxf(v2[1], fmaxf(v3[1], v4[1])));
+				xmin = minf(v1[0], minf(v2[0], minf(v3[0], v4[0])));
+				xmax = maxf(v1[0], maxf(v2[0], maxf(v3[0], v4[0])));
+				ymin = minf(v1[1], minf(v2[1], minf(v3[1], v4[1])));
+				ymax = maxf(v1[1], maxf(v2[1], maxf(v3[1], v4[1])));
 			}
 
 
@@ -617,10 +617,6 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 							sf_vert_tot++;
 						}
 
-						if (diff_feather_points) {
-							MEM_freeN(diff_feather_points);
-						}
-
 						tot_feather_quads += tot_diff_point;
 					}
 				}
@@ -673,8 +669,6 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 							tot_feather_quads -= 2;
 						}
 
-						MEM_freeN(diff_feather_points);
-
 						/* ack these are infact tris, but they are extra faces so no matter,
 						 * +1 becausing adding one vert results in 2 tris (joining the existing endpoints)
 						 */
@@ -687,9 +681,13 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			if (diff_points) {
 				MEM_freeN(diff_points);
 			}
+
+			if (diff_feather_points) {
+				MEM_freeN(diff_feather_points);
+			}
 		}
 
-		if (sf_ctx.fillvertbase.first) {
+		{
 			unsigned int (*face_array)[4], *face;  /* access coords */
 			float        (*face_coords)[3], *cos; /* xy, z 0-1 (1.0 == filled) */
 			int sf_tri_tot;
@@ -727,9 +725,9 @@ void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			/* tri's */
 			face = (unsigned int *)face_array;
 			for (sf_tri = sf_ctx.fillfacebase.first, face_index = 0; sf_tri; sf_tri = sf_tri->next, face_index++) {
-				*(face++) = sf_tri->v1->tmp.u;
-				*(face++) = sf_tri->v2->tmp.u;
 				*(face++) = sf_tri->v3->tmp.u;
+				*(face++) = sf_tri->v2->tmp.u;
+				*(face++) = sf_tri->v1->tmp.u;
 				*(face++) = TRI_VERT;
 			}
 
@@ -881,7 +879,7 @@ static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], cons
 		    (cos[1][2] < dist_orig) ||
 		    (cos[2][2] < dist_orig))
 		{
-			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
+			if (isect_point_tri_v2_cw(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
 				/* we know all tris are close for now */
 				return maskrasterize_layer_z_depth_tri(xy, cos[face[0]], cos[face[1]], cos[face[2]]);
 			}
@@ -889,7 +887,7 @@ static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], cons
 #else
 		/* we know all tris are close for now */
 		if (1) {
-			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
+			if (isect_point_tri_v2_cw(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
 				return 0.0f;
 			}
 		}
@@ -911,6 +909,8 @@ static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], cons
 				return maskrasterize_layer_z_depth_quad(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]);
 			}
 #elif 1
+			/* don't use isect_point_tri_v2_cw because we could have bowtie quads */
+
 			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
 				return maskrasterize_layer_z_depth_tri(xy, cos[face[0]], cos[face[1]], cos[face[2]]);
 			}
@@ -979,21 +979,21 @@ float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 		float value_layer;
 
 		if (BLI_in_rctf_v(&layer->bounds, xy)) {
-			float val = 1.0f - layer_bucket_depth_from_xy(layer, xy);
+			value_layer = 1.0f - layer_bucket_depth_from_xy(layer, xy);
 
 			switch (layer->falloff) {
 				case PROP_SMOOTH:
 					/* ease - gives less hard lines for dilate/erode feather */
-					val = (3.0f * val * val - 2.0f * val * val * val);
+					value_layer = (3.0f * value_layer * value_layer - 2.0f * value_layer * value_layer * value_layer);
 					break;
 				case PROP_SPHERE:
-					val = sqrtf(2.0f * val - val * val);
+					value_layer = sqrtf(2.0f * value_layer - value_layer * value_layer);
 					break;
 				case PROP_ROOT:
-					val = sqrtf(val);
+					value_layer = sqrtf(value_layer);
 					break;
 				case PROP_SHARP:
-					val = val * val;
+					value_layer = value_layer * value_layer;
 					break;
 				case PROP_LIN:
 				default:
@@ -1001,7 +1001,9 @@ float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 					break;
 			}
 
-			value_layer = val * layer->alpha;
+			if (layer->blend != MASK_BLEND_REPLACE) {
+				value_layer *= layer->alpha;
+			}
 		}
 		else {
 			value_layer = 0.0f;
@@ -1012,17 +1014,28 @@ float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 		}
 
 		switch (layer->blend) {
-			case MASK_BLEND_SUBTRACT:
-			{
-				value -= value_layer;
-				break;
-			}
 			case MASK_BLEND_ADD:
-			default:
-			{
 				value += value_layer;
 				break;
-			}
+			case MASK_BLEND_SUBTRACT:
+				value -= value_layer;
+				break;
+			case MASK_BLEND_LIGHTEN:
+				value = maxf(value, value_layer);
+				break;
+			case MASK_BLEND_DARKEN:
+				value = minf(value, value_layer);
+				break;
+			case MASK_BLEND_MUL:
+				value *= value_layer;
+				break;
+			case MASK_BLEND_REPLACE:
+				value = (value * (1.0f - layer->alpha)) + (value_layer * layer->alpha);
+				break;
+			default: /* same as add */
+				BLI_assert(0);
+				value += value_layer;
+				break;
 		}
 	}
 

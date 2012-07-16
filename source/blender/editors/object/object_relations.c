@@ -518,7 +518,8 @@ EnumPropertyItem prop_make_parent_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par, int partype)
+int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par,
+                         int partype, int xmirror)
 {
 	bPoseChannel *pchan = NULL;
 	int pararm = ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
@@ -641,12 +642,12 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			}
 			else if (pararm && ob->type == OB_MESH && par->type == OB_ARMATURE) {
 				if (partype == PAR_ARMATURE_NAME)
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, 0);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, FALSE);
 				else if (partype == PAR_ARMATURE_ENVELOPE)
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_ENVELOPE, 0);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
 				else if (partype == PAR_ARMATURE_AUTO) {
 					WM_cursor_wait(1);
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_AUTO, 0);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
 					WM_cursor_wait(0);
 				}
 				/* get corrected inverse */
@@ -674,11 +675,12 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *par = ED_object_active_context(C);
 	int partype = RNA_enum_get(op->ptr, "type");
+	int xmirror = RNA_enum_get(op->ptr, "xmirror");
 	int ok = 1;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype)) {
+		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, xmirror)) {
 			ok = 0;
 			break;
 		}
@@ -728,6 +730,33 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 	return OPERATOR_CANCELLED;
 }
 
+static int parent_set_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+{
+	const char *prop_id = RNA_property_identifier(prop);
+	int type = RNA_enum_get(ptr, "type");
+
+	/* Only show XMirror for PAR_ARMATURE_ENVELOPE and PAR_ARMATURE_AUTO! */
+	if (strcmp(prop_id, "xmirror") == 0) {
+		if (ELEM(type, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO))
+			return TRUE;
+		else
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+static void parent_set_ui(bContext *C, wmOperator *op)
+{
+	uiLayout *layout = op->layout;
+	wmWindowManager *wm = CTX_wm_manager(C);
+	PointerRNA ptr;
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+
+	/* Main auto-draw call. */
+	uiDefAutoButsRNA(layout, &ptr, parent_set_draw_check_prop, '\0');
+}
 
 void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
@@ -739,13 +768,15 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = parent_set_invoke;
 	ot->exec = parent_set_exec;
-	
 	ot->poll = ED_operator_object_active;
+	ot->ui = parent_set_ui;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "xmirror", FALSE, "X Mirror",
+	                "Apply weights symmetrically along X axis, for Envelope/Automatic vertex groups creation");
 }
 
 /* ************ Make Parent Without Inverse Operator ******************* */

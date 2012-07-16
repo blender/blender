@@ -23,6 +23,25 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+macro(list_insert_after
+	list_id item_check item_add
+	)
+	set(_index)
+	list(FIND ${list_id} "${item_check}" _index)
+	math(EXPR _index "${_index} + 1")
+	list(INSERT ${list_id} "${_index}" ${item_add})
+	unset(_index)
+endmacro()
+
+macro(list_insert_before
+	list_id item_check item_add
+	)
+	set(_index)
+	list(FIND ${list_id} "${item_check}" _index)
+	list(INSERT ${list_id} "${_index}" ${item_add})
+	unset(_index)
+endmacro()
+
 # foo_bar.spam --> foo_barMySuffix.spam
 macro(file_suffix
 	file_name_new file_name file_suffix
