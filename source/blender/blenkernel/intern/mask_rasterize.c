@@ -849,6 +849,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 /* --------------------------------------------------------------------- */
 
 /* 2D ray test */
+#if 0
 static float maskrasterize_layer_z_depth_tri(const float pt[2],
                                              const float v1[3], const float v2[3], const float v3[3])
 {
@@ -856,14 +857,16 @@ static float maskrasterize_layer_z_depth_tri(const float pt[2],
 	barycentric_weights_v2(v1, v2, v3, pt, w);
 	return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]);
 }
+#endif
 
-#if 0
+#if 1
 static float maskrasterize_layer_z_depth_quad(const float pt[2],
                                               const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
 	float w[4];
 	barycentric_weights_v2_quad(v1, v2, v3, v4, pt, w);
-	return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]) + (v4[2] * w[3]);
+	//return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]) + (v4[2] * w[3]);
+	return (1.0f * w[2]) + (1.0f * w[3]);  /* we can make this assumption for small speedup */
 }
 #endif
 
@@ -904,8 +907,12 @@ static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], cons
 		{
 
 			/* needs work */
-#if 0
-			if (isect_point_quad_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]])) {
+#if 1
+			/* quad check fails for bowtie, so keep using 2 tri checks */
+			//if (isect_point_quad_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]))
+			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]]) ||
+			    isect_point_tri_v2(xy, cos[face[0]], cos[face[2]], cos[face[3]]))
+			{
 				return maskrasterize_layer_z_depth_quad(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]);
 			}
 #elif 1
