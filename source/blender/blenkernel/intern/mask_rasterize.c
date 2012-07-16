@@ -302,6 +302,10 @@ static int layer_bucket_isect_test(MaskRasterLayer *layer, unsigned int face_ind
 
 static void layer_bucket_init_dummy(MaskRasterLayer *layer)
 {
+	layer->face_tot = 0;
+	layer->face_coords = NULL;
+	layer->face_array  = NULL;
+
 	layer->buckets_x = 0;
 	layer->buckets_y = 0;
 
@@ -309,6 +313,8 @@ static void layer_bucket_init_dummy(MaskRasterLayer *layer)
 	layer->buckets_xy_scalar[1] = 0.0f;
 
 	layer->buckets_face = NULL;
+
+	BLI_rctf_init(&layer->bounds, -1.0f, -1.0f, -1.0f, -1.0f);
 }
 
 static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
@@ -478,9 +484,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 	for (masklay = mask->masklayers.first, masklay_index = 0; masklay; masklay = masklay->next, masklay_index++) {
 
-		const unsigned int tot_splines = BLI_countlist(&masklay->splines);
 		/* we need to store vertex ranges for open splines for filling */
-		MaskRasterSplineInfo *open_spline_ranges = MEM_callocN(sizeof(*open_spline_ranges) * tot_splines, __func__);
+		unsigned int tot_splines;
+		MaskRasterSplineInfo *open_spline_ranges;
 		unsigned int   open_spline_index = 0;
 
 		MaskSpline *spline;
@@ -494,9 +500,15 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		unsigned int sf_vert_tot = 0;
 		unsigned int tot_feather_quads = 0;
 
-		if (masklay->restrictflag & MASK_RESTRICT_RENDER) {
+		if (masklay->restrictflag & MASK_RESTRICT_RENDER || masklay->alpha == 0.0f) {
+			MaskRasterLayer *layer = &mr_handle->layers[masklay_index];
+			layer_bucket_init_dummy(layer);
+			layer->alpha = 0.0f; /* signal to skip this layer */
 			continue;
 		}
+
+		tot_splines = BLI_countlist(&masklay->splines);
+		open_spline_ranges = MEM_callocN(sizeof(*open_spline_ranges) * tot_splines, __func__);
 
 		BLI_scanfill_begin(&sf_ctx);
 
@@ -826,13 +838,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					MEM_freeN(face_coords);
 					MEM_freeN(face_array);
 
-					layer->face_tot = 0;
-					layer->face_coords = NULL;
-					layer->face_array  = NULL;
-
 					layer_bucket_init_dummy(layer);
-
-					BLI_rctf_init(&layer->bounds, -1.0f, -1.0f, -1.0f, -1.0f);
 				}
 
 				/* copy as-is */
@@ -991,6 +997,10 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 
 	for (i = 0; i < layers_tot; i++, layer++) {
 		float value_layer;
+
+		if (layer->alpha == 0.0f) {
+			continue;
+		}
 
 		if (BLI_in_rctf_v(&layer->bounds, xy)) {
 			value_layer = 1.0f - layer_bucket_depth_from_xy(layer, xy);
