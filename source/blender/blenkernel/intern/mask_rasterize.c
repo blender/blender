@@ -998,6 +998,7 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 	for (i = 0; i < layers_tot; i++, layer++) {
 		float value_layer;
 
+		/* also used as signal for unused layer (when render is disabled) */
 		if (layer->alpha == 0.0f) {
 			continue;
 		}

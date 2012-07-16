@@ -239,7 +239,7 @@ MaskSpline *BKE_mask_spline_add(MaskLayer *masklay)
 	/* cyclic shapes are more usually used */
 	// spline->flag |= MASK_SPLINE_CYCLIC; // disable because its not so nice for drawing. could be done differently
 
-	spline->weight_interp = MASK_SPLINE_INTERP_LINEAR;
+	spline->weight_interp = MASK_SPLINE_INTERP_EASE;
 
 	BKE_mask_parent_init(&spline->parent);
 
