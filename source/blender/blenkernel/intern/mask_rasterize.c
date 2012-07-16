@@ -119,7 +119,7 @@ struct MaskRasterHandle {
 /* alloc / free functions                                                */
 /* --------------------------------------------------------------------- */
 
-MaskRasterHandle *BLI_maskrasterize_handle_new(void)
+MaskRasterHandle *BKE_maskrasterize_handle_new(void)
 {
 	MaskRasterHandle *mr_handle;
 
@@ -128,7 +128,7 @@ MaskRasterHandle *BLI_maskrasterize_handle_new(void)
 	return mr_handle;
 }
 
-void BLI_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
+void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 {
 	const unsigned int layers_tot = mr_handle->layers_tot;
 	unsigned int i;
@@ -452,7 +452,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 	BLI_memarena_free(arena);
 }
 
-void BLI_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mask,
+void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mask,
                                    const int width, const int height,
                                    const short do_aspect_correct, const short do_mask_aa,
                                    const short do_feather)
@@ -963,7 +963,7 @@ static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2
 	}
 }
 
-float BLI_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2])
+float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2])
 {
 	/* can't do this because some layers may invert */
 	/* if (BLI_in_rctf_v(&mr_handle->bounds, xy)) */
