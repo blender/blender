@@ -326,8 +326,7 @@ static void ptcache_particle_read(int index, void *psys_v, void **data, float cf
 
 	/* default to no rotation */
 	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		pa->state.rot[0]=1.0f;
-		pa->state.rot[1]=pa->state.rot[2]=pa->state.rot[3]=0;
+		unit_qt(pa->state.rot);
 	}
 }
 static void ptcache_particle_interpolate(int index, void *psys_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)

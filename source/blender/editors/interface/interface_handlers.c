@@ -4474,6 +4474,19 @@ static int ui_but_menu(bContext *C, uiBut *but)
 				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
 		}
 		
+		if (but->flag & UI_BUT_ANIMATED) {
+			if (length) {
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Keyframes"),
+				               ICON_NONE, "ANIM_OT_keyframe_clear_button", "all", 1);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Single Keyframes"),
+				               ICON_NONE, "ANIM_OT_keyframe_clear_button", "all", 0);
+			}
+			else {
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Keyframes"),
+				               ICON_NONE, "ANIM_OT_keyframe_clear_button", "all", 0);
+			}
+		}
+
 		/* Drivers */
 		if (but->flag & UI_BUT_DRIVEN) {
 			uiItemS(layout);
@@ -4687,11 +4700,18 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			ui_but_drop(C, event, but, data);
 		}
 		/* handle keyframing */
-		else if (event->type == IKEY && !ELEM3(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
-			if (event->alt)
-				ui_but_anim_delete_keyframe(C);
-			else
+		else if (event->type == IKEY && !ELEM(KM_MOD_FIRST, event->ctrl, event->oskey) && event->val == KM_PRESS) {
+			if (event->alt) {
+				if (event->shift) {
+					ui_but_anim_clear_keyframe(C);
+				}
+				else {
+					ui_but_anim_delete_keyframe(C);
+				}
+			}
+			else {
 				ui_but_anim_insert_keyframe(C);
+			}
 			
 			ED_region_tag_redraw(CTX_wm_region(C));
 			

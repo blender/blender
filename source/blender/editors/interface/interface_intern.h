@@ -508,6 +508,7 @@ void ui_but_add_shortcut(uiBut *but, const char *key_str, const short do_strip);
 void ui_but_anim_flag(uiBut *but, float cfra);
 void ui_but_anim_insert_keyframe(struct bContext *C);
 void ui_but_anim_delete_keyframe(struct bContext *C);
+void ui_but_anim_clear_keyframe(struct bContext *C);
 void ui_but_anim_add_driver(struct bContext *C);
 void ui_but_anim_remove_driver(struct bContext *C);
 void ui_but_anim_copy_driver(struct bContext *C);
