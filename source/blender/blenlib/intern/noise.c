@@ -1130,7 +1130,7 @@ static float turbulencep(float noisesize, float x, float y, float z, int nr)
 /* VORONOI/WORLEY */
 /******************/
 
-/* distance metrics for voronoi, e parameter only used in Minkovsky */
+/* distance metrics for voronoi, e parameter only used in Minkowski */
 /* Camberra omitted, didn't seem useful */
 
 /* distance squared */
@@ -1161,7 +1161,7 @@ static float dist_Chebychev(float x, float y, float z, float e)
 	return ((z > t) ? z : t);
 }
 
-/* minkovsky preset exponent 0.5 */
+/* minkowski preset exponent 0.5 */
 static float dist_MinkovskyH(float x, float y, float z, float e)
 {
 	float d = sqrtf(fabsf(x)) + sqrtf(fabsf(y)) + sqrtf(fabsf(z));
@@ -1169,7 +1169,7 @@ static float dist_MinkovskyH(float x, float y, float z, float e)
 	return (d * d);
 }
 
-/* minkovsky preset exponent 4 */
+/* minkowski preset exponent 4 */
 static float dist_Minkovsky4(float x, float y, float z, float e)
 {
 	(void)e;
@@ -1179,7 +1179,7 @@ static float dist_Minkovsky4(float x, float y, float z, float e)
 	return sqrtf(sqrtf(x * x + y * y + z * z));
 }
 
-/* Minkovsky, general case, slow, maybe too slow to be useful */
+/* Minkowski, general case, slow, maybe too slow to be useful */
 static float dist_Minkovsky(float x, float y, float z, float e)
 {
 	return powf(powf(fabsf(x), e) + powf(fabsf(y), e) + powf(fabsf(z), e), 1.0f / e);
