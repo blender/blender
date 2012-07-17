@@ -79,7 +79,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 			if ((l1 = e->l) &&
 			    (l2 = e->l->radial_next) != l1)
 			{
-				if (/* 3+ faces on thsi edge, always split */
+				if (/* 3+ faces on this edge, always split */
 				    UNLIKELY(l1 != l2->radial_next) ||
 				    /* 2 face edge - check angle*/
 				    (dot_v3v3(l1->f->no, l2->f->no) < threshold))
