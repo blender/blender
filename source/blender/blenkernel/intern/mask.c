@@ -509,6 +509,14 @@ static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int 
 	int i;
 	float min[2], max[2];
 
+	if (tot_feather_point < 4) {
+		/* self-intersection works only for quads at least,
+		 * in other cases polygon can't be self-intersecting anyway
+		 */
+
+		return;
+	}
+
 	/* find min/max corners of mask to build buckets in that space */
 	INIT_MINMAX2(min, max);
 
