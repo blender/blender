@@ -72,9 +72,11 @@ int BKE_mask_spline_differentiate_calc_total(const struct MaskSpline *spline, co
 float (*BKE_mask_spline_differentiate(struct MaskSpline *spline, int *tot_diff_point))[2];
 float (*BKE_mask_spline_feather_differentiated_points(struct MaskSpline *spline, int *tot_feather_point))[2];
 
-float (*BKE_mask_spline_differentiate_with_resolution_ex(struct MaskSpline *spline, const int resol, int *tot_diff_point))[2];
+float (*BKE_mask_spline_differentiate_with_resolution_ex(struct MaskSpline *spline, int *tot_diff_point,
+                                                         const int resol))[2];
 float (*BKE_mask_spline_differentiate_with_resolution(struct MaskSpline *spline, int width, int height, int *tot_diff_point))[2];
-float (*BKE_mask_spline_feather_differentiated_points_with_resolution_ex(struct MaskSpline *spline, const int resol, int *tot_feather_point))[2];
+float (*BKE_mask_spline_feather_differentiated_points_with_resolution_ex(struct MaskSpline *spline, int *tot_feather_point,
+                                                                         const int resol, const int do_collapse))[2];
 float (*BKE_mask_spline_feather_differentiated_points_with_resolution(struct MaskSpline *spline, int width, int height, int *tot_feather_point))[2];
 
 float (*BKE_mask_spline_feather_points(struct MaskSpline *spline, int *tot_feather_point))[2];
