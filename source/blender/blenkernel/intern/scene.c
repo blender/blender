@@ -57,6 +57,7 @@
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
+#include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
@@ -132,6 +133,8 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		MEM_freeN(scen->toolsettings);
 	}
 	else {
+		ImageFormatData *im_format, *im_formatn;
+
 		scen = BKE_libblock_copy(&sce->id);
 		BLI_duplicatelist(&(scen->base), &(sce->base));
 		
@@ -166,6 +169,13 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 			obase = obase->next;
 			base = base->next;
 		}
+
+		/* copy color management settings */
+		im_format = &sce->r.im_format;
+		im_formatn = &scen->r.im_format;
+
+		BKE_color_managed_display_settings_copy(&im_formatn->display_settings, &im_format->display_settings);
+		BKE_color_managed_view_settings_copy(&im_formatn->view_settings, &im_format->view_settings);
 	}
 
 	/* tool settings */
@@ -544,6 +554,9 @@ Scene *BKE_scene_add(const char *name)
 	sce->gm.exitkey = 218; // Blender key code for ESC
 
 	sound_create_scene(sce);
+
+	BKE_color_managed_display_settings_init(&sce->r.im_format.display_settings);
+	BKE_color_managed_view_settings_init(&sce->r.im_format.view_settings);
 
 	return sce;
 }
