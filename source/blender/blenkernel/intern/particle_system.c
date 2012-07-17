@@ -2159,7 +2159,9 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 			break;
 	}
 
-	copy_particle_key(states, &pa->state, 1);
+	for (i=0; i<steps; i++) {
+		copy_particle_key(states + i, &pa->state, 1);
+	}
 
 	states->time = 0.f;
 
@@ -2739,7 +2741,12 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 		return;
 	}
 
-	extrotfac = len_v3(pa->state.ave);
+	if (part->flag & PART_ROT_DYN) {
+		extrotfac = len_v3(pa->state.ave);
+	}
+	else {
+		extrotfac = 0.0f;
+	}
 
 	if ((part->flag & PART_ROT_DYN) && ELEM3(part->avemode, PART_AVE_VELOCITY, PART_AVE_HORIZONTAL, PART_AVE_VERTICAL)) {
 		float angle;
