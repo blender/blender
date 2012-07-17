@@ -414,7 +414,7 @@ typedef struct FeatherEdgesBucket {
 
 static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int end)
 {
-	const int alloc_delta = 32;
+	const int alloc_delta = 256;
 
 	if (bucket->tot_segment >= bucket->alloc_segment) {
 		if (!bucket->segments) {
@@ -442,7 +442,7 @@ static void feather_bucket_check_intersect(float (*feather_points)[2], int tot_f
 	float *v1 = (float *) feather_points[cur_a];
 	float *v2 = (float *) feather_points[cur_b];
 
-	for (i = 0; i< bucket->tot_segment; i++) {
+	for (i = 0; i < bucket->tot_segment; i++) {
 		int check_a = bucket->segments[i][0];
 		int check_b = bucket->segments[i][1];
 
@@ -480,34 +480,51 @@ static void feather_bucket_check_intersect(float (*feather_points)[2], int tot_f
 	}
 }
 
-static int feather_bucket_index_from_coord(float co[2], float min[2], float max[2],
-                                           const int buckets_per_side, const float bucket_size)
+static int feather_bucket_index_from_coord(float co[2], const float min[2], const float bucket_scale[2],
+                                           const int buckets_per_side)
 {
-#define BUCKET_SIDE_INDEX(co, min, max) ((int) ((co - min) / (max - min) / bucket_size))
+	int x = (int) ((co[0] - min[0]) * bucket_scale[0]);
+	int y = (int) ((co[1] - min[1]) * bucket_scale[1]);
 
-	int x = BUCKET_SIDE_INDEX(co[0], min[0], max[0]);
-	int y = BUCKET_SIDE_INDEX(co[1], min[1], max[1]);
+	if (x == buckets_per_side)
+		x--;
 
-	x = MIN2(x, buckets_per_side - 1);
-	y = MIN2(y, buckets_per_side - 1);
+	if (y == buckets_per_side)
+		y--;
 
 	return y * buckets_per_side + x;
-#undef BUCKET_SIDE_INDEX
+}
+
+static void feather_bucket_get_diagonal(FeatherEdgesBucket *buckets, int start_bucket_index, int end_bucket_index,
+                                        int buckets_per_side, FeatherEdgesBucket **diagonal_bucket_a_r,
+                                        FeatherEdgesBucket **diagonal_bucket_b_r)
+{
+	int start_bucket_x = start_bucket_index % buckets_per_side;
+	int start_bucket_y = start_bucket_index / buckets_per_side;
+
+	int end_bucket_x = end_bucket_index % buckets_per_side;
+	int end_bucket_y = end_bucket_index / buckets_per_side;
+
+	int diagonal_bucket_a_index = start_bucket_y * buckets_per_side + end_bucket_x;
+	int diagonal_bucket_b_index = end_bucket_y * buckets_per_side + start_bucket_x;
+
+	*diagonal_bucket_a_r = &buckets[diagonal_bucket_a_index];
+	*diagonal_bucket_b_r = &buckets[diagonal_bucket_b_index];
 }
 
 static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int tot_feather_point)
 {
 #define BUCKET_INDEX(co) \
-	feather_bucket_index_from_coord(co, min, max, buckets_per_side, bucket_size)
+	feather_bucket_index_from_coord(co, min, bucket_scale, buckets_per_side)
 
-	const int buckets_per_side = 10;
-	const int tot_bucket = buckets_per_side * buckets_per_side;
-	const float bucket_size = 1.0f / buckets_per_side;
+	int buckets_per_side, tot_bucket;
+	float bucket_size, bucket_scale[2];
 
 	FeatherEdgesBucket *buckets;
 
 	int i;
 	float min[2], max[2];
+	float max_delta_x = -1.0f, max_delta_y = -1.0f, max_delta;
 
 	if (tot_feather_point < 4) {
 		/* self-intersection works only for quads at least,
@@ -521,41 +538,95 @@ static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int 
 	INIT_MINMAX2(min, max);
 
 	for (i = 0; i < tot_feather_point; i++) {
+		int next = i + 1;
+		float delta;
+
+		if (next == tot_feather_point)
+			next = 0;
+
+		delta = fabsf(feather_points[i][0] - feather_points[next][0]);
+		if (delta > max_delta_x)
+			max_delta_x = delta;
+
+		delta = fabsf(feather_points[i][1] - feather_points[next][1]);
+		if (delta > max_delta_y)
+			max_delta_y = delta;
+
 		DO_MINMAX2(feather_points[i], min, max);
 	}
+
+	/* use dynamically calculated buckets per side, so we likely wouldn't
+	 * run into a situation when segment doesn't fit two buckets which is
+	 * pain collecting candidates for intersection
+	 */
+	max_delta_x /= max[0] - min[0];
+	max_delta_y /= max[1] - min[1];
+	max_delta = MAX2(max_delta_x, max_delta_y);
+
+	buckets_per_side = MIN2(512, 0.9f / max_delta);
+	tot_bucket = buckets_per_side * buckets_per_side;
+	bucket_size = 1.0f / buckets_per_side;
+
+	/* pre-compute multipliers, to save mathematical operations in loops */
+	bucket_scale[0] = 1.0f / ((max[0] - min[0]) * bucket_size);
+	bucket_scale[1] = 1.0f / ((max[1] - min[1]) * bucket_size);
 
 	/* fill in buckets' edges */
 	buckets = MEM_callocN(sizeof(FeatherEdgesBucket) * tot_bucket, "feather buckets");
 
 	for (i = 0; i < tot_feather_point; i++) {
-		int start = i;
-		int end = (i + 1) % tot_feather_point;
+		int start = i, end = i + 1;
+		int start_bucket_index, end_bucket_index;
 
-		int start_bucket_index = BUCKET_INDEX(feather_points[start]);
-		int end_bucket_index = BUCKET_INDEX(feather_points[end]);
+		if (end == tot_feather_point)
+			end = 0;
+
+		start_bucket_index = BUCKET_INDEX(feather_points[start]);
+		end_bucket_index = BUCKET_INDEX(feather_points[end]);
 
 		feather_bucket_add_edge(&buckets[start_bucket_index], start, end);
 
 		if (start_bucket_index != end_bucket_index) {
-			feather_bucket_add_edge(&buckets[end_bucket_index], start, end);
+			FeatherEdgesBucket *end_bucket = &buckets[end_bucket_index];
+			FeatherEdgesBucket *diagonal_bucket_a, *diagonal_bucket_b;
+
+			feather_bucket_get_diagonal(buckets, start_bucket_index, end_bucket_index, buckets_per_side,
+			                            &diagonal_bucket_a, &diagonal_bucket_b);
+
+			feather_bucket_add_edge(end_bucket, start, end);
+			feather_bucket_add_edge(diagonal_bucket_a, start, end);
+			feather_bucket_add_edge(diagonal_bucket_a, start, end);
 		}
 	}
 
 	/* check all edges for intersection with edges from their buckets */
 	for (i = 0; i < tot_feather_point; i++) {
-		int cur_a = i;
-		int cur_b = (i + 1) % tot_feather_point;
+		int cur_a = i, cur_b = i + 1;
+		int start_bucket_index, end_bucket_index;
 
-		int start_bucket_index = BUCKET_INDEX(feather_points[cur_a]);
-		int end_bucket_index = BUCKET_INDEX(feather_points[cur_b]);
+		FeatherEdgesBucket *start_bucket;
 
-		FeatherEdgesBucket *start_bucket = &buckets[start_bucket_index];
-		FeatherEdgesBucket *end_bucket = &buckets[end_bucket_index];
+		if (cur_b == tot_feather_point)
+			cur_b = 0;
+
+		start_bucket_index = BUCKET_INDEX(feather_points[cur_a]);
+		end_bucket_index = BUCKET_INDEX(feather_points[cur_b]);
+
+		start_bucket = &buckets[start_bucket_index];
 
 		feather_bucket_check_intersect(feather_points, tot_feather_point, start_bucket, cur_a, cur_b);
 
-		if (start_bucket != end_bucket)
+		if (start_bucket_index != end_bucket_index) {
+			FeatherEdgesBucket *end_bucket = &buckets[end_bucket_index];
+			FeatherEdgesBucket *diagonal_bucket_a, *diagonal_bucket_b;
+
+			feather_bucket_get_diagonal(buckets, start_bucket_index, end_bucket_index, buckets_per_side,
+			                            &diagonal_bucket_a, &diagonal_bucket_b);
+
 			feather_bucket_check_intersect(feather_points, tot_feather_point, end_bucket, cur_a, cur_b);
+			feather_bucket_check_intersect(feather_points, tot_feather_point, diagonal_bucket_a, cur_a, cur_b);
+			feather_bucket_check_intersect(feather_points, tot_feather_point, diagonal_bucket_b, cur_a, cur_b);
+		}
 	}
 
 	/* free buckets */
