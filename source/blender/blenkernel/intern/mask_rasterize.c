@@ -47,7 +47,7 @@
 
 #ifndef USE_RASKTER
 
-#define SPLINE_RESOL_CAP 32
+#define SPLINE_RESOL_CAP 4
 #define SPLINE_RESOL 32
 #define BUCKET_PIXELS_PER_CELL 8
 
@@ -57,6 +57,34 @@
 #define TRI_TERMINATOR_ID   ((unsigned int) -1)
 #define TRI_VERT            ((unsigned int) -1)
 
+/* for debugging add... */
+/* 	printf("%u %u %u %u\n", _t[0], _t[1], _t[2], _t[3]); \ */
+#define FACE_ASSERT(face, vert_max)                      \
+{                                                        \
+	unsigned int *_t = face;                             \
+	BLI_assert(_t[0] < vert_max);                        \
+	BLI_assert(_t[1] < vert_max);                        \
+	BLI_assert(_t[2] < vert_max || _t[2] == TRI_VERT);   \
+} (void)0
+
+void rotate_point(const float cent[2], const float angle, float p[2])
+{
+  const float s = sinf(angle);
+  const float c = cosf(angle);
+  float p_new[2];
+
+  /* translate point back to origin */
+  p[0] -= cent[0];
+  p[1] -= cent[1];
+
+  /* rotate point */
+  p_new[0] = p[0] * c - p[1] * s;
+  p_new[1] = p[0] * s + p[1] * c;
+
+  /* translate point back */
+  p[0] = p_new[0] + cent[0];
+  p[1] = p_new[1] + cent[1];
+}
 
 /* --------------------------------------------------------------------- */
 /* local structs for mask rasterizeing                                   */
@@ -690,10 +718,41 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 							tot_feather_quads -= 2;
 						}
 
-						/* ack these are infact tris, but they are extra faces so no matter,
-						 * +1 becausing adding one vert results in 2 tris (joining the existing endpoints)
-						 */
-						// tot_feather_quads + ((SPLINE_RESOL_CAP + 1) * 2);
+						/*cap ends */
+						if (!is_cyclic) {
+
+							unsigned int k;
+
+							for (k = 1; k < SPLINE_RESOL_CAP; k++) {
+								const float angle = (float)k * (1.0f / SPLINE_RESOL_CAP) * (float)M_PI;
+								copy_v2_v2(co_feather, diff_feather_points[0]);
+								rotate_point(diff_points[0], angle, co_feather);
+
+								sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
+								sf_vert->tmp.u = sf_vert_tot;
+								sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
+								sf_vert_tot++;
+							}
+
+							tot_feather_quads += SPLINE_RESOL_CAP;
+
+							for (k = 1; k < SPLINE_RESOL_CAP; k++) {
+								const float angle = (float)k * (1.0f / SPLINE_RESOL_CAP) * (float)M_PI;
+								copy_v2_v2(co_feather, diff_feather_points[tot_diff_point - 1]);
+								rotate_point(diff_points[tot_diff_point - 1], -angle, co_feather);
+
+								sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
+								sf_vert->tmp.u = sf_vert_tot;
+								sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
+								sf_vert_tot++;
+							}
+
+							tot_feather_quads += SPLINE_RESOL_CAP;
+
+
+						}
+
+						/* end capping */
 
 					}
 				}
@@ -742,14 +801,17 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			sf_tri_tot = BLI_scanfill_calc_ex(&sf_ctx, FALSE, zvec);
 
 			face_array = MEM_mallocN(sizeof(*face_array) * (sf_tri_tot + tot_feather_quads), "maskrast_face_index");
+			face_index = 0;
 
 			/* tri's */
 			face = (unsigned int *)face_array;
-			for (sf_tri = sf_ctx.fillfacebase.first, face_index = 0; sf_tri; sf_tri = sf_tri->next, face_index++) {
+			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 				*(face++) = sf_tri->v3->tmp.u;
 				*(face++) = sf_tri->v2->tmp.u;
 				*(face++) = sf_tri->v1->tmp.u;
 				*(face++) = TRI_VERT;
+				face_index++;
+				FACE_ASSERT(face - 4, sf_vert_tot);
 			}
 
 			/* start of feather faces... if we have this set,
@@ -766,8 +828,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 						*(face++) = sf_edge->v2->tmp.u;
 						*(face++) = sf_edge->v2->keyindex;
 						*(face++) = sf_edge->v1->keyindex;
-
 						face_index++;
+						FACE_ASSERT(face - 4, sf_vert_tot);
 					}
 				}
 			}
@@ -789,15 +851,15 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					*(face++) = j + 0;                 /* z 1 */
 					*(face++) = j + 1;                 /* z 0 */
 					*(face++) = j + 4; /* next span */ /* z 0 */
-
 					face_index++;
+					FACE_ASSERT(face - 4, sf_vert_tot);
 
 					*(face++) = j + 0;                 /* z 1 */
 					*(face++) = j + 3; /* next span */ /* z 1 */
 					*(face++) = j + 5; /* next span */ /* z 0 */
 					*(face++) = j + 2;                 /* z 0 */
-
 					face_index++;
+					FACE_ASSERT(face - 4, sf_vert_tot);
 				}
 
 				if (open_spline_ranges[open_spline_index].is_cyclic) {
@@ -805,15 +867,85 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					*(face++) = j          + 0;                 /* z 1 */
 					*(face++) = j          + 1;                 /* z 0 */
 					*(face++) = start_vidx + 1; /* next span */ /* z 0 */
-
 					face_index++;
+					FACE_ASSERT(face - 4, sf_vert_tot);
 
 					*(face++) = j          + 0;                 /* z 1 */
 					*(face++) = start_vidx + 0; /* next span */ /* z 1 */
 					*(face++) = start_vidx + 2; /* next span */ /* z 0 */
 					*(face++) = j          + 2;                 /* z 0 */
-
 					face_index++;
+					FACE_ASSERT(face - 4, sf_vert_tot);
+				}
+				else {
+					unsigned int midvidx = start_vidx;
+					// unsigned int repvidx;  /* repeat vertex index, ugh */
+
+					/***************
+					 * cap end 'a' */
+					j = midvidx + (open_spline_ranges[open_spline_index].vertex_total * 3);
+
+					for (k = 0; k < SPLINE_RESOL_CAP - 2; k++, j++) {
+						*(face++) = midvidx + 0;  /* z 1 */
+						*(face++) = j + 0;        /* z 0 */
+						*(face++) = j + 1;        /* z 0 */
+						*(face++) = TRI_VERT;
+						face_index++;
+						FACE_ASSERT(face - 4, sf_vert_tot);
+					}
+
+					j = start_vidx + (open_spline_ranges[open_spline_index].vertex_total * 3);
+
+					/* 2 tris that join the original */
+					*(face++) = midvidx + 0;  /* z 1 */
+					*(face++) = midvidx + 1;  /* z 0 */
+					*(face++) = j + 0;        /* z 0 */
+					*(face++) = TRI_VERT;
+					face_index++;
+					FACE_ASSERT(face - 4, sf_vert_tot);
+
+					*(face++) = midvidx + 0;               /* z 1 */
+					*(face++) = j + SPLINE_RESOL_CAP - 2;  /* z 0 */
+					*(face++) = midvidx + 2;               /* z 0 */
+					*(face++) = TRI_VERT;
+					face_index++;
+					FACE_ASSERT(face - 4, sf_vert_tot);
+
+
+					/***************
+					 * cap end 'b' */
+					/* ... same as previous but v 2-3 flipped, and different initial offsets */
+
+					j = start_vidx + (open_spline_ranges[open_spline_index].vertex_total * 3) + (SPLINE_RESOL_CAP - 1);
+
+					midvidx = start_vidx + (open_spline_ranges[open_spline_index].vertex_total * 3) - 3;
+
+					for (k = 0; k < SPLINE_RESOL_CAP - 2; k++, j++) {
+						*(face++) = midvidx;  /* z 1 */
+						*(face++) = j + 1;    /* z 0 */
+						*(face++) = j + 0;    /* z 0 */
+						*(face++) = TRI_VERT;
+						face_index++;
+						FACE_ASSERT(face - 4, sf_vert_tot);
+					}
+
+					j = start_vidx + (open_spline_ranges[open_spline_index].vertex_total * 3) + (SPLINE_RESOL_CAP - 1);
+
+					/* 2 tris that join the original */
+					*(face++) = midvidx + 0;  /* z 1 */
+					*(face++) = j + 0;        /* z 0 */
+					*(face++) = midvidx + 1;  /* z 0 */
+					*(face++) = TRI_VERT;
+					face_index++;
+					FACE_ASSERT(face - 4, sf_vert_tot);
+
+					*(face++) = midvidx + 0;               /* z 1 */
+					*(face++) = midvidx + 2;               /* z 0 */
+					*(face++) = j + SPLINE_RESOL_CAP - 2;  /* z 0 */
+					*(face++) = TRI_VERT;
+					face_index++;
+					FACE_ASSERT(face - 4, sf_vert_tot);
+
 				}
 			}
 
