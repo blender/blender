@@ -342,7 +342,7 @@ static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop,
 
 	/* Regarding PySequence_GetItem() failing.
 	 *
-	 * This should never be NULL since we validated it, _but_ some triky python
+	 * This should never be NULL since we validated it, _but_ some tricky python
 	 * developer could write their own sequence type which succeeds on
 	 * validating but fails later somehow, so include checks for safety.
 	 */

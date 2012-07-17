@@ -1595,7 +1595,7 @@ static int gpu_count_grid_quads(BLI_bitmap *grid_hidden,
 	int i, x, y, totquad;
 
 	/* grid hidden layer is present, so have to check each grid for
-	 * visiblity */
+	 * visibility */
 
 	for (i = 0, totquad = 0; i < totgrid; i++) {
 		const BLI_bitmap gh = grid_hidden[grid_indices[i]];

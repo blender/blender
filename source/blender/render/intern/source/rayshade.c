@@ -1043,7 +1043,7 @@ static void QMC_initPixel(QMCSampler *qsa, int thread)
 	}
 	else { 	/* SAMP_TYPE_HALTON */
 		
-		/* generate a new randomised halton sequence per pixel
+		/* generate a new randomized halton sequence per pixel
 		 * to alleviate qmc artifacts and make it reproducible 
 		 * between threads/frames */
 		double ht_invprimes[2], ht_nums[2];

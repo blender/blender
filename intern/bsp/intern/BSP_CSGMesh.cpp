@@ -486,7 +486,7 @@ VertexFaces(
 		BSP_MEdge &e = edges[*e_it]; 
 
 		// iterate through the faces of this edge - push unselected
-		// edges to ouput and then select the edge
+		// edges to output and then select the edge
 
 		vector<BSP_FaceInd>::const_iterator e_faces_end = e.m_faces.end();
 		vector<BSP_FaceInd>::iterator e_faces_it = e.m_faces.begin();

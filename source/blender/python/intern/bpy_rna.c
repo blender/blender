@@ -7000,7 +7000,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			Py_INCREF(py_class_instance);
 #endif
 			/*
-			 * This would work fine but means __init__ functions wouldnt run.
+			 * This would work fine but means __init__ functions wouldn't run.
 			 * none of blenders default scripts use __init__ but its nice to call it
 			 * for general correctness. just to note why this is here when it could be safely removed.
 			 */

@@ -1818,7 +1818,7 @@ void UI_view2d_scrollers_free(View2DScrollers *scrollers)
  *							  This should be (0,0) for most views. However, for those where the starting row was offsetted
  *							  (like for Animation Editor channel lists, to make the first entry more visible), these will be 
  *							  the min-coordinates of the first item.
- *	- column, row				= the 2d-corodinates (in 2D-view / 'tot' rect space) the cell exists at
+ *	- column, row				= the 2d-coordinates (in 2D-view / 'tot' rect space) the cell exists at
  *	- rect					= coordinates of the cell (passed as single var instead of 4 separate, as it's more useful this way)
  */
 void UI_view2d_listview_cell_to_view(View2D *v2d, short columnwidth, short rowheight, float startx, float starty, int column, int row, rctf *rect)

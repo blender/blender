@@ -363,7 +363,7 @@ PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *data)
  *     weight = dv[group_nr]
  *     del dv[group_nr]
  *
- * \note: there is nothing BMesh spesific here,
+ * \note: there is nothing BMesh specific here,
  * its only that BMesh is the only part of blender that uses a hand written api like this.
  * This type could eventually be used to access lattice weights.
  *

@@ -360,7 +360,7 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
  * rayf, Rayleigh scattering factor, this factor currently call with 1.0
  * inscattf, inscatter light factor that range from 0.0 to 1.0, 0.0 means no inscatter light and 1.0 means full inscatter light
  * extincf, extinction light factor that range from 0.0 to 1.0, 0.0 means no extinction and 1.0 means full extinction
- * disf, is distance factor, multiplyed to pixle's z value to compute each pixle's distance to camera, 
+ * disf, is distance factor, multiplied to pixle's z value to compute each pixle's distance to camera,
  * */
 void InitAtmosphere(struct SunSky *sunSky, float sun_intens, float mief, float rayf,
                     float inscattf, float extincf, float disf)

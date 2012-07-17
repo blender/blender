@@ -3391,7 +3391,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 				ma= give_render_material(re, ob, a1+1);
 				
-				/* test for 100% transparant */
+				/* test for 100% transparent */
 				ok= 1;
 				if (ma->alpha==0.0f && ma->spectra==0.0f && ma->filter==0.0f && (ma->mode & MA_TRANSP) && (ma->mode & MA_RAYMIRROR)==0) {
 					ok= 0;
@@ -5495,7 +5495,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		camco[1] = dot_v3v3(imat[1], fsvec);
 		camco[2] = dot_v3v3(imat[2], fsvec);
 
-		/* get homogenous coordinates */
+		/* get homogeneous coordinates */
 		projectvert(camco, winmat, hoco);
 		projectvert(ver->co, winmat, ho);
 		

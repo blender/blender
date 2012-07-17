@@ -628,7 +628,7 @@ typedef enum eNlaStrip_Flag {
 		/* NLA strip length is synced to the length of the referenced action */
 	NLASTRIP_FLAG_SYNC_LENGTH	= (1<<9),
 	
-	/* playback flags (may be overriden by F-Curves) */
+	/* playback flags (may be overridden by F-Curves) */
 		/* NLA strip blendin/out values are set automatically based on overlaps */
 	NLASTRIP_FLAG_AUTO_BLENDS	= (1<<10),
 		/* NLA strip is played back in reverse order */

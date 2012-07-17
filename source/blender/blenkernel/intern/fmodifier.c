@@ -1298,7 +1298,7 @@ float evaluate_time_fmodifiers(ListBase *modifiers, FCurve *fcu, float cvalue, f
 	return evaltime;
 }
 
-/* Evalautes the given set of F-Curve Modifiers using the given data
+/* Evaluates the given set of F-Curve Modifiers using the given data
  * Should only be called after evaluate_time_fmodifiers() has been called...
  */
 void evaluate_value_fmodifiers(ListBase *modifiers, FCurve *fcu, float *cvalue, float evaltime)

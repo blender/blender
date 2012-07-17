@@ -67,7 +67,7 @@ private:
 	
 	
 	/**
-	 * @brief region of this buffer inside reative to the MemoryProxy
+	 * @brief region of this buffer inside relative to the MemoryProxy
 	 */
 	rcti m_rect;
 	
@@ -218,7 +218,7 @@ public:
 	int getHeight() const;
 	
 	/**
-	 * @brief clear the buffer. Make all pixels black transparant.
+	 * @brief clear the buffer. Make all pixels black transparent.
 	 */
 	void clear();
 	

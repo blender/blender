@@ -29,7 +29,7 @@
  * This file defines the types for 'BMesh.select_history'
  * sequence and iterator.
  *
- * select_history is very loosely based on pytons set() type,
+ * select_history is very loosely based on pythons set() type,
  * since items can only exist once. however they do have an order.
  */
 

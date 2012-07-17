@@ -2320,7 +2320,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 	 * - simulation time is scaled by result of bsystem_time
 	 * - for offsetting time only time offset is taken into account, since
 	 *   that's always the same and can't be animated. a timeoffset which
-	 *   varies over time is not simpe to support.
+	 *   varies over time is not simple to support.
 	 * - field and motion blur offsets are currently ignored, proper solution
 	 *   is probably to interpolate results from two frames for that ..
 	 */

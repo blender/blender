@@ -1588,7 +1588,7 @@ static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], c
                       float *labda, float *mu, float vec[3])
 {
 	/* return:
-	 * -1: colliniar
+	 * -1: collinear
 	 *  0: no intersection of segments
 	 *  1: exact intersection of segments
 	 *  2: cross-intersection of segments

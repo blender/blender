@@ -461,7 +461,7 @@ static int rast_scan_feather(struct r_fill_context *ctx,
     //unsigned int gradientFillOffset;
     float t;
     float ud;                // ud = unscaled edge distance
-    float dmin;              // dmin = minimun edge distance
+    float dmin;              // dmin = minimum edge distance
     float odist;                    // odist = current outer edge distance
     float idist;                    // idist = current inner edge distance
     float dx;                         // dx = X-delta (used for distance proportion calculation)
@@ -643,7 +643,7 @@ static int rast_scan_feather(struct r_fill_context *ctx,
                         /*
                          * Note once again that since we are using reciprocals of distance values our
                          * proportion is already the correct intensity, and does not need to be
-                         * subracted from 1.0 like it would have if we used real distances.
+                         * subtracted from 1.0 like it would have if we used real distances.
                          */
 #else
                         clup[0]=t;

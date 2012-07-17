@@ -894,7 +894,7 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 	int x;                             // x = pixel loop counter
 	int a;                             // a = temporary pixel index buffer loop counter
 	unsigned int ud;                   // ud = unscaled edge distance
-	unsigned int dmin;                 // dmin = minimun edge distance
+	unsigned int dmin;                 // dmin = minimum edge distance
 	
 	unsigned int rsl;                  // long used for finding fast 1.0/sqrt
 	unsigned int gradientFillOffset;
@@ -1012,7 +1012,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 	unsigned int gradientFillOffset;
 	unsigned int t;
 	unsigned int ud;                   // ud = unscaled edge distance
-	unsigned int dmin;                 // dmin = minimun edge distance
+	unsigned int dmin;                 // dmin = minimum edge distance
 	float odist;                       // odist = current outer edge distance
 	float idist;                       // idist = current inner edge distance
 	int dx;                            // dx = X-delta (used for distance proportion calculation)
@@ -1070,7 +1070,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 	 * pixel color as |GI| / (|GI| + |GO|). Since these are reciprocals, GI serves the
 	 * purpose of GO for the proportion calculation.
 	 *
-	 * For the purposes of the minimun distance comparisons, we only check
+	 * For the purposes of the minimum distance comparisons, we only check
 	 * the sums-of-squares against eachother, since they are in the same
 	 * mathematical sort-order as if we did go ahead and take square roots
 	 *
@@ -1116,7 +1116,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 		/*
 		 * Note once again that since we are using reciprocals of distance values our
 		 * proportion is already the correct intensity, and does not need to be
-		 * subracted from 1.0 like it would have if we used real distances.
+		 * subtracted from 1.0 like it would have if we used real distances.
 		 */
 		
 		/*

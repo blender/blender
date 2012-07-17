@@ -539,7 +539,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	 */
 	/* note: actually minx etc isn't in the proper range... this due to filter size and offset vectors for bump */
 	/* note: talpha must be initialized */
-	/* note: even when 'imaprepeat' is set, this can only repeate once in any direction.
+	/* note: even when 'imaprepeat' is set, this can only repeat once in any direction.
 	 * the point which min/max is derived from is assumed to be wrapped */
 	TexResult texr;
 	rctf *rf, stack[8];

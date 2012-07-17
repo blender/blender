@@ -202,7 +202,7 @@ static int group_objects_remove_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	int group_object_index = RNA_enum_get(op->ptr, "group");
 
-	/* first get the group back from the enum index, quite awkward and UI spesific */
+	/* first get the group back from the enum index, quite awkward and UI specific */
 	if (ob) {
 		Group *group = NULL;
 		int i = 0;

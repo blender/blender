@@ -37,9 +37,9 @@ extern "C" {
  * @mainpage Introduction of the Blender Compositor
  *
  * @section bcomp Blender compositor
- * This project redesigns the interals of Blender's compositor. The project has been executed in 2011 by At Mind.
+ * This project redesigns the internals of Blender's compositor. The project has been executed in 2011 by At Mind.
  * At Mind is a technology company located in Amsterdam, The Netherlands.
- * The project has been crowdfunded. This code has been released under GPL2 to be used in Blender.
+ * The project has been crowd-funded. This code has been released under GPL2 to be used in Blender.
  *
  * @section goals The goals of the project
  * the new compositor has 2 goals.
@@ -58,7 +58,7 @@ extern "C" {
  * @section workflow Work faster
  * The previous compositor only showed the final image. The compositor could wait a long time before seeing the result
  * of his work. The new compositor will work in a way that it will focus on getting information back to the user.
- * It will prioritise its work to get earlier user feedback.
+ * It will prioritize its work to get earlier user feedback.
  *
  * @page memory Memory model
  * The main issue is the type of memory model to use. Blender is used by consumers and professionals.
@@ -79,7 +79,7 @@ extern "C" {
  * Render priority is an priority of an output node. A user has a different need of Render priorities of output nodes
  * than during editing.
  * for example. the Active ViewerNode has top priority during editing, but during rendering a CompositeNode has.
- * All NodeOperation has a setting for their renderpriority, but only for output NodeOperation these have effect.
+ * All NodeOperation has a setting for their render-priority, but only for output NodeOperation these have effect.
  * In ExecutionSystem.execute all priorities are checked. For every priority the ExecutionGroup's are check if the
  * priority do match.
  * When match the ExecutionGroup will be executed (this happens in serial)
@@ -91,18 +91,18 @@ extern "C" {
  * @section order Chunk order
  *
  * When a ExecutionGroup is executed, first the order of chunks are determined.
- * The settings are stored in the ViewerNode inside the ExecutionGroup. ExecutionGroups that have no viewernode,
+ * The settings are stored in the ViewerNode inside the ExecutionGroup. ExecutionGroups that have no viewer-node,
  * will use a default one.
  * There are several possible chunk orders
  *  - [@ref OrderOfChunks.COM_TO_CENTER_OUT]: Start calculating from a configurable point and order by nearest chunk
  *  - [@ref OrderOfChunks.COM_TO_RANDOM]: Randomize all chunks.
  *  - [@ref OrderOfChunks.COM_TO_TOP_DOWN]: Start calculation from the bottom to the top of the image
- *  - [@ref OrderOfChunks.COM_TO_RULE_OF_THIRDS]: Experimental order based on 9 hotspots in the image
+ *  - [@ref OrderOfChunks.COM_TO_RULE_OF_THIRDS]: Experimental order based on 9 hot-spots in the image
  *
- * When the chunkorder is determined, the first few chunks will be checked if they can be scheduled.
+ * When the chunk-order is determined, the first few chunks will be checked if they can be scheduled.
  * Chunks can have three states:
- *  - [@ref ChunkExecutionState.COM_ES_NOT_SCHEDULED]: Chunk is not yet scheduled, or dependacies are not met
- *  - [@ref ChunkExecutionState.COM_ES_SCHEDULED]: All dependacies are met, chunk is scheduled, but not finished
+ *  - [@ref ChunkExecutionState.COM_ES_NOT_SCHEDULED]: Chunk is not yet scheduled, or dependencies are not met
+ *  - [@ref ChunkExecutionState.COM_ES_SCHEDULED]: All dependencies are met, chunk is scheduled, but not finished
  *  - [@ref ChunkExecutionState.COM_ES_EXECUTED]: Chunk is finished
  *
  * @see ExecutionGroup.execute
@@ -110,7 +110,7 @@ extern "C" {
  * @see OrderOfChunks
  *
  * @section interest Area of interest
- * An ExecutionGroup can have dependancies to other ExecutionGroup's. Data passing from one ExecutionGroup to another
+ * An ExecutionGroup can have dependencies to other ExecutionGroup's. Data passing from one ExecutionGroup to another
  * one are stored in 'chunks'.
  * If not all input chunks are available the chunk execution will not be scheduled.
  * <pre>
@@ -217,22 +217,22 @@ extern "C" {
  * @section workscheduler WorkScheduler
  * the WorkScheduler is implemented as a static class. the responsibility of the WorkScheduler is to balance
  * WorkPackages to the available and free devices.
- * the workscheduler can work in 2 states. For witching these between the state you need to recompile blender
+ * the work-scheduler can work in 2 states. For witching these between the state you need to recompile blender
  *
  * @subsection multithread Multi threaded
- * Default the workscheduler will place all work as WorkPackage in a queue.
+ * Default the work-scheduler will place all work as WorkPackage in a queue.
  * For every CPUcore a working thread is created. These working threads will ask the WorkScheduler if there is work
  * for a specific Device.
- * the workscheduler will find work for the device and the device will be asked to execute the WorkPackage
+ * the work-scheduler will find work for the device and the device will be asked to execute the WorkPackage
  *
  * @subsection singlethread Single threaded
  * For debugging reasons the multi-threading can be disabled. This is done by changing the COM_CURRENT_THREADING_MODEL
- * to COM_TM_NOTHREAD. When compiling the workscheduler
+ * to COM_TM_NOTHREAD. When compiling the work-scheduler
  * will be changes to support no threading and run everything on the CPU.
  *
  * @section devices Devices
  * A Device within the compositor context is a Hardware component that can used to calculate chunks.
- * This chunk is encapseled in a WorkPackage.
+ * This chunk is encapsulated in a WorkPackage.
  * the WorkScheduler controls the devices and selects the device where a WorkPackage will be calculated.
  *
  * @subsection WS_Devices Workscheduler

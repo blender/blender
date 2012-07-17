@@ -232,7 +232,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 #ifdef BPY_RELEASE_GIL
 			/* release GIL, since a thread could be started from an operator
 			 * that updates a driver */
-			/* note: I havve not seen any examples of code that does this
+			/* note: I have not seen any examples of code that does this
 			 * so it may not be officially supported but seems to work ok. */
 			{
 				PyThreadState *ts = PyEval_SaveThread();

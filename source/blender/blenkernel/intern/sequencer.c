@@ -464,7 +464,7 @@ void seq_end(SeqIterator *iter)
  * **********************************************************************
  * build_seqar
  * *********************************************************************
- * Build a complete array of _all_ sequencies (including those
+ * Build a complete array of _all_ sequences (including those
  * in metastrips!)
  * *********************************************************************
  */

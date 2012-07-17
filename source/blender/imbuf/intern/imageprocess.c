@@ -36,12 +36,6 @@
  *
  */
 
-/*  imageprocess.c        MIXED MODEL
- * 
- *  april 95
- * 
- */
-
 #include <stdlib.h>
 
 #include "BLI_utildefines.h"

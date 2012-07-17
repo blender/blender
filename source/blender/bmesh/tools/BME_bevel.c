@@ -1129,7 +1129,7 @@ BMesh *BME_bevel(BMEditMesh *em, float value, int res, int options, int defgrp_i
 	}
 
 	/* possibly needed when running as a tool (which is no longer functional)
-	 * but keep as an optioin for now */
+	 * but keep as an option for now */
 	if (do_tessface) {
 		BMEdit_RecalcTessellation(em);
 	}

@@ -61,7 +61,7 @@ typedef enum {
 	HULL_FLAG_HOLE =            (1 << 5)
 } HullFlags;
 
-/* Store hull triangles seperate from BMesh faces until the end; this
+/* Store hull triangles separate from BMesh faces until the end; this
  * way we don't have to worry about cleaning up extraneous edges or
  * incorrectly deleting existing geometry. */
 typedef struct HullTriangle {

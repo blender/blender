@@ -2307,7 +2307,7 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 		metaball_tree = NULL;
 	}
 
-	/* if scene includes more then one MetaElem, then octal tree optimalisation is used */	
+	/* if scene includes more then one MetaElem, then octal tree optimization is used */
 	if ((totelem > 1) && (totelem <= 64)) init_metaball_octal_tree(1);
 	if ((totelem > 64) && (totelem <= 128)) init_metaball_octal_tree(2);
 	if ((totelem > 128) && (totelem <= 512)) init_metaball_octal_tree(3);

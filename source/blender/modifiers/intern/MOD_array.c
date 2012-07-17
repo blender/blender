@@ -189,7 +189,7 @@ static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
 		i++;
 	}
 	/* above loops over all, so set all to dirty, if this is somehow
-	 * setting valid values, this line can be remvoed - campbell */
+	 * setting valid values, this line can be removed - campbell */
 	bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
 
 	(*index_map_length) = i;

@@ -352,7 +352,7 @@ int isect_line_line_v2(const float v1[2], const float v2[2], const float v3[2], 
 }
 
 /* get intersection point of two 2D segments and return intersection type:
- *  -1: colliniar
+ *  -1: collinear
  *   1: intersection
  */
 int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[2], const float v4[2], float vi[2])
@@ -410,7 +410,7 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 			}
 		}
 
-		/* lines are colliniar */
+		/* lines are collinear */
 		return -1;
 	}
 
@@ -561,7 +561,7 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 }
 
 /*
- * -1: colliniar
+ * -1: collinear
  *  1: intersection
  */
 static short IsectLLPt2Df(const float x0, const float y0, const float x1, const float y1,
@@ -1669,7 +1669,7 @@ static int point_in_slice(const float p[3], const float v1[3], const float l1[3]
 	 * a line including l1,l2 and a point not on the line
 	 * define a subset of R3 delimited by planes parallel to the line and orthogonal
 	 * to the (point --> line) distance vector,one plane on the line one on the point,
-	 * the room inside usually is rather small compared to R3 though still infinte
+	 * the room inside usually is rather small compared to R3 though still infinite
 	 * useful for restricting (speeding up) searches
 	 * e.g. all points of triangular prism are within the intersection of 3 'slices'
 	 * onother trivial case : cube
@@ -2843,7 +2843,7 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight, fl
 		if (lloc) copy_v3_v3(lloc, accu_com);
 		if (rloc) copy_v3_v3(rloc, accu_rcom);
 		if (lrot || lscale) { /* caller does not want rot nor scale, strange but legal */
-			/*so now do some reverse engeneering and see if we can split rotation from scale ->Polardecompose*/
+			/*so now do some reverse engineering and see if we can split rotation from scale ->Polardecompose*/
 			/* build 'projection' matrix */
 			float m[3][3], mr[3][3], q[3][3], qi[3][3];
 			float va[3], vb[3], stunt[3];

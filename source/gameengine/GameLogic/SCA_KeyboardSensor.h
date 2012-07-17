@@ -65,7 +65,7 @@ class SCA_KeyboardSensor : public SCA_ISensor
 	STR_String	m_targetprop;
 	/**
 	 * The property that indicates whether or not to log text when in
-	 * loggin mode. If the property equals 0, no loggin is done. For
+	 * logging mode. If the property equals 0, no logging is done. For
 	 * all other values, logging is active. Logging can only become
 	 * active if there is a property to log to. Logging is independent
 	 * from hotkey settings. */

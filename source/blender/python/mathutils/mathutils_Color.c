@@ -147,7 +147,7 @@ static PyObject *Color_str(ColorObject *self)
 }
 
 //------------------------tp_richcmpr
-//returns -1 execption, 0 false, 1 true
+//returns -1 exception, 0 false, 1 true
 static PyObject *Color_richcmpr(PyObject *a, PyObject *b, int op)
 {
 	PyObject *res;
