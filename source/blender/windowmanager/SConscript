@@ -43,4 +43,7 @@ if env['BF_BUILDINFO']:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_COMPOSITOR']:
+    defs.append("WITH_COMPOSITOR")
+
 env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defines=defs, libtype=['core'], priority=[5] )
