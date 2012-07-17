@@ -256,9 +256,11 @@ static uiBut *ui_but_last(uiBlock *block)
 
 static int ui_is_a_warp_but(uiBut *but)
 {
-	if (U.uiflag & USER_CONTINUOUS_MOUSE)
-		if (ELEM4(but->type, NUM, NUMABS, HSVCIRCLE, TRACKPREVIEW))
+	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
+		if (ELEM5(but->type, NUM, NUMABS, HSVCIRCLE, TRACKPREVIEW, HSVCUBE)) {
 			return TRUE;
+		}
+	}
 
 	return FALSE;
 }
@@ -2636,7 +2638,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	return retval;
 }
 
-static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, int ctrl, int mx)
+static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, const short shift, const short ctrl, int mx)
 {
 	float deler, f, tempf, softmin, softmax, softrange;
 	int temp, lvalue, changed = 0;
@@ -3091,7 +3093,7 @@ static int ui_do_but_NORMAL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, int my)
+static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, float mx, float my, const short shift)
 {
 	float rgb[3];
 	float *hsv = ui_block_hsv_get(but->block);
@@ -3107,6 +3109,13 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	ui_get_but_vectorf(but, rgb);
 
 	rgb_to_hsv_compat_v(rgb, hsv);
+
+	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
+		float fac = shift ? 0.05f : 1.0f;
+		/* slow down the mouse, this is fairly picky */
+		mx = (data->dragstartx * (1.0f - fac) + mx * fac);
+		my = (data->dragstarty * (1.0f - fac) + my * fac);
+	}
 
 	/* relative position within box */
 	x = ((float)mx - but->x1) / (but->x2 - but->x1);
@@ -3161,7 +3170,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	return changed;
 }
 
-static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOFMotionData *ndof, int shift)
+static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOFMotionData *ndof, const short shift)
 {
 	float *hsv = ui_block_hsv_get(but->block);
 	float rgb[3];
@@ -3235,7 +3244,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 			/* also do drag the first time */
-			if (ui_numedit_but_HSVCUBE(but, data, mx, my))
+			if (ui_numedit_but_HSVCUBE(but, data, mx, my, event->shift))
 				ui_numedit_apply(C, block, but, data);
 			
 			return WM_UI_HANDLER_BREAK;
@@ -3292,7 +3301,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		}
 		else if (event->type == MOUSEMOVE) {
 			if (mx != data->draglastx || my != data->draglasty) {
-				if (ui_numedit_but_HSVCUBE(but, data, mx, my))
+				if (ui_numedit_but_HSVCUBE(but, data, mx, my, event->shift))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
@@ -3305,7 +3314,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx, int my, int shift)
+static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, float mx, float my, int shift)
 {
 	rcti rect;
 	int changed = 1;
@@ -3352,7 +3361,7 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	return changed;
 }
 
-static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmNDOFMotionData *ndof, int shift)
+static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmNDOFMotionData *ndof, const short shift)
 {
 	float *hsv = ui_block_hsv_get(but->block);
 	float rgb[3];
@@ -4182,7 +4191,8 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data, int mx, int my, int shift)
+static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data,
+                                       int mx, int my, const short shift)
 {
 	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
 	int changed = 1;

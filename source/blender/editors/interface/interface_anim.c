@@ -217,8 +217,7 @@ void ui_but_anim_clear_keyframe(bContext *C)
 	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_keyframe_clear_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
-
-void ui_but_anim_add_driver(bContext *C)
+ void ui_but_anim_add_driver(bContext *C)
 {
 	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_driver_button_add", WM_OP_INVOKE_DEFAULT, NULL);
