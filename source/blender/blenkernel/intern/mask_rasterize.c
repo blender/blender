@@ -47,11 +47,16 @@
 
 #ifndef USE_RASKTER
 
+/* this is rather and annoying hack, use define to isolate it.
+ * problem is caused by scanfill removing edges on us. */
+#define USE_SCANFILL_EDGE_WORKAROUND
+
 #define SPLINE_RESOL_CAP_PER_PIXEL 2
 #define SPLINE_RESOL_CAP_MIN 8
 #define SPLINE_RESOL_CAP_MAX 64
 
-#define BUCKET_PIXELS_PER_CELL 8
+/* found this gives best performance for high detail masks, values between 2 and 8 work best */
+#define BUCKET_PIXELS_PER_CELL 4
 
 #define SF_EDGE_IS_BOUNDARY 0xff
 #define SF_KEYINDEX_TEMP_ID ((unsigned int) -1)
@@ -60,8 +65,9 @@
 #define TRI_VERT            ((unsigned int) -1)
 
 /* for debugging add... */
+#ifndef NDEBUG
 /* 	printf("%u %u %u %u\n", _t[0], _t[1], _t[2], _t[3]); \ */
-#define FACE_ASSERT(face, vert_max)                      \
+#  define FACE_ASSERT(face, vert_max)                    \
 {                                                        \
 	unsigned int *_t = face;                             \
 	BLI_assert(_t[0] < vert_max);                        \
@@ -69,6 +75,10 @@
 	BLI_assert(_t[2] < vert_max);                        \
 	BLI_assert(_t[3] < vert_max || _t[3] == TRI_VERT);   \
 } (void)0
+#else
+   /* do nothing */
+#  define FACE_ASSERT(face, vert_max)
+#endif
 
 static void rotate_point_v2(float r_p[2], const float p[2], const float cent[2], const float angle, const float asp[2])
 {
@@ -542,6 +552,11 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		unsigned int sf_vert_tot = 0;
 		unsigned int tot_feather_quads = 0;
 
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+		unsigned int tot_boundary_used = 0;
+		unsigned int tot_boundary_found = 0;
+#endif
+
 		if (masklay->restrictflag & MASK_RESTRICT_RENDER) {
 			/* skip the layer */
 			mr_handle->layers_tot--;
@@ -574,6 +589,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			if (do_feather) {
 				diff_feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution_ex(
 				                          spline, &tot_diff_feather_points, resol, TRUE);
+				BLI_assert(diff_feather_points);
 			}
 			else {
 				tot_diff_feather_points = 0;
@@ -655,8 +671,15 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 					for (j = 0; j < tot_diff_point; j++) {
 						ScanFillEdge *sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_vert);
-						sf_edge->tmp.c = SF_EDGE_IS_BOUNDARY;
 
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+						if (diff_feather_points) {
+							sf_edge->tmp.c = SF_EDGE_IS_BOUNDARY;
+							tot_boundary_used++;
+						}
+#else
+						(void)sf_edge;
+#endif
 						sf_vert_prev = sf_vert;
 						sf_vert = sf_vert->next;
 					}
@@ -871,9 +894,19 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 						*(face++) = sf_edge->v1->keyindex;
 						face_index++;
 						FACE_ASSERT(face - 4, sf_vert_tot);
+
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+						tot_boundary_found++;
+#endif
 					}
 				}
 			}
+
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+			if (tot_boundary_found != tot_boundary_used) {
+				BLI_assert(tot_boundary_found < tot_boundary_used);
+			}
+#endif
 
 			/* feather only splines */
 			while (open_spline_index > 0) {
@@ -993,15 +1026,22 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 			MEM_freeN(open_spline_ranges);
 
-			// fprintf(stderr, "%d %d\n", face_index, sf_face_tot + tot_feather_quads);
+//			fprintf(stderr, "%u %u (%u %u), %u\n", face_index, sf_tri_tot + tot_feather_quads, sf_tri_tot, tot_feather_quads, tot_boundary_used - tot_boundary_found);
 
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+			BLI_assert(face_index + (tot_boundary_used - tot_boundary_found) == sf_tri_tot + tot_feather_quads);
+#else
 			BLI_assert(face_index == sf_tri_tot + tot_feather_quads);
-
+#endif
 			{
 				MaskRasterLayer *layer = &mr_handle->layers[masklay_index];
 
 				if (BLI_rctf_isect(&default_bounds, &bounds, &bounds)) {
-					layer->face_tot = sf_tri_tot + tot_feather_quads;
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+					layer->face_tot = (sf_tri_tot + tot_feather_quads) - (tot_boundary_used - tot_boundary_found);
+#else
+					layer->face_tot = (sf_tri_tot + tot_feather_quads);
+#endif
 					layer->face_coords = face_coords;
 					layer->face_array  = face_array;
 					layer->bounds = bounds;
@@ -1229,14 +1269,21 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 			case MASK_BLEND_REPLACE:
 				value = (value * (1.0f - layer->alpha)) + (value_layer * layer->alpha);
 				break;
+			case MASK_BLEND_DIFFERENCE:
+				value = fabsf(value - value_layer);
+				break;
 			default: /* same as add */
 				BLI_assert(0);
 				value += value_layer;
 				break;
 		}
+
+		/* clamp after applying each layer so we don't get
+		 * issues subtracting after accumulating over 1.0f */
+		CLAMP(value, 0.0f, 1.0f);
 	}
 
-	return CLAMPIS(value, 0.0f, 1.0f);
+	return value;
 }
 
 #endif /* USE_RASKTER */

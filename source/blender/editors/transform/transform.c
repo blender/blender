@@ -4920,7 +4920,7 @@ static int createSlideVerts(TransInfo *t)
 					if (BM_elem_flag_test(e2, BM_ELEM_SELECT))
 						continue;
 
-					/* This test is only relevant if object is not wire-dranw! See [#32068]. */
+					/* This test is only relevant if object is not wire-drawn! See [#32068]. */
 					if (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE &&
 					    !BMBVH_EdgeVisible(btree, e2, ar, v3d, t->obedit))
 						continue;
