@@ -1235,6 +1235,9 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 			case MASK_BLEND_REPLACE:
 				value = (value * (1.0f - layer->alpha)) + (value_layer * layer->alpha);
 				break;
+			case MASK_BLEND_DIFFERENCE:
+				value = fabsf(value - value_layer);
+				break;
 			default: /* same as add */
 				BLI_assert(0);
 				value += value_layer;
@@ -1243,7 +1246,7 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 
 		/* clamp after applying each layer so we don't get
 		 * issues subtracting after accumulating over 1.0f */
-		return CLAMPIS(value, 0.0f, 1.0f);
+		CLAMP(value, 0.0f, 1.0f);
 	}
 
 	return value;

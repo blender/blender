@@ -585,6 +585,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 		{MASK_BLEND_DARKEN, "DARKEN", 0, "Darken", ""},
 		{MASK_BLEND_MUL, "MUL", 0, "Multiply", ""},
 		{MASK_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
+		{MASK_BLEND_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
