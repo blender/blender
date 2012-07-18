@@ -130,7 +130,7 @@ public:
 	float getFrameRate (void) { return m_frameRate; }
 	/// set frame rate
 	virtual void setFrameRate (float rate)
-	{ if (m_isFile) m_frameRate = rate > 0.0 ? rate : 1.0f; }
+	{ if (m_isFile) m_frameRate = rate > 0.0f ? rate : 1.0f; }
 
 protected:
 	/// video format

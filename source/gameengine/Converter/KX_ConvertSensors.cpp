@@ -23,13 +23,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Conversion of Blender data blocks to KX sensor system
  */
 
 /** \file gameengine/Converter/KX_ConvertSensors.cpp
  *  \ingroup bgeconv
+ *
+ * Conversion of Blender data blocks to KX sensor system
  */
-
 
 #include <stdio.h>
 
@@ -476,7 +476,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					// or the blenderradarsensor->angle?
 					// nzc: the angle is the opening angle. We need to init with 
 					// the axis-hull angle,so /2.0.
-					MT_Scalar factor = tan(MT_radians((blenderradarsensor->angle)/2.0));
+					MT_Scalar factor = tan(MT_radians((blenderradarsensor->angle) / 2.0f));
 					//MT_Scalar coneradius = coneheight * (factor / 2);
 					MT_Scalar coneradius = coneheight * factor;
 					
@@ -519,7 +519,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					STR_String checkname = (bFindMaterial? blenderraysensor->matname : blenderraysensor->propname);
 
 					// don't want to get rays of length 0.0 or so
-					double distance = (blenderraysensor->range < 0.01 ? 0.01 : blenderraysensor->range );
+					double distance = (blenderraysensor->range < 0.01f ? 0.01f : blenderraysensor->range);
 					int axis = blenderraysensor->axisflag;
 
 					

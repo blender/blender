@@ -82,10 +82,6 @@ extern "C" {
 /* #include "BKE_screen.h" */ /* cant include this because of 'new' function name */
 extern float BKE_screen_view3d_zoom_to_fac(float camzoom);
 
-
-//XXX #include "BIF_screen.h"
-//XXX #include "BIF_scrarea.h"
-
 #include "BKE_main.h"
 #include "BLI_blenlib.h"
 #include "BLO_readfile.h"
@@ -93,7 +89,6 @@ extern float BKE_screen_view3d_zoom_to_fac(float camzoom);
 #include "BKE_ipo.h"
 	/***/
 
-//XXX #include "BSE_headerbuttons.h"
 #include "BKE_context.h"
 #include "../../blender/windowmanager/WM_types.h"
 #include "../../blender/windowmanager/wm_window.h"
