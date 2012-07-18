@@ -1443,12 +1443,12 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 		                "The length of the distance in axial directions"},
 		{TEX_CHEBYCHEV, "CHEBYCHEV", 0, "Chebychev",
 		                "The length of the longest Axial journey"},
-		{TEX_MINKOVSKY_HALF, "MINKOVSKY_HALF", 0, "Minkovsky 1/2",
-		                     "Set Minkovsky variable to 0.5"},
-		{TEX_MINKOVSKY_FOUR, "MINKOVSKY_FOUR", 0, "Minkovsky 4",
-		                     "Set Minkovsky variable to 4"},
-		{TEX_MINKOVSKY, "MINKOVSKY", 0, "Minkovsky",
-		                "Use the Minkowsky function to calculate distance "
+		{TEX_MINKOVSKY_HALF, "MINKOVSKY_HALF", 0, "Minkowski 1/2",
+		                     "Set Minkowski variable to 0.5"},
+		{TEX_MINKOVSKY_FOUR, "MINKOVSKY_FOUR", 0, "Minkowski 4",
+		                     "Set Minkowski variable to 4"},
+		{TEX_MINKOVSKY, "MINKOVSKY", 0, "Minkowski",
+		                "Use the Minkowski function to calculate distance "
 		                "(exponent value determines the shape of the boundaries)"},
 		{0, NULL, 0, NULL, NULL}
 	};
@@ -1494,7 +1494,7 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "minkovsky_exponent", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vn_mexp");
 	RNA_def_property_range(prop, 0.01, 10);
-	RNA_def_property_ui_text(prop, "Minkovsky Exponent", "Minkovsky exponent");
+	RNA_def_property_ui_text(prop, "Minkowski Exponent", "Minkowski exponent");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop = RNA_def_property(srna, "distance_metric", PROP_ENUM, PROP_NONE);

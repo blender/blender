@@ -3156,7 +3156,7 @@ static void obrel_list_add(LinkNode **links, Object *ob)
  * If OB_SET_VISIBLE or OB_SET_SELECTED are collected, 
  * then also add related objects according to the given includeFilters.
  */
-struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet objectSet, eObRelationTypes includeFilter)
+LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet objectSet, eObRelationTypes includeFilter)
 {
 	LinkNode *links = NULL;
 
@@ -3234,4 +3234,33 @@ struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet 
 	}
 
 	return links;
+}
+
+/**
+ * return all groups this object is apart of, caller must free.
+ */
+struct LinkNode *BKE_object_groups(Object *ob)
+{
+	LinkNode *group_linknode = NULL;
+	Group *group = NULL;
+	while ((group = find_group(ob, group))) {
+		BLI_linklist_prepend(&group_linknode, group);
+	}
+
+	return group_linknode;
+}
+
+void BKE_object_groups_clear(Scene *scene, Base *base, Object *object)
+{
+	Group *group = NULL;
+
+	BLI_assert(base->object == object);
+
+	if (scene && base == NULL) {
+		base = BKE_scene_base_find(scene, object);
+	}
+
+	while ((group = find_group(base->object, group))) {
+		rem_from_group(group, object, scene, base);
+	}
 }

@@ -717,7 +717,7 @@ PyDoc_STRVAR(M_Noise_voronoi_doc,
 "   :type position: :class:`mathutils.Vector`\n"
 "   :arg distance_metric: Method of measuring distance.\n"
 "   :type distance_metric: Value in noise.distance_metrics or int\n"
-"   :arg exponent: The exponent for Minkovsky distance metric.\n"
+"   :arg exponent: The exponent for Minkowski distance metric.\n"
 "   :type exponent: float\n"
 "   :return: A list of distances to the four closest features and their locations.\n"
 "   :rtype: list of four floats, list of four :class:`mathutils.Vector` types\n"
@@ -729,7 +729,7 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 	float vec[3];
 	float da[4], pa[12];
 	int dtype = 0;
-	float me = 2.5f;  /* default minkovsky exponent */
+	float me = 2.5f;  /* default minkowski exponent */
 
 	int i;
 

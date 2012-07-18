@@ -133,9 +133,6 @@ def display_name(name):
     mixed case names are kept as is. Intended for use with
     filenames and module names.
     """
-
-    name = _os.path.splitext(name)[0]
-
     # string replacements
     name = name.replace("_colon_", ":")
 
@@ -154,7 +151,6 @@ def display_name_from_filepath(name):
     ensured to be utf8 compatible.
     """
 
-    name = _os.path.splitext(basename(name))[0]
     name = _clean_utf8(name)
     return name
 
