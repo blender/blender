@@ -177,6 +177,8 @@ typedef enum eObjectSet {
 } eObjectSet;
 
 struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet objectSet, eObRelationTypes includeFilter);
+struct LinkNode *BKE_object_groups(struct Object *ob);
+void             BKE_object_groups_clear(struct Scene *scene, struct Base *base, struct Object *object);
 
 #ifdef __cplusplus
 }

@@ -44,6 +44,7 @@
 #include "BKE_group.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_object.h"
 
 #include "ED_screen.h"
 #include "ED_object.h"
@@ -113,7 +114,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	int group_object_index = RNA_enum_get(op->ptr, "group");
-	int cycle = FALSE;
+	int is_cycle = FALSE;
 
 	if (ob) {
 		Group *group = group_object_active_find_index(ob, group_object_index);
@@ -127,7 +128,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 					add_to_group(group, base->object, scene, base);
 				}
 				else {
-					cycle = TRUE;
+					is_cycle = TRUE;
 				}
 			}
 			CTX_DATA_END;
@@ -139,8 +140,9 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (cycle)
+	if (is_cycle) {
 		BKE_report(op->reports, RPT_WARNING, "Skipped some groups because of cycle detected");
+	}
 
 	return OPERATOR_CANCELLED;
 }
@@ -220,13 +222,10 @@ static int group_objects_remove_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	Group *group = NULL;
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
-		group = NULL;
-		while ((group = find_group(base->object, group)))
-			rem_from_group(group, base->object, scene, base);
+		BKE_object_groups_clear(scene, base, base->object);
 	}
 	CTX_DATA_END;
 
