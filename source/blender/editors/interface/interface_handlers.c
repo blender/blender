@@ -257,12 +257,39 @@ static uiBut *ui_but_last(uiBlock *block)
 static int ui_is_a_warp_but(uiBut *but)
 {
 	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
-		if (ELEM5(but->type, NUM, NUMABS, HSVCIRCLE, TRACKPREVIEW, HSVCUBE)) {
+		if (ELEM6(but->type, NUM, NUMABS, HSVCIRCLE, TRACKPREVIEW, HSVCUBE, BUT_CURVE)) {
 			return TRUE;
 		}
 	}
 
 	return FALSE;
+}
+
+static float ui_mouse_scale_warp_factor(const short shift)
+{
+	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
+		return shift ? 0.05f : 1.0f;
+	}
+	else {
+		return 1.0f;
+	}
+}
+
+static void ui_mouse_scale_warp(uiHandleButtonData *data,
+                                const float mx, const float my,
+                                float *r_mx, float *r_my,
+                                const short shift)
+{
+	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
+		const float fac = ui_mouse_scale_warp_factor(shift);
+		/* slow down the mouse, this is fairly picky */
+		*r_mx = (data->dragstartx * (1.0f - fac) + mx * fac);
+		*r_my = (data->dragstarty * (1.0f - fac) + my * fac);
+	}
+	else {
+		*r_mx = mx;
+		*r_my = my;
+	}
 }
 
 /* file selectors are exempt from utf-8 checks */
@@ -3093,14 +3120,17 @@ static int ui_do_but_NORMAL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, float mx, float my, const short shift)
+static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, int my, const short shift)
 {
 	float rgb[3];
 	float *hsv = ui_block_hsv_get(but->block);
 	float x, y;
+	float mx_fl, my_fl;
 	int changed = 1;
 	int color_profile = but->block->color_profile;
 	
+	ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
+
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 			color_profile = BLI_PR_NONE;
@@ -3110,16 +3140,10 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, float mx
 
 	rgb_to_hsv_compat_v(rgb, hsv);
 
-	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
-		float fac = shift ? 0.05f : 1.0f;
-		/* slow down the mouse, this is fairly picky */
-		mx = (data->dragstartx * (1.0f - fac) + mx * fac);
-		my = (data->dragstarty * (1.0f - fac) + my * fac);
-	}
 
 	/* relative position within box */
-	x = ((float)mx - but->x1) / (but->x2 - but->x1);
-	y = ((float)my - but->y1) / (but->y2 - but->y1);
+	x = ((float)mx_fl - but->x1) / (but->x2 - but->x1);
+	y = ((float)my_fl - but->y1) / (but->y2 - but->y1);
 	CLAMP(x, 0.0f, 1.0f);
 	CLAMP(y, 0.0f, 1.0f);
 
@@ -3318,9 +3342,12 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, float 
 {
 	rcti rect;
 	int changed = 1;
+	float mx_fl, my_fl;
 	float rgb[3];
 	float hsv[3];
 	
+	ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
+
 	rect.xmin = but->x1; rect.xmax = but->x2;
 	rect.ymin = but->y1; rect.ymax = but->y2;
 	
@@ -3334,14 +3361,8 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, float 
 		if (hsv[2] == 0.f) hsv[2] = 0.0001f;
 	}
 
-	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
-		float fac = shift ? 0.05f : 1.0f;
-		/* slow down the mouse, this is fairly picky */
-		mx = (data->dragstartx * (1.0f - fac) + mx * fac);
-		my = (data->dragstarty * (1.0f - fac) + my * fac);
-	}
 
-	ui_hsvcircle_vals_from_pos(hsv, hsv + 1, &rect, (float)mx, (float)my);
+	ui_hsvcircle_vals_from_pos(hsv, hsv + 1, &rect, mx_fl, my_fl);
 
 	if (but->flag & UI_BUT_COLOR_CUBIC)
 		hsv[1] = 1.0f - sqrt3f(1.0f - hsv[1]);
@@ -3593,7 +3614,8 @@ static int ui_do_but_COLORBAND(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap, int mx, int my)
+static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap,
+                                float mx, float my, const short shift)
 {
 	CurveMapping *cumap = (CurveMapping *)but->poin;
 	CurveMap *cuma = cumap->cm + cumap->cur;
@@ -3617,10 +3639,15 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap, 
 	}
 
 	if (data->dragsel != -1) {
+		const float mval_factor = ui_mouse_scale_warp_factor(shift);
 		int moved_point = 0;     /* for ctrl grid, can't use orig coords because of sorting */
 		
 		fx = (mx - data->draglastx) / zoomx;
 		fy = (my - data->draglasty) / zoomy;
+
+		fx *= mval_factor;
+		fy *= mval_factor;
+
 		for (a = 0; a < cuma->totpoint; a++) {
 			if (cmp[a].flag & SELECT) {
 				float origx = cmp[a].x, origy = cmp[a].y;
@@ -3783,7 +3810,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
 		if (event->type == MOUSEMOVE) {
 			if (mx != data->draglastx || my != data->draglasty) {
-				if (ui_numedit_but_CURVE(but, data, event->ctrl, mx, my))
+				if (ui_numedit_but_CURVE(but, data, event->ctrl, mx, my, event->shift))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
