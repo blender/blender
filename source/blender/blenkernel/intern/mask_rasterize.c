@@ -48,6 +48,7 @@
 #ifndef USE_RASKTER
 
 #define SPLINE_RESOL_CAP 32
+#define SPLINE_RESOL_CAP_PER_PIXEL 10
 #define SPLINE_RESOL 32
 #define BUCKET_PIXELS_PER_CELL 8
 
@@ -68,26 +69,28 @@
 	BLI_assert(_t[3] < vert_max || _t[3] == TRI_VERT);   \
 } (void)0
 
-void rotate_point(const float cent[2], const float angle, float p[2], const float asp[2])
+static void rotate_point_v2(float r_p[2], const float p[2], const float cent[2], const float angle, const float asp[2])
 {
 	const float s = sinf(angle);
 	const float c = cosf(angle);
 	float p_new[2];
 
 	/* translate point back to origin */
-	p[0] -= cent[0];
-	p[1] -= cent[1];
-
-	p[0] /= asp[0];
-	p[1] /= asp[1];
+	r_p[0] = (p[0] - cent[0]) / asp[0];
+	r_p[1] = (p[1] - cent[1]) / asp[1];
 
 	/* rotate point */
-	p_new[0] = ((p[0] * c) - (p[1] * s)) * asp[0];
-	p_new[1] = ((p[0] * s) + (p[1] * c)) * asp[1];
+	p_new[0] = ((r_p[0] * c) - (r_p[1] * s)) * asp[0];
+	p_new[1] = ((r_p[0] * s) + (r_p[1] * c)) * asp[1];
 
 	/* translate point back */
-	p[0] = p_new[0] + cent[0];
-	p[1] = p_new[1] + cent[1];
+	r_p[0] = p_new[0] + cent[0];
+	r_p[1] = p_new[1] + cent[1];
+}
+
+BLI_INLINE unsigned int clampis_uint(const unsigned int v, const unsigned int min, const unsigned int max)
+{
+	return v < min ? min : (v > max ? max : v);
 }
 
 /* --------------------------------------------------------------------- */
@@ -131,8 +134,14 @@ typedef struct MaskRasterLayer {
 } MaskRasterLayer;
 
 typedef struct MaskRasterSplineInfo {
+	/* body of the spline */
 	unsigned int vertex_offset;
 	unsigned int vertex_total;
+
+	/* capping for non-filled, non cyclic splines */
+	unsigned int vertex_total_cap_head;
+	unsigned int vertex_total_cap_tail;
+
 	unsigned int is_cyclic;
 } MaskRasterSplineInfo;
 
@@ -503,6 +512,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 {
 	const rctf default_bounds = {0.0f, 1.0f, 0.0f, 1.0f};
 	const float pixel_size = 1.0f / MIN2(width, height);
+	const float asp_xy[2] = {(do_aspect_correct && width > height) ? (float)height / (float)width  : 1.0f,
+	                         (do_aspect_correct && width < height) ? (float)width  / (float)height : 1.0f};
 
 	const float zvec[3] = {0.0f, 0.0f, 1.0f};
 	MaskLayer *masklay;
@@ -684,9 +695,6 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 						open_spline_ranges[open_spline_index].vertex_offset = sf_vert_tot;
 						open_spline_ranges[open_spline_index].vertex_total = tot_diff_point;
-						open_spline_ranges[open_spline_index].is_cyclic = is_cyclic;
-						open_spline_index++;
-
 
 						/* TODO, an alternate functions so we can avoid double vector copy! */
 						for (j = 0; j < tot_diff_point; j++) {
@@ -722,51 +730,63 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 							tot_feather_quads -= 2;
 						}
 
-						/*cap ends */
+						/* cap ends */
+
+						/* dummy init value */
+						open_spline_ranges[open_spline_index].vertex_total_cap_head = 0;
+						open_spline_ranges[open_spline_index].vertex_total_cap_tail = 0;
+
 						if (!is_cyclic) {
+							float *fp_cent;
+							float *fp_turn;
+
 							unsigned int k;
 
-							float asp[2] = {1.0f, 1.0f};
+							fp_cent = diff_points[0];
+							fp_turn = diff_feather_points[0];
 
-							if (do_aspect_correct) {
-								if (width != height) {
-									if (width < height) {
-										asp[1] = (float)width / (float)height;
-									}
-									else {
-										asp[0] = (float)height / (float)width;
-									}
+							{
+								unsigned int vertex_total_cap = clampis_uint(SPLINE_RESOL_CAP_PER_PIXEL * (len_v2v2(fp_cent, fp_turn) * pixel_size), 8, 128);
+								vertex_total_cap = 32;
+
+								for (k = 1; k < vertex_total_cap; k++) {
+									const float angle = (float)k * (1.0f / vertex_total_cap) * (float)M_PI;
+									rotate_point_v2(co_feather, fp_turn, fp_cent, angle, asp_xy);
+
+									sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
+									sf_vert->tmp.u = sf_vert_tot;
+									sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
+									sf_vert_tot++;
 								}
+								tot_feather_quads += vertex_total_cap;
+
+								open_spline_ranges[open_spline_index].vertex_total_cap_head = vertex_total_cap;
 							}
 
-							for (k = 1; k < SPLINE_RESOL_CAP; k++) {
-								const float angle = (float)k * (1.0f / SPLINE_RESOL_CAP) * (float)M_PI;
-								copy_v2_v2(co_feather, diff_feather_points[0]);
-								rotate_point(diff_points[0], angle, co_feather, asp);
+							fp_cent = diff_points[tot_diff_point - 1];
+							fp_turn = diff_feather_points[tot_diff_point - 1];
 
-								sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
-								sf_vert->tmp.u = sf_vert_tot;
-								sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
-								sf_vert_tot++;
+							{
+								unsigned int vertex_total_cap = clampis_uint(SPLINE_RESOL_CAP_PER_PIXEL * (len_v2v2(fp_cent, fp_turn) * pixel_size), 8, 128);
+								vertex_total_cap = 32;
+
+								for (k = 1; k < vertex_total_cap; k++) {
+									const float angle = (float)k * (1.0f / vertex_total_cap) * (float)M_PI;
+									rotate_point_v2(co_feather, fp_turn, fp_cent, angle, asp_xy);
+
+									sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
+									sf_vert->tmp.u = sf_vert_tot;
+									sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
+									sf_vert_tot++;
+								}
+								tot_feather_quads += vertex_total_cap;
+
+								open_spline_ranges[open_spline_index].vertex_total_cap_tail = vertex_total_cap;
 							}
-
-							tot_feather_quads += SPLINE_RESOL_CAP;
-
-							for (k = 1; k < SPLINE_RESOL_CAP; k++) {
-								const float angle = (float)k * (1.0f / SPLINE_RESOL_CAP) * (float)M_PI;
-								copy_v2_v2(co_feather, diff_feather_points[tot_diff_point - 1]);
-								rotate_point(diff_points[tot_diff_point - 1], -angle, co_feather, asp);
-
-								sf_vert = BLI_scanfill_vert_add(&sf_ctx, co_feather);
-								sf_vert->tmp.u = sf_vert_tot;
-								sf_vert->keyindex = SF_KEYINDEX_TEMP_ID;
-								sf_vert_tot++;
-							}
-
-							tot_feather_quads += SPLINE_RESOL_CAP;
-
-
 						}
+
+						open_spline_ranges[open_spline_index].is_cyclic = is_cyclic;
+						open_spline_index++;
 
 						/* end capping */
 
