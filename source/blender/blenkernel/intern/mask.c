@@ -512,7 +512,7 @@ static void feather_bucket_get_diagonal(FeatherEdgesBucket *buckets, int start_b
 	*diagonal_bucket_b_r = &buckets[diagonal_bucket_b_index];
 }
 
-static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int tot_feather_point)
+static void spline_feather_collapse_inner_loops(MaskSpline *spline, float (*feather_points)[2], int tot_feather_point)
 {
 #define BUCKET_INDEX(co) \
 	feather_bucket_index_from_coord(co, min, bucket_scale, buckets_per_side)
@@ -541,8 +541,12 @@ static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int 
 		int next = i + 1;
 		float delta;
 
-		if (next == tot_feather_point)
-			next = 0;
+		if (next == tot_feather_point) {
+			if (spline->flag & MASK_SPLINE_CYCLIC)
+				next = 0;
+			else
+				break;
+		}
 
 		delta = fabsf(feather_points[i][0] - feather_points[next][0]);
 		if (delta > max_delta_x)
@@ -585,8 +589,12 @@ static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int 
 		int start = i, end = i + 1;
 		int start_bucket_index, end_bucket_index;
 
-		if (end == tot_feather_point)
-			end = 0;
+		if (end == tot_feather_point) {
+			if (spline->flag & MASK_SPLINE_CYCLIC)
+				end = 0;
+			else
+				break;
+		}
 
 		start_bucket_index = BUCKET_INDEX(feather_points[start]);
 		end_bucket_index = BUCKET_INDEX(feather_points[end]);
@@ -718,7 +726,7 @@ float (*BKE_mask_spline_feather_differentiated_points_with_resolution_ex(MaskSpl
 
 	/* this is slow! - don't do on draw */
 	if (do_collapse) {
-		spline_feather_collapse_inner_loops(feather, tot);
+		spline_feather_collapse_inner_loops(spline, feather, tot);
 	}
 
 	return feather;
