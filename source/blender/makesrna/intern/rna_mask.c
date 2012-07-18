@@ -642,7 +642,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 	/* render settings */
 	prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
-	RNA_def_property_range(prop, 0.0, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Opacity", "Render Opacity");
 	RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
 

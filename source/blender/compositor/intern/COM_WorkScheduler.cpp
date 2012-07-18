@@ -36,10 +36,13 @@
 #include "BLI_threads.h"
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
-#warning COM_CURRENT_THREADING_MODEL COM_TM_NOTHREAD is activated. Use only for debugging.
+#  ifndef DEBUG  /* test this so we dont get warnings in debug builds */
+#    warning COM_CURRENT_THREADING_MODEL COM_TM_NOTHREAD is activated. Use only for debugging.
+#  endif
 #elif COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
+   /* do nothing - default */
 #else
-#error COM_CURRENT_THREADING_MODEL No threading model selected
+#  error COM_CURRENT_THREADING_MODEL No threading model selected
 #endif
 
 

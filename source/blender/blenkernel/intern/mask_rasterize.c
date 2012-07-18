@@ -47,6 +47,10 @@
 
 #ifndef USE_RASKTER
 
+/* this is rather and annoying hack, use define to isolate it.
+ * problem is caused by scanfill removing edges on us. */
+#define USE_SCANFILL_EDGE_WORKAROUND
+
 #define SPLINE_RESOL_CAP_PER_PIXEL 2
 #define SPLINE_RESOL_CAP_MIN 8
 #define SPLINE_RESOL_CAP_MAX 64
@@ -548,6 +552,11 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 		unsigned int sf_vert_tot = 0;
 		unsigned int tot_feather_quads = 0;
 
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+		unsigned int tot_boundary_used = 0;
+		unsigned int tot_boundary_found = 0;
+#endif
+
 		if (masklay->restrictflag & MASK_RESTRICT_RENDER) {
 			/* skip the layer */
 			mr_handle->layers_tot--;
@@ -580,6 +589,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			if (do_feather) {
 				diff_feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution_ex(
 				                          spline, &tot_diff_feather_points, resol, TRUE);
+				BLI_assert(diff_feather_points);
 			}
 			else {
 				tot_diff_feather_points = 0;
@@ -661,8 +671,15 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 					for (j = 0; j < tot_diff_point; j++) {
 						ScanFillEdge *sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_vert);
-						sf_edge->tmp.c = SF_EDGE_IS_BOUNDARY;
 
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+						if (diff_feather_points) {
+							sf_edge->tmp.c = SF_EDGE_IS_BOUNDARY;
+							tot_boundary_used++;
+						}
+#else
+						(void)sf_edge;
+#endif
 						sf_vert_prev = sf_vert;
 						sf_vert = sf_vert->next;
 					}
@@ -877,9 +894,19 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 						*(face++) = sf_edge->v1->keyindex;
 						face_index++;
 						FACE_ASSERT(face - 4, sf_vert_tot);
+
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+						tot_boundary_found++;
+#endif
 					}
 				}
 			}
+
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+			if (tot_boundary_found != tot_boundary_used) {
+				BLI_assert(tot_boundary_found < tot_boundary_used);
+			}
+#endif
 
 			/* feather only splines */
 			while (open_spline_index > 0) {
@@ -999,15 +1026,22 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 			MEM_freeN(open_spline_ranges);
 
-			// fprintf(stderr, "%d %d\n", face_index, sf_face_tot + tot_feather_quads);
+//			fprintf(stderr, "%u %u (%u %u), %u\n", face_index, sf_tri_tot + tot_feather_quads, sf_tri_tot, tot_feather_quads, tot_boundary_used - tot_boundary_found);
 
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+			BLI_assert(face_index + (tot_boundary_used - tot_boundary_found) == sf_tri_tot + tot_feather_quads);
+#else
 			BLI_assert(face_index == sf_tri_tot + tot_feather_quads);
-
+#endif
 			{
 				MaskRasterLayer *layer = &mr_handle->layers[masklay_index];
 
 				if (BLI_rctf_isect(&default_bounds, &bounds, &bounds)) {
-					layer->face_tot = sf_tri_tot + tot_feather_quads;
+#ifdef USE_SCANFILL_EDGE_WORKAROUND
+					layer->face_tot = (sf_tri_tot + tot_feather_quads) - (tot_boundary_used - tot_boundary_found);
+#else
+					layer->face_tot = (sf_tri_tot + tot_feather_quads);
+#endif
 					layer->face_coords = face_coords;
 					layer->face_array  = face_array;
 					layer->bounds = bounds;
