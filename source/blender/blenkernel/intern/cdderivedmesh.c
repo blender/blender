@@ -2110,7 +2110,7 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const short only_face_normals
 		/* No tessellation on this mesh yet, need to calculate one.
 		 *
 		 * Important not to update face normals from polys since it
-		 * interfears with assigning the new normal layer in the following code.
+		 * interferes with assigning the new normal layer in the following code.
 		 */
 		CDDM_recalc_tessellation_ex(dm, FALSE);
 	}
