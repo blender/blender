@@ -564,6 +564,13 @@ static void spline_feather_collapse_inner_loops(float (*feather_points)[2], int 
 	max_delta = MAX2(max_delta_x, max_delta_y);
 
 	buckets_per_side = MIN2(512, 0.9f / max_delta);
+
+	if (buckets_per_side == 0) {
+		/* happens when some segment fills the whole bounding box across some of dimension */
+
+		buckets_per_side = 1;
+	}
+
 	tot_bucket = buckets_per_side * buckets_per_side;
 	bucket_size = 1.0f / buckets_per_side;
 
