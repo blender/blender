@@ -51,7 +51,8 @@
 #define SPLINE_RESOL_CAP_MIN 8
 #define SPLINE_RESOL_CAP_MAX 64
 
-#define BUCKET_PIXELS_PER_CELL 8
+/* found this gives best performance for high detail masks, values between 2 and 8 work best */
+#define BUCKET_PIXELS_PER_CELL 4
 
 #define SF_EDGE_IS_BOUNDARY 0xff
 #define SF_KEYINDEX_TEMP_ID ((unsigned int) -1)
@@ -60,8 +61,9 @@
 #define TRI_VERT            ((unsigned int) -1)
 
 /* for debugging add... */
+#ifndef NDEBUG
 /* 	printf("%u %u %u %u\n", _t[0], _t[1], _t[2], _t[3]); \ */
-#define FACE_ASSERT(face, vert_max)                      \
+#  define FACE_ASSERT(face, vert_max)                    \
 {                                                        \
 	unsigned int *_t = face;                             \
 	BLI_assert(_t[0] < vert_max);                        \
@@ -69,6 +71,10 @@
 	BLI_assert(_t[2] < vert_max);                        \
 	BLI_assert(_t[3] < vert_max || _t[3] == TRI_VERT);   \
 } (void)0
+#else
+   /* do nothing */
+#  define FACE_ASSERT(face, vert_max)
+#endif
 
 static void rotate_point_v2(float r_p[2], const float p[2], const float cent[2], const float angle, const float asp[2])
 {
@@ -1234,9 +1240,13 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 				value += value_layer;
 				break;
 		}
+
+		/* clamp after applying each layer so we don't get
+		 * issues subtracting after accumulating over 1.0f */
+		return CLAMPIS(value, 0.0f, 1.0f);
 	}
 
-	return CLAMPIS(value, 0.0f, 1.0f);
+	return value;
 }
 
 #endif /* USE_RASKTER */
