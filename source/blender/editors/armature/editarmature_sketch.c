@@ -22,7 +22,6 @@
  *  \ingroup edarmature
  */
 
-
 #include <string.h>
 #include <math.h>
 #include <float.h>
@@ -49,26 +48,17 @@
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
-//#include "BIF_screen.h"
-//#include "BIF_space.h"
-//#include "BIF_mywindow.h"
 #include "ED_armature.h"
 #include "armature_intern.h"
-//#include "BIF_sketch.h"
 #include "BIF_retarget.h"
 #include "BIF_generate.h"
-//#include "BIF_interface.h"
 
 #include "ED_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-//#include "blendef.h"
-//#include "mydevice.h"
 #include "reeb.h"
-
-
 
 typedef int (*GestureDetectFct)(bContext *, SK_Gesture *, SK_Sketch *);
 typedef void (*GestureApplyFct)(bContext *, SK_Gesture *, SK_Sketch *);

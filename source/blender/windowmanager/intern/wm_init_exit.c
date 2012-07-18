@@ -28,7 +28,6 @@
  *  \ingroup wm
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -63,7 +62,6 @@
 #include "BKE_tracking.h" /* free tracking clipboard */
 
 #include "BLI_listbase.h"
-// #include "BLI_scanfill.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -75,7 +73,7 @@
 #endif
 
 #ifdef WITH_GAMEENGINE
-#include "BL_System.h"
+#  include "BL_System.h"
 #endif
 #include "GHOST_Path-api.h"
 #include "GHOST_C-api.h"

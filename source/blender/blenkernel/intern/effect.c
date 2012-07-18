@@ -29,7 +29,6 @@
  *  \ingroup bke
  */
 
-
 #include <stddef.h>
 
 #include <math.h>
@@ -97,8 +96,6 @@
 #include <zlib.h>
 #include <string.h>
 #endif // WITH_MOD_FLUID
-
-//XXX #include "BIF_screen.h"
 
 EffectorWeights *BKE_add_effector_weights(Group *group)
 {

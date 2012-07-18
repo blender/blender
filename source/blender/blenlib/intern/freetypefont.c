@@ -52,10 +52,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-//XXX #include "BIF_toolbox.h"
-
 #include "BKE_font.h"
-
 
 #include "DNA_vfont_types.h"
 #include "DNA_packedFile_types.h"

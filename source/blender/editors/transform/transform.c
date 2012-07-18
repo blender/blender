@@ -29,7 +29,6 @@
  *  \ingroup edtransform
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,9 +36,9 @@
 #include <float.h>
 
 #ifndef WIN32
-#include <unistd.h>
+#  include <unistd.h>
 #else
-#include <io.h>
+#  include <io.h>
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -89,10 +88,6 @@
 #include "BLI_array.h"
 
 #include "UI_resources.h"
-
-//#include "blendef.h"
-//
-//#include "mydevice.h"
 
 #include "transform.h"
 
