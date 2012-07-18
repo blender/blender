@@ -47,11 +47,10 @@
 
 #ifndef USE_RASKTER
 
-//#define SPLINE_RESOL_CAP 32
 #define SPLINE_RESOL_CAP_PER_PIXEL 2
 #define SPLINE_RESOL_CAP_MIN 8
 #define SPLINE_RESOL_CAP_MAX 64
-#define SPLINE_RESOL 32
+
 #define BUCKET_PIXELS_PER_CELL 8
 
 #define SF_EDGE_IS_BOUNDARY 0xff
@@ -878,16 +877,18 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 			/* feather only splines */
 			while (open_spline_index > 0) {
-				unsigned int start_vidx          = open_spline_ranges[--open_spline_index].vertex_offset;
-				unsigned int tot_diff_point_sub1 = open_spline_ranges[  open_spline_index].vertex_total - 1;
+				const unsigned int vertex_offset         = open_spline_ranges[--open_spline_index].vertex_offset;
+				unsigned int       vertex_total          = open_spline_ranges[  open_spline_index].vertex_total;
+				unsigned int       vertex_total_cap_head = open_spline_ranges[  open_spline_index].vertex_total_cap_head;
+				unsigned int       vertex_total_cap_tail = open_spline_ranges[  open_spline_index].vertex_total_cap_tail;
 				unsigned int k, j;
 
-				j = start_vidx;
+				j = vertex_offset;
 
 				/* subtract one since we reference next vertex triple */
-				for (k = 0; k < tot_diff_point_sub1; k++, j += 3) {
+				for (k = 0; k < vertex_total - 1; k++, j += 3) {
 
-					BLI_assert(j == start_vidx + (k * 3));
+					BLI_assert(j == vertex_offset + (k * 3));
 
 					*(face++) = j + 3; /* next span */ /* z 1 */
 					*(face++) = j + 0;                 /* z 1 */
@@ -905,28 +906,28 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				}
 
 				if (open_spline_ranges[open_spline_index].is_cyclic) {
-					*(face++) = start_vidx + 0; /* next span */ /* z 1 */
-					*(face++) = j          + 0;                 /* z 1 */
-					*(face++) = j          + 1;                 /* z 0 */
-					*(face++) = start_vidx + 1; /* next span */ /* z 0 */
+					*(face++) = vertex_offset + 0; /* next span */ /* z 1 */
+					*(face++) = j             + 0;                 /* z 1 */
+					*(face++) = j             + 1;                 /* z 0 */
+					*(face++) = vertex_offset + 1; /* next span */ /* z 0 */
 					face_index++;
 					FACE_ASSERT(face - 4, sf_vert_tot);
 
-					*(face++) = j          + 0;                 /* z 1 */
-					*(face++) = start_vidx + 0; /* next span */ /* z 1 */
-					*(face++) = start_vidx + 2; /* next span */ /* z 0 */
-					*(face++) = j          + 2;                 /* z 0 */
+					*(face++) = j          + 0;                    /* z 1 */
+					*(face++) = vertex_offset + 0; /* next span */ /* z 1 */
+					*(face++) = vertex_offset + 2; /* next span */ /* z 0 */
+					*(face++) = j          + 2;                    /* z 0 */
 					face_index++;
 					FACE_ASSERT(face - 4, sf_vert_tot);
 				}
 				else {
-					unsigned int midvidx = start_vidx;
+					unsigned int midvidx = vertex_offset;
 
 					/***************
 					 * cap end 'a' */
-					j = midvidx + (open_spline_ranges[open_spline_index].vertex_total * 3);
+					j = midvidx + (vertex_total * 3);
 
-					for (k = 0; k < open_spline_ranges[open_spline_index].vertex_total_cap_head - 2; k++, j++) {
+					for (k = 0; k < vertex_total_cap_head - 2; k++, j++) {
 						*(face++) = midvidx + 0;  /* z 1 */
 						*(face++) = midvidx + 0;  /* z 1 */
 						*(face++) = j + 0;        /* z 0 */
@@ -935,7 +936,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 						FACE_ASSERT(face - 4, sf_vert_tot);
 					}
 
-					j = start_vidx + (open_spline_ranges[open_spline_index].vertex_total * 3);
+					j = vertex_offset + (vertex_total * 3);
 
 					/* 2 tris that join the original */
 					*(face++) = midvidx + 0;  /* z 1 */
@@ -945,10 +946,10 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					face_index++;
 					FACE_ASSERT(face - 4, sf_vert_tot);
 
-					*(face++) = midvidx + 0;               /* z 1 */
-					*(face++) = midvidx + 0;               /* z 1 */
-					*(face++) = j + open_spline_ranges[open_spline_index].vertex_total_cap_head - 2;  /* z 0 */
-					*(face++) = midvidx + 2;               /* z 0 */
+					*(face++) = midvidx + 0;                    /* z 1 */
+					*(face++) = midvidx + 0;                    /* z 1 */
+					*(face++) = j + vertex_total_cap_head - 2;  /* z 0 */
+					*(face++) = midvidx + 2;                    /* z 0 */
 					face_index++;
 					FACE_ASSERT(face - 4, sf_vert_tot);
 
@@ -957,11 +958,11 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					 * cap end 'b' */
 					/* ... same as previous but v 2-3 flipped, and different initial offsets */
 
-					j = start_vidx + (open_spline_ranges[open_spline_index].vertex_total * 3) + (open_spline_ranges[open_spline_index].vertex_total_cap_head - 1);
+					j = vertex_offset + (vertex_total * 3) + (vertex_total_cap_head - 1);
 
-					midvidx = start_vidx + (open_spline_ranges[open_spline_index].vertex_total * 3) - 3;
+					midvidx = vertex_offset + (vertex_total * 3) - 3;
 
-					for (k = 0; k < open_spline_ranges[open_spline_index].vertex_total_cap_tail - 2; k++, j++) {
+					for (k = 0; k < vertex_total_cap_tail - 2; k++, j++) {
 						*(face++) = midvidx;  /* z 1 */
 						*(face++) = midvidx;  /* z 1 */
 						*(face++) = j + 1;    /* z 0 */
@@ -970,7 +971,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 						FACE_ASSERT(face - 4, sf_vert_tot);
 					}
 
-					j = start_vidx + (open_spline_ranges[open_spline_index].vertex_total * 3) + (open_spline_ranges[open_spline_index].vertex_total_cap_head - 1);
+					j = vertex_offset + (vertex_total * 3) + (vertex_total_cap_head - 1);
 
 					/* 2 tris that join the original */
 					*(face++) = midvidx + 0;  /* z 1 */
@@ -980,10 +981,10 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 					face_index++;
 					FACE_ASSERT(face - 4, sf_vert_tot);
 
-					*(face++) = midvidx + 0;               /* z 1 */
-					*(face++) = midvidx + 0;               /* z 1 */
-					*(face++) = midvidx + 2;               /* z 0 */
-					*(face++) = j + open_spline_ranges[open_spline_index].vertex_total_cap_tail - 2;  /* z 0 */
+					*(face++) = midvidx + 0;                    /* z 1 */
+					*(face++) = midvidx + 0;                    /* z 1 */
+					*(face++) = midvidx + 2;                    /* z 0 */
+					*(face++) = j + vertex_total_cap_tail - 2;  /* z 0 */
 					face_index++;
 					FACE_ASSERT(face - 4, sf_vert_tot);
 
