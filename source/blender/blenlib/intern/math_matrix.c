@@ -1111,7 +1111,7 @@ void mat3_to_rot_size(float rot[3][3], float size[3], float mat3[3][3])
 	/* rotation & scale are linked, we need to create the mat's
 	 * for these together since they are related. */
 
-	/* so scale doesnt interfear with rotation [#24291] */
+	/* so scale doesn't interfere with rotation [#24291] */
 	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
 	normalize_m3_m3(mat3_n, mat3);
 	if (is_negative_m3(mat3)) {

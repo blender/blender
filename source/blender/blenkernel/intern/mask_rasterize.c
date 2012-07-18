@@ -64,7 +64,8 @@
 	unsigned int *_t = face;                             \
 	BLI_assert(_t[0] < vert_max);                        \
 	BLI_assert(_t[1] < vert_max);                        \
-	BLI_assert(_t[2] < vert_max || _t[2] == TRI_VERT);   \
+	BLI_assert(_t[2] < vert_max);                        \
+	BLI_assert(_t[3] < vert_max || _t[3] == TRI_VERT);   \
 } (void)0
 
 void rotate_point(const float cent[2], const float angle, float p[2], const float asp[2])
@@ -94,7 +95,7 @@ void rotate_point(const float cent[2], const float angle, float p[2], const floa
 /* --------------------------------------------------------------------- */
 
 /**
- * A single #MaskRasterHandle contains multile #MaskRasterLayer's,
+ * A single #MaskRasterHandle contains multiple #MaskRasterLayer's,
  * each #MaskRasterLayer does its own lookup which contributes to
  * the final pixel with its own blending mode and the final pixel
  * is blended between these.
@@ -801,7 +802,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				sf_vert_next = sf_vert->next;
 				copy_v3_v3(cos, sf_vert->co);
 
-				/* remove so as not to interfear with fill (called after) */
+				/* remove so as not to interfere with fill (called after) */
 				if (sf_vert->keyindex == SF_KEYINDEX_TEMP_ID) {
 					BLI_remlink(&sf_ctx.fillvertbase, sf_vert);
 				}
@@ -812,13 +813,13 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 				cos += 3;
 			}
 
-			/* main scanfill */
+			/* main scan-fill */
 			sf_tri_tot = BLI_scanfill_calc_ex(&sf_ctx, FALSE, zvec);
 
 			face_array = MEM_mallocN(sizeof(*face_array) * (sf_tri_tot + tot_feather_quads), "maskrast_face_index");
 			face_index = 0;
 
-			/* tri's */
+			/* faces */
 			face = (unsigned int *)face_array;
 			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 				*(face++) = sf_tri->v3->tmp.u;

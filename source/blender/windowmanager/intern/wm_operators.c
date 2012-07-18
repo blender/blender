@@ -1066,7 +1066,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 	/* clear so the OK button is left alone */
 	uiBlockSetFunc(block, NULL, NULL, NULL);
 
-	/* new column so as not to interfear with custom layouts [#26436] */
+	/* new column so as not to interfere with custom layouts [#26436] */
 	{
 		uiBlock *col_block;
 		uiLayout *col;

@@ -5241,7 +5241,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 			pixel_size = size;
 		}
 
-		/* fade out the brush (cheap trick to work around brush interfearing with sampling [#])*/
+		/* fade out the brush (cheap trick to work around brush interfering with sampling [#])*/
 		if (pixel_size < PX_SIZE_FADE_MIN) {
 			return;
 		}
@@ -5253,7 +5253,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 
 		glTranslatef((float)x, (float)y, 0.0f);
 
-		/* No need to scale for uv sculpting, on the contrary it might be useful to keep unscaled */
+		/* No need to scale for uv sculpting, on the contrary it might be useful to keep un-scaled */
 		if (use_zoom)
 			glScalef(zoomx, zoomy, 1.0f);
 
