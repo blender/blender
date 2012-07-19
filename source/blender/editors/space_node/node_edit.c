@@ -3142,6 +3142,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
+	bNode *gnode = node_tree_get_editgroup(snode->nodetree);
 	float mcoords[256][2];
 	int i = 0;
 
@@ -3174,6 +3175,10 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 				rerouteNode = nodeAddNode(snode->edittree, &ntemp);
 				rerouteNode->locx = insertPoint[0];
 				rerouteNode->locy = insertPoint[1];
+				if (gnode) {
+					rerouteNode->locx -= gnode->locx;
+					rerouteNode->locy -= gnode->locy;
+				}
 				
 				nodeAddLink(snode->edittree, link->fromnode, link->fromsock, rerouteNode, rerouteNode->inputs.first);
 				link->fromnode = rerouteNode;
