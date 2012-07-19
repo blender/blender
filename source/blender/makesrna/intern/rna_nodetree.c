@@ -1713,6 +1713,11 @@ static void def_cmp_blur(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	prop = RNA_def_property(srna, "use_reference", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODEFLAG_BLUR_REFERENCE);
+	RNA_def_property_ui_text(prop, "Reference", "Use size socket as a reference image");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
 	RNA_def_struct_sdna_from(srna, "NodeBlurData", "storage");
 	
 	prop = RNA_def_property(srna, "size_x", PROP_INT, PROP_NONE);
@@ -1771,7 +1776,6 @@ static void def_cmp_blur(StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "gamma", 1);
 	RNA_def_property_ui_text(prop, "Gamma", "Apply filter on gamma corrected values");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
 }
 
 static void def_cmp_filter(StructRNA *srna)
