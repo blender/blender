@@ -48,11 +48,14 @@
 #include "BLI_utildefines.h"
 
 /* UNUSED */
-#include "BKE_text.h" /* txt_to_buf */	
+#include "BKE_text.h"  /* txt_to_buf */
 #include "BKE_main.h"
 
 static Main *bpy_import_main = NULL;
 static ListBase bpy_import_main_list;
+
+static PyMethodDef bpy_import_meth;
+static PyMethodDef bpy_reload_meth;
 
 /* 'builtins' is most likely PyEval_GetBuiltins() */
 void bpy_import_init(PyObject *builtins)
@@ -335,5 +338,5 @@ static PyObject *blender_reload(PyObject *UNUSED(self), PyObject *module)
 	return newmodule;
 }
 
-PyMethodDef bpy_import_meth = {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"};
-PyMethodDef bpy_reload_meth = {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"};
+static PyMethodDef bpy_import_meth = {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"};
+static PyMethodDef bpy_reload_meth = {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"};
