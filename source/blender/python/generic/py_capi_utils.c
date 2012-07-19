@@ -152,6 +152,21 @@ void PyC_LineSpit(void)
 	fprintf(stderr, "%s:%d\n", filename, lineno);
 }
 
+void PyC_StackSpit(void)
+{
+	/* Note, allow calling from outside python (RNA) */
+	if (!PYC_INTERPRETER_ACTIVE) {
+		fprintf(stderr, "python line lookup failed, interpreter inactive\n");
+		return;
+	}
+	else {
+		/* lame but handy */
+		PyGILState_STATE gilstate = PyGILState_Ensure();
+		PyRun_SimpleString("__import__('traceback').print_stack()");
+		PyGILState_Release(gilstate);
+	}
+}
+
 void PyC_FileAndNum(const char **filename, int *lineno)
 {
 	PyFrameObject *frame;
