@@ -203,7 +203,7 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
 
 		while (a--) {
 			if (bp->hide == 0) {
-				if (bp->f1) {
+				if (bp->f1 & SELECT) {
 					action = SEL_DESELECT;
 					break;
 				}
@@ -225,7 +225,7 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
 
 			while (a--) {
 				if (bp->hide == 0) {
-					bp->f1 ^= 1;
+					bp->f1 ^= SELECT;
 				}
 				bp++;
 			}
