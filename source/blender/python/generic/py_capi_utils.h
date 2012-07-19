@@ -24,12 +24,13 @@
  *  \ingroup pygen
  */
 
- 
+
 #ifndef __PY_CAPI_UTILS_H__
 #define __PY_CAPI_UTILS_H__
 
 void			PyC_ObSpit(const char *name, PyObject *var);
 void			PyC_LineSpit(void);
+void			PyC_StackSpit(void);
 PyObject *		PyC_ExceptionBuffer(void);
 PyObject *		PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 PyObject *		PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...);
