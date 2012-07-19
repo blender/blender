@@ -374,6 +374,10 @@ enum {
 	CMP_NODEFLAG_MASK_NO_FEATHER = (1 << 1)
 };
 
+enum {
+	CMP_NODEFLAG_BLUR_REFERENCE = (1 << 0),
+};
+
 typedef struct NodeFrame {
 	short flag;
 	short label_size;
