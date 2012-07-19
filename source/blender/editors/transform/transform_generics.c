@@ -29,13 +29,12 @@
  *  \ingroup edtransform
  */
 
-
 #include <string.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "BLO_sys_types.h" /* for intptr_t support */
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -58,14 +57,8 @@
 
 #include "RNA_access.h"
 
-//#include "BIF_screen.h"
-//#include "BIF_mywindow.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-//#include "BIF_editmesh.h"
-//#include "BIF_editsima.h"
-//#include "BIF_editparticle.h"
-//#include "BIF_meshtools.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -96,16 +89,10 @@
 #include "ED_clip.h"
 #include "ED_screen.h"
 
-//#include "BDR_unwrapper.h"
-
 #include "WM_types.h"
 #include "WM_api.h"
 
 #include "UI_resources.h"
-
-//#include "blendef.h"
-//
-//#include "mydevice.h"
 
 #include "transform.h"
 

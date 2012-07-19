@@ -1369,6 +1369,8 @@ static int separate_exec(bContext *C, wmOperator *op)
 	
 	/* 1. duplicate the object and data */
 	newbase = ED_object_add_duplicate(bmain, scene, oldbase, 0); /* 0 = fully linked */
+	DAG_scene_sort(bmain, scene);
+
 	ED_base_object_select(newbase, BA_DESELECT);
 	newob = newbase->object;
 

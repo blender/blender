@@ -30,7 +30,6 @@
  *  \ingroup bgeconv
  */
 
-
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif
@@ -186,10 +185,8 @@ extern Material defmaterial;	/* material.c */
 #ifdef __cplusplus
 extern "C" {
 #endif
-//XXX #include "BSE_headerbuttons.h"
 //XXX void update_for_newframe();
 //void BKE_scene_update_for_newframe(struct Scene *sce, unsigned int lay);
-//#include "BKE_ipo.h"
 //void do_all_data_ipos(void);
 #ifdef __cplusplus
 }
@@ -464,10 +461,10 @@ static void GetRGB(short type,
 					unsigned char cp[4];
 					unsigned int integer;
 				} col_converter;
-				col_converter.cp[3] = (unsigned char) (mat->r*255.0);
-				col_converter.cp[2] = (unsigned char) (mat->g*255.0);
-				col_converter.cp[1] = (unsigned char) (mat->b*255.0);
-				col_converter.cp[0] = (unsigned char) (mat->alpha*255.0);
+				col_converter.cp[3] = (unsigned char) (mat->r     * 255.0f);
+				col_converter.cp[2] = (unsigned char) (mat->g     * 255.0f);
+				col_converter.cp[1] = (unsigned char) (mat->b     * 255.0f);
+				col_converter.cp[0] = (unsigned char) (mat->alpha * 255.0f);
 				color = col_converter.integer;
 			}
 			c0 = KX_rgbaint2uint_new(color);
@@ -1143,10 +1140,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 							unsigned int integer;
 						} col_converter;
 						
-						col_converter.cp[3] = (unsigned char) (ma->r*255.0);
-						col_converter.cp[2] = (unsigned char) (ma->g*255.0);
-						col_converter.cp[1] = (unsigned char) (ma->b*255.0);
-						col_converter.cp[0] = (unsigned char) (ma->alpha*255.0);
+						col_converter.cp[3] = (unsigned char) (ma->r     * 255.0f);
+						col_converter.cp[2] = (unsigned char) (ma->g     * 255.0f);
+						col_converter.cp[1] = (unsigned char) (ma->b     * 255.0f);
+						col_converter.cp[0] = (unsigned char) (ma->alpha * 255.0f);
 						
 						color = col_converter.integer;
 					}
@@ -1330,8 +1327,8 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 	MT_assert(0.0f <= blenderobject->damping && blenderobject->damping <= 1.0f);
 	MT_assert(0.0f <= blenderobject->rdamping && blenderobject->rdamping <= 1.0f);
 	
-	shapeProps->m_lin_drag = 1.0 - blenderobject->damping;
-	shapeProps->m_ang_drag = 1.0 - blenderobject->rdamping;
+	shapeProps->m_lin_drag = 1.0f - blenderobject->damping;
+	shapeProps->m_ang_drag = 1.0f - blenderobject->rdamping;
 	
 	shapeProps->m_friction_scaling[0] = blenderobject->anisotropicFriction[0]; 
 	shapeProps->m_friction_scaling[1] = blenderobject->anisotropicFriction[1];
@@ -1456,17 +1453,17 @@ static void my_tex_space_mesh(Mesh *me)
 		copy_v3_v3(me->size, size);
 		me->rot[0]= me->rot[1]= me->rot[2]= 0.0f;
 
-		if (me->size[0]==0.0) me->size[0]= 1.0f;
-		else if (me->size[0]>0.0 && me->size[0]< 0.00001f) me->size[0]= 0.00001f;
-		else if (me->size[0]<0.0 && me->size[0]> -0.00001f) me->size[0]= -0.00001f;
+		if (me->size[0] == 0.0f) me->size[0] = 1.0f;
+		else if (me->size[0] > 0.0f && me->size[0]< 0.00001f) me->size[0]= 0.00001f;
+		else if (me->size[0] < 0.0f && me->size[0]> -0.00001f) me->size[0]= -0.00001f;
 
-		if (me->size[1]==0.0) me->size[1]= 1.0f;
-		else if (me->size[1]>0.0 && me->size[1]< 0.00001f) me->size[1]= 0.00001f;
-		else if (me->size[1]<0.0 && me->size[1]> -0.00001f) me->size[1]= -0.00001f;
+		if (me->size[1] == 0.0f) me->size[1]= 1.0f;
+		else if (me->size[1] > 0.0f && me->size[1]< 0.00001f) me->size[1]= 0.00001f;
+		else if (me->size[1] < 0.0f && me->size[1]> -0.00001f) me->size[1]= -0.00001f;
 
-		if (me->size[2]==0.0) me->size[2]= 1.0f;
-		else if (me->size[2]>0.0 && me->size[2]< 0.00001f) me->size[2]= 0.00001f;
-		else if (me->size[2]<0.0 && me->size[2]> -0.00001f) me->size[2]= -0.00001f;
+		if (me->size[2] == 0.0f) me->size[2]= 1.0f;
+		else if (me->size[2] > 0.0f && me->size[2]< 0.00001f) me->size[2]= 0.00001f;
+		else if (me->size[2] < 0.0f && me->size[2]> -0.00001f) me->size[2]= -0.00001f;
 	}
 	
 }
@@ -1522,13 +1519,13 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 	}
 	else 
 	{
-		size[0]= 0.5f*fabs(bb->vec[0][0] - bb->vec[4][0]);
-		size[1]= 0.5f*fabs(bb->vec[0][1] - bb->vec[2][1]);
-		size[2]= 0.5f*fabs(bb->vec[0][2] - bb->vec[1][2]);
+		size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
+		size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
+		size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
 					
-		center[0]= 0.5f*(bb->vec[0][0] + bb->vec[4][0]);
-		center[1]= 0.5f*(bb->vec[0][1] + bb->vec[2][1]);
-		center[2]= 0.5f*(bb->vec[0][2] + bb->vec[1][2]);
+		center[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
+		center[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
+		center[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
 	}
 }
 	

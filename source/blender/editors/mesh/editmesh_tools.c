@@ -2815,7 +2815,8 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	CustomData_bmesh_init_pool(&bm_new->ldata, bm_mesh_allocsize_default.totloop, BM_LOOP);
 	CustomData_bmesh_init_pool(&bm_new->pdata, bm_mesh_allocsize_default.totface, BM_FACE);
 		
-	basenew = ED_object_add_duplicate(bmain, scene, editbase, USER_DUP_MESH);   /* 0 = fully linked */
+	basenew = ED_object_add_duplicate(bmain, scene, editbase, USER_DUP_MESH);
+	/* DAG_scene_sort(bmain, scene); */ /* normally would call directly after but in this case delay recalc */
 	assign_matarar(basenew->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */
 
 	ED_base_object_select(basenew, BA_DESELECT);
@@ -2968,6 +2969,10 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
 	if (retval) {
 		BMEditMesh *em = BMEdit_FromObject(base->object);
+
+		/* delay depsgraph recalc until all objects are duplicated */
+		DAG_scene_sort(bmain, scene);
+
 		EDBM_update_generic(C, em, TRUE);
 
 		return OPERATOR_FINISHED;

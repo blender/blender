@@ -29,7 +29,6 @@
  *  \ingroup edtransform
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,9 +36,9 @@
 #include <float.h>
 
 #ifndef WIN32
-#include <unistd.h>
+#  include <unistd.h>
 #else
-#include <io.h>
+#  include <io.h>
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -89,10 +88,6 @@
 #include "BLI_array.h"
 
 #include "UI_resources.h"
-
-//#include "blendef.h"
-//
-//#include "mydevice.h"
 
 #include "transform.h"
 
@@ -174,8 +169,14 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 
 		if (t->options & CTX_MASK) {
 			/* clamp w/h, mask only */
-			divx = divy = maxf(divx, divy);
-			mulx = muly = minf(mulx, muly);
+			if (mulx / divx < muly / divy) {
+				divx = divy = divx;
+				mulx = muly = mulx;
+			}
+			else {
+				divx = divy = divy;
+				mulx = muly = muly;
+			}
 		}
 
 		r_vec[0] = mulx * (dx) / divx;

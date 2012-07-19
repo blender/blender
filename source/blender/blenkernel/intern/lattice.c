@@ -29,8 +29,6 @@
  *  \ingroup bke
  */
 
-
-
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -65,7 +63,6 @@
 
 #include "BKE_deform.h"
 
-//XXX #include "BIF_editdeform.h"
 
 void calc_lat_fudu(int flag, int res, float *fu, float *du)
 {

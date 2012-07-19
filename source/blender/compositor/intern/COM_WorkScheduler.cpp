@@ -95,7 +95,9 @@ void ** g_highlightedNodesRead;
 		} \
 	} \
 }
-void COM_startReadHighlights() {
+
+void COM_startReadHighlights()
+{
 	if (g_highlightedNodesRead) {
 		delete [] g_highlightedNodesRead;
 	}
@@ -108,7 +110,8 @@ void COM_startReadHighlights() {
 	}
 }
 
-int COM_isHighlightedbNode(bNode* bnode) {
+int COM_isHighlightedbNode(bNode* bnode)
+{
 	if (!g_highlightedNodesRead) return false;
 	for (int i = 0 ; i < MAX_HIGHLIGHT; i++) {
 		void* p = g_highlightedNodesRead[i];

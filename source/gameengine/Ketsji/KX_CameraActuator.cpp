@@ -192,10 +192,10 @@ static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
 		mat[coz][2] = 0.0f;
 	}
 	
-	inp= mat[coz][2];
-	mat[coy][0]= - inp*mat[coz][0];
-	mat[coy][1]= - inp*mat[coz][1];
-	mat[coy][2]= 1.0 - inp*mat[coz][2];
+	inp = mat[coz][2];
+	mat[coy][0] =      - inp * mat[coz][0];
+	mat[coy][1] =      - inp * mat[coz][1];
+	mat[coy][2] = 1.0f - inp * mat[coz][2];
 
 	if (Kx_Normalize((float *)mat[coy]) == 0.f) {
 		/* the camera is vertical, chose the y axis arbitrary */
@@ -260,7 +260,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	/* C2: blender test_visibility function. Can this be a ray-test?         */
 
 	/* C3: fixed height  */
-	from[2] = (15.0*from[2] + lookat[2] + m_height)/16.0;
+	from[2] = (15.0f * from[2] + lookat[2] + m_height) / 16.0f;
 
 
 	/* C4: camera behind actor   */
@@ -310,22 +310,22 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 			break;
 	}
 	
-	inp= fp1[0]*fp2[0] + fp1[1]*fp2[1] + fp1[2]*fp2[2];
-	fac= (-1.0 + inp) * m_damping;
+	inp = fp1[0]*fp2[0] + fp1[1]*fp2[1] + fp1[2]*fp2[2];
+	fac = (-1.0f + inp) * m_damping;
 
 	from[0]+= fac*fp1[0];
 	from[1]+= fac*fp1[1];
 	from[2]+= fac*fp1[2];
 	
 	/* alleen alstie ervoor ligt: cross testen en loodrechte bijtellen */
-	if (inp<0.0) {
-		if (fp1[0]*fp2[1] - fp1[1]*fp2[0] > 0.0) {
-			from[0]-= fac*fp1[1];
-			from[1]+= fac*fp1[0];
+	if (inp < 0.0f) {
+		if (fp1[0] * fp2[1] - fp1[1] * fp2[0] > 0.0f) {
+			from[0] -= fac * fp1[1];
+			from[1] += fac * fp1[0];
 		}
 		else {
-			from[0]+= fac*fp1[1];
-			from[1]-= fac*fp1[0];
+			from[0] += fac * fp1[1];
+			from[1] -= fac * fp1[0];
 		}
 	}
 
@@ -334,17 +334,17 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	rc[0]= (lookat[0]-from[0]);
 	rc[1]= (lookat[1]-from[1]);
 	rc[2]= (lookat[2]-from[2]);
-	distsq= rc[0]*rc[0] + rc[1]*rc[1] + rc[2]*rc[2];
+	distsq = rc[0]*rc[0] + rc[1]*rc[1] + rc[2]*rc[2];
 
 	if (distsq > maxdistsq) {
-		distsq = 0.15*(distsq-maxdistsq)/distsq;
+		distsq = 0.15f * (distsq - maxdistsq) / distsq;
 		
 		from[0] += distsq*rc[0];
 		from[1] += distsq*rc[1];
 		from[2] += distsq*rc[2];
 	}
 	else if (distsq < mindistsq) {
-		distsq = 0.15*(mindistsq-distsq)/mindistsq;
+		distsq = 0.15f * (mindistsq - distsq) / mindistsq;
 		
 		from[0] -= distsq*rc[0];
 		from[1] -= distsq*rc[1];

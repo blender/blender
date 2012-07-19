@@ -383,8 +383,7 @@ void KX_BlenderRenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 			glAccum(GL_LOAD, 1.0);
 			rasterizer->SetMotionBlurState(2);
 		}
-		else if (motionblurvalue>=0.0 && motionblurvalue<=1.0)
-		{
+		else if (motionblurvalue >= 0.0f && motionblurvalue <= 1.0f) {
 			glAccum(GL_MULT, motionblurvalue);
 			glAccum(GL_ACCUM, 1-motionblurvalue);
 			glAccum(GL_RETURN, 1.0);

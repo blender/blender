@@ -133,15 +133,15 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 			}
 			CTX_DATA_END;
 
+			if (is_cycle) {
+				BKE_report(op->reports, RPT_WARNING, "Skipped some groups because of cycle detected");
+			}
+
 			DAG_scene_sort(bmain, scene);
 			WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 
 			return OPERATOR_FINISHED;
 		}
-	}
-
-	if (is_cycle) {
-		BKE_report(op->reports, RPT_WARNING, "Skipped some groups because of cycle detected");
 	}
 
 	return OPERATOR_CANCELLED;

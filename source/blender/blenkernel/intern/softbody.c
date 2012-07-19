@@ -78,9 +78,8 @@ variables on the UI for now
 #include "BKE_DerivedMesh.h"
 #include "BKE_pointcache.h"
 #include "BKE_deform.h"
-#include "BKE_mesh.h" 
-//XXX #include  "BIF_editdeform.h"
-//XXX #include  "BIF_graphics.h"
+#include "BKE_mesh.h"
+
 #include  "PIL_time.h"
 // #include  "ONL_opennl.h" remove linking to ONL for now
 

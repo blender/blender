@@ -36,6 +36,10 @@ class MESH_OT_delete_edgeloop(Operator):
     bl_idname = "mesh.delete_edgeloop"
     bl_label = "Delete Edge Loop"
 
+    @classmethod
+    def poll(cls, context):
+        return bpy.ops.transform.edge_slide.poll()
+
     def execute(self, context):
         if 'FINISHED' in bpy.ops.transform.edge_slide(value=1.0):
             bpy.ops.mesh.select_more()
