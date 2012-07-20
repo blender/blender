@@ -30,7 +30,6 @@
 
 #include "DNA_scene_types.h"
 
-
 #ifdef USE_RASKTER
 
 extern "C" {
@@ -140,13 +139,10 @@ MaskOperation::MaskOperation() : NodeOperation()
 	this->m_maskHeight = 0;
 	this->m_framenumber = 0;
 	this->m_rasterMaskHandle = NULL;
-	setComplex(true);
 }
 
 void MaskOperation::initExecution()
 {
-	initMutex();
-
 	if (this->m_mask) {
 		if (this->m_rasterMaskHandle == NULL) {
 			const int width = this->getWidth();
@@ -165,14 +161,6 @@ void MaskOperation::deinitExecution()
 		BKE_maskrasterize_handle_free(this->m_rasterMaskHandle);
 		this->m_rasterMaskHandle = NULL;
 	}
-
-	deinitMutex();
-}
-
-void *MaskOperation::initializeTileData(rcti *rect)
-{
-	/* pass */
-	return NULL;
 }
 
 void MaskOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
@@ -193,7 +181,7 @@ void MaskOperation::determineResolution(unsigned int resolution[], unsigned int 
 	}
 }
 
-void MaskOperation::executePixel(float *color, int x, int y, void *data)
+void MaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	const float xy[2] = {x / (float)this->m_maskWidth, y / (float)this->m_maskHeight};
 	if (this->m_rasterMaskHandle) {

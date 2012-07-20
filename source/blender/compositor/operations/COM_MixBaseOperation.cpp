@@ -32,6 +32,7 @@ MixBaseOperation::MixBaseOperation() : NodeOperation()
 	this->m_inputColor1Operation = NULL;
 	this->m_inputColor2Operation = NULL;
 	this->setUseValueAlphaMultiply(false);
+	this->setUseClamp(false);
 }
 
 void MixBaseOperation::initExecution()

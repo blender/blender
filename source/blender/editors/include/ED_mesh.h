@@ -104,14 +104,14 @@ struct BMFace *EDBM_face_at_index(struct BMEditMesh *em, int index);
 void EDBM_select_more(struct BMEditMesh *em);
 void EDBM_select_less(struct BMEditMesh *em);
 
-void EDBM_selectmode_flush_ex(struct BMEditMesh *em, int selectmode);
+void EDBM_selectmode_flush_ex(struct BMEditMesh *em, const short selectmode);
 void EDBM_selectmode_flush(struct BMEditMesh *em);
 
 void EDBM_deselect_flush(struct BMEditMesh *em);
 void EDBM_select_flush(struct BMEditMesh *em);
 
 void EDBM_selectmode_set(struct BMEditMesh *em);
-void EDBM_selectmode_convert(struct BMEditMesh *em, short oldmode, short selectmode);
+void EDBM_selectmode_convert(struct BMEditMesh *em, short oldmode, const short selectmode);
 void undo_push_mesh(struct bContext *C, const char *name);
 
 int  EDBM_vert_color_check(struct BMEditMesh *em);
