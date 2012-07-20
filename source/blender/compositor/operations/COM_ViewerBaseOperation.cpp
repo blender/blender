@@ -47,13 +47,10 @@ ViewerBaseOperation::ViewerBaseOperation() : NodeOperation()
 	this->m_outputBufferDisplay = NULL;
 	this->m_active = false;
 	this->m_doColorManagement = true;
-	this->m_partialBufferUpdate = NULL;
 }
 
 void ViewerBaseOperation::initExecution()
 {
-	this->m_partialBufferUpdate = NULL;
-
 	if (isActiveViewerOutput()) {
 		initImage();
 	}
@@ -77,36 +74,35 @@ void ViewerBaseOperation::initImage()
 		imb_addrectfloatImBuf(ibuf);
 		anImage->ok = IMA_OK_LOADED;
 
+		IMB_display_buffer_invalidate(ibuf);
+
 		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 	}
-
-	this->m_partialBufferUpdate = IMB_partial_buffer_update_context_new(ibuf);
 
 	/* now we combine the input with ibuf */
 	this->m_outputBuffer = ibuf->rect_float;
 	this->m_outputBufferDisplay = (unsigned char *)ibuf->rect;
 
+	/* needed for display buffer update
+	 *
+	 * no need to lock / reference the image buffer because it's seems
+	 * to be the single place which changes buffers of viewer image
+	 * which is this node
+	 */
+	this->m_ibuf = ibuf;
+
 	BKE_image_release_ibuf(this->m_image, this->m_lock);
 }
 void ViewerBaseOperation:: updateImage(rcti *rect)
 {
-	IMB_partial_buffer_update_rect(this->m_partialBufferUpdate, this->m_outputBuffer, rect);
+	IMB_partial_display_buffer_update(this->m_ibuf, this->m_outputBuffer, getWidth(), 0, 0,
+	                                  rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
 }
 
 void ViewerBaseOperation::deinitExecution()
 {
-	if (this->m_partialBufferUpdate) {
-		/* partial buffer context could be NULL if it's not active viewer node */
-
-		ImBuf *ibuf = BKE_image_acquire_ibuf(this->m_image, this->m_imageUser, &this->m_lock);
-
-		IMB_partial_buffer_update_free(this->m_partialBufferUpdate, ibuf);
-
-		BKE_image_release_ibuf(this->m_image, this->m_lock);
-	}
-
 	this->m_outputBuffer = NULL;
 }
 

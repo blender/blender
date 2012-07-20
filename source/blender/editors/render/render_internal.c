@@ -61,6 +61,7 @@
 #include "ED_object.h"
 
 #include "RE_pipeline.h"
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -150,6 +151,9 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	IMB_buffer_byte_from_float(rectc, rectf,
 	                           4, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,
 	                           xmax, ymax, ibuf->x, rr->rectx);
+
+	IMB_partial_display_buffer_update(ibuf, rectf, rr->rectx, rxmin, rymin,
+	                                  rxmin, rymin, rxmin + xmax - 1, rymin + ymax - 1);
 }
 
 /* ****************************** render invoking ***************** */

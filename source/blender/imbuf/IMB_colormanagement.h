@@ -92,8 +92,8 @@ void IMB_colormanagement_view_items_add(struct EnumPropertyItem **items, int *to
 void IMB_colormanagement_colorspace_items_add(struct EnumPropertyItem **items, int *totitem);
 
 /* Tile-based buffer management */
-struct PartialBufferUpdateContext *IMB_partial_buffer_update_context_new(struct ImBuf *ibuf);
-void IMB_partial_buffer_update_rect(struct PartialBufferUpdateContext *context, const float *linear_buffer, struct rcti *rect);
-void IMB_partial_buffer_update_free(struct PartialBufferUpdateContext *context, struct ImBuf *ibuf);
+void IMB_partial_display_buffer_update(struct ImBuf *ibuf, const float *linear_buffer,
+                                       int stride, int offset_x, int offset_y,
+                                       int xmin, int ymin, int xmax, int ymax);
 
 #endif // IMB_COLORMANAGEMENT_H

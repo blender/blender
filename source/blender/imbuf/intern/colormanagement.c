@@ -70,6 +70,8 @@
 /* define this to allow byte buffers be color managed */
 #undef COLORMANAGE_BYTE_BUFFER
 
+#define ACES_ODT_TONECORVE "ACES ODT Tonecurve"
+
 /* ** list of all supported color spaces, displays and views */
 #ifdef WITH_OCIO
 static char global_role_scene_linear[64];
@@ -224,7 +226,7 @@ static int colormanage_hashcmp(const void *av, const void *bv)
 static struct MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 {
 	if (!ibuf->colormanage_cache) {
-		ibuf->colormanage_cache = MEM_callocN(sizeof(ColormanageCache), "imbuf colormanage ca cache");
+		ibuf->colormanage_cache = MEM_callocN(sizeof(ColormanageCache), "imbuf colormanage cache");
 	}
 
 	if (!ibuf->colormanage_cache->moviecache) {
@@ -242,7 +244,7 @@ static struct MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 static void colormanage_cachedata_set(ImBuf *ibuf, ColormnaageCacheData *data)
 {
 	if (!ibuf->colormanage_cache) {
-		ibuf->colormanage_cache = MEM_callocN(sizeof(ColormanageCache), "imbuf colormanage ca cache");
+		ibuf->colormanage_cache = MEM_callocN(sizeof(ColormanageCache), "imbuf colormanage cache");
 	}
 
 	ibuf->colormanage_cache->data = data;
@@ -324,8 +326,10 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 		cache_data = colormanage_cachedata_get(cache_ibuf);
 
 		if (cache_data->exposure != view_settings->exposure ||
-			cache_data->gamma != view_settings->gamma)
+		    cache_data->gamma != view_settings->gamma)
 		{
+			*cache_handle = NULL;
+
 			IMB_freeImBuf(cache_ibuf);
 
 			return NULL;
@@ -371,20 +375,12 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 	IMB_moviecache_put(moviecache, &key, cache_ibuf);
 }
 
-/* validation function checks whether there's buffer with given display transform
- * in the cache and if so, check whether it matches resolution of source buffer.
- * if resolution is different new buffer would be put into the cache and it'll
- * be returned as a result
- *
- * this function does not check exposure / gamma because currently it's only
- * used by partial buffer update functions which uses the same exposure / gamma
- * settings as cached buffer had
- */
-static unsigned char *colormanage_cache_get_validated(ImBuf *ibuf, const ColormanageCacheViewSettings *view_settings,
-                                                      const ColormanageCacheDisplaySettings *display_settings,
-                                                      void **cache_handle)
+static unsigned char *colormanage_cache_get_cache_data(ImBuf *ibuf, const ColormanageCacheViewSettings *view_settings,
+                                                       const ColormanageCacheDisplaySettings *display_settings,
+                                                       void **cache_handle, float *exposure, float *gamma)
 {
 	ColormanageCacheKey key;
+	ColormnaageCacheData *cache_data;
 	ImBuf *cache_ibuf;
 
 	colormanage_settings_to_key(&key, view_settings, display_settings);
@@ -392,43 +388,15 @@ static unsigned char *colormanage_cache_get_validated(ImBuf *ibuf, const Colorma
 	cache_ibuf = colormanage_cache_get_ibuf(ibuf, &key, cache_handle);
 
 	if (cache_ibuf) {
-		if (cache_ibuf->x != ibuf->x || cache_ibuf->y != ibuf->y) {
-			ColormanageCacheViewSettings new_view_settings = *view_settings;
-			ColormnaageCacheData *cache_data;
-			unsigned char *display_buffer;
-			int buffer_size;
+		cache_data = colormanage_cachedata_get(cache_ibuf);
 
-			/* use the same settings as original cached buffer  */
-			cache_data = colormanage_cachedata_get(cache_ibuf);
-			new_view_settings.exposure = cache_data->exposure;
-			new_view_settings.gamma = cache_data->gamma;
-
-			buffer_size = ibuf->channels * ibuf->x * ibuf->y * sizeof(float);
-			display_buffer = MEM_callocN(buffer_size, "imbuf validated display buffer");
-
-			colormanage_cache_put(ibuf, &new_view_settings, display_settings, display_buffer, cache_handle);
-
-			IMB_freeImBuf(cache_ibuf);
-
-			return display_buffer;
-		}
+		*exposure = cache_data->exposure;
+		*gamma = cache_data->gamma;
 
 		return (unsigned char *) cache_ibuf->rect;
 	}
 
 	return NULL;
-}
-
-/* return view settings which are stored in cached buffer, not in key itself */
-static void colormanage_cache_get_cache_data(void *cache_handle, float *exposure, float *gamma)
-{
-	ImBuf *cache_ibuf = (ImBuf *) cache_handle;
-	ColormnaageCacheData *cache_data;
-
-	cache_data = colormanage_cachedata_get(cache_ibuf);
-
-	*exposure = cache_data->exposure;
-	*gamma = cache_data->gamma;
 }
 #endif
 
@@ -600,7 +568,7 @@ void IMB_colormanagement_init(void)
 	OCIO_configRelease(config);
 
 	/* special views, which does not depend on OCIO  */
-	colormanage_view_add("ACES ODT Tonecurve");
+	colormanage_view_add(ACES_ODT_TONECORVE);
 #endif
 }
 
@@ -940,7 +908,7 @@ static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *displ
 {
 	const char *view_transform = view_settings->view_transform;
 
-	if (!strcmp(view_transform, "ACES ODT Tonecurve")) {
+	if (!strcmp(view_transform, ACES_ODT_TONECORVE)) {
 		/* special case for Mango team, this does not actually apply
 		 * any input space -> display space conversion and just applies
 		 * a tonecurve for better linear float -> sRGB byte conversion
@@ -1106,8 +1074,18 @@ static void colormanage_flags_allocate(ImBuf *ibuf)
 
 static void imbuf_verify_float(ImBuf *ibuf)
 {
+	/* multiple threads could request for display buffer at once and in case
+	 * view transform is not used it'll lead to display buffer calculated
+	 * several times
+	 * it is harmless, but would take much more time (assuming thread lock
+	 * happens faster than running float->byte conversion for average image)
+	 */
+	BLI_lock_thread(LOCK_COLORMANAGE);
+
 	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)))
 		IMB_rect_from_float(ibuf);
+
+	BLI_unlock_thread(LOCK_COLORMANAGE);
 }
 
 /*********************** Public display buffers interfaces *************************/
@@ -1180,6 +1158,8 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		colormanage_view_settings_to_cache(&cache_view_settings, view_settings);
 		colormanage_display_settings_to_cache(&cache_display_settings, display_settings);
 
+		BLI_lock_thread(LOCK_COLORMANAGE);
+
 		/* ensure color management bit fields exists */
 		if (!ibuf->display_buffer_flags)
 			colormanage_flags_allocate(ibuf);
@@ -1187,6 +1167,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		display_buffer = colormanage_cache_get(ibuf, &cache_view_settings, &cache_display_settings, cache_handle);
 
 		if (display_buffer) {
+			BLI_unlock_thread(LOCK_COLORMANAGE);
 			return display_buffer;
 		}
 
@@ -1196,6 +1177,8 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		colormanage_display_buffer_process(ibuf, display_buffer, view_settings, display_settings);
 
 		colormanage_cache_put(ibuf, &cache_view_settings, &cache_display_settings, display_buffer, cache_handle);
+
+		BLI_unlock_thread(LOCK_COLORMANAGE);
 
 		return display_buffer;
 	}
@@ -1249,7 +1232,11 @@ void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSetting
 void IMB_display_buffer_release(void *cache_handle)
 {
 	if (cache_handle) {
+		BLI_lock_thread(LOCK_COLORMANAGE);
+
 		colormanage_cache_handle_release(cache_handle);
+
+		BLI_unlock_thread(LOCK_COLORMANAGE);
 	}
 }
 
@@ -1744,7 +1731,7 @@ void IMB_colormanagement_view_items_add(EnumPropertyItem **items, int *totitem, 
 	ColorManagedView *view;
 
 	/* OCIO_TODO: try to get rid of such a hackish stuff */
-	view = colormanage_view_get_named("ACES ODT Tonecurve");
+	view = colormanage_view_get_named(ACES_ODT_TONECORVE);
 	if (view) {
 		colormanagement_view_item_add(items, totitem, view);
 	}
@@ -1784,68 +1771,83 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
 /*********************** Partial display buffer update  *************************/
 
 /*
- * Partial display update is supposed to be used by such areas as compositor,
- * which re-calculates parts of the images and requires updating only
- * specified areas of buffers to provide better visual feedback.
+ * Partial display update is supposed to be used by such areas as
+ * compositor and renderer, This areas are calculating tiles of the
+ * images and because of performance reasons only this tiles should
+ * be color managed when they finished to be calculated. This gives
+ * nice visual feedback without slowing things down.
  *
- * To achieve this special context is being constructed. This context is
- * holding all buffers which were color managed and transformations which
- * need to be applied on this buffers to make them valid.
- *
- * Updating happens for all buffers from this context using given linear
- * float buffer and rectangle area which shall be updated.
- *
- * Updating every rectangle is thread-save operation due to buffers are
- * referenced by the context, so they shouldn't have been deleted
- * during execution.
+ * Updating happens for all display buffers generated for given
+ * ImBuf at the time function is being called.
  */
 
-typedef struct PartialBufferUpdateItem {
-	struct PartialBufferUpdateItem *next, *prev;
-
-	unsigned char *display_buffer;
-	void *cache_handle;
-
-	int display, view;
-
 #ifdef WITH_OCIO
-	ConstProcessorRcPtr *processor;
+static void partial_buffer_update_rect(unsigned char *display_buffer, const float *linear_buffer, int display_stride,
+									   int linear_stride, int linear_offset_x, int linear_offset_y,
+									   int channels, int dither, int predivide,
+									   ConstProcessorRcPtr *processor, imb_tonecurveCb tonecurve_func,
+									   int xmin, int ymin, int xmax, int ymax)
+{
+	int x, y;
+
+	for (y = ymin; y <= ymax; y++) {
+		for (x = xmin; x <= xmax; x++) {
+			int display_index = (y * display_stride + x) * channels;
+			int linear_index = ((y - linear_offset_y) * linear_stride + (x - linear_offset_x)) * channels;
+			float pixel[4];
+
+			if (processor) {
+				copy_v4_v4(pixel, (float *) linear_buffer + linear_index);
+
+				OCIO_processorApplyRGBA(processor, pixel);
+
+				rgba_float_to_uchar(display_buffer + display_index, pixel);
+			}
+			else {
+				IMB_buffer_byte_from_float_tonecurve(display_buffer + display_index, linear_buffer + linear_index,
+				                                     channels, dither, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
+				                                     predivide, 1, 1, 1, 1, tonecurve_func);
+			}
+		}
+	}
+}
 #endif
 
-	imb_tonecurveCb tonecurve_func;
-} PartialBufferUpdateItem;
-
-typedef struct PartialBufferUpdateContext {
-	int buffer_width;
-	int dither, predivide;
-
-	ListBase items;
-} PartialBufferUpdateContext;
-
-PartialBufferUpdateContext *IMB_partial_buffer_update_context_new(ImBuf *ibuf)
+void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer,
+                                       int stride, int offset_x, int offset_y,
+                                       int xmin, int ymin, int xmax, int ymax)
 {
-	PartialBufferUpdateContext *context = NULL;
-
 #ifdef WITH_OCIO
 	int display;
 
-	context = MEM_callocN(sizeof(PartialBufferUpdateContext), "partial buffer update context");
+	int *display_buffer_flags;
 
-	context->buffer_width = ibuf->x;
+	int buffer_width = ibuf->x;
+	int channels = ibuf->channels;
+	int predivide = ibuf->flags & IB_cm_predivide;
+	int dither = ibuf->dither;
 
-	context->predivide = ibuf->flags & IB_cm_predivide;
-	context->dither = ibuf->dither;
+	BLI_lock_thread(LOCK_COLORMANAGE);
 
 	if (!ibuf->display_buffer_flags) {
 		/* there's no cached display buffers, so no need to iterate though bit fields */
-		return context;
+		BLI_unlock_thread(LOCK_COLORMANAGE);
+
+		return;
 	}
+
+	/* make a copy of flags, so other areas could calculate new display buffers
+	 * and they'll be properly handled later
+	 */
+	display_buffer_flags = MEM_dupallocN(ibuf->display_buffer_flags);
+
+	BLI_unlock_thread(LOCK_COLORMANAGE);
 
 	for (display = 0; display < global_tot_display; display++) {
 		ColormanageCacheDisplaySettings display_settings = {0};
 		int display_index = display + 1; /* displays in configuration are 1-based */
 		const char *display_name = IMB_colormanagement_display_get_indexed_name(display_index);
-		int view_flags = ibuf->display_buffer_flags[display];
+		int view_flags = display_buffer_flags[display];
 		int view = 0;
 
 		display_settings.display = display_index;
@@ -1856,116 +1858,50 @@ PartialBufferUpdateContext *IMB_partial_buffer_update_context_new(ImBuf *ibuf)
 				unsigned char *display_buffer;
 				void *cache_handle;
 				int view_index = view + 1; /* views in configuration are 1-based */
+				float exposure, gamma;
 
 				view_settings.view = view_index;
 
-				display_buffer =
-					colormanage_cache_get_validated(ibuf, &view_settings, &display_settings, &cache_handle);
+				BLI_lock_thread(LOCK_COLORMANAGE);
+				display_buffer = colormanage_cache_get_cache_data(ibuf, &view_settings, &display_settings,
+				                                                  &cache_handle, &exposure, &gamma);
+				BLI_unlock_thread(LOCK_COLORMANAGE);
 
 				if (display_buffer) {
-					PartialBufferUpdateItem *item;
 					const char *view_name = IMB_colormanagement_view_get_indexed_name(view_index);
-					float exposure, gamma;
+					ConstProcessorRcPtr *processor = NULL;
+					imb_tonecurveCb tonecurve_func = NULL;
 
-					colormanage_cache_get_cache_data(cache_handle, &exposure, &gamma);
-
-					item = MEM_callocN(sizeof(PartialBufferUpdateItem), "partial buffer update item");
-
-					item->display_buffer = display_buffer;
-					item->cache_handle = cache_handle;
-					item->display = display_index;
-					item->view = view_index;
-
-					if (!strcmp(view_name, "ACES ODT Tonecurve")) {
-						item->tonecurve_func = IMB_ratio_preserving_odt_tonecurve;
+					if (!strcmp(view_name, ACES_ODT_TONECORVE)) {
+						tonecurve_func = IMB_ratio_preserving_odt_tonecurve;
 					}
 					else {
-						ConstProcessorRcPtr *processor;
-
 						processor = create_display_buffer_processor(view_name, display_name, exposure, gamma);
-
-						item->processor = processor;
 					}
 
-					BLI_addtail(&context->items, item);
+					partial_buffer_update_rect(display_buffer, linear_buffer, buffer_width, stride,
+                                               offset_x, offset_y, channels, dither, predivide,
+                                               processor, tonecurve_func, xmin, ymin, xmax, ymax);
+
+					if (processor)
+						OCIO_processorRelease(processor);
 				}
+
+				IMB_display_buffer_release(cache_handle);
 			}
 
 			view_flags /= 2;
 			view++;
 		}
 	}
+
+	MEM_freeN(display_buffer_flags);
 #else
 	(void) ibuf;
-#endif
-
-	return context;
-}
-
-void IMB_partial_buffer_update_rect(PartialBufferUpdateContext *context, const float *linear_buffer, struct rcti *rect)
-{
-#ifdef WITH_OCIO
-	PartialBufferUpdateItem *item;
-
-	for (item = context->items.first; item; item = item->next) {
-		if (item->processor || item->tonecurve_func) {
-			unsigned char *display_buffer = item->display_buffer;
-			int x, y;
-
-			for (y = rect->ymin; y < rect->ymax; y++) {
-				for (x = rect->xmin; x < rect->xmax; x++) {
-					int index = (y * context->buffer_width + x) * 4;
-					float pixel[4];
-
-					if (item->processor) {
-						copy_v4_v4(pixel, (float *)linear_buffer + index);
-
-						OCIO_processorApplyRGBA(item->processor, pixel);
-
-						rgba_float_to_uchar(display_buffer + index, pixel);
-					}
-					else {
-						IMB_buffer_byte_from_float_tonecurve(display_buffer + index, linear_buffer + index,
-						                                     4, context->dither, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
-						                                     context->predivide, 1, 1, 1, 1, item->tonecurve_func);
-					}
-				}
-			}
-		}
-	}
-#else
-	(void) context;
 	(void) linear_buffer;
-	(void) rect;
-#endif
-}
-
-void IMB_partial_buffer_update_free(PartialBufferUpdateContext *context, ImBuf *ibuf)
-{
-#ifdef WITH_OCIO
-	PartialBufferUpdateItem *item;
-
-	IMB_display_buffer_invalidate(ibuf);
-
-	item = context->items.first;
-	while (item) {
-		PartialBufferUpdateItem *item_next = item->next;
-
-		/* displays are 1-based, need to go to 0-based arrays indices */
-		ibuf->display_buffer_flags[item->display - 1] |= (1 << (item->view - 1));
-
-		colormanage_cache_handle_release(item->cache_handle);
-
-		OCIO_processorRelease(item->processor);
-
-		MEM_freeN(item);
-
-		item = item_next;
-	}
-
-	MEM_freeN(context);
-#else
-	(void) context;
-	(void) ibuf;
+	(void) xmin;
+	(void) ymin;
+	(void) xmax;
+	(void) ymax;
 #endif
 }

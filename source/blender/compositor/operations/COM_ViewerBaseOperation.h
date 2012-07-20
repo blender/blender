@@ -39,8 +39,8 @@ protected:
 	OrderOfChunks m_chunkOrder;
 	bool m_doColorManagement;
 	bool m_doColorPredivide;
+	ImBuf *m_ibuf;
 
-	struct PartialBufferUpdateContext *m_partialBufferUpdate;
 public:
 	bool isOutputOperation(bool rendering) const { return isActiveViewerOutput(); }
 	void initExecution();
