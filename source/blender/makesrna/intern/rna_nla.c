@@ -357,6 +357,43 @@ static void rna_NlaStrip_remove(NlaTrack *track, bContext *C, ReportList *report
 	}
 }
 
+/* Set the 'solo' setting for the given NLA-track, making sure that it is the only one
+ * that has this status in its AnimData block.
+ */
+void rna_NlaTrack_solo_set(PointerRNA *ptr, int value)
+{
+	NlaTrack *data = (NlaTrack*)ptr->data;
+	AnimData *adt = BKE_animdata_from_id(ptr->id.data);
+	NlaTrack *nt;
+
+	if (data == NULL) {
+		return;
+	}
+	
+	/* firstly, make sure 'solo' flag for all tracks is disabled */
+	for (nt = data; nt; nt = nt->next) {
+		nt->flag &= ~NLATRACK_SOLO;
+	}
+	for (nt = data; nt; nt = nt->prev) {
+		nt->flag &= ~NLATRACK_SOLO;
+	}
+		
+	/* now, enable 'solo' for the given track if appropriate */
+	if (value) {
+		/* set solo status */
+		data->flag |= NLATRACK_SOLO;
+		
+		/* set solo-status on AnimData */
+		adt->flag |= ADT_NLA_SOLO_TRACK;
+	}
+	else {
+		/* solo status was already cleared on track */
+
+		/* clear solo-status on AnimData */
+		adt->flag &= ~ADT_NLA_SOLO_TRACK;
+	}
+}
+
 #else
 
 /* enum defines exported for rna_animation.c */
@@ -637,13 +674,13 @@ static void rna_def_nlatrack(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "is_solo", PROP_BOOLEAN, PROP_NONE);
 	/* can be made editable by hooking it up to the necessary NLA API methods */
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_SOLO);
 	RNA_def_property_ui_text(prop, "Solo",
 	                         "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the "
 	                         "same AnimData block are disabled)");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */
-	
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_NlaTrack_solo_set");
+
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_SELECTED);
 	RNA_def_property_ui_text(prop, "Select", "NLA Track is selected");
