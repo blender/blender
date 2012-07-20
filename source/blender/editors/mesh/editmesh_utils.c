@@ -452,11 +452,9 @@ BMFace *EDBM_face_at_index(BMEditMesh *tm, int index)
 	return (tm->face_index && index < tm->bm->totface && index >= 0) ? tm->face_index[index] : NULL;
 }
 
-void EDBM_selectmode_flush_ex(BMEditMesh *em, int selectmode)
+void EDBM_selectmode_flush_ex(BMEditMesh *em, const short selectmode)
 {
-	em->bm->selectmode = selectmode;
-	BM_mesh_select_mode_flush(em->bm);
-	em->bm->selectmode = em->selectmode;
+	BM_mesh_select_mode_flush_ex(em->bm, selectmode);
 }
 
 void EDBM_selectmode_flush(BMEditMesh *em)
