@@ -1213,6 +1213,8 @@ static int separate_armature_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* 2) duplicate base */
 	newbase = ED_object_add_duplicate(bmain, scene, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
+	DAG_scene_sort(bmain, scene);
+
 	newob = newbase->object;
 	newbase->flag &= ~SELECT;
 	

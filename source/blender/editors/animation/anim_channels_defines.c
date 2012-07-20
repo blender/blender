@@ -852,7 +852,7 @@ static int acf_group_setting_flag(bAnimContext *ac, int setting, short *neg)
 			// *neg = 1; - if we change this to edtiability
 			return AGRP_PROTECTED;
 			
-		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
+		case ACHANNEL_SETTING_VISIBLE: /* visibility - graph editor */
 			*neg = 1;
 			return AGRP_NOTVISIBLE;
 	}
@@ -940,7 +940,7 @@ static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			// *neg = 1; - if we change this to edtiability
 			return FCURVE_PROTECTED;
 			
-		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
+		case ACHANNEL_SETTING_VISIBLE: /* visibility - graph editor */
 			return FCURVE_VISIBLE;
 			
 		default: /* unsupported */
@@ -2585,11 +2585,11 @@ static bAnimChannelType ACF_GPL =
 	acf_generic_channel_backdrop,   /* backdrop */
 	acf_generic_indention_flexible, /* indent level */
 	acf_generic_group_offset,       /* offset */
-
+	
 	acf_gpl_name,                   /* name */
 	acf_gpl_name_prop,              /* name prop */
 	NULL,                           /* icon */
-
+	
 	acf_gpl_setting_valid,          /* has setting */
 	acf_gpl_setting_flag,           /* flag for setting */
 	acf_gpl_setting_ptr             /* pointer for setting */
@@ -2619,7 +2619,7 @@ static short acf_mask_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNU
 		case ACHANNEL_SETTING_SELECT:
 		case ACHANNEL_SETTING_EXPAND:
 			return 1;
-
+		
 		default:
 			return 0;
 	}
@@ -2630,15 +2630,15 @@ static int acf_mask_setting_flag(bAnimContext *UNUSED(ac), int setting, short *n
 {
 	/* clear extra return data first */
 	*neg = 0;
-
+	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
 			return AGRP_SELECTED;
-
+		
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			return MASK_ANIMF_EXPAND;
 	}
-
+	
 	/* this shouldn't happen */
 	return 0;
 }
@@ -2647,7 +2647,7 @@ static int acf_mask_setting_flag(bAnimContext *UNUSED(ac), int setting, short *n
 static void *acf_mask_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
 {
 	Mask *mask = (Mask *)ale->data;
-
+	
 	/* all flags are just in mask->flag for now... */
 	return GET_ACF_FLAG_PTR(mask->flag, type);
 }
@@ -2656,16 +2656,16 @@ static void *acf_mask_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short
 static bAnimChannelType ACF_MASKDATA =
 {
 	"Mask Datablock",            /* type name */
-
+	
 	acf_mask_color,                  /* backdrop color */
 	acf_group_backdrop,             /* backdrop */
 	acf_generic_indention_0,        /* indent level */
 	acf_generic_group_offset,       /* offset */
-
+	
 	acf_generic_idblock_name,       /* name */
 	acf_generic_idfill_nameprop,    /* name prop */
 	acf_mask_icon,                   /* icon */
-
+	
 	acf_mask_setting_valid,          /* has setting */
 	acf_mask_setting_flag,           /* flag for setting */
 	acf_mask_setting_ptr             /* pointer for setting */
@@ -2677,7 +2677,7 @@ static bAnimChannelType ACF_MASKDATA =
 static void acf_masklay_name(bAnimListElem *ale, char *name)
 {
 	MaskLayer *masklay = (MaskLayer *)ale->data;
-
+	
 	if (masklay && name)
 		BLI_strncpy(name, masklay->name, ANIM_CHAN_NAME_SIZE);
 }
@@ -2688,7 +2688,7 @@ static short acf_masklay_name_prop(bAnimListElem *ale, PointerRNA *ptr, Property
 	if (ale->data) {
 		RNA_pointer_create(ale->id, &RNA_MaskLayer, ale->data, ptr);
 		*prop = RNA_struct_name_property(ptr->type);
-
+		
 		return (*prop != NULL);
 	}
 
@@ -2703,7 +2703,7 @@ static short acf_masklay_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *
 		case ACHANNEL_SETTING_EXPAND: /* mask layers are more like F-Curves than groups */
 		case ACHANNEL_SETTING_VISIBLE: /* graph editor only */
 			return 0;
-
+		
 		/* always available */
 		default:
 			return 1;
@@ -2715,18 +2715,18 @@ static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac), int setting, short
 {
 	/* clear extra return data first */
 	*neg = 0;
-
+	
 	switch (setting) {
 		case ACHANNEL_SETTING_SELECT: /* selected */
 			return MASK_LAYERFLAG_SELECT;
-
+		
 //		case ACHANNEL_SETTING_MUTE: /* muted */
 //			return GP_LAYER_HIDE;
-
+		
 		case ACHANNEL_SETTING_PROTECT: /* protected */
 			// *neg = 1; - if we change this to edtiability
 			return MASK_LAYERFLAG_LOCKED;
-
+		
 		default: /* unsupported */
 			return 0;
 	}
@@ -2780,17 +2780,17 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = NULL;              /* None */
 		animchannelTypeInfo[type++] = NULL;              /* AnimData */
 		animchannelTypeInfo[type++] = NULL;              /* Special */
-
+		
 		animchannelTypeInfo[type++] = &ACF_SUMMARY;      /* Motion Summary */
-
+		
 		animchannelTypeInfo[type++] = &ACF_SCENE;        /* Scene */
 		animchannelTypeInfo[type++] = &ACF_OBJECT;       /* Object */
 		animchannelTypeInfo[type++] = &ACF_GROUP;        /* Group */
 		animchannelTypeInfo[type++] = &ACF_FCURVE;       /* F-Curve */
-
+		
 		animchannelTypeInfo[type++] = &ACF_FILLACTD;     /* Object Action Expander */
 		animchannelTypeInfo[type++] = &ACF_FILLDRIVERS;  /* Drivers Expander */
-
+		
 		animchannelTypeInfo[type++] = &ACF_DSMAT;        /* Material Channel */
 		animchannelTypeInfo[type++] = &ACF_DSLAM;        /* Lamp Channel */
 		animchannelTypeInfo[type++] = &ACF_DSCAM;        /* Camera Channel */
@@ -2806,15 +2806,15 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_DSLAT;        /* Lattice Channel */
 		animchannelTypeInfo[type++] = &ACF_DSSPK;        /* Speaker Channel */
 		animchannelTypeInfo[type++] = &ACF_DSLINESTYLE;  /* LineStyle Channel */
-
+		
 		animchannelTypeInfo[type++] = &ACF_SHAPEKEY;     /* ShapeKey */
-
+		
 		animchannelTypeInfo[type++] = &ACF_GPD;          /* Grease Pencil Datablock */
 		animchannelTypeInfo[type++] = &ACF_GPL;          /* Grease Pencil Layer */
-
+		
 		animchannelTypeInfo[type++] = &ACF_MASKDATA;     /* Mask Datablock */
 		animchannelTypeInfo[type++] = &ACF_MASKLAYER;    /* Mask Layer */
-
+		
 		// TODO: these types still need to be implemented!!!
 		// probably need a few extra flags for these special cases...
 		animchannelTypeInfo[type++] = NULL;              /* NLA Track */

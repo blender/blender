@@ -53,7 +53,6 @@
 
 #include "BKE_context.h"
 
-
 #include "ED_image.h"
 #include "ED_view3d.h"
 
@@ -61,12 +60,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
-//#include "blendef.h"
-//
-//#include "mydevice.h"
-
 #include "UI_resources.h"
-
 
 #include "transform.h"
 

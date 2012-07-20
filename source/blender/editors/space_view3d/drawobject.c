@@ -2162,7 +2162,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 				/* make an int copy */
 				int s_int[2][2] = {{s[0][0], s[0][1]},
 				                   {s[1][0], s[1][1]}};
-				if (!BLI_segment_in_rcti(&data->win_rect, s_int[0], s_int[1])) {
+				if (!BLI_rcti_isect_segment(&data->win_rect, s_int[0], s_int[1])) {
 					return;
 				}
 			}
@@ -2859,7 +2859,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 	int pass;
 	unsigned char wireCol[4], selCol[4], actCol[4];
 
-	/* since this function does transparant... */
+	/* since this function does transparent... */
 	UI_GetThemeColor4ubv(TH_EDGE_SELECT, selCol);
 	UI_GetThemeColor4ubv(TH_WIRE, wireCol);
 	UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, actCol);
@@ -2870,7 +2870,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 		wireCol[3] = 0;
 
 	for (pass = 0; pass < 2; pass++) {
-		/* show wires in transparant when no zbuf clipping for select */
+		/* show wires in transparent when no zbuf clipping for select */
 		if (pass == 0) {
 			if (v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT) == 0) {
 				glEnable(GL_BLEND);

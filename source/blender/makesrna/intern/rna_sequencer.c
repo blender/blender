@@ -59,7 +59,7 @@ typedef struct EffectInfo {
 
 #ifdef RNA_RUNTIME
 
-/* build a temp referene to the parent */
+/* build a temp reference to the parent */
 static void meta_tmp_ref(Sequence *seq_par, Sequence *seq)
 {
 	for (; seq; seq = seq->next) {

@@ -93,7 +93,7 @@ typedef struct {
 	float ob_scale[3]; /* need temp space due to linked values */
 	float ob_dims[3];
 	short link_scale;
-	float ve_median[7];
+	float ve_median[9];
 	int curdef;
 	float *defweightp;
 } TransformProperties;
@@ -135,13 +135,13 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : NULL;
 	MDeformVert *dvert = NULL;
 	TransformProperties *tfp;
-	float median[7], ve_median[7];
-	int tot, totw, totweight, totedge, totradius;
+	float median[9], ve_median[9];
+	int tot, totw, totweight, totedge, totradius, totskinradius;
 	char defstr[320];
 	PointerRNA radius_ptr;
 
-	median[0] = median[1] = median[2] = median[3] = median[4] = median[5] = median[6] = 0.0;
-	tot = totw = totweight = totedge = totradius = 0;
+	median[0] = median[1] = median[2] = median[3] = median[4] = median[5] = median[6] = median[7] = median[8] = 0.0;
+	tot = totw = totweight = totedge = totradius = totskinradius = 0;
 	defstr[0] = 0;
 
 	/* make sure we got storage */
@@ -159,9 +159,17 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+				MVertSkin *vs;
+
 				evedef = eve;
 				tot++;
 				add_v3_v3(median, eve->co);
+
+				vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MVERT_SKIN);
+				if (vs) {
+					add_v2_v2(median + 7, vs->radius); /* Third val not used currently. */
+					totskinradius++;
+				}
 			}
 		}
 
@@ -304,6 +312,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		median[4] /= (float)totweight;
 	if (totradius)
 		median[5] /= (float)totradius;
+	if (totskinradius) {
+		median[7] /= (float)totskinradius;
+		median[8] /= (float)totskinradius;
+	}
 
 	if (v3d->flag & V3D_GLOBAL_STATS)
 		mul_m4_v3(ob->obmat, median);
@@ -373,6 +385,23 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			          &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, TIP_("Radius of curve control points"));
 		}
 
+		if (totskinradius == 1) {
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Radius X:"),
+			          0, yi -= buth + but_margin, 200, buth,
+			          &(tfp->ve_median[7]), 0.0, 100.0, 1, 3, TIP_("X radius used by Skin modifier"));
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Radius Y:"),
+			          0, yi -= buth + but_margin, 200, buth,
+			          &(tfp->ve_median[8]), 0.0, 100.0, 1, 3, TIP_("Y radius used by Skin modifier"));
+		}
+		else if (totskinradius > 1) {
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Radius X:"),
+			          0, yi -= buth + but_margin, 200, buth,
+			          &(tfp->ve_median[7]), 0.0, 100.0, 1, 3, TIP_("Median X radius used by Skin modifier"));
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Radius Y:"),
+			          0, yi -= buth + but_margin, 200, buth,
+			          &(tfp->ve_median[8]), 0.0, 100.0, 1, 3, TIP_("Median Y radius used by Skin modifier"));
+		}
+
 		if (totedge == 1) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Crease:"),
 			          0, yi -= buth + but_margin, 200, buth,
@@ -407,6 +436,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		median[4] = ve_median[4] - median[4];
 		median[5] = ve_median[5] - median[5];
 		median[6] = ve_median[6] - median[6];
+		median[7] = ve_median[7] - median[7];
+		median[8] = ve_median[8] - median[8];
 
 		if (ob->type == OB_MESH) {
 			Mesh *me = ob->data;
@@ -497,6 +528,55 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 								*bweight = 1.0f + ((1.0f - *bweight) * sca);
 								CLAMP(*bweight, 0.0f, 1.0f);
 							}
+						}
+					}
+				}
+			}
+
+			if (median[7] != 0.0f) {
+				BMVert *eve;
+				/* That one is not clamped to [0.0, 1.0]. */
+				float sca = ve_median[7];
+				if (ve_median[7] - median[7] == 0.0f) {
+					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+							MVertSkin *vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MVERT_SKIN);
+							if (vs)
+								vs->radius[0] = sca;
+						}
+					}
+				}
+				else {
+					sca /= (ve_median[7] - median[7]);
+					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+							MVertSkin *vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MVERT_SKIN);
+							if (vs)
+								vs->radius[0] *= sca;
+						}
+					}
+				}
+			}
+			if (median[8] != 0.0f) {
+				BMVert *eve;
+				/* That one is not clamped to [0.0, 1.0]. */
+				float sca = ve_median[8];
+				if (ve_median[8] - median[8] == 0.0f) {
+					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+							MVertSkin *vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MVERT_SKIN);
+							if (vs)
+								vs->radius[1] = sca;
+						}
+					}
+				}
+				else {
+					sca /= (ve_median[8] - median[8]);
+					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+							MVertSkin *vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MVERT_SKIN);
+							if (vs)
+								vs->radius[1] *= sca;
 						}
 					}
 				}

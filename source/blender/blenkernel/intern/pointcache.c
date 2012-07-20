@@ -326,8 +326,7 @@ static void ptcache_particle_read(int index, void *psys_v, void **data, float cf
 
 	/* default to no rotation */
 	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		pa->state.rot[0]=1.0f;
-		pa->state.rot[1]=pa->state.rot[2]=pa->state.rot[3]=0;
+		unit_qt(pa->state.rot);
 	}
 }
 static void ptcache_particle_interpolate(int index, void *psys_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
@@ -2320,7 +2319,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 	 * - simulation time is scaled by result of bsystem_time
 	 * - for offsetting time only time offset is taken into account, since
 	 *   that's always the same and can't be animated. a timeoffset which
-	 *   varies over time is not simpe to support.
+	 *   varies over time is not simple to support.
 	 * - field and motion blur offsets are currently ignored, proper solution
 	 *   is probably to interpolate results from two frames for that ..
 	 */

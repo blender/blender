@@ -20,7 +20,8 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Brecht Van Lommel
+ *                 Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -222,10 +223,10 @@ void MEM_set_memory_debug(void)
 	malloc_debug_memset = 1;
 }
 
-size_t MEM_allocN_len(void *vmemh)
+size_t MEM_allocN_len(const void *vmemh)
 {
 	if (vmemh) {
-		MemHead *memh = vmemh;
+		const MemHead *memh = vmemh;
 	
 		memh--;
 		return memh->len;
@@ -904,6 +905,4 @@ const char *MEM_name_ptr(void *vmemh)
 		return "MEM_name_ptr(NULL)";
 	}
 }
-#endif
-
-/* eof */
+#endif  /* NDEBUG */

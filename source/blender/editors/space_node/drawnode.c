@@ -27,8 +27,8 @@
 
 /** \file blender/editors/space_node/drawnode.c
  *  \ingroup spnode
+ *  \brief lower level node drawing for nodes (boarders, headers etc), also node layout.
  */
-
 
 #include <math.h>
 #include <stdio.h>
@@ -523,7 +523,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 				counter = 0;
 			}
 			else
-				BLI_union_rctf(rect, &node->totr);
+				BLI_rctf_union(rect, &node->totr);
 		}
 		
 		/* add some room for links to group sockets */
@@ -954,7 +954,7 @@ static void node_update_frame(const bContext *UNUSED(C), bNodeTree *ntree, bNode
 			data->flag &= ~NODE_FRAME_RESIZEABLE;
 		}
 		else
-			BLI_union_rctf(&rect, &noderect);
+			BLI_rctf_union(&rect, &noderect);
 	}
 	
 	/* now adjust the frame size from view-space bounding box */
@@ -1528,12 +1528,19 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 static void node_composit_buts_blur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *col, *row;
+	int reference;
+	int filter;
 	
 	col = uiLayoutColumn(layout, FALSE);
-	
+	filter = RNA_enum_get(ptr, "filter_type");
+	reference = RNA_boolean_get(ptr, "use_reference");
+
 	uiItemR(col, ptr, "filter_type", 0, "", ICON_NONE);
-	if (RNA_enum_get(ptr, "filter_type") != R_FILTER_FAST_GAUSS) {
-		uiItemR(col, ptr, "use_bokeh", 0, NULL, ICON_NONE);
+	if (filter != R_FILTER_FAST_GAUSS) {
+		uiItemR(col, ptr, "use_reference", 0, NULL, ICON_NONE);
+		if (!reference) {
+			uiItemR(col, ptr, "use_bokeh", 0, NULL, ICON_NONE);
+		}
 		uiItemR(col, ptr, "use_gamma_correction", 0, NULL, ICON_NONE);
 	}
 	

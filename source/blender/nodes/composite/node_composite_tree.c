@@ -684,6 +684,8 @@ static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_pr
 }
 #endif
 
+void *COM_linker_hack = NULL;
+
 void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int do_preview)
 {
 #ifdef WITH_COMPOSITOR

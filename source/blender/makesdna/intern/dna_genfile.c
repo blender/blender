@@ -105,7 +105,7 @@ typedef long long __int64;
  *  - location within a struct (everthing can be randomly mixed up)
  *  - struct within struct (within struct etc), this is recursive
  *  - adding new elements, will be default initialized zero
- *  - remving elements
+ *  - removing elements
  *  - change of array sizes
  *  - change of a pointer type: when the name doesn't change the contents is copied
  *
@@ -122,7 +122,7 @@ typedef long long __int64;
  *  - only use a long in Blender if you want this to be the size of a pointer. so it is
  *    32 bits or 64 bits, dependent at the cpu architecture
  *  - chars are always unsigned
- *  - aligment of variables has to be done in such a way, that any system does
+ *  - alignment of variables has to be done in such a way, that any system does
  *    not create 'padding' (gaps) in structures. So make sure that:
  *    - short: 2 aligned
  *    - int: 4 aligned
@@ -556,7 +556,7 @@ static void recurs_test_compflags(SDNA *sdna, char *compflags, int structnr)
 
 /* Unsure of exact function - compares the sdna argument to
  * newsdna and sets up the information necessary to convert
- * data written with a dna of oldsdna to inmemory data with a
+ * data written with a dna of oldsdna to in-memory data with a
  * structure defined by the newsdna sdna (I think). -zr
  */
 

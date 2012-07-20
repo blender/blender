@@ -674,15 +674,15 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	if (keys) {
 		/* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
 		/* TODO: allow this opacity factor to be themed? */
-		float kalpha = (channelLocked) ? 0.35f : 1.0f;
-
+		float kalpha = (channelLocked) ? 0.25f : 1.0f;
+		
 		for (ak = keys->first; ak; ak = ak->next) {
 			/* optimization: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw
 			 *	- this might give some improvements, since we current have to flip between view/region matrices
 			 */
 			if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax) == 0)
 				continue;
-
+			
 			/* draw using OpenGL - uglier but faster */
 			/* NOTE1: a previous version of this didn't work nice for some intel cards
 			 * NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3; */
@@ -753,6 +753,10 @@ void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos)
 {
 	DLRBT_Tree keys, blocks;
 	
+	short locked = (fcu->flag & FCURVE_PROTECTED) ||
+	               ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
+	               ((adt && adt->action) && (adt->action->id.lib));
+	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
 	
@@ -761,7 +765,7 @@ void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, (fcu->flag & FCURVE_PROTECTED));
+	draw_keylist(v2d, &keys, &blocks, ypos, locked);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -771,6 +775,9 @@ void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float y
 {
 	DLRBT_Tree keys, blocks;
 	
+	short locked = (agrp->flag & AGRP_PROTECTED) ||
+	               ((adt && adt->action) && (adt->action->id.lib));
+	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
 	
@@ -779,7 +786,7 @@ void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float y
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, (agrp->flag & AGRP_PROTECTED));
+	draw_keylist(v2d, &keys, &blocks, ypos, locked);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -789,6 +796,8 @@ void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
 {
 	DLRBT_Tree keys, blocks;
 	
+	short locked = (act->id.lib != 0);
+	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
 	
@@ -797,7 +806,7 @@ void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, 0);
+	draw_keylist(v2d, &keys, &blocks, ypos, locked);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);

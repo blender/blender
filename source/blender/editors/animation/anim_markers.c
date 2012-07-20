@@ -848,14 +848,14 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 	}
 
 	if (evt->val == KM_PRESS) {
-		float vec[3];
-		char str_tx[256];
+		float vec;
+		char str_tx[NUM_STR_REP_LEN];
 		
 		if (handleNumInput(&mm->num, evt)) {
-			applyNumInput(&mm->num, vec);
+			applyNumInput(&mm->num, &vec);
 			outputNumInput(&mm->num, str_tx);
 			
-			RNA_int_set(op->ptr, "frames", vec[0]);
+			RNA_int_set(op->ptr, "frames", vec);
 			ed_marker_move_apply(op);
 			// ed_marker_header_update(C, op, str, (int)vec[0]);
 			// strcat(str, str_tx);

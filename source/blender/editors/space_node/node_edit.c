@@ -1521,7 +1521,7 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 	bNode *node;
 	
 	for (node = snode->edittree->nodes.last; node; node = node->prev) {
-		if (BLI_isect_rctf(&node->totr, rct, NULL))
+		if (BLI_rctf_isect(&node->totr, rct, NULL))
 			break;
 	}
 	return node;
@@ -1573,11 +1573,13 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
 	NodeViewMove *nvm;
 	Image *ima;
 	ImBuf *ibuf;
-	int pad = 10;
+	const float pad = 32.0f; /* better be bigger then scrollbars */
+
 	void *lock;
 	
 	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
@@ -1593,10 +1595,10 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	nvm->mvalo[0] = event->mval[0];
 	nvm->mvalo[1] = event->mval[1];
 
-	nvm->xmin = -(ar->winx / 2) - ibuf->x / 2 + pad;
-	nvm->xmax = ar->winx / 2 + ibuf->x / 2 - pad;
-	nvm->ymin = -(ar->winy / 2) - ibuf->y / 2 + pad;
-	nvm->ymax = ar->winy / 2 + ibuf->y / 2 - pad;
+	nvm->xmin = -(ar->winx / 2) - (ibuf->x * (0.5f * snode->zoom)) + pad;
+	nvm->xmax =  (ar->winx / 2) + (ibuf->x * (0.5f * snode->zoom)) - pad;
+	nvm->ymin = -(ar->winy / 2) - (ibuf->y * (0.5f * snode->zoom)) + pad;
+	nvm->ymax =  (ar->winy / 2) + (ibuf->y * (0.5f * snode->zoom)) - pad;
 
 	BKE_image_release_ibuf(ima, lock);
 	
@@ -2547,14 +2549,16 @@ bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, bNodeTemplate 
 	
 	/* generics */
 	if (node) {
-		node->locx = locx;
-		node->locy = locy + 60.0f;       // arbitrary.. so its visible, (0,0) is top of node
 		node_select(node);
 		
 		gnode = node_tree_get_editgroup(snode->nodetree);
+		// arbitrary y offset of 60 so its visible
 		if (gnode) {
-			node->locx -= gnode->locx;
-			node->locy -= gnode->locy;
+			nodeFromView(gnode, locx, locy + 60.0f, &node->locx, &node->locy);
+		}
+		else {
+			node->locx = locx;
+			node->locy = locy + 60.0f;
 		}
 
 		ntreeUpdateTree(snode->edittree);
@@ -3140,6 +3144,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
+	bNode *gnode = node_tree_get_editgroup(snode->nodetree);
 	float mcoords[256][2];
 	int i = 0;
 
@@ -3170,8 +3175,13 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 				
 				ntemp.type = NODE_REROUTE;
 				rerouteNode = nodeAddNode(snode->edittree, &ntemp);
-				rerouteNode->locx = insertPoint[0];
-				rerouteNode->locy = insertPoint[1];
+				if (gnode) {
+					nodeFromView(gnode, insertPoint[0], insertPoint[1], &rerouteNode->locx, &rerouteNode->locy);
+				}
+				else {
+					rerouteNode->locx = insertPoint[0];
+					rerouteNode->locy = insertPoint[1];
+				}
 				
 				nodeAddLink(snode->edittree, link->fromnode, link->fromsock, rerouteNode, rerouteNode->inputs.first);
 				link->fromnode = rerouteNode;
@@ -3984,9 +3994,9 @@ static int node_hide_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	node_flag_toggle_exec(snode, NODE_HIDDEN);
-	
-	snode_notify(C, snode);
-	
+
+	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -4047,7 +4057,7 @@ static int node_options_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 	node_flag_toggle_exec(snode, NODE_OPTIONS);
 
-	snode_notify(C, snode);
+	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -4098,7 +4108,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ntreeUpdateTree(snode->edittree);
 
-	snode_notify(C, snode);
+	WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
 
 	return OPERATOR_FINISHED;
 }

@@ -59,4 +59,8 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
+if(WITH_COMPOSITOR)
+	add_definitions(-DWITH_COMPOSITOR)
+endif()
+
 blender_add_lib(bf_editor_space_node "${SRC}" "${INC}" "${INC_SYS}")

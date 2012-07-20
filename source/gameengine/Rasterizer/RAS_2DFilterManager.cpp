@@ -324,8 +324,8 @@ void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance)
 void RAS_2DFilterManager::UpdateOffsetMatrix(RAS_ICanvas* canvas)
 {
 	/* RAS_Rect canvas_rect = canvas->GetWindowArea(); */ /* UNUSED */
-	texturewidth = canvas->GetWidth();
-	textureheight = canvas->GetHeight();
+	texturewidth = canvas->GetWidth()+1;
+	textureheight = canvas->GetHeight()+1;
 	GLint i,j;
 
 	if (!GL_ARB_texture_non_power_of_two)
@@ -402,6 +402,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	GLuint	viewport[4]={0};
 	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
 	RAS_Rect rect = canvas->GetWindowArea();
+	int rect_width = rect.GetWidth()+1, rect_height = rect.GetHeight()+1;
 
 	if (canvaswidth != canvas->GetWidth() || canvasheight != canvas->GetHeight())
 	{
@@ -419,19 +420,19 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	if (need_depth) {
 		glActiveTextureARB(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texname[1]);
-		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(), 0);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, rect.GetLeft(), rect.GetBottom(), rect_width, rect_height, 0);
 	}
 	
 	if (need_luminance) {
 		glActiveTextureARB(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texname[2]);
-		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(), 0);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, rect.GetLeft(), rect.GetBottom(), rect_width, rect_height, 0);
 	}
 
 	// reverting to texunit 0, without this we get bug [#28462]
 	glActiveTextureARB(GL_TEXTURE0);
 
-	glViewport(rect.GetLeft(), rect.GetBottom(), rect.GetWidth()+1, rect.GetHeight()+1);
+	glViewport(rect.GetLeft(), rect.GetBottom(), rect_width, rect.GetHeight()+1);
 
 	glDisable(GL_DEPTH_TEST);
 	// in case the previous material was wire
@@ -454,7 +455,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 
 			glActiveTextureARB(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texname[0]);
-			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(), 0); // Don't use texturewidth and textureheight in case we don't have NPOT support
+			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, rect.GetLeft(), rect.GetBottom(), rect_width, rect_height, 0); // Don't use texturewidth and textureheight in case we don't have NPOT support
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			glBegin(GL_QUADS);

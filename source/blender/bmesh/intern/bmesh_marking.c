@@ -71,7 +71,7 @@ static void recount_totsels(BMesh *bm)
  * (ie: all verts of an edge selects the edge and so on).
  * This should only be called by system and not tool authors.
  */
-void BM_mesh_select_mode_flush(BMesh *bm)
+void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode)
 {
 	BMEdge *e;
 	BMLoop *l_iter;
@@ -83,7 +83,7 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 
 	int ok;
 
-	if (bm->selectmode & SCE_SELECT_VERTEX) {
+	if (selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
 			    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
@@ -113,7 +113,7 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 			BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
 		}
 	}
-	else if (bm->selectmode & SCE_SELECT_EDGE) {
+	else if (selectmode & SCE_SELECT_EDGE) {
 		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 			ok = TRUE;
 			if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -137,6 +137,11 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 	BM_select_history_validate(bm);
 
 	recount_totsels(bm);
+}
+
+void BM_mesh_select_mode_flush(BMesh *bm)
+{
+	BM_mesh_select_mode_flush_ex(bm, bm->selectmode);
 }
 
 /**
@@ -880,7 +885,7 @@ void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hfla
 
 	/* note, better not attempt a fast path for selection as done with de-select
 	 * because hidden geometry and different selection modes can give different results,
-	 * we could of course check for no hiddent faces and then use quicker method but its not worth it. */
+	 * we could of course check for no hidden faces and then use quicker method but its not worth it. */
 
 	for (i = 0; i < 3; i++) {
 		if (htype & flag_types[i]) {

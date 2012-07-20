@@ -875,7 +875,7 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		seq_rectf(seq, &rq);
 		
-		if (BLI_isect_rctf(&rq, &rectf, NULL)) {
+		if (BLI_rctf_isect(&rq, &rectf, NULL)) {
 			if (selecting) seq->flag |= SELECT;
 			else seq->flag &= ~SEQ_ALLSEL;
 			recurs_sel_seq(seq);

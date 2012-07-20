@@ -388,6 +388,9 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 	mask_draw_curve_type(spline, feather_points, tot_feather_point,
 	                     TRUE, is_smooth, is_active,
 	                     rgb_tmp, draw_type);
+
+	/* TODO, draw mirror values when MASK_SPLINE_NOFILL is set */
+
 	MEM_freeN(feather_points);
 
 	/* draw main curve */

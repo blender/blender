@@ -1079,6 +1079,91 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	return ret;
 }
 
+/* ************************************************** */
+/* KEYFRAME CLEAR */
+
+/* Main Keyframing API call:
+ *	Use this when validation of necessary animation data isn't necessary as it
+ *	already exists. It will clear the current buttons fcurve(s).
+ *
+ *	The flag argument is used for special settings that alter the behavior of
+ *	the keyframe deletion. These include the quick refresh options.
+ */
+short clear_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, short UNUSED(flag))
+{
+	AnimData *adt = BKE_animdata_from_id(id);
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	int array_index_max = array_index + 1;
+	int ret = 0;
+
+	/* sanity checks */
+	if (ELEM(NULL, id, adt)) {
+		BKE_report(reports, RPT_ERROR, "No ID-Block and/Or AnimData to delete keyframe from");
+		return 0;
+	}
+
+	/* validate pointer first - exit if failure */
+	RNA_id_pointer_create(id, &id_ptr);
+	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
+		BKE_reportf(reports, RPT_ERROR, "Could not clear keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", id->name, rna_path);
+		return 0;
+	}
+
+	/* get F-Curve
+	 * Note: here is one of the places where we don't want new Action + F-Curve added!
+	 *      so 'add' var must be 0
+	 */
+	if (act == NULL) {
+		/* if no action is provided, use the default one attached to this ID-block
+		 *  - if it doesn't exist, then we're out of options...
+		 */
+		if (adt->action) {
+			act = adt->action;
+		}
+		else {
+			BKE_reportf(reports, RPT_ERROR, "No Action to delete keyframes from for ID = %s\n", id->name);
+			return 0;
+		}
+	}
+
+	/* key entire array convenience method */
+	if (array_index == -1) {
+		array_index = 0;
+		array_index_max = RNA_property_array_length(&ptr, prop);
+
+		/* for single properties, increase max_index so that the property itself gets included,
+		 * but don't do this for standard arrays since that can cause corruption issues
+		 * (extra unused curves)
+		 */
+		if (array_index_max == array_index)
+			array_index_max++;
+	}
+
+	/* will only loop once unless the array index was -1 */
+	for (; array_index < array_index_max; array_index++) {
+		FCurve *fcu = verify_fcurve(act, group, &ptr, rna_path, array_index, 0);
+
+		/* check if F-Curve exists and/or whether it can be edited */
+		if (fcu == NULL)
+			continue;
+
+		if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
+			if (G.debug & G_DEBUG)
+				printf("WARNING: not deleting keyframe for locked F-Curve\n");
+			continue;
+		}
+
+		ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
+
+		/* return success */
+		ret++;
+	}
+
+	/* return success/failure */
+	return ret;
+}
+
 /* ******************************************* */
 /* KEYFRAME MODIFICATION */
 
@@ -1582,6 +1667,78 @@ void ANIM_OT_keyframe_delete_button(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyframes from all elements of the array");
+}
+
+
+/* Clear Key Button Operator ------------------------ */
+
+static int clear_key_button_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	PointerRNA ptr = {{NULL}};
+	PropertyRNA *prop = NULL;
+	char *path;
+	short success = 0;
+	int a, index, length, all = RNA_boolean_get(op->ptr, "all");
+
+	/* try to insert keyframe using property retrieved from UI */
+	uiContextActiveProperty(C, &ptr, &prop, &index);
+
+	if (ptr.id.data && ptr.data && prop) {
+		path = RNA_path_from_ID_to_property(&ptr, prop);
+
+		if (path) {
+			if (all) {
+				length = RNA_property_array_length(&ptr, prop);
+
+				if (length) index = 0;
+				else length = 1;
+			}
+			else
+				length = 1;
+
+			for (a = 0; a < length; a++)
+				success += clear_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index + a, 0);
+
+			MEM_freeN(path);
+		}
+		else if (G.debug & G_DEBUG)
+			printf("Button Clear-Key: no path to property\n");
+	}
+	else if (G.debug & G_DEBUG) {
+		printf("ptr.data = %p, prop = %p\n", (void *)ptr.data, (void *)prop);
+	}
+
+
+	if (success) {
+		/* send updates */
+		uiContextAnimUpdate(C);
+
+		DAG_ids_flush_update(bmain, 0);
+
+		/* send notifiers that keyframes have been changed */
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+	}
+
+	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
+void ANIM_OT_keyframe_clear_button(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Keyframe (Buttons)";
+	ot->idname = "ANIM_OT_keyframe_clear_button";
+	ot->description = "Clear all keyframes on the currently active property";
+
+	/* callbacks */
+	ot->exec = clear_key_button_exec;
+	ot->poll = modify_key_op_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Clear keyframes from all elements of the array");
 }
 
 /* ******************************************* */

@@ -238,8 +238,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			/* TODO: incremental rotations somehow */
 			if (state.vel[axis] < -0.9999f || state.vel[axis] > 0.9999f) {
-				state.rot[0] = 1;
-				state.rot[1] = state.rot[2] = state.rot[3] = 0.0f;
+				unit_qt(state.rot);
 			}
 			else {
 				float temp[3] = {0.0f, 0.0f, 0.0f};
@@ -250,7 +249,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				/* state.vel[axis] is the only component surviving from a dot product with the axis */
 				axis_angle_to_quat(state.rot, cross, saacos(state.vel[axis]));
 			}
-
 		}
 		else {
 			state.time = -1.0;

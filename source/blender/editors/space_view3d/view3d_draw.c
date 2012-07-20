@@ -2028,7 +2028,7 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 	r.ymax = ar->winy - 1;
 
 	/* Constrain rect to depth bounds */
-	BLI_isect_rcti(&r, rect, rect);
+	BLI_rcti_isect(&r, rect, rect);
 
 	/* assign values to compare with the ViewDepths */
 	x = rect->xmin;

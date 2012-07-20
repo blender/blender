@@ -105,7 +105,7 @@ class FLUID_3D
 		float* _xForce;
 		float* _yForce;
 		float* _zForce;
-		unsigned char*  _obstacles; /* only used (usefull) for static obstacles like domain boundaries */
+		unsigned char*  _obstacles; /* only used (useful) for static obstacles like domain boundaries */
 		unsigned char*  _obstaclesAnim;
 
 		// Required for proper threading:

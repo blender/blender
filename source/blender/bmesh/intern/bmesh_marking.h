@@ -60,6 +60,7 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select);
 void BM_face_select_set(BMesh *bm, BMFace *f, int select);
 
 void BM_mesh_select_mode_set(BMesh *bm, int selectmode);
+void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode);
 void BM_mesh_select_mode_flush(BMesh *bm);
 
 void BM_mesh_deselect_flush(BMesh *bm);

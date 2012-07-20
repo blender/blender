@@ -74,7 +74,7 @@ public:
 	/**
 	 * @brief convert node to operation
 	 *
-	 * @todo this must be described furter
+	 * @todo this must be described further
 	 *
 	 * @param system the ExecutionSystem where the operations need to be added
 	 * @param context reference to the CompositorContext

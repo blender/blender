@@ -50,6 +50,7 @@
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_linklist.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -64,6 +65,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_fcurve.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
@@ -518,7 +520,8 @@ EnumPropertyItem prop_make_parent_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par, int partype)
+int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par,
+                         int partype, int xmirror)
 {
 	bPoseChannel *pchan = NULL;
 	int pararm = ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
@@ -641,12 +644,12 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			}
 			else if (pararm && ob->type == OB_MESH && par->type == OB_ARMATURE) {
 				if (partype == PAR_ARMATURE_NAME)
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, 0);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, FALSE);
 				else if (partype == PAR_ARMATURE_ENVELOPE)
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_ENVELOPE, 0);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
 				else if (partype == PAR_ARMATURE_AUTO) {
 					WM_cursor_wait(1);
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_AUTO, 0);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
 					WM_cursor_wait(0);
 				}
 				/* get corrected inverse */
@@ -674,11 +677,12 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *par = ED_object_active_context(C);
 	int partype = RNA_enum_get(op->ptr, "type");
+	int xmirror = RNA_enum_get(op->ptr, "xmirror");
 	int ok = 1;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype)) {
+		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, xmirror)) {
 			ok = 0;
 			break;
 		}
@@ -728,6 +732,33 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 	return OPERATOR_CANCELLED;
 }
 
+static int parent_set_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+{
+	const char *prop_id = RNA_property_identifier(prop);
+	int type = RNA_enum_get(ptr, "type");
+
+	/* Only show XMirror for PAR_ARMATURE_ENVELOPE and PAR_ARMATURE_AUTO! */
+	if (strcmp(prop_id, "xmirror") == 0) {
+		if (ELEM(type, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO))
+			return TRUE;
+		else
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+static void parent_set_ui(bContext *C, wmOperator *op)
+{
+	uiLayout *layout = op->layout;
+	wmWindowManager *wm = CTX_wm_manager(C);
+	PointerRNA ptr;
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+
+	/* Main auto-draw call. */
+	uiDefAutoButsRNA(layout, &ptr, parent_set_draw_check_prop, '\0');
+}
 
 void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
@@ -739,13 +770,15 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = parent_set_invoke;
 	ot->exec = parent_set_exec;
-	
 	ot->poll = ED_operator_object_active;
+	ot->ui = parent_set_ui;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "xmirror", FALSE, "X Mirror",
+	                "Apply weights symmetrically along X axis, for Envelope/Automatic vertex groups creation");
 }
 
 /* ************ Make Parent Without Inverse Operator ******************* */
@@ -1246,14 +1279,15 @@ enum {
 	MAKE_LINKS_OBDATA = 1,
 	MAKE_LINKS_MATERIALS,
 	MAKE_LINKS_ANIMDATA,
+	MAKE_LINKS_GROUP,
 	MAKE_LINKS_DUPLIGROUP,
 	MAKE_LINKS_MODIFIERS
 };
 
 /* Return 1 if make link data is allow, zero otherwise */
-static int allow_make_links_data(int ev, Object *ob, Object *obt)
+static int allow_make_links_data(const int type, Object *ob, Object *obt)
 {
-	switch (ev) {
+	switch (type) {
 		case MAKE_LINKS_OBDATA:
 			if (ob->type == obt->type && ob->type != OB_EMPTY)
 				return 1;
@@ -1266,6 +1300,7 @@ static int allow_make_links_data(int ev, Object *ob, Object *obt)
 			}
 			break;
 		case MAKE_LINKS_ANIMDATA:
+		case MAKE_LINKS_GROUP:
 		case MAKE_LINKS_DUPLIGROUP:
 			return 1;
 		case MAKE_LINKS_MODIFIERS:
@@ -1279,52 +1314,81 @@ static int allow_make_links_data(int ev, Object *ob, Object *obt)
 static int make_links_data_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	int event = RNA_enum_get(op->ptr, "type");
-	Object *ob;
+	Scene *scene = CTX_data_scene(C);
+	const int type = RNA_enum_get(op->ptr, "type");
+	Object *ob_src;
 	ID *id;
 	int a;
 
-	ob = ED_object_active_context(C);
+	/* group */
+	LinkNode *ob_groups = NULL;
+	int is_cycle = FALSE;
 
-	CTX_DATA_BEGIN (C, Object *, obt, selected_editable_objects)
+	ob_src = ED_object_active_context(C);
+
+	/* avoid searching all groups in source object each time */
+	if (type == MAKE_LINKS_GROUP) {
+		ob_groups = BKE_object_groups(ob_src);
+	}
+
+	CTX_DATA_BEGIN (C, Base *, base_dst, selected_editable_bases)
 	{
-		if (ob != obt) {
-			if (allow_make_links_data(event, ob, obt)) {
-				switch (event) {
+		Object *ob_dst = base_dst->object;
+
+		if (ob_src != ob_dst) {
+			if (allow_make_links_data(type, ob_src, ob_dst)) {
+				switch (type) {
 					case MAKE_LINKS_OBDATA: /* obdata */
-						id = obt->data;
+						id = ob_dst->data;
 						id->us--;
 
-						id = ob->data;
+						id = ob_src->data;
 						id_us_plus(id);
-						obt->data = id;
+						ob_dst->data = id;
 
 						/* if amount of material indices changed: */
-						test_object_materials(obt->data);
+						test_object_materials(ob_dst->data);
 
-						obt->recalc |= OB_RECALC_DATA;
+						ob_dst->recalc |= OB_RECALC_DATA;
 						break;
 					case MAKE_LINKS_MATERIALS:
 						/* new approach, using functions from kernel */
-						for (a = 0; a < ob->totcol; a++) {
-							Material *ma = give_current_material(ob, a + 1);
-							assign_material(obt, ma, a + 1); /* also works with ma==NULL */
+						for (a = 0; a < ob_src->totcol; a++) {
+							Material *ma = give_current_material(ob_src, a + 1);
+							assign_material(ob_dst, ma, a + 1); /* also works with ma==NULL */
 						}
 						break;
 					case MAKE_LINKS_ANIMDATA:
-						BKE_copy_animdata_id((ID *)obt, (ID *)ob, FALSE);
-						BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data, FALSE);
+						BKE_copy_animdata_id((ID *)ob_dst, (ID *)ob_src, FALSE);
+						BKE_copy_animdata_id((ID *)ob_dst->data, (ID *)ob_src->data, FALSE);
 						break;
+					case MAKE_LINKS_GROUP:
+					{
+						LinkNode *group_node;
+
+						/* first clear groups */
+						BKE_object_groups_clear(scene, base_dst, ob_dst);
+
+						/* now add in the groups from the link nodes */
+						for (group_node = ob_groups; group_node; group_node = group_node->next) {
+							if (ob_dst->dup_group != group_node->link) {
+								add_to_group(group_node->link, ob_dst, scene, base_dst);
+							}
+							else {
+								is_cycle = TRUE;
+							}
+						}
+					}
 					case MAKE_LINKS_DUPLIGROUP:
-						obt->dup_group = ob->dup_group;
-						if (obt->dup_group) {
-							id_lib_extern(&obt->dup_group->id);
-							obt->transflag |= OB_DUPLIGROUP;
+						ob_dst->dup_group = ob_src->dup_group;
+						if (ob_dst->dup_group) {
+							id_lib_extern(&ob_dst->dup_group->id);
+							ob_dst->transflag |= OB_DUPLIGROUP;
 						}
 						break;
 					case MAKE_LINKS_MODIFIERS:
-						BKE_object_link_modifiers(obt, ob);
-						obt->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+						BKE_object_link_modifiers(ob_dst, ob_src);
+						ob_dst->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 						break;
 				}
 			}
@@ -1332,7 +1396,17 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_scene_sort(bmain, CTX_data_scene(C));
+	if (type == MAKE_LINKS_GROUP) {
+		if (ob_groups) {
+			BLI_linklist_free(ob_groups, NULL);
+		}
+
+		if (is_cycle) {
+			BKE_report(op->reports, RPT_WARNING, "Skipped some groups because of cycle detected");
+		}
+	}
+
+	DAG_scene_sort(bmain, scene);
 	
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
@@ -1369,6 +1443,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 		{MAKE_LINKS_OBDATA,     "OBDATA", 0, "Object Data", ""},
 		{MAKE_LINKS_MATERIALS,  "MATERIAL", 0, "Materials", ""},
 		{MAKE_LINKS_ANIMDATA,   "ANIMATION", 0, "Animation Data", ""},
+		{MAKE_LINKS_GROUP,      "GROUPS", 0, "Group", ""},
 		{MAKE_LINKS_DUPLIGROUP, "DUPLIGROUP", 0, "DupliGroup", ""},
 		{MAKE_LINKS_MODIFIERS,  "MODIFIERS", 0, "Modifiers", ""},
 		{0, NULL, 0, NULL, NULL}};

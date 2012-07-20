@@ -1626,7 +1626,7 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 		v13= clipcrop*v1[3];
 	}	
 	/* according the original article by Liang&Barsky, for clipping of
-	 * homogenous coordinates with viewplane, the value of "0" is used instead of "-w" .
+	 * homogeneous coordinates with viewplane, the value of "0" is used instead of "-w" .
 	 * This differs from the other clipping cases (like left or top) and I considered
 	 * it to be not so 'homogenic'. But later it has proven to be an error,
 	 * who would have thought that of L&B!

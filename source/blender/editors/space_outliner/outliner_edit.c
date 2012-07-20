@@ -1423,7 +1423,7 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "child", childname);
 	ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
 
-	ED_object_parent_set(op->reports, bmain, scene, ob, par, partype);
+	ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, FALSE);
 
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
@@ -1514,7 +1514,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 
 		if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
-			if (ED_object_parent_set(op->reports, bmain, scene, ob, par, partype)) {
+			if (ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, FALSE)) {
 				DAG_scene_sort(bmain, scene);
 				DAG_ids_flush_update(bmain, 0);
 				WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);

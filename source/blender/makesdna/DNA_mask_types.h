@@ -127,6 +127,8 @@ typedef struct MaskLayer {
 	float  alpha;
 	char   blend;
 	char   blend_flag;
+	char   falloff;
+	char   pad[7];
 
 	char   flag;             /* for animation */
 	char   restrictflag;     /* matching 'Object' flag of the same name - eventually use in the outliner  */
@@ -137,7 +139,10 @@ typedef struct MaskLayer {
 
 /* MaskSpline->flag */
 /* reserve (1 << 0) for SELECT */
-#define MASK_SPLINE_CYCLIC  (1 << 1)
+enum {
+	MASK_SPLINE_CYCLIC  = (1 << 1),
+	MASK_SPLINE_NOFILL    = (1 << 2)
+};
 
 /* MaskSpline->weight_interp */
 #define MASK_SPLINE_INTERP_LINEAR   1
@@ -162,8 +167,13 @@ enum {
 
 /* masklay->blend */
 enum {
-	MASK_BLEND_ADD      = 0,
-	MASK_BLEND_SUBTRACT = 1
+	MASK_BLEND_ADD         = 0,
+	MASK_BLEND_SUBTRACT    = 1,
+	MASK_BLEND_LIGHTEN     = 2,
+	MASK_BLEND_DARKEN      = 3,
+	MASK_BLEND_MUL         = 4,
+	MASK_BLEND_REPLACE     = 5,
+	MASK_BLEND_DIFFERENCE  = 6
 };
 
 /* masklay->blend_flag */

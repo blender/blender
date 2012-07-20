@@ -25,9 +25,13 @@
 #include "DNA_node_types.h"
 #include "COM_GaussianXBlurOperation.h"
 #include "COM_GaussianYBlurOperation.h"
+#include "COM_GaussianAlphaXBlurOperation.h"
+#include "COM_GaussianAlphaYBlurOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_GaussianBokehBlurOperation.h"
 #include "COM_FastGaussianBlurOperation.h"
+#include "COM_MathBaseOperation.h"
+#include "COM_SetValueOperation.h"
 
 BlurNode::BlurNode(bNode *editorNode) : Node(editorNode)
 {
@@ -55,6 +59,42 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		this->getOutputSocket(0)->relinkConnections(operationfgb->getOutputSocket(0));
 		graph->addOperation(operationfgb);
 		addPreviewOperation(graph, operationfgb->getOutputSocket());
+	}
+	else if (editorNode->custom1 & CMP_NODEFLAG_BLUR_REFERENCE) {
+		MathAddOperation *clamp = new MathAddOperation();
+		SetValueOperation *zero = new SetValueOperation();
+		addLink(graph, zero->getOutputSocket(), clamp->getInputSocket(1));
+		this->getInputSocket(1)->relinkConnections(clamp->getInputSocket(0), 1, graph);
+		zero->setValue(0.0f);
+		clamp->setUseClamp(true);
+		graph->addOperation(clamp);
+		graph->addOperation(zero);
+	
+		GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
+		operationx->setData(data);
+		operationx->setbNode(editorNode);
+		operationx->setQuality(quality);
+		operationx->setSize(1.0f);
+		addLink(graph, clamp->getOutputSocket(), operationx->getInputSocket(0));
+		graph->addOperation(operationx);
+
+		GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
+		operationy->setData(data);
+		operationy->setbNode(editorNode);
+		operationy->setQuality(quality);
+		operationy->setSize(1.0f);
+		addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
+		graph->addOperation(operationy);
+
+		GaussianBlurReferenceOperation *operation = new GaussianBlurReferenceOperation();
+		operation->setData(data);
+		operation->setbNode(editorNode);
+		operation->setQuality(quality);
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+		addLink(graph, operationy->getOutputSocket(), operation->getInputSocket(1));
+		graph->addOperation(operation);
+		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
+		addPreviewOperation(graph, operation->getOutputSocket());
 	}
 	else if (!data->bokeh) {
 		GaussianXBlurOperation *operationx = new GaussianXBlurOperation();

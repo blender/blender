@@ -628,7 +628,7 @@ int WM_operator_call(bContext *C, wmOperator *op)
 
 /* this is intended to be used when an invoke operator wants to call exec on its self
  * and is basically like running op->type->exec() directly, no poll checks no freeing,
- * since we assume whoever called invokle will take care of that */
+ * since we assume whoever called invoke will take care of that */
 int WM_operator_call_notest(bContext *C, wmOperator *op)
 {
 	return wm_operator_exec_notest(C, op);
@@ -1636,7 +1636,7 @@ static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 	if (handler->bbwin) {
 		if (handler->bblocal) {
 			rcti rect = *handler->bblocal;
-			BLI_translate_rcti(&rect, handler->bbwin->xmin, handler->bbwin->ymin);
+			BLI_rcti_translate(&rect, handler->bbwin->xmin, handler->bbwin->ymin);
 
 			if (BLI_in_rcti_v(&rect, &event->x))
 				return 1;

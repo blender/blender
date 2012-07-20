@@ -415,7 +415,7 @@ static void vol_get_transmittance_seg(ShadeInput *shi, float tr[3], float stepsi
 	
 	vol_get_sigma_t(shi, sigma_t, co);
 	
-	/* homogenous volume within the sampled distance */
+	/* homogeneous volume within the sampled distance */
 	tau[0] += stepd * sigma_t[0];
 	tau[1] += stepd * sigma_t[1];
 	tau[2] += stepd * sigma_t[2];

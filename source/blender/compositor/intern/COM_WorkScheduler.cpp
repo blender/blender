@@ -36,10 +36,13 @@
 #include "BLI_threads.h"
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
-#warning COM_CURRENT_THREADING_MODEL COM_TM_NOTHREAD is activated. Use only for debugging.
+#  ifndef DEBUG  /* test this so we dont get warnings in debug builds */
+#    warning COM_CURRENT_THREADING_MODEL COM_TM_NOTHREAD is activated. Use only for debugging.
+#  endif
 #elif COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
+   /* do nothing - default */
 #else
-#error COM_CURRENT_THREADING_MODEL No threading model selected
+#  error COM_CURRENT_THREADING_MODEL No threading model selected
 #endif
 
 
@@ -92,7 +95,9 @@ void ** g_highlightedNodesRead;
 		} \
 	} \
 }
-void COM_startReadHighlights() {
+
+void COM_startReadHighlights()
+{
 	if (g_highlightedNodesRead) {
 		delete [] g_highlightedNodesRead;
 	}
@@ -105,7 +110,8 @@ void COM_startReadHighlights() {
 	}
 }
 
-int COM_isHighlightedbNode(bNode* bnode) {
+int COM_isHighlightedbNode(bNode* bnode)
+{
 	if (!g_highlightedNodesRead) return false;
 	for (int i = 0 ; i < MAX_HIGHLIGHT; i++) {
 		void* p = g_highlightedNodesRead[i];

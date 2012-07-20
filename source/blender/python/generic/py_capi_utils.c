@@ -152,6 +152,21 @@ void PyC_LineSpit(void)
 	fprintf(stderr, "%s:%d\n", filename, lineno);
 }
 
+void PyC_StackSpit(void)
+{
+	/* Note, allow calling from outside python (RNA) */
+	if (!PYC_INTERPRETER_ACTIVE) {
+		fprintf(stderr, "python line lookup failed, interpreter inactive\n");
+		return;
+	}
+	else {
+		/* lame but handy */
+		PyGILState_STATE gilstate = PyGILState_Ensure();
+		PyRun_SimpleString("__import__('traceback').print_stack()");
+		PyGILState_Release(gilstate);
+	}
+}
+
 void PyC_FileAndNum(const char **filename, int *lineno)
 {
 	PyFrameObject *frame;
@@ -229,7 +244,7 @@ PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 /* similar to PyErr_Format(),
  *
  * implementation - we cant actually preprend the existing exception,
- * because it could have _any_ argiments given to it, so instead we get its
+ * because it could have _any_ arguments given to it, so instead we get its
  * __str__ output and raise our own exception including it.
  */
 PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...)

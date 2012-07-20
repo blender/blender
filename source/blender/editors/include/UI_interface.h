@@ -198,6 +198,7 @@ typedef struct uiLayout uiLayout;
 /* button reqyires a pointer */
 #define BUTPOIN (FLO | SHO | CHA)
 
+/* assigned to but->type, OR'd with the flags above when passing args */
 #define BUT (1 << 9)
 #define ROW (2 << 9)
 #define TOG (3 << 9)

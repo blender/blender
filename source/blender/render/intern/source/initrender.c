@@ -27,8 +27,6 @@
  *  \ingroup render
  */
 
-
-
 /* Global includes */
 
 #include <math.h>

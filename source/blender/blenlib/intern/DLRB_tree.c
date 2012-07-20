@@ -423,7 +423,7 @@ static void insert_check_2(DLRBT_Tree *tree, DLRBT_Node *node)
 			/* - make the grandparent red, so that we maintain alternating red/black property 
 			 *  (it must exist, so no need to check for NULL here),
 			 * - as the grandparent may now cause inconsistencies with the rest of the tree, 
-			 *   we must flush up the tree and perform checks/rebalancing/repainting, using the 
+			 *   we must flush up the tree and perform checks/re-balancing/re-painting, using the
 			 *   grandparent as the node of interest
 			 */
 			gp->tree_col = DLRBT_RED;

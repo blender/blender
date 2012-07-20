@@ -199,7 +199,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-/* spesific function for solidify - define locally */
+/* specific function for solidify - define locally */
 BLI_INLINE void madd_v3v3short_fl(float r[3], const short a[3], const float f)
 {
 	r[0] += (float)a[0] * f;

@@ -101,7 +101,7 @@ public:
 	/**
 	 * @brief isOutputOperation determines whether this operation is an output of the ExecutionSystem during rendering or editing.
 	 *
-	 * Default behaviour if not overriden, this operation will not be evaluated as being an output of the ExecutionSystem.
+	 * Default behaviour if not overridden, this operation will not be evaluated as being an output of the ExecutionSystem.
 	 *
 	 * @see ExecutionSystem
 	 * @group check

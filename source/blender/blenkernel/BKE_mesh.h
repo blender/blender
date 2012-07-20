@@ -141,10 +141,11 @@ void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
 int  BKE_mesh_nurbs_to_mdata(struct Object *ob, struct MVert **allvert, int *totvert,
                              struct MEdge **alledge, int *totedge, struct MLoop **allloop, struct MPoly **allpoly,
                              int *totloop, int *totpoly);
-int BKE_mesh_nurbs_to_mdata_customdb(struct Object *ob, struct ListBase *dispbase, struct MVert **allvert, int *_totvert,
+int BKE_mesh_nurbs_displist_to_mdata(struct Object *ob, struct ListBase *dispbase, struct MVert **allvert, int *_totvert,
                                      struct MEdge **alledge, int *_totedge, struct MLoop **allloop, struct MPoly **allpoly,
                                      int *_totloop, int *_totpoly);
 void BKE_mesh_from_nurbs(struct Object *ob);
+void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase);
 void BKE_mesh_from_curve(struct Scene *scene, struct Object *ob);
 void free_dverts(struct MDeformVert *dvert, int totvert);
 void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */

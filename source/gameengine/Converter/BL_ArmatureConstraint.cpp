@@ -334,7 +334,7 @@ PyObject* BL_ArmatureConstraint::py_attr_getattr(void *self_v, const struct KX_P
 		}
 		switch (attr_order) {
 		case BCA_IKWEIGHT:
-			return PyFloat_FromDouble((ikconstraint)?ikconstraint->weight:0.0);
+			return PyFloat_FromDouble((ikconstraint)?ikconstraint->weight : 0.0f);
 		case BCA_IKTYPE:
 			return PyLong_FromLong(ikconstraint->type);
 		case BCA_IKFLAG:
@@ -370,7 +370,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 	switch (attr_order) {
 	case BCA_ENFORCE:
 		dval = PyFloat_AsDouble(value);
-		if (dval < 0.0f || dval > 1.0f) { /* also accounts for non float */
+		if (dval < 0.0 || dval > 1.0) { /* also accounts for non float */
 			PyErr_SetString(PyExc_AttributeError, "constraint.enforce = float: BL_ArmatureConstraint, expected a float between 0 and 1");
 			return PY_SET_ATTR_FAIL;
 		}
@@ -379,7 +379,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 
 	case BCA_HEADTAIL:
 		dval = PyFloat_AsDouble(value);
-		if (dval < 0.0f || dval > 1.0f) { /* also accounts for non float */
+		if (dval < 0.0 || dval > 1.0) { /* also accounts for non float */
 			PyErr_SetString(PyExc_AttributeError, "constraint.headtail = float: BL_ArmatureConstraint, expected a float between 0 and 1");
 			return PY_SET_ATTR_FAIL;
 		}
@@ -417,7 +417,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 		switch (attr_order) {
 		case BCA_IKWEIGHT:
 			dval = PyFloat_AsDouble(value);
-			if (dval < 0.0f || dval > 1.0f) { /* also accounts for non float */
+			if (dval < 0.0 || dval > 1.0) { /* also accounts for non float */
 				PyErr_SetString(PyExc_AttributeError, "constraint.weight = float: BL_ArmatureConstraint, expected a float between 0 and 1");
 				return PY_SET_ATTR_FAIL;
 			}
@@ -426,7 +426,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 
 		case BCA_IKDIST:
 			dval = PyFloat_AsDouble(value);
-			if (dval < 0.0f) { /* also accounts for non float */
+			if (dval < 0.0) {  /* also accounts for non float */
 				PyErr_SetString(PyExc_AttributeError, "constraint.ik_dist = float: BL_ArmatureConstraint, expected a positive float");
 				return PY_SET_ATTR_FAIL;
 			}

@@ -60,7 +60,7 @@ void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 	BKE_scene_update_for_newframe(G.main, scene, (1 << 20) - 1);
 	BKE_scene_camera_switch_update(scene);
 
-	/* cant use NC_SCENE|ND_FRAME because this casues wm_event_do_notifiers to call
+	/* cant use NC_SCENE|ND_FRAME because this causes wm_event_do_notifiers to call
 	 * BKE_scene_update_for_newframe which will loose any un-keyed changes [#24690] */
 	/* WM_main_add_notifier(NC_SCENE|ND_FRAME, scene); */
 	

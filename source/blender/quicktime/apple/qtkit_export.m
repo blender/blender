@@ -400,13 +400,13 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 				qtexport->audioInputFormat.mFormatFlags |= kLinearPCMFormatFlagIsPacked;
 				
 				
-				/*Ouput format*/
+				/*Output format*/
 				qtexport->audioOutputFormat.mFormatID = rd->qtcodecsettings.audiocodecType;
 				//TODO: set audio channels
 				qtexport->audioOutputFormat.mChannelsPerFrame = 2;
 				qtexport->audioOutputFormat.mSampleRate = rd->qtcodecsettings.audioSampleRate;
 				
-				/* Default value for compressed formats, overriden after if not the case */
+				/* Default value for compressed formats, overridden after if not the case */
 				qtexport->audioOutputFormat.mFramesPerPacket = 0;
 				qtexport->audioOutputFormat.mBytesPerFrame = 0;
 				qtexport->audioOutputFormat.mBytesPerPacket = 0;

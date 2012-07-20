@@ -375,7 +375,7 @@ typedef struct SlidePointData {
 	MaskSplinePointUW *uw;
 	float handle[2], no[2], feather[2];
 	int width, height;
-	float weight;
+	float weight, weight_scalar;
 
 	short curvature_only, accurate;
 	short initial_feather, overall_feather;
@@ -460,6 +460,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 			float weight_scalar = BKE_mask_point_weight_scalar(spline, point, uw->u);
 
 			customdata->weight = uw->w;
+			customdata->weight_scalar = weight_scalar;
 			BKE_mask_point_segment_co(spline, point, uw->u, co);
 			BKE_mask_point_normal(spline, point, uw->u, customdata->no);
 
@@ -469,6 +470,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 			BezTriple *bezt = &point->bezt;
 
 			customdata->weight = bezt->weight;
+			customdata->weight_scalar = 1.0f;
 			BKE_mask_point_normal(spline, point, 0.0f, customdata->no);
 
 			madd_v2_v2v2fl(customdata->feather, bezt->vec[1], customdata->no, bezt->weight);
@@ -710,13 +712,13 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 						if (dot_v2v2(no, vec) <= 0.0f)
 							w = -w;
 
-						delta = w - data->weight;
+						delta = w - data->weight * data->weight_scalar;
 
 						if (data->orig_spline == NULL) {
 							/* restore weight for currently sliding point, so orig_spline would be created
 							 * with original weights used
 							 */
-							*weight = data->weight * weight_scalar;
+							*weight = data->weight;
 
 							data->orig_spline = BKE_mask_spline_copy(data->spline);
 						}

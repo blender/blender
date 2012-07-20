@@ -109,7 +109,7 @@
  * KX_BLENDERTRUNC needed to round 'almost' zero values to zero, else velocities etc. are incorrectly set
  */
 
-#define KX_BLENDERTRUNC(x)  (( x < 0.0001 && x > -0.0001 )  ? 0.0 : x)
+#define KX_BLENDERTRUNC(x)  (( x < 0.0001f && x > -0.0001f ) ? 0.0f : x)
 
 void BL_ConvertActuators(const char* maggiename,
 						 struct Object* blenderobject,
@@ -162,7 +162,7 @@ void BL_ConvertActuators(const char* maggiename,
 					KX_BLENDERTRUNC(obact->angularvelocity[1]),
 					KX_BLENDERTRUNC(obact->angularvelocity[2]));
 				short damping = obact->damping;
-				
+
 				/* Blender uses a bit vector internally for the local-flags. In */
 				/* KX, we have four bools. The compiler should be smart enough  */
 				/* to do the right thing. We need to explicitly convert here!   */
@@ -431,7 +431,7 @@ void BL_ConvertActuators(const char* maggiename,
 						new KX_SoundActuator(gameobj,
 						snd_sound,
 						soundact->volume,
-						(float)(exp((soundact->pitch / 12.0) * M_LN2)),
+						(float)(expf((soundact->pitch / 12.0f) * (float)M_LN2)),
 						is3d,
 						settings,
 						soundActuatorType);
@@ -578,8 +578,8 @@ void BL_ConvertActuators(const char* maggiename,
 				/* convert settings... degrees in the ui become radians  */ 
 				/* internally                                            */ 
 				if (conact->type == ACT_CONST_TYPE_ORI) {
-					min = (float)((MT_2_PI * conact->minloc[0])/360.0);
-					max = (float)((MT_2_PI * conact->maxloc[0])/360.0);
+					min = (float)(((float)MT_2_PI * conact->minloc[0]) / 360.0f);
+					max = (float)(((float)MT_2_PI * conact->maxloc[0]) / 360.0f);
 					switch (conact->mode) {
 					case ACT_CONST_DIRPX:
 						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIX;

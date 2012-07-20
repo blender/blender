@@ -55,7 +55,7 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", 0, "Envelope", ""},
 	{FMODIFIER_TYPE_CYCLES, "CYCLES", 0, "Cycles", ""},
 	{FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", ""},
-	{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},
+	/*{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},*/ /* FIXME: not implemented yet! */
 	/*{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},	 *//* FIXME: not implemented yet! */
 	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits", ""},
 	{FMODIFIER_TYPE_STEPPED, "STEPPED", 0, "Stepped Interpolation", ""},

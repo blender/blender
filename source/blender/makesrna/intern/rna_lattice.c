@@ -224,6 +224,10 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "LatticePoint", "Point in the lattice grid");
 	RNA_def_struct_path_func(srna, "rna_LatticePoint_path");
 
+	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
+	RNA_def_property_ui_text(prop, "Point selected", "Selection status");
+
 	prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

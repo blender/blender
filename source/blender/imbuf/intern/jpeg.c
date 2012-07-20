@@ -67,8 +67,8 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 /*
  * In principle there are 4 jpeg formats.
  *
- * 1. jpeg - standard printing, u & v at quarter of resulution
- * 2. jvid - standaard video, u & v half resolution, frame not interlaced
+ * 1. jpeg - standard printing, u & v at quarter of resolution
+ * 2. jvid - standard video, u & v half resolution, frame not interlaced
  *
  * type 3 is unsupported as of jul 05 2000 Frank.
  *

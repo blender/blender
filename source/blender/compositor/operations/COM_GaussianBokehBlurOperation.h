@@ -49,22 +49,18 @@ public:
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
 
-class GaussianBokehBlurReferenceOperation : public NodeOperation, public QualityStepHelper {
+class GaussianBlurReferenceOperation : public BlurBaseOperation {
 private:
-	SocketReader * m_inputImage;
-	SocketReader * m_inputSize;
-	float *m_gausstab;
-	NodeBlurData *m_data;
+	float **m_maintabs;
 	
 	void updateGauss();
+	int m_radx;
+	int m_rady;
+	float m_radxf;
+	float m_radyf;
 
-	static const int radxf = 256.0f;
-	static const int radyf = 256.0f;
-	static const int radx = 256;
-	static const int rady = 256;
-	
 public:
-	GaussianBokehBlurReferenceOperation();
+	GaussianBlurReferenceOperation();
 	void initExecution();
 	void *initializeTileData(rcti *rect);
 	/**
@@ -78,8 +74,6 @@ public:
 	void deinitExecution();
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-
-	void setData(NodeBlurData *data) { this->m_data = data; }
 };
 
 #endif
