@@ -2549,14 +2549,16 @@ bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, bNodeTemplate 
 	
 	/* generics */
 	if (node) {
-		node->locx = locx;
-		node->locy = locy + 60.0f;       // arbitrary.. so its visible, (0,0) is top of node
 		node_select(node);
 		
 		gnode = node_tree_get_editgroup(snode->nodetree);
+		// arbitrary y offset of 60 so its visible
 		if (gnode) {
-			node->locx -= gnode->locx;
-			node->locy -= gnode->locy;
+			nodeFromView(gnode, locx, locy + 60.0f, &node->locx, &node->locy);
+		}
+		else {
+			node->locx = locx;
+			node->locy = locy + 60.0f;
 		}
 
 		ntreeUpdateTree(snode->edittree);
@@ -3173,11 +3175,12 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 				
 				ntemp.type = NODE_REROUTE;
 				rerouteNode = nodeAddNode(snode->edittree, &ntemp);
-				rerouteNode->locx = insertPoint[0];
-				rerouteNode->locy = insertPoint[1];
 				if (gnode) {
-					rerouteNode->locx -= gnode->locx;
-					rerouteNode->locy -= gnode->locy;
+					nodeFromView(gnode, insertPoint[0], insertPoint[1], &rerouteNode->locx, &rerouteNode->locy);
+				}
+				else {
+					rerouteNode->locx = insertPoint[0];
+					rerouteNode->locy = insertPoint[1];
 				}
 				
 				nodeAddLink(snode->edittree, link->fromnode, link->fromsock, rerouteNode, rerouteNode->inputs.first);
