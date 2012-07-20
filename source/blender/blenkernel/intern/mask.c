@@ -556,6 +556,8 @@ static void spline_feather_collapse_inner_loops(MaskSpline *spline, float (*feat
 		int next = i + 1;
 		float delta;
 
+		DO_MINMAX2(feather_points[i], min, max);
+
 		if (next == tot_feather_point) {
 			if (spline->flag & MASK_SPLINE_CYCLIC)
 				next = 0;
@@ -570,8 +572,6 @@ static void spline_feather_collapse_inner_loops(MaskSpline *spline, float (*feat
 		delta = fabsf(feather_points[i][1] - feather_points[next][1]);
 		if (delta > max_delta_y)
 			max_delta_y = delta;
-
-		DO_MINMAX2(feather_points[i], min, max);
 	}
 
 	/* use dynamically calculated buckets per side, so we likely wouldn't
