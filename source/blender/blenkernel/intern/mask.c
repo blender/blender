@@ -574,12 +574,25 @@ static void spline_feather_collapse_inner_loops(MaskSpline *spline, float (*feat
 			max_delta_y = delta;
 	}
 
+	/* prevent divisionsby zero by ensuring bounding box is not collapsed */
+	if (max[0] - min[0] < FLT_EPSILON) {
+		max[0] += 0.01f;
+		min[0] -= 0.01f;
+	}
+
+	if (max[1] - min[1] < FLT_EPSILON) {
+		max[1] += 0.01f;
+		min[1] -= 0.01f;
+	}
+
 	/* use dynamically calculated buckets per side, so we likely wouldn't
 	 * run into a situation when segment doesn't fit two buckets which is
 	 * pain collecting candidates for intersection
 	 */
+
 	max_delta_x /= max[0] - min[0];
 	max_delta_y /= max[1] - min[1];
+
 	max_delta = MAX2(max_delta_x, max_delta_y);
 
 	buckets_per_side = MIN2(512, 0.9f / max_delta);
