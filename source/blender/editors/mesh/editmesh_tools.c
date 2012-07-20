@@ -2790,7 +2790,7 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
 
-static int mesh_separate_selected(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
+static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
 {
 	Base *base_new;
 	BMIter iter;
@@ -2816,33 +2816,27 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *base_old, BMe
 
 	ED_base_object_select(base_new, BA_SELECT);
 
-	BMO_op_callf(bm_old, "duplicate geom=%hvef dest=%p", BM_ELEM_SELECT, bm_new);
-	BMO_op_callf(bm_old, "delete geom=%hvef context=%i", BM_ELEM_SELECT, DEL_FACES);
+	BMO_op_callf(bm_old, "duplicate geom=%hvef dest=%p", BM_ELEM_TAG, bm_new);
+	BMO_op_callf(bm_old, "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_FACES);
 
 	/* clean up any loose edges */
 	BM_ITER_MESH (e, &iter, bm_old, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN))
-			continue;
-
 		if (!BM_edge_is_wire(e)) {
-			BM_edge_select_set(bm_old, e, FALSE);
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
 		}
 	}
-	BMO_op_callf(bm_old, "delete geom=%hvef context=%i", BM_ELEM_SELECT, DEL_EDGES);
+	BMO_op_callf(bm_old, "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_EDGES);
 
 	/* clean up any loose verts */
 	BM_ITER_MESH (v, &iter, bm_old, BM_VERTS_OF_MESH) {
-		if (BM_elem_flag_test(v, BM_ELEM_HIDDEN))
-			continue;
-
 		if (BM_vert_edge_count(v) != 0) {
-			BM_vert_select_set(bm_old, v, FALSE);
+			BM_elem_flag_disable(v, BM_ELEM_TAG);
 		}
 	}
 
-	BMO_op_callf(bm_old, "delete geom=%hvef context=%i", BM_ELEM_SELECT, DEL_VERTS);
+	BMO_op_callf(bm_old, "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_VERTS);
 
-	BM_mesh_normals_update(bm_new, TRUE);
+	BM_mesh_normals_update(bm_new, FALSE);
 
 	BM_mesh_bm_to_me(bm_new, base_new->object->data, FALSE);
 
@@ -2852,13 +2846,58 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *base_old, BMe
 	return TRUE;
 }
 
+static int mesh_separate_selected(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
+{
+	/* tag -> select */
+	BM_mesh_elem_hflag_enable_test(bm_old, BM_FACE | BM_EDGE | BM_VERT, BM_ELEM_TAG, TRUE, BM_ELEM_SELECT);
+
+	return mesh_separate_tagged(bmain, scene, base_old, bm_old);
+}
+
+/* flush a hflag to from verts to edges/faces */
+static void bm_mesh_hflag_flush_vert(BMesh *bm, const char hflag)
+{
+	BMEdge *e;
+	BMLoop *l_iter;
+	BMLoop *l_first;
+	BMFace *f;
+
+	BMIter eiter;
+	BMIter fiter;
+
+	int ok;
+
+	BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+		if (BM_elem_flag_test(e->v1, hflag) &&
+		    BM_elem_flag_test(e->v2, hflag))
+		{
+			BM_elem_flag_enable(e, hflag);
+		}
+		else {
+			BM_elem_flag_disable(e, hflag);
+		}
+	}
+	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+		ok = TRUE;
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			if (!BM_elem_flag_test(l_iter->v, hflag)) {
+				ok = FALSE;
+				break;
+			}
+		} while ((l_iter = l_iter->next) != l_first);
+
+		BM_elem_flag_set(f, hflag, ok);
+	}
+}
+
 static int mesh_separate_material(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
 {
 	BMFace *f_cmp, *f;
 	BMIter iter;
 	int result = FALSE;
 
-	BM_mesh_elem_hflag_disable_all(bm_old, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
+	BM_mesh_elem_hflag_disable_all(bm_old, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, FALSE);
 
 	while ((f_cmp = BM_iter_at_index(bm_old, BM_FACES_OF_MESH, NULL, 0))) {
 		const short mat_nr = f_cmp->mat_nr;
@@ -2866,7 +2905,16 @@ static int mesh_separate_material(Main *bmain, Scene *scene, Base *base_old, BMe
 
 		BM_ITER_MESH (f, &iter, bm_old, BM_FACES_OF_MESH) {
 			if (f->mat_nr == mat_nr) {
-				BM_face_select_set(bm_old, f, TRUE);
+				BMLoop *l_iter;
+				BMLoop *l_first;
+
+				BM_elem_flag_enable(f, BM_ELEM_TAG);
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+				do {
+					BM_elem_flag_enable(l_iter->v, BM_ELEM_TAG);
+					BM_elem_flag_enable(l_iter->e, BM_ELEM_TAG);
+				} while ((l_iter = l_iter->next) != l_first);
+
 				tot++;
 			}
 		}
@@ -2877,7 +2925,7 @@ static int mesh_separate_material(Main *bmain, Scene *scene, Base *base_old, BMe
 		}
 
 		/* Move selection into a separate object */
-		result |= mesh_separate_selected(bmain, scene, base_old, bm_old);
+		result |= mesh_separate_tagged(bmain, scene, base_old, bm_old);
 	}
 
 	return result;
@@ -2893,7 +2941,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *base_old, BMesh 
 	int max_iter = bm_old->totvert;
 
 	/* Clear all selected vertices */
-	BM_mesh_elem_hflag_disable_all(bm_old, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
+	BM_mesh_elem_hflag_disable_all(bm_old, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, FALSE);
 
 	/* A "while (true)" loop should work here as each iteration should
 	 * select and remove at least one vertex and when all vertices
@@ -2901,6 +2949,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *base_old, BMesh 
 	 * behavior by limiting iterations to the number of vertices in the
 	 * original mesh.*/
 	for (i = 0; i < max_iter; i++) {
+		int tot = 0;
 		/* Get a seed vertex to start the walk */
 		v_seed = BM_iter_at_index(bm_old, BM_VERTS_OF_MESH, NULL, 0);
 
@@ -2910,7 +2959,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *base_old, BMesh 
 		}
 
 		/* Select the seed explicitly, in case it has no edges */
-		BM_vert_select_set(bm_old, v_seed, TRUE);
+		BM_elem_flag_enable(v_seed, BM_ELEM_TAG);
 
 		/* Walk from the single vertex, selecting everything connected
 		 * to it */
@@ -2921,22 +2970,22 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *base_old, BMesh 
 
 		e = BMW_begin(&walker, v_seed);
 		for (; e; e = BMW_step(&walker)) {
-			BM_vert_select_set(bm_old, e->v1, TRUE);
-			BM_vert_select_set(bm_old, e->v2, TRUE);
+			if (!BM_elem_flag_test(e->v1, BM_ELEM_TAG)) { BM_elem_flag_enable(e->v1, BM_ELEM_TAG); tot++; }
+			if (!BM_elem_flag_test(e->v2, BM_ELEM_TAG)) { BM_elem_flag_enable(e->v2, BM_ELEM_TAG); tot++; }
 		}
 		BMW_end(&walker);
 
-		/* Flush the selection to get edge/face selections matching
-		 * the vertex selection */
-		BM_mesh_select_mode_flush_ex(bm_old, SCE_SELECT_VERTEX);
-
-		if (bm_old->totvert == bm_old->totvertsel) {
+		if (bm_old->totvert == tot) {
 			/* Every vertex selected, nothing to separate, work is done */
 			break;
 		}
 
+		/* Flush the selection to get edge/face selections matching
+		 * the vertex selection */
+		bm_mesh_hflag_flush_vert(bm_old, BM_ELEM_TAG);
+
 		/* Move selection into a separate object */
-		result |= mesh_separate_selected(bmain, scene, base_old, bm_old);
+		result |= mesh_separate_tagged(bmain, scene, base_old, bm_old);
 	}
 
 	return result;
