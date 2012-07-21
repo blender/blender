@@ -499,15 +499,15 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 /* ********************************************************* */
 /* SINGLE-STEP VIEW ZOOMING OPERATOR						 */
 
-/*  This group of operators come in several forms:
- *		1) Scrollwheel 'steps' - rolling mousewheel by one step zooms view by predefined amount
- *		2) Scrollwheel 'steps' + alt + ctrl/shift - zooms view on one axis only (ctrl=x, shift=y)  // XXX this could be implemented...
- *		3) Pad +/- Keys - pressing each key moves the zooms the view by a predefined amount
+/* This group of operators come in several forms:
+ * 1) Scrollwheel 'steps' - rolling mousewheel by one step zooms view by predefined amount
+ * 2) Scrollwheel 'steps' + alt + ctrl/shift - zooms view on one axis only (ctrl=x, shift=y)  // XXX this could be implemented...
+ * 3) Pad +/- Keys - pressing each key moves the zooms the view by a predefined amount
  *
- *	In order to make sure this works, each operator must define the following RNA-Operator Props:
- *		zoomfacx, zoomfacy	- These two zoom factors allow for non-uniform scaling.
- *							  It is safe to scale by 0, as these factors are used to determine
- *							  amount to enlarge 'cur' by
+ * In order to make sure this works, each operator must define the following RNA-Operator Props:
+ * zoomfacx, zoomfacy - These two zoom factors allow for non-uniform scaling.
+ *                      It is safe to scale by 0, as these factors are used to determine
+ *                      amount to enlarge 'cur' by
  */
 
 /* ------------------ 'Shared' stuff ------------------------ */

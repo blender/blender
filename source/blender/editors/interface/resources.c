@@ -1213,7 +1213,8 @@ void UI_GetColorPtrShade3ubv(const unsigned char cp[3], unsigned char col[3], in
 }
 
 // get a 3 byte color, blended and shaded between two other char color pointers
-void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3], float fac, int offset)
+void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3],
+                                  float fac, int offset)
 {
 	int r, g, b;
 
@@ -1740,7 +1741,8 @@ void init_userdef_do_versions(void)
 	}
 
 	if (bmain->versionfile < 257) {
-		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs, so that it doesn't linger around from old configs like a ghost */
+		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs,
+		 * so that it doesn't linger around from old configs like a ghost */
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
 	}
 
