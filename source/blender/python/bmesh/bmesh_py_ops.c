@@ -109,7 +109,8 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 	}
 
 	/* TODO - error check this!, though we do the error check on attribute access */
-	BMO_op_init(bm, &bmop, self->opname);
+	/* TODO - make flags optional */
+	BMO_op_init(bm, &bmop, BMO_FLAG_DEFAULTS, self->opname);
 
 	if (kw && PyDict_Size(kw) > 0) {
 		/* setup properties, see bpy_rna.c: pyrna_py_to_prop()

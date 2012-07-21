@@ -212,7 +212,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_smallhash_release(&hash);
 	
 	/* clean up fill */
-	BMO_op_initf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", ELE_NEW, EDGE_MARK);
+	BMO_op_initf(bm, &bmop, op->flag, "beautify_fill faces=%ff constrain_edges=%fe", ELE_NEW, EDGE_MARK);
 	BMO_op_exec(bm, &bmop);
 	BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", BM_FACE | BM_EDGE, ELE_NEW);
 	BMO_op_finish(bm, &bmop);

@@ -255,7 +255,7 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 	ModifierData *md;
 	BMElem *ele;
 	
-	BMO_op_init(bm, &extop, "extrude_face_region");
+	BMO_op_init(bm, &extop, BMO_FLAG_DEFAULTS, "extrude_face_region");
 	BMO_slot_buffer_from_enabled_hflag(bm, &extop, "edgefacein", BM_VERT | BM_EDGE | BM_FACE, hflag);
 
 	/* If a mirror modifier with clipping is on, we need to adjust some 
@@ -395,8 +395,10 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 
 	for (a = 0; a < steps; a++) {
 		edbm_extrude_edge(obedit, em, BM_ELEM_SELECT, nor);
-		//BMO_op_callf(em->bm, "extrude_face_region edgefacein=%hef", BM_ELEM_SELECT);
-		BMO_op_callf(em->bm, "translate vec=%v verts=%hv", (float *)dvec, BM_ELEM_SELECT);
+		//BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS, "extrude_face_region edgefacein=%hef", BM_ELEM_SELECT);
+		BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
+		             "translate vec=%v verts=%hv",
+		             (float *)dvec, BM_ELEM_SELECT);
 		//extrudeflag(obedit, em, SELECT, nor);
 		//translateflag(em, SELECT, dvec);
 	}
@@ -2816,25 +2818,24 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 
 	ED_base_object_select(base_new, BA_SELECT);
 
-	BMO_op_callf(bm_old, "duplicate geom=%hvef dest=%p", BM_ELEM_TAG, bm_new);
-	BMO_op_callf(bm_old, "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_FACES);
+	BMO_op_callf(bm_old, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+	             "duplicate geom=%hvef dest=%p", BM_ELEM_TAG, bm_new);
+	BMO_op_callf(bm_old, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+	             "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_FACES);
 
 	/* clean up any loose edges */
 	BM_ITER_MESH (e, &iter, bm_old, BM_EDGES_OF_MESH) {
-		if (!BM_edge_is_wire(e)) {
-			BM_elem_flag_disable(e, BM_ELEM_TAG);
+		if (BM_edge_is_wire(e)) {
+			BM_edge_kill(bm_old, e);
 		}
 	}
-	BMO_op_callf(bm_old, "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_EDGES);
 
 	/* clean up any loose verts */
 	BM_ITER_MESH (v, &iter, bm_old, BM_VERTS_OF_MESH) {
-		if (BM_vert_edge_count(v) != 0) {
-			BM_elem_flag_disable(v, BM_ELEM_TAG);
+		if (BM_vert_edge_count(v) == 0) {
+			BM_vert_kill(bm_old, v);
 		}
 	}
-
-	BMO_op_callf(bm_old, "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_VERTS);
 
 	BM_mesh_normals_update(bm_new, FALSE);
 
@@ -2959,13 +2960,13 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *base_old, BMesh 
 		}
 
 		/* Select the seed explicitly, in case it has no edges */
-		BM_elem_flag_enable(v_seed, BM_ELEM_TAG);
+		if (!BM_elem_flag_test(v_seed, BM_ELEM_TAG)) { BM_elem_flag_enable(v_seed, BM_ELEM_TAG); tot++; }
 
 		/* Walk from the single vertex, selecting everything connected
 		 * to it */
 		BMW_init(&walker, bm_old, BMW_SHELL,
 		         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-		         BMW_FLAG_NOP, /* BMESH_TODO - should be BMW_FLAG_TEST_HIDDEN ? */
+		         BMW_FLAG_NOP,
 		         BMW_NIL_LAY);
 
 		e = BMW_begin(&walker, v_seed);
@@ -5136,7 +5137,9 @@ static int edbm_wireframe_exec(bContext *C, wmOperator *op)
 		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, FALSE);
 		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
 
-		BMO_op_callf(em->bm, "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_FACES);
+		BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
+		             "delete geom=%hvef context=%i",
+		             BM_ELEM_TAG, DEL_FACES);
 	}
 
 	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);

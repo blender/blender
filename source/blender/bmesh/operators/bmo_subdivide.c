@@ -1037,7 +1037,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	BMOperator op;
 	
 	/* use_sphere isnt exposed here since its only used for new primitives */
-	BMO_op_initf(bm, &op,
+	BMO_op_initf(bm, &op, BMO_FLAG_DEFAULTS,
 	             "subdivide_edges edges=%he "
 	             "smooth=%f fractal=%f along_normal=%f "
 	             "numcuts=%i "

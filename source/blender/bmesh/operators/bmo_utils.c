@@ -73,7 +73,7 @@ void bmo_translate_exec(BMesh *bm, BMOperator *op)
 	unit_m4(mat);
 	copy_v3_v3(mat[3], vec);
 
-	BMO_op_callf(bm, "transform mat=%m4 verts=%s", mat, op, "verts");
+	BMO_op_callf(bm, op->flag, "transform mat=%m4 verts=%s", mat, op, "verts");
 }
 
 void bmo_scale_exec(BMesh *bm, BMOperator *op)
@@ -87,7 +87,7 @@ void bmo_scale_exec(BMesh *bm, BMOperator *op)
 	mat[1][1] = vec[1];
 	mat[2][2] = vec[2];
 
-	BMO_op_callf(bm, "transform mat=%m3 verts=%s", mat, op, "verts");
+	BMO_op_callf(bm, op->flag, "transform mat=%m3 verts=%s", mat, op, "verts");
 }
 
 void bmo_rotate_exec(BMesh *bm, BMOperator *op)
@@ -100,12 +100,12 @@ void bmo_rotate_exec(BMesh *bm, BMOperator *op)
 	 * this is how editmesh did it and I'm too tired to think
 	 * through the math right now. */
 	mul_v3_fl(vec, -1.0f);
-	BMO_op_callf(bm, "translate verts=%s vec=%v", op, "verts", vec);
+	BMO_op_callf(bm, op->flag, "translate verts=%s vec=%v", op, "verts", vec);
 
-	BMO_op_callf(bm, "transform mat=%s verts=%s", op, "mat", op, "verts");
+	BMO_op_callf(bm, op->flag, "transform mat=%s verts=%s", op, "mat", op, "verts");
 
 	mul_v3_fl(vec, -1.0f);
-	BMO_op_callf(bm, "translate verts=%s vec=%v", op, "verts", vec);
+	BMO_op_callf(bm, op->flag, "translate verts=%s vec=%v", op, "verts", vec);
 }
 
 void bmo_reverse_faces_exec(BMesh *bm, BMOperator *op)

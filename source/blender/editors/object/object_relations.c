@@ -677,7 +677,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *par = ED_object_active_context(C);
 	int partype = RNA_enum_get(op->ptr, "type");
-	int xmirror = RNA_enum_get(op->ptr, "xmirror");
+	int xmirror = RNA_boolean_get(op->ptr, "xmirror");
 	int ok = 1;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)

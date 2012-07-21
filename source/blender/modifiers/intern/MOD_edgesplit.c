@@ -103,7 +103,8 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 		}
 	}
 	
-	BMO_op_callf(bm, "split_edges edges=%fe", EDGE_MARK);
+	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
+	             "split_edges edges=%fe", EDGE_MARK);
 	
 	BMO_pop(bm);
 

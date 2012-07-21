@@ -1030,13 +1030,13 @@ static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			uv_poly_center(em, efa, cent);
 			
-			if ( (fabs(cent[0] - cent_vec[0]) < 0.001) && (fabs(cent[1] - cent_vec[1]) < 0.001) ) {
+			if ( (fabsf(cent[0] - cent_vec[0]) < 0.001f) && (fabsf(cent[1] - cent_vec[1]) < 0.001f) ) {
 				BMIter liter;
 				BMLoop *l;
 				
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					if ( (fabs(luv->uv[0] - vec[0]) < 0.001) && (fabs(luv->uv[1] - vec[1]) < 0.001) ) {
+					if ( (fabsf(luv->uv[0] - vec[0]) < 0.001f) && (fabsf(luv->uv[1] - vec[1]) < 0.001f) ) {
 						return luv->uv;
 								
 					}

@@ -381,8 +381,8 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 	const short use_only_faces = BMO_slot_bool_get(op, "use_only_faces");
 
 	/* initialize our sub-operator */
-	BMO_op_init(bm, &dupeop, "duplicate");
-	BMO_op_init(bm, &delop, "delete");
+	BMO_op_init(bm, &dupeop, op->flag, "duplicate");
+	BMO_op_init(bm, &delop, op->flag, "delete");
 	
 	BMO_slot_copy(splitop, &dupeop, "geom", "geom");
 	BMO_op_exec(bm, &dupeop);
@@ -487,18 +487,20 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(op, op, "geom", "lastout");
 	for (a = 0; a < steps; a++) {
 		if (do_dupli) {
-			BMO_op_initf(bm, &dupop, "duplicate geom=%s", op, "lastout");
+			BMO_op_initf(bm, &dupop, op->flag, "duplicate geom=%s", op, "lastout");
 			BMO_op_exec(bm, &dupop);
-			BMO_op_callf(bm, "rotate cent=%v mat=%m3 verts=%s",
+			BMO_op_callf(bm, op->flag,
+			             "rotate cent=%v mat=%m3 verts=%s",
 			             cent, rmat, &dupop, "newout");
 			BMO_slot_copy(&dupop, op, "newout", "lastout");
 			BMO_op_finish(bm, &dupop);
 		}
 		else {
-			BMO_op_initf(bm, &extop, "extrude_face_region edgefacein=%s",
+			BMO_op_initf(bm, &extop, op->flag, "extrude_face_region edgefacein=%s",
 			             op, "lastout");
 			BMO_op_exec(bm, &extop);
-			BMO_op_callf(bm, "rotate cent=%v mat=%m3 verts=%s",
+			BMO_op_callf(bm, op->flag,
+			             "rotate cent=%v mat=%m3 verts=%s",
 			             cent, rmat, &extop, "geomout");
 			BMO_slot_copy(&extop, op, "geomout", "lastout");
 			BMO_op_finish(bm, &extop);
@@ -506,7 +508,9 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 
 		if (usedvec) {
 			mul_m3_v3(rmat, dvec);
-			BMO_op_callf(bm, "translate vec=%v verts=%s", dvec, op, "lastout");
+			BMO_op_callf(bm, op->flag,
+			             "translate vec=%v verts=%s",
+			             dvec, op, "lastout");
 		}
 	}
 }

@@ -637,8 +637,8 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 	// otherwise the Y axis is the up direction.
 	// If the mirror is not perfectly vertical(horizontal), the Z(Y) axis projection on the mirror
 	// plan by the normal will be the up direction.
-	if (fabs(mirrorNormal[2]) > fabs(mirrorNormal[1]) &&
-	        fabs(mirrorNormal[2]) > fabs(mirrorNormal[0]))
+	if (fabsf(mirrorNormal[2]) > fabsf(mirrorNormal[1]) &&
+	    fabsf(mirrorNormal[2]) > fabsf(mirrorNormal[0]))
 	{
 		// the mirror is more horizontal than vertical
 		copy_v3_v3(axis, yaxis);
@@ -649,7 +649,7 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 		copy_v3_v3(axis, zaxis);
 	}
 	dist = dot_v3v3(mirrorNormal, axis);
-	if (fabs(dist) < FLT_EPSILON)
+	if (fabsf(dist) < FLT_EPSILON)
 	{
 		// the mirror is already fully aligned with up axis
 		copy_v3_v3(mirrorUp, axis);

@@ -2008,9 +2008,9 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 	remerge_faces(kcd);
 
 	/* delete left over faces */
-	BMO_op_callf(bm, "delete geom=%ff context=%i", DEL, DEL_ONLYFACES);
-	BMO_op_callf(bm, "delete geom=%fe context=%i", DEL, DEL_EDGES);
-	BMO_op_callf(bm, "delete geom=%fv context=%i", DEL, DEL_VERTS);
+	BMO_op_callf(bm, BMO_FLAG_DEFAULTS, "delete geom=%ff context=%i", DEL, DEL_ONLYFACES);
+	BMO_op_callf(bm, BMO_FLAG_DEFAULTS, "delete geom=%fe context=%i", DEL, DEL_EDGES);
+	BMO_op_callf(bm, BMO_FLAG_DEFAULTS, "delete geom=%fv context=%i", DEL, DEL_VERTS);
 
 	if (face_nets) 
 		MEM_freeN(face_nets);

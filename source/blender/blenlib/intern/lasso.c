@@ -95,7 +95,7 @@ int BLI_lasso_is_point_inside(int mcords[][2], short moves,
 		p2 = mcords[a + 1];
 	}
 
-	if (fabs(angletot) > 4.0) return 1;
+	if (fabsf(angletot) > 4.0f) return 1;
 	return 0;
 }
 

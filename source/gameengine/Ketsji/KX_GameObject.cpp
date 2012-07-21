@@ -1162,8 +1162,8 @@ void KX_GameObject::NodeSetWorldScale(const MT_Vector3& scale)
 	{
 		// Make sure the objects have some scale
 		MT_Vector3 p_scale = parent->GetWorldScaling();
-		if (fabs(p_scale[0]) < FLT_EPSILON || 
-			fabs(p_scale[1]) < FLT_EPSILON || 
+		if (fabs(p_scale[0]) < FLT_EPSILON ||
+			fabs(p_scale[1]) < FLT_EPSILON ||
 			fabs(p_scale[2]) < FLT_EPSILON)
 		{ 
 			return; 
@@ -1190,8 +1190,8 @@ void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
 	{
 		// Make sure the objects have some scale
 		MT_Vector3 scale = parent->GetWorldScaling();
-		if (fabs(scale[0]) < FLT_EPSILON || 
-			fabs(scale[1]) < FLT_EPSILON || 
+		if (fabs(scale[0]) < FLT_EPSILON ||
+			fabs(scale[1]) < FLT_EPSILON ||
 			fabs(scale[2]) < FLT_EPSILON)
 		{ 
 			return; 
@@ -1203,7 +1203,7 @@ void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
 		MT_Vector3 newpos = invori*(trans-parent->GetWorldPosition())*scale;
 		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
 	}
-	else 
+	else
 	{
 		NodeSetLocalPosition(trans);
 	}

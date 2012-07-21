@@ -733,7 +733,7 @@ static void find_nearest_uv_face(Scene *scene, Image *ima, BMEditMesh *em, const
 
 		uv_poly_center(em, efa, cent);
 
-		dist = fabs(co[0] - cent[0]) + fabs(co[1] - cent[1]);
+		dist = fabsf(co[0] - cent[0]) + fabsf(co[1] - cent[1]);
 
 		if (dist < mindist) {
 			hit->tf = tf;
@@ -869,7 +869,7 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float c
 		
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			dist = fabs(co[0] - luv->uv[0]) + fabs(co[1] - luv->uv[1]);
+			dist = fabsf(co[0] - luv->uv[0]) + fabsf(co[1] - luv->uv[1]);
 
 			if (dist <= mindist) {
 				mindist = dist;

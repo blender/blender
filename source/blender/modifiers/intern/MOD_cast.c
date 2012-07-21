@@ -381,9 +381,9 @@ static void cuboid_do(
 		}
 
 		/* we want a symmetric bound box around the origin */
-		if (fabs(min[0]) > fabs(max[0])) max[0] = fabs(min[0]); 
-		if (fabs(min[1]) > fabs(max[1])) max[1] = fabs(min[1]); 
-		if (fabs(min[2]) > fabs(max[2])) max[2] = fabs(min[2]);
+		if (fabsf(min[0]) > fabsf(max[0])) max[0] = fabsf(min[0]);
+		if (fabsf(min[1]) > fabsf(max[1])) max[1] = fabsf(min[1]);
+		if (fabsf(min[2]) > fabsf(max[2])) max[2] = fabsf(min[2]);
 		min[0] = -max[0];
 		min[1] = -max[1];
 		min[2] = -max[2];
