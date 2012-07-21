@@ -1291,8 +1291,7 @@ void KX_GameObject::Resume(void)
 
 void KX_GameObject::Suspend()
 {
-	if ((!m_ignore_activity_culling) 
-		&& (!m_suspended))  {
+	if ((!m_ignore_activity_culling) && (!m_suspended)) {
 		SCA_IObject::Suspend();
 		if (GetPhysicsController())
 			GetPhysicsController()->SuspendDynamics();

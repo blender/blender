@@ -48,7 +48,7 @@ GHOST_DisplayManagerX11(
 	GHOST_DisplayManager(),
 	m_system(system)
 {
-	//nothing to do.
+	/* nothing to do. */
 }
 
 GHOST_TSuccess
@@ -87,7 +87,7 @@ getNumDisplaySettings(
 	XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes);
 
 #else
-	// We only have one X11 setting at the moment.
+	/* We only have one X11 setting at the moment. */
 	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");	
 	numSettings = GHOST_TInt32(1);
 #endif
@@ -144,8 +144,8 @@ getDisplaySetting(
 	setting.bpp = DefaultDepth(x_display, DefaultScreen(x_display));
 #endif
 
-	// Don't think it's possible to get this value from X!
-	// So let's guess!!
+	/* Don't think it's possible to get this value from X!
+	 * So let's guess!! */
 	setting.frequency = 60;
 
 	return GHOST_kSuccess;
@@ -171,11 +171,10 @@ setCurrentDisplaySetting(
 		const GHOST_DisplaySetting& setting)
 {
 #ifdef WITH_X11_XF86VMODE
-	//
-	// Mode switching code ported from Quake 2:
-	// ftp://ftp.idsoftware.com/idstuff/source/q2source-3.21.zip
-	// See linux/gl_glx.c:GLimp_SetMode
-	//
+	/* Mode switching code ported from Quake 2:
+	 * ftp:/* ftp.idsoftware.com/idstuff/source/q2source-3.21.zip */
+	 * See linux/gl_glx.c:GLimp_SetMode
+	 */
 	int majorVersion, minorVersion;
 	XF86VidModeModeInfo **vidmodes;
 	Display *dpy = m_system->getXDisplay();
@@ -187,7 +186,7 @@ setCurrentDisplaySetting(
 
 	scrnum = DefaultScreen(dpy);
 
-	// Get video mode list
+	/* Get video mode list */
 	majorVersion = minorVersion = 0;
 	if (!XF86VidModeQueryVersion(dpy, &majorVersion, &minorVersion)) {
 		fprintf(stderr, "Error: XF86VidMode extension missing!\n");
@@ -228,20 +227,21 @@ setCurrentDisplaySetting(
 		       actualWidth, actualHeight);
 #  endif
 
-		// change to the mode
+		/* change to the mode */
 		XF86VidModeSwitchToMode(dpy, scrnum, vidmodes[best_fit]);
 
-		// Move the viewport to top left
+		/* Move the viewport to top left */
 		XF86VidModeSetViewPort(dpy, scrnum, 0, 0);
 	}
-	else
+	else {
 		return GHOST_kFailure;
+	}
 
 	XFlush(dpy);
 	return GHOST_kSuccess;
 
 #else
-	// Just pretend the request was successful.
+	/* Just pretend the request was successful. */
 	return GHOST_kSuccess;
 #endif
 }

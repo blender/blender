@@ -414,8 +414,9 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 				collpair->bp2 = face2->v2;
 				collpair->bp3 = face2->v3;
 			}
-			else
+			else {
 				i++;
+			}
 		}
 		if ( i == 2 ) {
 			if ( face2->v4 ) {
@@ -429,8 +430,9 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 				collpair->bp2 = face2->v4;
 				collpair->bp3 = face2->v3;
 			}
-			else
+			else {
 				break;
+			}
 		}
 		else if ( i == 3 ) {
 			if ( face1->v4 && face2->v4 ) {
@@ -444,8 +446,9 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 				collpair->bp2 = face2->v3;
 				collpair->bp3 = face2->v4;
 			}
-			else
+			else {
 				break;
+			}
 		}
 		
 #ifdef USE_BULLET
@@ -464,8 +467,7 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 			collpair->flag = 0;
 			collpair++;
 		}/*
-		else
-		{
+		else {
 			float w1, w2, w3, u1, u2, u3;
 			float v1[3], v2[3], relativeVelocity[3];
 

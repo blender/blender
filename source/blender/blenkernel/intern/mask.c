@@ -110,7 +110,7 @@ static BezTriple *mask_spline_point_prev_bezt(MaskSpline *spline, MaskSplinePoin
 		if (spline->flag & MASK_SPLINE_CYCLIC) {
 			return &(points_array[0].bezt);
 		}
-		else  {
+		else {
 			return NULL;
 		}
 	}
@@ -2610,7 +2610,7 @@ void BKE_mask_rasterize_layers(ListBase *masklayers, int width, int height, floa
 			}
 		}
 
-		if(do_mask_aa){
+		if (do_mask_aa) {
 			//PLX_antialias_buffer(buffer,width,height);
 		}
 		/* clamp at the end */
@@ -2620,7 +2620,8 @@ void BKE_mask_rasterize_layers(ListBase *masklayers, int width, int height, floa
 }
 
 #ifdef __PLX_RASKTER_MT__
-void BKE_mask_init_layers(Mask *mask, struct layer_init_data *mlayer_data, int width, int height, const short do_aspect_correct){
+void BKE_mask_init_layers(Mask *mask, struct layer_init_data *mlayer_data, int width, int height, const short do_aspect_correct)
+{
 	MaskLayer *masklay;
 	int numLayers=0;
 	int currLayer=0;

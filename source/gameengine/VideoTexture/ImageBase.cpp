@@ -246,7 +246,8 @@ bool ImageBase::checkSourceSizes (void)
 				// set current size as reference
 				refSize = curSize;
 		// otherwise check with current size
-			} else if (curSize[0] != refSize[0] || curSize[1] != refSize[1]) {
+			}
+			else if (curSize[0] != refSize[0] || curSize[1] != refSize[1]) {
 				// if they don't match, report it
 				return false;
 			}

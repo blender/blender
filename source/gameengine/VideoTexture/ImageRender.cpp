@@ -208,11 +208,11 @@ void ImageRender::Render()
 		            frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
 
 		m_camera->SetProjectionMatrix(projmat);
-	} else if (m_camera->hasValidProjectionMatrix())
-	{
+	}
+	else if (m_camera->hasValidProjectionMatrix()) {
 		m_rasterizer->SetProjectionMatrix(m_camera->GetProjectionMatrix());
-	} else
-	{
+	}
+	else {
 		float lens = m_camera->GetLens();
 		float sensor_x = m_camera->GetSensorWidth();
 		float sensor_y = m_camera->GetSensorHeight();
@@ -241,8 +241,8 @@ void ImageRender::Render()
 
 			projmat = m_rasterizer->GetOrthoMatrix(
 			            frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
-		} else
-		{
+		}
+		else {
 			RAS_FramingManager::ComputeDefaultFrustum(
 			            nearfrust,
 			            farfrust,
@@ -604,13 +604,12 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 				mirrorVerts.push_back(v1);
 				mirrorVerts.push_back(v2);
 				mirrorVerts.push_back(v3);
-				if (polygon->VertexCount() == 4)
-				{
+				if (polygon->VertexCount() == 4) {
 					v4 = polygon->GetVertex(3);
 					mirrorVerts.push_back(v4);
 					area = normal_quad_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), (float*)v4->getXYZ());
-				} else
-				{
+				}
+				else {
 					area = normal_tri_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ());
 				}
 				area = fabs(area);

@@ -296,7 +296,8 @@ SG_Tree* SG_TreeFactory::MakeTreeDown(SG_BBox &bbox)
 				{
 					lefttree.Add(*it);
 					hasleft++;
-				} else {
+				}
+				else {
 					righttree.Add(*it);
 					hasright++;
 				}

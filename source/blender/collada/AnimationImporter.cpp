@@ -916,7 +916,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 		}
 	}
 
-	if ( (animType->camera) != 0)  {
+	if (animType->camera != 0) {
 		Camera *camera  = (Camera *) ob->data;
 
 		if (!camera->adt || !camera->adt->action) act = verify_adt_action((ID *)&camera->id, 1);

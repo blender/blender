@@ -135,7 +135,7 @@ void GeometryExporter::operator()(Object *ob)
 
 	// XXX slow		
 	if (ob->totcol) {
-		for (int a = 0; a < ob->totcol; a++)    {
+		for (int a = 0; a < ob->totcol; a++) {
 			createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
