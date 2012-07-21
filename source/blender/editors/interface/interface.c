@@ -2243,8 +2243,12 @@ void ui_check_but(uiBut *but)
 			UI_GET_BUT_VALUE_INIT(but, value);
 
 			if (ui_is_but_float(but)) {
-				if (value == (double) FLT_MAX) BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
-				else if (value == (double) -FLT_MAX) BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
+				if (value == (double) FLT_MAX) {
+					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
+				}
+				else if (value == (double) -FLT_MAX) {
+					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
+				}
 				/* support length type buttons */
 				else if (ui_is_but_unit(but)) {
 					char new_str[sizeof(but->drawstr)];
@@ -2550,7 +2554,9 @@ void ui_block_do_align(uiBlock *block)
  * - \a a2 Number of decimal point values to display. 0 defaults to 3 (0.000)
  *      1,2,3, and a maximum of 4, all greater values will be clamped to 4.
  */
-static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2, const char *tip)
+static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
+                         int x1, int y1, short x2, short y2,
+                         void *poin, float min, float max, float a1, float a2, const char *tip)
 {
 	uiBut *but;
 	int slen;
@@ -2622,10 +2628,14 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 		}
 	}
 
-	if ((block->flag & UI_BLOCK_LOOP) || ELEM8(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR))
+	if ((block->flag & UI_BLOCK_LOOP) ||
+	    ELEM8(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR))
+	{
 		but->flag |= (UI_TEXT_LEFT | UI_ICON_LEFT);
-	else if (but->type == BUT_TOGDUAL)
+	}
+	else if (but->type == BUT_TOGDUAL) {
 		but->flag |= UI_ICON_LEFT;
+	}
 
 	but->flag |= (block->flag & UI_BUT_ALIGN);
 
@@ -2670,7 +2680,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 	but->lockstr = ""
 
 
-static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)
+static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str,
+                             int x1, int y1, short x2, short y2,
+                             PointerRNA *ptr, PropertyRNA *prop, int index,
+                             float min, float max, float a1, float a2,  const char *tip)
 {
 	const PropertyType proptype = RNA_property_type(prop);
 	uiBut *but;
