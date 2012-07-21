@@ -162,14 +162,10 @@ typedef struct BMOpDefine {
 	int type_flag;
 } BMOpDefine;
 
-/* BMOpDefine->flag */
-#define BMO_OP_FLAG_UNTAN_MULTIRES		1 /*switch from multires tangent space to absolute coordinates*/
-
-/* ensures consistent normals before operator execution,
- * restoring the original ones windings/normals afterwards.
- * keep in mind, this won't work if the input mesh isn't
- * manifold.*/
-#define BMO_OP_FLAG_RATIONALIZE_NORMALS 2
+/* BMOpDefine->type_flag */
+enum {
+	BMO_OP_FLAG_UNTAN_MULTIRES  = 1 /*switch from multires tangent space to absolute coordinates*/
+};
 
 /*------------- Operator API --------------*/
 
