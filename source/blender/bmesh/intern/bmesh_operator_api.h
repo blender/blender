@@ -135,12 +135,18 @@ typedef struct BMOpSlot {
 typedef struct BMOperator {
 	int type;
 	int slot_type;
-	int needflag;
-	int flag;
+	int type_flag;
+	int flag;  /* runtime options */
 	struct BMOpSlot slot_args[BMO_OP_MAX_SLOTS];
 	void (*exec)(BMesh *bm, struct BMOperator *op);
 	struct MemArena *arena;
 } BMOperator;
+
+enum {
+	BMO_FLAG_RESPECT_HIDE = 1,
+};
+
+#define BMO_FLAG_DEFAULTS  BMO_FLAG_RESPECT_HIDE
 
 #define MAX_SLOTNAME	32
 
@@ -153,7 +159,7 @@ typedef struct BMOpDefine {
 	const char *name;
 	BMOSlotType slot_types[BMO_OP_MAX_SLOTS];
 	void (*exec)(BMesh *bm, BMOperator *op);
-	int flag;
+	int type_flag;
 } BMOpDefine;
 
 /* BMOpDefine->flag */
@@ -171,7 +177,7 @@ typedef struct BMOpDefine {
  * have it set directly.  and never use BMO_slot_ptr_set to
  * pass in a list of edges or any arrays, really.*/
 
-void BMO_op_init(BMesh *bm, BMOperator *op, const char *opname);
+void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname);
 
 /* executes an operator, pushing and popping a new tool flag
  * layer as appropriate.*/
@@ -194,7 +200,7 @@ int BMO_mesh_disabled_flag_count(BMesh *bm, const char htype, const short oflag)
  * this system is used to execute or initialize an operator,
  * using a formatted-string system.
  *
- * for example, BMO_op_callf(bm, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES);
+ * for example, BMO_op_callf(bm, BMO_FLAG_DEFAULTS, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES);
  * . . .will execute the delete operator, feeding in selected faces, deleting them.
  *
  * the basic format for the format string is:
@@ -231,16 +237,16 @@ void BMO_push(BMesh *bm, BMOperator *op);
 void BMO_pop(BMesh *bm);
 
 /*executes an operator*/
-int BMO_op_callf(BMesh *bm, const char *fmt, ...);
+int BMO_op_callf(BMesh *bm, const int flag, const char *fmt, ...);
 
 /* initializes, but doesn't execute an operator.  this is so you can
  * gain access to the outputs of the operator.  note that you have
  * to execute/finish (BMO_op_exec and BMO_op_finish) yourself. */
-int BMO_op_initf(BMesh *bm, BMOperator *op, const char *fmt, ...);
+int BMO_op_initf(BMesh *bm, BMOperator *op, const int flag, const char *fmt, ...);
 
 /* va_list version, used to implement the above two functions,
  * plus EDBM_op_callf in editmesh_utils.c. */
-int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *fmt, va_list vlist);
+int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *fmt, va_list vlist);
 
 /* test whether a named slot exists */
 int BMO_slot_exists(BMOperator *op, const char *slot_name);

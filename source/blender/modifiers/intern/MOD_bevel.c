@@ -143,7 +143,8 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 		}
 	}
 
-	BMO_op_callf(bm, "bevel geom=%fe percent=%f use_even=%b use_dist=%b",
+	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
+	             "bevel geom=%fe percent=%f use_even=%b use_dist=%b",
 	             EDGE_MARK, bmd->value, (bmd->flags & BME_BEVEL_EVEN) != 0, (bmd->flags & BME_BEVEL_DIST) != 0);
 	BMO_pop(bm);
 

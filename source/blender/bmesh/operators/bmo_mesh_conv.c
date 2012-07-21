@@ -70,7 +70,9 @@ void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 	/* Scene *scene = BMO_slot_ptr_get(op, "scene"); */
 	Mesh *me = ob->data;
 
-	BMO_op_callf(bm, "bmesh_to_mesh mesh=%p object=%p notessellation=%b", me, ob, TRUE);
+	BMO_op_callf(bm, op->flag,
+	             "bmesh_to_mesh mesh=%p object=%p notessellation=%b",
+	             me, ob, TRUE);
 }
 
 void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)

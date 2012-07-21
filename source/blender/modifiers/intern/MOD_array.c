@@ -172,7 +172,7 @@ static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
 	BMElem *ele;
 	int *index_map, i;
 
-	BMO_op_initf(bm, &find_op,
+	BMO_op_initf(bm, &find_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	             "find_doubles verts=%av dist=%f keep_verts=%s",
 	             amd->merge_dist, dupe_op, "geom");
 
@@ -234,7 +234,7 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 		BMOIter oiter;
 		BMOperator find_op;
 
-		BMO_op_initf(bm, &find_op,
+		BMO_op_initf(bm, &find_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 		             "find_doubles verts=%Hv dist=%f keep_verts=%s",
 		             BM_ELEM_TAG, amd->merge_dist,
 		             dupe_op, dupe_slot_name);
@@ -286,7 +286,7 @@ static void merge_first_last(BMesh *bm,
 	BMOIter oiter;
 	BMVert *v, *v2;
 
-	BMO_op_initf(bm, &find_op,
+	BMO_op_initf(bm, &find_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	             "find_doubles verts=%s dist=%f keep_verts=%s",
 	             dupe_first, "geom", amd->merge_dist,
 	             dupe_first, "geom");
@@ -410,9 +410,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	bmesh_edit_begin(em->bm, 0);
 
 	if (amd->flags & MOD_ARR_MERGE)
-		BMO_op_init(em->bm, &weld_op, "weld_verts");
+		BMO_op_init(em->bm, &weld_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+		            "weld_verts");
 
-	BMO_op_initf(em->bm, &dupe_op, "duplicate geom=%avef");
+	BMO_op_initf(em->bm, &dupe_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+	             "duplicate geom=%avef");
 	first_dupe_op = dupe_op;
 
 	for (j = 0; j < count - 1; j++) {
@@ -421,8 +423,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		BMOpSlot *newout_slot;
 		BMOIter oiter;
 
-		if (j != 0)
-			BMO_op_initf(em->bm, &dupe_op, "duplicate geom=%s", &old_dupe_op, "newout");
+		if (j != 0) {
+			BMO_op_initf(em->bm, &dupe_op,
+			             (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+			             "duplicate geom=%s", &old_dupe_op, "newout");
+		}
 		BMO_op_exec(em->bm, &dupe_op);
 
 		geom_slot = BMO_slot_get(&dupe_op, "geom");

@@ -126,7 +126,7 @@ void BMO_pop(BMesh *bm)
  *
  * Initializes an operator structure to a certain type
  */
-void BMO_op_init(BMesh *bm, BMOperator *op, const char *opname)
+void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
 {
 	int i, opcode = bmo_opname_to_opcode(opname);
 
@@ -142,7 +142,8 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const char *opname)
 
 	memset(op, 0, sizeof(BMOperator));
 	op->type = opcode;
-	op->flag = opdefines[opcode]->flag;
+	op->type_flag = opdefines[opcode]->type_flag;
+	op->flag = flag;
 	
 	/* initialize the operator slot types */
 	for (i = 0; opdefines[opcode]->slot_types[i].type; i++) {
@@ -697,13 +698,14 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 {
 	BMOpSlot *output = BMO_slot_get(op, slot_name);
 	int totelement = 0, i = 0;
+	const int respecthide = (op->flag & BMO_FLAG_RESPECT_HIDE) != 0;
 
 	BLI_assert(ELEM(test_for_enabled, TRUE, FALSE));
 
 	if (test_for_enabled)
-		totelement = BM_mesh_elem_hflag_count_enabled(bm, htype, hflag, TRUE);
+		totelement = BM_mesh_elem_hflag_count_enabled(bm, htype, hflag, respecthide);
 	else
-		totelement = BM_mesh_elem_hflag_count_disabled(bm, htype, hflag, TRUE);
+		totelement = BM_mesh_elem_hflag_count_disabled(bm, htype, hflag, respecthide);
 
 	if (totelement) {
 		BMIter iter;
@@ -715,7 +717,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 
 		if (htype & BM_VERT) {
 			BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
-				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
+				if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
 				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
 				{
 					((BMElem **)output->data.p)[i] = ele;
@@ -726,7 +728,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 
 		if (htype & BM_EDGE) {
 			BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
-				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
+				if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
 				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
 				{
 					((BMElem **)output->data.p)[i] = ele;
@@ -737,7 +739,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 
 		if (htype & BM_FACE) {
 			BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
-				if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN) &&
+				if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
 				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
 				{
 					((BMElem **)output->data.p)[i] = ele;
@@ -1320,7 +1322,7 @@ static int bmo_opname_to_opcode(const char *opname)
 }
 
 /* Example:
- * BMO_op_callf(bm, "delete %i %hv", DEL_ONLYFACES, BM_ELEM_SELECT);
+ * BMO_op_callf(bm, BMO_FLAG_DEFAULTS, "delete %i %hv", DEL_ONLYFACES, BM_ELEM_SELECT);
  *
  *  i - int
  *  b - boolean (same as int but 1/0 only)
@@ -1336,7 +1338,7 @@ static int bmo_opname_to_opcode(const char *opname)
  * Hv, He, Hf, Fv, Fe, Ff,
  */
 
-int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
+int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, va_list vlist)
 {
 	BMOpDefine *def;
 	char *opname, *ofmt, *fmt;
@@ -1376,7 +1378,7 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 		return FALSE;
 	}
 
-	BMO_op_init(bm, op, opname);
+	BMO_op_init(bm, op, flag, opname);
 	def = opdefines[i];
 	
 	i = 0;
@@ -1556,12 +1558,12 @@ error:
 }
 
 
-int BMO_op_initf(BMesh *bm, BMOperator *op, const char *fmt, ...)
+int BMO_op_initf(BMesh *bm, BMOperator *op, const int flag, const char *fmt, ...)
 {
 	va_list list;
 
 	va_start(list, fmt);
-	if (!BMO_op_vinitf(bm, op, fmt, list)) {
+	if (!BMO_op_vinitf(bm, op, flag, fmt, list)) {
 		printf("%s: failed\n", __func__);
 		va_end(list);
 		return FALSE;
@@ -1571,13 +1573,13 @@ int BMO_op_initf(BMesh *bm, BMOperator *op, const char *fmt, ...)
 	return TRUE;
 }
 
-int BMO_op_callf(BMesh *bm, const char *fmt, ...)
+int BMO_op_callf(BMesh *bm, const int flag, const char *fmt, ...)
 {
 	va_list list;
 	BMOperator op;
 
 	va_start(list, fmt);
-	if (!BMO_op_vinitf(bm, &op, fmt, list)) {
+	if (!BMO_op_vinitf(bm, &op, flag, fmt, list)) {
 		printf("%s: failed, format is:\n    \"%s\"\n", __func__, fmt);
 		va_end(list);
 		return FALSE;

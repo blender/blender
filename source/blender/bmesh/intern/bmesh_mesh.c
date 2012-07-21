@@ -318,7 +318,7 @@ static void bm_rationalize_normals(BMesh *bm, int undo)
 		return;
 	}
 	
-	BMO_op_initf(bm, &bmop, "recalc_face_normals faces=%af do_flip=%b", FALSE);
+	BMO_op_initf(bm, &bmop, BMO_FLAG_DEFAULTS, "recalc_face_normals faces=%af do_flip=%b", FALSE);
 	
 	BMO_push(bm, &bmop);
 	bmo_recalc_face_normals_exec(bm, &bmop);

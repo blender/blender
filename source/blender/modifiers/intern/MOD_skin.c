@@ -236,7 +236,8 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 	 * selected after the operator is run */
 	BM_mesh_elem_hflag_disable_all(bm, BM_ALL, BM_ELEM_SELECT, 0);
 
-	BMO_op_initf(bm, &op, "convex_hull input=%hv", BM_ELEM_TAG);
+	BMO_op_initf(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+	             "convex_hull input=%hv", BM_ELEM_TAG);
 	BMO_op_exec(bm, &op);
 
 	if (BMO_error_occurred(bm)) {
@@ -319,7 +320,9 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 
 	BMO_op_finish(bm, &op);
 
-	BMO_op_callf(bm, "delete geom=%hef context=%i", BM_ELEM_TAG, DEL_ONLYTAGGED);
+	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
+	             "delete geom=%hef context=%i",
+	             BM_ELEM_TAG, DEL_ONLYTAGGED);
 
 	return TRUE;
 }
@@ -1039,7 +1042,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		int i;
 
 		shortest_edge = BM_face_find_shortest_loop(f)->e;
-		BMO_op_initf(bm, &op, "weld_verts");
+		BMO_op_initf(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE), "weld_verts");
 
 		/* Note: could probably calculate merges in one go to be
 		 * faster */
@@ -1179,7 +1182,8 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	/* Extrude the split face */
 	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
 	BM_elem_flag_enable(split_face, BM_ELEM_TAG);
-	BMO_op_initf(bm, &op, "extrude_discrete_faces faces=%hf", BM_ELEM_TAG);
+	BMO_op_initf(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+	             "extrude_discrete_faces faces=%hf", BM_ELEM_TAG);
 	BMO_op_exec(bm, &op);
 
 	/* Update split face (should only be one new face created
@@ -1202,7 +1206,8 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 		BM_mesh_elem_hflag_disable_all(bm, BM_EDGE, BM_ELEM_TAG, FALSE);
 		BM_elem_flag_enable(longest_edge, BM_ELEM_TAG);
 
-		BMO_op_callf(bm, "subdivide_edges edges=%he numcuts=%i quadcornertype=%i",
+		BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
+		             "subdivide_edges edges=%he numcuts=%i quadcornertype=%i",
 		             BM_ELEM_TAG, 1, SUBD_STRAIGHT_CUT);
 	}
 	else if (split_face->len > 4) {
@@ -1234,7 +1239,8 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 
 	/* Delete split face and merge */
 	BM_face_kill(bm, split_face);
-	BMO_op_init(bm, &op, "weld_verts");
+	BMO_op_init(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+	            "weld_verts");
 	for (i = 0; i < 4; i++) {
 		BMO_slot_map_ptr_insert(bm, &op, "targetmap",
 		                        verts[i], frame->verts[best_order[i]]);
@@ -1399,7 +1405,9 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 		}
 	}
 
-	BMO_op_callf(so->bm, "delete geom=%hef context=%i", BM_ELEM_TAG, DEL_ONLYTAGGED);
+	BMO_op_callf(so->bm, BMO_FLAG_DEFAULTS,
+	             "delete geom=%hef context=%i",
+	             BM_ELEM_TAG, DEL_ONLYTAGGED);
 
 	BLI_heap_free(heap, NULL);
 }

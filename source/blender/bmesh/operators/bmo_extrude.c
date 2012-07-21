@@ -118,7 +118,9 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 
 	BLI_array_free(edges);
 
-	BMO_op_callf(bm, "delete geom=%ff context=%i", EXT_DEL, DEL_ONLYFACES);
+	BMO_op_callf(bm, op->flag,
+	             "delete geom=%ff context=%i",
+	             EXT_DEL, DEL_ONLYFACES);
 	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, EXT_KEEP);
 }
 
@@ -195,7 +197,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, e->v2, EXT_INPUT);
 	}
 
-	BMO_op_initf(bm, &dupeop, "duplicate geom=%fve", EXT_INPUT);
+	BMO_op_initf(bm, &dupeop, op->flag, "duplicate geom=%fve", EXT_INPUT);
 	BMO_op_exec(bm, &dupeop);
 
 	/* disable root flag on all new skin nodes */
@@ -273,7 +275,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	int found, fwd, delorig = FALSE;
 
 	/* initialize our sub-operators */
-	BMO_op_init(bm, &dupeop, "duplicate");
+	BMO_op_init(bm, &dupeop, op->flag, "duplicate");
 	
 	BMO_slot_buffer_flag_enable(bm, op, "edgefacein", BM_EDGE | BM_FACE, EXT_INPUT);
 	
@@ -341,7 +343,8 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (delorig == TRUE) {
-		BMO_op_initf(bm, &delop, "delete geom=%fvef context=%i",
+		BMO_op_initf(bm, &delop, op->flag,
+		             "delete geom=%fvef context=%i",
 		             EXT_DEL, DEL_ONLYTAGGED);
 	}
 
@@ -647,13 +650,13 @@ void bmo_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	thickness = BMO_slot_float_get(op, "thickness");
 
 	/* Flip original faces (so the shell is extruded inward) */
-	BMO_op_init(bm, &reverseop, "reverse_faces");
+	BMO_op_init(bm, &reverseop, op->flag, "reverse_faces");
 	BMO_slot_copy(op, &reverseop, "geom", "faces");
 	BMO_op_exec(bm, &reverseop);
 	BMO_op_finish(bm, &reverseop);
 
 	/* Extrude the region */
-	BMO_op_initf(bm, &extrudeop, "extrude_face_region alwayskeeporig=%b", TRUE);
+	BMO_op_initf(bm, &extrudeop, op->flag, "extrude_face_region alwayskeeporig=%b", TRUE);
 	BMO_slot_copy(op, &extrudeop, "geom", "edgefacein");
 	BMO_op_exec(bm, &extrudeop);
 
