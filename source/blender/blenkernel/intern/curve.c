@@ -1712,7 +1712,7 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *si
 	y2 /= t02;
 
 	t02 = x1 * x2 + y1 * y2;
-	if (fabs(t02) >= 1.0)
+	if (fabsf(t02) >= 1.0f)
 		t02 = 0.5 * M_PI;
 	else
 		t02 = (saacos(t02)) / 2.0f;
@@ -2366,9 +2366,9 @@ void BKE_curve_bevelList_make(Object *ob)
 			bevp0 = bevp1 + (nr - 1);
 			nr--;
 			while (nr--) {
-				if (fabs(bevp0->vec[0] - bevp1->vec[0]) < 0.00001) {
-					if (fabs(bevp0->vec[1] - bevp1->vec[1]) < 0.00001) {
-						if (fabs(bevp0->vec[2] - bevp1->vec[2]) < 0.00001) {
+				if (fabsf(bevp0->vec[0] - bevp1->vec[0]) < 0.00001f) {
+					if (fabsf(bevp0->vec[1] - bevp1->vec[1]) < 0.00001f) {
+						if (fabsf(bevp0->vec[2] - bevp1->vec[2]) < 0.00001f) {
 							bevp0->dupe_tag = TRUE;
 							bl->dupe_nr++;
 						}

@@ -453,7 +453,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 		nor[1] = -z2;
 		nor[2] = y2;
 
-		if (fabs(y2) + fabs(z2) < 0.0001)
+		if (fabsf(y2) + fabsf(z2) < 0.0001f)
 			nor[1] = 1.0;
 
 		co = x2;
@@ -463,7 +463,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 		nor[1] = 0.0;
 		nor[2] = -x2;
 
-		if (fabs(x2) + fabs(z2) < 0.0001)
+		if (fabsf(x2) + fabsf(z2) < 0.0001f)
 			nor[2] = 1.0;
 
 		co = y2;
@@ -473,7 +473,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 		nor[1] = x2;
 		nor[2] = 0.0;
 
-		if (fabs(x2) + fabs(y2) < 0.0001)
+		if (fabsf(x2) + fabsf(y2) < 0.0001f)
 			nor[0] = 1.0;
 
 		co = z2;
@@ -696,7 +696,7 @@ void quat_to_axis_angle(float axis[3], float *angle, const float q[4])
 	*angle = ha * 2;
 
 	/* prevent division by zero for axis conversion */
-	if (fabs(si) < 0.0005)
+	if (fabsf(si) < 0.0005f)
 		si = 1.0f;
 
 	axis[0] = q[1] / si;
@@ -998,7 +998,7 @@ void mat3_to_eul(float *eul, float tmat[][3])
 	mat3_to_eul2(tmat, eul1, eul2);
 
 	/* return best, which is just the one with lowest values it in */
-	if (fabs(eul1[0]) + fabs(eul1[1]) + fabs(eul1[2]) > fabs(eul2[0]) + fabs(eul2[1]) + fabs(eul2[2])) {
+	if (fabsf(eul1[0]) + fabsf(eul1[1]) + fabsf(eul1[2]) > fabsf(eul2[0]) + fabsf(eul2[1]) + fabsf(eul2[2])) {
 		copy_v3_v3(eul, eul2);
 	}
 	else {
@@ -1083,32 +1083,32 @@ void compatible_eul(float eul[3], const float oldrot[3])
 	dy = eul[1] - oldrot[1];
 	dz = eul[2] - oldrot[2];
 
-	while (fabs(dx) > 5.1) {
+	while (fabsf(dx) > 5.1f) {
 		if (dx > 0.0f) eul[0] -= 2.0f * (float)M_PI;
 		else eul[0] += 2.0f * (float)M_PI;
 		dx = eul[0] - oldrot[0];
 	}
-	while (fabs(dy) > 5.1) {
+	while (fabsf(dy) > 5.1f) {
 		if (dy > 0.0f) eul[1] -= 2.0f * (float)M_PI;
 		else eul[1] += 2.0f * (float)M_PI;
 		dy = eul[1] - oldrot[1];
 	}
-	while (fabs(dz) > 5.1) {
+	while (fabsf(dz) > 5.1f) {
 		if (dz > 0.0f) eul[2] -= 2.0f * (float)M_PI;
 		else eul[2] += 2.0f * (float)M_PI;
 		dz = eul[2] - oldrot[2];
 	}
 
 	/* is 1 of the axis rotations larger than 180 degrees and the other small? NO ELSE IF!! */
-	if (fabs(dx) > 3.2 && fabs(dy) < 1.6 && fabs(dz) < 1.6) {
+	if (fabsf(dx) > 3.2f && fabsf(dy) < 1.6f && fabsf(dz) < 1.6f) {
 		if (dx > 0.0f) eul[0] -= 2.0f * (float)M_PI;
 		else eul[0] += 2.0f * (float)M_PI;
 	}
-	if (fabs(dy) > 3.2 && fabs(dz) < 1.6 && fabs(dx) < 1.6) {
+	if (fabsf(dy) > 3.2f && fabsf(dz) < 1.6f && fabsf(dx) < 1.6f) {
 		if (dy > 0.0f) eul[1] -= 2.0f * (float)M_PI;
 		else eul[1] += 2.0f * (float)M_PI;
 	}
-	if (fabs(dz) > 3.2 && fabs(dx) < 1.6 && fabs(dy) < 1.6) {
+	if (fabsf(dz) > 3.2f && fabsf(dx) < 1.6f && fabsf(dy) < 1.6f) {
 		if (dz > 0.0f) eul[2] -= 2.0f * (float)M_PI;
 		else eul[2] += 2.0f * (float)M_PI;
 	}
@@ -1123,29 +1123,29 @@ void compatible_eul(float eul[3], const float oldrot[3])
 
 	/* special case, tested for x-z  */
 
-	if ((fabs(dx) > 3.1 && fabs(dz) > 1.5) || (fabs(dx) > 1.5 && fabs(dz) > 3.1)) {
-		if (dx > 0.0) eul[0] -= M_PI;
+	if ((fabsf(dx) > 3.1f && fabsf(dz) > 1.5f) || (fabsf(dx) > 1.5f && fabsf(dz) > 3.1f)) {
+		if (dx > 0.0f) eul[0] -= M_PI;
 		else eul[0] += M_PI;
 		if (eul[1] > 0.0) eul[1] = M_PI - eul[1];
 		else eul[1] = -M_PI - eul[1];
-		if (dz > 0.0) eul[2] -= M_PI;
+		if (dz > 0.0f) eul[2] -= M_PI;
 		else eul[2] += M_PI;
 
 	}
-	else if ((fabs(dx) > 3.1 && fabs(dy) > 1.5) || (fabs(dx) > 1.5 && fabs(dy) > 3.1)) {
-		if (dx > 0.0) eul[0] -= M_PI;
+	else if ((fabsf(dx) > 3.1f && fabsf(dy) > 1.5f) || (fabsf(dx) > 1.5f && fabsf(dy) > 3.1f)) {
+		if (dx > 0.0f) eul[0] -= M_PI;
 		else eul[0] += M_PI;
-		if (dy > 0.0) eul[1] -= M_PI;
+		if (dy > 0.0f) eul[1] -= M_PI;
 		else eul[1] += M_PI;
-		if (eul[2] > 0.0) eul[2] = M_PI - eul[2];
+		if (eul[2] > 0.0f) eul[2] = M_PI - eul[2];
 		else eul[2] = -M_PI - eul[2];
 	}
-	else if ((fabs(dy) > 3.1 && fabs(dz) > 1.5) || (fabs(dy) > 1.5 && fabs(dz) > 3.1)) {
-		if (eul[0] > 0.0) eul[0] = M_PI - eul[0];
+	else if ((fabsf(dy) > 3.1f && fabsf(dz) > 1.5f) || (fabsf(dy) > 1.5f && fabsf(dz) > 3.f1)) {
+		if (eul[0] > 0.0f) eul[0] = M_PI - eul[0];
 		else eul[0] = -M_PI - eul[0];
-		if (dy > 0.0) eul[1] -= M_PI;
+		if (dy > 0.0f) eul[1] -= M_PI;
 		else eul[1] += M_PI;
-		if (dz > 0.0) eul[2] -= M_PI;
+		if (dz > 0.0f) eul[2] -= M_PI;
 		else eul[2] += M_PI;
 	}
 #endif
@@ -1164,8 +1164,8 @@ void mat3_to_compatible_eul(float eul[3], const float oldrot[3], float mat[][3])
 	compatible_eul(eul1, oldrot);
 	compatible_eul(eul2, oldrot);
 
-	d1 = (float)fabs(eul1[0] - oldrot[0]) + (float)fabs(eul1[1] - oldrot[1]) + (float)fabs(eul1[2] - oldrot[2]);
-	d2 = (float)fabs(eul2[0] - oldrot[0]) + (float)fabs(eul2[1] - oldrot[1]) + (float)fabs(eul2[2] - oldrot[2]);
+	d1 = (float)fabsf(eul1[0] - oldrot[0]) + (float)fabsf(eul1[1] - oldrot[1]) + (float)fabsf(eul1[2] - oldrot[2]);
+	d2 = (float)fabsf(eul2[0] - oldrot[0]) + (float)fabsf(eul2[1] - oldrot[1]) + (float)fabsf(eul2[2] - oldrot[2]);
 
 	/* return best, which is just the one with lowest difference */
 	if (d1 > d2) {
@@ -1360,7 +1360,7 @@ void mat3_to_eulO(float eul[3], const short order, float M[3][3])
 	mat3_to_eulo2(M, eul1, eul2, order);
 
 	/* return best, which is just the one with lowest values it in */
-	if (fabs(eul1[0]) + fabs(eul1[1]) + fabs(eul1[2]) > fabs(eul2[0]) + fabs(eul2[1]) + fabs(eul2[2])) {
+	if (fabsf(eul1[0]) + fabsf(eul1[1]) + fabsf(eul1[2]) > fabsf(eul2[0]) + fabsf(eul2[1]) + fabsf(eul2[2])) {
 		copy_v3_v3(eul, eul2);
 	}
 	else {

@@ -583,17 +583,17 @@ static short IsectLLPt2Df(const float x0, const float y0, const float x1, const 
 	 * compute slopes, note the cludge for infinity, however, this will
 	 * be close enough
 	 */
-	if (fabs(x1 - x0) > 0.000001f)
+	if (fabsf(x1 - x0) > 0.000001f)
 		m1 = (y1 - y0) / (x1 - x0);
 	else
 		return -1; /*m1 = (float)1e+10;*/ /* close enough to infinity */
 
-	if (fabs(x3 - x2) > 0.000001f)
+	if (fabsf(x3 - x2) > 0.000001f)
 		m2 = (y3 - y2) / (x3 - x2);
 	else
 		return -1; /*m2 = (float)1e+10;*/ /* close enough to infinity */
 
-	if (fabs(m1 - m2) < 0.000001f)
+	if (fabsf(m1 - m2) < 0.000001f)
 		return -1;  /* parallel lines */
 
 	/* compute constants */

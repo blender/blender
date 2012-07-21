@@ -379,7 +379,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 
 void KX_IpoActuator::ResetStartTime()
 {
-	this->m_starttime = -2.0*fabs(this->m_endframe - this->m_startframe) - 1.0;
+	this->m_starttime = -2.0f * fabsf(this->m_endframe - this->m_startframe) - 1.0f;
 }
 
 int KX_IpoActuator::string2mode(const char *modename)

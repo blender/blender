@@ -2134,7 +2134,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 
 		/* TODO - investigate why block->winmat[0][0] is negative
 		 * in the image view when viewRedrawForce is called */
-		block->aspect = 2.0 / fabs( (getsizex) * block->winmat[0][0]);
+		block->aspect = 2.0f / fabsf(getsizex * block->winmat[0][0]);
 	}
 	else {
 		/* no subwindow created yet, for menus for example, so we
@@ -2143,7 +2143,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 		wm_subwindow_getmatrix(window, window->screen->mainwin, block->winmat);
 		wm_subwindow_getsize(window, window->screen->mainwin, &getsizex, &getsizey);
 
-		block->aspect = 2.0 / fabs(getsizex * block->winmat[0][0]);
+		block->aspect = 2.0f / fabsf(getsizex * block->winmat[0][0]);
 		block->auto_open = TRUE;
 		block->flag |= UI_BLOCK_LOOP; /* tag as menu */
 	}

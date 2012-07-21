@@ -443,7 +443,7 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], co
 	
 	mask= zspan->mask;
 	
-	if (fabs(dx) > fabs(dy)) {
+	if (fabsf(dx) > fabsf(dy)) {
 
 		/* all lines from left to right */
 		if (vec1[0]<vec2[0]) {
@@ -597,7 +597,7 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], cons
 	dx= vec2[0]-vec1[0];
 	dy= vec2[1]-vec1[1];
 	
-	if (fabs(dx) > fabs(dy)) {
+	if (fabsf(dx) > fabsf(dy)) {
 
 		/* all lines from left to right */
 		if (vec1[0]<vec2[0]) {
@@ -727,7 +727,7 @@ static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), con
 	dx= vec2[0]-vec1[0];
 	dy= vec2[1]-vec1[1];
 	
-	if (fabs(dx) > fabs(dy)) {
+	if (fabsf(dx) > fabsf(dy)) {
 		
 		/* all lines from left to right */
 		if (vec1[0]<vec2[0]) {

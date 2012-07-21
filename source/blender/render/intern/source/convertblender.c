@@ -2374,9 +2374,8 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 			displace_render_vert(re, obr, &shi, vlr->v4, 3, scale, mat, imat);
 
 		/*	closest in displace value.  This will help smooth edges.   */ 
-		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
-			vlr->flag |= R_DIVIDE_24;
-		else vlr->flag &= ~R_DIVIDE_24;
+		if (fabsf(vlr->v1->accum - vlr->v3->accum) > fabsf(vlr->v2->accum - vlr->v4->accum)) vlr->flag |=  R_DIVIDE_24;
+		else                                                                                 vlr->flag &= ~R_DIVIDE_24;
 	}
 	
 	/* Recalculate the face normal  - if flipped before, flip now */
@@ -4260,8 +4259,8 @@ static void check_non_flat_quads(ObjectRen *obr)
 					normal_tri_v3(nor, vlr->v2->co, vlr->v3->co, vlr->v4->co);
 					d2 = dot_v3v3(nor, vlr->v2->n);
 
-					if ( fabs(d1) < fabs(d2) ) vlr->flag |= R_DIVIDE_24;
-					else vlr->flag &= ~R_DIVIDE_24;
+					if (fabsf(d1) < fabsf(d2) ) vlr->flag |=  R_DIVIDE_24;
+					else                        vlr->flag &= ~R_DIVIDE_24;
 
 					/* new vertex pointers */
 					if (vlr->flag & R_DIVIDE_24) {

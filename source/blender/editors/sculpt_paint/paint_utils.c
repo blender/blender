@@ -287,7 +287,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 				/* the triangle with the largest absolute values is the one
 				 * with the most negative weights */
 				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[3].co, p, w);
-				absw = fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
+				absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
 				if (absw < minabsw) {
 					uv[0] = tf->uv[0][0] * w[0] + tf->uv[1][0] * w[1] + tf->uv[3][0] * w[2];
 					uv[1] = tf->uv[0][1] * w[0] + tf->uv[1][1] * w[1] + tf->uv[3][1] * w[2];
@@ -295,7 +295,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 				}
 
 				imapaint_tri_weights(ob, mv[1].co, mv[2].co, mv[3].co, p, w);
-				absw = fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
+				absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
 				if (absw < minabsw) {
 					uv[0] = tf->uv[1][0] * w[0] + tf->uv[2][0] * w[1] + tf->uv[3][0] * w[2];
 					uv[1] = tf->uv[1][1] * w[0] + tf->uv[2][1] * w[1] + tf->uv[3][1] * w[2];
@@ -304,7 +304,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 			}
 			else {
 				imapaint_tri_weights(ob, mv[0].co, mv[1].co, mv[2].co, p, w);
-				absw = fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
+				absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
 				if (absw < minabsw) {
 					uv[0] = tf->uv[0][0] * w[0] + tf->uv[1][0] * w[1] + tf->uv[2][0] * w[2];
 					uv[1] = tf->uv[0][1] * w[0] + tf->uv[1][1] * w[1] + tf->uv[2][1] * w[2];

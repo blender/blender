@@ -6191,9 +6191,9 @@ static void get_local_bounds(Object *ob, float center[3], float size[3])
 		copy_v3_v3(size, ob->size);
 	}
 	else {
-		size[0] = 0.5 * fabs(bb->vec[0][0] - bb->vec[4][0]);
-		size[1] = 0.5 * fabs(bb->vec[0][1] - bb->vec[2][1]);
-		size[2] = 0.5 * fabs(bb->vec[0][2] - bb->vec[1][2]);
+		size[0] = 0.5 * fabsf(bb->vec[0][0] - bb->vec[4][0]);
+		size[1] = 0.5 * fabsf(bb->vec[0][1] - bb->vec[2][1]);
+		size[2] = 0.5 * fabsf(bb->vec[0][2] - bb->vec[1][2]);
 
 		center[0] = (bb->vec[0][0] + bb->vec[4][0]) / 2.0;
 		center[1] = (bb->vec[0][1] + bb->vec[2][1]) / 2.0;

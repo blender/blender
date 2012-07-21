@@ -333,8 +333,9 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event
 	upvec[2] = 0.0f;
 	copy_m3_m4(mat, fly->rv3d->viewinv);
 	mul_m3_v3(mat, upvec);
-	if (fabs(upvec[2]) < 0.1)
+	if (fabsf(upvec[2]) < 0.1f) {
 		fly->zlock = 1;
+	}
 	upvec[0] = 0;
 	upvec[1] = 0;
 	upvec[2] = 0;

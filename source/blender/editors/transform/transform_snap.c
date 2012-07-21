@@ -1081,7 +1081,7 @@ static void TargetSnapClosest(TransInfo *t)
 						
 						dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 						
-						if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist)) {
+						if (closest == NULL || fabsf(dist) < fabsf(t->tsnap.dist)) {
 							copy_v3_v3(t->tsnap.snapTarget, loc);
 							closest = td;
 							t->tsnap.dist = dist; 
@@ -1097,7 +1097,7 @@ static void TargetSnapClosest(TransInfo *t)
 					
 					dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 					
-					if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist)) {
+					if (closest == NULL || fabsf(dist) < fabsf(t->tsnap.dist)) {
 						copy_v3_v3(t->tsnap.snapTarget, loc);
 						closest = td;
 						t->tsnap.dist = dist; 
@@ -1120,7 +1120,7 @@ static void TargetSnapClosest(TransInfo *t)
 				
 				dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 				
-				if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist)) {
+				if (closest == NULL || fabsf(dist) < fabsf(t->tsnap.dist)) {
 					copy_v3_v3(t->tsnap.snapTarget, loc);
 					closest = td;
 					t->tsnap.dist = dist; 
