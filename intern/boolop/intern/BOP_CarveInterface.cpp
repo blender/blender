@@ -547,13 +547,32 @@ static uint quadMerge(std::map<MeshSet<3>::vertex_t*, uint> *vertexToIndex_map,
 	return 0;
 }
 
-static bool Carve_checkDegeneratedFace(MeshSet<3>::face_t *face)
+static bool Carve_checkDegeneratedFace(std::map<MeshSet<3>::vertex_t*, uint> *vertexToIndex_map, MeshSet<3>::face_t *face)
 {
 	/* only tris and quads for now */
 	if (face->n_edges == 3) {
+		uint v1, v2, v3;
+
+		v1 = vertexToIndex_map->find(face->edge->prev->vert)->second;
+		v2 = vertexToIndex_map->find(face->edge->vert)->second;
+		v3 = vertexToIndex_map->find(face->edge->next->vert)->second;
+
+		if (v1 == v2 || v2 == v3 || v1 == v3)
+			return true;
+
 		return triangleArea(face->edge->prev->vert->v, face->edge->vert->v, face->edge->next->vert->v) < DBL_EPSILON;
 	}
 	else if (face->n_edges == 4) {
+		uint v1, v2, v3, v4;
+
+		v1 = vertexToIndex_map->find(face->edge->prev->vert)->second;
+		v2 = vertexToIndex_map->find(face->edge->vert)->second;
+		v3 = vertexToIndex_map->find(face->edge->next->vert)->second;
+		v4 = vertexToIndex_map->find(face->edge->next->next->vert)->second;
+
+		if (v1 == v2 || v1 == v3 || v1 == v4 || v2 == v3 || v2 == v4 || v3 == v4)
+			return true;
+
 		return triangleArea(face->edge->vert->v, face->edge->next->vert->v, face->edge->next->next->vert->v) +
 		       triangleArea(face->edge->prev->vert->v, face->edge->vert->v, face->edge->next->next->vert->v) < DBL_EPSILON;
 	}
@@ -595,8 +614,14 @@ static BSP_CSGMesh *Carve_exportMesh(MeshSet<3>* &poly, carve::interpolate::Face
 	MeshSet<3>::face_iter face_iter = poly->faceBegin();
 	for (i = 0; face_iter != poly->faceEnd(); ++face_iter, ++i) {
 		MeshSet<3>::face_t *f = *face_iter;
+
+		if (Carve_checkDegeneratedFace(&vertexToIndex_map, f))
+			continue;
+
 		ofaces[oface_num.getAttribute(f)].push_back(i);
+
 		MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
+
 		for (; edge_iter != f->end(); ++edge_iter) {
 			int index = vertexToIndex_map[edge_iter->vert];
 			vi[index].push_back(i);
@@ -659,36 +684,27 @@ static BSP_CSGMesh *Carve_exportMesh(MeshSet<3>* &poly, carve::interpolate::Face
 				}
 			}
 
-			bool degenerativeFace = false;
+			// add all information except vertices to the output mesh
+			outputMesh->FaceSet().push_back(BSP_MFace());
+			BSP_MFace& outFace = outputMesh->FaceSet().back();
+			outFace.m_verts.clear();
+			outFace.m_plane.setValue(f->plane.N.v);
+			outFace.m_orig_face = orig;
 
-			if (!result) {
-				/* merged triangles are already checked for degenerative quad */
-				degenerativeFace = Carve_checkDegeneratedFace(f);
-			}
-
-			if (!degenerativeFace) {
-				// add all information except vertices to the output mesh
-				outputMesh->FaceSet().push_back(BSP_MFace());
-				BSP_MFace& outFace = outputMesh->FaceSet().back();
-				outFace.m_verts.clear();
-				outFace.m_plane.setValue(f->plane.N.v);
-				outFace.m_orig_face = orig;
-
-				// if we merged faces, use the list of common vertices; otherwise
-				// use the faces's vertices
-				if (result) {
-					// make quat using verts stored in result
-					outFace.m_verts.push_back(quadverts[0]);
-					outFace.m_verts.push_back(quadverts[1]);
-					outFace.m_verts.push_back(quadverts[2]);
-					outFace.m_verts.push_back(quadverts[3]);
-				} else {
-					MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
-					for (; edge_iter != f->end(); ++edge_iter) {
-						//int index = ofacevert_num.getAttribute(f, edge_iter.idx());
-						int index = vertexToIndex_map[edge_iter->vert];
-						outFace.m_verts.push_back( index );
-					}
+			// if we merged faces, use the list of common vertices; otherwise
+			// use the faces's vertices
+			if (result) {
+				// make quat using verts stored in result
+				outFace.m_verts.push_back(quadverts[0]);
+				outFace.m_verts.push_back(quadverts[1]);
+				outFace.m_verts.push_back(quadverts[2]);
+				outFace.m_verts.push_back(quadverts[3]);
+			} else {
+				MeshSet<3>::face_t::edge_iter_t edge_iter = f->begin();
+				for (; edge_iter != f->end(); ++edge_iter) {
+					//int index = ofacevert_num.getAttribute(f, edge_iter.idx());
+					int index = vertexToIndex_map[edge_iter->vert];
+					outFace.m_verts.push_back( index );
 				}
 			}
 		}
