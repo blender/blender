@@ -660,22 +660,21 @@ void print_qt(const char *str, const float q[4])
 /******************************** Axis Angle *********************************/
 
 /* Axis angle to Quaternions */
-void axis_angle_to_quat(float q[4], const float axis[3], float angle)
+void axis_angle_to_quat(float q[4], const float axis[3], const float angle)
 {
-	float nor[3];
-	float si;
 
-	if (normalize_v3_v3(nor, axis) == 0.0f) {
-		unit_qt(q);
-		return;
+	if (LIKELY(normalize_v3_v3(q + 1, axis) != 0.0f)) {
+		const float phi = angle / 2.0f;
+		float si;
+		si   = sinf(phi);
+		q[0] = cosf(phi);
+		q[1] *= si;
+		q[2] *= si;
+		q[3] *= si;
 	}
-
-	angle /= 2;
-	si   = sinf(angle);
-	q[0] = cosf(angle);
-	q[1] = nor[0] * si;
-	q[2] = nor[1] * si;
-	q[3] = nor[2] * si;
+	else {
+		unit_qt(q);
+	}
 }
 
 /* Quaternions to Axis Angle */
@@ -838,7 +837,7 @@ void single_axis_angle_to_mat3(float mat[3][3], const char axis, const float ang
 /****************************** Vector/Rotation ******************************/
 /* TODO: the following calls should probably be depreceated sometime         */
 
-/* ODO, replace use of this function with axis_angle_to_mat3() */
+/* TODO, replace use of this function with axis_angle_to_mat3() */
 void vec_rot_to_mat3(float mat[][3], const float vec[3], const float phi)
 {
 	/* rotation of phi radials around vec */
@@ -862,38 +861,6 @@ void vec_rot_to_mat3(float mat[][3], const float vec[3], const float phi)
 	mat[2][0] = vz * vx * (1.0f - co) + vy * si;
 	mat[2][1] = vy * vz * (1.0f - co) - vx * si;
 	mat[2][2] = vz2 + co * (1.0f - vz2);
-}
-
-/* axis angle to 4x4 matrix */
-void vec_rot_to_mat4(float mat[][4], const float vec[3], const float phi)
-{
-	float tmat[3][3];
-
-	vec_rot_to_mat3(tmat, vec, phi);
-	unit_m4(mat);
-	copy_m4_m3(mat, tmat);
-}
-
-/* axis angle to quaternion */
-void vec_rot_to_quat(float *quat, const float vec[3], const float phi)
-{
-	/* rotation of phi radials around vec */
-	float si;
-
-	quat[1] = vec[0];
-	quat[2] = vec[1];
-	quat[3] = vec[2];
-
-	if (normalize_v3(quat + 1) == 0.0f) {
-		unit_qt(quat);
-	}
-	else {
-		si = sinf(phi / 2.0);
-		quat[0] = cosf(phi / 2.0f);
-		quat[1] *= si;
-		quat[2] *= si;
-		quat[3] *= si;
-	}
 }
 
 /******************************** XYZ Eulers *********************************/
