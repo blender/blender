@@ -676,12 +676,12 @@ static PyObject *gLibLoad(PyObject*, PyObject* args, PyObject* kwds)
 	char *err_str= NULL;
 
 	short options=0;
-	int load_actions=0, verbose=0;
+	int load_actions=0, verbose=0, load_scripts=1;
 
-	static const char *kwlist[] = {"path", "group", "buffer", "load_actions", "verbose", NULL};
+	static const char *kwlist[] = {"path", "group", "buffer", "load_actions", "verbose", "load_scripts", NULL};
 	
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ss|y*ii:LibLoad", const_cast<char**>(kwlist),
-									&path, &group, &py_buffer, &load_actions, &verbose))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ss|y*iii:LibLoad", const_cast<char**>(kwlist),
+									&path, &group, &py_buffer, &load_actions, &verbose, &load_scripts))
 		return NULL;
 
 	/* setup options */
@@ -689,6 +689,8 @@ static PyObject *gLibLoad(PyObject*, PyObject* args, PyObject* kwds)
 		options |= KX_BlenderSceneConverter::LIB_LOAD_LOAD_ACTIONS;
 	if (verbose != 0)
 		options |= KX_BlenderSceneConverter::LIB_LOAD_VERBOSE;
+	if (load_scripts != 0)
+		options |= KX_BlenderSceneConverter::LIB_LOAD_LOAD_SCRIPTS;
 
 	if (!py_buffer.buf)
 	{

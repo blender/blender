@@ -182,6 +182,7 @@ public:
 	{
 		LIB_LOAD_LOAD_ACTIONS = 1,
 		LIB_LOAD_VERBOSE = 2,
+		LIB_LOAD_LOAD_SCRIPTS = 4,
 	};
 
 
