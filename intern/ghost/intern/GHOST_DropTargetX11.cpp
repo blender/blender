@@ -144,23 +144,23 @@ void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char
 					break;
 				}
 
-				// We are now converting
+				/* We are now converting */
 				state = STATE_CONVERTING;
 				break;
 
 			case STATE_CONVERTING:
 				bothDigits = true;
 
-				// Create a buffer to hold the hex. For example, if %20, this
-				// buffer would hold 20 (in ASCII)
+				/* Create a buffer to hold the hex. For example, if %20, this
+				 * buffer would hold 20 (in ASCII) */
 				memset(tempNumBuf, 0, sizeof(tempNumBuf));
 
-				// Conversion complete (i.e. don't convert again next iter)
+				/* Conversion complete (i.e. don't convert again next iter) */
 				state = STATE_SEARCH;
 
 				strncpy(tempNumBuf, &encodedIn[i], 2);
 
-				// Ensure both characters are hexadecimal
+				/* Ensure both characters are hexadecimal */
 
 				for (j = 0; j < 2; ++j) {
 					if (!isxdigit(tempNumBuf[j]))
@@ -170,16 +170,16 @@ void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char
 				if (!bothDigits)
 					break;
 
-				// Convert two hexadecimal characters into one character
+				/* Convert two hexadecimal characters into one character */
 				sscanf(tempNumBuf, "%x", &asciiCharacter);
 
-				// Ensure we aren't going to overflow
+				/* Ensure we aren't going to overflow */
 				assert(strlen(decodedOut) < bufferSize);
 
-				// Concatenate this character onto the output
+				/* Concatenate this character onto the output */
 				strncat(decodedOut, (char *)&asciiCharacter, 1);
 
-				// Skip the next character
+				/* Skip the next character */
 				i++;
 				break;
 		}

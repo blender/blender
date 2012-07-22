@@ -533,10 +533,10 @@ void RAS_OpenGLRasterizer::SetEye(const StereoEye eye)
 			glDrawBuffer(m_curreye == RAS_STEREO_LEFTEYE ? GL_BACK_LEFT : GL_BACK_RIGHT);
 			break;
 		case RAS_STEREO_ANAGLYPH:
-			if (m_curreye == RAS_STEREO_LEFTEYE)
-			{
+			if (m_curreye == RAS_STEREO_LEFTEYE) {
 				glColorMask(GL_FALSE, GL_TRUE, GL_TRUE, GL_FALSE);
-			} else {
+			}
+			else {
 				//glAccum(GL_LOAD, 1.0);
 				glColorMask(GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE);
 				ClearDepthBuffer();
@@ -892,7 +892,8 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 			int current_blend_mode = GPU_get_material_alpha_blend();
 			ms.m_pDerivedMesh->drawFacesGLSL(ms.m_pDerivedMesh, CheckMaterialDM);
 			GPU_set_material_alpha_blend(current_blend_mode);
-		} else {
+		}
+		else {
 			//ms.m_pDerivedMesh->drawMappedFacesTex(ms.m_pDerivedMesh, CheckTexfaceDM, mcol);
 			current_blmat_nr = current_polymat->GetMaterialIndex();
 			current_image = current_polymat->GetBlenderImage();

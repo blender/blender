@@ -92,9 +92,9 @@ public:
 	 */
 	void execute(WorkPackage *work);
 
-	cl_context getContext(){ return this->m_context; }
+	cl_context getContext() { return this->m_context; }
 
-	cl_command_queue getQueue(){ return this->m_queue; }
+	cl_command_queue getQueue() { return this->m_queue; }
 
 	cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader *reader);
 	cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, ReadBufferOperation *reader);

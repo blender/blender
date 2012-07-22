@@ -54,7 +54,7 @@ class KX_ListSlot
 protected:
 	int m_refcount;
 public:
-	KX_ListSlot(){ m_refcount=1; }
+	KX_ListSlot() { m_refcount = 1; }
 	virtual ~KX_ListSlot() {}
 	virtual int Release() { 
 		if (--m_refcount > 0)

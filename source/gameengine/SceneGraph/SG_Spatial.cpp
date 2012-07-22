@@ -151,10 +151,12 @@ RelativeTranslate(
 ) {
 	if (local) {
 			m_localPosition += m_localRotation * trans;
-	} else {
+	}
+	else {
 		if (parent) {
 			m_localPosition += trans * parent->GetWorldOrientation();
-		} else {
+		}
+		else {
 			m_localPosition += trans;
 		}
 	}

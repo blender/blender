@@ -94,7 +94,7 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, void *data)
 		int bufferstartx = inputBuffer->getRect()->xmin;
 		int bufferstarty = inputBuffer->getRect()->ymin;
 		int pixelSize = this->m_size * this->getWidth() / 100.0f;
-		if (pixelSize==0){
+		if (pixelSize==0) {
 			this->m_inputProgram->read(color, x, y, COM_PS_NEAREST);
 			return;
 		}

@@ -138,9 +138,9 @@ bool PyVecTo(PyObject* pyval, T& vec)
 #ifdef USE_MATHUTILS
 	/* no need for BaseMath_ReadCallback() here, reading the sequences will do this */
 	
-	if(VectorObject_Check(pyval)) {
+	if (VectorObject_Check(pyval)) {
 		VectorObject *pyvec= (VectorObject *)pyval;
-		if(BaseMath_ReadCallback(pyvec) == -1) {
+		if (BaseMath_ReadCallback(pyvec) == -1) {
 			return false; /* exception raised */
 		}
 		if (pyvec->size != Size(vec)) {
@@ -150,9 +150,9 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		vec.setValue((float *) pyvec->vec);
 		return true;
 	}
-	else if(QuaternionObject_Check(pyval)) {
+	else if (QuaternionObject_Check(pyval)) {
 		QuaternionObject *pyquat= (QuaternionObject *)pyval;
-		if(BaseMath_ReadCallback(pyquat) == -1) {
+		if (BaseMath_ReadCallback(pyquat) == -1) {
 			return false; /* exception raised */
 		}
 		if (4 != Size(vec)) {
@@ -163,9 +163,9 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		vec.setValue((float *) pyquat->quat);
 		return true;
 	}
-	else if(EulerObject_Check(pyval)) {
+	else if (EulerObject_Check(pyval)) {
 		EulerObject *pyeul= (EulerObject *)pyval;
-		if(BaseMath_ReadCallback(pyeul) == -1) {
+		if (BaseMath_ReadCallback(pyeul) == -1) {
 			return false; /* exception raised */
 		}
 		if (3 != Size(vec)) {
@@ -174,10 +174,10 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		}
 		vec.setValue((float *) pyeul->eul);
 		return true;
-	} else
+	}
+	else
 #endif
-	if(PyTuple_Check(pyval))
-	{
+	if (PyTuple_Check(pyval)) {
 		unsigned int numitems = PyTuple_GET_SIZE(pyval);
 		if (numitems != Size(vec)) {
 			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", numitems, Size(vec));
@@ -194,8 +194,8 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		
 		return true;
 	}
-	else if (PyObject_TypeCheck(pyval, (PyTypeObject *)&PyObjectPlus::Type))
-	{	/* note, include this check because PySequence_Check does too much introspection
+	else if (PyObject_TypeCheck(pyval, (PyTypeObject *)&PyObjectPlus::Type)) {
+		/* note, include this check because PySequence_Check does too much introspection
 		 * on the PyObject (like getting its __class__, on a BGE type this means searching up
 		 * the parent list each time only to discover its not a sequence.
 		 * GameObjects are often used as an alternative to vectors so this is a common case
@@ -207,16 +207,14 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		PyErr_Format(PyExc_AttributeError, "expected a sequence type");
 		return false;
 	}
-	else if (PySequence_Check(pyval))
-	{
+	else if (PySequence_Check(pyval)) {
 		unsigned int numitems = PySequence_Size(pyval);
 		if (numitems != Size(vec)) {
 			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", numitems, Size(vec));
 			return false;
 		}
 		
-		for (unsigned int x = 0; x < numitems; x++)
-		{
+		for (unsigned int x = 0; x < numitems; x++) {
 			PyObject *item = PySequence_GetItem(pyval, x); /* new ref */
 			vec[x] = PyFloat_AsDouble(item);
 			Py_DECREF(item);
@@ -228,8 +226,8 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		}
 		
 		return true;
-	} else
-	{
+	}
+	else {
 		PyErr_Format(PyExc_AttributeError, "not a sequence type, expected a sequence of numbers size %d", Size(vec));
 	}
 	

@@ -72,7 +72,7 @@ public:
 
 	virtual void	SetDrawingMode(int drawingmode);
 
-	virtual bool	QueryLists(){return true;}
+	virtual bool	QueryLists() {return true;}
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

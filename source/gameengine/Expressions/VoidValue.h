@@ -45,12 +45,19 @@ class CVoidValue : public CPropValue
 
 public:
 	/// Construction/destruction
-	CVoidValue()																: m_bDeleteOnDestruct(false), m_pAnything(NULL)	 { }
-	CVoidValue(void * voidptr, bool bDeleteOnDestruct, AllocationTYPE alloctype)	: m_bDeleteOnDestruct(bDeleteOnDestruct), m_pAnything(voidptr)  { if (alloctype == STACKVALUE) CValue::DisableRefCount(); }
-	virtual				~CVoidValue();											// Destruct void value, delete memory if we're owning it
+	CVoidValue() : m_bDeleteOnDestruct(false), m_pAnything(NULL) { }
+	CVoidValue(void * voidptr, bool bDeleteOnDestruct, AllocationTYPE alloctype) :
+	    m_bDeleteOnDestruct(bDeleteOnDestruct),
+	    m_pAnything(voidptr)
+	{
+		if (alloctype == STACKVALUE) {
+			CValue::DisableRefCount();
+		}
+	}
+	virtual				~CVoidValue();  /* Destruct void value, delete memory if we're owning it */
 
 	/// Value -> String or number
-	virtual const STR_String &	GetText();												// Get string description of void value (unimplemented)
+	virtual const STR_String &	GetText();  /* Get string description of void value (unimplemented) */
 	virtual double		GetNumber()												{ return -1; }
 
 	/// Value calculation
@@ -70,5 +77,5 @@ public:
 #endif
 };
 
-#endif // !defined _VOIDVALUE_H
+#endif  /* __VOIDVALUE_H__ */
 

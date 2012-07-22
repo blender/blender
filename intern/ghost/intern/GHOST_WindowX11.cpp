@@ -39,7 +39,7 @@
 #include "GHOST_DropTargetX11.h"
 #endif
 
-// For standard X11 cursors
+/* For standard X11 cursors */
 #include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 
@@ -53,8 +53,8 @@
 #include <algorithm>
 #include <string>
 
-// For obscure full screen mode stuuf
-// lifted verbatim from blut.
+/* For obscure full screen mode stuuf
+ * lifted verbatim from blut. */
 
 typedef struct {
 	long flags;
@@ -95,7 +95,7 @@ typedef struct {
         f.write('\n')
  */
 
-// See the python script above to regenerate the 48x48 icon within blender
+/* See the python script above to regenerate the 48x48 icon within blender */
 #define BLENDER_ICON_WIDTH 48
 #define BLENDER_ICON_HEIGHT 48
 static unsigned char BLENDER_ICON_48x48x24[] = {
@@ -178,13 +178,13 @@ GHOST_WindowX11(
 	m_custom_cursor(None)
 {
 	
-	// Set up the minimum atrributes that we require and see if
-	// X can find us a visual matching those requirements.
+	/* Set up the minimum atrributes that we require and see if
+	 * X can find us a visual matching those requirements. */
 
 	int attributes[40], i, samples;
 	Atom atoms[2];
 	int natom;
-	int glxVersionMajor, glxVersionMinor; // As in GLX major.minor
+	int glxVersionMajor, glxVersionMinor; /* As in GLX major.minor */
 
 #ifdef WITH_X11_XINPUT
 	/* initialize incase X11 fails to load */
@@ -251,11 +251,11 @@ GHOST_WindowX11(
 		}
 	}
 
-	// Create a bunch of attributes needed to create an X window.
+	/* Create a bunch of attributes needed to create an X window. */
 
 
-	// First create a colormap for the window and visual. 
-	// This seems pretty much a legacy feature as we are in rgba mode anyway.
+	/* First create a colormap for the window and visual.
+	 * This seems pretty much a legacy feature as we are in rgba mode anyway. */
 
 	XSetWindowAttributes xattributes;
 	memset(&xattributes, 0, sizeof(xattributes));
@@ -268,7 +268,7 @@ GHOST_WindowX11(
 
 	xattributes.border_pixel = 0;
 
-	// Specify which events we are interested in hearing.	
+	/* Specify which events we are interested in hearing. */
 
 	xattributes.event_mask =
 	    ExposureMask | StructureNotifyMask |
@@ -277,7 +277,7 @@ GHOST_WindowX11(
 	    ButtonPressMask | ButtonReleaseMask |
 	    PointerMotionMask | FocusChangeMask | PropertyChangeMask;
 
-	// create the window!
+	/* create the window! */
 
 	;
 	if (parentWindow == 0) {
@@ -287,7 +287,7 @@ GHOST_WindowX11(
 		                          top,
 		                          width,
 		                          height,
-		                          0, // no border.
+		                          0,  /* no border. */
 		                          m_visual->depth,
 		                          InputOutput,
 		                          m_visual->visual,
@@ -311,12 +311,12 @@ GHOST_WindowX11(
 
 
 		m_window = XCreateWindow(m_display,
-		                         parentWindow,      // reparent against embedder
+		                         parentWindow,  /* reparent against embedder */
 		                         left,
 		                         top,
 		                         width,
 		                         height,
-		                         0,     // no border.
+		                         0,     /* no border. */
 		                         m_visual->depth,
 		                         InputOutput,
 		                         m_visual->visual,
@@ -353,9 +353,9 @@ GHOST_WindowX11(
 		m_post_init = False;
 		m_post_state = GHOST_kWindowStateNormal;
 	}
-	
-	// Create some hints for the window manager on how
-	// we want this window treated.
+
+	/* Create some hints for the window manager on how
+	 * we want this window treated. */
 
 	XSizeHints *xsizehints = XAllocSizeHints();
 	xsizehints->flags = PPosition | PSize | PMinSize | PMaxSize;
@@ -363,8 +363,8 @@ GHOST_WindowX11(
 	xsizehints->y = top;
 	xsizehints->width = width;
 	xsizehints->height = height;
-	xsizehints->min_width = 320;     // size hints, could be made apart of the ghost api
-	xsizehints->min_height = 240;    // limits are also arbitrary, but should not allow 1x1 window
+	xsizehints->min_width = 320;     /* size hints, could be made apart of the ghost api */
+	xsizehints->min_height = 240;    /* limits are also arbitrary, but should not allow 1x1 window */
 	xsizehints->max_width = 65535;
 	xsizehints->max_height = 65535;
 	XSetWMNormalHints(m_display, m_window, xsizehints);
@@ -404,7 +404,7 @@ GHOST_WindowX11(
 	m_xic = NULL;
 #endif
 
-	// Set the window icon
+	/* Set the window icon */
 	XWMHints *xwmhints = XAllocWMHints();
 	XImage *x_image, *mask_image;
 	Pixmap icon_pixmap, mask_pixmap;
@@ -442,7 +442,7 @@ GHOST_WindowX11(
 	XPutImage(display, icon_pixmap, gc_icon, x_image, 0, 0, 0, 0, BLENDER_ICON_WIDTH, BLENDER_ICON_HEIGHT);
 	XPutImage(display, mask_pixmap, gc_mask, mask_image, 0, 0, 0, 0, BLENDER_ICON_WIDTH, BLENDER_ICON_HEIGHT);
 	
-	// Now the pixmap is ok to assign to the window as a hint
+	/* Now the pixmap is ok to assign to the window as a hint */
 	xwmhints->icon_pixmap = icon_pixmap;
 	xwmhints->icon_mask = mask_pixmap;
 	XFreeGC(display, gc_icon);
@@ -455,7 +455,7 @@ GHOST_WindowX11(
 	xwmhints->flags = InputHint | IconPixmapHint | IconMaskHint | StateHint;
 	XSetWMHints(display, m_window, xwmhints);
 	XFree(xwmhints);
-	// done setting the icon
+	/* done setting the icon */
 
 	setTitle(title);
 
@@ -463,7 +463,7 @@ GHOST_WindowX11(
 	initXInputDevices();
 #endif
 
-	// now set up the rendering context.
+	/* now set up the rendering context. */
 	if (installDrawingContext(type) == GHOST_kSuccess) {
 		m_valid_setup = true;
 		GHOST_PRINT("Created window\n");
@@ -748,8 +748,8 @@ setTitle(
 	                (const unsigned char *) title.ReadPtr(),
 	                title.Length());
 
-// This should convert to valid x11 string
-//  and getTitle would need matching change
+	/* This should convert to valid x11 string
+	 * and getTitle would need matching change */
 	XStoreName(m_display, m_window, title);
 
 	XFlush(m_display);
@@ -772,8 +772,8 @@ GHOST_WindowX11::
 getWindowBounds(
 		GHOST_Rect& bounds) const
 {
-	// Getting the window bounds under X11 is not
-	// really supported (nor should it be desired).
+	/* Getting the window bounds under X11 is not
+	 * really supported (nor should it be desired). */
 	getClientBounds(bounds);
 }
 
@@ -848,7 +848,7 @@ screenToClient(
 		GHOST_TInt32& outX,
 		GHOST_TInt32& outY) const
 {
-	// This is correct!
+	/* This is correct! */
 
 	int ax, ay;
 	Window temp;
@@ -1274,18 +1274,18 @@ GHOST_TSuccess
 GHOST_WindowX11::
 invalidate()
 {
-	// So the idea of this function is to generate an expose event
-	// for the window.
-	// Unfortunately X does not handle expose events for you and 
-	// it is the client's job to refresh the dirty part of the window.
-	// We need to queue up invalidate calls and generate GHOST events 
-	// for them in the system.
-
-	// We implement this by setting a boolean in this class to concatenate 
-	// all such calls into a single event for this window.
-
-	// At the same time we queue the dirty windows in the system class
-	// and generate events for them at the next processEvents call.
+	/* So the idea of this function is to generate an expose event
+	 * for the window.
+	 * Unfortunately X does not handle expose events for you and
+	 * it is the client's job to refresh the dirty part of the window.
+	 * We need to queue up invalidate calls and generate GHOST events
+	 * for them in the system.
+	 *
+	 * We implement this by setting a boolean in this class to concatenate
+	 * all such calls into a single event for this window.
+	 *
+	 * At the same time we queue the dirty windows in the system class
+	 * and generate events for them at the next processEvents call. */
 
 	if (m_invalid_window == false) {
 		m_system->addDirtyWindow(this);
@@ -1384,7 +1384,7 @@ GHOST_WindowX11::
 installDrawingContext(
 		GHOST_TDrawingContextType type)
 {
-	// only support openGL for now.
+	/* only support openGL for now. */
 	GHOST_TSuccess success;
 	switch (type) {
 		case GHOST_kDrawingContextTypeOpenGL:

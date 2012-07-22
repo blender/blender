@@ -174,7 +174,7 @@ public:
 	virtual bool		UsesObjectColor() const;
 	virtual bool		CastsShadows() const;
 
-	virtual void		Replace_IScene(SCA_IScene *val) {}; /* overridden by KX_BlenderMaterial */
+	virtual void		Replace_IScene(SCA_IScene *val) {} /* overridden by KX_BlenderMaterial */
 
 	/**
 	* \return the equivalent drawing mode for the material settings (equivalent to old TexFace tface->mode).
@@ -184,7 +184,7 @@ public:
 	/*
 	 * PreCalculate texture gen
 	 */
-	virtual void OnConstruction(int layer){}
+	virtual void OnConstruction(int layer) {}
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

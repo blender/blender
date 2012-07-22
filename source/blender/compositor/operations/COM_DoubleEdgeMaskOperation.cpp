@@ -1273,8 +1273,8 @@ void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
 		float *imask = innerMask->convertToValueBuffer();
 		float *omask = outerMask->convertToValueBuffer();
 		doDoubleEdgeMask(imask, omask, data);
-		delete imask;
-		delete omask;
+		delete [] imask;
+		delete [] omask;
 		this->m_cachedInstance = data;
 	}
 	unlockMutex();
@@ -1282,12 +1282,9 @@ void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
 }
 void DoubleEdgeMaskOperation::executePixel(float *color, int x, int y, void *data)
 {
-	float *buffer = (float *) data;
+	float *buffer = (float *)data;
 	int index = (y * this->getWidth() + x);
-	color[0] = buffer[index];
-	color[1] = buffer[index + 1];
-	color[2] = buffer[index + 2];
-	color[3] = buffer[index + 3];
+	copy_v4_v4(color, buffer + index);
 }
 
 void DoubleEdgeMaskOperation::deinitExecution()

@@ -64,8 +64,8 @@ typedef vector< KX_IndexArray* > vecIndexArrays;
 class RAS_IRasterizer
 {
 public:
-	RAS_IRasterizer(RAS_ICanvas* canv){};
-	virtual ~RAS_IRasterizer(){};
+	RAS_IRasterizer(RAS_ICanvas* canv) {};
+	virtual ~RAS_IRasterizer() {};
 
 	/**
 	 * Drawing types
@@ -401,8 +401,8 @@ public:
 	virtual const MT_Matrix4x4&	GetViewMatrix() const = 0;
 	virtual const MT_Matrix4x4&	GetViewInvMatrix() const = 0;
 
-	virtual bool	QueryLists(){return false;}
-	virtual bool	QueryArrays(){return false;}
+	virtual bool	QueryLists() { return false; }
+	virtual bool	QueryArrays() { return false; }
 	
 	virtual void	EnableMotionBlur(float motionblurvalue)=0;
 	virtual void	DisableMotionBlur()=0;
