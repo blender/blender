@@ -384,7 +384,7 @@ void DilateStepOperation::deinitExecution()
 	this->m_inputProgram = NULL;
 	this->deinitMutex();
 	if (this->m_cached_buffer) {
-		delete this->m_cached_buffer;
+		delete [] this->m_cached_buffer;
 		this->m_cached_buffer = NULL;
 	}
 }
