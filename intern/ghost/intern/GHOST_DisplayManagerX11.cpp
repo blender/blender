@@ -172,7 +172,7 @@ setCurrentDisplaySetting(
 {
 #ifdef WITH_X11_XF86VMODE
 	/* Mode switching code ported from Quake 2:
-	 * ftp:/* ftp.idsoftware.com/idstuff/source/q2source-3.21.zip */
+	 * ftp: ftp.idsoftware.com/idstuff/source/q2source-3.21.zip
 	 * See linux/gl_glx.c:GLimp_SetMode
 	 */
 	int majorVersion, minorVersion;
