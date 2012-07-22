@@ -1562,8 +1562,6 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			MEM_freeN(nvm);
 			op->customdata = NULL;
-
-			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_NODE, NULL);
 			
 			return OPERATOR_FINISHED;
 	}
