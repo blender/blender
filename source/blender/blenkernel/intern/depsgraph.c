@@ -352,10 +352,9 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Material *ma);
 
 /* recursive handling for material nodetree drivers */
-static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *node, bNodeTree *ntree, Material *rootma)
+static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *node, bNodeTree *ntree)
 {
 	bNode *n;
-	Material *ma;
 
 	/* nodetree itself */
 	if (ntree->adt) {
@@ -364,14 +363,13 @@ static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *
 	
 	/* nodetree's nodes... */
 	for (n = ntree->nodes.first; n; n = n->next) {
-		if (n->id && GS(n->id->name) == ID_MA) {
-			ma = (Material *)n->id;
-			if (ma != rootma) {
-				dag_add_material_driver_relations(dag, node, ma);
+		if (n->id) {
+			if (GS(n->id->name) == ID_MA) {
+				dag_add_material_driver_relations(dag, node, (Material *)n->id);
 			}
-		}
-		else if (n->type == NODE_GROUP && n->id) {
-			dag_add_material_nodetree_driver_relations(dag, node, (bNodeTree *)n->id, rootma);
+			else if (n->type == NODE_GROUP) {
+				dag_add_material_nodetree_driver_relations(dag, node, (bNodeTree *)n->id);
+			}
 		}
 	}
 }
@@ -379,6 +377,15 @@ static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *
 /* recursive handling for material drivers */
 static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Material *ma)
 {
+	/* Prevent infinite recursion by checking (and tagging the material) as having been visited 
+	 * already (see build_dag()). This assumes ma->id.flag & LIB_DOIT isn't set by anything else
+	 * in the meantime... [#32017]
+	 */
+	if (ma->id.flag & LIB_DOIT)
+		return;
+	else
+		ma->id.flag |= LIB_DOIT;
+	
 	/* material itself */
 	if (ma->adt) {
 		dag_add_driver_relation(ma->adt, dag, node, 1);
@@ -390,7 +397,7 @@ static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Mat
 
 	/* material's nodetree */
 	if (ma->nodetree) {
-		dag_add_material_nodetree_driver_relations(dag, node, ma->nodetree, ma);
+		dag_add_material_nodetree_driver_relations(dag, node, ma->nodetree);
 	}
 }
 
@@ -803,6 +810,9 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 		dag = dag_init();
 		sce->theDag = dag;
 	}
+	
+	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later [#32017] */
+	tag_main_idcode(bmain, ID_MA, FALSE);
 	
 	/* add base node for scene. scene is always the first node in DAG */
 	scenenode = dag_add_node(dag, sce);	

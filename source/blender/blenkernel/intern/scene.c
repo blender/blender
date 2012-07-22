@@ -1018,6 +1018,11 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 	DAG_ids_flush_tagged(bmain);
 
 	scene->physics_settings.quick_cache_step = 0;
+	
+	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
+	 * when trying to find materials with drivers that need evaluating [#32017] 
+	 */
+	tag_main_idcode(bmain, ID_MA, FALSE);
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
 	 * by depgraph or manual, no layer check here, gets correct flushed
