@@ -319,7 +319,7 @@ int Armature::addConstraint(const std::string& segment_name, ConstraintCallback 
 			return iConstraint;
 		}
 	}
-	if (m_finalized)  {
+	if (m_finalized) {
 		if (_freeParam && _param)
 			free(_param);
 		return -1;

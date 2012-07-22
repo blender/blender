@@ -1688,16 +1688,16 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 
 		if (cu->flag & CU_FOLLOW) {
 #if 0
-			float x1, q[4];
+			float si, q[4];
 			vec_to_quat(quat, dir, ob->trackflag, ob->upflag);
 			
 			/* the tilt */
 			normalize_v3(dir);
 			q[0] = (float)cos(0.5 * vec[3]);
-			x1 = (float)sin(0.5 * vec[3]);
-			q[1] = -x1 * dir[0];
-			q[2] = -x1 * dir[1];
-			q[3] = -x1 * dir[2];
+			si = (float)sin(0.5 * vec[3]);
+			q[1] = -si * dir[0];
+			q[2] = -si * dir[1];
+			q[3] = -si * dir[2];
 			mul_qt_qtqt(quat, q, quat);
 #else
 			quat_apply_track(quat, ob->trackflag, ob->upflag);
