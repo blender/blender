@@ -3008,7 +3008,6 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 	View3D *v3d;
 	ARegion *ar;
 	RegionView3D *rv3d;
-	float phi, q1[4], new_quat[4];
 	int orbitdir;
 
 	/* no NULL check is needed, poll checks */
@@ -3019,36 +3018,40 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 
 	if (rv3d->viewlock == 0) {
 		if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
-			if (orbitdir == V3D_VIEW_STEPLEFT || orbitdir == V3D_VIEW_STEPRIGHT) {
-				float si;
+			float angle = DEG2RADF((float)U.pad_rot_angle);
+			float quat_mul[4];
+			float quat_new[4];
+
+			if (ELEM(orbitdir, V3D_VIEW_STEPLEFT, V3D_VIEW_STEPRIGHT)) {
+				const float zvec[3] = {0.0f, 0.0f, 1.0f};
+
+				if (orbitdir == V3D_VIEW_STEPRIGHT) {
+					angle = -angle;
+				}
+
 				/* z-axis */
-				phi = (float)(M_PI / 360.0) * U.pad_rot_angle;
-				if (orbitdir == V3D_VIEW_STEPRIGHT) phi = -phi;
-				si = (float)sin(phi);
-				q1[0] = (float)cos(phi);
-				q1[1] = q1[2] = 0.0;
-				q1[3] = si;
-				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
-				rv3d->view = RV3D_VIEW_USER;
+				axis_angle_to_quat(quat_mul, zvec, angle);
 			}
-			else if (orbitdir == V3D_VIEW_STEPDOWN || orbitdir == V3D_VIEW_STEPUP) {
+			else {
+
+				if (orbitdir == V3D_VIEW_STEPDOWN) {
+					angle = -angle;
+				}
+
 				/* horizontal axis */
-				copy_v3_v3(q1 + 1, rv3d->viewinv[0]);
-
-				normalize_v3(q1 + 1);
-				phi = (float)(M_PI / 360.0) * U.pad_rot_angle;
-				if (orbitdir == V3D_VIEW_STEPDOWN) phi = -phi;
-				q1[0] = (float)cos(phi);
-				mul_v3_fl(q1 + 1, sin(phi));
-				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
-				rv3d->view = RV3D_VIEW_USER;
+				axis_angle_to_quat(quat_mul, rv3d->viewinv[0], angle);
 			}
 
-			smooth_view(C, CTX_wm_view3d(C), ar, NULL, NULL, NULL, new_quat, NULL, NULL);
+			mul_qt_qtqt(quat_new, rv3d->viewquat, quat_mul);
+			rv3d->view = RV3D_VIEW_USER;
+
+			smooth_view(C, CTX_wm_view3d(C), ar, NULL, NULL, NULL, quat_new, NULL, NULL);
+
+			return OPERATOR_FINISHED;
 		}
 	}
 
-	return OPERATOR_FINISHED;
+	return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_view_orbit(wmOperatorType *ot)
