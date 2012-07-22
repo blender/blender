@@ -66,7 +66,7 @@ void VectorBlurOperation::deinitExecution()
 	this->m_inputSpeedProgram = NULL;
 	this->m_inputZProgram = NULL;
 	if (this->m_cachedInstance) {
-		delete this->m_cachedInstance;
+		delete [] this->m_cachedInstance;
 		this->m_cachedInstance = NULL;
 	}
 }
