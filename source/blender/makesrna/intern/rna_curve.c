@@ -155,56 +155,38 @@ static StructRNA *rna_Curve_refine(PointerRNA *ptr)
 
 static void rna_BezTriple_handle1_get(PointerRNA *ptr, float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	values[0] = bt->vec[0][0];
-	values[1] = bt->vec[0][1];
-	values[2] = bt->vec[0][2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(values, bezt->vec[0]);
 }
 
 static void rna_BezTriple_handle1_set(PointerRNA *ptr, const float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	bt->vec[0][0] = values[0];
-	bt->vec[0][1] = values[1];
-	bt->vec[0][2] = values[2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(bezt->vec[0], values);
 }
 
 static void rna_BezTriple_handle2_get(PointerRNA *ptr, float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	values[0] = bt->vec[2][0];
-	values[1] = bt->vec[2][1];
-	values[2] = bt->vec[2][2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(values, bezt->vec[2]);
 }
 
 static void rna_BezTriple_handle2_set(PointerRNA *ptr, const float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	bt->vec[2][0] = values[0];
-	bt->vec[2][1] = values[1];
-	bt->vec[2][2] = values[2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(bezt->vec[2], values);
 }
 
 static void rna_BezTriple_ctrlpoint_get(PointerRNA *ptr, float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	values[0] = bt->vec[1][0];
-	values[1] = bt->vec[1][1];
-	values[2] = bt->vec[1][2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(values, bezt->vec[1]);
 }
 
 static void rna_BezTriple_ctrlpoint_set(PointerRNA *ptr, const float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	bt->vec[1][0] = values[0];
-	bt->vec[1][1] = values[1];
-	bt->vec[1][2] = values[2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(bezt->vec[1], values);
 }
 
 static void rna_Curve_texspace_set(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
