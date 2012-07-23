@@ -1913,13 +1913,24 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		/* group */
 		fcu->grp = newdataadr(fd, fcu->grp);
 		
+		/* clear disabled flag - allows disabled drivers to be tried again ([#32155]),
+		 * but also means that another method for "reviving disabled F-Curves" exists
+		 */
+		fcu->flag &= ~FCURVE_DISABLED;
+		
 		/* driver */
 		fcu->driver= newdataadr(fd, fcu->driver);
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
 			DriverVar *dvar;
 			
+			/* compiled expression data will need to be regenerated (old pointer may still be set here) */
 			driver->expr_comp = NULL;
+			
+			/* give the driver a fresh chance - the operating environment may be different now 
+			 * (addons, etc. may be different) so the driver namespace may be sane now [#32155]
+			 */
+			driver->flag &= ~DRIVER_FLAG_INVALID;
 			
 			/* relink variables, targets and their paths */
 			link_list(fd, &driver->variables);
