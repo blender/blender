@@ -31,7 +31,6 @@
  *  \ingroup imbuf
  */
 
-#define _GNU_SOURCE         /* See feature_test_macros(7) */
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
@@ -601,185 +600,215 @@ void IMB_premultiply_alpha(ImBuf *ibuf)
 
 /* Tonecurve corrections */
 
-// code of rdt_shaper_fwd and ratio_preserving_odt_tonecurve belongs to
-// ACES project (https://github.com/ampas/aces-dev)
+/* code of rdt_shaper_fwd and ratio_preserving_odt_tonecurve belongs to
+ * ACES project (https://github.com/ampas/aces-dev)
+ */
 
-// === ODT SPLINE === //
-//
-// Algorithm for applying ODT tone curve in forward direction.
-//
-// 		vers 1.0  Doug Walker  		2012-01-23
-// 		modified by Scott Dyer		2012-02-28
+/* === ODT SPLINE === */
+/*
+ * Algorithm for applying ODT tone curve in forward direction.
+ *
+ *     vers 1.0  Doug Walker       2012-01-23
+ *      modified by Scott Dyer      2012-02-28
+ */
 
-// Input and output are in linear (not log) units.
-static float rdt_shaper_fwd( float x)
+/* Input and output are in linear (not log) units. */
+static float rdt_shaper_fwd(float x)
 {
-	// B-spline coefficients.
-	// The units are density of the output.
-	const float COEFS0 = -0.008;
-	const float COEFS1 = -0.00616;
-	const float COEFS2 =  0.026;
-	const float COEFS3 =  0.185;
-	const float COEFS4 =  0.521;
-	const float COEFS5 =  0.993;
-	const float COEFS6 =  1.563;
-	const float COEFS7 =  2.218;
-	const float COEFS8 =  2.795;
-	const float COEFS9 =  3.36;
-	const float COEFS10 = 4.0;   // NB: keep this less than or equal to -log10( FLARE)
-	// The locations of these control points in OCES density space are:
-	// -1., -0.79, -0.44, -0.01, 0.48, 1.01, 1.58, 2.18, 2.82, 3.47, 4.15, 4.85
+	/* B-spline coefficients.
+	 * The units are density of the output.
+	 */
+	const float COEFS0 = -0.008f;
+	const float COEFS1 = -0.00616f;
+	const float COEFS2 =  0.026f;
+	const float COEFS3 =  0.185f;
+	const float COEFS4 =  0.521f;
+	const float COEFS5 =  0.993f;
+	const float COEFS6 =  1.563f;
+	const float COEFS7 =  2.218f;
+	const float COEFS8 =  2.795f;
+	const float COEFS9 =  3.36f;
+	const float COEFS10 = 4.0f;   /* NB: keep this less than or equal to -log10(FLARE) */
+	/* The locations of these control points in OCES density space are:
+	 * -1., -0.79, -0.44, -0.01, 0.48, 1.01, 1.58, 2.18, 2.82, 3.47, 4.15, 4.85
+	 */
 
-	// The flare term allows the spline to more rapidly approach zero
-	// while keeping the shape of the curve well-behaved in density space.
-	const float FLARE = 1e-4;
+	/* The flare term allows the spline to more rapidly approach zero
+	 * while keeping the shape of the curve well-behaved in density space.
+	 */
+	const float FLARE = 1e-4f;
 
-	// The last control point is fixed to yield a specific density at the
-	// end of the knot domain.
-	//const float COEFS11 = 2. * ( -log10( FLARE) - 0.001) - COEFS10;
-	// Note: Apparently a CTL bug prevents calling log10() here, so
-	// you'll need to update this manually if you change FLARE.
-	const float COEFS11 = COEFS10 + 2. * ( 4. - COEFS10);
+	/* The last control point is fixed to yield a specific density at the
+	 * end of the knot domain.
+	 */
+	/* const float COEFS11 = 2. * (-log10(FLARE) - 0.001) - COEFS10; */
 
-	// The knots are in units of OCES density.
+	/* Note: Apparently a CTL bug prevents calling log10() here, so
+	 * you'll need to update this manually if you change FLARE.
+	 */
+	const float COEFS11 = COEFS10 + 2.0f * (4.0f - COEFS10);
+
+	/* The knots are in units of OCES density. */
 	const unsigned int KNOT_LEN = 11;
-	const float KNOT_START = -0.9;
-	const float KNOT_END = 4.484256;
+	const float KNOT_START = -0.9f;
+	const float KNOT_END = 4.484256f;
 
-	// The KNOT_POW adjusts the spacing to put more knots near the toe (highlights).
-	const float KNOT_POW = 1. / 1.3;
+	/* The KNOT_POW adjusts the spacing to put more knots near the toe (highlights). */
+	const float KNOT_POW = 1.0f / 1.3f;
 	const float OFFS = KNOT_START;
 	const float SC = KNOT_END - KNOT_START;
 
-	// KNOT_DENS is density of the spline at the knots.
-	const float KNOT_DENS[ 11] = {
-		( COEFS0 + COEFS1) / 2.,
-		( COEFS1 + COEFS2) / 2.,
-		( COEFS2 + COEFS3) / 2.,
-		( COEFS3 + COEFS4) / 2.,
-		( COEFS4 + COEFS5) / 2.,
-		( COEFS5 + COEFS6) / 2.,
-		( COEFS6 + COEFS7) / 2.,
-		( COEFS7 + COEFS8) / 2.,
-		( COEFS8 + COEFS9) / 2.,
-		( COEFS9 + COEFS10) / 2.,
-		( COEFS10 + COEFS11) / 2.
+	/* KNOT_DENS is density of the spline at the knots. */
+	const float KNOT_DENS[11] = {
+		(COEFS0 + COEFS1) / 2.0f,
+		(COEFS1 + COEFS2) / 2.0f,
+		(COEFS2 + COEFS3) / 2.0f,
+		(COEFS3 + COEFS4) / 2.0f,
+		(COEFS4 + COEFS5) / 2.0f,
+		(COEFS5 + COEFS6) / 2.0f,
+		(COEFS6 + COEFS7) / 2.0f,
+		(COEFS7 + COEFS8) / 2.0f,
+		(COEFS8 + COEFS9) / 2.0f,
+		(COEFS9 + COEFS10) / 2.0f,
+		(COEFS10 + COEFS11) / 2.0f
 	};
 
-	// Parameters controlling linear extrapolation.
+	/* Parameters controlling linear extrapolation. */
 	const float LIGHT_SLOPE = 0.023;
 	const float CROSSOVER = pow(10,-KNOT_END);
 	const float REV_CROSSOVER = pow(10.0f, -KNOT_DENS[ KNOT_LEN - 1]) - FLARE;
 	const float DARK_SLOPE = REV_CROSSOVER / CROSSOVER;
 
-	// Textbook monomial to basis-function conversion matrix.
-	/*const*/ float M[ 3][ 3] = {
-		{  0.5, -1.0, 0.5 },
-		{ -1.0,  1.0, 0.5 },
-		{  0.5,  0.0, 0.0 }
+	/* Textbook monomial to basis-function conversion matrix. */
+	/*const*/ float M[3][3] = {
+		{ 0.5f, -1.0f, 0.5f},
+		{-1.0f,  1.0f, 0.5f},
+		{ 0.5f,  0.0f, 0.0f}
 	};
 
-    float y;
-    // Linear extrapolation in linear space for negative & very dark values.
-    if ( x <= CROSSOVER)
-        y = x * DARK_SLOPE;
-    else {
-        float in_dens = -log10( x);
-        float out_dens;
-        float knot_coord = ( in_dens - OFFS) / SC;
+	float y;
 
-        // Linear extrapolation in log space for very light values.
-        if ( knot_coord <= 0.)
-            out_dens = KNOT_DENS[ 0] - ( KNOT_START - in_dens) * LIGHT_SLOPE;
+	/* Linear extrapolation in linear space for negative & very dark values. */
+	if (x <= CROSSOVER) {
+		y = x * DARK_SLOPE;
+	}
+	else {
+		float in_dens = -log10(x);
+		float out_dens;
+		float knot_coord = (in_dens - OFFS) / SC;
 
-        // For typical OCES values, apply a B-spline curve.
-        else {
-            knot_coord = ( KNOT_LEN - 1) * pow( knot_coord, KNOT_POW);
-			{
-				int j = knot_coord;
-				float t = knot_coord - j;
+		if (knot_coord <= 0.0f) {
+			/* Linear extrapolation in log space for very light values. */
 
-				// Would like to do this:
-				//float cf[ 3] = { COEFS[ j], COEFS[ j + 1], COEFS[ j + 2]};
-				// or at least:
-				//cf[ 0] = COEFS[ j];
-				//cf[ 1] = COEFS[ j + 1];
-				//cf[ 2] = COEFS[ j + 2];
-				// But apparently CTL bugs prevent it, so we do the following:
-				float cf[ 3];
-				if ( j <= 0) {
-					cf[ 0] = COEFS0;  cf[ 1] = COEFS1;  cf[ 2] = COEFS2;
-				}
-				else if ( j == 1) {
-					cf[ 0] = COEFS1;  cf[ 1] = COEFS2;  cf[ 2] = COEFS3;
-				}
-				else if ( j == 2) {
-					cf[ 0] = COEFS2;  cf[ 1] = COEFS3;  cf[ 2] = COEFS4;
-				}
-				else if ( j == 3) {
-					cf[ 0] = COEFS3;  cf[ 1] = COEFS4;  cf[ 2] = COEFS5;
-				}
-				else if ( j == 4) {
-					cf[ 0] = COEFS4;  cf[ 1] = COEFS5;  cf[ 2] = COEFS6;
-				}
-				else if ( j == 5) {
-					cf[ 0] = COEFS5;  cf[ 1] = COEFS6;  cf[ 2] = COEFS7;
-				}
-				else if ( j == 6) {
-					cf[ 0] = COEFS6;  cf[ 1] = COEFS7;  cf[ 2] = COEFS8;
-				}
-				else if ( j == 7) {
-					cf[ 0] = COEFS7;  cf[ 1] = COEFS8;  cf[ 2] = COEFS9;
-				}
-				else if ( j == 8) {
-					cf[ 0] = COEFS8;  cf[ 1] = COEFS9;  cf[ 2] = COEFS10;
-				}
-				else {
-					cf[ 0] = COEFS9;  cf[ 1] = COEFS10;  cf[ 2] = COEFS11;
-				}
+			out_dens = KNOT_DENS[0] - (KNOT_START - in_dens) * LIGHT_SLOPE;
+		}
+		else {
+			/* For typical OCES values, apply a B-spline curve. */
 
-				{
-					float monomials[ 3] = { t * t, t, 1. };
-					float v[3];
+			int j;
+			float t;
+			float cf[3], monomials[3], v[3];
 
-					// XXX: check on this! maths could be different here (like row-major vs. column major or so)
-					//out_dens = dot_f3_f3( monomials, mult_f3_f33( cf, M));
+			knot_coord = ( KNOT_LEN - 1) * pow( knot_coord, KNOT_POW);
 
-					mul_v3_m3v3(v, M, cf);
-					out_dens = dot_v3v3( monomials, v);
-				}
+			j = knot_coord;
+			t = knot_coord - j;
+
+			/* Would like to do this: */
+			/* float cf[ 3] = { COEFS[ j], COEFS[ j + 1], COEFS[ j + 2]}; */
+			/* or at least: */
+			/* cf[0] = COEFS[j]; */
+			/* cf[1] = COEFS[j + 1]; */
+			/* cf[2] = COEFS[j + 2]; */
+			/* But apparently CTL bugs prevent it, so we do the following: */
+			if (j <= 0) {
+				cf[0] = COEFS0;  cf[1] = COEFS1;  cf[2] = COEFS2;
 			}
-        }
-        y = pow(10.0f, -out_dens) - FLARE;
-    }
-    return y;
+			else if (j == 1) {
+				cf[0] = COEFS1;  cf[1] = COEFS2;  cf[2] = COEFS3;
+			}
+			else if (j == 2) {
+				cf[0] = COEFS2;  cf[1] = COEFS3;  cf[2] = COEFS4;
+			}
+			else if (j == 3) {
+				cf[0] = COEFS3;  cf[1] = COEFS4;  cf[2] = COEFS5;
+			}
+			else if (j == 4) {
+				cf[0] = COEFS4;  cf[1] = COEFS5;  cf[2] = COEFS6;
+			}
+			else if (j == 5) {
+				cf[0] = COEFS5;  cf[1] = COEFS6;  cf[2] = COEFS7;
+			}
+			else if (j == 6) {
+				cf[0] = COEFS6;  cf[1] = COEFS7;  cf[2] = COEFS8;
+			}
+			else if (j == 7) {
+				cf[0] = COEFS7;  cf[1] = COEFS8;  cf[2] = COEFS9;
+			}
+			else if (j == 8) {
+				cf[0] = COEFS8;  cf[1] = COEFS9;  cf[2] = COEFS10;
+			}
+			else {
+				cf[0] = COEFS9;  cf[1] = COEFS10;  cf[2] = COEFS11;
+			}
+
+			monomials[0] = t * t;
+			monomials[1] = t;
+			monomials[2] = 1.0f;
+
+			mul_v3_m3v3(v, M, cf);
+			out_dens = dot_v3v3( monomials, v);
+		}
+
+		y = pow(10.0f, -out_dens) - FLARE;
+	}
+
+	return y;
 }
 
 void IMB_ratio_preserving_odt_tonecurve(float rgbOut[3], const float rgbIn[3])
 {
-	//
-	// The "ratio preserving tonecurve" is used to avoid hue/chroma shifts.
-	// It sends a norm through the tonecurve and scales the RGB values based on the output.
-	//
+	float acesIn[3], acesOut[3];
 
-	const float NTH_POWER = 2.0;
-	const float TINY = 1e-12;
+	float rec709_to_aces[3][3] = {{0.4395770431f, 0.0895979404f, 0.0174174830f},
+	                              {0.3839148879f, 0.8147120476f, 0.1087378338f},
+	                              {0.1765103489f, 0.0956883803f, 0.8738504052f}};
 
-	float numerator = ( pow(rgbIn[0],NTH_POWER) + pow(rgbIn[1],NTH_POWER) + pow(rgbIn[2],NTH_POWER) );
-	float denominator = MAX2( TINY,
-							 ( pow(rgbIn[0],NTH_POWER-1) +
-							   pow(rgbIn[1],NTH_POWER-1) +
-							   pow(rgbIn[2],NTH_POWER-1)
-							 )
-						   ); // use of max function to avoid divide by zero
-	float normRGB = numerator / denominator;
-	if (normRGB <= 0.0) normRGB = TINY;
+	float aces_to_rec709[3][3] = {{ 2.5219228268f, -0.2754705548f, -0.0159884077f},
+	                              {-1.1370280981f,  1.3698303699f, -0.1477921605f},
+	                              {-0.3849000633f, -0.0943564922f,  1.1637737751f}};
 
-	{
-		float normRGBo = rdt_shaper_fwd( normRGB );
+	/* The "ratio preserving tonecurve" is used to avoid hue/chroma shifts.
+	 * It sends a norm through the tonecurve and scales the RGB values based on the output.
+	 */
 
-		rgbOut[0] = rgbIn[0] * normRGBo / normRGB;
-		rgbOut[1] = rgbIn[1] * normRGBo / normRGB;
-		rgbOut[2] = rgbIn[2] * normRGBo / normRGB;
+	const float NTH_POWER = 2.0f;
+	const float TINY = 1e-12f;
+	float numerator, denominator;
+	float normRGB, normRGBo;
+
+	mul_v3_m3v3(acesIn, rec709_to_aces, (float *) rgbIn);
+
+	numerator = pow(acesIn[0], NTH_POWER) + pow(acesIn[1], NTH_POWER) + pow(acesIn[2], NTH_POWER);
+
+	denominator = pow(acesIn[0], NTH_POWER - 1) +
+	              pow(acesIn[1], NTH_POWER - 1) +
+	              pow(acesIn[2], NTH_POWER - 1);
+
+	/* use of max function to avoid divide by zero */
+	denominator = MAX2(TINY, denominator);
+
+	normRGB = numerator / denominator;
+
+	if (normRGB <= 0.0f) {
+		normRGB = TINY;
 	}
+
+	normRGBo = rdt_shaper_fwd(normRGB);
+
+	acesOut[0] = acesIn[0] * normRGBo / normRGB;
+	acesOut[1] = acesIn[1] * normRGBo / normRGB;
+	acesOut[2] = acesIn[2] * normRGBo / normRGB;
+
+	mul_v3_m3v3(rgbOut, aces_to_rec709, (float *) acesOut);
 }
