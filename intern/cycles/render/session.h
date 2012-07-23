@@ -105,7 +105,8 @@ public:
 	TileManager tile_manager;
 	int sample;
 
-	boost::function<void(RenderBuffers*, bool)> write_render_buffers_cb;
+	boost::function<void(RenderBuffers*)> write_render_buffers_cb;
+	boost::function<void(RenderBuffers*)> update_render_buffers_cb;
 
 	Session(const SessionParams& params);
 	~Session();

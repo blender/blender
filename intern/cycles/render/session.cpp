@@ -377,11 +377,11 @@ void Session::update_tile_sample(RenderTile& rtile)
 {
 	thread_scoped_lock tile_lock(tile_mutex);
 
-	if(write_render_buffers_cb) {
+	if(update_render_buffers_cb) {
 		/* todo: optimize this by making it thread safe and removing lock */
 
 		if(!progress.get_cancel())
-			write_render_buffers_cb(rtile.buffers, false);
+			update_render_buffers_cb(rtile.buffers);
 	}
 
 	update_status_time();
@@ -394,7 +394,7 @@ void Session::release_tile(RenderTile& rtile)
 	if(write_render_buffers_cb) {
 		/* todo: optimize this by making it thread safe and removing lock */
 		if(!progress.get_cancel())
-			write_render_buffers_cb(rtile.buffers, true);
+			write_render_buffers_cb(rtile.buffers);
 		delete rtile.buffers;
 	}
 

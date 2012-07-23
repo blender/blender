@@ -189,7 +189,7 @@ static void end_render_result(BL::RenderEngine b_engine, BL::RenderResult b_rr, 
 	RE_engine_end_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data, (int)cancel);
 }
 
-void BlenderSession::write_render_buffers(RenderBuffers *buffers, bool final_sample)
+void BlenderSession::do_write_update_render_buffers(RenderBuffers *buffers, bool do_update, bool do_write)
 {
 	BufferParams& params = buffers->params;
 	int x = params.full_x - session->tile_manager.params.full_x;
@@ -210,16 +210,28 @@ void BlenderSession::write_render_buffers(RenderBuffers *buffers, bool final_sam
 	BL::RenderLayer b_rlay = *b_single_rlay;
 
 	/* write result */
-	write_render_result(b_rr, b_rlay, buffers);
+	if (do_update)
+		write_render_result(b_rr, b_rlay, buffers);
 
-	if (final_sample)
+	if (do_write)
 		end_render_result(b_engine, b_rr);
+}
+
+void BlenderSession::write_render_buffers(RenderBuffers *buffers)
+{
+	do_write_update_render_buffers(buffers, true, true);
+}
+
+void BlenderSession::update_render_buffers(RenderBuffers *buffers)
+{
+	do_write_update_render_buffers(buffers, true, false);
 }
 
 void BlenderSession::render()
 {
 	/* set callback to write out render results */
-	session->write_render_buffers_cb = function_bind(&BlenderSession::write_render_buffers, this, _1, _2);
+	session->write_render_buffers_cb = function_bind(&BlenderSession::write_render_buffers, this, _1);
+	session->update_render_buffers_cb = function_bind(&BlenderSession::update_render_buffers, this, _1);
 
 	/* get buffer parameters */
 	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
@@ -290,6 +302,7 @@ void BlenderSession::render()
 
 	/* clear callback */
 	session->write_render_buffers_cb = NULL;
+	session->update_render_buffers_cb = NULL;
 }
 
 void BlenderSession::write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers)
