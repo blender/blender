@@ -172,6 +172,8 @@ enum PathRayFlag {
 
 	PATH_RAY_ALL = (1|2|4|8|16|32|64|128|256|512),
 
+	/* this gives collisions with localview bits
+	 * see: CYCLES_LOCAL_LAYER_HACK(), grr - Campbell */
 	PATH_RAY_LAYER_SHIFT = (32-20)
 };
 
