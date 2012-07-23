@@ -57,45 +57,33 @@ KeyingOperation::KeyingOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);
-	this->addInputSocket(COM_DT_VALUE);
-	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 
 	this->m_screenBalance = 0.5f;
 
 	this->m_pixelReader = NULL;
 	this->m_screenReader = NULL;
-	this->m_garbageReader = NULL;
-	this->m_coreReader = NULL;
 }
 
 void KeyingOperation::initExecution()
 {
 	this->m_pixelReader = this->getInputSocketReader(0);
 	this->m_screenReader = this->getInputSocketReader(1);
-	this->m_garbageReader = this->getInputSocketReader(2);
-	this->m_coreReader = this->getInputSocketReader(3);
 }
 
 void KeyingOperation::deinitExecution()
 {
 	this->m_pixelReader = NULL;
 	this->m_screenReader = NULL;
-	this->m_garbageReader = NULL;
-	this->m_coreReader = NULL;
 }
 
 void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
 	float pixelColor[4];
 	float screenColor[4];
-	float garbageValue[4];
-	float coreValue[4];
 
 	this->m_pixelReader->read(pixelColor, x, y, sampler);
 	this->m_screenReader->read(screenColor, x, y, sampler);
-	this->m_garbageReader->read(garbageValue, x, y, sampler);
-	this->m_coreReader->read(coreValue, x, y, sampler);
 
 	int primary_channel = get_pixel_primary_channel(screenColor);
 
@@ -130,10 +118,4 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 			color[0] = distance;
 		}
 	}
-
-	/* apply garbage matte */
-	color[0] = MIN2(color[0], 1.0f - garbageValue[0]);
-
-	/* apply core matte */
-	color[0] = MAX2(color[0], coreValue[0]);
 }

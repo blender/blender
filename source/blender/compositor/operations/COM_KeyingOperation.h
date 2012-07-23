@@ -38,8 +38,6 @@ class KeyingOperation : public NodeOperation {
 protected:
 	SocketReader *m_pixelReader;
 	SocketReader *m_screenReader;
-	SocketReader *m_garbageReader;
-	SocketReader *m_coreReader;
 
 	float m_screenBalance;
 
