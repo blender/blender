@@ -381,7 +381,7 @@ void Session::update_tile_sample(RenderTile& rtile)
 		/* todo: optimize this by making it thread safe and removing lock */
 
 		if(!progress.get_cancel())
-			write_render_buffers_cb(rtile.buffers);
+			write_render_buffers_cb(rtile.buffers, false);
 	}
 
 	update_status_time();
@@ -393,9 +393,8 @@ void Session::release_tile(RenderTile& rtile)
 
 	if(write_render_buffers_cb) {
 		/* todo: optimize this by making it thread safe and removing lock */
-		/* todo: this could be removed as soon as all devices would use update_tile_sample */
 		if(!progress.get_cancel())
-			write_render_buffers_cb(rtile.buffers);
+			write_render_buffers_cb(rtile.buffers, true);
 		delete rtile.buffers;
 	}
 

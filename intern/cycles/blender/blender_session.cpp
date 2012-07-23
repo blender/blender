@@ -189,7 +189,7 @@ static void end_render_result(BL::RenderEngine b_engine, BL::RenderResult b_rr, 
 	RE_engine_end_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data, (int)cancel);
 }
 
-void BlenderSession::write_render_buffers(RenderBuffers *buffers)
+void BlenderSession::write_render_buffers(RenderBuffers *buffers, bool final_sample)
 {
 	BufferParams& params = buffers->params;
 	int x = params.full_x - session->tile_manager.params.full_x;
@@ -211,13 +211,15 @@ void BlenderSession::write_render_buffers(RenderBuffers *buffers)
 
 	/* write result */
 	write_render_result(b_rr, b_rlay, buffers);
-	end_render_result(b_engine, b_rr);
+
+	if (final_sample)
+		end_render_result(b_engine, b_rr);
 }
 
 void BlenderSession::render()
 {
 	/* set callback to write out render results */
-	session->write_render_buffers_cb = function_bind(&BlenderSession::write_render_buffers, this, _1);
+	session->write_render_buffers_cb = function_bind(&BlenderSession::write_render_buffers, this, _1, _2);
 
 	/* get buffer parameters */
 	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);

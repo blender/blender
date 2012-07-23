@@ -48,7 +48,7 @@ public:
 	/* offline render */
 	void render();
 	void write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers);
-	void write_render_buffers(RenderBuffers *buffers);
+	void write_render_buffers(RenderBuffers *buffers, bool final_sample);
 
 	/* interactive updates */
 	void synchronize();
