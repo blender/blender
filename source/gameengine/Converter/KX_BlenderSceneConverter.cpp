@@ -988,8 +988,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 
 	load_datablocks(main_newlib, bpy_openlib, path, idcode);
 
-	if (idcode==ID_SCE) {
-		/* assume we want text blocks too */
+	if (idcode==ID_SCE && options & LIB_LOAD_LOAD_SCRIPTS) {
 		load_datablocks(main_newlib, bpy_openlib, path, ID_TXT);
 	}
 
@@ -1045,8 +1044,8 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 		}
 
 		/* Handle any text datablocks */
-
-		addImportMain(main_newlib);
+		if (options & LIB_LOAD_LOAD_SCRIPTS)
+			addImportMain(main_newlib);
 
 		/* Now handle all the actions */
 		if (options & LIB_LOAD_LOAD_ACTIONS) {

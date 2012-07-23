@@ -2083,6 +2083,199 @@ static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(bpy_bmelemseq_sort_doc,
+".. method:: sort(key=None, reverse=False)\n"
+"\n"
+"   Sort the elements of this sequence, using an optional custom sort key.\n"
+"   Indices of elements are not changed, BMElemeSeq.index_update() can be used for that.\n"
+"\n"
+"   :arg key: The key that sets the ordering of the elements.\n"
+"   :type key: :function: returning a number\n"
+"   :arg reverse: Reverse the order of the elements\n"
+"   :type reverse: :boolean:\n"
+"\n"
+"   .. note::\n"
+"\n"
+"      When the 'key' argument is not provided, the elements are reordered following their current index value.\n"
+"      In particular this can be used by setting indices manually before calling this method.\n"
+"\n"
+);
+
+/* Use a static variable here because there is the need to sort some array
+ * doing comparisons on elements of another array, qsort_r would have been
+ * wonderful to use here, but unfortunately it is not standard and it's not
+ * portable across different platforms.
+ *
+ * If a portable alternative to qsort_r becomes available, remove this static
+ * var hack!
+ *
+ * Note: the functions below assumes the keys array has been allocated and it
+ * has enough elements to complete the task.
+ */
+static double *keys = NULL;
+
+static int bpy_bmelemseq_sort_cmp_by_keys_ascending(const void *index1_v, const void *index2_v)
+{
+	const int *index1 = (int *)index1_v;
+	const int *index2 = (int *)index2_v;
+
+	if      (keys[*index1] < keys[*index2]) return -1;
+	else if (keys[*index1] > keys[*index2]) return 1;
+	else                                    return 0;
+}
+
+static int bpy_bmelemseq_sort_cmp_by_keys_descending(const void *index1_v, const void *index2_v)
+{
+	return -bpy_bmelemseq_sort_cmp_by_keys_ascending(index1_v, index2_v);
+}
+
+static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObject *kw)
+{
+	static const char *kwlist[] = {"key", "reverse", NULL};
+	PyObject *keyfunc = NULL; /* optional */
+	int reverse = FALSE; /* optional */
+
+	const char htype = bm_iter_itype_htype_map[self->itype];
+	int n_elem;
+
+	BMIter iter;
+	BMElem *ele;
+
+	int *elem_idx;
+	int *elem_map_idx;
+	int (*elem_idx_compare_by_keys)(const void *, const void *);
+
+	int *vert_idx = NULL;
+	int *edge_idx = NULL;
+	int *face_idx = NULL;
+	int i;
+
+	BMesh *bm = self->bm;
+
+	BPY_BM_CHECK_OBJ(self);
+
+	if (args != NULL) {
+		if(!PyArg_ParseTupleAndKeywords(args, kw,
+						"|Oi:BMElemSeq.sort",
+						(char **)kwlist,
+						&keyfunc, &reverse))
+			return NULL;
+	}
+
+	if (keyfunc != NULL && !PyCallable_Check(keyfunc)) {
+		PyErr_SetString(PyExc_TypeError,
+				"the 'key' argument is not a callable object");
+		return NULL;
+	}
+
+	n_elem = BM_mesh_elem_count(bm, htype);
+	if (n_elem <= 1) {
+		/* 0 or 1 elements: sorted already */
+		Py_RETURN_NONE;
+	}
+
+	keys = PyMem_MALLOC(sizeof(*keys) * n_elem);
+	if (keys == NULL) {
+		PyErr_NoMemory();
+		return NULL;
+	}
+
+	i = 0;
+	BM_ITER_BPY_BM_SEQ (ele, &iter, self) {
+		if (keyfunc != NULL) {
+			PyObject *py_elem;
+			PyObject *index;
+
+			py_elem = BPy_BMElem_CreatePyObject(self->bm, (BMHeader *)ele);
+			index = PyObject_CallFunctionObjArgs(keyfunc, py_elem, NULL);
+			Py_DECREF(py_elem);
+			if (index == NULL) {
+				/* No need to set the exception here,
+				 * PyObject_CallFunctionObjArgs() does that */
+				PyMem_FREE(keys);
+				return NULL;
+			}
+
+			if ((keys[i] = PyFloat_AsDouble(index)) == -1 && PyErr_Occurred()) {
+				PyErr_SetString(PyExc_ValueError,
+				                "the value returned by the 'key' function is not a number");
+				Py_DECREF(index);
+				PyMem_FREE(keys);
+				return NULL;
+			}
+
+			Py_DECREF(index);
+		}
+		else {
+			/* If the 'key' function is not provided we sort
+			 * according to the current index values */
+			keys[i] = ele->head.index;
+		}
+
+		i++;
+	}
+
+	elem_idx = PyMem_MALLOC(sizeof(*elem_idx) * n_elem);
+	if (elem_idx == NULL) {
+		PyErr_NoMemory();
+		PyMem_FREE(keys);
+		return NULL;
+	}
+
+	/* Initialize the element index array */
+	range_vn_i(elem_idx, n_elem, 0);
+
+	/* Sort the index array according to the order of the 'keys' array */
+	if (reverse)
+		elem_idx_compare_by_keys = bpy_bmelemseq_sort_cmp_by_keys_descending;
+	else
+		elem_idx_compare_by_keys = bpy_bmelemseq_sort_cmp_by_keys_ascending;
+
+	qsort(elem_idx, n_elem, sizeof(*elem_idx), elem_idx_compare_by_keys);
+
+	elem_map_idx = PyMem_MALLOC(sizeof(*elem_map_idx) * n_elem);
+	if (elem_map_idx == NULL) {
+		PyErr_NoMemory();
+		PyMem_FREE(elem_idx);
+		PyMem_FREE(keys);
+		return NULL;
+	}
+
+	/* Initialize the map array
+	 *
+	 * We need to know the index such that if used as the new_index in
+	 * BM_mesh_remap() will give the order of the sorted keys like in
+	 * elem_idx */
+	for (i = 0; i < n_elem; i++) {
+		elem_map_idx[elem_idx[i]] = i;
+	}
+
+	switch ((BMIterType)self->itype) {
+		case BM_VERTS_OF_MESH:
+			vert_idx = elem_map_idx;
+			break;
+		case BM_EDGES_OF_MESH:
+			edge_idx = elem_map_idx;
+			break;
+		case BM_FACES_OF_MESH:
+			face_idx = elem_map_idx;
+			break;
+		default:
+			PyErr_Format(PyExc_TypeError, "element type %d not supported", self->itype);
+			PyMem_FREE(elem_map_idx);
+			PyMem_FREE(elem_idx);
+			PyMem_FREE(keys);
+			return NULL;
+	}
+
+	BM_mesh_remap(bm, vert_idx, edge_idx, face_idx);
+
+	PyMem_FREE(elem_map_idx);
+	PyMem_FREE(elem_idx);
+	PyMem_FREE(keys);
+
+	Py_RETURN_NONE;
+}
 
 static struct PyMethodDef bpy_bmesh_methods[] = {
     /* utility */
@@ -2175,6 +2368,7 @@ static struct PyMethodDef bpy_bmvertseq_methods[] = {
 
     /* odd function, initializes index values */
     {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+    {"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
     {NULL, NULL, 0, NULL}
 };
 
@@ -2186,6 +2380,7 @@ static struct PyMethodDef bpy_bmedgeseq_methods[] = {
 
     /* odd function, initializes index values */
     {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+    {"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
     {NULL, NULL, 0, NULL}
 };
 
@@ -2197,12 +2392,14 @@ static struct PyMethodDef bpy_bmfaceseq_methods[] = {
 
     /* odd function, initializes index values */
     {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+    {"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
     {NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmloopseq_methods[] = {
     /* odd function, initializes index values */
     /* no: index_update() function since we cant iterate over loops */
+    /* no: sort() function since we cant iterate over loops */
     {NULL, NULL, 0, NULL}
 };
 

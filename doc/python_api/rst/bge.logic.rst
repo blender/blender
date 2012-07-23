@@ -172,7 +172,7 @@ General functions
 
    Restarts the current game by reloading the .blend file (the last saved version, not what is currently running).
    
-.. function:: LibLoad(blend, type, data, load_actions=False, verbose=False)
+.. function:: LibLoad(blend, type, data, load_actions=False, verbose=False, load_scripts=True)
    
    Converts the all of the datablocks of the given type from the given blend.
    
@@ -186,6 +186,8 @@ General functions
    :type load_actions: bool
    :arg verbose: Whether or not to print debugging information (e.g., "SceneName: Scene")
    :type verbose: bool
+   :arg load_scripts: Whether or not to load text datablocks as well (can be disabled for some extra security)
+   :type load_scripts: bool
    
 .. function:: LibNew(name, type, data)
 

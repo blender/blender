@@ -42,6 +42,7 @@
 
 #include "PyObjectPlus.h" 
 
+#include "BLI_math_vector.h"
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -113,34 +114,7 @@ void KX_CameraActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 	}
 }
 
-/* three functions copied from blender arith... don't know if there's an equivalent */
-
-static float Kx_Normalize(float *n)
-{
-	float d;
-	
-	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
-	/* FLT_EPSILON is too large! A larger value causes normalize errors in a scaled down utah teapot */
-	if (d>0.0000000000001) {
-		d= sqrt(d);
-
-		n[0]/=d; 
-		n[1]/=d; 
-		n[2]/=d;
-	} else {
-		n[0]=n[1]=n[2]= 0.0;
-		d= 0.0;
-	}
-	return d;
-}
-
-static void Kx_Crossf(float *c, float *a, float *b)
-{
-	c[0] = a[1] * b[2] - a[2] * b[1];
-	c[1] = a[2] * b[0] - a[0] * b[2];
-	c[2] = a[0] * b[1] - a[1] * b[0];
-}
-
+/* copied from blender BLI_math ... don't know if there's an equivalent */
 
 static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
 {
@@ -184,7 +158,7 @@ static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
 	mat[coz][0]= vec[0];
 	mat[coz][1]= vec[1];
 	mat[coz][2]= vec[2];
-	if (Kx_Normalize((float *)mat[coz]) == 0.f) {
+	if (normalize_v3((float *)mat[coz]) == 0.f) {
 		/* this is a very abnormal situation: the camera has reach the object center exactly
 		 * We will choose a completely arbitrary direction */
 		mat[coz][0] = 1.0f;
@@ -197,15 +171,14 @@ static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
 	mat[coy][1] =      - inp * mat[coz][1];
 	mat[coy][2] = 1.0f - inp * mat[coz][2];
 
-	if (Kx_Normalize((float *)mat[coy]) == 0.f) {
+	if (normalize_v3((float *)mat[coy]) == 0.f) {
 		/* the camera is vertical, chose the y axis arbitrary */
 		mat[coy][0] = 0.f;
 		mat[coy][1] = 1.f;
 		mat[coy][2] = 0.f;
 	}
 	
-	Kx_Crossf(mat[cox], mat[coy], mat[coz]);
-	
+	cross_v3_v3v3(mat[cox], mat[coy], mat[coz]);
 }
 
 bool KX_CameraActuator::Update(double curtime, bool frame)

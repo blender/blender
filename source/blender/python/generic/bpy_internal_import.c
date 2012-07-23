@@ -157,7 +157,8 @@ PyObject *bpy_text_import_name(const char *name, int *found)
 	}
 
 	/* we know this cant be importable, the name is too long for blender! */
-	if (namelen >= (MAX_ID_NAME - 2) - 3) return NULL;
+	if (namelen >= (MAX_ID_NAME - 2) - 3)
+		return NULL;
 
 	memcpy(txtname, name, namelen);
 	memcpy(&txtname[namelen], ".py", 4);

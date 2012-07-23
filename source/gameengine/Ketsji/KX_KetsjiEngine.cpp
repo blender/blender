@@ -503,6 +503,8 @@ bool KX_KetsjiEngine::BeginFrame()
 
 void KX_KetsjiEngine::EndFrame()
 {
+	m_rendertools->MotionBlur(m_rasterizer);
+
 	// Show profiling info
 	m_logger->StartLog(tc_overhead, m_kxsystem->GetTimeInSeconds(), true);
 	if (m_show_framerate || m_show_profile || (m_show_debug_properties && m_propertiesPresent))
@@ -1344,7 +1346,6 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 	m_canvas->SetViewPort(0, 0, m_canvas->GetWidth(), m_canvas->GetHeight());
 	
 	m_rasterizer->FlushDebugShapes();
-	m_rendertools->MotionBlur(m_rasterizer);
 	scene->Render2DFilters(m_canvas);
 #ifdef WITH_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	

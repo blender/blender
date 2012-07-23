@@ -2367,7 +2367,8 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 
 /***************************** View & Projection *****************************/
 
-void orthographic_m4(float matrix[][4], const float left, const float right, const float bottom, const float top, const float nearClip, const float farClip)
+void orthographic_m4(float matrix[][4], const float left, const float right, const float bottom, const float top,
+                     const float nearClip, const float farClip)
 {
 	float Xdelta, Ydelta, Zdelta;
 
@@ -2386,7 +2387,8 @@ void orthographic_m4(float matrix[][4], const float left, const float right, con
 	matrix[3][2] = -(farClip + nearClip) / Zdelta;
 }
 
-void perspective_m4(float mat[4][4], const float left, const float right, const float bottom, const float top, const float nearClip, const float farClip)
+void perspective_m4(float mat[4][4], const float left, const float right, const float bottom, const float top,
+                    const float nearClip, const float farClip)
 {
 	float Xdelta, Ydelta, Zdelta;
 

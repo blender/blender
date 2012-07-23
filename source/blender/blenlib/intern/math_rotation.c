@@ -166,10 +166,9 @@ void sub_qt_qtqt(float q[4], const float q1[4], const float q2[4])
 /* angular mult factor */
 void mul_fac_qt_fl(float q[4], const float fac)
 {
-	float angle = fac * saacos(q[0]); /* quat[0] = cos(0.5 * angle), but now the 0.5 and 2.0 rule out */
-
-	float co = (float)cos(angle);
-	float si = (float)sin(angle);
+	const float angle = fac * saacos(q[0]); /* quat[0] = cos(0.5 * angle), but now the 0.5 and 2.0 rule out */
+	const float co = cosf(angle);
+	const float si = sinf(angle);
 	q[0] = co;
 	normalize_v3(q + 1);
 	mul_v3_fl(q + 1, si);
@@ -342,8 +341,8 @@ void mat3_to_quat_is_ok(float q[4], float wmat[3][3])
 	co = mat[2][2];
 	angle = 0.5f * saacos(co);
 
-	co = (float)cos(angle);
-	si = (float)sin(angle);
+	co = cosf(angle);
+	si = sinf(angle);
 	q1[0] = co;
 	q1[1] = -nor[0] * si; /* negative here, but why? */
 	q1[2] = -nor[1] * si;
@@ -357,8 +356,8 @@ void mat3_to_quat_is_ok(float q[4], float wmat[3][3])
 	/* and align x-axes */
 	angle = (float)(0.5 * atan2(mat[0][1], mat[0][0]));
 
-	co = (float)cos(angle);
-	si = (float)sin(angle);
+	co = cosf(angle);
+	si = sinf(angle);
 	q2[0] = co;
 	q2[1] = 0.0f;
 	q2[2] = 0.0f;
@@ -483,8 +482,8 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 	normalize_v3(nor);
 
 	angle = 0.5f * saacos(co);
-	si = (float)sin(angle);
-	q[0] = (float)cos(angle);
+	si   = sinf(angle);
+	q[0] = cosf(angle);
 	q[1] = nor[0] * si;
 	q[2] = nor[1] * si;
 	q[3] = nor[2] * si;
@@ -615,16 +614,18 @@ void tri_to_quat(float quat[4], const float v1[3], const float v2[3], const floa
 	/* move z-axis to face-normal */
 	normal_tri_v3(vec, v1, v2, v3);
 
-	n[0] = vec[1];
+	n[0] =  vec[1];
 	n[1] = -vec[0];
-	n[2] = 0.0f;
+	n[2] =  0.0f;
 	normalize_v3(n);
 
-	if (n[0] == 0.0f && n[1] == 0.0f) n[0] = 1.0f;
+	if (n[0] == 0.0f && n[1] == 0.0f) {
+		n[0] = 1.0f;
+	}
 
 	angle = -0.5f * (float)saacos(vec[2]);
-	co = (float)cos(angle);
-	si = (float)sin(angle);
+	co = cosf(angle);
+	si = sinf(angle);
 	q1[0] = co;
 	q1[1] = n[0] * si;
 	q1[2] = n[1] * si;
@@ -641,8 +642,8 @@ void tri_to_quat(float quat[4], const float v1[3], const float v2[3], const floa
 	normalize_v3(vec);
 
 	angle = (float)(0.5 * atan2(vec[1], vec[0]));
-	co = (float)cos(angle);
-	si = (float)sin(angle);
+	co = cosf(angle);
+	si = sinf(angle);
 	q2[0] = co;
 	q2[1] = 0.0f;
 	q2[2] = 0.0f;
@@ -659,22 +660,21 @@ void print_qt(const char *str, const float q[4])
 /******************************** Axis Angle *********************************/
 
 /* Axis angle to Quaternions */
-void axis_angle_to_quat(float q[4], const float axis[3], float angle)
+void axis_angle_to_quat(float q[4], const float axis[3], const float angle)
 {
-	float nor[3];
-	float si;
 
-	if (normalize_v3_v3(nor, axis) == 0.0f) {
-		unit_qt(q);
-		return;
+	if (LIKELY(normalize_v3_v3(q + 1, axis) != 0.0f)) {
+		const float phi = angle / 2.0f;
+		float si;
+		si   = sinf(phi);
+		q[0] = cosf(phi);
+		q[1] *= si;
+		q[2] *= si;
+		q[3] *= si;
 	}
-
-	angle /= 2;
-	si = (float)sin(angle);
-	q[0] = (float)cos(angle);
-	q[1] = nor[0] * si;
-	q[2] = nor[1] * si;
-	q[3] = nor[2] * si;
+	else {
+		unit_qt(q);
+	}
 }
 
 /* Quaternions to Axis Angle */
@@ -689,8 +689,8 @@ void quat_to_axis_angle(float axis[3], float *angle, const float q[4])
 #endif
 
 	/* calculate angle/2, and sin(angle/2) */
-	ha = (float)acos(q[0]);
-	si = (float)sin(ha);
+	ha = acosf(q[0]);
+	si = sinf(ha);
 
 	/* from half-angle to angle */
 	*angle = ha * 2;
@@ -739,8 +739,8 @@ void axis_angle_to_mat3(float mat[3][3], const float axis[3], const float angle)
 	}
 
 	/* now convert this to a 3x3 matrix */
-	co = (float)cos(angle);
-	si = (float)sin(angle);
+	co = cosf(angle);
+	si = sinf(angle);
 
 	ico = (1.0f - co);
 	nsi[0] = nor[0] * si;
@@ -837,7 +837,7 @@ void single_axis_angle_to_mat3(float mat[3][3], const char axis, const float ang
 /****************************** Vector/Rotation ******************************/
 /* TODO: the following calls should probably be depreceated sometime         */
 
-/* ODO, replace use of this function with axis_angle_to_mat3() */
+/* TODO, replace use of this function with axis_angle_to_mat3() */
 void vec_rot_to_mat3(float mat[][3], const float vec[3], const float phi)
 {
 	/* rotation of phi radials around vec */
@@ -849,8 +849,8 @@ void vec_rot_to_mat3(float mat[][3], const float vec[3], const float phi)
 	vx2 = vx * vx;
 	vy2 = vy * vy;
 	vz2 = vz * vz;
-	co = (float)cos(phi);
-	si = (float)sin(phi);
+	co = cosf(phi);
+	si = sinf(phi);
 
 	mat[0][0] = vx2 + co * (1.0f - vx2);
 	mat[0][1] = vx * vy * (1.0f - co) + vz * si;
@@ -861,38 +861,6 @@ void vec_rot_to_mat3(float mat[][3], const float vec[3], const float phi)
 	mat[2][0] = vz * vx * (1.0f - co) + vy * si;
 	mat[2][1] = vy * vz * (1.0f - co) - vx * si;
 	mat[2][2] = vz2 + co * (1.0f - vz2);
-}
-
-/* axis angle to 4x4 matrix */
-void vec_rot_to_mat4(float mat[][4], const float vec[3], const float phi)
-{
-	float tmat[3][3];
-
-	vec_rot_to_mat3(tmat, vec, phi);
-	unit_m4(mat);
-	copy_m4_m3(mat, tmat);
-}
-
-/* axis angle to quaternion */
-void vec_rot_to_quat(float *quat, const float vec[3], const float phi)
-{
-	/* rotation of phi radials around vec */
-	float si;
-
-	quat[1] = vec[0];
-	quat[2] = vec[1];
-	quat[3] = vec[2];
-
-	if (normalize_v3(quat + 1) == 0.0f) {
-		unit_qt(quat);
-	}
-	else {
-		quat[0] = (float)cos((double)phi / 2.0);
-		si = (float)sin((double)phi / 2.0);
-		quat[1] *= si;
-		quat[2] *= si;
-		quat[3] *= si;
-	}
 }
 
 /******************************** XYZ Eulers *********************************/

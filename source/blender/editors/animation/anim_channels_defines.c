@@ -87,11 +87,8 @@
 
 #define ANIM_CHAN_NAME_SIZE 256
 
-/* macros used for type defines */
-
-/* get the pointer used for some flag and return */
+/* get the pointer used for some flag */
 #define GET_ACF_FLAG_PTR(ptr, type) ((*(type) = sizeof((ptr))), &(ptr))
-
 
 /* *********************************************** */
 /* Generic Functions (Type independent) */
@@ -119,7 +116,7 @@ static void acf_generic_root_backdrop(bAnimContext *ac, bAnimListElem *ale, floa
 	glColor3fv(color);
 	
 	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
-	uiSetRoundBox(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
+	uiSetRoundBox((expanded) ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
 	uiDrawBox(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8);
 }
 
