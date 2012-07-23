@@ -678,6 +678,7 @@ void Session::path_trace()
 	
 	task.acquire_tile = function_bind(&Session::acquire_tile, this, _1, _2);
 	task.release_tile = function_bind(&Session::release_tile, this, _1);
+	task.get_cancel = function_bind(&Progress::get_cancel, &this->progress);
 
 	device->task_add(task);
 }

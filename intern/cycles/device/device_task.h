@@ -59,6 +59,7 @@ public:
 
 	boost::function<bool(Device *device, RenderTile&)> acquire_tile;
 	boost::function<void(RenderTile&)> release_tile;
+	boost::function<bool(void)> get_cancel;
 };
 
 CCL_NAMESPACE_END
