@@ -1779,8 +1779,12 @@ static void view3d_draw_bgpic_test(Scene *scene, ARegion *ar, View3D *v3d,
 	if ((v3d->flag & V3D_DISPBGPICS) == 0)
 		return;
 
+	/* disabled - mango request, since footage /w only render is quite useful
+	 * and this option is easy to disable all background images at once */
+#if 0
 	if (v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return;
+#endif
 
 	if ((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
 		if (rv3d->persp == RV3D_CAMOB) {
