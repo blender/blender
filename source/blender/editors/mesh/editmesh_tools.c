@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -2231,6 +2232,8 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Mesh *me = obedit->data;
+	Key *key = me->key;
+	KeyBlock *kb = NULL;
 	BMEditMesh *em = me->edit_btmesh;
 	BMVert *eve;
 	BMIter iter;
@@ -2244,24 +2247,34 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 	totshape = CustomData_number_of_layers(&em->bm->vdata, CD_SHAPEKEY);
 	if (totshape == 0 || shape < 0 || shape >= totshape)
 		return OPERATOR_CANCELLED;
-
+	
+	/* get shape key - needed for finding reference shape (for add mode only) */
+	if (key) {
+		kb = BLI_findlink(&key->block, shape);
+	}
+	
+	/* perform blending on selected vertices*/
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
 			continue;
-
+		
+		/* get coordinates of shapekey we're blending from */
 		sco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, shape);
 		copy_v3_v3(co, sco);
-
-
+		
 		if (add) {
-			mul_v3_fl(co, blend);
-			add_v3_v3v3(eve->co, eve->co, co);
+			/* in add mode, we add relative shape key offset */
+			if (kb) {
+				float *rco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, kb->relative);
+				sub_v3_v3v3(co, co, rco);
+			}
+			
+			madd_v3_v3fl(eve->co, co, blend);
 		}
 		else {
+			/* in blend mode, we interpolate to the shape key */
 			interp_v3_v3v3(eve->co, eve->co, co, blend);
 		}
-		
-		copy_v3_v3(sco, co);
 	}
 
 	EDBM_update_generic(C, em, TRUE);
