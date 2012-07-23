@@ -145,6 +145,7 @@ protected:
 	void reset_gpu(BufferParams& params, int samples);
 
 	bool acquire_tile(Device *tile_device, RenderTile& tile);
+	void update_tile_sample(RenderTile& tile);
 	void release_tile(RenderTile& tile);
 
 	bool device_use_gl;

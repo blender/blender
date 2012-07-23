@@ -373,12 +373,27 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 	return true;
 }
 
+void Session::update_tile_sample(RenderTile& rtile)
+{
+	thread_scoped_lock tile_lock(tile_mutex);
+
+	if(write_render_buffers_cb) {
+		/* todo: optimize this by making it thread safe and removing lock */
+
+		if(!progress.get_cancel())
+			write_render_buffers_cb(rtile.buffers);
+	}
+
+	update_status_time();
+}
+
 void Session::release_tile(RenderTile& rtile)
 {
 	thread_scoped_lock tile_lock(tile_mutex);
 
 	if(write_render_buffers_cb) {
 		/* todo: optimize this by making it thread safe and removing lock */
+		/* todo: this could be removed as soon as all devices would use update_tile_sample */
 		if(!progress.get_cancel())
 			write_render_buffers_cb(rtile.buffers);
 		delete rtile.buffers;
@@ -679,6 +694,7 @@ void Session::path_trace()
 	task.acquire_tile = function_bind(&Session::acquire_tile, this, _1, _2);
 	task.release_tile = function_bind(&Session::release_tile, this, _1);
 	task.get_cancel = function_bind(&Progress::get_cancel, &this->progress);
+	task.update_tile_sample = function_bind(&Session::update_tile_sample, this, _1);
 
 	device->task_add(task);
 }

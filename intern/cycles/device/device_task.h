@@ -58,6 +58,7 @@ public:
 	void split_max_size(list<DeviceTask>& tasks, int max_size);
 
 	boost::function<bool(Device *device, RenderTile&)> acquire_tile;
+	boost::function<void(RenderTile&)> update_tile_sample;
 	boost::function<void(RenderTile&)> release_tile;
 	boost::function<bool(void)> get_cancel;
 };
