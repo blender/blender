@@ -324,7 +324,7 @@ static void rna_MaskSplinePoint_handle_type_set(PointerRNA *ptr, int value)
 
 /* ** API **  */
 
-static MaskLayer *rna_Mask_layer_new(Mask *mask, const char *name)
+static MaskLayer *rna_Mask_layers_new(Mask *mask, const char *name)
 {
 	MaskLayer *masklay = BKE_mask_layer_new(mask, name);
 
@@ -333,9 +333,21 @@ static MaskLayer *rna_Mask_layer_new(Mask *mask, const char *name)
 	return masklay;
 }
 
-void rna_Mask_layer_remove(Mask *mask, MaskLayer *masklay)
+void rna_Mask_layers_remove(Mask *mask, ReportList *reports, MaskLayer *masklay)
 {
+	if (BLI_findindex(&mask->masklayers, masklay) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "MaskLayer '%s' not found in mask '%s'", masklay->name, mask->id.name + 2);
+		return;
+	}
+
 	BKE_mask_layer_remove(mask, masklay);
+
+	WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
+}
+
+static void rna_Mask_layers_clear(Mask *mask)
+{
+	BKE_mask_layer_free_list(&mask->masklayers);
 
 	WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
 }
@@ -680,15 +692,20 @@ static void rna_def_masklayers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "Mask");
 	RNA_def_struct_ui_text(srna, "Mask Layers", "Collection of layers used by mask");
 
-	func = RNA_def_function(srna, "new", "rna_Mask_layer_new");
+	func = RNA_def_function(srna, "new", "rna_Mask_layers_new");
 	RNA_def_function_ui_description(func, "Add layer to this mask");
 	RNA_def_string(func, "name", "", 0, "Name", "Name of new layer");
 	parm = RNA_def_pointer(func, "layer", "MaskLayer", "", "New mask layer");
 	RNA_def_function_return(func, parm);
 
-	func = RNA_def_function(srna, "remove", "rna_Mask_layer_remove");
+	func = RNA_def_function(srna, "remove", "rna_Mask_layers_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove layer from this mask");
 	RNA_def_pointer(func, "layer", "MaskLayer", "", "Shape to be removed");
+
+	/* clear all layers */
+	func = RNA_def_function(srna, "clear", "rna_Mask_layers_clear");
+	RNA_def_function_ui_description(func, "Remove all mask layers");
 
 	/* active layer */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
