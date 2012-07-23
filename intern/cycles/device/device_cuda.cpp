@@ -531,6 +531,8 @@ public:
 		cuda_assert(cuFuncSetBlockShape(cuPathTrace, xthreads, ythreads, 1))
 		cuda_assert(cuLaunchGrid(cuPathTrace, xblocks, yblocks))
 
+		cuda_assert(cuCtxSynchronize())
+
 		cuda_pop_context();
 	}
 
@@ -834,12 +836,13 @@ public:
 				int start_sample = tile.start_sample;
 				int end_sample = tile.start_sample + tile.num_samples;
 
-				for(int sample = start_sample; sample < end_sample; sample++)
-					path_trace(tile, sample);
+				for(int sample = start_sample; sample < end_sample; sample++) {
+					if (task->get_cancel()) {
+						break;
+					}
 
-				cuda_push_context();
-				cuda_assert(cuCtxSynchronize())
-				cuda_pop_context();
+					path_trace(tile, sample);
+				}
 
 				task->release_tile(tile);
 			}
