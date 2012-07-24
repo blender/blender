@@ -35,13 +35,22 @@ struct wmKeyConfig;
 struct MaskLayer;
 struct MaskLayerShape;
 
-/* mask_editor.c */
+/* mask_edit.c */
+void ED_mask_size(const struct bContext *C, int *width, int *height);
+void ED_mask_aspect(const struct bContext *C, float *aspx, float *aspy);
+
 void ED_operatortypes_mask(void);
 void ED_keymap_mask(struct wmKeyConfig *keyconf);
 void ED_operatormacros_mask(void);
 
 /* mask_draw.c */
 void ED_mask_draw(const bContext *C, const char draw_flag, const char draw_type);
+void ED_mask_draw_region(struct Mask *mask, struct ARegion *ar,
+                         const char draw_flag, const char draw_type,
+                         int width, int height,
+                         const short do_scale_applied, const short do_post_draw,
+                         float stabmat[4][4],
+                         const bContext *C);
 
 /* mask_shapekey.c */
 void ED_mask_layer_shape_auto_key(struct MaskLayer *masklay, const int frame);

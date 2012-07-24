@@ -115,7 +115,7 @@ int ED_space_clip_maskedit_mask_poll(bContext *C)
 		if (clip) {
 			SpaceClip *sc = CTX_wm_space_clip(C);
 
-			return sc->mask != NULL;
+			return sc->mask_info.mask != NULL;
 		}
 	}
 
@@ -509,14 +509,14 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
 
 Mask *ED_space_clip_get_mask(SpaceClip *sc)
 {
-	return sc->mask;
+	return sc->mask_info.mask;
 }
 
 void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
 {
-	sc->mask = mask;
+	sc->mask_info.mask = mask;
 
-	if (sc->mask && sc->mask->id.us == 0) {
+	if (sc->mask_info.mask && sc->mask_info.mask->id.us == 0) {
 		sc->clip->id.us = 1;
 	}
 

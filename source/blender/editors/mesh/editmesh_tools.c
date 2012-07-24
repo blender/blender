@@ -2836,18 +2836,14 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 	BMO_op_callf(bm_old, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	             "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_FACES);
 
-	/* clean up any loose edges */
+	/* deselect loose data - this used to get deleted */
 	BM_ITER_MESH (e, &iter, bm_old, BM_EDGES_OF_MESH) {
-		if (BM_edge_is_wire(e)) {
-			BM_edge_kill(bm_old, e);
-		}
+		BM_edge_select_set(bm_old, e, FALSE);
 	}
 
 	/* clean up any loose verts */
 	BM_ITER_MESH (v, &iter, bm_old, BM_VERTS_OF_MESH) {
-		if (BM_vert_edge_count(v) == 0) {
-			BM_vert_kill(bm_old, v);
-		}
+		BM_vert_select_set(bm_old, v, FALSE);
 	}
 
 	BM_mesh_normals_update(bm_new, FALSE);

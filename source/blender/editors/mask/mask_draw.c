@@ -32,17 +32,21 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
 
 #include "DNA_mask_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_object_types.h"   /* SELECT */
 
 #include "ED_mask.h"  /* own include */
+#include "ED_space_api.h"
 #include "BIF_gl.h"
 
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "mask_intern.h"  /* own include */
 
@@ -461,4 +465,74 @@ void ED_mask_draw(const bContext *C,
 	ED_mask_size(C, &width, &height);
 
 	draw_masklays(mask, draw_flag, draw_type, width, height);
+}
+
+/* sets up the opengl context.
+ * width, height are to match the values from ED_mask_size() */
+void ED_mask_draw_region(Mask *mask, ARegion *ar,
+                         const char draw_flag, const char draw_type,
+                         int width, int height,
+                         const short do_scale_applied, const short do_post_draw,
+                         float stabmat[4][4], /* optional - only used by clip */
+                         const bContext *C    /* optional - only used when do_post_draw is set */
+                         )
+{
+	struct View2D *v2d = &ar->v2d;
+
+	int x, y;
+	int w, h;
+	float zoomx, zoomy;
+
+	/* frame image */
+	float maxdim;
+	float xofs, yofs;
+
+	/* find window pixel coordinates of origin */
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+	w = v2d->tot.xmax - v2d->tot.xmin;
+	h = v2d->tot.ymax - v2d->tot.ymin;
+
+	zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1) / (float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin));
+	zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1) / (float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin));
+
+	if (do_scale_applied) {
+		zoomx /= width;
+		zoomy /= height;
+	}
+
+	x += v2d->tot.xmin * zoomx;
+	y += v2d->tot.ymin * zoomy;
+
+	/* frame the image */
+	maxdim = maxf(w, h);
+	if (w == h) {
+		xofs = yofs = 0;
+	}
+	else if (w < h) {
+		xofs = ((h - w) / -2.0f) * zoomx;
+		yofs = 0.0f;
+	}
+	else { /* (width > height) */
+		xofs = 0.0f;
+		yofs = ((w - h) / -2.0f) * zoomy;
+	}
+
+	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
+	glPushMatrix();
+	glTranslatef(x + xofs, y + yofs, 0);
+	glScalef(maxdim * zoomx, maxdim * zoomy, 0);
+
+	if (stabmat) {
+		glMultMatrixf(stabmat);
+	}
+
+	/* draw! */
+	draw_masklays(mask, draw_flag, draw_type, width, height);
+
+	if (do_post_draw) {
+		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+	}
+
+	glPopMatrix();
 }

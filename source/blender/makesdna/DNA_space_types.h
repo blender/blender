@@ -516,6 +516,15 @@ typedef enum eSpaceSeq_Proxy_RenderSize {
 	SEQ_PROXY_RENDER_SIZE_FULL      = 100
 } eSpaceSeq_Proxy_RenderSize;
 
+typedef struct MaskSpaceInfo
+{
+	/* **** mask editing **** */
+	struct Mask *mask;
+	/* draw options */
+	char draw_flag;
+	char draw_type;
+	char pad3[6];
+} MaskSpaceInfo;
 
 /* File Selector ========================================== */
 
@@ -692,6 +701,8 @@ typedef struct SpaceImage {
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
 	char around;
+
+	MaskSpaceInfo mask_info;
 
 	/* **** color management **** */
 	ColorManagedViewSettings view_settings;
@@ -1021,12 +1032,7 @@ typedef struct SpaceClip {
 
 	int around, pad4;             /* pivot point for transforms */
 
-	/* **** mask editing **** */
-	struct Mask *mask;
-	/* draw options */
-	char mask_draw_flag;
-	char mask_draw_type;
-	char pad3[6];
+	MaskSpaceInfo mask_info;
 
 	/* **** color management **** */
 	ColorManagedViewSettings view_settings;

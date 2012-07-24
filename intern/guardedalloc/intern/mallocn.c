@@ -55,6 +55,14 @@
 #include "MEM_guardedalloc.h"
 
 /* Only for debugging:
+ * store original buffer's name when doing MEM_dupallocN
+ * helpful to profile issues with non-freed "dup_alloc" buffers,
+ * but this introduces some overhead to memory header and makes
+ * things slower a bit, so betterto keep disabled by default
+ */
+//#define DEBUG_MEMDUPLINAME
+
+/* Only for debugging:
  * lets you count the allocations so as to find the allocator of unfreed memory
  * in situations where the leak is predictable */
 
@@ -95,6 +103,10 @@ typedef struct MemHead {
 	int mmap;  /* if true, memory was mmapped */
 #ifdef DEBUG_MEMCOUNTER
 	int _count;
+#endif
+
+#ifdef DEBUG_MEMDUPLINAME
+	int need_free_name, pad;
 #endif
 } MemHead;
 
@@ -243,13 +255,36 @@ void *MEM_dupallocN(void *vmemh)
 	if (vmemh) {
 		MemHead *memh = vmemh;
 		memh--;
-		
+
+#ifndef DEBUG_MEMDUPLINAME
 		if (memh->mmap)
 			newp = MEM_mapallocN(memh->len, "dupli_mapalloc");
 		else
 			newp = MEM_mallocN(memh->len, "dupli_alloc");
 
 		if (newp == NULL) return NULL;
+#else
+		{
+			MemHead *nmemh;
+			char *name = malloc(strlen(memh->name) + 24);
+
+			if (memh->mmap) {
+				sprintf(name, "%s %s", "dupli_mapalloc", memh->name);
+				newp = MEM_mapallocN(memh->len, name);
+			}
+			else {
+				sprintf(name, "%s %s", "dupli_alloc", memh->name);
+				newp = MEM_mallocN(memh->len, name);
+			}
+
+			if (newp == NULL) return NULL;
+
+			nmemh = newp;
+			nmemh--;
+
+			nmemh->need_free_name = 1;
+		}
+#endif
 
 		memcpy(newp, vmemh, memh->len);
 	}
@@ -289,6 +324,10 @@ static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 	memh->len = len;
 	memh->mmap = 0;
 	memh->tag2 = MEMTAG2;
+
+#ifdef DEBUG_MEMDUPLINAME
+	memh->need_free_name = 0;
+#endif
 	
 	memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + len);
 	memt->tag3 = MEMTAG3;
@@ -732,6 +771,11 @@ static void rem_memblock(MemHead *memh)
 
 	totblock--;
 	mem_in_use -= memh->len;
+
+#ifdef DEBUG_MEMDUPLINAME
+	if (memh->need_free_name)
+		free((char *) memh->name);
+#endif
 
 	if (memh->mmap) {
 		mmap_in_use -= memh->len;
