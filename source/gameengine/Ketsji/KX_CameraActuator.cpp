@@ -33,6 +33,7 @@
  *  \ingroup ketsji
  */
 
+#include "BLI_math_vector.h"
 
 #include "KX_CameraActuator.h"
 #include <iostream>
@@ -41,8 +42,6 @@
 #include "KX_GameObject.h"
 
 #include "PyObjectPlus.h" 
-
-#include "BLI_math_vector.h"
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
