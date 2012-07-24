@@ -376,7 +376,7 @@ dict_uimsgs = {
     "chebychev",
     "kutta",
     "lennard",
-    "minkowsky",
+    "minkowski",
     "minnaert",
     "musgrave",
     "nayar",

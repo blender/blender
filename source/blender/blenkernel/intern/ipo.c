@@ -2094,7 +2094,7 @@ void do_versions_ipos_to_animato(Main *main)
 			bAction *new_act;
 			
 			/* add a new action for this, and convert all data into that action */
-			new_act = add_empty_action("ConvIPO_Action"); // XXX need a better name...
+			new_act = add_empty_action(id->name+2);
 			ipo_to_animato(NULL, ipo, NULL, NULL, NULL, NULL, &new_act->curves, &drivers);
 			new_act->idroot = ipo->blocktype;
 		}

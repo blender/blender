@@ -67,10 +67,13 @@ KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 KX_LightObject::~KX_LightObject()
 {
 	GPULamp *lamp;
+	Lamp *la = (Lamp*)GetBlenderObject()->data;
 
 	if ((lamp = GetGPULamp())) {
 		float obmat[4][4] = {{0}};
 		GPU_lamp_update(lamp, 0, 0, obmat);
+		GPU_lamp_update_distance(lamp, la->dist, la->att1, la->att2);
+		GPU_lamp_update_spot(lamp, la->spotsize, la->spotblend);
 	}
 
 	m_rendertools->RemoveLight(&m_lightobj);
@@ -206,6 +209,8 @@ void KX_LightObject::Update()
 		GPU_lamp_update(lamp, m_lightobj.m_layer, 0, obmat);
 		GPU_lamp_update_colors(lamp, m_lightobj.m_red, m_lightobj.m_green, 
 			m_lightobj.m_blue, m_lightobj.m_energy);
+		GPU_lamp_update_distance(lamp, m_lightobj.m_distance, m_lightobj.m_att1, m_lightobj.m_att2);
+		GPU_lamp_update_spot(lamp, m_lightobj.m_spotsize, m_lightobj.m_spotblend);
 	}
 }
 

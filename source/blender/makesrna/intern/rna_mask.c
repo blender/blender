@@ -250,60 +250,42 @@ static void rna_MaskSplinePoint_handle1_get(PointerRNA *ptr, float *values)
 {
 	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
 	BezTriple *bezt = &point->bezt;
-
-	values[0] = bezt->vec[0][0];
-	values[1] = bezt->vec[0][1];
-	values[2] = bezt->vec[0][2];
+	copy_v2_v2(values, bezt->vec[0]);
 }
 
 static void rna_MaskSplinePoint_handle1_set(PointerRNA *ptr, const float *values)
 {
 	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
 	BezTriple *bezt = &point->bezt;
-
-	bezt->vec[0][0] = values[0];
-	bezt->vec[0][1] = values[1];
-	bezt->vec[0][2] = values[2];
+	copy_v2_v2(bezt->vec[0], values);
 }
 
 static void rna_MaskSplinePoint_handle2_get(PointerRNA *ptr, float *values)
 {
 	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
 	BezTriple *bezt = &point->bezt;
-
-	values[0] = bezt->vec[2][0];
-	values[1] = bezt->vec[2][1];
-	values[2] = bezt->vec[2][2];
+	copy_v2_v2(values, bezt->vec[2]);
 }
 
 static void rna_MaskSplinePoint_handle2_set(PointerRNA *ptr, const float *values)
 {
 	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
 	BezTriple *bezt = &point->bezt;
-
-	bezt->vec[2][0] = values[0];
-	bezt->vec[2][1] = values[1];
-	bezt->vec[2][2] = values[2];
+	copy_v2_v2(bezt->vec[2], values);
 }
 
 static void rna_MaskSplinePoint_ctrlpoint_get(PointerRNA *ptr, float *values)
 {
 	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
 	BezTriple *bezt = &point->bezt;
-
-	values[0] = bezt->vec[1][0];
-	values[1] = bezt->vec[1][1];
-	values[2] = bezt->vec[1][2];
+	copy_v2_v2(values, bezt->vec[1]);
 }
 
 static void rna_MaskSplinePoint_ctrlpoint_set(PointerRNA *ptr, const float *values)
 {
 	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
 	BezTriple *bezt = &point->bezt;
-
-	bezt->vec[1][0] = values[0];
-	bezt->vec[1][1] = values[1];
-	bezt->vec[1][2] = values[2];
+	copy_v2_v2(bezt->vec[1], values);
 }
 
 static int rna_MaskSplinePoint_handle_type_get(PointerRNA *ptr)
@@ -324,7 +306,7 @@ static void rna_MaskSplinePoint_handle_type_set(PointerRNA *ptr, int value)
 
 /* ** API **  */
 
-static MaskLayer *rna_Mask_layer_new(Mask *mask, const char *name)
+static MaskLayer *rna_Mask_layers_new(Mask *mask, const char *name)
 {
 	MaskLayer *masklay = BKE_mask_layer_new(mask, name);
 
@@ -333,9 +315,21 @@ static MaskLayer *rna_Mask_layer_new(Mask *mask, const char *name)
 	return masklay;
 }
 
-void rna_Mask_layer_remove(Mask *mask, MaskLayer *masklay)
+void rna_Mask_layers_remove(Mask *mask, ReportList *reports, MaskLayer *masklay)
 {
+	if (BLI_findindex(&mask->masklayers, masklay) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "MaskLayer '%s' not found in mask '%s'", masklay->name, mask->id.name + 2);
+		return;
+	}
+
 	BKE_mask_layer_remove(mask, masklay);
+
+	WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
+}
+
+static void rna_Mask_layers_clear(Mask *mask)
+{
+	BKE_mask_layer_free_list(&mask->masklayers);
 
 	WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
 }
@@ -467,19 +461,19 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
 
 	/* Vector values */
 	prop = RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_array(prop, 3);
+	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_MaskSplinePoint_handle1_get", "rna_MaskSplinePoint_handle1_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
 	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
 	prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_array(prop, 3);
+	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_MaskSplinePoint_ctrlpoint_get", "rna_MaskSplinePoint_ctrlpoint_set", NULL);
 	RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
 	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
 	prop = RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_array(prop, 3);
+	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_MaskSplinePoint_handle2_get", "rna_MaskSplinePoint_handle2_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
 	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
@@ -680,15 +674,20 @@ static void rna_def_masklayers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "Mask");
 	RNA_def_struct_ui_text(srna, "Mask Layers", "Collection of layers used by mask");
 
-	func = RNA_def_function(srna, "new", "rna_Mask_layer_new");
+	func = RNA_def_function(srna, "new", "rna_Mask_layers_new");
 	RNA_def_function_ui_description(func, "Add layer to this mask");
 	RNA_def_string(func, "name", "", 0, "Name", "Name of new layer");
 	parm = RNA_def_pointer(func, "layer", "MaskLayer", "", "New mask layer");
 	RNA_def_function_return(func, parm);
 
-	func = RNA_def_function(srna, "remove", "rna_Mask_layer_remove");
+	func = RNA_def_function(srna, "remove", "rna_Mask_layers_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove layer from this mask");
 	RNA_def_pointer(func, "layer", "MaskLayer", "", "Shape to be removed");
+
+	/* clear all layers */
+	func = RNA_def_function(srna, "clear", "rna_Mask_layers_clear");
+	RNA_def_function_ui_description(func, "Remove all mask layers");
 
 	/* active layer */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);

@@ -1759,7 +1759,7 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 /*		RNA_def_property_collection_active(prop, prop_act); */
 #endif
 
-	/* add target */
+	/* add modifier */
 	func = RNA_def_function(srna, "new", "rna_Object_modifier_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new modifier");
@@ -1772,11 +1772,11 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "modifier", "Modifier", "", "Newly created modifier");
 	RNA_def_function_return(func, parm);
 
-	/* remove target */
+	/* remove modifier */
 	func = RNA_def_function(srna, "remove", "rna_Object_modifier_remove");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove an existing modifier from the object");
-	/* target to remove*/
+	/* modifier to remove */
 	parm = RNA_def_pointer(func, "modifier", "Modifier", "", "Modifier to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
