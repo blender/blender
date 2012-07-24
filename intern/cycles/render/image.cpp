@@ -235,6 +235,8 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 		return false;
 	}
 
+	printf("loading byte image: '%s' %dx%d\n", img->filename.c_str(), width, height);
+
 	/* read RGBA pixels */
 	uchar *pixels = (uchar*)tex_img.resize(width, height);
 	int scanlinesize = width*components*sizeof(uchar);
@@ -296,6 +298,8 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 		delete in;
 		return false;
 	}
+
+	printf("loading float image: '%s' %dx%d\n", img->filename.c_str(), width, height);
 
 	/* read RGBA pixels */
 	float *pixels = (float*)tex_img.resize(width, height);
