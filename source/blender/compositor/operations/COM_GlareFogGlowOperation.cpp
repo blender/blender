@@ -260,6 +260,7 @@ void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 	float *imageBuffer = in1->getBuffer();
 
 	MemoryBuffer *rdst = new MemoryBuffer(NULL, in1->getRect());
+	memset(rdst->getBuffer(), 0, rdst->getWidth() * rdst->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
 
 	// convolution result width & height
 	w2 = 2 * kernelWidth - 1;
