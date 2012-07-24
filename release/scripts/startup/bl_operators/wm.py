@@ -101,7 +101,6 @@ def operator_value_is_undo(value):
     return (isinstance(id_data, bpy.types.ID) and
             (not isinstance(id_data, (bpy.types.WindowManager,
                                       bpy.types.Screen,
-                                      bpy.types.Scene,
                                       bpy.types.Brush,
                                       ))))
 
