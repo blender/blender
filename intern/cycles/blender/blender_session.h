@@ -47,9 +47,14 @@ public:
 
 	/* offline render */
 	void render();
-	void do_write_update_render_buffers(RenderBuffers *buffers, bool do_update, bool do_write);
+
 	void write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers);
 	void write_render_buffers(RenderBuffers *buffers);
+
+	/* update functions are used to update display buffer only after sample was rendered
+	 * only needed for better visual feedback
+	 */
+	void update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers);
 	void update_render_buffers(RenderBuffers *buffers);
 
 	/* interactive updates */
@@ -82,6 +87,10 @@ public:
 	float last_progress;
 
 	int width, height;
+
+protected:
+	void do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers, bool do_update_only);
+	void do_write_update_render_buffers(RenderBuffers *buffers, bool do_update_only);
 };
 
 CCL_NAMESPACE_END

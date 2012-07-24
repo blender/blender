@@ -203,7 +203,7 @@ static void end_render_result(BL::RenderEngine b_engine, BL::RenderResult b_rr, 
 		params->render_result = NULL;
 }
 
-void BlenderSession::do_write_update_render_buffers(RenderBuffers *buffers, bool do_update, bool do_write)
+void BlenderSession::do_write_update_render_buffers(RenderBuffers *buffers, bool do_update_only)
 {
 	BufferParams& params = buffers->params;
 	int x = params.full_x - session->tile_manager.params.full_x;
@@ -223,22 +223,25 @@ void BlenderSession::do_write_update_render_buffers(RenderBuffers *buffers, bool
 	b_rr.layers.begin(b_single_rlay);
 	BL::RenderLayer b_rlay = *b_single_rlay;
 
-	/* write result */
-	if (do_update)
+	if (do_update_only) {
+		/* update only needed */
+		update_render_result(b_rr, b_rlay, buffers);
+	}
+	else {
+		/* write result */
 		write_render_result(b_rr, b_rlay, buffers);
-
-	if (do_write)
 		end_render_result(b_engine, b_rr, &params);
+	}
 }
 
 void BlenderSession::write_render_buffers(RenderBuffers *buffers)
 {
-	do_write_update_render_buffers(buffers, true, true);
+	do_write_update_render_buffers(buffers, false);
 }
 
 void BlenderSession::update_render_buffers(RenderBuffers *buffers)
 {
-	do_write_update_render_buffers(buffers, true, false);
+	do_write_update_render_buffers(buffers, true);
 }
 
 void BlenderSession::render()
@@ -319,7 +322,7 @@ void BlenderSession::render()
 	session->update_render_buffers_cb = NULL;
 }
 
-void BlenderSession::write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers)
+void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers, bool do_update_only)
 {
 	/* copy data from device */
 	if(!buffers->copy_from_device())
@@ -334,19 +337,21 @@ void BlenderSession::write_render_result(BL::RenderResult b_rr, BL::RenderLayer 
 
 	vector<float> pixels(params.width*params.height*4);
 
-	/* copy each pass */
-	BL::RenderLayer::passes_iterator b_iter;
-	
-	for(b_rlay.passes.begin(b_iter); b_iter != b_rlay.passes.end(); ++b_iter) {
-		BL::RenderPass b_pass(*b_iter);
+	if (!do_update_only) {
+		/* copy each pass */
+		BL::RenderLayer::passes_iterator b_iter;
 
-		/* find matching pass type */
-		PassType pass_type = get_pass_type(b_pass);
-		int components = b_pass.channels();
+		for(b_rlay.passes.begin(b_iter); b_iter != b_rlay.passes.end(); ++b_iter) {
+			BL::RenderPass b_pass(*b_iter);
 
-		/* copy pixels */
-		if(buffers->get_pass(pass_type, exposure, sample, components, &pixels[0]))
-			rna_RenderPass_rect_set(&b_pass.ptr, &pixels[0]);
+			/* find matching pass type */
+			PassType pass_type = get_pass_type(b_pass);
+			int components = b_pass.channels();
+
+			/* copy pixels */
+			if(buffers->get_pass(pass_type, exposure, sample, components, &pixels[0]))
+				rna_RenderPass_rect_set(&b_pass.ptr, &pixels[0]);
+		}
 	}
 
 	/* copy combined pass */
@@ -355,6 +360,16 @@ void BlenderSession::write_render_result(BL::RenderResult b_rr, BL::RenderLayer 
 
 	/* tag result as updated */
 	RE_engine_update_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data);
+}
+
+void BlenderSession::write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers)
+{
+	do_write_update_render_result(b_rr, b_rlay, buffers, false);
+}
+
+void BlenderSession::update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers)
+{
+	do_write_update_render_result(b_rr, b_rlay, buffers, true);
 }
 
 void BlenderSession::synchronize()
