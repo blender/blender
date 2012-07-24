@@ -5297,7 +5297,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceImage *sima = (SpaceImage *)sl;
 						
 						sima->image = newlibadr_us(fd, sc->id.lib, sima->image);
-						
+						sima->mask_info.mask = newlibadr_us(fd, sc->id.lib, sima->mask_info.mask);
+
 						/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
 						 * so fingers crossed this works fine!
 						 */
@@ -5383,7 +5384,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceClip *sclip = (SpaceClip *)sl;
 						
 						sclip->clip = newlibadr_us(fd, sc->id.lib, sclip->clip);
-						sclip->mask = newlibadr_us(fd, sc->id.lib, sclip->mask);
+						sclip->mask_info.mask = newlibadr_us(fd, sc->id.lib, sclip->mask_info.mask);
 						
 						sclip->scopes.track_search = NULL;
 						sclip->scopes.track_preview = NULL;
@@ -5672,7 +5673,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceClip *sclip = (SpaceClip *)sl;
 					
 					sclip->clip = restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
-					sclip->mask = restore_pointer_by_name(newmain, (ID *)sclip->mask, 1);
+					sclip->mask_info.mask = restore_pointer_by_name(newmain, (ID *)sclip->mask_info.mask, 1);
 					
 					sclip->scopes.ok = 0;
 				}

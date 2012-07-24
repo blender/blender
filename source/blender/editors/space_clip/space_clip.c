@@ -766,8 +766,8 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 		return TRUE;
 	}
 	else if (CTX_data_equals(member, "edit_mask")) {
-		if (sc->mask)
-			CTX_data_id_pointer_set(result, &sc->mask->id);
+		if (sc->mask_info.mask)
+			CTX_data_id_pointer_set(result, &sc->mask_info.mask->id);
 		return TRUE;
 	}
 
@@ -1120,7 +1120,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 			int width, height;
 			ED_mask_size(C, &width, &height);
 			ED_mask_draw_region(mask, ar,
-			                    sc->mask_draw_flag, sc->mask_draw_type,
+			                    sc->mask_info.draw_flag, sc->mask_info.draw_type,
 			                    width, height,
 			                    TRUE, TRUE,
 			                    sc->stabmat, C);

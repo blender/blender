@@ -1103,6 +1103,31 @@ static void rna_def_space(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "Space data type");
 }
 
+/* for all spaces that use a mask */
+void mask_space_info(StructRNA *srna, int noteflag, const char *mask_set_func)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "mask_info.mask");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mask", "Mask displayed and edited in this space");
+	RNA_def_property_pointer_funcs(prop, NULL, mask_set_func, NULL, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+	/* mask drawing */
+	prop = RNA_def_property(srna, "mask_draw_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mask_info.draw_type");
+	RNA_def_property_enum_items(prop, dt_uv_items);
+	RNA_def_property_ui_text(prop, "Edge Draw Type", "Draw type for mask splines");
+	RNA_def_property_update(prop, noteflag, NULL);
+
+	prop = RNA_def_property(srna, "show_mask_smooth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mask_info.draw_flag", MASK_DRAWFLAG_SMOOTH);
+	RNA_def_property_ui_text(prop, "Draw Smooth Splines", "");
+	RNA_def_property_update(prop, noteflag, NULL);
+}
+
 static void rna_def_space_image_uv(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1220,6 +1245,9 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, pivot_items);
 	RNA_def_property_ui_text(prop, "Pivot", "Rotation/Scaling Pivot");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
+
+	/* mask */
+	mask_space_info(srna, NC_SPACE | ND_SPACE_IMAGE, NULL);
 }
 
 static void rna_def_space_outliner(BlenderRNA *brna)
@@ -3064,24 +3092,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 	/* mask */
-	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Mask", "Mask displayed and edited in this space");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_mask_set", NULL, NULL);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
-
-	/* mask drawing */
-	prop = RNA_def_property(srna, "mask_draw_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "mask_draw_type");
-	RNA_def_property_enum_items(prop, dt_uv_items);
-	RNA_def_property_ui_text(prop, "Edge Draw Type", "Draw type for mask splines");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
-
-	prop = RNA_def_property(srna, "show_mask_smooth", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mask_draw_flag", MASK_DRAWFLAG_SMOOTH);
-	RNA_def_property_ui_text(prop, "Draw Smooth Splines", "");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
-
+	mask_space_info(srna, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceClipEditor_mask_set");
 
 	/* mode */
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);

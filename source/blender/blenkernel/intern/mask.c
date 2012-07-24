@@ -1484,8 +1484,8 @@ void BKE_mask_unlink(Main *bmain, Mask *mask)
 				if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *sc = (SpaceClip *) sl;
 
-					if (sc->mask == mask)
-						sc->mask = NULL;
+					if (sc->mask_info.mask == mask)
+						sc->mask_info.mask = NULL;
 				}
 			}
 		}
