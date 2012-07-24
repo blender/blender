@@ -44,6 +44,7 @@
 #include "ED_mask.h"  /* own include */
 #include "ED_object.h" /* ED_keymap_proportional_maskmode only */
 #include "ED_clip.h"
+#include "ED_sequencer.h"
 #include "ED_transform.h"
 
 #include "RNA_access.h"
@@ -54,23 +55,29 @@
 
 int ED_maskedit_poll(bContext *C)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		return ED_space_clip_maskedit_poll(C);
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+				return ED_space_clip_maskedit_poll(C);
+			case SPACE_SEQ:
+				return ED_space_sequencer_maskedit_poll(C);
+		}
 	}
-
 	return FALSE;
 }
 
 int ED_maskedit_mask_poll(bContext *C)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		return ED_space_clip_maskedit_mask_poll(C);
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+				return ED_space_clip_maskedit_mask_poll(C);
+			case SPACE_SEQ:
+				return ED_space_sequencer_maskedit_mask_poll(C);
+		}
 	}
-
 	return FALSE;
 }
 
