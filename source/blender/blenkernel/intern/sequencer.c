@@ -3810,6 +3810,18 @@ int BKE_sequencer_active_get_pair(Scene *scene, Sequence **seq_act, Sequence **s
 	}
 }
 
+Mask *BKE_sequencer_mask_get(Scene *scene)
+{
+	Sequence *seq_act = BKE_sequencer_active_get(scene);
+
+	if (seq_act && seq_act->type == SEQ_TYPE_MASK) {
+		return seq_act->mask;
+	}
+	else {
+		return NULL;
+	}
+}
+
 /* api like funcs for adding */
 
 void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)

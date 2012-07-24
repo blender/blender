@@ -129,7 +129,8 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 	if (!spline->tot_point)
 		return;
 
-	hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
+	/* TODO, add this to sequence editor */
+	hsize = 4; /* UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE); */
 
 	glPointSize(hsize);
 

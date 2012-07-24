@@ -300,7 +300,10 @@ static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 	ListBase *lb;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
-	
+
+//	keymap = WM_keymap_find(wm->defaultconf, "Mask Editing", 0, 0);
+//	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
 	keymap = WM_keymap_find(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	
@@ -409,9 +412,9 @@ static int sequencer_context(const bContext *C, const char *member, bContextData
 		return TRUE;
 	}
 	else if (CTX_data_equals(member, "edit_mask")) {
-		Sequence *seq_act = BKE_sequencer_active_get(scene);
-		if (seq_act && seq_act->type == SEQ_TYPE_MASK && seq_act->mask) {
-			CTX_data_id_pointer_set(result, &seq_act->mask->id);
+		Mask *mask = BKE_sequencer_mask_get(scene);
+		if (mask) {
+			CTX_data_id_pointer_set(result, &mask->id);
 		}
 		return TRUE;
 	}
@@ -468,6 +471,9 @@ static void sequencer_preview_area_init(wmWindowManager *wm, ARegion *ar)
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
+//	keymap = WM_keymap_find(wm->defaultconf, "Mask Editing", 0, 0);
+//	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
 	keymap = WM_keymap_find(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
