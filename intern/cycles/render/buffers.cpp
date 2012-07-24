@@ -44,6 +44,8 @@ BufferParams::BufferParams()
 	full_width = 0;
 	full_height = 0;
 
+	render_result = NULL;
+
 	Pass::add(PASS_COMBINED, passes);
 }
 

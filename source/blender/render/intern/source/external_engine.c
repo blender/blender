@@ -233,7 +233,8 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 	}
 
 	/* free */
-	render_result_free_list(&engine->fullresult, result);
+	BLI_remlink(&engine->fullresult, result);
+	render_result_free(result);
 }
 
 /* Cancel */

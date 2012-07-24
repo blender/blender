@@ -176,17 +176,31 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 	return PASS_NONE;
 }
 
-static BL::RenderResult begin_render_result(BL::RenderEngine b_engine, int x, int y, int w, int h, const char *layername)
+static BL::RenderResult begin_render_result(BL::RenderEngine b_engine, int x, int y, int w, int h, const char *layername, BufferParams *params)
 {
-	RenderResult *rrp = RE_engine_begin_result((RenderEngine*)b_engine.ptr.data, x, y, w, h, layername);
+	RenderResult *rrp = NULL;
+
+	if (params)
+		rrp = (RenderResult *) params->render_result;
+
+	if (!rrp) {
+		rrp = RE_engine_begin_result((RenderEngine*)b_engine.ptr.data, x, y, w, h, layername);
+
+		if (params)
+			params->render_result = rrp;
+	}
+
 	PointerRNA rrptr;
 	RNA_pointer_create(NULL, &RNA_RenderResult, rrp, &rrptr);
 	return BL::RenderResult(rrptr);
 }
 
-static void end_render_result(BL::RenderEngine b_engine, BL::RenderResult b_rr, bool cancel = false)
+static void end_render_result(BL::RenderEngine b_engine, BL::RenderResult b_rr, BufferParams *params, bool cancel = false)
 {
 	RE_engine_end_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data, (int)cancel);
+
+	if (params)
+		params->render_result = NULL;
 }
 
 void BlenderSession::do_write_update_render_buffers(RenderBuffers *buffers, bool do_update, bool do_write)
@@ -198,7 +212,7 @@ void BlenderSession::do_write_update_render_buffers(RenderBuffers *buffers, bool
 	int h = params.height;
 
 	/* get render result */
-	BL::RenderResult b_rr = begin_render_result(b_engine, x, y, w, h, b_rlay_name.c_str());
+	BL::RenderResult b_rr = begin_render_result(b_engine, x, y, w, h, b_rlay_name.c_str(), &params);
 
 	/* can happen if the intersected rectangle gives 0 width or height */
 	if (b_rr.ptr.data == NULL) {
@@ -214,7 +228,7 @@ void BlenderSession::do_write_update_render_buffers(RenderBuffers *buffers, bool
 		write_render_result(b_rr, b_rlay, buffers);
 
 	if (do_write)
-		end_render_result(b_engine, b_rr);
+		end_render_result(b_engine, b_rr, &params);
 }
 
 void BlenderSession::write_render_buffers(RenderBuffers *buffers)
@@ -245,13 +259,13 @@ void BlenderSession::render()
 		b_rlay_name = b_iter->name();
 
 		/* temporary render result to find needed passes */
-		BL::RenderResult b_rr = begin_render_result(b_engine, 0, 0, 1, 1, b_rlay_name.c_str());
+		BL::RenderResult b_rr = begin_render_result(b_engine, 0, 0, 1, 1, b_rlay_name.c_str(), NULL);
 		BL::RenderResult::layers_iterator b_single_rlay;
 		b_rr.layers.begin(b_single_rlay);
 
 		/* layer will be missing if it was disabled in the UI */
 		if(b_single_rlay == b_rr.layers.end()) {
-			end_render_result(b_engine, b_rr, true);
+			end_render_result(b_engine, b_rr, NULL, true);
 			continue;
 		}
 
@@ -278,7 +292,7 @@ void BlenderSession::render()
 		}
 
 		/* free result without merging */
-		end_render_result(b_engine, b_rr, true);
+		end_render_result(b_engine, b_rr, NULL, true);
 
 		buffer_params.passes = passes;
 		scene->film->tag_passes_update(scene, passes);
