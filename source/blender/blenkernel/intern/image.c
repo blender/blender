@@ -2560,6 +2560,13 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 	}
 
+	/* invalidate color managed buffers if render result changed */
+	BLI_lock_thread(LOCK_COLORMANAGE);
+	if (ibuf->x != rres.rectx || ibuf->y != rres.recty || ibuf->rect_float != rectf) {
+		IMB_display_buffer_invalidate(ibuf);
+	}
+	BLI_unlock_thread(LOCK_COLORMANAGE);
+
 	ibuf->x = rres.rectx;
 	ibuf->y = rres.recty;
 

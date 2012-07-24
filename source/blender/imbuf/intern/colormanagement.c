@@ -316,6 +316,10 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 	if (cache_ibuf) {
 		ColormnaageCacheData *cache_data;
 
+		BLI_assert(cache_ibuf->x == ibuf->x &&
+		           cache_ibuf->y == ibuf->y &&
+		           cache_ibuf->channels == ibuf->channels);
+
 		/* only buffers with different color space conversions are being stored
 		 * in cache separately. buffer which were used only different exposure/gamma
 		 * are re-suing the same cached buffer
@@ -1822,7 +1826,6 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer,
 
 	int *display_buffer_flags;
 
-	int buffer_width = ibuf->x;
 	int channels = ibuf->channels;
 	int predivide = ibuf->flags & IB_cm_predivide;
 	int dither = ibuf->dither;
@@ -1859,12 +1862,19 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer,
 				void *cache_handle;
 				int view_index = view + 1; /* views in configuration are 1-based */
 				float exposure, gamma;
+				int buffer_width;
 
 				view_settings.view = view_index;
 
 				BLI_lock_thread(LOCK_COLORMANAGE);
 				display_buffer = colormanage_cache_get_cache_data(ibuf, &view_settings, &display_settings,
 				                                                  &cache_handle, &exposure, &gamma);
+
+				/* in some rare cases buffer's dimension could be changing directly from
+				 * different thread
+				 * this i.e. happens when image editor acquires render result
+				 */
+				buffer_width = ibuf->x;
 				BLI_unlock_thread(LOCK_COLORMANAGE);
 
 				if (display_buffer) {
