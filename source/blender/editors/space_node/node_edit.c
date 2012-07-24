@@ -796,8 +796,15 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 	bNode *node;
 	
 	/* make sure nothing has group editing on */
-	for (node = snode->nodetree->nodes.first; node; node = node->next)
+	for (node = snode->nodetree->nodes.first; node; node = node->next) {
 		nodeGroupEditClear(node);
+
+		/* while we're here, clear texture active */
+		if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+			/* this is not 100% sure to be reliable, see comment on the flag */
+			node->flag &= ~NODE_ACTIVE_TEXTURE;
+		}
+	}
 	
 	if (gnode == NULL) {
 		/* with NULL argument we do a toggle */
@@ -809,8 +816,14 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 		snode->edittree = nodeGroupEditSet(gnode, 1);
 		
 		/* deselect all other nodes, so we can also do grabbing of entire subtree */
-		for (node = snode->nodetree->nodes.first; node; node = node->next)
+		for (node = snode->nodetree->nodes.first; node; node = node->next) {
 			node_deselect(node);
+
+			if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+				/* this is not 100% sure to be reliable, see comment on the flag */
+				node->flag &= ~NODE_ACTIVE_TEXTURE;
+			}
+		}
 		node_select(gnode);
 	}
 	else 
