@@ -2565,7 +2565,6 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	if (ibuf->x != rres.rectx || ibuf->y != rres.recty || ibuf->rect_float != rectf) {
 		IMB_display_buffer_invalidate(ibuf);
 	}
-	BLI_unlock_thread(LOCK_COLORMANAGE);
 
 	ibuf->x = rres.rectx;
 	ibuf->y = rres.recty;
@@ -2601,6 +2600,8 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		ibuf->zbuf_float = NULL;
 		ibuf->flags &= ~IB_zbuffloat;
 	}
+
+	BLI_unlock_thread(LOCK_COLORMANAGE);
 
 	/* since its possible to access the buffer from the image directly, set the profile [#25073] */
 	ibuf->profile = (iuser->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_NONE;
