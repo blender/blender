@@ -33,6 +33,7 @@
 #include <stdio.h>
 
 #include "DNA_mesh_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -53,10 +54,12 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_tessmesh.h"
+#include "BKE_sequencer.h"
 
 #include "IMB_imbuf_types.h"
 
 #include "ED_image.h"
+#include "ED_mask.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -580,7 +583,6 @@ static void image_dropboxes(void)
 }
 
 
-
 static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -693,7 +695,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
-const char *image_context_dir[] = {"edit_image", NULL};
+const char *image_context_dir[] = {"edit_image", "edit_mask", NULL};
 
 static int image_context(const bContext *C, const char *member, bContextDataResult *result)
 {
@@ -706,7 +708,14 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 		CTX_data_id_pointer_set(result, (ID *)ED_space_image(sima));
 		return 1;
 	}
-
+	else if (CTX_data_equals(member, "edit_mask")) {
+		Scene *scene = CTX_data_scene(C);
+		Mask *mask = BKE_sequencer_mask_get(scene); /* XXX */
+		if (mask) {
+			CTX_data_id_pointer_set(result, &mask->id);
+		}
+		return TRUE;
+	}
 	return 0;
 }
 
@@ -815,7 +824,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* we set view2d from own zoom and offset each time */
 	image_main_area_set_view2d(sima, ar);
-	
+
 	/* we draw image in pixelspace */
 	draw_image_main(sima, ar, scene);
 
@@ -835,6 +844,19 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* draw Grease Pencil - screen space only */
 	draw_image_grease_pencil((bContext *)C, 0);
+
+	{
+		Mask *mask = BKE_sequencer_mask_get(scene); /* XXX */
+		if (mask) {
+			int width, height;
+			ED_mask_size(C, &width, &height);
+			ED_mask_draw_region(mask, ar,
+			                    0, 0,  /* TODO */
+			                    width, height,
+			                    TRUE, FALSE,
+			                    NULL, C);
+		}
+	}
 
 	/* scrollers? */
 #if 0

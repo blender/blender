@@ -1077,50 +1077,6 @@ static void clip_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
-static void clip_main_area_draw_mask(const bContext *C, ARegion *ar)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	int x, y;
-	int width, height;
-	float zoomx, zoomy;
-
-	/* frame image */
-	float maxdim;
-	float xofs, yofs;
-
-	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
-
-	ED_space_clip_get_size(C, &width, &height);
-	ED_space_clip_get_zoom(C, &zoomx, &zoomy);
-
-	/* frame the image */
-	maxdim = maxf(width, height);
-	if (width == height) {
-		xofs = yofs = 0;
-	}
-	else if (width < height) {
-		xofs = ((height - width) / -2.0f) * zoomx;
-		yofs = 0.0f;
-	}
-	else { /* (width > height) */
-		xofs = 0.0f;
-		yofs = ((width - height) / -2.0f) * zoomy;
-	}
-
-	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
-	glPushMatrix();
-	glTranslatef(x + xofs, y + yofs, 0);
-	glScalef(maxdim * zoomx, maxdim * zoomy, 0);
-	glMultMatrixf(sc->stabmat);
-
-	ED_mask_draw(C, sc->mask_draw_flag, sc->mask_draw_type);
-
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
-
-	glPopMatrix();
-}
-
 static void clip_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
@@ -1158,7 +1114,19 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	clip_draw_main(C, ar);
 
 	if (sc->mode == SC_MODE_MASKEDIT) {
-		clip_main_area_draw_mask(C, ar);
+
+		Mask *mask = CTX_data_edit_mask(C);
+		if (mask) {
+			int width, height;
+			ED_mask_size(C, &width, &height);
+			ED_mask_draw_region(mask, ar,
+			                    sc->mask_draw_flag, sc->mask_draw_type,
+			                    width, height,
+			                    TRUE, TRUE,
+			                    sc->stabmat, C);
+		}
+
+
 	}
 
 	/* Grease Pencil */

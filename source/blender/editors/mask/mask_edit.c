@@ -42,6 +42,7 @@
 
 #include "ED_screen.h"
 #include "ED_mask.h"  /* own include */
+#include "ED_image.h"
 #include "ED_object.h" /* ED_keymap_proportional_maskmode only */
 #include "ED_clip.h"
 #include "ED_sequencer.h"
@@ -143,15 +144,25 @@ void ED_mask_size(const bContext *C, int *width, int *height)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacedata.first) {
-		if (sa->spacetype == SPACE_CLIP) {
-			ED_space_clip_get_size(C, width, height);
-			return;
-		}
-		else if (sa->spacetype == SPACE_SEQ) {
-			Scene *scene = CTX_data_scene(C);
-			*width = (scene->r.size * scene->r.xsch) / 100;
-			*height = (scene->r.size * scene->r.ysch) / 100;
-			return;
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				ED_space_clip_get_size(C, width, height);
+				return;
+			}
+			case SPACE_SEQ:
+			{
+				Scene *scene = CTX_data_scene(C);
+				*width = (scene->r.size * scene->r.xsch) / 100;
+				*height = (scene->r.size * scene->r.ysch) / 100;
+				return;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = sa->spacedata.first;
+				ED_space_image_size(sima, width, height);
+				return;
+			}
 		}
 	}
 
