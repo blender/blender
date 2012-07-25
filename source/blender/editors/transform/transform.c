@@ -120,16 +120,44 @@ void setTransformViewMatrices(TransInfo *t)
 	calculateCenter2D(t);
 }
 
-static void convertViewVec2D(View2D *v2d, float vec[3], int dx, int dy)
+static void convertViewVec2D(View2D *v2d, float r_vec[3], int dx, int dy)
 {
 	float divx, divy;
 	
 	divx = v2d->mask.xmax - v2d->mask.xmin;
 	divy = v2d->mask.ymax - v2d->mask.ymin;
 
-	vec[0] = (v2d->cur.xmax - v2d->cur.xmin) * dx / divx;
-	vec[1] = (v2d->cur.ymax - v2d->cur.ymin) * dy / divy;
-	vec[2] = 0.0f;
+	r_vec[0] = (v2d->cur.xmax - v2d->cur.xmin) * dx / divx;
+	r_vec[1] = (v2d->cur.ymax - v2d->cur.ymin) * dy / divy;
+	r_vec[2] = 0.0f;
+}
+
+static void convertViewVec2D_mask(View2D *v2d, float r_vec[3], int dx, int dy)
+{
+	float divx, divy;
+	float mulx, muly;
+
+	divx = v2d->mask.xmax - v2d->mask.xmin;
+	divy = v2d->mask.ymax - v2d->mask.ymin;
+
+	mulx = (v2d->cur.xmax - v2d->cur.xmin);
+	muly = (v2d->cur.ymax - v2d->cur.ymin);
+
+	/* difference with convertViewVec2D */
+	/* clamp w/h, mask only */
+	if (mulx / divx < muly / divy) {
+		divy = divx;
+		muly = mulx;
+	}
+	else {
+		divx = divy;
+		mulx = muly;
+	}
+	/* end difference */
+
+	r_vec[0] = mulx * dx / divx;
+	r_vec[1] = muly * dy / divy;
+	r_vec[2] = 0.0f;
 }
 
 void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
@@ -143,11 +171,17 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 	else if (t->spacetype == SPACE_IMAGE) {
 		float aspx, aspy;
 
-		convertViewVec2D(t->view, r_vec, dx, dy);
+		if (t->options & CTX_MASK) {
 
-		/* MASKTODO - see clip clamp w/h */
+			convertViewVec2D_mask(t->view, r_vec, dx, dy);
 
-		ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_image_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
+		}
+		else {
+			convertViewVec2D(t->view, r_vec, dx, dy);
+			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+		}
+
 		r_vec[0] *= aspx;
 		r_vec[1] *= aspy;
 	}
@@ -158,32 +192,14 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		convertViewVec2D(&t->ar->v2d, r_vec, dx, dy);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		View2D *v2d = t->view;
-		float divx, divy;
-		float mulx, muly;
-		float aspx = 1.0f, aspy = 1.0f;
-
-		divx = v2d->mask.xmax - v2d->mask.xmin;
-		divy = v2d->mask.ymax - v2d->mask.ymin;
-
-		mulx = (v2d->cur.xmax - v2d->cur.xmin);
-		muly = (v2d->cur.ymax - v2d->cur.ymin);
+		float aspx, aspy;
 
 		if (t->options & CTX_MASK) {
-			/* clamp w/h, mask only */
-			if (mulx / divx < muly / divy) {
-				divy = divx;
-				muly = mulx;
-			}
-			else {
-				divx = divy;
-				mulx = muly;
-			}
+			convertViewVec2D_mask(t->view, r_vec, dx, dy);
 		}
-
-		r_vec[0] = mulx * (dx) / divx;
-		r_vec[1] = muly * (dy) / divy;
-		r_vec[2] = 0.0f;
+		else {
+			convertViewVec2D(t->view, r_vec, dx, dy);
+		}
 
 		if (t->options & CTX_MOVIECLIP) {
 			ED_space_clip_get_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);

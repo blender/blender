@@ -208,8 +208,8 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			
 			ED_space_image_get_aspect(t->sa->spacedata.first, &xuser_aspx, &yuser_asp);
 			ED_space_image_width(t->sa->spacedata.first, &wi, &hi);
-			w = (((float)wi) / 256.0f) * G.sima->zoom * xuser_asp;
-			h = (((float)hi) / 256.0f) * G.sima->zoom * yuser_asp;
+			w = (((float)wi) / IMG_SIZE_FALLBACK) * G.sima->zoom * xuser_asp;
+			h = (((float)hi) / IMG_SIZE_FALLBACK) * G.sima->zoom * yuser_asp;
 			
 			cpack(0xFFFFFF);
 			glTranslatef(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], 0.0f);

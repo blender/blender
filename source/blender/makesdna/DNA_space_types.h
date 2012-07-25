@@ -1115,4 +1115,6 @@ typedef enum eSpace_Type {
 	SPACEICONMAX = SPACE_CLIP
 } eSpace_Type;
 
+#define IMG_SIZE_FALLBACK 256
+
 #endif

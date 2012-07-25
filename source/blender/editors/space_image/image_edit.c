@@ -149,8 +149,8 @@ void ED_image_get_size(Image *ima, int *width, int *height)
 		*height = ibuf->y;
 	}
 	else {
-		*width = 256;
-		*height = 256;
+		*width  = IMG_SIZE_FALLBACK;
+		*height = IMG_SIZE_FALLBACK;
 	}
 
 	if (ima)
@@ -183,8 +183,8 @@ void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
 	/* I know a bit weak... but preview uses not actual image size */
 	// XXX else if (image_preview_active(sima, width, height));
 	else {
-		*width = 256;
-		*height = 256;
+		*width  = IMG_SIZE_FALLBACK;
+		*height = IMG_SIZE_FALLBACK;
 	}
 
 	ED_space_image_release_buffer(sima, lock);

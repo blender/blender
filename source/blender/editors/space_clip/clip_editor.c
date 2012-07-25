@@ -128,11 +128,11 @@ void ED_space_clip_get_size(const bContext *C, int *width, int *height)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
-	if (!sc->clip) {
-		*width = *height = 0;
+	if (sc->clip) {
+		BKE_movieclip_get_size(sc->clip, &sc->user, width, height);
 	}
 	else {
-		BKE_movieclip_get_size(sc->clip, &sc->user, width, height);
+		*width = *height = IMG_SIZE_FALLBACK;
 	}
 }
 

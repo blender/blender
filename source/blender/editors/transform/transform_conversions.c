@@ -4964,6 +4964,36 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 	}
 }
 
+static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
+{
+	Mask *mask;
+
+	if (t->spacetype == SPACE_CLIP) {
+		SpaceClip *sc = t->sa->spacedata.first;
+		mask = ED_space_clip_get_mask(sc);
+	}
+	else if (t->spacetype == SPACE_IMAGE) {
+		SpaceImage *sima = t->sa->spacedata.first;
+		mask = ED_space_image_get_mask(sima);
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	if (t->scene->nodetree) {
+		/* tracks can be used for stabilization nodes,
+		 * flush update for such nodes */
+		nodeUpdateID(t->scene->nodetree, &mask->id);
+		WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
+	}
+
+	/* TODO - dont key all masks... */
+	if (IS_AUTOKEY_ON(t->scene)) {
+		Scene *scene = t->scene;
+
+		ED_mask_layer_shape_auto_key_select(mask, CFRA);
+	}
+}
 
 /* inserting keys, pointcache, redraw events... */
 /* 
@@ -5033,7 +5063,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		}
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
-		/* prevent this passing through to final 'else' which assumes objects */
+		if (t->options & CTX_MASK) {
+			special_aftertrans_update__mask(C, t);
+		}
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		SpaceNode *snode = (SpaceNode *)t->sa->spacedata.first;
@@ -5059,22 +5091,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			}
 		}
 		else if (t->options & CTX_MASK) {
-			SpaceClip *sc = t->sa->spacedata.first;
-			Mask *mask = ED_space_clip_get_mask(sc);
-
-			if (t->scene->nodetree) {
-				/* tracks can be used for stabilization nodes,
-				 * flush update for such nodes */
-				nodeUpdateID(t->scene->nodetree, &mask->id);
-				WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
-			}
-
-			/* TODO - dont key all masks... */
-			if (IS_AUTOKEY_ON(t->scene)) {
-				Scene *scene = t->scene;
-
-				ED_mask_layer_shape_auto_key_select(mask, CFRA);
-			}
+			special_aftertrans_update__mask(C, t);
 		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
@@ -6259,20 +6276,19 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
 void flushTransMasking(TransInfo *t)
 {
-	SpaceClip *sc = t->sa->spacedata.first;
 	TransData2D *td;
 	TransDataMasking *tdm;
 	int a;
-	float aspx, aspy, invx, invy;
+	float asp[2], inv[2];
 
-	ED_space_clip_get_aspect(sc, &aspx, &aspy);
-	invx = 1.0f / aspx;
-	invy = 1.0f / aspy;
+	ED_mask_aspect(t->context, &asp[0], &asp[1]);
+	inv[0] = 1.0f / asp[0];
+	inv[1] = 1.0f / asp[1];
 
 	/* flush to 2d vector from internally used 3d vector */
 	for (a = 0, td = t->data2d, tdm = t->customData; a < t->total; a++, td++, tdm++) {
-		td->loc2d[0] = td->loc[0] * invx;
-		td->loc2d[1] = td->loc[1] * invy;
+		td->loc2d[0] = td->loc[0] * inv[0];
+		td->loc2d[1] = td->loc[1] * inv[1];
 
 		if (tdm->is_handle)
 			BKE_mask_point_set_handle(tdm->point, td->loc2d, t->flag & T_ALT_TRANSFORM, tdm->orig_handle, tdm->vec);

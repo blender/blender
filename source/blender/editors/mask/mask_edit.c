@@ -263,7 +263,7 @@ void ED_mask_aspect(const bContext *C, float *aspx, float *aspy)
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = sa->spacedata.first;
-				ED_space_image_get_uv_aspect(sima, aspx, aspy);
+				ED_space_image_get_aspect(sima, aspx, aspy);
 				break;
 			}
 			default:
@@ -312,7 +312,7 @@ void ED_mask_pixelspace_factor(const bContext *C, float *scalex, float *scaley)
 
 				ED_space_image_get_size(sima, &width, &height);
 				ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
-				ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
+				ED_space_image_get_aspect(sima, &aspx, &aspy);
 
 				*scalex = ((float)width * aspx) * zoomx;
 				*scaley = ((float)height * aspy) * zoomy;
