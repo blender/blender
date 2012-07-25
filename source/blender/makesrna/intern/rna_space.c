@@ -563,6 +563,13 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 	ED_space_image_set(sima, sc->scene, sc->scene->obedit, (Image *)value.data);
 }
 
+static void rna_SpaceImageEditor_mask_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceImage *sima = (SpaceImage *)(ptr->data);
+
+	ED_space_image_set_mask(NULL, sima, (Mask *)value.data);
+}
+
 static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                                   PropertyRNA *UNUSED(prop), int *free)
 {
@@ -1104,7 +1111,7 @@ static void rna_def_space(BlenderRNA *brna)
 }
 
 /* for all spaces that use a mask */
-void mask_space_info(StructRNA *srna, int noteflag, const char *mask_set_func)
+void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *mask_set_func)
 {
 	PropertyRNA *prop;
 
@@ -1245,9 +1252,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, pivot_items);
 	RNA_def_property_ui_text(prop, "Pivot", "Rotation/Scaling Pivot");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
-	/* mask */
-	mask_space_info(srna, NC_SPACE | ND_SPACE_IMAGE, NULL);
 }
 
 static void rna_def_space_outliner(BlenderRNA *brna)
@@ -2071,6 +2075,9 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show UV Editor", "Show UV editing related properties");
 
 	rna_def_space_image_uv(brna);
+
+	/* mask */
+	rna_def_space_mask_info(srna, NC_SPACE | ND_SPACE_IMAGE, "rna_SpaceImageEditor_mask_set");
 }
 
 static void rna_def_space_sequencer(BlenderRNA *brna)
@@ -3099,7 +3106,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 	/* mask */
-	mask_space_info(srna, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceClipEditor_mask_set");
+	rna_def_space_mask_info(srna, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceClipEditor_mask_set");
 
 	/* mode */
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);

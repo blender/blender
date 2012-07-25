@@ -301,9 +301,7 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 /* matches clip function */
 int ED_space_image_check_show_maskedit(SpaceImage *sima)
 {
-	/* MASKTODO - whem we have a mask edit option */
-	(void)sima;
-	return TRUE;
+	return (sima->mode == SI_MODE_MASK);
 }
 
 int ED_space_image_maskedit_poll(bContext *C)
