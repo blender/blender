@@ -1099,6 +1099,16 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		// XXX for now, get View2D from the active region
 		t->view = &ar->v2d;
 		t->around = sima->around;
+
+		if (t->obedit) {
+			/* UV transform */
+		}
+		else if (sima->mode == SI_MODE_MASK) {
+			t->options |= CTX_MASK;
+		}
+		else {
+			BLI_assert(0);
+		}
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		// XXX for now, get View2D from the active region
@@ -1280,9 +1290,14 @@ void postTrans(bContext *C, TransInfo *t)
 	}
 	
 	if (t->spacetype == SPACE_IMAGE) {
-		SpaceImage *sima = t->sa->spacedata.first;
-		if (sima->flag & SI_LIVE_UNWRAP)
-			ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
+		if (t->options & CTX_MASK) {
+			/* pass */
+		}
+		else {
+			SpaceImage *sima = t->sa->spacedata.first;
+			if (sima->flag & SI_LIVE_UNWRAP)
+				ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
+		}
 	}
 	else if (t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = t->sa->spacedata.first;

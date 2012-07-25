@@ -145,6 +145,8 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 
 		convertViewVec2D(t->view, r_vec, dx, dy);
 
+		/* MASKTODO - see clip clamp w/h */
+
 		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		r_vec[0] *= aspx;
 		r_vec[1] *= aspy;
@@ -406,10 +408,17 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, NULL);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
-		// XXX how to deal with lock?
-		SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
-		if (sima->lock) WM_event_add_notifier(C, NC_GEOM | ND_DATA, t->obedit->data);
-		else ED_area_tag_redraw(t->sa);
+		if (t->options & CTX_MASK) {
+			Mask *mask = CTX_data_edit_mask(C);
+
+			WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+		}
+		else {
+			// XXX how to deal with lock?
+			SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
+			if (sima->lock) WM_event_add_notifier(C, NC_GEOM | ND_DATA, t->obedit->data);
+			else ED_area_tag_redraw(t->sa);
+		}
 	}
 	else if (t->spacetype == SPACE_CLIP) {
 		SpaceClip *sc = (SpaceClip *)t->sa->spacedata.first;
@@ -423,7 +432,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 		}
 		else if (ED_space_clip_check_show_maskedit(sc)) {
-			Mask *mask = ED_space_clip_get_mask(sc);
+			Mask *mask = CTX_data_edit_mask(C);
 
 			WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 		}

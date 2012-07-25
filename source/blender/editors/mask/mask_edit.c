@@ -48,6 +48,8 @@
 #include "ED_sequencer.h"
 #include "ED_transform.h"
 
+#include "UI_view2d.h"
+
 #include "RNA_access.h"
 
 #include "mask_intern.h"  /* own include */
@@ -101,11 +103,17 @@ void ED_mask_mouse_pos(const bContext *C, wmEvent *event, float co[2])
 				break;
 			}
 			case SPACE_SEQ:
-				zero_v2(co); /* MASKTODO */
+			{
+				ARegion *ar = CTX_wm_region(C);
+				UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 				break;
+			}
 			case SPACE_IMAGE:
-				zero_v2(co); /* MASKTODO */
+			{
+				ARegion *ar = CTX_wm_region(C);
+				UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 				break;
+			}
 			default:
 				/* possible other spaces from which mask editing is available */
 				BLI_assert(0);
@@ -139,8 +147,11 @@ void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr
 				zero_v2(co); /* MASKTODO */
 				break;
 			case SPACE_IMAGE:
+			{
+				//SpaceImage *sima = sa->spacedata.first;
 				zero_v2(co); /* MASKTODO */
 				break;
+			}
 			default:
 				/* possible other spaces from which mask editing is available */
 				BLI_assert(0);
@@ -251,8 +262,8 @@ void ED_mask_aspect(const bContext *C, float *aspx, float *aspy)
 			}
 			case SPACE_IMAGE:
 			{
-				// SpaceImage *sima = sa->spacedata.first;
-				*aspx = *aspy = 1.0f;  /* MASKTODO - image aspect? */
+				SpaceImage *sima = sa->spacedata.first;
+				ED_space_image_uv_aspect(sima, aspx, aspy);
 				break;
 			}
 			default:
