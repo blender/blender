@@ -40,6 +40,7 @@ set(INC_SYS
 set(SRC
 	image_buttons.c
 	image_draw.c
+	image_edit.c
 	image_ops.c
 	space_image.c
 

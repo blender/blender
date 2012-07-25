@@ -2422,22 +2422,3 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "reverse", 0, "Cycle in Reverse", "");
 }
-
-/******************** TODO ********************/
-
-/* XXX notifier? */
-
-/* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
-
-static void image_update_frame(struct Image *UNUSED(ima), struct ImageUser *iuser, void *customdata)
-{
-	int cfra = *(int*)customdata;
-
-	BKE_image_user_check_frame_calc(iuser, cfra, 0);
-}
-
-void ED_image_update_frame(const Main *mainp, int cfra)
-{
-	BKE_image_walk_all_users(mainp, &cfra, image_update_frame);
-}
-
