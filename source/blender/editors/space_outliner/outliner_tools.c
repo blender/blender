@@ -530,6 +530,18 @@ static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem, void 
 	(void)tselem;
 }
 
+static void data_select_linked_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *C_v)
+{
+	if (event == 5) {
+		if (RNA_struct_is_ID(te->rnaptr.type)) {
+			bContext *C = (bContext *) C_v;
+			ID *id = te->rnaptr.data;
+
+			ED_object_select_linked_by_id(C, id);
+		}
+	}
+}
+
 static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb,
                                        void (*operation_cb)(int, TreeElement *, TreeStoreElem *, void *),
                                        void *arg)
@@ -1131,6 +1143,7 @@ static EnumPropertyItem prop_data_op_types[] = {
 	{2, "DESELECT", 0, "Deselect", ""},
 	{3, "HIDE", 0, "Hide", ""},
 	{4, "UNHIDE", 0, "Unhide", ""},
+	{5, "SELECT_LINKED", 0, "Select Linked", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1172,6 +1185,11 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 		if (event > 0) {
 			Scene *scene = CTX_data_scene(C);
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb, scene);
+		}
+	}
+	else if (datalevel == TSE_RNA_STRUCT) {
+		if (event == 5) {
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, data_select_linked_cb, C);
 		}
 	}
 	
