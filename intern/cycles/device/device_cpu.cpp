@@ -167,7 +167,7 @@ public:
 						}
 					}
 
-					task.update_tile_sample(tile);
+					task.update_progress(tile);
 				}
 			}
 			else
@@ -189,7 +189,7 @@ public:
 						}
 					}
 
-					task.update_tile_sample(tile);
+					task.update_progress(tile);
 				}
 			}
 

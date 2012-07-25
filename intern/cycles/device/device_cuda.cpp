@@ -842,7 +842,7 @@ public:
 					}
 
 					path_trace(tile, sample);
-					task->update_tile_sample(tile);
+					task->update_progress(tile);
 				}
 
 				task->release_tile(tile);

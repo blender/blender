@@ -22,6 +22,7 @@
 #include "device_task.h"
 
 #include "util_algorithm.h"
+#include "util_time.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -33,6 +34,7 @@ DeviceTask::DeviceTask(Type type_)
   shader_input(0), shader_output(0),
   shader_eval_type(0), shader_x(0), shader_w(0)
 {
+	last_update_time = time_dt();
 }
 
 void DeviceTask::split_max_size(list<DeviceTask>& tasks, int max_size)
@@ -84,6 +86,22 @@ void DeviceTask::split(list<DeviceTask>& tasks, int num)
 			task.h = th;
 
 			tasks.push_back(task);
+		}
+	}
+}
+
+void DeviceTask::update_progress(RenderTile &rtile)
+{
+	if (type != PATH_TRACE)
+		return;
+
+	if (update_tile_sample) {
+		double current_time = time_dt();
+
+		if (current_time - last_update_time >= 1.0f) {
+			update_tile_sample(rtile);
+
+			last_update_time = current_time;
 		}
 	}
 }

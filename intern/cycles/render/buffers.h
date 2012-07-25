@@ -52,8 +52,6 @@ public:
 	/* passes */
 	vector<Pass> passes;
 
-	void *render_result;
-
 	/* functions */
 	BufferParams();
 

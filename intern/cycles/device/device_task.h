@@ -57,10 +57,15 @@ public:
 	void split(list<DeviceTask>& tasks, int num);
 	void split_max_size(list<DeviceTask>& tasks, int max_size);
 
+	void update_progress(RenderTile &rtile);
+
 	boost::function<bool(Device *device, RenderTile&)> acquire_tile;
 	boost::function<void(RenderTile&)> update_tile_sample;
 	boost::function<void(RenderTile&)> release_tile;
 	boost::function<bool(void)> get_cancel;
+
+protected:
+	double last_update_time;
 };
 
 CCL_NAMESPACE_END
