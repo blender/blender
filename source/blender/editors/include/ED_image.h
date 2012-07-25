@@ -38,6 +38,7 @@ struct ImageUser;
 struct ToolSettings;
 struct uiBlock;
 struct wmWindowManager;
+struct ARegion;
 
 /* image_edit.c, exported for transform */
 struct Image *ED_space_image(struct SpaceImage *sima);
