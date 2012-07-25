@@ -324,6 +324,14 @@ static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), Tre
 	}
 }
 
+static void id_select_linked_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                                TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+{
+	ID *id = tselem->id;
+
+	ED_object_select_linked_by_id(C, id);
+}
+
 static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
                                  TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
@@ -728,7 +736,9 @@ typedef enum eOutlinerIdOpTypes {
 	
 	OUTLINER_IDOP_FAKE_ADD,
 	OUTLINER_IDOP_FAKE_CLEAR,
-	OUTLINER_IDOP_RENAME
+	OUTLINER_IDOP_RENAME,
+
+	OUTLINER_IDOP_SELECT_LINKED
 } eOutlinerIdOpTypes;
 
 // TODO: implement support for changing the ID-block used
@@ -740,6 +750,7 @@ static EnumPropertyItem prop_id_op_types[] = {
      "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
 	{OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
 	{OUTLINER_IDOP_RENAME, "RENAME", 0, "Rename", ""},
+	{OUTLINER_IDOP_SELECT_LINKED, "SELECT_LINKED", 0, "Select Linked", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -855,6 +866,11 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 			ED_undo_push(C, "Rename");
 		}
 		break;
+
+		case OUTLINER_IDOP_SELECT_LINKED:
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_select_linked_cb);
+			ED_undo_push(C, "Select");
+			break;
 			
 		default:
 			// invalid - unhandled

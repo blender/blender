@@ -41,6 +41,7 @@ struct bContext;
 struct bPoseChannel;
 struct Curve;
 struct EnumPropertyItem;
+struct ID;
 struct KeyBlock;
 struct Lattice;
 struct Main;
@@ -182,6 +183,9 @@ int ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, int include
 						 void *callback_data);
 
 int ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v);
+
+/* ibject_select.c */
+void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);
 
 #ifdef __cplusplus
 }

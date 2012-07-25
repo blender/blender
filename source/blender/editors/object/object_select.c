@@ -372,6 +372,25 @@ static int object_select_all_by_library_obdata(bContext *C, Library *lib)
 	return changed;
 }
 
+void ED_object_select_linked_by_id(bContext *C, ID *id)
+{
+	int gs = GS(id->name);
+	int changed = FALSE;
+
+	if (ELEM8(gs, ID_ME, ID_CU, ID_MB, ID_LT, ID_LA, ID_CA, ID_TXT, ID_SPK)) {
+		changed = object_select_all_by_obdata(C, id);
+	}
+	else if (gs == ID_MA) {
+		changed = object_select_all_by_material_texture(C, FALSE, (Material *)id, NULL);
+	}
+	else if (gs == ID_LI) {
+		changed = object_select_all_by_library(C, (Library *) id);
+	}
+
+	if (changed)
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
+}
+
 static int object_select_linked_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -1097,5 +1116,3 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of objects to select randomly", 0.f, 100.0f);
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first");
 }
-
-
