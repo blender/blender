@@ -1074,7 +1074,7 @@ void BKE_movieclip_reload(MovieClip *clip)
 	else
 		clip->source = MCLIP_SRC_SEQUENCE;
 
-	clip->lastsize[0] = clip->lastsize[1] = 0;
+	clip->lastsize[0] = clip->lastsize[1] = IMG_SIZE_FALLBACK;
 	movieclip_load_get_szie(clip);
 
 	movieclip_calc_length(clip);

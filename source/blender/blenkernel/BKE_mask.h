@@ -127,7 +127,9 @@ void BKE_mask_free(struct Mask *mask);
 void BKE_mask_unlink(struct Main *bmain, struct Mask *mask);
 
 void BKE_mask_coord_from_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float frame_size[2]);
 void BKE_mask_coord_to_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_to_frame(float r_co[2], const float co[2], const float frame_size[2]);
 
 /* parenting */
 

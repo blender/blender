@@ -1494,47 +1494,63 @@ void BKE_mask_unlink(Main *bmain, Mask *mask)
 	mask->id.us = 0;
 }
 
+void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float frame_size[2])
+{
+	if (frame_size[0] == frame_size[1]) {
+		r_co[0] = co[0];
+		r_co[1] = co[1];
+	}
+	else if (frame_size[0] < frame_size[1]) {
+		r_co[0] = ((co[0] - 0.5f) * (frame_size[0] / frame_size[1])) + 0.5f;
+		r_co[1] = co[1];
+	}
+	else { /* (frame_size[0] > frame_size[1]) */
+		r_co[0] = co[0];
+		r_co[1] = ((co[1] - 0.5f) * (frame_size[1] / frame_size[0])) + 0.5f;
+	}
+}
 void BKE_mask_coord_from_movieclip(MovieClip *clip, MovieClipUser *user, float r_co[2], const float co[2])
 {
 	int width, height;
+	float frame_size[2];
 
 	/* scaling for the clip */
 	BKE_movieclip_get_size(clip, user, &width, &height);
 
-	if (width == height) {
-		r_co[0] = co[0];
-		r_co[1] = co[1];
-	}
-	else if (width < height) {
-		r_co[0] = ((co[0] - 0.5f) * ((float)width / (float)height)) + 0.5f;
-		r_co[1] = co[1];
-	}
-	else { /* (width > height) */
-		r_co[0] = co[0];
-		r_co[1] = ((co[1] - 0.5f) * ((float)height / (float)width)) + 0.5f;
-	}
+	frame_size[0] = (float)width;
+	frame_size[1] = (float)height;
+
+	BKE_mask_coord_from_frame(r_co, co, frame_size);
 }
 
 /* as above but divide */
+void BKE_mask_coord_to_frame(float r_co[2], const float co[2], const float frame_size[2])
+{
+	if (frame_size[0] == frame_size[1]) {
+		r_co[0] = co[0];
+		r_co[1] = co[1];
+	}
+	else if (frame_size[0] < frame_size[1]) {
+		r_co[0] = ((co[0] - 0.5f) / (frame_size[0] / frame_size[1])) + 0.5f;
+		r_co[1] = co[1];
+	}
+	else { /* (frame_size[0] > frame_size[1]) */
+		r_co[0] = co[0];
+		r_co[1] = ((co[1] - 0.5f) / (frame_size[1] / frame_size[0])) + 0.5f;
+	}
+}
 void BKE_mask_coord_to_movieclip(MovieClip *clip, MovieClipUser *user, float r_co[2], const float co[2])
 {
 	int width, height;
+	float frame_size[2];
 
 	/* scaling for the clip */
 	BKE_movieclip_get_size(clip, user, &width, &height);
 
-	if (width == height) {
-		r_co[0] = co[0];
-		r_co[1] = co[1];
-	}
-	else if (width < height) {
-		r_co[0] = ((co[0] - 0.5f) / ((float)width / (float)height)) + 0.5f;
-		r_co[1] = co[1];
-	}
-	else { /* (width > height) */
-		r_co[0] = co[0];
-		r_co[1] = ((co[1] - 0.5f) / ((float)height / (float)width)) + 0.5f;
-	}
+	frame_size[0] = (float)width;
+	frame_size[1] = (float)height;
+
+	BKE_mask_coord_to_frame(r_co, co, frame_size);
 }
 
 static int BKE_mask_evaluate_parent(MaskParent *parent, float ctime, float r_co[2])
