@@ -20,12 +20,7 @@
 
 import bpy
 from bpy.types import Panel, Header, Menu
-from bl_ui.properties_mask_common import (MASK_PT_mask,
-                                          MASK_PT_layers,
-                                          MASK_PT_spline,
-                                          MASK_PT_point,
-                                          MASK_PT_display,
-                                          MASK_PT_tools)
+
 
 class CLIP_HT_header(Header):
     bl_space_type = 'CLIP_EDITOR'
@@ -164,16 +159,6 @@ class CLIP_PT_clip_view_panel:
         clip = sc.clip
 
         return clip and sc.view == 'CLIP'
-
-
-class CLIP_PT_mask_view_panel:
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return clip and sc.view == 'CLIP' and sc.mode == 'MASKEDIT'
 
 
 class CLIP_PT_tracking_panel:
@@ -427,11 +412,6 @@ class CLIP_PT_tools_object(CLIP_PT_reconstruction_panel, Panel):
         col.prop(settings, "object_distance")
 
 
-class CLIP_PT_tools_mask(MASK_PT_tools, CLIP_PT_mask_view_panel, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
-
-
 class CLIP_PT_tools_grease_pencil(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
@@ -447,7 +427,7 @@ class CLIP_PT_tools_grease_pencil(Panel):
 
         if sc.mode == 'DISTORTION':
             return sc.view == 'CLIP'
-        elif sc.mode == 'MASKEDIT':
+        elif sc.mode == 'MASK':
             return True
 
         return False
@@ -643,21 +623,6 @@ class CLIP_PT_tracking_camera(Panel):
         col.prop(clip.tracking.camera, "k3")
 
 
-class CLIP_PT_mask_layers(MASK_PT_layers, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'UI'
-
-
-class CLIP_PT_active_mask_spline(MASK_PT_spline, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'UI'
-
-
-class CLIP_PT_active_mask_point(MASK_PT_point, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'UI'
-
-
 class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
@@ -703,16 +668,6 @@ class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
             row.prop(clip, "display_aspect", text="")
 
 
-class CLIP_PT_mask(MASK_PT_mask, CLIP_PT_mask_view_panel, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'UI'
-
-
-class CLIP_PT_mask_display(MASK_PT_display, CLIP_PT_mask_view_panel, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'UI'
-
-
 class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
@@ -722,7 +677,7 @@ class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):
     def poll(cls, context):
         sc = context.space_data
 
-        return sc.mode != 'MASKEDIT'
+        return sc.mode != 'MASK'
 
     def draw(self, context):
         layout = self.layout
@@ -1067,30 +1022,18 @@ class CLIP_MT_select(Menu):
 
     def draw(self, context):
         layout = self.layout
-        sc = context.space_data
 
-        if sc.mode == 'MASKEDIT':
-            layout.operator("mask.select_border")
-            layout.operator("mask.select_circle")
+        layout.operator("clip.select_border")
+        layout.operator("clip.select_circle")
 
-            layout.separator()
+        layout.separator()
 
-            layout.operator("mask.select_all"
-                            ).action = 'TOGGLE'
-            layout.operator("mask.select_all",
-                            text="Inverse").action = 'INVERT'
-        else:
-            layout.operator("clip.select_border")
-            layout.operator("clip.select_circle")
+        layout.operator("clip.select_all"
+                        ).action = 'TOGGLE'
+        layout.operator("clip.select_all",
+                        text="Inverse").action = 'INVERT'
 
-            layout.separator()
-
-            layout.operator("clip.select_all"
-                            ).action = 'TOGGLE'
-            layout.operator("clip.select_all",
-                            text="Inverse").action = 'INVERT'
-
-            layout.menu("CLIP_MT_select_grouped")
+        layout.menu("CLIP_MT_select_grouped")
 
 
 class CLIP_MT_select_grouped(Menu):
@@ -1185,6 +1128,49 @@ class CLIP_MT_stabilize_2d_specials(Menu):
         layout = self.layout
 
         layout.operator("clip.stabilize_2d_select")
+
+
+# -----------------------------------------------------------------------------
+# Mask (similar code in space_image.py, keep in sync)
+
+
+from bl_ui.properties_mask_common import (MASK_PT_mask,
+                                          MASK_PT_layers,
+                                          MASK_PT_spline,
+                                          MASK_PT_point,
+                                          MASK_PT_display,
+                                          MASK_PT_tools)
+
+
+class CLIP_PT_mask(MASK_PT_mask, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+
+
+class CLIP_PT_mask_layers(MASK_PT_layers, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+
+
+class CLIP_PT_mask_display(MASK_PT_display, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+
+
+class CLIP_PT_active_mask_spline(MASK_PT_spline, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+
+
+class CLIP_PT_active_mask_point(MASK_PT_point, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+
+class CLIP_PT_tools_mask(MASK_PT_tools, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+
+# --- end mask ---
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

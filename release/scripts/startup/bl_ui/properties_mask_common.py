@@ -25,12 +25,17 @@ import bpy
 from bpy.types import Menu
 
 
-class MASK_PT_mask():
+class MASK_PT_mask:
     # subclasses must define...
     #~ bl_space_type = 'CLIP_EDITOR'
     #~ bl_region_type = 'UI'
     bl_label = "Mask Settings"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        space_data = context.space_data
+        return space_data.mask and space_data.mode == 'MASK'
 
     def draw(self, context):
         layout = self.layout
@@ -43,7 +48,7 @@ class MASK_PT_mask():
         col.prop(mask, "frame_end")
 
 
-class MASK_PT_layers():
+class MASK_PT_layers:
     # subclasses must define...
     #~ bl_space_type = 'CLIP_EDITOR'
     #~ bl_region_type = 'UI'
@@ -51,9 +56,8 @@ class MASK_PT_layers():
 
     @classmethod
     def poll(cls, context):
-        sc = context.space_data
-
-        return sc.mask and sc.mode == 'MASKEDIT'
+        space_data = context.space_data
+        return space_data.mask and space_data.mode == 'MASK'
 
     def draw(self, context):
         layout = self.layout
@@ -104,7 +108,7 @@ class MASK_PT_spline():
         sc = context.space_data
         mask = sc.mask
 
-        if mask and sc.mode == 'MASKEDIT':
+        if mask and sc.mode == 'MASK':
             return mask.layers.active and mask.layers.active.splines.active
 
         return False
@@ -134,7 +138,7 @@ class MASK_PT_point():
         sc = context.space_data
         mask = sc.mask
 
-        if mask and sc.mode == 'MASKEDIT':
+        if mask and sc.mode == 'MASK':
             mask_layer_active = mask.layers.active
             return (mask_layer_active and
                     mask_layer_active.splines.active_point)
@@ -183,13 +187,18 @@ class MASK_PT_display():
     bl_label = "Mask Display"
     bl_options = {'DEFAULT_CLOSED'}
 
+    @classmethod
+    def poll(cls, context):
+        space_data = context.space_data
+        return space_data.mask and space_data.mode == 'MASK'
+
     def draw(self, context):
         layout = self.layout
 
-        sc = context.space_data
+        space_data = context.space_data
 
-        col.prop(layout, "mask_draw_type", text="")
-        col.prop(layout, "show_mask_smooth")
+        layout.prop(space_data, "mask_draw_type", text="")
+        layout.prop(space_data, "show_mask_smooth")
 
 
 class MASK_PT_tools():
@@ -197,6 +206,11 @@ class MASK_PT_tools():
     #~ bl_space_type = 'CLIP_EDITOR'
     #~ bl_region_type = 'TOOLS'
     bl_label = "Mask Tools"
+
+    @classmethod
+    def poll(cls, context):
+        space_data = context.space_data
+        return space_data.mask and space_data.mode == 'MASK'
 
     def draw(self, context):
         layout = self.layout

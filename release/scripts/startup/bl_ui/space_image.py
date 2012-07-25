@@ -27,7 +27,7 @@ class ImagePaintPanel(UnifiedPaintPanel):
     bl_region_type = 'UI'
 
 
-class BrushButtonsPanel():
+class BrushButtonsPanel:
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
 
@@ -848,6 +848,49 @@ class IMAGE_UV_sculpt(Panel, ImagePaintPanel):
         if toolsettings.uv_sculpt_tool == 'RELAX':
             col.prop(toolsettings, "uv_relax_method")
 
+
+
+# -----------------------------------------------------------------------------
+# Mask (similar code in space_clip.py, keep in sync)
+# note! - panel placement does _not_ fit well with image panels... need to fix
+
+from bl_ui.properties_mask_common import (MASK_PT_mask,
+                                          MASK_PT_layers,
+                                          MASK_PT_spline,
+                                          MASK_PT_point,
+                                          MASK_PT_display,
+                                          MASK_PT_tools)
+
+
+class IMAGE_PT_mask(MASK_PT_mask, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+
+
+class IMAGE_PT_mask_layers(MASK_PT_layers, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+
+
+class IMAGE_PT_mask_display(MASK_PT_display, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+
+
+class IMAGE_PT_active_mask_spline(MASK_PT_spline, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+
+
+class IMAGE_PT_active_mask_point(MASK_PT_point, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+
+class IMAGE_PT_tools_mask(MASK_PT_tools, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'  # is 'TOOLS' in the clip editor
+
+# --- end mask ---
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
