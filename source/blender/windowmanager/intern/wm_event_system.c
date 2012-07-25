@@ -1664,12 +1664,24 @@ static int wm_action_not_handled(int action)
 
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
+#ifndef NDEBUG
+	const int do_debug_handler = (G.debug & G_DEBUG_EVENTS);
+#endif
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmEventHandler *handler, *nexthandler;
 	int action = WM_HANDLER_CONTINUE;
 	int always_pass;
 
-	if (handlers == NULL) return action;
+	if (handlers == NULL) {
+		return action;
+	}
+
+#ifndef NDEBUG
+	if (do_debug_handler) {
+		printf("%s: handling event\n", __func__);
+		WM_event_print(event);
+	}
+#endif
 
 	/* modal handlers can get removed in this loop, we keep the loop this way */
 	for (handler = handlers->first; handler; handler = nexthandler) {
@@ -1677,9 +1689,10 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		nexthandler = handler->next;
 		
 		/* during this loop, ui handlers for nested menus can tag multiple handlers free */
-		if (handler->flag & WM_HANDLER_DO_FREE) ;
-		/* optional boundbox */
-		else if (handler_boundbox_test(handler, event)) {
+		if (handler->flag & WM_HANDLER_DO_FREE) {
+			/* pass */
+		}
+		else if (handler_boundbox_test(handler, event)) { /* optional boundbox */
 			/* in advance to avoid access to freed event on window close */
 			always_pass = wm_event_always_pass(event);
 		
@@ -1690,19 +1703,59 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			if (handler->keymap) {
 				wmKeyMap *keymap = WM_keymap_active(wm, handler->keymap);
 				wmKeyMapItem *kmi;
-				
+
+#ifndef NDEBUG
+				if (do_debug_handler) {
+					printf("%s:   checking '%s' ...", __func__, keymap->idname);
+				}
+#endif
+
 				if (!keymap->poll || keymap->poll(C)) {
+
+#ifndef NDEBUG
+					if (do_debug_handler) {
+						printf("pass\n");
+					}
+#endif
+
 					for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 						if (wm_eventmatch(event, kmi)) {
+
+#ifndef NDEBUG
+							if (do_debug_handler) {
+								printf("%s:     item matched '%s'\n", __func__, kmi->idname);
+							}
+#endif
 
 							/* weak, but allows interactive callback to not use rawkey */
 							event->keymap_idname = kmi->idname;
 
 							action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
-							if (action & WM_HANDLER_BREAK)  /* not always_pass here, it denotes removed handler */
+							if (action & WM_HANDLER_BREAK) {
+								/* not always_pass here, it denotes removed handler */
+#ifndef NDEBUG
+								if (do_debug_handler) {
+									printf("%s:       handled! '%s'...", __func__, kmi->idname);
+								}
+#endif
 								break;
+							}
+							else {
+#ifndef NDEBUG
+								if (do_debug_handler) {
+									printf("%s:       un-handled '%s'...", __func__, kmi->idname);
+								}
+#endif
+							}
 						}
 					}
+				}
+				else {
+#ifndef NDEBUG
+					if (do_debug_handler) {
+						printf("fail\n");
+					}
+#endif
 				}
 			}
 			else if (handler->ui_handle) {

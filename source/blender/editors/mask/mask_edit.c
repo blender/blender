@@ -80,7 +80,7 @@ int ED_maskedit_mask_poll(bContext *C)
 			case SPACE_SEQ:
 				return ED_space_sequencer_maskedit_mask_poll(C);
 			case SPACE_IMAGE:
-				return ED_space_sequencer_maskedit_mask_poll(C);
+				return ED_space_image_maskedit_mask_poll(C);
 		}
 	}
 	return FALSE;
