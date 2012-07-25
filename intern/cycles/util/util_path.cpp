@@ -26,6 +26,10 @@ OIIO_NAMESPACE_USING
 
 #include <stdio.h>
 
+#if (BOOST_VERSION < 104400)
+#  define BOOST_FILESYSTEM_VERSION 2
+#endif
+
 #include <boost/filesystem.hpp> 
 #include <boost/algorithm/string.hpp>
 
@@ -58,7 +62,11 @@ string path_user_get(const string& sub)
 
 string path_filename(const string& path)
 {
+#if (BOOST_FILESYSTEM_VERSION == 2)
+	return boost::filesystem::path(path).filename();
+#else
 	return boost::filesystem::path(path).filename().string();
+#endif
 }
 
 string path_dirname(const string& path)

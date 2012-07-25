@@ -26,6 +26,10 @@
 #include "util_path.h"
 #include "util_types.h"
 
+#if (BOOST_VERSION < 104400)
+#  define BOOST_FILESYSTEM_VERSION 2
+#endif
+
 #include <boost/filesystem.hpp> 
 #include <boost/algorithm/string.hpp>
 
@@ -115,7 +119,11 @@ void Cache::clear_except(const string& name, const set<string>& except)
 		boost::filesystem::directory_iterator it(dir), it_end;
 
 		for(; it != it_end; it++) {
+#if (BOOST_FILESYSTEM_VERSION == 2)
+			string filename = it->path().filename();
+#else
 			string filename = it->path().filename().string();
+#endif
 
 			if(boost::starts_with(filename, name))
 				if(except.find(filename) == except.end())
