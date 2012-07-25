@@ -339,7 +339,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		}
 	}
 
-	return m_flag & ACT_FLAG_ATTEMPT_PLAY;
+	return m_flag & ACT_FLAG_ACTIVE;
 }
 
 #ifdef WITH_PYTHON
