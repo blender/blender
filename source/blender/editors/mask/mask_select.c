@@ -539,6 +539,7 @@ static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_PASS_THROUGH;
 }
 
+/* MASKTODO - image space */
 void MASK_OT_select_lasso(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -638,6 +639,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
+/* MASKTODO - image space */
 void MASK_OT_select_circle(wmOperatorType *ot)
 {
 	/* identifiers */

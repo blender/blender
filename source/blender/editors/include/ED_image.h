@@ -42,7 +42,9 @@ struct ARegion;
 
 /* image_edit.c, exported for transform */
 struct Image *ED_space_image(struct SpaceImage *sima);
-void ED_space_image_set(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
+void          ED_space_image_set(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
+struct Mask  *ED_space_image_get_mask(struct SpaceImage *sima);
+void          ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask);
 
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r);
 void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock);
@@ -64,6 +66,10 @@ int ED_space_image_show_render(struct SpaceImage *sima);
 int ED_space_image_show_paint(struct SpaceImage *sima);
 int ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
 int ED_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit);
+
+int ED_space_image_check_show_maskedit(struct SpaceImage *sima);
+int ED_space_image_maskedit_poll(struct bContext *C);
+int ED_space_image_maskedit_mask_poll(struct bContext *C);
 
 /* UI level image (texture) updating... render calls own stuff (too) */
 void ED_image_update_frame(const struct Main *mainp, int cfra);

@@ -28,13 +28,15 @@
  *  \ingroup spimage
  */
 
+#include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 
-#include "BKE_image.h"
+#include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_tessmesh.h"
 
@@ -77,6 +79,20 @@ void ED_space_image_set(SpaceImage *sima, Scene *scene, Object *obedit, Image *i
 		WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
 
 	WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, NULL);
+}
+
+Mask *ED_space_image_get_mask(SpaceImage *sima)
+{
+	return sima->mask_info.mask;
+}
+
+void ED_space_image_set_mask(bContext *C, SpaceImage *sima, Mask *mask)
+{
+	sima->mask_info.mask = mask;
+
+	if (C) {
+		WM_event_add_notifier(C, NC_MASK | NA_SELECTED, mask);
+	}
 }
 
 ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
@@ -277,6 +293,40 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 		}
 
 	return 0;
+}
+
+/* matches clip function */
+int ED_space_image_check_show_maskedit(SpaceImage *sima)
+{
+	/* MASKTODO - whem we have a mask edit option */
+	(void)sima;
+	return TRUE;
+}
+
+int ED_space_image_maskedit_poll(bContext *C)
+{
+	SpaceImage *sima = CTX_wm_space_image(C);
+
+	if (sima && sima->image) {
+		return ED_space_image_check_show_maskedit(sima);
+	}
+
+	return FALSE;
+}
+
+int ED_space_image_maskedit_mask_poll(bContext *C)
+{
+	if (ED_space_image_maskedit_poll(C)) {
+		Image *ima = CTX_data_edit_image(C);
+
+		if (ima) {
+			SpaceImage *sima = CTX_wm_space_image(C);
+
+			return sima->mask_info.mask != NULL;
+		}
+	}
+
+	return FALSE;
 }
 
 /******************** TODO ********************/

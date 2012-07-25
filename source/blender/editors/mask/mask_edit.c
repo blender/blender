@@ -63,6 +63,8 @@ int ED_maskedit_poll(bContext *C)
 				return ED_space_clip_maskedit_poll(C);
 			case SPACE_SEQ:
 				return ED_space_sequencer_maskedit_poll(C);
+			case SPACE_IMAGE:
+				return ED_space_image_maskedit_poll(C);
 		}
 	}
 	return FALSE;
@@ -77,6 +79,8 @@ int ED_maskedit_mask_poll(bContext *C)
 				return ED_space_clip_maskedit_mask_poll(C);
 			case SPACE_SEQ:
 				return ED_space_sequencer_maskedit_mask_poll(C);
+			case SPACE_IMAGE:
+				return ED_space_sequencer_maskedit_mask_poll(C);
 		}
 	}
 	return FALSE;
@@ -86,14 +90,31 @@ int ED_maskedit_mask_poll(bContext *C)
 
 void ED_mask_mouse_pos(const bContext *C, wmEvent *event, float co[2])
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		ED_clip_mouse_pos(C, event, co);
-		BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				ED_clip_mouse_pos(C, event, co);
+				BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
+				break;
+			}
+			case SPACE_SEQ:
+				zero_v2(co); /* MASKTODO */
+				break;
+			case SPACE_IMAGE:
+				zero_v2(co); /* MASKTODO */
+				break;
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				zero_v2(co);
+				break;
+		}
 	}
 	else {
-		/* possible other spaces from which mask editing is available */
+		BLI_assert(0);
 		zero_v2(co);
 	}
 }
@@ -102,15 +123,33 @@ void ED_mask_mouse_pos(const bContext *C, wmEvent *event, float co[2])
  * output: xr/yr - mask point space */
 void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
+	ScrArea *sa = CTX_wm_area(C);
 	float co[2];
 
-	if (sc) {
-		ED_clip_point_stable_pos(C, x, y, &co[0], &co[1]);
-		BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				ED_clip_point_stable_pos(C, x, y, &co[0], &co[1]);
+				BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
+				break;
+			}
+			case SPACE_SEQ:
+				zero_v2(co); /* MASKTODO */
+				break;
+			case SPACE_IMAGE:
+				zero_v2(co); /* MASKTODO */
+				break;
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				zero_v2(co);
+				break;
+		}
 	}
 	else {
-		/* possible other spaces from which mask editing is available */
+		BLI_assert(0);
 		zero_v2(co);
 	}
 
@@ -120,19 +159,35 @@ void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr
 
 void ED_mask_point_pos__reverse(const bContext *C, float x, float y, float *xr, float *yr)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	ARegion *ar = CTX_wm_region(C);
-
+	ScrArea *sa = CTX_wm_area(C);
 	float co[2];
 
-	if (sc && ar) {
-		co[0] = x;
-		co[1] = y;
-		BKE_mask_coord_to_movieclip(sc->clip, &sc->user, co, co);
-		ED_clip_point_stable_pos__reverse(C, co, co);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				co[0] = x;
+				co[1] = y;
+				BKE_mask_coord_to_movieclip(sc->clip, &sc->user, co, co);
+				ED_clip_point_stable_pos__reverse(C, co, co);
+				break;
+			}
+			case SPACE_SEQ:
+				zero_v2(co); /* MASKTODO */
+				break;
+			case SPACE_IMAGE:
+				zero_v2(co); /* MASKTODO */
+				break;
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				zero_v2(co);
+				break;
+		}
 	}
 	else {
-		/* possible other spaces from which mask editing is available */
+		BLI_assert(0);
 		zero_v2(co);
 	}
 
@@ -148,46 +203,76 @@ void ED_mask_size(const bContext *C, int *width, int *height)
 			case SPACE_CLIP:
 			{
 				ED_space_clip_get_size(C, width, height);
-				return;
+				break;
 			}
 			case SPACE_SEQ:
 			{
 				Scene *scene = CTX_data_scene(C);
 				*width = (scene->r.size * scene->r.xsch) / 100;
 				*height = (scene->r.size * scene->r.ysch) / 100;
-				return;
+				break;
 			}
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = sa->spacedata.first;
 				ED_space_image_size(sima, width, height);
-				return;
+				break;
 			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				*width = 0;
+				*height = 0;
+				break;
 		}
 	}
-
-	/* possible other spaces from which mask editing is available */
-	*width = 0;
-	*height = 0;
+	else {
+		BLI_assert(0);
+		*width = 0;
+		*height = 0;
+	}
 }
 
 void ED_mask_aspect(const bContext *C, float *aspx, float *aspy)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		ED_space_clip_get_aspect(sc, aspx, aspy);
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacedata.first) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				ED_space_clip_get_aspect(sc, aspx, aspy);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				*aspx = *aspy = 1.0f;  /* MASKTODO - render aspect? */
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				// SpaceImage *sima = sa->spacedata.first;
+				*aspx = *aspy = 1.0f;  /* MASKTODO - image aspect? */
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				*aspx = *aspy = 1.0f;
+				break;
+		}
 	}
 	else {
-		/* possible other spaces from which mask editing is available */
-		*aspx = 1.0f;
-		*aspy = 1.0f;
+		BLI_assert(0);
+		*aspx = *aspy = 1.0f;
 	}
 }
 
 void ED_mask_pixelspace_factor(const bContext *C, float *scalex, float *scaley)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	/* MASKTODO */
 
 	if (sc) {
 		int width, height;
