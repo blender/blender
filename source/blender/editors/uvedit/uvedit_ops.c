@@ -199,8 +199,8 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 		float prev_aspect[2], fprev_aspect;
 		float aspect[2], faspect;
 
-		ED_image_uv_aspect(previma, prev_aspect, prev_aspect + 1);
-		ED_image_uv_aspect(ima, aspect, aspect + 1);
+		ED_image_get_uv_aspect(previma, prev_aspect, prev_aspect + 1);
+		ED_image_get_uv_aspect(ima, aspect, aspect + 1);
 
 		fprev_aspect = prev_aspect[0]/prev_aspect[1];
 		faspect = aspect[0]/aspect[1];
@@ -292,7 +292,7 @@ static void uvedit_pixel_to_float(SpaceImage *sima, float *dist, float pixeldist
 	int width, height;
 
 	if (sima) {
-		ED_space_image_size(sima, &width, &height);
+		ED_space_image_get_size(sima, &width, &height);
 	}
 	else {
 		width = 256;
@@ -2604,8 +2604,8 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
 	/* compute ellipse size and location, not a circle since we deal
 	 * with non square image. ellipse is normalized, r = 1.0. */
-	ED_space_image_size(sima, &width, &height);
-	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_get_size(sima, &width, &height);
+	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
 	ellipse[0] = width * zoomx / radius;
 	ellipse[1] = height * zoomy / radius;
@@ -2781,7 +2781,7 @@ static void snap_cursor_to_pixels(SpaceImage *sima)
 {
 	int width = 0, height = 0;
 
-	ED_space_image_size(sima, &width, &height);
+	ED_space_image_get_size(sima, &width, &height);
 	snap_uv_to_pixel(sima->cursor, width, height);
 }
 
@@ -2936,7 +2936,7 @@ static int snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 	float w, h;
 	short change = 0;
 
-	ED_space_image_size(sima, &width, &height);
+	ED_space_image_get_size(sima, &width, &height);
 	w = (float)width;
 	h = (float)height;
 	

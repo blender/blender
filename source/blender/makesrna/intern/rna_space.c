@@ -620,7 +620,7 @@ static void rna_SpaceImageEditor_zoom_get(PointerRNA *ptr, float *values)
 	sa = rna_area_from_space(ptr); /* can be NULL */
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 	if (ar) {
-		ED_space_image_zoom(sima, ar, &values[0], &values[1]);
+		ED_space_image_get_zoom(sima, ar, &values[0], &values[1]);
 	}
 }
 
@@ -633,7 +633,7 @@ static void rna_SpaceImageEditor_cursor_location_get(PointerRNA *ptr, float *val
 	}
 	else {
 		int w, h;
-		ED_space_image_size(sima, &w, &h);
+		ED_space_image_get_size(sima, &w, &h);
 		
 		values[0] = sima->cursor[0] * w;
 		values[1] = sima->cursor[1] * h;
@@ -649,7 +649,7 @@ static void rna_SpaceImageEditor_cursor_location_set(PointerRNA *ptr, const floa
 	}
 	else {
 		int w, h;
-		ED_space_image_size(sima, &w, &h);
+		ED_space_image_get_size(sima, &w, &h);
 		
 		sima->cursor[0] = values[0] / w;
 		sima->cursor[1] = values[1] / h;

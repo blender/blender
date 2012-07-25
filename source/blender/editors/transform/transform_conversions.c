@@ -2320,7 +2320,7 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 {
 	float aspx, aspy;
 
-	ED_space_image_uv_aspect(sima, &aspx, &aspy);
+	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 
 	/* uv coords are scaled by aspects. this is needed for rotations and
 	 * proportional editing to be consistent with the stretched uv coords
@@ -2428,8 +2428,8 @@ void flushTransUVs(TransInfo *t)
 	int a, width, height;
 	float aspx, aspy, invx, invy;
 
-	ED_space_image_uv_aspect(sima, &aspx, &aspy);
-	ED_space_image_size(sima, &width, &height);
+	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
+	ED_space_image_get_size(sima, &width, &height);
 	invx = 1.0f / aspx;
 	invy = 1.0f / aspy;
 
@@ -2451,7 +2451,7 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	int a, clipx = 1, clipy = 1;
 	float aspx, aspy, min[2], max[2];
 
-	ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+	ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 	min[0] = min[1] = 0.0f;
 	max[0] = aspx; max[1] = aspy;
 

@@ -91,7 +91,7 @@ static void sima_zoom_set(SpaceImage *sima, ARegion *ar, float zoom, float locat
 
 	if (sima->zoom < 0.1f || sima->zoom > 4.0f) {
 		/* check zoom limits */
-		ED_space_image_size(sima, &width, &height);
+		ED_space_image_get_size(sima, &width, &height);
 
 		width *= sima->zoom;
 		height *= sima->zoom;
@@ -107,8 +107,8 @@ static void sima_zoom_set(SpaceImage *sima, ARegion *ar, float zoom, float locat
 	if ((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
 		float aspx, aspy, w, h;
 
-		ED_space_image_size(sima, &width, &height);
-		ED_space_image_aspect(sima, &aspx, &aspy);
+		ED_space_image_get_size(sima, &width, &height);
+		ED_space_image_get_aspect(sima, &aspx, &aspy);
 
 		w = width * aspx;
 		h = height * aspy;
@@ -564,8 +564,8 @@ static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	sima = CTX_wm_space_image(C);
 	ar = CTX_wm_region(C);
 
-	ED_space_image_size(sima, &width, &height);
-	ED_space_image_aspect(sima, &aspx, &aspy);
+	ED_space_image_get_size(sima, &width, &height);
+	ED_space_image_get_aspect(sima, &aspx, &aspy);
 
 	w = width * aspx;
 	h = height * aspy;
@@ -621,8 +621,8 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	obedit = CTX_data_edit_object(C);
 
 	ima = ED_space_image(sima);
-	ED_space_image_size(sima, &width, &height);
-	ED_image_aspect(ima, &aspx, &aspy);
+	ED_space_image_get_size(sima, &width, &height);
+	ED_image_get_aspect(ima, &aspx, &aspy);
 
 	width = width * aspx;
 	height = height * aspy;

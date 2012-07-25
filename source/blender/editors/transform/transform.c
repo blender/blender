@@ -147,7 +147,7 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 
 		/* MASKTODO - see clip clamp w/h */
 
-		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+		ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		r_vec[0] *= aspx;
 		r_vec[1] *= aspy;
 	}
@@ -211,7 +211,7 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 	else if (t->spacetype == SPACE_IMAGE) {
 		float aspx, aspy, v[2];
 
-		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+		ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		v[0] = vec[0] / aspx;
 		v[1] = vec[1] / aspy;
 
@@ -306,13 +306,13 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 
 		if ((sima->flag & SI_COORDFLOATS) == 0) {
 			int width, height;
-			ED_space_image_size(sima, &width, &height);
+			ED_space_image_get_size(sima, &width, &height);
 
 			vec[0] *= width;
 			vec[1] *= height;
 		}
 
-		ED_space_image_uv_aspect(sima, &aspx, &aspy);
+		ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 		vec[0] /= aspx;
 		vec[1] /= aspy;
 	}
@@ -346,13 +346,13 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 
 		if ((sima->flag & SI_COORDFLOATS) == 0) {
 			int width, height;
-			ED_space_image_size(sima, &width, &height);
+			ED_space_image_get_size(sima, &width, &height);
 
 			vec[0] /= width;
 			vec[1] /= height;
 		}
 
-		ED_space_image_uv_aspect(sima, &aspx, &aspy);
+		ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 		vec[0] *= aspx;
 		vec[1] *= aspy;
 	}

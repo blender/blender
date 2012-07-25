@@ -226,7 +226,7 @@ void ED_mask_size(const bContext *C, int *width, int *height)
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = sa->spacedata.first;
-				ED_space_image_size(sima, width, height);
+				ED_space_image_get_size(sima, width, height);
 				break;
 			}
 			default:
@@ -263,7 +263,7 @@ void ED_mask_aspect(const bContext *C, float *aspx, float *aspy)
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = sa->spacedata.first;
-				ED_space_image_uv_aspect(sima, aspx, aspy);
+				ED_space_image_get_uv_aspect(sima, aspx, aspy);
 				break;
 			}
 			default:
@@ -281,25 +281,53 @@ void ED_mask_aspect(const bContext *C, float *aspx, float *aspy)
 
 void ED_mask_pixelspace_factor(const bContext *C, float *scalex, float *scaley)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacedata.first) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				int width, height;
+				float zoomx, zoomy, aspx, aspy;
 
-	/* MASKTODO */
+				ED_space_clip_get_size(C, &width, &height);
+				ED_space_clip_get_zoom(C, &zoomx, &zoomy);
+				ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
-	if (sc) {
-		int width, height;
-		float zoomx, zoomy, aspx, aspy;
+				*scalex = ((float)width * aspx) * zoomx;
+				*scaley = ((float)height * aspy) * zoomy;
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				*scalex = *scaley = 1.0f;  /* MASKTODO? */
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = sa->spacedata.first;
+				ARegion *ar = CTX_wm_region(C);
+				int width, height;
+				float zoomx, zoomy, aspx, aspy;
 
-		ED_space_clip_get_size(C, &width, &height);
-		ED_space_clip_get_zoom(C, &zoomx, &zoomy);
-		ED_space_clip_get_aspect(sc, &aspx, &aspy);
+				ED_space_image_get_size(sima, &width, &height);
+				ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+				ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 
-		*scalex = ((float)width * aspx) * zoomx;
-		*scaley = ((float)height * aspy) * zoomy;
+				*scalex = ((float)width * aspx) * zoomx;
+				*scaley = ((float)height * aspy) * zoomy;
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				*scalex = *scaley = 1.0f;
+				break;
+		}
 	}
 	else {
-		/* possible other spaces from which mask editing is available */
-		*scalex = 1.0f;
-		*scaley = 1.0f;
+		BLI_assert(0);
+		*scalex = *scaley = 1.0f;
 	}
 }
 

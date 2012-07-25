@@ -1432,7 +1432,7 @@ void calculateCenterCursor2D(TransInfo *t)
 	if (t->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
 		/* only space supported right now but may change */
-		ED_space_image_uv_aspect(sima, &aspx, &aspy);
+		ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 		cursor = sima->cursor;
 	}
 	
