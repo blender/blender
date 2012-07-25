@@ -254,7 +254,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			break;
 		case UI_ID_OPEN:
 		case UI_ID_ADD_NEW:
-			/* these call uiIDContextPropertySet */
+			/* these call uiIDContextProperty */
 			break;
 		case UI_ID_DELETE:
 			memset(&idptr, 0, sizeof(idptr));

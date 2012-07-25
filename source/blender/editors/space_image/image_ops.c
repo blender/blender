@@ -901,6 +901,25 @@ static int image_open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 			ima = tex->ima;
 	}
 
+	if (ima == NULL) {
+		PointerRNA ptr;
+		PropertyRNA *prop;
+
+		/* hook into UI */
+		uiIDContextProperty(C, &ptr, &prop);
+
+		if (prop) {
+			PointerRNA oldptr;
+
+			oldptr = RNA_property_pointer_get(&ptr, prop);
+			ima = (Image *)oldptr.id.data;
+			/* unlikely but better avoid strange crash */
+			if (ima && GS(ima->id.name) != ID_IM) {
+				ima = NULL;
+			}
+		}
+	}
+
 	if (ima)
 		path = ima->name;
 
