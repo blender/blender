@@ -123,7 +123,7 @@ EnumPropertyItem clip_editor_mode_items[] = {
 	{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction",
 	                         "Show tracking/reconstruction tools"},
 	{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
-	{SC_MODE_MASKEDIT, "MASKEDIT", ICON_MOD_MASK, "Mask editing", "Show mask editing tools"},
+	{SC_MODE_MASKEDIT, "MASK", ICON_MOD_MASK, "Mask editing", "Show mask editing tools"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -529,11 +529,14 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_SpaceUVEditor, ptr->data);
 }
 
-static void rna_SpaceImageEditor_paint_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
+	SpaceImage *sima = (SpaceImage *)(ptr->data);
+	if (sima->mode == SI_MODE_PAINT) {
+		BKE_paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
 
-	ED_space_image_paint_update(bmain->wm.first, scene->toolsettings);
+		ED_space_image_paint_update(bmain->wm.first, scene->toolsettings);
+	}
 }
 
 static int rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)
@@ -2041,7 +2044,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, image_space_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceImageEditor_mode_update");
 
 	/* grease pencil */
 	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);

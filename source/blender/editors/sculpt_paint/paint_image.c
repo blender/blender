@@ -5312,7 +5312,7 @@ void ED_space_image_uv_sculpt_update(wmWindowManager *wm, ToolSettings *settings
 			settings->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
 		}
 
-		paint_init(&settings->uvsculpt->paint, PAINT_CURSOR_SCULPT);
+		BKE_paint_init(&settings->uvsculpt->paint, PAINT_CURSOR_SCULPT);
 
 		WM_paint_cursor_activate(wm, uv_sculpt_brush_poll,
 		                         brush_drawcursor, NULL);
@@ -5602,7 +5602,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 			me->mtface = CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
 			                                  NULL, me->totface);
 
-		paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
+		BKE_paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
 
 		if (U.glreslimit != 0)
 			GPU_free_images();

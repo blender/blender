@@ -389,7 +389,6 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			switch (wmn->action) {
 				case NA_SELECTED:
-					clip_scopes_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 				case NA_EDITED:

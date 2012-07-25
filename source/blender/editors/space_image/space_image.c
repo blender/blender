@@ -429,6 +429,23 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_redraw(sa);
 			}
 			break;
+		case NC_MASK:
+			switch (wmn->data) {
+				case ND_SELECT:
+				case ND_DATA:
+				case ND_DRAW:
+					ED_area_tag_redraw(sa);
+					break;
+			}
+			switch (wmn->action) {
+				case NA_SELECTED:
+					ED_area_tag_redraw(sa);
+					break;
+				case NA_EDITED:
+					ED_area_tag_redraw(sa);
+					break;
+			}
+			break;
 		case NC_GEOM:
 			switch (wmn->data) {
 				case ND_DATA:
@@ -468,8 +485,7 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 		return 1;
 	}
 	else if (CTX_data_equals(member, "edit_mask")) {
-		Scene *scene = CTX_data_scene(C);
-		Mask *mask = BKE_sequencer_mask_get(scene); /* XXX */
+		Mask *mask = ED_space_image_get_mask(sima);
 		if (mask) {
 			CTX_data_id_pointer_set(result, &mask->id);
 		}
@@ -605,12 +621,12 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	draw_image_grease_pencil((bContext *)C, 0);
 
 	{
-		Mask *mask = BKE_sequencer_mask_get(scene); /* XXX */
+		Mask *mask = ED_space_image_get_mask(sima);
 		if (mask) {
 			int width, height;
 			ED_mask_size(C, &width, &height);
 			ED_mask_draw_region(mask, ar,
-			                    0, 0,  /* TODO */
+			                    sima->mask_info.draw_flag, sima->mask_info.draw_type,
 			                    width, height,
 			                    TRUE, FALSE,
 			                    NULL, C);
