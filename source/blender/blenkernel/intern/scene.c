@@ -178,21 +178,21 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 			ts->vpaint->paintcursor = NULL;
 			ts->vpaint->vpaint_prev = NULL;
 			ts->vpaint->wpaint_prev = NULL;
-			copy_paint(&ts->vpaint->paint, &ts->vpaint->paint);
+			BKE_paint_copy(&ts->vpaint->paint, &ts->vpaint->paint);
 		}
 		if (ts->wpaint) {
 			ts->wpaint = MEM_dupallocN(ts->wpaint);
 			ts->wpaint->paintcursor = NULL;
 			ts->wpaint->vpaint_prev = NULL;
 			ts->wpaint->wpaint_prev = NULL;
-			copy_paint(&ts->wpaint->paint, &ts->wpaint->paint);
+			BKE_paint_copy(&ts->wpaint->paint, &ts->wpaint->paint);
 		}
 		if (ts->sculpt) {
 			ts->sculpt = MEM_dupallocN(ts->sculpt);
-			copy_paint(&ts->sculpt->paint, &ts->sculpt->paint);
+			BKE_paint_copy(&ts->sculpt->paint, &ts->sculpt->paint);
 		}
 
-		copy_paint(&ts->imapaint.paint, &ts->imapaint.paint);
+		BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint);
 		ts->imapaint.paintcursor = NULL;
 		ts->particle.paintcursor = NULL;
 	}
@@ -294,22 +294,22 @@ void BKE_scene_free(Scene *sce)
 	
 	if (sce->toolsettings) {
 		if (sce->toolsettings->vpaint) {
-			free_paint(&sce->toolsettings->vpaint->paint);
+			BKE_paint_free(&sce->toolsettings->vpaint->paint);
 			MEM_freeN(sce->toolsettings->vpaint);
 		}
 		if (sce->toolsettings->wpaint) {
-			free_paint(&sce->toolsettings->wpaint->paint);
+			BKE_paint_free(&sce->toolsettings->wpaint->paint);
 			MEM_freeN(sce->toolsettings->wpaint);
 		}
 		if (sce->toolsettings->sculpt) {
-			free_paint(&sce->toolsettings->sculpt->paint);
+			BKE_paint_free(&sce->toolsettings->sculpt->paint);
 			MEM_freeN(sce->toolsettings->sculpt);
 		}
 		if (sce->toolsettings->uvsculpt) {
-			free_paint(&sce->toolsettings->uvsculpt->paint);
+			BKE_paint_free(&sce->toolsettings->uvsculpt->paint);
 			MEM_freeN(sce->toolsettings->uvsculpt);
 		}
-		free_paint(&sce->toolsettings->imapaint.paint);
+		BKE_paint_free(&sce->toolsettings->imapaint.paint);
 
 		MEM_freeN(sce->toolsettings);
 		sce->toolsettings = NULL;	
