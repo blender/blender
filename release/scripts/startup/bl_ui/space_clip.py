@@ -20,7 +20,12 @@
 
 import bpy
 from bpy.types import Panel, Header, Menu
-
+from bl_ui.properties_mask_common import (MASK_PT_mask,
+                                          MASK_PT_layers,
+                                          MASK_PT_spline,
+                                          MASK_PT_point,
+                                          MASK_PT_display,
+                                          MASK_PT_tools)
 
 class CLIP_HT_header(Header):
     bl_space_type = 'CLIP_EDITOR'
@@ -115,11 +120,11 @@ class CLIP_HT_header(Header):
             sub.menu("CLIP_MT_view")
 
             if clip:
-                sub.menu("CLIP_MT_select")
-                sub.menu("CLIP_MT_clip")
-                sub.menu("CLIP_MT_mask")
+                sub.menu("MASK_MT_select")
+                sub.menu("CLIP_MT_clip")  # XXX - remove?
+                sub.menu("MASK_MT_mask")
             else:
-                sub.menu("CLIP_MT_clip")
+                sub.menu("CLIP_MT_clip")  # XXX - remove?
 
         row = layout.row()
         row.template_ID(sc, "clip", open="clip.open")
@@ -422,32 +427,9 @@ class CLIP_PT_tools_object(CLIP_PT_reconstruction_panel, Panel):
         col.prop(settings, "object_distance")
 
 
-class CLIP_PT_tools_mask(CLIP_PT_mask_view_panel, Panel):
+class CLIP_PT_tools_mask(MASK_PT_tools, CLIP_PT_mask_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_label = "Mask Tools"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Transform:")
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
-        props = col.operator("transform.transform", text="Shrink/Fatten")
-        props.mode = 'MASK_SHRINKFATTEN'
-
-        col = layout.column(align=True)
-        col.label(text="Spline:")
-        col.operator("mask.delete")
-        col.operator("mask.cyclic_toggle")
-        col.operator("mask.switch_direction")
-
-        col = layout.column(align=True)
-        col.label(text="Parenting:")
-        col.operator("mask.parent_set")
-        col.operator("mask.parent_clear")
 
 
 class CLIP_PT_tools_grease_pencil(Panel):
@@ -661,134 +643,19 @@ class CLIP_PT_tracking_camera(Panel):
         col.prop(clip.tracking.camera, "k3")
 
 
-class CLIP_PT_mask_layers(Panel):
+class CLIP_PT_mask_layers(MASK_PT_layers, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Mask Layers"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-
-        return sc.mask and sc.mode == 'MASKEDIT'
-
-    def draw(self, context):
-        layout = self.layout
-
-        sc = context.space_data
-        mask = sc.mask
-        active_layer = mask.layers.active
-
-        rows = 5 if active_layer else 2
-
-        row = layout.row()
-        row.template_list(mask, "layers",
-                          mask, "active_layer_index", rows=rows)
-
-        sub = row.column(align=True)
-
-        sub.operator("mask.layer_new", icon='ZOOMIN', text="")
-        sub.operator("mask.layer_remove", icon='ZOOMOUT', text="")
-
-        if active_layer:
-            sub.separator()
-
-            props = sub.operator("mask.layer_move", icon='TRIA_UP', text="")
-            props.direction = 'UP'
-
-            props = sub.operator("mask.layer_move", icon='TRIA_DOWN', text="")
-            props.direction = 'DOWN'
-
-            layout.prop(active_layer, "name")
-
-            # blending
-            row = layout.row(align=True)
-            row.prop(active_layer, "alpha")
-            row.prop(active_layer, "invert", text="", icon='IMAGE_ALPHA')
-
-            layout.prop(active_layer, "blend")
-            layout.prop(active_layer, "falloff")
 
 
-class CLIP_PT_active_mask_spline(Panel):
+class CLIP_PT_active_mask_spline(MASK_PT_spline, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Active Spline"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        mask = sc.mask
-
-        if mask and sc.mode == 'MASKEDIT':
-            return mask.layers.active and mask.layers.active.splines.active
-
-        return False
-
-    def draw(self, context):
-        layout = self.layout
-
-        sc = context.space_data
-        mask = sc.mask
-        spline = mask.layers.active.splines.active
-
-        col = layout.column()
-        col.prop(spline, "weight_interpolation")
-        rowsub = col.row()
-        rowsub.prop(spline, "use_cyclic")
-        rowsub.prop(spline, "use_fill")
 
 
-class CLIP_PT_active_mask_point(Panel):
+class CLIP_PT_active_mask_point(MASK_PT_point, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Active Point"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        mask = sc.mask
-
-        if mask and sc.mode == 'MASKEDIT':
-            mask_layer_active = mask.layers.active
-            return (mask_layer_active and
-                    mask_layer_active.splines.active_point)
-
-        return False
-
-    def draw(self, context):
-        layout = self.layout
-
-        sc = context.space_data
-        mask = sc.mask
-        point = mask.layers.active.splines.active_point
-        parent = point.parent
-
-        col = layout.column()
-        col.prop(point, "handle_type")
-
-        col = layout.column()
-        # Currently only parenting yo movie clip is allowed, so do not
-        # ver-oplicate things for now and use single template_ID
-        #col.template_any_ID(parent, "id", "id_type", text="")
-
-        col.label("Parent:")
-        col.prop(parent, "id", text="")
-
-        if parent.id_type == 'MOVIECLIP' and parent.id:
-            clip = parent.id
-            tracking = clip.tracking
-
-            col.prop_search(parent, "parent", tracking,
-                            "objects", icon='OBJECT_DATA', text="Object:")
-
-            if parent.parent in tracking.objects:
-                object = tracking.objects[parent.parent]
-                col.prop_search(parent, "sub_parent", object,
-                                "tracks", icon='ANIM_DATA', text="Track:")
-            else:
-                col.prop_search(parent, "sub_parent", tracking,
-                                "tracks", icon='ANIM_DATA', text="Track:")
 
 
 class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
@@ -835,28 +702,15 @@ class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
             row = col.row()
             row.prop(clip, "display_aspect", text="")
 
-        if sc.mode == 'MASKEDIT':
-            col = layout.column()
-            col.prop(sc, "mask_draw_type", text="")
-            col.prop(sc, "show_mask_smooth")
 
-
-# TODO, move into its own file
-class CLIP_PT_mask(CLIP_PT_mask_view_panel, Panel):
+class CLIP_PT_mask(MASK_PT_mask, CLIP_PT_mask_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Mask Settings"
-    bl_options = {'DEFAULT_CLOSED'}
 
-    def draw(self, context):
-        layout = self.layout
 
-        sc = context.space_data
-        mask = sc.mask
-
-        col = layout.column(align=True)
-        col.prop(mask, "frame_start")
-        col.prop(mask, "frame_end")
+class CLIP_PT_mask_display(MASK_PT_display, CLIP_PT_mask_view_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
 
 
 class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):
@@ -1280,30 +1134,6 @@ class CLIP_MT_tracking_specials(Menu):
         props.action = 'UNLOCK'
 
 
-class CLIP_MT_mask(Menu):
-    bl_label = "Mask"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("mask.delete")
-
-        layout.separator()
-        layout.operator("mask.cyclic_toggle")
-        layout.operator("mask.switch_direction")
-        layout.operator("mask.normals_make_consistent")
-        layout.operator("mask.feather_weight_clear")  # TODO, better place?
-
-        layout.separator()
-        layout.operator("mask.parent_clear")
-        layout.operator("mask.parent_set")
-
-        layout.separator()
-        layout.menu("CLIP_MT_mask_visibility")
-        layout.menu("CLIP_MT_mask_transform")
-        layout.menu("CLIP_MT_mask_animation")
-
-
 class CLIP_MT_select_mode(Menu):
     bl_label = "Select Mode"
 
@@ -1313,44 +1143,6 @@ class CLIP_MT_select_mode(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator_enum("clip.mode_set", "mode")
-
-
-class CLIP_MT_mask_visibility(Menu):
-    bl_label = "Show/Hide"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("mask.hide_view_clear", text="Show Hidden")
-        layout.operator("mask.hide_view_set", text="Hide Selected")
-
-        props = layout.operator("mask.hide_view_set", text="Hide Unselected")
-        props.unselected = True
-
-
-class CLIP_MT_mask_transform(Menu):
-    bl_label = "Transform"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("transform.translate")
-        layout.operator("transform.rotate")
-        layout.operator("transform.resize")
-        props = layout.operator("transform.transform", text="Shrink/Fatten")
-        props.mode = 'MASK_SHRINKFATTEN'
-
-
-class CLIP_MT_mask_animation(Menu):
-    bl_label = "Animation"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("mask.shape_key_clear")
-        layout.operator("mask.shape_key_insert")
-        layout.operator("mask.shape_key_feather_reset")
-        layout.operator("mask.shape_key_rekey")
 
 
 class CLIP_MT_camera_presets(Menu):
