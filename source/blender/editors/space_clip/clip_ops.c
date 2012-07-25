@@ -992,7 +992,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 			break;
 
 		*do_update = TRUE;
-		*progress = ((float) cfra) / (efra - sfra);
+		*progress = ((float) cfra - sfra) / (efra - sfra);
 	}
 
 	if (distortion)

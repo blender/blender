@@ -4212,7 +4212,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 		/* Mask layer is required */
 		ED_sculpt_mask_layers_ensure(ob, mmd);
 
-		paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
+		BKE_paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 		
 		paint_cursor_start(C, sculpt_poll);
 	}

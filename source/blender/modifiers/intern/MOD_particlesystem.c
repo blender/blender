@@ -176,6 +176,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	psmd->dm->needsFree = 0;
 
 	/* report change in mesh structure */
+	DM_ensure_tessface(psmd->dm);
 	if (psmd->dm->getNumVerts(psmd->dm) != psmd->totdmvert ||
 	    psmd->dm->getNumEdges(psmd->dm) != psmd->totdmedge ||
 	    psmd->dm->getNumTessFaces(psmd->dm) != psmd->totdmface)

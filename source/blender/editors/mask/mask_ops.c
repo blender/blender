@@ -45,10 +45,11 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
-#include "ED_mask.h"
 #include "ED_clip.h"
+#include "ED_image.h"
 #include "ED_keyframing.h"
+#include "ED_mask.h"
+#include "ED_screen.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -255,7 +256,7 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 
 static int mask_new_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
+	ScrArea *sa = CTX_wm_area(C);
 	Mask *mask;
 	char name[MAX_ID_NAME - 2];
 
@@ -263,8 +264,27 @@ static int mask_new_exec(bContext *C, wmOperator *op)
 
 	mask = BKE_mask_new(name);
 
-	if (sc)
-		ED_space_clip_set_mask(C, sc, mask);
+	if (sa && sa->spacedata.first) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				ED_space_clip_set_mask(C, sc, mask);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				/* do nothing */
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = sa->spacedata.first;
+				ED_space_image_set_mask(C, sima, mask);
+				break;
+			}
+		}
+	}
 
 	return OPERATOR_FINISHED;
 }

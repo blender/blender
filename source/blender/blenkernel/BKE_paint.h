@@ -51,7 +51,7 @@ extern const char PAINT_CURSOR_VERTEX_PAINT[3];
 extern const char PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const char PAINT_CURSOR_TEXTURE_PAINT[3];
 
-void paint_init(struct Paint *p, const char col[3]);
+void BKE_paint_init(struct Paint *p, const char col[3]);
 void free_paint(struct Paint *p);
 void copy_paint(struct Paint *src, struct Paint *tar);
 

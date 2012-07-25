@@ -87,6 +87,33 @@ float *MemoryBuffer::convertToValueBuffer()
 	return result;
 }
 
+float MemoryBuffer::getMaximumValue()
+{
+	float result = this->m_buffer[0];
+	const unsigned int size = this->determineBufferSize();
+	unsigned int i;
+
+	const float *fp_src = this->m_buffer;
+
+	for (i = 0; i < size; i++, fp_src += COM_NUMBER_OF_CHANNELS) {
+		float value = *fp_src;
+		if (value > result) {
+			result = value;
+		}
+	}
+
+	return result;
+}
+
+float MemoryBuffer::getMaximumValue(rcti* rect)
+{
+	MemoryBuffer *temp = new MemoryBuffer(NULL, rect);
+	temp->copyContentFrom(this);
+	float result = temp->getMaximumValue();
+	delete temp;
+	return result;
+}
+
 MemoryBuffer::~MemoryBuffer()
 {
 	if (this->m_buffer) {

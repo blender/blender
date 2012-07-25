@@ -1997,7 +1997,7 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))  /* toggle */
 		if (wp == NULL)
 			wp = scene->toolsettings->wpaint = new_vpaint(1);
 
-		paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
+		BKE_paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
 		paint_cursor_start(C, weight_paint_poll);
 		
 		mesh_octree_table(ob, NULL, NULL, 's');
@@ -2574,7 +2574,7 @@ static int set_vpaint(bContext *C, wmOperator *op)  /* toggle */
 		
 		paint_cursor_start(C, vertex_paint_poll);
 
-		paint_init(&vp->paint, PAINT_CURSOR_VERTEX_PAINT);
+		BKE_paint_init(&vp->paint, PAINT_CURSOR_VERTEX_PAINT);
 	}
 	
 	if (me)

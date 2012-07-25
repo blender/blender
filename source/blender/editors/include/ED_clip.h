@@ -65,7 +65,7 @@ struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc, float loc[2]
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
 int ED_clip_view_selection(const struct bContext *C, struct ARegion *ar, int fit);
 
-void ED_clip_point_undistorted_pos(SpaceClip *sc, const float co[2], float r_co[2]);
+void ED_clip_point_undistorted_pos(struct SpaceClip *sc, const float co[2], float r_co[2]);
 void ED_clip_point_stable_pos(const struct bContext *C, float x, float y, float *xr, float *yr);
 void ED_clip_point_stable_pos__reverse(const struct bContext *C, const float co[2], float r_co[2]);
 void ED_clip_mouse_pos(const struct bContext *C, struct wmEvent *event, float co[2]);

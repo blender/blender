@@ -27,8 +27,6 @@
  *  \ingroup spimage
  */
 
-
-
 #include <string.h>
 #include <stdio.h>
 

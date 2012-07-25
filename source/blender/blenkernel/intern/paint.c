@@ -168,7 +168,7 @@ int paint_vertsel_test(Object *ob)
 	         );
 }
 
-void paint_init(Paint *p, const char col[3])
+void BKE_paint_init(Paint *p, const char col[3])
 {
 	Brush *brush;
 
