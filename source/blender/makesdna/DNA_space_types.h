@@ -718,6 +718,13 @@ typedef enum eSpaceImage_UVDT_Stretch {
 	SI_UVDT_STRETCH_AREA = 1,
 } eSpaceImage_UVDT_Stretch;
 
+/* SpaceImage->mode */
+typedef enum eSpaceImage_Mode {
+	SI_MODE_VIEW  = 0,
+	SI_MODE_PAINT = 1,
+	SI_MODE_MASK  = 2
+} eSpaceImage_Mode;
+
 /* SpaceImage->sticky
  * Note DISABLE should be 0, however would also need to re-arrange icon order,
  * also, sticky loc is the default mode so this means we don't need to 'do_versons' */
@@ -732,7 +739,7 @@ typedef enum eSpaceImage_Flag {
 /*	SI_BE_SQUARE          = (1 << 0), */  /* deprecated */
 	SI_EDITTILE           = (1 << 1),     /* XXX - not used but should be? */
 	SI_CLIP_UV            = (1 << 2),
-	SI_DRAWTOOL           = (1 << 3),
+/*	SI_DRAWTOOL           = (1 << 3), */  /* deprecated */
 	SI_NO_DRAWFACES       = (1 << 4),
 	SI_DRAWSHADOW         = (1 << 5),
 /*	SI_SELACTFACE         = (1 << 6), */  /* deprecated */

@@ -141,7 +141,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	if (sa && (sa->spacetype == SPACE_IMAGE)) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 		
-		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->flag & SI_DRAWTOOL)) {
+		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
 			if (!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname) && undoname)
 				if (U.uiflag & USER_GLOBALUNDO)
 					BKE_undo_name(C, undoname);
@@ -238,7 +238,7 @@ int ED_undo_valid(const bContext *C, const char *undoname)
 	if (sa && sa->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 		
-		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->flag & SI_DRAWTOOL)) {
+		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
 			return 1;
 		}
 	}

@@ -4667,8 +4667,9 @@ static int image_paint_poll(bContext *C)
 		if (sima) {
 			ARegion *ar = CTX_wm_region(C);
 
-			if ((sima->flag & SI_DRAWTOOL) && ar->regiontype == RGN_TYPE_WINDOW)
+			if ((sima->mode == SI_MODE_PAINT) && ar->regiontype == RGN_TYPE_WINDOW) {
 				return 1;
+			}
 		}
 	}
 

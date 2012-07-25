@@ -66,8 +66,11 @@ void ED_space_image_set(SpaceImage *sima, Scene *scene, Object *obedit, Image *i
 	 * to check if the face is displayed in UV-localview */
 	sima->image = ima;
 
-	if (ima == NULL || ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE)
-		sima->flag &= ~SI_DRAWTOOL;
+	if (ima == NULL || ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE) {
+		if (sima->mode == SI_MODE_PAINT) {
+			sima->mode = SI_MODE_VIEW;
+		}
+	}
 
 	if (sima->image)
 		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
@@ -257,7 +260,7 @@ int ED_space_image_show_paint(SpaceImage *sima)
 	if (ED_space_image_show_render(sima))
 		return 0;
 
-	return (sima->flag & SI_DRAWTOOL);
+	return (sima->mode == SI_MODE_PAINT);
 }
 
 int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)

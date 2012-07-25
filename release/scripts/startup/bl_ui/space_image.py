@@ -153,10 +153,6 @@ class IMAGE_MT_image(Menu):
                     if ima.source in {'FILE', 'GENERATED'} and ima.type != 'OPEN_EXR_MULTILAYER':
                         layout.operator("image.pack", text="Pack As PNG").as_png = True
 
-            if not context.tool_settings.use_uv_sculpt:
-                layout.separator()
-                layout.prop(sima, "use_image_paint")
-
             layout.separator()
 
 
@@ -411,7 +407,7 @@ class IMAGE_HT_header(Header):
             layout.template_image_layers(ima, iuser)
 
             # painting
-            layout.prop(sima, "use_image_paint", text="")
+            layout.prop(sima, "mode", text="")
 
             # draw options
             row = layout.row(align=True)
@@ -423,7 +419,7 @@ class IMAGE_HT_header(Header):
             if ima.type == 'COMPOSITE' and ima.source in {'MOVIE', 'SEQUENCE'}:
                 row.operator("image.play_composite", icon='PLAY')
 
-        if show_uvedit or sima.use_image_paint:
+        if show_uvedit or sima.mode == 'PAINT':
             layout.prop(sima, "use_realtime_update", text="", icon_only=True, icon='LOCKED')
 
 

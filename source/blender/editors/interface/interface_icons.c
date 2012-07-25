@@ -1091,7 +1091,7 @@ static int ui_id_brush_get_icon(bContext *C, ID *id)
 				mode = OB_MODE_TEXTURE_PAINT;
 		}
 		else if ((sima = CTX_wm_space_image(C)) &&
-		         (sima->flag & SI_DRAWTOOL))
+		         (sima->mode == SI_MODE_PAINT))
 		{
 			mode = OB_MODE_TEXTURE_PAINT;
 		}
