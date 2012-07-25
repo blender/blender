@@ -1085,12 +1085,15 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 				return NULL;
 			break;
 		case 2:
-			if (mathutils_array_parse(quat, 3, 3, seq, "mathutils.Quaternion()") == -1)
+		{
+			float axis[3];
+			if (mathutils_array_parse(axis, 3, 3, seq, "mathutils.Quaternion()") == -1)
 				return NULL;
 			angle = angle_wrap_rad(angle); /* clamp because of precision issues */
-			axis_angle_to_quat(quat, quat, angle);
+			axis_angle_to_quat(quat, axis, angle);
 			break;
 			/* PyArg_ParseTuple assures no more then 2 */
+		}
 	}
 	return Quaternion_CreatePyObject(quat, Py_NEW, type);
 }

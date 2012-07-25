@@ -68,8 +68,8 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 	float zoomx, zoomy, w, h;
 	int width, height;
 
-	ED_space_image_size(sima, &width, &height);
-	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_get_size(sima, &width, &height);
+	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
 	w = zoomx * width / 256.0f;
 	h = zoomy * height / 256.0f;
@@ -174,7 +174,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 	float aspx, aspy, col[4], (*tf_uv)[2] = NULL, (*tf_uvorig)[2] = NULL;
 	int i, j, nverts;
 
-	ED_space_image_uv_aspect(sima, &aspx, &aspy);
+	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 	
 	switch (sima->dt_uvstretch) {
 		case SI_UVDT_STRETCH_AREA:

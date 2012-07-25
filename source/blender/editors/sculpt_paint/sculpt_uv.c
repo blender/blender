@@ -315,8 +315,8 @@ static void uv_sculpt_stroke_apply(bContext *C, wmOperator *op, wmEvent *event, 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
 	sima = CTX_wm_space_image(C);
-	ED_space_image_size(sima, &width, &height);
-	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_get_size(sima, &width, &height);
+	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
 	radius = BKE_brush_size_get(scene, brush) / (width * zoomx);
 	aspectRatio = width / (float)height;
@@ -683,8 +683,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 
 			radius = BKE_brush_size_get(scene, brush);
 			sima = CTX_wm_space_image(C);
-			ED_space_image_size(sima, &width, &height);
-			ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
+			ED_space_image_get_size(sima, &width, &height);
+			ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
 			aspectRatio = width / (float)height;
 			radius /= (width * zoomx);

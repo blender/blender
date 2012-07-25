@@ -662,15 +662,16 @@ void print_qt(const char *str, const float q[4])
 /* Axis angle to Quaternions */
 void axis_angle_to_quat(float q[4], const float axis[3], const float angle)
 {
+	float nor[3];
 
-	if (LIKELY(normalize_v3_v3(q + 1, axis) != 0.0f)) {
+	if (LIKELY(normalize_v3_v3(nor, axis) != 0.0f)) {
 		const float phi = angle / 2.0f;
 		float si;
 		si   = sinf(phi);
 		q[0] = cosf(phi);
-		q[1] *= si;
-		q[2] *= si;
-		q[3] *= si;
+		q[1] = nor[0] * si;
+		q[2] = nor[1] * si;
+		q[3] = nor[2] * si;
 	}
 	else {
 		unit_qt(q);

@@ -136,7 +136,7 @@ int ED_space_image_has_buffer(SpaceImage *sima)
 	return has_buffer;
 }
 
-void ED_image_size(Image *ima, int *width, int *height)
+void ED_image_get_size(Image *ima, int *width, int *height)
 {
 	ImBuf *ibuf = NULL;
 	void *lock;
@@ -149,15 +149,15 @@ void ED_image_size(Image *ima, int *width, int *height)
 		*height = ibuf->y;
 	}
 	else {
-		*width = 256;
-		*height = 256;
+		*width  = IMG_SIZE_FALLBACK;
+		*height = IMG_SIZE_FALLBACK;
 	}
 
 	if (ima)
 		BKE_image_release_ibuf(ima, lock);
 }
 
-void ED_space_image_size(SpaceImage *sima, int *width, int *height)
+void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
 {
 	Scene *scene = sima->iuser.scene;
 	ImBuf *ibuf;
@@ -183,14 +183,14 @@ void ED_space_image_size(SpaceImage *sima, int *width, int *height)
 	/* I know a bit weak... but preview uses not actual image size */
 	// XXX else if (image_preview_active(sima, width, height));
 	else {
-		*width = 256;
-		*height = 256;
+		*width  = IMG_SIZE_FALLBACK;
+		*height = IMG_SIZE_FALLBACK;
 	}
 
 	ED_space_image_release_buffer(sima, lock);
 }
 
-void ED_image_aspect(Image *ima, float *aspx, float *aspy)
+void ED_image_get_aspect(Image *ima, float *aspx, float *aspy)
 {
 	*aspx = *aspy = 1.0;
 
@@ -204,27 +204,27 @@ void ED_image_aspect(Image *ima, float *aspx, float *aspy)
 	*aspy = ima->aspy / ima->aspx;
 }
 
-void ED_space_image_aspect(SpaceImage *sima, float *aspx, float *aspy)
+void ED_space_image_get_aspect(SpaceImage *sima, float *aspx, float *aspy)
 {
-	ED_image_aspect(ED_space_image(sima), aspx, aspy);
+	ED_image_get_aspect(ED_space_image(sima), aspx, aspy);
 }
 
-void ED_space_image_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zoomy)
+void ED_space_image_get_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zoomy)
 {
 	int width, height;
 
-	ED_space_image_size(sima, &width, &height);
+	ED_space_image_get_size(sima, &width, &height);
 
 	*zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1) / (float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin) * width);
 	*zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1) / (float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin) * height);
 }
 
-void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
+void ED_space_image_get_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
 {
 	int w, h;
 
-	ED_space_image_aspect(sima, aspx, aspy);
-	ED_space_image_size(sima, &w, &h);
+	ED_space_image_get_aspect(sima, aspx, aspy);
+	ED_space_image_get_size(sima, &w, &h);
 
 	*aspx *= (float)w;
 	*aspy *= (float)h;
@@ -239,12 +239,12 @@ void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
 	}
 }
 
-void ED_image_uv_aspect(Image *ima, float *aspx, float *aspy)
+void ED_image_get_uv_aspect(Image *ima, float *aspx, float *aspy)
 {
 	int w, h;
 
-	ED_image_aspect(ima, aspx, aspy);
-	ED_image_size(ima, &w, &h);
+	ED_image_get_aspect(ima, aspx, aspy);
+	ED_image_get_size(ima, &w, &h);
 
 	*aspx *= (float)w;
 	*aspy *= (float)h;

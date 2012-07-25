@@ -5201,7 +5201,7 @@ int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 		SpaceImage *sima = CTX_wm_space_image(C);
 		ARegion *ar = CTX_wm_region(C);
 		
-		ED_space_image_zoom(sima, ar, zoomx, zoomy);
+		ED_space_image_get_zoom(sima, ar, zoomx, zoomy);
 
 		return 1;
 	}

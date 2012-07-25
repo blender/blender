@@ -5845,6 +5845,8 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 			else
 				value++;
 
+			CLAMP(value, 0, pa->list_last_len - 1);
+
 			if (value < pa->list_scroll)
 				pa->list_scroll = value;
 			else if (value >= pa->list_scroll + pa->list_size)

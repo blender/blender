@@ -64,6 +64,7 @@ struct LOD_Decimation_Info;
 struct MCol;
 struct MTex;
 struct Main;
+struct Mask;
 struct Material;
 struct MenuType;
 struct Mesh;
@@ -229,6 +230,7 @@ void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct ToolSett
 void ED_screen_set_scene(struct bContext *C, struct Scene *scene) {}
 void ED_space_clip_set_clip(struct bContext *C, struct SpaceClip *sc, struct MovieClip *clip) {}
 void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mask *mask) {}
+void ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask) {}
 
 void ED_area_tag_redraw_regiontype(struct ScrArea *sa, int regiontype) {}
 void ED_render_engine_changed(struct Main *bmain) {}
@@ -271,7 +273,7 @@ short ANIM_add_driver(struct ID *id, const char rna_path[], int array_index, sho
 short ANIM_remove_driver(struct ID *id, const char rna_path[], int array_index, short flag) {return 0;}
 void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock) {}
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r) {return (struct ImBuf *) NULL;}
-void ED_space_image_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy) {}
+void ED_space_image_get_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy) {}
 char *ED_info_stats_string(struct Scene *scene) {return (char *) NULL;}
 void ED_area_tag_redraw(struct ScrArea *sa) {}
 void ED_area_tag_refresh(struct ScrArea *sa) {}
@@ -345,7 +347,7 @@ intptr_t mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, 
 
 void ED_sequencer_update_view(struct bContext *C, int view) {}
 float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]) {return 0.0f;}
-void ED_space_image_size(struct SpaceImage *sima, int *width, int *height) {}
+void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height) {}
 
 void ED_nurb_set_spline_type(struct Nurb *nu, int type) {}
 
