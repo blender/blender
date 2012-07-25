@@ -6447,19 +6447,6 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const short d
 	const char *axis_str[3] = {"px", "py", "pz"};
 	int axis;
 	float mat[4][4];
-	unsigned char _col[4], *col;
-
-	/* color */
-	if (dflag & DRAW_CONSTCOLOR) {
-		/* so we can draw pivot point in current const color */
-		float tcol[4];
-		col = _col;
-		glGetFloatv(GL_CURRENT_COLOR, tcol);
-		rgb_float_to_uchar(col, tcol);
-	}
-	else {
-		col = ob_wire_col;
-	}
 
 	eul_to_mat4(mat, &data->axX);
 	glLineWidth(4.0f);
@@ -6470,7 +6457,7 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const short d
 
 		copy_v3_v3(v, &data->pivX);
 
-		dir[axis] = 1.f;
+		dir[axis] = 1.0f;
 		glBegin(GL_LINES);
 		mul_m4_v3(mat, dir);
 		add_v3_v3(v, dir);
@@ -6478,7 +6465,11 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const short d
 		glVertex3fv(v);
 		glEnd();
 
-		view3d_cached_text_draw_add(v, axis_str[axis], 0, V3D_CACHE_TEXT_ASCII, col);
+		/* when const color is set wirecolor is NULL - we could get the current color but
+		 * with selection and group instancing its not needed to draw the text */
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			view3d_cached_text_draw_add(v, axis_str[axis], 0, V3D_CACHE_TEXT_ASCII, ob_wire_col);
+		}
 	}
 	glLineWidth(1.0f);
 	setlinestyle(0);
