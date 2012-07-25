@@ -186,36 +186,198 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 
 /*********************** Selection by Links *********************/
 
+enum {
+	OBJECT_SELECT_LINKED_IPO = 1,
+	OBJECT_SELECT_LINKED_OBDATA,
+	OBJECT_SELECT_LINKED_MATERIAL,
+	OBJECT_SELECT_LINKED_TEXTURE,
+	OBJECT_SELECT_LINKED_DUPGROUP,
+	OBJECT_SELECT_LINKED_PARTICLE,
+	OBJECT_SELECT_LINKED_LIBRARY,
+	OBJECT_SELECT_LINKED_LIBRARY_OBDATA
+};
+
 static EnumPropertyItem prop_select_linked_types[] = {
-	//{1, "IPO", 0, "Object IPO", ""}, // XXX depreceated animation system stuff...
-	{2, "OBDATA", 0, "Object Data", ""},
-	{3, "MATERIAL", 0, "Material", ""},
-	{4, "TEXTURE", 0, "Texture", ""},
-	{5, "DUPGROUP", 0, "Dupligroup", ""},
-	{6, "PARTICLE", 0, "Particle System", ""},
-	{7, "LIBRARY", 0, "Library", ""},
-	{8, "LIBRARY_OBDATA", 0, "Library (Object Data)", ""},
+	//{OBJECT_SELECT_LINKED_IPO, "IPO", 0, "Object IPO", ""}, // XXX depreceated animation system stuff...
+	{OBJECT_SELECT_LINKED_OBDATA, "OBDATA", 0, "Object Data", ""},
+	{OBJECT_SELECT_LINKED_MATERIAL, "MATERIAL", 0, "Material", ""},
+	{OBJECT_SELECT_LINKED_TEXTURE, "TEXTURE", 0, "Texture", ""},
+	{OBJECT_SELECT_LINKED_DUPGROUP, "DUPGROUP", 0, "Dupligroup", ""},
+	{OBJECT_SELECT_LINKED_PARTICLE, "PARTICLE", 0, "Particle System", ""},
+	{OBJECT_SELECT_LINKED_LIBRARY, "LIBRARY", 0, "Library", ""},
+	{OBJECT_SELECT_LINKED_LIBRARY_OBDATA, "LIBRARY_OBDATA", 0, "Library (Object Data)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
+
+// XXX old animation system
+#if 0
+static int object_select_all_by_ipo(bContext *C, Ipo *ipo)
+{
+	int changed = FALSE;
+
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
+		if (base->object->ipo == ipo) {
+			base->flag |= SELECT;
+			base->object->flag = base->flag;
+
+			changed = TRUE;
+		}
+	}
+	CTX_DATA_END;
+
+	return changed;
+}
+#endif
+
+static int object_select_all_by_obdata(bContext *C, void *obdata)
+{
+	int changed = FALSE;
+
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
+		if (base->object->data == obdata) {
+			base->flag |= SELECT;
+			base->object->flag = base->flag;
+
+			changed = TRUE;
+		}
+	}
+	CTX_DATA_END;
+
+	return changed;
+}
+
+static int object_select_all_by_material_texture(bContext *C, int use_texture, Material *mat, Tex *tex)
+{
+	int changed = FALSE;
+
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
+		Object *ob = base->object;
+		Material *mat1;
+		int a, b;
+
+		for (a = 1; a <= ob->totcol; a++) {
+			mat1 = give_current_material(ob, a);
+
+			if (!use_texture) {
+				if (mat1 == mat) {
+					base->flag |= SELECT;
+					changed = TRUE;
+				}
+			}
+			else if (mat1 && use_texture) {
+				for (b = 0; b < MAX_MTEX; b++) {
+					if (mat1->mtex[b]) {
+						if (tex == mat1->mtex[b]->tex) {
+							base->flag |= SELECT;
+							changed = TRUE;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		base->object->flag = base->flag;
+	}
+	CTX_DATA_END;
+
+	return changed;
+}
+
+static int object_select_all_by_dup_group(bContext *C, Group *dup_group)
+{
+	int changed = FALSE;
+
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
+		if (base->object->dup_group == dup_group) {
+			base->flag |= SELECT;
+			base->object->flag = base->flag;
+
+			changed = TRUE;
+		}
+	}
+	CTX_DATA_END;
+
+	return changed;
+}
+
+static int object_select_all_by_particle(bContext *C, Object *ob)
+{
+	int changed = FALSE;
+
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
+		/* loop through other, then actives particles*/
+		ParticleSystem *psys;
+		ParticleSystem *psys_act;
+
+		for (psys = base->object->particlesystem.first; psys; psys = psys->next) {
+			for (psys_act = ob->particlesystem.first; psys_act; psys_act = psys_act->next) {
+				if (psys->part == psys_act->part) {
+					base->flag |= SELECT;
+					changed = TRUE;
+					break;
+				}
+			}
+
+			if (base->flag & SELECT) {
+				break;
+			}
+		}
+
+		base->object->flag = base->flag;
+	}
+	CTX_DATA_END;
+
+	return changed;
+}
+
+static int object_select_all_by_library(bContext *C, Library *lib)
+{
+	int changed = FALSE;
+
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
+		if (lib == base->object->id.lib) {
+			base->flag |= SELECT;
+			base->object->flag = base->flag;
+
+			changed = TRUE;
+		}
+	}
+	CTX_DATA_END;
+
+	return changed;
+}
+
+static int object_select_all_by_library_obdata(bContext *C, Library *lib)
+{
+	int changed = FALSE;
+
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
+		if (base->object->data && lib == ((ID *)base->object->data)->lib) {
+			base->flag |= SELECT;
+			base->object->flag = base->flag;
+
+			changed = TRUE;
+		}
+	}
+	CTX_DATA_END;
+
+	return changed;
+}
 
 static int object_select_linked_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
-	void *obdata = NULL;
-	Material *mat = NULL, *mat1;
-	Tex *tex = NULL;
-	int a, b;
 	int nr = RNA_enum_get(op->ptr, "type");
-	short changed = 0, extend;
-	/* events (nr):
-	 * Object Ipo: 1
-	 * ObData: 2
-	 * Current Material: 3
-	 * Current Texture: 4
-	 * DupliGroup: 5
-	 * PSys: 6
-	 */
+	short changed = FALSE, extend;
 
 	extend = RNA_boolean_get(op->ptr, "extend");
 	
@@ -233,113 +395,59 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	if (nr == 1) {
+	if (nr == OBJECT_SELECT_LINKED_IPO) {
 		// XXX old animation system
-		//ipo= ob->ipo;
-		//if (ipo==0) return OPERATOR_CANCELLED;
+		//if (ob->ipo==0) return OPERATOR_CANCELLED;
+		//object_select_all_by_ipo(C, ob->ipo)
 		return OPERATOR_CANCELLED;
 	}
-	else if (nr == 2) {
-		if (ob->data == NULL) return OPERATOR_CANCELLED;
-		obdata = ob->data;
+	else if (nr == OBJECT_SELECT_LINKED_OBDATA) {
+		if (ob->data == 0)
+			return OPERATOR_CANCELLED;
+
+		changed = object_select_all_by_obdata(C, ob->data);
 	}
-	else if (nr == 3 || nr == 4) {
+	else if (nr == OBJECT_SELECT_LINKED_MATERIAL || nr == OBJECT_SELECT_LINKED_TEXTURE) {
+		Material *mat = NULL;
+		Tex *tex = NULL;
+		int use_texture = FALSE;
+
 		mat = give_current_material(ob, ob->actcol);
 		if (mat == NULL) return OPERATOR_CANCELLED;
-		if (nr == 4) {
+		if (nr == OBJECT_SELECT_LINKED_TEXTURE) {
+			use_texture = TRUE;
+
 			if (mat->mtex[(int)mat->texact]) tex = mat->mtex[(int)mat->texact]->tex;
 			if (tex == NULL) return OPERATOR_CANCELLED;
 		}
+
+		changed = object_select_all_by_material_texture(C, use_texture, mat, tex);
 	}
-	else if (nr == 5) {
-		if (ob->dup_group == NULL) return OPERATOR_CANCELLED;
+	else if (nr == OBJECT_SELECT_LINKED_DUPGROUP) {
+		if (ob->dup_group == NULL)
+			return OPERATOR_CANCELLED;
+
+		changed = object_select_all_by_dup_group(C, ob->dup_group);
 	}
-	else if (nr == 6) {
-		if (ob->particlesystem.first == NULL) return OPERATOR_CANCELLED;
+	else if (nr == OBJECT_SELECT_LINKED_PARTICLE) {
+		if (ob->particlesystem.first == NULL)
+			return OPERATOR_CANCELLED;
+
+		changed = object_select_all_by_particle(C, ob);
 	}
-	else if (nr == 7) {
+	else if (nr == OBJECT_SELECT_LINKED_LIBRARY) {
 		/* do nothing */
+		changed = object_select_all_by_library(C, ob->id.lib);
 	}
-	else if (nr == 8) {
-		if (ob->data == NULL) return OPERATOR_CANCELLED;
+	else if (nr == OBJECT_SELECT_LINKED_LIBRARY_OBDATA) {
+		if (ob->data == NULL)
+			return OPERATOR_CANCELLED;
+
+		changed = object_select_all_by_library_obdata(C, ((ID *) ob->data)->lib);
 	}
 	else
 		return OPERATOR_CANCELLED;
-	
-	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
-	{
-		if (nr == 1) {
-			// XXX old animation system
-			//if (base->object->ipo == ipo) base->flag |= SELECT;
-			//changed = 1;
-		}
-		else if (nr == 2) {
-			if (base->object->data == obdata) base->flag |= SELECT;
-			changed = 1;
-		}
-		else if (nr == 3 || nr == 4) {
-			ob = base->object;
-			
-			for (a = 1; a <= ob->totcol; a++) {
-				mat1 = give_current_material(ob, a);
-				if (nr == 3) {
-					if (mat1 == mat) base->flag |= SELECT;
-					changed = 1;
-				}
-				else if (mat1 && nr == 4) {
-					for (b = 0; b < MAX_MTEX; b++) {
-						if (mat1->mtex[b]) {
-							if (tex == mat1->mtex[b]->tex) {
-								base->flag |= SELECT;
-								changed = 1;
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-		else if (nr == 5) {
-			if (base->object->dup_group == ob->dup_group) {
-				base->flag |= SELECT;
-				changed = 1;
-			}
-		}
-		else if (nr == 6) {
-			/* loop through other, then actives particles*/
-			ParticleSystem *psys;
-			ParticleSystem *psys_act;
-			
-			for (psys = base->object->particlesystem.first; psys; psys = psys->next) {
-				for (psys_act = ob->particlesystem.first; psys_act; psys_act = psys_act->next) {
-					if (psys->part == psys_act->part) {
-						base->flag |= SELECT;
-						changed = 1;
-						break;
-					}
-				}
-				
-				if (base->flag & SELECT) {
-					break;
-				}
-			}
-		}
-		else if (nr == 7) {
-			if (ob->id.lib == base->object->id.lib) {
-				base->flag |= SELECT;
-				changed = 1;
-			}
-		}
-		else if (nr == 8) {
-			if (base->object->data && ((ID *)ob->data)->lib == ((ID *)base->object->data)->lib) {
-				base->flag |= SELECT;
-				changed = 1;
-			}
-		}
-		base->object->flag = base->flag;
-	}
-	CTX_DATA_END;
-	
+
 	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
 		return OPERATOR_FINISHED;
