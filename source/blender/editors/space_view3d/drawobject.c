@@ -849,7 +849,7 @@ void view3d_cached_text_draw_add(const float co[3],
 
 	BLI_addtail(strings, vos);
 	copy_v3_v3(vos->vec, co);
-	vos->col.pack = *((int *)col);
+	copy_v4_v4_char((char *)vos->col.ub, (const char *)col);
 	vos->xoffs = xoffs;
 	vos->flag = flag;
 	vos->str_len = alloc_len - 1;
@@ -4287,7 +4287,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	ParticleDrawData *pdd = psys->pdd;
 	Material *ma;
 	float vel[3], imat[4][4];
-	float timestep, pixsize_scale, pa_size, r_tilt, r_length;
+	float timestep, pixsize_scale = 1.0f, pa_size, r_tilt, r_length;
 	float pa_time, pa_birthtime, pa_dietime, pa_health, intensity;
 	float cfra;
 	float ma_col[3] = {0.0f, 0.0f, 0.0f};
@@ -6442,13 +6442,24 @@ static void draw_hooks(Object *ob)
 	}
 }
 
-static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const unsigned char ob_wire_col[4])
+static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const short dflag, unsigned char ob_wire_col[4])
 {
 	const char *axis_str[3] = {"px", "py", "pz"};
 	int axis;
 	float mat[4][4];
+	unsigned char _col[4], *col;
 
 	/* color */
+	if (dflag & DRAW_CONSTCOLOR) {
+		/* so we can draw pivot point in current const color */
+		float tcol[4];
+		col = _col;
+		glGetFloatv(GL_CURRENT_COLOR, tcol);
+		rgb_float_to_uchar(col, tcol);
+	}
+	else {
+		col = ob_wire_col;
+	}
 
 	eul_to_mat4(mat, &data->axX);
 	glLineWidth(4.0f);
@@ -6467,7 +6478,7 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const unsigne
 		glVertex3fv(v);
 		glEnd();
 
-		view3d_cached_text_draw_add(v, axis_str[axis], 0, V3D_CACHE_TEXT_ASCII, ob_wire_col);
+		view3d_cached_text_draw_add(v, axis_str[axis], 0, V3D_CACHE_TEXT_ASCII, col);
 	}
 	glLineWidth(1.0f);
 	setlinestyle(0);
@@ -7067,7 +7078,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			if (con->type == CONSTRAINT_TYPE_RIGIDBODYJOINT) {
 				bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint *)con->data;
 				if (data->flag & CONSTRAINT_DRAW_PIVOT)
-					draw_rigid_body_pivot(data, ob_wire_col);
+					draw_rigid_body_pivot(data, dflag, ob_wire_col);
 			}
 		}
 
