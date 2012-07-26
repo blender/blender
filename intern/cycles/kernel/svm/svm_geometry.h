@@ -101,6 +101,12 @@ __device void svm_node_particle_info(KernelGlobals *kg, ShaderData *sd, float *s
 	float data;
 
 	switch(type) {
+		case NODE_INFO_PAR_INDEX: {
+			uint particle_id = object_particle_id(kg, sd->object);
+			data = particle_index(kg, particle_id);
+			stack_store_float(stack, out_offset, data);
+			break;
+		}
 		case NODE_INFO_PAR_AGE: {
 			uint particle_id = object_particle_id(kg, sd->object);
 			data = particle_age(kg, particle_id);

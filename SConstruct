@@ -280,8 +280,10 @@ if 'blenderlite' in B.targets:
 if env['OURPLATFORM']=='darwin':
     print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'] + " --"
     print "Available " + env['MACOSX_SDK_CHECK']
-    if not 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
-        print  B.bc.OKGREEN + "MacOSX10.5.sdk not available:" + B.bc.ENDC + " using MacOSX10.6.sdk"
+    if not 'Mac OS X 10.6' in env['MACOSX_SDK_CHECK']:
+        print  B.bc.OKGREEN + "Auto-setting available MacOSX SDK -> " + B.bc.ENDC + "MacOSX10.7.sdk"
+    elif not 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
+        print  B.bc.OKGREEN + "Auto-setting available MacOSX SDK -> " + B.bc.ENDC + "MacOSX10.6.sdk"
     else:
         print B.bc.OKGREEN + "Found recommended sdk :" + B.bc.ENDC + " using MacOSX10.5.sdk"
 

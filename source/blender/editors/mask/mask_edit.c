@@ -110,13 +110,10 @@ void ED_mask_mouse_pos(const bContext *C, wmEvent *event, float co[2])
 			}
 			case SPACE_IMAGE:
 			{
-				int width, height;
 				float frame_size[2];
 				SpaceImage *sima = sa->spacedata.first;
 				ARegion *ar = CTX_wm_region(C);
-				ED_space_image_get_size(sima, &width, &height);
-				frame_size[0] = width;
-				frame_size[1] = height;
+				ED_space_image_get_size_fl(sima, frame_size);
 				ED_image_mouse_pos(sima, ar, event, co);
 				BKE_mask_coord_from_frame(co, co, frame_size);
 				break;
@@ -155,13 +152,10 @@ void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr
 				break;
 			case SPACE_IMAGE:
 			{
-				int width, height;
 				float frame_size[2];
 				SpaceImage *sima = sa->spacedata.first;
 				ARegion *ar = CTX_wm_region(C);
-				ED_space_image_get_size(sima, &width, &height);
-				frame_size[0] = width;
-				frame_size[1] = height;
+				ED_space_image_get_size_fl(sima, frame_size);
 				ED_image_point_pos(sima, ar, x, y, &co[0], &co[1]);
 				BKE_mask_coord_from_frame(co, co, frame_size);
 				break;
@@ -203,13 +197,10 @@ void ED_mask_point_pos__reverse(const bContext *C, float x, float y, float *xr, 
 				break;
 			case SPACE_IMAGE:
 			{
-				int width, height;
 				float frame_size[2];
 				SpaceImage *sima = sa->spacedata.first;
 				ARegion *ar = CTX_wm_region(C);
-				ED_space_image_get_size(sima, &width, &height);
-				frame_size[0] = width;
-				frame_size[1] = height;
+				ED_space_image_get_size_fl(sima, frame_size);
 
 				co[0] = x;
 				co[1] = y;

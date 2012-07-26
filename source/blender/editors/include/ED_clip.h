@@ -53,6 +53,7 @@ int ED_space_clip_maskedit_poll(struct bContext *C);
 int ED_space_clip_maskedit_mask_poll(bContext *C);
 
 void ED_space_clip_get_size(const struct bContext *C, int *width, int *height);
+void ED_space_clip_get_size_fl(const struct bContext *C, float size[2]);
 void ED_space_clip_get_zoom(const struct bContext *C, float *zoomx, float *zoomy);
 void ED_space_clip_get_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 void ED_space_clip_get_aspect_dimension_aware(struct SpaceClip *sc, float *aspx, float *aspy);

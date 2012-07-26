@@ -36,6 +36,7 @@ struct Transform;
 /* Object */
 
 struct Particle {
+	int index;
 	float age;
 	float lifetime;
 };

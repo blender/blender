@@ -1452,12 +1452,9 @@ void calculateCenterCursor2D(TransInfo *t)
 	if (cursor) {
 		if (t->options & CTX_MASK) {
 			float co[2];
-			int width, height;
 			float frame_size[2];
 			SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
-			ED_space_image_get_size(sima, &width, &height);
-			frame_size[0] = width;
-			frame_size[1] = height;
+			ED_space_image_get_size_fl(sima, frame_size);
 
 			BKE_mask_coord_from_frame(co, cursor, frame_size);
 

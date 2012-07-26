@@ -46,8 +46,14 @@ extern "C" {
 class MaskOperation : public NodeOperation {
 protected:
 	Mask *m_mask;
-	int m_maskWidth;
-	int m_maskHeight;
+
+	/* note, these are used more like aspect,
+	 * but they _do_ impact on mask detail */
+	int   m_maskWidth;
+	int   m_maskHeight;
+	float m_maskWidthInv;  /* 1 / m_maskWidth  */
+	float m_maskHeightInv; /* 1 / m_maskHeight */
+
 	int m_framenumber;
 	bool m_do_smooth;
 	bool m_do_feather;
@@ -74,8 +80,16 @@ public:
 
 
 	void setMask(Mask *mask) { this->m_mask = mask; }
-	void setMaskWidth(int width) { this->m_maskWidth = width; }
-	void setMaskHeight(int height) { this->m_maskHeight = height; }
+	void setMaskWidth(int width)
+	{
+		this->m_maskWidth    = width;
+		this->m_maskWidthInv = 1.0f / (float)width;
+	}
+	void setMaskHeight(int height)
+	{
+		this->m_maskHeight = height;
+		this->m_maskHeightInv = 1.0f / (float)height;
+	}
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
 	void setSmooth(bool smooth) { this->m_do_smooth = smooth; }
 	void setFeather(bool feather) { this->m_do_feather = feather; }

@@ -52,6 +52,7 @@ void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock);
 int ED_space_image_has_buffer(struct SpaceImage *sima);
 
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height);
+void ED_space_image_get_size_fl(struct SpaceImage *sima, float size[2]);
 void ED_space_image_get_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 void ED_space_image_get_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy);
 void ED_space_image_get_uv_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
