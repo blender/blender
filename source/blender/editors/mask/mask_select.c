@@ -592,10 +592,9 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
 	mode = RNA_int_get(op->ptr, "gesture_mode");
 
-	/* TODO - make generic! - this is SpaceClip only! */
 	/* compute ellipse and position in unified coordinates */
-	ED_space_clip_get_size(C, &width, &height);
-	ED_space_clip_get_zoom(C, &zoomx, &zoomy);
+	ED_mask_size(C, &width, &height);
+	ED_mask_zoom(C, &zoomx, &zoomy);
 	width = height = MAX2(width, height);
 
 	ellipse[0] = width * zoomx / radius;
@@ -639,7 +638,6 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-/* MASKTODO - image space */
 void MASK_OT_select_circle(wmOperatorType *ot)
 {
 	/* identifiers */

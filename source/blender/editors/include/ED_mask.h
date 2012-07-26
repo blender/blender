@@ -37,6 +37,7 @@ struct MaskLayerShape;
 
 /* mask_edit.c */
 void ED_mask_size(const struct bContext *C, int *width, int *height);
+void ED_mask_zoom(const struct bContext *C, float *zoomx, float *zoomy);
 void ED_mask_aspect(const struct bContext *C, float *aspx, float *aspy);
 
 void ED_operatortypes_mask(void);

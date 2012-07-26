@@ -155,8 +155,15 @@ void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr
 				break;
 			case SPACE_IMAGE:
 			{
-				//SpaceImage *sima = sa->spacedata.first;
-				zero_v2(co); /* MASKTODO */
+				int width, height;
+				float frame_size[2];
+				SpaceImage *sima = sa->spacedata.first;
+				ARegion *ar = CTX_wm_region(C);
+				ED_space_image_get_size(sima, &width, &height);
+				frame_size[0] = width;
+				frame_size[1] = height;
+				ED_image_point_pos(sima, ar, x, y, &co[0], &co[1]);
+				BKE_mask_coord_from_frame(co, co, frame_size);
 				break;
 			}
 			default:
@@ -195,8 +202,21 @@ void ED_mask_point_pos__reverse(const bContext *C, float x, float y, float *xr, 
 				zero_v2(co); /* MASKTODO */
 				break;
 			case SPACE_IMAGE:
-				zero_v2(co); /* MASKTODO */
+			{
+				int width, height;
+				float frame_size[2];
+				SpaceImage *sima = sa->spacedata.first;
+				ARegion *ar = CTX_wm_region(C);
+				ED_space_image_get_size(sima, &width, &height);
+				frame_size[0] = width;
+				frame_size[1] = height;
+
+				co[0] = x;
+				co[1] = y;
+				BKE_mask_coord_to_frame(co, co, frame_size);
+				ED_image_point_pos__reverse(sima, ar, co, co);
 				break;
+			}
 			default:
 				/* possible other spaces from which mask editing is available */
 				BLI_assert(0);
@@ -248,6 +268,41 @@ void ED_mask_size(const bContext *C, int *width, int *height)
 		BLI_assert(0);
 		*width = 0;
 		*height = 0;
+	}
+}
+
+void ED_mask_zoom(const bContext *C, float *zoomx, float *zoomy)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacedata.first) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				ED_space_clip_get_zoom(C, zoomx, zoomy);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				*zoomx = *zoomy = 1.0f;
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = sa->spacedata.first;
+				ARegion *ar = CTX_wm_region(C);
+				ED_space_image_get_zoom(sima, ar, zoomx, zoomy);
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				*zoomx = *zoomy = 1.0f;
+				break;
+		}
+	}
+	else {
+		BLI_assert(0);
+		*zoomx = *zoomy = 1.0f;
 	}
 }
 
@@ -472,6 +527,8 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_shape_key_insert", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_shape_key_clear", IKEY, KM_PRESS, KM_ALT, 0);
 
+	/* for image editor only */
+	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }

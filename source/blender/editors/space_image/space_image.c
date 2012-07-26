@@ -585,6 +585,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Object *obact = CTX_data_active_object(C);
 	Object *obedit = CTX_data_edit_object(C);
+	Mask *mask = NULL;
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = &ar->v2d;
 	//View2DScrollers *scrollers;
@@ -611,6 +612,15 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(v2d);
 	draw_uvedit_main(sima, ar, scene, obedit, obact);
 
+	/* check for mask (delay draw) */
+	if (obedit) {
+		/* pass */
+	}
+	else if (sima->mode == SI_MODE_MASK) {
+		mask = ED_space_image_get_mask(sima);
+		draw_image_cursor(sima, ar);
+	}
+
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 
 	/* Grease Pencil too (in addition to UV's) */
@@ -624,17 +634,16 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw Grease Pencil - screen space only */
 	draw_image_grease_pencil((bContext *)C, 0);
 
-	{
-		Mask *mask = ED_space_image_get_mask(sima);
-		if (mask) {
-			int width, height;
-			ED_mask_size(C, &width, &height);
-			ED_mask_draw_region(mask, ar,
-			                    sima->mask_info.draw_flag, sima->mask_info.draw_type,
-			                    width, height,
-			                    TRUE, FALSE,
-			                    NULL, C);
-		}
+	if (mask) {
+		int width, height;
+		ED_mask_size(C, &width, &height);
+		ED_mask_draw_region(mask, ar,
+		                    sima->mask_info.draw_flag, sima->mask_info.draw_type,
+		                    width, height,
+		                    TRUE, FALSE,
+		                    NULL, C);
+
+		draw_image_cursor(sima, ar);
 	}
 
 	/* scrollers? */

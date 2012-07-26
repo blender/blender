@@ -266,6 +266,34 @@ void ED_image_mouse_pos(SpaceImage *sima, ARegion *ar, wmEvent *event, float co[
 	co[1] = ((event->mval[1] - sy) / zoomy) / height;
 }
 
+void ED_image_point_pos(SpaceImage *sima, ARegion *ar, float x, float y, float *xr, float *yr)
+{
+	int sx, sy, width, height;
+	float zoomx, zoomy;
+
+	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_get_size(sima, &width, &height);
+
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+
+	*xr = ((x - sx) / zoomx) / width;
+	*yr = ((y - sy) / zoomy) / height;
+}
+
+void ED_image_point_pos__reverse(SpaceImage *sima, ARegion *ar, const float co[2], float r_co[2])
+{
+	float zoomx, zoomy;
+	int width, height;
+	int sx, sy;
+
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+	ED_space_image_get_size(sima, &width, &height);
+	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+
+	r_co[0] = (co[0] * width  * zoomx) + (float)sx;
+	r_co[1] = (co[1] * height * zoomy) + (float)sy;
+}
+
 int ED_space_image_show_render(SpaceImage *sima)
 {
 	return (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE));
