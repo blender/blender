@@ -32,6 +32,8 @@ elif cmd_res[:2]=='10':
     MAC_CUR_VER='10.6'
 elif cmd_res[:2]=='11':
     MAC_CUR_VER='10.7'
+elif cmd_res[:2]=='12':
+    MAC_CUR_VER='10.8'
 cmd = 'xcodebuild -version'
 cmd_xcode=commands.getoutput(cmd)
 XCODE_CUR_VER=cmd_xcode[6:][:3] # truncate output to major.minor version
@@ -75,7 +77,7 @@ else :
         LCGDIR = '#../lib/darwin-9.x.universal'
         CC = 'gcc-4.2'
         CXX = 'g++-4.2'
-    else:
+    elif 'Mac OS X 10.6' in MACOSX_SDK_CHECK:
         # OSX 10.6/7 with Xcode 4.x
         MAC_MIN_VERS = '10.6'
         MACOSX_DEPLOYMENT_TARGET = '10.6'
@@ -83,6 +85,14 @@ else :
         LCGDIR = '#../lib/darwin-9.x.universal'
         CC = 'gcc-4.2'
         CXX = 'g++-4.2'
+    else:
+        # OSX 10.8 with Xcode 4.4 and higher (no 10.6sdk! )
+        MAC_MIN_VERS = '10.6'
+        MACOSX_DEPLOYMENT_TARGET = '10.6'
+        MACOSX_SDK='/Developer/SDKs/MacOSX10.7.sdk'
+        LCGDIR = '#../lib/darwin-9.x.universal'
+        CC = 'gcc'
+        CXX = 'g++'
 
 LIBDIR = '${LCGDIR}'
 
@@ -333,8 +343,8 @@ if not WITH_OSX_STATICPYTHON:
 
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
-#for 10.7.sdk, SystemStubs needs to be excluded (lib doesn't exist anymore)
-if MACOSX_DEPLOYMENT_TARGET == '10.7':
+#for > 10.7.sdk, SystemStubs needs to be excluded (lib doesn't exist anymore)
+if MACOSX_SDK.endswith("10.7.sdk") or MACOSX_SDK.endswith("10.8.sdk"):
     LLIBS = ['stdc++']
 else:
     LLIBS = ['stdc++', 'SystemStubs']
