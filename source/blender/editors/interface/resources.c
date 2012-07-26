@@ -1924,6 +1924,18 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 16)) {
+		bTheme *btheme;
+
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (btheme->tact.anim_active[3] == 0)
+				rgba_char_args_set(btheme->tact.anim_active, 204, 112, 26, 102);
+
+			if (btheme->tnla.anim_active[3] == 0)
+				rgba_char_args_set(btheme->tnla.anim_active, 204, 112, 26, 102);
+		}
+	}
+
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;
