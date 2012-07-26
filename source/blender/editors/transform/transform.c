@@ -1331,10 +1331,11 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 {
 	float delta = (angle_end - angle_start) / segments;
 	float angle;
+	int a;
 
 	glBegin(GL_LINE_STRIP);
 
-	for (angle = angle_start; angle < angle_end; angle += delta) {
+	for (angle = angle_start, a = 0; a < segments; angle += delta, a++) {
 		glVertex2f(cosf(angle) * size, sinf(angle) * size);
 	}
 	glVertex2f(cosf(angle_end) * size, sinf(angle_end) * size);
