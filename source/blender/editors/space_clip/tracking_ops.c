@@ -2870,7 +2870,7 @@ void CLIP_OT_set_solver_keyframe(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name = "Set Selver Keyframe";
+	ot->name = "Set Solver Keyframe";
 	ot->description = "Set keyframe used by solver";
 	ot->idname = "CLIP_OT_set_solver_keyframe";
 
