@@ -32,6 +32,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#if WIN32
+#include <Windows.h>
+#endif
+
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 
@@ -330,6 +334,31 @@ extern void free_anim_drivers_copybuf(void);
 extern void free_fmodifiers_copybuf(void); 
 extern void free_posebuf(void); 
 
+#if WIN32
+/* read console events until there is a keyboard event, then return */
+static void wait_for_console_key(void)
+{
+	HANDLE hConsoleInput;
+
+	hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
+
+	if (hConsoleInput && FlushConsoleInputBuffer(hConsoleInput)) {
+		for(;;) {
+			INPUT_RECORD buffer;
+			DWORD ignored;
+
+			if (!ReadConsoleInput(hConsoleInput, &buffer, 1, &ignored)) {
+				break;
+			}
+
+			if (buffer.EventType == KEY_EVENT) {
+				break;
+			}
+		}
+	}
+}
+#endif
+
 /* called in creator.c even... tsk, split this! */
 /* note, doesnt run exit() call WM_exit() for that */
 void WM_exit_ext(bContext *C, const short do_python)
@@ -452,10 +481,10 @@ void WM_exit_ext(bContext *C, const short do_python)
 	printf("\nBlender quit\n");
 	
 #ifdef WIN32   
-	/* ask user to press enter when in debug mode */
+	/* ask user to press a key when in debug mode */
 	if (G.debug & G_DEBUG) {
-		printf("press enter key to exit...\n\n");
-		getchar();
+		printf("Press any key to exit . . .\n\n");
+		wait_for_console_key();
 	}
 #endif 
 }
