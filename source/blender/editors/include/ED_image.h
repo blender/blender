@@ -39,6 +39,7 @@ struct ToolSettings;
 struct uiBlock;
 struct wmWindowManager;
 struct ARegion;
+struct wmEvent;
 
 /* image_edit.c, exported for transform */
 struct Image *ED_space_image(struct SpaceImage *sima);
@@ -61,6 +62,7 @@ void ED_space_image_uv_sculpt_update(struct wmWindowManager *wm, struct ToolSett
 void ED_image_get_size(struct Image *ima, int *width, int *height);
 void ED_image_get_aspect(struct Image *ima, float *aspx, float *aspy);
 void ED_image_get_uv_aspect(struct Image *ima, float *aspx, float *aspy);
+void ED_image_mouse_pos(struct SpaceImage *sima, struct ARegion *ar, struct wmEvent *event, float co[2]);
 
 int ED_space_image_show_render(struct SpaceImage *sima);
 int ED_space_image_show_paint(struct SpaceImage *sima);

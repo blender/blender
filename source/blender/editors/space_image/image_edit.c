@@ -47,6 +47,8 @@
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 
+#include "UI_view2d.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -248,6 +250,20 @@ void ED_image_get_uv_aspect(Image *ima, float *aspx, float *aspy)
 
 	*aspx *= (float)w;
 	*aspy *= (float)h;
+}
+
+void ED_image_mouse_pos(SpaceImage *sima, ARegion *ar, wmEvent *event, float co[2])
+{
+	int sx, sy, width, height;
+	float zoomx, zoomy;
+
+	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_get_size(sima, &width, &height);
+
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+
+	co[0] = ((event->mval[0] - sx) / zoomx) / width;
+	co[1] = ((event->mval[1] - sy) / zoomy) / height;
 }
 
 int ED_space_image_show_render(SpaceImage *sima)

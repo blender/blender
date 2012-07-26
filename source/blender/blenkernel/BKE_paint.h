@@ -52,9 +52,10 @@ extern const char PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const char PAINT_CURSOR_TEXTURE_PAINT[3];
 
 void BKE_paint_init(struct Paint *p, const char col[3]);
-void free_paint(struct Paint *p);
-void copy_paint(struct Paint *src, struct Paint *tar);
+void BKE_paint_free(struct Paint *p);
+void BKE_paint_copy(struct Paint *src, struct Paint *tar);
 
+/* TODO, give these BKE_ prefix too */
 struct Paint *paint_get_active(struct Scene *sce);
 struct Paint *paint_get_active_from_context(const struct bContext *C);
 struct Brush *paint_brush(struct Paint *paint);

@@ -210,7 +210,14 @@ void BKE_object_link_modifiers(struct Object *ob, struct Object *from)
 	for (md = from->modifiers.first; md; md = md->next) {
 		ModifierData *nmd = NULL;
 
-		if (ELEM4(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance, eModifierType_Collision)) continue;
+		if (ELEM4(md->type,
+		          eModifierType_Hook,
+		          eModifierType_Softbody,
+		          eModifierType_ParticleInstance,
+		          eModifierType_Collision))
+		{
+			continue;
+		}
 
 		if (!BKE_object_support_modifier_type_check(ob, md->type))
 			continue;
@@ -1318,7 +1325,8 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 						if ((Object *)dtar->id == target)
 							dtar->id = (ID *)ob;
 						else {
-							/* only on local objects because this causes indirect links a -> b -> c, blend to point directly to a.blend
+							/* only on local objects because this causes indirect links
+							 * 'a -> b -> c', blend to point directly to a.blend
 							 * when a.blend has a proxy thats linked into c.blend  */
 							if (ob->id.lib == NULL)
 								id_lib_extern((ID *)dtar->id);
@@ -1803,7 +1811,11 @@ static void give_parvert(Object *par, int nr, float vec[3])
 				dm->getVertCo(dm, 0, vec);
 			}
 		}
-		else fprintf(stderr, "%s: DerivedMesh is needed to solve parenting, object position can be wrong now\n", __func__);
+		else {
+			fprintf(stderr,
+			        "%s: DerivedMesh is needed to solve parenting, "
+			        "object position can be wrong now\n", __func__);
+		}
 	}
 	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
 		Nurb *nu;

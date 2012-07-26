@@ -836,6 +836,11 @@ void	CcdPhysicsController::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *
 		if (m_cci.m_physicsEnv->removeCcdPhysicsController(this))
 		{
 			physicsEnv->addCcdPhysicsController(this);
+
+			// Set the object to be active so it can at least by evaluated once.
+			// This fixes issues with static objects not having their physics meshes
+			// in the right spot when lib loading.
+			this->GetCollisionObject()->setActivationState(ACTIVE_TAG);
 		}
 		m_cci.m_physicsEnv = physicsEnv;
 	}

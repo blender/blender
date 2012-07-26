@@ -1348,6 +1348,7 @@ static void do_material_tex(GPUShadeInput *shi)
 void GPU_shadeinput_set(GPUMaterial *mat, Material *ma, GPUShadeInput *shi)
 {
 	float hard = ma->har;
+	float one = 1.0f;
 
 	memset(shi, 0, sizeof(*shi));
 
@@ -1357,7 +1358,12 @@ void GPU_shadeinput_set(GPUMaterial *mat, Material *ma, GPUShadeInput *shi)
 	GPU_link(mat, "set_rgb", GPU_uniform(&ma->r), &shi->rgb);
 	GPU_link(mat, "set_rgb", GPU_uniform(&ma->specr), &shi->specrgb);
 	GPU_link(mat, "shade_norm", GPU_builtin(GPU_VIEW_NORMAL), &shi->vn);
-	GPU_link(mat, "set_value", GPU_uniform(&ma->alpha), &shi->alpha);
+
+	if (ma->mode & MA_TRANSP)
+		GPU_link(mat, "set_value", GPU_uniform(&ma->alpha), &shi->alpha);
+	else
+		GPU_link(mat, "set_value", GPU_uniform(&one), &shi->alpha);
+
 	GPU_link(mat, "set_value", GPU_uniform(&ma->ref), &shi->refl);
 	GPU_link(mat, "set_value", GPU_uniform(&ma->spec), &shi->spec);
 	GPU_link(mat, "set_value", GPU_uniform(&ma->emit), &shi->emit);

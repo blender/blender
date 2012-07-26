@@ -184,7 +184,7 @@ void BKE_paint_init(Paint *p, const char col[3])
 	p->flags |= PAINT_SHOW_BRUSH;
 }
 
-void free_paint(Paint *paint)
+void BKE_paint_free(Paint *paint)
 {
 	id_us_min((ID *)paint->brush);
 }
@@ -193,7 +193,7 @@ void free_paint(Paint *paint)
  * still do a id_us_plus(), rather then if we were copying betweem 2 existing
  * scenes where a matching value should decrease the existing user count as
  * with paint_brush_set() */
-void copy_paint(Paint *src, Paint *tar)
+void BKE_paint_copy(Paint *src, Paint *tar)
 {
 	tar->brush = src->brush;
 	id_us_plus((ID *)tar->brush);

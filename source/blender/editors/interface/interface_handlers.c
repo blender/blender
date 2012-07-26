@@ -3872,7 +3872,8 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 		const float yfac = minf(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
 		hist->ymax += dy * yfac;
 	
-		CLAMP(hist->ymax, 1.f, 100.f);
+		/* 0.1 allows us to see HDR colors up to 10 */
+		CLAMP(hist->ymax, 0.1f, 100.f);
 	}
 	
 	data->draglastx = mx;

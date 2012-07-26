@@ -110,8 +110,15 @@ void ED_mask_mouse_pos(const bContext *C, wmEvent *event, float co[2])
 			}
 			case SPACE_IMAGE:
 			{
+				int width, height;
+				float frame_size[2];
+				SpaceImage *sima = sa->spacedata.first;
 				ARegion *ar = CTX_wm_region(C);
-				UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+				ED_space_image_get_size(sima, &width, &height);
+				frame_size[0] = width;
+				frame_size[1] = height;
+				ED_image_mouse_pos(sima, ar, event, co);
+				BKE_mask_coord_from_frame(co, co, frame_size);
 				break;
 			}
 			default:
