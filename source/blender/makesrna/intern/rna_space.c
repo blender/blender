@@ -2044,7 +2044,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, image_space_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceImageEditor_mode_update");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_SpaceImageEditor_mode_update");
 
 	/* grease pencil */
 	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
