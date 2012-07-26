@@ -2842,6 +2842,49 @@ void CLIP_OT_lock_tracks(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Lock action to execute");
 }
 
+/********************** set keyframe operator *********************/
+
+static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingSettings *settings = &tracking->settings;
+	int keyframe = RNA_enum_get(op->ptr, "keyframe");
+	int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr);
+
+	if (keyframe == 0)
+		settings->keyframe1 = framenr;
+	else
+		settings->keyframe2 = framenr;
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_set_solver_keyframe(wmOperatorType *ot)
+{
+	static EnumPropertyItem keyframe_items[] = {
+		{0, "KEYFRAME_A", 0, "Keyframe A", ""},
+		{1, "KEYFRAME_B", 0, "Keyframe B", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Set Selver Keyframe";
+	ot->description = "Set keyframe used by solver";
+	ot->idname = "CLIP_OT_set_solver_keyframe";
+
+	/* api callbacks */
+	ot->exec = set_solver_keyframe_exec;
+	ot->poll = ED_space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "keyframe", keyframe_items, 0, "Keyframe", "keyframe to set");
+}
+
 /********************** track copy color operator *********************/
 
 static int track_copy_color_exec(bContext *C, wmOperator *UNUSED(op))

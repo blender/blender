@@ -477,6 +477,8 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_hide_tracks_clear);
 	WM_operatortype_append(CLIP_OT_lock_tracks);
 
+	WM_operatortype_append(CLIP_OT_set_solver_keyframe);
+
 	/* orientation */
 	WM_operatortype_append(CLIP_OT_set_origin);
 	WM_operatortype_append(CLIP_OT_set_plane);
@@ -561,6 +563,12 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "CLIP_MT_select_mode", TABKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_solve_camera", SKEY, KM_PRESS, KM_SHIFT, 0);
+
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_set_solver_keyframe", ONEKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "keyframe", 0);
+
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_set_solver_keyframe", TWOKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "keyframe", 1);
 
 	/* ******** Hotkeys avalaible for main region only ******** */
 
