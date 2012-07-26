@@ -1806,11 +1806,18 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac, ListBase *anim_data, b
 		
 		/* sub-data filtering... */
 		switch (ob->type) {
-			case OB_LAMP:  /* lamp - textures */
+			case OB_LAMP:  /* lamp - textures + nodetree */
 			{
+				Lamp *la = ob->data;
+				bNodeTree *ntree = la->nodetree;
+
+				/* nodetree */
+				if ((ntree) && !(ads->filterflag & ADS_FILTER_NONTREE))
+					tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, &la->id, ntree, filter_mode);
+
 				/* textures */
 				if (!(ads->filterflag & ADS_FILTER_NOTEX))
-					tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, ob->data, filter_mode);
+					tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, &la->id, filter_mode);
 			}
 			break;
 		}
