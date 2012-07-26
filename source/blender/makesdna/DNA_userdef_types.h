@@ -215,7 +215,7 @@ typedef struct ThemeSpace {
 	char extra_edge_len[4], extra_face_angle[4], extra_face_area[4], pad3[4];
 	char normal[4];
 	char vertex_normal[4];
-	char bone_solid[4], bone_pose[4];
+	char bone_solid[4], bone_pose[4], bone_pose_active[4];
 	char strip[4], strip_select[4];
 	char cframe[4];
 	
@@ -263,8 +263,6 @@ typedef struct ThemeSpace {
 	char selected_highlight[4];	/* outliner - selected item */
 
 	char skin_root[4]; /* Skin modifier root color */
-	
-	int pad4;
 	
 	/* NLA */
 	char anim_active[4];	 /* Active Action + Summary Channel */
