@@ -130,7 +130,7 @@ void ED_mask_mouse_pos(ScrArea *sa, ARegion *ar, wmEvent *event, float co[2])
 
 /* input:  x/y   - mval space
  * output: xr/yr - mask point space */
-void ED_mask_point_pos(struct ScrArea *sa, struct ARegion *ar, float x, float y, float *xr, float *yr)
+void ED_mask_point_pos(ScrArea *sa, ARegion *ar, float x, float y, float *xr, float *yr)
 {
 	float co[2];
 
@@ -217,7 +217,7 @@ void ED_mask_point_pos__reverse(ScrArea *sa, ARegion *ar, float x, float y, floa
 	*yr = co[1];
 }
 
-void ED_mask_get_size(struct ScrArea *sa, int *width, int *height)
+void ED_mask_get_size(ScrArea *sa, int *width, int *height)
 {
 	if (sa && sa->spacedata.first) {
 		switch (sa->spacetype) {
@@ -255,7 +255,7 @@ void ED_mask_get_size(struct ScrArea *sa, int *width, int *height)
 	}
 }
 
-void ED_mask_zoom(struct ScrArea *sa, struct ARegion *ar, float *zoomx, float *zoomy)
+void ED_mask_zoom(ScrArea *sa, ARegion *ar, float *zoomx, float *zoomy)
 {
 	if (sa && sa->spacedata.first) {
 		switch (sa->spacetype) {
@@ -289,7 +289,7 @@ void ED_mask_zoom(struct ScrArea *sa, struct ARegion *ar, float *zoomx, float *z
 	}
 }
 
-void ED_mask_get_aspect(struct ScrArea *sa, struct ARegion *UNUSED(ar), float *aspx, float *aspy)
+void ED_mask_get_aspect(ScrArea *sa, ARegion *UNUSED(ar), float *aspx, float *aspy)
 {
 	if (sa && sa->spacedata.first) {
 		switch (sa->spacetype) {
@@ -323,7 +323,7 @@ void ED_mask_get_aspect(struct ScrArea *sa, struct ARegion *UNUSED(ar), float *a
 	}
 }
 
-void ED_mask_pixelspace_factor(struct ScrArea *sa, struct ARegion *ar, float *scalex, float *scaley)
+void ED_mask_pixelspace_factor(ScrArea *sa, ARegion *ar, float *scalex, float *scaley)
 {
 	if (sa && sa->spacedata.first) {
 		switch (sa->spacetype) {

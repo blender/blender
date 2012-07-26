@@ -356,7 +356,7 @@ ARegion *BKE_area_find_region_type(ScrArea *sa, int type)
 /* note, using this function is generally a last resort, you really want to be
  * using the context when you can - campbell
  * -1 for any type */
-struct ScrArea *BKE_screen_find_big_area(struct bScreen *sc, const int spacetype, const short min)
+ScrArea *BKE_screen_find_big_area(bScreen *sc, const int spacetype, const short min)
 {
 	ScrArea *sa, *big = NULL;
 	int size, maxsize = 0;

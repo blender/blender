@@ -263,7 +263,7 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
-static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
+static void node_area_refresh(const struct bContext *C, ScrArea *sa)
 {
 	/* default now: refresh node is starting preview */
 	SpaceNode *snode = sa->spacedata.first;

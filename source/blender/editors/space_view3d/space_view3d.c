@@ -984,7 +984,7 @@ static void view3d_props_area_listener(ARegion *ar, wmNotifier *wmn)
 }
 
 /*area (not region) level listener*/
-static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
+static void space_view3d_listener(ScrArea *sa, struct wmNotifier *wmn)
 {
 	View3D *v3d = sa->spacedata.first;
 
