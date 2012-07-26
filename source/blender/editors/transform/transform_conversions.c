@@ -6230,7 +6230,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 		return;
 	}
 
-	ED_mask_aspect(C, &asp[0], &asp[1]);
+	ED_mask_get_aspect(t->sa, t->ar, &asp[0], &asp[1]);
 
 	t->total = (propmode) ? count : countsel;
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Mask Editing)");
@@ -6281,7 +6281,7 @@ void flushTransMasking(TransInfo *t)
 	int a;
 	float asp[2], inv[2];
 
-	ED_mask_aspect(t->context, &asp[0], &asp[1]);
+	ED_mask_get_aspect(t->sa, t->ar, &asp[0], &asp[1]);
 	inv[0] = 1.0f / asp[0];
 	inv[1] = 1.0f / asp[1];
 

@@ -226,16 +226,13 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 			project_int_noclip(t->ar, vec, adr);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
-#if 0
 		if (t->options & CTX_MASK) {
 			float v[2];
-			ED_mask_point_pos__reverse(t->context, vec[0], vec[1], &v[0], &v[1]);
+			ED_mask_point_pos__reverse(t->sa, t->ar, vec[0], vec[1], &v[0], &v[1]);
 			adr[0] = v[0];
 			adr[1] = v[1];
 		}
-		else
-#endif
-		{
+		else {
 			float aspx, aspy, v[2];
 
 			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);

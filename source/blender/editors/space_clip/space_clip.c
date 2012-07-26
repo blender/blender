@@ -1024,7 +1024,7 @@ static void movieclip_main_area_set_view2d(const bContext *C, ARegion *ar)
 	float x1, y1, w, h;
 	int width, height, winx, winy;
 
-	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_size(sc, &width, &height);
 
 	w = width;
 	h = height;
@@ -1119,14 +1119,15 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	/* data... */
 	movieclip_main_area_set_view2d(C, ar);
 
-	clip_draw_main(C, ar);
+	clip_draw_main(C, sc, ar);
 
 	if (sc->mode == SC_MODE_MASKEDIT) {
 
 		Mask *mask = CTX_data_edit_mask(C);
 		if (mask) {
+			ScrArea *sa = CTX_wm_area(C);
 			int width, height;
-			ED_mask_size(C, &width, &height);
+			ED_mask_get_size(sa, &width, &height);
 			ED_mask_draw_region(mask, ar,
 			                    sc->mask_info.draw_flag, sc->mask_info.draw_type,
 			                    width, height,

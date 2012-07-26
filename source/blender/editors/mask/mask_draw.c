@@ -456,19 +456,21 @@ static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type
 void ED_mask_draw(const bContext *C,
                   const char draw_flag, const char draw_type)
 {
+	ScrArea *sa = CTX_wm_area(C);
+
 	Mask *mask = CTX_data_edit_mask(C);
 	int width, height;
 
 	if (!mask)
 		return;
 
-	ED_mask_size(C, &width, &height);
+	ED_mask_get_size(sa, &width, &height);
 
 	draw_masklays(mask, draw_flag, draw_type, width, height);
 }
 
 /* sets up the opengl context.
- * width, height are to match the values from ED_mask_size() */
+ * width, height are to match the values from ED_mask_get_size() */
 void ED_mask_draw_region(Mask *mask, ARegion *ar,
                          const char draw_flag, const char draw_type,
                          int width, int height,

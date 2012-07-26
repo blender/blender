@@ -996,7 +996,12 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 		if (mask) {
 			int width, height;
-			ED_mask_size(C, &width, &height);
+			// ED_mask_get_size(C, &width, &height);
+
+			//Scene *scene = CTX_data_scene(C);
+			width = (scene->r.size * scene->r.xsch) / 100;
+			height = (scene->r.size * scene->r.ysch) / 100;
+
 			ED_mask_draw_region(mask, ar,
 			                    0, 0,  /* TODO */
 			                    width, height,

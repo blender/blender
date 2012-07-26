@@ -90,21 +90,19 @@ int ED_maskedit_mask_poll(bContext *C)
 
 /********************** registration *********************/
 
-void ED_mask_mouse_pos(const bContext *C, wmEvent *event, float co[2])
+void ED_mask_mouse_pos(ScrArea *sa, ARegion *ar, wmEvent *event, float co[2])
 {
-	ScrArea *sa = CTX_wm_area(C);
 	if (sa) {
 		switch (sa->spacetype) {
 			case SPACE_CLIP:
 			{
 				SpaceClip *sc = sa->spacedata.first;
-				ED_clip_mouse_pos(C, event, co);
+				ED_clip_mouse_pos(sc, ar, event, co);
 				BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
 				break;
 			}
 			case SPACE_SEQ:
 			{
-				ARegion *ar = CTX_wm_region(C);
 				UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 				break;
 			}
@@ -112,7 +110,6 @@ void ED_mask_mouse_pos(const bContext *C, wmEvent *event, float co[2])
 			{
 				float frame_size[2];
 				SpaceImage *sima = sa->spacedata.first;
-				ARegion *ar = CTX_wm_region(C);
 				ED_space_image_get_size_fl(sima, frame_size);
 				ED_image_mouse_pos(sima, ar, event, co);
 				BKE_mask_coord_from_frame(co, co, frame_size);
@@ -133,9 +130,8 @@ void ED_mask_mouse_pos(const bContext *C, wmEvent *event, float co[2])
 
 /* input:  x/y   - mval space
  * output: xr/yr - mask point space */
-void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr)
+void ED_mask_point_pos(struct ScrArea *sa, struct ARegion *ar, float x, float y, float *xr, float *yr)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	float co[2];
 
 	if (sa) {
@@ -143,7 +139,7 @@ void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr
 			case SPACE_CLIP:
 			{
 				SpaceClip *sc = sa->spacedata.first;
-				ED_clip_point_stable_pos(C, x, y, &co[0], &co[1]);
+				ED_clip_point_stable_pos(sc, ar, x, y, &co[0], &co[1]);
 				BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
 				break;
 			}
@@ -154,7 +150,6 @@ void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr
 			{
 				float frame_size[2];
 				SpaceImage *sima = sa->spacedata.first;
-				ARegion *ar = CTX_wm_region(C);
 				ED_space_image_get_size_fl(sima, frame_size);
 				ED_image_point_pos(sima, ar, x, y, &co[0], &co[1]);
 				BKE_mask_coord_from_frame(co, co, frame_size);
@@ -176,9 +171,8 @@ void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr
 	*yr = co[1];
 }
 
-void ED_mask_point_pos__reverse(const bContext *C, float x, float y, float *xr, float *yr)
+void ED_mask_point_pos__reverse(ScrArea *sa, ARegion *ar, float x, float y, float *xr, float *yr)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	float co[2];
 
 	if (sa) {
@@ -189,7 +183,7 @@ void ED_mask_point_pos__reverse(const bContext *C, float x, float y, float *xr, 
 				co[0] = x;
 				co[1] = y;
 				BKE_mask_coord_to_movieclip(sc->clip, &sc->user, co, co);
-				ED_clip_point_stable_pos__reverse(C, co, co);
+				ED_clip_point_stable_pos__reverse(sc, ar, co, co);
 				break;
 			}
 			case SPACE_SEQ:
@@ -199,7 +193,6 @@ void ED_mask_point_pos__reverse(const bContext *C, float x, float y, float *xr, 
 			{
 				float frame_size[2];
 				SpaceImage *sima = sa->spacedata.first;
-				ARegion *ar = CTX_wm_region(C);
 				ED_space_image_get_size_fl(sima, frame_size);
 
 				co[0] = x;
@@ -224,21 +217,21 @@ void ED_mask_point_pos__reverse(const bContext *C, float x, float y, float *xr, 
 	*yr = co[1];
 }
 
-void ED_mask_size(const bContext *C, int *width, int *height)
+void ED_mask_get_size(struct ScrArea *sa, int *width, int *height)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacedata.first) {
 		switch (sa->spacetype) {
 			case SPACE_CLIP:
 			{
-				ED_space_clip_get_size(C, width, height);
+				SpaceClip *sc = sa->spacedata.first;
+				ED_space_clip_get_size(sc, width, height);
 				break;
 			}
 			case SPACE_SEQ:
 			{
-				Scene *scene = CTX_data_scene(C);
-				*width = (scene->r.size * scene->r.xsch) / 100;
-				*height = (scene->r.size * scene->r.ysch) / 100;
+//				Scene *scene = CTX_data_scene(C);
+//				*width = (scene->r.size * scene->r.xsch) / 100;
+//				*height = (scene->r.size * scene->r.ysch) / 100;
 				break;
 			}
 			case SPACE_IMAGE:
@@ -262,14 +255,14 @@ void ED_mask_size(const bContext *C, int *width, int *height)
 	}
 }
 
-void ED_mask_zoom(const bContext *C, float *zoomx, float *zoomy)
+void ED_mask_zoom(struct ScrArea *sa, struct ARegion *ar, float *zoomx, float *zoomy)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacedata.first) {
 		switch (sa->spacetype) {
 			case SPACE_CLIP:
 			{
-				ED_space_clip_get_zoom(C, zoomx, zoomy);
+				SpaceClip *sc = sa->spacedata.first;
+				ED_space_clip_get_zoom(sc, ar, zoomx, zoomy);
 				break;
 			}
 			case SPACE_SEQ:
@@ -280,7 +273,6 @@ void ED_mask_zoom(const bContext *C, float *zoomx, float *zoomy)
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = sa->spacedata.first;
-				ARegion *ar = CTX_wm_region(C);
 				ED_space_image_get_zoom(sima, ar, zoomx, zoomy);
 				break;
 			}
@@ -297,9 +289,8 @@ void ED_mask_zoom(const bContext *C, float *zoomx, float *zoomy)
 	}
 }
 
-void ED_mask_aspect(const bContext *C, float *aspx, float *aspy)
+void ED_mask_get_aspect(struct ScrArea *sa, struct ARegion *UNUSED(ar), float *aspx, float *aspy)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacedata.first) {
 		switch (sa->spacetype) {
 			case SPACE_CLIP:
@@ -332,9 +323,8 @@ void ED_mask_aspect(const bContext *C, float *aspx, float *aspy)
 	}
 }
 
-void ED_mask_pixelspace_factor(const bContext *C, float *scalex, float *scaley)
+void ED_mask_pixelspace_factor(struct ScrArea *sa, struct ARegion *ar, float *scalex, float *scaley)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacedata.first) {
 		switch (sa->spacetype) {
 			case SPACE_CLIP:
@@ -343,8 +333,8 @@ void ED_mask_pixelspace_factor(const bContext *C, float *scalex, float *scaley)
 				int width, height;
 				float zoomx, zoomy, aspx, aspy;
 
-				ED_space_clip_get_size(C, &width, &height);
-				ED_space_clip_get_zoom(C, &zoomx, &zoomy);
+				ED_space_clip_get_size(sc, &width, &height);
+				ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
 				ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
 				*scalex = ((float)width * aspx) * zoomx;
@@ -359,7 +349,6 @@ void ED_mask_pixelspace_factor(const bContext *C, float *scalex, float *scaley)
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = sa->spacedata.first;
-				ARegion *ar = CTX_wm_region(C);
 				int width, height;
 				float zoomx, zoomy, aspx, aspy;
 

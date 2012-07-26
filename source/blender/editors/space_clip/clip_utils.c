@@ -223,13 +223,12 @@ void clip_delete_marker(bContext *C, MovieClip *clip, ListBase *tracksbase,
 	}
 }
 
-void clip_view_center_to_point(const bContext *C, float x, float y)
+void clip_view_center_to_point(SpaceClip *sc, float x, float y)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
 	int width, height;
 	float aspx, aspy;
 
-	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_size(sc, &width, &height);
 	ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
 	sc->xof = (x - 0.5f) * width * aspx;
