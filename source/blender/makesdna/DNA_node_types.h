@@ -376,7 +376,11 @@ enum {
 
 enum {
 	CMP_NODEFLAG_MASK_AA         = (1 << 0),
-	CMP_NODEFLAG_MASK_NO_FEATHER = (1 << 1)
+	CMP_NODEFLAG_MASK_NO_FEATHER = (1 << 1),
+
+	/* we may want multiple aspect options, exposed as an rna enum */
+	CMP_NODEFLAG_MASK_FIXED       = (1 << 8),
+	CMP_NODEFLAG_MASK_FIXED_SCENE = (1 << 9)
 };
 
 enum {

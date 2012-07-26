@@ -206,6 +206,30 @@ EnumPropertyItem prop_wave_items[] = {
 #include "DNA_scene_types.h"
 #include "WM_api.h"
 
+static void rna_Node_custom3_set_as_int(PointerRNA *ptr, int value)
+{
+	bNode *node = (bNode *)ptr->data;
+	node->custom3 = value;
+}
+
+static int rna_Node_custom3_get_as_int(PointerRNA *ptr)
+{
+	bNode *node = (bNode *)ptr->data;
+	return (int)node->custom3;
+}
+
+static void rna_Node_custom4_set_as_int(PointerRNA *ptr, int value)
+{
+	bNode *node = (bNode *)ptr->data;
+	node->custom4 = value;
+}
+
+static int rna_Node_custom4_get_as_int(PointerRNA *ptr)
+{
+	bNode *node = (bNode *)ptr->data;
+	return (int)node->custom4;
+}
+
 static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 {
 	bNode *node = (bNode *)ptr->data;
@@ -3137,6 +3161,13 @@ static void def_cmp_mask(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
+	static EnumPropertyItem aspect_type_items[] = {
+		{0, "SCENE",   0, "Scene Size",   ""},
+		{CMP_NODEFLAG_MASK_FIXED, "FIXED",   0, "Fixed",   "Use pixel size for the buffer"},
+		{CMP_NODEFLAG_MASK_FIXED_SCENE, "FIXED_SCENE",   0, "Fixed/Scene", "Pixel size scaled by scene percentage"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Mask");
@@ -3151,6 +3182,24 @@ static void def_cmp_mask(StructRNA *srna)
 	prop = RNA_def_property(srna, "use_feather", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "custom1", CMP_NODEFLAG_MASK_NO_FEATHER);
 	RNA_def_property_ui_text(prop, "Feather", "Use feather information from the mask");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "size_source", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, aspect_type_items);
+	RNA_def_property_ui_text(prop, "Size Source", "Where to get the mask size from for aspect/size information");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "size_x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_funcs(prop, "rna_Node_custom3_get_as_int", "rna_Node_custom3_set_as_int", NULL);
+	RNA_def_property_range(prop, 1.0f, 10000.0f);
+	RNA_def_property_ui_text(prop, "X", "");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "size_y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_funcs(prop, "rna_Node_custom4_get_as_int", "rna_Node_custom4_set_as_int", NULL);
+	RNA_def_property_range(prop, 1.0f, 10000.0f);
+	RNA_def_property_ui_text(prop, "Y", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

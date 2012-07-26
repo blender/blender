@@ -46,8 +46,19 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	// always connect the output image
 	MaskOperation *operation = new MaskOperation();
 	operation->setbNode(editorNode);
-	operation->setMaskWidth(data->xsch * data->size / 100.0f);
-	operation->setMaskHeight(data->ysch * data->size / 100.0f);
+
+	if (editorNode->custom1 & CMP_NODEFLAG_MASK_FIXED) {
+		operation->setMaskWidth(editorNode->custom3);
+		operation->setMaskHeight(editorNode->custom4);
+	}
+	else if (editorNode->custom1 & CMP_NODEFLAG_MASK_FIXED_SCENE) {
+		operation->setMaskWidth(editorNode->custom3 * (data->size / 100.0f));
+		operation->setMaskHeight(editorNode->custom4 * (data->size / 100.0f));
+	}
+	else {
+		operation->setMaskWidth(data->xsch * data->size / 100.0f);
+		operation->setMaskHeight(data->ysch * data->size / 100.0f);
+	}
 
 	if (outputMask->isConnected()) {
 		outputMask->relinkConnections(operation->getOutputSocket());
