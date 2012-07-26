@@ -34,11 +34,18 @@
 struct wmKeyConfig;
 struct MaskLayer;
 struct MaskLayerShape;
+struct wmEvent;
 
 /* mask_edit.c */
 void ED_mask_size(const struct bContext *C, int *width, int *height);
 void ED_mask_zoom(const struct bContext *C, float *zoomx, float *zoomy);
 void ED_mask_aspect(const struct bContext *C, float *aspx, float *aspy);
+
+void ED_mask_pixelspace_factor(const struct bContext *C, float *scalex, float *scaley);
+void ED_mask_mouse_pos(const struct bContext *C, struct wmEvent *event, float co[2]);
+
+void ED_mask_point_pos(const struct bContext *C, float x, float y, float *xr, float *yr);
+void ED_mask_point_pos__reverse(const struct bContext *C, float x, float y, float *xr, float *yr);
 
 void ED_operatortypes_mask(void);
 void ED_keymap_mask(struct wmKeyConfig *keyconf);
