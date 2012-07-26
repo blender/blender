@@ -3380,14 +3380,11 @@ static void UV_OT_reveal(wmOperatorType *ot)
 static int set_2d_cursor_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	float location[2];
 
 	if (!sima)
 		return OPERATOR_CANCELLED;
 
-	RNA_float_get_array(op->ptr, "location", location);
-	sima->cursor[0] = location[0];
-	sima->cursor[1] = location[1];
+	RNA_float_get_array(op->ptr, "location", sima->cursor);
 	
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
 	

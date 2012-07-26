@@ -73,6 +73,7 @@
 #include "BKE_context.h"
 #include "BKE_tessmesh.h"
 #include "BKE_tracking.h"
+#include "BKE_mask.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -1449,8 +1450,26 @@ void calculateCenterCursor2D(TransInfo *t)
 	}
 	
 	if (cursor) {
-		t->center[0] = cursor[0] * aspx;
-		t->center[1] = cursor[1] * aspy;
+		if (t->options & CTX_MASK) {
+			float co[2];
+			int width, height;
+			float frame_size[2];
+			SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
+			ED_space_image_get_size(sima, &width, &height);
+			frame_size[0] = width;
+			frame_size[1] = height;
+
+			BKE_mask_coord_from_frame(co, cursor, frame_size);
+
+			ED_space_image_get_aspect(sima, &aspx, &aspy);
+
+			t->center[0] = co[0] * aspx;
+			t->center[1] = co[1] * aspy;
+		}
+		else {
+			t->center[0] = cursor[0] * aspx;
+			t->center[1] = cursor[1] * aspy;
+		}
 	}
 	
 	calculateCenter2D(t);
