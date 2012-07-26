@@ -3309,7 +3309,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 			if (ob->softflag & OB_SB_GOAL) {bp->goal = sb->defgoal;}
 		}
 
-		/* to proove the concept
+		/* to proof the concept
 		 * this enables per vertex *mass painting*
 		 */
 
@@ -3798,7 +3798,7 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 		/* vertexCos came from local world, go global */
 		mul_m4_v3(ob->obmat, bp->origE);
 		/* just to be save give bp->origT a defined value
-		 * will be calulated in interpolate_exciter()*/
+		 * will be calculated in interpolate_exciter() */
 		copy_v3_v3(bp->origT, bp->origE);
 	}
 }

@@ -914,12 +914,13 @@ static int image_open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 
 		if (prop) {
 			PointerRNA oldptr;
+			Image *oldima;
 
 			oldptr = RNA_property_pointer_get(&ptr, prop);
-			ima = (Image *)oldptr.id.data;
-			/* unlikely but better avoid strange crash */
-			if (ima && GS(ima->id.name) != ID_IM) {
-				ima = NULL;
+			oldima = (Image *)oldptr.id.data;
+			/* unlikely to fail but better avoid strange crash */
+			if (oldima && GS(oldima->id.name) != ID_IM) {
+				ima = oldima;
 			}
 		}
 	}

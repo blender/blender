@@ -438,7 +438,7 @@ static short apply_targetless_ik(Object *ob)
 					/* rotation */
 					/* [#22409] is partially caused by this, as slight numeric error introduced during
 					 * the solving process leads to locked-axis values changing. However, we cannot modify
-					 * the values here, or else there are huge discreptancies between IK-solver (interactive)
+					 * the values here, or else there are huge discrepancies between IK-solver (interactive)
 					 * and applied poses.
 					 */
 					if (parchan->rotmode > 0)

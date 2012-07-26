@@ -27,7 +27,7 @@
 
 /** \file gameengine/Ketsji/KX_SCA_DynamicActuator.cpp
  *  \ingroup ketsji
- * Adjust dynamics settins for this object
+ * Adjust dynamics settings for this object
  */
 
 /* Previously existed as:
