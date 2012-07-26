@@ -3735,6 +3735,7 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 			else
 				type = BUT_GET_RNA_TIP; /* Fail-safe solution... */
 		}
+
 		if (type == BUT_GET_RNAPROP_IDENTIFIER) {
 			if (but->rnaprop)
 				tmp = BLI_strdup(RNA_property_identifier(but->rnaprop));
@@ -3772,12 +3773,15 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 			else if (ELEM(but->type, MENU, PULLDOWN)) {
 				MenuType *mt = uiButGetMenuType(but);
 				if (mt) {
-					if (type == BUT_GET_RNA_LABEL)
-						tmp = BLI_strdup(RNA_struct_ui_name(mt->ext.srna));
-					else {
-						const char *t = RNA_struct_ui_description(mt->ext.srna);
-						if (t && t[0])
-							tmp = BLI_strdup(t);
+					/* not all menus are from python */
+					if (mt->ext.srna) {
+						if (type == BUT_GET_RNA_LABEL)
+							tmp = BLI_strdup(RNA_struct_ui_name(mt->ext.srna));
+						else {
+							const char *t = RNA_struct_ui_description(mt->ext.srna);
+							if (t && t[0])
+								tmp = BLI_strdup(t);
+						}
 					}
 				}
 			}
