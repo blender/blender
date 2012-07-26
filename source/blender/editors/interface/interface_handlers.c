@@ -3725,7 +3725,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 			offsy = cumap->curr.ymin;
 
 			if (event->ctrl) {
-				fx = ((float)my - but->x1) / zoomx + offsx;
+				fx = ((float)mx - but->x1) / zoomx + offsx;
 				fy = ((float)my - but->y1) / zoomy + offsy;
 				
 				curvemap_insert(cuma, fx, fy);
