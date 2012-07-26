@@ -105,6 +105,9 @@ void ED_mask_mouse_pos(const struct bContext *C, struct wmEvent *event, float co
 void ED_mask_point_pos(const struct bContext *C, float x, float y, float *xr, float *yr);
 void ED_mask_point_pos__reverse(const struct bContext *C, float x, float y, float *xr, float *yr);
 
+void ED_mask_get_zoom(const bContext *C, float *zoomx, float *zoomy);
+void ED_mask_get_size(const bContext *C, float *zoomx, float *zoomy);
+
 /* mask_shapekey.c */
 void MASK_OT_shape_key_insert(struct wmOperatorType *ot);
 void MASK_OT_shape_key_clear(struct wmOperatorType *ot);

@@ -63,7 +63,7 @@
 
 #include "uvedit_intern.h"
 
-static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
+void draw_image_cursor(SpaceImage *sima, ARegion *ar)
 {
 	float zoomx, zoomy, w, h;
 	int width, height;
@@ -889,7 +889,7 @@ void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedi
 			draw_uvs_texpaint(sima, scene, obact);
 
 		if (show_uvedit && !(toolsettings->use_uv_sculpt))
-			drawcursor_sima(sima, ar);
+			draw_image_cursor(sima, ar);
 	}
 }
 

@@ -63,6 +63,8 @@ void ED_image_get_size(struct Image *ima, int *width, int *height);
 void ED_image_get_aspect(struct Image *ima, float *aspx, float *aspy);
 void ED_image_get_uv_aspect(struct Image *ima, float *aspx, float *aspy);
 void ED_image_mouse_pos(struct SpaceImage *sima, struct ARegion *ar, struct wmEvent *event, float co[2]);
+void ED_image_point_pos(struct SpaceImage *sima, struct ARegion *ar, float x, float y, float *xr, float *yr);
+void ED_image_point_pos__reverse(struct SpaceImage *sima, struct ARegion *ar, const float co[2], float r_co[2]);
 
 int ED_space_image_show_render(struct SpaceImage *sima);
 int ED_space_image_show_paint(struct SpaceImage *sima);

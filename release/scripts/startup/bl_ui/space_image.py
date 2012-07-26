@@ -409,6 +409,10 @@ class IMAGE_HT_header(Header):
             row = layout.row()
             row.template_ID(sima, "mask", new="mask.new")
 
+            # reused for mask
+            uvedit = sima.uv_editor
+            layout.prop(uvedit, "pivot_point", text="", icon_only=True)
+
         if ima:
             # layers
             layout.template_image_layers(ima, iuser)
