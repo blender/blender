@@ -135,6 +135,9 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
 		em = me->edit_btmesh;
 
+		EDBM_mesh_normals_update(em);
+		BMEdit_RecalcTessellation(em);
+
 		/* derivedMesh might be needed for solving parenting,
 		 * so re-create it here */
 		makeDerivedMesh(scene, obedit, em, CD_MASK_BAREMESH, 0);
