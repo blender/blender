@@ -213,6 +213,10 @@ static int space_image_image_sample_poll(bContext *C)
 		if (ED_space_image_show_uvedit(sima, obedit) && (toolsettings->use_uv_sculpt))
 			return 0;
 	}
+	else if (sima->mode != SI_MODE_VIEW) {
+		return 0;
+	}
+
 	return space_image_main_area_poll(C);
 }
 /********************** view pan operator *********************/
@@ -2152,6 +2156,9 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 
 	BKE_histogram_update_sample_line(hist, ibuf, (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) != 0);
 	
+	/* reset y zoom */
+	hist->ymax = 1.0f;
+
 	ED_space_image_release_buffer(sima, lock);
 	
 	ED_area_tag_redraw(CTX_wm_area(C));

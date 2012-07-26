@@ -961,7 +961,7 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const short 
 	hist->channels = 3;
 	hist->x_resolution = 256;
 	hist->xmax = 1.0f;
-	hist->ymax = 1.0f;
+	/* hist->ymax = 1.0f; */ /* now do this on the operator _only_ */
 
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return;
 
