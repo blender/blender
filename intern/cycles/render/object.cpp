@@ -269,7 +269,7 @@ void ObjectManager::device_update_particles(Device *device, DeviceScene *dscene,
 			/* pack in texture */
 			int offset = i*PARTICLE_SIZE;
 			
-			particles[offset] = make_float4(pa.age, pa.lifetime, 0.0f, 0.0f);
+			particles[offset] = make_float4(pa.index, pa.age, pa.lifetime, 0.0f);
 			
 			i++;
 			

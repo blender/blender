@@ -169,18 +169,25 @@ __device int shader_pass_id(KernelGlobals *kg, ShaderData *sd)
 	return kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2 + 1);
 }
 
-__device float particle_age(KernelGlobals *kg, int particle)
+__device_inline float particle_index(KernelGlobals *kg, int particle)
 {
 	int offset = particle*PARTICLE_SIZE;
 	float4 f = kernel_tex_fetch(__particles, offset);
 	return f.x;
 }
 
-__device float particle_lifetime(KernelGlobals *kg, int particle)
+__device float particle_age(KernelGlobals *kg, int particle)
 {
 	int offset = particle*PARTICLE_SIZE;
 	float4 f = kernel_tex_fetch(__particles, offset);
 	return f.y;
+}
+
+__device float particle_lifetime(KernelGlobals *kg, int particle)
+{
+	int offset = particle*PARTICLE_SIZE;
+	float4 f = kernel_tex_fetch(__particles, offset);
+	return f.z;
 }
 
 
