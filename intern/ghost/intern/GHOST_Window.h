@@ -335,7 +335,7 @@ protected:
 	/** Modified state : are there unsaved changes */
 	bool m_isUnsavedChanges;
 	
-	/** Stores wether this is a full screen window. */
+	/** Stores whether this is a full screen window. */
 	bool m_fullScreen;
 
 	/** Stereo visual created. Only necessary for 'real' stereo support,

@@ -61,7 +61,7 @@ public:
 	void setAxis(int value) {this->axis = value;}
 	void setRelative(bool value) {this->relative = value;}
 
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler);
 
 	const bool isSetOperation() const { return true; }
 };

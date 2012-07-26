@@ -1479,7 +1479,7 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 
 			XFree(buffer);
 
-			/* if we have come this far, the propery contains
+			/* if we have come this far, the property contains
 			 * text, we know the size. */
 			XGetWindowProperty(m_display, win, m_xclip_out, 0, (long) pty_size,
 			                   False, AnyPropertyType, &pty_type, &pty_format,

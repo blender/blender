@@ -526,7 +526,7 @@ static int rna_Property_readonly_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
-	/* don't use this becaure it will call functions that check the internal
+	/* don't use this because it will call functions that check the internal
 	 * data for introspection we only need to know if it can be edited so the
 	 * flag is better for this */
 /*	return RNA_property_editable(ptr, prop); */

@@ -289,7 +289,7 @@ private :
 
 	/**
 	 * Private constructor - this class is not meant
-	 * for instanciation.
+	 * for instantiation.
 	 */
 
 	RAS_FramingManager(

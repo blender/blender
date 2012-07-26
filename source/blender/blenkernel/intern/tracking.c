@@ -853,7 +853,7 @@ static void track_mask_gpencil_layer_rasterize(int frame_width, int frame_height
 					fp[1] = (stroke_points[i].y - marker->search_min[1]) * frame_height / mask_height;
 				}
 
-				/* TODO: add an option to control wether AA is enabled or not */
+				/* TODO: add an option to control whether AA is enabled or not */
 				PLX_raskterize((float (*)[2])mask_points, stroke->totpoints, mask, mask_width, mask_height, FALSE);
 
 				MEM_freeN(mask_points);

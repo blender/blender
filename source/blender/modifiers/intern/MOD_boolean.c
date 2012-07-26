@@ -128,7 +128,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		return derivedData;
 
 
-	/* 2.64 used this... */
+	/* 2.63 used this... */
 	/* dm = bmd->object->derivedFinal; */
 
 	/* but we want to make sure we can get the object

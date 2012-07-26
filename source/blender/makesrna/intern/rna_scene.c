@@ -145,7 +145,7 @@ EnumPropertyItem snap_node_element_items[] = {
 };
 
 
-/* workaround for duplice enums,
+/* workaround for duplicate enums,
  * have each enum line as a defne then conditionally set it or not
  */
 
@@ -771,7 +771,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
 #ifdef WITH_FFMPEG
 	/* a WAY more crappy case than B&W flag: depending on codec, file format MIGHT support
 	 * alpha channel. for example MPEG format with h264 codec can't do alpha channel, but
-	 * the same MPEG format with QTRLE codec can easily handle alpga channel.
+	 * the same MPEG format with QTRLE codec can easily handle alpha channel.
 	 * not sure how to deal with such cases in a nicer way (sergey) */
 	if (is_render) {
 		Scene *scene = ptr->id.data;
@@ -1105,7 +1105,7 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSE
 	
 	if (ntree && scene->use_nodes) {
 		/* images are freed here, stop render and preview threads, until
-		 * Image is threadsafe. when we are changing this propery from a
+		 * Image is threadsafe. when we are changing this property from a
 		 * python script in the render thread, don't stop own thread */
 		if (BLI_thread_is_main())
 			WM_jobs_stop_all(bmain->wm.first);

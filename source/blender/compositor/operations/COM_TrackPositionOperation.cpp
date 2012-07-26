@@ -47,7 +47,7 @@ TrackPositionOperation::TrackPositionOperation() : NodeOperation()
 	this->relative = false;
 }
 
-void TrackPositionOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void TrackPositionOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
 {
 	MovieClipUser user = {0};
 	MovieTracking *tracking = &movieClip->tracking;
