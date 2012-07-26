@@ -136,6 +136,14 @@ void ED_space_clip_get_size(const bContext *C, int *width, int *height)
 	}
 }
 
+void ED_space_clip_get_size_fl(const bContext *C, float size[2])
+{
+	int size_i[2];
+	ED_space_clip_get_size(C, &size_i[0], &size_i[1]);
+	size[0] = size_i[0];
+	size[1] = size_i[1];
+}
+
 void ED_space_clip_get_zoom(const bContext *C, float *zoomx, float *zoomy)
 {
 	ARegion *ar = CTX_wm_region(C);

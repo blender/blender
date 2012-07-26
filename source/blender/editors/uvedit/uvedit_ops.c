@@ -295,8 +295,8 @@ static void uvedit_pixel_to_float(SpaceImage *sima, float *dist, float pixeldist
 		ED_space_image_get_size(sima, &width, &height);
 	}
 	else {
-		width = 256;
-		height = 256;
+		width =  IMG_SIZE_FALLBACK;
+		height = IMG_SIZE_FALLBACK;
 	}
 
 	dist[0] = pixeldist / width;

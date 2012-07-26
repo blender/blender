@@ -192,6 +192,14 @@ void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
 	ED_space_image_release_buffer(sima, lock);
 }
 
+void ED_space_image_get_size_fl(SpaceImage *sima, float size[2])
+{
+	int size_i[2];
+	ED_space_image_get_size(sima, &size_i[0], &size_i[1]);
+	size[0] = size_i[0];
+	size[1] = size_i[1];
+}
+
 void ED_image_get_aspect(Image *ima, float *aspx, float *aspy)
 {
 	*aspx = *aspy = 1.0;
