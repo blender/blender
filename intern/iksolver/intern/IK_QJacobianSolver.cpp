@@ -45,22 +45,22 @@ IK_QJacobianSolver::IK_QJacobianSolver()
 
 MT_Scalar IK_QJacobianSolver::ComputeScale()
 {
-	std::vector<IK_QSegment*>::iterator seg;
+	std::vector<IK_QSegment *>::iterator seg;
 	MT_Scalar length = 0.0f;
 
 	for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
 		length += (*seg)->MaxExtension();
 	
-	if(length == 0.0)
+	if (length == 0.0)
 		return 1.0;
 	else
 		return 1.0 / length;
 }
 
-void IK_QJacobianSolver::Scale(MT_Scalar scale, std::list<IK_QTask*>& tasks)
+void IK_QJacobianSolver::Scale(MT_Scalar scale, std::list<IK_QTask *>& tasks)
 {
-	std::list<IK_QTask*>::iterator task;
-	std::vector<IK_QSegment*>::iterator seg;
+	std::list<IK_QTask *>::iterator task;
+	std::vector<IK_QSegment *>::iterator seg;
 
 	for (task = tasks.begin(); task != tasks.end(); task++)
 		(*task)->Scale(scale);
@@ -82,13 +82,13 @@ void IK_QJacobianSolver::AddSegmentList(IK_QSegment *seg)
 		AddSegmentList(child);
 }
 
-bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks)
+bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *>& tasks)
 {
 	m_segments.clear();
 	AddSegmentList(root);
 
 	// assign each segment a unique id for the jacobian
-	std::vector<IK_QSegment*>::iterator seg;
+	std::vector<IK_QSegment *>::iterator seg;
 	int num_dof = 0;
 
 	for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
@@ -103,7 +103,7 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks)
 	int primary_size = 0, primary = 0;
 	int secondary_size = 0, secondary = 0;
 	MT_Scalar primary_weight = 0.0, secondary_weight = 0.0;
-	std::list<IK_QTask*>::iterator task;
+	std::list<IK_QTask *>::iterator task;
 
 	for (task = tasks.begin(); task != tasks.end(); task++) {
 		IK_QTask *qtask = *task;
@@ -128,20 +128,20 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks)
 	m_secondary_enabled = (secondary > 0);
 	
 	// rescale weights of tasks to sum up to 1
-	MT_Scalar primary_rescale = 1.0/primary_weight;
+	MT_Scalar primary_rescale = 1.0 / primary_weight;
 	MT_Scalar secondary_rescale;
 	if (MT_fuzzyZero(secondary_weight))
 		secondary_rescale = 0.0;
 	else
-		secondary_rescale = 1.0/secondary_weight;
+		secondary_rescale = 1.0 / secondary_weight;
 	
 	for (task = tasks.begin(); task != tasks.end(); task++) {
 		IK_QTask *qtask = *task;
 
 		if (qtask->Primary())
-			qtask->SetWeight(qtask->Weight()*primary_rescale);
+			qtask->SetWeight(qtask->Weight() * primary_rescale);
 		else
-			qtask->SetWeight(qtask->Weight()*secondary_rescale);
+			qtask->SetWeight(qtask->Weight() * secondary_rescale);
 	}
 
 	// set matrix sizes
@@ -154,7 +154,7 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks)
 
 	for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
 		for (i = 0; i < (*seg)->NumberOfDoF(); i++)
-			m_jacobian.SetDoFWeight((*seg)->DoFId()+i, (*seg)->Weight(i));
+			m_jacobian.SetDoFWeight((*seg)->DoFId() + i, (*seg)->Weight(i));
 
 	return true;
 }
@@ -165,7 +165,7 @@ void IK_QJacobianSolver::SetPoleVectorConstraint(IK_QSegment *tip, MT_Vector3& g
 	m_poletip = tip;
 	m_goal = goal;
 	m_polegoal = polegoal;
-	m_poleangle = (getangle)? 0.0f: poleangle;
+	m_poleangle = (getangle) ? 0.0f : poleangle;
 	m_getpoleangle = getangle;
 }
 
@@ -182,7 +182,7 @@ static MT_Vector3 normalize(const MT_Vector3& v)
 	// a sane normalize function that doesn't give (1, 0, 0) in case
 	// of a zero length vector, like MT_Vector3.normalize
 	MT_Scalar len = v.length();
-	return MT_fuzzyZero(len)?  MT_Vector3(0, 0, 0): v/len;
+	return MT_fuzzyZero(len) ?  MT_Vector3(0, 0, 0) : v / len;
 }
 
 static float angle(const MT_Vector3& v1, const MT_Vector3& v2)
@@ -190,21 +190,21 @@ static float angle(const MT_Vector3& v1, const MT_Vector3& v2)
 	return safe_acos(v1.dot(v2));
 }
 
-void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTask*>& tasks)
+void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTask *>& tasks)
 {
 	// this function will be called before and after solving. calling it before
 	// solving gives predictable solutions by rotating towards the solution,
 	// and calling it afterwards ensures the solution is exact.
 
-	if(!m_poleconstraint)
+	if (!m_poleconstraint)
 		return;
 	
 	// disable pole vector constraint in case of multiple position tasks
-	std::list<IK_QTask*>::iterator task;
+	std::list<IK_QTask *>::iterator task;
 	int positiontasks = 0;
 
 	for (task = tasks.begin(); task != tasks.end(); task++)
-		if((*task)->PositionTask())
+		if ((*task)->PositionTask())
 			positiontasks++;
 	
 	if (positiontasks >= 2) {
@@ -223,12 +223,12 @@ void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTa
 	// an up vector, with the direction going from the root to the end effector
 	// and the up vector going from the root to the pole constraint position.
 	MT_Vector3 dir = normalize(endpos - rootpos);
-	MT_Vector3 rootx= rootbasis.getColumn(0);
-	MT_Vector3 rootz= rootbasis.getColumn(2);
-	MT_Vector3 up = rootx*cos(m_poleangle) + rootz*sin(m_poleangle);
+	MT_Vector3 rootx = rootbasis.getColumn(0);
+	MT_Vector3 rootz = rootbasis.getColumn(2);
+	MT_Vector3 up = rootx * cos(m_poleangle) + rootz *sin(m_poleangle);
 
 	// in post, don't rotate towards the goal but only correct the pole up
-	MT_Vector3 poledir = (m_getpoleangle)? dir: normalize(m_goal - rootpos);
+	MT_Vector3 poledir = (m_getpoleangle) ? dir : normalize(m_goal - rootpos);
 	MT_Vector3 poleup = normalize(m_polegoal - rootpos);
 
 	MT_Matrix3x3 mat, polemat;
@@ -241,11 +241,11 @@ void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTa
 	polemat[1] = MT_cross(polemat[0], poledir);
 	polemat[2] = -poledir;
 
-	if(m_getpoleangle) {
+	if (m_getpoleangle) {
 		// we compute the pole angle that to rotate towards the target
 		m_poleangle = angle(mat[1], polemat[1]);
 
-		if(rootz.dot(mat[1]*cos(m_poleangle) + mat[0]*sin(m_poleangle)) > 0.0)
+		if (rootz.dot(mat[1] * cos(m_poleangle) + mat[0] * sin(m_poleangle)) > 0.0)
 			m_poleangle = -m_poleangle;
 
 		// solve again, with the pole angle we just computed
@@ -257,15 +257,15 @@ void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTa
 		// desired rotation based on the pole vector constraint. we use
 		// transpose instead of inverse because we have orthogonal matrices
 		// anyway, and in case of a singular matrix we don't get NaN's.
-		MT_Transform trans(MT_Point3(0, 0, 0), polemat.transposed()*mat);
-		m_rootmatrix = trans*m_rootmatrix;
+		MT_Transform trans(MT_Point3(0, 0, 0), polemat.transposed() * mat);
+		m_rootmatrix = trans * m_rootmatrix;
 	}
 }
 
 bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
 {
 	// assing each segment a unique id for the jacobian
-	std::vector<IK_QSegment*>::iterator seg;
+	std::vector<IK_QSegment *>::iterator seg;
 	IK_QSegment *qseg, *minseg = NULL;
 	MT_Scalar minabsdelta = 1e10, absdelta;
 	MT_Vector3 delta, mindelta;
@@ -318,11 +318,11 @@ bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
 }
 
 bool IK_QJacobianSolver::Solve(
-	IK_QSegment *root,
-	std::list<IK_QTask*> tasks,
-	const MT_Scalar,
-	const int max_iterations
-)
+    IK_QSegment *root,
+    std::list<IK_QTask *> tasks,
+    const MT_Scalar,
+    const int max_iterations
+    )
 {
 	float scale = ComputeScale();
 	bool solved = false;
@@ -339,7 +339,7 @@ bool IK_QJacobianSolver::Solve(
 		// update transform
 		root->UpdateTransform(m_rootmatrix);
 
-		std::list<IK_QTask*>::iterator task;
+		std::list<IK_QTask *>::iterator task;
 
 		// compute jacobian
 		for (task = tasks.begin(); task != tasks.end(); task++) {
@@ -367,7 +367,7 @@ bool IK_QJacobianSolver::Solve(
 		} while (UpdateAngles(norm));
 
 		// unlock segments again after locking in clamping loop
-		std::vector<IK_QSegment*>::iterator seg;
+		std::vector<IK_QSegment *>::iterator seg;
 		for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
 			(*seg)->UnLock();
 
@@ -383,10 +383,10 @@ bool IK_QJacobianSolver::Solve(
 		}
 	}
 
-	if(m_poleconstraint)
+	if (m_poleconstraint)
 		root->PrependBasis(m_rootmatrix.getBasis());
 
-	Scale(1.0f/scale, tasks);
+	Scale(1.0f / scale, tasks);
 
 	//analyze_add_run(max_iterations, analyze_time()-dt);
 
