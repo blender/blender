@@ -201,8 +201,8 @@ void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
 	if (stiffness < 0.0f)
 		return;
 	
-	if (stiffness > 0.999f)
-		stiffness = 0.999f;
+	if (stiffness > (1.0 - IK_STRETCH_STIFF_EPS))
+		stiffness = (1.0 - IK_STRETCH_STIFF_EPS);
 
 	IK_QSegment *qseg = (IK_QSegment *)seg;
 	MT_Scalar weight = 1.0f - stiffness;
