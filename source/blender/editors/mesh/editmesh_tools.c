@@ -4646,6 +4646,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_RUNNING_MODAL;
 		}
 	}
+
 	switch (event->type) {
 		case ESCKEY:
 		case RIGHTMOUSE:
@@ -4678,7 +4679,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 				edbm_bevel_calc(C, op);
 				edbm_bevel_update_header(op, C);
 			}
-			return OPERATOR_RUNNING_MODAL;
+			break;
 
 		case LEFTMOUSE:
 		case PADENTER:
@@ -4695,7 +4696,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 				edbm_bevel_calc(C, op);
 				edbm_bevel_update_header(op, C);
 			}
-			return OPERATOR_RUNNING_MODAL;
+			break;
 
 		case DKEY:
 			if (event->val == KM_PRESS) {
@@ -4705,7 +4706,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 				edbm_bevel_calc(C, op);
 				edbm_bevel_update_header(op, C);
 			}
-			return OPERATOR_RUNNING_MODAL;
+			break;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -4785,7 +4786,12 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 {
 	InsetData *opdata = op->customdata;
 
-	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RClick), thickness: %s, depth (Ctrl to tweak): %s (%s), Outset (O): (%s)";
+	static const char str[] = "Confirm: Enter/LClick, "
+	                          "Cancel: (Esc/RClick), "
+	                          "thickness: %s, "
+	                          "depth (Ctrl to tweak): %s (%s), "
+	                          "Outset (O): (%s), "
+	                          "Boundary (B): (%s)";
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
@@ -4802,7 +4808,8 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 		             flts_str,
 		             flts_str + NUM_STR_REP_LEN,
 		             opdata->modify_depth ? "On" : "Off",
-		             RNA_boolean_get(op->ptr, "use_outset") ? "On" : "Off"
+		             RNA_boolean_get(op->ptr, "use_outset") ? "On" : "Off",
+		             RNA_boolean_get(op->ptr, "use_boundary") ? "On" : "Off"
 		            );
 
 		ED_area_headerprint(sa, msg);
@@ -4982,6 +4989,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 	}
+
 	switch (event->type) {
 		case ESCKEY:
 		case RIGHTMOUSE:
@@ -5019,7 +5027,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 					return OPERATOR_CANCELLED;
 				}
 			}
-			return OPERATOR_RUNNING_MODAL;
+			break;
 
 		case LEFTMOUSE:
 		case PADENTER:
@@ -5041,7 +5049,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 				opdata->shift_amount = 0.0f;
 				opdata->shift = FALSE;
 			}
-			return OPERATOR_RUNNING_MODAL;
+			break;
 
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
@@ -5066,7 +5074,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 			opdata->initial_length = len_v2(mlen);
 
 			edbm_inset_update_header(op, C);
-			return OPERATOR_RUNNING_MODAL;
+			break;
 		}
 
 		case OKEY:
@@ -5075,13 +5083,26 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 				RNA_boolean_set(op->ptr, "use_outset", !use_outset);
 				if (edbm_inset_calc(C, op)) {
 					edbm_inset_update_header(op, C);
-					return OPERATOR_RUNNING_MODAL;
 				}
 				else {
 					edbm_inset_cancel(C, op);
 					return OPERATOR_CANCELLED;
 				}
 			}
+			break;
+		case BKEY:
+			if (event->val == KM_PRESS) {
+				int use_boundary = RNA_boolean_get(op->ptr, "use_boundary");
+				RNA_boolean_set(op->ptr, "use_boundary", !use_boundary);
+				if (edbm_inset_calc(C, op)) {
+					edbm_inset_update_header(op, C);
+				}
+				else {
+					edbm_inset_cancel(C, op);
+					return OPERATOR_CANCELLED;
+				}
+			}
+			break;
 	}
 
 	return OPERATOR_RUNNING_MODAL;

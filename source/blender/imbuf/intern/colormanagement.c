@@ -574,6 +574,8 @@ void IMB_colormanagement_init(void)
 	/* special views, which does not depend on OCIO  */
 	colormanage_view_add(ACES_ODT_TONECORVE);
 #endif
+
+	BLI_init_srgb_conversion();
 }
 
 void IMB_colormanagement_exit(void)
@@ -698,13 +700,6 @@ static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned c
                                           void *processor, void *(do_thread) (void *))
 {
 	DisplayBufferInitData init_data;
-
-	/* XXX: IMB_buffer_byte_from_float_tonecurve isn't thread-safe because of
-	 *      possible non-initialized sRGB conversion stuff. Make sure it's properly
-	 *      initialized before starting threads, but likely this stuff should be
-	 *      initialized somewhere before to avoid possible issues in other issues.
-	 */
-	BLI_init_srgb_conversion();
 
 	init_data.ibuf = ibuf;
 	init_data.processor = processor;
