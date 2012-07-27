@@ -316,6 +316,12 @@ int BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
 		resol = MAX2(resol, cur_resol);
 	}
 
+	BLI_assert(resol > 0);
+
+	if (resol > MASK_RESOL_MAX) {
+		resol = MASK_RESOL_MAX;
+	}
+
 	return resol;
 }
 
@@ -345,6 +351,12 @@ int BKE_mask_spline_feather_resolution(MaskSpline *spline, int width, int height
 	}
 
 	resol += max_jump / max_segment;
+
+	BLI_assert(resol > 0);
+
+	if (resol > MASK_RESOL_MAX) {
+		resol = MASK_RESOL_MAX;
+	}
 
 	return resol;
 }

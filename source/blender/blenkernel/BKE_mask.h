@@ -214,6 +214,8 @@ void BKE_mask_init_layers(Mask *mask, struct layer_init_data *mlayer_data, int w
 #define MASKPOINT_SEL_HANDLE(p)     { (p)->bezt.f1 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
 #define MASKPOINT_DESEL_HANDLE(p)   { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
 
+#define MASK_RESOL_MAX 128
+
 /* disable to test alternate rasterizer */
 /* #define USE_RASKTER */
 
