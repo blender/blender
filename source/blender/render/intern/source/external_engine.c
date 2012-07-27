@@ -341,6 +341,9 @@ int RE_engine_render(Render *re, int do_all)
 		engine->flag |= RE_ENGINE_PREVIEW;
 	engine->camera_override = re->camera_override;
 
+	engine->resolution_x = re->winx;
+	engine->resolution_y = re->winy;
+
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_PREVIEWBUTS)) == 0)
 		BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
 

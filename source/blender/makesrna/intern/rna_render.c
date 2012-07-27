@@ -367,6 +367,14 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "tile_y", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "tile_y");
 
+	prop = RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "resolution_x");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "resolution_y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "resolution_y");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	/* registration */
 
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);

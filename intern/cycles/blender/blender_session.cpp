@@ -45,10 +45,10 @@ BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::UserPreferences b
   b_v3d(PointerRNA_NULL), b_rv3d(PointerRNA_NULL)
 {
 	/* offline render */
-	BL::RenderSettings r = b_scene.render();
 
-	width = (int)(r.resolution_x()*r.resolution_percentage()/100);
-	height = (int)(r.resolution_y()*r.resolution_percentage()/100);
+	width = b_engine.resolution_x();
+	height = b_engine.resolution_y();
+
 	background = true;
 	last_redraw_time = 0.0f;
 

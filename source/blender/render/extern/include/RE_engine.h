@@ -92,6 +92,8 @@ typedef struct RenderEngine {
 	struct Render *re;
 	ListBase fullresult;
 	char *text;
+
+	int resolution_x, resolution_y;
 } RenderEngine;
 
 RenderEngine *RE_engine_create(RenderEngineType *type);
