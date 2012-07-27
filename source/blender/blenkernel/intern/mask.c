@@ -1330,6 +1330,49 @@ Mask *BKE_mask_new(const char *name)
 	return mask;
 }
 
+Mask *BKE_mask_copy_nolib(Mask *mask)
+{
+	Mask *mask_new;
+
+	mask_new = MEM_dupallocN(mask);
+
+	/*take care here! - we may want to copy anim data  */
+	mask_new->adt = NULL;
+
+	mask_new->masklayers.first = NULL;
+	mask_new->masklayers.last = NULL;
+
+	BKE_mask_layer_copy_list(&mask_new->masklayers, &mask->masklayers);
+
+	/* enable fake user by default */
+	if (!(mask_new->id.flag & LIB_FAKEUSER)) {
+		mask_new->id.flag |= LIB_FAKEUSER;
+		mask_new->id.us++;
+	}
+
+	return mask_new;
+}
+
+Mask *BKE_mask_copy(Mask *mask)
+{
+	Mask *mask_new;
+
+	mask_new = BKE_libblock_copy(&mask->id);
+
+	mask_new->masklayers.first = NULL;
+	mask_new->masklayers.last = NULL;
+
+	BKE_mask_layer_copy_list(&mask_new->masklayers, &mask->masklayers);
+
+	/* enable fake user by default */
+	if (!(mask_new->id.flag & LIB_FAKEUSER)) {
+		mask_new->id.flag |= LIB_FAKEUSER;
+		mask_new->id.us++;
+	}
+
+	return mask_new;
+}
+
 void BKE_mask_point_free(MaskSplinePoint *point)
 {
 	if (point->uw)
