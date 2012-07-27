@@ -188,28 +188,48 @@ void BKE_mask_layer_unique_name(Mask *mask, MaskLayer *masklay)
 	BLI_uniquename(&mask->masklayers, masklay, "MaskLayer", '.', offsetof(MaskLayer, name), sizeof(masklay->name));
 }
 
-MaskLayer *BKE_mask_layer_copy(MaskLayer *layer)
+MaskLayer *BKE_mask_layer_copy(MaskLayer *masklay)
 {
-	MaskLayer *layer_new;
+	MaskLayer *masklay_new;
 	MaskSpline *spline;
 
-	layer_new = MEM_callocN(sizeof(MaskLayer), "new mask layer");
+	masklay_new = MEM_callocN(sizeof(MaskLayer), "new mask layer");
 
-	BLI_strncpy(layer_new->name, layer->name, sizeof(layer_new->name));
+	BLI_strncpy(masklay_new->name, masklay->name, sizeof(masklay_new->name));
 
-	layer_new->alpha = layer->alpha;
-	layer_new->blend = layer->blend;
-	layer_new->blend_flag = layer->blend_flag;
-	layer_new->flag = layer->flag;
-	layer_new->restrictflag = layer->restrictflag;
+	masklay_new->alpha = masklay->alpha;
+	masklay_new->blend = masklay->blend;
+	masklay_new->blend_flag = masklay->blend_flag;
+	masklay_new->flag = masklay->flag;
+	masklay_new->restrictflag = masklay->restrictflag;
 
-	for (spline = layer->splines.first; spline; spline = spline->next) {
+	for (spline = masklay->splines.first; spline; spline = spline->next) {
 		MaskSpline *spline_new = BKE_mask_spline_copy(spline);
 
-		BLI_addtail(&layer_new->splines, spline_new);
+		BLI_addtail(&masklay_new->splines, spline_new);
 	}
 
-	return layer_new;
+	/* correct animation */
+	if (masklay->splines_shapes.first) {
+		MaskLayerShape *masklay_shape;
+		MaskLayerShape *masklay_shape_new;
+
+		for (masklay_shape = masklay->splines_shapes.first;
+		     masklay_shape;
+		     masklay_shape = masklay_shape->next)
+		{
+			masklay_shape_new = MEM_callocN(sizeof(MaskLayerShape), "new mask layer shape");
+
+			masklay_shape_new->data = MEM_dupallocN(masklay_shape->data);
+			masklay_shape_new->tot_vert = masklay_shape->tot_vert;
+			masklay_shape_new->flag = masklay_shape->flag;
+			masklay_shape_new->frame = masklay_shape->frame;
+
+			BLI_addtail(&masklay_new->splines_shapes, masklay_shape_new);
+		}
+	}
+
+	return masklay_new;
 }
 
 void BKE_mask_layer_copy_list(ListBase *masklayers_new, ListBase *masklayers)
