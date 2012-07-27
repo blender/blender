@@ -589,6 +589,10 @@ typedef struct NodeDilateErode {
 	char pad[7];
 } NodeDilateErode;
 
+typedef struct NodeMask {
+	int size_x, size_y;
+} NodeMask;
+
 typedef struct NodeTexBase {
 	TexMapping tex_mapping;
 	ColorMapping color_mapping;

@@ -2506,6 +2506,7 @@ static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *p
 	uiItemR(layout, ptr, "use_motion_blur", 0, NULL, ICON_NONE);
 	if (node->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) {
 		uiItemR(layout, ptr, "motion_blur_samples", 0, NULL, ICON_NONE);
+		uiItemR(layout, ptr, "motion_blur_shutter", 0, NULL, ICON_NONE);
 	}
 }
 

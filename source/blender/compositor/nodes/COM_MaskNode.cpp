@@ -36,11 +36,12 @@ MaskNode::MaskNode(bNode *editorNode) : Node(editorNode)
 
 void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	const RenderData *data = context->getRenderData();
+	const RenderData *rd = context->getRenderData();
 
 	OutputSocket *outputMask = this->getOutputSocket(0);
 
 	bNode *editorNode = this->getbNode();
+	NodeMask *data = (NodeMask *)editorNode->storage;
 	Mask *mask = (Mask *)editorNode->id;
 
 	// always connect the output image
@@ -48,16 +49,16 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	operation->setbNode(editorNode);
 
 	if (editorNode->custom1 & CMP_NODEFLAG_MASK_FIXED) {
-		operation->setMaskWidth(editorNode->custom3);
-		operation->setMaskHeight(editorNode->custom4);
+		operation->setMaskWidth(data->size_x);
+		operation->setMaskHeight(data->size_y);
 	}
 	else if (editorNode->custom1 & CMP_NODEFLAG_MASK_FIXED_SCENE) {
-		operation->setMaskWidth(editorNode->custom3 * (data->size / 100.0f));
-		operation->setMaskHeight(editorNode->custom4 * (data->size / 100.0f));
+		operation->setMaskWidth(data->size_x * (rd->size / 100.0f));
+		operation->setMaskHeight(data->size_y * (rd->size / 100.0f));
 	}
 	else {
-		operation->setMaskWidth(data->xsch * data->size / 100.0f);
-		operation->setMaskHeight(data->ysch * data->size / 100.0f);
+		operation->setMaskWidth(rd->xsch * rd->size / 100.0f);
+		operation->setMaskHeight(rd->ysch * rd->size / 100.0f);
 	}
 
 	if (outputMask->isConnected()) {
@@ -69,8 +70,12 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	operation->setSmooth((bool)(editorNode->custom1 & CMP_NODEFLAG_MASK_AA) != 0);
 	operation->setFeather((bool)(editorNode->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
 
-	if (editorNode->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) {
+	if ((editorNode->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) &&
+	    (editorNode->custom2 > 1) &&
+	    (editorNode->custom3 > FLT_EPSILON))
+	{
 		operation->setMotionBlurSamples(editorNode->custom2);
+		operation->setMotionBlurShutter(editorNode->custom3);
 	}
 
 	graph->addOperation(operation);

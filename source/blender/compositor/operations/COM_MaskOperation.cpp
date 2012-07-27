@@ -139,7 +139,8 @@ MaskOperation::MaskOperation() : NodeOperation()
 	this->m_maskHeight = 0;
 	this->m_maskWidthInv = 0.0f;
 	this->m_maskHeightInv = 0.0f;
-	this->m_framenumber = 0;
+	this->m_frame_shutter = 0.0f;
+	this->m_frame_number = 0;
 	this->m_rasterMaskHandleTot = 1;
 	memset(this->m_rasterMaskHandles, 0, sizeof(this->m_rasterMaskHandles));
 }
@@ -156,9 +157,8 @@ void MaskOperation::initExecution()
 		}
 		else {
 			/* make a throw away copy of the mask */
-			const float frame_range = 1.0f; /* should be 1 max, could be configurable */
-			const float frame = (float)this->m_framenumber - frame_range;
-			const float frame_step = (frame_range * 2.0f) / this->m_rasterMaskHandleTot;
+			const float frame = (float)this->m_frame_number - this->m_frame_shutter;
+			const float frame_step = (this->m_frame_shutter * 2.0f) / this->m_rasterMaskHandleTot;
 			float frame_iter = frame;
 
 			Mask *mask_temp;
@@ -174,7 +174,7 @@ void MaskOperation::initExecution()
 				     masklay;
 				     masklay = (MaskLayer *)masklay->next)
 				{
-					masklay_shape = BKE_mask_layer_shape_varify_frame(masklay, this->m_framenumber);
+					masklay_shape = BKE_mask_layer_shape_varify_frame(masklay, this->m_frame_number);
 					BKE_mask_layer_shape_from_mask(masklay, masklay_shape);
 				}
 			}
