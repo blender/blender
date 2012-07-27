@@ -2867,6 +2867,8 @@ static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
 	else
 		settings->keyframe2 = framenr;
 
+	WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
+
 	return OPERATOR_FINISHED;
 }
 
