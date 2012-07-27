@@ -69,5 +69,9 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	operation->setSmooth((bool)(editorNode->custom1 & CMP_NODEFLAG_MASK_AA) != 0);
 	operation->setFeather((bool)(editorNode->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
 
+	if (editorNode->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) {
+		operation->setMotionBlurSamples(editorNode->custom2);
+	}
+
 	graph->addOperation(operation);
 }

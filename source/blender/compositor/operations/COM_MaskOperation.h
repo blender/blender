@@ -64,7 +64,8 @@ protected:
 	ListBase m_maskLayers;
 
 #else /* USE_RASKTER */
-	struct MaskRasterHandle *m_rasterMaskHandle;
+	struct MaskRasterHandle *m_rasterMaskHandles[32];
+	unsigned int             m_rasterMaskHandleTot;
 #endif /* USE_RASKTER */
 
 	/**
@@ -93,6 +94,7 @@ public:
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
 	void setSmooth(bool smooth) { this->m_do_smooth = smooth; }
 	void setFeather(bool feather) { this->m_do_feather = feather; }
+	void setMotionBlurSamples(int samples) { this->m_rasterMaskHandleTot = max(1, samples); }
 
 #ifdef USE_RASKTER
 	void *initializeTileData(rcti *rect);

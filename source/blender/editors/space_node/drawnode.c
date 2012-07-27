@@ -2490,18 +2490,22 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 
 static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+	bNode *node = ptr->data;
+
 	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL);
 	uiItemR(layout, ptr, "use_antialiasing", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "use_feather", 0, NULL, ICON_NONE);
 
 	uiItemR(layout, ptr, "size_source", 0, "", ICON_NONE);
 
-	{
-		bNode *node = ptr->data;
-		if (node->custom1 & (CMP_NODEFLAG_MASK_FIXED | CMP_NODEFLAG_MASK_FIXED_SCENE)) {
-			uiItemR(layout, ptr, "size_x", 0, NULL, ICON_NONE);
-			uiItemR(layout, ptr, "size_y", 0, NULL, ICON_NONE);
-		}
+	if (node->custom1 & (CMP_NODEFLAG_MASK_FIXED | CMP_NODEFLAG_MASK_FIXED_SCENE)) {
+		uiItemR(layout, ptr, "size_x", 0, NULL, ICON_NONE);
+		uiItemR(layout, ptr, "size_y", 0, NULL, ICON_NONE);
+	}
+
+	uiItemR(layout, ptr, "use_motion_blur", 0, NULL, ICON_NONE);
+	if (node->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) {
+		uiItemR(layout, ptr, "motion_blur_samples", 0, NULL, ICON_NONE);
 	}
 }
 
