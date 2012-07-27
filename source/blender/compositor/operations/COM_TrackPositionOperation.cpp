@@ -44,7 +44,8 @@ TrackPositionOperation::TrackPositionOperation() : NodeOperation()
 	this->m_trackingObjectName[0] = 0;
 	this->m_trackName[0] = 0;
 	this->m_axis = 0;
-	this->m_relative = false;
+	this->m_position = POSITION_ABSOLUTE;;
+	this->m_relativeFrame = 0;
 }
 
 void TrackPositionOperation::initExecution()
@@ -72,12 +73,13 @@ void TrackPositionOperation::initExecution()
 
 		if (track) {
 			MovieTrackingMarker *marker;
+			int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_movieClip, this->m_framenumber);
 
-			marker = BKE_tracking_marker_get(track, this->m_framenumber);
+			marker = BKE_tracking_marker_get(track, clip_framenr);
 
 			copy_v2_v2(this->m_markerPos, marker->pos);
 
-			if (this->m_relative) {
+			if (this->m_position == POSITION_RELATIVE_START) {
 				int i;
 
 				for (i = 0; i < track->markersnr; i++) {
@@ -89,6 +91,13 @@ void TrackPositionOperation::initExecution()
 						break;
 					}
 				}
+			}
+			else if (this->m_position == POSITION_RELATIVE_FRAME) {
+				int relative_clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_movieClip,
+						this->m_relativeFrame);
+
+				marker = BKE_tracking_marker_get(track, relative_clip_framenr);
+				copy_v2_v2(this->m_relativePos, marker->pos);
 			}
 		}
 	}

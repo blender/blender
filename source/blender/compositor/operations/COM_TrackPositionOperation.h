@@ -40,12 +40,19 @@
   */
 class TrackPositionOperation : public NodeOperation {
 protected:
+	enum {
+		POSITION_ABSOLUTE = 0,
+		POSITION_RELATIVE_START,
+		POSITION_RELATIVE_FRAME
+	};
+
 	MovieClip *m_movieClip;
 	int m_framenumber;
 	char m_trackingObjectName[64];
 	char m_trackName[64];
 	int m_axis;
-	bool m_relative;
+	int m_position;
+	int m_relativeFrame;
 
 	int m_width, m_height;
 	float m_markerPos[2];
@@ -64,7 +71,8 @@ public:
 	void setTrackName(char *track) {strncpy(this->m_trackName, track, sizeof(this->m_trackName));}
 	void setFramenumber(int framenumber) {this->m_framenumber = framenumber;}
 	void setAxis(int value) {this->m_axis = value;}
-	void setRelative(bool value) {this->m_relative = value;}
+	void setPosition(int value) {this->m_position = value;}
+	void setRelativeFrame(int value) {this->m_relativeFrame = value;}
 
 	void initExecution();
 

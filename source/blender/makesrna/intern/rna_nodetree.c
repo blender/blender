@@ -3730,6 +3730,13 @@ static void def_cmp_trackpos(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
+	static EnumPropertyItem position_items[] = {
+		{0, "ABSOLUTE", 0, "Absolute",  "Output absolute position of a marker"},
+		{1, "RELATIVE_START", 0, "Relative Start",  "Output position of a marker relative to first marker of a track"},
+		{2, "RELATIVE_FRAME", 0, "Relative Frame",  "Output position of a marker relative to marker at given frame number"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "MovieClip");
@@ -3737,9 +3744,15 @@ static void def_cmp_trackpos(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Movie Clip", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-	prop = RNA_def_property(srna, "use_relative", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
-	RNA_def_property_ui_text(prop, "Relative", "Return relative position to first track's marker");
+	prop = RNA_def_property(srna, "position", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, position_items);
+	RNA_def_property_ui_text(prop, "Position", "Which marker position to use for output");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "relative_frame", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "custom2");
+	RNA_def_property_ui_text(prop, "Frame", "Frame to be used for relative position");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	RNA_def_struct_sdna_from(srna, "NodeTrackPosData", "storage");
