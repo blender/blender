@@ -217,16 +217,20 @@ static void node_draw_output_default(const bContext *C, uiBlock *block,
 	float slen;
 	int ofs = 0;
 	const char *ui_name = IFACE_(name);
+	int len = strlen(ui_name);
 	UI_ThemeColor(TH_TEXT);
 	slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
-	while (slen > node->width) {
+	while (slen > node->width && ofs < len) {
 		ofs++;
 		slen = (UI_GetStringWidth(ui_name + ofs) + NODE_MARGIN_X) * snode->aspect_sqrt;
 	}
-	uiDefBut(block, LABEL, 0, ui_name + ofs,
-	         (int)(sock->locx - slen), (int)(sock->locy - 9.0f),
-	         (short)(node->width - NODE_DY), (short)NODE_DY,
-	         NULL, 0, 0, 0, 0, "");
+
+	if (ofs < len) {
+		uiDefBut(block, LABEL, 0, ui_name + ofs,
+		         (int)(sock->locx - slen), (int)(sock->locy - 9.0f),
+		         (short)(node->width - NODE_DY), (short)NODE_DY,
+		         NULL, 0, 0, 0, 0, "");
+	}
 
 	(void)snode;
 }
