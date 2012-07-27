@@ -916,7 +916,7 @@ void BKE_tracking_track_deselect(MovieTrackingTrack *track, int area)
 	BKE_tracking_track_flag_clear(track, area, SELECT);
 }
 
-/*********************** Marker  *************************/
+/*********************** Marker *************************/
 
 MovieTrackingMarker *BKE_tracking_marker_insert(MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
@@ -1131,6 +1131,36 @@ void BKE_tracking_marker_pattern_minmax(const MovieTrackingMarker *marker, float
 	DO_MINMAX2(marker->pattern_corners[1], min, max);
 	DO_MINMAX2(marker->pattern_corners[2], min, max);
 	DO_MINMAX2(marker->pattern_corners[3], min, max);
+}
+
+void BKE_tracking_marker_get_subframe_position(MovieTrackingTrack *track, float framenr, float pos[2])
+{
+	MovieTrackingMarker *marker = BKE_tracking_marker_get(track, (int) framenr);
+	MovieTrackingMarker *marker_last = track->markers + (track->markersnr - 1);
+
+	if (marker != marker_last) {
+		MovieTrackingMarker *marker_next = marker + 1;
+
+		if (marker_next->framenr == marker->framenr + 1) {
+			/* currently only do subframing inside tracked ranges, do not extrapolate tracked segments
+			 * could be changed when / if mask parent would be interpolating position in-between
+			 * tracked segments
+			 */
+
+			float fac = (framenr - (int) framenr) / (marker_next->framenr - marker->framenr);
+
+			interp_v2_v2v2(pos, marker->pos, marker_next->pos, fac);
+		}
+		else {
+			copy_v2_v2(pos, marker->pos);
+		}
+	}
+	else {
+		copy_v2_v2(pos, marker->pos);
+	}
+
+	/* currently track offset is always wanted to be applied here, could be made an option later */
+	add_v2_v2(pos, track->offset);
 }
 
 /*********************** Object *************************/
