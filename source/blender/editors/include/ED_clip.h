@@ -39,7 +39,6 @@ struct Main;
 struct Mask;
 struct MovieClip;
 struct SpaceClip;
-struct wmEvent;
 
 /*  ** clip_editor.c ** */
 
@@ -69,7 +68,7 @@ int ED_clip_view_selection(const struct bContext *C, struct ARegion *ar, int fit
 void ED_clip_point_undistorted_pos(struct SpaceClip *sc, const float co[2], float r_co[2]);
 void ED_clip_point_stable_pos(struct SpaceClip *sc, struct ARegion *ar, float x, float y, float *xr, float *yr);
 void ED_clip_point_stable_pos__reverse(struct SpaceClip *sc, struct ARegion *ar, const float co[2], float r_co[2]);
-void ED_clip_mouse_pos(struct SpaceClip *sc, struct ARegion *ar, struct wmEvent *event, float co[2]);
+void ED_clip_mouse_pos(struct SpaceClip *sc, struct ARegion *ar, const int mval[2], float co[2]);
 
 int ED_space_clip_check_show_trackedit(struct SpaceClip *sc);
 int ED_space_clip_check_show_maskedit(struct SpaceClip *sc);

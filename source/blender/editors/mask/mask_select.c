@@ -348,7 +348,7 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	float co[2];
 
-	ED_mask_mouse_pos(sa, ar, event, co);
+	ED_mask_mouse_pos(sa, ar, event->mval, co);
 
 	RNA_float_set_array(op->ptr, "location", co);
 
@@ -688,7 +688,7 @@ static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 	const float threshold = 19;
 	int change = FALSE;
 
-	ED_mask_mouse_pos(sa, ar, event, co);
+	ED_mask_mouse_pos(sa, ar, event->mval, co);
 
 	point = ED_mask_point_find_nearest(C, mask, co, threshold, &masklay, &spline, &is_handle, NULL);
 

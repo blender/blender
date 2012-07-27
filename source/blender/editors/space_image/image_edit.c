@@ -260,7 +260,8 @@ void ED_image_get_uv_aspect(Image *ima, float *aspx, float *aspy)
 	*aspy *= (float)h;
 }
 
-void ED_image_mouse_pos(SpaceImage *sima, ARegion *ar, wmEvent *event, float co[2])
+/* takes event->mval */
+void ED_image_mouse_pos(SpaceImage *sima, ARegion *ar, const int mval[2], float co[2])
 {
 	int sx, sy, width, height;
 	float zoomx, zoomy;
@@ -270,8 +271,8 @@ void ED_image_mouse_pos(SpaceImage *sima, ARegion *ar, wmEvent *event, float co[
 
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
 
-	co[0] = ((event->mval[0] - sx) / zoomx) / width;
-	co[1] = ((event->mval[1] - sy) / zoomy) / height;
+	co[0] = ((mval[0] - sx) / zoomx) / width;
+	co[1] = ((mval[1] - sy) / zoomy) / height;
 }
 
 void ED_image_point_pos(SpaceImage *sima, ARegion *ar, float x, float y, float *xr, float *yr)
