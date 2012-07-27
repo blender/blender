@@ -65,4 +65,5 @@ void TrackPositionNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 	outputY->relinkConnections(operationY->getOutputSocket());
 
 	graph->addOperation(operationX);
+	graph->addOperation(operationY);
 }

@@ -31,6 +31,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_tracking_types.h"
 
 #include "BLI_listbase.h"
 
@@ -39,12 +40,16 @@
   */
 class TrackPositionOperation : public NodeOperation {
 protected:
-	MovieClip *movieClip;
-	int framenumber;
-	char trackingObject[64];
-	char trackName[64];
-	int axis;
-	bool relative;
+	MovieClip *m_movieClip;
+	int m_framenumber;
+	char m_trackingObjectName[64];
+	char m_trackName[64];
+	int m_axis;
+	bool m_relative;
+
+	int m_width, m_height;
+	float m_markerPos[2];
+	float m_relativePos[2];
 
 	/**
 	  * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -54,12 +59,14 @@ protected:
 public:
 	TrackPositionOperation();
 
-	void setMovieClip(MovieClip *clip) {this->movieClip = clip;}
-	void setTrackingObject(char *object) {strncpy(this->trackingObject, object, sizeof(this->trackingObject));}
-	void setTrackName(char *track) {strncpy(this->trackName, track, sizeof(this->trackName));}
-	void setFramenumber(int framenumber) {this->framenumber = framenumber;}
-	void setAxis(int value) {this->axis = value;}
-	void setRelative(bool value) {this->relative = value;}
+	void setMovieClip(MovieClip *clip) {this->m_movieClip = clip;}
+	void setTrackingObject(char *object) {strncpy(this->m_trackingObjectName, object, sizeof(this->m_trackingObjectName));}
+	void setTrackName(char *track) {strncpy(this->m_trackName, track, sizeof(this->m_trackName));}
+	void setFramenumber(int framenumber) {this->m_framenumber = framenumber;}
+	void setAxis(int value) {this->m_axis = value;}
+	void setRelative(bool value) {this->m_relative = value;}
+
+	void initExecution();
 
 	void executePixel(float *color, float x, float y, PixelSampler sampler);
 
