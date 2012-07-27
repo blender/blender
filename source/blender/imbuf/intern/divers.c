@@ -199,7 +199,6 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 	BLI_assert(profile_to != IB_PROFILE_NONE);
 	BLI_assert(profile_from != IB_PROFILE_NONE);
 
-	BLI_init_srgb_conversion();
 	if (dither)
 		di = create_dither_context(width, dither);
 
@@ -334,8 +333,6 @@ void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,
 	/* we need valid profiles */
 	BLI_assert(profile_to != IB_PROFILE_NONE);
 	BLI_assert(profile_from != IB_PROFILE_NONE);
-
-	BLI_init_srgb_conversion();
 
 	/* RGBA input */
 	for (y = 0; y < height; y++) {

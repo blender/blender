@@ -66,6 +66,7 @@
 #include "BKE_tracking.h" /* free tracking clipboard */
 
 #include "BLI_listbase.h"
+#include "BLI_math_color.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -145,6 +146,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();
+
+	/* initialize color stuff */
+	BLI_init_srgb_conversion();
+
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL, G.factory_startup);
 
