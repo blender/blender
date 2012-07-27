@@ -75,9 +75,9 @@ static MT_Scalar EulerAngleFromMatrix(const MT_Matrix3x3& R, int axis)
 
 static MT_Scalar safe_acos(MT_Scalar f)
 {
-	if (f <= -1.0f)
+	if (f <= -1.0)
 		return MT_PI;
-	else if (f >= 1.0f)
+	else if (f >= 1.0)
 		return 0.0;
 	else
 		return acos(f);
@@ -345,7 +345,7 @@ void IK_QSegment::PrependBasis(const MT_Matrix3x3& mat)
 	m_basis = m_rest_basis.inverse() * mat * m_rest_basis * m_basis;
 }
 
-void IK_QSegment::Scale(float scale)
+void IK_QSegment::Scale(MT_Scalar scale)
 {
 	m_start *= scale;
 	m_translation *= scale;
@@ -1035,7 +1035,7 @@ void IK_QTranslateSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	m_limit[axis]= true;
 }
 
-void IK_QTranslateSegment::Scale(float scale)
+void IK_QTranslateSegment::Scale(MT_Scalar scale)
 {
 	int i;
 

@@ -46,18 +46,18 @@ IK_QJacobianSolver::IK_QJacobianSolver()
 MT_Scalar IK_QJacobianSolver::ComputeScale()
 {
 	std::vector<IK_QSegment*>::iterator seg;
-	float length = 0.0f;
+	MT_Scalar length = 0.0f;
 
 	for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
 		length += (*seg)->MaxExtension();
 	
-	if(length == 0.0f)
-		return 1.0f;
+	if(length == 0.0)
+		return 1.0;
 	else
-		return 1.0f/length;
+		return 1.0 / length;
 }
 
-void IK_QJacobianSolver::Scale(float scale, std::list<IK_QTask*>& tasks)
+void IK_QJacobianSolver::Scale(MT_Scalar scale, std::list<IK_QTask*>& tasks)
 {
 	std::list<IK_QTask*>::iterator task;
 	std::vector<IK_QSegment*>::iterator seg;
@@ -172,8 +172,8 @@ void IK_QJacobianSolver::SetPoleVectorConstraint(IK_QSegment *tip, MT_Vector3& g
 static MT_Scalar safe_acos(MT_Scalar f)
 {
 	// acos that does not return NaN with rounding errors
-	if (f <= -1.0f) return MT_PI;
-	else if (f >= 1.0f) return 0.0;
+	if (f <= -1.0) return MT_PI;
+	else if (f >= 1.0) return 0.0;
 	else return acos(f);
 }
 
@@ -245,7 +245,7 @@ void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTa
 		// we compute the pole angle that to rotate towards the target
 		m_poleangle = angle(mat[1], polemat[1]);
 
-		if(rootz.dot(mat[1]*cos(m_poleangle) + mat[0]*sin(m_poleangle)) > 0.0f)
+		if(rootz.dot(mat[1]*cos(m_poleangle) + mat[0]*sin(m_poleangle)) > 0.0)
 			m_poleangle = -m_poleangle;
 
 		// solve again, with the pole angle we just computed

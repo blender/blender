@@ -197,14 +197,14 @@ void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lmin, float lmax)
 
 void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
 {
-	if (stiffness < 0.0)
+	if (stiffness < 0.0f)
 		return;
 	
-	if (stiffness > 0.999)
-		stiffness = 0.999;
+	if (stiffness > 0.999f)
+		stiffness = 0.999f;
 
 	IK_QSegment *qseg = (IK_QSegment*)seg;
-	MT_Scalar weight = 1.0-stiffness;
+	MT_Scalar weight = 1.0f - stiffness;
 
 	if (axis >= IK_TRANS_X) {
 		if(!qseg->Translational()) {
