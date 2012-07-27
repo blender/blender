@@ -335,14 +335,12 @@ extern void free_fmodifiers_copybuf(void);
 extern void free_posebuf(void); 
 
 #if WIN32
-/* read console events until there is a keyboard event, then return */
+/* Read console events until there is a key event.  Also returns on any error. */
 static void wait_for_console_key(void)
 {
-	HANDLE hConsoleInput;
+	HANDLE hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
 
-	hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
-
-	if (hConsoleInput && FlushConsoleInputBuffer(hConsoleInput)) {
+	if (!ELEM(hConsoleInput, NULL, INVALID_HANDLE_VALUE) && FlushConsoleInputBuffer(hConsoleInput)) {
 		for(;;) {
 			INPUT_RECORD buffer;
 			DWORD ignored;
