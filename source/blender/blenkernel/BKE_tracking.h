@@ -110,6 +110,8 @@ struct MovieTrackingMarker *BKE_tracking_marker_ensure(struct MovieTrackingTrack
 
 void BKE_tracking_marker_pattern_minmax(const struct MovieTrackingMarker *marker, float min[2], float max[2]);
 
+void BKE_tracking_marker_get_subframe_position(struct MovieTrackingTrack *track, float framenr, float pos[2]);
+
 /* **** Object **** */
 struct MovieTrackingObject *BKE_tracking_object_add(struct MovieTracking *tracking, const char *name);
 void BKE_tracking_object_delete(struct MovieTracking *tracking, struct MovieTrackingObject *object);

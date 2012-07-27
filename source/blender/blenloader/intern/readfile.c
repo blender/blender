@@ -7077,6 +7077,24 @@ static void do_version_ntree_dilateerode_264(void *UNUSED(data), ID *UNUSED(id),
 	}
 }
 
+static void do_version_ntree_mask_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_MASK) {
+			if (node->storage == NULL) {
+				NodeMask *data = MEM_callocN(sizeof(NodeMask), __func__);
+				/* move settings into own struct */
+				data->size_x = node->custom3;
+				data->size_y = node->custom4;
+				node->custom3 = 0.5f; /* default shutter */
+				node->storage = data;
+			}
+		}
+	}
+}
+
 static void do_version_ntree_keying_despill_balance(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
 {
 	bNode *node;
@@ -7911,6 +7929,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		if (ntreetype && ntreetype->foreach_nodetree)
 			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_keying_despill_balance);
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 17)) {
+		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
+
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_mask_264);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

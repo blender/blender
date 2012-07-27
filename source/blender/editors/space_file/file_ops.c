@@ -70,7 +70,7 @@
 #define INACTIVATE          2
 
 /* ---------- FILE SELECTION ------------ */
-static FileSelection find_file_mouse_rect(SpaceFile *sfile, struct ARegion *ar, const rcti *rect)
+static FileSelection find_file_mouse_rect(SpaceFile *sfile, ARegion *ar, const rcti *rect)
 {
 	FileSelection sel;
 	float fxmin, fymin, fxmax, fymax;
@@ -1277,7 +1277,7 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
-struct ARegion *file_buttons_region(struct ScrArea *sa)
+ARegion *file_buttons_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 	

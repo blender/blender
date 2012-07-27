@@ -52,9 +52,9 @@ int ED_space_clip_tracking_poll(struct bContext *C);
 int ED_space_clip_maskedit_poll(struct bContext *C);
 int ED_space_clip_maskedit_mask_poll(bContext *C);
 
-void ED_space_clip_get_size(const struct bContext *C, int *width, int *height);
-void ED_space_clip_get_size_fl(const struct bContext *C, float size[2]);
-void ED_space_clip_get_zoom(const struct bContext *C, float *zoomx, float *zoomy);
+void ED_space_clip_get_size(struct SpaceClip *sc, int *width, int *height);
+void ED_space_clip_get_size_fl(struct SpaceClip *sc, float size[2]);
+void ED_space_clip_get_zoom(struct SpaceClip *sc, struct ARegion *ar, float *zoomx, float *zoomy);
 void ED_space_clip_get_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 void ED_space_clip_get_aspect_dimension_aware(struct SpaceClip *sc, float *aspx, float *aspy);
 
@@ -67,9 +67,9 @@ void ED_clip_update_frame(const struct Main *mainp, int cfra);
 int ED_clip_view_selection(const struct bContext *C, struct ARegion *ar, int fit);
 
 void ED_clip_point_undistorted_pos(struct SpaceClip *sc, const float co[2], float r_co[2]);
-void ED_clip_point_stable_pos(const struct bContext *C, float x, float y, float *xr, float *yr);
-void ED_clip_point_stable_pos__reverse(const struct bContext *C, const float co[2], float r_co[2]);
-void ED_clip_mouse_pos(const struct bContext *C, struct wmEvent *event, float co[2]);
+void ED_clip_point_stable_pos(struct SpaceClip *sc, struct ARegion *ar, float x, float y, float *xr, float *yr);
+void ED_clip_point_stable_pos__reverse(struct SpaceClip *sc, struct ARegion *ar, const float co[2], float r_co[2]);
+void ED_clip_mouse_pos(struct SpaceClip *sc, struct ARegion *ar, struct wmEvent *event, float co[2]);
 
 int ED_space_clip_check_show_trackedit(struct SpaceClip *sc);
 int ED_space_clip_check_show_maskedit(struct SpaceClip *sc);

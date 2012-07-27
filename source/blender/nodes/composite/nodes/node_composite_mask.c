@@ -82,6 +82,16 @@ static void exec(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **
 	}
 }
 
+static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+{
+	NodeMask *data = MEM_callocN(sizeof(NodeMask), STRINGIFY(NodeMask));
+	data->size_x = data->size_y = 256;
+	node->storage = data;
+
+	node->custom2 = 16;    /* samples */
+	node->custom3 = 0.5f;  /* shutter */
+}
+
 void register_node_type_cmp_mask(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -89,7 +99,10 @@ void register_node_type_cmp_mask(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_MASK, "Mask", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_mask_out);
 	node_type_size(&ntype, 140, 100, 320);
+	node_type_init(&ntype, node_composit_init_mask);
 	node_type_exec(&ntype, exec);
+
+	node_type_storage(&ntype, "NodeMask", node_free_standard_storage, node_copy_standard_storage);
 
 	nodeRegisterType(ttype, &ntype);
 }

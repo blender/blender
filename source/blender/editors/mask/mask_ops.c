@@ -62,6 +62,9 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
                                             MaskLayer **masklay_r, MaskSpline **spline_r, int *is_handle_r,
                                             float *score)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	MaskLayer *masklay;
 	MaskLayer *point_masklay = NULL;
 	MaskSpline *point_spline = NULL;
@@ -70,9 +73,9 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
 	float len = FLT_MAX, scalex, scaley;
 	int is_handle = FALSE, width, height;
 
-	ED_mask_size(C, &width, &height);
-	ED_mask_aspect(C, &aspx, &aspy);
-	ED_mask_pixelspace_factor(C, &scalex, &scaley);
+	ED_mask_get_size(sa, &width, &height);
+	ED_mask_get_aspect(sa, ar, &aspx, &aspy);
+	ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
 
 	co[0] = normal_co[0] * scalex;
 	co[1] = normal_co[1] * scaley;
@@ -158,6 +161,9 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
                                  MaskLayer **masklay_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
                                  MaskSplinePointUW **uw_r, float *score)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	MaskLayer *masklay, *point_masklay = NULL;
 	MaskSpline *point_spline = NULL;
 	MaskSplinePoint *point = NULL;
@@ -166,9 +172,9 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 	float scalex, scaley, aspx, aspy;
 	int width, height;
 
-	ED_mask_size(C, &width, &height);
-	ED_mask_aspect(C, &aspx, &aspy);
-	ED_mask_pixelspace_factor(C, &scalex, &scaley);
+	ED_mask_get_size(sa, &width, &height);
+	ED_mask_get_aspect(sa, ar, &aspx, &aspy);
+	ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
 
 	co[0] = normal_co[0] * scalex;
 	co[1] = normal_co[1] * scaley;
@@ -426,6 +432,9 @@ static int slide_point_check_initial_feather(MaskSpline *spline)
 
 static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	Mask *mask = CTX_data_edit_mask(C);
 	SlidePointData *customdata = NULL;
 	MaskLayer *masklay, *cv_masklay, *feather_masklay;
@@ -437,8 +446,8 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 	float co[2], cv_score, feather_score;
 	const float threshold = 19;
 
-	ED_mask_mouse_pos(C, event, co);
-	ED_mask_size(C, &width, &height);
+	ED_mask_mouse_pos(sa, ar, event, co);
+	ED_mask_get_size(sa, &width, &height);
 
 	cv_point = ED_mask_point_find_nearest(C, mask, co, threshold, &cv_masklay, &cv_spline, &is_handle, &cv_score);
 
@@ -502,7 +511,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 		copy_m3_m3(customdata->vec, point->bezt.vec);
 		if (BKE_mask_point_has_handle(point))
 			BKE_mask_point_handle(point, customdata->handle);
-		ED_mask_mouse_pos(C, event, customdata->co);
+		ED_mask_mouse_pos(sa, ar, event, customdata->co);
 	}
 
 	return customdata;
@@ -639,7 +648,11 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 		/* no break! update CV position */
 
 		case MOUSEMOVE:
-			ED_mask_mouse_pos(C, event, co);
+		{
+			ScrArea *sa = CTX_wm_area(C);
+			ARegion *ar = CTX_wm_region(C);
+
+			ED_mask_mouse_pos(sa, ar, event, co);
 			sub_v2_v2v2(dco, co, data->co);
 
 			if (data->action == SLIDE_ACTION_HANDLE) {
@@ -768,6 +781,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 			DAG_id_tag_update(&data->mask->id, 0);
 
 			break;
+		}
 
 		case LEFTMOUSE:
 			if (event->val == KM_RELEASE) {

@@ -54,7 +54,9 @@ protected:
 	float m_maskWidthInv;  /* 1 / m_maskWidth  */
 	float m_maskHeightInv; /* 1 / m_maskHeight */
 
-	int m_framenumber;
+	float m_frame_shutter;
+	int   m_frame_number;
+
 	bool m_do_smooth;
 	bool m_do_feather;
 
@@ -64,7 +66,8 @@ protected:
 	ListBase m_maskLayers;
 
 #else /* USE_RASKTER */
-	struct MaskRasterHandle *m_rasterMaskHandle;
+	struct MaskRasterHandle *m_rasterMaskHandles[32];
+	unsigned int             m_rasterMaskHandleTot;
 #endif /* USE_RASKTER */
 
 	/**
@@ -90,9 +93,12 @@ public:
 		this->m_maskHeight = height;
 		this->m_maskHeightInv = 1.0f / (float)height;
 	}
-	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
+	void setFramenumber(int frame_number) { this->m_frame_number = frame_number; }
 	void setSmooth(bool smooth) { this->m_do_smooth = smooth; }
 	void setFeather(bool feather) { this->m_do_feather = feather; }
+
+	void setMotionBlurSamples(int samples) { this->m_rasterMaskHandleTot = max(1, samples); }
+	void setMotionBlurShutter(float shutter) { this->m_frame_shutter = shutter; }
 
 #ifdef USE_RASKTER
 	void *initializeTileData(rcti *rect);

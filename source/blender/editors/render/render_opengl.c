@@ -476,6 +476,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	int ok = 0;
 	const short view_context = (oglrender->v3d != NULL);
 	Object *camera = NULL;
+	int is_movie;
 
 	/* go to next frame */
 	if (CFRA < oglrender->nfra)
@@ -488,6 +489,21 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
 		BKE_scene_update_for_newframe(bmain, scene, lay);
 		CFRA++;
+	}
+
+	is_movie = BKE_imtype_is_movie(scene->r.im_format.imtype);
+
+	if (!is_movie) {
+		BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, TRUE);
+
+		if ((scene->r.mode & R_NO_OVERWRITE) && BLI_exists(name)) {
+			printf("skipping existing frame \"%s\"\n", name);
+
+			/* go to next frame */
+			oglrender->nfra += scene->r.frame_step;
+
+			return 1;
+		}
 	}
 
 	/* update animated image textures for gpu, etc,
@@ -538,7 +554,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 			ibuf = ibuf_cpy;
 		}
 
-		if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
+		if (is_movie) {
 			ok = oglrender->mh->append_movie(&scene->r, SFRA, CFRA, (int *)ibuf->rect,
 			                                 oglrender->sizex, oglrender->sizey, oglrender->reports);
 			if (ok) {
@@ -547,7 +563,6 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 			}
 		}
 		else {
-			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 			ok = BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
 
 			if (ok == 0) {

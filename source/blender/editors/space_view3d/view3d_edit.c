@@ -3648,7 +3648,7 @@ int ED_view3d_autodist_simple(ARegion *ar, const int mval[2], float mouse_worldl
 	return 1;
 }
 
-int ED_view3d_autodist_depth(struct ARegion *ar, const int mval[2], int margin, float *depth)
+int ED_view3d_autodist_depth(ARegion *ar, const int mval[2], int margin, float *depth)
 {
 	*depth = view_autodist_depth_margin(ar, mval, margin);
 
@@ -3657,7 +3657,7 @@ int ED_view3d_autodist_depth(struct ARegion *ar, const int mval[2], int margin, 
 
 static int depth_segment_cb(int x, int y, void *userData)
 {
-	struct { struct ARegion *ar; int margin; float depth; } *data = userData;
+	struct { ARegion *ar; int margin; float depth; } *data = userData;
 	int mval[2];
 	float depth;
 
@@ -3675,10 +3675,10 @@ static int depth_segment_cb(int x, int y, void *userData)
 	}
 }
 
-int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], const int mval_end[2],
+int ED_view3d_autodist_depth_seg(ARegion *ar, const int mval_sta[2], const int mval_end[2],
                                  int margin, float *depth)
 {
-	struct { struct ARegion *ar; int margin; float depth; } data = {NULL};
+	struct { ARegion *ar; int margin; float depth; } data = {NULL};
 	int p1[2];
 	int p2[2];
 

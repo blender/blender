@@ -375,8 +375,9 @@ enum {
 };
 
 enum {
-	CMP_NODEFLAG_MASK_AA         = (1 << 0),
-	CMP_NODEFLAG_MASK_NO_FEATHER = (1 << 1),
+	CMP_NODEFLAG_MASK_AA          = (1 << 0),
+	CMP_NODEFLAG_MASK_NO_FEATHER  = (1 << 1),
+	CMP_NODEFLAG_MASK_MOTION_BLUR = (1 << 2),
 
 	/* we may want multiple aspect options, exposed as an rna enum */
 	CMP_NODEFLAG_MASK_FIXED       = (1 << 8),
@@ -587,6 +588,10 @@ typedef struct NodeDilateErode {
 	char falloff;
 	char pad[7];
 } NodeDilateErode;
+
+typedef struct NodeMask {
+	int size_x, size_y;
+} NodeMask;
 
 typedef struct NodeTexBase {
 	TexMapping tex_mapping;

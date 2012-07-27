@@ -219,7 +219,7 @@ typedef struct FlyInfo {
 
 } FlyInfo;
 
-static void drawFlyPixel(const struct bContext *UNUSED(C), struct ARegion *UNUSED(ar), void *arg)
+static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
 	FlyInfo *fly = arg;
 

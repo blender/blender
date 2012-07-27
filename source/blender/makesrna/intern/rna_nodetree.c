@@ -3202,20 +3202,39 @@ static void def_cmp_mask(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Feather", "Use feather information from the mask");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
+	prop = RNA_def_property(srna, "use_motion_blur", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODEFLAG_MASK_MOTION_BLUR);
+	RNA_def_property_ui_text(prop, "Motion Blur", "Use feather information from the mask");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "motion_blur_samples", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "custom2");
+	RNA_def_property_range(prop, 1, 32);
+	RNA_def_property_ui_text(prop, "Samples", "Number of motion blur samples");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "motion_blur_shutter", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom3");
+	RNA_def_property_range(prop, 0.0, 1.0f);
+	RNA_def_property_ui_text(prop, "Shutter", "Exposure for motion blur as a factor of FPS");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+
 	prop = RNA_def_property(srna, "size_source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, aspect_type_items);
 	RNA_def_property_ui_text(prop, "Size Source", "Where to get the mask size from for aspect/size information");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
+
+	RNA_def_struct_sdna_from(srna, "NodeMask", "storage");
+
 	prop = RNA_def_property(srna, "size_x", PROP_INT, PROP_NONE);
-	RNA_def_property_int_funcs(prop, "rna_Node_custom3_get_as_int", "rna_Node_custom3_set_as_int", NULL);
 	RNA_def_property_range(prop, 1.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "X", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "size_y", PROP_INT, PROP_NONE);
-	RNA_def_property_int_funcs(prop, "rna_Node_custom4_get_as_int", "rna_Node_custom4_set_as_int", NULL);
 	RNA_def_property_range(prop, 1.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Y", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");

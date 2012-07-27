@@ -249,7 +249,7 @@ static int report_textview_line_color(struct TextViewContext *tvc, unsigned char
 
 #undef USE_INFO_NEWLINE
 
-static int info_textview_main__internal(struct SpaceInfo *sinfo, struct ARegion *ar, ReportList *reports, int draw, int mval[2], void **mouse_pick, int *pos_pick)
+static int info_textview_main__internal(struct SpaceInfo *sinfo, ARegion *ar, ReportList *reports, int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {
 	int ret = 0;
 	
@@ -279,7 +279,7 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo, struct ARegion 
 	return ret;
 }
 
-void *info_text_pick(struct SpaceInfo *sinfo, struct ARegion *ar, ReportList *reports, int mouse_y)
+void *info_text_pick(struct SpaceInfo *sinfo, ARegion *ar, ReportList *reports, int mouse_y)
 {
 	void *mouse_pick = NULL;
 	int mval[2];
@@ -292,13 +292,13 @@ void *info_text_pick(struct SpaceInfo *sinfo, struct ARegion *ar, ReportList *re
 }
 
 
-int info_textview_height(struct SpaceInfo *sinfo, struct ARegion *ar, ReportList *reports)
+int info_textview_height(struct SpaceInfo *sinfo, ARegion *ar, ReportList *reports)
 {
 	int mval[2] = {INT_MAX, INT_MAX};
 	return info_textview_main__internal(sinfo, ar, reports, 0,  mval, NULL, NULL);
 }
 
-void info_textview_main(struct SpaceInfo *sinfo, struct ARegion *ar, ReportList *reports)
+void info_textview_main(struct SpaceInfo *sinfo, ARegion *ar, ReportList *reports)
 {
 	int mval[2] = {INT_MAX, INT_MAX};
 	info_textview_main__internal(sinfo, ar, reports, 1,  mval, NULL, NULL);

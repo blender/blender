@@ -258,7 +258,7 @@ void image_preview_event(int event)
 
 
 /* nothing drawn here, we use it to store values */
-static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
+static void preview_cb(ScrArea *sa, struct uiBlock *block)
 {
 	SpaceImage *sima = sa->spacedata.first;
 	rctf dispf;
