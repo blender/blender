@@ -4311,7 +4311,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 		ima = BKE_image_load_exists(path);
 
 		if (!ima) {
-			BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s", path, errno ? strerror(errno) : "Unsupported image format");
+			BKE_reportf(op->reports, RPT_ERROR, "Can't read image: \"%s\", %s", path, errno ? strerror(errno) : "Unsupported format");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -4352,6 +4352,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	}
 	
 	node->id = (ID *)ima;
+	id_us_plus(node->id);
 	
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
