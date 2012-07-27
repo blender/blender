@@ -15,7 +15,7 @@ incs += ' #source/blender/gpu #intern/string #intern/moto/include'
 incs += ' #intern/guardedalloc #intern/container #extern/glew/include'
 incs += ' #intern/ffmpeg'
 
-defs = [] 
+defs = ['GLEW_STATIC'] 
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc','win32-mingw', 'win64-mingw'):
     if env['BF_DEBUG']:
         defs.append('_DEBUG')
