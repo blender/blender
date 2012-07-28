@@ -1251,6 +1251,9 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 		}
 
 		switch (layer->blend) {
+			case MASK_BLEND_MERGE:
+				value += value_layer * (1.0f - value);
+				break;
 			case MASK_BLEND_ADD:
 				value += value_layer;
 				break;
