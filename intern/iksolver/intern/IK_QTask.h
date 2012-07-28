@@ -78,7 +78,7 @@ public:
 
 	virtual bool PositionTask() const { return false; }
 
-	virtual void Scale(float) {}
+	virtual void Scale(MT_Scalar) {}
 
 protected:
 	int m_id;
@@ -103,7 +103,7 @@ public:
 	MT_Scalar Distance() const;
 
 	bool PositionTask() const { return true; }
-	void Scale(float scale) { m_goal *= scale; m_clamp_length *= scale; }
+	void Scale(MT_Scalar scale) { m_goal *= scale; m_clamp_length *= scale; }
 
 private:
 	MT_Vector3 m_goal;
@@ -141,7 +141,7 @@ public:
 
 	MT_Scalar Distance() const;
 
-	void Scale(float scale) { m_goal_center *= scale; m_distance *= scale; }
+	void Scale(MT_Scalar scale) { m_goal_center *= scale; m_distance *= scale; }
 
 private:
 	MT_Scalar ComputeTotalMass(const IK_QSegment *segment);

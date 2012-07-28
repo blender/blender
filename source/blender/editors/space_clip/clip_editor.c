@@ -439,9 +439,10 @@ void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, const float c
 	r_co[1] = (pos[1] * height * zoomy) + (float)sy;
 }
 
-void ED_clip_mouse_pos(SpaceClip *sc, ARegion *ar, wmEvent *event, float co[2])
+/* takes event->mval */
+void ED_clip_mouse_pos(SpaceClip *sc, ARegion *ar, const int mval[2], float co[2])
 {
-	ED_clip_point_stable_pos(sc, ar, event->mval[0], event->mval[1], &co[0], &co[1]);
+	ED_clip_point_stable_pos(sc, ar, mval[0], mval[1], &co[0], &co[1]);
 }
 
 int ED_space_clip_check_show_trackedit(SpaceClip *sc)

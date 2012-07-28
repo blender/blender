@@ -132,7 +132,7 @@ static int add_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	float co[2];
 
-	ED_clip_mouse_pos(sc, ar, event, co);
+	ED_clip_mouse_pos(sc, ar, event->mval, co);
 
 	RNA_float_set_array(op->ptr, "location", co);
 
@@ -543,7 +543,7 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event, int
 	if (width == 0 || height == 0)
 		return NULL;
 
-	ED_clip_mouse_pos(sc, ar, event, co);
+	ED_clip_mouse_pos(sc, ar, event->mval, co);
 
 	track = tracksbase->first;
 	while (track) {
@@ -641,7 +641,7 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 	if (width == 0 || height == 0)
 		return NULL;
 
-	ED_clip_mouse_pos(sc, ar, event, co);
+	ED_clip_mouse_pos(sc, ar, event->mval, co);
 
 	track = tracking_marker_check_slide(C, event, &area, &action, &corner);
 	if (track) {

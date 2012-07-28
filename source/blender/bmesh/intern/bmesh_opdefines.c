@@ -104,6 +104,9 @@ static BMOpDefine bmo_smooth_vert_def = {
 	 {BMO_OP_SLOT_BOOL, "mirror_clip_y"}, /* set vertices close to the y axis before the operation to 0 */
 	 {BMO_OP_SLOT_BOOL, "mirror_clip_z"}, /* set vertices close to the z axis before the operation to 0 */
 	 {BMO_OP_SLOT_FLT, "clipdist"}, /* clipping threshod for the above three slots */
+	 {BMO_OP_SLOT_BOOL, "use_axis_x"}, /* smooth vertices along X axis */
+	 {BMO_OP_SLOT_BOOL, "use_axis_y"}, /* smooth vertices along Y axis */
+	 {BMO_OP_SLOT_BOOL, "use_axis_z"}, /* smooth vertices along Z axis */
 	{0} /* null-terminating sentinel */,
 	},
 	bmo_smooth_vert_exec,

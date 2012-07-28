@@ -137,6 +137,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (bmd->object != ob) {
 		dm = mesh_get_derived_final(md->scene, bmd->object, CD_MASK_MESH);
 	}
+	else {
+		dm = NULL;
+	}
 
 	if (dm) {
 		DerivedMesh *result;

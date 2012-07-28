@@ -90,20 +90,21 @@ int ED_maskedit_mask_poll(bContext *C)
 
 /********************** registration *********************/
 
-void ED_mask_mouse_pos(ScrArea *sa, ARegion *ar, wmEvent *event, float co[2])
+/* takes event->mval */
+void ED_mask_mouse_pos(ScrArea *sa, ARegion *ar, const int mval[2], float co[2])
 {
 	if (sa) {
 		switch (sa->spacetype) {
 			case SPACE_CLIP:
 			{
 				SpaceClip *sc = sa->spacedata.first;
-				ED_clip_mouse_pos(sc, ar, event, co);
+				ED_clip_mouse_pos(sc, ar, mval, co);
 				BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
 				break;
 			}
 			case SPACE_SEQ:
 			{
-				UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+				UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &co[0], &co[1]);
 				break;
 			}
 			case SPACE_IMAGE:
@@ -111,7 +112,7 @@ void ED_mask_mouse_pos(ScrArea *sa, ARegion *ar, wmEvent *event, float co[2])
 				float frame_size[2];
 				SpaceImage *sima = sa->spacedata.first;
 				ED_space_image_get_size_fl(sima, frame_size);
-				ED_image_mouse_pos(sima, ar, event, co);
+				ED_image_mouse_pos(sima, ar, mval, co);
 				BKE_mask_coord_from_frame(co, co, frame_size);
 				break;
 			}

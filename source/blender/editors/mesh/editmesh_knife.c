@@ -84,6 +84,7 @@ typedef struct KnifeColors {
 typedef struct KnifeVert {
 	BMVert *v; /* non-NULL if this is an original vert */
 	ListBase edges;
+	ListBase faces;
 
 	float co[3], cageco[3], sco[3]; /* sco is screen coordinates for cageco */
 	short flag, draw, isface, inspace;
@@ -277,6 +278,32 @@ static void knife_add_to_vert_edges(KnifeTool_OpData *kcd, KnifeEdge *kfe)
 	knife_append_list(kcd, &kfe->v2->edges, kfe);
 }
 
+/* Add faces of an edge to a KnifeVert's faces list.  No checks for dups. */
+static void knife_add_edge_faces_to_vert(KnifeTool_OpData *kcd, KnifeVert *kfv, BMEdge *e)
+{
+	BMIter bmiter;
+	BMFace *f;
+
+	BM_ITER_ELEM(f, &bmiter, e, BM_FACES_OF_EDGE) {
+		knife_append_list(kcd, &kfv->faces, f);
+	}
+}
+
+/* Find a face in common in the two faces lists.
+   If more than one, return the first; if none, return NULL */
+static BMFace* knife_find_common_face(ListBase *faces1, ListBase *faces2)
+{
+	Ref *ref1, *ref2;
+
+	for (ref1 = faces1->first; ref1; ref1 = ref1->next) {
+		for (ref2 = faces2->first; ref2; ref2 = ref2->next) {
+			if (ref1->ref == ref2->ref)
+				return (BMFace*)(ref1->ref);
+		}
+	}
+	return NULL;
+}
+
 static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, const float co[3], float *cageco)
 {
 	KnifeVert *kfv = BLI_mempool_calloc(kcd->kverts);
@@ -298,9 +325,15 @@ static KnifeVert *get_bm_knife_vert(KnifeTool_OpData *kcd, BMVert *v)
 	KnifeVert *kfv = BLI_ghash_lookup(kcd->origvertmap, v);
 
 	if (!kfv) {
+		BMIter bmiter;
+		BMFace *f;
+
 		kfv = new_knife_vert(kcd, v->co, kcd->cagecos[BM_elem_index_get(v)]);
 		kfv->v = v;
 		BLI_ghash_insert(kcd->origvertmap, v, kfv);
+		BM_ITER_ELEM(f, &bmiter, v, BM_FACES_OF_VERT) {
+			knife_append_list(kcd, &kfv->faces, f);
+		}
 	}
 
 	return kfv;
@@ -389,35 +422,9 @@ static ListBase *knife_get_face_kedges(KnifeTool_OpData *kcd, BMFace *f)
 }
 
 /* finds the proper face to restrict face fill to */
-static void knife_find_basef(KnifeTool_OpData *kcd, KnifeEdge *kfe)
+static void knife_find_basef(KnifeEdge *kfe)
 {
-	if (!kfe->basef) {
-		Ref *r1, *r2, *r3, *r4;
-
-		if (kfe->v1->isface || kfe->v2->isface) {
-			if (kfe->v2->isface)
-				kfe->basef = kcd->cur.bmface;
-			else
-				kfe->basef = kcd->prev.bmface;
-		}
-		else {
-			for (r1 = kfe->v1->edges.first; r1 && !kfe->basef; r1 = r1->next) {
-				KnifeEdge *ke1 = r1->ref;
-				for (r2 = ke1->faces.first; r2 && !kfe->basef; r2 = r2->next) {
-					for (r3 = kfe->v2->edges.first; r3 && !kfe->basef; r3 = r3->next) {
-						KnifeEdge *ke2 = r3->ref;
-
-						for (r4 = ke2->faces.first; r4 && !kfe->basef; r4 = r4->next) {
-							if (r2->ref == r4->ref) {
-								kfe->basef = r2->ref;
-							}
-						}
-					}
-				}
-			}
-		}
-		/* ok, at this point kfe->basef should be set if any valid possibility exists */
-	}
+	kfe->basef = knife_find_common_face(&kfe->v1->faces, &kfe->v2->faces);
 }
 
 static void knife_edge_append_face(KnifeTool_OpData *kcd, KnifeEdge *kfe, BMFace *f)
@@ -430,6 +437,7 @@ static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd, KnifeEdge *kfe, float 
 {
 	KnifeEdge *newkfe = new_knife_edge(kcd);
 	Ref *ref;
+	BMFace *f;
 	float perc, cageco[3], l12;
 
 	l12 = len_v3v3(kfe->v1->co, kfe->v2->co);
@@ -444,6 +452,16 @@ static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd, KnifeEdge *kfe, float 
 	newkfe->v1 = kfe->v1;
 	newkfe->v2 = new_knife_vert(kcd, co, cageco);
 	newkfe->v2->draw = 1;
+	if (kfe->e) {
+		knife_add_edge_faces_to_vert(kcd, newkfe->v2, kfe->e);
+	} else {
+		/* kfe cuts across an existing face.
+		   If v1 and v2 are in multiple faces together (e.g., if they
+		   are in doubled polys) then this arbitrarily chooses one of them */
+		f = knife_find_common_face(&kfe->v1->faces, &kfe->v2->faces);
+		if (f)
+			knife_append_list(kcd, &newkfe->v2->faces, f);
+	}
 	newkfe->basef = kfe->basef;
 
 	ref = find_ref(&kfe->v1->edges, kfe);
@@ -490,6 +508,8 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd)
 		kfe->v1->inspace = kcd->prev.is_space;
 		kfe->draw = !kcd->prev.is_space;
 		kfe->v1->isface = 1;
+		if (kfe->v1->draw && kcd->prev.bmface)
+			knife_append_list(kcd, &kfe->v1->faces, kcd->prev.bmface);
 	}
 
 	if (kcd->cur.vert) {
@@ -504,6 +524,8 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd)
 		kfe->v2->draw = !kcd->cur.is_space;
 		kfe->v2->isface = 1;
 		kfe->v2->inspace = kcd->cur.is_space;
+		if (kfe->v2->draw && kcd->cur.bmface)
+			knife_append_list(kcd, &kfe->v2->faces, kcd->cur.bmface);
 
 		if (kcd->cur.is_space)
 			kfe->draw = 0;
@@ -511,7 +533,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd)
 		kcd->cur.vert = kfe->v2;
 	}
 
-	knife_find_basef(kcd, kfe);
+	knife_find_basef(kfe);
 
 	knife_add_to_vert_edges(kcd, kfe);
 
@@ -716,6 +738,7 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 		BMEdgeHit *lh, *lastlh, *firstlh;
 		int i;
 
+		/* TODO: not a stable sort! need to figure out what to do for equal lambdas */
 		qsort(kcd->linehits, kcd->totlinehit, sizeof(BMEdgeHit), verge_linehit);
 
 		lh = kcd->linehits;
@@ -1153,7 +1176,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 						hit.kfe = kfe;
 						hit.v = NULL;
 
-						knife_find_basef(kcd, kfe);
+						knife_find_basef(kfe);
 						hit.f = kfe->basef;
 						hit.perc = len_v3v3(p, kfe->v1->cageco) / len_v3v3(kfe->v1->cageco, kfe->v2->cageco);
 						copy_v3_v3(hit.cagehit, p);

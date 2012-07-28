@@ -119,7 +119,7 @@ static void sclip_zoom_set_factor_exec(bContext *C, wmEvent *event, float factor
 	if (event) {
 		SpaceClip *sc = CTX_wm_space_clip(C);
 
-		ED_clip_mouse_pos(sc, ar, event, location);
+		ED_clip_mouse_pos(sc, ar, event->mval, location);
 		mpos = location;
 	}
 
@@ -483,7 +483,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	vpd->zoom = sc->zoom;
 	vpd->event_type = event->type;
 
-	ED_clip_mouse_pos(sc, ar, event, vpd->location);
+	ED_clip_mouse_pos(sc, ar, event->mval, vpd->location);
 
 	WM_event_add_modal_handler(C, op);
 }
@@ -605,7 +605,7 @@ static int view_zoom_in_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	float location[2];
 
-	ED_clip_mouse_pos(sc, ar, event, location);
+	ED_clip_mouse_pos(sc, ar, event->mval, location);
 	RNA_float_set_array(op->ptr, "location", location);
 
 	return view_zoom_in_exec(C, op);
@@ -648,7 +648,7 @@ static int view_zoom_out_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	float location[2];
 
-	ED_clip_mouse_pos(sc, ar, event, location);
+	ED_clip_mouse_pos(sc, ar, event->mval, location);
 	RNA_float_set_array(op->ptr, "location", location);
 
 	return view_zoom_out_exec(C, op);

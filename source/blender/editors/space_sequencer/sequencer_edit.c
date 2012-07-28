@@ -2140,13 +2140,13 @@ void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 
 static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
-	RenderData *r = &CTX_data_scene(C)->r;
+	RenderData *rd = &CTX_data_scene(C)->r;
 	View2D *v2d = UI_view2d_fromcontext(C);
 
 	float ratio = RNA_float_get(op->ptr, "ratio");
 
-	float winx = (int)(r->size * r->xsch) / 100;
-	float winy = (int)(r->size * r->ysch) / 100;
+	float winx = (int)(rd->size * rd->xsch) / 100;
+	float winy = (int)(rd->size * rd->ysch) / 100;
 
 	float facx = (v2d->mask.xmax - v2d->mask.xmin) / winx;
 	float facy = (v2d->mask.ymax - v2d->mask.ymin) / winy;

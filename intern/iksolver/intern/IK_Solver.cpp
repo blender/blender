@@ -42,20 +42,21 @@ using namespace std;
 
 class IK_QSolver {
 public:
-	IK_QSolver() : root(NULL) {};
+	IK_QSolver() : root(NULL) {
+	};
 
 	IK_QJacobianSolver solver;
 	IK_QSegment *root;
-	std::list<IK_QTask*> tasks;
+	std::list<IK_QTask *> tasks;
 };
 
 // FIXME: locks still result in small "residual" changes to the locked axes...
 IK_QSegment *CreateSegment(int flag, bool translate)
 {
 	int ndof = 0;
-	ndof += (flag & IK_XDOF)? 1: 0;
-	ndof += (flag & IK_YDOF)? 1: 0;
-	ndof += (flag & IK_ZDOF)? 1: 0;
+	ndof += (flag & IK_XDOF) ? 1 : 0;
+	ndof += (flag & IK_YDOF) ? 1 : 0;
+	ndof += (flag & IK_ZDOF) ? 1 : 0;
 
 	IK_QSegment *seg;
 
@@ -78,7 +79,7 @@ IK_QSegment *CreateSegment(int flag, bool translate)
 
 		if (flag & IK_XDOF) {
 			axis1 = 0;
-			axis2 = (flag & IK_YDOF)? 1: 2;
+			axis2 = (flag & IK_YDOF) ? 1 : 2;
 		}
 		else {
 			axis1 = 1;
@@ -91,7 +92,7 @@ IK_QSegment *CreateSegment(int flag, bool translate)
 			if (axis1 + axis2 == 2)
 				seg = new IK_QSwingSegment();
 			else
-				seg = new IK_QElbowSegment((axis1 == 0)? 0: 2);
+				seg = new IK_QElbowSegment((axis1 == 0) ? 0 : 2);
 		}
 	}
 	else {
@@ -131,7 +132,7 @@ IK_Segment *IK_CreateSegment(int flag)
 
 void IK_FreeSegment(IK_Segment *seg)
 {
-	IK_QSegment *qseg = (IK_QSegment*)seg;
+	IK_QSegment *qseg = (IK_QSegment *)seg;
 
 	if (qseg->Composite())
 		delete qseg->Composite();
@@ -140,8 +141,8 @@ void IK_FreeSegment(IK_Segment *seg)
 
 void IK_SetParent(IK_Segment *seg, IK_Segment *parent)
 {
-	IK_QSegment *qseg = (IK_QSegment*)seg;
-	IK_QSegment *qparent = (IK_QSegment*)parent;
+	IK_QSegment *qseg = (IK_QSegment *)seg;
+	IK_QSegment *qparent = (IK_QSegment *)parent;
 
 	if (qparent && qparent->Composite())
 		qseg->SetParent(qparent->Composite());
@@ -151,7 +152,7 @@ void IK_SetParent(IK_Segment *seg, IK_Segment *parent)
 
 void IK_SetTransform(IK_Segment *seg, float start[3], float rest[][3], float basis[][3], float length)
 {
-	IK_QSegment *qseg = (IK_QSegment*)seg;
+	IK_QSegment *qseg = (IK_QSegment *)seg;
 
 	MT_Vector3 mstart(start);
 	// convert from blender column major to moto row major
@@ -177,19 +178,19 @@ void IK_SetTransform(IK_Segment *seg, float start[3], float rest[][3], float bas
 
 void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lmin, float lmax)
 {
-	IK_QSegment *qseg = (IK_QSegment*)seg;
+	IK_QSegment *qseg = (IK_QSegment *)seg;
 
 	if (axis >= IK_TRANS_X) {
-		if(!qseg->Translational()) {
-			if(qseg->Composite() && qseg->Composite()->Translational())
+		if (!qseg->Translational()) {
+			if (qseg->Composite() && qseg->Composite()->Translational())
 				qseg = qseg->Composite();
 			else
 				return;
 		}
 
-		if(axis == IK_TRANS_X) axis = IK_X;
-		else if(axis == IK_TRANS_Y) axis = IK_Y;
-		else axis = IK_Z;
+		if      (axis == IK_TRANS_X) axis = IK_X;
+		else if (axis == IK_TRANS_Y) axis = IK_Y;
+		else                         axis = IK_Z;
 	}
 
 	qseg->SetLimit(axis, lmin, lmax);
@@ -197,25 +198,25 @@ void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lmin, float lmax)
 
 void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
 {
-	if (stiffness < 0.0)
+	if (stiffness < 0.0f)
 		return;
 	
-	if (stiffness > 0.999)
-		stiffness = 0.999;
+	if (stiffness > (1.0 - IK_STRETCH_STIFF_EPS))
+		stiffness = (1.0 - IK_STRETCH_STIFF_EPS);
 
-	IK_QSegment *qseg = (IK_QSegment*)seg;
-	MT_Scalar weight = 1.0-stiffness;
+	IK_QSegment *qseg = (IK_QSegment *)seg;
+	MT_Scalar weight = 1.0f - stiffness;
 
 	if (axis >= IK_TRANS_X) {
-		if(!qseg->Translational()) {
-			if(qseg->Composite() && qseg->Composite()->Translational())
+		if (!qseg->Translational()) {
+			if (qseg->Composite() && qseg->Composite()->Translational())
 				qseg = qseg->Composite();
 			else
 				return;
 		}
 
-		if(axis == IK_TRANS_X) axis = IK_X;
-		else if(axis == IK_TRANS_Y) axis = IK_Y;
+		if (axis == IK_TRANS_X) axis = IK_X;
+		else if (axis == IK_TRANS_Y) axis = IK_Y;
 		else axis = IK_Z;
 	}
 
@@ -224,7 +225,7 @@ void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
 
 void IK_GetBasisChange(IK_Segment *seg, float basis_change[][3])
 {
-	IK_QSegment *qseg = (IK_QSegment*)seg;
+	IK_QSegment *qseg = (IK_QSegment *)seg;
 
 	if (qseg->Translational() && qseg->Composite())
 		qseg = qseg->Composite();
@@ -245,7 +246,7 @@ void IK_GetBasisChange(IK_Segment *seg, float basis_change[][3])
 
 void IK_GetTranslationChange(IK_Segment *seg, float *translation_change)
 {
-	IK_QSegment *qseg = (IK_QSegment*)seg;
+	IK_QSegment *qseg = (IK_QSegment *)seg;
 
 	if (!qseg->Translational() && qseg->Composite())
 		qseg = qseg->Composite();
@@ -263,9 +264,9 @@ IK_Solver *IK_CreateSolver(IK_Segment *root)
 		return NULL;
 	
 	IK_QSolver *solver = new IK_QSolver();
-	solver->root = (IK_QSegment*)root;
+	solver->root = (IK_QSegment *)root;
 
-	return (IK_Solver*)solver;
+	return (IK_Solver *)solver;
 }
 
 void IK_FreeSolver(IK_Solver *solver)
@@ -273,9 +274,9 @@ void IK_FreeSolver(IK_Solver *solver)
 	if (solver == NULL)
 		return;
 
-	IK_QSolver *qsolver = (IK_QSolver*)solver;
-	std::list<IK_QTask*>& tasks = qsolver->tasks;
-	std::list<IK_QTask*>::iterator task;
+	IK_QSolver *qsolver = (IK_QSolver *)solver;
+	std::list<IK_QTask *>& tasks = qsolver->tasks;
+	std::list<IK_QTask *>::iterator task;
 
 	for (task = tasks.begin(); task != tasks.end(); task++)
 		delete (*task);
@@ -288,8 +289,8 @@ void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float w
 	if (solver == NULL || tip == NULL)
 		return;
 
-	IK_QSolver *qsolver = (IK_QSolver*)solver;
-	IK_QSegment *qtip = (IK_QSegment*)tip;
+	IK_QSolver *qsolver = (IK_QSolver *)solver;
+	IK_QSegment *qtip = (IK_QSegment *)tip;
 
 	if (qtip->Composite())
 		qtip = qtip->Composite();
@@ -306,8 +307,8 @@ void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[
 	if (solver == NULL || tip == NULL)
 		return;
 
-	IK_QSolver *qsolver = (IK_QSolver*)solver;
-	IK_QSegment *qtip = (IK_QSegment*)tip;
+	IK_QSolver *qsolver = (IK_QSolver *)solver;
+	IK_QSegment *qtip = (IK_QSegment *)tip;
 
 	if (qtip->Composite())
 		qtip = qtip->Composite();
@@ -327,14 +328,14 @@ void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float 
 	if (solver == NULL || tip == NULL)
 		return;
 
-	IK_QSolver *qsolver = (IK_QSolver*)solver;
-	IK_QSegment *qtip = (IK_QSegment*)tip;
+	IK_QSolver *qsolver = (IK_QSolver *)solver;
+	IK_QSegment *qtip = (IK_QSegment *)tip;
 
 	MT_Vector3 qgoal(goal);
 	MT_Vector3 qpolegoal(polegoal);
 
 	qsolver->solver.SetPoleVectorConstraint(
-		qtip, qgoal, qpolegoal, poleangle, getangle);
+	    qtip, qgoal, qpolegoal, poleangle, getangle);
 }
 
 float IK_SolverGetPoleAngle(IK_Solver *solver)
@@ -342,7 +343,7 @@ float IK_SolverGetPoleAngle(IK_Solver *solver)
 	if (solver == NULL)
 		return 0.0f;
 
-	IK_QSolver *qsolver = (IK_QSolver*)solver;
+	IK_QSolver *qsolver = (IK_QSolver *)solver;
 
 	return qsolver->solver.GetPoleAngle();
 }
@@ -352,8 +353,8 @@ void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float goal[3]
 	if (solver == NULL || root == NULL)
 		return;
 
-	IK_QSolver *qsolver = (IK_QSolver*)solver;
-	IK_QSegment *qroot = (IK_QSegment*)root;
+	IK_QSolver *qsolver = (IK_QSolver *)solver;
+	IK_QSegment *qroot = (IK_QSegment *)root;
 
 	// convert from blender column major to moto row major
 	MT_Vector3 center(goal);
@@ -368,18 +369,18 @@ int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations)
 	if (solver == NULL)
 		return 0;
 
-	IK_QSolver *qsolver = (IK_QSolver*)solver;
+	IK_QSolver *qsolver = (IK_QSolver *)solver;
 
 	IK_QSegment *root = qsolver->root;
 	IK_QJacobianSolver& jacobian = qsolver->solver;
-	std::list<IK_QTask*>& tasks = qsolver->tasks;
+	std::list<IK_QTask *>& tasks = qsolver->tasks;
 	MT_Scalar tol = tolerance;
 
-	if(!jacobian.Setup(root, tasks))
+	if (!jacobian.Setup(root, tasks))
 		return 0;
 
 	bool result = jacobian.Solve(root, tasks, tol, max_iterations);
 
-	return ((result)? 1: 0);
+	return ((result) ? 1 : 0);
 }
 

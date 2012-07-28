@@ -621,7 +621,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	float co[2];
 
-	ED_mask_mouse_pos(sa, ar, event, co);
+	ED_mask_mouse_pos(sa, ar, event->mval, co);
 
 	RNA_float_set_array(op->ptr, "location", co);
 
@@ -695,7 +695,7 @@ static int add_feather_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event
 
 	float co[2];
 
-	ED_mask_mouse_pos(sa, ar, event, co);
+	ED_mask_mouse_pos(sa, ar, event->mval, co);
 
 	RNA_float_set_array(op->ptr, "location", co);
 

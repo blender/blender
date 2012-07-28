@@ -37,6 +37,15 @@
 #endif
 
 
+// this is needed for inlining behavior
+#if defined _WIN32
+#   define DO_INLINE __inline
+#elif defined (__sun) || defined (__sun__)
+#   define DO_INLINE
+#else
+#   define DO_INLINE static inline
+#endif
+
 
 /*
  * Sort all the edges of the input polygon by Y, then by X, of the "first" vertex encountered.
@@ -814,14 +823,14 @@ int get_range_expanded_pixel_coord(float normalized_value, int max_value) {
     return (int)((normalized_value * (float)(max_value)) + 0.5f);
 }
 
-__inline float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y) {
+DO_INLINE float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y) {
     if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
         return 0.0f;
     }
     return buf[(pos_y * buf_x) + pos_x];
 }
 
-__inline float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v) {
+DO_INLINE float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v) {
     int a;
     int b;
     int a_plus_1;
@@ -847,7 +856,7 @@ __inline float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, fl
 
 }
 
-__inline void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity) {
+DO_INLINE void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity) {
     if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
         return;
     }

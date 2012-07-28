@@ -302,7 +302,7 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	ED_clip_mouse_pos(sc, ar, event, co);
+	ED_clip_mouse_pos(sc, ar, event->mval, co);
 	RNA_float_set_array(op->ptr, "location", co);
 
 	return select_exec(C, op);

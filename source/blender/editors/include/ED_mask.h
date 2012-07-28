@@ -42,7 +42,7 @@ void ED_mask_zoom(struct ScrArea *sa, struct ARegion *ar, float *zoomx, float *z
 void ED_mask_get_aspect(struct ScrArea *sa, struct ARegion *ar, float *aspx, float *aspy);
 
 void ED_mask_pixelspace_factor(struct ScrArea *sa, struct ARegion *ar, float *scalex, float *scaley);
-void ED_mask_mouse_pos(struct ScrArea *sa, struct ARegion *ar, struct wmEvent *event, float co[2]);
+void ED_mask_mouse_pos(struct ScrArea *sa, struct ARegion *ar, const int mval[2], float co[2]);
 
 void ED_mask_point_pos(struct ScrArea *sa, struct ARegion *ar, float x, float y, float *xr, float *yr);
 void ED_mask_point_pos__reverse(struct ScrArea *sa, struct ARegion *ar,

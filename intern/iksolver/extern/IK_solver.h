@@ -163,6 +163,9 @@ float IK_SolverGetPoleAngle(IK_Solver *solver);
 
 int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations);
 
+#define IK_STRETCH_STIFF_EPS 0.001f
+#define IK_STRETCH_STIFF_MIN 0.001f
+#define IK_STRETCH_STIFF_MAX 1e10
 
 #ifdef __cplusplus
 }

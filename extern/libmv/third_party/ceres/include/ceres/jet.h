@@ -163,8 +163,8 @@
 
 #include "Eigen/Core"
 
-// Visual Studio 2010 or older version
-#if defined(_MSC_VER) && _MSC_VER <= 1600
+// Visual Studio 2012 or older version
+#if defined(_MSC_VER) && _MSC_VER <= 1700
 namespace std {
 inline bool isfinite(double x) { return _finite(x);                }
 inline bool isinf   (double x) { return !_finite(x) && !_isnan(x); }

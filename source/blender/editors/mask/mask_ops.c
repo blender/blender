@@ -446,7 +446,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 	float co[2], cv_score, feather_score;
 	const float threshold = 19;
 
-	ED_mask_mouse_pos(sa, ar, event, co);
+	ED_mask_mouse_pos(sa, ar, event->mval, co);
 	ED_mask_get_size(sa, &width, &height);
 
 	cv_point = ED_mask_point_find_nearest(C, mask, co, threshold, &cv_masklay, &cv_spline, &is_handle, &cv_score);
@@ -511,7 +511,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 		copy_m3_m3(customdata->vec, point->bezt.vec);
 		if (BKE_mask_point_has_handle(point))
 			BKE_mask_point_handle(point, customdata->handle);
-		ED_mask_mouse_pos(sa, ar, event, customdata->co);
+		ED_mask_mouse_pos(sa, ar, event->mval, customdata->co);
 	}
 
 	return customdata;
@@ -652,7 +652,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 			ScrArea *sa = CTX_wm_area(C);
 			ARegion *ar = CTX_wm_region(C);
 
-			ED_mask_mouse_pos(sa, ar, event, co);
+			ED_mask_mouse_pos(sa, ar, event->mval, co);
 			sub_v2_v2v2(dco, co, data->co);
 
 			if (data->action == SLIDE_ACTION_HANDLE) {
