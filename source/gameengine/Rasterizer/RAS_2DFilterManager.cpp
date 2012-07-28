@@ -52,7 +52,6 @@
 
 RAS_2DFilterManager::RAS_2DFilterManager():
 texturewidth(-1), textureheight(-1),
-canvaswidth(-1), canvasheight(-1),
 /* numberoffilters(0), */ /* UNUSED */ need_tex_update(true)
 {
 	isshadersupported = GLEW_ARB_shader_objects &&
@@ -404,7 +403,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	RAS_Rect rect = canvas->GetWindowArea();
 	int rect_width = rect.GetWidth()+1, rect_height = rect.GetHeight()+1;
 
-	if (canvaswidth != canvas->GetWidth() || canvasheight != canvas->GetHeight())
+	if (texturewidth != rect_width || textureheight != rect_height)
 	{
 		UpdateOffsetMatrix(canvas);
 		UpdateCanvasTextureCoord((unsigned int*)viewport);
