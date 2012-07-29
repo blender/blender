@@ -3053,14 +3053,14 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "minrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rc_min_rate");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 0, 9000);
+	RNA_def_property_range(prop, 0, 48000);
 	RNA_def_property_ui_text(prop, "Min Rate", "Rate control: min rate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "maxrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rc_max_rate");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 1, 14000);
+	RNA_def_property_range(prop, 1, 96000);
 	RNA_def_property_ui_text(prop, "Max Rate", "Rate control: max rate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
