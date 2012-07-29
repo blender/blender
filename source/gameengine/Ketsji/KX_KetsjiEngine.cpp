@@ -784,21 +784,21 @@ else
 	// Handle the animations independently of the logic time step
 	if (GetRestrictAnimationFPS())
 	{
-		m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
+		double clocktime = m_kxsystem->GetTimeInSeconds();
+		m_logger->StartLog(tc_animations, clocktime, true);
 		SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
 
 		double anim_timestep = 1.0/KX_GetActiveScene()->GetAnimationFPS();
-		if (m_clockTime - m_previousAnimTime > anim_timestep)
+		if (clocktime - m_previousAnimTime > anim_timestep)
 		{
 			// Sanity/debug print to make sure we're actually going at the fps we want (should be close to anim_timestep)
 			// printf("Anim fps: %f\n", 1.0/(m_clockTime - m_previousAnimTime));
-			m_previousAnimTime = m_clockTime;
+			m_previousAnimTime = clocktime;
 			for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
 			{
-				(*sceneit)->UpdateAnimations(m_frameTime);
+				(*sceneit)->UpdateAnimations(clocktime);
 			}
 		}
-		m_previousClockTime = m_clockTime;
 	}
 	
 	// Start logging time spend outside main loop
