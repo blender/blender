@@ -116,6 +116,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 		return mOk;
 	}
 
+	mipmap = mipmap && GPU_get_mipmap();
 
 	mTexture = img->bindcode;
 	mType = GL_TEXTURE_2D;
@@ -182,7 +183,7 @@ void BL_Texture::InitGLTex(unsigned int *pix,int x,int y,bool mipmap)
 	} 
 	else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pix );
 	}
 
