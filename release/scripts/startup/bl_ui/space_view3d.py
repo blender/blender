@@ -64,28 +64,29 @@ class VIEW3D_HT_header(Header):
         layout.template_header_3D()
 
         if obj:
+            mode = obj.mode
             # Particle edit
-            if obj.mode == 'PARTICLE_EDIT':
+            if mode == 'PARTICLE_EDIT':
                 row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
-            if view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
+            if view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH')):
                 row.prop(view, "use_occlude_geometry", text="")
 
             # Proportional editing
-            if obj.mode in {'EDIT', 'PARTICLE_EDIT'}:
+            if mode in {'EDIT', 'PARTICLE_EDIT'}:
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_edit", text="", icon_only=True)
                 if toolsettings.proportional_edit != 'DISABLED':
                     row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
-            elif obj.mode == 'OBJECT':
+            elif mode == 'OBJECT':
                 row = layout.row(align=True)
                 row.prop(toolsettings, "use_proportional_edit_objects", text="", icon_only=True)
                 if toolsettings.use_proportional_edit_objects:
                     row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         # Snap
-        if not obj or obj.mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
+        if not obj or mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
             snap_element = toolsettings.snap_element
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
@@ -93,9 +94,9 @@ class VIEW3D_HT_header(Header):
             if snap_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:
-                    if obj.mode in {'OBJECT', 'POSE'} and snap_element != 'VOLUME':
+                    if mode in {'OBJECT', 'POSE'} and snap_element != 'VOLUME':
                         row.prop(toolsettings, "use_snap_align_rotation", text="")
-                    elif obj.mode == 'EDIT':
+                    elif mode == 'EDIT':
                         row.prop(toolsettings, "use_snap_self", text="")
 
             if snap_element == 'VOLUME':
@@ -110,7 +111,7 @@ class VIEW3D_HT_header(Header):
         props.animation = True
 
         # Pose
-        if obj and obj.mode == 'POSE':
+        if obj and mode == 'POSE':
             row = layout.row(align=True)
             row.operator("pose.copy", text="", icon='COPYDOWN')
             row.operator("pose.paste", text="", icon='PASTEDOWN')
