@@ -321,7 +321,7 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified,
 
 		// Find maximum deviation from the segment.
 		float maxd = 0;
-		int maxi = -1;
+		int i_max = -1;
 		int ci, cinc, endi;
 		
 		// Traverse the segment in lexilogical order so that the
@@ -350,7 +350,7 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified,
 				if (d > maxd)
 				{
 					maxd = d;
-					maxi = ci;
+					i_max = ci;
 				}
 				ci = (ci+cinc) % pn;
 			}
@@ -359,7 +359,7 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified,
 		
 		// If the max deviation is larger than accepted error,
 		// add new point, else continue to next segment.
-		if (maxi != -1 && maxd > (maxError*maxError))
+		if (i_max != -1 && maxd > (maxError*maxError))
 		{
 			// Add space for the new point.
 			simplified.resize(simplified.size()+4);
@@ -372,10 +372,10 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified,
 				simplified[j*4+3] = simplified[(j-1)*4+3];
 			}
 			// Add the point.
-			simplified[(i+1)*4+0] = points[maxi*4+0];
-			simplified[(i+1)*4+1] = points[maxi*4+1];
-			simplified[(i+1)*4+2] = points[maxi*4+2];
-			simplified[(i+1)*4+3] = maxi;
+			simplified[(i+1)*4+0] = points[i_max*4+0];
+			simplified[(i+1)*4+1] = points[i_max*4+1];
+			simplified[(i+1)*4+2] = points[i_max*4+2];
+			simplified[(i+1)*4+3] = i_max;
 		}
 		else
 		{
@@ -399,7 +399,7 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified,
 			const int bi = simplified[ii*4+3];
 
 			// Find maximum deviation from the segment.
-			int maxi = -1;
+			int i_max = -1;
 			int ci = (ai+1) % pn;
 
 			// Tessellate only outer edges or edges between areas.
@@ -423,19 +423,19 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified,
 					if (bx > ax || (bx == ax && bz > az))
 					{
 						const int n = bi < ai ? (bi+pn - ai) : (bi - ai);
-						maxi = (ai + n/2) % pn;
+						i_max = (ai + n/2) % pn;
 					}
 					else
 					{
 						const int n = bi < ai ? (bi+pn - ai) : (bi - ai);
-						maxi = (ai + (n+1)/2) % pn;
+						i_max = (ai + (n+1)/2) % pn;
 					}
 				}
 			}
 			
 			// If the max deviation is larger than accepted error,
 			// add new point, else continue to next segment.
-			if (maxi != -1)
+			if (i_max != -1)
 			{
 				// Add space for the new point.
 				simplified.resize(simplified.size()+4);
@@ -448,10 +448,10 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified,
 					simplified[j*4+3] = simplified[(j-1)*4+3];
 				}
 				// Add the point.
-				simplified[(i+1)*4+0] = points[maxi*4+0];
-				simplified[(i+1)*4+1] = points[maxi*4+1];
-				simplified[(i+1)*4+2] = points[maxi*4+2];
-				simplified[(i+1)*4+3] = maxi;
+				simplified[(i+1)*4+0] = points[i_max*4+0];
+				simplified[(i+1)*4+1] = points[i_max*4+1];
+				simplified[(i+1)*4+2] = points[i_max*4+2];
+				simplified[(i+1)*4+3] = i_max;
 			}
 			else
 			{

@@ -242,6 +242,8 @@ static void *ctx_wm_python_context_get(const bContext *C, const char *member, vo
 		if (result.ptr.data)
 			return result.ptr.data;
 	}
+#else
+	(void)C, (void)member;
 #endif
 
 	return fall_through;
