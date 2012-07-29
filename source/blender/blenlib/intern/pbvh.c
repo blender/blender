@@ -663,7 +663,7 @@ void BLI_pbvh_build_grids(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj,
 	bvh->totgrid = totgrid;
 	bvh->gridkey = *key;
 	bvh->grid_hidden = grid_hidden;
-	bvh->leaf_limit = MAX2(LEAF_LIMIT / ((gridsize - 1) * (gridsize - 1)), 1);
+	bvh->leaf_limit = maxi(LEAF_LIMIT / ((gridsize - 1) * (gridsize - 1)), 1);
 
 	BB_reset(&cb);
 

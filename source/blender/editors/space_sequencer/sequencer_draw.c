@@ -1049,7 +1049,7 @@ static void draw_seq_backdrop(View2D *v2d)
 	glRectf(v2d->cur.xmin,  -1.0,  v2d->cur.xmax,  1.0);
 
 	/* Alternating horizontal stripes */
-	i = MAX2(1, ((int)v2d->cur.ymin) - 1);
+	i = maxi(1, ((int)v2d->cur.ymin) - 1);
 
 	glBegin(GL_QUADS);
 	while (i < v2d->cur.ymax) {
@@ -1068,7 +1068,7 @@ static void draw_seq_backdrop(View2D *v2d)
 	glEnd();
 	
 	/* Darker lines separating the horizontal bands */
-	i = MAX2(1, ((int)v2d->cur.ymin) - 1);
+	i = maxi(1, ((int)v2d->cur.ymin) - 1);
 	UI_ThemeColor(TH_GRID);
 	
 	glBegin(GL_LINES);

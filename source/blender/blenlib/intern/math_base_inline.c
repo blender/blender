@@ -143,10 +143,18 @@ MINLINE float minf(float a, float b)
 {
 	return (a < b) ? a : b;
 }
-
 MINLINE float maxf(float a, float b)
 {
 	return (a > b) ? a : b;
+}
+
+MINLINE int mini(int a, int b)
+{
+	return (a < b) ? a : b;
+}
+MINLINE int maxi(int a, int b)
+{
+	return (b < a) ? a : b;
 }
 
 MINLINE float signf(float f)

@@ -303,7 +303,7 @@ void ScreenLensDistortionOperation::updateVariables(float distortion, float disp
 {
 	this->m_kg = maxf(minf(distortion, 1.0f), -0.999f);
 	// smaller dispersion range for somewhat more control
-	const float d = 0.25f * MAX2(MIN2(dispersion, 1.f), 0.f);
+	const float d = 0.25f * maxf(minf(dispersion, 1.0f), 0.0f);
 	this->m_kr = maxf(minf((this->m_kg + d), 1.0f), -0.999f);
 	this->m_kb = maxf(minf((this->m_kg - d), 1.0f), -0.999f);
 	this->m_maxk = MAX3(this->m_kr, this->m_kg, this->m_kb);

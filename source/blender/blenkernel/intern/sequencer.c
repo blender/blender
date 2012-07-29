@@ -545,7 +545,9 @@ static void seq_update_sound_bounds_recursive_rec(Scene *scene, Sequence *metase
 	 * since sound is played outside of evaluating the imbufs, */
 	for (seq = metaseq->seqbase.first; seq; seq = seq->next) {
 		if (seq->type == SEQ_TYPE_META) {
-			seq_update_sound_bounds_recursive_rec(scene, seq, MAX2(start, metaseq_start(seq)), MIN2(end, metaseq_end(seq)));
+			seq_update_sound_bounds_recursive_rec(scene, seq,
+			                                      maxi(start, metaseq_start(seq)),
+			                                      mini(end, metaseq_end(seq)));
 		}
 		else if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
 			if (seq->scene_sound) {
@@ -3140,7 +3142,7 @@ int seq_tx_get_final_left(Sequence *seq, int metaclip)
 {
 	if (metaclip && seq->tmp) {
 		/* return the range clipped by the parents range */
-		return MAX2(seq_tx_get_final_left(seq, 0), seq_tx_get_final_left((Sequence *)seq->tmp, 1) );
+		return maxi(seq_tx_get_final_left(seq, 0), seq_tx_get_final_left((Sequence *)seq->tmp, TRUE));
 	}
 	else {
 		return (seq->start - seq->startstill) + seq->startofs;
@@ -3151,7 +3153,7 @@ int seq_tx_get_final_right(Sequence *seq, int metaclip)
 {
 	if (metaclip && seq->tmp) {
 		/* return the range clipped by the parents range */
-		return MIN2(seq_tx_get_final_right(seq, 0), seq_tx_get_final_right((Sequence *)seq->tmp, 1) );
+		return mini(seq_tx_get_final_right(seq, 0), seq_tx_get_final_right((Sequence *)seq->tmp, TRUE));
 	}
 	else {
 		return ((seq->start + seq->len) + seq->endstill) - seq->endofs;
