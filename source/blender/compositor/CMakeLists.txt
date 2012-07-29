@@ -286,6 +286,8 @@ set(SRC
 	nodes/COM_FilterNode.h
 	nodes/COM_DilateErodeNode.cpp
 	nodes/COM_DilateErodeNode.h
+	nodes/COM_InpaintNode.cpp
+	nodes/COM_InpaintNode.h
 	nodes/COM_BlurNode.cpp
 	nodes/COM_BlurNode.h
 	nodes/COM_BokehBlurNode.cpp
@@ -590,6 +592,8 @@ set(SRC
 	operations/COM_ConvolutionEdgeFilterOperation.cpp
 	operations/COM_DilateErodeOperation.cpp
 	operations/COM_DilateErodeOperation.h
+	operations/COM_InpaintOperation.cpp
+	operations/COM_InpaintOperation.h
 	operations/COM_GlareThresholdOperation.cpp
 	operations/COM_GlareThresholdOperation.h
 	operations/COM_GlareBaseOperation.cpp
