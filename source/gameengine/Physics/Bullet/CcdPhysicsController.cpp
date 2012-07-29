@@ -632,6 +632,8 @@ CcdPhysicsController::~CcdPhysicsController()
 		delete m_MotionState;
 	if (m_bulletMotionState)
 		delete m_bulletMotionState;
+	if (m_characterController)
+		delete m_characterController;
 	delete m_object;
 
 	DeleteControllerShape();
