@@ -64,28 +64,29 @@ class VIEW3D_HT_header(Header):
         layout.template_header_3D()
 
         if obj:
+            mode = obj.mode
             # Particle edit
-            if obj.mode == 'PARTICLE_EDIT':
+            if mode == 'PARTICLE_EDIT':
                 row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
-            if view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
+            if view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH')):
                 row.prop(view, "use_occlude_geometry", text="")
 
             # Proportional editing
-            if obj.mode in {'EDIT', 'PARTICLE_EDIT'}:
+            if mode in {'EDIT', 'PARTICLE_EDIT'}:
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_edit", text="", icon_only=True)
                 if toolsettings.proportional_edit != 'DISABLED':
                     row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
-            elif obj.mode == 'OBJECT':
+            elif mode == 'OBJECT':
                 row = layout.row(align=True)
                 row.prop(toolsettings, "use_proportional_edit_objects", text="", icon_only=True)
                 if toolsettings.use_proportional_edit_objects:
                     row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         # Snap
-        if not obj or obj.mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
+        if not obj or mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
             snap_element = toolsettings.snap_element
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
@@ -93,9 +94,9 @@ class VIEW3D_HT_header(Header):
             if snap_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:
-                    if obj.mode in {'OBJECT', 'POSE'} and snap_element != 'VOLUME':
+                    if mode in {'OBJECT', 'POSE'} and snap_element != 'VOLUME':
                         row.prop(toolsettings, "use_snap_align_rotation", text="")
-                    elif obj.mode == 'EDIT':
+                    elif mode == 'EDIT':
                         row.prop(toolsettings, "use_snap_self", text="")
 
             if snap_element == 'VOLUME':
@@ -110,7 +111,7 @@ class VIEW3D_HT_header(Header):
         props.animation = True
 
         # Pose
-        if obj and obj.mode == 'POSE':
+        if obj and mode == 'POSE':
             row = layout.row(align=True)
             row.operator("pose.copy", text="", icon='COPYDOWN')
             row.operator("pose.paste", text="", icon='PASTEDOWN')
@@ -176,11 +177,12 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base):
 # Object-specific extensions to Transform menu
 class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
     def draw(self, context):
+        layout = self.layout
+
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
 
         # object-specific option follow...
-        layout = self.layout
         layout.separator()
 
         layout.operator("transform.translate", text="Move Texture Space").texture_space = True
@@ -212,11 +214,12 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
 # Armature EditMode extensions to Transform menu
 class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):
     def draw(self, context):
+        layout = self.layout
+
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
 
         # armature specific extensions follow...
-        layout = self.layout
         layout.separator()
 
         obj = context.object
@@ -429,18 +432,23 @@ class VIEW3D_MT_view_align_selected(Menu):
         props = layout.operator("view3d.viewnumpad", text="Top")
         props.align_active = True
         props.type = 'TOP'
+
         props = layout.operator("view3d.viewnumpad", text="Bottom")
         props.align_active = True
         props.type = 'BOTTOM'
+
         props = layout.operator("view3d.viewnumpad", text="Front")
         props.align_active = True
         props.type = 'FRONT'
+
         props = layout.operator("view3d.viewnumpad", text="Back")
         props.align_active = True
         props.type = 'BACK'
+
         props = layout.operator("view3d.viewnumpad", text="Right")
         props.align_active = True
         props.type = 'RIGHT'
+
         props = layout.operator("view3d.viewnumpad", text="Left")
         props.align_active = True
         props.type = 'LEFT'
@@ -1191,6 +1199,7 @@ class VIEW3D_MT_vertex_group(Menu):
 
     def draw(self, context):
         layout = self.layout
+
         layout.operator_context = 'EXEC_AREA'
         layout.operator("object.vertex_group_assign", text="Assign to New Group").new = True
 
@@ -1349,6 +1358,7 @@ class VIEW3D_MT_particle_specials(Menu):
 
     def draw(self, context):
         layout = self.layout
+
         particle_edit = context.tool_settings.particle_edit
 
         layout.operator("particle.rekey")
@@ -1792,6 +1802,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
     def draw(self, context):
         layout = self.layout
+
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.edge_face_add")
@@ -1839,6 +1850,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
     def draw(self, context):
         layout = self.layout
+
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.flip_normals")
@@ -2632,6 +2644,7 @@ class VIEW3D_PT_etch_a_ton(Panel):
 
     def draw(self, context):
         layout = self.layout
+
         toolsettings = context.scene.tool_settings
 
         col = layout.column()

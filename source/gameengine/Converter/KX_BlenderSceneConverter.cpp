@@ -1043,9 +1043,11 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 			delete other;
 		}
 
+#ifdef WITH_PYTHON
 		/* Handle any text datablocks */
 		if (options & LIB_LOAD_LOAD_SCRIPTS)
 			addImportMain(main_newlib);
+#endif
 
 		/* Now handle all the actions */
 		if (options & LIB_LOAD_LOAD_ACTIONS) {
@@ -1339,8 +1341,11 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		}
 	}
 
-	/* make sure this maggie is removed from the import list if it's there (this operation is safe if it isn't in the list) */
+#ifdef WITH_PYTHON
+	/* make sure this maggie is removed from the import list if it's there
+	 * (this operation is safe if it isn't in the list) */
 	removeImportMain(maggie);
+#endif
 
 	free_main(maggie);
 

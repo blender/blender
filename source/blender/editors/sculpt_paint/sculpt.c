@@ -3254,9 +3254,9 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 	if (ss->multires) {
 		int i, gridsize, array_mem_size;
 		BLI_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL,
-								&gridsize, NULL, NULL);
+		                        &gridsize, NULL, NULL);
 
-		array_mem_size = cache->num_threads * sizeof(void*);
+		array_mem_size = cache->num_threads * sizeof(void *);
 
 		cache->tmpgrid_co = MEM_mallocN(array_mem_size, "tmpgrid_co array");
 		cache->tmprow_co = MEM_mallocN(array_mem_size, "tmprow_co array");

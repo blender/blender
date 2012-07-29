@@ -114,7 +114,7 @@ static void move_stack(bNodeStack *to, bNodeStack *from)
 
 static void *group_initexec(bNode *node)
 {
-	bNodeTree *ngroup= (bNodeTree*)node->id;
+	bNodeTree *ngroup= (bNodeTree *)node->id;
 	bNodeTreeExec *exec;
 	bNodeSocket *sock;
 	bNodeStack *ns;
@@ -138,7 +138,7 @@ static void *group_initexec(bNode *node)
 
 static void group_freeexec(bNode *UNUSED(node), void *nodedata)
 {
-	bNodeTreeExec *gexec= (bNodeTreeExec*)nodedata;
+	bNodeTreeExec *gexec= (bNodeTreeExec *)nodedata;
 	
 	if (gexec)
 		ntreeCompositEndExecTree(gexec, 0);
@@ -193,7 +193,7 @@ static void group_free_internal(bNodeTreeExec *gexec)
 
 static void group_execute(void *data, int thread, struct bNode *node, void *nodedata, struct bNodeStack **in, struct bNodeStack **out)
 {
-	bNodeTreeExec *exec= (bNodeTreeExec*)nodedata;
+	bNodeTreeExec *exec= (bNodeTreeExec *)nodedata;
 	
 	if (!exec)
 		return;
@@ -265,7 +265,7 @@ static void loop_iteration_reset(bNodeTree *ngroup, bNodeStack *gstack)
 
 static void forloop_execute(void *data, int thread, struct bNode *node, void *nodedata, struct bNodeStack **in, struct bNodeStack **out)
 {
-	bNodeTreeExec *exec= (bNodeTreeExec*)nodedata;
+	bNodeTreeExec *exec= (bNodeTreeExec *)nodedata;
 	int totiterations= (int)in[0]->vec[0];
 	bNodeSocket *sock;
 	bNodeStack *ns;
@@ -323,7 +323,7 @@ void register_node_type_cmp_forloop(bNodeTreeType *ttype)
 #if 0 /* XXX loop nodes don't work nicely with current trees */
 static void whileloop_execute(void *data, int thread, struct bNode *node, void *nodedata, struct bNodeStack **in, struct bNodeStack **out)
 {
-	bNodeTreeExec *exec= (bNodeTreeExec*)nodedata;
+	bNodeTreeExec *exec= (bNodeTreeExec *)nodedata;
 	int condition= (in[0]->vec[0] > 0.0f);
 	bNodeSocket *sock;
 	bNodeStack *ns;

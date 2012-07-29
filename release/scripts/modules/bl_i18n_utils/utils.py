@@ -40,6 +40,7 @@ def stripeol(s):
 def is_tooltip(msgid):
     return len(msgid) > 30
 
+
 def parse_messages(fname):
     """
     Returns a tupple (messages, states, stats).
@@ -81,7 +82,6 @@ def parse_messages(fname):
     translated_messages = set()
     fuzzy_messages = set()
     commented_messages = set()
-
 
     def clean_vars():
         nonlocal reading_msgid, reading_msgstr, reading_msgctxt, \
@@ -143,7 +143,6 @@ def parse_messages(fname):
 
         clean_vars()
 
-
     with open(fname, 'r', encoding="utf-8") as f:
         for line_nr, line in enumerate(f):
             line = stripeol(line)
@@ -156,7 +155,7 @@ def parse_messages(fname):
                 reading_ctxt = True
                 if line.startswith(COMMENT_PREFIX):
                     is_commented = True
-                    line = line[9+len(COMMENT_PREFIX):-1]
+                    line = line[9 + len(COMMENT_PREFIX):-1]
                 else:
                     line = line[9:-1]
                 msgctxt_lines.append(line)
@@ -167,7 +166,7 @@ def parse_messages(fname):
                 reading_msgid = True
                 if line.startswith(COMMENT_PREFIX):
                     is_commented = True
-                    line = line[7+len(COMMENT_PREFIX):-1]
+                    line = line[7 + len(COMMENT_PREFIX):-1]
                 else:
                     line = line[7:-1]
                 msgid_lines.append(line)
@@ -180,7 +179,7 @@ def parse_messages(fname):
                     reading_msgid = False
                 reading_msgstr = True
                 if line.startswith(COMMENT_PREFIX):
-                    line = line[8+len(COMMENT_PREFIX):-1]
+                    line = line[8 + len(COMMENT_PREFIX):-1]
                     if not is_commented:
                         is_broken = True
                 else:
@@ -194,13 +193,13 @@ def parse_messages(fname):
             elif line.startswith("#"):
                 if reading_msgid:
                     if is_commented:
-                        msgid_lines.append(line[1+len(COMMENT_PREFIX):-1])
+                        msgid_lines.append(line[1 + len(COMMENT_PREFIX):-1])
                     else:
                         msgid_lines.append(line)
                         is_broken = True
                 elif reading_msgstr:
                     if is_commented:
-                        msgstr_lines.append(line[1+len(COMMENT_PREFIX):-1])
+                        msgstr_lines.append(line[1 + len(COMMENT_PREFIX):-1])
                     else:
                         msgstr_lines.append(line)
                         is_broken = True
@@ -338,13 +337,13 @@ def print_stats(stats, glob_stats=None, prefix=""):
     lvl = lvl_ttips = lvl_trans_ttips = lvl_ttips_in_trans = lvl_comm = 0.0
 
     if tot_msgs > 0:
-        lvl = float(trans_msgs)/float(tot_msgs)
-        lvl_ttips = float(tot_ttips)/float(tot_msgs)
-        lvl_comm = float(comm_msgs)/float(tot_msgs+comm_msgs)
+        lvl = float(trans_msgs) / float(tot_msgs)
+        lvl_ttips = float(tot_ttips) / float(tot_msgs)
+        lvl_comm = float(comm_msgs) / float(tot_msgs+comm_msgs)
     if tot_ttips > 0:
-        lvl_trans_ttips = float(trans_ttips)/float(tot_ttips)
+        lvl_trans_ttips = float(trans_ttips) / float(tot_ttips)
     if trans_msgs > 0:
-        lvl_ttips_in_trans = float(trans_ttips)/float(trans_msgs)
+        lvl_ttips_in_trans = float(trans_ttips) / float(trans_msgs)
 
     if glob_stats:
         glob_stats["nbr"]                += 1.0
@@ -368,9 +367,8 @@ def print_stats(stats, glob_stats=None, prefix=""):
              "{:>6.1%} of translated messages are tooltips ({} over {}).\n"
              "".format(lvl_ttips_in_trans, trans_ttips, trans_msgs),
              "{:>6.1%} of messages are commented ({} over {}).\n"
-             "".format(lvl_comm, comm_msgs, comm_msgs+tot_msgs),
+             "".format(lvl_comm, comm_msgs, comm_msgs + tot_msgs),
              "This translation is currently made of {} signs.\n"
              "".format(nbr_trans_signs))
     print(prefix.join(lines))
     return 0
-

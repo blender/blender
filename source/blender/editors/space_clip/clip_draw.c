@@ -749,7 +749,7 @@ static float get_shortest_pattern_side(MovieTrackingMarker *marker)
 
 		cur_len = len_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
 
-		len = MIN2(cur_len, len);
+		len = minf(cur_len, len);
 	}
 
 	return len;
@@ -821,11 +821,11 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	dy = 6.0f / height / sc->zoom;
 
 	side = get_shortest_pattern_side(marker);
-	patdx = MIN2(dx * 2.0f / 3.0f, side / 6.0f);
-	patdy = MIN2(dy * 2.0f / 3.0f, side * width / height / 6.0f);
+	patdx = minf(dx * 2.0f / 3.0f, side / 6.0f);
+	patdy = minf(dy * 2.0f / 3.0f, side * width / height / 6.0f);
 
-	searchdx = MIN2(dx, (marker->search_max[0] - marker->search_min[0]) / 6.0f);
-	searchdy = MIN2(dy, (marker->search_max[1] - marker->search_min[1]) / 6.0f);
+	searchdx = minf(dx, (marker->search_max[0] - marker->search_min[0]) / 6.0f);
+	searchdy = minf(dy, (marker->search_max[1] - marker->search_min[1]) / 6.0f);
 
 	px[0] = 1.0f / sc->zoom / width / sc->scale;
 	px[1] = 1.0f / sc->zoom / height / sc->scale;

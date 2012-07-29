@@ -658,7 +658,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 				if (v1 == v2 || v2 == v3) break;
 				/* printf("test verts %x %x %x\n",v1,v2,v3); */
 				miny = minf(v1->xy[1], v3->xy[1]);
-				/*  miny= MIN2(v1->xy[1],v3->xy[1]); */
+				/*  miny= minf(v1->xy[1],v3->xy[1]); */
 				sc1 = sc + 1;
 				test = 0;
 

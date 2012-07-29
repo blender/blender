@@ -995,8 +995,8 @@ void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
 	if (event == CLAMP_PAT_DIM) {
 		for (a = 0; a < 2; a++) {
 			/* search shouldn't be resized smaller than pattern */
-			marker->search_min[a] = MIN2(pat_min[a], marker->search_min[a]);
-			marker->search_max[a] = MAX2(pat_max[a], marker->search_max[a]);
+			marker->search_min[a] = minf(pat_min[a], marker->search_min[a]);
+			marker->search_max[a] = maxf(pat_max[a], marker->search_max[a]);
 		}
 	}
 	else if (event == CLAMP_PAT_POS) {
@@ -1020,8 +1020,8 @@ void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
 	else if (event == CLAMP_SEARCH_DIM) {
 		for (a = 0; a < 2; a++) {
 			/* search shouldn't be resized smaller than pattern */
-			marker->search_min[a] = MIN2(pat_min[a], marker->search_min[a]);
-			marker->search_max[a] = MAX2(pat_max[a], marker->search_max[a]);
+			marker->search_min[a] = minf(pat_min[a], marker->search_min[a]);
+			marker->search_max[a] = maxf(pat_max[a], marker->search_max[a]);
 		}
 	}
 	else if (event == CLAMP_SEARCH_POS) {
@@ -3272,7 +3272,7 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 
 						S = (-w * I - h * J) / (dx * I + dy * J + K);
 
-						scale = MAX2(scale, S);
+						scale = maxf(scale, S);
 					}
 				}
 			}
@@ -3281,7 +3281,7 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 		stab->scale = scale;
 
 		if (stab->maxscale > 0.0f)
-			stab->scale = MIN2(stab->scale, stab->maxscale);
+			stab->scale = minf(stab->scale, stab->maxscale);
 	}
 	else {
 		stab->scale = 1.0f;

@@ -74,12 +74,13 @@ pygettexts = tuple(re.compile(r).search
 _clean_str = re.compile(settings.str_clean_re).finditer
 clean_str = lambda s: "".join(m.group("clean") for m in _clean_str(s))
 
+
 def check_file(path, rel_path, messages):
     with open(path, encoding="utf-8") as f:
         f = f.read()
         for srch in pygettexts:
             m = srch(f)
-            line = pos =0
+            line = pos = 0
             while m:
                 d = m.groupdict()
                 # Context.
@@ -149,6 +150,8 @@ from spell_check_utils import (dict_uimsgs,
                               )
 
 _spell_checked = set()
+
+
 def spell_check(txt, cache):
     ret = []
 
@@ -194,6 +197,8 @@ def gen_empty_pot():
 
 escape_re = tuple(re.compile(r[0]) for r in settings.ESCAPE_RE)
 escape = lambda s, n: escape_re[n].sub(settings.ESCAPE_RE[n][1], s)
+
+
 def merge_messages(msgs, states, messages, do_checks, spell_cache):
     num_added = num_present = 0
     for (context, msgid), srcs in messages.items():

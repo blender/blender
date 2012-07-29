@@ -980,9 +980,9 @@ static void alpha_clip_aniso(ImBuf *ibuf, float minx, float miny, float maxx, fl
 		rf.ymin = miny*(ibuf->y);
 		rf.ymax = maxy*(ibuf->y);
 
-		alphaclip = clipx_rctf(&rf, 0.0, (float)(ibuf->x));
-		alphaclip*= clipy_rctf(&rf, 0.0, (float)(ibuf->y));
-		alphaclip= MAX2(alphaclip, 0.0f);
+		alphaclip  = clipx_rctf(&rf, 0.0, (float)(ibuf->x));
+		alphaclip *= clipy_rctf(&rf, 0.0, (float)(ibuf->y));
+		alphaclip  = maxf(alphaclip, 0.0f);
 
 		if (alphaclip!=1.0f) {
 			/* premul it all */
@@ -1236,8 +1236,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			float fProbes;
 			a *= ff;
 			b *= ff;
-			a = MAX2(a, 1.f);
-			b = MAX2(b, 1.f);
+			a = maxf(a, 1.0f);
+			b = maxf(b, 1.0f);
 			fProbes = 2.f*(a / b) - 1.f;
 			AFD.iProbes = (int)floorf(fProbes + 0.5f);
 			AFD.iProbes = MIN2(AFD.iProbes, tex->afmax);
@@ -1253,8 +1253,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			if (ecc > (float)tex->afmax) b = a / (float)tex->afmax;
 			b *= ff;
 		}
-		maxd = MAX2(b, 1e-8f);
-		levf = ((float)M_LOG2E)*logf(maxd);
+		maxd = maxf(b, 1e-8f);
+		levf = ((float)M_LOG2E) * logf(maxd);
 
 		curmap = 0;
 		maxlev = 1;
@@ -1338,8 +1338,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
 			a *= ff;
 			b *= ff;
-			a = MAX2(a, 1.f);
-			b = MAX2(b, 1.f);
+			a = maxf(a, 1.0f);
+			b = maxf(b, 1.0f);
 			fProbes = 2.f*(a / b) - 1.f;
 			/* no limit to number of Probes here */
 			AFD.iProbes = (int)floorf(fProbes + 0.5f);
@@ -1622,12 +1622,12 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		ImBuf *previbuf, *curibuf;
 		float bumpscale;
 		
-		dx= minx;
-		dy= miny;
-		maxd= MAX2(dx, dy);
-		if (maxd>0.5f) maxd= 0.5f;
+		dx = minx;
+		dy = miny;
+		maxd = maxf(dx, dy);
+		if (maxd > 0.5f) maxd = 0.5f;
 
-		pixsize = 1.0f/ (float) MIN2(ibuf->x, ibuf->y);
+		pixsize = 1.0f / (float) MIN2(ibuf->x, ibuf->y);
 		
 		bumpscale= pixsize/maxd;
 		if (bumpscale>1.0f) bumpscale= 1.0f;

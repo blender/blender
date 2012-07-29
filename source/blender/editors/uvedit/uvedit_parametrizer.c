@@ -3469,7 +3469,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 
 	float rotated, minarea, minangle, area, len;
 	float *angles, miny, maxy, v[2], a[4], mina;
-	int npoints, right, mini, maxi, i, idx[4], nextidx;
+	int npoints, right, i_min, i_max, i, idx[4], nextidx;
 	PVert **points, *p1, *p2, *p3, *p4, *p1n;
 
 	/* compute convex hull */
@@ -3479,7 +3479,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 	/* find left/top/right/bottom points, and compute angle for each point */
 	angles = MEM_mallocN(sizeof(float) * npoints, "PMinAreaAngles");
 
-	mini = maxi = 0;
+	i_min = i_max = 0;
 	miny = 1e10;
 	maxy = -1e10;
 
@@ -3492,19 +3492,19 @@ static float p_chart_minimum_area_angle(PChart *chart)
 
 		if (points[i]->uv[1] < miny) {
 			miny = points[i]->uv[1];
-			mini = i;
+			i_min = i;
 		}
 		if (points[i]->uv[1] > maxy) {
 			maxy = points[i]->uv[1];
-			maxi = i;
+			i_max = i;
 		}
 	}
 
 	/* left, top, right, bottom */
 	idx[0] = 0;
-	idx[1] = maxi;
+	idx[1] = i_max;
 	idx[2] = right;
-	idx[3] = mini;
+	idx[3] = i_min;
 
 	v[0] = points[idx[0]]->uv[0];
 	v[1] = points[idx[0]]->uv[1] + 1.0f;
@@ -3530,29 +3530,29 @@ static float p_chart_minimum_area_angle(PChart *chart)
 
 	while (rotated <= (float)(M_PI / 2.0)) { /* INVESTIGATE: how far to rotate? */
 		/* rotate with the smallest angle */
-		mini = 0;
+		i_min = 0;
 		mina = 1e10;
 
 		for (i = 0; i < 4; i++)
 			if (a[i] < mina) {
 				mina = a[i];
-				mini = i;
+				i_min = i;
 			}
 
 		rotated += mina;
-		nextidx = (idx[mini] + 1) % npoints;
+		nextidx = (idx[i_min] + 1) % npoints;
 
-		a[mini] = angles[nextidx];
-		a[(mini + 1) % 4] = a[(mini + 1) % 4] - mina;
-		a[(mini + 2) % 4] = a[(mini + 2) % 4] - mina;
-		a[(mini + 3) % 4] = a[(mini + 3) % 4] - mina;
+		a[i_min] = angles[nextidx];
+		a[(i_min + 1) % 4] = a[(i_min + 1) % 4] - mina;
+		a[(i_min + 2) % 4] = a[(i_min + 2) % 4] - mina;
+		a[(i_min + 3) % 4] = a[(i_min + 3) % 4] - mina;
 
 		/* compute area */
-		p1 = points[idx[mini]];
+		p1 = points[idx[i_min]];
 		p1n = points[nextidx];
-		p2 = points[idx[(mini + 1) % 4]];
-		p3 = points[idx[(mini + 2) % 4]];
-		p4 = points[idx[(mini + 3) % 4]];
+		p2 = points[idx[(i_min + 1) % 4]];
+		p3 = points[idx[(i_min + 2) % 4]];
+		p4 = points[idx[(i_min + 3) % 4]];
 
 		len = len_v2v2(p1->uv, p1n->uv);
 
@@ -3570,7 +3570,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 			}
 		}
 
-		idx[mini] = nextidx;
+		idx[i_min] = nextidx;
 	}
 
 	/* try keeping rotation as small as possible */

@@ -1541,8 +1541,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 
 	copy_v3_v3(shi->facenor, nor);
 	shade_input_set_viewco(shi, x, y, sx, sy, z);
-	*area= len_v3(shi->dxco)*len_v3(shi->dyco);
-	*area= MIN2(*area, 2.0f*orthoarea);
+	*area = minf(len_v3(shi->dxco) * len_v3(shi->dyco), 2.0f * orthoarea);
 
 	shade_input_set_uv(shi);
 	shade_input_set_normals(shi);

@@ -291,7 +291,7 @@ static int add_name(const char *str)
 	if (str[0] == '(' && str[1] == '*') {
 		/* we handle function pointer and special array cases here, e.g.
 		 * void (*function)(...) and float (*array)[..]. the array case
-		 * name is still converted to (array*)() though because it is that
+		 * name is still converted to (array *)() though because it is that
 		 * way in old dna too, and works correct with elementsize() */
 		int isfuncptr = (strchr(str + 1, '(')) != NULL;
 

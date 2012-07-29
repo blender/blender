@@ -104,6 +104,7 @@ void GPU_render_text(struct MTFace *tface, int mode,
  * - these will free textures on changes */
 
 void GPU_set_mipmap(int mipmap);
+int GPU_get_mipmap(void);
 void GPU_set_linear_mipmap(int linear);
 void GPU_paint_set_mipmap(int mipmap);
 

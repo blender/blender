@@ -304,7 +304,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(fstack);
 	BMLoop *l, *l2;
 	float maxx, maxx_test, cent[3];
-	int i, maxi, flagflip = BMO_slot_bool_get(op, "do_flip");
+	int i, i_max, flagflip = BMO_slot_bool_get(op, "do_flip");
 
 	startf = NULL;
 	maxx = -1.0e10;
@@ -353,7 +353,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	BMO_elem_flag_enable(bm, startf, FACE_VIS);
 
 	i = 0;
-	maxi = 1;
+	i_max = 1;
 	while (i >= 0) {
 		f = fstack[i];
 		i--;
@@ -381,9 +381,9 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 						}
 					}
 					
-					if (i == maxi) {
+					if (i == i_max) {
 						BLI_array_grow_one(fstack);
-						maxi++;
+						i_max++;
 					}
 
 					fstack[i] = l2->f;

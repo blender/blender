@@ -186,11 +186,8 @@ def effector_weights_ui(self, context, weights):
 
     split = layout.split()
 
-    col = split.column()
-    col.prop(weights, "gravity", slider=True)
-
-    col = split.column()
-    col.prop(weights, "all", slider=True)
+    split.prop(weights, "gravity", slider=True)
+    split.prop(weights, "all", slider=True)
 
     layout.separator()
 

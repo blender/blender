@@ -1052,13 +1052,13 @@ void BKE_brush_painter_break_stroke(BrushPainter *painter)
 static void brush_pressure_apply(BrushPainter *painter, Brush *brush, float pressure)
 {
 	if (BKE_brush_use_alpha_pressure(painter->scene, brush))
-		brush_alpha_set(painter->scene, brush, MAX2(0.0f, painter->startalpha * pressure));
+		brush_alpha_set(painter->scene, brush, maxf(0.0f, painter->startalpha * pressure));
 	if (BKE_brush_use_size_pressure(painter->scene, brush))
-		BKE_brush_size_set(painter->scene, brush, MAX2(1.0f, painter->startsize * pressure));
+		BKE_brush_size_set(painter->scene, brush, maxf(1.0f, painter->startsize * pressure));
 	if (brush->flag & BRUSH_JITTER_PRESSURE)
-		brush->jitter = MAX2(0.0f, painter->startjitter * pressure);
+		brush->jitter = maxf(0.0f, painter->startjitter * pressure);
 	if (brush->flag & BRUSH_SPACING_PRESSURE)
-		brush->spacing = MAX2(1.0f, painter->startspacing * (1.5f - pressure));
+		brush->spacing = maxf(1.0f, painter->startspacing * (1.5f - pressure));
 }
 
 void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], float jitterpos[2])
@@ -1158,7 +1158,7 @@ int BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, const float p
 		/* compute brush spacing adapted to brush radius, spacing may depend
 		 * on pressure, so update it */
 		brush_pressure_apply(painter, brush, painter->lastpressure);
-		spacing = MAX2(1.0f, radius) * brush->spacing * 0.01f;
+		spacing = maxf(1.0f, radius) * brush->spacing * 0.01f;
 
 		/* setup starting distance, direction vector and accumulated distance */
 		startdistance = painter->accumdistance;
@@ -1176,7 +1176,7 @@ int BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, const float p
 				t = step / len;
 				press = (1.0f - t) * painter->lastpressure + t * pressure;
 				brush_pressure_apply(painter, brush, press);
-				spacing = MAX2(1.0f, radius) * brush->spacing * 0.01f;
+				spacing = maxf(1.0f, radius) * brush->spacing * 0.01f;
 
 				BKE_brush_jitter_pos(scene, brush, paintpos, finalpos);
 

@@ -784,7 +784,7 @@ void IMB_buffer_float_clamp(float *buf, int width, int height)
 {
 	int i, total = width * height * 4;
 	for (i = 0; i < total; i++) {
-		buf[i] = MIN2(1.0, buf[i]);
+		buf[i] = minf(1.0, buf[i]);
 	}
 }
 

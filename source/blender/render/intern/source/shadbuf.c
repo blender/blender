@@ -322,8 +322,8 @@ static void compress_deepshadowbuf(Render *re, ShadBuf *shb, APixstr *apixbuf, A
 	shsample= MEM_callocN(sizeof(ShadSampleBuf), "shad sample buf");
 	BLI_addtail(&shb->buffers, shsample);
 
-	shsample->totbuf= MEM_callocN(sizeof(int)*size*size, "deeptotbuf");
-	shsample->deepbuf= MEM_callocN(sizeof(DeepSample*)*size*size, "deepbuf");
+	shsample->totbuf = MEM_callocN(sizeof(int) * size * size, "deeptotbuf");
+	shsample->deepbuf = MEM_callocN(sizeof(DeepSample *) * size * size, "deepbuf");
 
 	ap= apixbuf;
 	aps= apixbufstrand;
@@ -1391,7 +1391,7 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 			}
 		}
 		
-		labda= MIN2(labdax, labday);
+		labda = minf(labdax, labday);
 		if (labda==labdao || labda>=1.0f) break;
 		
 		zf= zf1 + labda*(zf2-zf1);

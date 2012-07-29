@@ -29,6 +29,7 @@
 class ViewerBaseOperation : public NodeOperation {
 protected:
 	float *m_outputBuffer;
+	float *m_depthBuffer;
 	unsigned char *m_outputBufferDisplay;
 	Image *m_image;
 	ImageUser *m_imageUser;
@@ -39,6 +40,7 @@ protected:
 	OrderOfChunks m_chunkOrder;
 	bool m_doColorManagement;
 	bool m_doColorPredivide;
+	bool m_doDepthBuffer;
 	ImBuf *m_ibuf;
 
 public:

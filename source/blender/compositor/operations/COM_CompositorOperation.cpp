@@ -41,11 +41,14 @@ CompositorOperation::CompositorOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
+	this->addInputSocket(COM_DT_VALUE);
 
 	this->setRenderData(NULL);
 	this->m_outputBuffer = NULL;
+	this->m_depthBuffer = NULL;
 	this->m_imageInput = NULL;
 	this->m_alphaInput = NULL;
+	this->m_depthInput = NULL;
 }
 
 void CompositorOperation::initExecution()
@@ -53,8 +56,12 @@ void CompositorOperation::initExecution()
 	// When initializing the tree during initial load the width and height can be zero.
 	this->m_imageInput = getInputSocketReader(0);
 	this->m_alphaInput = getInputSocketReader(1);
+	this->m_depthInput = getInputSocketReader(2);
 	if (this->getWidth() * this->getHeight() != 0) {
 		this->m_outputBuffer = (float *) MEM_callocN(this->getWidth() * this->getHeight() * 4 * sizeof(float), "CompositorOperation");
+	}
+	if (this->m_depthInput != NULL) {
+		this->m_depthBuffer = (float *) MEM_callocN(this->getWidth() * this->getHeight() * sizeof(float), "CompositorOperation");
 	}
 }
 
@@ -70,10 +77,17 @@ void CompositorOperation::deinitExecution()
 				MEM_freeN(rr->rectf);
 			}
 			rr->rectf = this->m_outputBuffer;
+			if (rr->rectz != NULL) {
+				MEM_freeN(rr->rectz);
+			}
+			rr->rectz = this->m_depthBuffer;
 		}
 		else {
 			if (this->m_outputBuffer) {
 				MEM_freeN(this->m_outputBuffer);
+			}
+			if (this->m_depthBuffer) {
+				MEM_freeN(this->m_depthBuffer);
 			}
 		}
 
@@ -90,11 +104,16 @@ void CompositorOperation::deinitExecution()
 		if (this->m_outputBuffer) {
 			MEM_freeN(this->m_outputBuffer);
 		}
+		if (this->m_depthBuffer) {
+			MEM_freeN(this->m_depthBuffer);
+		}
 	}
 
 	this->m_outputBuffer = NULL;
+	this->m_depthBuffer = NULL;
 	this->m_imageInput = NULL;
 	this->m_alphaInput = NULL;
+	this->m_depthInput = NULL;
 }
 
 
@@ -102,13 +121,16 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	float color[8]; // 7 is enough
 	float *buffer = this->m_outputBuffer;
+	float *zbuffer = this->m_depthBuffer;
 
 	if (!buffer) return;
 	int x1 = rect->xmin;
 	int y1 = rect->ymin;
 	int x2 = rect->xmax;
 	int y2 = rect->ymax;
-	int offset = (y1 * this->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
+	int offset = (y1 * this->getWidth() + x1);
+	int add = (this->getWidth() - (x2 - x1));
+	int offset4 = offset * COM_NUMBER_OF_CHANNELS;
 	int x;
 	int y;
 	bool breaked = false;
@@ -119,13 +141,20 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 			if (this->m_alphaInput != NULL) {
 				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST);
 			}
-			copy_v4_v4(buffer + offset, color);
-			offset += COM_NUMBER_OF_CHANNELS;
+			copy_v4_v4(buffer + offset4, color);
+
+			if (this->m_depthInput != NULL) {
+				this->m_depthInput->read(color, x, y, COM_PS_NEAREST);
+				zbuffer[offset] = color[0];
+			}
+			offset4 += COM_NUMBER_OF_CHANNELS;
+			offset++;
 			if (isBreaked()) {
 				breaked = true;
 			}
 		}
-		offset += (this->getWidth() - (x2 - x1)) * COM_NUMBER_OF_CHANNELS;
+		offset += add;
+		offset4 += add * COM_NUMBER_OF_CHANNELS;
 	}
 }
 

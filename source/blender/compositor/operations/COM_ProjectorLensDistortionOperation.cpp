@@ -95,7 +95,7 @@ void ProjectorLensDistortionOperation::updateDispersion()
 		float result[4];
 		this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST);
 		this->m_dispersion = result[0];
-		this->m_kr = 0.25f * MAX2(MIN2(this->m_dispersion, 1.f), 0.f);
+		this->m_kr = 0.25f * maxf(minf(this->m_dispersion, 1.0f), 0.0f);
 		this->m_kr2 = this->m_kr * 20;
 		this->m_dispersionAvailable = true;
 	}

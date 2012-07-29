@@ -2418,7 +2418,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			 * on the first item */
 			offset[0] = 0;
 			for (bt = block->buttons.first; bt; bt = bt->next)
-				offset[0] = MIN2(offset[0], -(bt->x1 + 0.8f * (bt->x2 - bt->x1)));
+				offset[0] = mini(offset[0], -(bt->x1 + 0.8f * (bt->x2 - bt->x1)));
 
 			offset[1] = 1.5 * UI_UNIT_Y;
 		}

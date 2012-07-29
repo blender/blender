@@ -161,7 +161,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 	if (smd->limit[0] < 0.0f) smd->limit[0] = 0.0f;
 	if (smd->limit[0] > 1.0f) smd->limit[0] = 1.0f;
 
-	smd->limit[0] = MIN2(smd->limit[0], smd->limit[1]);  /* Upper limit >= than lower limit */
+	smd->limit[0] = minf(smd->limit[0], smd->limit[1]);  /* Upper limit >= than lower limit */
 
 	//Calculate matrixs do convert between coordinate spaces
 	if (smd->origin) {
@@ -190,8 +190,8 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 
 			if (transf) space_transform_apply(transf, tmp);
 
-			lower = MIN2(lower, tmp[limit_axis]);
-			upper = MAX2(upper, tmp[limit_axis]);
+			lower = minf(lower, tmp[limit_axis]);
+			upper = maxf(upper, tmp[limit_axis]);
 		}
 
 

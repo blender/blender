@@ -44,9 +44,11 @@ ViewerBaseOperation::ViewerBaseOperation() : NodeOperation()
 	this->setImage(NULL);
 	this->setImageUser(NULL);
 	this->m_outputBuffer = NULL;
+	this->m_depthBuffer = NULL;
 	this->m_outputBufferDisplay = NULL;
 	this->m_active = false;
 	this->m_doColorManagement = true;
+	this->m_doDepthBuffer = false;
 }
 
 void ViewerBaseOperation::initExecution()
@@ -62,8 +64,8 @@ void ViewerBaseOperation::initImage()
 	ImBuf *ibuf = BKE_image_acquire_ibuf(anImage, this->m_imageUser, &this->m_lock);
 
 	if (!ibuf) return;
+	BLI_lock_thread(LOCK_DRAW_IMAGE);
 	if (ibuf->x != (int)getWidth() || ibuf->y != (int)getHeight()) {
-		BLI_lock_thread(LOCK_DRAW_IMAGE);
 
 		imb_freerectImBuf(ibuf);
 		imb_freerectfloatImBuf(ibuf);
@@ -79,6 +81,12 @@ void ViewerBaseOperation::initImage()
 		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 	}
 
+	if (m_doDepthBuffer) 
+	{
+		addzbuffloatImBuf(ibuf);
+	}
+	BLI_unlock_thread(LOCK_DRAW_IMAGE);
+
 	/* now we combine the input with ibuf */
 	this->m_outputBuffer = ibuf->rect_float;
 	this->m_outputBufferDisplay = (unsigned char *)ibuf->rect;
@@ -90,6 +98,11 @@ void ViewerBaseOperation::initImage()
 	 * which is this node
 	 */
 	this->m_ibuf = ibuf;
+
+	if (m_doDepthBuffer)
+	{
+		this->m_depthBuffer = ibuf->zbuf_float;
+	}
 
 	BKE_image_release_ibuf(this->m_image, this->m_lock);
 }

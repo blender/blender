@@ -2111,7 +2111,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 		zoomY = ((float)height) / ((float)imgheight);
 		sseq->zoom = (zoomX < zoomY) ? zoomX : zoomY;
 
-		sseq->zoom = 1.0f / power_of_2(1 / MIN2(zoomX, zoomY) );
+		sseq->zoom = 1.0f / power_of_2(1 / minf(zoomX, zoomY));
 	}
 	else {
 		sseq->zoom = 1.0f;

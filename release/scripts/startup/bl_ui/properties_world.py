@@ -82,6 +82,7 @@ class WORLD_PT_world(WorldButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         world = context.world
 
         row = layout.row()
@@ -111,6 +112,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         light = context.world.light_settings
 
         layout.active = light.use_ambient_occlusion
@@ -130,6 +132,7 @@ class WORLD_PT_environment_lighting(WorldButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         light = context.world.light_settings
 
         layout.active = light.use_environment_light
@@ -149,6 +152,7 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         light = context.world.light_settings
 
         layout.active = light.use_indirect_light and light.gather_method == 'APPROXIMATE'
@@ -167,6 +171,7 @@ class WORLD_PT_gather(WorldButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         light = context.world.light_settings
 
         layout.active = light.use_ambient_occlusion or light.use_environment_light or light.use_indirect_light
@@ -221,6 +226,7 @@ class WORLD_PT_mist(WorldButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         world = context.world
 
         layout.active = world.mist_settings.use_mist
@@ -250,6 +256,7 @@ class WORLD_PT_stars(WorldButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         world = context.world
 
         layout.active = world.star_settings.use_stars

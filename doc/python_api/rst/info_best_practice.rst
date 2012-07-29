@@ -56,7 +56,69 @@ To enable line length checks use this instead.
 User Interface Layout
 =====================
 
-TODO: Thomas
+Some notes to keep in mind when writing UI layouts:
+
+* UI code is quite simple. Layout declarations are there to easily create a decent layout. 
+
+  General rule here: If you need more code for the layout declaration, then for the actual properties, you do it wrong. 
+  
+Example layouts:
+
+* layout()
+
+  The basic layout is a simple Top -> Bottom layout. 
+  
+  .. code-block:: python
+
+	 layout.prop()
+	 layout.prop()
+
+* layout.row()
+
+  Use row(), when you want more than 1 propertey in one line. 
+  
+  .. code-block:: python
+	 
+	 row = layout.row()
+	 row.prop()
+	 row.prop()
+
+* layout.column()
+
+  Use column(), when you want your properties in a column.
+  
+  .. code-block:: python
+  
+	 col = layout.column()
+	 col.prop()
+	 col.prop()
+
+* layout.split()
+
+  This can be used to create more complex layouts. For example you can split the layout and create two column() layouts next to each other.
+  Don't use split, when you simply want two properties in a row. Use row() for that.
+  
+  .. code-block:: python
+  
+	 split = layout.split()
+	 
+	 col = split.column()
+	 col.prop()
+	 col.prop()
+	 
+	 col = split.column()
+	 col.prop()
+	 col.prop()
+	 
+Declaration names:
+
+Try to only use these variable names for layout declarations:
+
+* row for a row() layout
+* col for a column() layout
+* split for a split() layout
+* flow for a column_flow() layout
+* sub for a sub layout (a column inside a column for example)
 
 
 Script Efficiency

@@ -238,6 +238,7 @@ class NODE_PT_quality(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+
         snode = context.space_data
         tree = snode.node_tree
 
@@ -247,7 +248,7 @@ class NODE_PT_quality(bpy.types.Panel):
         layout.prop(tree, "use_opencl")
         layout.prop(tree, "two_pass")
         layout.prop(snode, "show_highlight")
-        
+  
 
 class NODE_MT_node_color_presets(Menu):
     """Predefined node color"""
