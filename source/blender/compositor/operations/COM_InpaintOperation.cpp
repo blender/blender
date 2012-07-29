@@ -126,12 +126,12 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 	for (int j = 0; j < height; j++) {
 		for (int i = 0; i < width; i++) {
 			int r = 0;
-			if (get(i, j, 3) < 1.0) {
+			if (get(i, j, 3) < 1.0f) {
 				r = width + height;
 				if (i > 0) 
-					r = MIN2(r, m[j * width + i - 1] + 1);
+					r = mini(r, m[j * width + i - 1] + 1);
 				if (j > 0) 
-					r = MIN2(r, m[(j - 1) * width + i] + 1);
+					r = mini(r, m[(j - 1) * width + i] + 1);
 			}
 			m[j * width + i] = r;
 		}
@@ -142,9 +142,9 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 			int r = m[j * width + i];
 			
 			if (i + 1 < width) 
-				r = MIN2(r, m[j * width + i + 1] + 1);
+				r = mini(r, m[j * width + i + 1] + 1);
 			if (j + 1 < height) 
-				r = MIN2(r, m[(j + 1) * width + i] + 1);
+				r = mini(r, m[(j + 1) * width + i] + 1);
 			
 			m[j * width + i] = r;
 			
@@ -182,10 +182,10 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 		for (int dy = -1; dy <= 1; dy++) {
 			if (dx != 0 && dy != 0 && 
 			    this->mdist(x + dx, y + dy) < d) {
-				float weight = 1.0f / sqrt(2);
+				float weight = M_SQRT1_2;   /* 1.0f / sqrt(2) */
 
 				if (dx == 0 || dy == 0) {
-					weight = 1;
+					weight = 1.0f;
 				}
 				
 				for (int c = 0; c < 3; c++) {
@@ -244,17 +244,17 @@ void InpaintSimpleOperation::deinitExecution()
 	this->m_inputImageProgram = NULL;
 	this->deinitMutex();
 	if (this->m_cached_buffer) {
-		delete this->m_cached_buffer;
+		delete [] this->m_cached_buffer;
 		this->m_cached_buffer = NULL;
 	}
 
 	if (this->m_pixelorder) {
-		delete this->m_pixelorder;
+		delete [] this->m_pixelorder;
 		this->m_pixelorder = NULL;
 	}
 
 	if (this->m_manhatten_distance) {
-		delete this->m_manhatten_distance;
+		delete [] this->m_manhatten_distance;
 		this->m_manhatten_distance = NULL;
 	}
 	this->m_cached_buffer_ready = false;
