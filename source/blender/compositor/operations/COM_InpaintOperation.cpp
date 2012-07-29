@@ -24,6 +24,12 @@
 #include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
 
+
+#define ASSERT_XY_RANGE(x, y)  \
+	BLI_assert(x >= 0 && x < this->getWidth() && \
+	           y >= 0 && y < this->getHeight())
+
+
 // Inpaint (simple convolve using average of known pixels)
 InpaintSimpleOperation::InpaintSimpleOperation() : NodeOperation()
 {
@@ -57,13 +63,14 @@ void InpaintSimpleOperation::clamp_xy(int & x, int & y)
 	if (x < 0) {
 		x = 0;
 	}
-	if (x >= width) {
+	else if (x >= width) {
 		x = width - 1;
 	}
+
 	if (y < 0) {
 		y = 0;
 	}
-	if (y >= height) {
+	else if (y >= height) {
 		y = height - 1;
 	}
 }
@@ -72,7 +79,8 @@ float InpaintSimpleOperation::get(int x, int y, int component)
 {
 	int width = this->getWidth();
 
-	clamp_xy(x, y);
+	ASSERT_XY_RANGE(x, y);
+
 	return this->m_cached_buffer[
 	           y * width * COM_NUMBER_OF_CHANNELS
 	           + x * COM_NUMBER_OF_CHANNELS + component];
@@ -82,6 +90,8 @@ void InpaintSimpleOperation::set(int x, int y, int component, float v)
 {
 	int width = this->getWidth();
 
+	ASSERT_XY_RANGE(x, y);
+
 	this->m_cached_buffer[
 	    y * width * COM_NUMBER_OF_CHANNELS
 	    + x * COM_NUMBER_OF_CHANNELS + component] = v;
@@ -90,7 +100,9 @@ void InpaintSimpleOperation::set(int x, int y, int component, float v)
 int InpaintSimpleOperation::mdist(int x, int y) 
 {
 	int width = this->getWidth();
-	clamp_xy(x, y);
+
+	ASSERT_XY_RANGE(x, y);
+
 	return this->m_manhatten_distance[y * width + x];
 }
 
@@ -126,6 +138,7 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 	for (int j = 0; j < height; j++) {
 		for (int i = 0; i < width; i++) {
 			int r = 0;
+			/* no need to clamp here */
 			if (get(i, j, 3) < 1.0f) {
 				r = width + height;
 				if (i > 0) 
@@ -174,26 +187,34 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 
 	float n = 0;
 
-	float pix[3];
-
-	memset(pix, 0, sizeof(pix));
+	float pix[3] = {0.0f, 0.0f, 0.0f};
 
 	for (int dx = -1; dx <= 1; dx++) {
 		for (int dy = -1; dy <= 1; dy++) {
-			if (dx != 0 && dy != 0 && 
-			    this->mdist(x + dx, y + dy) < d) {
-				float weight = M_SQRT1_2;   /* 1.0f / sqrt(2) */
+			if (dx != 0 && dy != 0) {
 
-				if (dx == 0 || dy == 0) {
-					weight = 1.0f;
-				}
-				
-				for (int c = 0; c < 3; c++) {
-					float fk = this->get(x + dx, y + dy, c);
+			    int x_ofs = x + dx;
+				int y_ofs = y + dy;
+				clamp_xy(x_ofs, y_ofs);
 
-					pix[c] += fk * weight;
+				if (this->mdist(x_ofs, y_ofs) < d) {
+
+					float weight;
+
+					if (dx == 0 || dy == 0) {
+						weight = 1.0f;
+					}
+					else {
+						weight = M_SQRT1_2;  /* 1.0f / sqrt(2) */
+					}
+
+					for (int c = 0; c < 3; c++) {
+						float fk = this->get(x_ofs, y_ofs, c);
+
+						pix[c] += fk * weight;
+					}
+					n += weight;
 				}
-				n += weight;
 			}
 		}
 	}
@@ -233,6 +254,7 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 
 void InpaintSimpleOperation::executePixel(float *color, int x, int y, void *data)
 {
+	clamp_xy(x, y);
 	for (int c = 0; c < 3; c++) {
 		color[c] = get(x, y, c);
 	}
