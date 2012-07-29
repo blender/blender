@@ -91,8 +91,8 @@ bNodeTreeType *ntreeGetType(int type)
 static bNodeType *node_get_type(bNodeTree *ntree, int type)
 {
 	bNodeType *ntype = ntreeGetType(ntree->type)->node_types.first;
-	for (; ntype; ntype= ntype->next)
-		if (ntype->type==type)
+	for (; ntype; ntype = ntype->next)
+		if (ntype->type == type)
 			return ntype;
 	
 	return NULL;
@@ -105,12 +105,12 @@ bNodeType *ntreeGetNodeType(bNodeTree *ntree)
 
 bNodeSocketType *ntreeGetSocketType(int type)
 {
-	static bNodeSocketType *types[NUM_SOCKET_TYPES]= {NULL};
+	static bNodeSocketType *types[NUM_SOCKET_TYPES] = {NULL};
 	static int types_init = 1;
 
 	if (types_init) {
 		node_socket_type_init(types);
-		types_init= 0;
+		types_init = 0;
 	}
 
 	if (type < NUM_SOCKET_TYPES) {
@@ -125,8 +125,8 @@ void ntreeInitTypes(bNodeTree *ntree)
 {
 	bNode *node, *next;
 	
-	for (node= ntree->nodes.first; node; node= next) {
-		next= node->next;
+	for (node = ntree->nodes.first; node; node = next) {
+		next = node->next;
 		
 		node->typeinfo = node_get_type(ntree, node->type);
 
@@ -143,11 +143,11 @@ static bNodeSocket *make_socket(bNodeTree *UNUSED(ntree), int in_out, const char
 {
 	bNodeSocket *sock;
 	
-	sock= MEM_callocN(sizeof(bNodeSocket), "sock");
+	sock = MEM_callocN(sizeof(bNodeSocket), "sock");
 	
 	BLI_strncpy(sock->name, name, NODE_MAXSTR);
-	sock->limit = (in_out==SOCK_IN ? 1 : 0xFFF);
-	sock->type= type;
+	sock->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
+	sock->type = type;
 	sock->storage = NULL;
 	
 	sock->default_value = node_socket_make_default_value(type);
@@ -159,9 +159,9 @@ static bNodeSocket *make_socket(bNodeTree *UNUSED(ntree), int in_out, const char
 bNodeSocket *nodeAddSocket(bNodeTree *ntree, bNode *node, int in_out, const char *name, int type)
 {
 	bNodeSocket *sock = make_socket(ntree, in_out, name, type);
-	if (in_out==SOCK_IN)
+	if (in_out == SOCK_IN)
 		BLI_addtail(&node->inputs, sock);
-	else if (in_out==SOCK_OUT)
+	else if (in_out == SOCK_OUT)
 		BLI_addtail(&node->outputs, sock);
 	
 	node->update |= NODE_UPDATE;
@@ -172,9 +172,9 @@ bNodeSocket *nodeAddSocket(bNodeTree *ntree, bNode *node, int in_out, const char
 bNodeSocket *nodeInsertSocket(bNodeTree *ntree, bNode *node, int in_out, bNodeSocket *next_sock, const char *name, int type)
 {
 	bNodeSocket *sock = make_socket(ntree, in_out, name, type);
-	if (in_out==SOCK_IN)
+	if (in_out == SOCK_IN)
 		BLI_insertlinkbefore(&node->inputs, next_sock, sock);
-	else if (in_out==SOCK_OUT)
+	else if (in_out == SOCK_OUT)
 		BLI_insertlinkbefore(&node->outputs, next_sock, sock);
 	
 	node->update |= NODE_UPDATE;
@@ -186,9 +186,9 @@ void nodeRemoveSocket(bNodeTree *ntree, bNode *node, bNodeSocket *sock)
 {
 	bNodeLink *link, *next;
 	
-	for (link= ntree->links.first; link; link= next) {
-		next= link->next;
-		if (link->fromsock==sock || link->tosock==sock) {
+	for (link = ntree->links.first; link; link = next) {
+		next = link->next;
+		if (link->fromsock == sock || link->tosock == sock) {
 			nodeRemLink(ntree, link);
 		}
 	}
@@ -208,17 +208,17 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
 	bNodeSocket *sock;
 	bNodeLink *link, *next;
 	
-	for (link= ntree->links.first; link; link= next) {
-		next= link->next;
-		if (link->fromnode==node || link->tonode==node) {
+	for (link = ntree->links.first; link; link = next) {
+		next = link->next;
+		if (link->fromnode == node || link->tonode == node) {
 			nodeRemLink(ntree, link);
 		}
 	}
 	
-	for (sock=node->inputs.first; sock; sock=sock->next)
+	for (sock = node->inputs.first; sock; sock = sock->next)
 		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&node->inputs);
-	for (sock=node->outputs.first; sock; sock=sock->next)
+	for (sock = node->outputs.first; sock; sock = sock->next)
 		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&node->outputs);
 	
@@ -236,20 +236,20 @@ int nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockin
 {
 	bNode *node;
 	bNodeSocket *tsock;
-	int index= 0;
+	int index = 0;
 	
-	for (node= ntree->nodes.first; node; node= node->next) {
-		for (index=0, tsock= node->inputs.first; tsock; tsock= tsock->next, index++) {
-			if (tsock==sock) {
-				if (in_out) *in_out= SOCK_IN;
+	for (node = ntree->nodes.first; node; node = node->next) {
+		for (index = 0, tsock = node->inputs.first; tsock; tsock = tsock->next, index++) {
+			if (tsock == sock) {
+				if (in_out) *in_out = SOCK_IN;
 				break;
 			}
 		}
 		if (tsock)
 			break;
-		for (index=0, tsock= node->outputs.first; tsock; tsock= tsock->next, index++) {
-			if (tsock==sock) {
-				if (in_out) *in_out= SOCK_OUT;
+		for (index = 0, tsock = node->outputs.first; tsock; tsock = tsock->next, index++) {
+			if (tsock == sock) {
+				if (in_out) *in_out = SOCK_OUT;
 				break;
 			}
 		}
@@ -258,12 +258,12 @@ int nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockin
 	}
 
 	if (node) {
-		*nodep= node;
-		if (sockindex) *sockindex= index;
+		*nodep = node;
+		if (sockindex) *sockindex = index;
 		return 1;
 	}
 	
-	*nodep= NULL;
+	*nodep = NULL;
 	return 0;
 }
 
@@ -274,7 +274,7 @@ static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType 
 	/* bNodeSocket *sock; */ /* UNUSED */
 
 	if (ntype->inputs) {
-		sockdef= ntype->inputs;
+		sockdef = ntype->inputs;
 		while (sockdef->type != -1) {
 			/* sock = */ node_add_input_from_template(ntree, node, sockdef);
 			
@@ -282,7 +282,7 @@ static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType 
 		}
 	}
 	if (ntype->outputs) {
-		sockdef= ntype->outputs;
+		sockdef = ntype->outputs;
 		while (sockdef->type != -1) {
 			/* sock = */ node_add_output_from_template(ntree, node, sockdef);
 			
@@ -302,7 +302,7 @@ bNode *nodeAddNode(bNodeTree *ntree, struct bNodeTemplate *ntemp)
 	bNode *node;
 	bNodeType *ntype;
 	
-	ntype= node_get_type(ntree, ntemp->type);
+	ntype = node_get_type(ntree, ntemp->type);
 	if (ntype == NULL) {
 		printf("nodeAddNodeType() error: '%d' type invalid\n", ntemp->type);
 		return NULL;
@@ -311,20 +311,20 @@ bNode *nodeAddNode(bNodeTree *ntree, struct bNodeTemplate *ntemp)
 	if (!nodeValid(ntree, ntemp))
 		return NULL;
 	
-	node= MEM_callocN(sizeof(bNode), "new node");
-	node->type= ntype->type;
-	node->typeinfo= ntype;
-	node->flag= NODE_SELECT|ntype->flag;
-	node->width= ntype->width;
-	node->miniwidth= 42.0f;
-	node->height= ntype->height;
-	node->color[0] = node->color[1] = node->color[2] = 0.608;	/* default theme color */
+	node = MEM_callocN(sizeof(bNode), "new node");
+	node->type = ntype->type;
+	node->typeinfo = ntype;
+	node->flag = NODE_SELECT | ntype->flag;
+	node->width = ntype->width;
+	node->miniwidth = 42.0f;
+	node->height = ntype->height;
+	node->color[0] = node->color[1] = node->color[2] = 0.608;   /* default theme color */
 	
 	node_add_sockets_from_type(ntree, node, ntype);
 
 	BLI_addtail(&ntree->nodes, node);
 	
-	if (ntype->initfunc!=NULL)
+	if (ntype->initfunc != NULL)
 		ntype->initfunc(ntree, node, ntemp);
 
 	/* initialize the node name with the node label.
@@ -343,19 +343,19 @@ bNode *nodeAddNode(bNodeTree *ntree, struct bNodeTemplate *ntemp)
 /* ntree is the target tree */
 bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 {
-	bNode *nnode= MEM_callocN(sizeof(bNode), "dupli node");
+	bNode *nnode = MEM_callocN(sizeof(bNode), "dupli node");
 	bNodeSocket *sock, *oldsock;
 
-	*nnode= *node;
+	*nnode = *node;
 	nodeUniqueName(ntree, nnode);
 	
 	BLI_addtail(&ntree->nodes, nnode);
 
 	BLI_duplicatelist(&nnode->inputs, &node->inputs);
-	oldsock= node->inputs.first;
-	for (sock= nnode->inputs.first; sock; sock= sock->next, oldsock= oldsock->next) {
-		oldsock->new_sock= sock;
-		sock->stack_index= 0;
+	oldsock = node->inputs.first;
+	for (sock = nnode->inputs.first; sock; sock = sock->next, oldsock = oldsock->next) {
+		oldsock->new_sock = sock;
+		sock->stack_index = 0;
 		
 		sock->default_value = node_socket_make_default_value(oldsock->type);
 		node_socket_copy_default_value(oldsock->type, sock->default_value, oldsock->default_value);
@@ -367,10 +367,10 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	}
 	
 	BLI_duplicatelist(&nnode->outputs, &node->outputs);
-	oldsock= node->outputs.first;
-	for (sock= nnode->outputs.first; sock; sock= sock->next, oldsock= oldsock->next) {
-		oldsock->new_sock= sock;
-		sock->stack_index= 0;
+	oldsock = node->outputs.first;
+	for (sock = nnode->outputs.first; sock; sock = sock->next, oldsock = oldsock->next) {
+		oldsock->new_sock = sock;
+		sock->stack_index = 0;
 		
 		sock->default_value = node_socket_make_default_value(oldsock->type);
 		node_socket_copy_default_value(oldsock->type, sock->default_value, oldsock->default_value);
@@ -386,9 +386,9 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	if (node->typeinfo->copystoragefunc)
 		node->typeinfo->copystoragefunc(node, nnode);
 	
-	node->new_node= nnode;
-	nnode->new_node= NULL;
-	nnode->preview= NULL;
+	node->new_node = nnode;
+	nnode->new_node = NULL;
+	nnode->preview = NULL;
 	
 	ntree->update |= NTREE_UPDATE_NODES;
 	
@@ -399,84 +399,84 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 bNodeLink *nodeAddLink(bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock, bNode *tonode, bNodeSocket *tosock)
 {
 	bNodeSocket *sock;
-	bNodeLink *link= NULL; 
-	int from= 0, to= 0;
+	bNodeLink *link = NULL;
+	int from = 0, to = 0;
 	
 	if (fromnode) {
 		/* test valid input */
-		for (sock= fromnode->outputs.first; sock; sock= sock->next)
-			if (sock==fromsock)
+		for (sock = fromnode->outputs.first; sock; sock = sock->next)
+			if (sock == fromsock)
 				break;
 		if (sock)
-			from= 1; /* OK */
+			from = 1;  /* OK */
 		else {
-			for (sock= fromnode->inputs.first; sock; sock= sock->next)
-				if (sock==fromsock)
+			for (sock = fromnode->inputs.first; sock; sock = sock->next)
+				if (sock == fromsock)
 					break;
 			if (sock)
-				from= -1; /* OK but flip */
+				from = -1;  /* OK but flip */
 		}
 	}
 	else {
 		/* check tree sockets */
-		for (sock= ntree->inputs.first; sock; sock= sock->next)
-			if (sock==fromsock)
+		for (sock = ntree->inputs.first; sock; sock = sock->next)
+			if (sock == fromsock)
 				break;
 		if (sock)
-			from= 1; /* OK */
+			from = 1;  /* OK */
 		else {
-			for (sock= ntree->outputs.first; sock; sock= sock->next)
-				if (sock==fromsock)
+			for (sock = ntree->outputs.first; sock; sock = sock->next)
+				if (sock == fromsock)
 					break;
 			if (sock)
-				from= -1; /* OK but flip */
+				from = -1;  /* OK but flip */
 		}
 	}
 	if (tonode) {
-		for (sock= tonode->inputs.first; sock; sock= sock->next)
-			if (sock==tosock)
+		for (sock = tonode->inputs.first; sock; sock = sock->next)
+			if (sock == tosock)
 				break;
 		if (sock)
-			to= 1; /* OK */
+			to = 1;  /* OK */
 		else {
-			for (sock= tonode->outputs.first; sock; sock= sock->next)
-				if (sock==tosock)
+			for (sock = tonode->outputs.first; sock; sock = sock->next)
+				if (sock == tosock)
 					break;
 			if (sock)
-				to= -1; /* OK but flip */
+				to = -1;  /* OK but flip */
 		}
 	}
 	else {
 		/* check tree sockets */
-		for (sock= ntree->outputs.first; sock; sock= sock->next)
-			if (sock==tosock)
+		for (sock = ntree->outputs.first; sock; sock = sock->next)
+			if (sock == tosock)
 				break;
 		if (sock)
-			to= 1; /* OK */
+			to = 1;  /* OK */
 		else {
-			for (sock= ntree->inputs.first; sock; sock= sock->next)
-				if (sock==tosock)
+			for (sock = ntree->inputs.first; sock; sock = sock->next)
+				if (sock == tosock)
 					break;
 			if (sock)
-				to= -1; /* OK but flip */
+				to = -1;  /* OK but flip */
 		}
 	}
 	
 	if (from >= 0 && to >= 0) {
-		link= MEM_callocN(sizeof(bNodeLink), "link");
+		link = MEM_callocN(sizeof(bNodeLink), "link");
 		BLI_addtail(&ntree->links, link);
-		link->fromnode= fromnode;
-		link->fromsock= fromsock;
-		link->tonode= tonode;
-		link->tosock= tosock;
+		link->fromnode = fromnode;
+		link->fromsock = fromsock;
+		link->tonode = tonode;
+		link->tosock = tosock;
 	}
 	else if (from <= 0 && to <= 0) {
-		link= MEM_callocN(sizeof(bNodeLink), "link");
+		link = MEM_callocN(sizeof(bNodeLink), "link");
 		BLI_addtail(&ntree->links, link);
-		link->fromnode= tonode;
-		link->fromsock= tosock;
-		link->tonode= fromnode;
-		link->tosock= fromsock;
+		link->fromnode = tonode;
+		link->fromsock = tosock;
+		link->tonode = fromnode;
+		link->tosock = fromsock;
 	}
 	
 	ntree->update |= NTREE_UPDATE_LINKS;
@@ -488,7 +488,7 @@ void nodeRemLink(bNodeTree *ntree, bNodeLink *link)
 {
 	BLI_remlink(&ntree->links, link);
 	if (link->tosock)
-		link->tosock->link= NULL;
+		link->tosock->link = NULL;
 	MEM_freeN(link);
 	
 	ntree->update |= NTREE_UPDATE_LINKS;
@@ -498,9 +498,9 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 {
 	bNodeLink *link, *next;
 	
-	for (link= ntree->links.first; link; link= next) {
-		next= link->next;
-		if (link->fromsock==sock || link->tosock==sock) {
+	for (link = ntree->links.first; link; link = next) {
+		next = link->next;
+		if (link->fromsock == sock || link->tosock == sock) {
 			nodeRemLink(ntree, link);
 		}
 	}
@@ -519,15 +519,15 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 	intlinks = node->typeinfo->internal_connect(ntree, node);
 	
 	/* store link pointers in output sockets, for efficient lookup */
-	for (link=intlinks.first; link; link=link->next)
+	for (link = intlinks.first; link; link = link->next)
 		link->tosock->link = link;
 	
 	/* redirect downstream links */
-	for (link=ntree->links.first; link; link=link_next) {
+	for (link = ntree->links.first; link; link = link_next) {
 		link_next = link->next;
 		
 		/* do we have internal link? */
-		if (link->fromnode==node) {
+		if (link->fromnode == node) {
 			if (link->fromsock->link) {
 				/* get the upstream input link */
 				bNodeLink *fromlink = link->fromsock->link->fromsock->link;
@@ -547,10 +547,10 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 	}
 	
 	/* remove remaining upstream links */
-	for (link=ntree->links.first; link; link=link_next) {
+	for (link = ntree->links.first; link; link = link_next) {
 		link_next = link->next;
 		
-		if (link->tonode==node)
+		if (link->tonode == node)
 			nodeRemLink(ntree, link);
 	}
 	
@@ -612,15 +612,15 @@ bNodeTree *ntreeAddTree(const char *name, int type, int nodetype)
 	/* trees are created as local trees if they of compositor, material or texture type,
 	 * node groups and other tree types are created as library data.
 	 */
-	if (ELEM3(type, NTREE_COMPOSIT, NTREE_SHADER, NTREE_TEXTURE) && nodetype==0) {
-		ntree= MEM_callocN(sizeof(bNodeTree), "new node tree");
-		*( (short *)ntree->id.name )= ID_NT; /* not "type", as that is ntree->type */
-		BLI_strncpy(ntree->id.name+2, name, sizeof(ntree->id.name));
+	if (ELEM3(type, NTREE_COMPOSIT, NTREE_SHADER, NTREE_TEXTURE) && nodetype == 0) {
+		ntree = MEM_callocN(sizeof(bNodeTree), "new node tree");
+		*( (short *)ntree->id.name) = ID_NT; /* not "type", as that is ntree->type */
+		BLI_strncpy(ntree->id.name + 2, name, sizeof(ntree->id.name));
 	}
 	else
-		ntree= BKE_libblock_alloc(&G.main->nodetree, ID_NT, name);
+		ntree = BKE_libblock_alloc(&G.main->nodetree, ID_NT, name);
 	
-	ntree->type= type;
+	ntree->type = type;
 	ntree->nodetype = nodetype;
 	
 	ntreeInitTypes(ntree);
@@ -648,53 +648,53 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_make_e
 	bNodeLink *link;
 	bNodeSocket *gsock, *oldgsock;
 	
-	if (ntree==NULL) return NULL;
+	if (ntree == NULL) return NULL;
 	
 	/* is ntree part of library? */
-	for (newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
-		if (newtree==ntree) break;
+	for (newtree = G.main->nodetree.first; newtree; newtree = newtree->id.next)
+		if (newtree == ntree) break;
 	if (newtree) {
-		newtree= BKE_libblock_copy(&ntree->id);
+		newtree = BKE_libblock_copy(&ntree->id);
 	}
 	else {
-		newtree= MEM_dupallocN(ntree);
+		newtree = MEM_dupallocN(ntree);
 		BKE_libblock_copy_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
 	}
 
 	id_us_plus((ID *)newtree->gpd);
 
 	/* in case a running nodetree is copied */
-	newtree->execdata= NULL;
+	newtree->execdata = NULL;
 	
-	newtree->nodes.first= newtree->nodes.last= NULL;
-	newtree->links.first= newtree->links.last= NULL;
+	newtree->nodes.first = newtree->nodes.last = NULL;
+	newtree->links.first = newtree->links.last = NULL;
 	
 	last = ntree->nodes.last;
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 
 		if (do_make_extern) {
 			id_lib_extern(node->id);
 		}
 
-		node->new_node= NULL;
-		/* nnode= */ nodeCopyNode(newtree, node);	/* sets node->new */
+		node->new_node = NULL;
+		/* nnode= */ nodeCopyNode(newtree, node);   /* sets node->new */
 		
 		/* make sure we don't copy new nodes again! */
-		if (node==last)
+		if (node == last)
 			break;
 	}
 	
 	/* socket definition for group usage */
 	BLI_duplicatelist(&newtree->inputs, &ntree->inputs);
-	for (gsock= newtree->inputs.first, oldgsock= ntree->inputs.first; gsock; gsock=gsock->next, oldgsock=oldgsock->next) {
-		oldgsock->new_sock= gsock;
+	for (gsock = newtree->inputs.first, oldgsock = ntree->inputs.first; gsock; gsock = gsock->next, oldgsock = oldgsock->next) {
+		oldgsock->new_sock = gsock;
 		gsock->groupsock = (oldgsock->groupsock ? oldgsock->groupsock->new_sock : NULL);
 		gsock->default_value = node_socket_make_default_value(oldgsock->type);
 		node_socket_copy_default_value(oldgsock->type, gsock->default_value, oldgsock->default_value);
 	}
 	BLI_duplicatelist(&newtree->outputs, &ntree->outputs);
-	for (gsock= newtree->outputs.first, oldgsock= ntree->outputs.first; gsock; gsock=gsock->next, oldgsock=oldgsock->next) {
-		oldgsock->new_sock= gsock;
+	for (gsock = newtree->outputs.first, oldgsock = ntree->outputs.first; gsock; gsock = gsock->next, oldgsock = oldgsock->next) {
+		oldgsock->new_sock = gsock;
 		gsock->groupsock = (oldgsock->groupsock ? oldgsock->groupsock->new_sock : NULL);
 		gsock->default_value = node_socket_make_default_value(oldgsock->type);
 		node_socket_copy_default_value(oldgsock->type, gsock->default_value, oldgsock->default_value);
@@ -702,7 +702,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_make_e
 	
 	/* copy links */
 	BLI_duplicatelist(&newtree->links, &ntree->links);
-	for (link= newtree->links.first; link; link= link->next) {
+	for (link = newtree->links.first; link; link = link->next) {
 		link->fromnode = (link->fromnode ? link->fromnode->new_node : NULL);
 		link->fromsock = (link->fromsock ? link->fromsock->new_sock : NULL);
 		link->tonode = (link->tonode ? link->tonode->new_node : NULL);
@@ -713,7 +713,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_make_e
 	}
 	
 	/* update node->parent pointers */
-	for (node=newtree->nodes.first; node; node=node->next) {
+	for (node = newtree->nodes.first; node; node = node->next) {
 		if (node->parent)
 			node->parent = node->parent->new_node;
 	}
@@ -731,9 +731,9 @@ void ntreeSwitchID(bNodeTree *ntree, ID *id_from, ID *id_to)
 {
 	bNode *node;
 	/* for scene duplication only */
-	for (node= ntree->nodes.first; node; node= node->next) {
-		if (node->id==id_from) {
-			node->id= id_to;
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->id == id_from) {
+			node->id = id_to;
 		}
 	}
 }
@@ -747,34 +747,34 @@ void nodeFreePreview(bNode *node)
 		if (node->preview->rect)
 			MEM_freeN(node->preview->rect);
 		MEM_freeN(node->preview);
-		node->preview= NULL;
+		node->preview = NULL;
 	}	
 }
 
 static void node_init_preview(bNode *node, int xsize, int ysize)
 {
 	
-	if (node->preview==NULL) {
-		node->preview= MEM_callocN(sizeof(bNodePreview), "node preview");
+	if (node->preview == NULL) {
+		node->preview = MEM_callocN(sizeof(bNodePreview), "node preview");
 		//		printf("added preview %s\n", node->name);
 	}
 	
 	/* node previews can get added with variable size this way */
-	if (xsize==0 || ysize==0)
+	if (xsize == 0 || ysize == 0)
 		return;
 	
 	/* sanity checks & initialize */
 	if (node->preview->rect) {
-		if (node->preview->xsize!=xsize && node->preview->ysize!=ysize) {
+		if (node->preview->xsize != xsize && node->preview->ysize != ysize) {
 			MEM_freeN(node->preview->rect);
-			node->preview->rect= NULL;
+			node->preview->rect = NULL;
 		}
 	}
 	
-	if (node->preview->rect==NULL) {
-		node->preview->rect= MEM_callocN(4*xsize + xsize*ysize*sizeof(char)*4, "node preview rect");
-		node->preview->xsize= xsize;
-		node->preview->ysize= ysize;
+	if (node->preview->rect == NULL) {
+		node->preview->rect = MEM_callocN(4 * xsize + xsize * ysize * sizeof(char) * 4, "node preview rect");
+		node->preview->xsize = xsize;
+		node->preview->ysize = ysize;
 	}
 	/* no clear, makes nicer previews */
 }
@@ -783,13 +783,13 @@ void ntreeInitPreview(bNodeTree *ntree, int xsize, int ysize)
 {
 	bNode *node;
 	
-	if (ntree==NULL)
+	if (ntree == NULL)
 		return;
 	
-	for (node= ntree->nodes.first; node; node= node->next) {
-		if (node->typeinfo->flag & NODE_PREVIEW)	/* hrms, check for closed nodes? */
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->typeinfo->flag & NODE_PREVIEW)    /* hrms, check for closed nodes? */
 			node_init_preview(node, xsize, ysize);
-		if (node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
+		if (node->type == NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
 			ntreeInitPreview((bNodeTree *)node->id, xsize, ysize);
 	}		
 }
@@ -805,13 +805,13 @@ void ntreeClearPreview(bNodeTree *ntree)
 {
 	bNode *node;
 	
-	if (ntree==NULL)
+	if (ntree == NULL)
 		return;
 	
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->typeinfo->flag & NODE_PREVIEW)
 			nodeClearPreview(node);
-		if (node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
+		if (node->type == NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
 			ntreeClearPreview((bNodeTree *)node->id);
 	}		
 }
@@ -821,11 +821,11 @@ void ntreeClearPreview(bNodeTree *ntree)
  * add the color once. Preview gets cleared before it starts render though */
 void nodeAddToPreview(bNode *node, float col[4], int x, int y, int do_manage)
 {
-	bNodePreview *preview= node->preview;
+	bNodePreview *preview = node->preview;
 	if (preview) {
-		if (x>=0 && y>=0) {
-			if (x<preview->xsize && y<preview->ysize) {
-				unsigned char *tar= preview->rect+ 4*((preview->xsize*y) + x);
+		if (x >= 0 && y >= 0) {
+			if (x < preview->xsize && y < preview->ysize) {
+				unsigned char *tar = preview->rect + 4 * ((preview->xsize * y) + x);
 				
 				if (do_manage) {
 					linearrgb_to_srgb_uchar4(tar, col);
@@ -849,22 +849,22 @@ void nodeUnlinkNode(bNodeTree *ntree, bNode *node)
 	bNodeSocket *sock;
 	ListBase *lb;
 	
-	for (link= ntree->links.first; link; link= next) {
-		next= link->next;
+	for (link = ntree->links.first; link; link = next) {
+		next = link->next;
 		
-		if (link->fromnode==node) {
-			lb= &node->outputs;
+		if (link->fromnode == node) {
+			lb = &node->outputs;
 			if (link->tonode)
 				link->tonode->update |= NODE_UPDATE;
 		}
-		else if (link->tonode==node)
-			lb= &node->inputs;
+		else if (link->tonode == node)
+			lb = &node->inputs;
 		else
-			lb= NULL;
+			lb = NULL;
 
 		if (lb) {
-			for (sock= lb->first; sock; sock= sock->next) {
-				if (link->fromsock==sock || link->tosock==sock)
+			for (sock = lb->first; sock; sock = sock->next) {
+				if (link->fromsock == sock || link->tosock == sock)
 					break;
 			}
 			if (sock) {
@@ -877,7 +877,7 @@ void nodeUnlinkNode(bNodeTree *ntree, bNode *node)
 static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 {
 	bNode *node;
-	for (node=ntree->nodes.first; node; node=node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->parent == parent)
 			nodeDetachNode(node);
 	}
@@ -885,7 +885,7 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 
 void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
-	bNodeTreeType *treetype= ntreeGetType(ntree->type);
+	bNodeTreeType *treetype = ntreeGetType(ntree->type);
 	bNodeSocket *sock, *nextsock;
 	
 	/* remove all references to this node */
@@ -902,12 +902,12 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	if (node->typeinfo && node->typeinfo->freestoragefunc)
 		node->typeinfo->freestoragefunc(node);
 	
-	for (sock=node->inputs.first; sock; sock = nextsock) {
+	for (sock = node->inputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
 		node_socket_free_default_value(sock->type, sock->default_value);
 		MEM_freeN(sock);
 	}
-	for (sock=node->outputs.first; sock; sock = nextsock) {
+	for (sock = node->outputs.first; sock; sock = nextsock) {
 		nextsock = sock->next;
 		node_socket_free_default_value(sock->type, sock->default_value);
 		MEM_freeN(sock);
@@ -926,7 +926,7 @@ void ntreeFreeTree(bNodeTree *ntree)
 	bNode *node, *next;
 	bNodeSocket *sock;
 	
-	if (ntree==NULL) return;
+	if (ntree == NULL) return;
 	
 	/* XXX hack! node trees should not store execution graphs at all.
 	 * This should be removed when old tree types no longer require it.
@@ -935,15 +935,15 @@ void ntreeFreeTree(bNodeTree *ntree)
 	 */
 	if (ntree->execdata) {
 		switch (ntree->type) {
-		case NTREE_COMPOSIT:
-			ntreeCompositEndExecTree(ntree->execdata, 1);
-			break;
-		case NTREE_SHADER:
-			ntreeShaderEndExecTree(ntree->execdata, 1);
-			break;
-		case NTREE_TEXTURE:
-			ntreeTexEndExecTree(ntree->execdata, 1);
-			break;
+			case NTREE_COMPOSIT:
+				ntreeCompositEndExecTree(ntree->execdata, 1);
+				break;
+			case NTREE_SHADER:
+				ntreeShaderEndExecTree(ntree->execdata, 1);
+				break;
+			case NTREE_TEXTURE:
+				ntreeTexEndExecTree(ntree->execdata, 1);
+				break;
 		}
 	}
 	
@@ -951,17 +951,17 @@ void ntreeFreeTree(bNodeTree *ntree)
 	
 	id_us_min((ID *)ntree->gpd);
 
-	BLI_freelistN(&ntree->links);	/* do first, then unlink_node goes fast */
+	BLI_freelistN(&ntree->links);   /* do first, then unlink_node goes fast */
 	
-	for (node= ntree->nodes.first; node; node= next) {
-		next= node->next;
+	for (node = ntree->nodes.first; node; node = next) {
+		next = node->next;
 		nodeFreeNode(ntree, node);
 	}
 	
-	for (sock=ntree->inputs.first; sock; sock=sock->next)
+	for (sock = ntree->inputs.first; sock; sock = sock->next)
 		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&ntree->inputs);
-	for (sock=ntree->outputs.first; sock; sock=sock->next)
+	for (sock = ntree->outputs.first; sock; sock = sock->next)
 		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&ntree->outputs);
 }
@@ -970,9 +970,9 @@ void ntreeFreeCache(bNodeTree *ntree)
 {
 	bNodeTreeType *treetype;
 	
-	if (ntree==NULL) return;
+	if (ntree == NULL) return;
 	
-	treetype= ntreeGetType(ntree->type);
+	treetype = ntreeGetType(ntree->type);
 	if (treetype->free_cache)
 		treetype->free_cache(ntree);
 }
@@ -982,45 +982,46 @@ void ntreeSetOutput(bNodeTree *ntree)
 	bNode *node;
 
 	/* find the active outputs, might become tree type dependent handler */
-	for (node= ntree->nodes.first; node; node= node->next) {
-		if (node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
 			bNode *tnode;
-			int output= 0;
+			int output = 0;
 			
 			/* we need a check for which output node should be tagged like this, below an exception */
-			if (node->type==CMP_NODE_OUTPUT_FILE)
+			if (node->type == CMP_NODE_OUTPUT_FILE)
 				continue;
 
 			/* there is more types having output class, each one is checked */
-			for (tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
-				if (tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+			for (tnode = ntree->nodes.first; tnode; tnode = tnode->next) {
+				if (tnode->typeinfo->nclass == NODE_CLASS_OUTPUT) {
 					
-					if (ntree->type==NTREE_COMPOSIT) {
+					if (ntree->type == NTREE_COMPOSIT) {
 							
 						/* same type, exception for viewer */
-						if (tnode->type==node->type ||
-						   (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) &&
-							ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))) {
+						if (tnode->type == node->type ||
+						    (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) &&
+						     ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)))
+						{
 							if (tnode->flag & NODE_DO_OUTPUT) {
 								output++;
-								if (output>1)
+								if (output > 1)
 									tnode->flag &= ~NODE_DO_OUTPUT;
 							}
 						}
 					}
 					else {
 						/* same type */
-						if (tnode->type==node->type) {
+						if (tnode->type == node->type) {
 							if (tnode->flag & NODE_DO_OUTPUT) {
 								output++;
-								if (output>1)
+								if (output > 1)
 									tnode->flag &= ~NODE_DO_OUTPUT;
 							}
 						}
 					}
 				}
 			}
-			if (output==0)
+			if (output == 0)
 				node->flag |= NODE_DO_OUTPUT;
 		}
 	}
@@ -1037,28 +1038,32 @@ typedef struct MakeLocalCallData {
 
 static void ntreeMakeLocal_CheckLocal(void *calldata, ID *owner_id, bNodeTree *ntree)
 {
-	MakeLocalCallData *cd= (MakeLocalCallData*)calldata;
+	MakeLocalCallData *cd = (MakeLocalCallData *)calldata;
 	bNode *node;
 	
 	/* find if group is in tree */
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id == cd->group_id) {
-			if (owner_id->lib) cd->lib= 1;
-			else cd->local= 1;
+			if (owner_id->lib) {
+				cd->lib = TRUE;
+			}
+			else {
+				cd->local = TRUE;
+			}
 		}
 	}
 }
 
 static void ntreeMakeLocal_LinkNew(void *calldata, ID *owner_id, bNodeTree *ntree)
 {
-	MakeLocalCallData *cd= (MakeLocalCallData*)calldata;
+	MakeLocalCallData *cd = (MakeLocalCallData *)calldata;
 	bNode *node;
 	
 	/* find if group is in tree */
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id == cd->group_id) {
-			if (owner_id->lib==NULL) {
-				node->id= cd->new_id;
+			if (owner_id->lib == NULL) {
+				node->id = cd->new_id;
 				cd->new_id->us++;
 				cd->group_id->us--;
 			}
@@ -1068,8 +1073,8 @@ static void ntreeMakeLocal_LinkNew(void *calldata, ID *owner_id, bNodeTree *ntre
 
 void ntreeMakeLocal(bNodeTree *ntree)
 {
-	Main *bmain= G.main;
-	bNodeTreeType *treetype= ntreeGetType(ntree->type);
+	Main *bmain = G.main;
+	bNodeTreeType *treetype = ntreeGetType(ntree->type);
 	MakeLocalCallData cd;
 	
 	/* - only lib users: do nothing
@@ -1077,8 +1082,8 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	 * - mixed: make copy
 	 */
 	
-	if (ntree->id.lib==NULL) return;
-	if (ntree->id.us==1) {
+	if (ntree->id.lib == NULL) return;
+	if (ntree->id.us == 1) {
 		id_clear_lib_data(bmain, (ID *)ntree);
 		return;
 	}
@@ -1092,14 +1097,14 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	treetype->foreach_nodetree(G.main, &cd, &ntreeMakeLocal_CheckLocal);
 	
 	/* if all users are local, we simply make tree local */
-	if (cd.local && cd.lib==0) {
+	if (cd.local && cd.lib == 0) {
 		id_clear_lib_data(bmain, (ID *)ntree);
 	}
 	else if (cd.local && cd.lib) {
 		/* this is the mixed case, we copy the tree and assign it to local users */
-		bNodeTree *newtree= ntreeCopyTree(ntree);
+		bNodeTree *newtree = ntreeCopyTree(ntree);
 		
-		newtree->id.us= 0;
+		newtree->id.us = 0;
 		
 
 		cd.new_id = &newtree->id;
@@ -1109,18 +1114,18 @@ void ntreeMakeLocal(bNodeTree *ntree)
 
 int ntreeNodeExists(bNodeTree *ntree, bNode *testnode)
 {
-	bNode *node= ntree->nodes.first;
-	for (; node; node= node->next)
-		if (node==testnode)
+	bNode *node = ntree->nodes.first;
+	for (; node; node = node->next)
+		if (node == testnode)
 			return 1;
 	return 0;
 }
 
 int ntreeOutputExists(bNode *node, bNodeSocket *testsock)
 {
-	bNodeSocket *sock= node->outputs.first;
-	for (; sock; sock= sock->next)
-		if (sock==testsock)
+	bNodeSocket *sock = node->outputs.first;
+	for (; sock; sock = sock->next)
+		if (sock == testsock)
 			return 1;
 	return 0;
 }
@@ -1128,33 +1133,33 @@ int ntreeOutputExists(bNode *node, bNodeSocket *testsock)
 /* returns localized tree for execution in threads */
 bNodeTree *ntreeLocalize(bNodeTree *ntree)
 {
-	bNodeTreeType *ntreetype= ntreeGetType(ntree->type);
+	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
 
 	bNodeTree *ltree;
 	bNode *node;
 	
-	bAction *action_backup= NULL, *tmpact_backup= NULL;
+	bAction *action_backup = NULL, *tmpact_backup = NULL;
 	
 	/* Workaround for copying an action on each render!
 	 * set action to NULL so animdata actions don't get copied */
-	AnimData *adt= BKE_animdata_from_id(&ntree->id);
+	AnimData *adt = BKE_animdata_from_id(&ntree->id);
 
 	if (adt) {
-		action_backup= adt->action;
-		tmpact_backup= adt->tmpact;
+		action_backup = adt->action;
+		tmpact_backup = adt->tmpact;
 
-		adt->action= NULL;
-		adt->tmpact= NULL;
+		adt->action = NULL;
+		adt->tmpact = NULL;
 	}
 
 	/* node copy func */
 	ltree = ntreeCopyTree_internal(ntree, FALSE);
 
 	if (adt) {
-		AnimData *ladt= BKE_animdata_from_id(&ltree->id);
+		AnimData *ladt = BKE_animdata_from_id(&ltree->id);
 
-		adt->action= ladt->action= action_backup;
-		adt->tmpact= ladt->tmpact= tmpact_backup;
+		adt->action = ladt->action = action_backup;
+		adt->tmpact = ladt->tmpact = tmpact_backup;
 
 		if (action_backup) action_backup->id.us++;
 		if (tmpact_backup) tmpact_backup->id.us++;
@@ -1165,9 +1170,9 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	/* ensures only a single output node is enabled */
 	ntreeSetOutput(ntree);
 
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		/* store new_node pointer to original */
-		node->new_node->new_node= node;
+		node->new_node->new_node = node;
 	}
 
 	if (ntreetype->localize)
@@ -1181,7 +1186,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 /* is called by jobs manager, outside threads, so it doesnt happen during draw */
 void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 {
-	bNodeTreeType *ntreetype= ntreeGetType(ntree->type);
+	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
 
 	if (ntreetype->local_sync)
 		ntreetype->local_sync(localtree, ntree);
@@ -1191,16 +1196,16 @@ void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 /* we have to assume the editor already changed completely */
 void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 {
-	bNodeTreeType *ntreetype= ntreeGetType(ntree->type);
+	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
 	bNode *lnode;
 	
 	/* move over the compbufs and previews */
-	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+	for (lnode = localtree->nodes.first; lnode; lnode = lnode->next) {
 		if (ntreeNodeExists(ntree, lnode->new_node)) {
 			if (lnode->preview && lnode->preview->rect) {
 				nodeFreePreview(lnode->new_node);
-				lnode->new_node->preview= lnode->preview;
-				lnode->preview= NULL;
+				lnode->new_node->preview = lnode->preview;
+				lnode->preview = NULL;
 			}
 		}
 	}
@@ -1219,7 +1224,7 @@ int ntreeHasType(bNodeTree *ntree, int type)
 	bNode *node;
 	
 	if (ntree)
-		for (node= ntree->nodes.first; node; node= node->next)
+		for (node = ntree->nodes.first; node; node = node->next)
 			if (node->type == type)
 				return 1;
 	return 0;
@@ -1229,10 +1234,10 @@ bNodeLink *nodeFindLink(bNodeTree *ntree, bNodeSocket *from, bNodeSocket *to)
 {
 	bNodeLink *link;
 	
-	for (link= ntree->links.first; link; link= link->next) {
-		if (link->fromsock==from && link->tosock==to)
+	for (link = ntree->links.first; link; link = link->next) {
+		if (link->fromsock == from && link->tosock == to)
 			return link;
-		if (link->fromsock==to && link->tosock==from)	/* hrms? */
+		if (link->fromsock == to && link->tosock == from) /* hrms? */
 			return link;
 	}
 	return NULL;
@@ -1241,10 +1246,10 @@ bNodeLink *nodeFindLink(bNodeTree *ntree, bNodeSocket *from, bNodeSocket *to)
 int nodeCountSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 {
 	bNodeLink *link;
-	int tot= 0;
+	int tot = 0;
 	
-	for (link= ntree->links.first; link; link= link->next) {
-		if (link->fromsock==sock || link->tosock==sock)
+	for (link = ntree->links.first; link; link = link->next) {
+		if (link->fromsock == sock || link->tosock == sock)
 			tot++;
 	}
 	return tot;
@@ -1254,9 +1259,9 @@ bNode *nodeGetActive(bNodeTree *ntree)
 {
 	bNode *node;
 	
-	if (ntree==NULL) return NULL;
+	if (ntree == NULL) return NULL;
 	
-	for (node= ntree->nodes.first; node; node= node->next)
+	for (node = ntree->nodes.first; node; node = node->next)
 		if (node->flag & NODE_ACTIVE)
 			break;
 	return node;
@@ -1267,19 +1272,19 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 {
 	bNode *node;
 	
-	if (ntree==NULL) return NULL;
+	if (ntree == NULL) return NULL;
 
 	/* check for group edit */
-	for (node= ntree->nodes.first; node; node= node->next)
+	for (node = ntree->nodes.first; node; node = node->next)
 		if (node->flag & NODE_GROUP_EDIT)
 			break;
 
 	if (node)
-		ntree= (bNodeTree*)node->id;
+		ntree = (bNodeTree *)node->id;
 	
 	/* now find active node with this id */
-	for (node= ntree->nodes.first; node; node= node->next)
-		if (node->id && GS(node->id->name)==idtype)
+	for (node = ntree->nodes.first; node; node = node->next)
+		if (node->id && GS(node->id->name) == idtype)
 			if (node->flag & NODE_ACTIVE_ID)
 				break;
 
@@ -1289,24 +1294,24 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 int nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
 {
 	bNode *node;
-	int ok= FALSE;
+	int ok = FALSE;
 
-	if (ntree==NULL) return ok;
+	if (ntree == NULL) return ok;
 
 	/* check for group edit */
-	for (node= ntree->nodes.first; node; node= node->next)
+	for (node = ntree->nodes.first; node; node = node->next)
 		if (node->flag & NODE_GROUP_EDIT)
 			break;
 
 	if (node)
-		ntree= (bNodeTree*)node->id;
+		ntree = (bNodeTree *)node->id;
 
 	/* now find active node with this id */
-	for (node= ntree->nodes.first; node; node= node->next) {
-		if (node->id && GS(node->id->name)==idtype) {
-			if (id && ok==FALSE && node->id==id) {
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->id && GS(node->id->name) == idtype) {
+			if (id && ok == FALSE && node->id == id) {
 				node->flag |= NODE_ACTIVE_ID;
-				ok= TRUE;
+				ok = TRUE;
 			}
 			else {
 				node->flag &= ~NODE_ACTIVE_ID;
@@ -1323,10 +1328,10 @@ void nodeClearActiveID(bNodeTree *ntree, short idtype)
 {
 	bNode *node;
 	
-	if (ntree==NULL) return;
+	if (ntree == NULL) return;
 	
-	for (node= ntree->nodes.first; node; node= node->next)
-		if (node->id && GS(node->id->name)==idtype)
+	for (node = ntree->nodes.first; node; node = node->next)
+		if (node->id && GS(node->id->name) == idtype)
 			node->flag &= ~NODE_ACTIVE_ID;
 }
 
@@ -1334,9 +1339,9 @@ void nodeClearActive(bNodeTree *ntree)
 {
 	bNode *node;
 
-	if (ntree==NULL) return;
+	if (ntree == NULL) return;
 
-	for (node= ntree->nodes.first; node; node= node->next)
+	for (node = ntree->nodes.first; node; node = node->next)
 		node->flag &= ~(NODE_ACTIVE | NODE_ACTIVE_ID);
 }
 
@@ -1347,7 +1352,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 	bNode *tnode;
 	
 	/* make sure only one node is active, and only one per ID type */
-	for (tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
+	for (tnode = ntree->nodes.first; tnode; tnode = tnode->next) {
 		tnode->flag &= ~NODE_ACTIVE;
 		
 		if (node->id && tnode->id) {
@@ -1395,12 +1400,12 @@ static int node_get_deplist_recurs(bNode *node, bNode ***nsort)
 	node->done = TRUE;
 	
 	/* check linked nodes */
-	for (sock= node->inputs.first; sock; sock= sock->next) {
+	for (sock = node->inputs.first; sock; sock = sock->next) {
 		if (sock->link) {
-			fromnode= sock->link->fromnode;
+			fromnode = sock->link->fromnode;
 			if (fromnode) {
-				if (fromnode->done==0)
-					fromnode->level= node_get_deplist_recurs(fromnode, nsort);
+				if (fromnode->done == 0)
+					fromnode->level = node_get_deplist_recurs(fromnode, nsort);
 				if (fromnode->level <= level)
 					level = fromnode->level - 1;
 			}
@@ -1409,14 +1414,14 @@ static int node_get_deplist_recurs(bNode *node, bNode ***nsort)
 	
 	/* check parent node */
 	if (node->parent) {
-		if (node->parent->done==0)
-			node->parent->level= node_get_deplist_recurs(node->parent, nsort);
+		if (node->parent->done == 0)
+			node->parent->level = node_get_deplist_recurs(node->parent, nsort);
 		if (node->parent->level <= level)
 			level = node->parent->level - 1;
 	}
 	
 	if (nsort) {
-		**nsort= node;
+		**nsort = node;
 		(*nsort)++;
 	}
 	
@@ -1427,24 +1432,24 @@ void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, in
 {
 	bNode *node, **nsort;
 	
-	*totnodes=0;
+	*totnodes = 0;
 	
 	/* first clear data */
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		node->done = FALSE;
 		(*totnodes)++;
 	}
-	if (*totnodes==0) {
+	if (*totnodes == 0) {
 		*deplist = NULL;
 		return;
 	}
 	
-	nsort= *deplist= MEM_callocN((*totnodes)*sizeof(bNode*), "sorted node array");
+	nsort = *deplist = MEM_callocN((*totnodes) * sizeof(bNode *), "sorted node array");
 	
 	/* recursive check */
-	for (node= ntree->nodes.first; node; node= node->next) {
-		if (node->done==0) {
-			node->level= node_get_deplist_recurs(node, &nsort);
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->done == 0) {
+			node->level = node_get_deplist_recurs(node, &nsort);
 		}
 	}
 }
@@ -1455,14 +1460,14 @@ static void ntree_update_node_level(bNodeTree *ntree)
 	bNode *node;
 	
 	/* first clear tag */
-	for (node= ntree->nodes.first; node; node= node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		node->done = FALSE;
 	}
 	
 	/* recursive check */
-	for (node= ntree->nodes.first; node; node= node->next) {
-		if (node->done==0) {
-			node->level= node_get_deplist_recurs(node, NULL);
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->done == 0) {
+			node->level = node_get_deplist_recurs(node, NULL);
 		}
 	}
 }
@@ -1474,25 +1479,25 @@ static void ntree_update_link_pointers(bNodeTree *ntree)
 	bNodeLink *link;
 	
 	/* first clear data */
-	for (node= ntree->nodes.first; node; node= node->next) {
-		for (sock= node->inputs.first; sock; sock= sock->next) {
-			sock->link= NULL;
+	for (node = ntree->nodes.first; node; node = node->next) {
+		for (sock = node->inputs.first; sock; sock = sock->next) {
+			sock->link = NULL;
 			sock->flag &= ~SOCK_IN_USE;
 		}
-		for (sock= node->outputs.first; sock; sock= sock->next) {
+		for (sock = node->outputs.first; sock; sock = sock->next) {
 			sock->flag &= ~SOCK_IN_USE;
 		}
 	}
-	for (sock= ntree->inputs.first; sock; sock= sock->next) {
+	for (sock = ntree->inputs.first; sock; sock = sock->next) {
 		sock->flag &= ~SOCK_IN_USE;
 	}
-	for (sock= ntree->outputs.first; sock; sock= sock->next) {
-		sock->link= NULL;
+	for (sock = ntree->outputs.first; sock; sock = sock->next) {
+		sock->link = NULL;
 		sock->flag &= ~SOCK_IN_USE;
 	}
 
-	for (link= ntree->links.first; link; link= link->next) {
-		link->tosock->link= link;
+	for (link = ntree->links.first; link; link = link->next) {
+		link->tosock->link = link;
 		
 		link->fromsock->flag |= SOCK_IN_USE;
 		link->tosock->flag |= SOCK_IN_USE;
@@ -1517,10 +1522,10 @@ static void ntree_validate_links(bNodeTree *ntree)
 
 static void ntree_verify_nodes_cb(void *calldata, struct ID *UNUSED(owner_id), struct bNodeTree *ntree)
 {
-	ID *id= (ID*)calldata;
+	ID *id = (ID *)calldata;
 	bNode *node;
 	
-	for (node=ntree->nodes.first; node; node=node->next)
+	for (node = ntree->nodes.first; node; node = node->next)
 		if (node->typeinfo->verifyfunc)
 			node->typeinfo->verifyfunc(ntree, node, id);
 }
@@ -1531,21 +1536,21 @@ void ntreeVerifyNodes(struct Main *main, struct ID *id)
 	bNodeTree *ntree;
 	int n;
 	
-	for (n=0; n < NUM_NTREE_TYPES; ++n) {
-		ntreetype= ntreeGetType(n);
+	for (n = 0; n < NUM_NTREE_TYPES; ++n) {
+		ntreetype = ntreeGetType(n);
 		if (ntreetype && ntreetype->foreach_nodetree)
 			ntreetype->foreach_nodetree(main, id, ntree_verify_nodes_cb);
 	}
-	for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+	for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
 		ntree_verify_nodes_cb(id, NULL, ntree);
 }
 
 void ntreeUpdateTree(bNodeTree *ntree)
 {
-	bNodeTreeType *ntreetype= ntreeGetType(ntree->type);
+	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
 	bNode *node;
 	
-	if (ntree->update & (NTREE_UPDATE_LINKS|NTREE_UPDATE_NODES)) {
+	if (ntree->update & (NTREE_UPDATE_LINKS | NTREE_UPDATE_NODES)) {
 		/* set the bNodeSocket->link pointers */
 		ntree_update_link_pointers(ntree);
 		
@@ -1554,7 +1559,7 @@ void ntreeUpdateTree(bNodeTree *ntree)
 	}
 	
 	/* update individual nodes */
-	for (node=ntree->nodes.first; node; node=node->next) {
+	for (node = ntree->nodes.first; node; node = node->next) {
 		/* node tree update tags override individual node update flags */
 		if ((node->update & NODE_UPDATE) || (ntree->update & NTREE_UPDATE)) {
 			if (ntreetype->update_node)
@@ -1567,7 +1572,7 @@ void ntreeUpdateTree(bNodeTree *ntree)
 	}
 	
 	/* check link validity */
-	if (ntree->update & (NTREE_UPDATE_LINKS|NTREE_UPDATE_NODES))
+	if (ntree->update & (NTREE_UPDATE_LINKS | NTREE_UPDATE_NODES))
 		ntree_validate_links(ntree);
 	
 	/* generic tree update callback */
@@ -1577,7 +1582,7 @@ void ntreeUpdateTree(bNodeTree *ntree)
 		/* Trees can be associated with a specific node type (i.e. group nodes),
 		 * in that case a tree update function may be defined by that node type.
 		 */
-		bNodeType *ntype= node_get_type(ntree, ntree->nodetype);
+		bNodeType *ntype = node_get_type(ntree, ntree->nodetype);
 		if (ntype && ntype->updatetreefunc)
 			ntype->updatetreefunc(ntree);
 	}
@@ -1591,7 +1596,7 @@ void ntreeUpdateTree(bNodeTree *ntree)
 
 void nodeUpdate(bNodeTree *ntree, bNode *node)
 {
-	bNodeTreeType *ntreetype= ntreeGetType(ntree->type);
+	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
 	
 	if (ntreetype->update_node)
 		ntreetype->update_node(ntree, node);
@@ -1613,8 +1618,8 @@ int nodeUpdateID(bNodeTree *ntree, ID *id)
 	ntreetype = ntreeGetType(ntree->type);
 	
 	if (ntreetype->update_node) {
-		for (node= ntree->nodes.first; node; node= node->next) {
-			if (node->id==id) {
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->id == id) {
 				change = TRUE;
 				node->update |= NODE_UPDATE_ID;
 				ntreetype->update_node(ntree, node);
@@ -1624,8 +1629,8 @@ int nodeUpdateID(bNodeTree *ntree, ID *id)
 		}
 	}
 	else {
-		for (node= ntree->nodes.first; node; node= node->next) {
-			if (node->id==id) {
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->id == id) {
 				change = TRUE;
 				node->update |= NODE_UPDATE_ID;
 				if (node->typeinfo->updatefunc)
@@ -1644,7 +1649,7 @@ int nodeUpdateID(bNodeTree *ntree, ID *id)
 
 int nodeValid(bNodeTree *ntree, bNodeTemplate *ntemp)
 {
-	bNodeType *ntype= node_get_type(ntree, ntemp->type);
+	bNodeType *ntype = node_get_type(ntree, ntemp->type);
 	if (ntype) {
 		if (ntype->validfunc)
 			return ntype->validfunc(ntree, ntemp);
@@ -1655,9 +1660,9 @@ int nodeValid(bNodeTree *ntree, bNodeTemplate *ntemp)
 		return 0;
 }
 
-const char* nodeLabel(bNode *node)
+const char *nodeLabel(bNode *node)
 {
-	if (node->label[0]!='\0')
+	if (node->label[0] != '\0')
 		return node->label;
 	else if (node->typeinfo->labelfunc)
 		return node->typeinfo->labelfunc(node);
@@ -1769,8 +1774,8 @@ void node_type_template(struct bNodeType *ntype, struct bNodeTemplate (*template
 }
 
 void node_type_update(struct bNodeType *ntype,
-					  void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node),
-					  void (*verifyfunc)(struct bNodeTree *ntree, struct bNode *node, struct ID *id))
+                      void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node),
+                      void (*verifyfunc)(struct bNodeTree *ntree, struct bNode *node, struct ID *id))
 {
 	ntype->updatefunc = updatefunc;
 	ntype->verifyfunc = verifyfunc;
@@ -1783,9 +1788,9 @@ void node_type_tree(struct bNodeType *ntype, void (*inittreefunc)(struct bNodeTr
 }
 
 void node_type_group_edit(struct bNodeType *ntype,
-						  struct bNodeTree *(*group_edit_get)(struct bNode *node),
-						  struct bNodeTree *(*group_edit_set)(struct bNode *node, int edit),
-						  void (*group_edit_clear)(struct bNode *node))
+                          struct bNodeTree *(*group_edit_get)(struct bNode *node),
+                          struct bNodeTree *(*group_edit_set)(struct bNode *node, int edit),
+                          void (*group_edit_clear)(struct bNode *node))
 {
 	ntype->group_edit_get = group_edit_get;
 	ntype->group_edit_set = group_edit_set;
@@ -1798,9 +1803,9 @@ void node_type_exec(struct bNodeType *ntype, void (*execfunc)(void *data, struct
 }
 
 void node_type_exec_new(struct bNodeType *ntype,
-						void *(*initexecfunc)(struct bNode *node),
-						void (*freeexecfunc)(struct bNode *node, void *nodedata),
-						void (*newexecfunc)(void *data, int thread, struct bNode *, void *nodedata, struct bNodeStack **, struct bNodeStack **))
+                        void *(*initexecfunc)(struct bNode *node),
+                        void (*freeexecfunc)(struct bNode *node, void *nodedata),
+                        void (*newexecfunc)(void *data, int thread, struct bNode *, void *nodedata, struct bNodeStack **, struct bNodeStack **))
 {
 	ntype->initexecfunc = initexecfunc;
 	ntype->freeexecfunc = freeexecfunc;
@@ -1829,10 +1834,10 @@ void node_type_compatibility(struct bNodeType *ntype, short compatibility)
 
 static bNodeType *is_nodetype_registered(ListBase *typelist, int type) 
 {
-	bNodeType *ntype= typelist->first;
+	bNodeType *ntype = typelist->first;
 	
-	for (;ntype; ntype= ntype->next )
-		if (ntype->type==type)
+	for (; ntype; ntype = ntype->next)
+		if (ntype->type == type)
 			return ntype;
 	
 	return NULL;
@@ -1841,9 +1846,9 @@ static bNodeType *is_nodetype_registered(ListBase *typelist, int type)
 void nodeRegisterType(bNodeTreeType *ttype, bNodeType *ntype) 
 {
 	ListBase *typelist = &(ttype->node_types);
-	bNodeType *found= is_nodetype_registered(typelist, ntype->type);
+	bNodeType *found = is_nodetype_registered(typelist, ntype->type);
 	
-	if (found==NULL)
+	if (found == NULL)
 		BLI_addtail(typelist, ntype);
 }
 
@@ -2070,7 +2075,7 @@ static void registerTextureNodes(bNodeTreeType *ttype)
 static void free_typeinfos(ListBase *list)
 {
 	bNodeType *ntype, *next;
-	for (ntype=list->first; ntype; ntype=next) {
+	for (ntype = list->first; ntype; ntype = next) {
 		next = ntype->next;
 
 		if (ntype->needs_free)
@@ -2102,14 +2107,14 @@ void clear_scene_in_nodes(Main *bmain, Scene *sce)
 	Scene *sce1;
 	bNode *node;
 
-	for (sce1= bmain->scene.first; sce1; sce1=sce1->id.next) {
-		if (sce1!=sce) {
+	for (sce1 = bmain->scene.first; sce1; sce1 = sce1->id.next) {
+		if (sce1 != sce) {
 			if (sce1->nodetree) {
-				for (node= sce1->nodetree->nodes.first; node; node= node->next) {
-					if (node->type==CMP_NODE_R_LAYERS) {
-						Scene *nodesce= (Scene *)node->id;
+				for (node = sce1->nodetree->nodes.first; node; node = node->next) {
+					if (node->type == CMP_NODE_R_LAYERS) {
+						Scene *nodesce = (Scene *)node->id;
 						
-						if (nodesce==sce) node->id = NULL;
+						if (nodesce == sce) node->id = NULL;
 					}
 				}
 			}

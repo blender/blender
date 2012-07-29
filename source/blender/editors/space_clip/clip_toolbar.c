@@ -224,7 +224,7 @@ static void clip_panel_operator_redo(const bContext *C, Panel *pa)
 	if (op == NULL)
 		return;
 
-	if (WM_operator_poll((bContext*)C, op->type) == 0)
+	if (WM_operator_poll((bContext *)C, op->type) == 0)
 		return;
 
 	block = uiLayoutGetBlock(pa->layout);

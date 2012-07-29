@@ -2674,10 +2674,11 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
  * of our UI functions take prop rather then propname.
  */
 
-#define UI_DEF_BUT_RNA_DISABLE(but) \
-	but->flag |= UI_BUT_DISABLED; \
-	but->lock = 1; \
-	but->lockstr = ""
+#define UI_DEF_BUT_RNA_DISABLE(but)  { \
+		but->flag |= UI_BUT_DISABLED;  \
+		but->lock = TRUE;              \
+		but->lockstr = "";             \
+	} (void)0
 
 
 static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str,
@@ -3713,7 +3714,7 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 
 	va_start(args, nbr);
 	while (nbr--) {
-		uiStringInfo *si = (uiStringInfo*) va_arg(args, void*);
+		uiStringInfo *si = (uiStringInfo *) va_arg(args, void *);
 		int type = si->type;
 		char *tmp = NULL;
 
@@ -3727,13 +3728,13 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 					tmp = BLI_strdup(but->str);
 			}
 			else
-				type = BUT_GET_RNA_LABEL; /* Fail-safe solution... */
+				type = BUT_GET_RNA_LABEL;  /* Fail-safe solution... */
 		}
 		else if (type == BUT_GET_TIP) {
 			if (but->tip && but->tip[0])
 				tmp = BLI_strdup(but->tip);
 			else
-				type = BUT_GET_RNA_TIP; /* Fail-safe solution... */
+				type = BUT_GET_RNA_TIP;  /* Fail-safe solution... */
 		}
 
 		if (type == BUT_GET_RNAPROP_IDENTIFIER) {

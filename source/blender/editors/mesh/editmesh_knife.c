@@ -291,14 +291,14 @@ static void knife_add_edge_faces_to_vert(KnifeTool_OpData *kcd, KnifeVert *kfv, 
 
 /* Find a face in common in the two faces lists.
    If more than one, return the first; if none, return NULL */
-static BMFace* knife_find_common_face(ListBase *faces1, ListBase *faces2)
+static BMFace *knife_find_common_face(ListBase *faces1, ListBase *faces2)
 {
 	Ref *ref1, *ref2;
 
 	for (ref1 = faces1->first; ref1; ref1 = ref1->next) {
 		for (ref2 = faces2->first; ref2; ref2 = ref2->next) {
 			if (ref1->ref == ref2->ref)
-				return (BMFace*)(ref1->ref);
+				return (BMFace *)(ref1->ref);
 		}
 	}
 	return NULL;
@@ -454,7 +454,8 @@ static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd, KnifeEdge *kfe, float 
 	newkfe->v2->draw = 1;
 	if (kfe->e) {
 		knife_add_edge_faces_to_vert(kcd, newkfe->v2, kfe->e);
-	} else {
+	}
+	else {
 		/* kfe cuts across an existing face.
 		   If v1 and v2 are in multiple faces together (e.g., if they
 		   are in doubled polys) then this arbitrarily chooses one of them */
@@ -1097,7 +1098,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 
 	/* for comparing distances, error of intersection depends on triangle scale.
 	 * need to scale down before squaring for accurate comparison */
-	const float depsilon = 50 * FLT_EPSILON * len_v3_tri_side_max(v1, v2, v3);
+	const float depsilon = 50 *FLT_EPSILON *len_v3_tri_side_max(v1, v2, v3);
 	const float depsilon_squared = depsilon * depsilon;
 
 	copy_v3_v3(cos + 0, v1);
@@ -2944,7 +2945,8 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 		{KNF_MODAL_CUT_THROUGH_TOGGLE, "CUT_THROUGH_TOGGLE", 0, "Toggle Cut Through", ""},
 		{KNF_MODAL_NEW_CUT, "NEW_CUT", 0, "End Current Cut", ""},
 		{KNF_MODAL_ADD_CUT, "ADD_CUT", 0, "Add Cut", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Knife Tool Modal Map");
 

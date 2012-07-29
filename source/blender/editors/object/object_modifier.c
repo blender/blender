@@ -212,10 +212,10 @@ int ED_object_iter_other(Main *bmain, Object *orig_ob, int include_orig,
 		int totfound = include_orig ? 0 : 1;
 
 		for (ob = bmain->object.first; ob && totfound < users;
-			 ob = ob->id.next)
+		     ob = ob->id.next)
 		{
 			if (((ob != orig_ob) || include_orig) &&
-				(ob->data == orig_ob->data))
+			    (ob->data == orig_ob->data))
 			{
 				if (callback(ob, callback_data))
 					return TRUE;
@@ -233,7 +233,7 @@ int ED_object_iter_other(Main *bmain, Object *orig_ob, int include_orig,
 
 static int object_has_modifier_cb(Object *ob, void *data)
 {
-	ModifierType type = *((ModifierType*)data);
+	ModifierType type = *((ModifierType *)data);
 
 	return object_has_modifier(ob, NULL, type);
 }
@@ -244,7 +244,7 @@ static int object_has_modifier_cb(Object *ob, void *data)
 int ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v)
 {
 	ModifierData *md;
-	int totlevel = *((int*)totlevel_v);
+	int totlevel = *((int *)totlevel_v);
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Multires) {
@@ -1148,8 +1148,8 @@ static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
 	multiresModifier_del_levels(mmd, ob, 1);
 
 	ED_object_iter_other(CTX_data_main(C), ob, TRUE,
-						 ED_object_multires_update_totlevels_cb,
-						 &mmd->totlvl);
+	                     ED_object_multires_update_totlevels_cb,
+	                     &mmd->totlvl);
 	
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
@@ -1192,8 +1192,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	multiresModifier_subdivide(mmd, ob, 0, mmd->simple);
 
 	ED_object_iter_other(CTX_data_main(C), ob, TRUE,
-						 ED_object_multires_update_totlevels_cb,
-						 &mmd->totlvl);
+	                     ED_object_multires_update_totlevels_cb,
+	                     &mmd->totlvl);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);

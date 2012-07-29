@@ -857,9 +857,9 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 #if 0
 			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
 				AviMJPEGUnknown *tmp;
-				
-				tmp = (AviMJPEGUnknown *) ((char*) movie->streams[i].sf +sizeof(AviBitmapInfoHeader));
-				
+
+				tmp = (AviMJPEGUnknown *)((char *) movie->streams[i].sf + sizeof(AviBitmapInfoHeader));
+
 				tmp->a = 44;
 				tmp->b = 24;
 				tmp->c = 0;

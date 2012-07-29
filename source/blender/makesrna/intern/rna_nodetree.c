@@ -24,7 +24,6 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -205,30 +204,6 @@ EnumPropertyItem prop_wave_items[] = {
 
 #include "DNA_scene_types.h"
 #include "WM_api.h"
-
-static void rna_Node_custom3_set_as_int(PointerRNA *ptr, int value)
-{
-	bNode *node = (bNode *)ptr->data;
-	node->custom3 = value;
-}
-
-static int rna_Node_custom3_get_as_int(PointerRNA *ptr)
-{
-	bNode *node = (bNode *)ptr->data;
-	return (int)node->custom3;
-}
-
-static void rna_Node_custom4_set_as_int(PointerRNA *ptr, int value)
-{
-	bNode *node = (bNode *)ptr->data;
-	node->custom4 = value;
-}
-
-static int rna_Node_custom4_get_as_int(PointerRNA *ptr)
-{
-	bNode *node = (bNode *)ptr->data;
-	return (int)node->custom4;
-}
 
 static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 {

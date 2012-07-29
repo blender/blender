@@ -747,8 +747,8 @@ ScatterTree *scatter_tree_new(ScatterSettings *ss[3], float scale, float error,
 	tree->ss[1]= ss[1];
 	tree->ss[2]= ss[2];
 
-	points= MEM_callocN(sizeof(ScatterPoint)*totpoint, "ScatterPoints");
-	refpoints= MEM_callocN(sizeof(ScatterPoint*)*totpoint, "ScatterRefPoints");
+	points = MEM_callocN(sizeof(ScatterPoint) * totpoint, "ScatterPoints");
+	refpoints = MEM_callocN(sizeof(ScatterPoint *) * totpoint, "ScatterRefPoints");
 
 	tree->points= points;
 	tree->refpoints= refpoints;
@@ -777,8 +777,8 @@ void scatter_tree_build(ScatterTree *tree)
 	float mid[3], size[3];
 	int totpoint= tree->totpoint;
 
-	newpoints= MEM_callocN(sizeof(ScatterPoint)*totpoint, "ScatterPoints");
-	tmppoints= MEM_callocN(sizeof(ScatterPoint*)*totpoint, "ScatterTmpPoints");
+	newpoints = MEM_callocN(sizeof(ScatterPoint) * totpoint, "ScatterPoints");
+	tmppoints = MEM_callocN(sizeof(ScatterPoint *) * totpoint, "ScatterTmpPoints");
 	tree->tmppoints= tmppoints;
 
 	tree->arena= BLI_memarena_new(0x8000 * sizeof(ScatterNode), "sss tree arena");

@@ -129,8 +129,7 @@ static SpaceLink *action_new(const bContext *C)
 /* not spacelink itself */
 static void action_free(SpaceLink *UNUSED(sl))
 {	
-//	SpaceAction *saction= (SpaceAction*) sl;
-	
+//	SpaceAction *saction= (SpaceAction *) sl;
 }
 
 

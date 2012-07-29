@@ -3636,7 +3636,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 					float *uv1, *uv2, *uv3;
 					float l;
 					CustomData *data = &orcoDm->faceData;
-					MTFace *tface = (MTFace*) data->layers[layer_index+i].data;
+					MTFace *tface = (MTFace *) data->layers[layer_index+i].data;
 					float uv[3];
 					/* point layer name from actual layer data */
 					shi.uv[i].name = data->layers[i].name;

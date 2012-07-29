@@ -322,8 +322,8 @@ static void compress_deepshadowbuf(Render *re, ShadBuf *shb, APixstr *apixbuf, A
 	shsample= MEM_callocN(sizeof(ShadSampleBuf), "shad sample buf");
 	BLI_addtail(&shb->buffers, shsample);
 
-	shsample->totbuf= MEM_callocN(sizeof(int)*size*size, "deeptotbuf");
-	shsample->deepbuf= MEM_callocN(sizeof(DeepSample*)*size*size, "deepbuf");
+	shsample->totbuf = MEM_callocN(sizeof(int) * size * size, "deeptotbuf");
+	shsample->deepbuf = MEM_callocN(sizeof(DeepSample *) * size * size, "deepbuf");
 
 	ap= apixbuf;
 	aps= apixbufstrand;
