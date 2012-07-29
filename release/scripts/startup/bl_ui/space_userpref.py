@@ -1004,10 +1004,10 @@ class USERPREF_PT_addons(Panel):
     @staticmethod
     def is_user_addon(mod, user_addon_paths):
         if not user_addon_paths:
-            user_script_path = bpy.utils.user_script_path()
-            if user_script_path is not None:
-                user_addon_paths.append(os.path.join(user_script_path, "addons"))
-            user_addon_paths.append(os.path.join(bpy.utils.resource_path('USER'), "scripts", "addons"))
+            for path in (bpy.utils.script_path_user(),
+                         bpy.utils.script_path_pref()):
+                if path is not None:
+                    user_addon_paths.append(os.path.join(path, "addons"))
 
         for path in user_addon_paths:
             if bpy.path.is_subdir(mod.__file__, path):
