@@ -31,6 +31,7 @@ class ViewerOperation : public ViewerBaseOperation {
 private:
 	SocketReader *m_imageInput;
 	SocketReader *m_alphaInput;
+	SocketReader *m_depthInput;
 
 public:
 	ViewerOperation();

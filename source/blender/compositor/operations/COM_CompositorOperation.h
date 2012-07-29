@@ -42,6 +42,11 @@ private:
 	float *m_outputBuffer;
 
 	/**
+	 * @brief reference to the output depth float buffer
+	 */
+	float *m_depthBuffer;
+
+	/**
 	 * @brief local reference to the input image operation
 	 */
 	SocketReader *m_imageInput;
@@ -50,6 +55,11 @@ private:
 	 * @brief local reference to the input alpha operation
 	 */
 	SocketReader *m_alphaInput;
+
+	/**
+	 * @brief local reference to the depth operation
+	 */
+	SocketReader *m_depthInput;
 public:
 	CompositorOperation();
 	void executeRegion(rcti *rect, unsigned int tileNumber);
