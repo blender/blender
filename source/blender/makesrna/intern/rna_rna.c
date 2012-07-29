@@ -829,7 +829,7 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 	int totitem, free = 0;
 	
 	rna_idproperty_check(&prop, ptr);
-	/* eprop= (EnumPropertyRNA*)prop; */
+	/* eprop= (EnumPropertyRNA *)prop; */
 	
 	RNA_property_enum_items(NULL, ptr, prop, &item, &totitem, &free);
 	rna_iterator_array_begin(iter, (void *)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);

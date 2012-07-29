@@ -108,21 +108,21 @@ static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
 /* note: this function exists only to avoid id refcounting */
 static void rna_MaskParent_id_set(PointerRNA *ptr, PointerRNA value)
 {
-	MaskParent *mpar = (MaskParent*) ptr->data;
+	MaskParent *mpar = (MaskParent *) ptr->data;
 
 	mpar->id = value.data;
 }
 
 static StructRNA *rna_MaskParent_id_typef(PointerRNA *ptr)
 {
-	MaskParent *mpar = (MaskParent*) ptr->data;
+	MaskParent *mpar = (MaskParent *) ptr->data;
 
 	return ID_code_to_RNA_type(mpar->id_type);
 }
 
 static void rna_MaskParent_id_type_set(PointerRNA *ptr, int value)
 {
-	MaskParent *mpar = (MaskParent*) ptr->data;
+	MaskParent *mpar = (MaskParent *) ptr->data;
 
 	/* change ID-type to the new type */
 	mpar->id_type = value;
@@ -248,49 +248,49 @@ static void rna_MaskLayer_active_spline_point_set(PointerRNA *ptr, PointerRNA va
 
 static void rna_MaskSplinePoint_handle1_get(PointerRNA *ptr, float *values)
 {
-	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
 	BezTriple *bezt = &point->bezt;
 	copy_v2_v2(values, bezt->vec[0]);
 }
 
 static void rna_MaskSplinePoint_handle1_set(PointerRNA *ptr, const float *values)
 {
-	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
 	BezTriple *bezt = &point->bezt;
 	copy_v2_v2(bezt->vec[0], values);
 }
 
 static void rna_MaskSplinePoint_handle2_get(PointerRNA *ptr, float *values)
 {
-	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
 	BezTriple *bezt = &point->bezt;
 	copy_v2_v2(values, bezt->vec[2]);
 }
 
 static void rna_MaskSplinePoint_handle2_set(PointerRNA *ptr, const float *values)
 {
-	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
 	BezTriple *bezt = &point->bezt;
 	copy_v2_v2(bezt->vec[2], values);
 }
 
 static void rna_MaskSplinePoint_ctrlpoint_get(PointerRNA *ptr, float *values)
 {
-	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
 	BezTriple *bezt = &point->bezt;
 	copy_v2_v2(values, bezt->vec[1]);
 }
 
 static void rna_MaskSplinePoint_ctrlpoint_set(PointerRNA *ptr, const float *values)
 {
-	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
 	BezTriple *bezt = &point->bezt;
 	copy_v2_v2(bezt->vec[1], values);
 }
 
 static int rna_MaskSplinePoint_handle_type_get(PointerRNA *ptr)
 {
-	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
 	BezTriple *bezt = &point->bezt;
 
 	return bezt->h1;
@@ -298,7 +298,7 @@ static int rna_MaskSplinePoint_handle_type_get(PointerRNA *ptr)
 
 static void rna_MaskSplinePoint_handle_type_set(PointerRNA *ptr, int value)
 {
-	MaskSplinePoint *point = (MaskSplinePoint*) ptr->data;
+	MaskSplinePoint *point = (MaskSplinePoint *) ptr->data;
 	BezTriple *bezt = &point->bezt;
 
 	bezt->h1 = bezt->h2 = value;
@@ -336,7 +336,7 @@ static void rna_Mask_layers_clear(Mask *mask)
 
 static void rna_MaskLayer_spline_add(ID *id, MaskLayer *masklay, int number)
 {
-	Mask *mask = (Mask*) id;
+	Mask *mask = (Mask *) id;
 	int i;
 
 	for (i = 0; i < number; i++)

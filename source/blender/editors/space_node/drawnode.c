@@ -3155,7 +3155,7 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 				float zoomx, zoomy;
 				zoomx = (float)sa->winx / ibuf->x;
 				zoomy = (float)sa->winy / ibuf->y;
-				zoom = MIN2(zoomx, zoomy);
+				zoom = minf(zoomx, zoomy);
 			}
 			
 			x = (sa->winx - zoom * ibuf->x) / 2 + snode->xof;

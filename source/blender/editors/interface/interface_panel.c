@@ -831,14 +831,15 @@ static void ui_do_animate(const bContext *C, Panel *panel)
 	float fac;
 
 	fac = (PIL_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
-	fac = sqrt(fac);
-	fac = MIN2(fac, 1.0f);
+	fac = minf(sqrt(fac), 1.0f);
 
 	/* for max 1 second, interpolate positions */
-	if (uiAlignPanelStep(sa, ar, fac, 0))
+	if (uiAlignPanelStep(sa, ar, fac, 0)) {
 		ED_region_tag_redraw(ar);
-	else
+	}
+	else {
 		fac = 1.0f;
+	}
 
 	if (fac >= 1.0f) {
 		panel_activate_state(C, panel, PANEL_STATE_EXIT);

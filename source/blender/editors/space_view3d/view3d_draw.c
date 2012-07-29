@@ -1716,7 +1716,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 
 			/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
 			if (zoomx < 1.0f || zoomy < 1.0f) {
-				float tzoom = MIN2(zoomx, zoomy);
+				float tzoom = minf(zoomx, zoomy);
 				int mip = 0;
 
 				if ((ibuf->userflags & IB_MIPMAP_INVALID) != 0) {

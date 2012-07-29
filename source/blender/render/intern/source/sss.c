@@ -305,7 +305,7 @@ ScatterSettings *scatter_settings_new(float refl, float radius, float ior, float
 	ss->Fdr= -1.440f/ior*ior + 0.710f/ior + 0.668f + 0.0636f*ior;
 	ss->A= (1.0f + ss->Fdr)/(1.0f - ss->Fdr);
 	ss->ld= radius;
-	ss->ro= MIN2(refl, 0.999f);
+	ss->ro= minf(refl, 0.999f);
 	ss->color= ss->ro*reflfac + (1.0f-reflfac);
 
 	ss->alpha_= compute_reduced_albedo(ss);

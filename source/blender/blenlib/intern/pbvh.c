@@ -189,8 +189,8 @@ static void BB_expand(BB *bb, float co[3])
 {
 	int i;
 	for (i = 0; i < 3; ++i) {
-		bb->bmin[i] = MIN2(bb->bmin[i], co[i]);
-		bb->bmax[i] = MAX2(bb->bmax[i], co[i]);
+		bb->bmin[i] = minf(bb->bmin[i], co[i]);
+		bb->bmax[i] = maxf(bb->bmax[i], co[i]);
 	}
 }
 
@@ -199,8 +199,8 @@ static void BB_expand_with_bb(BB *bb, BB *bb2)
 {
 	int i;
 	for (i = 0; i < 3; ++i) {
-		bb->bmin[i] = MIN2(bb->bmin[i], bb2->bmin[i]);
-		bb->bmax[i] = MAX2(bb->bmax[i], bb2->bmax[i]);
+		bb->bmin[i] = minf(bb->bmin[i], bb2->bmin[i]);
+		bb->bmax[i] = maxf(bb->bmax[i], bb2->bmax[i]);
 	}
 }
 

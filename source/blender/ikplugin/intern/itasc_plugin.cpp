@@ -1255,7 +1255,7 @@ static IK_Scene *convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 			joint += ":TY";
 			ret = arm->addSegment(joint, parent, KDL::Joint::TransY, rot[ikchan->ndof - 1]);
 			float ikstretch = pchan->ikstretch * pchan->ikstretch;
-			weight[1] = (1.0 - MIN2(1.0 - ikstretch, 0.99));
+			weight[1] = (1.0 - minf(1.0 - ikstretch, 0.99));
 			weights.push_back(weight[1]);
 		}
 		if (!ret)

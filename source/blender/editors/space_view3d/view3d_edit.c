@@ -2435,7 +2435,7 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was
 	xfac = (float)ar->winx / (float)(size[0] + 4);
 	yfac = (float)ar->winy / (float)(size[1] + 4);
 
-	rv3d->camzoom = BKE_screen_view3d_zoom_from_fac(MIN2(xfac, yfac));
+	rv3d->camzoom = BKE_screen_view3d_zoom_from_fac(minf(xfac, yfac));
 	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));

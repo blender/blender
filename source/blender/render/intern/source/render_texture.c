@@ -1733,7 +1733,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 	if (mtex->texco == TEXCO_UV) {
 		/* for the uv case, use the same value for both du/dv,
 		 * since individually scaling the normal derivatives makes them useless... */
-		du = MIN2(du, dv);
+		du = minf(du, dv);
 		idu = (du < 1e-5f) ? bf : (bf/du);
 
 		/* +u val */

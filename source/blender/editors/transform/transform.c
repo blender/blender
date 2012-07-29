@@ -972,7 +972,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (t->flag & T_PROP_EDIT) {
 					t->prop_size *= 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-						t->prop_size = MIN2(t->prop_size, ((View3D *)t->view)->far);
+						t->prop_size = minf(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
 				t->redraw |= TREDRAW_HARD;
@@ -1142,7 +1142,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (event->alt && t->flag & T_PROP_EDIT) {
 					t->prop_size *= 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-						t->prop_size = MIN2(t->prop_size, ((View3D *)t->view)->far);
+						t->prop_size = minf(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
 				t->redraw = 1;

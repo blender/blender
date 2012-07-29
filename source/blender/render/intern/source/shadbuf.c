@@ -1391,7 +1391,7 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 			}
 		}
 		
-		labda= MIN2(labdax, labday);
+		labda = minf(labdax, labday);
 		if (labda==labdao || labda>=1.0f) break;
 		
 		zf= zf1 + labda*(zf2-zf1);

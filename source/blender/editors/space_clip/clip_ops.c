@@ -735,7 +735,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 		zoomx = (float) width / (w + 2 * margin);
 		zoomy = (float) height / (h + 2 * margin);
 
-		sclip_zoom_set(C, MIN2(zoomx, zoomy), NULL);
+		sclip_zoom_set(C, minf(zoomx, zoomy), NULL);
 	}
 	else {
 		if ((w >= width || h >= height) && (width > 0 && height > 0)) {
@@ -743,7 +743,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 			zoomy = (float) height / h;
 
 			/* find the zoom value that will fit the image in the image space */
-			sclip_zoom_set(C, 1.0f / power_of_2(1.0f / MIN2(zoomx, zoomy)), NULL);
+			sclip_zoom_set(C, 1.0f / power_of_2(1.0f / minf(zoomx, zoomy)), NULL);
 		}
 		else
 			sclip_zoom_set(C, 1.0f, NULL);

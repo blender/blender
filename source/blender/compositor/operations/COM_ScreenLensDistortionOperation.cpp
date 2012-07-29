@@ -301,11 +301,11 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 
 void ScreenLensDistortionOperation::updateVariables(float distortion, float dispersion)
 {
-	this->m_kg = MAX2(MIN2(distortion, 1.f), -0.999f);
+	this->m_kg = maxf(minf(distortion, 1.0f), -0.999f);
 	// smaller dispersion range for somewhat more control
 	const float d = 0.25f * MAX2(MIN2(dispersion, 1.f), 0.f);
-	this->m_kr = MAX2(MIN2((this->m_kg + d), 1.0f), -0.999f);
-	this->m_kb = MAX2(MIN2((this->m_kg - d), 1.0f), -0.999f);
+	this->m_kr = maxf(minf((this->m_kg + d), 1.0f), -0.999f);
+	this->m_kb = maxf(minf((this->m_kg - d), 1.0f), -0.999f);
 	this->m_maxk = MAX3(this->m_kr, this->m_kg, this->m_kb);
 	this->m_sc = (this->m_data->fit && (this->m_maxk > 0.f)) ? (1.f / (1.f + 2.f * this->m_maxk)) : (1.f / (1.f + this->m_maxk));
 	this->m_drg = 4.f * (this->m_kg - this->m_kr);
