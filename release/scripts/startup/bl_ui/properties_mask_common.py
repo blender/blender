@@ -122,9 +122,10 @@ class MASK_PT_spline():
 
         col = layout.column()
         col.prop(spline, "weight_interpolation")
-        rowsub = col.row()
-        rowsub.prop(spline, "use_cyclic")
-        rowsub.prop(spline, "use_fill")
+        
+        row = col.row()
+        row.prop(spline, "use_cyclic")
+        row.prop(spline, "use_fill")
 
 
 class MASK_PT_point():
@@ -309,10 +310,8 @@ class MASK_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("mask.select_all"
-                        ).action = 'TOGGLE'
-        layout.operator("mask.select_all",
-                        text="Inverse").action = 'INVERT'
+        layout.operator("mask.select_all").action = 'TOGGLE'
+        layout.operator("mask.select_all", text="Inverse").action = 'INVERT'
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

@@ -226,6 +226,7 @@ class NODE_PT_quality(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         snode = context.space_data
         tree = snode.node_tree
 

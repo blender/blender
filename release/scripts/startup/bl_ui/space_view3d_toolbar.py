@@ -1124,6 +1124,7 @@ class VIEW3D_MT_tools_projectpaint_clone(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         for i, tex in enumerate(context.active_object.data.uv_textures):
             props = layout.operator("wm.context_set_int", text=tex.name)
             props.data_path = "active_object.data.uv_texture_clone_index"

@@ -213,6 +213,7 @@ class IMAGE_MT_uvs_snap(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'EXEC_REGION_WIN'
 
         layout.operator("uv.snap_selected", text="Selected to Pixels").target = 'PIXELS'
@@ -230,6 +231,7 @@ class IMAGE_MT_uvs_mirror(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'EXEC_REGION_WIN'
 
         layout.operator("transform.mirror", text="X Axis").constraint_axis[0] = True
@@ -837,16 +839,10 @@ class IMAGE_UV_sculpt(Panel, ImagePaintPanel):
             row = col.row(align=True)
             self.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
-
-        split = layout.split()
-        col = split.column()
-
+ 
+        col = layout.column()
         col.prop(toolsettings, "uv_sculpt_lock_borders")
         col.prop(toolsettings, "uv_sculpt_all_islands")
-
-        split = layout.split()
-        col = split.column()
-
         col.prop(toolsettings, "uv_sculpt_tool")
 
         if toolsettings.uv_sculpt_tool == 'RELAX':

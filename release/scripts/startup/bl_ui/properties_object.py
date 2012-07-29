@@ -259,7 +259,6 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
             layout.prop(ob, "use_dupli_vertices_rotation", text="Rotation")
 
         elif ob.dupli_type == 'FACES':
-
             row = layout.row()
             row.prop(ob, "use_dupli_faces_scale", text="Scale")
             row.prop(ob, "dupli_faces_scale", text="Inherit Scale")

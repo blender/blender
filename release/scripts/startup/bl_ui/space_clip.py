@@ -187,11 +187,12 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
     bl_label = "Marker"
 
     def draw(self, context):
+        layout = self.layout
+        
         sc = context.space_data
         clip = sc.clip
         settings = clip.tracking.settings
-        layout = self.layout
-
+        
         col = layout.column(align=True)
         col.operator("clip.add_marker_move")
         col.operator("clip.detect_features")
@@ -292,6 +293,7 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         clip = context.space_data.clip
         tracking = clip.tracking
         settings = tracking.settings
@@ -482,6 +484,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         sc = context.space_data
         clip = context.space_data.clip
         act_track = clip.tracking.tracks.active
@@ -548,6 +551,7 @@ class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         clip = context.space_data.clip
         settings = clip.tracking.settings
 
@@ -782,6 +786,7 @@ class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         sc = context.space_data
         clip = sc.clip
 
@@ -859,6 +864,7 @@ class CLIP_MT_view(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         sc = context.space_data
 
         if sc.view == 'CLIP':

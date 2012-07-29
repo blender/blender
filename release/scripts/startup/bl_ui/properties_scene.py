@@ -39,6 +39,7 @@ class SCENE_PT_scene(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         scene = context.scene
 
         layout.prop(scene, "camera")
@@ -52,6 +53,7 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         scene = context.scene
         rd = context.scene.render
         ffmpeg = rd.ffmpeg
@@ -81,6 +83,7 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         unit = context.scene.unit_settings
 
         col = layout.column()

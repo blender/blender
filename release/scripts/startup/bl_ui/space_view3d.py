@@ -176,11 +176,12 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base):
 # Object-specific extensions to Transform menu
 class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
     def draw(self, context):
+        layout = self.layout
+        
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
 
         # object-specific option follow...
-        layout = self.layout
         layout.separator()
 
         layout.operator("transform.translate", text="Move Texture Space").texture_space = True
@@ -212,11 +213,12 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
 # Armature EditMode extensions to Transform menu
 class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):
     def draw(self, context):
+        layout = self.layout
+        
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
 
         # armature specific extensions follow...
-        layout = self.layout
         layout.separator()
 
         obj = context.object
@@ -429,18 +431,23 @@ class VIEW3D_MT_view_align_selected(Menu):
         props = layout.operator("view3d.viewnumpad", text="Top")
         props.align_active = True
         props.type = 'TOP'
+        
         props = layout.operator("view3d.viewnumpad", text="Bottom")
         props.align_active = True
         props.type = 'BOTTOM'
+        
         props = layout.operator("view3d.viewnumpad", text="Front")
         props.align_active = True
         props.type = 'FRONT'
+        
         props = layout.operator("view3d.viewnumpad", text="Back")
         props.align_active = True
         props.type = 'BACK'
+        
         props = layout.operator("view3d.viewnumpad", text="Right")
         props.align_active = True
         props.type = 'RIGHT'
+        
         props = layout.operator("view3d.viewnumpad", text="Left")
         props.align_active = True
         props.type = 'LEFT'
@@ -1191,6 +1198,7 @@ class VIEW3D_MT_vertex_group(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'EXEC_AREA'
         layout.operator("object.vertex_group_assign", text="Assign to New Group").new = True
 
@@ -1349,6 +1357,7 @@ class VIEW3D_MT_particle_specials(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         particle_edit = context.tool_settings.particle_edit
 
         layout.operator("particle.rekey")
@@ -1792,6 +1801,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.edge_face_add")
@@ -1839,6 +1849,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.flip_normals")
@@ -2632,6 +2643,7 @@ class VIEW3D_PT_etch_a_ton(Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         toolsettings = context.scene.tool_settings
 
         col = layout.column()

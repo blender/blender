@@ -337,7 +337,6 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
 
             if dome_type in {'FISHEYE', 'TRUNCATED_REAR', 'TRUNCATED_FRONT'}:
                 col = split.column()
-
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
                 col.prop(gs, "dome_angle", slider=True)
 
@@ -347,14 +346,13 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
 
             elif dome_type == 'PANORAM_SPH':
                 col = split.column()
-
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
+                
                 col = split.column()
                 col.prop(gs, "dome_tessellation", text="Tessellation")
 
             else:  # cube map
                 col = split.column()
-
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
 
                 col = split.column()
@@ -396,6 +394,7 @@ class RENDER_PT_game_system(RenderButtonsPanel, Panel):
         layout = self.layout
 
         gs = context.scene.game_settings
+        
         row = layout.row()
         row.prop(gs, "use_frame_rate")
         row.prop(gs, "restrict_animation_updates")
@@ -414,11 +413,11 @@ class RENDER_PT_game_display(RenderButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-
-        row = layout.row()
-        row.prop(context.scene.render, "fps", text="Animation Frame Rate", slider=False)
-
+        
         gs = context.scene.game_settings
+
+        layout.prop(context.scene.render, "fps", text="Animation Frame Rate", slider=False)
+
         flow = layout.column_flow()
         flow.prop(gs, "show_debug_properties", text="Debug Properties")
         flow.prop(gs, "show_framerate_profile", text="Framerate and Profile")
@@ -582,14 +581,14 @@ class WORLD_PT_game_mist(WorldButtonsPanel, Panel):
         world = context.world
 
         layout.active = world.mist_settings.use_mist
-        row = layout.row()
-        row.prop(world.mist_settings, "falloff")
+        
+        layout.prop(world.mist_settings, "falloff")
 
         row = layout.row(align=True)
         row.prop(world.mist_settings, "start")
         row.prop(world.mist_settings, "depth")
-        row = layout.row()
-        row.prop(world.mist_settings, "intensity", text="Minimum Intensity")
+        
+        layout.prop(world.mist_settings, "intensity", text="Minimum Intensity")
 
 
 class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
