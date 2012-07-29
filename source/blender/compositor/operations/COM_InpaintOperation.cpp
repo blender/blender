@@ -58,13 +58,13 @@ void InpaintSimpleOperation::clamp_xy(int & x, int & y)
 		x = 0;
 	}
 	if (x >= width) {
-		x = width-1;
+		x = width - 1;
 	}
 	if (y < 0) {
 		y = 0;
 	}
 	if (y >= height) {
-		y = height -1;
+		y = height - 1;
 	}
 }
 
@@ -74,8 +74,8 @@ float InpaintSimpleOperation::get(int x, int y, int component)
 
 	clamp_xy(x, y);
 	return this->m_cached_buffer[
-		y * width * COM_NUMBER_OF_CHANNELS 
-		+ x * COM_NUMBER_OF_CHANNELS + component];
+	           y * width * COM_NUMBER_OF_CHANNELS
+	           + x * COM_NUMBER_OF_CHANNELS + component];
 }
 
 void InpaintSimpleOperation::set(int x, int y, int component, float v) 
@@ -83,8 +83,8 @@ void InpaintSimpleOperation::set(int x, int y, int component, float v)
 	int width = this->getWidth();
 
 	this->m_cached_buffer[
-		y * width * COM_NUMBER_OF_CHANNELS 
-		+ x * COM_NUMBER_OF_CHANNELS + component] = v;
+	    y * width * COM_NUMBER_OF_CHANNELS
+	    + x * COM_NUMBER_OF_CHANNELS + component] = v;
 }
 
 int InpaintSimpleOperation::mdist(int x, int y) 
@@ -94,7 +94,7 @@ int InpaintSimpleOperation::mdist(int x, int y)
 	return this->manhatten_distance[y * width + x];
 }
 
-bool InpaintSimpleOperation::next_pixel(int & x,int & y, int & curr, int iters) 
+bool InpaintSimpleOperation::next_pixel(int & x, int & y, int & curr, int iters)
 {
 	int width = this->getWidth();
 
@@ -118,8 +118,8 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 {
 	int width = this->getWidth();
 	int height = this->getHeight();
-	short * m = this->manhatten_distance = new short[width*height];
-	int offsets[width+height+1];
+	short *m = this->manhatten_distance = new short[width * height];
+	int offsets[width + height + 1];
 
 	memset(offsets, 0, sizeof(offsets));
 
@@ -129,24 +129,24 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 			if (get(i, j, 3) < 1.0) {
 				r = width + height;
 				if (i > 0) 
-					r = MIN2(r, m[j*width+i-1]+1);
+					r = MIN2(r, m[j * width + i - 1] + 1);
 				if (j > 0) 
-					r = MIN2(r, m[(j-1)*width+i]+1);
+					r = MIN2(r, m[(j - 1) * width + i] + 1);
 			}
-			m[j*width+i] = r;
+			m[j * width + i] = r;
 		}
 	}
 	
-	for (int j = height-1; j >= 0; j--) {
+	for (int j = height - 1; j >= 0; j--) {
 		for (int i = width; i >= 0; i--) {
-			int r = m[j*width+i];
+			int r = m[j * width + i];
 			
 			if (i + 1 < width) 
-				r = MIN2(r, m[j*width+i+1]+1);
+				r = MIN2(r, m[j * width + i + 1] + 1);
 			if (j + 1 < height) 
-				r = MIN2(r, m[(j+1)*width+i]+1);
+				r = MIN2(r, m[(j + 1) * width + i] + 1);
 			
-			m[j*width+i] = r;
+			m[j * width + i] = r;
 			
 			offsets[r]++;
 		}
@@ -155,15 +155,15 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 	offsets[0] = 0;
 	
 	for (int i = 1; i < width + height + 1; i++) {
-		offsets[i] += offsets[i-1];
+		offsets[i] += offsets[i - 1];
 	}
 	
-	area_size = offsets[width+height];
+	area_size = offsets[width + height];
 	pixelorder = new int[area_size];
 	
 	for (int i = 0; i < width * height; i++) {
 		if (m[i] > 0) {
-			pixelorder[offsets[m[i]-1]++] = i;
+			pixelorder[offsets[m[i] - 1]++] = i;
 		}
 	}
 }
@@ -210,7 +210,7 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 	}
 	lockMutex();
 	if (!this->cached_buffer_ready) {
-		MemoryBuffer * buf = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect);
+		MemoryBuffer *buf = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect);
 
 		this->m_cached_buffer = new float[this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS];
 		memcpy(this->m_cached_buffer, buf->getBuffer(), this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
@@ -218,7 +218,7 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 		calc_manhatten_distance();
 
 		int curr = 0;
-		int x,y;
+		int x, y;
 
 	
 		while (next_pixel(x, y, curr, this->m_iterations)) {
@@ -234,7 +234,7 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 void InpaintSimpleOperation::executePixel(float *color, int x, int y, void *data)
 {
 	for (int c = 0; c < 3; c++) {
-		color[c] = get(x,y,c);
+		color[c] = get(x, y, c);
 	}
 	color[3] = 1.0f;
 }
@@ -264,7 +264,8 @@ bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 {
 	if (this->cached_buffer_ready) {
 		return false;
-	} else {
+	}
+	else {
 		rcti newInput;
 	
 		newInput.xmax = getWidth();

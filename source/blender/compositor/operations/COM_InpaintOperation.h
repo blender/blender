@@ -36,9 +36,9 @@ protected:
 	float *m_cached_buffer;
 	bool cached_buffer_ready;
 
-	int * pixelorder;
+	int *pixelorder;
 	int area_size;
-	short * manhatten_distance;
+	short *manhatten_distance;
 public:
 	InpaintSimpleOperation();
 	
@@ -68,7 +68,7 @@ private:
 	float get(int x, int y, int component);
 	void set(int x, int y, int component, float v);
 	int mdist(int x, int y);
-	bool next_pixel(int & x,int & y, int & curr, int iters);
+	bool next_pixel(int & x, int & y, int & curr, int iters);
 	void pix_step(int x, int y);
 };
 
