@@ -31,20 +31,20 @@ InpaintSimpleOperation::InpaintSimpleOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
 	this->m_inputImageProgram = NULL;
-	this->pixelorder = NULL;
-	this->manhatten_distance = NULL;
+	this->m_pixelorder = NULL;
+	this->m_manhatten_distance = NULL;
 	this->m_cached_buffer = NULL;
-	this->cached_buffer_ready = false;
+	this->m_cached_buffer_ready = false;
 }
 void InpaintSimpleOperation::initExecution()
 {
 	this->m_inputImageProgram = this->getInputSocketReader(0);
 
 	this->m_cached_buffer = NULL;
-	this->pixelorder = NULL;
-	this->manhatten_distance = NULL;
+	this->m_pixelorder = NULL;
+	this->m_manhatten_distance = NULL;
 	this->m_cached_buffer = NULL;
-	this->cached_buffer_ready = false;
+	this->m_cached_buffer_ready = false;
 
 	this->initMutex();
 }
@@ -91,18 +91,18 @@ int InpaintSimpleOperation::mdist(int x, int y)
 {
 	int width = this->getWidth();
 	clamp_xy(x, y);
-	return this->manhatten_distance[y * width + x];
+	return this->m_manhatten_distance[y * width + x];
 }
 
 bool InpaintSimpleOperation::next_pixel(int & x, int & y, int & curr, int iters)
 {
 	int width = this->getWidth();
 
-	if (curr >= area_size) {
+	if (curr >= this->m_area_size) {
 		return false;
 	}
 	
-	int r = this->pixelorder[curr++];
+	int r = this->m_pixelorder[curr++];
 
 	x = r % width;
 	y = r / width;
@@ -118,7 +118,7 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 {
 	int width = this->getWidth();
 	int height = this->getHeight();
-	short *m = this->manhatten_distance = new short[width * height];
+	short *m = this->m_manhatten_distance = new short[width * height];
 	int offsets[width + height + 1];
 
 	memset(offsets, 0, sizeof(offsets));
@@ -158,12 +158,12 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 		offsets[i] += offsets[i - 1];
 	}
 	
-	area_size = offsets[width + height];
-	pixelorder = new int[area_size];
+	this->m_area_size = offsets[width + height];
+	this->m_pixelorder = new int[this->m_area_size];
 	
 	for (int i = 0; i < width * height; i++) {
 		if (m[i] > 0) {
-			pixelorder[offsets[m[i] - 1]++] = i;
+			this->m_pixelorder[offsets[m[i] - 1]++] = i;
 		}
 	}
 }
@@ -205,11 +205,11 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 
 void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 {
-	if (this->cached_buffer_ready) {
+	if (this->m_cached_buffer_ready) {
 		return this->m_cached_buffer;
 	}
 	lockMutex();
-	if (!this->cached_buffer_ready) {
+	if (!this->m_cached_buffer_ready) {
 		MemoryBuffer *buf = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect);
 
 		this->m_cached_buffer = new float[this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS];
@@ -224,7 +224,7 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 		while (next_pixel(x, y, curr, this->m_iterations)) {
 			pix_step(x, y);
 		}
-		this->cached_buffer_ready = true;
+		this->m_cached_buffer_ready = true;
 	}
 
 	unlockMutex();
@@ -248,21 +248,21 @@ void InpaintSimpleOperation::deinitExecution()
 		this->m_cached_buffer = NULL;
 	}
 
-	if (this->pixelorder) {
-		delete this->pixelorder;
-		this->pixelorder = NULL;
+	if (this->m_pixelorder) {
+		delete this->m_pixelorder;
+		this->m_pixelorder = NULL;
 	}
 
-	if (this->manhatten_distance) {
-		delete this->manhatten_distance;
-		this->manhatten_distance = NULL;
+	if (this->m_manhatten_distance) {
+		delete this->m_manhatten_distance;
+		this->m_manhatten_distance = NULL;
 	}
-	this->cached_buffer_ready = false;
+	this->m_cached_buffer_ready = false;
 }
 
 bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-	if (this->cached_buffer_ready) {
+	if (this->m_cached_buffer_ready) {
 		return false;
 	}
 	else {

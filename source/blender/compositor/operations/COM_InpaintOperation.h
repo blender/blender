@@ -34,11 +34,11 @@ protected:
 	int m_iterations;
 	
 	float *m_cached_buffer;
-	bool cached_buffer_ready;
+	bool m_cached_buffer_ready;
 
-	int *pixelorder;
-	int area_size;
-	short *manhatten_distance;
+	int *m_pixelorder;
+	int m_area_size;
+	short *m_manhatten_distance;
 public:
 	InpaintSimpleOperation();
 	
