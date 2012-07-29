@@ -79,7 +79,7 @@ class USERPREF_HT_header(Header):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.template_header(menus=False)
 
         userpref = context.user_preferences
@@ -138,7 +138,7 @@ class USERPREF_MT_splash(Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         split = layout.split()
         row = split.row()
         row.label("")
@@ -852,7 +852,7 @@ class USERPREF_MT_ndof_settings(Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         input_prefs = context.user_preferences.inputs
 
         layout.separator()
@@ -982,7 +982,7 @@ class USERPREF_MT_addons_dev_guides(Menu):
     # menu to open web-pages with addons development guides
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator("wm.url_open", text="API Concepts", icon='URL').url = "http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro"
         layout.operator("wm.url_open", text="Addon Guidelines", icon='URL').url = "http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons"
         layout.operator("wm.url_open", text="How to share your addon", icon='URL').url = "http://wiki.blender.org/index.php/Dev:Py/Sharing"

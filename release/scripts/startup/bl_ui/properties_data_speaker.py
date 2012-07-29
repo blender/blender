@@ -105,7 +105,7 @@ class DATA_PT_cone(DataButtonsPanel, Panel):
         speaker = context.speaker
 
         split = layout.split()
-        
+
         col = split.column()
         col.label("Angle:")
         col.prop(speaker, "cone_angle_outer", text="Outer")

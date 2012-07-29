@@ -323,7 +323,7 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit from
 
     def draw(self, context):
         ob = context.object
-        
+
         self.draw_settings(context, ob.pose.animation_visualization, bones=True)
 
 

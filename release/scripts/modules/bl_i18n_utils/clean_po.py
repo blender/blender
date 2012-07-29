@@ -65,7 +65,6 @@ def main():
                         help="Restrict processed languages to those.")
     args = parser.parse_args()
 
-
     ret = 0
 
     if args.langs:

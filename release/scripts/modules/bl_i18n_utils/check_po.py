@@ -94,7 +94,6 @@ def main():
                         help="Restrict processed languages to those.")
     args = parser.parse_args()
 
-
     if args.pot:
         global FILE_NAME_POT
         FILE_NAME_POT = args.pot
@@ -145,24 +144,24 @@ def main():
                         ret = t
 
     if args.stats and glob_stats["nbr"] != 0.0:
-        nbr_contexts = len(glob_stats["contexts"]-{""})
+        nbr_contexts = len(glob_stats["contexts"] - {""})
         if nbr_contexts != 1:
             if nbr_contexts == 0:
                 nbr_contexts = "No"
             _ctx_txt = "s are"
         else:
             _ctx_txt = " is"
-        print("\nAverage stats for all {:.0f} processed files:\n" \
-              "    {:>6.1%} done!\n" \
-              "    {:>6.1%} of messages are tooltips.\n" \
-              "    {:>6.1%} of tooltips are translated.\n" \
-              "    {:>6.1%} of translated messages are tooltips.\n" \
-              "    {:>6.1%} of messages are commented.\n" \
-              "    The org msgids are currently made of {} signs.\n" \
-              "    All processed translations are currently made of {} signs.\n" \
-              "    {} specific context{} present:\n            {}\n" \
-              "".format(glob_stats["nbr"], glob_stats["lvl"]/glob_stats["nbr"],
-                        glob_stats["lvl_ttips"]/glob_stats["nbr"],
+        print("\nAverage stats for all {:.0f} processed files:\n"
+              "    {:>6.1%} done!\n"
+              "    {:>6.1%} of messages are tooltips.\n"
+              "    {:>6.1%} of tooltips are translated.\n"
+              "    {:>6.1%} of translated messages are tooltips.\n"
+              "    {:>6.1%} of messages are commented.\n"
+              "    The org msgids are currently made of {} signs.\n"
+              "    All processed translations are currently made of {} signs.\n"
+              "    {} specific context{} present:\n            {}\n"
+              "".format(glob_stats["nbr"], glob_stats["lvl"] / glob_stats["nbr"],
+                        glob_stats["lvl_ttips"] / glob_stats["nbr"],
                         glob_stats["lvl_trans_ttips"]/glob_stats["nbr"],
                         glob_stats["lvl_ttips_in_trans"]/glob_stats["nbr"],
                         glob_stats["lvl_comm"]/glob_stats["nbr"], glob_stats["nbr_signs"],

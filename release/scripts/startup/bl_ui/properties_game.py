@@ -347,7 +347,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
             elif dome_type == 'PANORAM_SPH':
                 col = split.column()
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
-                
+
                 col = split.column()
                 col.prop(gs, "dome_tessellation", text="Tessellation")
 
@@ -394,7 +394,7 @@ class RENDER_PT_game_system(RenderButtonsPanel, Panel):
         layout = self.layout
 
         gs = context.scene.game_settings
-        
+
         row = layout.row()
         row.prop(gs, "use_frame_rate")
         row.prop(gs, "restrict_animation_updates")
@@ -413,7 +413,7 @@ class RENDER_PT_game_display(RenderButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         gs = context.scene.game_settings
 
         layout.prop(context.scene.render, "fps", text="Animation Frame Rate", slider=False)
@@ -581,13 +581,13 @@ class WORLD_PT_game_mist(WorldButtonsPanel, Panel):
         world = context.world
 
         layout.active = world.mist_settings.use_mist
-        
+
         layout.prop(world.mist_settings, "falloff")
 
         row = layout.row(align=True)
         row.prop(world.mist_settings, "start")
         row.prop(world.mist_settings, "depth")
-        
+
         layout.prop(world.mist_settings, "intensity", text="Minimum Intensity")
 
 

@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 # panels get subclassed (not registered directly)
 # menus are referenced `as is`
@@ -122,7 +122,7 @@ class MASK_PT_spline():
 
         col = layout.column()
         col.prop(spline, "weight_interpolation")
-        
+
         row = col.row()
         row.prop(spline, "use_cyclic")
         row.prop(spline, "use_fill")

@@ -21,7 +21,7 @@
 # <pep8 compliant>
 
 # Merge one or more .po files into the first dest one.
-# If a msgkey is present in more than one merged po, the one in the first file wins, unless 
+# If a msgkey is present in more than one merged po, the one in the first file wins, unless
 # it’s marked as fuzzy and one later is not.
 # The fuzzy flag is removed if necessary.
 # All other comments are never modified.
@@ -59,7 +59,6 @@ def main():
                         help="The po's to merge into the dst.po one.")
     args = parser.parse_args()
 
-
     ret = 0
     done_msgkeys = set()
     done_fuzzy_msgkeys = set()
@@ -78,7 +77,7 @@ def main():
     # If we don’t want to replace existing valid translations, pre-populate
     # done_msgkeys and done_fuzzy_msgkeys.
     if not args.replace:
-        done_msgkeys =  dst_states["trans_msg"].copy()
+        done_msgkeys = dst_states["trans_msg"].copy()
         done_fuzzy_msgkeys = dst_states["fuzzy_msg"].copy()
     for po in args.src:
         messages, states, stats = utils.parse_messages(po)

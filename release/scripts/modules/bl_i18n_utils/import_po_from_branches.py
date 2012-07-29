@@ -56,12 +56,11 @@ def main():
                         help="Restrict processed languages to those.")
     args = parser.parse_args()
 
-
     ret = 0
 
-    threshold = float(settings.IMPORT_MIN_LEVEL)/100.0
+    threshold = float(settings.IMPORT_MIN_LEVEL) / 100.0
     if args.threshold is not None:
-        threshold = float(args.threshold)/100.0
+        threshold = float(args.threshold) / 100.0
 
     for lang in os.listdir(BRANCHES_DIR):
         if args.langs and lang not in args.langs:
@@ -74,7 +73,7 @@ def main():
             trans_msgs = stats["trans_msg"]
             lvl = 0.0
             if tot_msgs:
-                lvl = float(trans_msgs)/float(tot_msgs)
+                lvl = float(trans_msgs) / float(tot_msgs)
             if lvl > threshold:
                 if state["is_broken"] and args.strict:
                     print("{:<10}: {:>6.1%} done, but BROKEN, skipped." \

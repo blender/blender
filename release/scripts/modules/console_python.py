@@ -308,7 +308,8 @@ def banner(context):
                    'OUTPUT')
     add_scrollback("Convenience Imports: from mathutils import *; "
                    "from math import *", 'OUTPUT')
-    add_scrollback("Convenience Variables: C = bpy.context, D = bpy.data", 'OUTPUT')
+    add_scrollback("Convenience Variables: C = bpy.context, D = bpy.data",
+                   'OUTPUT')
     add_scrollback("", 'OUTPUT')
     sc.prompt = PROMPT
 
