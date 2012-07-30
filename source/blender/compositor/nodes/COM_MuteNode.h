@@ -43,6 +43,7 @@ private:
 	typedef std::map<bNodeSocket *, Socket *> SocketMap;
 
 	void reconnect(ExecutionSystem *graph, OutputSocket *output);
+	void createDefaultOutput(ExecutionSystem *graph, OutputSocket *output);
 
 	template<class SocketType> void fillSocketMap(vector<SocketType *> &sockets, SocketMap &socketMap);
 };
