@@ -31,6 +31,7 @@
  *  \ingroup bke
  */
 
+struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct CurveMapping;
@@ -89,5 +90,9 @@ void BKE_color_managed_display_settings_copy(struct ColorManagedDisplaySettings 
 void BKE_color_managed_view_settings_init(struct ColorManagedViewSettings *settings);
 void BKE_color_managed_view_settings_copy(struct ColorManagedViewSettings *new_settings,
                                           const struct ColorManagedViewSettings *settings);
+
+void BKE_color_managed_colorspace_settings_init(struct ColorManagedColorspaceSettings *colorspace_settings);
+void BKE_color_managed_colorspace_settings_copy(struct ColorManagedColorspaceSettings *colorspace_settings,
+                                                const struct ColorManagedColorspaceSettings *settings);
 
 #endif

@@ -1244,3 +1244,14 @@ void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings
 	new_settings->exposure = settings->exposure;
 	new_settings->gamma = settings->gamma;
 }
+
+void BKE_color_managed_colorspace_settings_init(ColorManagedColorspaceSettings *colorspace_settings)
+{
+	BLI_strncpy(colorspace_settings->name, "NONE", sizeof(colorspace_settings->name));
+}
+
+void BKE_color_managed_colorspace_settings_copy(ColorManagedColorspaceSettings *colorspace_settings,
+                                                const ColorManagedColorspaceSettings *settings)
+{
+	BLI_strncpy(colorspace_settings->name, settings->name, sizeof(colorspace_settings->name));
+}

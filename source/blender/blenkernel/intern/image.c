@@ -71,6 +71,7 @@
 #include "BLI_bpath.h"
 
 #include "BKE_bmfont.h"
+#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
@@ -245,6 +246,8 @@ static Image *image_alloc(const char *name, short source, short type)
 
 		ima->source = source;
 		ima->type = type;
+
+		BKE_color_managed_colorspace_settings_init(&ima->colorspace_settings);
 	}
 	return ima;
 }
@@ -326,6 +329,8 @@ Image *BKE_image_copy(Image *ima)
 
 	nima->aspx = ima->aspx;
 	nima->aspy = ima->aspy;
+
+	BKE_color_managed_colorspace_settings_copy(&nima->colorspace_settings, &ima->colorspace_settings);
 
 	return nima;
 }
