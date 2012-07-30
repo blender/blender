@@ -2589,6 +2589,10 @@ bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, bNodeTemplate 
 		if (node->id)
 			id_us_plus(node->id);
 			
+
+		if (snode->flag & SNODE_USE_HIDDEN_PREVIEW)
+			node->flag &= ~NODE_PREVIEW;
+
 		snode_update(snode, node);
 	}
 	

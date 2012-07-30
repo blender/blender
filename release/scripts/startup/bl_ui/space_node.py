@@ -236,6 +236,7 @@ class NODE_PT_quality(bpy.types.Panel):
         layout.prop(tree, "use_opencl")
         layout.prop(tree, "two_pass")
         layout.prop(snode, "show_highlight")
+        layout.prop(snode, "use_hidden_preview")
   
 
 class NODE_MT_node_color_presets(Menu):
