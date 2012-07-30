@@ -1536,7 +1536,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase)
 
 void BKE_mesh_from_nurbs(Object *ob)
 {
-	return BKE_mesh_from_nurbs_displist(ob, &ob->disp);
+	BKE_mesh_from_nurbs_displist(ob, &ob->disp);
 }
 
 typedef struct EdgeLink {
