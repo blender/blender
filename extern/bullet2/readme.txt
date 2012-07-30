@@ -13,3 +13,7 @@ Originally committed in blender svn revision: 45908.
 Apply patches/make_id.patch to prevent duplicated define of MAKE_ID macro in blender
 side and bullet side.
 Sergey
+
+Apply patches/ghost_character.path to prevent characters from colliding with ghost objects.
+Mitchell
+

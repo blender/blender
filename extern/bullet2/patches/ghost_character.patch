@@ -1,0 +1,28 @@
+Index: extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.cpp
+===================================================================
+--- extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.cpp	(revision 49183)
++++ extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.cpp	(working copy)
+@@ -77,6 +77,9 @@
+ 		if (convexResult.m_hitCollisionObject == m_me)
+ 			return btScalar(1.0);
+ 
++		if (!convexResult.m_hitCollisionObject->hasContactResponse())
++			return btScalar(1.0);
++
+ 		btVector3 hitNormalWorld;
+ 		if (normalInWorldSpace)
+ 		{
+@@ -173,7 +176,12 @@
+ 		m_manifoldArray.resize(0);
+ 
+ 		btBroadphasePair* collisionPair = &m_ghostObject->getOverlappingPairCache()->getOverlappingPairArray()[i];
+-		
++		btCollisionObject* obj0 = static_cast<btCollisionObject*>(collisionPair->m_pProxy0->m_clientObject);
++		btCollisionObject* obj1 = static_cast<btCollisionObject*>(collisionPair->m_pProxy1->m_clientObject);
++
++		if ((obj0 && !obj0->hasContactResponse()) || (obj1 && !obj1->hasContactResponse()))
++			continue;
++
+ 		if (collisionPair->m_algorithm)
+ 			collisionPair->m_algorithm->getAllContactManifolds(m_manifoldArray);
+ 
