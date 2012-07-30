@@ -1789,8 +1789,8 @@ static void partial_buffer_update_rect(unsigned char *display_buffer, const floa
 {
 	int x, y;
 
-	for (y = ymin; y <= ymax; y++) {
-		for (x = xmin; x <= xmax; x++) {
+	for (y = ymin; y < ymax; y++) {
+		for (x = xmin; x < xmax; x++) {
 			int display_index = (y * display_stride + x) * channels;
 			int linear_index = ((y - linear_offset_y) * linear_stride + (x - linear_offset_x)) * channels;
 			float pixel[4];

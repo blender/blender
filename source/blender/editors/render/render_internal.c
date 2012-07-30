@@ -153,7 +153,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	                           xmax, ymax, ibuf->x, rr->rectx);
 
 	IMB_partial_display_buffer_update(ibuf, rectf, rr->rectx, rxmin, rymin,
-	                                  rxmin, rymin, rxmin + xmax - 1, rymin + ymax - 1);
+	                                  rxmin, rymin, rxmin + xmax, rymin + ymax);
 }
 
 /* ****************************** render invoking ***************** */
