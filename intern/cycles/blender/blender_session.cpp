@@ -86,7 +86,7 @@ void BlenderSession::create_session()
 	last_progress = -1.0f;
 
 	/* create scene */
-	scene = new Scene(scene_params);
+	scene = new Scene(scene_params, session_params.device);
 
 	/* create sync */
 	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background);

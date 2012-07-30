@@ -97,6 +97,9 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, u
 {
 	float4 r;
 
+#ifdef __KERNEL_CPU__
+	r = kernel_tex_image_interp(id, x, y);
+#else
 	/* not particularly proud of this massive switch, what are the
 	 * alternatives?
 	 * - use a single big 1D texture, and do our own lookup/filtering
@@ -107,11 +110,11 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, u
 	 * we still need some for other storage */
 
 	switch(id) {
-		case 0: r = kernel_tex_image_interp(__tex_image_000, x, y); break;
-		case 1: r = kernel_tex_image_interp(__tex_image_001, x, y); break;
-		case 2: r = kernel_tex_image_interp(__tex_image_002, x, y); break;
-		case 3: r = kernel_tex_image_interp(__tex_image_003, x, y); break;
-		case 4: r = kernel_tex_image_interp(__tex_image_004, x, y); break;
+		case 0: r = kernel_tex_image_interp(__tex_image_float_000, x, y); break;
+		case 1: r = kernel_tex_image_interp(__tex_image_float_001, x, y); break;
+		case 2: r = kernel_tex_image_interp(__tex_image_float_002, x, y); break;
+		case 3: r = kernel_tex_image_interp(__tex_image_float_003, x, y); break;
+		case 4: r = kernel_tex_image_interp(__tex_image_float_004, x, y); break;
 		case 5: r = kernel_tex_image_interp(__tex_image_005, x, y); break;
 		case 6: r = kernel_tex_image_interp(__tex_image_006, x, y); break;
 		case 7: r = kernel_tex_image_interp(__tex_image_007, x, y); break;
@@ -202,15 +205,16 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, u
 		case 92: r = kernel_tex_image_interp(__tex_image_092, x, y); break;
 		case 93: r = kernel_tex_image_interp(__tex_image_093, x, y); break;
 		case 94: r = kernel_tex_image_interp(__tex_image_094, x, y); break;
-		case 95: r = kernel_tex_image_interp(__tex_image_float_095, x, y); break;
-		case 96: r = kernel_tex_image_interp(__tex_image_float_096, x, y); break;
-		case 97: r = kernel_tex_image_interp(__tex_image_float_097, x, y); break;
-		case 98: r = kernel_tex_image_interp(__tex_image_float_098, x, y); break;
-		case 99: r = kernel_tex_image_interp(__tex_image_float_099, x, y); break;
+		case 95: r = kernel_tex_image_interp(__tex_image_095, x, y); break;
+		case 96: r = kernel_tex_image_interp(__tex_image_096, x, y); break;
+		case 97: r = kernel_tex_image_interp(__tex_image_097, x, y); break;
+		case 98: r = kernel_tex_image_interp(__tex_image_098, x, y); break;
+		case 99: r = kernel_tex_image_interp(__tex_image_099, x, y); break;
 		default: 
 			kernel_assert(0);
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
+#endif
 
 	if(srgb) {
 		r.x = color_srgb_to_scene_linear(r.x);

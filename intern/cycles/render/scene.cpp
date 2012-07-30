@@ -37,7 +37,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-Scene::Scene(const SceneParams& params_)
+Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 : params(params_)
 {
 	device = NULL;
@@ -53,6 +53,9 @@ Scene::Scene(const SceneParams& params_)
 	integrator = new Integrator();
 	image_manager = new ImageManager();
 	shader_manager = ShaderManager::create(this);
+
+	if (device_info_.type == DEVICE_CPU)
+		image_manager->set_extended_image_limits();
 }
 
 Scene::~Scene()

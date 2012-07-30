@@ -158,7 +158,7 @@ typedef texture_image<uchar4> texture_image_uchar4;
 #define kernel_tex_fetch_m128(tex, index) (kg->tex.fetch_m128(index))
 #define kernel_tex_fetch_m128i(tex, index) (kg->tex.fetch_m128i(index))
 #define kernel_tex_interp(tex, t, size) (kg->tex.interp(t, size))
-#define kernel_tex_image_interp(tex, x, y) (kg->tex.interp(x, y))
+#define kernel_tex_image_interp(tex, x, y) ((tex < MAX_FLOAT_IMAGES) ? kg->texture_float_images[tex].interp(x, y) : kg->texture_byte_images[tex - MAX_FLOAT_IMAGES].interp(x, y))
 
 #define kernel_data (kg->__data)
 

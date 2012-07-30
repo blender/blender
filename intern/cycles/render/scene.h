@@ -37,6 +37,7 @@ class AttributeRequestSet;
 class Background;
 class Camera;
 class Device;
+class DeviceInfo;
 class Film;
 class Filter;
 class Integrator;
@@ -97,8 +98,8 @@ public:
 	device_vector<uint> sobol_directions;
 
 	/* images */
-	device_vector<uchar4> tex_image[TEX_NUM_IMAGES];
-	device_vector<float4> tex_float_image[TEX_NUM_FLOAT_IMAGES];
+	device_vector<uchar4> tex_image[TEX_EXTENDED_NUM_IMAGES];
+	device_vector<float4> tex_float_image[TEX_EXTENDED_NUM_FLOAT_IMAGES];
 
 	/* opencl images */
 	device_vector<uchar4> tex_image_packed;
@@ -179,7 +180,7 @@ public:
 	/* mutex must be locked manually by callers */
 	thread_mutex mutex;
 
-	Scene(const SceneParams& params);
+	Scene(const SceneParams& params, const DeviceInfo& device_info);
 	~Scene();
 
 	void device_update(Device *device, Progress& progress);
