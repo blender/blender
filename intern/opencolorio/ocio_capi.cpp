@@ -32,6 +32,25 @@
 #define OCIO_CAPI_IMPLEMENTATION
 #include "ocio_capi.h"
 
+#ifdef NDEBUG
+#  define OCIO_abort()
+#else
+#  include <stdlib.h>
+#  define OCIO_abort() abort()
+#endif
+
+static void OCIO_reportError(const char *err)
+{
+	std::cerr << "OpenColorIO Error: " << err << std::endl;
+
+	OCIO_abort();
+}
+
+static void OCIO_reportException(Exception &exception)
+{
+	OCIO_reportError(exception.what());
+}
+
 ConstConfigRcPtr *OCIO_getCurrentConfig(void)
 {
 	ConstConfigRcPtr *config =  new ConstConfigRcPtr();
@@ -42,7 +61,7 @@ ConstConfigRcPtr *OCIO_getCurrentConfig(void)
 			return config;
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
@@ -53,8 +72,8 @@ void OCIO_setCurrentConfig(const ConstConfigRcPtr *config)
 	try {
 		SetCurrentConfig(*config);
 	}
-	catch (Exception & exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+	catch (Exception &exception) {
+		OCIO_reportException(exception);
 	}
 }
 
@@ -69,7 +88,7 @@ ConstConfigRcPtr *OCIO_configCreateFromEnv(void)
 			return config;
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
@@ -87,7 +106,7 @@ ConstConfigRcPtr *OCIO_configCreateFromFile(const char *filename)
 			return config;
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
@@ -104,7 +123,7 @@ int OCIO_configGetNumColorSpaces(ConstConfigRcPtr *config)
 		return (*config)->getNumColorSpaces();
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return 0;
@@ -116,7 +135,7 @@ const char *OCIO_configGetColorSpaceNameByIndex(ConstConfigRcPtr *config, int in
 		return (*config)->getColorSpaceNameByIndex(index);
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
@@ -133,7 +152,7 @@ ConstColorSpaceRcPtr *OCIO_configGetColorSpace(ConstConfigRcPtr *config, const c
 			return cs;
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 		delete cs;
 	}
 
@@ -146,7 +165,7 @@ int OCIO_configGetIndexForColorSpace(ConstConfigRcPtr *config, const char *name)
 		return (*config)->getIndexForColorSpace(name);
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return -1;
@@ -158,7 +177,7 @@ const char *OCIO_configGetDefaultDisplay(ConstConfigRcPtr *config)
 		return (*config)->getDefaultDisplay();
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
@@ -170,7 +189,7 @@ int OCIO_configGetNumDisplays(ConstConfigRcPtr* config)
 		return (*config)->getNumDisplays();
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return 0;
@@ -182,7 +201,7 @@ const char *OCIO_configGetDisplay(ConstConfigRcPtr *config, int index)
 		return (*config)->getDisplay(index);
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
@@ -194,7 +213,7 @@ const char *OCIO_configGetDefaultView(ConstConfigRcPtr *config, const char *disp
 		return (*config)->getDefaultView(display);
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
@@ -206,7 +225,7 @@ int OCIO_configGetNumViews(ConstConfigRcPtr *config, const char *display)
 		return (*config)->getNumViews(display);
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return 0;
@@ -218,7 +237,7 @@ const char *OCIO_configGetView(ConstConfigRcPtr *config, const char *display, in
 		return (*config)->getView(display, index);
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
@@ -230,7 +249,7 @@ const char *OCIO_configGetDisplayColorSpaceName(ConstConfigRcPtr *config, const 
 		return (*config)->getDisplayColorSpaceName(display, view);
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
@@ -252,7 +271,7 @@ ConstProcessorRcPtr *OCIO_configGetProcessorWithNames(ConstConfigRcPtr *config, 
 			return p;
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return 0;
@@ -269,7 +288,7 @@ ConstProcessorRcPtr *OCIO_configGetProcessor(ConstConfigRcPtr *config, ConstTran
 			return p;
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
@@ -281,7 +300,7 @@ void OCIO_processorApply(ConstProcessorRcPtr *processor, PackedImageDesc *img)
 		(*processor)->apply(*img);
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 }
 
@@ -364,7 +383,7 @@ PackedImageDesc *OCIO_createPackedImageDesc(float *data, long width, long height
 		return id;
 	}
 	catch (Exception &exception) {
-		std::cerr << "OpenColorIO Error: " << exception.what() << std::endl;
+		OCIO_reportException(exception);
 	}
 
 	return NULL;
