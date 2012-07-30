@@ -44,7 +44,7 @@ static bNodeSocketTemplate cmp_node_inpaint_out[] = {
 	{   -1, 0, ""   }
 };
 
-static void node_composit_exec_inpaint(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_inpaint(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
 }
 
