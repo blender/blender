@@ -47,7 +47,12 @@ void MuteNode::reconnect(ExecutionSystem *graph, OutputSocket *output)
 			}
 		}
 	}
-	
+
+	createDefaultOutput(graph, output);
+}
+
+void MuteNode::createDefaultOutput(ExecutionSystem *graph, OutputSocket *output)
+{
 	NodeOperation *operation = NULL;
 	switch (output->getDataType()) {
 		case COM_DT_VALUE:
@@ -100,7 +105,10 @@ void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	bNode *editorNode = this->getbNode();
 	vector<OutputSocket *> &outputsockets = this->getOutputSockets();
 
-	if (editorNode->typeinfo->internal_connect) {
+	/* mute node is also used for unknown nodes and couple of nodes in fast mode
+	 * can't use generic routines in that case
+	 */
+	if ((editorNode->flag & NODE_MUTED) && editorNode->typeinfo->internal_connect) {
 		vector<InputSocket *> &inputsockets = this->getInputSockets();
 		bNodeTree *editorTree = (bNodeTree *) context->getbNodeTree();
 		SocketMap socketMap;
@@ -117,7 +125,14 @@ void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 				InputSocket *fromSocket = (InputSocket *) socketMap.find(link->fromsock)->second;
 				OutputSocket *toSocket = (OutputSocket *) socketMap.find(link->tosock)->second;
 
-				toSocket->relinkConnections(fromSocket->getConnection()->getFromSocket(), false);
+				if (toSocket->isConnected()) {
+					if (fromSocket->isConnected()) {
+						toSocket->relinkConnections(fromSocket->getConnection()->getFromSocket(), false);
+					}
+					else {
+						createDefaultOutput(graph, toSocket);
+					}
+				}
 			}
 		}
 
