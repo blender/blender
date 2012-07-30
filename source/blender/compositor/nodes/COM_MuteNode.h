@@ -23,7 +23,13 @@
 #ifndef _COM_MuteNode_h_
 #define _COM_MuteNode_h_
 
+#include <map>
+
 #include "COM_Node.h"
+
+extern "C" {
+	#include "BKE_node.h"
+}
 
 /**
  * @brief MuteNode
@@ -34,7 +40,11 @@ public:
 	MuteNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 private:
+	typedef std::map<bNodeSocket *, Socket *> SocketMap;
+
 	void reconnect(ExecutionSystem *graph, OutputSocket *output);
+
+	template<class SocketType> void fillSocketMap(vector<SocketType *> &sockets, SocketMap &socketMap);
 };
 
 #endif

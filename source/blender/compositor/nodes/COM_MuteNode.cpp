@@ -20,13 +20,15 @@
  *		Monique Dewanchand
  */
 
-#include <stdio.h>
-
 #include "COM_MuteNode.h"
 #include "COM_SocketConnection.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
 #include "COM_SetColorOperation.h"
+
+extern "C" {
+	#include "BLI_listbase.h"
+}
 
 MuteNode::MuteNode(bNode *editorNode) : Node(editorNode)
 {
@@ -84,14 +86,49 @@ void MuteNode::reconnect(ExecutionSystem *graph, OutputSocket *output)
 	output->clearConnections();
 }
 
+template<class SocketType> void MuteNode::fillSocketMap(vector<SocketType *> &sockets, SocketMap &socketMap)
+{
+	for (typename vector<SocketType *>::iterator it = sockets.begin(); it != sockets.end(); it++) {
+		Socket *socket = (Socket *) *it;
+
+		socketMap.insert(std::pair<bNodeSocket *, Socket *>(socket->getbNodeSocket(), socket));
+	}
+}
+
 void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
+	bNode *editorNode = this->getbNode();
 	vector<OutputSocket *> &outputsockets = this->getOutputSockets();
 
-	for (unsigned int index = 0; index < outputsockets.size(); index++) {
-		OutputSocket *output = outputsockets[index];
-		if (output->isConnected()) {
-			reconnect(graph, output);
+	if (editorNode->typeinfo->internal_connect) {
+		vector<InputSocket *> &inputsockets = this->getInputSockets();
+		bNodeTree *editorTree = (bNodeTree *) context->getbNodeTree();
+		SocketMap socketMap;
+		ListBase intlinks;
+		bNodeLink *link;
+
+		intlinks = editorNode->typeinfo->internal_connect(editorTree, editorNode);
+
+		this->fillSocketMap<OutputSocket>(outputsockets, socketMap);
+		this->fillSocketMap<InputSocket>(inputsockets, socketMap);
+
+		for (link = (bNodeLink *) intlinks.first; link; link = link->next) {
+			if (link->fromnode == editorNode) {
+				InputSocket *fromSocket = (InputSocket *) socketMap.find(link->fromsock)->second;
+				OutputSocket *toSocket = (OutputSocket *) socketMap.find(link->tosock)->second;
+
+				toSocket->relinkConnections(fromSocket->getConnection()->getFromSocket(), false);
+			}
+		}
+
+		BLI_freelistN(&intlinks);
+	}
+	else {
+		for (unsigned int index = 0; index < outputsockets.size(); index++) {
+			OutputSocket *output = outputsockets[index];
+			if (output->isConnected()) {
+				reconnect(graph, output);
+			}
 		}
 	}
 }
