@@ -242,13 +242,17 @@ class NODE_PT_quality(bpy.types.Panel):
         snode = context.space_data
         tree = snode.node_tree
 
-        layout.prop(tree, "render_quality", text="Render")
-        layout.prop(tree, "edit_quality", text="Edit")
-        layout.prop(tree, "chunk_size")
-        layout.prop(tree, "use_opencl")
-        layout.prop(tree, "two_pass")
-        layout.prop(snode, "show_highlight")
-  
+        col = layout.column()
+        col.prop(tree, "render_quality", text="Render")
+        col.prop(tree, "edit_quality", text="Edit")
+        col.prop(tree, "chunk_size")
+
+        col = layout.column()
+        col.prop(tree, "use_opencl")
+        col.prop(tree, "two_pass")
+        col.prop(snode, "show_highlight")
+        col.prop(snode, "use_hidden_preview")
+
 
 class NODE_MT_node_color_presets(Menu):
     """Predefined node color"""
