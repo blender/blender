@@ -231,6 +231,11 @@ void              BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, str
                                                 const short do_aspect_correct, const short do_mask_aa,
                                                 const short do_feather);
 float             BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2]);
+
+void              BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
+                                           const unsigned int width, const unsigned int height,
+                                           float *buffer);
+
 #endif /* USE_RASKTER */
 
 #endif /* __BKE_MASK_H__ */

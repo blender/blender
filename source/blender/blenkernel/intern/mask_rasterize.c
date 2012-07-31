@@ -1289,4 +1289,33 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 	return value;
 }
 
+/**
+ * \brief Rasterize a buffer from a single mask
+ *
+ * We could get some speedup by inlining #BKE_maskrasterize_handle_sample
+ * and calcilating each layer then blending buffers, but this function is only
+ * used by the sequencer - so better have the caller thread.
+ *
+ * If we wanted to this function could be threaded with OpenMP easily.
+ */
+void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
+                              const unsigned int width, const unsigned int height,
+                              float *buffer)
+{
+	unsigned int x;
+	unsigned int y;
+	float *fp = buffer;
+
+	float xy[2];
+
+	for (y = 0; y < height; y++) {
+		xy[1] = (float)y / (float)height;
+		for (x = 0; x < width; x++) {
+			xy[0] = (float)x / (float)width;
+
+			*fp++ = BKE_maskrasterize_handle_sample(mr_handle, xy);
+		}
+	}
+}
+
 #endif /* USE_RASKTER */
