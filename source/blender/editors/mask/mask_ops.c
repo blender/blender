@@ -69,12 +69,11 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
 	MaskLayer *point_masklay = NULL;
 	MaskSpline *point_spline = NULL;
 	MaskSplinePoint *point = NULL;
-	float co[2], aspx, aspy;
+	float co[2];
 	float len = FLT_MAX, scalex, scaley;
 	int is_handle = FALSE, width, height;
 
 	ED_mask_get_size(sa, &width, &height);
-	ED_mask_get_aspect(sa, ar, &aspx, &aspy);
 	ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
 
 	co[0] = normal_co[0] * scalex;
@@ -169,11 +168,10 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 	MaskSplinePoint *point = NULL;
 	MaskSplinePointUW *uw = NULL;
 	float len = FLT_MAX, co[2];
-	float scalex, scaley, aspx, aspy;
+	float scalex, scaley;
 	int width, height;
 
 	ED_mask_get_size(sa, &width, &height);
-	ED_mask_get_aspect(sa, ar, &aspx, &aspy);
 	ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
 
 	co[0] = normal_co[0] * scalex;
