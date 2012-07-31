@@ -1683,9 +1683,14 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	}
 #endif
 
-	/* modal handlers can get removed in this loop, we keep the loop this way */
-	for (handler = handlers->first; handler; handler = nexthandler) {
-		
+	/* modal handlers can get removed in this loop, we keep the loop this way
+	 *
+	 * note: check 'handlers->first' because in rare cases the handlers can be cleared
+	 * by the event thats called, for eg:
+	 *
+	 * Calling a python script which changes the area.type, see [#32232] */
+	for (handler = handlers->first; handler && handlers->first; handler = nexthandler) {
+
 		nexthandler = handler->next;
 		
 		/* during this loop, ui handlers for nested menus can tag multiple handlers free */
