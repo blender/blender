@@ -20,10 +20,12 @@
  *		Monique Dewanchand
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "COM_InpaintOperation.h"
-#include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
 
+#include "BLI_math.h"
 
 #define ASSERT_XY_RANGE(x, y)  \
 	BLI_assert(x >= 0 && x < this->getWidth() && \
@@ -131,9 +133,9 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 	int width = this->getWidth();
 	int height = this->getHeight();
 	short *m = this->m_manhatten_distance = new short[width * height];
-	int offsets[width + height + 1];
+	int *offsets;
 
-	memset(offsets, 0, sizeof(offsets));
+	offsets = (int *)MEM_callocN(sizeof(int) * (width + height + 1), "InpaintSimpleOperation offsets");
 
 	for (int j = 0; j < height; j++) {
 		for (int i = 0; i < width; i++) {
@@ -179,6 +181,8 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 			this->m_pixelorder[offsets[m[i] - 1]++] = i;
 		}
 	}
+
+	MEM_freeN(offsets);
 }
 
 void InpaintSimpleOperation::pix_step(int x, int y)

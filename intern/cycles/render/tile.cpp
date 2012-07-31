@@ -19,6 +19,7 @@
 #include "tile.h"
 
 #include "util_algorithm.h"
+#include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -124,8 +125,8 @@ bool TileManager::next_tile(Tile& tile, int device)
 	int device_y = (image_h / num) * device;
 	int device_h = (device == num - 1) ? image_h - device * (image_h / num) : image_h / num;
 
-	long long int centx = image_w / 2, centy = device_h / 2, tot = 1;
-	long long int mindist = (long long int) image_w * (long long int) device_h;
+	int64_t centx = image_w / 2, centy = device_h / 2, tot = 1;
+	int64_t mindist = (int64_t) image_w * (int64_t) device_h;
 
 	/* find center of rendering tiles, image center counts for 1 too */
 	for(iter = state.tiles.begin(); iter != state.tiles.end(); iter++) {
@@ -145,9 +146,9 @@ bool TileManager::next_tile(Tile& tile, int device)
 		if(iter->device == device && iter->rendering == false) {
 			Tile &cur_tile = *iter;
 
-			long long int distx = centx - (cur_tile.x + cur_tile.w / 2);
-			long long int disty = centy - (cur_tile.y + cur_tile.h / 2);
-			distx = (long long int) sqrt(distx * distx + disty * disty);
+			int64_t distx = centx - (cur_tile.x + cur_tile.w / 2);
+			int64_t disty = centy - (cur_tile.y + cur_tile.h / 2);
+			distx = (int64_t) sqrt((double)distx * distx + disty * disty);
 
 			if (distx < mindist) {
 				best = iter;
