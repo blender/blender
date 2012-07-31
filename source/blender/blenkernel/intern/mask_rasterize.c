@@ -45,8 +45,6 @@
 
 #include "BKE_mask.h"
 
-#ifndef USE_RASKTER
-
 /* this is rather and annoying hack, use define to isolate it.
  * problem is caused by scanfill removing edges on us. */
 #define USE_SCANFILL_EDGE_WORKAROUND
@@ -1317,5 +1315,3 @@ void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
 		}
 	}
 }
-
-#endif /* USE_RASKTER */

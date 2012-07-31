@@ -38,8 +38,6 @@
 
 #include "node_composite_util.h"
 
-#include "../../../../intern/raskter/raskter.h"
-
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_mask_out[] = {
@@ -51,6 +49,7 @@ static void exec(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **
 {
 	if (node->id) {
 		Mask *mask = (Mask *)node->id;
+		MaskRasterHandle *mr_handle;
 		CompBuf *stackbuf;
 		RenderData *rd = data;
 		float *res;
@@ -70,13 +69,17 @@ static void exec(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **
 		stackbuf = alloc_compbuf(sx, sy, CB_VAL, TRUE);
 		res = stackbuf->rect;
 
-		BKE_mask_rasterize(mask, sx, sy, res, TRUE,
-		                   (node->custom1 & CMP_NODEFLAG_MASK_AA) != 0,
-		                   (node->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
+		/* mask raster begin */
+		mr_handle = BKE_maskrasterize_handle_new();
+		BKE_maskrasterize_handle_init(mr_handle, mask,
+		                              sx, sy,
+		                              TRUE,
+		                              (node->custom1 & CMP_NODEFLAG_MASK_AA) != 0,
+		                              (node->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
+		BKE_maskrasterize_buffer(mr_handle, sx, sy, res);
+		BKE_maskrasterize_handle_free(mr_handle);
+		/* mask raster end */
 
-		if (node->custom1) {
-			PLX_antialias_buffer(res,sx,sy);
-		}
 		/* pass on output and free */
 		out[0]->data = stackbuf;
 	}

@@ -21,24 +21,15 @@
  *		Sergey Sharybin
  */
 
-
 #ifndef _COM_MaskOperation_h
 #define _COM_MaskOperation_h
 
-/* XXX, remove when the USE_RASKTER option is also removed */
-extern "C" {
-	#include "BKE_mask.h"
-}
 
 #include "COM_NodeOperation.h"
 #include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
 #include "BLI_listbase.h"
 #include "IMB_imbuf_types.h"
-
-#ifdef __PLX_RASKTER_MT__
-#include "../../../../intern/raskter/raskter.h"
-#endif
 
 /**
  * Class with implementation of mask rasterization
@@ -60,15 +51,8 @@ protected:
 	bool m_do_smooth;
 	bool m_do_feather;
 
-#ifdef USE_RASKTER
-	float *m_rasterizedMask;
-	
-	ListBase m_maskLayers;
-
-#else /* USE_RASKTER */
 	struct MaskRasterHandle *m_rasterMaskHandles[32];
 	unsigned int             m_rasterMaskHandleTot;
-#endif /* USE_RASKTER */
 
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -100,12 +84,7 @@ public:
 	void setMotionBlurSamples(int samples) { this->m_rasterMaskHandleTot = max(1, samples); }
 	void setMotionBlurShutter(float shutter) { this->m_frame_shutter = shutter; }
 
-#ifdef USE_RASKTER
-	void *initializeTileData(rcti *rect);
-	void executePixel(float *color, int x, int y, void *data);
-#else /* USE_RASKTER */
 	void executePixel(float *color, float x, float y, PixelSampler sampler);
-#endif /* USE_RASKTER */
 };
 
 #endif
