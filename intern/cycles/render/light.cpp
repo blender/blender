@@ -194,10 +194,11 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 		/* sum area */
 		if(have_emission) {
+			bool transform_applied = mesh->transform_applied;
 			Transform tfm = object->tfm;
 			int object_id = j;
 
-			if(mesh->transform_applied)
+			if(transform_applied)
 				object_id = ~object_id;
 
 			for(size_t i = 0; i < mesh->triangles.size(); i++) {
@@ -211,9 +212,15 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 					offset++;
 
 					Mesh::Triangle t = mesh->triangles[i];
-					float3 p1 = transform_point(&tfm, mesh->verts[t.v[0]]);
-					float3 p2 = transform_point(&tfm, mesh->verts[t.v[1]]);
-					float3 p3 = transform_point(&tfm, mesh->verts[t.v[2]]);
+					float3 p1 = mesh->verts[t.v[0]];
+					float3 p2 = mesh->verts[t.v[1]];
+					float3 p3 = mesh->verts[t.v[2]];
+
+					if(!transform_applied) {
+						p1 = transform_point(&tfm, p1);
+						p2 = transform_point(&tfm, p2);
+						p3 = transform_point(&tfm, p3);
+					}
 
 					totarea += triangle_area(p1, p2, p3);
 				}
