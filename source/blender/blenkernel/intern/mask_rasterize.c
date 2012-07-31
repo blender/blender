@@ -1301,7 +1301,11 @@ void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
                               const unsigned int width, const unsigned int height,
                               float *buffer)
 {
-	int y;
+#ifdef _MSC_VER
+	int y;  /* msvc requires signed for some reason */
+#else
+	unsigned int y;
+#endif
 
 #pragma omp parallel for private(y)
 	for (y = 0; y < height; y++) {
