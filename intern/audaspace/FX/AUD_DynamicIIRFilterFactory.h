@@ -56,8 +56,8 @@ public:
 	 * \param[out] a The output filter coefficients.
 	 */
 	virtual void recalculateCoefficients(AUD_SampleRate rate,
-										 std::vector<float>& b,
-										 std::vector<float>& a)=0;
+	                                     std::vector<float>& b,
+	                                     std::vector<float>& a)=0;
 };
 
 #endif // __AUD_DYNAMICIIRFILTERFACTORY_H__

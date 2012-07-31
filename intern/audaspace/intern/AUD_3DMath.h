@@ -136,8 +136,8 @@ public:
 	inline AUD_Vector3 cross(const AUD_Vector3& op) const
 	{
 		return AUD_Vector3(m_y * op.m_z - m_z * op.m_y,
-						   m_z * op.m_x - m_x * op.m_z,
-						   m_x * op.m_y - m_y * op.m_x);
+		                   m_z * op.m_x - m_x * op.m_z,
+		                   m_x * op.m_y - m_y * op.m_x);
 	}
 
 	/**

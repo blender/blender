@@ -2649,7 +2649,7 @@ void uiPupMenuOkee(bContext *C, const char *opname, const char *str, ...)
  * The operator state for this is implicitly OPERATOR_RUNNING_MODAL */
 void uiPupMenuSaveOver(bContext *C, wmOperator *op, const char *filename)
 {
-	confirm_operator(C, op, "Save Over", filename);
+	confirm_operator(C, op, "Save Over?", filename);
 }
 
 void uiPupMenuNotice(bContext *C, const char *str, ...)

@@ -68,8 +68,8 @@ public:
 	 * \param length How long fading should last in seconds.
 	 */
 	AUD_FaderFactory(AUD_Reference<AUD_IFactory> factory,
-					  AUD_FadeType type = AUD_FADE_IN,
-					  float start = 0.0f, float length = 1.0f);
+	                 AUD_FadeType type = AUD_FADE_IN,
+	                 float start = 0.0f, float length = 1.0f);
 
 	/**
 	 * Returns the fading type.
