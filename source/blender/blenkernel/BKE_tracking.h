@@ -148,8 +148,8 @@ struct ImBuf *BKE_tracking_distortion_exec(struct MovieDistortion *distortion, s
                                            struct ImBuf *ibuf, int width, int height, float overscan, int undistort);
 void BKE_tracking_distortion_free(struct MovieDistortion *distortion);
 
-void BKE_tracking_distort_v2(struct MovieTracking *tracking, float co[2], float nco[2]);
-void BKE_tracking_undistort_v2(struct MovieTracking *tracking, float co[2], float nco[2]);
+void BKE_tracking_distort_v2(struct MovieTracking *tracking, const float co[2], float r_co[2]);
+void BKE_tracking_undistort_v2(struct MovieTracking *tracking, const float co[2], float r_co[2]);
 
 struct ImBuf *BKE_tracking_undistort_frame(struct MovieTracking *tracking, struct ImBuf *ibuf,
                                            int calibration_width, int calibration_height, float overscan);
