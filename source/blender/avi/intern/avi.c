@@ -965,11 +965,15 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 	/* Allocate the new memory for the index entry */
 
 	if (frame_num + 1 > movie->index_entries) {
-		temp = (AviIndexEntry *) MEM_mallocN((frame_num + 1) *
-		                                     (movie->header->Streams + 1) * sizeof(AviIndexEntry), "newidxentry");
+		const size_t entry_size = (movie->header->Streams + 1) * sizeof(AviIndexEntry);
+
 		if (movie->entries != NULL) {
-			memcpy(temp, movie->entries, movie->index_entries * (movie->header->Streams + 1) * sizeof(AviIndexEntry));
-			MEM_freeN(movie->entries);
+			temp = (AviIndexEntry *)MEM_reallocN(movie->entries, (frame_num + 1) * entry_size);
+			/* clear new bytes */
+			memset(&temp[movie->index_entries], 0, ((frame_num + 1) - movie->index_entries) * entry_size);
+		}
+		else {
+			temp = (AviIndexEntry *) MEM_callocN((frame_num + 1) * entry_size, "newidxentry");
 		}
 
 		movie->entries = temp;
