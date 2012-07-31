@@ -32,12 +32,13 @@ class Tile {
 public:
 	int x, y, w, h;
 	int device;
+	bool rendering;
 
 	Tile()
 	{}
 
 	Tile(int x_, int y_, int w_, int h_, int device_)
-	: x(x_), y(y_), w(w_), h(h_), device(device_) {}
+	: x(x_), y(y_), w(w_), h(h_), device(device_), rendering(false) {}
 };
 
 /* Tile Manager */

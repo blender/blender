@@ -113,14 +113,54 @@ void TileManager::set_tiles()
 
 bool TileManager::next_tile(Tile& tile, int device)
 {
-	list<Tile>::iterator iter;
+	list<Tile>::iterator iter, best = state.tiles.end();
 
+	int resolution = state.resolution;
+	int image_w = max(1, params.width/resolution);
+	int image_h = max(1, params.height/resolution);
+
+	int num = min(image_h, num_devices);
+
+	int device_y = (image_h / num) * device;
+	int device_h = (device == num - 1) ? image_h - device * (image_h / num) : image_h / num;
+
+	long long int centx = image_w / 2, centy = device_h / 2, tot = 1;
+	long long int mindist = (long long int) image_w * (long long int) device_h;
+
+	/* find center of rendering tiles, image center counts for 1 too */
 	for(iter = state.tiles.begin(); iter != state.tiles.end(); iter++) {
-		if(iter->device == device) {
-			tile = *iter;
-			state.tiles.erase(iter);
-			return true;
+		if(iter->device == device && iter->rendering) {
+			Tile &cur_tile = *iter;
+			centx += cur_tile.x + cur_tile.w / 2;
+			centy += cur_tile.y + cur_tile.h / 2;
+			tot++;
 		}
+	}
+
+	centx /= tot;
+	centy /= tot;
+
+	/* closest of the non-rendering tiles */
+	for(iter = state.tiles.begin(); iter != state.tiles.end(); iter++) {
+		if(iter->device == device && iter->rendering == false) {
+			Tile &cur_tile = *iter;
+
+			long long int distx = centx - (cur_tile.x + cur_tile.w / 2);
+			long long int disty = centy - (cur_tile.y + cur_tile.h / 2);
+			distx = (long long int) sqrt(distx * distx + disty * disty);
+
+			if (distx < mindist) {
+				best = iter;
+				mindist = distx;
+			}
+		}
+	}
+
+	if (best != state.tiles.end()) {
+		best->rendering = true;
+		tile = *best;
+
+		return true;
 	}
 
 	return false;
