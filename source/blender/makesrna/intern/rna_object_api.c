@@ -87,6 +87,10 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		case OB_SURF: {
 			ListBase dispbase = {NULL, NULL};
 			DerivedMesh *derivedFinal = NULL;
+			int uv_from_orco;
+
+			int (*orco_index)[4] = NULL;
+			float (*orco)[3] = NULL;
 
 			/* copies object and modifiers (but not the data) */
 			tmpobj = BKE_object_copy(ob);
@@ -114,7 +118,37 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 
 			tmpobj->derivedFinal = derivedFinal;
 
-			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase);
+			uv_from_orco = (tmpcu->flag & CU_UV_ORCO) != 0;
+
+			if (uv_from_orco) {
+				/* before curve conversion */
+				orco = (float (*)[3])BKE_curve_make_orco(sce, tmpobj);
+			}
+
+			/* convert object type to mesh */
+			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase, uv_from_orco ? &orco_index : NULL);
+
+			tmpmesh = tmpobj->data;
+
+			if (uv_from_orco && orco && orco_index) {
+				const char *uvname = "Orco";
+				/* add UV's */
+				MTexPoly *mtpoly  = CustomData_add_layer_named(&tmpmesh->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, tmpmesh->totpoly, uvname);
+				MLoopUV *mloopuvs = CustomData_add_layer_named(&tmpmesh->ldata, CD_MLOOPUV,  CD_DEFAULT, NULL, tmpmesh->totloop, uvname);
+
+				BKE_mesh_nurbs_to_mdata_orco(tmpmesh->mpoly, tmpmesh->totpoly,
+				                             tmpmesh->mloop, mloopuvs,
+				                             orco, orco_index);
+
+				(void)mtpoly;
+			}
+
+			if (orco_index) {
+				MEM_freeN(orco_index);
+			}
+			if (orco) {
+				MEM_freeN(orco);
+			}
 
 			BKE_displist_free(&dispbase);
 
@@ -124,7 +158,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 				BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
 				return NULL;
 			}
-			tmpmesh = tmpobj->data;
+
 			BKE_libblock_free_us(&G.main->object, tmpobj);
 			break;
 		}

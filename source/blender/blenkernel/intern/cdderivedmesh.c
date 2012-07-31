@@ -52,6 +52,7 @@
 #include "BKE_paint.h"
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
+#include "BKE_curve.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -1709,11 +1710,51 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 
 DerivedMesh *CDDM_from_curve(Object *ob)
 {
-	return CDDM_from_curve_displist(ob, &ob->disp);
+	return CDDM_from_curve_displist(ob, &ob->disp, NULL);
 }
 
-DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
+DerivedMesh *CDDM_from_curve_orco(struct Scene *scene, Object *ob)
 {
+	int *orco_index_ptr = NULL;
+	int (*orco_index)[4] = NULL;
+	float (*orco)[3] = NULL;
+	DerivedMesh *dm = CDDM_from_curve_displist(ob, &ob->disp, &orco_index_ptr);
+
+	if (orco_index_ptr) {
+		orco = (float (*)[3])BKE_curve_make_orco(scene, ob);
+	}
+
+	if (orco && orco_index_ptr) {
+		const char *uvname = "Orco";
+
+		int totpoly = dm->getNumPolys(dm);
+
+		MPoly *mpolys = dm->getPolyArray(dm);
+		MLoop *mloops = dm->getLoopArray(dm);
+
+		MLoopUV *mloopuvs;
+
+		CustomData_add_layer_named(&dm->polyData, CD_MTEXPOLY, CD_DEFAULT, NULL, dm->numPolyData, uvname);
+		mloopuvs = CustomData_add_layer_named(&dm->loopData, CD_MLOOPUV,  CD_DEFAULT, NULL, dm->numLoopData, uvname);
+
+		BKE_mesh_nurbs_to_mdata_orco(mpolys, totpoly,
+		                             mloops, mloopuvs,
+		                             orco, orco_index);
+	}
+
+	if (orco_index) {
+		MEM_freeN(orco_index);
+	}
+	if (orco) {
+		MEM_freeN(orco);
+	}
+
+	return dm;
+}
+
+DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase, int **orco_index_ptr)
+{
+	const short do_orco_as_uv= 1;
 	DerivedMesh *dm;
 	CDDerivedMesh *cddm;
 	MVert *allvert;
@@ -1723,7 +1764,7 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
 	int totvert, totedge, totloop, totpoly;
 
 	if (BKE_mesh_nurbs_displist_to_mdata(ob, dispbase, &allvert, &totvert, &alledge,
-	                                     &totedge, &allloop, &allpoly, &totloop, &totpoly) != 0)
+	                                     &totedge, &allloop, &allpoly, &totloop, &totpoly, orco_index_ptr) != 0)
 	{
 		/* Error initializing mdata. This often happens when curve is empty */
 		return CDDM_new(0, 0, 0, 0, 0);
@@ -1745,6 +1786,10 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
 	MEM_freeN(allpoly);
 
 	CDDM_calc_edges(dm);
+
+	if (do_orco_as_uv ) {
+		BKE_curve_make_orco(NULL, ob);
+	}
 
 	return dm;
 }
