@@ -476,7 +476,8 @@ int ED_operator_mask(bContext *C)
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = sa->spacedata.first;
-				return ED_space_image_check_show_maskedit(sima);
+				Scene *scene = CTX_data_scene(C);
+				return ED_space_image_check_show_maskedit(scene, sima);
 			}
 		}
 	}

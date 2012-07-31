@@ -352,8 +352,14 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 }
 
 /* matches clip function */
-int ED_space_image_check_show_maskedit(SpaceImage *sima)
+int ED_space_image_check_show_maskedit(Scene *scene, SpaceImage *sima)
 {
+	/* check editmode - this is reserved for UV editing */
+	Object *ob = OBACT;
+	if (ob && ob->mode & OB_MODE_EDIT) {
+		return FALSE;
+	}
+
 	return (sima->mode == SI_MODE_MASK);
 }
 
@@ -362,7 +368,8 @@ int ED_space_image_maskedit_poll(bContext *C)
 	SpaceImage *sima = CTX_wm_space_image(C);
 
 	if (sima && sima->image) {
-		return ED_space_image_check_show_maskedit(sima);
+		Scene *scene = CTX_data_scene(C);
+		return ED_space_image_check_show_maskedit(scene, sima);
 	}
 
 	return FALSE;

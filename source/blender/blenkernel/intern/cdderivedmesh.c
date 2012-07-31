@@ -1754,7 +1754,6 @@ DerivedMesh *CDDM_from_curve_orco(struct Scene *scene, Object *ob)
 
 DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase, int **orco_index_ptr)
 {
-	const short do_orco_as_uv= 1;
 	DerivedMesh *dm;
 	CDDerivedMesh *cddm;
 	MVert *allvert;
@@ -1786,10 +1785,6 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase, int **orco
 	MEM_freeN(allpoly);
 
 	CDDM_calc_edges(dm);
-
-	if (do_orco_as_uv ) {
-		BKE_curve_make_orco(NULL, ob);
-	}
 
 	return dm;
 }

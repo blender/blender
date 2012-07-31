@@ -126,7 +126,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			}
 
 			/* convert object type to mesh */
-			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase, uv_from_orco ? &orco_index : NULL);
+			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase, uv_from_orco ? (int **)&orco_index : NULL);
 
 			tmpmesh = tmpobj->data;
 
