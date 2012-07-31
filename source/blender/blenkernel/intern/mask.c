@@ -1339,6 +1339,8 @@ static Mask *mask_alloc(const char *name)
 
 	mask = BKE_libblock_alloc(&G.main->mask, ID_MSK, name);
 
+	mask->id.flag |= LIB_FAKEUSER;
+
 	return mask;
 }
 

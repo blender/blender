@@ -123,7 +123,7 @@ EnumPropertyItem clip_editor_mode_items[] = {
 	{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction",
 	                         "Show tracking/reconstruction tools"},
 	{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
-	{SC_MODE_MASKEDIT, "MASK", ICON_MOD_MASK, "Mask editing", "Show mask editing tools"},
+	{SC_MODE_MASKEDIT, "MASK", ICON_MOD_MASK, "Mask", "Show mask editing tools"},
 	{0, NULL, 0, NULL, NULL}
 };
 

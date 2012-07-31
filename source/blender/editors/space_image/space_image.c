@@ -613,7 +613,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	draw_uvedit_main(sima, ar, scene, obedit, obact);
 
 	/* check for mask (delay draw) */
-	if (obedit) {
+	if (ED_space_image_show_uvedit(sima, obedit)) {
 		/* pass */
 	}
 	else if (sima->mode == SI_MODE_MASK) {

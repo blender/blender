@@ -362,6 +362,7 @@ int id_copy(ID *id, ID **newid, int test)
 			return 0; /* not implemented */
 		case ID_MSK:
 			if (!test) *newid = (ID *)BKE_mask_copy((Mask *)id);
+			return 1;
 	}
 	
 	return 0;
