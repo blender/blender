@@ -507,17 +507,17 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	y += v2d->tot.ymin * zoomy;
 
 	/* frame the image */
-	maxdim = maxf(w, h);
-	if (w == h) {
+	maxdim = maxf(width, height);
+	if (width == height) {
 		xofs = yofs = 0;
 	}
-	else if (w < h) {
-		xofs = ((h - w) / -2.0f) * zoomx;
+	else if (width < height) {
+		xofs = ((height - width) / -2.0f) * zoomx;
 		yofs = 0.0f;
 	}
 	else { /* (width > height) */
 		xofs = 0.0f;
-		yofs = ((w - h) / -2.0f) * zoomy;
+		yofs = ((width - height) / -2.0f) * zoomy;
 	}
 
 	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
