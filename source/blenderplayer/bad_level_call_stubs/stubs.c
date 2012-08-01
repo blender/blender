@@ -348,6 +348,7 @@ intptr_t mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, 
 void ED_sequencer_update_view(struct bContext *C, int view) {}
 float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]) {return 0.0f;}
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height) {}
+int ED_space_image_check_show_maskedit(struct Scene *scene, struct SpaceImage *sima) {return 0;};
 
 void ED_nurb_set_spline_type(struct Nurb *nu, int type) {}
 
