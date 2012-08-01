@@ -238,11 +238,11 @@ typedef struct PreviewImage {
 #define LIB_LOCAL		0
 #define LIB_EXTERN		1
 #define LIB_INDIRECT	2
-#define LIB_TEST		8
-#define LIB_TESTEXT		(LIB_TEST | LIB_EXTERN)
-#define LIB_TESTIND		(LIB_TEST | LIB_INDIRECT)
+#define LIB_NEED_EXPAND	8
+#define LIB_TESTEXT		(LIB_NEED_EXPAND | LIB_EXTERN)
+#define LIB_TESTIND		(LIB_NEED_EXPAND | LIB_INDIRECT)
 #define LIB_READ		16
-#define LIB_NEEDLINK	32
+#define LIB_NEED_LINK	32
 
 #define LIB_NEW			256
 #define LIB_FAKEUSER	512

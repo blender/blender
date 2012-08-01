@@ -83,8 +83,6 @@ protected:
 	int	m_profileTimings;
 	bool m_enableSatCollisionDetection;
 
-	btContactSolverInfo	m_solverInfo;
-	
 	void	processFhSprings(double curTime,float timeStep);
 
 	public:

@@ -121,16 +121,56 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 // void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
 void draw_nodespace_back_pix(const struct bContext *C, ARegion *ar, SpaceNode *snode);
 
+
+/* node_add.c */
+bNode *node_add_node(struct SpaceNode *snode, struct Main *bmain, struct Scene *scene,
+                     struct bNodeTemplate *ntemp, float locx, float locy);
+void NODE_OT_add_reroute(struct wmOperatorType *ot);
+
+
+/* node_group.c */
+void NODE_OT_group_make(struct wmOperatorType *ot);
+void NODE_OT_group_ungroup(struct wmOperatorType *ot);
+void NODE_OT_group_separate(struct wmOperatorType *ot);
+void NODE_OT_group_edit(struct wmOperatorType *ot);
+void NODE_OT_group_socket_add(struct wmOperatorType *ot);
+void NODE_OT_group_socket_remove(struct wmOperatorType *ot);
+void NODE_OT_group_socket_move_up(struct wmOperatorType *ot);
+void NODE_OT_group_socket_move_down(struct wmOperatorType *ot);
+
+
+/* note_add.c */
+void NODE_OT_add_file(struct wmOperatorType *ot);
+void NODE_OT_new_node_tree(struct wmOperatorType *ot);
+
+
+/* node_relationships.c */
+void NODE_OT_link(struct wmOperatorType *ot);
+void NODE_OT_link_make(struct wmOperatorType *ot);
+void NODE_OT_links_cut(struct wmOperatorType *ot);
+void NODE_OT_links_detach(struct wmOperatorType *ot);
+
+void NODE_OT_parent_set(struct wmOperatorType *ot);
+void NODE_OT_parent_clear(struct wmOperatorType *ot);
+void NODE_OT_join(struct wmOperatorType *ot);
+void NODE_OT_attach(struct wmOperatorType *ot);
+void NODE_OT_detach(struct wmOperatorType *ot);
+
+void NODE_OT_show_cyclic_dependencies(struct wmOperatorType *ot);
+void NODE_OT_link_viewer(struct wmOperatorType *ot);
+
 /* node_edit.c */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);
 void snode_notify(bContext *C, SpaceNode *snode);
 void snode_dag_update(bContext *C, SpaceNode *snode);
-bNode *node_add_node(struct SpaceNode *snode, struct Main *bmain, struct Scene *scene, struct bNodeTemplate *ntemp, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
-void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace);
+void snode_update(struct SpaceNode *snode, struct bNode *node);
+bNode *editnode_get_active(bNodeTree *ntree);
+int composite_node_active(struct bContext *C);
+
 int node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
 int node_render_changed_exec(bContext *, wmOperator *);
@@ -141,21 +181,6 @@ void NODE_OT_delete(struct wmOperatorType *ot);
 void NODE_OT_delete_reconnect(struct wmOperatorType *ot);
 void NODE_OT_resize(struct wmOperatorType *ot);
 
-void NODE_OT_link(struct wmOperatorType *ot);
-void NODE_OT_link_make(struct wmOperatorType *ot);
-void NODE_OT_links_cut(struct wmOperatorType *ot);
-void NODE_OT_links_detach(struct wmOperatorType *ot);
-void NODE_OT_add_reroute(struct wmOperatorType *ot);
-
-void NODE_OT_group_make(struct wmOperatorType *ot);
-void NODE_OT_group_ungroup(struct wmOperatorType *ot);
-void NODE_OT_group_separate(struct wmOperatorType *ot);
-void NODE_OT_group_edit(struct wmOperatorType *ot);
-void NODE_OT_group_socket_add(struct wmOperatorType *ot);
-void NODE_OT_group_socket_remove(struct wmOperatorType *ot);
-void NODE_OT_group_socket_move_up(struct wmOperatorType *ot);
-void NODE_OT_group_socket_move_down(struct wmOperatorType *ot);
-
 void NODE_OT_mute_toggle(struct wmOperatorType *ot);
 void NODE_OT_hide_toggle(struct wmOperatorType *ot);
 void NODE_OT_hide_socket_toggle(struct wmOperatorType *ot);
@@ -163,8 +188,6 @@ void NODE_OT_preview_toggle(struct wmOperatorType *ot);
 void NODE_OT_options_toggle(struct wmOperatorType *ot);
 void NODE_OT_node_copy_color(struct wmOperatorType *ot);
 
-void NODE_OT_show_cyclic_dependencies(struct wmOperatorType *ot);
-void NODE_OT_link_viewer(struct wmOperatorType *ot);
 void NODE_OT_read_fullsamplelayers(struct wmOperatorType *ot);
 void NODE_OT_read_renderlayers(struct wmOperatorType *ot);
 void NODE_OT_render_changed(struct wmOperatorType *ot);
@@ -173,19 +196,9 @@ void NODE_OT_backimage_move(struct wmOperatorType *ot);
 void NODE_OT_backimage_zoom(struct wmOperatorType *ot);
 void NODE_OT_backimage_sample(wmOperatorType *ot);
 
-void NODE_OT_add_file(struct wmOperatorType *ot);
-
-void NODE_OT_new_node_tree(struct wmOperatorType *ot);
-
 void NODE_OT_output_file_add_socket(struct wmOperatorType *ot);
 void NODE_OT_output_file_remove_active_socket(struct wmOperatorType *ot);
 void NODE_OT_output_file_move_active_socket(struct wmOperatorType *ot);
-
-void NODE_OT_parent_set(struct wmOperatorType *ot);
-void NODE_OT_parent_clear(struct wmOperatorType *ot);
-void NODE_OT_join(struct wmOperatorType *ot);
-void NODE_OT_attach(struct wmOperatorType *ot);
-void NODE_OT_detach(struct wmOperatorType *ot);
 
 extern const char *node_context_dir[];
 
@@ -198,6 +211,7 @@ extern const char *node_context_dir[];
 #define NODE_DY			U.widget_unit
 #define NODE_MARGIN_X   15
 #define NODE_SOCKSIZE	5
+#define NODE_LINK_RESOL 12
 
 // XXX button events (butspace)
 enum {
