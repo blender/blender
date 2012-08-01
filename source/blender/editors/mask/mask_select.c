@@ -147,7 +147,26 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
 			continue;
 		}
 
-		ED_mask_layer_select_set(masklay, (action == SEL_SELECT) ? TRUE : FALSE);
+		if (action == SEL_INVERT) {
+			/* we don't have generic functons for this, its restricted to this operator
+			 * if one day we need to re-use such functionality, they can be split out */
+
+			MaskSpline *spline;
+			if (masklay->restrictflag & MASK_RESTRICT_SELECT) {
+				continue;
+			}
+			for (spline = masklay->splines.first; spline; spline = spline->next) {
+				int i;
+				for (i = 0; i < spline->tot_point; i++) {
+					MaskSplinePoint *point = &spline->points[i];
+					BKE_mask_point_select_set(point, !MASKPOINT_ISSEL_ANY(point));
+				}
+			}
+
+		}
+		else {
+			ED_mask_layer_select_set(masklay, (action == SEL_SELECT) ? TRUE : FALSE);
+		}
 	}
 }
 
