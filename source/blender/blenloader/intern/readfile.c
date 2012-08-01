@@ -761,7 +761,7 @@ BHead *blo_firstbhead(FileData *fd)
 
 BHead *blo_prevbhead(FileData *UNUSED(fd), BHead *thisblock)
 {
-	BHeadN *bheadn = (BHeadN *) (((char *) thisblock) - GET_INT_FROM_POINTER( &((BHeadN*)0)->bhead) );
+	BHeadN *bheadn = (BHeadN *) (((char *) thisblock) - offsetof(BHeadN, bhead));
 	BHeadN *prev = bheadn->prev;
 	
 	return (prev) ? &prev->bhead : NULL;
@@ -773,11 +773,11 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 	BHead *bhead = NULL;
 	
 	if (thisblock) {
-		// bhead is actually a sub part of BHeadN
-		// We calculate the BHeadN pointer from the BHead pointer below
-		new_bhead = (BHeadN *) (((char *) thisblock) - GET_INT_FROM_POINTER( &((BHeadN*)0)->bhead) );
+		/* bhead is actually a sub part of BHeadN
+		 * We calculate the BHeadN pointer from the BHead pointer below */
+		new_bhead = (BHeadN *) (((char *) thisblock) - offsetof(BHeadN, bhead));
 		
-		// get the next BHeadN. If it doesn't exist we read in the next one
+		/* get the next BHeadN. If it doesn't exist we read in the next one */
 		new_bhead = new_bhead->next;
 		if (new_bhead == NULL) {
 			new_bhead = get_bhead(fd);
@@ -785,8 +785,8 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 	}
 	
 	if (new_bhead) {
-		// here we do the reverse:
-		// go from the BHeadN pointer to the BHead pointer
+		/* here we do the reverse:
+		 * go from the BHeadN pointer to the BHead pointer */
 		bhead = &new_bhead->bhead;
 	}
 	
