@@ -774,4 +774,6 @@ typedef struct NodeTrackPosData {
 #define CMP_NODE_BLUR_ASPECT_Y			1
 #define CMP_NODE_BLUR_ASPECT_X			2
 
+#define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
+
 #endif

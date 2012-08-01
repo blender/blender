@@ -1007,8 +1007,13 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	/* draw grease-pencil (screen aligned) */
 	draw_gpencil_view2d(C, 0);
 
+
+
+	/* NOTE: sequencer mask editing isnt finished, the draw code is working but editing not,
+	 * for now just disable drawing since the strip frame will likely be offset */
+
 	//if (sc->mode == SC_MODE_MASKEDIT) {
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+	if (0 && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 		Mask *mask = BKE_sequencer_mask_get(scene);
 
 		if (mask) {

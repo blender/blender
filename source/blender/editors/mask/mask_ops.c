@@ -69,12 +69,11 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
 	MaskLayer *point_masklay = NULL;
 	MaskSpline *point_spline = NULL;
 	MaskSplinePoint *point = NULL;
-	float co[2], aspx, aspy;
+	float co[2];
 	float len = FLT_MAX, scalex, scaley;
 	int is_handle = FALSE, width, height;
 
 	ED_mask_get_size(sa, &width, &height);
-	ED_mask_get_aspect(sa, ar, &aspx, &aspy);
 	ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
 
 	co[0] = normal_co[0] * scalex;
@@ -169,11 +168,10 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 	MaskSplinePoint *point = NULL;
 	MaskSplinePointUW *uw = NULL;
 	float len = FLT_MAX, co[2];
-	float scalex, scaley, aspx, aspy;
+	float scalex, scaley;
 	int width, height;
 
 	ED_mask_get_size(sa, &width, &height);
-	ED_mask_get_aspect(sa, ar, &aspx, &aspy);
 	ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
 
 	co[0] = normal_co[0] * scalex;
@@ -528,6 +526,7 @@ static int slide_point_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		WM_event_add_modal_handler(C, op);
 
+#if 0
 		if (slidedata->uw) {
 			if ((slidedata->uw->flag & SELECT) == 0) {
 				ED_mask_select_toggle_all(mask, SEL_DESELECT);
@@ -544,6 +543,7 @@ static int slide_point_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			ED_mask_select_flush_all(mask);
 		}
+#endif
 
 		slidedata->masklay->act_spline = slidedata->spline;
 		slidedata->masklay->act_point = slidedata->point;
@@ -631,19 +631,19 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 	float co[2], dco[2];
 
 	switch (event->type) {
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
+		case LEFTALTKEY:
+		case RIGHTALTKEY:
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
-			if (ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY)) {
+			if (ELEM(event->type, LEFTALTKEY, RIGHTALTKEY)) {
 				if (data->action == SLIDE_ACTION_FEATHER)
-					data->overall_feather = event->val == KM_PRESS;
+					data->overall_feather = (event->val == KM_PRESS);
 				else
-					data->curvature_only = event->val == KM_PRESS;
+					data->curvature_only = (event->val == KM_PRESS);
 			}
 
 			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
-				data->accurate = event->val == KM_PRESS;
+				data->accurate = (event->val == KM_PRESS);
 
 		/* no break! update CV position */
 

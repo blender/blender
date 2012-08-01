@@ -1535,7 +1535,7 @@ void BKE_tracking_distortion_free(MovieDistortion *distortion)
 	MEM_freeN(distortion);
 }
 
-void BKE_tracking_distort_v2(MovieTracking *tracking, float co[2], float nco[2])
+void BKE_tracking_distort_v2(MovieTracking *tracking, const float co[2], float r_co[2])
 {
 	MovieTrackingCamera *camera = &tracking->camera;
 
@@ -1551,16 +1551,16 @@ void BKE_tracking_distort_v2(MovieTracking *tracking, float co[2], float nco[2])
 	                            camera->k1, camera->k2, camera->k3, x, y, &x, &y);
 
 	/* result is in image coords already */
-	nco[0] = x;
-	nco[1] = y;
+	r_co[0] = x;
+	r_co[1] = y;
 #else
 	(void) camera;
 	(void) co;
-	(void) nco;
+	zero_v2(r_co);
 #endif
 }
 
-void BKE_tracking_undistort_v2(MovieTracking *tracking, float co[2], float nco[2])
+void BKE_tracking_undistort_v2(MovieTracking *tracking, const float co[2], float r_co[2])
 {
 	MovieTrackingCamera *camera = &tracking->camera;
 
@@ -1571,12 +1571,12 @@ void BKE_tracking_undistort_v2(MovieTracking *tracking, float co[2], float nco[2
 	libmv_InvertIntrinsics(camera->focal, camera->principal[0], camera->principal[1] * aspy,
 	                       camera->k1, camera->k2, camera->k3, x, y, &x, &y);
 
-	nco[0] = x * camera->focal + camera->principal[0];
-	nco[1] = y * camera->focal + camera->principal[1] * aspy;
+	r_co[0] = x * camera->focal + camera->principal[0];
+	r_co[1] = y * camera->focal + camera->principal[1] * aspy;
 #else
 	(void) camera;
 	(void) co;
-	(void) nco;
+	zero_v2(r_co);
 #endif
 }
 

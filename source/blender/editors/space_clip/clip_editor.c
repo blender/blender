@@ -518,7 +518,7 @@ void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
 	sc->mask_info.mask = mask;
 
 	if (sc->mask_info.mask && sc->mask_info.mask->id.us == 0) {
-		sc->clip->id.us = 1;
+		sc->mask_info.mask->id.us = 1;
 	}
 
 	if (C) {

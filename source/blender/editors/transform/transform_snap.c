@@ -246,13 +246,13 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 					glColor4ubv(col);
 				}
 				
-				drawnodesnap(&ar->v2d, p->co, size, 0);
+				ED_node_draw_snap(&ar->v2d, p->co, size, 0);
 			}
 			
 			if (t->tsnap.status & POINT_INIT) {
 				glColor4ubv(activeCol);
 				
-				drawnodesnap(&ar->v2d, t->tsnap.snapPoint, size, t->tsnap.snapNodeBorder);
+				ED_node_draw_snap(&ar->v2d, t->tsnap.snapPoint, size, t->tsnap.snapNodeBorder);
 			}
 			
 			glDisable(GL_BLEND);

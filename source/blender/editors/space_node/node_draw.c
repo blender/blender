@@ -813,7 +813,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
-	if (node->flag & (NODE_ACTIVE | SELECT)) {
+	if (node->flag & SELECT) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		

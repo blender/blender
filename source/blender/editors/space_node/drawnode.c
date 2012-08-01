@@ -1037,7 +1037,7 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
-	if (node->flag & (NODE_ACTIVE | SELECT)) {
+	if (node->flag & SELECT) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		
@@ -2963,7 +2963,7 @@ static void node_texture_set_butfunc(bNodeType *ntype)
 
 /* ******* init draw callbacks for all tree types, only called in usiblender.c, once ************* */
 
-void ED_init_node_butfuncs(void)
+void ED_node_init_butfuncs(void)
 {
 	bNodeTreeType *treetype;
 	bNodeType *ntype;
@@ -3514,7 +3514,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 //	node_draw_link_straight(v2d, snode, link, th_col1, do_shaded, th_col2, do_triple, th_col3);
 }
 
-void drawnodesnap(View2D *v2d, const float cent[2], float size, NodeBorder border)
+void ED_node_draw_snap(View2D *v2d, const float cent[2], float size, NodeBorder border)
 {
 	glBegin(GL_LINES);
 	

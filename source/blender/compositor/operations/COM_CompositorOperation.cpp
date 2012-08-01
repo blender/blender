@@ -68,8 +68,7 @@ void CompositorOperation::initExecution()
 void CompositorOperation::deinitExecution()
 {
 	if (!isBreaked()) {
-		const RenderData *rd = this->m_rd;
-		Render *re = RE_GetRender_FromData(rd);
+		Render *re = RE_GetRender(this->m_scene->id.name);
 		RenderResult *rr = RE_AcquireResultWrite(re);
 
 		if (rr) {
@@ -165,7 +164,7 @@ void CompositorOperation::determineResolution(unsigned int resolution[], unsigne
 
 	// check actual render resolution with cropping it may differ with cropped border.rendering
 	// FIX for: [31777] Border Crop gives black (easy)
-	Render *re = RE_GetRender_FromData(this->m_rd);
+	Render *re = RE_GetRender(this->m_scene->id.name);
 	if (re) {
 		RenderResult *rr = RE_AcquireResultRead(re);
 		if (rr) {

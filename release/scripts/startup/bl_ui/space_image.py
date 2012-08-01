@@ -356,6 +356,7 @@ class IMAGE_HT_header(Header):
         show_render = sima.show_render
         # show_paint = sima.show_paint
         show_uvedit = sima.show_uvedit
+        show_maskedit = sima.show_maskedit
 
         row = layout.row(align=True)
         row.template_header()
@@ -379,6 +380,8 @@ class IMAGE_HT_header(Header):
         layout.template_ID(sima, "image", new="image.new")
         if not show_render:
             layout.prop(sima, "use_image_pin", text="")
+
+        layout.prop(sima, "mode", text="")
 
         # uv editing
         if show_uvedit:
@@ -405,9 +408,7 @@ class IMAGE_HT_header(Header):
             mesh = context.edit_object.data
             layout.prop_search(mesh.uv_textures, "active", mesh, "uv_textures", text="")
 
-        layout.prop(sima, "mode", text="")
-
-        if mode == 'MASK':
+        if show_maskedit:
             row = layout.row()
             row.template_ID(sima, "mask", new="mask.new")
 

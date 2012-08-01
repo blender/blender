@@ -8981,6 +8981,37 @@ static void expand_movieclip(FileData *fd, Main *mainvar, MovieClip *clip)
 		expand_animdata(fd, mainvar, clip->adt);
 }
 
+static void expand_mask_parent(FileData *fd, Main *mainvar, MaskParent *parent)
+{
+	if (parent->id) {
+		expand_doit(fd, mainvar, parent->id);
+	}
+}
+
+static void expand_mask(FileData *fd, Main *mainvar, Mask *mask)
+{
+	MaskLayer *mask_layer;
+
+	if (mask->adt)
+		expand_animdata(fd, mainvar, mask->adt);
+
+	for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+		MaskSpline *spline;
+
+		for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+			int i;
+
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				expand_mask_parent(fd, mainvar, &point->parent);
+			}
+
+			expand_mask_parent(fd, mainvar, &spline->parent);
+		}
+	}
+}
+
 static void expand_main(FileData *fd, Main *mainvar)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
@@ -9063,6 +9094,9 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_MC:
 						expand_movieclip(fd, mainvar, (MovieClip *)id);
+						break;
+					case ID_MSK:
+						expand_mask(fd, mainvar, (Mask *)id);
 						break;
 					}
 					

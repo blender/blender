@@ -77,6 +77,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_multires.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
@@ -930,6 +931,7 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 	wmEventHandler *handler;
 	char filepath[FILE_MAX];
 	int fileflags;
+	Scene *scene = CTX_data_scene(C);
 
 	WM_event_remove_timer(wm, NULL, wm->autosavetimer);
 
@@ -942,7 +944,14 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 			}
 		}
 	}
-	
+
+	if (scene) {
+		Object *ob = OBACT;
+
+		if (ob && ob->mode & OB_MODE_SCULPT)
+			multires_force_update(ob);
+	}
+
 	wm_autosave_location(filepath);
 
 	/*  force save as regular blend file */

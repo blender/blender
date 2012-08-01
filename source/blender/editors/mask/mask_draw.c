@@ -482,7 +482,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	struct View2D *v2d = &ar->v2d;
 
 	int x, y;
-	int w, h;
+	/* int w, h; */
 	float zoomx, zoomy;
 
 	/* frame image */
@@ -492,8 +492,10 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
-	w = v2d->tot.xmax - v2d->tot.xmin;
-	h = v2d->tot.ymax - v2d->tot.ymin;
+
+	/* w = v2d->tot.xmax - v2d->tot.xmin; */
+	/* h = v2d->tot.ymax - v2d->tot.ymin;/*/
+
 
 	zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1) / (float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin));
 	zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1) / (float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin));
@@ -507,17 +509,17 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	y += v2d->tot.ymin * zoomy;
 
 	/* frame the image */
-	maxdim = maxf(w, h);
-	if (w == h) {
+	maxdim = maxf(width, height);
+	if (width == height) {
 		xofs = yofs = 0;
 	}
-	else if (w < h) {
-		xofs = ((h - w) / -2.0f) * zoomx;
+	else if (width < height) {
+		xofs = ((height - width) / -2.0f) * zoomx;
 		yofs = 0.0f;
 	}
 	else { /* (width > height) */
 		xofs = 0.0f;
-		yofs = ((w - h) / -2.0f) * zoomy;
+		yofs = ((width - height) / -2.0f) * zoomy;
 	}
 
 	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
@@ -537,4 +539,33 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	}
 
 	glPopMatrix();
+}
+
+void ED_mask_draw_frames(Mask *mask, ARegion *ar, const int cfra, const int sfra, const int efra)
+{
+	const float framelen = ar->winx / (float)(efra - sfra + 1);
+
+	MaskLayer *masklay = BKE_mask_layer_active(mask);
+
+	glBegin(GL_LINES);
+	glColor4ub(255, 175, 0, 255);
+
+	if (masklay) {
+		MaskLayerShape *masklay_shape;
+
+		for (masklay_shape = masklay->splines_shapes.first;
+		     masklay_shape;
+		     masklay_shape = masklay_shape->next)
+		{
+			int frame = masklay_shape->frame;
+
+			/* draw_keyframe(i, CFRA, sfra, framelen, 1); */
+			int height = (frame == cfra) ? 22 : 10;
+			int x = (frame - sfra) * framelen;
+			glVertex2i(x, 0);
+			glVertex2i(x, height);
+		}
+	}
+
+	glEnd();
 }

@@ -179,8 +179,8 @@ int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene,
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
 int ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, int include_orig,
-						 int (*callback)(struct Object *ob, void *callback_data),
-						 void *callback_data);
+                         int (*callback)(struct Object *ob, void *callback_data),
+                         void *callback_data);
 
 int ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v);
 

@@ -261,7 +261,11 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_delete_reconnect", XKEY, KM_PRESS, KM_CTRL, 0);
 
-	WM_keymap_add_item(keymap, "NODE_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+
 	WM_keymap_add_item(keymap, "NODE_OT_select_linked_to", LKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_linked_from", LKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_same_type", GKEY, KM_PRESS, KM_SHIFT, 0);

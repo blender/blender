@@ -52,43 +52,43 @@ public:
 	// Construction methods
 	BOP_BSPNode(const MT_Plane3& plane);
 	~BOP_BSPNode();
-	unsigned int addFace(const BOP_BSPPoints& pts, 
-						 const MT_Plane3& plane);
-	BOP_TAG classifyFace(const MT_Point3& p1, 
-						 const MT_Point3& p2, 
-						 const MT_Point3& p3, 
-						 const MT_Plane3& plane) const;
-	BOP_TAG simplifiedClassifyFace(const MT_Point3& p1, 
-								   const MT_Point3& p2, 
-								   const MT_Point3& p3, 
-								   const MT_Plane3& plane) const;
+	unsigned int addFace(const BOP_BSPPoints& pts,
+	                     const MT_Plane3& plane);
+	BOP_TAG classifyFace(const MT_Point3& p1,
+	                     const MT_Point3& p2,
+	                     const MT_Point3& p3,
+	                     const MT_Plane3& plane) const;
+	BOP_TAG simplifiedClassifyFace(const MT_Point3& p1,
+	                               const MT_Point3& p2,
+	                               const MT_Point3& p3,
+	                               const MT_Plane3& plane) const;
 	
 protected:
 	BOP_TAG testPoint(const MT_Point3& p) const;
-	BOP_TAG classifyFaceIN(const MT_Point3& p1, 
-						   const MT_Point3& p2, 
-						   const MT_Point3& p3, 
-						   const MT_Plane3& plane) const;
-	BOP_TAG classifyFaceOUT(const MT_Point3& p1, 
-							const MT_Point3& p2, 
-							const MT_Point3& p3, 
-							const MT_Plane3& plane) const;
-	BOP_TAG simplifiedClassifyFaceIN(const MT_Point3& p1, 
-									 const MT_Point3& p2, 
-									 const MT_Point3& p3, 
-									 const MT_Plane3& plane) const;
-	BOP_TAG simplifiedClassifyFaceOUT(const MT_Point3& p1, 
-									  const MT_Point3& p2, 
-									  const MT_Point3& p3, 
-									  const MT_Plane3& plane) const;
+	BOP_TAG classifyFaceIN(const MT_Point3& p1,
+	                       const MT_Point3& p2,
+	                       const MT_Point3& p3,
+	                       const MT_Plane3& plane) const;
+	BOP_TAG classifyFaceOUT(const MT_Point3& p1,
+	                        const MT_Point3& p2,
+	                        const MT_Point3& p3,
+	                        const MT_Plane3& plane) const;
+	BOP_TAG simplifiedClassifyFaceIN(const MT_Point3& p1,
+	                                 const MT_Point3& p2,
+	                                 const MT_Point3& p3,
+	                                 const MT_Plane3& plane) const;
+	BOP_TAG simplifiedClassifyFaceOUT(const MT_Point3& p1,
+	                                  const MT_Point3& p2,
+	                                  const MT_Point3& p3,
+	                                  const MT_Plane3& plane) const;
 	bool hasSameOrientation(const MT_Plane3& plane) const;
 	int compChildren() const;
-	int splitTriangle(MT_Point3* res, 
-					  const MT_Plane3& plane, 
-					  const MT_Point3& p1, 
-					  const MT_Point3& p2, 
-					  const MT_Point3& p3, 
-					  const BOP_TAG tag) const;
+	int splitTriangle(MT_Point3* res,
+	                  const MT_Plane3& plane,
+	                  const MT_Point3& p1,
+	                  const MT_Point3& p2,
+	                  const MT_Point3& p3,
+	                  const BOP_TAG tag) const;
 
 public:
 	// Inline acces methods

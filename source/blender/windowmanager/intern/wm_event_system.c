@@ -648,7 +648,8 @@ int WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
 	return op->type->exec != NULL;
 }
 
-static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, PointerRNA *properties, ReportList *reports)
+static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot,
+                                      PointerRNA *properties, ReportList *reports)
 {
 	/* XXX operatortype names are static still. for debug */
 	wmOperator *op = MEM_callocN(sizeof(wmOperator), ot->idname);
@@ -824,7 +825,8 @@ int WM_operator_last_properties_store(wmOperator *UNUSED(op))
 
 #endif
 
-static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
+static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
+                              PointerRNA *properties, ReportList *reports, short poll_only)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	int retval = OPERATOR_PASS_THROUGH;
@@ -843,7 +845,8 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		}
 
 		if ((G.debug & G_DEBUG_EVENTS) && event && event->type != MOUSEMOVE) {
-			printf("%s: handle evt %d win %d op %s\n", __func__, event ? event->type : 0, CTX_wm_screen(C)->subwinactive, ot->idname);
+			printf("%s: handle evt %d win %d op %s\n",
+			       __func__, event ? event->type : 0, CTX_wm_screen(C)->subwinactive, ot->idname);
 		}
 		
 		if (op->type->invoke && event) {
@@ -1082,7 +1085,8 @@ int WM_operator_name_call(bContext *C, const char *opstring, short context, Poin
  * - poll() must be called by python before this runs.
  * - reports can be passed to this function (so python can report them as exceptions)
  */
-int WM_operator_call_py(bContext *C, wmOperatorType *ot, short context, PointerRNA *properties, ReportList *reports, short is_undo)
+int WM_operator_call_py(bContext *C, wmOperatorType *ot, short context,
+                        PointerRNA *properties, ReportList *reports, short is_undo)
 {
 	int retval = OPERATOR_CANCELLED;
 
@@ -1683,9 +1687,14 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	}
 #endif
 
-	/* modal handlers can get removed in this loop, we keep the loop this way */
-	for (handler = handlers->first; handler; handler = nexthandler) {
-		
+	/* modal handlers can get removed in this loop, we keep the loop this way
+	 *
+	 * note: check 'handlers->first' because in rare cases the handlers can be cleared
+	 * by the event thats called, for eg:
+	 *
+	 * Calling a python script which changes the area.type, see [#32232] */
+	for (handler = handlers->first; handler && handlers->first; handler = nexthandler) {
+
 		nexthandler = handler->next;
 		
 		/* during this loop, ui handlers for nested menus can tag multiple handlers free */
@@ -2018,7 +2027,9 @@ void wm_event_do_handlers(bContext *C)
 					CTX_wm_screen_set(C, win->screen);
 					CTX_data_scene_set(C, scene);
 					
-					if (((playing == 1) && (!ED_screen_animation_playing(wm))) || ((playing == 0) && (ED_screen_animation_playing(wm)))) {
+					if (((playing == 1) && (!ED_screen_animation_playing(wm))) ||
+					    ((playing == 0) && (ED_screen_animation_playing(wm))))
+					{
 						ED_screen_animation_play(C, -1, 1);
 					}
 					

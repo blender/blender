@@ -161,8 +161,8 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(struct ID *id,
                                           struct CustomData *fdata, struct CustomData *ldata, struct CustomData *pdata,
                                           int totedge_i, int totface_i, int totloop_i, int totpoly_i,
                                           struct MEdge *medge, struct MFace *mface,
-										  int *totloop_r, int *totpoly_r,
-										  struct MLoop **mloop_r, struct MPoly **mpoly_r);
+                                          int *totloop_r, int *totpoly_r,
+                                          struct MLoop **mloop_r, struct MPoly **mpoly_r);
 
 void BKE_mesh_calc_normals_tessface(struct MVert *mverts, int numVerts, struct MFace *mfaces, int numFaces, float (*faceNors_r)[3]);
 

@@ -47,41 +47,44 @@ extern "C" {
  */
 #define BLI_MEMARENA_STD_BUFSIZE    (1 << 14)
 
+/* some GNU attributes are only available from GCC 4.3 */
+#define MEM_GNU_ATTRIBUTES (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 403))
+
 struct MemArena;
 typedef struct MemArena MemArena;
 
 struct MemArena    *BLI_memarena_new(const int bufsize, const char *name)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 __attribute__((warn_unused_result))
 __attribute__((nonnull(2)))
 #endif
 ;
 
 void                BLI_memarena_free(struct MemArena *ma)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 __attribute__((nonnull(1)))
 #endif
 ;
 
 void                BLI_memarena_use_malloc(struct MemArena *ma)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 __attribute__((nonnull(1)))
 #endif
 ;
 void                BLI_memarena_use_calloc(struct MemArena *ma)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 __attribute__((nonnull(1)))
 #endif
 ;
 
 void                BLI_memarena_use_align(struct MemArena *ma, const int align)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 __attribute__((nonnull(1)))
 #endif
 ;
 
 void               *BLI_memarena_alloc(struct MemArena *ma, int size)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 __attribute__((warn_unused_result))
 __attribute__((nonnull(1)))
 __attribute__((alloc_size(2)))

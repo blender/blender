@@ -640,7 +640,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
 	/* scale if not a power of two. this is not strictly necessary for newer
 	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures 
 	 * Then don't bother scaling for hardware that supports NPOT textures! */
-	if (!GLEW_ARB_texture_non_power_of_two && (!is_pow2_limit(rectw) || !is_pow2_limit(recth))) {
+	if (!GPU_non_power_of_two_support() && (!is_pow2_limit(rectw) || !is_pow2_limit(recth))) {
 		rectw= smaller_pow2_limit(rectw);
 		recth= smaller_pow2_limit(recth);
 		

@@ -31,6 +31,8 @@
  */
 class CompositorOperation : public NodeOperation {
 private:
+	const Scene *m_scene;
+
 	/**
 	 * @brief local reference to the scene
 	 */
@@ -63,6 +65,7 @@ private:
 public:
 	CompositorOperation();
 	void executeRegion(rcti *rect, unsigned int tileNumber);
+	void setScene(const Scene *scene) { this->m_scene = scene; }
 	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
 	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();

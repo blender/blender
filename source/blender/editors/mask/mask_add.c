@@ -67,10 +67,9 @@ static int find_nearest_diff_point(const bContext *C, Mask *mask, const float no
 	float dist, co[2];
 	int width, height;
 	float u;
-	float scalex, scaley, aspx, aspy;
+	float scalex, scaley;
 
 	ED_mask_get_size(sa, &width, &height);
-	ED_mask_get_aspect(sa, ar, &aspx, &aspy);
 	ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
 
 	co[0] = normal_co[0] * scalex;

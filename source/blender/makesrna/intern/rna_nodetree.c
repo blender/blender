@@ -217,13 +217,11 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 		#include "rna_nodetree_types.h"
 		
 		case NODE_GROUP:
-			return &RNA_NodeGroup;
 		case NODE_FORLOOP:
-			return &RNA_NodeForLoop;
 		case NODE_WHILELOOP:
-			return &RNA_NodeWhileLoop;
 		case NODE_FRAME:
-			return &RNA_NodeFrame;
+		case NODE_REROUTE:
+			return &RNA_SpecialNode;
 			
 		default:
 			return &RNA_Node;
@@ -3204,7 +3202,7 @@ static void def_cmp_mask(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "motion_blur_samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom2");
-	RNA_def_property_range(prop, 1, 32);
+	RNA_def_property_range(prop, 1, CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
 	RNA_def_property_ui_text(prop, "Samples", "Number of motion blur samples");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -3901,6 +3899,30 @@ static void rna_def_texture_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "");
 }
 
+static void rna_def_special_node(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem specific_node_type_items[] = {
+		{NODE_GROUP, "GROUP", ICON_NODE, "Group", ""},
+		{NODE_FORLOOP, "FORLOOP", ICON_NODE, "For Loop", ""},
+		{NODE_WHILELOOP, "WHILELOOP", ICON_NODE, "While Loop", ""},
+		{NODE_FRAME, "FRAME", ICON_NODE, "Frame", ""},
+		{NODE_REROUTE, "REROUTE", ICON_NODE, "Reroute", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "SpecialNode", "Node");
+	RNA_def_struct_ui_text(srna, "Special Node", "");
+	RNA_def_struct_sdna(srna, "bNode");
+
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_items(prop, specific_node_type_items);
+	RNA_def_property_ui_text(prop, "Type", "");
+}
+
 /* -------------------------------------------------------------------------- */
 
 static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
@@ -4459,7 +4481,7 @@ static void rna_def_texture_nodetree(BlenderRNA *brna)
 static void define_specific_node(BlenderRNA *brna, int id, void (*func)(StructRNA *))
 {
 	StructRNA *srna = def_node(brna, id);
-	
+
 	if (func)
 		func(srna);
 }
@@ -4486,6 +4508,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	rna_def_shader_node(brna);
 	rna_def_compositor_node(brna);
 	rna_def_texture_node(brna);
+	rna_def_special_node(brna);
 	
 	rna_def_composite_nodetree(brna);
 	rna_def_shader_nodetree(brna);
