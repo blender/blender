@@ -22,7 +22,6 @@
 
 #include "COM_DoubleEdgeMaskNode.h"
 #include "COM_DoubleEdgeMaskOperation.h"
-#include "DNA_scene_types.h"
 #include "COM_ExecutionSystem.h"
 
 DoubleEdgeMaskNode::DoubleEdgeMaskNode(bNode *editorNode) : Node(editorNode)

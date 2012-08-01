@@ -21,7 +21,6 @@
  */
 
 #include "COM_TonemapNode.h"
-#include "DNA_scene_types.h"
 #include "COM_TonemapOperation.h"
 #include "COM_ExecutionSystem.h"
 

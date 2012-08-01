@@ -21,7 +21,6 @@
  */
 
 #include "COM_ColorNode.h"
-#include "DNA_scene_types.h"
 #include "COM_SetColorOperation.h"
 #include "COM_ExecutionSystem.h"
 

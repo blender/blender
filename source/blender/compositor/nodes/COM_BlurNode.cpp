@@ -21,7 +21,6 @@
  */
 
 #include "COM_BlurNode.h"
-#include "DNA_scene_types.h"
 #include "DNA_node_types.h"
 #include "COM_GaussianXBlurOperation.h"
 #include "COM_GaussianYBlurOperation.h"
