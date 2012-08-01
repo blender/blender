@@ -217,12 +217,15 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 		#include "rna_nodetree_types.h"
 		
 		case NODE_GROUP:
+			return &RNA_NodeGroup;
 		case NODE_FORLOOP:
+			return &RNA_NodeForLoop;
 		case NODE_WHILELOOP:
+			return &RNA_NodeWhileLoop;
 		case NODE_FRAME:
+			return &RNA_NodeFrame;
 		case NODE_REROUTE:
-			return &RNA_SpecialNode;
-			
+			return &RNA_NodeReroute;
 		default:
 			return &RNA_Node;
 	}
@@ -1051,11 +1054,11 @@ static void init(void)
 		
 	#include "rna_nodetree_types.h"
 	
-	reg_node(NODE_GROUP, Category_GroupNode, "GROUP", "NodeGroup", "Node", "Group", "");
-	reg_node(NODE_FORLOOP, Category_LoopNode, "FORLOOP", "NodeForLoop", "Node", "ForLoop", "");
-	reg_node(NODE_WHILELOOP, Category_LoopNode, "WHILELOOP", "NodeWhileLoop", "Node", "WhileLoop", "");
-	reg_node(NODE_FRAME, Category_LayoutNode, "FRAME", "NodeFrame", "Node", "Frame", "");
-	reg_node(NODE_REROUTE, Category_LayoutNode, "REROUTE", "NodeReroute", "Node", "Reroute", "");
+	reg_node(NODE_GROUP, Category_GroupNode, "GROUP", "NodeGroup", "SpecialNode", "Group", "");
+	reg_node(NODE_FORLOOP, Category_LoopNode, "FORLOOP", "NodeForLoop", "SpecialNode", "ForLoop", "");
+	reg_node(NODE_WHILELOOP, Category_LoopNode, "WHILELOOP", "NodeWhileLoop", "SpecialNode", "WhileLoop", "");
+	reg_node(NODE_FRAME, Category_LayoutNode, "FRAME", "NodeFrame", "SpecialNode", "Frame", "");
+	reg_node(NODE_REROUTE, Category_LayoutNode, "REROUTE", "NodeReroute", "SpecialNode", "Reroute", "");
 }
 
 static StructRNA *def_node(BlenderRNA *brna, int node_id)
