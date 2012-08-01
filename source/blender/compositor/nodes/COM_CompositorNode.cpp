@@ -31,11 +31,14 @@ CompositorNode::CompositorNode(bNode *editorNode) : Node(editorNode)
 
 void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
+	bNode *editorNode = this->getbNode();
+
 	InputSocket *imageSocket = this->getInputSocket(0);
 	InputSocket *alphaSocket = this->getInputSocket(1);
 	InputSocket *depthSocket = this->getInputSocket(2);
 
 	CompositorOperation *compositorOperation = new CompositorOperation();
+	compositorOperation->setScene((Scene *) editorNode->id);
 	compositorOperation->setRenderData(context->getRenderData());
 	compositorOperation->setbNodeTree(context->getbNodeTree());
 	imageSocket->relinkConnections(compositorOperation->getInputSocket(0), 0, graph);
