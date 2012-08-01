@@ -25,7 +25,6 @@
 #define _COM_ImageOperation_h
 
 #include "COM_NodeOperation.h"
-#include "DNA_scene_types.h"
 #include "BLI_listbase.h"
 #include "BKE_image.h"
 extern "C" {

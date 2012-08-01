@@ -28,8 +28,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-#include "DNA_scene_types.h"
-
 extern "C" {
 	#include "BKE_mask.h"
 }

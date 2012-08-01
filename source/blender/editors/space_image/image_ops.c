@@ -204,21 +204,27 @@ int space_image_main_area_not_uv_brush_poll(bContext *C)
 	return 0;
 }
 
-static int space_image_image_sample_poll(bContext *C)
+static int image_sample_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	Object *obedit = CTX_data_edit_object(C);
-	ToolSettings *toolsettings = CTX_data_scene(C)->toolsettings;
+	if (sima) {
+		Scene *scene = CTX_data_scene(C);
+		Object *obedit = CTX_data_edit_object(C);
+		ToolSettings *toolsettings = scene->toolsettings;
 
-	if (obedit) {
-		if (ED_space_image_show_uvedit(sima, obedit) && (toolsettings->use_uv_sculpt))
-			return 0;
-	}
-	else if (sima->mode != SI_MODE_VIEW) {
-		return 0;
-	}
+		if (obedit) {
+			if (ED_space_image_show_uvedit(sima, obedit) && (toolsettings->use_uv_sculpt))
+				return FALSE;
+		}
+		else if (sima->mode != SI_MODE_VIEW) {
+			return FALSE;
+		}
 
-	return space_image_main_area_poll(C);
+		return space_image_main_area_poll(C);
+	}
+	else {
+		return FALSE;
+	}
 }
 /********************** view pan operator *********************/
 
@@ -2165,7 +2171,7 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 	ot->invoke = image_sample_invoke;
 	ot->modal = image_sample_modal;
 	ot->cancel = image_sample_cancel;
-	ot->poll = space_image_image_sample_poll;
+	ot->poll = image_sample_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING;

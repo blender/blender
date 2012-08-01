@@ -3787,13 +3787,13 @@ static int bmelemsort_comp(const void *v1, const void *v2)
 }
 
 /* Reorders vertices/edges/faces using a given methods. Loops are not supported. */
-static void sort_bmelem_flag(bContext *C, const int types, const int flag, const int action,
+static void sort_bmelem_flag(Scene *scene, Object *ob,
+                             View3D *v3d, RegionView3D *rv3d,
+                             const int types, const int flag, const int action,
                              const int reverse, const unsigned int seed)
 {
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_edit_object(C);
-	ViewContext vc;
-	BMEditMesh *em;
+	BMEditMesh *em = BMEdit_FromObject(ob);
+
 	BMVert *ve;
 	BMEdge *ed;
 	BMFace *fa;
@@ -3811,9 +3811,6 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 	if (!(types && flag && action))
 		return;
 
-	em_setup_viewcontext(C, &vc);
-	em = vc.em;
-
 	if (types & BM_VERT)
 		totelem[0] = em->bm->totvert;
 	if (types & BM_EDGE)
@@ -3822,7 +3819,6 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 		totelem[2] = em->bm->totface;
 
 	if (ELEM(action, SRT_VIEW_ZAXIS, SRT_VIEW_XAXIS)) {
-		RegionView3D *rv3d = ED_view3d_context_rv3d(C);
 		float mat[4][4];
 		float fact = reverse ? -1.0 : 1.0;
 		int coidx = (action == SRT_VIEW_ZAXIS) ? 2 : 0;
@@ -3890,7 +3886,6 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 	}
 
 	else if (action == SRT_CURSOR_DISTANCE) {
-		View3D *v3d = CTX_wm_view3d(C);
 		float cur[3];
 		float mat[4][4];
 		float fact = reverse ? -1.0 : 1.0;
@@ -4220,18 +4215,32 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 
 static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_edit_object(C);
+
+	/* may be NULL */
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
+
 	int action = RNA_enum_get(op->ptr, "type");
 	PropertyRNA *prop_elem_types = RNA_struct_find_property(op->ptr, "elements");
-	int elem_types = 0;
 	int reverse = RNA_boolean_get(op->ptr, "reverse");
 	unsigned int seed = RNA_int_get(op->ptr, "seed");
+	int elem_types = 0;
+
+	if (ELEM(action, SRT_VIEW_ZAXIS, SRT_VIEW_XAXIS)) {
+		if (rv3d == NULL) {
+			BKE_report(op->reports, RPT_ERROR, "View not found, can't sort by view axis");
+			return OPERATOR_CANCELLED;
+		}
+	}
 
 	/* If no elem_types set, use current selection mode to set it! */
 	if (RNA_property_is_set(op->ptr, prop_elem_types)) {
 		elem_types = RNA_property_enum_get(op->ptr, prop_elem_types);
 	}
 	else {
-		BMEditMesh *em = BMEdit_FromObject(CTX_data_edit_object(C));
+		BMEditMesh *em = BMEdit_FromObject(ob);
 		if (em->selectmode & SCE_SELECT_VERTEX)
 			elem_types |= BM_VERT;
 		if (em->selectmode & SCE_SELECT_EDGE)
@@ -4241,7 +4250,8 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 		RNA_enum_set(op->ptr, "elements", elem_types);
 	}
 
-	sort_bmelem_flag(C, elem_types, BM_ELEM_SELECT, action, reverse, seed);
+	sort_bmelem_flag(scene, ob, v3d, rv3d,
+	                 elem_types, BM_ELEM_SELECT, action, reverse, seed);
 	return OPERATOR_FINISHED;
 }
 

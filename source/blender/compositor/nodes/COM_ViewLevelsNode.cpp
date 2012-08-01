@@ -21,7 +21,6 @@
  */
 
 #include "COM_ViewLevelsNode.h"
-#include "DNA_scene_types.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_CalculateMeanOperation.h"
 #include "COM_CalculateStandardDeviationOperation.h"

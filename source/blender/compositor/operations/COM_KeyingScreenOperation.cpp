@@ -29,8 +29,6 @@
 #include "BLI_math.h"
 #include "BLI_math_color.h"
 
-#include "DNA_scene_types.h"
-
 extern "C" {
 	#include "BKE_movieclip.h"
 	#include "BKE_tracking.h"

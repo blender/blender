@@ -644,7 +644,7 @@ void MEM_printmemlist_pydict(void)
 	MEM_printmemlist_internal(1);
 }
 
-short MEM_freeN(void *vmemh)        /* anders compileertie niet meer */
+short MEM_freeN(void *vmemh)
 {
 	short error = 0;
 	MemTail *memt;

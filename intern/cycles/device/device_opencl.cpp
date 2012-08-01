@@ -301,15 +301,12 @@ public:
 	{
 		string build_options = " -cl-fast-relaxed-math ";
 		
-		/* Multi Closure for nVidia cards */
 		if(platform_name == "NVIDIA CUDA")
 			build_options += "-D__KERNEL_SHADING__ -D__KERNEL_OPENCL_NVIDIA__ -cl-nv-maxrregcount=24 -cl-nv-verbose ";
-			
-		/* No Float3 for Apple */
+
 		else if(platform_name == "Apple")
 			build_options += "-D__CL_NO_FLOAT3__ -D__KERNEL_OPENCL_APPLE__ ";
-			
-		/* Basic shading for AMD cards (non Apple) */
+
 		else if(platform_name == "AMD Accelerated Parallel Processing")
 			build_options += "-D__CL_NO_FLOAT3__ -D__KERNEL_OPENCL_AMD__ ";
 

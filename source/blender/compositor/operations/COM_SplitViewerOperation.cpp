@@ -23,7 +23,6 @@
 #include "COM_SplitViewerOperation.h"
 #include "COM_SocketConnection.h"
 #include "BLI_listbase.h"
-#include "DNA_scene_types.h"
 #include "BKE_image.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_color.h"

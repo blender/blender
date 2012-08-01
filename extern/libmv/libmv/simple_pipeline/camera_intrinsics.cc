@@ -209,7 +209,7 @@ void CameraIntrinsics::ComputeLookupGrid(Grid* grid, int width, int height, doub
       if( ix >= width-2 ) ix = width-2;
       if( iy >= height-2 ) iy = height-2;
 
-      Offset offset = { ix-x, iy-y, fx, fy };
+      Offset offset = { (short)(ix-x), (short)(iy-y), (unsigned char)fx, (unsigned char)fy };
       grid->offset[y*width+x] = offset;
     }
   }

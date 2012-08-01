@@ -38,7 +38,7 @@ void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	InputSocket *depthSocket = this->getInputSocket(2);
 
 	CompositorOperation *compositorOperation = new CompositorOperation();
-	compositorOperation->setScene((Scene *) editorNode->id);
+	compositorOperation->setSceneName(editorNode->id->name);
 	compositorOperation->setRenderData(context->getRenderData());
 	compositorOperation->setbNodeTree(context->getbNodeTree());
 	imageSocket->relinkConnections(compositorOperation->getInputSocket(0), 0, graph);

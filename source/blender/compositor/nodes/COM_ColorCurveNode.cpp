@@ -21,7 +21,6 @@
  */
 
 #include "COM_ColorCurveNode.h"
-#include "DNA_scene_types.h"
 #include "COM_ColorCurveOperation.h"
 #include "COM_ExecutionSystem.h"
 

@@ -21,7 +21,6 @@
  */
 
 #include "COM_TimeNode.h"
-#include "DNA_scene_types.h"
 #include "COM_SetValueOperation.h"
 #include "COM_ExecutionSystem.h"
 extern "C" {

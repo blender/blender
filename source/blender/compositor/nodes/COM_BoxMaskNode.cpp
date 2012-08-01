@@ -21,7 +21,6 @@
  */
 
 #include "COM_BoxMaskNode.h"
-#include "DNA_scene_types.h"
 #include "COM_BoxMaskOperation.h"
 #include "COM_ExecutionSystem.h"
 

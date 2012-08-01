@@ -21,7 +21,6 @@
  */
 
 #include "COM_EllipseMaskNode.h"
-#include "DNA_scene_types.h"
 #include "COM_EllipseMaskOperation.h"
 #include "COM_ExecutionSystem.h"
 

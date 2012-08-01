@@ -21,7 +21,6 @@
  */
 
 #include "COM_VectorCurveNode.h"
-#include "DNA_scene_types.h"
 #include "COM_VectorCurveOperation.h"
 #include "COM_ExecutionSystem.h"
 
