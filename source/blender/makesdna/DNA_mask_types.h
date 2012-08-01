@@ -40,8 +40,6 @@
 #include "DNA_listBase.h"
 #include "DNA_curve_types.h"
 
-#define USE_MANGO_MASK_CACHE_HACK
-
 typedef struct Mask {
 	ID id;
 	struct AnimData *adt;

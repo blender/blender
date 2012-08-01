@@ -1090,10 +1090,6 @@ void blo_freefiledata(FileData *fd)
 			oldnewmap_free(fd->imamap);
 		if (fd->movieclipmap)
 			oldnewmap_free(fd->movieclipmap);
-#ifdef USE_MANGO_MASK_CACHE_HACK
-		if (fd->maskmap)
-			oldnewmap_free(fd->maskmap);
-#endif
 		if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP))
 			oldnewmap_free(fd->libmap);
 		if (fd->bheadmap)
@@ -1177,16 +1173,6 @@ static void *newmclipadr(FileData *fd, void *adr)              /* used to restor
 		return oldnewmap_lookup_and_inc(fd->movieclipmap, adr);
 	return NULL;
 }
-
-#ifdef USE_MANGO_MASK_CACHE_HACK
-static void *newmaskadr(FileData *fd, void *adr)              /* used to restore mask data after undo */
-{
-	if (fd->maskmap && adr)
-		return oldnewmap_lookup_and_inc(fd->maskmap, adr);
-	return NULL;
-}
-#endif
-
 
 static void *newlibadr(FileData *fd, void *lib, void *adr)		/* only lib data */
 {
@@ -1381,39 +1367,6 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
 		}
 	}
 }
-
-#ifdef USE_MANGO_MASK_CACHE_HACK
-void blo_make_mask_pointer_map(FileData *fd, Main *oldmain)
-{
-	Mask *mask;
-
-	fd->maskmap = oldnewmap_new();
-
-	for (mask = oldmain->mask.first; mask; mask = mask->id.next) {
-		if (mask->raster_cache)
-			oldnewmap_insert(fd->maskmap, mask->raster_cache, mask->raster_cache, 0);
-	}
-}
-
-/* set old main mask caches to zero if it has been restored */
-/* this works because freeing old main only happens after this call */
-void blo_end_mask_pointer_map(FileData *fd, Main *oldmain)
-{
-	OldNew *entry = fd->maskmap->entries;
-	Mask *mask;
-	int i;
-
-	/* used entries were restored, so we put them to zero */
-	for (i = 0; i < fd->maskmap->nentries; i++, entry++) {
-		if (entry->nr > 0)
-			entry->newp = NULL;
-	}
-
-	for (mask = oldmain->mask.first; mask; mask = mask->id.next) {
-		mask->raster_cache = newmclipadr(fd, mask->raster_cache);
-	}
-}
-#endif
 
 /* undo file support: add all library pointers in lookup */
 void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd)
@@ -6313,11 +6266,6 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 static void direct_link_mask(FileData *fd, Mask *mask)
 {
 	MaskLayer *masklay;
-
-#ifdef USE_MANGO_MASK_CACHE_HACK
-	if (fd->maskmap) mask->raster_cache = newmaskadr(fd, mask->raster_cache);
-	else mask->raster_cache = NULL;
-#endif
 
 	mask->adt = newdataadr(fd, mask->adt);
 

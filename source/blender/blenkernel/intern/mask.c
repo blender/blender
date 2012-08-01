@@ -56,21 +56,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_utildefines.h"
 
-#ifdef USE_MANGO_MASK_CACHE_HACK
-
-#include "BLI_threads.h"
-
-typedef struct MaskRasterCache {
-	float *buffer;
-	int width, height;
-	short do_aspect_correct;
-	short do_mask_aa;
-	short do_feather;
-
-	ListBase layers;
-} MaskRasterCache;
-#endif
-
 static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline, MaskSplinePoint *points_array, MaskSplinePoint *point)
 {
 	if (point == &points_array[spline->tot_point - 1]) {
@@ -1560,41 +1545,9 @@ void BKE_mask_layer_free_list(ListBase *masklayers)
 
 }
 
-#ifdef USE_MANGO_MASK_CACHE_HACK
-void BKE_mask_raster_cache_free(Mask *mask)
-{
-	MaskRasterCache *cache = mask->raster_cache;
-
-	if (cache) {
-		MaskLayer *layer;
-
-		layer = cache->layers.first;
-		while (layer) {
-			MaskLayer *layer_next = layer->next;
-
-			BKE_mask_layer_free(layer);
-			layer = layer_next;
-		}
-
-		MEM_freeN(cache->buffer);
-		MEM_freeN(cache);
-
-		mask->raster_cache = NULL;
-	}
-}
-#endif
-
 void BKE_mask_free(Mask *mask)
 {
 	BKE_mask_layer_free_list(&mask->masklayers);
-
-#ifdef USE_MANGO_MASK_CACHE_HACK
-	if (mask->raster_cache) {
-		BKE_mask_raster_cache_free(mask);
-
-		mask->raster_cache = NULL;
-	}
-#endif
 }
 
 void BKE_mask_unlink(Main *bmain, Mask *mask)
