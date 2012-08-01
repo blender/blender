@@ -430,22 +430,28 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_MASK:
-			switch (wmn->data) {
-				case ND_SELECT:
-				case ND_DATA:
-				case ND_DRAW:
-					ED_area_tag_redraw(sa);
-					break;
-			}
-			switch (wmn->action) {
-				case NA_SELECTED:
-					ED_area_tag_redraw(sa);
-					break;
-				case NA_EDITED:
-					ED_area_tag_redraw(sa);
-					break;
+		{
+			// Scene *scene = wmn->window->screen->scene;
+			/* ideally would check for: ED_space_image_check_show_maskedit(scene, sima) but we cant get the scene */
+			if (sima->mode == SI_MODE_MASK) {
+				switch (wmn->data) {
+					case ND_SELECT:
+					case ND_DATA:
+					case ND_DRAW:
+						ED_area_tag_redraw(sa);
+						break;
+				}
+				switch (wmn->action) {
+					case NA_SELECTED:
+						ED_area_tag_redraw(sa);
+						break;
+					case NA_EDITED:
+						ED_area_tag_redraw(sa);
+						break;
+				}
 			}
 			break;
+		}
 		case NC_GEOM:
 			switch (wmn->data) {
 				case ND_DATA:
@@ -642,6 +648,8 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 		                    width, height,
 		                    TRUE, FALSE,
 		                    NULL, C);
+
+		ED_mask_draw_frames(mask, ar, CFRA, mask->sfra, mask->efra);
 
 		draw_image_cursor(sima, ar);
 	}

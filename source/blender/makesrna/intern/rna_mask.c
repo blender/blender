@@ -731,7 +731,7 @@ static void rna_def_mask(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, NULL, "rna_Mask_start_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Frame", "First frame of the mask (used for sequencer)");
-	RNA_def_property_update(prop, NC_SCENE | ND_FRAME_RANGE, NULL);
+	RNA_def_property_update(prop, NC_MASK | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -739,7 +739,7 @@ static void rna_def_mask(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, NULL, "rna_Mask_end_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End Frame", "Final frame of the mask (used for sequencer)");
-	RNA_def_property_update(prop, NC_SCENE | ND_FRAME_RANGE, NULL);
+	RNA_def_property_update(prop, NC_MASK | ND_DRAW, NULL);
 
 	/* pointers */
 	rna_def_animdata_common(srna);

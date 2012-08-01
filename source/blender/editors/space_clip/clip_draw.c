@@ -53,6 +53,7 @@
 
 #include "ED_screen.h"
 #include "ED_clip.h"
+#include "ED_mask.h"
 #include "ED_gpencil.h"
 
 #include "BIF_gl.h"
@@ -73,7 +74,7 @@
 
 /*********************** main area drawing *************************/
 
-void clip_draw_curfra_label(SpaceClip *sc, float x, float y)
+void clip_draw_curfra_label(const int framenr, const float x, const float y)
 {
 	uiStyle *style = UI_GetStyle();
 	int fontid = style->widget.uifont_id;
@@ -82,7 +83,7 @@ void clip_draw_curfra_label(SpaceClip *sc, float x, float y)
 
 	/* frame number */
 	BLF_size(fontid, 11.0f, U.dpi);
-	BLI_snprintf(numstr, sizeof(numstr), "%d", sc->user.framenr);
+	BLI_snprintf(numstr, sizeof(numstr), "%d", framenr);
 
 	BLF_width_and_height(fontid, numstr, &font_dims[0], &font_dims[1]);
 
@@ -212,7 +213,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	UI_ThemeColor(TH_CFRAME);
 	glRecti(x, 0, x + framelen, 8);
 
-	clip_draw_curfra_label(sc, x, 8.0f);
+	clip_draw_curfra_label(sc->user.framenr, x, 8.0f);
 
 	/* solver keyframes */
 	glColor4ub(175, 255, 0, 255);
@@ -221,24 +222,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 	/* movie clip animation */
 	if ((sc->mode == SC_MODE_MASKEDIT) && sc->mask_info.mask) {
-		MaskLayer *masklay = BKE_mask_layer_active(sc->mask_info.mask);
-		if (masklay) {
-			MaskLayerShape *masklay_shape;
-
-			glColor4ub(255, 175, 0, 255);
-			glBegin(GL_LINES);
-
-			for (masklay_shape = masklay->splines_shapes.first;
-			     masklay_shape;
-			     masklay_shape = masklay_shape->next)
-			{
-				i = masklay_shape->frame;
-
-				draw_keyframe(i, CFRA, sfra, framelen, 1);
-			}
-
-			glEnd();
-		}
+		ED_mask_draw_frames(sc->mask_info.mask, ar, CFRA, sfra, efra);
 	}
 }
 

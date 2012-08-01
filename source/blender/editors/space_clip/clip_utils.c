@@ -263,7 +263,7 @@ void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	glScalef(1.0f / xscale, 1.0f, 1.0f);
 
-	clip_draw_curfra_label(sc, (float)sc->user.framenr * xscale, 18);
+	clip_draw_curfra_label(sc->user.framenr, (float)sc->user.framenr * xscale, 18);
 
 	/* restore view transform */
 	glScalef(xscale, 1.0, 1.0);
