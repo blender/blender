@@ -191,6 +191,8 @@ class RENDER_PT_freestyle(RenderButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
+        if rd.engine not in cls.COMPAT_ENGINES:
+            return False
         rl = rd.layers.active
         return rl and rl.use_freestyle
 
@@ -264,6 +266,8 @@ class RENDER_PT_freestyle_lineset(RenderButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
+        if rd.engine not in cls.COMPAT_ENGINES:
+            return False
         rl = rd.layers.active
         if rl and rl.use_freestyle:
             freestyle = rl.freestyle_settings
@@ -350,6 +354,8 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
+        if rd.engine not in cls.COMPAT_ENGINES:
+            return False
         rl = rd.layers.active
         if rl and rl.use_freestyle:
             freestyle = rl.freestyle_settings
