@@ -142,7 +142,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	ED_spacetypes_init();   /* editors/space_api/spacetype.c */
 	
 	ED_file_init();         /* for fsmenu */
-	ED_init_node_butfuncs();	
+	ED_node_init_butfuncs();
 	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();

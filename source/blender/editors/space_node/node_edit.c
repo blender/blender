@@ -3505,6 +3505,18 @@ void ED_node_link_intersect_test(ScrArea *sa, int test)
 		selink->flag |= NODE_LINKFLAG_HILITE;
 }
 
+int ED_node_select_check(ListBase *lb)
+{
+	bNode *node;
+
+	for (node = lb->first; node; node = node->next) {
+		if (node->flag & NODE_SELECT) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
 
 /* ******************************** */
 // XXX some code needing updating to operators...

@@ -135,7 +135,8 @@ class NODE_MT_select(Menu):
         layout.operator("node.select_border")
 
         layout.separator()
-        layout.operator("node.select_all")
+        layout.operator("node.select_all").action = 'TOGGLE'
+        layout.operator("node.select_all", text="Inverse").action = 'INVERT'
         layout.operator("node.select_linked_from")
         layout.operator("node.select_linked_to")
         layout.operator("node.select_same_type")
