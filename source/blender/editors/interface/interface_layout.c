@@ -1960,6 +1960,7 @@ static void ui_litem_estimate_column_flow(uiLayout *litem)
 			x += maxw + litem->space;
 			maxw = 0;
 			y = 0;
+			emy = 0; /* need to reset height again for next column */
 			col++;
 		}
 	}
@@ -2010,6 +2011,7 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 		if (col < flow->totcol - 1 && emy <= -emh) {
 			x += itemw + style->columnspace;
 			y = litem->y;
+			emy = 0; /* need to reset height again for next column */
 			col++;
 		}
 	}
