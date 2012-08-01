@@ -23,7 +23,6 @@
 #include "COM_ViewerBaseOperation.h"
 #include "COM_SocketConnection.h"
 #include "BLI_listbase.h"
-#include "DNA_scene_types.h"
 #include "BKE_image.h"
 #include "WM_api.h"
 #include "WM_types.h"

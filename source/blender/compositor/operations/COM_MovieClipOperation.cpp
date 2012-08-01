@@ -23,7 +23,6 @@
 #include "COM_MovieClipOperation.h"
 
 #include "BLI_listbase.h"
-#include "DNA_scene_types.h"
 #include "BLI_math.h"
 extern "C" {
 	#include "BKE_movieclip.h"

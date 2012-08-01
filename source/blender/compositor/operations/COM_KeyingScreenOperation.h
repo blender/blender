@@ -29,7 +29,6 @@
 
 #include "COM_NodeOperation.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_movieclip_types.h"
 
 #include "BLI_listbase.h"

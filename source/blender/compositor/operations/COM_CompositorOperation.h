@@ -23,7 +23,6 @@
 #ifndef _COM_CompositorOperation_h
 #define _COM_CompositorOperation_h
 #include "COM_NodeOperation.h"
-#include "DNA_scene_types.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
