@@ -49,6 +49,8 @@ CompositorOperation::CompositorOperation() : NodeOperation()
 	this->m_imageInput = NULL;
 	this->m_alphaInput = NULL;
 	this->m_depthInput = NULL;
+
+	this->m_sceneName[0] = '\0';
 }
 
 void CompositorOperation::initExecution()
@@ -68,7 +70,7 @@ void CompositorOperation::initExecution()
 void CompositorOperation::deinitExecution()
 {
 	if (!isBreaked()) {
-		Render *re = RE_GetRender(this->m_scene->id.name);
+		Render *re = RE_GetRender(this->m_sceneName);
 		RenderResult *rr = RE_AcquireResultWrite(re);
 
 		if (rr) {
@@ -164,7 +166,7 @@ void CompositorOperation::determineResolution(unsigned int resolution[], unsigne
 
 	// check actual render resolution with cropping it may differ with cropped border.rendering
 	// FIX for: [31777] Border Crop gives black (easy)
-	Render *re = RE_GetRender(this->m_scene->id.name);
+	Render *re = RE_GetRender(this->m_sceneName);
 	if (re) {
 		RenderResult *rr = RE_AcquireResultRead(re);
 		if (rr) {

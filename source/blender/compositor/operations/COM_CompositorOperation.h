@@ -25,13 +25,14 @@
 #include "COM_NodeOperation.h"
 #include "DNA_scene_types.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 
 /**
  * @brief Compositor output operation
  */
 class CompositorOperation : public NodeOperation {
 private:
-	const Scene *m_scene;
+	char m_sceneName[MAX_ID_NAME];
 
 	/**
 	 * @brief local reference to the scene
@@ -65,7 +66,7 @@ private:
 public:
 	CompositorOperation();
 	void executeRegion(rcti *rect, unsigned int tileNumber);
-	void setScene(const Scene *scene) { this->m_scene = scene; }
+	void setSceneName(const char *sceneName) { BLI_strncpy(this->m_sceneName, sceneName, sizeof(this->m_sceneName)); }
 	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
 	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
