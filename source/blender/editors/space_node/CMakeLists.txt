@@ -42,9 +42,12 @@ set(INC_SYS
 
 set(SRC
 	drawnode.c
+	node_add.c
 	node_buttons.c
 	node_draw.c
 	node_edit.c
+	node_group.c
+	node_relationships.c
 	node_header.c
 	node_ops.c
 	node_select.c
