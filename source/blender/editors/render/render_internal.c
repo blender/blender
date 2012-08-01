@@ -452,10 +452,12 @@ static void render_drawlock(void *UNUSED(rjv), int lock)
 }
 
 /* catch esc */
-static int screen_render_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	Scene *scene = (Scene *) op->customdata;
+
 	/* no running blender, remove handler and pass through */
-	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C))) {
+	if (0 == WM_jobs_test(CTX_wm_manager(C), scene)) {
 		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 	}
 
@@ -583,6 +585,12 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	rj->re = re;
 	G.afbreek = 0;
+
+	/* store actual owner of job, so modal operator could check for it,
+	 * the reason of this is that active scene could change when rendering
+	 * several layers from composistor [#31800]
+	 */
+	op->customdata = scene;
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 
