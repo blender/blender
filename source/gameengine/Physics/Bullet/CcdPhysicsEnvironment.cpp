@@ -830,16 +830,16 @@ void		CcdPhysicsEnvironment::setCcdMode(int ccdMode)
 
 void		CcdPhysicsEnvironment::setSolverSorConstant(float sor)
 {
-	m_solverInfo.m_sor = sor;
+	m_dynamicsWorld->getSolverInfo().m_sor = sor;
 }
 
 void		CcdPhysicsEnvironment::setSolverTau(float tau)
 {
-	m_solverInfo.m_tau = tau;
+	m_dynamicsWorld->getSolverInfo().m_tau = tau;
 }
 void		CcdPhysicsEnvironment::setSolverDamping(float damping)
 {
-	m_solverInfo.m_damping = damping;
+	m_dynamicsWorld->getSolverInfo().m_damping = damping;
 }
 
 
