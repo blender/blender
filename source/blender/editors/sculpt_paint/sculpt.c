@@ -3064,11 +3064,18 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 
 void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_pmap)
 {
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
+	Mesh *me = ob->data;
 	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
 
 	ss->modifiers_active = sculpt_modifiers_active(scene, sd, ob);
+
+	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
+	BKE_mesh_tessface_ensure(me);
+
+	/* needs to be called after we ensure tessface */
+	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 
 	if (!mmd) ss->kb = ob_get_keyblock(ob);
 	else ss->kb = NULL;
@@ -3083,7 +3090,6 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 		ss->face_normals = NULL;
 	}
 	else {
-		Mesh *me = BKE_mesh_from_object(ob);
 		ss->totvert = me->totvert;
 		ss->totpoly = me->totpoly;
 		ss->mvert = me->mvert;
@@ -3094,9 +3100,6 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 		ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 	}
 
-	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
-	BKE_mesh_tessface_ensure(ob->data);
-
 	ss->pbvh = dm->getPBVH(ob, dm);
 	ss->pmap = (need_pmap && dm->getPolyMap) ? dm->getPolyMap(ob, dm) : NULL;
 
@@ -3106,14 +3109,14 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 
 			free_sculptsession_deformMats(ss);
 
-			if (ss->kb) ss->orig_cos = key_to_vertcos(ob, ss->kb);
-			else ss->orig_cos = mesh_getVertexCos(ob->data, NULL);
+			ss->orig_cos = (ss->kb) ? key_to_vertcos(ob, ss->kb) : mesh_getVertexCos(me, NULL);
 
 			crazyspace_build_sculpt(scene, ob, &ss->deform_imats, &ss->deform_cos);
 			BLI_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos);
 
-			for (a = 0; a < ((Mesh *)ob->data)->totvert; ++a)
+			for (a = 0; a < me->totvert; ++a) {
 				invert_m3(ss->deform_imats[a]);
+			}
 		}
 	}
 	else free_sculptsession_deformMats(ss);
@@ -4194,7 +4197,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 
 		if (flush_recalc)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		
+
 		/* Create persistent sculpt mode data */
 		if (!ts->sculpt) {
 			ts->sculpt = MEM_callocN(sizeof(Sculpt), "sculpt mode data");
