@@ -238,10 +238,6 @@ EnumPropertyItem image_type_items[] = {
 	IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
 	{0, "", 0, N_("Movie"), NULL},
-#ifdef _WIN32
-	/* XXX Missing codec menu */
-	{R_IMF_IMTYPE_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", "Output video in AVI format"},
-#endif
 	{R_IMF_IMTYPE_AVIJPEG, "AVI_JPEG", ICON_FILE_MOVIE, "AVI JPEG", "Output video in AVI JPEG format"},
 	{R_IMF_IMTYPE_AVIRAW, "AVI_RAW", ICON_FILE_MOVIE, "AVI Raw", "Output video in AVI Raw format"},
 #ifdef WITH_FRAMESERVER

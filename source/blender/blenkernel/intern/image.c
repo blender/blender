@@ -969,7 +969,6 @@ int BKE_imtype_is_movie(const char imtype)
 	switch (imtype) {
 		case R_IMF_IMTYPE_AVIRAW:
 		case R_IMF_IMTYPE_AVIJPEG:
-		case R_IMF_IMTYPE_AVICODEC:
 		case R_IMF_IMTYPE_QUICKTIME:
 		case R_IMF_IMTYPE_FFMPEG:
 		case R_IMF_IMTYPE_H264:
@@ -1084,7 +1083,6 @@ char BKE_imtype_from_arg(const char *imtype_arg)
 	else if (!strcmp(imtype_arg, "AVIRAW")) return R_IMF_IMTYPE_AVIRAW;
 	else if (!strcmp(imtype_arg, "AVIJPEG")) return R_IMF_IMTYPE_AVIJPEG;
 	else if (!strcmp(imtype_arg, "PNG")) return R_IMF_IMTYPE_PNG;
-	else if (!strcmp(imtype_arg, "AVICODEC")) return R_IMF_IMTYPE_AVICODEC;
 	else if (!strcmp(imtype_arg, "QUICKTIME")) return R_IMF_IMTYPE_QUICKTIME;
 	else if (!strcmp(imtype_arg, "BMP")) return R_IMF_IMTYPE_BMP;
 #ifdef WITH_HDR
@@ -1180,7 +1178,7 @@ int BKE_add_image_extension(char *string, const char imtype)
 			extension = ".jp2";
 	}
 #endif
-	else { //   R_IMF_IMTYPE_AVICODEC, R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90, R_IMF_IMTYPE_QUICKTIME etc
+	else { //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90, R_IMF_IMTYPE_QUICKTIME etc
 		if (!(BLI_testextensie(string, ".jpg") || BLI_testextensie(string, ".jpeg")))
 			extension = ".jpg";
 	}
