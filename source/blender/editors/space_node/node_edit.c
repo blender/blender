@@ -50,17 +50,13 @@
 #include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
 #include "BKE_texture.h"
 
 #include "RE_pipeline.h"
 
-#include "IMB_imbuf_types.h"
 
 #include "ED_node.h"  /* own include */
-#include "ED_image.h"
 #include "ED_screen.h"
-#include "ED_space_api.h"
 #include "ED_render.h"
 
 #include "RNA_access.h"
@@ -70,9 +66,6 @@
 #include "WM_types.h"
 
 #include "UI_view2d.h"
-
-#include "IMB_imbuf.h"
-
 
 #include "GPU_material.h"
 

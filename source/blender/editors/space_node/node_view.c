@@ -28,16 +28,12 @@
  *  \ingroup spnode
  */
 
-#include <stdio.h>
-
 #include "DNA_node_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_node.h"
 #include "BKE_image.h"
 #include "BKE_screen.h"
 

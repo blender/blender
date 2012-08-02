@@ -30,26 +30,17 @@
  *  \brief lower level node drawing for nodes (boarders, headers etc), also node layout.
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_node_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_tracking.h"
@@ -57,16 +48,11 @@
 #include "BLF_api.h"
 #include "BLF_translation.h"
 
-#include "NOD_composite.h"
-#include "NOD_shader.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "BLF_api.h"
-
 #include "MEM_guardedalloc.h"
-
 
 #include "RNA_access.h"
 
@@ -75,13 +61,12 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "node_intern.h"
+#include "node_intern.h"  /* own include */
 
 /* XXX interface.h */
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int select);

@@ -28,21 +28,12 @@
  *  \ingroup spnode
  */
 
-
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <float.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 
@@ -59,10 +50,9 @@
 #include "ED_gpencil.h"
 #include "ED_screen.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "node_intern.h"	// own include
+#include "node_intern.h"  /* own include */
 
 
 /* ******************* node space & buttons ************** */
