@@ -29,32 +29,17 @@
  *  \ingroup spnode
  */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <errno.h>
-
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_world_types.h"
-#include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
-#include "BKE_action.h"
-#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -63,18 +48,16 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_material.h"
-#include "BKE_modifier.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
-#include "BKE_report.h"
 
 #include "RE_pipeline.h"
 
 #include "IMB_imbuf_types.h"
 
-#include "ED_node.h"
+#include "ED_node.h"  /* own include */
 #include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -82,23 +65,18 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "IMB_imbuf.h"
 
-#include "RNA_enum_types.h"
 
 #include "GPU_material.h"
 
-#include "node_intern.h"
-#include "NOD_socket.h"
+#include "node_intern.h"  /* own include */
 
 /* ***************** composite job manager ********************** */
 
@@ -2236,4 +2214,157 @@ void NODE_OT_node_copy_color(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ****************** Copy to clipboard ******************* */
+
+static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *node, *newnode;
+	bNodeLink *link, *newlink;
+
+	ED_preview_kill_jobs(C);
+
+	/* clear current clipboard */
+	nodeClipboardClear();
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->flag & SELECT) {
+			newnode = nodeCopyNode(NULL, node);
+			nodeClipboardAddNode(newnode);
+		}
+	}
+
+	/* copy links between selected nodes
+	 * NB: this depends on correct node->new_node and sock->new_sock pointers from above copy!
+	 */
+	for (link = ntree->links.first; link; link = link->next) {
+		/* This creates new links between copied nodes. */
+		if (link->tonode && (link->tonode->flag & NODE_SELECT) &&
+		    link->fromnode && (link->fromnode->flag & NODE_SELECT))
+		{
+			newlink = MEM_callocN(sizeof(bNodeLink), "bNodeLink");
+			newlink->flag = link->flag;
+			newlink->tonode = link->tonode->new_node;
+			newlink->tosock = link->tosock->new_sock;
+			newlink->fromnode = link->fromnode->new_node;
+			newlink->fromsock = link->fromsock->new_sock;
+
+			nodeClipboardAddLink(newlink);
+		}
+	}
+
+	/* reparent copied nodes */
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if ((node->flag & SELECT) && node->parent) {
+			if (node->parent->flag & SELECT)
+				node->parent = node->parent->new_node;
+			else
+				node->parent = NULL;
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_clipboard_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Copy to clipboard";
+	ot->description = "Copies selected nodes to the clipboard";
+	ot->idname = "NODE_OT_clipboard_copy";
+
+	/* api callbacks */
+	ot->exec = node_clipboard_copy_exec;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ****************** Paste from clipboard ******************* */
+
+static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *node;
+	bNodeLink *link;
+	int num_nodes;
+	float centerx, centery;
+
+	ED_preview_kill_jobs(C);
+
+	/* deselect old nodes */
+	node_deselect_all(snode);
+
+	/* calculate "barycenter" for placing on mouse cursor */
+	num_nodes = 0;
+	centerx = centery = 0.0f;
+	for (node = nodeClipboardGetNodes()->first; node; node = node->next) {
+		++num_nodes;
+		centerx += node->locx + 0.5f * node->width;
+		centery += node->locy - 0.5f * node->height;
+	}
+	centerx /= num_nodes;
+	centery /= num_nodes;
+
+	/* copy nodes from clipboard */
+	for (node = nodeClipboardGetNodes()->first; node; node = node->next) {
+		bNode *newnode = nodeCopyNode(ntree, node);
+
+		/* pasted nodes are selected */
+		node_select(newnode);
+
+		/* place nodes around the mouse cursor */
+		newnode->locx += snode->mx - centerx;
+		newnode->locy += snode->my - centery;
+	}
+
+	for (link = nodeClipboardGetLinks()->first; link; link = link->next) {
+		nodeAddLink(ntree, link->fromnode->new_node, link->fromsock->new_sock,
+		            link->tonode->new_node, link->tosock->new_sock);
+	}
+
+	/* reparent copied nodes */
+	for (node = nodeClipboardGetNodes()->first; node; node = node->next) {
+		if (node->new_node->parent)
+			node->new_node->parent = node->new_node->parent->new_node;
+	}
+
+	ntreeUpdateTree(snode->edittree);
+
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+
+	return OPERATOR_FINISHED;
+}
+
+static int node_clipboard_paste_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	/* convert mouse coordinates to v2d space */
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &snode->mx, &snode->my);
+
+	return node_clipboard_paste_exec(C, op);
+}
+
+void NODE_OT_clipboard_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Paste from clipboard";
+	ot->description = "Pastes nodes from the clipboard to the active node tree";
+	ot->idname = "NODE_OT_clipboard_paste";
+
+	/* api callbacks */
+	ot->exec = node_clipboard_paste_exec;
+	ot->invoke = node_clipboard_paste_invoke;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }

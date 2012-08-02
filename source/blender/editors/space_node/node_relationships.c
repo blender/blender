@@ -29,76 +29,31 @@
  *  \ingroup spnode
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <errno.h>
-
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_world_types.h"
-#include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
-#include "BKE_action.h"
-#include "BKE_animsys.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_material.h"
-#include "BKE_modifier.h"
-#include "BKE_paint.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_texture.h"
-#include "BKE_report.h"
 
-#include "RE_pipeline.h"
-
-#include "IMB_imbuf_types.h"
-
-#include "ED_node.h"
-#include "ED_image.h"
+#include "ED_node.h"  /* own include */
 #include "ED_screen.h"
-#include "ED_space_api.h"
 #include "ED_render.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "IMB_imbuf.h"
-
-#include "RNA_enum_types.h"
-
-#include "GPU_material.h"
-
-#include "node_intern.h"
-#include "NOD_socket.h"
-
+#include "node_intern.h"  /* own include */
 
 /* ****************** Add *********************** */
 

@@ -113,6 +113,9 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_join);
 	WM_operatortype_append(NODE_OT_attach);
 	WM_operatortype_append(NODE_OT_detach);
+	
+	WM_operatortype_append(NODE_OT_clipboard_copy);
+	WM_operatortype_append(NODE_OT_clipboard_paste);
 }
 
 void ED_operatormacros_node(void)
@@ -280,6 +283,9 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_read_renderlayers", RKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_read_fullsamplelayers", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_render_changed", ZKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "NODE_OT_clipboard_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_clipboard_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 	
 	transform_keymap_for_space(keyconf, keymap, SPACE_NODE);
 }
