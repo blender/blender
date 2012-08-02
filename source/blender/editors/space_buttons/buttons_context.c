@@ -683,7 +683,7 @@ const char *buttons_context_dir[] = {
 	"world", "object", "mesh", "armature", "lattice", "curve",
 	"meta_ball", "lamp", "speaker", "camera", "material", "material_slot",
 	"texture", "texture_slot", "texture_user", "bone", "edit_bone",
-	"pose_bone", "particle_system", "particle_system_editable",
+	"pose_bone", "particle_system", "particle_system_editable", "particle_settings",
 	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", "dynamic_paint", NULL
 };
 
@@ -890,6 +890,27 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			CTX_data_pointer_set(result, NULL, &RNA_ParticleSystem, NULL);
 		return 1;
 	}	
+	else if (CTX_data_equals(member, "particle_settings")) {
+		/* only available when pinned */
+		PointerRNA *ptr = get_pointer_type(path, &RNA_ParticleSettings);
+		
+		if (ptr && ptr->data) {
+			CTX_data_pointer_set(result, ptr->id.data, &RNA_ParticleSettings, ptr->data);
+			return 1;
+		}
+		else {
+			/* get settings from active particle system instead */
+			PointerRNA *ptr = get_pointer_type(path, &RNA_ParticleSystem);
+			
+			if (ptr && ptr->data) {
+				ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
+				CTX_data_pointer_set(result, ptr->id.data, &RNA_ParticleSettings, part);
+				return 1;
+			}
+		}
+		set_pointer_type(path, result, &RNA_ParticleSettings);
+		return 1;
+	}
 	else if (CTX_data_equals(member, "cloth")) {
 		PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
 

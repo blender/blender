@@ -266,8 +266,8 @@ static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const
 				/* only consider selected strips? */
 				if ((onlySel == 0) || (strip->flag & NLASTRIP_FLAG_SELECT)) {
 					/* extend range if appropriate */
-					*min = MIN2(*min, strip->start);
-					*max = MAX2(*max, strip->end);
+					*min = minf(*min, strip->start);
+					*max = maxf(*max, strip->end);
 				}
 			}
 		}

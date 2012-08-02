@@ -1311,7 +1311,7 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 		memcpy(subGridData[i], gridData[i], key.elem_size * gridSize * gridSize);
 	}
 	
-	/*numGrids = ccgdm->dm->getNumGrids((DerivedMesh*)ccgdm);*/ /*UNUSED*/
+	/* numGrids = ccgdm->dm->getNumGrids((DerivedMesh *)ccgdm); */ /*UNUSED*/
 	gridSize = ccgdm->getGridSize((DerivedMesh *)ccgdm);
 	gridData = ccgdm->getGridData((DerivedMesh *)ccgdm);
 	gridOffset = ccgdm->getGridOffset((DerivedMesh *)ccgdm);

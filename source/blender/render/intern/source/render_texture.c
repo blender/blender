@@ -791,9 +791,9 @@ static int cubemap(MTex *mtex, VlakRen *vlr, const float n[3], float x, float y,
 				float nor[3];
 				normal_tri_v3(nor, vlr->v1->orco, vlr->v2->orco, vlr->v3->orco);
 				
-				if ( fabs(nor[0])<fabs(nor[2]) && fabs(nor[1])<fabs(nor[2]) ) vlr->puno |= ME_PROJXY;
-				else if ( fabs(nor[0])<fabs(nor[1]) && fabs(nor[2])<fabs(nor[1]) ) vlr->puno |= ME_PROJXZ;
-				else vlr->puno |= ME_PROJYZ;
+				if      (fabsf(nor[0]) < fabsf(nor[2]) && fabsf(nor[1]) < fabsf(nor[2])) vlr->puno |= ME_PROJXY;
+				else if (fabsf(nor[0]) < fabsf(nor[1]) && fabsf(nor[2]) < fabsf(nor[1])) vlr->puno |= ME_PROJXZ;
+				else                                                                     vlr->puno |= ME_PROJYZ;
 			}
 			else return cubemap_glob(n, x, y, z, adr1, adr2);
 		}
@@ -1733,7 +1733,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 	if (mtex->texco == TEXCO_UV) {
 		/* for the uv case, use the same value for both du/dv,
 		 * since individually scaling the normal derivatives makes them useless... */
-		du = MIN2(du, dv);
+		du = minf(du, dv);
 		idu = (du < 1e-5f) ? bf : (bf/du);
 
 		/* +u val */
@@ -3636,7 +3636,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 					float *uv1, *uv2, *uv3;
 					float l;
 					CustomData *data = &orcoDm->faceData;
-					MTFace *tface = (MTFace*) data->layers[layer_index+i].data;
+					MTFace *tface = (MTFace *) data->layers[layer_index+i].data;
 					float uv[3];
 					/* point layer name from actual layer data */
 					shi.uv[i].name = data->layers[i].name;

@@ -954,7 +954,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 					dist = dists[i];
 				}
 				else {
-					if (fabs(dist - distToBe) < fabs(dists[i] - distToBe)) {
+					if (fabsf(dist - distToBe) < fabsf(dists[i] - distToBe)) {
 						upDown[i] = 0;
 						changes[i][0] = vc;
 						changes[i][1] = hc;
@@ -963,7 +963,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 					else {
 						upDown[i] = 1;
 					}
-					if (fabs(dists[i] - distToBe) > fabs(distToStart - distToBe)) {
+					if (fabsf(dists[i] - distToBe) > fabsf(distToStart - distToBe)) {
 						changes[i][0] = 0;
 						changes[i][1] = 0;
 						dists[i] = distToStart;
@@ -979,7 +979,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 			for (i = k + 1; i < totweight; i++) {
 				dist = dists[i];
 
-				if (fabs(dist) > fabs(dists[i])) {
+				if (fabsf(dist) > fabsf(dists[i])) {
 					bestIndex = i;
 				}
 			}
@@ -1009,7 +1009,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 		bestIndex = -1;
 		/* find the best change with an acceptable horizontal change */
 		for (i = 0; i < totweight; i++) {
-			if (fabs(changes[i][0]) > fabs(changes[i][1] * 2.0f)) {
+			if (fabsf(changes[i][0]) > fabsf(changes[i][1] * 2.0f)) {
 				bestIndex = i;
 				break;
 			}

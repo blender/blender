@@ -710,7 +710,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	what_image(sima);
 	
 	if (sima->image) {
-		ED_image_aspect(sima->image, &xuser_asp, &yuser_asp);
+		ED_image_get_aspect(sima->image, &xuser_asp, &yuser_asp);
 		
 		/* UGLY hack? until now iusers worked fine... but for flipbook viewer we need this */
 		if (sima->image->type == IMA_TYPE_COMPOSITE) {
@@ -727,7 +727,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 
 	/* retrieve the image and information about it */
 	ima = ED_space_image(sima);
-	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
 	show_viewer = (ima && ima->source == IMA_SRC_VIEWER);
 	show_render = (show_viewer && ima->type == IMA_TYPE_R_RESULT);
@@ -754,7 +754,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 		draw_image_buffer(sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 	/* paint helpers */
-	if (sima->flag & SI_DRAWTOOL)
+	if (sima->mode == SI_MODE_PAINT)
 		draw_image_paint_helpers(ar, scene, zoomx, zoomy);
 
 

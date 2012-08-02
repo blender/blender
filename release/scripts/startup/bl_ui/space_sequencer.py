@@ -184,6 +184,7 @@ class SEQUENCER_MT_add(Menu):
 
     def draw(self, context):
         layout = self.layout
+
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         if len(bpy.data.scenes) > 10:
@@ -216,6 +217,7 @@ class SEQUENCER_MT_add_effect(Menu):
 
     def draw(self, context):
         layout = self.layout
+
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("sequencer.effect_strip_add", text="Add").type = 'ADD'
@@ -834,6 +836,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         render = context.scene.render
 
         col = layout.column()

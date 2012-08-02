@@ -114,6 +114,7 @@ typedef enum NodeObjectInfo {
 } NodeObjectInfo;
 
 typedef enum NodeParticleInfo {
+	NODE_INFO_PAR_INDEX,
 	NODE_INFO_PAR_AGE,
 	NODE_INFO_PAR_LIFETIME
 } NodeParticleInfo;

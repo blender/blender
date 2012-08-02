@@ -145,7 +145,6 @@ void BL_ActionActuator::SetLocalTime(float curtime)
 		case ACT_ACTION_PLAY:
 			// Clamp
 			m_localtime = m_endframe;
-			((KX_GameObject*)GetParent())->StopAction(m_layer);
 			break;
 		case ACT_ACTION_LOOP_END:
 			// Put the time back to the beginning
@@ -339,7 +338,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		}
 	}
 
-	return m_flag & ACT_FLAG_ATTEMPT_PLAY;
+	return m_flag & ACT_FLAG_ACTIVE;
 }
 
 #ifdef WITH_PYTHON

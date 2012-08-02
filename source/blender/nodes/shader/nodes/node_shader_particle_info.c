@@ -28,9 +28,10 @@
 #include "../node_shader_util.h"
 
 static bNodeSocketTemplate outputs[] = {
-        { SOCK_FLOAT,  0, "Age" },
-        { SOCK_FLOAT,  0, "Lifetime" },
-        { -1, 0, "" }
+    { SOCK_FLOAT,  0, "Index" },
+    { SOCK_FLOAT,  0, "Age" },
+    { SOCK_FLOAT,  0, "Lifetime" },
+    { -1, 0, "" }
 };
 
 /* node type definition */

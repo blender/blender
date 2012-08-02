@@ -219,7 +219,9 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			layer = layername.c_str();
 		}
 		else {
+			render_layer.use_localview = (b_v3d.local_view() ? true : false);
 			render_layer.scene_layer = get_layer(b_v3d.layers(), b_v3d.layers_local_view());
+			CYCLES_LOCAL_LAYER_HACK(render_layer.use_localview, render_layer.scene_layer);
 			render_layer.layer = render_layer.scene_layer;
 			render_layer.holdout_layer = 0;
 			render_layer.material_override = PointerRNA_NULL;
@@ -245,6 +247,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.material_override = b_rlay->material_override();
 			render_layer.use_background = b_rlay->use_sky();
 			render_layer.use_viewport_visibility = false;
+			render_layer.use_localview = false;
 			render_layer.samples = b_rlay->samples();
 		}
 

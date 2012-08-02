@@ -21,7 +21,6 @@
  */
 
 #include "COM_BokehImageNode.h"
-#include "DNA_scene_types.h"
 #include "COM_BokehImageOperation.h"
 #include "COM_ExecutionSystem.h"
 

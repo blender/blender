@@ -99,15 +99,6 @@ void ED_mask_select_flush_all(struct Mask *mask);
 int ED_maskedit_poll(struct bContext *C);
 int ED_maskedit_mask_poll(struct bContext *C);
 
-void ED_mask_size(const struct bContext *C, int *width, int *height);
-void ED_mask_aspect(const struct bContext *C, float *aspx, float *aspy);
-
-void ED_mask_pixelspace_factor(const struct bContext *C, float *scalex, float *scaley);
-void ED_mask_mouse_pos(const struct bContext *C, struct wmEvent *event, float co[2]);
-
-void ED_mask_point_pos(const struct bContext *C, float x, float y, float *xr, float *yr);
-void ED_mask_point_pos__reverse(const struct bContext *C, float x, float y, float *xr, float *yr);
-
 /* mask_shapekey.c */
 void MASK_OT_shape_key_insert(struct wmOperatorType *ot);
 void MASK_OT_shape_key_clear(struct wmOperatorType *ot);

@@ -4667,8 +4667,9 @@ static int image_paint_poll(bContext *C)
 		if (sima) {
 			ARegion *ar = CTX_wm_region(C);
 
-			if ((sima->flag & SI_DRAWTOOL) && ar->regiontype == RGN_TYPE_WINDOW)
+			if ((sima->mode == SI_MODE_PAINT) && ar->regiontype == RGN_TYPE_WINDOW) {
 				return 1;
+			}
 		}
 	}
 
@@ -5200,7 +5201,7 @@ int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 		SpaceImage *sima = CTX_wm_space_image(C);
 		ARegion *ar = CTX_wm_region(C);
 		
-		ED_space_image_zoom(sima, ar, zoomx, zoomy);
+		ED_space_image_get_zoom(sima, ar, zoomx, zoomy);
 
 		return 1;
 	}
@@ -5235,7 +5236,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		           !(ts->use_uv_sculpt && (scene->basact->object->mode == OB_MODE_EDIT));
 
 		if (use_zoom) {
-			pixel_size = MAX2(size * zoomx, size * zoomy);
+			pixel_size = size * maxf(zoomx, zoomy);
 		}
 		else {
 			pixel_size = size;
@@ -5311,7 +5312,7 @@ void ED_space_image_uv_sculpt_update(wmWindowManager *wm, ToolSettings *settings
 			settings->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
 		}
 
-		paint_init(&settings->uvsculpt->paint, PAINT_CURSOR_SCULPT);
+		BKE_paint_init(&settings->uvsculpt->paint, PAINT_CURSOR_SCULPT);
 
 		WM_paint_cursor_activate(wm, uv_sculpt_brush_poll,
 		                         brush_drawcursor, NULL);
@@ -5601,7 +5602,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 			me->mtface = CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
 			                                  NULL, me->totface);
 
-		paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
+		BKE_paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
 
 		if (U.glreslimit != 0)
 			GPU_free_images();

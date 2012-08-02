@@ -110,6 +110,8 @@ struct MovieTrackingMarker *BKE_tracking_marker_ensure(struct MovieTrackingTrack
 
 void BKE_tracking_marker_pattern_minmax(const struct MovieTrackingMarker *marker, float min[2], float max[2]);
 
+void BKE_tracking_marker_get_subframe_position(struct MovieTrackingTrack *track, float framenr, float pos[2]);
+
 /* **** Object **** */
 struct MovieTrackingObject *BKE_tracking_object_add(struct MovieTracking *tracking, const char *name);
 void BKE_tracking_object_delete(struct MovieTracking *tracking, struct MovieTrackingObject *object);
@@ -146,8 +148,8 @@ struct ImBuf *BKE_tracking_distortion_exec(struct MovieDistortion *distortion, s
                                            struct ImBuf *ibuf, int width, int height, float overscan, int undistort);
 void BKE_tracking_distortion_free(struct MovieDistortion *distortion);
 
-void BKE_tracking_distort_v2(struct MovieTracking *tracking, float co[2], float nco[2]);
-void BKE_tracking_undistort_v2(struct MovieTracking *tracking, float co[2], float nco[2]);
+void BKE_tracking_distort_v2(struct MovieTracking *tracking, const float co[2], float r_co[2]);
+void BKE_tracking_undistort_v2(struct MovieTracking *tracking, const float co[2], float r_co[2]);
 
 struct ImBuf *BKE_tracking_undistort_frame(struct MovieTracking *tracking, struct ImBuf *ibuf,
                                            int calibration_width, int calibration_height, float overscan);

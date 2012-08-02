@@ -87,8 +87,8 @@ __device_inline void sample_cos_hemisphere(const float3 N,
 }
 
 __device_inline void sample_uniform_hemisphere(const float3 N,
-											 float randu, float randv,
-											 float3 *omega_in, float *pdf)
+                                               float randu, float randv,
+                                               float3 *omega_in, float *pdf)
 {
 	float z = randu;
 	float r = sqrtf(max(0.0f, 1.0f - z*z));

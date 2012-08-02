@@ -227,7 +227,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_op_callf(bm, "delete geom=%fvef context=%i", ELE_DEL, DEL_ONLYTAGGED);
+	BMO_op_callf(bm, op->flag, "delete geom=%fvef context=%i", ELE_DEL, DEL_ONLYTAGGED);
 
 	BLI_array_free(edges);
 	BLI_array_free(loops);
@@ -347,8 +347,8 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_slot_vec_get(op, "merge_co", vec);
 
-	//BMO_op_callf(bm, "collapse_uvs edges=%s", op, "edges");
-	BMO_op_init(bm, &weldop, "weld_verts");
+	//BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");
+	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 	
 	BMO_ITER (v, &siter, bm, op, "verts", BM_VERT) {
 		if (!snapv) {
@@ -374,8 +374,8 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	float min[3], max[3];
 	int i, tot;
 	
-	BMO_op_callf(bm, "collapse_uvs edges=%s", op, "edges");
-	BMO_op_init(bm, &weldop, "weld_verts");
+	BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");
+	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 
 	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 
@@ -561,7 +561,7 @@ void bmo_remove_doubles_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator weldop;
 
-	BMO_op_init(bm, &weldop, "weld_verts");
+	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 	bmesh_find_doubles_common(bm, op, &weldop, "targetmap");
 	BMO_op_exec(bm, &weldop);
 	BMO_op_finish(bm, &weldop);
@@ -591,12 +591,12 @@ void bmo_automerge_exec(BMesh *bm, BMOperator *op)
 
 	/* Search for doubles among all vertices, but only merge non-VERT_KEEP
 	 * vertices into VERT_KEEP vertices. */
-	BMO_op_initf(bm, &findop, "find_doubles verts=%av keep_verts=%fv", VERT_KEEP);
+	BMO_op_initf(bm, &findop, op->flag, "find_doubles verts=%av keep_verts=%fv", VERT_KEEP);
 	BMO_slot_copy(op, &findop, "dist", "dist");
 	BMO_op_exec(bm, &findop);
 
 	/* weld the vertices */
-	BMO_op_init(bm, &weldop, "weld_verts");
+	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 	BMO_slot_copy(&findop, &weldop, "targetmapout", "targetmap");
 	BMO_op_exec(bm, &weldop);
 

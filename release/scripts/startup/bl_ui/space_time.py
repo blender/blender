@@ -160,8 +160,7 @@ class TIME_MT_frame(Menu):
 
         layout.separator()
 
-        sub = layout.row()
-        sub.menu("TIME_MT_autokey")
+        layout.menu("TIME_MT_autokey")
 
 
 class TIME_MT_playback(Menu):

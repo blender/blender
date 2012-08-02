@@ -34,13 +34,14 @@ __all__ = (
     "register_class",
     "register_module",
     "resource_path",
+    "script_path_user",
+    "script_path_pref",
     "script_paths",
     "smpte_from_frame",
     "smpte_from_seconds",
     "unregister_class",
     "unregister_module",
     "user_resource",
-    "user_script_path",
     )
 
 from _bpy import register_class, unregister_class, blend_paths, resource_path
@@ -252,15 +253,16 @@ _scripts = _os.path.join(_os.path.dirname(__file__),
 _scripts = (_os.path.normpath(_scripts), )
 
 
-def user_script_path():
-    # returns the env var and falls back to userprefs
+def script_path_user():
+    """returns the env var and falls back to home dir or None"""
     path = _user_resource('SCRIPTS')
+    return _os.path.normpath(path) if path else None
 
-    if path:
-        path = _os.path.normpath(path)
-        return path
-    else:
-        return None
+
+def script_path_pref():
+    """returns the user preference or None"""
+    path = _bpy.context.user_preferences.filepaths.script_directory
+    return _os.path.normpath(path) if path else None
 
 
 def script_paths(subdir=None, user_pref=True, check_all=False):
@@ -278,10 +280,6 @@ def script_paths(subdir=None, user_pref=True, check_all=False):
     :rtype: list
     """
     scripts = list(_scripts)
-    prefs = _bpy.context.user_preferences
-
-    # add user scripts dir
-    user_script = user_script_path()
 
     if check_all:
         # all possible paths
@@ -291,7 +289,7 @@ def script_paths(subdir=None, user_pref=True, check_all=False):
         # only paths blender uses
         base_paths = _bpy_script_paths()
 
-    for path in base_paths + (user_script, ):
+    for path in base_paths + (script_path_user(), script_path_pref()):
         if path:
             path = _os.path.normpath(path)
             if path not in scripts and _os.path.isdir(path):

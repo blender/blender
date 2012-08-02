@@ -23,7 +23,6 @@
 #include "COM_TextureOperation.h"
 
 #include "BLI_listbase.h"
-#include "DNA_scene_types.h"
 
 TextureBaseOperation::TextureBaseOperation() : NodeOperation()
 {

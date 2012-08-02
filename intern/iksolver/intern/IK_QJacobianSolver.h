@@ -77,7 +77,7 @@ private:
 	void ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTask*>& tasks);
 
 	MT_Scalar ComputeScale();
-	void Scale(float scale, std::list<IK_QTask*>& tasks);
+	void Scale(MT_Scalar scale, std::list<IK_QTask*>& tasks);
 
 private:
 

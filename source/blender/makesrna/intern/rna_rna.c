@@ -526,7 +526,7 @@ static int rna_Property_readonly_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
-	/* don't use this becaure it will call functions that check the internal
+	/* don't use this because it will call functions that check the internal
 	 * data for introspection we only need to know if it can be edited so the
 	 * flag is better for this */
 /*	return RNA_property_editable(ptr, prop); */
@@ -829,7 +829,7 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 	int totitem, free = 0;
 	
 	rna_idproperty_check(&prop, ptr);
-	/* eprop= (EnumPropertyRNA*)prop; */
+	/* eprop= (EnumPropertyRNA *)prop; */
 	
 	RNA_property_enum_items(NULL, ptr, prop, &item, &totitem, &free);
 	rna_iterator_array_begin(iter, (void *)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);

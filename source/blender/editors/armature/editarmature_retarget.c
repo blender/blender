@@ -2379,7 +2379,7 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 //		printf("CANDIDATES\n");
 //		for (i = 0; i < enode->degree; i++)
 //		{
-//			next_earc = (ReebArc*)enode->arcs[i];
+//			next_earc = (ReebArc *)enode->arcs[i];
 //			printf("flag %i -- level %i -- flag %i -- group %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag, next_earc->symmetry_group);
 //		}
 		

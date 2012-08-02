@@ -545,7 +545,9 @@ static void seq_update_sound_bounds_recursive_rec(Scene *scene, Sequence *metase
 	 * since sound is played outside of evaluating the imbufs, */
 	for (seq = metaseq->seqbase.first; seq; seq = seq->next) {
 		if (seq->type == SEQ_TYPE_META) {
-			seq_update_sound_bounds_recursive_rec(scene, seq, MAX2(start, metaseq_start(seq)), MIN2(end, metaseq_end(seq)));
+			seq_update_sound_bounds_recursive_rec(scene, seq,
+			                                      maxi(start, metaseq_start(seq)),
+			                                      mini(end, metaseq_end(seq)));
 		}
 		else if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
 			if (seq->scene_sound) {
@@ -2070,10 +2072,30 @@ static ImBuf *seq_render_mask_strip(
 	if (!seq->mask) {
 		return NULL;
 	}
+	else {
+		Mask *mask_temp;
+		MaskRasterHandle *mr_handle;
 
-	BKE_mask_evaluate(seq->mask, seq->mask->sfra + nr, TRUE);
+		mask_temp = BKE_mask_copy_nolib(seq->mask);
 
-	maskbuf = MEM_callocN(sizeof(float) * context.rectx * context.recty, __func__);
+		BKE_mask_evaluate(mask_temp, seq->mask->sfra + nr, TRUE);
+
+		maskbuf = MEM_mallocN(sizeof(float) * context.rectx * context.recty, __func__);
+
+		mr_handle = BKE_maskrasterize_handle_new();
+
+		BKE_maskrasterize_handle_init(mr_handle, mask_temp,
+		                              context.rectx, context.recty,
+		                              TRUE, TRUE, TRUE);
+
+		BKE_mask_free(mask_temp);
+		MEM_freeN(mask_temp);
+
+		BKE_maskrasterize_buffer(mr_handle, context.rectx, context.recty, maskbuf);
+
+		BKE_maskrasterize_handle_free(mr_handle);
+	}
+
 
 	if (seq->flag & SEQ_MAKE_FLOAT) {
 		/* pixels */
@@ -2081,14 +2103,6 @@ static ImBuf *seq_render_mask_strip(
 		float *fp_dst;
 
 		ibuf = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rectfloat);
-
-		BKE_mask_rasterize(seq->mask,
-		                   context.rectx, context.recty,
-		                   maskbuf,
-		                   TRUE,
-		                   FALSE, /*XXX- TODO: make on/off for anti-aliasing */
-		                   TRUE   /*XXX- TODO: make on/off for feather */
-		                   );
 
 		fp_src = maskbuf;
 		fp_dst = ibuf->rect_float;
@@ -2107,14 +2121,6 @@ static ImBuf *seq_render_mask_strip(
 		unsigned char *ub_dst;
 
 		ibuf = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rect);
-
-		BKE_mask_rasterize(seq->mask,
-		                   context.rectx, context.recty,
-		                   maskbuf,
-		                   TRUE,
-		                   FALSE, /*XXX- TODO: make on/off for anti-aliasing */
-		                   TRUE   /*XXX- TODO: make on/off for feather */
-		                   );
 
 		fp_src = maskbuf;
 		ub_dst = (unsigned char *)ibuf->rect;
@@ -3140,7 +3146,7 @@ int seq_tx_get_final_left(Sequence *seq, int metaclip)
 {
 	if (metaclip && seq->tmp) {
 		/* return the range clipped by the parents range */
-		return MAX2(seq_tx_get_final_left(seq, 0), seq_tx_get_final_left((Sequence *)seq->tmp, 1) );
+		return maxi(seq_tx_get_final_left(seq, 0), seq_tx_get_final_left((Sequence *)seq->tmp, TRUE));
 	}
 	else {
 		return (seq->start - seq->startstill) + seq->startofs;
@@ -3151,7 +3157,7 @@ int seq_tx_get_final_right(Sequence *seq, int metaclip)
 {
 	if (metaclip && seq->tmp) {
 		/* return the range clipped by the parents range */
-		return MIN2(seq_tx_get_final_right(seq, 0), seq_tx_get_final_right((Sequence *)seq->tmp, 1) );
+		return mini(seq_tx_get_final_right(seq, 0), seq_tx_get_final_right((Sequence *)seq->tmp, TRUE));
 	}
 	else {
 		return ((seq->start + seq->len) + seq->endstill) - seq->endofs;
@@ -3807,6 +3813,18 @@ int BKE_sequencer_active_get_pair(Scene *scene, Sequence **seq_act, Sequence **s
 		}
 
 		return (*seq_other != NULL);
+	}
+}
+
+Mask *BKE_sequencer_mask_get(Scene *scene)
+{
+	Sequence *seq_act = BKE_sequencer_active_get(scene);
+
+	if (seq_act && seq_act->type == SEQ_TYPE_MASK) {
+		return seq_act->mask;
+	}
+	else {
+		return NULL;
 	}
 }
 

@@ -144,16 +144,20 @@ void BlenderSync::sync_particles(Object *ob, BL::Object b_ob)
 	BL::Object::particle_systems_iterator b_psys;
 	for(b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys) {
 		if (use_particle_system(*b_psys)) {
+			int pa_index = 0;
 			BL::ParticleSystem::particles_iterator b_pa;
 			for(b_psys->particles.begin(b_pa), index = 0; b_pa != b_psys->particles.end(); ++b_pa, ++index) {
 				if(use_particle(*b_pa)) {
 					Particle pa;
 					
+					pa.index = pa_index;
 					pa.age = b_scene.frame_current() - b_pa->birth_time();
 					pa.lifetime = b_pa->lifetime();
 					
 					ob->particles.push_back(pa);
 				}
+				
+				++pa_index;
 			}
 		}
 	}

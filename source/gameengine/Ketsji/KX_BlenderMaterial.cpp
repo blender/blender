@@ -884,7 +884,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 		Py_RETURN_NONE;
 	}
 
-	if (!GLEW_ARB_shader_objects)  {
+	if (!GLEW_ARB_shader_objects) {
 		if (!mModified)
 			spit("GLSL not supported");
 		mModified = true;

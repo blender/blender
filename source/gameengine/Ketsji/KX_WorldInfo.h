@@ -43,7 +43,7 @@ class MT_CmMatrix4x4;
 class KX_WorldInfo
 {
 public:
-	KX_WorldInfo(){}
+	KX_WorldInfo() {}
 	virtual ~KX_WorldInfo();
 
 	virtual bool	hasWorld()=0;

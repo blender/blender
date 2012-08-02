@@ -302,9 +302,9 @@ public:
 	virtual int		GetMotionBlurState() { return m_motionblur; }
 	virtual void	SetMotionBlurState(int newstate)
 	{
-		if(newstate<0) 
+		if (newstate < 0)
 			m_motionblur = 0;
-		else if(newstate>2)
+		else if (newstate > 2)
 			m_motionblur = 2;
 		else 
 			m_motionblur = newstate;

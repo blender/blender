@@ -184,6 +184,7 @@ ScaleFixedSizeOperation::ScaleFixedSizeOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setResolutionInputSocketIndex(0);
 	this->m_inputOperation = NULL;
+	this->m_is_offset = false;
 }
 void ScaleFixedSizeOperation::initExecution()
 {

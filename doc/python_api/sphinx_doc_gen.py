@@ -979,6 +979,7 @@ def pycontext2sphinx(basepath):
         "meta_ball": ("MetaBall", False),
         "object": ("Object", False),
         "particle_edit_object": ("Object", False),
+        "particle_settings": ("ParticleSettings", False),
         "particle_system": ("ParticleSystem", False),
         "particle_system_editable": ("ParticleSystem", False),
         "pose_bone": ("PoseBone", False),

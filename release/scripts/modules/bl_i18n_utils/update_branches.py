@@ -38,6 +38,7 @@ except:
 
 PY3 = settings.PYTHON3_EXEC
 
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="" \
@@ -58,7 +59,6 @@ def main():
     parser.add_argument('langs', metavar='ISO_code', nargs='*',
                         help="Restrict processed languages to those.")
     args = parser.parse_args()
-
 
     ret = 0
 

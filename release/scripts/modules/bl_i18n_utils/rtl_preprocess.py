@@ -86,6 +86,7 @@ FRIBIDI_FLAGS_DEFAULT = FRIBIDI_FLAG_SHAPE_MIRRORING | \
 FRIBIDI_FLAGS_ARABIC = FRIBIDI_FLAG_SHAPE_ARAB_PRES | \
                        FRIBIDI_FLAG_SHAPE_ARAB_LIGA
 
+
 ##### Kernel processing funcs. #####
 def protect_format_seq(msg):
     """
@@ -185,6 +186,7 @@ def log2vis(msgs):
 
         yield fbc_str.value
 
+
 ##### Command line stuff. #####
 def main():
     import argparse
@@ -207,7 +209,6 @@ def main():
     parser.add_argument('src', metavar='src.po',
                         help="The po's to pre-process messages.")
     args = parser.parse_args()
-
 
     msgs, state, u1 = utils.parse_messages(args.src)
     if state["is_broken"]:

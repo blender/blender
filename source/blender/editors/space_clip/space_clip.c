@@ -389,7 +389,6 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			switch (wmn->action) {
 				case NA_SELECTED:
-					clip_scopes_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 				case NA_EDITED:
@@ -478,6 +477,8 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_hide_tracks_clear);
 	WM_operatortype_append(CLIP_OT_lock_tracks);
 
+	WM_operatortype_append(CLIP_OT_set_solver_keyframe);
+
 	/* orientation */
 	WM_operatortype_append(CLIP_OT_set_origin);
 	WM_operatortype_append(CLIP_OT_set_plane);
@@ -562,6 +563,12 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "CLIP_MT_select_mode", TABKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_solve_camera", SKEY, KM_PRESS, KM_SHIFT, 0);
+
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_set_solver_keyframe", QKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "keyframe", 0);
+
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_set_solver_keyframe", EKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "keyframe", 1);
 
 	/* ******** Hotkeys avalaible for main region only ******** */
 
@@ -766,8 +773,8 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 		return TRUE;
 	}
 	else if (CTX_data_equals(member, "edit_mask")) {
-		if (sc->mask)
-			CTX_data_id_pointer_set(result, &sc->mask->id);
+		if (sc->mask_info.mask)
+			CTX_data_id_pointer_set(result, &sc->mask_info.mask->id);
 		return TRUE;
 	}
 
@@ -1017,7 +1024,7 @@ static void movieclip_main_area_set_view2d(const bContext *C, ARegion *ar)
 	float x1, y1, w, h;
 	int width, height, winx, winy;
 
-	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_size(sc, &width, &height);
 
 	w = width;
 	h = height;
@@ -1066,59 +1073,16 @@ static void clip_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
-	/* own keymap */
+	/* mask polls mode */
 	keymap = WM_keymap_find(wm->defaultconf, "Mask Editing", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
+	/* own keymap */
 	keymap = WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 	keymap = WM_keymap_find(wm->defaultconf, "Clip Editor", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-}
-
-static void clip_main_area_draw_mask(const bContext *C, ARegion *ar)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	int x, y;
-	int width, height;
-	float zoomx, zoomy;
-
-	/* frame image */
-	float maxdim;
-	float xofs, yofs;
-
-	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
-
-	ED_space_clip_get_size(C, &width, &height);
-	ED_space_clip_get_zoom(C, &zoomx, &zoomy);
-
-	/* frame the image */
-	maxdim = maxf(width, height);
-	if (width == height) {
-		xofs = yofs = 0;
-	}
-	else if (width < height) {
-		xofs = ((height - width) / -2.0f) * zoomx;
-		yofs = 0.0f;
-	}
-	else { /* (width > height) */
-		xofs = 0.0f;
-		yofs = ((width - height) / -2.0f) * zoomy;
-	}
-
-	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
-	glPushMatrix();
-	glTranslatef(x + xofs, y + yofs, 0);
-	glScalef(maxdim * zoomx, maxdim * zoomy, 0);
-	glMultMatrixf(sc->stabmat);
-
-	ED_mask_draw(C, sc->mask_draw_flag, sc->mask_draw_type);
-
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
-
-	glPopMatrix();
 }
 
 static void clip_main_area_draw(const bContext *C, ARegion *ar)
@@ -1155,10 +1119,23 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	/* data... */
 	movieclip_main_area_set_view2d(C, ar);
 
-	clip_draw_main(C, ar);
+	clip_draw_main(C, sc, ar);
 
 	if (sc->mode == SC_MODE_MASKEDIT) {
-		clip_main_area_draw_mask(C, ar);
+
+		Mask *mask = CTX_data_edit_mask(C);
+		if (mask) {
+			ScrArea *sa = CTX_wm_area(C);
+			int width, height;
+			ED_mask_get_size(sa, &width, &height);
+			ED_mask_draw_region(mask, ar,
+			                    sc->mask_info.draw_flag, sc->mask_info.draw_type,
+			                    width, height,
+			                    TRUE, TRUE,
+			                    sc->stabmat, C);
+		}
+
+
 	}
 
 	/* Grease Pencil */

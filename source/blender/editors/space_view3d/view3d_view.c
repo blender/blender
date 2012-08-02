@@ -1125,7 +1125,7 @@ int ED_view3d_lock(RegionView3D *rv3d)
 			break;
 
 		case RV3D_VIEW_BACK:
-			QUATSET(rv3d->viewquat, 0.0, 0.0, -cosf(M_PI / 4.0), -cosf(M_PI / 4.0));
+			QUATSET(rv3d->viewquat, 0.0, 0.0, -M_SQRT1_2, -M_SQRT1_2);
 			break;
 
 		case RV3D_VIEW_LEFT:
@@ -1137,7 +1137,7 @@ int ED_view3d_lock(RegionView3D *rv3d)
 			break;
 
 		case RV3D_VIEW_FRONT:
-			QUATSET(rv3d->viewquat, (float)cos(M_PI / 4.0), -sinf(M_PI / 4.0), 0.0, 0.0);
+			QUATSET(rv3d->viewquat, M_SQRT1_2, -M_SQRT1_2, 0.0, 0.0);
 			break;
 
 		case RV3D_VIEW_RIGHT:

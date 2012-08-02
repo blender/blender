@@ -25,7 +25,6 @@
 #define _COM_TextureOperation_h
 
 #include "COM_NodeOperation.h"
-#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 #include "BLI_listbase.h"
 extern "C" {

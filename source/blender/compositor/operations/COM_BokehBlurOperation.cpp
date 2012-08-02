@@ -94,9 +94,14 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, void *data)
 		int bufferstartx = inputBuffer->getRect()->xmin;
 		int bufferstarty = inputBuffer->getRect()->ymin;
 		int pixelSize = this->m_size * this->getWidth() / 100.0f;
-		if (pixelSize==0){
-			this->m_inputProgram->read(color, x, y, COM_PS_NEAREST);
-			return;
+		zero_v4(color_accum);
+
+		if (pixelSize<2) {
+			this->m_inputProgram->read(color_accum, x, y, COM_PS_NEAREST);
+			multiplier_accum[0] = 1.0f;
+			multiplier_accum[1] = 1.0f;
+			multiplier_accum[2] = 1.0f;
+			multiplier_accum[3] = 1.0f;
 		}
 		int miny = y - pixelSize;
 		int maxy = y + pixelSize;
@@ -107,7 +112,6 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, void *data)
 		maxy = min(maxy, inputBuffer->getRect()->ymax);
 		maxx = min(maxx, inputBuffer->getRect()->xmax);
 
-		zero_v4(color_accum);
 
 		int step = getStep();
 		int offsetadd = getOffsetAdd();

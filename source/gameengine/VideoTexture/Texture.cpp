@@ -130,13 +130,12 @@ short getMaterialID(PyObject * obj, const char *name)
 		if (mat == NULL) 
 			break;
 		// name is a material name if it starts with MA and a UV texture name if it starts with IM
-		if (name[0] == 'I' && name[1] == 'M')
-		{
+		if (name[0] == 'I' && name[1] == 'M') {
 			// if texture name matches
 			if (strcmp(mat->GetTextureName().ReadPtr(), name) == 0)
 				return matID;
-		} else 
-		{
+		}
+		else {
 			// if material name matches
 			if (strcmp(mat->GetMaterialName().ReadPtr(), name) == 0)
 				return matID;

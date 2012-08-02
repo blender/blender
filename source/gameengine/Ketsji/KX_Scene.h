@@ -309,8 +309,8 @@ public:
 	RAS_BucketManager* GetBucketManager();
 	RAS_MaterialBucket*	FindBucket(RAS_IPolyMaterial* polymat, bool &bucketCreated);
 	void RenderBuckets(const MT_Transform& cameratransform,
-						RAS_IRasterizer* rasty,
-						RAS_IRenderTools* rendertools);
+	                   RAS_IRasterizer* rasty,
+	                   RAS_IRenderTools* rendertools);
 
 	/**
 	 * Update all transforms according to the scenegraph.
@@ -325,18 +325,18 @@ public:
 				m_groupGameObjects.find(gameobj) != m_groupGameObjects.end());
 	}
 	SCA_IObject* AddReplicaObject(CValue* gameobj,
-								  CValue* locationobj,
-								  int lifespan=0);
+	                              CValue* locationobj,
+	                              int lifespan=0);
 	KX_GameObject* AddNodeReplicaObject(SG_IObject* node,
-										CValue* gameobj);
+	                                    CValue* gameobj);
 	void RemoveNodeDestructObject(SG_IObject* node,
-								  CValue* gameobj);
+	                              CValue* gameobj);
 	void RemoveObject(CValue* gameobj);
 	void DelayedRemoveObject(CValue* gameobj);
 	
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
-					 void* meshob, bool use_gfx, bool use_phys);
+	                 void* meshob, bool use_gfx, bool use_phys);
 
 	void AddAnimatedObject(CValue* gameobj);
 	void RemoveAnimatedObject(CValue* gameobj);

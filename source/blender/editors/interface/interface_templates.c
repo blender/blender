@@ -254,7 +254,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			break;
 		case UI_ID_OPEN:
 		case UI_ID_ADD_NEW:
-			/* these call uiIDContextPropertySet */
+			/* these call uiIDContextProperty */
 			break;
 		case UI_ID_DELETE:
 			memset(&idptr, 0, sizeof(idptr));
@@ -1636,7 +1636,7 @@ static void curvemap_buttons_delete(bContext *C, void *cb_v, void *cumap_v)
 }
 
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
-static uiBlock *curvemap_clipping_func(bContext *C, struct ARegion *ar, void *cumap_v)
+static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
 {
 	CurveMapping *cumap = cumap_v;
 	uiBlock *block;
@@ -1697,7 +1697,7 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
-static uiBlock *curvemap_tools_func(bContext *C, struct ARegion *ar, void *cumap_v)
+static uiBlock *curvemap_tools_func(bContext *C, ARegion *ar, void *cumap_v)
 {
 	uiBlock *block;
 	short yco = 0, menuwidth = 10 * UI_UNIT_X;
@@ -1719,7 +1719,7 @@ static uiBlock *curvemap_tools_func(bContext *C, struct ARegion *ar, void *cumap
 	return block;
 }
 
-static uiBlock *curvemap_brush_tools_func(bContext *C, struct ARegion *ar, void *cumap_v)
+static uiBlock *curvemap_brush_tools_func(bContext *C, ARegion *ar, void *cumap_v)
 {
 	uiBlock *block;
 	short yco = 0, menuwidth = 10 * UI_UNIT_X;

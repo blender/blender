@@ -212,10 +212,10 @@ int ED_object_iter_other(Main *bmain, Object *orig_ob, int include_orig,
 		int totfound = include_orig ? 0 : 1;
 
 		for (ob = bmain->object.first; ob && totfound < users;
-			 ob = ob->id.next)
+		     ob = ob->id.next)
 		{
 			if (((ob != orig_ob) || include_orig) &&
-				(ob->data == orig_ob->data))
+			    (ob->data == orig_ob->data))
 			{
 				if (callback(ob, callback_data))
 					return TRUE;
@@ -233,7 +233,7 @@ int ED_object_iter_other(Main *bmain, Object *orig_ob, int include_orig,
 
 static int object_has_modifier_cb(Object *ob, void *data)
 {
-	ModifierType type = *((ModifierType*)data);
+	ModifierType type = *((ModifierType *)data);
 
 	return object_has_modifier(ob, NULL, type);
 }
@@ -244,7 +244,7 @@ static int object_has_modifier_cb(Object *ob, void *data)
 int ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v)
 {
 	ModifierData *md;
-	int totlevel = *((int*)totlevel_v);
+	int totlevel = *((int *)totlevel_v);
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Multires) {
@@ -1148,8 +1148,8 @@ static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
 	multiresModifier_del_levels(mmd, ob, 1);
 
 	ED_object_iter_other(CTX_data_main(C), ob, TRUE,
-						 ED_object_multires_update_totlevels_cb,
-						 &mmd->totlvl);
+	                     ED_object_multires_update_totlevels_cb,
+	                     &mmd->totlvl);
 	
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
@@ -1192,8 +1192,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	multiresModifier_subdivide(mmd, ob, 0, mmd->simple);
 
 	ED_object_iter_other(CTX_data_main(C), ob, TRUE,
-						 ED_object_multires_update_totlevels_cb,
-						 &mmd->totlvl);
+	                     ED_object_multires_update_totlevels_cb,
+	                     &mmd->totlvl);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -1518,8 +1518,8 @@ static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
 static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_edit_object(C);
-	Mesh *me = ob->data;
-	BMesh *bm = me->edit_btmesh->bm;
+	BMEditMesh *em = BMEdit_FromObject(ob);
+	BMesh *bm = em->bm;
 	BMVert *bm_vert;
 	BMIter bm_iter;
 	GHash *visited;
@@ -1574,11 +1574,15 @@ typedef enum {
 static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	Mesh *me = ob->data;
-	BMesh *bm = me->edit_btmesh->bm;
+	BMEditMesh *em = BMEdit_FromObject(ob);
+	BMesh *bm = em->bm;
 	BMVert *bm_vert;
 	BMIter bm_iter;
 	SkinLooseAction action = RNA_enum_get(op->ptr, "action");
+
+	if (!CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+		return OPERATOR_CANCELLED;
+	}
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (bm_vert->head.hflag & BM_ELEM_SELECT) {
@@ -1628,10 +1632,14 @@ void OBJECT_OT_skin_loose_mark_clear(wmOperatorType *ot)
 static int skin_radii_equalize_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_edit_object(C);
-	Mesh *me = ob->data;
-	BMesh *bm = me->edit_btmesh->bm;
+	BMEditMesh *em = BMEdit_FromObject(ob);
+	BMesh *bm = em->bm;
 	BMVert *bm_vert;
 	BMIter bm_iter;
+
+	if (!CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+		return OPERATOR_CANCELLED;
+	}
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (bm_vert->head.hflag & BM_ELEM_SELECT) {
@@ -1804,8 +1812,14 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C), *arm_ob;
+	Mesh *me = ob->data;
 	ModifierData *skin_md;
 	ArmatureModifierData *arm_md;
+
+	if (!CustomData_has_layer(&me->vdata, CD_MVERT_SKIN)) {
+		BKE_reportf(op->reports, RPT_WARNING, "Mesh '%s' has no skin vertex data", me->id.name + 2);
+		return OPERATOR_CANCELLED;
+	}
 
 	/* create new armature */
 	arm_ob = modifier_skin_armature_create(scene, ob);

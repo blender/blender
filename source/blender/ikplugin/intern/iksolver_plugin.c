@@ -334,9 +334,10 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
 
 		if (tree->stretch && (pchan->ikstretch > 0.0f)) {
-			float ikstretch = pchan->ikstretch * pchan->ikstretch;
-			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0f - ikstretch, 0.99f));
-			IK_SetLimit(seg, IK_TRANS_Y, 0.001, 1e10);
+			const float ikstretch = pchan->ikstretch * pchan->ikstretch;
+			/* this function does its own clamping */
+			IK_SetStiffness(seg, IK_TRANS_Y, 1.0f - ikstretch);
+			IK_SetLimit(seg, IK_TRANS_Y, IK_STRETCH_STIFF_MIN, IK_STRETCH_STIFF_MAX);
 		}
 	}
 

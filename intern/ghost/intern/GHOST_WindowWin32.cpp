@@ -1343,7 +1343,7 @@ static int EnumPixelFormats(HDC hdc)
 		::DescribePixelFormat(hdc, i, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 		w = WeightPixelFormat(pfd);
 		// be strict on stereo
-		if (!((sPreferredFormat.dwFlags ^ pfd.dwFlags) & PFD_STEREO))   {
+		if (!((sPreferredFormat.dwFlags ^ pfd.dwFlags) & PFD_STEREO)) {
 			if (w > weight) {
 				weight = w;
 				iPixelFormat = i;

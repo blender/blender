@@ -288,7 +288,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 				if(sd.flag & SD_HOLDOUT_MASK)
 					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
 				else
-					shader_holdout_eval(kg, &sd);
+					holdout_weight = shader_holdout_eval(kg, &sd);
 
 				/* any throughput is ok, should all be identical here */
 				L_transparent += average(holdout_weight*throughput);
@@ -655,7 +655,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 				if(sd.flag & SD_HOLDOUT_MASK)
 					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
 				else
-					shader_holdout_eval(kg, &sd);
+					holdout_weight = shader_holdout_eval(kg, &sd);
 
 				/* any throughput is ok, should all be identical here */
 				L_transparent += average(holdout_weight*throughput);

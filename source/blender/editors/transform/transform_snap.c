@@ -206,10 +206,10 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 			glLoadIdentity();
 			
-			ED_space_image_aspect(t->sa->spacedata.first, &xuser_aspx, &yuser_asp);
+			ED_space_image_get_aspect(t->sa->spacedata.first, &xuser_aspx, &yuser_asp);
 			ED_space_image_width(t->sa->spacedata.first, &wi, &hi);
-			w = (((float)wi) / 256.0f) * G.sima->zoom * xuser_asp;
-			h = (((float)hi) / 256.0f) * G.sima->zoom * yuser_asp;
+			w = (((float)wi) / IMG_SIZE_FALLBACK) * G.sima->zoom * xuser_asp;
+			h = (((float)hi) / IMG_SIZE_FALLBACK) * G.sima->zoom * yuser_asp;
 			
 			cpack(0xFFFFFF);
 			glTranslatef(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], 0.0f);
@@ -246,13 +246,13 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 					glColor4ubv(col);
 				}
 				
-				drawnodesnap(&ar->v2d, p->co, size, 0);
+				ED_node_draw_snap(&ar->v2d, p->co, size, 0);
 			}
 			
 			if (t->tsnap.status & POINT_INIT) {
 				glColor4ubv(activeCol);
 				
-				drawnodesnap(&ar->v2d, t->tsnap.snapPoint, size, t->tsnap.snapNodeBorder);
+				ED_node_draw_snap(&ar->v2d, t->tsnap.snapPoint, size, t->tsnap.snapNodeBorder);
 			}
 			
 			glDisable(GL_BLEND);
@@ -927,7 +927,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		UI_view2d_region_to_view(&t->ar->v2d, t->mval[0], t->mval[1], co, co + 1);
 
 		if (ED_uvedit_nearest_uv(t->scene, t->obedit, ima, co, t->tsnap.snapPoint)) {
-			ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 			t->tsnap.snapPoint[0] *= aspx;
 			t->tsnap.snapPoint[1] *= aspy;
 
@@ -1081,7 +1081,7 @@ static void TargetSnapClosest(TransInfo *t)
 						
 						dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 						
-						if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist)) {
+						if (closest == NULL || fabsf(dist) < fabsf(t->tsnap.dist)) {
 							copy_v3_v3(t->tsnap.snapTarget, loc);
 							closest = td;
 							t->tsnap.dist = dist; 
@@ -1097,7 +1097,7 @@ static void TargetSnapClosest(TransInfo *t)
 					
 					dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 					
-					if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist)) {
+					if (closest == NULL || fabsf(dist) < fabsf(t->tsnap.dist)) {
 						copy_v3_v3(t->tsnap.snapTarget, loc);
 						closest = td;
 						t->tsnap.dist = dist; 
@@ -1120,7 +1120,7 @@ static void TargetSnapClosest(TransInfo *t)
 				
 				dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 				
-				if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist)) {
+				if (closest == NULL || fabsf(dist) < fabsf(t->tsnap.dist)) {
 					copy_v3_v3(t->tsnap.snapTarget, loc);
 					closest = td;
 					t->tsnap.dist = dist; 
@@ -2135,7 +2135,7 @@ static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], Gea
 	
 	/* evil hack - snapping needs to be adapted for image aspect ratio */
 	if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION)) {
-		ED_space_image_uv_aspect(t->sa->spacedata.first, asp, asp + 1);
+		ED_space_image_get_uv_aspect(t->sa->spacedata.first, asp, asp + 1);
 	}
 
 	for (i = 0; i <= max_index; i++) {

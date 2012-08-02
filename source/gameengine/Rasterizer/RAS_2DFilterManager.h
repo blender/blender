@@ -62,8 +62,6 @@ private:
 	unsigned int	texname[3]; 
 	int				texturewidth;
 	int				textureheight;
-	int				canvaswidth;
-	int				canvasheight;
 	/* int				numberoffilters; */ /* UNUSED */
 	/* bit 0: enable/disable depth texture
 	 * bit 1: enable/disable luminance texture*/

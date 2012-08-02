@@ -73,6 +73,7 @@
 #include "BKE_context.h"
 #include "BKE_tessmesh.h"
 #include "BKE_tracking.h"
+#include "BKE_mask.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -607,6 +608,15 @@ static void recalcData_nla(TransInfo *t)
 	}
 }
 
+static void recalcData_mask_common(TransInfo *t)
+{
+	Mask *mask = CTX_data_edit_mask(t->context);
+
+	flushTransMasking(t);
+
+	DAG_id_tag_update(&mask->id, 0);
+}
+
 /* helper for recalcData() - for Image Editor transforms */
 static void recalcData_image(TransInfo *t)
 {
@@ -618,6 +628,9 @@ static void recalcData_image(TransInfo *t)
 			ED_uvedit_live_unwrap_re_solve();
 		
 		DAG_id_tag_update(t->obedit->data, 0);
+	}
+	else if (t->options & CTX_MASK) {
+		recalcData_mask_common(t);
 	}
 }
 
@@ -662,12 +675,8 @@ static void recalcData_spaceclip(TransInfo *t)
 
 		DAG_id_tag_update(&clip->id, 0);
 	}
-	else if (ED_space_clip_check_show_maskedit(sc)) {
-		Mask *mask = ED_space_clip_get_mask(sc);
-
-		flushTransMasking(t);
-
-		DAG_id_tag_update(&mask->id, 0);
+	else if (t->options & CTX_MASK) {
+		recalcData_mask_common(t);
 	}
 }
 
@@ -908,6 +917,10 @@ void recalcData(TransInfo *t)
 	else if (t->spacetype == SPACE_CLIP) {
 		recalcData_spaceclip(t);
 	}
+
+	if (t->options & CTX_MASK) {
+
+	}
 }
 
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
@@ -1099,6 +1112,16 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		// XXX for now, get View2D from the active region
 		t->view = &ar->v2d;
 		t->around = sima->around;
+
+		if (t->obedit) {
+			/* UV transform */
+		}
+		else if (sima->mode == SI_MODE_MASK) {
+			t->options |= CTX_MASK;
+		}
+		else {
+			BLI_assert(0);
+		}
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		// XXX for now, get View2D from the active region
@@ -1280,9 +1303,14 @@ void postTrans(bContext *C, TransInfo *t)
 	}
 	
 	if (t->spacetype == SPACE_IMAGE) {
-		SpaceImage *sima = t->sa->spacedata.first;
-		if (sima->flag & SI_LIVE_UNWRAP)
-			ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
+		if (t->options & CTX_MASK) {
+			/* pass */
+		}
+		else {
+			SpaceImage *sima = t->sa->spacedata.first;
+			if (sima->flag & SI_LIVE_UNWRAP)
+				ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
+		}
 	}
 	else if (t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = t->sa->spacedata.first;
@@ -1417,13 +1445,28 @@ void calculateCenterCursor2D(TransInfo *t)
 	if (t->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
 		/* only space supported right now but may change */
-		ED_space_image_uv_aspect(sima, &aspx, &aspy);
+		ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 		cursor = sima->cursor;
 	}
 	
 	if (cursor) {
-		t->center[0] = cursor[0] * aspx;
-		t->center[1] = cursor[1] * aspy;
+		if (t->options & CTX_MASK) {
+			float co[2];
+			float frame_size[2];
+			SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
+			ED_space_image_get_size_fl(sima, frame_size);
+
+			BKE_mask_coord_from_frame(co, cursor, frame_size);
+
+			ED_space_image_get_aspect(sima, &aspx, &aspy);
+
+			t->center[0] = co[0] * aspx;
+			t->center[1] = co[1] * aspy;
+		}
+		else {
+			t->center[0] = cursor[0] * aspx;
+			t->center[1] = cursor[1] * aspy;
+		}
 	}
 	
 	calculateCenter2D(t);

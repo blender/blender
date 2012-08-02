@@ -270,7 +270,6 @@ def dump_messages_rna(messages, check_ctxt):
     walk_keymap_hierarchy(KM_HIERARCHY, "KM_HIERARCHY")
 
 
-
 def dump_messages_pytext(messages, check_ctxt):
     """ dumps text inlined in the python user interface: eg.
 
@@ -291,7 +290,7 @@ def dump_messages_pytext(messages, check_ctxt):
 
     # Break recursive nodes look up on some kind of nodes.
     # E.g. we don’t want to get strings inside subscripts (blah["foo"])!
-    stopper_nodes = {ast.Subscript,}
+    stopper_nodes = {ast.Subscript, }
 
     for func_id, func in bpy.types.UILayout.bl_rna.functions.items():
         # check it has a 'text' argument

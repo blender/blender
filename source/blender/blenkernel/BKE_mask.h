@@ -122,12 +122,16 @@ void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point, const short
 
 /* general */
 struct Mask *BKE_mask_new(const char *name);
+struct Mask *BKE_mask_copy_nolib(struct Mask *mask);
+struct Mask *BKE_mask_copy(struct Mask *mask);
 
 void BKE_mask_free(struct Mask *mask);
 void BKE_mask_unlink(struct Main *bmain, struct Mask *mask);
 
 void BKE_mask_coord_from_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float frame_size[2]);
 void BKE_mask_coord_to_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_to_frame(float r_co[2], const float co[2], const float frame_size[2]);
 
 /* parenting */
 
@@ -181,22 +185,7 @@ void BKE_mask_layer_shape_changed_add(struct MaskLayer *masklay, int index,
 
 void BKE_mask_layer_shape_changed_remove(struct MaskLayer *masklay, int index, int count);
 
-/* rasterization */
 int BKE_mask_get_duration(struct Mask *mask);
-
-void BKE_mask_rasterize_layers(struct ListBase *masklayers, int width, int height, float *buffer,
-                               const short do_aspect_correct, const short do_mask_aa,
-                               const short do_feather);
-
-void BKE_mask_rasterize(struct Mask *mask, int width, int height, float *buffer,
-                        const short do_aspect_correct, const short do_mask_aa,
-                        const short do_feather);
-
-/* initialization for tiling */
-#ifdef __PLX_RASKTER_MT__
-void BKE_mask_init_layers(Mask *mask, struct layer_init_data *mlayer_data, int width, int height,
-							 const short do_aspect_correct);
-#endif
 
 #define MASKPOINT_ISSEL_ANY(p)          ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT)
 #define MASKPOINT_ISSEL_KNOT(p)         ( (p)->bezt.f2 & SELECT)
@@ -210,11 +199,9 @@ void BKE_mask_init_layers(Mask *mask, struct layer_init_data *mlayer_data, int w
 #define MASKPOINT_SEL_HANDLE(p)     { (p)->bezt.f1 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
 #define MASKPOINT_DESEL_HANDLE(p)   { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
 
-/* disable to test alternate rasterizer */
-/* #define USE_RASKTER */
+#define MASK_RESOL_MAX 128
 
 /* mask_rasterize.c */
-#ifndef USE_RASKTER
 struct MaskRasterHandle;
 typedef struct MaskRasterHandle MaskRasterHandle;
 
@@ -225,6 +212,9 @@ void              BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, str
                                                 const short do_aspect_correct, const short do_mask_aa,
                                                 const short do_feather);
 float             BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2]);
-#endif /* USE_RASKTER */
+
+void              BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
+                                           const unsigned int width, const unsigned int height,
+                                           float *buffer);
 
 #endif /* __BKE_MASK_H__ */

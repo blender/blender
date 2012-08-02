@@ -219,7 +219,7 @@ typedef struct FlyInfo {
 
 } FlyInfo;
 
-static void drawFlyPixel(const struct bContext *UNUSED(C), struct ARegion *UNUSED(ar), void *arg)
+static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
 	FlyInfo *fly = arg;
 
@@ -333,8 +333,9 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event
 	upvec[2] = 0.0f;
 	copy_m3_m4(mat, fly->rv3d->viewinv);
 	mul_m3_v3(mat, upvec);
-	if (fabs(upvec[2]) < 0.1)
+	if (fabsf(upvec[2]) < 0.1f) {
 		fly->zlock = 1;
+	}
 	upvec[0] = 0;
 	upvec[1] = 0;
 	upvec[2] = 0;
@@ -548,7 +549,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				time_wheel = (float)(time_currwheel - fly->time_lastwheel);
 				fly->time_lastwheel = time_currwheel;
 				/* Mouse wheel delays range from (0.5 == slow) to (0.01 == fast) */
-				time_wheel = 1.0f + (10.0f - (20.0f * MIN2(time_wheel, 0.5f))); /* 0-0.5 -> 0-5.0 */
+				time_wheel = 1.0f + (10.0f - (20.0f * minf(time_wheel, 0.5f))); /* 0-0.5 -> 0-5.0 */
 
 				if (fly->speed < 0.0f) {
 					fly->speed = 0.0f;
@@ -566,7 +567,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				time_currwheel = PIL_check_seconds_timer();
 				time_wheel = (float)(time_currwheel - fly->time_lastwheel);
 				fly->time_lastwheel = time_currwheel;
-				time_wheel = 1.0f + (10.0f - (20.0f * MIN2(time_wheel, 0.5f))); /* 0-0.5 -> 0-5.0 */
+				time_wheel = 1.0f + (10.0f - (20.0f * minf(time_wheel, 0.5f))); /* 0-0.5 -> 0-5.0 */
 
 				if (fly->speed > 0.0f) {
 					fly->speed = 0;
@@ -842,7 +843,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 #endif
 			time_current = PIL_check_seconds_timer();
 			time_redraw = (float)(time_current - fly->time_lastdraw);
-			time_redraw_clamped = MIN2(0.05f, time_redraw); /* clamp redraw time to avoid jitter in roll correction */
+			time_redraw_clamped = minf(0.05f, time_redraw); /* clamp redraw time to avoid jitter in roll correction */
 			fly->time_lastdraw = time_current;
 
 			/* Scale the time to use shift to scale the speed down- just like

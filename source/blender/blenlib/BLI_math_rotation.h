@@ -92,7 +92,7 @@ void print_qt(const char *str, const float q[4]);
 /******************************** Axis Angle *********************************/
 
 /* conversion */
-void axis_angle_to_quat(float r[4], const float axis[3], float angle);
+void axis_angle_to_quat(float r[4], const float axis[3], const float angle);
 void axis_angle_to_mat3(float R[3][3], const float axis[3], const float angle);
 void axis_angle_to_mat4(float R[4][4], const float axis[3], const float angle);
 
@@ -107,9 +107,7 @@ void single_axis_angle_to_mat3(float R[3][3], const char axis, const float angle
 /* TODO: the following calls should probably be depreceated sometime         */
 
 /* conversion */
-void vec_rot_to_quat(float quat[4], const float vec[3], const float phi);
 void vec_rot_to_mat3(float mat[3][3], const float vec[3], const float phi);
-void vec_rot_to_mat4(float mat[4][4], const float vec[3], const float phi);
 
 /******************************** XYZ Eulers *********************************/
 

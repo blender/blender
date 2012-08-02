@@ -762,7 +762,7 @@ BHead *blo_firstbhead(FileData *fd)
 
 BHead *blo_prevbhead(FileData *UNUSED(fd), BHead *thisblock)
 {
-	BHeadN *bheadn = (BHeadN *) (((char *) thisblock) - GET_INT_FROM_POINTER( &((BHeadN*)0)->bhead) );
+	BHeadN *bheadn = (BHeadN *) (((char *) thisblock) - offsetof(BHeadN, bhead));
 	BHeadN *prev = bheadn->prev;
 	
 	return (prev) ? &prev->bhead : NULL;
@@ -774,11 +774,11 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 	BHead *bhead = NULL;
 	
 	if (thisblock) {
-		// bhead is actually a sub part of BHeadN
-		// We calculate the BHeadN pointer from the BHead pointer below
-		new_bhead = (BHeadN *) (((char *) thisblock) - GET_INT_FROM_POINTER( &((BHeadN*)0)->bhead) );
+		/* bhead is actually a sub part of BHeadN
+		 * We calculate the BHeadN pointer from the BHead pointer below */
+		new_bhead = (BHeadN *) (((char *) thisblock) - offsetof(BHeadN, bhead));
 		
-		// get the next BHeadN. If it doesn't exist we read in the next one
+		/* get the next BHeadN. If it doesn't exist we read in the next one */
 		new_bhead = new_bhead->next;
 		if (new_bhead == NULL) {
 			new_bhead = get_bhead(fd);
@@ -786,8 +786,8 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 	}
 	
 	if (new_bhead) {
-		// here we do the reverse:
-		// go from the BHeadN pointer to the BHead pointer
+		/* here we do the reverse:
+		 * go from the BHeadN pointer to the BHead pointer */
 		bhead = &new_bhead->bhead;
 	}
 	
@@ -1668,8 +1668,8 @@ static void lib_link_brush(FileData *fd, Main *main)
 	
 	/* only link ID pointers */
 	for (brush = main->brush.first; brush; brush = brush->id.next) {
-		if (brush->id.flag & LIB_NEEDLINK) {
-			brush->id.flag -= LIB_NEEDLINK;
+		if (brush->id.flag & LIB_NEED_LINK) {
+			brush->id.flag -= LIB_NEED_LINK;
 			
 			brush->mtex.tex = newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
 			brush->clone.image = newlibadr_us(fd, brush->id.lib, brush->clone.image);
@@ -1740,13 +1740,13 @@ static void lib_link_ipo(FileData *fd, Main *main)
 	Ipo *ipo;
 	
 	for (ipo = main->ipo.first; ipo; ipo = ipo->id.next) {
-		if (ipo->id.flag & LIB_NEEDLINK) {
+		if (ipo->id.flag & LIB_NEED_LINK) {
 			IpoCurve *icu;
 			for (icu = ipo->curve.first; icu; icu = icu->next) {
 				if (icu->driver)
 					icu->driver->ob = newlibadr(fd, ipo->id.lib, icu->driver->ob);
 			}
-			ipo->id.flag -= LIB_NEEDLINK;
+			ipo->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -1914,13 +1914,24 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		/* group */
 		fcu->grp = newdataadr(fd, fcu->grp);
 		
+		/* clear disabled flag - allows disabled drivers to be tried again ([#32155]),
+		 * but also means that another method for "reviving disabled F-Curves" exists
+		 */
+		fcu->flag &= ~FCURVE_DISABLED;
+		
 		/* driver */
 		fcu->driver= newdataadr(fd, fcu->driver);
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
 			DriverVar *dvar;
 			
+			/* compiled expression data will need to be regenerated (old pointer may still be set here) */
 			driver->expr_comp = NULL;
+			
+			/* give the driver a fresh chance - the operating environment may be different now 
+			 * (addons, etc. may be different) so the driver namespace may be sane now [#32155]
+			 */
+			driver->flag &= ~DRIVER_FLAG_INVALID;
 			
 			/* relink variables, targets and their paths */
 			link_list(fd, &driver->variables);
@@ -1950,8 +1961,8 @@ static void lib_link_action(FileData *fd, Main *main)
 	bActionChannel *chan;
 
 	for (act = main->action.first; act; act = act->id.next) {
-		if (act->id.flag & LIB_NEEDLINK) {
-			act->id.flag -= LIB_NEEDLINK;
+		if (act->id.flag & LIB_NEED_LINK) {
+			act->id.flag -= LIB_NEED_LINK;
 			
 // XXX depreceated - old animation system <<<
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
@@ -2177,8 +2188,8 @@ static void lib_link_nodetree(FileData *fd, Main *main)
 	
 	/* only link ID pointers */
 	for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
-		if (ntree->id.flag & LIB_NEEDLINK) {
-			ntree->id.flag -= LIB_NEEDLINK;
+		if (ntree->id.flag & LIB_NEED_LINK) {
+			ntree->id.flag -= LIB_NEED_LINK;
 			lib_link_ntree(fd, &ntree->id, ntree);
 		}
 	}
@@ -2600,9 +2611,9 @@ static void lib_link_armature(FileData *fd, Main *main)
 	bArmature *arm;
 	
 	for (arm = main->armature.first; arm; arm = arm->id.next) {
-		if (arm->id.flag & LIB_NEEDLINK) {
+		if (arm->id.flag & LIB_NEED_LINK) {
 			if (arm->adt) lib_link_animdata(fd, &arm->id, arm->adt);
-			arm->id.flag -= LIB_NEEDLINK;
+			arm->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -2650,14 +2661,14 @@ static void lib_link_camera(FileData *fd, Main *main)
 	Camera *ca;
 	
 	for (ca = main->camera.first; ca; ca = ca->id.next) {
-		if (ca->id.flag & LIB_NEEDLINK) {
+		if (ca->id.flag & LIB_NEED_LINK) {
 			if (ca->adt) lib_link_animdata(fd, &ca->id, ca->adt);
 			
 			ca->ipo = newlibadr_us(fd, ca->id.lib, ca->ipo); // XXX depreceated - old animation system
 			
 			ca->dof_ob = newlibadr_us(fd, ca->id.lib, ca->dof_ob);
 			
-			ca->id.flag -= LIB_NEEDLINK;
+			ca->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -2678,7 +2689,7 @@ static void lib_link_lamp(FileData *fd, Main *main)
 	int a;
 	
 	for (la = main->lamp.first; la; la = la->id.next) {
-		if (la->id.flag & LIB_NEEDLINK) {
+		if (la->id.flag & LIB_NEED_LINK) {
 			if (la->adt) lib_link_animdata(fd, &la->id, la->adt);
 			
 			for (a = 0; a < MAX_MTEX; a++) {
@@ -2694,7 +2705,7 @@ static void lib_link_lamp(FileData *fd, Main *main)
 			if (la->nodetree)
 				lib_link_ntree(fd, &la->id, la->nodetree);
 			
-			la->id.flag -= LIB_NEEDLINK;
+			la->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -2738,13 +2749,13 @@ static void lib_link_key(FileData *fd, Main *main)
 			}
 		}
 		
-		if (key->id.flag & LIB_NEEDLINK) {
+		if (key->id.flag & LIB_NEED_LINK) {
 			if (key->adt) lib_link_animdata(fd, &key->id, key->adt);
 			
 			key->ipo = newlibadr_us(fd, key->id.lib, key->ipo); // XXX depreceated - old animation system
 			key->from = newlibadr(fd, key->id.lib, key->from);
 			
-			key->id.flag -= LIB_NEEDLINK;
+			key->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -2808,7 +2819,7 @@ static void lib_link_mball(FileData *fd, Main *main)
 	int a;
 	
 	for (mb = main->mball.first; mb; mb = mb->id.next) {
-		if (mb->id.flag & LIB_NEEDLINK) {
+		if (mb->id.flag & LIB_NEED_LINK) {
 			if (mb->adt) lib_link_animdata(fd, &mb->id, mb->adt);
 			
 			for (a = 0; a < mb->totcol; a++) 
@@ -2816,7 +2827,7 @@ static void lib_link_mball(FileData *fd, Main *main)
 			
 			mb->ipo = newlibadr_us(fd, mb->id.lib, mb->ipo); // XXX depreceated - old animation system
 			
-			mb->id.flag -= LIB_NEEDLINK;
+			mb->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -2847,7 +2858,7 @@ static void lib_link_world(FileData *fd, Main *main)
 	int a;
 	
 	for (wrld = main->world.first; wrld; wrld = wrld->id.next) {
-		if (wrld->id.flag & LIB_NEEDLINK) {
+		if (wrld->id.flag & LIB_NEED_LINK) {
 			if (wrld->adt) lib_link_animdata(fd, &wrld->id, wrld->adt);
 			
 			wrld->ipo = newlibadr_us(fd, wrld->id.lib, wrld->ipo); // XXX depreceated - old animation system
@@ -2863,7 +2874,7 @@ static void lib_link_world(FileData *fd, Main *main)
 			if (wrld->nodetree)
 				lib_link_ntree(fd, &wrld->id, wrld->nodetree);
 			
-			wrld->id.flag -= LIB_NEEDLINK;
+			wrld->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -2894,8 +2905,8 @@ static void lib_link_vfont(FileData *UNUSED(fd), Main *main)
 	VFont *vf;
 	
 	for (vf = main->vfont.first; vf; vf = vf->id.next) {
-		if (vf->id.flag & LIB_NEEDLINK) {
-			vf->id.flag -= LIB_NEEDLINK;
+		if (vf->id.flag & LIB_NEED_LINK) {
+			vf->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -2913,8 +2924,8 @@ static void lib_link_text(FileData *UNUSED(fd), Main *main)
 	Text *text;
 	
 	for (text = main->text.first; text; text = text->id.next) {
-		if (text->id.flag & LIB_NEEDLINK) {
-			text->id.flag -= LIB_NEEDLINK;
+		if (text->id.flag & LIB_NEED_LINK) {
+			text->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -2966,10 +2977,10 @@ static void lib_link_image(FileData *fd, Main *main)
 	Image *ima;
 	
 	for (ima = main->image.first; ima; ima = ima->id.next) {
-		if (ima->id.flag & LIB_NEEDLINK) {
+		if (ima->id.flag & LIB_NEED_LINK) {
 			if (ima->id.properties) IDP_LibLinkProperty(ima->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			
-			ima->id.flag -= LIB_NEEDLINK;
+			ima->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -3036,7 +3047,7 @@ static void lib_link_curve(FileData *fd, Main *main)
 	int a;
 	
 	for (cu = main->curve.first; cu; cu = cu->id.next) {
-		if (cu->id.flag & LIB_NEEDLINK) {
+		if (cu->id.flag & LIB_NEED_LINK) {
 			if (cu->adt) lib_link_animdata(fd, &cu->id, cu->adt);
 			
 			for (a = 0; a < cu->totcol; a++) 
@@ -3053,7 +3064,7 @@ static void lib_link_curve(FileData *fd, Main *main)
 			cu->ipo = newlibadr_us(fd, cu->id.lib, cu->ipo); // XXX depreceated - old animation system
 			cu->key = newlibadr_us(fd, cu->id.lib, cu->key);
 			
-			cu->id.flag -= LIB_NEEDLINK;
+			cu->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -3138,7 +3149,7 @@ static void lib_link_texture(FileData *fd, Main *main)
 	Tex *tex;
 	
 	for (tex = main->tex.first; tex; tex = tex->id.next) {
-		if (tex->id.flag & LIB_NEEDLINK) {
+		if (tex->id.flag & LIB_NEED_LINK) {
 			if (tex->adt) lib_link_animdata(fd, &tex->id, tex->adt);
 			
 			tex->ima = newlibadr_us(fd, tex->id.lib, tex->ima);
@@ -3155,7 +3166,7 @@ static void lib_link_texture(FileData *fd, Main *main)
 			if (tex->nodetree)
 				lib_link_ntree(fd, &tex->id, tex->nodetree);
 			
-			tex->id.flag -= LIB_NEEDLINK;
+			tex->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -3214,7 +3225,7 @@ static void lib_link_material(FileData *fd, Main *main)
 	int a;
 	
 	for (ma = main->mat.first; ma; ma = ma->id.next) {
-		if (ma->id.flag & LIB_NEEDLINK) {
+		if (ma->id.flag & LIB_NEED_LINK) {
 			if (ma->adt) lib_link_animdata(fd, &ma->id, ma->adt);
 			
 			/* Link ID Properties -- and copy this comment EXACTLY for easy finding
@@ -3235,7 +3246,7 @@ static void lib_link_material(FileData *fd, Main *main)
 			if (ma->nodetree)
 				lib_link_ntree(fd, &ma->id, ma->nodetree);
 			
-			ma->id.flag -= LIB_NEEDLINK;
+			ma->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -3357,7 +3368,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 	int a;
 	
 	for (part = main->particle.first; part; part = part->id.next) {
-		if (part->id.flag & LIB_NEEDLINK) {
+		if (part->id.flag & LIB_NEED_LINK) {
 			if (part->adt) lib_link_animdata(fd, &part->id, part->adt);
 			part->ipo = newlibadr_us(fd, part->id.lib, part->ipo); // XXX depreceated - old animation system
 			
@@ -3439,7 +3450,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 				}
 			}
 			
-			part->id.flag -= LIB_NEEDLINK;
+			part->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -3652,7 +3663,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 	Mesh *me;
 	
 	for (me = main->mesh.first; me; me = me->id.next) {
-		if (me->id.flag & LIB_NEEDLINK) {
+		if (me->id.flag & LIB_NEED_LINK) {
 			int i;
 			
 			/* Link ID Properties -- and copy this comment EXACTLY for easy finding
@@ -3696,7 +3707,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 	convert_tface_mt(fd, main);
 
 	for (me = main->mesh.first; me; me = me->id.next) {
-		if (me->id.flag & LIB_NEEDLINK) {
+		if (me->id.flag & LIB_NEED_LINK) {
 			/*
 			 * Re-tessellate, even if the polys were just created from tessfaces, this
 			 * is important because it:
@@ -3713,7 +3724,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			BKE_mesh_tessface_clear(me);
 #endif
 
-			me->id.flag -= LIB_NEEDLINK;
+			me->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -3955,13 +3966,13 @@ static void lib_link_latt(FileData *fd, Main *main)
 	Lattice *lt;
 	
 	for (lt = main->latt.first; lt; lt = lt->id.next) {
-		if (lt->id.flag & LIB_NEEDLINK) {
+		if (lt->id.flag & LIB_NEED_LINK) {
 			if (lt->adt) lib_link_animdata(fd, &lt->id, lt->adt);
 			
 			lt->ipo = newlibadr_us(fd, lt->id.lib, lt->ipo); // XXX depreceated - old animation system
 			lt->key = newlibadr_us(fd, lt->id.lib, lt->key);
 			
-			lt->id.flag -= LIB_NEEDLINK;
+			lt->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -4008,7 +4019,7 @@ static void lib_link_object(FileData *fd, Main *main)
 	int warn=0, a;
 	
 	for (ob = main->object.first; ob; ob = ob->id.next) {
-		if (ob->id.flag & LIB_NEEDLINK) {
+		if (ob->id.flag & LIB_NEED_LINK) {
 			if (ob->id.properties) IDP_LibLinkProperty(ob->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			if (ob->adt) lib_link_animdata(fd, &ob->id, ob->adt);
 			
@@ -4087,7 +4098,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			ob->gpd = newlibadr_us(fd, ob->id.lib, ob->gpd);
 			ob->duplilist = NULL;
 			
-			ob->id.flag -= LIB_NEEDLINK;
+			ob->id.flag -= LIB_NEED_LINK;
 			/* if id.us==0 a new base will be created later on */
 			
 			/* WARNING! Also check expand_object(), should reflect the stuff below. */
@@ -4784,7 +4795,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 	TimeMarker *marker;
 	
 	for (sce = main->scene.first; sce; sce = sce->id.next) {
-		if (sce->id.flag & LIB_NEEDLINK) {
+		if (sce->id.flag & LIB_NEED_LINK) {
 			/* Link ID Properties -- and copy this comment EXACTLY for easy finding
 			 * of library blocks that implement this.*/
 			if (sce->id.properties) IDP_LibLinkProperty(sce->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
@@ -4886,7 +4897,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 			/* Motion Tracking */
 			sce->clip = newlibadr_us(fd, sce->id.lib, sce->clip);
 			
-			sce->id.flag -= LIB_NEEDLINK;
+			sce->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -5155,11 +5166,11 @@ static void lib_link_windowmanager(FileData *fd, Main *main)
 	wmWindow *win;
 	
 	for (wm = main->wm.first; wm; wm = wm->id.next) {
-		if (wm->id.flag & LIB_NEEDLINK) {
+		if (wm->id.flag & LIB_NEED_LINK) {
 			for (win = wm->windows.first; win; win = win->next)
 				win->screen = newlibadr(fd, NULL, win->screen);
 			
-			wm->id.flag -= LIB_NEEDLINK;
+			wm->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -5227,7 +5238,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 	ScrArea *sa;
 	
 	for (sc = main->screen.first; sc; sc = sc->id.next) {
-		if (sc->id.flag & LIB_NEEDLINK) {
+		if (sc->id.flag & LIB_NEED_LINK) {
 			sc->id.us = 1;
 			sc->scene = newlibadr(fd, sc->id.lib, sc->scene);
 			sc->animtimer = NULL; /* saved in rare cases */
@@ -5300,7 +5311,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceImage *sima = (SpaceImage *)sl;
 						
 						sima->image = newlibadr_us(fd, sc->id.lib, sima->image);
-						
+						sima->mask_info.mask = newlibadr_us(fd, sc->id.lib, sima->mask_info.mask);
+
 						/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
 						 * so fingers crossed this works fine!
 						 */
@@ -5386,7 +5398,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceClip *sclip = (SpaceClip *)sl;
 						
 						sclip->clip = newlibadr_us(fd, sc->id.lib, sclip->clip);
-						sclip->mask = newlibadr_us(fd, sc->id.lib, sclip->mask);
+						sclip->mask_info.mask = newlibadr_us(fd, sc->id.lib, sclip->mask_info.mask);
 						
 						sclip->scopes.track_search = NULL;
 						sclip->scopes.track_preview = NULL;
@@ -5400,7 +5412,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 				}
 			}
-			sc->id.flag -= LIB_NEEDLINK;
+			sc->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -5600,6 +5612,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					 * so assume that here we're doing for undo only...
 					 */
 					sima->gpd = restore_pointer_by_name(newmain, (ID *)sima->gpd, 1);
+					sima->mask_info.mask = restore_pointer_by_name(newmain, (ID *)sima->mask_info.mask, 1);
 				}
 				else if (sl->spacetype == SPACE_SEQ) {
 					SpaceSeq *sseq = (SpaceSeq *)sl;
@@ -5675,7 +5688,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceClip *sclip = (SpaceClip *)sl;
 					
 					sclip->clip = restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
-					sclip->mask = restore_pointer_by_name(newmain, (ID *)sclip->mask, 1);
+					sclip->mask_info.mask = restore_pointer_by_name(newmain, (ID *)sclip->mask_info.mask, 1);
 					
 					sclip->scopes.ok = 0;
 				}
@@ -6085,7 +6098,7 @@ static void lib_link_speaker(FileData *fd, Main *main)
 	Speaker *spk;
 	
 	for (spk = main->speaker.first; spk; spk = spk->id.next) {
-		if (spk->id.flag & LIB_NEEDLINK) {
+		if (spk->id.flag & LIB_NEED_LINK) {
 			if (spk->adt) lib_link_animdata(fd, &spk->id, spk->adt);
 			
 			spk->sound= newlibadr(fd, spk->id.lib, spk->sound);
@@ -6093,7 +6106,7 @@ static void lib_link_speaker(FileData *fd, Main *main)
 				spk->sound->id.us++;
 			}
 			
-			spk->id.flag -= LIB_NEEDLINK;
+			spk->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -6132,8 +6145,8 @@ static void lib_link_sound(FileData *fd, Main *main)
 	bSound *sound;
 	
 	for (sound = main->sound.first; sound; sound = sound->id.next) {
-		if (sound->id.flag & LIB_NEEDLINK) {
-			sound->id.flag -= LIB_NEEDLINK;
+		if (sound->id.flag & LIB_NEED_LINK) {
+			sound->id.flag -= LIB_NEED_LINK;
 			sound->ipo = newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
 			
 			sound_load(main, sound);
@@ -6154,8 +6167,8 @@ static void lib_link_group(FileData *fd, Main *main)
 	int add_us;
 	
 	for (group = main->group.first; group; group = group->id.next) {
-		if (group->id.flag & LIB_NEEDLINK) {
-			group->id.flag -= LIB_NEEDLINK;
+		if (group->id.flag & LIB_NEED_LINK) {
+			group->id.flag -= LIB_NEED_LINK;
 			
 			add_us = 0;
 			
@@ -6244,7 +6257,7 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 	MovieClip *clip;
 	
 	for (clip = main->movieclip.first; clip; clip = clip->id.next) {
-		if (clip->id.flag & LIB_NEEDLINK) {
+		if (clip->id.flag & LIB_NEED_LINK) {
 			MovieTracking *tracking = &clip->tracking;
 			MovieTrackingObject *object;
 
@@ -6259,7 +6272,7 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 				lib_link_movieTracks(fd, clip, &object->tracks);
 			}
 
-			clip->id.flag -= LIB_NEEDLINK;
+			clip->id.flag -= LIB_NEED_LINK;
 		}
 	}
 }
@@ -6315,7 +6328,7 @@ static void lib_link_mask(FileData *fd, Main *main)
 
 	mask = main->mask.first;
 	while (mask) {
-		if (mask->id.flag & LIB_NEEDLINK) {
+		if (mask->id.flag & LIB_NEED_LINK) {
 			MaskLayer *masklay;
 
 			if (mask->adt)
@@ -6340,7 +6353,7 @@ static void lib_link_mask(FileData *fd, Main *main)
 				}
 			}
 
-			mask->id.flag -= LIB_NEEDLINK;
+			mask->id.flag -= LIB_NEED_LINK;
 		}
 		mask = mask->id.next;
 	}
@@ -6355,8 +6368,8 @@ static void lib_link_linestyle(FileData *fd, Main *main)
 
 	linestyle = main->linestyle.first;
 	while (linestyle) {
-		if (linestyle->id.flag & LIB_NEEDLINK) {
-			linestyle->id.flag -= LIB_NEEDLINK;
+		if (linestyle->id.flag & LIB_NEED_LINK) {
+			linestyle->id.flag -= LIB_NEED_LINK;
 
 			if (linestyle->id.properties) IDP_LibLinkProperty(linestyle->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			if (linestyle->adt) lib_link_animdata(fd, &linestyle->id, linestyle->adt);
@@ -6613,7 +6626,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	BLI_addtail(lb, id);
 	
 	/* clear first 8 bits */
-	id->flag = (id->flag & 0xFF00) | flag | LIB_NEEDLINK;
+	id->flag = (id->flag & 0xFF00) | flag | LIB_NEED_LINK;
 	id->lib = main->curlib;
 	if (id->flag & LIB_FAKEUSER) id->us= 1;
 	else id->us = 0;
@@ -7198,6 +7211,24 @@ static void do_version_ntree_dilateerode_264(void *UNUSED(data), ID *UNUSED(id),
 			if (node->storage == NULL) {
 				NodeDilateErode *data = MEM_callocN(sizeof(NodeDilateErode), __func__);
 				data->falloff = PROP_SMOOTH;
+				node->storage = data;
+			}
+		}
+	}
+}
+
+static void do_version_ntree_mask_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_MASK) {
+			if (node->storage == NULL) {
+				NodeMask *data = MEM_callocN(sizeof(NodeMask), __func__);
+				/* move settings into own struct */
+				data->size_x = node->custom3;
+				data->size_y = node->custom4;
+				node->custom3 = 0.5f; /* default shutter */
 				node->storage = data;
 			}
 		}
@@ -8038,6 +8069,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		if (ntreetype && ntreetype->foreach_nodetree)
 			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_keying_despill_balance);
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 17)) {
+		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
+
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_mask_264);
 	}
 
 	/* default values in Freestyle settings */
@@ -9119,6 +9157,38 @@ static void expand_movieclip(FileData *fd, Main *mainvar, MovieClip *clip)
 	if (clip->adt)
 		expand_animdata(fd, mainvar, clip->adt);
 }
+
+static void expand_mask_parent(FileData *fd, Main *mainvar, MaskParent *parent)
+{
+	if (parent->id) {
+		expand_doit(fd, mainvar, parent->id);
+	}
+}
+
+static void expand_mask(FileData *fd, Main *mainvar, Mask *mask)
+{
+	MaskLayer *mask_layer;
+
+	if (mask->adt)
+		expand_animdata(fd, mainvar, mask->adt);
+
+	for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+		MaskSpline *spline;
+
+		for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+			int i;
+
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				expand_mask_parent(fd, mainvar, &point->parent);
+			}
+
+			expand_mask_parent(fd, mainvar, &spline->parent);
+		}
+	}
+}
+
 static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *linestyle)
 {
 	LineStyleModifier *m;
@@ -9154,7 +9224,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 		while (a--) {
 			id= lbarray[a]->first;
 			while (id) {
-				if (id->flag & LIB_TEST) {
+				if (id->flag & LIB_NEED_EXPAND) {
 					switch (GS(id->name)) {
 					case ID_OB:
 						expand_object(fd, mainvar, (Object *)id);
@@ -9222,13 +9292,16 @@ static void expand_main(FileData *fd, Main *mainvar)
 					case ID_MC:
 						expand_movieclip(fd, mainvar, (MovieClip *)id);
 						break;
+					case ID_MSK:
+						expand_mask(fd, mainvar, (Mask *)id);
+						break;
 					case ID_LS:
 						expand_linestyle(fd, mainvar, (FreestyleLineStyle *)id);
 						break;
 					}
 					
 					do_it = TRUE;
-					id->flag -= LIB_TEST;
+					id->flag -= LIB_NEED_EXPAND;
 					
 				}
 				id = id->next;
@@ -9443,7 +9516,7 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 			
 			if (strcmp(id->name, bhead_id_name(fd, bhead))==0) {
 				id->flag &= ~LIB_READ;
-				id->flag |= LIB_TEST;
+				id->flag |= LIB_NEED_EXPAND;
 //				printf("read lib block %s\n", id->name);
 				read_libblock(fd, mainvar, bhead, id->flag, id_r);
 				

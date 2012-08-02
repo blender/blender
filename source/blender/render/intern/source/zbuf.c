@@ -149,8 +149,8 @@ static void zbuf_add_to_span(ZSpan *zspan, const float *v1, const float *v2)
 		xs0= dx0*(minv[1]-my2) + minv[0];
 	}
 	else {
-		dx0= 0.0f;
-		xs0= MIN2(minv[0], maxv[0]);
+		dx0 = 0.0f;
+		xs0 = minf(minv[0], maxv[0]);
 	}
 	
 	/* empty span */
@@ -443,7 +443,7 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], co
 	
 	mask= zspan->mask;
 	
-	if (fabs(dx) > fabs(dy)) {
+	if (fabsf(dx) > fabsf(dy)) {
 
 		/* all lines from left to right */
 		if (vec1[0]<vec2[0]) {
@@ -597,7 +597,7 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], cons
 	dx= vec2[0]-vec1[0];
 	dy= vec2[1]-vec1[1];
 	
-	if (fabs(dx) > fabs(dy)) {
+	if (fabsf(dx) > fabsf(dy)) {
 
 		/* all lines from left to right */
 		if (vec1[0]<vec2[0]) {
@@ -727,7 +727,7 @@ static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), con
 	dx= vec2[0]-vec1[0];
 	dy= vec2[1]-vec1[1];
 	
-	if (fabs(dx) > fabs(dy)) {
+	if (fabsf(dx) > fabsf(dy)) {
 		
 		/* all lines from left to right */
 		if (vec1[0]<vec2[0]) {
@@ -3874,7 +3874,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 				
 				addAlphaUnderFloat(samp_shr->combined, shr->combined);
 				
-				samp_shr->z= MIN2(samp_shr->z, shr->z);
+				samp_shr->z = minf(samp_shr->z, shr->z);
 
 				if (addpassflag & SCE_PASS_VECTOR) {
 					copy_v4_v4(samp_shr->winspeed, shr->winspeed);

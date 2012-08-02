@@ -74,6 +74,7 @@
 #include "ED_view3d.h"
 #include "ED_mesh.h"
 #include "ED_clip.h"
+#include "ED_mask.h"
 
 #include "UI_view2d.h"
 #include "WM_types.h"
@@ -93,7 +94,7 @@
 
 #include <stdio.h>
 
-static void drawTransformApply(const struct bContext *C, struct ARegion *ar, void *arg);
+static void drawTransformApply(const struct bContext *C, ARegion *ar, void *arg);
 static int doEdgeSlide(TransInfo *t, float perc);
 
 /* ************************** SPACE DEPENDANT CODE **************************** */
@@ -120,16 +121,44 @@ void setTransformViewMatrices(TransInfo *t)
 	calculateCenter2D(t);
 }
 
-static void convertViewVec2D(View2D *v2d, float vec[3], int dx, int dy)
+static void convertViewVec2D(View2D *v2d, float r_vec[3], int dx, int dy)
 {
 	float divx, divy;
 	
 	divx = v2d->mask.xmax - v2d->mask.xmin;
 	divy = v2d->mask.ymax - v2d->mask.ymin;
 
-	vec[0] = (v2d->cur.xmax - v2d->cur.xmin) * dx / divx;
-	vec[1] = (v2d->cur.ymax - v2d->cur.ymin) * dy / divy;
-	vec[2] = 0.0f;
+	r_vec[0] = (v2d->cur.xmax - v2d->cur.xmin) * dx / divx;
+	r_vec[1] = (v2d->cur.ymax - v2d->cur.ymin) * dy / divy;
+	r_vec[2] = 0.0f;
+}
+
+static void convertViewVec2D_mask(View2D *v2d, float r_vec[3], int dx, int dy)
+{
+	float divx, divy;
+	float mulx, muly;
+
+	divx = v2d->mask.xmax - v2d->mask.xmin;
+	divy = v2d->mask.ymax - v2d->mask.ymin;
+
+	mulx = (v2d->cur.xmax - v2d->cur.xmin);
+	muly = (v2d->cur.ymax - v2d->cur.ymin);
+
+	/* difference with convertViewVec2D */
+	/* clamp w/h, mask only */
+	if (mulx / divx < muly / divy) {
+		divy = divx;
+		muly = mulx;
+	}
+	else {
+		divx = divy;
+		mulx = muly;
+	}
+	/* end difference */
+
+	r_vec[0] = mulx * dx / divx;
+	r_vec[1] = muly * dy / divy;
+	r_vec[2] = 0.0f;
 }
 
 void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
@@ -143,9 +172,17 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 	else if (t->spacetype == SPACE_IMAGE) {
 		float aspx, aspy;
 
-		convertViewVec2D(t->view, r_vec, dx, dy);
+		if (t->options & CTX_MASK) {
 
-		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			convertViewVec2D_mask(t->view, r_vec, dx, dy);
+
+			ED_space_image_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
+		}
+		else {
+			convertViewVec2D(t->view, r_vec, dx, dy);
+			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+		}
+
 		r_vec[0] *= aspx;
 		r_vec[1] *= aspy;
 	}
@@ -156,32 +193,14 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		convertViewVec2D(&t->ar->v2d, r_vec, dx, dy);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		View2D *v2d = t->view;
-		float divx, divy;
-		float mulx, muly;
-		float aspx = 1.0f, aspy = 1.0f;
-
-		divx = v2d->mask.xmax - v2d->mask.xmin;
-		divy = v2d->mask.ymax - v2d->mask.ymin;
-
-		mulx = (v2d->cur.xmax - v2d->cur.xmin);
-		muly = (v2d->cur.ymax - v2d->cur.ymin);
+		float aspx, aspy;
 
 		if (t->options & CTX_MASK) {
-			/* clamp w/h, mask only */
-			if (mulx / divx < muly / divy) {
-				divy = divx;
-				muly = mulx;
-			}
-			else {
-				divx = divy;
-				mulx = muly;
-			}
+			convertViewVec2D_mask(t->view, r_vec, dx, dy);
 		}
-
-		r_vec[0] = mulx * (dx) / divx;
-		r_vec[1] = muly * (dy) / divy;
-		r_vec[2] = 0.0f;
+		else {
+			convertViewVec2D(t->view, r_vec, dx, dy);
+		}
 
 		if (t->options & CTX_MOVIECLIP) {
 			ED_space_clip_get_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
@@ -207,13 +226,21 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 			project_int_noclip(t->ar, vec, adr);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
-		float aspx, aspy, v[2];
+		if (t->options & CTX_MASK) {
+			float v[2];
+			ED_mask_point_pos__reverse(t->sa, t->ar, vec[0], vec[1], &v[0], &v[1]);
+			adr[0] = v[0];
+			adr[1] = v[1];
+		}
+		else {
+			float aspx, aspy, v[2];
 
-		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
-		v[0] = vec[0] / aspx;
-		v[1] = vec[1] / aspy;
+			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			v[0] = vec[0] / aspx;
+			v[1] = vec[1] / aspy;
 
-		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr + 1);
+			UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr + 1);
+		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		int out[2] = {0, 0};
@@ -254,10 +281,13 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 
 		copy_v2_v2(v, vec);
 
-		if (t->options & CTX_MOVIECLIP)
+		if (t->options & CTX_MOVIECLIP) {
 			ED_space_clip_get_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
-		else if (t->options & CTX_MASK)
+		}
+		else if (t->options & CTX_MASK) {
+			/* MASKTODO - not working as expected */
 			ED_space_clip_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
+		}
 
 		v[0] /= aspx;
 		v[1] /= aspy;
@@ -304,13 +334,13 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 
 		if ((sima->flag & SI_COORDFLOATS) == 0) {
 			int width, height;
-			ED_space_image_size(sima, &width, &height);
+			ED_space_image_get_size(sima, &width, &height);
 
 			vec[0] *= width;
 			vec[1] *= height;
 		}
 
-		ED_space_image_uv_aspect(sima, &aspx, &aspy);
+		ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 		vec[0] /= aspx;
 		vec[1] /= aspy;
 	}
@@ -344,13 +374,13 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 
 		if ((sima->flag & SI_COORDFLOATS) == 0) {
 			int width, height;
-			ED_space_image_size(sima, &width, &height);
+			ED_space_image_get_size(sima, &width, &height);
 
 			vec[0] /= width;
 			vec[1] /= height;
 		}
 
-		ED_space_image_uv_aspect(sima, &aspx, &aspy);
+		ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 		vec[0] *= aspx;
 		vec[1] *= aspy;
 	}
@@ -406,10 +436,17 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, NULL);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
-		// XXX how to deal with lock?
-		SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
-		if (sima->lock) WM_event_add_notifier(C, NC_GEOM | ND_DATA, t->obedit->data);
-		else ED_area_tag_redraw(t->sa);
+		if (t->options & CTX_MASK) {
+			Mask *mask = CTX_data_edit_mask(C);
+
+			WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+		}
+		else {
+			// XXX how to deal with lock?
+			SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
+			if (sima->lock) WM_event_add_notifier(C, NC_GEOM | ND_DATA, t->obedit->data);
+			else ED_area_tag_redraw(t->sa);
+		}
 	}
 	else if (t->spacetype == SPACE_CLIP) {
 		SpaceClip *sc = (SpaceClip *)t->sa->spacedata.first;
@@ -423,7 +460,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 		}
 		else if (ED_space_clip_check_show_maskedit(sc)) {
-			Mask *mask = ED_space_clip_get_mask(sc);
+			Mask *mask = CTX_data_edit_mask(C);
 
 			WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 		}
@@ -932,7 +969,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (t->flag & T_PROP_EDIT) {
 					t->prop_size *= 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-						t->prop_size = MIN2(t->prop_size, ((View3D *)t->view)->far);
+						t->prop_size = minf(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
 				t->redraw |= TREDRAW_HARD;
@@ -1102,7 +1139,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (event->alt && t->flag & T_PROP_EDIT) {
 					t->prop_size *= 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-						t->prop_size = MIN2(t->prop_size, ((View3D *)t->view)->far);
+						t->prop_size = minf(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
 				t->redraw = 1;
@@ -1303,10 +1340,11 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 {
 	float delta = (angle_end - angle_start) / segments;
 	float angle;
+	int a;
 
 	glBegin(GL_LINE_STRIP);
 
-	for (angle = angle_start; angle < angle_end; angle += delta) {
+	for (angle = angle_start, a = 0; a < segments; angle += delta, a++) {
 		glVertex2f(cosf(angle) * size, sinf(angle) * size);
 	}
 	glVertex2f(cosf(angle_end) * size, sinf(angle_end) * size);
@@ -1456,7 +1494,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 	}
 }
 
-static void drawTransformView(const struct bContext *C, struct ARegion *UNUSED(ar), void *arg)
+static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), void *arg)
 {
 	TransInfo *t = arg;
 
@@ -1467,7 +1505,7 @@ static void drawTransformView(const struct bContext *C, struct ARegion *UNUSED(a
 }
 
 #if 0
-static void drawTransformPixel(const struct bContext *UNUSED(C), struct ARegion *UNUSED(ar), void *UNUSED(arg))
+static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), void *UNUSED(arg))
 {
 //	TransInfo *t = arg;
 //
@@ -1911,7 +1949,7 @@ void transformApply(bContext *C, TransInfo *t)
 	t->context = NULL;
 }
 
-static void drawTransformApply(const bContext *C, struct ARegion *UNUSED(ar), void *arg)
+static void drawTransformApply(const bContext *C, ARegion *UNUSED(ar), void *arg)
 {
 	TransInfo *t = arg;
 

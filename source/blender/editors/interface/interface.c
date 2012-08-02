@@ -2134,7 +2134,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 
 		/* TODO - investigate why block->winmat[0][0] is negative
 		 * in the image view when viewRedrawForce is called */
-		block->aspect = 2.0 / fabs( (getsizex) * block->winmat[0][0]);
+		block->aspect = 2.0f / fabsf(getsizex * block->winmat[0][0]);
 	}
 	else {
 		/* no subwindow created yet, for menus for example, so we
@@ -2143,7 +2143,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 		wm_subwindow_getmatrix(window, window->screen->mainwin, block->winmat);
 		wm_subwindow_getsize(window, window->screen->mainwin, &getsizex, &getsizey);
 
-		block->aspect = 2.0 / fabs(getsizex * block->winmat[0][0]);
+		block->aspect = 2.0f / fabsf(getsizex * block->winmat[0][0]);
 		block->auto_open = TRUE;
 		block->flag |= UI_BLOCK_LOOP; /* tag as menu */
 	}
@@ -2243,8 +2243,12 @@ void ui_check_but(uiBut *but)
 			UI_GET_BUT_VALUE_INIT(but, value);
 
 			if (ui_is_but_float(but)) {
-				if (value == (double) FLT_MAX) BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
-				else if (value == (double) -FLT_MAX) BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
+				if (value == (double) FLT_MAX) {
+					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
+				}
+				else if (value == (double) -FLT_MAX) {
+					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
+				}
 				/* support length type buttons */
 				else if (ui_is_but_unit(but)) {
 					char new_str[sizeof(but->drawstr)];
@@ -2550,7 +2554,9 @@ void ui_block_do_align(uiBlock *block)
  * - \a a2 Number of decimal point values to display. 0 defaults to 3 (0.000)
  *      1,2,3, and a maximum of 4, all greater values will be clamped to 4.
  */
-static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2, const char *tip)
+static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
+                         int x1, int y1, short x2, short y2,
+                         void *poin, float min, float max, float a1, float a2, const char *tip)
 {
 	uiBut *but;
 	int slen;
@@ -2622,10 +2628,14 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 		}
 	}
 
-	if ((block->flag & UI_BLOCK_LOOP) || ELEM8(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR))
+	if ((block->flag & UI_BLOCK_LOOP) ||
+	    ELEM8(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR))
+	{
 		but->flag |= (UI_TEXT_LEFT | UI_ICON_LEFT);
-	else if (but->type == BUT_TOGDUAL)
+	}
+	else if (but->type == BUT_TOGDUAL) {
 		but->flag |= UI_ICON_LEFT;
+	}
 
 	but->flag |= (block->flag & UI_BUT_ALIGN);
 
@@ -2664,13 +2674,17 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
  * of our UI functions take prop rather then propname.
  */
 
-#define UI_DEF_BUT_RNA_DISABLE(but) \
-	but->flag |= UI_BUT_DISABLED; \
-	but->lock = 1; \
-	but->lockstr = ""
+#define UI_DEF_BUT_RNA_DISABLE(but)  { \
+		but->flag |= UI_BUT_DISABLED;  \
+		but->lock = TRUE;              \
+		but->lockstr = "";             \
+	} (void)0
 
 
-static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)
+static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str,
+                             int x1, int y1, short x2, short y2,
+                             PointerRNA *ptr, PropertyRNA *prop, int index,
+                             float min, float max, float a1, float a2,  const char *tip)
 {
 	const PropertyType proptype = RNA_property_type(prop);
 	uiBut *but;
@@ -3700,7 +3714,7 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 
 	va_start(args, nbr);
 	while (nbr--) {
-		uiStringInfo *si = (uiStringInfo*) va_arg(args, void*);
+		uiStringInfo *si = (uiStringInfo *) va_arg(args, void *);
 		int type = si->type;
 		char *tmp = NULL;
 
@@ -3714,14 +3728,15 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 					tmp = BLI_strdup(but->str);
 			}
 			else
-				type = BUT_GET_RNA_LABEL; /* Fail-safe solution... */
+				type = BUT_GET_RNA_LABEL;  /* Fail-safe solution... */
 		}
 		else if (type == BUT_GET_TIP) {
 			if (but->tip && but->tip[0])
 				tmp = BLI_strdup(but->tip);
 			else
-				type = BUT_GET_RNA_TIP; /* Fail-safe solution... */
+				type = BUT_GET_RNA_TIP;  /* Fail-safe solution... */
 		}
+
 		if (type == BUT_GET_RNAPROP_IDENTIFIER) {
 			if (but->rnaprop)
 				tmp = BLI_strdup(RNA_property_identifier(but->rnaprop));
@@ -3759,12 +3774,15 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 			else if (ELEM(but->type, MENU, PULLDOWN)) {
 				MenuType *mt = uiButGetMenuType(but);
 				if (mt) {
-					if (type == BUT_GET_RNA_LABEL)
-						tmp = BLI_strdup(RNA_struct_ui_name(mt->ext.srna));
-					else {
-						const char *t = RNA_struct_ui_description(mt->ext.srna);
-						if (t && t[0])
-							tmp = BLI_strdup(t);
+					/* not all menus are from python */
+					if (mt->ext.srna) {
+						if (type == BUT_GET_RNA_LABEL)
+							tmp = BLI_strdup(RNA_struct_ui_name(mt->ext.srna));
+						else {
+							const char *t = RNA_struct_ui_description(mt->ext.srna);
+							if (t && t[0])
+								tmp = BLI_strdup(t);
+						}
 					}
 				}
 			}

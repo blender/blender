@@ -1798,12 +1798,15 @@ void ObjectInfoNode::compile(OSLCompiler& compiler)
 ParticleInfoNode::ParticleInfoNode()
 : ShaderNode("particle_info")
 {
+	add_output("Index", SHADER_SOCKET_FLOAT);
 	add_output("Age", SHADER_SOCKET_FLOAT);
 	add_output("Lifetime", SHADER_SOCKET_FLOAT);
 }
 
 void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
 {
+	if(!output("Index")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
 	if(!output("Age")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
 	if(!output("Lifetime")->links.empty())
@@ -1815,6 +1818,12 @@ void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
 void ParticleInfoNode::compile(SVMCompiler& compiler)
 {
 	ShaderOutput *out;
+	
+	out = output("Index");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_INDEX, out->stack_offset);
+	}
 	
 	out = output("Age");
 	if(!out->links.empty()) {

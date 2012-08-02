@@ -217,16 +217,20 @@ static void node_draw_output_default(const bContext *C, uiBlock *block,
 	float slen;
 	int ofs = 0;
 	const char *ui_name = IFACE_(name);
+	int len = strlen(ui_name);
 	UI_ThemeColor(TH_TEXT);
 	slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
-	while (slen > node->width) {
+	while (slen > node->width && ofs < len) {
 		ofs++;
 		slen = (UI_GetStringWidth(ui_name + ofs) + NODE_MARGIN_X) * snode->aspect_sqrt;
 	}
-	uiDefBut(block, LABEL, 0, ui_name + ofs,
-	         (int)(sock->locx - slen), (int)(sock->locy - 9.0f),
-	         (short)(node->width - NODE_DY), (short)NODE_DY,
-	         NULL, 0, 0, 0, 0, "");
+
+	if (ofs < len) {
+		uiDefBut(block, LABEL, 0, ui_name + ofs,
+		         (int)(sock->locx - slen), (int)(sock->locy - 9.0f),
+		         (short)(node->width - NODE_DY), (short)NODE_DY,
+		         NULL, 0, 0, 0, 0, "");
+	}
 
 	(void)snode;
 }
@@ -848,7 +852,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	
 		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 		                       (int)(rect.xmin + NODE_MARGIN_X), (int)(rect.ymax + (group_header - (2.5f * dpi_fac))),
-		                       MIN2((int)(rect.xmax - rect.xmin - 18.0f), node_group_frame + 20), group_header, UI_GetStyle());
+		                       mini((int)(rect.xmax - rect.xmin - 18.0f), node_group_frame + 20), group_header, UI_GetStyle());
 		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
 		uiTemplateIDBrowse(layout, (bContext *)C, &ptr, "node_tree", NULL, NULL, NULL);
 		uiBlockLayoutResolve(gnode->block, NULL, NULL);
@@ -1032,7 +1036,7 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
-	if (node->flag & (NODE_ACTIVE | SELECT)) {
+	if (node->flag & SELECT) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		
@@ -2490,10 +2494,24 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 
 static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+	bNode *node = ptr->data;
+
 	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL);
 	uiItemR(layout, ptr, "use_antialiasing", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "use_feather", 0, NULL, ICON_NONE);
 
+	uiItemR(layout, ptr, "size_source", 0, "", ICON_NONE);
+
+	if (node->custom1 & (CMP_NODEFLAG_MASK_FIXED | CMP_NODEFLAG_MASK_FIXED_SCENE)) {
+		uiItemR(layout, ptr, "size_x", 0, NULL, ICON_NONE);
+		uiItemR(layout, ptr, "size_y", 0, NULL, ICON_NONE);
+	}
+
+	uiItemR(layout, ptr, "use_motion_blur", 0, NULL, ICON_NONE);
+	if (node->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) {
+		uiItemR(layout, ptr, "motion_blur_samples", 0, NULL, ICON_NONE);
+		uiItemR(layout, ptr, "motion_blur_shutter", 0, NULL, ICON_NONE);
+	}
 }
 
 static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -2563,7 +2581,11 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
 			uiItemR(layout, ptr, "track_name", 0, "", ICON_ANIM_DATA);
 		}
 
-		uiItemR(layout, ptr, "use_relative", 0, NULL, ICON_NONE);
+		uiItemR(layout, ptr, "position", 0, NULL, ICON_NONE);
+
+		if (node->custom1 == 2) {
+			uiItemR(layout, ptr, "relative_frame", 0, NULL, ICON_NONE);
+		}
 	}
 }
 
@@ -2928,7 +2950,7 @@ static void node_texture_set_butfunc(bNodeType *ntype)
 
 /* ******* init draw callbacks for all tree types, only called in usiblender.c, once ************* */
 
-void ED_init_node_butfuncs(void)
+void ED_node_init_butfuncs(void)
 {
 	bNodeTreeType *treetype;
 	bNodeType *ntype;
@@ -3133,7 +3155,7 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 				float zoomx, zoomy;
 				zoomx = (float)sa->winx / ibuf->x;
 				zoomy = (float)sa->winy / ibuf->y;
-				zoom = MIN2(zoomx, zoomy);
+				zoom = minf(zoomx, zoomy);
 			}
 			
 			x = (sa->winx - zoom * ibuf->x) / 2 + snode->xof;
@@ -3476,7 +3498,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 //	node_draw_link_straight(v2d, snode, link, th_col1, do_shaded, th_col2, do_triple, th_col3);
 }
 
-void drawnodesnap(View2D *v2d, const float cent[2], float size, NodeBorder border)
+void ED_node_draw_snap(View2D *v2d, const float cent[2], float size, NodeBorder border)
 {
 	glBegin(GL_LINES);
 	

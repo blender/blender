@@ -310,15 +310,15 @@ int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
 float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
 char		*WM_jobs_name(struct wmWindowManager *wm, void *owner);
 
-int             WM_jobs_is_running(struct wmJob *);
-void*           WM_jobs_get_customdata(struct wmJob *);
-void		WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *));
-void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
-void		WM_jobs_callbacks(struct wmJob *, 
-							  void (*startjob)(void *, short *, short *, float *),
-							  void (*initjob)(void *),
-							  void (*update)(void *),
-							  void (*endjob)(void *));
+int         WM_jobs_is_running(struct wmJob *);
+void *      WM_jobs_get_customdata(struct wmJob *);
+void        WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *));
+void        WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
+void        WM_jobs_callbacks(struct wmJob *,
+                              void (*startjob)(void *, short *, short *, float *),
+                              void (*initjob)(void *),
+                              void (*update)(void *),
+                              void (*endjob)(void *));
 
 void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);

@@ -50,22 +50,22 @@ public:
 	virtual ~BOP_BSPTree();
 	void addMesh(BOP_Mesh* mesh, BOP_Faces& facesList);
 	void addFace(BOP_Mesh* mesh, BOP_Face* face);
-	virtual void addFace(const MT_Point3& p1, 
-						 const MT_Point3& p2, 
-						 const MT_Point3& p3, 
-						 const MT_Plane3& plane);
-	BOP_TAG classifyFace(const MT_Point3& p1, 
-						 const MT_Point3& p2, 
-						 const MT_Point3& p3, 
-						 const MT_Plane3& plane) const;
-	BOP_TAG filterFace(const MT_Point3& p1, 
-					   const MT_Point3& p2, 
-					   const MT_Point3& p3, 
-					   BOP_Face* face);
-	BOP_TAG simplifiedClassifyFace(const MT_Point3& p1, 
-								   const MT_Point3& p2, 
-								   const MT_Point3& p3, 
-								   const MT_Plane3& plane) const;
+	virtual void addFace(const MT_Point3& p1,
+	                     const MT_Point3& p2,
+	                     const MT_Point3& p3,
+	                     const MT_Plane3& plane);
+	BOP_TAG classifyFace(const MT_Point3& p1,
+	                     const MT_Point3& p2,
+	                     const MT_Point3& p3,
+	                     const MT_Plane3& plane) const;
+	BOP_TAG filterFace(const MT_Point3& p1,
+	                   const MT_Point3& p2,
+	                   const MT_Point3& p3,
+	                   BOP_Face* face);
+	BOP_TAG simplifiedClassifyFace(const MT_Point3& p1,
+	                               const MT_Point3& p2,
+	                               const MT_Point3& p3,
+	                               const MT_Plane3& plane) const;
 	unsigned int getDeep() const;
 	void print();
 	inline void setRoot(BOP_BSPNode* root) {m_root=root;};

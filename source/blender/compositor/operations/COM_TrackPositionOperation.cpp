@@ -29,8 +29,6 @@
 #include "BLI_math.h"
 #include "BLI_math_color.h"
 
-#include "DNA_scene_types.h"
-
 extern "C" {
 	#include "BKE_movieclip.h"
 	#include "BKE_tracking.h"
@@ -39,58 +37,78 @@ extern "C" {
 TrackPositionOperation::TrackPositionOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_VALUE);
-	this->movieClip = NULL;
-	this->framenumber = 0;
-	this->trackingObject[0] = 0;
-	this->trackName[0] = 0;
-	this->axis = 0;
-	this->relative = false;
+	this->m_movieClip = NULL;
+	this->m_framenumber = 0;
+	this->m_trackingObjectName[0] = 0;
+	this->m_trackName[0] = 0;
+	this->m_axis = 0;
+	this->m_position = POSITION_ABSOLUTE;;
+	this->m_relativeFrame = 0;
 }
 
-void TrackPositionOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void TrackPositionOperation::initExecution()
 {
+	MovieTracking *tracking = NULL;
 	MovieClipUser user = {0};
-	MovieTracking *tracking = &movieClip->tracking;
-	MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, this->trackingObject);
-	MovieTrackingTrack *track;
-	MovieTrackingMarker *marker;
-	int width, height;
+	MovieTrackingObject *object;
 
-	outputValue[0] = 0.0f;
+	zero_v2(this->m_markerPos);
+	zero_v2(this->m_relativePos);
 
-	if (!object)
+	if (!this->m_movieClip)
 		return;
 
-	track = BKE_tracking_track_get_named(tracking, object, this->trackName);
+	tracking = &this->m_movieClip->tracking;
 
-	if (!track)
-		return;
+	BKE_movieclip_user_set_frame(&user, this->m_framenumber);
+	BKE_movieclip_get_size(this->m_movieClip, &user, &this->m_width, &this->m_height);
 
-	BKE_movieclip_user_set_frame(&user, this->framenumber);
-	BKE_movieclip_get_size(this->movieClip, &user, &width, &height);
+	object = BKE_tracking_object_get_named(tracking, this->m_trackingObjectName);
+	if (object) {
+		MovieTrackingTrack *track;
 
-	marker = BKE_tracking_marker_get(track, this->framenumber);
+		track = BKE_tracking_track_get_named(tracking, object, this->m_trackName);
 
-	outputValue[0] = marker->pos[this->axis];
+		if (track) {
+			MovieTrackingMarker *marker;
+			int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_movieClip, this->m_framenumber);
 
-	if (this->relative) {
-		int i;
+			marker = BKE_tracking_marker_get(track, clip_framenr);
 
-		for (i = 0; i < track->markersnr; i++) {
-			marker = &track->markers[i];
+			copy_v2_v2(this->m_markerPos, marker->pos);
 
-			if ((marker->flag & MARKER_DISABLED) == 0) {
-				outputValue[0] -= marker->pos[this->axis];
+			if (this->m_position == POSITION_RELATIVE_START) {
+				int i;
 
-				break;
+				for (i = 0; i < track->markersnr; i++) {
+					marker = &track->markers[i];
+
+					if ((marker->flag & MARKER_DISABLED) == 0) {
+						copy_v2_v2(this->m_relativePos, marker->pos);
+
+						break;
+					}
+				}
+			}
+			else if (this->m_position == POSITION_RELATIVE_FRAME) {
+				int relative_clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_movieClip,
+						this->m_relativeFrame);
+
+				marker = BKE_tracking_marker_get(track, relative_clip_framenr);
+				copy_v2_v2(this->m_relativePos, marker->pos);
 			}
 		}
 	}
+}
 
-	if (this->axis == 0)
-		outputValue[0] *= width;
+void TrackPositionOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+{
+	outputValue[0] = this->m_markerPos[this->m_axis] - this->m_relativePos[this->m_axis];
+
+	if (this->m_axis == 0)
+		outputValue[0] *= this->m_width;
 	else
-		outputValue[0] *= height;
+		outputValue[0] *= this->m_height;
 }
 
 void TrackPositionOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])

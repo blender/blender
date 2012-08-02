@@ -350,7 +350,6 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, Panel):
 
 class MATERIAL_PT_transp(MaterialButtonsPanel, Panel):
     bl_label = "Transparency"
-    # bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod

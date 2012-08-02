@@ -37,6 +37,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_world_types.h"
 #include "DNA_linestyle_types.h"
 
 #include "BLI_math.h"
@@ -146,7 +147,7 @@ EnumPropertyItem snap_node_element_items[] = {
 };
 
 
-/* workaround for duplice enums,
+/* workaround for duplicate enums,
  * have each enum line as a defne then conditionally set it or not
  */
 
@@ -774,7 +775,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
 #ifdef WITH_FFMPEG
 	/* a WAY more crappy case than B&W flag: depending on codec, file format MIGHT support
 	 * alpha channel. for example MPEG format with h264 codec can't do alpha channel, but
-	 * the same MPEG format with QTRLE codec can easily handle alpga channel.
+	 * the same MPEG format with QTRLE codec can easily handle alpha channel.
 	 * not sure how to deal with such cases in a nicer way (sergey) */
 	if (is_render) {
 		Scene *scene = ptr->id.data;
@@ -1108,7 +1109,7 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSE
 	
 	if (ntree && scene->use_nodes) {
 		/* images are freed here, stop render and preview threads, until
-		 * Image is threadsafe. when we are changing this propery from a
+		 * Image is threadsafe. when we are changing this property from a
 		 * python script in the render thread, don't stop own thread */
 		if (BLI_thread_is_main())
 			WM_jobs_stop_all(bmain->wm.first);
@@ -3056,13 +3057,13 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	/* mode */
 	prop = RNA_def_property(srna, "use_occlusion_culling", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", (1 << 5)); /*XXX mode hardcoded  *//* WO_DBVT_CULLING */
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_DBVT_CULLING);
 	RNA_def_property_ui_text(prop, "DBVT culling",
 	                         "Use optimized Bullet DBVT tree for view frustum and occlusion culling");
 	
 	/* not used  *//* deprecated !!!!!!!!!!!!! */
 	prop = RNA_def_property(srna, "use_activity_culling", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", (1 << 3)); /*XXX mode hardcoded */
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_ACTIVITY_CULLING);
 	RNA_def_property_ui_text(prop, "Activity Culling", "Activity culling is enabled");
 
 	/* not used  *//* deprecated !!!!!!!!!!!!! */
@@ -3478,21 +3479,21 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "video_bitrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "video_bitrate");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 1, 14000);
+	RNA_def_property_range(prop, 1, 64000);
 	RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "minrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rc_min_rate");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 0, 9000);
+	RNA_def_property_range(prop, 0, 48000);
 	RNA_def_property_ui_text(prop, "Min Rate", "Rate control: min rate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "maxrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rc_max_rate");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 1, 14000);
+	RNA_def_property_range(prop, 1, 96000);
 	RNA_def_property_ui_text(prop, "Max Rate", "Rate control: max rate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 

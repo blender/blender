@@ -2435,7 +2435,7 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was
 	xfac = (float)ar->winx / (float)(size[0] + 4);
 	yfac = (float)ar->winy / (float)(size[1] + 4);
 
-	rv3d->camzoom = BKE_screen_view3d_zoom_from_fac(MIN2(xfac, yfac));
+	rv3d->camzoom = BKE_screen_view3d_zoom_from_fac(minf(xfac, yfac));
 	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
@@ -2873,7 +2873,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			break;
 
 		case RV3D_VIEW_BACK:
-			axis_set_view(C, v3d, ar, 0.0, 0.0, -cosf(M_PI / 4.0), -cosf(M_PI / 4.0),
+			axis_set_view(C, v3d, ar, 0.0, 0.0, -M_SQRT1_2, -M_SQRT1_2,
 			              viewnum, nextperspo, align_active);
 			break;
 
@@ -2888,7 +2888,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			break;
 
 		case RV3D_VIEW_FRONT:
-			axis_set_view(C, v3d, ar, cosf(M_PI / 4.0), -sinf(M_PI / 4.0), 0.0, 0.0,
+			axis_set_view(C, v3d, ar, M_SQRT1_2, -M_SQRT1_2, 0.0, 0.0,
 			              viewnum, nextperspo, align_active);
 			break;
 
@@ -3008,7 +3008,6 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 	View3D *v3d;
 	ARegion *ar;
 	RegionView3D *rv3d;
-	float phi, q1[4], new_quat[4];
 	int orbitdir;
 
 	/* no NULL check is needed, poll checks */
@@ -3019,36 +3018,40 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 
 	if (rv3d->viewlock == 0) {
 		if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
-			if (orbitdir == V3D_VIEW_STEPLEFT || orbitdir == V3D_VIEW_STEPRIGHT) {
-				float si;
+			float angle = DEG2RADF((float)U.pad_rot_angle);
+			float quat_mul[4];
+			float quat_new[4];
+
+			if (ELEM(orbitdir, V3D_VIEW_STEPLEFT, V3D_VIEW_STEPRIGHT)) {
+				const float zvec[3] = {0.0f, 0.0f, 1.0f};
+
+				if (orbitdir == V3D_VIEW_STEPRIGHT) {
+					angle = -angle;
+				}
+
 				/* z-axis */
-				phi = (float)(M_PI / 360.0) * U.pad_rot_angle;
-				if (orbitdir == V3D_VIEW_STEPRIGHT) phi = -phi;
-				si = (float)sin(phi);
-				q1[0] = (float)cos(phi);
-				q1[1] = q1[2] = 0.0;
-				q1[3] = si;
-				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
-				rv3d->view = RV3D_VIEW_USER;
+				axis_angle_to_quat(quat_mul, zvec, angle);
 			}
-			else if (orbitdir == V3D_VIEW_STEPDOWN || orbitdir == V3D_VIEW_STEPUP) {
+			else {
+
+				if (orbitdir == V3D_VIEW_STEPDOWN) {
+					angle = -angle;
+				}
+
 				/* horizontal axis */
-				copy_v3_v3(q1 + 1, rv3d->viewinv[0]);
-
-				normalize_v3(q1 + 1);
-				phi = (float)(M_PI / 360.0) * U.pad_rot_angle;
-				if (orbitdir == V3D_VIEW_STEPDOWN) phi = -phi;
-				q1[0] = (float)cos(phi);
-				mul_v3_fl(q1 + 1, sin(phi));
-				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
-				rv3d->view = RV3D_VIEW_USER;
+				axis_angle_to_quat(quat_mul, rv3d->viewinv[0], angle);
 			}
 
-			smooth_view(C, CTX_wm_view3d(C), ar, NULL, NULL, NULL, new_quat, NULL, NULL);
+			mul_qt_qtqt(quat_new, rv3d->viewquat, quat_mul);
+			rv3d->view = RV3D_VIEW_USER;
+
+			smooth_view(C, CTX_wm_view3d(C), ar, NULL, NULL, NULL, quat_new, NULL, NULL);
+
+			return OPERATOR_FINISHED;
 		}
 	}
 
-	return OPERATOR_FINISHED;
+	return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_view_orbit(wmOperatorType *ot)
@@ -3645,7 +3648,7 @@ int ED_view3d_autodist_simple(ARegion *ar, const int mval[2], float mouse_worldl
 	return 1;
 }
 
-int ED_view3d_autodist_depth(struct ARegion *ar, const int mval[2], int margin, float *depth)
+int ED_view3d_autodist_depth(ARegion *ar, const int mval[2], int margin, float *depth)
 {
 	*depth = view_autodist_depth_margin(ar, mval, margin);
 
@@ -3654,7 +3657,7 @@ int ED_view3d_autodist_depth(struct ARegion *ar, const int mval[2], int margin, 
 
 static int depth_segment_cb(int x, int y, void *userData)
 {
-	struct { struct ARegion *ar; int margin; float depth; } *data = userData;
+	struct { ARegion *ar; int margin; float depth; } *data = userData;
 	int mval[2];
 	float depth;
 
@@ -3672,10 +3675,10 @@ static int depth_segment_cb(int x, int y, void *userData)
 	}
 }
 
-int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], const int mval_end[2],
+int ED_view3d_autodist_depth_seg(ARegion *ar, const int mval_sta[2], const int mval_end[2],
                                  int margin, float *depth)
 {
-	struct { struct ARegion *ar; int margin; float depth; } data = {NULL};
+	struct { ARegion *ar; int margin; float depth; } data = {NULL};
 	int p1[2];
 	int p2[2];
 

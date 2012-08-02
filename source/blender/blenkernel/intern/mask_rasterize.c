@@ -45,8 +45,6 @@
 
 #include "BKE_mask.h"
 
-#ifndef USE_RASKTER
-
 /* this is rather and annoying hack, use define to isolate it.
  * problem is caused by scanfill removing edges on us. */
 #define USE_SCANFILL_EDGE_WORKAROUND
@@ -1251,6 +1249,9 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 		}
 
 		switch (layer->blend) {
+			case MASK_BLEND_MERGE:
+				value += value_layer * (1.0f - value);
+				break;
 			case MASK_BLEND_ADD:
 				value += value_layer;
 				break;
@@ -1286,4 +1287,36 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 	return value;
 }
 
-#endif /* USE_RASKTER */
+/**
+ * \brief Rasterize a buffer from a single mask
+ *
+ * We could get some speedup by inlining #BKE_maskrasterize_handle_sample
+ * and calculating each layer then blending buffers, but this function is only
+ * used by the sequencer - so better have the caller thread.
+ *
+ * Since #BKE_maskrasterize_handle_sample is used threaded elsewhere,
+ * we can simply use openmp here for some speedup.
+ */
+void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
+                              const unsigned int width, const unsigned int height,
+                              float *buffer)
+{
+#ifdef _MSC_VER
+	int y;  /* msvc requires signed for some reason */
+#else
+	unsigned int y;
+#endif
+
+#pragma omp parallel for private(y)
+	for (y = 0; y < height; y++) {
+		unsigned int i = y * width;
+		unsigned int x;
+		float xy[2];
+		xy[1] = (float)y / (float)height;
+		for (x = 0; x < width; x++, i++) {
+			xy[0] = (float)x / (float)width;
+
+			buffer[i] = BKE_maskrasterize_handle_sample(mr_handle, xy);
+		}
+	}
+}

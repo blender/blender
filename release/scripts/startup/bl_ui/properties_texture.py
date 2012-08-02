@@ -116,6 +116,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         slot = getattr(context, "texture_slot", None)
         node = getattr(context, "texture_node", None)
         space = context.space_data

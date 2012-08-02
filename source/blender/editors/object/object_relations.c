@@ -135,6 +135,9 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
 		em = me->edit_btmesh;
 
+		EDBM_mesh_normals_update(em);
+		BMEdit_RecalcTessellation(em);
+
 		/* derivedMesh might be needed for solving parenting,
 		 * so re-create it here */
 		makeDerivedMesh(scene, obedit, em, CD_MASK_BAREMESH, 0);
@@ -677,7 +680,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *par = ED_object_active_context(C);
 	int partype = RNA_enum_get(op->ptr, "type");
-	int xmirror = RNA_enum_get(op->ptr, "xmirror");
+	int xmirror = RNA_boolean_get(op->ptr, "xmirror");
 	int ok = 1;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)

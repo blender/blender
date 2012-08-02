@@ -503,6 +503,8 @@ bool KX_KetsjiEngine::BeginFrame()
 
 void KX_KetsjiEngine::EndFrame()
 {
+	m_rendertools->MotionBlur(m_rasterizer);
+
 	// Show profiling info
 	m_logger->StartLog(tc_overhead, m_kxsystem->GetTimeInSeconds(), true);
 	if (m_show_framerate || m_show_profile || (m_show_debug_properties && m_propertiesPresent))
@@ -782,21 +784,21 @@ else
 	// Handle the animations independently of the logic time step
 	if (GetRestrictAnimationFPS())
 	{
-		m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
+		double clocktime = m_kxsystem->GetTimeInSeconds();
+		m_logger->StartLog(tc_animations, clocktime, true);
 		SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
 
 		double anim_timestep = 1.0/KX_GetActiveScene()->GetAnimationFPS();
-		if (m_clockTime - m_previousAnimTime > anim_timestep)
+		if (clocktime - m_previousAnimTime > anim_timestep)
 		{
 			// Sanity/debug print to make sure we're actually going at the fps we want (should be close to anim_timestep)
 			// printf("Anim fps: %f\n", 1.0/(m_clockTime - m_previousAnimTime));
-			m_previousAnimTime = m_clockTime;
+			m_previousAnimTime = clocktime;
 			for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
 			{
-				(*sceneit)->UpdateAnimations(m_frameTime);
+				(*sceneit)->UpdateAnimations(clocktime);
 			}
 		}
-		m_previousClockTime = m_clockTime;
 	}
 	
 	// Start logging time spend outside main loop
@@ -1344,7 +1346,6 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 	m_canvas->SetViewPort(0, 0, m_canvas->GetWidth(), m_canvas->GetHeight());
 	
 	m_rasterizer->FlushDebugShapes();
-	m_rendertools->MotionBlur(m_rasterizer);
 	scene->Render2DFilters(m_canvas);
 #ifdef WITH_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	

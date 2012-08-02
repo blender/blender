@@ -174,7 +174,7 @@ BuildQuadrics(
 	vector<LOD_Edge>::iterator edge_it = edges.begin();
 	vector<LOD_Edge>::const_iterator edge_end = edges.end();
 
-	for (; edge_it != edge_end; ++edge_it)  {
+	for (; edge_it != edge_end; ++edge_it) {
 		
 		MT_Vector3 target = TargetVertex(*edge_it);
 
@@ -235,7 +235,7 @@ ComputeEdgeCosts(
 	vector<LOD_EdgeInd>::const_iterator edge_it = edges.begin();
 	vector<LOD_EdgeInd>::const_iterator edge_end = edges.end();
 
-	for (; edge_it != edge_end; ++edge_it)  {
+	for (; edge_it != edge_end; ++edge_it) {
 		
 		MT_Vector3 target = TargetVertex(edge_set[*edge_it]);
 

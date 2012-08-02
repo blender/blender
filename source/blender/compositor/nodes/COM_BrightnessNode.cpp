@@ -21,7 +21,6 @@
  */
 
 #include "COM_BrightnessNode.h"
-#include "DNA_scene_types.h"
 #include "COM_BrightnessOperation.h"
 #include "COM_ExecutionSystem.h"
 

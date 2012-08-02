@@ -267,19 +267,19 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 
 	for (a = 0; a < seg - 1; a++) {
 		if (a) {
-			BMO_op_initf(bm, &bmop, "extrude_edge_only edges=%s", &prevop, "geomout");
+			BMO_op_initf(bm, &bmop, op->flag, "extrude_edge_only edges=%s", &prevop, "geomout");
 			BMO_op_exec(bm, &bmop);
 			BMO_op_finish(bm, &prevop);
 
 			BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", BM_VERT, VERT_MARK);
 		}
 		else {
-			BMO_op_initf(bm, &bmop, "extrude_edge_only edges=%fe", EDGE_ORIG);
+			BMO_op_initf(bm, &bmop, op->flag, "extrude_edge_only edges=%fe", EDGE_ORIG);
 			BMO_op_exec(bm, &bmop);
 			BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", BM_VERT, VERT_MARK);
 		}
 
-		BMO_op_callf(bm, "translate vec=%v verts=%s", vec, &bmop, "geomout");
+		BMO_op_callf(bm, op->flag, "translate vec=%v verts=%s", vec, &bmop, "geomout");
 		prevop = bmop;
 	}
 
@@ -333,17 +333,17 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 
 	for (a = 0; a < seg; a++) {
 		if (a) {
-			BMO_op_initf(bm, &bmop, "extrude_edge_only edges=%s", &prevop, "geomout");
+			BMO_op_initf(bm, &bmop, op->flag, "extrude_edge_only edges=%s", &prevop, "geomout");
 			BMO_op_exec(bm, &bmop);
 			BMO_op_finish(bm, &prevop);
 		}
 		else {
-			BMO_op_initf(bm, &bmop, "extrude_edge_only edges=%fe", EDGE_ORIG);
+			BMO_op_initf(bm, &bmop, op->flag, "extrude_edge_only edges=%fe", EDGE_ORIG);
 			BMO_op_exec(bm, &bmop);
 		}
 
 		BMO_slot_buffer_flag_enable(bm, &bmop, "geomout", BM_VERT, VERT_MARK);
-		BMO_op_callf(bm, "rotate cent=%v mat=%m3 verts=%s", vec, cmat, &bmop, "geomout");
+		BMO_op_callf(bm, op->flag, "rotate cent=%v mat=%m3 verts=%s", vec, cmat, &bmop, "geomout");
 		
 		prevop = bmop;
 	}
@@ -365,7 +365,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		len2 = len_v3v3(vec, vec2);
 
 		/* use shortest segment length divided by 3 as merge threshold */
-		BMO_op_callf(bm, "remove_doubles verts=%fv dist=%f", VERT_MARK, MIN2(len, len2) / 3.0f);
+		BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, MIN2(len, len2) / 3.0f);
 	}
 
 	/* and now do imat */
@@ -426,7 +426,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	if (subdiv > 1) {
 		BMOperator bmop;
 
-		BMO_op_initf(bm, &bmop,
+		BMO_op_initf(bm, &bmop, op->flag,
 		             "subdivide_edges edges=%fe "
 		             "smooth=%f "
 		             "numcuts=%i "
@@ -563,7 +563,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	if (!cap_tris) {
-		BMO_op_callf(bm, "dissolve_faces faces=%ff", FACE_NEW);
+		BMO_op_callf(bm, op->flag, "dissolve_faces faces=%ff", FACE_NEW);
 	}
 	
 	BMO_slot_buffer_from_enabled_flag(bm, op, "vertout", BM_VERT, VERT_MARK);
@@ -656,12 +656,12 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	if (!cap_tris) {
-		BMO_op_callf(bm, "dissolve_faces faces=%ff", FACE_NEW);
+		BMO_op_callf(bm, op->flag, "dissolve_faces faces=%ff", FACE_NEW);
 	}
 	
 	BM_face_create_quad_tri(bm, v1, v2, firstv2, firstv1, NULL, FALSE);
 
-	BMO_op_callf(bm, "remove_doubles verts=%fv dist=%f", VERT_MARK, 0.000001);
+	BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, 0.000001);
 	BMO_slot_buffer_from_enabled_flag(bm, op, "vertout", BM_VERT, VERT_MARK);
 }
 

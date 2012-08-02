@@ -65,15 +65,16 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_util.h"
-#include "ED_image.h"
-#include "ED_screen.h"
-#include "ED_object.h"
 #include "ED_armature.h"
-#include "ED_screen_types.h"
-#include "ED_keyframes_draw.h"
-#include "ED_view3d.h"
 #include "ED_clip.h"
+#include "ED_image.h"
+#include "ED_keyframes_draw.h"
+#include "ED_object.h"
+#include "ED_screen.h"
+#include "ED_screen_types.h"
+#include "ED_sequencer.h"
+#include "ED_util.h"
+#include "ED_view3d.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -458,9 +459,30 @@ int ED_operator_editmball(bContext *C)
 
 int ED_operator_mask(bContext *C)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacedata.first) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				return ED_space_clip_check_show_maskedit(sc);
+			}
+			case SPACE_SEQ:
+			{
+				SpaceSeq *sseq = sa->spacedata.first;
+				Scene *scene = CTX_data_scene(C);
+				return ED_space_sequencer_check_show_maskedit(sseq, scene);
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = sa->spacedata.first;
+				Scene *scene = CTX_data_scene(C);
+				return ED_space_image_check_show_maskedit(scene, sima);
+			}
+		}
+	}
 
-	return ED_space_clip_check_show_maskedit(sc);
+	return FALSE;
 }
 
 /* *************************** action zone operator ************************** */
@@ -1949,12 +1971,10 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 		ob_to_keylist(&ads, ob, &keys, NULL);
 
 	{
-		SpaceClip *sc = CTX_wm_space_clip(C);
-		if (sc) {
-			if ((sc->mode == SC_MODE_MASKEDIT) && sc->mask) {
-				MaskLayer *masklay = BKE_mask_layer_active(sc->mask);
-				mask_to_keylist(&ads, masklay, &keys);
-			}
+		Mask *mask = CTX_data_edit_mask(C);
+		if (mask) {
+			MaskLayer *masklay = BKE_mask_layer_active(mask);
+			mask_to_keylist(&ads, masklay, &keys);
 		}
 	}
 

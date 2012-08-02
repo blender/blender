@@ -849,7 +849,7 @@ void view3d_cached_text_draw_add(const float co[3],
 
 	BLI_addtail(strings, vos);
 	copy_v3_v3(vos->vec, co);
-	vos->col.pack = *((int *)col);
+	copy_v4_v4_char((char *)vos->col.ub, (const char *)col);
 	vos->xoffs = xoffs;
 	vos->flag = flag;
 	vos->str_len = alloc_len - 1;
@@ -4317,7 +4317,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	ParticleDrawData *pdd = psys->pdd;
 	Material *ma;
 	float vel[3], imat[4][4];
-	float timestep, pixsize_scale, pa_size, r_tilt, r_length;
+	float timestep, pixsize_scale = 1.0f, pa_size, r_tilt, r_length;
 	float pa_time, pa_birthtime, pa_dietime, pa_health, intensity;
 	float cfra;
 	float ma_col[3] = {0.0f, 0.0f, 0.0f};
@@ -6221,9 +6221,9 @@ static void get_local_bounds(Object *ob, float center[3], float size[3])
 		copy_v3_v3(size, ob->size);
 	}
 	else {
-		size[0] = 0.5 * fabs(bb->vec[0][0] - bb->vec[4][0]);
-		size[1] = 0.5 * fabs(bb->vec[0][1] - bb->vec[2][1]);
-		size[2] = 0.5 * fabs(bb->vec[0][2] - bb->vec[1][2]);
+		size[0] = 0.5 * fabsf(bb->vec[0][0] - bb->vec[4][0]);
+		size[1] = 0.5 * fabsf(bb->vec[0][1] - bb->vec[2][1]);
+		size[2] = 0.5 * fabsf(bb->vec[0][2] - bb->vec[1][2]);
 
 		center[0] = (bb->vec[0][0] + bb->vec[4][0]) / 2.0;
 		center[1] = (bb->vec[0][1] + bb->vec[2][1]) / 2.0;
@@ -6472,13 +6472,11 @@ static void draw_hooks(Object *ob)
 	}
 }
 
-static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const unsigned char ob_wire_col[4])
+static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const short dflag, unsigned char ob_wire_col[4])
 {
 	const char *axis_str[3] = {"px", "py", "pz"};
 	int axis;
 	float mat[4][4];
-
-	/* color */
 
 	eul_to_mat4(mat, &data->axX);
 	glLineWidth(4.0f);
@@ -6489,7 +6487,7 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const unsigne
 
 		copy_v3_v3(v, &data->pivX);
 
-		dir[axis] = 1.f;
+		dir[axis] = 1.0f;
 		glBegin(GL_LINES);
 		mul_m4_v3(mat, dir);
 		add_v3_v3(v, dir);
@@ -6497,7 +6495,11 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data, const unsigne
 		glVertex3fv(v);
 		glEnd();
 
-		view3d_cached_text_draw_add(v, axis_str[axis], 0, V3D_CACHE_TEXT_ASCII, ob_wire_col);
+		/* when const color is set wirecolor is NULL - we could get the current color but
+		 * with selection and group instancing its not needed to draw the text */
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			view3d_cached_text_draw_add(v, axis_str[axis], 0, V3D_CACHE_TEXT_ASCII, ob_wire_col);
+		}
 	}
 	glLineWidth(1.0f);
 	setlinestyle(0);
@@ -6712,8 +6714,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* draw outline for selected objects, mesh does itself */
 	if ((v3d->flag & V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) && ob->type != OB_MESH) {
 		if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
-			if (!(ob->dtx & OB_DRAWWIRE) && (ob->flag & SELECT) && !(dflag & DRAW_PICKING)) {
-				
+			if (!(ob->dtx & OB_DRAWWIRE) && (ob->flag & SELECT) && !(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR))) {
 				drawObjectSelect(scene, v3d, ar, base, ob_wire_col);
 			}
 		}
@@ -7098,7 +7099,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			if (con->type == CONSTRAINT_TYPE_RIGIDBODYJOINT) {
 				bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint *)con->data;
 				if (data->flag & CONSTRAINT_DRAW_PIVOT)
-					draw_rigid_body_pivot(data, ob_wire_col);
+					draw_rigid_body_pivot(data, dflag, ob_wire_col);
 			}
 		}
 

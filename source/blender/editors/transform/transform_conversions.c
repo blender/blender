@@ -438,7 +438,7 @@ static short apply_targetless_ik(Object *ob)
 					/* rotation */
 					/* [#22409] is partially caused by this, as slight numeric error introduced during
 					 * the solving process leads to locked-axis values changing. However, we cannot modify
-					 * the values here, or else there are huge discreptancies between IK-solver (interactive)
+					 * the values here, or else there are huge discrepancies between IK-solver (interactive)
 					 * and applied poses.
 					 */
 					if (parchan->rotmode > 0)
@@ -2320,7 +2320,7 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 {
 	float aspx, aspy;
 
-	ED_space_image_uv_aspect(sima, &aspx, &aspy);
+	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 
 	/* uv coords are scaled by aspects. this is needed for rotations and
 	 * proportional editing to be consistent with the stretched uv coords
@@ -2428,8 +2428,8 @@ void flushTransUVs(TransInfo *t)
 	int a, width, height;
 	float aspx, aspy, invx, invy;
 
-	ED_space_image_uv_aspect(sima, &aspx, &aspy);
-	ED_space_image_size(sima, &width, &height);
+	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
+	ED_space_image_get_size(sima, &width, &height);
 	invx = 1.0f / aspx;
 	invy = 1.0f / aspy;
 
@@ -2451,7 +2451,7 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	int a, clipx = 1, clipy = 1;
 	float aspx, aspy, min[2], max[2];
 
-	ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+	ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 	min[0] = min[1] = 0.0f;
 	max[0] = aspx; max[1] = aspy;
 
@@ -4964,6 +4964,36 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 	}
 }
 
+static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
+{
+	Mask *mask;
+
+	if (t->spacetype == SPACE_CLIP) {
+		SpaceClip *sc = t->sa->spacedata.first;
+		mask = ED_space_clip_get_mask(sc);
+	}
+	else if (t->spacetype == SPACE_IMAGE) {
+		SpaceImage *sima = t->sa->spacedata.first;
+		mask = ED_space_image_get_mask(sima);
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	if (t->scene->nodetree) {
+		/* tracks can be used for stabilization nodes,
+		 * flush update for such nodes */
+		nodeUpdateID(t->scene->nodetree, &mask->id);
+		WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
+	}
+
+	/* TODO - dont key all masks... */
+	if (IS_AUTOKEY_ON(t->scene)) {
+		Scene *scene = t->scene;
+
+		ED_mask_layer_shape_auto_key_select(mask, CFRA);
+	}
+}
 
 /* inserting keys, pointcache, redraw events... */
 /* 
@@ -5009,7 +5039,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			}
 		}
 	}
-	
+
+
 	if (t->spacetype == SPACE_SEQ) {
 		/* freeSeqData in transform_conversions.c does this
 		 * keep here so the else at the end wont run... */
@@ -5030,7 +5061,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				ED_markers_post_apply_transform(&t->scene->markers, t->scene, TFM_TIME_EXTEND, t->values[0], t->frame_side);
 			}
 		}
-
+	}
+	else if (t->spacetype == SPACE_IMAGE) {
+		if (t->options & CTX_MASK) {
+			special_aftertrans_update__mask(C, t);
+		}
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		SpaceNode *snode = (SpaceNode *)t->sa->spacedata.first;
@@ -5056,22 +5091,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			}
 		}
 		else if (t->options & CTX_MASK) {
-			SpaceClip *sc = t->sa->spacedata.first;
-			Mask *mask = ED_space_clip_get_mask(sc);
-
-			if (t->scene->nodetree) {
-				/* tracks can be used for stabilization nodes,
-				 * flush update for such nodes */
-				nodeUpdateID(t->scene->nodetree, &mask->id);
-				WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
-			}
-
-			/* TODO - dont key all masks... */
-			if (IS_AUTOKEY_ON(t->scene)) {
-				Scene *scene = t->scene;
-
-				ED_mask_layer_shape_auto_key_select(mask, CFRA);
-			}
+			special_aftertrans_update__mask(C, t);
 		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
@@ -5355,6 +5375,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	}
 	else { /* Objects */
 		int i, recalcObPaths = 0;
+
+		BLI_assert(t->flag & T_OBJECT);
 
 		for (i = 0; i < t->total; i++) {
 			TransData *td = t->data + i;
@@ -6069,18 +6091,16 @@ typedef struct TransDataMasking {
 	MaskSplinePoint *point;
 } TransDataMasking;
 
-static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
-                                 TransData *td, TransData2D *td2d, TransDataMasking *tdm, int propmode)
+static void MaskPointToTransData(MaskSplinePoint *point,
+                                 TransData *td, TransData2D *td2d, TransDataMasking *tdm,
+                                 const int propmode, const float asp[2])
 {
 	BezTriple *bezt = &point->bezt;
-	float aspx, aspy;
 	short is_sel_point = MASKPOINT_ISSEL_KNOT(point);
 	short is_sel_any = MASKPOINT_ISSEL_ANY(point);
 
 	tdm->point = point;
 	copy_m3_m3(tdm->vec, bezt->vec);
-
-	ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
 	if (propmode || is_sel_point) {
 		int i;
@@ -6089,8 +6109,8 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
 			 * proportional editing to be consistent with the stretched CV coords
 			 * that are displayed. this also means that for display and numinput,
 			 * and when the the CV coords are flushed, these are converted each time */
-			td2d->loc[0] = bezt->vec[i][0] * aspx;
-			td2d->loc[1] = bezt->vec[i][1] * aspy;
+			td2d->loc[0] = bezt->vec[i][0] * asp[0];
+			td2d->loc[1] = bezt->vec[i][1] * asp[1];
 			td2d->loc[2] = 0.0f;
 			td2d->loc2d = bezt->vec[i];
 
@@ -6132,8 +6152,8 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
 
 		copy_v2_v2(tdm->orig_handle, tdm->handle);
 
-		td2d->loc[0] = tdm->handle[0] * aspx;
-		td2d->loc[1] = tdm->handle[1] * aspy;
+		td2d->loc[0] = tdm->handle[0] * asp[0];
+		td2d->loc[1] = tdm->handle[1] * asp[1];
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = tdm->handle;
 
@@ -6164,7 +6184,6 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
 
 static void createTransMaskingData(bContext *C, TransInfo *t)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 	TransData *td = NULL;
@@ -6172,6 +6191,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	TransDataMasking *tdm = NULL;
 	int count = 0, countsel = 0;
 	int propmode = t->flag & T_PROP_EDIT;
+	float asp[2];
 
 	t->total = 0;
 
@@ -6206,7 +6226,11 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	}
 
 	/* note: in prop mode we need at least 1 selected */
-	if (countsel == 0) return;
+	if (countsel == 0) {
+		return;
+	}
+
+	ED_mask_get_aspect(t->sa, t->ar, &asp[0], &asp[1]);
 
 	t->total = (propmode) ? count : countsel;
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Mask Editing)");
@@ -6232,7 +6256,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 				MaskSplinePoint *point = &spline->points[i];
 
 				if (propmode || MASKPOINT_ISSEL_ANY(point)) {
-					MaskPointToTransData(sc, point, td, td2d, tdm, propmode);
+					MaskPointToTransData(point, td, td2d, tdm, propmode, asp);
 
 					if (propmode || MASKPOINT_ISSEL_KNOT(point)) {
 						td += 3;
@@ -6252,20 +6276,19 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
 void flushTransMasking(TransInfo *t)
 {
-	SpaceClip *sc = t->sa->spacedata.first;
 	TransData2D *td;
 	TransDataMasking *tdm;
 	int a;
-	float aspx, aspy, invx, invy;
+	float asp[2], inv[2];
 
-	ED_space_clip_get_aspect(sc, &aspx, &aspy);
-	invx = 1.0f / aspx;
-	invy = 1.0f / aspy;
+	ED_mask_get_aspect(t->sa, t->ar, &asp[0], &asp[1]);
+	inv[0] = 1.0f / asp[0];
+	inv[1] = 1.0f / asp[1];
 
 	/* flush to 2d vector from internally used 3d vector */
 	for (a = 0, td = t->data2d, tdm = t->customData; a < t->total; a++, td++, tdm++) {
-		td->loc2d[0] = td->loc[0] * invx;
-		td->loc2d[1] = td->loc[1] * invy;
+		td->loc2d[0] = td->loc[0] * inv[0];
+		td->loc2d[1] = td->loc[1] * inv[1];
 
 		if (tdm->is_handle)
 			BKE_mask_point_set_handle(tdm->point, td->loc2d, t->flag & T_ALT_TRANSFORM, tdm->orig_handle, tdm->vec);
@@ -6297,11 +6320,23 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		t->flag |= T_POINTS | T_2D_EDIT;
-		createTransUVs(C, t);
-		if (t->data && (t->flag & T_PROP_EDIT)) {
-			sort_trans_data(t); // makes selected become first in array
-			set_prop_dist(t, 1);
-			sort_trans_data_dist(t);
+		if (t->options & CTX_MASK) {
+			/* copied from below */
+			createTransMaskingData(C, t);
+
+			if (t->data && (t->flag & T_PROP_EDIT)) {
+				sort_trans_data(t); // makes selected become first in array
+				set_prop_dist(t, TRUE);
+				sort_trans_data_dist(t);
+			}
+		}
+		else {
+			createTransUVs(C, t);
+			if (t->data && (t->flag & T_PROP_EDIT)) {
+				sort_trans_data(t); // makes selected become first in array
+				set_prop_dist(t, 1);
+				sort_trans_data_dist(t);
+			}
 		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
@@ -6342,6 +6377,7 @@ void createTransData(bContext *C, TransInfo *t)
 		if (t->options & CTX_MOVIECLIP)
 			createTransTrackingData(C, t);
 		else if (t->options & CTX_MASK) {
+			/* copied from above */
 			createTransMaskingData(C, t);
 
 			if (t->data && (t->flag & T_PROP_EDIT)) {

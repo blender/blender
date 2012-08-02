@@ -624,8 +624,8 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 	 * covers the entire screen).
 	 */
 	glGetFloatv(GL_SCISSOR_BOX, scissor);
-	draw_w = MIN2(img_w - off_x, ceil((scissor[2] - rast_x) / xzoom));
-	draw_h = MIN2(img_h - off_y, ceil((scissor[3] - rast_y) / yzoom));
+	draw_w = mini(img_w - off_x, ceil((scissor[2] - rast_x) / xzoom));
+	draw_h = mini(img_h - off_y, ceil((scissor[3] - rast_y) / yzoom));
 
 	if (draw_w > 0 && draw_h > 0) {
 		int old_row_length = glaGetOneInteger(GL_UNPACK_ROW_LENGTH);

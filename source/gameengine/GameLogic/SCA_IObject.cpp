@@ -251,7 +251,7 @@ SCA_IActuator* SCA_IObject::FindActuator(const STR_String& actuatorname)
 void SCA_IObject::Suspend()
 {
 	if ((!m_ignore_activity_culling) 
-		&& (!m_suspended))  {
+		&& (!m_suspended)) {
 		m_suspended = true;
 		/* flag suspend for all sensors */
 		SCA_SensorList::iterator i = m_sensors.begin();

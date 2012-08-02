@@ -1193,6 +1193,11 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bone Pose", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+	prop = RNA_def_property(srna, "bone_pose_active", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Bone Pose Active", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 	prop = RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
@@ -2991,6 +2996,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{ 8, "FRENCH", 0, "French (Français)", "fr_FR"},
 		{ 4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
 		{ 2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
+		{12, "PORTUGUESE", 0, "Portuguese (Português)", "pt"},
 		{15, "RUSSIAN", 0, "Russian (Русский)", "ru_RU"},
 		{13, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese (简体中文)", "zh_CN"},
 		{ 9, "SPANISH", 0, "Spanish (Español)", "es"},
@@ -3014,7 +3020,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		/* using the utf8 flipped form of Persian (فارسی) */
 		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"},
 		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
-		{12, "BRAZILIAN_PORTUGUESE", 0, "Portuguese (Português)", "pt"},
 /*		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"}, */ /* XXX No po's yet. */
 		{17, "SERBIAN", 0, "Serbian (Српски)", "sr_RS"},
 		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr_RS@latin"},

@@ -513,6 +513,15 @@ typedef enum eSpaceSeq_Proxy_RenderSize {
 	SEQ_PROXY_RENDER_SIZE_FULL      = 100
 } eSpaceSeq_Proxy_RenderSize;
 
+typedef struct MaskSpaceInfo
+{
+	/* **** mask editing **** */
+	struct Mask *mask;
+	/* draw options */
+	char draw_flag;
+	char draw_type;
+	char pad3[6];
+} MaskSpaceInfo;
 
 /* File Selector ========================================== */
 
@@ -669,7 +678,7 @@ typedef struct SpaceImage {
 
 	struct Image *image;
 	struct ImageUser iuser;
-	struct CurveMapping *cumap;		
+	struct CurveMapping *cumap;
 	
 	struct Scopes scopes;           /* histogram waveform and vectorscope */
 	struct Histogram sample_line_hist;  /* sample line histogram */
@@ -681,14 +690,17 @@ typedef struct SpaceImage {
 	float zoom;                     /* user defined zoom level */
 	float centx, centy;             /* storage for offset while render drawing */
 
-	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
+	char  mode;                     /* view/paint/mask */
+	char  pin;
 	short pad;
+	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
 	short lock;
-	short pin;
 	char dt_uv; /* UV draw type */
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
 	char around;
+
+	MaskSpaceInfo mask_info;
 } SpaceImage;
 
 
@@ -706,6 +718,13 @@ typedef enum eSpaceImage_UVDT_Stretch {
 	SI_UVDT_STRETCH_AREA = 1,
 } eSpaceImage_UVDT_Stretch;
 
+/* SpaceImage->mode */
+typedef enum eSpaceImage_Mode {
+	SI_MODE_VIEW  = 0,
+	SI_MODE_PAINT = 1,
+	SI_MODE_MASK  = 2   /* note: mesh edit mode overrides mask */
+} eSpaceImage_Mode;
+
 /* SpaceImage->sticky
  * Note DISABLE should be 0, however would also need to re-arrange icon order,
  * also, sticky loc is the default mode so this means we don't need to 'do_versons' */
@@ -717,15 +736,15 @@ typedef enum eSpaceImage_Sticky {
 
 /* SpaceImage->flag */
 typedef enum eSpaceImage_Flag {
-	SI_BE_SQUARE          = (1 << 0),
-	SI_EDITTILE           = (1 << 1),
+/*	SI_BE_SQUARE          = (1 << 0), */  /* deprecated */
+	SI_EDITTILE           = (1 << 1),     /* XXX - not used but should be? */
 	SI_CLIP_UV            = (1 << 2),
-	SI_DRAWTOOL           = (1 << 3),
+/*	SI_DRAWTOOL           = (1 << 3), */  /* deprecated */
 	SI_NO_DRAWFACES       = (1 << 4),
 	SI_DRAWSHADOW         = (1 << 5),
-/*  SI_SELACTFACE         = (1 << 6), */ /* deprecated */
-	SI_DEPRECATED2        = (1 << 7),
-	SI_DEPRECATED3        = (1 << 8),   /* stick UV selection to mesh vertex (UVs wont always be touching) */
+/*	SI_SELACTFACE         = (1 << 6), */  /* deprecated */
+/*	SI_DEPRECATED2        = (1 << 7), */  /* deprecated */
+/*	SI_DEPRECATED3        = (1 << 8), */  /* deprecated */
 	SI_COORDFLOATS        = (1 << 9),
 	SI_PIXELSNAP          = (1 << 10),
 	SI_LIVE_UNWRAP        = (1 << 11),
@@ -737,8 +756,8 @@ typedef enum eSpaceImage_Flag {
 	SI_PREVSPACE          = (1 << 15),
 	SI_FULLWINDOW         = (1 << 16),
 	
-	SI_DEPRECATED4        = (1 << 17),
-	SI_DEPRECATED5        = (1 << 18),
+/*	SI_DEPRECATED4        = (1 << 17), */  /* deprecated */
+/*	SI_DEPRECATED5        = (1 << 18), */  /* deprecated */
 	
 	/* this means that the image is drawn until it reaches the view edge,
 	 * in the image view, its unrelated to the 'tile' mode for texface
@@ -746,7 +765,7 @@ typedef enum eSpaceImage_Flag {
 	SI_DRAW_TILE          = (1 << 19),
 	SI_SMOOTH_UV          = (1 << 20),
 	SI_DRAW_STRETCH       = (1 << 21),
-/*  SI_DISPGP             = (1 << 22), */ /* DEPRECATED */
+/*  SI_DISPGP             = (1 << 22), */  /* deprecated */
 	SI_DRAW_OTHER         = (1 << 23),
 
 	SI_COLOR_CORRECTION   = (1 << 24),
@@ -884,6 +903,7 @@ typedef enum eSpaceNode_Flag {
 	SNODE_SHOW_B         = (1 << 9),
 	SNODE_AUTO_RENDER    = (1 << 5),
 	SNODE_SHOW_HIGHLIGHT = (1 << 6),
+	SNODE_USE_HIDDEN_PREVIEW = (1 << 10),
 } eSpaceNode_Flag;
 
 /* snode->texfrom */
@@ -1012,12 +1032,7 @@ typedef struct SpaceClip {
 
 	int around, pad4;             /* pivot point for transforms */
 
-	/* **** mask editing **** */
-	struct Mask *mask;
-	/* draw options */
-	char mask_draw_flag;
-	char mask_draw_type;
-	char pad3[6];
+	MaskSpaceInfo mask_info;
 } SpaceClip;
 
 /* SpaceClip->flag */
@@ -1100,5 +1115,7 @@ typedef enum eSpace_Type {
 	
 	SPACEICONMAX = SPACE_CLIP
 } eSpace_Type;
+
+#define IMG_SIZE_FALLBACK 256
 
 #endif

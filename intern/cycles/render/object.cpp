@@ -111,8 +111,9 @@ void Object::apply_transform()
 		mesh->compute_bounds();
 		compute_bounds(false);
 	}
-	
-	tfm = transform_identity();
+
+	/* tfm is not reset to identity, all code that uses it needs to check the
+	   transform_applied boolean */
 }
 
 void Object::tag_update(Scene *scene)
@@ -269,7 +270,7 @@ void ObjectManager::device_update_particles(Device *device, DeviceScene *dscene,
 			/* pack in texture */
 			int offset = i*PARTICLE_SIZE;
 			
-			particles[offset] = make_float4(pa.age, pa.lifetime, 0.0f, 0.0f);
+			particles[offset] = make_float4(pa.index, pa.age, pa.lifetime, 0.0f);
 			
 			i++;
 			

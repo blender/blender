@@ -171,7 +171,7 @@ static short set_pchan_glColor(short colCode, int boneflag, short constflag)
 			}
 			else {
 				if ((boneflag & BONE_DRAW_ACTIVE) && (boneflag & BONE_SELECTED)) {
-					UI_ThemeColorShade(TH_BONE_POSE, 40);
+					UI_ThemeColor(TH_BONE_POSE_ACTIVE);
 				}
 				else if (boneflag & BONE_DRAW_ACTIVE) {
 					UI_ThemeColorBlend(TH_WIRE, TH_BONE_POSE, 0.15f); /* unselected active */

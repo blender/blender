@@ -1438,9 +1438,9 @@ static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float
 						if (strip->flag & ACTSTRIP_CYCLIC_USEZ) pose->cyclic_offset[2] = time * min[2];
 					}
 					else {
-						if (fabs(min[0]) >= fabs(min[1]) && fabs(min[0]) >= fabs(min[2]))
+						if (fabsf(min[0]) >= fabsf(min[1]) && fabsf(min[0]) >= fabsf(min[2]))
 							pose->cyclic_offset[0] = time * min[0];
-						else if (fabs(min[1]) >= fabs(min[0]) && fabs(min[1]) >= fabs(min[2]))
+						else if (fabsf(min[1]) >= fabsf(min[0]) && fabsf(min[1]) >= fabsf(min[2]))
 							pose->cyclic_offset[1] = time * min[1];
 						else
 							pose->cyclic_offset[2] = time * min[2];

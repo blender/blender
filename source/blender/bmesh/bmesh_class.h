@@ -198,8 +198,6 @@ typedef struct BMesh {
 	ListBase errorstack;
 
 	void *py_handle;
-
-	int opflag; /* current operator flag */
 } BMesh;
 
 /* BMHeader->htype (char) */

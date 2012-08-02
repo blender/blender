@@ -3725,7 +3725,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 			offsy = cumap->curr.ymin;
 
 			if (event->ctrl) {
-				fx = ((float)my - but->x1) / zoomx + offsx;
+				fx = ((float)mx - but->x1) / zoomx + offsx;
 				fy = ((float)my - but->y1) / zoomy + offsy;
 				
 				curvemap_insert(cuma, fx, fy);
@@ -3868,11 +3868,12 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 		hist->height = (but->y2 - but->y1) + (data->dragstarty - my);
 	}
 	else {
-		/* scale histogram values */
+		/* scale histogram values (dy / 10 for better control) */
 		const float yfac = minf(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
-		hist->ymax += dy * yfac;
+		hist->ymax += (dy * 0.1f) * yfac;
 	
-		CLAMP(hist->ymax, 1.f, 100.f);
+		/* 0.1 allows us to see HDR colors up to 10 */
+		CLAMP(hist->ymax, 0.1f, 100.f);
 	}
 	
 	data->draglastx = mx;
@@ -5844,6 +5845,8 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 				value--;
 			else
 				value++;
+
+			CLAMP(value, 0, pa->list_last_len - 1);
 
 			if (value < pa->list_scroll)
 				pa->list_scroll = value;

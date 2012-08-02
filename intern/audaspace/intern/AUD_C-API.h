@@ -442,10 +442,10 @@ extern void AUD_closeReadDevice(AUD_Device* device);
  * The sound is therefore bandpassed, rectified and resampled.
  */
 extern float* AUD_readSoundBuffer(const char* filename, float low, float high,
-								  float attack, float release, float threshold,
-								  int accumulate, int additive, int square,
-								  float sthreshold, double samplerate,
-								  int* length);
+                                  float attack, float release, float threshold,
+                                  int accumulate, int additive, int square,
+                                  float sthreshold, double samplerate,
+                                  int* length);
 
 /**
  * Pauses a playing sound after a specific amount of time.
@@ -493,7 +493,7 @@ extern void AUD_setSequencerFPS(AUD_Sound* sequencer, float fps);
  * \return The entry added.
  */
 extern AUD_SEntry* AUD_addSequence(AUD_Sound* sequencer, AUD_Sound* sound,
-								   float begin, float end, float skip);
+                                   float begin, float end, float skip);
 
 /**
  * Removes an entry from the scene.
@@ -567,8 +567,8 @@ extern void AUD_setSequencerAnimData(AUD_Sound* sequencer, AUD_AnimateableProper
  * \param cone_volume_outer The volume outside the outer cone.
  */
 extern void AUD_updateSequenceData(AUD_SEntry* entry, float volume_max, float volume_min,
-								   float distance_max, float distance_reference, float attenuation,
-								   float cone_angle_outer, float cone_angle_inner, float cone_volume_outer);
+                                   float distance_max, float distance_reference, float attenuation,
+                                   float cone_angle_outer, float cone_angle_inner, float cone_volume_outer);
 
 /**
  * Updates all non-animated parameters of the entry.
@@ -578,7 +578,7 @@ extern void AUD_updateSequenceData(AUD_SEntry* entry, float volume_max, float vo
  * \param model The distance model for distance calculation.
  */
 extern void AUD_updateSequencerData(AUD_Sound* sequencer, float speed_of_sound,
-									float factor, AUD_DistanceModel model);
+                                    float factor, AUD_DistanceModel model);
 
 /**
  * Sets the audio output specification of the sound scene to the specs of the

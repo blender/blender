@@ -57,7 +57,7 @@ public:
 	void Remove(int i);
 	void Resize(int num);
 	void SetValue(int i,CValue* val);
-	CValue* GetValue(int i){	assertd(i < m_pValueArray.size());	return m_pValueArray[i];}
+	CValue* GetValue(int i) { assertd(i < m_pValueArray.size()); return m_pValueArray[i]; }
 	int GetCount() { return m_pValueArray.size(); }
 	virtual const STR_String & GetText();
 

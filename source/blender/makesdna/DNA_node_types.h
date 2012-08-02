@@ -211,6 +211,11 @@ typedef struct bNode {
 	/* automatic flag for nodes included in transforms */
 #define NODE_TRANSFORM		(1<<13)
 	/* node is active texture */
+
+	/* note: take care with this flag since its possible it gets
+	 * `stuck` inside/outside the active group - which makes buttons
+	 * window texture not update, we try to avoid it by clearing the
+	 * flag when toggling group editing - Campbell */
 #define NODE_ACTIVE_TEXTURE	(1<<14)
 	/* use a custom color for the node */
 #define NODE_CUSTOM_COLOR	(1<<15)
@@ -370,8 +375,13 @@ enum {
 };
 
 enum {
-	CMP_NODEFLAG_MASK_AA         = (1 << 0),
-	CMP_NODEFLAG_MASK_NO_FEATHER = (1 << 1)
+	CMP_NODEFLAG_MASK_AA          = (1 << 0),
+	CMP_NODEFLAG_MASK_NO_FEATHER  = (1 << 1),
+	CMP_NODEFLAG_MASK_MOTION_BLUR = (1 << 2),
+
+	/* we may want multiple aspect options, exposed as an rna enum */
+	CMP_NODEFLAG_MASK_FIXED       = (1 << 8),
+	CMP_NODEFLAG_MASK_FIXED_SCENE = (1 << 9)
 };
 
 enum {
@@ -579,6 +589,10 @@ typedef struct NodeDilateErode {
 	char pad[7];
 } NodeDilateErode;
 
+typedef struct NodeMask {
+	int size_x, size_y;
+} NodeMask;
+
 typedef struct NodeTexBase {
 	TexMapping tex_mapping;
 	ColorMapping color_mapping;
@@ -747,5 +761,7 @@ typedef struct NodeTrackPosData {
 #define CMP_NODE_BLUR_ASPECT_NONE		0
 #define CMP_NODE_BLUR_ASPECT_Y			1
 #define CMP_NODE_BLUR_ASPECT_X			2
+
+#define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
 
 #endif

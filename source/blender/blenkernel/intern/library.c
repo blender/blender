@@ -363,6 +363,9 @@ int id_copy(ID *id, ID **newid, int test)
 			return 0; /* can't be copied from here */
 		case ID_GD:
 			return 0; /* not implemented */
+		case ID_MSK:
+			if (!test) *newid = (ID *)BKE_mask_copy((Mask *)id);
+			return 1;
 		case ID_LS:
 			if(!test) *newid= (ID*)FRS_copy_linestyle((FreestyleLineStyle*)id);
 			return 1;

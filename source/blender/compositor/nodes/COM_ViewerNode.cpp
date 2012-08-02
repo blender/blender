@@ -35,23 +35,32 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 {
 	InputSocket *imageSocket = this->getInputSocket(0);
 	InputSocket *alphaSocket = this->getInputSocket(1);
+	InputSocket *depthSocket = this->getInputSocket(2);
 	Image *image = (Image *)this->getbNode()->id;
 	ImageUser *imageUser = (ImageUser *) this->getbNode()->storage;
 	bNode *editorNode = this->getbNode();
-	if (imageSocket->isConnected()) {
-		ViewerOperation *viewerOperation = new ViewerOperation();
-		viewerOperation->setColorManagement(context->getRenderData()->color_mgt_flag & R_COLOR_MANAGEMENT);
-		viewerOperation->setColorPredivide(context->getRenderData()->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
-		viewerOperation->setbNodeTree(context->getbNodeTree());
-		viewerOperation->setImage(image);
-		viewerOperation->setImageUser(imageUser);
-		viewerOperation->setActive((editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
-		viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
-		viewerOperation->setCenterX(editorNode->custom3);
-		viewerOperation->setCenterY(editorNode->custom4);
-		imageSocket->relinkConnections(viewerOperation->getInputSocket(0), 0, graph);
-		alphaSocket->relinkConnections(viewerOperation->getInputSocket(1));
-		graph->addOperation(viewerOperation);
-		addPreviewOperation(graph, viewerOperation->getInputSocket(0));
+	ViewerOperation *viewerOperation = new ViewerOperation();
+	viewerOperation->setColorManagement(context->getRenderData()->color_mgt_flag & R_COLOR_MANAGEMENT);
+	viewerOperation->setColorPredivide(context->getRenderData()->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
+	viewerOperation->setbNodeTree(context->getbNodeTree());
+	viewerOperation->setImage(image);
+	viewerOperation->setImageUser(imageUser);
+	viewerOperation->setActive((editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
+	viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
+	viewerOperation->setCenterX(editorNode->custom3);
+	viewerOperation->setCenterY(editorNode->custom4);
+
+	viewerOperation->setResolutionInputSocketIndex(0);
+	if (!imageSocket->isConnected())
+	{
+		if (alphaSocket->isConnected()) {
+			viewerOperation->setResolutionInputSocketIndex(1);
+		}
 	}
+
+	imageSocket->relinkConnections(viewerOperation->getInputSocket(0), 0, graph);
+	alphaSocket->relinkConnections(viewerOperation->getInputSocket(1));
+	depthSocket->relinkConnections(viewerOperation->getInputSocket(2));
+	graph->addOperation(viewerOperation);
+	addPreviewOperation(graph, viewerOperation->getInputSocket(0));
 }

@@ -63,6 +63,9 @@
 #include <stdio.h>          /* needed for FILE* */
 #include "MEM_sys_types.h"  /* needed for uintptr_t */
 
+/* some GNU attributes are only available from GCC 4.3 */
+#define MEM_GNU_ATTRIBUTES (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 403))
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,7 +74,7 @@ extern "C" {
 	 * by vmemh. If the pointer was not previously allocated by this
 	 * module, the result is undefined.*/
 	size_t MEM_allocN_len(const void *vmemh)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 #endif
 	;
@@ -90,7 +93,7 @@ extern "C" {
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
 	void *MEM_dupallocN(void *vmemh)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 #endif
 	;
@@ -101,7 +104,7 @@ extern "C" {
 	 * as a system realloc but just makes a new allocation and copies
 	 * over from existing memory. */
 	void *MEM_reallocN(void *vmemh, size_t len)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 	__attribute__((alloc_size(2)))
 #endif
@@ -112,7 +115,7 @@ extern "C" {
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */
 	void *MEM_callocN(size_t len, const char *str)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 	__attribute__((nonnull(2)))
 	__attribute__((alloc_size(1)))
@@ -124,7 +127,7 @@ extern "C" {
 	 * name must be a static, because only a pointer to it is stored !
 	 * */
 	void *MEM_mallocN(size_t len, const char *str)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 	__attribute__((nonnull(2)))
 	__attribute__((alloc_size(1)))
@@ -136,7 +139,7 @@ extern "C" {
 	 * Can be free'd with MEM_freeN as usual.
 	 * */
 	void *MEM_mapallocN(size_t len, const char *str)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 	__attribute__((nonnull(2)))
 	__attribute__((alloc_size(1)))
@@ -188,7 +191,7 @@ extern "C" {
 
 	/** Get the peak memory usage in bytes, including mmap allocations. */
 	uintptr_t MEM_get_peak_memory(void)
-#ifdef __GNUC__
+#if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 #endif
 	;

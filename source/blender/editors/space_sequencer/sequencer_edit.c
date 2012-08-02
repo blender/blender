@@ -466,6 +466,33 @@ void recurs_sel_seq(Sequence *seqm)
 	}
 }
 
+int ED_space_sequencer_maskedit_mask_poll(bContext *C)
+{
+	/* in this case both funcs are the same, for clip editor not */
+	return ED_space_sequencer_maskedit_poll(C);
+}
+
+int ED_space_sequencer_check_show_maskedit(SpaceSeq *sseq, Scene *scene)
+{
+	if (sseq && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		return (BKE_sequencer_mask_get(scene) != NULL);
+	}
+
+	return FALSE;
+}
+
+int ED_space_sequencer_maskedit_poll(bContext *C)
+{
+	SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+	if (sseq) {
+		Scene *scene = CTX_data_scene(C);
+		return ED_space_sequencer_check_show_maskedit(sseq, scene);
+	}
+
+	return FALSE;
+}
+
 int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3, const char **error_str)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
@@ -2084,7 +2111,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 		zoomY = ((float)height) / ((float)imgheight);
 		sseq->zoom = (zoomX < zoomY) ? zoomX : zoomY;
 
-		sseq->zoom = 1.0f / power_of_2(1 / MIN2(zoomX, zoomY) );
+		sseq->zoom = 1.0f / power_of_2(1 / minf(zoomX, zoomY));
 	}
 	else {
 		sseq->zoom = 1.0f;
@@ -2113,13 +2140,13 @@ void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 
 static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
-	RenderData *r = &CTX_data_scene(C)->r;
+	RenderData *rd = &CTX_data_scene(C)->r;
 	View2D *v2d = UI_view2d_fromcontext(C);
 
 	float ratio = RNA_float_get(op->ptr, "ratio");
 
-	float winx = (int)(r->size * r->xsch) / 100;
-	float winy = (int)(r->size * r->ysch) / 100;
+	float winx = (int)(rd->size * rd->xsch) / 100;
+	float winy = (int)(rd->size * rd->ysch) / 100;
 
 	float facx = (v2d->mask.xmax - v2d->mask.xmin) / winx;
 	float facy = (v2d->mask.ymax - v2d->mask.ymin) / winy;

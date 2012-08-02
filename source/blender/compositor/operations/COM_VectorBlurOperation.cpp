@@ -66,7 +66,7 @@ void VectorBlurOperation::deinitExecution()
 	this->m_inputSpeedProgram = NULL;
 	this->m_inputZProgram = NULL;
 	if (this->m_cachedInstance) {
-		delete this->m_cachedInstance;
+		delete [] this->m_cachedInstance;
 		this->m_cachedInstance = NULL;
 	}
 }
@@ -115,6 +115,6 @@ void VectorBlurOperation::generateVectorBlur(float *data, MemoryBuffer *inputIma
 	blurdata.curved = this->m_settings->curved;
 	blurdata.fac = this->m_settings->fac;
 	RE_zbuf_accumulate_vecblur(&blurdata, this->getWidth(), this->getHeight(), data, inputImage->getBuffer(), inputSpeed->getBuffer(), zbuf);
-	delete zbuf;
+	delete [] zbuf;
 	return;
 }

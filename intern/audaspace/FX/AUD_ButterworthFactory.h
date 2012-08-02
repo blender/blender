@@ -56,8 +56,8 @@ public:
 	AUD_ButterworthFactory(AUD_Reference<AUD_IFactory> factory, float frequency);
 
 	virtual void recalculateCoefficients(AUD_SampleRate rate,
-										 std::vector<float>& b,
-										 std::vector<float>& a);
+	                                     std::vector<float>& b,
+	                                     std::vector<float>& a);
 };
 
 #endif //__AUD_BUTTERWORTHFACTORY_H__

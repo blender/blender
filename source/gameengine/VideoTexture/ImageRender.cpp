@@ -208,11 +208,11 @@ void ImageRender::Render()
 		            frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
 
 		m_camera->SetProjectionMatrix(projmat);
-	} else if (m_camera->hasValidProjectionMatrix())
-	{
+	}
+	else if (m_camera->hasValidProjectionMatrix()) {
 		m_rasterizer->SetProjectionMatrix(m_camera->GetProjectionMatrix());
-	} else
-	{
+	}
+	else {
 		float lens = m_camera->GetLens();
 		float sensor_x = m_camera->GetSensorWidth();
 		float sensor_y = m_camera->GetSensorHeight();
@@ -241,8 +241,8 @@ void ImageRender::Render()
 
 			projmat = m_rasterizer->GetOrthoMatrix(
 			            frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
-		} else
-		{
+		}
+		else {
 			RAS_FramingManager::ComputeDefaultFrustum(
 			            nearfrust,
 			            farfrust,
@@ -604,13 +604,12 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 				mirrorVerts.push_back(v1);
 				mirrorVerts.push_back(v2);
 				mirrorVerts.push_back(v3);
-				if (polygon->VertexCount() == 4)
-				{
+				if (polygon->VertexCount() == 4) {
 					v4 = polygon->GetVertex(3);
 					mirrorVerts.push_back(v4);
 					area = normal_quad_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), (float*)v4->getXYZ());
-				} else
-				{
+				}
+				else {
 					area = normal_tri_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ());
 				}
 				area = fabs(area);
@@ -637,8 +636,8 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 	// otherwise the Y axis is the up direction.
 	// If the mirror is not perfectly vertical(horizontal), the Z(Y) axis projection on the mirror
 	// plan by the normal will be the up direction.
-	if (fabs(mirrorNormal[2]) > fabs(mirrorNormal[1]) &&
-	        fabs(mirrorNormal[2]) > fabs(mirrorNormal[0]))
+	if (fabsf(mirrorNormal[2]) > fabsf(mirrorNormal[1]) &&
+	    fabsf(mirrorNormal[2]) > fabsf(mirrorNormal[0]))
 	{
 		// the mirror is more horizontal than vertical
 		copy_v3_v3(axis, yaxis);
@@ -649,7 +648,7 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 		copy_v3_v3(axis, zaxis);
 	}
 	dist = dot_v3v3(mirrorNormal, axis);
-	if (fabs(dist) < FLT_EPSILON)
+	if (fabsf(dist) < FLT_EPSILON)
 	{
 		// the mirror is already fully aligned with up axis
 		copy_v3_v3(mirrorUp, axis);

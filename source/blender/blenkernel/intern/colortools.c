@@ -66,10 +66,10 @@ CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, floa
 	cumap->flag = CUMA_DO_CLIP;
 	if (tot == 4) cumap->cur = 3;   /* rhms, hack for 'col' curve? */
 	
-	clipminx = MIN2(minx, maxx);
-	clipminy = MIN2(miny, maxy);
-	clipmaxx = MAX2(minx, maxx);
-	clipmaxy = MAX2(miny, maxy);
+	clipminx = minf(minx, maxx);
+	clipminy = minf(miny, maxy);
+	clipmaxx = maxf(minx, maxx);
+	clipmaxy = maxf(miny, maxy);
 	
 	BLI_rctf_init(&cumap->curr, clipminx, clipmaxx, clipminy, clipmaxy);
 	cumap->clipr = cumap->curr;
@@ -463,8 +463,8 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	bezt = MEM_callocN(cuma->totpoint * sizeof(BezTriple), "beztarr");
 	
 	for (a = 0; a < cuma->totpoint; a++) {
-		cuma->mintable = MIN2(cuma->mintable, cmp[a].x);
-		cuma->maxtable = MAX2(cuma->maxtable, cmp[a].x);
+		cuma->mintable = minf(cuma->mintable, cmp[a].x);
+		cuma->maxtable = maxf(cuma->maxtable, cmp[a].x);
 		bezt[a].vec[1][0] = cmp[a].x;
 		bezt[a].vec[1][1] = cmp[a].y;
 		if (cmp[a].flag & CUMA_VECTOR)
@@ -655,13 +655,13 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 		for (a = 0; a < cuma->totpoint; a++) {
 			if (cmp[a].flag & CUMA_SELECT) {
 				if (cmp[a].x < clipr->xmin)
-					dx = MIN2(dx, cmp[a].x - clipr->xmin);
+					dx = minf(dx, cmp[a].x - clipr->xmin);
 				else if (cmp[a].x > clipr->xmax)
-					dx = MAX2(dx, cmp[a].x - clipr->xmax);
+					dx = maxf(dx, cmp[a].x - clipr->xmax);
 				if (cmp[a].y < clipr->ymin)
-					dy = MIN2(dy, cmp[a].y - clipr->ymin);
+					dy = minf(dy, cmp[a].y - clipr->ymin);
 				else if (cmp[a].y > clipr->ymax)
-					dy = MAX2(dy, cmp[a].y - clipr->ymax);
+					dy = maxf(dy, cmp[a].y - clipr->ymax);
 			}
 		}
 		for (a = 0; a < cuma->totpoint; a++) {
@@ -961,7 +961,7 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const short 
 	hist->channels = 3;
 	hist->x_resolution = 256;
 	hist->xmax = 1.0f;
-	hist->ymax = 1.0f;
+	/* hist->ymax = 1.0f; */ /* now do this on the operator _only_ */
 
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return;
 

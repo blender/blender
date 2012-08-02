@@ -834,7 +834,7 @@ void BKE_init_ocean(struct Ocean *o, int M, int N, float Lx, float Lz, float V, 
 		o->_fft_in_nz = (fftw_complex *) MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex), "ocean_fft_in_nz");
 
 		o->_N_x = (double *) MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_N_x");
-		/*o->_N_y = (float*) fftwf_malloc(o->_M * o->_N * sizeof(float)); (MEM01)*/
+		/* o->_N_y = (float *) fftwf_malloc(o->_M * o->_N * sizeof(float)); (MEM01) */
 		o->_N_z = (double *) MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_N_z");
 
 		o->_N_x_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_nx, o->_N_x, FFTW_ESTIMATE);

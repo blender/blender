@@ -64,7 +64,7 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 		break;
 
 		case CMP_SCALE_RENDERPERCENT: {
-			const RenderData *data = context->getRenderData();
+			const RenderData *rd = context->getRenderData();
 			ScaleFixedSizeOperation *operation = new ScaleFixedSizeOperation();
 
 			/* framing options */
@@ -72,8 +72,8 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 			operation->setIsCrop((bnode->custom2 & CMP_SCALE_RENDERSIZE_FRAME_CROP) != 0);
 			operation->setOffset(bnode->custom3, bnode->custom4);
 
-			operation->setNewWidth(data->xsch * data->size / 100.0f);
-			operation->setNewHeight(data->ysch * data->size / 100.0f);
+			operation->setNewWidth(rd->xsch * rd->size / 100.0f);
+			operation->setNewHeight(rd->ysch * rd->size / 100.0f);
 			inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 			outputSocket->relinkConnections(operation->getOutputSocket(0));
 			operation->getInputSocket(0)->getConnection()->setIgnoreResizeCheck(true);

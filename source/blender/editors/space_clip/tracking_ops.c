@@ -91,7 +91,7 @@ static void add_marker(const bContext *C, float x, float y)
 	int width, height;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_size(sc, &width, &height);
 
 	track = BKE_tracking_track_add(tracking, tracksbase, x, y, framenr, width, height);
 
@@ -107,7 +107,7 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 	float pos[2];
 	int width, height;
 
-	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_size(sc, &width, &height);
 
 	if (!width || !height)
 		return OPERATOR_CANCELLED;
@@ -127,9 +127,12 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 
 static int add_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	float co[2];
 
-	ED_clip_mouse_pos(C, event, co);
+	ED_clip_mouse_pos(sc, ar, event->mval, co);
 
 	RNA_float_set_array(op->ptr, "location", co);
 
@@ -370,8 +373,8 @@ static int mouse_on_slide_zone(SpaceClip *sc, MovieTrackingMarker *marker,
 	dx = size / width / sc->zoom;
 	dy = size / height / sc->zoom;
 
-	dx = MIN2(dx, (max[0] - min[0]) / 6.0f);
-	dy = MIN2(dy, (max[1] - min[1]) / 6.0f);
+	dx = minf(dx, (max[0] - min[0]) / 6.0f);
+	dy = minf(dy, (max[1] - min[1]) / 6.0f);
 
 	return IN_RANGE_INCL(co[0], slide_zone[0] - dx, slide_zone[0] + dx) &&
 	       IN_RANGE_INCL(co[1], slide_zone[1] - dy, slide_zone[1] + dy);
@@ -422,14 +425,14 @@ static int get_mouse_pattern_corner(SpaceClip *sc, MovieTrackingMarker *marker, 
 
 		cur_len = len_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
 
-		len = MIN2(cur_len, len);
+		len = minf(cur_len, len);
 	}
 
 	dx = 12.0f / width / sc->zoom;
 	dy = 12.0f / height / sc->zoom;
 
-	dx = MIN2(dx, len * 2.0f / 3.0f);
-	dy = MIN2(dy, len * width / height * 2.0f / 3.0f);
+	dx = minf(dx, len * 2.0f / 3.0f);
+	dy = minf(dy, len * width / height * 2.0f / 3.0f);
 
 	for (i = 0; i < 4; i++) {
 		float crn[2];
@@ -460,8 +463,8 @@ static int mouse_on_offset(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 	dx = 12.0f / width / sc->zoom;
 	dy = 12.0f / height / sc->zoom;
 
-	dx = MIN2(dx, (pat_max[0] - pat_min[0]) / 2.0f);
-	dy = MIN2(dy, (pat_max[1] - pat_min[1]) / 2.0f);
+	dx = minf(dx, (pat_max[0] - pat_min[0]) / 2.0f);
+	dy = minf(dy, (pat_max[1] - pat_min[1]) / 2.0f);
 
 	return co[0] >= pos[0] - dx && co[0] <= pos[0] + dx && co[1] >= pos[1] - dy && co[1] <= pos[1] + dy;
 }
@@ -525,6 +528,8 @@ static void show_cursor(bContext *C)
 MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event, int *area_r, int *action_r, int *corner_r)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTrackingTrack *track;
 	int width, height;
@@ -533,12 +538,12 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event, int
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	int action = -1, area = 0, corner = -1;
 
-	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_size(sc, &width, &height);
 
 	if (width == 0 || height == 0)
 		return NULL;
 
-	ED_clip_mouse_pos(C, event, co);
+	ED_clip_mouse_pos(sc, ar, event->mval, co);
 
 	track = tracksbase->first;
 	while (track) {
@@ -622,6 +627,8 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event, int
 static void *slide_marker_customdata(bContext *C, wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	MovieTrackingTrack *track;
 	int width, height;
 	float co[2];
@@ -629,12 +636,12 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	int area, action, corner;
 
-	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_size(sc, &width, &height);
 
 	if (width == 0 || height == 0)
 		return NULL;
 
-	ED_clip_mouse_pos(C, event, co);
+	ED_clip_mouse_pos(sc, ar, event->mval, co);
 
 	track = tracking_marker_check_slide(C, event, &area, &action, &corner);
 	if (track) {
@@ -700,6 +707,8 @@ static void free_slide_data(SlideMarkerData *data)
 static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	SlideMarkerData *data = (SlideMarkerData *)op->customdata;
 	float dx, dy, mdelta[2];
 
@@ -751,7 +760,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 					float start[2], end[2];
 					float scale;
 
-					ED_clip_point_stable_pos(C, data->mval[0], data->mval[1], &start[0], &start[1]);
+					ED_clip_point_stable_pos(sc, ar, data->mval[0], data->mval[1], &start[0], &start[1]);
 
 					sub_v2_v2(start, data->old_pos);
 
@@ -767,7 +776,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 							mval[1] = event->mval[1];
 						}
 
-						ED_clip_point_stable_pos(C, mval[0], mval[1], &end[0], &end[1]);
+						ED_clip_point_stable_pos(sc, ar, mval[0], mval[1], &end[0], &end[1]);
 
 						sub_v2_v2(end, data->old_pos);
 
@@ -825,7 +834,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 					sub_v2_v2v2(start, data->spos, data->old_pos);
 
-					ED_clip_point_stable_pos(C, mval[0], mval[1], &end[0], &end[1]);
+					ED_clip_point_stable_pos(sc, ar, mval[0], mval[1], &end[0], &end[1]);
 					sub_v2_v2(end, data->old_pos);
 
 					if (len_v2(start) > 0.0f) {
@@ -2840,6 +2849,51 @@ void CLIP_OT_lock_tracks(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Lock action to execute");
+}
+
+/********************** set keyframe operator *********************/
+
+static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingSettings *settings = &tracking->settings;
+	int keyframe = RNA_enum_get(op->ptr, "keyframe");
+	int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr);
+
+	if (keyframe == 0)
+		settings->keyframe1 = framenr;
+	else
+		settings->keyframe2 = framenr;
+
+	WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_set_solver_keyframe(wmOperatorType *ot)
+{
+	static EnumPropertyItem keyframe_items[] = {
+		{0, "KEYFRAME_A", 0, "Keyframe A", ""},
+		{1, "KEYFRAME_B", 0, "Keyframe B", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Set Solver Keyframe";
+	ot->description = "Set keyframe used by solver";
+	ot->idname = "CLIP_OT_set_solver_keyframe";
+
+	/* api callbacks */
+	ot->exec = set_solver_keyframe_exec;
+	ot->poll = ED_space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "keyframe", keyframe_items, 0, "Keyframe", "keyframe to set");
 }
 
 /********************** track copy color operator *********************/

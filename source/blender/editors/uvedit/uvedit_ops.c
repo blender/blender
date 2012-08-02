@@ -199,8 +199,8 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 		float prev_aspect[2], fprev_aspect;
 		float aspect[2], faspect;
 
-		ED_image_uv_aspect(previma, prev_aspect, prev_aspect + 1);
-		ED_image_uv_aspect(ima, aspect, aspect + 1);
+		ED_image_get_uv_aspect(previma, prev_aspect, prev_aspect + 1);
+		ED_image_get_uv_aspect(ima, aspect, aspect + 1);
 
 		fprev_aspect = prev_aspect[0]/prev_aspect[1];
 		faspect = aspect[0]/aspect[1];
@@ -292,11 +292,11 @@ static void uvedit_pixel_to_float(SpaceImage *sima, float *dist, float pixeldist
 	int width, height;
 
 	if (sima) {
-		ED_space_image_size(sima, &width, &height);
+		ED_space_image_get_size(sima, &width, &height);
 	}
 	else {
-		width = 256;
-		height = 256;
+		width =  IMG_SIZE_FALLBACK;
+		height = IMG_SIZE_FALLBACK;
 	}
 
 	dist[0] = pixeldist / width;
@@ -733,7 +733,7 @@ static void find_nearest_uv_face(Scene *scene, Image *ima, BMEditMesh *em, const
 
 		uv_poly_center(em, efa, cent);
 
-		dist = fabs(co[0] - cent[0]) + fabs(co[1] - cent[1]);
+		dist = fabsf(co[0] - cent[0]) + fabsf(co[1] - cent[1]);
 
 		if (dist < mindist) {
 			hit->tf = tf;
@@ -869,7 +869,7 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float c
 		
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			dist = fabs(co[0] - luv->uv[0]) + fabs(co[1] - luv->uv[1]);
+			dist = fabsf(co[0] - luv->uv[0]) + fabsf(co[1] - luv->uv[1]);
 
 			if (dist <= mindist) {
 				mindist = dist;
@@ -2604,8 +2604,8 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
 	/* compute ellipse size and location, not a circle since we deal
 	 * with non square image. ellipse is normalized, r = 1.0. */
-	ED_space_image_size(sima, &width, &height);
-	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_get_size(sima, &width, &height);
+	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
 	ellipse[0] = width * zoomx / radius;
 	ellipse[1] = height * zoomy / radius;
@@ -2781,7 +2781,7 @@ static void snap_cursor_to_pixels(SpaceImage *sima)
 {
 	int width = 0, height = 0;
 
-	ED_space_image_size(sima, &width, &height);
+	ED_space_image_get_size(sima, &width, &height);
 	snap_uv_to_pixel(sima->cursor, width, height);
 }
 
@@ -2936,7 +2936,7 @@ static int snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 	float w, h;
 	short change = 0;
 
-	ED_space_image_size(sima, &width, &height);
+	ED_space_image_get_size(sima, &width, &height);
 	w = (float)width;
 	h = (float)height;
 	
@@ -3380,14 +3380,11 @@ static void UV_OT_reveal(wmOperatorType *ot)
 static int set_2d_cursor_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	float location[2];
 
 	if (!sima)
 		return OPERATOR_CANCELLED;
 
-	RNA_float_get_array(op->ptr, "location", location);
-	sima->cursor[0] = location[0];
-	sima->cursor[1] = location[1];
+	RNA_float_get_array(op->ptr, "location", sima->cursor);
 	
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
 	

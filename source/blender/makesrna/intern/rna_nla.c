@@ -362,7 +362,7 @@ static void rna_NlaStrip_remove(NlaTrack *track, bContext *C, ReportList *report
  */
 void rna_NlaTrack_solo_set(PointerRNA *ptr, int value)
 {
-	NlaTrack *data = (NlaTrack*)ptr->data;
+	NlaTrack *data = (NlaTrack *)ptr->data;
 	AnimData *adt = BKE_animdata_from_id(ptr->id.data);
 	NlaTrack *nt;
 

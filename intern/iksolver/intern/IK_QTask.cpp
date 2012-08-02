@@ -36,11 +36,11 @@
 // IK_QTask
 
 IK_QTask::IK_QTask(
-	int size,
-	bool primary,
-	bool active,
-	const IK_QSegment *segment
-) :
+    int size,
+    bool primary,
+    bool active,
+    const IK_QSegment *segment
+    ) :
 	m_size(size), m_primary(primary), m_active(active), m_segment(segment),
 	m_weight(1.0)
 {
@@ -49,10 +49,10 @@ IK_QTask::IK_QTask(
 // IK_QPositionTask
 
 IK_QPositionTask::IK_QPositionTask(
-	bool primary,
-	const IK_QSegment *segment,
-	const MT_Vector3& goal
-) :
+    bool primary,
+    const IK_QSegment *segment,
+    const MT_Vector3& goal
+    ) :
 	IK_QTask(3, primary, true, segment), m_goal(goal)
 {
 	// computing clamping length
@@ -67,7 +67,7 @@ IK_QPositionTask::IK_QPositionTask(
 		num++;
 	}
 
-	m_clamp_length /= 2*num;
+	m_clamp_length /= 2 * num;
 }
 
 void IK_QPositionTask::ComputeJacobian(IK_QJacobian& jacobian)
@@ -79,9 +79,9 @@ void IK_QPositionTask::ComputeJacobian(IK_QJacobian& jacobian)
 	MT_Scalar length = d_pos.length();
 
 	if (length > m_clamp_length)
-		d_pos = (m_clamp_length/length)*d_pos;
+		d_pos = (m_clamp_length / length) * d_pos;
 	
-	jacobian.SetBetas(m_id, m_size, m_weight*d_pos);
+	jacobian.SetBetas(m_id, m_size, m_weight * d_pos);
 
 	// compute derivatives
 	int i;
@@ -91,13 +91,13 @@ void IK_QPositionTask::ComputeJacobian(IK_QJacobian& jacobian)
 		MT_Vector3 p = seg->GlobalStart() - pos;
 
 		for (i = 0; i < seg->NumberOfDoF(); i++) {
-			MT_Vector3 axis = seg->Axis(i)*m_weight;
+			MT_Vector3 axis = seg->Axis(i) * m_weight;
 
 			if (seg->Translational())
-				jacobian.SetDerivatives(m_id, seg->DoFId()+i, axis, 1e2);
+				jacobian.SetDerivatives(m_id, seg->DoFId() + i, axis, 1e2);
 			else {
 				MT_Vector3 pa = p.cross(axis);
-				jacobian.SetDerivatives(m_id, seg->DoFId()+i, pa, 1e0);
+				jacobian.SetDerivatives(m_id, seg->DoFId() + i, pa, 1e0);
 			}
 		}
 	}
@@ -113,10 +113,10 @@ MT_Scalar IK_QPositionTask::Distance() const
 // IK_QOrientationTask
 
 IK_QOrientationTask::IK_QOrientationTask(
-	bool primary,
-	const IK_QSegment *segment,
-	const MT_Matrix3x3& goal
-) :
+    bool primary,
+    const IK_QSegment *segment,
+    const MT_Matrix3x3& goal
+    ) :
 	IK_QTask(3, primary, true, segment), m_goal(goal), m_distance(0.0)
 {
 }
@@ -126,17 +126,17 @@ void IK_QOrientationTask::ComputeJacobian(IK_QJacobian& jacobian)
 	// compute betas
 	const MT_Matrix3x3& rot = m_segment->GlobalTransform().getBasis();
 
-	MT_Matrix3x3 d_rotm = m_goal*rot.transposed();
+	MT_Matrix3x3 d_rotm = m_goal * rot.transposed();
 	d_rotm.transpose();
 
 	MT_Vector3 d_rot;
-	d_rot = -0.5*MT_Vector3(d_rotm[2][1] - d_rotm[1][2],
-	                        d_rotm[0][2] - d_rotm[2][0],
-	                        d_rotm[1][0] - d_rotm[0][1]);
+	d_rot = -0.5 * MT_Vector3(d_rotm[2][1] - d_rotm[1][2],
+	                          d_rotm[0][2] - d_rotm[2][0],
+	                          d_rotm[1][0] - d_rotm[0][1]);
 
 	m_distance = d_rot.length();
 
-	jacobian.SetBetas(m_id, m_size, m_weight*d_rot);
+	jacobian.SetBetas(m_id, m_size, m_weight * d_rot);
 
 	// compute derivatives
 	int i;
@@ -146,10 +146,10 @@ void IK_QOrientationTask::ComputeJacobian(IK_QJacobian& jacobian)
 		for (i = 0; i < seg->NumberOfDoF(); i++) {
 
 			if (seg->Translational())
-				jacobian.SetDerivatives(m_id, seg->DoFId()+i, MT_Vector3(0, 0, 0), 1e2);
+				jacobian.SetDerivatives(m_id, seg->DoFId() + i, MT_Vector3(0, 0, 0), 1e2);
 			else {
-				MT_Vector3 axis = seg->Axis(i)*m_weight;
-				jacobian.SetDerivatives(m_id, seg->DoFId()+i, axis, 1e0);
+				MT_Vector3 axis = seg->Axis(i) * m_weight;
+				jacobian.SetDerivatives(m_id, seg->DoFId() + i, axis, 1e0);
 			}
 		}
 }
@@ -158,15 +158,15 @@ void IK_QOrientationTask::ComputeJacobian(IK_QJacobian& jacobian)
 // Note: implementation not finished!
 
 IK_QCenterOfMassTask::IK_QCenterOfMassTask(
-	bool primary,
-	const IK_QSegment *segment,
-	const MT_Vector3& goal_center
-) :
+    bool primary,
+    const IK_QSegment *segment,
+    const MT_Vector3& goal_center
+    ) :
 	IK_QTask(3, primary, true, segment), m_goal_center(goal_center)
 {
 	m_total_mass_inv = ComputeTotalMass(m_segment);
 	if (!MT_fuzzyZero(m_total_mass_inv))
-		m_total_mass_inv = 1.0/m_total_mass_inv;
+		m_total_mass_inv = 1.0 / m_total_mass_inv;
 }
 
 MT_Scalar IK_QCenterOfMassTask::ComputeTotalMass(const IK_QSegment *segment)
@@ -182,7 +182,7 @@ MT_Scalar IK_QCenterOfMassTask::ComputeTotalMass(const IK_QSegment *segment)
 
 MT_Vector3 IK_QCenterOfMassTask::ComputeCenter(const IK_QSegment *segment)
 {
-	MT_Vector3 center = /*seg->Mass()**/segment->GlobalStart();
+	MT_Vector3 center = /*seg->Mass()**/ segment->GlobalStart();
 
 	const IK_QSegment *seg;
 	for (seg = segment->Child(); seg; seg = seg->Sibling())
@@ -197,14 +197,14 @@ void IK_QCenterOfMassTask::JacobianSegment(IK_QJacobian& jacobian, MT_Vector3& c
 	MT_Vector3 p = center - segment->GlobalStart();
 
 	for (i = 0; i < segment->NumberOfDoF(); i++) {
-		MT_Vector3 axis = segment->Axis(i)*m_weight;
-		axis *= /*segment->Mass()**/m_total_mass_inv;
+		MT_Vector3 axis = segment->Axis(i) * m_weight;
+		axis *= /*segment->Mass()**/ m_total_mass_inv;
 		
 		if (segment->Translational())
-			jacobian.SetDerivatives(m_id, segment->DoFId()+i, axis, 1e2);
+			jacobian.SetDerivatives(m_id, segment->DoFId() + i, axis, 1e2);
 		else {
 			MT_Vector3 pa = axis.cross(p);
-			jacobian.SetDerivatives(m_id, segment->DoFId()+i, pa, 1e0);
+			jacobian.SetDerivatives(m_id, segment->DoFId() + i, pa, 1e0);
 		}
 	}
 	
@@ -215,7 +215,7 @@ void IK_QCenterOfMassTask::JacobianSegment(IK_QJacobian& jacobian, MT_Vector3& c
 
 void IK_QCenterOfMassTask::ComputeJacobian(IK_QJacobian& jacobian)
 {
-	MT_Vector3 center = ComputeCenter(m_segment)*m_total_mass_inv;
+	MT_Vector3 center = ComputeCenter(m_segment) * m_total_mass_inv;
 
 	// compute beta
 	MT_Vector3 d_pos = m_goal_center - center;
@@ -224,10 +224,10 @@ void IK_QCenterOfMassTask::ComputeJacobian(IK_QJacobian& jacobian)
 
 #if 0
 	if (m_distance > m_clamp_length)
-		d_pos = (m_clamp_length/m_distance)*d_pos;
+		d_pos = (m_clamp_length / m_distance) * d_pos;
 #endif
 	
-	jacobian.SetBetas(m_id, m_size, m_weight*d_pos);
+	jacobian.SetBetas(m_id, m_size, m_weight * d_pos);
 
 	// compute derivatives
 	JacobianSegment(jacobian, center, m_segment);

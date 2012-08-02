@@ -413,7 +413,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 	node->totr.xmin = locx;
 	node->totr.xmax = locx + node->width;
 	node->totr.ymax = locy;
-	node->totr.ymin = MIN2(dy, locy - 2 * NODE_DY);
+	node->totr.ymin = minf(dy, locy - 2 * NODE_DY);
 	
 	/* Set the block bounds to clip mouse events from underlying nodes.
 	 * Add a margin for sockets on each side.
@@ -813,7 +813,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
-	if (node->flag & (NODE_ACTIVE | SELECT)) {
+	if (node->flag & SELECT) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		

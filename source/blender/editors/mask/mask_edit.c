@@ -42,9 +42,13 @@
 
 #include "ED_screen.h"
 #include "ED_mask.h"  /* own include */
+#include "ED_image.h"
 #include "ED_object.h" /* ED_keymap_proportional_maskmode only */
 #include "ED_clip.h"
+#include "ED_sequencer.h"
 #include "ED_transform.h"
+
+#include "UI_view2d.h"
 
 #include "RNA_access.h"
 
@@ -54,55 +58,113 @@
 
 int ED_maskedit_poll(bContext *C)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		return ED_space_clip_maskedit_poll(C);
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+				return ED_space_clip_maskedit_poll(C);
+			case SPACE_SEQ:
+				return ED_space_sequencer_maskedit_poll(C);
+			case SPACE_IMAGE:
+				return ED_space_image_maskedit_poll(C);
+		}
 	}
-
 	return FALSE;
 }
 
 int ED_maskedit_mask_poll(bContext *C)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		return ED_space_clip_maskedit_mask_poll(C);
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+				return ED_space_clip_maskedit_mask_poll(C);
+			case SPACE_SEQ:
+				return ED_space_sequencer_maskedit_mask_poll(C);
+			case SPACE_IMAGE:
+				return ED_space_image_maskedit_mask_poll(C);
+		}
 	}
-
 	return FALSE;
 }
 
 /********************** registration *********************/
 
-void ED_mask_mouse_pos(const bContext *C, wmEvent *event, float co[2])
+/* takes event->mval */
+void ED_mask_mouse_pos(ScrArea *sa, ARegion *ar, const int mval[2], float co[2])
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		ED_clip_mouse_pos(C, event, co);
-		BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				ED_clip_mouse_pos(sc, ar, mval, co);
+				BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &co[0], &co[1]);
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				float frame_size[2];
+				SpaceImage *sima = sa->spacedata.first;
+				ED_space_image_get_size_fl(sima, frame_size);
+				ED_image_mouse_pos(sima, ar, mval, co);
+				BKE_mask_coord_from_frame(co, co, frame_size);
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				zero_v2(co);
+				break;
+		}
 	}
 	else {
-		/* possible other spaces from which mask editing is available */
+		BLI_assert(0);
 		zero_v2(co);
 	}
 }
 
 /* input:  x/y   - mval space
  * output: xr/yr - mask point space */
-void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr)
+void ED_mask_point_pos(ScrArea *sa, ARegion *ar, float x, float y, float *xr, float *yr)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
 	float co[2];
 
-	if (sc) {
-		ED_clip_point_stable_pos(C, x, y, &co[0], &co[1]);
-		BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				ED_clip_point_stable_pos(sc, ar, x, y, &co[0], &co[1]);
+				BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
+				break;
+			}
+			case SPACE_SEQ:
+				zero_v2(co); /* MASKTODO */
+				break;
+			case SPACE_IMAGE:
+			{
+				float frame_size[2];
+				SpaceImage *sima = sa->spacedata.first;
+				ED_space_image_get_size_fl(sima, frame_size);
+				ED_image_point_pos(sima, ar, x, y, &co[0], &co[1]);
+				BKE_mask_coord_from_frame(co, co, frame_size);
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				zero_v2(co);
+				break;
+		}
 	}
 	else {
-		/* possible other spaces from which mask editing is available */
+		BLI_assert(0);
 		zero_v2(co);
 	}
 
@@ -110,21 +172,45 @@ void ED_mask_point_pos(const bContext *C, float x, float y, float *xr, float *yr
 	*yr = co[1];
 }
 
-void ED_mask_point_pos__reverse(const bContext *C, float x, float y, float *xr, float *yr)
+void ED_mask_point_pos__reverse(ScrArea *sa, ARegion *ar, float x, float y, float *xr, float *yr)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	ARegion *ar = CTX_wm_region(C);
-
 	float co[2];
 
-	if (sc && ar) {
-		co[0] = x;
-		co[1] = y;
-		BKE_mask_coord_to_movieclip(sc->clip, &sc->user, co, co);
-		ED_clip_point_stable_pos__reverse(C, co, co);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				co[0] = x;
+				co[1] = y;
+				BKE_mask_coord_to_movieclip(sc->clip, &sc->user, co, co);
+				ED_clip_point_stable_pos__reverse(sc, ar, co, co);
+				break;
+			}
+			case SPACE_SEQ:
+				zero_v2(co); /* MASKTODO */
+				break;
+			case SPACE_IMAGE:
+			{
+				float frame_size[2];
+				SpaceImage *sima = sa->spacedata.first;
+				ED_space_image_get_size_fl(sima, frame_size);
+
+				co[0] = x;
+				co[1] = y;
+				BKE_mask_coord_to_frame(co, co, frame_size);
+				ED_image_point_pos__reverse(sima, ar, co, co);
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				zero_v2(co);
+				break;
+		}
 	}
 	else {
-		/* possible other spaces from which mask editing is available */
+		BLI_assert(0);
 		zero_v2(co);
 	}
 
@@ -132,60 +218,159 @@ void ED_mask_point_pos__reverse(const bContext *C, float x, float y, float *xr, 
 	*yr = co[1];
 }
 
-void ED_mask_size(const bContext *C, int *width, int *height)
+void ED_mask_get_size(ScrArea *sa, int *width, int *height)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacedata.first) {
-		if (sa->spacetype == SPACE_CLIP) {
-			ED_space_clip_get_size(C, width, height);
-			return;
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				ED_space_clip_get_size(sc, width, height);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+//				Scene *scene = CTX_data_scene(C);
+//				*width = (scene->r.size * scene->r.xsch) / 100;
+//				*height = (scene->r.size * scene->r.ysch) / 100;
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = sa->spacedata.first;
+				ED_space_image_get_size(sima, width, height);
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				*width = 0;
+				*height = 0;
+				break;
 		}
-		else if (sa->spacetype == SPACE_SEQ) {
-			Scene *scene = CTX_data_scene(C);
-			*width = (scene->r.size * scene->r.xsch) / 100;
-			*height = (scene->r.size * scene->r.ysch) / 100;
-			return;
-		}
-	}
-
-	/* possible other spaces from which mask editing is available */
-	*width = 0;
-	*height = 0;
-}
-
-void ED_mask_aspect(const bContext *C, float *aspx, float *aspy)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		ED_space_clip_get_aspect(sc, aspx, aspy);
 	}
 	else {
-		/* possible other spaces from which mask editing is available */
-		*aspx = 1.0f;
-		*aspy = 1.0f;
+		BLI_assert(0);
+		*width = 0;
+		*height = 0;
 	}
 }
 
-void ED_mask_pixelspace_factor(const bContext *C, float *scalex, float *scaley)
+void ED_mask_zoom(ScrArea *sa, ARegion *ar, float *zoomx, float *zoomy)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	if (sc) {
-		int width, height;
-		float zoomx, zoomy, aspx, aspy;
-
-		ED_space_clip_get_size(C, &width, &height);
-		ED_space_clip_get_zoom(C, &zoomx, &zoomy);
-		ED_space_clip_get_aspect(sc, &aspx, &aspy);
-
-		*scalex = ((float)width * aspx) * zoomx;
-		*scaley = ((float)height * aspy) * zoomy;
+	if (sa && sa->spacedata.first) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				ED_space_clip_get_zoom(sc, ar, zoomx, zoomy);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				*zoomx = *zoomy = 1.0f;
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = sa->spacedata.first;
+				ED_space_image_get_zoom(sima, ar, zoomx, zoomy);
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				*zoomx = *zoomy = 1.0f;
+				break;
+		}
 	}
 	else {
-		/* possible other spaces from which mask editing is available */
-		*scalex = 1.0f;
-		*scaley = 1.0f;
+		BLI_assert(0);
+		*zoomx = *zoomy = 1.0f;
+	}
+}
+
+void ED_mask_get_aspect(ScrArea *sa, ARegion *UNUSED(ar), float *aspx, float *aspy)
+{
+	if (sa && sa->spacedata.first) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				ED_space_clip_get_aspect(sc, aspx, aspy);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				*aspx = *aspy = 1.0f;  /* MASKTODO - render aspect? */
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = sa->spacedata.first;
+				ED_space_image_get_aspect(sima, aspx, aspy);
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				*aspx = *aspy = 1.0f;
+				break;
+		}
+	}
+	else {
+		BLI_assert(0);
+		*aspx = *aspy = 1.0f;
+	}
+}
+
+void ED_mask_pixelspace_factor(ScrArea *sa, ARegion *ar, float *scalex, float *scaley)
+{
+	if (sa && sa->spacedata.first) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				int width, height;
+				float zoomx, zoomy, aspx, aspy;
+
+				ED_space_clip_get_size(sc, &width, &height);
+				ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+				ED_space_clip_get_aspect(sc, &aspx, &aspy);
+
+				*scalex = ((float)width * aspx) * zoomx;
+				*scaley = ((float)height * aspy) * zoomy;
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				*scalex = *scaley = 1.0f;  /* MASKTODO? */
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = sa->spacedata.first;
+				int width, height;
+				float zoomx, zoomy, aspx, aspy;
+
+				ED_space_image_get_size(sima, &width, &height);
+				ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+				ED_space_image_get_aspect(sima, &aspx, &aspy);
+
+				*scalex = ((float)width * aspx) * zoomx;
+				*scaley = ((float)height * aspy) * zoomy;
+				break;
+			}
+			default:
+				/* possible other spaces from which mask editing is available */
+				BLI_assert(0);
+				*scalex = *scaley = 1.0f;
+				break;
+		}
+	}
+	else {
+		BLI_assert(0);
+		*scalex = *scaley = 1.0f;
 	}
 }
 
@@ -313,8 +498,6 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	// WM_keymap_add_item(keymap, "MASK_OT_feather_weight_clear", SKEY, KM_PRESS, KM_ALT, 0);
 	/* ... matches curve editmode */
-	RNA_enum_set(WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0)->ptr,
-	             "mode", TFM_MASK_SHRINKFATTEN);
 
 	/* relationships */
 	WM_keymap_add_item(keymap, "MASK_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
@@ -323,8 +506,16 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_shape_key_insert", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_shape_key_clear", IKEY, KM_PRESS, KM_ALT, 0);
 
+	/* for image editor only */
+	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 
-	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
+	/* Transform (don't use transform_keymap_for_space() since this maps to different spaces) */
+	WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
+	WM_keymap_add_item(keymap, "TRANSFORM_OT_resize", SKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TRANSFORM_OT_rotate", RKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "mode", TFM_MASK_SHRINKFATTEN);
 }
 
 void ED_operatormacros_mask(void)

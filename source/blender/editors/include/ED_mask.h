@@ -34,14 +34,34 @@
 struct wmKeyConfig;
 struct MaskLayer;
 struct MaskLayerShape;
+struct wmEvent;
 
-/* mask_editor.c */
+/* mask_edit.c */
+void ED_mask_get_size(struct ScrArea *sa, int *width, int *height);
+void ED_mask_zoom(struct ScrArea *sa, struct ARegion *ar, float *zoomx, float *zoomy);
+void ED_mask_get_aspect(struct ScrArea *sa, struct ARegion *ar, float *aspx, float *aspy);
+
+void ED_mask_pixelspace_factor(struct ScrArea *sa, struct ARegion *ar, float *scalex, float *scaley);
+void ED_mask_mouse_pos(struct ScrArea *sa, struct ARegion *ar, const int mval[2], float co[2]);
+
+void ED_mask_point_pos(struct ScrArea *sa, struct ARegion *ar, float x, float y, float *xr, float *yr);
+void ED_mask_point_pos__reverse(struct ScrArea *sa, struct ARegion *ar,
+                                float x, float y, float *xr, float *yr);
+
 void ED_operatortypes_mask(void);
 void ED_keymap_mask(struct wmKeyConfig *keyconf);
 void ED_operatormacros_mask(void);
 
 /* mask_draw.c */
 void ED_mask_draw(const bContext *C, const char draw_flag, const char draw_type);
+void ED_mask_draw_region(struct Mask *mask, struct ARegion *ar,
+                         const char draw_flag, const char draw_type,
+                         int width, int height,
+                         const short do_scale_applied, const short do_post_draw,
+                         float stabmat[4][4],
+                         const bContext *C);
+
+void ED_mask_draw_frames(struct Mask *mask, struct ARegion *ar, const int cfra, const int sfra, const int efra);
 
 /* mask_shapekey.c */
 void ED_mask_layer_shape_auto_key(struct MaskLayer *masklay, const int frame);

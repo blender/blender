@@ -21,7 +21,6 @@
  */
 
 #include "COM_IDMaskNode.h"
-#include "DNA_scene_types.h"
 #include "COM_IDMaskOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_AntiAliasOperation.h"

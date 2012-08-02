@@ -268,7 +268,7 @@ void GPU_set_linear_mipmap(int linear)
 	}
 }
 
-static int gpu_get_mipmap(void)
+int GPU_get_mipmap(void)
 {
 	return GTS.domipmap && !GTS.texpaint;
 }
@@ -640,7 +640,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
 	/* scale if not a power of two. this is not strictly necessary for newer
 	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures 
 	 * Then don't bother scaling for hardware that supports NPOT textures! */
-	if (!GLEW_ARB_texture_non_power_of_two && (!is_pow2_limit(rectw) || !is_pow2_limit(recth))) {
+	if (!GPU_non_power_of_two_support() && (!is_pow2_limit(rectw) || !is_pow2_limit(recth))) {
 		rectw= smaller_pow2_limit(rectw);
 		recth= smaller_pow2_limit(recth);
 		
@@ -662,7 +662,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
 	glGenTextures(1, (GLuint *)bind);
 	glBindTexture(GL_TEXTURE_2D, *bind);
 
-	if (!(gpu_get_mipmap() && mipmap)) {
+	if (!(GPU_get_mipmap() && mipmap)) {
 		if (use_high_bit_depth)
 			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 		else
@@ -883,7 +883,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 	
 	ibuf = BKE_image_get_ibuf(ima, NULL);
 	
-	if (ima->repbind || (gpu_get_mipmap() && mipmap) || !ima->bindcode || !ibuf ||
+	if (ima->repbind || (GPU_get_mipmap() && mipmap) || !ima->bindcode || !ibuf ||
 	    (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) ||
 	    (w == 0) || (h == 0))
 	{

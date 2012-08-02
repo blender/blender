@@ -1458,12 +1458,18 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 				/* particle rotation uses x-axis as the aligned axis, so pre-rotate the object accordingly */
 				if ((part->draw & PART_DRAW_ROTATE_OB) == 0) {
-					float xvec[3], q[4];
+					float xvec[3], q[4], size_mat[4][4], original_size[3];
+
+					mat4_to_size(original_size, obmat);
+					size_to_mat4(size_mat, original_size);
+
 					xvec[0] = -1.f;
 					xvec[1] = xvec[2] = 0;
 					vec_to_quat(q, xvec, ob->trackflag, ob->upflag);
 					quat_to_mat4(obmat, q);
 					obmat[3][3] = 1.0f;
+					
+					mult_m4_m4m4(obmat, obmat, size_mat);
 				}
 				
 				/* Normal particles and cached hair live in global space so we need to

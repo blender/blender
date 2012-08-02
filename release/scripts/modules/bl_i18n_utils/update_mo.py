@@ -47,7 +47,7 @@ def process_po(po, lang, mo=None):
         mo_dir = os.path.join(TRUNK_MO_DIR, lang, "LC_MESSAGES")
         # Create dirs if not existing!
         if not os.path.isdir(mo_dir):
-            os.makedirs(mo_dir, exist_ok = True)
+            os.makedirs(mo_dir, exist_ok=True)
 
     # show stats
     cmd = (GETTEXT_MSGFMT_EXECUTABLE,

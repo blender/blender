@@ -88,7 +88,7 @@ static unsigned int case_strhash(const void *ptr)
 static unsigned int keyhash(const void *ptr)
 {
 	const bAKey *k = ptr;
-	return case_strhash(k->arg); // ^ BLI_ghashutil_inthash((void*)k->pass);
+	return case_strhash(k->arg);  /* ^ BLI_ghashutil_inthash((void *)k->pass); */
 }
 
 static int keycmp(const void *a, const void *b)

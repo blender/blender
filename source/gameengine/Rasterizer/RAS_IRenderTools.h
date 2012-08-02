@@ -113,14 +113,14 @@ public:
 	 */
 	virtual 
 		void	
-	RenderText3D(int fontid,
-				 const char* text,
-				 int size,
-				 int dpi,
-				 float* color,
-				 double* mat,
-				 float aspect
-	) = 0;
+		RenderText3D(int fontid,
+		             const char* text,
+		             int size,
+		             int dpi,
+		             float* color,
+		             double* mat,
+		             float aspect
+		             ) = 0;
 
 
 	/**

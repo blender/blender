@@ -504,7 +504,9 @@ static void movieclip_load_get_szie(MovieClip *clip)
 	if (width && height) {
 		clip->tracking.camera.principal[0] = ((float)width) / 2.0f;
 		clip->tracking.camera.principal[1] = ((float)height) / 2.0f;
-
+	}
+	else {
+		clip->lastsize[0] = clip->lastsize[1] = IMG_SIZE_FALLBACK;
 	}
 }
 

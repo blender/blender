@@ -125,7 +125,7 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 	float center[2];
 	int imx, imy, step, digits;
 
-	ED_space_image_size(sima, &imx, &imy);
+	ED_space_image_get_size(sima, &imx, &imy);
 	
 	em = BMEdit_FromObject(obedit);
 
@@ -168,7 +168,7 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 
 	em = BMEdit_FromObject(obedit);
 
-	ED_space_image_size(sima, &imx, &imy);
+	ED_space_image_get_size(sima, &imx, &imy);
 	uvedit_center(scene, em, ima, center);
 
 	if (sima->flag & SI_COORDFLOATS) {

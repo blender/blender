@@ -288,7 +288,7 @@ static void planeProjection(TransInfo *t, float in[3], float out[3])
 	sub_v3_v3v3(vec, out, in);
 
 	factor = dot_v3v3(vec, norm);
-	if (fabs(factor) <= 0.001) {
+	if (fabsf(factor) <= 0.001f) {
 		return; /* prevent divide by zero */
 	}
 	factor = dot_v3v3(vec, vec) / factor;
@@ -722,7 +722,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		else if (t->spacetype == SPACE_IMAGE) {
 			float aspx, aspy;
 
-			ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 			glScalef(1.0f / aspx, 1.0f / aspy, 1.0);
 		}
 

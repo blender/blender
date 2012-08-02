@@ -29,6 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "GPU_draw.h"
+#include "GPU_extensions.h"
 
 extern "C" {
 	// envmaps
@@ -116,6 +117,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 		return mOk;
 	}
 
+	mipmap = mipmap && GPU_get_mipmap();
 
 	mTexture = img->bindcode;
 	mType = GL_TEXTURE_2D;
@@ -169,7 +171,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 
 void BL_Texture::InitGLTex(unsigned int *pix,int x,int y,bool mipmap)
 {
-	if (!GLEW_ARB_texture_non_power_of_two && (!is_power_of_2_i(x) || !is_power_of_2_i(y)) ) {
+	if (!GPU_non_power_of_two_support() && (!is_power_of_2_i(x) || !is_power_of_2_i(y)) ) {
 		InitNonPow2Tex(pix, x,y,mipmap);
 		return;
 	}
@@ -182,7 +184,7 @@ void BL_Texture::InitGLTex(unsigned int *pix,int x,int y,bool mipmap)
 	} 
 	else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pix );
 	}
 

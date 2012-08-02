@@ -265,7 +265,7 @@ void ED_fileselect_reset_params(SpaceFile *sfile)
 	sfile->params->title[0] = '\0';
 }
 
-int ED_fileselect_layout_numfiles(FileLayout *layout, struct ARegion *ar)
+int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *ar)
 {
 	int numfiles;
 
@@ -472,7 +472,7 @@ static void column_widths(struct FileList *files, struct FileLayout *layout)
 	}
 }
 
-void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
+void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 {
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
 	FileLayout *layout = NULL;
@@ -559,7 +559,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 	layout->dirty = FALSE;
 }
 
-FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar)
+FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, ARegion *ar)
 {
 	if (!sfile->layout) {
 		ED_fileselect_init_layout(sfile, ar);

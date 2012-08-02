@@ -238,6 +238,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 	MDeformVert *dverts = m_bmesh->dvert;
 	bDeformGroup *dg;
 	int defbase_tot = BLI_countlist(&m_objMesh->defbase);
+	Eigen::Matrix4f pre_mat, post_mat, chan_mat, norm_chan_mat;
 
 	if (!dverts)
 		return;
@@ -257,15 +258,18 @@ void BL_SkinDeformer::BGEDeformVerts()
 		}
 	}
 
+	post_mat = Eigen::Matrix4f::Map((float*)m_obmat).inverse() * Eigen::Matrix4f::Map((float*)m_armobj->GetArmatureObject()->obmat);
+	pre_mat = post_mat.inverse();
+
 	MDeformVert *dv= dverts;
+	MDeformWeight *dw;
 
 	for (int i=0; i<m_bmesh->totvert; ++i, dv++)
 	{
-		float contrib = 0.f, weight, max_weight=0.f;
+		float contrib = 0.f, weight, max_weight=-1.f;
 		bPoseChannel *pchan=NULL;
-		Eigen::Map<Eigen::Vector3f> norm(m_transnors[i]);
+		Eigen::Map<Eigen::Vector3f> norm = Eigen::Vector3f::Map(m_transnors[i]);
 		Eigen::Vector4f vec(0, 0, 0, 1);
-		Eigen::Matrix4f norm_chan_mat;
 		Eigen::Vector4f co(m_transverts[i][0],
 							m_transverts[i][1],
 							m_transverts[i][2],
@@ -274,7 +278,9 @@ void BL_SkinDeformer::BGEDeformVerts()
 		if (!dv->totweight)
 			continue;
 
-		MDeformWeight *dw= dv->dw;
+		co = pre_mat * co;
+
+		dw= dv->dw;
 
 		for (unsigned int j= dv->totweight; j != 0; j--, dw++)
 		{
@@ -286,12 +292,10 @@ void BL_SkinDeformer::BGEDeformVerts()
 
 				if (weight)
 				{
-					Eigen::Vector4f cop(co);
-					Eigen::Matrix4f chan_mat = Eigen::Matrix4f::Map((float*)pchan->chan_mat);
+					chan_mat = Eigen::Matrix4f::Map((float*)pchan->chan_mat);
 
 					// Update Vertex Position
-					cop = chan_mat*cop;
-					vec += (cop - co)*weight;
+					vec.noalias() += (chan_mat*co - co)*weight;
 
 					// Save the most influential channel so we can use it to update the vertex normal
 					if (weight > max_weight)
@@ -304,16 +308,14 @@ void BL_SkinDeformer::BGEDeformVerts()
 				}
 			}
 		}
-
 		
 		// Update Vertex Normal
 		norm = norm_chan_mat.topLeftCorner<3, 3>()*norm;
-				
-		if (contrib > 0.0001f)
-		{
-			vec *= 1.f/contrib;
-			co += vec;
-		}
+
+		co.noalias() += vec/contrib;
+		co[3] = 1.f; // Make sure we have a 1 for the w component!
+
+		co = post_mat * co;
 
 		m_transverts[i][0] = co[0];
 		m_transverts[i][1] = co[1];

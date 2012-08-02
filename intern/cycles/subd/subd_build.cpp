@@ -117,7 +117,7 @@ Patch *SubdAccBuilder::run(SubdFace *face)
 		memcpy(patch->hull, position, sizeof(float3)*20);
 		return patch;
 	}
-	else if(face->num_edges() == 4)  {
+	else if(face->num_edges() == 4) {
 		GregoryQuadPatch *patch = new GregoryQuadPatch();
 		memcpy(patch->hull, position, sizeof(float3)*20);
 		return patch;
@@ -644,7 +644,7 @@ Patch *SubdLinearBuilder::run(SubdFace *face)
 		hull = lpatch->hull;
 		patch = lpatch;
 	}
-	else if(face->num_edges() == 4)  {
+	else if(face->num_edges() == 4) {
 		LinearQuadPatch *lpatch = new LinearQuadPatch();
 		hull = lpatch->hull;
 		patch = lpatch;

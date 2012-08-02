@@ -168,7 +168,6 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
     bl_label = "Collision"
-    #bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

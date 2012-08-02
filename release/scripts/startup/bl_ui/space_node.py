@@ -135,7 +135,8 @@ class NODE_MT_select(Menu):
         layout.operator("node.select_border")
 
         layout.separator()
-        layout.operator("node.select_all")
+        layout.operator("node.select_all").action = 'TOGGLE'
+        layout.operator("node.select_all", text="Inverse").action = 'INVERT'
         layout.operator("node.select_linked_from")
         layout.operator("node.select_linked_to")
         layout.operator("node.select_same_type")
@@ -226,16 +227,21 @@ class NODE_PT_quality(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+
         snode = context.space_data
         tree = snode.node_tree
 
-        layout.prop(tree, "render_quality", text="Render")
-        layout.prop(tree, "edit_quality", text="Edit")
-        layout.prop(tree, "chunk_size")
-        layout.prop(tree, "use_opencl")
-        layout.prop(tree, "two_pass")
-        layout.prop(snode, "show_highlight")
-        
+        col = layout.column()
+        col.prop(tree, "render_quality", text="Render")
+        col.prop(tree, "edit_quality", text="Edit")
+        col.prop(tree, "chunk_size")
+
+        col = layout.column()
+        col.prop(tree, "use_opencl")
+        col.prop(tree, "two_pass")
+        col.prop(snode, "show_highlight")
+        col.prop(snode, "use_hidden_preview")
+
 
 class NODE_MT_node_color_presets(Menu):
     """Predefined node color"""

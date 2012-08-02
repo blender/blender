@@ -28,12 +28,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-#include "DNA_scene_types.h"
-
-#ifdef USE_RASKTER
-
 extern "C" {
-	#include "../../../../intern/raskter/raskter.h"
+	#include "BKE_mask.h"
 }
 
 MaskOperation::MaskOperation() : NodeOperation()
@@ -42,124 +38,74 @@ MaskOperation::MaskOperation() : NodeOperation()
 	this->m_mask = NULL;
 	this->m_maskWidth = 0;
 	this->m_maskHeight = 0;
-	this->m_framenumber = 0;
-	this->m_rasterizedMask = NULL;
-	setComplex(true);
+	this->m_maskWidthInv = 0.0f;
+	this->m_maskHeightInv = 0.0f;
+	this->m_frame_shutter = 0.0f;
+	this->m_frame_number = 0;
+	this->m_rasterMaskHandleTot = 1;
+	memset(this->m_rasterMaskHandles, 0, sizeof(this->m_rasterMaskHandles));
 }
 
 void MaskOperation::initExecution()
 {
-	initMutex();
+	if (this->m_mask && this->m_rasterMaskHandles[0] == NULL) {
+		if (this->m_rasterMaskHandleTot == 1) {
+			this->m_rasterMaskHandles[0] = BKE_maskrasterize_handle_new();
 
-	this->m_rasterizedMask = NULL;
-	this->m_maskLayers.first = this->m_maskLayers.last = NULL;
-
-	if (this->m_mask) {
-		BKE_mask_layer_copy_list(&this->m_maskLayers, &this->m_mask->masklayers);
-	}
-}
-
-void MaskOperation::deinitExecution()
-{
-	BKE_mask_layer_free_list(&this->m_maskLayers);
-
-	if (this->m_rasterizedMask) {
-		MEM_freeN(this->m_rasterizedMask);
-		this->m_rasterizedMask = NULL;
-	}
-}
-
-void *MaskOperation::initializeTileData(rcti *rect)
-{
-	if (this->m_rasterizedMask)
-		return this->m_rasterizedMask;
-
-	if (!this->m_mask)
-		return NULL;
-
-	lockMutex();
-	if (this->m_rasterizedMask == NULL) {
-		int width = this->getWidth();
-		int height = this->getHeight();
-		float *buffer;
-
-		buffer = (float *)MEM_callocN(sizeof(float) * width * height, "rasterized mask");
-
-		BKE_mask_rasterize_layers(&this->m_maskLayers, width, height, buffer, TRUE,
-		                          this->m_do_smooth, this->m_do_feather);
-
-		if (this->m_do_smooth) {
-			PLX_antialias_buffer(buffer, width, height);
+			BKE_maskrasterize_handle_init(this->m_rasterMaskHandles[0], this->m_mask,
+			        this->m_maskWidth, this->m_maskHeight,
+			        TRUE, this->m_do_smooth, this->m_do_feather);
 		}
+		else {
+			/* make a throw away copy of the mask */
+			const float frame = (float)this->m_frame_number - this->m_frame_shutter;
+			const float frame_step = (this->m_frame_shutter * 2.0f) / this->m_rasterMaskHandleTot;
+			float frame_iter = frame;
 
-		this->m_rasterizedMask = buffer;
-	}
-	unlockMutex();
-	return this->m_rasterizedMask;
-}
+			Mask *mask_temp;
 
-void MaskOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
-{
-	if (this->m_maskWidth == 0 || this->m_maskHeight == 0) {
-		NodeOperation::determineResolution(resolution, preferredResolution);
-	}
-	else {
-		unsigned int nr[2];
+			mask_temp = BKE_mask_copy_nolib(this->m_mask);
 
-		nr[0] = this->m_maskWidth;
-		nr[1] = this->m_maskHeight;
+			/* trick so we can get unkeyed edits to display */
+			{
+				MaskLayer *masklay;
+				MaskLayerShape *masklay_shape;
 
-		NodeOperation::determineResolution(resolution, nr);
+				for (masklay = (MaskLayer *)mask_temp->masklayers.first;
+				     masklay;
+				     masklay = (MaskLayer *)masklay->next)
+				{
+					masklay_shape = BKE_mask_layer_shape_varify_frame(masklay, this->m_frame_number);
+					BKE_mask_layer_shape_from_mask(masklay, masklay_shape);
+				}
+			}
 
-		resolution[0] = this->m_maskWidth;
-		resolution[1] = this->m_maskHeight;
-	}
-}
+			for (unsigned int i = 0; i < this->m_rasterMaskHandleTot; i++) {
+				this->m_rasterMaskHandles[i] = BKE_maskrasterize_handle_new();
 
-void MaskOperation::executePixel(float *color, int x, int y, void *data)
-{
-	if (!data) {
-		color[0] = 0.0f;
-	}
-	else {
-		float *buffer = (float *) data;
-		int index = (y * this->getWidth() + x);
+				/* re-eval frame info */
+				BKE_mask_evaluate(mask_temp, frame_iter, TRUE);
 
-		color[0] = buffer[index];
-	}
-}
+				BKE_maskrasterize_handle_init(this->m_rasterMaskHandles[i], mask_temp,
+				                              this->m_maskWidth, this->m_maskHeight,
+				                              TRUE, this->m_do_smooth, this->m_do_feather);
 
-#else /* mask rasterizer by campbell wip */
+				frame_iter += frame_step;
+			}
 
-MaskOperation::MaskOperation() : NodeOperation()
-{
-	this->addOutputSocket(COM_DT_VALUE);
-	this->m_mask = NULL;
-	this->m_maskWidth = 0;
-	this->m_maskHeight = 0;
-	this->m_framenumber = 0;
-	this->m_rasterMaskHandle = NULL;
-}
-
-void MaskOperation::initExecution()
-{
-	if (this->m_mask) {
-		if (this->m_rasterMaskHandle == NULL) {
-			const int width = this->getWidth();
-			const int height = this->getHeight();
-
-			this->m_rasterMaskHandle = BKE_maskrasterize_handle_new();
-
-			BKE_maskrasterize_handle_init(this->m_rasterMaskHandle, this->m_mask, width, height, TRUE, this->m_do_smooth, this->m_do_feather);
+			BKE_mask_free(mask_temp);
+			MEM_freeN(mask_temp);
 		}
 	}
 }
 
 void MaskOperation::deinitExecution()
 {
-	if (this->m_rasterMaskHandle) {
-		BKE_maskrasterize_handle_free(this->m_rasterMaskHandle);
-		this->m_rasterMaskHandle = NULL;
+	for (unsigned int i = 0; i < this->m_rasterMaskHandleTot; i++) {
+		if (this->m_rasterMaskHandles[i]) {
+			BKE_maskrasterize_handle_free(this->m_rasterMaskHandles[i]);
+			this->m_rasterMaskHandles[i] = NULL;
+		}
 	}
 }
 
@@ -183,13 +129,27 @@ void MaskOperation::determineResolution(unsigned int resolution[], unsigned int 
 
 void MaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
-	const float xy[2] = {x / (float)this->m_maskWidth, y / (float)this->m_maskHeight};
-	if (this->m_rasterMaskHandle) {
-		color[0] = BKE_maskrasterize_handle_sample(this->m_rasterMaskHandle, xy);
+	const float xy[2] = {x * this->m_maskWidthInv, y * this->m_maskHeightInv};
+
+	if (this->m_rasterMaskHandleTot == 1) {
+		if (this->m_rasterMaskHandles[0]) {
+			color[0] = BKE_maskrasterize_handle_sample(this->m_rasterMaskHandles[0], xy);
+		}
+		else {
+			color[0] = 0.0f;
+		}
 	}
 	else {
+		/* incase loop below fails */
 		color[0] = 0.0f;
+
+		for (unsigned int i = 0; i < this->m_rasterMaskHandleTot; i++) {
+			if (this->m_rasterMaskHandles[i]) {
+				color[0] += BKE_maskrasterize_handle_sample(this->m_rasterMaskHandles[i], xy);
+			}
+		}
+
+		/* until we get better falloff */
+		color[0] /= this->m_rasterMaskHandleTot;
 	}
 }
-
-#endif /* USE_RASKTER */

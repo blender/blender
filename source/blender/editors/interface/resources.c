@@ -303,6 +303,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->bone_solid; break;
 				case TH_BONE_POSE:
 					cp = ts->bone_pose; break;
+				case TH_BONE_POSE_ACTIVE:
+					cp = ts->bone_pose_active; break;
 				case TH_STRIP:
 					cp = ts->strip; break;
 				case TH_STRIP_SELECT:
@@ -745,6 +747,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.bone_solid, 200, 200, 200, 255);
 	/* alpha 80 is not meant editable, used for wire+action draw */
 	rgba_char_args_set(btheme->tv3d.bone_pose, 80, 200, 255, 80);
+	rgba_char_args_set(btheme->tv3d.bone_pose_active, 140, 255, 255, 80);
 
 	rgba_char_args_set(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
 	rgba_char_args_set(btheme->tv3d.camera_path, 0x00, 0x00, 0x00, 255);
@@ -1219,7 +1222,8 @@ void UI_GetColorPtrShade3ubv(const unsigned char cp[3], unsigned char col[3], in
 }
 
 // get a 3 byte color, blended and shaded between two other char color pointers
-void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3], float fac, int offset)
+void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3],
+                                  float fac, int offset)
 {
 	int r, g, b;
 
@@ -1746,7 +1750,8 @@ void init_userdef_do_versions(void)
 	}
 
 	if (bmain->versionfile < 257) {
-		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs, so that it doesn't linger around from old configs like a ghost */
+		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs,
+		 * so that it doesn't linger around from old configs like a ghost */
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
 	}
 
@@ -1915,6 +1920,25 @@ void init_userdef_do_versions(void)
 			if (btheme->tseq.movieclip[0] == 0) {
 				rgba_char_args_set(btheme->tseq.mask,  152, 78, 62, 255);
 			}
+		}
+	}
+
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 15)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_set(btheme->tv3d.bone_pose_active, 140, 255, 255, 80);
+		}
+	}
+
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 16)) {
+		bTheme *btheme;
+
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (btheme->tact.anim_active[3] == 0)
+				rgba_char_args_set(btheme->tact.anim_active, 204, 112, 26, 102);
+
+			if (btheme->tnla.anim_active[3] == 0)
+				rgba_char_args_set(btheme->tnla.anim_active, 204, 112, 26, 102);
 		}
 	}
 

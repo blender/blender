@@ -81,9 +81,9 @@ protected:
 	GHOST_TSuccess activateDrawingContext( ) { return GHOST_kFailure; }
 	~GHOST_WindowNULL( ) { /* nothing */ }
 	GHOST_TSuccess setWindowCursorVisibility( bool visible ) { return GHOST_kSuccess; }
-	GHOST_TSuccess setState(GHOST_TWindowState state)  { return GHOST_kSuccess; }
+	GHOST_TSuccess setState(GHOST_TWindowState state) { return GHOST_kSuccess; }
 	GHOST_TWindowState getState() const	{ return GHOST_kWindowStateNormal; }
-	GHOST_TSuccess invalidate()  { return GHOST_kSuccess; }
+	GHOST_TSuccess invalidate() { return GHOST_kSuccess; }
 	GHOST_TSuccess setOrder(GHOST_TWindowOrder order) { return GHOST_kSuccess; }
 
 
