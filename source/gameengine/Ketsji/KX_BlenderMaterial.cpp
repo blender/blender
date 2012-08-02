@@ -130,10 +130,10 @@ unsigned int* KX_BlenderMaterial::GetMCol(void) const
 void KX_BlenderMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
 {
 	if (mMaterial) {
-		*rgba++ = (unsigned char) (mMaterial->matcolor[0]*255.0);
-		*rgba++ = (unsigned char) (mMaterial->matcolor[1]*255.0);
-		*rgba++ = (unsigned char) (mMaterial->matcolor[2]*255.0);
-		*rgba++ = (unsigned char) (mMaterial->matcolor[3]*255.0);
+		*rgba++ = (unsigned char)(mMaterial->matcolor[0] * 255.0f);
+		*rgba++ = (unsigned char)(mMaterial->matcolor[1] * 255.0f);
+		*rgba++ = (unsigned char)(mMaterial->matcolor[2] * 255.0f);
+		*rgba++ = (unsigned char)(mMaterial->matcolor[3] * 255.0f);
 	} else
 		RAS_IPolyMaterial::GetMaterialRGBAColor(rgba);
 }

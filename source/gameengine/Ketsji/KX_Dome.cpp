@@ -748,10 +748,10 @@ void KX_Dome::CreateMeshDome250(void)
 	 * Once we take the tangent of that angle, you have the verts coordinate corresponding to the verts on the side faces.
 	 * Then we need to multiply it by sqrt(2.0) to get the coordinate of the verts on the diagonal of the original cube.
 	 */
-	verts_height = tan((rad_ang/2) - (MT_PI/2))*M_SQRT2;
+	verts_height = tanf((rad_ang / 2.0f) - (float)(MT_PI / 2.0)) * (float)M_SQRT2;
 
-	uv_height = uv_ratio * ((verts_height/2) + 0.5);
-	uv_base = uv_ratio * (1.0 - ((verts_height/2) + 0.5));
+	uv_height = uv_ratio * (       (verts_height / 2.0f) + 0.5f);
+	uv_base   = uv_ratio * (1.0 - ((verts_height / 2.0f) + 0.5f));
 	
 	//creating faces for the env mapcube 180deg Dome
 	// Front Face - 2 triangles
@@ -1325,7 +1325,7 @@ void KX_Dome::FlattenDome(MT_Vector3 verts[3])
 
 	for (int i=0;i<3;i++) {
 		r = atan2(sqrt(verts[i][0]*verts[i][0] + verts[i][2]*verts[i][2]), verts[i][1]);
-		r /= m_radangle/2;
+		r /= (double)this->m_radangle / 2.0;
 
 		phi = atan2(verts[i][2], verts[i][0]);
 
@@ -1818,13 +1818,13 @@ void KX_Dome::DrawDomeFisheye(void)
 	else if (m_mode == DOME_TRUNCATED_FRONT)
 	{
 		ortho_width = 1.0;
-		ortho_height = 2 * ((float)can_height / can_width) - 1.0;
+		ortho_height = 2.0f * ((float)can_height / can_width) - 1.0f;
 
 		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_width, -20.0, 10.0);
 	}
 	else { //m_mode == DOME_TRUNCATED_REAR
 		ortho_width = 1.0;
-		ortho_height = 2 * ((float)can_height / can_width) - 1.0;
+		ortho_height = 2.0f * ((float)can_height / can_width) - 1.0f;
 
 		glOrtho((-ortho_width), ortho_width, (-ortho_width), ortho_height, -20.0, 10.0);
 	}
@@ -1905,8 +1905,8 @@ void KX_Dome::DrawPanorama(void)
 			ortho_height = (float)can_height/can_width;
 		}
 		else {
-			ortho_width = (float)can_width/can_height * 0.5;
-			ortho_height = 0.5;
+			ortho_width = (float)can_width / can_height * 0.5f;
+			ortho_height = 0.5f;
 		}
 		
 		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
