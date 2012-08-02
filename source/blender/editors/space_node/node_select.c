@@ -368,9 +368,17 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 			node = node_under_mouse_select(snode->edittree, mx, my);
 			
 			if (node) {
-				node_toggle(node);
-				
-				ED_node_set_active(bmain, snode->edittree, node);
+				if ((node->flag & SELECT) && (node->flag & NODE_ACTIVE) == 0) {
+					/* if node is selected but not active make it active
+					 * before it'll be desleected
+					 */
+					ED_node_set_active(bmain, snode->edittree, node);
+				}
+				else {
+					node_toggle(node);
+					ED_node_set_active(bmain, snode->edittree, node);
+				}
+
 				selected = 1;
 			}
 		}
