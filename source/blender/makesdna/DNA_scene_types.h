@@ -288,7 +288,7 @@ typedef struct ImageFormatData {
 #define R_IMF_IMTYPE_AVIRAW         15
 #define R_IMF_IMTYPE_AVIJPEG        16
 #define R_IMF_IMTYPE_PNG            17
-/* #define R_IMF_IMTYPE_AVICODEC    18 */ /* avicodec is nomore /*
+/* #define R_IMF_IMTYPE_AVICODEC    18 */ /* avicodec is nomore */
 #define R_IMF_IMTYPE_QUICKTIME      19
 #define R_IMF_IMTYPE_BMP            20
 #define R_IMF_IMTYPE_RADHDR         21
