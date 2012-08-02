@@ -394,7 +394,9 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 	int *tmp;
 	int y;
 	
-	if (anim == NULL) return (NULL);
+	if (anim == NULL) {
+		return NULL;
+	}
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	if (anim->avistreams) {
@@ -418,7 +420,7 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 		                     AVI_get_stream(anim->avi, AVIST_VIDEO, 0));
 		
 		if (tmp == NULL) {
-			printf("Error reading frame from AVI");
+			printf("Error reading frame from AVI: '%s'\n", anim->name);
 			IMB_freeImBuf(ibuf);
 			return NULL;
 		}
