@@ -40,7 +40,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Constructor */
 
-BlenderSync::BlenderSync(BL::RenderEngine b_engine_, BL::BlendData b_data_, BL::Scene b_scene_, Scene *scene_, bool preview_)
+BlenderSync::BlenderSync(BL::RenderEngine b_engine_, BL::BlendData b_data_, BL::Scene b_scene_, Scene *scene_, bool preview_, Progress &progress_)
 : b_engine(b_engine_),
   b_data(b_data_), b_scene(b_scene_),
   shader_map(&scene_->shaders),
@@ -49,7 +49,8 @@ BlenderSync::BlenderSync(BL::RenderEngine b_engine_, BL::BlendData b_data_, BL::
   light_map(&scene_->lights),
   world_map(NULL),
   world_recalc(false),
-  experimental(false)
+  experimental(false),
+  progress(progress_)
 {
 	scene = scene_;
 	preview = preview_;

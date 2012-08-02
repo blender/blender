@@ -49,7 +49,7 @@ class ShaderNode;
 
 class BlenderSync {
 public:
-	BlenderSync(BL::RenderEngine b_engine_, BL::BlendData b_data, BL::Scene b_scene, Scene *scene_, bool preview_);
+	BlenderSync(BL::RenderEngine b_engine_, BL::BlendData b_data, BL::Scene b_scene, Scene *scene_, bool preview_, Progress &progress_);
 	~BlenderSync();
 
 	/* sync */
@@ -131,6 +131,8 @@ private:
 		bool use_localview;
 		int samples;
 	} render_layer;
+
+	Progress &progress;
 };
 
 /* we don't have spare bits for localview (normally 20-28)

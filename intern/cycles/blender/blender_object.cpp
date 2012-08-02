@@ -302,14 +302,17 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 	BL::Scene b_sce = b_scene;
 	int particle_offset = 0;
 
-	for(; b_sce; b_sce = b_sce.background_set()) {
-		for(b_sce.objects.begin(b_ob); b_ob != b_sce.objects.end(); ++b_ob) {
+	bool cancel = false;
+
+	for(; b_sce && !cancel; b_sce = b_sce.background_set()) {
+		for(b_sce.objects.begin(b_ob); b_ob != b_sce.objects.end() && !cancel; ++b_ob) {
 			bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
 			uint ob_layer = get_layer(b_ob->layers(), b_ob->layers_local_view(), object_is_light(*b_ob));
 			CYCLES_LOCAL_LAYER_HACK(render_layer.use_localview, ob_layer);
 			hide = hide || !(ob_layer & scene_layer);
 
 			if(!hide) {
+				progress.set_status("Synchronizing object", (*b_ob).name());
 
 				int num_particles = object_count_particles(*b_ob);
 
@@ -351,10 +354,12 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 
 				particle_offset += num_particles;
 			}
+
+			cancel = progress.get_cancel();
 		}
 	}
 
-	if(!motion) {
+	if(!cancel && !motion) {
 		sync_background_light();
 
 		/* handle removed data and modified pointers */

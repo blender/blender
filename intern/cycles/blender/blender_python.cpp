@@ -80,6 +80,8 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 	/* create session */
 	BlenderSession *session;
 
+	Py_BEGIN_ALLOW_THREADS
+
 	if(rv3d) {
 		/* interactive session */
 		int width = region.width();
@@ -91,7 +93,9 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 		/* offline session */
 		session = new BlenderSession(engine, userpref, data, scene);
 	}
-	
+
+	Py_END_ALLOW_THREADS
+
 	return PyLong_FromVoidPtr(session);
 }
 
@@ -136,8 +140,12 @@ static PyObject *draw_func(PyObject *self, PyObject *args)
 
 static PyObject *sync_func(PyObject *self, PyObject *value)
 {
+	Py_BEGIN_ALLOW_THREADS
+
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(value);
 	session->synchronize();
+
+	Py_END_ALLOW_THREADS
 
 	Py_RETURN_NONE;
 }

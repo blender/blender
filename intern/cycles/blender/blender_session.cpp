@@ -88,21 +88,21 @@ void BlenderSession::create_session()
 	/* create scene */
 	scene = new Scene(scene_params, session_params.device);
 
-	/* create sync */
-	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background);
-	sync->sync_data(b_v3d, b_engine.camera_override());
-
-	if(b_rv3d)
-		sync->sync_view(b_v3d, b_rv3d, width, height);
-	else
-		sync->sync_camera(b_engine.camera_override(), width, height);
-
 	/* create session */
 	session = new Session(session_params);
 	session->scene = scene;
 	session->progress.set_update_callback(function_bind(&BlenderSession::tag_redraw, this));
 	session->progress.set_cancel_callback(function_bind(&BlenderSession::test_cancel, this));
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
+
+	/* create sync */
+	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress);
+	sync->sync_data(b_v3d, b_engine.camera_override());
+
+	if(b_rv3d)
+		sync->sync_view(b_v3d, b_rv3d, width, height);
+	else
+		sync->sync_camera(b_engine.camera_override(), width, height);
 
 	/* set buffer parameters */
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
