@@ -801,7 +801,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 		
 		if (rgba_fp) {
 			if (ibuf->rect_float) {
-				copy_v4_v4(rgba_fp, ((float *)ibuf->rect_float + ((xi + yi * ibuf->x) * 4)));
+				copy_v4_v4(rgba_fp, (ibuf->rect_float + ((xi + yi * ibuf->x) * 4)));
 			}
 			else {
 				char *tmp_ch = ((char *)ibuf->rect) + ((xi + yi * ibuf->x) * 4);
@@ -1503,7 +1503,7 @@ static ProjPixel *project_paint_uvpixel_init(
 	//memset(projPixel, 0, size);
 	
 	if (ibuf->rect_float) {
-		projPixel->pixel.f_pt = (float *)ibuf->rect_float + ((x_px + y_px * ibuf->x) * 4);
+		projPixel->pixel.f_pt = ibuf->rect_float + ((x_px + y_px * ibuf->x) * 4);
 		projPixel->origColor.f[0] = projPixel->newColor.f[0] = projPixel->pixel.f_pt[0];  
 		projPixel->origColor.f[1] = projPixel->newColor.f[1] = projPixel->pixel.f_pt[1];  
 		projPixel->origColor.f[2] = projPixel->newColor.f[2] = projPixel->pixel.f_pt[2];  
