@@ -24,44 +24,24 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
-/** \file boolop/intern/BOP_Vertex.h
- *  \ingroup boolopintern
+ 
+/** \file BOP_Interface.h
+ *  \ingroup bsp
  */
 
- 
-#ifndef __BOP_VERTEX_H__
-#define __BOP_VERTEX_H__
+#ifndef __BOP_INTERFACE_H__
+#define __BOP_INTERFACE_H__
 
-#include "BOP_Tag.h"
-#include "BOP_Indexs.h"
-#include "MT_Point3.h"
-#include "BOP_Misc.h"
+#include "BSP_CSGMesh.h"
 
-class BOP_Vertex 
-{
-private:
-	MT_Point3 m_point;
-	BOP_Indexs  m_edges;
-	BOP_TAG m_tag;
-	
-	bool containsEdge(BOP_Index i);
+typedef enum EnumBoolOpState {BOP_OK, BOP_NO_SOLID, BOP_ERROR} BoolOpState;
+typedef enum EnumBoolOpType {BOP_INTERSECTION=e_csg_intersection, BOP_UNION=e_csg_union, BOP_DIFFERENCE=e_csg_difference} BoolOpType;
 
-public:
-	BOP_Vertex(double x, double y, double z);
-	BOP_Vertex(MT_Point3 d);
-	void addEdge(BOP_Index i);
-	void removeEdge(BOP_Index i);
-	inline BOP_Index getEdge(unsigned int i) { return m_edges[i];};
-	inline unsigned int getNumEdges() { return m_edges.size();};
-	inline BOP_Indexs &getEdges() { return m_edges;};
-	inline MT_Point3 getPoint() const { return m_point;};
-	inline BOP_TAG getTAG() { return m_tag;};
-	inline void setTAG(BOP_TAG t) { m_tag = t;};
-#ifdef BOP_DEBUG
-	friend ostream &operator<<(ostream &stream, BOP_Vertex *v);
-#endif
-
-};
+BoolOpState BOP_performBooleanOperation(BoolOpType                   opType,
+					BSP_CSGMesh**                outputMesh,
+					CSG_FaceIteratorDescriptor   obAFaces,
+					CSG_VertexIteratorDescriptor obAVertices,
+					CSG_FaceIteratorDescriptor   obBFaces,
+					CSG_VertexIteratorDescriptor obBVertices);
 
 #endif

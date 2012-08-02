@@ -31,7 +31,6 @@
 
 
 /**
-
  * Implementation of external api for CSG part of BSP lib interface.
  */
 
@@ -39,7 +38,7 @@
 #include "BSP_CSGMesh_CFIterator.h"
 #include "MEM_RefCountPtr.h"
 
-#include "../../boolop/extern/BOP_Interface.h"
+#include "BOP_Interface.h"
 #include <iostream>
 using namespace std;
 

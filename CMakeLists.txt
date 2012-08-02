@@ -226,9 +226,6 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 # Camera/motion tracking
 option(WITH_LIBMV         "Enable libmv structure from motion library" ON)
 
-# Mesh boolean lib
-option(WITH_CARVE         "Enable Carve library to handle mesh boolean operations" ON)
-
 # Misc
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON)
@@ -364,8 +361,8 @@ if(WITH_CYCLES)
 	set(WITH_OPENIMAGEIO ON)
 endif()
 
-# auto enable boost for cycles and carve
-if(WITH_CYCLES OR WITH_CARVE)
+# auto enable boost for cycles and booleans
+if(WITH_CYCLES OR WITH_MOD_BOOLEAN)
 	set(WITH_BOOST ON)
 endif()
 
