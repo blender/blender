@@ -384,6 +384,13 @@ void            nodeFreePreview(struct bNode *node);
 int             nodeSocketIsHidden(struct bNodeSocket *sock);
 void            nodeSocketSetType(struct bNodeSocket *sock, int type);
 
+/* Node Clipboard */
+void nodeClipboardClear(void);
+void nodeClipboardAddNode(struct bNode *node);
+void nodeClipboardAddLink(struct bNodeLink *link);
+const struct ListBase *nodeClipboardGetNodes(void);
+const struct ListBase *nodeClipboardGetLinks(void);
+
 /* ************** NODE TYPE ACCESS *************** */
 
 struct bNodeTemplate nodeMakeTemplate(struct bNode *node);
