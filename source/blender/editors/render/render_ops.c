@@ -77,6 +77,7 @@ void ED_operatortypes_render(void)
 	WM_operatortype_append(SCENE_OT_freestyle_geometry_modifier_add);
 	WM_operatortype_append(SCENE_OT_freestyle_modifier_remove);
 	WM_operatortype_append(SCENE_OT_freestyle_modifier_move);
+	WM_operatortype_append(SCENE_OT_freestyle_modifier_copy);
 
 #if (defined(WITH_QUICKTIME) && !defined(USE_QTKIT))
 	WM_operatortype_append(SCENE_OT_render_data_set_quicktime_codec);

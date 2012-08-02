@@ -373,6 +373,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
         row.label(text=modifier.rna_type.name)
         row.prop(modifier, "name", text="")
         row.prop(modifier, "use", text="")
+        row.operator("scene.freestyle_modifier_copy", icon='NONE', text="Copy")
         sub = row.row(align=True)
         sub.operator("scene.freestyle_modifier_move", icon='TRIA_UP', text="").direction = 'UP'
         sub.operator("scene.freestyle_modifier_move", icon='TRIA_DOWN', text="").direction = 'DOWN'

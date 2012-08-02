@@ -1075,6 +1075,57 @@ void SCENE_OT_freestyle_modifier_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int freestyle_modifier_copy_exec(bContext *C, wmOperator *op)
+{
+    Scene *scene= CTX_data_scene(C);
+    SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
+    FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+    PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
+    LineStyleModifier *modifier= ptr.data;
+
+    if (!lineset) {
+        BKE_report(op->reports, RPT_ERROR, "No active lineset and associated line style the modifier belongs to.");
+        return OPERATOR_CANCELLED;
+    }
+
+    switch (freestyle_get_modifier_type(&ptr)) {
+    case LS_MODIFIER_TYPE_COLOR:
+        FRS_copy_linestyle_color_modifier(lineset->linestyle, modifier);
+        break;
+    case LS_MODIFIER_TYPE_ALPHA:
+        FRS_copy_linestyle_alpha_modifier(lineset->linestyle, modifier);
+        break;
+    case LS_MODIFIER_TYPE_THICKNESS:
+        FRS_copy_linestyle_thickness_modifier(lineset->linestyle, modifier);
+        break;
+    case LS_MODIFIER_TYPE_GEOMETRY:
+        FRS_copy_linestyle_geometry_modifier(lineset->linestyle, modifier);
+        break;
+    default:
+        BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier.");
+        return OPERATOR_CANCELLED;
+    }
+    WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+
+    return OPERATOR_FINISHED;
+
+}
+
+void SCENE_OT_freestyle_modifier_copy(wmOperatorType *ot)
+{
+    /* identifiers */
+    ot->name= "Copy Modifier";
+    ot->idname= "SCENE_OT_freestyle_modifier_copy";
+    ot->description="Duplicate the modifier within the list of modifiers";
+
+    /* api callbacks */
+    ot->exec= freestyle_modifier_copy_exec;
+    ot->poll= freestyle_active_lineset_poll;
+
+    /* flags */
+    ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 static int freestyle_modifier_move_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
