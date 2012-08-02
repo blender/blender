@@ -111,8 +111,12 @@ void NODE_OT_select_same_type(struct wmOperatorType *ot);
 void NODE_OT_select_same_type_next(wmOperatorType *ot);
 void NODE_OT_select_same_type_prev(wmOperatorType *ot);
 
-/* node_state.c */
+/* node_view.c */
 void NODE_OT_view_all(struct wmOperatorType *ot);
+
+void NODE_OT_backimage_move(struct wmOperatorType *ot);
+void NODE_OT_backimage_zoom(struct wmOperatorType *ot);
+void NODE_OT_backimage_sample(wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
@@ -191,10 +195,6 @@ void NODE_OT_node_copy_color(struct wmOperatorType *ot);
 void NODE_OT_read_fullsamplelayers(struct wmOperatorType *ot);
 void NODE_OT_read_renderlayers(struct wmOperatorType *ot);
 void NODE_OT_render_changed(struct wmOperatorType *ot);
-
-void NODE_OT_backimage_move(struct wmOperatorType *ot);
-void NODE_OT_backimage_zoom(struct wmOperatorType *ot);
-void NODE_OT_backimage_sample(wmOperatorType *ot);
 
 void NODE_OT_output_file_add_socket(struct wmOperatorType *ot);
 void NODE_OT_output_file_remove_active_socket(struct wmOperatorType *ot);
