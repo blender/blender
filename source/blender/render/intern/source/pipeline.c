@@ -1815,8 +1815,11 @@ static int node_tree_has_composite_output(bNodeTree *ntree)
 			return TRUE;
 		}
 		else if (node->type == NODE_GROUP) {
-			if (node_tree_has_composite_output((bNodeTree *)node->id))
-				return TRUE;
+			if (node->id) {
+				if (node_tree_has_composite_output((bNodeTree *)node->id)) {
+					return TRUE;
+				}
+			}
 		}
 	}
 
