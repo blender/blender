@@ -24,10 +24,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_node/node_state.c
+/** \file blender/editors/space_node/node_view.c
  *  \ingroup spnode
  */
-
 
 #include <stdio.h>
 
