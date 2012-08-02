@@ -32,6 +32,7 @@ MathBaseOperation::MathBaseOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_VALUE);
 	this->m_inputValue1Operation = NULL;
 	this->m_inputValue2Operation = NULL;
+	this->m_useClamp = false;
 }
 
 void MathBaseOperation::initExecution()
