@@ -970,7 +970,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 		if (movie->entries != NULL) {
 			temp = (AviIndexEntry *)MEM_reallocN(movie->entries, (frame_num + 1) * entry_size);
 			/* clear new bytes */
-			memset(&temp[movie->index_entries], 0, ((frame_num + 1) - movie->index_entries) * entry_size);
+			memset(&temp[movie->index_entries + 1], 0, (frame_num - movie->index_entries) * entry_size);
 		}
 		else {
 			temp = (AviIndexEntry *) MEM_callocN((frame_num + 1) * entry_size, "newidxentry");
