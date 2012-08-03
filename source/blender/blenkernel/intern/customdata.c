@@ -2793,7 +2793,7 @@ void CustomData_set_layer_unique_name(CustomData *data, int index)
 	BLI_uniquename_cb(customdata_unique_check, &data_arg, typeInfo->defaultname, '.', nlayer->name, sizeof(nlayer->name));
 }
 
-void CustomData_validate_layer_name(const CustomData *data, int type, char *name, char *outname)
+void CustomData_validate_layer_name(const CustomData *data, int type, const char *name, char *outname)
 {
 	int index = -1;
 

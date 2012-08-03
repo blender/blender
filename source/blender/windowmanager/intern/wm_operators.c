@@ -1950,15 +1950,15 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 
 /* *************** save file as **************** */
 
-static void untitled(char *name)
+static void untitled(char *filepath)
 {
-	if (G.save_over == 0 && strlen(name) < FILE_MAX - 16) {
-		char *c = BLI_last_slash(name);
+	if (G.save_over == 0 && strlen(filepath) < FILE_MAX - 16) {
+		char *c = BLI_last_slash(filepath);
 		
 		if (c)
 			strcpy(&c[1], "untitled.blend");
 		else
-			strcpy(name, "untitled.blend");
+			strcpy(filepath, "untitled.blend");
 	}
 }
 

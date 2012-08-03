@@ -138,7 +138,7 @@ void ImageRender::Render()
 		// compute distance of observer to mirror = D - observerPos . normal
 		MT_Scalar observerDistance = mirrorPlaneDTerm - observerWorldPos.dot(mirrorWorldZ);
 		// if distance < 0.01 => observer is on wrong side of mirror, don't render
-		if (observerDistance < 0.01f)
+		if (observerDistance < 0.01)
 			return;
 		// set camera world position = observerPos + normal * 2 * distance
 		MT_Point3 cameraWorldPos = observerWorldPos + (MT_Scalar(2.0)*observerDistance)*mirrorWorldZ;

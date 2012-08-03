@@ -46,11 +46,11 @@
 /* matching fnction in rna_ID.c */
 static int rna_VectorFont_filepath_editable(PointerRNA *ptr)
 {
-	VFont *vf = ptr->id.data;
-	if (strcmp(vf->name, FO_BUILTIN_NAME) == 0) {
-		return 0;
+	VFont *vfont = ptr->id.data;
+	if (BKE_vfont_is_builtin(vfont)) {
+		return FALSE;
 	}
-	return 1;
+	return TRUE;
 }
 
 static void rna_VectorFont_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

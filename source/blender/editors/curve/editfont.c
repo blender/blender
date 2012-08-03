@@ -1665,7 +1665,7 @@ static int font_open_exec(bContext *C, wmOperator *op)
 
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	VFont *font = NULL;
+	VFont *vfont = NULL;
 	char *path;
 
 	PointerRNA idptr;
@@ -1678,10 +1678,10 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 
 	if (pprop->prop) {
 		idptr = RNA_property_pointer_get((PointerRNA *)pprop, pprop->prop);
-		font = idptr.id.data;
+		vfont = idptr.id.data;
 	}
 
-	path = (font && strcmp(font->name, FO_BUILTIN_NAME) != 0) ? font->name : U.fontdir;
+	path = (vfont && !BKE_vfont_is_builtin(vfont)) ? vfont->name : U.fontdir;
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return font_open_exec(C, op);

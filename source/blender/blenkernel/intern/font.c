@@ -64,11 +64,11 @@ static ListBase ttfdata = {NULL, NULL};
 
 /* The vfont code */
 
-void BKE_vfont_free_data(struct VFont *vf)
+void BKE_vfont_free_data(struct VFont *vfont)
 {
-	if (vf->data) {
-		while (vf->data->characters.first) {
-			VChar *che = vf->data->characters.first;
+	if (vfont->data) {
+		while (vfont->data->characters.first) {
+			VChar *che = vfont->data->characters.first;
 
 			while (che->nurbsbase.first) {
 				Nurb *nu = che->nurbsbase.first;
@@ -76,14 +76,14 @@ void BKE_vfont_free_data(struct VFont *vf)
 				BLI_freelinkN(&che->nurbsbase, nu);
 			}
 
-			BLI_freelinkN(&vf->data->characters, che);
+			BLI_freelinkN(&vfont->data->characters, che);
 		}
 
-		MEM_freeN(vf->data);
-		vf->data = NULL;
+		MEM_freeN(vfont->data);
+		vfont->data = NULL;
 	}
 
-	BKE_vfont_tmpfont_remove(vf);
+	BKE_vfont_tmpfont_remove(vfont);
 }
 
 void BKE_vfont_free(struct VFont *vf)
@@ -100,6 +100,11 @@ void BKE_vfont_free(struct VFont *vf)
 
 static void *builtin_font_data = NULL;
 static int builtin_font_size = 0;
+
+int  BKE_vfont_is_builtin(struct VFont *vfont)
+{
+	return (strcmp(vfont->name, FO_BUILTIN_NAME) == 0);
+}
 
 void BKE_vfont_builtin_register(void *mem, int size)
 {
@@ -185,7 +190,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 	if (!vfont->data) {
 		PackedFile *pf;
 
-		if (strcmp(vfont->name, FO_BUILTIN_NAME) == 0) {
+		if (BKE_vfont_is_builtin(vfont)) {
 			pf = get_builtin_packedfile();
 		}
 		else {
@@ -324,11 +329,13 @@ static VFont *which_vfont(Curve *cu, CharInfo *info)
 
 VFont *BKE_vfont_builtin_get(void)
 {
-	VFont *vf;
+	VFont *vfont;
 	
-	for (vf = G.main->vfont.first; vf; vf = vf->id.next)
-		if (strcmp(vf->name, FO_BUILTIN_NAME) == 0)
-			return vf;
+	for (vfont = G.main->vfont.first; vfont; vfont = vfont->id.next) {
+		if (BKE_vfont_is_builtin(vfont)) {
+			return vfont;
+		}
+	}
 	
 	return BKE_vfont_load(G.main, FO_BUILTIN_NAME);
 }
@@ -663,10 +670,10 @@ makebreak:
 
 		/*
 		 * The character wasn't in the current curve base so load it
-		 * But if the font is FO_BUILTIN_NAME then do not try loading since
+		 * But if the font is built-in then do not try loading since
 		 * whole font is in the memory already
 		 */
-		if (che == NULL && strcmp(vfont->name, FO_BUILTIN_NAME)) {
+		if (che == NULL && BKE_vfont_is_builtin(vfont) == FALSE) {
 			BLI_vfontchar_from_freetypefont(vfont, ascii);
 		}
 
