@@ -24,7 +24,6 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -34,6 +33,17 @@
 #include "DNA_vfont_types.h"
 
 #ifdef RNA_RUNTIME
+
+/* matching fnction in rna_ID.c */
+static int rna_VectorFont_filepath_editable(PointerRNA *ptr)
+{
+	VFont *vf = (VFont *)ptr->data;
+	if (strcmp(vf->name, FO_BUILTIN_NAME) == 0) {
+		return 0;
+	}
+
+	return 1;
+}
 
 #else
 
@@ -48,8 +58,8 @@ void RNA_def_vfont(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_FILE_FONT);
 
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_editable_func(prop, "rna_VectorFont_filepath_editable");
 	RNA_def_property_ui_text(prop, "File Path", "");
 
 	prop = RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
@@ -58,4 +68,3 @@ void RNA_def_vfont(BlenderRNA *brna)
 }
 
 #endif
-
