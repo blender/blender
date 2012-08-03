@@ -202,6 +202,9 @@ public:
 	/**
 	 * @brief add the content from otherBuffer to this MemoryBuffer
 	 * @param otherBuffer source buffer
+	 *
+	 * @note take care when running this on a new buffer since it wont fill in
+	 *       uninitialized values in areas where the buffers don't overlap.
 	 */
 	void copyContentFrom(MemoryBuffer *otherBuffer);
 	
@@ -229,7 +232,7 @@ public:
 	
 	float *convertToValueBuffer();
 	float getMaximumValue();
-	float getMaximumValue(rcti* rect);
+	float getMaximumValue(rcti *rect);
 private:
 	unsigned int determineBufferSize();
 
