@@ -722,7 +722,13 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		else if (t->spacetype == SPACE_IMAGE) {
 			float aspx, aspy;
 
-			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			if (t->options & CTX_MASK) {
+				/* untested - mask aspect is TODO */
+				ED_space_image_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			}
+			else {
+				ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			}
 			glScalef(1.0f / aspx, 1.0f / aspy, 1.0);
 		}
 

@@ -175,7 +175,6 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		if (t->options & CTX_MASK) {
 
 			convertViewVec2D_mask(t->view, r_vec, dx, dy);
-
 			ED_space_image_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		}
 		else {
