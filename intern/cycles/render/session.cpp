@@ -652,8 +652,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	int num_samples = tile_manager.state.num_samples;
 	int resolution = tile_manager.state.resolution;
 	int num_tiles = tile_manager.state.num_tiles;
-	int num_rendered_tiles = tile_manager.state.num_rendered_tiles;
-	int tile = num_tiles - num_rendered_tiles;
+	int tile = tile_manager.state.num_rendered_tiles;
 
 	/* update status */
 	string status, substatus;
