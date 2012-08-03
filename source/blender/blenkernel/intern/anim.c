@@ -1549,7 +1549,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int par_inde
 {
 	Object *ob, *obar[256] = {NULL};
 	Curve *cu;
-	struct chartrans *ct, *chartransdata;
+	struct CharTrans *ct, *chartransdata;
 	float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
 	int slen, a;
 	

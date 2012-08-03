@@ -559,7 +559,7 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 	}
 }
 
-struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode)
+struct CharTrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode)
 {
 	VFont *vfont, *oldvfont;
 	VFontData *vfd = NULL;
@@ -567,7 +567,7 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 	CharInfo *info = NULL, *custrinfo;
 	TextBox *tb;
 	VChar *che;
-	struct chartrans *chartransdata = NULL, *ct;
+	struct CharTrans *chartransdata = NULL, *ct;
 	float *f, xof, yof, xtrax, linedist, *linedata, *linedata2, *linedata3, *linedata4;
 	float twidth, maxlen = 0;
 	int i, slen, j;
@@ -622,7 +622,7 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 
 	/* calc offset and rotation of each char */
 	ct = chartransdata =
-	         (struct chartrans *)MEM_callocN((slen + 1) * sizeof(struct chartrans), "buildtext");
+	         (struct CharTrans *)MEM_callocN((slen + 1) * sizeof(struct CharTrans), "buildtext");
 
 	/* We assume the worst case: 1 character per line (is freed at end anyway) */
 
