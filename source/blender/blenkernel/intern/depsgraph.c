@@ -2846,6 +2846,18 @@ void DAG_id_tag_update(ID *id, short flag)
 				}
 			}
 		}
+		else if (idtype == ID_VF) {
+			/* this is weak still, should be done delayed as well */
+			for (ob = bmain->object.first; ob; ob = ob->id.next) {
+				if (ob->type == OB_FONT) {
+					Curve *cu = ob->data;
+
+					if (ELEM4((struct VFont *)id, cu->vfont, cu->vfontb, cu->vfonti, cu->vfontbi)) {
+						ob->recalc |= (flag & OB_RECALC_ALL);
+					}
+				}
+			}
+		}
 		else {
 			/* disable because this is called on various ID types automatically.
 			 * where printing warning is not useful. for now just ignore */
