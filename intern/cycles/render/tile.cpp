@@ -60,6 +60,7 @@ void TileManager::reset(BufferParams& params_, int num_samples_)
 	state.buffer = BufferParams();
 	state.sample = -1;
 	state.num_tiles = 0;
+	state.num_rendered_tiles = 0;
 	state.num_samples = 0;
 	state.resolution = start_resolution;
 	state.tiles.clear();
@@ -160,6 +161,7 @@ bool TileManager::next_tile(Tile& tile, int device)
 	if (best != state.tiles.end()) {
 		best->rendering = true;
 		tile = *best;
+		state.num_rendered_tiles++;
 
 		return true;
 	}

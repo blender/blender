@@ -53,6 +53,7 @@ public:
 		int num_samples;
 		int resolution;
 		int num_tiles;
+		int num_rendered_tiles;
 		list<Tile> tiles;
 	} state;
 
