@@ -63,26 +63,34 @@
 static ListBase ttfdata = {NULL, NULL};
 
 /* The vfont code */
-void BKE_vfont_free(struct VFont *vf)
-{
-	if (vf == NULL) return;
 
+void BKE_vfont_free_data(struct VFont *vf)
+{
 	if (vf->data) {
 		while (vf->data->characters.first) {
 			VChar *che = vf->data->characters.first;
-			
+
 			while (che->nurbsbase.first) {
 				Nurb *nu = che->nurbsbase.first;
 				if (nu->bezt) MEM_freeN(nu->bezt);
 				BLI_freelinkN(&che->nurbsbase, nu);
 			}
-	
+
 			BLI_freelinkN(&vf->data->characters, che);
 		}
 
 		MEM_freeN(vf->data);
 		vf->data = NULL;
 	}
+
+	BKE_vfont_tmpfont_remove(vf);
+}
+
+void BKE_vfont_free(struct VFont *vf)
+{
+	if (vf == NULL) return;
+
+	BKE_vfont_free_data(vf);
 	
 	if (vf->packedfile) {
 		freePackedFile(vf->packedfile);
@@ -115,32 +123,52 @@ static PackedFile *get_builtin_packedfile(void)
 	}
 }
 
-void BKE_vfont_free_global_ttf(void)
+static void vfont_tmpfont_free(struct TmpFont *tf)
 {
-	struct TmpFont *tf;
-
-	for (tf = ttfdata.first; tf; tf = tf->next) {
-		if (tf->pf) freePackedFile(tf->pf);  /* NULL when the font file can't be found on disk */
-		tf->pf = NULL;
-		tf->vfont = NULL;
+	if (tf->pf) {
+		freePackedFile(tf->pf);  /* NULL when the font file can't be found on disk */
 	}
-	BLI_freelistN(&ttfdata);
+	MEM_freeN(tf);
 }
 
-struct TmpFont *BKE_vfont_find_tmpfont(VFont *vfont)
+void BKE_vfont_free_global_ttf(void)
+{
+	struct TmpFont *tf, *tf_next;
+
+	for (tf = ttfdata.first; tf; tf = tf_next) {
+		tf_next = tf->next;
+		vfont_tmpfont_free(tf);
+	}
+	ttfdata.first = ttfdata.last = NULL;
+}
+
+struct TmpFont *BKE_vfont_tmpfont_find(VFont *vfont)
 {
 	struct TmpFont *tmpfnt = NULL;
 	
 	if (vfont == NULL) return NULL;
 	
 	/* Try finding the font from font list */
-	tmpfnt = ttfdata.first;
-	while (tmpfnt) {
-		if (tmpfnt->vfont == vfont)
+	for (tmpfnt = ttfdata.first; tmpfnt; tmpfnt = tmpfnt->next) {
+		if (tmpfnt->vfont == vfont) {
 			break;
-		tmpfnt = tmpfnt->next;
+		}
 	}
+
 	return tmpfnt;
+}
+
+/* assumes a VFont's tmpfont can't be in the database more then once */
+void BKE_vfont_tmpfont_remove(VFont *vfont)
+{
+	struct TmpFont *tmpfnt;
+
+	tmpfnt = BKE_vfont_tmpfont_find(vfont);
+
+	if (tmpfnt) {
+		vfont_tmpfont_free(tmpfnt);
+		BLI_remlink(&ttfdata, tmpfnt);
+	}
 }
 
 static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
@@ -151,7 +179,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 	if (vfont == NULL) return NULL;
 	
 	/* Try finding the font from font list */
-	tmpfnt = BKE_vfont_find_tmpfont(vfont);
+	tmpfnt = BKE_vfont_tmpfont_find(vfont);
 
 	/* And then set the data */
 	if (!vfont->data) {
@@ -194,7 +222,11 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 			if (!pf) {
 				printf("Font file doesn't exist: %s\n", vfont->name);
 
+				/* DON'T DO THIS
+				 * missing file shouldn't modifty path! - campbell */
+#if 0
 				strcpy(vfont->name, FO_BUILTIN_NAME);
+#endif
 				pf = get_builtin_packedfile();
 			}
 		}

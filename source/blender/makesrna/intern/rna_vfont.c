@@ -32,17 +32,35 @@
 
 #include "DNA_vfont_types.h"
 
+#include "WM_types.h"
+
+
 #ifdef RNA_RUNTIME
+
+#include "BKE_font.h"
+#include "BKE_depsgraph.h"
+#include "DNA_object_types.h"
+
+#include "WM_api.h"
 
 /* matching fnction in rna_ID.c */
 static int rna_VectorFont_filepath_editable(PointerRNA *ptr)
 {
-	VFont *vf = (VFont *)ptr->data;
+	VFont *vf = ptr->id.data;
 	if (strcmp(vf->name, FO_BUILTIN_NAME) == 0) {
 		return 0;
 	}
-
 	return 1;
+}
+
+static void rna_VectorFont_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	VFont *vf = ptr->id.data;
+	BKE_vfont_free_data(vf);
+
+	/* update */
+	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
+	DAG_id_tag_update(&vf->id, OB_RECALC_OB | OB_RECALC_DATA);
 }
 
 #else
@@ -61,6 +79,7 @@ void RNA_def_vfont(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_editable_func(prop, "rna_VectorFont_filepath_editable");
 	RNA_def_property_ui_text(prop, "File Path", "");
+	RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_VectorFont_reload_update");
 
 	prop = RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
