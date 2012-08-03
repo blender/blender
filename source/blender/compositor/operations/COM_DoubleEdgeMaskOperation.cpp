@@ -907,7 +907,7 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 	 * or outer edge.
 	 *
 	 * Allocation is done by requesting 4 bytes "sizeof(int)" per pixel, even
-	 * though gbuf[] is declared as unsigned short* (2 bytes) because we don't
+	 * though gbuf[] is declared as (unsigned short *) (2 bytes) because we don't
 	 * store the pixel indexes, we only store x,y location of pixel in buffer.
 	 *
 	 * This does make the assumption that x and y can fit in 16 unsigned bits

@@ -44,7 +44,7 @@ public:
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void initExecution();
 	void deinitExecution();
-	void executeOpenCLRegion(OpenCLDevice* device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **memoryBuffers, MemoryBuffer *outputBuffer);
+	void executeOpenCLRegion(OpenCLDevice *device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **memoryBuffers, MemoryBuffer *outputBuffer);
 	void readResolutionFromInputSocket();
 	inline NodeOperation *getInput() {
 		return m_input;

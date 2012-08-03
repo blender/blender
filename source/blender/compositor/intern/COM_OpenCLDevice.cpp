@@ -67,7 +67,7 @@ void OpenCLDevice::execute(WorkPackage *work)
 }
 cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader *reader)
 {
-	return COM_clAttachMemoryBufferToKernelParameter(kernel, parameterIndex, offsetIndex, cleanup, inputMemoryBuffers, (ReadBufferOperation*)reader);
+	return COM_clAttachMemoryBufferToKernelParameter(kernel, parameterIndex, offsetIndex, cleanup, inputMemoryBuffers, (ReadBufferOperation *)reader);
 }
 
 cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, ReadBufferOperation *reader)
@@ -106,7 +106,7 @@ void OpenCLDevice::COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel ker
 	}
 }
 
-void OpenCLDevice::COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offsetIndex, NodeOperation* operation)
+void OpenCLDevice::COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offsetIndex, NodeOperation *operation)
 {
 	if (offsetIndex != -1) {
 		cl_int error;
@@ -133,7 +133,7 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemo
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 }
 
-void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex, NodeOperation* operation)
+void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex, NodeOperation *operation)
 {
 	cl_int error;
 	const int width = outputMemoryBuffer->getWidth();

@@ -193,7 +193,7 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	return false;
 }
 
-void BokehBlurOperation::executeOpenCL(OpenCLDevice* device,
+void BokehBlurOperation::executeOpenCL(OpenCLDevice *device,
                                        MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
                                        MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
                                        list<cl_kernel> *clKernelsToCleanUp) 

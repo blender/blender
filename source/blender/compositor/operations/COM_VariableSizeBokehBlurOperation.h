@@ -66,7 +66,7 @@ public:
 
 	void setThreshold(float threshold) { this->m_threshold = threshold; }
 
-	void executeOpenCL(OpenCLDevice* device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp);
+	void executeOpenCL(OpenCLDevice *device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp);
 };
 
 #ifdef COM_DEFOCUS_SEARCH
@@ -88,7 +88,7 @@ public:
 	 * Initialize the execution
 	 */
 	void initExecution();
-	void* initializeTileData(rcti *rect);
+	void *initializeTileData(rcti *rect);
 	void deinitializeTileData(rcti *rect, void *data);
 	
 	/**

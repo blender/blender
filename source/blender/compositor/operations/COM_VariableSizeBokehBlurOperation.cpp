@@ -63,22 +63,22 @@ void VariableSizeBokehBlurOperation::initExecution()
 }
 struct VariableSizeBokehBlurTileData
 {
-	MemoryBuffer* color;
-	MemoryBuffer* bokeh;
-	MemoryBuffer* size;
+	MemoryBuffer *color;
+	MemoryBuffer *bokeh;
+	MemoryBuffer *size;
 	int maxBlur;
 };
 
 void *VariableSizeBokehBlurOperation::initializeTileData(rcti *rect)
 {
 	VariableSizeBokehBlurTileData *data = new VariableSizeBokehBlurTileData();
-	data->color = (MemoryBuffer*)this->m_inputProgram->initializeTileData(rect);
-	data->bokeh = (MemoryBuffer*)this->m_inputBokehProgram->initializeTileData(rect);
-	data->size = (MemoryBuffer*)this->m_inputSizeProgram->initializeTileData(rect);
+	data->color = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect);
+	data->bokeh = (MemoryBuffer *)this->m_inputBokehProgram->initializeTileData(rect);
+	data->size = (MemoryBuffer *)this->m_inputSizeProgram->initializeTileData(rect);
 
 
 	rcti rect2;
-	this->determineDependingAreaOfInterest(rect, (ReadBufferOperation*)this->m_inputSizeProgram, &rect2);
+	this->determineDependingAreaOfInterest(rect, (ReadBufferOperation *)this->m_inputSizeProgram, &rect2);
 	data->maxBlur = (int)data->size->getMaximumValue(&rect2);
 	CLAMP(data->maxBlur, 1.0f, this->m_maxBlur);
 	return data;
@@ -86,18 +86,18 @@ void *VariableSizeBokehBlurOperation::initializeTileData(rcti *rect)
 
 void VariableSizeBokehBlurOperation::deinitializeTileData(rcti *rect, void *data)
 {
-	VariableSizeBokehBlurTileData* result = (VariableSizeBokehBlurTileData*)data;
+	VariableSizeBokehBlurTileData *result = (VariableSizeBokehBlurTileData *)data;
 	delete result;
 }
 
 void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, void *data)
 {
-	VariableSizeBokehBlurTileData* tileData = (VariableSizeBokehBlurTileData*)data;
-	MemoryBuffer* inputProgramBuffer = tileData->color;
-	MemoryBuffer* inputBokehBuffer = tileData->bokeh;
-	MemoryBuffer* inputSizeBuffer = tileData->size;
-	float* inputSizeFloatBuffer = inputSizeBuffer->getBuffer();
-	float* inputProgramFloatBuffer = inputProgramBuffer->getBuffer();
+	VariableSizeBokehBlurTileData *tileData = (VariableSizeBokehBlurTileData *)data;
+	MemoryBuffer *inputProgramBuffer = tileData->color;
+	MemoryBuffer *inputBokehBuffer = tileData->bokeh;
+	MemoryBuffer *inputSizeBuffer = tileData->size;
+	float *inputSizeFloatBuffer = inputSizeBuffer->getBuffer();
+	float *inputProgramFloatBuffer = inputProgramBuffer->getBuffer();
 	float readColor[4];
 	float bokeh[4];
 	float tempSize[4];
@@ -126,13 +126,13 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 		add_v4_fl(multiplier_accum, 1.0f);
 		float sizeCenter = tempSize[0];
 		
-		const int addXStep = QualityStepHelper::getStep()*COM_NUMBER_OF_CHANNELS;
+		const int addXStep = QualityStepHelper::getStep() * COM_NUMBER_OF_CHANNELS;
 		
 		if (sizeCenter > this->m_threshold) {
 			for (int ny = miny; ny < maxy; ny += QualityStepHelper::getStep()) {
 				float dy = ny - y;
 				int offsetNy = ny * inputSizeBuffer->getWidth() * COM_NUMBER_OF_CHANNELS;
-				int offsetNxNy = offsetNy + (minx*COM_NUMBER_OF_CHANNELS);
+				int offsetNxNy = offsetNy + (minx * COM_NUMBER_OF_CHANNELS);
 				for (int nx = minx; nx < maxx; nx += QualityStepHelper::getStep()) {
 					if (nx != x || ny != y) 
 					{
@@ -162,7 +162,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 
 }
 
-void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice* device,
+void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
                                        MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
                                        MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
                                        list<cl_kernel> *clKernelsToCleanUp) 
@@ -256,10 +256,10 @@ void InverseSearchRadiusOperation::initExecution()
 	this->m_inputRadius = this->getInputSocketReader(0);
 }
 
-void* InverseSearchRadiusOperation::initializeTileData(rcti *rect) 
+voi *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 {
 	MemoryBuffer * data = new MemoryBuffer(NULL, rect);
-	float* buffer = data->getBuffer();
+	float *buffer = data->getBuffer();
 	int x, y;
 	int width = this->m_inputRadius->getWidth();
 	int height = this->m_inputRadius->getHeight();
@@ -312,14 +312,14 @@ void* InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 
 void InverseSearchRadiusOperation::executePixel(float *color, int x, int y, void *data) 
 {
-	MemoryBuffer *buffer = (MemoryBuffer*)data;
+	MemoryBuffer *buffer = (MemoryBuffer *)data;
 	buffer->readNoCheck(color, x, y);
 }
 
 void InverseSearchRadiusOperation::deinitializeTileData(rcti *rect, void *data) 
 {
 	if (data) {
-		MemoryBuffer* mb = (MemoryBuffer*)data;
+		MemoryBuffer *mb = (MemoryBuffer *)data;
 		delete mb;
 	}
 }
@@ -339,10 +339,10 @@ void InverseSearchRadiusOperation::determineResolution(unsigned int resolution[]
 bool InverseSearchRadiusOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newRect;
-	newRect.ymin = input->ymin*DIVIDER - m_maxBlur;
-	newRect.ymax = input->ymax*DIVIDER + m_maxBlur;
-	newRect.xmin = input->xmin*DIVIDER - m_maxBlur;
-	newRect.xmax = input->xmax*DIVIDER + m_maxBlur;
+	newRect.ymin = input->ymin * DIVIDER - m_maxBlur;
+	newRect.ymax = input->ymax * DIVIDER + m_maxBlur;
+	newRect.xmin = input->xmin * DIVIDER - m_maxBlur;
+	newRect.xmax = input->xmax * DIVIDER + m_maxBlur;
 	return NodeOperation::determineDependingAreaOfInterest(&newRect, readOperation, output);
 }
 #endif

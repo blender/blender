@@ -100,7 +100,7 @@ void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, P
 	/* flip because 0.0 is transparent, not 1.0 */
 	alpha = 1.0f - alpha;
 	
-	/* test range*/
+	/* test range */
 	if (alpha > limit_max) {
 		alpha = inColor[3]; /*whatever it was prior */
 	}

@@ -1904,7 +1904,9 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ntree = snode->edittree;
-	bNode *node, *newnode;
+	bNode *gnode = node_tree_get_editgroup(snode->nodetree);
+	float gnode_x = 0.0f, gnode_y = 0.0f;
+	bNode *node, *new_node;
 	bNodeLink *link, *newlink;
 
 	ED_preview_kill_jobs(C);
@@ -1912,10 +1914,37 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	/* clear current clipboard */
 	nodeClipboardClear();
 
+	/* get group node offset */
+	if (gnode)
+		nodeToView(gnode, 0.0f, 0.0f, &gnode_x, &gnode_y);
+	
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->flag & SELECT) {
-			newnode = nodeCopyNode(NULL, node);
-			nodeClipboardAddNode(newnode);
+			new_node = nodeCopyNode(NULL, node);
+			nodeClipboardAddNode(new_node);
+		}
+	}
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->flag & SELECT) {
+			bNode *new_node = node->new_node;
+			
+			/* ensure valid pointers */
+			if (new_node->parent) {
+				/* parent pointer must be redirected to new node or detached if parent is not copied */
+				if (new_node->parent->flag & NODE_SELECT) {
+					new_node->parent = new_node->parent->new_node;
+				}
+				else {
+					nodeDetachNode(new_node);
+				}
+			}
+
+			/* transform to basic view space. child node location is relative to parent */
+			if (!new_node->parent) {	
+				new_node->locx += gnode_x;
+				new_node->locy += gnode_y;
+			}
 		}
 	}
 
@@ -1935,16 +1964,6 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 			newlink->fromsock = link->fromsock->new_sock;
 
 			nodeClipboardAddLink(newlink);
-		}
-	}
-
-	/* reparent copied nodes */
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if ((node->flag & SELECT) && node->parent) {
-			if (node->parent->flag & SELECT)
-				node->parent = node->parent->new_node;
-			else
-				node->parent = NULL;
 		}
 	}
 
@@ -1972,6 +1991,8 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ntree = snode->edittree;
+	bNode *gnode = node_tree_get_editgroup(snode->nodetree);
+	float gnode_x = 0.0f, gnode_y = 0.0f;
 	bNode *node;
 	bNodeLink *link;
 	int num_nodes;
@@ -1982,38 +2003,46 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	/* deselect old nodes */
 	node_deselect_all(snode);
 
+	/* get group node offset */
+	if (gnode)
+		nodeToView(gnode, 0.0f, 0.0f, &gnode_x, &gnode_y);
+
 	/* calculate "barycenter" for placing on mouse cursor */
 	num_nodes = 0;
 	centerx = centery = 0.0f;
 	for (node = nodeClipboardGetNodes()->first; node; node = node->next) {
 		++num_nodes;
-		centerx += node->locx + 0.5f * node->width;
-		centery += node->locy - 0.5f * node->height;
+		centerx += 0.5f * (node->totr.xmin + node->totr.xmax);
+		centery += 0.5f * (node->totr.ymin + node->totr.ymax);
 	}
 	centerx /= num_nodes;
 	centery /= num_nodes;
 
 	/* copy nodes from clipboard */
 	for (node = nodeClipboardGetNodes()->first; node; node = node->next) {
-		bNode *newnode = nodeCopyNode(ntree, node);
+		bNode *new_node = nodeCopyNode(ntree, node);
 
 		/* pasted nodes are selected */
-		node_select(newnode);
-
-		/* place nodes around the mouse cursor */
-		newnode->locx += snode->mx - centerx;
-		newnode->locy += snode->my - centery;
+		node_select(new_node);
+	}
+	
+	/* reparent copied nodes */
+	for (node = nodeClipboardGetNodes()->first; node; node = node->next) {
+		bNode *new_node = node->new_node;
+		if (new_node->parent)
+			new_node->parent = new_node->parent->new_node;
+		
+		
+		/* place nodes around the mouse cursor. child nodes locations are relative to parent */
+		if (!new_node->parent) {
+			new_node->locx += snode->mx - centerx - gnode_x;
+			new_node->locy += snode->my - centery - gnode_y;
+		}
 	}
 
 	for (link = nodeClipboardGetLinks()->first; link; link = link->next) {
 		nodeAddLink(ntree, link->fromnode->new_node, link->fromsock->new_sock,
 		            link->tonode->new_node, link->tosock->new_sock);
-	}
-
-	/* reparent copied nodes */
-	for (node = nodeClipboardGetNodes()->first; node; node = node->next) {
-		if (node->new_node->parent)
-			node->new_node->parent = node->new_node->parent->new_node;
 	}
 
 	ntreeUpdateTree(snode->edittree);

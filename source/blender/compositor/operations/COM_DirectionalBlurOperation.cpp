@@ -101,7 +101,7 @@ void DirectionalBlurOperation::executePixel(float *color, int x, int y, void *da
 	mul_v4_v4fl(color, col2, 1.0f / (iterations+1));
 }
 
-void DirectionalBlurOperation::executeOpenCL(OpenCLDevice* device,
+void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
                                        MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
                                        MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
                                        list<cl_kernel> *clKernelsToCleanUp) 
