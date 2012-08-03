@@ -79,7 +79,7 @@ public:
 	void reset(Device *device, BufferParams& params);
 
 	bool copy_from_device();
-	bool get_pass(PassType type, float exposure, int sample, int components, float *pixels);
+	bool get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels);
 
 protected:
 	void device_free();
@@ -129,6 +129,7 @@ public:
 	int x, y, w, h;
 	int start_sample;
 	int num_samples;
+	int sample;
 	int resolution;
 	int offset;
 	int stride;

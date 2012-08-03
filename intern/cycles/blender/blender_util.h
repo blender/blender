@@ -55,7 +55,6 @@ void rna_ColorRamp_eval(void *coba, float position, float color[4]);
 void rna_Scene_frame_set(void *scene, int frame, float subframe);
 void BKE_image_user_frame_calc(void *iuser, int cfra, int fieldnr);
 void BKE_image_user_file_path(void *iuser, void *ima, char *path);
-
 }
 
 CCL_NAMESPACE_BEGIN

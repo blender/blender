@@ -30,6 +30,7 @@ CCL_NAMESPACE_BEGIN
 class Scene;
 class Session;
 class RenderBuffers;
+class RenderTile;
 
 class BlenderSession {
 public:
@@ -48,14 +49,14 @@ public:
 	/* offline render */
 	void render();
 
-	void write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers);
-	void write_render_buffers(RenderBuffers *buffers);
+	void write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile);
+	void write_render_tile(RenderTile& rtile);
 
 	/* update functions are used to update display buffer only after sample was rendered
 	 * only needed for better visual feedback
 	 */
-	void update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers);
-	void update_render_buffers(RenderBuffers *buffers);
+	void update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile);
+	void update_render_tile(RenderTile& rtile);
 
 	/* interactive updates */
 	void synchronize();
@@ -89,8 +90,8 @@ public:
 	int width, height;
 
 protected:
-	void do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers, bool do_update_only);
-	void do_write_update_render_buffers(RenderBuffers *buffers, bool do_update_only);
+	void do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile, bool do_update_only);
+	void do_write_update_render_tile(RenderTile& rtile, bool do_update_only);
 };
 
 CCL_NAMESPACE_END

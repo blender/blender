@@ -685,8 +685,16 @@ public:
 				int start_sample = tile.start_sample;
 				int end_sample = tile.start_sample + tile.num_samples;
 
-				for(int sample = start_sample; sample < end_sample; sample++)
+				for(int sample = start_sample; sample < end_sample; sample++) {
+					if (task->get_cancel())
+						break;
+
 					path_trace(tile, sample);
+
+					tile.sample = sample + 1;
+
+					task->update_progress(tile);
+				}
 
 				task->release_tile(tile);
 			}

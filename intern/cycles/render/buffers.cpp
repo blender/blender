@@ -158,7 +158,7 @@ bool RenderBuffers::copy_from_device()
 	return true;
 }
 
-bool RenderBuffers::get_pass(PassType type, float exposure, int sample, int components, float *pixels)
+bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels)
 {
 	int pass_offset = 0;
 

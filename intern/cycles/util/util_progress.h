@@ -36,10 +36,10 @@ class Progress {
 public:
 	Progress()
 	{
-		sample = 0;
+		tile = 0;
 		start_time = time_dt();
 		total_time = 0.0f;
-		sample_time = 0.0f;
+		tile_time = 0.0f;
 		status = "Initializing";
 		substatus = "";
 		update_cb = NULL;
@@ -57,8 +57,8 @@ public:
 	{
 		thread_scoped_lock lock(progress.progress_mutex);
 
-		progress.get_sample(sample, total_time, sample_time);
 		progress.get_status(status, substatus);
+		progress.get_tile(tile, total_time, tile_time);
 
 		return *this;
 	}
@@ -90,7 +90,7 @@ public:
 		cancel_cb = function;
 	}
 
-	/* sample and timing information */
+	/* tile and timing information */
 
 	void set_start_time(double start_time_)
 	{
@@ -99,22 +99,22 @@ public:
 		start_time = start_time_;
 	}
 
-	void set_sample(int sample_, double sample_time_)
+	void set_tile(int tile_, double tile_time_)
 	{
 		thread_scoped_lock lock(progress_mutex);
 
-		sample = sample_;
+		tile = tile_;
 		total_time = time_dt() - start_time;
-		sample_time = sample_time_;
+		tile_time = tile_time_;
 	}
 
-	void get_sample(int& sample_, double& total_time_, double& sample_time_)
+	void get_tile(int& tile_, double& total_time_, double& tile_time_)
 	{
 		thread_scoped_lock lock(progress_mutex);
 
-		sample_ = sample;
+		tile_ = tile;
 		total_time_ = (total_time > 0.0)? total_time: 0.0;
-		sample_time_ = sample_time;
+		tile_time_ = tile_time;
 	}
 
 	/* status messages */
@@ -170,11 +170,11 @@ protected:
 	boost::function<void(void)> update_cb;
 	boost::function<void(void)> cancel_cb;
 
-	int sample;
+	int tile;
 
 	double start_time;
 	double total_time;
-	double sample_time;
+	double tile_time;
 
 	string status;
 	string substatus;

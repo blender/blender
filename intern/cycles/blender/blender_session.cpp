@@ -189,9 +189,9 @@ static void end_render_result(BL::RenderEngine b_engine, BL::RenderResult b_rr, 
 	RE_engine_end_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data, (int)cancel);
 }
 
-void BlenderSession::do_write_update_render_buffers(RenderBuffers *buffers, bool do_update_only)
+void BlenderSession::do_write_update_render_tile(RenderTile& rtile, bool do_update_only)
 {
-	BufferParams& params = buffers->params;
+	BufferParams& params = rtile.buffers->params;
 	int x = params.full_x - session->tile_manager.params.full_x;
 	int y = params.full_y - session->tile_manager.params.full_y;
 	int w = params.width;
@@ -211,31 +211,31 @@ void BlenderSession::do_write_update_render_buffers(RenderBuffers *buffers, bool
 
 	if (do_update_only) {
 		/* update only needed */
-		update_render_result(b_rr, b_rlay, buffers);
+		update_render_result(b_rr, b_rlay, rtile);
 		end_render_result(b_engine, b_rr, true);
 	}
 	else {
 		/* write result */
-		write_render_result(b_rr, b_rlay, buffers);
+		write_render_result(b_rr, b_rlay, rtile);
 		end_render_result(b_engine, b_rr);
 	}
 }
 
-void BlenderSession::write_render_buffers(RenderBuffers *buffers)
+void BlenderSession::write_render_tile(RenderTile& rtile)
 {
-	do_write_update_render_buffers(buffers, false);
+	do_write_update_render_tile(rtile, false);
 }
 
-void BlenderSession::update_render_buffers(RenderBuffers *buffers)
+void BlenderSession::update_render_tile(RenderTile& rtile)
 {
-	do_write_update_render_buffers(buffers, true);
+	do_write_update_render_tile(rtile, true);
 }
 
 void BlenderSession::render()
 {
 	/* set callback to write out render results */
-	session->write_render_buffers_cb = function_bind(&BlenderSession::write_render_buffers, this, _1);
-	session->update_render_buffers_cb = function_bind(&BlenderSession::update_render_buffers, this, _1);
+	session->write_render_tile_cb = function_bind(&BlenderSession::write_render_tile, this, _1);
+	session->update_render_tile_cb = function_bind(&BlenderSession::update_render_tile, this, _1);
 
 	/* get buffer parameters */
 	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
@@ -305,22 +305,20 @@ void BlenderSession::render()
 	}
 
 	/* clear callback */
-	session->write_render_buffers_cb = NULL;
-	session->update_render_buffers_cb = NULL;
+	session->write_render_tile_cb = NULL;
+	session->update_render_tile_cb = NULL;
 }
 
-void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers, bool do_update_only)
+void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile, bool do_update_only)
 {
+	RenderBuffers *buffers = rtile.buffers;
+
 	/* copy data from device */
 	if(!buffers->copy_from_device())
 		return;
 
 	BufferParams& params = buffers->params;
 	float exposure = scene->film->exposure;
-	double total_time, sample_time;
-	int sample;
-
-	session->progress.get_sample(sample, total_time, sample_time);
 
 	vector<float> pixels(params.width*params.height*4);
 
@@ -336,27 +334,27 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::Re
 			int components = b_pass.channels();
 
 			/* copy pixels */
-			if(buffers->get_pass(pass_type, exposure, sample, components, &pixels[0]))
+			if(buffers->get_pass_rect(pass_type, exposure, rtile.sample, components, &pixels[0]))
 				rna_RenderPass_rect_set(&b_pass.ptr, &pixels[0]);
 		}
 	}
 
 	/* copy combined pass */
-	if(buffers->get_pass(PASS_COMBINED, exposure, sample, 4, &pixels[0]))
+	if(buffers->get_pass_rect(PASS_COMBINED, exposure, rtile.sample, 4, &pixels[0]))
 		rna_RenderLayer_rect_set(&b_rlay.ptr, &pixels[0]);
 
 	/* tag result as updated */
 	RE_engine_update_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data);
 }
 
-void BlenderSession::write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers)
+void BlenderSession::write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile)
 {
-	do_write_update_render_result(b_rr, b_rlay, buffers, false);
+	do_write_update_render_result(b_rr, b_rlay, rtile, false);
 }
 
-void BlenderSession::update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderBuffers *buffers)
+void BlenderSession::update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile)
 {
-	do_write_update_render_result(b_rr, b_rlay, buffers, true);
+	do_write_update_render_result(b_rr, b_rlay, rtile, true);
 }
 
 void BlenderSession::synchronize()
@@ -461,11 +459,12 @@ void BlenderSession::get_status(string& status, string& substatus)
 
 void BlenderSession::get_progress(float& progress, double& total_time)
 {
-	double sample_time;
-	int sample;
+	double tile_time;
+	int tile;
+	int tile_total = session->tile_manager.state.num_tiles;
 
-	session->progress.get_sample(sample, total_time, sample_time);
-	progress = ((float)sample/(float)session->params.samples);
+	session->progress.get_tile(tile, total_time, tile_time);
+	progress = ((float)tile/(float)tile_total);
 }
 
 void BlenderSession::update_status_progress()

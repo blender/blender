@@ -167,6 +167,7 @@ public:
 						}
 					}
 
+					tile.sample = sample + 1;
 					task.update_progress(tile);
 				}
 			}
@@ -189,6 +190,7 @@ public:
 						}
 					}
 
+					tile.sample = sample + 1;
 					task.update_progress(tile);
 				}
 			}

@@ -339,7 +339,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	/* in case of a permant buffer, return it, otherwise we will allocate
 	 * a new temporary buffer */
-	if(!write_render_buffers_cb) {
+	if(!write_render_tile_cb) {
 		tile_manager.state.buffer.get_offset_stride(rtile.offset, rtile.stride);
 
 		rtile.buffer = buffers->buffer.device_pointer;
@@ -377,11 +377,11 @@ void Session::update_tile_sample(RenderTile& rtile)
 {
 	thread_scoped_lock tile_lock(tile_mutex);
 
-	if(update_render_buffers_cb) {
+	if(update_render_tile_cb) {
 		/* todo: optimize this by making it thread safe and removing lock */
 
 		if(!progress.get_cancel())
-			update_render_buffers_cb(rtile.buffers);
+			update_render_tile_cb(rtile);
 	}
 
 	update_status_time();
@@ -391,10 +391,10 @@ void Session::release_tile(RenderTile& rtile)
 {
 	thread_scoped_lock tile_lock(tile_mutex);
 
-	if(write_render_buffers_cb) {
+	if(write_render_tile_cb) {
 		/* todo: optimize this by making it thread safe and removing lock */
 		if(!progress.get_cancel())
-			write_render_buffers_cb(rtile.buffers);
+			write_render_tile_cb(rtile);
 		delete rtile.buffers;
 	}
 
@@ -648,8 +648,6 @@ void Session::update_scene()
 
 void Session::update_status_time(bool show_pause, bool show_done)
 {
-	int sample = tile_manager.state.sample;
-	int num_samples = tile_manager.state.num_samples;
 	int resolution = tile_manager.state.resolution;
 	int num_tiles = tile_manager.state.num_tiles;
 	int tile = tile_manager.state.num_rendered_tiles;
@@ -677,13 +675,14 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	if(preview_time == 0.0 && resolution == 1)
 		preview_time = time_dt();
 	
-	double sample_time = (sample == 0)? 0.0: (time_dt() - preview_time - paused_time)/(sample);
+	double tile_time = (tile == 0)? 0.0: (time_dt() - preview_time - paused_time)/(sample);
 
 	/* negative can happen when we pause a bit before rendering, can discard that */
 	if(preview_time < 0.0) preview_time = 0.0;
 
-	progress.set_sample(sample + num_samples, sample_time);
+	progress.set_tile(tile, tile_time);
 }
+
 
 void Session::path_trace()
 {
