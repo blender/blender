@@ -105,13 +105,24 @@ float MemoryBuffer::getMaximumValue()
 	return result;
 }
 
-float MemoryBuffer::getMaximumValue(rcti* rect)
+float MemoryBuffer::getMaximumValue(rcti *rect)
 {
-	MemoryBuffer *temp = new MemoryBuffer(NULL, rect);
-	temp->copyContentFrom(this);
-	float result = temp->getMaximumValue();
-	delete temp;
-	return result;
+	rcti rect_clamp;
+
+	/* first clamp the rect by the bounds or we get un-initialized values */
+	BLI_rcti_isect(rect, &this->m_rect, &rect_clamp);
+
+	if (!BLI_rcti_is_empty(&rect_clamp)) {
+		MemoryBuffer *temp = new MemoryBuffer(NULL, &rect_clamp);
+		temp->copyContentFrom(this);
+		float result = temp->getMaximumValue();
+		delete temp;
+		return result;
+	}
+	else {
+		BLI_assert(0);
+		return 0.0f;
+	}
 }
 
 MemoryBuffer::~MemoryBuffer()
@@ -125,6 +136,7 @@ MemoryBuffer::~MemoryBuffer()
 void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer)
 {
 	if (!otherBuffer) {
+		BLI_assert(0);
 		return;
 	}
 	unsigned int otherY;
