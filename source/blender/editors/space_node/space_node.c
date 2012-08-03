@@ -46,7 +46,7 @@
 
 #include "ED_render.h"
 #include "ED_screen.h"
-
+#include "ED_node.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -289,8 +289,9 @@ static void node_area_refresh(const struct bContext *C, ScrArea *sa)
 					snode->recalc = 0;
 					node_render_changed_exec((struct bContext *)C, NULL);
 				}
-				else
-					snode_composite_job(C, sa);
+				else {
+					ED_node_composite_job(C, snode->nodetree, scene);
+				}
 			}
 		}
 		else if (snode->treetype == NTREE_TEXTURE) {

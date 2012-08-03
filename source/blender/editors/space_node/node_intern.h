@@ -169,7 +169,7 @@ void snode_notify(bContext *C, SpaceNode *snode);
 void snode_dag_update(bContext *C, SpaceNode *snode);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
-void snode_composite_job(const struct bContext *C, ScrArea *sa);
+
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
 void snode_update(struct SpaceNode *snode, struct bNode *node);
 bNode *editnode_get_active(bNodeTree *ntree);

@@ -163,26 +163,31 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 
 }
 
-void snode_composite_job(const bContext *C, ScrArea *sa)
+/**
+ * \param sa_owner is the owner of the job,
+ * we don't use it for anything else currently so could also be a void pointer,
+ * but for now keep it an 'Scene' for consistency.
+ *
+ * \note only call from spaces `refresh` callbacks, not direct! - use with care.
+ */
+void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene *scene_owner)
 {
-	SpaceNode *snode = sa->spacedata.first;
 	wmJob *steve;
 	CompoJob *cj;
 
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Compositing", WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing", WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS);
 	cj = MEM_callocN(sizeof(CompoJob), "compo job");
-	
+
 	/* customdata for preview thread */
 	cj->scene = CTX_data_scene(C);
-	cj->ntree = snode->nodetree;
-	
+	cj->ntree = nodetree;
+
 	/* setup job */
 	WM_jobs_customdata(steve, cj, compo_freejob);
 	WM_jobs_timer(steve, 0.1, NC_SCENE, NC_SCENE | ND_COMPO_RESULT);
 	WM_jobs_callbacks(steve, compo_startjob, compo_initjob, compo_updatejob, NULL);
-	
+
 	WM_jobs_start(CTX_wm_manager(C), steve);
-	
 }
 
 /* ***************************************** */
