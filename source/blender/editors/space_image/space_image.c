@@ -411,9 +411,6 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 static void image_listener(ScrArea *sa, wmNotifier *wmn)
 {
 	SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
-
-	/* grr, prevent feedback loop */
-	const int show_mask = (sima->image && (sima->image->source == IMA_SRC_VIEWER && sima->mode == SI_MODE_MASK));
 	
 	/* context changes */
 	switch (wmn->category) {
@@ -429,8 +426,6 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_COMPO_RESULT:
 					if (ED_space_image_show_render(sima))
 						image_scopes_tag_refresh(sa);
-					if (!show_mask)
-						ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 			}
