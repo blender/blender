@@ -71,7 +71,7 @@ void ConvertDepthToRadiusOperation::initExecution()
 	this->m_dof_sp = (float)minsz / (16.f / this->m_cam_lens);    // <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
 	
 	if (this->m_blurPostOperation) {
-		m_blurPostOperation->setSigma(m_aperture*128.0f);
+		m_blurPostOperation->setSigma(m_aperture * 128.0f);
 	}
 }
 
@@ -87,9 +87,9 @@ void ConvertDepthToRadiusOperation::executePixel(float *outputValue, float x, fl
 		
 		// bug #6656 part 2b, do not rescale
 #if 0
-		bcrad = 0.5f*fabs(aperture*(dof_sp*(cam_invfdist - iZ) - 1.f));
+		bcrad = 0.5f * fabs(aperture * (dof_sp * (cam_invfdist - iZ) - 1.0f));
 		// scale crad back to original maximum and blend
-		crad->rect[px] = bcrad + wts->rect[px]*(scf*crad->rect[px] - bcrad);
+		crad->rect[px] = bcrad + wts->rect[px] * (scf * crad->rect[px] - bcrad);
 #endif
 		radius = 0.5f * fabsf(this->m_aperture * (this->m_dof_sp * (this->m_inverseFocalDistance - iZ) - 1.f));
 		// 'bug' #6615, limit minimum radius to 1 pixel, not really a solution, but somewhat mitigates the problem

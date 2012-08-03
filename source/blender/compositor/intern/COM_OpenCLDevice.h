@@ -100,9 +100,9 @@ public:
 	cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, ReadBufferOperation *reader);
 	void COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel kernel, int offsetIndex, MemoryBuffer *memoryBuffers);
 	void COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, cl_mem clOutputMemoryBuffer);
-	void COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offsetIndex, NodeOperation* operation);
+	void COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offsetIndex, NodeOperation *operation);
 	void COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemoryBuffer);
-	void COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex, NodeOperation* operation);
+	void COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex, NodeOperation *operation);
 	cl_kernel COM_clCreateKernel(const char *kernelname, list<cl_kernel> *clKernelsToCleanUp);
 };
 

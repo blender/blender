@@ -110,7 +110,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 	memoryBuffer->setCreatedState();
 }
 
-void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice* device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **inputMemoryBuffers, MemoryBuffer *outputBuffer)
+void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **inputMemoryBuffers, MemoryBuffer *outputBuffer)
 {
 	float *outputFloatBuffer = outputBuffer->getBuffer();
 	cl_int error;

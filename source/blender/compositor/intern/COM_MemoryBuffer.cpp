@@ -248,7 +248,7 @@ static void imp2radangle(float A, float B, float C, float F, float *a, float *b,
 			*b = sqrtf(F2 / d);
 			*ecc = *a / *b;
 		}
-		// incr theta by 0.5*pi (angle of major axis)
+		/* incr theta by 0.5 * pi (angle of major axis) */
 		*th = 0.5f * (atan2f(B, AmC) + (float)M_PI);
 	}
 }

@@ -75,7 +75,7 @@ void ColorMatteOperation::executePixel(float *outputValue, float x, float y, Pix
 	    /* hue */ ((h_wrap = 2.f * fabsf(inColor[0] - inKey[0])) < hue || (2.f - h_wrap) < hue)
 	    )
 	{
-		outputValue[0] = 0.0f; /*make transparent*/
+		outputValue[0] = 0.0f; /* make transparent */
 	}
 
 	else { /*pixel is outside key color */

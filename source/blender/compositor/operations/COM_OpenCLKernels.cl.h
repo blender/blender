@@ -41,7 +41,7 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "	float4 color = {0.0f,0.0f,0.0f,0.0f};\n" \
 "	float4 multiplyer = {0.0f,0.0f,0.0f,0.0f};\n" \
 "	float4 bokeh;\n" \
-"	const float radius2 = radius*2.0f;\n" \
+"	const float radius2 = radius * 2.0f;\n" \
 "	const int2 realCoordinate = coords + offsetOutput;\n" \
 "\n" \
 "	tempBoundingBox = read_imagef(boundingBox, SAMPLER_NEAREST, coords).s0;\n" \
@@ -56,10 +56,10 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "		float2 uv;\n" \
 "		int2 inputXy;\n" \
 "\n" \
-"		for (ny = minXY.y, inputXy.y = ny - offsetInput.y ; ny < maxXY.y ; ny +=step, inputXy.y+=step) {\n" \
+"		for (ny = minXY.y, inputXy.y = ny - offsetInput.y ; ny < maxXY.y ; ny += step, inputXy.y += step) {\n" \
 "			uv.y = ((realCoordinate.y-ny)/radius2)*bokehImageDim.y+bokehImageCenter.y;\n" \
 "\n" \
-"			for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx +=step, inputXy.x+=step) {\n" \
+"			for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx += step, inputXy.x += step) {\n" \
 "				uv.x = ((realCoordinate.x-nx)/radius2)*bokehImageDim.x+bokehImageCenter.x;\n" \
 "				bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);\n" \
 "				color += bokeh * read_imagef(inputImage, SAMPLER_NEAREST, inputXy);\n" \
@@ -117,7 +117,7 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "								float2 uv = { 256.0f + dx * 256.0f / tempSize, 256.0f + dy * 256.0f / tempSize};\n" \
 "								bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);\n" \
 "								readColor = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);\n" \
-"								color_accum += bokeh*readColor;\n" \
+"								color_accum += bokeh * readColor;\n" \
 "								multiplier_accum += bokeh;\n" \
 "							}\n" \
 "						}\n" \
@@ -152,7 +152,7 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "		const float deltaY = (realCoordinate.y - ny);\n" \
 "		for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx ++, inputXy.x++) {\n" \
 "			const float deltaX = (realCoordinate.x - nx);\n" \
-"			const float measuredDistance = deltaX*deltaX+deltaY*deltaY;\n" \
+"			const float measuredDistance = deltaX * deltaX + deltaY * deltaY;\n" \
 "			if (measuredDistance <= distanceSquared) {\n" \
 "				value = max(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);\n" \
 "			}\n" \
@@ -183,7 +183,7 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "		for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx ++, inputXy.x++) {\n" \
 "			const float deltaX = (realCoordinate.x - nx);\n" \
 "			const float deltaY = (realCoordinate.y - ny);\n" \
-"			const float measuredDistance = deltaX*deltaX+deltaY*deltaY;\n" \
+"			const float measuredDistance = deltaX * deltaX + deltaY * deltaY;\n" \
 "			if (measuredDistance <= distanceSquared) {\n" \
 "				value = min(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);\n" \
 "			}\n" \

@@ -64,7 +64,7 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 	/* average together the distances */
 	difference = difference / 3.0f;
 
-	/*make 100% transparent*/
+	/* make 100% transparent */
 	if (difference < tolerance) {
 		outputValue[0] = 0.0f;
 	}
@@ -81,7 +81,7 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 		}
 	}
 	else {
-		/*foreground object*/
+		/* foreground object */
 		outputValue[0] = inColor1[3];
 	}
 }

@@ -153,7 +153,7 @@ public:
 	 * @brief Create a new ExecutionSystem and initialize it with the
 	 * editingtree.
 	 *
-	 * @param editingtree [bNodeTree*]
+	 * @param editingtree [bNodeTree *]
 	 * @param rendering [true false]
 	 */
 	ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation);

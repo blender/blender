@@ -65,7 +65,7 @@ void ChromaMatteOperation::executePixel(float *outputValue, float x, float y, Pi
 	 */
 
 	/* Algorithm from book "Video Demistified," does not include the spill reduction part */
-	/* find theta, the angle that the color space should be rotated based on key*/
+	/* find theta, the angle that the color space should be rotated based on key */
 	theta = atan2(inKey[2], inKey[1]);
 
 	/*rotate the cb and cr into x/z space */

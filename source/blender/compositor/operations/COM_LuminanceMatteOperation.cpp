@@ -55,7 +55,7 @@ void LuminanceMatteOperation::executePixel(float *outputValue, float x, float y,
 	 * outputValue[0] = max(inputValue[3], min(high, max(low, ((inColor[0]-low)/(high-low))))
 	 */
 		
-	/* test range*/
+	/* test range */
 	if (inColor[0] > high) {
 		alpha = 1.f;
 	}
