@@ -165,7 +165,7 @@ def validate_arguments(args, bc):
             'WITH_BF_OIIO', 'WITH_BF_STATICOIIO', 'BF_OIIO', 'BF_OIIO_INC', 'BF_OIIO_LIB', 'BF_OIIO_LIB_STATIC', 'BF_OIIO_LIBPATH',
             'WITH_BF_OCIO', 'WITH_BF_STATICOCIO', 'BF_OCIO', 'BF_OCIO_INC', 'BF_OCIO_LIB', 'BF_OCIO_LIB_STATIC', 'BF_OCIO_LIBPATH',
             'WITH_BF_BOOST', 'WITH_BF_STATICBOOST', 'BF_BOOST', 'BF_BOOST_INC', 'BF_BOOST_LIB', 'BF_BOOST_LIB_STATIC', 'BF_BOOST_LIBPATH',
-            'WITH_BF_LIBMV', 'WITH_BF_CARVE'
+            'WITH_BF_LIBMV'
             ]
     
     # Have options here that scons expects to be lists
@@ -531,7 +531,6 @@ def read_opts(env, cfg, args):
         
         (BoolVariable('WITH_BF_LZO', 'Enable fast LZO pointcache compression', True)),
         (BoolVariable('WITH_BF_LZMA', 'Enable best LZMA pointcache compression', True)),
-        (BoolVariable('WITH_BF_CARVE', 'Enable carve library for mesh boolean operations', True)),
         
         (BoolVariable('WITH_BF_LIBMV', 'Enable libmv structure from motion library', True)),
         

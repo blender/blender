@@ -179,7 +179,7 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_moto)
 	endif()
 
-	if(WITH_CARVE)
+	if(WITH_MOD_BOOLEAN)
 		list(APPEND BLENDER_SORTED_LIBS extern_carve)
 	endif()
 

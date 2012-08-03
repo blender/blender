@@ -26,12 +26,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file boolop/intern/BOP_CarveInterface.cpp
- *  \ingroup boolopintern
+/** \file bsp/intern/BOP_CarveInterface.cpp
+ *  \ingroup bsp
  */
 
-#include "../extern/BOP_Interface.h"
-#include "../../bsp/intern/BSP_CSGMesh_CFIterator.h"
+#include "BOP_Interface.h"
+#include "BSP_CSGMesh_CFIterator.h"
 
 #include <carve/csg_triangulator.hpp>
 #include <carve/interpolator.hpp>

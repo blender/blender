@@ -105,6 +105,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "GPU_material.h"
+
 #include "object_intern.h"
 
 /* this is an exact copy of the define in rna_lamp.c
@@ -893,12 +895,24 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 
 /**************************** Delete Object *************************/
 
+static void object_delete_check_glsl_update(Object *ob)
+{
+	/* some objects could affect on GLSL shading, make sure GLSL settings
+	 * are being tagged to be updated when object is removing from scene
+	 */
+	if (ob->type == OB_LAMP) {
+        if (ob->gpulamp.first)
+			GPU_lamp_free(ob);
+	}
+}
+
 /* remove base from a specific scene */
 /* note: now unlinks constraints as well */
 void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 {
 	DAG_id_type_tag(bmain, ID_OB);
 	BLI_remlink(&scene->base, base);
+	object_delete_check_glsl_update(base->object);
 	BKE_libblock_free_us(&bmain->object, base->object);
 	if (scene->basact == base) scene->basact = NULL;
 	MEM_freeN(base);

@@ -1313,7 +1313,7 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 			rect += 2 * skipx;
 		}
 		if (do_float) {
-			rectf = ((float *)ibuf->rect_float) + 4 * (x - 1);
+			rectf = ibuf->rect_float + 4 * (x - 1);
 			newrectf = _newrectf + 4 * (x - 1);
 
 			val_af = rectf[0];

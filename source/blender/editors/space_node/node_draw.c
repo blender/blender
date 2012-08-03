@@ -29,26 +29,13 @@
  *  \brief higher level node drawing for the node editor.
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "MEM_guardedalloc.h"
-
 #include "DNA_node_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_world_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_rect.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 
@@ -67,19 +54,12 @@
 #include "ED_gpencil.h"
 #include "ED_space_api.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
 
-#include "NOD_composite.h"
-#include "NOD_shader.h"
-
-#include "intern/node_util.h"
-
-#include "node_intern.h"
+#include "node_intern.h"  /* own include */
 #include "COM_compositor.h"
 
 /* width of socket columns in group display */

@@ -28,13 +28,10 @@
  *  \ingroup spnode
  */
 
-
 #include <string.h>
-#include <stdio.h>
 
 #include "DNA_space_types.h"
 #include "DNA_node_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -51,17 +48,12 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "node_intern.h"
+#include "node_intern.h"  /* own include */
 
 /* ************************ add menu *********************** */
 
@@ -255,4 +247,3 @@ void node_menus_register(void)
 	mt->draw= node_menu_add;
 	WM_menutype_add(mt);
 }
-

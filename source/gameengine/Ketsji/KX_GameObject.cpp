@@ -261,12 +261,12 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj, bool addToCom
 		// Make sure the objects have some scale
 		MT_Vector3 scale1 = NodeGetWorldScaling();
 		MT_Vector3 scale2 = obj->NodeGetWorldScaling();
-		if (fabs(scale2[0]) < FLT_EPSILON || 
-			fabs(scale2[1]) < FLT_EPSILON || 
-			fabs(scale2[2]) < FLT_EPSILON || 
-			fabs(scale1[0]) < FLT_EPSILON || 
-			fabs(scale1[1]) < FLT_EPSILON || 
-			fabs(scale1[2]) < FLT_EPSILON) { return; }
+		if (fabs(scale2[0]) < (MT_Scalar)FLT_EPSILON ||
+			fabs(scale2[1]) < (MT_Scalar)FLT_EPSILON ||
+			fabs(scale2[2]) < (MT_Scalar)FLT_EPSILON ||
+			fabs(scale1[0]) < (MT_Scalar)FLT_EPSILON ||
+			fabs(scale1[1]) < (MT_Scalar)FLT_EPSILON ||
+			fabs(scale1[2]) < (MT_Scalar)FLT_EPSILON) { return; }
 
 		// Remove us from our old parent and set our new parent
 		RemoveParent(scene);
@@ -931,7 +931,7 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 		return;
 	}
 	
-	if (fac<=0.0) {
+	if (fac <= 0.0f) {
 		return;
 	}
 	
@@ -944,10 +944,10 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 			ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector parallel to the pivot?
 				ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
-			if (fac == 1.0) {
+			if (fac == 1.0f) {
 				x = vect;
 			} else {
-				x = (vect * fac) + ((orimat * MT_Vector3(1.0, 0.0, 0.0)) * (1-fac));
+				x = (vect * fac) + ((orimat * MT_Vector3(1.0, 0.0, 0.0)) * (1.0f - fac));
 				len = x.length();
 				if (MT_fuzzyZero(len)) x = vect;
 				else x /= len;
@@ -959,10 +959,10 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 			ori.setValue(orimat[0][0], orimat[1][0], orimat[2][0]);
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
 				ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]);
-			if (fac == 1.0) {
+			if (fac == 1.0f) {
 				y = vect;
 			} else {
-				y = (vect * fac) + ((orimat * MT_Vector3(0.0, 1.0, 0.0)) * (1-fac));
+				y = (vect * fac) + ((orimat * MT_Vector3(0.0, 1.0, 0.0)) * (1.0f - fac));
 				len = y.length();
 				if (MT_fuzzyZero(len)) y = vect;
 				else y /= len;
@@ -974,10 +974,10 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 			ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]);
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
 				ori.setValue(orimat[0][0], orimat[1][0], orimat[2][0]);
-			if (fac == 1.0) {
+			if (fac == 1.0f) {
 				z = vect;
 			} else {
-				z = (vect * fac) + ((orimat * MT_Vector3(0.0, 0.0, 1.0)) * (1-fac));
+				z = (vect * fac) + ((orimat * MT_Vector3(0.0, 0.0, 1.0)) * (1.0f - fac));
 				len = z.length();
 				if (MT_fuzzyZero(len)) z = vect;
 				else z /= len;
@@ -1162,9 +1162,9 @@ void KX_GameObject::NodeSetWorldScale(const MT_Vector3& scale)
 	{
 		// Make sure the objects have some scale
 		MT_Vector3 p_scale = parent->GetWorldScaling();
-		if (fabs(p_scale[0]) < FLT_EPSILON ||
-			fabs(p_scale[1]) < FLT_EPSILON ||
-			fabs(p_scale[2]) < FLT_EPSILON)
+		if (fabs(p_scale[0]) < (MT_Scalar)FLT_EPSILON ||
+			fabs(p_scale[1]) < (MT_Scalar)FLT_EPSILON ||
+			fabs(p_scale[2]) < (MT_Scalar)FLT_EPSILON)
 		{ 
 			return; 
 		}
@@ -1190,9 +1190,9 @@ void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
 	{
 		// Make sure the objects have some scale
 		MT_Vector3 scale = parent->GetWorldScaling();
-		if (fabs(scale[0]) < FLT_EPSILON ||
-			fabs(scale[1]) < FLT_EPSILON ||
-			fabs(scale[2]) < FLT_EPSILON)
+		if (fabs(scale[0]) < (MT_Scalar)FLT_EPSILON ||
+			fabs(scale[1]) < (MT_Scalar)FLT_EPSILON ||
+			fabs(scale[2]) < (MT_Scalar)FLT_EPSILON)
 		{ 
 			return; 
 		}
@@ -1940,7 +1940,7 @@ PyObject* KX_GameObject::pyattr_get_mass(void *self_v, const KX_PYATTRIBUTE_DEF 
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	KX_IPhysicsController *spc = self->GetPhysicsController();
-	return PyFloat_FromDouble(spc ? spc->GetMass() : 0.0f);
+	return PyFloat_FromDouble(spc ? spc->GetMass() : 0.0);
 }
 
 int KX_GameObject::pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -1948,7 +1948,7 @@ int KX_GameObject::pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrd
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	KX_IPhysicsController *spc = self->GetPhysicsController();
 	MT_Scalar val = PyFloat_AsDouble(value);
-	if (val < 0.0f) { /* also accounts for non float */
+	if (val < 0.0) { /* also accounts for non float */
 		PyErr_SetString(PyExc_AttributeError, "gameOb.mass = float: KX_GameObject, expected a float zero or above");
 		return PY_SET_ATTR_FAIL;
 	}
@@ -1971,7 +1971,7 @@ int KX_GameObject::pyattr_set_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	KX_IPhysicsController *spc = self->GetPhysicsController();
 	MT_Scalar val = PyFloat_AsDouble(value);
-	if (val < 0.0f) { /* also accounts for non float */
+	if (val < 0.0) { /* also accounts for non float */
 		PyErr_SetString(PyExc_AttributeError, "gameOb.linVelocityMin = float: KX_GameObject, expected a float zero or above");
 		return PY_SET_ATTR_FAIL;
 	}
@@ -1994,7 +1994,7 @@ int KX_GameObject::pyattr_set_lin_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	KX_IPhysicsController *spc = self->GetPhysicsController();
 	MT_Scalar val = PyFloat_AsDouble(value);
-	if (val < 0.0f) { /* also accounts for non float */
+	if (val < 0.0) { /* also accounts for non float */
 		PyErr_SetString(PyExc_AttributeError, "gameOb.linVelocityMax = float: KX_GameObject, expected a float zero or above");
 		return PY_SET_ATTR_FAIL;
 	}
@@ -2360,8 +2360,8 @@ int KX_GameObject::pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF 
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	if (self->GetSGNode()) {
 		MT_Scalar val = PyFloat_AsDouble(value);
-		SG_Node* sg_parent= self->GetSGNode()->GetSGParent();
-		if (val < 0.0f) { /* also accounts for non float */
+		SG_Node *sg_parent= self->GetSGNode()->GetSGParent();
+		if (val < 0.0) { /* also accounts for non float */
 			PyErr_SetString(PyExc_AttributeError, "gameOb.timeOffset = float: KX_GameObject, expected a float zero or above");
 			return PY_SET_ATTR_FAIL;
 		}
@@ -2644,7 +2644,7 @@ PyObject* KX_GameObject::PyGetReactionForce()
 	return PyObjectFrom(dummy_point);
 	*/
 	
-	return Py_BuildValue("fff", 0.0f, 0.0f, 0.0f);
+	return Py_BuildValue("fff", 0.0, 0.0, 0.0);
 	
 }
 
@@ -2761,18 +2761,18 @@ PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* args)
 {
 	PyObject* pyvect;
 	int axis = 2; //z axis is the default
-	float fac = 1.0;
+	float fac = 1.0f;
 	
 	if (PyArg_ParseTuple(args,"O|if:alignAxisToVect",&pyvect,&axis, &fac))
 	{
 		MT_Vector3 vect;
-		if (PyVecTo(pyvect, vect))
-		{
-			if (fac<=0.0) Py_RETURN_NONE; // Nothing to do.
-			if (fac> 1.0) fac= 1.0;
-			
-			AlignAxisToVect(vect,axis,fac);
-			NodeUpdateGS(0.f);
+		if (PyVecTo(pyvect, vect)) {
+			if (fac > 0.0f) {
+				if (fac> 1.0f) fac = 1.0f;
+
+				AlignAxisToVect(vect, axis, fac);
+				NodeUpdateGS(0.f);
+			}
 			Py_RETURN_NONE;
 		}
 	}

@@ -1030,13 +1030,18 @@ static int material_in_nodetree(bNodeTree *ntree, Material *mat)
 	bNode *node;
 
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->id && GS(node->id->name) == ID_MA) {
-			if (node->id == (ID *)mat)
-				return 1;
+		if (node->id) {
+			if (GS(node->id->name) == ID_MA) {
+				if (node->id == (ID *)mat) {
+					return 1;
+				}
+			}
+			else if (node->type == NODE_GROUP) {
+				if (material_in_nodetree((bNodeTree *)node->id, mat)) {
+					return 1;
+				}
+			}
 		}
-		else if (node->type == NODE_GROUP)
-			if (material_in_nodetree((bNodeTree *)node->id, mat))
-				return 1;
 	}
 
 	return 0;

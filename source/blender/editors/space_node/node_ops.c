@@ -30,13 +30,12 @@
 
 
 #include "DNA_node_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_context.h"
 
 #include "BLI_utildefines.h"
 
-#include "ED_node.h"
+#include "ED_node.h"  /* own include */
 #include "ED_screen.h"
 #include "ED_transform.h"
 
@@ -45,7 +44,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "node_intern.h"
+#include "node_intern.h"  /* own include */
 
 void node_operatortypes(void)
 {

@@ -80,13 +80,6 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
 	mh.get_movie_path = filepath_avi;
 	
 	/* do the platform specific handles */
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
-	if (imtype == R_IMF_IMTYPE_AVICODEC) {		
-		//XXX mh.start_movie= start_avi_codec;
-		//XXX mh.append_movie= append_avi_codec;
-		//XXX mh.end_movie= end_avi_codec;
-	}
-#endif
 #ifdef WITH_QUICKTIME
 	if (imtype == R_IMF_IMTYPE_QUICKTIME) {
 		mh.start_movie = start_qt;

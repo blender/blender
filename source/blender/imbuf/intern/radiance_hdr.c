@@ -213,7 +213,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags)
 
 			/* read in and decode the actual data */
 			sline = (RGBE *)MEM_mallocN(sizeof(RGBE) * width, "radhdr_read_tmpscan");
-			rect_float = (float *)ibuf->rect_float;
+			rect_float = ibuf->rect_float;
 			
 			for (y = 0; y < height; y++) {
 				ptr = freadcolrs(sline, ptr, width);

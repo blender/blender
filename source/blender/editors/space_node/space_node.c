@@ -29,29 +29,22 @@
  */
 
 
-#include <string.h>
-#include <stdio.h>
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_node.h"
 
-#include "ED_space_api.h"
 #include "ED_render.h"
 #include "ED_screen.h"
 
@@ -64,7 +57,7 @@
 
 #include "RNA_access.h"
 
-#include "node_intern.h"    // own include
+#include "node_intern.h"  /* own include */
 
 /* ******************** manage regions ********************* */
 

@@ -55,7 +55,6 @@ if(WITH_MOD_DECIMATE)
 endif()
 
 if(WITH_MOD_BOOLEAN)
-	add_subdirectory(boolop)
 	add_subdirectory(bsp)
 endif()
 

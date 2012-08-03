@@ -28,13 +28,7 @@
  *  \ingroup spnode
  */
 
-
-#include <stdio.h>
-
-#include "BLI_listbase.h"
-
 #include "DNA_node_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -43,7 +37,7 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "ED_node.h"
+#include "ED_node.h"  /* own include */
 #include "ED_screen.h"
 #include "ED_types.h"
 
@@ -55,7 +49,7 @@
 
 #include "UI_view2d.h"
  
-#include "node_intern.h"
+#include "node_intern.h"  /* own include */
 
 /* ****** helpers ****** */
 
@@ -368,9 +362,17 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 			node = node_under_mouse_select(snode->edittree, mx, my);
 			
 			if (node) {
-				node_toggle(node);
-				
-				ED_node_set_active(bmain, snode->edittree, node);
+				if ((node->flag & SELECT) && (node->flag & NODE_ACTIVE) == 0) {
+					/* if node is selected but not active make it active
+					 * before it'll be desleected
+					 */
+					ED_node_set_active(bmain, snode->edittree, node);
+				}
+				else {
+					node_toggle(node);
+					ED_node_set_active(bmain, snode->edittree, node);
+				}
+
 				selected = 1;
 			}
 		}

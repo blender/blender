@@ -88,7 +88,7 @@ static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **
 		*outI = (unsigned char *)ibuf->rect + offset;
 	
 	if (ibuf->rect_float)
-		*outF = (float *)ibuf->rect_float + offset;
+		*outF = ibuf->rect_float + offset;
 }
 
 /**************************************************************************
@@ -258,16 +258,16 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 	if (outF) {
 		/* sample including outside of edges of image */
 		if (x1 < 0 || y1 < 0) row1 = empty;
-		else row1 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x1;
+		else row1 = in->rect_float + in->x * y1 * 4 + 4 * x1;
 		
 		if (x1 < 0 || y2 > in->y - 1) row2 = empty;
-		else row2 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x1;
+		else row2 = in->rect_float + in->x * y2 * 4 + 4 * x1;
 		
 		if (x2 > in->x - 1 || y1 < 0) row3 = empty;
-		else row3 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x2;
+		else row3 = in->rect_float + in->x * y1 * 4 + 4 * x2;
 		
 		if (x2 > in->x - 1 || y2 > in->y - 1) row4 = empty;
-		else row4 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x2;
+		else row4 = in->rect_float + in->x * y2 * 4 + 4 * x2;
 
 		a = u - floorf(u);
 		b = v - floorf(v);
@@ -338,10 +338,10 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 
 	if (outF) {
 		/* sample including outside of edges of image */
-		row1 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x1;
-		row2 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x1;
-		row3 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x2;
-		row4 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x2;
+		row1 = in->rect_float + in->x * y1 * 4 + 4 * x1;
+		row2 = in->rect_float + in->x * y2 * 4 + 4 * x1;
+		row3 = in->rect_float + in->x * y1 * 4 + 4 * x2;
+		row4 = in->rect_float + in->x * y2 * 4 + 4 * x2;
 
 		a = u - floorf(u);
 		b = v - floorf(v);
