@@ -125,7 +125,7 @@ bool TileManager::next_tile(Tile& tile, int device)
 	int device_y = (image_h / num) * device;
 	int device_h = (device == num - 1) ? image_h - device * (image_h / num) : image_h / num;
 
-	int64_t centx = image_w / 2, centy = device_h / 2, tot = 1;
+	int64_t centx = image_w / 2, centy = device_y + device_h / 2, tot = 1;
 	int64_t mindist = (int64_t) image_w * (int64_t) device_h;
 
 	/* find center of rendering tiles, image center counts for 1 too */
