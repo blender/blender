@@ -836,24 +836,35 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	RNA_END;
 
 	if (i > 1) {
+		int found = FALSE;
 		bNodeLink *link, *next;
-
-		ED_preview_kill_jobs(C);
 
 		for (link = snode->edittree->links.first; link; link = next) {
 			next = link->next;
 
 			if (cut_links_intersect(link, mcoords, i)) {
+
+				if (found == FALSE) {
+					ED_preview_kill_jobs(C);
+					found = TRUE;
+				}
+
 				snode_update(snode, link->tonode);
 				nodeRemLink(snode->edittree, link);
 			}
 		}
 
-		ntreeUpdateTree(snode->edittree);
-		snode_notify(C, snode);
-		snode_dag_update(C, snode);
+		if (found) {
+			ntreeUpdateTree(snode->edittree);
+			snode_notify(C, snode);
+			snode_dag_update(C, snode);
 
-		return OPERATOR_FINISHED;
+			return OPERATOR_FINISHED;
+		}
+		else {
+			return OPERATOR_CANCELLED;
+		}
+
 	}
 
 	return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
