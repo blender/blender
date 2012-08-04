@@ -60,27 +60,27 @@
 
 /* **************** View All Operator ************** */
 
-static void snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode* snode)
+static void snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode *snode)
 {
 	bNode *node;
 	rctf *cur;
 	float oldwidth, oldheight, width, height;
-	int first= 1;
+	int first = 1;
 	
-	cur= &ar->v2d.cur;
+	cur = &ar->v2d.cur;
 	
-	oldwidth= cur->xmax - cur->xmin;
-	oldheight= cur->ymax - cur->ymin;
+	oldwidth = cur->xmax - cur->xmin;
+	oldheight = cur->ymax - cur->ymin;
 	
 	cur->xmin = cur->ymin = 0.0f;
-	cur->xmax=ar->winx;
-	cur->ymax=ar->winy;
+	cur->xmax = ar->winx;
+	cur->ymax = ar->winy;
 	
 	if (snode->edittree) {
-		for (node= snode->edittree->nodes.first; node; node= node->next) {
+		for (node = snode->edittree->nodes.first; node; node = node->next) {
 			if (first) {
-				first= 0;
-				ar->v2d.cur= node->totr;
+				first = 0;
+				ar->v2d.cur = node->totr;
 			}
 			else {
 				BLI_rctf_union(cur, &node->totr);
@@ -88,33 +88,33 @@ static void snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode* snode)
 		}
 	}
 	
-	snode->xof= 0;
-	snode->yof= 0;
-	width= cur->xmax - cur->xmin;
-	height= cur->ymax- cur->ymin;
+	snode->xof = 0;
+	snode->yof = 0;
+	width = cur->xmax - cur->xmin;
+	height = cur->ymax - cur->ymin;
 
 	if (width > height) {
 		float newheight;
-		newheight= oldheight * width/oldwidth;
-		cur->ymin = cur->ymin - newheight/4;
-		cur->ymax = cur->ymax + newheight/4;
+		newheight = oldheight * width / oldwidth;
+		cur->ymin = cur->ymin - newheight / 4;
+		cur->ymax = cur->ymax + newheight / 4;
 	}
 	else {
 		float newwidth;
-		newwidth= oldwidth * height/oldheight;
-		cur->xmin = cur->xmin - newwidth/4;
-		cur->xmax = cur->xmax + newwidth/4;
+		newwidth = oldwidth * height / oldheight;
+		cur->xmin = cur->xmin - newwidth / 4;
+		cur->xmax = cur->xmax + newwidth / 4;
 	}
 
-	ar->v2d.tot= ar->v2d.cur;
+	ar->v2d.tot = ar->v2d.cur;
 	UI_view2d_curRect_validate(&ar->v2d);
 }
 
 static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);
-	SpaceNode *snode= CTX_wm_space_node(C);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	
 	snode_home(sa, ar, snode);
 	ED_region_tag_redraw(ar);
@@ -134,7 +134,7 @@ void NODE_OT_view_all(wmOperatorType *ot)
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 

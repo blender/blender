@@ -2082,5 +2082,5 @@ void NODE_OT_clipboard_paste(wmOperatorType *ot)
 	ot->poll = ED_operator_node_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
