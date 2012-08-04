@@ -113,7 +113,7 @@ void TileManager::set_tiles()
 	state.buffer.full_height = max(1, params.full_height/resolution);
 }
 
-bool TileManager::next_tile(Tile& tile, int device)
+list<Tile>::iterator TileManager::next_center_tile(int device)
 {
 	list<Tile>::iterator iter, best = state.tiles.end();
 
@@ -131,7 +131,7 @@ bool TileManager::next_tile(Tile& tile, int device)
 
 	/* find center of rendering tiles, image center counts for 1 too */
 	for(iter = state.tiles.begin(); iter != state.tiles.end(); iter++) {
-		if(iter->device == device && iter->rendering) {
+		if(iter->rendering) {
 			Tile &cur_tile = *iter;
 			centx += cur_tile.x + cur_tile.w / 2;
 			centy += cur_tile.y + cur_tile.h / 2;
@@ -151,16 +151,25 @@ bool TileManager::next_tile(Tile& tile, int device)
 			int64_t disty = centy - (cur_tile.y + cur_tile.h / 2);
 			distx = (int64_t) sqrt((double)distx * distx + disty * disty);
 
-			if (distx < mindist) {
+			if(distx < mindist) {
 				best = iter;
 				mindist = distx;
 			}
 		}
 	}
 
-	if (best != state.tiles.end()) {
-		best->rendering = true;
-		tile = *best;
+	return best;
+}
+
+bool TileManager::next_tile(Tile& tile, int device)
+{
+	list<Tile>::iterator tile_it;
+
+	tile_it = next_center_tile(device);
+
+	if(tile_it != state.tiles.end()) {
+		tile_it->rendering = true;
+		tile = *tile_it;
 		state.num_rendered_tiles++;
 
 		return true;

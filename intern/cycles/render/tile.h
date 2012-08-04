@@ -76,6 +76,8 @@ protected:
 	int num_devices;
 
 	int start_resolution;
+
+	list<Tile>::iterator next_center_tile(int device = 0);
 };
 
 CCL_NAMESPACE_END
