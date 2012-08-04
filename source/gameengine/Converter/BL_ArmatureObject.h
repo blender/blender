@@ -83,7 +83,7 @@ public:
 
 	bool SetActiveAction(class BL_ActionActuator *act, short priority, double curtime);
 	
-	struct bArmature * GetArmature() { return m_armature; }
+	struct bArmature *GetArmature() { return m_armature; }
 	const struct bArmature * GetArmature() const { return m_armature; }
 	const struct Scene * GetScene() const { return m_scene; }
 	
