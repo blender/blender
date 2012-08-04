@@ -91,13 +91,14 @@ static int find_nearest_diff_point(const bContext *C, Mask *mask, const float no
 			     i++, cur_point++)
 			{
 				float *diff_points;
-				int tot_diff_point;
+				unsigned int tot_diff_point;
 
 				diff_points = BKE_mask_point_segment_diff_with_resolution(spline, cur_point, width, height,
 				                                                          &tot_diff_point);
 
 				if (diff_points) {
-					int i, tot_feather_point, tot_point;
+					int i, tot_point;
+					unsigned int tot_feather_point;
 					float *feather_points = NULL, *points;
 
 					if (feather) {
