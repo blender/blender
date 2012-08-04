@@ -939,24 +939,17 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
-			set_lib_path(OPENEXR "openexr")
-			set_lib_path(OPENEXR_LIBPATH "openexr/lib")
-			set(OPENEXR_LIBRARIES
-				${OPENEXR_LIBPATH}/Iex.lib
-				${OPENEXR_LIBPATH}/Half.lib
-				${OPENEXR_LIBPATH}/IlmImf.lib
-				${OPENEXR_LIBPATH}/Imath.lib
-				${OPENEXR_LIBPATH}/IlmThread.lib
-			)
-			set_lib_path(OPENEXR_INCUDE "openexr/include")
-			set(OPENEXR_INCLUDE_DIRS
-				${OPENEXR_INCUDE}
-				${OPENEXR_INCUDE}/IlmImf
-				${OPENEXR_INCUDE}/Iex
-				${OPENEXR_INCUDE}/Imath
-			)
-			unset(OPENEXR_INCUDE)
-			unset(OPENEXR_LIBPATH)
+			if(MSVC10)
+				set(OPENEXR ${LIBDIR}/openexr)
+				set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/vc2010/include)
+				set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread Iex)
+				set(OPENEXR_LIBPATH ${OPENEXR}/vc2010/lib)
+			else()
+				set(OPENEXR ${LIBDIR}/openexr)
+				set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include)
+				set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread Iex)
+				set(OPENEXR_LIBPATH ${OPENEXR}/lib)
+			endif()
 		endif()
 
 		if(WITH_IMAGE_TIFF)
@@ -1119,17 +1112,10 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
-			if(MSVC10)
-				set(OPENEXR ${LIBDIR}/openexr)
-				set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/vc_10)
-				set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread Iex)
-				set(OPENEXR_LIBPATH ${OPENEXR}/lib/vc_10)
-			else()
-				set(OPENEXR ${LIBDIR}/openexr)
-				set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include)
-				set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread Iex)
-				set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-			endif()
+			set(OPENEXR ${LIBDIR}/openexr)
+			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
+			set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread Iex)
+			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		endif()
 
 		if(WITH_IMAGE_TIFF)
