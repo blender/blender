@@ -4775,7 +4775,7 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 			distance = distfactor_to_bone(verts[i], root[j], tip[j],
 			                              bone->rad_head * scale, bone->rad_tail * scale, bone->dist * scale);
 			
-			/* add the vert to the deform group if weight!=0.0 */
+			/* add the vert to the deform group if (weight != 0.0) */
 			if (distance != 0.0f)
 				ED_vgroup_vert_add(ob, dgroup, i, distance, WEIGHT_REPLACE);
 			else

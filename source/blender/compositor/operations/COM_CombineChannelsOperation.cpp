@@ -50,7 +50,8 @@ bool CombineChannelsOperation::determineDependingAreaOfInterest(rcti *input, Rea
 				output->xmax = tempOutput.xmax;
 				output->ymax = tempOutput.ymax;
 				first = false;
-			} else {
+			}
+			else {
 				output->xmin = MIN2(output->xmin, tempOutput.xmin);
 				output->ymin = MIN2(output->ymin, tempOutput.ymin);
 				output->xmax = MAX2(output->xmax, tempOutput.xmax);

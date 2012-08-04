@@ -105,7 +105,8 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
 	if (data->preview) {
 		operation->setQuality(COM_QUALITY_LOW);
-	} else {
+	}
+	else {
 		operation->setQuality(context->getQuality());
 	}
 	operation->setMaxBlur(data->maxblur);

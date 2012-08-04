@@ -156,7 +156,8 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 		newInput.xmin = input->xmin - (this->m_size * this->getWidth() / 100.0f);
 		newInput.ymax = input->ymax + (this->m_size * this->getWidth() / 100.0f);
 		newInput.ymin = input->ymin - (this->m_size * this->getWidth() / 100.0f);
-	} else {
+	}
+	else {
 		newInput.xmax = input->xmax + (10.0f * this->getWidth() / 100.0f);
 		newInput.xmin = input->xmin - (10.0f * this->getWidth() / 100.0f);
 		newInput.ymax = input->ymax + (10.0f * this->getWidth() / 100.0f);

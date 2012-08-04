@@ -660,10 +660,11 @@ static void p_flush_uvs(PHandle *handle, PChart *chart)
 	}
 
 	for (f = chart->faces; f; f = f->nextlink) {
-		if(f->unwrap_flag) {
+		if (f->unwrap_flag) {
 			if (handle->do_aspect) {
 				*f->unwrap_flag |= TF_CORRECT_ASPECT;
-			} else {
+			}
+			else {
 				*f->unwrap_flag &= ~TF_CORRECT_ASPECT;
 			}
 		}

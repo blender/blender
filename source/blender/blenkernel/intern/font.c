@@ -851,7 +851,7 @@ makebreak:
 					/* do nothing */
 				}
 
-//				if ((mem[j]!='\r') && (mem[j]!='\n') && (mem[j])) {
+//				if ((mem[j] != '\r') && (mem[j] != '\n') && (mem[j])) {
 				ct->xof += ct->charnr * linedata[ct->linenr];
 //				}
 				ct++;
