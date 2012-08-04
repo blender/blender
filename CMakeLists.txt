@@ -902,26 +902,22 @@ elseif(WIN32)
 				${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader/include
 				${LIBDIR}/opencollada/include/GeneratedSaxParser/include
 			)
-			if(MSVC2010)
-				set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/vc2010/lib)
-			else()
-				set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-			endif()
+			set_lib_path(OPENCOLLADA_LIBPATH "opencollada")
 
 			set(OPENCOLLADA_LIBRARIES
-				${OPENCOLLADA_LIBPATH}/OpenCOLLADASaxFrameworkLoader.lib
-				${OPENCOLLADA_LIBPATH}/OpenCOLLADAFramework.lib
-				${OPENCOLLADA_LIBPATH}/OpenCOLLADABaseUtils.lib
-				${OPENCOLLADA_LIBPATH}/OpenCOLLADAStreamWriter.lib
-				${OPENCOLLADA_LIBPATH}/MathMLSolver.lib
-				${OPENCOLLADA_LIBPATH}/GeneratedSaxParser.lib
-				${OPENCOLLADA_LIBPATH}/xml2.lib
-				${OPENCOLLADA_LIBPATH}/buffer.lib
-				${OPENCOLLADA_LIBPATH}/ftoa.lib
-				${OPENCOLLADA_LIBPATH}/UTF.lib
+				${OPENCOLLADA_LIBPATH}/lib/OpenCOLLADASaxFrameworkLoader.lib
+				${OPENCOLLADA_LIBPATH}/lib/OpenCOLLADAFramework.lib
+				${OPENCOLLADA_LIBPATH}/lib/OpenCOLLADABaseUtils.lib
+				${OPENCOLLADA_LIBPATH}/lib/OpenCOLLADAStreamWriter.lib
+				${OPENCOLLADA_LIBPATH}/lib/MathMLSolver.lib
+				${OPENCOLLADA_LIBPATH}/lib/GeneratedSaxParser.lib
+				${OPENCOLLADA_LIBPATH}/lib/xml2.lib
+				${OPENCOLLADA_LIBPATH}/lib/buffer.lib
+				${OPENCOLLADA_LIBPATH}/lib/ftoa.lib
+				${OPENCOLLADA_LIBPATH}/lib/UTF.lib
 			)
 			set(PCRE_LIBRARIES
-				${OPENCOLLADA_LIBPATH}/pcre.lib
+				${OPENCOLLADA_LIBPATH}/lib/pcre.lib
 			)
 			
 			unset(OPENCOLLADA_LIBPATH)
@@ -943,14 +939,9 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
-			set(OPENEXR ${LIBDIR}/openexr)
-			if(MSVC10)
-				set(OPENEXR_INCLUDE_DIR ${OPENEXR}/vc2010/include)
-				set(OPENEXR_LIBPATH ${OPENEXR}/vc2010/lib)
-			else()
-				set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
-				set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-			endif()
+			set_lib_path(OPENEXR "openexr")
+			set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
+			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 			set(OPENEXR_LIBRARIES
 				${OPENEXR_LIBPATH}/Iex.lib
 				${OPENEXR_LIBPATH}/Half.lib
@@ -982,13 +973,9 @@ elseif(WIN32)
 		if(WITH_PYTHON)
 			# normally cached but not since we include them with blender
 			set(PYTHON_VERSION 3.2) # CACHE STRING)
-			set(PYTHON ${LIBDIR}/python)
+			set_lib_path(PYTHON "python")
 			set(PYTHON_INCLUDE_DIR ${PYTHON}/include/python${PYTHON_VERSION})
-			if(MSVC10)
-				set(PYTHON_LIBRARY ${PYTHON}/vc2010/lib/python32.lib) #CACHE FILEPATH
-			else()
-				set(PYTHON_LIBRARY ${PYTHON}/lib/python32.lib) #CACHE FILEPATH
-			endif()
+			set(PYTHON_LIBRARY ${PYTHON}/lib/python32.lib) #CACHE FILEPATH
 			
 			# uncached vars
 			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")

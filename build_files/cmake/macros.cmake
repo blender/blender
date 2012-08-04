@@ -719,12 +719,9 @@ macro(set_lib_path
 		lvar
 		lproj)
 
-	
-	if(MSVC10 AND EXISTS ${LIBDIR}/vc2010/${lproj})
-		set(${lvar} ${LIBDIR}/vc2010/${lproj})
+	if(MSVC10)
+		set(${lvar} ${LIBDIR}/${lproj}/vc2010)
 	else()
 		set(${lvar} ${LIBDIR}/${lproj})
 	endif()
-
-
 endmacro()
