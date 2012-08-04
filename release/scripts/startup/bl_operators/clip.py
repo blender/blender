@@ -90,14 +90,17 @@ def CLIP_track_view_selected(sc, track):
     return False
 
 
-def CLIP_default_settings_from_track(clip, track):
+def CLIP_default_settings_from_track(clip, track, framenr):
     settings = clip.tracking.settings
 
     width = clip.size[0]
     height = clip.size[1]
 
-    pattern = track.pattern_max - track.pattern_min
-    search = track.search_max - track.search_min
+    marker = track.markers.find_frame(framenr, False)
+    pattern_bb = marker.pattern_bound_box
+
+    pattern = Vector(pattern_bb[1]) - Vector(pattern_bb[0])
+    search = marker.search_max - marker.search_min
 
     pattern[0] = pattern[0] * width
     pattern[1] = pattern[1] * height
@@ -111,6 +114,10 @@ def CLIP_default_settings_from_track(clip, track):
     settings.default_frames_limit = track.frames_limit
     settings.default_pattern_match = track.pattern_match
     settings.default_margin = track.margin
+    settings.default_motion_model = track.motion_model
+    settings.use_default_brute = track.use_brute
+    settings.use_default_normalization = track.use_normalization
+    settings.use_default_mask = track.use_mask
     settings.use_default_red_channel = track.use_red_channel
     settings.use_default_green_channel = track.use_green_channel
     settings.use_default_blue_channel = track.use_blue_channel
@@ -862,6 +869,9 @@ class CLIP_OT_track_settings_as_default(Operator):
         sc = context.space_data
         clip = sc.clip
 
-        CLIP_default_settings_from_track(clip, clip.tracking.tracks.active)
+        track = clip.tracking.tracks.active
+        framenr = context.scene.frame_current - clip.frame_start + 1
+
+        CLIP_default_settings_from_track(clip, track, framenr)
 
         return {'FINISHED'}

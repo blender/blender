@@ -436,15 +436,19 @@ class AddPresetTrackingSettings(AddPresetBase, Operator):
     ]
 
     preset_values = [
-        "settings.default_correlation_min",
-        "settings.default_pattern_size",
-        "settings.default_search_size",
-        "settings.default_frames_limit",
-        "settings.default_pattern_match",
-        "settings.default_margin",
-        "settings.use_default_red_channel",
-        "settings.use_default_green_channel",
-        "settings.use_default_blue_channel"
+        "default_correlation_min",
+        "default_pattern_size",
+        "default_search_size",
+        "default_frames_limit",
+        "default_pattern_match",
+        "default_margin",
+        "default_motion_model",
+        "use_default_brute",
+        "use_default_normalization",
+        "use_default_mask",
+        "use_default_red_channel",
+        "use_default_green_channel",
+        "use_default_blue_channel"
     ]
 
     preset_subdir = "tracking_settings"
