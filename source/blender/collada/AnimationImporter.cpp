@@ -934,9 +934,21 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 				Assign_float_animations(listid, AnimCurves, "lens");
 			}
 
+			else if ((animType->camera & CAMERA_YFOV) != 0) {
+				const COLLADAFW::AnimatableFloat *yfov =  &(camera->getYFov());
+				const COLLADAFW::UniqueId& listid = yfov->getAnimationList();
+				Assign_float_animations(listid, AnimCurves, "lens");
+			}
+
 			else if ((animType->camera & CAMERA_XMAG) != 0) {
 				const COLLADAFW::AnimatableFloat *xmag =  &(camera->getXMag());
 				const COLLADAFW::UniqueId& listid = xmag->getAnimationList();
+				Assign_float_animations(listid, AnimCurves, "ortho_scale");
+			}
+
+			else if ((animType->camera & CAMERA_YMAG) != 0) {
+				const COLLADAFW::AnimatableFloat *ymag =  &(camera->getYMag());
+				const COLLADAFW::UniqueId& listid = ymag->getAnimationList();
 				Assign_float_animations(listid, AnimCurves, "ortho_scale");
 			}
 
@@ -1166,14 +1178,22 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(const COLLADAF
 
 	const COLLADAFW::InstanceCameraPointerArray& nodeCameras = node->getInstanceCameras();
 	for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
-		const COLLADAFW::Camera *camera = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
+		const COLLADAFW::Camera *camera  = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
+		const bool is_perspective_type   = camera->getCameraType() == COLLADAFW::Camera::PERSPECTIVE;
 
-		if (camera->getCameraType() == COLLADAFW::Camera::PERSPECTIVE) {
-			types->camera = setAnimType(&(camera->getXMag()), (types->camera), CAMERA_XFOV);
+		int addition;
+		const COLLADAFW::Animatable *mag;
+		const COLLADAFW::UniqueId listid = camera->getYMag().getAnimationList();
+		if (animlist_map.find(listid) != animlist_map.end()) {
+			mag = &(camera->getYMag());
+			addition = (is_perspective_type) ? CAMERA_YFOV: CAMERA_YMAG;
 		}
 		else {
-			types->camera = setAnimType(&(camera->getXMag()), (types->camera), CAMERA_XMAG);
+			mag = &(camera->getXMag());
+			addition = (is_perspective_type) ? CAMERA_XFOV: CAMERA_XMAG;
 		}
+		types->camera = setAnimType(mag, (types->camera), addition);
+
 		types->camera = setAnimType(&(camera->getFarClippingPlane()), (types->camera), CAMERA_ZFAR);
 		types->camera = setAnimType(&(camera->getNearClippingPlane()), (types->camera), CAMERA_ZNEAR);
 
@@ -1205,10 +1225,14 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(const COLLADAF
 
 int AnimationImporter::setAnimType(const COLLADAFW::Animatable *prop, int types, int addition)
 {
-	const COLLADAFW::UniqueId& listid =  prop->getAnimationList();
+	int anim_type;
+	const COLLADAFW::UniqueId& listid       = prop->getAnimationList();
 	if (animlist_map.find(listid) != animlist_map.end())
-		return types | addition;
-	else return types;
+		anim_type =  types | addition;
+	else
+		anim_type = types;
+
+	return anim_type;
 }		
 
 // Is not used anymore.

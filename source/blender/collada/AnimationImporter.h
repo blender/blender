@@ -102,8 +102,10 @@ private:
 //		INANIMATE = 0,
 		CAMERA_XFOV = 2,
 		CAMERA_XMAG = 4,
-		CAMERA_ZFAR = 8,
-		CAMERA_ZNEAR = 16
+		CAMERA_YFOV = 8,
+		CAMERA_YMAG = 16,
+		CAMERA_ZFAR = 32,
+		CAMERA_ZNEAR = 64
 	};
 
 	enum matAnim
