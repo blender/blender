@@ -430,7 +430,7 @@ int isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], co
 {
 #define CCW(A, B, C) ((C[1] - A[1]) * (B[0] - A[0]) > (B[1]-A[1]) * (C[0]-A[0]))
 
-   return CCW(v1, v3, v4) != CCW(v2, v3, v4) && CCW(v1, v2, v3) != CCW(v1, v2, v4);
+	return CCW(v1, v3, v4) != CCW(v2, v3, v4) && CCW(v1, v2, v3) != CCW(v1, v2, v4);
 
 #undef CCW
 }

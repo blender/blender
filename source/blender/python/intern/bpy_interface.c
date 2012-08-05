@@ -639,7 +639,7 @@ void BPY_modules_load_user(bContext *C)
 
 	bpy_context_set(C, &gilstate);
 
-	for (text = CTX_data_main(C)->text.first; text; text = text->id.next) {
+	for (text = bmain->text.first; text; text = text->id.next) {
 		if (text->flags & TXT_ISSCRIPT && BLI_testextensie(text->id.name + 2, ".py")) {
 			if (!(G.f & G_SCRIPT_AUTOEXEC)) {
 				printf("scripts disabled for \"%s\", skipping '%s'\n", bmain->name, text->id.name + 2);
