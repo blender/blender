@@ -451,6 +451,11 @@ bool	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 		} else
 		{
 			m_dynamicsWorld->removeCollisionObject(ctrl->GetCollisionObject());
+
+			if (ctrl->GetCharacterController())
+			{
+				m_dynamicsWorld->removeAction(ctrl->GetCharacterController());
+			}
 		}
 	}
 	if (ctrl->m_registerCount != 0)
