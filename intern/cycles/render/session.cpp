@@ -648,6 +648,7 @@ void Session::update_scene()
 
 void Session::update_status_time(bool show_pause, bool show_done)
 {
+	int sample = tile_manager.state.sample;
 	int resolution = tile_manager.state.resolution;
 	int num_tiles = tile_manager.state.num_tiles;
 	int tile = tile_manager.state.num_rendered_tiles;
