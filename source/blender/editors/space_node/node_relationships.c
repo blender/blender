@@ -1147,17 +1147,26 @@ static int node_attach_exec(bContext *C, wmOperator *UNUSED(op))
 		for (node = ntree->nodes.last; node; node = node->prev) {
 			if (node->flag & NODE_SELECT) {
 				if (node->parent == NULL) {
-					/* attach all unparented nodes */
-					nodeAttachNode(node, frame);
+					/* disallow moving a parent into its child */
+					if (nodeAttachNodeCheck(frame, node) == FALSE) {
+						/* attach all unparented nodes */
+						nodeAttachNode(node, frame);
+					}
 				}
 				else {
 					/* attach nodes which share parent with the frame */
-					for (parent = frame->parent; parent; parent = parent->parent)
-						if (parent == node->parent)
+					for (parent = frame->parent; parent; parent = parent->parent) {
+						if (parent == node->parent) {
 							break;
+						}
+					}
+
 					if (parent) {
-						nodeDetachNode(node);
-						nodeAttachNode(node, frame);
+						/* disallow moving a parent into its child */
+						if (nodeAttachNodeCheck(frame, node) == FALSE) {
+							nodeDetachNode(node);
+							nodeAttachNode(node, frame);
+						}
 					}
 				}
 			}

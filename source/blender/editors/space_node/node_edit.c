@@ -762,7 +762,7 @@ static void edit_node_properties_get(wmOperator *op, bNodeTree *ntree, bNode **r
 /* ************************** Node generic ************** */
 
 /* is rct in visible part of node? */
-static bNode *visible_node(SpaceNode *snode, rctf *rct)
+static bNode *visible_node(SpaceNode *snode, const rctf *rct)
 {
 	bNode *node;
 	

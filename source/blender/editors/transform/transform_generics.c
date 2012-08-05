@@ -923,7 +923,7 @@ void recalcData(TransInfo *t)
 	}
 }
 
-void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
+void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis, short options)
 {
 	float v1[3], v2[3], v3[3];
 	unsigned char col[3], col2[3];
@@ -1017,15 +1017,10 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	t->total            = 0;
 	
 	t->val = 0.0f;
-	
-	t->vec[0]           =
-	    t->vec[1]       =
-	        t->vec[2]       = 0.0f;
 
-	t->center[0]        =
-	    t->center[1]    =
-	        t->center[2]    = 0.0f;
-	
+	zero_v3(t->vec);
+	zero_v3(t->center);
+
 	unit_m3(t->mat);
 	
 	/* if there's an event, we're modal */

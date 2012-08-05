@@ -359,6 +359,7 @@ void            nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
 void            nodeToView(struct bNode *node, float x, float y, float *rx, float *ry);
 void            nodeFromView(struct bNode *node, float x, float y, float *rx, float *ry);
+int             nodeAttachNodeCheck(struct bNode *node, struct bNode *parent);
 void            nodeAttachNode(struct bNode *node, struct bNode *parent);
 void            nodeDetachNode(struct bNode *node);
 

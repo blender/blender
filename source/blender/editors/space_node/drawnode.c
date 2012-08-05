@@ -996,9 +996,7 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	float alpha;
 	
 	/* skip if out of view */
-	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
-	    node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax) {
-		
+	if (BLI_rctf_isect(&node->totr, &ar->v2d.cur, NULL) == FALSE) {
 		uiEndBlock(C, node->block);
 		node->block = NULL;
 		return;

@@ -592,9 +592,25 @@ void nodeFromView(bNode *node, float x, float y, float *rx, float *ry)
 	}
 }
 
+int nodeAttachNodeCheck(bNode *node, bNode *parent)
+{
+	bNode *parent_recurse;
+	for (parent_recurse = node; parent_recurse; parent_recurse = parent_recurse->parent) {
+		if (parent_recurse == parent) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
 void nodeAttachNode(bNode *node, bNode *parent)
 {
 	float locx, locy;
+
+	BLI_assert(parent->type == NODE_FRAME);
+	BLI_assert(nodeAttachNodeCheck(parent, node) == FALSE);
+
 	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 	
 	node->parent = parent;
@@ -607,6 +623,9 @@ void nodeDetachNode(struct bNode *node)
 	float locx, locy;
 	
 	if (node->parent) {
+
+		BLI_assert(node->parent->type == NODE_FRAME);
+
 		/* transform to view space */
 		nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 		node->locx = locx;
