@@ -106,7 +106,8 @@ void AnimationExporter::operator()(Object *ob)
 
 			if ((!strcmp(transformName, "lens")) ||
 			    (!strcmp(transformName, "ortho_scale")) ||
-			    (!strcmp(transformName, "clip_end")) || (!strcmp(transformName, "clip_start")))
+			    (!strcmp(transformName, "clip_end")) || 
+				(!strcmp(transformName, "clip_start")))
 			{
 				dae_animation(ob, fcu, transformName, true);
 			}
@@ -203,8 +204,10 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 	}
 
 	//axis names for colors
-	else if (!strcmp(transformName, "color") || !strcmp(transformName, "specular_color") || !strcmp(transformName, "diffuse_color") ||
-	         (!strcmp(transformName, "alpha")))
+	else if (!strcmp(transformName, "color") ||
+			 !strcmp(transformName, "specular_color") ||
+			 !strcmp(transformName, "diffuse_color") ||
+	         !strcmp(transformName, "alpha"))
 	{
 		const char *axis_names[] = {"R", "G", "B"};
 		if (fcu->array_index < 3)
@@ -212,8 +215,10 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 	}
 
 	//axis names for transforms
-	else if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
-	         (!strcmp(transformName, "rotation_euler")) || (!strcmp(transformName, "rotation_quaternion")))
+	else if (!strcmp(transformName, "location") ||
+			 !strcmp(transformName, "scale") ||
+	         !strcmp(transformName, "rotation_euler") ||
+			 !strcmp(transformName, "rotation_quaternion"))
 	{
 		const char *axis_names[] = {"X", "Y", "Z"};
 		if (fcu->array_index < 3)
@@ -260,9 +265,13 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 		MEM_freeN(eul);
 		MEM_freeN(eul_axis);
 	}
+	else if(!strcmp(transformName, "lens") && (ob->type == OB_CAMERA)) {
+		output_id = create_lens_source_from_fcurve((Camera *) ob->data, COLLADASW::InputSemantic::OUTPUT, fcu, anim_id);
+	}
 	else {
 		output_id = create_source_from_fcurve(COLLADASW::InputSemantic::OUTPUT, fcu, anim_id, axis_name);
 	}
+
 	// create interpolations source
 	std::string interpolation_id = create_interpolation_source(fcu, anim_id, axis_name, &has_tangents);
 
@@ -553,7 +562,7 @@ void AnimationExporter::add_source_parameters(COLLADASW::SourceBase::ParameterNa
 	}
 }
 
-void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool rotation, float *values, int *length)
+void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool is_rotation, float *values, int *length)
 {
 	switch (semantic) {
 		case COLLADASW::InputSemantic::INPUT:
@@ -562,7 +571,7 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 			break;
 		case COLLADASW::InputSemantic::OUTPUT:
 			*length = 1;
-			if (rotation) {
+			if (is_rotation) {
 				values[0] = RAD2DEGF(bezt->vec[1][1]);
 			}
 			else {
@@ -578,7 +587,7 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 				values[0] = 0;	
 				values[1] = 0; 	
 			}
-			else if (rotation) {
+			else if (is_rotation) {
 				values[1] = RAD2DEGF(bezt->vec[0][1]);
 			}
 			else {
@@ -594,7 +603,7 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 				values[0] = 0;	
 				values[1] = 0;	
 			}
-			else if (rotation) {
+			else if (is_rotation) {
 				values[1] = RAD2DEGF(bezt->vec[2][1]);
 			}
 			else {
@@ -653,6 +662,44 @@ std::string AnimationExporter::create_source_from_fcurve(COLLADASW::InputSemanti
 
 	return source_id;
 }
+
+/*
+ * Similar to create_source_from_fcurve, but adds conversion of lens
+ * animation data from focal length to FOV.
+ */
+std::string AnimationExporter::create_lens_source_from_fcurve(Camera *cam, COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id)
+{
+	std::string source_id = anim_id + get_semantic_suffix(semantic);
+
+	COLLADASW::FloatSourceF source(mSW);
+	source.setId(source_id);
+	source.setArrayId(source_id + ARRAY_ID_SUFFIX);
+	source.setAccessorCount(fcu->totvert);
+
+	source.setAccessorStride(1);
+
+	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+	add_source_parameters(param, semantic, false, "", false);
+
+	source.prepareToAppendValues();
+
+	for (unsigned int i = 0; i < fcu->totvert; i++) {
+		float values[3]; // be careful!
+		int length = 0;
+		get_source_values(&fcu->bezt[i], semantic, false, values, &length);
+		for (int j = 0; j < length; j++)
+		{
+			float val = RAD2DEGF(focallength_to_fov(values[j], cam->sensor_x));
+			source.appendValues(val);
+		}
+	}
+
+	source.finish();
+
+	return source_id;
+}
+
+
 
 //Currently called only to get OUTPUT source values ( if rotation and hence the axis is also specified )
 std::string AnimationExporter::create_source_from_array(COLLADASW::InputSemantic::Semantics semantic, float *v, int tot, bool is_rot, const std::string& anim_id, const char *axis_name)

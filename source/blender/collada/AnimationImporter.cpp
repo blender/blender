@@ -652,6 +652,51 @@ void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& list
 	
 }
 
+/*
+ * Lens animations must be stored in COLLADA by using FOV,
+ * while blender internally uses focal length.
+ * The imported animation curves must be converted appropriately.
+ */
+void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const double aspect, Camera *cam, const char *anim_type, int fov_type)
+{
+	char rna_path[100];
+	if (animlist_map.find(listid) == animlist_map.end()) {
+		return;
+	}
+	else {
+		//anim_type has animations
+		const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+		const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
+		//all the curves belonging to the current binding
+		std::vector<FCurve *> animcurves;
+		for (unsigned int j = 0; j < bindings.getCount(); j++) {
+			animcurves = curve_map[bindings[j].animation];
+
+			BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
+
+			modify_fcurve(&animcurves, rna_path, 0);
+			std::vector<FCurve *>::iterator iter;
+			//Add the curves of the current animation to the object
+			for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+				FCurve *fcu = *iter;
+				
+				for (unsigned int i = 0; i < fcu->totvert; i++) {
+
+					double input_fov = fcu->bezt[i].vec[1][1];
+					double xfov = (fov_type == CAMERA_YFOV) ? aspect * input_fov : input_fov;
+
+					// fov is in degrees, cam->lens is in millimiters
+					double fov = fov_to_focallength(DEG2RADF(input_fov), cam->sensor_x);
+
+					fcu->bezt[i].vec[1][1] = fov;
+				}
+
+				BLI_addtail(AnimCurves, fcu);
+			}
+		}
+	}
+}
+
 void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& animcurves, COLLADAFW::Node *root, COLLADAFW::Node *node,
                                             COLLADAFW::Transformation *tm)
 {
@@ -796,6 +841,39 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 
 }
 
+/*
+ * This function returns the aspet ration from the Collada camera.
+ *
+ * Note:COLLADA allows to specify either XFov, or YFov alone. 
+ * In tghat case the aspect ratio can be determined from 
+ * the viewport aspect ratio (which is 1:1 ?)
+ * XXX: check this: its probably wrong!
+ * If both values are specified, then the aspect ration is simply xfov/yfov
+ * and if aspect ratio is efined, then .. well then its that one.
+ */
+static const double get_aspect_ratio(const COLLADAFW::Camera *camera)
+{
+	double aspect =  camera->getAspectRatio().getValue();
+
+	if(aspect == 0)
+	{
+		const double yfov   =  camera->getYFov().getValue();
+
+		if(yfov == 0)
+			aspect=1; // assume yfov and xfov are equal
+		else
+		{
+			const double xfov   =  camera->getXFov().getValue();
+			if (xfov==0)
+				aspect = 1;
+			else
+				aspect = xfov / yfov;
+		}
+	}
+	return aspect;
+}
+
+
 void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
                                              std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>& root_map,
                                              std::multimap<COLLADAFW::UniqueId, Object *>& object_map,
@@ -924,10 +1002,11 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 	}
 
 	if (animType->camera != 0) {
-		Camera *camera  = (Camera *) ob->data;
-
-		if (!camera->adt || !camera->adt->action) act = verify_adt_action((ID *)&camera->id, 1);
-		else act = camera->adt->action;
+		Camera *cam  = (Camera *) ob->data;
+		if (!cam->adt || !cam->adt->action)
+			act = verify_adt_action((ID *)&cam->id, 1);
+		else
+			act = cam->adt->action;
 
 		ListBase *AnimCurves = &(act->curves);
 		const COLLADAFW::InstanceCameraPointerArray& nodeCameras = node->getInstanceCameras();
@@ -938,13 +1017,15 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 			if ((animType->camera & CAMERA_XFOV) != 0) {
 				const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
 				const COLLADAFW::UniqueId& listid = xfov->getAnimationList();
-				Assign_float_animations(listid, AnimCurves, "lens");
+				double aspect = get_aspect_ratio(camera); 
+				Assign_lens_animations(listid, AnimCurves, aspect, cam, "lens", CAMERA_XFOV);
 			}
 
 			else if ((animType->camera & CAMERA_YFOV) != 0) {
 				const COLLADAFW::AnimatableFloat *yfov =  &(camera->getYFov());
 				const COLLADAFW::UniqueId& listid = yfov->getAnimationList();
-				Assign_float_animations(listid, AnimCurves, "lens");
+				double aspect = get_aspect_ratio(camera); 
+				Assign_lens_animations(listid, AnimCurves, aspect, cam, "lens", CAMERA_YFOV);
 			}
 
 			else if ((animType->camera & CAMERA_XMAG) != 0) {
