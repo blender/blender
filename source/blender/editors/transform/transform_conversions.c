@@ -2189,12 +2189,21 @@ cleanup:
 void flushTransNodes(TransInfo *t)
 {
 	int a;
-	TransData2D *td;
+	TransData *td;
+	TransData2D *td2d;
 
 	/* flush to 2d vector from internally used 3d vector */
-	for (a = 0, td = t->data2d; a < t->total; a++, td++) {
-		td->loc2d[0] = td->loc[0];
-		td->loc2d[1] = td->loc[1];
+	for (a = 0, td = t->data, td2d = t->data2d; a < t->total; a++, td++, td2d++) {
+		bNode *node = td->extra;
+		float locxy[2];
+		if (node->parent) {
+			nodeFromView(node->parent, td2d->loc[0], td2d->loc[1], &locxy[0], &locxy[1]);
+		}
+		else {
+			copy_v2_v2(locxy, td2d->loc);
+		}
+		node->locx = locxy[0];
+		node->locy = locxy[1];
 	}
 	
 	/* handle intersection with noodles */
@@ -5527,10 +5536,12 @@ static void createTransObject(bContext *C, TransInfo *t)
 static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 // static void NodeToTransData(bContext *C, TransInfo *t, TransData2D *td, bNode *node)
 {
-	td2d->loc[0] = node->locx; /* hold original location */
-	td2d->loc[1] = node->locy;
+	/* hold original location */
+	float locxy[2];
+	nodeToView(node, 0.0f, 0.0f, &locxy[0], &locxy[1]);
+	copy_v2_v2(td2d->loc, locxy);
 	td2d->loc[2] = 0.0f;
-	td2d->loc2d = &node->locx; /* current location */
+	//td2d->loc2d = &node->locx; /* current location */
 
 	td->flag = 0;
 	/* exclude nodes whose parent is also transformed */
@@ -5541,8 +5552,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	td->loc = td2d->loc;
 	copy_v3_v3(td->iloc, td->loc);
 	/* use node center instead of origin (top-left corner) */
-	td->center[0] = node->locx + 0.5f * (node->totr.xmax - node->totr.xmin);
-	td->center[1] = node->locy - 0.5f * (node->totr.ymax - node->totr.ymin);	/* node height is used negative */
+	td->center[0] = locxy[0] - 0.5f * (node->totr.xmax - node->totr.xmin);
+	td->center[1] = locxy[1] - 0.5f * (node->totr.ymax - node->totr.ymin);	/* node height is used negative */
 	td->center[2] = 0.0f;
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
@@ -5585,7 +5596,9 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 	td2d = t->data2d = MEM_callocN(t->total * sizeof(TransData2D), "TransNode TransData2D");
 
 	CTX_DATA_BEGIN(C, bNode *, selnode, selected_nodes)
-	NodeToTransData(td++, td2d++, selnode);
+	{
+		NodeToTransData(td++, td2d++, selnode);
+	}
 	CTX_DATA_END
 }
 
