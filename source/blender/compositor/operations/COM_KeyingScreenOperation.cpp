@@ -78,7 +78,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	TriangulationData *triangulation;
 	MovieTracking *tracking = &this->m_movieClip->tracking;
 	MovieTrackingTrack *track;
-	VoronoiSite *sites;
+	VoronoiSite *sites, *site;
 	ImBuf *ibuf;
 	ListBase *tracksbase;
 	ListBase edges = {NULL, NULL};
@@ -131,9 +131,8 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 
 	sites = (VoronoiSite *) MEM_callocN(sizeof(VoronoiSite) * sites_total, "keyingscreen voronoi sites");
 	track = (MovieTrackingTrack *) tracksbase->first;
-	for (track = (MovieTrackingTrack *) tracksbase->first, i = 0; track; track = track->next, i++) {
+	for (track = (MovieTrackingTrack *) tracksbase->first, site = sites; track; track = track->next) {
 		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
-		VoronoiSite *site;
 		ImBuf *pattern_ibuf;
 		int j;
 		float pos[2];
@@ -148,8 +147,6 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 		{
 			continue;
 		}
-
-		site = &sites[i];
 
 		pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, TRUE, FALSE);
 
@@ -172,6 +169,8 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 
 		site->co[0] = pos[0] * width;
 		site->co[1] = pos[1] * height;
+
+		site++;
 	}
 
 	IMB_freeImBuf(ibuf);
