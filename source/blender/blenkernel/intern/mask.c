@@ -1287,12 +1287,13 @@ MaskSplinePointUW *BKE_mask_point_sort_uw(MaskSplinePoint *point, MaskSplinePoin
 void BKE_mask_point_add_uw(MaskSplinePoint *point, float u, float w)
 {
 	if (!point->uw)
-		point->uw = MEM_callocN(sizeof(*point->uw), "mask point uw");
+		point->uw = MEM_mallocN(sizeof(*point->uw), "mask point uw");
 	else
 		point->uw = MEM_reallocN(point->uw, (point->tot_uw + 1) * sizeof(*point->uw));
 
 	point->uw[point->tot_uw].u = u;
 	point->uw[point->tot_uw].w = w;
+	point->uw[point->tot_uw].flag = 0;
 
 	point->tot_uw++;
 
