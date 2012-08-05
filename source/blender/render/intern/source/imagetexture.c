@@ -1779,11 +1779,8 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	}
 
 	/* de-premul, this is being premulled in shade_input_do_shade() */
-	if (texres->ta!=1.0f && texres->ta>1e-4f) {
-		fx= 1.0f/texres->ta;
-		texres->tr*= fx;
-		texres->tg*= fx;
-		texres->tb*= fx;
+	if (texres->ta != 1.0f && texres->ta > 1e-4f) {
+		mul_v3_fl(&texres->tr, 1.0f / texres->ta);
 	}
 
 	BRICONTRGB;
@@ -1791,25 +1788,22 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	return retval;
 }
 
-void image_sample(Image *ima, float fx, float fy, float dx, float dy, float *result)
+void image_sample(Image *ima, float fx, float fy, float dx, float dy, float result[4])
 {
 	TexResult texres;
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	
-	if (ibuf==NULL) {
-		result[0]= result[1]= result[2]= result[3]= 0.0f;
+	if (UNLIKELY(ibuf == NULL)) {
+		zero_v4(result);
 		return;
 	}
 	
 	if ( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) )
 		ibuf->rect+= (ibuf->x*ibuf->y);
 
-	texres.talpha= 1; /* boxsample expects to be initialized */
-	boxsample(ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 1);
-	result[0]= texres.tr;
-	result[1]= texres.tg;
-	result[2]= texres.tb;
-	result[3]= texres.ta;
+	texres.talpha = TRUE; /* boxsample expects to be initialized */
+	boxsample(ibuf, fx, fy, fx + dx, fy + dy, &texres, 0, 1);
+	copy_v4_v4(result, &texres.tr);
 	
 	if ( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) )
 		ibuf->rect-= (ibuf->x*ibuf->y);
@@ -1817,15 +1811,11 @@ void image_sample(Image *ima, float fx, float fy, float dx, float dy, float *res
 	ima->flag|= IMA_USED_FOR_RENDER;
 }
 
-void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result)
+void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4])
 {
-	TexResult texres;
+	TexResult texres = {0};
 	afdata_t AFD;
-	
-	if (ibuf==NULL) {
-		return;
-	}
-	
+
 	AFD.dxt[0] = dx; AFD.dxt[1] = dx;
 	AFD.dyt[0] = dy; AFD.dyt[1] = dy;
 	//copy_v2_v2(AFD.dxt, dx);
@@ -1833,13 +1823,8 @@ void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float *res
 	
 	AFD.intpol = 1;
 	AFD.extflag = TXC_EXTD;
-	
-	memset(&texres, 0, sizeof(texres));
+
 	ewa_eval(&texres, ibuf, fx, fy, &AFD);
 	
-	
-	result[0]= texres.tr;
-	result[1]= texres.tg;
-	result[2]= texres.tb;
-	result[3]= texres.ta;
+	copy_v4_v4(result, &texres.tr);
 }
