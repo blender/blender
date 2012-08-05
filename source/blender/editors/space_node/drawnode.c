@@ -3025,7 +3025,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			
 			glaDefine2DArea(&ar->winrct);
 			/* ortho at pixel level curarea */
-			wmOrtho2(-0.375, ar->winx - 0.375, -0.375, ar->winy - 0.375);
+			wmOrtho2(-GLA_PIXEL_OFS, ar->winx - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, ar->winy - GLA_PIXEL_OFS);
 			
 			x = (ar->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
 			y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;

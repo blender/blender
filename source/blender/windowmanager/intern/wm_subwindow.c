@@ -141,7 +141,7 @@ void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4])
 			int width, height;
 
 			wm_subwindow_getsize(win, swin->swinid, &width, &height);
-			orthographic_m4(mat, -0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f, -100, 100);
+			orthographic_m4(mat, -GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS, -100, 100);
 		}
 		else
 			glGetFloatv(GL_PROJECTION_MATRIX, (float *)mat);
@@ -175,7 +175,7 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 	
 	/* extra service */
 	wm_subwindow_getsize(win, swin->swinid, &width, &height);
-	wmOrtho2(-0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f);
+	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
 	glLoadIdentity();
 
 	return swin->swinid;
@@ -229,7 +229,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 		/* extra service */
 		wmSubWindowSet(win, swinid);
 		wm_subwindow_getsize(win, swinid, &width, &height);
-		wmOrtho2(-0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f);
+		wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
 	}
 	else {
 		printf("%s: Internal error, bad winid: %d\n", __func__, swinid);
@@ -268,7 +268,7 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	else
 		glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 	
-	wmOrtho2(-0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f);
+	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
 	glLoadIdentity();
 
 	glFlush();

@@ -980,7 +980,7 @@ void UI_view2d_view_ortho(View2D *v2d)
 	rctf curmasked;
 	float xofs, yofs;
 	
-	/* pixel offsets (-0.375f) are needed to get 1:1 correspondence with pixels for smooth UI drawing, 
+	/* pixel offsets (-GLA_PIXEL_OFS) are needed to get 1:1 correspondence with pixels for smooth UI drawing,
 	 * but only applied where requested
 	 */
 	/* XXX brecht: instead of zero at least use a tiny offset, otherwise
@@ -1019,12 +1019,12 @@ void UI_view2d_view_orthoSpecial(ARegion *ar, View2D *v2d, short xaxis)
 	rctf curmasked;
 	float xofs, yofs;
 	
-	/* pixel offsets (-0.375f) are needed to get 1:1 correspondence with pixels for smooth UI drawing, 
+	/* pixel offsets (-GLA_PIXEL_OFS) are needed to get 1:1 correspondence with pixels for smooth UI drawing,
 	 * but only applied where requested
 	 */
 	/* XXX temp (ton) */
-	xofs = 0.0f; // (v2d->flag & V2D_PIXELOFS_X) ? 0.375f : 0.0f;
-	yofs = 0.0f; // (v2d->flag & V2D_PIXELOFS_Y) ? 0.375f : 0.0f;
+	xofs = 0.0f; // (v2d->flag & V2D_PIXELOFS_X) ? GLA_PIXEL_OFS : 0.0f;
+	yofs = 0.0f; // (v2d->flag & V2D_PIXELOFS_Y) ? GLA_PIXEL_OFS : 0.0f;
 	
 	/* apply mask-based adjustments to cur rect (due to scrollers), to eliminate scaling artifacts */
 	view2d_map_cur_using_mask(v2d, &curmasked);

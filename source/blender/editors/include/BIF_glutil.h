@@ -116,8 +116,8 @@ void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y
  *
  * \attention This routine makes many assumptions: the rect data
  * is expected to be in RGBA unsigned byte format, the coordinate
- * (0.375, 0.375) is assumed to be within the view frustum, and the
- * modelview and projection matrices are assumed to define a
+ * (GLA_PIXEL_OFS, GLA_PIXEL_OFS) is assumed to be within the view frustum,
+ * and the modelview and projection matrices are assumed to define a
  * 1-to-1 mapping to screen space.
  * \attention Furthermore, in the case of zoomed or unpixel aligned
  * images extending outside the view frustum, but still within the

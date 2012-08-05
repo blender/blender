@@ -50,5 +50,7 @@
 #define glMultMatrixf(x)  glMultMatrixf( (float *)(x))
 #define glLoadMatrixf(x)  glLoadMatrixf( (float *)(x))
 
+#define GLA_PIXEL_OFS 0.375f
+
 #endif /* #ifdef __BIF_GL_H__ */
 

@@ -100,7 +100,7 @@ void ANIM_timecode_string_from_frame(char *str, Scene *scene, int power, short t
 		}
 		else {
 			/* seconds (with pixel offset rounding) */
-			seconds = (int)floor(cfra + 0.375f);
+			seconds = (int)floor(cfra + GLA_PIXEL_OFS);
 		}
 		
 		switch (U.timecode_style) {
@@ -150,7 +150,7 @@ void ANIM_timecode_string_from_frame(char *str, Scene *scene, int power, short t
 				/* only show the original seconds display */
 				/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
 				if (power <= 0) sprintf(str, "%.*f", 1 - power, raw_seconds);
-				else sprintf(str, "%d", (int)floor(raw_seconds + 0.375f));
+				else sprintf(str, "%d", (int)floor(raw_seconds + GLA_PIXEL_OFS));
 			}
 			break;
 			
@@ -166,7 +166,7 @@ void ANIM_timecode_string_from_frame(char *str, Scene *scene, int power, short t
 	else {
 		/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
 		if (power <= 0) sprintf(str, "%.*f", 1 - power, cfra);
-		else sprintf(str, "%d", (int)floor(cfra + 0.375f));
+		else sprintf(str, "%d", (int)floor(cfra + GLA_PIXEL_OFS));
 	}
 } 
 
