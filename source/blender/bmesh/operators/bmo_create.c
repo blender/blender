@@ -1312,7 +1312,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	 *
 	 */
 
-	/* Here we check for consistancy and create 2 edges */
+	/* Here we check for consistency and create 2 edges */
 	if (totf == 0 && totv >= 4 && totv == tote + 2) {
 		/* find a free standing vertex and 2 endpoint verts */
 		BMVert *v_free = NULL, *v_a = NULL, *v_b = NULL;

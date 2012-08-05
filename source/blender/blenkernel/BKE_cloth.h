@@ -181,7 +181,7 @@ typedef enum {
 ////////////////////////////////////////////////
 
 // needed for implicit.c
-int cloth_bvh_objcollision (struct Object *ob, struct ClothModifierData * clmd, float step, float dt );
+int cloth_bvh_objcollision (struct Object *ob, struct ClothModifierData *clmd, float step, float dt );
 
 ////////////////////////////////////////////////
 

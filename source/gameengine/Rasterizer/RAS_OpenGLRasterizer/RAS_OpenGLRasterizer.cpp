@@ -962,10 +962,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)
 {
 	glMatrixMode(GL_PROJECTION);
-	double* matrix = &mat(0,0);
+	double* matrix = &mat(0, 0);
 	glLoadMatrixd(matrix);
 
-	m_camortho= (mat(3, 3) != 0.0f);
+	m_camortho = (mat(3, 3) != 0.0);
 }
 
 void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
@@ -977,7 +977,7 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 	/* Internally, MT_Matrix4x4 uses doubles (MT_Scalar). */
 	glLoadMatrixd(matrix);	
 
-	m_camortho= (mat[3][3] != 0.0f);
+	m_camortho= (mat[3][3] != 0.0);
 }
 
 MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
@@ -1002,11 +1002,11 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 			// if Rasterizer.setFocalLength is not called we use the camera focallength
 			if (!m_setfocallength)
 				// if focallength is null we use a value known to be reasonable
-				m_focallength = (focallength == 0.f) ? m_eyeseparation * 30.0
+				m_focallength = (focallength == 0.f) ? m_eyeseparation * 30.0f
 					: focallength;
 
 			near_div_focallength = frustnear / m_focallength;
-			offset = 0.5 * m_eyeseparation * near_div_focallength;
+			offset = 0.5f * m_eyeseparation * near_div_focallength;
 			switch(m_curreye)
 			{
 				case RAS_STEREO_LEFTEYE:

@@ -232,9 +232,9 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
 
             col.label(text="Tracker:")
             col.prop(settings, "default_motion_model")
-            col.prop(settings, "default_use_brute")
-            col.prop(settings, "default_use_normalization")
-            col.prop(settings, "default_use_mask")
+            col.prop(settings, "use_default_brute")
+            col.prop(settings, "use_default_normalization")
+            col.prop(settings, "use_default_mask")
             col.prop(settings, "default_correlation_min")
 
             col.separator()
@@ -856,8 +856,7 @@ class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
 
         col = layout.column()
         col.template_movieclip(sc, "clip", compact=True)
-        col.separator()
-        col.prop(clip, "start_frame")
+        col.prop(clip, "frame_start")
         col.prop(clip, "frame_offset")
 
 

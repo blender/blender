@@ -275,8 +275,7 @@ void CLIP_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE,
-	                               WM_FILESEL_RELPATH | WM_FILESEL_FILES | WM_FILESEL_DIRECTORY,
-	                               FILE_DEFAULTDISPLAY);
+	                               WM_FILESEL_RELPATH | WM_FILESEL_FILES | WM_FILESEL_DIRECTORY, FILE_DEFAULTDISPLAY);
 }
 
 /******************* reload clip operator *********************/

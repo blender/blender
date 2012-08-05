@@ -120,8 +120,8 @@ void NODE_OT_backimage_sample(wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
-void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
-int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
+void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3);
+int node_link_bezier_points(View2D * v2d, SpaceNode * snode, bNodeLink * link, float coord_array[][2], int resol);
 // void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
 void draw_nodespace_back_pix(const struct bContext *C, ARegion *ar, SpaceNode *snode);
 
@@ -169,7 +169,7 @@ void snode_notify(bContext *C, SpaceNode *snode);
 void snode_dag_update(bContext *C, SpaceNode *snode);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
-void snode_composite_job(const struct bContext *C, ScrArea *sa);
+
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
 void snode_update(struct SpaceNode *snode, struct bNode *node);
 bNode *editnode_get_active(bNodeTree *ntree);
@@ -209,18 +209,18 @@ extern const char *node_context_dir[];
 // XXXXXX
 
 // XXX from BSE_node.h
-#define HIDDEN_RAD		15.0f
-#define BASIS_RAD		8.0f
-#define NODE_DYS		(U.widget_unit/2)
-#define NODE_DY			U.widget_unit
+#define HIDDEN_RAD      15.0f
+#define BASIS_RAD       8.0f
+#define NODE_DYS        (U.widget_unit / 2)
+#define NODE_DY         U.widget_unit
 #define NODE_MARGIN_X   15
-#define NODE_SOCKSIZE	5
+#define NODE_SOCKSIZE   5
 #define NODE_LINK_RESOL 12
 
 // XXX button events (butspace)
 enum {
 	B_NOP = 0,
-	B_REDR 	= 1,
+	B_REDR = 1,
 	B_NODE_USEMAT,
 	B_NODE_USESCENE,
 	B_NODE_USETEX,

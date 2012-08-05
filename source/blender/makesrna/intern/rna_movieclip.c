@@ -287,7 +287,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* start_frame */
-	prop = RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "start_frame");
 	RNA_def_property_ui_text(prop, "Start Frame", "Global scene frame number at which this movie starts playing "
 	                         "(affects all data associated with a clip)");

@@ -2135,7 +2135,12 @@ static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], Gea
 	
 	/* evil hack - snapping needs to be adapted for image aspect ratio */
 	if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION)) {
-		ED_space_image_get_uv_aspect(t->sa->spacedata.first, asp, asp + 1);
+		if (t->options & CTX_MASK) {
+			ED_space_image_get_aspect(t->sa->spacedata.first, asp, asp + 1);
+		}
+		else {
+			ED_space_image_get_uv_aspect(t->sa->spacedata.first, asp, asp + 1);
+		}
 	}
 
 	for (i = 0; i <= max_index; i++) {

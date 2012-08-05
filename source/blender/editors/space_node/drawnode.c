@@ -2547,7 +2547,7 @@ static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), Poi
 
 static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	bNode *node= ptr->data;
+	bNode *node = ptr->data;
 
 	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
 

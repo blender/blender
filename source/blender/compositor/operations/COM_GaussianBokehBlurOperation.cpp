@@ -286,7 +286,8 @@ void GaussianBlurReferenceOperation::executePixel(float *color, int x, int y, vo
 
 	if (refradx == 1 && refrady == 1) {
 		memorybuffer->readNoCheck(color, x, y);
-	} else {
+	}
+	else {
 		int minxr = x - refradx < 0 ? -x : -refradx;
 		int maxxr = x + refradx > imgx ? imgx - x : refradx;
 		int minyr = y - refrady < 0 ? -y : -refrady;

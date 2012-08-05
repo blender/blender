@@ -60,7 +60,7 @@
 /* poll for active nodetree */
 static int active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	
 	return (snode && snode->nodetree);
 }
@@ -68,7 +68,7 @@ static int active_nodetree_poll(const bContext *C, PanelType *UNUSED(pt))
 /* poll callback for active node */
 static int active_node_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	
 	return (snode && snode->edittree && nodeGetActive(snode->edittree));
 }
@@ -76,8 +76,8 @@ static int active_node_poll(const bContext *C, PanelType *UNUSED(pt))
 /* active node */
 static void active_node_panel(const bContext *C, Panel *pa)
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
-	bNodeTree *ntree= (snode) ? snode->edittree : NULL;
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = (snode) ? snode->edittree : NULL;
 	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL; // xxx... for editing group nodes
 	uiLayout *layout, *row, *col, *sub;
 	PointerRNA ptr, opptr;
@@ -88,7 +88,7 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	//if (node->id) /* for group nodes */
 	//	RNA_pointer_create(node->id, &RNA_Node, node, &ptr);
 	//else
-		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr); 
+	RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 	
 	layout = uiLayoutColumn(pa->layout, FALSE);
 	uiLayoutSetContextPointer(layout, "node", &ptr);
@@ -134,24 +134,24 @@ static void active_node_panel(const bContext *C, Panel *pa)
 
 static int node_sockets_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	
 	return (snode && snode->nodetree && G.rt == 777);
 }
 
 static void node_sockets_panel(const bContext *C, Panel *pa)
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
-	bNodeTree *ntree= (snode) ? snode->edittree : NULL;
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = (snode) ? snode->edittree : NULL;
 	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL;
 	bNodeSocket *sock;
-	uiLayout *layout= pa->layout, *split;
+	uiLayout *layout = pa->layout, *split;
 	char name[UI_MAX_NAME_STR];
 	
 	if (ELEM(NULL, ntree, node))
 		return;
 	
-	for (sock=node->inputs.first; sock; sock=sock->next) {
+	for (sock = node->inputs.first; sock; sock = sock->next) {
 		BLI_snprintf(name, sizeof(name), "%s:", sock->name);
 
 		split = uiLayoutSplit(layout, 0.35f, FALSE);
@@ -166,33 +166,33 @@ void node_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 	
-	pt= MEM_callocN(sizeof(PanelType), "spacetype node panel active node");
+	pt = MEM_callocN(sizeof(PanelType), "spacetype node panel active node");
 	strcpy(pt->idname, "NODE_PT_item");
 	strcpy(pt->label, IFACE_("Active Node"));
-	pt->draw= active_node_panel;
-	pt->poll= active_node_poll;
+	pt->draw = active_node_panel;
+	pt->poll = active_node_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
-	pt= MEM_callocN(sizeof(PanelType), "spacetype node panel node sockets");
+	pt = MEM_callocN(sizeof(PanelType), "spacetype node panel node sockets");
 	strcpy(pt->idname, "NODE_PT_sockets");
 	strcpy(pt->label, "Sockets");
-	pt->draw= node_sockets_panel;
-	pt->poll= node_sockets_poll;
+	pt->draw = node_sockets_panel;
+	pt->poll = node_sockets_poll;
 	pt->flag |= PNL_DEFAULT_CLOSED;
 	BLI_addtail(&art->paneltypes, pt);
 	
-	pt= MEM_callocN(sizeof(PanelType), "spacetype node panel gpencil");
+	pt = MEM_callocN(sizeof(PanelType), "spacetype node panel gpencil");
 	strcpy(pt->idname, "NODE_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");
-	pt->draw= gpencil_panel_standard;
-	pt->poll= active_nodetree_poll;
+	pt->draw = gpencil_panel_standard;
+	pt->poll = active_nodetree_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
 
 static int node_properties(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= node_has_buttons_region(sa);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = node_has_buttons_region(sa);
 	
 	if (ar)
 		ED_region_toggle_hidden(C, ar);
@@ -203,7 +203,7 @@ static int node_properties(bContext *C, wmOperator *UNUSED(op))
 /* non-standard poll operator which doesn't care if there are any nodes */
 static int node_properties_poll(bContext *C)
 {
-	ScrArea *sa= CTX_wm_area(C);
+	ScrArea *sa = CTX_wm_area(C);
 	return (sa && (sa->spacetype == SPACE_NODE));
 }
 

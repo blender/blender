@@ -8089,14 +8089,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
 /* ************* APPEND LIBRARY ************** */
 
-struct bheadsort {
+struct BHeadSort {
 	BHead *bhead;
 	void *old;
 };
 
 static int verg_bheadsort(const void *v1, const void *v2)
 {
-	const struct bheadsort *x1=v1, *x2=v2;
+	const struct BHeadSort *x1=v1, *x2=v2;
 	
 	if (x1->old > x2->old) return 1;
 	else if (x1->old < x2->old) return -1;
@@ -8106,7 +8106,7 @@ static int verg_bheadsort(const void *v1, const void *v2)
 static void sort_bhead_old_map(FileData *fd)
 {
 	BHead *bhead;
-	struct bheadsort *bhs;
+	struct BHeadSort *bhs;
 	int tot = 0;
 	
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead))
@@ -8115,14 +8115,14 @@ static void sort_bhead_old_map(FileData *fd)
 	fd->tot_bheadmap = tot;
 	if (tot == 0) return;
 	
-	bhs = fd->bheadmap = MEM_mallocN(tot*sizeof(struct bheadsort), "bheadsort");
+	bhs = fd->bheadmap = MEM_mallocN(tot*sizeof(struct BHeadSort), STRINGIFY(BHeadSort));
 	
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead), bhs++) {
 		bhs->bhead = bhead;
 		bhs->old = bhead->old;
 	}
 	
-	qsort(fd->bheadmap, tot, sizeof(struct bheadsort), verg_bheadsort);
+	qsort(fd->bheadmap, tot, sizeof(struct BHeadSort), verg_bheadsort);
 }
 
 static BHead *find_previous_lib(FileData *fd, BHead *bhead)
@@ -8144,7 +8144,7 @@ static BHead *find_bhead(FileData *fd, void *old)
 #if 0
 	BHead *bhead;
 #endif
-	struct bheadsort *bhs, bhs_s;
+	struct BHeadSort *bhs, bhs_s;
 	
 	if (!old)
 		return NULL;
@@ -8153,7 +8153,7 @@ static BHead *find_bhead(FileData *fd, void *old)
 		sort_bhead_old_map(fd);
 	
 	bhs_s.old = old;
-	bhs = bsearch(&bhs_s, fd->bheadmap, fd->tot_bheadmap, sizeof(struct bheadsort), verg_bheadsort);
+	bhs = bsearch(&bhs_s, fd->bheadmap, fd->tot_bheadmap, sizeof(struct BHeadSort), verg_bheadsort);
 
 	if (bhs)
 		return bhs->bhead;

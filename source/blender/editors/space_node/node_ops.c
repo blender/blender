@@ -130,14 +130,14 @@ void ED_operatormacros_node(void)
 
 	ot = WM_operatortype_append_macro("NODE_OT_translate_attach", "Move and Attach",
 	                                  "Move nodes and attach to frame",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_boolean_set(mot->ptr, "release_confirm", TRUE);
 	WM_operatortype_macro_define(ot, "NODE_OT_attach");
 
 	ot = WM_operatortype_append_macro("NODE_OT_detach_translate_attach", "Detach and Move",
 	                                  "Detach nodes, move and attach to frame",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_detach");
 	mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_boolean_set(mot->ptr, "release_confirm", TRUE);
@@ -145,25 +145,25 @@ void ED_operatormacros_node(void)
 
 	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate",
 	                                  "Duplicate selected nodes and move them",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
 
 	/* modified operator call for duplicating with input links */
 	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate",
 	                                  "Duplicate selected nodes keeping input links and move them",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	RNA_boolean_set(mot->ptr, "keep_inputs", TRUE);
 	WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
 
 	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links", "Detach", "Move a node to detach links",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
 	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links_release", "Detach", "Move a node to detach links",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
 	mot = WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
 }
@@ -172,18 +172,18 @@ void ED_operatormacros_node(void)
 static void node_select_keymap(wmKeyMap *keymap, int extend)
 {
 	/* modifier combinations */
-	const int mod_single[] = { 0, KM_CTRL, KM_ALT, KM_CTRL|KM_ALT,
+	const int mod_single[] = { 0, KM_CTRL, KM_ALT, KM_CTRL | KM_ALT,
 	                           -1 /* terminator */
-	                         };
-	const int mod_extend[] = { KM_SHIFT, KM_SHIFT|KM_CTRL,
-	                           KM_SHIFT|KM_ALT, KM_SHIFT|KM_CTRL|KM_ALT,
+	};
+	const int mod_extend[] = { KM_SHIFT, KM_SHIFT | KM_CTRL,
+	                           KM_SHIFT | KM_ALT, KM_SHIFT | KM_CTRL | KM_ALT,
 	                           -1 /* terminator */
-	                         };
+	};
 	const int *mod = (extend ? mod_extend : mod_single);
 	wmKeyMapItem *kmi;
 	int i;
 	
-	for (i=0; mod[i] >= 0; ++i) {
+	for (i = 0; mod[i] >= 0; ++i) {
 		kmi = WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, mod[i], 0);
 		RNA_boolean_set(kmi->ptr, "extend", extend);
 		kmi = WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, mod[i], 0);
@@ -214,23 +214,23 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	node_select_keymap(keymap, TRUE);
 	
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_border", EVT_TWEAK_S, KM_ANY, 0, 0);
-		RNA_boolean_set(kmi->ptr, "tweak", TRUE);
+	RNA_boolean_set(kmi->ptr, "tweak", TRUE);
 	
 	/* each of these falls through if not handled... */
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-		RNA_boolean_set(kmi->ptr, "detach", TRUE);
+	RNA_boolean_set(kmi->ptr, "detach", TRUE);
 	WM_keymap_add_item(keymap, "NODE_OT_resize", LEFTMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_add_reroute", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_select_link_viewer", LEFTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_select_link_viewer", LEFTMOUSE, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_backimage_move", MIDDLEMOUSE, KM_PRESS, KM_ALT, 0);
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_backimage_zoom", VKEY, KM_PRESS, 0, 0);
-		RNA_float_set(kmi->ptr, "factor", 0.83333f);
+	RNA_float_set(kmi->ptr, "factor", 0.83333f);
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_backimage_zoom", VKEY, KM_PRESS, KM_ALT, 0);
-		RNA_float_set(kmi->ptr, "factor", 1.2f);
+	RNA_float_set(kmi->ptr, "factor", 1.2f);
 	WM_keymap_add_item(keymap, "NODE_OT_backimage_sample", ACTIONMOUSE, KM_PRESS, KM_ALT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, 0, 0);
@@ -241,7 +241,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "NODE_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	/* modified operator call for duplicating with input links */
-	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move_keep_inputs", DKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move_keep_inputs", DKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);

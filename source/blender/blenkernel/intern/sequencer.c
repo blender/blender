@@ -2227,7 +2227,7 @@ static ImBuf *seq_render_scene_strip(
 		/* for old scened this can be uninitialized,
 		 * should probably be added to do_versions at some point if the functionality stays */
 		if (context.scene->r.seq_prev_type == 0)
-			context.scene->r.seq_prev_type = 3 /* ==OB_SOLID */; 
+			context.scene->r.seq_prev_type = 3 /* == OB_SOLID */;
 
 		/* opengl offscreen render */
 		BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);

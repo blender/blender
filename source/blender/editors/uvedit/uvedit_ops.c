@@ -224,7 +224,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 					else id_lib_extern(&ima->id);
 
 					/* we also need to correct the aspect of uvs */
-					if(tf->unwrap & TF_CORRECT_ASPECT) {
+					if (tf->unwrap & TF_CORRECT_ASPECT) {
 						BMIter liter;
 						BMLoop *l;
 

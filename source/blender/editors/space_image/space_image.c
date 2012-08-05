@@ -46,12 +46,14 @@
 #include "BKE_screen.h"
 #include "BKE_tessmesh.h"
 #include "BKE_sequencer.h"
+#include "BKE_node.h"
 
 #include "IMB_imbuf_types.h"
 
 #include "ED_image.h"
 #include "ED_mask.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
@@ -346,11 +348,14 @@ static void image_dropboxes(void)
 	WM_dropbox_add(lb, "IMAGE_OT_open", image_drop_poll, image_drop_copy);
 }
 
-
-static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
+/**
+ * \note take care not to get into feedback loop here,
+ *       calling composite job causes viewer to refresh.
+ */
+static void image_refresh(const bContext *C, ScrArea *sa)
 {
 	Scene *scene = CTX_data_scene(C);
-	SpaceImage *sima = CTX_wm_space_image(C);
+	SpaceImage *sima = sa->spacedata.first;
 	Object *obedit = CTX_data_edit_object(C);
 	Image *ima;
 
@@ -359,7 +364,17 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	BKE_image_user_check_frame_calc(&sima->iuser, scene->r.cfra, 0);
 	
 	/* check if we have to set the image from the editmesh */
-	if (ima && (ima->source == IMA_SRC_VIEWER || sima->pin)) ;
+	if (ima && (ima->source == IMA_SRC_VIEWER && sima->mode == SI_MODE_MASK)) {
+		if (sima->lock) {
+			Mask *mask = ED_space_image_get_mask(sima);
+			if (mask) {
+				ED_node_composite_job(C, scene->nodetree, scene);
+			}
+		}
+	}
+	else if (ima && (ima->source == IMA_SRC_VIEWER || sima->pin)) {
+		/* pass */
+	}
 	else if (obedit && obedit->type == OB_MESH) {
 		Mesh *me = (Mesh *)obedit->data;
 		struct BMEditMesh *em = me->edit_btmesh;
@@ -409,15 +424,14 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_FRAME:
 					image_scopes_tag_refresh(sa);
 					ED_area_tag_refresh(sa);
-					ED_area_tag_redraw(sa);					
+					ED_area_tag_redraw(sa);
 					break;
 				case ND_MODE:
 				case ND_RENDER_RESULT:
 				case ND_COMPO_RESULT:
 					if (ED_space_image_show_render(sima))
 						image_scopes_tag_refresh(sa);
-					ED_area_tag_refresh(sa);
-					ED_area_tag_redraw(sa);					
+					ED_area_tag_redraw(sa);
 					break;
 			}
 			break;
@@ -441,9 +455,13 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			if (sima->mode == SI_MODE_MASK) {
 				switch (wmn->data) {
 					case ND_SELECT:
+						ED_area_tag_redraw(sa);
+						break;
 					case ND_DATA:
 					case ND_DRAW:
+						/* causes node-recalc */
 						ED_area_tag_redraw(sa);
+						ED_area_tag_refresh(sa);
 						break;
 				}
 				switch (wmn->action) {
@@ -451,7 +469,9 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 						ED_area_tag_redraw(sa);
 						break;
 					case NA_EDITED:
+						/* causes node-recalc */
 						ED_area_tag_redraw(sa);
+						ED_area_tag_refresh(sa);
 						break;
 				}
 			}

@@ -382,6 +382,17 @@ static void rna_tracking_markerSearch_update(Main *UNUSED(bmain), Scene *UNUSED(
 	BKE_tracking_marker_clamp(marker, CLAMP_SEARCH_DIM);
 }
 
+static void rna_tracking_markerPattern_boundbox_get(PointerRNA *ptr, float *values)
+{
+	MovieTrackingMarker *marker = (MovieTrackingMarker *)ptr->data;
+	float min[2], max[2];
+
+	BKE_tracking_marker_pattern_minmax(marker, min, max);
+
+	copy_v2_v2(values, min);
+	copy_v2_v2(values + 2, max);
+}
+
 static void rna_trackingDopesheet_tagUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
@@ -443,9 +454,12 @@ void rna_trackingObject_remove(MovieTracking *tracking, MovieTrackingObject *obj
 	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
 }
 
-static MovieTrackingMarker *rna_trackingMarkers_find_frame(MovieTrackingTrack *track, int framenr)
+static MovieTrackingMarker *rna_trackingMarkers_find_frame(MovieTrackingTrack *track, int framenr, int exact)
 {
-	return BKE_tracking_marker_get_exact(track, framenr);
+	if (exact)
+		return BKE_tracking_marker_get_exact(track, framenr);
+	else
+		return BKE_tracking_marker_get(track, framenr);
 }
 
 static MovieTrackingMarker *rna_trackingMarkers_insert_frame(MovieTrackingTrack *track, int framenr, float *co)
@@ -646,19 +660,19 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Motion model", "Default motion model to use for tracking");
 
 	/* default_use_brute */
-	prop = RNA_def_property(srna, "default_use_brute", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_default_brute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_BRUTE);
 	RNA_def_property_ui_text(prop, "Prepass", "Use a brute-force translation-only initialization when tracking");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* default_use_brute */
-	prop = RNA_def_property(srna, "default_use_mask", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_default_mask", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_MASK);
 	RNA_def_property_ui_text(prop, "Use Mask", "Use a grease pencil datablock as a mask to use only specified areas of pattern when tracking");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* default_use_normalization */
-	prop = RNA_def_property(srna, "default_use_normalization", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_default_normalization", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_NORMALIZATION);
 	RNA_def_property_ui_text(prop, "Normalize", "Normalize light intensities while tracking (slower)");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
@@ -814,6 +828,8 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static int boundbox_dimsize[] = {2, 2};
+
 	srna = RNA_def_struct(brna, "MovieTrackingMarker", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking marker data", "Match-moving marker data for tracking");
 
@@ -848,6 +864,12 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	                         "Array of coordinates which represents pattern's corners in "
 	                         "normalized coordinates relative to marker position");
 	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_markerPattern_update");
+
+	prop = RNA_def_property(srna, "pattern_bound_box", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_multi_array(prop, 2, boundbox_dimsize);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_tracking_markerPattern_boundbox_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Pattern Bounding Box", "Pattern area bounding box in normalized coordinates");
 
 	/* search */
 	prop = RNA_def_property(srna, "search_min", PROP_FLOAT, PROP_TRANSLATION);
@@ -887,6 +909,8 @@ static void rna_def_trackingMarkers(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
 	                   "Frame number to find marker for", MINFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_boolean(func, "exact", TRUE, "Exact",
+			"Get marker at exact frame number rather than get estimated marker");
 	parm = RNA_def_pointer(func, "marker", "MovieTrackingMarker", "", "Marker for specified frame");
 	RNA_def_function_return(func, parm);
 

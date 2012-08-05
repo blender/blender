@@ -371,7 +371,7 @@ int ED_space_image_maskedit_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 
-	if (sima && sima->image) {
+	if (sima) {
 		Scene *scene = CTX_data_scene(C);
 		return ED_space_image_check_show_maskedit(scene, sima);
 	}
@@ -382,13 +382,8 @@ int ED_space_image_maskedit_poll(bContext *C)
 int ED_space_image_maskedit_mask_poll(bContext *C)
 {
 	if (ED_space_image_maskedit_poll(C)) {
-		Image *ima = CTX_data_edit_image(C);
-
-		if (ima) {
-			SpaceImage *sima = CTX_wm_space_image(C);
-
-			return sima->mask_info.mask != NULL;
-		}
+		SpaceImage *sima = CTX_wm_space_image(C);
+		return sima->mask_info.mask != NULL;
 	}
 
 	return FALSE;

@@ -50,13 +50,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
+#include "BKE_font.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_sound.h"
 #include "BKE_image.h"
+#include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
+#include "BKE_sound.h"
+#include "BKE_utildefines.h"
 
 #ifdef _WIN32
 #define open _open
@@ -219,7 +220,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 void packAll(Main *bmain, ReportList *reports)
 {
 	Image *ima;
-	VFont *vf;
+	VFont *vfont;
 	bSound *sound;
 	
 	for (ima = bmain->image.first; ima; ima = ima->id.next) {
@@ -233,9 +234,9 @@ void packAll(Main *bmain, ReportList *reports)
 		}
 	}
 
-	for (vf = bmain->vfont.first; vf; vf = vf->id.next)
-		if (vf->packedfile == NULL && vf->id.lib == NULL && strcmp(vf->name, FO_BUILTIN_NAME) != 0)
-			vf->packedfile = newPackedFile(reports, vf->name, bmain->name);
+	for (vfont = bmain->vfont.first; vfont; vfont = vfont->id.next)
+		if (vfont->packedfile == NULL && vfont->id.lib == NULL && BKE_vfont_is_builtin(vfont) == FALSE)
+			vfont->packedfile = newPackedFile(reports, vfont->name, bmain->name);
 
 	for (sound = bmain->sound.first; sound; sound = sound->id.next)
 		if (sound->packedfile == NULL && sound->id.lib == NULL)

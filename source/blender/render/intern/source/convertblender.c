@@ -232,7 +232,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 		obr= RE_addRenderObject(re, NULL, NULL, 0, 0, 0);
 	
 	for (x = sx, fx = sx * stargrid; x <= ex; x++, fx += stargrid) {
-		for (y = sy, fy = sy * stargrid; y <= ey ; y++, fy += stargrid) {
+		for (y = sy, fy = sy * stargrid; y <= ey; y++, fy += stargrid) {
 			for (z = sz, fz = sz * stargrid; z <= ez; z++, fz += stargrid) {
 
 				BLI_srand((hash[z & 0xff] << 24) + (hash[y & 0xff] << 16) + (hash[x & 0xff] << 8));

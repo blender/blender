@@ -1297,7 +1297,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	if (swap_space == 1) {
 		SWAP(ListBase, sa1->spacedata, sa2->spacedata);
 		/* exception: ensure preview is reset */
-//		if (sa1->spacetype==SPACE_VIEW3D)
+//		if (sa1->spacetype == SPACE_VIEW3D)
 // XXX			BIF_view3d_previewrender_free(sa1->spacedata.first);
 	}
 	else if (swap_space == 2) {

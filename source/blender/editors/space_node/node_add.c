@@ -155,12 +155,13 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 		bNodeLink *link;
 		float insertPoint[2];
 
-		ED_preview_kill_jobs(C);
-
 		for (link = snode->edittree->links.first; link; link = link->next) {
 			if (add_reroute_intersect_check(link, mcoords, i, insertPoint)) {
 				bNodeTemplate ntemp;
 				bNode *rerouteNode;
+
+				/* always first */
+				ED_preview_kill_jobs(C);
 
 				node_deselect_all(snode);
 
@@ -178,15 +179,17 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 				link->fromnode = rerouteNode;
 				link->fromsock = rerouteNode->outputs.first;
 
-				break; // add one reroute at the time.
+				/* always last */
+				ntreeUpdateTree(snode->edittree);
+				snode_notify(C, snode);
+				snode_dag_update(C, snode);
+
+				return OPERATOR_FINISHED; // add one reroute at the time.
 			}
 		}
 
-		ntreeUpdateTree(snode->edittree);
-		snode_notify(C, snode);
-		snode_dag_update(C, snode);
+		return OPERATOR_CANCELLED;
 
-		return OPERATOR_FINISHED;
 	}
 
 	return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
@@ -316,7 +319,8 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
+	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Datablock name to assign");
 }
 

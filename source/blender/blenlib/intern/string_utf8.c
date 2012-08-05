@@ -261,7 +261,9 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 {
 	int len=0;
 
-	if (dst_w==NULL || src_c==NULL) return(0);
+	if (dst_w == NULL || src_c == NULL) {
+		return 0;
+	}
 
 	while (*src_c && len < maxcpy) {
 		size_t step= 0;

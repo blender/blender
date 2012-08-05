@@ -84,7 +84,7 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 		default:
 		{
 			COLLADASW::OrthographicOptic ortho(mSW);
-			ortho.setXMag(cam->ortho_scale, "xmag");
+			ortho.setXMag(cam->ortho_scale / 2, "xmag");
 			ortho.setAspectRatio((float)(sce->r.xsch) / (float)(sce->r.ysch), false, "aspect_ratio");
 			ortho.setZFar(cam->clipend, false, "zfar");
 			ortho.setZNear(cam->clipsta, false, "znear");

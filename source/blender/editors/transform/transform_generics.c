@@ -620,7 +620,10 @@ static void recalcData_mask_common(TransInfo *t)
 /* helper for recalcData() - for Image Editor transforms */
 static void recalcData_image(TransInfo *t)
 {
-	if (t->obedit && t->obedit->type == OB_MESH) {
+	if (t->options & CTX_MASK) {
+		recalcData_mask_common(t);
+	}
+	else if (t->obedit && t->obedit->type == OB_MESH) {
 		SpaceImage *sima = t->sa->spacedata.first;
 		
 		flushTransUVs(t);
@@ -628,9 +631,6 @@ static void recalcData_image(TransInfo *t)
 			ED_uvedit_live_unwrap_re_solve();
 		
 		DAG_id_tag_update(t->obedit->data, 0);
-	}
-	else if (t->options & CTX_MASK) {
-		recalcData_mask_common(t);
 	}
 }
 
@@ -1113,7 +1113,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->view = &ar->v2d;
 		t->around = sima->around;
 
-		if (t->obedit) {
+		if (ED_space_image_show_uvedit(sima, t->obedit)) {
 			/* UV transform */
 		}
 		else if (sima->mode == SI_MODE_MASK) {
@@ -1445,7 +1445,12 @@ void calculateCenterCursor2D(TransInfo *t)
 	if (t->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
 		/* only space supported right now but may change */
-		ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
+		if (t->options & CTX_MASK) {
+			ED_space_image_get_aspect(sima, &aspx, &aspy);
+		}
+		else {
+			ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
+		}
 		cursor = sima->cursor;
 	}
 	

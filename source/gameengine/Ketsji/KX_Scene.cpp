@@ -2164,7 +2164,11 @@ PyObject* KX_Scene::pyattr_get_cameras(void *self_v, const KX_PYATTRIBUTE_DEF *a
 PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	return self->GetActiveCamera()->GetProxy();
+	KX_Camera* cam= self->GetActiveCamera();
+	if (cam)
+		return self->GetActiveCamera()->GetProxy();
+	else
+		Py_RETURN_NONE;
 }
 
 

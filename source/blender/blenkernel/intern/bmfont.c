@@ -75,7 +75,7 @@ void calcAlpha(ImBuf * ibuf)
 	
 	if (ibuf) {
 		rect = (char *) ibuf->rect;
-		for (i = ibuf->x * ibuf->y ; i > 0 ; i--) {
+		for (i = ibuf->x * ibuf->y; i > 0; i--) {
 			rect[3] = MAX3(rect[0], rect[1], rect[2]);
 			rect += 4;
 		}

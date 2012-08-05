@@ -2155,10 +2155,10 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 	BPY_BM_CHECK_OBJ(self);
 
 	if (args != NULL) {
-		if(!PyArg_ParseTupleAndKeywords(args, kw,
-						"|Oi:BMElemSeq.sort",
-						(char **)kwlist,
-						&keyfunc, &reverse))
+		if (!PyArg_ParseTupleAndKeywords(args, kw,
+		                                 "|Oi:BMElemSeq.sort",
+		                                 (char **)kwlist,
+		                                 &keyfunc, &reverse))
 			return NULL;
 	}
 
