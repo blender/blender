@@ -804,8 +804,15 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 	AnimationImporter::AnimMix *animType = get_animation_type(node, FW_object_map);
 
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
-	COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
-	Object *ob = is_joint ? armature_importer->get_armature_for_joint(root) : object_map.find(node->getUniqueId())->second;
+	COLLADAFW::UniqueId uid = node->getUniqueId();
+	COLLADAFW::Node *root = root_map.find(uid) == root_map.end() ? node : root_map[uid];
+
+	Object *ob;
+	if(is_joint)
+		ob = armature_importer->get_armature_for_joint(root);
+	else
+		ob = object_map.find(uid) == object_map.end() ? NULL : object_map.find(uid)->second;
+
 	if (!ob) {
 		fprintf(stderr, "cannot find Object for Node with id=\"%s\"\n", node->getOriginalId().c_str());
 		return;
@@ -1179,6 +1186,11 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(const COLLADAF
 	const COLLADAFW::InstanceCameraPointerArray& nodeCameras = node->getInstanceCameras();
 	for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
 		const COLLADAFW::Camera *camera  = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
+		if ( camera == NULL ) {
+			// Can happen if the node refers to an unknown camera.
+			continue;
+		}
+
 		const bool is_perspective_type   = camera->getCameraType() == COLLADAFW::Camera::PERSPECTIVE;
 
 		int addition;

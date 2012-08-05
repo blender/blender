@@ -308,7 +308,7 @@ Object *DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 {
 	const COLLADAFW::UniqueId& cam_uid = camera->getInstanciatedObjectId();
 	if (uid_camera_map.find(cam_uid) == uid_camera_map.end()) {	
-		fprintf(stderr, "Couldn't find camera by UID.\n");
+		// fprintf(stderr, "Couldn't find camera by UID.\n");
 		return NULL;
 	}
 
@@ -443,7 +443,13 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 		}
 		while (camera_done < camera.getCount()) {
 			ob = create_camera_object(camera[camera_done], sce);
-			objects_done->push_back(ob);
+			if (ob == NULL) {
+				std::string id = node->getOriginalId();
+				std::string name = node->getName();
+				fprintf(stderr, "<node id=\"%s\", name=\"%s\" >...contains a reference to an unknown instance_camera.\n", id.c_str(), name.c_str());
+			}
+			else
+				objects_done->push_back(ob);
 			++camera_done;
 		}
 		while (lamp_done < lamp.getCount()) {
