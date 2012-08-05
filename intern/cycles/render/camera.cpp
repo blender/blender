@@ -75,6 +75,7 @@ Camera::Camera()
 
 	need_update = true;
 	need_device_update = true;
+	previous_motion = -1;
 }
 
 Camera::~Camera()
@@ -140,7 +141,18 @@ void Camera::update()
 
 void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
+	Scene::MotionType need_motion = scene->need_motion();
+
 	update();
+
+	if (previous_motion != need_motion) {
+		/* scene's motion model could have been changed since
+		 * previous device camera update
+		 * this could happen for example in case when one render
+		 * layer has got motion pass and another not
+		 */
+		need_device_update = true;
+	}
 
 	if(!need_device_update)
 		return;
@@ -159,7 +171,6 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->worldtocamera = transform_inverse(cameratoworld);
 
 	/* camera motion */
-	Scene::MotionType need_motion = scene->need_motion();
 	kcam->have_motion = 0;
 
 	if(need_motion == Scene::MOTION_PASS) {
@@ -226,6 +237,7 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->cliplength = (farclip == FLT_MAX)? FLT_MAX: farclip - nearclip;
 
 	need_device_update = false;
+	previous_motion = need_motion;
 }
 
 void Camera::device_free(Device *device, DeviceScene *dscene)
