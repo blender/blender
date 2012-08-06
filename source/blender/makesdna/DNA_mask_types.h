@@ -51,9 +51,6 @@ typedef struct Mask {
 
 	int flag;  /* for anim info */
 	int pad;
-
-	/* XXX: cache data, remove as soon as rasterizer is multithreaded */
-	void *raster_cache;
 } Mask;
 
 typedef struct MaskParent {
