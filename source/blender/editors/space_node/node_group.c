@@ -631,45 +631,50 @@ static int node_group_separate_selected(bNodeTree *ntree, bNode *gnode, int make
 	/* add selected nodes into the ntree */
 	for (node = ngroup->nodes.first; node; node = node_next) {
 		node_next = node->next;
-		if (!(node->flag & NODE_SELECT))
-			continue;
-
-		if (make_copy) {
-			/* make a copy */
-			newnode = nodeCopyNode(ngroup, node);
+		if (node->flag & NODE_SELECT) {
+			
+			if (make_copy) {
+				/* make a copy */
+				newnode = nodeCopyNode(ngroup, node);
+			}
+			else {
+				/* use the existing node */
+				newnode = node;
+			}
+			
+			/* keep track of this node's RNA "base" path (the part of the path identifying the node)
+			 * if the old nodetree has animation data which potentially covers this node
+			 */
+			if (ngroup->adt) {
+				PointerRNA ptr;
+				char *path;
+				
+				RNA_pointer_create(&ngroup->id, &RNA_Node, newnode, &ptr);
+				path = RNA_path_from_ID_to_struct(&ptr);
+				
+				if (path)
+					BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
+			}
+			
+			/* ensure valid parent pointers, detach if parent stays inside the group */
+			if (newnode->parent && !(newnode->parent->flag & NODE_SELECT))
+				nodeDetachNode(newnode);
+			
+			/* migrate node */
+			BLI_remlink(&ngroup->nodes, newnode);
+			BLI_addtail(&ntree->nodes, newnode);
+			
+			/* ensure unique node name in the node tree */
+			nodeUniqueName(ntree, newnode);
+			
+			newnode->locx += gnode->locx;
+			newnode->locy += gnode->locy;
 		}
 		else {
-			/* use the existing node */
-			newnode = node;
+			/* ensure valid parent pointers, detach if child stays inside the group */
+			if (node->parent && (node->parent->flag & NODE_SELECT))
+				nodeDetachNode(node);
 		}
-
-		/* keep track of this node's RNA "base" path (the part of the path identifying the node)
-		 * if the old nodetree has animation data which potentially covers this node
-		 */
-		if (ngroup->adt) {
-			PointerRNA ptr;
-			char *path;
-
-			RNA_pointer_create(&ngroup->id, &RNA_Node, newnode, &ptr);
-			path = RNA_path_from_ID_to_struct(&ptr);
-
-			if (path)
-				BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
-		}
-
-		/* ensure valid parent pointers, detach if parent stays inside the group */
-		if (newnode->parent && !(newnode->parent->flag & NODE_SELECT))
-			nodeDetachNode(newnode);
-
-		/* migrate node */
-		BLI_remlink(&ngroup->nodes, newnode);
-		BLI_addtail(&ntree->nodes, newnode);
-
-		/* ensure unique node name in the node tree */
-		nodeUniqueName(ntree, newnode);
-
-		newnode->locx += gnode->locx;
-		newnode->locy += gnode->locy;
 	}
 
 	/* add internal links to the ntree */
@@ -912,6 +917,11 @@ static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
 
 			node->locx -= 0.5f * (min[0] + max[0]);
 			node->locy -= 0.5f * (min[1] + max[1]);
+		}
+		else {
+			/* if the parent is to be inserted but not the child, detach properly */
+			if (node->parent && (node->parent->flag & NODE_SELECT))
+				nodeDetachNode(node);
 		}
 	}
 
