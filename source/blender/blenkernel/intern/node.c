@@ -1443,13 +1443,13 @@ void BKE_node_clipboard_clear(void)
 	bNode *node, *node_next;
 	bNodeLink *link, *link_next;
 	
-	for (link = node_clipboard.links.first; link; link=link_next) {
+	for (link = node_clipboard.links.first; link; link = link_next) {
 		link_next = link->next;
 		nodeRemLink(NULL, link);
 	}
 	node_clipboard.links.first = node_clipboard.links.last = NULL;
 	
-	for (node = node_clipboard.nodes.first; node; node=node_next) {
+	for (node = node_clipboard.nodes.first; node; node = node_next) {
 		node_next = node->next;
 		nodeFreeNode(NULL, node);
 	}

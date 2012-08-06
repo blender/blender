@@ -1174,6 +1174,7 @@ static void *newmclipadr(FileData *fd, void *adr)              /* used to restor
 	return NULL;
 }
 
+
 static void *newlibadr(FileData *fd, void *lib, void *adr)		/* only lib data */
 {
 	return oldnewmap_liblookup(fd->libmap, adr, lib);
@@ -1367,6 +1368,7 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
 		}
 	}
 }
+
 
 /* undo file support: add all library pointers in lookup */
 void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd)
@@ -8083,7 +8085,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	fix_relpaths_library(fd->relabase, bfd->main); /* make all relative paths, relative to the open blend file */
 	
 	link_global(fd, bfd);	/* as last */
-
+	
 	return bfd;
 }
 

@@ -1528,7 +1528,6 @@ void BKE_mask_layer_free(MaskLayer *masklay)
 	MEM_freeN(masklay);
 }
 
-
 void BKE_mask_layer_free_list(ListBase *masklayers)
 {
 	MaskLayer *masklay = masklayers->first;
@@ -1541,7 +1540,6 @@ void BKE_mask_layer_free_list(ListBase *masklayers)
 
 		masklay = masklay_next;
 	}
-
 }
 
 void BKE_mask_free(Mask *mask)
