@@ -3450,7 +3450,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	StructRNA *srna;
 	
 	static EnumPropertyItem anim_player_presets[] = {
-		/*{0, "INTERNAL", 0, "Internal", "Built-in animation player"},	 *//* doesn't work yet! */
+		{0, "INTERNAL", 0, "Internal", "Built-in animation player"}, /* doesn't work yet! */
 		{1, "BLENDER24", 0, "Blender 2.4", "Blender command line animation playback - path to Blender 2.4"},
 		{2, "DJV", 0, "Djv", "Open source frame player: http://djv.sourceforge.net"},
 		{3, "FRAMECYCLER", 0, "FrameCycler", "Frame player from IRIDAS"},

@@ -453,16 +453,14 @@ static int set_env(int argc, const char **argv, void *UNUSED(data))
 	return 1;
 }
 
-static int playback_mode(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+static int playback_mode(int argc, const char **argv, void *UNUSED(data))
 {
+	extern void playanim(int argc, const char **argv);
+
 	/* not if -b was given first */
 	if (G.background == 0) {
-#if 0   /* TODO, bring player back? */
 		playanim(argc, argv); /* not the same argc and argv as before */
-#else
-		fprintf(stderr, "Playback mode not supported in blender 2.6x\n");
-		exit(0);
-#endif
+		exit(0); /* 2.4x didn't do this */
 	}
 
 	return -2;
@@ -1272,11 +1270,6 @@ int main(int argc, const char **argv)
 
 	BLI_threadapi_init();
 
-	RNA_init();
-	RE_engines_init();
-
-	init_nodesystem();
-	
 	initglobals();  /* blender.c */
 
 	IMB_init();
@@ -1296,6 +1289,15 @@ int main(int argc, const char **argv)
 
 	BLI_argsParse(ba, 1, NULL, NULL);
 #endif
+
+
+	/* after level 1 args, this is so playanim skips RNA init */
+	RNA_init();
+
+	RE_engines_init();
+	init_nodesystem();
+	/* end second init */
+
 
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
 	G.background = 1; /* python module mode ALWAYS runs in background mode (for now) */
