@@ -592,9 +592,25 @@ void nodeFromView(bNode *node, float x, float y, float *rx, float *ry)
 	}
 }
 
+int nodeAttachNodeCheck(bNode *node, bNode *parent)
+{
+	bNode *parent_recurse;
+	for (parent_recurse = node; parent_recurse; parent_recurse = parent_recurse->parent) {
+		if (parent_recurse == parent) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
 void nodeAttachNode(bNode *node, bNode *parent)
 {
 	float locx, locy;
+
+	BLI_assert(parent->type == NODE_FRAME);
+	BLI_assert(nodeAttachNodeCheck(parent, node) == FALSE);
+
 	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 	
 	node->parent = parent;
@@ -607,6 +623,9 @@ void nodeDetachNode(struct bNode *node)
 	float locx, locy;
 	
 	if (node->parent) {
+
+		BLI_assert(node->parent->type == NODE_FRAME);
+
 		/* transform to view space */
 		nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 		node->locx = locx;
@@ -1409,11 +1428,17 @@ void nodeSocketSetType(bNodeSocket *sock, int type)
 typedef struct bNodeClipboard {
 	ListBase nodes;
 	ListBase links;
+	int type;
 } bNodeClipboard;
 
 bNodeClipboard node_clipboard;
 
-void nodeClipboardClear(void)
+void BKE_node_clipboard_init(struct bNodeTree *ntree)
+{
+	node_clipboard.type = ntree->type;
+}
+
+void BKE_node_clipboard_clear(void)
 {
 	bNode *node, *node_next;
 	bNodeLink *link, *link_next;
@@ -1431,24 +1456,29 @@ void nodeClipboardClear(void)
 	node_clipboard.nodes.first = node_clipboard.nodes.last = NULL;
 }
 
-void nodeClipboardAddNode(bNode *node)
+void BKE_node_clipboard_add_node(bNode *node)
 {
 	BLI_addtail(&node_clipboard.nodes, node);
 }
 
-void nodeClipboardAddLink(bNodeLink *link)
+void BKE_node_clipboard_add_link(bNodeLink *link)
 {
 	BLI_addtail(&node_clipboard.links, link);
 }
 
-const ListBase *nodeClipboardGetNodes(void)
+const ListBase *BKE_node_clipboard_get_nodes(void)
 {
 	return &node_clipboard.nodes;
 }
 
-const ListBase *nodeClipboardGetLinks(void)
+const ListBase *BKE_node_clipboard_get_links(void)
 {
 	return &node_clipboard.links;
+}
+
+int BKE_node_clipboard_get_type(void)
+{
+	return node_clipboard.type;
 }
 
 /* ************** dependency stuff *********** */

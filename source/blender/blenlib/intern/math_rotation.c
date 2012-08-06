@@ -1660,12 +1660,12 @@ void quat_apply_track(float quat[4], short axis, short upflag)
 {
 	/* rotations are hard coded to match vec_to_quat */
 	const float quat_track[][4] = {
-		{0.70710676908493, 0.0, -0.70710676908493, 0.0}, /* pos-y90 */
+		{M_SQRT1_2, 0.0, -M_SQRT1_2, 0.0}, /* pos-y90 */
 		{0.5, 0.5, 0.5, 0.5}, /* Quaternion((1,0,0), radians(90)) * Quaternion((0,1,0), radians(90)) */
-		{0.70710676908493, 0.0, 0.0, 0.70710676908493}, /* pos-z90 */
-		{0.70710676908493, 0.0, 0.70710676908493, 0.0}, /* neg-y90 */
+		{M_SQRT1_2, 0.0, 0.0, M_SQRT1_2}, /* pos-z90 */
+		{M_SQRT1_2, 0.0, M_SQRT1_2, 0.0}, /* neg-y90 */
 		{0.5, -0.5, -0.5, 0.5}, /* Quaternion((1,0,0), radians(-90)) * Quaternion((0,1,0), radians(-90)) */
-		{-3.0908619663705394e-08, 0.70710676908493, 0.70710676908493, 3.0908619663705394e-08} /* no rotation */
+		{-3.0908619663705394e-08, M_SQRT1_2, M_SQRT1_2, 3.0908619663705394e-08} /* no rotation */
 	};
 
 	assert(axis >= 0 && axis <= 5);
@@ -1680,8 +1680,8 @@ void quat_apply_track(float quat[4], short axis, short upflag)
 	 * up axis is used X->Y, Y->X, Z->X, if this first up axis isn used then rotate 90d
 	 * the strange bit shift below just find the low axis {X:Y, Y:X, Z:X} */
 	if (upflag != (2 - axis) >> 1) {
-		float q[4] = {0.70710676908493, 0.0, 0.0, 0.0}; /* assign 90d rotation axis */
-		q[axis + 1] = ((axis == 1)) ? 0.70710676908493 : -0.70710676908493; /* flip non Y axis */
+		float q[4] = {M_SQRT1_2, 0.0, 0.0, 0.0}; /* assign 90d rotation axis */
+		q[axis + 1] = ((axis == 1)) ? M_SQRT1_2 : -M_SQRT1_2; /* flip non Y axis */
 		mul_qt_qtqt(quat, quat, q);
 	}
 }

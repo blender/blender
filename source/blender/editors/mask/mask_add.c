@@ -321,6 +321,7 @@ static void finSelectedSplinePoint(MaskLayer *masklay, MaskSpline **spline, Mask
 	*point = NULL;
 
 	if (check_active) {
+		/* TODO, having an active point but no active spline is possible, why? */
 		if (masklay->act_spline && masklay->act_point && MASKPOINT_ISSEL_ANY(masklay->act_point)) {
 			*spline = masklay->act_spline;
 			*point = masklay->act_point;
@@ -562,7 +563,8 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
 	RNA_float_get_array(op->ptr, "location", co);
 
-	if (masklay && masklay->act_point && MASKPOINT_ISSEL_ANY(masklay->act_point)) {
+	/* TODO, having an active point but no active spline is possible, why? */
+	if (masklay && masklay->act_spline && masklay->act_point && MASKPOINT_ISSEL_ANY(masklay->act_point)) {
 
 		/* cheap trick - double click for cyclic */
 		MaskSpline *spline = masklay->act_spline;

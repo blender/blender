@@ -701,7 +701,7 @@ static int sound_pack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	sound->packedfile = newPackedFile(op->reports, sound->name, ID_BLEND_PATH(bmain, &sound->id));
-	sound_load(CTX_data_main(C), sound);
+	sound_load(bmain, sound);
 
 	return OPERATOR_FINISHED;
 }
@@ -725,6 +725,7 @@ static void SOUND_OT_pack(wmOperatorType *ot)
 
 static int sound_unpack_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	int method = RNA_enum_get(op->ptr, "method");
 	bSound *sound = NULL;
 
@@ -732,7 +733,7 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
 	if (RNA_struct_property_is_set(op->ptr, "id")) {
 		char sndname[MAX_ID_NAME - 2];
 		RNA_string_get(op->ptr, "id", sndname);
-		sound = BLI_findstring(&CTX_data_main(C)->sound, sndname, offsetof(ID, name) + 2);
+		sound = BLI_findstring(&bmain->sound, sndname, offsetof(ID, name) + 2);
 	}
 
 	if (!sound || !sound->packedfile)
@@ -741,7 +742,7 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
 	if (G.fileflags & G_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save");
 
-	unpackSound(CTX_data_main(C), op->reports, sound, method);
+	unpackSound(bmain, op->reports, sound, method);
 
 	return OPERATOR_FINISHED;
 }

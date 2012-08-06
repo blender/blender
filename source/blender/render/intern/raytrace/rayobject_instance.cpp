@@ -118,7 +118,7 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 	for (i = 0; i < 3; i++) {
 		isec->idot_axis[i]        = 1.0f / isec->dir[i];
 
-		isec->bv_index[2 * i]     = isec->idot_axis[i] < 0.0 ? 1 : 0;
+		isec->bv_index[2 * i]     = isec->idot_axis[i] < 0.0f ? 1 : 0;
 		isec->bv_index[2 * i + 1] = 1 - isec->bv_index[2 * i];
 
 		isec->bv_index[2 * i]     = i + 3 * isec->bv_index[2 * i];
@@ -161,7 +161,7 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 
 	// restore bv_index
 	for (i = 0; i < 3; i++) {
-		isec->bv_index[2 * i]     = isec->idot_axis[i] < 0.0 ? 1 : 0;
+		isec->bv_index[2 * i]     = isec->idot_axis[i] < 0.0f ? 1 : 0;
 		isec->bv_index[2 * i + 1] = 1 - isec->bv_index[2 * i];
 
 		isec->bv_index[2 * i]     = i + 3 * isec->bv_index[2 * i];

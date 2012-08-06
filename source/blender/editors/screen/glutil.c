@@ -674,7 +674,7 @@ void glaDefine2DArea(rcti *screen_rect)
 	glViewport(screen_rect->xmin, screen_rect->ymin, sc_w, sc_h);
 	glScissor(screen_rect->xmin, screen_rect->ymin, sc_w, sc_h);
 
-	/* The 0.375 magic number is to shift the matrix so that
+	/* The GLA_PIXEL_OFS magic number is to shift the matrix so that
 	 * both raster and vertex integer coordinates fall at pixel
 	 * centers properly. For a longer discussion see the OpenGL
 	 * Programming Guide, Appendix H, Correctness Tips.
@@ -683,7 +683,7 @@ void glaDefine2DArea(rcti *screen_rect)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0.0, sc_w, 0.0, sc_h, -1, 1);
-	glTranslatef(0.375, 0.375, 0.0);
+	glTranslatef(GLA_PIXEL_OFS, GLA_PIXEL_OFS, 0.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

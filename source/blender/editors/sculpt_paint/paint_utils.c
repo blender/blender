@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -177,15 +177,10 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3],
 
 float paint_get_tex_pixel(Brush *br, float u, float v)
 {
-	TexResult texres;
-	float co[3];
+	TexResult texres = {0};
+	float co[3] = {u, v, 0.0f};
 	int hasrgb;
 
-	co[0] = u;
-	co[1] = v;
-	co[2] = 0;
-
-	memset(&texres, 0, sizeof(TexResult));
 	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 0, &texres);
 
 	if (hasrgb & TEX_RGB)

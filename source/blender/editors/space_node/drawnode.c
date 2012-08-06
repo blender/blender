@@ -997,9 +997,7 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	float alpha;
 	
 	/* skip if out of view */
-	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
-	    node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax) {
-		
+	if (BLI_rctf_isect(&node->totr, &ar->v2d.cur, NULL) == FALSE) {
 		uiEndBlock(C, node->block);
 		node->block = NULL;
 		return;
@@ -3043,7 +3041,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			
 			glaDefine2DArea(&ar->winrct);
 			/* ortho at pixel level curarea */
-			wmOrtho2(-0.375, ar->winx - 0.375, -0.375, ar->winy - 0.375);
+			wmOrtho2(-GLA_PIXEL_OFS, ar->winx - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, ar->winy - GLA_PIXEL_OFS);
 			
 			x = (ar->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
 			y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;

@@ -50,10 +50,10 @@
 
 #include "UI_view2d.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "node_intern.h"  /* own include */
 

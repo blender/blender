@@ -46,9 +46,10 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
@@ -762,7 +763,7 @@ static void edit_node_properties_get(wmOperator *op, bNodeTree *ntree, bNode **r
 /* ************************** Node generic ************** */
 
 /* is rct in visible part of node? */
-static bNode *visible_node(SpaceNode *snode, rctf *rct)
+static bNode *visible_node(SpaceNode *snode, const rctf *rct)
 {
 	bNode *node;
 	
@@ -1917,7 +1918,8 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_preview_kill_jobs(C);
 
 	/* clear current clipboard */
-	nodeClipboardClear();
+	BKE_node_clipboard_clear();
+	BKE_node_clipboard_init(ntree);
 
 	/* get group node offset */
 	if (gnode)
@@ -1926,7 +1928,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->flag & SELECT) {
 			new_node = nodeCopyNode(NULL, node);
-			nodeClipboardAddNode(new_node);
+			BKE_node_clipboard_add_node(new_node);
 		}
 	}
 
@@ -1968,7 +1970,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 			newlink->fromnode = link->fromnode->new_node;
 			newlink->fromsock = link->fromsock->new_sock;
 
-			nodeClipboardAddLink(newlink);
+			BKE_node_clipboard_add_link(newlink);
 		}
 	}
 
@@ -1992,7 +1994,7 @@ void NODE_OT_clipboard_copy(wmOperatorType *ot)
 
 /* ****************** Paste from clipboard ******************* */
 
-static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ntree = snode->edittree;
@@ -2002,6 +2004,11 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeLink *link;
 	int num_nodes;
 	float centerx, centery;
+
+	if (BKE_node_clipboard_get_type() != ntree->type) {
+		BKE_report(op->reports, RPT_ERROR, "Clipboard nodes are an incompatible type");
+		return OPERATOR_CANCELLED;
+	}
 
 	ED_preview_kill_jobs(C);
 
@@ -2015,7 +2022,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	/* calculate "barycenter" for placing on mouse cursor */
 	num_nodes = 0;
 	centerx = centery = 0.0f;
-	for (node = nodeClipboardGetNodes()->first; node; node = node->next) {
+	for (node = BKE_node_clipboard_get_nodes()->first; node; node = node->next) {
 		++num_nodes;
 		centerx += 0.5f * (node->totr.xmin + node->totr.xmax);
 		centery += 0.5f * (node->totr.ymin + node->totr.ymax);
@@ -2024,7 +2031,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	centery /= num_nodes;
 
 	/* copy nodes from clipboard */
-	for (node = nodeClipboardGetNodes()->first; node; node = node->next) {
+	for (node = BKE_node_clipboard_get_nodes()->first; node; node = node->next) {
 		bNode *new_node = nodeCopyNode(ntree, node);
 
 		/* pasted nodes are selected */
@@ -2032,7 +2039,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* reparent copied nodes */
-	for (node = nodeClipboardGetNodes()->first; node; node = node->next) {
+	for (node = BKE_node_clipboard_get_nodes()->first; node; node = node->next) {
 		bNode *new_node = node->new_node;
 		if (new_node->parent)
 			new_node->parent = new_node->parent->new_node;
@@ -2045,7 +2052,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	for (link = nodeClipboardGetLinks()->first; link; link = link->next) {
+	for (link = BKE_node_clipboard_get_links()->first; link; link = link->next) {
 		nodeAddLink(ntree, link->fromnode->new_node, link->fromsock->new_sock,
 		            link->tonode->new_node, link->tosock->new_sock);
 	}
