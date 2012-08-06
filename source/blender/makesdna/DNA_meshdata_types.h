@@ -95,7 +95,7 @@ typedef struct MLoop {
 typedef struct MTexPoly {
 	struct Image *tpage;
 	char flag, transp;
-	short mode, tile, unwrap;
+	short mode, tile, pad;
 } MTexPoly;
 
 /* can copy from/to MTexPoly/MTFace */
@@ -106,8 +106,7 @@ typedef struct MTexPoly {
 	(dst)->transp = (src)->transp;  \
 	(dst)->mode   = (src)->mode;    \
 	(dst)->tile   = (src)->tile;    \
-	(dst)->unwrap = (src)->unwrap;  \
-}
+} (void)0
 
 typedef struct MLoopUV {
 	float uv[2];
@@ -368,6 +367,5 @@ typedef struct MVertSkin {
 #define TF_PIN2	           32
 #define TF_PIN3	   	       64
 #define TF_PIN4	           128
-#define TF_CORRECT_ASPECT  256
 
 #endif

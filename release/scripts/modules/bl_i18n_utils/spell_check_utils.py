@@ -297,6 +297,7 @@ dict_uimsgs = {
     "gimbal",
     "grayscale",
     "icosphere",
+    "inpaint",
     "lightmap",
     "lossless", "lossy",
     "midtones",

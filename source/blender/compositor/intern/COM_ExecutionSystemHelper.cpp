@@ -154,12 +154,9 @@ static OutputSocket *find_output(NodeRange &node_range, bNode *bnode, bNodeSocke
 }
 SocketConnection *ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vector<SocketConnection *>& links, bNodeLink *b_nodelink)
 {
-	/// @note: cyclic lines will be ignored. This has been copied from node.c
-	if (b_nodelink->tonode != 0 && b_nodelink->fromnode != 0) {
-		if (!(b_nodelink->fromnode->level >= b_nodelink->tonode->level && b_nodelink->tonode->level != 0xFFF)) { // only add non cyclic lines! so execution will procede
-			return NULL;
-		}
-	}
+	/// @note: ignore invalid links
+	if (!(b_nodelink->flag & NODE_LINK_VALID))
+		return NULL;
 
 	InputSocket *inputSocket = find_input(node_range, b_nodelink->tonode, b_nodelink->tosock);
 	OutputSocket *outputSocket = find_output(node_range, b_nodelink->fromnode, b_nodelink->fromsock);

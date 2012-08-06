@@ -50,6 +50,7 @@
 #include "BKE_tracking.h"
 #include "BKE_utildefines.h"
 
+#include "node_common.h"
 #include "node_exec.h"
 #include "node_util.h"
 
@@ -247,6 +248,8 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 static void update(bNodeTree *ntree)
 {
 	ntreeSetOutput(ntree);
+	
+	ntree_update_reroute_nodes(ntree);
 }
 
 bNodeTreeType ntreeType_Composite = {

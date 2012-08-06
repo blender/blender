@@ -1660,8 +1660,6 @@ void ntreeUpdateTree(bNodeTree *ntree)
 			else if (node->typeinfo->updatefunc)
 				node->typeinfo->updatefunc(ntree, node);
 		}
-		/* clear update flag */
-		node->update = 0;
 	}
 	
 	/* check link validity */
@@ -1683,7 +1681,10 @@ void ntreeUpdateTree(bNodeTree *ntree)
 	/* XXX hack, should be done by depsgraph!! */
 	ntreeVerifyNodes(G.main, &ntree->id);
 	
-	/* clear the update flag */
+	/* clear update flags */
+	for (node = ntree->nodes.first; node; node = node->next) {
+		node->update = 0;
+	}
 	ntree->update = 0;
 }
 
