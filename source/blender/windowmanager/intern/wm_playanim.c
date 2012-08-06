@@ -941,6 +941,9 @@ void playanim(int argc, const char **argv)
 	pupdate_time();
 	ptottime = 0;
 
+	/* newly added in 2.6x, without this images never get freed */
+#define USE_IMB_CACHE
+
 	while (ps.go) {
 		if (ps.pingpong)
 			ps.direction = -ps.direction;
@@ -967,8 +970,9 @@ void playanim(int argc, const char **argv)
 		if (ptottime > 0.0) ptottime = 0.0;
 
 		while (ps.picture) {
+#ifndef USE_IMB_CACHE
 			if (ibuf != NULL && ibuf->ftype == 0) IMB_freeImBuf(ibuf);
-
+#endif
 			if (ps.picture->ibuf) {
 				ibuf = ps.picture->ibuf;
 			}
@@ -984,6 +988,11 @@ void playanim(int argc, const char **argv)
 			}
 
 			if (ibuf) {
+
+#ifdef USE_IMB_CACHE
+				ps.picture->ibuf = ibuf;
+#endif
+
 				BLI_strncpy(ibuf->name, ps.picture->name, sizeof(ibuf->name));
 
 				/* why only windows? (from 2.4x) - campbell */
@@ -1101,7 +1110,10 @@ void playanim(int argc, const char **argv)
 #endif /* WITH_QUICKTIME */
 
 	/* cleanup */
+#ifndef USE_IMB_CACHE
 	if (ibuf) IMB_freeImBuf(ibuf);
+#endif
+
 	BLI_freelistN(&picsbase);
 #if 0 // XXX25
 	free_blender();
@@ -1115,7 +1127,10 @@ void playanim(int argc, const char **argv)
 
 	totblock = MEM_get_memory_blocks_in_use();
 	if (totblock != 0) {
+		/* prints many bAKey, bArgument's which are tricky to fix */
+#if 0
 		printf("Error Totblock: %d\n", totblock);
 		MEM_printmemlist();
+#endif
 	}
 }

@@ -1270,11 +1270,6 @@ int main(int argc, const char **argv)
 
 	BLI_threadapi_init();
 
-	RNA_init();
-	RE_engines_init();
-
-	init_nodesystem();
-	
 	initglobals();  /* blender.c */
 
 	IMB_init();
@@ -1294,6 +1289,15 @@ int main(int argc, const char **argv)
 
 	BLI_argsParse(ba, 1, NULL, NULL);
 #endif
+
+
+	/* after level 1 args, this is so playanim skips RNA init */
+	RNA_init();
+
+	RE_engines_init();
+	init_nodesystem();
+	/* end second init */
+
 
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
 	G.background = 1; /* python module mode ALWAYS runs in background mode (for now) */
