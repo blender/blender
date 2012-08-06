@@ -586,7 +586,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 
 			if (do_feather) {
 				diff_feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution_ex(
-				                          spline, &tot_diff_feather_points, resol, TRUE);
+				                          spline, &tot_diff_feather_points, resol);
 				BLI_assert(diff_feather_points);
 			}
 			else {

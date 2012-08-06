@@ -1166,13 +1166,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem pivot_items[] = {
-		{V3D_CENTER, "CENTER", ICON_ROTATE, "Bounding Box Center", ""},
-		{V3D_CENTROID, "MEDIAN", ICON_ROTATECENTER, "Median Point", ""},
-		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "2D Cursor", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "SpaceUVEditor", NULL);
 	RNA_def_struct_sdna(srna, "SpaceImage");
 	RNA_def_struct_nested(brna, srna, "SpaceImageEditor");
@@ -1232,13 +1225,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Faces", "Draw faces over the image");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
-	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_float_funcs(prop, "rna_SpaceImageEditor_cursor_location_get",
-	                             "rna_SpaceImageEditor_cursor_location_set", NULL);
-	RNA_def_property_ui_text(prop, "2D Cursor Location", "2D cursor location for this view");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
 	/* todo: move edge and face drawing options here from G.f */
 
 	prop = RNA_def_property(srna, "use_snap_to_pixels", PROP_BOOLEAN, PROP_NONE);
@@ -1256,12 +1242,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_LIVE_UNWRAP);
 	RNA_def_property_ui_text(prop, "Live Unwrap",
 	                         "Continuously unwrap the selected UV island while transforming pinned vertices");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
-	prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "around");
-	RNA_def_property_enum_items(prop, pivot_items);
-	RNA_def_property_ui_text(prop, "Pivot", "Rotation/Scaling Pivot");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 }
 
@@ -1978,6 +1958,13 @@ static void rna_def_space_image(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem pivot_items[] = {
+		{V3D_CENTER, "CENTER", ICON_ROTATE, "Bounding Box Center", ""},
+		{V3D_CENTROID, "MEDIAN", ICON_ROTATECENTER, "Median Point", ""},
+		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "2D Cursor", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -2053,6 +2040,20 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, image_space_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_SpaceImageEditor_mode_update");
+
+	/* transform */
+	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_SpaceImageEditor_cursor_location_get",
+	                             "rna_SpaceImageEditor_cursor_location_set", NULL);
+	RNA_def_property_ui_text(prop, "2D Cursor Location", "2D cursor location for this view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
+
+	prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "around");
+	RNA_def_property_enum_items(prop, pivot_items);
+	RNA_def_property_ui_text(prop, "Pivot", "Rotation/Scaling Pivot");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
 	/* grease pencil */
 	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);

@@ -176,6 +176,11 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 	wmJob *steve;
 	CompoJob *cj;
 
+	/* to fix bug: [#32272] */
+	if (G.rendering) {
+		return;
+	}
+
 	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing", WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS);
 	cj = MEM_callocN(sizeof(CompoJob), "compo job");
 

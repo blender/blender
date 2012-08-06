@@ -323,6 +323,19 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 		RNA_string_set(kmi->ptr, "data_path", "space_data.image.render_slot");
 		RNA_int_set(kmi->ptr, "value", i);
 	}
+
+	/* pivot */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "value", "CENTER");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "value", "MEDIAN");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "value", "CURSOR");
 }
 
 /* dropboxes */
@@ -366,9 +379,11 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	/* check if we have to set the image from the editmesh */
 	if (ima && (ima->source == IMA_SRC_VIEWER && sima->mode == SI_MODE_MASK)) {
 		if (sima->lock) {
-			Mask *mask = ED_space_image_get_mask(sima);
-			if (mask) {
-				ED_node_composite_job(C, scene->nodetree, scene);
+			if (scene->nodetree) {
+				Mask *mask = ED_space_image_get_mask(sima);
+				if (mask) {
+					ED_node_composite_job(C, scene->nodetree, scene);
+				}
 			}
 		}
 	}
