@@ -779,7 +779,8 @@ float (*BKE_mask_spline_feather_differentiated_points_with_resolution_ex(MaskSpl
 
 	*tot_feather_point = tot;
 
-	spline_feather_collapse_inner_loops(spline, feather, tot);
+	if (spline->flag & MASK_SPLINE_NOINTERSECT)
+		spline_feather_collapse_inner_loops(spline, feather, tot);
 
 	return feather;
 }
