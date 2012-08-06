@@ -46,9 +46,10 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
@@ -1918,6 +1919,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* clear current clipboard */
 	BKE_node_clipboard_clear();
+	BKE_node_clipboard_init(ntree);
 
 	/* get group node offset */
 	if (gnode)
@@ -1992,7 +1994,7 @@ void NODE_OT_clipboard_copy(wmOperatorType *ot)
 
 /* ****************** Paste from clipboard ******************* */
 
-static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ntree = snode->edittree;
@@ -2002,6 +2004,11 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeLink *link;
 	int num_nodes;
 	float centerx, centery;
+
+	if (BKE_node_clipboard_get_type() != ntree->type) {
+		BKE_report(op->reports, RPT_ERROR, "Clipboard nodes are an incompatible type");
+		return OPERATOR_CANCELLED;
+	}
 
 	ED_preview_kill_jobs(C);
 

@@ -1428,9 +1428,15 @@ void nodeSocketSetType(bNodeSocket *sock, int type)
 typedef struct bNodeClipboard {
 	ListBase nodes;
 	ListBase links;
+	int type;
 } bNodeClipboard;
 
 bNodeClipboard node_clipboard;
+
+void BKE_node_clipboard_init(struct bNodeTree *ntree)
+{
+	node_clipboard.type = ntree->type;
+}
 
 void BKE_node_clipboard_clear(void)
 {
@@ -1468,6 +1474,11 @@ const ListBase *BKE_node_clipboard_get_nodes(void)
 const ListBase *BKE_node_clipboard_get_links(void)
 {
 	return &node_clipboard.links;
+}
+
+int BKE_node_clipboard_get_type(void)
+{
+	return node_clipboard.type;
 }
 
 /* ************** dependency stuff *********** */

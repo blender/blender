@@ -386,11 +386,13 @@ int             nodeSocketIsHidden(struct bNodeSocket *sock);
 void            nodeSocketSetType(struct bNodeSocket *sock, int type);
 
 /* Node Clipboard */
-void BKE_node_clipboard_clear(void);
-void BKE_node_clipboard_add_node(struct bNode *node);
-void BKE_node_clipboard_add_link(struct bNodeLink *link);
+void                   BKE_node_clipboard_init(struct bNodeTree *ntree);
+void                   BKE_node_clipboard_clear(void);
+void                   BKE_node_clipboard_add_node(struct bNode *node);
+void                   BKE_node_clipboard_add_link(struct bNodeLink *link);
 const struct ListBase *BKE_node_clipboard_get_nodes(void);
 const struct ListBase *BKE_node_clipboard_get_links(void);
+int                    BKE_node_clipboard_get_type(void);
 
 /* ************** NODE TYPE ACCESS *************** */
 
