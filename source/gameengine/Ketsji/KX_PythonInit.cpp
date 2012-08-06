@@ -2007,13 +2007,21 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 
 	/* could be done a lot more nicely, but for now a quick way to get bge.* working */
 	PyRun_SimpleString("sys = __import__('sys');"
-	                   "mod = sys.modules['bge'] = type(sys)('bge');"
-	                   "mod.__dict__.update({'logic':__import__('GameLogic'), "
+	                   "bge = type(sys)('bge');"
+	                   "bge.__dict__.update({'logic':__import__('GameLogic'), "
 	                                        "'render':__import__('Rasterizer'), "
 	                                        "'events':__import__('GameKeys'), "
 	                                        "'constraints':__import__('PhysicsConstraints'), "
 	                                        "'types':__import__('GameTypes'), "
 	                                        "'texture':__import__('VideoTexture')});"
+	                   /* so we can do 'import bge.foo as bar' */
+	                   "sys.modules.update({'bge': bge, "
+	                                       "'bge.logic':bge.logic, "
+	                                       "'bge.render':bge.render, "
+	                                       "'bge.events':bge.events, "
+	                                       "'bge.constraints':bge.constraints, "
+	                                       "'bge.types':bge.types, "
+	                                       "'bge.texture':bge.texture})"
 	                   );
 }
 
