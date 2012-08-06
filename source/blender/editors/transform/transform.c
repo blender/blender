@@ -2932,6 +2932,14 @@ int Resize(TransInfo *t, const int mval[2])
 		
 		for (i = 0, td = t->data; i < t->total; i++, td++)
 			ElementResize(t, td, mat);
+
+		/* In proportional edit it can happen that */
+		/* vertices in the radius of the brush end */
+		/* outside the clipping area               */
+		/* XXX HACK - dg */
+		if(t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+			clipUVData(t);
+		}
 	}
 	
 	recalcData(t);
@@ -3787,8 +3795,17 @@ int Translation(TransInfo *t, const int UNUSED(mval[2]))
 	applyTranslation(t, t->values);
 
 	/* evil hack - redo translation if clipping needed */
-	if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values, 0))
+	if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values, 0)) {
 		applyTranslation(t, t->values);
+
+		/* In proportional edit it can happen that */
+		/* vertices in the radius of the brush end */
+		/* outside the clipping area               */
+		/* XXX HACK - dg */
+		if(t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
+			clipUVData(t);
+		}
+	}
 
 	recalcData(t);
 

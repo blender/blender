@@ -2494,6 +2494,26 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	return (clipx || clipy);
 }
 
+void clipUVData(TransInfo *t)
+{
+	TransData *td = NULL;
+	int a;
+	float aspx, aspy;
+
+	ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+
+	for (a = 0, td = t->data; a < t->total; a++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if ((td->flag & TD_SKIP) || (!td->loc))
+			continue;
+
+		td->loc[0] = MIN2(MAX2(0.0f, td->loc[0]), aspx);
+		td->loc[1] = MIN2(MAX2(0.0f, td->loc[1]), aspy);
+	}
+}
+
 /* ********************* ANIMATION EDITORS (GENERAL) ************************* */
 
 /* This function tests if a point is on the "mouse" side of the cursor/frame-marking */
