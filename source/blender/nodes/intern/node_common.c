@@ -547,15 +547,6 @@ void register_node_type_frame(bNodeTreeType *ttype)
 
 /* **************** REROUTE ******************** */
 
-static bNodeSocketTemplate node_reroute_in[]= {
-	{	SOCK_RGBA, 1, "Input",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
-};
-static bNodeSocketTemplate node_reroute_out[]= {
-	{	SOCK_RGBA, 0, "Output",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
-};
-
 /* simple, only a single input and output here */
 static ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
 {
@@ -578,6 +569,15 @@ static ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
 	BLI_addtail(&ret, link);
 
 	return ret;
+}
+
+static void node_reroute_init(bNodeTree *ntree, bNode* node, bNodeTemplate *UNUSED(ntemp))
+{
+	/* Note: Cannot use socket templates for this, since it would reset the socket type
+	 * on each file read via the template verification procedure.
+	 */
+	nodeAddSocket(ntree, node, SOCK_IN, "Input", SOCK_RGBA);
+	nodeAddSocket(ntree, node, SOCK_OUT, "Output", SOCK_RGBA);
 }
 
 static void node_reroute_update(bNodeTree *UNUSED(ntree), bNode *node)
@@ -603,7 +603,7 @@ void register_node_type_reroute(bNodeTreeType *ttype)
 	bNodeType *ntype= MEM_callocN(sizeof(bNodeType), "frame node type");
 	
 	node_type_base(ttype, ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT, 0);
-	node_type_socket_templates(ntype, node_reroute_in, node_reroute_out);
+	node_type_init(ntype, node_reroute_init);
 	node_type_internal_connect(ntype, node_reroute_internal_connect);
 	node_type_update(ntype, node_reroute_update, NULL);
 	
