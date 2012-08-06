@@ -2195,15 +2195,7 @@ void flushTransNodes(TransInfo *t)
 	/* flush to 2d vector from internally used 3d vector */
 	for (a = 0, td = t->data, td2d = t->data2d; a < t->total; a++, td++, td2d++) {
 		bNode *node = td->extra;
-		float locxy[2];
-		if (node->parent) {
-			nodeFromView(node->parent, td2d->loc[0], td2d->loc[1], &locxy[0], &locxy[1]);
-		}
-		else {
-			copy_v2_v2(locxy, td2d->loc);
-		}
-		node->locx = locxy[0];
-		node->locy = locxy[1];
+		add_v2_v2v2(&node->locx, td2d->loc, td2d->ih1);
 	}
 	
 	/* handle intersection with noodles */
@@ -5536,8 +5528,9 @@ static void createTransObject(bContext *C, TransInfo *t)
 static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 {
 	/* hold original location */
-	float locxy[2];
-	nodeToView(node, 0.0f, 0.0f, &locxy[0], &locxy[1]);
+	float locxy[2] = {(node->totr.xmax + node->totr.xmin) / 2.0f,
+	                  (node->totr.ymax + node->totr.ymin) / 2.0f};
+
 	copy_v2_v2(td2d->loc, locxy);
 	td2d->loc[2] = 0.0f;
 	td2d->loc2d = td2d->loc; /* current location */
@@ -5547,8 +5540,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	td->loc = td2d->loc;
 	copy_v3_v3(td->iloc, td->loc);
 	/* use node center instead of origin (top-left corner) */
-	td->center[0] = locxy[0] + 0.5f * (node->totr.xmax - node->totr.xmin);
-	td->center[1] = locxy[1] - 0.5f * (node->totr.ymax - node->totr.ymin);	/* node height is used negative */
+	td->center[0] = locxy[0];
+	td->center[1] = locxy[1];
 	td->center[2] = 0.0f;
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
@@ -5561,6 +5554,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 
 	unit_m3(td->mtx);
 	unit_m3(td->smtx);
+
+	sub_v2_v2v2(td2d->ih1, &node->locx, locxy);
 
 	td->extra = node;
 }
