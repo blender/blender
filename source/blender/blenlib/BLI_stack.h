@@ -24,6 +24,10 @@
 #ifndef __BLI_STACK_H__
 #define __BLI_STACK_H__
 
+/** \file BLI_stack.h
+ *  \ingroup bli
+ */
+
 typedef struct BLI_Stack BLI_Stack;
 
 /* Create a new homogeneous stack with elements of 'elem_size' bytes */

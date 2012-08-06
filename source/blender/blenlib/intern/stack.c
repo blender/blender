@@ -21,10 +21,17 @@
  *
  */
 
-#include "BLI_stack.h"
+/** \file blender/blenlib/intern/stack.c
+ *  \ingroup bli
+ */
+
+#include <string.h>
+#include <stdlib.h>  /* abort() */
+
+#include "BLI_stack.h"  /* own include */
+
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
-#include <string.h>
 
 typedef struct BLI_Stack {
 	void *data;
@@ -55,7 +62,7 @@ void BLI_stack_free(BLI_Stack *stack)
 
 /* Gets the last element in the stack */
 #define STACK_LAST_ELEM(stack__) \
-	(((char*)(stack__)->data) + \
+	(((char *)(stack__)->data) + \
 	 ((stack__)->elem_size * ((stack__)->totelem - 1)))
 
 void BLI_stack_push(BLI_Stack *stack, void *src)
@@ -67,7 +74,7 @@ void BLI_stack_push(BLI_Stack *stack, void *src)
 			 * number of elements */
 			stack->maxelem = 32;
 			stack->data = MEM_mallocN((stack->elem_size *
-									   stack->maxelem), AT);
+			                           stack->maxelem), AT);
 		}
 		else {
 			/* Double stack size */
@@ -75,8 +82,8 @@ void BLI_stack_push(BLI_Stack *stack, void *src)
 			/* Check for overflow */
 			BLI_assert(maxelem > stack->maxelem);
 			stack->data = MEM_reallocN(stack->data,
-									   (stack->elem_size *
-										maxelem));
+			                           (stack->elem_size *
+			                            maxelem));
 			stack->maxelem = maxelem;
 		}
 	}
