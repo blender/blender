@@ -55,6 +55,7 @@
 
 #include "RE_shader_ext.h"
 
+#include "node_common.h"
 #include "node_exec.h"
 #include "node_util.h"
 #include "node_shader_util.h"
@@ -133,6 +134,8 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 static void update(bNodeTree *ntree)
 {
 	ntreeSetOutput(ntree);
+	
+	ntree_update_reroute_nodes(ntree);
 }
 
 bNodeTreeType ntreeType_Shader = {

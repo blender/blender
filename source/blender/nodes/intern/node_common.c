@@ -580,23 +580,6 @@ static void node_reroute_init(bNodeTree *ntree, bNode* node, bNodeTemplate *UNUS
 	nodeAddSocket(ntree, node, SOCK_OUT, "Output", SOCK_RGBA);
 }
 
-static void node_reroute_update(bNodeTree *UNUSED(ntree), bNode *node)
-{
-	bNodeSocket *input = node->inputs.first;
-	bNodeSocket *output = node->outputs.first;
-	int type = SOCK_FLOAT;
-	
-	/* determine socket type from unambiguous input/output connection if possible */
-	if (input->limit==1 && input->link)
-		type = input->link->fromsock->type;
-	else if (output->limit==1 && output->link)
-			type = output->link->tosock->type;
-	
-	/* same type for input/output */
-	nodeSocketSetType(input, type);
-	nodeSocketSetType(output, type);
-}
-
 void register_node_type_reroute(bNodeTreeType *ttype)
 {
 	/* frame type is used for all tree types, needs dynamic allocation */
@@ -605,8 +588,66 @@ void register_node_type_reroute(bNodeTreeType *ttype)
 	node_type_base(ttype, ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT, 0);
 	node_type_init(ntype, node_reroute_init);
 	node_type_internal_connect(ntype, node_reroute_internal_connect);
-	node_type_update(ntype, node_reroute_update, NULL);
 	
 	ntype->needs_free = 1;
 	nodeRegisterType(ttype, ntype);
+}
+
+static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node)
+{
+	bNodeSocket *input = node->inputs.first;
+	bNodeSocket *output = node->outputs.first;
+	int type = SOCK_FLOAT;
+	bNodeLink *link;
+	
+	/* XXX it would be a little bit more efficient to restrict actual updates
+	 * to rerout nodes connected to an updated node, but there's no reliable flag
+	 * to indicate updated nodes (node->update is not set on linking).
+	 */
+	
+	node->done = 1;
+	
+	/* recursive update */
+	for (link = ntree->links.first; link; link = link->next)
+	{
+		bNode *fromnode = link->fromnode;
+		bNode *tonode = link->tonode;
+		if (!tonode || !fromnode)
+			continue;
+		
+		if (tonode == node && fromnode->type == NODE_REROUTE && !fromnode->done)
+			node_reroute_inherit_type_recursive(ntree, fromnode);
+		
+		if (fromnode == node && tonode->type == NODE_REROUTE && !tonode->done)
+			node_reroute_inherit_type_recursive(ntree, tonode);
+	}
+	
+	/* determine socket type from unambiguous input/output connection if possible */
+	if (input->limit==1 && input->link)
+		type = input->link->fromsock->type;
+	else if (output->limit==1 && output->link)
+		type = output->link->tosock->type;
+	
+	/* arbitrary, could also test output->type, both are the same */
+	if (input->type != type) {
+		/* same type for input/output */
+		nodeSocketSetType(input, type);
+		nodeSocketSetType(output, type);
+	}
+}
+
+/* Global update function for Reroute node types.
+ * This depends on connected nodes, so must be done as a tree-wide update.
+ */
+void ntree_update_reroute_nodes(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	/* clear tags */
+	for (node = ntree->nodes.first; node; node = node->next)
+		node->done = 0;
+	
+	for (node = ntree->nodes.first; node; node = node->next)
+		if (node->type == NODE_REROUTE && !node->done)
+			node_reroute_inherit_type_recursive(ntree, node);
 }
