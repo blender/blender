@@ -33,14 +33,14 @@
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
-typedef struct BLI_Stack {
+struct BLI_Stack {
 	void *data;
 
 	int totelem;
 	int maxelem;
 
 	int elem_size;
-} BLI_Stack;
+};
 
 BLI_Stack *BLI_stack_new(int elem_size, const char *description)
 {
