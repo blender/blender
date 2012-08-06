@@ -1432,7 +1432,7 @@ typedef struct bNodeClipboard {
 
 bNodeClipboard node_clipboard;
 
-void nodeClipboardClear(void)
+void BKE_node_clipboard_clear(void)
 {
 	bNode *node, *node_next;
 	bNodeLink *link, *link_next;
@@ -1450,22 +1450,22 @@ void nodeClipboardClear(void)
 	node_clipboard.nodes.first = node_clipboard.nodes.last = NULL;
 }
 
-void nodeClipboardAddNode(bNode *node)
+void BKE_node_clipboard_add_node(bNode *node)
 {
 	BLI_addtail(&node_clipboard.nodes, node);
 }
 
-void nodeClipboardAddLink(bNodeLink *link)
+void BKE_node_clipboard_add_link(bNodeLink *link)
 {
 	BLI_addtail(&node_clipboard.links, link);
 }
 
-const ListBase *nodeClipboardGetNodes(void)
+const ListBase *BKE_node_clipboard_get_nodes(void)
 {
 	return &node_clipboard.nodes;
 }
 
-const ListBase *nodeClipboardGetLinks(void)
+const ListBase *BKE_node_clipboard_get_links(void)
 {
 	return &node_clipboard.links;
 }
