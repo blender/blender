@@ -1807,6 +1807,11 @@ static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C)
 	}
 }
 
+static void node_composit_buts_inpaint(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);
+}
+
 static void node_composit_buts_diff_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *col;
@@ -2658,6 +2663,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_DILATEERODE:
 			ntype->uifunc = node_composit_buts_dilateerode;
+			break;
+		case CMP_NODE_INPAINT:
+			ntype->uifunc = node_composit_buts_inpaint;
 			break;
 		case CMP_NODE_OUTPUT_FILE:
 			ntype->uifunc = node_composit_buts_file_output;

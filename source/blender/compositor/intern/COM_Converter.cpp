@@ -74,6 +74,7 @@
 #include "COM_HueSaturationValueNode.h"
 #include "COM_IDMaskNode.h"
 #include "COM_ImageNode.h"
+#include "COM_InpaintNode.h"
 #include "COM_InvertNode.h"
 #include "COM_KeyingNode.h"
 #include "COM_KeyingScreenNode.h"
@@ -302,6 +303,9 @@ Node *Converter::convert(bNode *b_node, bool fast)
 			break;
 		case CMP_NODE_DILATEERODE:
 			node = new DilateErodeNode(b_node);
+			break;
+		case CMP_NODE_INPAINT:
+			node = new InpaintNode(b_node);
 			break;
 		case CMP_NODE_LENSDIST:
 			node = new LensDistortionNode(b_node);

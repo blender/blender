@@ -375,6 +375,10 @@ enum {
 };
 
 enum {
+	CMP_NODE_INPAINT_SIMPLE               = 0
+};
+
+enum {
 	CMP_NODEFLAG_MASK_AA          = (1 << 0),
 	CMP_NODEFLAG_MASK_NO_FEATHER  = (1 << 1),
 	CMP_NODEFLAG_MASK_MOTION_BLUR = (1 << 2),
