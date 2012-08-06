@@ -477,8 +477,13 @@ void BlenderSession::update_status_progress()
 	get_status(status, substatus);
 	get_progress(progress, total_time);
 
+	timestatus = b_scene.name();
+	if(b_rlay_name != "")
+		timestatus += ", "  + b_rlay_name;
+	timestatus += " | ";
+
 	BLI_timestr(total_time, time_str);
-	timestatus = "Elapsed: " + string(time_str) + " | ";
+	timestatus += "Elapsed: " + string(time_str) + " | ";
 
 	if(substatus.size() > 0)
 		status += " | " + substatus;
