@@ -1484,7 +1484,9 @@ MaskLayerShape *BKE_mask_layer_shape_alloc(MaskLayer *masklay, const int frame)
 
 void BKE_mask_layer_shape_free(MaskLayerShape *masklay_shape)
 {
-	MEM_freeN(masklay_shape->data);
+	if (masklay_shape->data) {
+		MEM_freeN(masklay_shape->data);
+	}
 
 	MEM_freeN(masklay_shape);
 }
