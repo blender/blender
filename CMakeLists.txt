@@ -1483,9 +1483,11 @@ endif()
 if(MSVC)
 	# for some reason this fails on msvc
 	add_definitions(-D__LITTLE_ENDIAN__)
-elseif(APPLE AND ${XCODE_VERSION} VERSION_GREATER 4.3)
-	# no more ppc support in xcode > 4.3
-	add_definitions(-D__LITTLE_ENDIAN__)
+elseif(APPLE)
+	if (${XCODE_VERSION} VERSION_GREATER 4.3)
+		# no more ppc support in xcode > 4.3
+		add_definitions(-D__LITTLE_ENDIAN__)
+	endif()
 else()
 	include(TestBigEndian)
 	test_big_endian(_SYSTEM_BIG_ENDIAN)
