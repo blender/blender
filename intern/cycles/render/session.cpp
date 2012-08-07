@@ -656,11 +656,13 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	if(!params.progressive) {
 		substatus = string_printf("Path Tracing Tile %d/%d", tile, num_tiles);
 
-		if(params.device.type == DEVICE_CUDA || params.device.type == DEVICE_OPENCL) {
+		if(params.device.type == DEVICE_CUDA || params.device.type == DEVICE_OPENCL ||
+			(params.device.type == DEVICE_CPU && num_tiles == 1)) {
 			/* when rendering on GPU multithreading happens within single tile, as in
 			 * tiles are handling sequentially and in this case we could display
 			 * currently rendering sample number
-			 * this helps a lot from feedback point of view
+			 * this helps a lot from feedback point of view.
+			 * also display the info on CPU, when using 1 tile only
 			 */
 
 			int sample = progress.get_sample(), num_samples = tile_manager.state.num_samples;
