@@ -588,50 +588,6 @@ void IMB_colormanagement_exit(void)
 /*********************** Threaded display buffer transform routines *************************/
 
 #ifdef WITH_OCIO
-static void colormanage_processor_apply_threaded(int buffer_lines, int handle_size, void *init_customdata,
-                                                 void (init_handle) (void *handle, int start_line, int tot_line,
-                                                                     void *customdata),
-                                                 void *(do_thread) (void *))
-{
-	void *handles;
-	ListBase threads;
-
-	int i, tot_thread = BLI_system_thread_count();
-	int start_line, tot_line;
-
-	handles = MEM_callocN(handle_size * tot_thread, "processor apply threaded handles");
-
-	if (tot_thread > 1)
-		BLI_init_threads(&threads, do_thread, tot_thread);
-
-	start_line = 0;
-	tot_line = ((float)(buffer_lines / tot_thread)) + 0.5f;
-
-	for (i = 0; i < tot_thread; i++) {
-		int cur_tot_line;
-		void *handle = ((char *) handles) + handle_size * i;
-
-		if (i < tot_thread - 1)
-			cur_tot_line = tot_line;
-		else
-			cur_tot_line = buffer_lines - start_line;
-
-		init_handle(handle, start_line, cur_tot_line, init_customdata);
-
-		if (tot_thread > 1)
-			BLI_insert_thread(&threads, handle);
-
-		start_line += tot_line;
-	}
-
-	if (tot_thread > 1)
-		BLI_end_threads(&threads);
-	else
-		do_thread(handles);
-
-	MEM_freeN(handles);
-}
-
 typedef struct DisplayBufferThread {
 	void *processor;
 
@@ -707,8 +663,8 @@ static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned c
 	init_data.byte_buffer = byte_buffer;
 	init_data.display_buffer = display_buffer;
 
-	colormanage_processor_apply_threaded(ibuf->y, sizeof(DisplayBufferThread), &init_data,
-	                                     display_buffer_init_handle, do_thread);
+	IMB_processor_apply_threaded(ibuf->y, sizeof(DisplayBufferThread), &init_data,
+	                             display_buffer_init_handle, do_thread);
 }
 
 static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
@@ -974,8 +930,8 @@ static void colorspace_transform_apply_threaded(float *buffer, int width, int he
 	init_data.height = height;
 	init_data.channels = channels;
 
-	colormanage_processor_apply_threaded(height, sizeof(ColorspaceTransformThread), &init_data,
-	                                     colorspace_transform_init_handle, do_thread);
+	IMB_processor_apply_threaded(height, sizeof(ColorspaceTransformThread), &init_data,
+	                             colorspace_transform_init_handle, do_thread);
 }
 
 static void *do_color_space_transform_thread(void *handle_v)
