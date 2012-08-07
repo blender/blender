@@ -22,9 +22,12 @@
 
 #include "COM_ScaleOperation.h"
 
-#define USE_FORCE_BICUBIC
+#define USE_FORCE_BILINEAR
 /* XXX - ignore input and use default from old compositor,
- * could become an option like the transform node - campbell */
+ * could become an option like the transform node - campbell
+ *
+ * note: use bilinear because bicubic makes fuzzy even when not scaling at all (1:1)
+ */
 
 ScaleOperation::ScaleOperation() : NodeOperation()
 {
@@ -56,8 +59,8 @@ void ScaleOperation::deinitExecution()
 
 void ScaleOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
-#ifdef USE_FORCE_BICUBIC
-	sampler = COM_PS_BICUBIC;
+#ifdef USE_FORCE_BILINEAR
+	sampler = COM_PS_BILINEAR;
 #endif
 
 	float scaleX[4];
@@ -126,8 +129,8 @@ void ScaleAbsoluteOperation::deinitExecution()
 
 void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
-#ifdef USE_FORCE_BICUBIC
-	sampler = COM_PS_BICUBIC;
+#ifdef USE_FORCE_BILINEAR
+	sampler = COM_PS_BILINEAR;
 #endif
 
 	float scaleX[4];
@@ -247,8 +250,8 @@ void ScaleFixedSizeOperation::deinitExecution()
 
 void ScaleFixedSizeOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
 {
-#ifdef USE_FORCE_BICUBIC
-	sampler = COM_PS_BICUBIC;
+#ifdef USE_FORCE_BILINEAR
+	sampler = COM_PS_BILINEAR;
 #endif
 
 	if (this->m_is_offset) {
