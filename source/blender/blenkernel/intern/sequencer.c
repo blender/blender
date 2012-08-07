@@ -1646,6 +1646,12 @@ static void color_balance_float_float(Sequence *seq, float *rect_float, int widt
 	}
 }
 
+typedef struct ColorBalanceInitData {
+	Sequence *seq;
+	ImBuf *ibuf;
+	float mul;
+} ColorBalanceInitData;
+
 typedef struct ColorBalanceThread {
 	Sequence *seq;
 	float mul;
@@ -1655,6 +1661,28 @@ typedef struct ColorBalanceThread {
 	unsigned char *rect;
 	float *rect_float;
 } ColorBalanceThread;
+
+static void color_balance_init_handle(void *handle_v, int start_line, int tot_line, void *init_data_v)
+{
+	ColorBalanceThread *handle = (ColorBalanceThread *) handle_v;
+	ColorBalanceInitData *init_data = (ColorBalanceInitData *) init_data_v;
+	ImBuf *ibuf = init_data->ibuf;
+
+	int offset = 4 * start_line * ibuf->x;
+
+	memset(handle, 0, sizeof(ColorBalanceThread));
+
+	handle->seq = init_data->seq;
+	handle->mul = init_data->mul;
+	handle->width = ibuf->x;
+	handle->height = tot_line;
+
+	if (ibuf->rect)
+		handle->rect = (unsigned char *) ibuf->rect + offset;
+
+	if (ibuf->rect_float)
+		handle->rect_float = ibuf->rect_float + offset;
+}
 
 static void *color_balance_do_thread(void *thread_data_v)
 {
@@ -1680,62 +1708,36 @@ static void *color_balance_do_thread(void *thread_data_v)
 
 static void color_balance(Sequence *seq, ImBuf *ibuf, float mul)
 {
-	int i, tot_thread = BLI_system_thread_count();
-	int start_line, tot_line;
-	ListBase threads;
-	ColorBalanceThread handles[BLENDER_MAX_THREADS];
-
-	if (!BLI_thread_is_main()) {
-		/* color balance could have been called from prefetching job which
-		 * is already multithreaded, so doing threading here makes no sense
-		 */
-		tot_thread = 1;
-	}
-
 	if (!ibuf->rect_float && seq->flag & SEQ_MAKE_FLOAT)
 		imb_addrectfloatImBuf(ibuf);
 
-	if (tot_thread > 1)
-		BLI_init_threads(&threads, color_balance_do_thread, tot_thread);
+	if (BLI_thread_is_main()) {
+		/* color balance could have been called from prefetching job which
+		 * is already multithreaded, so doing threading here makes no sense
+		 */
+		ColorBalanceInitData init_data;
 
-	start_line = 0;
-	tot_line = ((float)(ibuf->y / tot_thread)) + 0.5f;
+		init_data.seq = seq;
+		init_data.ibuf = ibuf;
+		init_data.mul = mul;
 
-	for (i = 0; i < tot_thread; i++) {
-		int offset;
+		IMB_processor_apply_threaded(ibuf->y, sizeof(ColorBalanceThread), &init_data,
+	                                 color_balance_init_handle, color_balance_do_thread);
 
-		handles[i].seq = seq;
-		handles[i].mul = mul;
-		handles[i].width = ibuf->x;
-
-		if (i < tot_thread - 1)
-			handles[i].height = tot_line;
-		else
-			handles[i].height = ibuf->y - start_line;
-
-		offset = 4 * start_line * ibuf->x;
-
-		if (ibuf->rect)
-			handles[i].rect = (unsigned char *)ibuf->rect + offset;
-		else
-			handles[i].rect = NULL;
-
-		if (ibuf->rect_float)
-			handles[i].rect_float = ibuf->rect_float + offset;
-		else
-			handles[i].rect_float = NULL;
-
-		if (tot_thread > 1)
-			BLI_insert_thread(&threads, &handles[i]);
-
-		start_line += tot_line;
 	}
+	else {
+		ColorBalanceThread handle;
 
-	if (tot_thread > 1)
-		BLI_end_threads(&threads);
-	else
-		color_balance_do_thread(handles);
-}
+		handle.seq = seq;
+		handle.mul = mul;
+		handle.width = ibuf->x;
+		handle.height = ibuf->y;
+		handle.rect = (unsigned char *)ibuf->rect;
+		handle.rect_float = ibuf->rect_float;
+
+		color_balance_do_thread(&handle);
+}	}
+
 
 /*
  *  input preprocessing for SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP and SEQ_TYPE_SCENE
