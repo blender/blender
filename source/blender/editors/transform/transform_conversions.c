@@ -2509,8 +2509,8 @@ void clipUVData(TransInfo *t)
 		if ((td->flag & TD_SKIP) || (!td->loc))
 			continue;
 
-		td->loc[0] = MIN2(MAX2(0.0f, td->loc[0]), aspx);
-		td->loc[1] = MIN2(MAX2(0.0f, td->loc[1]), aspy);
+		td->loc[0] = minf(maxf(0.0f, td->loc[0]), aspx);
+		td->loc[1] = minf(maxf(0.0f, td->loc[1]), aspy);
 	}
 }
 
@@ -4258,7 +4258,7 @@ static void freeSeqData(TransInfo *t)
 						for (a = 0; a < t->total; a++, td++) {
 							seq = ((TransDataSeq *)td->extra)->seq;
 							if ((seq != seq_prev)) {
-								minframe = MIN2(minframe, seq->startdisp);
+								minframe = mini(minframe, seq->startdisp);
 							}
 						}
 

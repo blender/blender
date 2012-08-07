@@ -64,11 +64,10 @@ public:
 
 private:
 	void calc_manhatten_distance();
-	void clamp_xy(int & x, int & y);
-	float get(int x, int y, int component);
-	void set(int x, int y, int component, float v);
+	void clamp_xy(int &x, int &y);
+	float *get_pixel(int x, int y);
 	int mdist(int x, int y);
-	bool next_pixel(int & x, int & y, int & curr, int iters);
+	bool next_pixel(int &x, int &y, int &curr, int iters);
 	void pix_step(int x, int y);
 };
 
