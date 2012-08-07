@@ -37,6 +37,7 @@ public:
 	Progress()
 	{
 		tile = 0;
+		sample = 0;
 		start_time = time_dt();
 		total_time = 0.0f;
 		tile_time = 0.0f;
@@ -59,6 +60,8 @@ public:
 
 		progress.get_status(status, substatus);
 		progress.get_tile(tile, total_time, tile_time);
+
+		sample = progress.get_sample();
 
 		return *this;
 	}
@@ -117,6 +120,18 @@ public:
 		tile_time_ = tile_time;
 	}
 
+	void increment_sample()
+	{
+		thread_scoped_lock lock(progress_mutex);
+
+		sample++;
+	}
+
+	int get_sample()
+	{
+		return sample;
+	}
+
 	/* status messages */
 
 	void set_status(const string& status_, const string& substatus_ = "")
@@ -170,7 +185,8 @@ protected:
 	boost::function<void(void)> update_cb;
 	boost::function<void(void)> cancel_cb;
 
-	int tile;
+	int tile;    /* counter for rendered tiles */
+	int sample;  /* counter of rendered samples, global for all tiles */
 
 	double start_time;
 	double total_time;

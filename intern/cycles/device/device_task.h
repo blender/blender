@@ -60,6 +60,7 @@ public:
 	void update_progress(RenderTile &rtile);
 
 	boost::function<bool(Device *device, RenderTile&)> acquire_tile;
+	boost::function<void(void)> update_progress_sample;
 	boost::function<void(RenderTile&)> update_tile_sample;
 	boost::function<void(RenderTile&)> release_tile;
 	boost::function<bool(void)> get_cancel;

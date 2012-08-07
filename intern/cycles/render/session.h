@@ -148,6 +148,8 @@ protected:
 	void update_tile_sample(RenderTile& tile);
 	void release_tile(RenderTile& tile);
 
+	void update_progress_sample();
+
 	bool device_use_gl;
 
 	thread *session_thread;

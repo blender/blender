@@ -460,11 +460,15 @@ void BlenderSession::get_status(string& status, string& substatus)
 void BlenderSession::get_progress(float& progress, double& total_time)
 {
 	double tile_time;
-	int tile;
+	int tile, sample, samples_per_tile;
 	int tile_total = session->tile_manager.state.num_tiles;
 
 	session->progress.get_tile(tile, total_time, tile_time);
-	progress = ((float)tile/(float)tile_total);
+
+	sample = session->progress.get_sample();
+	samples_per_tile = session->tile_manager.state.num_samples;
+
+	progress = ((float)sample/(float)(tile_total * samples_per_tile));
 }
 
 void BlenderSession::update_status_progress()

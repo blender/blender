@@ -653,8 +653,29 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	/* update status */
 	string status, substatus;
 
-	if(!params.progressive)
+	if(!params.progressive) {
 		substatus = string_printf("Path Tracing Tile %d/%d", tile, num_tiles);
+
+		if(params.device.type == DEVICE_CUDA || params.device.type == DEVICE_OPENCL) {
+			/* when rendering on GPU multithreading happens within single tile, as in
+			 * tiles are handling sequentially and in this case we could display
+			 * currently rendering sample number
+			 * this helps a lot from feedback point of view
+			 */
+
+			int sample = progress.get_sample(), num_samples = tile_manager.state.num_samples;
+
+			if(tile > 1) {
+				/* sample counter is global for all tiles, subtract samples
+				 * from already finished tiles to get sample counter for
+				 * current tile only
+				 */
+				sample -= (tile - 1) * num_samples;
+			}
+
+			substatus += string_printf(", Sample %d/%d", sample, num_samples);
+		}
+	}
 	else if(params.samples == INT_MAX)
 		substatus = string_printf("Path Tracing Sample %d", sample+1);
 	else
@@ -681,6 +702,10 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	progress.set_tile(tile, tile_time);
 }
 
+void Session::update_progress_sample()
+{
+	progress.increment_sample();
+}
 
 void Session::path_trace()
 {
@@ -691,6 +716,7 @@ void Session::path_trace()
 	task.release_tile = function_bind(&Session::release_tile, this, _1);
 	task.get_cancel = function_bind(&Progress::get_cancel, &this->progress);
 	task.update_tile_sample = function_bind(&Session::update_tile_sample, this, _1);
+	task.update_progress_sample = function_bind(&Session::update_progress_sample, this);
 
 	device->task_add(task);
 }

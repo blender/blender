@@ -95,7 +95,10 @@ void DeviceTask::update_progress(RenderTile &rtile)
 	if (type != PATH_TRACE)
 		return;
 
-	if (update_tile_sample) {
+	if(update_progress_sample)
+		update_progress_sample();
+
+	if(update_tile_sample) {
 		double current_time = time_dt();
 
 		if (current_time - last_update_time >= 1.0f) {
