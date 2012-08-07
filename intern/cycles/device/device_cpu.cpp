@@ -154,20 +154,18 @@ public:
 #ifdef WITH_OPTIMIZED_KERNEL
 			if(system_cpu_support_optimized()) {
 				for(int sample = start_sample; sample < end_sample; sample++) {
+					if (task.get_cancel() || task_pool.cancelled())
+						break;
+
 					for(int y = tile.y; y < tile.y + tile.h; y++) {
 						for(int x = tile.x; x < tile.x + tile.w; x++) {
-							if (task.get_cancel())
-								break;
-
-							if(task_pool.cancelled())
-								break;
-
 							kernel_cpu_optimized_path_trace(kg, render_buffer, rng_state,
 								sample, x, y, tile.offset, tile.stride);
 						}
 					}
 
 					tile.sample = sample + 1;
+
 					task.update_progress(tile);
 				}
 			}
@@ -175,22 +173,18 @@ public:
 #endif
 			{
 				for(int sample = start_sample; sample < end_sample; sample++) {
+					if (task.get_cancel() || task_pool.cancelled())
+						break;
+
 					for(int y = tile.y; y < tile.y + tile.h; y++) {
 						for(int x = tile.x; x < tile.x + tile.w; x++) {
-							if (task.get_cancel()) {
-								break;
-							}
-
-							if(task_pool.cancelled())
-								break;
-
 							kernel_cpu_path_trace(kg, render_buffer, rng_state,
 								sample, x, y, tile.offset, tile.stride);
-
 						}
 					}
 
 					tile.sample = sample + 1;
+
 					task.update_progress(tile);
 				}
 			}

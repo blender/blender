@@ -380,8 +380,7 @@ void Session::update_tile_sample(RenderTile& rtile)
 	if(update_render_tile_cb) {
 		/* todo: optimize this by making it thread safe and removing lock */
 
-		if(!progress.get_cancel())
-			update_render_tile_cb(rtile);
+		update_render_tile_cb(rtile);
 	}
 
 	update_status_time();
@@ -393,8 +392,8 @@ void Session::release_tile(RenderTile& rtile)
 
 	if(write_render_tile_cb) {
 		/* todo: optimize this by making it thread safe and removing lock */
-		if(!progress.get_cancel())
-			write_render_tile_cb(rtile);
+		write_render_tile_cb(rtile);
+
 		delete rtile.buffers;
 	}
 
