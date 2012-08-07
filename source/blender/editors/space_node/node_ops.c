@@ -60,6 +60,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_select_same_type_prev);
 
 	WM_operatortype_append(NODE_OT_view_all);
+	WM_operatortype_append(NODE_OT_view_selected);
 
 	WM_operatortype_append(NODE_OT_mute_toggle);
 	WM_operatortype_append(NODE_OT_hide_toggle);
@@ -255,6 +256,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_show_cyclic_dependencies", CKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "tweak", FALSE);
