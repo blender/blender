@@ -3876,7 +3876,10 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 				case TEXCO_PARTICLE:
 					/* texture coordinates in range [-1, 1] */
 					texvec[0] = 2.f * (cfra - pa->time) / (pa->dietime - pa->time) - 1.f;
-					texvec[1] = 0.f;
+					if (sim->psys->totpart > 0)
+						texvec[1] = 2.f * (float)(pa - sim->psys->particles) / (float)sim->psys->totpart - 1.f;
+					else
+						texvec[1] = 0.0f;
 					texvec[2] = 0.f;
 					break;
 			}
