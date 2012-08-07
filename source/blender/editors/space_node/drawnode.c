@@ -3291,7 +3291,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 
 			sub_v2_v2v2(d_xy, coord_array[LINK_ARROW], coord_array[LINK_ARROW - 1]);
 			len = len_v2(d_xy);
-			mul_v2_fl(d_xy, 1.0f / (len * ARROW_SIZE));
+			mul_v2_fl(d_xy, ARROW_SIZE / len);
 			arrow1[0] = coord_array[LINK_ARROW][0] - d_xy[0] + d_xy[1];
 			arrow1[1] = coord_array[LINK_ARROW][1] - d_xy[1] - d_xy[0];
 			arrow2[0] = coord_array[LINK_ARROW][0] - d_xy[0] - d_xy[1];
