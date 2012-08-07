@@ -1483,11 +1483,16 @@ endif()
 if(MSVC)
 	# for some reason this fails on msvc
 	add_definitions(-D__LITTLE_ENDIAN__)
-elseif(APPLE)
-	if (${XCODE_VERSION} VERSION_GREATER 4.3)
-		# no more ppc support in xcode > 4.3
-		add_definitions(-D__LITTLE_ENDIAN__)
-	endif()
+	
+# OSX-Note: as we do crosscompiling with specific set architecture,
+# endianess-detection and autosetting is counterproductive
+# so we just set endianess according CMAKE_OSX_ARCHITECTURES
+
+elseif(CMAKE_OSX_ARCHITECTURES MATCHES i386 OR CMAKE_OSX_ARCHITECTURES MATCHES x86_64)
+	add_definitions(-D__LITTLE_ENDIAN__)
+elseif(CMAKE_OSX_ARCHITECTURES MATCHES ppc OR CMAKE_OSX_ARCHITECTURES MATCHES ppc64)		
+	add_definitions(-D__BIG_ENDIAN__)
+	
 else()
 	include(TestBigEndian)
 	test_big_endian(_SYSTEM_BIG_ENDIAN)
