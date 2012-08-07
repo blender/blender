@@ -61,12 +61,12 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 #ifdef __KERNEL_OPENCL_APPLE__
-#define __SVM__
-#define __EMISSION__
-#define __IMAGE_TEXTURES__
-#define __HOLDOUT__
-#define __PROCEDURAL_TEXTURES__
-#define __EXTRA_NODES__
+//#define __SVM__
+//#define __EMISSION__
+//#define __IMAGE_TEXTURES__
+//#define __HOLDOUT__
+//#define __PROCEDURAL_TEXTURES__
+//#define __EXTRA_NODES__
 #endif
 
 #ifdef __KERNEL_OPENCL_AMD__
