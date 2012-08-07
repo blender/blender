@@ -103,7 +103,6 @@ public:
 	Progress progress;
 	SessionParams params;
 	TileManager tile_manager;
-	int sample;
 
 	boost::function<void(RenderTile&)> write_render_tile_cb;
 	boost::function<void(RenderTile&)> update_render_tile_cb;

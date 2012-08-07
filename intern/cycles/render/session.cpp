@@ -61,7 +61,6 @@ Session::Session(const SessionParams& params_)
 	reset_time = 0.0;
 	preview_time = 0.0;
 	paused_time = 0.0;
-	sample = 0;
 
 	delayed_reset.do_reset = false;
 	delayed_reset.samples = 0;
@@ -569,7 +568,6 @@ void Session::reset_(BufferParams& buffer_params, int samples)
 	start_time = time_dt();
 	preview_time = 0.0;
 	paused_time = 0.0;
-	sample = 0;
 
 	if(!params.background)
 		progress.set_start_time(start_time + paused_time);
