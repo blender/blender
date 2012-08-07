@@ -113,6 +113,7 @@ void NODE_OT_select_same_type_prev(wmOperatorType *ot);
 
 /* node_view.c */
 void NODE_OT_view_all(struct wmOperatorType *ot);
+void NODE_OT_view_selected(struct wmOperatorType *ot);
 
 void NODE_OT_backimage_move(struct wmOperatorType *ot);
 void NODE_OT_backimage_zoom(struct wmOperatorType *ot);

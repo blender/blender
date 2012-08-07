@@ -507,5 +507,11 @@ void imb_freemipmapImBuf(struct ImBuf *ibuf);
 short imb_addtilesImBuf(struct ImBuf *ibuf);
 void imb_freetilesImBuf(struct ImBuf *ibuf);
 
+/* threaded processors */
+void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_customdata,
+                                  void (init_handle) (void *handle, int start_line, int tot_line,
+                                                      void *customdata),
+                                  void *(do_thread) (void *));
+
 #endif
 

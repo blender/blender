@@ -1577,12 +1577,12 @@ static void make_cb_table_float(float lift, float gain, float gamma,
 	}
 }
 
-static void color_balance_byte_byte(Sequence *seq, ImBuf *ibuf, float mul)
+static void color_balance_byte_byte(Sequence *seq, unsigned char *rect, int width, int height, float mul)
 {
 	unsigned char cb_tab[3][256];
 	int c;
-	unsigned char *p = (unsigned char *) ibuf->rect;
-	unsigned char *e = p + ibuf->x * 4 * ibuf->y;
+	unsigned char *p = rect;
+	unsigned char *e = p + width * 4 * height;
 
 	StripColorBalance cb = calc_cb(seq->strip->color_balance);
 
@@ -1600,18 +1600,16 @@ static void color_balance_byte_byte(Sequence *seq, ImBuf *ibuf, float mul)
 	}
 }
 
-static void color_balance_byte_float(Sequence *seq, ImBuf *ibuf, float mul)
+static void color_balance_byte_float(Sequence *seq, unsigned char *rect, float *rect_float, int width, int height, float mul)
 {
 	float cb_tab[4][256];
 	int c, i;
-	unsigned char *p = (unsigned char *) ibuf->rect;
-	unsigned char *e = p + ibuf->x * 4 * ibuf->y;
+	unsigned char *p = rect;
+	unsigned char *e = p + width * 4 * height;
 	float *o;
 	StripColorBalance cb;
 
-	imb_addrectfloatImBuf(ibuf);
-
-	o = ibuf->rect_float;
+	o = rect_float;
 
 	cb = calc_cb(seq->strip->color_balance);
 
@@ -1633,10 +1631,10 @@ static void color_balance_byte_float(Sequence *seq, ImBuf *ibuf, float mul)
 	}
 }
 
-static void color_balance_float_float(Sequence *seq, ImBuf *ibuf, float mul)
+static void color_balance_float_float(Sequence *seq, float *rect_float, int width, int height, float mul)
 {
-	float *p = ibuf->rect_float;
-	float *e = ibuf->rect_float + ibuf->x * 4 * ibuf->y;
+	float *p = rect_float;
+	float *e = rect_float + width * 4 * height;
 	StripColorBalance cb = calc_cb(seq->strip->color_balance);
 
 	while (p < e) {
@@ -1648,18 +1646,98 @@ static void color_balance_float_float(Sequence *seq, ImBuf *ibuf, float mul)
 	}
 }
 
-static void color_balance(Sequence *seq, ImBuf *ibuf, float mul)
+typedef struct ColorBalanceInitData {
+	Sequence *seq;
+	ImBuf *ibuf;
+	float mul;
+} ColorBalanceInitData;
+
+typedef struct ColorBalanceThread {
+	Sequence *seq;
+	float mul;
+
+	int width, height;
+
+	unsigned char *rect;
+	float *rect_float;
+} ColorBalanceThread;
+
+static void color_balance_init_handle(void *handle_v, int start_line, int tot_line, void *init_data_v)
 {
-	if (ibuf->rect_float) {
-		color_balance_float_float(seq, ibuf, mul);
+	ColorBalanceThread *handle = (ColorBalanceThread *) handle_v;
+	ColorBalanceInitData *init_data = (ColorBalanceInitData *) init_data_v;
+	ImBuf *ibuf = init_data->ibuf;
+
+	int offset = 4 * start_line * ibuf->x;
+
+	memset(handle, 0, sizeof(ColorBalanceThread));
+
+	handle->seq = init_data->seq;
+	handle->mul = init_data->mul;
+	handle->width = ibuf->x;
+	handle->height = tot_line;
+
+	if (ibuf->rect)
+		handle->rect = (unsigned char *) ibuf->rect + offset;
+
+	if (ibuf->rect_float)
+		handle->rect_float = ibuf->rect_float + offset;
+}
+
+static void *color_balance_do_thread(void *thread_data_v)
+{
+	ColorBalanceThread *thread_data = (ColorBalanceThread *) thread_data_v;
+	Sequence *seq = thread_data->seq;
+	int width = thread_data->width, height = thread_data->height;
+	unsigned char *rect = thread_data->rect;
+	float *rect_float = thread_data->rect_float;
+	float mul = thread_data->mul;
+
+	if (rect_float) {
+		color_balance_float_float(seq, rect_float, width, height, mul);
 	}
 	else if (seq->flag & SEQ_MAKE_FLOAT) {
-		color_balance_byte_float(seq, ibuf, mul);
+		color_balance_byte_float(seq, rect, rect_float, width, height, mul);
 	}
 	else {
-		color_balance_byte_byte(seq, ibuf, mul);
+		color_balance_byte_byte(seq, rect, width, height, mul);
 	}
+
+	return NULL;
 }
+
+static void color_balance(Sequence *seq, ImBuf *ibuf, float mul)
+{
+	if (!ibuf->rect_float && seq->flag & SEQ_MAKE_FLOAT)
+		imb_addrectfloatImBuf(ibuf);
+
+	if (BLI_thread_is_main()) {
+		/* color balance could have been called from prefetching job which
+		 * is already multithreaded, so doing threading here makes no sense
+		 */
+		ColorBalanceInitData init_data;
+
+		init_data.seq = seq;
+		init_data.ibuf = ibuf;
+		init_data.mul = mul;
+
+		IMB_processor_apply_threaded(ibuf->y, sizeof(ColorBalanceThread), &init_data,
+	                                 color_balance_init_handle, color_balance_do_thread);
+
+	}
+	else {
+		ColorBalanceThread handle;
+
+		handle.seq = seq;
+		handle.mul = mul;
+		handle.width = ibuf->x;
+		handle.height = ibuf->y;
+		handle.rect = (unsigned char *)ibuf->rect;
+		handle.rect_float = ibuf->rect_float;
+
+		color_balance_do_thread(&handle);
+}	}
+
 
 /*
  *  input preprocessing for SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP and SEQ_TYPE_SCENE

@@ -38,7 +38,11 @@
 
 #include <stdlib.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
+#include "BLI_threads.h"
+#include "BLI_listbase.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -445,4 +449,50 @@ void neareast_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, i
 	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
 	neareast_interpolation_color(in, outI, outF, x, y);
+}
+
+/*********************** Threaded image processing *************************/
+
+void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_customdata,
+                                  void (init_handle) (void *handle, int start_line, int tot_line,
+                                                      void *customdata),
+                                  void *(do_thread) (void *))
+{
+	void *handles;
+	ListBase threads;
+
+	int i, tot_thread = BLI_system_thread_count();
+	int start_line, tot_line;
+
+	handles = MEM_callocN(handle_size * tot_thread, "processor apply threaded handles");
+
+	if (tot_thread > 1)
+		BLI_init_threads(&threads, do_thread, tot_thread);
+
+	start_line = 0;
+	tot_line = ((float)(buffer_lines / tot_thread)) + 0.5f;
+
+	for (i = 0; i < tot_thread; i++) {
+		int cur_tot_line;
+		void *handle = ((char *) handles) + handle_size * i;
+
+		if (i < tot_thread - 1)
+			cur_tot_line = tot_line;
+		else
+			cur_tot_line = buffer_lines - start_line;
+
+		init_handle(handle, start_line, cur_tot_line, init_customdata);
+
+		if (tot_thread > 1)
+			BLI_insert_thread(&threads, handle);
+
+		start_line += tot_line;
+	}
+
+	if (tot_thread > 1)
+		BLI_end_threads(&threads);
+	else
+		do_thread(handles);
+
+	MEM_freeN(handles);
 }

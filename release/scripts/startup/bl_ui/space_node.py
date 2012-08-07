@@ -115,6 +115,7 @@ class NODE_MT_view(Menu):
 
         layout.separator()
 
+        layout.operator("node.view_selected")
         layout.operator("node.view_all")
 
         if context.space_data.show_backdrop:
