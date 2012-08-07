@@ -1577,12 +1577,12 @@ static void make_cb_table_float(float lift, float gain, float gamma,
 	}
 }
 
-static void color_balance_byte_byte(Sequence *seq, ImBuf *ibuf, float mul)
+static void color_balance_byte_byte(Sequence *seq, unsigned char *rect, int width, int height, float mul)
 {
 	unsigned char cb_tab[3][256];
 	int c;
-	unsigned char *p = (unsigned char *) ibuf->rect;
-	unsigned char *e = p + ibuf->x * 4 * ibuf->y;
+	unsigned char *p = rect;
+	unsigned char *e = p + width * 4 * height;
 
 	StripColorBalance cb = calc_cb(seq->strip->color_balance);
 
@@ -1600,18 +1600,16 @@ static void color_balance_byte_byte(Sequence *seq, ImBuf *ibuf, float mul)
 	}
 }
 
-static void color_balance_byte_float(Sequence *seq, ImBuf *ibuf, float mul)
+static void color_balance_byte_float(Sequence *seq, unsigned char *rect, float *rect_float, int width, int height, float mul)
 {
 	float cb_tab[4][256];
 	int c, i;
-	unsigned char *p = (unsigned char *) ibuf->rect;
-	unsigned char *e = p + ibuf->x * 4 * ibuf->y;
+	unsigned char *p = rect;
+	unsigned char *e = p + width * 4 * height;
 	float *o;
 	StripColorBalance cb;
 
-	imb_addrectfloatImBuf(ibuf);
-
-	o = ibuf->rect_float;
+	o = rect_float;
 
 	cb = calc_cb(seq->strip->color_balance);
 
@@ -1633,10 +1631,10 @@ static void color_balance_byte_float(Sequence *seq, ImBuf *ibuf, float mul)
 	}
 }
 
-static void color_balance_float_float(Sequence *seq, ImBuf *ibuf, float mul)
+static void color_balance_float_float(Sequence *seq, float *rect_float, int width, int height, float mul)
 {
-	float *p = ibuf->rect_float;
-	float *e = ibuf->rect_float + ibuf->x * 4 * ibuf->y;
+	float *p = rect_float;
+	float *e = rect_float + width * 4 * height;
 	StripColorBalance cb = calc_cb(seq->strip->color_balance);
 
 	while (p < e) {
@@ -1648,17 +1646,95 @@ static void color_balance_float_float(Sequence *seq, ImBuf *ibuf, float mul)
 	}
 }
 
-static void color_balance(Sequence *seq, ImBuf *ibuf, float mul)
+typedef struct ColorBalanceThread {
+	Sequence *seq;
+	float mul;
+
+	int width, height;
+
+	unsigned char *rect;
+	float *rect_float;
+} ColorBalanceThread;
+
+static void *color_balance_do_thread(void *thread_data_v)
 {
-	if (ibuf->rect_float) {
-		color_balance_float_float(seq, ibuf, mul);
+	ColorBalanceThread *thread_data = (ColorBalanceThread *) thread_data_v;
+	Sequence *seq = thread_data->seq;
+	int width = thread_data->width, height = thread_data->height;
+	unsigned char *rect = thread_data->rect;
+	float *rect_float = thread_data->rect_float;
+	float mul = thread_data->mul;
+
+	if (rect_float) {
+		color_balance_float_float(seq, rect_float, width, height, mul);
 	}
 	else if (seq->flag & SEQ_MAKE_FLOAT) {
-		color_balance_byte_float(seq, ibuf, mul);
+		color_balance_byte_float(seq, rect, rect_float, width, height, mul);
 	}
 	else {
-		color_balance_byte_byte(seq, ibuf, mul);
+		color_balance_byte_byte(seq, rect, width, height, mul);
 	}
+
+	return NULL;
+}
+
+static void color_balance(Sequence *seq, ImBuf *ibuf, float mul)
+{
+	int i, tot_thread = BLI_system_thread_count();
+	int start_line, tot_line;
+	ListBase threads;
+	ColorBalanceThread handles[BLENDER_MAX_THREADS];
+
+	if (!BLI_thread_is_main()) {
+		/* color balance could have been called from prefetching job which
+		 * is already multithreaded, so doing threading here makes no sense
+		 */
+		tot_thread = 1;
+	}
+
+	if (!ibuf->rect_float && seq->flag & SEQ_MAKE_FLOAT)
+		imb_addrectfloatImBuf(ibuf);
+
+	if (tot_thread > 1)
+		BLI_init_threads(&threads, color_balance_do_thread, tot_thread);
+
+	start_line = 0;
+	tot_line = ((float)(ibuf->y / tot_thread)) + 0.5f;
+
+	for (i = 0; i < tot_thread; i++) {
+		int offset;
+
+		handles[i].seq = seq;
+		handles[i].mul = mul;
+		handles[i].width = ibuf->x;
+
+		if (i < tot_thread - 1)
+			handles[i].height = tot_line;
+		else
+			handles[i].height = ibuf->y - start_line;
+
+		offset = 4 * start_line * ibuf->x;
+
+		if (ibuf->rect)
+			handles[i].rect = (unsigned char *)ibuf->rect + offset;
+		else
+			handles[i].rect = NULL;
+
+		if (ibuf->rect_float)
+			handles[i].rect_float = ibuf->rect_float + offset;
+		else
+			handles[i].rect_float = NULL;
+
+		if (tot_thread > 1)
+			BLI_insert_thread(&threads, &handles[i]);
+
+		start_line += tot_line;
+	}
+
+	if (tot_thread > 1)
+		BLI_end_threads(&threads);
+	else
+		color_balance_do_thread(handles);
 }
 
 /*
