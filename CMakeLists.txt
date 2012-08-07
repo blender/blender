@@ -272,7 +272,9 @@ if(APPLE)
 	endif()
 	
 	execute_process(COMMAND uname -r OUTPUT_VARIABLE MAC_SYS) # check for actual system-version
-	if (${MAC_SYS} MATCHES 11)
+	if (${MAC_SYS} MATCHES 12)
+		set(OSX_SYSTEM 10.8)
+	elseif (${MAC_SYS} MATCHES 11)
 		set(OSX_SYSTEM 10.7)
 	elseif(${MAC_SYS} MATCHES 10)
 		set(OSX_SYSTEM 10.6)
@@ -1521,7 +1523,7 @@ endif()
 
 
 # set the endian define
-if(MSVC)
+if(MSVC OR ${XCODE_VERSION} VERSION_GREATER 4.3) # no more ppc support in xcode > 4.3
 	# for some reason this fails on msvc
 	add_definitions(-D__LITTLE_ENDIAN__)
 else()

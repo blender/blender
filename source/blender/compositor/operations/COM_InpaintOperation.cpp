@@ -77,26 +77,15 @@ void InpaintSimpleOperation::clamp_xy(int & x, int & y)
 	}
 }
 
-float InpaintSimpleOperation::get(int x, int y, int component) 
+float *InpaintSimpleOperation::get_pixel(int x, int y)
 {
 	int width = this->getWidth();
 
 	ASSERT_XY_RANGE(x, y);
 
-	return this->m_cached_buffer[
+	return &this->m_cached_buffer[
 	           y * width * COM_NUMBER_OF_CHANNELS
-	           + x * COM_NUMBER_OF_CHANNELS + component];
-}
-
-void InpaintSimpleOperation::set(int x, int y, int component, float v) 
-{
-	int width = this->getWidth();
-
-	ASSERT_XY_RANGE(x, y);
-
-	this->m_cached_buffer[
-	    y * width * COM_NUMBER_OF_CHANNELS
-	    + x * COM_NUMBER_OF_CHANNELS + component] = v;
+	           + x * COM_NUMBER_OF_CHANNELS];
 }
 
 int InpaintSimpleOperation::mdist(int x, int y) 
@@ -141,7 +130,7 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 		for (int i = 0; i < width; i++) {
 			int r = 0;
 			/* no need to clamp here */
-			if (get(i, j, 3) < 1.0f) {
+			if (this->get_pixel(i, j)[3] < 1.0f) {
 				r = width + height;
 				if (i > 0) 
 					r = mini(r, m[j * width + i - 1] + 1);
@@ -197,9 +186,10 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 		for (int dy = -1; dy <= 1; dy++) {
 			if (dx != 0 && dy != 0) {
 
-			    int x_ofs = x + dx;
+				int x_ofs = x + dx;
 				int y_ofs = y + dy;
-				clamp_xy(x_ofs, y_ofs);
+
+				this->clamp_xy(x_ofs, y_ofs);
 
 				if (this->mdist(x_ofs, y_ofs) < d) {
 
@@ -212,20 +202,14 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 						weight = M_SQRT1_2;  /* 1.0f / sqrt(2) */
 					}
 
-					for (int c = 0; c < 3; c++) {
-						float fk = this->get(x_ofs, y_ofs, c);
-
-						pix[c] += fk * weight;
-					}
+					madd_v3_v3fl(pix, this->get_pixel(x_ofs, y_ofs), weight);
 					n += weight;
 				}
 			}
 		}
 	}
 
-	for (int c = 0; c < 3; c++) {
-		this->set(x, y, c, pix[c] / n);
-	}
+	mul_v3_v3fl(this->get_pixel(x, y), pix, 1.0f / n);
 }
 
 void *InpaintSimpleOperation::initializeTileData(rcti *rect)
@@ -258,10 +242,8 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 
 void InpaintSimpleOperation::executePixel(float *color, int x, int y, void *data)
 {
-	clamp_xy(x, y);
-	for (int c = 0; c < 3; c++) {
-		color[c] = get(x, y, c);
-	}
+	this->clamp_xy(x, y);
+	copy_v3_v3(color, this->get_pixel(x, y));
 	color[3] = 1.0f;
 }
 
