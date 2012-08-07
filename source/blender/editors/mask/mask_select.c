@@ -392,7 +392,7 @@ void MASK_OT_select(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_mouse_select(ot);
 
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }
 
