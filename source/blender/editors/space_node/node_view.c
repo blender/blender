@@ -60,7 +60,7 @@
 
 /* **************** View All Operator ************** */
 
-static int snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode *snode, const int node_flag)
+static int space_node_view_flag(SpaceNode *snode, ARegion *ar, const int node_flag)
 {
 	bNode *node;
 	rctf cur_new;
@@ -110,11 +110,10 @@ static int snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode *snode, const 
 
 static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	if (snode_home(sa, ar, snode, 0)) {
+	if (space_node_view_flag(snode, ar, 0)) {
 		ED_region_tag_redraw(ar);
 
 		return OPERATOR_FINISHED;
@@ -141,11 +140,10 @@ void NODE_OT_view_all(wmOperatorType *ot)
 
 static int node_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 
-	if (snode_home(sa, ar, snode, NODE_SELECT)) {
+	if (space_node_view_flag(snode, ar, NODE_SELECT)) {
 		ED_region_tag_redraw(ar);
 
 		return OPERATOR_FINISHED;
