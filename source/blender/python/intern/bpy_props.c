@@ -1327,7 +1327,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		if (is_itemf == FALSE) {
 			/* note: this must be postponed until after #RNA_def_property_duplicate_pointers
-			 * otherwise if this is a generator it may free the strings before we get copy them */
+			 * otherwise if this is a generator it may free the strings before we copy them */
 			Py_DECREF(items_fast);
 
 			MEM_freeN(eitems);

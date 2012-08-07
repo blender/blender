@@ -368,6 +368,7 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 
 	const short is_spline_sel = (spline->flag & SELECT) && (masklay->restrictflag & MASK_RESTRICT_SELECT) == 0;
 	const short is_smooth = (draw_flag & MASK_DRAWFLAG_SMOOTH);
+	const short is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
 	int tot_diff_point;
 	float (*diff_points)[2];
@@ -394,7 +395,25 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 	                     TRUE, is_smooth, is_active,
 	                     rgb_tmp, draw_type);
 
-	/* TODO, draw mirror values when MASK_SPLINE_NOFILL is set */
+	if (!is_fill) {
+
+		float *fp         = &diff_points[0][0];
+		float *fp_feather = &feather_points[0][0];
+		float tvec[2];
+		int i;
+
+		BLI_assert(tot_diff_point == tot_feather_point);
+
+		for (i = 0; i < tot_diff_point; i++, fp += 2, fp_feather += 2) {
+			sub_v2_v2v2(tvec, fp, fp_feather);
+			add_v2_v2v2(fp_feather, fp, tvec);
+		}
+
+		/* same as above */
+		mask_draw_curve_type(spline, feather_points, tot_feather_point,
+		                     TRUE, is_smooth, is_active,
+		                     rgb_tmp, draw_type);
+	}
 
 	MEM_freeN(feather_points);
 
