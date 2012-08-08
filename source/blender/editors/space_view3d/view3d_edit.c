@@ -2542,10 +2542,12 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Scene *scene = CTX_data_scene(C);
+	int gesture_mode;
 
 	/* Zooms in on a border drawn by the user */
 	rcti rect;
-	float dvec[3], vb[2], xscale, yscale, scale;
+	float dvec[3], vb[2], xscale, yscale;
+	float dist_range_min;
 
 	/* SMOOTHVIEW */
 	float new_dist;
@@ -2564,6 +2566,9 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	rect.ymin = RNA_int_get(op->ptr, "ymin");
 	rect.xmax = RNA_int_get(op->ptr, "xmax");
 	rect.ymax = RNA_int_get(op->ptr, "ymax");
+
+	/* check if zooming in/out view */
+	gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
@@ -2608,12 +2613,12 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		dvec[1] = p[1] - p_corner[1];
 		dvec[2] = p[2] - p_corner[2];
 
-		new_dist = len_v3(dvec);
-		if (new_dist <= v3d->near * 1.5f) new_dist = v3d->near * 1.5f;
-
 		new_ofs[0] = -p[0];
 		new_ofs[1] = -p[1];
 		new_ofs[2] = -p[2];
+
+		new_dist = len_v3(dvec);
+		dist_range_min = v3d->near * 1.5f;
 
 	}
 	else { /* othographic */
@@ -2649,10 +2654,21 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		/* work out the ratios, so that everything selected fits when we zoom */
 		xscale = ((rect.xmax - rect.xmin) / vb[0]);
 		yscale = ((rect.ymax - rect.ymin) / vb[1]);
-		scale = (xscale >= yscale) ? xscale : yscale;
+		new_dist *= maxf(xscale, yscale);
 
 		/* zoom in as required, or as far as we can go */
-		new_dist = ((new_dist * scale) >= 0.001f * v3d->grid) ? new_dist * scale : 0.001f * v3d->grid;
+		dist_range_min = 0.001f * v3d->grid;
+	}
+
+	if (gesture_mode == GESTURE_MODAL_OUT) {
+		sub_v3_v3v3(dvec, new_ofs, rv3d->ofs);
+		new_dist = rv3d->dist * (rv3d->dist / new_dist);
+		add_v3_v3v3(new_ofs, rv3d->ofs, dvec);
+	}
+
+	/* clamp after because we may have been zooming out */
+	if (new_dist < dist_range_min) {
+		new_dist = dist_range_min;
 	}
 
 	smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
@@ -2694,11 +2710,11 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	ot->flag = 0;
 
 	/* rna */
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
-
 }
 
 /* sets the view to 1:1 camera/render-pixel */
