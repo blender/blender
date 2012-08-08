@@ -113,10 +113,10 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 	int maxx = search[2];
 	int maxy = search[3];
 #else
-	int minx = MAX2(x - maxBlur, 0.0f);
-	int miny = MAX2(y - maxBlur, 0.0f);
-	int maxx = MIN2(x + maxBlur, m_width);
-	int maxy = MIN2(y + maxBlur, m_height);
+	int minx = max(x - maxBlur, 0);
+	int miny = max(y - maxBlur, 0);
+	int maxx = min(x + maxBlur, (int)m_width);
+	int maxy = min(y + maxBlur, (int)m_height);
 #endif
 	{
 		inputSizeBuffer->readNoCheck(tempSize, x, y);
@@ -124,26 +124,24 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 
 		add_v4_v4(color_accum, readColor);
 		add_v4_fl(multiplier_accum, 1.0f);
-		float sizeCenter = tempSize[0];
+		float size_center = tempSize[0];
 		
 		const int addXStep = QualityStepHelper::getStep() * COM_NUMBER_OF_CHANNELS;
 		
-		if (sizeCenter > this->m_threshold) {
+		if (size_center > this->m_threshold) {
 			for (int ny = miny; ny < maxy; ny += QualityStepHelper::getStep()) {
 				float dy = ny - y;
 				int offsetNy = ny * inputSizeBuffer->getWidth() * COM_NUMBER_OF_CHANNELS;
 				int offsetNxNy = offsetNy + (minx * COM_NUMBER_OF_CHANNELS);
 				for (int nx = minx; nx < maxx; nx += QualityStepHelper::getStep()) {
-					if (nx != x || ny != y) 
-					{
+					if (nx != x || ny != y) {
 						float size = inputSizeFloatBuffer[offsetNxNy];
 						if (size > this->m_threshold) {
-							float fsize = fabsf(size);
 							float dx = nx - x;
-							if (fsize > fabsf(dx) && fsize > fabsf(dy)) {
-								float u = (256.0f + (dx/size) * 255.0f);
-								float v = (256.0f + (dy/size) * 255.0f);
-								inputBokehBuffer->readNoCheck(bokeh, u, v);
+							if (size > fabsf(dx) && size > fabsf(dy)) {
+								float uv[2] = {256.0f + (dx / size) * 255.0f,
+								               256.0f + (dy / size) * 255.0f};
+								inputBokehBuffer->readNoCheck(bokeh, uv[0], uv[1]);
 								madd_v4_v4v4(color_accum, bokeh, &inputProgramFloatBuffer[offsetNxNy]);
 								add_v4_v4(multiplier_accum, bokeh);
 							}
@@ -160,11 +158,11 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 		color[3] = color_accum[3] / multiplier_accum[3];
 
 		/* blend in out values over the threshold, otherwise we get sharp, ugly transitions */
-		if ((sizeCenter > this->m_threshold) &&
-		    (sizeCenter < this->m_threshold * 2.0f))
+		if ((size_center > this->m_threshold) &&
+		    (size_center < this->m_threshold * 2.0f))
 		{
 			/* factor from 0-1 */
-			float fac = (sizeCenter - this->m_threshold) / this->m_threshold;
+			float fac = (size_center - this->m_threshold) / this->m_threshold;
 			interp_v4_v4v4(color, readColor, color, fac);
 		}
 	}
