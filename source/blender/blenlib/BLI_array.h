@@ -151,7 +151,7 @@
 	if (arr && (char *)arr != _##arr##_static) {                              \
 	    BLI_array_fake_user(arr);                                             \
 	    MEM_freeN(arr);                                                       \
-	}
+	} (void)0
 
 #define BLI_array_pop(arr)  (                                                 \
 	(arr && _##arr##_count) ?                                                 \
@@ -162,12 +162,12 @@
 /* resets the logical size of an array to zero, but doesn't
  * free the memory. */
 #define BLI_array_empty(arr)                                                  \
-	_##arr##_count = 0
+	_##arr##_count = 0; (void)0
 
 /* set the count of the array, doesn't actually increase the allocated array
  * size.  don't use this unless you know what you're doing. */
 #define BLI_array_length_set(arr, count)                                      \
-	_##arr##_count = (count)
+	_##arr##_count = (count); (void)0
 
 /* only to prevent unused warnings */
 #define BLI_array_fake_user(arr)                                              \
@@ -187,5 +187,7 @@
 	        MEM_mallocN(sizeof(*(arr)) * (realsize), allocstr)                \
 	    )                                                                     \
 
-#define BLI_array_fixedstack_free(arr)  \
-	if (_##arr##_is_static) MEM_freeN(arr)
+#define BLI_array_fixedstack_free(arr)                                        \
+	if (_##arr##_is_static) {                                                 \
+		MEM_freeN(arr);                                                       \
+	} (void)0

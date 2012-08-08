@@ -83,7 +83,7 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 		
 /* tidy up for driver targets loopers */
 #define DRIVER_TARGETS_LOOPER_END \
-	}
+}
 
 /* ---------------------- */
 
