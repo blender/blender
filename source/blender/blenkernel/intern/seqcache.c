@@ -37,6 +37,7 @@
 #include "BKE_sequencer.h"
 
 #include "IMB_moviecache.h"
+#include "IMB_imbuf_types.h"
 
 typedef struct SeqCacheKey {
 	struct Sequence *seq;
@@ -169,9 +170,7 @@ void BKE_sequencer_stripelem_cache_cleanup(void)
 	}
 }
 
-struct ImBuf *BKE_sequencer_cache_get(
-        SeqRenderData context, struct Sequence *seq,
-        float cfra, seq_stripelem_ibuf_t type)
+struct ImBuf *BKE_sequencer_cache_get(SeqRenderData context, Sequence *seq, float cfra, seq_stripelem_ibuf_t type)
 {
 
 	if (moviecache && seq) {
@@ -188,9 +187,7 @@ struct ImBuf *BKE_sequencer_cache_get(
 	return NULL;
 }
 
-void BKE_sequencer_cache_put(
-        SeqRenderData context, struct Sequence *seq,
-        float cfra, seq_stripelem_ibuf_t type, struct ImBuf *i)
+void BKE_sequencer_cache_put(SeqRenderData context, Sequence *seq, float cfra, seq_stripelem_ibuf_t type, ImBuf *i)
 {
 	SeqCacheKey key;
 
