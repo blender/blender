@@ -166,17 +166,17 @@ static void IIR_gauss_single(CompBuf *buf, float sigma)
 	// see "Recursive Gabor Filtering" by Young/VanVliet
 	// all factors here in double.prec. Required, because for single.prec it seems to blow up if sigma > ~200
 	if (sigma >= 3.556f)
-		q = 0.9804f*(sigma - 3.556f) + 2.5091f;
+		q = 0.9804f * (sigma - 3.556f) + 2.5091f;
 	else // sigma >= 0.5
-		q = (0.0561f*sigma + 0.5784f)*sigma - 0.2568f;
-	q2 = q*q;
-	sc = (1.1668 + q)*(3.203729649  + (2.21566 + q)*q);
+		q = (0.0561f * sigma + 0.5784f) * sigma - 0.2568f;
+	q2 = q * q;
+	sc = (1.1668 + q) * (3.203729649  + (2.21566 + q) * q);
 	// no gabor filtering here, so no complex multiplies, just the regular coefs.
 	// all negated here, so as not to have to recalc Triggs/Sdika matrix
-	cf[1] = q*(5.788961737 + (6.76492 + 3.0*q)*q)/ sc;
-	cf[2] = -q2*(3.38246 + 3.0*q)/sc;
+	cf[1] = q * (5.788961737 + (6.76492 + 3.0 * q) * q) / sc;
+	cf[2] = -q2 * (3.38246 + 3.0 * q) / sc;
 	// 0 & 3 unchanged
-	cf[3] = q2*q/sc;
+	cf[3] = q2 * q / sc;
 	cf[0] = 1.0 - cf[1] - cf[2] - cf[3];
 
 	// Triggs/Sdika border corrections,
@@ -336,7 +336,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		// fast blur...
 		// bug #6656 part 1, probably when previous node_composite.c was split into separate files, it was not properly updated
 		// to include recent cvs commits (well, at least not defocus node), so this part was missing...
-		wt = aperture*128.f;
+		wt = minf(nqd->maxblur, aperture * 128.0f);
 		IIR_gauss_single(crad, wt);
 		IIR_gauss_single(wts, wt);
 		
