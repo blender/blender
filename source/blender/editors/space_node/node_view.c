@@ -36,6 +36,7 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_screen.h"
+#include "BKE_node.h"
 
 #include "ED_node.h"  /* own include */
 #include "ED_screen.h"
@@ -60,13 +61,13 @@
 
 /* **************** View All Operator ************** */
 
-static int snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode *snode, const int node_flag)
+static int space_node_view_flag(SpaceNode *snode, ARegion *ar, const int node_flag)
 {
 	bNode *node;
 	rctf cur_new;
 	float oldwidth, oldheight, width, height;
-	int change = FALSE;
-	
+	int tot = 0;
+	int has_frame = FALSE;
 	
 	oldwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin;
 	oldheight = ar->v2d.cur.ymax - ar->v2d.cur.ymin;
@@ -77,44 +78,63 @@ static int snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode *snode, const 
 		for (node = snode->edittree->nodes.first; node; node = node->next) {
 			if ((node->flag & node_flag) == node_flag) {
 				BLI_rctf_union(&cur_new, &node->totr);
-				change = TRUE;
+				tot++;
+
+				if (node->type == NODE_FRAME) {
+					has_frame = TRUE;
+				}
 			}
 		}
 	}
 
-	if (change) {
-		snode->xof = 0;
-		snode->yof = 0;
+	if (tot) {
 		width = cur_new.xmax - cur_new.xmin;
 		height = cur_new.ymax - cur_new.ymin;
 
-		if (width > height) {
-			float newheight;
-			newheight = oldheight * width / oldwidth;
-			cur_new.ymin = cur_new.ymin - newheight / 4;
-			cur_new.ymax = cur_new.ymax + newheight / 4;
+		/* for single non-frame nodes, don't zoom in, just pan view,
+		 * but do allow zooming out, this allows for big nodes to be zoomed out */
+		if ((tot == 1) &&
+		    (has_frame == FALSE) &&
+		    ((oldwidth * oldheight) > (width * height)))
+		{
+			/* center, don't zoom */
+			BLI_rctf_resize(&cur_new, oldwidth, oldheight);
 		}
 		else {
-			float newwidth;
-			newwidth = oldwidth * height / oldheight;
-			cur_new.xmin = cur_new.xmin - newwidth / 4;
-			cur_new.xmax = cur_new.xmax + newwidth / 4;
+			width = cur_new.xmax - cur_new.xmin;
+			height = cur_new.ymax - cur_new.ymin;
+
+			if (width > height) {
+				float newheight;
+				newheight = oldheight * width / oldwidth;
+				cur_new.ymin = cur_new.ymin - newheight / 4;
+				cur_new.ymax = cur_new.ymax + newheight / 4;
+			}
+			else {
+				float newwidth;
+				newwidth = oldwidth * height / oldheight;
+				cur_new.xmin = cur_new.xmin - newwidth / 4;
+				cur_new.xmax = cur_new.xmax + newwidth / 4;
+			}
 		}
 
 		ar->v2d.tot = ar->v2d.cur = cur_new;
 		UI_view2d_curRect_validate(&ar->v2d);
 	}
 
-	return change;
+	return (tot != 0);
 }
 
 static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
-	
-	if (snode_home(sa, ar, snode, 0)) {
+
+	/* is this really needed? */
+	snode->xof = 0;
+	snode->yof = 0;
+
+	if (space_node_view_flag(snode, ar, 0)) {
 		ED_region_tag_redraw(ar);
 
 		return OPERATOR_FINISHED;
@@ -141,11 +161,10 @@ void NODE_OT_view_all(wmOperatorType *ot)
 
 static int node_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 
-	if (snode_home(sa, ar, snode, NODE_SELECT)) {
+	if (space_node_view_flag(snode, ar, NODE_SELECT)) {
 		ED_region_tag_redraw(ar);
 
 		return OPERATOR_FINISHED;

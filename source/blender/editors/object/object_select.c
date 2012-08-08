@@ -236,11 +236,13 @@ static int object_select_all_by_obdata(bContext *C, void *obdata)
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		if (base->object->data == obdata) {
-			base->flag |= SELECT;
-			base->object->flag = base->flag;
+		if ((base->flag & SELECT) == 0) {
+			if (base->object->data == obdata) {
+				base->flag |= SELECT;
+				base->object->flag = base->flag;
 
-			changed = TRUE;
+				changed = TRUE;
+			}
 		}
 	}
 	CTX_DATA_END;
@@ -254,50 +256,56 @@ static int object_select_all_by_material_texture(bContext *C, int use_texture, M
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		Object *ob = base->object;
-		Material *mat1;
-		int a, b;
+		if ((base->flag & SELECT) == 0) {
+			Object *ob = base->object;
+			Material *mat1;
+			int a, b;
 
-		for (a = 1; a <= ob->totcol; a++) {
-			mat1 = give_current_material(ob, a);
+			for (a = 1; a <= ob->totcol; a++) {
+				mat1 = give_current_material(ob, a);
 
-			if (!use_texture) {
-				if (mat1 == mat) {
-					base->flag |= SELECT;
-					changed = TRUE;
+				if (!use_texture) {
+					if (mat1 == mat) {
+						base->flag |= SELECT;
+						changed = TRUE;
+					}
 				}
-			}
-			else if (mat1 && use_texture) {
-				for (b = 0; b < MAX_MTEX; b++) {
-					if (mat1->mtex[b]) {
-						if (tex == mat1->mtex[b]->tex) {
-							base->flag |= SELECT;
-							changed = TRUE;
-							break;
+				else if (mat1 && use_texture) {
+					for (b = 0; b < MAX_MTEX; b++) {
+						if (mat1->mtex[b]) {
+							if (tex == mat1->mtex[b]->tex) {
+								base->flag |= SELECT;
+								changed = TRUE;
+								break;
+							}
 						}
 					}
 				}
 			}
-		}
 
-		base->object->flag = base->flag;
+			base->object->flag = base->flag;
+		}
 	}
 	CTX_DATA_END;
 
 	return changed;
 }
 
-static int object_select_all_by_dup_group(bContext *C, Group *dup_group)
+static int object_select_all_by_dup_group(bContext *C, Object *ob)
 {
 	int changed = FALSE;
+	Group *dup_group = (ob->transflag & OB_DUPLIGROUP) ? ob->dup_group : NULL;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		if (base->object->dup_group == dup_group) {
-			base->flag |= SELECT;
-			base->object->flag = base->flag;
+		if ((base->flag & SELECT) == 0) {
+			Group *dup_group_other = (base->object->transflag & OB_DUPLIGROUP) ? base->object->dup_group : NULL;
+			if (dup_group == dup_group_other) {
+				base->flag |= SELECT;
+				base->object->flag = base->flag;
 
-			changed = TRUE;
+				changed = TRUE;
+			}
 		}
 	}
 	CTX_DATA_END;
@@ -311,25 +319,27 @@ static int object_select_all_by_particle(bContext *C, Object *ob)
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		/* loop through other, then actives particles*/
-		ParticleSystem *psys;
-		ParticleSystem *psys_act;
+		if ((base->flag & SELECT) == 0) {
+			/* loop through other, then actives particles*/
+			ParticleSystem *psys;
+			ParticleSystem *psys_act;
 
-		for (psys = base->object->particlesystem.first; psys; psys = psys->next) {
-			for (psys_act = ob->particlesystem.first; psys_act; psys_act = psys_act->next) {
-				if (psys->part == psys_act->part) {
-					base->flag |= SELECT;
-					changed = TRUE;
+			for (psys = base->object->particlesystem.first; psys; psys = psys->next) {
+				for (psys_act = ob->particlesystem.first; psys_act; psys_act = psys_act->next) {
+					if (psys->part == psys_act->part) {
+						base->flag |= SELECT;
+						changed = TRUE;
+						break;
+					}
+				}
+
+				if (base->flag & SELECT) {
 					break;
 				}
 			}
 
-			if (base->flag & SELECT) {
-				break;
-			}
+			base->object->flag = base->flag;
 		}
-
-		base->object->flag = base->flag;
 	}
 	CTX_DATA_END;
 
@@ -342,11 +352,13 @@ static int object_select_all_by_library(bContext *C, Library *lib)
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		if (lib == base->object->id.lib) {
-			base->flag |= SELECT;
-			base->object->flag = base->flag;
+		if ((base->flag & SELECT) == 0) {
+			if (lib == base->object->id.lib) {
+				base->flag |= SELECT;
+				base->object->flag = base->flag;
 
-			changed = TRUE;
+				changed = TRUE;
+			}
 		}
 	}
 	CTX_DATA_END;
@@ -360,11 +372,13 @@ static int object_select_all_by_library_obdata(bContext *C, Library *lib)
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		if (base->object->data && lib == ((ID *)base->object->data)->lib) {
-			base->flag |= SELECT;
-			base->object->flag = base->flag;
+		if ((base->flag & SELECT) == 0) {
+			if (base->object->data && lib == ((ID *)base->object->data)->lib) {
+				base->flag |= SELECT;
+				base->object->flag = base->flag;
 
-			changed = TRUE;
+				changed = TRUE;
+			}
 		}
 	}
 	CTX_DATA_END;
@@ -446,7 +460,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		if (ob->dup_group == NULL)
 			return OPERATOR_CANCELLED;
 
-		changed = object_select_all_by_dup_group(C, ob->dup_group);
+		changed = object_select_all_by_dup_group(C, ob);
 	}
 	else if (nr == OBJECT_SELECT_LINKED_PARTICLE) {
 		if (ob->particlesystem.first == NULL)

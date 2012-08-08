@@ -646,7 +646,7 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }
 
@@ -720,6 +720,6 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }

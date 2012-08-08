@@ -152,7 +152,9 @@ GHOST_SystemX11::
 ~GHOST_SystemX11()
 {
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-	XCloseIM(m_xim);
+	if (m_xim) {
+		XCloseIM(m_xim);
+	}
 #endif
 
 	XCloseDisplay(m_display);
