@@ -229,6 +229,8 @@ struct ImBuf *BKE_sequencer_cache_get(SeqRenderData context, struct Sequence *se
 
 void BKE_sequencer_cache_put(SeqRenderData context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type, struct ImBuf *nval);
 
+void BKE_sequencer_cache_cleanup_sequence(struct Sequence *seq);
+
 /* **********************************************************************
  * seqeffects.c
  *
@@ -273,6 +275,8 @@ int BKE_sequence_base_isolated_sel_check(struct ListBase *seqbase);
 void BKE_sequencer_free_imbuf(struct Scene *scene, struct ListBase *seqbasep, int check_mem_usage, int keep_file_handles);
 struct Sequence *BKE_sequence_dupli_recursive(struct Scene *scene, struct Scene *scene_to, struct Sequence *seq, int dupe_flag);
 int BKE_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char **error_str);
+
+void BKE_sequence_invalidate_cache(struct Scene *scene, struct Sequence *seq);
 
 void BKE_sequencer_update_sound_bounds_all(struct Scene *scene);
 void BKE_sequencer_update_sound_bounds(struct Scene *scene, struct Sequence *seq);

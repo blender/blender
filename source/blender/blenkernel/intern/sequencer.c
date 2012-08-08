@@ -2711,6 +2711,33 @@ static void free_anim_seq(Sequence *seq)
 	}
 }
 
+void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
+{
+	Editing *ed = scene->ed;
+	Sequence *cur;
+	int left = seq->start, right = seq->start + seq->len;
+
+	/* invalidate cache for current sequence */
+	BKE_sequencer_cache_cleanup_sequence(seq);
+
+	/* invalidate cache for all dependent sequences */
+	SEQ_BEGIN (ed, cur)
+	{
+		int cur_left = cur->start, cur_right = cur->start + cur->len;
+
+		/* sequence is outside of changed one, shouldn't be invalidated */
+		if (cur_right < left || cur_left > right)
+			continue;
+
+		/* sequence is below changed one, not dependent on it */
+		if (cur->machine < seq->machine)
+			continue;
+
+		BKE_sequencer_cache_cleanup_sequence(cur);
+	}
+	SEQ_END
+}
+
 void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, int check_mem_usage, int keep_file_handles)
 {
 	Sequence *seq;

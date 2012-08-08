@@ -170,6 +170,19 @@ void BKE_sequencer_cache_cleanup(void)
 	}
 }
 
+static int seqcache_key_check_seq(void *userkey, void *userdata)
+{
+	SeqCacheKey *key = (SeqCacheKey *) userkey;
+	Sequence *seq = (Sequence *) userdata;
+
+	return key->seq == seq;
+}
+
+void BKE_sequencer_cache_cleanup_sequence(Sequence *seq)
+{
+	IMB_moviecache_cleanup(moviecache, seqcache_key_check_seq, seq);
+}
+
 struct ImBuf *BKE_sequencer_cache_get(SeqRenderData context, Sequence *seq, float cfra, seq_stripelem_ibuf_t type)
 {
 	if (moviecache && seq) {
