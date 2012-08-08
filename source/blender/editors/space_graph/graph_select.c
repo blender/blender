@@ -848,6 +848,8 @@ static int graphkeys_select_leftright_invoke(bContext *C, wmOperator *op, wmEven
 
 void GRAPH_OT_select_leftright(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Select Left/Right";
 	ot->idname = "GRAPH_OT_select_leftright";
@@ -863,7 +865,10 @@ void GRAPH_OT_select_leftright(wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop = RNA_def_enum(ot->srna, "mode", prop_graphkeys_leftright_select_types, GRAPHKEYS_LRSEL_TEST, "Mode", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Mouse-Click Select Operator *********************** */
@@ -1333,6 +1338,8 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
  
 void GRAPH_OT_clickselect(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Mouse Select Keys";
 	ot->idname = "GRAPH_OT_clickselect";
@@ -1342,10 +1349,17 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
 	ot->invoke = graphkeys_clickselect_invoke;
 	ot->poll = graphop_visible_keyframes_poll;
 	
-	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column", 0, "Column Select", "Select all keyframes that occur on the same frame as the one under the mouse"); // ALTKEY
-	RNA_def_boolean(ot->srna, "curves", 0, "Only Curves", "Select all the keyframes in the curve"); // CTRLKEY + ALTKEY
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "column", 0, "Column Select", 
+	                       "Select all keyframes that occur on the same frame as the one under the mouse"); // ALTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "curves", 0, "Only Curves", 
+	                       "Select all the keyframes in the curve"); // CTRLKEY + ALTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ************************************************************************** */
