@@ -906,16 +906,31 @@ void WM_operator_properties_select_all(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "action", select_all_actions, SEL_TOGGLE, "Action", "Selection action to execute");
 }
 
-void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
+void WM_operator_properties_border(wmOperatorType *ot)
 {
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+}
 
-	if (extend)
+void WM_operator_properties_border_to_rcti(struct wmOperator *op, rcti *rect)
+{
+	rect->xmin = RNA_int_get(op->ptr, "xmin");
+	rect->ymin = RNA_int_get(op->ptr, "ymin");
+	rect->xmax = RNA_int_get(op->ptr, "xmax");
+	rect->ymax = RNA_int_get(op->ptr, "ymax");
+}
+
+void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
+{
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
+
+	WM_operator_properties_border(ot);
+
+	if (extend) {
 		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+	}
 }
 
 void WM_operator_properties_mouse_select(wmOperatorType *ot)
