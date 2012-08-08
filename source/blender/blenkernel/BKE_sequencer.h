@@ -64,7 +64,6 @@ typedef struct SeqIterator {
 void seq_begin(struct Editing *ed, SeqIterator *iter, int use_pointer);
 void seq_next(SeqIterator *iter);
 void seq_end(SeqIterator *iter);
-void seq_array(struct Editing *ed, struct Sequence ***seqarray, int *tot, int use_pointer);
 
 #define SEQP_BEGIN(ed, _seq)                                                  \
 	{                                                                         \
@@ -96,9 +95,6 @@ typedef struct SeqRenderData {
 SeqRenderData seq_new_render_data(
     struct Main *bmain, struct Scene *scene,
     int rectx, int recty, int preview_render_size);
-
-int seq_cmp_render_data(const SeqRenderData *a, const SeqRenderData *b);
-unsigned int seq_hash_render_data(const SeqRenderData *a);
 
 /* Wipe effect */
 enum {
@@ -191,21 +187,16 @@ int seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence 
 /* maintenance functions, mostly for RNA */
 // extern 
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
-void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq);
-void seq_free_strip(struct Strip *strip);
 
 void seq_free_clipboard(void);
 const char *give_seqname(struct Sequence *seq);
 void calc_sequence(struct Scene *scene, struct Sequence *seq);
 void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
 void reload_sequence_new_file(struct Scene *scene, struct Sequence *seq, int lock_range);
-void build_seqar_cb(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq,
-                    int (*test_func)(struct Sequence *seq));
 int evaluate_seq_frame(struct Scene *scene, int cfra);
 struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 
 // intern
-void printf_strip(struct Sequence *seq); // debugging function (unused)
 void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_seq, int len_change, int ibuf_change);
 
 int input_have_to_preprocess(
@@ -267,8 +258,6 @@ int get_sequence_effect_num_inputs(int seq_type);
  */
    
 /* for transform but also could use elsewhere */
-int seq_tx_get_start(struct Sequence *seq);
-int seq_tx_get_end(struct Sequence *seq);
 int seq_tx_get_final_left(struct Sequence *seq, int metaclip);
 int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
 void seq_tx_set_final_left(struct Sequence *seq, int val);
@@ -336,8 +325,6 @@ typedef struct SeqLoadInfo {
 typedef struct Sequence *(*SeqLoadFunc)(struct bContext *, ListBase *, struct SeqLoadInfo *);
 
 struct Sequence *alloc_sequence(ListBase *lb, int cfra, int machine);
-
-void seq_load_apply(struct Scene *scene, struct Sequence *seq, struct SeqLoadInfo *seq_load);
 
 struct Sequence *sequencer_add_image_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 struct Sequence *sequencer_add_sound_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);

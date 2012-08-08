@@ -47,6 +47,73 @@ typedef struct SeqCacheKey {
 
 static struct MovieCache *moviecache = NULL;
 
+static int seq_cmp_render_data(const SeqRenderData *a, const SeqRenderData *b)
+{
+	if (a->preview_render_size < b->preview_render_size) {
+		return -1;
+	}
+	if (a->preview_render_size > b->preview_render_size) {
+		return 1;
+	}
+
+	if (a->rectx < b->rectx) {
+		return -1;
+	}
+	if (a->rectx > b->rectx) {
+		return 1;
+	}
+
+	if (a->recty < b->recty) {
+		return -1;
+	}
+	if (a->recty > b->recty) {
+		return 1;
+	}
+
+	if (a->bmain < b->bmain) {
+		return -1;
+	}
+	if (a->bmain > b->bmain) {
+		return 1;
+	}
+
+	if (a->scene < b->scene) {
+		return -1;
+	}
+	if (a->scene > b->scene) {
+		return 1;
+	}
+
+	if (a->motion_blur_shutter < b->motion_blur_shutter) {
+		return -1;
+	}
+	if (a->motion_blur_shutter > b->motion_blur_shutter) {
+		return 1;
+	}
+
+	if (a->motion_blur_samples < b->motion_blur_samples) {
+		return -1;
+	}
+	if (a->motion_blur_samples > b->motion_blur_samples) {
+		return 1;
+	}
+
+	return 0;
+}
+
+static unsigned int seq_hash_render_data(const SeqRenderData *a)
+{
+	unsigned int rval = a->rectx + a->recty;
+
+	rval ^= a->preview_render_size;
+	rval ^= ((intptr_t) a->bmain) << 6;
+	rval ^= ((intptr_t) a->scene) << 6;
+	rval ^= (int)(a->motion_blur_shutter * 100.0f) << 10;
+	rval ^= a->motion_blur_samples << 24;
+
+	return rval;
+}
+
 static unsigned int seqcache_hashhash(const void *key_)
 {
 	const SeqCacheKey *key = (SeqCacheKey *) key_;

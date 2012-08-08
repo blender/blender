@@ -95,13 +95,14 @@ ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
 SequencerDrawView sequencer_view3d_cb = NULL; /* NULL in background mode */
 
-
-void printf_strip(Sequence *seq)
+#if 0  /* unused function */
+static void printf_strip(Sequence *seq)
 {
 	fprintf(stderr, "name: '%s', len:%d, start:%d, (startofs:%d, endofs:%d), (startstill:%d, endstill:%d), machine:%d, (startdisp:%d, enddisp:%d)\n",
 	        seq->name, seq->len, seq->start, seq->startofs, seq->endofs, seq->startstill, seq->endstill, seq->machine, seq->startdisp, seq->enddisp);
 	fprintf(stderr, "\tseq_tx_set_final_left: %d %d\n\n", seq_tx_get_final_left(seq, 0), seq_tx_get_final_right(seq, 0));
 }
+#endif
 
 int seqbase_recursive_apply(ListBase *seqbase, int (*apply_func)(Sequence *seq, void *), void *arg)
 {
@@ -140,7 +141,7 @@ static void free_proxy_seq(Sequence *seq)
 	}
 }
 
-void seq_free_strip(Strip *strip)
+static void seq_free_strip(Strip *strip)
 {
 	strip->us--;
 	if (strip->us > 0) return;
@@ -205,7 +206,7 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 	MEM_freeN(seq);
 }
 
-void seq_free_sequence_recurse(Scene *scene, Sequence *seq)
+static void seq_free_sequence_recurse(Scene *scene, Sequence *seq)
 {
 	Sequence *iseq;
 
@@ -306,73 +307,6 @@ SeqRenderData seq_new_render_data(
 	return rval;
 }
 
-int seq_cmp_render_data(const SeqRenderData *a, const SeqRenderData *b)
-{
-	if (a->preview_render_size < b->preview_render_size) {
-		return -1;
-	}
-	if (a->preview_render_size > b->preview_render_size) {
-		return 1;
-	}
-	
-	if (a->rectx < b->rectx) {
-		return -1;
-	}
-	if (a->rectx > b->rectx) {
-		return 1;
-	}
-
-	if (a->recty < b->recty) {
-		return -1;
-	}
-	if (a->recty > b->recty) {
-		return 1;
-	}
-
-	if (a->bmain < b->bmain) {
-		return -1;
-	}
-	if (a->bmain > b->bmain) {
-		return 1;
-	}
-
-	if (a->scene < b->scene) {
-		return -1;
-	}
-	if (a->scene > b->scene) {
-		return 1;
-	}
-
-	if (a->motion_blur_shutter < b->motion_blur_shutter) {
-		return -1;
-	}
-	if (a->motion_blur_shutter > b->motion_blur_shutter) {
-		return 1;
-	}
-
-	if (a->motion_blur_samples < b->motion_blur_samples) {
-		return -1;
-	}
-	if (a->motion_blur_samples > b->motion_blur_samples) {
-		return 1;
-	}
-
-	return 0;
-}
-
-unsigned int seq_hash_render_data(const SeqRenderData *a)
-{
-	unsigned int rval = a->rectx + a->recty;
-
-	rval ^= a->preview_render_size;
-	rval ^= ((intptr_t) a->bmain) << 6;
-	rval ^= ((intptr_t) a->scene) << 6;
-	rval ^= (int)(a->motion_blur_shutter * 100.0f) << 10;
-	rval ^= a->motion_blur_samples << 24;
-	
-	return rval;
-}
-
 /* ************************* iterator ************************** */
 /* *************** (replaces old WHILE_SEQ) ********************* */
 /* **************** use now SEQ_BEGIN () SEQ_END ***************** */
@@ -407,7 +341,7 @@ static void seq_build_array(ListBase *seqbase, Sequence ***array, int depth)
 	}
 }
 
-void seq_array(Editing *ed, Sequence ***seqarray, int *tot, int use_pointer)
+static void seq_array(Editing *ed, Sequence ***seqarray, int *tot, int use_pointer)
 {
 	Sequence **array;
 
@@ -508,8 +442,9 @@ static void do_build_seqar_cb(ListBase *seqbase, Sequence ***seqar, int depth,
 	}
 }
 
-void build_seqar_cb(ListBase *seqbase, Sequence  ***seqar, int *totseq,
-                    int (*test_func)(Sequence *seq))
+#if 0  /* unused function */
+static void build_seqar_cb(ListBase *seqbase, Sequence  ***seqar, int *totseq,
+                           int (*test_func)(Sequence *seq))
 {
 	Sequence **tseqar;
 
@@ -526,6 +461,7 @@ void build_seqar_cb(ListBase *seqbase, Sequence  ***seqar, int *totseq,
 	do_build_seqar_cb(seqbase, seqar, 0, test_func);
 	*seqar = tseqar;
 }
+#endif
 
 static int metaseq_start(Sequence *metaseq)
 {
@@ -2459,6 +2395,8 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 			{
 				StripElem *s_elem = give_stripelem(seq, cfra);
 
+				printf("Render image strip\n");
+
 				if (s_elem) {
 					BLI_join_dirfile(name, sizeof(name), seq->strip->dir, s_elem->name);
 					BLI_path_abs(name, G.main->name);
@@ -3211,11 +3149,11 @@ void update_changed_seq_and_deps(Scene *scene, Sequence *changed_seq, int len_ch
  * left and right are the bounds at which the sequence is rendered,
  * start and end are from the start and fixed length of the sequence.
  */
-int seq_tx_get_start(Sequence *seq)
+static int seq_tx_get_start(Sequence *seq)
 {
 	return seq->start;
 }
-int seq_tx_get_end(Sequence *seq)
+static int seq_tx_get_end(Sequence *seq)
 {
 	return seq->start + seq->len;
 }
@@ -3908,7 +3846,7 @@ Mask *BKE_sequencer_mask_get(Scene *scene)
 
 /* api like funcs for adding */
 
-void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
+static void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 {
 	if (seq) {
 		BLI_strncpy(seq->name + 2, seq_load->name, sizeof(seq->name) - 2);
