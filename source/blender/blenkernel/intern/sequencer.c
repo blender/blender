@@ -2728,6 +2728,13 @@ void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
 		if (cur->machine < seq->machine)
 			continue;
 
+		/* sequence is not blending with lower machines, no need to invalidate */
+		if ((cur->blend_mode == SEQ_BLEND_REPLACE) ||
+		    (cur->blend_mode == SEQ_TYPE_CROSS && cur->blend_opacity == 100.0f))
+		{
+			continue;
+		}
+
 		BKE_sequencer_cache_cleanup_sequence(cur);
 	}
 	SEQ_END
