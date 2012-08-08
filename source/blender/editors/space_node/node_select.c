@@ -330,8 +330,8 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 	/* get mouse coordinates in view2d space */
 	UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &mx, &my);
 	/* node_find_indicated_socket uses snode->mx/my */
-	snode->mx = mx;
-	snode->my = my;
+	snode->cursor[0] = mx;
+	snode->cursor[1] = my;
 	
 	if (extend) {
 		/* first do socket selection, these generally overlap with nodes.

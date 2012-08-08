@@ -797,8 +797,8 @@ static void node_resize_init(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	NodeSizeWidget *nsw = MEM_callocN(sizeof(NodeSizeWidget), "size widget op data");
 	
 	op->customdata = nsw;
-	nsw->mxstart = snode->mx;
-	nsw->mystart = snode->my;
+	nsw->mxstart = snode->cursor[0];
+	nsw->mystart = snode->cursor[1];
 	
 	/* store old */
 	nsw->oldlocx = node->locx;
@@ -936,8 +936,8 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (node) {
 		/* convert mouse coordinates to v2d space */
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-		                         &snode->mx, &snode->my);
-		dir = node->typeinfo->resize_area_func(node, snode->mx, snode->my);
+		                         &snode->cursor[0], &snode->cursor[1]);
+		dir = node->typeinfo->resize_area_func(node, snode->cursor[0], snode->cursor[1]);
 		if (dir != 0) {
 			node_resize_init(C, op, event, node, dir);
 			return OPERATOR_RUNNING_MODAL;
@@ -1051,10 +1051,10 @@ int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **so
 	/* check if we click in a socket */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		
-		rect.xmin = snode->mx - (NODE_SOCKSIZE + 4);
-		rect.ymin = snode->my - (NODE_SOCKSIZE + 4);
-		rect.xmax = snode->mx + (NODE_SOCKSIZE + 4);
-		rect.ymax = snode->my + (NODE_SOCKSIZE + 4);
+		rect.xmin = snode->cursor[0] - (NODE_SOCKSIZE + 4);
+		rect.ymin = snode->cursor[1] - (NODE_SOCKSIZE + 4);
+		rect.xmax = snode->cursor[0] + (NODE_SOCKSIZE + 4);
+		rect.ymax = snode->cursor[1] + (NODE_SOCKSIZE + 4);
 		
 		if (!(node->flag & NODE_HIDDEN)) {
 			/* extra padding inside and out - allow dragging on the text areas too */
@@ -2052,8 +2052,8 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 		
 		/* place nodes around the mouse cursor. child nodes locations are relative to parent */
 		if (!new_node->parent) {
-			new_node->locx += snode->mx - centerx - gnode_x;
-			new_node->locy += snode->my - centery - gnode_y;
+			new_node->locx += snode->cursor[0] - centerx - gnode_x;
+			new_node->locy += snode->cursor[1] - centery - gnode_y;
 		}
 	}
 
@@ -2076,7 +2076,7 @@ static int node_clipboard_paste_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	/* convert mouse coordinates to v2d space */
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &snode->mx, &snode->my);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &snode->cursor[0], &snode->cursor[1]);
 
 	return node_clipboard_paste_exec(C, op);
 }

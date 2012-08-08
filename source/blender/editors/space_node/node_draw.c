@@ -989,11 +989,11 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode)
 		else {
 			/* check nodes front to back */
 			for (node = ntree->nodes.last; node; node = node->prev) {
-				if (BLI_in_rctf(&node->totr, snode->mx, snode->my))
+				if (BLI_in_rctf(&node->totr, snode->cursor[0], snode->cursor[1]))
 					break;  /* first hit on node stops */
 			}
 			if (node) {
-				int dir = node->typeinfo->resize_area_func(node, snode->mx, snode->my);
+				int dir = node->typeinfo->resize_area_func(node, snode->cursor[0], snode->cursor[1]);
 				cursor = node_get_resize_cursor(dir);
 			}
 		}

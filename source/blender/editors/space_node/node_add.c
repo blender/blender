@@ -273,7 +273,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 	ED_preview_kill_jobs(C);
 
-	node = node_add_node(snode, bmain, scene, &ntemp, snode->mx, snode->my);
+	node = node_add_node(snode, bmain, scene, &ntemp, snode->cursor[0], snode->cursor[1]);
 
 	if (!node) {
 		BKE_report(op->reports, RPT_WARNING, "Could not add an image node");
@@ -296,7 +296,7 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* convert mouse coordinates to v2d space */
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-	                         &snode->mx, &snode->my);
+	                         &snode->cursor[0], &snode->cursor[1]);
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath") || RNA_struct_property_is_set(op->ptr, "name"))
 		return node_add_file_exec(C, op);
