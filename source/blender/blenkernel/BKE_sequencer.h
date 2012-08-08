@@ -110,6 +110,8 @@ enum {
 };
 
 struct SeqEffectHandle {
+	int multithreaded;
+
 	/* constructors & destructor */
 	/* init is _only_ called on first creation */
 	void (*init)(struct Sequence *seq);
@@ -147,6 +149,12 @@ struct SeqEffectHandle {
 	
 	struct ImBuf * (*execute)(SeqRenderData context, struct Sequence *seq, float cfra, float facf0, float facf1,
 	                          struct ImBuf *ibuf1, struct ImBuf *ibuf2, struct ImBuf *ibuf3);
+
+	struct ImBuf * (*init_execution)(SeqRenderData context, struct ImBuf *ibuf1, struct ImBuf *ibuf2, struct ImBuf *ibuf3);
+
+	void (*execute_slice)(SeqRenderData context, struct Sequence *seq, float cfra, float facf0, float facf1,
+	                      struct ImBuf *ibuf1, struct ImBuf *ibuf2, struct ImBuf *ibuf3,
+	                       int start_line, int total_lines, struct ImBuf *out);
 };
 
 /* ********************* prototypes *************** */

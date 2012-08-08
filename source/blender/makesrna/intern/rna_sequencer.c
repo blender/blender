@@ -1208,6 +1208,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "effect_fader", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
 	RNA_def_property_float_sdna(prop, NULL, "effect_fader");
 	RNA_def_property_ui_text(prop, "Effect fader position", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");

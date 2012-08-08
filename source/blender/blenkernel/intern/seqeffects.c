@@ -56,7 +56,37 @@
 
 #include "RNA_access.h"
 
-/* **** XXX **** */
+static void slize_get_byte_buffers(const SeqRenderData *context, const ImBuf *ibuf1, const ImBuf *ibuf2,
+                                   const ImBuf *ibuf3, const ImBuf *out, int start_line, unsigned char **rect1,
+                                   unsigned char **rect2, unsigned char **rect3, unsigned char **rect_out)
+{
+	int offset = 4 * start_line * context->rectx;
+
+	*rect1 = (unsigned char*) ibuf1->rect + offset;
+	*rect_out = (unsigned char*) out->rect + offset;
+
+	if (ibuf2)
+		*rect2 = (unsigned char*) ibuf2->rect + offset;
+
+	if (ibuf3)
+		*rect3 = (unsigned char*) ibuf3->rect + offset;
+}
+
+static void slize_get_float_buffers(const SeqRenderData *context, const ImBuf *ibuf1, const ImBuf *ibuf2,
+                                    const ImBuf *ibuf3, const ImBuf *out, int start_line,
+                                    float **rect1, float **rect2, float **rect3, float **rect_out)
+{
+	int offset = 4 * start_line * context->rectx;
+
+	*rect1 = ibuf1->rect_float + offset;
+	*rect_out = out->rect_float + offset;
+
+	if (ibuf2)
+		*rect2 = ibuf2->rect_float + offset;
+
+	if (ibuf3)
+		*rect3 = ibuf3->rect_float + offset;
+}
 
 /*********************** Glow effect *************************/
 
@@ -249,25 +279,24 @@ static void do_alphaover_effect_float(float facf0, float facf1, int x, int y,  f
 	}
 }
 
-static ImBuf *do_alphaover_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra), float facf0,
-								  float facf1, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
+static void do_alphaover_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra), float facf0,
+                                float facf1, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3),
+                                int start_line, int total_lines, ImBuf *out)
 {
-	ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-
 	if (out->rect_float) {
-		do_alphaover_effect_float(
-		        facf0, facf1, context.rectx, context.recty,
-		        ibuf1->rect_float, ibuf2->rect_float,
-		        out->rect_float);
+		float *rect1, *rect2, *rect_out;
+
+		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_alphaover_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		do_alphaover_effect_byte(
-		        facf0, facf1, context.rectx, context.recty,
-		        (char *) ibuf1->rect, (char *) ibuf2->rect,
-		        (char *) out->rect);
-	}
+		unsigned char *rect1, *rect2, *rect_out;
 
-	return out;
+		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_alphaover_effect_byte(facf0, facf1, context.rectx, total_lines, (char *) rect1, (char *) rect2, (char *) rect_out);
+	}
 }
 
 /*********************** Alpha Under *************************/
@@ -412,20 +441,24 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,  
 	}
 }
 
-static ImBuf *do_alphaunder_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra),
-                                   float facf0, float facf1, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
+static void do_alphaunder_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra),
+                                 float facf0, float facf1, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3),
+                                 int start_line, int total_lines, ImBuf *out)
 {
-	ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-
 	if (out->rect_float) {
-		do_alphaunder_effect_float(facf0, facf1, context.rectx, context.recty, ibuf1->rect_float,
-		                           ibuf2->rect_float, out->rect_float);
+		float *rect1, *rect2, *rect_out;
+
+		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_alphaunder_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		do_alphaunder_effect_byte(facf0, facf1, context.rectx, context.recty,
-		                          (char *) ibuf1->rect, (char *) ibuf2->rect, (char *) out->rect);
+		unsigned char *rect1, *rect2, *rect_out;
+
+		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_alphaunder_effect_byte(facf0, facf1, context.rectx, total_lines, (char *) rect1, (char *) rect2, (char *) rect_out);
 	}
-	return out;
 }
 
 /*********************** Cross *************************/
@@ -518,22 +551,24 @@ static void do_cross_effect_float(float facf0, float facf1, int x, int y, float 
 	}
 }
 
-/* careful: also used by speed effect! */
-
-static ImBuf *do_cross_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra),
-                              float facf0, float facf1, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
+static void do_cross_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra),
+                            float facf0, float facf1, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3),
+                            int start_line, int total_lines, ImBuf *out)
 {
-	ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-
 	if (out->rect_float) {
-		do_cross_effect_float(facf0, facf1, context.rectx, context.recty,
-		                      ibuf1->rect_float, ibuf2->rect_float, out->rect_float);
+		float *rect1, *rect2, *rect_out;
+
+		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_cross_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		do_cross_effect_byte(facf0, facf1, context.rectx, context.recty,
-		                     (char *) ibuf1->rect, (char *) ibuf2->rect, (char *) out->rect);
+		unsigned char *rect1, *rect2, *rect_out;
+
+		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_cross_effect_byte(facf0, facf1, context.rectx, total_lines, (char *) rect1, (char *) rect2, (char *) rect_out);
 	}
-	return out;
 }
 
 /*********************** Gamma Cross *************************/
@@ -757,24 +792,32 @@ static void do_gammacross_effect_float(float facf0, float UNUSED(facf1), int x, 
 	}
 }
 
-static ImBuf *do_gammacross_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra),
-                                   float facf0, float facf1, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
+static struct ImBuf *gammacross_init_execution(SeqRenderData context, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
 {
 	ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-
 	build_gammatabs();
 
+	return out;
+}
+
+static void do_gammacross_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra),
+                                 float facf0, float facf1, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3),
+                                 int start_line, int total_lines, ImBuf *out)
+{
 	if (out->rect_float) {
-		do_gammacross_effect_float(facf0, facf1, context.rectx, context.recty, ibuf1->rect_float,
-		                           ibuf2->rect_float, out->rect_float);
+		float *rect1, *rect2, *rect_out;
+
+		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_gammacross_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		do_gammacross_effect_byte(facf0, facf1, context.rectx, context.recty,
-		                          (unsigned char *) ibuf1->rect, (unsigned char *) ibuf2->rect,
-		                          (unsigned char *) out->rect);
-	}
+		unsigned char *rect1, *rect2, *rect_out;
 
-	return out;
+		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_gammacross_effect_byte(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
+	}
 }
 
 /*********************** Add *************************/
@@ -864,21 +907,23 @@ static void do_add_effect_float(float facf0, float facf1, int x, int y, float *r
 	}
 }
 
-static ImBuf *do_add_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra), float facf0, float facf1,
-                            ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
+static void do_add_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra), float facf0, float facf1,
+                          ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3), int start_line, int total_lines, ImBuf *out)
 {
-	ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-
 	if (out->rect_float) {
-		do_add_effect_float(facf0, facf1, context.rectx, context.recty, ibuf1->rect_float,
-		                    ibuf2->rect_float, out->rect_float);
+		float *rect1, *rect2, *rect_out;
+
+		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_add_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		do_add_effect_byte(facf0, facf1, context.rectx, context.recty, (unsigned char *) ibuf1->rect,
-		                   (unsigned char *) ibuf2->rect, (unsigned char *) out->rect);
-	}
+		unsigned char *rect1, *rect2, *rect_out;
 
-	return out;
+		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_add_effect_byte(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
+	}
 }
 
 /*********************** Sub *************************/
@@ -966,21 +1011,23 @@ static void do_sub_effect_float(float facf0, float facf1, int x, int y, float *r
 	}
 }
 
-static ImBuf *do_sub_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra), float facf0, float facf1,
-                            ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
+static void do_sub_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra), float facf0, float facf1,
+                          ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3), int start_line, int total_lines, ImBuf *out)
 {
-	ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-
 	if (out->rect_float) {
-		do_sub_effect_float(facf0, facf1, context.rectx, context.recty, ibuf1->rect_float,
-		                    ibuf2->rect_float, out->rect_float);
+		float *rect1, *rect2, *rect_out;
+
+		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_sub_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		do_sub_effect_byte(facf0, facf1, context.rectx, context.recty, (char *) ibuf1->rect,
-		                   (char *) ibuf2->rect, (char *) out->rect);
-	}
+		unsigned char *rect1, *rect2, *rect_out;
 
-	return out;
+		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_sub_effect_byte(facf0, facf1, context.rectx, total_lines, (char *) rect1, (char *) rect2, (char *) rect_out);
+	}
 }
 
 /*********************** Drop *************************/
@@ -1161,21 +1208,23 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y, float *r
 	}
 }
 
-static ImBuf *do_mul_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra), float facf0, float facf1,
-                            ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
+static void do_mul_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra), float facf0, float facf1,
+                          ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3), int start_line, int total_lines, ImBuf *out)
 {
-	ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-
 	if (out->rect_float) {
-		do_mul_effect_float(facf0, facf1, context.rectx, context.recty, ibuf1->rect_float,
-		                    ibuf2->rect_float, out->rect_float);
+		float *rect1, *rect2, *rect_out;
+
+		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_mul_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		do_mul_effect_byte(facf0, facf1, context.rectx, context.recty, (unsigned char *) ibuf1->rect,
-		                   (unsigned char *) ibuf2->rect, (unsigned char *) out->rect);
-	}
+		unsigned char *rect1, *rect2, *rect_out;
 
-	return out;
+		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_mul_effect_byte(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
+	}
 }
 
 /*********************** Wipe *************************/
@@ -2672,6 +2721,48 @@ void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, int forc
 	}
 }
 
+static ImBuf *do_speed_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra),
+                              float facf0, float facf1, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
+{
+	ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
+
+	if (out->rect_float) {
+		do_cross_effect_float(facf0, facf1, context.rectx, context.recty,
+		                      ibuf1->rect_float, ibuf2->rect_float, out->rect_float);
+	}
+	else {
+		do_cross_effect_byte(facf0, facf1, context.rectx, context.recty,
+		                     (char *) ibuf1->rect, (char *) ibuf2->rect, (char *) out->rect);
+	}
+	return out;
+}
+
+/*********************** overdrop *************************/
+
+static void do_overdrop_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra), float facf0, float facf1,
+                               ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3), int start_line, int total_lines, ImBuf *out)
+{
+	int x = context.rectx;
+	int y = total_lines;
+
+	if (out->rect_float) {
+		float *rect1, *rect2, *rect_out;
+
+		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_drop_effect_float(facf0, facf1, x, y, rect1, rect2, rect_out);
+		do_alphaover_effect_float(facf0, facf1, x, y, rect1, rect2, rect_out);
+	}
+	else {
+		unsigned char *rect1, *rect2, *rect_out;
+
+		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
+
+		do_drop_effect_byte(facf0, facf1, x, y, (char *) rect1, (char *) rect2, (char *) rect_out);
+		do_alphaover_effect_byte(facf0, facf1, x, y, (char *) rect1, (char *) rect2, (char *) rect_out);
+	}
+}
+
 /*********************** sequence effect factory *************************/
 
 static void init_noop(Sequence *UNUSED(seq))
@@ -2736,21 +2827,9 @@ static void get_default_fac_fade(Sequence *seq, float cfra, float *facf0, float 
 	*facf1 /= seq->len;
 }
 
-static ImBuf *do_overdrop_effect(SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra), float facf0, float facf1,
-                                 ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
+static struct ImBuf *init_execution(SeqRenderData context, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
 {
 	ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-	int x = context.rectx;
-	int y = context.recty;
-
-	if (out->rect_float) {
-		do_drop_effect_float(facf0, facf1, x, y, ibuf1->rect_float, ibuf2->rect_float, out->rect_float);
-		do_alphaover_effect_float(facf0, facf1, x, y, ibuf1->rect_float, ibuf2->rect_float, out->rect_float);
-	}
-	else {
-		do_drop_effect_byte(facf0, facf1, x, y, (char *) ibuf1->rect, (char *) ibuf2->rect, (char *) out->rect);
-		do_alphaover_effect_byte(facf0, facf1, x, y, (char *) ibuf1->rect, (char *) ibuf2->rect, (char *) out->rect);
-	}
 
 	return out;
 }
@@ -2760,6 +2839,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 	struct SeqEffectHandle rval;
 	int sequence_type = seq_type;
 
+	rval.multithreaded = FALSE;
 	rval.init = init_noop;
 	rval.num_inputs = num_inputs_default;
 	rval.load = load_noop;
@@ -2768,44 +2848,55 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 	rval.get_default_fac = get_default_fac_noop;
 	rval.store_icu_yrange = store_icu_yrange_noop;
 	rval.execute = NULL;
+	rval.init_execution = init_execution;
+	rval.execute_slice = NULL;
 	rval.copy = NULL;
 
 	switch (sequence_type) {
 		case SEQ_TYPE_CROSS:
-			rval.execute = do_cross_effect;
+			rval.multithreaded = TRUE;
+			rval.execute_slice = do_cross_effect;
 			rval.early_out = early_out_fade;
 			rval.get_default_fac = get_default_fac_fade;
 			break;
 		case SEQ_TYPE_GAMCROSS:
+			rval.multithreaded = TRUE;
 			rval.init = init_gammacross;
 			rval.load = load_gammacross;
 			rval.free = free_gammacross;
 			rval.early_out = early_out_fade;
 			rval.get_default_fac = get_default_fac_fade;
-			rval.execute = do_gammacross_effect;
+			rval.init_execution = gammacross_init_execution;
+			rval.execute_slice = do_gammacross_effect;
 			break;
 		case SEQ_TYPE_ADD:
-			rval.execute = do_add_effect;
+			rval.multithreaded = TRUE;
+			rval.execute_slice = do_add_effect;
 			rval.early_out = early_out_mul_input2;
 			break;
 		case SEQ_TYPE_SUB:
-			rval.execute = do_sub_effect;
+			rval.multithreaded = TRUE;
+			rval.execute_slice = do_sub_effect;
 			rval.early_out = early_out_mul_input2;
 			break;
 		case SEQ_TYPE_MUL:
-			rval.execute = do_mul_effect;
+			rval.multithreaded = TRUE;
+			rval.execute_slice = do_mul_effect;
 			rval.early_out = early_out_mul_input2;
 			break;
 		case SEQ_TYPE_ALPHAOVER:
+			rval.multithreaded = TRUE;
 			rval.init = init_alpha_over_or_under;
-			rval.execute = do_alphaover_effect;
+			rval.execute_slice = do_alphaover_effect;
 			break;
 		case SEQ_TYPE_OVERDROP:
-			rval.execute = do_overdrop_effect;
+			rval.multithreaded = TRUE;
+			rval.execute_slice = do_overdrop_effect;
 			break;
 		case SEQ_TYPE_ALPHAUNDER:
+			rval.multithreaded = TRUE;
 			rval.init = init_alpha_over_or_under;
-			rval.execute = do_alphaunder_effect;
+			rval.execute_slice = do_alphaunder_effect;
 			break;
 		case SEQ_TYPE_WIPE:
 			rval.init = init_wipe_effect;
@@ -2836,7 +2927,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 			rval.load = load_speed_effect;
 			rval.free = free_speed_effect;
 			rval.copy = copy_speed_effect;
-			rval.execute = do_cross_effect;
+			rval.execute = do_speed_effect;
 			rval.early_out = early_out_speed;
 			rval.store_icu_yrange = store_icu_yrange_speed;
 			break;
@@ -2865,7 +2956,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 
 struct SeqEffectHandle BKE_sequence_get_effect(Sequence *seq)
 {
-	struct SeqEffectHandle rval = {NULL};
+	struct SeqEffectHandle rval = {FALSE, NULL};
 
 	if (seq->type & SEQ_TYPE_EFFECT) {
 		rval = get_sequence_effect_impl(seq->type);
@@ -2880,7 +2971,7 @@ struct SeqEffectHandle BKE_sequence_get_effect(Sequence *seq)
 
 struct SeqEffectHandle BKE_sequence_get_blend(Sequence *seq)
 {
-	struct SeqEffectHandle rval = {NULL};
+	struct SeqEffectHandle rval = {FALSE, NULL};
 
 	if (seq->blend_mode != 0) {
 		rval = get_sequence_effect_impl(seq->blend_mode);
@@ -2898,7 +2989,7 @@ int BKE_sequence_effect_get_num_inputs(int seq_type)
 	struct SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
 
 	int cnt = rval.num_inputs();
-	if (rval.execute) {
+	if (rval.execute || (rval.execute_slice && rval.init_execution)) {
 		return cnt;
 	}
 	return 0;
