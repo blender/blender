@@ -849,7 +849,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	UI_view2d_curRect_validate(v2d);
 
 	/* only initialize the preview if a render is in progress */
-	if (G.rendering)
+	if (G.is_rendering)
 		return;
 
 	context = BKE_sequencer_new_render_data(bmain, scene, rectx, recty, proxy_size);

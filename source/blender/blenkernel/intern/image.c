@@ -741,7 +741,7 @@ void free_old_images(void)
 		return;
 
 	/* of course not! */
-	if (G.rendering)
+	if (G.is_rendering)
 		return;
 
 	lasttime = ctime;

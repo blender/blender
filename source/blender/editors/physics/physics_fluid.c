@@ -745,7 +745,7 @@ static int fluidbake_breakjob(void *customdata)
 	/* this is not nice yet, need to make the jobs list template better 
 	 * for identifying/acting upon various different jobs */
 	/* but for now we'll reuse the render break... */
-	return (G.afbreek);
+	return (G.is_break);
 }
 
 /* called by fluidbake, wmJob sends notifier */
@@ -765,7 +765,7 @@ static void fluidbake_startjob(void *customdata, short *stop, short *do_update, 
 	fb->do_update = do_update;
 	fb->progress = progress;
 	
-	G.afbreek= 0;	/* XXX shared with render - replace with job 'stop' switch */
+	G.is_break = FALSE;  /* XXX shared with render - replace with job 'stop' switch */
 	
 	elbeemSimulate();
 	*do_update = TRUE;

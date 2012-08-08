@@ -848,7 +848,7 @@ void threaded_makeshadowbufs(Render *re)
 	int (*test_break)(void *);
 
 	/* count number of threads to use */
-	if (G.rendering) {
+	if (G.is_rendering) {
 		for (lar=re->lampren.first; lar; lar= lar->next)
 			if (lar->shb)
 				totthread++;

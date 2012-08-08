@@ -283,7 +283,7 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 		return NULL;
 	
 	/* abort if rendering - we may get some race condition issues... */
-	if (G.rendering) return NULL;
+	if (G.is_rendering) return NULL;
 	
 	/* handling depends on the type of animation-context we've got */
 	if (ale)
@@ -422,7 +422,7 @@ void ANIM_unit_mapping_apply_fcurve(Scene *scene, ID *id, FCurve *fcu, short fla
 	float fac;
 	
 	/* abort if rendering - we may get some race condition issues... */
-	if (G.rendering) return;
+	if (G.is_rendering) return;
 	
 	/* calculate mapping factor, and abort if nothing to change */
 	fac = ANIM_unit_mapping_get_factor(scene, id, fcu, (flag & ANIM_UNITCONV_RESTORE));

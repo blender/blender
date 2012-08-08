@@ -213,7 +213,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	re = RE_NewRender(scene->id.name);
 	lay = (v3d) ? v3d->lay : scene->lay;
 
-	G.afbreek = 0;
+	G.is_break = FALSE;
 	RE_test_break_cb(re, NULL, (int (*)(void *))blender_test_break);
 
 	ima = BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
@@ -427,7 +427,7 @@ static void render_endjob(void *rjv)
 	}
 	
 	/* XXX render stability hack */
-	G.rendering = 0;
+	G.is_rendering = FALSE;
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
@@ -436,7 +436,7 @@ static int render_breakjob(void *rjv)
 {
 	RenderJob *rj = rjv;
 
-	if (G.afbreek)
+	if (G.is_break)
 		return 1;
 	if (rj->stop && *(rj->stop))
 		return 1;
@@ -584,7 +584,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RE_progress_cb(re, rj, render_progress_update);
 
 	rj->re = re;
-	G.afbreek = 0;
+	G.is_break = FALSE;
 
 	/* store actual owner of job, so modal operator could check for it,
 	 * the reason of this is that active scene could change when rendering
@@ -597,10 +597,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_cursor_wait(0);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);
 
-	/* we set G.rendering here already instead of only in the job, this ensure
+	/* we set G.is_rendering here already instead of only in the job, this ensure
 	 * main loop or other scene updates are disabled in time, since they may
 	 * have started before the job thread */
-	G.rendering = 1;
+	G.is_rendering = TRUE;
 
 	/* add modal handler for ESC */
 	WM_event_add_modal_handler(C, op);

@@ -88,7 +88,7 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 		}
 		else {	/* non-cached */
 
-			if (G.rendering)
+			if (G.is_rendering)
 				BKE_ocean_eval_uv_catrom(omd->ocean, &ocr, u, v);
 			else
 				BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);

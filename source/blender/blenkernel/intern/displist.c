@@ -677,7 +677,7 @@ void BKE_displist_make_mball(Scene *scene, Object *ob)
 	/* XXX: mball stuff uses plenty of global variables
 	 *      while this is unchanged updating during render is unsafe
 	 */
-	if (G.rendering)
+	if (G.is_rendering)
 		return;
 
 	BKE_displist_free(&(ob->disp));

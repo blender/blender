@@ -369,7 +369,7 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	/* Set state to baking and init surface */
 	canvas->error[0] = '\0';
 	canvas->flags |= MOD_DPAINT_BAKING;
-	G.afbreek= 0;	/* reset blender_test_break*/
+	G.is_break = FALSE;  /* reset blender_test_break*/
 
 	/*  Bake Dynamic Paint	*/
 	status = dynamicPaint_bakeImageSequence(C, surface, ob);

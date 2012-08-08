@@ -242,7 +242,7 @@ void wm_event_do_notifiers(bContext *C)
 			/* XXX, quick frame changes can cause a crash if framechange and rendering
 			 * collide (happens on slow scenes), BKE_scene_update_for_newframe can be called
 			 * twice which can depgraph update the same object at once */
-			if (!G.rendering) {
+			if (G.is_rendering == FALSE) {
 
 				/* depsgraph gets called, might send more notifiers */
 				ED_update_for_newframe(CTX_data_main(C), win->screen->scene, 1);
@@ -301,7 +301,7 @@ void wm_event_do_notifiers(bContext *C)
 		}
 		
 		/* XXX make lock in future, or separated derivedmesh users in scene */
-		if (!G.rendering) {
+		if (G.is_rendering == FALSE) {
 			/* depsgraph & animation: update tagged datablocks */
 			Main *bmain = CTX_data_main(C);
 
@@ -2906,7 +2906,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			
 			/* if test_break set, it catches this. XXX Keep global for now? */
 			if (event.type == ESCKEY)
-				G.afbreek = 1;
+				G.is_break = TRUE;
 			
 			wm_event_add(win, &event);
 			

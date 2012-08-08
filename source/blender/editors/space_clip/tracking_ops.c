@@ -952,7 +952,7 @@ typedef struct TrackMarkersJob {
 
 static int track_markers_testbreak(void)
 {
-	return G.afbreek;
+	return G.is_break;
 }
 
 static int track_count_markers(SpaceClip *sc, MovieClip *clip)
@@ -1275,7 +1275,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 
 	WM_jobs_callbacks(steve, track_markers_startjob, NULL, track_markers_updatejob, NULL);
 
-	G.afbreek = 0;
+	G.is_break = FALSE;
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 	WM_cursor_wait(0);
@@ -1497,7 +1497,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	WM_jobs_timer(steve, 0.1, NC_MOVIECLIP | NA_EVALUATED, 0);
 	WM_jobs_callbacks(steve, solve_camera_startjob, NULL, solve_camera_updatejob, NULL);
 
-	G.afbreek = 0;
+	G.is_break = FALSE;
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 	WM_cursor_wait(0);

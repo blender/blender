@@ -61,11 +61,16 @@ typedef struct Global {
 	/* strings of recent opened files */
 	struct ListBase recent_files;
 
-	short afbreek, moving, file_loaded;
+	/* has escape been pressed or Ctrl+C pressed in background mode, used for render quit */
+	short is_break;
+
+	short moving, file_loaded;
 	char background;
 	char factory_startup;
 	short winpos, displaymode;  /* used to be in Render */
-	short rendering;            /* to indicate render is busy, prevent renderwindow events etc */
+
+	/* to indicate render is busy, prevent renderwindow events etc */
+	short is_rendering;
 
 	/* debug value, can be set from the UI and python, used for testing nonstandard features */
 	short debug_value;
@@ -129,7 +134,7 @@ enum {
 	G_DEBUG_JOBS =      (1 << 5)  /* jobs time profiling */
 };
 
-#define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM)
+#define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS)
 
 
 /* G.fileflags */

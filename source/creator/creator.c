@@ -174,7 +174,7 @@ static void blender_esc(int sig)
 {
 	static int count = 0;
 	
-	G.afbreek = 1;  /* forces render loop to read queue, not sure if its needed */
+	G.is_break = TRUE;  /* forces render loop to read queue, not sure if its needed */
 	
 	if (sig == 2) {
 		if (count) {

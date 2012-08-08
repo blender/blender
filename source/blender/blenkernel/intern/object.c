@@ -2643,7 +2643,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 				while (psys) {
 					if (psys_check_enabled(ob, psys)) {
 						/* check use of dupli objects here */
-						if (psys->part && (psys->part->draw_as == PART_DRAW_REND || G.rendering) &&
+						if (psys->part && (psys->part->draw_as == PART_DRAW_REND || G.is_rendering) &&
 						    ((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob) ||
 						     (psys->part->ren_as == PART_DRAW_GR && psys->part->dup_group)))
 						{
@@ -2663,7 +2663,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 						psys = psys->next;
 				}
 
-				if (G.rendering && ob->transflag & OB_DUPLIPARTS) {
+				if (G.is_rendering && ob->transflag & OB_DUPLIPARTS) {
 					/* this is to make sure we get render level duplis in groups:
 					 * the derivedmesh must be created before init_render_mesh,
 					 * since object_duplilist does dupliparticles before that */

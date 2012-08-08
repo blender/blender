@@ -177,7 +177,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 	CompoJob *cj;
 
 	/* to fix bug: [#32272] */
-	if (G.rendering) {
+	if (G.is_rendering) {
 		return;
 	}
 
