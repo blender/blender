@@ -202,7 +202,7 @@ static void animchan_sync_fcurve(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 			
 			/* get strip name, and check if this strip is selected */
 			seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
-			seq = get_seq_by_name(ed->seqbasep, seq_name, FALSE);
+			seq = BKE_sequwnce_get_by_name(ed->seqbasep, seq_name, FALSE);
 			if (seq_name) MEM_freeN(seq_name);
 			
 			/* can only add this F-Curve if it is selected */

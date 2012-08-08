@@ -230,7 +230,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
+	seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
 	seq->type = SEQ_TYPE_SCENE;
 	seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
 
@@ -242,11 +242,11 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	strip->us = 1;
 	
 	BLI_strncpy(seq->name + 2, sce_seq->id.name + 2, sizeof(seq->name) - 2);
-	seqbase_unique_name_recursive(&ed->seqbase, seq);
+	BKE_seqence_base_unique_name_recursive(&ed->seqbase, seq);
 
 	seq->scene_sound = sound_scene_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 	BKE_sequencer_sort(scene);
 	
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
@@ -256,7 +256,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	}
 
 	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
-		if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -329,7 +329,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
+	seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
 	seq->type = SEQ_TYPE_MOVIECLIP;
 	seq->blend_mode = SEQ_TYPE_CROSS;
 	seq->clip = clip;
@@ -343,9 +343,9 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	strip->us = 1;
 	
 	BLI_strncpy(seq->name + 2, clip->id.name + 2, sizeof(seq->name) - 2);
-	seqbase_unique_name_recursive(&ed->seqbase, seq);
+	BKE_seqence_base_unique_name_recursive(&ed->seqbase, seq);
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 	BKE_sequencer_sort(scene);
 	
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
@@ -355,7 +355,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	}
 
 	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
-		if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -425,7 +425,7 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
+	seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
 	seq->type = SEQ_TYPE_MASK;
 	seq->blend_mode = SEQ_TYPE_CROSS;
 	seq->mask = mask;
@@ -439,9 +439,9 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 	strip->us = 1;
 
 	BLI_strncpy(seq->name + 2, mask->id.name + 2, sizeof(seq->name) - 2);
-	seqbase_unique_name_recursive(&ed->seqbase, seq);
+	BKE_seqence_base_unique_name_recursive(&ed->seqbase, seq);
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 	BKE_sequencer_sort(scene);
 
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
@@ -451,7 +451,7 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 	}
 
 	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
-		if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -535,7 +535,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 			seq = seq_load_func(C, ed->seqbasep, &seq_load);
 			if (seq) {
 				if (overlap == FALSE) {
-					if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+					if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 				}
 			}
 		}
@@ -546,7 +546,8 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 		seq = seq_load_func(C, ed->seqbasep, &seq_load);
 		if (seq) {
 			if (overlap == FALSE) {
-				if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+				if (BKE_sequence_test_overlap(ed->seqbasep, seq))
+					BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 			}
 		}
 	}
@@ -557,7 +558,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	}
 
 	BKE_sequencer_sort(scene);
-	seq_update_muting(ed);
+	BKE_sequencer_update_muting(ed);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -567,7 +568,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 /* add movie operator */
 static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 {
-	return sequencer_add_generic_strip_exec(C, op, sequencer_add_movie_strip);
+	return sequencer_add_generic_strip_exec(C, op, BKE_sequencer_add_movie_strip);
 }
 
 
@@ -623,7 +624,7 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 
 static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 {
-	return sequencer_add_generic_strip_exec(C, op, sequencer_add_sound_strip);
+	return sequencer_add_generic_strip_exec(C, op, BKE_sequencer_add_sound_strip);
 }
 
 static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -700,7 +701,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 
 	/* main adding function */
-	seq = sequencer_add_image_strip(C, ed->seqbasep, &seq_load);
+	seq = BKE_sequencer_add_image_strip(C, ed->seqbasep, &seq_load);
 	strip = seq->strip;
 	se = strip->stripdata;
 
@@ -719,7 +720,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 
 	BKE_sequencer_sort(scene);
 
@@ -727,7 +728,8 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR - 1);
 
 	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
-		if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+		if (BKE_sequence_test_overlap(ed->seqbasep, seq))
+			BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -814,13 +816,13 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
+	seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
 	seq->type = type;
 
-	BLI_strncpy(seq->name + 2, give_seqname(seq), sizeof(seq->name) - 2);
-	seqbase_unique_name_recursive(&ed->seqbase, seq);
+	BLI_strncpy(seq->name + 2, BKE_sequence_give_name(seq), sizeof(seq->name) - 2);
+	BKE_seqence_base_unique_name_recursive(&ed->seqbase, seq);
 
-	sh = get_sequence_effect(seq);
+	sh = BKE_sequence_get_effect(seq);
 
 	seq->seq1 = seq1;
 	seq->seq2 = seq2;
@@ -830,12 +832,12 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 	if (!seq1) { /* effect has no deps */
 		seq->len = 1;
-		seq_tx_set_final_right(seq, end_frame);
+		BKE_sequence_tx_set_final_right(seq, end_frame);
 	}
 
 	seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
 
-	calc_sequence(scene, seq);
+	BKE_sequence_calc(scene, seq);
 	
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
@@ -864,10 +866,10 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	}
 
 	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
-		if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
 
-	update_changed_seq_and_deps(scene, seq, 1, 1); /* runs calc_sequence */
+	BKE_sequencer_update_changed_seq_and_deps(scene, seq, 1, 1); /* runs calc_sequence */
 
 
 	/* not sure if this is needed with update_changed_seq_and_deps.
@@ -905,7 +907,7 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEven
 		 * skip initializing the channel from the mouse.
 		 * Instead leave the property unset so exec() initializes it to be
 		 * above the strips its applied to. */
-		if (get_sequence_effect_num_inputs(type) != 0) {
+		if (BKE_sequence_effect_get_num_inputs(type) != 0) {
 			prop_flag |= SEQPROP_NOCHAN;
 		}
 	}

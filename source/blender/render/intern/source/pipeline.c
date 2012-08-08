@@ -1663,17 +1663,17 @@ static void do_render_seq(Render *re)
 	if ((re->r.mode & R_BORDER) && (re->r.mode & R_CROP) == 0) {
 		/* if border rendering is used and cropping is disabled, final buffer should
 		 * be as large as the whole frame */
-		context = seq_new_render_data(re->main, re->scene,
+		context = BKE_sequencer_new_render_data(re->main, re->scene,
 		                              re->winx, re->winy,
 		                              100);
 	}
 	else {
-		context = seq_new_render_data(re->main, re->scene,
+		context = BKE_sequencer_new_render_data(re->main, re->scene,
 		                              re->result->rectx, re->result->recty,
 		                              100);
 	}
 
-	ibuf = give_ibuf_seq(context, cfra, 0);
+	ibuf = BKE_sequencer_give_ibuf(context, cfra, 0);
 
 	recurs_depth--;
 
@@ -1688,7 +1688,7 @@ static void do_render_seq(Render *re)
 		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
 			Editing *ed = re->scene->ed;
 			if (ed)
-				free_imbuf_seq(re->scene, &ed->seqbase, TRUE, TRUE);
+				BKE_sequencer_free_imbuf(re->scene, &ed->seqbase, TRUE, TRUE);
 		}
 		IMB_freeImBuf(ibuf);
 	}

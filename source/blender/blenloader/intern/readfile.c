@@ -4874,8 +4874,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 			(void)marker;
 #endif
 			
-			seq_update_muting(sce->ed);
-			seq_update_sound_bounds_all(sce);
+			BKE_sequencer_update_muting(sce->ed);
+			BKE_sequencer_update_sound_bounds_all(sce);
 			
 			if (sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
@@ -5450,7 +5450,7 @@ static int lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
 static void lib_link_clipboard_restore(Main *newmain)
 {
 	/* update IDs stored in sequencer clipboard */
-	seqbase_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, newmain);
+	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, newmain);
 }
 
 /* called from kernel/blender.c */

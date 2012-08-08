@@ -1442,7 +1442,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	}
 
 	if (scene->r.stamp & R_STAMP_SEQSTRIP) {
-		Sequence *seq = seq_foreground_frame_get(scene, scene->r.cfra);
+		Sequence *seq = BKE_sequencer_foreground_frame_get(scene, scene->r.cfra);
 
 		if (seq) BLI_strncpy(text, seq->name + 2, sizeof(text));
 		else BLI_strncpy(text, "<none>", sizeof(text));

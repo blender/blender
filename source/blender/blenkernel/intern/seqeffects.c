@@ -2393,17 +2393,17 @@ static ImBuf *do_multicam(SeqRenderData context, Sequence *seq, float cfra, floa
 	if (!ed) {
 		return NULL;
 	}
-	seqbasep = seq_seqbase(&ed->seqbase, seq);
+	seqbasep = BKE_sequence_seqbase(&ed->seqbase, seq);
 	if (!seqbasep) {
 		return NULL;
 	}
 
-	i = give_ibuf_seqbase(context, cfra, seq->multicam_source, seqbasep);
+	i = BKE_sequencer_give_ibuf_seqbase(context, cfra, seq->multicam_source, seqbasep);
 	if (!i) {
 		return NULL;
 	}
 
-	if (input_have_to_preprocess(context, seq, cfra)) {
+	if (BKE_sequencer_input_have_to_preprocess(context, seq, cfra)) {
 		out = IMB_dupImBuf(i);
 		IMB_freeImBuf(i);
 	}
@@ -2435,10 +2435,10 @@ static ImBuf *do_adjustment_impl(SeqRenderData context, Sequence *seq, float cfr
 
 	ed = context.scene->ed;
 
-	seqbasep = seq_seqbase(&ed->seqbase, seq);
+	seqbasep = BKE_sequence_seqbase(&ed->seqbase, seq);
 
 	if (seq->machine > 0) {
-		i = give_ibuf_seqbase(context, cfra, seq->machine - 1, seqbasep);
+		i = BKE_sequencer_give_ibuf_seqbase(context, cfra, seq->machine - 1, seqbasep);
 	}
 
 	/* found nothing? so let's work the way up the metastrip stack, so
@@ -2449,7 +2449,7 @@ static ImBuf *do_adjustment_impl(SeqRenderData context, Sequence *seq, float cfr
 	if (!i) {
 		Sequence *meta;
 
-		meta = seq_metastrip(&ed->seqbase, NULL, seq);
+		meta = BKE_sequence_metastrip(&ed->seqbase, NULL, seq);
 
 		if (meta) {
 			i = do_adjustment_impl(context, meta, cfra);
@@ -2474,7 +2474,7 @@ static ImBuf *do_adjustment(SeqRenderData context, Sequence *seq, float cfra, fl
 
 	i = do_adjustment_impl(context, seq, cfra);
 
-	if (input_have_to_preprocess(context, seq, cfra)) {
+	if (BKE_sequencer_input_have_to_preprocess(context, seq, cfra)) {
 		out = IMB_dupImBuf(i);
 		IMB_freeImBuf(i);
 	}
@@ -2545,7 +2545,7 @@ static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *
 	SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
 
 	/* if not already done, load / initialize data */
-	get_sequence_effect(seq);
+	BKE_sequence_get_effect(seq);
 
 	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
 		*ymin = -100.0;
@@ -2563,7 +2563,7 @@ static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *
 	}	
 }
 
-void sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, int force)
+void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, int force)
 {
 	int cfra;
 	float fallback_fac = 1.0f;
@@ -2572,7 +2572,7 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, int force)
 	int flags = v->flags;
 
 	/* if not already done, load / initialize data */
-	get_sequence_effect(seq);
+	BKE_sequence_get_effect(seq);
 
 	if ((force == FALSE) &&
 	    (seq->len == v->length) &&
@@ -2863,7 +2863,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 	return rval;
 }
 
-struct SeqEffectHandle get_sequence_effect(Sequence *seq)
+struct SeqEffectHandle BKE_sequence_get_effect(Sequence *seq)
 {
 	struct SeqEffectHandle rval = {NULL};
 
@@ -2878,7 +2878,7 @@ struct SeqEffectHandle get_sequence_effect(Sequence *seq)
 	return rval;
 }
 
-struct SeqEffectHandle get_sequence_blend(Sequence *seq)
+struct SeqEffectHandle BKE_sequence_get_blend(Sequence *seq)
 {
 	struct SeqEffectHandle rval = {NULL};
 
@@ -2893,7 +2893,7 @@ struct SeqEffectHandle get_sequence_blend(Sequence *seq)
 	return rval;
 }
 
-int get_sequence_effect_num_inputs(int seq_type)
+int BKE_sequence_effect_get_num_inputs(int seq_type)
 {
 	struct SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
 

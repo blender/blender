@@ -116,7 +116,7 @@ void free_blender(void)
 
 	BLI_callback_global_finalize();
 
-	seq_stripelem_cache_destruct();
+	BKE_sequencer_stripelem_cache_destruct();
 	IMB_moviecache_destruct();
 	
 	free_nodesystem();	

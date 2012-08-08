@@ -155,13 +155,13 @@ static int seqcache_hashcmp(const void *a_, const void *b_)
 	return seq_cmp_render_data(&a->context, &b->context);
 }
 
-void seq_stripelem_cache_destruct(void)
+void BKE_sequencer_stripelem_cache_destruct(void)
 {
 	if (moviecache)
 		IMB_moviecache_free(moviecache);
 }
 
-void seq_stripelem_cache_cleanup(void)
+void BKE_sequencer_stripelem_cache_cleanup(void)
 {
 	if (moviecache) {
 		IMB_moviecache_free(moviecache);
@@ -169,7 +169,7 @@ void seq_stripelem_cache_cleanup(void)
 	}
 }
 
-struct ImBuf *seq_stripelem_cache_get(
+struct ImBuf *BKE_sequencer_cache_get(
         SeqRenderData context, struct Sequence *seq,
         float cfra, seq_stripelem_ibuf_t type)
 {
@@ -188,7 +188,7 @@ struct ImBuf *seq_stripelem_cache_get(
 	return NULL;
 }
 
-void seq_stripelem_cache_put(
+void BKE_sequencer_cache_put(
         SeqRenderData context, struct Sequence *seq,
         float cfra, seq_stripelem_ibuf_t type, struct ImBuf *i)
 {

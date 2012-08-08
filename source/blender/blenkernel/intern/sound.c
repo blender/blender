@@ -524,7 +524,7 @@ void sound_update_sequencer(struct Main *main, bSound *sound)
 	struct Scene *scene;
 
 	for (scene = main->scene.first; scene; scene = scene->id.next) {
-		seq_update_sound(scene, sound);
+		BKE_sequencer_update_sound(scene, sound);
 	}
 }
 
