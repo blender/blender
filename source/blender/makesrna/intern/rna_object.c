@@ -1077,62 +1077,6 @@ static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
 	}
 }
 
-static void rna_GameObjectSettings_col_group_get(PointerRNA *ptr, int *values)
-{
-	Object *ob = (Object*)ptr->data;
-	int i;
-
-	for (i = 0; i < OB_MAX_COL_MASKS; i++)
-		values[i] = (ob->col_group & (1<<i));
-}
-
-static void rna_GameObjectSettings_col_group_set(PointerRNA *ptr, const int *values)
-{
-	Object *ob = (Object*)ptr->data;
-	int i, tot = 0;
-
-	/* ensure we always have some group selected */
-	for (i = 0; i < OB_MAX_COL_MASKS; i++)
-		if(values[i])
-			tot++;
-	
-	if (tot==0)
-		return;
-
-	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
-		if (values[i]) ob->col_group |= (1<<i);
-		else ob->col_group &= ~(1<<i);
-	}
-}
-
-static void rna_GameObjectSettings_col_mask_get(PointerRNA *ptr, int *values)
-{
-	Object *ob = (Object*)ptr->data;
-	int i;
-
-	for (i = 0; i < OB_MAX_COL_MASKS; i++)
-		values[i] = (ob->col_mask & (1<<i));
-}
-
-static void rna_GameObjectSettings_col_mask_set(PointerRNA *ptr, const int *values)
-{
-	Object *ob = (Object*)ptr->data;
-	int i, tot = 0;
-
-	/* ensure we always have some mask selected */
-	for (i = 0; i < OB_MAX_COL_MASKS; i++)
-		if(values[i])
-			tot++;
-	
-	if (tot==0)
-		return;
-
-	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
-		if (values[i]) ob->col_mask |= (1<<i);
-		else ob->col_mask &= ~(1<<i);
-	}
-}
-
 static void rna_GameObjectSettings_used_state_get(PointerRNA *ptr, int *values)
 {
 	Object *ob = (Object *)ptr->data;
@@ -1494,8 +1438,6 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	int default_col_mask[8] = {1,0,0,0,  0,0,0,0};
-
 	static EnumPropertyItem body_type_items[] = {
 		{OB_BODY_TYPE_NO_COLLISION, "NO_COLLISION", 0, "No Collision", "Disable collision for this object"},
 		{OB_BODY_TYPE_STATIC, "STATIC", 0, "Static", "Stationary object"},
@@ -1618,18 +1560,6 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Fall Speed Max", "Maximum speed at which the character will fall");
 
-
-	prop = RNA_def_property(srna, "collision_group", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "col_group", 1);
-	RNA_def_property_array(prop, OB_MAX_COL_MASKS);
-	RNA_def_property_ui_text(prop, "Collision Group", "The collision group of the object");
-	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_col_group_get", "rna_GameObjectSettings_col_group_set");
-
-	prop = RNA_def_property(srna, "collision_mask", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "col_mask", 1);
-	RNA_def_property_array(prop, OB_MAX_COL_MASKS);
-	RNA_def_property_ui_text(prop, "Collision Mask", "The groups this object can collide with");
-	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_col_mask_get", "rna_GameObjectSettings_col_mask_set");
 
 	/* lock position */
 	prop = RNA_def_property(srna, "lock_location_x", PROP_BOOLEAN, PROP_NONE);

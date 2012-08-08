@@ -189,16 +189,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
 
             layout.operator("mesh.navmesh_reset")
             layout.operator("mesh.navmesh_clear")
-		
-        if physics_type not in {'NO_COLLISION', 'OCCLUDE'}:    
-            layout.separator()
-            split = layout.split()
-            
-            col = split.column()
-            col.prop(game, "collision_group")
-            col = split.column()
-            col.prop(game, "collision_mask")
-		
+
+
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
     bl_label = "Collision Bounds"
     COMPAT_ENGINES = {'BLENDER_GAME'}

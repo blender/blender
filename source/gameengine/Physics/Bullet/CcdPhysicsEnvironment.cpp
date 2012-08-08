@@ -2214,19 +2214,11 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 bool CcdOverlapFilterCallBack::needBroadphaseCollision(btBroadphaseProxy* proxy0,btBroadphaseProxy* proxy1) const
 {
 	btCollisionObject *colObj0, *colObj1;
-	KX_GameObject *gameObj0 = KX_GameObject::GetClientObject((KX_ClientObjectInfo*)((CcdPhysicsController*)((btCollisionObject*)proxy0->m_clientObject)->getUserPointer())->getNewClientInfo());
-	KX_GameObject *gameObj1 = KX_GameObject::GetClientObject((KX_ClientObjectInfo*)((CcdPhysicsController*)((btCollisionObject*)proxy1->m_clientObject)->getUserPointer())->getNewClientInfo());
 	CcdPhysicsController *sensorCtrl, *objCtrl;
-
 	bool collides;
 	// first check the filters
 	collides = (proxy0->m_collisionFilterGroup & proxy1->m_collisionFilterMask) != 0;
 	collides = collides && (proxy1->m_collisionFilterGroup & proxy0->m_collisionFilterMask);
-	if (gameObj0 && gameObj1)
-	{
-		collides = collides && gameObj0->CheckCollision(gameObj1);
-		collides = collides && gameObj1->CheckCollision(gameObj0);
-	}
 	if (!collides)
 		return false;
 

@@ -241,9 +241,6 @@ typedef struct Object {
 	short recalc;			/* dependency flag */
 	float anisotropicFriction[3];
 
-	/** Collision mask settings */
-	unsigned short col_group, col_mask, col_pad[2];
-
 	ListBase constraints;		/* object constraints */
 	ListBase nlastrips  DNA_DEPRECATED;			// XXX depreceated... old animation system
 	ListBase hooks  DNA_DEPRECATED;				// XXX depreceated... old animation system
@@ -474,9 +471,6 @@ typedef struct DupliObject {
 
 /* controller state */
 #define OB_MAX_STATES		30
-
-/* collision masks */
-#define OB_MAX_COL_MASKS	8
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1

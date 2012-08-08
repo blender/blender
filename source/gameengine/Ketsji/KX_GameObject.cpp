@@ -481,19 +481,6 @@ void KX_GameObject::ActivateGraphicController(bool recurse)
 	}
 }
 
-void KX_GameObject::SetUserCollisionGroup(short group)
-{
-	m_userCollisionGroup = group;
-}
-void KX_GameObject::SetUserCollisionMask(short mask)
-{
-	m_userCollisionMask = mask;
-}
-
-bool KX_GameObject::CheckCollision(KX_GameObject* other)
-{
-	return this->m_userCollisionGroup & other->m_userCollisionMask;
-}
 
 CValue* KX_GameObject::GetReplica()
 {

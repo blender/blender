@@ -98,10 +98,6 @@ protected:
 	bool								m_bIsNegativeScaling;
 	MT_Vector4							m_objectColor;
 
-	// Bit fields for user control over physics collisions
-	short								m_userCollisionGroup;
-	short								m_userCollisionMask;
-
 	// visible = user setting
 	// culled = while rendering, depending on camera
 	bool       							m_bVisible; 
@@ -468,13 +464,6 @@ public:
 	 * @add/remove the graphic controller to the physic system
 	 */
 	void ActivateGraphicController(bool recurse);
-	
-	void SetUserCollisionGroup(short filter);
-	void SetUserCollisionMask(short mask);
-	/**
-	 * Extra broadphase check for user controllable collisions
-	 */
-	bool CheckCollision(KX_GameObject *other);
 
 	/**
 	 * \section Coordinate system manipulation functions
