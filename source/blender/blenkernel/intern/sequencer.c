@@ -84,7 +84,6 @@ static ImBuf *seq_render_strip_stack(SeqRenderData context, ListBase *seqbasep, 
 static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra);
 static void seq_free_animdata(Scene *scene, Sequence *seq);
 
-
 /* **** XXX ******** */
 #define SELECT 1
 ListBase seqbase_clipboard;
@@ -560,7 +559,7 @@ void reload_sequence_new_file(Scene *scene, Sequence *seq, int lock_range)
 		case SEQ_TYPE_IMAGE:
 		{
 			/* Hack? */
-			size_t olen = MEM_allocN_len(seq->strip->stripdata) / sizeof(struct StripElem);
+			size_t olen = MEM_allocN_len(seq->strip->stripdata) / sizeof(StripElem);
 
 			seq->len = olen;
 			seq->len -= seq->anim_startofs;
@@ -740,7 +739,7 @@ static int seqbase_unique_name_recursive_cb(Sequence *seq, void *arg_pt)
 	return 1;
 }
 
-void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq)
+void seqbase_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
 {
 	SeqUniqueInfo sui;
 	char *dot;
@@ -1245,7 +1244,7 @@ static void seq_proxy_build_frame(SeqRenderData context, Sequence *seq, int cfra
 	IMB_freeImBuf(ibuf);
 }
 
-struct SeqIndexBuildContext *seq_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq)
+SeqIndexBuildContext *seq_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *seq)
 {
 	SeqIndexBuildContext *context;
 	Sequence *nseq;
@@ -3262,7 +3261,7 @@ static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound 
 	}
 }
 
-void seq_update_sound(struct Scene *scene, struct bSound *sound)
+void seq_update_sound(Scene *scene, bSound *sound)
 {
 	if (scene->ed) {
 		seq_update_sound_recursive(scene, &scene->ed->seqbase, sound);
@@ -3732,7 +3731,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	return seq;
 }
 
-static Sequence *seq_dupli(struct Scene *scene, struct Scene *scene_to, Sequence *seq, int dupe_flag)
+static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dupe_flag)
 {
 	Scene *sce_audio = scene_to ? scene_to : scene;
 	Sequence *seqn = MEM_dupallocN(seq);
@@ -3816,7 +3815,7 @@ static Sequence *seq_dupli(struct Scene *scene, struct Scene *scene_to, Sequence
 	return seqn;
 }
 
-Sequence *seq_dupli_recursive(struct Scene *scene, struct Scene *scene_to, Sequence *seq, int dupe_flag)
+Sequence *seq_dupli_recursive(Scene *scene, Scene *scene_to, Sequence *seq, int dupe_flag)
 {
 	Sequence *seqn = seq_dupli(scene, scene_to, seq, dupe_flag);
 	if (seq->type == SEQ_TYPE_META) {
