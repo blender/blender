@@ -42,11 +42,23 @@ public:
 	void initExecution();
 };
 
+enum {
+	FAST_GAUSS_OVERLAY_MIN  = -1,
+	FAST_GAUSS_OVERLAY_NONE =  0,
+	FAST_GAUSS_OVERLAY_MAX  =  1
+};
+
 class FastGaussianBlurValueOperation : public NodeOperation {
 private:
 	float m_sigma;
 	MemoryBuffer *m_iirgaus;
 	SocketReader *m_inputprogram;
+
+	/**
+	 * -1: re-mix with darker
+	 *  0: do nothing
+	 *  1 re-mix with lighter */
+	int m_overlay;
 public:
 	FastGaussianBlurValueOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
@@ -56,6 +68,9 @@ public:
 	void deinitExecution();
 	void initExecution();
 	void setSigma(float sigma) { this->m_sigma = sigma; }
+
+	/* used for DOF blurring ZBuffer */
+	void setOverlay(int overlay) { this->m_overlay = overlay; }
 };
 
 #endif

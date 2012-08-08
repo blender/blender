@@ -198,7 +198,8 @@ void NLA_OT_select_all_toggle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -483,6 +484,8 @@ static int nlaedit_select_leftright_invoke(bContext *C, wmOperator *op, wmEvent 
 
 void NLA_OT_select_leftright(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Select Left/Right";
 	ot->idname = "NLA_OT_select_leftright";
@@ -496,9 +499,12 @@ void NLA_OT_select_leftright(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* id-props */
+	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 
@@ -645,6 +651,8 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
  
 void NLA_OT_click_select(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Mouse Select";
 	ot->idname = "NLA_OT_click_select";
@@ -657,8 +665,9 @@ void NLA_OT_click_select(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* *********************************************** */

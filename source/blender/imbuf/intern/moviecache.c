@@ -393,6 +393,32 @@ void IMB_moviecache_free(MovieCache *cache)
 	MEM_freeN(cache);
 }
 
+void IMB_moviecache_cleanup(MovieCache *cache, int (cleanup_check_cb) (void *userkey, void *userdata), void *userdata)
+{
+	GHashIterator *iter;
+
+	iter = BLI_ghashIterator_new(cache->hash);
+	while (!BLI_ghashIterator_isDone(iter)) {
+		MovieCacheKey *key = BLI_ghashIterator_getKey(iter);
+		int remove;
+
+		BLI_ghashIterator_step(iter);
+
+		remove = cleanup_check_cb(key->userkey, userdata);
+
+		if (remove) {
+			MovieCacheItem *item = BLI_ghashIterator_getValue(iter);
+			(void) item;  /* silence unused variable when not using debug */
+
+			PRINT("%s: cache '%s' remove item %p\n", __func__, cache->name, item);
+
+			BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
+		}
+	}
+
+	BLI_ghashIterator_free(iter);
+}
+
 /* get segments of cached frames. useful for debugging cache policies */
 void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_flags, int *totseg_r, int **points_r)
 {

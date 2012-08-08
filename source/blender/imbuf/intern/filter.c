@@ -229,24 +229,24 @@ void IMB_filterN(ImBuf *out, ImBuf *in)
 		for (x = 0; x < rowlen; x++) {
 			if (x == 0) {
 				r11 = row1;
-				r21 = row1;
-				r31 = row1;
+				r21 = row2;
+				r31 = row3;
 			}
 			else {
 				r11 = row1 - 4;
-				r21 = row1 - 4;
-				r31 = row1 - 4;
+				r21 = row2 - 4;
+				r31 = row3 - 4;
 			}
 
 			if (x == rowlen - 1) {
 				r13 = row1;
-				r23 = row1;
-				r33 = row1;
+				r23 = row2;
+				r33 = row3;
 			}
 			else {
 				r13 = row1 + 4;
-				r23 = row1 + 4;
-				r33 = row1 + 4;
+				r23 = row2 + 4;
+				r33 = row3 + 4;
 			}
 
 			cp[0] = (r11[0] + 2 * row1[0] + r13[0] + 2 * r21[0] + 4 * row2[0] + 2 * r23[0] + r31[0] + 2 * row3[0] + r33[0]) >> 4;

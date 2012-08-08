@@ -53,9 +53,11 @@ float ConvertDepthToRadiusOperation::determineFocalDistance()
 			normalize_m4(obmat);
 			invert_m4_m4(imat, obmat);
 			mult_m4_m4m4(mat, imat, camera->dof_ob->obmat);
-			return (float)fabs(mat[3][2]);
+			return fabsf(mat[3][2]);
 		}
-		return camera->YF_dofdist;
+		else {
+			return camera->YF_dofdist;
+		}
 	}
 }
 
@@ -71,7 +73,7 @@ void ConvertDepthToRadiusOperation::initExecution()
 	this->m_dof_sp = (float)minsz / (16.f / this->m_cam_lens);    // <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
 	
 	if (this->m_blurPostOperation) {
-		m_blurPostOperation->setSigma(m_aperture * 128.0f);
+		m_blurPostOperation->setSigma(min(m_aperture * 128.0f, this->m_maxRadius));
 	}
 }
 
