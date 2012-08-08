@@ -158,6 +158,15 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 		color[1] = color_accum[1] / multiplier_accum[1];
 		color[2] = color_accum[2] / multiplier_accum[2];
 		color[3] = color_accum[3] / multiplier_accum[3];
+
+		/* blend in out values over the threshold, otherwise we get sharp, ugly transitions */
+		if ((sizeCenter > this->m_threshold) &&
+		    (sizeCenter < this->m_threshold * 2.0f))
+		{
+			/* factor from 0-1 */
+			float fac = (sizeCenter - this->m_threshold) / this->m_threshold;
+			interp_v4_v4v4(color, readColor, color, fac);
+		}
 	}
 
 }
