@@ -2281,7 +2281,7 @@ static void copy_solid_color(Sequence *dst, Sequence *src)
 
 static int early_out_color(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
 {
-	return -1;
+	return EARLY_NO_INPUT;
 }
 
 static ImBuf *do_solid_color(SeqRenderData context, Sequence *seq, float UNUSED(cfra), float facf0, float facf1,
@@ -2374,7 +2374,7 @@ static int num_inputs_multicam(void)
 
 static int early_out_multicam(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
 {
-	return -1;
+	return EARLY_NO_INPUT;
 }
 
 static ImBuf *do_multicam(SeqRenderData context, Sequence *seq, float cfra, float UNUSED(facf0), float UNUSED(facf1),
@@ -2424,7 +2424,7 @@ static int num_inputs_adjustment(void)
 
 static int early_out_adjustment(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
 {
-	return -1;
+	return EARLY_NO_INPUT;
 }
 
 static ImBuf *do_adjustment_impl(SeqRenderData context, Sequence *seq, float cfra)
@@ -2537,7 +2537,7 @@ static void copy_speed_effect(Sequence *dst, Sequence *src)
 
 static int early_out_speed(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
 {
-	return 1;
+	return EARLY_USE_INPUT_1;
 }
 
 static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *ymin, float *ymax)
@@ -2696,26 +2696,26 @@ static int num_inputs_default(void)
 
 static int early_out_noop(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
 {
-	return 0;
+	return EARLY_DO_EFFECT;
 }
 
 static int early_out_fade(Sequence *UNUSED(seq), float facf0, float facf1)
 {
 	if (facf0 == 0.0f && facf1 == 0.0f) {
-		return 1;
+		return EARLY_USE_INPUT_1;
 	}
 	else if (facf0 == 1.0f && facf1 == 1.0f) {
-		return 2;
+		return EARLY_USE_INPUT_2;
 	}
-	return 0;
+	return EARLY_DO_EFFECT;
 }
 
 static int early_out_mul_input2(Sequence *UNUSED(seq), float facf0, float facf1)
 {
 	if (facf0 == 0.0f && facf1 == 0.0f) {
-		return 1;
+		return EARLY_USE_INPUT_1;
 	}
-	return 0;
+	return EARLY_DO_EFFECT;
 }
 
 static void store_icu_yrange_noop(Sequence *UNUSED(seq), short UNUSED(adrcode), float *UNUSED(ymin), float *UNUSED(ymax))
