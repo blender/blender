@@ -103,6 +103,7 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "		int2 inputCoordinate = realCoordinate - offsetInput;\n" \
 "		float size_center = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
 "		color_accum = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);\n" \
+"		readColor = color_accum;\n" \
 "\n" \
 "		if (size_center > threshold) {\n" \
 "			for (int ny = miny; ny < maxy; ny += step) {\n" \
@@ -127,10 +128,20 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "				}\n" \
 "			}\n" \
 "		}\n" \
-"	}\n" \
 "\n" \
-"	color = color_accum * (1.0f / multiplier_accum);\n" \
-"	write_imagef(output, coords, color);\n" \
+"		color = color_accum * (1.0f / multiplier_accum);\n" \
+"\n" \
+"		/* blend in out values over the threshold, otherwise we get sharp, ugly transitions */\n" \
+"		if ((size_center > threshold) &&\n" \
+"		    (size_center < threshold * 2.0f))\n" \
+"		{\n" \
+"			/* factor from 0-1 */\n" \
+"			float fac = (size_center - threshold) / threshold;\n" \
+"			color = (readColor * (1.0f - fac)) +  (color * fac);\n" \
+"		}\n" \
+"\n" \
+"		write_imagef(output, coords, color);\n" \
+"	}\n" \
 "}\n" \
 "\n" \
 "\n" \

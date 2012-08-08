@@ -101,6 +101,7 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 		int2 inputCoordinate = realCoordinate - offsetInput;
 		float size_center = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
 		color_accum = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);
+		readColor = color_accum;
 
 		if (size_center > threshold) {
 			for (int ny = miny; ny < maxy; ny += step) {
@@ -125,10 +126,20 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 				}
 			} 
 		}
-	}
 
-	color = color_accum * (1.0f / multiplier_accum);
-	write_imagef(output, coords, color);
+		color = color_accum * (1.0f / multiplier_accum);
+		
+		/* blend in out values over the threshold, otherwise we get sharp, ugly transitions */
+		if ((size_center > threshold) &&
+		    (size_center < threshold * 2.0f))
+		{
+			/* factor from 0-1 */
+			float fac = (size_center - threshold) / threshold;
+			color = (readColor * (1.0f - fac)) +  (color * fac);
+		}
+		
+		write_imagef(output, coords, color);
+	}
 }
 
 

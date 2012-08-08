@@ -101,8 +101,8 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 	float readColor[4];
 	float bokeh[4];
 	float tempSize[4];
-	float multiplier_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-	float color_accum[4]      = {0.0f, 0.0f, 0.0f, 0.0f};
+	float multiplier_accum[4];
+	float color_accum[4];
 	int maxBlur = tileData->maxBlur;
 
 #ifdef COM_DEFOCUS_SEARCH
@@ -122,8 +122,8 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 		inputSizeBuffer->readNoCheck(tempSize, x, y);
 		inputProgramBuffer->readNoCheck(readColor, x, y);
 
-		add_v4_v4(color_accum, readColor);
-		add_v4_fl(multiplier_accum, 1.0f);
+		copy_v4_v4(color_accum, readColor);
+		copy_v4_fl(multiplier_accum, 1.0f);
 		float size_center = tempSize[0];
 		
 		const int addXStep = QualityStepHelper::getStep() * COM_NUMBER_OF_CHANNELS;
