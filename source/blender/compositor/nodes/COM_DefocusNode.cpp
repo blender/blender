@@ -73,11 +73,14 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 		this->getInputSocket(1)->relinkConnections(converter->getInputSocket(0), 1, graph);
 		graph->addOperation(converter);
 		
-		FastGaussianBlurValueOperation * blur = new FastGaussianBlurValueOperation();
+		FastGaussianBlurValueOperation *blur = new FastGaussianBlurValueOperation();
 		addLink(graph, converter->getOutputSocket(0), blur->getInputSocket(0));
 		graph->addOperation(blur);
 		radiusOperation = blur;
 		converter->setPostBlur(blur);
+
+		/* maintain close pixels so far Z values don't bleed into the foreground */
+		blur->setOverlay(FAST_GAUSS_OVERLAY_MIN);
 	}
 	
 	BokehImageOperation *bokeh = new BokehImageOperation();
