@@ -57,6 +57,8 @@ EnumPropertyItem region_type_items[] = {
 
 #include "BKE_global.h"
 
+#include "UI_view2d.h"
+
 static void rna_Screen_scene_set(PointerRNA *ptr, PointerRNA value)
 {
 	bScreen *sc = (bScreen *)ptr->data;
@@ -136,6 +138,19 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 			break;
 		}
 	}
+}
+
+void rna_View2D_region_to_view(struct View2D *v2d, int x, int y, float result[2])
+{
+	UI_view2d_region_to_view(v2d, x, y, &result[0], &result[1]);
+}
+
+void rna_View2D_view_to_region(struct View2D *v2d, float x, float y, int clip, int result[2])
+{
+	if (clip)
+		UI_view2d_view_to_region(v2d, x, y, &result[0], &result[1]);
+	else
+		UI_view2d_to_region_no_clip(v2d, x, y, &result[0], &result[1]);
 }
 
 #else
@@ -220,6 +235,50 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, no argument clears the text");
 }
 
+static void rna_def_view2d_api(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+	
+	static const float view_default[2] = {0.0f, 0.0f};
+	static const int region_default[2] = {0.0f, 0.0f};
+	
+	func = RNA_def_function(srna, "region_to_view", "rna_View2D_region_to_view");
+	RNA_def_function_ui_description(func, "Transform region coordinates to 2D view");
+	parm = RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "x", "Region x coordinate", -10000, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "y", 0, INT_MIN, INT_MAX, "y", "Region y coordinate", -10000, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_float_array(func, "result", 2, view_default, -FLT_MAX, FLT_MAX, "Result", "View coordinates", -10000.0f, 10000.0f);
+	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_function_output(func, parm);
+
+	func = RNA_def_function(srna, "view_to_region", "rna_View2D_view_to_region");
+	RNA_def_function_ui_description(func, "Transform 2D view coordinates to region");
+	parm = RNA_def_float(func, "x", 0.0f, -FLT_MAX, FLT_MAX, "x", "2D View x coordinate", -10000.0f, 10000.0f);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_float(func, "y", 0.0f, -FLT_MAX, FLT_MAX, "y", "2D View y coordinate", -10000.0f, 10000.0f);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "clip", 1, "Clip", "Clip coordinates to the visible region");
+	parm = RNA_def_int_array(func, "result", 2, region_default, INT_MIN, INT_MAX, "Result", "Region coordinates", -10000, 10000);
+	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_function_output(func, parm);
+}
+
+static void rna_def_view2d(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	/* PropertyRNA *prop; */
+
+	srna = RNA_def_struct(brna, "View2D", NULL);
+	RNA_def_struct_ui_text(srna, "View2D", "Scroll and zoom for a 2D region");
+	RNA_def_struct_sdna(srna, "View2D");
+	
+	/* TODO more View2D properties could be exposed here (read-only) */
+	
+	rna_def_view2d_api(srna);
+}
+
 static void rna_def_region(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -259,6 +318,12 @@ static void rna_def_region(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "winy");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Height", "Region height");
+
+	prop = RNA_def_property(srna, "view2d", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "v2d");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "View2D", "2D view of the region");
 
 	RNA_def_function(srna, "tag_redraw", "ED_region_tag_redraw");
 }
@@ -345,6 +410,7 @@ void RNA_def_screen(BlenderRNA *brna)
 	rna_def_screen(brna);
 	rna_def_area(brna);
 	rna_def_region(brna);
+	rna_def_view2d(brna);
 }
 
 #endif

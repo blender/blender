@@ -2961,8 +2961,13 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_SpaceNodeEditor_node_tree_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Node Tree", "Node tree being displayed and edited");
+	RNA_def_property_ui_text(prop, "Node Tree", "Node tree being displayed");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, "rna_SpaceNodeEditor_node_tree_update");
+
+	prop = RNA_def_property(srna, "edit_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "edittree");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Edit Tree", "Edited node tree");
 
 	prop = RNA_def_property(srna, "show_backdrop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_BACKDRAW);
@@ -3006,6 +3011,13 @@ static void rna_def_space_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_hidden_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_USE_HIDDEN_PREVIEW);
 	RNA_def_property_ui_text(prop, "Hide Preview", "Hide preview for newly creating nodes");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
+
+	/* the mx/my "cursor" in the node editor is used only by operators to store the mouse position */
+	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "mx");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Cursor Location", "Location for adding new nodes");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 }
 
