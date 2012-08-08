@@ -216,8 +216,8 @@ typedef enum {
 	SEQ_STRIPELEM_IBUF_ENDSTILL
 } seq_stripelem_ibuf_t;
 
-void BKE_sequencer_stripelem_cache_destruct(void);
-void BKE_sequencer_stripelem_cache_cleanup(void);
+void BKE_sequencer_cache_destruct(void);
+void BKE_sequencer_cache_cleanup(void);
 
 /* returned ImBuf is properly refed and has to be freed */
 struct ImBuf *BKE_sequencer_cache_get(SeqRenderData context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type);

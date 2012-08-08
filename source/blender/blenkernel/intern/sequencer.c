@@ -2739,7 +2739,7 @@ void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, int check_mem_usa
 		}
 	}
 
-	BKE_sequencer_stripelem_cache_cleanup();
+	BKE_sequencer_cache_cleanup();
 	
 	for (seq = seqbase->first; seq; seq = seq->next) {
 		if (seq->strip) {
