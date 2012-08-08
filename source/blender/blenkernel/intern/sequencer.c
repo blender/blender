@@ -2792,7 +2792,7 @@ void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
 {
 	Editing *ed = scene->ed;
 	Sequence *cur;
-	int left = seq->start, right = seq->start + seq->len;
+	int left = seq->startdisp, right = seq->enddisp;
 
 	/* invalidate cache for current sequence */
 	BKE_sequencer_cache_cleanup_sequence(seq);
@@ -2800,7 +2800,10 @@ void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
 	/* invalidate cache for all dependent sequences */
 	SEQ_BEGIN (ed, cur)
 	{
-		int cur_left = cur->start, cur_right = cur->start + cur->len;
+		int cur_left = cur->startdisp, cur_right = cur->enddisp;
+
+		if (cur == seq)
+			continue;
 
 		/* sequence is outside of changed one, shouldn't be invalidated */
 		if (cur_right < left || cur_left > right)
