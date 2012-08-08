@@ -94,12 +94,12 @@ SequencerDrawView sequencer_view3d_cb = NULL; /* NULL in background mode */
 static void printf_strip(Sequence *seq)
 {
 	fprintf(stderr, "name: '%s', len:%d, start:%d, (startofs:%d, endofs:%d), "
-                    "(startstill:%d, endstill:%d), machine:%d, (startdisp:%d, enddisp:%d)\n",
+	        "(startstill:%d, endstill:%d), machine:%d, (startdisp:%d, enddisp:%d)\n",
 	        seq->name, seq->len, seq->start, seq->startofs, seq->endofs, seq->startstill, seq->endstill, seq->machine,
-            seq->startdisp, seq->enddisp);
+	        seq->startdisp, seq->enddisp);
 
 	fprintf(stderr, "\tseq_tx_set_final_left: %d %d\n\n", seq_tx_get_final_left(seq, 0),
-            seq_tx_get_final_right(seq, 0));
+	        seq_tx_get_final_right(seq, 0));
 }
 #endif
 
@@ -1766,8 +1766,7 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float UNUSE
 	return ibuf;
 }
 
-static ImBuf *copy_from_ibuf_still(SeqRenderData context, Sequence *seq,
-                                   float nr)
+static ImBuf *copy_from_ibuf_still(SeqRenderData context, Sequence *seq, float nr)
 {
 	ImBuf *rval = NULL;
 	ImBuf *ibuf = NULL;
@@ -1787,8 +1786,7 @@ static ImBuf *copy_from_ibuf_still(SeqRenderData context, Sequence *seq,
 	return rval;
 }
 
-static void copy_to_ibuf_still(SeqRenderData context, Sequence *seq, float nr,
-                               ImBuf *ibuf)
+static void copy_to_ibuf_still(SeqRenderData context, Sequence *seq, float nr, ImBuf *ibuf)
 {
 	if (nr == 0 || nr == seq->len - 1) {
 		/* we have to store a copy, since the passed ibuf
@@ -1854,19 +1852,16 @@ static ImBuf *seq_render_effect_strip_impl(SeqRenderData context, Sequence *seq,
 
 	switch (early_out) {
 		case EARLY_NO_INPUT:
-			out = sh.execute(context, seq, cfra, fac, facf,  
-			                 NULL, NULL, NULL);
+			out = sh.execute(context, seq, cfra, fac, facf, NULL, NULL, NULL);
 			break;
 		case EARLY_DO_EFFECT:
 			for (i = 0; i < 3; i++) {
 				if (input[i])
-					ibuf[i] = seq_render_strip(
-					        context, input[i], cfra);
+					ibuf[i] = seq_render_strip(context, input[i], cfra);
 			}
 
 			if (ibuf[0] && ibuf[1]) {
-				out = sh.execute(context, seq, cfra, fac, facf,
-				                 ibuf[0], ibuf[1], ibuf[2]);
+				out = sh.execute(context, seq, cfra, fac, facf, ibuf[0], ibuf[1], ibuf[2]);
 			}
 			break;
 		case EARLY_USE_INPUT_1:
