@@ -392,74 +392,6 @@ void seq_end(SeqIterator *iter)
 	iter->valid = 0;
 }
 
-/*
- * **********************************************************************
- * build_seqar
- * *********************************************************************
- * Build a complete array of _all_ sequences (including those
- * in metastrips!)
- * *********************************************************************
- */
-
-#if 0 /* currently unused */
-static void do_seq_count_cb(ListBase *seqbase, int *totseq, int (*test_func)(Sequence *seq))
-{
-	Sequence *seq;
-
-	seq = seqbase->first;
-	while (seq) {
-		int test = test_func(seq);
-		if (test & BUILD_SEQAR_COUNT_CURRENT) {
-			(*totseq)++;
-		}
-		if (seq->seqbase.first && (test & BUILD_SEQAR_COUNT_CHILDREN)) {
-			do_seq_count_cb(&seq->seqbase, totseq, test_func);
-		}
-		seq = seq->next;
-	}
-}
-
-static void do_build_seqar_cb(ListBase *seqbase, Sequence ***seqar, int depth, int (*test_func)(Sequence *seq))
-{
-	Sequence *seq;
-
-	seq = seqbase->first;
-	while (seq) {
-		int test = test_func(seq);
-		seq->depth = depth;
-
-		if (seq->seqbase.first && (test & BUILD_SEQAR_COUNT_CHILDREN)) {
-			do_build_seqar_cb(&seq->seqbase, seqar, depth + 1, test_func);
-		}
-		if (test & BUILD_SEQAR_COUNT_CURRENT) {
-			**seqar = seq;
-			(*seqar)++;
-		}
-		seq = seq->next;
-	}
-}
-#endif
-
-#if 0  /* unused function */
-static void build_seqar_cb(ListBase *seqbase, Sequence  ***seqar, int *totseq, int (*test_func)(Sequence *seq))
-{
-	Sequence **tseqar;
-
-	*totseq = 0;
-	do_seq_count_cb(seqbase, totseq, test_func);
-
-	if (*totseq == 0) {
-		*seqar = NULL;
-		return;
-	}
-	*seqar = MEM_mallocN(sizeof(void *) * *totseq, "seqar");
-	tseqar = *seqar;
-
-	do_build_seqar_cb(seqbase, seqar, 0, test_func);
-	*seqar = tseqar;
-}
-#endif
-
 static int metaseq_start(Sequence *metaseq)
 {
 	return metaseq->start + metaseq->startofs;
@@ -788,13 +720,6 @@ typedef struct SeqUniqueInfo {
 	int count;
 	int match;
 } SeqUniqueInfo;
-
-#if 0
-static void seqbase_unique_name(ListBase *seqbasep, Sequence *seq)
-{
-	BLI_uniquename(seqbasep, seq, "Sequence", '.', offsetof(Sequence, name), SEQ_NAME_MAXSTR);
-}
-#endif
 
 static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 {
@@ -2627,19 +2552,6 @@ ImBuf *give_ibuf_seq_direct(SeqRenderData context, float cfra, Sequence *seq)
 	return seq_render_strip(context, seq, cfra);
 }
 
-#if 0
-/* check used when we need to change seq->blend_mode but not to effect or audio strips */
-static int seq_can_blend(Sequence *seq)
-{
-	if (ELEM4(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_META, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIE)) {
-		return 1;
-	}
-	else {
-		return 0;
-	}
-}
-#endif
-
 /* *********************** threading api ******************* */
 
 static ListBase running_threads;
@@ -2684,151 +2596,6 @@ typedef struct PrefetchQueueElem {
 	ImBuf *ibuf;
 } PrefetchQueueElem;
 
-#if 0
-static void *seq_prefetch_thread(void *This_)
-{
-	PrefetchThread *This = This_;
-
-	while (!seq_thread_shutdown) {
-		PrefetchQueueElem *e;
-		int s_last;
-
-		pthread_mutex_lock(&queue_lock);
-		e = prefetch_wait.first;
-		if (e) {
-			BLI_remlink(&prefetch_wait, e);
-		}
-		s_last = seq_last_given_monoton_cfra;
-
-		This->current = e;
-
-		pthread_mutex_unlock(&queue_lock);
-
-		if (!e) {
-			pthread_mutex_lock(&prefetch_ready_lock);
-
-			This->running = FALSE;
-
-			pthread_cond_signal(&prefetch_ready_cond);
-			pthread_mutex_unlock(&prefetch_ready_lock);
-
-			pthread_mutex_lock(&wakeup_lock);
-			if (!seq_thread_shutdown) {
-				pthread_cond_wait(&wakeup_cond, &wakeup_lock);
-			}
-			pthread_mutex_unlock(&wakeup_lock);
-			continue;
-		}
-
-		This->running = TRUE;
-		
-		if (e->cfra >= s_last) { 
-			e->ibuf = give_ibuf_seq_impl(This->scene, 
-			                             e->rectx, e->recty, e->cfra, e->chanshown,
-			                             e->preview_render_size);
-		}
-
-		pthread_mutex_lock(&queue_lock);
-
-		BLI_addtail(&prefetch_done, e);
-
-		for (e = prefetch_wait.first; e; e = e->next) {
-			if (s_last > e->monoton_cfra) {
-				BLI_remlink(&prefetch_wait, e);
-				MEM_freeN(e);
-			}
-		}
-
-		for (e = prefetch_done.first; e; e = e->next) {
-			if (s_last > e->monoton_cfra) {
-				BLI_remlink(&prefetch_done, e);
-				MEM_freeN(e);
-			}
-		}
-
-		pthread_mutex_unlock(&queue_lock);
-
-		pthread_mutex_lock(&frame_done_lock);
-		pthread_cond_signal(&frame_done_cond);
-		pthread_mutex_unlock(&frame_done_lock);
-	}
-	return 0;
-}
-
-static void seq_start_threads(Scene *scene)
-{
-	int i;
-
-	running_threads.first = running_threads.last = NULL;
-	prefetch_wait.first = prefetch_wait.last = NULL;
-	prefetch_done.first = prefetch_done.last = NULL;
-
-	seq_thread_shutdown = FALSE;
-	seq_last_given_monoton_cfra = monoton_cfra = 0;
-
-	/* since global structures are modified during the processing
-	 * of one frame, only one render thread is currently possible...
-	 *
-	 * (but we code, in the hope, that we can remove this restriction
-	 * soon...)
-	 */
-
-	fprintf(stderr, "SEQ-THREAD: seq_start_threads\n");
-
-	for (i = 0; i < 1; i++) {
-		PrefetchThread *t = MEM_callocN(sizeof(PrefetchThread), "prefetch_thread");
-		t->scene = scene;
-		t->running = TRUE;
-		BLI_addtail(&running_threads, t);
-
-		pthread_create(&t->pthread, NULL, seq_prefetch_thread, t);
-	}
-
-	/* init malloc mutex */
-	BLI_init_threads(0, 0, 0);
-}
-
-static void seq_stop_threads()
-{
-	PrefetchThread *tslot;
-	PrefetchQueueElem *e;
-
-	fprintf(stderr, "SEQ-THREAD: seq_stop_threads()\n");
-
-	if (seq_thread_shutdown) {
-		fprintf(stderr, "SEQ-THREAD: ... already stopped\n");
-		return;
-	}
-	
-	pthread_mutex_lock(&wakeup_lock);
-
-	seq_thread_shutdown = TRUE;
-
-	pthread_cond_broadcast(&wakeup_cond);
-	pthread_mutex_unlock(&wakeup_lock);
-
-	for (tslot = running_threads.first; tslot; tslot = tslot->next) {
-		pthread_join(tslot->pthread, NULL);
-	}
-
-
-	for (e = prefetch_wait.first; e; e = e->next) {
-		BLI_remlink(&prefetch_wait, e);
-		MEM_freeN(e);
-	}
-
-	for (e = prefetch_done.first; e; e = e->next) {
-		BLI_remlink(&prefetch_done, e);
-		MEM_freeN(e);
-	}
-
-	BLI_freelistN(&running_threads);
-
-	/* deinit malloc mutex */
-	BLI_end_threads(0);
-}
-#endif
-
 void give_ibuf_prefetch_request(SeqRenderData context, float cfra, int chanshown)
 {
 	PrefetchQueueElem *e;
@@ -2852,37 +2619,6 @@ void give_ibuf_prefetch_request(SeqRenderData context, float cfra, int chanshown
 	pthread_cond_signal(&wakeup_cond);
 	pthread_mutex_unlock(&wakeup_lock);
 }
-
-#if 0
-static void seq_wait_for_prefetch_ready()
-{
-	PrefetchThread *tslot;
-
-	if (seq_thread_shutdown) {
-		return;
-	}
-
-	fprintf(stderr, "SEQ-THREAD: rendering prefetch frames...\n");
-
-	pthread_mutex_lock(&prefetch_ready_lock);
-
-	for (;; ) {
-		for (tslot = running_threads.first; tslot; tslot = tslot->next) {
-			if (tslot->running) {
-				break;
-			}
-		}
-		if (!tslot) {
-			break;
-		}
-		pthread_cond_wait(&prefetch_ready_cond, &prefetch_ready_lock);
-	}
-
-	pthread_mutex_unlock(&prefetch_ready_lock);
-
-	fprintf(stderr, "SEQ-THREAD: prefetch done\n");
-}
-#endif
 
 ImBuf *give_ibuf_seq_threaded(SeqRenderData context, float cfra, int chanshown)
 {
