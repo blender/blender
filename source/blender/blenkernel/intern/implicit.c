@@ -710,7 +710,7 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 	Implicit_Data *id = NULL;
 	LinkNode *search = NULL;
 	
-	if (G.rt > 0)
+	if (G.debug_value > 0)
 		printf("implicit_init\n");
 
 	// init memory guard
@@ -1918,7 +1918,7 @@ void implicit_set_positions(ClothModifierData *clmd)
 		copy_v3_v3(id->X[i], verts[i].x);
 		copy_v3_v3(id->V[i], verts[i].v);
 	}
-	if (G.rt > 0)
+	if (G.debug_value > 0)
 		printf("implicit_set_positions\n");	
 }
 

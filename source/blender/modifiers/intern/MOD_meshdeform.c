@@ -274,7 +274,7 @@ static void meshdeformModifier_do(
 		/* get cage vertex in world space with binding transform */
 		copy_v3_v3(co, cagecos[a]);
 
-		if (G.rt != 527) {
+		if (G.debug_value != 527) {
 			mul_m4_v3(mmd->bindmat, co);
 			/* compute difference with world space bind coord */
 			sub_v3_v3v3(dco[a], co, bindcagecos[a]);
@@ -324,7 +324,7 @@ static void meshdeformModifier_do(
 		if (totweight > 0.0f) {
 			mul_v3_fl(co, fac / totweight);
 			mul_m3_v3(icagemat, co);
-			if (G.rt != 527)
+			if (G.debug_value != 527)
 				add_v3_v3(vertexCos[b], co);
 			else
 				copy_v3_v3(vertexCos[b], co);

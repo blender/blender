@@ -692,7 +692,7 @@ void *COM_linker_hack = NULL;
 void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int do_preview)
 {
 #ifdef WITH_COMPOSITOR
-	if (G.rt == 200)
+	if (G.debug_value == 200)
 		ntreeCompositExecTreeOld(ntree, rd, do_preview);
 	else
 		COM_execute(rd, ntree, rendering);

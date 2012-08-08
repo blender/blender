@@ -60,20 +60,26 @@ typedef struct Global {
 
 	/* strings of recent opened files */
 	struct ListBase recent_files;
-        
+
 	short afbreek, moving, file_loaded;
 	char background;
 	char factory_startup;
 	short winpos, displaymode;  /* used to be in Render */
 	short rendering;            /* to indicate render is busy, prevent renderwindow events etc */
 
-	short rt;
+	/* debug value, can be set from the UI and python, used for testing nonstandard features */
+	short debug_value;
+
+	/* saved to the blend file as FileGlobal.globalf,
+	 * however this is now only used for runtime options */
 	int f;
+
+	/* debug flag, G_DEBUG, G_DEBUG_PYTHON & friends, set python or command line args */
 	int debug;
 
 	/* Used for BMesh transformations */
 	struct BME_Glob *editBMesh;
-    
+
 	/* Frank's variables */
 	int save_over;
 
@@ -88,7 +94,7 @@ typedef struct Global {
 
 	/* this variable is written to / read from FileGlobal->fileflags */
 	int fileflags;
-    
+
 	/* save the allowed windowstate of blender when using -W or -w */
 	int windowstate;
 } Global;

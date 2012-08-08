@@ -1194,7 +1194,7 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
 
 static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 {
-	G.rt = RNA_int_get(op->ptr, "debug_value");
+	G.debug_value = RNA_int_get(op->ptr, "debug_value");
 	ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
@@ -1203,7 +1203,7 @@ static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 
 static int wm_debug_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	RNA_int_set(op->ptr, "debug_value", G.rt);
+	RNA_int_set(op->ptr, "debug_value", G.debug_value);
 	return WM_operator_props_dialog_popup(C, op, 9 * UI_UNIT_X, UI_UNIT_Y);
 }
 

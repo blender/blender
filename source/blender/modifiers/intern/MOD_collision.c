@@ -132,7 +132,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		
 		current_time = BKE_scene_frame_get(md->scene);
 		
-		if (G.rt > 0)
+		if (G.debug_value > 0)
 			printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
 		
 		numverts = dm->getNumVerts(dm);

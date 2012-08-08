@@ -662,7 +662,7 @@ void cloth_free_modifier(ClothModifierData *clmd )
 void cloth_free_modifier_extern(ClothModifierData *clmd )
 {
 	Cloth	*cloth = NULL;
-	if (G.rt > 0)
+	if (G.debug_value > 0)
 		printf("cloth_free_modifier_extern\n");
 	
 	if ( !clmd )
@@ -671,7 +671,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
 	cloth = clmd->clothObject;
 	
 	if ( cloth ) {
-		if (G.rt > 0)
+		if (G.debug_value > 0)
 			printf("cloth_free_modifier_extern in\n");
 
 		// If our solver provides a free function, call it
@@ -852,7 +852,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	// If we have a clothObject, free it. 
 	if ( clmd->clothObject != NULL ) {
 		cloth_free_modifier ( clmd );
-		if (G.rt > 0)
+		if (G.debug_value > 0)
 			printf("cloth_free_modifier cloth_from_object\n");
 	}
 
@@ -1278,7 +1278,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	cloth->edgehash = edgehash;
 	
-	if (G.rt > 0)
+	if (G.debug_value > 0)
 		printf("avg_len: %f\n", clmd->sim_parms->avg_spring_len);
 
 	return 1;

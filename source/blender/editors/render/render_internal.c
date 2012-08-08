@@ -505,7 +505,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_jobs_stop_all(CTX_wm_manager(C));
 
 	/* get main */
-	if (G.rt == 101) {
+	if (G.debug_value == 101) {
 		/* thread-safety experiment, copy main from the undo buffer */
 		mainp = BKE_undo_get_main(&scene);
 	}
