@@ -3150,7 +3150,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	int draw_border = (rv3d->persp == RV3D_CAMOB && (scene->r.mode & R_BORDER));
 
 	/* --- until we get a clue and make viewport threadsafe (temp mango change for stability) */
-	if (G.rendering) {
+	if (G.is_rendering) {
 		ED_region_pixelspace(ar);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		UI_ThemeClearColor(TH_BACK);
