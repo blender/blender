@@ -803,7 +803,7 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 static int change_frame_poll(bContext *C)
 {
 	/* prevent changes during render */
-	if (G.rendering)
+	if (G.is_rendering)
 		return 0;
 
 	return ED_space_clip_poll(C);
@@ -1000,7 +1000,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 		BKE_movieclip_build_proxy_frame(clip, pj->clip_flag, distortion, cfra,
 		                                build_undistort_sizes, build_undistort_count, 1);
 
-		if (*stop || G.afbreek)
+		if (*stop || G.is_break)
 			break;
 
 		*do_update = TRUE;
@@ -1058,7 +1058,7 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP | ND_DISPLAY, 0);
 	WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, proxy_endjob);
 
-	G.afbreek = 0;
+	G.is_break = FALSE;
 	WM_jobs_start(CTX_wm_manager(C), steve);
 
 	ED_area_tag_redraw(CTX_wm_area(C));

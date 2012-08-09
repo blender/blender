@@ -297,7 +297,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent 
 		/* determine if render already shows */
 		if (sa) {
 			/* but don't close it when rendering */
-			if (!G.rendering) {
+			if (G.is_rendering == FALSE) {
 				SpaceImage *sima = sa->spacedata.first;
 
 				if (sima->flag & SI_PREVSPACE) {

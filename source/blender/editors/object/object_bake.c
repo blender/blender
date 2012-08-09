@@ -358,7 +358,7 @@ static int multiresbake_test_break(MultiresBakeRender *bkr)
 		return 0;
 	}
 
-	return G.afbreek;
+	return G.is_break;
 }
 
 static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, MPassKnownData passKnownData,
@@ -1260,7 +1260,7 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
 	WM_jobs_timer(steve, 0.2, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
 	WM_jobs_callbacks(steve, multiresbake_startjob, NULL, NULL, NULL);
 
-	G.afbreek = 0;
+	G.is_break = FALSE;
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 	WM_cursor_wait(0);
@@ -1276,7 +1276,7 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
 /* threaded break test */
 static int thread_break(void *UNUSED(arg))
 {
-	return G.afbreek;
+	return G.is_break;
 }
 
 typedef struct BakeRender {
@@ -1401,7 +1401,7 @@ static void bake_startjob(void *bkv, short *stop, short *do_update, float *progr
 	bkr->progress = progress;
 
 	RE_test_break_cb(bkr->re, NULL, thread_break);
-	G.afbreek = 0;   /* blender_test_break uses this global */
+	G.is_break = FALSE;   /* blender_test_break uses this global */
 
 	RE_Database_Baking(bkr->re, bmain, scene, scene->lay, scene->r.bake_mode, bkr->actob);
 
@@ -1431,7 +1431,7 @@ static void bake_freejob(void *bkv)
 		BKE_report(bkr->reports, RPT_WARNING, "Feedback loop detected");
 
 	MEM_freeN(bkr);
-	G.rendering = 0;
+	G.is_rendering = FALSE;
 }
 
 /* catch esc */
@@ -1487,8 +1487,8 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 			WM_jobs_timer(steve, 0.2, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
 			WM_jobs_callbacks(steve, bake_startjob, NULL, bake_update, NULL);
 
-			G.afbreek = 0;
-			G.rendering = 1;
+			G.is_break = FALSE;
+			G.is_rendering = TRUE;
 
 			WM_jobs_start(CTX_wm_manager(C), steve);
 
@@ -1528,7 +1528,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 			bkr.reports = op->reports;
 
 			RE_test_break_cb(bkr.re, NULL, thread_break);
-			G.afbreek = 0;   /* blender_test_break uses this global */
+			G.is_break = FALSE;   /* blender_test_break uses this global */
 
 			RE_Database_Baking(bkr.re, bmain, scene, scene->lay, scene->r.bake_mode, (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT : NULL);
 

@@ -391,7 +391,7 @@ static void exec_output_file(void *data, bNode *node, bNodeStack **in, bNodeStac
 	RenderData *rd= data;
 	NodeImageMultiFile *nimf= node->storage;
 	
-	if (!G.rendering) {
+	if (G.is_rendering == FALSE) {
 		/* only output files when rendering a sequence -
 		 * otherwise, it overwrites the output files just 
 		 * scrubbing through the timeline when the compositor updates */

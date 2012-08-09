@@ -372,11 +372,11 @@ void ED_area_overdraw(bContext *C)
 					if (az->ar) {
 						/* only display tab or icons when the region is hidden */
 						if (az->ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
-							if (G.rt == 3)
+							if (G.debug_value == 3)
 								region_draw_azone_icon(az);
-							else if (G.rt == 2)
+							else if (G.debug_value == 2)
 								region_draw_azone_tria(az);
-							else if (G.rt == 1)
+							else if (G.debug_value == 1)
 								region_draw_azone_tab(az);
 							else
 								region_draw_azone_tab_plus(az);
@@ -858,11 +858,11 @@ static void region_azone_initialize(ScrArea *sa, ARegion *ar, AZEdge edge)
 	az->edge = edge;
 	
 	if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
-		if (G.rt == 3)
+		if (G.debug_value == 3)
 			region_azone_icon(sa, az, ar);
-		else if (G.rt == 2)
+		else if (G.debug_value == 2)
 			region_azone_tria(sa, az, ar);
-		else if (G.rt == 1)
+		else if (G.debug_value == 1)
 			region_azone_tab(sa, az, ar);
 		else
 			region_azone_tab_plus(sa, az, ar);
@@ -1113,7 +1113,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 
 static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 {
-	short rt = 0; // CLAMPIS(G.rt, 0, 16);
+	short rt = 0; // CLAMPIS(G.debug_value, 0, 16);
 
 	if (sa->v1->vec.x > 0) sa->totrct.xmin = sa->v1->vec.x + 1 + rt;
 	else sa->totrct.xmin = sa->v1->vec.x;

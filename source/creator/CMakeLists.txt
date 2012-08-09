@@ -880,7 +880,6 @@ endif()
 		bf_imbuf_dds
 		bf_collada
 		bf_intern_bsp
-		bf_intern_bop
 		bf_intern_decimate
 		bf_intern_elbeem
 		bf_intern_ik

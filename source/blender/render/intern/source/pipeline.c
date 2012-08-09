@@ -139,7 +139,7 @@ static void result_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr)) {}
 static void result_rcti_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect)) {}
 static void stats_nothing(void *UNUSED(arg), RenderStats *UNUSED(rs)) {}
 static void float_nothing(void *UNUSED(arg), float UNUSED(val)) {}
-static int default_break(void *UNUSED(arg)) {return G.afbreek == 1;}
+static int default_break(void *UNUSED(arg)) { return G.is_break == TRUE; }
 
 static void stats_background(void *UNUSED(arg), RenderStats *rs)
 {
@@ -1200,7 +1200,7 @@ static void do_render_fields_blur_3d(Render *re)
 	/* also check for camera here */
 	if (camera == NULL) {
 		printf("ERROR: Cannot render, no camera\n");
-		G.afbreek = 1;
+		G.is_break = TRUE;
 		return;
 	}
 
@@ -1496,7 +1496,7 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 	bNode *node;
 
 	/* default start situation */
-	G.afbreek = 0;
+	G.is_break = FALSE;
 	
 	re->main = bmain;
 	re->scene = sce;
@@ -2035,7 +2035,7 @@ void RE_SetReports(Render *re, ReportList *reports)
 void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override, unsigned int lay, int frame, const short write_still)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
-	G.rendering = 1;
+	G.is_rendering = TRUE;
 	
 	scene->r.cfra = frame;
 	
@@ -2046,7 +2046,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 
 		do_render_all_options(re);
 
-		if (write_still && !G.afbreek) {
+		if (write_still && !G.is_break) {
 			if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 				/* operator checks this but in case its called from elsewhere */
 				printf("Error: cant write single images with a movie format!\n");
@@ -2063,10 +2063,10 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 		BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 	}
 
-	BLI_callback_exec(re->main, (ID *)scene, G.afbreek ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
+	BLI_callback_exec(re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
 
 	/* UGLY WARNING */
-	G.rendering = 0;
+	G.is_rendering = FALSE;
 }
 
 static void colormanage_image_for_write(Scene *scene, ImBuf *ibuf)
@@ -2188,16 +2188,16 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
 	/* is also set by caller renderwin.c */
-	G.rendering = 1;
+	G.is_rendering = TRUE;
 
 	re->flag |= R_ANIMATION;
 
 	if (BKE_imtype_is_movie(scene->r.im_format.imtype))
 		if (!mh->start_movie(scene, &re->r, re->rectx, re->recty, re->reports))
-			G.afbreek = 1;
+			G.is_break = TRUE;
 
 	if (mh->get_next_frame) {
-		while (!(G.afbreek == 1)) {
+		while (!(G.is_break == 1)) {
 			int nf = mh->get_next_frame(&re->r, re->reports);
 			if (nf >= 0 && nf >= scene->r.sfra && nf <= scene->r.efra) {
 				scene->r.cfra = re->r.cfra = nf;
@@ -2209,16 +2209,17 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 				if (re->test_break(re->tbh) == 0) {
 					if (!do_write_image_or_movie(re, bmain, scene, mh, NULL))
-						G.afbreek = 1;
+						G.is_break = TRUE;
 				}
 
-				if (G.afbreek == 0) {
+				if (G.is_break == FALSE) {
 					BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 				}
 			}
 			else {
-				if (re->test_break(re->tbh))
-					G.afbreek = 1;
+				if (re->test_break(re->tbh)) {
+					G.is_break = TRUE;
+				}
 			}
 		}
 	}
@@ -2274,14 +2275,14 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			totrendered++;
 			
 			if (re->test_break(re->tbh) == 0) {
-				if (!G.afbreek)
+				if (!G.is_break)
 					if (!do_write_image_or_movie(re, bmain, scene, mh, NULL))
-						G.afbreek = 1;
+						G.is_break = TRUE;
 			}
 			else
-				G.afbreek = 1;
+				G.is_break = TRUE;
 		
-			if (G.afbreek == 1) {
+			if (G.is_break == TRUE) {
 				/* remove touched file */
 				if (BKE_imtype_is_movie(scene->r.im_format.imtype) == 0) {
 					if (scene->r.mode & R_TOUCH && BLI_exists(name) && BLI_file_size(name) == 0) {
@@ -2292,7 +2293,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				break;
 			}
 
-			if (G.afbreek == 0) {
+			if (G.is_break == FALSE) {
 				BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
 			}
 		}
@@ -2309,10 +2310,10 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 	re->flag &= ~R_ANIMATION;
 
-	BLI_callback_exec(re->main, (ID *)scene, G.afbreek ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
+	BLI_callback_exec(re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
 
 	/* UGLY WARNING */
-	G.rendering = 0;
+	G.is_rendering = FALSE;
 }
 
 void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)

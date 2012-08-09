@@ -136,7 +136,7 @@ static int node_sockets_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	return (snode && snode->nodetree && G.rt == 777);
+	return (snode && snode->nodetree && G.debug_value == 777);
 }
 
 static void node_sockets_panel(const bContext *C, Panel *pa)

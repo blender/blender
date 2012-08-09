@@ -1938,10 +1938,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	view3d_set_viewcontext(C, &vc);
 	
 	select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 	extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (vc.obedit) {

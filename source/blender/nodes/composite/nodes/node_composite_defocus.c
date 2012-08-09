@@ -254,6 +254,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 	BokehCoeffs BKH[8];	// bokeh shape data, here never > 8 pts.
 	float bkh_b[4] = {0};	// shape 2D bound
 	float cam_fdist=1, cam_invfdist=1, cam_lens=35;
+	float cam_sensor = DEFAULT_SENSOR_WIDTH;
 	float dof_sp, maxfgc, bk_hn_theta=0, inradsq=0;
 	int y, len_bkh=0, ydone = FALSE;
 	float aspect, aperture;
@@ -268,17 +269,17 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		Camera* cam = (Camera*)camob->data;
 		cam_lens = cam->lens;
 		cam_fdist = BKE_camera_object_dof_distance(camob);
-		if (cam_fdist==0.0f) cam_fdist = 1e10f; /* if the dof is 0.0 then set it be be far away */
-		cam_invfdist = 1.f/cam_fdist;
+		cam_sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
+		if (cam_fdist == 0.0f) cam_fdist = 1e10f; /* if the dof is 0.0 then set it be be far away */
+		cam_invfdist = 1.f / cam_fdist;
 	}
-
 	// guess work here.. best match with raytraced result
 	minsz = MIN2(img->x, img->y);
-	dof_sp = (float)minsz / (16.f / cam_lens);	// <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
+	dof_sp = (float)minsz / ((cam_sensor / 2.0f) / cam_lens);	// <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
 	
 	// aperture
 	aspect = (img->x > img->y) ? (img->y / (float)img->x) : (img->x / (float)img->y);
-	aperture = 0.5f*(cam_lens / (aspect*32.f)) / nqd->fstop;
+	aperture = 0.5f * (cam_lens / (aspect * cam_sensor)) / nqd->fstop;
 	
 	// if not disk, make bokeh coefficients and other needed data
 	if (nqd->bktype!=0) {

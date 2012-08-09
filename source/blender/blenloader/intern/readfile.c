@@ -9430,7 +9430,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 
 					/* allow typing in a new lib path */
-					if (G.rt == -666) {
+					if (G.debug_value == -666) {
 						while (fd == NULL) {
 							char newlib_path[FILE_MAX] = {0};
 							printf("Missing library...'\n");

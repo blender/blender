@@ -3975,9 +3975,9 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	if (R.test_break(R.tbh))
 		return NULL;
 	
-	if (R.osa>16) { /* MAX_OSA */
+	if (R.osa > 16) {  /* MAX_OSA */
 		printf("zbuffer_transp_shade: osa too large\n");
-		G.afbreek= 1;
+		G.is_break = TRUE;
 		return NULL;
 	}
 	

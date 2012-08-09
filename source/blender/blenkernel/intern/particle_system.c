@@ -4104,7 +4104,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			}
 	
 			gzread(gzf, &totpart, sizeof(totpart));
-			totpart = (G.rendering)?totpart:(part->disp*totpart)/100;
+			totpart = (G.is_rendering)?totpart:(part->disp*totpart) / 100;
 			
 			part->totpart= totpart;
 			part->sta=part->end = 1.0f;

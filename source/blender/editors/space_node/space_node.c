@@ -343,7 +343,7 @@ static void node_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 
 	/* convert mouse coordinates to v2d space */
 	UI_view2d_region_to_view(&ar->v2d, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin,
-	                         &snode->mx, &snode->my);
+	                         &snode->cursor[0], &snode->cursor[1]);
 
 	node_set_cursor(win, snode);
 }

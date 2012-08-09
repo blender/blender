@@ -212,7 +212,7 @@ static void seq_proxy_build_job(const bContext *C)
 	SEQ_END
 
 	if (!WM_jobs_is_running(steve)) {
-		G.afbreek = 0;
+		G.is_break = FALSE;
 		WM_jobs_start(CTX_wm_manager(C), steve);
 	}
 

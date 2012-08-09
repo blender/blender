@@ -502,7 +502,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 		BLI_edgehash_free(ehash2, NULL);
 	}
 
-// XXX	if (G.rt == 8)
+// XXX	if (G.debug_value == 8)
 //		unwrap_lscm(1);
 
 	me->drawflag |= ME_DRAWSEAMS;

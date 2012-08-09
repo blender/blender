@@ -86,8 +86,9 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 	const int2 realCoordinate = coords + offsetOutput;
 
 	float4 readColor;
+	float4 tempColor;
 	float4 bokeh;
-	float tempSize;
+	float size;
 	float4 multiplier_accum = {1.0f, 1.0f, 1.0f, 1.0f};
 	float4 color_accum;
 	
@@ -98,10 +99,11 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 	
 	{
 		int2 inputCoordinate = realCoordinate - offsetInput;
-		float size = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
+		float size_center = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
 		color_accum = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);
+		readColor = color_accum;
 
-		if (size > threshold) {
+		if (size_center > threshold) {
 			for (int ny = miny; ny < maxy; ny += step) {
 				inputCoordinate.s1 = ny - offsetInput.s1;
 				float dy = ny - realCoordinate.s1;
@@ -109,13 +111,14 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 					float dx = nx - realCoordinate.s0;
 					if (dx != 0 || dy != 0) {
 						inputCoordinate.s0 = nx - offsetInput.s0;
-						tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
-						if (tempSize > threshold) {
-							if (tempSize >= fabs(dx) && tempSize >= fabs(dy)) {
-								float2 uv = { 256.0f + dx * 255.0f / tempSize, 256.0f + dy * 255.0f / tempSize};
+						size = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
+						if (size > threshold) {
+							if (size >= fabs(dx) && size >= fabs(dy)) {
+								float2 uv = {256.0f + dx * 255.0f / size,
+								             256.0f + dy * 255.0f / size};
 								bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);
-								readColor = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);
-								color_accum += bokeh*readColor;
+								tempColor = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);
+								color_accum += bokeh * tempColor;
 								multiplier_accum += bokeh;
 							}
 						}
@@ -123,10 +126,20 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 				}
 			} 
 		}
-	}
 
-	color = color_accum * (1.0f / multiplier_accum);
-	write_imagef(output, coords, color);
+		color = color_accum * (1.0f / multiplier_accum);
+		
+		/* blend in out values over the threshold, otherwise we get sharp, ugly transitions */
+		if ((size_center > threshold) &&
+		    (size_center < threshold * 2.0f))
+		{
+			/* factor from 0-1 */
+			float fac = (size_center - threshold) / threshold;
+			color = (readColor * (1.0f - fac)) +  (color * fac);
+		}
+		
+		write_imagef(output, coords, color);
+	}
 }
 
 
@@ -150,7 +163,7 @@ __kernel void dilateKernel(__read_only image2d_t inputImage,  __write_only image
 		const float deltaY = (realCoordinate.y - ny);
 		for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx ++, inputXy.x++) {
 			const float deltaX = (realCoordinate.x - nx);
-			const float measuredDistance = deltaX*deltaX+deltaY*deltaY;
+			const float measuredDistance = deltaX * deltaX + deltaY * deltaY;
 			if (measuredDistance <= distanceSquared) {
 				value = max(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);
 			}
@@ -181,7 +194,7 @@ __kernel void erodeKernel(__read_only image2d_t inputImage,  __write_only image2
 		for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx ++, inputXy.x++) {
 			const float deltaX = (realCoordinate.x - nx);
 			const float deltaY = (realCoordinate.y - ny);
-			const float measuredDistance = deltaX*deltaX+deltaY*deltaY;
+			const float measuredDistance = deltaX * deltaX+deltaY * deltaY;
 			if (measuredDistance <= distanceSquared) {
 				value = min(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);
 			}

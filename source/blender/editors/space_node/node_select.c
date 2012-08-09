@@ -330,8 +330,8 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 	/* get mouse coordinates in view2d space */
 	UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &mx, &my);
 	/* node_find_indicated_socket uses snode->mx/my */
-	snode->mx = mx;
-	snode->my = my;
+	snode->cursor[0] = mx;
+	snode->cursor[1] = my;
 	
 	if (extend) {
 		/* first do socket selection, these generally overlap with nodes.
@@ -467,12 +467,9 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 	int extend = RNA_boolean_get(op->ptr, "extend");
 	
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	WM_operator_properties_border_to_rcti(op, &rect);
+
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
-	
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 	
 	for (node = snode->edittree->nodes.first; node; node = node->next) {

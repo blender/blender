@@ -375,7 +375,7 @@ int RE_engine_render(Render *re, int do_all)
 	RE_engine_free(engine);
 
 	if (BKE_reports_contain(re->reports, RPT_ERROR))
-		G.afbreek = 1;
+		G.is_break = TRUE;
 	
 	return 1;
 }

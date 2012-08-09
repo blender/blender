@@ -4783,7 +4783,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	 * pin so changing states dosnt hide the logic brick */
 	char pin;
 
-	if (G.rt == 0) {
+	if (G.debug_value == 0) {
 		logic_buttons_new(C, ar);
 		return;
 	}

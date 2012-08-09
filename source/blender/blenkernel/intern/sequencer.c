@@ -1329,7 +1329,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 		*progress = (float) cfra / (seq->enddisp - seq->endstill - seq->startdisp + seq->startstill);
 		*do_update = TRUE;
 
-		if (*stop || G.afbreek)
+		if (*stop || G.is_break)
 			break;
 	}
 }
@@ -2127,7 +2127,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	 * for display in render/imagewindow
 	 *
 	 * Hmm, don't see, why we can't do that all the time,
-	 * and since G.rendering is uhm, gone... (Peter)
+	 * and since G.is_rendering is uhm, gone... (Peter)
 	 */
 
 	/* New info:
@@ -2148,9 +2148,9 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	 * -jahka
 	 */
 
-	int rendering = G.rendering;
+	int rendering = G.is_rendering;
 	int doseq;
-	int doseq_gl = G.rendering ? /*(scene->r.seq_flag & R_SEQ_GL_REND)*/ 0 : /*(scene->r.seq_flag & R_SEQ_GL_PREV)*/ 1;
+	int doseq_gl = G.is_rendering ? /*(scene->r.seq_flag & R_SEQ_GL_REND)*/ 0 : /*(scene->r.seq_flag & R_SEQ_GL_PREV)*/ 1;
 	int have_seq = FALSE;
 	Scene *scene;
 
@@ -2218,7 +2218,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 			RE_BlenderFrame(re, context.bmain, scene, NULL, camera, scene->lay, frame, FALSE);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
-			G.rendering = rendering;
+			G.is_rendering = rendering;
 		}
 		
 		RE_AcquireResultImage(re, &rres);

@@ -41,7 +41,7 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "	float4 color = {0.0f,0.0f,0.0f,0.0f};\n" \
 "	float4 multiplyer = {0.0f,0.0f,0.0f,0.0f};\n" \
 "	float4 bokeh;\n" \
-"	const float radius2 = radius * 2.0f;\n" \
+"	const float radius2 = radius*2.0f;\n" \
 "	const int2 realCoordinate = coords + offsetOutput;\n" \
 "\n" \
 "	tempBoundingBox = read_imagef(boundingBox, SAMPLER_NEAREST, coords).s0;\n" \
@@ -56,10 +56,10 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "		float2 uv;\n" \
 "		int2 inputXy;\n" \
 "\n" \
-"		for (ny = minXY.y, inputXy.y = ny - offsetInput.y ; ny < maxXY.y ; ny += step, inputXy.y += step) {\n" \
+"		for (ny = minXY.y, inputXy.y = ny - offsetInput.y ; ny < maxXY.y ; ny +=step, inputXy.y+=step) {\n" \
 "			uv.y = ((realCoordinate.y-ny)/radius2)*bokehImageDim.y+bokehImageCenter.y;\n" \
 "\n" \
-"			for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx += step, inputXy.x += step) {\n" \
+"			for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx +=step, inputXy.x+=step) {\n" \
 "				uv.x = ((realCoordinate.x-nx)/radius2)*bokehImageDim.x+bokehImageCenter.x;\n" \
 "				bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);\n" \
 "				color += bokeh * read_imagef(inputImage, SAMPLER_NEAREST, inputXy);\n" \
@@ -88,8 +88,9 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "	const int2 realCoordinate = coords + offsetOutput;\n" \
 "\n" \
 "	float4 readColor;\n" \
+"	float4 tempColor;\n" \
 "	float4 bokeh;\n" \
-"	float tempSize;\n" \
+"	float size;\n" \
 "	float4 multiplier_accum = {1.0f, 1.0f, 1.0f, 1.0f};\n" \
 "	float4 color_accum;\n" \
 "\n" \
@@ -100,10 +101,11 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "\n" \
 "	{\n" \
 "		int2 inputCoordinate = realCoordinate - offsetInput;\n" \
-"		float size = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
+"		float size_center = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
 "		color_accum = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);\n" \
+"		readColor = color_accum;\n" \
 "\n" \
-"		if (size > threshold) {\n" \
+"		if (size_center > threshold) {\n" \
 "			for (int ny = miny; ny < maxy; ny += step) {\n" \
 "				inputCoordinate.s1 = ny - offsetInput.s1;\n" \
 "				float dy = ny - realCoordinate.s1;\n" \
@@ -111,13 +113,14 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "					float dx = nx - realCoordinate.s0;\n" \
 "					if (dx != 0 || dy != 0) {\n" \
 "						inputCoordinate.s0 = nx - offsetInput.s0;\n" \
-"						tempSize = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
-"						if (tempSize > threshold) {\n" \
-"							if (tempSize >= fabs(dx) && tempSize >= fabs(dy)) {\n" \
-"								float2 uv = { 256.0f + dx * 256.0f / tempSize, 256.0f + dy * 256.0f / tempSize};\n" \
+"						size = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;\n" \
+"						if (size > threshold) {\n" \
+"							if (size >= fabs(dx) && size >= fabs(dy)) {\n" \
+"								float2 uv = {256.0f + dx * 255.0f / size,\n" \
+"								             256.0f + dy * 255.0f / size};\n" \
 "								bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);\n" \
-"								readColor = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);\n" \
-"								color_accum += bokeh * readColor;\n" \
+"								tempColor = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);\n" \
+"								color_accum += bokeh * tempColor;\n" \
 "								multiplier_accum += bokeh;\n" \
 "							}\n" \
 "						}\n" \
@@ -125,10 +128,20 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "				}\n" \
 "			}\n" \
 "		}\n" \
-"	}\n" \
 "\n" \
-"	color = color_accum * (1.0f / multiplier_accum);\n" \
-"	write_imagef(output, coords, color);\n" \
+"		color = color_accum * (1.0f / multiplier_accum);\n" \
+"\n" \
+"		/* blend in out values over the threshold, otherwise we get sharp, ugly transitions */\n" \
+"		if ((size_center > threshold) &&\n" \
+"		    (size_center < threshold * 2.0f))\n" \
+"		{\n" \
+"			/* factor from 0-1 */\n" \
+"			float fac = (size_center - threshold) / threshold;\n" \
+"			color = (readColor * (1.0f - fac)) +  (color * fac);\n" \
+"		}\n" \
+"\n" \
+"		write_imagef(output, coords, color);\n" \
+"	}\n" \
 "}\n" \
 "\n" \
 "\n" \
@@ -183,7 +196,7 @@ const char * clkernelstoh_COM_OpenCLKernels_cl = "/*\n" \
 "		for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx ++, inputXy.x++) {\n" \
 "			const float deltaX = (realCoordinate.x - nx);\n" \
 "			const float deltaY = (realCoordinate.y - ny);\n" \
-"			const float measuredDistance = deltaX * deltaX + deltaY * deltaY;\n" \
+"			const float measuredDistance = deltaX * deltaX+deltaY * deltaY;\n" \
 "			if (measuredDistance <= distanceSquared) {\n" \
 "				value = min(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);\n" \
 "			}\n" \

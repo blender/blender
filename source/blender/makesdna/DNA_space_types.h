@@ -885,7 +885,7 @@ typedef struct SpaceNode {
 	
 	float xof, yof;     /* offset for drawing the backdrop */
 	float zoom;   /* zoom for backdrop */
-	float mx, my;       /* mousepos for drawing socketless link */
+	float cursor[2];    /* mouse pos for drawing socketless link and adding nodes */
 	
 	struct bNodeTree *nodetree, *edittree;
 	int treetype;       /* treetype: as same nodetree->type */

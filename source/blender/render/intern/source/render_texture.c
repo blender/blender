@@ -112,7 +112,7 @@ static void init_render_texture(Render *re, Tex *tex)
 				tex->extend= TEX_EXTEND;
 			
 			/* only free envmap when rendermode was set to render envmaps, for previewrender */
-			if (G.rendering && re) {
+			if (G.is_rendering && re) {
 				if (re->r.mode & R_ENVMAP)
 					if (tex->env->stype==ENV_ANIM)
 						BKE_free_envmapdata(tex->env);

@@ -1941,7 +1941,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							}
 
 						}
-						if ((deflected < 2)&& (G.rt != 444)) { /* we did not hit a face until now */
+						if ((deflected < 2)&& (G.debug_value != 444)) { /* we did not hit a face until now */
 							/* see if 'outer' hits an edge */
 							float dist;
 
@@ -2493,7 +2493,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, float timenow, int nl_flags)
 {
 	/* redirection to the new threaded Version */
-	if (!(G.rt & 0x10)) { // 16
+	if (!(G.debug_value & 0x10)) { // 16
 		softbody_calc_forcesEx(scene, ob, forcetime, timenow, nl_flags);
 		return;
 	}
@@ -2504,7 +2504,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		/*backward compatibility note:
 		fixing bug [17428] which forces adaptive step size to tiny steps
 		in some situations
-		.. keeping G.rt==17 0x11 option for old files 'needing' the bug*/
+		.. keeping G.debug_value==17 0x11 option for old files 'needing' the bug*/
 
 		/* rule we never alter free variables :bp->vec bp->pos in here !
 		* this will ruin adaptive stepsize AKA heun! (BM)
@@ -2756,9 +2756,9 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 					if (sb_deflect_face(ob, bp->pos, facenormal, defforce, &cf, timenow, vel, &intrusion)) {
 						if ((!nl_flags)&&(intrusion < 0.0f)) {
-							if (G.rt & 0x01) { // 17 we did check for bit 0x10 before
+							if (G.debug_value & 0x01) { // 17 we did check for bit 0x10 before
 								/*fixing bug [17428] this forces adaptive step size to tiny steps
-								in some situations .. keeping G.rt==17 option for old files 'needing' the bug
+								in some situations .. keeping G.debug_value==17 option for old files 'needing' the bug
 								*/
 								/*bjornmose:  uugh.. what an evil hack
 								violation of the 'don't touch bp->pos in here' rule
@@ -2837,7 +2837,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 			nlEnd(NL_MATRIX);
 			nlEnd(NL_SYSTEM);
 
-			if ((G.rt == 32) && (nl_flags & NLF_BUILD)) {
+			if ((G.debug_value == 32) && (nl_flags & NLF_BUILD)) {
 				printf("####MEE#####\n");
 				nlPrintMatrix();
 			}
@@ -2849,7 +2849,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 				float f;
 				int index =0;
 				/* for debug purpose .. anyhow cropping B vector looks like working */
-				if (G.rt ==32)
+				if (G.debug_value ==32)
 					for (a=2*sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 						f=nlGetVariable(0, index);
 						printf("(%f ", f);index++;

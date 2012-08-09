@@ -174,7 +174,7 @@ static void blender_esc(int sig)
 {
 	static int count = 0;
 	
-	G.afbreek = 1;  /* forces render loop to read queue, not sure if its needed */
+	G.is_break = TRUE;  /* forces render loop to read queue, not sure if its needed */
 	
 	if (sig == 2) {
 		if (count) {
@@ -390,7 +390,7 @@ static int debug_mode_libmv(int UNUSED(argc), const char **UNUSED(argv), void *U
 static int set_debug_value(int argc, const char **argv, void *UNUSED(data))
 {
 	if (argc > 1) {
-		G.rt = atoi(argv[1]);
+		G.debug_value = atoi(argv[1]);
 
 		return 1;
 	}

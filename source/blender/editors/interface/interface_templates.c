@@ -2562,7 +2562,7 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 {
 	switch (event) {
 		case B_STOPRENDER:
-			G.afbreek = 1;
+			G.is_break = TRUE;
 			break;
 		case B_STOPCAST:
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C), NULL);

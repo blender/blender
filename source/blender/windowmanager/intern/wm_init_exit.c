@@ -499,5 +499,5 @@ void WM_exit_ext(bContext *C, const short do_python)
 void WM_exit(bContext *C)
 {
 	WM_exit_ext(C, 1);
-	exit(G.afbreek == 1);
+	exit(G.is_break == TRUE);
 }

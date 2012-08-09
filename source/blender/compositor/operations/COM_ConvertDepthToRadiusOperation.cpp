@@ -22,6 +22,7 @@
 
 #include "COM_ConvertDepthToRadiusOperation.h"
 #include "BLI_math.h"
+#include "BKE_camera.h"
 #include "DNA_camera_types.h"
 
 ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation() : NodeOperation()
@@ -37,41 +38,35 @@ ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation() : NodeOperation()
 
 float ConvertDepthToRadiusOperation::determineFocalDistance()
 {
-
-	if (this->m_cameraObject == NULL || this->m_cameraObject->type != OB_CAMERA) {
-		return 10.0f;
-	}
-	else {
+	if (this->m_cameraObject && this->m_cameraObject->type == OB_CAMERA) {
 		Camera *camera = (Camera *)this->m_cameraObject->data;
 		this->m_cam_lens = camera->lens;
-		if (camera->dof_ob) {
-			/* too simple, better to return the distance on the view axis only
-			 * return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]); */
-			float mat[4][4], imat[4][4], obmat[4][4];
-
-			copy_m4_m4(obmat, this->m_cameraObject->obmat);
-			normalize_m4(obmat);
-			invert_m4_m4(imat, obmat);
-			mult_m4_m4m4(mat, imat, camera->dof_ob->obmat);
-			return fabsf(mat[3][2]);
-		}
-		else {
-			return camera->YF_dofdist;
-		}
+		return BKE_camera_object_dof_distance(this->m_cameraObject);
+	}
+	else {
+		return 10.0f;
 	}
 }
 
 void ConvertDepthToRadiusOperation::initExecution()
 {
+	float cam_sensor = DEFAULT_SENSOR_WIDTH;
+	Camera *camera = NULL;
+
+	if (this->m_cameraObject && this->m_cameraObject->type == OB_CAMERA) {
+		camera = (Camera *)this->m_cameraObject->data;
+		cam_sensor = BKE_camera_sensor_size(camera->sensor_fit, camera->sensor_x, camera->sensor_y);
+	}
+
 	this->m_inputOperation = this->getInputSocketReader(0);
 	float focalDistance = determineFocalDistance();
 	if (focalDistance == 0.0f) focalDistance = 1e10f;  /* if the dof is 0.0 then set it be be far away */
-	this->m_inverseFocalDistance = 1.f / focalDistance;
+	this->m_inverseFocalDistance = 1.0f / focalDistance;
 	this->m_aspect = (this->getWidth() > this->getHeight()) ? (this->getHeight() / (float)this->getWidth()) : (this->getWidth() / (float)this->getHeight());
-	this->m_aperture = 0.5f * (this->m_cam_lens / (this->m_aspect * 32.0f)) / this->m_fStop;
-	float minsz = MIN2(getWidth(), getHeight());
-	this->m_dof_sp = (float)minsz / (16.f / this->m_cam_lens);    // <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
-	
+	this->m_aperture = 0.5f * (this->m_cam_lens / (this->m_aspect * cam_sensor)) / this->m_fStop;
+	float minsz = min(getWidth(), getHeight());
+	this->m_dof_sp = (float)minsz / ((cam_sensor / 2.0f) / this->m_cam_lens);    // <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
+
 	if (this->m_blurPostOperation) {
 		m_blurPostOperation->setSigma(min(m_aperture * 128.0f, this->m_maxRadius));
 	}

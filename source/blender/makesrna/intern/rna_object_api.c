@@ -347,10 +347,10 @@ void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
 		free_object_duplilist(ob->duplilist);
 		ob->duplilist = NULL;
 	}
-	if (G.rendering)
+	if (G.is_rendering)
 		dupli_render_particle_set(sce, ob, 0, 1);
 	ob->duplilist = object_duplilist(sce, ob);
-	if (G.rendering)
+	if (G.is_rendering)
 		dupli_render_particle_set(sce, ob, 0, 0);
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }

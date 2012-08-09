@@ -3193,8 +3193,7 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 	}
 	else {
 		if (snode == NULL) return 0;
-		vec[0][0] = snode->mx;
-		vec[0][1] = snode->my;
+		copy_v2_v2(vec[0], snode->cursor);
 		fromreroute = 0;
 	}
 	if (link->tosock) {
@@ -3204,8 +3203,7 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 	}
 	else {
 		if (snode == NULL) return 0;
-		vec[3][0] = snode->mx;
-		vec[3][1] = snode->my;
+		copy_v2_v2(vec[3], snode->cursor);
 		toreroute = 0;
 	}
 

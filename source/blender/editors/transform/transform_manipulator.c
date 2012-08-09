@@ -855,7 +855,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 	float size, unitmat[4][4];
 	float cywid = 0.33f * 0.01f * (float)U.tw_handlesize;
 	float cusize = cywid * 0.65f;
-	int arcs = (G.rt != 2);
+	int arcs = (G.debug_value != 2);
 	int colcode;
 	int ortho;
 
@@ -1517,7 +1517,7 @@ void BIF_draw_manipulator(const bContext *C)
 		glEnable(GL_BLEND);
 		if (v3d->twtype & V3D_MANIP_ROTATE) {
 
-			if (G.rt == 3) {
+			if (G.debug_value == 3) {
 				if (G.moving) draw_manipulator_rotate_cyl(v3d, rv3d, 1, drawflags, v3d->twtype, MAN_MOVECOL);
 				else draw_manipulator_rotate_cyl(v3d, rv3d, 0, drawflags, v3d->twtype, MAN_RGB);
 			}
@@ -1561,7 +1561,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 
 	/* do the drawing */
 	if (v3d->twtype & V3D_MANIP_ROTATE) {
-		if (G.rt == 3) draw_manipulator_rotate_cyl(v3d, rv3d, 0, MAN_ROT_C & rv3d->twdrawflag, v3d->twtype, MAN_RGB);
+		if (G.debug_value == 3) draw_manipulator_rotate_cyl(v3d, rv3d, 0, MAN_ROT_C & rv3d->twdrawflag, v3d->twtype, MAN_RGB);
 		else draw_manipulator_rotate(v3d, rv3d, 0, MAN_ROT_C & rv3d->twdrawflag, v3d->twtype);
 	}
 	if (v3d->twtype & V3D_MANIP_SCALE)

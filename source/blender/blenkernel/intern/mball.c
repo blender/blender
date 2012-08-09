@@ -2288,7 +2288,7 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	mb = ob->data;
 
 	if (totelem == 0) return;
-	if (!(G.rendering) && (mb->flag == MB_UPDATE_NEVER)) return;
+	if ((G.is_rendering == FALSE) && (mb->flag == MB_UPDATE_NEVER)) return;
 	if (G.moving && mb->flag == MB_UPDATE_FAST) return;
 
 	curindex = totindex = 0;
@@ -2335,7 +2335,7 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	}
 
 	/* width is size per polygonize cube */
-	if (G.rendering) width = mb->rendersize;
+	if (G.is_rendering) width = mb->rendersize;
 	else {
 		width = mb->wiresize;
 		if (G.moving && mb->flag == MB_UPDATE_HALFRES) width *= 2;

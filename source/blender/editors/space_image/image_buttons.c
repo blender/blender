@@ -238,7 +238,7 @@ void image_preview_event(int event)
 		
 		ntreeCompositTagGenerators(G.scene->nodetree);
 
-		G.afbreek = 0;
+		G.is_break = FALSE;
 		G.scene->nodetree->timecursor = set_timecursor;
 		G.scene->nodetree->test_break = blender_test_break;
 		

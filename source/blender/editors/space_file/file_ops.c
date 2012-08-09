@@ -243,10 +243,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (result == OPERATOR_RUNNING_MODAL) {
 
-		rect.xmin = RNA_int_get(op->ptr, "xmin");
-		rect.ymin = RNA_int_get(op->ptr, "ymin");
-		rect.xmax = RNA_int_get(op->ptr, "xmax");
-		rect.ymax = RNA_int_get(op->ptr, "ymax");
+		WM_operator_properties_border_to_rcti(op, &rect);
 
 		BLI_rcti_isect(&(ar->v2d.mask), &rect, &rect);
 
@@ -277,10 +274,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	int extend = RNA_boolean_get(op->ptr, "extend");
 	short select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
 
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 
 	if (!extend) {
 		SpaceFile *sfile = CTX_wm_space_file(C);

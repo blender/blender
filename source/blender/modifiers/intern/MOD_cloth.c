@@ -169,7 +169,7 @@ static void freeData(ModifierData *md)
 	ClothModifierData *clmd = (ClothModifierData *) md;
 	
 	if (clmd) {
-		if (G.rt > 0)
+		if (G.debug_value > 0)
 			printf("clothModifier_freeData\n");
 		
 		cloth_free_modifier_extern(clmd);
