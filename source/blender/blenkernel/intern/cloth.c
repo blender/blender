@@ -96,6 +96,7 @@ static CM_SOLVER_DEF	solvers [] =
 static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*vertexCos)[3]);
 static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first);
+static void cloth_update_springs( ClothModifierData *clmd );
 static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
 
@@ -404,6 +405,10 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	}
 
 	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights);
+
+	/* Support for dynamic vertex groups, changing from frame to frame */
+	cloth_apply_vgroup ( clmd, result );
+	cloth_update_springs( clmd );
 	
 	tstart();
 
@@ -793,6 +798,8 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
 			if ( dvert ) {
 				for ( j = 0; j < dvert->totweight; j++ ) {
+
+					verts->flags &= ~CLOTH_VERT_FLAG_PINNED;
 					if (( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass-1)) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) {
 						verts->goal = dvert->dw [j].weight;
 						/* goalfac= 1.0f; */ /* UNUSED */
@@ -803,9 +810,8 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						*/
 						
 						verts->goal  = powf(verts->goal, 4.0f);
-						if ( verts->goal >=SOFTGOALSNAP ) {
+						if ( verts->goal >=SOFTGOALSNAP )
 							 verts->flags |= CLOTH_VERT_FLAG_PINNED;
-						}
 					}
 					
 					if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) {
@@ -819,6 +825,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						}
 					}
 
+					verts->flags &= ~CLOTH_VERT_FLAG_NOSELFCOLL;
 					if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF ) {
 						if ( dvert->dw[j].def_nr == (clmd->coll_parms->vgroup_selfcol-1)) {
 							if (dvert->dw [j].weight > 0.0f) {
@@ -826,13 +833,6 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 							}
 						}
 					}
-					/*
-					// for later
-					if ( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_weight-1))
-					{
-						verts->mass = dvert->dw [j].weight;
-					}
-					*/
 				}
 			}
 		}
@@ -1056,6 +1056,37 @@ static void cloth_free_errorsprings(Cloth *cloth, EdgeHash *UNUSED(edgehash), Li
 	
 	if (cloth->edgehash)
 		BLI_edgehash_free ( cloth->edgehash, NULL );
+}
+
+/* update stiffness if vertex group values are changing from frame to frame */
+static void cloth_update_springs( ClothModifierData *clmd )
+{
+	Cloth *cloth = clmd->clothObject;
+	LinkNode *search = NULL;
+
+	search = cloth->springs;
+	while (search) {
+		ClothSpring *spring = search->link;
+
+		spring->stiffness = 0.0f;
+
+		if(spring->type == CLOTH_SPRING_TYPE_STRUCTURAL)
+		{
+			spring->stiffness = (cloth->verts[spring->kl].struct_stiff + cloth->verts[spring->ij].struct_stiff) / 2.0f;
+		}
+		else if(spring->type == CLOTH_SPRING_TYPE_SHEAR)
+		{
+			spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0f;
+		}
+		else if(spring->type == CLOTH_SPRING_TYPE_BENDING)
+		{
+			spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
+		}
+		
+		search = search->next;
+	}
+
+
 }
 
 static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
