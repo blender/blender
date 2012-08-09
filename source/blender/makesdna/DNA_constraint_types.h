@@ -415,7 +415,8 @@ typedef struct bShrinkwrapConstraint {
 typedef struct bFollowTrackConstraint {
 	struct MovieClip	*clip;
 	char	track[64];	/* MAX_NAME */
-	int		flag, pad;
+	int		flag;
+	int		frame_method;
 	char		object[64];	/* MAX_NAME */
 	struct Object *camera;
 	struct Object *depth_ob;
@@ -779,6 +780,12 @@ typedef enum eFollowTrack_Flags {
 	FOLLOWTRACK_ACTIVECLIP	= (1<<0),
 	FOLLOWTRACK_USE_3D_POSITION	= (1<<1)
 } eFollowTrack_Flags;
+
+typedef enum eFollowTrack_FrameMethod {
+	FOLLOWTRACK_FRAME_STRETCH = 0,
+	FOLLOWTRACK_FRAME_FIT = 1,
+	FOLLOWTRACK_FRAME_CROP = 2
+} eFollowTrack_FrameMethod;
 
 /* CameraSolver Constraint -> flag */
 typedef enum eCameraSolver_Flags {
