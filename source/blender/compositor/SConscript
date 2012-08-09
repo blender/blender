@@ -11,4 +11,7 @@ incs += '../opencl ../nodes ../nodes/intern ../nodes/composite '
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
+# data files
+incs += ' ' + env['DATA_HEADERS']
+
 env.BlenderLib ( 'bf_composite', sources, Split(incs), defines=defs, libtype=['core'], priority = [164] )

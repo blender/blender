@@ -445,6 +445,50 @@ if not os.path.isdir ( B.root_build_dir):
 # if not os.path.isdir(B.doc_build_dir) and env['WITH_BF_DOCS']:
 #     os.makedirs ( B.doc_build_dir )
 
+###################################
+# Ensure all data files are valid #
+###################################
+if not os.path.isdir ( B.root_build_dir + 'data_headers'):
+	os.makedirs ( B.root_build_dir + 'data_headers' )
+# use for includes
+env['DATA_HEADERS'] = "#" + env['BF_BUILDDIR'] + "/data_headers"
+def ensure_data(FILE_FROM, FILE_TO, VAR_NAME):
+	if os.sep == "\\":
+		FILE_FROM = FILE_FROM.replace("/", "\\")
+		FILE_TO   = FILE_TO.replace("/", "\\")
+
+	# first check if we need to bother.
+	if os.path.exists(FILE_TO):
+		if os.path.getmtime(FILE_FROM) < os.path.getmtime(FILE_TO):
+			return
+
+	print(B.bc.HEADER + "Generating: " + B.bc.ENDC + "%r" % os.path.basename(FILE_TO))
+	fpin = open(FILE_FROM, "rb")
+	fpin.seek(0, os.SEEK_END)
+	size = fpin.tell()
+	fpin.seek(0)
+
+	fpout = open(FILE_TO, "w")
+	fpout.write("int  %s_size = %d;\n" % (VAR_NAME, size))
+	fpout.write("char %s[] = {\n" % VAR_NAME)
+
+	while size > 0:
+		size -= 1
+		if size % 32 == 31:
+			fpout.write("\n")
+
+		fpout.write("%3d," % ord(fpin.read(1)))
+	fpout.write("\n  0};\n\n")
+
+	fpin.close()
+	fpout.close()
+
+ensure_data("source/blender/compositor/operations/COM_OpenCLKernels.cl",
+            B.root_build_dir + "data_headers/COM_OpenCLKernels.cl.h",
+            "clkernelstoh_COM_OpenCLKernels_cl")
+
+##### END DATAFILES ##########
+
 Help(opts.GenerateHelpText(env))
 
 # default is new quieter output, but if you need to see the 
