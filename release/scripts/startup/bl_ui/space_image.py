@@ -106,6 +106,10 @@ class IMAGE_MT_select(Menu):
         layout.operator("uv.select_pinned")
         layout.operator("uv.select_linked")
 
+        layout.separator()
+
+        layout.operator("uv.select_split")
+
 
 class IMAGE_MT_image(Menu):
     bl_label = "Image"
