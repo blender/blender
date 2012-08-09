@@ -1592,7 +1592,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				ibuf = BKE_movieclip_get_ibuf(clip, &bgpic->cuser);
 
 				image_aspect[0] = clip->aspx;
-				image_aspect[1] = clip->aspx;
+				image_aspect[1] = clip->aspy;
 
 				/* working with ibuf from image and clip has got different workflow now.
 				 * ibuf acquired from clip is referenced by cache system and should
