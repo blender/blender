@@ -29,6 +29,8 @@ class MemoryBuffer;
 #include "BLI_rect.h"
 #include "COM_MemoryProxy.h"
 
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 	//#include "BLI_threads.h"
 	#include "BLI_math.h"
@@ -147,6 +149,18 @@ public:
 		const int dx = x - this->m_rect.xmin;
 		const int dy = y - this->m_rect.ymin;
 		const int offset = (this->m_chunkWidth * dy + dx) * COM_NUMBER_OF_CHANNELS;
+
+		BLI_assert(offset >= 0);
+		BLI_assert(offset < this->determineBufferSize() * COM_NUMBER_OF_CHANNELS);
+		BLI_assert(x >= this->m_rect.xmin && x < this->m_rect.xmax &&
+		           y >= this->m_rect.ymin && y < this->m_rect.ymax);
+
+#if 0
+		/* always true */
+		BLI_assert((int)(MEM_allocN_len(this->m_buffer) / sizeof(*this->m_buffer)) ==
+		           (int)(this->determineBufferSize() * COM_NUMBER_OF_CHANNELS));
+#endif
+
 		copy_v4_v4(result, &this->m_buffer[offset]);
 	}
 	
