@@ -33,7 +33,7 @@ private:
 	SocketReader *m_inputChannel4Operation;
 public:
 	CombineChannelsOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 	
 	void initExecution();
 	void deinitExecution();

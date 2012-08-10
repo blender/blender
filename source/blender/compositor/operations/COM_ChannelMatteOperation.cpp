@@ -83,7 +83,7 @@ void ChannelMatteOperation::deinitExecution()
 	this->m_inputImageProgram = NULL;
 }
 
-void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void ChannelMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inColor[4];
 	float alpha;
@@ -116,6 +116,6 @@ void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, P
 	 */
 	
 	/* don't make something that was more transparent less transparent */
-	outputValue[0] = min(alpha, inColor[3]);
+	output[0] = min(alpha, inColor[3]);
 }
 

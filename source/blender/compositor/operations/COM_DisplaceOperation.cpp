@@ -54,7 +54,7 @@ void DisplaceOperation::initExecution()
  * in order to take effect */
 #define DISPLACE_EPSILON    0.01f
 
-void DisplaceOperation::executePixel(float *color, int x, int y, void *data)
+void DisplaceOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float inVector[4];
 	float inScale[4];
@@ -96,7 +96,7 @@ void DisplaceOperation::executePixel(float *color, int x, int y, void *data)
 	dyt = signf(dyt) * maxf(fabsf(dyt), DISPLACE_EPSILON) / this->getHeight();
 
 	/* EWA filtering */
-	this->m_inputColorProgram->read(color, u, v, dxt, dyt);
+	this->m_inputColorProgram->read(output, u, v, dxt, dyt);
 }
 
 void DisplaceOperation::deinitExecution()

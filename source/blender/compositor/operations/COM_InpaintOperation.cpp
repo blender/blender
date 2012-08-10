@@ -240,11 +240,11 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 	return this->m_cached_buffer;
 }
 
-void InpaintSimpleOperation::executePixel(float *color, int x, int y, void *data)
+void InpaintSimpleOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	this->clamp_xy(x, y);
-	copy_v3_v3(color, this->get_pixel(x, y));
-	color[3] = 1.0f;
+	copy_v3_v3(output, this->get_pixel(x, y));
+	output[3] = 1.0f;
 }
 
 void InpaintSimpleOperation::deinitExecution()

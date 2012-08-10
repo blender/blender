@@ -31,7 +31,7 @@ MixColorOperation::MixColorOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixColorOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void MixColorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
@@ -53,12 +53,12 @@ void MixColorOperation::executePixel(float *outputValue, float x, float y, Pixel
 		float tmpr, tmpg, tmpb;
 		rgb_to_hsv(inputColor1[0], inputColor1[1], inputColor1[2], &rH, &rS, &rV);
 		hsv_to_rgb(colH, colS, rV, &tmpr, &tmpg, &tmpb);
-		outputValue[0] = valuem * (inputColor1[0]) + value * tmpr;
-		outputValue[1] = valuem * (inputColor1[1]) + value * tmpg;
-		outputValue[2] = valuem * (inputColor1[2]) + value * tmpb;
+		output[0] = valuem * (inputColor1[0]) + value * tmpr;
+		output[1] = valuem * (inputColor1[1]) + value * tmpg;
+		output[2] = valuem * (inputColor1[2]) + value * tmpb;
 	}
-	outputValue[3] = inputColor1[3];
+	output[3] = inputColor1[3];
 
-	clampIfNeeded(outputValue);
+	clampIfNeeded(output);
 }
 

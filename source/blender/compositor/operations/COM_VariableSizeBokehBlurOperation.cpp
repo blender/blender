@@ -90,7 +90,7 @@ void VariableSizeBokehBlurOperation::deinitializeTileData(rcti *rect, void *data
 	delete result;
 }
 
-void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, void *data)
+void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	VariableSizeBokehBlurTileData *tileData = (VariableSizeBokehBlurTileData *)data;
 	MemoryBuffer *inputProgramBuffer = tileData->color;
@@ -153,10 +153,10 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 			}
 		}
 
-		color[0] = color_accum[0] / multiplier_accum[0];
-		color[1] = color_accum[1] / multiplier_accum[1];
-		color[2] = color_accum[2] / multiplier_accum[2];
-		color[3] = color_accum[3] / multiplier_accum[3];
+		output[0] = color_accum[0] / multiplier_accum[0];
+		output[1] = color_accum[1] / multiplier_accum[1];
+		output[2] = color_accum[2] / multiplier_accum[2];
+		output[3] = color_accum[3] / multiplier_accum[3];
 
 		/* blend in out values over the threshold, otherwise we get sharp, ugly transitions */
 		if ((size_center > this->m_threshold) &&
@@ -164,7 +164,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 		{
 			/* factor from 0-1 */
 			float fac = (size_center - this->m_threshold) / this->m_threshold;
-			interp_v4_v4v4(color, readColor, color, fac);
+			interp_v4_v4v4(output, readColor, output, fac);
 		}
 	}
 
@@ -318,7 +318,7 @@ voi *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 	return data;
 }
 
-void InverseSearchRadiusOperation::executePixel(float *color, int x, int y, void *data) 
+void InverseSearchRadiusOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *buffer = (MemoryBuffer *)data;
 	buffer->readNoCheck(color, x, y);

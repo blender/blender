@@ -79,7 +79,7 @@ public:
 	void setTrackingObject(const char *object) {strncpy(this->m_trackingObject, object, sizeof(this->m_trackingObject));}
 	void setFramenumber(int framenumber) {this->m_framenumber = framenumber;}
 
-	void executePixel(float *color, int x, int y, void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 };
 
 #endif

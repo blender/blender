@@ -75,7 +75,7 @@ public:
 
 	void initExecution();
 
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 
 	const bool isSetOperation() const { return true; }
 };

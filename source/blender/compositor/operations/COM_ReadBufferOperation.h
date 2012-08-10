@@ -39,8 +39,8 @@ public:
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	void *initializeTileData(rcti *rect);
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
-	void executePixel(float *color, float x, float y, float dx, float dy);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, float dx, float dy);
 	const bool isReadBufferOperation() const { return true; }
 	void setOffset(unsigned int offset) { this->m_offset = offset; }
 	unsigned int getOffset() { return this->m_offset; }

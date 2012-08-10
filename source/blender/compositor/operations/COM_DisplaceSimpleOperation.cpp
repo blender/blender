@@ -53,7 +53,7 @@ void DisplaceSimpleOperation::initExecution()
  * in order to take effect */
 #define DISPLACE_EPSILON    0.01f
 
-void DisplaceSimpleOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void DisplaceSimpleOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inVector[4];
 	float inScale[4];
@@ -82,7 +82,7 @@ void DisplaceSimpleOperation::executePixel(float *color, float x, float y, Pixel
 	CLAMP(u, 0.f, this->getWidth() - 1.f);
 	CLAMP(v, 0.f, this->getHeight() - 1.f);
 
-	this->m_inputColorProgram->read(color, u, v, sampler);
+	this->m_inputColorProgram->read(output, u, v, sampler);
 }
 
 void DisplaceSimpleOperation::deinitExecution()

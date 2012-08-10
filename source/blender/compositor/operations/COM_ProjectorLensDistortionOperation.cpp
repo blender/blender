@@ -47,7 +47,7 @@ void *ProjectorLensDistortionOperation::initializeTileData(rcti *rect)
 	return buffer;
 }
 
-void ProjectorLensDistortionOperation::executePixel(float *color, int x, int y, void *data)
+void ProjectorLensDistortionOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float inputValue[4];
 	const float height = this->getHeight();
@@ -56,12 +56,12 @@ void ProjectorLensDistortionOperation::executePixel(float *color, int x, int y, 
 	const float u = (x + 0.5f) / width;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	inputBuffer->readCubic(inputValue, (u * width + this->m_kr2) - 0.5f, v * height - 0.5f);
-	color[0] = inputValue[0];
+	output[0] = inputValue[0];
 	inputBuffer->read(inputValue, x, y);
-	color[1] = inputValue[1];
+	output[1] = inputValue[1];
 	inputBuffer->readCubic(inputValue, (u * width - this->m_kr2) - 0.5f, v * height - 0.5f);
-	color[2] = inputValue[2];
-	color[3] = 1.0f;
+	output[2] = inputValue[2];
+	output[3] = 1.0f;
 }
 
 void ProjectorLensDistortionOperation::deinitExecution()

@@ -83,7 +83,7 @@ public:
 	void setMotionBlurSamples(int samples) { this->m_rasterMaskHandleTot = min(max(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX); }
 	void setMotionBlurShutter(float shutter) { this->m_frame_shutter = shutter; }
 
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

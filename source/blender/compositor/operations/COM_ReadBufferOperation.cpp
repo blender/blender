@@ -49,19 +49,19 @@ void ReadBufferOperation::determineResolution(unsigned int resolution[2], unsign
 		}
 	}
 }
-void ReadBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void ReadBufferOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	if (sampler == COM_PS_NEAREST) {
-		m_buffer->read(color, x, y);
+		m_buffer->read(output, x, y);
 	}
 	else {
-		m_buffer->readCubic(color, x, y);
+		m_buffer->readCubic(output, x, y);
 	}
 }
 
-void ReadBufferOperation::executePixel(float *color, float x, float y, float dx, float dy)
+void ReadBufferOperation::executePixel(float output[4], float x, float y, float dx, float dy)
 {
-	m_buffer->readEWA(color, x, y, dx, dy);
+	m_buffer->readEWA(output, x, y, dx, dy);
 }
 
 bool ReadBufferOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

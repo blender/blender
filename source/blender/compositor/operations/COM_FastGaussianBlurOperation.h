@@ -34,7 +34,7 @@ private:
 public:
 	FastGaussianBlurOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float *color, int x, int y, void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 	
 	static void IIR_gauss(MemoryBuffer *src, float sigma, unsigned int channel, unsigned int xy);
 	void *initializeTileData(rcti *rect);
@@ -62,7 +62,7 @@ private:
 public:
 	FastGaussianBlurValueOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float *color, int x, int y, void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 	
 	void *initializeTileData(rcti *rect);
 	void deinitExecution();

@@ -101,14 +101,14 @@ void TrackPositionOperation::initExecution()
 	}
 }
 
-void TrackPositionOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void TrackPositionOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	outputValue[0] = this->m_markerPos[this->m_axis] - this->m_relativePos[this->m_axis];
+	output[0] = this->m_markerPos[this->m_axis] - this->m_relativePos[this->m_axis];
 
 	if (this->m_axis == 0)
-		outputValue[0] *= this->m_width;
+		output[0] *= this->m_width;
 	else
-		outputValue[0] *= this->m_height;
+		output[0] *= this->m_height;
 }
 
 void TrackPositionOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])

@@ -31,9 +31,9 @@ CalculateStandardDeviationOperation::CalculateStandardDeviationOperation() : Cal
 	/* pass */
 }
 
-void CalculateStandardDeviationOperation::executePixel(float *color, int x, int y, void *data)
+void CalculateStandardDeviationOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	color[0] = this->m_standardDeviation;
+	output[0] = this->m_standardDeviation;
 }
 
 void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect)

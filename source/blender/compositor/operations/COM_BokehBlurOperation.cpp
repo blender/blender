@@ -74,7 +74,7 @@ void BokehBlurOperation::initExecution()
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
-void BokehBlurOperation::executePixel(float *color, int x, int y, void *data)
+void BokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float color_accum[4];
 	float tempBoundingBox[4];
@@ -124,13 +124,13 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, void *data)
 				bufferindex += offsetadd;
 			}
 		}
-		color[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
-		color[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
-		color[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
-		color[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
+		output[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
+		output[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
+		output[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
+		output[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
 	}
 	else {
-		this->m_inputProgram->read(color, x, y, COM_PS_NEAREST);
+		this->m_inputProgram->read(output, x, y, COM_PS_NEAREST);
 	}
 }
 

@@ -127,29 +127,30 @@ void MaskOperation::determineResolution(unsigned int resolution[2], unsigned int
 	}
 }
 
-void MaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void MaskOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	const float xy[2] = {x * this->m_maskWidthInv, y * this->m_maskHeightInv};
+	const float xy[2] = {x * this->m_maskWidthInv,
+	                     y * this->m_maskHeightInv};
 
 	if (this->m_rasterMaskHandleTot == 1) {
 		if (this->m_rasterMaskHandles[0]) {
-			color[0] = BKE_maskrasterize_handle_sample(this->m_rasterMaskHandles[0], xy);
+			output[0] = BKE_maskrasterize_handle_sample(this->m_rasterMaskHandles[0], xy);
 		}
 		else {
-			color[0] = 0.0f;
+			output[0] = 0.0f;
 		}
 	}
 	else {
 		/* incase loop below fails */
-		color[0] = 0.0f;
+		output[0] = 0.0f;
 
 		for (unsigned int i = 0; i < this->m_rasterMaskHandleTot; i++) {
 			if (this->m_rasterMaskHandles[i]) {
-				color[0] += BKE_maskrasterize_handle_sample(this->m_rasterMaskHandles[i], xy);
+				output[0] += BKE_maskrasterize_handle_sample(this->m_rasterMaskHandles[i], xy);
 			}
 		}
 
 		/* until we get better falloff */
-		color[0] /= this->m_rasterMaskHandleTot;
+		output[0] /= this->m_rasterMaskHandleTot;
 	}
 }

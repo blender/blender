@@ -52,11 +52,11 @@ void VectorBlurOperation::initExecution()
 	
 }
 
-void VectorBlurOperation::executePixel(float *color, int x, int y, void *data)
+void VectorBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float *buffer = (float *) data;
 	int index = (y * this->getWidth() + x) * COM_NUMBER_OF_CHANNELS;
-	copy_v4_v4(color, &buffer[index]);
+	copy_v4_v4(output, &buffer[index]);
 }
 
 void VectorBlurOperation::deinitExecution()

@@ -85,7 +85,7 @@ float BokehImageOperation::isInsideBokeh(float distance, float x, float y)
 	}
 	return insideBokeh;
 }
-void BokehImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void BokehImageOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float shift = this->m_data->lensshift;
 	float shift2 = shift / 2.0f;
@@ -94,16 +94,16 @@ void BokehImageOperation::executePixel(float *color, float x, float y, PixelSamp
 	float insideBokehMed = isInsideBokeh(distance - fabsf(shift2 * distance), x, y);
 	float insideBokehMin = isInsideBokeh(distance - fabsf(shift * distance), x, y);
 	if (shift < 0) {
-		color[0] = insideBokehMax;
-		color[1] = insideBokehMed;
-		color[2] = insideBokehMin;
+		output[0] = insideBokehMax;
+		output[1] = insideBokehMed;
+		output[2] = insideBokehMin;
 	}
 	else {
-		color[0] = insideBokehMin;
-		color[1] = insideBokehMed;
-		color[2] = insideBokehMax;
+		output[0] = insideBokehMin;
+		output[1] = insideBokehMed;
+		output[2] = insideBokehMax;
 	}
-	color[3] = (insideBokehMax + insideBokehMed + insideBokehMin) / 3.0f;
+	output[3] = (insideBokehMax + insideBokehMed + insideBokehMin) / 3.0f;
 }
 
 void BokehImageOperation::deinitExecution()

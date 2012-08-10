@@ -46,7 +46,7 @@ void *KeyingBlurOperation::initializeTileData(rcti *rect)
 	return buffer;
 }
 
-void KeyingBlurOperation::executePixel(float *color, int x, int y, void *data)
+void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
@@ -85,7 +85,7 @@ void KeyingBlurOperation::executePixel(float *color, int x, int y, void *data)
 
 	average /= (float) count;
 
-	color[0] = average;
+	output[0] = average;
 }
 
 bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

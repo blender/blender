@@ -77,7 +77,7 @@ void KeyingOperation::deinitExecution()
 	this->m_screenReader = NULL;
 }
 
-void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void KeyingOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float pixelColor[4];
 	float screenColor[4];
@@ -93,7 +93,7 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 		 * because saturation and falloff calculation is based on the fact
 		 * that pixels are not overexposured
 		 */
-		color[0] = 1.0f;
+		output[0] = 1.0f;
 	}
 	else {
 		float saturation = get_pixel_saturation(pixelColor, this->m_screenBalance, primary_channel);
@@ -103,19 +103,19 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 			/* means main channel of pixel is different from screen,
 			 * assume this is completely a foreground
 			 */
-			color[0] = 1.0f;
+			output[0] = 1.0f;
 		}
 		else if (saturation >= screen_saturation) {
 			/* matched main channels and higher saturation on pixel
 			 * is treated as completely background
 			 */
-			color[0] = 0.0f;
+			output[0] = 0.0f;
 		}
 		else {
 			/* nice alpha falloff on edges */
 			float distance = 1.0f - saturation / screen_saturation;
 
-			color[0] = distance;
+			output[0] = distance;
 		}
 	}
 }

@@ -33,9 +33,9 @@ void SingleThreadedNodeOperation::initExecution()
 	initMutex();
 }
 
-void SingleThreadedNodeOperation::executePixel(float *color, int x, int y, void *data)
+void SingleThreadedNodeOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	this->m_cachedInstance->readNoCheck(color, x, y);
+	this->m_cachedInstance->readNoCheck(output, x, y);
 }
 
 void SingleThreadedNodeOperation::deinitExecution()

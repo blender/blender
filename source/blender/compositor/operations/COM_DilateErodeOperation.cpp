@@ -60,7 +60,7 @@ void *DilateErodeThresholdOperation::initializeTileData(rcti *rect)
 	return buffer;
 }
 
-void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, void *data)
+void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float inputValue[4];
 	const float sw = this->m__switch;
@@ -117,28 +117,28 @@ void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, voi
 		const float delta = distance - pixelvalue;
 		if (delta >= 0.0f) {
 			if (delta >= inset) {
-				color[0] = 1.0f;
+				output[0] = 1.0f;
 			}
 			else {
-				color[0] = delta / inset;
+				output[0] = delta / inset;
 			}
 		}
 		else {
-			color[0] = 0.0f;
+			output[0] = 0.0f;
 		}
 	}
 	else {
 		const float delta = -distance + pixelvalue;
 		if (delta < 0.0f) {
 			if (delta < -inset) {
-				color[0] = 1.0f;
+				output[0] = 1.0f;
 			}
 			else {
-				color[0] = (-delta) / inset;
+				output[0] = (-delta) / inset;
 			}
 		}
 		else {
-			color[0] = 0.0f;
+			output[0] = 0.0f;
 		}
 	}
 }
@@ -185,7 +185,7 @@ void *DilateDistanceOperation::initializeTileData(rcti *rect)
 	return buffer;
 }
 
-void DilateDistanceOperation::executePixel(float *color, int x, int y, void *data)
+void DilateDistanceOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	const float distance = this->m_distance;
 	const float mindist = distance * distance;
@@ -214,7 +214,7 @@ void DilateDistanceOperation::executePixel(float *color, int x, int y, void *dat
 			offset += 4;
 		}
 	}
-	color[0] = value;
+	output[0] = value;
 }
 
 void DilateDistanceOperation::deinitExecution()
@@ -259,7 +259,7 @@ ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation()
 	/* pass */
 }
 
-void ErodeDistanceOperation::executePixel(float *color, int x, int y, void *data)
+void ErodeDistanceOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	const float distance = this->m_distance;
 	const float mindist = distance * distance;
@@ -288,7 +288,7 @@ void ErodeDistanceOperation::executePixel(float *color, int x, int y, void *data
 			offset += 4;
 		}
 	}
-	color[0] = value;
+	output[0] = value;
 }
 
 void ErodeDistanceOperation::executeOpenCL(OpenCLDevice *device,
@@ -374,9 +374,9 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 }
 
 
-void DilateStepOperation::executePixel(float *color, int x, int y, void *data)
+void DilateStepOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	color[0] = this->m_cached_buffer[y * this->getWidth() + x];
+	output[0] = this->m_cached_buffer[y * this->getWidth() + x];
 }
 
 void DilateStepOperation::deinitExecution()
