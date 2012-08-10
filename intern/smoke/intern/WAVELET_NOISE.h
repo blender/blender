@@ -107,7 +107,7 @@ static void downsampleNeumann(const float *from, float *to, int n, int stride)
   // if these values are not local incorrect results are generated
   float downCoeffs[32] = { DOWNCOEFFS };
   const float *const aCoCenter= &downCoeffs[16];
-	for (int i = 0; i < ceil((float)n / 2); i++) {
+	for (int i = 0; i <= n / 2; i++) {
 		to[i * stride] = 0;
 		for (int k = 2 * i - 16; k < 2 * i + 16; k++) { 
 			// handle boundary
