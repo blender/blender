@@ -503,13 +503,12 @@ extern UserDef U; /* from blenkernel blender.c */
 /*#define USER_FLIPFULLSCREEN		(1 << 7)*/ /* deprecated */
 #define USER_ALLWINCODECS		(1 << 8)
 #define USER_MENUOPENAUTO		(1 << 9)
-/*#define USER_PANELPINNED		(1 << 10)		deprecated */
+#define USER_ZBUF_CURSOR		(1 << 10)
 #define USER_AUTOPERSP     		(1 << 11)
 #define USER_LOCKAROUND     	(1 << 12)
 #define USER_GLOBALUNDO     	(1 << 13)
 #define USER_ORBIT_SELECTION	(1 << 14)
-// old flag for #define USER_KEYINSERTAVAI		(1 << 15)
-#define USER_ORBIT_ZBUF			(1 << 15)
+#define USER_ZBUF_ORBIT			(1 << 15)
 #define USER_HIDE_DOT			(1 << 16)
 #define USER_SHOW_ROTVIEWICON	(1 << 17)
 #define USER_SHOW_VIEWPORTNAME	(1 << 18)

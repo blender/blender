@@ -31,7 +31,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Particles Sync */
 
-bool BlenderSync::object_use_particles(BL::Object b_ob)
+bool BlenderSync::object_need_particle_update(BL::Object b_ob)
 {
 	/* Particle data is only needed for
 	 * a) Billboard render mode if object's own material uses particle info
@@ -39,7 +39,7 @@ bool BlenderSync::object_use_particles(BL::Object b_ob)
 	 *
 	 * Note: Meshes have to be synced at this point!
 	 */
-	bool use_particles = false;
+	bool need_update = false;
 	
 	BL::Object::particle_systems_iterator b_psys;
 	for (b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys) {
@@ -54,7 +54,7 @@ bool BlenderSync::object_use_particles(BL::Object b_ob)
 			BL::ID key = (BKE_object_is_modified(b_ob))? b_ob: b_ob.data();
 			Mesh *mesh = mesh_map.find(key);
 			if (mesh) {
-				use_particles |= mesh->need_attribute(scene, ATTR_STD_PARTICLE);
+				need_update |= mesh->need_attribute(scene, ATTR_STD_PARTICLE) && mesh->need_update;
 			}
 			break;
 		}
@@ -66,7 +66,7 @@ bool BlenderSync::object_use_particles(BL::Object b_ob)
 				BL::ID key = (BKE_object_is_modified(b_dupli_ob))? b_dupli_ob: b_dupli_ob.data();
 				Mesh *mesh = mesh_map.find(key);
 				if (mesh) {
-					use_particles |= mesh->need_attribute(scene, ATTR_STD_PARTICLE);
+					need_update |= mesh->need_attribute(scene, ATTR_STD_PARTICLE) && mesh->need_update;
 				}
 			}
 			break;
@@ -80,7 +80,7 @@ bool BlenderSync::object_use_particles(BL::Object b_ob)
 					BL::ID key = (BKE_object_is_modified(*b_gob))? *b_gob: b_gob->data();
 					Mesh *mesh = mesh_map.find(key);
 					if (mesh) {
-						use_particles |= mesh->need_attribute(scene, ATTR_STD_PARTICLE);
+						need_update |= mesh->need_attribute(scene, ATTR_STD_PARTICLE) && mesh->need_update;
 					}
 				}
 			}
@@ -93,7 +93,7 @@ bool BlenderSync::object_use_particles(BL::Object b_ob)
 		}
 	}
 	
-	return use_particles;
+	return need_update;
 }
 
 static bool use_particle_system(BL::ParticleSystem b_psys)

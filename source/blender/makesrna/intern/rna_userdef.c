@@ -2542,10 +2542,15 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_LOCKAROUND);
 	RNA_def_property_ui_text(prop, "Global Pivot", "Lock the same rotation/scaling pivot in all 3D Views");
 
-	prop = RNA_def_property(srna, "use_mouse_auto_depth", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ORBIT_ZBUF);
+	prop = RNA_def_property(srna, "use_mouse_depth_navigate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ZBUF_ORBIT);
 	RNA_def_property_ui_text(prop, "Auto Depth",
 	                         "Use the depth under the mouse to improve view pan/rotate/zoom functionality");
+
+	prop = RNA_def_property(srna, "use_mouse_depth_cursor", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ZBUF_CURSOR);
+	RNA_def_property_ui_text(prop, "Cursor Depth",
+	                         "Use the depth under the mouse when placing the cursor");
 
 	prop = RNA_def_property(srna, "use_camera_lock_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_CAM_LOCK_NO_PARENT);
