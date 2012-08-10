@@ -2486,7 +2486,7 @@ static ImBuf *do_adjustment_impl(SeqRenderData context, Sequence *seq, float cfr
 
 	seqbasep = BKE_sequence_seqbase(&ed->seqbase, seq);
 
-	if (seq->machine > 0) {
+	if (seq->machine > 1) {
 		i = BKE_sequencer_give_ibuf_seqbase(context, cfra, seq->machine - 1, seqbasep);
 	}
 
