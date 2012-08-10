@@ -120,7 +120,7 @@ typedef float lfVector[3];
 typedef struct fmatrix3x3 {
 	float m[3][3]; /* 3x3 matrix */
 	unsigned int c, r; /* column and row number */
-	int pinned; /* is this vertex allowed to move? */
+	/* int pinned; // is this vertex allowed to move? */
 	float n1, n2, n3; /* three normal vectors for collision constrains */
 	unsigned int vcount; /* vertex count */
 	unsigned int scount; /* spring count */ 
@@ -700,10 +700,32 @@ typedef struct Implicit_Data  {
 	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI, *M; 
 } Implicit_Data;
 
+/* Init constraint matrix */
+static void update_matrixS(ClothVertex *verts, int numverts, fmatrix3x3 *S)
+{
+	unsigned int pinned = 0;
+	int i = 0;
+
+	/* Clear matrix from old vertex constraints */
+	for(i = 0; i < S[0].vcount; i++)
+		S[i].c = S[i].r = 0;
+
+	/* Set new vertex constraints */
+	for (i = 0; i < numverts; i++) {
+		if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
+			S[pinned].c = S[pinned].r = i;
+			pinned++;
+		}
+	}
+
+	// S is special and needs specific vcount and scount
+	S[0].vcount = pinned; 
+	S[0].scount = 0;
+}
+
 int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 {
 	unsigned int i = 0;
-	unsigned int pinned = 0;
 	Cloth *cloth = NULL;
 	ClothVertex *verts = NULL;
 	ClothSpring *spring = NULL;
@@ -743,24 +765,19 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 	id->dV = create_lfvector(cloth->numverts);
 	id->z = create_lfvector(cloth->numverts);
 	
-	for (i=0;i<cloth->numverts;i++) {
+	id->S[0].vcount = 0;
+
+	for (i = 0; i < cloth->numverts; i++) {
 		id->A[i].r = id->A[i].c = id->dFdV[i].r = id->dFdV[i].c = id->dFdX[i].r = id->dFdX[i].c = id->P[i].c = id->P[i].r = id->Pinv[i].c = id->Pinv[i].r = id->bigI[i].c = id->bigI[i].r = id->M[i].r = id->M[i].c = i;
 
-		if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
-			id->S[pinned].pinned = 1;
-			id->S[pinned].c = id->S[pinned].r = i;
-			pinned++;
-		}
+		update_matrixS(verts, cloth->numverts, id->S);
 		
 		initdiag_fmatrixS(id->M[i].m, verts[i].mass);
 	}
 
-	// S is special and needs specific vcount and scount
-	id->S[0].vcount = pinned; id->S[0].scount = 0;
-
 	// init springs 
 	search = cloth->springs;
-	for (i=0;i<cloth->numsprings;i++) {
+	for (i = 0; i < cloth->numsprings; i++) {
 		spring = search->link;
 		
 		// dFdV_start[i].r = big_I[i].r = big_zero[i].r = 
@@ -784,6 +801,7 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 
 	return 1;
 }
+
 int	implicit_free(ClothModifierData *clmd)
 {
 	Implicit_Data *id;
@@ -1640,8 +1658,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	search = cloth->springs;
 	while (search) {
 		// only handle active springs
-		// if (((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED)) {}
-		cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
+		ClothSpring *spring = search->link;
+		if( !(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
+			cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
 
 		search = search->next;
 	}
@@ -1650,8 +1669,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	search = cloth->springs;
 	while (search) {
 		// only handle active springs
-		// if (((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED))	
-		cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
+		ClothSpring *spring = search->link;
+		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
+			cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
 		search = search->next;
 	}
 	// printf("\n");
@@ -1781,6 +1801,10 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	int do_extra_solve;
 
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) { /* do goal stuff */
+		
+		/* Update vertex constraints for pinned vertices */
+		update_matrixS(verts, cloth->numverts, id->S);
+
 		for (i = 0; i < numverts; i++) {
 			// update velocities with constrained velocities from pinned verts
 			if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {

@@ -783,7 +783,13 @@ class ConstraintButtonsPanel():
 
         if clip:
             col.prop_search(con, "object", clip.tracking, "objects", icon='OBJECT_DATA')
-            col.prop_search(con, "track", clip.tracking, "tracks", icon='ANIM_DATA')
+
+            if con.object in clip.tracking.objects:
+                tracking_object = clip.tracking.objects[con.object]
+            else:
+                tracking_object = clip.tracking
+
+            col.prop_search(con, "track", tracking_object, "tracks", icon='ANIM_DATA')
 
         col.prop(con, "camera")
 

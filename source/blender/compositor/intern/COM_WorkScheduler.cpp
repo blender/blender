@@ -288,7 +288,8 @@ void WorkScheduler::initialize()
 
 				g_context = clCreateContext(NULL, numberOfDevices, cldevices, clContextError, NULL, &error);
 				if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-				g_program = clCreateProgramWithSource(g_context, 1, &clkernelstoh_COM_OpenCLKernels_cl, 0, &error);
+				const char *cl_str[2] = {clkernelstoh_COM_OpenCLKernels_cl, NULL};
+				g_program = clCreateProgramWithSource(g_context, 1, cl_str, 0, &error);
 				error = clBuildProgram(g_program, numberOfDevices, cldevices, 0, 0, 0);
 				if (error != CL_SUCCESS) { 
 					cl_int error2;

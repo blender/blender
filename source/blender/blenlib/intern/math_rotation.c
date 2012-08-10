@@ -1665,7 +1665,7 @@ void quat_apply_track(float quat[4], short axis, short upflag)
 		{M_SQRT1_2, 0.0, 0.0, M_SQRT1_2}, /* pos-z90 */
 		{M_SQRT1_2, 0.0, M_SQRT1_2, 0.0}, /* neg-y90 */
 		{0.5, -0.5, -0.5, 0.5}, /* Quaternion((1,0,0), radians(-90)) * Quaternion((0,1,0), radians(-90)) */
-		{-3.0908619663705394e-08, M_SQRT1_2, M_SQRT1_2, 3.0908619663705394e-08} /* no rotation */
+		{0.0, M_SQRT1_2, M_SQRT1_2, 0.0} /* no rotation */
 	};
 
 	assert(axis >= 0 && axis <= 5);

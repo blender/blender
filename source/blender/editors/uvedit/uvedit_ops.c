@@ -2218,6 +2218,88 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 	                     "Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
 
+/* note: this is based on similar use case to MESH_OT_split(), which has a similar effect
+ * but in this case they are not joined to begin with (only having the behavior of being joined)
+ * so its best to call this select_split() instead of just split(), but assigned to the same key
+ * as MESH_OT_split - Campbell */
+static int select_split_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
+	Image *ima = CTX_data_edit_image(C);
+	Object *obedit = CTX_data_edit_object(C);
+	BMesh *bm = BMEdit_FromObject(obedit)->bm;
+
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
+	MTexPoly *tf;
+	MLoopUV *luv;
+	short change = FALSE;
+
+	if (ts->uv_flag & UV_SYNC_SELECTION) {
+		BKE_report(op->reports, RPT_ERROR, "Can't split selection when sync selection is enabled");
+		return OPERATOR_CANCELLED;
+	}
+
+
+	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+		int is_sel = FALSE;
+		int is_unsel = FALSE;
+		tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+
+		if (!uvedit_face_visible_test(scene, ima, efa, tf))
+			continue;
+
+		/* are we all selected? */
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+
+			if (luv->flag & MLOOPUV_VERTSEL) {
+				is_sel = TRUE;
+			}
+			else {
+				is_unsel = TRUE;
+			}
+
+			/* we have mixed selection, bail out */
+			if (is_sel && is_unsel) {
+				break;
+			}
+		}
+
+		if (is_sel && is_unsel) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+				luv->flag &= ~MLOOPUV_VERTSEL;
+			}
+
+			change = TRUE;
+		}
+	}
+
+	if (change) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+
+static void UV_OT_select_split(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Split";
+	ot->description = "Select only entirely selected faces";
+	ot->idname = "UV_OT_select_split";
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->exec = select_split_exec;
+	ot->poll = ED_operator_uvedit; /* requires space image */;
+}
+
 /* ******************** unlink selection operator **************** */
 
 static int unlink_selection_exec(bContext *C, wmOperator *op)
@@ -3680,6 +3762,7 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_select_loop);
 	WM_operatortype_append(UV_OT_select_linked);
 	WM_operatortype_append(UV_OT_select_linked_pick);
+	WM_operatortype_append(UV_OT_select_split);
 	WM_operatortype_append(UV_OT_unlink_selected);
 	WM_operatortype_append(UV_OT_select_pinned);
 	WM_operatortype_append(UV_OT_select_border);
@@ -3735,6 +3818,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", TRUE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "extend", FALSE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_SHIFT | KM_ALT, 0)->ptr, "extend", TRUE);
+	WM_keymap_add_item(keymap, "UV_OT_select_split", YKEY, KM_PRESS, 0, 0);
 
 	/* border/circle selection */
 	kmi = WM_keymap_add_item(keymap, "UV_OT_select_border", BKEY, KM_PRESS, 0, 0);
