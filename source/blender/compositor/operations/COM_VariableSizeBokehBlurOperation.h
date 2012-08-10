@@ -31,6 +31,7 @@ class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepH
 private:
 	int m_maxBlur;
 	float m_threshold;
+	bool m_do_size_scale;  /* scale size, matching 'BokehBlurNode' */
 	SocketReader *m_inputProgram;
 	SocketReader *m_inputBokehProgram;
 	SocketReader *m_inputSizeProgram;
@@ -65,6 +66,8 @@ public:
 	void setMaxBlur(int maxRadius) { this->m_maxBlur = maxRadius; }
 
 	void setThreshold(float threshold) { this->m_threshold = threshold; }
+
+	void setDoScaleSize(bool scale_size) { this->m_do_size_scale = scale_size; }
 
 	void executeOpenCL(OpenCLDevice *device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp);
 };

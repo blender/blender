@@ -78,7 +78,7 @@ __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only ima
 __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2d_t bokehImage, 
 					__read_only image2d_t inputSize,
 					__write_only image2d_t output, int2 offsetInput, int2 offsetOutput, 
-					int step, int maxBlur, float threshold, int2 dimension, int2 offset) 
+					int step, int maxBlurScalar, float threshold, int2 dimension, int2 offset, float scalar) 
 {
 	float4 color = {1.0f, 0.0f, 0.0f, 1.0f};
 	int2 coords = {get_global_id(0), get_global_id(1)};
@@ -92,14 +92,14 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 	float4 multiplier_accum = {1.0f, 1.0f, 1.0f, 1.0f};
 	float4 color_accum;
 	
-	int minx = max(realCoordinate.s0 - maxBlur, 0);
-	int miny = max(realCoordinate.s1 - maxBlur, 0);
-	int maxx = min(realCoordinate.s0 + maxBlur, dimension.s0);
-	int maxy = min(realCoordinate.s1 + maxBlur, dimension.s1);
+	int minx = max(realCoordinate.s0 - maxBlurScalar, 0);
+	int miny = max(realCoordinate.s1 - maxBlurScalar, 0);
+	int maxx = min(realCoordinate.s0 + maxBlurScalar, dimension.s0);
+	int maxy = min(realCoordinate.s1 + maxBlurScalar, dimension.s1);
 	
 	{
 		int2 inputCoordinate = realCoordinate - offsetInput;
-		float size_center = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
+		float size_center = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0 * scalar;
 		color_accum = read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate);
 		readColor = color_accum;
 
@@ -111,7 +111,7 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 					float dx = nx - realCoordinate.s0;
 					if (dx != 0 || dy != 0) {
 						inputCoordinate.s0 = nx - offsetInput.s0;
-						size = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0;
+						size = read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0 * scalar;
 						if (size > threshold) {
 							if (size >= fabs(dx) && size >= fabs(dy)) {
 								float2 uv = {256.0f + dx * 255.0f / size,
