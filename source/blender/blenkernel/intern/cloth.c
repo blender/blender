@@ -400,8 +400,18 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 		copy_v3_v3(verts->txold, verts->x);
 
 		/* Get the current position. */
-		copy_v3_v3(verts->xconst, mvert[i].co);
-		mul_m4_v3(ob->obmat, verts->xconst);
+		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && 
+			((!(cloth->verts[i].flags & CLOTH_VERT_FLAG_PINNED)) 
+			&& (cloth->verts[i].goal > ALMOST_ZERO)))
+		{
+			copy_v3_v3(verts->xconst, mvert[i].co);
+			mul_m4_v3(ob->obmat, verts->xconst);
+		}
+		else
+		{
+			/* This fixed animated goals not to jump back to "first frame position" */
+			copy_v3_v3(verts->xconst, verts->txold);
+		}
 	}
 
 	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights);
@@ -795,13 +805,21 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	if (cloth_uses_vgroup(clmd)) {
 		for ( i = 0; i < numverts; i++, verts++ ) {
+
+			/* Reset Goal values to standard */
+			if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+				verts->goal= clmd->sim_parms->defgoal;
+			else
+				verts->goal= 0.0f;
+
 			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
 			if ( dvert ) {
-				for ( j = 0; j < dvert->totweight; j++ ) {
 
+				for ( j = 0; j < dvert->totweight; j++ ) {
 					verts->flags &= ~CLOTH_VERT_FLAG_PINNED;
 					if (( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass-1)) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) {
 						verts->goal = dvert->dw [j].weight;
+
 						/* goalfac= 1.0f; */ /* UNUSED */
 						
 						/*
@@ -1081,6 +1099,20 @@ static void cloth_update_springs( ClothModifierData *clmd )
 		else if(spring->type == CLOTH_SPRING_TYPE_BENDING)
 		{
 			spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
+		}
+		else if(spring->type == CLOTH_SPRING_TYPE_GOAL)
+		{
+			/* Warning: Appending NEW goal springs does not work because implicit solver would need reset! */
+
+			/* Activate / Deactivate existing springs */
+			if ((!(cloth->verts[spring->ij].flags & CLOTH_VERT_FLAG_PINNED)) && (cloth->verts[spring->ij].goal > ALMOST_ZERO))
+			{
+				spring->flags &= ~CLOTH_SPRING_FLAG_DEACTIVATE;
+			}
+			else
+			{
+				spring->flags |= CLOTH_SPRING_FLAG_DEACTIVATE;
+			}
 		}
 		
 		search = search->next;

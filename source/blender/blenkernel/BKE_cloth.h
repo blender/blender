@@ -57,7 +57,6 @@ struct CollisionTree;
 /* Bits to or into the ClothVertex.flags. */
 #define CLOTH_VERT_FLAG_PINNED 1
 #define CLOTH_VERT_FLAG_NOSELFCOLL 2 /* vertex NOT used for self collisions */
-#define CLOTH_VERT_FLAG_PINNED_EM 3
 
 /**
  * This structure describes a cloth object against which the
