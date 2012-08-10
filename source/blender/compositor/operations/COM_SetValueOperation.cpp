@@ -32,7 +32,7 @@ void SetValueOperation::executePixel(float *outputValue, float x, float y, Pixel
 	outputValue[0] = this->m_value;
 }
 
-void SetValueOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void SetValueOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	resolution[0] = preferredResolution[0];
 	resolution[1] = preferredResolution[1];

@@ -111,7 +111,7 @@ void TrackPositionOperation::executePixel(float *outputValue, float x, float y, 
 		outputValue[0] *= this->m_height;
 }
 
-void TrackPositionOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void TrackPositionOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	resolution[0] = preferredResolution[0];
 	resolution[1] = preferredResolution[1];

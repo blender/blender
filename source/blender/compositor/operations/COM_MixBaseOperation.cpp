@@ -70,10 +70,10 @@ void MixBaseOperation::deinitExecution()
 	this->m_inputColor2Operation = NULL;
 }
 
-void MixBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void MixBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	InputSocket *socket;
-	unsigned int tempPreferredResolution[] = {0, 0};
+	unsigned int tempPreferredResolution[2] = {0, 0};
 	unsigned int tempResolution[2];
 	
 	socket = this->getInputSocket(1);

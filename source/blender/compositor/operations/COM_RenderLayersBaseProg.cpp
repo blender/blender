@@ -100,7 +100,7 @@ void RenderLayersBaseProg::deinitExecution()
 	this->m_inputBuffer = NULL;
 }
 
-void RenderLayersBaseProg::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void RenderLayersBaseProg::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	Scene *sce = this->getScene();
 	Render *re = (sce) ? RE_GetRender(sce->id.name) : NULL;

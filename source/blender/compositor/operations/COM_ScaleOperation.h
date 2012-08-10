@@ -75,7 +75,7 @@ class ScaleFixedSizeOperation : public NodeOperation {
 public:
 	ScaleFixedSizeOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	void executePixel(float *color, float x, float y, PixelSampler sampler);
 
 	void initExecution();

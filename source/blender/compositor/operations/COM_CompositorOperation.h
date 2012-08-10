@@ -71,6 +71,6 @@ public:
 	void initExecution();
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_MEDIUM; }
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 };
 #endif

@@ -139,8 +139,9 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, vo
 						if (size > this->m_threshold) {
 							float dx = nx - x;
 							if (size > fabsf(dx) && size > fabsf(dy)) {
-								float uv[2] = {256.0f + (dx / size) * 255.0f,
-								               256.0f + (dy / size) * 255.0f};
+								float uv[2] = {
+								    (float)(COM_BLUR_BOKEH_PIXELS / 2) + (dx / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1),
+								    (float)(COM_BLUR_BOKEH_PIXELS / 2) + (dy / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1)};
 								inputBokehBuffer->readNoCheck(bokeh, uv[0], uv[1]);
 								madd_v4_v4v4(color_accum, bokeh, &inputProgramFloatBuffer[offsetNxNy]);
 								add_v4_v4(multiplier_accum, bokeh);
@@ -216,9 +217,9 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(rcti *inpu
 	newInput.xmin = input->xmin - this->m_maxBlur + 2;
 	newInput.ymax = input->ymax + this->m_maxBlur - 2;
 	newInput.ymin = input->ymin - this->m_maxBlur - 2;
-	bokehInput.xmax = 512;
+	bokehInput.xmax = COM_BLUR_BOKEH_PIXELS;
 	bokehInput.xmin = 0;
-	bokehInput.ymax = 512;
+	bokehInput.ymax = COM_BLUR_BOKEH_PIXELS;
 	bokehInput.ymin = 0;
 	
 
@@ -336,7 +337,7 @@ void InverseSearchRadiusOperation::deinitExecution()
 	this->m_inputRadius = NULL;
 }
 
-void InverseSearchRadiusOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void InverseSearchRadiusOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	NodeOperation::determineResolution(resolution, preferredResolution);
 	resolution[0] = resolution[0] / DIVIDER;

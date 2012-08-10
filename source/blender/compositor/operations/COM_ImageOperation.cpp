@@ -94,7 +94,7 @@ void BaseImageOperation::deinitExecution()
 	this->m_imageBuffer = NULL;
 }
 
-void BaseImageOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void BaseImageOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	ImBuf *stackbuf = getImBuf();
 

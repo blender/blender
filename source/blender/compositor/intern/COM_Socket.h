@@ -73,7 +73,7 @@ public:
 	const virtual int isConnected() const;
 	int isInputSocket() const;
 	int isOutputSocket() const;
-	virtual void determineResolution(int resolution[], unsigned int preferredResolution[]) {}
+	virtual void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]) {}
 
 	void setEditorSocket(bNodeSocket *editorSocket) { this->m_editorSocket = editorSocket; }
 	bNodeSocket *getbNodeSocket() const { return this->m_editorSocket; }

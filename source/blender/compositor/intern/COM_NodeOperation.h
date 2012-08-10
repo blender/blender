@@ -96,7 +96,7 @@ public:
 	 * @param resolution the result of this operation
 	 * @param preferredResolution the preferrable resolution as no resolution could be determined
 	 */
-	virtual void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	virtual void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 	/**
 	 * @brief isOutputOperation determines whether this operation is an output of the ExecutionSystem during rendering or editing.
@@ -174,7 +174,7 @@ public:
 	 * @brief set the resolution
 	 * @param resolution the resolution to set
 	 */
-	void setResolution(unsigned int resolution[]) {
+	void setResolution(unsigned int resolution[2]) {
 		if (!isResolutionSet()) {
 			this->m_width = resolution[0];
 			this->m_height = resolution[1];

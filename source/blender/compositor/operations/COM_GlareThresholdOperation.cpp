@@ -30,7 +30,7 @@ GlareThresholdOperation::GlareThresholdOperation() : NodeOperation()
 	this->m_inputProgram = NULL;
 }
 
-void GlareThresholdOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void GlareThresholdOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	NodeOperation::determineResolution(resolution, preferredResolution);
 	resolution[0] = resolution[0] / (1 << this->m_settings->quality);

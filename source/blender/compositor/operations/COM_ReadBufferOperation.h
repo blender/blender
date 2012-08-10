@@ -36,7 +36,7 @@ public:
 	int isBufferOperation() { return true; }
 	void setMemoryProxy(MemoryProxy *memoryProxy) { this->m_memoryProxy = memoryProxy; }
 	MemoryProxy *getMemoryProxy() { return this->m_memoryProxy; }
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	void *initializeTileData(rcti *rect);
 	void executePixel(float *color, float x, float y, PixelSampler sampler);

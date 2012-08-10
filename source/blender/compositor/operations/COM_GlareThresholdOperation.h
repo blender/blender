@@ -58,6 +58,6 @@ public:
 		this->m_settings = settings;
 	}
 	
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 };
 #endif

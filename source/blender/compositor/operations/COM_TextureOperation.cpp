@@ -53,7 +53,7 @@ void TextureBaseOperation::deinitExecution()
 	this->m_inputOffset = NULL;
 }
 
-void TextureBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void TextureBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	if (preferredResolution[0] == 0 || preferredResolution[1] == 0) {
 		int width = this->m_rd->xsch * this->m_rd->size / 100;

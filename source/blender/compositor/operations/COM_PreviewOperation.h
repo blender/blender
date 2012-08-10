@@ -45,7 +45,7 @@ public:
 	const CompositorPriority getRenderPriority() const;
 	
 	void executeRegion(rcti *rect, unsigned int tileNumber);
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	void setbNode(bNode *node) { this->m_node = node; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	bool isPreviewOperation() { return true; }

@@ -36,7 +36,7 @@ void SetVectorOperation::executePixel(float *outputValue, float x, float y, Pixe
 	outputValue[3] = this->m_w;
 }
 
-void SetVectorOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void SetVectorOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	resolution[0] = preferredResolution[0];
 	resolution[1] = preferredResolution[1];

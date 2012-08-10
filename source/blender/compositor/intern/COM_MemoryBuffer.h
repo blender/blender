@@ -26,16 +26,12 @@ class MemoryBuffer;
 #define _COM_MemoryBuffer_h_
 
 #include "COM_ExecutionGroup.h"
-#include "BLI_rect.h"
 #include "COM_MemoryProxy.h"
 
-#include "MEM_guardedalloc.h"
-
 extern "C" {
-	//#include "BLI_threads.h"
 	#include "BLI_math.h"
+	#include "BLI_rect.h"
 }
-//#include <vector>
 
 /**
  * @brief state of a memory buffer

@@ -109,7 +109,7 @@ void MaskOperation::deinitExecution()
 	}
 }
 
-void MaskOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void MaskOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	if (this->m_maskWidth == 0 || this->m_maskHeight == 0) {
 		NodeOperation::determineResolution(resolution, preferredResolution);

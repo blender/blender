@@ -47,7 +47,7 @@ protected:
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
 	 */
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 public:
 	MovieClipOperation();

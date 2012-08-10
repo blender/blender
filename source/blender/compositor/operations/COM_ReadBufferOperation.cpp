@@ -36,7 +36,7 @@ void *ReadBufferOperation::initializeTileData(rcti *rect)
 	return m_buffer;
 }
 
-void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void ReadBufferOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	if (this->m_memoryProxy != NULL) {
 		WriteBufferOperation *operation = this->m_memoryProxy->getWriteBufferOperation();

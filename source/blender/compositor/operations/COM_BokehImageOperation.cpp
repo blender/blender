@@ -30,10 +30,8 @@ BokehImageOperation::BokehImageOperation() : NodeOperation()
 }
 void BokehImageOperation::initExecution()
 {
-	this->m_centerX = getWidth() / 2;
-	this->m_centerY = getHeight() / 2;
-	this->m_center[0] = this->m_centerX;
-	this->m_center[1] = this->m_centerY;
+	this->m_center[0] = getWidth() / 2;
+	this->m_center[1] = getHeight() / 2;
 	this->m_inverseRounding = 1.0f - this->m_data->rounding;
 	this->m_circularDistance = getWidth() / 2;
 	this->m_flapRad = (float)(M_PI * 2) / this->m_data->flaps;
@@ -47,14 +45,14 @@ void BokehImageOperation::initExecution()
 }
 void BokehImageOperation::detemineStartPointOfFlap(float r[2], int flapNumber, float distance)
 {
-	r[0] = sinf(this->m_flapRad * flapNumber + this->m_flapRadAdd) * distance + this->m_centerX;
-	r[1] = cosf(this->m_flapRad * flapNumber + this->m_flapRadAdd) * distance + this->m_centerY;
+	r[0] = sinf(this->m_flapRad * flapNumber + this->m_flapRadAdd) * distance + this->m_center[0];
+	r[1] = cosf(this->m_flapRad * flapNumber + this->m_flapRadAdd) * distance + this->m_center[1];
 }
 float BokehImageOperation::isInsideBokeh(float distance, float x, float y)
 {
 	float insideBokeh = 0.0f;
-	const float deltaX = x - this->m_centerX;
-	const float deltaY = y - this->m_centerY;
+	const float deltaX = x - this->m_center[0];
+	const float deltaY = y - this->m_center[1];
 	float closestPoint[2];
 	float lineP1[2];
 	float lineP2[2];
@@ -118,8 +116,8 @@ void BokehImageOperation::deinitExecution()
 	}
 }
 
-void BokehImageOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void BokehImageOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
-	resolution[0] = 512;
-	resolution[1] = 512;
+	resolution[0] = COM_BLUR_BOKEH_PIXELS;
+	resolution[1] = COM_BLUR_BOKEH_PIXELS;
 }

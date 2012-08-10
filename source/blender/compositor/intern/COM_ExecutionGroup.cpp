@@ -186,7 +186,7 @@ void ExecutionGroup::deinitExecution()
 	this->m_cachedReadOperations.clear();
 	this->m_bTree = NULL;
 }
-void ExecutionGroup::determineResolution(unsigned int resolution[])
+void ExecutionGroup::determineResolution(unsigned int resolution[2])
 {
 	NodeOperation *operation = this->getOutputNodeOperation();
 	resolution[0] = operation->getWidth();

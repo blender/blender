@@ -54,7 +54,7 @@ SocketConnection *InputSocket::getConnection()
 	return this->m_connection;
 }
 
-void InputSocket::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void InputSocket::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	if (this->isConnected()) {
 		this->m_connection->getFromSocket()->determineResolution(resolution, preferredResolution);

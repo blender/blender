@@ -56,7 +56,7 @@ private:
 public:
 	CropImageOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void determineResolution(unsigned int resolution[], unsigned int preferedResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferedResolution[2]);
 	void executePixel(float *color, float x, float y, PixelSampler sampler);
 
 };

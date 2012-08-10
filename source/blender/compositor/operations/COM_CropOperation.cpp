@@ -100,7 +100,7 @@ bool CropImageOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-void CropImageOperation::determineResolution(unsigned int resolution[], unsigned int preferedResolution[])
+void CropImageOperation::determineResolution(unsigned int resolution[2], unsigned int preferedResolution[2])
 {
 	NodeOperation::determineResolution(resolution, preferedResolution);
 	updateArea();
