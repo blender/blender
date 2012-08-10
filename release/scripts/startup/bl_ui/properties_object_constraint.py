@@ -782,8 +782,13 @@ class ConstraintButtonsPanel():
         row.prop(con, "frame_method", expand=True)
 
         if clip:
-            col.prop_search(con, "object", clip.tracking, "objects", icon='OBJECT_DATA')
-            col.prop_search(con, "track", clip.tracking, "tracks", icon='ANIM_DATA')
+            tracking = clip.tracking
+
+            col.prop_search(con, "object", tracking, "objects", icon='OBJECT_DATA')
+
+            tracking_object = tracking.objects.get(con.object, tracking.objects[0])
+
+            col.prop_search(con, "track", tracking_object, "tracks", icon='ANIM_DATA')
 
         col.prop(con, "camera")
 
