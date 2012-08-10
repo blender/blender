@@ -66,13 +66,8 @@ void BokehBlurOperation::initExecution()
 	int width = this->m_inputBokehProgram->getWidth();
 	int height = this->m_inputBokehProgram->getHeight();
 
-	float dimension;
-	if (width < height) {
-		dimension = width;
-	}
-	else {
-		dimension = height;
-	}
+	float dimension = min(width, height);
+
 	this->m_bokehMidX = width / 2.0f;
 	this->m_bokehMidY = height / 2.0f;
 	this->m_bokehDimension = dimension / 2.0f;
@@ -93,7 +88,8 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, void *data)
 		int bufferwidth = inputBuffer->getWidth();
 		int bufferstartx = inputBuffer->getRect()->xmin;
 		int bufferstarty = inputBuffer->getRect()->ymin;
-		int pixelSize = this->m_size * this->getWidth() / 100.0f;
+		const float max_dim = max(this->getWidth(), this->getHeight());
+		int pixelSize = this->m_size * max_dim / 100.0f;
 		zero_v4(color_accum);
 
 		if (pixelSize<2) {
@@ -150,18 +146,19 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 {
 	rcti newInput;
 	rcti bokehInput;
+	const float max_dim = max(this->getWidth(), this->getHeight());
 
 	if (this->m_sizeavailable) {
-		newInput.xmax = input->xmax + (this->m_size * this->getWidth() / 100.0f);
-		newInput.xmin = input->xmin - (this->m_size * this->getWidth() / 100.0f);
-		newInput.ymax = input->ymax + (this->m_size * this->getWidth() / 100.0f);
-		newInput.ymin = input->ymin - (this->m_size * this->getWidth() / 100.0f);
+		newInput.xmax = input->xmax + (this->m_size * max_dim / 100.0f);
+		newInput.xmin = input->xmin - (this->m_size * max_dim / 100.0f);
+		newInput.ymax = input->ymax + (this->m_size * max_dim / 100.0f);
+		newInput.ymin = input->ymin - (this->m_size * max_dim / 100.0f);
 	}
 	else {
-		newInput.xmax = input->xmax + (10.0f * this->getWidth() / 100.0f);
-		newInput.xmin = input->xmin - (10.0f * this->getWidth() / 100.0f);
-		newInput.ymax = input->ymax + (10.0f * this->getWidth() / 100.0f);
-		newInput.ymin = input->ymin - (10.0f * this->getWidth() / 100.0f);
+		newInput.xmax = input->xmax + (10.0f * max_dim / 100.0f);
+		newInput.xmin = input->xmin - (10.0f * max_dim / 100.0f);
+		newInput.ymax = input->ymax + (10.0f * max_dim / 100.0f);
+		newInput.ymin = input->ymin - (10.0f * max_dim / 100.0f);
 	}
 
 	NodeOperation *operation = getInputOperation(1);
@@ -203,7 +200,8 @@ void BokehBlurOperation::executeOpenCL(OpenCLDevice *device,
 	if (!this->m_sizeavailable) {
 		updateSize();
 	}
-	cl_int radius = this->getWidth() * this->m_size / 100.0f;
+	const float max_dim = max(this->getWidth(), this->getHeight());
+	cl_int radius = this->m_size * max_dim / 100.0f;
 	cl_int step = this->getStep();
 	
 	device->COM_clAttachMemoryBufferToKernelParameter(kernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputBoundingBoxReader);
