@@ -92,7 +92,7 @@ private:
 	bool BKE_object_is_modified(BL::Object b_ob);
 	bool object_is_mesh(BL::Object b_ob);
 	bool object_is_light(BL::Object b_ob);
-	bool object_use_particles(BL::Object b_ob);
+	bool object_need_particle_update(BL::Object b_ob);
 	int object_count_particles(BL::Object b_ob);
 
 	/* variables */
