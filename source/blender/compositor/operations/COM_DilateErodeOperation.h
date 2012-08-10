@@ -47,7 +47,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution
@@ -83,7 +83,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution
@@ -111,7 +111,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 
 	void executeOpenCL(OpenCLDevice *device,
 	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
@@ -135,7 +135,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution

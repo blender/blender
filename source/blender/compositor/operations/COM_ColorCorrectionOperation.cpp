@@ -40,7 +40,7 @@ void ColorCorrectionOperation::initExecution()
 	this->m_inputMask = this->getInputSocketReader(1);
 }
 
-void ColorCorrectionOperation::executePixel(float *output, float x, float y, PixelSampler sampler)
+void ColorCorrectionOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputImageColor[4];
 	float inputMask[4];

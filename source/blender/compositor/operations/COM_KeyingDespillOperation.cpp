@@ -65,7 +65,7 @@ void KeyingDespillOperation::deinitExecution()
 	this->m_screenReader = NULL;
 }
 
-void KeyingDespillOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void KeyingDespillOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float pixelColor[4];
 	float screenColor[4];
@@ -85,12 +85,9 @@ void KeyingDespillOperation::executePixel(float *color, float x, float y, PixelS
 	average_value = this->m_colorBalance * pixelColor[min_channel] + (1.0f - this->m_colorBalance) * pixelColor[max_channel];
 	amount = (pixelColor[screen_primary_channel] - average_value);
 
-	color[0] = pixelColor[0];
-	color[1] = pixelColor[1];
-	color[2] = pixelColor[2];
-	color[3] = pixelColor[3];
+	copy_v4_v4(output, pixelColor);
 
 	if (this->m_despillFactor * amount > 0) {
-		color[screen_primary_channel] = pixelColor[screen_primary_channel] - this->m_despillFactor * amount;
+		output[screen_primary_channel] = pixelColor[screen_primary_channel] - this->m_despillFactor * amount;
 	}
 }

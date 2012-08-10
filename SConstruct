@@ -451,7 +451,7 @@ if not os.path.isdir ( B.root_build_dir):
 if not os.path.isdir ( B.root_build_dir + 'data_headers'):
     os.makedirs ( B.root_build_dir + 'data_headers' )
 # use for includes
-env['DATA_HEADERS'] = "#" + env['BF_BUILDDIR'] + "/data_headers"
+env['DATA_HEADERS'] = os.path.join(os.path.abspath(env['BF_BUILDDIR']), "data_headers")
 def ensure_data(FILE_FROM, FILE_TO, VAR_NAME):
     if os.sep == "\\":
         FILE_FROM = FILE_FROM.replace("/", "\\")

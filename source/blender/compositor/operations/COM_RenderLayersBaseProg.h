@@ -73,7 +73,7 @@ protected:
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
 	 */
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	/**
 	 * retrieve the reference to the float buffer of the renderer.
@@ -92,7 +92,7 @@ public:
 	short getLayerId() { return this->m_layerId; }
 	void initExecution();
 	void deinitExecution();
-	void executePixel(float *output, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

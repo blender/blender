@@ -34,11 +34,11 @@ void ConvertColorToBWOperation::initExecution()
 	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertColorToBWOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void ConvertColorToBWOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
 	this->m_inputOperation->read(&inputColor[0], x, y, sampler);
-	outputValue[0] = rgb_to_bw(inputColor);
+	output[0] = rgb_to_bw(inputColor);
 }
 
 void ConvertColorToBWOperation::deinitExecution()

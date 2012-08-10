@@ -51,7 +51,7 @@ protected:
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
 	 */
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	/**
 	 * Constructor
@@ -59,7 +59,7 @@ protected:
 	TextureBaseOperation();
 
 public:
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 
 	void setTexture(Tex *texture) { this->m_texture = texture; }
 	void initExecution();
@@ -75,7 +75,7 @@ public:
 class TextureAlphaOperation : public TextureBaseOperation {
 public:
 	TextureAlphaOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 
 };
 

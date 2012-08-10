@@ -42,14 +42,14 @@ void AntiAliasOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void AntiAliasOperation::executePixel(float *color, int x, int y, void *data)
+void AntiAliasOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	if (y < 0 || (unsigned int)y >= this->m_height || x < 0 || (unsigned int)x >= this->m_width) {
-		color[0] = 0.0f;
+		output[0] = 0.0f;
 	}
 	else {
 		int offset = y * this->m_width + x;
-		color[0] = this->m_buffer[offset] / 255.0f;
+		output[0] = this->m_buffer[offset] / 255.0f;
 	}
 	
 }

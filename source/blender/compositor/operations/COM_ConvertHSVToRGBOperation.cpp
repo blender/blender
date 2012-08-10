@@ -35,12 +35,12 @@ void ConvertHSVToRGBOperation::initExecution()
 	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertHSVToRGBOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void ConvertHSVToRGBOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
 	this->m_inputOperation->read(inputColor, x, y, sampler);
-	hsv_to_rgb(inputColor[0], inputColor[1], inputColor[2], &outputValue[0], &outputValue[1], &outputValue[2]);
-	outputValue[3] = inputColor[3];
+	hsv_to_rgb_v(inputColor, output);
+	output[3] = inputColor[3];
 }
 
 void ConvertHSVToRGBOperation::deinitExecution()

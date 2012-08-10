@@ -41,11 +41,10 @@ void TonemapOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void TonemapOperation::executePixel(float *color, int x, int y, void *data)
+void TonemapOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	AvgLogLum *avg = (AvgLogLum *)data;
 
-	float output[4];
 	this->m_imageReader->read(output, x, y, NULL);
 	mul_v3_fl(output, avg->al);
 	float dr = output[0] + this->m_data->offset;
@@ -56,14 +55,12 @@ void TonemapOperation::executePixel(float *color, int x, int y, void *data)
 	output[2] /= ((db == 0.f) ? 1.0f : db);
 	const float igm = avg->igm;
 	if (igm != 0.0f) {
-		output[0] = powf(MAX2(output[0], 0.0f), igm);
-		output[1] = powf(MAX2(output[1], 0.0f), igm);
-		output[2] = powf(MAX2(output[2], 0.0f), igm);
+		output[0] = powf(max(output[0], 0.0f), igm);
+		output[1] = powf(max(output[1], 0.0f), igm);
+		output[2] = powf(max(output[2], 0.0f), igm);
 	}
-
-	copy_v4_v4(color, output);
 }
-void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, void *data)
+void PhotoreceptorTonemapOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	AvgLogLum *avg = (AvgLogLum *)data;
 	NodeTonemap *ntm = this->m_data;
@@ -72,7 +69,6 @@ void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, voi
 	const float m = (ntm->m > 0.0f) ? ntm->m : (0.3f + 0.7f * powf(avg->auto_key, 1.4f));
 	const float ic = 1.0f - ntm->c, ia = 1.0f - ntm->a;
 
-	float output[4];
 	this->m_imageReader->read(output, x, y, NULL);
 
 	const float L = rgb_to_luma_y(output);
@@ -88,8 +84,6 @@ void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, voi
 	I_g = avg->cav[2] + ic * (avg->lav - avg->cav[2]);
 	I_a = I_l + ia * (I_g - I_l);
 	output[2] /= (output[2] + powf(f * I_a, m));
-
-	copy_v4_v4(color, output);
 }
 
 void TonemapOperation::deinitExecution()

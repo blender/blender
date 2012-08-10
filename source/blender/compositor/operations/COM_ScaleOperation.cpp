@@ -57,7 +57,7 @@ void ScaleOperation::deinitExecution()
 }
 
 
-void ScaleOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void ScaleOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 #ifdef USE_FORCE_BILINEAR
 	sampler = COM_PS_BILINEAR;
@@ -74,7 +74,7 @@ void ScaleOperation::executePixel(float *color, float x, float y, PixelSampler s
 
 	float nx = this->m_centerX + (x - this->m_centerX) / scx;
 	float ny = this->m_centerY + (y - this->m_centerY) / scy;
-	this->m_inputOperation->read(color, nx, ny, sampler);
+	this->m_inputOperation->read(output, nx, ny, sampler);
 }
 
 bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -127,7 +127,7 @@ void ScaleAbsoluteOperation::deinitExecution()
 }
 
 
-void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void ScaleAbsoluteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 #ifdef USE_FORCE_BILINEAR
 	sampler = COM_PS_BILINEAR;
@@ -151,7 +151,7 @@ void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelS
 	float nx = this->m_centerX + (x - this->m_centerX) / relativeXScale;
 	float ny = this->m_centerY + (y - this->m_centerY) / relativeYScale;
 
-	this->m_inputOperation->read(color, nx, ny, sampler);
+	this->m_inputOperation->read(output, nx, ny, sampler);
 }
 
 bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -248,7 +248,7 @@ void ScaleFixedSizeOperation::deinitExecution()
 }
 
 
-void ScaleFixedSizeOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void ScaleFixedSizeOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 #ifdef USE_FORCE_BILINEAR
 	sampler = COM_PS_BILINEAR;
@@ -257,10 +257,10 @@ void ScaleFixedSizeOperation::executePixel(float *color, float x, float y, Pixel
 	if (this->m_is_offset) {
 		float nx = ((x - this->m_offsetX) * this->m_relX);
 		float ny = ((y - this->m_offsetY) * this->m_relY);
-		this->m_inputOperation->read(color, nx, ny, sampler);
+		this->m_inputOperation->read(output, nx, ny, sampler);
 	}
 	else {
-		this->m_inputOperation->read(color, x * this->m_relX, y * this->m_relY, sampler);
+		this->m_inputOperation->read(output, x * this->m_relX, y * this->m_relY, sampler);
 	}
 }
 
@@ -276,7 +276,7 @@ bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input, Read
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	unsigned int nr[2];
 	nr[0] = this->m_newWidth;

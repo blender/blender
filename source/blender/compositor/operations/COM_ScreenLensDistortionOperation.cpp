@@ -55,7 +55,7 @@ void *ScreenLensDistortionOperation::initializeTileData(rcti *rect)
 	return buffer;
 }
 
-void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int y, void *data)
+void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	const float height = this->getHeight();
 	const float width = this->getWidth();
@@ -126,18 +126,15 @@ void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int 
 			}
 
 		}
-		if (dr) outputColor[0] = 2.0f * tc[0] / (float)dr;
-		if (dg) outputColor[1] = 2.0f * tc[1] / (float)dg;
-		if (db) outputColor[2] = 2.0f * tc[2] / (float)db;
+		if (dr) output[0] = 2.0f * tc[0] / (float)dr;
+		if (dg) output[1] = 2.0f * tc[1] / (float)dg;
+		if (db) output[2] = 2.0f * tc[2] / (float)db;
 
 		/* set alpha */
-		outputColor[3] = 1.0f;
+		output[3] = 1.0f;
 	}
 	else {
-		outputColor[0] = 0.0f;
-		outputColor[1] = 0.0f;
-		outputColor[2] = 0.0f;
-		outputColor[3] = 0.0f;
+		zero_v4(output);
 	}
 }
 

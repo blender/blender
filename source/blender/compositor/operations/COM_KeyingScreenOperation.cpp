@@ -280,7 +280,7 @@ void KeyingScreenOperation::deinitializeTileData(rcti *rect, void *data)
 	MEM_freeN(tile_data);
 }
 
-void KeyingScreenOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void KeyingScreenOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	resolution[0] = 0;
 	resolution[1] = 0;
@@ -298,12 +298,12 @@ void KeyingScreenOperation::determineResolution(unsigned int resolution[], unsig
 	}
 }
 
-void KeyingScreenOperation::executePixel(float *color, int x, int y, void *data)
+void KeyingScreenOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	color[0] = 0.0f;
-	color[1] = 0.0f;
-	color[2] = 0.0f;
-	color[3] = 1.0f;
+	output[0] = 0.0f;
+	output[1] = 0.0f;
+	output[2] = 0.0f;
+	output[3] = 1.0f;
 
 	if (this->m_movieClip && data) {
 		TriangulationData *triangulation = this->m_cachedTriangulation;
@@ -324,9 +324,9 @@ void KeyingScreenOperation::executePixel(float *color, int x, int y, void *data)
 
 				if (barycentric_coords_v2(a->co, b->co, c->co, co, w)) {
 					if (barycentric_inside_triangle_v2(w)) {
-						color[0] = a->color[0] * w[0] + b->color[0] * w[1] + c->color[0] * w[2];
-						color[1] = a->color[1] * w[0] + b->color[1] * w[1] + c->color[1] * w[2];
-						color[2] = a->color[2] * w[0] + b->color[2] * w[1] + c->color[2] * w[2];
+						output[0] = a->color[0] * w[0] + b->color[0] * w[1] + c->color[0] * w[2];
+						output[1] = a->color[1] * w[0] + b->color[1] * w[1] + c->color[1] * w[2];
+						output[2] = a->color[2] * w[0] + b->color[2] * w[1] + c->color[2] * w[2];
 
 						break;
 					}

@@ -44,7 +44,7 @@ void BoxMaskOperation::initExecution()
 	this->m_aspectRatio = ((float)this->getWidth()) / this->getHeight();
 }
 
-void BoxMaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void BoxMaskOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputMask[4];
 	float inputValue[4];
@@ -70,40 +70,40 @@ void BoxMaskOperation::executePixel(float *color, float x, float y, PixelSampler
 	switch (this->m_maskType) {
 		case CMP_NODE_MASKTYPE_ADD:
 			if (inside) {
-				color[0] = max(inputMask[0], inputValue[0]);
+				output[0] = max(inputMask[0], inputValue[0]);
 			}
 			else {
-				color[0] = inputMask[0];
+				output[0] = inputMask[0];
 			}
 			break;
 		case CMP_NODE_MASKTYPE_SUBTRACT:
 			if (inside) {
-				color[0] = inputMask[0] - inputValue[0];
-				CLAMP(color[0], 0, 1);
+				output[0] = inputMask[0] - inputValue[0];
+				CLAMP(output[0], 0, 1);
 			}
 			else {
-				color[0] = inputMask[0];
+				output[0] = inputMask[0];
 			}
 			break;
 		case CMP_NODE_MASKTYPE_MULTIPLY:
 			if (inside) {
-				color[0] = inputMask[0] * inputValue[0];
+				output[0] = inputMask[0] * inputValue[0];
 			}
 			else {
-				color[0] = 0;
+				output[0] = 0;
 			}
 			break;
 		case CMP_NODE_MASKTYPE_NOT:
 			if (inside) {
 				if (inputMask[0] > 0.0f) {
-					color[0] = 0;
+					output[0] = 0;
 				}
 				else {
-					color[0] = inputValue[0];
+					output[0] = inputValue[0];
 				}
 			}
 			else {
-				color[0] = inputMask[0];
+				output[0] = inputMask[0];
 			}
 			break;
 	}

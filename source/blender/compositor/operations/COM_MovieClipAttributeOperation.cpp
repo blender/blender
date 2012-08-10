@@ -33,7 +33,7 @@ MovieClipAttributeOperation::MovieClipAttributeOperation() : NodeOperation()
 	this->m_attribute = MCA_X;
 }
 
-void MovieClipAttributeOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void MovieClipAttributeOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	if (!this->m_valueSet) {
 		float loc[2], scale, angle;
@@ -61,10 +61,10 @@ void MovieClipAttributeOperation::executePixel(float *outputValue, float x, floa
 		}
 		this->m_valueSet = true;
 	}
-	outputValue[0] = this->m_value;
+	output[0] = this->m_value;
 }
 
-void MovieClipAttributeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void MovieClipAttributeOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	resolution[0] = preferredResolution[0];
 	resolution[1] = preferredResolution[1];

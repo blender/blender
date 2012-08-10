@@ -44,7 +44,7 @@ void DifferenceMatteOperation::deinitExecution()
 	this->m_inputImage2Program = NULL;
 }
 
-void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void DifferenceMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inColor1[4];
 	float inColor2[4];
@@ -66,7 +66,7 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 
 	/* make 100% transparent */
 	if (difference < tolerance) {
-		outputValue[0] = 0.0f;
+		output[0] = 0.0f;
 	}
 	/*in the falloff region, make partially transparent */
 	else if (difference < falloff + tolerance) {
@@ -74,15 +74,15 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 		alpha = difference / falloff;
 		/*only change if more transparent than before */
 		if (alpha < inColor1[3]) {
-			outputValue[0] = alpha;
+			output[0] = alpha;
 		}
 		else { /* leave as before */
-			outputValue[0] = inColor1[3];
+			output[0] = inColor1[3];
 		}
 	}
 	else {
 		/* foreground object */
-		outputValue[0] = inColor1[3];
+		output[0] = inColor1[3];
 	}
 }
 

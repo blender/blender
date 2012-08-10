@@ -33,7 +33,7 @@ OutputSocket::OutputSocket(DataType datatype) : Socket(datatype)
 int OutputSocket::isOutputSocket() const { return true; }
 const int OutputSocket::isConnected() const { return this->m_connections.size() != 0; }
 
-void OutputSocket::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void OutputSocket::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	NodeBase *node = this->getNode();
 	if (node->isOperation()) {

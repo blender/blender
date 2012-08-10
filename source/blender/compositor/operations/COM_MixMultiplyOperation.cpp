@@ -27,7 +27,7 @@ MixMultiplyOperation::MixMultiplyOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixMultiplyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void MixMultiplyOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
@@ -42,11 +42,11 @@ void MixMultiplyOperation::executePixel(float *outputValue, float x, float y, Pi
 		value *= inputColor2[3];
 	}
 	float valuem = 1.0f - value;
-	outputValue[0] = inputColor1[0] * (valuem + value * inputColor2[0]);
-	outputValue[1] = inputColor1[1] * (valuem + value * inputColor2[1]);
-	outputValue[2] = inputColor1[2] * (valuem + value * inputColor2[2]);
-	outputValue[3] = inputColor1[3];
+	output[0] = inputColor1[0] * (valuem + value * inputColor2[0]);
+	output[1] = inputColor1[1] * (valuem + value * inputColor2[1]);
+	output[2] = inputColor1[2] * (valuem + value * inputColor2[2]);
+	output[3] = inputColor1[3];
 
-	clampIfNeeded(outputValue);
+	clampIfNeeded(output);
 }
 

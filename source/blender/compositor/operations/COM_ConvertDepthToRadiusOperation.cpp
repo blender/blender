@@ -72,7 +72,7 @@ void ConvertDepthToRadiusOperation::initExecution()
 	}
 }
 
-void ConvertDepthToRadiusOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void ConvertDepthToRadiusOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
 	float z;
@@ -94,9 +94,11 @@ void ConvertDepthToRadiusOperation::executePixel(float *outputValue, float x, fl
 		if (radius > this->m_maxRadius) {
 			radius = this->m_maxRadius;
 		}
-		outputValue[0] = radius;
+		output[0] = radius;
 	}
-	else outputValue[0] = 0.0f;
+	else {
+		output[0] = 0.0f;
+	}
 }
 
 void ConvertDepthToRadiusOperation::deinitExecution()

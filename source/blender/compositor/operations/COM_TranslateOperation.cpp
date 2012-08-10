@@ -50,10 +50,10 @@ void TranslateOperation::deinitExecution()
 }
 
 
-void TranslateOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void TranslateOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	ensureDelta();
-	this->m_inputOperation->read(color, x - this->getDeltaX(), y - this->getDeltaY(), sampler);
+	this->m_inputOperation->read(output, x - this->getDeltaX(), y - this->getDeltaY(), sampler);
 }
 
 bool TranslateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

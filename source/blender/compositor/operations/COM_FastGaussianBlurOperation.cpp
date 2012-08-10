@@ -31,10 +31,10 @@ FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(COM_D
 	this->m_iirgaus = NULL;
 }
 
-void FastGaussianBlurOperation::executePixel(float *color, int x, int y, void *data)
+void FastGaussianBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *newData = (MemoryBuffer *)data;
-	newData->read(color, x, y);	
+	newData->read(output, x, y);
 }
 
 bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -233,10 +233,10 @@ FastGaussianBlurValueOperation::FastGaussianBlurValueOperation() : NodeOperation
 	setComplex(true);
 }
 
-void FastGaussianBlurValueOperation::executePixel(float *color, int x, int y, void *data)
+void FastGaussianBlurValueOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *newData = (MemoryBuffer *)data;
-	newData->read(color, x, y);	
+	newData->read(output, x, y);
 }
 
 bool FastGaussianBlurValueOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

@@ -27,7 +27,7 @@ MixBurnOperation::MixBurnOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixBurnOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void MixBurnOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
@@ -45,45 +45,45 @@ void MixBurnOperation::executePixel(float *outputValue, float x, float y, PixelS
 	
 	tmp = valuem + value * inputColor2[0];
 	if (tmp <= 0.0f)
-		outputValue[0] = 0.0f;
+		output[0] = 0.0f;
 	else {
 		tmp = 1.0f - (1.0f - inputColor1[0]) / tmp;
 		if (tmp < 0.0f)
-			outputValue[0] = 0.0f;
+			output[0] = 0.0f;
 		else if (tmp > 1.0f)
-			outputValue[0] = 1.0f;
+			output[0] = 1.0f;
 		else
-			outputValue[0] = tmp;
+			output[0] = tmp;
 	}
 	
 	tmp = valuem + value * inputColor2[1];
 	if (tmp <= 0.0f)
-		outputValue[1] = 0.0f;
+		output[1] = 0.0f;
 	else {
 		tmp = 1.0f - (1.0f - inputColor1[1]) / tmp;
 		if (tmp < 0.0f)
-			outputValue[1] = 0.0f;
+			output[1] = 0.0f;
 		else if (tmp > 1.0f)
-			outputValue[1] = 1.0f;
+			output[1] = 1.0f;
 		else
-			outputValue[1] = tmp;
+			output[1] = tmp;
 	}
 	
 	tmp = valuem + value * inputColor2[2];
 	if (tmp <= 0.0f)
-		outputValue[2] = 0.0f;
+		output[2] = 0.0f;
 	else {
 		tmp = 1.0f - (1.0f - inputColor1[2]) / tmp;
 		if (tmp < 0.0f)
-			outputValue[2] = 0.0f;
+			output[2] = 0.0f;
 		else if (tmp > 1.0f)
-			outputValue[2] = 1.0f;
+			output[2] = 1.0f;
 		else
-			outputValue[2] = tmp;
+			output[2] = tmp;
 	}
 	
-	outputValue[3] = inputColor1[3];
+	output[3] = inputColor1[3];
 
-	clampIfNeeded(outputValue);
+	clampIfNeeded(output);
 }
 

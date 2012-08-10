@@ -30,8 +30,6 @@ private:
 	NodeBokehImage *m_data;
 
 	float m_center[2];
-	float m_centerX;
-	float m_centerY;
 	float m_inverseRounding;
 	float m_circularDistance;
 	float m_flapRad;
@@ -47,7 +45,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 	
 	/**
 	 * Initialize the execution
@@ -59,7 +57,7 @@ public:
 	 */
 	void deinitExecution();
 	
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 	void setData(NodeBokehImage *data) { this->m_data = data; }
 	void deleteDataOnFinish() { this->m_deleteData = true; }

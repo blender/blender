@@ -112,7 +112,7 @@ void GaussianBokehBlurOperation::updateGauss()
 	}
 }
 
-void GaussianBokehBlurOperation::executePixel(float *color, int x, int y, void *data)
+void GaussianBokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float tempColor[4];
 	tempColor[0] = 0;
@@ -152,7 +152,7 @@ void GaussianBokehBlurOperation::executePixel(float *color, int x, int y, void *
 		}
 	}
 
-	mul_v4_v4fl(color, tempColor, 1.0f / multiplier_accum);
+	mul_v4_v4fl(output, tempColor, 1.0f / multiplier_accum);
 }
 
 void GaussianBokehBlurOperation::deinitExecution()
@@ -262,7 +262,7 @@ void GaussianBlurReferenceOperation::updateGauss()
 		m_maintabs[i] = make_gausstab(i + 1);
 }
 
-void GaussianBlurReferenceOperation::executePixel(float *color, int x, int y, void *data)
+void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *memorybuffer = (MemoryBuffer *)data;
 	float *buffer = memorybuffer->getBuffer();
@@ -285,7 +285,7 @@ void GaussianBlurReferenceOperation::executePixel(float *color, int x, int y, vo
 	else if (refrady < 1) refrady = 1;
 
 	if (refradx == 1 && refrady == 1) {
-		memorybuffer->readNoCheck(color, x, y);
+		memorybuffer->readNoCheck(output, x, y);
 	}
 	else {
 		int minxr = x - refradx < 0 ? -x : -refradx;
@@ -314,10 +314,10 @@ void GaussianBlurReferenceOperation::executePixel(float *color, int x, int y, vo
 			}
 		}
 		sum = 1.0f / sum;
-		color[0] = rval * sum;
-		color[1] = gval * sum;
-		color[2] = bval * sum;
-		color[3] = aval * sum;
+		output[0] = rval * sum;
+		output[1] = gval * sum;
+		output[2] = bval * sum;
+		output[3] = aval * sum;
 	}
 
 }

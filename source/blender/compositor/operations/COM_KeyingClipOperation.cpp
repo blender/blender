@@ -51,7 +51,7 @@ void *KeyingClipOperation::initializeTileData(rcti *rect)
 	return buffer;
 }
 
-void KeyingClipOperation::executePixel(float *color, int x, int y, void *data)
+void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	const int delta = this->m_kernelRadius;
 	const float tolerance = this->m_kernelTolerance;
@@ -92,20 +92,20 @@ void KeyingClipOperation::executePixel(float *color, int x, int y, void *data)
 
 	if (this->m_isEdgeMatte) {
 		if (ok)
-			color[0] = 0.0f;
+			output[0] = 0.0f;
 		else
-			color[0] = 1.0f;
+			output[0] = 1.0f;
 	}
 	else {
-		color[0] = value;
+		output[0] = value;
 
 		if (ok) {
-			if (color[0] < this->m_clipBlack)
-				color[0] = 0.0f;
-			else if (color[0] >= this->m_clipWhite)
-				color[0] = 1.0f;
+			if (output[0] < this->m_clipBlack)
+				output[0] = 0.0f;
+			else if (output[0] >= this->m_clipWhite)
+				output[0] = 1.0f;
 			else
-				color[0] = (color[0] - this->m_clipBlack) / (this->m_clipWhite - this->m_clipBlack);
+				output[0] = (output[0] - this->m_clipBlack) / (this->m_clipWhite - this->m_clipBlack);
 		}
 	}
 }

@@ -68,14 +68,14 @@ inline void RotateOperation::ensureDegree()
 }
 
 
-void RotateOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void RotateOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	ensureDegree();
 	const float dy = y - this->m_centerY;
 	const float dx = x - this->m_centerX;
 	const float nx = this->m_centerX + (this->m_cosine * dx + this->m_sine * dy);
 	const float ny = this->m_centerY + (-this->m_sine * dx + this->m_cosine * dy);
-	this->m_imageSocket->read(color, nx, ny, sampler);
+	this->m_imageSocket->read(output, nx, ny, sampler);
 }
 
 bool RotateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

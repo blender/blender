@@ -110,7 +110,7 @@ bool PreviewOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferO
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
-void PreviewOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void PreviewOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	NodeOperation::determineResolution(resolution, preferredResolution);
 	int width = resolution[0];

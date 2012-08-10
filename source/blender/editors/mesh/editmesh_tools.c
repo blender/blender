@@ -5301,7 +5301,7 @@ void MESH_OT_convex_hull(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = edbm_convex_hull_exec;
-	ot->poll = EM_view3d_poll;
+	ot->poll = ED_operator_editmesh;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

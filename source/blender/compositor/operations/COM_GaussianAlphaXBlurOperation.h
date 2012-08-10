@@ -40,7 +40,7 @@ public:
 	/**
 	 * @brief the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 	
 	/**
 	 * @brief initialize the execution
