@@ -78,7 +78,7 @@ __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only ima
 __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2d_t bokehImage, 
 					__read_only image2d_t inputSize,
 					__write_only image2d_t output, int2 offsetInput, int2 offsetOutput, 
-					int step, int maxBlurScalar, float threshold, int2 dimension, int2 offset, float scalar) 
+					int step, int maxBlurScalar, float threshold, float scalar, int2 dimension, int2 offset) 
 {
 	float4 color = {1.0f, 0.0f, 0.0f, 1.0f};
 	int2 coords = {get_global_id(0), get_global_id(1)};

@@ -727,7 +727,6 @@ macro(set_lib_path
 endmacro()
 
 
-# TODO, create a C binary and call it instead!, doing this in cmake its slow
 macro(data_to_c
       file_from file_to
       list_to_add)
@@ -743,6 +742,7 @@ macro(data_to_c
 		DEPENDS ${file_from} datatoc)
 	unset(_file_to_path)
 endmacro()
+
 
 # same as above but generates the var name and output automatic.
 macro(data_to_c_simple
