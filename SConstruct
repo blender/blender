@@ -450,8 +450,11 @@ if not os.path.isdir ( B.root_build_dir):
 ###################################
 if not os.path.isdir ( B.root_build_dir + 'data_headers'):
     os.makedirs ( B.root_build_dir + 'data_headers' )
+if not os.path.isdir ( B.root_build_dir + 'data_sources'):
+    os.makedirs ( B.root_build_dir + 'data_sources' )
 # use for includes
 env['DATA_HEADERS'] = os.path.join(os.path.abspath(env['BF_BUILDDIR']), "data_headers")
+env['DATA_SOURCES'] = os.path.join(os.path.abspath(env['BF_BUILDDIR']), "data_sources")
 def ensure_data(FILE_FROM, FILE_TO, VAR_NAME):
     if os.sep == "\\":
         FILE_FROM = FILE_FROM.replace("/", "\\")
@@ -486,6 +489,14 @@ def ensure_data(FILE_FROM, FILE_TO, VAR_NAME):
 ensure_data("source/blender/compositor/operations/COM_OpenCLKernels.cl",
             B.root_build_dir + "data_headers/COM_OpenCLKernels.cl.h",
             "clkernelstoh_COM_OpenCLKernels_cl")
+
+ensure_data("./release/datafiles/startup.blend",
+            B.root_build_dir + "data_sources/startup.blend.c",
+            "datatoc_startup_blend")
+
+ensure_data("./release/datafiles/preview.blend",
+            B.root_build_dir + "data_sources/preview.blend.c",
+            "datatoc_preview_blend")
 
 ##### END DATAFILES ##########
 

@@ -6,4 +6,11 @@ sources = env.Glob('*.c')
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../bmesh #/intern/guardedalloc'
 
+# generated data files
+import os
+sources.extend((
+	os.path.join(env['DATA_SOURCES'], "startup.blend.c"),
+	os.path.join(env['DATA_SOURCES'], "preview.blend.c"),
+	))
+
 env.BlenderLib ( 'bf_editor_datafiles', sources, Split(incs), [], libtype=['core', 'player'], priority=[235, 30] )

@@ -638,7 +638,7 @@ macro(blender_project_hack_post)
 	# --------------
 	# MINGW HACK END
 	if (_reset_standard_libraries)
-		# Must come after project(...)
+		# Must come after projecINCt(...)
 		#
 		# MINGW workaround for -ladvapi32 being included which surprisingly causes
 		# string formatting of floats, eg: printf("%.*f", 3, value). to crash blender
@@ -727,29 +727,20 @@ macro(set_lib_path
 endmacro()
 
 
-# not highly optimal, may replace with generated C program like makesdna
-function(data_to_c
-         file_from file_to var_name)
+# TODO, create a C binary and call it instead!, doing this in cmake its slow
+macro(data_to_c
+      file_from file_to var_name
+      list_to_add)
 
-	file(READ ${file_from} file_from_string HEX)
-	string(LENGTH ${file_from_string} _max_index)
-	math(EXPR size_on_disk ${_max_index}/2)
+	list(APPEND ${list_to_add} ${file_to})
 
-	file(REMOVE ${file_to})
-
-	file(APPEND ${file_to} "int  ${var_name}_size = ${size_on_disk};\n")
-	file(APPEND ${file_to} "char ${var_name}[] = {")
-
-	set(_index 0)
-
-	while(NOT _index EQUAL _max_index)
-		string(SUBSTRING "${file_from_string}" ${_index} 2 _pair)
-		file(APPEND ${file_to} "0x${_pair},")
-		math(EXPR _index ${_index}+2)
-	endwhile()
-	file(APPEND ${file_to} "};\n")
-endfunction()
-
-# eg
-# data_to_c("/home/guest/test.txt" "/home/guest/test.txt.h" "this_is_data")
+	add_custom_command(
+		OUTPUT ${file_to}
+		COMMAND ${CMAKE_COMMAND}
+				-DFILE_FROM=${file_from}
+				-DFILE_TO=${file_to}
+				-DVAR_NAME=${var_name}
+				-P ${CMAKE_SOURCE_DIR}/build_files/cmake/data_to_c.cmake
+		DEPENDS ${file_from})
+endmacro()
 
