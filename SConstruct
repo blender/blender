@@ -455,7 +455,7 @@ if not os.path.isdir ( B.root_build_dir + 'data_sources'):
 # use for includes
 env['DATA_HEADERS'] = os.path.join(os.path.abspath(env['BF_BUILDDIR']), "data_headers")
 env['DATA_SOURCES'] = os.path.join(os.path.abspath(env['BF_BUILDDIR']), "data_sources")
-def ensure_data(FILE_FROM, FILE_TO, VAR_NAME):
+def data_to_c(FILE_FROM, FILE_TO, VAR_NAME):
     if os.sep == "\\":
         FILE_FROM = FILE_FROM.replace("/", "\\")
         FILE_TO   = FILE_TO.replace("/", "\\")
@@ -486,42 +486,62 @@ def ensure_data(FILE_FROM, FILE_TO, VAR_NAME):
     fpin.close()
     fpout.close()
 
-ensure_data("source/blender/compositor/operations/COM_OpenCLKernels.cl",
-            B.root_build_dir + "data_headers/COM_OpenCLKernels.cl.h",
-            "clkernelstoh_COM_OpenCLKernels_cl")
+def data_to_c_simple(FILE_FROM):
+	filename_only = os.path.basename(FILE_FROM)
+	FILE_TO = os.path.join(env['DATA_SOURCES'], filename_only + ".c")
+	VAR_NAME = "datatoc_" + filename_only.replace(".", "_")
+	
+	data_to_c(FILE_FROM, FILE_TO, VAR_NAME)
+	
 
-ensure_data("./release/datafiles/startup.blend",
-            B.root_build_dir + "data_sources/startup.blend.c",
-            "datatoc_startup_blend")
+data_to_c("source/blender/compositor/operations/COM_OpenCLKernels.cl",
+          B.root_build_dir + "data_headers/COM_OpenCLKernels.cl.h",
+          "clkernelstoh_COM_OpenCLKernels_cl")
 
-ensure_data("./release/datafiles/preview.blend",
-            B.root_build_dir + "data_sources/preview.blend.c",
-            "datatoc_preview_blend")
+data_to_c_simple("release/datafiles/startup.blend")
+data_to_c_simple("release/datafiles/preview.blend")
 
 # --- glsl ---
-ensure_data("source/blender/gpu/shaders/gpu_shader_material.glsl",
-            B.root_build_dir + "data_sources/gpu_shader_material.glsl.c",
-            "datatoc_gpu_shader_material_glsl")
-ensure_data("source/blender/gpu/shaders/gpu_shader_vertex.glsl",
-            B.root_build_dir + "data_sources/gpu_shader_vertex.glsl.c",
-            "datatoc_gpu_shader_vertex_glsl")
-ensure_data("source/blender/gpu/shaders/gpu_shader_sep_gaussian_blur_frag.glsl",
-            B.root_build_dir + "data_sources/gpu_shader_sep_gaussian_blur_frag.glsl.c",
-            "datatoc_gpu_shader_sep_gaussian_blur_frag_glsl")
-ensure_data("source/blender/gpu/shaders/gpu_shader_sep_gaussian_blur_vert.glsl",
-            B.root_build_dir + "data_sources/gpu_shader_sep_gaussian_blur_vert.glsl.c",
-            "datatoc_gpu_shader_sep_gaussian_blur_vert_glsl")
-ensure_data("source/blender/gpu/shaders/gpu_shader_material.glsl",
-            B.root_build_dir + "data_sources/gpu_shader_material.glsl.c",
-            "datatoc_gpu_shader_material_glsl")
-ensure_data("source/blender/gpu/shaders/gpu_shader_vsm_store_frag.glsl",
-            B.root_build_dir + "data_sources/gpu_shader_vsm_store_frag.glsl.c",
-            "datatoc_gpu_shader_vsm_store_frag_glsl")
-ensure_data("source/blender/gpu/shaders/gpu_shader_vsm_store_vert.glsl",
-            B.root_build_dir + "data_sources/gpu_shader_vsm_store_vert.glsl.c",
-            "datatoc_gpu_shader_vsm_store_vert_glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_material.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vertex.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_sep_gaussian_blur_frag.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_sep_gaussian_blur_vert.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_material.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vsm_store_frag.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vsm_store_vert.glsl")
 
+data_to_c_simple("release/datafiles/brushicons/add.png")
+data_to_c_simple("release/datafiles/brushicons/blob.png")
+data_to_c_simple("release/datafiles/brushicons/blur.png")
+data_to_c_simple("release/datafiles/brushicons/clay.png")
+data_to_c_simple("release/datafiles/brushicons/claystrips.png")
+data_to_c_simple("release/datafiles/brushicons/clone.png")
+data_to_c_simple("release/datafiles/brushicons/crease.png")
+data_to_c_simple("release/datafiles/brushicons/darken.png")
+data_to_c_simple("release/datafiles/brushicons/draw.png")
+data_to_c_simple("release/datafiles/brushicons/fill.png")
+data_to_c_simple("release/datafiles/brushicons/flatten.png")
+data_to_c_simple("release/datafiles/brushicons/grab.png")
+data_to_c_simple("release/datafiles/brushicons/inflate.png")
+data_to_c_simple("release/datafiles/brushicons/layer.png")
+data_to_c_simple("release/datafiles/brushicons/lighten.png")
+data_to_c_simple("release/datafiles/brushicons/mask.png")
+data_to_c_simple("release/datafiles/brushicons/mix.png")
+data_to_c_simple("release/datafiles/brushicons/multiply.png")
+data_to_c_simple("release/datafiles/brushicons/nudge.png")
+data_to_c_simple("release/datafiles/brushicons/pinch.png")
+data_to_c_simple("release/datafiles/brushicons/scrape.png")
+data_to_c_simple("release/datafiles/brushicons/smear.png")
+data_to_c_simple("release/datafiles/brushicons/smooth.png")
+data_to_c_simple("release/datafiles/brushicons/snake_hook.png")
+data_to_c_simple("release/datafiles/brushicons/soften.png")
+data_to_c_simple("release/datafiles/brushicons/subtract.png")
+data_to_c_simple("release/datafiles/brushicons/texdraw.png")
+data_to_c_simple("release/datafiles/brushicons/thumb.png")
+data_to_c_simple("release/datafiles/brushicons/twist.png")
+data_to_c_simple("release/datafiles/brushicons/vertexdraw.png")
 
+data_to_c_simple("release/datafiles/prvicons.png")
 
 ##### END DATAFILES ##########
 
