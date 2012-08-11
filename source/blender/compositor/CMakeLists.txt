@@ -644,7 +644,6 @@ list(APPEND INC
 	${CMAKE_CURRENT_BINARY_DIR}/operations
 )
 data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/operations/COM_OpenCLKernels.cl
-          ${CMAKE_CURRENT_BINARY_DIR}/operations/COM_OpenCLKernels.cl.h
-          clkernelstoh_COM_OpenCLKernels_cl SRC)
+          ${CMAKE_CURRENT_BINARY_DIR}/operations/COM_OpenCLKernels.cl.h SRC)
 
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}")

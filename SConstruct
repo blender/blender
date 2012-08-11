@@ -496,7 +496,7 @@ def data_to_c_simple(FILE_FROM):
 
 data_to_c("source/blender/compositor/operations/COM_OpenCLKernels.cl",
           B.root_build_dir + "data_headers/COM_OpenCLKernels.cl.h",
-          "clkernelstoh_COM_OpenCLKernels_cl")
+          "datatoc_COM_OpenCLKernels_cl")
 
 data_to_c_simple("release/datafiles/startup.blend")
 data_to_c_simple("release/datafiles/preview.blend")
