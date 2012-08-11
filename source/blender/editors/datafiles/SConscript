@@ -1,14 +1,22 @@
 #!/usr/bin/python
 Import ('env')
 
-sources = env.Glob('*.c')
-
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' ../../bmesh #/intern/guardedalloc'
+# all source generated now
+# sources = env.Glob('*.c')
+sources = []
+incs = ""
 
 # generated data files
 import os
 sources.extend((
+	os.path.join(env['DATA_SOURCES'], "bfont.pfb.c"),
+	os.path.join(env['DATA_SOURCES'], "bfont.ttf.c"),
+	os.path.join(env['DATA_SOURCES'], "bmonofont.ttf.c"),
+
+	os.path.join(env['DATA_SOURCES'], "splash.png.c"),
+	os.path.join(env['DATA_SOURCES'], "blender_icons.png.c"),
+	os.path.join(env['DATA_SOURCES'], "prvicons.png.c"),
+
 	os.path.join(env['DATA_SOURCES'], "startup.blend.c"),
 	os.path.join(env['DATA_SOURCES'], "preview.blend.c"),
 	
@@ -42,8 +50,6 @@ sources.extend((
 	os.path.join(env['DATA_SOURCES'], "thumb.png.c"),
 	os.path.join(env['DATA_SOURCES'], "twist.png.c"),
 	os.path.join(env['DATA_SOURCES'], "vertexdraw.png.c"),
-
-	os.path.join(env['DATA_SOURCES'], "prvicons.png.c"),
 	))
 
 env.BlenderLib ( 'bf_editor_datafiles', sources, Split(incs), [], libtype=['core', 'player'], priority=[235, 30] )

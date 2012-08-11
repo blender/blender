@@ -28,24 +28,26 @@ set(INC_SYS
 
 # blender and player
 set(SRC
-	Bfont.c
-	bfont.ttf.c
+
 )
 
+data_to_c_simple(../../../../release/datafiles/bfont.pfb SRC)
+data_to_c_simple(../../../../release/datafiles/bfont.ttf SRC)
+
 if(WITH_BLENDER)
-	# blender only
-	list(APPEND SRC
-		# startup.blend.c
-		bmonofont.ttf.c
-	)
+	# blender only (not player)
+	data_to_c_simple(../../../../release/datafiles/bmonofont.ttf SRC)
 
 	if(NOT WITH_HEADLESS)
 		# blender UI only
-		list(APPEND SRC
-			# images
-			splash.png.c
-			blender_icons.png.c
-		)
+
+		# blends
+		data_to_c_simple(../../../../release/datafiles/preview.blend SRC)
+
+		# images
+		data_to_c_simple(../../../../release/datafiles/splash.png SRC)
+		data_to_c_simple(../../../../release/datafiles/blender_icons.png SRC)
+		data_to_c_simple(../../../../release/datafiles/prvicons.png SRC)
 
 		# brushes
 		data_to_c_simple(../../../../release/datafiles/brushicons/add.png SRC)
@@ -78,10 +80,6 @@ if(WITH_BLENDER)
 		data_to_c_simple(../../../../release/datafiles/brushicons/thumb.png SRC)
 		data_to_c_simple(../../../../release/datafiles/brushicons/twist.png SRC)
 		data_to_c_simple(../../../../release/datafiles/brushicons/vertexdraw.png SRC)
-
-		data_to_c_simple(../../../../release/datafiles/prvicons.png SRC)
-
-		data_to_c_simple(../../../../release/datafiles/preview.blend SRC)
 	endif()
 
 	data_to_c_simple(../../../../release/datafiles/startup.blend SRC)

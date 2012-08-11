@@ -510,6 +510,15 @@ data_to_c_simple("source/blender/gpu/shaders/gpu_shader_material.glsl")
 data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vsm_store_frag.glsl")
 data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vsm_store_vert.glsl")
 
+# --- blender ---
+data_to_c_simple("release/datafiles/bfont.pfb")
+data_to_c_simple("release/datafiles/bfont.ttf")
+data_to_c_simple("release/datafiles/bmonofont.ttf")
+
+data_to_c_simple("release/datafiles/splash.png")
+data_to_c_simple("release/datafiles/blender_icons.png")
+data_to_c_simple("release/datafiles/prvicons.png")
+
 data_to_c_simple("release/datafiles/brushicons/add.png")
 data_to_c_simple("release/datafiles/brushicons/blob.png")
 data_to_c_simple("release/datafiles/brushicons/blur.png")
@@ -540,8 +549,6 @@ data_to_c_simple("release/datafiles/brushicons/texdraw.png")
 data_to_c_simple("release/datafiles/brushicons/thumb.png")
 data_to_c_simple("release/datafiles/brushicons/twist.png")
 data_to_c_simple("release/datafiles/brushicons/vertexdraw.png")
-
-data_to_c_simple("release/datafiles/prvicons.png")
 
 ##### END DATAFILES ##########
 
