@@ -111,6 +111,16 @@ extern "C" {
 	;
 
 	/**
+	 * A variant of realloc which zeros new bytes
+	 */
+	void *MEM_recallocN(void *vmemh, size_t len)
+#if MEM_GNU_ATTRIBUTES
+	__attribute__((warn_unused_result))
+	__attribute__((alloc_size(2)))
+#endif
+	;
+
+	/**
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */

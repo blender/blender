@@ -35,16 +35,13 @@ set(SRC
 if(WITH_BLENDER)
 	# blender only
 	list(APPEND SRC
-		startup.blend.c
+		# startup.blend.c
 		bmonofont.ttf.c
 	)
 
 	if(NOT WITH_HEADLESS)
 		# blender UI only
 		list(APPEND SRC
-			# blends
-			preview.blend.c
-
 			# images
 			splash.png.c
 			blender_icons.png.c
@@ -82,7 +79,11 @@ if(WITH_BLENDER)
 			twist.png.c
 			vertexdraw.png.c
 		)
+
+		data_to_c_simple(../../../../release/datafiles/preview.blend SRC)
 	endif()
+
+	data_to_c_simple(../../../../release/datafiles/startup.blend SRC)
 endif()
 
 blender_add_lib(bf_editor_datafiles "${SRC}" "${INC}" "${INC_SYS}")

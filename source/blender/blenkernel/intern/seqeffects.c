@@ -2840,6 +2840,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 	int sequence_type = seq_type;
 
 	rval.multithreaded = FALSE;
+	rval.supports_mask = FALSE;
 	rval.init = init_noop;
 	rval.num_inputs = num_inputs_default;
 	rval.load = load_noop;
@@ -2945,6 +2946,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 			rval.execute = do_multicam;
 			break;
 		case SEQ_TYPE_ADJUSTMENT:
+			rval.supports_mask = TRUE;
 			rval.num_inputs = num_inputs_adjustment;
 			rval.early_out = early_out_adjustment;
 			rval.execute = do_adjustment;
@@ -2956,7 +2958,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 
 struct SeqEffectHandle BKE_sequence_get_effect(Sequence *seq)
 {
-	struct SeqEffectHandle rval = {FALSE, NULL};
+	struct SeqEffectHandle rval = {FALSE, FALSE, NULL};
 
 	if (seq->type & SEQ_TYPE_EFFECT) {
 		rval = get_sequence_effect_impl(seq->type);
@@ -2971,7 +2973,7 @@ struct SeqEffectHandle BKE_sequence_get_effect(Sequence *seq)
 
 struct SeqEffectHandle BKE_sequence_get_blend(Sequence *seq)
 {
-	struct SeqEffectHandle rval = {FALSE, NULL};
+	struct SeqEffectHandle rval = {FALSE, FALSE, NULL};
 
 	if (seq->blend_mode != 0) {
 		rval = get_sequence_effect_impl(seq->blend_mode);
@@ -2993,4 +2995,11 @@ int BKE_sequence_effect_get_num_inputs(int seq_type)
 		return cnt;
 	}
 	return 0;
+}
+
+int BKE_sequence_effect_get_supports_mask(int seq_type)
+{
+	struct SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
+
+	return rval.supports_mask;
 }

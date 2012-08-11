@@ -302,10 +302,45 @@ void *MEM_reallocN(void *vmemh, size_t len)
 
 		newp = MEM_mallocN(len, memh->name);
 		if (newp) {
-			if (len < memh->len)
+			if (len < memh->len) {
+				/* shrink */
 				memcpy(newp, vmemh, len);
-			else
+			}
+			else {
+				/* grow (or remain same size) */
 				memcpy(newp, vmemh, memh->len);
+			}
+		}
+
+		MEM_freeN(vmemh);
+	}
+
+	return newp;
+}
+
+void *MEM_recallocN(void *vmemh, size_t len)
+{
+	void *newp = NULL;
+
+	if (vmemh) {
+		MemHead *memh = vmemh;
+		memh--;
+
+		newp = MEM_mallocN(len, memh->name);
+		if (newp) {
+			if (len < memh->len) {
+				/* shrink */
+				memcpy(newp, vmemh, len);
+			}
+			else {
+				memcpy(newp, vmemh, memh->len);
+
+				if (len > memh->len) {
+					/* grow */
+					/* zero new bytes */
+					memset(((char *)newp) + memh->len, 0, len - memh->len);
+				}
+			}
 		}
 
 		MEM_freeN(vmemh);
