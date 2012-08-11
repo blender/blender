@@ -1128,15 +1128,13 @@ static int seq_proxy_get_fname(Sequence *seq, int cfra, int render_size, char *n
 	/* generate a separate proxy directory for each preview size */
 
 	if (seq->type == SEQ_TYPE_IMAGE) {
-		BLI_snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy", dir,
-		             render_size,
+		BLI_snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy", dir, render_size,
 		             BKE_sequencer_give_stripelem(seq, cfra)->name);
 		frameno = 1;
 	}
 	else {
 		frameno = (int)give_stripelem_index(seq, cfra) + seq->anim_startofs;
-		BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, 
-		             render_size);
+		BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, render_size);
 	}
 
 	BLI_path_abs(name, G.main->name);
@@ -1185,11 +1183,9 @@ static ImBuf *seq_proxy_fetch(SeqRenderData context, Sequence *seq, int cfra)
  
 		seq_open_anim_file(seq);
 
-		frameno = IMB_anim_index_get_frame_index(seq->anim, seq->strip->proxy->tc,
-		                                         frameno);
+		frameno = IMB_anim_index_get_frame_index(seq->anim, seq->strip->proxy->tc, frameno);
 
-		return IMB_anim_absolute(seq->strip->proxy->anim, frameno,
-		                         IMB_TC_NONE, IMB_PROXY_NONE);
+		return IMB_anim_absolute(seq->strip->proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
 	}
  
 	if (seq_proxy_get_fname(seq, cfra, render_size, name) == 0) {
