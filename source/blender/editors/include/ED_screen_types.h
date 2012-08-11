@@ -98,7 +98,7 @@ typedef struct AZone {
 } AZone;
 
 /* actionzone type */
-#define AZONE_AREA          1
-#define AZONE_REGION        2
+#define AZONE_AREA      1  /* corner widgets for splitting areas */
+#define AZONE_REGION    2  /* when a region is collapsed, draw a handle to expose */
 
 #endif /* __ED_SCREEN_TYPES_H__ */

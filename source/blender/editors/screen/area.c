@@ -167,6 +167,9 @@ void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 	}
 }
 
+/**
+ * \brief Corner widgets use for dragging and splitting the view.
+ */
 static void area_draw_azone(short x1, short y1, short x2, short y2)
 {
 	int dx = x2 - x1;
@@ -592,13 +595,17 @@ void ED_area_headerprint(ScrArea *sa, const char *str)
 /* ************************************************************ */
 
 
-static void area_azone_initialize(ScrArea *sa) 
+static void area_azone_initialize(bScreen *screen, ScrArea *sa)
 {
 	AZone *az;
 	
 	/* reinitalize entirely, regions add azones too */
 	BLI_freelistN(&sa->actionzones);
-	
+
+	if (screen->full != SCREENNORMAL) {
+		return;
+	}
+
 	/* set area action zones */
 	az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
@@ -1219,7 +1226,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	area_calc_totrct(sa, win->sizex, win->sizey);
 	
 	/* clear all azones, add the area triange widgets */
-	area_azone_initialize(sa);
+	area_azone_initialize(win->screen, sa);
 
 	/* region rect sizes */
 	rect = sa->totrct;
