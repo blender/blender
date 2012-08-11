@@ -80,16 +80,10 @@ if(WITH_BLENDER)
 			vertexdraw.png.c
 		)
 
-		data_to_c(${CMAKE_SOURCE_DIR}/release/datafiles/preview.blend
-		          ${CMAKE_CURRENT_BINARY_DIR}/preview.blend.c
-		          datatoc_preview_blend SRC)
-
+		data_to_c_simple(../../../../release/datafiles/preview.blend SRC)
 	endif()
 
-	data_to_c(${CMAKE_SOURCE_DIR}/release/datafiles/startup.blend
-	          ${CMAKE_CURRENT_BINARY_DIR}/startup.blend.c
-	          datatoc_startup_blend SRC)
-
+	data_to_c_simple(../../../../release/datafiles/startup.blend SRC)
 endif()
 
 blender_add_lib(bf_editor_datafiles "${SRC}" "${INC}" "${INC_SYS}")

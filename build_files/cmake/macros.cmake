@@ -744,3 +744,31 @@ macro(data_to_c
 		DEPENDS ${file_from})
 endmacro()
 
+# same as above but generates the var name and output automatic.
+macro(data_to_c_simple
+      file_from
+      list_to_add)
+
+    # get var name automatic from name
+    get_filename_component(_file_from_only ${file_from} NAME)
+    string(REPLACE "." "_" _file_from_only ${_file_from_only})
+    set(_var_name "datatoc_${_file_from_only}")
+
+    # only to avoid confusion
+    set(_file_to ${file_from}.c)
+
+	list(APPEND ${list_to_add} ${CMAKE_CURRENT_BINARY_DIR}/${_file_to})
+
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_file_to}
+		COMMAND ${CMAKE_COMMAND}
+				-DFILE_FROM=${CMAKE_CURRENT_SOURCE_DIR}/${file_from}
+				-DFILE_TO=${CMAKE_CURRENT_BINARY_DIR}/${_file_to}
+				-DVAR_NAME=${_var_name}
+				-P ${CMAKE_SOURCE_DIR}/build_files/cmake/data_to_c.cmake
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${file_from})
+
+    unset(_file_from_only)
+    unset(_var_name)
+    unset(_file_to)
+endmacro()

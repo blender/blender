@@ -58,27 +58,12 @@ set(SRC
 	intern/gpu_codegen.h
 )
 
-data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/shaders/gpu_shader_material.glsl
-          ${CMAKE_CURRENT_BINARY_DIR}/shaders/gpu_shader_material.glsl.c
-          datatoc_gpu_shader_material_glsl SRC)
-data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/shaders/gpu_shader_vertex.glsl
-          ${CMAKE_CURRENT_BINARY_DIR}/shaders/gpu_shader_vertex.glsl.c
-          datatoc_gpu_shader_vertex_glsl SRC)
-data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/shaders/gpu_shader_sep_gaussian_blur_frag.glsl
-          ${CMAKE_CURRENT_BINARY_DIR}/shaders/gpu_shader_sep_gaussian_blur_frag.glsl.c
-          datatoc_gpu_shader_sep_gaussian_blur_frag_glsl SRC)
-data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/shaders/gpu_shader_sep_gaussian_blur_vert.glsl
-          ${CMAKE_CURRENT_BINARY_DIR}/shaders/gpu_shader_sep_gaussian_blur_vert.glsl.c
-          datatoc_gpu_shader_sep_gaussian_blur_vert_glsl SRC)
-data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/shaders/gpu_shader_material.glsl
-          ${CMAKE_CURRENT_BINARY_DIR}/shaders/gpu_shader_material.glsl.c
-          datatoc_gpu_shader_material_glsl SRC)
-data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/shaders/gpu_shader_vsm_store_frag.glsl
-          ${CMAKE_CURRENT_BINARY_DIR}/shaders/gpu_shader_vsm_store_frag.glsl.c
-          datatoc_gpu_shader_vsm_store_frag_glsl SRC)
-data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/shaders/gpu_shader_vsm_store_vert.glsl
-          ${CMAKE_CURRENT_BINARY_DIR}/shaders/gpu_shader_vsm_store_vert.glsl.c
-          datatoc_gpu_shader_vsm_store_vert_glsl SRC)
+data_to_c_simple(shaders/gpu_shader_material.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_vertex.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_sep_gaussian_blur_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_sep_gaussian_blur_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_vsm_store_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_vsm_store_vert.glsl SRC)
 
 if(WITH_MOD_SMOKE)
 	add_definitions(-DWITH_SMOKE)
