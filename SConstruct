@@ -498,6 +498,31 @@ ensure_data("./release/datafiles/preview.blend",
             B.root_build_dir + "data_sources/preview.blend.c",
             "datatoc_preview_blend")
 
+# --- glsl ---
+ensure_data("source/blender/gpu/shaders/gpu_shader_material.glsl",
+            B.root_build_dir + "data_sources/gpu_shader_material.glsl.c",
+            "datatoc_gpu_shader_material_glsl")
+ensure_data("source/blender/gpu/shaders/gpu_shader_vertex.glsl",
+            B.root_build_dir + "data_sources/gpu_shader_vertex.glsl.c",
+            "datatoc_gpu_shader_vertex_glsl")
+ensure_data("source/blender/gpu/shaders/gpu_shader_sep_gaussian_blur_frag.glsl",
+            B.root_build_dir + "data_sources/gpu_shader_sep_gaussian_blur_frag.glsl.c",
+            "datatoc_gpu_shader_sep_gaussian_blur_frag_glsl")
+ensure_data("source/blender/gpu/shaders/gpu_shader_sep_gaussian_blur_vert.glsl",
+            B.root_build_dir + "data_sources/gpu_shader_sep_gaussian_blur_vert.glsl.c",
+            "datatoc_gpu_shader_sep_gaussian_blur_vert_glsl")
+ensure_data("source/blender/gpu/shaders/gpu_shader_material.glsl",
+            B.root_build_dir + "data_sources/gpu_shader_material.glsl.c",
+            "datatoc_gpu_shader_material_glsl")
+ensure_data("source/blender/gpu/shaders/gpu_shader_vsm_store_frag.glsl",
+            B.root_build_dir + "data_sources/gpu_shader_vsm_store_frag.glsl.c",
+            "datatoc_gpu_shader_vsm_store_frag_glsl")
+ensure_data("source/blender/gpu/shaders/gpu_shader_vsm_store_vert.glsl",
+            B.root_build_dir + "data_sources/gpu_shader_vsm_store_vert.glsl.c",
+            "datatoc_gpu_shader_vsm_store_vert_glsl")
+
+
+
 ##### END DATAFILES ##########
 
 Help(opts.GenerateHelpText(env))
