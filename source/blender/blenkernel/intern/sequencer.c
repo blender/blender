@@ -1426,12 +1426,13 @@ static void make_cb_table_float(float lift, float gain, float gamma,
 	}
 }
 
-static void color_balance_byte_byte(Sequence *seq, unsigned char *rect, int width, int height, float mul)
+static void color_balance_byte_byte(Sequence *seq, unsigned char *rect, unsigned char *mask_rect, int width, int height, float mul)
 {
 	unsigned char cb_tab[3][256];
 	int c;
 	unsigned char *p = rect;
 	unsigned char *e = p + width * 4 * height;
+	unsigned char *m = mask_rect;
 
 	StripColorBalance cb = calc_cb(seq->strip->color_balance);
 
@@ -1440,20 +1441,32 @@ static void color_balance_byte_byte(Sequence *seq, unsigned char *rect, int widt
 	}
 
 	while (p < e) {
-		p[0] = cb_tab[0][p[0]];
-		p[1] = cb_tab[1][p[1]];
-		p[2] = cb_tab[2][p[2]];
+		if (m) {
+			float t[3] = {m[0] / 255.0f, m[1] / 255.0f, m[2] / 255.0f};
+
+			p[0] = p[0] * (1.0f - t[0]) + t[0] * cb_tab[0][p[0]];
+			p[1] = p[1] * (1.0f - t[1]) + t[1] * cb_tab[1][p[1]];
+			p[2] = p[2] * (1.0f - t[2]) + t[2] * cb_tab[2][p[2]];
+
+			m += 4;
+		}
+		else {
+			p[0] = cb_tab[0][p[0]];
+			p[1] = cb_tab[1][p[1]];
+			p[2] = cb_tab[2][p[2]];
+		}
 		
 		p += 4;
 	}
 }
 
-static void color_balance_byte_float(Sequence *seq, unsigned char *rect, float *rect_float, int width, int height, float mul)
+static void color_balance_byte_float(Sequence *seq, unsigned char *rect, float *rect_float, unsigned char *mask_rect, int width, int height, float mul)
 {
 	float cb_tab[4][256];
 	int c, i;
 	unsigned char *p = rect;
 	unsigned char *e = p + width * 4 * height;
+	unsigned char *m = mask_rect;
 	float *o;
 	StripColorBalance cb;
 
@@ -1470,27 +1483,48 @@ static void color_balance_byte_float(Sequence *seq, unsigned char *rect, float *
 	}
 
 	while (p < e) {
-		o[0] = cb_tab[0][p[0]];
-		o[1] = cb_tab[1][p[1]];
-		o[2] = cb_tab[2][p[2]];
+		if (m) {
+			float t[3] = {m[0] / 255.0f, m[1] / 255.0f, m[2] / 255.0f};
+
+			p[0] = p[0] * (1.0f - t[0]) + t[0] * cb_tab[0][p[0]];
+			p[1] = p[1] * (1.0f - t[1]) + t[1] * cb_tab[1][p[1]];
+			p[2] = p[2] * (1.0f - t[2]) + t[2] * cb_tab[2][p[2]];
+
+			m += 4;
+		}
+		else {
+			o[0] = cb_tab[0][p[0]];
+			o[1] = cb_tab[1][p[1]];
+			o[2] = cb_tab[2][p[2]];
+		}
+
 		o[3] = cb_tab[3][p[3]];
 
 		p += 4; o += 4;
 	}
 }
 
-static void color_balance_float_float(Sequence *seq, float *rect_float, int width, int height, float mul)
+static void color_balance_float_float(Sequence *seq, float *rect_float, float *mask_rect_float, int width, int height, float mul)
 {
 	float *p = rect_float;
 	float *e = rect_float + width * 4 * height;
+	float *m = mask_rect_float;
 	StripColorBalance cb = calc_cb(seq->strip->color_balance);
 
 	while (p < e) {
 		int c;
 		for (c = 0; c < 3; c++) {
-			p[c] = color_balance_fl(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
+			float t = color_balance_fl(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
+
+			if (m)
+				p[c] = p[c] * (1.0f - m[c]) + t * m[c];
+			else
+				p[c] = t;
 		}
+
 		p += 4;
+		if (m)
+			m += 4;
 	}
 }
 
@@ -1498,6 +1532,7 @@ typedef struct ColorBalanceInitData {
 	Sequence *seq;
 	ImBuf *ibuf;
 	float mul;
+	ImBuf *mask;
 } ColorBalanceInitData;
 
 typedef struct ColorBalanceThread {
@@ -1506,8 +1541,8 @@ typedef struct ColorBalanceThread {
 
 	int width, height;
 
-	unsigned char *rect;
-	float *rect_float;
+	unsigned char *rect, *mask_rect;
+	float *rect_float, *mask_rect_float;
 } ColorBalanceThread;
 
 static void color_balance_init_handle(void *handle_v, int start_line, int tot_line, void *init_data_v)
@@ -1515,6 +1550,7 @@ static void color_balance_init_handle(void *handle_v, int start_line, int tot_li
 	ColorBalanceThread *handle = (ColorBalanceThread *) handle_v;
 	ColorBalanceInitData *init_data = (ColorBalanceInitData *) init_data_v;
 	ImBuf *ibuf = init_data->ibuf;
+	ImBuf *mask = init_data->mask;
 
 	int offset = 4 * start_line * ibuf->x;
 
@@ -1530,6 +1566,18 @@ static void color_balance_init_handle(void *handle_v, int start_line, int tot_li
 
 	if (ibuf->rect_float)
 		handle->rect_float = ibuf->rect_float + offset;
+
+	if (mask) {
+		if (mask->rect)
+			handle->mask_rect = (unsigned char *) mask->rect + offset;
+
+		if (mask->rect_float)
+			handle->mask_rect_float = mask->rect_float + offset;
+	}
+	else {
+		handle->mask_rect = NULL;
+		handle->mask_rect_float = NULL;
+	}
 }
 
 static void *color_balance_do_thread(void *thread_data_v)
@@ -1538,53 +1586,60 @@ static void *color_balance_do_thread(void *thread_data_v)
 	Sequence *seq = thread_data->seq;
 	int width = thread_data->width, height = thread_data->height;
 	unsigned char *rect = thread_data->rect;
+	unsigned char *mask_rect = thread_data->mask_rect;
 	float *rect_float = thread_data->rect_float;
+	float *mask_rect_float = thread_data->mask_rect_float;
 	float mul = thread_data->mul;
 
 	if (rect_float) {
-		color_balance_float_float(seq, rect_float, width, height, mul);
+		color_balance_float_float(seq, rect_float, mask_rect_float, width, height, mul);
 	}
 	else if (seq->flag & SEQ_MAKE_FLOAT) {
-		color_balance_byte_float(seq, rect, rect_float, width, height, mul);
+		color_balance_byte_float(seq, rect, rect_float, mask_rect, width, height, mul);
 	}
 	else {
-		color_balance_byte_byte(seq, rect, width, height, mul);
+		color_balance_byte_byte(seq, rect, mask_rect, width, height, mul);
 	}
 
 	return NULL;
 }
 
-static void color_balance(Sequence *seq, ImBuf *ibuf, float mul)
+static void color_balance(SeqRenderData context, Sequence *seq, ImBuf *ibuf, float mul, int cfra)
 {
+	ColorBalanceInitData init_data;
+
 	if (!ibuf->rect_float && seq->flag & SEQ_MAKE_FLOAT)
 		imb_addrectfloatImBuf(ibuf);
 
-	if (BLI_thread_is_main()) {
-		/* color balance could have been called from prefetching job which
-		 * is already multithreaded, so doing threading here makes no sense
-		 */
-		ColorBalanceInitData init_data;
+	init_data.seq = seq;
+	init_data.ibuf = ibuf;
+	init_data.mul = mul;
+	init_data.mask = NULL;
 
-		init_data.seq = seq;
-		init_data.ibuf = ibuf;
-		init_data.mul = mul;
+	if (seq->mask_sequence) {
+		if (seq->mask_sequence != seq && !BKE_sequence_check_depend(seq, seq->mask_sequence)) {
+			ImBuf *mask = seq_render_strip(context, seq->mask_sequence, cfra);
 
-		IMB_processor_apply_threaded(ibuf->y, sizeof(ColorBalanceThread), &init_data,
-	                                 color_balance_init_handle, color_balance_do_thread);
+			if (mask) {
+				if (ibuf->rect_float) {
+					if (!mask->rect_float)
+						IMB_float_from_rect(mask);
+				}
+				else {
+					if (!mask->rect)
+						IMB_rect_from_float(mask);
+				}
 
+				init_data.mask = mask;
+			}
+		}
 	}
-	else {
-		ColorBalanceThread handle;
 
-		handle.seq = seq;
-		handle.mul = mul;
-		handle.width = ibuf->x;
-		handle.height = ibuf->y;
-		handle.rect = (unsigned char *)ibuf->rect;
-		handle.rect_float = ibuf->rect_float;
+	IMB_processor_apply_threaded(ibuf->y, sizeof(ColorBalanceThread), &init_data,
+                                 color_balance_init_handle, color_balance_do_thread);
 
-		color_balance_do_thread(&handle);
-	}
+	if (init_data.mask)
+		IMB_freeImBuf(init_data.mask);
 }
 
 /*
@@ -1632,7 +1687,7 @@ int BKE_sequencer_input_have_to_preprocess(SeqRenderData UNUSED(context), Sequen
 	return FALSE;
 }
 
-static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float UNUSED(cfra), ImBuf *ibuf,
+static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra, ImBuf *ibuf,
                                int is_proxy_image, int is_preprocessed)
 {
 	float mul;
@@ -1727,7 +1782,7 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float UNUSE
 	}
 
 	if (seq->flag & SEQ_USE_COLOR_BALANCE && seq->strip->color_balance) {
-		color_balance(seq, ibuf, mul);
+		color_balance(context, seq, ibuf, mul, cfra);
 		mul = 1.0;
 	}
 
@@ -2784,11 +2839,34 @@ static void free_anim_seq(Sequence *seq)
 	}
 }
 
+/* check whether sequence cur depends on seq */
+int BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
+{
+	/* sequences are not intersecting in time, assume no dependency exists between them */
+	if (cur->enddisp < seq->startdisp || cur->startdisp > seq->enddisp)
+		return FALSE;
+
+	/* checking sequence is below reference one, not dependent on it */
+	if (cur->machine < seq->machine)
+		return FALSE;
+
+	/* sequence is not blending with lower machines, no dependency here occurs
+	 * check for non-effects only since effect could use lower machines as input
+	 */
+	if ((cur->type & SEQ_TYPE_EFFECT) == 0 &&
+		    ((cur->blend_mode == SEQ_BLEND_REPLACE) ||
+	         (cur->blend_mode == SEQ_TYPE_CROSS && cur->blend_opacity == 100.0f)))
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
 {
 	Editing *ed = scene->ed;
 	Sequence *cur;
-	int left = seq->startdisp, right = seq->enddisp;
 
 	/* invalidate cache for current sequence */
 	BKE_sequencer_cache_cleanup_sequence(seq);
@@ -2796,27 +2874,11 @@ void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
 	/* invalidate cache for all dependent sequences */
 	SEQ_BEGIN (ed, cur)
 	{
-		int cur_left = cur->startdisp, cur_right = cur->enddisp;
-
 		if (cur == seq)
 			continue;
 
-		/* sequence is outside of changed one, shouldn't be invalidated */
-		if (cur_right < left || cur_left > right)
-			continue;
-
-		/* sequence is below changed one, not dependent on it */
-		if (cur->machine < seq->machine)
-			continue;
-
-		/* sequence is not blending with lower machines, no need to invalidate */
-		if ((cur->blend_mode == SEQ_BLEND_REPLACE) ||
-		    (cur->blend_mode == SEQ_TYPE_CROSS && cur->blend_opacity == 100.0f))
-		{
-			continue;
-		}
-
-		BKE_sequencer_cache_cleanup_sequence(cur);
+		if (BKE_sequence_check_depend(seq, cur))
+			BKE_sequencer_cache_cleanup_sequence(cur);
 	}
 	SEQ_END
 }
