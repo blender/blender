@@ -735,19 +735,21 @@ endmacro()
 
 # TODO, create a C binary and call it instead!, doing this in cmake its slow
 macro(data_to_c
-      file_from file_to var_name
+      file_from file_to
       list_to_add)
 
 	list(APPEND ${list_to_add} ${file_to})
 
+	get_filename_component(_file_to_path ${file_to} PATH)
+
 	add_custom_command(
 		OUTPUT ${file_to}
-		COMMAND ${CMAKE_COMMAND}
-				-DFILE_FROM=${file_from}
-				-DFILE_TO=${file_to}
-				-DVAR_NAME=${var_name}
-				-P ${CMAKE_SOURCE_DIR}/build_files/cmake/data_to_c.cmake
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
+		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc
+		        ${file_from}
+		        ${file_to}
 		DEPENDS ${file_from})
+	unset(_file_to_path)
 endmacro()
 
 # same as above but generates the var name and output automatic.
@@ -755,26 +757,22 @@ macro(data_to_c_simple
       file_from
       list_to_add)
 
-    # get var name automatic from name
-    get_filename_component(_file_from_only ${file_from} NAME)
-    string(REPLACE "." "_" _file_from_only ${_file_from_only})
-    set(_var_name "datatoc_${_file_from_only}")
-
-    # only to avoid confusion
-    set(_file_to ${file_from}.c)
+	# only to avoid confusion
+	set(_file_to ${file_from}.c)
 
 	list(APPEND ${list_to_add} ${CMAKE_CURRENT_BINARY_DIR}/${_file_to})
 
+	get_filename_component(_file_to_path ${_file_to} PATH)
+
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_file_to}
-		COMMAND ${CMAKE_COMMAND}
-				-DFILE_FROM=${CMAKE_CURRENT_SOURCE_DIR}/${file_from}
-				-DFILE_TO=${CMAKE_CURRENT_BINARY_DIR}/${_file_to}
-				-DVAR_NAME=${_var_name}
-				-P ${CMAKE_SOURCE_DIR}/build_files/cmake/data_to_c.cmake
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
+		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc
+		        ${CMAKE_CURRENT_SOURCE_DIR}/${file_from}
+		        ${CMAKE_CURRENT_BINARY_DIR}/${_file_to}
 		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${file_from})
 
-    unset(_file_from_only)
-    unset(_var_name)
-    unset(_file_to)
+	unset(_var_name)
+	unset(_file_to)
+	unset(_file_to_path)
 endmacro()

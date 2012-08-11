@@ -477,7 +477,8 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			Mesh *me = ob->data;
 			MVert *mvert;
 
-			multiresModifier_scale_disp(scene, ob);
+			if (apply_scale)
+				multiresModifier_scale_disp(scene, ob);
 			
 			/* adjust data */
 			mvert = me->mvert;

@@ -28,59 +28,58 @@ set(INC_SYS
 
 # blender and player
 set(SRC
-	Bfont.c
-	bfont.ttf.c
+
 )
 
+data_to_c_simple(../../../../release/datafiles/bfont.pfb SRC)
+data_to_c_simple(../../../../release/datafiles/bfont.ttf SRC)
+
 if(WITH_BLENDER)
-	# blender only
-	list(APPEND SRC
-		# startup.blend.c
-		bmonofont.ttf.c
-	)
+	# blender only (not player)
+	data_to_c_simple(../../../../release/datafiles/bmonofont.ttf SRC)
 
 	if(NOT WITH_HEADLESS)
 		# blender UI only
-		list(APPEND SRC
-			# images
-			splash.png.c
-			blender_icons.png.c
 
-			# brushes
-			add.png.c
-			blob.png.c
-			blur.png.c
-			clay.png.c
-			clone.png.c
-			crease.png.c
-			darken.png.c
-			draw.png.c
-			fill.png.c
-			flatten.png.c
-			grab.png.c
-			inflate.png.c
-			layer.png.c
-			lighten.png.c
-			mask.png.c
-			mix.png.c
-			multiply.png.c
-			nudge.png.c
-			pinch.png.c
-			prvicons.c
-			scrape.png.c
-			smear.png.c
-			smooth.png.c
-			snake_hook.png.c
-			soften.png.c
-			claystrips.png.c
-			subtract.png.c
-			texdraw.png.c
-			thumb.png.c
-			twist.png.c
-			vertexdraw.png.c
-		)
-
+		# blends
 		data_to_c_simple(../../../../release/datafiles/preview.blend SRC)
+
+		# images
+		data_to_c_simple(../../../../release/datafiles/splash.png SRC)
+		data_to_c_simple(../../../../release/datafiles/blender_icons.png SRC)
+		data_to_c_simple(../../../../release/datafiles/prvicons.png SRC)
+
+		# brushes
+		data_to_c_simple(../../../../release/datafiles/brushicons/add.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/blob.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/blur.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/clay.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/claystrips.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/clone.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/crease.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/darken.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/draw.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/fill.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/flatten.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/grab.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/inflate.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/layer.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/lighten.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/mask.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/mix.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/multiply.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/nudge.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/pinch.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/scrape.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/smear.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/smooth.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/snake_hook.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/soften.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/subtract.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/texdraw.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/thumb.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/twist.png SRC)
+		data_to_c_simple(../../../../release/datafiles/brushicons/vertexdraw.png SRC)
 	endif()
 
 	data_to_c_simple(../../../../release/datafiles/startup.blend SRC)

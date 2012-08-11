@@ -1307,7 +1307,7 @@ int main(int argc, const char **argv)
 #endif
 
 	/* background render uses this font too */
-	BKE_vfont_builtin_register(datatoc_Bfont, datatoc_Bfont_size);
+	BKE_vfont_builtin_register(datatoc_bfont_pfb, datatoc_bfont_pfb_size);
 
 	/* Initialize ffmpeg if built in, also needed for bg mode if videos are
 	 * rendered via ffmpeg */
