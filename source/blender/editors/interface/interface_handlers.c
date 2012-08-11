@@ -2094,7 +2094,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	}
 
 	/* this makes adjacent blocks auto open from now on */
-	//if (but->block->auto_open==0) but->block->auto_open= 1;
+	//if (but->block->auto_open ==0 ) but->block->auto_open = 1;
 }
 
 static void ui_blockopen_end(bContext *C, uiBut *but, uiHandleButtonData *data)
@@ -3395,7 +3395,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmND
 	/* Convert current color on hue/sat disc to circular coordinates phi, r */
 	phi = fmodf(hsv[0] + 0.25f, 1.0f) * -2.0f * (float)M_PI;
 	r = hsv[1];
-	/* sqr= r>0.f?sqrtf(r):1; */ /* UNUSED */
+	/* sqr = r > 0.0f ? sqrtf(r) : 1; */ /* UNUSED */
 	
 	/* Convert to 2d vectors */
 	v[0] = r * cosf(phi);

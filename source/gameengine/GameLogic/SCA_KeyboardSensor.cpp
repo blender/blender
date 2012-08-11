@@ -620,7 +620,7 @@ bool IsPrintable(int keyIndex)
 	 * - numerals: KX_ZEROKEY to KX_NINEKEY
 	 * - alphas:   KX_AKEY to KX_ZKEY. 
 	 * - specials: KX_RETKEY, KX_PADASTERKEY, KX_PADCOMMAKEY to KX_PERIODKEY,
-	 *             KX_TABKEY , KX_SEMICOLONKEY to KX_RIGHTBRACKETKEY, 
+	 *             KX_TABKEY, KX_SEMICOLONKEY to KX_RIGHTBRACKETKEY,
 	 *             KX_PAD2 to KX_PADPLUSKEY
 	 * - delete and backspace: also printable in the sense that they modify 
 	 *                         the string

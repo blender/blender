@@ -2449,7 +2449,7 @@ int BKE_tracking_context_step(MovieTrackingContext *context)
 	frame_width = destination_ibuf->x;
 	frame_height = destination_ibuf->y;
 
-	#pragma omp parallel for private(a) shared(destination_ibuf, ok) if (map_size>1)
+	#pragma omp parallel for private(a) shared(destination_ibuf, ok) if (map_size > 1)
 	for (a = 0; a < map_size; a++) {
 		TrackContext *track_context = NULL;
 		MovieTrackingTrack *track;

@@ -332,7 +332,7 @@ typedef struct bTransformConstraint {
 	struct Object 		*tar;			/* target (i.e. 'driver' object/bone) */
 	char 		subtarget[64];		/* MAX_ID_NAME-2 */
 	
-	short		from, to;		/* can be loc(0) , rot(1),  or size(2) */
+	short		from, to;		/* can be loc(0), rot(1) or size(2) */
 	char		map[3];			/* defines which target-axis deform is copied by each owner-axis */
 	char		expo;			/* extrapolate motion? if 0, confine to ranges */
 	

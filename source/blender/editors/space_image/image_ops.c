@@ -580,7 +580,7 @@ static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	w = width * aspx;
 	h = height * aspy;
 	
-	/* check if the image will fit in the image with zoom==1 */
+	/* check if the image will fit in the image with (zoom == 1) */
 	width = ar->winrct.xmax - ar->winrct.xmin + 1;
 	height = ar->winrct.ymax - ar->winrct.ymin + 1;
 

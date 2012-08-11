@@ -467,12 +467,13 @@ bool MeshImporter::primitive_has_faces(COLLADAFW::MeshPrimitive *mp) {
 }
 
 // =================================================================
-// Return the number of faces by summing up 
+// Return the number of faces by summing up
 // the facecounts of the parts.
 // hint: This is done because mesh->getFacesCount() does
 // count loose edges as extra faces, which is not what we want here.
 // =================================================================
-void MeshImporter::allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) {
+void MeshImporter::allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
+{
 	COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
 	int total_facecount = 0;
 

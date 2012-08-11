@@ -80,7 +80,7 @@ int main (int argc, char *argv[])
 	for (i = 0; i < NUM_BLOCKS; i++) {
 		int blocksize = 10000;
 		char tagstring[1000];
-		if (verbose >1) printf("|--* Allocating block %d\n", i);
+		if (verbose > 1) printf("|--* Allocating block %d\n", i);
 		sprintf(tagstring,"Memblock no. %d : ", i);
 		p[i]= MEM_callocN(blocksize, strdup(tagstring));
 	}
@@ -112,7 +112,7 @@ int main (int argc, char *argv[])
 	for (i = 0; i < NUM_BLOCKS; i++) {
 		int blocksize = 10000;
 		char tagstring[1000];
-		if (verbose >1) printf("|--* Allocating block %d\n", i);
+		if (verbose > 1) printf("|--* Allocating block %d\n", i);
 		sprintf(tagstring,"Memblock no. %d : ", i);
 		p[i]= MEM_callocN(blocksize, strdup(tagstring));
 	}

@@ -377,7 +377,7 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 			}
 		}
 	}
-	else {  /* extend==0 */
+	else {  /* extend == 0 */
 		
 		/* find the closest visible node */
 		node = node_under_mouse_select(snode->edittree, mx, my);

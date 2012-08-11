@@ -733,7 +733,7 @@ int isect_ray_tri_v3(const float p1[3], const float d[3],
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
 	/* note: these values were 0.000001 in 2.4x but for projection snapping on
-	 * a human head (1BU==1m), subsurf level 2, this gave many errors - campbell */
+	 * a human head (1BU == 1m), subsurf level 2, this gave many errors - campbell */
 	if ((a > -0.00000001f) && (a < 0.00000001f)) return 0;
 	f = 1.0f / a;
 
@@ -772,7 +772,7 @@ int isect_ray_plane_v3(const float p1[3], const float d[3],
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
 	/* note: these values were 0.000001 in 2.4x but for projection snapping on
-	 * a human head (1BU==1m), subsurf level 2, this gave many errors - campbell */
+	 * a human head (1BU == 1m), subsurf level 2, this gave many errors - campbell */
 	if ((a > -0.00000001f) && (a < 0.00000001f)) return 0;
 	f = 1.0f / a;
 

@@ -66,7 +66,7 @@ struct ImBuf;
 typedef struct wmJob wmJob;
 
 /* general API */
-void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
+void		WM_init_state_size_set		(int stax, int stay, int sizx, int sizy);
 void		WM_init_state_fullscreen_set(void);
 void		WM_init_state_normal_set(void);
 

@@ -420,7 +420,7 @@ static PyObject *bpy_bmesh_fmod_getattro(PyObject *UNUSED(self), PyObject *pynam
 	}
 
 	PyErr_Format(PyExc_AttributeError,
-	             "BMeshOpsModule: , operator \"%.200s\" doesn't exist",
+				 "BMeshOpsModule: operator \"%.200s\" doesn't exist",
 	             name);
 	return NULL;
 }

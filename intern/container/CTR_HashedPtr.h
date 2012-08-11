@@ -38,7 +38,7 @@
 inline unsigned int CTR_Hash(void *inDWord)
 {
 	size_t key = (size_t)inDWord;
-	return (unsigned int)(key ^ (key>>4));
+	return (unsigned int)(key ^ (key >> 4));
 }
 
 class CTR_HashedPtr

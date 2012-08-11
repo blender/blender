@@ -706,7 +706,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 		
 		// ask user if thats what he/she wants...
 		selection = pupmenu(dispmsg);
-		if (selection<1) return 0; // 0 from menu, or -1 aborted
+		if (selection < 1) return 0; // 0 from menu, or -1 aborted
 		BLI_strncpy(targetDir, newSurfdataPath, sizeof(targetDir));
 		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
 		BLI_path_abs(targetDir, G.main->name); // fixed #frame-no 

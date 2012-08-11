@@ -415,7 +415,7 @@ static short boundinsideEV(ScanFillEdge *eed, ScanFillVert *eve)
 
 static void testvertexnearedge(ScanFillContext *sf_ctx)
 {
-	/* only vertices with ->h==1 are being tested for
+	/* only vertices with (->h == 1) are being tested for
 	 * being close to an edge, if true insert */
 
 	ScanFillVert *eve;
@@ -947,7 +947,7 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedu
 		return 0;
 	}
 	
-	/* does it only for vertices with ->h==1 */
+	/* does it only for vertices with (->h == 1) */
 	testvertexnearedge(sf_ctx);
 
 	ok = 1;

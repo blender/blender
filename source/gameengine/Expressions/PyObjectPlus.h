@@ -299,16 +299,16 @@ public:                                                                       \
  * Method table macro (with doc)
  */
 #define KX_PYMETHODTABLE(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, (const char *)class_name::method_name##_doc}
+	{#method_name, (PyCFunction) class_name::sPy##method_name, METH_VARARGS, (const char *)class_name::method_name##_doc}
 
 #define KX_PYMETHODTABLE_O(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_O, (const char *)class_name::method_name##_doc}
+	{#method_name, (PyCFunction) class_name::sPy##method_name, METH_O, (const char *)class_name::method_name##_doc}
 
 #define KX_PYMETHODTABLE_NOARGS(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, (const char *)class_name::method_name##_doc}
+	{#method_name, (PyCFunction) class_name::sPy##method_name, METH_NOARGS, (const char *)class_name::method_name##_doc}
 
 #define KX_PYMETHODTABLE_KEYWORDS(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS|METH_KEYWORDS, (const char *)class_name::method_name##_doc}
+	{#method_name, (PyCFunction) class_name::sPy##method_name, METH_VARARGS|METH_KEYWORDS, (const char *)class_name::method_name##_doc}
 
 /**
  * Function implementation macro
