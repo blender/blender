@@ -28,6 +28,9 @@
  *  \ingroup wm
  */
 
+#ifndef __WM_TYPES_H__
+#define __WM_TYPES_H__
+
 /*
  * Overview of WM structs
  * ======================
@@ -94,9 +97,6 @@
  *     }
  *
  */
-
-#ifndef __WM_TYPES_H__
-#define __WM_TYPES_H__
 
 #ifdef __cplusplus
 extern "C" {

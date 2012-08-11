@@ -1256,7 +1256,7 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
 
 	/* setup job */
 	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Multires Bake", WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS);
-	WM_jobs_customdata(steve, bkr, multiresbake_freejob);
+	WM_jobs_customdata_set(steve, bkr, multiresbake_freejob);
 	WM_jobs_timer(steve, 0.2, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
 	WM_jobs_callbacks(steve, multiresbake_startjob, NULL, NULL, NULL);
 
@@ -1483,7 +1483,7 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 
 			/* setup job */
 			steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Texture Bake", WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS);
-			WM_jobs_customdata(steve, bkr, bake_freejob);
+			WM_jobs_customdata_set(steve, bkr, bake_freejob);
 			WM_jobs_timer(steve, 0.2, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
 			WM_jobs_callbacks(steve, bake_startjob, NULL, bake_update, NULL);
 

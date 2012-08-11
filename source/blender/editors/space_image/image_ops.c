@@ -2252,7 +2252,7 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ImBuf *ibuf;
 	
-	WM_timecursor(CTX_wm_window(C), scene->r.cfra);
+	WM_cursor_time(CTX_wm_window(C), scene->r.cfra);
 
 	// XXX scene->nodetree->test_break= blender_test_break;
 	// XXX scene->nodetree->test_break= NULL;

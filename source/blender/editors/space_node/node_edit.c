@@ -189,7 +189,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 	cj->ntree = nodetree;
 
 	/* setup job */
-	WM_jobs_customdata(steve, cj, compo_freejob);
+	WM_jobs_customdata_set(steve, cj, compo_freejob);
 	WM_jobs_timer(steve, 0.1, NC_SCENE, NC_SCENE | ND_COMPO_RESULT);
 	WM_jobs_callbacks(steve, compo_startjob, compo_initjob, compo_updatejob, NULL);
 

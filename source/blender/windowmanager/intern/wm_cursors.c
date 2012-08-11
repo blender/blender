@@ -179,7 +179,7 @@ void WM_cursor_wait(int val)
 	}
 }
 
-void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
+void WM_cursor_grab_enable(wmWindow *win, int wrap, int hide, int *bounds)
 {
 	/* Only grab cursor when not running debug.
 	 * It helps not to get a stuck WM when hitting a breakpoint  
@@ -202,7 +202,7 @@ void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 	}
 }
 
-void WM_cursor_ungrab(wmWindow *win)
+void WM_cursor_grab_disable(wmWindow *win)
 {
 	if ((G.debug & G_DEBUG) == 0) {
 		if (win && win->ghostwin) {
@@ -239,7 +239,7 @@ int wm_cursor_arrow_move(wmWindow *win, wmEvent *event)
 
 
 /* afer this you can call restore too */
-void WM_timecursor(wmWindow *win, int nr)
+void WM_cursor_time(wmWindow *win, int nr)
 {
 	/* 10 8x8 digits */
 	static char number_bitmaps[10][8] = {

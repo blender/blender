@@ -152,7 +152,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BLI_init_srgb_conversion();
 
 	/* get the default database, plus a wm */
-	WM_read_homefile(C, NULL, G.factory_startup);
+	WM_homefile_read(C, NULL, G.factory_startup);
 
 	BLF_lang_set(NULL);
 
@@ -161,7 +161,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	 * initializing space types and other internal data.
 	 *
 	 * However cant redo this at the moment. Solution is to load python
-	 * before WM_read_homefile() or make py-drivers check if python is running.
+	 * before WM_homefile_read() or make py-drivers check if python is running.
 	 * Will try fix when the crash can be repeated. - campbell. */
 
 #ifdef WITH_PYTHON

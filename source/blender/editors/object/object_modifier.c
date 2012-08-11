@@ -2187,7 +2187,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	oj->och = och;
 	oj->omd = omd;
 	
-	WM_jobs_customdata(steve, oj, oceanbake_free);
+	WM_jobs_customdata_set(steve, oj, oceanbake_free);
 	WM_jobs_timer(steve, 0.1, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
 	WM_jobs_callbacks(steve, oceanbake_startjob, NULL, NULL, oceanbake_endjob);
 	

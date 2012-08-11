@@ -480,20 +480,20 @@ static int prefsize(int argc, const char **argv, void *UNUSED(data))
 	sizx = atoi(argv[3]);
 	sizy = atoi(argv[4]);
 
-	WM_setprefsize(stax, stay, sizx, sizy);
+	WM_init_state_size_set(stax, stay, sizx, sizy);
 
 	return 4;
 }
 
 static int with_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-	WM_setinitialstate_normal();
+	WM_init_state_normal_set();
 	return 0;
 }
 
 static int without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-	WM_setinitialstate_fullscreen();
+	WM_init_state_fullscreen_set();
 	return 0;
 }
 
@@ -1029,7 +1029,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 			return -1;
 		}
 
-		/* WM_read_file() runs normally but since we're in background mode do here */
+		/* WM_file_read() runs normally but since we're in background mode do here */
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_driver_reset();
@@ -1046,7 +1046,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 		 * a file - this should do everything a 'load file' does */
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
-		WM_read_file(C, filename, &reports);
+		WM_file_read(C, filename, &reports);
 		BKE_reports_clear(&reports);
 	}
 

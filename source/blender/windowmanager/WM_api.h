@@ -37,6 +37,7 @@
  *  \todo document
  */
 
+
 /* dna-savable wmStructs here */
 #include "DNA_windowmanager_types.h"
 #include "WM_keymap.h"
@@ -66,8 +67,8 @@ typedef struct wmJob wmJob;
 
 /* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
-void		WM_setinitialstate_fullscreen(void);
-void		WM_setinitialstate_normal(void);
+void		WM_init_state_fullscreen_set(void);
+void		WM_init_state_normal_set(void);
 
 void		WM_init				(struct bContext *C, int argc, const char **argv);
 void		WM_exit_ext			(struct bContext *C, const short do_python);
@@ -92,21 +93,21 @@ void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 
 
 			/* files */
-int			WM_read_homefile_exec(struct bContext *C, struct wmOperator *op);
-int			WM_read_homefile	(struct bContext *C, struct ReportList *reports, short from_memory);
-int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
-void		WM_read_file		(struct bContext *C, const char *filepath, struct ReportList *reports);
-int			WM_write_file		(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
-void		WM_autosave_init	(struct wmWindowManager *wm);
+int			WM_homefile_read_exec(struct bContext *C, struct wmOperator *op);
+int			WM_homefile_read(struct bContext *C, struct ReportList *reports, short from_memory);
+int			WM_homefile_write_exec(struct bContext *C, struct wmOperator *op);
+void		WM_file_read(struct bContext *C, const char *filepath, struct ReportList *reports);
+int			WM_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
+void		WM_autosave_init(struct wmWindowManager *wm);
 
 			/* mouse cursors */
 void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(int val);
-void		WM_cursor_grab(struct wmWindow *win, int wrap, int hide, int *bounds);
-void		WM_cursor_ungrab(struct wmWindow *win);
-void		WM_timecursor		(struct wmWindow *win, int nr);
+void		WM_cursor_grab_enable(struct wmWindow *win, int wrap, int hide, int *bounds);
+void		WM_cursor_grab_disable(struct wmWindow *win);
+void		WM_cursor_time		(struct wmWindow *win, int nr);
 
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm,
                                       int (*poll)(struct bContext *C),
@@ -243,11 +244,11 @@ void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 
 /* *************** menu types ******************** */
-void				WM_menutype_init(void);
-struct MenuType		*WM_menutype_find(const char *idname, int quiet);
-int					WM_menutype_add(struct MenuType* mt);
-void				WM_menutype_freelink(struct MenuType* mt);
-void				WM_menutype_free(void);
+void                WM_menutype_init(void);
+struct MenuType    *WM_menutype_find(const char *idname, int quiet);
+int                 WM_menutype_add(struct MenuType* mt);
+void                WM_menutype_freelink(struct MenuType* mt);
+void                WM_menutype_free(void);
 
 			/* default operator callbacks for border/circle/lasso */
 int			WM_border_select_invoke	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
@@ -297,7 +298,7 @@ void		wmOrtho				(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho2			(float x1, float x2, float y1, float y2);
 
 			/* utilities */
-void		WM_set_framebuffer_index_color(int index);
+void		WM_framebuffer_index_set(int index);
 int			WM_framebuffer_to_index(unsigned int col);
 
 			/* threaded Jobs Manager */
@@ -313,8 +314,8 @@ float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
 char		*WM_jobs_name(struct wmWindowManager *wm, void *owner);
 
 int         WM_jobs_is_running(struct wmJob *);
-void *      WM_jobs_get_customdata(struct wmJob *);
-void        WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *));
+void *      WM_jobs_customdata_get(struct wmJob *);
+void        WM_jobs_customdata_set(struct wmJob *, void *customdata, void (*free)(void *));
 void        WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
 void        WM_jobs_callbacks(struct wmJob *,
                               void (*startjob)(void *, short *, short *, float *),

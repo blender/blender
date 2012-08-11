@@ -188,7 +188,7 @@ static void seq_proxy_build_job(const bContext *C)
 
 	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies", WM_JOB_PROGRESS);
 
-	pj = WM_jobs_get_customdata(steve);
+	pj = WM_jobs_customdata_get(steve);
 
 	if (!pj) {
 		pj = MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
@@ -196,7 +196,7 @@ static void seq_proxy_build_job(const bContext *C)
 		pj->scene = scene;
 		pj->main = CTX_data_main(C);
 
-		WM_jobs_customdata(steve, pj, proxy_freejob);
+		WM_jobs_customdata_set(steve, pj, proxy_freejob);
 		WM_jobs_timer(steve, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
 		WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, proxy_endjob);
 	}

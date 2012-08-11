@@ -1071,7 +1071,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 		wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Fluid Simulation", WM_JOB_PROGRESS);
 
 		/* setup job */
-		WM_jobs_customdata(steve, fb, fluidbake_free);
+		WM_jobs_customdata_set(steve, fb, fluidbake_free);
 		WM_jobs_timer(steve, 0.1, NC_SCENE|ND_FRAME, NC_SCENE|ND_FRAME);
 		WM_jobs_callbacks(steve, fluidbake_startjob, NULL, NULL, fluidbake_endjob);
 
