@@ -102,6 +102,8 @@ void CLIP_OT_change_frame(wmOperatorType *ot);
 void CLIP_OT_rebuild_proxy(struct wmOperatorType *ot);
 void CLIP_OT_mode_set(struct wmOperatorType *ot);
 
+void CLIP_OT_view_ndof(struct wmOperatorType *ot);
+
 /* clip_toolbar.c */
 struct ARegion *ED_clip_has_properties_region(struct ScrArea *sa);
 void CLIP_OT_tools(struct wmOperatorType *ot);
