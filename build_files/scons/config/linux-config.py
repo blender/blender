@@ -105,6 +105,11 @@ BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
 
+WITH_BF_ELTOPO = False
+BF_LAPACK = '/usr'
+BF_LAPACK_LIB = 'lapack3gf blas clapack'
+BF_LAPACK_LIBPATH = '${BF_LAPACK}/lib'
+
 BF_FREETYPE = '/usr'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
