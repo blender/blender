@@ -49,7 +49,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 	
 	/**
 	 * Initialize the execution

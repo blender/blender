@@ -50,7 +50,6 @@
 #include "BKE_suggestions.h"
 #include "BKE_text.h"
 
-
 #include "BIF_gl.h"
 
 #include "ED_datafiles.h"
@@ -1854,7 +1853,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	/* draw other stuff */
 	draw_brackets(st, ar);
 	draw_markers(st, ar);
-	glTranslatef(0.375f, 0.375f, 0.0f); /* XXX scroll requires exact pixel space */
+	glTranslatef(GLA_PIXEL_OFS, GLA_PIXEL_OFS, 0.0f); /* XXX scroll requires exact pixel space */
 	draw_textscroll(st, &scroll, &back);
 	draw_documentation(st, ar);
 	draw_suggestion_list(st, ar);

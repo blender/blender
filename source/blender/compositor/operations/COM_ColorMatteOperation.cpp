@@ -44,7 +44,7 @@ void ColorMatteOperation::deinitExecution()
 	this->m_inputKeyProgram = NULL;
 }
 
-void ColorMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void ColorMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inColor[4];
 	float inKey[4];
@@ -75,11 +75,11 @@ void ColorMatteOperation::executePixel(float *outputValue, float x, float y, Pix
 	    /* hue */ ((h_wrap = 2.f * fabsf(inColor[0] - inKey[0])) < hue || (2.f - h_wrap) < hue)
 	    )
 	{
-		outputValue[0] = 0.0f; /*make transparent*/
+		output[0] = 0.0f; /* make transparent */
 	}
 
 	else { /*pixel is outside key color */
-		outputValue[0] = inColor[3]; /* make pixel just as transparent as it was before */
+		output[0] = inColor[3]; /* make pixel just as transparent as it was before */
 	}
 }
 

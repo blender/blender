@@ -45,6 +45,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
+#include "node_common.h"
 #include "node_exec.h"
 #include "node_util.h"
 #include "NOD_texture.h"
@@ -112,6 +113,11 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 	}
 }
 
+static void update(bNodeTree *ntree)
+{
+	ntree_update_reroute_nodes(ntree);
+}
+
 bNodeTreeType ntreeType_Texture = {
 	/* type */				NTREE_TEXTURE,
 	/* id_name */			"NTTexture Nodetree",
@@ -125,7 +131,7 @@ bNodeTreeType ntreeType_Texture = {
 	/* localize */			localize,
 	/* local_sync */		local_sync,
 	/* local_merge */		NULL,
-	/* update */			NULL,
+	/* update */			update,
 	/* update_node */		NULL,
 	/* validate_link */		NULL,
 	/* internal_connect */	node_internal_connect_default

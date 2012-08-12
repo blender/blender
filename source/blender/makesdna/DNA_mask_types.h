@@ -141,7 +141,8 @@ typedef struct MaskLayer {
 /* reserve (1 << 0) for SELECT */
 enum {
 	MASK_SPLINE_CYCLIC  = (1 << 1),
-	MASK_SPLINE_NOFILL    = (1 << 2)
+	MASK_SPLINE_NOFILL  = (1 << 2),
+	MASK_SPLINE_NOINTERSECT = (1 << 3)
 };
 
 /* MaskSpline->weight_interp */

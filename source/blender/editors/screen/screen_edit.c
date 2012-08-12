@@ -913,7 +913,7 @@ static void drawscredge_area(ScrArea *sa, int sizex, int sizey, int center)
 	short y2 = sa->v3->vec.y;
 	short a, rt;
 	
-	rt = 0; // CLAMPIS(G.rt, 0, 16);
+	rt = 0; // CLAMPIS(G.debug_value, 0, 16);
 	
 	if (center == 0) {
 		cpack(0x505050);
@@ -1483,7 +1483,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 
 						if (!v3d->camera || !BKE_scene_base_find(scene, v3d->camera)) {
 							v3d->camera = BKE_scene_camera_find(sc->scene);
-							// XXX if (sc==curscreen) handle_view3d_lock();
+							// XXX if (sc == curscreen) handle_view3d_lock();
 							if (!v3d->camera) {
 								ARegion *ar;
 								for (ar = v3d->regionbase.first; ar; ar = ar->next) {

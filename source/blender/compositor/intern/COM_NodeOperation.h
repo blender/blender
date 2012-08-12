@@ -96,7 +96,7 @@ public:
 	 * @param resolution the result of this operation
 	 * @param preferredResolution the preferrable resolution as no resolution could be determined
 	 */
-	virtual void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	virtual void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 	/**
 	 * @brief isOutputOperation determines whether this operation is an output of the ExecutionSystem during rendering or editing.
@@ -148,7 +148,7 @@ public:
 	 * @param memoryBuffers all input MemoryBuffer's needed
 	 * @param outputBuffer the outputbuffer to write to
 	 */
-	virtual void executeOpenCLRegion(OpenCLDevice* device, rcti *rect,
+	virtual void executeOpenCLRegion(OpenCLDevice *device, rcti *rect,
 	                                 unsigned int chunkNumber, MemoryBuffer **memoryBuffers, MemoryBuffer *outputBuffer) {}
 
 	/**
@@ -163,7 +163,7 @@ public:
 	 * @param clMemToCleanUp all created cl_mem references must be added to this list. Framework will clean this after execution
 	 * @param clKernelsToCleanUp all created cl_kernel references must be added to this list. Framework will clean this after execution
 	 */
-	virtual void executeOpenCL(OpenCLDevice* device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp) {}
+	virtual void executeOpenCL(OpenCLDevice *device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp) {}
 	virtual void deinitExecution();
 
 	bool isResolutionSet() {
@@ -174,7 +174,7 @@ public:
 	 * @brief set the resolution
 	 * @param resolution the resolution to set
 	 */
-	void setResolution(unsigned int resolution[]) {
+	void setResolution(unsigned int resolution[2]) {
 		if (!isResolutionSet()) {
 			this->m_width = resolution[0];
 			this->m_height = resolution[1];

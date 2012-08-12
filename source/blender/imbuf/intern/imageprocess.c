@@ -38,7 +38,11 @@
 
 #include <stdlib.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
+#include "BLI_threads.h"
+#include "BLI_listbase.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -88,7 +92,7 @@ static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **
 		*outI = (unsigned char *)ibuf->rect + offset;
 	
 	if (ibuf->rect_float)
-		*outF = (float *)ibuf->rect_float + offset;
+		*outF = ibuf->rect_float + offset;
 }
 
 /**************************************************************************
@@ -258,16 +262,16 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 	if (outF) {
 		/* sample including outside of edges of image */
 		if (x1 < 0 || y1 < 0) row1 = empty;
-		else row1 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x1;
+		else row1 = in->rect_float + in->x * y1 * 4 + 4 * x1;
 		
 		if (x1 < 0 || y2 > in->y - 1) row2 = empty;
-		else row2 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x1;
+		else row2 = in->rect_float + in->x * y2 * 4 + 4 * x1;
 		
 		if (x2 > in->x - 1 || y1 < 0) row3 = empty;
-		else row3 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x2;
+		else row3 = in->rect_float + in->x * y1 * 4 + 4 * x2;
 		
 		if (x2 > in->x - 1 || y2 > in->y - 1) row4 = empty;
-		else row4 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x2;
+		else row4 = in->rect_float + in->x * y2 * 4 + 4 * x2;
 
 		a = u - floorf(u);
 		b = v - floorf(v);
@@ -338,10 +342,10 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 
 	if (outF) {
 		/* sample including outside of edges of image */
-		row1 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x1;
-		row2 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x1;
-		row3 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x2;
-		row4 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x2;
+		row1 = in->rect_float + in->x * y1 * 4 + 4 * x1;
+		row2 = in->rect_float + in->x * y2 * 4 + 4 * x1;
+		row3 = in->rect_float + in->x * y1 * 4 + 4 * x2;
+		row4 = in->rect_float + in->x * y2 * 4 + 4 * x2;
 
 		a = u - floorf(u);
 		b = v - floorf(v);
@@ -445,4 +449,50 @@ void neareast_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, i
 	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
 	neareast_interpolation_color(in, outI, outF, x, y);
+}
+
+/*********************** Threaded image processing *************************/
+
+void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_customdata,
+                                  void (init_handle) (void *handle, int start_line, int tot_line,
+                                                      void *customdata),
+                                  void *(do_thread) (void *))
+{
+	void *handles;
+	ListBase threads;
+
+	int i, tot_thread = BLI_system_thread_count();
+	int start_line, tot_line;
+
+	handles = MEM_callocN(handle_size * tot_thread, "processor apply threaded handles");
+
+	if (tot_thread > 1)
+		BLI_init_threads(&threads, do_thread, tot_thread);
+
+	start_line = 0;
+	tot_line = ((float)(buffer_lines / tot_thread)) + 0.5f;
+
+	for (i = 0; i < tot_thread; i++) {
+		int cur_tot_line;
+		void *handle = ((char *) handles) + handle_size * i;
+
+		if (i < tot_thread - 1)
+			cur_tot_line = tot_line;
+		else
+			cur_tot_line = buffer_lines - start_line;
+
+		init_handle(handle, start_line, cur_tot_line, init_customdata);
+
+		if (tot_thread > 1)
+			BLI_insert_thread(&threads, handle);
+
+		start_line += tot_line;
+	}
+
+	if (tot_thread > 1)
+		BLI_end_threads(&threads);
+	else
+		do_thread(handles);
+
+	MEM_freeN(handles);
 }

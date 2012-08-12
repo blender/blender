@@ -398,8 +398,5 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "area", area_items, PARTIALVIS_INSIDE,
 	             "Area", "Which vertices to hide or show");
 	
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	WM_operator_properties_border(ot);
 }

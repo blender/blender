@@ -46,7 +46,7 @@ void ZCombineOperation::initExecution()
 	this->m_depth2Reader = this->getInputSocketReader(3);
 }
 
-void ZCombineOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void ZCombineOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float depth1[4];
 	float depth2[4];
@@ -54,13 +54,13 @@ void ZCombineOperation::executePixel(float *color, float x, float y, PixelSample
 	this->m_depth1Reader->read(depth1, x, y, sampler);
 	this->m_depth2Reader->read(depth2, x, y, sampler);
 	if (depth1[0] < depth2[0]) {
-		this->m_image1Reader->read(color, x, y, sampler);
+		this->m_image1Reader->read(output, x, y, sampler);
 	}
 	else {
-		this->m_image2Reader->read(color, x, y, sampler);
+		this->m_image2Reader->read(output, x, y, sampler);
 	}
 }
-void ZCombineAlphaOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void ZCombineAlphaOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float depth1[4];
 	float depth2[4];
@@ -79,10 +79,10 @@ void ZCombineAlphaOperation::executePixel(float *color, float x, float y, PixelS
 	}
 	float fac = color1[3];
 	float ifac = 1.0f - fac;
-	color[0] = color1[0] + ifac * color2[0];
-	color[1] = color1[1] + ifac * color2[1];
-	color[2] = color1[2] + ifac * color2[2];
-	color[3] = MAX2(color1[3], color2[3]);
+	output[0] = color1[0] + ifac * color2[0];
+	output[1] = color1[1] + ifac * color2[1];
+	output[2] = color1[2] + ifac * color2[2];
+	output[3] = MAX2(color1[3], color2[3]);
 }
 
 void ZCombineOperation::deinitExecution()

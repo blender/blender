@@ -34,9 +34,9 @@ void ConvertColorToVectorOperation::initExecution()
 	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertColorToVectorOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void ConvertColorToVectorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	this->m_inputOperation->read(outputValue, x, y, sampler);
+	this->m_inputOperation->read(output, x, y, sampler);
 }
 
 void ConvertColorToVectorOperation::deinitExecution()

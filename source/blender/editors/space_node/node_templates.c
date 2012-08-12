@@ -24,41 +24,32 @@
  *  \ingroup edinterface
  */
 
-#include <stdlib.h>
-#include <stddef.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
 #include "BKE_scene.h"
 
 #include "RNA_access.h"
 
 #include "NOD_socket.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "UI_interface.h"
-#include "UI_resources.h"
-#include "../interface/interface_intern.h"
+#include "../interface/interface_intern.h"  /* XXX bad level */
 
-#include "ED_node.h"
+#include "ED_node.h"  /* own include */
+
 #include "ED_util.h"
 
 /************************* Node Socket Manipulation **************************/

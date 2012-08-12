@@ -82,8 +82,6 @@
 #include "BKE_tessmesh.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
-#include "BKE_tracking.h"
-#include "BKE_movieclip.h"
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -3115,7 +3113,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		copy_m4_m4(obmat, cob->matrix);
 		copy_v3_v3(ownLoc, obmat[3]);
 		
-		INIT_MINMAX(curveMin, curveMax)
+		INIT_MINMAX(curveMin, curveMax);
 		BKE_object_minmax(ct->tar, curveMin, curveMax);
 		
 		/* get targetmatrix */
@@ -3984,6 +3982,41 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 			marker = BKE_tracking_marker_get(track, framenr);
 
 			add_v2_v2v2(pos, marker->pos, track->offset);
+
+			/* aspect correction */
+			if (data->frame_method != FOLLOWTRACK_FRAME_STRETCH) {
+				int width, height;
+				float w_src, h_src, w_dst, h_dst, asp_src, asp_dst;
+
+				BKE_movieclip_get_size(clip, NULL, &width, &height);
+
+				/* apply clip display aspect */
+				w_src = width * clip->aspx;
+				h_src = height * clip->aspy;
+
+				w_dst = scene->r.xsch * scene->r.xasp;
+				h_dst = scene->r.ysch * scene->r.yasp;
+
+				asp_src = w_src / h_src;
+				asp_dst = w_dst / h_dst;
+
+				if (fabsf(asp_src - asp_dst) >= FLT_EPSILON) {
+					if ((asp_src > asp_dst) == (data->frame_method == FOLLOWTRACK_FRAME_CROP)) {
+						/* fit X */
+						float div = asp_src / asp_dst;
+						float cent = (float) width / 2.0f;
+
+						pos[0] = (((pos[0] * width - cent) * div) + cent) / width;
+					}
+					else {
+						/* fit Y */
+						float div = asp_dst / asp_src;
+						float cent = (float) height / 2.0f;
+
+						pos[1] = (((pos[1] * height - cent) * div) + cent) / height;
+					}
+				}
+			}
 
 			BKE_camera_params_init(&params);
 			BKE_camera_params_from_object(&params, camob);

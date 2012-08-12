@@ -83,7 +83,7 @@ void ChannelMatteOperation::deinitExecution()
 	this->m_inputImageProgram = NULL;
 }
 
-void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void ChannelMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inColor[4];
 	float alpha;
@@ -100,7 +100,7 @@ void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, P
 	/* flip because 0.0 is transparent, not 1.0 */
 	alpha = 1.0f - alpha;
 	
-	/* test range*/
+	/* test range */
 	if (alpha > limit_max) {
 		alpha = inColor[3]; /*whatever it was prior */
 	}
@@ -116,6 +116,6 @@ void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, P
 	 */
 	
 	/* don't make something that was more transparent less transparent */
-	outputValue[0] = min(alpha, inColor[3]);
+	output[0] = min(alpha, inColor[3]);
 }
 

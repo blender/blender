@@ -45,9 +45,10 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 
+#include "BIF_gl.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
-
 
 #include "GHOST_C-api.h"
 
@@ -505,8 +506,8 @@ static void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple)
 			/* wmOrtho for the screen has this same offset */
 			ratiox = sizex;
 			ratioy = sizey;
-			halfx = 0.375f;
-			halfy = 0.375f;
+			halfx = GLA_PIXEL_OFS;
+			halfy = GLA_PIXEL_OFS;
 
 			/* texture rectangle has unnormalized coordinates */
 			if (triple->target == GL_TEXTURE_2D) {

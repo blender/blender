@@ -116,7 +116,7 @@ void free_blender(void)
 
 	BLI_callback_global_finalize();
 
-	seq_stripelem_cache_destruct();
+	BKE_sequencer_cache_destruct();
 	IMB_moviecache_destruct();
 	
 	free_nodesystem();	
@@ -457,7 +457,7 @@ int blender_test_break(void)
 			blender_test_break_cb();
 	}
 	
-	return (G.afbreek == 1);
+	return (G.is_break == TRUE);
 }
 
 

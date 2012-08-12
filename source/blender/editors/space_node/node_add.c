@@ -29,54 +29,21 @@
  *  \ingroup spnode
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
 #include <errno.h>
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_ID.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_world_types.h"
-#include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
-#include "BKE_action.h"
-#include "BKE_animsys.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_material.h"
-#include "BKE_modifier.h"
-#include "BKE_paint.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_texture.h"
 #include "BKE_report.h"
 
-#include "RE_pipeline.h"
-
-#include "IMB_imbuf_types.h"
-
-#include "ED_node.h"
-#include "ED_image.h"
+#include "ED_node.h"  /* own include */
 #include "ED_screen.h"
-#include "ED_space_api.h"
 #include "ED_render.h"
 
 #include "RNA_access.h"
@@ -86,19 +53,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "IMB_imbuf.h"
-
-#include "RNA_enum_types.h"
-
-#include "GPU_material.h"
-
-#include "node_intern.h"
-#include "NOD_socket.h"
-
+#include "node_intern.h"  /* own include */
 
 /* can be called from menus too, but they should do own undopush and redraws */
 bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene,
@@ -198,12 +155,13 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 		bNodeLink *link;
 		float insertPoint[2];
 
-		ED_preview_kill_jobs(C);
-
 		for (link = snode->edittree->links.first; link; link = link->next) {
 			if (add_reroute_intersect_check(link, mcoords, i, insertPoint)) {
 				bNodeTemplate ntemp;
 				bNode *rerouteNode;
+
+				/* always first */
+				ED_preview_kill_jobs(C);
 
 				node_deselect_all(snode);
 
@@ -221,15 +179,17 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 				link->fromnode = rerouteNode;
 				link->fromsock = rerouteNode->outputs.first;
 
-				break; // add one reroute at the time.
+				/* always last */
+				ntreeUpdateTree(snode->edittree);
+				snode_notify(C, snode);
+				snode_dag_update(C, snode);
+
+				return OPERATOR_FINISHED; // add one reroute at the time.
 			}
 		}
 
-		ntreeUpdateTree(snode->edittree);
-		snode_notify(C, snode);
-		snode_dag_update(C, snode);
+		return OPERATOR_CANCELLED;
 
-		return OPERATOR_FINISHED;
 	}
 
 	return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
@@ -313,7 +273,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 	ED_preview_kill_jobs(C);
 
-	node = node_add_node(snode, bmain, scene, &ntemp, snode->mx, snode->my);
+	node = node_add_node(snode, bmain, scene, &ntemp, snode->cursor[0], snode->cursor[1]);
 
 	if (!node) {
 		BKE_report(op->reports, RPT_WARNING, "Could not add an image node");
@@ -336,7 +296,7 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* convert mouse coordinates to v2d space */
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-	                         &snode->mx, &snode->my);
+	                         &snode->cursor[0], &snode->cursor[1]);
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath") || RNA_struct_property_is_set(op->ptr, "name"))
 		return node_add_file_exec(C, op);
@@ -359,7 +319,8 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
+	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Datablock name to assign");
 }
 

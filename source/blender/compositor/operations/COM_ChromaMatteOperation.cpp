@@ -44,7 +44,7 @@ void ChromaMatteOperation::deinitExecution()
 	this->m_inputKeyProgram = NULL;
 }
 
-void ChromaMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void ChromaMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inKey[4];
 	float inImage[4];
@@ -65,7 +65,7 @@ void ChromaMatteOperation::executePixel(float *outputValue, float x, float y, Pi
 	 */
 
 	/* Algorithm from book "Video Demistified," does not include the spill reduction part */
-	/* find theta, the angle that the color space should be rotated based on key*/
+	/* find theta, the angle that the color space should be rotated based on key */
 	theta = atan2(inKey[2], inKey[1]);
 
 	/*rotate the cb and cr into x/z space */
@@ -88,14 +88,14 @@ void ChromaMatteOperation::executePixel(float *outputValue, float x, float y, Pi
 
 		/* don't make something that was more transparent less transparent */
 		if (alpha < inImage[3]) {
-			outputValue[0] = alpha;
+			output[0] = alpha;
 		}
 		else {
-			outputValue[0] = inImage[3];
+			output[0] = inImage[3];
 		}
 	}
 	else { /*pixel is outside key color */
-		outputValue[0] = inImage[3]; /* make pixel just as transparent as it was before */
+		output[0] = inImage[3]; /* make pixel just as transparent as it was before */
 	}
 }
 

@@ -58,7 +58,7 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype);
 
 /* node_composite.c */
-void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result);
+void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4]);
 void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 
 /* dynamicpaint.c */

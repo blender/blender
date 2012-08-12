@@ -35,7 +35,7 @@ void ConvertPremulToKeyOperation::initExecution()
 	this->m_inputColor = getInputSocketReader(0);
 }
 
-void ConvertPremulToKeyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void ConvertPremulToKeyOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
 	float alpha;
@@ -44,14 +44,14 @@ void ConvertPremulToKeyOperation::executePixel(float *outputValue, float x, floa
 	alpha = inputValue[3];
 
 	if (fabsf(alpha) < 1e-5f) {
-		zero_v3(outputValue);
+		zero_v3(output);
 	}
 	else {
-		mul_v3_v3fl(outputValue, inputValue, 1.0f / alpha);
+		mul_v3_v3fl(output, inputValue, 1.0f / alpha);
 	}
 
 	/* never touches the alpha */
-	outputValue[3] = alpha;
+	output[3] = alpha;
 }
 
 void ConvertPremulToKeyOperation::deinitExecution()

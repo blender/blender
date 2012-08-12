@@ -339,14 +339,13 @@ static KnifeVert *get_bm_knife_vert(KnifeTool_OpData *kcd, BMVert *v)
 	return kfv;
 }
 
-/**
- * get a KnifeEdge wrapper for an existing BMEdge
- * \note #knife_get_face_kedges / #get_bm_knife_edge are called recursively - KEEP STACK MEM USAGE LOW */
+/* get a KnifeEdge wrapper for an existing BMEdge */
 static KnifeEdge *get_bm_knife_edge(KnifeTool_OpData *kcd, BMEdge *e)
 {
 	KnifeEdge *kfe = BLI_ghash_lookup(kcd->origedgemap, e);
 	if (!kfe) {
-		BMLoop *l_iter, *l_first;
+		BMIter bmiter;
+		BMFace *f;
 
 		kfe = new_knife_edge(kcd);
 		kfe->e = e;
@@ -357,17 +356,9 @@ static KnifeEdge *get_bm_knife_edge(KnifeTool_OpData *kcd, BMEdge *e)
 
 		BLI_ghash_insert(kcd->origedgemap, e, kfe);
 
-		/* avoid BM_ITER because of stack memory usage
-		 * otherwise we could use BM_FACES_OF_EDGE */
-		l_iter = l_first = e->l;
-		do {
-			knife_append_list(kcd, &kfe->faces, l_iter->f);
-
-			/* ensures the kedges lst for this f is initialized,
-			 * it automatically adds kfe by itself */
-			knife_get_face_kedges(kcd, l_iter->f);
-
-		} while ((l_iter = l_iter->radial_next) != l_first);
+		BM_ITER_ELEM(f, &bmiter, e, BM_FACES_OF_EDGE) {
+			knife_append_list(kcd, &kfe->faces, f);
+		}
 	}
 
 	return kfe;
@@ -397,23 +388,19 @@ static void knife_start_cut(KnifeTool_OpData *kcd)
 	}
 }
 
-/**
- * \note #knife_get_face_kedges / #get_bm_knife_edge are called recursively - KEEP STACK MEM USAGE LOW */
 static ListBase *knife_get_face_kedges(KnifeTool_OpData *kcd, BMFace *f)
 {
 	ListBase *lst = BLI_ghash_lookup(kcd->kedgefacemap, f);
 
 	if (!lst) {
-		BMLoop *l_iter, *l_first;
+		BMIter bmiter;
+		BMEdge *e;
 
 		lst = knife_empty_list(kcd);
 
-		/* avoid BM_ITER because of stack memory usage
-		 * otherwise we could use BM_EDGES_OF_FACE */
-		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-		do {
-			knife_append_list(kcd, lst, get_bm_knife_edge(kcd, l_iter->e));
-		} while ((l_iter = l_iter->next) != l_first);
+		BM_ITER_ELEM(e, &bmiter, f, BM_EDGES_OF_FACE) {
+			knife_append_list(kcd, lst, get_bm_knife_edge(kcd, e));
+		}
 
 		BLI_ghash_insert(kcd->kedgefacemap, f, lst);
 	}
@@ -1092,9 +1079,9 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 	BLI_array_declare(edges);
 	BVHTreeOverlap *results, *result;
 	BMLoop **ls;
-	float cos[9], uv[3], lambda;
+	float cos[9], lambda;
 	unsigned int tot = 0;
-	int i, j;
+	int i;
 
 	/* for comparing distances, error of intersection depends on triangle scale.
 	 * need to scale down before squaring for accurate comparison */
@@ -1112,105 +1099,107 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 
 	for (i = 0; i < tot; i++, result++) {
 		float p[3];
+		BMLoop *l1;
+		BMFace *hitf;
+		ListBase *lst;
+		Ref *ref;
 
 		ls = (BMLoop **)kcd->em->looptris[result->indexA];
 
-		for (j = 0; j < 3; j++) {
-			BMLoop *l1 = ls[j];
-			BMFace *hitf;
-			ListBase *lst = knife_get_face_kedges(kcd, l1->f);
-			Ref *ref;
+		l1 = ls[0];
+		lst = knife_get_face_kedges(kcd, l1->f);
 
-			for (ref = lst->first; ref; ref = ref->next) {
-				KnifeEdge *kfe = ref->ref;
+		for (ref = lst->first; ref; ref = ref->next) {
+			KnifeEdge *kfe = ref->ref;
 
-				//if (kfe == kcd->cur.edge || kfe == kcd->prev.edge)
-				//	continue;
+			if (BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
+				continue;  // We already found a hit on this knife edge
+			}
 
-				if (isect_line_tri_v3(kfe->v1->cageco, kfe->v2->cageco, v1, v2, v3, &lambda, uv)) {
-					float no[3], view[3], sp[3];
+			if (isect_line_tri_v3(kfe->v1->cageco, kfe->v2->cageco, v1, v2, v3, &lambda, NULL)) {
+				float no[3], view[3], sp[3];
 
-					interp_v3_v3v3(p, kfe->v1->cageco, kfe->v2->cageco, lambda);
+				interp_v3_v3v3(p, kfe->v1->cageco, kfe->v2->cageco, lambda);
 
-					if (kcd->cur.vert && len_squared_v3v3(kcd->cur.vert->cageco, p) < depsilon_squared)
-						continue;
-					if (kcd->prev.vert && len_squared_v3v3(kcd->prev.vert->cageco, p) < depsilon_squared)
-						continue;
-					if (len_squared_v3v3(kcd->prev.cage, p) < depsilon_squared ||
-					    len_squared_v3v3(kcd->cur.cage, p) < depsilon_squared)
-					{
-						continue;
+				if (kcd->cur.vert && len_squared_v3v3(kcd->cur.vert->cageco, p) < depsilon_squared)
+					continue;
+				if (kcd->prev.vert && len_squared_v3v3(kcd->prev.vert->cageco, p) < depsilon_squared)
+					continue;
+				if (len_squared_v3v3(kcd->prev.cage, p) < depsilon_squared ||
+					   len_squared_v3v3(kcd->cur.cage, p) < depsilon_squared)
+					continue;
+
+				knife_project_v3(kcd, p, sp);
+				view3d_unproject(mats, view, sp[0], sp[1], 0.0f);
+				mul_m4_v3(kcd->ob->imat, view);
+
+				if (kcd->cut_through) {
+					hitf = FALSE;
+				} else {
+					/* check if this point is visible in the viewport */
+					float p1[3], lambda1;
+
+					/* if face isn't planer, p may be behind the current tesselated tri,
+					   so move it onto that and then a little towards eye */
+					if (isect_line_tri_v3(p, view, ls[0]->v->co, ls[1]->v->co, ls[2]->v->co, &lambda1, NULL)) {
+						interp_v3_v3v3(p1, p, view, lambda1);
+					} else {
+						copy_v3_v3(p1, p);
 					}
+					sub_v3_v3(view, p1);
+					normalize_v3(view);
 
-					knife_project_v3(kcd, p, sp);
-					view3d_unproject(mats, view, sp[0], sp[1], 0.0f);
-					mul_m4_v3(kcd->ob->imat, view);
+					copy_v3_v3(no, view);
+					mul_v3_fl(no, 0.003);
 
-					if (kcd->cut_through) {
-						hitf = FALSE;
-					}
-					else {
-						/* check if this point is visible in the viewport */
-						sub_v3_v3(view, p);
-						normalize_v3(view);
-
-						copy_v3_v3(no, view);
-						mul_v3_fl(no, 0.003);
-
-						/* go towards view a bit */
-						add_v3_v3(p, no);
-
-						/* ray cast */
-						hitf = BMBVH_RayCast(bmtree, p, no, NULL, NULL);
-					}
-
-					/* ok, if visible add the new point */
-					if (!hitf && !BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
-						BMEdgeHit hit;
+					/* go towards view a bit */
+					add_v3_v3(p1, no);
 						
-						if (len_squared_v3v3(p, kcd->cur.co) < depsilon_squared ||
-						    len_squared_v3v3(p, kcd->prev.co) < depsilon_squared)
-						{
-							continue;
+					/* ray cast */
+					hitf = BMBVH_RayCast(bmtree, p1, no, NULL, NULL);
+				}
+
+				/* ok, if visible add the new point */
+				if (!hitf && !BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
+					BMEdgeHit hit;
+	
+					if (len_squared_v3v3(p, kcd->cur.co) < depsilon_squared ||
+					    len_squared_v3v3(p, kcd->prev.co) < depsilon_squared)
+						continue;
+
+					hit.kfe = kfe;
+					hit.v = NULL;
+
+					knife_find_basef(kfe);
+					hit.f = kfe->basef;
+					hit.perc = len_v3v3(p, kfe->v1->cageco) / len_v3v3(kfe->v1->cageco, kfe->v2->cageco);
+					copy_v3_v3(hit.cagehit, p);
+
+					interp_v3_v3v3(p, kfe->v1->co, kfe->v2->co, hit.perc);
+					copy_v3_v3(hit.realhit, p);
+
+					/* BMESH_TODO: should also snap to vertices */
+					if (kcd->snap_midpoints) {
+						float perc = hit.perc;
+
+						/* select the closest from the edge endpoints or the midpoint */
+						if (perc < 0.25f) {
+							perc = 0.0f;
+						} else if (perc < 0.75f) {
+							perc = 0.5f;
+						} else {
+							perc = 1.0f;
 						}
 
-						hit.kfe = kfe;
-						hit.v = NULL;
-
-						knife_find_basef(kfe);
-						hit.f = kfe->basef;
-						hit.perc = len_v3v3(p, kfe->v1->cageco) / len_v3v3(kfe->v1->cageco, kfe->v2->cageco);
-						copy_v3_v3(hit.cagehit, p);
-
-						interp_v3_v3v3(p, kfe->v1->co, kfe->v2->co, hit.perc);
-						copy_v3_v3(hit.realhit, p);
-
-						/* BMESH_TODO: should also snap to vertices */
-						if (kcd->snap_midpoints) {
-							float perc = hit.perc;
-
-							/* select the closest from the edge endpoints or the midpoint */
-							if (perc < 0.25f) {
-								perc = 0.0f;
-							}
-							else if (perc < 0.75f) {
-								perc = 0.5f;
-							}
-							else {
-								perc = 1.0f;
-							}
-
-							interp_v3_v3v3(hit.hit, kfe->v1->co, kfe->v2->co, perc);
-							interp_v3_v3v3(hit.cagehit, kfe->v1->cageco, kfe->v2->cageco, perc);
-						}
-						else {
-							copy_v3_v3(hit.hit, p);
-						}
-						knife_project_v3(kcd, hit.cagehit, hit.schit);
-
-						BLI_array_append(edges, hit);
-						BLI_smallhash_insert(ehash, (intptr_t)kfe, NULL);
+						interp_v3_v3v3(hit.hit, kfe->v1->co, kfe->v2->co, perc);
+						interp_v3_v3v3(hit.cagehit, kfe->v1->cageco, kfe->v2->cageco, perc);
+					} else {
+						copy_v3_v3(hit.hit, p);
 					}
+					knife_project_v3(kcd, hit.cagehit, hit.schit);
+
+					BLI_array_append(edges, hit);
+					BLI_smallhash_insert(ehash, (intptr_t)kfe, NULL);
 				}
 			}
 		}

@@ -27,7 +27,7 @@ MixDodgeOperation::MixDodgeOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixDodgeOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void MixDodgeOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
@@ -45,50 +45,50 @@ void MixDodgeOperation::executePixel(float *outputValue, float x, float y, Pixel
 	if (inputColor1[0] != 0.0f) {
 		tmp = 1.0f - value * inputColor2[0];
 		if (tmp <= 0.0f)
-			outputValue[0] = 1.0f;
+			output[0] = 1.0f;
 		else {
 			tmp = inputColor1[0] / tmp;
 			if (tmp > 1.0f)
-				outputValue[0] = 1.0f;
+				output[0] = 1.0f;
 			else
-				outputValue[0] = tmp;
+				output[0] = tmp;
 		}
 	}
 	else
-		outputValue[0] = 0.0f;
+		output[0] = 0.0f;
 	
 	if (inputColor1[1] != 0.0f) {
 		tmp = 1.0f - value * inputColor2[1];
 		if (tmp <= 0.0f)
-			outputValue[1] = 1.0f;
+			output[1] = 1.0f;
 		else {
 			tmp = inputColor1[1] / tmp;
 			if (tmp > 1.0f)
-				outputValue[1] = 1.0f;
+				output[1] = 1.0f;
 			else
-				outputValue[1] = tmp;
+				output[1] = tmp;
 		}
 	}
 	else
-		outputValue[1] = 0.0f;
+		output[1] = 0.0f;
 	
 	if (inputColor1[2] != 0.0f) {
 		tmp = 1.0f - value * inputColor2[2];
 		if (tmp <= 0.0f)
-			outputValue[2] = 1.0f;
+			output[2] = 1.0f;
 		else {
 			tmp = inputColor1[2] / tmp;
 			if (tmp > 1.0f)
-				outputValue[2] = 1.0f;
+				output[2] = 1.0f;
 			else
-				outputValue[2] = tmp;
+				output[2] = tmp;
 		}
 	}
 	else
-		outputValue[2] = 0.0f;
+		output[2] = 0.0f;
 	
-	outputValue[3] = inputColor1[3];
+	output[3] = inputColor1[3];
 
-	clampIfNeeded(outputValue);
+	clampIfNeeded(output);
 }
 

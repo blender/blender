@@ -383,6 +383,9 @@ void filelist_init_icons(void)
 	short x, y, k;
 	ImBuf *bbuf;
 	ImBuf *ibuf;
+
+	BLI_assert(G.background == FALSE);
+
 #ifdef WITH_HEADLESS
 	bbuf = NULL;
 #else
@@ -408,6 +411,9 @@ void filelist_init_icons(void)
 void filelist_free_icons(void)
 {
 	int i;
+
+	BLI_assert(G.background == FALSE);
+
 	for (i = 0; i < SPECIAL_IMG_MAX; ++i) {
 		IMB_freeImBuf(gSpecialFileImages[i]);
 		gSpecialFileImages[i] = NULL;
@@ -615,7 +621,10 @@ short filelist_changed(struct FileList *filelist)
 ImBuf *filelist_getimage(struct FileList *filelist, int index)
 {
 	ImBuf *ibuf = NULL;
-	int fidx = 0;	
+	int fidx = 0;
+
+	BLI_assert(G.background == FALSE);
+
 	if ( (index < 0) || (index >= filelist->numfiltered) ) {
 		return NULL;
 	}
@@ -629,7 +638,10 @@ ImBuf *filelist_geticon(struct FileList *filelist, int index)
 {
 	ImBuf *ibuf = NULL;
 	struct direntry *file = NULL;
-	int fidx = 0;	
+	int fidx = 0;
+
+	BLI_assert(G.background == FALSE);
+
 	if ( (index < 0) || (index >= filelist->numfiltered) ) {
 		return NULL;
 	}

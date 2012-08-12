@@ -90,7 +90,7 @@ BLI_INLINE float finv_test(const float f, const bool test)
 	return (LIKELY(test == false)) ? f : 1.0f - f;
 }
 
-void GaussianAlphaYBlurOperation::executePixel(float *color, int x, int y, void *data)
+void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	const bool do_invert = this->m_do_subtract;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
@@ -148,7 +148,7 @@ void GaussianAlphaYBlurOperation::executePixel(float *color, int x, int y, void 
 	/* blend between the max value and gauss blue - gives nice feather */
 	const float value_blur  = alpha_accum / multiplier_accum;
 	const float value_final = (value_max * distfacinv_max) + (value_blur * (1.0f - distfacinv_max));
-	color[0] = finv_test(value_final, do_invert);
+	output[0] = finv_test(value_final, do_invert);
 }
 
 void GaussianAlphaYBlurOperation::deinitExecution()

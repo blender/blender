@@ -60,7 +60,7 @@ protected:
 	/**
 	  * Determine the output resolution. The resolution is retrieved from the Renderer
 	  */
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 public:
 	TrackPositionOperation();
@@ -75,7 +75,7 @@ public:
 
 	void initExecution();
 
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 
 	const bool isSetOperation() const { return true; }
 };

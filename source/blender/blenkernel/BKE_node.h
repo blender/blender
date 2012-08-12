@@ -359,6 +359,7 @@ void            nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
 void            nodeToView(struct bNode *node, float x, float y, float *rx, float *ry);
 void            nodeFromView(struct bNode *node, float x, float y, float *rx, float *ry);
+int             nodeAttachNodeCheck(struct bNode *node, struct bNode *parent);
 void            nodeAttachNode(struct bNode *node, struct bNode *parent);
 void            nodeDetachNode(struct bNode *node);
 
@@ -383,6 +384,15 @@ void            nodeFreePreview(struct bNode *node);
 
 int             nodeSocketIsHidden(struct bNodeSocket *sock);
 void            nodeSocketSetType(struct bNodeSocket *sock, int type);
+
+/* Node Clipboard */
+void                   BKE_node_clipboard_init(struct bNodeTree *ntree);
+void                   BKE_node_clipboard_clear(void);
+void                   BKE_node_clipboard_add_node(struct bNode *node);
+void                   BKE_node_clipboard_add_link(struct bNodeLink *link);
+const struct ListBase *BKE_node_clipboard_get_nodes(void);
+const struct ListBase *BKE_node_clipboard_get_links(void);
+int                    BKE_node_clipboard_get_type(void);
 
 /* ************** NODE TYPE ACCESS *************** */
 
@@ -661,6 +671,7 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 #define CMP_NODE_KEYINGSCREEN		269
 #define CMP_NODE_KEYING			270
 #define CMP_NODE_TRACKPOS		271
+#define CMP_NODE_INPAINT                272
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302

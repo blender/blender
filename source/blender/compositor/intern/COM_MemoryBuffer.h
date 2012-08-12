@@ -26,14 +26,12 @@ class MemoryBuffer;
 #define _COM_MemoryBuffer_h_
 
 #include "COM_ExecutionGroup.h"
-#include "BLI_rect.h"
 #include "COM_MemoryProxy.h"
 
 extern "C" {
-	//#include "BLI_threads.h"
 	#include "BLI_math.h"
+	#include "BLI_rect.h"
 }
-//#include <vector>
 
 /**
  * @brief state of a memory buffer
@@ -147,6 +145,18 @@ public:
 		const int dx = x - this->m_rect.xmin;
 		const int dy = y - this->m_rect.ymin;
 		const int offset = (this->m_chunkWidth * dy + dx) * COM_NUMBER_OF_CHANNELS;
+
+		BLI_assert(offset >= 0);
+		BLI_assert(offset < this->determineBufferSize() * COM_NUMBER_OF_CHANNELS);
+		BLI_assert(x >= this->m_rect.xmin && x < this->m_rect.xmax &&
+		           y >= this->m_rect.ymin && y < this->m_rect.ymax);
+
+#if 0
+		/* always true */
+		BLI_assert((int)(MEM_allocN_len(this->m_buffer) / sizeof(*this->m_buffer)) ==
+		           (int)(this->determineBufferSize() * COM_NUMBER_OF_CHANNELS));
+#endif
+
 		copy_v4_v4(result, &this->m_buffer[offset]);
 	}
 	
@@ -202,6 +212,9 @@ public:
 	/**
 	 * @brief add the content from otherBuffer to this MemoryBuffer
 	 * @param otherBuffer source buffer
+	 *
+	 * @note take care when running this on a new buffer since it wont fill in
+	 *       uninitialized values in areas where the buffers don't overlap.
 	 */
 	void copyContentFrom(MemoryBuffer *otherBuffer);
 	
@@ -229,7 +242,7 @@ public:
 	
 	float *convertToValueBuffer();
 	float getMaximumValue();
-	float getMaximumValue(rcti* rect);
+	float getMaximumValue(rcti *rect);
 private:
 	unsigned int determineBufferSize();
 

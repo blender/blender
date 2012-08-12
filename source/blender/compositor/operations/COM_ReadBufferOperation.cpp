@@ -36,7 +36,7 @@ void *ReadBufferOperation::initializeTileData(rcti *rect)
 	return m_buffer;
 }
 
-void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void ReadBufferOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	if (this->m_memoryProxy != NULL) {
 		WriteBufferOperation *operation = this->m_memoryProxy->getWriteBufferOperation();
@@ -49,19 +49,19 @@ void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigne
 		}
 	}
 }
-void ReadBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void ReadBufferOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	if (sampler == COM_PS_NEAREST) {
-		m_buffer->read(color, x, y);
+		m_buffer->read(output, x, y);
 	}
 	else {
-		m_buffer->readCubic(color, x, y);
+		m_buffer->readCubic(output, x, y);
 	}
 }
 
-void ReadBufferOperation::executePixel(float *color, float x, float y, float dx, float dy)
+void ReadBufferOperation::executePixel(float output[4], float x, float y, float dx, float dy)
 {
-	m_buffer->readEWA(color, x, y, dx, dy);
+	m_buffer->readEWA(output, x, y, dx, dy);
 }
 
 bool ReadBufferOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

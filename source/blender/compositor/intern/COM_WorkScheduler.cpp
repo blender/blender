@@ -77,20 +77,20 @@ void ** g_highlightedNodesRead;
 
 #define HIGHLIGHT(wp) \
 { \
-	ExecutionGroup* group = wp->getExecutionGroup(); \
+	ExecutionGroup *group = wp->getExecutionGroup(); \
 	if (group->isComplex()) { \
-		NodeOperation* operation = group->getOutputNodeOperation(); \
-		if (operation->isWriteBufferOperation()) {\
-			WriteBufferOperation *writeOperation = (WriteBufferOperation*)operation;\
+		NodeOperation *operation = group->getOutputNodeOperation(); \
+		if (operation->isWriteBufferOperation()) { \
+			WriteBufferOperation *writeOperation = (WriteBufferOperation *)operation; \
 			NodeOperation *complexOperation = writeOperation->getInput(); \
 			bNode *node = complexOperation->getbNode(); \
 			if (node) { \
 				if (node->original) { \
-					node = node->original;\
-				}\
-				if (g_highlightIndex < MAX_HIGHLIGHT) {\
-					g_highlightedNodes[g_highlightIndex++] = node;\
-				}\
+					node = node->original; \
+				} \
+				if (g_highlightIndex < MAX_HIGHLIGHT) { \
+					g_highlightedNodes[g_highlightIndex++] = node; \
+				} \
 			} \
 		} \
 	} \
@@ -103,18 +103,18 @@ void COM_startReadHighlights()
 	}
 	
 	g_highlightedNodesRead = g_highlightedNodes;
-	g_highlightedNodes = new void*[MAX_HIGHLIGHT];
+	g_highlightedNodes = new void *[MAX_HIGHLIGHT];
 	g_highlightIndex = 0;
 	for (int i = 0 ; i < MAX_HIGHLIGHT; i++) {
 		g_highlightedNodes[i] = 0;
 	}
 }
 
-int COM_isHighlightedbNode(bNode* bnode)
+int COM_isHighlightedbNode(bNode *bnode)
 {
 	if (!g_highlightedNodesRead) return false;
 	for (int i = 0 ; i < MAX_HIGHLIGHT; i++) {
-		void* p = g_highlightedNodesRead[i];
+		void *p = g_highlightedNodesRead[i];
 		if (!p) return false;
 		if (p == bnode) return true;
 	}
@@ -288,7 +288,8 @@ void WorkScheduler::initialize()
 
 				g_context = clCreateContext(NULL, numberOfDevices, cldevices, clContextError, NULL, &error);
 				if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-				g_program = clCreateProgramWithSource(g_context, 1, &clkernelstoh_COM_OpenCLKernels_cl, 0, &error);
+				const char *cl_str[2] = {clkernelstoh_COM_OpenCLKernels_cl, NULL};
+				g_program = clCreateProgramWithSource(g_context, 1, cl_str, 0, &error);
 				error = clBuildProgram(g_program, numberOfDevices, cldevices, 0, 0, 0);
 				if (error != CL_SUCCESS) { 
 					cl_int error2;

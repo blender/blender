@@ -59,4 +59,6 @@ void node_group_edit_clear(bNode *node);
 
 void node_loop_update_tree(struct bNodeTree *ngroup);
 
+void ntree_update_reroute_nodes(struct bNodeTree *ntree);
+
 #endif

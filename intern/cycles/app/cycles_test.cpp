@@ -245,7 +245,7 @@ static void options_parse(int argc, const char **argv)
 		NULL);
 	
 	if(ap.parse(argc, argv) < 0) {
-		fprintf(stderr, "%s\n", ap.error_message().c_str());
+		fprintf(stderr, "%s\n", ap.geterror().c_str());
 		ap.usage();
 		exit(EXIT_FAILURE);
 	}

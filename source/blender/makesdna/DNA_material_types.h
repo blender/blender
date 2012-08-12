@@ -154,7 +154,7 @@ typedef struct Material {
 	struct bNodeTree *nodetree;	
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Group *group;	/* light group */
-	struct PreviewImage * preview;
+	struct PreviewImage *preview;
 
 	/* dynamic properties */
 	float friction, fh, reflect;

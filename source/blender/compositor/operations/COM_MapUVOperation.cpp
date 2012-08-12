@@ -40,7 +40,7 @@ void MapUVOperation::initExecution()
 	this->m_inputUVProgram = this->getInputSocketReader(1);
 }
 
-void MapUVOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void MapUVOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputUV[4];
 	float uv_a[4], uv_b[4];
@@ -52,7 +52,7 @@ void MapUVOperation::executePixel(float *color, float x, float y, PixelSampler s
 
 	this->m_inputUVProgram->read(inputUV, x, y, sampler);
 	if (inputUV[2] == 0.f) {
-		zero_v4(color);
+		zero_v4(output);
 		return;
 	}
 	/* adaptive sampling, red (U) channel */
@@ -107,11 +107,11 @@ void MapUVOperation::executePixel(float *color, float x, float y, PixelSampler s
 	u = inputUV[0] * this->m_inputColorProgram->getWidth();
 	v = inputUV[1] * this->m_inputColorProgram->getHeight();
 
-	this->m_inputColorProgram->read(color, u, v, dx, dy);
+	this->m_inputColorProgram->read(output, u, v, dx, dy);
 
 	/* "premul" */
 	if (alpha < 1.0f) {
-		mul_v4_fl(color, alpha);
+		mul_v4_fl(output, alpha);
 	}
 }
 

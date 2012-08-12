@@ -2347,7 +2347,7 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 		/* edge has exactly two neighboring faces, check angle */
 		angle = angle_normalized_v3v3(l1->f->no, l2->f->no);
 
-		if (fabsf(angle) > sharp) {
+		if (fabsf(angle) < sharp) {
 			BM_edge_select_set(em->bm, e, TRUE);
 		}
 

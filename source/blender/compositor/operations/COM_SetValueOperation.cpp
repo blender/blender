@@ -27,12 +27,12 @@ SetValueOperation::SetValueOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void SetValueOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void SetValueOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	outputValue[0] = this->m_value;
+	output[0] = this->m_value;
 }
 
-void SetValueOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void SetValueOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	resolution[0] = preferredResolution[0];
 	resolution[1] = preferredResolution[1];

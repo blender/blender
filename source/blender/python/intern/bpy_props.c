@@ -1298,9 +1298,8 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 			eitems = enum_items_from_py(items_fast, def, &defvalue,
 			                            (opts & PROP_ENUM_FLAG) != 0);
 
-			Py_DECREF(items_fast);
-
 			if (!eitems) {
+				Py_DECREF(items_fast);
 				return NULL;
 			}
 		}
@@ -1327,6 +1326,10 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_duplicate_pointers(srna, prop);
 
 		if (is_itemf == FALSE) {
+			/* note: this must be postponed until after #RNA_def_property_duplicate_pointers
+			 * otherwise if this is a generator it may free the strings before we copy them */
+			Py_DECREF(items_fast);
+
 			MEM_freeN(eitems);
 		}
 	}

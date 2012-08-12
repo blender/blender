@@ -31,10 +31,10 @@ FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(COM_D
 	this->m_iirgaus = NULL;
 }
 
-void FastGaussianBlurOperation::executePixel(float *color, int x, int y, void *data)
+void FastGaussianBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *newData = (MemoryBuffer *)data;
-	newData->read(color, x, y);	
+	newData->read(output, x, y);
 }
 
 bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -233,10 +233,10 @@ FastGaussianBlurValueOperation::FastGaussianBlurValueOperation() : NodeOperation
 	setComplex(true);
 }
 
-void FastGaussianBlurValueOperation::executePixel(float *color, int x, int y, void *data)
+void FastGaussianBlurValueOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *newData = (MemoryBuffer *)data;
-	newData->read(color, x, y);	
+	newData->read(output, x, y);
 }
 
 bool FastGaussianBlurValueOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -277,6 +277,28 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
 		MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputprogram->initializeTileData(rect);
 		MemoryBuffer *copy = newBuf->duplicate();
 		FastGaussianBlurOperation::IIR_gauss(copy, this->m_sigma, 0, 3);
+
+		if (this->m_overlay == FAST_GAUSS_OVERLAY_MIN) {
+			float *src = newBuf->getBuffer();
+			float *dst = copy->getBuffer();
+			for (int i = copy->getWidth() * copy->getHeight() * COM_NUMBER_OF_CHANNELS; i != 0; i--, src++, dst++) {
+				if (*src < *dst) {
+					*dst = *src;
+				}
+			}
+		}
+		else if (this->m_overlay == FAST_GAUSS_OVERLAY_MAX) {
+			float *src = newBuf->getBuffer();
+			float *dst = copy->getBuffer();
+			for (int i = copy->getWidth() * copy->getHeight() * COM_NUMBER_OF_CHANNELS; i != 0; i--, src++, dst++) {
+				if (*src > *dst) {
+					*dst = *src;
+				}
+			}
+		}
+
+//		newBuf->
+
 		this->m_iirgaus = copy;
 	}
 	unlockMutex();

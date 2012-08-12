@@ -45,13 +45,13 @@ void ChannelMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	switch (node->custom1) {
 		case CMP_NODE_CHANNEL_MATTE_CS_RGB:
 			break;
-		case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/
+		case CMP_NODE_CHANNEL_MATTE_CS_HSV: /* HSV */
 			convert = new ConvertRGBToHSVOperation();
 			break;
-		case CMP_NODE_CHANNEL_MATTE_CS_YUV: /*YUV*/
+		case CMP_NODE_CHANNEL_MATTE_CS_YUV: /* YUV */
 			convert = new ConvertRGBToYUVOperation();
 			break;
-		case CMP_NODE_CHANNEL_MATTE_CS_YCC: /*YCC*/
+		case CMP_NODE_CHANNEL_MATTE_CS_YCC: /* YCC */
 			convert = new ConvertRGBToYCCOperation();
 			((ConvertRGBToYCCOperation *)convert)->setMode(0); /* BLI_YCC_ITU_BT601 */
 			break;

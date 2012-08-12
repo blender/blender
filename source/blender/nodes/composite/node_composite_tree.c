@@ -50,6 +50,7 @@
 #include "BKE_tracking.h"
 #include "BKE_utildefines.h"
 
+#include "node_common.h"
 #include "node_exec.h"
 #include "node_util.h"
 
@@ -247,6 +248,8 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 static void update(bNodeTree *ntree)
 {
 	ntreeSetOutput(ntree);
+	
+	ntree_update_reroute_nodes(ntree);
 }
 
 bNodeTreeType ntreeType_Composite = {
@@ -689,7 +692,7 @@ void *COM_linker_hack = NULL;
 void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int do_preview)
 {
 #ifdef WITH_COMPOSITOR
-	if (G.rt == 200)
+	if (G.debug_value == 200)
 		ntreeCompositExecTreeOld(ntree, rd, do_preview);
 	else
 		COM_execute(rd, ntree, rendering);

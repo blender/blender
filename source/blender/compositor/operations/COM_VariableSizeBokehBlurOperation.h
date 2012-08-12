@@ -31,6 +31,7 @@ class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepH
 private:
 	int m_maxBlur;
 	float m_threshold;
+	bool m_do_size_scale;  /* scale size, matching 'BokehBlurNode' */
 	SocketReader *m_inputProgram;
 	SocketReader *m_inputBokehProgram;
 	SocketReader *m_inputSizeProgram;
@@ -44,7 +45,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution
@@ -66,7 +67,9 @@ public:
 
 	void setThreshold(float threshold) { this->m_threshold = threshold; }
 
-	void executeOpenCL(OpenCLDevice* device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp);
+	void setDoScaleSize(bool scale_size) { this->m_do_size_scale = scale_size; }
+
+	void executeOpenCL(OpenCLDevice *device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp);
 };
 
 #ifdef COM_DEFOCUS_SEARCH
@@ -82,13 +85,13 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float output[4], int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
-	void* initializeTileData(rcti *rect);
+	void *initializeTileData(rcti *rect);
 	void deinitializeTileData(rcti *rect, void *data);
 	
 	/**
@@ -97,7 +100,7 @@ public:
 	void deinitExecution();
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	void setMaxBlur(int maxRadius) { this->m_maxBlur = maxRadius; }
 };

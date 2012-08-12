@@ -4400,6 +4400,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->flow = NULL;
 				smd->domain = NULL;
 				smd->coll = newdataadr(fd, smd->coll);
+				smd->coll->smd = smd;
 				if (smd->coll) {
 					smd->coll->points = NULL;
 					smd->coll->numpoints = 0;
@@ -4875,8 +4876,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 			(void)marker;
 #endif
 			
-			seq_update_muting(sce->ed);
-			seq_update_sound_bounds_all(sce);
+			BKE_sequencer_update_muting(sce->ed);
+			BKE_sequencer_update_sound_bounds_all(sce);
 			
 			if (sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
@@ -5463,7 +5464,7 @@ static int lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
 static void lib_link_clipboard_restore(Main *newmain)
 {
 	/* update IDs stored in sequencer clipboard */
-	seqbase_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, newmain);
+	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, newmain);
 }
 
 /* called from kernel/blender.c */
@@ -8311,14 +8312,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
 /* ************* APPEND LIBRARY ************** */
 
-struct bheadsort {
+struct BHeadSort {
 	BHead *bhead;
 	void *old;
 };
 
 static int verg_bheadsort(const void *v1, const void *v2)
 {
-	const struct bheadsort *x1=v1, *x2=v2;
+	const struct BHeadSort *x1=v1, *x2=v2;
 	
 	if (x1->old > x2->old) return 1;
 	else if (x1->old < x2->old) return -1;
@@ -8328,7 +8329,7 @@ static int verg_bheadsort(const void *v1, const void *v2)
 static void sort_bhead_old_map(FileData *fd)
 {
 	BHead *bhead;
-	struct bheadsort *bhs;
+	struct BHeadSort *bhs;
 	int tot = 0;
 	
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead))
@@ -8337,14 +8338,14 @@ static void sort_bhead_old_map(FileData *fd)
 	fd->tot_bheadmap = tot;
 	if (tot == 0) return;
 	
-	bhs = fd->bheadmap = MEM_mallocN(tot*sizeof(struct bheadsort), "bheadsort");
+	bhs = fd->bheadmap = MEM_mallocN(tot*sizeof(struct BHeadSort), STRINGIFY(BHeadSort));
 	
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead), bhs++) {
 		bhs->bhead = bhead;
 		bhs->old = bhead->old;
 	}
 	
-	qsort(fd->bheadmap, tot, sizeof(struct bheadsort), verg_bheadsort);
+	qsort(fd->bheadmap, tot, sizeof(struct BHeadSort), verg_bheadsort);
 }
 
 static BHead *find_previous_lib(FileData *fd, BHead *bhead)
@@ -8366,7 +8367,7 @@ static BHead *find_bhead(FileData *fd, void *old)
 #if 0
 	BHead *bhead;
 #endif
-	struct bheadsort *bhs, bhs_s;
+	struct BHeadSort *bhs, bhs_s;
 	
 	if (!old)
 		return NULL;
@@ -8375,7 +8376,7 @@ static BHead *find_bhead(FileData *fd, void *old)
 		sort_bhead_old_map(fd);
 	
 	bhs_s.old = old;
-	bhs = bsearch(&bhs_s, fd->bheadmap, fd->tot_bheadmap, sizeof(struct bheadsort), verg_bheadsort);
+	bhs = bsearch(&bhs_s, fd->bheadmap, fd->tot_bheadmap, sizeof(struct BHeadSort), verg_bheadsort);
 
 	if (bhs)
 		return bhs->bhead;
@@ -9679,7 +9680,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 
 					/* allow typing in a new lib path */
-					if (G.rt == -666) {
+					if (G.debug_value == -666) {
 						while (fd == NULL) {
 							char newlib_path[FILE_MAX] = {0};
 							printf("Missing library...'\n");

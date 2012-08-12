@@ -58,6 +58,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
+#include "BKE_node.h"
 #include "BKE_report.h"
 
 #include "BKE_packedFile.h"
@@ -334,10 +335,10 @@ static void free_openrecent(void)
 /* bad stuff*/
 
 // XXX copy/paste buffer stuff...
-extern void free_anim_copybuf(void); 
-extern void free_anim_drivers_copybuf(void); 
-extern void free_fmodifiers_copybuf(void); 
-extern void free_posebuf(void); 
+extern void free_anim_copybuf(void);
+extern void free_anim_drivers_copybuf(void);
+extern void free_fmodifiers_copybuf(void);
+extern void free_posebuf(void);
 
 #if WIN32
 /* Read console events until there is a key event.  Also returns on any error. */
@@ -346,7 +347,7 @@ static void wait_for_console_key(void)
 	HANDLE hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
 
 	if (!ELEM(hConsoleInput, NULL, INVALID_HANDLE_VALUE) && FlushConsoleInputBuffer(hConsoleInput)) {
-		for(;;) {
+		for (;;) {
 			INPUT_RECORD buffer;
 			DWORD ignored;
 
@@ -410,7 +411,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	if (C && CTX_wm_manager(C))
 		wm_free_reports(C);  /* before free_blender! - since the ListBases get freed there */
 
-	seq_free_clipboard(); /* sequencer.c */
+	BKE_sequencer_free_clipboard(); /* sequencer.c */
 	BKE_tracking_clipboard_free();
 		
 	free_blender();  /* blender.c, does entire library and spacetypes */
@@ -419,6 +420,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	free_anim_drivers_copybuf();
 	free_fmodifiers_copybuf();
 	free_posebuf();
+	BKE_node_clipboard_clear();
 
 	BLF_exit();
 
@@ -495,5 +497,5 @@ void WM_exit_ext(bContext *C, const short do_python)
 void WM_exit(bContext *C)
 {
 	WM_exit_ext(C, 1);
-	exit(G.afbreek == 1);
+	exit(G.is_break == TRUE);
 }

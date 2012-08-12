@@ -99,6 +99,7 @@ struct Tex;
 struct TexResult;
 struct Text;
 struct ToolSettings;
+struct View2D;
 struct View3D;
 struct bAction;
 struct bArmature;
@@ -215,6 +216,9 @@ void *ED_region_draw_cb_activate(struct ARegionType *art, void(*draw)(const stru
 void *ED_region_draw_cb_customdata(void *handle) {return 0;} /* XXX This one looks wrong also */
 void ED_region_draw_cb_exit(struct ARegionType *art, void *handle) {}
 void	ED_area_headerprint(struct ScrArea *sa, char *str) {}
+void UI_view2d_region_to_view(struct View2D *v2d, int x, int y, float *viewx, float *viewy) {}
+void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, int *regionx, int *regiony) {}
+void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, int *regionx, int *region_y) {}
 
 struct EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, struct EditBone *ebo) {return (struct EditBone *) NULL;}
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name) {return (struct EditBone*) NULL;}

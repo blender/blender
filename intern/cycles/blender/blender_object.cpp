@@ -247,8 +247,11 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 		scene->object_manager->tag_update(scene);
 	}
 
+	/* updated dupli objects require particle sync */
+	bool need_particle_update = object_need_particle_update(b_ob);
+
 	/* object sync */
-	if(object_updated || (object->mesh && object->mesh->need_update)) {
+	if(object_updated || (object->mesh && object->mesh->need_update) || need_particle_update) {
 		object->name = b_ob.name().c_str();
 		object->pass_id = b_ob.pass_index();
 		object->tfm = tfm;
@@ -275,7 +278,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 		object->particle_id = particle_id;
 
 		/* particle sync */
-		if (object_use_particles(b_ob))
+		if (need_particle_update)
 			sync_particles(object, b_ob);
 	
 		object->tag_update(scene);

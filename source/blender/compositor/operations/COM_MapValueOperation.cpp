@@ -34,7 +34,7 @@ void MapValueOperation::initExecution()
 	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
-void MapValueOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void MapValueOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float src[4];
 	this->m_inputOperation->read(src, x, y, sampler);
@@ -47,7 +47,7 @@ void MapValueOperation::executePixel(float *outputValue, float x, float y, Pixel
 		if (value > texmap->max[0])
 			value = texmap->max[0];
 	
-	outputValue[0] = value;
+	output[0] = value;
 }
 
 void MapValueOperation::deinitExecution()

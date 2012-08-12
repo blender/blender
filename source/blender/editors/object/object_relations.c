@@ -47,6 +47,7 @@
 #include "DNA_speaker_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
+#include "DNA_vfont_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -1284,20 +1285,21 @@ enum {
 	MAKE_LINKS_ANIMDATA,
 	MAKE_LINKS_GROUP,
 	MAKE_LINKS_DUPLIGROUP,
-	MAKE_LINKS_MODIFIERS
+	MAKE_LINKS_MODIFIERS,
+	MAKE_LINKS_FONTS
 };
 
 /* Return 1 if make link data is allow, zero otherwise */
-static int allow_make_links_data(const int type, Object *ob, Object *obt)
+static int allow_make_links_data(const int type, Object *ob_src, Object *ob_dst)
 {
 	switch (type) {
 		case MAKE_LINKS_OBDATA:
-			if (ob->type == obt->type && ob->type != OB_EMPTY)
+			if (ob_src->type == ob_dst->type && ob_src->type != OB_EMPTY)
 				return 1;
 			break;
 		case MAKE_LINKS_MATERIALS:
-			if (OB_TYPE_SUPPORT_MATERIAL(ob->type) &&
-			    OB_TYPE_SUPPORT_MATERIAL(obt->type))
+			if (OB_TYPE_SUPPORT_MATERIAL(ob_src->type) &&
+			    OB_TYPE_SUPPORT_MATERIAL(ob_dst->type))
 			{
 				return 1;
 			}
@@ -1307,8 +1309,16 @@ static int allow_make_links_data(const int type, Object *ob, Object *obt)
 		case MAKE_LINKS_DUPLIGROUP:
 			return 1;
 		case MAKE_LINKS_MODIFIERS:
-			if (ob->type != OB_EMPTY && obt->type != OB_EMPTY)
+			if (ob_src->type != OB_EMPTY && ob_dst->type != OB_EMPTY)
 				return 1;
+			break;
+		case MAKE_LINKS_FONTS:
+			if ((ob_src->data != ob_dst->data) &&
+			    (ob_src->type == OB_FONT) &&
+			    (ob_dst->type == OB_FONT))
+			{
+				return 1;
+			}
 			break;
 	}
 	return 0;
@@ -1393,6 +1403,27 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						BKE_object_link_modifiers(ob_dst, ob_src);
 						ob_dst->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 						break;
+					case MAKE_LINKS_FONTS:
+					{
+						Curve *cu_src = ob_src->data;
+						Curve *cu_dst = ob_dst->data;
+
+						if (cu_dst->vfont) cu_dst->vfont->id.us--;
+						cu_dst->vfont = cu_src->vfont;
+						id_us_plus((ID *)cu_dst->vfont);
+						if (cu_dst->vfontb) cu_dst->vfontb->id.us--;
+						cu_dst->vfontb = cu_src->vfontb;
+						id_us_plus((ID *)cu_dst->vfontb);
+						if (cu_dst->vfonti) cu_dst->vfonti->id.us--;
+						cu_dst->vfonti = cu_src->vfonti;
+						id_us_plus((ID *)cu_dst->vfonti);
+						if (cu_dst->vfontbi) cu_dst->vfontbi->id.us--;
+						cu_dst->vfontbi = cu_src->vfontbi;
+						id_us_plus((ID *)cu_dst->vfontbi);
+
+						ob_dst->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+						break;
+					}
 				}
 			}
 		}
@@ -1449,6 +1480,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 		{MAKE_LINKS_GROUP,      "GROUPS", 0, "Group", ""},
 		{MAKE_LINKS_DUPLIGROUP, "DUPLIGROUP", 0, "DupliGroup", ""},
 		{MAKE_LINKS_MODIFIERS,  "MODIFIERS", 0, "Modifiers", ""},
+		{MAKE_LINKS_FONTS,      "FONTS", 0, "Fonts", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */

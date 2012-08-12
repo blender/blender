@@ -28,6 +28,73 @@
  *  \ingroup wm
  */
 
+/*
+ * Overview of WM structs
+ * ======================
+ *
+ * > wmWindowManager    (window manager stores a list of windows)
+ * > > wmWindow         (window has an active screen)
+ * > > > bScreen        (link to ScrAreas via 'areabase')
+ * > > > > ScrArea      (stores multiple spaces via space links via 'spacedata')
+ * > > > > > SpaceLink  (base struct for space data for all different space types)
+ * > > > > ScrArea      (stores multiple regions via 'regionbase')
+ * > > > > > ARegion
+ *
+ *
+ * Window Layout
+ * =============
+ *
+ * wmWindow -> bScreen
+ * +----------------------------------------------------------+
+ * |+-----------------------------------------+-------------+ |
+ * ||ScrArea (links to 3D view)               |ScrArea      | |
+ * ||+-------++----------+-------------------+|(links to    | |
+ * |||ARegion||          |ARegion (quad view)|| properties) | |
+ * |||(tools)||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       |+----------+-------------------+|             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * ||+-------++----------+-------------------+|             | |
+ * |+-----------------------------------------+-------------+ |
+ * +----------------------------------------------------------+
+ *
+ *
+ * Space Data
+ * ==========
+ *
+ * ScrArea's store a list of space data (SpaceLinks), each of unique type.
+ * The first one is the displayed in the UI, others are added as needed.
+ *
+ * +----------------------------+  <-- sa->spacedata.first;
+ * |                            |
+ * |                            |---+  <-- other inactive SpaceLink's stored.
+ * |                            |   |
+ * |                            |   |---+
+ * |                            |   |   |
+ * |                            |   |   |
+ * |                            |   |   |
+ * |                            |   |   |
+ * +----------------------------+   |   |
+ *    |                             |   |
+ *    +-----------------------------+   |
+ *       |                              |
+ *       +------------------------------+
+ *
+ * A common way to get the space from the ScrArea:
+ *
+ *     if (sa->spacetype == SPACE_VIEW3D) {
+ *         View3D *v3d = sa->spacedata.first;
+ *         ...
+ *     }
+ *
+ */
+
 #ifndef __WM_TYPES_H__
 #define __WM_TYPES_H__
 

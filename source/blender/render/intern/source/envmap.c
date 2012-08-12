@@ -476,7 +476,7 @@ static void render_envmap(Render *re, EnvMap *env)
 				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 			
 			/* envmap renders without alpha */
-			alpha = ((float *)ibuf->rect_float) + 3;
+			alpha = ibuf->rect_float + 3;
 			for (y = ibuf->x * ibuf->y - 1; y >= 0; y--, alpha += 4)
 				*alpha = 1.0;
 			

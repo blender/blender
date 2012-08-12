@@ -27,7 +27,7 @@ MixScreenOperation::MixScreenOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixScreenOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void MixScreenOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
@@ -43,11 +43,11 @@ void MixScreenOperation::executePixel(float *outputValue, float x, float y, Pixe
 	}
 	float valuem = 1.0f - value;
 
-	outputValue[0] = 1.0f - (valuem + value * (1.0f - inputColor2[0])) * (1.0f - inputColor1[0]);
-	outputValue[1] = 1.0f - (valuem + value * (1.0f - inputColor2[1])) * (1.0f - inputColor1[1]);
-	outputValue[2] = 1.0f - (valuem + value * (1.0f - inputColor2[2])) * (1.0f - inputColor1[2]);
-	outputValue[3] = inputColor1[3];
+	output[0] = 1.0f - (valuem + value * (1.0f - inputColor2[0])) * (1.0f - inputColor1[0]);
+	output[1] = 1.0f - (valuem + value * (1.0f - inputColor2[1])) * (1.0f - inputColor1[1]);
+	output[2] = 1.0f - (valuem + value * (1.0f - inputColor2[2])) * (1.0f - inputColor1[2]);
+	output[3] = inputColor1[3];
 
-	clampIfNeeded(outputValue);
+	clampIfNeeded(output);
 }
 

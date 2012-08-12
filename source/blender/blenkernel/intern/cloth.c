@@ -96,6 +96,7 @@ static CM_SOLVER_DEF	solvers [] =
 static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*vertexCos)[3]);
 static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first);
+static void cloth_update_springs( ClothModifierData *clmd );
 static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
 
@@ -399,11 +400,25 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 		copy_v3_v3(verts->txold, verts->x);
 
 		/* Get the current position. */
-		copy_v3_v3(verts->xconst, mvert[i].co);
-		mul_m4_v3(ob->obmat, verts->xconst);
+		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && 
+			((!(cloth->verts[i].flags & CLOTH_VERT_FLAG_PINNED)) 
+			&& (cloth->verts[i].goal > ALMOST_ZERO)))
+		{
+			copy_v3_v3(verts->xconst, mvert[i].co);
+			mul_m4_v3(ob->obmat, verts->xconst);
+		}
+		else
+		{
+			/* This fixed animated goals not to jump back to "first frame position" */
+			copy_v3_v3(verts->xconst, verts->txold);
+		}
 	}
 
 	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights);
+
+	/* Support for dynamic vertex groups, changing from frame to frame */
+	cloth_apply_vgroup ( clmd, result );
+	cloth_update_springs( clmd );
 	
 	tstart();
 
@@ -662,7 +677,7 @@ void cloth_free_modifier(ClothModifierData *clmd )
 void cloth_free_modifier_extern(ClothModifierData *clmd )
 {
 	Cloth	*cloth = NULL;
-	if (G.rt > 0)
+	if (G.debug_value > 0)
 		printf("cloth_free_modifier_extern\n");
 	
 	if ( !clmd )
@@ -671,7 +686,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
 	cloth = clmd->clothObject;
 	
 	if ( cloth ) {
-		if (G.rt > 0)
+		if (G.debug_value > 0)
 			printf("cloth_free_modifier_extern in\n");
 
 		// If our solver provides a free function, call it
@@ -790,11 +805,21 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	if (cloth_uses_vgroup(clmd)) {
 		for ( i = 0; i < numverts; i++, verts++ ) {
+
+			/* Reset Goal values to standard */
+			if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+				verts->goal= clmd->sim_parms->defgoal;
+			else
+				verts->goal= 0.0f;
+
 			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
 			if ( dvert ) {
+
 				for ( j = 0; j < dvert->totweight; j++ ) {
+					verts->flags &= ~CLOTH_VERT_FLAG_PINNED;
 					if (( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass-1)) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) {
 						verts->goal = dvert->dw [j].weight;
+
 						/* goalfac= 1.0f; */ /* UNUSED */
 						
 						/*
@@ -803,9 +828,8 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						*/
 						
 						verts->goal  = powf(verts->goal, 4.0f);
-						if ( verts->goal >=SOFTGOALSNAP ) {
+						if ( verts->goal >=SOFTGOALSNAP )
 							 verts->flags |= CLOTH_VERT_FLAG_PINNED;
-						}
 					}
 					
 					if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) {
@@ -819,6 +843,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						}
 					}
 
+					verts->flags &= ~CLOTH_VERT_FLAG_NOSELFCOLL;
 					if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF ) {
 						if ( dvert->dw[j].def_nr == (clmd->coll_parms->vgroup_selfcol-1)) {
 							if (dvert->dw [j].weight > 0.0f) {
@@ -826,13 +851,6 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 							}
 						}
 					}
-					/*
-					// for later
-					if ( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_weight-1))
-					{
-						verts->mass = dvert->dw [j].weight;
-					}
-					*/
 				}
 			}
 		}
@@ -852,7 +870,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	// If we have a clothObject, free it. 
 	if ( clmd->clothObject != NULL ) {
 		cloth_free_modifier ( clmd );
-		if (G.rt > 0)
+		if (G.debug_value > 0)
 			printf("cloth_free_modifier cloth_from_object\n");
 	}
 
@@ -1056,6 +1074,51 @@ static void cloth_free_errorsprings(Cloth *cloth, EdgeHash *UNUSED(edgehash), Li
 	
 	if (cloth->edgehash)
 		BLI_edgehash_free ( cloth->edgehash, NULL );
+}
+
+/* update stiffness if vertex group values are changing from frame to frame */
+static void cloth_update_springs( ClothModifierData *clmd )
+{
+	Cloth *cloth = clmd->clothObject;
+	LinkNode *search = NULL;
+
+	search = cloth->springs;
+	while (search) {
+		ClothSpring *spring = search->link;
+
+		spring->stiffness = 0.0f;
+
+		if(spring->type == CLOTH_SPRING_TYPE_STRUCTURAL)
+		{
+			spring->stiffness = (cloth->verts[spring->kl].struct_stiff + cloth->verts[spring->ij].struct_stiff) / 2.0f;
+		}
+		else if(spring->type == CLOTH_SPRING_TYPE_SHEAR)
+		{
+			spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0f;
+		}
+		else if(spring->type == CLOTH_SPRING_TYPE_BENDING)
+		{
+			spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
+		}
+		else if(spring->type == CLOTH_SPRING_TYPE_GOAL)
+		{
+			/* Warning: Appending NEW goal springs does not work because implicit solver would need reset! */
+
+			/* Activate / Deactivate existing springs */
+			if ((!(cloth->verts[spring->ij].flags & CLOTH_VERT_FLAG_PINNED)) && (cloth->verts[spring->ij].goal > ALMOST_ZERO))
+			{
+				spring->flags &= ~CLOTH_SPRING_FLAG_DEACTIVATE;
+			}
+			else
+			{
+				spring->flags |= CLOTH_SPRING_FLAG_DEACTIVATE;
+			}
+		}
+		
+		search = search->next;
+	}
+
+
 }
 
 static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
@@ -1278,7 +1341,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	cloth->edgehash = edgehash;
 	
-	if (G.rt > 0)
+	if (G.debug_value > 0)
 		printf("avg_len: %f\n", clmd->sim_parms->avg_spring_len);
 
 	return 1;

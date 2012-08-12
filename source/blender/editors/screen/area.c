@@ -107,7 +107,7 @@ void ED_region_pixelspace(ARegion *ar)
 	int width = ar->winrct.xmax - ar->winrct.xmin + 1;
 	int height = ar->winrct.ymax - ar->winrct.ymin + 1;
 	
-	wmOrtho2(-0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f);
+	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
 	glLoadIdentity();
 }
 
@@ -167,6 +167,9 @@ void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 	}
 }
 
+/**
+ * \brief Corner widgets use for dragging and splitting the view.
+ */
 static void area_draw_azone(short x1, short y1, short x2, short y2)
 {
 	int dx = x2 - x1;
@@ -372,11 +375,11 @@ void ED_area_overdraw(bContext *C)
 					if (az->ar) {
 						/* only display tab or icons when the region is hidden */
 						if (az->ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
-							if (G.rt == 3)
+							if (G.debug_value == 3)
 								region_draw_azone_icon(az);
-							else if (G.rt == 2)
+							else if (G.debug_value == 2)
 								region_draw_azone_tria(az);
-							else if (G.rt == 1)
+							else if (G.debug_value == 1)
 								region_draw_azone_tab(az);
 							else
 								region_draw_azone_tab_plus(az);
@@ -592,13 +595,17 @@ void ED_area_headerprint(ScrArea *sa, const char *str)
 /* ************************************************************ */
 
 
-static void area_azone_initialize(ScrArea *sa) 
+static void area_azone_initialize(bScreen *screen, ScrArea *sa)
 {
 	AZone *az;
 	
 	/* reinitalize entirely, regions add azones too */
 	BLI_freelistN(&sa->actionzones);
-	
+
+	if (screen->full != SCREENNORMAL) {
+		return;
+	}
+
 	/* set area action zones */
 	az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
@@ -858,11 +865,11 @@ static void region_azone_initialize(ScrArea *sa, ARegion *ar, AZEdge edge)
 	az->edge = edge;
 	
 	if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
-		if (G.rt == 3)
+		if (G.debug_value == 3)
 			region_azone_icon(sa, az, ar);
-		else if (G.rt == 2)
+		else if (G.debug_value == 2)
 			region_azone_tria(sa, az, ar);
-		else if (G.rt == 1)
+		else if (G.debug_value == 1)
 			region_azone_tab(sa, az, ar);
 		else
 			region_azone_tab_plus(sa, az, ar);
@@ -1113,7 +1120,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 
 static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 {
-	short rt = 0; // CLAMPIS(G.rt, 0, 16);
+	short rt = 0; // CLAMPIS(G.debug_value, 0, 16);
 
 	if (sa->v1->vec.x > 0) sa->totrct.xmin = sa->v1->vec.x + 1 + rt;
 	else sa->totrct.xmin = sa->v1->vec.x;
@@ -1219,7 +1226,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	area_calc_totrct(sa, win->sizex, win->sizey);
 	
 	/* clear all azones, add the area triange widgets */
-	area_azone_initialize(sa);
+	area_azone_initialize(win->screen, sa);
 
 	/* region rect sizes */
 	rect = sa->totrct;
@@ -1297,7 +1304,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	if (swap_space == 1) {
 		SWAP(ListBase, sa1->spacedata, sa2->spacedata);
 		/* exception: ensure preview is reset */
-//		if (sa1->spacetype==SPACE_VIEW3D)
+//		if (sa1->spacetype == SPACE_VIEW3D)
 // XXX			BIF_view3d_previewrender_free(sa1->spacedata.first);
 	}
 	else if (swap_space == 2) {

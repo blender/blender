@@ -49,7 +49,7 @@ void ColorBalanceASCCDLOperation::initExecution()
 	this->m_inputColorOperation = this->getInputSocketReader(1);
 }
 
-void ColorBalanceASCCDLOperation::executePixel(float *outputColor, float x, float y, PixelSampler sampler)
+void ColorBalanceASCCDLOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
 	float value[4];
@@ -61,10 +61,10 @@ void ColorBalanceASCCDLOperation::executePixel(float *outputColor, float x, floa
 	fac = min(1.0f, fac);
 	const float mfac = 1.0f - fac;
 	
-	outputColor[0] = mfac * inputColor[0] + fac *colorbalance_cdl(inputColor[0], this->m_lift[0], this->m_gamma[0], this->m_gain[0]);
-	outputColor[1] = mfac * inputColor[1] + fac *colorbalance_cdl(inputColor[1], this->m_lift[1], this->m_gamma[1], this->m_gain[1]);
-	outputColor[2] = mfac * inputColor[2] + fac *colorbalance_cdl(inputColor[2], this->m_lift[2], this->m_gamma[2], this->m_gain[2]);
-	outputColor[3] = inputColor[3];
+	output[0] = mfac * inputColor[0] + fac *colorbalance_cdl(inputColor[0], this->m_lift[0], this->m_gamma[0], this->m_gain[0]);
+	output[1] = mfac * inputColor[1] + fac *colorbalance_cdl(inputColor[1], this->m_lift[1], this->m_gamma[1], this->m_gain[1]);
+	output[2] = mfac * inputColor[2] + fac *colorbalance_cdl(inputColor[2], this->m_lift[2], this->m_gamma[2], this->m_gain[2]);
+	output[3] = inputColor[3];
 
 }
 

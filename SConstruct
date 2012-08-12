@@ -92,7 +92,7 @@ if platform=='win32':
 
 if not use_color=='1':
     B.bc.disable()
-    
+
  #on defaut white Os X terminal, some colors are totally unlegible
 if platform=='darwin':
     B.bc.OKGREEN = '\033[34m'
@@ -123,7 +123,7 @@ if bitness:
     B.bitness = bitness
 else: 
     B.bitness = tempbitness
-    
+
 
 # first check cmdline for toolset and we create env to work on
 quickie = B.arguments.get('BF_QUICK', None)
@@ -138,7 +138,7 @@ if quickie:
     B.quickie=string.split(quickie,',')
 else:
     B.quickie=[]
-    
+
 toolset = B.arguments.get('BF_TOOLSET', None)
 if toolset:
     print "Using " + toolset
@@ -270,7 +270,7 @@ if 'blenderlite' in B.targets:
     target_env_defs['WITH_BF_PYTHON'] = False
     target_env_defs['WITH_BF_3DMOUSE'] = False
     target_env_defs['WITH_BF_LIBMV'] = False
-    
+
     # Merge blenderlite, let command line to override
     for k,v in target_env_defs.iteritems():
         if k not in B.arguments:
@@ -319,7 +319,7 @@ if env['WITH_BF_OPENMP'] == 1:
 
 if env['WITH_GHOST_COCOA'] == True:
     env.Append(CPPFLAGS=['-DGHOST_COCOA']) 
-    
+
 if env['USE_QTKIT'] == True:
     env.Append(CPPFLAGS=['-DUSE_QTKIT'])
 
@@ -374,7 +374,7 @@ if not B.root_build_dir[-1]==os.sep:
     B.root_build_dir += os.sep
 if not B.doc_build_dir[-1]==os.sep:
     B.doc_build_dir += os.sep
-    
+
 # We do a shortcut for clean when no quicklist is given: just delete
 # builddir without reading in SConscripts
 do_clean = None
@@ -422,16 +422,16 @@ if not quickie and do_clean:
 # with _any_ library but since we used a fixed python version this tends to
 # be most problematic.
 if env['WITH_BF_PYTHON']:
-	py_h = os.path.join(Dir(env.subst('${BF_PYTHON_INC}')).abspath, "Python.h")
+    py_h = os.path.join(Dir(env.subst('${BF_PYTHON_INC}')).abspath, "Python.h")
 
-	if not os.path.exists(py_h):
-		print("\nMissing: \"" + env.subst('${BF_PYTHON_INC}') + os.sep + "Python.h\",\n"
-			  "  Set 'BF_PYTHON_INC' to point "
-			  "to a valid python include path.\n  Containing "
-			  "Python.h for python version \"" + env.subst('${BF_PYTHON_VERSION}') + "\"")
+    if not os.path.exists(py_h):
+        print("\nMissing: \"" + env.subst('${BF_PYTHON_INC}') + os.sep + "Python.h\",\n"
+              "  Set 'BF_PYTHON_INC' to point "
+              "to a valid python include path.\n  Containing "
+              "Python.h for python version \"" + env.subst('${BF_PYTHON_VERSION}') + "\"")
 
-		Exit()
-	del py_h
+        Exit()
+    del py_h
 
 
 if not os.path.isdir ( B.root_build_dir):
@@ -445,9 +445,53 @@ if not os.path.isdir ( B.root_build_dir):
 # if not os.path.isdir(B.doc_build_dir) and env['WITH_BF_DOCS']:
 #     os.makedirs ( B.doc_build_dir )
 
+###################################
+# Ensure all data files are valid #
+###################################
+if not os.path.isdir ( B.root_build_dir + 'data_headers'):
+    os.makedirs ( B.root_build_dir + 'data_headers' )
+# use for includes
+env['DATA_HEADERS'] = os.path.join(os.path.abspath(env['BF_BUILDDIR']), "data_headers")
+def ensure_data(FILE_FROM, FILE_TO, VAR_NAME):
+    if os.sep == "\\":
+        FILE_FROM = FILE_FROM.replace("/", "\\")
+        FILE_TO   = FILE_TO.replace("/", "\\")
+
+    # first check if we need to bother.
+    if os.path.exists(FILE_TO):
+        if os.path.getmtime(FILE_FROM) < os.path.getmtime(FILE_TO):
+            return
+
+    print(B.bc.HEADER + "Generating: " + B.bc.ENDC + "%r" % os.path.basename(FILE_TO))
+    fpin = open(FILE_FROM, "rb")
+    fpin.seek(0, os.SEEK_END)
+    size = fpin.tell()
+    fpin.seek(0)
+
+    fpout = open(FILE_TO, "w")
+    fpout.write("int  %s_size = %d;\n" % (VAR_NAME, size))
+    fpout.write("char %s[] = {\n" % VAR_NAME)
+
+    while size > 0:
+        size -= 1
+        if size % 32 == 31:
+            fpout.write("\n")
+
+        fpout.write("%3d," % ord(fpin.read(1)))
+    fpout.write("\n  0};\n\n")
+
+    fpin.close()
+    fpout.close()
+
+ensure_data("source/blender/compositor/operations/COM_OpenCLKernels.cl",
+            B.root_build_dir + "data_headers/COM_OpenCLKernels.cl.h",
+            "clkernelstoh_COM_OpenCLKernels_cl")
+
+##### END DATAFILES ##########
+
 Help(opts.GenerateHelpText(env))
 
-# default is new quieter output, but if you need to see the 
+# default is new quieter output, but if you need to see the
 # commands, do 'scons BF_QUIET=0'
 bf_quietoutput = B.arguments.get('BF_QUIET', '1')
 if env['BF_QUIET']:
@@ -534,7 +578,7 @@ if env['OURPLATFORM']!='darwin':
     for targetdir,srcfile in zip(datafilestargetlist, datafileslist):
         td, tf = os.path.split(targetdir)
         dotblenderinstall.append(env.Install(dir=td, source=srcfile))
-    
+
     if env['WITH_BF_PYTHON']:
         #-- local/VERSION/scripts
         scriptpaths=['release/scripts']
@@ -611,13 +655,13 @@ if env['OURPLATFORM']!='darwin':
                     kernel_build_dir = os.path.join(B.root_build_dir, 'intern/cycles/kernel')
                     cubin_file = os.path.join(kernel_build_dir, "kernel_%s.cubin" % arch)
                     scriptinstall.append(env.Install(dir=dir,source=cubin_file))
-    
+
     if env['WITH_BF_INTERNATIONAL']:
         internationalpaths=['release' + os.sep + 'datafiles']
-        
+
         def check_path(path, member):
             return (member in path.split(os.sep))
-        
+
         for intpath in internationalpaths:
             for dp, dn, df in os.walk(intpath):
                 if '.svn' in dn:
@@ -630,7 +674,7 @@ if env['OURPLATFORM']!='darwin':
                     pass
                 else:
                     continue
-                
+
                 dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
                 dir += os.sep + os.path.basename(intpath) + dp[len(intpath):]
 
@@ -738,7 +782,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     # strict: the x86 build fails on x64 Windows. We need to ship
     # both builds in x86 packages.
     if bitness == 32:
-        dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb.dll')	
+        dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb.dll')
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
 
     if env['WITH_BF_OIIO'] and env['OURPLATFORM'] != 'win32-mingw':
@@ -751,7 +795,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
 
 if env['OURPLATFORM'] == 'win64-mingw':
     dllsources = []
-    
+
     if env['WITH_BF_PYTHON']:
         if env['BF_DEBUG']:
             dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}_d.dll')
@@ -770,10 +814,10 @@ if env['OURPLATFORM'] == 'win64-mingw':
 
     if env['WITH_BF_SDL']:
         dllsources.append('${LCGDIR}/sdl/lib/SDL.dll')
-	
-	if(env['WITH_BF_OPENMP']):
-		dllsources.append('${LCGDIR}/binaries/libgomp-1.dll')
-	
+
+    if(env['WITH_BF_OPENMP']):
+        dllsources.append('${LCGDIR}/binaries/libgomp-1.dll')
+
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
     dllsources.append('${LCGDIR}/binaries/libgcc_s_sjlj-1.dll')
     dllsources.append('${LCGDIR}/binaries/libwinpthread-1.dll')

@@ -68,7 +68,7 @@ static void rna_Sequence_swap_internal(Sequence *seq_self, ReportList *reports, 
 {
 	const char *error_msg;
 	
-	if (seq_swap(seq_self, seq_other, &error_msg) == 0)
+	if (BKE_sequence_swap(seq_self, seq_other, &error_msg) == 0)
 		BKE_report(reports, RPT_ERROR, error_msg);
 }
 
@@ -79,11 +79,11 @@ static Sequence *alloc_generic_sequence(Editing *ed, const char *name, int start
 	Strip *strip;
 	StripElem *se;
 
-	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
+	seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
 	seq->type = type;
 
 	BLI_strncpy(seq->name + 2, name, sizeof(seq->name) - 2);
-	seqbase_unique_name_recursive(&ed->seqbase, seq);
+	BKE_seqence_base_unique_name_recursive(&ed->seqbase, seq);
 
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
 	seq->strip->us = 1;
@@ -111,7 +111,7 @@ static Sequence *rna_Sequences_new_clip(ID *id, Editing *ed,
 	seq->len =  BKE_movieclip_get_duration(clip);
 	id_us_plus((ID *)clip);
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -130,7 +130,7 @@ static Sequence *rna_Sequences_new_mask(ID *id, Editing *ed,
 	seq->len = BKE_mask_get_duration(mask);
 	id_us_plus((ID *)mask);
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -150,7 +150,7 @@ static Sequence *rna_Sequences_new_scene(ID *id, Editing *ed,
 	seq->scene_sound = sound_scene_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
 	id_us_plus((ID *)sce_seq);
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -170,11 +170,11 @@ static Sequence *rna_Sequences_new_image(ID *id, Editing *ed, ReportList *report
 	if (seq->strip->stripdata->name[0] == '\0') {
 		BKE_report(reports, RPT_ERROR, "Sequences.new_image: unable to open image file");
 		BLI_remlink(&ed->seqbase, seq);
-		seq_free_sequence(scene, seq);
+		BKE_sequence_free(scene, seq);
 		return NULL;
 	}
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -200,7 +200,7 @@ static Sequence *rna_Sequences_new_movie(ID *id, Editing *ed, ReportList *report
 	seq->anim_preseek = IMB_anim_get_preseek(an);
 	seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -227,7 +227,7 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 
 	seq->scene_sound = sound_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -251,7 +251,7 @@ static Sequence *rna_Sequences_new_effect(ID *id, Editing *ed, ReportList *repor
 	Sequence *seq;
 	struct SeqEffectHandle sh;
 
-	switch (get_sequence_effect_num_inputs(type)) {
+	switch (BKE_sequence_effect_get_num_inputs(type)) {
 		case 0:
 			if (end_frame <= start_frame) {
 				BKE_report(reports, RPT_ERROR,
@@ -282,13 +282,13 @@ static Sequence *rna_Sequences_new_effect(ID *id, Editing *ed, ReportList *repor
 			break;
 		default:
 			BKE_report(reports, RPT_ERROR,
-			           "Sequences.new_effect: get_sequence_effect_num_inputs() > 3 (should never happen)");
+			           "Sequences.new_effect: BKE_sequence_effect_get_num_inputs() > 3 (should never happen)");
 			return NULL;
 	}
 
 	seq = alloc_generic_sequence(ed, name, start_frame, channel, type, NULL);
 
-	sh = get_sequence_effect(seq);
+	sh = BKE_sequence_get_effect(seq);
 
 	seq->seq1 = seq1;
 	seq->seq2 = seq2;
@@ -298,12 +298,12 @@ static Sequence *rna_Sequences_new_effect(ID *id, Editing *ed, ReportList *repor
 
 	if (!seq1) { /* effect has no deps */
 		seq->len = 1;
-		seq_tx_set_final_right(seq, end_frame);
+		BKE_sequence_tx_set_final_right(seq, end_frame);
 	}
 
 	seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
 
-	calc_sequence(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -315,7 +315,7 @@ static void rna_Sequences_remove(ID *id, Editing *ed, Sequence *seq)
 	Scene *scene = (Scene *)id;
 
 	BLI_remlink(&ed->seqbase, seq);
-	seq_free_sequence(scene, seq);
+	BKE_sequence_free(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
@@ -330,7 +330,7 @@ static StripElem *rna_SequenceElements_push(ID *id, Sequence *seq, const char *f
 	BLI_strncpy(se->name, filename, sizeof(se->name));
 	seq->len++;
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -370,7 +370,7 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
 	MEM_freeN(seq->strip->stripdata);
 	seq->strip->stripdata = new_seq;
 
-	calc_sequence_disp(scene, seq);
+	BKE_sequence_calc_disp(scene, seq);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
@@ -383,7 +383,7 @@ void RNA_api_sequence_strip(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func = RNA_def_function(srna, "getStripElem", "give_stripelem");
+	func = RNA_def_function(srna, "getStripElem", "BKE_sequencer_give_stripelem");
 	RNA_def_function_ui_description(func, "Return the strip element from a given frame or None");
 	parm = RNA_def_int(func, "frame", 0, -MAXFRAME, MAXFRAME, "Frame",
 	                   "The frame to get the strip element from", -MAXFRAME, MAXFRAME);

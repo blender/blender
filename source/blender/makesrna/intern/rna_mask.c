@@ -568,6 +568,13 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MASK_SPLINE_NOFILL);
 	RNA_def_property_ui_text(prop, "Fill", "Make this spline filled");
 	RNA_def_property_update(prop, NC_MASK | NA_EDITED, "rna_Mask_update_data");
+
+	/* self-intersection check */
+	prop = RNA_def_property(srna, "use_self_intersection_check", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MASK_SPLINE_NOINTERSECT);
+	RNA_def_property_ui_text(prop, "Self Intersection Check", "Prevent feather from self-intersections");
+	RNA_def_property_update(prop, NC_MASK | NA_EDITED, "rna_Mask_update_data");
 }
 
 static void rna_def_mask_layer(BlenderRNA *brna)

@@ -53,7 +53,7 @@ protected:
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
 	 */
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	virtual ImBuf *getImBuf();
 
@@ -72,7 +72,7 @@ public:
 	 * Constructor
 	 */
 	ImageOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 class ImageAlphaOperation : public BaseImageOperation {
 public:
@@ -80,7 +80,7 @@ public:
 	 * Constructor
 	 */
 	ImageAlphaOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 class ImageDepthOperation : public BaseImageOperation {
 public:
@@ -88,6 +88,6 @@ public:
 	 * Constructor
 	 */
 	ImageDepthOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 #endif

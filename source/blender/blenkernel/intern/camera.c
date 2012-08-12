@@ -57,8 +57,8 @@ void *BKE_camera_add(const char *name)
 	cam =  BKE_libblock_alloc(&G.main->camera, ID_CA, name);
 
 	cam->lens = 35.0f;
-	cam->sensor_x = 32.0f;
-	cam->sensor_y = 18.0f;
+	cam->sensor_x = DEFAULT_SENSOR_WIDTH;
+	cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
 	cam->clipsta = 0.1f;
 	cam->clipend = 100.0f;
 	cam->drawsize = 0.5f;

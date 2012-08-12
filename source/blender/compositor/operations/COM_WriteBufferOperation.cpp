@@ -40,9 +40,9 @@ WriteBufferOperation::~WriteBufferOperation()
 	}
 }
 
-void WriteBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void WriteBufferOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	this->m_input->read(color, x, y, sampler);
+	this->m_input->read(output, x, y, sampler);
 }
 
 void WriteBufferOperation::initExecution()
@@ -110,7 +110,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 	memoryBuffer->setCreatedState();
 }
 
-void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice* device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **inputMemoryBuffers, MemoryBuffer *outputBuffer)
+void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **inputMemoryBuffers, MemoryBuffer *outputBuffer)
 {
 	float *outputFloatBuffer = outputBuffer->getBuffer();
 	cl_int error;

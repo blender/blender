@@ -239,7 +239,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		if (sce->ed) {
 			scen->ed = MEM_callocN(sizeof(Editing), "addseq");
 			scen->ed->seqbasep = &scen->ed->seqbase;
-			seqbase_dupli_recursive(sce, scen, &scen->ed->seqbase, &sce->ed->seqbase, SEQ_DUPE_ALL);
+			BKE_sequence_base_dupli_recursive(sce, scen, &scen->ed->seqbase, &sce->ed->seqbase, SEQ_DUPE_ALL);
 		}
 	}
 
@@ -646,7 +646,7 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 			sce1->set = NULL;
 	
 	/* check all sequences */
-	clear_scene_in_allseqs(bmain, sce);
+	BKE_sequencer_clear_scene_in_allseqs(bmain, sce);
 
 	/* check render layer nodes in other scenes */
 	clear_scene_in_nodes(bmain, sce);

@@ -206,19 +206,19 @@ void BLI_rcti_init(rcti *rect, int xmin, int xmax, int ymin, int ymax)
 	}
 }
 
-void BLI_rcti_init_minmax(struct rcti *rect)
+void BLI_rcti_init_minmax(rcti *rect)
 {
 	rect->xmin = rect->ymin = INT_MAX;
 	rect->xmax = rect->ymax = INT_MIN;
 }
 
-void BLI_rctf_init_minmax(struct rctf *rect)
+void BLI_rctf_init_minmax(rctf *rect)
 {
-	rect->xmin = rect->ymin = FLT_MAX;
-	rect->xmax = rect->ymax = FLT_MIN;
+	rect->xmin = rect->ymin =  FLT_MAX;
+	rect->xmax = rect->ymax = -FLT_MAX;
 }
 
-void BLI_rcti_do_minmax_v(struct rcti *rect, const int xy[2])
+void BLI_rcti_do_minmax_v(rcti *rect, const int xy[2])
 {
 	if (xy[0] < rect->xmin) rect->xmin = xy[0];
 	if (xy[0] > rect->xmax) rect->xmax = xy[0];
@@ -226,7 +226,7 @@ void BLI_rcti_do_minmax_v(struct rcti *rect, const int xy[2])
 	if (xy[1] > rect->ymax) rect->ymax = xy[1];
 }
 
-void BLI_rctf_do_minmax_v(struct rctf *rect, const float xy[2])
+void BLI_rctf_do_minmax_v(rctf *rect, const float xy[2])
 {
 	if (xy[0] < rect->xmin) rect->xmin = xy[0];
 	if (xy[0] > rect->xmax) rect->xmax = xy[0];

@@ -91,13 +91,14 @@ static int find_nearest_diff_point(const bContext *C, Mask *mask, const float no
 			     i++, cur_point++)
 			{
 				float *diff_points;
-				int tot_diff_point;
+				unsigned int tot_diff_point;
 
 				diff_points = BKE_mask_point_segment_diff_with_resolution(spline, cur_point, width, height,
 				                                                          &tot_diff_point);
 
 				if (diff_points) {
-					int i, tot_feather_point, tot_point;
+					int i, tot_point;
+					unsigned int tot_feather_point;
 					float *feather_points = NULL, *points;
 
 					if (feather) {
@@ -320,6 +321,7 @@ static void finSelectedSplinePoint(MaskLayer *masklay, MaskSpline **spline, Mask
 	*point = NULL;
 
 	if (check_active) {
+		/* TODO, having an active point but no active spline is possible, why? */
 		if (masklay->act_spline && masklay->act_point && MASKPOINT_ISSEL_ANY(masklay->act_point)) {
 			*spline = masklay->act_spline;
 			*point = masklay->act_point;
@@ -561,7 +563,8 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
 	RNA_float_get_array(op->ptr, "location", co);
 
-	if (masklay && masklay->act_point && MASKPOINT_ISSEL_ANY(masklay->act_point)) {
+	/* TODO, having an active point but no active spline is possible, why? */
+	if (masklay && masklay->act_spline && masklay->act_point && MASKPOINT_ISSEL_ANY(masklay->act_point)) {
 
 		/* cheap trick - double click for cyclic */
 		MaskSpline *spline = masklay->act_spline;
@@ -643,7 +646,7 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }
 
@@ -717,6 +720,6 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }

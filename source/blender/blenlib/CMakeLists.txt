@@ -82,6 +82,7 @@ set(SRC
 	intern/rct.c
 	intern/scanfill.c
 	intern/smallhash.c
+	intern/stack.c
 	intern/storage.c
 	intern/string.c
 	intern/string_cursor_utf8.c
@@ -136,6 +137,7 @@ set(SRC
 	BLI_rect.h
 	BLI_scanfill.h
 	BLI_smallhash.h
+	BLI_stack.h
 	BLI_string.h
 	BLI_string_cursor_utf8.h
 	BLI_string_utf8.h

@@ -74,6 +74,7 @@ set(SRC
 	composite/nodes/node_composite_huecorrect.c
 	composite/nodes/node_composite_idMask.c
 	composite/nodes/node_composite_image.c
+	composite/nodes/node_composite_inpaint.c
 	composite/nodes/node_composite_invert.c
 	composite/nodes/node_composite_keyingscreen.c
 	composite/nodes/node_composite_keying.c

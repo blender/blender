@@ -1,7 +1,8 @@
 # Configuration Blender
 import bpy
 
-bpy.context.user_preferences.view.use_mouse_auto_depth = False
+bpy.context.user_preferences.view.use_mouse_depth_cursor = False
+bpy.context.user_preferences.view.use_mouse_depth_navigate = False
 bpy.context.user_preferences.view.use_zoom_to_mouse = False
 bpy.context.user_preferences.view.use_rotate_around_active = False
 bpy.context.user_preferences.edit.use_drag_immediately = False

@@ -66,6 +66,7 @@ class RENDER_PT_render(RenderButtonsPanel, Panel):
         row = layout.row()
         row.operator("render.render", text="Image", icon='RENDER_STILL')
         row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
+        row.operator("render.play_rendered_anim", text="Play", icon='RENDER_ANIMATION')
 
         layout.prop(rd, "display_mode", text="Display")
 

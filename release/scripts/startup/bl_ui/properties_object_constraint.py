@@ -773,16 +773,26 @@ class ConstraintButtonsPanel():
         row.prop(con, "use_active_clip")
         row.prop(con, "use_3d_position")
 
+        col = layout.column()
+
         if not con.use_active_clip:
-            layout.prop(con, "clip")
+            col.prop(con, "clip")
+
+        row = col.row()
+        row.prop(con, "frame_method", expand=True)
 
         if clip:
-            layout.prop_search(con, "object", clip.tracking, "objects", icon='OBJECT_DATA')
-            layout.prop_search(con, "track", clip.tracking, "tracks", icon='ANIM_DATA')
+            tracking = clip.tracking
 
-        layout.prop(con, "camera")
+            col.prop_search(con, "object", tracking, "objects", icon='OBJECT_DATA')
 
-        row = layout.row()
+            tracking_object = tracking.objects.get(con.object, tracking.objects[0])
+
+            col.prop_search(con, "track", tracking_object, "tracks", icon='ANIM_DATA')
+
+        col.prop(con, "camera")
+
+        row = col.row()
         row.active = not con.use_3d_position
         row.prop(con, "depth_object")
 

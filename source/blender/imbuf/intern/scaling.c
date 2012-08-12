@@ -295,9 +295,7 @@ struct ImBuf *IMB_double_y(struct ImBuf *ibuf1)
 /* result in ibuf2, scaling should be done correctly */
 void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 {
-	uchar *p1, *p2 = NULL, *dest;
-	float *p1f, *destf, *p2f = NULL;
-	int x, y;
+    int x, y;
 	const short do_rect = (ibuf1->rect != NULL);
 	const short do_float = (ibuf1->rect_float != NULL) && (ibuf2->rect_float != NULL);
 
@@ -305,16 +303,14 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 		imb_addrectImBuf(ibuf2);
 	}
 
-	p1f = ibuf1->rect_float;
-	destf = ibuf2->rect_float;
-	p1 = (uchar *) ibuf1->rect;
-	dest = (uchar *) ibuf2->rect;
-
-	for (y = ibuf2->y; y > 0; y--) {
-		if (do_rect) p2 = p1 + (ibuf1->x << 2);
-		if (do_float) p2f = p1f + (ibuf1->x << 2);
-		for (x = ibuf2->x; x > 0; x--) {
-			if (do_rect) {
+	if (do_rect) {
+		char *p1, *p2, *dest;
+		
+		p1 = (char *) ibuf1->rect;
+		dest = (char *) ibuf2->rect;
+		for (y = ibuf2->y; y > 0; y--) {
+			p2 = p1 + (ibuf1->x << 2);
+			for (x = ibuf2->x; x > 0; x--) {
 				dest[0] = (p1[0] + p2[0] + p1[4] + p2[4]) >> 2;
 				dest[1] = (p1[1] + p2[1] + p1[5] + p2[5]) >> 2;
 				dest[2] = (p1[2] + p2[2] + p1[6] + p2[6]) >> 2;
@@ -323,24 +319,31 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 				p2 += 8; 
 				dest += 4;
 			}
-			if (do_float) {
-				destf[0] = 0.25f * (p1f[0] + p2f[0] + p1f[4] + p2f[4]);
-				destf[1] = 0.25f * (p1f[1] + p2f[1] + p1f[5] + p2f[5]);
-				destf[2] = 0.25f * (p1f[2] + p2f[2] + p1f[6] + p2f[6]);
-				destf[3] = 0.25f * (p1f[3] + p2f[3] + p1f[7] + p2f[7]);
-				p1f += 8; 
-				p2f += 8; 
-				destf += 4;
-			}
-		}
-		if (do_rect) p1 = p2;
-		if (do_float) p1f = p2f;
-		if (ibuf1->x & 1) {
-			if (do_rect) p1 += 4;
-			if (do_float) p1f += 4;
+			p1 = p2;
+			if (ibuf1->x & 1) p1 += 4;
 		}
 	}
 	
+	if (do_float) {
+		float *p1f, *p2f, *destf;
+		
+		p1f = ibuf1->rect_float;
+		destf = ibuf2->rect_float;
+		for (y = ibuf2->y; y > 0; y--) {
+			p2f = p1f + (ibuf1->x << 2);
+			for (x = ibuf2->x; x > 0; x--) {
+					destf[0] = 0.25f * (p1f[0] + p2f[0] + p1f[4] + p2f[4]);
+					destf[1] = 0.25f * (p1f[1] + p2f[1] + p1f[5] + p2f[5]);
+					destf[2] = 0.25f * (p1f[2] + p2f[2] + p1f[6] + p2f[6]);
+					destf[3] = 0.25f * (p1f[3] + p2f[3] + p1f[7] + p2f[7]);
+					p1f += 8; 
+					p2f += 8; 
+					destf += 4;
+			}
+			p1f = p2f;
+			if (ibuf1->x & 1) p1f += 4;
+		}
+	}
 }
 
 ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
@@ -1313,7 +1316,7 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 			rect += 2 * skipx;
 		}
 		if (do_float) {
-			rectf = ((float *)ibuf->rect_float) + 4 * (x - 1);
+			rectf = ibuf->rect_float + 4 * (x - 1);
 			newrectf = _newrectf + 4 * (x - 1);
 
 			val_af = rectf[0];

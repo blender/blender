@@ -69,6 +69,7 @@
 #include "BLI_heap.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_stack.h"
 #include "BLI_string.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -634,71 +635,107 @@ static void calc_edge_mat(float mat[3][3], const float a[3], const float b[3])
 	}
 }
 
-static void build_emats_rec(int *visited_e, EMat *emat,
-                            const MeshElemMap *emap, const MEdge *medge,
-                            const MVertSkin *vs, const MVert *mvert,
-                            int parent_v, float parent_mat[3][3])
+typedef struct {
+	float mat[3][3];
+	int parent_v;
+	int e;
+} EdgeStackElem;
+
+static void build_emats_stack(BLI_Stack *stack, int *visited_e, EMat *emat,
+							  const MeshElemMap *emap, const MEdge *medge,
+							  const MVertSkin *vs, const MVert *mvert)
 {
+	EdgeStackElem stack_elem;
 	float axis[3], angle;
-	int i, e, v, parent_is_branch;
+	int i, e, v, parent_v, parent_is_branch;
+
+	BLI_stack_pop(stack, &stack_elem);
+	parent_v = stack_elem.parent_v;
+	e = stack_elem.e;
+
+	/* Skip if edge already visited */
+	if (visited_e[e])
+		return;
+
+	/* Mark edge as visited */
+	visited_e[e] = TRUE;
+	
+	/* Process edge */
 
 	parent_is_branch = ((emap[parent_v].count > 2) ||
 	                    (vs[parent_v].flag & MVERT_SKIN_ROOT));
 
-	for (i = 0; i < emap[parent_v].count; i++) {
-		e = emap[parent_v].indices[i];
+	v = BKE_mesh_edge_other_vert(&medge[e], parent_v);
+	emat[e].origin = parent_v;
 
-		/* Ignore edge if already visited */
-		if (visited_e[e]) continue;
-		visited_e[e] = 1;
+	/* If parent is a branch node, start a new edge chain */
+	if (parent_is_branch) {
+		calc_edge_mat(emat[e].mat, mvert[parent_v].co,
+					  mvert[v].co);
+	}
+	else {
+		/* Build edge matrix guided by parent matrix */
+		sub_v3_v3v3(emat[e].mat[0], mvert[v].co, mvert[parent_v].co);
+		normalize_v3(emat[e].mat[0]);
+		angle = angle_normalized_v3v3(stack_elem.mat[0], emat[e].mat[0]);
+		cross_v3_v3v3(axis, stack_elem.mat[0], emat[e].mat[0]);
+		normalize_v3(axis);
+		rotate_normalized_v3_v3v3fl(emat[e].mat[1], stack_elem.mat[1], axis, angle);
+		rotate_normalized_v3_v3v3fl(emat[e].mat[2], stack_elem.mat[2], axis, angle);
+	}
 
-		v = BKE_mesh_edge_other_vert(&medge[e], parent_v);
-		emat[e].origin = parent_v;
-
-		/* If parent is a branch node, start a new edge chain */
-		if (parent_is_branch) {
-			calc_edge_mat(emat[e].mat, mvert[parent_v].co,
-			              mvert[v].co);
-		}
-		else {
-			/* Build edge matrix guided by parent matrix */
-			sub_v3_v3v3(emat[e].mat[0], mvert[v].co, mvert[parent_v].co);
-			normalize_v3(emat[e].mat[0]);
-			angle = angle_normalized_v3v3(parent_mat[0], emat[e].mat[0]);
-			cross_v3_v3v3(axis, parent_mat[0], emat[e].mat[0]);
-			normalize_v3(axis);
-			rotate_normalized_v3_v3v3fl(emat[e].mat[1], parent_mat[1], axis, angle);
-			rotate_normalized_v3_v3v3fl(emat[e].mat[2], parent_mat[2], axis, angle);
-		}
-
-		build_emats_rec(visited_e, emat, emap, medge,
-		                vs, mvert, v, emat[e].mat);
+	/* Add neighbors to stack */
+	for (i = 0; i < emap[v].count; i++) {
+		/* Add neighbors to stack */
+		memcpy(stack_elem.mat, emat[e].mat, sizeof(float) * 3 * 3);
+		stack_elem.e = emap[v].indices[i];
+		stack_elem.parent_v = v;
+		BLI_stack_push(stack, &stack_elem);
 	}
 }
 
-static EMat *build_edge_mats(MVertSkin *vs, MVert *mvert, int totvert,
-                             MEdge *medge, MeshElemMap *emap, int totedge)
+static EMat *build_edge_mats(const MVertSkin *vs,
+							 const MVert *mvert,
+							 int totvert,
+                             const MEdge *medge,
+							 const MeshElemMap *emap,
+							 int totedge)
 {
+	BLI_Stack *stack;
 	EMat *emat;
-	float mat[3][3];
-	int *visited_e, v;
+	EdgeStackElem stack_elem;
+	int *visited_e, i, v;
+
+	stack = BLI_stack_new(sizeof(stack_elem), "build_edge_mats.stack");
 
 	visited_e = MEM_callocN(sizeof(int) * totedge, "build_edge_mats.visited_e");
 	emat = MEM_callocN(sizeof(EMat) * totedge, "build_edge_mats.emat");
 
-	/* Build edge matrices recursively from the root nodes */
+	/* Edge matrices are built from the root nodes, add all roots with
+	 * children to the stack */
 	for (v = 0; v < totvert; v++) {
 		if (vs[v].flag & MVERT_SKIN_ROOT) {
 			if (emap[v].count >= 1) {
 				const MEdge *e = &medge[emap[v].indices[0]];
-				calc_edge_mat(mat, mvert[v].co,
+				calc_edge_mat(stack_elem.mat, mvert[v].co,
 				              mvert[BKE_mesh_edge_other_vert(e, v)].co);
-				build_emats_rec(visited_e, emat, emap, medge, vs, mvert, v, mat);
+				stack_elem.parent_v = v;
+
+				/* Add adjacent edges to stack */
+				for (i = 0; i < emap[v].count; i++) {
+					stack_elem.e = emap[v].indices[i];
+					BLI_stack_push(stack, &stack_elem);
+				}
 			}
 		}
 	}
 
+	while (!BLI_stack_empty(stack)) {
+		build_emats_stack(stack, visited_e, emat, emap, medge, vs, mvert);
+	}
+
 	MEM_freeN(visited_e);
+	BLI_stack_free(stack);
 
 	return emat;
 }

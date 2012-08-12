@@ -184,6 +184,7 @@ void ACTION_OT_select_all_toggle(wmOperatorType *ot)
 	
 	/* props */
 	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -293,10 +294,7 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 		deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
 	
 	/* get settings from operator */
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 		
 	gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 	if (gesture_mode == GESTURE_MODAL_SELECT)
@@ -881,6 +879,8 @@ static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, wmEvent 
 
 void ACTION_OT_select_leftright(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Select Left/Right";
 	ot->idname = "ACTION_OT_select_leftright";
@@ -894,9 +894,12 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* id-props */
+	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "mode", prop_actkeys_leftright_select_types, ACTKEYS_LRSEL_TEST, "Mode", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Mouse-Click Select Operator *********************** */
@@ -1233,6 +1236,8 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
  
 void ACTION_OT_clickselect(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Mouse Select Keys";
 	ot->idname = "ACTION_OT_clickselect";
@@ -1245,9 +1250,11 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // ALTKEY
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // ALTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ************************************************************************** */

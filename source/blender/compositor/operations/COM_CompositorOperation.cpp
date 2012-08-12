@@ -158,7 +158,7 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 	}
 }
 
-void CompositorOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void CompositorOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	int width = this->m_rd->xsch * this->m_rd->size / 100;
 	int height = this->m_rd->ysch * this->m_rd->size / 100;

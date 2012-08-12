@@ -276,7 +276,7 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 		return 0;
 
 	psmd = psys_get_modifier(ob, psys);
-	if (psys->renderdata || G.rendering) {
+	if (psys->renderdata || G.is_rendering) {
 		if (!(psmd->modifier.mode & eModifierMode_Render))
 			return 0;
 	}
@@ -681,7 +681,7 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float
 	ParticleRenderData *data;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 
-	if (!G.rendering)
+	if (G.is_rendering == FALSE)
 		return;
 	if (psys->renderdata)
 		return;
@@ -2356,7 +2356,7 @@ void psys_find_parents(ParticleSimulationData *sim)
 	int from = PART_FROM_FACE;
 	totparent = (int)(totchild * part->parents * 0.3f);
 
-	if (G.rendering && part->child_nbr && part->ren_child_nbr)
+	if (G.is_rendering && part->child_nbr && part->ren_child_nbr)
 		totparent *= (float)part->child_nbr / (float)part->ren_child_nbr;
 
 	tree = BLI_kdtree_new(totparent);
@@ -2433,7 +2433,7 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 	if (totchild && part->childtype == PART_CHILD_FACES) {
 		totparent = (int)(totchild * part->parents * 0.3f);
 		
-		if (G.rendering && part->child_nbr && part->ren_child_nbr)
+		if (G.is_rendering && part->child_nbr && part->ren_child_nbr)
 			totparent *= (float)part->child_nbr / (float)part->ren_child_nbr;
 
 		/* part->parents could still be 0 so we can't test with totparent */
@@ -3876,7 +3876,10 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 				case TEXCO_PARTICLE:
 					/* texture coordinates in range [-1, 1] */
 					texvec[0] = 2.f * (cfra - pa->time) / (pa->dietime - pa->time) - 1.f;
-					texvec[1] = 0.f;
+					if (sim->psys->totpart > 0)
+						texvec[1] = 2.f * (float)(pa - sim->psys->particles) / (float)sim->psys->totpart - 1.f;
+					else
+						texvec[1] = 0.0f;
 					texvec[2] = 0.f;
 					break;
 			}

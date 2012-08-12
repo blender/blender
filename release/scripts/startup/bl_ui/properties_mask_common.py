@@ -127,6 +127,8 @@ class MASK_PT_spline():
         row.prop(spline, "use_cyclic")
         row.prop(spline, "use_fill")
 
+        col.prop(spline, "use_self_intersection_check")
+
 
 class MASK_PT_point():
     # subclasses must define...

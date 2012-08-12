@@ -44,7 +44,9 @@ extern "C" {
 #define BLENDER_VERSION         263
 #define BLENDER_SUBVERSION      17
 
-#define BLENDER_MINVERSION      250
+/* 262 was the last editmesh release but its has compatibility code for bmesh data,
+ * so set the minversion to 2.61 */
+#define BLENDER_MINVERSION      261
 #define BLENDER_MINSUBVERSION   0
 
 /* used by packaging tools */

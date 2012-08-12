@@ -206,7 +206,7 @@ bool BL_Action::Play(const char* name,
 	}
 
 	// Now that we have an action, we have something we can play
-	m_starttime = KX_GetActiveEngine()->GetFrameTime();
+	m_starttime = -1.f; // We get the start time on our first update
 	m_startframe = m_localtime = start;
 	m_endframe = end;
 	m_blendin = blendin;
@@ -337,6 +337,11 @@ void BL_Action::Update(float curtime)
 		return;
 
 	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
+
+	// Grab the start time here so we don't end up with a negative m_localtime when
+	// suspending and resuming scenes.
+	if (m_starttime < 0)
+		m_starttime = curtime;
 
 	if (m_calc_localtime)
 		SetLocalTime(curtime);

@@ -28,9 +28,9 @@ ConvolutionEdgeFilterOperation::ConvolutionEdgeFilterOperation() : ConvolutionFi
 	/* pass */
 }
 
-void ConvolutionEdgeFilterOperation::executePixel(float *color, int x, int y, void *data)
+void ConvolutionEdgeFilterOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	float in1[4], in2[4], res1[4], res2[4];
+	float in1[4], in2[4], res1[4] = {0.0}, res2[4] = {0.0};
 
 	int x1 = x - 1;
 	int x2 = x;
@@ -48,16 +48,7 @@ void ConvolutionEdgeFilterOperation::executePixel(float *color, int x, int y, vo
 	float value[4];
 	this->m_inputValueOperation->read(value, x2, y2, NULL);
 	float mval = 1.0f - value[0];
-	
-	res1[0] = 0.0f;
-	res1[1] = 0.0f;
-	res1[2] = 0.0f;
-	res1[3] = 0.0f;
-	res2[0] = 0.0f;
-	res2[1] = 0.0f;
-	res2[2] = 0.0f;
-	res2[3] = 0.0f;
-	
+
 	this->m_inputOperation->read(in1, x1, y1, NULL);
 	madd_v3_v3fl(res1, in1, this->m_filter[0]);
 	madd_v3_v3fl(res2, in1, this->m_filter[0]);
@@ -94,13 +85,13 @@ void ConvolutionEdgeFilterOperation::executePixel(float *color, int x, int y, vo
 	madd_v3_v3fl(res1, in1, this->m_filter[8]);
 	madd_v3_v3fl(res2, in1, this->m_filter[8]);
 	
-	color[0] = sqrt(res1[0] * res1[0] + res2[0] * res2[0]);
-	color[1] = sqrt(res1[1] * res1[1] + res2[1] * res2[1]);
-	color[2] = sqrt(res1[2] * res1[2] + res2[2] * res2[2]);
+	output[0] = sqrt(res1[0] * res1[0] + res2[0] * res2[0]);
+	output[1] = sqrt(res1[1] * res1[1] + res2[1] * res2[1]);
+	output[2] = sqrt(res1[2] * res1[2] + res2[2] * res2[2]);
 	
-	color[0] = color[0] * value[0] + in2[0] * mval;
-	color[1] = color[1] * value[0] + in2[1] * mval;
-	color[2] = color[2] * value[0] + in2[2] * mval;
+	output[0] = output[0] * value[0] + in2[0] * mval;
+	output[1] = output[1] * value[0] + in2[1] * mval;
+	output[2] = output[2] * value[0] + in2[2] * mval;
 	
-	color[3] = in2[3];
+	output[3] = in2[3];
 }

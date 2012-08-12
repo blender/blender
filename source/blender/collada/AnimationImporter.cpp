@@ -652,6 +652,51 @@ void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& list
 	
 }
 
+/*
+ * Lens animations must be stored in COLLADA by using FOV,
+ * while blender internally uses focal length.
+ * The imported animation curves must be converted appropriately.
+ */
+void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const double aspect, Camera *cam, const char *anim_type, int fov_type)
+{
+	char rna_path[100];
+	if (animlist_map.find(listid) == animlist_map.end()) {
+		return;
+	}
+	else {
+		//anim_type has animations
+		const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+		const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
+		//all the curves belonging to the current binding
+		std::vector<FCurve *> animcurves;
+		for (unsigned int j = 0; j < bindings.getCount(); j++) {
+			animcurves = curve_map[bindings[j].animation];
+
+			BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
+
+			modify_fcurve(&animcurves, rna_path, 0);
+			std::vector<FCurve *>::iterator iter;
+			//Add the curves of the current animation to the object
+			for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+				FCurve *fcu = *iter;
+				
+				for (unsigned int i = 0; i < fcu->totvert; i++) {
+
+					double input_fov = fcu->bezt[i].vec[1][1];
+					double xfov = (fov_type == CAMERA_YFOV) ? aspect * input_fov : input_fov;
+
+					// fov is in degrees, cam->lens is in millimiters
+					double fov = fov_to_focallength(DEG2RADF(input_fov), cam->sensor_x);
+
+					fcu->bezt[i].vec[1][1] = fov;
+				}
+
+				BLI_addtail(AnimCurves, fcu);
+			}
+		}
+	}
+}
+
 void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& animcurves, COLLADAFW::Node *root, COLLADAFW::Node *node,
                                             COLLADAFW::Transformation *tm)
 {
@@ -796,6 +841,39 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 
 }
 
+/*
+ * This function returns the aspet ration from the Collada camera.
+ *
+ * Note:COLLADA allows to specify either XFov, or YFov alone. 
+ * In tghat case the aspect ratio can be determined from 
+ * the viewport aspect ratio (which is 1:1 ?)
+ * XXX: check this: its probably wrong!
+ * If both values are specified, then the aspect ration is simply xfov/yfov
+ * and if aspect ratio is efined, then .. well then its that one.
+ */
+static const double get_aspect_ratio(const COLLADAFW::Camera *camera)
+{
+	double aspect =  camera->getAspectRatio().getValue();
+
+	if(aspect == 0)
+	{
+		const double yfov   =  camera->getYFov().getValue();
+
+		if(yfov == 0)
+			aspect=1; // assume yfov and xfov are equal
+		else
+		{
+			const double xfov   =  camera->getXFov().getValue();
+			if (xfov==0)
+				aspect = 1;
+			else
+				aspect = xfov / yfov;
+		}
+	}
+	return aspect;
+}
+
+
 void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
                                              std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>& root_map,
                                              std::multimap<COLLADAFW::UniqueId, Object *>& object_map,
@@ -804,8 +882,15 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 	AnimationImporter::AnimMix *animType = get_animation_type(node, FW_object_map);
 
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
-	COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
-	Object *ob = is_joint ? armature_importer->get_armature_for_joint(root) : object_map.find(node->getUniqueId())->second;
+	COLLADAFW::UniqueId uid = node->getUniqueId();
+	COLLADAFW::Node *root = root_map.find(uid) == root_map.end() ? node : root_map[uid];
+
+	Object *ob;
+	if(is_joint)
+		ob = armature_importer->get_armature_for_joint(root);
+	else
+		ob = object_map.find(uid) == object_map.end() ? NULL : object_map.find(uid)->second;
+
 	if (!ob) {
 		fprintf(stderr, "cannot find Object for Node with id=\"%s\"\n", node->getOriginalId().c_str());
 		return;
@@ -917,10 +1002,11 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 	}
 
 	if (animType->camera != 0) {
-		Camera *camera  = (Camera *) ob->data;
-
-		if (!camera->adt || !camera->adt->action) act = verify_adt_action((ID *)&camera->id, 1);
-		else act = camera->adt->action;
+		Camera *cam  = (Camera *) ob->data;
+		if (!cam->adt || !cam->adt->action)
+			act = verify_adt_action((ID *)&cam->id, 1);
+		else
+			act = cam->adt->action;
 
 		ListBase *AnimCurves = &(act->curves);
 		const COLLADAFW::InstanceCameraPointerArray& nodeCameras = node->getInstanceCameras();
@@ -931,12 +1017,26 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 			if ((animType->camera & CAMERA_XFOV) != 0) {
 				const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
 				const COLLADAFW::UniqueId& listid = xfov->getAnimationList();
-				Assign_float_animations(listid, AnimCurves, "lens");
+				double aspect = get_aspect_ratio(camera); 
+				Assign_lens_animations(listid, AnimCurves, aspect, cam, "lens", CAMERA_XFOV);
+			}
+
+			else if ((animType->camera & CAMERA_YFOV) != 0) {
+				const COLLADAFW::AnimatableFloat *yfov =  &(camera->getYFov());
+				const COLLADAFW::UniqueId& listid = yfov->getAnimationList();
+				double aspect = get_aspect_ratio(camera); 
+				Assign_lens_animations(listid, AnimCurves, aspect, cam, "lens", CAMERA_YFOV);
 			}
 
 			else if ((animType->camera & CAMERA_XMAG) != 0) {
 				const COLLADAFW::AnimatableFloat *xmag =  &(camera->getXMag());
 				const COLLADAFW::UniqueId& listid = xmag->getAnimationList();
+				Assign_float_animations(listid, AnimCurves, "ortho_scale");
+			}
+
+			else if ((animType->camera & CAMERA_YMAG) != 0) {
+				const COLLADAFW::AnimatableFloat *ymag =  &(camera->getYMag());
+				const COLLADAFW::UniqueId& listid = ymag->getAnimationList();
 				Assign_float_animations(listid, AnimCurves, "ortho_scale");
 			}
 
@@ -1166,14 +1266,27 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(const COLLADAF
 
 	const COLLADAFW::InstanceCameraPointerArray& nodeCameras = node->getInstanceCameras();
 	for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
-		const COLLADAFW::Camera *camera = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
+		const COLLADAFW::Camera *camera  = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
+		if ( camera == NULL ) {
+			// Can happen if the node refers to an unknown camera.
+			continue;
+		}
 
-		if (camera->getCameraType() == COLLADAFW::Camera::PERSPECTIVE) {
-			types->camera = setAnimType(&(camera->getXMag()), (types->camera), CAMERA_XFOV);
+		const bool is_perspective_type   = camera->getCameraType() == COLLADAFW::Camera::PERSPECTIVE;
+
+		int addition;
+		const COLLADAFW::Animatable *mag;
+		const COLLADAFW::UniqueId listid = camera->getYMag().getAnimationList();
+		if (animlist_map.find(listid) != animlist_map.end()) {
+			mag = &(camera->getYMag());
+			addition = (is_perspective_type) ? CAMERA_YFOV: CAMERA_YMAG;
 		}
 		else {
-			types->camera = setAnimType(&(camera->getXMag()), (types->camera), CAMERA_XMAG);
+			mag = &(camera->getXMag());
+			addition = (is_perspective_type) ? CAMERA_XFOV: CAMERA_XMAG;
 		}
+		types->camera = setAnimType(mag, (types->camera), addition);
+
 		types->camera = setAnimType(&(camera->getFarClippingPlane()), (types->camera), CAMERA_ZFAR);
 		types->camera = setAnimType(&(camera->getNearClippingPlane()), (types->camera), CAMERA_ZNEAR);
 
@@ -1205,10 +1318,14 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(const COLLADAF
 
 int AnimationImporter::setAnimType(const COLLADAFW::Animatable *prop, int types, int addition)
 {
-	const COLLADAFW::UniqueId& listid =  prop->getAnimationList();
+	int anim_type;
+	const COLLADAFW::UniqueId& listid       = prop->getAnimationList();
 	if (animlist_map.find(listid) != animlist_map.end())
-		return types | addition;
-	else return types;
+		anim_type =  types | addition;
+	else
+		anim_type = types;
+
+	return anim_type;
 }		
 
 // Is not used anymore.

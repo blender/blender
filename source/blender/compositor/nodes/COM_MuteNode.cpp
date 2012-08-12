@@ -110,6 +110,7 @@ void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	 */
 	if ((editorNode->flag & NODE_MUTED) && editorNode->typeinfo->internal_connect) {
 		vector<InputSocket *> &inputsockets = this->getInputSockets();
+		vector<OutputSocket *> relinkedsockets;
 		bNodeTree *editorTree = (bNodeTree *) context->getbNodeTree();
 		SocketMap socketMap;
 		ListBase intlinks;
@@ -132,7 +133,34 @@ void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 					else {
 						createDefaultOutput(graph, toSocket);
 					}
+
+					relinkedsockets.push_back(toSocket);
 				}
+			}
+		}
+
+		/* in some cases node could be marked as muted, but it wouldn't have internal connections
+		 * this happens in such cases as muted render layer node
+		 *
+		 * to deal with such cases create default operation for not-relinked output sockets
+		 */
+
+		for (unsigned int index = 0; index < outputsockets.size(); index++) {
+			OutputSocket *output = outputsockets[index];
+
+			if (output->isConnected()) {
+				bool relinked = false;
+				vector<OutputSocket *>::iterator it;
+
+				for (it = relinkedsockets.begin(); it != relinkedsockets.end(); it++) {
+					if (*it == output) {
+						relinked = true;
+						break;
+					}
+				}
+
+				if (!relinked)
+					createDefaultOutput(graph, output);
 			}
 		}
 

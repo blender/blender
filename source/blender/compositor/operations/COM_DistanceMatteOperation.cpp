@@ -44,7 +44,7 @@ void DistanceMatteOperation::deinitExecution()
 	this->m_inputKeyProgram = NULL;
 }
 
-void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler)
+void DistanceMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inKey[4];
 	float inImage[4];
@@ -68,7 +68,7 @@ void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, 
  
 	/*make 100% transparent */
 	if (distance < tolerance) {
-		outputValue[0] = 0.f;
+		output[0] = 0.f;
 	}
 	/*in the falloff region, make partially transparent */
 	else if (distance < falloff + tolerance) {
@@ -76,15 +76,15 @@ void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, 
 		alpha = distance / falloff;
 		/*only change if more transparent than before */
 		if (alpha < inImage[3]) {
-			outputValue[0] = alpha;
+			output[0] = alpha;
 		}
 		else { /* leave as before */
-			outputValue[0] = inImage[3];
+			output[0] = inImage[3];
 		}
 	}
 	else {
 		/* leave as before */
-		outputValue[0] = inImage[3];
+		output[0] = inImage[3];
 	}
 }
 

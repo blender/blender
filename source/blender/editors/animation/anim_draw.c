@@ -100,7 +100,7 @@ void ANIM_timecode_string_from_frame(char *str, Scene *scene, int power, short t
 		}
 		else {
 			/* seconds (with pixel offset rounding) */
-			seconds = (int)floor(cfra + 0.375f);
+			seconds = (int)floor(cfra + GLA_PIXEL_OFS);
 		}
 		
 		switch (U.timecode_style) {
@@ -150,7 +150,7 @@ void ANIM_timecode_string_from_frame(char *str, Scene *scene, int power, short t
 				/* only show the original seconds display */
 				/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
 				if (power <= 0) sprintf(str, "%.*f", 1 - power, raw_seconds);
-				else sprintf(str, "%d", (int)floor(raw_seconds + 0.375f));
+				else sprintf(str, "%d", (int)floor(raw_seconds + GLA_PIXEL_OFS));
 			}
 			break;
 			
@@ -166,7 +166,7 @@ void ANIM_timecode_string_from_frame(char *str, Scene *scene, int power, short t
 	else {
 		/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
 		if (power <= 0) sprintf(str, "%.*f", 1 - power, cfra);
-		else sprintf(str, "%d", (int)floor(cfra + 0.375f));
+		else sprintf(str, "%d", (int)floor(cfra + GLA_PIXEL_OFS));
 	}
 } 
 
@@ -283,7 +283,7 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 		return NULL;
 	
 	/* abort if rendering - we may get some race condition issues... */
-	if (G.rendering) return NULL;
+	if (G.is_rendering) return NULL;
 	
 	/* handling depends on the type of animation-context we've got */
 	if (ale)
@@ -422,7 +422,7 @@ void ANIM_unit_mapping_apply_fcurve(Scene *scene, ID *id, FCurve *fcu, short fla
 	float fac;
 	
 	/* abort if rendering - we may get some race condition issues... */
-	if (G.rendering) return;
+	if (G.is_rendering) return;
 	
 	/* calculate mapping factor, and abort if nothing to change */
 	fac = ANIM_unit_mapping_get_factor(scene, id, fcu, (flag & ANIM_UNITCONV_RESTORE));

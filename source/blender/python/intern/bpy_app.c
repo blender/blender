@@ -195,7 +195,7 @@ PyDoc_STRVAR(bpy_app_debug_value_doc,
 );
 static PyObject *bpy_app_debug_value_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
-	return PyLong_FromSsize_t(G.rt);
+	return PyLong_FromSsize_t(G.debug_value);
 }
 
 static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void *UNUSED(closure))
@@ -207,7 +207,7 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 		return -1;
 	}
 	
-	G.rt = param;
+	G.debug_value = param;
 
 	return 0;
 }

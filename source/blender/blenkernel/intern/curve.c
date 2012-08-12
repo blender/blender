@@ -2222,7 +2222,7 @@ void BKE_curve_bevelList_make(Object *ob)
 			bl->nr = 0;
 		}
 		else {
-			if (G.rendering && cu->resolu_ren != 0)
+			if (G.is_rendering && cu->resolu_ren != 0)
 				resolu = cu->resolu_ren;
 			else
 				resolu = nu->resolu;

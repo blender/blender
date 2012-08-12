@@ -58,7 +58,7 @@ void ColorCurveOperation::initExecution()
 
 }
 
-void ColorCurveOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void ColorCurveOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	CurveMapping *cumap = this->m_curveMapping;
 	CurveMapping *workingCopy = (CurveMapping *)MEM_dupallocN(cumap);
@@ -77,18 +77,18 @@ void ColorCurveOperation::executePixel(float *color, float x, float y, PixelSamp
 	this->m_inputImageProgram->read(image, x, y, sampler);
 
 	if (*fac >= 1.0f)
-		curvemapping_evaluate_premulRGBF(workingCopy, color, image);
+		curvemapping_evaluate_premulRGBF(workingCopy, output, image);
 	else if (*fac <= 0.0f) {
-		copy_v3_v3(color, image);
+		copy_v3_v3(output, image);
 	}
 	else {
 		float col[4], mfac = 1.0f - *fac;
 		curvemapping_evaluate_premulRGBF(workingCopy, col, image);
-		color[0] = mfac * image[0] + *fac * col[0];
-		color[1] = mfac * image[1] + *fac * col[1];
-		color[2] = mfac * image[2] + *fac * col[2];
+		output[0] = mfac * image[0] + *fac * col[0];
+		output[1] = mfac * image[1] + *fac * col[1];
+		output[2] = mfac * image[2] + *fac * col[2];
 	}
-	color[3] = image[3];
+	output[3] = image[3];
 	MEM_freeN(workingCopy);
 }
 
@@ -126,7 +126,7 @@ void ConstantLevelColorCurveOperation::initExecution()
 	curvemapping_set_black_white(this->m_curveMapping, this->m_black, this->m_white);
 }
 
-void ConstantLevelColorCurveOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void ConstantLevelColorCurveOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float fac[4];
 	float image[4];
@@ -136,18 +136,18 @@ void ConstantLevelColorCurveOperation::executePixel(float *color, float x, float
 	this->m_inputImageProgram->read(image, x, y, sampler);
 
 	if (*fac >= 1.0f)
-		curvemapping_evaluate_premulRGBF(this->m_curveMapping, color, image);
+		curvemapping_evaluate_premulRGBF(this->m_curveMapping, output, image);
 	else if (*fac <= 0.0f) {
-		copy_v3_v3(color, image);
+		copy_v3_v3(output, image);
 	}
 	else {
 		float col[4], mfac = 1.0f - *fac;
 		curvemapping_evaluate_premulRGBF(this->m_curveMapping, col, image);
-		color[0] = mfac * image[0] + *fac * col[0];
-		color[1] = mfac * image[1] + *fac * col[1];
-		color[2] = mfac * image[2] + *fac * col[2];
+		output[0] = mfac * image[0] + *fac * col[0];
+		output[1] = mfac * image[1] + *fac * col[1];
+		output[2] = mfac * image[2] + *fac * col[2];
 	}
-	color[3] = image[3];
+	output[3] = image[3];
 }
 
 void ConstantLevelColorCurveOperation::deinitExecution()

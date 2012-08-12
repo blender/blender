@@ -423,7 +423,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         return strip.type in {'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
-                              'MULTICAM', 'ADJUSTMENT'}
+                              'MULTICAM'}
 
     def draw(self, context):
         layout = self.layout
@@ -763,20 +763,26 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
 
         layout.prop(strip, "use_color_balance")
         if strip.use_color_balance and strip.color_balance:  # TODO - need to add this somehow
-            row = layout.row()
-            row.active = strip.use_color_balance
-            col = row.column()
+            col = layout.column()
+            col.label(text="Lift:")
             col.template_color_wheel(strip.color_balance, "lift", value_slider=False, cubic=True)
-            col.row().prop(strip.color_balance, "lift")
-            col.prop(strip.color_balance, "invert_lift", text="Inverse")
-            col = row.column()
+            row = col.row()
+            row.prop(strip.color_balance, "lift", text="")
+            row.prop(strip.color_balance, "invert_lift", text="Inverse")
+
+            col = layout.column()
+            col.label(text="Gamma:")
             col.template_color_wheel(strip.color_balance, "gamma", value_slider=False, lock_luminosity=True, cubic=True)
-            col.row().prop(strip.color_balance, "gamma")
-            col.prop(strip.color_balance, "invert_gamma", text="Inverse")
-            col = row.column()
+            row = col.row()
+            row.prop(strip.color_balance, "gamma", text="")
+            row.prop(strip.color_balance, "invert_gamma", text="Inverse")
+
+            col = layout.column()
+            col.label(text="Gain:")
             col.template_color_wheel(strip.color_balance, "gain", value_slider=False, lock_luminosity=True, cubic=True)
-            col.row().prop(strip.color_balance, "gain")
-            col.prop(strip.color_balance, "invert_gain", text="Inverse")
+            row = col.row()
+            row.prop(strip.color_balance, "gain", text="")
+            row.prop(strip.color_balance, "invert_gain", text="Inverse")
 
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):

@@ -42,7 +42,7 @@ void MixBaseOperation::initExecution()
 	this->m_inputColor2Operation = this->getInputSocketReader(2);
 }
 
-void MixBaseOperation::executePixel(float *outputColor, float x, float y, PixelSampler sampler)
+void MixBaseOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
@@ -57,10 +57,10 @@ void MixBaseOperation::executePixel(float *outputColor, float x, float y, PixelS
 		value *= inputColor2[3];
 	}
 	float valuem = 1.0f - value;
-	outputColor[0] = valuem * (inputColor1[0]) + value * (inputColor2[0]);
-	outputColor[1] = valuem * (inputColor1[1]) + value * (inputColor2[1]);
-	outputColor[2] = valuem * (inputColor1[2]) + value * (inputColor2[2]);
-	outputColor[3] = inputColor1[3];
+	output[0] = valuem * (inputColor1[0]) + value * (inputColor2[0]);
+	output[1] = valuem * (inputColor1[1]) + value * (inputColor2[1]);
+	output[2] = valuem * (inputColor1[2]) + value * (inputColor2[2]);
+	output[3] = inputColor1[3];
 }
 
 void MixBaseOperation::deinitExecution()
@@ -70,10 +70,10 @@ void MixBaseOperation::deinitExecution()
 	this->m_inputColor2Operation = NULL;
 }
 
-void MixBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void MixBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	InputSocket *socket;
-	unsigned int tempPreferredResolution[] = {0, 0};
+	unsigned int tempPreferredResolution[2] = {0, 0};
 	unsigned int tempResolution[2];
 	
 	socket = this->getInputSocket(1);

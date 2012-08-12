@@ -29,26 +29,13 @@
  *  \brief higher level node drawing for the node editor.
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "MEM_guardedalloc.h"
-
 #include "DNA_node_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_world_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_rect.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 
@@ -67,19 +54,12 @@
 #include "ED_gpencil.h"
 #include "ED_space_api.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
 
-#include "NOD_composite.h"
-#include "NOD_shader.h"
-
-#include "intern/node_util.h"
-
-#include "node_intern.h"
+#include "node_intern.h"  /* own include */
 #include "COM_compositor.h"
 
 /* width of socket columns in group display */
@@ -701,9 +681,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		nodeShaderSynchronizeID(node, 0);
 	
 	/* skip if out of view */
-	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
-	    node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax)
-	{
+	if (BLI_rctf_isect(&node->totr, &ar->v2d.cur, NULL) == FALSE) {
 		uiEndBlock(C, node->block);
 		node->block = NULL;
 		return;
@@ -901,7 +879,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 	
 	/* outline active and selected emphasis */
-	if (node->flag & (NODE_ACTIVE | SELECT)) {
+	if (node->flag & SELECT) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		
@@ -1011,11 +989,11 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode)
 		else {
 			/* check nodes front to back */
 			for (node = ntree->nodes.last; node; node = node->prev) {
-				if (BLI_in_rctf(&node->totr, snode->mx, snode->my))
+				if (BLI_in_rctf(&node->totr, snode->cursor[0], snode->cursor[1]))
 					break;  /* first hit on node stops */
 			}
 			if (node) {
-				int dir = node->typeinfo->resize_area_func(node, snode->mx, snode->my);
+				int dir = node->typeinfo->resize_area_func(node, snode->cursor[0], snode->cursor[1]);
 				cursor = node_get_resize_cursor(dir);
 			}
 		}

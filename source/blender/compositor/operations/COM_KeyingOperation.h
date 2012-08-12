@@ -49,7 +49,7 @@ public:
 
 	void setScreenBalance(float value) {this->m_screenBalance = value;}
 
-	void executePixel(float *color, float x, float y, PixelSampler sampler);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

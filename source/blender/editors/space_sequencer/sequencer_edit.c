@@ -151,7 +151,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	for (link = pj->queue.first; link; link = link->next) {
 		struct SeqIndexBuildContext *context = link->data;
 
-		seq_proxy_rebuild(context, stop, do_update, progress);
+		BKE_sequencer_proxy_rebuild(context, stop, do_update, progress);
 	}
 
 	if (*stop) {
@@ -167,10 +167,10 @@ static void proxy_endjob(void *pjv)
 	LinkData *link;
 
 	for (link = pj->queue.first; link; link = link->next) {
-		seq_proxy_rebuild_finish(link->data, pj->stop);
+		BKE_sequencer_proxy_rebuild_finish(link->data, pj->stop);
 	}
 
-	free_imbuf_seq(pj->scene, &ed->seqbase, FALSE, FALSE);
+	BKE_sequencer_free_imbuf(pj->scene, &ed->seqbase, FALSE, FALSE);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, pj->scene);
 }
@@ -204,7 +204,7 @@ static void seq_proxy_build_job(const bContext *C)
 	SEQP_BEGIN (ed, seq)
 	{
 		if ((seq->flag & SELECT)) {
-			context = seq_proxy_rebuild_context(pj->main, pj->scene, seq);
+			context = BKE_sequencer_proxy_rebuild_context(pj->main, pj->scene, seq);
 			link = BLI_genericNodeN(context);
 			BLI_addtail(&pj->queue, link);
 		}
@@ -212,7 +212,7 @@ static void seq_proxy_build_job(const bContext *C)
 	SEQ_END
 
 	if (!WM_jobs_is_running(steve)) {
-		G.afbreek = 0;
+		G.is_break = FALSE;
 		WM_jobs_start(CTX_wm_manager(C), steve);
 	}
 
@@ -383,7 +383,7 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 			if ( ((seq->startdisp < seq->enddisp) && (seq->startdisp <= x && seq->enddisp >= x)) ||
 			     ((seq->startdisp > seq->enddisp) && (seq->startdisp >= x && seq->enddisp <= x)) )
 			{
-				if (seq_tx_test(seq)) {
+				if (BKE_sequence_tx_test(seq)) {
 					
 					/* clamp handles to defined size in pixel space */
 					
@@ -505,7 +505,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
-			if (seq->type == SEQ_TYPE_SOUND_RAM && get_sequence_effect_num_inputs(type) != 0) {
+			if (seq->type == SEQ_TYPE_SOUND_RAM && BKE_sequence_effect_get_num_inputs(type) != 0) {
 				*error_str = "Can't apply effects to audio sequence strips";
 				return 0;
 			}
@@ -530,7 +530,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 	}
 	
 
-	switch (get_sequence_effect_num_inputs(type)) {
+	switch (BKE_sequence_effect_get_num_inputs(type)) {
 		case 0:
 			*selseq1 = *selseq2 = *selseq3 = NULL;
 			return 1; /* succsess */
@@ -584,7 +584,7 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
 			seq->seq2 = (seq2) ? seq2 : (seq1) ? seq1 : seq3;
 			seq->seq3 = (seq3) ? seq3 : (seq1) ? seq1 : seq2;
 
-			update_changed_seq_and_deps(scene, seq, 1, 1);
+			BKE_sequencer_update_changed_seq_and_deps(scene, seq, 1, 1);
 		}
 		else
 			seq->flag |= SELECT;  /* mark for delete */
@@ -612,7 +612,7 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 			BLI_remlink(lb, seq);
 			if (seq == last_seq) BKE_sequencer_active_set(scene, NULL);
 			if (seq->type == SEQ_TYPE_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
-			seq_free_sequence(scene, seq);
+			BKE_sequence_free(scene, seq);
 		}
 		seq = seqn;
 	}
@@ -669,12 +669,12 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 		}
 	}
 	
-	reload_sequence_new_file(scene, seq, FALSE);
-	calc_sequence(scene, seq);
+	BKE_sequence_reload_new_file(scene, seq, FALSE);
+	BKE_sequence_calc(scene, seq);
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = seq_dupli_recursive(scene, NULL, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
+		seqn = BKE_sequence_dupli_recursive(scene, NULL, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
 	if (seqn) { 
@@ -709,8 +709,8 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 			seqn->startstill = 0;
 		}
 		
-		reload_sequence_new_file(scene, seqn, FALSE);
-		calc_sequence(scene, seqn);
+		BKE_sequence_reload_new_file(scene, seqn, FALSE);
+		BKE_sequence_calc(scene, seqn);
 	}
 	return seqn;
 }
@@ -763,11 +763,11 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 		}
 	}
 	
-	calc_sequence(scene, seq);
+	BKE_sequence_calc(scene, seq);
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = seq_dupli_recursive(scene, NULL, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
+		seqn = BKE_sequence_dupli_recursive(scene, NULL, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
 	if (seqn) { 
@@ -798,7 +798,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 			seqn->startstill = 0;
 		}
 		
-		calc_sequence(scene, seqn);
+		BKE_sequence_calc(scene, seqn);
 	}
 	return seqn;
 }
@@ -856,7 +856,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 	{
 		if (seq->startdisp >= cfra) {
 			seq->start += gap;
-			calc_sequence(scene, seq);
+			BKE_sequence_calc(scene, seq);
 			done = TRUE;
 		}
 	}
@@ -974,11 +974,11 @@ static void UNUSED_FUNCTION(no_gaps) (Scene * scene)
 
 	for (cfra = CFRA; cfra <= EFRA; cfra++) {
 		if (first == 0) {
-			if (evaluate_seq_frame(scene, cfra) ) first = 1;
+			if (BKE_sequencer_evaluate_frame(scene, cfra) ) first = 1;
 		}
 		else {
 			done = TRUE;
-			while (evaluate_seq_frame(scene, cfra) == 0) {
+			while (BKE_sequencer_evaluate_frame(scene, cfra) == 0) {
 				done = insert_gap(scene, -1, cfra);
 				if (done == 0) break;
 			}
@@ -1049,24 +1049,24 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	/* also check metas */
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT && !(seq->depth == 0 && seq->flag & SEQ_LOCK) &&
-		    seq_tx_test(seq))
+		    BKE_sequence_tx_test(seq))
 		{
 			if ((seq->flag & (SEQ_LEFTSEL + SEQ_RIGHTSEL)) == 0) {
 				/* simple but no anim update */
 				/* seq->start= snap_frame-seq->startofs+seq->startstill; */
 
-				seq_translate(scene, seq, (snap_frame - seq->startofs + seq->startstill) - seq->start);
+				BKE_sequence_translate(scene, seq, (snap_frame - seq->startofs + seq->startstill) - seq->start);
 			}
 			else {
 				if (seq->flag & SEQ_LEFTSEL) {
-					seq_tx_set_final_left(seq, snap_frame);
+					BKE_sequence_tx_set_final_left(seq, snap_frame);
 				}
 				else { /* SEQ_RIGHTSEL */
-					seq_tx_set_final_right(seq, snap_frame);
+					BKE_sequence_tx_set_final_right(seq, snap_frame);
 				}
-				seq_tx_handle_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
+				BKE_sequence_tx_handle_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
 			}
-			calc_sequence(scene, seq);
+			BKE_sequence_calc(scene, seq);
 		}
 	}
 
@@ -1075,17 +1075,17 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT && !(seq->depth == 0 && seq->flag & SEQ_LOCK)) {
 			seq->flag &= ~SEQ_OVERLAP;
-			if (seq_test_overlap(ed->seqbasep, seq) ) {
-				shuffle_seq(ed->seqbasep, seq, scene);
+			if (BKE_sequence_test_overlap(ed->seqbasep, seq) ) {
+				BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 			}
 		}
 		else if (seq->type & SEQ_TYPE_EFFECT) {
 			if (seq->seq1 && (seq->seq1->flag & SELECT)) 
-				calc_sequence(scene, seq);
+				BKE_sequence_calc(scene, seq);
 			else if (seq->seq2 && (seq->seq2->flag & SELECT)) 
-				calc_sequence(scene, seq);
+				BKE_sequence_calc(scene, seq);
 			else if (seq->seq3 && (seq->seq3->flag & SELECT)) 
-				calc_sequence(scene, seq);
+				BKE_sequence_calc(scene, seq);
 		}
 	}
 
@@ -1150,7 +1150,7 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	seq_update_muting(ed);
+	BKE_sequencer_update_muting(ed);
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1197,7 +1197,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	seq_update_muting(ed);
+	BKE_sequencer_update_muting(ed);
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1297,12 +1297,12 @@ static int sequencer_reload_exec(bContext *C, wmOperator *op)
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
-			update_changed_seq_and_deps(scene, seq, 0, 1);
-			reload_sequence_new_file(scene, seq, !adjust_length);
+			BKE_sequencer_update_changed_seq_and_deps(scene, seq, 0, 1);
+			BKE_sequence_reload_new_file(scene, seq, !adjust_length);
 
 			if (adjust_length) {
-				if (seq_test_overlap(ed->seqbasep, seq))
-					shuffle_seq(ed->seqbasep, seq, scene);
+				if (BKE_sequence_test_overlap(ed->seqbasep, seq))
+					BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 			}
 		}
 	}
@@ -1339,7 +1339,7 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
-	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
+	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE, FALSE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -1381,7 +1381,7 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 	last_seq->seq2 = seq2;
 	last_seq->seq3 = seq3;
 
-	update_changed_seq_and_deps(scene, last_seq, 1, 1);
+	BKE_sequencer_update_changed_seq_and_deps(scene, last_seq, 1, 1);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -1433,7 +1433,7 @@ static int sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
 	last_seq->seq1 = last_seq->seq2;
 	last_seq->seq2 = seq;
 
-	update_changed_seq_and_deps(scene, last_seq, 1, 1);
+	BKE_sequencer_update_changed_seq_and_deps(scene, last_seq, 1, 1);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -1564,8 +1564,8 @@ static int apply_unique_name_cb(Sequence *seq, void *arg_pt)
 	char name[sizeof(seq->name) - 2];
 
 	strcpy(name, seq->name + 2);
-	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
-	seq_dupe_animdata(scene, name, seq->name + 2);
+	BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+	BKE_sequencer_dupe_animdata(scene, name, seq->name + 2);
 	return 1;
 
 }
@@ -1580,7 +1580,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ed == NULL)
 		return OPERATOR_CANCELLED;
 
-	seqbase_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_CONTEXT);
+	BKE_sequence_base_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_CONTEXT);
 
 	if (nseqbase.first) {
 		Sequence *seq = nseqbase.first;
@@ -1588,7 +1588,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 		BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
 		for (; seq; seq = seq->next)
-			seq_recursive_apply(seq, apply_unique_name_cb, scene);
+			BKE_sequencer_recursive_apply(seq, apply_unique_name_cb, scene);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 		return OPERATOR_FINISHED;
@@ -1651,14 +1651,14 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	/* updates lengths etc */
 	seq = ed->seqbasep->first;
 	while (seq) {
-		calc_sequence(scene, seq);
+		BKE_sequence_calc(scene, seq);
 		seq = seq->next;
 	}
 
 	/* free parent metas */
 	ms = ed->metastack.last;
 	while (ms) {
-		calc_sequence(scene, ms->parseq);
+		BKE_sequence_calc(scene, ms->parseq);
 		ms = ms->prev;
 	}
 
@@ -1703,14 +1703,14 @@ static int sequencer_offset_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	/* updates lengths etc */
 	seq = ed->seqbasep->first;
 	while (seq) {
-		calc_sequence(scene, seq);
+		BKE_sequence_calc(scene, seq);
 		seq = seq->next;
 	}
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if ((seq->type & SEQ_TYPE_EFFECT) == 0 && (seq->flag & SELECT)) {
-			if (seq_test_overlap(ed->seqbasep, seq)) {
-				shuffle_seq(ed->seqbasep, seq, scene);
+			if (BKE_sequence_test_overlap(ed->seqbasep, seq)) {
+				BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 			}
 		}
 	}
@@ -1760,14 +1760,14 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 			/* if (seq->ipo) seq->ipo->id.us--; */
 			/* XXX, remove fcurve and assign to split image strips */
 
-			start_ofs = cfra = seq_tx_get_final_left(seq, 0);
-			frame_end = seq_tx_get_final_right(seq, 0);
+			start_ofs = cfra = BKE_sequence_tx_get_final_left(seq, 0);
+			frame_end = BKE_sequence_tx_get_final_right(seq, 0);
 
 			while (cfra < frame_end) {
 				/* new seq */
-				se = give_stripelem(seq, cfra);
+				se = BKE_sequencer_give_stripelem(seq, cfra);
 
-				seq_new = seq_dupli_recursive(scene, scene, seq, SEQ_DUPE_UNIQUE_NAME);
+				seq_new = BKE_sequence_dupli_recursive(scene, scene, seq, SEQ_DUPE_UNIQUE_NAME);
 				BLI_addtail(ed->seqbasep, seq_new);
 
 				seq_new->start = start_ofs;
@@ -1782,12 +1782,12 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				/* new stripdata */
 				se_new = strip_new->stripdata;
 				BLI_strncpy(se_new->name, se->name, sizeof(se_new->name));
-				calc_sequence(scene, seq_new);
+				BKE_sequence_calc(scene, seq_new);
 
 				if (step > 1) {
 					seq_new->flag &= ~SEQ_OVERLAP;
-					if (seq_test_overlap(ed->seqbasep, seq_new)) {
-						shuffle_seq(ed->seqbasep, seq_new, scene);
+					if (BKE_sequence_test_overlap(ed->seqbasep, seq_new)) {
+						BKE_sequence_base_shuffle(ed->seqbasep, seq_new, scene);
 					}
 				}
 
@@ -1797,7 +1797,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				start_ofs += step;
 			}
 
-			seq_free_sequence(scene, seq);
+			BKE_sequence_free(scene, seq);
 			seq = seq->next;
 		}
 		else {
@@ -1869,7 +1869,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 		/* recalc all: the meta can have effects connected to it */
 		for (seq = ed->seqbasep->first; seq; seq = seq->next)
-			calc_sequence(scene, seq);
+			BKE_sequence_calc(scene, seq);
 
 		BKE_sequencer_active_set(scene, ms->parseq);
 
@@ -1880,7 +1880,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 	}
 
-	seq_update_muting(ed);
+	BKE_sequencer_update_muting(ed);
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
@@ -1911,14 +1911,14 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	Sequence *seq, *seqm, *next, *last_seq = BKE_sequencer_active_get(scene);
 	int channel_max = 1;
 
-	if (seqbase_isolated_sel_check(ed->seqbasep) == FALSE) {
+	if (BKE_sequence_base_isolated_sel_check(ed->seqbasep) == FALSE) {
 		BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
 		return OPERATOR_CANCELLED;
 	}
 
 	/* remove all selected from main list, and put in meta */
 
-	seqm = alloc_sequence(ed->seqbasep, 1, 1); /* channel number set later */
+	seqm = BKE_sequence_alloc(ed->seqbasep, 1, 1); /* channel number set later */
 	strcpy(seqm->name + 2, "MetaStrip");
 	seqm->type = SEQ_TYPE_META;
 	seqm->flag = SELECT;
@@ -1934,18 +1934,18 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 		seq = next;
 	}
 	seqm->machine = last_seq ? last_seq->machine : channel_max;
-	calc_sequence(scene, seqm);
+	BKE_sequence_calc(scene, seqm);
 
 	seqm->strip = MEM_callocN(sizeof(Strip), "metastrip");
 	seqm->strip->us = 1;
 	
 	BKE_sequencer_active_set(scene, seqm);
 
-	if (seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm, scene);
+	if (BKE_sequence_test_overlap(ed->seqbasep, seqm) ) BKE_sequence_base_shuffle(ed->seqbasep, seqm, scene);
 
-	seq_update_muting(ed);
+	BKE_sequencer_update_muting(ed);
 
-	seqbase_unique_name_recursive(&scene->ed->seqbase, seqm);
+	BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seqm);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -1995,7 +1995,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 	last_seq->seqbase.last = NULL;
 
 	BLI_remlink(ed->seqbasep, last_seq);
-	seq_free_sequence(scene, last_seq);
+	BKE_sequence_free(scene, last_seq);
 
 	/* emtpy meta strip, delete all effects depending on it */
 	for (seq = ed->seqbasep->first; seq; seq = seq->next)
@@ -2009,14 +2009,14 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
 			seq->flag &= ~SEQ_OVERLAP;
-			if (seq_test_overlap(ed->seqbasep, seq)) {
-				shuffle_seq(ed->seqbasep, seq, scene);
+			if (BKE_sequence_test_overlap(ed->seqbasep, seq)) {
+				BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 			}
 		}
 	}
 
 	BKE_sequencer_sort(scene);
-	seq_update_muting(ed);
+	BKE_sequencer_update_muting(ed);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2414,9 +2414,9 @@ static void swap_sequence(Scene *scene, Sequence *seqa, Sequence *seqb)
 {
 	int gap = seqb->startdisp - seqa->enddisp;
 	seqb->start = (seqb->start - seqb->startdisp) + seqa->startdisp;
-	calc_sequence(scene, seqb);
+	BKE_sequence_calc(scene, seqb);
 	seqa->start = (seqa->start - seqa->startdisp) + seqb->enddisp + gap;
-	calc_sequence(scene, seqa);
+	BKE_sequence_calc(scene, seqa);
 }
 
 #if 0
@@ -2454,9 +2454,9 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 	if (seq) {
 		
 		/* disallow effect strips */
-		if (get_sequence_effect_num_inputs(seq->type) >= 1 && (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
+		if (BKE_sequence_effect_get_num_inputs(seq->type) >= 1 && (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
 			return OPERATOR_CANCELLED;
-		if ((get_sequence_effect_num_inputs(active_seq->type) >= 1) && (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
+		if ((BKE_sequence_effect_get_num_inputs(active_seq->type) >= 1) && (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
 			return OPERATOR_CANCELLED;
 
 		switch (side) {
@@ -2471,7 +2471,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 		// XXX - should be a generic function
 		for (iseq = scene->ed->seqbasep->first; iseq; iseq = iseq->next) {
 			if ((iseq->type & SEQ_TYPE_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
-				calc_sequence(scene, iseq);
+				BKE_sequence_calc(scene, iseq);
 			}
 		}
 
@@ -2479,8 +2479,8 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 		for (iseq = scene->ed->seqbasep->first; iseq; iseq = iseq->next) {
 			if ((iseq->type & SEQ_TYPE_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
 				/* this may now overlap */
-				if (seq_test_overlap(ed->seqbasep, iseq) ) {
-					shuffle_seq(ed->seqbasep, iseq, scene);
+				if (BKE_sequence_test_overlap(ed->seqbasep, iseq) ) {
+					BKE_sequence_base_shuffle(ed->seqbasep, iseq, scene);
 				}
 			}
 		}
@@ -2529,7 +2529,7 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 	if (active_seq->strip) {
 		switch (active_seq->type) {
 			case SEQ_TYPE_IMAGE:
-				se = give_stripelem(active_seq, scene->r.cfra);
+				se = BKE_sequencer_give_stripelem(active_seq, scene->r.cfra);
 				break;
 			case SEQ_TYPE_MOVIE:
 				se = active_seq->strip->stripdata;
@@ -2596,14 +2596,14 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 
 	ListBase nseqbase = {NULL, NULL};
 
-	seq_free_clipboard();
+	BKE_sequencer_free_clipboard();
 
-	if (seqbase_isolated_sel_check(ed->seqbasep) == FALSE) {
+	if (BKE_sequence_base_isolated_sel_check(ed->seqbasep) == FALSE) {
 		BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
 		return OPERATOR_CANCELLED;
 	}
 
-	seqbase_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME);
+	BKE_sequence_base_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME);
 
 	/* To make sure the copied strips have unique names between each other add
 	 * them temporarily to the end of the original seqbase. (bug 25932)
@@ -2613,7 +2613,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 		BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
 		for (seq = first_seq; seq; seq = seq->next)
-			seq_recursive_apply(seq, apply_unique_name_cb, scene);
+			BKE_sequencer_recursive_apply(seq, apply_unique_name_cb, scene);
 
 		seqbase_clipboard.first = first_seq;
 		seqbase_clipboard.last = ed->seqbasep->last;
@@ -2663,13 +2663,13 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_sequencer_deselect_all(scene);
 	ofs = scene->r.cfra - seqbase_clipboard_frame;
 
-	seqbase_dupli_recursive(scene, NULL, &nseqbase, &seqbase_clipboard, SEQ_DUPE_UNIQUE_NAME);
+	BKE_sequence_base_dupli_recursive(scene, NULL, &nseqbase, &seqbase_clipboard, SEQ_DUPE_UNIQUE_NAME);
 
 	/* transform pasted strips before adding */
 	if (ofs) {
 		for (iseq = nseqbase.first; iseq; iseq = iseq->next) {
-			seq_translate(scene, iseq, ofs);
-			seq_sound_init(scene, iseq);
+			BKE_sequence_translate(scene, iseq, ofs);
+			BKE_sequence_sound_init(scene, iseq);
 		}
 	}
 
@@ -2679,7 +2679,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* make sure the pasted strips have unique names between them */
 	for (; iseq; iseq = iseq->next) {
-		seq_recursive_apply(iseq, apply_unique_name_cb, scene);
+		BKE_sequencer_recursive_apply(iseq, apply_unique_name_cb, scene);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -2716,7 +2716,7 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (seq_swap(seq_act, seq_other, &error_msg) == 0) {
+	if (BKE_sequence_swap(seq_act, seq_other, &error_msg) == 0) {
 		BKE_report(op->reports, RPT_ERROR, error_msg);
 		return OPERATOR_CANCELLED;
 	}
@@ -2730,8 +2730,8 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 	seq_act->scene_sound = NULL;
 	seq_other->scene_sound = NULL;
 
-	calc_sequence(scene, seq_act);
-	calc_sequence(scene, seq_other);
+	BKE_sequence_calc(scene, seq_act);
+	BKE_sequence_calc(scene, seq_other);
 
 	if (seq_act->sound) sound_add_scene_sound_defaults(scene, seq_act);
 	if (seq_other->sound) sound_add_scene_sound_defaults(scene, seq_other);
@@ -2882,10 +2882,10 @@ static int sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
 		SWAP(Sequence *, *seq_1, *seq_2);
 	}
 
-	update_changed_seq_and_deps(scene, seq, 0, 1);
+	BKE_sequencer_update_changed_seq_and_deps(scene, seq, 0, 1);
 
 	/* important else we don't get the imbuf cache flushed */
-	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
+	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE, FALSE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2925,27 +2925,27 @@ static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
 
 	/* can someone explain the logic behind only allowing to increase this,
 	 * copied from 2.4x - campbell */
-	if (get_sequence_effect_num_inputs(seq->type) <
-	    get_sequence_effect_num_inputs(new_type))
+	if (BKE_sequence_effect_get_num_inputs(seq->type) <
+	    BKE_sequence_effect_get_num_inputs(new_type))
 	{
 		BKE_report(op->reports, RPT_ERROR, "New effect needs more input strips");
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		sh = get_sequence_effect(seq);
+		sh = BKE_sequence_get_effect(seq);
 		sh.free(seq);
 
 		seq->type = new_type;
 
-		sh = get_sequence_effect(seq);
+		sh = BKE_sequence_get_effect(seq);
 		sh.init(seq);
 	}
 
 	/* update */
-	update_changed_seq_and_deps(scene, seq, 0, 1);
+	BKE_sequencer_update_changed_seq_and_deps(scene, seq, 0, 1);
 
 	/* important else we don't get the imbuf cache flushed */
-	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
+	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE, FALSE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -3013,12 +3013,12 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 
 		/* correct start/end frames so we don't move
 		 * important not to set seq->len= len; allow the function to handle it */
-		reload_sequence_new_file(scene, seq, TRUE);
+		BKE_sequence_reload_new_file(scene, seq, TRUE);
 
-		calc_sequence(scene, seq);
+		BKE_sequence_calc(scene, seq);
 
 		/* important else we don't get the imbuf cache flushed */
-		free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
+		BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE, FALSE);
 	}
 	else {
 		/* lame, set rna filepath */
@@ -3074,6 +3074,8 @@ void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_DIRECTORY | WM_FILESEL_RELPATH | WM_FILESEL_FILEPATH | WM_FILESEL_FILES, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE,
+	                               WM_FILESEL_DIRECTORY | WM_FILESEL_RELPATH | WM_FILESEL_FILEPATH | WM_FILESEL_FILES,
+	                               FILE_DEFAULTDISPLAY);
 }
 

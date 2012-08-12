@@ -479,7 +479,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	int charmax = G.charmax;
 	
 	/* FO_BUILTIN_NAME font in use. There are TTF FO_BUILTIN_NAME and non-TTF FO_BUILTIN_NAME fonts */
-	if (!strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
+	if (BKE_vfont_is_builtin(G.selfont)) {
 		if (G.ui_international == TRUE) {
 			charmax = 0xff;
 		}
@@ -508,7 +508,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	cs = G.charstart;
 
 	/* Set the font, in case it is not FO_BUILTIN_NAME font */
-	if (G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
+	if (G.selfont && BKE_vfont_is_builtin(G.selfont) == FALSE) {
 		/* Is the font file packed, if so then use the packed file */
 		if (G.selfont->packedfile) {
 			pf = G.selfont->packedfile;		
@@ -559,7 +559,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 
 			/* Set the font to be either unicode or FO_BUILTIN_NAME */
 			wstr[0] = cs;
-			if (strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
+			if (BKE_vfont_is_builtin(G.selfont) == FALSE) {
 				BLI_strncpy_wchar_as_utf8((char *)ustr, (wchar_t *)wstr, sizeof(ustr));
 			}
 			else {
@@ -572,8 +572,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 				}
 			}
 
-			if ((G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME)) ||
-			    (G.selfont && !strcmp(G.selfont->name, FO_BUILTIN_NAME) && G.ui_international == TRUE))
+			if ((G.selfont && (BKE_vfont_is_builtin(G.selfont) == FALSE)) ||
+			    (G.selfont && (BKE_vfont_is_builtin(G.selfont) == TRUE) && G.ui_international == TRUE))
 			{
 				float wid;
 				float llx, lly, llz, urx, ury, urz;

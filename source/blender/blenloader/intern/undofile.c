@@ -104,7 +104,7 @@ void add_memfilechunk(MemFile *compare, MemFile *current, const char *buf, unsig
 	static MemFileChunk *compchunk = NULL;
 	MemFileChunk *curchunk;
 	
-	/* this function inits when compare != NULL or when current==NULL */
+	/* this function inits when compare != NULL or when current == NULL  */
 	if (compare) {
 		compchunk = compare->chunks.first;
 		return;

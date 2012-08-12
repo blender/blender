@@ -6611,7 +6611,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	/* XXX particles are not safe for simultaneous threaded render */
-	if (G.rendering && ob->particlesystem.first)
+	if (G.is_rendering && ob->particlesystem.first)
 		return;
 
 	/* xray delay? */

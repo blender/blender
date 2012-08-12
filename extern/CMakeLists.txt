@@ -68,7 +68,7 @@ if(WITH_LIBMV)
 	add_subdirectory(libmv)
 endif()
 
-if(WITH_CARVE)
+if(WITH_MOD_BOOLEAN)
 	add_subdirectory(carve)
 endif()
 

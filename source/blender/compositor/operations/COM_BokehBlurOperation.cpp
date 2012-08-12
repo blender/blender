@@ -66,20 +66,15 @@ void BokehBlurOperation::initExecution()
 	int width = this->m_inputBokehProgram->getWidth();
 	int height = this->m_inputBokehProgram->getHeight();
 
-	float dimension;
-	if (width < height) {
-		dimension = width;
-	}
-	else {
-		dimension = height;
-	}
+	float dimension = min(width, height);
+
 	this->m_bokehMidX = width / 2.0f;
 	this->m_bokehMidY = height / 2.0f;
 	this->m_bokehDimension = dimension / 2.0f;
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
-void BokehBlurOperation::executePixel(float *color, int x, int y, void *data)
+void BokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float color_accum[4];
 	float tempBoundingBox[4];
@@ -93,7 +88,8 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, void *data)
 		int bufferwidth = inputBuffer->getWidth();
 		int bufferstartx = inputBuffer->getRect()->xmin;
 		int bufferstarty = inputBuffer->getRect()->ymin;
-		int pixelSize = this->m_size * this->getWidth() / 100.0f;
+		const float max_dim = max(this->getWidth(), this->getHeight());
+		int pixelSize = this->m_size * max_dim / 100.0f;
 		zero_v4(color_accum);
 
 		if (pixelSize<2) {
@@ -128,13 +124,13 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, void *data)
 				bufferindex += offsetadd;
 			}
 		}
-		color[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
-		color[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
-		color[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
-		color[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
+		output[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
+		output[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
+		output[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
+		output[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
 	}
 	else {
-		this->m_inputProgram->read(color, x, y, COM_PS_NEAREST);
+		this->m_inputProgram->read(output, x, y, COM_PS_NEAREST);
 	}
 }
 
@@ -150,17 +146,19 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 {
 	rcti newInput;
 	rcti bokehInput;
+	const float max_dim = max(this->getWidth(), this->getHeight());
 
 	if (this->m_sizeavailable) {
-		newInput.xmax = input->xmax + (this->m_size * this->getWidth() / 100.0f);
-		newInput.xmin = input->xmin - (this->m_size * this->getWidth() / 100.0f);
-		newInput.ymax = input->ymax + (this->m_size * this->getWidth() / 100.0f);
-		newInput.ymin = input->ymin - (this->m_size * this->getWidth() / 100.0f);
-	} else {
-		newInput.xmax = input->xmax + (10.0f * this->getWidth() / 100.0f);
-		newInput.xmin = input->xmin - (10.0f * this->getWidth() / 100.0f);
-		newInput.ymax = input->ymax + (10.0f * this->getWidth() / 100.0f);
-		newInput.ymin = input->ymin - (10.0f * this->getWidth() / 100.0f);
+		newInput.xmax = input->xmax + (this->m_size * max_dim / 100.0f);
+		newInput.xmin = input->xmin - (this->m_size * max_dim / 100.0f);
+		newInput.ymax = input->ymax + (this->m_size * max_dim / 100.0f);
+		newInput.ymin = input->ymin - (this->m_size * max_dim / 100.0f);
+	}
+	else {
+		newInput.xmax = input->xmax + (10.0f * max_dim / 100.0f);
+		newInput.xmin = input->xmin - (10.0f * max_dim / 100.0f);
+		newInput.ymax = input->ymax + (10.0f * max_dim / 100.0f);
+		newInput.ymin = input->ymin - (10.0f * max_dim / 100.0f);
 	}
 
 	NodeOperation *operation = getInputOperation(1);
@@ -193,7 +191,7 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	return false;
 }
 
-void BokehBlurOperation::executeOpenCL(OpenCLDevice* device,
+void BokehBlurOperation::executeOpenCL(OpenCLDevice *device,
                                        MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
                                        MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
                                        list<cl_kernel> *clKernelsToCleanUp) 
@@ -202,7 +200,8 @@ void BokehBlurOperation::executeOpenCL(OpenCLDevice* device,
 	if (!this->m_sizeavailable) {
 		updateSize();
 	}
-	cl_int radius = this->getWidth() * this->m_size / 100.0f;
+	const float max_dim = max(this->getWidth(), this->getHeight());
+	cl_int radius = this->m_size * max_dim / 100.0f;
 	cl_int step = this->getStep();
 	
 	device->COM_clAttachMemoryBufferToKernelParameter(kernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputBoundingBoxReader);

@@ -56,16 +56,16 @@ ParamHandle *param_construct_begin(void);
 void param_aspect_ratio(ParamHandle *handle, float aspx, float aspy);
 
 void param_face_add(ParamHandle *handle,
-					ParamKey key,
-					int nverts,	
-					ParamKey *vkeys,
-					float **co,
-					float **uv,
-					ParamBool *pin,
-					ParamBool *select, short *unwrap_flag);
+                    ParamKey key,
+                    int nverts,
+                    ParamKey *vkeys,
+                    float **co,
+                    float **uv,
+                    ParamBool *pin,
+                    ParamBool *select);
 
 void param_edge_set_seam(ParamHandle *handle,
-						 ParamKey *vkeys);
+                         ParamKey *vkeys);
 
 void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl);
 void param_delete(ParamHandle *chart);

@@ -46,7 +46,7 @@ void BilateralBlurOperation::initExecution()
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
-void BilateralBlurOperation::executePixel(float *color, int x, int y, void *data)
+void BilateralBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	// read the determinator color at x, y, this will be used as the reference color for the determinator
 	float determinatorReferenceColor[4];
@@ -82,13 +82,13 @@ void BilateralBlurOperation::executePixel(float *color, int x, int y, void *data
 	}
 	
 	if (blurDivider > 0.0f) {
-		mul_v4_v4fl(color, blurColor, 1.0f / blurDivider);
+		mul_v4_v4fl(output, blurColor, 1.0f / blurDivider);
 	}
 	else {
-		color[0] = 0.0f;
-		color[1] = 0.0f;
-		color[2] = 0.0f;
-		color[3] = 1.0f;
+		output[0] = 0.0f;
+		output[1] = 0.0f;
+		output[2] = 0.0f;
+		output[3] = 1.0f;
 	}
 }
 

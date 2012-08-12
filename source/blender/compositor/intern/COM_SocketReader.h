@@ -63,7 +63,7 @@ protected:
 	 * @param y the y-coordinate of the pixel to calculate in image space
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 */
-	virtual void executePixel(float *result, float x, float y, PixelSampler sampler) {}
+	virtual void executePixel(float output[4], float x, float y, PixelSampler sampler) {}
 
 	/**
 	 * @brief calculate a single pixel
@@ -74,8 +74,8 @@ protected:
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 * @param chunkData chunk specific data a during execution time.
 	 */
-	virtual void executePixel(float *result, int x, int y, void *chunkData) {
-		executePixel(result, x, y, COM_PS_NEAREST);
+	virtual void executePixel(float output[4], int x, int y, void *chunkData) {
+		executePixel(output, x, y, COM_PS_NEAREST);
 	}
 
 	/**
@@ -88,7 +88,7 @@ protected:
 	 * @param dy
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 */
-	virtual void executePixel(float *result, float x, float y, float dx, float dy) {}
+	virtual void executePixel(float output[4], float x, float y, float dx, float dy) {}
 
 public:
 	inline void read(float *result, float x, float y, PixelSampler sampler) {

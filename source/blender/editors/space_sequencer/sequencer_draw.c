@@ -374,7 +374,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 	
 	/* draw! */
 	if (seq->type < SEQ_TYPE_EFFECT || 
-	    get_sequence_effect_num_inputs(seq->type) == 0)
+	    BKE_sequence_effect_get_num_inputs(seq->type) == 0)
 	{
 		glEnable(GL_BLEND);
 		
@@ -530,7 +530,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 
 	/* note, all strings should include 'name' */
 	if (name[0] == '\0')
-		name = give_seqname(seq);
+		name = BKE_sequence_give_name(seq);
 
 	if (seq->type == SEQ_TYPE_META || seq->type == SEQ_TYPE_ADJUSTMENT) {
 		BLI_snprintf(str, sizeof(str), "%s | %d", name, seq->len);
@@ -685,7 +685,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	const float handsize_clamped = draw_seq_handle_size_get_clamped(seq, pixelx);
 
 	/* we need to know if this is a single image/color or not for drawing */
-	is_single_image = (char)seq_single_check(seq);
+	is_single_image = (char)BKE_sequence_single_check(seq);
 	
 	/* body */
 	x1 = (seq->startstill) ? seq->start : seq->startdisp;
@@ -700,7 +700,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	
 	/* draw the main strip body */
 	if (is_single_image) {  /* single image */
-		draw_shadedstrip(seq, background_col, seq_tx_get_final_left(seq, 0), y1, seq_tx_get_final_right(seq, 0), y2);
+		draw_shadedstrip(seq, background_col, BKE_sequence_tx_get_final_left(seq, 0), y1, BKE_sequence_tx_get_final_right(seq, 0), y2);
 	}
 	else {  /* normal operation */
 		draw_shadedstrip(seq, background_col, x1, y1, x2, y2);
@@ -849,17 +849,17 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	UI_view2d_curRect_validate(v2d);
 
 	/* only initialize the preview if a render is in progress */
-	if (G.rendering)
+	if (G.is_rendering)
 		return;
 
-	context = seq_new_render_data(bmain, scene, rectx, recty, proxy_size);
+	context = BKE_sequencer_new_render_data(bmain, scene, rectx, recty, proxy_size);
 
 	if (special_seq_update)
-		ibuf = give_ibuf_seq_direct(context, cfra + frame_ofs, special_seq_update);
+		ibuf = BKE_sequencer_give_ibuf_direct(context, cfra + frame_ofs, special_seq_update);
 	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {
-		ibuf = give_ibuf_seq(context, cfra + frame_ofs, sseq->chanshown);
+		ibuf = BKE_sequencer_give_ibuf(context, cfra + frame_ofs, sseq->chanshown);
 	else
-		ibuf = give_ibuf_seq_threaded(context, cfra + frame_ofs, sseq->chanshown);
+		ibuf = BKE_sequencer_give_ibuf_threaded(context, cfra + frame_ofs, sseq->chanshown);
 	
 	if (ibuf == NULL)
 		return;

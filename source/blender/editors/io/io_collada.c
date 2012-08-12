@@ -242,7 +242,8 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
 	ot->ui = wm_collada_export_draw;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
 	RNA_def_boolean(ot->srna,
 	                "apply_modifiers", 0, "Apply Modifiers",
@@ -319,6 +320,7 @@ void WM_OT_collada_import(wmOperatorType *ot)
 	ot->exec = wm_collada_import_exec;
 	ot->poll = WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_OPENFILE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 }
 #endif

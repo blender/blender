@@ -94,6 +94,10 @@ class NODE_HT_header(Header):
         if toolsettings.snap_node_element != 'INCREMENT':
             row.prop(toolsettings, "snap_target", text="")
 
+        row = layout.row(align=True)
+        row.operator("node.clipboard_copy", text="", icon='COPYDOWN')
+        row.operator("node.clipboard_paste", text="", icon='PASTEDOWN')
+
         layout.template_running_jobs()
 
 
@@ -111,6 +115,7 @@ class NODE_MT_view(Menu):
 
         layout.separator()
 
+        layout.operator("node.view_selected")
         layout.operator("node.view_all")
 
         if context.space_data.show_backdrop:

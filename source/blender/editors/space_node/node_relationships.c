@@ -29,76 +29,31 @@
  *  \ingroup spnode
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <errno.h>
-
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_world_types.h"
-#include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
-#include "BKE_action.h"
-#include "BKE_animsys.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_material.h"
-#include "BKE_modifier.h"
-#include "BKE_paint.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_texture.h"
-#include "BKE_report.h"
 
-#include "RE_pipeline.h"
-
-#include "IMB_imbuf_types.h"
-
-#include "ED_node.h"
-#include "ED_image.h"
+#include "ED_node.h"  /* own include */
 #include "ED_screen.h"
-#include "ED_space_api.h"
 #include "ED_render.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "IMB_imbuf.h"
-
-#include "RNA_enum_types.h"
-
-#include "GPU_material.h"
-
-#include "node_intern.h"
-#include "NOD_socket.h"
-
+#include "node_intern.h"  /* own include */
 
 /* ****************** Add *********************** */
 
@@ -482,10 +437,10 @@ static int outside_group_rect(SpaceNode *snode)
 {
 	bNode *gnode = node_tree_get_editgroup(snode->nodetree);
 	if (gnode) {
-		return (snode->mx <  gnode->totr.xmin ||
-		        snode->mx >= gnode->totr.xmax ||
-		        snode->my <  gnode->totr.ymin ||
-		        snode->my >= gnode->totr.ymax);
+		return (snode->cursor[0] <  gnode->totr.xmin ||
+		        snode->cursor[0] >= gnode->totr.xmax ||
+		        snode->cursor[1] <  gnode->totr.ymin ||
+		        snode->cursor[1] >= gnode->totr.ymax);
 	}
 	return 0;
 }
@@ -507,7 +462,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 	in_out = nldrag->in_out;
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-	                         &snode->mx, &snode->my);
+	                         &snode->cursor[0], &snode->cursor[1]);
 
 	switch (event->type) {
 		case MOUSEMOVE:
@@ -753,7 +708,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	int detach = RNA_boolean_get(op->ptr, "detach");
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-	                         &snode->mx, &snode->my);
+	                         &snode->cursor[0], &snode->cursor[1]);
 
 	ED_preview_kill_jobs(C);
 
@@ -881,24 +836,35 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	RNA_END;
 
 	if (i > 1) {
+		int found = FALSE;
 		bNodeLink *link, *next;
-
-		ED_preview_kill_jobs(C);
 
 		for (link = snode->edittree->links.first; link; link = next) {
 			next = link->next;
 
 			if (cut_links_intersect(link, mcoords, i)) {
+
+				if (found == FALSE) {
+					ED_preview_kill_jobs(C);
+					found = TRUE;
+				}
+
 				snode_update(snode, link->tonode);
 				nodeRemLink(snode->edittree, link);
 			}
 		}
 
-		ntreeUpdateTree(snode->edittree);
-		snode_notify(C, snode);
-		snode_dag_update(C, snode);
+		if (found) {
+			ntreeUpdateTree(snode->edittree);
+			snode_notify(C, snode);
+			snode_dag_update(C, snode);
 
-		return OPERATOR_FINISHED;
+			return OPERATOR_FINISHED;
+		}
+		else {
+			return OPERATOR_CANCELLED;
+		}
+
 	}
 
 	return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
@@ -1173,7 +1139,7 @@ static int node_attach_exec(bContext *C, wmOperator *UNUSED(op))
 		/* skip selected, those are the nodes we want to attach */
 		if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT))
 			continue;
-		if (BLI_in_rctf(&frame->totr, snode->mx, snode->my))
+		if (BLI_in_rctf(&frame->totr, snode->cursor[0], snode->cursor[1]))
 			break;
 	}
 	if (frame) {
@@ -1181,17 +1147,26 @@ static int node_attach_exec(bContext *C, wmOperator *UNUSED(op))
 		for (node = ntree->nodes.last; node; node = node->prev) {
 			if (node->flag & NODE_SELECT) {
 				if (node->parent == NULL) {
-					/* attach all unparented nodes */
-					nodeAttachNode(node, frame);
+					/* disallow moving a parent into its child */
+					if (nodeAttachNodeCheck(frame, node) == FALSE) {
+						/* attach all unparented nodes */
+						nodeAttachNode(node, frame);
+					}
 				}
 				else {
 					/* attach nodes which share parent with the frame */
-					for (parent = frame->parent; parent; parent = parent->parent)
-						if (parent == node->parent)
+					for (parent = frame->parent; parent; parent = parent->parent) {
+						if (parent == node->parent) {
 							break;
+						}
+					}
+
 					if (parent) {
-						nodeDetachNode(node);
-						nodeAttachNode(node, frame);
+						/* disallow moving a parent into its child */
+						if (nodeAttachNodeCheck(frame, node) == FALSE) {
+							nodeDetachNode(node);
+							nodeAttachNode(node, frame);
+						}
 					}
 				}
 			}
@@ -1210,7 +1185,7 @@ static int node_attach_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	/* convert mouse coordinates to v2d space */
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &snode->mx, &snode->my);
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &snode->cursor[0], &snode->cursor[1]);
 
 	return node_attach_exec(C, op);
 }

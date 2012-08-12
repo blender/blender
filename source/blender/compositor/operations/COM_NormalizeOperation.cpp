@@ -35,15 +35,14 @@ void NormalizeOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void NormalizeOperation::executePixel(float *color, int x, int y, void *data)
+void NormalizeOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	/* using generic two floats struct to store x: min  y: mult */
 	NodeTwoFloats *minmult = (NodeTwoFloats *)data;
 
-	float output[4];
 	this->m_imageReader->read(output, x, y, NULL);
 
-	color[0] = (output[0] - minmult->x) * minmult->y;
+	output[0] = (output[0] - minmult->x) * minmult->y;
 }
 
 void NormalizeOperation::deinitExecution()

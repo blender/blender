@@ -30,7 +30,7 @@ GlareThresholdOperation::GlareThresholdOperation() : NodeOperation()
 	this->m_inputProgram = NULL;
 }
 
-void GlareThresholdOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void GlareThresholdOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	NodeOperation::determineResolution(resolution, preferredResolution);
 	resolution[0] = resolution[0] / (1 << this->m_settings->quality);
@@ -42,19 +42,19 @@ void GlareThresholdOperation::initExecution()
 	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void GlareThresholdOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void GlareThresholdOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	const float threshold = this->m_settings->threshold;
 	
-	this->m_inputProgram->read(color, x, y, sampler);
-	if (rgb_to_luma_y(color) >= threshold) {
-		color[0] -= threshold, color[1] -= threshold, color[2] -= threshold;
-		color[0] = MAX2(color[0], 0.0f);
-		color[1] = MAX2(color[1], 0.0f);
-		color[2] = MAX2(color[2], 0.0f);
+	this->m_inputProgram->read(output, x, y, sampler);
+	if (rgb_to_luma_y(output) >= threshold) {
+		output[0] -= threshold, output[1] -= threshold, output[2] -= threshold;
+		output[0] = max(output[0], 0.0f);
+		output[1] = max(output[1], 0.0f);
+		output[2] = max(output[2], 0.0f);
 	}
 	else {
-		zero_v3(color);
+		zero_v3(output);
 	}
 }
 

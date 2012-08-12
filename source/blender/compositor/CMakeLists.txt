@@ -50,6 +50,21 @@ set(INC_SYS
 
 )
 
+# --- data file ---
+# ... may make this a macro
+list(APPEND INC
+	${CMAKE_CURRENT_BINARY_DIR}/operations
+)
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/operations/COM_OpenCLKernels.cl.h
+	COMMAND ${CMAKE_COMMAND}
+	        -DFILE_FROM=${CMAKE_CURRENT_SOURCE_DIR}/operations/COM_OpenCLKernels.cl
+	        -DFILE_TO=${CMAKE_CURRENT_BINARY_DIR}/operations/COM_OpenCLKernels.cl.h
+	        -DVAR_NAME=clkernelstoh_COM_OpenCLKernels_cl
+	        -P ${CMAKE_SOURCE_DIR}/build_files/cmake/data_to_c.cmake
+	DEPENDS operations/COM_OpenCLKernels.cl)
+# --- end data file --
+
 set(SRC
 	COM_compositor.h
 	COM_defines.h
@@ -286,6 +301,8 @@ set(SRC
 	nodes/COM_FilterNode.h
 	nodes/COM_DilateErodeNode.cpp
 	nodes/COM_DilateErodeNode.h
+	nodes/COM_InpaintNode.cpp
+	nodes/COM_InpaintNode.h
 	nodes/COM_BlurNode.cpp
 	nodes/COM_BlurNode.h
 	nodes/COM_BokehBlurNode.cpp
@@ -590,6 +607,8 @@ set(SRC
 	operations/COM_ConvolutionEdgeFilterOperation.cpp
 	operations/COM_DilateErodeOperation.cpp
 	operations/COM_DilateErodeOperation.h
+	operations/COM_InpaintOperation.cpp
+	operations/COM_InpaintOperation.h
 	operations/COM_GlareThresholdOperation.cpp
 	operations/COM_GlareThresholdOperation.h
 	operations/COM_GlareBaseOperation.cpp
@@ -634,6 +653,9 @@ set(SRC
 
 	operations/COM_MaskOperation.cpp
 	operations/COM_MaskOperation.h
+
+	# generated file
+	${CMAKE_CURRENT_BINARY_DIR}/operations/COM_OpenCLKernels.cl.h
 )
 
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}")

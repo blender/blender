@@ -906,16 +906,31 @@ void WM_operator_properties_select_all(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "action", select_all_actions, SEL_TOGGLE, "Action", "Selection action to execute");
 }
 
-void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
+void WM_operator_properties_border(wmOperatorType *ot)
 {
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+}
 
-	if (extend)
+void WM_operator_properties_border_to_rcti(struct wmOperator *op, rcti *rect)
+{
+	rect->xmin = RNA_int_get(op->ptr, "xmin");
+	rect->ymin = RNA_int_get(op->ptr, "ymin");
+	rect->xmax = RNA_int_get(op->ptr, "xmax");
+	rect->ymax = RNA_int_get(op->ptr, "ymax");
+}
+
+void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
+{
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
+
+	WM_operator_properties_border(ot);
+
+	if (extend) {
 		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+	}
 }
 
 void WM_operator_properties_mouse_select(wmOperatorType *ot)
@@ -1194,7 +1209,7 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
 
 static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 {
-	G.rt = RNA_int_get(op->ptr, "debug_value");
+	G.debug_value = RNA_int_get(op->ptr, "debug_value");
 	ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
@@ -1203,7 +1218,7 @@ static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 
 static int wm_debug_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	RNA_int_set(op->ptr, "debug_value", G.rt);
+	RNA_int_set(op->ptr, "debug_value", G.debug_value);
 	return WM_operator_props_dialog_popup(C, op, 9 * UI_UNIT_X, UI_UNIT_Y);
 }
 
@@ -1862,9 +1877,9 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	ot->flag |= OPTYPE_UNDO;
 
 	WM_operator_properties_filesel(
-	    ot, FOLDERFILE | BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE,
-	    WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILENAME | WM_FILESEL_RELPATH | WM_FILESEL_FILES,
-	    FILE_DEFAULTDISPLAY);
+	        ot, FOLDERFILE | BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE,
+	        WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILENAME | WM_FILESEL_RELPATH | WM_FILESEL_FILES,
+	        FILE_DEFAULTDISPLAY);
 	
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending");
 	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
@@ -1945,20 +1960,21 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 	ot->invoke = wm_recover_auto_save_invoke;
 	ot->poll = WM_operator_winactive;
 
-	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_LONGDISPLAY);
+	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER, FILE_OPENFILE,
+	                               WM_FILESEL_FILEPATH, FILE_LONGDISPLAY);
 }
 
 /* *************** save file as **************** */
 
-static void untitled(char *name)
+static void untitled(char *filepath)
 {
-	if (G.save_over == 0 && strlen(name) < FILE_MAX - 16) {
-		char *c = BLI_last_slash(name);
+	if (G.save_over == 0 && strlen(filepath) < FILE_MAX - 16) {
+		char *c = BLI_last_slash(filepath);
 		
 		if (c)
 			strcpy(&c[1], "untitled.blend");
 		else
-			strcpy(name, "untitled.blend");
+			strcpy(filepath, "untitled.blend");
 	}
 }
 
@@ -2065,8 +2081,8 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->check = blend_save_check;
 	/* ommit window poll so this can work in background mode */
 
-	WM_operator_properties_filesel(ot, FOLDERFILE | BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH,
-	                               FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | BLENDERFILE, FILE_BLENDER, FILE_SAVE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative",
 	                "Remap relative paths when saving in a different directory");
@@ -2137,7 +2153,8 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->check = blend_save_check;
 	/* ommit window poll so this can work in background mode */
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE | BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | BLENDERFILE, FILE_BLENDER, FILE_SAVE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
 }

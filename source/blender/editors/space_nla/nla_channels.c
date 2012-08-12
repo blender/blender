@@ -344,6 +344,8 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
  
 void NLA_OT_channels_click(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Mouse Click on NLA Channels";
 	ot->idname = "NLA_OT_channels_click";
@@ -356,8 +358,9 @@ void NLA_OT_channels_click(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	/* props */
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* *********************************************** */

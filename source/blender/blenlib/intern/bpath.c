@@ -74,6 +74,7 @@
 #include "BLI_bpath.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_font.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -485,9 +486,9 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			break;
 		case ID_VF:
 		{
-			VFont *vf = (VFont *)id;
-			if (vf->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
-				if (strcmp(vf->name, FO_BUILTIN_NAME) != 0) {
+			VFont *vfont = (VFont *)id;
+			if (vfont->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+				if (BKE_vfont_is_builtin(vfont) == FALSE) {
 					rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, bpath_user_data);
 				}
 			}

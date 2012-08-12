@@ -55,11 +55,14 @@ if builder.find('scons') != -1:
             'WITHOUT_BF_INSTALL=True']
 
         config = None
+        bits = None
 
         if builder.endswith('linux_x86_64_scons'):
             config = 'user-config-x86_64.py'
+            bits = 64
         elif builder.endswith('linux_i386_scons'):
-            config = 'user-config-x86_64.py'
+            config = 'user-config-i686.py'
+            bits = 32
 
         if config is not None:
             config_fpath = os.path.join(config_dir, config)
@@ -69,7 +72,16 @@ if builder.find('scons') != -1:
         blenderplayer = os.path.join(install_dir, 'blenderplayer')
         subprocess.call(['strip', '--strip-all', blender, blenderplayer])
 
+        extra = '/' + os.path.join('home', 'sources', 'release-builder', 'extra')
+        mesalibs = os.path.join(extra, 'mesalibs' + str(bits) + '.tar.bz2')
+        software_gl = os.path.join(extra, 'blender-softwaregl')
+
+        os.system('tar -xpf %s -C %s' % (mesalibs, install_dir))
+        os.system('cp %s %s' % (software_gl, install_dir))
+        os.system('chmod 755 %s' % (os.path.join(install_dir, 'blender-softwaregl')))
+
         retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
+
         sys.exit(retcode)
     else:
         if builder.find('win') != -1:

@@ -37,6 +37,7 @@
 #include "BKE_sequencer.h"
 
 #include "IMB_moviecache.h"
+#include "IMB_imbuf_types.h"
 
 typedef struct SeqCacheKey {
 	struct Sequence *seq;
@@ -46,6 +47,73 @@ typedef struct SeqCacheKey {
 } SeqCacheKey;
 
 static struct MovieCache *moviecache = NULL;
+
+static int seq_cmp_render_data(const SeqRenderData *a, const SeqRenderData *b)
+{
+	if (a->preview_render_size < b->preview_render_size) {
+		return -1;
+	}
+	if (a->preview_render_size > b->preview_render_size) {
+		return 1;
+	}
+
+	if (a->rectx < b->rectx) {
+		return -1;
+	}
+	if (a->rectx > b->rectx) {
+		return 1;
+	}
+
+	if (a->recty < b->recty) {
+		return -1;
+	}
+	if (a->recty > b->recty) {
+		return 1;
+	}
+
+	if (a->bmain < b->bmain) {
+		return -1;
+	}
+	if (a->bmain > b->bmain) {
+		return 1;
+	}
+
+	if (a->scene < b->scene) {
+		return -1;
+	}
+	if (a->scene > b->scene) {
+		return 1;
+	}
+
+	if (a->motion_blur_shutter < b->motion_blur_shutter) {
+		return -1;
+	}
+	if (a->motion_blur_shutter > b->motion_blur_shutter) {
+		return 1;
+	}
+
+	if (a->motion_blur_samples < b->motion_blur_samples) {
+		return -1;
+	}
+	if (a->motion_blur_samples > b->motion_blur_samples) {
+		return 1;
+	}
+
+	return 0;
+}
+
+static unsigned int seq_hash_render_data(const SeqRenderData *a)
+{
+	unsigned int rval = a->rectx + a->recty;
+
+	rval ^= a->preview_render_size;
+	rval ^= ((intptr_t) a->bmain) << 6;
+	rval ^= ((intptr_t) a->scene) << 6;
+	rval ^= (int)(a->motion_blur_shutter * 100.0f) << 10;
+	rval ^= a->motion_blur_samples << 24;
+
+	return rval;
+}
 
 static unsigned int seqcache_hashhash(const void *key_)
 {
@@ -88,13 +156,13 @@ static int seqcache_hashcmp(const void *a_, const void *b_)
 	return seq_cmp_render_data(&a->context, &b->context);
 }
 
-void seq_stripelem_cache_destruct(void)
+void BKE_sequencer_cache_destruct(void)
 {
 	if (moviecache)
 		IMB_moviecache_free(moviecache);
 }
 
-void seq_stripelem_cache_cleanup(void)
+void BKE_sequencer_cache_cleanup(void)
 {
 	if (moviecache) {
 		IMB_moviecache_free(moviecache);
@@ -102,11 +170,21 @@ void seq_stripelem_cache_cleanup(void)
 	}
 }
 
-struct ImBuf *seq_stripelem_cache_get(
-        SeqRenderData context, struct Sequence *seq,
-        float cfra, seq_stripelem_ibuf_t type)
+static int seqcache_key_check_seq(void *userkey, void *userdata)
 {
+	SeqCacheKey *key = (SeqCacheKey *) userkey;
+	Sequence *seq = (Sequence *) userdata;
 
+	return key->seq == seq;
+}
+
+void BKE_sequencer_cache_cleanup_sequence(Sequence *seq)
+{
+	IMB_moviecache_cleanup(moviecache, seqcache_key_check_seq, seq);
+}
+
+struct ImBuf *BKE_sequencer_cache_get(SeqRenderData context, Sequence *seq, float cfra, seq_stripelem_ibuf_t type)
+{
 	if (moviecache && seq) {
 		SeqCacheKey key;
 
@@ -121,9 +199,7 @@ struct ImBuf *seq_stripelem_cache_get(
 	return NULL;
 }
 
-void seq_stripelem_cache_put(
-        SeqRenderData context, struct Sequence *seq,
-        float cfra, seq_stripelem_ibuf_t type, struct ImBuf *i)
+void BKE_sequencer_cache_put(SeqRenderData context, Sequence *seq, float cfra, seq_stripelem_ibuf_t type, ImBuf *i)
 {
 	SeqCacheKey key;
 

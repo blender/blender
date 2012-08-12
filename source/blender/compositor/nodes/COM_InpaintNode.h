@@ -1,5 +1,5 @@
-/**
- * ***** BEGIN GPL LICENSE BLOCK *****
+/*
+ * Copyright 2011, Blender Foundation.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,57 +15,24 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
- * ***** END GPL LICENSE BLOCK *****
+ * Contributor: Peter Schlaile
+ *		Jeroen Bakker 
+ *		Monique Dewanchand
  */
 
-#ifndef __BSP_MESHDRAWER_H__
-#define __BSP_MESHDRAWER_H__
+#ifndef _COM_InpaintNode_h_
+#define _COM_InpaintNode_h_
 
-class BSP_TMesh;
-class MT_Vector3;
+#include "COM_Node.h"
 
-enum BSP_TRenderMode {
-	e_shaded,
-	e_none,
-	e_wireframe,
-	e_wireframe_shaded,
-	e_first_render_mode = e_shaded,
-	e_last_render_mode = e_wireframe_shaded
-};
-
-class BSP_MeshDrawer
-{
-public :
-	static
-		void
-	DrawMesh(
-		BSP_TMesh &mesh,
-		int render_mode
-	);
-
-private :
-
-	static
-		void
-	DrawPolies(
-		BSP_TMesh &mesh
-	);
-
-
-	BSP_MeshDrawer(
-	);
-
-	~BSP_MeshDrawer(
-	);
-
+/**
+ * @brief InpaintNode
+ * @ingroup Node
+ */
+class InpaintNode : public Node {
+public:
+	InpaintNode(bNode *editorNode);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif
-

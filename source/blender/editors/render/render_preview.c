@@ -683,7 +683,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	if (ELEM(sp->pr_method, PR_BUTS_RENDER, PR_NODE_RENDER)) {
 		RE_display_draw_cb(re, sp, shader_preview_draw);
 	}
-	/* set this for all previews, default is react to G.afbreek still */
+	/* set this for all previews, default is react to G.is_break still */
 	RE_test_break_cb(re, sp, shader_preview_break);
 	
 	/* lens adjust */
@@ -705,7 +705,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	}
 	else {
 		/* validate owner */
-		//if (ri->rect==NULL)
+		//if (ri->rect == NULL)
 		//	ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
 		//RE_ResultGet32(re, ri->rect);
 	}

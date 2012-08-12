@@ -165,6 +165,8 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 
 /************************* assign image ************************/
 
+//#define USE_SWITCH_ASPECT
+
 void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *ima, Image *previma)
 {
 	BMEditMesh *em;
@@ -196,6 +198,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 	}
 	else {
 		/* old shading system, assign image to selected faces */
+#ifdef USE_SWITCH_ASPECT
 		float prev_aspect[2], fprev_aspect;
 		float aspect[2], faspect;
 
@@ -204,6 +207,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 
 		fprev_aspect = prev_aspect[0]/prev_aspect[1];
 		faspect = aspect[0]/aspect[1];
+#endif
 
 		/* ensure we have a uv map */
 		if (!CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
@@ -223,8 +227,12 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 					if (ima->id.us == 0) id_us_plus(&ima->id);
 					else id_lib_extern(&ima->id);
 
+#ifdef USE_SWITCH_ASPECT
 					/* we also need to correct the aspect of uvs */
-					if(tf->unwrap & TF_CORRECT_ASPECT) {
+					if (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) {
+						/* do nothing */
+					}
+					else {
 						BMIter liter;
 						BMLoop *l;
 
@@ -235,6 +243,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 							luv->uv[0] /= faspect;
 						}
 					}
+#endif
 				}
 				else {
 					tf->tpage = NULL;
@@ -2209,6 +2218,88 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 	                     "Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
 
+/* note: this is based on similar use case to MESH_OT_split(), which has a similar effect
+ * but in this case they are not joined to begin with (only having the behavior of being joined)
+ * so its best to call this select_split() instead of just split(), but assigned to the same key
+ * as MESH_OT_split - Campbell */
+static int select_split_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
+	Image *ima = CTX_data_edit_image(C);
+	Object *obedit = CTX_data_edit_object(C);
+	BMesh *bm = BMEdit_FromObject(obedit)->bm;
+
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
+	MTexPoly *tf;
+	MLoopUV *luv;
+	short change = FALSE;
+
+	if (ts->uv_flag & UV_SYNC_SELECTION) {
+		BKE_report(op->reports, RPT_ERROR, "Can't split selection when sync selection is enabled");
+		return OPERATOR_CANCELLED;
+	}
+
+
+	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+		int is_sel = FALSE;
+		int is_unsel = FALSE;
+		tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+
+		if (!uvedit_face_visible_test(scene, ima, efa, tf))
+			continue;
+
+		/* are we all selected? */
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+
+			if (luv->flag & MLOOPUV_VERTSEL) {
+				is_sel = TRUE;
+			}
+			else {
+				is_unsel = TRUE;
+			}
+
+			/* we have mixed selection, bail out */
+			if (is_sel && is_unsel) {
+				break;
+			}
+		}
+
+		if (is_sel && is_unsel) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+				luv->flag &= ~MLOOPUV_VERTSEL;
+			}
+
+			change = TRUE;
+		}
+	}
+
+	if (change) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+
+static void UV_OT_select_split(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Split";
+	ot->description = "Select only entirely selected faces";
+	ot->idname = "UV_OT_select_split";
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->exec = select_split_exec;
+	ot->poll = ED_operator_uvedit; /* requires space image */;
+}
+
 /* ******************** unlink selection operator **************** */
 
 static int unlink_selection_exec(bContext *C, wmOperator *op)
@@ -2444,10 +2535,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	int change, pinned, select, faces, extend;
 
 	/* get rectangle from operator */
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 		
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
@@ -3674,6 +3762,7 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_select_loop);
 	WM_operatortype_append(UV_OT_select_linked);
 	WM_operatortype_append(UV_OT_select_linked_pick);
+	WM_operatortype_append(UV_OT_select_split);
 	WM_operatortype_append(UV_OT_unlink_selected);
 	WM_operatortype_append(UV_OT_select_pinned);
 	WM_operatortype_append(UV_OT_select_border);
@@ -3729,6 +3818,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", TRUE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "extend", FALSE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_SHIFT | KM_ALT, 0)->ptr, "extend", TRUE);
+	WM_keymap_add_item(keymap, "UV_OT_select_split", YKEY, KM_PRESS, 0, 0);
 
 	/* border/circle selection */
 	kmi = WM_keymap_add_item(keymap, "UV_OT_select_border", BKEY, KM_PRESS, 0, 0);
@@ -3787,19 +3877,6 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	/* menus */
 	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_select_mode", TABKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* pivot */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.uv_editor.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "CENTER");
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.uv_editor.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "MEDIAN");
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.uv_editor.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "CURSOR");
 
 	ED_keymap_proportional_cycle(keyconf, keymap);
 	ED_keymap_proportional_editmode(keyconf, keymap, FALSE);

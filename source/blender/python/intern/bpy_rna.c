@@ -435,7 +435,7 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 
 	RNA_property_float_range(&self->ptr, self->prop, &min, &max);
 
-	if (min != FLT_MIN || max != FLT_MAX) {
+	if (min != -FLT_MAX || max != FLT_MAX) {
 		int i, len = RNA_property_array_length(&self->ptr, self->prop);
 		for (i = 0; i < len; i++) {
 			CLAMP(bmo->data[i], min, max);

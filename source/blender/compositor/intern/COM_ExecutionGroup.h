@@ -270,13 +270,13 @@ public:
 	 * @brief determine the resolution of this ExecutionGroup
 	 * @param resolution
 	 */
-	void determineResolution(unsigned int resolution[]);
+	void determineResolution(unsigned int resolution[2]);
 	
 	/**
 	 * @brief set the resolution of this executiongroup
 	 * @param resolution
 	 */
-	void setResolution(unsigned int resolution[]) { this->m_width = resolution[0]; this->m_height = resolution[1]; }
+	void setResolution(unsigned int resolution[2]) { this->m_width = resolution[0]; this->m_height = resolution[1]; }
 	
 	/**
 	 * @brief get the width of this execution group
@@ -316,7 +316,7 @@ public:
 	 * @brief get all inputbuffers needed to calculate an chunk
 	 * @note all inputbuffers must be executed
 	 * @param chunkNumber the chunk to be calculated
-	 * @return MemoryBuffer** the inputbuffers
+	 * @return (MemoryBuffer **) the inputbuffers
 	 */
 	MemoryBuffer **getInputBuffersCPU();
 
@@ -324,7 +324,7 @@ public:
 	 * @brief get all inputbuffers needed to calculate an chunk
 	 * @note all inputbuffers must be executed
 	 * @param chunkNumber the chunk to be calculated
-	 * @return MemoryBuffer** the inputbuffers
+	 * @return (MemoryBuffer **) the inputbuffers
 	 */
 	MemoryBuffer **getInputBuffersOpenCL(int chunkNumber);
 

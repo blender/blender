@@ -133,7 +133,7 @@ static void bvh_bb(Tree *obj, float *min, float *max)
 template<class Tree>
 static float bvh_cost(Tree *obj)
 {
-	assert(obj->cost >= 0.0);
+	assert(obj->cost >= 0.0f);
 	return obj->cost;
 }
 

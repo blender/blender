@@ -296,7 +296,7 @@ static int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 	struct TmpFont *tf;
 
 	/* Find the correct FreeType font */
-	tf = BKE_vfont_find_tmpfont(vfont);
+	tf = BKE_vfont_tmpfont_find(vfont);
 
 	/* What, no font found. Something strange here */
 	if (!tf) return FALSE;

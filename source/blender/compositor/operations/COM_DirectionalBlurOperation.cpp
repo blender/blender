@@ -66,7 +66,7 @@ void DirectionalBlurOperation::initExecution()
 
 }
 
-void DirectionalBlurOperation::executePixel(float *color, int x, int y, void *data)
+void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	const int iterations = pow(2.0f, this->m_data->iter);
 	float col[4] = {0, 0, 0, 0};
@@ -98,10 +98,10 @@ void DirectionalBlurOperation::executePixel(float *color, int x, int y, void *da
 		lsc += this->m_sc;
 	}
 
-	mul_v4_v4fl(color, col2, 1.0f / (iterations+1));
+	mul_v4_v4fl(output, col2, 1.0f / (iterations + 1));
 }
 
-void DirectionalBlurOperation::executeOpenCL(OpenCLDevice* device,
+void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
                                        MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
                                        MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
                                        list<cl_kernel> *clKernelsToCleanUp) 

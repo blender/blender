@@ -527,7 +527,7 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 // So WM_exit needs to be called directly, as the event loop will never run before termination
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
-	/*G.afbreek = 0; //Let Cocoa perform the termination at the end
+	/*G.is_break = FALSE; //Let Cocoa perform the termination at the end
 	WM_exit(C);*/
 }
 

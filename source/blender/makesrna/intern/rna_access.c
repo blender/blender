@@ -1031,7 +1031,7 @@ void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *soft
 			IDProperty *item;
 
 			item = IDP_GetPropertyTypeFromGroup(idp_ui, "soft_min", IDP_DOUBLE);
-			*softmin = item ? (float)IDP_Double(item) : FLT_MIN;
+			*softmin = item ? (float)IDP_Double(item) : -FLT_MAX;
 
 			item = IDP_GetPropertyTypeFromGroup(idp_ui, "soft_max", IDP_DOUBLE);
 			*softmax = item ? (float)IDP_Double(item) : FLT_MAX;

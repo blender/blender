@@ -899,12 +899,9 @@ static int outliner_border_select_exec(bContext *C, wmOperator *op)
 	rctf rectf;
 	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
+	WM_operator_properties_border_to_rcti(op, &rect);
 
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
 	for (te = soops->tree.first; te; te = te->next) {

@@ -252,7 +252,7 @@ static int handle_request(RenderData *rd, char *req)
 	}
 	if (strcmp(path, "/close.txt") == 0) {
 		safe_puts(good_bye);
-		G.afbreek = 1; /* Abort render */
+		G.is_break = TRUE; /* Abort render */
 		return -1;
 	}
 	return -1;

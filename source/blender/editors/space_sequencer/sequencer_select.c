@@ -860,10 +860,7 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 	if (ed == NULL)
 		return OPERATOR_CANCELLED;
 
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 	
 	mval[0] = rect.xmin;
 	mval[1] = rect.ymin;
@@ -1112,7 +1109,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 
 	actseq->tmp = SET_INT_IN_POINTER(TRUE);
 
-	for (seq_begin(ed, &iter, TRUE); iter.valid; seq_next(&iter)) {
+	for (BKE_seqence_iterator_begin(ed, &iter, TRUE); iter.valid; BKE_seqence_iterator_next(&iter)) {
 		seq = iter.seq;
 
 		/* Ignore all seqs already selected! */
@@ -1140,8 +1137,8 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 			changed = TRUE;
 
 			/* Unfortunately, we must restart checks from the beginning. */
-			seq_end(&iter);
-			seq_begin(ed, &iter, TRUE);
+			BKE_seqence_iterator_end(&iter);
+			BKE_seqence_iterator_begin(ed, &iter, TRUE);
 		}
 
 		/* Video strips bellow active one, or any strip for audio (order do no matters here!). */
@@ -1150,7 +1147,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 			changed = TRUE;
 		}
 	}
-	seq_end(&iter);
+	BKE_seqence_iterator_end(&iter);
 
 	return changed;
 }

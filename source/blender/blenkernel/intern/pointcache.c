@@ -2807,7 +2807,7 @@ void BKE_ptcache_bake(PTCacheBaker* baker)
 	thread_data.scene = baker->scene;
 	thread_data.main = baker->main;
 
-	G.afbreek = 0;
+	G.is_break = FALSE;
 
 	/* set caches to baking mode and figure out start frame */
 	if (pid) {

@@ -145,8 +145,6 @@ typedef struct PFace {
 
 	struct PEdge *edge;
 	unsigned char flag;
-	short *unwrap_flag;
-
 } PFace;
 
 enum PVertFlag {
@@ -235,9 +233,6 @@ typedef struct PHandle {
 	float blend;
 	char do_aspect;
 } PHandle;
-
-/* duplicate, to avoid including DNA_mesh_types.h */
-#define TF_CORRECT_ASPECT  256
 
 /* PHash
  * - special purpose hash that keeps all its elements in a single linked list.
@@ -650,22 +645,11 @@ static void p_vert_load_pin_select_uvs(PHandle *handle, PVert *v)
 static void p_flush_uvs(PHandle *handle, PChart *chart)
 {
 	PEdge *e;
-	PFace *f;
 
 	for (e = chart->edges; e; e = e->nextlink) {
 		if (e->orig_uv) {
 			e->orig_uv[0] = e->vert->uv[0] / handle->aspx;
 			e->orig_uv[1] = e->vert->uv[1] / handle->aspy;
-		}
-	}
-
-	for (f = chart->faces; f; f = f->nextlink) {
-		if(f->unwrap_flag) {
-			if (handle->do_aspect) {
-				*f->unwrap_flag |= TF_CORRECT_ASPECT;
-			} else {
-				*f->unwrap_flag &= ~TF_CORRECT_ASPECT;
-			}
 		}
 	}
 }
@@ -1057,7 +1041,6 @@ static PFace *p_face_add(PHandle *handle)
 	/* allocate */
 	f = (PFace *)BLI_memarena_alloc(handle->arena, sizeof *f);
 	f->flag = 0; // init !
-	f->unwrap_flag = NULL;
 
 	e1 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof *e1);
 	e2 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof *e2);
@@ -1084,7 +1067,7 @@ static PFace *p_face_add(PHandle *handle)
 
 static PFace *p_face_add_construct(PHandle *handle, ParamKey key, ParamKey *vkeys,
                                    float *co[3], float *uv[3], int i1, int i2, int i3,
-                                   ParamBool *pin, ParamBool *select, short *unwrap_flag)
+                                   ParamBool *pin, ParamBool *select)
 {
 	PFace *f = p_face_add(handle);
 	PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
@@ -1111,7 +1094,6 @@ static PFace *p_face_add_construct(PHandle *handle, ParamKey key, ParamKey *vkey
 
 	/* insert into hash */
 	f->u.key = key;
-	f->unwrap_flag = unwrap_flag;
 	phash_insert(handle->hash_faces, (PHashLink *)f);
 
 	e1->u.key = PHASH_edge(vkeys[i1], vkeys[i2]);
@@ -4150,7 +4132,7 @@ void param_delete(ParamHandle *handle)
 
 void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
                     ParamKey *vkeys, float **co, float **uv,
-                    ParamBool *pin, ParamBool *select, short *unwrap_flag)
+                    ParamBool *pin, ParamBool *select)
 {
 	PHandle *phandle = (PHandle *)handle;
 
@@ -4160,16 +4142,16 @@ void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
 
 	if (nverts == 4) {
 		if (p_quad_split_direction(phandle, co, vkeys)) {
-			p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select, unwrap_flag);
-			p_face_add_construct(phandle, key, vkeys, co, uv, 0, 2, 3, pin, select, unwrap_flag);
+			p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select);
+			p_face_add_construct(phandle, key, vkeys, co, uv, 0, 2, 3, pin, select);
 		}
 		else {
-			p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 3, pin, select, unwrap_flag);
-			p_face_add_construct(phandle, key, vkeys, co, uv, 1, 2, 3, pin, select, unwrap_flag);
+			p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 3, pin, select);
+			p_face_add_construct(phandle, key, vkeys, co, uv, 1, 2, 3, pin, select);
 		}
 	}
 	else if (!p_face_exists(phandle, vkeys, 0, 1, 2)) {
-		p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select, unwrap_flag);
+		p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select);
 	}
 }
 

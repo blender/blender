@@ -77,6 +77,7 @@ EnumPropertyItem id_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_font.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_animsys.h"
@@ -110,12 +111,12 @@ static int rna_ID_name_editable(PointerRNA *ptr)
 	ID *id = (ID *)ptr->data;
 	
 	if (GS(id->name) == ID_VF) {
-		VFont *vf = (VFont *)id;
-		if (strcmp(vf->name, FO_BUILTIN_NAME) == 0)
-			return 0;
+		VFont *vfont = (VFont *)id;
+		if (BKE_vfont_is_builtin(vfont))
+			return FALSE;
 	}
 	
-	return 1;
+	return TRUE;
 }
 
 short RNA_type_to_ID_code(StructRNA *type)

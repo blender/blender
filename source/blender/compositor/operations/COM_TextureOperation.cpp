@@ -53,7 +53,7 @@ void TextureBaseOperation::deinitExecution()
 	this->m_inputOffset = NULL;
 }
 
-void TextureBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void TextureBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	if (preferredResolution[0] == 0 || preferredResolution[1] == 0) {
 		int width = this->m_rd->xsch * this->m_rd->size / 100;
@@ -67,16 +67,16 @@ void TextureBaseOperation::determineResolution(unsigned int resolution[], unsign
 	}
 }
 
-void TextureAlphaOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void TextureAlphaOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	TextureBaseOperation::executePixel(color, x, y, sampler);
-	color[0] = color[3];
-	color[1] = 0.0f;
-	color[2] = 0.0f;
-	color[3] = 0.0f;
+	TextureBaseOperation::executePixel(output, x, y, sampler);
+	output[0] = output[3];
+	output[1] = 0.0f;
+	output[2] = 0.0f;
+	output[3] = 0.0f;
 }
 
-void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void TextureBaseOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float textureSize[4];
@@ -98,14 +98,16 @@ void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSam
 	retval = multitex_ext(this->m_texture, vec, NULL, NULL, 0, &texres);
 
 	if (texres.talpha)
-		color[3] = texres.ta;
+		output[3] = texres.ta;
 	else
-		color[3] = texres.tin;
+		output[3] = texres.tin;
 
 	if ((retval & TEX_RGB)) {
-		color[0] = texres.tr;
-		color[1] = texres.tg;
-		color[2] = texres.tb;
+		output[0] = texres.tr;
+		output[1] = texres.tg;
+		output[2] = texres.tb;
 	}
-	else color[0] = color[1] = color[2] = color[3];
+	else {
+		output[0] = output[1] = output[2] = output[3];
+	}
 }

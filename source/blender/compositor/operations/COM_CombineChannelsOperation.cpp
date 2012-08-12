@@ -50,7 +50,8 @@ bool CombineChannelsOperation::determineDependingAreaOfInterest(rcti *input, Rea
 				output->xmax = tempOutput.xmax;
 				output->ymax = tempOutput.ymax;
 				first = false;
-			} else {
+			}
+			else {
 				output->xmin = MIN2(output->xmin, tempOutput.xmin);
 				output->ymin = MIN2(output->ymin, tempOutput.ymin);
 				output->xmax = MAX2(output->xmax, tempOutput.xmax);
@@ -78,24 +79,24 @@ void CombineChannelsOperation::deinitExecution()
 }
 
 
-void CombineChannelsOperation::executePixel(float *color, float x, float y, PixelSampler sampler)
+void CombineChannelsOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float input[4];
 	/// @todo: remove if statements
 	if (this->m_inputChannel1Operation) {
 		this->m_inputChannel1Operation->read(input, x, y, sampler);
-		color[0] = input[0];
+		output[0] = input[0];
 	}
 	if (this->m_inputChannel2Operation) {
 		this->m_inputChannel2Operation->read(input, x, y, sampler);
-		color[1] = input[0];
+		output[1] = input[0];
 	}
 	if (this->m_inputChannel3Operation) {
 		this->m_inputChannel3Operation->read(input, x, y, sampler);
-		color[2] = input[0];
+		output[2] = input[0];
 	}
 	if (this->m_inputChannel4Operation) {
 		this->m_inputChannel4Operation->read(input, x, y, sampler);
-		color[3] = input[0];
+		output[3] = input[0];
 	}
 }

@@ -719,12 +719,37 @@ macro(set_lib_path
 		lvar
 		lproj)
 
-	
-	if(MSVC10 AND EXISTS ${LIBDIR}/vc2010/${lproj})
-		set(${lvar} ${LIBDIR}/vc2010/${lproj})
+	if(MSVC10)
+		set(${lvar} ${LIBDIR}/${lproj}/vc2010)
 	else()
 		set(${lvar} ${LIBDIR}/${lproj})
 	endif()
-
-
 endmacro()
+
+
+# not highly optimal, may replace with generated C program like makesdna
+function(data_to_c
+         file_from file_to var_name)
+
+	file(READ ${file_from} file_from_string HEX)
+	string(LENGTH ${file_from_string} _max_index)
+	math(EXPR size_on_disk ${_max_index}/2)
+
+	file(REMOVE ${file_to})
+
+	file(APPEND ${file_to} "int  ${var_name}_size = ${size_on_disk};\n")
+	file(APPEND ${file_to} "char ${var_name}[] = {")
+
+	set(_index 0)
+
+	while(NOT _index EQUAL _max_index)
+		string(SUBSTRING "${file_from_string}" ${_index} 2 _pair)
+		file(APPEND ${file_to} "0x${_pair},")
+		math(EXPR _index ${_index}+2)
+	endwhile()
+	file(APPEND ${file_to} "};\n")
+endfunction()
+
+# eg
+# data_to_c("/home/guest/test.txt" "/home/guest/test.txt.h" "this_is_data")
+

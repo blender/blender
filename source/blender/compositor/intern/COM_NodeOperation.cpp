@@ -38,7 +38,7 @@ NodeOperation::NodeOperation() : NodeBase()
 	this->m_btree = NULL;
 }
 
-void NodeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void NodeOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	unsigned int temp[2];
 	unsigned int temp2[2];

@@ -36,24 +36,42 @@ BokehBlurNode::BokehBlurNode(bNode *editorNode) : Node(editorNode)
 
 void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	BokehBlurOperation *operation = new BokehBlurOperation();
 	InputSocket *inputSizeSocket = this->getInputSocket(2);
 	bool connectedSizeSocket = inputSizeSocket->isConnected();
 
-	const bNodeSocket *sock = this->getInputSocket(2)->getbNodeSocket();
-	const float size = ((const bNodeSocketValueFloat *)sock->default_value)->value;
+	if (connectedSizeSocket) {
+		VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
 
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-	this->getInputSocket(2)->relinkConnections(operation->getInputSocket(3), 2, graph);
-	this->getInputSocket(3)->relinkConnections(operation->getInputSocket(2), 3, graph);
-	//operation->setSize(((bNodeSocketValueFloat *)this->getInputSocket(2)->getbNodeSocket()->default_value)->value);
-	operation->setQuality(context->getQuality());
-	operation->setbNode(this->getbNode());
-	graph->addOperation(operation);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
+		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, graph);
+		operation->setQuality(context->getQuality());
+		operation->setbNode(this->getbNode());
+		graph->addOperation(operation);
+		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 
-	if (!connectedSizeSocket) {
+		operation->setThreshold(0.0f);
+
+		/* TODO, we need to know the max input pixel of the input, this value is arbitrary! */
+		operation->setMaxBlur(100.0f);
+		operation->setDoScaleSize(true);
+	}
+	else {
+		BokehBlurOperation *operation = new BokehBlurOperation();
+
+		const bNodeSocket *sock = this->getInputSocket(2)->getbNodeSocket();
+		const float size = ((const bNodeSocketValueFloat *)sock->default_value)->value;
+
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
+		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(3), 2, graph);
+		this->getInputSocket(3)->relinkConnections(operation->getInputSocket(2), 3, graph);
+		//operation->setSize(((bNodeSocketValueFloat *)this->getInputSocket(2)->getbNodeSocket()->default_value)->value);
+		operation->setQuality(context->getQuality());
+		operation->setbNode(this->getbNode());
+		graph->addOperation(operation);
+		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
+
 		operation->setSize(size);
 	}
 }

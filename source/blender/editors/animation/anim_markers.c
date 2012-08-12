@@ -1146,14 +1146,13 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	TimeMarker *marker;
 	float xminf, xmaxf, yminf, ymaxf;
 	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	int xmin = RNA_int_get(op->ptr, "xmin");
-	int xmax = RNA_int_get(op->ptr, "xmax");
-	int ymin = RNA_int_get(op->ptr, "ymin");
-	int ymax = RNA_int_get(op->ptr, "ymax");
 	int extend = RNA_boolean_get(op->ptr, "extend");
+	rcti rect;
 	
-	UI_view2d_region_to_view(v2d, xmin, ymin, &xminf, &yminf);	
-	UI_view2d_region_to_view(v2d, xmax, ymax, &xmaxf, &ymaxf);	
+	WM_operator_properties_border_to_rcti(op, &rect);
+
+	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin, &xminf, &yminf);
+	UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax, &xmaxf, &ymaxf);
 	
 	if (markers == NULL)
 		return 0;

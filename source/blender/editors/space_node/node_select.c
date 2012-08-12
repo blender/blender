@@ -28,13 +28,7 @@
  *  \ingroup spnode
  */
 
-
-#include <stdio.h>
-
-#include "BLI_listbase.h"
-
 #include "DNA_node_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -43,7 +37,7 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "ED_node.h"
+#include "ED_node.h"  /* own include */
 #include "ED_screen.h"
 #include "ED_types.h"
 
@@ -55,7 +49,7 @@
 
 #include "UI_view2d.h"
  
-#include "node_intern.h"
+#include "node_intern.h"  /* own include */
 
 /* ****** helpers ****** */
 
@@ -63,7 +57,7 @@ static bNode *node_under_mouse_select(bNodeTree *ntree, int mx, int my)
 {
 	bNode *node;
 	
-	for (node=ntree->nodes.last; node; node=node->prev) {
+	for (node = ntree->nodes.last; node; node = node->prev) {
 		if (node->typeinfo->select_area_func) {
 			if (node->typeinfo->select_area_func(node, mx, my))
 				return node;
@@ -76,7 +70,7 @@ static bNode *node_under_mouse_tweak(bNodeTree *ntree, int mx, int my)
 {
 	bNode *node;
 	
-	for (node=ntree->nodes.last; node; node=node->prev) {
+	for (node = ntree->nodes.last; node; node = node->prev) {
 		if (node->typeinfo->tweak_area_func) {
 			if (node->typeinfo->tweak_area_func(node, mx, my))
 				return node;
@@ -97,9 +91,9 @@ void node_deselect(bNode *node)
 	node->flag &= ~SELECT;
 	
 	/* deselect sockets too */
-	for (sock=node->inputs.first; sock; sock=sock->next)
+	for (sock = node->inputs.first; sock; sock = sock->next)
 		sock->flag &= ~SELECT;
-	for (sock=node->outputs.first; sock; sock=sock->next)
+	for (sock = node->outputs.first; sock; sock = sock->next)
 		sock->flag &= ~SELECT;
 }
 
@@ -125,16 +119,16 @@ void node_socket_deselect(bNode *node, bNodeSocket *sock, int deselect_node)
 	sock->flag &= ~SELECT;
 	
 	if (node && deselect_node) {
-		int sel=0;
+		int sel = 0;
 		
 		/* if no selected sockets remain, also deselect the node */
-		for (sock=node->inputs.first; sock; sock=sock->next) {
+		for (sock = node->inputs.first; sock; sock = sock->next) {
 			if (sock->flag & SELECT) {
 				sel = 1;
 				break;
 			}
 		}
-		for (sock=node->outputs.first; sock; sock=sock->next) {
+		for (sock = node->outputs.first; sock; sock = sock->next) {
 			if (sock->flag & SELECT) {
 				sel = 1;
 				break;
@@ -159,7 +153,7 @@ void node_deselect_all(SpaceNode *snode)
 {
 	bNode *node;
 	
-	for (node= snode->edittree->nodes.first; node; node= node->next)
+	for (node = snode->edittree->nodes.first; node; node = node->next)
 		node_deselect(node);
 }
 
@@ -173,15 +167,15 @@ void node_deselect_all_input_sockets(SpaceNode *snode, int deselect_nodes)
 	 * We can do that more efficiently here.
 	 */
 	
-	for (node= snode->edittree->nodes.first; node; node= node->next) {
-		int sel=0;
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
+		int sel = 0;
 		
-		for (sock= node->inputs.first; sock; sock=sock->next)
+		for (sock = node->inputs.first; sock; sock = sock->next)
 			sock->flag &= ~SELECT;
 		
 		/* if no selected sockets remain, also deselect the node */
 		if (deselect_nodes) {
-			for (sock= node->outputs.first; sock; sock=sock->next) {
+			for (sock = node->outputs.first; sock; sock = sock->next) {
 				if (sock->flag & SELECT) {
 					sel = 1;
 					break;
@@ -193,7 +187,7 @@ void node_deselect_all_input_sockets(SpaceNode *snode, int deselect_nodes)
 		}
 	}
 	
-	for (sock= snode->edittree->outputs.first; sock; sock=sock->next)
+	for (sock = snode->edittree->outputs.first; sock; sock = sock->next)
 		sock->flag &= ~SELECT;
 }
 
@@ -207,15 +201,15 @@ void node_deselect_all_output_sockets(SpaceNode *snode, int deselect_nodes)
 	 * We can do that more efficiently here.
 	 */
 	
-	for (node= snode->edittree->nodes.first; node; node= node->next) {
-		int sel=0;
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
+		int sel = 0;
 		
-		for (sock= node->outputs.first; sock; sock=sock->next)
+		for (sock = node->outputs.first; sock; sock = sock->next)
 			sock->flag &= ~SELECT;
 		
 		/* if no selected sockets remain, also deselect the node */
 		if (deselect_nodes) {
-			for (sock= node->inputs.first; sock; sock=sock->next) {
+			for (sock = node->inputs.first; sock; sock = sock->next) {
 				if (sock->flag & SELECT) {
 					sel = 1;
 					break;
@@ -227,7 +221,7 @@ void node_deselect_all_output_sockets(SpaceNode *snode, int deselect_nodes)
 		}
 	}
 	
-	for (sock= snode->edittree->inputs.first; sock; sock=sock->next)
+	for (sock = snode->edittree->inputs.first; sock; sock = sock->next)
 		sock->flag &= ~SELECT;
 }
 
@@ -238,7 +232,7 @@ int node_select_same_type(SpaceNode *snode)
 	int redraw;
 
 	/* search for the active node. */
-	for (nac= snode->edittree->nodes.first; nac; nac= nac->next) {
+	for (nac = snode->edittree->nodes.first; nac; nac = nac->next) {
 		if (nac->flag & SELECT)
 			break;
 	}
@@ -247,16 +241,16 @@ int node_select_same_type(SpaceNode *snode)
 	if (!nac)
 		return(0);
 
-	redraw= 0;
-	for (p= snode->edittree->nodes.first; p; p= p->next) {
+	redraw = 0;
+	for (p = snode->edittree->nodes.first; p; p = p->next) {
 		if (p->type != nac->type && p->flag & SELECT) {
 			/* if it's selected but different type, unselect */
-			redraw= 1;
+			redraw = 1;
 			node_deselect(p);
 		}
 		else if (p->type == nac->type && (!(p->flag & SELECT))) {
 			/* if it's the same type and is not selected, select! */
-			redraw= 1;
+			redraw = 1;
 			node_select(p);
 		}
 	}
@@ -271,7 +265,7 @@ int node_select_same_type_np(SpaceNode *snode, int dir)
 	bNode *nac, *p, *tnode;
 
 	/* search the active one. */
-	for (nac= snode->edittree->nodes.first; nac; nac= nac->next) {
+	for (nac = snode->edittree->nodes.first; nac; nac = nac->next) {
 		if (nac->flag & SELECT)
 			break;
 	}
@@ -281,9 +275,9 @@ int node_select_same_type_np(SpaceNode *snode, int dir)
 		return(0);
 
 	if (dir == 0)
-		p= nac->next;
+		p = nac->next;
 	else
-		p= nac->prev;
+		p = nac->prev;
 
 	while (p) {
 		/* Now search the next with the same type. */
@@ -291,14 +285,14 @@ int node_select_same_type_np(SpaceNode *snode, int dir)
 			break;
 
 		if (dir == 0)
-			p= p->next;
+			p = p->next;
 		else
-			p= p->prev;
+			p = p->prev;
 	}
 
 	if (p) {
-		for (tnode=snode->edittree->nodes.first; tnode; tnode=tnode->next)
-			if (tnode!=p)
+		for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next)
+			if (tnode != p)
 				node_deselect(tnode);
 		node_select(p);
 		return(1);
@@ -308,12 +302,12 @@ int node_select_same_type_np(SpaceNode *snode, int dir)
 
 void node_select_single(bContext *C, bNode *node)
 {
-	Main *bmain= CTX_data_main(C);
-	SpaceNode *snode= CTX_wm_space_node(C);
+	Main *bmain = CTX_data_main(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *tnode;
 	
-	for (tnode=snode->edittree->nodes.first; tnode; tnode=tnode->next)
-		if (tnode!=node)
+	for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next)
+		if (tnode != node)
 			node_deselect(tnode);
 	node_select(node);
 	
@@ -321,7 +315,7 @@ void node_select_single(bContext *C, bNode *node)
 	
 	ED_node_sort(snode->edittree);
 	
-	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 }
 
 /* ****** Click Select ****** */
@@ -336,8 +330,8 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 	/* get mouse coordinates in view2d space */
 	UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &mx, &my);
 	/* node_find_indicated_socket uses snode->mx/my */
-	snode->mx = mx;
-	snode->my = my;
+	snode->cursor[0] = mx;
+	snode->cursor[1] = my;
 	
 	if (extend) {
 		/* first do socket selection, these generally overlap with nodes.
@@ -356,7 +350,7 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 				 * allows selecting outputs from different nodes though.
 				 */
 				if (node) {
-					for (tsock=node->outputs.first; tsock; tsock=tsock->next)
+					for (tsock = node->outputs.first; tsock; tsock = tsock->next)
 						node_socket_deselect(node, tsock, 1);
 				}
 				node_socket_select(node, sock);
@@ -368,20 +362,28 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 			node = node_under_mouse_select(snode->edittree, mx, my);
 			
 			if (node) {
-				node_toggle(node);
-				
-				ED_node_set_active(bmain, snode->edittree, node);
+				if ((node->flag & SELECT) && (node->flag & NODE_ACTIVE) == 0) {
+					/* if node is selected but not active make it active
+					 * before it'll be desleected
+					 */
+					ED_node_set_active(bmain, snode->edittree, node);
+				}
+				else {
+					node_toggle(node);
+					ED_node_set_active(bmain, snode->edittree, node);
+				}
+
 				selected = 1;
 			}
 		}
 	}
-	else {	/* extend==0 */
+	else {  /* extend==0 */
 		
 		/* find the closest visible node */
 		node = node_under_mouse_select(snode->edittree, mx, my);
 		
 		if (node) {
-			for (tnode=snode->edittree->nodes.first; tnode; tnode=tnode->next)
+			for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next)
 				node_deselect(tnode);
 			node_select(node);
 			ED_node_set_active(bmain, snode->edittree, node);
@@ -398,9 +400,9 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 
 static int node_select_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
-	SpaceNode *snode= CTX_wm_space_node(C);
-	ARegion *ar= CTX_wm_region(C);
+	Main *bmain = CTX_data_main(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
+	ARegion *ar = CTX_wm_region(C);
 	int mval[2];
 	short extend;
 	
@@ -413,14 +415,14 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	/* perform the select */
 	if (node_mouse_select(bmain, snode, ar, mval, extend)) {
 		/* send notifiers */
-		WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+		WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 		
 		/* allow tweak event to work too */
-		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 	}
 	else {
 		/* allow tweak event to work too */
-		return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
+		return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 	}
 }
 
@@ -445,7 +447,7 @@ void NODE_OT_select(wmOperatorType *ot)
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
@@ -457,25 +459,22 @@ void NODE_OT_select(wmOperatorType *ot)
 
 static int node_borderselect_exec(bContext *C, wmOperator *op)
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
-	ARegion *ar= CTX_wm_region(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
+	ARegion *ar = CTX_wm_region(C);
 	bNode *node;
 	rcti rect;
 	rctf rectf;
-	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
-	int extend= RNA_boolean_get(op->ptr, "extend");
+	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+	int extend = RNA_boolean_get(op->ptr, "extend");
 	
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
+	WM_operator_properties_border_to_rcti(op, &rect);
+
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
-	
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 	
-	for (node= snode->edittree->nodes.first; node; node= node->next) {
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (BLI_rctf_isect(&rectf, &node->totr, NULL)) {
-			if (gesture_mode==GESTURE_MODAL_SELECT)
+			if (gesture_mode == GESTURE_MODAL_SELECT)
 				node_select(node);
 			else
 				node_deselect(node);
@@ -487,7 +486,7 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	
 	ED_node_sort(snode->edittree);
 	
-	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -499,14 +498,14 @@ static int node_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event
 	if (tweak) {
 		/* prevent initiating the border select if the mouse is over a node */
 		/* this allows border select on empty space, but drag-translate on nodes */
-		SpaceNode *snode= CTX_wm_space_node(C);
-		ARegion *ar= CTX_wm_region(C);
+		SpaceNode *snode = CTX_wm_space_node(C);
+		ARegion *ar = CTX_wm_region(C);
 		float mx, my;
 
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &mx, &my);
 		
 		if (node_under_mouse_tweak(snode->edittree, mx, my))
-			return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
+			return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 	}
 	
 	return WM_border_select_invoke(C, op, event);
@@ -528,7 +527,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);
@@ -567,7 +566,7 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
 
 	ED_node_sort(snode->edittree);
 	
-	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -583,7 +582,7 @@ void NODE_OT_select_all(wmOperatorType *ot)
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -596,22 +595,22 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeLink *link;
 	bNode *node;
 	
-	for (node=snode->edittree->nodes.first; node; node=node->next)
+	for (node = snode->edittree->nodes.first; node; node = node->next)
 		node->flag &= ~NODE_TEST;
 
-	for (link=snode->edittree->links.first; link; link=link->next) {
+	for (link = snode->edittree->links.first; link; link = link->next) {
 		if (link->fromnode && link->tonode && (link->fromnode->flag & NODE_SELECT))
 			link->tonode->flag |= NODE_TEST;
 	}
 	
-	for (node=snode->edittree->nodes.first; node; node=node->next) {
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_TEST)
 			node_select(node);
 	}
 	
 	ED_node_sort(snode->edittree);
 	
-	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -627,7 +626,7 @@ void NODE_OT_select_linked_to(wmOperatorType *ot)
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ****** Select Linked From ****** */
@@ -638,22 +637,22 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeLink *link;
 	bNode *node;
 	
-	for (node=snode->edittree->nodes.first; node; node=node->next)
+	for (node = snode->edittree->nodes.first; node; node = node->next)
 		node->flag &= ~NODE_TEST;
 
-	for (link=snode->edittree->links.first; link; link=link->next) {
+	for (link = snode->edittree->links.first; link; link = link->next) {
 		if (link->fromnode && link->tonode && (link->tonode->flag & NODE_SELECT))
 			link->fromnode->flag |= NODE_TEST;
 	}
 	
-	for (node=snode->edittree->nodes.first; node; node=node->next) {
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_TEST)
 			node_select(node);
 	}
 	
 	ED_node_sort(snode->edittree);
 	
-	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -669,7 +668,7 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ****** Select Same Type ****** */
@@ -682,7 +681,7 @@ static int node_select_same_type_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ED_node_sort(snode->edittree);
 
-	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -698,7 +697,7 @@ void NODE_OT_select_same_type(wmOperatorType *ot)
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ****** Select The Next/Prev Node Of The Same Type ****** */
@@ -711,7 +710,7 @@ static int node_select_same_type_next_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ED_node_sort(snode->edittree);
 
-	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -728,7 +727,7 @@ void NODE_OT_select_same_type_next(wmOperatorType *ot)
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int node_select_same_type_prev_exec(bContext *C, wmOperator *UNUSED(op))
@@ -739,7 +738,7 @@ static int node_select_same_type_prev_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ED_node_sort(snode->edittree);
 
-	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -755,5 +754,5 @@ void NODE_OT_select_same_type_prev(wmOperatorType *ot)
 	ot->poll = ED_operator_node_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

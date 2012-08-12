@@ -347,9 +347,12 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	bNodeSocket *sock, *oldsock;
 
 	*nnode = *node;
-	nodeUniqueName(ntree, nnode);
-	
-	BLI_addtail(&ntree->nodes, nnode);
+	/* can be called for nodes outside a node tree (e.g. clipboard) */
+	if (ntree) {
+		nodeUniqueName(ntree, nnode);
+
+		BLI_addtail(&ntree->nodes, nnode);
+	}
 
 	BLI_duplicatelist(&nnode->inputs, &node->inputs);
 	oldsock = node->inputs.first;
@@ -390,7 +393,8 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	nnode->new_node = NULL;
 	nnode->preview = NULL;
 	
-	ntree->update |= NTREE_UPDATE_NODES;
+	if (ntree)
+		ntree->update |= NTREE_UPDATE_NODES;
 	
 	return nnode;
 }
@@ -417,7 +421,7 @@ bNodeLink *nodeAddLink(bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock,
 				from = -1;  /* OK but flip */
 		}
 	}
-	else {
+	else if (ntree) {
 		/* check tree sockets */
 		for (sock = ntree->inputs.first; sock; sock = sock->next)
 			if (sock == fromsock)
@@ -446,7 +450,7 @@ bNodeLink *nodeAddLink(bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock,
 				to = -1;  /* OK but flip */
 		}
 	}
-	else {
+	else if (ntree) {
 		/* check tree sockets */
 		for (sock = ntree->outputs.first; sock; sock = sock->next)
 			if (sock == tosock)
@@ -464,7 +468,8 @@ bNodeLink *nodeAddLink(bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock,
 	
 	if (from >= 0 && to >= 0) {
 		link = MEM_callocN(sizeof(bNodeLink), "link");
-		BLI_addtail(&ntree->links, link);
+		if (ntree)
+			BLI_addtail(&ntree->links, link);
 		link->fromnode = fromnode;
 		link->fromsock = fromsock;
 		link->tonode = tonode;
@@ -472,26 +477,32 @@ bNodeLink *nodeAddLink(bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock,
 	}
 	else if (from <= 0 && to <= 0) {
 		link = MEM_callocN(sizeof(bNodeLink), "link");
-		BLI_addtail(&ntree->links, link);
+		if (ntree)
+			BLI_addtail(&ntree->links, link);
 		link->fromnode = tonode;
 		link->fromsock = tosock;
 		link->tonode = fromnode;
 		link->tosock = fromsock;
 	}
 	
-	ntree->update |= NTREE_UPDATE_LINKS;
+	if (ntree)
+		ntree->update |= NTREE_UPDATE_LINKS;
 	
 	return link;
 }
 
 void nodeRemLink(bNodeTree *ntree, bNodeLink *link)
 {
-	BLI_remlink(&ntree->links, link);
+	/* can be called for links outside a node tree (e.g. clipboard) */
+	if (ntree)
+		BLI_remlink(&ntree->links, link);
+
 	if (link->tosock)
 		link->tosock->link = NULL;
 	MEM_freeN(link);
 	
-	ntree->update |= NTREE_UPDATE_LINKS;
+	if (ntree)
+		ntree->update |= NTREE_UPDATE_LINKS;
 }
 
 void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
@@ -581,9 +592,25 @@ void nodeFromView(bNode *node, float x, float y, float *rx, float *ry)
 	}
 }
 
+int nodeAttachNodeCheck(bNode *node, bNode *parent)
+{
+	bNode *parent_recurse;
+	for (parent_recurse = node; parent_recurse; parent_recurse = parent_recurse->parent) {
+		if (parent_recurse == parent) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
 void nodeAttachNode(bNode *node, bNode *parent)
 {
 	float locx, locy;
+
+	BLI_assert(parent->type == NODE_FRAME);
+	BLI_assert(nodeAttachNodeCheck(parent, node) == FALSE);
+
 	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 	
 	node->parent = parent;
@@ -596,6 +623,9 @@ void nodeDetachNode(struct bNode *node)
 	float locx, locy;
 	
 	if (node->parent) {
+
+		BLI_assert(node->parent->type == NODE_FRAME);
+
 		/* transform to view space */
 		nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 		node->locx = locx;
@@ -885,19 +915,23 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 
 void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
-	bNodeTreeType *treetype = ntreeGetType(ntree->type);
 	bNodeSocket *sock, *nextsock;
 	
-	/* remove all references to this node */
-	nodeUnlinkNode(ntree, node);
-	node_unlink_attached(ntree, node);
-	
-	BLI_remlink(&ntree->nodes, node);
+	/* can be called for nodes outside a node tree (e.g. clipboard) */
+	if (ntree) {
+		bNodeTreeType *treetype = ntreeGetType(ntree->type);
+
+		/* remove all references to this node */
+		nodeUnlinkNode(ntree, node);
+		node_unlink_attached(ntree, node);
+
+		BLI_remlink(&ntree->nodes, node);
+
+		if (treetype->free_node_cache)
+			treetype->free_node_cache(ntree, node);
+	}
 	
 	/* since it is called while free database, node->id is undefined */
-	
-	if (treetype->free_node_cache)
-		treetype->free_node_cache(ntree, node);
 	
 	if (node->typeinfo && node->typeinfo->freestoragefunc)
 		node->typeinfo->freestoragefunc(node);
@@ -917,7 +951,8 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 
 	MEM_freeN(node);
 	
-	ntree->update |= NTREE_UPDATE_NODES;
+	if (ntree)
+		ntree->update |= NTREE_UPDATE_NODES;
 }
 
 /* do not free ntree itself here, BKE_libblock_free calls this function too */
@@ -1388,6 +1423,64 @@ void nodeSocketSetType(bNodeSocket *sock, int type)
 	node_socket_free_default_value(old_type, old_default_value);
 }
 
+/* ************** Node Clipboard *********** */
+
+typedef struct bNodeClipboard {
+	ListBase nodes;
+	ListBase links;
+	int type;
+} bNodeClipboard;
+
+bNodeClipboard node_clipboard;
+
+void BKE_node_clipboard_init(struct bNodeTree *ntree)
+{
+	node_clipboard.type = ntree->type;
+}
+
+void BKE_node_clipboard_clear(void)
+{
+	bNode *node, *node_next;
+	bNodeLink *link, *link_next;
+	
+	for (link = node_clipboard.links.first; link; link = link_next) {
+		link_next = link->next;
+		nodeRemLink(NULL, link);
+	}
+	node_clipboard.links.first = node_clipboard.links.last = NULL;
+	
+	for (node = node_clipboard.nodes.first; node; node = node_next) {
+		node_next = node->next;
+		nodeFreeNode(NULL, node);
+	}
+	node_clipboard.nodes.first = node_clipboard.nodes.last = NULL;
+}
+
+void BKE_node_clipboard_add_node(bNode *node)
+{
+	BLI_addtail(&node_clipboard.nodes, node);
+}
+
+void BKE_node_clipboard_add_link(bNodeLink *link)
+{
+	BLI_addtail(&node_clipboard.links, link);
+}
+
+const ListBase *BKE_node_clipboard_get_nodes(void)
+{
+	return &node_clipboard.nodes;
+}
+
+const ListBase *BKE_node_clipboard_get_links(void)
+{
+	return &node_clipboard.links;
+}
+
+int BKE_node_clipboard_get_type(void)
+{
+	return node_clipboard.type;
+}
+
 /* ************** dependency stuff *********** */
 
 /* node is guaranteed to be not checked before */
@@ -1567,8 +1660,6 @@ void ntreeUpdateTree(bNodeTree *ntree)
 			else if (node->typeinfo->updatefunc)
 				node->typeinfo->updatefunc(ntree, node);
 		}
-		/* clear update flag */
-		node->update = 0;
 	}
 	
 	/* check link validity */
@@ -1590,7 +1681,10 @@ void ntreeUpdateTree(bNodeTree *ntree)
 	/* XXX hack, should be done by depsgraph!! */
 	ntreeVerifyNodes(G.main, &ntree->id);
 	
-	/* clear the update flag */
+	/* clear update flags */
+	for (node = ntree->nodes.first; node; node = node->next) {
+		node->update = 0;
+	}
 	ntree->update = 0;
 }
 
@@ -1897,6 +1991,7 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_bilateralblur(ttype);
 	register_node_type_cmp_vecblur(ttype);
 	register_node_type_cmp_dilateerode(ttype);
+	register_node_type_cmp_inpaint(ttype);
 	register_node_type_cmp_defocus(ttype);
 	
 	register_node_type_cmp_valtorgb(ttype);
@@ -2085,6 +2180,10 @@ static void free_typeinfos(ListBase *list)
 
 void init_nodesystem(void) 
 {
+	/* init clipboard */
+	node_clipboard.nodes.first = node_clipboard.nodes.last = NULL;
+	node_clipboard.links.first = node_clipboard.links.last = NULL;
+	
 	registerCompositNodes(ntreeGetType(NTREE_COMPOSIT));
 	registerShaderNodes(ntreeGetType(NTREE_SHADER));
 	registerTextureNodes(ntreeGetType(NTREE_TEXTURE));

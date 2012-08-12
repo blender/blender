@@ -30,6 +30,7 @@ _modules = (
     "freestyle",
     "image",
     "mesh",
+    "node",
     "object_align",
     "object",
     "object_randomize_transform",

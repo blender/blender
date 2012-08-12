@@ -29,76 +29,48 @@
  *  \ingroup spnode
  */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <errno.h>
-
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_world_types.h"
-#include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
-#include "BKE_action.h"
-#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
 #include "BKE_material.h"
-#include "BKE_modifier.h"
+#include "BKE_node.h"
 #include "BKE_paint.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_texture.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
+#include "BKE_texture.h"
 
 #include "RE_pipeline.h"
 
-#include "IMB_imbuf_types.h"
 
-#include "ED_node.h"
-#include "ED_image.h"
+#include "ED_node.h"  /* own include */
 #include "ED_screen.h"
-#include "ED_space_api.h"
 #include "ED_render.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
-
-#include "IMB_imbuf.h"
-
-#include "RNA_enum_types.h"
 
 #include "GPU_material.h"
 
-#include "node_intern.h"
-#include "NOD_socket.h"
+#include "node_intern.h"  /* own include */
 
 /* ***************** composite job manager ********************** */
 
@@ -192,26 +164,36 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 
 }
 
-void snode_composite_job(const bContext *C, ScrArea *sa)
+/**
+ * \param sa_owner is the owner of the job,
+ * we don't use it for anything else currently so could also be a void pointer,
+ * but for now keep it an 'Scene' for consistency.
+ *
+ * \note only call from spaces `refresh` callbacks, not direct! - use with care.
+ */
+void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene *scene_owner)
 {
-	SpaceNode *snode = sa->spacedata.first;
 	wmJob *steve;
 	CompoJob *cj;
 
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Compositing", WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS);
+	/* to fix bug: [#32272] */
+	if (G.is_rendering) {
+		return;
+	}
+
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing", WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS);
 	cj = MEM_callocN(sizeof(CompoJob), "compo job");
-	
+
 	/* customdata for preview thread */
 	cj->scene = CTX_data_scene(C);
-	cj->ntree = snode->nodetree;
-	
+	cj->ntree = nodetree;
+
 	/* setup job */
 	WM_jobs_customdata(steve, cj, compo_freejob);
 	WM_jobs_timer(steve, 0.1, NC_SCENE, NC_SCENE | ND_COMPO_RESULT);
 	WM_jobs_callbacks(steve, compo_startjob, compo_initjob, compo_updatejob, NULL);
-	
+
 	WM_jobs_start(CTX_wm_manager(C), steve);
-	
 }
 
 /* ***************************************** */
@@ -786,7 +768,7 @@ static void edit_node_properties_get(wmOperator *op, bNodeTree *ntree, bNode **r
 /* ************************** Node generic ************** */
 
 /* is rct in visible part of node? */
-static bNode *visible_node(SpaceNode *snode, rctf *rct)
+static bNode *visible_node(SpaceNode *snode, const rctf *rct)
 {
 	bNode *node;
 	
@@ -795,317 +777,6 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 			break;
 	}
 	return node;
-}
-
-/* **************************** */
-
-typedef struct NodeViewMove {
-	int mvalo[2];
-	int xmin, ymin, xmax, ymax;
-} NodeViewMove;
-
-static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	ARegion *ar = CTX_wm_region(C);
-	NodeViewMove *nvm = op->customdata;
-
-	switch (event->type) {
-		case MOUSEMOVE:
-			
-			snode->xof -= (nvm->mvalo[0] - event->mval[0]);
-			snode->yof -= (nvm->mvalo[1] - event->mval[1]);
-			nvm->mvalo[0] = event->mval[0];
-			nvm->mvalo[1] = event->mval[1];
-			
-			/* prevent dragging image outside of the window and losing it! */
-			CLAMP(snode->xof, nvm->xmin, nvm->xmax);
-			CLAMP(snode->yof, nvm->ymin, nvm->ymax);
-			
-			ED_region_tag_redraw(ar);
-			
-			break;
-			
-		case LEFTMOUSE:
-		case MIDDLEMOUSE:
-		case RIGHTMOUSE:
-			
-			MEM_freeN(nvm);
-			op->customdata = NULL;
-			
-			return OPERATOR_FINISHED;
-	}
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	ARegion *ar = CTX_wm_region(C);
-	NodeViewMove *nvm;
-	Image *ima;
-	ImBuf *ibuf;
-	const float pad = 32.0f; /* better be bigger then scrollbars */
-
-	void *lock;
-	
-	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
-	
-	if (ibuf == NULL) {
-		BKE_image_release_ibuf(ima, lock);
-		return OPERATOR_CANCELLED;
-	}
-
-	nvm = MEM_callocN(sizeof(NodeViewMove), "NodeViewMove struct");
-	op->customdata = nvm;
-	nvm->mvalo[0] = event->mval[0];
-	nvm->mvalo[1] = event->mval[1];
-
-	nvm->xmin = -(ar->winx / 2) - (ibuf->x * (0.5f * snode->zoom)) + pad;
-	nvm->xmax =  (ar->winx / 2) + (ibuf->x * (0.5f * snode->zoom)) - pad;
-	nvm->ymin = -(ar->winy / 2) - (ibuf->y * (0.5f * snode->zoom)) + pad;
-	nvm->ymax =  (ar->winy / 2) + (ibuf->y * (0.5f * snode->zoom)) - pad;
-
-	BKE_image_release_ibuf(ima, lock);
-	
-	/* add modal handler */
-	WM_event_add_modal_handler(C, op);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
-{
-	MEM_freeN(op->customdata);
-	op->customdata = NULL;
-
-	return OPERATOR_CANCELLED;
-}
-
-void NODE_OT_backimage_move(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Background Image Move";
-	ot->description = "Move Node backdrop";
-	ot->idname = "NODE_OT_backimage_move";
-	
-	/* api callbacks */
-	ot->invoke = snode_bg_viewmove_invoke;
-	ot->modal = snode_bg_viewmove_modal;
-	ot->poll = composite_node_active;
-	ot->cancel = snode_bg_viewmove_cancel;
-	
-	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
-}
-
-static int backimage_zoom(bContext *C, wmOperator *op)
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	ARegion *ar = CTX_wm_region(C);
-	float fac = RNA_float_get(op->ptr, "factor");
-
-	snode->zoom *= fac;
-	ED_region_tag_redraw(ar);
-
-	return OPERATOR_FINISHED;
-}
-
-
-void NODE_OT_backimage_zoom(wmOperatorType *ot)
-{
-	
-	/* identifiers */
-	ot->name = "Background Image Zoom";
-	ot->idname = "NODE_OT_backimage_zoom";
-	ot->description = "Zoom in/out the background image";
-	
-	/* api callbacks */
-	ot->exec = backimage_zoom;
-	ot->poll = composite_node_active;
-	
-	/* flags */
-	ot->flag = OPTYPE_BLOCKING;
-
-	/* internal */
-	RNA_def_float(ot->srna, "factor", 1.2f, 0.0f, 10.0f, "Factor", "", 0.0f, 10.0f);
-}
-
-/******************** sample backdrop operator ********************/
-
-typedef struct ImageSampleInfo {
-	ARegionType *art;
-	void *draw_handle;
-	int x, y;
-	int channels;
-	int color_manage;
-
-	unsigned char col[4];
-	float colf[4];
-
-	int draw;
-} ImageSampleInfo;
-
-static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
-{
-	Scene *scene = CTX_data_scene(C);
-	ImageSampleInfo *info = arg_info;
-
-	if (info->draw) {
-		ED_image_draw_info(ar, (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
-		                   info->x, info->y, info->col, info->colf,
-		                   NULL, NULL /* zbuf - unused for nodes */
-		                   );
-	}
-}
-
-static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	ARegion *ar = CTX_wm_region(C);
-	ImageSampleInfo *info = op->customdata;
-	void *lock;
-	Image *ima;
-	ImBuf *ibuf;
-	float fx, fy, bufx, bufy;
-	
-	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
-	if (!ibuf) {
-		info->draw = 0;
-		return;
-	}
-	
-	if (!ibuf->rect) {
-		if (info->color_manage)
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
-		else
-			ibuf->profile = IB_PROFILE_NONE;
-		IMB_rect_from_float(ibuf);
-	}
-
-	/* map the mouse coords to the backdrop image space */
-	bufx = ibuf->x * snode->zoom;
-	bufy = ibuf->y * snode->zoom;
-	fx = (bufx > 0.0f ? ((float)event->mval[0] - 0.5f * ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
-	fy = (bufy > 0.0f ? ((float)event->mval[1] - 0.5f * ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
-
-	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
-		float *fp;
-		char *cp;
-		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
-
-		CLAMP(x, 0, ibuf->x - 1);
-		CLAMP(y, 0, ibuf->y - 1);
-
-		info->x = x;
-		info->y = y;
-		info->draw = 1;
-		info->channels = ibuf->channels;
-
-		if (ibuf->rect) {
-			cp = (char *)(ibuf->rect + y * ibuf->x + x);
-
-			info->col[0] = cp[0];
-			info->col[1] = cp[1];
-			info->col[2] = cp[2];
-			info->col[3] = cp[3];
-
-			info->colf[0] = (float)cp[0] / 255.0f;
-			info->colf[1] = (float)cp[1] / 255.0f;
-			info->colf[2] = (float)cp[2] / 255.0f;
-			info->colf[3] = (float)cp[3] / 255.0f;
-		}
-		if (ibuf->rect_float) {
-			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
-
-			info->colf[0] = fp[0];
-			info->colf[1] = fp[1];
-			info->colf[2] = fp[2];
-			info->colf[3] = fp[3];
-		}
-
-		ED_node_sample_set(info->colf);
-	}
-	else {
-		info->draw = 0;
-		ED_node_sample_set(NULL);
-	}
-
-	BKE_image_release_ibuf(ima, lock);
-	
-	ED_area_tag_redraw(CTX_wm_area(C));
-}
-
-static void sample_exit(bContext *C, wmOperator *op)
-{
-	ImageSampleInfo *info = op->customdata;
-
-	ED_node_sample_set(NULL);
-	ED_region_draw_cb_exit(info->art, info->draw_handle);
-	ED_area_tag_redraw(CTX_wm_area(C));
-	MEM_freeN(info);
-}
-
-static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	SpaceNode *snode = CTX_wm_space_node(C);
-	ARegion *ar = CTX_wm_region(C);
-	ImageSampleInfo *info;
-
-	if (snode->treetype != NTREE_COMPOSIT || !(snode->flag & SNODE_BACKDRAW))
-		return OPERATOR_CANCELLED;
-	
-	info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
-	info->art = ar->type;
-	info->draw_handle = ED_region_draw_cb_activate(ar->type, sample_draw, info, REGION_DRAW_POST_PIXEL);
-	op->customdata = info;
-
-	sample_apply(C, op, event);
-
-	WM_event_add_modal_handler(C, op);
-
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int sample_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	switch (event->type) {
-		case LEFTMOUSE:
-		case RIGHTMOUSE: // XXX hardcoded
-			sample_exit(C, op);
-			return OPERATOR_CANCELLED;
-		case MOUSEMOVE:
-			sample_apply(C, op, event);
-			break;
-	}
-
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int sample_cancel(bContext *C, wmOperator *op)
-{
-	sample_exit(C, op);
-	return OPERATOR_CANCELLED;
-}
-
-void NODE_OT_backimage_sample(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Backimage Sample";
-	ot->idname = "NODE_OT_backimage_sample";
-	ot->description = "Use mouse to sample background image";
-	
-	/* api callbacks */
-	ot->invoke = sample_invoke;
-	ot->modal = sample_modal;
-	ot->cancel = sample_cancel;
-	ot->poll = ED_operator_node_active;
-
-	/* flags */
-	ot->flag = OPTYPE_BLOCKING;
 }
 
 /* ********************** size widget operator ******************** */
@@ -1126,8 +797,8 @@ static void node_resize_init(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	NodeSizeWidget *nsw = MEM_callocN(sizeof(NodeSizeWidget), "size widget op data");
 	
 	op->customdata = nsw;
-	nsw->mxstart = snode->mx;
-	nsw->mystart = snode->my;
+	nsw->mxstart = snode->cursor[0];
+	nsw->mystart = snode->cursor[1];
 	
 	/* store old */
 	nsw->oldlocx = node->locx;
@@ -1265,8 +936,8 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (node) {
 		/* convert mouse coordinates to v2d space */
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-		                         &snode->mx, &snode->my);
-		dir = node->typeinfo->resize_area_func(node, snode->mx, snode->my);
+		                         &snode->cursor[0], &snode->cursor[1]);
+		dir = node->typeinfo->resize_area_func(node, snode->cursor[0], snode->cursor[1]);
 		if (dir != 0) {
 			node_resize_init(C, op, event, node, dir);
 			return OPERATOR_RUNNING_MODAL;
@@ -1380,10 +1051,10 @@ int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **so
 	/* check if we click in a socket */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		
-		rect.xmin = snode->mx - (NODE_SOCKSIZE + 4);
-		rect.ymin = snode->my - (NODE_SOCKSIZE + 4);
-		rect.xmax = snode->mx + (NODE_SOCKSIZE + 4);
-		rect.ymax = snode->my + (NODE_SOCKSIZE + 4);
+		rect.xmin = snode->cursor[0] - (NODE_SOCKSIZE + 4);
+		rect.ymin = snode->cursor[1] - (NODE_SOCKSIZE + 4);
+		rect.xmax = snode->cursor[0] + (NODE_SOCKSIZE + 4);
+		rect.ymax = snode->cursor[1] + (NODE_SOCKSIZE + 4);
 		
 		if (!(node->flag & NODE_HIDDEN)) {
 			/* extra padding inside and out - allow dragging on the text areas too */
@@ -2232,6 +1903,194 @@ void NODE_OT_node_copy_color(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = node_copy_color_exec;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ****************** Copy to clipboard ******************* */
+
+static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *gnode = node_tree_get_editgroup(snode->nodetree);
+	float gnode_x = 0.0f, gnode_y = 0.0f;
+	bNode *node, *new_node;
+	bNodeLink *link, *newlink;
+
+	ED_preview_kill_jobs(C);
+
+	/* clear current clipboard */
+	BKE_node_clipboard_clear();
+	BKE_node_clipboard_init(ntree);
+
+	/* get group node offset */
+	if (gnode)
+		nodeToView(gnode, 0.0f, 0.0f, &gnode_x, &gnode_y);
+	
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->flag & SELECT) {
+			new_node = nodeCopyNode(NULL, node);
+			BKE_node_clipboard_add_node(new_node);
+		}
+	}
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->flag & SELECT) {
+			bNode *new_node = node->new_node;
+			
+			/* ensure valid pointers */
+			if (new_node->parent) {
+				/* parent pointer must be redirected to new node or detached if parent is not copied */
+				if (new_node->parent->flag & NODE_SELECT) {
+					new_node->parent = new_node->parent->new_node;
+				}
+				else {
+					nodeDetachNode(new_node);
+				}
+			}
+
+			/* transform to basic view space. child node location is relative to parent */
+			if (!new_node->parent) {	
+				new_node->locx += gnode_x;
+				new_node->locy += gnode_y;
+			}
+		}
+	}
+
+	/* copy links between selected nodes
+	 * NB: this depends on correct node->new_node and sock->new_sock pointers from above copy!
+	 */
+	for (link = ntree->links.first; link; link = link->next) {
+		/* This creates new links between copied nodes. */
+		if (link->tonode && (link->tonode->flag & NODE_SELECT) &&
+		    link->fromnode && (link->fromnode->flag & NODE_SELECT))
+		{
+			newlink = MEM_callocN(sizeof(bNodeLink), "bNodeLink");
+			newlink->flag = link->flag;
+			newlink->tonode = link->tonode->new_node;
+			newlink->tosock = link->tosock->new_sock;
+			newlink->fromnode = link->fromnode->new_node;
+			newlink->fromsock = link->fromsock->new_sock;
+
+			BKE_node_clipboard_add_link(newlink);
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_clipboard_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Copy to clipboard";
+	ot->description = "Copies selected nodes to the clipboard";
+	ot->idname = "NODE_OT_clipboard_copy";
+
+	/* api callbacks */
+	ot->exec = node_clipboard_copy_exec;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ****************** Paste from clipboard ******************* */
+
+static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *gnode = node_tree_get_editgroup(snode->nodetree);
+	float gnode_x = 0.0f, gnode_y = 0.0f;
+	bNode *node;
+	bNodeLink *link;
+	int num_nodes;
+	float centerx, centery;
+
+	if (BKE_node_clipboard_get_type() != ntree->type) {
+		BKE_report(op->reports, RPT_ERROR, "Clipboard nodes are an incompatible type");
+		return OPERATOR_CANCELLED;
+	}
+
+	ED_preview_kill_jobs(C);
+
+	/* deselect old nodes */
+	node_deselect_all(snode);
+
+	/* get group node offset */
+	if (gnode)
+		nodeToView(gnode, 0.0f, 0.0f, &gnode_x, &gnode_y);
+
+	/* calculate "barycenter" for placing on mouse cursor */
+	num_nodes = 0;
+	centerx = centery = 0.0f;
+	for (node = BKE_node_clipboard_get_nodes()->first; node; node = node->next) {
+		++num_nodes;
+		centerx += 0.5f * (node->totr.xmin + node->totr.xmax);
+		centery += 0.5f * (node->totr.ymin + node->totr.ymax);
+	}
+	centerx /= num_nodes;
+	centery /= num_nodes;
+
+	/* copy nodes from clipboard */
+	for (node = BKE_node_clipboard_get_nodes()->first; node; node = node->next) {
+		bNode *new_node = nodeCopyNode(ntree, node);
+
+		/* pasted nodes are selected */
+		node_select(new_node);
+	}
+	
+	/* reparent copied nodes */
+	for (node = BKE_node_clipboard_get_nodes()->first; node; node = node->next) {
+		bNode *new_node = node->new_node;
+		if (new_node->parent)
+			new_node->parent = new_node->parent->new_node;
+		
+		
+		/* place nodes around the mouse cursor. child nodes locations are relative to parent */
+		if (!new_node->parent) {
+			new_node->locx += snode->cursor[0] - centerx - gnode_x;
+			new_node->locy += snode->cursor[1] - centery - gnode_y;
+		}
+	}
+
+	for (link = BKE_node_clipboard_get_links()->first; link; link = link->next) {
+		nodeAddLink(ntree, link->fromnode->new_node, link->fromsock->new_sock,
+		            link->tonode->new_node, link->tosock->new_sock);
+	}
+
+	ntreeUpdateTree(snode->edittree);
+
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+
+	return OPERATOR_FINISHED;
+}
+
+static int node_clipboard_paste_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	/* convert mouse coordinates to v2d space */
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &snode->cursor[0], &snode->cursor[1]);
+
+	return node_clipboard_paste_exec(C, op);
+}
+
+void NODE_OT_clipboard_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Paste from clipboard";
+	ot->description = "Pastes nodes from the clipboard to the active node tree";
+	ot->idname = "NODE_OT_clipboard_paste";
+
+	/* api callbacks */
+	ot->exec = node_clipboard_paste_exec;
+	ot->invoke = node_clipboard_paste_invoke;
 	ot->poll = ED_operator_node_active;
 
 	/* flags */
