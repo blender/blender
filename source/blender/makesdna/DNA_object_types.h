@@ -343,6 +343,10 @@ typedef struct DupliObject {
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
 	(ELEM7(_type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE))
 
+/* is this ID type used as object data */
+#define OB_DATA_SUPPORT_ID(_id_type) \
+	(ELEM8(_id_type, ID_ME, ID_CU, ID_MB, ID_LA, ID_SPK, ID_CA, ID_LT, ID_AR))
+
 /* partype: first 4 bits: type */
 #define PARTYPE			15
 #define PAROBJECT		0

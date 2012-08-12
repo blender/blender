@@ -355,10 +355,14 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		set_mesh(ob, (Mesh *)id);
 	}
 	else {
-		if (ob->data)
+		if (ob->data) {
 			id_us_min((ID *)ob->data);
-		if (id)
+		}
+		if (id) {
+			/* no need to type-check here ID. this is done in the _typef() function */
+			BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
 			id_us_plus(id);
+		}
 
 		ob->data = id;
 		test_object_materials(id);
@@ -374,6 +378,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->data;
 
+	/* keep in sync with OB_DATA_SUPPORT_ID() macro */
 	switch (ob->type) {
 		case OB_EMPTY: return &RNA_Image;
 		case OB_MESH: return &RNA_Mesh;

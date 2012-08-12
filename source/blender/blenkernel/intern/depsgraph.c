@@ -2596,7 +2596,8 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 	if (id) {
 		idtype = GS(id->name);
 
-		if (ELEM8(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR, ID_SPK)) {
+
+		if (OB_DATA_SUPPORT_ID(idtype)) {
 			for (obt = bmain->object.first; obt; obt = obt->id.next) {
 				if (!(ob && obt == ob) && obt->data == id) {
 					obt->recalc |= OB_RECALC_DATA;

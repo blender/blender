@@ -140,6 +140,7 @@ Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const cha
 	Object *ob;
 	int type = OB_EMPTY;
 	if (data) {
+		/* keep in sync with OB_DATA_SUPPORT_ID() macro */
 		switch (GS(data->name)) {
 			case ID_ME:
 				type = OB_MESH;

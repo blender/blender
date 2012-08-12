@@ -494,6 +494,9 @@ short *give_totcolp(Object *ob)
 /* same as above but for ID's */
 Material ***give_matarar_id(ID *id)
 {
+	/* ensure we don't try get materials from non-obdata */
+	BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+
 	switch (GS(id->name)) {
 		case ID_ME:
 			return &(((Mesh *)id)->mat);
@@ -510,6 +513,9 @@ Material ***give_matarar_id(ID *id)
 
 short *give_totcolp_id(ID *id)
 {
+	/* ensure we don't try get materials from non-obdata */
+	BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+
 	switch (GS(id->name)) {
 		case ID_ME:
 			return &(((Mesh *)id)->totcol);
@@ -526,6 +532,9 @@ short *give_totcolp_id(ID *id)
 
 static void data_delete_material_index_id(ID *id, short index)
 {
+	/* ensure we don't try get materials from non-obdata */
+	BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+
 	switch (GS(id->name)) {
 		case ID_ME:
 			BKE_mesh_delete_material_index((Mesh *)id, index);
