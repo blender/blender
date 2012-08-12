@@ -57,7 +57,7 @@ void InpaintSimpleOperation::initExecution()
 	this->initMutex();
 }
 
-void InpaintSimpleOperation::clamp_xy(int & x, int & y) 
+void InpaintSimpleOperation::clamp_xy(int &x, int &y)
 {
 	int width = this->getWidth();
 	int height = this->getHeight();
@@ -97,7 +97,7 @@ int InpaintSimpleOperation::mdist(int x, int y)
 	return this->m_manhatten_distance[y * width + x];
 }
 
-bool InpaintSimpleOperation::next_pixel(int & x, int & y, int & curr, int iters)
+bool InpaintSimpleOperation::next_pixel(int &x, int &y, int & curr, int iters)
 {
 	int width = this->getWidth();
 
@@ -110,7 +110,7 @@ bool InpaintSimpleOperation::next_pixel(int & x, int & y, int & curr, int iters)
 	x = r % width;
 	y = r / width;
 
-	if (mdist(x, y) > iters) {
+	if (this->mdist(x, y) > iters) {
 		return false;
 	}
 	
@@ -209,7 +209,10 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 
 	float *output = this->get_pixel(x, y);
 	if (pix_divider != 0.0f) {
-		mul_v3_v3fl(output, pix, 1.0f / pix_divider);
+		mul_v3_fl(pix, 1.0f / pix_divider);
+		/* use existing pixels alpha to blend into */
+		interp_v3_v3v3(output, pix, output, output[3]);
+		output[3] = 1.0f;
 	}
 }
 
@@ -225,14 +228,14 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 		this->m_cached_buffer = new float[this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS];
 		memcpy(this->m_cached_buffer, buf->getBuffer(), this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
 
-		calc_manhatten_distance();
+		this->calc_manhatten_distance();
 
 		int curr = 0;
 		int x, y;
 
 	
-		while (next_pixel(x, y, curr, this->m_iterations)) {
-			pix_step(x, y);
+		while (this->next_pixel(x, y, curr, this->m_iterations)) {
+			this->pix_step(x, y);
 		}
 		this->m_cached_buffer_ready = true;
 	}
@@ -244,8 +247,7 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 void InpaintSimpleOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	this->clamp_xy(x, y);
-	copy_v3_v3(output, this->get_pixel(x, y));
-	output[3] = 1.0f;
+	copy_v4_v4(output, this->get_pixel(x, y));
 }
 
 void InpaintSimpleOperation::deinitExecution()
