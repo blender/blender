@@ -142,7 +142,7 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 	}
 	
 	for (int j = height - 1; j >= 0; j--) {
-		for (int i = width; i >= 0; i--) {
+		for (int i = width - 1; i >= 0; i--) {
 			int r = m[j * width + i];
 			
 			if (i + 1 < width) 
@@ -184,8 +184,7 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 
 	for (int dx = -1; dx <= 1; dx++) {
 		for (int dy = -1; dy <= 1; dy++) {
-			if (dx != 0 && dy != 0) {
-
+			if (dx != 0 || dy != 0) {
 				int x_ofs = x + dx;
 				int y_ofs = y + dy;
 
@@ -210,6 +209,8 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 	}
 
 	mul_v3_v3fl(this->get_pixel(x, y), pix, 1.0f / n);
+
+	this->get_pixel(x, y)[3] = 1.0f;
 }
 
 void *InpaintSimpleOperation::initializeTileData(rcti *rect)
@@ -243,8 +244,7 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 void InpaintSimpleOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	this->clamp_xy(x, y);
-	copy_v3_v3(output, this->get_pixel(x, y));
-	output[3] = 1.0f;
+	copy_v4_v4(output, this->get_pixel(x, y));
 }
 
 void InpaintSimpleOperation::deinitExecution()
