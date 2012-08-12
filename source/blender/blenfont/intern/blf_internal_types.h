@@ -131,6 +131,28 @@ typedef struct GlyphBLF {
 	short build_tex;
 } GlyphBLF;
 
+typedef struct FontBufInfoBLF {
+	/* for draw to buffer, always set this to NULL after finish! */
+	float *fbuf;
+
+	/* the same but unsigned char */
+	unsigned char *cbuf;
+
+	/* buffer size, keep signed so comparisons with negative values work */
+	int w;
+	int h;
+
+	/* number of channels. */
+	int ch;
+
+	/* is the float buffer linear */
+	int is_linear;
+
+	/* and the color, the alphas is get from the glyph!
+	 * color is srgb space */
+	float col[4];
+} FontBufInfoBLF;
+
 typedef struct FontBLF {
 	/* font name. */
 	char *name;
@@ -198,21 +220,8 @@ typedef struct FontBLF {
 	/* freetype2 face. */
 	FT_Face face;
 
-	/* for draw to buffer, always set this to NULL after finish! */
-	float *b_fbuf;
-
-	/* the same but unsigned char */
-	unsigned char *b_cbuf;
-
-	/* buffer size, keep signed so comparisons with negative values work */
-	int bw;
-	int bh;
-
-	/* number of channels. */
-	int bch;
-
-	/* and the color, the alphas is get from the glyph! */
-	float b_col[4];
+	/* data for buffer usage (drawing into a texture buffer) */
+	FontBufInfoBLF buf_info;
 } FontBLF;
 
 typedef struct DirBLF {

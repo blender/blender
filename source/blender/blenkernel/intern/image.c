@@ -1491,7 +1491,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	/* set before return */
 	BLF_size(mono, scene->r.stamp_font_id, 72);
 
-	BLF_buffer(mono, rectf, rect, width, height, channels);
+	BLF_buffer(mono, rectf, rect, width, height, channels, (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) != 0);
 	BLF_buffer_col(mono, scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
 	pad = BLF_width_max(mono);
 
@@ -1668,7 +1668,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	}
 
 	/* cleanup the buffer. */
-	BLF_buffer(mono, NULL, NULL, 0, 0, 0);
+	BLF_buffer(mono, NULL, NULL, 0, 0, 0, FALSE);
 
 #undef BUFF_MARGIN_X
 #undef BUFF_MARGIN_Y

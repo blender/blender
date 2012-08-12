@@ -151,7 +151,7 @@ void BLF_shadow_offset(int fontid, int x, int y);
  *
  *     BLF_buffer(NULL, NULL, 0, 0, 0);
  */
-void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch);
+void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch, int is_linear);
 
 /* Set the color to be used for text. */
 void BLF_buffer_col(int fontid, float r, float g, float b, float a);
