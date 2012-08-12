@@ -36,6 +36,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "BKE_context.h"
 
@@ -1212,16 +1213,16 @@ static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
 
 	for (i = 0; i < 2; i++) {
 		/* axis translation normalized to scale */
-		tfac = fabsf(cent_a[i] - cent_b[i]) / fmin(size_a[i], size_b[i]);
-		fac_max = fmax(fac_max, tfac);
+		tfac = fabsf(cent_a[i] - cent_b[i]) / minf(size_a[i], size_b[i]);
+		fac_max = maxf(fac_max, tfac);
 		if (fac_max >= 1.0f) break;
 
 		/* axis scale difference, x2 so doubling or half gives 1.0f */
-		tfac = (1.0f - (fmin(size_a[i], size_b[i]) / fmax(size_a[i], size_b[i]))) * 2.0f;
-		fac_max = fmax(fac_max, tfac);
+		tfac = (1.0f - (minf(size_a[i], size_b[i]) / maxf(size_a[i], size_b[i]))) * 2.0f;
+		fac_max = maxf(fac_max, tfac);
 		if (fac_max >= 1.0f) break;
 	}
-	return fmin(fac_max, 1.0f);
+	return minf(fac_max, 1.0f);
 }
 
 /* will start timer if appropriate */
