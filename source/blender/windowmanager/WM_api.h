@@ -37,7 +37,6 @@
  *  \todo document
  */
 
-
 /* dna-savable wmStructs here */
 #include "DNA_windowmanager_types.h"
 #include "WM_keymap.h"
@@ -83,7 +82,7 @@ void		WM_check			(struct bContext *C);
 
 struct wmWindow	*WM_window_open	(struct bContext *C, struct rcti *rect);
 
-			/* defines for 'type' WM_window_open_temp */
+		/* defines for 'type' WM_window_open_temp */
 #define WM_WINDOW_RENDER		0
 #define WM_WINDOW_USERPREFS		1
 #define WM_WINDOW_FILESEL		2
@@ -183,7 +182,7 @@ void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct wmWindowManager *wm);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
-struct GHashIterator *WM_operatortype_iter(void);
+struct GHashIterator  *WM_operatortype_iter(void);
 void		WM_operatortype_append	(void (*opfunc)(struct wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
 void		WM_operatortype_append_macro_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
@@ -311,10 +310,10 @@ struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void
 
 int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
 float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
-char		*WM_jobs_name(struct wmWindowManager *wm, void *owner);
+char       *WM_jobs_name(struct wmWindowManager *wm, void *owner);
 
 int         WM_jobs_is_running(struct wmJob *);
-void *      WM_jobs_customdata_get(struct wmJob *);
+void       *WM_jobs_customdata_get(struct wmJob *);
 void        WM_jobs_customdata_set(struct wmJob *, void *customdata, void (*free)(void *));
 void        WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
 void        WM_jobs_callbacks(struct wmJob *,
@@ -331,8 +330,8 @@ void		WM_jobs_stop_all(struct wmWindowManager *wm);
 int			WM_jobs_has_running(struct wmWindowManager *wm);
 
 			/* clipboard */
-char		*WM_clipboard_text_get(int selection);
-void		WM_clipboard_text_set(char *buf, int selection);
+char       *WM_clipboard_text_get(int selection);
+void        WM_clipboard_text_set(char *buf, int selection);
 
 			/* progress */
 void		WM_progress_set(struct wmWindow *win, float progress);

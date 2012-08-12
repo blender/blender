@@ -454,28 +454,28 @@ typedef struct wmTabletData {
 
 typedef enum {  /* motion progress, for modal handlers */
 	P_NOT_STARTED,
-	P_STARTING,    // <--
-	P_IN_PROGRESS, // <-- only these are sent for NDOF motion
-	P_FINISHING,   // <--
+	P_STARTING,    /* <-- */
+	P_IN_PROGRESS, /* <-- only these are sent for NDOF motion*/
+	P_FINISHING,   /* <-- */
 	P_FINISHED
-	} wmProgress;
+} wmProgress;
 
 typedef struct wmNDOFMotionData {
 	/* awfully similar to GHOST_TEventNDOFMotionData... */
-	// Each component normally ranges from -1 to +1, but can exceed that.
-	// These use blender standard view coordinates, with positive rotations being CCW about the axis.
+	/* Each component normally ranges from -1 to +1, but can exceed that.
+	 * These use blender standard view coordinates, with positive rotations being CCW about the axis. */
 	union {
-		float tvec[3]; // translation
+		float tvec[3]; /* translation */
 		struct { float tx, ty, tz; };
-		};
+	};
 	union {
-		float rvec[3]; // rotation:
+		float rvec[3]; /* rotation: */
 		struct { float rx, ry, rz; };
-		};
-		// axis = (rx,ry,rz).normalized
-		// amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
-	float dt; // time since previous NDOF Motion event
-	wmProgress progress; // is this the first event, the last, or one of many in between?
+	};
+	/* axis = (rx,ry,rz).normalized */
+	/* amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg] */
+	float dt; /* time since previous NDOF Motion event */
+	wmProgress progress; /* is this the first event, the last, or one of many in between? */
 } wmNDOFMotionData;
 
 typedef struct wmTimer {

@@ -481,7 +481,8 @@ void IMB_rectfill(struct ImBuf *drect, const float col[4])
 }
 
 
-void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, const float col[4], int x1, int y1, int x2, int y2)
+void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, const float col[4],
+					   int x1, int y1, int x2, int y2)
 {
 	int i, j;
 	float a; /* alpha */
