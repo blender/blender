@@ -168,7 +168,7 @@ typedef struct bNode {
 	void *storage;			/* custom data, must be struct, for storage in file */
 	struct bNode *original;	/* the original node in the tree (for localized tree) */
 	
-	float locx, locy;		/* root offset for drawing */
+	float locx, locy;		/* root offset for drawing (parent space) */
 	float width, height;	/* node custom width and height */
 	float miniwidth;		/* node width if hidden */
 	float offsetx, offsety;	/* additional offset from loc */
@@ -181,7 +181,7 @@ typedef struct bNode {
 
 	short need_exec, exec;	/* need_exec is set as UI execution event, exec is flag during exec */
 	void *threaddata;		/* optional extra storage for use in thread (read only then!) */
-	rctf totr;				/* entire boundbox */
+	rctf totr;				/* entire boundbox (worldspace) */
 	rctf butr;				/* optional buttons area */
 	rctf prvr;				/* optional preview area */
 	bNodePreview *preview;	/* optional preview image */

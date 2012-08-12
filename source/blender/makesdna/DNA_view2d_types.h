@@ -104,6 +104,7 @@ typedef struct View2D {
 
 /* general refresh settings (v2d->flag) */
 	/* global view2d horizontal locking (for showing same time interval) */
+	/* TODO: this flag may be set in old files but is not accessible currently, should be exposed from RNA - Campbell */
 #define V2D_VIEWSYNC_SCREEN_TIME	(1<<0)
 	/* within area (i.e. between regions) view2d vertical locking */
 #define V2D_VIEWSYNC_AREA_VERTICAL	(1<<1)

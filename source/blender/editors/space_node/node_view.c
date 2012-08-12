@@ -136,8 +136,6 @@ static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	snode->yof = 0;
 
 	if (space_node_view_flag(C, snode, ar, 0)) {
-		ED_region_tag_redraw(ar);
-
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -166,8 +164,6 @@ static int node_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	if (space_node_view_flag(C, snode, ar, NODE_SELECT)) {
-		ED_region_tag_redraw(ar);
-
 		return OPERATOR_FINISHED;
 	}
 	else {
