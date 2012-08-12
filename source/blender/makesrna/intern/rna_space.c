@@ -2132,7 +2132,14 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{SEQ_PROXY_RENDER_SIZE_FULL, "FULL", 0, "No proxy, full render", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
+	static EnumPropertyItem overlay_type_items[] = {
+		{SEQ_DRAW_OVERLAY_RECT, "RECTANGLE", 0, "Rectangle", "Show rectangle area overlay"},
+		{SEQ_DRAW_OVERLAY_REFERENCE, "REFERENCE", 0, "Reference", "Show reference frame only"},
+		{SEQ_DRAW_OVERLAY_CURRENT, "CURRENT", 0, "Current", "Show current frame only"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "SpaceSequenceEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceSeq");
 	RNA_def_struct_ui_text(srna, "Space Sequence Editor", "Sequence editor space data");
@@ -2215,6 +2222,12 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
 	RNA_def_property_ui_text(prop, "View Settings", "Color management settings used for displaying images on the display");
+
+	prop = RNA_def_property(srna, "overlay_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "overlay_type");
+	RNA_def_property_enum_items(prop, overlay_type_items);
+	RNA_def_property_ui_text(prop, "Overlay Type", "Overlay draw type");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 }
 
 static void rna_def_space_text(BlenderRNA *brna)

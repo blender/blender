@@ -136,6 +136,8 @@ static void free_proxy_seq(Sequence *seq)
 		IMB_free_anim(seq->strip->proxy->anim);
 		seq->strip->proxy->anim = NULL;
 	}
+
+	BKE_sequencer_cache_cleanup_sequence(seq);
 }
 
 static void seq_free_strip(Strip *strip)
