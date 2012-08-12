@@ -176,11 +176,9 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 
 void InpaintSimpleOperation::pix_step(int x, int y)
 {
-	int d = this->mdist(x, y);
-
-	float n = 0;
-
+	const int d = this->mdist(x, y);
 	float pix[3] = {0.0f, 0.0f, 0.0f};
+	float pix_divider = 0.0f;
 
 	for (int dx = -1; dx <= 1; dx++) {
 		for (int dy = -1; dy <= 1; dy++) {
@@ -203,13 +201,16 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 					}
 
 					madd_v3_v3fl(pix, this->get_pixel(x_ofs, y_ofs), weight);
-					n += weight;
+					pix_divider += weight;
 				}
 			}
 		}
 	}
 
-	mul_v3_v3fl(this->get_pixel(x, y), pix, 1.0f / n);
+	float *output = this->get_pixel(x, y);
+	if (pix_divider != 0.0f) {
+		mul_v3_v3fl(output, pix, 1.0f / pix_divider);
+	}
 }
 
 void *InpaintSimpleOperation::initializeTileData(rcti *rect)
