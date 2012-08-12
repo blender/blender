@@ -208,6 +208,10 @@ void DocumentImporter::finish()
 			write_node(roots[i], NULL, sce, NULL, false);
 		}
 	}
+
+
+	mesh_importer.optimize_material_assignements();
+
 	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext);
 

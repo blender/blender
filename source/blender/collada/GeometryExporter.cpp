@@ -42,12 +42,11 @@ extern "C" {
 	#include "BKE_main.h"
 	#include "BKE_global.h"
 	#include "BKE_library.h"
+	#include "BKE_customdata.h"
+	#include "BKE_material.h"
+	#include "BKE_mesh.h"
 }
 
-
-#include "BKE_customdata.h"
-#include "BKE_material.h"
-#include "BKE_mesh.h"
 #include "collada_internal.h"
 #include "collada_utils.h"
 
