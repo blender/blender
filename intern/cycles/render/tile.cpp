@@ -23,11 +23,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-TileManager::TileManager(bool progressive_, int num_samples_, int2 tile_size_, int min_size_, int num_devices_)
+TileManager::TileManager(bool progressive_, int num_samples_, int2 tile_size_, int resolution_, int num_devices_)
 {
 	progressive = progressive_;
 	tile_size = tile_size_;
-	min_size = min_size_;
+	resolution = resolution_;
 	num_devices = num_devices_;
 
 	BufferParams buffer_params;
@@ -42,19 +42,6 @@ void TileManager::reset(BufferParams& params_, int num_samples_)
 {
 	params = params_;
 
-	start_resolution = 1;
-
-	int w = params.width, h = params.height;
-
-	if(min_size != INT_MAX) {
-		while(w*h > min_size*min_size) {
-			w = max(1, w/2); 
-			h = max(1, h/2); 
-
-			start_resolution *= 2;
-		}
-	}
-
 	num_samples = num_samples_;
 
 	state.buffer = BufferParams();
@@ -62,7 +49,7 @@ void TileManager::reset(BufferParams& params_, int num_samples_)
 	state.num_tiles = 0;
 	state.num_rendered_tiles = 0;
 	state.num_samples = 0;
-	state.resolution = start_resolution;
+	state.resolution = resolution;
 	state.tiles.clear();
 }
 

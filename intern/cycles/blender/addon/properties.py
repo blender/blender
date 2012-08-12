@@ -235,18 +235,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=0.0,
                 )
 
-        cls.debug_tile_size = IntProperty(
-                name="Tile Size",
-                description="",
-                min=1, max=4096,
-                default=1024,
+        cls.resolution_divider = IntProperty(
+                name="Resolution Divider",
+                description="Start viewport rendering with lower resolutionm which would be real resolution divided by two in power of this value",
+                min=1, max=512,
+                default=4,
                 )
-        cls.debug_min_size = IntProperty(
-                name="Min Size",
-                description="",
-                min=1, max=4096,
-                default=64,
-                )
+
         cls.debug_reset_timeout = FloatProperty(
                 name="Reset timeout",
                 description="",

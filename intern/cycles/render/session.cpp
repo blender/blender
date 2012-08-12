@@ -36,7 +36,7 @@ CCL_NAMESPACE_BEGIN
 
 Session::Session(const SessionParams& params_)
 : params(params_),
-  tile_manager(params.progressive, params.samples, params.tile_size, params.min_size,
+  tile_manager(params.progressive, params.samples, params.tile_size, params.resolution,
   	(params.background)? 1: max(params.device.multi_devices.size(), 1))
 {
 	device_use_gl = ((params.device.type != DEVICE_CPU) && !params.background);

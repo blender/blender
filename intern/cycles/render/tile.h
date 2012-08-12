@@ -57,7 +57,7 @@ public:
 		list<Tile> tiles;
 	} state;
 
-	TileManager(bool progressive, int num_samples, int2 tile_size, int min_size, int num_devices = 1);
+	TileManager(bool progressive, int num_samples, int2 tile_size, int resolution, int num_devices = 1);
 	~TileManager();
 
 	void reset(BufferParams& params, int num_samples);
@@ -72,7 +72,7 @@ protected:
 	bool progressive;
 	int num_samples;
 	int2 tile_size;
-	int min_size;
+	int resolution;
 	int num_devices;
 
 	int start_resolution;

@@ -347,17 +347,8 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	int tile_x = b_engine.tile_x();
 	int tile_y = b_engine.tile_y();
 
-	if(tile_x == 0 || tile_y == 0) {
-		tile_x = get_int(cscene, "debug_tile_size");
-		tile_y = tile_x;
-
-		params.tile_size = make_int2(tile_x, tile_y);
-		params.min_size = get_int(cscene, "debug_min_size");
-	}
-	else {
-		params.tile_size = make_int2(tile_x, tile_y);
-		params.min_size = min(tile_x, tile_y);
-	}
+	params.tile_size = make_int2(tile_x, tile_y);
+	params.resolution = 1 << get_int(cscene, "resolution_divider");
 
 	/* other parameters */
 	params.threads = b_scene.render().threads();
@@ -368,7 +359,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 
 	if(background) {
 		params.progressive = false;
-		params.min_size = INT_MAX;
+		params.resolution = 1;
 	}
 	else
 		params.progressive = true;

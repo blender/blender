@@ -2824,13 +2824,21 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 
 	/* create render engine */
 	if (!rv3d->render_engine) {
+		RenderEngine *engine;
+
 		type = RE_engines_find(scene->r.engine);
 
 		if (!(type->view_update && type->view_draw))
 			return 0;
 
-		rv3d->render_engine = RE_engine_create(type);
-		type->view_update(rv3d->render_engine, C);
+		engine = RE_engine_create(type);
+
+		engine->tile_x = scene->r.xparts;
+		engine->tile_y = scene->r.yparts;
+
+		type->view_update(engine, C);
+
+		rv3d->render_engine = engine;
 	}
 
 	/* setup view matrices */

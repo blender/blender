@@ -48,7 +48,7 @@ public:
 	bool experimental;
 	int samples;
 	int2 tile_size;
-	int min_size;
+	int resolution;
 	int threads;
 
 	double cancel_timeout;
@@ -64,7 +64,7 @@ public:
 		experimental = false;
 		samples = INT_MAX;
 		tile_size = make_int2(64, 64);
-		min_size = 64;
+		resolution = 4;
 		threads = 0;
 
 		cancel_timeout = 0.1;
@@ -81,7 +81,7 @@ public:
 		&& progressive == params.progressive
 		&& experimental == params.experimental
 		&& tile_size == params.tile_size
-		&& min_size == params.min_size
+		&& resolution == params.resolution
 		&& threads == params.threads
 		&& cancel_timeout == params.cancel_timeout
 		&& reset_timeout == params.reset_timeout
