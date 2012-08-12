@@ -81,19 +81,6 @@ int main(int argc, char **argv)
 
 	sprintf(sizest, "%d", (int)size);
 
-#ifdef VERBOSE
-	printf("Input filesize is %d, Output size should be %d\n",
-	       (int)size,
-	       (int)(((int)size) * 4 +
-	             strlen("/* DataToC output of file <> */\n\n") +
-	             strlen("char datatoc_[] = {\"") +
-	             strlen("\"};\n") +
-	             (strlen(argv[1]) * 3) +
-	             strlen(sizest) +
-	             strlen("int datatoc__size = ;\n") +
-	             (((int)(size / 256) + 1) * 5)));
-#endif
-
 	fpout = fopen(argv[2], "w");
 	if (!fpout) {
 		fprintf(stderr, "Unable to open output <%s>\n", argv[2]);
@@ -104,6 +91,8 @@ int main(int argc, char **argv)
 	fprintf(fpout, "int datatoc_%s_size = %s;\n", argv[1], sizest);
 	fprintf(fpout, "char datatoc_%s[] = {\n", argv[1]);
 	while (size--) {
+		/* if we want to open in an editor
+		 * this is nicer to avoid very long lines */
 #ifdef VERBOSE
 		if (size % 32 == 31) {
 			fprintf(fpout, "\n");
@@ -114,7 +103,10 @@ int main(int argc, char **argv)
 		fprintf(fpout, "%3d,", getc(fpin));
 	}
 
-	fprintf(fpout, "\n};\n\n");
+	/* trailing NULL terminator, this isnt needed in some cases and
+	 * won't be taken into account by the size variable, but its useful when dealing with
+	 * NULL terminated string data */
+	fprintf(fpout, "0\n};\n\n");
 
 	fclose(fpin);
 	fclose(fpout);

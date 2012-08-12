@@ -1851,7 +1851,7 @@ static int material_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_CANCELLED;
 		}
 
-		assign_material(ob, ma, ob->totcol + 1);
+		assign_material(ob, ma, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 
 		DAG_ids_flush_update(bmain, 0);
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));		

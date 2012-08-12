@@ -136,8 +136,6 @@ static void free_proxy_seq(Sequence *seq)
 		IMB_free_anim(seq->strip->proxy->anim);
 		seq->strip->proxy->anim = NULL;
 	}
-
-	BKE_sequencer_cache_cleanup_sequence(seq);
 }
 
 static void seq_free_strip(Strip *strip)
@@ -204,6 +202,8 @@ void BKE_sequence_free(Scene *scene, Sequence *seq)
 
 		seq_free_animdata(scene, seq);
 	}
+
+	BKE_sequencer_cache_cleanup_sequence(seq);
 
 	MEM_freeN(seq);
 }
@@ -1639,6 +1639,13 @@ static void color_balance(SeqRenderData context, Sequence *seq, ImBuf *ibuf, flo
 
 	IMB_processor_apply_threaded(ibuf->y, sizeof(ColorBalanceThread), &init_data,
                                  color_balance_init_handle, color_balance_do_thread);
+
+	/* color balance either happens on float buffer or byte buffer, but never on both,
+	 * free byte buffer if there's float buffer since float buffer would be used for
+	 * color balance in favor of byte buffer
+	 */
+	if (ibuf->rect_float && ibuf->rect)
+		imb_freerectImBuf(ibuf);
 
 	if (init_data.mask)
 		IMB_freeImBuf(init_data.mask);

@@ -67,6 +67,7 @@ extern bool bc_has_object_type(LinkNode *export_set, short obtype);
 
 extern int bc_is_marked(Object *ob);
 extern void bc_remove_mark(Object *ob);
+extern void bc_set_mark(Object *ob);
 
 extern char *bc_CustomData_get_layer_name(const CustomData *data, int type, int n);
 extern char *bc_CustomData_get_active_layer_name(const CustomData *data, int type);
