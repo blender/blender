@@ -37,7 +37,8 @@ if env['WITH_BF_PYTHON']:
         defs.append('DEBUG')
 
 if env['WITH_BF_ELTOPO']:
-    incs += ' ../../../extern/eltopo'
+    incs += '#/extern/eltopo'
+    incs += '#/extern/eltopo/eltopo3d'
     defs.append('WITH_ELTOPO')
         
 if env['WITH_BF_QUICKTIME']:
