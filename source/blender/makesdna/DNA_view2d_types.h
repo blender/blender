@@ -63,6 +63,11 @@ typedef struct View2D {
 	float *tab_offset;				/* different offset per tab, for buttons */
 	int tab_num;					/* number of tabs stored */
 	int tab_cur;					/* current tab */
+
+	/* animated smooth view */
+	struct SmoothView2DStore *sms;
+	struct wmTimer *smooth_timer;
+
 } View2D;
 
 /* ---------------------------------- */

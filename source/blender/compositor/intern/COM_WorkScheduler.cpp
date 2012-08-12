@@ -72,8 +72,8 @@ static bool g_openclActive = false;
 #define MAX_HIGHLIGHT 8
 extern "C" {
 int g_highlightIndex;
-void ** g_highlightedNodes;
-void ** g_highlightedNodesRead;
+void **g_highlightedNodes;
+void **g_highlightedNodesRead;
 
 #define HIGHLIGHT(wp) \
 { \
@@ -282,7 +282,7 @@ void WorkScheduler::initialize()
 			cl_platform_id platform = platforms[indexPlatform];
 			cl_uint numberOfDevices = 0;
 			clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, 0, &numberOfDevices);
-			if (numberOfDevices>0) {
+			if (numberOfDevices > 0) {
 				cl_device_id *cldevices = new cl_device_id[numberOfDevices];
 				clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices, 0);
 

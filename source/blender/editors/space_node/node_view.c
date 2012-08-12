@@ -43,6 +43,8 @@
 #include "ED_space_api.h"
 #include "ED_image.h"
 
+#include "UI_view2d.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -61,7 +63,7 @@
 
 /* **************** View All Operator ************** */
 
-static int space_node_view_flag(SpaceNode *snode, ARegion *ar, const int node_flag)
+static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, const int node_flag)
 {
 	bNode *node;
 	rctf cur_new;
@@ -118,8 +120,7 @@ static int space_node_view_flag(SpaceNode *snode, ARegion *ar, const int node_fl
 			}
 		}
 
-		ar->v2d.tot = ar->v2d.cur = cur_new;
-		UI_view2d_curRect_validate(&ar->v2d);
+		UI_view2d_smooth_view(C, ar, &cur_new);
 	}
 
 	return (tot != 0);
@@ -134,7 +135,7 @@ static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	snode->xof = 0;
 	snode->yof = 0;
 
-	if (space_node_view_flag(snode, ar, 0)) {
+	if (space_node_view_flag(C, snode, ar, 0)) {
 		ED_region_tag_redraw(ar);
 
 		return OPERATOR_FINISHED;
@@ -164,7 +165,7 @@ static int node_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 
-	if (space_node_view_flag(snode, ar, NODE_SELECT)) {
+	if (space_node_view_flag(C, snode, ar, NODE_SELECT)) {
 		ED_region_tag_redraw(ar);
 
 		return OPERATOR_FINISHED;

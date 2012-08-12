@@ -581,7 +581,7 @@ static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	w = width * aspx;
 	h = height * aspy;
 	
-	/* check if the image will fit in the image with zoom==1 */
+	/* check if the image will fit in the image with (zoom == 1) */
 	width = ar->winrct.xmax - ar->winrct.xmin + 1;
 	height = ar->winrct.ymax - ar->winrct.ymin + 1;
 
@@ -2304,7 +2304,7 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ImBuf *ibuf;
 	
-	WM_timecursor(CTX_wm_window(C), scene->r.cfra);
+	WM_cursor_time(CTX_wm_window(C), scene->r.cfra);
 
 	// XXX scene->nodetree->test_break= blender_test_break;
 	// XXX scene->nodetree->test_break= NULL;

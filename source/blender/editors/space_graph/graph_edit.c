@@ -202,33 +202,28 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 static int graphkeys_viewall(bContext *C, const short do_sel_only, const short include_handles)
 {
 	bAnimContext ac;
-	View2D *v2d;
 	float extra;
+	rctf cur_new;
 
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	v2d = &ac.ar->v2d;
 
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
 	get_graph_keyframe_extents(&ac, 
-	                           &v2d->cur.xmin, &v2d->cur.xmax, 
-							   &v2d->cur.ymin, &v2d->cur.ymax, 
+							   &cur_new.xmin, &cur_new.xmax,
+							   &cur_new.ymin, &cur_new.ymax,
 							   do_sel_only, include_handles);
 
-	extra = 0.1f * (v2d->cur.xmax - v2d->cur.xmin);
-	v2d->cur.xmin -= extra;
-	v2d->cur.xmax += extra;
+	extra = 0.1f * (cur_new.xmax - cur_new.xmin);
+	cur_new.xmin -= extra;
+	cur_new.xmax += extra;
 
-	extra = 0.1f * (v2d->cur.ymax - v2d->cur.ymin);
-	v2d->cur.ymin -= extra;
-	v2d->cur.ymax += extra;
+	extra = 0.1f * (cur_new.ymax - cur_new.ymin);
+	cur_new.ymin -= extra;
+	cur_new.ymax += extra;
 
-	/* do View2D syncing */
-	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
-
-	/* set notifier that things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C));
+	UI_view2d_smooth_view(C, ac.ar, &cur_new);
 
 	return OPERATOR_FINISHED;
 }

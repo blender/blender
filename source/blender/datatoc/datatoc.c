@@ -104,9 +104,11 @@ int main(int argc, char **argv)
 	fprintf(fpout, "int datatoc_%s_size = %s;\n", argv[1], sizest);
 	fprintf(fpout, "char datatoc_%s[] = {\n", argv[1]);
 	while (size--) {
+#ifdef VERBOSE
 		if (size % 32 == 31) {
 			fprintf(fpout, "\n");
 		}
+#endif
 
 		/* fprintf (fpout, "\\x%02x", getc(fpin)); */
 		fprintf(fpout, "%3d,", getc(fpin));

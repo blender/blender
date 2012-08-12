@@ -103,7 +103,7 @@ void ED_base_object_activate(struct bContext *C, struct Base *base);
 
 void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Base *base);
 
-/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
+/* single object duplicate, if (dupflag == 0), fully linked, else it uses the flags given */
 struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, struct Base *base, int dupflag);
 
 void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);

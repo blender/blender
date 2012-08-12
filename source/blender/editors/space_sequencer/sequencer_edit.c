@@ -188,7 +188,7 @@ static void seq_proxy_build_job(const bContext *C)
 
 	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies", WM_JOB_PROGRESS);
 
-	pj = WM_jobs_get_customdata(steve);
+	pj = WM_jobs_customdata_get(steve);
 
 	if (!pj) {
 		pj = MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
@@ -196,7 +196,7 @@ static void seq_proxy_build_job(const bContext *C)
 		pj->scene = scene;
 		pj->main = CTX_data_main(C);
 
-		WM_jobs_customdata(steve, pj, proxy_freejob);
+		WM_jobs_customdata_set(steve, pj, proxy_freejob);
 		WM_jobs_timer(steve, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
 		WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, proxy_endjob);
 	}
@@ -2042,17 +2042,10 @@ void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
 /* view_all operator */
 static int sequencer_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	//Scene *scene= CTX_data_scene(C);
-	bScreen *sc = CTX_wm_screen(C);
-	ScrArea *area = CTX_wm_area(C);
-	//ARegion *ar= CTX_wm_region(C);
+	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = UI_view2d_fromcontext(C);
 
-	v2d->cur = v2d->tot;
-	UI_view2d_curRect_validate(v2d);
-	UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
-	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	UI_view2d_smooth_view(C, ar, &v2d->tot);
 	return OPERATOR_FINISHED;
 }
 
@@ -2218,10 +2211,10 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = UI_view2d_fromcontext(C);
-	ScrArea *area = CTX_wm_area(C);
-	bScreen *sc = CTX_wm_screen(C);
+	ARegion *ar = CTX_wm_region(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
+	rctf cur_new = v2d->cur;
 
 	int xmin =  MAXFRAME * 2;
 	int xmax = -MAXFRAME * 2;
@@ -2252,29 +2245,30 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		ymax += ymargin;
 		ymin -= ymargin;
 
-		orig_height = v2d->cur.ymax - v2d->cur.ymin;
+		orig_height = cur_new.ymax - cur_new.ymin;
 
-		v2d->cur.xmin = xmin;
-		v2d->cur.xmax = xmax;
+		cur_new.xmin = xmin;
+		cur_new.xmax = xmax;
 
-		v2d->cur.ymin = ymin;
-		v2d->cur.ymax = ymax;
+		cur_new.ymin = ymin;
+		cur_new.ymax = ymax;
 
 		/* only zoom out vertically */
-		if (orig_height > v2d->cur.ymax - v2d->cur.ymin) {
-			ymid = (v2d->cur.ymax + v2d->cur.ymin) / 2;
+		if (orig_height > cur_new.ymax - cur_new.ymin) {
+			ymid = (cur_new.ymax + cur_new.ymin) / 2;
 
-			v2d->cur.ymin = ymid - (orig_height / 2);
-			v2d->cur.ymax = ymid + (orig_height / 2);
+			cur_new.ymin = ymid - (orig_height / 2);
+			cur_new.ymax = ymid + (orig_height / 2);
 		}
 
-		UI_view2d_curRect_validate(v2d);
-		UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
+		UI_view2d_smooth_view(C, ar, &cur_new);
 
-		ED_area_tag_redraw(CTX_wm_area(C));
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
 	}
 	
-	return OPERATOR_FINISHED;
 }
 
 void SEQUENCER_OT_view_selected(wmOperatorType *ot)

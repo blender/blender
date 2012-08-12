@@ -209,7 +209,7 @@ int WM_jobs_is_running(wmJob *steve)
 	return steve->running;
 }
 
-void *WM_jobs_get_customdata(wmJob *steve)
+void *WM_jobs_customdata_get(wmJob *steve)
 {
 	if (!steve->customdata) {
 		return steve->run_customdata;
@@ -219,7 +219,7 @@ void *WM_jobs_get_customdata(wmJob *steve)
 	}
 }
 
-void WM_jobs_customdata(wmJob *steve, void *customdata, void (*free)(void *))
+void WM_jobs_customdata_set(wmJob *steve, void *customdata, void (*free)(void *))
 {
 	/* pending job? just free */
 	if (steve->customdata)

@@ -196,7 +196,7 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		//page 360/361 3D Game Engine Design, David Eberly for a discussion
 		// on screen aligned and axis aligned billboards
 		// assumed is that the preprocessor transformed all billboard polygons
-		// so that their normal points into the positive x direction (1.0 , 0.0 , 0.0)
+		// so that their normal points into the positive x direction (1.0, 0.0, 0.0)
 		// when new parenting for objects is done, this rotation
 		// will be moved into the object
 		

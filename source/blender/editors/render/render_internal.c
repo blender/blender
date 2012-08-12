@@ -569,7 +569,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else name = "Render";
 
 	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, name, jobflag);
-	WM_jobs_customdata(steve, rj, render_freejob);
+	WM_jobs_customdata_set(steve, rj, render_freejob);
 	WM_jobs_timer(steve, 0.2, NC_SCENE | ND_RENDER_RESULT, 0);
 	WM_jobs_callbacks(steve, render_startjob, NULL, NULL, render_endjob);
 

@@ -521,7 +521,7 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 	if (!facesel_face_pick(C, me, ob, mval, &index, 1))
 		return 0;
 	
-	if (index >= me->totpoly || index < 0)
+	if (index >= me->totpoly)
 		return 0;
 
 	mpoly_sel = me->mpoly + index;

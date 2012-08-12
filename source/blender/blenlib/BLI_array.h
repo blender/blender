@@ -46,7 +46,7 @@
  * BLI_array_declare(arr);
  * int i;
  *
- * for (i=0; i<10; i++) {
+ * for (i = 0; i < 10; i++) {
  *     BLI_array_grow_one(arr);
  *     arr[i] = something;
  * }

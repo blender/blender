@@ -377,7 +377,7 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float t[4], int cycl)
 	k1 = k[0] = k[1] = k[2] = k[3] = firstkey;
 	t[0] = t[1] = t[2] = t[3] = k1->pos;
 
-	/* if (fac<0.0 || fac>1.0) return 1; */
+	/* if (fac < 0.0 || fac > 1.0) return 1; */
 
 	if (k1->next == NULL) return 1;
 

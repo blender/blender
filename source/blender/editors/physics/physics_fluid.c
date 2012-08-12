@@ -706,7 +706,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 		
 		// ask user if thats what he/she wants...
 		selection = pupmenu(dispmsg);
-		if (selection<1) return 0; // 0 from menu, or -1 aborted
+		if (selection < 1) return 0; // 0 from menu, or -1 aborted
 		BLI_strncpy(targetDir, newSurfdataPath, sizeof(targetDir));
 		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
 		BLI_path_abs(targetDir, G.main->name); // fixed #frame-no 
@@ -1071,7 +1071,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 		wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Fluid Simulation", WM_JOB_PROGRESS);
 
 		/* setup job */
-		WM_jobs_customdata(steve, fb, fluidbake_free);
+		WM_jobs_customdata_set(steve, fb, fluidbake_free);
 		WM_jobs_timer(steve, 0.1, NC_SCENE|ND_FRAME, NC_SCENE|ND_FRAME);
 		WM_jobs_callbacks(steve, fluidbake_startjob, NULL, NULL, fluidbake_endjob);
 

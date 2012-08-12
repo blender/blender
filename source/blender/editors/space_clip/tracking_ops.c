@@ -1262,7 +1262,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 
 	/* setup job */
 	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers", WM_JOB_PROGRESS);
-	WM_jobs_customdata(steve, tmj, track_markers_freejob);
+	WM_jobs_customdata_set(steve, tmj, track_markers_freejob);
 
 	/* if there's delay set in tracking job, tracking should happen
 	 * with fixed FPS. To deal with editor refresh we have to synchronize
@@ -1493,7 +1493,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 
 	/* setup job */
 	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Solve Camera", WM_JOB_PROGRESS);
-	WM_jobs_customdata(steve, scj, solve_camera_freejob);
+	WM_jobs_customdata_set(steve, scj, solve_camera_freejob);
 	WM_jobs_timer(steve, 0.1, NC_MOVIECLIP | NA_EVALUATED, 0);
 	WM_jobs_callbacks(steve, solve_camera_startjob, NULL, solve_camera_updatejob, NULL);
 

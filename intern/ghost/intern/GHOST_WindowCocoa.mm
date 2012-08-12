@@ -502,7 +502,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;
 	
-	if (numOfAASamples>0) {
+	if (numOfAASamples > 0) {
 		// Multisample anti-aliasing
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFAMultisample;
 		
@@ -550,7 +550,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		
 	}
 	
-	if (numOfAASamples>0) { //Set m_numOfAASamples to the actual value
+	if (numOfAASamples > 0) { //Set m_numOfAASamples to the actual value
 		GLint gli;
 		[pixelFormat getValues:&gli forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
 		if (m_numOfAASamples != (GHOST_TUns16)gli) {
@@ -653,7 +653,7 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
 		fileStrRange.location = [windowTitle rangeOfString:@"["].location+1;
 		len = [windowTitle rangeOfString:@"]"].location - fileStrRange.location;
 	
-		if (len >0)
+		if (len > 0)
 		{
 			fileStrRange.length = len;
 			associatedFileName = [windowTitle substringWithRange:fileStrRange];
@@ -1424,9 +1424,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorShape(GHOST_TStandardCursor sha
 /** Reverse the bits in a GHOST_TUns8
 static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 {
-	ch= ((ch>>1)&0x55) | ((ch<<1)&0xAA);
-	ch= ((ch>>2)&0x33) | ((ch<<2)&0xCC);
-	ch= ((ch>>4)&0x0F) | ((ch<<4)&0xF0);
+	ch= ((ch >> 1) & 0x55) | ((ch << 1) & 0xAA);
+	ch= ((ch >> 2) & 0x33) | ((ch << 2) & 0xCC);
+	ch= ((ch >> 4) & 0x0F) | ((ch << 4) & 0xF0);
 	return ch;
 }
 */
@@ -1435,10 +1435,10 @@ static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 /** Reverse the bits in a GHOST_TUns16 */
 static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 {
-	shrt= ((shrt>>1)&0x5555) | ((shrt<<1)&0xAAAA);
-	shrt= ((shrt>>2)&0x3333) | ((shrt<<2)&0xCCCC);
-	shrt= ((shrt>>4)&0x0F0F) | ((shrt<<4)&0xF0F0);
-	shrt= ((shrt>>8)&0x00FF) | ((shrt<<8)&0xFF00);
+	shrt = ((shrt >> 1) & 0x5555) | ((shrt << 1) & 0xAAAA);
+	shrt = ((shrt >> 2) & 0x3333) | ((shrt << 2) & 0xCCCC);
+	shrt = ((shrt >> 4) & 0x0F0F) | ((shrt << 4) & 0xF0F0);
+	shrt = ((shrt >> 8) & 0x00FF) | ((shrt << 8) & 0xFF00);
 	return shrt;
 }
 

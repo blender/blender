@@ -1054,7 +1054,7 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 					clip->proxy.build_size_flag, clip->proxy.quality);
 	}
 
-	WM_jobs_customdata(steve, pj, proxy_freejob);
+	WM_jobs_customdata_set(steve, pj, proxy_freejob);
 	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP | ND_DISPLAY, 0);
 	WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, proxy_endjob);
 
