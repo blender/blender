@@ -243,7 +243,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	blf_font_ensure_ascii_table(font);
 
 	/* another buffer spesific call for color conversion */
-	if (buf_info->is_linear) {
+	if (buf_info->do_color_management) {
 		srgb_to_linearrgb_v4(b_col_float, buf_info->col);
 	}
 	else {
@@ -304,9 +304,9 @@ void blf_font_buffer(FontBLF *font, const char *str)
 								fbuf[3] = (alphatest = (fbuf[3] + (b_col_float[3]))) < 1.0f ? alphatest : 1.0f;
 							}
 							else {
-								fbuf[0] = (b_col_float[0] * a) + (fbuf[0] * (1 - a));
-								fbuf[1] = (b_col_float[1] * a) + (fbuf[1] * (1 - a));
-								fbuf[2] = (b_col_float[2] * a) + (fbuf[2] * (1 - a));
+								fbuf[0] = (b_col_float[0] * a) + (fbuf[0] * (1.0f - a));
+								fbuf[1] = (b_col_float[1] * a) + (fbuf[1] * (1.0f - a));
+								fbuf[2] = (b_col_float[2] * a) + (fbuf[2] * (1.0f - a));
 								fbuf[3] = (alphatest = (fbuf[3] + (b_col_float[3] * a))) < 1.0f ? alphatest : 1.0f;
 							}
 						}

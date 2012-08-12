@@ -746,7 +746,7 @@ void BLF_shadow_offset(int fontid, int x, int y)
 	}
 }
 
-void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch, int is_linear)
+void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch, int do_color_management)
 {
 	FontBLF *font = BLF_get(fontid);
 
@@ -756,7 +756,7 @@ void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int 
 		font->buf_info.w = w;
 		font->buf_info.h = h;
 		font->buf_info.ch = nch;
-		font->buf_info.is_linear = is_linear;
+		font->buf_info.do_color_management = do_color_management;
 	}
 }
 

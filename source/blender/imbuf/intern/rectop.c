@@ -31,9 +31,11 @@
  *  \ingroup imbuf
  */
 
+#include <stdlib.h>
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -481,7 +483,8 @@ void IMB_rectfill(struct ImBuf *drect, const float col[4])
 }
 
 
-void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, const float col[4],
+void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
+					   const float col[4], const int do_color_management,
 					   int x1, int y1, int x2, int y2)
 {
 	int i, j;
@@ -545,21 +548,30 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 	}
 	
 	if (rectf) {
+		float col_conv[4];
 		float *pixel;
+
+		if (do_color_management) {
+			srgb_to_linearrgb_v4(col_conv, col);
+		}
+		else {
+			copy_v4_v4(col_conv, col);
+		}
+
 		for (j = 0; j < y2 - y1; j++) {
 			for (i = 0; i < x2 - x1; i++) {
 				pixel = rectf + 4 * (((y1 + j) * width) + (x1 + i));
 				if (a == 1.0f) {
-					pixel[0] = col[0];
-					pixel[1] = col[1];
-					pixel[2] = col[2];
+					pixel[0] = col_conv[0];
+					pixel[1] = col_conv[1];
+					pixel[2] = col_conv[2];
 					pixel[3] = 1.0f;
 				}
 				else {
 					float alphatest;
-					pixel[0] = (col[0] * a) + (pixel[0] * ai);
-					pixel[1] = (col[1] * a) + (pixel[1] * ai);
-					pixel[2] = (col[2] * a) + (pixel[2] * ai);
+					pixel[0] = (col_conv[0] * a) + (pixel[0] * ai);
+					pixel[1] = (col_conv[1] * a) + (pixel[1] * ai);
+					pixel[2] = (col_conv[2] * a) + (pixel[2] * ai);
 					pixel[3] = (alphatest = (pixel[3] + a)) < 1.0f ? alphatest : 1.0f;
 				}
 			}
@@ -569,8 +581,11 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 
 void IMB_rectfill_area(struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2)
 {
+	int do_color_management;
 	if (!ibuf) return;
-	buf_rectfill_area((unsigned char *) ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, col, x1, y1, x2, y2);
+	do_color_management = (ibuf->profile == IB_PROFILE_LINEAR_RGB);
+	buf_rectfill_area((unsigned char *) ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, col, do_color_management,
+					  x1, y1, x2, y2);
 }
 
 

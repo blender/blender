@@ -146,7 +146,7 @@ typedef struct FontBufInfoBLF {
 	int ch;
 
 	/* is the float buffer linear */
-	int is_linear;
+	int do_color_management;
 
 	/* and the color, the alphas is get from the glyph!
 	 * color is srgb space */
