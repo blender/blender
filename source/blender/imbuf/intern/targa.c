@@ -31,9 +31,11 @@
 
 
 #ifdef WIN32
-#include <io.h>
+#  include <io.h>
 #endif
-#include "BLI_blenlib.h"
+
+#include "BLI_fileops.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "imbuf.h"

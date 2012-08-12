@@ -256,10 +256,10 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 					from = (unsigned char *)ibuf->rect + channels * i * width;
 
 					for (int j = ibuf->x; j > 0; j--) {
-						to->r = (float)(from[0]) / 255.0;
-						to->g = (float)(from[1]) / 255.0;
-						to->b = (float)(from[2]) / 255.0;
-						to->a = (float)(channels >= 4) ? from[3] / 255.0 : 1.0f;
+						to->r = (float)(from[0]) / 255.0f;
+						to->g = (float)(from[1]) / 255.0f;
+						to->b = (float)(from[2]) / 255.0f;
+						to->a = (float)(channels >= 4) ? from[3] / 255.0f : 1.0f;
 						to++; from += 4;
 					}
 				}
@@ -269,10 +269,10 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 					from = (unsigned char *)ibuf->rect + channels * i * width;
 
 					for (int j = ibuf->x; j > 0; j--) {
-						to->r = srgb_to_linearrgb((float)from[0] / 255.0);
-						to->g = srgb_to_linearrgb((float)from[1] / 255.0);
-						to->b = srgb_to_linearrgb((float)from[2] / 255.0);
-						to->a = channels >= 4 ? (float)from[3] / 255.0 : 1.0f;
+						to->r = srgb_to_linearrgb((float)from[0] / 255.0f);
+						to->g = srgb_to_linearrgb((float)from[1] / 255.0f);
+						to->b = srgb_to_linearrgb((float)from[2] / 255.0f);
+						to->a = channels >= 4 ? (float)from[3] / 255.0f : 1.0f;
 						to++; from += 4;
 					}
 				}

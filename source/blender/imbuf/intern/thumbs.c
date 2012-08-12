@@ -34,7 +34,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
+#include "BLI_path_util.h"
+#include "BLI_fileops.h"
 #include "BLI_md5.h"
 
 #include "BKE_utildefines.h"
@@ -45,7 +47,6 @@
 #include "IMB_metadata.h"
 
 #include <ctype.h>
-#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <sys/types.h>

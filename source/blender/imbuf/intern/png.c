@@ -33,7 +33,8 @@
 
 #include "png.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
+
 #include "BLI_math.h"
 #include "MEM_guardedalloc.h"
 

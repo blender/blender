@@ -33,16 +33,20 @@
 
 
 #ifdef _WIN32
-#include <io.h>
-#include <stddef.h>
-#include <sys/types.h>
-#include "mmap_win.h"
-#define open _open
-#define read _read
-#define close _close
+#  include <io.h>
+#  include <stddef.h>
+#  include <sys/types.h>
+#  include "mmap_win.h"
+#  define open _open
+#  define read _read
+#  define close _close
 #endif
 
-#include "BLI_blenlib.h"
+#include <stdlib.h>
+#include "BLI_string.h"
+#include "BLI_path_util.h"
+#include "BLI_fileops.h"
+
 #include "BLI_utildefines.h"
 
 #include "imbuf.h"

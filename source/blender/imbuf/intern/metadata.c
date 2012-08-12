@@ -33,7 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf_types.h"

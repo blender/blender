@@ -37,7 +37,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
+#include "BLI_fileops.h"
 
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"
