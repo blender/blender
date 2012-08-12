@@ -2081,7 +2081,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 		 * I think no, because we always move the cursor, with or without
 		 * object, but in this case there is no change in the scene,
 		 * only the cursor so I choice a ED_region_tag like
-		 * smooth_view do for the center_cursor.
+		 * view3d_smooth_view do for the center_cursor.
 		 * See bug #22640
 		 */
 		return OPERATOR_FINISHED;
@@ -2109,10 +2109,10 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 
 		if ((rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 			rv3d->persp = RV3D_PERSP;
-			smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
+			view3d_smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 		}
 		else {
-			smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+			view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
 		}
 	}
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
@@ -2266,10 +2266,10 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (rv3d->persp == RV3D_CAMOB && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 		rv3d->persp = RV3D_PERSP;
-		smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
+		view3d_smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
 	}
 	else {
-		smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
+		view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
 	}
 
 	/* smooth view does viewlock RV3D_BOXVIEW copy */
@@ -2390,7 +2390,7 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *UNUSED(op))
 		/* non camera center */
 		float new_ofs[3];
 		negate_v3_v3(new_ofs, give_cursor(scene, v3d));
-		smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, NULL, NULL);
+		view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, NULL, NULL);
 		
 		/* smooth view does viewlock RV3D_BOXVIEW copy */
 	}
@@ -2662,7 +2662,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		new_dist = dist_range_min;
 	}
 
-	smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+	view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
 
 	if (rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(CTX_wm_area(C), ar);
@@ -2828,14 +2828,14 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 		if (U.uiflag & USER_AUTOPERSP) rv3d->persp = view ? RV3D_ORTHO : RV3D_PERSP;
 		else if (rv3d->persp == RV3D_CAMOB) rv3d->persp = perspo;
 
-		smooth_view(C, v3d, ar, v3d->camera, NULL, rv3d->ofs, new_quat, NULL, NULL);
+		view3d_smooth_view(C, v3d, ar, v3d->camera, NULL, rv3d->ofs, new_quat, NULL, NULL);
 	}
 	else {
 
 		if (U.uiflag & USER_AUTOPERSP) rv3d->persp = view ? RV3D_ORTHO : RV3D_PERSP;
 		else if (rv3d->persp == RV3D_CAMOB) rv3d->persp = perspo;
 
-		smooth_view(C, v3d, ar, NULL, NULL, NULL, new_quat, NULL, NULL);
+		view3d_smooth_view(C, v3d, ar, NULL, NULL, NULL, new_quat, NULL, NULL);
 	}
 
 }
@@ -2953,12 +2953,12 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 					/* finally do snazzy view zooming */
 					rv3d->persp = RV3D_CAMOB;
-					smooth_view(C, v3d, ar, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
+					view3d_smooth_view(C, v3d, ar, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
 
 				}
 				else {
 					/* return to settings of last view */
-					/* does smooth_view too */
+					/* does view3d_smooth_view too */
 					axis_set_view(C, v3d, ar,
 					              rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3],
 					              rv3d->lview, rv3d->lpersp, 0);
@@ -3048,7 +3048,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 			mul_qt_qtqt(quat_new, rv3d->viewquat, quat_mul);
 			rv3d->view = RV3D_VIEW_USER;
 
-			smooth_view(C, CTX_wm_view3d(C), ar, NULL, NULL, NULL, quat_new, NULL, NULL);
+			view3d_smooth_view(C, CTX_wm_view3d(C), ar, NULL, NULL, NULL, quat_new, NULL, NULL);
 
 			return OPERATOR_FINISHED;
 		}

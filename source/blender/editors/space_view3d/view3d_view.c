@@ -110,7 +110,7 @@ float *give_cursor(Scene *scene, View3D *v3d)
 /* ****************** smooth view operator ****************** */
 /* This operator is one of the 'timer refresh' ones like animation playback */
 
-struct SmoothViewStore {
+struct SmoothView3DStore {
 	float orig_dist, new_dist;
 	float orig_lens, new_lens;
 	float orig_quat[4], new_quat[4];
@@ -123,15 +123,15 @@ struct SmoothViewStore {
 
 /* will start timer if appropriate */
 /* the arguments are the desired situation */
-void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera,
-                 float *ofs, float *quat, float *dist, float *lens)
+void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera,
+						float *ofs, float *quat, float *dist, float *lens)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = CTX_wm_area(C);
 
 	RegionView3D *rv3d = ar->regiondata;
-	struct SmoothViewStore sms = {0};
+	struct SmoothView3DStore sms = {0};
 	short ok = FALSE;
 	
 	/* initialize sms */
@@ -227,7 +227,7 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 			
 			/* keep track of running timer! */
 			if (rv3d->sms == NULL)
-				rv3d->sms = MEM_mallocN(sizeof(struct SmoothViewStore), "smoothview v3d");
+				rv3d->sms = MEM_mallocN(sizeof(struct SmoothView3DStore), "smoothview v3d");
 			*rv3d->sms = sms;
 			if (rv3d->smooth_timer)
 				WM_event_remove_timer(wm, win, rv3d->smooth_timer);
@@ -259,7 +259,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	struct SmoothViewStore *sms = rv3d->sms;
+	struct SmoothView3DStore *sms = rv3d->sms;
 	float step, step_inv;
 	
 	/* escape if not our timer */
@@ -303,17 +303,12 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 		rv3d->rflag &= ~RV3D_NAVIGATING;
 	}
 	else {
-		int i;
-		
 		/* ease in/out */
-		if (step < 0.5f) step = (float)pow(step * 2.0f, 2.0) / 2.0f;
-		else step = (float)1.0f - (powf(2.0f * (1.0f - step), 2.0f) / 2.0f);
+		step = (3.0f * step * step - 2.0f * step * step * step);
 
 		step_inv = 1.0f - step;
 
-		for (i = 0; i < 3; i++)
-			rv3d->ofs[i] = sms->new_ofs[i] * step + sms->orig_ofs[i] * step_inv;
-
+		interp_v3_v3v3(rv3d->ofs,      sms->new_ofs,   sms->orig_ofs, step);
 		interp_qt_qtqt(rv3d->viewquat, sms->orig_quat, sms->new_quat, step);
 		
 		rv3d->dist = sms->new_dist * step + sms->orig_dist * step_inv;
@@ -490,7 +485,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *UNUSED(op))
 			scene->camera = ob;
 
 		if (camera_old != ob) /* unlikely but looks like a glitch when set to the same */
-			smooth_view(C, v3d, ar, camera_old, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
+			view3d_smooth_view(C, v3d, ar, camera_old, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS | NC_OBJECT | ND_DRAW, CTX_data_scene(C));
 	}
@@ -1100,14 +1095,14 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 			rv3d->dist = 0.0;
 			
 			ED_view3d_from_object(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
-			smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); /* XXX */
+			view3d_smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); /* XXX */
 
 			rv3d->persp = RV3D_CAMOB; /* just to be polite, not needed */
 			
 		}
 		else {
 			mat3_to_quat(new_quat, tmat);
-			smooth_view(NULL, NULL, NULL, NULL, NULL, NULL, new_quat, NULL, NULL); /* XXX */
+			view3d_smooth_view(NULL, NULL, NULL, NULL, NULL, NULL, new_quat, NULL, NULL); /* XXX */
 		}
 	}
 	else {
@@ -1872,11 +1867,11 @@ static void UNUSED_FUNCTION(view3d_align_axis_to_vector)(View3D *v3d, RegionView
 		rv3d->persp = RV3D_PERSP;
 		rv3d->dist = 0.0;
 		ED_view3d_from_object(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
-		smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); /* XXX */
+		view3d_smooth_view(NULL, NULL, NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); /* XXX */
 	}
 	else {
 		if (rv3d->persp == RV3D_CAMOB) rv3d->persp = RV3D_PERSP;  /* switch out of camera mode */
-		smooth_view(NULL, NULL, NULL, NULL, NULL, NULL, new_quat, NULL, NULL); /* XXX */
+		view3d_smooth_view(NULL, NULL, NULL, NULL, NULL, NULL, new_quat, NULL, NULL); /* XXX */
 	}
 }
 

@@ -5725,6 +5725,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	ar->v2d.tab_offset = NULL;
 	ar->v2d.tab_num = 0;
 	ar->v2d.tab_cur = 0;
+	ar->v2d.sms = NULL;
 	ar->handlers.first = ar->handlers.last = NULL;
 	ar->uiblocks.first = ar->uiblocks.last = NULL;
 	ar->headerstr = NULL;
