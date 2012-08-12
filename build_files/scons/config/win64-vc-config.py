@@ -97,6 +97,11 @@ BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
 
+WITH_BF_ELTOPO = False
+BF_LAPACK = LIBDIR + '/lapack'
+BF_LAPACK_LIB = 'libf2c clapack_nowrap BLAS_nowrap'
+BF_LAPACK_LIBPATH = '${BF_LAPACK}/lib'
+
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
