@@ -1368,7 +1368,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						/* new approach, using functions from kernel */
 						for (a = 0; a < ob_src->totcol; a++) {
 							Material *ma = give_current_material(ob_src, a + 1);
-							assign_material(ob_dst, ma, a + 1); /* also works with ma==NULL */
+							assign_material(ob_dst, ma, a + 1, BKE_MAT_ASSIGN_USERPREF); /* also works with ma==NULL */
 						}
 						break;
 					case MAKE_LINKS_ANIMDATA:
@@ -1692,7 +1692,7 @@ static void single_mat_users(Scene *scene, int flag, int do_textures)
 						BKE_copy_animdata_id_action(&man->id);
 						
 						man->id.us = 0;
-						assign_material(ob, man, a);
+						assign_material(ob, man, a, BKE_MAT_ASSIGN_USERPREF);
 
 						if (do_textures) {
 							for (b = 0; b < MAX_MTEX; b++) {
@@ -2044,7 +2044,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	if (base == NULL || ma == NULL)
 		return OPERATOR_CANCELLED;
 	
-	assign_material(base->object, ma, 1);
+	assign_material(base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
 	
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));

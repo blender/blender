@@ -663,7 +663,7 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 	Object *ob = (Object *)ptr->id.data;
 
 	DAG_id_tag_update(value.data, 0);
-	assign_material(ob, value.data, ob->actcol);
+	assign_material(ob, value.data, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
 }
 
 static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max,
@@ -820,7 +820,7 @@ static void rna_MaterialSlot_material_set(PointerRNA *ptr, PointerRNA value)
 	Object *ob = (Object *)ptr->id.data;
 	int index = (Material **)ptr->data - ob->mat;
 
-	assign_material(ob, value.data, index + 1);
+	assign_material(ob, value.data, index + 1, BKE_MAT_ASSIGN_USERPREF);
 }
 
 static int rna_MaterialSlot_link_get(PointerRNA *ptr)

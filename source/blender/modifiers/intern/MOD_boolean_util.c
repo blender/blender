@@ -632,7 +632,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 
 	/* add materials to object */
 	for (a = 0; a < totmat; a++)
-		assign_material(ob_new, mat[a], a + 1);
+		assign_material(ob_new, mat[a], a + 1, BKE_MAT_ASSIGN_USERPREF);
 
 	MEM_freeN(mat);
 
