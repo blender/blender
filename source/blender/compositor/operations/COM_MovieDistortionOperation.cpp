@@ -31,6 +31,15 @@ extern "C" {
 
 vector<DistortionCache *> s_cache;
 
+void deintializeDistortionCache(void) 
+{
+	while (s_cache.size()>0)
+	{
+		DistortionCache * cache = s_cache.back();
+		s_cache.pop_back();
+		delete cache;
+	}
+}
 
 MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperation()
 {
@@ -52,12 +61,14 @@ void MovieDistortionOperation::initExecution()
 		BKE_movieclip_user_set_frame(&clipUser, this->m_framenumber);
 		BKE_movieclip_get_size(this->m_movieClip, &clipUser, &calibration_width, &calibration_height);
 
-		for (unsigned int i = 0; i < s_cache.size(); i++) {
+		for (unsigned int i = 0; i < s_cache.size(); i++) 
+		{
 			DistortionCache *c = (DistortionCache *)s_cache[i];
 			if (c->isCacheFor(this->m_movieClip, this->m_width, this->m_height,
 			                  calibration_width, calibration_height, this->m_distortion))
 			{
 				this->m_cache = c;
+				this->m_cache->updateLastUsage();
 				return;
 			}
 		}
@@ -75,6 +86,21 @@ void MovieDistortionOperation::deinitExecution()
 {
 	this->m_inputOperation = NULL;
 	this->m_movieClip = NULL;
+	while (s_cache.size() > COM_DISTORTIONCACHE_MAXSIZE) 
+	{
+		double minTime = PIL_check_seconds_timer();
+		vector<DistortionCache*>::iterator minTimeIterator = s_cache.begin();
+		for (vector<DistortionCache*>::iterator it = s_cache.begin(); it < s_cache.end(); it ++) 
+		{
+			DistortionCache * cache = *it;
+			if (cache->getTimeLastUsage()<minTime) 
+			{
+				minTime = cache->getTimeLastUsage();
+				minTimeIterator = it;
+			}
+		}
+		s_cache.erase(minTimeIterator);
+	}
 }
 
 

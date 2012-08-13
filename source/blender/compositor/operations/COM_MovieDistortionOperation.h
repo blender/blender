@@ -27,7 +27,10 @@
 #include "DNA_movieclip_types.h"
 extern "C" {
 	#include "BKE_tracking.h"
+	#include "PIL_time.h"
 }
+
+#define COM_DISTORTIONCACHE_MAXSIZE 10
 
 class DistortionCache {
 private:
@@ -44,6 +47,8 @@ private:
 	bool m_inverted;
 	float *m_buffer;
 	int *m_bufferCalculated;
+	double timeLastUsage;
+	
 public:
 	DistortionCache(MovieClip *movieclip, int width, int height, int calibration_width, int calibration_height, bool inverted) {
 		this->m_k1 = movieclip->tracking.camera.k1;
@@ -62,7 +67,29 @@ public:
 		for (int i = 0; i < this->m_width * this->m_height; i++) {
 			this->m_bufferCalculated[i] = 0;
 		}
+		this->updateLastUsage();
 	}
+	
+	~DistortionCache() {
+		if (this->m_buffer) {
+			delete[] this->m_buffer;
+			this->m_buffer = NULL;
+		}
+		
+		if (this->m_bufferCalculated) {
+			delete[] this->m_bufferCalculated;
+			this->m_bufferCalculated = NULL;
+		}
+	}
+	
+	void updateLastUsage() {
+		this->timeLastUsage = PIL_check_seconds_timer();
+	}
+	
+	inline double getTimeLastUsage() {
+		return this->timeLastUsage;
+	}
+
 	bool isCacheFor(MovieClip *movieclip, int width, int height, int calibration_width, int claibration_height, bool inverted) {
 		return this->m_k1 == movieclip->tracking.camera.k1 &&
 		       this->m_k2 == movieclip->tracking.camera.k2 &&
@@ -138,5 +165,7 @@ public:
 	void setMovieClip(MovieClip *clip) { this->m_movieClip = clip; }
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
 };
+
+void deintializeDistortionCache(void);
 
 #endif
