@@ -4042,3 +4042,21 @@ void BKE_sequence_base_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *
 		}
 	}
 }
+
+/* called on draw, needs to be fast,
+ * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
+int BKE_seqence_is_valid_check(Sequence *seq)
+{
+	switch (seq->type) {
+		case SEQ_TYPE_MASK:
+			return (seq->mask != NULL);
+		case SEQ_TYPE_MOVIECLIP:
+			return (seq->clip != NULL);
+		case SEQ_TYPE_SCENE:
+			return (seq->scene != NULL);
+		case SEQ_TYPE_SOUND_RAM:
+			return (seq->sound != NULL);
+	}
+
+	return TRUE;
+}
