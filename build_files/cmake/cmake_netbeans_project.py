@@ -24,7 +24,7 @@
 
 """
 Example linux usage
- python .~/blenderSVN/blender/build_files/cmake/cmake_netbeans_project.py ~/blenderSVN/cmake
+ python3 ~/blenderSVN/blender/build_files/cmake/cmake_netbeans_project.py ~/blenderSVN/cmake
 
 Windows not supported so far
 """

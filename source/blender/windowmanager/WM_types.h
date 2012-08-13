@@ -31,10 +31,11 @@
 #ifndef __WM_TYPES_H__
 #define __WM_TYPES_H__
 
-/*
+/**
  * Overview of WM structs
  * ======================
  *
+ * <pre>
  * > wmWindowManager    (window manager stores a list of windows)
  * > > wmWindow         (window has an active screen)
  * > > > bScreen        (link to ScrAreas via 'areabase')
@@ -42,11 +43,12 @@
  * > > > > > SpaceLink  (base struct for space data for all different space types)
  * > > > > ScrArea      (stores multiple regions via 'regionbase')
  * > > > > > ARegion
- *
+ * </pre>
  *
  * Window Layout
  * =============
  *
+ * <pre>
  * wmWindow -> bScreen
  * +----------------------------------------------------------+
  * |+-----------------------------------------+-------------+ |
@@ -66,11 +68,12 @@
  * ||+-------++----------+-------------------+|             | |
  * |+-----------------------------------------+-------------+ |
  * +----------------------------------------------------------+
- *
+ * </pre>
  *
  * Space Data
  * ==========
  *
+ * <pre>
  * ScrArea's store a list of space data (SpaceLinks), each of unique type.
  * The first one is the displayed in the UI, others are added as needed.
  *
@@ -88,14 +91,15 @@
  *    +-----------------------------+   |
  *       |                              |
  *       +------------------------------+
+ * </pre>
  *
  * A common way to get the space from the ScrArea:
- *
+ * <pre>
  *     if (sa->spacetype == SPACE_VIEW3D) {
  *         View3D *v3d = sa->spacedata.first;
  *         ...
  *     }
- *
+ * </pre>
  */
 
 #ifdef __cplusplus

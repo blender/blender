@@ -45,20 +45,21 @@
  * Turns the face region surrounding a manifold vertex into a single polygon.
  *
  * \par Example:
- *
+ * <pre>
  *              +---------+             +---------+
  *              |  \   /  |             |         |
  *     Before:  |    v    |      After: |         |
  *              |  /   \  |             |         |
  *              +---------+             +---------+
- *
+ * </pre>
  *
  * This function can also collapse edges too
  * in cases when it cant merge into faces.
  *
  * \par Example:
- *
+ * <pre>
  *     Before:  +----v----+      After: +---------+
+ * </pre>
  *
  * \note dissolves vert, in more situations then BM_disk_dissolve
  * (e.g. if the vert is part of a wire edge, etc).

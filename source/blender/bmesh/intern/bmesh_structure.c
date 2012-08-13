@@ -203,9 +203,9 @@ void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
 /**
  * \brief Next Disk Edge
  *
- *	Find the next edge in a disk cycle
+ * Find the next edge in a disk cycle
  *
- *	\return Pointer to the next edge in the disk cycle for the vertex v.
+ * \return Pointer to the next edge in the disk cycle for the vertex v.
  */
 BMEdge *bmesh_disk_edge_next(BMEdge *e, BMVert *v)
 {

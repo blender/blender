@@ -71,16 +71,17 @@ typedef struct bDeformGroup {
 #define DG_LOCK_WEIGHT 1
 
 /**
- * The following illustrates the orientation of the 
+ * The following illustrates the orientation of the
  * bounding box in local space
- * 
- *  
+ *
+ * <pre>
+ *
  * Z  Y
  * | /
  * |/
  * .-----X
- * 
- * 
+ *
+ *
  *     2----------6
  *    /|         /|
  *   / |        / |
@@ -90,6 +91,7 @@ typedef struct bDeformGroup {
  *  | /        | /
  *  |/         |/
  *  0----------4
+ * </pre>
  */
 typedef struct BoundBox {
 	float vec[8][3];
