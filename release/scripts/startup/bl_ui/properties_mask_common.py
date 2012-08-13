@@ -237,6 +237,13 @@ class MASK_PT_tools():
         col.operator("mask.parent_set")
         col.operator("mask.parent_clear")
 
+        col = layout.column(align=True)
+        col.label(text="Animation:")
+        col.operator("mask.shape_key_clear")
+        col.operator("mask.shape_key_insert")
+        col.operator("mask.shape_key_feather_reset")
+        col.operator("mask.shape_key_rekey")
+
 
 class MASK_MT_mask(Menu):
     bl_label = "Mask"

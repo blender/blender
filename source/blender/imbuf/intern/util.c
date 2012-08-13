@@ -33,13 +33,15 @@
 
 
 #ifdef _WIN32
-#include <io.h>
-#define open _open
-#define read _read
-#define close _close
+#  include <io.h>
+#  define open _open
+#  define read _read
+#  define close _close
 #endif
 
-#include "BLI_blenlib.h"
+#include <stdlib.h>
+
+#include "BLI_path_util.h"
 #include "BLI_fileops.h"
 
 #include "DNA_userdef_types.h"

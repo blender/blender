@@ -36,6 +36,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "BKE_context.h"
 
@@ -1186,10 +1187,48 @@ struct SmoothView2DStore {
 	double time_allowed;
 };
 
+/**
+ * function to get a factor out of a rectangle
+ *
+ * note: this doesn't always work as well as it might because the target size
+ *       may not be reached because of clamping the desired rect, we _could_
+ *       attempt to clamp the rect before working out the zoom factor but its
+ *       not really worthwhile for the few cases this happens.
+ */
+static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
+{
+	float size_a[2] = {rect_a->xmax - rect_a->xmin,
+	                   rect_a->ymax - rect_a->ymin};
+	float size_b[2] = {rect_b->xmax - rect_b->xmin,
+	                   rect_b->ymax - rect_b->ymin};
+	float cent_a[2] = {(rect_a->xmax + rect_a->xmin) * 0.5f,
+	                   (rect_a->ymax + rect_a->ymin) * 0.5f};
+	float cent_b[2] = {(rect_b->xmax + rect_b->xmin) * 0.5f,
+	                   (rect_b->ymax + rect_b->ymin) * 0.5f};
+
+	float fac_max = 0.0f;
+	float tfac;
+
+	int i;
+
+	for (i = 0; i < 2; i++) {
+		/* axis translation normalized to scale */
+		tfac = fabsf(cent_a[i] - cent_b[i]) / minf(size_a[i], size_b[i]);
+		fac_max = maxf(fac_max, tfac);
+		if (fac_max >= 1.0f) break;
+
+		/* axis scale difference, x2 so doubling or half gives 1.0f */
+		tfac = (1.0f - (minf(size_a[i], size_b[i]) / maxf(size_a[i], size_b[i]))) * 2.0f;
+		fac_max = maxf(fac_max, tfac);
+		if (fac_max >= 1.0f) break;
+	}
+	return minf(fac_max, 1.0f);
+}
+
 /* will start timer if appropriate */
 /* the arguments are the desired situation */
 void UI_view2d_smooth_view(bContext *C, ARegion *ar,
-						   const rctf *cur)
+                           const rctf *cur)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
@@ -1197,6 +1236,7 @@ void UI_view2d_smooth_view(bContext *C, ARegion *ar,
 	View2D *v2d = &ar->v2d;
 	struct SmoothView2DStore sms = {{0}};
 	short ok = FALSE;
+	float fac = 1.0f;
 
 	/* initialize sms */
 	sms.new_cur = v2d->cur;
@@ -1204,7 +1244,11 @@ void UI_view2d_smooth_view(bContext *C, ARegion *ar,
 	/* store the options we want to end with */
 	if (cur) sms.new_cur = *cur;
 
-	if (C && U.smooth_viewtx) {
+	if (cur) {
+		fac = smooth_view_rect_to_fac(&v2d->cur, cur);
+	}
+
+	if (C && U.smooth_viewtx && fac > FLT_EPSILON) {
 		int changed = 0; /* zero means no difference */
 
 		if (BLI_rctf_compare(&sms.new_cur, &v2d->cur, FLT_EPSILON) == FALSE)
@@ -1217,6 +1261,9 @@ void UI_view2d_smooth_view(bContext *C, ARegion *ar,
 			sms.orig_cur = v2d->cur;
 
 			sms.time_allowed = (double)U.smooth_viewtx / 1000.0;
+
+			/* scale the time allowed the change in view */
+			sms.time_allowed *= (double)fac;
 
 			/* keep track of running timer! */
 			if (v2d->sms == NULL)

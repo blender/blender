@@ -22,6 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stdlib.h>
+
 #include "IMB_indexer.h"
 #include "IMB_anim.h"
 #include "AVI_avi.h"
@@ -29,13 +31,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
+#include "BLI_path_util.h"
+#include "BLI_fileops.h"
 #include "BLI_math_base.h"
 
 #include "MEM_guardedalloc.h"
 #include "DNA_userdef_types.h"
 #include "BKE_global.h"
-#include <stdlib.h>
 
 #ifdef WITH_FFMPEG
 
