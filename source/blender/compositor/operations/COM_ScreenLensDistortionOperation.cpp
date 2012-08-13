@@ -21,9 +21,10 @@
  */
 
 #include "COM_ScreenLensDistortionOperation.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
+
 extern "C" {
+	#include "BLI_math.h"
+	#include "BLI_utildefines.h"
 	#include "BLI_rand.h"
 }
 
@@ -69,18 +70,18 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 	const float uv_dot = u * u + v * v;
 	int sta = 0, mid = 0, end = 0;
 
-	if ((t = 1.f - this->m_kr4 * uv_dot) >= 0.f) {
-		d = 1.f / (1.f + sqrtf(t));
+	if ((t = 1.0f - this->m_kr4 * uv_dot) >= 0.0f) {
+		d = 1.0f / (1.0f + sqrtf(t));
 		ln[0] = (u * d + 0.5f) * width - 0.5f, ln[1] = (v * d + 0.5f) * height - 0.5f;
 		sta = 1;
 	}
-	if ((t = 1.f - this->m_kg4 * uv_dot) >= 0.f) {
-		d = 1.f / (1.f + sqrtf(t));
+	if ((t = 1.0f - this->m_kg4 * uv_dot) >= 0.0f) {
+		d = 1.0f / (1.0f + sqrtf(t));
 		ln[2] = (u * d + 0.5f) * width - 0.5f, ln[3] = (v * d + 0.5f) * height - 0.5f;
 		mid = 1;
 	}
-	if ((t = 1.f - this->m_kb4 * uv_dot) >= 0.f) {
-		d = 1.f / (1.f + sqrtf(t));
+	if ((t = 1.0f - this->m_kb4 * uv_dot) >= 0.0f) {
+		d = 1.0f / (1.0f + sqrtf(t));
 		ln[4] = (u * d + 0.5f) * width - 0.5f, ln[5] = (v * d + 0.5f) * height - 0.5f;
 		end = 1;
 	}
@@ -92,36 +93,36 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 		{
 			// RG
 			const int dx = ln[2] - ln[0], dy = ln[3] - ln[1];
-			const float dsf = sqrtf((float)dx * dx + dy * dy) + 1.f;
-			const int ds = (int)(jit ? ((dsf < 4.f) ? 2.f : sqrtf(dsf)) : dsf);
-			const float sd = 1.f / (float)ds;
+			const float dsf = sqrtf((float)dx * dx + dy * dy) + 1.0f;
+			const int ds = (int)(jit ? ((dsf < 4.0f) ? 2.0f : sqrtf(dsf)) : dsf);
+			const float sd = 1.0f / (float)ds;
 
 			for (z = 0; z < ds; ++z) {
 				const float tz = ((float)z + (jit ? BLI_frand() : 0.5f)) * sd;
 				t = 1.0f - (this->m_kr4 + tz * this->m_drg) * uv_dot;
-				d = 1.0f / (1.f + sqrtf(t));
+				d = 1.0f / (1.0f + sqrtf(t));
 				const float nx = (u * d + 0.5f) * width - 0.5f;
 				const float ny = (v * d + 0.5f) * height - 0.5f;
 				buffer->readCubic(color, nx, ny);
-				tc[0] += (1.f - tz) * color[0], tc[1] += tz * color[1];
+				tc[0] += (1.0f - tz) * color[0], tc[1] += tz * color[1];
 				dr++, dg++;
 			}
 		}
 		{
 			// GB
 			const int dx = ln[4] - ln[2], dy = ln[5] - ln[3];
-			const float dsf = sqrtf((float)dx * dx + dy * dy) + 1.f;
-			const int ds = (int)(jit ? ((dsf < 4.f) ? 2.f : sqrtf(dsf)) : dsf);
-			const float sd = 1.f / (float)ds;
+			const float dsf = sqrtf((float)dx * dx + dy * dy) + 1.0f;
+			const int ds = (int)(jit ? ((dsf < 4.0f) ? 2.0f : sqrtf(dsf)) : dsf);
+			const float sd = 1.0f / (float)ds;
 
 			for (z = 0; z < ds; ++z) {
 				const float tz = ((float)z + (jit ? BLI_frand() : 0.5f)) * sd;
-				t = 1.f - (this->m_kg4 + tz * this->m_dgb) * uv_dot;
-				d = 1.f / (1.f + sqrtf(t));
+				t = 1.0f - (this->m_kg4 + tz * this->m_dgb) * uv_dot;
+				d = 1.0f / (1.0f + sqrtf(t));
 				const float nx = (u * d + 0.5f) * width - 0.5f;
 				const float ny = (v * d + 0.5f) * height - 0.5f;
 				buffer->readCubic(color, nx, ny);
-				tc[1] += (1.f - tz) * color[1], tc[2] += tz * color[2];
+				tc[1] += (1.0f - tz) * color[1], tc[2] += tz * color[2];
 				dg++, db++;
 			}
 
@@ -162,16 +163,16 @@ void ScreenLensDistortionOperation::determineUV(float result[4], float x, float 
 	const float u = this->m_sc * ((x + 0.5f) - this->m_cx) / this->m_cx;
 	const float uv_dot = u * u + v * v;
 
-	if ((t = 1.f - this->m_kr4 * uv_dot) >= 0.f) {
-		d = 1.f / (1.f + sqrtf(t));
+	if ((t = 1.0f - this->m_kr4 * uv_dot) >= 0.0f) {
+		d = 1.0f / (1.0f + sqrtf(t));
 		ln[0] = (u * d + 0.5f) * width - 0.5f, ln[1] = (v * d + 0.5f) * height - 0.5f;
 	}
-	if ((t = 1.f - this->m_kg4 * uv_dot) >= 0.f) {
-		d = 1.f / (1.f + sqrtf(t));
+	if ((t = 1.0f - this->m_kg4 * uv_dot) >= 0.0f) {
+		d = 1.0f / (1.0f + sqrtf(t));
 		ln[2] = (u * d + 0.5f) * width - 0.5f, ln[3] = (v * d + 0.5f) * height - 0.5f;
 	}
-	if ((t = 1.f - this->m_kb4 * uv_dot) >= 0.f) {
-		d = 1.f / (1.f + sqrtf(t));
+	if ((t = 1.0f - this->m_kb4 * uv_dot) >= 0.0f) {
+		d = 1.0f / (1.0f + sqrtf(t));
 		ln[4] = (u * d + 0.5f) * width - 0.5f, ln[5] = (v * d + 0.5f) * height - 0.5f;
 	}
 
@@ -180,14 +181,14 @@ void ScreenLensDistortionOperation::determineUV(float result[4], float x, float 
 	{
 		// RG
 		const int dx = ln[2] - ln[0], dy = ln[3] - ln[1];
-		const float dsf = sqrtf((float)dx * dx + dy * dy) + 1.f;
-		const int ds = (int)(jit ? ((dsf < 4.f) ? 2.f : sqrtf(dsf)) : dsf);
-		const float sd = 1.f / (float)ds;
+		const float dsf = sqrtf((float)dx * dx + dy * dy) + 1.0f;
+		const int ds = (int)(jit ? ((dsf < 4.0f) ? 2.0f : sqrtf(dsf)) : dsf);
+		const float sd = 1.0f / (float)ds;
 
 		z = ds;
 		const float tz = ((float)z + (1.0f)) * sd;
 		t = 1.0f - (this->m_kr4 + tz * this->m_drg) * uv_dot;
-		d = 1.0f / (1.f + sqrtf(t));
+		d = 1.0f / (1.0f + sqrtf(t));
 		const float nx = (u * d + 0.5f) * width - 0.5f;
 		const float ny = (v * d + 0.5f) * height - 0.5f;
 		result[0] = nx;
@@ -196,14 +197,14 @@ void ScreenLensDistortionOperation::determineUV(float result[4], float x, float 
 	{
 		// GB
 		const int dx = ln[4] - ln[2], dy = ln[5] - ln[3];
-		const float dsf = sqrtf((float)dx * dx + dy * dy) + 1.f;
-		const int ds = (int)(jit ? ((dsf < 4.f) ? 2.f : sqrtf(dsf)) : dsf);
-		const float sd = 1.f / (float)ds;
+		const float dsf = sqrtf((float)dx * dx + dy * dy) + 1.0f;
+		const int ds = (int)(jit ? ((dsf < 4.0f) ? 2.0f : sqrtf(dsf)) : dsf);
+		const float sd = 1.0f / (float)ds;
 
 		z = ds;
 		const float tz = ((float)z + (1.0f)) * sd;
-		t = 1.f - (this->m_kg4 + tz * this->m_dgb) * uv_dot;
-		d = 1.f / (1.f + sqrtf(t));
+		t = 1.0f - (this->m_kg4 + tz * this->m_dgb) * uv_dot;
+		d = 1.0f / (1.0f + sqrtf(t));
 		const float nx = (u * d + 0.5f) * width - 0.5f;
 		const float ny = (v * d + 0.5f) * height - 0.5f;
 		result[2] = nx;
@@ -231,11 +232,12 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 
 #define MARGIN 96
 
-#define UPDATE_INPUT \
+#define UPDATE_INPUT  { \
 		newInput.xmin = MIN3(newInput.xmin, coords[0], coords[2]); \
 		newInput.ymin = MIN3(newInput.ymin, coords[1], coords[3]); \
 		newInput.xmax = MAX3(newInput.xmax, coords[0], coords[2]); \
-		newInput.ymax = MAX3(newInput.ymax, coords[1], coords[3]);
+		newInput.ymax = MAX3(newInput.ymax, coords[1], coords[3]); \
+	} (void)0
 	
 	rcti newInput;
 	float margin;
@@ -253,10 +255,9 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		UPDATE_INPUT;
 		determineUV(coords, input->xmax, input->ymin);
 		UPDATE_INPUT;
-		margin = (ABS(this->m_distortion) + this->m_dispersion) * MARGIN + 2.0f;
+		margin = (fabsf(this->m_distortion) + this->m_dispersion) * MARGIN + 2.0f;
 	} 
-	else 
-	{
+	else {
 		determineUV(coords, input->xmin, input->ymin, 1.0f, 1.0f);
 		newInput.xmin = coords[0];
 		newInput.ymin = coords[1];
@@ -281,6 +282,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		determineUV(coords, input->xmax, input->ymin, 1.0f, 1.0f);
 		UPDATE_INPUT;
 		margin = MARGIN;
+		printf("margin b: %f\n", margin);
 	}
 
 #undef UPDATE_INPUT
@@ -290,7 +292,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 	newInput.ymax += margin;
 
 	operation = getInputOperation(0);
-	if (operation->determineDependingAreaOfInterest(&newInput, readOperation, output) ) {
+	if (operation->determineDependingAreaOfInterest(&newInput, readOperation, output)) {
 		return true;
 	}
 	return false;
@@ -304,13 +306,14 @@ void ScreenLensDistortionOperation::updateVariables(float distortion, float disp
 	this->m_kr = maxf(minf((this->m_kg + d), 1.0f), -0.999f);
 	this->m_kb = maxf(minf((this->m_kg - d), 1.0f), -0.999f);
 	this->m_maxk = MAX3(this->m_kr, this->m_kg, this->m_kb);
-	this->m_sc = (this->m_data->fit && (this->m_maxk > 0.f)) ? (1.f / (1.f + 2.f * this->m_maxk)) : (1.f / (1.f + this->m_maxk));
-	this->m_drg = 4.f * (this->m_kg - this->m_kr);
-	this->m_dgb = 4.f * (this->m_kb - this->m_kg);
+	this->m_sc = (this->m_data->fit && (this->m_maxk > 0.0f)) ? (1.0f / (1.0f + 2.0f * this->m_maxk)) :
+	                                                            (1.0f / (1.0f +        this->m_maxk));
+	this->m_drg = 4.0f * (this->m_kg - this->m_kr);
+	this->m_dgb = 4.0f * (this->m_kb - this->m_kg);
 
 	this->m_kr4 = this->m_kr * 4.0f;
 	this->m_kg4 = this->m_kg * 4.0f;
-	this->m_kb4 = this->m_kb * 4.0f;	
+	this->m_kb4 = this->m_kb * 4.0f;
 }
 
 void ScreenLensDistortionOperation::updateDispersionAndDistortion()
