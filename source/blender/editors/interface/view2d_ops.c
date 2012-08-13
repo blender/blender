@@ -1198,13 +1198,13 @@ struct SmoothView2DStore {
 static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
 {
 	float size_a[2] = {rect_a->xmax - rect_a->xmin,
-					   rect_a->ymax - rect_a->ymin};
+	                   rect_a->ymax - rect_a->ymin};
 	float size_b[2] = {rect_b->xmax - rect_b->xmin,
-					   rect_b->ymax - rect_b->ymin};
+	                   rect_b->ymax - rect_b->ymin};
 	float cent_a[2] = {(rect_a->xmax + rect_a->xmin) * 0.5f,
-					   (rect_a->ymax + rect_a->ymin) * 0.5f};
+	                   (rect_a->ymax + rect_a->ymin) * 0.5f};
 	float cent_b[2] = {(rect_b->xmax + rect_b->xmin) * 0.5f,
-					   (rect_b->ymax + rect_b->ymin) * 0.5f};
+	                   (rect_b->ymax + rect_b->ymin) * 0.5f};
 
 	float fac_max = 0.0f;
 	float tfac;
@@ -1228,7 +1228,7 @@ static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
 /* will start timer if appropriate */
 /* the arguments are the desired situation */
 void UI_view2d_smooth_view(bContext *C, ARegion *ar,
-						   const rctf *cur)
+                           const rctf *cur)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);

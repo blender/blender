@@ -43,6 +43,7 @@ struct HookModifierData;
 enum {
 	OBJECT_ADDHOOK_NEWOB = 1,
 	OBJECT_ADDHOOK_SELOB,
+	OBJECT_ADDHOOK_SELOB_BONE
 } eObject_Hook_Add_Mode;
 
 /* internal exports only */
