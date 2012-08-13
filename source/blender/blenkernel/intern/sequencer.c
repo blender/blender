@@ -594,6 +594,9 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
 			}
 			break;
 		case SEQ_TYPE_MOVIECLIP:
+			if (seq->clip == NULL)
+				return;
+
 			seq->len = BKE_movieclip_get_duration(seq->clip);
 
 			seq->len -= seq->anim_startofs;
@@ -603,8 +606,9 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
 			}
 			break;
 		case SEQ_TYPE_MASK:
+			if (seq->mask == NULL)
+				return;
 			seq->len = BKE_mask_get_duration(seq->mask);
-
 			seq->len -= seq->anim_startofs;
 			seq->len -= seq->anim_endofs;
 			if (seq->len < 0) {
