@@ -235,6 +235,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=0.0,
                 )
 
+        cls.debug_tile_size = IntProperty(
+                name="Tile Size",
+                description="",
+                min=1, max=4096,
+                default=1024,
+                )
+
         cls.resolution_divider = IntProperty(
                 name="Resolution Divider",
                 description="Start viewport rendering with lower resolution which would be real resolution divided by two in power of this value",
