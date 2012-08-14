@@ -99,6 +99,9 @@ bool ExecutionGroup::canContainOperation(NodeOperation *operation)
 
 void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operation)
 {
+	/* should never happen but in rare cases it can - it causes confusing crashes */
+	BLI_assert(operation->isOperation() == true);
+
 	if (containsOperation(operation)) return;
 	if (canContainOperation(operation)) {
 		if (!operation->isBufferOperation()) {

@@ -49,8 +49,8 @@ public:
 	const float getChannel3() { return this->m_channel3; }
 	void setChannel3(float value) { this->m_channel3 = value; }
 	const float getChannel4() { return this->m_channel4; }
-	void setChannel4(float value) { this->m_channel4 = value; }
-	void setChannels(float value[4])
+	void setChannel4(const float value) { this->m_channel4 = value; }
+	void setChannels(const float value[4])
 	{
 		this->m_channel1 = value[0];
 		this->m_channel2 = value[1];
