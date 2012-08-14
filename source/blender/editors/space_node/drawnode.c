@@ -2351,6 +2351,13 @@ static void node_composit_buts_bokehimage(uiLayout *layout, bContext *UNUSED(C),
 	uiItemR(layout, ptr, "shift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
+static void node_composit_buts_bokehblur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "use_variable_size", 0, NULL, ICON_NONE);
+	// uiItemR(layout, ptr, "f_stop", 0, NULL, ICON_NONE);  // UNUSED
+	uiItemR(layout, ptr, "blur_max", 0, NULL, ICON_NONE);
+}
+
 void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
 {
 //	node_composit_backdrop_canvas(snode, backdrop, node, x, y);
@@ -2763,6 +2770,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_BOKEHIMAGE:
 			ntype->uifunc = node_composit_buts_bokehimage;
+			break;
+		case CMP_NODE_BOKEHBLUR:
+			ntype->uifunc = node_composit_buts_bokehblur;
 			break;
 		case CMP_NODE_VIEWER:
 			ntype->uifunc = NULL;
