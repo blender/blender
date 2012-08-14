@@ -324,6 +324,20 @@ static char *rna_NodeSocket_path(PointerRNA *ptr)
 	return NULL;
 }
 
+static void rna_NodeSocket_hide_set(PointerRNA *ptr, int value)
+{
+	bNodeSocket *sock = (bNodeSocket *)ptr->data;
+	
+	/* don't hide linked sockets */
+	if (sock->flag & SOCK_IN_USE)
+		return;
+	
+	if (value)
+		sock->flag |= SOCK_HIDDEN;
+	else
+		sock->flag &= ~SOCK_HIDDEN;
+}
+
 /* Button Set Funcs for Matte Nodes */
 static void rna_Matte_t1_set(PointerRNA *ptr, float value)
 {
@@ -4105,6 +4119,17 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "NodeSocket");
 	RNA_def_property_ui_text(prop, "Group Socket",
 	                         "For group nodes, the group input or output socket this corresponds to");
+
+	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_HIDDEN);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_NodeSocket_hide_set");
+	RNA_def_property_ui_text(prop, "Hide", "Hide the socket");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
+
+	prop = RNA_def_property(srna, "is_linked", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_IN_USE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Linked", "True if the socket is connected");
 
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SOCK_COLLAPSED);

@@ -134,3 +134,34 @@ class NODE_OT_add_search(Operator):
 
         context.window_manager.invoke_search_popup(self)
         return {'CANCELLED'}
+
+
+class NODE_OT_collapse_hide_unused_toggle(Operator):
+    '''Toggle collapsed nodes and hide unused sockets'''
+    bl_idname = "node.collapse_hide_unused_toggle"
+    bl_label = "Collapse and Hide Unused Sockets"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        # needs active node editor and a tree
+        return space.type == 'NODE_EDITOR' and space.edit_tree
+
+    def execute(self, context):
+        space = context.space_data
+        tree = space.edit_tree
+
+        for node in tree.nodes:
+            if node.select:
+                hide = not node.hide
+                
+                node.hide = hide
+                # Note: connected sockets are ignored internally
+                for socket in node.inputs:
+                    socket.hide = hide
+                for socket in node.outputs:
+                    socket.hide = hide
+                    
+        return {'FINISHED'}
+

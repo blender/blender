@@ -127,7 +127,7 @@ typedef struct bNodeSocket {
 /* sock->flag, first bit is select */
 	/* hidden is user defined, to hide unused */
 #define SOCK_HIDDEN				2
-	/* only used now for groups... */
+	/* for quick check if socket is linked */
 #define SOCK_IN_USE				4	/* XXX deprecated */
 	/* unavailable is for dynamic sockets */
 #define SOCK_UNAVAIL			8
