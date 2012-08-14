@@ -1678,7 +1678,7 @@ int BKE_sequencer_input_have_to_preprocess(SeqRenderData UNUSED(context), Sequen
 	float mul;
 
 	if (seq->flag & (SEQ_FILTERY | SEQ_USE_CROP | SEQ_USE_TRANSFORM | SEQ_FLIPX |
-	                 SEQ_FLIPY | SEQ_USE_COLOR_BALANCE | SEQ_MAKE_PREMUL))
+	                 SEQ_FLIPY | SEQ_USE_COLOR_BALANCE | SEQ_MAKE_PREMUL | SEQ_MAKE_FLOAT))
 	{
 		return TRUE;
 	}
