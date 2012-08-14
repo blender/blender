@@ -808,7 +808,7 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 	}
 
 	// Determine the object/mesh linking
-	if (assign_type == BKE_MAT_ASSIGN_USERPREF && ob->actcol) {
+	if (assign_type == BKE_MAT_ASSIGN_USERPREF && ob->totcol && ob->actcol) {
 		/* copy from previous material */
 		bit = ob->matbits[ob->actcol - 1];
 	}
