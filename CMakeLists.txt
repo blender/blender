@@ -976,9 +976,10 @@ elseif(WIN32)
 			# normally cached but not since we include them with blender
 			set(PYTHON_VERSION 3.2) # CACHE STRING)
 			set_lib_path(PYTHON "python")
-			set(PYTHON_INCLUDE_DIR ${PYTHON}/include/python${PYTHON_VERSION})
 			set(PYTHON_LIBRARY ${PYTHON}/lib/python32.lib) #CACHE FILEPATH
-			
+			#Shared includes for both vc2008 and vc2010
+			set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/include/python${PYTHON_VERSION})
+
 			# uncached vars
 			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
 			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
