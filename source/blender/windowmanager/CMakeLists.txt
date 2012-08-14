@@ -36,6 +36,7 @@ set(INC
 	../makesdna
 	../makesrna
 	../nodes
+	../compositor
 	../render/extern/include
 	../../gameengine/BlenderRoutines
 	../../../intern/elbeem/extern

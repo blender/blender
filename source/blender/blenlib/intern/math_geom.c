@@ -188,7 +188,7 @@ float dist_squared_to_line_segment_v2(const float p[2], const float l1[2], const
 	if (len == 0.0f) {
 		rc[0] = p[0] - l1[0];
 		rc[1] = p[1] - l1[1];
-		return (float)(sqrt(rc[0] * rc[0] + rc[1] * rc[1]));
+		return (rc[0] * rc[0] + rc[1] * rc[1]);
 	}
 
 	labda = (rc[0] * (p[0] - l1[0]) + rc[1] * (p[1] - l1[1])) / len;

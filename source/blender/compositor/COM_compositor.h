@@ -300,6 +300,11 @@ extern "C" {
 void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering);
 
 /**
+ * @brief Deinitialize the compositor caches and allocated memory.
+ */
+void COM_deinitialize(void);
+
+/**
  * @brief Return a list of highlighted bnodes pointers.
  * @return 
  */

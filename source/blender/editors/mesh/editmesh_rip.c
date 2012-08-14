@@ -64,6 +64,7 @@ static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4],
 	ED_view3d_project_float_v2(ar, co1, vec1, mat);
 	ED_view3d_project_float_v2(ar, co2, vec2, mat);
 
+	/* TODO: use dist_squared_to_line_segment_v2() looks like we only ever use for comparison */
 	return dist_to_line_segment_v2(mvalf, vec1, vec2);
 }
 
@@ -111,8 +112,8 @@ static float edbm_rip_edge_side_measure(BMEdge *e, BMLoop *e_l,
 
 	score = len_v2v2(e_v1_co, e_v2_co);
 
-	if (dist_to_line_segment_v2(fmval_tweak, e_v1_co, e_v2_co) >
-	    dist_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
+	if (dist_squared_to_line_segment_v2(fmval_tweak, e_v1_co, e_v2_co) >
+	    dist_squared_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
 	{
 		return score;
 	}

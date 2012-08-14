@@ -112,6 +112,7 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_sound.h"
+#include "COM_compositor.h"
 
 #include "IMB_colormanagement.h"
 
@@ -212,7 +213,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 #ifdef WITH_COMPOSITOR
 	if (1) {
 		extern void *COM_linker_hack;
-		extern void *COM_execute;
 		COM_linker_hack = COM_execute;
 	}
 #endif
@@ -416,6 +416,10 @@ void WM_exit_ext(bContext *C, const short do_python)
 	BKE_sequencer_free_clipboard(); /* sequencer.c */
 	BKE_tracking_clipboard_free();
 		
+#ifdef WITH_COMPOSITOR
+	COM_deinitialize();
+#endif
+	
 	free_blender();  /* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 	free_anim_copybuf();

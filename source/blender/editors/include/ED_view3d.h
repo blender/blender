@@ -268,7 +268,7 @@ int view3d_get_view_aligned_coordinate(struct ViewContext *vc, float fp[3], cons
 void view3d_get_transformation(const struct ARegion *ar, struct RegionView3D *rv3d, struct Object *ob, struct bglMats *mats);
 
 /* XXX should move to BLI_math */
-int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);
+int edge_inside_circle(int centx, int centy, int rad, int x1, int y1, int x2, int y2);
 
 /* get 3d region from context, also if mouse is in header or toolbar */
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);

@@ -186,7 +186,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
  * \brief Multires Interpolation
  *
  * mdisps is a grid of displacements, ordered thus:
- *
+ * <pre>
  *      v1/center----v4/next -> x
  *          |           |
  *          |           |
@@ -194,6 +194,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
  *          |
  *          V
  *          y
+ * </pre>
  */
 static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], float v4[3],
                               float e1[3], float e2[3])

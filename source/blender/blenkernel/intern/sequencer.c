@@ -594,6 +594,9 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
 			}
 			break;
 		case SEQ_TYPE_MOVIECLIP:
+			if (seq->clip == NULL)
+				return;
+
 			seq->len = BKE_movieclip_get_duration(seq->clip);
 
 			seq->len -= seq->anim_startofs;
@@ -603,8 +606,9 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
 			}
 			break;
 		case SEQ_TYPE_MASK:
+			if (seq->mask == NULL)
+				return;
 			seq->len = BKE_mask_get_duration(seq->mask);
-
 			seq->len -= seq->anim_startofs;
 			seq->len -= seq->anim_endofs;
 			if (seq->len < 0) {
@@ -4037,4 +4041,22 @@ void BKE_sequence_base_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *
 			}
 		}
 	}
+}
+
+/* called on draw, needs to be fast,
+ * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
+int BKE_seqence_is_valid_check(Sequence *seq)
+{
+	switch (seq->type) {
+		case SEQ_TYPE_MASK:
+			return (seq->mask != NULL);
+		case SEQ_TYPE_MOVIECLIP:
+			return (seq->clip != NULL);
+		case SEQ_TYPE_SCENE:
+			return (seq->scene != NULL);
+		case SEQ_TYPE_SOUND_RAM:
+			return (seq->sound != NULL);
+	}
+
+	return TRUE;
 }

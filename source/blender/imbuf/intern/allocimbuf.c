@@ -436,6 +436,7 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	tbuf.zbuf_float    = NULL;
 	for (a = 0; a < IB_MIPMAP_LEVELS; a++)
 		tbuf.mipmap[a] = NULL;
+	tbuf.dds_data.data = NULL;
 	
 	/* set malloc flag */
 	tbuf.mall               = ibuf2->mall;

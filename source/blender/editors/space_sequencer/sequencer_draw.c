@@ -704,7 +704,9 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	
 	/* draw the main strip body */
 	if (is_single_image) {  /* single image */
-		draw_shadedstrip(seq, background_col, BKE_sequence_tx_get_final_left(seq, 0), y1, BKE_sequence_tx_get_final_right(seq, 0), y2);
+		draw_shadedstrip(seq, background_col,
+		                 BKE_sequence_tx_get_final_left(seq, 0), y1,
+		                 BKE_sequence_tx_get_final_right(seq, 0), y2);
 	}
 	else {  /* normal operation */
 		draw_shadedstrip(seq, background_col, x1, y1, x2, y2);
@@ -743,6 +745,17 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 
 		glDisable(GL_POLYGON_STIPPLE);
 		glDisable(GL_BLEND);
+	}
+
+	if (!BKE_seqence_is_valid_check(seq)) {
+		glEnable(GL_POLYGON_STIPPLE);
+
+		/* panic! */
+		glColor4ub(255, 0, 0, 255);
+		glPolygonStipple(stipple_diag_stripes_pos);
+		glRectf(x1, y1, x2, y2);
+
+		glDisable(GL_POLYGON_STIPPLE);
 	}
 
 	get_seq_color3ubv(scene, seq, col);
