@@ -389,7 +389,7 @@ enum {
 };
 
 enum {
-	CMP_NODEFLAG_BLUR_REFERENCE = (1 << 0),
+	CMP_NODEFLAG_BLUR_VARIABLE_SIZE = (1 << 0)
 };
 
 typedef struct NodeFrame {
@@ -399,8 +399,11 @@ typedef struct NodeFrame {
 
 /* this one has been replaced with ImageUser, keep it for do_versions() */
 typedef struct NodeImageAnim {
-	int frames, sfra, nr;
-	char cyclic, movie;
+	int frames   DNA_DEPRECATED;
+	int sfra     DNA_DEPRECATED;
+	int nr       DNA_DEPRECATED;
+	char cyclic  DNA_DEPRECATED;
+	char movie   DNA_DEPRECATED;
 	short pad;
 } NodeImageAnim;
 
