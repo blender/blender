@@ -215,6 +215,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.label(text="Face Count" + ": %d" % md.face_count)
 
     def DISPLACE(self, layout, ob, md):
+        has_texture = (md.texture is not None)
+        
         split = layout.split()
 
         col = split.column()
@@ -226,12 +228,18 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.label(text="Direction:")
         col.prop(md, "direction", text="")
-        col.label(text="Texture Coordinates:")
-        col.prop(md, "texture_coords", text="")
+        colsub = col.column()
+        colsub.active = has_texture
+        colsub.label(text="Texture Coordinates:")
+        colsub.prop(md, "texture_coords", text="")
         if md.texture_coords == 'OBJECT':
-            layout.prop(md, "texture_coords_object", text="Object")
+            row = layout.row()
+            row.active = has_texture
+            row.prop(md, "texture_coords_object", text="Object")
         elif md.texture_coords == 'UV' and ob.type == 'MESH':
-            layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
+            row = layout.row()
+            row.active = has_texture
+            row.prop_search(md, "uv_layer", ob.data, "uv_textures")
 
         layout.separator()
 

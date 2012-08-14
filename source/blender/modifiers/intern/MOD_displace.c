@@ -140,8 +140,7 @@ static void foreachTexLink(ModifierData *md, Object *ob,
 static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
-
-	return (!dmd->texture || dmd->strength == 0.0f);
+	return ((!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) || dmd->strength == 0.0f);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
@@ -176,8 +175,9 @@ static void displaceModifier_do(
 	int defgrp_index;
 	float (*tex_co)[3];
 	float weight = 1.0f; /* init value unused but some compilers may complain */
+	const float delta_fixed = 1.0f - dmd->midlevel;  /* when no texture is used, we*/
 
-	if (!dmd->texture) return;
+	if (!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) return;
 	if (dmd->strength == 0.0f) return;
 
 	mvert = CDDM_get_verts(dm);
@@ -191,17 +191,22 @@ static void displaceModifier_do(
 
 	for (i = 0; i < numVerts; i++) {
 		TexResult texres;
-		float delta = 0, strength = dmd->strength;
+		float strength = dmd->strength;
+		float delta;
 
 		if (dvert) {
 			weight = defvert_find_weight(dvert + i, defgrp_index);
 			if (weight == 0.0f) continue;
 		}
 
-		texres.nor = NULL;
-		get_texture_value(dmd->texture, tex_co[i], &texres);
-
-		delta = texres.tin - dmd->midlevel;
+		if (dmd->texture) {
+			texres.nor = NULL;
+			get_texture_value(dmd->texture, tex_co[i], &texres);
+			delta = texres.tin - dmd->midlevel;
+		}
+		else {
+			delta = delta_fixed;  /* (1.0f - dmd->midlevel) */  /* never changes */
+		}
 
 		if (dvert) strength *= weight;
 
