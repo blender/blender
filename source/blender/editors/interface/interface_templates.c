@@ -1743,6 +1743,13 @@ static void curvemap_buttons_redraw(bContext *C, void *UNUSED(arg1), void *UNUSE
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
+static void curvemap_buttons_update(bContext *UNUSED(C), void *UNUSED(arg1), void *cumap_v)
+{
+	CurveMapping *cumap = cumap_v;
+
+	curvemapping_changed(cumap, TRUE);
+}
+
 static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 {
 	CurveMapping *cumap = cumap_v;
@@ -1765,12 +1772,14 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labeltype, int levels, int brush, RNAUpdateCb *cb)
 {
 	CurveMapping *cumap = ptr->data;
+	CurveMap *cm = &cumap->cm[cumap->cur];
+	CurveMapPoint *cmp = NULL;
 	uiLayout *row, *sub, *split;
 	uiBlock *block;
 	uiBut *bt;
 	float dx = UI_UNIT_X;
 	int icon, size;
-	int bg = -1;
+	int bg = -1, i;
 
 	block = uiLayoutGetBlock(layout);
 
@@ -1874,6 +1883,21 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	size = uiLayoutGetWidth(layout);
 	row = uiLayoutRow(layout, FALSE);
 	uiDefBut(block, BUT_CURVE, 0, "", 0, 0, size, MIN2(size, 200), cumap, 0.0f, 1.0f, bg, 0, "");
+
+	/* sliders for selected point */
+	for (i = 0; i < cm->totpoint; i++) {
+		if (cm->curve[i].flag & CUMA_SELECT) {
+			cmp = &cm->curve[i];
+			break;
+		}
+	}
+
+	if (cmp) {
+		uiLayoutColumn(layout, TRUE);
+		uiBlockSetNFunc(block, curvemap_buttons_update, NULL, cumap);
+		uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y, &cmp->x, 0.0f, 1.0f, 1, 5, "");
+		uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y, &cmp->y, 0.0f, 1.0f, 1, 5, "");
+	}
 
 	/* black/white levels */
 	if (levels) {
