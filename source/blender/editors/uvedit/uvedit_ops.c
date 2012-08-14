@@ -680,10 +680,10 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv, *nextluv;
-	float mindist, dist;
+	float mindist_squared, dist_squared;
 	int i;
 
-	mindist = 1e10f;
+	mindist_squared = 1e10f;
 	memset(hit, 0, sizeof(*hit));
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
@@ -698,9 +698,9 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			nextluv = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 
-			dist = dist_to_line_segment_v2(co, luv->uv, nextluv->uv);
+			dist_squared = dist_squared_to_line_segment_v2(co, luv->uv, nextluv->uv);
 
-			if (dist < mindist) {
+			if (dist_squared < mindist_squared) {
 				hit->tf = tf;
 				hit->efa = efa;
 				
@@ -712,7 +712,7 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 				hit->vert1 = BM_elem_index_get(hit->l->v);
 				hit->vert2 = BM_elem_index_get(hit->l->next->v);
 
-				mindist = dist;
+				mindist_squared = dist_squared;
 			}
 
 			i++;
