@@ -36,6 +36,7 @@ node_type_items_dict = {}
 node_type_prefix = 'NODE_'
 node_group_prefix = 'GROUP_'
 
+
 # Generate a list of enum items for a given node class
 # Copy existing type enum, adding a prefix to distinguish from node groups
 # Skip the base node group type, node groups will be added below for all existing group trees
@@ -43,12 +44,14 @@ def node_type_items(node_class):
     return [(node_type_prefix + item.identifier, item.name, item.description)
                     for item in node_class.bl_rna.properties['type'].enum_items if item.identifier != 'GROUP']
 
+
 # Generate items for node group types
-# Filter by the given tree_type 
+# Filter by the given tree_type
 # Node group trees don't have a description property yet (could add this as a custom property though)
 def node_group_items(tree_type):
     return [(node_group_prefix + group.name, group.name, '')
                     for group in bpy.data.node_groups if group.type == tree_type]
+
 
 # Returns the enum item list for the edited tree in the context
 def node_type_items_cb(self, context):
@@ -59,7 +62,7 @@ def node_type_items_cb(self, context):
     if not tree:
         return []
 
-    # Lists of basic node types for each 
+    # Lists of basic node types for each
     if not node_type_items_dict:
         node_type_items_dict.update({
             'SHADER': node_type_items(bpy.types.ShaderNode),
@@ -119,7 +122,7 @@ class NODE_OT_add_search(Operator):
     def poll(cls, context):
         space = context.space_data
         # needs active node editor and a tree to add nodes to
-        return space.type == 'NODE_EDITOR' and space.edit_tree
+        return (space.type == 'NODE_EDITOR' and space.edit_tree)
 
     def execute(self, context):
         self.create_node(context)
@@ -146,7 +149,7 @@ class NODE_OT_collapse_hide_unused_toggle(Operator):
     def poll(cls, context):
         space = context.space_data
         # needs active node editor and a tree
-        return space.type == 'NODE_EDITOR' and space.edit_tree
+        return (space.type == 'NODE_EDITOR' and space.edit_tree)
 
     def execute(self, context):
         space = context.space_data
@@ -154,14 +157,13 @@ class NODE_OT_collapse_hide_unused_toggle(Operator):
 
         for node in tree.nodes:
             if node.select:
-                hide = not node.hide
-                
+                hide = (not node.hide)
+
                 node.hide = hide
                 # Note: connected sockets are ignored internally
                 for socket in node.inputs:
                     socket.hide = hide
                 for socket in node.outputs:
                     socket.hide = hide
-                    
-        return {'FINISHED'}
 
+        return {'FINISHED'}

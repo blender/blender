@@ -175,7 +175,7 @@ static void displaceModifier_do(
 	int defgrp_index;
 	float (*tex_co)[3];
 	float weight = 1.0f; /* init value unused but some compilers may complain */
-	const float delta_fixed = 1.0f - dmd->midlevel;  /* when no texture is used, we*/
+	const float delta_fixed = 1.0f - dmd->midlevel;  /* when no texture is used, we fallback to white */
 
 	if (!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) return;
 	if (dmd->strength == 0.0f) return;
