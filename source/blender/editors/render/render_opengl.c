@@ -309,7 +309,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	}
 
 	/* only one render job at a time */
-	if (WM_jobs_test(CTX_wm_manager(C), scene))
+	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_ANY))
 		return 0;
 	
 	if (!is_view_context && scene->camera == NULL) {

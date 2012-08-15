@@ -2181,7 +2181,8 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	scene->r.cfra = cfra;
 	
 	/* setup job */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Ocean Simulation", WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Ocean Simulation",
+	                    WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_SIM_OCEAN);
 	oj = MEM_callocN(sizeof(OceanBakeJob), "ocean bake job");
 	oj->ocean = ocean;
 	oj->och = och;

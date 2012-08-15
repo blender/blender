@@ -1239,7 +1239,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	int backwards = RNA_boolean_get(op->ptr, "backwards");
 	int sequence = RNA_boolean_get(op->ptr, "sequence");
 
-	if (WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C))) {
+	if (WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY)) {
 		/* only one tracking is allowed at a time */
 		return OPERATOR_CANCELLED;
 	}
@@ -1261,7 +1261,8 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	}
 
 	/* setup job */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers", WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers",
+	                    WM_JOB_PROGRESS, WM_JOB_TYPE_CLIP_TRACK_MARKERS);
 	WM_jobs_customdata_set(steve, tmj, track_markers_freejob);
 
 	/* if there's delay set in tracking job, tracking should happen
@@ -1289,7 +1290,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running tracking, remove handler and pass through */
-	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C)))
+	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY))
 		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 
 	/* running tracking */
@@ -1470,7 +1471,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	wmJob *steve;
 	char error_msg[256] = "\0";
 
-	if (WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C))) {
+	if (WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY)) {
 		/* only one solve is allowed at a time */
 		return OPERATOR_CANCELLED;
 	}
@@ -1492,7 +1493,8 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 
 	/* setup job */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Solve Camera", WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Solve Camera",
+	                    WM_JOB_PROGRESS, WM_JOB_TYPE_CLIP_SOLVE_CAMERA);
 	WM_jobs_customdata_set(steve, scj, solve_camera_freejob);
 	WM_jobs_timer(steve, 0.1, NC_MOVIECLIP | NA_EVALUATED, 0);
 	WM_jobs_callbacks(steve, solve_camera_startjob, NULL, solve_camera_updatejob, NULL);
@@ -1511,7 +1513,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 static int solve_camera_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running solver, remove handler and pass through */
-	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C)))
+	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY))
 		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 
 	/* running tracking */

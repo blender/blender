@@ -1255,7 +1255,8 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
 	}
 
 	/* setup job */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Multires Bake", WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Multires Bake",
+	                    WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE);
 	WM_jobs_customdata_set(steve, bkr, multiresbake_freejob);
 	WM_jobs_timer(steve, 0.2, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
 	WM_jobs_callbacks(steve, multiresbake_startjob, NULL, NULL, NULL);
@@ -1438,7 +1439,7 @@ static void bake_freejob(void *bkv)
 static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running blender, remove handler and pass through */
-	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
+	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_ANY))
 		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 
 	/* running render */
@@ -1468,7 +1469,7 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 	}
 	else {
 		/* only one render job at a time */
-		if (WM_jobs_test(CTX_wm_manager(C), scene))
+		if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_ANY))
 			return OPERATOR_CANCELLED;
 
 		if (test_bake_internal(C, op->reports) == 0) {
@@ -1482,7 +1483,8 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 			bkr->reports = op->reports;
 
 			/* setup job */
-			steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Texture Bake", WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS);
+			steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Texture Bake",
+			                    WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE);
 			WM_jobs_customdata_set(steve, bkr, bake_freejob);
 			WM_jobs_timer(steve, 0.2, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
 			WM_jobs_callbacks(steve, bake_startjob, NULL, bake_update, NULL);

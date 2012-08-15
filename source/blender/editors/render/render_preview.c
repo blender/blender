@@ -1026,7 +1026,8 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	IconPreview *ip, *old_ip;
 	
 	/* suspended start means it starts after 1 timer step, see WM_jobs_timer below */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Icon Preview", WM_JOB_EXCL_RENDER | WM_JOB_SUSPEND);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Icon Preview",
+	                    WM_JOB_EXCL_RENDER | WM_JOB_SUSPEND, WM_JOB_TYPE_RENDER_PREVIEW);
 
 	ip = MEM_callocN(sizeof(IconPreview), "icon preview");
 
@@ -1056,7 +1057,8 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	wmJob *steve;
 	ShaderPreview *sp;
 
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Shader Preview", WM_JOB_EXCL_RENDER);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Shader Preview",
+	                    WM_JOB_EXCL_RENDER, WM_JOB_TYPE_RENDER_PREVIEW);
 	sp = MEM_callocN(sizeof(ShaderPreview), "shader preview");
 
 	/* customdata for preview thread */

@@ -301,14 +301,34 @@ void		WM_framebuffer_index_set(int index);
 int			WM_framebuffer_to_index(unsigned int col);
 
 			/* threaded Jobs Manager */
-#define WM_JOB_PRIORITY		1
-#define WM_JOB_EXCL_RENDER	2
-#define WM_JOB_PROGRESS		4
-#define WM_JOB_SUSPEND		8
+enum {
+	WM_JOB_PRIORITY     = (1 << 0),
+	WM_JOB_EXCL_RENDER  = (1 << 1),
+	WM_JOB_PROGRESS     = (1 << 2),
+	WM_JOB_SUSPEND      = (1 << 3)
+};
 
-struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, const char *name, int flag);
+/* identifying jobs by owner alone is unreliable, this isnt saved, order can change */
+enum {
+	WM_JOB_TYPE_ANY = -1,
+	WM_JOB_TYPE_COMPOSITE,
+	WM_JOB_TYPE_RENDER,
+	WM_JOB_TYPE_RENDER_PREVIEW,  /* UI preview */
+	WM_JOB_TYPE_SCREENCAST,
+	WM_JOB_TYPE_OBJECT_SIM_OCEAN,
+	WM_JOB_TYPE_OBJECT_BAKE_TEXTURE,
+	WM_JOB_TYPE_FILESEL_THUMBNAIL,
+	WM_JOB_TYPE_CLIP_BUILD_PROXY,
+	WM_JOB_TYPE_CLIP_TRACK_MARKERS,
+	WM_JOB_TYPE_CLIP_SOLVE_CAMERA,
+	WM_JOB_TYPE_SEQ_BUILD_PROXY,
+	/* add as needed, screencast, seq proxy build
+	 * if having hard coded values is a problem */
+};
 
-int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, const char *name, int flag, int job_type);
+
+int			WM_jobs_test(struct wmWindowManager *wm, void *owner, int job_type);
 float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
 char       *WM_jobs_name(struct wmWindowManager *wm, void *owner);
 

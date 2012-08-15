@@ -1041,7 +1041,8 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 	if ((clip->flag & MCLIP_USE_PROXY) == 0)
 		return OPERATOR_CANCELLED;
 
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies", WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies",
+	                    WM_JOB_PROGRESS, WM_JOB_TYPE_CLIP_BUILD_PROXY);
 
 	pj = MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
 	pj->scene = scene;

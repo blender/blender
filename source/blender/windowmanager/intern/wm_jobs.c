@@ -114,7 +114,7 @@ struct wmJob {
 /* internal */
 	void *owner;
 	int flag;
-	short suspended, running, ready, do_update, stop;
+	short suspended, running, ready, do_update, stop, job_type;
 	float progress;
 
 	/* for display in header, identification */
@@ -153,7 +153,7 @@ static wmJob *wm_job_find(wmWindowManager *wm, void *owner, const char *name)
 /* returns current or adds new job, but doesnt run it */
 /* every owner only gets a single job, adding a new one will stop running stop and 
  * when stopped it starts the new one */
-wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *name, int flag)
+wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *name, int flag, int job_type)
 {
 	wmJob *steve = wm_job_find(wm, owner, name);
 	
@@ -164,6 +164,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *
 		steve->win = win;
 		steve->owner = owner;
 		steve->flag = flag;
+		steve->job_type = job_type;
 		BLI_strncpy(steve->name, name, sizeof(steve->name));
 	}
 	
@@ -171,17 +172,22 @@ wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *
 }
 
 /* returns true if job runs, for UI (progress) indicators */
-int WM_jobs_test(wmWindowManager *wm, void *owner)
+int WM_jobs_test(wmWindowManager *wm, void *owner, int job_type)
 {
 	wmJob *steve;
 	
 	/* job can be running or about to run (suspended) */
-	for (steve = wm->jobs.first; steve; steve = steve->next)
-		if (steve->owner == owner)
-			if (steve->running || steve->suspended)
-				return 1;
+	for (steve = wm->jobs.first; steve; steve = steve->next) {
+		if (steve->owner == owner) {
+			if (job_type == WM_JOB_TYPE_ANY || (steve->job_type == job_type)) {
+				if (steve->running || steve->suspended) {
+					return TRUE;
+				}
+			}
+		}
+	}
 
-	return 0;
+	return FALSE;
 }
 
 float WM_jobs_progress(wmWindowManager *wm, void *owner)

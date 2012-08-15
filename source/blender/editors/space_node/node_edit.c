@@ -181,7 +181,8 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 		return;
 	}
 
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing", WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS);
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing",
+	                    WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS, WM_JOB_TYPE_COMPOSITE);
 	cj = MEM_callocN(sizeof(CompoJob), "compo job");
 
 	/* customdata for preview thread */
