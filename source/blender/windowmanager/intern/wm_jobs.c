@@ -236,7 +236,7 @@ void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *
 
 	if (wm_job->running) {
 		/* signal job to end */
-		wm_job->stop = 1;
+		wm_job->stop = TRUE;
 	}
 }
 
@@ -264,7 +264,7 @@ static void *do_job_thread(void *job_v)
 	wmJob *wm_job = job_v;
 	
 	wm_job->startjob(wm_job->run_customdata, &wm_job->stop, &wm_job->do_update, &wm_job->progress);
-	wm_job->ready = 1;
+	wm_job->ready = TRUE;
 	
 	return NULL;
 }
@@ -273,18 +273,20 @@ static void *do_job_thread(void *job_v)
 static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 {
 	wmJob *wm_job;
-	int suspend = 0;
+	int suspend = FALSE;
 	
 	/* job added with suspend flag, we wait 1 timer step before activating it */
 	if (test->flag & WM_JOB_SUSPEND) {
-		suspend = 1;
+		suspend = TRUE;
 		test->flag &= ~WM_JOB_SUSPEND;
 	}
 	else {
 		/* check other jobs */
 		for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
 			/* obvious case, no test needed */
-			if (wm_job == test || !wm_job->running) continue;
+			if (wm_job == test || !wm_job->running) {
+				continue;
+			}
 			
 			/* if new job is not render, then check for same startjob */
 			if (0 == (test->flag & WM_JOB_EXCL_RENDER))
@@ -296,11 +298,11 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 				if (0 == (wm_job->flag & WM_JOB_EXCL_RENDER))
 					continue;
 
-			suspend = 1;
+			suspend = TRUE;
 
 			/* if this job has higher priority, stop others */
 			if (test->flag & WM_JOB_PRIORITY) {
-				wm_job->stop = 1;
+				wm_job->stop = TRUE;
 				// printf("job stopped: %s\n", wm_job->name);
 			}
 		}
@@ -317,7 +319,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
 {
 	if (wm_job->running) {
 		/* signal job to end and restart */
-		wm_job->stop = 1;
+		wm_job->stop = TRUE;
 		// printf("job started a running job, ending... %s\n", wm_job->name);
 	}
 	else {
@@ -326,19 +328,19 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
 			
 			wm_jobs_test_suspend_stop(wm, wm_job);
 			
-			if (wm_job->suspended == 0) {
+			if (wm_job->suspended == FALSE) {
 				/* copy to ensure proper free in end */
 				wm_job->run_customdata = wm_job->customdata;
 				wm_job->run_free = wm_job->free;
 				wm_job->free = NULL;
 				wm_job->customdata = NULL;
-				wm_job->running = 1;
+				wm_job->running = TRUE;
 				
 				if (wm_job->initjob)
 					wm_job->initjob(wm_job->run_customdata);
 				
-				wm_job->stop = 0;
-				wm_job->ready = 0;
+				wm_job->stop = FALSE;
+				wm_job->ready = FALSE;
 				wm_job->progress = 0.0;
 
 				// printf("job started: %s\n", wm_job->name);
@@ -363,7 +365,7 @@ static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *wm_job)
 {
 	if (wm_job->running) {
 		/* signal job to end */
-		wm_job->stop = 1;
+		wm_job->stop = TRUE;
 		BLI_end_threads(&wm_job->threads);
 
 		if (wm_job->endjob)
@@ -400,7 +402,7 @@ void WM_jobs_stop(wmWindowManager *wm, void *owner, void *startjob)
 	for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
 		if (wm_job->owner == owner || wm_job->startjob == startjob) {
 			if (wm_job->running) {
-				wm_job->stop = 1;
+				wm_job->stop = TRUE;
 			}
 		}
 	}
@@ -483,7 +485,7 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 						       PIL_check_seconds_timer() - wm_job->start_time);
 					}
 
-					wm_job->running = 0;
+					wm_job->running = FALSE;
 					BLI_end_threads(&wm_job->threads);
 					
 					if (wm_job->endnote)
@@ -543,9 +545,9 @@ int WM_jobs_has_running(wmWindowManager *wm)
 
 	for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
 		if (wm_job->running) {
-			return 1;
+			return TRUE;
 		}
 	}
 
-	return 0;
+	return FALSE;
 }

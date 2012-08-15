@@ -367,19 +367,19 @@ static void wait_for_console_key(void)
 /* note, doesnt run exit() call WM_exit() for that */
 void WM_exit_ext(bContext *C, const short do_python)
 {
-	wmWindow *win;
+	wmWindowManager *wm = C ? CTX_wm_manager(C) : NULL;
 
 	sound_exit();
-
 
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
 	/* note; same code copied in wm_files.c */
-	if (C && CTX_wm_manager(C)) {
-		
-		WM_jobs_stop_all(CTX_wm_manager(C));
-		
-		for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
+	if (C && wm) {
+		wmWindow *win;
+
+		WM_jobs_stop_all(wm);
+
+		for (win = wm->windows.first; win; win = win->next) {
 			
 			CTX_wm_window_set(C, win);  /* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
@@ -408,7 +408,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 	ED_preview_free_dbase();  /* frees a Main dbase, before free_blender! */
 
-	if (C && CTX_wm_manager(C))
+	if (C && wm)
 		wm_free_reports(C);  /* before free_blender! - since the ListBases get freed there */
 
 	BKE_sequencer_free_clipboard(); /* sequencer.c */
