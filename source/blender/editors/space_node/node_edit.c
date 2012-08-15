@@ -40,6 +40,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
+#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -72,6 +73,8 @@
 
 #include "node_intern.h"  /* own include */
 
+#define USE_ESC_COMPO
+
 /* ***************** composite job manager ********************** */
 
 typedef struct CompoJob {
@@ -88,7 +91,13 @@ static int compo_breakjob(void *cjv)
 {
 	CompoJob *cj = cjv;
 	
-	return *(cj->stop);
+	/* without G.is_break 'ESC' wont quit - which annoys users */
+	return (*(cj->stop)
+#ifdef USE_ESC_COMPO
+	        ||
+	        G.is_break
+#endif
+	        );
 }
 
 /* called by compo, wmJob sends notifier */
@@ -180,6 +189,10 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 	if (G.is_rendering) {
 		return;
 	}
+
+#ifdef USE_ESC_COMPO
+	G.is_break = FALSE;
+#endif
 
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing",
 	                     WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS, WM_JOB_TYPE_COMPOSITE);

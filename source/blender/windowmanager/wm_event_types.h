@@ -285,25 +285,29 @@ enum {
 
 /* for event checks */
 	/* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
-#define ISTEXTINPUT(event)	(event >=' ' && event <=255)
+#define ISTEXTINPUT(event)  (event >= ' ' && event <= 255)
 
 	/* test whether the event is a key on the keyboard */
-#define ISKEYBOARD(event)	(event >=' ' && event <=320)
+#define ISKEYBOARD(event)  (event >= ' ' && event <= 320)
 
 	/* test whether the event is a modifier key */
-#define ISKEYMODIFIER(event)	((event >= LEFTCTRLKEY && event <= LEFTSHIFTKEY) || event == OSKEY)
+#define ISKEYMODIFIER(event)  ((event >= LEFTCTRLKEY && event <= LEFTSHIFTKEY) || event == OSKEY)
 
 	/* test whether the event is a mouse button */
-#define ISMOUSE(event)	(event >= LEFTMOUSE && event <= MOUSEROTATE)
+#define ISMOUSE(event)  (event >= LEFTMOUSE && event <= MOUSEROTATE)
 
 	/* test whether the event is tweak event */
-#define ISTWEAK(event)	(event >= EVT_TWEAK_L && event <= EVT_GESTURE)
+#define ISTWEAK(event)  (event >= EVT_TWEAK_L && event <= EVT_GESTURE)
 
 	/* test whether the event is a NDOF event */
-#define ISNDOF(event)	(event >= NDOF_MOTION && event < NDOF_LAST)
+#define ISNDOF(event)  (event >= NDOF_MOTION && event < NDOF_LAST)
 
 /* test whether event type is acceptable as hotkey, excluding modifiers */
-#define ISHOTKEY(event)	((ISKEYBOARD(event) || ISMOUSE(event) || ISNDOF(event)) && event!=ESCKEY && !(event>=LEFTCTRLKEY && event<=LEFTSHIFTKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
+#define ISHOTKEY(event)                                           \
+	((ISKEYBOARD(event) || ISMOUSE(event) || ISNDOF(event)) &&    \
+	 (event != ESCKEY) &&                                         \
+	 (event >= LEFTCTRLKEY && event <= LEFTSHIFTKEY) == FALSE &&  \
+	 (event >= UNKNOWNKEY  && event <= GRLESSKEY) == FALSE)
 
 /* **************** BLENDER GESTURE EVENTS (0x5000) **************** */
 
