@@ -1235,7 +1235,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
-	wmJob *steve;
+	wmJob *wm_job;
 	int backwards = RNA_boolean_get(op->ptr, "backwards");
 	int sequence = RNA_boolean_get(op->ptr, "sequence");
 
@@ -1261,24 +1261,24 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	}
 
 	/* setup job */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers",
-	                    WM_JOB_PROGRESS, WM_JOB_TYPE_CLIP_TRACK_MARKERS);
-	WM_jobs_customdata_set(steve, tmj, track_markers_freejob);
+	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers",
+	                     WM_JOB_PROGRESS, WM_JOB_TYPE_CLIP_TRACK_MARKERS);
+	WM_jobs_customdata_set(wm_job, tmj, track_markers_freejob);
 
 	/* if there's delay set in tracking job, tracking should happen
 	 * with fixed FPS. To deal with editor refresh we have to synchronize
 	 * tracks from job and tracks in clip. Do this in timer callback
 	 * to prevent threading conflicts. */
 	if (tmj->delay > 0)
-		WM_jobs_timer(steve, tmj->delay / 1000.0f, NC_MOVIECLIP | NA_EVALUATED, 0);
+		WM_jobs_timer(wm_job, tmj->delay / 1000.0f, NC_MOVIECLIP | NA_EVALUATED, 0);
 	else
-		WM_jobs_timer(steve, 0.2, NC_MOVIECLIP | NA_EVALUATED, 0);
+		WM_jobs_timer(wm_job, 0.2, NC_MOVIECLIP | NA_EVALUATED, 0);
 
-	WM_jobs_callbacks(steve, track_markers_startjob, NULL, track_markers_updatejob, NULL);
+	WM_jobs_callbacks(wm_job, track_markers_startjob, NULL, track_markers_updatejob, NULL);
 
 	G.is_break = FALSE;
 
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 	WM_cursor_wait(0);
 
 	/* add modal handler for ESC */
@@ -1468,7 +1468,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
-	wmJob *steve;
+	wmJob *wm_job;
 	char error_msg[256] = "\0";
 
 	if (WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY)) {
@@ -1493,15 +1493,15 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 
 	/* setup job */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Solve Camera",
-	                    WM_JOB_PROGRESS, WM_JOB_TYPE_CLIP_SOLVE_CAMERA);
-	WM_jobs_customdata_set(steve, scj, solve_camera_freejob);
-	WM_jobs_timer(steve, 0.1, NC_MOVIECLIP | NA_EVALUATED, 0);
-	WM_jobs_callbacks(steve, solve_camera_startjob, NULL, solve_camera_updatejob, NULL);
+	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Solve Camera",
+	                     WM_JOB_PROGRESS, WM_JOB_TYPE_CLIP_SOLVE_CAMERA);
+	WM_jobs_customdata_set(wm_job, scj, solve_camera_freejob);
+	WM_jobs_timer(wm_job, 0.1, NC_MOVIECLIP | NA_EVALUATED, 0);
+	WM_jobs_callbacks(wm_job, solve_camera_startjob, NULL, solve_camera_updatejob, NULL);
 
 	G.is_break = FALSE;
 
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 	WM_cursor_wait(0);
 
 	/* add modal handler for ESC */

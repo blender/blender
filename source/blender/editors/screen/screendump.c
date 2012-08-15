@@ -396,7 +396,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 static int screencast_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen = CTX_wm_screen(C);
-	wmJob *steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), screen, "Screencast", 0, WM_JOB_TYPE_SCREENCAST);
+	wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), screen, "Screencast", 0, WM_JOB_TYPE_SCREENCAST);
 	ScreenshotJob *sj = MEM_callocN(sizeof(ScreenshotJob), "screenshot job");
 
 	/* setup sj */
@@ -420,11 +420,11 @@ static int screencast_exec(bContext *C, wmOperator *op)
 	BKE_reports_init(&sj->reports, RPT_PRINT);
 
 	/* setup job */
-	WM_jobs_customdata_set(steve, sj, screenshot_freejob);
-	WM_jobs_timer(steve, 0.1, 0, NC_SCREEN | ND_SCREENCAST);
-	WM_jobs_callbacks(steve, screenshot_startjob, NULL, screenshot_updatejob, NULL);
+	WM_jobs_customdata_set(wm_job, sj, screenshot_freejob);
+	WM_jobs_timer(wm_job, 0.1, 0, NC_SCREEN | ND_SCREENCAST);
+	WM_jobs_callbacks(wm_job, screenshot_startjob, NULL, screenshot_updatejob, NULL);
 	
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 	
 	WM_event_add_notifier(C, NC_SCREEN | ND_SCREENCAST, screen);
 	

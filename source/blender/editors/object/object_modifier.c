@@ -2114,7 +2114,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	int f, cfra, i = 0;
 	int free = RNA_boolean_get(op->ptr, "free");
 	
-	wmJob *steve;
+	wmJob *wm_job;
 	OceanBakeJob *oj;
 	
 	if (!omd)
@@ -2181,18 +2181,18 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	scene->r.cfra = cfra;
 	
 	/* setup job */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Ocean Simulation",
-	                    WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_SIM_OCEAN);
+	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Ocean Simulation",
+	                     WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_SIM_OCEAN);
 	oj = MEM_callocN(sizeof(OceanBakeJob), "ocean bake job");
 	oj->ocean = ocean;
 	oj->och = och;
 	oj->omd = omd;
 	
-	WM_jobs_customdata_set(steve, oj, oceanbake_free);
-	WM_jobs_timer(steve, 0.1, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
-	WM_jobs_callbacks(steve, oceanbake_startjob, NULL, NULL, oceanbake_endjob);
+	WM_jobs_customdata_set(wm_job, oj, oceanbake_free);
+	WM_jobs_timer(wm_job, 0.1, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
+	WM_jobs_callbacks(wm_job, oceanbake_startjob, NULL, NULL, oceanbake_endjob);
 	
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 	
 	
 	

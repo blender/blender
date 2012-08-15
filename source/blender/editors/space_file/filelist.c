@@ -1346,7 +1346,7 @@ static void thumbnails_free(void *tjv)
 
 void thumbnails_start(struct FileList *filelist, const struct bContext *C)
 {
-	wmJob *steve;
+	wmJob *wm_job;
 	ThumbnailJob *tj;
 	int idx;
 	
@@ -1368,14 +1368,14 @@ void thumbnails_start(struct FileList *filelist, const struct bContext *C)
 	BKE_reports_init(&tj->reports, RPT_PRINT);
 
 	/* setup job */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), filelist, "Thumbnails",
-	                    0, WM_JOB_TYPE_FILESEL_THUMBNAIL);
-	WM_jobs_customdata_set(steve, tj, thumbnails_free);
-	WM_jobs_timer(steve, 0.5, NC_WINDOW, NC_WINDOW);
-	WM_jobs_callbacks(steve, thumbnails_startjob, NULL, thumbnails_update, NULL);
+	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), filelist, "Thumbnails",
+	                     0, WM_JOB_TYPE_FILESEL_THUMBNAIL);
+	WM_jobs_customdata_set(wm_job, tj, thumbnails_free);
+	WM_jobs_timer(wm_job, 0.5, NC_WINDOW, NC_WINDOW);
+	WM_jobs_callbacks(wm_job, thumbnails_startjob, NULL, thumbnails_update, NULL);
 
 	/* start the job */
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 }
 
 void thumbnails_stop(struct FileList *filelist, const struct bContext *C)

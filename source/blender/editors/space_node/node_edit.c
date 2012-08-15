@@ -173,7 +173,7 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
  */
 void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene *scene_owner)
 {
-	wmJob *steve;
+	wmJob *wm_job;
 	CompoJob *cj;
 
 	/* to fix bug: [#32272] */
@@ -181,8 +181,8 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 		return;
 	}
 
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing",
-	                    WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS, WM_JOB_TYPE_COMPOSITE);
+	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing",
+	                     WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS, WM_JOB_TYPE_COMPOSITE);
 	cj = MEM_callocN(sizeof(CompoJob), "compo job");
 
 	/* customdata for preview thread */
@@ -190,11 +190,11 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 	cj->ntree = nodetree;
 
 	/* setup job */
-	WM_jobs_customdata_set(steve, cj, compo_freejob);
-	WM_jobs_timer(steve, 0.1, NC_SCENE, NC_SCENE | ND_COMPO_RESULT);
-	WM_jobs_callbacks(steve, compo_startjob, compo_initjob, compo_updatejob, NULL);
+	WM_jobs_customdata_set(wm_job, cj, compo_freejob);
+	WM_jobs_timer(wm_job, 0.1, NC_SCENE, NC_SCENE | ND_COMPO_RESULT);
+	WM_jobs_callbacks(wm_job, compo_startjob, compo_initjob, compo_updatejob, NULL);
 
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 }
 
 /* ***************************************** */
