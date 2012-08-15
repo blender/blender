@@ -79,8 +79,8 @@ public:
 	}
 
 private:
-	void determineUV(float result[4], float x, float y) const;
-	void determineUV(float result[4], float x, float y, float distortion, float dispersion);
+	void determineUV(float result[6], float x, float y) const;
+	void determineUV(float result[6], float x, float y, float distortion, float dispersion);
 	void updateDispersionAndDistortion();
 	void updateVariables(float distortion, float dispersion);
 
