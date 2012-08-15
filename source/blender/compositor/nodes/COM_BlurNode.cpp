@@ -59,7 +59,7 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		graph->addOperation(operationfgb);
 		addPreviewOperation(graph, operationfgb->getOutputSocket());
 	}
-	else if (editorNode->custom1 & CMP_NODEFLAG_BLUR_REFERENCE) {
+	else if (editorNode->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) {
 		MathAddOperation *clamp = new MathAddOperation();
 		SetValueOperation *zero = new SetValueOperation();
 		addLink(graph, zero->getOutputSocket(), clamp->getInputSocket(1));

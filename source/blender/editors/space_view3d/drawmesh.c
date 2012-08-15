@@ -344,6 +344,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 {
 	unsigned char obcol[4];
 	int is_tex, solidtex;
+	Mesh *me = ob->data;
 
 	/* XXX scene->obedit warning */
 
@@ -366,7 +367,6 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	
 	rgba_float_to_uchar(obcol, ob->col);
 
-	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
 	if (solidtex || v3d->drawtype == OB_TEXTURE) is_tex = 1;
 	else is_tex = 0;
 
@@ -376,6 +376,14 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, NULL, NULL, Gtexdraw);
 	glShadeModel(GL_SMOOTH);
+	if (v3d->flag2 & V3D_BACKFACE_CULLING) {
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+	}
+	else {		
+		glDisable(GL_CULL_FACE);
+	}
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, (me->flag & ME_TWOSIDED) ? GL_TRUE : GL_FALSE);
 }
 
 static void draw_textured_end(void)

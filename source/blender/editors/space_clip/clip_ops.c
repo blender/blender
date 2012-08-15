@@ -1031,7 +1031,7 @@ static void proxy_endjob(void *pjv)
 
 static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	wmJob * steve;
+	wmJob *wm_job;
 	ProxyJob *pj;
 	Scene *scene = CTX_data_scene(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -1041,7 +1041,8 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 	if ((clip->flag & MCLIP_USE_PROXY) == 0)
 		return OPERATOR_CANCELLED;
 
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies", WM_JOB_PROGRESS);
+	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies",
+	                     WM_JOB_PROGRESS, WM_JOB_TYPE_CLIP_BUILD_PROXY);
 
 	pj = MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
 	pj->scene = scene;
@@ -1054,12 +1055,12 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 					clip->proxy.build_size_flag, clip->proxy.quality);
 	}
 
-	WM_jobs_customdata_set(steve, pj, proxy_freejob);
-	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP | ND_DISPLAY, 0);
-	WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, proxy_endjob);
+	WM_jobs_customdata_set(wm_job, pj, proxy_freejob);
+	WM_jobs_timer(wm_job, 0.2, NC_MOVIECLIP | ND_DISPLAY, 0);
+	WM_jobs_callbacks(wm_job, proxy_startjob, NULL, NULL, proxy_endjob);
 
 	G.is_break = FALSE;
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 

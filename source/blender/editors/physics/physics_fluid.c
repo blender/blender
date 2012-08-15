@@ -1068,14 +1068,15 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	fb->settings = fsset;
 	
 	if (do_job) {
-		wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Fluid Simulation", WM_JOB_PROGRESS);
+		wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Fluid Simulation",
+		                            WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_SIM_FLUID);
 
 		/* setup job */
-		WM_jobs_customdata_set(steve, fb, fluidbake_free);
-		WM_jobs_timer(steve, 0.1, NC_SCENE|ND_FRAME, NC_SCENE|ND_FRAME);
-		WM_jobs_callbacks(steve, fluidbake_startjob, NULL, NULL, fluidbake_endjob);
+		WM_jobs_customdata_set(wm_job, fb, fluidbake_free);
+		WM_jobs_timer(wm_job, 0.1, NC_SCENE|ND_FRAME, NC_SCENE|ND_FRAME);
+		WM_jobs_callbacks(wm_job, fluidbake_startjob, NULL, NULL, fluidbake_endjob);
 
-		WM_jobs_start(CTX_wm_manager(C), steve);
+		WM_jobs_start(CTX_wm_manager(C), wm_job);
 	}
 	else {
 		short dummy_stop, dummy_do_update;
@@ -1130,7 +1131,7 @@ static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object
 static int fluid_bake_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	/* only one bake job at a time */
-	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
+	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID))
 		return OPERATOR_CANCELLED;
 
 	if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), TRUE))

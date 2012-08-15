@@ -995,9 +995,10 @@ elseif(WIN32)
 			# normally cached but not since we include them with blender
 			set(PYTHON_VERSION 3.2) # CACHE STRING)
 			set_lib_path(PYTHON "python")
-			set(PYTHON_INCLUDE_DIR ${PYTHON}/include/python${PYTHON_VERSION})
 			set(PYTHON_LIBRARY ${PYTHON}/lib/python32.lib) #CACHE FILEPATH
-			
+			#Shared includes for both vc2008 and vc2010
+			set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/include/python${PYTHON_VERSION})
+
 			# uncached vars
 			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
 			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
@@ -1007,7 +1008,7 @@ elseif(WIN32)
 			set(BOOST ${LIBDIR}/boost)
 			set(BOOST_INCLUDE_DIR ${BOOST}/include)
 			if(MSVC10)
-				set(BOOST_LIBPATH ${BOOST}/lib/vc_10)
+				set(BOOST_LIBPATH ${BOOST}/vc2010/lib)
 				set(BOOST_POSTFIX "vc100-mt-s-1_49.lib")
 				set(BOOST_DEBUG_POSTFIX "vc100-mt-sgd-1_49.lib")
 			else()
