@@ -1385,5 +1385,5 @@ void thumbnails_stop(struct FileList *filelist, const struct bContext *C)
 
 int thumbnails_running(struct FileList *filelist, const struct bContext *C)
 {
-	return WM_jobs_test(CTX_wm_manager(C), filelist, WM_JOB_TYPE_ANY);
+	return WM_jobs_test(CTX_wm_manager(C), filelist, WM_JOB_TYPE_FILESEL_THUMBNAIL);
 }

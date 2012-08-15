@@ -1439,7 +1439,7 @@ static void bake_freejob(void *bkv)
 static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running blender, remove handler and pass through */
-	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_ANY))
+	if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_BAKE_TEXTURE))
 		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 
 	/* running render */
@@ -1469,7 +1469,7 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 	}
 	else {
 		/* only one render job at a time */
-		if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_ANY))
+		if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE))
 			return OPERATOR_CANCELLED;
 
 		if (test_bake_internal(C, op->reports) == 0) {

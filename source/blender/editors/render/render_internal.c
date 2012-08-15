@@ -457,7 +457,7 @@ static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
 	Scene *scene = (Scene *) op->customdata;
 
 	/* no running blender, remove handler and pass through */
-	if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_ANY)) {
+	if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER)) {
 		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 	}
 
@@ -489,7 +489,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	const char *name;
 	
 	/* only one render job at a time */
-	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_ANY))
+	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER))
 		return OPERATOR_CANCELLED;
 
 	if (!RE_is_rendering_allowed(scene, camera_override, op->reports)) {

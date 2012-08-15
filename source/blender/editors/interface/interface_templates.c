@@ -2615,7 +2615,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		Scene *scene;
 		/* another scene can be rendering too, for example via compositor */
 		for (scene = CTX_data_main(C)->scene.first; scene; scene = scene->id.next)
-			if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY))
+			if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER))
 				break;
 		owner = scene;
 		handle_event = B_STOPRENDER;
@@ -2634,7 +2634,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		
 		uiLayoutRow(layout, FALSE);
 	}
-	if (WM_jobs_test(wm, screen, WM_JOB_TYPE_ANY))
+	if (WM_jobs_test(wm, screen, WM_JOB_TYPE_SCREENCAST))
 		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, IFACE_("Capture"), 0, 0, 85, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0,
 		                 TIP_("Stop screencast"));
 	if (screen->animtimer)

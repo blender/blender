@@ -1131,7 +1131,7 @@ static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object
 static int fluid_bake_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	/* only one bake job at a time */
-	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_ANY))
+	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID))
 		return OPERATOR_CANCELLED;
 
 	if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), TRUE))
