@@ -2571,7 +2571,7 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
 		case B_STOPCOMPO:
-			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
+			WM_jobs_stop(CTX_wm_manager(C), CTX_data_scene(C), NULL);
 			break;
 		case B_STOPSEQ:
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
@@ -2596,12 +2596,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 
 	uiBlockSetHandleFunc(block, do_running_jobs, NULL);
 
-	if (sa->spacetype == SPACE_NODE) {
-		if (WM_jobs_test(wm, sa, WM_JOB_TYPE_ANY))
-			owner = sa;
-		handle_event = B_STOPCOMPO;
-	}
-	else if (sa->spacetype == SPACE_SEQ) {
+	if (sa->spacetype == SPACE_SEQ) {
 		if (WM_jobs_test(wm, sa, WM_JOB_TYPE_ANY))
 			owner = sa;
 		handle_event = B_STOPSEQ;
@@ -2614,11 +2609,17 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	else {
 		Scene *scene;
 		/* another scene can be rendering too, for example via compositor */
-		for (scene = CTX_data_main(C)->scene.first; scene; scene = scene->id.next)
-			if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER))
+		for (scene = CTX_data_main(C)->scene.first; scene; scene = scene->id.next) {
+			if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
+				handle_event = B_STOPRENDER;
 				break;
+			}
+			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
+				handle_event = B_STOPCOMPO;
+				break;
+			}
+		}
 		owner = scene;
-		handle_event = B_STOPRENDER;
 	}
 
 	if (owner) {
