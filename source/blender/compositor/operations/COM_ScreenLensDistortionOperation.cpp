@@ -145,7 +145,7 @@ void ScreenLensDistortionOperation::deinitExecution()
 	this->m_inputProgram = NULL;
 }
 
-void ScreenLensDistortionOperation::determineUV(float result[4], float x, float y, float distortion, float dispersion) 
+void ScreenLensDistortionOperation::determineUV(float result[6], float x, float y, float distortion, float dispersion) 
 {
 	if (!this->m_valuesAvailable) {
 		updateVariables(distortion, dispersion);
@@ -153,63 +153,36 @@ void ScreenLensDistortionOperation::determineUV(float result[4], float x, float 
 	determineUV(result, x, y);
 }
 
-void ScreenLensDistortionOperation::determineUV(float result[4], float x, float y) const
+void ScreenLensDistortionOperation::determineUV(float result[6], float x, float y) const
 {
 	const float height = this->getHeight();
 	const float width = this->getWidth();
 	
-	float d, t, ln[6] = {0, 0, 0, 0, 0, 0};
+	result[0] = x;
+	result[1] = y;
+	result[2] = x;
+	result[3] = y;
+	result[4] = x;
+	result[5] = y;
+	
+	float d, t;
 	const float v = this->m_sc * ((y + 0.5f) - this->m_cy) / this->m_cy;
 	const float u = this->m_sc * ((x + 0.5f) - this->m_cx) / this->m_cx;
 	const float uv_dot = u * u + v * v;
 
 	if ((t = 1.0f - this->m_kr4 * uv_dot) >= 0.0f) {
 		d = 1.0f / (1.0f + sqrtf(t));
-		ln[0] = (u * d + 0.5f) * width - 0.5f, ln[1] = (v * d + 0.5f) * height - 0.5f;
+		result[0] = (u * d + 0.5f) * width - 0.5f, result[1] = (v * d + 0.5f) * height - 0.5f;
 	}
 	if ((t = 1.0f - this->m_kg4 * uv_dot) >= 0.0f) {
 		d = 1.0f / (1.0f + sqrtf(t));
-		ln[2] = (u * d + 0.5f) * width - 0.5f, ln[3] = (v * d + 0.5f) * height - 0.5f;
+		result[2] = (u * d + 0.5f) * width - 0.5f, result[3] = (v * d + 0.5f) * height - 0.5f;
 	}
 	if ((t = 1.0f - this->m_kb4 * uv_dot) >= 0.0f) {
 		d = 1.0f / (1.0f + sqrtf(t));
-		ln[4] = (u * d + 0.5f) * width - 0.5f, ln[5] = (v * d + 0.5f) * height - 0.5f;
+		result[4] = (u * d + 0.5f) * width - 0.5f, result[5] = (v * d + 0.5f) * height - 0.5f;
 	}
-
-	float jit = this->m_data->jit;
-	float z;
-	{
-		// RG
-		const int dx = ln[2] - ln[0], dy = ln[3] - ln[1];
-		const float dsf = sqrtf((float)dx * dx + dy * dy) + 1.0f;
-		const int ds = (int)(jit ? ((dsf < 4.0f) ? 2.0f : sqrtf(dsf)) : dsf);
-		const float sd = 1.0f / (float)ds;
-
-		z = ds;
-		const float tz = ((float)z + (1.0f)) * sd;
-		t = 1.0f - (this->m_kr4 + tz * this->m_drg) * uv_dot;
-		d = 1.0f / (1.0f + sqrtf(t));
-		const float nx = (u * d + 0.5f) * width - 0.5f;
-		const float ny = (v * d + 0.5f) * height - 0.5f;
-		result[0] = nx;
-		result[1] = ny;
-	}
-	{
-		// GB
-		const int dx = ln[4] - ln[2], dy = ln[5] - ln[3];
-		const float dsf = sqrtf((float)dx * dx + dy * dy) + 1.0f;
-		const int ds = (int)(jit ? ((dsf < 4.0f) ? 2.0f : sqrtf(dsf)) : dsf);
-		const float sd = 1.0f / (float)ds;
-
-		z = ds;
-		const float tz = ((float)z + (1.0f)) * sd;
-		t = 1.0f - (this->m_kg4 + tz * this->m_dgb) * uv_dot;
-		d = 1.0f / (1.0f + sqrtf(t));
-		const float nx = (u * d + 0.5f) * width - 0.5f;
-		const float ny = (v * d + 0.5f) * height - 0.5f;
-		result[2] = nx;
-		result[3] = ny;
-	}
+	
 }
 
 bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -230,18 +203,16 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		return true;
 	}
 
-#define MARGIN 96
-
 #define UPDATE_INPUT  { \
-		newInput.xmin = MIN3(newInput.xmin, coords[0], coords[2]); \
-		newInput.ymin = MIN3(newInput.ymin, coords[1], coords[3]); \
-		newInput.xmax = MAX3(newInput.xmax, coords[0], coords[2]); \
-		newInput.ymax = MAX3(newInput.ymax, coords[1], coords[3]); \
+		newInput.xmin = MIN4(newInput.xmin, coords[0], coords[2], coords[4]); \
+		newInput.ymin = MIN4(newInput.ymin, coords[1], coords[3], coords[5]); \
+		newInput.xmax = MAX4(newInput.xmax, coords[0], coords[2], coords[4]); \
+		newInput.ymax = MAX4(newInput.ymax, coords[1], coords[3], coords[5]); \
 	} (void)0
 	
 	rcti newInput;
-	float margin;
-	float coords[4];
+	const float margin = 2;
+	float coords[6];
 	if (m_valuesAvailable) {
 		determineUV(coords, input->xmin, input->ymin);
 		newInput.xmin = coords[0];
@@ -255,7 +226,6 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		UPDATE_INPUT;
 		determineUV(coords, input->xmax, input->ymin);
 		UPDATE_INPUT;
-		margin = (fabsf(this->m_distortion) + this->m_dispersion) * MARGIN + 2.0f;
 	} 
 	else {
 		determineUV(coords, input->xmin, input->ymin, 1.0f, 1.0f);
@@ -281,8 +251,6 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		UPDATE_INPUT;
 		determineUV(coords, input->xmax, input->ymin, 1.0f, 1.0f);
 		UPDATE_INPUT;
-		margin = MARGIN;
-		printf("margin b: %f\n", margin);
 	}
 
 #undef UPDATE_INPUT
