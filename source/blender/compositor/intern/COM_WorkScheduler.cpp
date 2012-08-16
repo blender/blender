@@ -257,8 +257,12 @@ extern void clContextError(const char *errinfo, const void *private_info, size_t
 
 void WorkScheduler::initialize()
 {
+	if (g_highlightedNodesRead) MEM_freeN(g_highlightedNodesRead);
+	if (g_highlightedNodes)     MEM_freeN(g_highlightedNodes);
+
 	g_highlightedNodesRead = NULL;
 	g_highlightedNodes = NULL;
+
 	COM_startReadHighlights();
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 	int numberOfCPUThreads = BLI_system_thread_count();
@@ -354,5 +358,13 @@ void WorkScheduler::deinitialize()
 	}
 #endif
 #endif
+
+	if (g_highlightedNodes) {
+		MEM_freeN(g_highlightedNodes);
+	}
+
+	if (g_highlightedNodesRead) {
+		MEM_freeN(g_highlightedNodesRead);
+	}
 }
 
