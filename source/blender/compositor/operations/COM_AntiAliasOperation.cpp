@@ -23,6 +23,10 @@
 #include "COM_AntiAliasOperation.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BKE_utildefines.h"
+
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 	#include "RE_render_ext.h"
 }
@@ -58,7 +62,7 @@ void AntiAliasOperation::deinitExecution()
 {
 	this->m_valueReader = NULL;
 	if (this->m_buffer) {
-		delete this->m_buffer;
+		MEM_freeN(this->m_buffer);
 	}
 	NodeOperation::deinitMutex();
 }
@@ -90,12 +94,10 @@ void *AntiAliasOperation::initializeTileData(rcti *rect)
 		MemoryBuffer *tile = (MemoryBuffer *)this->m_valueReader->initializeTileData(rect);
 		int size = tile->getHeight() * tile->getWidth();
 		float *input = tile->getBuffer();
-		char *valuebuffer = new char[size];
+		char *valuebuffer = (char *)MEM_mallocN(sizeof(char) * size, __func__);
 		for (int i = 0; i < size; i++) {
 			float in = input[i * COM_NUMBER_OF_CHANNELS];
-			if (in < 0.0f) { in = 0.0f; }
-			if (in > 1.0f) {in = 1.0f; }
-			valuebuffer[i] = in * 255;
+			valuebuffer[i] = FTOCHAR(in);
 		}
 		antialias_tagbuf(tile->getWidth(), tile->getHeight(), valuebuffer);
 		this->m_buffer = valuebuffer;

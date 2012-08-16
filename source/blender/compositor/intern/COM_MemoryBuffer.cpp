@@ -75,7 +75,7 @@ float *MemoryBuffer::convertToValueBuffer()
 	const unsigned int size = this->determineBufferSize();
 	unsigned int i;
 
-	float *result = new float[size];
+	float *result = (float *)MEM_mallocN(sizeof(float) * size, __func__);
 
 	const float *fp_src = this->m_buffer;
 	float       *fp_dst = result;

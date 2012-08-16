@@ -38,6 +38,7 @@
 #include "COM_ChunkOrder.h"
 #include "COM_ExecutionSystemHelper.h"
 
+#include "MEM_guardedalloc.h"
 #include "BLI_math.h"
 #include "PIL_time.h"
 #include "WM_api.h"
@@ -148,14 +149,14 @@ NodeOperation *ExecutionGroup::getOutputNodeOperation() const
 void ExecutionGroup::initExecution()
 {
 	if (this->m_chunkExecutionStates != NULL) {
-		delete[] this->m_chunkExecutionStates;
+		MEM_freeN(this->m_chunkExecutionStates);
 	}
 	unsigned int index;
 	determineNumberOfChunks();
 
 	this->m_chunkExecutionStates = NULL;
 	if (this->m_numberOfChunks != 0) {
-		this->m_chunkExecutionStates = new ChunkExecutionState[this->m_numberOfChunks];
+		this->m_chunkExecutionStates = (ChunkExecutionState *)MEM_mallocN(sizeof(ChunkExecutionState) * this->m_numberOfChunks, __func__);
 		for (index = 0; index < this->m_numberOfChunks; index++) {
 			this->m_chunkExecutionStates[index] = COM_ES_NOT_SCHEDULED;
 		}
@@ -180,7 +181,7 @@ void ExecutionGroup::initExecution()
 void ExecutionGroup::deinitExecution()
 {
 	if (this->m_chunkExecutionStates != NULL) {
-		delete[] this->m_chunkExecutionStates;
+		MEM_freeN(this->m_chunkExecutionStates);
 		this->m_chunkExecutionStates = NULL;
 	}
 	this->m_numberOfChunks = 0;
@@ -227,7 +228,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 	this->m_chunksFinished = 0;
 	this->m_bTree = bTree;
 	unsigned int index;
-	unsigned int *chunkOrder = new unsigned int[this->m_numberOfChunks];
+	unsigned int *chunkOrder = (unsigned int *)MEM_mallocN(sizeof(unsigned int) * this->m_numberOfChunks, __func__);
 
 	for (chunkNumber = 0; chunkNumber < this->m_numberOfChunks; chunkNumber++) {
 		chunkOrder[chunkNumber] = chunkNumber;
@@ -256,10 +257,10 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 			break;
 		case COM_TO_CENTER_OUT:
 		{
-			ChunkOrderHotspot **hotspots = new ChunkOrderHotspot *[1];
+			ChunkOrderHotspot *hotspots[1];
 			hotspots[0] = new ChunkOrderHotspot(this->m_width * centerX, this->m_height * centerY, 0.0f);
 			rcti rect;
-			ChunkOrder *chunkOrders = new ChunkOrder[this->m_numberOfChunks];
+			ChunkOrder *chunkOrders = (ChunkOrder *)MEM_mallocN(sizeof(ChunkOrder) * this->m_numberOfChunks, __func__);
 			for (index = 0; index < this->m_numberOfChunks; index++) {
 				determineChunkRect(&rect, index);
 				chunkOrders[index].setChunkNumber(index);
@@ -274,13 +275,12 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 			}
 
 			delete hotspots[0];
-			delete[] hotspots;
-			delete[] chunkOrders;
+			MEM_freeN(chunkOrders);
 		}
 		break;
 		case COM_TO_RULE_OF_THIRDS:
 		{
-			ChunkOrderHotspot **hotspots = new ChunkOrderHotspot *[9];
+			ChunkOrderHotspot *hotspots[9];
 			unsigned int tx = this->m_width / 6;
 			unsigned int ty = this->m_height / 6;
 			unsigned int mx = this->m_width / 2;
@@ -299,7 +299,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 			hotspots[7] = new ChunkOrderHotspot(mx, ty, addition * 7);
 			hotspots[8] = new ChunkOrderHotspot(mx, by, addition * 8);
 			rcti rect;
-			ChunkOrder *chunkOrders = new ChunkOrder[this->m_numberOfChunks];
+			ChunkOrder *chunkOrders = (ChunkOrder *)MEM_mallocN(sizeof(ChunkOrder) * this->m_numberOfChunks, __func__);
 			for (index = 0; index < this->m_numberOfChunks; index++) {
 				determineChunkRect(&rect, index);
 				chunkOrders[index].setChunkNumber(index);
@@ -323,8 +323,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 			delete hotspots[6];
 			delete hotspots[7];
 			delete hotspots[8];
-			delete[] hotspots;
-			delete[] chunkOrders;
+			MEM_freeN(chunkOrders);
 		}
 		break;
 		case COM_TO_TOP_DOWN:
@@ -372,7 +371,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 		}
 	}
 
-	delete[] chunkOrder;
+	MEM_freeN(chunkOrder);
 }
 
 MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
@@ -383,10 +382,7 @@ MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 	determineChunkRect(&rect, chunkNumber);
 
 	this->determineDependingMemoryProxies(&memoryproxies);
-	MemoryBuffer **memoryBuffers = new MemoryBuffer *[this->m_cachedMaxReadBufferOffset];
-	for (index = 0; index < this->m_cachedMaxReadBufferOffset; index++) {
-		memoryBuffers[index] = NULL;
-	}
+	MemoryBuffer **memoryBuffers = (MemoryBuffer **)MEM_callocN(sizeof(MemoryBuffer *) * this->m_cachedMaxReadBufferOffset, __func__);
 	rcti output;
 	for (index = 0; index < this->m_cachedReadOperations.size(); index++) {
 		ReadBufferOperation *readOperation = (ReadBufferOperation *)this->m_cachedReadOperations[index];
@@ -422,7 +418,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
 				}
 			}
 		}
-		delete[] memoryBuffers;
+		MEM_freeN(memoryBuffers);
 	}
 	if (this->m_bTree) {
 		// status report is only performed for top level Execution Groups.

@@ -25,6 +25,8 @@
 
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 	#include "BKE_tracking.h"
 	#include "PIL_time.h"
@@ -62,22 +64,19 @@ public:
 		this->m_calibration_width = calibration_width;
 		this->m_calibration_height = calibration_height;
 		this->m_inverted = inverted;
-		this->m_bufferCalculated = new int[this->m_width * this->m_height];
-		this->m_buffer = new float[this->m_width * this->m_height * 2];
-		for (int i = 0; i < this->m_width * this->m_height; i++) {
-			this->m_bufferCalculated[i] = 0;
-		}
+		this->m_bufferCalculated = (int *)MEM_callocN(sizeof(int) * this->m_width * this->m_height, __func__);
+		this->m_buffer = (float *)MEM_mallocN(sizeof(float) * this->m_width * this->m_height * 2, __func__);
 		this->updateLastUsage();
 	}
 	
 	~DistortionCache() {
 		if (this->m_buffer) {
-			delete[] this->m_buffer;
+			MEM_freeN(this->m_buffer);
 			this->m_buffer = NULL;
 		}
 		
 		if (this->m_bufferCalculated) {
-			delete[] this->m_bufferCalculated;
+			MEM_freeN(this->m_bufferCalculated);
 			this->m_bufferCalculated = NULL;
 		}
 	}
