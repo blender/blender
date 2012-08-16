@@ -32,6 +32,7 @@
 
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_image.h"
@@ -348,6 +349,61 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 		                   NULL, NULL /* zbuf - unused for nodes */
 		                   );
 	}
+}
+
+/* returns color in SRGB */
+/* matching ED_space_image_color_sample() */
+int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float r_col[3])
+{
+	void *lock;
+	Image *ima;
+	ImBuf *ibuf;
+	float fx, fy, bufx, bufy;
+	int ret = FALSE;
+
+	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+	if (!ibuf) {
+		return FALSE;
+	}
+
+	/* map the mouse coords to the backdrop image space */
+	bufx = ibuf->x * snode->zoom;
+	bufy = ibuf->y * snode->zoom;
+	fx = (bufx > 0.0f ? ((float)mval[0] - 0.5f * ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
+	fy = (bufy > 0.0f ? ((float)mval[1] - 0.5f * ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
+
+	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
+		float *fp;
+		char *cp;
+		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
+
+		CLAMP(x, 0, ibuf->x - 1);
+		CLAMP(y, 0, ibuf->y - 1);
+
+		if (ibuf->rect_float) {
+			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+
+			if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+				linearrgb_to_srgb_v3_v3(r_col, fp);
+			}
+			else {
+				copy_v3_v3(r_col, fp);
+			}
+			ret = TRUE;
+		}
+		else if (ibuf->rect) {
+			cp = (char *)(ibuf->rect + y * ibuf->x + x);
+			r_col[0] = cp[0] / 255.0f;
+			r_col[1] = cp[1] / 255.0f;
+			r_col[2] = cp[2] / 255.0f;
+			ret = TRUE;
+		}
+	}
+
+	BKE_image_release_ibuf(ima, lock);
+
+	return ret;
 }
 
 static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)

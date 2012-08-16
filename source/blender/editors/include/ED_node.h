@@ -76,8 +76,11 @@ void ED_node_set_active(struct Main *bmain, struct bNodeTree *ntree, struct bNod
 
 void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, struct Scene *scene_owner);
 
-/* node ops.c */
+/* node_ops.c */
 void ED_operatormacros_node(void);
+
+/* node_view.c */
+int ED_space_node_color_sample(struct SpaceNode *snode, struct ARegion *ar, int mval[2], float r_col[3]);
 
 #endif /* __ED_NODE_H__ */
 
