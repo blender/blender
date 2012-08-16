@@ -202,7 +202,7 @@ public:
 		
 
 
-	void readEWA(float result[4], float fx, float fy, float dx, float dy);
+	void readEWA(float result[4], float fx, float fy, float dx, float dy, PixelSampler sampler);
 	
 	/**
 	 * @brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)

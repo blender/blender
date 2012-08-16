@@ -59,9 +59,9 @@ void ReadBufferOperation::executePixel(float output[4], float x, float y, PixelS
 	}
 }
 
-void ReadBufferOperation::executePixel(float output[4], float x, float y, float dx, float dy)
+void ReadBufferOperation::executePixel(float output[4], float x, float y, float dx, float dy, PixelSampler sampler)
 {
-	m_buffer->readEWA(output, x, y, dx, dy);
+	m_buffer->readEWA(output, x, y, dx, dy, sampler);
 }
 
 bool ReadBufferOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

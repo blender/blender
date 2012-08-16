@@ -259,7 +259,10 @@ float clipuv(float x, float limit)
 	return x;
 }
 
-void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float dy)
+/**
+ * \note \a sampler at the moment is either 'COM_PS_NEAREST' or not, other values won't matter.
+ */
+void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float dy, PixelSampler sampler)
 {
 	const int width = this->getWidth(), height = this->getHeight();
 	
@@ -280,7 +283,7 @@ void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float 
 	// Use a different radius based on interpolation switch, just enough to anti-alias when interpolation is off,
 	// and slightly larger to make result a bit smoother than bilinear interpolation when interpolation is on
 	// (minimum values: const float rmin = intpol ? 1.f : 0.5f;)
-	const float rmin = 1.5625f / ff2;
+	const float rmin = ((sampler != COM_PS_NEAREST) ? 1.5625f : 0.765625f) / ff2;
 	imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
 	if ((b2 = b * b) < rmin) {
 		if ((a2 = a * a) < rmin) {
