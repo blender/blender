@@ -532,6 +532,9 @@ void Session::run()
 
 	/* run */
 	if(!progress.get_cancel()) {
+		/* reset number of rendered samples */
+		progress.reset_sample();
+
 		if(device_use_gl)
 			run_gpu();
 		else

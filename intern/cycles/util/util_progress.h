@@ -120,6 +120,13 @@ public:
 		tile_time_ = tile_time;
 	}
 
+	void reset_sample()
+	{
+		thread_scoped_lock lock(progress_mutex);
+
+		sample = 0;
+	}
+
 	void increment_sample()
 	{
 		thread_scoped_lock lock(progress_mutex);
