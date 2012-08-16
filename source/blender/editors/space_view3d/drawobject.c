@@ -3354,7 +3354,7 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 }
 
 static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
-                            const short dt, const short dflag)
+                            const short dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
 	Mesh *me = ob->data;
@@ -3428,13 +3428,12 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 
 		if (!(draw_flags & DRAW_FACE_SELECT)) {
-			if (base->flag & SELECT)
-				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
-			else
-				UI_ThemeColor(TH_WIRE);
-
-			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
+			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+				if ((dflag & DRAW_CONSTCOLOR) == 0) {
+					glColor3ubv(ob_wire_col);
+				}
 				dm->drawLooseEdges(dm);
+			}
 		}
 	}
 	else if (dt == OB_SOLID) {
@@ -3518,14 +3517,12 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 
-			if (base->flag & SELECT) {
-				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
-			}
-			else {
-				UI_ThemeColor(TH_WIRE);
-			}
-			if (!ob->sculpt && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
+			if (!ob->sculpt && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+				if ((dflag & DRAW_CONSTCOLOR) == 0) {
+					glColor3ubv(ob_wire_col);
+				}
 				dm->drawLooseEdges(dm);
+			}
 		}
 	}
 	else if (dt == OB_PAINT) {
@@ -3609,7 +3606,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 /* returns 1 if nothing was drawn, for detecting to draw an object center */
 static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
-                            const short dt, const short dflag)
+                            const short dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
 	Object *obedit = scene->obedit;
@@ -3673,7 +3670,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				                           (check_alpha) ? &do_alpha_after : NULL);
 			}
 
-			draw_mesh_fancy(scene, ar, v3d, rv3d, base, dt, dflag);
+			draw_mesh_fancy(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
 
 			GPU_end_object_materials();
 			
@@ -6695,7 +6692,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 	switch (ob->type) {
 		case OB_MESH:
-			empty_object = draw_mesh_object(scene, ar, v3d, rv3d, base, dt, dflag);
+			empty_object = draw_mesh_object(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
 			if (dflag != DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE;  // mesh draws wire itself
 
 			break;
