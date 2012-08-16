@@ -193,6 +193,18 @@ static void drawcircle_size(float size);
 static void draw_empty_sphere(float size);
 static void draw_empty_cone(float size);
 
+static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], const int theme_id, float fac)
+{
+	float col_bg[3], col[3];
+	float col_wire[3] = {ob_wire_col[0] / 255.0f,
+	                     ob_wire_col[1] / 255.0f,
+	                     ob_wire_col[2] / 255.0f};
+
+	UI_GetThemeColor3fv(theme_id, col_bg);
+	interp_v3_v3v3(col, col_bg, col_wire, fac);
+	glColor3fv(col);
+}
+
 /* this condition has been made more complex since editmode can draw textures */
 static int check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
 {
@@ -653,7 +665,7 @@ void drawaxes(float size, char drawtype)
 
 
 /* Function to draw an Image on a empty Object */
-static void draw_empty_image(Object *ob)
+static void draw_empty_image(Object *ob, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Image *ima = (Image *)ob->data;
 	ImBuf *ibuf = ima ? BKE_image_get_ibuf(ima, NULL) : NULL;
@@ -726,15 +738,17 @@ static void draw_empty_image(Object *ob)
 		glDisable(GL_BLEND);
 	}
 
-	UI_ThemeColor((ob->flag & SELECT) ? TH_SELECT : TH_WIRE);
+	if ((dflag & DRAW_CONSTCOLOR) == 0) {
+		glColor3ubv(ob_wire_col);
 
-	/* Calculate the outline vertex positions */
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(ofs_x, ofs_y);
-	glVertex2f(ofs_x + ima_x, ofs_y);
-	glVertex2f(ofs_x + ima_x, ofs_y + ima_y);
-	glVertex2f(ofs_x, ofs_y + ima_y);
-	glEnd();
+		/* Calculate the outline vertex positions */
+		glBegin(GL_LINE_LOOP);
+		glVertex2f(ofs_x, ofs_y);
+		glVertex2f(ofs_x + ima_x, ofs_y);
+		glVertex2f(ofs_x + ima_x, ofs_y + ima_y);
+		glVertex2f(ofs_x, ofs_y + ima_y);
+		glEnd();
+	}
 
 	/* Reset GL settings */
 	glMatrixMode(GL_MODELVIEW);
@@ -3542,14 +3556,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
 			if (is_obact && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
-				float col_wire[3] = {ob_wire_col[0] / 255.0f,
-									 ob_wire_col[1] / 255.0f,
-									 ob_wire_col[2] / 255.0f};
-				float col_bg[3], col[3];
-
-				UI_GetThemeColor3fv(TH_BACK, col_bg);
-				interp_v3_v3v3(col, col_bg, col_wire, 0.15);
-				glColor3fv(col);
+				ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.15f);
 			}
 			else {
 				glColor3ubv(ob_wire_col);
@@ -5896,9 +5903,9 @@ static void drawcone(const float vec[3], float radius, float height, float tmat[
 	glVertex3f(cur[0], cur[1] - radius, cur[2]);
 	glEnd();
 }
-/* return 1 if nothing was drawn */
+/* return TRUE if nothing was drawn */
 static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                     const short dt, const unsigned char ob_wire_col[4])
+                     const short dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	MetaBall *mb;
@@ -5925,27 +5932,32 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 		ml = mb->elems.first;
 	}
 
-	if (ml == NULL) return 1;
-
-	if (v3d->flag2 & V3D_RENDER_OVERRIDE) return 0;
-	
-	/* in case solid draw, reset wire colors */
-	if (ob->flag & SELECT) {
-		if (ob == OBACT) UI_ThemeColor(TH_ACTIVE);
-		else UI_ThemeColor(TH_SELECT);
+	if (ml == NULL) {
+		return TRUE;
 	}
-	else UI_ThemeColor(TH_WIRE);
+
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return FALSE;
+	}
 
 	invert_m4_m4(imat, rv3d->viewmatob);
 	normalize_v3(imat[0]);
 	normalize_v3(imat[1]);
+
+	if (mb->editelems == NULL) {
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			glColor3ubv(ob_wire_col);
+		}
+	}
 	
 	while (ml) {
 
 		/* draw radius */
 		if (mb->editelems) {
-			if ((ml->flag & SELECT) && (ml->flag & MB_SCALE_RAD)) cpack(0xA0A0F0);
-			else cpack(0x3030A0);
+			if ((dflag & DRAW_CONSTCOLOR) == 0) {
+				if ((ml->flag & SELECT) && (ml->flag & MB_SCALE_RAD)) cpack(0xA0A0F0);
+				else cpack(0x3030A0);
+			}
 			
 			if (G.f & G_PICKSEL) {
 				ml->selcol1 = code;
@@ -5956,8 +5968,10 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 
 		/* draw stiffness */
 		if (mb->editelems) {
-			if ((ml->flag & SELECT) && !(ml->flag & MB_SCALE_RAD)) cpack(0xA0F0A0);
-			else cpack(0x30A030);
+			if ((dflag & DRAW_CONSTCOLOR) == 0) {
+				if ((ml->flag & SELECT) && !(ml->flag & MB_SCALE_RAD)) cpack(0xA0F0A0);
+				else cpack(0x30A030);
+			}
 			
 			if (G.f & G_PICKSEL) {
 				ml->selcol2 = code;
@@ -5968,23 +5982,16 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 		
 		ml = ml->next;
 	}
-	return 0;
+	return FALSE;
 }
 
-static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
+static void draw_forcefield(Object *ob, RegionView3D *rv3d,
+                            const short dflag, const unsigned char ob_wire_col[4])
 {
 	PartDeflect *pd = ob->pd;
 	float imat[4][4], tmat[4][4];
 	float vec[3] = {0.0, 0.0, 0.0};
-	int curcol;
 	float size;
-
-	/* XXX why? */
-	if (ob != scene->obedit && (ob->flag & SELECT)) {
-		if (ob == OBACT) curcol = TH_ACTIVE;
-		else curcol = TH_SELECT;
-	}
-	else curcol = TH_EMPTY;
 	
 	/* scale size of circle etc with the empty drawsize */
 	if (ob->type == OB_EMPTY) size = ob->empty_drawsize;
@@ -5997,16 +6004,19 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 	
 	if (pd->forcefield == PFIELD_WIND) {
 		float force_val;
-		
-		unit_m4(tmat);
-		UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
-		
+
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
+		}
+
 		//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
 		//	force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
 		//else
 		{
 			force_val = pd->f_strength;
 		}
+
+		unit_m4(tmat);
 		force_val *= 0.1f;
 		drawcircball(GL_LINE_LOOP, vec, size, tmat);
 		vec[2] = 0.5f * force_val;
@@ -6028,11 +6038,11 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 			ffall_val = pd->f_power;
 		}
 
-		UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
+		if ((dflag & DRAW_CONSTCOLOR) == 0) ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
 		drawcircball(GL_LINE_LOOP, vec, size, imat);
-		UI_ThemeColorBlend(curcol, TH_BACK, 0.9f - 0.4f / powf(1.5f, ffall_val));
+		if ((dflag & DRAW_CONSTCOLOR) == 0) ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.9f - 0.4f / powf(1.5f, ffall_val));
 		drawcircball(GL_LINE_LOOP, vec, size * 1.5f, imat);
-		UI_ThemeColorBlend(curcol, TH_BACK, 0.9f - 0.4f / powf(2.0f, ffall_val));
+		if ((dflag & DRAW_CONSTCOLOR) == 0) ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.9f - 0.4f / powf(2.0f, ffall_val));
 		drawcircball(GL_LINE_LOOP, vec, size * 2.0f, imat);
 	}
 	else if (pd->forcefield == PFIELD_VORTEX) {
@@ -6051,7 +6061,10 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 			force_val = pd->f_strength;
 		}
 
-		UI_ThemeColorBlend(curcol, TH_BACK, 0.7f);
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.7f);
+		}
+
 		if (force_val < 0) {
 			drawspiral(vec, size, tmat, 1);
 			drawspiral(vec, size, tmat, 16);
@@ -6073,16 +6086,18 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 				mindist = pd->f_strength;
 			}
 
+			if ((dflag & DRAW_CONSTCOLOR) == 0) {
+				ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
+			}
+
 			/*path end*/
 			setlinestyle(3);
 			where_on_path(ob, 1.0f, guidevec1, guidevec2, NULL, NULL, NULL);
-			UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
 			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
 
 			/*path beginning*/
 			setlinestyle(0);
 			where_on_path(ob, 0.0f, guidevec1, guidevec2, NULL, NULL, NULL);
-			UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
 			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
 			
 			copy_v3_v3(vec, guidevec1); /* max center */
@@ -6090,7 +6105,10 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 	}
 
 	setlinestyle(3);
-	UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
+
+	if ((dflag & DRAW_CONSTCOLOR) == 0) {
+		ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.5f);
+	}
 
 	if (pd->falloff == PFIELD_FALL_SPHERE) {
 		/* as last, guide curve alters it */
@@ -6785,20 +6803,20 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			MetaBall *mb = ob->data;
 			
 			if (mb->editelems)
-				drawmball(scene, v3d, rv3d, base, dt, ob_wire_col);
+				drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 			else if (dt == OB_BOUNDBOX) {
 				if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && (v3d->drawtype >= OB_WIRE)) == 0) {
 					draw_bounding_volume(scene, ob, ob->boundtype);
 				}
 			}
 			else
-				empty_object = drawmball(scene, v3d, rv3d, base, dt, ob_wire_col);
+				empty_object = drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 			break;
 		}
 		case OB_EMPTY:
 			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 				if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-					draw_empty_image(ob);
+					draw_empty_image(ob, dflag, ob_wire_col);
 				}
 				else {
 					drawaxes(ob->empty_drawsize, ob->empty_drawtype);
@@ -6870,7 +6888,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 
 		if (ob->pd && ob->pd->forcefield) {
-			draw_forcefield(scene, ob, rv3d);
+			draw_forcefield(ob, rv3d, dflag, ob_wire_col);
 		}
 	}
 
@@ -7551,7 +7569,8 @@ void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			break;
 		case OB_EMPTY:
 			if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-				draw_empty_image(ob);
+				/* CONSTCOLOR == no wire outline */
+				draw_empty_image(ob, DRAW_CONSTCOLOR, NULL);
 			}
 			else {
 				drawaxes(ob->empty_drawsize, ob->empty_drawtype);
