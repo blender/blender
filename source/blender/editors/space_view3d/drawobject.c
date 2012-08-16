@@ -6340,59 +6340,46 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	glDepthMask(1);
 }
 
-static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob) 
+static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, unsigned char ob_wire_col[4])
 {
-	if (ob != scene->obedit && (ob->flag & SELECT)) {
-		if (ob == OBACT) {
-			if (ob->flag & OB_FROMGROUP) UI_ThemeColor(TH_GROUP_ACTIVE);
-			else UI_ThemeColor(TH_ACTIVE);
+	if (ELEM4(ob->type, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)) {
+
+		if (scene->obedit == ob) {
+			UI_ThemeColor(TH_WIRE);
 		}
-		else if (ob->flag & OB_FROMGROUP)
-			UI_ThemeColorShade(TH_GROUP_ACTIVE, -16);
-		else
-			UI_ThemeColor(TH_SELECT);
-	}
-	else {
-		if (ob->flag & OB_FROMGROUP)
-			UI_ThemeColor(TH_GROUP);
 		else {
-			if (ob->dtx & OB_DRAWWIRE) {
-				glColor3ub(80, 80, 80);
-			}
-			else {
-				UI_ThemeColor(TH_WIRE);
+			glColor3ubv(ob_wire_col);
+		}
+
+		bglPolygonOffset(rv3d->dist, 1.0);
+		glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
+
+		if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
+			Curve *cu = ob->data;
+			if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
+				if (ob->type == OB_CURVE)
+					draw_index_wire = 0;
+
+				if (ob->derivedFinal) {
+					drawCurveDMWired(ob);
+				}
+				else {
+					drawDispListwire(&ob->disp);
+				}
+
+				if (ob->type == OB_CURVE)
+					draw_index_wire = 1;
 			}
 		}
-	}
-	
-	bglPolygonOffset(rv3d->dist, 1.0);
-	glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
-
-	if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
-		Curve *cu = ob->data;
-		if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
-			if (ob->type == OB_CURVE)
-				draw_index_wire = 0;
-
-			if (ob->derivedFinal) {
-				drawCurveDMWired(ob);
-			}
-			else {
+		else if (ob->type == OB_MBALL) {
+			if (BKE_mball_is_basis(ob)) {
 				drawDispListwire(&ob->disp);
 			}
-
-			if (ob->type == OB_CURVE)
-				draw_index_wire = 1;
 		}
-	}
-	else if (ob->type == OB_MBALL) {
-		if (BKE_mball_is_basis(ob)) {
-			drawDispListwire(&ob->disp);
-		}
-	}
 
-	glDepthMask(1);
-	bglPolygonOffset(rv3d->dist, 0.0);
+		glDepthMask(1);
+		bglPolygonOffset(rv3d->dist, 0.0);
+	}
 }
 
 /* should be called in view space */
@@ -7090,7 +7077,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 			/*if (dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
 			if ((dtx & OB_DRAWWIRE) && dt >= OB_SOLID) {
-				drawWireExtra(scene, rv3d, ob);
+				if ((dflag & DRAW_CONSTCOLOR) == 0) {
+					draw_wire_extra(scene, rv3d, ob, ob_wire_col);
+				}
 			}
 		}
 	}
