@@ -121,7 +121,7 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 {
 	int width = this->getWidth();
 	int height = this->getHeight();
-	short *m = this->m_manhatten_distance = new short[width * height];
+	short *m = this->m_manhatten_distance = (short *)MEM_mallocN(sizeof(short) * width * height, __func__);
 	int *offsets;
 
 	offsets = (int *)MEM_callocN(sizeof(int) * (width + height + 1), "InpaintSimpleOperation offsets");
@@ -140,7 +140,7 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 			m[j * width + i] = r;
 		}
 	}
-	
+
 	for (int j = height - 1; j >= 0; j--) {
 		for (int i = width - 1; i >= 0; i--) {
 			int r = m[j * width + i];
@@ -163,7 +163,7 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 	}
 	
 	this->m_area_size = offsets[width + height];
-	this->m_pixelorder = new int[this->m_area_size];
+	this->m_pixelorder = (int *)MEM_mallocN(sizeof(int) * this->m_area_size, __func__);
 	
 	for (int i = 0; i < width * height; i++) {
 		if (m[i] > 0) {
@@ -225,9 +225,7 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 	lockMutex();
 	if (!this->m_cached_buffer_ready) {
 		MemoryBuffer *buf = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect);
-
-		this->m_cached_buffer = new float[this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS];
-		memcpy(this->m_cached_buffer, buf->getBuffer(), this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
+		this->m_cached_buffer = (float *)MEM_dupallocN(buf->getBuffer());
 
 		this->calc_manhatten_distance();
 
@@ -256,17 +254,17 @@ void InpaintSimpleOperation::deinitExecution()
 	this->m_inputImageProgram = NULL;
 	this->deinitMutex();
 	if (this->m_cached_buffer) {
-		delete [] this->m_cached_buffer;
+		MEM_freeN(this->m_cached_buffer);
 		this->m_cached_buffer = NULL;
 	}
 
 	if (this->m_pixelorder) {
-		delete [] this->m_pixelorder;
+		MEM_freeN(this->m_pixelorder);
 		this->m_pixelorder = NULL;
 	}
 
 	if (this->m_manhatten_distance) {
-		delete [] this->m_manhatten_distance;
+		MEM_freeN(this->m_manhatten_distance);
 		this->m_manhatten_distance = NULL;
 	}
 	this->m_cached_buffer_ready = false;

@@ -22,6 +22,7 @@
 
 #include "COM_BlurBaseOperation.h"
 #include "BLI_math.h"
+#include "MEM_guardedalloc.h"
 
 extern "C" {
 	#include "RE_pipeline.h"
@@ -74,7 +75,7 @@ float *BlurBaseOperation::make_gausstab(int rad)
 
 	n = 2 * rad + 1;
 
-	gausstab = new float[n];
+	gausstab = (float *)MEM_mallocN(sizeof(float) * n, __func__);
 
 	sum = 0.0f;
 	for (i = -rad; i <= rad; i++) {
@@ -99,7 +100,7 @@ float *BlurBaseOperation::make_dist_fac_inverse(int rad, int falloff)
 
 	n = 2 * rad + 1;
 
-	dist_fac_invert = new float[n];
+	dist_fac_invert = (float *)MEM_mallocN(sizeof(float) * n, __func__);
 
 	for (i = -rad; i <= rad; i++) {
 		val = 1.0f - fabsf(((float)i / (float)rad));

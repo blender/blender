@@ -23,6 +23,7 @@
 
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "BLI_math.h"
+#include "MEM_guardedalloc.h"
 
 extern "C" {
 	#include "RE_pipeline.h"
@@ -154,9 +155,9 @@ void GaussianAlphaXBlurOperation::executePixel(float output[4], int x, int y, vo
 void GaussianAlphaXBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
-	delete [] this->m_gausstab;
+	MEM_freeN(this->m_gausstab);
 	this->m_gausstab = NULL;
-	delete [] this->m_distbuf_inv;
+	MEM_freeN(this->m_distbuf_inv);
 	this->m_distbuf_inv = NULL;
 
 	deinitMutex();
