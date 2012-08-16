@@ -38,7 +38,11 @@ void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 {
 	bNode *b_node = this->getbNode();
 
-	if (b_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) {
+	InputSocket *inputSizeSocket = this->getInputSocket(2);
+
+	bool connectedSizeSocket = inputSizeSocket->isConnected();
+
+	if ((b_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) && connectedSizeSocket) {
 		VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
 
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
@@ -55,9 +59,6 @@ void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	}
 	else {
 		BokehBlurOperation *operation = new BokehBlurOperation();
-		InputSocket *inputSizeSocket = this->getInputSocket(2);
-
-		bool connectedSizeSocket = inputSizeSocket->isConnected();
 
 		const bNodeSocket *sock = this->getInputSocket(2)->getbNodeSocket();
 		const float size = ((const bNodeSocketValueFloat *)sock->default_value)->value;
