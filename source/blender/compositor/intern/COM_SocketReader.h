@@ -88,7 +88,7 @@ protected:
 	 * @param dy
 	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
 	 */
-	virtual void executePixel(float output[4], float x, float y, float dx, float dy) {}
+	virtual void executePixel(float output[4], float x, float y, float dx, float dy, PixelSampler sampler) {}
 
 public:
 	inline void read(float *result, float x, float y, PixelSampler sampler) {
@@ -97,8 +97,8 @@ public:
 	inline void read(float *result, int x, int y, void *chunkData) {
 		executePixel(result, x, y, chunkData);
 	}
-	inline void read(float *result, float x, float y, float dx, float dy) {
-		executePixel(result, x, y, dx, dy);
+	inline void read(float *result, float x, float y, float dx, float dy, PixelSampler sampler) {
+		executePixel(result, x, y, dx, dy, sampler);
 	}
 
 	virtual void *initializeTileData(rcti *rect) { return 0; }
