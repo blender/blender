@@ -140,9 +140,9 @@ void InpaintSimpleOperation::calc_manhatten_distance()
 			m[j * width + i] = r;
 		}
 	}
-	
+
 	for (int j = height - 1; j >= 0; j--) {
-		for (int i = width; i >= 0; i--) {
+		for (int i = width - 1; i >= 0; i--) {
 			int r = m[j * width + i];
 			
 			if (i + 1 < width) 
