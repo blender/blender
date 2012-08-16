@@ -6550,7 +6550,10 @@ static void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_
 	r_ob_wire_col[3] = 255;
 }
 
-/* flag can be DRAW_PICKING	and/or DRAW_CONSTCOLOR, DRAW_SCENESET */
+/**
+ * main object drawing function, draws in selection
+ * \param dflag (draw flag) can be DRAW_PICKING and/or DRAW_CONSTCOLOR, DRAW_SCENESET
+ */
 void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short dflag)
 {
 	static int warning_recursive = 0;
