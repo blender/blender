@@ -3531,42 +3531,29 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		/* since we already draw wire as wp guide, don't draw over the top */
 		draw_wire = OBDRAW_WIRE_OFF;
 	}
-	
-	/* set default draw color back for wire or for draw-extra later on */
-	if (dt != OB_WIRE) {
-		if (base->flag & SELECT) {
-			if (is_obact && ob->flag & OB_FROMGROUP)
-				UI_ThemeColor(TH_GROUP_ACTIVE);
-			else if (ob->flag & OB_FROMGROUP)
-				UI_ThemeColorShade(TH_GROUP_ACTIVE, -16);
-			else if (dflag != DRAW_CONSTCOLOR)
-				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
-			else
-				glColor3ub(80, 80, 80);
-		}
-		else {
-			if (ob->flag & OB_FROMGROUP)
-				UI_ThemeColor(TH_GROUP);
-			else {
-				if (ob->dtx & OB_DRAWWIRE && dflag == DRAW_CONSTCOLOR)
-					glColor3ub(80, 80, 80);
-				else
-					UI_ThemeColor(TH_WIRE);
-			}
-		}
-	}
-	if (draw_wire != OBDRAW_WIRE_OFF) {
 
+	if ((draw_wire != OBDRAW_WIRE_OFF) &&  /* draw extra wire */
+	    /* when overriding with render only, don't bother  */
+	    (((v3d->flag2 & V3D_RENDER_OVERRIDE) && v3d->drawtype >= OB_SOLID) == 0))
+	{
 		/* When using wireframe object draw in particle edit mode
 		 * the mesh gets in the way of seeing the particles, fade the wire color
 		 * with the background. */
-		if (is_obact && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
-			float col_wire[4], col_bg[4], col[3];
 
-			UI_GetThemeColor3fv(TH_BACK, col_bg);
-			glGetFloatv(GL_CURRENT_COLOR, col_wire);
-			interp_v3_v3v3(col, col_bg, col_wire, 0.15);
-			glColor3fv(col);
+		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			if (is_obact && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
+				float col_wire[3] = {ob_wire_col[0] / 255.0f,
+									 ob_wire_col[1] / 255.0f,
+									 ob_wire_col[2] / 255.0f};
+				float col_bg[3], col[3];
+
+				UI_GetThemeColor3fv(TH_BACK, col_bg);
+				interp_v3_v3v3(col, col_bg, col_wire, 0.15);
+				glColor3fv(col);
+			}
+			else {
+				glColor3ubv(ob_wire_col);
+			}
 		}
 
 		/* If drawing wire and drawtype is not OB_WIRE then we are
@@ -3583,8 +3570,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
 		}
 		
-		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && v3d->drawtype >= OB_SOLID) == 0)
-			dm->drawEdges(dm, (dt == OB_WIRE || totface == 0), me->drawflag & ME_ALLEDGES);
+		dm->drawEdges(dm, (dt == OB_WIRE || totface == 0), me->drawflag & ME_ALLEDGES);
 
 		if (dt != OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
 			glDepthMask(1);
