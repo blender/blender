@@ -375,7 +375,7 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 
 	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
 		float *fp;
-		char *cp;
+		unsigned char *cp;
 		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
 
 		CLAMP(x, 0, ibuf->x - 1);
@@ -383,8 +383,8 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
-
-			if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+			/* IB_PROFILE_NONE is default but infact its linear */
+			if (ELEM(ibuf->profile, IB_PROFILE_LINEAR_RGB, IB_PROFILE_NONE)) {
 				linearrgb_to_srgb_v3_v3(r_col, fp);
 			}
 			else {
@@ -393,10 +393,8 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 			ret = TRUE;
 		}
 		else if (ibuf->rect) {
-			cp = (char *)(ibuf->rect + y * ibuf->x + x);
-			r_col[0] = cp[0] / 255.0f;
-			r_col[1] = cp[1] / 255.0f;
-			r_col[2] = cp[2] / 255.0f;
+			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+			rgb_uchar_to_float(r_col, cp);
 			ret = TRUE;
 		}
 	}
@@ -439,7 +437,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
 		float *fp;
-		char *cp;
+		unsigned char *cp;
 		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
 
 		CLAMP(x, 0, ibuf->x - 1);
@@ -451,7 +449,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		info->channels = ibuf->channels;
 
 		if (ibuf->rect) {
-			cp = (char *)(ibuf->rect + y * ibuf->x + x);
+			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
 
 			info->col[0] = cp[0];
 			info->col[1] = cp[1];

@@ -2027,7 +2027,7 @@ int ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], floa
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
 
-			if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+			if (ELEM(ibuf->profile, IB_PROFILE_LINEAR_RGB, IB_PROFILE_NONE)) {
 				linearrgb_to_srgb_v3_v3(r_col, fp);
 			}
 			else {
@@ -2037,9 +2037,7 @@ int ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], floa
 		}
 		else if (ibuf->rect) {
 			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
-			r_col[0] = cp[0] / 255.0f;
-			r_col[1] = cp[1] / 255.0f;
-			r_col[2] = cp[2] / 255.0f;
+			rgb_uchar_to_float(r_col, cp);
 			ret = TRUE;
 		}
 	}
