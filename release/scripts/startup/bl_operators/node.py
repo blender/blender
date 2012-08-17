@@ -57,10 +57,10 @@ def node_group_items(tree_type):
 def node_type_items_cb(self, context):
     snode = context.space_data
     if not snode:
-        return []
+        return ()
     tree = snode.edit_tree
     if not tree:
-        return []
+        return ()
 
     # Lists of basic node types for each
     if not node_type_items_dict:
@@ -76,7 +76,7 @@ def node_type_items_cb(self, context):
     if tree.type in node_type_items_dict:
         return node_type_items_dict[tree.type] + node_group_items(tree.type)
     else:
-        return []
+        return ()
 
 
 class NODE_OT_add_search(Operator):
