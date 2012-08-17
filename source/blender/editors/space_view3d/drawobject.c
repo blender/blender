@@ -195,10 +195,9 @@ static void draw_empty_cone(float size);
 
 static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], const int theme_id, float fac)
 {
-	float col_bg[3], col[3];
-	float col_wire[3] = {ob_wire_col[0] / 255.0f,
-	                     ob_wire_col[1] / 255.0f,
-	                     ob_wire_col[2] / 255.0f};
+	float col_wire[3], col_bg[3], col[3];
+
+	rgb_uchar_to_float(col_wire, ob_wire_col);
 
 	UI_GetThemeColor3fv(theme_id, col_bg);
 	interp_v3_v3v3(col, col_bg, col_wire, fac);
@@ -1573,17 +1572,18 @@ static void draw_bundle_sphere(void)
 
 static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D *v3d,
                                                 MovieClip *clip, MovieTrackingObject *tracking_object,
-                                                const short dflag, int *global_track_index, int draw_selected)
+                                                const short dflag, const unsigned char ob_wire_col[4],
+                                                int *global_track_index, int draw_selected)
 {
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
 	float mat[4][4], imat[4][4];
-	unsigned char col[4], scol[4];
+	unsigned char col_unsel[4], col_sel[4];
 	int tracknr = *global_track_index;
 	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
 
-	UI_GetThemeColor4ubv(TH_TEXT, col);
-	UI_GetThemeColor4ubv(TH_SELECT, scol);
+	UI_GetThemeColor4ubv(TH_TEXT, col_unsel);
+	UI_GetThemeColor4ubv(TH_SELECT, col_sel);
 
 	BKE_tracking_get_camera_object_matrix(scene, base->object, mat);
 
@@ -1626,13 +1626,13 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 		if (v3d->drawtype == OB_WIRE) {
 			glDisable(GL_LIGHTING);
 
-			if (selected) {
-				if (base == BASACT) UI_ThemeColor(TH_ACTIVE);
-				else UI_ThemeColor(TH_SELECT);
-			}
-			else {
-				if (track->flag & TRACK_CUSTOMCOLOR) glColor3fv(track->color);
-				else UI_ThemeColor(TH_WIRE);
+			if ((dflag & DRAW_CONSTCOLOR) == 0) {
+				if (selected && (track->flag & TRACK_CUSTOMCOLOR) == 0) {
+					glColor3ubv(ob_wire_col);
+				}
+				else {
+					glColor3fv(track->color);
+				}
 			}
 
 			drawaxes(0.05f, v3d->bundle_drawtype);
@@ -1643,8 +1643,9 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 			if (v3d->bundle_drawtype == OB_EMPTY_SPHERE) {
 				/* selection outline */
 				if (selected) {
-					if (base == BASACT) UI_ThemeColor(TH_ACTIVE);
-					else UI_ThemeColor(TH_SELECT);
+					if ((dflag & DRAW_CONSTCOLOR) == 0) {
+						glColor3ubv(ob_wire_col);
+					}
 
 					glLineWidth(2.f);
 					glDisable(GL_LIGHTING);
@@ -1657,21 +1658,24 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 					glLineWidth(1.f);
 				}
 
-				if (track->flag & TRACK_CUSTOMCOLOR) glColor3fv(track->color);
-				else UI_ThemeColor(TH_BUNDLE_SOLID);
+				if ((dflag & DRAW_CONSTCOLOR) == 0) {
+					if (track->flag & TRACK_CUSTOMCOLOR) glColor3fv(track->color);
+					else UI_ThemeColor(TH_BUNDLE_SOLID);
+				}
 
 				draw_bundle_sphere();
 			}
 			else {
 				glDisable(GL_LIGHTING);
 
-				if (selected) {
-					if (base == BASACT) UI_ThemeColor(TH_ACTIVE);
-					else UI_ThemeColor(TH_SELECT);
-				}
-				else {
-					if (track->flag & TRACK_CUSTOMCOLOR) glColor3fv(track->color);
-					else UI_ThemeColor(TH_WIRE);
+				if ((dflag & DRAW_CONSTCOLOR) == 0) {
+					if (selected) {
+						glColor3ubv(ob_wire_col);
+					}
+					else {
+						if (track->flag & TRACK_CUSTOMCOLOR) glColor3fv(track->color);
+						else UI_ThemeColor(TH_WIRE);
+					}
 				}
 
 				drawaxes(0.05f, v3d->bundle_drawtype);
@@ -1684,13 +1688,9 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 
 		if ((dflag & DRAW_PICKING) == 0 && (v3d->flag2 & V3D_SHOW_BUNDLENAME)) {
 			float pos[3];
-			unsigned char tcol[4];
-
-			if (selected) memcpy(tcol, scol, sizeof(tcol));
-			else memcpy(tcol, col, sizeof(tcol));
 
 			mul_v3_m4v3(pos, mat, track->bundle_pos);
-			view3d_cached_text_draw_add(pos, track->name, 10, V3D_CACHE_TEXT_GLOBALSPACE, tcol);
+			view3d_cached_text_draw_add(pos, track->name, 10, V3D_CACHE_TEXT_GLOBALSPACE, selected ? col_sel : col_unsel);
 		}
 
 		tracknr++;
@@ -1748,7 +1748,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	tracking_object = tracking->objects.first;
 	while (tracking_object) {
 		draw_viewport_object_reconstruction(scene, base, v3d, clip, tracking_object,
-		                                    dflag, &global_track_index, draw_selected);
+		                                    dflag, ob_wire_col, &global_track_index, draw_selected);
 
 		tracking_object = tracking_object->next;
 	}

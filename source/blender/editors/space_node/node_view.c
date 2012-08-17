@@ -375,7 +375,7 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 
 	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
 		float *fp;
-		char *cp;
+		unsigned char *cp;
 		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
 
 		CLAMP(x, 0, ibuf->x - 1);
@@ -393,10 +393,8 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 			ret = TRUE;
 		}
 		else if (ibuf->rect) {
-			cp = (char *)(ibuf->rect + y * ibuf->x + x);
-			r_col[0] = cp[0] / 255.0f;
-			r_col[1] = cp[1] / 255.0f;
-			r_col[2] = cp[2] / 255.0f;
+			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+			rgb_uchar_to_float(r_col, cp);
 			ret = TRUE;
 		}
 	}

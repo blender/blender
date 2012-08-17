@@ -1985,9 +1985,7 @@ int ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], floa
 		}
 		else if (ibuf->rect) {
 			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
-			r_col[0] = cp[0] / 255.0f;
-			r_col[1] = cp[1] / 255.0f;
-			r_col[2] = cp[2] / 255.0f;
+			rgb_uchar_to_float(r_col, cp);
 			ret = TRUE;
 		}
 	}
