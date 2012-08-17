@@ -317,11 +317,11 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
 		BL::Mesh::vertices_iterator v;
 		AttributeStandard std = (motion == -1)? ATTR_STD_MOTION_PRE: ATTR_STD_MOTION_POST;
 		Attribute *attr_M = mesh->attributes.add(std);
-		float3 *M = attr_M->data_float3();
+		float3 *M = attr_M->data_float3(), *cur_M;
 		size_t i = 0;
 
-		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end() && i < size; ++v, M++, i++)
-			*M = get_float3(v->co());
+		for(b_mesh.vertices.begin(v), cur_M = M; v != b_mesh.vertices.end() && i < size; ++v, cur_M++, i++)
+			*cur_M = get_float3(v->co());
 
 		/* if number of vertices changed, or if coordinates stayed the same, drop it */
 		if(i != size || memcmp(M, &mesh->verts[0], sizeof(float3)*size) == 0)
