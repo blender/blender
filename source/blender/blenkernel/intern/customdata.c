@@ -2139,8 +2139,8 @@ void CustomData_set(const CustomData *data, int index, int type, void *source)
 		memcpy(dest, source, typeInfo->size);
 }
 
-/*Bmesh functions*/
-/*needed to convert to/from different face reps*/
+/* BMesh functions */
+/* needed to convert to/from different face reps */
 void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata,
                              int totloop, int totpoly)
 {

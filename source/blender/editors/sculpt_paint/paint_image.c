@@ -2057,7 +2057,7 @@ static void project_bucket_clip_face(
 		float v1_clipSS[2], v2_clipSS[2];
 		float w[3];
 		
-		/* calc center*/
+		/* calc center */
 		float cent[2] = {0.0f, 0.0f};
 		/*float up[2] = {0.0f, 1.0f};*/
 		int i;

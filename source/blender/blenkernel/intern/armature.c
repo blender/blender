@@ -210,7 +210,7 @@ bArmature *BKE_armature_copy(bArmature *arm)
 	newArm = BKE_libblock_copy(&arm->id);
 	BLI_duplicatelist(&newArm->bonebase, &arm->bonebase);
 
-	/* Duplicate the childrens' lists*/
+	/* Duplicate the childrens' lists */
 	newBone = newArm->bonebase.first;
 	for (oldBone = arm->bonebase.first; oldBone; oldBone = oldBone->next) {
 		newBone->parent = NULL;

@@ -567,9 +567,9 @@ BMFace *BM_active_face_get(BMesh *bm, int sloppy)
  * These functions were written to be used by the Modifier widget
  * when in Rotate about active mode, but can be used anywhere.
  *
- * - #EM_editselection_center
- * - #EM_editselection_normal
- * - #EM_editselection_plane
+ * - #BM_editselection_center
+ * - #BM_editselection_normal
+ * - #BM_editselection_plane
  */
 void BM_editselection_center(BMEditSelection *ese, float r_center[3])
 {

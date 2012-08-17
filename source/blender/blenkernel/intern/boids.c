@@ -425,7 +425,7 @@ static int rule_follow_leader(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 	if (flbr->ob) {
 		float vec2[3], t;
 
-		/* first check we're not blocking the leader*/
+		/* first check we're not blocking the leader */
 		sub_v3_v3v3(vec, flbr->loc, flbr->oloc);
 		mul_v3_fl(vec, 1.0f/bbd->timestep);
 

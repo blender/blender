@@ -422,7 +422,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 	}
 #endif
 
-	/* make a copy at distance ofsx, ofsy with shear*/
+	/* make a copy at distance ofsx, ofsy with shear */
 	fsize = cu->fsize;
 	shear = cu->shear;
 	si = sinf(rot);

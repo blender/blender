@@ -308,11 +308,11 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 
 		step_inv = 1.0f - step;
 
-		interp_v3_v3v3(rv3d->ofs,      sms->new_ofs,   sms->orig_ofs, step);
+		interp_v3_v3v3(rv3d->ofs,      sms->orig_ofs,  sms->new_ofs,  step);
 		interp_qt_qtqt(rv3d->viewquat, sms->orig_quat, sms->new_quat, step);
 		
 		rv3d->dist = sms->new_dist * step + sms->orig_dist * step_inv;
-		v3d->lens = sms->new_lens * step + sms->orig_lens * step_inv;
+		v3d->lens  = sms->new_lens * step + sms->orig_lens * step_inv;
 
 		ED_view3d_camera_lock_sync(v3d, rv3d);
 	}

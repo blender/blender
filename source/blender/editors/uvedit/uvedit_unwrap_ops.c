@@ -882,14 +882,14 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 			mid_v3_v3v3(result, min, max);
 			break;
 
-		case V3D_CURSOR: /*cursor center*/ 
+		case V3D_CURSOR:  /* cursor center */
 			cursx = give_cursor(scene, v3d);
 			/* shift to objects world */
 			sub_v3_v3v3(result, cursx, ob->obmat[3]);
 			break;
 
-		case V3D_LOCAL: /*object center*/
-		case V3D_CENTROID: /* multiple objects centers, only one object here*/
+		case V3D_LOCAL:     /* object center */
+		case V3D_CENTROID:  /* multiple objects centers, only one object here*/
 		default:
 			result[0] = result[1] = result[2] = 0.0;
 			break;

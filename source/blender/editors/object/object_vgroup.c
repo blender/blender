@@ -2826,7 +2826,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 }
 
 /* creates the name_array parameter for vgroup_do_remap, call this before fiddling
- * with the order of vgroups then call vgroup_do_remap after*/
+ * with the order of vgroups then call vgroup_do_remap after */
 static char *vgroup_init_remap(Object *ob)
 {
 	bDeformGroup *def;

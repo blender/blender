@@ -167,7 +167,7 @@ static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2
 			for (j = 0; j < vtot; j++, v1++, v2++) {
 				if (len_v3v3(v1->co, v2->co) > thresh)
 					return MESHCMP_VERTCOMISMATCH;
-				/*I don't care about normals, let's just do coodinates*/
+				/* I don't care about normals, let's just do coodinates */
 			}
 		}
 		
@@ -990,7 +990,7 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 
 	MEM_freeN(edsort);
 	
-	/*set edge members of mloops*/
+	/* set edge members of mloops */
 	medge = *alledge;
 	for (a = 0; a < *_totedge; a++, medge++) {
 		BLI_edgehash_insert(hash, medge->v1, medge->v2, SET_INT_IN_POINTER(a));
@@ -2820,7 +2820,7 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 			mf = &mface[k];
 
 			if (mf->edcode == 3) {
-				/*sort loop indices to ensure winding is correct*/
+				/* sort loop indices to ensure winding is correct */
 				/* NO SORT - looks like we can skip this */
 
 				lindex[0] = mf->v1;
@@ -2828,7 +2828,7 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				lindex[2] = mf->v3;
 				lindex[3] = 0; /* unused */
 
-				/*transform loop indices to vert indices*/
+				/* transform loop indices to vert indices */
 				mf->v1 = mloop[mf->v1].v;
 				mf->v2 = mloop[mf->v2].v;
 				mf->v3 = mloop[mf->v3].v;
@@ -2839,7 +2839,7 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				test_index_face(mf, fdata, k, 3);
 			}
 			else {
-				/*sort loop indices to ensure winding is correct*/
+				/* sort loop indices to ensure winding is correct */
 				/* NO SORT - looks like we can skip this */
 
 				lindex[0] = mf->v1;
@@ -2847,7 +2847,7 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				lindex[2] = mf->v3;
 				lindex[3] = mf->v4;
 
-				/*transform loop indices to vert indices*/
+				/* transform loop indices to vert indices */
 				mf->v1 = mloop[mf->v1].v;
 				mf->v2 = mloop[mf->v2].v;
 				mf->v3 = mloop[mf->v3].v;

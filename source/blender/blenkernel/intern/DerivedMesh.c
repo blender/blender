@@ -498,7 +498,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 			}
 		}
 		else {
-			/*if no object, set to INT_MAX so we don't mess up any shapekey layers*/
+			/* if no object, set to INT_MAX so we don't mess up any shapekey layers */
 			uid = INT_MAX;
 		}
 
@@ -1188,7 +1188,7 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 			wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, coba);
 
 		/* Now copy colors in all face verts. */
-		/*first add colors to the tessellation faces*/
+		/* first add colors to the tessellation faces */
 		/* XXX Why update that layer? We have to update WEIGHT_MLOOPCOL anyway, 
 		 *     and tessellation recreates mface layers from mloop/mpoly ones, so no
 		 *     need to fill WEIGHT_MCOL here. */

@@ -664,7 +664,8 @@ static int bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i, 
  * \brief Find Ear
  *
  * Used by tessellator to find the next triangle to 'clip off' of a polygon while tessellating.
- *
+ * \param f The face to search.
+ * \param verts an array of face vert coords.
  * \param use_beauty Currently only applies to quads, can be extended later on.
  * \param abscoss Must be allocated by caller, and at least f->len length
  *        (allow to avoid allocating a new one for each tri!).
