@@ -1212,43 +1212,46 @@ void BKE_imformat_defaults(ImageFormatData *im_format)
 
 void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *imbuf)
 {
+	int ftype        = imbuf->ftype & ~IB_CUSTOM_FLAGS_MASK;
+	int custom_flags = imbuf->ftype & IB_CUSTOM_FLAGS_MASK;
+
 	BKE_imformat_defaults(im_format);
 
 	/* file type */
 
-	if (imbuf->ftype == IMAGIC)
+	if (ftype == IMAGIC)
 		im_format->imtype = R_IMF_IMTYPE_IRIS;
 
 #ifdef WITH_HDR
-	else if (imbuf->ftype == RADHDR)
+	else if (ftype == RADHDR)
 		im_format->imtype = R_IMF_IMTYPE_RADHDR;
 #endif
 
-	else if (imbuf->ftype == PNG)
+	else if (ftype == PNG)
 		im_format->imtype = R_IMF_IMTYPE_PNG;
 
 #ifdef WITH_DDS
-	else if (imbuf->ftype == DDS)
+	else if (ftype == DDS)
 		im_format->imtype = R_IMF_IMTYPE_DDS;
 #endif
 
-	else if (imbuf->ftype == BMP)
+	else if (ftype == BMP)
 		im_format->imtype = R_IMF_IMTYPE_BMP;
 
 #ifdef WITH_TIFF
-	else if (imbuf->ftype & TIF) {
+	else if (ftype == TIF) {
 		im_format->imtype = R_IMF_IMTYPE_TIFF;
-		if (imbuf->ftype & TIF_16BIT)
+		if (custom_flags & TIF_16BIT)
 			im_format->depth = R_IMF_CHAN_DEPTH_16;
 	}
 #endif
 
 #ifdef WITH_OPENEXR
-	else if (imbuf->ftype & OPENEXR) {
+	else if (ftype == OPENEXR) {
 		im_format->imtype = R_IMF_IMTYPE_OPENEXR;
-		if (imbuf->ftype & OPENEXR_HALF)
+		if (custom_flags & OPENEXR_HALF)
 			im_format->depth = R_IMF_CHAN_DEPTH_16;
-		if (imbuf->ftype & OPENEXR_COMPRESS)
+		if (custom_flags & OPENEXR_COMPRESS)
 			im_format->exr_codec = R_IMF_EXR_CODEC_ZIP;  // Can't determine compression
 		if (imbuf->zbuf_float)
 			im_format->flag |= R_IMF_FLAG_ZBUF;
@@ -1256,35 +1259,35 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 #endif
 
 #ifdef WITH_CINEON
-	else if (imbuf->ftype == CINEON)
+	else if (ftype == CINEON)
 		im_format->imtype = R_IMF_IMTYPE_CINEON;
-	else if (imbuf->ftype == DPX)
+	else if (ftype == DPX)
 		im_format->imtype = R_IMF_IMTYPE_DPX;
 #endif
 
-	else if (imbuf->ftype == TGA) {
+	else if (ftype == TGA) {
 		im_format->imtype = R_IMF_IMTYPE_TARGA;
 	}
-	else if (imbuf->ftype == RAWTGA) {
+	else if (ftype == RAWTGA) {
 		im_format->imtype = R_IMF_IMTYPE_RAWTGA;
 	}
 
 #ifdef WITH_OPENJPEG
-	else if (imbuf->ftype & JP2) {
+	else if (ftype & JP2) {
 		im_format->imtype = R_IMF_IMTYPE_JP2;
-		im_format->quality = imbuf->ftype & ~JPG_MSK;
+		im_format->quality = custom_flags & ~JPG_MSK;
 
-		if (imbuf->ftype & JP2_16BIT)
+		if (ftype & JP2_16BIT)
 			im_format->depth = R_IMF_CHAN_DEPTH_16;
-		else if (imbuf->ftype & JP2_12BIT)
+		else if (ftype & JP2_12BIT)
 			im_format->depth = R_IMF_CHAN_DEPTH_12;
 
-		if (imbuf->ftype & JP2_YCC)
+		if (ftype & JP2_YCC)
 			im_format->jp2_flag |= R_IMF_JP2_FLAG_YCC;
 
-		if (imbuf->ftype & JP2_CINE) {
+		if (ftype & JP2_CINE) {
 			im_format->jp2_flag |= R_IMF_JP2_FLAG_CINE_PRESET;
-			if (imbuf->ftype & JP2_CINE_48FPS)
+			if (ftype & JP2_CINE_48FPS)
 				im_format->jp2_flag |= R_IMF_JP2_FLAG_CINE_48;
 		}
 	}
@@ -1292,7 +1295,7 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 
 	else {
 		im_format->imtype = R_IMF_IMTYPE_JPEG90;
-		im_format->quality = imbuf->ftype & ~JPG_MSK;
+		im_format->quality = custom_flags & ~JPG_MSK;
 	}
 
 	/* planes */
