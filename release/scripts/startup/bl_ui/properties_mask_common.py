@@ -223,7 +223,7 @@ class MASK_PT_tools():
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
-        props = col.operator("transform.transform", text="Shrink/Fatten")
+        props = col.operator("transform.transform", text="Scale Feather")
         props.mode = 'MASK_SHRINKFATTEN'
 
         col = layout.column(align=True)
@@ -291,7 +291,7 @@ class MASK_MT_transform(Menu):
         layout.operator("transform.translate")
         layout.operator("transform.rotate")
         layout.operator("transform.resize")
-        props = layout.operator("transform.transform", text="Shrink/Fatten")
+        props = layout.operator("transform.transform", text="Scale Feather")
         props.mode = 'MASK_SHRINKFATTEN'
 
 
