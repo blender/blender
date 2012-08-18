@@ -464,31 +464,34 @@ bool GPG_Application::processEvent(GHOST_IEvent* event)
 			handled = false;
 			break;
 
-		case GHOST_kEventWindowUpdate:
-			{
-				GHOST_IWindow* window = event->getWindow();
-				if (!m_system->validWindow(window)) break;
-				// Update the state of the game engine
-				if (m_kxsystem && !m_exitRequested)
-				{
-					// Proceed to next frame
-					window->activateDrawingContext();
+		// The player now runs as often as it can (repsecting vsync and fixedtime).
+		// This allows the player to break 100fps, but this code is being left here
+		// as reference. (see EngineNextFrame)
+		//case GHOST_kEventWindowUpdate:
+		//	{
+		//		GHOST_IWindow* window = event->getWindow();
+		//		if (!m_system->validWindow(window)) break;
+		//		// Update the state of the game engine
+		//		if (m_kxsystem && !m_exitRequested)
+		//		{
+		//			// Proceed to next frame
+		//			window->activateDrawingContext();
 
-					// first check if we want to exit
-					m_exitRequested = m_ketsjiengine->GetExitCode();
-					
-					// kick the engine
-					bool renderFrame = m_ketsjiengine->NextFrame();
-					if (renderFrame)
-					{
-						// render the frame
-						m_ketsjiengine->Render();
-					}
-				}
-				m_exitString = m_ketsjiengine->GetExitString();
-			}
-			break;
-		
+		//			// first check if we want to exit
+		//			m_exitRequested = m_ketsjiengine->GetExitCode();
+		//			
+		//			// kick the engine
+		//			bool renderFrame = m_ketsjiengine->NextFrame();
+		//			if (renderFrame)
+		//			{
+		//				// render the frame
+		//				m_ketsjiengine->Render();
+		//			}
+		//		}
+		//		m_exitString = m_ketsjiengine->GetExitString();
+		//	}
+		//	break;
+		//
 		case GHOST_kEventWindowSize:
 			{
 			GHOST_IWindow* window = event->getWindow();
@@ -789,6 +792,28 @@ void GPG_Application::stopEngine()
 	m_engineRunning = false;
 }
 
+void GPG_Application::EngineNextFrame()
+{
+	// Update the state of the game engine
+	if (m_kxsystem && !m_exitRequested)
+	{
+		// Proceed to next frame
+		if (m_mainWindow)
+			m_mainWindow->activateDrawingContext();
+
+		// first check if we want to exit
+		m_exitRequested = m_ketsjiengine->GetExitCode();
+		
+		// kick the engine
+		bool renderFrame = m_ketsjiengine->NextFrame();
+		if (renderFrame && m_mainWindow)
+		{
+			// render the frame
+			m_ketsjiengine->Render();
+		}
+	}
+	m_exitString = m_ketsjiengine->GetExitString();
+}
 
 void GPG_Application::exitEngine()
 {

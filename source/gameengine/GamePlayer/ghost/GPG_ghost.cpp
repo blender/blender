@@ -970,6 +970,8 @@ int main(int argc, char** argv)
 						{
 							system->processEvents(false);
 							system->dispatchEvents();
+							app.EngineNextFrame();
+
 							if ((exitcode = app.getExitRequested()))
 							{
 								run = false;
