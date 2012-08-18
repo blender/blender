@@ -183,11 +183,16 @@ static void displaceModifier_do(
 	mvert = CDDM_get_verts(dm);
 	modifier_get_vgroup(ob, dm, dmd->defgrp_name, &dvert, &defgrp_index);
 
-	tex_co = MEM_callocN(sizeof(*tex_co) * numVerts,
-	                     "displaceModifier_do tex_co");
-	get_texture_coords((MappingInfoModifierData *)dmd, ob, dm, vertexCos, tex_co, numVerts);
+	if (dmd->texture) {
+		tex_co = MEM_callocN(sizeof(*tex_co) * numVerts,
+							 "displaceModifier_do tex_co");
+		get_texture_coords((MappingInfoModifierData *)dmd, ob, dm, vertexCos, tex_co, numVerts);
 
-	modifier_init_texture(dmd->modifier.scene, dmd->texture);
+		modifier_init_texture(dmd->modifier.scene, dmd->texture);
+	}
+	else {
+		tex_co = NULL;
+	}
 
 	for (i = 0; i < numVerts; i++) {
 		TexResult texres;
@@ -236,7 +241,9 @@ static void displaceModifier_do(
 		}
 	}
 
-	MEM_freeN(tex_co);
+	if (tex_co) {
+		MEM_freeN(tex_co);
+	}
 }
 
 static void deformVerts(ModifierData *md, Object *ob,
