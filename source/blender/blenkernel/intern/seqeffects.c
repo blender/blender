@@ -284,14 +284,14 @@ static void do_alphaover_effect(SeqRenderData context, Sequence *UNUSED(seq), fl
                                 int start_line, int total_lines, ImBuf *out)
 {
 	if (out->rect_float) {
-		float *rect1, *rect2, *rect_out;
+		float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
 		do_alphaover_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		unsigned char *rect1, *rect2, *rect_out;
+		unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
@@ -446,14 +446,14 @@ static void do_alphaunder_effect(SeqRenderData context, Sequence *UNUSED(seq), f
                                  int start_line, int total_lines, ImBuf *out)
 {
 	if (out->rect_float) {
-		float *rect1, *rect2, *rect_out;
+		float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
 		do_alphaunder_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		unsigned char *rect1, *rect2, *rect_out;
+		unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
@@ -556,14 +556,14 @@ static void do_cross_effect(SeqRenderData context, Sequence *UNUSED(seq), float 
                             int start_line, int total_lines, ImBuf *out)
 {
 	if (out->rect_float) {
-		float *rect1, *rect2, *rect_out;
+		float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
 		do_cross_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		unsigned char *rect1, *rect2, *rect_out;
+		unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
@@ -805,14 +805,14 @@ static void do_gammacross_effect(SeqRenderData context, Sequence *UNUSED(seq), f
                                  int start_line, int total_lines, ImBuf *out)
 {
 	if (out->rect_float) {
-		float *rect1, *rect2, *rect_out;
+		float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
 		do_gammacross_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		unsigned char *rect1, *rect2, *rect_out;
+		unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
@@ -911,14 +911,14 @@ static void do_add_effect(SeqRenderData context, Sequence *UNUSED(seq), float UN
                           ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3), int start_line, int total_lines, ImBuf *out)
 {
 	if (out->rect_float) {
-		float *rect1, *rect2, *rect_out;
+		float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
 		do_add_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		unsigned char *rect1, *rect2, *rect_out;
+		unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
@@ -1015,14 +1015,14 @@ static void do_sub_effect(SeqRenderData context, Sequence *UNUSED(seq), float UN
                           ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3), int start_line, int total_lines, ImBuf *out)
 {
 	if (out->rect_float) {
-		float *rect1, *rect2, *rect_out;
+		float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
 		do_sub_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		unsigned char *rect1, *rect2, *rect_out;
+		unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
@@ -1212,14 +1212,14 @@ static void do_mul_effect(SeqRenderData context, Sequence *UNUSED(seq), float UN
                           ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *UNUSED(ibuf3), int start_line, int total_lines, ImBuf *out)
 {
 	if (out->rect_float) {
-		float *rect1, *rect2, *rect_out;
+		float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
 		do_mul_effect_float(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 	else {
-		unsigned char *rect1, *rect2, *rect_out;
+		unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
@@ -2746,7 +2746,7 @@ static void do_overdrop_effect(SeqRenderData context, Sequence *UNUSED(seq), flo
 	int y = total_lines;
 
 	if (out->rect_float) {
-		float *rect1, *rect2, *rect_out;
+		float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_float_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
@@ -2754,7 +2754,7 @@ static void do_overdrop_effect(SeqRenderData context, Sequence *UNUSED(seq), flo
 		do_alphaover_effect_float(facf0, facf1, x, y, rect1, rect2, rect_out);
 	}
 	else {
-		unsigned char *rect1, *rect2, *rect_out;
+		unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slize_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
