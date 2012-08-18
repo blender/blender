@@ -28,7 +28,6 @@ add_subdirectory(ghost)
 add_subdirectory(guardedalloc)
 add_subdirectory(moto)
 add_subdirectory(memutil)
-add_subdirectory(iksolver)
 add_subdirectory(opennl)
 add_subdirectory(mikktspace)
 add_subdirectory(raskter)
@@ -56,6 +55,10 @@ endif()
 
 if(WITH_MOD_BOOLEAN)
 	add_subdirectory(bsp)
+endif()
+
+if(WITH_IK_SOLVER)
+	add_subdirectory(iksolver)
 endif()
 
 if(WITH_IK_ITASC)

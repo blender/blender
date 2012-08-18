@@ -110,7 +110,7 @@ endif()
 		ge_scenegraph
 		bf_ikplugin
 		bf_intern_itasc
-		bf_intern_ik
+		bf_intern_iksolver
 		bf_intern_smoke
 		bf_modifiers
 		bf_intern_moto 
