@@ -336,7 +336,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	ok = object_modifier_remove(bmain, ob, md, &sort_depsgraph);
 
 	if (!ok) {
-		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", ob->id.name, md->name);
+		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", md->name, ob->id.name);
 		return 0;
 	}
 
