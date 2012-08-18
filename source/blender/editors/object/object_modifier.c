@@ -271,7 +271,7 @@ static int object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 	/* It seems on rapid delete it is possible to
 	 * get called twice on same modifier, so make
 	 * sure it is in list. */
-	if (BLI_findindex(&ob->modifiers, md) != -1) {
+	if (BLI_findindex(&ob->modifiers, md) == -1) {
 		return 0;
 	}
 
