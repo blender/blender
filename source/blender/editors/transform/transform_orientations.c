@@ -33,6 +33,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -549,8 +550,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	Object *ob = OBACT;
 	int result = ORIENTATION_NONE;
 
-	normal[0] = normal[1] = normal[2] = 0;
-	plane[0] = plane[1] = plane[2] = 0;
+	zero_v3(normal);
+	zero_v3(plane);
 
 	if (obedit) {
 		float imat[3][3], mat[3][3];
@@ -743,37 +744,20 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			}
 		}
 		else if (obedit->type == OB_MBALL) {
-#if 0 // XXX
-			/* editmball.c */
-			MetaElem *ml, *ml_sel = NULL;
-	
-			/* loop and check that only one element is selected */	
-			for (ml = editelems.first; ml; ml = ml->next) {
-				if (ml->flag & SELECT) {
-					if (ml_sel == NULL) {
-						ml_sel = ml;
-					}
-					else {
-						ml_sel = NULL;
-						break;
-					}
-				}
-			}
+			MetaBall *mb = obedit->data;
 			
-			if (ml_sel) {	
+			if (mb->lastelem) {
 				float mat[4][4];
 
 				/* Rotation of MetaElem is stored in quat */
-				quat_to_mat4(mat, ml_sel->quat);
+				quat_to_mat4(mat, mb->lastelem->quat);
 
 				copy_v3_v3(normal, mat[2]);
 
 				negate_v3_v3(plane, mat[1]);
 				
-				result = ORIENTATION_NORMAL;
+				result = ORIENTATION_FACE;
 			}
-#endif
-			
 		}
 		else if (obedit->type == OB_ARMATURE) {
 			bArmature *arm = obedit->data;
