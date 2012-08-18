@@ -201,11 +201,6 @@ void BL_Texture::InitGLCompressedTex(ImBuf* ibuf, bool mipmap)
 	return;
 #else
 	glBindTexture(GL_TEXTURE_2D, mTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
 	
 	if (GPU_upload_dxt_texture(ibuf) == 0) {
 		InitGLTex(ibuf->rect, ibuf->x, ibuf->y, mipmap);
