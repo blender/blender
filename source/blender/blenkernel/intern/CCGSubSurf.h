@@ -17,6 +17,7 @@ typedef struct CCGMeshIFC {
 	int			vertUserSize, edgeUserSize, faceUserSize;
 	int			numLayers;
 	int			vertDataSize;
+	int			simpleSubdiv;
 } CCGMeshIFC;
 
 /***/
@@ -91,6 +92,7 @@ int			ccgSubSurf_getEdgeSize				(const CCGSubSurf *ss);
 int			ccgSubSurf_getEdgeLevelSize			(const CCGSubSurf *ss, int level);
 int			ccgSubSurf_getGridSize				(const CCGSubSurf *ss);
 int			ccgSubSurf_getGridLevelSize			(const CCGSubSurf *ss, int level);
+int			ccgSubSurf_getSimpleSubdiv			(const CCGSubSurf *ss);
 
 CCGVert*	ccgSubSurf_getVert					(CCGSubSurf *ss, CCGVertHDL v);
 CCGVertHDL	ccgSubSurf_getVertVertHandle		(CCGVert *v);

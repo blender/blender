@@ -1798,7 +1798,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 		if (seamEdges < 2 || seamEdges != v->numEdges)
 			seam = 0;
 
-		if (!v->numEdges) {
+		if (!v->numEdges || ss->meshIFC.simpleSubdiv) {
 			VertDataCopy(nCo, co, ss);
 		}
 		else if (_vert_isBoundary(v)) {
@@ -2246,7 +2246,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss)
 		if (seamEdges < 2 || seamEdges != v->numEdges)
 			seam = 0;
 
-		if (!v->numEdges) {
+		if (!v->numEdges || ss->meshIFC.simpleSubdiv) {
 			VertDataCopy(nCo, co, ss);
 		}
 		else if (_vert_isBoundary(v)) {
@@ -2825,6 +2825,11 @@ int ccgSubSurf_getGridLevelSize(const CCGSubSurf *ss, int level)
 	else {
 		return ccg_gridsize(level);
 	}
+}
+
+int ccgSubSurf_getSimpleSubdiv(const CCGSubSurf *ss)
+{
+	return ss->meshIFC.simpleSubdiv;
 }
 
 /* Vert accessors */
