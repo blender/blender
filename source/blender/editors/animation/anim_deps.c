@@ -246,7 +246,7 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 			seq = BKE_sequwnce_get_by_name(ed->seqbasep, seq_name, FALSE);
 			if (seq_name) MEM_freeN(seq_name);
 			
-			/* can only add this F-Curve if it is selected */
+			/* update selection status */
 			if (seq) {
 				if (seq->flag & SELECT)
 					fcu->flag |= FCURVE_SELECTED;
@@ -268,12 +268,31 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 			node = nodeFindNodebyName(ntree, node_name);
 			if (node_name) MEM_freeN(node_name);
 			
-			/* can only add this F-Curve if it is selected */
+			/* update selection/active status */
 			if (node) {
+				/* update selection status */
 				if (node->flag & NODE_SELECT)
 					fcu->flag |= FCURVE_SELECTED;
 				else
 					fcu->flag &= ~FCURVE_SELECTED;
+					
+				/* update active status */
+				/* XXX: this may interfere with setting bones as active if both exist at once;
+				 * then again, if that's the case, production setups aren't likely to be animating
+				 * nodes while working with bones?
+				 */
+				if (node->flag & NODE_ACTIVE) {
+					if (*active_fcurve == NULL) {
+						fcu->flag |= FCURVE_ACTIVE;
+						*active_fcurve = fcu;
+					}
+					else {
+						fcu->flag &= ~FCURVE_ACTIVE;
+					}
+				}
+				else {
+					fcu->flag &= ~FCURVE_ACTIVE;
+				}
 			}
 		}
 	}
