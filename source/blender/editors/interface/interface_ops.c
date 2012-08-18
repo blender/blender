@@ -729,10 +729,10 @@ static int ui_editsource_uibut_match(uiBut *but_a, uiBut *but_b)
 	/* this just needs to be a 'good-enough' comparison so we can know beyond
 	 * reasonable doubt that these buttons are the same between redraws.
 	 * if this fails it only means edit-source fails - campbell */
-	if ((but_a->x1 == but_b->x1) &&
-	    (but_a->x2 == but_b->x2) &&
-	    (but_a->y1 == but_b->y1) &&
-	    (but_a->y2 == but_b->y2) &&
+	if ((but_a->rect.xmin == but_b->rect.xmin) &&
+		(but_a->rect.xmax == but_b->rect.xmax) &&
+		(but_a->rect.ymin == but_b->rect.ymin) &&
+		(but_a->rect.ymax == but_b->rect.ymax) &&
 	    (but_a->type == but_b->type) &&
 	    (but_a->rnaprop == but_b->rnaprop) &&
 	    (but_a->optype == but_b->optype) &&

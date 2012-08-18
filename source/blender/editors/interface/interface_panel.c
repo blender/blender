@@ -315,13 +315,13 @@ static void ui_offset_panel_block(uiBlock *block)
 	ofsy = block->panel->sizey - style->panelspace;
 
 	for (but = block->buttons.first; but; but = but->next) {
-		but->y1 += ofsy;
-		but->y2 += ofsy;
+		but->rect.ymin += ofsy;
+		but->rect.ymax += ofsy;
 	}
 
-	block->maxx = block->panel->sizex;
-	block->maxy = block->panel->sizey;
-	block->minx = block->miny = 0.0;
+	block->rect.xmax = block->panel->sizex;
+	block->rect.ymax = block->panel->sizey;
+	block->rect.xmin = block->rect.ymin = 0.0;
 }
 
 /**************************** drawing *******************************/
@@ -1033,14 +1033,14 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 	else if (event == AKEY)
 		button = 1;
 	else if (block->panel->flag & PNL_CLOSEDX) {
-		if (my >= block->maxy) button = 1;
+		if (my >= block->rect.ymax) button = 1;
 	}
 	else if (block->panel->control & UI_PNL_CLOSE) {
 		/* whole of header can be used to collapse panel (except top-right corner) */
-		if (mx <= block->maxx - 8 - PNL_ICON) button = 2;
-		//else if (mx <= block->minx + 10 + 2 * PNL_ICON + 2) button = 1;
+		if (mx <= block->rect.xmax - 8 - PNL_ICON) button = 2;
+		//else if (mx <= block->rect.xmin + 10 + 2 * PNL_ICON + 2) button = 1;
 	}
-	else if (mx <= block->maxx - PNL_ICON - 12) {
+	else if (mx <= block->rect.xmax - PNL_ICON - 12) {
 		button = 1;
 	}
 	
@@ -1078,7 +1078,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 		else
 			ED_region_tag_redraw(ar);
 	}
-	else if (mx <= (block->maxx - PNL_ICON - 12) + PNL_ICON + 2) {
+	else if (mx <= (block->rect.xmax - PNL_ICON - 12) + PNL_ICON + 2) {
 		panel_activate_state(C, block->panel, PANEL_STATE_DRAG);
 	}
 }
@@ -1109,15 +1109,15 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 		if (pa->type && pa->type->flag & PNL_NO_HEADER) // XXX - accessed freed panels when scripts reload, need to fix.
 			continue;
 
-		if (block->minx <= mx && block->maxx >= mx)
-			if (block->miny <= my && block->maxy + PNL_HEADER >= my)
+		if (block->rect.xmin <= mx && block->rect.xmax >= mx)
+			if (block->rect.ymin <= my && block->rect.ymax + PNL_HEADER >= my)
 				inside = 1;
 		
 		if (inside && event->val == KM_PRESS) {
 			if (event->type == AKEY && !ELEM4(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift, event->alt)) {
 				
 				if (pa->flag & PNL_CLOSEDY) {
-					if ((block->maxy <= my) && (block->maxy + PNL_HEADER >= my))
+					if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my))
 						ui_handle_panel_header(C, block, mx, my, event->type);
 				}
 				else
@@ -1134,15 +1134,15 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 		if (inside) {
 			/* clicked at panel header? */
 			if (pa->flag & PNL_CLOSEDX) {
-				if (block->minx <= mx && block->minx + PNL_HEADER >= mx)
+				if (block->rect.xmin <= mx && block->rect.xmin + PNL_HEADER >= mx)
 					inside_header = 1;
 			}
-			else if ((block->maxy <= my) && (block->maxy + PNL_HEADER >= my)) {
+			else if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my)) {
 				inside_header = 1;
 			}
 			else if (pa->control & UI_PNL_SCALE) {
-				if (block->maxx - PNL_HEADER <= mx)
-					if (block->miny + PNL_HEADER >= my)
+				if (block->rect.xmax - PNL_HEADER <= mx)
+					if (block->rect.ymin + PNL_HEADER >= my)
 						inside_scale = 1;
 			}
 

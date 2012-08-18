@@ -685,9 +685,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ofsx = (but->block->panel) ? but->block->panel->ofsx : 0;
 	ofsy = (but->block->panel) ? but->block->panel->ofsy : 0;
 
-	x1f = (but->x1 + but->x2) * 0.5f + ofsx - (TIP_BORDER_X * aspect);
+	x1f = (but->rect.xmin + but->rect.xmax) * 0.5f + ofsx - (TIP_BORDER_X * aspect);
 	x2f = x1f + fontw + (TIP_BORDER_X * aspect);
-	y2f = but->y1 + ofsy - (TIP_BORDER_Y * aspect);
+	y2f = but->rect.ymin + ofsy - (TIP_BORDER_Y * aspect);
 	y1f = y2f - fonth * aspect - (TIP_BORDER_Y * aspect);
 	
 #undef TIP_MARGIN_Y
@@ -1181,17 +1181,17 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->bbox.ymax = (ar->winrct.ymax - ar->winrct.ymin) - MENU_SHADOW_BOTTOM;
 		
 		/* check if button is lower half */
-		if (but->y2 < (but->block->miny + but->block->maxy) / 2) {
-			data->bbox.ymin += (but->y2 - but->y1);
+		if (but->rect.ymax < (but->block->rect.ymin + but->block->rect.ymax) / 2) {
+			data->bbox.ymin += (but->rect.ymax - but->rect.ymin);
 		}
 		else {
-			data->bbox.ymax -= (but->y2 - but->y1);
+			data->bbox.ymax -= (but->rect.ymax - but->rect.ymin);
 		}
 	}
 	else {
-		x1f = but->x1 - 5;   /* align text with button */
-		x2f = but->x2 + 5;   /* symmetrical */
-		y2f = but->y1;
+		x1f = but->rect.xmin - 5;   /* align text with button */
+		x2f = but->rect.xmax + 5;   /* symmetrical */
+		y2f = but->rect.ymin;
 		y1f = y2f - uiSearchBoxhHeight();
 
 		ofsx = (but->block->panel) ? but->block->panel->ofsx : 0;
@@ -1234,7 +1234,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		if (y1 < 0) {
 			int newy1;
-			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->y2 + ofsy, NULL, &newy1);
+			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->rect.ymax + ofsy, NULL, &newy1);
 			newy1 += butregion->winrct.ymin;
 
 			y2 = y2 - y1 + newy1;
@@ -1339,45 +1339,44 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	short dir1 = 0, dir2 = 0;
 	
 	/* transform to window coordinates, using the source button region/block */
-	butrct.xmin = but->x1; butrct.xmax = but->x2;
-	butrct.ymin = but->y1; butrct.ymax = but->y2;
+	butrct = but->rect;
 
 	ui_block_to_window_fl(butregion, but->block, &butrct.xmin, &butrct.ymin);
 	ui_block_to_window_fl(butregion, but->block, &butrct.xmax, &butrct.ymax);
 
 	/* calc block rect */
-	if (block->minx == 0.0f && block->maxx == 0.0f) {
+	if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) {
 		if (block->buttons.first) {
-			block->minx = block->miny = 10000;
-			block->maxx = block->maxy = -10000;
+			block->rect.xmin = block->rect.ymin = 10000;
+			block->rect.xmax = block->rect.ymax = -10000;
 			
 			bt = block->buttons.first;
 			while (bt) {
-				if (bt->x1 < block->minx) block->minx = bt->x1;
-				if (bt->y1 < block->miny) block->miny = bt->y1;
+				if (bt->rect.xmin < block->rect.xmin) block->rect.xmin = bt->rect.xmin;
+				if (bt->rect.ymin < block->rect.ymin) block->rect.ymin = bt->rect.ymin;
 
-				if (bt->x2 > block->maxx) block->maxx = bt->x2;
-				if (bt->y2 > block->maxy) block->maxy = bt->y2;
+				if (bt->rect.xmax > block->rect.xmax) block->rect.xmax = bt->rect.xmax;
+				if (bt->rect.ymax > block->rect.ymax) block->rect.ymax = bt->rect.ymax;
 				
 				bt = bt->next;
 			}
 		}
 		else {
 			/* we're nice and allow empty blocks too */
-			block->minx = block->miny = 0;
-			block->maxx = block->maxy = 20;
+			block->rect.xmin = block->rect.ymin = 0;
+			block->rect.xmax = block->rect.ymax = 20;
 		}
 	}
 	
-	/* aspect = (float)(block->maxx - block->minx + 4);*/ /*UNUSED*/
-	ui_block_to_window_fl(butregion, but->block, &block->minx, &block->miny);
-	ui_block_to_window_fl(butregion, but->block, &block->maxx, &block->maxy);
+	/* aspect = (float)(block->rect.xmax - block->rect.xmin + 4);*/ /*UNUSED*/
+	ui_block_to_window_fl(butregion, but->block, &block->rect.xmin, &block->rect.ymin);
+	ui_block_to_window_fl(butregion, but->block, &block->rect.xmax, &block->rect.ymax);
 
-	//block->minx -= 2.0; block->miny -= 2.0;
-	//block->maxx += 2.0; block->maxy += 2.0;
+	//block->rect.xmin -= 2.0; block->rect.ymin -= 2.0;
+	//block->rect.xmax += 2.0; block->rect.ymax += 2.0;
 	
-	xsize = block->maxx - block->minx + 4; // 4 for shadow
-	ysize = block->maxy - block->miny + 4;
+	xsize = block->rect.xmax - block->rect.xmin + 4; // 4 for shadow
+	ysize = block->rect.ymax - block->rect.ymin + 4;
 	/* aspect /= (float)xsize;*/ /*UNUSED*/
 
 	{
@@ -1431,19 +1430,19 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		}
 
 		if (dir1 == UI_LEFT) {
-			xof = butrct.xmin - block->maxx;
-			if (dir2 == UI_TOP) yof = butrct.ymin - block->miny - center;
-			else yof = butrct.ymax - block->maxy + center;
+			xof = butrct.xmin - block->rect.xmax;
+			if (dir2 == UI_TOP) yof = butrct.ymin - block->rect.ymin - center;
+			else yof = butrct.ymax - block->rect.ymax + center;
 		}
 		else if (dir1 == UI_RIGHT) {
-			xof = butrct.xmax - block->minx;
-			if (dir2 == UI_TOP) yof = butrct.ymin - block->miny - center;
-			else yof = butrct.ymax - block->maxy + center;
+			xof = butrct.xmax - block->rect.xmin;
+			if (dir2 == UI_TOP) yof = butrct.ymin - block->rect.ymin - center;
+			else yof = butrct.ymax - block->rect.ymax + center;
 		}
 		else if (dir1 == UI_TOP) {
-			yof = butrct.ymax - block->miny;
-			if (dir2 == UI_RIGHT) xof = butrct.xmax - block->maxx;
-			else xof = butrct.xmin - block->minx;
+			yof = butrct.ymax - block->rect.ymin;
+			if (dir2 == UI_RIGHT) xof = butrct.xmax - block->rect.xmax;
+			else xof = butrct.xmin - block->rect.xmin;
 			// changed direction? 
 			if ((dir1 & block->direction) == 0) {
 				if (block->direction & UI_SHIFT_FLIPPED)
@@ -1452,9 +1451,9 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 			}
 		}
 		else if (dir1 == UI_DOWN) {
-			yof = butrct.ymin - block->maxy;
-			if (dir2 == UI_RIGHT) xof = butrct.xmax - block->maxx;
-			else xof = butrct.xmin - block->minx;
+			yof = butrct.ymin - block->rect.ymax;
+			if (dir2 == UI_RIGHT) xof = butrct.xmax - block->rect.xmax;
+			else xof = butrct.xmin - block->rect.xmin;
 			// changed direction?
 			if ((dir1 & block->direction) == 0) {
 				if (block->direction & UI_SHIFT_FLIPPED)
@@ -1475,7 +1474,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		if (left == 0 && right == 0) {
 			if (dir1 == UI_TOP || dir1 == UI_DOWN) {
 				// align with left size of screen 
-				xof = -block->minx + 5;
+				xof = -block->rect.xmin + 5;
 			}
 		}
 		
@@ -1484,33 +1483,33 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		yof += block->yofs / block->aspect;
 #if 0
 		/* clamp to window bounds, could be made into an option if its ever annoying */
-		if (     (offscreen = (block->miny + yof)) < 0) yof -= offscreen;   /* bottom */
-		else if ((offscreen = (block->maxy + yof) - winy) > 0) yof -= offscreen;  /* top */
-		if (     (offscreen = (block->minx + xof)) < 0) xof -= offscreen;   /* left */
-		else if ((offscreen = (block->maxx + xof) - winx) > 0) xof -= offscreen;  /* right */
+		if (     (offscreen = (block->rect.ymin + yof)) < 0) yof -= offscreen;   /* bottom */
+		else if ((offscreen = (block->rect.ymax + yof) - winy) > 0) yof -= offscreen;  /* top */
+		if (     (offscreen = (block->rect.xmin + xof)) < 0) xof -= offscreen;   /* left */
+		else if ((offscreen = (block->rect.xmax + xof) - winx) > 0) xof -= offscreen;  /* right */
 #endif
 	}
 	
 	/* apply offset, buttons in window coords */
 	
 	for (bt = block->buttons.first; bt; bt = bt->next) {
-		ui_block_to_window_fl(butregion, but->block, &bt->x1, &bt->y1);
-		ui_block_to_window_fl(butregion, but->block, &bt->x2, &bt->y2);
+		ui_block_to_window_fl(butregion, but->block, &bt->rect.xmin, &bt->rect.ymin);
+		ui_block_to_window_fl(butregion, but->block, &bt->rect.xmax, &bt->rect.ymax);
 
-		bt->x1 += xof;
-		bt->x2 += xof;
-		bt->y1 += yof;
-		bt->y2 += yof;
+		bt->rect.xmin += xof;
+		bt->rect.xmax += xof;
+		bt->rect.ymin += yof;
+		bt->rect.ymax += yof;
 
 		bt->aspect = 1.0;
 		// ui_check_but recalculates drawstring size in pixels
 		ui_check_but(bt);
 	}
 	
-	block->minx += xof;
-	block->miny += yof;
-	block->maxx += xof;
-	block->maxy += yof;
+	block->rect.xmin += xof;
+	block->rect.ymin += yof;
+	block->rect.xmax += xof;
+	block->rect.ymax += yof;
 
 	/* safety calculus */
 	if (but) {
@@ -1520,31 +1519,31 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		/* when you are outside parent button, safety there should be smaller */
 		
 		/* parent button to left */
-		if (midx < block->minx) block->safety.xmin = block->minx - 3;
-		else block->safety.xmin = block->minx - 40;
+		if (midx < block->rect.xmin) block->safety.xmin = block->rect.xmin - 3;
+		else block->safety.xmin = block->rect.xmin - 40;
 		/* parent button to right */
-		if (midx > block->maxx) block->safety.xmax = block->maxx + 3;
-		else block->safety.xmax = block->maxx + 40;
+		if (midx > block->rect.xmax) block->safety.xmax = block->rect.xmax + 3;
+		else block->safety.xmax = block->rect.xmax + 40;
 
 		/* parent button on bottom */
-		if (midy < block->miny) block->safety.ymin = block->miny - 3;
-		else block->safety.ymin = block->miny - 40;
+		if (midy < block->rect.ymin) block->safety.ymin = block->rect.ymin - 3;
+		else block->safety.ymin = block->rect.ymin - 40;
 		/* parent button on top */
-		if (midy > block->maxy) block->safety.ymax = block->maxy + 3;
-		else block->safety.ymax = block->maxy + 40;
+		if (midy > block->rect.ymax) block->safety.ymax = block->rect.ymax + 3;
+		else block->safety.ymax = block->rect.ymax + 40;
 
 		/* exception for switched pulldowns... */
 		if (dir1 && (dir1 & block->direction) == 0) {
-			if (dir2 == UI_RIGHT) block->safety.xmax = block->maxx + 3;
-			if (dir2 == UI_LEFT) block->safety.xmin = block->minx - 3;
+			if (dir2 == UI_RIGHT) block->safety.xmax = block->rect.xmax + 3;
+			if (dir2 == UI_LEFT) block->safety.xmin = block->rect.xmin - 3;
 		}
 		block->direction = dir1;
 	}
 	else {
-		block->safety.xmin = block->minx - 40;
-		block->safety.ymin = block->miny - 40;
-		block->safety.xmax = block->maxx + 40;
-		block->safety.ymax = block->maxy + 40;
+		block->safety.xmin = block->rect.xmin - 40;
+		block->safety.ymin = block->rect.ymin - 40;
+		block->safety.xmax = block->rect.xmax + 40;
+		block->safety.ymax = block->rect.ymax + 40;
 	}
 
 	/* keep a list of these, needed for pulldown menus */
@@ -1571,15 +1570,15 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 	
 	wm_window_get_size(window, &winx, &winy);
 	
-	if (block->minx < MENU_SHADOW_SIDE)
-		block->minx = MENU_SHADOW_SIDE;
-	if (block->maxx > winx - MENU_SHADOW_SIDE)
-		block->maxx = winx - MENU_SHADOW_SIDE;
+	if (block->rect.xmin < MENU_SHADOW_SIDE)
+		block->rect.xmin = MENU_SHADOW_SIDE;
+	if (block->rect.xmax > winx - MENU_SHADOW_SIDE)
+		block->rect.xmax = winx - MENU_SHADOW_SIDE;
 	
-	if (block->miny < MENU_SHADOW_BOTTOM)
-		block->miny = MENU_SHADOW_BOTTOM;
-	if (block->maxy > winy - MENU_TOP)
-		block->maxy = winy - MENU_TOP;
+	if (block->rect.ymin < MENU_SHADOW_BOTTOM)
+		block->rect.ymin = MENU_SHADOW_BOTTOM;
+	if (block->rect.ymax > winy - MENU_TOP)
+		block->rect.ymax = winy - MENU_TOP;
 }
 
 void ui_popup_block_scrolltest(uiBlock *block)
@@ -1598,25 +1597,25 @@ void ui_popup_block_scrolltest(uiBlock *block)
 	
 	/* mark buttons that are outside boundary and the ones next to it for arrow(s) */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
-		if (bt->y1 < block->miny) {
+		if (bt->rect.ymin < block->rect.ymin) {
 			bt->flag |= UI_SCROLLED;
 			block->flag |= UI_BLOCK_CLIPBOTTOM;
 			/* make space for arrow */
-			if (bt->y2 < block->miny + 10) {
-				if (is_flip && bt->next && bt->next->y1 > bt->y1)
+			if (bt->rect.ymax < block->rect.ymin + 10) {
+				if (is_flip && bt->next && bt->next->rect.ymin > bt->rect.ymin)
 					bt->next->flag |= UI_SCROLLED;
-				else if (!is_flip && bt->prev && bt->prev->y1 > bt->y1)
+				else if (!is_flip && bt->prev && bt->prev->rect.ymin > bt->rect.ymin)
 					bt->prev->flag |= UI_SCROLLED;
 			}
 		}
-		if (bt->y2 > block->maxy) {
+		if (bt->rect.ymax > block->rect.ymax) {
 			bt->flag |= UI_SCROLLED;
 			block->flag |= UI_BLOCK_CLIPTOP;
 			/* make space for arrow */
-			if (bt->y1 > block->maxy - 10) {
-				if (!is_flip && bt->next && bt->next->y2 < bt->y2)
+			if (bt->rect.ymin > block->rect.ymax - 10) {
+				if (!is_flip && bt->next && bt->next->rect.ymax < bt->rect.ymax)
 					bt->next->flag |= UI_SCROLLED;
-				else if (is_flip && bt->prev && bt->prev->y2 < bt->y2)
+				else if (is_flip && bt->prev && bt->prev->rect.ymax < bt->rect.ymax)
 					bt->prev->flag |= UI_SCROLLED;
 			}
 		}
@@ -1694,21 +1693,21 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	/* the block and buttons were positioned in window space as in 2.4x, now
 	 * these menu blocks are regions so we bring it back to region space.
 	 * additionally we add some padding for the menu shadow or rounded menus */
-	ar->winrct.xmin = block->minx - MENU_SHADOW_SIDE;
-	ar->winrct.xmax = block->maxx + MENU_SHADOW_SIDE;
-	ar->winrct.ymin = block->miny - MENU_SHADOW_BOTTOM;
-	ar->winrct.ymax = block->maxy + MENU_TOP;
+	ar->winrct.xmin = block->rect.xmin - MENU_SHADOW_SIDE;
+	ar->winrct.xmax = block->rect.xmax + MENU_SHADOW_SIDE;
+	ar->winrct.ymin = block->rect.ymin - MENU_SHADOW_BOTTOM;
+	ar->winrct.ymax = block->rect.ymax + MENU_TOP;
 	
-	block->minx -= ar->winrct.xmin;
-	block->maxx -= ar->winrct.xmin;
-	block->miny -= ar->winrct.ymin;
-	block->maxy -= ar->winrct.ymin;
+	block->rect.xmin -= ar->winrct.xmin;
+	block->rect.xmax -= ar->winrct.xmin;
+	block->rect.ymin -= ar->winrct.ymin;
+	block->rect.ymax -= ar->winrct.ymin;
 
 	for (bt = block->buttons.first; bt; bt = bt->next) {
-		bt->x1 -= ar->winrct.xmin;
-		bt->x2 -= ar->winrct.xmin;
-		bt->y1 -= ar->winrct.ymin;
-		bt->y2 -= ar->winrct.ymin;
+		bt->rect.xmin -= ar->winrct.xmin;
+		bt->rect.xmax -= ar->winrct.xmin;
+		bt->rect.ymin -= ar->winrct.ymin;
+		bt->rect.ymax -= ar->winrct.ymin;
 	}
 	
 	block->flag |= UI_BLOCK_LOOP;
@@ -2371,7 +2370,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	if (pup->but) {
 		/* minimum width to enforece */
-		minwidth = pup->but->x2 - pup->but->x1;
+		minwidth = pup->but->rect.xmax - pup->but->rect.xmin;
 
 		if (pup->but->type == PULLDOWN || pup->but->menu_create_func) {
 			direction = UI_DOWN;
@@ -2413,15 +2412,15 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			 * button, so it doesn't overlap the text too much, also note
 			 * the offset is negative because we are inverse moving the
 			 * block to be under the mouse */
-			offset[0] = -(bt->x1 + 0.8f * (bt->x2 - bt->x1));
-			offset[1] = -(bt->y1 + 0.5f * UI_UNIT_Y);
+			offset[0] = -(bt->rect.xmin + 0.8f * (bt->rect.xmax - bt->rect.xmin));
+			offset[1] = -(bt->rect.ymin + 0.5f * UI_UNIT_Y);
 		}
 		else {
 			/* position mouse at 0.8*width of the button and below the tile
 			 * on the first item */
 			offset[0] = 0;
 			for (bt = block->buttons.first; bt; bt = bt->next)
-				offset[0] = mini(offset[0], -(bt->x1 + 0.8f * (bt->x2 - bt->x1)));
+				offset[0] = mini(offset[0], -(bt->rect.xmin + 0.8f * (bt->rect.xmax - bt->rect.xmin)));
 
 			offset[1] = 1.5 * UI_UNIT_Y;
 		}

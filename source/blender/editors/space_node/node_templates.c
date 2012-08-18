@@ -596,7 +596,7 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 			uiItemL(row, "", ICON_BLANK1);
 
 		bt = block->buttons.last;
-		bt->x2 = UI_UNIT_X / 2;
+		bt->rect.xmax = UI_UNIT_X / 2;
 
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}

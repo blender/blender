@@ -238,8 +238,8 @@ static void ui_item_size(uiItem *item, int *r_w, int *r_h)
 	if (item->type == ITEM_BUTTON) {
 		uiButtonItem *bitem = (uiButtonItem *)item;
 
-		if (r_w) *r_w = bitem->but->x2 - bitem->but->x1;
-		if (r_h) *r_h = bitem->but->y2 - bitem->but->y1;
+		if (r_w) *r_w = bitem->but->rect.xmax - bitem->but->rect.xmin;
+		if (r_h) *r_h = bitem->but->rect.ymax - bitem->but->rect.ymin;
 	}
 	else {
 		uiLayout *litem = (uiLayout *)item;
@@ -254,8 +254,8 @@ static void ui_item_offset(uiItem *item, int *r_x, int *r_y)
 	if (item->type == ITEM_BUTTON) {
 		uiButtonItem *bitem = (uiButtonItem *)item;
 
-		if (r_x) *r_x = bitem->but->x1;
-		if (r_y) *r_y = bitem->but->y1;
+		if (r_x) *r_x = bitem->but->rect.xmin;
+		if (r_y) *r_y = bitem->but->rect.ymin;
 	}
 	else {
 		if (r_x) *r_x = 0;
@@ -268,10 +268,10 @@ static void ui_item_position(uiItem *item, int x, int y, int w, int h)
 	if (item->type == ITEM_BUTTON) {
 		uiButtonItem *bitem = (uiButtonItem *)item;
 
-		bitem->but->x1 = x;
-		bitem->but->y1 = y;
-		bitem->but->x2 = x + w;
-		bitem->but->y2 = y + h;
+		bitem->but->rect.xmin = x;
+		bitem->but->rect.ymin = y;
+		bitem->but->rect.xmax = x + w;
+		bitem->but->rect.ymax = y + h;
 		
 		ui_check_but(bitem->but); /* for strlen */
 	}
@@ -1898,10 +1898,10 @@ static void ui_litem_layout_box(uiLayout *litem)
 
 	/* roundbox around the sublayout */
 	but = box->roundbox;
-	but->x1 = litem->x;
-	but->y1 = litem->y;
-	but->x2 = litem->x + litem->w;
-	but->y2 = litem->y + litem->h;
+	but->rect.xmin = litem->x;
+	but->rect.ymin = litem->y;
+	but->rect.xmax = litem->x + litem->w;
+	but->rect.ymax = litem->y + litem->h;
 }
 
 /* multi-column layout, automatically flowing to the next */
