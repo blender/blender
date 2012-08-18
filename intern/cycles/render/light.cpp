@@ -289,8 +289,14 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		/* CDF */
 		device->tex_alloc("__light_distribution", dscene->light_distribution);
 	}
-	else
+	else {
+		kintegrator->num_distribution = 0;
+		kintegrator->pdf_triangles = 0.0f;
+		kintegrator->pdf_lights = 0.0f;
+		kintegrator->num_all_lights = 0;
+
 		dscene->light_distribution.clear();
+	}
 }
 
 void LightManager::device_update_background(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
