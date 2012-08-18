@@ -251,7 +251,7 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 			
 			/* get strip name, and check if this strip is selected */
 			seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
-			seq = BKE_sequwnce_get_by_name(ed->seqbasep, seq_name, FALSE);
+			seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, FALSE);
 			if (seq_name) MEM_freeN(seq_name);
 			
 			/* update selection status */

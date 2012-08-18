@@ -3626,7 +3626,7 @@ static void seq_free_animdata(Scene *scene, Sequence *seq)
 	}
 }
 
-Sequence *BKE_sequwnce_get_by_name(ListBase *seqbase, const char *name, int recursive)
+Sequence *BKE_sequence_get_by_name(ListBase *seqbase, const char *name, int recursive)
 {
 	Sequence *iseq = NULL;
 	Sequence *rseq = NULL;
@@ -3634,7 +3634,7 @@ Sequence *BKE_sequwnce_get_by_name(ListBase *seqbase, const char *name, int recu
 	for (iseq = seqbase->first; iseq; iseq = iseq->next) {
 		if (strcmp(name, iseq->name + 2) == 0)
 			return iseq;
-		else if (recursive && (iseq->seqbase.first) && (rseq = BKE_sequwnce_get_by_name(&iseq->seqbase, name, 1))) {
+		else if (recursive && (iseq->seqbase.first) && (rseq = BKE_sequence_get_by_name(&iseq->seqbase, name, 1))) {
 			return rseq;
 		}
 	}
