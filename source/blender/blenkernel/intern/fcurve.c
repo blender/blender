@@ -433,16 +433,18 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, short 
 /* ...................................... */
 
 /* helper for calc_fcurve_* functions -> find first and last BezTriple to be used */
-static void get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple **last,
-                                     const short do_sel_only)
+static short get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple **last,
+                                      const short do_sel_only)
 {
+	short found = FALSE;
+	
 	/* init outputs */
 	*first = NULL;
 	*last = NULL;
 	
 	/* sanity checks */
 	if (fcu->bezt == NULL)
-		return;
+		return found;
 	
 	/* only include selected items? */
 	if (do_sel_only) {
@@ -454,6 +456,7 @@ static void get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple *
 		for (i = 0; i < fcu->totvert; bezt++, i++) {
 			if (BEZSELECTED(bezt)) {
 				*first = bezt;
+				found = TRUE;
 				break;
 			}
 		}
@@ -463,6 +466,7 @@ static void get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple *
 		for (i = 0; i < fcu->totvert; bezt--, i++) {
 			if (BEZSELECTED(bezt)) {
 				*last = bezt;
+				found = TRUE;
 				break;
 			}
 		}
@@ -471,13 +475,16 @@ static void get_fcurve_end_keyframes(FCurve *fcu, BezTriple **first, BezTriple *
 		/* just full array */
 		*first = fcu->bezt;
 		*last = ARRAY_LAST_ITEM(fcu->bezt, BezTriple, sizeof(BezTriple), fcu->totvert);
+		found = TRUE;
 	}
+	
+	return found;
 }
 
 
 /* Calculate the extents of F-Curve's data */
-void calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
-                        const short do_sel_only, const short include_handles)
+short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
+                         const short do_sel_only, const short include_handles)
 {
 	float xminv = 999999999.0f, xmaxv = -999999999.0f;
 	float yminv = 999999999.0f, ymaxv = -999999999.0f;
@@ -490,7 +497,7 @@ void calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, floa
 			
 			if (xmin || xmax) {
 				/* get endpoint keyframes */
-				get_fcurve_end_keyframes(fcu, &bezt_first, &bezt_last, do_sel_only);
+				foundvert = get_fcurve_end_keyframes(fcu, &bezt_first, &bezt_last, do_sel_only);
 				
 				if (bezt_first) {
 					BLI_assert(bezt_last != NULL);
@@ -566,6 +573,8 @@ void calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, floa
 		if (ymin) *ymin = 0.0f;
 		if (ymax) *ymax = 1.0f;
 	}
+	
+	return foundvert;
 }
 
 /* Calculate the extents of F-Curve's keyframes */
