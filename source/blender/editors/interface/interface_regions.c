@@ -420,8 +420,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 /*	IDProperty *prop;*/
 	char buf[512];
 	float fonth, fontw, aspect = but->block->aspect;
-	float x1f, x2f, y1f, y2f;
-	int x1, x2, y1, y2, winx, winy, ofsx, ofsy, w, h, a;
+	int winx, winy, ofsx, ofsy, w, h, a;
+	rctf rect_fl;
+	rcti rect_i;
 
 	const int nbr_info = 6;
 	uiStringInfo but_tip = {BUT_GET_TIP, NULL};
@@ -685,62 +686,59 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ofsx = (but->block->panel) ? but->block->panel->ofsx : 0;
 	ofsy = (but->block->panel) ? but->block->panel->ofsy : 0;
 
-	x1f = (but->rect.xmin + but->rect.xmax) * 0.5f + ofsx - (TIP_BORDER_X * aspect);
-	x2f = x1f + fontw + (TIP_BORDER_X * aspect);
-	y2f = but->rect.ymin + ofsy - (TIP_BORDER_Y * aspect);
-	y1f = y2f - fonth * aspect - (TIP_BORDER_Y * aspect);
+	rect_fl.xmin = (but->rect.xmin + but->rect.xmax) * 0.5f + ofsx - (TIP_BORDER_X * aspect);
+	rect_fl.xmax = rect_fl.xmin + fontw + (TIP_BORDER_X * aspect);
+	rect_fl.ymax = but->rect.ymin + ofsy - (TIP_BORDER_Y * aspect);
+	rect_fl.ymin = rect_fl.ymax - fonth * aspect - (TIP_BORDER_Y * aspect);
 	
 #undef TIP_MARGIN_Y
 #undef TIP_BORDER_X
 #undef TIP_BORDER_Y
 
 	/* copy to int, gets projected if possible too */
-	x1 = x1f; y1 = y1f; x2 = x2f; y2 = y2f;
+	BLI_rcti_rctf_copy(&rect_i, &rect_fl);
 	
 	if (butregion) {
 		/* XXX temp, region v2ds can be empty still */
 		if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-			UI_view2d_to_region_no_clip(&butregion->v2d, x1f, y1f, &x1, &y1);
-			UI_view2d_to_region_no_clip(&butregion->v2d, x2f, y2f, &x2, &y2);
+			UI_view2d_to_region_no_clip(&butregion->v2d, rect_fl.xmin, rect_fl.ymin, &rect_i.xmin, &rect_i.ymin);
+			UI_view2d_to_region_no_clip(&butregion->v2d, rect_fl.xmax, rect_fl.ymax, &rect_i.xmax, &rect_i.ymax);
 		}
 
-		x1 += butregion->winrct.xmin;
-		x2 += butregion->winrct.xmin;
-		y1 += butregion->winrct.ymin;
-		y2 += butregion->winrct.ymin;
+		BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
 	}
 
 	wm_window_get_size(CTX_wm_window(C), &winx, &winy);
 
-	if (x2 > winx) {
+	if (rect_i.xmax > winx) {
 		/* super size */
-		if (x2 > winx + x1) {
-			x2 = winx;
-			x1 = 0;
+		if (rect_i.xmax > winx + rect_i.xmin) {
+			rect_i.xmax = winx;
+			rect_i.xmin = 0;
 		}
 		else {
-			x1 -= x2 - winx;
-			x2 = winx;
+			rect_i.xmin -= rect_i.xmax - winx;
+			rect_i.xmax = winx;
 		}
 	}
 	/* ensure at least 5 px above screen bounds
 	 * 25 is just a guess to be above the menu item */
-	if (y1 < 5) {
-		y2 += (-y1) + 30;
-		y1 = 30;
+	if (rect_i.ymin < 5) {
+		rect_i.ymax += (-rect_i.ymin) + 30;
+		rect_i.ymin = 30;
 	}
 
 	/* widget rect, in region coords */
 	data->bbox.xmin = MENU_SHADOW_SIDE;
-	data->bbox.xmax = x2 - x1 + MENU_SHADOW_SIDE;
+	data->bbox.xmax = rect_i.xmax - rect_i.xmin + MENU_SHADOW_SIDE;
 	data->bbox.ymin = MENU_SHADOW_BOTTOM;
-	data->bbox.ymax = y2 - y1 + MENU_SHADOW_BOTTOM;
+	data->bbox.ymax = rect_i.ymax - rect_i.ymin + MENU_SHADOW_BOTTOM;
 	
 	/* region bigger for shadow */
-	ar->winrct.xmin = x1 - MENU_SHADOW_SIDE;
-	ar->winrct.xmax = x2 + MENU_SHADOW_SIDE;
-	ar->winrct.ymin = y1 - MENU_SHADOW_BOTTOM;
-	ar->winrct.ymax = y2 + MENU_TOP;
+	ar->winrct.xmin = rect_i.xmin - MENU_SHADOW_SIDE;
+	ar->winrct.xmax = rect_i.xmax + MENU_SHADOW_SIDE;
+	ar->winrct.ymin = rect_i.ymin - MENU_SHADOW_BOTTOM;
+	ar->winrct.ymax = rect_i.ymax + MENU_TOP;
 
 	/* adds subwindow */
 	ED_region_init(C, ar);
@@ -1134,8 +1132,10 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	ARegion *ar;
 	uiSearchboxData *data;
 	float aspect = but->block->aspect;
-	float x1f, x2f, y1f, y2f;
-	int x1, x2, y1, y2, winx, winy, ofsx, ofsy;
+	rctf rect_fl;
+	rcti rect_i;
+	int winx, winy, ofsx, ofsy;
+	int i;
 	
 	/* create area region */
 	ar = ui_add_temporary_region(CTX_wm_screen(C));
@@ -1189,69 +1189,65 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 	}
 	else {
-		x1f = but->rect.xmin - 5;   /* align text with button */
-		x2f = but->rect.xmax + 5;   /* symmetrical */
-		y2f = but->rect.ymin;
-		y1f = y2f - uiSearchBoxhHeight();
+		rect_fl.xmin = but->rect.xmin - 5;   /* align text with button */
+		rect_fl.xmax = but->rect.xmax + 5;   /* symmetrical */
+		rect_fl.ymax = but->rect.ymin;
+		rect_fl.ymin = rect_fl.ymax - uiSearchBoxhHeight();
 
 		ofsx = (but->block->panel) ? but->block->panel->ofsx : 0;
 		ofsy = (but->block->panel) ? but->block->panel->ofsy : 0;
 
-		x1f += ofsx;
-		x2f += ofsx;
-		y1f += ofsy;
-		y2f += ofsy;
+		BLI_rctf_translate(&rect_fl, ofsx, ofsy);
 	
 		/* minimal width */
-		if (x2f - x1f < 150) x2f = x1f + 150;  // XXX arbitrary
+		if (rect_fl.xmax - rect_fl.xmin < 150) {
+			rect_fl.xmax = rect_fl.xmin + 150;  /* XXX arbitrary */
+		}
 		
 		/* copy to int, gets projected if possible too */
-		x1 = x1f; y1 = y1f; x2 = x2f; y2 = y2f;
+		BLI_rcti_rctf_copy(&rect_i, &rect_fl);
 		
 		if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-			UI_view2d_to_region_no_clip(&butregion->v2d, x1f, y1f, &x1, &y1);
-			UI_view2d_to_region_no_clip(&butregion->v2d, x2f, y2f, &x2, &y2);
+			UI_view2d_to_region_no_clip(&butregion->v2d, rect_fl.xmin, rect_fl.ymin, &rect_i.xmin, &rect_i.ymin);
+			UI_view2d_to_region_no_clip(&butregion->v2d, rect_fl.xmax, rect_fl.ymax, &rect_i.xmax, &rect_i.ymax);
 		}
 
-		x1 += butregion->winrct.xmin;
-		x2 += butregion->winrct.xmin;
-		y1 += butregion->winrct.ymin;
-		y2 += butregion->winrct.ymin;
+		BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
 
 		wm_window_get_size(CTX_wm_window(C), &winx, &winy);
 		
-		if (x2 > winx) {
+		if (rect_i.xmax > winx) {
 			/* super size */
-			if (x2 > winx + x1) {
-				x2 = winx;
-				x1 = 0;
+			if (rect_i.xmax > winx + rect_i.xmin) {
+				rect_i.xmax = winx;
+				rect_i.xmin = 0;
 			}
 			else {
-				x1 -= x2 - winx;
-				x2 = winx;
+				rect_i.xmin -= rect_i.xmax - winx;
+				rect_i.xmax = winx;
 			}
 		}
 
-		if (y1 < 0) {
+		if (rect_i.ymin < 0) {
 			int newy1;
 			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->rect.ymax + ofsy, NULL, &newy1);
 			newy1 += butregion->winrct.ymin;
 
-			y2 = y2 - y1 + newy1;
-			y1 = newy1;
+			rect_i.ymax = rect_i.ymax - rect_i.ymin + newy1;
+			rect_i.ymin = newy1;
 		}
 
 		/* widget rect, in region coords */
 		data->bbox.xmin = MENU_SHADOW_SIDE;
-		data->bbox.xmax = x2 - x1 + MENU_SHADOW_SIDE;
+		data->bbox.xmax = rect_i.xmax - rect_i.xmin + MENU_SHADOW_SIDE;
 		data->bbox.ymin = MENU_SHADOW_BOTTOM;
-		data->bbox.ymax = y2 - y1 + MENU_SHADOW_BOTTOM;
+		data->bbox.ymax = rect_i.ymax - rect_i.ymin + MENU_SHADOW_BOTTOM;
 		
 		/* region bigger for shadow */
-		ar->winrct.xmin = x1 - MENU_SHADOW_SIDE;
-		ar->winrct.xmax = x2 + MENU_SHADOW_SIDE;
-		ar->winrct.ymin = y1 - MENU_SHADOW_BOTTOM;
-		ar->winrct.ymax = y2;
+		ar->winrct.xmin = rect_i.xmin - MENU_SHADOW_SIDE;
+		ar->winrct.xmax = rect_i.xmax + MENU_SHADOW_SIDE;
+		ar->winrct.ymin = rect_i.ymin - MENU_SHADOW_BOTTOM;
+		ar->winrct.ymax = rect_i.ymax;
 	}
 	
 	/* adds subwindow */
@@ -1272,8 +1268,8 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->items.names = MEM_callocN(data->items.maxitem * sizeof(void *), "search names");
 	data->items.pointers = MEM_callocN(data->items.maxitem * sizeof(void *), "search pointers");
 	data->items.icons = MEM_callocN(data->items.maxitem * sizeof(int), "search icons");
-	for (x1 = 0; x1 < data->items.maxitem; x1++)
-		data->items.names[x1] = MEM_callocN(but->hardmax + 1, "search pointers");
+	for (i = 0; i < data->items.maxitem; i++)
+		data->items.names[i] = MEM_callocN(but->hardmax + 1, "search pointers");
 	
 	return ar;
 }
@@ -1347,18 +1343,10 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	/* calc block rect */
 	if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) {
 		if (block->buttons.first) {
-			block->rect.xmin = block->rect.ymin = 10000;
-			block->rect.xmax = block->rect.ymax = -10000;
-			
-			bt = block->buttons.first;
-			while (bt) {
-				if (bt->rect.xmin < block->rect.xmin) block->rect.xmin = bt->rect.xmin;
-				if (bt->rect.ymin < block->rect.ymin) block->rect.ymin = bt->rect.ymin;
+			BLI_rctf_init_minmax(&block->rect);
 
-				if (bt->rect.xmax > block->rect.xmax) block->rect.xmax = bt->rect.xmax;
-				if (bt->rect.ymax > block->rect.ymax) block->rect.ymax = bt->rect.ymax;
-				
-				bt = bt->next;
+			for (bt = block->buttons.first; bt; bt = bt->next) {
+				BLI_rctf_union(&block->rect, &bt->rect);
 			}
 		}
 		else {
@@ -1375,7 +1363,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	//block->rect.xmin -= 2.0; block->rect.ymin -= 2.0;
 	//block->rect.xmax += 2.0; block->rect.ymax += 2.0;
 	
-	xsize = block->rect.xmax - block->rect.xmin + 4; // 4 for shadow
+	xsize = block->rect.xmax - block->rect.xmin + 4;  /* 4 for shadow */
 	ysize = block->rect.ymax - block->rect.ymin + 4;
 	/* aspect /= (float)xsize;*/ /*UNUSED*/
 
@@ -1496,20 +1484,14 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		ui_block_to_window_fl(butregion, but->block, &bt->rect.xmin, &bt->rect.ymin);
 		ui_block_to_window_fl(butregion, but->block, &bt->rect.xmax, &bt->rect.ymax);
 
-		bt->rect.xmin += xof;
-		bt->rect.xmax += xof;
-		bt->rect.ymin += yof;
-		bt->rect.ymax += yof;
+		BLI_rctf_translate(&bt->rect, xof, yof);
 
-		bt->aspect = 1.0;
-		// ui_check_but recalculates drawstring size in pixels
+		bt->aspect = 1.0f;
+		/* ui_check_but recalculates drawstring size in pixels */
 		ui_check_but(bt);
 	}
 	
-	block->rect.xmin += xof;
-	block->rect.ymin += yof;
-	block->rect.xmax += xof;
-	block->rect.ymax += yof;
+	BLI_rctf_translate(&block->rect, xof, yof);
 
 	/* safety calculus */
 	if (but) {
@@ -1630,7 +1612,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	static ARegionType type;
 	ARegion *ar;
 	uiBlock *block;
-	uiBut *bt;
 	uiPopupBlockHandle *handle;
 	uiSafetyRct *saferct;
 
@@ -1698,17 +1679,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	ar->winrct.ymin = block->rect.ymin - MENU_SHADOW_BOTTOM;
 	ar->winrct.ymax = block->rect.ymax + MENU_TOP;
 	
-	block->rect.xmin -= ar->winrct.xmin;
-	block->rect.xmax -= ar->winrct.xmin;
-	block->rect.ymin -= ar->winrct.ymin;
-	block->rect.ymax -= ar->winrct.ymin;
-
-	for (bt = block->buttons.first; bt; bt = bt->next) {
-		bt->rect.xmin -= ar->winrct.xmin;
-		bt->rect.xmax -= ar->winrct.xmin;
-		bt->rect.ymin -= ar->winrct.ymin;
-		bt->rect.ymax -= ar->winrct.ymin;
-	}
+	ui_block_translate(block, -ar->winrct.xmin, -ar->winrct.ymin);
 	
 	block->flag |= UI_BLOCK_LOOP;
 

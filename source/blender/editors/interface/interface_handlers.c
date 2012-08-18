@@ -686,8 +686,7 @@ static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, wmEvent *event)
 	
 	ui_window_to_block(ar, but->block, &x, &y);
 	
-	rect.xmin = but->rect.xmin; rect.xmax = but->rect.xmax;
-	rect.ymin = but->rect.ymin; rect.ymax = but->rect.ymax;
+	BLI_rcti_rctf_copy(&rect, &but->rect);
 	
 	if (but->imb) ;  /* use button size itself */
 	else if (but->flag & UI_ICON_LEFT) {
@@ -4921,7 +4920,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 
 static int ui_but_contains_pt(uiBut *but, int mx, int my)
 {
-	return ((but->rect.xmin < mx && but->rect.xmax >= mx) && (but->rect.ymin < my && but->rect.ymax >= my));
+	return BLI_in_rctf(&but->rect, mx, my);
 }
 
 static uiBut *ui_but_find_activated(ARegion *ar)
@@ -5092,9 +5091,7 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		/* CLIP_EVENTS prevents the event from reaching other blocks */
 		if (block->flag & UI_BLOCK_CLIP_EVENTS) {
 			/* check if mouse is inside block */
-			if (block->rect.xmin <= mx && block->rect.xmax >= mx &&
-			    block->rect.ymin <= my && block->rect.ymax >= my)
-			{
+			if (BLI_in_rctf(&block->rect, mx, my)) {
 				break;
 			}
 		}
@@ -6103,10 +6100,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 	ui_window_to_block(ar, block, &mx, &my);
 
 	/* check if mouse is inside block */
-	inside = 0;
-	if (block->rect.xmin <= mx && block->rect.xmax >= mx)
-		if (block->rect.ymin <= my && block->rect.ymax >= my)
-			inside = 1;
+	inside = BLI_in_rctf(&block->rect, mx, my);
 
 	/* if there's an active modal button, don't check events or outside, except for search menu */
 	but = ui_but_find_activated(ar);
