@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_image/image_editor.c
+/** \file blender/editors/space_image/image_edit.c
  *  \ingroup spimage
  */
 

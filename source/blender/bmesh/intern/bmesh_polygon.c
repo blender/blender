@@ -646,8 +646,7 @@ static int bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i, 
 			continue;
 		}
 
-		if (isect_point_tri_v2(pv1, v1, v2, v3) || isect_point_tri_v2(pv1, v3, v2, v1))
-		{
+		if (isect_point_tri_v2(pv1, v1, v2, v3) || isect_point_tri_v2(pv1, v3, v2, v1)) {
 #if 0
 			if (isect_point_tri_v2(pv1, v1, v2, v3))
 				printf("%d in (%d, %d, %d)\n", v3i, i, v1i, v2i);

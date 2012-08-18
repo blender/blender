@@ -779,7 +779,7 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 	Material *mao, **matar, ***matarar;
 	char *matbits;
 	short *totcolp;
-	char bit=0;
+	char bit = 0;
 
 	if (act > MAXMAT) return;
 	if (act < 1) act = 1;
@@ -813,7 +813,7 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 		bit = ob->matbits[ob->actcol - 1];
 	}
 	else {
-		switch(assign_type) {
+		switch (assign_type) {
 			case BKE_MAT_ASSIGN_OBDATA:
 				bit = 0;
 				break;
