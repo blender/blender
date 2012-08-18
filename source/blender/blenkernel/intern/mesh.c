@@ -1846,7 +1846,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 		return;
 	}
 
-	/* if we are not calculating verts and no verts were passes thene we have nothign to do */
+	/* if we are not calculating verts and no verts were passes then we have nothing to do */
 	if ((only_face_normals == TRUE) && (polyNors_r == NULL) && (faceNors_r == NULL)) {
 		printf("%s: called with nothing to do\n", __func__);
 		return;
@@ -1910,7 +1910,7 @@ void BKE_mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpo
 
 	if (!pnors) pnors = MEM_callocN(sizeof(float) * 3 * numPolys, "poly_nors mesh.c");
 
-	/*first go through and calculate normals for all the polys*/
+	/* first go through and calculate normals for all the polys */
 	tnorms = MEM_callocN(sizeof(float) * 3 * numVerts, "tnorms mesh.c");
 
 	mp = mpolys;
