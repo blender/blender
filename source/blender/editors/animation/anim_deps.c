@@ -144,12 +144,13 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
 		 * NOTE: this feature will only really work if groups by default contain the F-Curves for a single bone
 		 */
 		// TODO: if bone gets renamed, it would be best to be able to rename the group
-		// TODO: sync bone/group colors
 		if (ob->pose) {
 			bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
 			bArmature *arm = ob->data;
 			
 			if (pchan) {
+				bActionGroup *bgrp;
+				
 				/* if one matches, sync the selection status */
 				if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED))
 					agrp->flag |= AGRP_SELECTED;
@@ -171,6 +172,13 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
 				else {
 					/* this can't possibly be active now */
 					agrp->flag &= ~AGRP_ACTIVE;
+				}
+				
+				/* sync group colors */
+				bgrp = (bActionGroup *)BLI_findlink(&ob->pose->agroups, (pchan->agrp_index - 1));
+				if (bgrp) {
+					agrp->customCol = bgrp->customCol;
+					action_group_colors_sync(agrp, bgrp);
 				}
 			}
 		}
