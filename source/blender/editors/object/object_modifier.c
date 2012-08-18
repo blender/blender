@@ -268,17 +268,12 @@ static int object_modifier_safe_to_delete(Main *bmain, Object *ob,
 static int object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
                                   int *sort_depsgraph)
 {
-	ModifierData *obmd;
-
 	/* It seems on rapid delete it is possible to
 	 * get called twice on same modifier, so make
 	 * sure it is in list. */
-	for (obmd = ob->modifiers.first; obmd; obmd = obmd->next)
-		if (obmd == md)
-			break;
-
-	if (!obmd)
+	if (BLI_findindex(&ob->modifiers, md) != -1) {
 		return 0;
+	}
 
 	/* special cases */
 	if (md->type == eModifierType_ParticleSystem) {

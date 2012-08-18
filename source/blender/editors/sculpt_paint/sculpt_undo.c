@@ -32,6 +32,7 @@
  *  \ingroup edsculpt
  */
 
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -379,16 +380,12 @@ static void sculpt_undo_free(ListBase *lb)
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node)
 {
 	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_MESH);
-	SculptUndoNode *unode;
 
-	if (!lb)
+	if (!lb) {
 		return NULL;
+	}
 
-	for (unode = lb->first; unode; unode = unode->next)
-		if (unode->node == node)
-			return unode;
-
-	return NULL;
+	return BLI_findptr(lb, node, offsetof(SculptUndoNode, node));
 }
 
 static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh,

@@ -643,9 +643,7 @@ void ui_theme_init_default(void)
 	bTheme *btheme;
 	
 	/* we search for the theme with name Default */
-	for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-		if (strcmp("Default", btheme->name) == 0) break;
-	}
+	btheme = BLI_findstring(&U.themes, "Default", offsetof(bTheme, name));
 	
 	if (btheme == NULL) {
 		btheme = MEM_callocN(sizeof(bTheme), "theme");

@@ -439,6 +439,44 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
 	return NULL;
 }
 
+void *BLI_findptr(const ListBase *listbase, const void *ptr, const int offset)
+{
+	Link *link = NULL;
+	const void *ptr_iter;
+
+	if (listbase == NULL) return NULL;
+
+	for (link = listbase->first; link; link = link->next) {
+		/* exact copy of BLI_findstring(), except for this line */
+		ptr_iter = *((const char **)(((const char *)link) + offset));
+
+		if (ptr == ptr_iter) {
+			return link;
+		}
+	}
+
+	return NULL;
+}
+/* same as above but find reverse */
+void *BLI_rfindptr(const ListBase *listbase, const void *ptr, const int offset)
+{
+	Link *link = NULL;
+	const void *ptr_iter;
+
+	if (listbase == NULL) return NULL;
+
+	for (link = listbase->last; link; link = link->prev) {
+		/* exact copy of BLI_rfindstring(), except for this line */
+		ptr_iter = *((const char **)(((const char *)link) + offset));
+
+		if (ptr == ptr_iter) {
+			return link;
+		}
+	}
+
+	return NULL;
+}
+
 int BLI_findstringindex(const ListBase *listbase, const char *id, const int offset)
 {
 	Link *link = NULL;
