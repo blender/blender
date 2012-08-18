@@ -2234,7 +2234,7 @@ void BKE_object_dimensions_set(Object *ob, const float *value)
 	}
 }
 
-void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
+void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const short use_hidden)
 {
 	BoundBox bb;
 	float vec[3];
@@ -2284,14 +2284,23 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 		break;
 		case OB_ARMATURE:
 			if (ob->pose) {
+				bArmature *arm = ob->data;
 				bPoseChannel *pchan;
+
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-					mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
-					minmax_v3v3_v3(min_r, max_r, vec);
-					mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
-					minmax_v3v3_v3(min_r, max_r, vec);
+
+					if ((use_hidden == FALSE) && (PBONE_VISIBLE(arm, pchan->bone) == FALSE)) {
+						/* pass */
+					}
+					else {
+						mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
+						minmax_v3v3_v3(min_r, max_r, vec);
+						mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
+						minmax_v3v3_v3(min_r, max_r, vec);
+
+						change = TRUE;
+					}
 				}
-				change = TRUE;
 			}
 			break;
 		case OB_MESH:
@@ -2331,9 +2340,9 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 	}
 }
 
-int BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_max[3])
+int BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_max[3], const short use_hidden)
 {
-	int ok = 0;
+	int ok = FALSE;
 	if ((ob->transflag & OB_DUPLI) == 0) {
 		return ok;
 	}
@@ -2343,7 +2352,10 @@ int BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_ma
 		
 		lb = object_duplilist(scene, ob);
 		for (dob = lb->first; dob; dob = dob->next) {
-			if (dob->no_draw == 0) {
+			if ((use_hidden == FALSE) && (dob->no_draw != 0)) {
+				/* pass */
+			}
+			else {
 				BoundBox *bb = BKE_object_boundbox_get(dob->ob);
 
 				if (bb) {
@@ -2354,7 +2366,7 @@ int BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_ma
 						minmax_v3v3_v3(r_min, r_max, vec);
 					}
 
-					ok = 1;
+					ok = TRUE;
 				}
 			}
 		}

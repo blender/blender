@@ -1409,7 +1409,7 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 	}
 	else {
 		if (scene->obedit) {
-			BKE_object_minmax(scene->obedit, min, max);
+			BKE_object_minmax(scene->obedit, min, max, FALSE);
 			
 			ok = TRUE;
 		
@@ -1419,7 +1419,7 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 		else {
 			for (base = FIRSTBASE; base; base = base->next) {
 				if (TESTBASE(v3d, base)) {
-					BKE_object_minmax(base->object, min, max);
+					BKE_object_minmax(base->object, min, max, FALSE);
 					base->lay |= locallay;
 					base->object->lay = base->lay;
 					ok = TRUE;

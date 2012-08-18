@@ -3114,7 +3114,8 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		copy_v3_v3(ownLoc, obmat[3]);
 		
 		INIT_MINMAX(curveMin, curveMax);
-		BKE_object_minmax(ct->tar, curveMin, curveMax);
+		/* XXX - don't think this is good calling this here - campbell */
+		BKE_object_minmax(ct->tar, curveMin, curveMax, TRUE);
 		
 		/* get targetmatrix */
 		if (cu->path && cu->path->data) {
