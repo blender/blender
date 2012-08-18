@@ -137,10 +137,7 @@ void ui_block_to_window_rct(const ARegion *ar, uiBlock *block, rctf *graph, rcti
 	ui_block_to_window_fl(ar, block, &tmpr.xmin, &tmpr.ymin);
 	ui_block_to_window_fl(ar, block, &tmpr.xmax, &tmpr.ymax);
 
-	winr->xmin = tmpr.xmin;
-	winr->ymin = tmpr.ymin;
-	winr->xmax = tmpr.xmax;
-	winr->ymax = tmpr.ymax;
+	BLI_rcti_rctf_copy(winr, &tmpr);
 }
 
 void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y)   /* for mouse cursor */

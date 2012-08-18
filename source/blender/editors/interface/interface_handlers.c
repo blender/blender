@@ -3347,9 +3347,8 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, float 
 	
 	ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
 
-	rect.xmin = but->rect.xmin; rect.xmax = but->rect.xmax;
-	rect.ymin = but->rect.ymin; rect.ymax = but->rect.ymax;
-	
+	BLI_rcti_rctf_copy(&rect, &but->rect);
+
 	ui_get_but_vectorf(but, rgb);
 	copy_v3_v3(hsv, ui_block_hsv_get(but->block));
 	rgb_to_hsv_compat_v(rgb, hsv);
@@ -3856,8 +3855,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 	int changed = 1;
 	float /* dx, */ dy; /* UNUSED */
 	
-	/* rect.xmin = but->rect.xmin; rect.xmax = but->rect.xmax; */
-	/* rect.ymin = but->rect.ymin; rect.ymax = but->rect.ymax; */
+	/* BLI_rcti_rctf_copy(&rect, &but->rect); */
 	
 	/* dx = mx - data->draglastx; */ /* UNUSED */
 	dy = my - data->draglasty;
@@ -3940,8 +3938,7 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 	int changed = 1;
 	float /* dx, */ dy /* , yfac=1.f */; /* UNUSED */
 
-	/* rect.xmin = but->rect.xmin; rect.xmax = but->rect.xmax; */
-	/* rect.ymin = but->rect.ymin; rect.ymax = but->rect.ymax; */
+	/* BLI_rcti_rctf_copy(&rect, &but->rect); */
 
 	/* dx = mx - data->draglastx; */ /* UNUSED */
 	dy = my - data->draglasty;
@@ -4024,8 +4021,7 @@ static int ui_numedit_but_VECTORSCOPE(uiBut *but, uiHandleButtonData *data, int 
 	int changed = 1;
 	/* float dx, dy; */
 
-	/* rect.xmin = but->rect.xmin; rect.xmax = but->rect.xmax; */
-	/* rect.ymin = but->rect.ymin; rect.ymax = but->rect.ymax; */
+	/* BLI_rcti_rctf_copy(&rect, &but->rect); */
 
 	/* dx = mx - data->draglastx; */
 	/* dy = my - data->draglasty; */
@@ -5019,10 +5015,7 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 		ui_window_to_region(ar, &mx, &my);
 		
 		/* make a copy of the mask rect, and tweak accordingly for hidden scrollbars */
-		mask_rct.xmin = v2d->mask.xmin;
-		mask_rct.xmax = v2d->mask.xmax;
-		mask_rct.ymin = v2d->mask.ymin;
-		mask_rct.ymax = v2d->mask.ymax;
+		mask_rct = v2d->mask;
 		
 		if (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE | V2D_SCROLL_VERTICAL_FULLR)) {
 			if (v2d->scroll & V2D_SCROLL_LEFT)

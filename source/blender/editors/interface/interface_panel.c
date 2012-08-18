@@ -422,7 +422,7 @@ static void ui_draw_panel_scalewidget(rcti *rect)
 	glDisable(GL_BLEND);
 }
 
-static void ui_draw_panel_dragwidget(rctf *rect)
+static void ui_draw_panel_dragwidget(const rctf *rect)
 {
 	float xmin, xmax, dx;
 	float ymin, ymax, dy;

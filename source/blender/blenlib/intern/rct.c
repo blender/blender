@@ -363,12 +363,20 @@ int BLI_rcti_isect(const rcti *src1, const rcti *src2, rcti *dest)
 	}
 }
 
-void BLI_rcti_rctf_copy(rcti *tar, const rctf *src)
+void BLI_rcti_rctf_copy(rcti *dst, const rctf *src)
 {
-	tar->xmin = floorf(src->xmin + 0.5f);
-	tar->xmax = floorf((src->xmax - src->xmin) + 0.5f);
-	tar->ymin = floorf(src->ymin + 0.5f);
-	tar->ymax = floorf((src->ymax - src->ymin) + 0.5f);
+	dst->xmin = floorf(src->xmin + 0.5f);
+	dst->xmax = dst->xmin + floorf((src->xmax - src->xmin) + 0.5f);
+	dst->ymin = floorf(src->ymin + 0.5f);
+	dst->ymax = dst->ymin + floorf((src->ymax - src->ymin) + 0.5f);
+}
+
+void BLI_rctf_rcti_copy(rctf *dst, const rcti *src)
+{
+	dst->xmin = src->xmin;
+	dst->xmax = src->xmax;
+	dst->ymin = src->ymin;
+	dst->ymax = src->ymax;
 }
 
 void print_rctf(const char *str, const rctf *rect)
