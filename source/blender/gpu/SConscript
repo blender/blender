@@ -20,4 +20,16 @@ if env['WITH_BF_SMOKE']:
 if env['WITH_BF_DDS']:
 	defs.append('WITH_DDS')
 
+# generated data files
+import os
+sources.extend((
+	os.path.join(env['DATA_SOURCES'], "gpu_shader_material.glsl.c"),
+	os.path.join(env['DATA_SOURCES'], "gpu_shader_vertex.glsl.c"),
+	os.path.join(env['DATA_SOURCES'], "gpu_shader_sep_gaussian_blur_frag.glsl.c"),
+	os.path.join(env['DATA_SOURCES'], "gpu_shader_sep_gaussian_blur_vert.glsl.c"),
+	os.path.join(env['DATA_SOURCES'], "gpu_shader_material.glsl.c"),
+	os.path.join(env['DATA_SOURCES'], "gpu_shader_vsm_store_frag.glsl.c"),
+	os.path.join(env['DATA_SOURCES'], "gpu_shader_vsm_store_vert.glsl.c"),
+	))
+
 env.BlenderLib ( 'bf_gpu', sources, Split(incs), defines = defs, libtype=['core','player'], priority=[160,110] )

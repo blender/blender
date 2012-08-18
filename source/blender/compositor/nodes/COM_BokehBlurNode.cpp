@@ -36,10 +36,13 @@ BokehBlurNode::BokehBlurNode(bNode *editorNode) : Node(editorNode)
 
 void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
+	bNode *b_node = this->getbNode();
+
 	InputSocket *inputSizeSocket = this->getInputSocket(2);
+
 	bool connectedSizeSocket = inputSizeSocket->isConnected();
 
-	if (connectedSizeSocket) {
+	if ((b_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) && connectedSizeSocket) {
 		VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
 
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
@@ -51,9 +54,7 @@ void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 
 		operation->setThreshold(0.0f);
-
-		/* TODO, we need to know the max input pixel of the input, this value is arbitrary! */
-		operation->setMaxBlur(100.0f);
+		operation->setMaxBlur(b_node->custom4);
 		operation->setDoScaleSize(true);
 	}
 	else {
@@ -72,6 +73,8 @@ void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		graph->addOperation(operation);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 
-		operation->setSize(size);
+		if (!connectedSizeSocket) {
+			operation->setSize(size);
+		}
 	}
 }

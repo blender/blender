@@ -28,7 +28,7 @@
 /** \file KX_SCA_EndObjectActuator.h
  *  \ingroup ketsji
  *  \brief Add object to the game world on action of this actuator
- *  \attention Previously existed as: \source\gameengine\GameLogic\SCA_EndObjectActuator.h
+ *  \attention Previously existed as: source/gameengine/GameLogic/SCA_EndObjectActuator.h
  * Please look here for revision history.
  */
 

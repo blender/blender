@@ -44,7 +44,7 @@ struct MovieClipUser;
 struct RenderInfo;
 struct RenderEngine;
 struct bGPdata;
-struct SmoothViewStore;
+struct SmoothView3DStore;
 struct wmTimer;
 
 /* This is needed to not let VC choke on near and far... old
@@ -108,7 +108,7 @@ typedef struct RegionView3D {
 	struct ViewDepths *depths;
 
 	/* animated smooth view */
-	struct SmoothViewStore *sms;
+	struct SmoothView3DStore *sms;
 	struct wmTimer *smooth_timer;
 
 

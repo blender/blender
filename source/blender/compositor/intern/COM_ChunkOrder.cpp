@@ -45,7 +45,7 @@ void ChunkOrder::determineDistance(ChunkOrderHotspot **hotspots, unsigned int nu
 	this->m_distance = distance;
 }
 
-bool operator<(const ChunkOrder& a, const ChunkOrder& b)
+bool operator<(const ChunkOrder &a, const ChunkOrder &b)
 {
 	return a.m_distance < b.m_distance;
 }

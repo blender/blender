@@ -457,7 +457,7 @@ static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
 	Scene *scene = (Scene *) op->customdata;
 
 	/* no running blender, remove handler and pass through */
-	if (0 == WM_jobs_test(CTX_wm_manager(C), scene)) {
+	if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER)) {
 		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 	}
 
@@ -479,7 +479,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SceneRenderLayer *srl = NULL;
 	View3D *v3d = CTX_wm_view3d(C);
 	Render *re;
-	wmJob *steve;
+	wmJob *wm_job;
 	RenderJob *rj;
 	Image *ima;
 	int jobflag;
@@ -489,7 +489,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	const char *name;
 	
 	/* only one render job at a time */
-	if (WM_jobs_test(CTX_wm_manager(C), scene))
+	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER))
 		return OPERATOR_CANCELLED;
 
 	if (!RE_is_rendering_allowed(scene, camera_override, op->reports)) {
@@ -564,10 +564,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (RE_seq_render_active(scene, &scene->r)) name = "Sequence Render";
 	else name = "Render";
 
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, name, jobflag);
-	WM_jobs_customdata(steve, rj, render_freejob);
-	WM_jobs_timer(steve, 0.2, NC_SCENE | ND_RENDER_RESULT, 0);
-	WM_jobs_callbacks(steve, render_startjob, NULL, NULL, render_endjob);
+	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, name, jobflag, WM_JOB_TYPE_RENDER);
+	WM_jobs_customdata_set(wm_job, rj, render_freejob);
+	WM_jobs_timer(wm_job, 0.2, NC_SCENE | ND_RENDER_RESULT, 0);
+	WM_jobs_callbacks(wm_job, render_startjob, NULL, NULL, render_endjob);
 
 	/* get a render result image, and make sure it is empty */
 	ima = BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
@@ -592,7 +592,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	 */
 	op->customdata = scene;
 
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 
 	WM_cursor_wait(0);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);

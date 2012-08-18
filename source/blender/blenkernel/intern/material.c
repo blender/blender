@@ -495,6 +495,9 @@ short *give_totcolp(Object *ob)
 /* same as above but for ID's */
 Material ***give_matarar_id(ID *id)
 {
+	/* ensure we don't try get materials from non-obdata */
+	BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+
 	switch (GS(id->name)) {
 		case ID_ME:
 			return &(((Mesh *)id)->mat);
@@ -511,6 +514,9 @@ Material ***give_matarar_id(ID *id)
 
 short *give_totcolp_id(ID *id)
 {
+	/* ensure we don't try get materials from non-obdata */
+	BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+
 	switch (GS(id->name)) {
 		case ID_ME:
 			return &(((Mesh *)id)->totcol);
@@ -527,6 +533,9 @@ short *give_totcolp_id(ID *id)
 
 static void data_delete_material_index_id(ID *id, short index)
 {
+	/* ensure we don't try get materials from non-obdata */
+	BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+
 	switch (GS(id->name)) {
 		case ID_ME:
 			BKE_mesh_delete_material_index((Mesh *)id, index);
@@ -766,11 +775,12 @@ void assign_material_id(ID *id, Material *ma, short act)
 	test_object_materials(id);
 }
 
-void assign_material(Object *ob, Material *ma, short act)
+void assign_material(Object *ob, Material *ma, short act, int assign_type)
 {
 	Material *mao, **matar, ***matarar;
 	char *matbits;
 	short *totcolp;
+	char bit = 0;
 
 	if (act > MAXMAT) return;
 	if (act < 1) act = 1;
@@ -797,8 +807,29 @@ void assign_material(Object *ob, Material *ma, short act)
 		*matarar = matar;
 		*totcolp = act;
 	}
-	
+
+	// Determine the object/mesh linking
+	if (assign_type == BKE_MAT_ASSIGN_USERPREF && ob->totcol && ob->actcol) {
+		/* copy from previous material */
+		bit = ob->matbits[ob->actcol - 1];
+	}
+	else {
+		switch (assign_type) {
+			case BKE_MAT_ASSIGN_OBDATA:
+				bit = 0;
+				break;
+			case BKE_MAT_ASSIGN_OBJECT:
+				bit = 1;
+				break;
+			case BKE_MAT_ASSIGN_USERPREF:
+			default:
+				bit = (U.flag & USER_MAT_ON_OB) ? 1 : 0;
+				break;
+		}
+	}
+
 	if (act > ob->totcol) {
+		/* Need more space in the material arrays */
 		matar = MEM_callocN(sizeof(void *) * act, "matarray2");
 		matbits = MEM_callocN(sizeof(char) * act, "matbits1");
 		if (ob->totcol) {
@@ -810,17 +841,12 @@ void assign_material(Object *ob, Material *ma, short act)
 		ob->mat = matar;
 		ob->matbits = matbits;
 		ob->totcol = act;
-
-		/* copy object/mesh linking, or assign based on userpref */
-		if (ob->actcol)
-			ob->matbits[act - 1] = ob->matbits[ob->actcol - 1];
-		else
-			ob->matbits[act - 1] = (U.flag & USER_MAT_ON_OB) ? 1 : 0;
 	}
 	
 	/* do it */
 
-	if (ob->matbits[act - 1]) {   /* in object */
+	ob->matbits[act - 1] = bit;
+	if (bit == 1) {   /* in object */
 		mao = ob->mat[act - 1];
 		if (mao) mao->id.us--;
 		ob->mat[act - 1] = ma;
@@ -846,7 +872,7 @@ void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
 
 	/* now we have the right number of slots */
 	for (i = 0; i < totcol; i++)
-		assign_material(ob, (*matar)[i], i + 1);
+		assign_material(ob, (*matar)[i], i + 1, BKE_MAT_ASSIGN_USERPREF);
 
 	if (actcol_orig > ob->totcol)
 		actcol_orig = ob->totcol;
@@ -880,7 +906,7 @@ int object_add_material_slot(Object *ob)
 	if (ob == NULL) return FALSE;
 	if (ob->totcol >= MAXMAT) return FALSE;
 	
-	assign_material(ob, NULL, ob->totcol + 1);
+	assign_material(ob, NULL, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 	ob->actcol = ob->totcol;
 	return TRUE;
 }

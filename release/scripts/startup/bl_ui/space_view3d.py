@@ -1183,6 +1183,7 @@ class VIEW3D_MT_hook(Menu):
         layout.operator_context = 'EXEC_AREA'
         layout.operator("object.hook_add_newob")
         layout.operator("object.hook_add_selob")
+        layout.operator("object.hook_add_selob", text="Hook to Selected Object Bone").use_bone = True
 
         if [mod.type == 'HOOK' for mod in context.active_object.modifiers]:
             layout.separator()
@@ -2568,7 +2569,7 @@ class VIEW3D_PT_background_image(Panel):
                 if bg.source == 'IMAGE':
                     row = box.row()
                     row.template_ID(bg, "image", open="image.open")
-                    if (bg.image):
+                    if bg.image is not None:
                         box.template_image(bg, "image", bg.image_user, compact=True)
                         has_bg = True
 

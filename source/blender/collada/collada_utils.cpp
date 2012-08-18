@@ -230,6 +230,11 @@ void bc_remove_mark(Object *ob)
 	ob->id.flag &= ~LIB_DOIT;
 }
 
+void bc_set_mark(Object *ob)
+{
+	ob->id.flag |= LIB_DOIT;
+}
+
 // Use bubble sort algorithm for sorting the export set
 void bc_bubble_sort_by_Object_name(LinkNode *export_set)
 {

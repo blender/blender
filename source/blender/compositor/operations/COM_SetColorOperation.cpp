@@ -29,10 +29,7 @@ SetColorOperation::SetColorOperation() : NodeOperation()
 
 void SetColorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	output[0] = this->m_channel1;
-	output[1] = this->m_channel2;
-	output[2] = this->m_channel3;
-	output[3] = this->m_channel4;
+	copy_v4_v4(output, this->m_color);
 }
 
 void SetColorOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])

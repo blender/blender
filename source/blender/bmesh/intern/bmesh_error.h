@@ -23,7 +23,7 @@
 #ifndef __BMESH_ERROR_H__
 #define __BMESH_ERROR_H__
 
-/** \file blender/bmesh/bmesh_error.h
+/** \file blender/bmesh/intern/bmesh_error.h
  *  \ingroup bmesh
  */
 

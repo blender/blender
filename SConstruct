@@ -450,9 +450,12 @@ if not os.path.isdir ( B.root_build_dir):
 ###################################
 if not os.path.isdir ( B.root_build_dir + 'data_headers'):
     os.makedirs ( B.root_build_dir + 'data_headers' )
+if not os.path.isdir ( B.root_build_dir + 'data_sources'):
+    os.makedirs ( B.root_build_dir + 'data_sources' )
 # use for includes
 env['DATA_HEADERS'] = os.path.join(os.path.abspath(env['BF_BUILDDIR']), "data_headers")
-def ensure_data(FILE_FROM, FILE_TO, VAR_NAME):
+env['DATA_SOURCES'] = os.path.join(os.path.abspath(env['BF_BUILDDIR']), "data_sources")
+def data_to_c(FILE_FROM, FILE_TO, VAR_NAME):
     if os.sep == "\\":
         FILE_FROM = FILE_FROM.replace("/", "\\")
         FILE_TO   = FILE_TO.replace("/", "\\")
@@ -483,9 +486,69 @@ def ensure_data(FILE_FROM, FILE_TO, VAR_NAME):
     fpin.close()
     fpout.close()
 
-ensure_data("source/blender/compositor/operations/COM_OpenCLKernels.cl",
-            B.root_build_dir + "data_headers/COM_OpenCLKernels.cl.h",
-            "clkernelstoh_COM_OpenCLKernels_cl")
+def data_to_c_simple(FILE_FROM):
+	filename_only = os.path.basename(FILE_FROM)
+	FILE_TO = os.path.join(env['DATA_SOURCES'], filename_only + ".c")
+	VAR_NAME = "datatoc_" + filename_only.replace(".", "_")
+	
+	data_to_c(FILE_FROM, FILE_TO, VAR_NAME)
+	
+
+data_to_c("source/blender/compositor/operations/COM_OpenCLKernels.cl",
+          B.root_build_dir + "data_headers/COM_OpenCLKernels.cl.h",
+          "datatoc_COM_OpenCLKernels_cl")
+
+data_to_c_simple("release/datafiles/startup.blend")
+data_to_c_simple("release/datafiles/preview.blend")
+
+# --- glsl ---
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_material.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vertex.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_sep_gaussian_blur_frag.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_sep_gaussian_blur_vert.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_material.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vsm_store_frag.glsl")
+data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vsm_store_vert.glsl")
+
+# --- blender ---
+data_to_c_simple("release/datafiles/bfont.pfb")
+data_to_c_simple("release/datafiles/bfont.ttf")
+data_to_c_simple("release/datafiles/bmonofont.ttf")
+
+data_to_c_simple("release/datafiles/splash.png")
+data_to_c_simple("release/datafiles/blender_icons.png")
+data_to_c_simple("release/datafiles/prvicons.png")
+
+data_to_c_simple("release/datafiles/brushicons/add.png")
+data_to_c_simple("release/datafiles/brushicons/blob.png")
+data_to_c_simple("release/datafiles/brushicons/blur.png")
+data_to_c_simple("release/datafiles/brushicons/clay.png")
+data_to_c_simple("release/datafiles/brushicons/claystrips.png")
+data_to_c_simple("release/datafiles/brushicons/clone.png")
+data_to_c_simple("release/datafiles/brushicons/crease.png")
+data_to_c_simple("release/datafiles/brushicons/darken.png")
+data_to_c_simple("release/datafiles/brushicons/draw.png")
+data_to_c_simple("release/datafiles/brushicons/fill.png")
+data_to_c_simple("release/datafiles/brushicons/flatten.png")
+data_to_c_simple("release/datafiles/brushicons/grab.png")
+data_to_c_simple("release/datafiles/brushicons/inflate.png")
+data_to_c_simple("release/datafiles/brushicons/layer.png")
+data_to_c_simple("release/datafiles/brushicons/lighten.png")
+data_to_c_simple("release/datafiles/brushicons/mask.png")
+data_to_c_simple("release/datafiles/brushicons/mix.png")
+data_to_c_simple("release/datafiles/brushicons/multiply.png")
+data_to_c_simple("release/datafiles/brushicons/nudge.png")
+data_to_c_simple("release/datafiles/brushicons/pinch.png")
+data_to_c_simple("release/datafiles/brushicons/scrape.png")
+data_to_c_simple("release/datafiles/brushicons/smear.png")
+data_to_c_simple("release/datafiles/brushicons/smooth.png")
+data_to_c_simple("release/datafiles/brushicons/snake_hook.png")
+data_to_c_simple("release/datafiles/brushicons/soften.png")
+data_to_c_simple("release/datafiles/brushicons/subtract.png")
+data_to_c_simple("release/datafiles/brushicons/texdraw.png")
+data_to_c_simple("release/datafiles/brushicons/thumb.png")
+data_to_c_simple("release/datafiles/brushicons/twist.png")
+data_to_c_simple("release/datafiles/brushicons/vertexdraw.png")
 
 ##### END DATAFILES ##########
 

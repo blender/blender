@@ -102,7 +102,7 @@ public:
 	// Properties
 	bool				IsUpper() const;
 	bool				IsLower() const;
-	inline bool			IsEmpty() const								{ return Len==0; }
+	inline bool			IsEmpty() const								{ return Len == 0; }
 	inline int			Length() const								{ return Len; }
 
 	// Data access
@@ -122,8 +122,8 @@ public:
 	// Comparison
 	int					Compare(rcSTR_String rhs) const;
 	int					CompareNoCase(rcSTR_String rhs) const;
-	inline bool			IsEqual(rcSTR_String rhs) const					{ return (Compare(rhs)==0); }
-	inline bool			IsEqualNoCase(rcSTR_String rhs) const			{ return (CompareNoCase(rhs)==0); }
+	inline bool			IsEqual(rcSTR_String rhs) const					{ return (Compare(rhs) == 0); }
+	inline bool			IsEqualNoCase(rcSTR_String rhs) const			{ return (CompareNoCase(rhs) == 0); }
 
 	// Search/replace
 	int					Find(char c, int pos = 0) const;
@@ -178,12 +178,12 @@ public:
 	inline friend bool operator>=(rcSTR_String     lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)>=0); }
 	inline friend bool operator>=(rcSTR_String     lhs, const char      *rhs)	{ return (strcmp(lhs, rhs)>=0); }
 	inline friend bool operator>=(const char      *lhs, rcSTR_String     rhs)	{ return (strcmp(lhs, rhs)>=0); }
-	inline friend bool operator==(rcSTR_String     lhs, rcSTR_String     rhs)	{ return ((lhs.Length() == rhs.Length()) && (memcmp(lhs, rhs, lhs.Length())==0)); }
-	inline friend bool operator==(rcSTR_String     lhs, const char      *rhs)	{ return (memcmp(lhs, rhs, lhs.Length()+1)==0); }
-	inline friend bool operator==(const char      *lhs, rcSTR_String     rhs)	{ return (memcmp(lhs, rhs, rhs.Length()+1)==0); }
+	inline friend bool operator==(rcSTR_String     lhs, rcSTR_String     rhs)	{ return ((lhs.Length() == rhs.Length()) && (memcmp(lhs, rhs, lhs.Length()) == 0)); }
+	inline friend bool operator==(rcSTR_String     lhs, const char      *rhs)	{ return (memcmp(lhs, rhs, lhs.Length() + 1) == 0); }
+	inline friend bool operator==(const char      *lhs, rcSTR_String     rhs)	{ return (memcmp(lhs, rhs, rhs.Length() + 1) == 0); }
 	inline friend bool operator!=(rcSTR_String     lhs, rcSTR_String     rhs)	{ return ((lhs.Length() != rhs.Length()) || (memcmp(lhs, rhs, lhs.Length())!=0)); }
-	inline friend bool operator!=(rcSTR_String     lhs, const char      *rhs)	{ return (memcmp(lhs, rhs, lhs.Length()+1)!=0); }
-	inline friend bool operator!=(const char       *lhs, rcSTR_String    rhs)	{ return (memcmp(lhs, rhs, rhs.Length()+1)!=0); }
+	inline friend bool operator!=(rcSTR_String     lhs, const char      *rhs)	{ return (memcmp(lhs, rhs, lhs.Length() + 1) != 0); }
+	inline friend bool operator!=(const char       *lhs, rcSTR_String    rhs)	{ return (memcmp(lhs, rhs, rhs.Length() + 1) != 0); }
 
 	// serializing
 	//int			Serialize(pCStream stream);

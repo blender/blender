@@ -189,7 +189,7 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
 
 #if 0
 		if (bone->childbase.first == NULL || BLI_countlist(&(bone->childbase)) >= 2) {
-			add_blender_leaf_bone( bone, ob_arm , node );
+			add_blender_leaf_bone( bone, ob_arm, node);
 		}
 		else {
 #endif

@@ -40,7 +40,7 @@ public:
 	
 	void *initializeTileData(rcti *rect);
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
-	void executePixel(float output[4], float x, float y, float dx, float dy);
+	void executePixel(float output[4], float x, float y, float dx, float dy, PixelSampler sampler);
 	const bool isReadBufferOperation() const { return true; }
 	void setOffset(unsigned int offset) { this->m_offset = offset; }
 	unsigned int getOffset() { return this->m_offset; }

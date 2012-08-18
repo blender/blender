@@ -159,6 +159,10 @@ def setup_staticlibs(lenv):
         libincs += Split(lenv['BF_FFTW3_LIBPATH'])
         if lenv['WITH_BF_STATICFFTW3']:
             statlibs += Split(lenv['BF_FFTW3_LIB_STATIC'])
+    if lenv['WITH_BF_ELTOPO']:
+        libincs += Split(lenv['BF_LAPACK_LIBPATH'])
+        if lenv['WITH_BF_STATICLAPACK']:
+		    statlibs += Split(lenv['BF_LAPACK_LIB_STATIC'])        
     if lenv['WITH_BF_FFMPEG'] and lenv['WITH_BF_STATICFFMPEG']:
         statlibs += Split(lenv['BF_FFMPEG_LIB_STATIC'])
     if lenv['WITH_BF_INTERNATIONAL']:
@@ -264,6 +268,8 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_SNDFILE_LIB'])
     if lenv['WITH_BF_FFTW3'] and not lenv['WITH_BF_STATICFFTW3']:
         syslibs += Split(lenv['BF_FFTW3_LIB'])
+    if lenv['WITH_BF_ELTOPO']:
+        syslibs += Split(lenv['BF_LAPACK_LIB'])
     if lenv['WITH_BF_SDL']:
         syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:

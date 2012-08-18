@@ -638,7 +638,7 @@ macro(blender_project_hack_post)
 	# --------------
 	# MINGW HACK END
 	if (_reset_standard_libraries)
-		# Must come after project(...)
+		# Must come after projecINCt(...)
 		#
 		# MINGW workaround for -ladvapi32 being included which surprisingly causes
 		# string formatting of floats, eg: printf("%.*f", 3, value). to crash blender
@@ -727,29 +727,43 @@ macro(set_lib_path
 endmacro()
 
 
-# not highly optimal, may replace with generated C program like makesdna
-function(data_to_c
-         file_from file_to var_name)
+macro(data_to_c
+      file_from file_to
+      list_to_add)
 
-	file(READ ${file_from} file_from_string HEX)
-	string(LENGTH ${file_from_string} _max_index)
-	math(EXPR size_on_disk ${_max_index}/2)
+	list(APPEND ${list_to_add} ${file_to})
 
-	file(REMOVE ${file_to})
+	get_filename_component(_file_to_path ${file_to} PATH)
 
-	file(APPEND ${file_to} "int  ${var_name}_size = ${size_on_disk};\n")
-	file(APPEND ${file_to} "char ${var_name}[] = {")
+	add_custom_command(
+		OUTPUT ${file_to}
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
+		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc ${file_from} ${file_to}
+		DEPENDS ${file_from} datatoc)
+	unset(_file_to_path)
+endmacro()
 
-	set(_index 0)
 
-	while(NOT _index EQUAL _max_index)
-		string(SUBSTRING "${file_from_string}" ${_index} 2 _pair)
-		file(APPEND ${file_to} "0x${_pair},")
-		math(EXPR _index ${_index}+2)
-	endwhile()
-	file(APPEND ${file_to} "};\n")
-endfunction()
+# same as above but generates the var name and output automatic.
+macro(data_to_c_simple
+      file_from
+      list_to_add)
 
-# eg
-# data_to_c("/home/guest/test.txt" "/home/guest/test.txt.h" "this_is_data")
+	# remove ../'s
+	get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${file_from}   REALPATH)
+	get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c REALPATH)
 
+	list(APPEND ${list_to_add} ${_file_to})
+
+	get_filename_component(_file_to_path ${_file_to} PATH)
+
+	add_custom_command(
+		OUTPUT  ${_file_to}
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
+		COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/datatoc ${_file_from} ${_file_to}
+		DEPENDS ${_file_from} datatoc)
+
+	unset(_file_from)
+	unset(_file_to)
+	unset(_file_to_path)
+endmacro()

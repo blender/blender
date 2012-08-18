@@ -102,8 +102,10 @@ typedef struct Strip {
 } Strip;
 
 /* The sequence structure is the basic struct used by any strip. each of the strips uses a different sequence structure.*/
-/* WATCH IT: first part identical to ID (for use in ipo's) */
+/* WATCH IT: first part identical to ID (for use in ipo's)
+ * the commend above is historic, probably we can drop the ID compatibility, but take care making this change */
 
+/* WATCH ITv2, this is really a 'Strip' in the UI!, name is highly confusing */
 typedef struct Sequence {
 	struct Sequence *next, *prev;
 	void *tmp; /* tmp var for copying, and tagging for linked selection */
@@ -127,18 +129,23 @@ typedef struct Sequence {
 	Strip *strip;
 
 	struct Ipo *ipo DNA_DEPRECATED;   /* old animation system, deprecated for 2.5 */
-	struct Scene *scene;
-	struct Object *scene_camera; /* override scene camera */
+
+	/* these ID vars should never be NULL but can be when linked libs fail to load, so check on access */
+	struct Scene     *scene;
+	struct Object    *scene_camera;  /* override scene camera */
+	struct MovieClip *clip;          /* for MOVIECLIP strips */
+	struct Mask      *mask;          /* for MASK strips */
 
 	struct anim *anim;      /* for MOVIE strips */
-	struct MovieClip *clip; /* for MOVIECLIP strips */
-	struct Mask *mask;      /* for MASK strips */
 
 	float effect_fader;
 	float speed_fader;
 
 	/* pointers for effects: */
 	struct Sequence *seq1, *seq2, *seq3;
+
+	/* maks input for effects */
+	struct Sequence *mask_sequence;
 
 	ListBase seqbase;       /* list of strips for metastrips */
 

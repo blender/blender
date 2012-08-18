@@ -92,7 +92,7 @@ void BokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
 		int pixelSize = this->m_size * max_dim / 100.0f;
 		zero_v4(color_accum);
 
-		if (pixelSize<2) {
+		if (pixelSize < 2) {
 			this->m_inputProgram->read(color_accum, x, y, COM_PS_NEAREST);
 			multiplier_accum[0] = 1.0f;
 			multiplier_accum[1] = 1.0f;

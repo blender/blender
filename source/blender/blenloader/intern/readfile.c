@@ -4844,19 +4844,27 @@ static void lib_link_scene(FileData *fd, Main *main)
 				}
 				if (seq->clip) {
 					seq->clip = newlibadr(fd, sce->id.lib, seq->clip);
-					seq->clip->id.us++;
+					if (seq->clip) {
+						seq->clip->id.us++;
+					}
 				}
 				if (seq->mask) {
 					seq->mask = newlibadr(fd, sce->id.lib, seq->mask);
-					seq->mask->id.us++;
+					if (seq->mask) {
+						seq->mask->id.us++;
+					}
 				}
-				if (seq->scene_camera) seq->scene_camera = newlibadr(fd, sce->id.lib, seq->scene_camera);
+				if (seq->scene_camera) {
+					seq->scene_camera = newlibadr(fd, sce->id.lib, seq->scene_camera);
+				}
 				if (seq->sound) {
 					seq->scene_sound = NULL;
-					if (seq->type == SEQ_TYPE_SOUND_HD)
+					if (seq->type == SEQ_TYPE_SOUND_HD) {
 						seq->type = SEQ_TYPE_SOUND_RAM;
-					else
+					}
+					else {
 						seq->sound = newlibadr(fd, sce->id.lib, seq->sound);
+					}
 					if (seq->sound) {
 						seq->sound->id.us++;
 						seq->scene_sound = sound_add_scene_sound_defaults(sce, seq);
@@ -4979,6 +4987,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->seq1= newdataadr(fd, seq->seq1);
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
+			seq->mask_sequence= newdataadr(fd, seq->mask_sequence);
 			/* a patch: after introduction of effects with 3 input strips */
 			if (seq->seq3 == NULL) seq->seq3 = seq->seq2;
 			
@@ -5738,6 +5747,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	ar->v2d.tab_offset = NULL;
 	ar->v2d.tab_num = 0;
 	ar->v2d.tab_cur = 0;
+	ar->v2d.sms = NULL;
 	ar->handlers.first = ar->handlers.last = NULL;
 	ar->uiblocks.first = ar->uiblocks.last = NULL;
 	ar->headerstr = NULL;

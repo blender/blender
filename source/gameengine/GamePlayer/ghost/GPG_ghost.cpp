@@ -475,7 +475,7 @@ int main(int argc, char** argv)
 
 	{
 #if defined(DEBUG)
-		printf("argv[%d] = '%s'   , %i\n", i, argv[i],argc);
+		printf("argv[%d] = '%s', %i\n", i, argv[i],argc);
 #endif
 		if (argv[i][0] == '-')
 		{

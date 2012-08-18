@@ -71,16 +71,17 @@ typedef struct bDeformGroup {
 #define DG_LOCK_WEIGHT 1
 
 /**
- * The following illustrates the orientation of the 
+ * The following illustrates the orientation of the
  * bounding box in local space
- * 
- *  
+ *
+ * <pre>
+ *
  * Z  Y
  * | /
  * |/
  * .-----X
- * 
- * 
+ *
+ *
  *     2----------6
  *    /|         /|
  *   / |        / |
@@ -90,6 +91,7 @@ typedef struct bDeformGroup {
  *  | /        | /
  *  |/         |/
  *  0----------4
+ * </pre>
  */
 typedef struct BoundBox {
 	float vec[8][3];
@@ -342,6 +344,10 @@ typedef struct DupliObject {
 	(ELEM(_type, OB_MESH, OB_LATTICE))
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
 	(ELEM7(_type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE))
+
+/* is this ID type used as object data */
+#define OB_DATA_SUPPORT_ID(_id_type) \
+	(ELEM8(_id_type, ID_ME, ID_CU, ID_MB, ID_LA, ID_SPK, ID_CA, ID_LT, ID_AR))
 
 /* partype: first 4 bits: type */
 #define PARTYPE			15

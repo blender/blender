@@ -50,7 +50,7 @@ typedef struct BVHTreeOverlap {
 } BVHTreeOverlap;
 
 /* flags */
-#define BVH_ONQUAD (1<<0)
+#define BVH_ONQUAD (1 << 0)
 
 typedef struct BVHTreeNearest {
 	int index;          /* the index of the nearest found (untouched if none is found within a dist radius from the given coordinates) */

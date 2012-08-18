@@ -326,7 +326,7 @@ static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 						}
 					}
 
-					WM_cursor_grab(CTX_wm_window(C), wrap, FALSE, bounds);
+					WM_cursor_grab_enable(CTX_wm_window(C), wrap, FALSE, bounds);
 				}
 			}
 		}
@@ -965,7 +965,7 @@ int WM_operator_check_ui_enabled(const bContext *C, const char *idname)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	Scene *scene = CTX_data_scene(C);
 
-	return !(ED_undo_valid(C, idname) == 0 || WM_jobs_test(wm, scene));
+	return !(ED_undo_valid(C, idname) == 0 || WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY));
 }
 
 wmOperator *WM_operator_last_redo(const bContext *C)
@@ -1575,7 +1575,7 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 	ot->description = "Make the current file the default .blend file";
 		
 	ot->invoke = WM_operator_confirm;
-	ot->exec = WM_write_homefile;
+	ot->exec = WM_homefile_write_exec;
 	ot->poll = WM_operator_winactive;
 }
 
@@ -1586,7 +1586,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 	ot->description = "Open the default file (doesn't save the current file)";
 	
 	ot->invoke = WM_operator_confirm;
-	ot->exec = WM_read_homefile_exec;
+	ot->exec = WM_homefile_read_exec;
 	/* ommit poll to run in background mode */
 }
 
@@ -1597,7 +1597,7 @@ static void WM_OT_read_factory_settings(wmOperatorType *ot)
 	ot->description = "Load default file and user preferences";
 	
 	ot->invoke = WM_operator_confirm;
-	ot->exec = WM_read_homefile_exec;
+	ot->exec = WM_homefile_read_exec;
 	/* ommit poll to run in background mode */
 }
 
@@ -1664,11 +1664,11 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 	else
 		G.f &= ~G_SCRIPT_AUTOEXEC;
 	
-	/* XXX wm in context is not set correctly after WM_read_file -> crash */
+	/* XXX wm in context is not set correctly after WM_file_read -> crash */
 	/* do it before for now, but is this correct with multiple windows? */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-	WM_read_file(C, path, op->reports);
+	WM_file_read(C, path, op->reports);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1866,6 +1866,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_link_append(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	ot->name = "Link/Append from Library";
 	ot->idname = "WM_OT_link_append";
 	ot->description = "Link or Append from a Library .blend file";
@@ -1881,11 +1883,17 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	        WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILENAME | WM_FILESEL_RELPATH | WM_FILESEL_FILES,
 	        FILE_DEFAULTDISPLAY);
 	
-	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending");
-	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
-	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer");
-	RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup");
-}	
+	/* better not save _any_ settings for this operator */
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
 
 /* *************** recover last session **************** */
 
@@ -1895,13 +1903,13 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 
 	G.fileflags |= G_FILE_RECOVER;
 
-	/* XXX wm in context is not set correctly after WM_read_file -> crash */
+	/* XXX wm in context is not set correctly after WM_file_read -> crash */
 	/* do it before for now, but is this correct with multiple windows? */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	/* load file */
 	BLI_make_file_string("/", filename, BLI_temporary_dir(), "quit.blend");
-	WM_read_file(C, filename, op->reports);
+	WM_file_read(C, filename, op->reports);
 
 	G.fileflags &= ~G_FILE_RECOVER;
 	return OPERATOR_FINISHED;
@@ -1927,12 +1935,12 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 
 	G.fileflags |= G_FILE_RECOVER;
 
-	/* XXX wm in context is not set correctly after WM_read_file -> crash */
+	/* XXX wm in context is not set correctly after WM_file_read -> crash */
 	/* do it before for now, but is this correct with multiple windows? */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	/* load file */
-	WM_read_file(C, path, op->reports);
+	WM_file_read(C, path, op->reports);
 
 	G.fileflags &= ~G_FILE_RECOVER;
 
@@ -2047,7 +2055,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	}
 #endif
 
-	if (WM_write_file(C, path, fileflags, op->reports, copy) != 0)
+	if (WM_file_write(C, path, fileflags, op->reports, copy) != 0)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_WM | ND_FILESAVE, NULL);

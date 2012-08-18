@@ -127,7 +127,7 @@ typedef struct bNodeSocket {
 /* sock->flag, first bit is select */
 	/* hidden is user defined, to hide unused */
 #define SOCK_HIDDEN				2
-	/* only used now for groups... */
+	/* for quick check if socket is linked */
 #define SOCK_IN_USE				4	/* XXX deprecated */
 	/* unavailable is for dynamic sockets */
 #define SOCK_UNAVAIL			8
@@ -168,7 +168,7 @@ typedef struct bNode {
 	void *storage;			/* custom data, must be struct, for storage in file */
 	struct bNode *original;	/* the original node in the tree (for localized tree) */
 	
-	float locx, locy;		/* root offset for drawing */
+	float locx, locy;		/* root offset for drawing (parent space) */
 	float width, height;	/* node custom width and height */
 	float miniwidth;		/* node width if hidden */
 	float offsetx, offsety;	/* additional offset from loc */
@@ -181,7 +181,7 @@ typedef struct bNode {
 
 	short need_exec, exec;	/* need_exec is set as UI execution event, exec is flag during exec */
 	void *threaddata;		/* optional extra storage for use in thread (read only then!) */
-	rctf totr;				/* entire boundbox */
+	rctf totr;				/* entire boundbox (worldspace) */
 	rctf butr;				/* optional buttons area */
 	rctf prvr;				/* optional preview area */
 	bNodePreview *preview;	/* optional preview image */
@@ -389,7 +389,7 @@ enum {
 };
 
 enum {
-	CMP_NODEFLAG_BLUR_REFERENCE = (1 << 0),
+	CMP_NODEFLAG_BLUR_VARIABLE_SIZE = (1 << 0)
 };
 
 typedef struct NodeFrame {
@@ -399,8 +399,11 @@ typedef struct NodeFrame {
 
 /* this one has been replaced with ImageUser, keep it for do_versions() */
 typedef struct NodeImageAnim {
-	int frames, sfra, nr;
-	char cyclic, movie;
+	int frames   DNA_DEPRECATED;
+	int sfra     DNA_DEPRECATED;
+	int nr       DNA_DEPRECATED;
+	char cyclic  DNA_DEPRECATED;
+	char movie   DNA_DEPRECATED;
 	short pad;
 } NodeImageAnim;
 

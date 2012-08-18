@@ -322,9 +322,9 @@ class DATA_PT_area(DataButtonsPanel, Panel):
         col.row().prop(lamp, "shape", expand=True)
         sub = col.row(align=True)
 
-        if (lamp.shape == 'SQUARE'):
+        if lamp.shape == 'SQUARE':
             sub.prop(lamp, "size")
-        elif (lamp.shape == 'RECTANGLE'):
+        elif lamp.shape == 'RECTANGLE':
             sub.prop(lamp, "size", text="Size X")
             sub.prop(lamp, "size_y", text="Size Y")
 

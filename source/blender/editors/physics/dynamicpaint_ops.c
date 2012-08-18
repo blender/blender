@@ -299,7 +299,7 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 		if (blender_test_break()) return 0;
 
 		/* Update progress bar cursor */
-		WM_timecursor(win, (int)progress);
+		WM_cursor_time(win, (int)progress);
 
 		/* calculate a frame */
 		scene->r.cfra = (int)frame;

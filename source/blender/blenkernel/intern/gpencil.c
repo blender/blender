@@ -97,7 +97,7 @@ void free_gpencil_layers(ListBase *list)
 	/* error checking */
 	if (list == NULL) return;
 	
-	/* delete layers*/
+	/* delete layers */
 	for (gpl = list->first; gpl; gpl = gpln) {
 		gpln = gpl->next;
 		

@@ -39,22 +39,22 @@
 #include "COLLADAFWPolygons.h"
 
 extern "C" {
-#include "BKE_blender.h"
-#include "BKE_customdata.h"
-#include "BKE_displist.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_mesh.h"
-#include "BKE_object.h"
+	#include "BKE_blender.h"
+	#include "BKE_customdata.h"
+	#include "BKE_displist.h"
+	#include "BKE_global.h"
+	#include "BKE_library.h"
+	#include "BKE_main.h"
+	#include "BKE_material.h"
+	#include "BKE_mesh.h"
+	#include "BKE_object.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "BLI_string.h"
-#include "BLI_edgehash.h"
+	#include "BLI_listbase.h"
+	#include "BLI_math.h"
+	#include "BLI_string.h"
+	#include "BLI_edgehash.h"
 
-#include "MEM_guardedalloc.h"
+	#include "MEM_guardedalloc.h"
 }
 
 #include "ArmatureImporter.h"
@@ -467,12 +467,13 @@ bool MeshImporter::primitive_has_faces(COLLADAFW::MeshPrimitive *mp) {
 }
 
 // =================================================================
-// Return the number of faces by summing up 
+// Return the number of faces by summing up
 // the facecounts of the parts.
 // hint: This is done because mesh->getFacesCount() does
 // count loose edges as extra faces, which is not what we want here.
 // =================================================================
-void MeshImporter::allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) {
+void MeshImporter::allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
+{
 	COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
 	int total_facecount = 0;
 
@@ -987,6 +988,139 @@ MTex *MeshImporter::assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBindi
 	return color_texture;
 }
 
+/**
+ * this function checks if both objects have the same
+ * materials assigned to Object (in the same order)
+ * returns true if condition matches, otherwise false;
+ **/
+static bool bc_has_same_material_configuration(Object *ob1, Object *ob2)
+{
+	if (ob1->totcol != ob2->totcol) return false; // not same number of materials
+	if (ob1->totcol == 0) return false; // no material at all
+	
+	for(int index=0; index < ob1->totcol; index++) {
+		if (ob1->matbits[index] != ob2->matbits[index]) return false; // shouldn't happen
+		if (ob1->matbits[index] == 0) return false; // shouldn't happen
+		if (ob1->mat[index] != ob2->mat[index]) return false; // different material assignment
+	}
+	return true;
+}
+
+
+/**
+ *
+ * Caution here: This code assumes tha all materials are assigned to Object
+ * and no material is assigned to Data.
+ * That is true right after the objects have been imported.
+ *
+ **/
+static void bc_copy_materials_to_data(Object *ob, Mesh *me)
+{
+	for (int index = 0; index < ob->totcol; index++) {
+		ob->matbits[index] = 0;
+		me->mat[index] = ob->mat[index];
+	}
+}
+
+/**
+ *
+ * Remove all references to materials from the object
+ *
+ **/
+static void bc_remove_materials_from_object(Object *ob, Mesh *me)
+{
+	for (int index = 0; index < ob->totcol; index++) {
+		ob->matbits[index] = 0;
+		ob->mat[index] = NULL;
+	}
+}
+
+/**
+ * Returns the list of Users of the given Mesh object.
+ * Note: This function uses the object user flag to control
+ * which objects have already been processed.
+ **/
+std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
+{
+	std::vector<Object *> mesh_users;
+	for (std::vector<Object *>::iterator it = imported_objects.begin();
+	     it != imported_objects.end(); ++it)
+	{
+		Object *ob = (*it);
+		if (bc_is_marked(ob)) {
+			bc_remove_mark(ob);
+			Mesh *me = (Mesh *) ob->data;
+			if (me == reference_mesh)
+				mesh_users.push_back(ob);
+		}
+	}
+	return mesh_users;
+}
+
+/**
+ *
+ * During import all materials have been assigned to Object.
+ * Now we iterate over the imported objects and optimize
+ * the assignements as follows:
+ *
+ * for each imported geometry:
+ *     if number of users is 1:
+ *         get the user (object)
+ *         move the materials from Object to Data
+ *     else:
+ *         determine which materials are assigned to the first user
+ *         check if all other users have the same materials in the same order
+ *         if the check is positive:
+ *             Add the materials of the first user to the geometry
+ *             adjust all other users accordingly.
+ *
+ **/
+void MeshImporter::optimize_material_assignements()
+{
+	for (std::vector<Object *>::iterator it = imported_objects.begin();
+	     it != imported_objects.end(); ++it)
+	{
+		Object *ob = (*it);
+		Mesh *me = (Mesh *) ob->data;
+		if (me->id.us==1) {
+			bc_copy_materials_to_data(ob,me);
+			bc_remove_materials_from_object(ob,me);
+			bc_remove_mark(ob);
+		}
+		else if (me->id.us > 1)
+		{
+			bool can_move = true;
+			std::vector<Object *> mesh_users = get_all_users_of(me);
+			if (mesh_users.size() > 1)
+			{
+				Object *ref_ob = mesh_users[0];
+				for (int index = 1; index < mesh_users.size(); index++) {
+					if (!bc_has_same_material_configuration(ref_ob, mesh_users[index])) {
+						can_move = false;
+						break;
+					}
+				}
+				if (can_move) {
+					bc_copy_materials_to_data(ref_ob,me);
+					for (int index = 0; index < mesh_users.size(); index++) {
+						Object *object = mesh_users[index];
+						bc_remove_materials_from_object(object,me);
+						bc_remove_mark(object);
+					}
+				}
+			}
+		}
+	}
+}
+
+/**
+ * We do not know in advance which objects will share geometries.
+ * And we do not know either if the objects which share geometries
+ * come along with different materials. So we first create the objects
+ * and assign the materials to Object, then in a later cleanup we decide
+ * which materials shall be moved to the created geometries. Also see
+ * optimize_material_assignements() above.
+ */
 MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
                                               std::map<COLLADAFW::UniqueId, Material *>& uid_material_map,
                                               Object *ob, const COLLADAFW::UniqueId *geom_uid,
@@ -1002,21 +1136,16 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 		fprintf(stderr, "Cannot find material by UID.\n");
 		return NULL;
 	}
-	
-	// different nodes can point to same geometry, but still also specify the same materials
-	// again. Make sure we don't overwrite them on the next occurrences, so keep list of
-	// what we already have handled.
-	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId>::iterator it;
-	it = materials_mapped_to_geom.find(*geom_uid);
-	while (it != materials_mapped_to_geom.end()) {
-		if (it->second == ma_uid && it->first == *geom_uid) return NULL;  // do nothing if already found
-		it++;
-	}
+
 	// first time we get geom_uid, ma_uid pair. Save for later check.
 	materials_mapped_to_geom.insert(std::pair<COLLADAFW::UniqueId, COLLADAFW::UniqueId>(*geom_uid, ma_uid));
 	
 	Material *ma = uid_material_map[ma_uid];
-	assign_material(ob, ma, ob->totcol + 1);
+
+	// Attention! This temporaly assigns material to object on purpose!
+	// See note above.
+	ob->actcol=0;
+	assign_material(ob, ma, mat_index + 1, BKE_MAT_ASSIGN_OBJECT); 
 	
 	COLLADAFW::TextureCoordinateBindingArray& tex_array = 
 	    cmaterial.getTextureCoordinateBindingArray();
@@ -1100,9 +1229,12 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	
 	// add object
 	Object *ob = bc_add_object(scene, OB_MESH, name);
+	bc_set_mark(ob); // used later for material assignement optimization
+
 
 	// store object pointer for ArmatureImporter
 	uid_object_map[*geom_uid] = ob;
+	imported_objects.push_back(ob);
 	
 	// replace ob->data freeing the old one
 	Mesh *old_mesh = (Mesh *)ob->data;

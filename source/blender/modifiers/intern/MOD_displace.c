@@ -140,8 +140,7 @@ static void foreachTexLink(ModifierData *md, Object *ob,
 static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
-
-	return (!dmd->texture || dmd->strength == 0.0f);
+	return ((!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) || dmd->strength == 0.0f);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
@@ -176,32 +175,43 @@ static void displaceModifier_do(
 	int defgrp_index;
 	float (*tex_co)[3];
 	float weight = 1.0f; /* init value unused but some compilers may complain */
+	const float delta_fixed = 1.0f - dmd->midlevel;  /* when no texture is used, we fallback to white */
 
-	if (!dmd->texture) return;
+	if (!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) return;
 	if (dmd->strength == 0.0f) return;
 
 	mvert = CDDM_get_verts(dm);
 	modifier_get_vgroup(ob, dm, dmd->defgrp_name, &dvert, &defgrp_index);
 
-	tex_co = MEM_callocN(sizeof(*tex_co) * numVerts,
-	                     "displaceModifier_do tex_co");
-	get_texture_coords((MappingInfoModifierData *)dmd, ob, dm, vertexCos, tex_co, numVerts);
+	if (dmd->texture) {
+		tex_co = MEM_callocN(sizeof(*tex_co) * numVerts,
+							 "displaceModifier_do tex_co");
+		get_texture_coords((MappingInfoModifierData *)dmd, ob, dm, vertexCos, tex_co, numVerts);
 
-	modifier_init_texture(dmd->modifier.scene, dmd->texture);
+		modifier_init_texture(dmd->modifier.scene, dmd->texture);
+	}
+	else {
+		tex_co = NULL;
+	}
 
 	for (i = 0; i < numVerts; i++) {
 		TexResult texres;
-		float delta = 0, strength = dmd->strength;
+		float strength = dmd->strength;
+		float delta;
 
 		if (dvert) {
 			weight = defvert_find_weight(dvert + i, defgrp_index);
 			if (weight == 0.0f) continue;
 		}
 
-		texres.nor = NULL;
-		get_texture_value(dmd->texture, tex_co[i], &texres);
-
-		delta = texres.tin - dmd->midlevel;
+		if (dmd->texture) {
+			texres.nor = NULL;
+			get_texture_value(dmd->texture, tex_co[i], &texres);
+			delta = texres.tin - dmd->midlevel;
+		}
+		else {
+			delta = delta_fixed;  /* (1.0f - dmd->midlevel) */  /* never changes */
+		}
 
 		if (dvert) strength *= weight;
 
@@ -231,7 +241,9 @@ static void displaceModifier_do(
 		}
 	}
 
-	MEM_freeN(tex_co);
+	if (tex_co) {
+		MEM_freeN(tex_co);
+	}
 }
 
 static void deformVerts(ModifierData *md, Object *ob,

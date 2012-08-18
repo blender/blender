@@ -31,13 +31,13 @@
 
 #include "COLLADASWInstanceMaterial.h"
 
-#include "BKE_customdata.h"
-#include "BKE_material.h"
-
-#include "DNA_mesh_types.h"
+extern "C" {
+	#include "BKE_customdata.h"
+	#include "BKE_material.h"
+	#include "DNA_mesh_types.h"
+}
 
 #include "InstanceWriter.h"
-
 #include "collada_internal.h"
 #include "collada_utils.h"
 
@@ -63,7 +63,7 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_materia
 			int active_uv_index = CustomData_get_active_layer_index(&me->fdata, CD_MTFACE) -1;
 			for (int b = 0; b < totlayer; b++) {
 				if (!active_uv_only || b == active_uv_index) {
-					char *name = bc_CustomData_get_layer_name(&me->fdata, CD_MTFACE, map_index);
+					char *name = bc_CustomData_get_layer_name(&me->fdata, CD_MTFACE, b);
 					im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", map_index++));
 				}
 			}

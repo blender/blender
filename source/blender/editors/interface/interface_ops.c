@@ -69,6 +69,8 @@
 #include "BKE_main.h"
 #include "BLI_ghash.h"
 
+#include "ED_image.h"  /* for HDR color sampling */
+#include "ED_node.h"   /* for HDR color sampling */
 
 /* ********************************************************** */
 
@@ -126,9 +128,47 @@ static int eyedropper_cancel(bContext *C, wmOperator *op)
 
 /* *** eyedropper_color_ helper functions *** */
 
-/* simply get the color from the screen */
-static void eyedropper_color_sample_fl(Eyedropper *UNUSED(eye), int mx, int my, float r_col[3])
+/**
+ * \brief get the color from the screen.
+ *
+ * Special check for image or nodes where we MAY have HDR pixels which don't display.
+ */
+static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int mx, int my, float r_col[3])
 {
+
+	/* we could use some clever */
+	wmWindow *win = CTX_wm_window(C);
+	ScrArea *sa;
+	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+		if (BLI_in_rcti(&sa->totrct, mx, my)) {
+			if (sa->spacetype == SPACE_IMAGE) {
+				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+				if (BLI_in_rcti(&ar->winrct, mx, my)) {
+					SpaceImage *sima = sa->spacedata.first;
+					int mval[2] = {mx - ar->winrct.xmin,
+					               my - ar->winrct.ymin};
+
+					if (ED_space_image_color_sample(sima, ar, mval, r_col)) {
+						return;
+					}
+				}
+			}
+			else if (sa->spacetype == SPACE_NODE) {
+				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+				if (BLI_in_rcti(&ar->winrct, mx, my)) {
+					SpaceNode *snode = sa->spacedata.first;
+					int mval[2] = {mx - ar->winrct.xmin,
+					               my - ar->winrct.ymin};
+
+					if (ED_space_node_color_sample(snode, ar, mval, r_col)) {
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	/* fallback to simple opengl picker */
 	glReadBuffer(GL_FRONT);
 	glReadPixels(mx, my, 1, 1, GL_RGB, GL_FLOAT, r_col);
 	glReadBuffer(GL_BACK);
@@ -167,14 +207,14 @@ static void eyedropper_color_set_accum(bContext *C, Eyedropper *eye)
 static void eyedropper_color_sample(bContext *C, Eyedropper *eye, int mx, int my)
 {
 	float col[3];
-	eyedropper_color_sample_fl(eye, mx, my, col);
+	eyedropper_color_sample_fl(C, eye, mx, my, col);
 	eyedropper_color_set(C, eye, col);
 }
 
-static void eyedropper_color_sample_accum(Eyedropper *eye, int mx, int my)
+static void eyedropper_color_sample_accum(bContext *C, Eyedropper *eye, int mx, int my)
 {
 	float col[3];
-	eyedropper_color_sample_fl(eye, mx, my, col);
+	eyedropper_color_sample_fl(C, eye, mx, my, col);
 	/* delay linear conversion */
 	add_v3_v3(eye->accum_col, col);
 	eye->accum_tot++;
@@ -203,13 +243,13 @@ static int eyedropper_modal(bContext *C, wmOperator *op, wmEvent *event)
 			else if (event->val == KM_PRESS) {
 				/* enable accum and make first sample */
 				eye->accum_start = TRUE;
-				eyedropper_color_sample_accum(eye, event->x, event->y);
+				eyedropper_color_sample_accum(C, eye, event->x, event->y);
 			}
 			break;
 		case MOUSEMOVE:
 			if (eye->accum_start) {
 				/* button is pressed so keep sampling */
-				eyedropper_color_sample_accum(eye, event->x, event->y);
+				eyedropper_color_sample_accum(C, eye, event->x, event->y);
 				eyedropper_color_set_accum(C, eye);
 			}
 			break;
@@ -217,7 +257,7 @@ static int eyedropper_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if (event->val == KM_RELEASE) {
 				eye->accum_tot = 0;
 				zero_v3(eye->accum_col);
-				eyedropper_color_sample_accum(eye, event->x, event->y);
+				eyedropper_color_sample_accum(C, eye, event->x, event->y);
 				eyedropper_color_set_accum(C, eye);
 			}
 			break;

@@ -1314,8 +1314,8 @@ validate()
  */
 
 GHOST_WindowX11::
-~GHOST_WindowX11(
-    ){
+~GHOST_WindowX11()
+{
 	static Atom Primary_atom, Clipboard_atom;
 	Window p_owner, c_owner;
 	/*Change the owner of the Atoms to None if we are the owner*/

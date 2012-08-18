@@ -968,9 +968,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 		const size_t entry_size = (movie->header->Streams + 1) * sizeof(AviIndexEntry);
 
 		if (movie->entries != NULL) {
-			temp = (AviIndexEntry *)MEM_reallocN(movie->entries, (frame_num + 1) * entry_size);
-			/* clear new bytes */
-			memset(&temp[movie->index_entries + 1], 0, (frame_num - movie->index_entries) * entry_size);
+			temp = (AviIndexEntry *)MEM_recallocN(movie->entries, (frame_num + 1) * entry_size);
 		}
 		else {
 			temp = (AviIndexEntry *) MEM_callocN((frame_num + 1) * entry_size, "newidxentry");

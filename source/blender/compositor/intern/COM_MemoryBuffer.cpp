@@ -75,7 +75,7 @@ float *MemoryBuffer::convertToValueBuffer()
 	const unsigned int size = this->determineBufferSize();
 	unsigned int i;
 
-	float *result = new float[size];
+	float *result = (float *)MEM_mallocN(sizeof(float) * size, __func__);
 
 	const float *fp_src = this->m_buffer;
 	float       *fp_dst = result;
@@ -259,7 +259,10 @@ float clipuv(float x, float limit)
 	return x;
 }
 
-void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float dy)
+/**
+ * \note \a sampler at the moment is either 'COM_PS_NEAREST' or not, other values won't matter.
+ */
+void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float dy, PixelSampler sampler)
 {
 	const int width = this->getWidth(), height = this->getHeight();
 	
@@ -280,7 +283,14 @@ void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float 
 	// Use a different radius based on interpolation switch, just enough to anti-alias when interpolation is off,
 	// and slightly larger to make result a bit smoother than bilinear interpolation when interpolation is on
 	// (minimum values: const float rmin = intpol ? 1.f : 0.5f;)
-	const float rmin = 1.5625f / ff2;
+
+	/* note: 0.765625f is too sharp, 1.0 will not blur with an exact pixel sample
+	 * useful to avoid blurring when there is no distortion */
+#if 0
+	const float rmin = ((sampler != COM_PS_NEAREST) ? 1.5625f : 0.765625f) / ff2;
+#else
+	const float rmin = ((sampler != COM_PS_NEAREST) ? 1.5625f : 1.0f     ) / ff2;
+#endif
 	imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
 	if ((b2 = b * b) < rmin) {
 		if ((a2 = a * a) < rmin) {

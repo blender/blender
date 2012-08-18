@@ -1202,7 +1202,7 @@ void wm_get_cursor_position(wmWindow *win, int *x, int *y)
 
 
 /* called whem no ghost system was initialized */
-void WM_setprefsize(int stax, int stay, int sizx, int sizy)
+void WM_init_state_size_set(int stax, int stay, int sizx, int sizy)
 {
 	wm_init_state.start_x = stax; /* left hand pos */
 	wm_init_state.start_y = stay; /* bottom pos */
@@ -1212,13 +1212,13 @@ void WM_setprefsize(int stax, int stay, int sizx, int sizy)
 }
 
 /* for borderless and border windows set from command-line */
-void WM_setinitialstate_fullscreen(void)
+void WM_init_state_fullscreen_set(void)
 {
 	wm_init_state.windowstate = GHOST_kWindowStateFullScreen;
 	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
 }
 
-void WM_setinitialstate_normal(void)
+void WM_init_state_normal_set(void)
 {
 	wm_init_state.windowstate = GHOST_kWindowStateNormal;
 	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;

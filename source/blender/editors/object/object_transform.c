@@ -477,7 +477,8 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			Mesh *me = ob->data;
 			MVert *mvert;
 
-			multiresModifier_scale_disp(scene, ob);
+			if (apply_scale)
+				multiresModifier_scale_disp(scene, ob);
 			
 			/* adjust data */
 			mvert = me->mvert;
@@ -758,7 +759,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 							float min[3], max[3];
 							/* only bounds support */
 							INIT_MINMAX(min, max);
-							BKE_object_minmax_dupli(scene, ob, min, max);
+							BKE_object_minmax_dupli(scene, ob, min, max, TRUE);
 							mid_v3_v3v3(cent, min, max);
 							invert_m4_m4(ob->imat, ob->obmat);
 							mul_m4_v3(ob->imat, cent);

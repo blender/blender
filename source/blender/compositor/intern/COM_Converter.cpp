@@ -129,16 +129,16 @@ Node *Converter::convert(bNode *b_node, bool fast)
 	}
 	if (fast) {
 		if (b_node->type == CMP_NODE_BLUR ||
-		        b_node->type == CMP_NODE_VECBLUR ||
-		        b_node->type == CMP_NODE_BILATERALBLUR ||
-		        b_node->type == CMP_NODE_DEFOCUS ||
-		        b_node->type == CMP_NODE_BOKEHBLUR ||
-		        b_node->type == CMP_NODE_GLARE ||
-		        b_node->type == CMP_NODE_DBLUR ||
-		        b_node->type == CMP_NODE_MOVIEDISTORTION ||
-		        b_node->type == CMP_NODE_LENSDIST ||
-		        b_node->type == CMP_NODE_DOUBLEEDGEMASK ||
-		        b_node->type == CMP_NODE_DILATEERODE) 
+		    b_node->type == CMP_NODE_VECBLUR ||
+		    b_node->type == CMP_NODE_BILATERALBLUR ||
+		    b_node->type == CMP_NODE_DEFOCUS ||
+		    b_node->type == CMP_NODE_BOKEHBLUR ||
+		    b_node->type == CMP_NODE_GLARE ||
+		    b_node->type == CMP_NODE_DBLUR ||
+		    b_node->type == CMP_NODE_MOVIEDISTORTION ||
+		    b_node->type == CMP_NODE_LENSDIST ||
+		    b_node->type == CMP_NODE_DOUBLEEDGEMASK ||
+		    b_node->type == CMP_NODE_DILATEERODE)
 		{
 			return new MuteNode(b_node);
 		}

@@ -40,6 +40,11 @@
 #include "COLLADAFWTypes.h"
 #include "COLLADAFWUniqueId.h"
 
+#include "ArmatureImporter.h"
+#include "collada_utils.h"
+
+extern "C" {
+#include "BLI_edgehash.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -47,11 +52,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "ArmatureImporter.h"
-#include "collada_utils.h"
-
-extern "C" {
-#include "BLI_edgehash.h"
 }
 
 // only for ArmatureImporter to "see" MeshImporter::get_object_by_geom_uid
@@ -85,6 +85,7 @@ private:
 
 	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
 	std::map<COLLADAFW::UniqueId, Object*> uid_object_map; // geom uid-to-object
+	std::vector<Object*> imported_objects; // list of imported objects
 	// this structure is used to assign material indices to faces
 	// it holds a portion of Mesh faces and corresponds to a DAE primitive list (<triangles>, <polylist>, etc.)
 	struct Primitive {
@@ -140,7 +141,9 @@ private:
 	void get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i, int stride);
 
 	bool flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count);
-	
+
+	std::vector<Object *> get_all_users_of(Mesh *reference_mesh);
+
 public:
 
 	MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce);
@@ -152,7 +155,9 @@ public:
 	MTex *assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBinding &ctexture,
 									 Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
 									 MTex *color_texture);
-	
+
+	void optimize_material_assignements();
+
 	MTFace *assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
 									std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
 									Object *ob, const COLLADAFW::UniqueId *geom_uid, 

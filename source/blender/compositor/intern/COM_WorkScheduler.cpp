@@ -32,6 +32,8 @@
 #include "OCL_opencl.h"
 #include "COM_WriteBufferOperation.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "PIL_time.h"
 #include "BLI_threads.h"
 
@@ -72,8 +74,8 @@ static bool g_openclActive = false;
 #define MAX_HIGHLIGHT 8
 extern "C" {
 int g_highlightIndex;
-void ** g_highlightedNodes;
-void ** g_highlightedNodesRead;
+void **g_highlightedNodes;
+void **g_highlightedNodesRead;
 
 #define HIGHLIGHT(wp) \
 { \
@@ -99,20 +101,20 @@ void ** g_highlightedNodesRead;
 void COM_startReadHighlights()
 {
 	if (g_highlightedNodesRead) {
-		delete [] g_highlightedNodesRead;
+		MEM_freeN(g_highlightedNodesRead);
 	}
 	
 	g_highlightedNodesRead = g_highlightedNodes;
-	g_highlightedNodes = new void *[MAX_HIGHLIGHT];
+	g_highlightedNodes = (void **)MEM_callocN(sizeof(void *) * MAX_HIGHLIGHT, __func__);
 	g_highlightIndex = 0;
-	for (int i = 0 ; i < MAX_HIGHLIGHT; i++) {
-		g_highlightedNodes[i] = 0;
-	}
 }
 
 int COM_isHighlightedbNode(bNode *bnode)
 {
-	if (!g_highlightedNodesRead) return false;
+	if (!g_highlightedNodesRead) {
+		return false;
+	}
+
 	for (int i = 0 ; i < MAX_HIGHLIGHT; i++) {
 		void *p = g_highlightedNodesRead[i];
 		if (!p) return false;
@@ -255,8 +257,12 @@ extern void clContextError(const char *errinfo, const void *private_info, size_t
 
 void WorkScheduler::initialize()
 {
-	g_highlightedNodesRead = 0;
-	g_highlightedNodes = 0;
+	if (g_highlightedNodesRead) MEM_freeN(g_highlightedNodesRead);
+	if (g_highlightedNodes)     MEM_freeN(g_highlightedNodes);
+
+	g_highlightedNodesRead = NULL;
+	g_highlightedNodes = NULL;
+
 	COM_startReadHighlights();
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 	int numberOfCPUThreads = BLI_system_thread_count();
@@ -275,20 +281,20 @@ void WorkScheduler::initialize()
 		error = clGetPlatformIDs(0, 0, &numberOfPlatforms);
 		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 		if (G.f & G_DEBUG) printf("%d number of platforms\n", numberOfPlatforms);
-		cl_platform_id *platforms = new cl_platform_id[numberOfPlatforms];
+		cl_platform_id *platforms = (cl_platform_id *)MEM_mallocN(sizeof(cl_platform_id) * numberOfPlatforms, __func__);
 		error = clGetPlatformIDs(numberOfPlatforms, platforms, 0);
 		unsigned int indexPlatform;
 		for (indexPlatform = 0; indexPlatform < numberOfPlatforms; indexPlatform++) {
 			cl_platform_id platform = platforms[indexPlatform];
 			cl_uint numberOfDevices = 0;
 			clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, 0, &numberOfDevices);
-			if (numberOfDevices>0) {
-				cl_device_id *cldevices = new cl_device_id[numberOfDevices];
+			if (numberOfDevices > 0) {
+				cl_device_id *cldevices = (cl_device_id *)MEM_mallocN(sizeof(cl_device_id) * numberOfDevices, __func__);
 				clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices, 0);
 
 				g_context = clCreateContext(NULL, numberOfDevices, cldevices, clContextError, NULL, &error);
 				if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-				const char *cl_str[2] = {clkernelstoh_COM_OpenCLKernels_cl, NULL};
+				const char *cl_str[2] = {datatoc_COM_OpenCLKernels_cl, NULL};
 				g_program = clCreateProgramWithSource(g_context, 1, cl_str, 0, &error);
 				error = clBuildProgram(g_program, numberOfDevices, cldevices, 0, 0, 0);
 				if (error != CL_SUCCESS) { 
@@ -297,12 +303,12 @@ void WorkScheduler::initialize()
 					printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	
 					error2 = clGetProgramBuildInfo(g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 					if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
-					char *build_log =  new char[ret_val_size + 1];
+					char *build_log = (char *)MEM_mallocN(sizeof(char) * ret_val_size + 1, __func__);
 					error2 = clGetProgramBuildInfo(g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
 					if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
 					build_log[ret_val_size] = '\0';
 					printf("%s", build_log);
-					delete build_log;
+					MEM_freeN(build_log);
 				}
 				else {
 					unsigned int indexDevices;
@@ -316,10 +322,10 @@ void WorkScheduler::initialize()
 						g_gpudevices.push_back(clDevice);
 					}
 				}
-				delete[] cldevices;
+				MEM_freeN(cldevices);
 			}
 		}
-		delete[] platforms;
+		MEM_freeN(platforms);
 	}
 #endif
 #endif
@@ -352,5 +358,13 @@ void WorkScheduler::deinitialize()
 	}
 #endif
 #endif
+
+	if (g_highlightedNodes) {
+		MEM_freeN(g_highlightedNodes);
+	}
+
+	if (g_highlightedNodesRead) {
+		MEM_freeN(g_highlightedNodesRead);
+	}
 }
 

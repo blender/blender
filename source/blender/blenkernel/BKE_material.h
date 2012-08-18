@@ -67,10 +67,16 @@ short *give_totcolp(struct Object *ob);
 struct Material ***give_matarar_id(struct ID *id); /* same but for ID's */
 short *give_totcolp_id(struct ID *id);
 
+enum {
+	BKE_MAT_ASSIGN_USERPREF,
+	BKE_MAT_ASSIGN_OBDATA,
+	BKE_MAT_ASSIGN_OBJECT
+};
+
 struct Material *give_current_material(struct Object *ob, short act);
 struct ID *material_from(struct Object *ob, short act);
 void assign_material_id(struct ID *id, struct Material *ma, short act);
-void assign_material(struct Object *ob, struct Material *ma, short act);
+void assign_material(struct Object *ob, struct Material *ma, short act, int assign_type);
 void assign_matarar(struct Object *ob, struct Material ***matar, short totcol);
 
 short find_material_index(struct Object *ob, struct Material *ma);

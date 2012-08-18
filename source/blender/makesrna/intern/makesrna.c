@@ -2866,7 +2866,7 @@ static const char *cpp_classes = ""
 "\n"
 "class Pointer {\n"
 "public:\n"
-"	Pointer(const PointerRNA& p) : ptr(p) { }\n"
+"	Pointer(const PointerRNA &p) : ptr(p) { }\n"
 "	operator const PointerRNA&() { return ptr; }\n"
 "	bool is_a(StructRNA *type) { return RNA_struct_is_a(ptr.type, type)? true: false; }\n"
 "	operator void*() { return ptr.data; }\n"
@@ -2910,7 +2910,7 @@ static const char *cpp_classes = ""
 "	bool operator!=(const CollectionIterator<T, Tbegin, Tnext, Tend>& other) "
 "{ return iter.valid != other.iter.valid; }\n"
 "\n"
-"	void begin(const Pointer& ptr)\n"
+"	void begin(const Pointer &ptr)\n"
 "	{ if (init) Tend(&iter); Tbegin(&iter, (PointerRNA*)&ptr.ptr); t = T(iter.ptr); init = true; }\n"
 "\n"
 "private:\n"
@@ -2925,7 +2925,7 @@ static const char *cpp_classes = ""
 "template<typename Tp, typename T, TBeginFunc Tbegin, TNextFunc Tnext, TEndFunc Tend>\n"
 "class Collection {\n"
 "public:\n"
-"	Collection(const PointerRNA& p) : ptr(p) {}\n"
+"	Collection(const PointerRNA &p) : ptr(p) {}\n"
 "\n"
 "	void begin(CollectionIterator<T, Tbegin, Tnext, Tend>& iter)\n"
 "	{ iter.begin(ptr); }\n"
@@ -2969,7 +2969,7 @@ static void rna_generate_header_cpp(BlenderRNA *UNUSED(brna), FILE *f)
 
 		fprintf(f, "class %s : public %s {\n", srna->identifier, (srna->base) ? srna->base->identifier : "Pointer");
 		fprintf(f, "public:\n");
-		fprintf(f, "\t%s(const PointerRNA& ptr_arg) :\n\t\t%s(ptr_arg)", srna->identifier,
+		fprintf(f, "\t%s(const PointerRNA &ptr_arg) :\n\t\t%s(ptr_arg)", srna->identifier,
 		        (srna->base) ? srna->base->identifier : "Pointer");
 		for (dp = ds->cont.properties.first; dp; dp = dp->next)
 			if (!(dp->prop->flag & (PROP_IDPROPERTY | PROP_BUILTIN)))

@@ -182,6 +182,7 @@ class NODE_MT_node(Menu):
         layout.operator("node.preview_toggle")
         layout.operator("node.hide_socket_toggle")
         layout.operator("node.options_toggle")
+        layout.operator("node.collapse_hide_unused_toggle")
 
         layout.separator()
 

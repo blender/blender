@@ -200,12 +200,12 @@ public:
 	/**
 	 * @brief get the reference to the compositor context
 	 */
-	CompositorContext& getContext() { return this->m_context; }
+	CompositorContext &getContext() { return this->m_context; }
 
 	/**
 	 * @brief get the reference to the compositor nodes
 	 */
-	vector<Node *>& getNodes() { return this->m_nodes; }
+	vector<Node *> &getNodes() { return this->m_nodes; }
 
 	/**
 	 * @brief get the reference to the compositor connections

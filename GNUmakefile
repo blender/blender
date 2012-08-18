@@ -19,9 +19,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# This Makefile does an out-of-source CMake build in ../build/`OS`_`CPU`
+# This Makefile does an out-of-source CMake build in ../build_`OS`_`CPU`
 # eg:
-#   ../build/Linux_i386
+#   ../build_linux_i386
 # This is for users who like to configure & build blender with a single command.
 
 
@@ -40,7 +40,7 @@ ifndef BUILD_CMAKE_ARGS
 endif
 
 ifndef BUILD_DIR
-	BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
+	BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build_$(OS_NCASE)
 endif
 
 

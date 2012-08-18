@@ -40,18 +40,22 @@
 #include "BLI_math.h"
 
 #include "DNA_mask_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
+#include "BKE_node.h"
+#include "BKE_sequencer.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
 #include "BKE_utildefines.h"
@@ -1561,26 +1565,83 @@ void BKE_mask_free(Mask *mask)
 	BKE_mask_layer_free_list(&mask->masklayers);
 }
 
+
+static void ntree_unlink_mask_cb(void *calldata, struct ID *UNUSED(owner_id), struct bNodeTree *ntree)
+{
+	ID *id = (ID *)calldata;
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->id == id) {
+			node->id = NULL;
+		}
+	}
+}
+
 void BKE_mask_unlink(Main *bmain, Mask *mask)
 {
 	bScreen *scr;
 	ScrArea *area;
 	SpaceLink *sl;
+	Scene *scene;
 
 	for (scr = bmain->screen.first; scr; scr = scr->id.next) {
 		for (area = scr->areabase.first; area; area = area->next) {
 			for (sl = area->spacedata.first; sl; sl = sl->next) {
-				if (sl->spacetype == SPACE_CLIP) {
-					SpaceClip *sc = (SpaceClip *) sl;
+				switch (sl->spacetype) {
+					case SPACE_CLIP:
+					{
+						SpaceClip *sc = (SpaceClip *)sl;
 
-					if (sc->mask_info.mask == mask)
-						sc->mask_info.mask = NULL;
+						if (sc->mask_info.mask == mask) {
+							sc->mask_info.mask = NULL;
+						}
+						break;
+					}
+					case SPACE_IMAGE:
+					{
+						SpaceImage *sima = (SpaceImage *)sl;
+
+						if (sima->mask_info.mask == mask) {
+							sima->mask_info.mask = NULL;
+						}
+						break;
+					}
 				}
 			}
 		}
 	}
 
-	mask->id.us = 0;
+	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+		if (scene->ed) {
+			Sequence *seq;
+
+			SEQ_BEGIN (scene->ed, seq)
+			{
+				if (seq->mask == mask) {
+					seq->mask = NULL;
+				}
+			}
+			SEQ_END
+		}
+
+
+		if (scene->nodetree) {
+			bNode *node;
+			for (node = scene->nodetree->nodes.first; node; node = node->next) {
+				if (node->id == &mask->id) {
+					node->id = NULL;
+				}
+			}
+		}
+	}
+
+	{
+		bNodeTreeType *treetype = ntreeGetType(NTREE_COMPOSIT);
+		treetype->foreach_nodetree(bmain, (void *)mask, &ntree_unlink_mask_cb);
+	}
+
+	BKE_libblock_free(&bmain->mask, mask);
 }
 
 void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float frame_size[2])

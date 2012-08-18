@@ -32,6 +32,7 @@
 
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_image.h"
@@ -42,6 +43,8 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_image.h"
+
+#include "UI_view2d.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -61,7 +64,7 @@
 
 /* **************** View All Operator ************** */
 
-static int space_node_view_flag(SpaceNode *snode, ARegion *ar, const int node_flag)
+static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, const int node_flag)
 {
 	bNode *node;
 	rctf cur_new;
@@ -118,8 +121,7 @@ static int space_node_view_flag(SpaceNode *snode, ARegion *ar, const int node_fl
 			}
 		}
 
-		ar->v2d.tot = ar->v2d.cur = cur_new;
-		UI_view2d_curRect_validate(&ar->v2d);
+		UI_view2d_smooth_view(C, ar, &cur_new);
 	}
 
 	return (tot != 0);
@@ -134,9 +136,7 @@ static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	snode->xof = 0;
 	snode->yof = 0;
 
-	if (space_node_view_flag(snode, ar, 0)) {
-		ED_region_tag_redraw(ar);
-
+	if (space_node_view_flag(C, snode, ar, 0)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -164,9 +164,7 @@ static int node_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	ARegion *ar = CTX_wm_region(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 
-	if (space_node_view_flag(snode, ar, NODE_SELECT)) {
-		ED_region_tag_redraw(ar);
-
+	if (space_node_view_flag(C, snode, ar, NODE_SELECT)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -353,6 +351,59 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	}
 }
 
+/* returns color in SRGB */
+/* matching ED_space_image_color_sample() */
+int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float r_col[3])
+{
+	void *lock;
+	Image *ima;
+	ImBuf *ibuf;
+	float fx, fy, bufx, bufy;
+	int ret = FALSE;
+
+	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+	if (!ibuf) {
+		return FALSE;
+	}
+
+	/* map the mouse coords to the backdrop image space */
+	bufx = ibuf->x * snode->zoom;
+	bufy = ibuf->y * snode->zoom;
+	fx = (bufx > 0.0f ? ((float)mval[0] - 0.5f * ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
+	fy = (bufy > 0.0f ? ((float)mval[1] - 0.5f * ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
+
+	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
+		float *fp;
+		unsigned char *cp;
+		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
+
+		CLAMP(x, 0, ibuf->x - 1);
+		CLAMP(y, 0, ibuf->y - 1);
+
+		if (ibuf->rect_float) {
+			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+			/* IB_PROFILE_NONE is default but infact its linear */
+			if (ELEM(ibuf->profile, IB_PROFILE_LINEAR_RGB, IB_PROFILE_NONE)) {
+				linearrgb_to_srgb_v3_v3(r_col, fp);
+			}
+			else {
+				copy_v3_v3(r_col, fp);
+			}
+			ret = TRUE;
+		}
+		else if (ibuf->rect) {
+			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+			rgb_uchar_to_float(r_col, cp);
+			ret = TRUE;
+		}
+	}
+
+	BKE_image_release_ibuf(ima, lock);
+
+	return ret;
+}
+
 static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
@@ -386,7 +437,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
 		float *fp;
-		char *cp;
+		unsigned char *cp;
 		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
 
 		CLAMP(x, 0, ibuf->x - 1);
@@ -398,7 +449,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		info->channels = ibuf->channels;
 
 		if (ibuf->rect) {
-			cp = (char *)(ibuf->rect + y * ibuf->x + x);
+			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
 
 			info->col[0] = cp[0];
 			info->col[1] = cp[1];

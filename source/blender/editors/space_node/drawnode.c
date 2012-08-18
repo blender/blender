@@ -1520,11 +1520,11 @@ static void node_composit_buts_blur(uiLayout *layout, bContext *UNUSED(C), Point
 	
 	col = uiLayoutColumn(layout, FALSE);
 	filter = RNA_enum_get(ptr, "filter_type");
-	reference = RNA_boolean_get(ptr, "use_reference");
+	reference = RNA_boolean_get(ptr, "use_variable_size");
 
 	uiItemR(col, ptr, "filter_type", 0, "", ICON_NONE);
 	if (filter != R_FILTER_FAST_GAUSS) {
-		uiItemR(col, ptr, "use_reference", 0, NULL, ICON_NONE);
+		uiItemR(col, ptr, "use_variable_size", 0, NULL, ICON_NONE);
 		if (!reference) {
 			uiItemR(col, ptr, "use_bokeh", 0, NULL, ICON_NONE);
 		}
@@ -2351,6 +2351,13 @@ static void node_composit_buts_bokehimage(uiLayout *layout, bContext *UNUSED(C),
 	uiItemR(layout, ptr, "shift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
+static void node_composit_buts_bokehblur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "use_variable_size", 0, NULL, ICON_NONE);
+	// uiItemR(layout, ptr, "f_stop", 0, NULL, ICON_NONE);  // UNUSED
+	uiItemR(layout, ptr, "blur_max", 0, NULL, ICON_NONE);
+}
+
 void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
 {
 //	node_composit_backdrop_canvas(snode, backdrop, node, x, y);
@@ -2763,6 +2770,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_BOKEHIMAGE:
 			ntype->uifunc = node_composit_buts_bokehimage;
+			break;
+		case CMP_NODE_BOKEHBLUR:
+			ntype->uifunc = node_composit_buts_bokehblur;
 			break;
 		case CMP_NODE_VIEWER:
 			ntype->uifunc = NULL;

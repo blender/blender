@@ -1496,7 +1496,7 @@ static void bound_rectf(rctf *box, const float v1[2])
 static void isb_bsp_split_init(ISBBranch *root, MemArena *mem, int level)
 {
 	
-	/* if level > 0 we create new branches and go deeper*/
+	/* if level > 0 we create new branches and go deeper */
 	if (level > 0) {
 		ISBBranch *left, *right;
 		int i;

@@ -32,23 +32,24 @@ extern "C" {
 #include "COM_ExecutionSystem.h"
 #include "COM_WorkScheduler.h"
 #include "OCL_opencl.h"
+#include "COM_MovieDistortionOperation.h"
 
-static ThreadMutex compositorMutex;
+static ThreadMutex s_compositorMutex;
 static char is_compositorMutex_init = FALSE;
 void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 {
 	if (is_compositorMutex_init == FALSE) { /// TODO: move to blender startup phase
-		memset(&compositorMutex, 0, sizeof(compositorMutex));
-		BLI_mutex_init(&compositorMutex);
+		memset(&s_compositorMutex, 0, sizeof(s_compositorMutex));
+		BLI_mutex_init(&s_compositorMutex);
 		OCL_init();
 		WorkScheduler::initialize(); ///TODO: call workscheduler.deinitialize somewhere
 		is_compositorMutex_init = TRUE;
 	}
-	BLI_mutex_lock(&compositorMutex);
+	BLI_mutex_lock(&s_compositorMutex);
 	if (editingtree->test_break(editingtree->tbh)) {
 		// during editing multiple calls to this method can be triggered.
 		// make sure one the last one will be doing the work.
-		BLI_mutex_unlock(&compositorMutex);
+		BLI_mutex_unlock(&s_compositorMutex);
 		return;
 
 	}
@@ -67,7 +68,7 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 		if (editingtree->test_break(editingtree->tbh)) {
 			// during editing multiple calls to this method can be triggered.
 			// make sure one the last one will be doing the work.
-			BLI_mutex_unlock(&compositorMutex);
+			BLI_mutex_unlock(&s_compositorMutex);
 			return;
 		}
 	}
@@ -77,5 +78,18 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 	system->execute();
 	delete system;
 
-	BLI_mutex_unlock(&compositorMutex);
+	BLI_mutex_unlock(&s_compositorMutex);
+}
+
+void COM_deinitialize() 
+{
+	if (is_compositorMutex_init)
+	{
+		BLI_mutex_lock(&s_compositorMutex);
+		deintializeDistortionCache();
+		WorkScheduler::deinitialize();
+		is_compositorMutex_init = FALSE;
+		BLI_mutex_unlock(&s_compositorMutex);
+		BLI_mutex_end(&s_compositorMutex);
+	}
 }

@@ -1425,7 +1425,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 		/* tell WM to refresh, cursor types etc */
 		WM_event_add_mousemove(C);
 				
-		/*send space change notifier*/
+		/* send space change notifier */
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, sa);
 		
 		ED_area_tag_refresh(sa);
@@ -1452,7 +1452,7 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 	}
 	ED_area_tag_redraw(sa);
 
-	/*send space change notifier*/
+	/* send space change notifier */
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, sa);
 }
 
@@ -1503,7 +1503,7 @@ static void spacefunc(struct bContext *C, void *UNUSED(arg1), void *UNUSED(arg2)
 	ED_area_newspace(C, CTX_wm_area(C), CTX_wm_area(C)->butspacetype);
 	ED_area_tag_redraw(CTX_wm_area(C));
 
-	/*send space change notifier*/
+	/* send space change notifier */
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, CTX_wm_area(C));
 }
 

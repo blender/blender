@@ -646,8 +646,7 @@ static int bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i, 
 			continue;
 		}
 
-		if (isect_point_tri_v2(pv1, v1, v2, v3) || isect_point_tri_v2(pv1, v3, v2, v1))
-		{
+		if (isect_point_tri_v2(pv1, v1, v2, v3) || isect_point_tri_v2(pv1, v3, v2, v1)) {
 #if 0
 			if (isect_point_tri_v2(pv1, v1, v2, v3))
 				printf("%d in (%d, %d, %d)\n", v3i, i, v1i, v2i);
@@ -664,7 +663,8 @@ static int bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i, 
  * \brief Find Ear
  *
  * Used by tessellator to find the next triangle to 'clip off' of a polygon while tessellating.
- *
+ * \param f The face to search.
+ * \param verts an array of face vert coords.
  * \param use_beauty Currently only applies to quads, can be extended later on.
  * \param abscoss Must be allocated by caller, and at least f->len length
  *        (allow to avoid allocating a new one for each tri!).

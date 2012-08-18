@@ -107,7 +107,7 @@ void MapUVOperation::executePixel(float output[4], float x, float y, PixelSample
 	u = inputUV[0] * this->m_inputColorProgram->getWidth();
 	v = inputUV[1] * this->m_inputColorProgram->getHeight();
 
-	this->m_inputColorProgram->read(output, u, v, dx, dy);
+	this->m_inputColorProgram->read(output, u, v, dx, dy, COM_PS_NEAREST);
 
 	/* "premul" */
 	if (alpha < 1.0f) {

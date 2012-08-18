@@ -35,16 +35,18 @@
 #include "DocumentExporter.h"
 #include "MaterialExporter.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_world_types.h"
-
-#include "BKE_customdata.h"
-#include "BKE_mesh.h"
-#include "BKE_material.h"
-
 #include "collada_internal.h"
 #include "collada_utils.h"
+
+extern "C" {
+	#include "DNA_mesh_types.h"
+	#include "DNA_texture_types.h"
+	#include "DNA_world_types.h"
+
+	#include "BKE_customdata.h"
+	#include "BKE_mesh.h"
+	#include "BKE_material.h"
+}
 
 // OB_MESH is assumed
 static std::string getActiveUVLayerName(Object *ob)
@@ -311,42 +313,48 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 	std::set<Image *> uv_textures;
 	if (ob->type == OB_MESH && ob->totcol && this->export_settings->include_uv_textures) {
+		bool active_uv_only = this->export_settings->active_uv_only;
 		Mesh *me     = (Mesh *) ob->data;
+		int active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
+
 		BKE_mesh_tessface_ensure(me);
 		for (int i = 0; i < me->pdata.totlayer; i++) {
-			if (me->pdata.layers[i].type == CD_MTEXPOLY) {
-				MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
-				MFace *mface = me->mface;
-				for (int j = 0; j < me->totpoly; j++, mface++, txface++) {
+			if (!active_uv_only || active_uv_layer == i)
+			{
+				if (me->pdata.layers[i].type == CD_MTEXPOLY) {
+					MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
+					MFace *mface = me->mface;
+					for (int j = 0; j < me->totpoly; j++, mface++, txface++) {
 
-					Material *mat = give_current_material(ob, mface->mat_nr + 1);
-					if (mat != ma) 
-						continue;
+						Material *mat = give_current_material(ob, mface->mat_nr + 1);
+						if (mat != ma) 
+							continue;
 
-					Image *ima = txface->tpage;
-					if (ima == NULL)
-						continue;
+						Image *ima = txface->tpage;
+						if (ima == NULL)
+							continue;
 
 
-					bool not_in_list = uv_textures.find(ima)==uv_textures.end();
-					if (not_in_list) {
-						std::string name = id_name(ima);
-						std::string key(name);
-						key = translate_id(key);
+						bool not_in_list = uv_textures.find(ima)==uv_textures.end();
+						if (not_in_list) {
+							std::string name = id_name(ima);
+							std::string key(name);
+							key = translate_id(key);
 
-						// create only one <sampler>/<surface> pair for each unique image
-						if (im_samp_map.find(key) == im_samp_map.end()) {
-							//<newparam> <sampler> <source>
-							COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
-													   key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
-													   key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
-							sampler.setImageId(key);
-							samplers[a] = sampler;
-							samp_surf[b][0] = &samplers[a];
-							im_samp_map[key] = b;
-							b++;
-							a++;
-							uv_textures.insert(ima);
+							// create only one <sampler>/<surface> pair for each unique image
+							if (im_samp_map.find(key) == im_samp_map.end()) {
+								//<newparam> <sampler> <source>
+								COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
+														   key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
+														   key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
+								sampler.setImageId(key);
+								samplers[a] = sampler;
+								samp_surf[b][0] = &samplers[a];
+								im_samp_map[key] = b;
+								b++;
+								a++;
+								uv_textures.insert(ima);
+							}
 						}
 					}
 				}

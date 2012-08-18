@@ -400,18 +400,8 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 		copy_v3_v3(verts->txold, verts->x);
 
 		/* Get the current position. */
-		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && 
-			((!(cloth->verts[i].flags & CLOTH_VERT_FLAG_PINNED)) 
-			&& (cloth->verts[i].goal > ALMOST_ZERO)))
-		{
-			copy_v3_v3(verts->xconst, mvert[i].co);
-			mul_m4_v3(ob->obmat, verts->xconst);
-		}
-		else
-		{
-			/* This fixed animated goals not to jump back to "first frame position" */
-			copy_v3_v3(verts->xconst, verts->txold);
-		}
+		copy_v3_v3(verts->xconst, mvert[i].co);
+		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
 	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights);

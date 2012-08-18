@@ -358,7 +358,7 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 	return retval;
 }
 
-void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
+void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 {
 	int retval;
 
@@ -488,7 +488,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
-int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory)
+int WM_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory)
 {
 	ListBase wmbase;
 	char tstr[FILE_MAX];
@@ -583,10 +583,10 @@ int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory
 	return TRUE;
 }
 
-int WM_read_homefile_exec(bContext *C, wmOperator *op)
+int WM_homefile_read_exec(bContext *C, wmOperator *op)
 {
 	int from_memory = strcmp(op->type->idname, "WM_OT_read_factory_settings") == 0;
-	return WM_read_homefile(C, op->reports, from_memory) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return WM_homefile_read(C, op->reports, from_memory) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void WM_read_history(void)
@@ -761,7 +761,7 @@ int write_crash_blend(void)
 	}
 }
 
-int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *reports, int copy)
+int WM_file_write(bContext *C, const char *target, int fileflags, ReportList *reports, int copy)
 {
 	Library *li;
 	int len;
@@ -860,7 +860,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 }
 
 /* operator entry */
-int WM_write_homefile(bContext *C, wmOperator *op)
+int WM_homefile_write_exec(bContext *C, wmOperator *op)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
@@ -998,6 +998,6 @@ void wm_autosave_read(bContext *C, ReportList *reports)
 	char filename[FILE_MAX];
 
 	wm_autosave_location(filename);
-	WM_read_file(C, filename, reports);
+	WM_file_read(C, filename, reports);
 }
 

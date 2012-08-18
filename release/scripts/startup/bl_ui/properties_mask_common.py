@@ -223,7 +223,7 @@ class MASK_PT_tools():
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
-        props = col.operator("transform.transform", text="Shrink/Fatten")
+        props = col.operator("transform.transform", text="Scale Feather")
         props.mode = 'MASK_SHRINKFATTEN'
 
         col = layout.column(align=True)
@@ -236,6 +236,13 @@ class MASK_PT_tools():
         col.label(text="Parenting:")
         col.operator("mask.parent_set")
         col.operator("mask.parent_clear")
+
+        col = layout.column(align=True)
+        col.label(text="Animation:")
+        col.operator("mask.shape_key_clear")
+        col.operator("mask.shape_key_insert")
+        col.operator("mask.shape_key_feather_reset")
+        col.operator("mask.shape_key_rekey")
 
 
 class MASK_MT_mask(Menu):
@@ -284,7 +291,7 @@ class MASK_MT_transform(Menu):
         layout.operator("transform.translate")
         layout.operator("transform.rotate")
         layout.operator("transform.resize")
-        props = layout.operator("transform.transform", text="Shrink/Fatten")
+        props = layout.operator("transform.transform", text="Scale Feather")
         props.mode = 'MASK_SHRINKFATTEN'
 
 

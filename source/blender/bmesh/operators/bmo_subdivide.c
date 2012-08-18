@@ -269,13 +269,15 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const SubDParams *par
  * match the input geometry.  they're based on the
  * pre-split state of the  face */
 
-/*
+/**
+ * <pre>
  *  v3---------v2
  *  |          |
  *  |          |
  *  |          |
  *  |          |
  *  v4---v0---v1
+ * </pre>
  */
 static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
                              BMVert **verts, const SubDParams *params)
@@ -313,13 +315,15 @@ static SubDPattern quad_1edge = {
 };
 
 
-/*
+/**
+ * <pre>
  *  v6--------v5
  *  |          |
  *  |          |v4s
  *  |          |v3s
  *  |   s  s   |
  *  v7-v0--v1-v2
+ * </pre>
  */
 static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                   const SubDParams *params)
@@ -339,13 +343,15 @@ static SubDPattern quad_2edge_path = {
 	4,
 };
 
-/*
+/**
+ * <pre>
  *  v6--------v5
  *  |          |
  *  |          |v4s
  *  |          |v3s
  *  |   s  s   |
  *  v7-v0--v1-v2
+ * </pre>
  */
 static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                        const SubDParams *params)
@@ -379,14 +385,15 @@ static SubDPattern quad_2edge_innervert = {
 	4,
 };
 
-/*
+/**
+ * <pre>
  *  v6--------v5
  *  |          |
  *  |          |v4s
  *  |          |v3s
  *  |   s  s   |
  *  v7-v0--v1-v2
- *
+ * </pre>
  */
 static void quad_2edge_split_fan(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                  const SubDParams *params)
@@ -409,7 +416,8 @@ static SubDPattern quad_2edge_fan = {
 	4,
 };
 
-/*
+/**
+ * <pre>
  *      s   s
  *  v8--v7--v6-v5
  *  |          |
@@ -418,6 +426,7 @@ static SubDPattern quad_2edge_fan = {
  *  |          v3 s
  *  |   s  s   |
  *  v9-v0--v1-v2
+ * </pre>
  */
 static void quad_3edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                              const SubDParams *params)
@@ -446,7 +455,8 @@ static SubDPattern quad_3edge = {
 	4,
 };
 
-/*
+/**
+ * <pre>
  *            v8--v7-v6--v5
  *            |     s    |
  *            |v9 s     s|v4
@@ -455,6 +465,7 @@ static SubDPattern quad_3edge = {
  *            v11-v0--v1-v2
  *
  *            it goes from bottom up
+ * </pre>
  */
 static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                  const SubDParams *params)
@@ -525,7 +536,8 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 	MEM_freeN(lines);
 }
 
-/*
+/**
+ * <pre>
  *        v3
  *       / \
  *      /   \
@@ -534,6 +546,7 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
  *   /         \
  *  v4--v0--v1--v2
  *      s    s
+ * </pre>
  */
 static void tri_1edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                             const SubDParams *params)
@@ -552,7 +565,9 @@ static SubDPattern tri_1edge = {
 	3,
 };
 
-/*         v5
+/**
+ * <pre>
+ *         v5
  *        / \
  *   s v6/---\ v4 s
  *      / \ / \
@@ -560,6 +575,7 @@ static SubDPattern tri_1edge = {
  *    /  \/  \/ \
  *   v8--v0--v1--v2
  *      s    s
+ * </pre>
  */
 static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                 const SubDParams *params)
@@ -610,7 +626,8 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 		}
 	}
 	
-	/*
+	/**
+	 * <pre>
 	 *         v5
 	 *        / \
 	 *   s v6/---\ v4 s
@@ -619,6 +636,7 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	 *    /  \/  \/ \
 	 *   v8--v0--v1--v2
 	 *      s    s
+	 * </pre>
 	 */
 	for (i = 1; i < numcuts + 1; i++) {
 		for (j = 0; j < i; j++) {

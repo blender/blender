@@ -1997,7 +1997,10 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 
 		/* Get closest edge to that subpixel on UV map	*/
 		{
-			float pixel[2], dist, t_dist;
+			float pixel[2];
+			/* distances only used for comparison */
+			float dist_squared, t_dist_squared;
+
 			int i, uindex[3], edge1_index, edge2_index,
 			    e1_index, e2_index, target_face;
 			float closest_point[2], lambda, dir_vec[2];
@@ -2019,17 +2022,17 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 			/*
 			 *	Find closest edge to that pixel
 			 */
-			/* Dist to first edge	*/
+			/* Dist to first edge */
 			e1_index = cPoint->v1; e2_index = cPoint->v2; edge1_index = uindex[0]; edge2_index = uindex[1];
-			dist = dist_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[edge1_index], tface[cPoint->face_index].uv[edge2_index]);
+			dist_squared = dist_squared_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[edge1_index], tface[cPoint->face_index].uv[edge2_index]);
 
-			/* Dist to second edge	*/
-			t_dist = dist_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[uindex[1]], tface[cPoint->face_index].uv[uindex[2]]);
-			if (t_dist < dist) { e1_index = cPoint->v2; e2_index = cPoint->v3; edge1_index = uindex[1]; edge2_index = uindex[2]; dist = t_dist; }
+			/* Dist to second edge */
+			t_dist_squared = dist_squared_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[uindex[1]], tface[cPoint->face_index].uv[uindex[2]]);
+			if (t_dist_squared < dist_squared) { e1_index = cPoint->v2; e2_index = cPoint->v3; edge1_index = uindex[1]; edge2_index = uindex[2]; dist_squared = t_dist_squared; }
 
-			/* Dist to third edge	*/
-			t_dist = dist_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[uindex[2]], tface[cPoint->face_index].uv[uindex[0]]);
-			if (t_dist < dist) { e1_index = cPoint->v3; e2_index = cPoint->v1;  edge1_index = uindex[2]; edge2_index = uindex[0]; dist = t_dist; }
+			/* Dist to third edge */
+			t_dist_squared = dist_squared_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[uindex[2]], tface[cPoint->face_index].uv[uindex[0]]);
+			if (t_dist_squared < dist_squared) { e1_index = cPoint->v3; e2_index = cPoint->v1;  edge1_index = uindex[2]; edge2_index = uindex[0]; dist_squared = t_dist_squared; }
 
 
 			/*
@@ -4315,7 +4318,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 					dir_factor = dir_dot * MIN2(speed_scale, 1.0f) * w_factor;
 					if (dir_factor > 0.5f) dir_factor = 0.5f;
 
-					/* mix new wetness*/
+					/* mix new wetness */
 					ePoint->wetness += dir_factor;
 					CLAMP(ePoint->wetness, 0.0f, MAX_WETNESS);
 

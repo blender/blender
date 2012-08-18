@@ -717,7 +717,7 @@ void sca_move_sensor(bSensor *sens_to_move, Object *ob, int move_up)
 	if (!sens) return;
 
 	/* move up */
-	if ( val==1 && sens->prev) {
+	if (val == 1 && sens->prev) {
 		for (tmp=sens->prev; tmp; tmp=tmp->prev) {
 			if (tmp->flag & SENS_VISIBLE)
 				break;
@@ -728,7 +728,7 @@ void sca_move_sensor(bSensor *sens_to_move, Object *ob, int move_up)
 		}
 	}
 	/* move down */
-	else if ( val==2 && sens->next) {
+	else if (val == 2 && sens->next) {
 		for (tmp=sens->next; tmp; tmp=tmp->next) {
 			if (tmp->flag & SENS_VISIBLE)
 				break;
@@ -756,7 +756,7 @@ void sca_move_controller(bController *cont_to_move, Object *ob, int move_up)
 	if (!cont) return;
 
 	/* move up */
-	if ( val==1 && cont->prev) {
+	if (val == 1 && cont->prev) {
 		/* locate the controller that has the same state mask but is earlier in the list */
 		tmp = cont->prev;
 		while (tmp) {
@@ -771,7 +771,7 @@ void sca_move_controller(bController *cont_to_move, Object *ob, int move_up)
 	}
 
 	/* move down */
-	else if ( val==2 && cont->next) {
+	else if (val == 2 && cont->next) {
 		tmp = cont->next;
 		while (tmp) {
 			if (tmp->state_mask & cont->state_mask) 
@@ -799,7 +799,7 @@ void sca_move_actuator(bActuator *act_to_move, Object *ob, int move_up)
 	if (!act) return;
 
 	/* move up */
-	if ( val==1 && act->prev) {
+	if (val == 1 && act->prev) {
 		/* locate the first visible actuators before this one */
 		for (tmp = act->prev; tmp; tmp=tmp->prev) {
 			if (tmp->flag & ACT_VISIBLE)
@@ -811,7 +811,7 @@ void sca_move_actuator(bActuator *act_to_move, Object *ob, int move_up)
 		}
 	}
 	/* move down */
-	else if ( val==2 && act->next) {
+	else if (val == 2 && act->next) {
 		/* locate the first visible actuators after this one */
 		for (tmp=act->next; tmp; tmp=tmp->next) {
 			if (tmp->flag & ACT_VISIBLE)

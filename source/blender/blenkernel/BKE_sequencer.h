@@ -110,7 +110,8 @@ enum {
 };
 
 struct SeqEffectHandle {
-	int multithreaded;
+	short multithreaded;
+	short supports_mask;
 
 	/* constructors & destructor */
 	/* init is _only_ called on first creation */
@@ -150,11 +151,12 @@ struct SeqEffectHandle {
 	struct ImBuf * (*execute)(SeqRenderData context, struct Sequence *seq, float cfra, float facf0, float facf1,
 	                          struct ImBuf *ibuf1, struct ImBuf *ibuf2, struct ImBuf *ibuf3);
 
-	struct ImBuf * (*init_execution)(SeqRenderData context, struct ImBuf *ibuf1, struct ImBuf *ibuf2, struct ImBuf *ibuf3);
+	struct ImBuf * (*init_execution)(SeqRenderData context, struct ImBuf *ibuf1, struct ImBuf *ibuf2,
+	                                 struct ImBuf *ibuf3);
 
 	void (*execute_slice)(SeqRenderData context, struct Sequence *seq, float cfra, float facf0, float facf1,
 	                      struct ImBuf *ibuf1, struct ImBuf *ibuf2, struct ImBuf *ibuf3,
-	                       int start_line, int total_lines, struct ImBuf *out);
+	                      int start_line, int total_lines, struct ImBuf *out);
 };
 
 /* ********************* prototypes *************** */
@@ -253,6 +255,7 @@ void BKE_sequence_effect_speed_rebuild_map(struct Scene *scene, struct Sequence 
 /* extern */
 struct SeqEffectHandle BKE_sequence_get_effect(struct Sequence *seq);
 int BKE_sequence_effect_get_num_inputs(int seq_type);
+int BKE_sequence_effect_get_supports_mask(int seq_type);
 
 /* **********************************************************************
  * Sequencer editing functions
@@ -284,6 +287,7 @@ void BKE_sequencer_free_imbuf(struct Scene *scene, struct ListBase *seqbasep, in
 struct Sequence *BKE_sequence_dupli_recursive(struct Scene *scene, struct Scene *scene_to, struct Sequence *seq, int dupe_flag);
 int BKE_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char **error_str);
 
+int BKE_sequence_check_depend(struct Sequence *seq, struct Sequence *cur);
 void BKE_sequence_invalidate_cache(struct Scene *scene, struct Sequence *seq);
 
 void BKE_sequencer_update_sound_bounds_all(struct Scene *scene);
@@ -293,10 +297,11 @@ void BKE_sequencer_update_sound(struct Scene *scene, struct bSound *sound);
 
 void BKE_seqence_base_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void BKE_sequence_base_dupli_recursive(struct Scene *scene, struct Scene *scene_to, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);
+int  BKE_seqence_is_valid_check(struct Sequence *seq);
 
 void BKE_sequencer_clear_scene_in_allseqs(struct Main *bmain, struct Scene *sce);
 
-struct Sequence *BKE_sequwnce_get_by_name(struct ListBase *seqbase, const char *name, int recursive);
+struct Sequence *BKE_sequence_get_by_name(struct ListBase *seqbase, const char *name, int recursive);
 
 /* api for adding new sequence strips */
 typedef struct SeqLoadInfo {

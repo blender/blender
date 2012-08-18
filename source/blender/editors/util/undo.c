@@ -129,7 +129,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 
 	/* undo during jobs are running can easily lead to freeing data using by jobs,
 	 * or they can just lead to freezing job in some other cases */
-	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C))) {
+	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_ANY)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -359,7 +359,7 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 		      * (which copy their data), wont stop redo, see [#29579]],
 		      *
 		      * note, - WM_operator_check_ui_enabled() jobs test _must_ stay in sync with this */
-		     (WM_jobs_test(wm, scene) == 0))
+		     (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY) == 0))
 		{
 			int retval;
 

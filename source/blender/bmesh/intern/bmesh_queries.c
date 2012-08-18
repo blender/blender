@@ -54,7 +54,7 @@ int BM_vert_in_edge(BMEdge *e, BMVert *v)
  * \brief Other Loop in Face Sharing an Edge
  *
  * Finds the other loop that shares \a v with \a e loop in \a f.
- *
+ * <pre>
  *     +----------+
  *     |          |
  *     |    f     |
@@ -64,7 +64,7 @@ int BM_vert_in_edge(BMEdge *e, BMVert *v)
  *     ^     ^ <------- These vert args define direction
  *                      in the face to check.
  *                      The faces loop direction is ignored.
- *
+ * </pre>
  */
 BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
 {
@@ -92,8 +92,7 @@ BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
  * This function returns a loop in \a f that shares an edge with \a v
  * The direction is defined by \a v_prev, where the return value is
  * the loop of what would be 'v_next'
- *
- *
+ * <pre>
  *     +----------+ <-- return the face loop of this vertex.
  *     |          |
  *     |    f     |
@@ -103,6 +102,7 @@ BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
  *     ^^^^^^     ^ <-- These vert args define direction
  *                      in the face to check.
  *                      The faces loop direction is ignored.
+ * </pre>
  *
  * \note \a v_prev and \a v _implicitly_ define an edge.
  */
@@ -143,7 +143,7 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
  * \brief Other Loop in Face Sharing a Vert
  *
  * Finds the other loop that shares \a v with \a e loop in \a f.
- *
+ * <pre>
  *     +----------+ <-- return the face loop of this vertex.
  *     |          |
  *     |          |
@@ -153,6 +153,7 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
  *           ^ <------- This loop defines both the face to search
  *                      and the edge, in combination with 'v'
  *                      The faces loop direction is ignored.
+ * </pre>
  */
 
 BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
@@ -796,7 +797,6 @@ float BM_loop_calc_face_angle(BMLoop *l)
  *
  * Calculate the normal at this loop corner or fallback to the face normal on straight lines.
  *
- * \param bm The BMesh
  * \param l The loop to calculate the normal at
  * \param r_normal Resulting normal
  */
@@ -820,7 +820,6 @@ void BM_loop_calc_face_normal(BMLoop *l, float r_normal[3])
  * Calculate the tangent at this loop corner or fallback to the face normal on straight lines.
  * This vector always points inward into the face.
  *
- * \param bm The BMesh
  * \param l The loop to calculate the tangent at
  * \param r_tangent Resulting tangent
  */
@@ -880,6 +879,7 @@ float BM_edge_calc_face_angle(BMEdge *e)
  * \param e
  * \param e_loop The loop to calculate the tangent at,
  * used to get the face and winding direction.
+ * \param r_tangent The loop corner tangent to set
  */
 
 void BM_edge_calc_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3])

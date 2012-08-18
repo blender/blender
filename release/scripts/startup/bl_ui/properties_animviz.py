@@ -44,10 +44,10 @@ class MotionPathButtonsPanel():
         col = split.column()
         col.label(text="Display Range:")
         sub = col.column(align=True)
-        if (mps.type == 'CURRENT_FRAME'):
+        if mps.type == 'CURRENT_FRAME':
             sub.prop(mps, "frame_before", text="Before")
             sub.prop(mps, "frame_after", text="After")
-        elif (mps.type == 'RANGE'):
+        elif mps.type == 'RANGE':
             sub.prop(mps, "frame_start", text="Start")
             sub.prop(mps, "frame_end", text="End")
 

@@ -26,7 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/nodes/composite/nodes/node_composite_movieclip.c
+/** \file blender/nodes/composite/nodes/node_composite_trackpos.c
  *  \ingroup cmpnodes
  */
 

@@ -24,6 +24,8 @@
 #include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
 
+#include "MEM_guardedalloc.h"
+
 // DilateErode Distance Threshold
 DilateErodeThresholdOperation::DilateErodeThresholdOperation() : NodeOperation()
 {
@@ -384,7 +386,7 @@ void DilateStepOperation::deinitExecution()
 	this->m_inputProgram = NULL;
 	this->deinitMutex();
 	if (this->m_cached_buffer) {
-		delete [] this->m_cached_buffer;
+		MEM_freeN(this->m_cached_buffer);
 		this->m_cached_buffer = NULL;
 	}
 }

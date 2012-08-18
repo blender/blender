@@ -1008,7 +1008,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
         sub.active = (part.draw_color in {'VELOCITY', 'ACCELERATION'})
         sub.prop(part, "color_maximum", text="Max")
 
-        if (path):
+        if path:
             col.prop(part, "draw_step")
 
 

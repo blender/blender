@@ -570,12 +570,14 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 
 	/* softbody collision  */
 	if ((ob->type == OB_MESH) || (ob->type == OB_CURVE) || (ob->type == OB_LATTICE)) {
-		if (modifiers_isModifierEnabled(ob, eModifierType_Softbody) 
-			|| modifiers_isModifierEnabled(ob, eModifierType_Cloth)
-			|| modifiers_isModifierEnabled(ob, eModifierType_Smoke)
-			|| modifiers_isModifierEnabled(ob, eModifierType_DynamicPaint)
-			|| ob->particlesystem.first)
+		if (ob->particlesystem.first ||
+			modifiers_isModifierEnabled(ob, eModifierType_Softbody) ||
+			modifiers_isModifierEnabled(ob, eModifierType_Cloth) ||
+			modifiers_isModifierEnabled(ob, eModifierType_Smoke) ||
+			modifiers_isModifierEnabled(ob, eModifierType_DynamicPaint))
+		{
 			dag_add_collision_field_relation(dag, scene, ob, node);  /* TODO: use effectorweight->group */
+		}
 	}
 	
 	/* object data drivers */
@@ -2596,7 +2598,8 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 	if (id) {
 		idtype = GS(id->name);
 
-		if (ELEM8(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR, ID_SPK)) {
+
+		if (OB_DATA_SUPPORT_ID(idtype)) {
 			for (obt = bmain->object.first; obt; obt = obt->id.next) {
 				if (!(ob && obt == ob) && obt->data == id) {
 					obt->recalc |= OB_RECALC_DATA;

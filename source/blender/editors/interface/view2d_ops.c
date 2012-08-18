@@ -36,6 +36,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "BKE_context.h"
 
@@ -1100,6 +1101,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
 	rctf rect;
+	rctf cur_new = v2d->cur;
 	int gesture_mode;
 	
 	/* convert coordinates of rect to 'tot' rect coordinates */
@@ -1116,12 +1118,12 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		 *	  if zoom is allowed to be changed
 		 */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
-			v2d->cur.xmin = rect.xmin;
-			v2d->cur.xmax = rect.xmax;
+			cur_new.xmin = rect.xmin;
+			cur_new.xmax = rect.xmax;
 		}
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0) {
-			v2d->cur.ymin = rect.ymin;
-			v2d->cur.ymax = rect.ymax;
+			cur_new.ymin = rect.ymin;
+			cur_new.ymax = rect.ymax;
 		}
 	}
 	else { /* if (gesture_mode == GESTURE_MODAL_OUT) */
@@ -1135,29 +1137,24 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		
 		/* TODO: is this zoom factor calculation valid? It seems to produce same results everytime... */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
-			size = (v2d->cur.xmax - v2d->cur.xmin);
+			size = (cur_new.xmax - cur_new.xmin);
 			zoom = size / (rect.xmax - rect.xmin);
-			center = (v2d->cur.xmax + v2d->cur.xmin) * 0.5f;
+			center = (cur_new.xmax + cur_new.xmin) * 0.5f;
 			
-			v2d->cur.xmin = center - (size * zoom);
-			v2d->cur.xmax = center + (size * zoom);
+			cur_new.xmin = center - (size * zoom);
+			cur_new.xmax = center + (size * zoom);
 		}
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0) {
-			size = (v2d->cur.ymax - v2d->cur.ymin);
+			size = (cur_new.ymax - cur_new.ymin);
 			zoom = size / (rect.ymax - rect.ymin);
-			center = (v2d->cur.ymax + v2d->cur.ymin) * 0.5f;
+			center = (cur_new.ymax + cur_new.ymin) * 0.5f;
 			
-			v2d->cur.ymin = center - (size * zoom);
-			v2d->cur.ymax = center + (size * zoom);
+			cur_new.ymin = center - (size * zoom);
+			cur_new.ymax = center + (size * zoom);
 		}
 	}
 	
-	/* validate that view is in valid configuration after this operation */
-	UI_view2d_curRect_validate(v2d);
-	
-	/* request updates to be done... */
-	ED_region_tag_redraw(ar);
-	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	UI_view2d_smooth_view(C, ar, &cur_new);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -1177,6 +1174,173 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	
 	ot->poll = view_zoom_poll;
 	
+	/* rna */
+	WM_operator_properties_gesture_border(ot, FALSE);
+}
+
+/* ********************************************************* */
+/* SMOOTH VIEW */
+
+struct SmoothView2DStore {
+	rctf orig_cur, new_cur;
+
+	double time_allowed;
+};
+
+/**
+ * function to get a factor out of a rectangle
+ *
+ * note: this doesn't always work as well as it might because the target size
+ *       may not be reached because of clamping the desired rect, we _could_
+ *       attempt to clamp the rect before working out the zoom factor but its
+ *       not really worthwhile for the few cases this happens.
+ */
+static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
+{
+	float size_a[2] = {rect_a->xmax - rect_a->xmin,
+	                   rect_a->ymax - rect_a->ymin};
+	float size_b[2] = {rect_b->xmax - rect_b->xmin,
+	                   rect_b->ymax - rect_b->ymin};
+	float cent_a[2] = {(rect_a->xmax + rect_a->xmin) * 0.5f,
+	                   (rect_a->ymax + rect_a->ymin) * 0.5f};
+	float cent_b[2] = {(rect_b->xmax + rect_b->xmin) * 0.5f,
+	                   (rect_b->ymax + rect_b->ymin) * 0.5f};
+
+	float fac_max = 0.0f;
+	float tfac;
+
+	int i;
+
+	for (i = 0; i < 2; i++) {
+		/* axis translation normalized to scale */
+		tfac = fabsf(cent_a[i] - cent_b[i]) / minf(size_a[i], size_b[i]);
+		fac_max = maxf(fac_max, tfac);
+		if (fac_max >= 1.0f) break;
+
+		/* axis scale difference, x2 so doubling or half gives 1.0f */
+		tfac = (1.0f - (minf(size_a[i], size_b[i]) / maxf(size_a[i], size_b[i]))) * 2.0f;
+		fac_max = maxf(fac_max, tfac);
+		if (fac_max >= 1.0f) break;
+	}
+	return minf(fac_max, 1.0f);
+}
+
+/* will start timer if appropriate */
+/* the arguments are the desired situation */
+void UI_view2d_smooth_view(bContext *C, ARegion *ar,
+                           const rctf *cur)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win = CTX_wm_window(C);
+
+	View2D *v2d = &ar->v2d;
+	struct SmoothView2DStore sms = {{0}};
+	short ok = FALSE;
+	float fac = 1.0f;
+
+	/* initialize sms */
+	sms.new_cur = v2d->cur;
+
+	/* store the options we want to end with */
+	if (cur) sms.new_cur = *cur;
+
+	if (cur) {
+		fac = smooth_view_rect_to_fac(&v2d->cur, cur);
+	}
+
+	if (C && U.smooth_viewtx && fac > FLT_EPSILON) {
+		int changed = 0; /* zero means no difference */
+
+		if (BLI_rctf_compare(&sms.new_cur, &v2d->cur, FLT_EPSILON) == FALSE)
+			changed = 1;
+		changed=1;
+
+		/* The new view is different from the old one
+		 * so animate the view */
+		if (changed) {
+			sms.orig_cur = v2d->cur;
+
+			sms.time_allowed = (double)U.smooth_viewtx / 1000.0;
+
+			/* scale the time allowed the change in view */
+			sms.time_allowed *= (double)fac;
+
+			/* keep track of running timer! */
+			if (v2d->sms == NULL)
+				v2d->sms = MEM_mallocN(sizeof(struct SmoothView2DStore), "smoothview v2d");
+			*v2d->sms = sms;
+			if (v2d->smooth_timer)
+				WM_event_remove_timer(wm, win, v2d->smooth_timer);
+			/* TIMER1 is hardcoded in keymap */
+			v2d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0); /* max 30 frs/sec */
+
+			ok = TRUE;
+		}
+	}
+
+	/* if we get here nothing happens */
+	if (ok == FALSE) {
+		v2d->cur = sms.new_cur;
+
+		UI_view2d_curRect_validate(v2d);
+		ED_region_tag_redraw(ar);
+		UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	}
+}
+
+/* only meant for timer usage */
+static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	View2D *v2d = &ar->v2d;
+	struct SmoothView2DStore *sms = v2d->sms;
+	float step;
+
+	/* escape if not our timer */
+	if (v2d->smooth_timer == NULL || v2d->smooth_timer != event->customdata)
+		return OPERATOR_PASS_THROUGH;
+
+	if (sms->time_allowed != 0.0)
+		step = (float)((v2d->smooth_timer->duration) / sms->time_allowed);
+	else
+		step = 1.0f;
+
+	/* end timer */
+	if (step >= 1.0f) {
+		v2d->cur = sms->new_cur;
+
+		MEM_freeN(v2d->sms);
+		v2d->sms = NULL;
+
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), v2d->smooth_timer);
+		v2d->smooth_timer = NULL;
+	}
+	else {
+		/* ease in/out */
+		step = (3.0f * step * step - 2.0f * step * step * step);
+
+		BLI_rctf_interp(&v2d->cur, &sms->orig_cur, &sms->new_cur, step);
+	}
+
+	UI_view2d_curRect_validate(v2d);
+	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+static void VIEW2D_OT_smoothview(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Smooth View 2D";
+	ot->description = "Zoom in the view to the nearest item contained in the border";
+	ot->idname = "VIEW2D_OT_smoothview";
+
+	/* api callbacks */
+	ot->invoke = view2d_smoothview_invoke;
+
+	ot->poll = view2d_poll;
+
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);
 }
@@ -1678,6 +1842,8 @@ void UI_view2d_operatortypes(void)
 	
 	WM_operatortype_append(VIEW2D_OT_zoom);
 	WM_operatortype_append(VIEW2D_OT_zoom_border);
+
+	WM_operatortype_append(VIEW2D_OT_smoothview);
 	
 	WM_operatortype_append(VIEW2D_OT_scroller_activate);
 
@@ -1711,6 +1877,8 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
 	
+	WM_keymap_verify_item(keymap, "VIEW2D_OT_smoothview", TIMER1, KM_ANY, KM_ANY, 0);
+
 	/* scroll up/down - no modifiers, only when zoom fails */
 	/* these may fail if zoom is disallowed, in which case they should pass on event */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);

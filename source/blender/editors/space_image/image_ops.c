@@ -580,7 +580,7 @@ static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	w = width * aspx;
 	h = height * aspy;
 	
-	/* check if the image will fit in the image with zoom==1 */
+	/* check if the image will fit in the image with (zoom == 1) */
 	width = ar->winrct.xmax - ar->winrct.xmin + 1;
 	height = ar->winrct.ymax - ar->winrct.ymin + 1;
 
@@ -1948,6 +1948,52 @@ static void image_sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_
 	}
 }
 
+/* returns color in SRGB */
+/* matching ED_space_node_color_sample() */
+int ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], float r_col[3])
+{
+	void *lock;
+	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
+	float fx, fy;
+	int ret = FALSE;
+
+	if (ibuf == NULL) {
+		ED_space_image_release_buffer(sima, lock);
+		return FALSE;
+	}
+
+	UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &fx, &fy);
+
+	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
+		float *fp;
+		unsigned char *cp;
+		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
+
+		CLAMP(x, 0, ibuf->x - 1);
+		CLAMP(y, 0, ibuf->y - 1);
+
+		if (ibuf->rect_float) {
+			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+
+			if (ELEM(ibuf->profile, IB_PROFILE_LINEAR_RGB, IB_PROFILE_NONE)) {
+				linearrgb_to_srgb_v3_v3(r_col, fp);
+			}
+			else {
+				copy_v3_v3(r_col, fp);
+			}
+			ret = TRUE;
+		}
+		else if (ibuf->rect) {
+			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+			rgb_uchar_to_float(r_col, cp);
+			ret = TRUE;
+		}
+	}
+
+	ED_space_image_release_buffer(sima, lock);
+	return ret;
+}
+
 static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
@@ -2252,7 +2298,7 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ImBuf *ibuf;
 	
-	WM_timecursor(CTX_wm_window(C), scene->r.cfra);
+	WM_cursor_time(CTX_wm_window(C), scene->r.cfra);
 
 	// XXX scene->nodetree->test_break= blender_test_break;
 	// XXX scene->nodetree->test_break= NULL;

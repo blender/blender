@@ -1029,17 +1029,16 @@ static BMesh *BME_bevel_reinitialize(BMesh *bm)
 #endif
 
 /**
- *			BME_bevel_mesh
+ * BME_bevel_mesh
  *
- *	Mesh beveling tool:
+ * Mesh beveling tool:
  *
- *	Bevels an entire mesh. It currently uses the flags of
- *	its vertices and edges to track topological changes.
- *  The parameter "value" is the distance to inset (should be negative).
- *  The parameter "options" is not currently used.
+ * Bevels an entire mesh. It currently uses the flags of
+ * its vertices and edges to track topological changes.
+ * The parameter "value" is the distance to inset (should be negative).
+ * The parameter "options" is not currently used.
  *
- *	Returns -
- *  A BMesh pointer to the BM passed as a parameter.
+ * \return A BMesh pointer to the BM passed as a parameter.
  */
 
 static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int options,

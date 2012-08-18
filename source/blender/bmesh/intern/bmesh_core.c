@@ -1134,7 +1134,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
  * The second region has a new face assigned to it.
  *
  * \par Examples:
- *
+ * <pre>
  *     Before:               After:
  *      +--------+           +--------+
  *      |        |           |        |
@@ -1143,6 +1143,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
  *      |        |           |   f2   |
  *      |        |           |        |
  *      +--------+           +--------+
+ * </pre>
  *
  * \note the input vertices can be part of the same edge. This will
  * result in a two edged face. This is desirable for advanced construction
@@ -1302,12 +1303,13 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
  * will be attached to that end and is returned in \a r_e.
  *
  * \par Examples:
- *
+ * <pre>
  *                     E
  *     Before: OV-------------TV
  *
  *                 E       RE
  *     After:  OV------NV-----TV
+ * </pre>
  *
  * \return The newly created BMVert pointer.
  */
@@ -1474,7 +1476,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  * and collapses the edge on that vertex.
  *
  * \par Examples:
- *
+ * <pre>
  *     Before:         OE      KE
  *                   ------- -------
  *                   |     ||      |
@@ -1485,6 +1487,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  *                   ---------------
  *                   |             |
  *                  OV             TV
+ * </pre>
  *
  * \par Restrictions:
  * KV is a vertex that must have a valance of exactly two. Furthermore
@@ -1636,7 +1639,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
  * Both faces in its radial cycle
  *
  * \par Examples:
- *
+ * <pre>
  *           A                   B
  *      +--------+           +--------+
  *      |        |           |        |
@@ -1645,6 +1648,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
  *      |   f2   |           |   f2   |
  *      |        |           |        |
  *      +--------+           +--------+
+ * </pre>
  *
  * In the example A, faces \a f1 and \a f2 are joined by a single edge,
  * and the euler can safely be used.
@@ -1942,7 +1946,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 }
 
 /**
- * High level function which wraps both #bm_vert_separate and #bm_edge_separate
+ * High level function which wraps both #bmesh_vert_separate and #bmesh_edge_separate
  */
 int BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
                      BMEdge **e_in, int e_in_len)

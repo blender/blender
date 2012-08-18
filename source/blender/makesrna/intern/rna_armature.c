@@ -501,7 +501,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	
 	prop = RNA_def_property(srna, "use_deform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_DEFORM);
-	RNA_def_property_ui_text(prop, "Deform", "Bone does not deform any geometry");
+	RNA_def_property_ui_text(prop, "Deform", "Enable Bone to deform geometry");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
 	prop = RNA_def_property(srna, "use_inherit_scale", PROP_BOOLEAN, PROP_NONE);

@@ -229,7 +229,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 				if ( (i != (data->poly_order - 1)) || ((i == 0) && data->poly_order == 2) ) {
 					uiDefBut(block, LABEL, 1, ") +", 0, 0, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 					
-					/* set up new row for the next pair of coefficients*/
+					/* set up new row for the next pair of coefficients */
 					row = uiLayoutRow(layout, TRUE);
 					block = uiLayoutGetBlock(row);
 				}

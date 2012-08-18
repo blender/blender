@@ -257,6 +257,7 @@ endif()
 if(WITH_MOD_CLOTH_ELTOPO)
 	list(APPEND INC
 		../../../extern/eltopo
+		../../../extern/eltopo/eltopo3d
 	)
 	add_definitions(-DWITH_ELTOPO)
 endif()

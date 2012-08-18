@@ -180,7 +180,8 @@ static int seqcache_key_check_seq(void *userkey, void *userdata)
 
 void BKE_sequencer_cache_cleanup_sequence(Sequence *seq)
 {
-	IMB_moviecache_cleanup(moviecache, seqcache_key_check_seq, seq);
+	if (moviecache)
+		IMB_moviecache_cleanup(moviecache, seqcache_key_check_seq, seq);
 }
 
 struct ImBuf *BKE_sequencer_cache_get(SeqRenderData context, Sequence *seq, float cfra, seq_stripelem_ibuf_t type)

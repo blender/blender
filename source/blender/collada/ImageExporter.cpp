@@ -151,25 +151,31 @@ void ImagesExporter::export_UV_Images()
 {
 	std::set<Image *> uv_textures;
 	LinkNode *node;
-	bool use_copies = this->export_settings->use_texture_copies;
+	bool use_texture_copies = this->export_settings->use_texture_copies;
+	bool active_uv_only     = this->export_settings->active_uv_only;
+
 	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *)node->link;
 		if (ob->type == OB_MESH && ob->totcol) {
 			Mesh *me     = (Mesh *) ob->data;
 			BKE_mesh_tessface_ensure(me);
+			int active_uv_layer = CustomData_get_active_layer_index(&me->pdata, CD_MTEXPOLY);
 			for (int i = 0; i < me->pdata.totlayer; i++) {
 				if (me->pdata.layers[i].type == CD_MTEXPOLY) {
-					MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
-					for (int j = 0; j < me->totpoly; j++, txface++) {
+					if (!active_uv_only || active_uv_layer == i)
+					{
+						MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
+						for (int j = 0; j < me->totpoly; j++, txface++) {
 
-						Image *ima = txface->tpage;
-						if (ima == NULL)
-							continue;
+							Image *ima = txface->tpage;
+							if (ima == NULL)
+								continue;
 
-						bool not_in_list = uv_textures.find(ima) == uv_textures.end();
-						if (not_in_list) {
-								uv_textures.insert(ima);
-								export_UV_Image(ima, use_copies);
+							bool not_in_list = uv_textures.find(ima) == uv_textures.end();
+							if (not_in_list) {
+									uv_textures.insert(ima);
+									export_UV_Image(ima, use_texture_copies);
+							}
 						}
 					}
 				}

@@ -36,6 +36,7 @@ node_type_items_dict = {}
 node_type_prefix = 'NODE_'
 node_group_prefix = 'GROUP_'
 
+
 # Generate a list of enum items for a given node class
 # Copy existing type enum, adding a prefix to distinguish from node groups
 # Skip the base node group type, node groups will be added below for all existing group trees
@@ -43,23 +44,25 @@ def node_type_items(node_class):
     return [(node_type_prefix + item.identifier, item.name, item.description)
                     for item in node_class.bl_rna.properties['type'].enum_items if item.identifier != 'GROUP']
 
+
 # Generate items for node group types
-# Filter by the given tree_type 
+# Filter by the given tree_type
 # Node group trees don't have a description property yet (could add this as a custom property though)
 def node_group_items(tree_type):
     return [(node_group_prefix + group.name, group.name, '')
                     for group in bpy.data.node_groups if group.type == tree_type]
 
+
 # Returns the enum item list for the edited tree in the context
 def node_type_items_cb(self, context):
     snode = context.space_data
     if not snode:
-        return []
+        return ()
     tree = snode.edit_tree
     if not tree:
-        return []
+        return ()
 
-    # Lists of basic node types for each 
+    # Lists of basic node types for each
     if not node_type_items_dict:
         node_type_items_dict.update({
             'SHADER': node_type_items(bpy.types.ShaderNode),
@@ -73,7 +76,7 @@ def node_type_items_cb(self, context):
     if tree.type in node_type_items_dict:
         return node_type_items_dict[tree.type] + node_group_items(tree.type)
     else:
-        return []
+        return ()
 
 
 class NODE_OT_add_search(Operator):
@@ -97,10 +100,10 @@ class NODE_OT_add_search(Operator):
 
         # Enum item identifier has an additional prefix to distinguish base node types from node groups
         item = self.type
-        if (item.startswith(node_type_prefix)):
+        if item.startswith(node_type_prefix):
             # item means base node type
             node = tree.nodes.new(type=item[len(node_type_prefix):])
-        elif (item.startswith(node_group_prefix)):
+        elif item.startswith(node_group_prefix):
             # item means node group type
             node = tree.nodes.new(type='GROUP', group=bpy.data.node_groups[item[len(node_group_prefix):]])
         else:
@@ -119,7 +122,7 @@ class NODE_OT_add_search(Operator):
     def poll(cls, context):
         space = context.space_data
         # needs active node editor and a tree to add nodes to
-        return space.type == 'NODE_EDITOR' and space.edit_tree
+        return (space.type == 'NODE_EDITOR' and space.edit_tree)
 
     def execute(self, context):
         self.create_node(context)
@@ -134,3 +137,33 @@ class NODE_OT_add_search(Operator):
 
         context.window_manager.invoke_search_popup(self)
         return {'CANCELLED'}
+
+
+class NODE_OT_collapse_hide_unused_toggle(Operator):
+    '''Toggle collapsed nodes and hide unused sockets'''
+    bl_idname = "node.collapse_hide_unused_toggle"
+    bl_label = "Collapse and Hide Unused Sockets"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        # needs active node editor and a tree
+        return (space.type == 'NODE_EDITOR' and space.edit_tree)
+
+    def execute(self, context):
+        space = context.space_data
+        tree = space.edit_tree
+
+        for node in tree.nodes:
+            if node.select:
+                hide = (not node.hide)
+
+                node.hide = hide
+                # Note: connected sockets are ignored internally
+                for socket in node.inputs:
+                    socket.hide = hide
+                for socket in node.outputs:
+                    socket.hide = hide
+
+        return {'FINISHED'}
