@@ -1022,9 +1022,10 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 
 			/* tune these until everything feels right */
 			const float rot_sensitivity = 1.f;
+#if 0
 			const float zoom_sensitivity = 1.f;
+#endif
 			const float pan_sensitivity = 1.f;
-
 			const int has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
 
 			float view_inv[4];
@@ -1249,12 +1250,11 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		View3D *v3d = CTX_wm_view3d(C);
 		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 
-		ED_view3d_camera_lock_init(v3d, rv3d);
-
 		viewops_data_create(C, op, event);
 		vod = op->customdata;
 		rv3d = vod->rv3d;
-		
+
+		ED_view3d_camera_lock_init(v3d, rv3d);
 
 		if (ndof->progress != P_FINISHING) {
 
@@ -1271,11 +1271,13 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			float pan_vec[3];
 			const float rot_sensitivity = 1.f;
+#if 0
 			const float zoom_sensitivity = 1.f;
 			const float pan_sensitivity = 1.f;
 			float rot[4];
-			float axis[3];
 			float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
+			float axis[3];
+#endif
 
 			if (U.ndof_flag & NDOF_PANX_INVERT_AXIS)
 				pan_vec[0] = -lateral_sensitivity * ndof->tvec[0];

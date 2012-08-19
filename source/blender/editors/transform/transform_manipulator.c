@@ -84,22 +84,22 @@
 
 /* return codes for select, and drawing flags */
 
-#define MAN_TRANS_X     1
-#define MAN_TRANS_Y     2
-#define MAN_TRANS_Z     4
-#define MAN_TRANS_C     7
+#define MAN_TRANS_X		(1 << 0)
+#define MAN_TRANS_Y		(1 << 1)
+#define MAN_TRANS_Z		(1 << 2)
+#define MAN_TRANS_C		(MAN_TRANS_X | MAN_TRANS_Y | MAN_TRANS_Z)
 
-#define MAN_ROT_X       8
-#define MAN_ROT_Y       16
-#define MAN_ROT_Z       32
-#define MAN_ROT_V       64
-#define MAN_ROT_T       128
-#define MAN_ROT_C       248
+#define MAN_ROT_X		(1 << 3)
+#define MAN_ROT_Y		(1 << 4)
+#define MAN_ROT_Z		(1 << 5)
+#define MAN_ROT_V		(1 << 6)
+#define MAN_ROT_T		(1 << 7)
+#define MAN_ROT_C		(MAN_ROT_X | MAN_ROT_Y | MAN_ROT_Z | MAN_ROT_V | MAN_ROT_T)
 
-#define MAN_SCALE_X     256
-#define MAN_SCALE_Y     512
-#define MAN_SCALE_Z     1024
-#define MAN_SCALE_C     1792
+#define MAN_SCALE_X		(1 << 8)
+#define MAN_SCALE_Y		(1 << 9)
+#define MAN_SCALE_Z		(1 << 10)
+#define MAN_SCALE_C		(MAN_SCALE_X | MAN_SCALE_Y | MAN_SCALE_Z)
 
 /* color codes */
 
