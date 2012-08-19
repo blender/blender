@@ -28,6 +28,29 @@ def act_strip(context):
         return None
 
 
+def draw_color_balance(layout, color_balance):
+    col = layout.column()
+    col.label(text="Lift:")
+    col.template_color_wheel(color_balance, "lift", value_slider=True, cubic=True)
+    row = col.row()
+    row.prop(color_balance, "lift", text="")
+    row.prop(color_balance, "invert_lift", text="Inverse")
+
+    col = layout.column()
+    col.label(text="Gamma:")
+    col.template_color_wheel(color_balance, "gamma", value_slider=True, lock_luminosity=True, cubic=True)
+    row = col.row()
+    row.prop(color_balance, "gamma", text="")
+    row.prop(color_balance, "invert_gamma", text="Inverse")
+
+    col = layout.column()
+    col.label(text="Gain:")
+    col.template_color_wheel(color_balance, "gain", value_slider=True, lock_luminosity=True, cubic=True)
+    row = col.row()
+    row.prop(color_balance, "gain", text="")
+    row.prop(color_balance, "invert_gain", text="Inverse")
+
+
 class SEQUENCER_HT_header(Header):
     bl_space_type = 'SEQUENCE_EDITOR'
 
@@ -442,7 +465,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
         if strip.is_supports_mask:
             col = layout.column()
-            col.prop_search(strip, "input_mask", sequencer, "sequences")
+            col.prop_search(strip, "input_mask_strip", sequencer, "sequences", text="Mask")
 
         if strip.type == 'COLOR':
             layout.prop(strip, "color")
@@ -772,26 +795,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
 
         layout.prop(strip, "use_color_balance")
         if strip.use_color_balance and strip.color_balance:  # TODO - need to add this somehow
-            col = layout.column()
-            col.label(text="Lift:")
-            col.template_color_wheel(strip.color_balance, "lift", value_slider=True, cubic=True)
-            row = col.row()
-            row.prop(strip.color_balance, "lift", text="")
-            row.prop(strip.color_balance, "invert_lift", text="Inverse")
-
-            col = layout.column()
-            col.label(text="Gamma:")
-            col.template_color_wheel(strip.color_balance, "gamma", value_slider=True, lock_luminosity=True, cubic=True)
-            row = col.row()
-            row.prop(strip.color_balance, "gamma", text="")
-            row.prop(strip.color_balance, "invert_gamma", text="Inverse")
-
-            col = layout.column()
-            col.label(text="Gain:")
-            col.template_color_wheel(strip.color_balance, "gain", value_slider=True, lock_luminosity=True, cubic=True)
-            row = col.row()
-            row.prop(strip.color_balance, "gain", text="")
-            row.prop(strip.color_balance, "invert_gain", text="Inverse")
+            draw_color_balance(layout, strip.color_balance)
 
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
@@ -882,6 +886,46 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
         col.separator()
         col.label(text="Color Management:")
         col.template_colormanaged_view_settings(st, "view_settings", True)
+
+
+class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
+    bl_label = "Modifiers"
+
+    def draw(self, context):
+        layout = self.layout
+
+        strip = act_strip(context)
+        sequencer = context.scene.sequence_editor
+
+        layout.operator_menu_enum("sequencer.strip_modifier_add", "type")
+
+        for mod in strip.modifiers:
+            box = layout.box()
+
+            row = box.row()
+            row.prop(mod, "show_expanded", text="", emboss=False)
+            row.prop(mod, "name")
+
+            row.prop(mod, "mute", text="")
+            props = row.operator("sequencer.strip_modifier_remove", text="", icon='X')
+            props.name = mod.name
+
+            if mod.show_expanded:
+                row = box.row()
+                row.prop(mod, "input_mask_type", expand=True)
+
+                if mod.input_mask_type == 'STRIP':
+                    box.prop_search(mod, "input_mask_strip", sequencer, "sequences", text="Mask")
+                else:
+                    box.prop(mod, "input_mask_id")
+
+                if mod.type == 'COLOR_BALANCE':
+                    box.prop(mod, "color_multiply")
+                    draw_color_balance(box, mod.color_balance)
+                elif mod.type == 'CURVES':
+                    box.template_curve_mapping(mod, "curve_mapping", type='COLOR')
+                elif mod.type == 'HUE_CORRECT':
+                    box.template_curve_mapping(mod, "curve_mapping", type='HUE')
 
 
 if __name__ == "__main__":  # only for live edit.

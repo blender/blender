@@ -786,7 +786,7 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
 
-        layout.template_curve_mapping(brush, "curve")
+        layout.template_curve_mapping(brush, "curve", type='COLOR')
 
         row = layout.row(align=True)
         row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
