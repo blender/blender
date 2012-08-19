@@ -1095,7 +1095,7 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 
 static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
-//	int transopts;
+	//int transopts;  // UNUSED
 	char *cpoin = NULL;
 	
 	/* for underline drawing */
@@ -1170,7 +1170,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 #if 0
 	ui_rasterpos_safe(x, y, but->aspect);
-	if (but->type == IDPOIN) transopts = 0;  // no translation, of course!
+	if (but->type == IDPOIN) transopts = 0;  /* no translation, of course! */
 	else transopts = ui_translate_buttons();
 #endif
 
@@ -1654,13 +1654,13 @@ static void widget_state(uiWidgetType *wt, int state)
 static void widget_state_numslider(uiWidgetType *wt, int state)
 {
 	uiWidgetStateColors *wcol_state = wt->wcol_state;
-	float blend = wcol_state->blend - 0.2f; // XXX special tweak to make sure that bar will still be visible
+	float blend = wcol_state->blend - 0.2f; /* XXX special tweak to make sure that bar will still be visible */
 
 	/* call this for option button */
 	widget_state(wt, state);
 	
 	/* now, set the inner-part so that it reflects state settings too */
-	// TODO: maybe we should have separate settings for the blending colors used for this case?
+	/* TODO: maybe we should have separate settings for the blending colors used for this case? */
 	if (state & UI_SELECT) {
 		
 		if (state & UI_BUT_ANIMATED_KEY)
@@ -2007,13 +2007,13 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const floa
 	/* old below */
 	
 	for (dx = 0.0f; dx < 1.0f; dx += color_step) {
-		// previous color
+		/* previous color */
 		copy_v3_v3(col0[0], col1[0]);
 		copy_v3_v3(col0[1], col1[1]);
 		copy_v3_v3(col0[2], col1[2]);
 		copy_v3_v3(col0[3], col1[3]);
 		
-		// new color
+		/* new color */
 		switch (type) {
 			case UI_GRAD_SV:
 				hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
@@ -2057,7 +2057,7 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const floa
 				break;
 		}
 		
-		// rect
+		/* rect */
 		sx1 = rect->xmin + dx * (rect->xmax - rect->xmin);
 		sx2 = rect->xmin + (dx + color_step) * (rect->xmax - rect->xmin);
 		sy = rect->ymin;
@@ -2221,7 +2221,6 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	rect->xmax -= textofs;
 }
 
-//static int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
 int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
 {
 	float dist, vec[4][2];
@@ -2252,7 +2251,7 @@ void ui_draw_link_bezier(rcti *rect)
 	
 	if (ui_link_bezier_points(rect, coord_array, LINK_RESOL)) {
 		/* we can reuse the dist variable here to increment the GL curve eval amount*/
-		// const float dist = 1.0f/(float)LINK_RESOL; // UNUSED
+		// const float dist = 1.0f / (float)LINK_RESOL; // UNUSED
 
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
@@ -2659,7 +2658,7 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	if (state & UI_ACTIVE) {
 		uiWidgetBase wtb;
-		float rad = 0.5f * (rect->ymax - rect->ymin); // 4.0f
+		float rad = 0.5f * (rect->ymax - rect->ymin);  /* 4.0f */
 		
 		widget_init(&wtb);
 		
@@ -2787,7 +2786,7 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int 
 static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
 	uiWidgetBase wtb;
-	float rad = 5.0f; //0.5f*(rect->ymax - rect->ymin);
+	float rad = 5.0f;  /* 0.5f * (rect->ymax - rect->ymin); */
 	
 	widget_init(&wtb);
 	
@@ -3176,10 +3175,12 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case HSVCUBE:
-				if (but->a1 == UI_GRAD_V_ALT) // vertical V slider, uses new widget draw now
+				if (but->a1 == UI_GRAD_V_ALT) {  /* vertical V slider, uses new widget draw now */
 					ui_draw_but_HSV_v(but, rect);
-				else  // other HSV pickers...
+				}
+				else {  /* other HSV pickers... */
 					ui_draw_but_HSVCUBE(but, rect);
+				}
 				break;
 				
 			case HSVCIRCLE:

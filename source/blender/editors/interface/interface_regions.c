@@ -1431,7 +1431,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 			yof = butrct.ymax - block->rect.ymin;
 			if (dir2 == UI_RIGHT) xof = butrct.xmax - block->rect.xmax;
 			else xof = butrct.xmin - block->rect.xmin;
-			// changed direction? 
+			/* changed direction? */
 			if ((dir1 & block->direction) == 0) {
 				if (block->direction & UI_SHIFT_FLIPPED)
 					xof += dir2 == UI_LEFT ? 25 : -25;
@@ -1442,7 +1442,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 			yof = butrct.ymin - block->rect.ymax;
 			if (dir2 == UI_RIGHT) xof = butrct.xmax - block->rect.xmax;
 			else xof = butrct.xmin - block->rect.xmin;
-			// changed direction?
+			/* changed direction? */
 			if ((dir1 & block->direction) == 0) {
 				if (block->direction & UI_SHIFT_FLIPPED)
 					xof += dir2 == UI_LEFT ? 25 : -25;
@@ -1453,7 +1453,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		/* and now we handle the exception; no space below or to top */
 		if (top == 0 && down == 0) {
 			if (dir1 == UI_LEFT || dir1 == UI_RIGHT) {
-				// align with bottom of screen 
+				/* align with bottom of screen */
 				// yof= ysize; (not with menu scrolls)
 			}
 		}
@@ -1461,12 +1461,12 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		/* or no space left or right */
 		if (left == 0 && right == 0) {
 			if (dir1 == UI_TOP || dir1 == UI_DOWN) {
-				// align with left size of screen 
+				/* align with left size of screen */
 				xof = -block->rect.xmin + 5;
 			}
 		}
 		
-		// apply requested offset in the block
+		/* apply requested offset in the block */
 		xof += block->xofs / block->aspect;
 		yof += block->yofs / block->aspect;
 #if 0

@@ -1055,7 +1055,7 @@ void UI_buttons_operatortypes(void)
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);
-	WM_operatortype_append(UI_OT_reports_to_textblock); // XXX: temp?
+	WM_operatortype_append(UI_OT_reports_to_textblock);  /* XXX: temp? */
 
 #ifdef WITH_PYTHON
 	WM_operatortype_append(UI_OT_editsource);

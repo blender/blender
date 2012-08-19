@@ -875,11 +875,11 @@ void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
 
 	/* consistency; are panels not made, whilst they have tabs */
 	for (panot = ar->panels.first; panot; panot = panot->next) {
-		if ((panot->runtime_flag & PNL_ACTIVE) == 0) { // not made
+		if ((panot->runtime_flag & PNL_ACTIVE) == 0) {  /* not made */
 
 			for (panew = ar->panels.first; panew; panew = panew->next) {
 				if ((panew->runtime_flag & PNL_ACTIVE)) {
-					if (panew->paneltab == panot) { // panew is tab in notmade pa
+					if (panew->paneltab == panot) {  /* panew is tab in notmade pa */
 						break;
 					}
 				}
@@ -893,7 +893,7 @@ void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
 				}
 				panot->paneltab = panew;
 				panew->paneltab = NULL;
-				ED_region_tag_redraw(ar); // the buttons panew were not made
+				ED_region_tag_redraw(ar); /* the buttons panew were not made */
 			}
 		}	
 	}
@@ -1045,10 +1045,10 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 	}
 	
 	if (button) {
-		if (button == 2) { // close
+		if (button == 2) {  /* close */
 			ED_region_tag_redraw(ar);
 		}
-		else {  // collapse
+		else {  /* collapse */
 			if (block->panel->flag & PNL_CLOSED) {
 				block->panel->flag &= ~PNL_CLOSED;
 				/* snap back up so full panel aligns with screen edge */
@@ -1106,7 +1106,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 
 		if (!pa || pa->paneltab != NULL)
 			continue;
-		if (pa->type && pa->type->flag & PNL_NO_HEADER) // XXX - accessed freed panels when scripts reload, need to fix.
+		if (pa->type && pa->type->flag & PNL_NO_HEADER)  /* XXX - accessed freed panels when scripts reload, need to fix. */
 			continue;
 
 		if (block->rect.xmin <= mx && block->rect.xmax >= mx)
@@ -1177,7 +1177,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 #endif
 				}
 				else if (event->type == PADPLUSKEY || event->type == PADMINUS) {
-#if 0 // XXX make float panel exception?
+#if 0 /* XXX make float panel exception? */
 					int zoom = 0;
 				
 					/* if panel is closed, only zoom if mouse is over the header */
@@ -1275,7 +1275,7 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 			 * Aligorith, 2009Sep
 			 */
 			//test_add_new_tabs(ar);   // also copies locations of tabs in dragged panel
-			check_panel_overlap(ar, NULL);  // clears
+			check_panel_overlap(ar, NULL);  /* clears */
 		}
 
 		pa->flag &= ~PNL_SELECT;

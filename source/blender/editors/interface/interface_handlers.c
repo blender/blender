@@ -4707,7 +4707,6 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 {
-//	Scene *scene= CTX_data_scene(C);
 	uiHandleButtonData *data;
 	int retval;
 
@@ -4874,7 +4873,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			retval = ui_do_but_BUT(C, but, data, event);
 			break;
 		case COL:
-			if (but->a1 == UI_GRAD_V_ALT) // signal to prevent calling up color picker
+			if (but->a1 == UI_GRAD_V_ALT)  /* signal to prevent calling up color picker */
 				retval = ui_do_but_EXIT(C, but, data, event);
 			else
 				retval = ui_do_but_BLOCK(C, but, data, event);
@@ -5280,8 +5279,13 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	data->wm = CTX_wm_manager(C);
 	data->window = CTX_wm_window(C);
 	data->region = ar;
-	if (ELEM(but->type, BUT_CURVE, SEARCH_MENU) ) ;  // XXX curve is temp
-	else data->interactive = 1;
+
+	if (ELEM(but->type, BUT_CURVE, SEARCH_MENU)) {
+		/* XXX curve is temp */
+	}
+	else {
+		data->interactive = 1;
+	}
 	
 	data->state = BUTTON_STATE_INIT;
 

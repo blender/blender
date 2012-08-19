@@ -238,7 +238,7 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 			bt->rect.xmax = maxf(bt->rect.xmax, offset + block->minbounds);
 		}
 
-		ui_check_but(bt);   // clips text again
+		ui_check_but(bt);  /* clips text again */
 		
 		if (nextcol)
 			x1addval += i + block->bounds;
@@ -993,7 +993,7 @@ static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, u
 /* uses local copy of style, to scale things down, and allow widgets to change stuff */
 void uiDrawBlock(const bContext *C, uiBlock *block)
 {
-	uiStyle style = *UI_GetStyle();  // XXX pass on as arg
+	uiStyle style = *UI_GetStyle();  /* XXX pass on as arg */
 	ARegion *ar;
 	uiBut *but;
 	rcti rect;
@@ -1352,7 +1352,7 @@ int ui_is_but_unit(uiBut *but)
 	if (unit_type == PROP_UNIT_NONE)
 		return 0;
 
-#if 1 // removed so angle buttons get correct snapping
+#if 1 /* removed so angle buttons get correct snapping */
 	if (unit->system_rotation == USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION)
 		return 0;
 #endif
@@ -2095,7 +2095,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 	block = MEM_callocN(sizeof(uiBlock), "uiBlock");
 	block->active = 1;
 	block->dt = dt;
-	block->evil_C = (void *)C; // XXX
+	block->evil_C = (void *)C;  /* XXX */
 
 	if (scn) {
 		block->color_profile = (scn->r.color_mgt_flag & R_COLOR_MANAGEMENT);
@@ -2365,7 +2365,7 @@ static int buts_are_horiz(uiBut *but1, uiBut *but2)
 
 void uiBlockEndAlign(uiBlock *block)
 {
-	block->flag &= ~UI_BUT_ALIGN;   // all 4 flags
+	block->flag &= ~UI_BUT_ALIGN;  /* all 4 flags */
 }
 
 int ui_but_can_align(uiBut *but)
@@ -2588,8 +2588,8 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	but->lockstr = block->lockstr;
 	but->dt = block->dt;
 
-	but->aspect = 1.0f; //XXX block->aspect;
-	but->block = block;      // pointer back, used for frontbuffer status, and picker
+	but->aspect = 1.0f;  /* XXX block->aspect; */
+	but->block = block;  /* pointer back, used for frontbuffer status, and picker */
 
 	if ((block->flag & UI_BUT_ALIGN) && ui_but_can_align(but))
 		but->alignnr = block->alignnr;

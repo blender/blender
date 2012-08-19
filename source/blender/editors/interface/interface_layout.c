@@ -2749,7 +2749,7 @@ static void ui_intro_button(DynStr *ds, uiButtonItem *bitem)
 	uiBut *but = bitem->but;
 	BLI_dynstr_appendf(ds, "'type':%d, ", but->type); /* see ~ UI_interface.h:200 */
 	BLI_dynstr_appendf(ds, "'draw_string':'''%s''', ", but->drawstr);
-	BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : ""); // not exactly needed, rna has this
+	BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : "");  /* not exactly needed, rna has this */
 
 	if (but->optype) {
 		char *opstr = WM_operator_pystring(but->block->evil_C, but->optype, but->opptr, 0);
@@ -2811,7 +2811,7 @@ static void ui_intro_uiLayout(DynStr *ds, uiLayout *layout)
 	ui_intro_items(ds, &layout->items);
 }
 
-static char *str = NULL; // XXX, constant re-freeing, far from ideal.
+static char *str = NULL;  /* XXX, constant re-freeing, far from ideal. */
 const char *uiLayoutIntrospect(uiLayout *layout)
 {
 	DynStr *ds = BLI_dynstr_new();
@@ -2848,8 +2848,10 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op, i
 	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
 	 * just fails silently */
 	if (!WM_operator_repeat_check(C, op)) {
-		uiBlockSetButLock(uiLayoutGetBlock(layout), TRUE, "Operator cannot redo");
-		uiItemL(layout, IFACE_("* Redo Unsupported *"), ICON_NONE); // XXX, could give some nicer feedback or not show redo panel at all?
+		uiBlockSetButLock(uiLayoutGetBlock(layout), TRUE, "Operator can't' redo");
+
+		/* XXX, could give some nicer feedback or not show redo panel at all? */
+		uiItemL(layout, IFACE_("* Redo Unsupported *"), ICON_NONE);
 	}
 
 	/* menu */
