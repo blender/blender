@@ -15,31 +15,29 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
- *		Monique Dewanchand
+ * Contributor:
+ *		Dalai Felinto
  */
 
-#ifndef _COM_ChunkOrder_h_
-#define _COM_ChunkOrder_h_
+#ifndef _COM_DistanceYCCMatteOperation_h
+#define _COM_DistanceYCCMatteOperation_h
+#include "COM_MixBaseOperation.h"
+#include "COM_DistanceRGBMatteOperation.h"
 
-#include "COM_ChunkOrderHotspot.h"
-class ChunkOrder {
-private:
-	unsigned int m_number;
-	int m_x;
-	int m_y;
-	double m_distance;
+
+/**
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
+ */
+class DistanceYCCMatteOperation : public DistanceRGBMatteOperation {
+protected:
+	virtual float calculateDistance(float key[4], float image[4]);
+
 public:
-	ChunkOrder();
-	void determineDistance(ChunkOrderHotspot **hotspots, unsigned int numberOfHotspots);
-	friend bool operator<(const ChunkOrder &a, const ChunkOrder &b);
-	
-	void setChunkNumber(unsigned int chunknumber) { this->m_number = chunknumber; }
-	void setX(int x) { this->m_x = x; }
-	void setY(int y) { this->m_y = y; }
-	unsigned int getChunkNumber() { return this->m_number; }
-	double getDistance() { return this->m_distance; }
-};
+	/**
+	 * Default constructor
+	 */
+	DistanceYCCMatteOperation();
 
+};
 #endif

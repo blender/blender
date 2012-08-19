@@ -86,6 +86,8 @@
 void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, 
                                 const short do_sel_only, const short include_handles)
 {
+	Scene *scene = ac->scene;
+	
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
@@ -94,7 +96,7 @@ void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, floa
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
-	/* set large values to try to override */
+	/* set large values initial values that will be easy to override */
 	if (xmin) *xmin = 999999999.0f;
 	if (xmax) *xmax = -999999999.0f;
 	if (ymin) *ymin = 999999999.0f;
@@ -102,6 +104,8 @@ void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, floa
 	
 	/* check if any channels to set range with */
 	if (anim_data.first) {
+		short foundBounds = FALSE;
+		
 		/* go through channels, finding max extents */
 		for (ale = anim_data.first; ale; ale = ale->next) {
 			AnimData *adt = ANIM_nla_mapping_get(ac, ale);
@@ -110,29 +114,39 @@ void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, floa
 			float unitFac;
 			
 			/* get range */
-			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax, do_sel_only, include_handles);
-			
-			/* apply NLA scaling */
-			if (adt) {
-				txmin = BKE_nla_tweakedit_remap(adt, txmin, NLATIME_CONVERT_MAP);
-				txmax = BKE_nla_tweakedit_remap(adt, txmax, NLATIME_CONVERT_MAP);
+			if (calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax, do_sel_only, include_handles)) {
+				/* apply NLA scaling */
+				if (adt) {
+					txmin = BKE_nla_tweakedit_remap(adt, txmin, NLATIME_CONVERT_MAP);
+					txmax = BKE_nla_tweakedit_remap(adt, txmax, NLATIME_CONVERT_MAP);
+				}
+				
+				/* apply unit corrections */
+				unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
+				tymin *= unitFac;
+				tymax *= unitFac;
+				
+				/* try to set cur using these values, if they're more extreme than previously set values */
+				if ((xmin) && (txmin < *xmin)) *xmin = txmin;
+				if ((xmax) && (txmax > *xmax)) *xmax = txmax;
+				if ((ymin) && (tymin < *ymin)) *ymin = tymin;
+				if ((ymax) && (tymax > *ymax)) *ymax = tymax;
+				
+				foundBounds = TRUE;
 			}
-			
-			/* apply unit corrections */
-			unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
-			tymin *= unitFac;
-			tymax *= unitFac;
-			
-			/* try to set cur using these values, if they're more extreme than previously set values */
-			if ((xmin) && (txmin < *xmin)) *xmin = txmin;
-			if ((xmax) && (txmax > *xmax)) *xmax = txmax;
-			if ((ymin) && (tymin < *ymin)) *ymin = tymin;
-			if ((ymax) && (tymax > *ymax)) *ymax = tymax;
 		}
 		
 		/* ensure that the extents are not too extreme that view implodes...*/
-		if ((xmin && xmax) && (fabsf(*xmax - *xmin) < 0.1f)) *xmax += 0.1f;
-		if ((ymin && ymax) && (fabsf(*ymax - *ymin) < 0.1f)) *ymax += 0.1f;
+		if (foundBounds) {
+			if ((xmin && xmax) && (fabsf(*xmax - *xmin) < 0.1f)) *xmax += 0.1f;
+			if ((ymin && ymax) && (fabsf(*ymax - *ymin) < 0.1f)) *ymax += 0.1f;
+		}
+		else {
+			if (xmin) *xmin = (float)PSFRA;
+			if (xmax) *xmax = (float)PEFRA;
+			if (ymin) *ymin = -5;
+			if (ymax) *ymax = 5;
+		}
 		
 		/* free memory */
 		BLI_freelistN(&anim_data);
@@ -140,8 +154,8 @@ void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, floa
 	else {
 		/* set default range */
 		if (ac->scene) {
-			if (xmin) *xmin = (float)ac->scene->r.sfra;
-			if (xmax) *xmax = (float)ac->scene->r.efra;
+			if (xmin) *xmin = (float)PSFRA;
+			if (xmax) *xmax = (float)PEFRA;
 		}
 		else {
 			if (xmin) *xmin = -5;

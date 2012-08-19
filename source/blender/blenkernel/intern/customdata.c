@@ -1898,7 +1898,7 @@ void CustomData_copy_data(const CustomData *source, CustomData *dest,
 		 * (this should work because layers are ordered by type)
 		 */
 		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
-			++dest_i;
+			dest_i++;
 		}
 
 		/* if there are no more dest layers, we're done */
@@ -1936,7 +1936,7 @@ void CustomData_copy_data(const CustomData *source, CustomData *dest,
 			 * we don't want to copy all source layers to the same dest, so
 			 * increment dest_i
 			 */
-			++dest_i;
+			dest_i++;
 		}
 	}
 }
@@ -1989,7 +1989,7 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 		 * (this should work because layers are ordered by type)
 		 */
 		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
-			++dest_i;
+			dest_i++;
 		}
 
 		/* if there are no more dest layers, we're done */
@@ -2011,7 +2011,7 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 			 * we don't want to copy all source layers to the same dest, so
 			 * increment dest_i
 			 */
-			++dest_i;
+			dest_i++;
 		}
 	}
 
@@ -2139,8 +2139,8 @@ void CustomData_set(const CustomData *data, int index, int type, void *source)
 		memcpy(dest, source, typeInfo->size);
 }
 
-/*Bmesh functions*/
-/*needed to convert to/from different face reps*/
+/* BMesh functions */
+/* needed to convert to/from different face reps */
 void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata,
                              int totloop, int totpoly)
 {
@@ -2401,7 +2401,7 @@ void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
 		 * (this should work because layers are ordered by type)
 		 */
 		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
-			++dest_i;
+			dest_i++;
 		}
 
 		/* if there are no more dest layers, we're done */
@@ -2425,7 +2425,7 @@ void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
 			 * we don't want to copy all source layers to the same dest, so
 			 * increment dest_i
 			 */
-			++dest_i;
+			dest_i++;
 		}
 	}
 }
@@ -2637,7 +2637,7 @@ void CustomData_to_bmesh_block(const CustomData *source, CustomData *dest,
 		 * (this should work because layers are ordered by type)
 		 */
 		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
-			++dest_i;
+			dest_i++;
 		}
 
 		/* if there are no more dest layers, we're done */
@@ -2661,7 +2661,7 @@ void CustomData_to_bmesh_block(const CustomData *source, CustomData *dest,
 			 * we don't want to copy all source layers to the same dest, so
 			 * increment dest_i
 			 */
-			++dest_i;
+			dest_i++;
 		}
 	}
 }
@@ -2680,7 +2680,7 @@ void CustomData_from_bmesh_block(const CustomData *source, CustomData *dest,
 		 * (this should work because layers are ordered by type)
 		 */
 		while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
-			++dest_i;
+			dest_i++;
 		}
 
 		/* if there are no more dest layers, we're done */
@@ -2704,7 +2704,7 @@ void CustomData_from_bmesh_block(const CustomData *source, CustomData *dest,
 			 * we don't want to copy all source layers to the same dest, so
 			 * increment dest_i
 			 */
-			++dest_i;
+			dest_i++;
 		}
 	}
 

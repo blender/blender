@@ -161,11 +161,13 @@ static int add_to_group_internal(Group *group, Object *ob)
 {
 	GroupObject *go;
 	
-	if (group == NULL || ob == NULL) return 0;
+	if (group == NULL || ob == NULL) {
+		return FALSE;
+	}
 	
 	/* check if the object has been added already */
-	for (go = group->gobject.first; go; go = go->next) {
-		if (go->ob == ob) return 0;
+	if (BLI_findptr(&group->gobject, ob, offsetof(GroupObject, ob))) {
+		return FALSE;
 	}
 	
 	go = MEM_callocN(sizeof(GroupObject), "groupobject");
@@ -173,7 +175,7 @@ static int add_to_group_internal(Group *group, Object *ob)
 	
 	go->ob = ob;
 	
-	return 1;
+	return TRUE;
 }
 
 int add_to_group(Group *group, Object *object, Scene *scene, Base *base)
@@ -239,15 +241,11 @@ int rem_from_group(Group *group, Object *object, Scene *scene, Base *base)
 
 int object_in_group(Object *ob, Group *group)
 {
-	GroupObject *go;
-	
-	if (group == NULL || ob == NULL) return 0;
-	
-	for (go = group->gobject.first; go; go = go->next) {
-		if (go->ob == ob)
-			return 1;
+	if (group == NULL || ob == NULL) {
+		return FALSE;
 	}
-	return 0;
+
+	return (BLI_findptr(&group->gobject, ob, offsetof(GroupObject, ob)) != NULL);
 }
 
 Group *find_group(Object *ob, Group *group)

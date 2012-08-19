@@ -28,7 +28,7 @@
  * http://blog.ivank.net/fortunes-algorithm-and-implementation.html
  */
 
-/** \file blender/blenkernel/intern/voronoi.c
+/** \file blender/blenlib/intern/voronoi.c
  *  \ingroup bli
  */
 

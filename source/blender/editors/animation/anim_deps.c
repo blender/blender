@@ -125,7 +125,7 @@ void ANIM_id_update(Scene *UNUSED(scene), ID *id)
  */
 
 /* perform syncing updates for Action Groups */
-static void animchan_sync_group(bAnimContext *UNUSED(ac), bAnimListElem *ale)
+static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGroup **active_agrp)
 {
 	bActionGroup *agrp = (bActionGroup *)ale->data;
 	ID *owner_id = ale->id;
@@ -143,22 +143,50 @@ static void animchan_sync_group(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 		/* check if there are bones, and whether the name matches any 
 		 * NOTE: this feature will only really work if groups by default contain the F-Curves for a single bone
 		 */
+		// TODO: if bone gets renamed, it would be best to be able to rename the group
 		if (ob->pose) {
 			bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
+			bArmature *arm = ob->data;
 			
-			/* if one matches, sync the selection status */
 			if (pchan) {
-				if (pchan->bone && pchan->bone->flag & BONE_SELECTED)
+				bActionGroup *bgrp;
+				
+				/* if one matches, sync the selection status */
+				if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED))
 					agrp->flag |= AGRP_SELECTED;
 				else
 					agrp->flag &= ~AGRP_SELECTED;
+					
+				/* also sync active group status */
+				if ((ob == ac->obact) && (pchan->bone == arm->act_bone)) {
+					/* if no previous F-Curve has active flag, then we're the first and only one to get it */
+					if (*active_agrp == NULL) {
+						agrp->flag |= AGRP_ACTIVE;
+						*active_agrp = agrp;
+					}
+					else {
+						/* someone else has already taken it - set as not active */
+						agrp->flag &= ~AGRP_ACTIVE;
+					}
+				}
+				else {
+					/* this can't possibly be active now */
+					agrp->flag &= ~AGRP_ACTIVE;
+				}
+				
+				/* sync group colors */
+				bgrp = (bActionGroup *)BLI_findlink(&ob->pose->agroups, (pchan->agrp_index - 1));
+				if (bgrp) {
+					agrp->customCol = bgrp->customCol;
+					action_group_colors_sync(agrp, bgrp);
+				}
 			}
 		}
 	}
 }
  
 /* perform syncing updates for F-Curves */
-static void animchan_sync_fcurve(bAnimContext *UNUSED(ac), bAnimListElem *ale)
+static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **active_fcurve)
 {
 	FCurve *fcu = (FCurve *)ale->data;
 	ID *owner_id = ale->id;
@@ -168,12 +196,13 @@ static void animchan_sync_fcurve(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 	 */
 	if (ELEM3(NULL, fcu, fcu->rna_path, owner_id))
 		return;
-		
+	
 	if (GS(owner_id->name) == ID_OB) {
 		Object *ob = (Object *)owner_id;
 		
 		/* only affect if F-Curve involves pose.bones */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones")) {
+			bArmature *arm = (bArmature *)ob->data;
 			bPoseChannel *pchan;
 			char *bone_name;
 			
@@ -184,10 +213,30 @@ static void animchan_sync_fcurve(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 			
 			/* F-Curve selection depends on whether the bone is selected */
 			if ((pchan) && (pchan->bone)) {
+				/* F-Curve selection */
 				if (pchan->bone->flag & BONE_SELECTED)
 					fcu->flag |= FCURVE_SELECTED;
 				else
 					fcu->flag &= ~FCURVE_SELECTED;
+					
+				/* Active F-Curve - it should be the first one for this bone on the 
+				 * active object to be considered as active
+				 */
+				if ((ob == ac->obact) && (pchan->bone == arm->act_bone)) {
+					/* if no previous F-Curve has active flag, then we're the first and only one to get it */
+					if (*active_fcurve == NULL) {
+						fcu->flag |= FCURVE_ACTIVE;
+						*active_fcurve = fcu;
+					}
+					else {
+						/* someone else has already taken it - set as not active */
+						fcu->flag &= ~FCURVE_ACTIVE;
+					}
+				}
+				else {
+					/* this can't possibly be active now */
+					fcu->flag &= ~FCURVE_ACTIVE;
+				}
 			}
 		}
 	}
@@ -202,10 +251,10 @@ static void animchan_sync_fcurve(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 			
 			/* get strip name, and check if this strip is selected */
 			seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
-			seq = BKE_sequwnce_get_by_name(ed->seqbasep, seq_name, FALSE);
+			seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, FALSE);
 			if (seq_name) MEM_freeN(seq_name);
 			
-			/* can only add this F-Curve if it is selected */
+			/* update selection status */
 			if (seq) {
 				if (seq->flag & SELECT)
 					fcu->flag |= FCURVE_SELECTED;
@@ -227,12 +276,31 @@ static void animchan_sync_fcurve(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 			node = nodeFindNodebyName(ntree, node_name);
 			if (node_name) MEM_freeN(node_name);
 			
-			/* can only add this F-Curve if it is selected */
+			/* update selection/active status */
 			if (node) {
+				/* update selection status */
 				if (node->flag & NODE_SELECT)
 					fcu->flag |= FCURVE_SELECTED;
 				else
 					fcu->flag &= ~FCURVE_SELECTED;
+					
+				/* update active status */
+				/* XXX: this may interfere with setting bones as active if both exist at once;
+				 * then again, if that's the case, production setups aren't likely to be animating
+				 * nodes while working with bones?
+				 */
+				if (node->flag & NODE_ACTIVE) {
+					if (*active_fcurve == NULL) {
+						fcu->flag |= FCURVE_ACTIVE;
+						*active_fcurve = fcu;
+					}
+					else {
+						fcu->flag &= ~FCURVE_ACTIVE;
+					}
+				}
+				else {
+					fcu->flag &= ~FCURVE_ACTIVE;
+				}
 			}
 		}
 	}
@@ -248,25 +316,30 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
 	bAnimListElem *ale;
 	int filter;
 	
+	bActionGroup *active_agrp = NULL;
+	FCurve *active_fcurve = NULL;
+	
 	/* get animation context info for filtering the channels */
 	// TODO: check on whether we need to set the area specially instead, since active area might not be ok?
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
 	
 	/* filter data */
-	/* NOTE: we want all channels, since we want to be able to set selection status on some of them even when collapsed */
-	filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS;
+	/* NOTE: we want all channels, since we want to be able to set selection status on some of them even when collapsed 
+	 *       However, don't include duplicates so that selection statuses don't override each other
+	 */
+	filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS;
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* flush settings as appropriate depending on the types of the channels */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		switch (ale->type) {
 			case ANIMTYPE_GROUP:
-				animchan_sync_group(&ac, ale);
+				animchan_sync_group(&ac, ale, &active_agrp);
 				break;
 			
 			case ANIMTYPE_FCURVE:
-				animchan_sync_fcurve(&ac, ale);
+				animchan_sync_fcurve(&ac, ale, &active_fcurve);
 				break;
 		}
 	}

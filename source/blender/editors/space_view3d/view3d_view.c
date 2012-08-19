@@ -308,11 +308,11 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 
 		step_inv = 1.0f - step;
 
-		interp_v3_v3v3(rv3d->ofs,      sms->new_ofs,   sms->orig_ofs, step);
+		interp_v3_v3v3(rv3d->ofs,      sms->orig_ofs,  sms->new_ofs,  step);
 		interp_qt_qtqt(rv3d->viewquat, sms->orig_quat, sms->new_quat, step);
 		
 		rv3d->dist = sms->new_dist * step + sms->orig_dist * step_inv;
-		v3d->lens = sms->new_lens * step + sms->orig_lens * step_inv;
+		v3d->lens  = sms->new_lens * step + sms->orig_lens * step_inv;
 
 		ED_view3d_camera_lock_sync(v3d, rv3d);
 	}
@@ -1212,10 +1212,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 		rect.ymax = input->ymin + 12;
 	}
 	else {
-		rect.xmin = input->xmin;
-		rect.xmax = input->xmax;
-		rect.ymin = input->ymin;
-		rect.ymax = input->ymax;
+		BLI_rctf_rcti_copy(&rect, input);
 	}
 	
 	setwinmatrixview3d(ar, v3d, &rect);
@@ -1409,7 +1406,7 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 	}
 	else {
 		if (scene->obedit) {
-			BKE_object_minmax(scene->obedit, min, max);
+			BKE_object_minmax(scene->obedit, min, max, FALSE);
 			
 			ok = TRUE;
 		
@@ -1419,7 +1416,7 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 		else {
 			for (base = FIRSTBASE; base; base = base->next) {
 				if (TESTBASE(v3d, base)) {
-					BKE_object_minmax(base->object, min, max);
+					BKE_object_minmax(base->object, min, max, FALSE);
 					base->lay |= locallay;
 					base->object->lay = base->lay;
 					ok = TRUE;

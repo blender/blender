@@ -23,7 +23,7 @@
 #ifndef __BMESH_OPERATOR_API_H__
 #define __BMESH_OPERATOR_API_H__
 
-/** \file blender/bmesh/bmesh_operator_api.h
+/** \file blender/bmesh/intern/bmesh_operator_api.h
  *  \ingroup bmesh
  */
 

@@ -238,8 +238,8 @@ static void ui_item_size(uiItem *item, int *r_w, int *r_h)
 	if (item->type == ITEM_BUTTON) {
 		uiButtonItem *bitem = (uiButtonItem *)item;
 
-		if (r_w) *r_w = bitem->but->x2 - bitem->but->x1;
-		if (r_h) *r_h = bitem->but->y2 - bitem->but->y1;
+		if (r_w) *r_w = bitem->but->rect.xmax - bitem->but->rect.xmin;
+		if (r_h) *r_h = bitem->but->rect.ymax - bitem->but->rect.ymin;
 	}
 	else {
 		uiLayout *litem = (uiLayout *)item;
@@ -254,8 +254,8 @@ static void ui_item_offset(uiItem *item, int *r_x, int *r_y)
 	if (item->type == ITEM_BUTTON) {
 		uiButtonItem *bitem = (uiButtonItem *)item;
 
-		if (r_x) *r_x = bitem->but->x1;
-		if (r_y) *r_y = bitem->but->y1;
+		if (r_x) *r_x = bitem->but->rect.xmin;
+		if (r_y) *r_y = bitem->but->rect.ymin;
 	}
 	else {
 		if (r_x) *r_x = 0;
@@ -268,10 +268,10 @@ static void ui_item_position(uiItem *item, int x, int y, int w, int h)
 	if (item->type == ITEM_BUTTON) {
 		uiButtonItem *bitem = (uiButtonItem *)item;
 
-		bitem->but->x1 = x;
-		bitem->but->y1 = y;
-		bitem->but->x2 = x + w;
-		bitem->but->y2 = y + h;
+		bitem->but->rect.xmin = x;
+		bitem->but->rect.ymin = y;
+		bitem->but->rect.xmax = x + w;
+		bitem->but->rect.ymax = y + h;
 		
 		ui_check_but(bitem->but); /* for strlen */
 	}
@@ -1898,10 +1898,10 @@ static void ui_litem_layout_box(uiLayout *litem)
 
 	/* roundbox around the sublayout */
 	but = box->roundbox;
-	but->x1 = litem->x;
-	but->y1 = litem->y;
-	but->x2 = litem->x + litem->w;
-	but->y2 = litem->y + litem->h;
+	but->rect.xmin = litem->x;
+	but->rect.ymin = litem->y;
+	but->rect.xmax = litem->x + litem->w;
+	but->rect.ymax = litem->y + litem->h;
 }
 
 /* multi-column layout, automatically flowing to the next */
@@ -2749,7 +2749,7 @@ static void ui_intro_button(DynStr *ds, uiButtonItem *bitem)
 	uiBut *but = bitem->but;
 	BLI_dynstr_appendf(ds, "'type':%d, ", but->type); /* see ~ UI_interface.h:200 */
 	BLI_dynstr_appendf(ds, "'draw_string':'''%s''', ", but->drawstr);
-	BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : ""); // not exactly needed, rna has this
+	BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : "");  /* not exactly needed, rna has this */
 
 	if (but->optype) {
 		char *opstr = WM_operator_pystring(but->block->evil_C, but->optype, but->opptr, 0);
@@ -2811,7 +2811,7 @@ static void ui_intro_uiLayout(DynStr *ds, uiLayout *layout)
 	ui_intro_items(ds, &layout->items);
 }
 
-static char *str = NULL; // XXX, constant re-freeing, far from ideal.
+static char *str = NULL;  /* XXX, constant re-freeing, far from ideal. */
 const char *uiLayoutIntrospect(uiLayout *layout)
 {
 	DynStr *ds = BLI_dynstr_new();
@@ -2848,8 +2848,10 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op, i
 	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
 	 * just fails silently */
 	if (!WM_operator_repeat_check(C, op)) {
-		uiBlockSetButLock(uiLayoutGetBlock(layout), TRUE, "Operator cannot redo");
-		uiItemL(layout, IFACE_("* Redo Unsupported *"), ICON_NONE); // XXX, could give some nicer feedback or not show redo panel at all?
+		uiBlockSetButLock(uiLayoutGetBlock(layout), TRUE, "Operator can't' redo");
+
+		/* XXX, could give some nicer feedback or not show redo panel at all? */
+		uiItemL(layout, IFACE_("* Redo Unsupported *"), ICON_NONE);
 	}
 
 	/* menu */

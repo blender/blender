@@ -4318,7 +4318,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 					dir_factor = dir_dot * MIN2(speed_scale, 1.0f) * w_factor;
 					if (dir_factor > 0.5f) dir_factor = 0.5f;
 
-					/* mix new wetness*/
+					/* mix new wetness */
 					ePoint->wetness += dir_factor;
 					CLAMP(ePoint->wetness, 0.0f, MAX_WETNESS);
 

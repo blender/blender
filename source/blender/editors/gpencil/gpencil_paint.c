@@ -1667,14 +1667,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static int gpencil_area_exists(bContext *C, ScrArea *sa_test)
 {
 	bScreen *sc = CTX_wm_screen(C);
-	ScrArea *sa;
-	
-	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		if (sa == sa_test)
-			return 1;
-	}
-	
-	return 0;
+	return (BLI_findindex(&sc->areabase, sa_test) != -1);
 }
 
 static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)

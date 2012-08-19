@@ -170,8 +170,10 @@ typedef struct ImBuf {
 
 /*
  * The bit flag is stored in the ImBuf.ftype variable.
- * Note that the lower 10 bits is used for storing custom flags 
+ * Note that the lower 10 bits is used for storing custom flags
  */
+#define IB_CUSTOM_FLAGS_MASK 0x3ff
+
 #define PNG				(1 << 30)
 #define TGA				(1 << 28)
 #define JPG				(1 << 27)

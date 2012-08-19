@@ -797,7 +797,6 @@ float BM_loop_calc_face_angle(BMLoop *l)
  *
  * Calculate the normal at this loop corner or fallback to the face normal on straight lines.
  *
- * \param bm The BMesh
  * \param l The loop to calculate the normal at
  * \param r_normal Resulting normal
  */
@@ -821,7 +820,6 @@ void BM_loop_calc_face_normal(BMLoop *l, float r_normal[3])
  * Calculate the tangent at this loop corner or fallback to the face normal on straight lines.
  * This vector always points inward into the face.
  *
- * \param bm The BMesh
  * \param l The loop to calculate the tangent at
  * \param r_tangent Resulting tangent
  */
@@ -881,6 +879,7 @@ float BM_edge_calc_face_angle(BMEdge *e)
  * \param e
  * \param e_loop The loop to calculate the tangent at,
  * used to get the face and winding direction.
+ * \param r_tangent The loop corner tangent to set
  */
 
 void BM_edge_calc_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3])

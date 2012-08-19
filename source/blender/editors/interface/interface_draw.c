@@ -629,7 +629,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	}
 }
 
-#endif // WITH_INTERNATIONAL
+#endif /* WITH_INTERNATIONAL */
 #endif
 
 static void draw_scope_end(rctf *rect, GLint *scissor)

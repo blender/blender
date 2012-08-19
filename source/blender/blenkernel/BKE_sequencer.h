@@ -301,7 +301,7 @@ int  BKE_seqence_is_valid_check(struct Sequence *seq);
 
 void BKE_sequencer_clear_scene_in_allseqs(struct Main *bmain, struct Scene *sce);
 
-struct Sequence *BKE_sequwnce_get_by_name(struct ListBase *seqbase, const char *name, int recursive);
+struct Sequence *BKE_sequence_get_by_name(struct ListBase *seqbase, const char *name, int recursive);
 
 /* api for adding new sequence strips */
 typedef struct SeqLoadInfo {

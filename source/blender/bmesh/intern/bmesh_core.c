@@ -1946,7 +1946,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 }
 
 /**
- * High level function which wraps both #bm_vert_separate and #bm_edge_separate
+ * High level function which wraps both #bmesh_vert_separate and #bmesh_edge_separate
  */
 int BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
                      BMEdge **e_in, int e_in_len)

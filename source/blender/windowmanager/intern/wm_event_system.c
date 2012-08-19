@@ -2617,12 +2617,13 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 	wmNDOFMotionData *data = MEM_mallocN(sizeof(wmNDOFMotionData), "customdata NDOF");
 
 	const float s = U.ndof_sensitivity;
+	const float rs = U.ndof_orbit_sensitivity;
 
 	data->tx = s * ghost->tx;
 
-	data->rx = s * ghost->rx;
-	data->ry = s * ghost->ry;
-	data->rz = s * ghost->rz;
+	data->rx = rs * ghost->rx;
+	data->ry = rs * ghost->ry;
+	data->rz = rs * ghost->rz;
 
 	if (U.ndof_flag & NDOF_ZOOM_UPDOWN) {
 		/* rotate so Y is where Z was */

@@ -1869,7 +1869,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	
 	dm->deformedOnly = 1;
 	
-	/*don't add origindex layer if one already exists*/
+	/* don't add origindex layer if one already exists */
 	add_orig = !CustomData_has_layer(&bm->pdata, CD_ORIGINDEX);
 
 	mask = use_mdisps ? CD_MASK_DERIVEDMESH | CD_MASK_MDISPS : CD_MASK_DERIVEDMESH;
@@ -1886,7 +1886,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	CustomData_merge(&bm->pdata, &dm->polyData, mask,
 	                 CD_CALLOC, dm->numPolyData);
 	
-	/*add tessellation mface layers*/
+	/* add tessellation mface layers */
 	if (use_tessface) {
 		CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em->tottri);
 	}
@@ -2260,7 +2260,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 	newe = MEM_callocN(sizeof(int) * dm->numEdgeData, "newv etable CDDM_merge_verts");
 	newl = MEM_callocN(sizeof(int) * totloop, "newv ltable CDDM_merge_verts");
 	
-	/*fill newl with destination vertex indices*/
+	/* fill newl with destination vertex indices */
 	mv = cddm->mvert;
 	c = 0;
 	for (i = 0; i < dm->numVertData; i++, mv++) {
@@ -2271,14 +2271,14 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 		}
 	}
 	
-	/*now link target vertices to destination indices*/
+	/* now link target vertices to destination indices */
 	for (i = 0; i < dm->numVertData; i++) {
 		if (vtargetmap[i] != -1) {
 			newv[i] = newv[vtargetmap[i]];
 		}
 	}
 	
-	/*find-replace merged vertices with target vertices*/	
+	/* find-replace merged vertices with target vertices */
 	ml = cddm->mloop;
 	for (i = 0; i < totloop; i++, ml++) {
 		if (vtargetmap[ml->v] != -1) {
@@ -2286,7 +2286,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 		}
 	}
 
-	/*now go through and fix edges and faces*/
+	/* now go through and fix edges and faces */
 	med = cddm->medge;
 	c = 0;
 	for (i = 0; i < dm->numEdgeData; i++, med++) {

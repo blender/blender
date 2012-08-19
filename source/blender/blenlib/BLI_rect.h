@@ -69,7 +69,8 @@ int  BLI_rctf_isect(const struct rctf *src1, const struct rctf *src2, struct rct
 int  BLI_rcti_isect(const struct rcti *src1, const struct rcti *src2, struct rcti *dest);
 void BLI_rctf_union(struct rctf *rctf1, const struct rctf *rctf2);
 void BLI_rcti_union(struct rcti *rcti1, const struct rcti *rcti2);
-void BLI_rcti_rctf_copy(struct rcti *tar, const struct rctf *src);
+void BLI_rcti_rctf_copy(struct rcti *dst, const struct rctf *src);
+void BLI_rctf_rcti_copy(struct rctf *dst, const struct rcti *src);
 
 void print_rctf(const char *str, const struct rctf *rect);
 void print_rcti(const char *str, const struct rcti *rect);

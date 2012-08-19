@@ -1279,9 +1279,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			if (part->dup_group == NULL || part->dup_group->gobject.first == NULL)
 				return;
 
-			for (go = part->dup_group->gobject.first; go; go = go->next)
-				if (go->ob == par)
-					return;
+			if (BLI_findptr(&part->dup_group->gobject, par, offsetof(GroupObject, ob))) {
+				return;
+			}
 		}
 
 		/* if we have a hair particle system, use the path cache */

@@ -218,7 +218,7 @@ void ExecutionGroup::determineNumberOfChunks()
  */
 void ExecutionGroup::execute(ExecutionSystem *graph)
 {
-	CompositorContext& context = graph->getContext();
+	CompositorContext &context = graph->getContext();
 	const bNodeTree *bTree = context.getbNodeTree();
 	if (this->m_width == 0 || this->m_height == 0) {return; } /// @note: break out... no pixels to calculate.
 	if (bTree->test_break && bTree->test_break(bTree->tbh)) {return; } /// @note: early break out for blur and preview nodes

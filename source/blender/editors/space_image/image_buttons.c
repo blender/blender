@@ -274,7 +274,7 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
 	
 	/* while dragging we need to update the rects, otherwise it doesn't end with correct one */
 
-	BLI_rctf_init(&dispf, 15.0f, (block->maxx - block->minx) - 15.0f, 15.0f, (block->maxy - block->miny) - 15.0f);
+	BLI_rctf_init(&dispf, 15.0f, (block->rect.xmax - block->rect.xmin) - 15.0f, 15.0f, (block->rect.ymax - block->rect.ymin) - 15.0f);
 	ui_graphics_to_window_rct(sa->win, &dispf, disprect);
 	
 	/* correction for gla draw */

@@ -729,10 +729,7 @@ static int ui_editsource_uibut_match(uiBut *but_a, uiBut *but_b)
 	/* this just needs to be a 'good-enough' comparison so we can know beyond
 	 * reasonable doubt that these buttons are the same between redraws.
 	 * if this fails it only means edit-source fails - campbell */
-	if ((but_a->x1 == but_b->x1) &&
-	    (but_a->x2 == but_b->x2) &&
-	    (but_a->y1 == but_b->y1) &&
-	    (but_a->y2 == but_b->y2) &&
+	if (BLI_rctf_compare(&but_a->rect, &but_b->rect, FLT_EPSILON) &&
 	    (but_a->type == but_b->type) &&
 	    (but_a->rnaprop == but_b->rnaprop) &&
 	    (but_a->optype == but_b->optype) &&
@@ -1058,7 +1055,7 @@ void UI_buttons_operatortypes(void)
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);
-	WM_operatortype_append(UI_OT_reports_to_textblock); // XXX: temp?
+	WM_operatortype_append(UI_OT_reports_to_textblock);  /* XXX: temp? */
 
 #ifdef WITH_PYTHON
 	WM_operatortype_append(UI_OT_editsource);

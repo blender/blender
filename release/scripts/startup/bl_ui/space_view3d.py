@@ -2557,7 +2557,7 @@ class VIEW3D_PT_background_image(Panel):
                 if bg.source == 'IMAGE':
                     row = box.row()
                     row.template_ID(bg, "image", open="image.open")
-                    if (bg.image):
+                    if bg.image is not None:
                         box.template_image(bg, "image", bg.image_user, compact=True)
                         has_bg = True
 

@@ -48,11 +48,13 @@ int BLI_findstringindex(const struct ListBase *listbase, const char *id, const i
 void *BLI_findlink(const struct ListBase *listbase, int number);
 void *BLI_findstring(const struct ListBase *listbase, const char *id, const int offset);
 void *BLI_findstring_ptr(const struct ListBase *listbase, const char *id, const int offset);
+void *BLI_findptr(const struct ListBase *listbase, const void *ptr, const int offset);
 
 /* find backwards */
 void *BLI_rfindlink(const struct ListBase *listbase, int number);
 void *BLI_rfindstring(const struct ListBase *listbase, const char *id, const int offset);
 void *BLI_rfindstring_ptr(const struct ListBase *listbase, const char *id, const int offset);
+void *BLI_rfindptr(const struct ListBase *listbase, const void *ptr, const int offset);
 
 void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);

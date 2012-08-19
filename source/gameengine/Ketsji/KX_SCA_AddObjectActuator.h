@@ -27,7 +27,7 @@
 
 /** \file KX_SCA_AddObjectActuator.h
  *  \ingroup ketsji
- *  \attention Previously existed as: \source\gameengine\GameLogic\SCA_AddObjectActuator.h
+ *  \attention Previously existed as: source/gameengine/GameLogic/SCA_AddObjectActuator.h
  * Please look here for revision history.
  */
 

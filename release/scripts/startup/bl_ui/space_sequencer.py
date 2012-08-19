@@ -497,7 +497,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
             col = layout.column(align=True)
             col.prop(strip, "use_uniform_scale")
-            if (strip.use_uniform_scale):
+            if strip.use_uniform_scale:
                 col = layout.column(align=True)
                 col.prop(strip, "scale_start_x", text="Scale")
             else:

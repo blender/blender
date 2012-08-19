@@ -1036,20 +1036,6 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 			       ndof->tx, ndof->ty, ndof->tz, ndof->rx, ndof->ry, ndof->rz, ndof->dt);
 			#endif
 
-			if (ndof->tz) {
-				/* Zoom!
-				 * velocity should be proportional to the linear velocity attained by rotational motion of same strength
-				 * [got that?]
-				 * proportional to arclength = radius * angle
-				 */
-				float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
-
-				if (U.ndof_flag & NDOF_ZOOM_INVERT)
-					zoom_distance = -zoom_distance;
-
-				rv3d->dist += zoom_distance;
-			}
-
 			if (rv3d->viewlock == RV3D_LOCKED) {
 				/* rotation not allowed -- explore panning options instead */
 				float pan_vec[3] = {ndof->tx, ndof->ty, 0.0f};
@@ -1067,34 +1053,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 
 				rv3d->view = RV3D_VIEW_USER;
 
-				if (U.flag & USER_TRACKBALL) {
-					float rot[4];
-					float axis[3];
-					float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
-
-					if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
-						axis[2] = -axis[2];
-
-					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
-						axis[0] = -axis[0];
-
-					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
-						axis[1] = -axis[1];
-
-					/* transform rotation axis from view to world coordinates */
-					mul_qt_v3(view_inv, axis);
-
-					/* update the onscreen doo-dad */
-					rv3d->rot_angle = angle;
-					copy_v3_v3(rv3d->rot_axis, axis);
-
-					axis_angle_to_quat(rot, axis, angle);
-
-					/* apply rotation */
-					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
-				}
-				else {
+				if (U.ndof_flag & NDOF_TURNTABLE) {
 
 					/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
 					float angle, rot[4];
@@ -1126,6 +1085,33 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 					rot[1] = rot[2] = 0.0;
 					rot[3] = sin(angle);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+				}
+				else {
+					float rot[4];
+					float axis[3];
+					float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
+
+					if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
+						axis[2] = -axis[2];
+
+					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
+						axis[0] = -axis[0];
+
+					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
+						axis[1] = -axis[1];
+
+					/* transform rotation axis from view to world coordinates */
+					mul_qt_v3(view_inv, axis);
+
+					/* update the onscreen doo-dad */
+					rv3d->rot_angle = angle;
+					copy_v3_v3(rv3d->rot_axis, axis);
+
+					axis_angle_to_quat(rot, axis, angle);
+
+					/* apply rotation */
+					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
 				}
 			}
 		}
@@ -1241,6 +1227,159 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = ndof_pan_invoke;
+	ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+}
+
+
+/*
+* this is basically just the pan only code + the rotate only code crammed into one function that does both
+*/
+static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (event->type != NDOF_MOTION)
+		return OPERATOR_CANCELLED;
+	else {
+	
+		ViewOpsData *vod;
+		RegionView3D *rv3d;
+		
+		View3D *v3d = CTX_wm_view3d(C);
+		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
+
+		ED_view3d_camera_lock_init(v3d, rv3d);
+
+		viewops_data_create(C, op, event);
+		vod = op->customdata;
+		rv3d = vod->rv3d;
+		
+
+		if (ndof->progress != P_FINISHING) {
+
+			const float dt = ndof->dt;
+			float view_inv[4];
+
+			float speed = 10.f; /* blender units per second */
+			/* ^^ this is ok for default cube scene, but should scale with.. something */
+
+			/* tune these until everything feels right */
+			const float forward_sensitivity = 1.f;
+			const float vertical_sensitivity = 0.4f;
+			const float lateral_sensitivity = 0.6f;
+
+			float pan_vec[3];
+			const float rot_sensitivity = 1.f;
+			const float zoom_sensitivity = 1.f;
+			const float pan_sensitivity = 1.f;
+			float rot[4];
+			float axis[3];
+			float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
+
+			if (U.ndof_flag & NDOF_PANX_INVERT_AXIS)
+				pan_vec[0] = -lateral_sensitivity * ndof->tvec[0];
+			else
+				pan_vec[0] = lateral_sensitivity * ndof->tvec[0];
+
+			if (U.ndof_flag & NDOF_PANZ_INVERT_AXIS)
+				pan_vec[1] = -vertical_sensitivity * ndof->tvec[1];
+			else
+				pan_vec[1] = vertical_sensitivity * ndof->tvec[1];
+
+			if (U.ndof_flag & NDOF_PANY_INVERT_AXIS)
+				pan_vec[2] = -forward_sensitivity * ndof->tvec[2];
+			else
+				pan_vec[2] = forward_sensitivity * ndof->tvec[2];
+
+			mul_v3_fl(pan_vec, speed * dt);
+
+			/* transform motion from view to world coordinates */
+			invert_qt_qt(view_inv, rv3d->viewquat);
+			mul_qt_v3(view_inv, pan_vec);
+
+			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
+			sub_v3_v3(rv3d->ofs, pan_vec);
+
+			if (U.ndof_flag & NDOF_TURNTABLE) {
+				/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
+				float angle, rot[4];
+				float xvec[3] = {1, 0, 0};
+
+				/* Determine the direction of the x vector (for rotating up and down) */
+				mul_qt_v3(view_inv, xvec);
+
+				/* Perform the up/down rotation */
+				angle = rot_sensitivity * dt * ndof->rx;
+				if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
+					angle = -angle;
+				rot[0] = cos(angle);
+				mul_v3_v3fl(rot + 1, xvec, sin(angle));
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
+				/* Perform the orbital rotation */
+				angle = rot_sensitivity * dt * ndof->ry;
+				if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
+					angle = -angle;
+
+				/* update the onscreen doo-dad */
+				rv3d->rot_angle = angle;
+				rv3d->rot_axis[0] = 0;
+				rv3d->rot_axis[1] = 0;
+				rv3d->rot_axis[2] = 1;
+
+				rot[0] = cos(angle);
+				rot[1] = rot[2] = 0.0;
+				rot[3] = sin(angle);
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
+			}
+			else {
+
+				float rot[4];
+				float axis[3];
+				float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
+
+				if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
+					axis[2] = -axis[2];
+
+				if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
+					axis[0] = -axis[0];
+
+				if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
+					axis[1] = -axis[1];
+
+				/* transform rotation axis from view to world coordinates */
+				mul_qt_v3(view_inv, axis);
+
+				/* update the onscreen doo-dad */
+				rv3d->rot_angle = angle;
+				copy_v3_v3(rv3d->rot_axis, axis);
+
+				axis_angle_to_quat(rot, axis, angle);
+
+				/* apply rotation */
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
+			}
+		}
+		ED_view3d_camera_lock_sync(v3d, rv3d);
+
+		ED_region_tag_redraw(CTX_wm_region(C));
+		viewops_data_free(C, op);	
+		return OPERATOR_FINISHED;
+	}
+}
+
+void VIEW3D_OT_ndof_all(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "NDOF move View";
+	ot->description = "Position your viewpoint with the 3D mouse";
+	ot->idname = "VIEW3D_OT_ndof_all";
+
+	/* api callbacks */
+	ot->invoke = ndof_all_invoke;
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
@@ -2072,7 +2211,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 				continue;
 			}
 
-			BKE_object_minmax(base->object, min, max);
+			BKE_object_minmax(base->object, min, max, FALSE);
 		}
 	}
 	if (!onedone) {
@@ -2218,8 +2357,8 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 				}
 
 				/* account for duplis */
-				if (BKE_object_minmax_dupli(scene, base->object, min, max) == 0)
-					BKE_object_minmax(base->object, min, max);  /* use if duplis not found */
+				if (BKE_object_minmax_dupli(scene, base->object, min, max, FALSE) == 0)
+					BKE_object_minmax(base->object, min, max, FALSE);  /* use if duplis not found */
 
 				ok = 1;
 			}

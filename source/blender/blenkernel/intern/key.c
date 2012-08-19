@@ -1449,6 +1449,8 @@ KeyBlock *add_keyblock(Key *key, const char *name)
  * \note sorting is a problematic side effect in some cases,
  * better only do this explicitly by having its own function,
  *
+ * \param key The key datablock to add to.
+ * \param name Optional name for the new keyblock.
  * \param do_force always use ctime even for relative keys.
  */
 KeyBlock *add_keyblock_ctime(Key *key, const char *name, const short do_force)

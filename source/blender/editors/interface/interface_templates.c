@@ -1517,7 +1517,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	scopes->wavefrm_height = (scopes->wavefrm_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->wavefrm_height;
 
 	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin, scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
-	(void)bt; // UNUSED
+	(void)bt;  /* UNUSED */
 	
 	MEM_freeN(cb);
 }
@@ -2339,7 +2339,6 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *activeptr, const char *activepropname, const char *prop_list, int rows, int maxrows, int listtype)
 {
-	//Scene *scene = CTX_data_scene(C);
 	PropertyRNA *prop = NULL, *activeprop;
 	PropertyType type, activetype;
 	StructRNA *ptype;
@@ -2650,7 +2649,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiLayout *ui_abs;
 		
 		ui_abs = uiLayoutAbsolute(layout, FALSE);
-		(void)ui_abs; // UNUSED
+		(void)ui_abs;  /* UNUSED */
 		
 		uiDefIconBut(block, BUT, handle_event, ICON_PANEL_CLOSE, 
 		             0, UI_UNIT_Y * 0.1, UI_UNIT_X * 0.8, UI_UNIT_Y * 0.8, NULL, 0.0f, 0.0f, 0, 0, TIP_("Stop this job"));

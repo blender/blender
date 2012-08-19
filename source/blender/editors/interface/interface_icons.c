@@ -596,7 +596,7 @@ static void init_internal_icons(void)
 
 	IMB_freeImBuf(bbuf);
 }
-#endif // WITH_HEADLESS
+#endif  /* WITH_HEADLESS */
 
 static void init_iconfile_list(struct ListBase *list)
 {
