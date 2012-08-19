@@ -1462,7 +1462,8 @@ static void modifier_skin_customdata_ensure(Object *ob)
 		                          me->totvert);
 
 		/* Mark an arbitrary vertex as root */
-		vs->flag |= MVERT_SKIN_ROOT;
+		if (vs)
+			vs->flag |= MVERT_SKIN_ROOT;
 	}
 }
 
