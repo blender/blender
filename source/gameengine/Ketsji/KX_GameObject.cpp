@@ -1688,7 +1688,8 @@ PyObject* KX_GameObject::PyReplaceMesh(PyObject* args)
 
 PyObject* KX_GameObject::PyEndObject()
 {
-	KX_Scene *scene = KX_GetActiveScene();
+	SG_Node* node = this->GetSGNode();
+	KX_Scene* scene = static_cast<KX_Scene*>(node->GetSGClientInfo());
 	
 	scene->DelayedRemoveObject(this);
 	
