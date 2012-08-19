@@ -129,7 +129,9 @@ void register_node_type_cmp_invert(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_invert_in, cmp_node_invert_out);
 	node_type_size(&ntype, 120, 120, 140);
 	node_type_init(&ntype, node_composit_init_invert);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_invert);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

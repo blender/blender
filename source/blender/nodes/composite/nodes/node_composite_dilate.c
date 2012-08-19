@@ -161,7 +161,9 @@ void register_node_type_cmp_dilateerode(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_dilateerode_in, cmp_node_dilateerode_out);
 	node_type_size(&ntype, 130, 100, 320);
 	node_type_init(&ntype, node_composit_init_dilateerode);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_dilateerode);
+#endif
 	
 	node_type_storage(&ntype, "NodeDilateErode", node_free_standard_storage, node_copy_standard_storage);
 

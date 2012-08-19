@@ -169,7 +169,9 @@ void register_node_type_cmp_mapuv(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_MAP_UV, "Map UV", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_mapuv_in, cmp_node_mapuv_out);
 	node_type_size(&ntype, 140, 100, 320);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_mapuv);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

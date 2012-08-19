@@ -323,7 +323,9 @@ void register_node_type_cmp_view_levels(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_view_levels);
 	node_type_storage(&ntype, "ImageUser", NULL, NULL);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_view_levels);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

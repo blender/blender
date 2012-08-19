@@ -120,7 +120,9 @@ void register_node_type_cmp_crop(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_crop);
 	node_type_storage(&ntype, "NodeTwoXYs", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_crop);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

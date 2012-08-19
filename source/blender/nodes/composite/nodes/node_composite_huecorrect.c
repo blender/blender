@@ -160,7 +160,9 @@ void register_node_type_cmp_huecorrect(bNodeTreeType *ttype)
 	node_type_size(&ntype, 320, 140, 400);
 	node_type_init(&ntype, node_composit_init_huecorrect);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_huecorrect);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

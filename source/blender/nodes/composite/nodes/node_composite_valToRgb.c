@@ -92,7 +92,9 @@ void register_node_type_cmp_valtorgb(bNodeTreeType *ttype)
 	node_type_size(&ntype, 240, 200, 300);
 	node_type_init(&ntype, node_composit_init_valtorgb);
 	node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_valtorgb);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }
@@ -144,7 +146,9 @@ void register_node_type_cmp_rgbtobw(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_rgbtobw_in, cmp_node_rgbtobw_out);
 	node_type_size(&ntype, 80, 40, 120);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_rgbtobw);
+#endif
 	
 	nodeRegisterType(ttype, &ntype);
 }

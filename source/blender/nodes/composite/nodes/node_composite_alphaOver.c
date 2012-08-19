@@ -29,7 +29,6 @@
  *  \ingroup cmpnodes
  */
 
-
 #include "node_composite_util.h"
 
 /* **************** ALPHAOVER ******************** */
@@ -109,8 +108,6 @@ static void do_alphaover_mixed(bNode *node, float *out, float *src, float *over,
 }
 
 
-
-
 static void node_composit_exec_alphaover(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: col col */
@@ -153,7 +150,8 @@ void register_node_type_cmp_alphaover(bNodeTreeType *ttype)
 	node_type_size(&ntype, 80, 40, 120);
 	node_type_init(&ntype, node_alphaover_init);
 	node_type_storage(&ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_alphaover);
-
+#endif
 	nodeRegisterType(ttype, &ntype);
 }

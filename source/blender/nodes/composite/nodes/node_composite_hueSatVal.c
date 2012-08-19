@@ -111,7 +111,9 @@ void register_node_type_cmp_hue_sat(bNodeTreeType *ttype)
 	node_type_size(&ntype, 150, 80, 250);
 	node_type_init(&ntype, node_composit_init_hue_sat);
 	node_type_storage(&ntype, "NodeHueSat", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_hue_sat);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

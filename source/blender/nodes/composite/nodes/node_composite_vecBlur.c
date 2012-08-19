@@ -103,7 +103,9 @@ void register_node_type_cmp_vecblur(bNodeTreeType *ttype)
 	node_type_size(&ntype, 120, 80, 200);
 	node_type_init(&ntype, node_composit_init_vecblur);
 	node_type_storage(&ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_vecblur);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -192,7 +192,9 @@ void register_node_type_cmp_colorbalance(bNodeTreeType *ttype)
 	node_type_size(&ntype, 400, 200, 400);
 	node_type_init(&ntype, node_composit_init_colorbalance);
 	node_type_storage(&ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_colorbalance);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

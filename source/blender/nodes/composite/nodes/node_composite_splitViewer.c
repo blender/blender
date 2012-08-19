@@ -158,7 +158,9 @@ void register_node_type_cmp_splitviewer(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_splitviewer);
 	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_splitviewer);
+#endif
 	/* Do not allow muting for this node. */
 	node_type_internal_connect(&ntype, NULL);
 

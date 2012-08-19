@@ -1278,7 +1278,9 @@ void register_node_type_cmp_doubleedgemask(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);
 	node_type_size(&ntype, 210, 210, 210);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_doubleedgemask);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

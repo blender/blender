@@ -134,7 +134,9 @@ void register_node_type_cmp_rotate(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_rotate_in, cmp_node_rotate_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_rotate);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_rotate);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

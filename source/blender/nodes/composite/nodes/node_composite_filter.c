@@ -228,7 +228,9 @@ void register_node_type_cmp_filter(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_filter_in, cmp_node_filter_out);
 	node_type_size(&ntype, 80, 40, 120);
 	node_type_label(&ntype, node_filter_label);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_filter);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

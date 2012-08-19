@@ -203,7 +203,9 @@ void register_node_type_cmp_math(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_math_in, cmp_node_math_out);
 	node_type_size(&ntype, 120, 110, 160);
 	node_type_label(&ntype, node_math_label);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_math);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

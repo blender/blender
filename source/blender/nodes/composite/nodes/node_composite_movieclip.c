@@ -155,7 +155,9 @@ void register_node_type_cmp_movieclip(bNodeTreeType *ttype)
 	node_type_size(&ntype, 120, 80, 300);
 	node_type_init(&ntype, init);
 	node_type_storage(&ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_movieclip);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

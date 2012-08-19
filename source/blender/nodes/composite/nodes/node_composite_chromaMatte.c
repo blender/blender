@@ -192,7 +192,9 @@ void register_node_type_cmp_chroma_matte(bNodeTreeType *ttype)
 	node_type_size(&ntype, 200, 80, 300);
 	node_type_init(&ntype, node_composit_init_chroma_matte);
 	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_chroma_matte);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

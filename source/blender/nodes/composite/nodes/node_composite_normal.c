@@ -99,7 +99,9 @@ void register_node_type_cmp_normal(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_normal_in, cmp_node_normal_out);
 	node_type_init(&ntype, init);
 	node_type_size(&ntype, 100, 60, 200);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_normal);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

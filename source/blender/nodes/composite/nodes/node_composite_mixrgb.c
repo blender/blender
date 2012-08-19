@@ -90,7 +90,9 @@ void register_node_type_cmp_mix_rgb(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_mix_rgb_in, cmp_node_mix_rgb_out);
 	node_type_size(&ntype, 110, 60, 120);
 	node_type_label(&ntype, node_blend_label);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_mix_rgb);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

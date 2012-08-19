@@ -91,7 +91,9 @@ void register_node_type_cmp_map_value(bNodeTreeType *ttype)
 	node_type_size(&ntype, 100, 60, 150);
 	node_type_init(&ntype, node_composit_init_map_value);
 	node_type_storage(&ntype, "TexMapping", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_map_value);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }
