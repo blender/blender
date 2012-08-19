@@ -79,6 +79,7 @@ void VIEW3D_OT_move(struct wmOperatorType *ot);
 void VIEW3D_OT_rotate(struct wmOperatorType *ot);
 void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot);
 void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot);
+void VIEW3D_OT_ndof_all(struct wmOperatorType *ot);
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);

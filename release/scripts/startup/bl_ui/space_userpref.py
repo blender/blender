@@ -858,6 +858,7 @@ class USERPREF_MT_ndof_settings(Menu):
 
         layout.separator()
         layout.prop(input_prefs, "ndof_sensitivity")
+        layout.prop(input_prefs, "ndof_orbit_sensitivity")
 
         if context.space_data.type == 'VIEW_3D':
             layout.separator()
@@ -865,11 +866,10 @@ class USERPREF_MT_ndof_settings(Menu):
 
             layout.separator()
             layout.label(text="Orbit options")
-            if input_prefs.view_rotate_method == 'TRACKBALL':
-                layout.prop(input_prefs, "ndof_roll_invert_axis")
+            layout.prop(input_prefs, "ndof_turntable")
+            layout.prop(input_prefs, "ndof_roll_invert_axis")
             layout.prop(input_prefs, "ndof_tilt_invert_axis")
             layout.prop(input_prefs, "ndof_rotate_invert_axis")
-            layout.prop(input_prefs, "ndof_zoom_invert")
 
             layout.separator()
             layout.label(text="Pan options")
@@ -878,6 +878,7 @@ class USERPREF_MT_ndof_settings(Menu):
             layout.prop(input_prefs, "ndof_panz_invert_axis")
 
             layout.label(text="Zoom options")
+            layout.prop(input_prefs, "ndof_zoom_invert")
             layout.prop(input_prefs, "ndof_zoom_updown")
 
             layout.separator()

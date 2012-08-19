@@ -414,6 +414,8 @@ typedef struct UserDef {
 	short use_16bit_textures, use_gpu_mipmap;
 
 	float ndof_sensitivity;	/* overall sensitivity of 3D mouse */
+	float ndof_orbit_sensitivity;
+	float pad4;
 	int ndof_flag;			/* flags for 3D mouse */
 
 	float glalphaclip;
@@ -649,6 +651,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define NDOF_PANX_INVERT_AXIS (1 << 12)
 #define NDOF_PANY_INVERT_AXIS (1 << 13)
 #define NDOF_PANZ_INVERT_AXIS (1 << 14)
+#define NDOF_TURNTABLE (1 << 15)
 
 /* compute_device_type */
 #define USER_COMPUTE_DEVICE_NONE	0

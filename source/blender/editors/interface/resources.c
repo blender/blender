@@ -1967,6 +1967,10 @@ void init_userdef_do_versions(void)
 		U.ndof_flag = NDOF_LOCK_HORIZON |
 		              NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE;
 	}
+	
+	if (U.ndof_orbit_sensitivity == 0.0f) {
+		U.ndof_orbit_sensitivity = 1.0f;
+	}
 	if (U.tweak_threshold == 0)
 		U.tweak_threshold = 10;
 
