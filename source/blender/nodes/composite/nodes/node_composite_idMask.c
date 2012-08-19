@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_idmask_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* stackbuf should be zeroed */
 static void do_idmask(CompBuf *stackbuf, CompBuf *cbuf, float idnr)
 {
@@ -106,6 +108,7 @@ static void node_composit_exec_idmask(void *data, bNode *node, bNodeStack **in, 
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_idmask(bNodeTreeType *ttype)
 {

@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_scale_out[] = {
 	{   -1, 0, ""   }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* only supports RGBA nodes now */
 /* node->custom1 stores if input values are absolute or relative scale */
 static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
@@ -181,6 +183,8 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 		out[0]->data = stackbuf;
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_scale(bNodeTreeType *ttype)
 {

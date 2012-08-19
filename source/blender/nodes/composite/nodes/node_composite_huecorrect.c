@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_huecorrect_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_huecorrect(bNode *node, float *out, float *in)
 {
 	float hsv[3], f;
@@ -134,6 +136,8 @@ static void node_composit_exec_huecorrect(void *UNUSED(data), bNode *node, bNode
 	}
 	
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

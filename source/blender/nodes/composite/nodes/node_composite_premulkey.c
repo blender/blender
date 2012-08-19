@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_premulkey_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_premulkey(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if (out[0]->hasoutput==0)
@@ -60,6 +62,8 @@ static void node_composit_exec_premulkey(void *UNUSED(data), bNode *node, bNodeS
 			free_compbuf(cbuf);
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_premulkey(bNodeTreeType *ttype)
 {

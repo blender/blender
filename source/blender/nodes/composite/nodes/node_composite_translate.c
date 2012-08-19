@@ -46,6 +46,8 @@ static bNodeSocketTemplate cmp_node_translate_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_translate(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, bNodeStack **out)
 {
 	if (in[0]->data) {
@@ -58,6 +60,8 @@ static void node_composit_exec_translate(void *UNUSED(data), bNode *UNUSED(node)
 		out[0]->data= stackbuf;
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_translate(bNodeTreeType *ttype)
 {

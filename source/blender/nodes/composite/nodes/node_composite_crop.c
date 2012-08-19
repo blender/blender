@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_crop_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if (in[0]->data) {
@@ -100,6 +102,8 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 		out[0]->data= stackbuf;
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

@@ -49,6 +49,8 @@ static void node_composit_init_value(bNodeTree *UNUSED(ntree), bNode *node, bNod
 	dval->max = FLT_MAX;
 }
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_value(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	bNodeSocket *sock= node->outputs.first;
@@ -56,6 +58,8 @@ static void node_composit_exec_value(void *UNUSED(data), bNode *node, bNodeStack
 	
 	out[0]->vec[0]= val;
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_value(bNodeTreeType *ttype)
 {

@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_alphaover_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_alphaover_premul(bNode *UNUSED(node), float *out, float *src, float *over, float *fac)
 {
 	
@@ -135,6 +137,8 @@ static void node_composit_exec_alphaover(void *UNUSED(data), bNode *node, bNodeS
 		out[0]->data= stackbuf;
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_alphaover_init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

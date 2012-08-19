@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_invert_out[]= {
 	{ -1, 0, "" } 
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_invert(bNode *node, float *out, float *in)
 {
 	if (node->custom1 & CMP_CHAN_RGB) {
@@ -114,6 +116,8 @@ static void node_composit_exec_invert(void *UNUSED(data), bNode *node, bNodeStac
 		}
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

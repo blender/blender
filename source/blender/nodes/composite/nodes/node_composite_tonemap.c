@@ -41,6 +41,7 @@ static bNodeSocketTemplate cmp_node_tonemap_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static float avgLogLum(CompBuf *src, float* auto_key, float* Lav, float* Cav)
 {
@@ -145,6 +146,8 @@ static void node_composit_exec_tonemap(void *UNUSED(data), bNode *node, bNodeSta
 	if (img!=in[0]->data)
 		free_compbuf(img);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_tonemap(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_math_out[]= {
 	{ -1, 0, "" } 
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_math(bNode *node, float *out, float *in, float *in2)
 {
 	switch (node->custom1) {
@@ -194,6 +196,8 @@ static void node_composit_exec_math(void *UNUSED(data), bNode *node, bNodeStack 
 	composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_math, CB_VAL, CB_VAL);
 	out[0]->data= stackbuf;
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_math(bNodeTreeType *ttype)
 {

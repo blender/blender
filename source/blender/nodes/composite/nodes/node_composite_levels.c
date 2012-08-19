@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_view_levels_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void fill_bins(bNode* node, CompBuf* in, int* bins)
 {
 	float value[4];
@@ -308,6 +310,8 @@ static void node_composit_exec_view_levels(void *data, bNode *node, bNodeStack *
 		free_compbuf(cbuf);
 	free_compbuf(histogram);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_view_levels(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

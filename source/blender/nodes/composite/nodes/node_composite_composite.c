@@ -29,10 +29,7 @@
  *  \ingroup cmpnodes
  */
 
-
 #include "node_composite_util.h"
-
-
 
 /* **************** COMPOSITE ******************** */
 static bNodeSocketTemplate cmp_node_composite_in[]= {
@@ -41,6 +38,8 @@ static bNodeSocketTemplate cmp_node_composite_in[]= {
 	{	SOCK_FLOAT, 1, N_("Z"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 /* applies to render pipeline */
 static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
@@ -96,6 +95,8 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 	if (in[0]->data)
 		generate_preview(data, node, in[0]->data);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_composite(bNodeTreeType *ttype)
 {

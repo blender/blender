@@ -47,6 +47,8 @@ static bNodeSocketTemplate cmp_node_brightcontrast_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_brightnesscontrast(bNode *UNUSED(node), float *out, float *in, float *in_brightness, float *in_contrast)
 {
 	float i;
@@ -91,6 +93,8 @@ static void node_composit_exec_brightcontrast(void *UNUSED(data), bNode *node, b
 			free_compbuf(cbuf);
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_brightcontrast(bNodeTreeType *ttype)
 {

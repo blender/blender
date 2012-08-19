@@ -48,6 +48,8 @@ static bNodeSocketTemplate cmp_node_transform_out[] = {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, float scale, int filter_type)
 {
 	CompBuf *stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, TRUE);
@@ -126,6 +128,8 @@ static void node_composit_exec_transform(void *UNUSED(data), bNode *node, bNodeS
 			free_compbuf(cbuf);
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_transform(bNodeTreeType *ttype)
 {

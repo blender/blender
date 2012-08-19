@@ -41,6 +41,7 @@ static bNodeSocketTemplate cmp_node_viewer_in[] = {
 	{   -1, 0, ""   }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
@@ -121,6 +122,8 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		generate_preview(data, node, in[0]->data);
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {

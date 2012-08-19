@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_flip_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_flip(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if (in[0]->data) {
@@ -87,6 +89,8 @@ static void node_composit_exec_flip(void *UNUSED(data), bNode *node, bNodeStack 
 
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_flip(bNodeTreeType *ttype)
 {

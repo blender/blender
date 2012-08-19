@@ -46,6 +46,8 @@ static bNodeSocketTemplate cmp_node_colorbalance_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* this function implements ASC-CDL according to the spec at http://www.asctech.org/
  Slope
        S = in * slope
@@ -173,6 +175,8 @@ static void node_composit_exec_colorbalance(void *UNUSED(data), bNode *node, bNo
 		out[0]->data=stackbuf;
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

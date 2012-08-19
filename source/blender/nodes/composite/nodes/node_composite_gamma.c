@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_gamma_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_gamma(bNode *UNUSED(node), float *out, float *in, float *fac)
 {
 	int i=0;
@@ -74,6 +76,8 @@ static void node_composit_exec_gamma(void *UNUSED(data), bNode *node, bNodeStack
 		out[0]->data= stackbuf;
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_gamma(bNodeTreeType *ttype)
 {

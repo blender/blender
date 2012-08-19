@@ -41,6 +41,7 @@ static bNodeSocketTemplate cmp_node_glare_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
 
 // mix two images, src buffer does not have to be same size,
 static void mixImages(CompBuf *dst, CompBuf *src, float mix)
@@ -473,6 +474,8 @@ static void node_composit_exec_glare(void *UNUSED(data), bNode *node, bNodeStack
 	free_compbuf(src);
 	out[0]->data = new;
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

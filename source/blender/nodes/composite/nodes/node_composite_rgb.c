@@ -39,6 +39,18 @@ static bNodeSocketTemplate cmp_node_rgb_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
+static void node_composit_exec_rgb(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
+{
+	bNodeSocket *sock= node->outputs.first;
+	float *col= ((bNodeSocketValueRGBA*)sock->default_value)->value;
+	
+	copy_v4_v4(out[0]->vec, col);
+}
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_rgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	bNodeSocket *sock= node->outputs.first;
@@ -48,14 +60,6 @@ static void node_composit_init_rgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeT
 	col[1] = 0.5f;
 	col[2] = 0.5f;
 	col[3] = 1.0f;
-}
-
-static void node_composit_exec_rgb(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	float *col= ((bNodeSocketValueRGBA*)sock->default_value)->value;
-	
-	copy_v4_v4(out[0]->vec, col);
 }
 
 void register_node_type_cmp_rgb(bNodeTreeType *ttype)

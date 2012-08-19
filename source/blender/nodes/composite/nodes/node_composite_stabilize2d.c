@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_stabilize2d_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_stabilize2d(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if (in[0]->data && node->id) {
@@ -66,6 +68,8 @@ static void node_composit_exec_stabilize2d(void *data, bNode *node, bNodeStack *
 			free_compbuf(cbuf);
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_stabilize2d(bNodeTreeType *ttype)
 {

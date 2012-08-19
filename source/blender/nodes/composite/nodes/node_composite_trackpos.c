@@ -39,9 +39,14 @@ static bNodeSocketTemplate cmp_node_trackpos_out[] = {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_trackpos(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
+	/* pass */
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {

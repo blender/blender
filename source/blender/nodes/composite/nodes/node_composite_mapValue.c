@@ -42,6 +42,8 @@ static bNodeSocketTemplate cmp_node_map_value_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_map_value(bNode *node, float *out, float *src)
 {
 	TexMapping *texmap= node->storage;
@@ -76,6 +78,7 @@ static void node_composit_exec_map_value(void *UNUSED(data), bNode *node, bNodeS
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_map_value(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

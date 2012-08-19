@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_luma_matte_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_luma_matte(bNode *node, float *out, float *in)
 {
 	NodeChroma *c=(NodeChroma *)node->storage;
@@ -95,6 +97,8 @@ static void node_composit_exec_luma_matte(void *data, bNode *node, bNodeStack **
 	if (cbuf!=in[0]->data)
 		free_compbuf(cbuf);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_luma_matte(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

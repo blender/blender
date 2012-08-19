@@ -47,6 +47,8 @@ static bNodeSocketTemplate cmp_node_displace_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* minimum distance (in pixels) a pixel has to be displaced
  * in order to take effect */
 #define DISPLACE_EPSILON	0.01f
@@ -181,6 +183,8 @@ static void node_composit_exec_displace(void *UNUSED(data), bNode *node, bNodeSt
 			free_compbuf(vecbuf);
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_displace(bNodeTreeType *ttype)
 {

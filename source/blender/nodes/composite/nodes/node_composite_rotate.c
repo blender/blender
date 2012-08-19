@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_rotate_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* only supports RGBA nodes now */
 static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
@@ -120,6 +122,8 @@ static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStac
 		}
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

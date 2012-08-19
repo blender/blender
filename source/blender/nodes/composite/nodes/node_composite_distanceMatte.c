@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_distance_matte_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* note, keyvals is passed on from caller as stack array */
 /* might have been nicer as temp struct though... */
 static void do_distance_matte(bNode *node, float *out, float *in)
@@ -181,6 +183,8 @@ static void node_composit_exec_distance_matte(void *data, bNode *node, bNodeStac
 	if (inbuf!=in[0]->data)
 		free_compbuf(inbuf);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_distance_matte(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

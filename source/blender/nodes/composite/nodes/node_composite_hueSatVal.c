@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_hue_sat_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_hue_sat_fac(bNode *node, float *out, float *in, float *fac)
 {
 	NodeHueSat *nhs= node->storage;
@@ -92,6 +94,8 @@ static void node_composit_exec_hue_sat(void *UNUSED(data), bNode *node, bNodeSta
 			free_compbuf(cbuf);
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_hue_sat(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

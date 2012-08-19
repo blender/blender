@@ -322,6 +322,8 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 	return rect;
 }
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* note: this function is used for multilayer too, to ensure uniform 
  * handling with BKE_image_get_ibuf() */
 static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *iuser)
@@ -519,6 +521,8 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 	}	
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_image(bNodeTree *ntree, bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
@@ -572,6 +576,8 @@ void register_node_type_cmp_image(bNodeTreeType *ttype)
 
 
 /* **************** RENDER RESULT ******************** */
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, int recty, int passcode)
 {
@@ -655,8 +661,6 @@ static void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStac
 		out[RRES_OUT_TRANSM_COLOR]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_TRANSM_COLOR);
 }
 
-
-
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	Scene *sce= (Scene *)node->id;
@@ -705,6 +709,8 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNU
 	if (re)
 		RE_ReleaseResult(re);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_rlayers(bNodeTreeType *ttype)
 {

@@ -42,6 +42,8 @@ static bNodeSocketTemplate cmp_node_dblur_out[] = {
 	{   -1, 0, ""       }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
                       float center_x, float center_y, float dist, float angle, float spin, float zoom)
 {
@@ -121,6 +123,8 @@ static void node_composit_exec_dblur(void *UNUSED(data), bNode *node, bNodeStack
 	
 	out[0]->data = dblur(node, new, ndbd->iter, ndbd->wrap, ndbd->center_x, ndbd->center_y, ndbd->distance, ndbd->angle, ndbd->spin, ndbd->zoom);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {

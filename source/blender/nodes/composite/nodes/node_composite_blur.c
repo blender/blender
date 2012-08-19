@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_blur_out[] = {
 	{   -1, 0, ""   }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static float *make_gausstab(int filtertype, int rad)
 {
 	float *gausstab, sum, val;
@@ -719,6 +721,8 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 
 	generate_preview(data, node, out[0]->data);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_blur(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {

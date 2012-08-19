@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_seprgba_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_seprgba(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, bNodeStack **out)
 {
 	/* stack order out: bw channels */
@@ -77,6 +79,8 @@ static void node_composit_exec_seprgba(void *UNUSED(data), bNode *UNUSED(node), 
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_seprgba(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -105,6 +109,8 @@ static bNodeSocketTemplate cmp_node_combrgba_out[]= {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static void do_combrgba(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
@@ -146,6 +152,8 @@ static void node_composit_exec_combrgba(void *UNUSED(data), bNode *node, bNodeSt
 		out[0]->data= stackbuf;
 	}	
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_combrgba(bNodeTreeType *ttype)
 {

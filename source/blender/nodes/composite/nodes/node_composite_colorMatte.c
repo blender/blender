@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_color_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_color_key(bNode *node, float *out, float *in)
 {
 	float h_wrap;
@@ -111,6 +113,8 @@ static void node_composit_exec_color_matte(void *data, bNode *node, bNodeStack *
 	if (cbuf!=in[0]->data)
 		free_compbuf(cbuf);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_color_matte(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

@@ -42,6 +42,8 @@ static bNodeSocketTemplate cmp_node_movieclip_out[] = {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, MovieClipUser *user)
 {
 	ImBuf *orig_ibuf, *ibuf;
@@ -137,6 +139,8 @@ static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **U
 		}
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {

@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_valtorgb_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_colorband_composit(bNode *node, float *out, float *in)
 {
 	do_colorband(node->storage, in[0], out);
@@ -78,6 +80,8 @@ static void node_composit_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeSt
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= add_colorband(1);
@@ -111,6 +115,8 @@ static bNodeSocketTemplate cmp_node_rgbtobw_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_rgbtobw(bNode *UNUSED(node), float *out, float *in)
 {
 	out[0] = rgb_to_bw(in);
@@ -138,6 +144,8 @@ static void node_composit_exec_rgbtobw(void *UNUSED(data), bNode *node, bNodeSta
 		out[0]->data= stackbuf;
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_rgbtobw(bNodeTreeType *ttype)
 {

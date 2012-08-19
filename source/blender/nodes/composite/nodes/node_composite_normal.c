@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_normal_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_normal(bNode *node, float *out, float *in)
 {
 	bNodeSocket *sock= node->outputs.first;
@@ -77,9 +79,9 @@ static void node_composit_exec_normal(void *UNUSED(data), bNode *node, bNodeStac
 		
 		out[1]->data= stackbuf;
 	}
-	
-	
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {

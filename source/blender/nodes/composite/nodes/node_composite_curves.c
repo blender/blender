@@ -41,6 +41,8 @@ static bNodeSocketTemplate cmp_node_time_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	RenderData *rd= data;
@@ -54,6 +56,7 @@ static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack *
 	out[0]->vec[0]= CLAMPIS(fac, 0.0f, 1.0f);
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_curves_time(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
@@ -91,6 +94,8 @@ static bNodeSocketTemplate cmp_node_curve_vec_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order input:  vec */
@@ -98,6 +103,8 @@ static void node_composit_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeS
 	
 	curvemapping_evaluate_premulRGBF(node->storage, out[0]->vec, in[0]->vec);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_curve_vec(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
@@ -134,6 +141,8 @@ static bNodeSocketTemplate cmp_node_curve_rgb_out[]= {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static void do_curves(bNode *node, float *out, float *in)
 {
@@ -187,6 +196,8 @@ static void node_composit_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeS
 	}
 	
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

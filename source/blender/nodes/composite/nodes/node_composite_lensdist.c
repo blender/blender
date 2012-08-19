@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_lensdist_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* assumes *dst is type RGBA */
 static void lensDistort(CompBuf *dst, CompBuf *src, float kr, float kg, float kb, int jit, int proj, int fit)
 {
@@ -182,6 +184,7 @@ static void node_composit_exec_lensdist(void *UNUSED(data), bNode *node, bNodeSt
 	out[0]->data = new;
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

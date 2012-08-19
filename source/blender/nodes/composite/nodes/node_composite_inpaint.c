@@ -44,9 +44,14 @@ static bNodeSocketTemplate cmp_node_inpaint_out[] = {
 	{   -1, 0, ""   }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_inpaint(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
+	/* pass */
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_inpaint(bNodeTreeType *ttype)
 {

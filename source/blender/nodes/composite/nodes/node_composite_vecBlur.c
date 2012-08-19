@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_vecblur_out[] = {
 	{   -1, 0, ""   }
 };
 
-
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static void node_composit_exec_vecblur(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
@@ -84,6 +84,8 @@ static void node_composit_exec_vecblur(void *UNUSED(data), bNode *node, bNodeSta
 	if (img != in[0]->data)
 		free_compbuf(img);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {

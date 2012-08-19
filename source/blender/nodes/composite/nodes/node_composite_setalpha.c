@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_setalpha_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_setalpha(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order out: RGBA image */
@@ -72,6 +74,9 @@ static void node_composit_exec_setalpha(void *UNUSED(data), bNode *node, bNodeSt
 		out[0]->data= stackbuf;
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 
 void register_node_type_cmp_setalpha(bNodeTreeType *ttype)
 {

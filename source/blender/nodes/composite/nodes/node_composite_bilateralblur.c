@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_bilateralblur_out[] = {
 	{ -1, 0, "" } 
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 #define INIT_C3                                                               \
     mean0 = 1;                                                                \
     mean1[0] = src[0];                                                        \
@@ -253,6 +255,8 @@ static void node_composit_exec_bilateralblur(void *UNUSED(data), bNode *node, bN
 
 	free_compbuf(new);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_bilateralblur(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {

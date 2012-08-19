@@ -47,6 +47,8 @@ static bNodeSocketTemplate cmp_node_color_spill_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_simple_spillmap_red(bNode *node, float* out, float *in)
 {
 	NodeColorspill *ncs;
@@ -314,6 +316,8 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 
 	free_compbuf(spillmap);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

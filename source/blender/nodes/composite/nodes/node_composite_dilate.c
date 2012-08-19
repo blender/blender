@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_dilateerode_out[] = {
 	{   -1, 0, ""   }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void morpho_dilate(CompBuf *cbuf)
 {
 	int x, y;
@@ -145,6 +147,8 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 		out[0]->data = stackbuf;
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_dilateerode(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

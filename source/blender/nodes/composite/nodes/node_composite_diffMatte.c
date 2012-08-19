@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_diff_matte_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *inColor2)
 {
 	NodeChroma *c= (NodeChroma *)node->storage;
@@ -125,6 +127,8 @@ static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **
 	if (imbuf2!=in[1]->data)
 		free_compbuf(imbuf2);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_diff_matte(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

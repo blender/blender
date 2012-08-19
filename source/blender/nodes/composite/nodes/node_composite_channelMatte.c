@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_channel_matte_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_normalized_rgba_to_ycca2(bNode *UNUSED(node), float *out, float *in)
 {
 	/*normalize to the range 0.0 to 1.0) */
@@ -179,11 +181,13 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 	out[0]->data=outbuf;
 	if (out[1]->hasoutput)
 		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
-	
+
 	if (cbuf!=in[0]->data)
 		free_compbuf(cbuf);
 
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_channel_matte(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {

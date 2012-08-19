@@ -42,6 +42,8 @@ static bNodeSocketTemplate cmp_node_doubleedgemask_out[]= {
 	{ -1, 0, "" }					// output socket array terminator
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
 {
 	int x;
@@ -1270,6 +1272,8 @@ static void node_composit_exec_doubleedgemask(void *UNUSED(data), bNode *node, b
 		out[0]->data= stackbuf;	// point the node output buffer to our filled buffer
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_doubleedgemask(bNodeTreeType *ttype)
 {

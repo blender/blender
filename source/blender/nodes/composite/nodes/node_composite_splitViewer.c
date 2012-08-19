@@ -39,6 +39,8 @@ static bNodeSocketTemplate cmp_node_splitviewer_in[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_copy_split_rgba(bNode *UNUSED(node), float *out, float *in1, float *in2, float *fac)
 {
 	if (*fac==0.0f) {
@@ -138,6 +140,8 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 			free_compbuf(buf2);
 	}
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
