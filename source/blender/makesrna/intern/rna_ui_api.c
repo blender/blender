@@ -125,6 +125,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 		{0, "NONE", 0, "None", ""},
 		{'v', "VECTOR", 0, "Vector", ""},
 		{'c', "COLOR", 0, "Color", ""},
+		{'h', "HUE", 0, "Hue", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	

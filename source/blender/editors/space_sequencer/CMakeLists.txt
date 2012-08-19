@@ -40,6 +40,7 @@ set(SRC
 	sequencer_buttons.c
 	sequencer_draw.c
 	sequencer_edit.c
+	sequencer_modifier.c
 	sequencer_ops.c
 	sequencer_scopes.c
 	sequencer_select.c

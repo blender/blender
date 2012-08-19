@@ -646,13 +646,19 @@ static void write_animdata(WriteData *wd, AnimData *adt)
 	write_nladata(wd, &adt->nla_tracks);
 }
 
-static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
+static void write_curvemapping_curves(WriteData *wd, CurveMapping *cumap)
 {
 	int a;
-	
-	writestruct(wd, DATA, "CurveMapping", 1, cumap);
-	for (a=0; a<CM_TOT; a++)
+
+	for (a = 0; a < CM_TOT; a++)
 		writestruct(wd, DATA, "CurveMapPoint", cumap->cm[a].totpoint, cumap->cm[a].curve);
+}
+
+static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
+{
+	writestruct(wd, DATA, "CurveMapping", 1, cumap);
+
+	write_curvemapping_curves(wd, cumap);
 }
 
 static void write_node_socket(WriteData *wd, bNodeSocket *sock)
@@ -2086,6 +2092,32 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_sequence_modifiers(WriteData *wd, ListBase *modbase)
+{
+	SequenceModifierData *smd;
+
+	for (smd = modbase->first; smd; smd = smd->next) {
+		SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+
+		if (smti) {
+			writestruct(wd, DATA, smti->struct_name, 1, smd);
+
+			if (smd->type == seqModifierType_Curves) {
+				CurvesModifierData *cmd = (CurvesModifierData *) smd;
+
+				write_curvemapping(wd, &cmd->curve_mapping);
+			}
+			else if (smd->type == seqModifierType_HueCorrect) {
+				HueCorrectModifierData *hcmd = (HueCorrectModifierData *) smd;
+
+				write_curvemapping(wd, &hcmd->curve_mapping);
+			}
+		}
+		else {
+			writestruct(wd, DATA, "SequenceModifierData", 1, smd);
+		}
+	}
+}
 
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
@@ -2192,6 +2224,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					
 					strip->done = TRUE;
 				}
+
+				write_sequence_modifiers(wd, &seq->modifiers);
 			}
 			SEQ_END
 				
