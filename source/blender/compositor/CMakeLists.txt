@@ -473,8 +473,10 @@ set(SRC
 	operations/COM_DifferenceMatteOperation.h
 	operations/COM_LuminanceMatteOperation.cpp
 	operations/COM_LuminanceMatteOperation.h
-	operations/COM_DistanceMatteOperation.cpp
-	operations/COM_DistanceMatteOperation.h
+	operations/COM_DistanceRGBMatteOperation.cpp
+	operations/COM_DistanceRGBMatteOperation.h
+	operations/COM_DistanceYCCMatteOperation.cpp
+	operations/COM_DistanceYCCMatteOperation.h
 	operations/COM_ChromaMatteOperation.cpp
 	operations/COM_ChromaMatteOperation.h
 	operations/COM_ColorMatteOperation.cpp
