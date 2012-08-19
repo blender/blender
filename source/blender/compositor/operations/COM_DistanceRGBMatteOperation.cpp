@@ -46,9 +46,7 @@ void DistanceRGBMatteOperation::deinitExecution()
 
 float DistanceRGBMatteOperation::calculateDistance(float key[4], float image[4])
 {
-	return sqrt(pow((key[0] - image[0]), 2) +
-	            pow((key[1] - image[1]), 2) +
-	            pow((key[2] - image[2]), 2));
+	return len_v3v3(key, image);
 }
 
 void DistanceRGBMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
