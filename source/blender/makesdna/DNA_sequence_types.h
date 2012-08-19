@@ -252,7 +252,6 @@ typedef struct ColorBalanceModifierData {
 
 	StripColorBalance color_balance;
 	float color_multiply;
-	int pad;
 } ColorBalanceModifierData;
 
 typedef struct CurvesModifierData {

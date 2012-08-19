@@ -202,6 +202,10 @@ BMLoop *BM_vert_find_first_loop(BMVert *v)
 		return NULL;
 
 	e = bmesh_disk_faceedge_find_first(v->e, v);
+
+	if (!e)
+		return NULL;
+
 	return bmesh_radial_faceloop_find_first(e->l, v);
 }
 
