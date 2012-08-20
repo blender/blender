@@ -68,6 +68,7 @@ static struct MovieCache *moviecache = NULL;
 static struct SeqPreprocessCache *preprocess_cache = NULL;
 
 static void preprocessed_cache_destruct(void);
+static void preprocessed_cache_clean(void);
 
 static int seq_cmp_render_data(const SeqRenderData *a, const SeqRenderData *b)
 {
@@ -191,6 +192,8 @@ void BKE_sequencer_cache_cleanup(void)
 		IMB_moviecache_free(moviecache);
 		moviecache = IMB_moviecache_create("seqcache", sizeof(SeqCacheKey), seqcache_hashhash, seqcache_hashcmp);
 	}
+
+	preprocessed_cache_clean();
 }
 
 static int seqcache_key_check_seq(void *userkey, void *userdata)
