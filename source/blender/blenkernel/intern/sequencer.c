@@ -205,14 +205,7 @@ void BKE_sequence_free(Scene *scene, Sequence *seq)
 	}
 
 	/* free modifiers */
-	if (seq->modifiers.first) {
-		SequenceModifierData *smd, *smd_next;
-
-		for (smd = seq->modifiers.first; smd; smd = smd_next) {
-			smd_next = smd->next;
-			BKE_sequence_modifier_free(smd);
-		}
-	}
+	BKE_sequence_modifier_clear(seq);
 
 	BKE_sequencer_cache_cleanup_sequence(seq);
 	BKE_sequencer_preprocessed_cache_cleanup_sequence(seq);

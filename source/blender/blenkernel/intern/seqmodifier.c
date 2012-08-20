@@ -417,7 +417,7 @@ SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type)
 	return modifiersTypes[type];
 }
 
-void BKE_sequence_modifier_new(Sequence *seq, int type)
+SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name, int type)
 {
 	SequenceModifierData *smd;
 	SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(type);
@@ -427,7 +427,10 @@ void BKE_sequence_modifier_new(Sequence *seq, int type)
 	smd->type = type;
 	smd->flag |= SEQUENCE_MODIFIER_EXPANDED;
 
-	BLI_strncpy(smd->name, smti->name, sizeof(smd->name));
+	if (!name || !name[0])
+		BLI_strncpy(smd->name, smti->name, sizeof(smd->name));
+	else
+		BLI_strncpy(smd->name, name, sizeof(smd->name));
 
 	BLI_addtail(&seq->modifiers, smd);
 
@@ -435,6 +438,31 @@ void BKE_sequence_modifier_new(Sequence *seq, int type)
 
 	if (smti->init_data)
 		smti->init_data(smd);
+
+	return smd;
+}
+
+int BKE_sequence_modifier_remove(Sequence *seq, SequenceModifierData *smd)
+{
+	if (BLI_findindex(&seq->modifiers, smd) == -1)
+		return FALSE;
+
+	BLI_remlink(&seq->modifiers, smd);
+	BKE_sequence_modifier_free(smd);
+
+	return TRUE;
+}
+
+void BKE_sequence_modifier_clear(Sequence *seq)
+{
+	SequenceModifierData *smd, *smd_next;
+
+	for (smd = seq->modifiers.first; smd; smd = smd_next) {
+		smd_next = smd->next;
+		BKE_sequence_modifier_free(smd);
+	}
+
+	seq->modifiers.first = seq->modifiers.last = NULL;
 }
 
 void BKE_sequence_modifier_free(SequenceModifierData *smd)

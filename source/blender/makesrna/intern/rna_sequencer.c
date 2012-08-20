@@ -30,6 +30,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -58,7 +59,19 @@ typedef struct EffectInfo {
 	int supports_mask;
 } EffectInfo;
 
+EnumPropertyItem sequence_modifier_type_items[] = {
+	{seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
+	{seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
+	{seqModifierType_HueCorrect,"HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
+
+#include "BKE_report.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 typedef struct SequenceSearchData {
 	Sequence *seq;
@@ -961,6 +974,52 @@ static int rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA v
 	return TRUE;
 }
 
+static SequenceModifierData *rna_Sequence_modifier_new(Sequence *seq, bContext *C, ReportList *reports, const char *name, int type)
+{
+	if (!BKE_sequence_supports_modifiers(seq)) {
+		BKE_report(reports, RPT_ERROR, "Sequence type does not support modifiers");
+
+		return NULL;
+	}
+	else {
+		Scene *scene = CTX_data_scene(C);
+		SequenceModifierData *smd;
+
+		smd = BKE_sequence_modifier_new(seq, name, type);
+
+		BKE_sequence_invalidate_cache_for_modifier(scene, seq);
+
+		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+
+		return smd;
+	}
+}
+
+static void rna_Sequence_modifier_remove(Sequence *seq, bContext *C, ReportList *reports, SequenceModifierData *smd)
+{
+	Scene *scene = CTX_data_scene(C);
+
+	if (BKE_sequence_modifier_remove(seq, smd)) {
+		BKE_sequence_invalidate_cache_for_modifier(scene, seq);
+
+		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Modifier was not found in the stack");
+	}
+}
+
+static void rna_Sequence_modifier_clear(Sequence *seq, bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+
+	BKE_sequence_modifier_clear(seq);
+
+	BKE_sequence_invalidate_cache_for_modifier(scene, seq);
+
+	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+}
+
 #else
 
 static void rna_def_strip_element(BlenderRNA *brna)
@@ -1210,12 +1269,39 @@ static void rna_def_sequence_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
 	RNA_def_property_srna(cprop, "SequenceModifiers");
 	srna = RNA_def_struct(brna, "SequenceModifiers", NULL);
 	RNA_def_struct_sdna(srna, "Sequence");
 	RNA_def_struct_ui_text(srna, "Strip Modifiers", "Collection of strip modifiers");
 
-	/* TODO: implement new/remove/clear methods for modifier stack */
+	/* add modifier */
+	func = RNA_def_function(srna, "new", "rna_Sequence_modifier_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Add a new modifier");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the modifier");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* modifier to add */
+	parm = RNA_def_enum(func, "type", sequence_modifier_type_items, seqModifierType_ColorBalance, "", "Modifier type to add");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm = RNA_def_pointer(func, "modifier", "SequenceModifier", "", "Newly created modifier");
+	RNA_def_function_return(func, parm);
+
+	/* remove modifier */
+	func = RNA_def_function(srna, "remove", "rna_Sequence_modifier_remove");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove an existing modifier from the sequence");
+	/* modifier to remove */
+	parm = RNA_def_pointer(func, "modifier", "SequenceModifier", "", "Modifier to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+
+	/* clear all modifiers */
+	func = RNA_def_function(srna, "clear", "rna_Sequence_modifier_clear");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Remove all modifiers from the sequence");
 }
 
 static void rna_def_sequence(BlenderRNA *brna)
@@ -2129,13 +2215,6 @@ static void rna_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem sequence_modifier_type_items[] = {
-		{seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
-		{seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
-		{seqModifierType_HueCorrect,"HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	static const EnumPropertyItem mask_input_type_items[] = {
 		{SEQUENCE_MASK_INPUT_STRIP, "STRIP", 0, "Strip", "Use sequencer strip as mask input"},
