@@ -384,7 +384,9 @@ typedef struct SequenceModifierTypeInfo {
 
 struct SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type);
 
-void BKE_sequence_modifier_new(struct Sequence *seq, int type);
+struct SequenceModifierData *BKE_sequence_modifier_new(struct Sequence *seq, const char *name, int type);
+int BKE_sequence_modifier_remove(struct Sequence *seq, struct SequenceModifierData *smd);
+void BKE_sequence_modifier_clear(struct Sequence *seq);
 void BKE_sequence_modifier_free(struct SequenceModifierData *smd);
 void BKE_sequence_modifier_unique_name(struct Sequence *seq, struct SequenceModifierData *smd);
 struct SequenceModifierData *BKE_sequence_modifier_find_by_name(struct Sequence *seq, char *name);

@@ -84,7 +84,7 @@ static int strip_modifier_add_exec(bContext *C, wmOperator *op)
 	Sequence *seq = BKE_sequencer_active_get(scene);
 	int type = RNA_enum_get(op->ptr, "type");
 
-	BKE_sequence_modifier_new(seq, type);
+	BKE_sequence_modifier_new(seq, NULL, type);
 
 	BKE_sequence_invalidate_cache(scene, seq);
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -95,14 +95,6 @@ static int strip_modifier_add_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-
-	/* TODO: de-duplicate from RNA */
-	static EnumPropertyItem sequence_modifier_type_items[] = {
-		{seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
-		{seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
-		{seqModifierType_HueCorrect,"HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	/* identifiers */
 	ot->name = "Add Strip Modifier";
