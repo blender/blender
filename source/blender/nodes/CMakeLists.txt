@@ -251,4 +251,8 @@ if(WITH_COMPOSITOR)
 	add_definitions(-DWITH_COMPOSITOR)
 endif()
 
+if(WITH_COMPOSITOR_LEGACY)
+	add_definitions(-DWITH_COMPOSITOR_LEGACY)
+endif()
+
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}")

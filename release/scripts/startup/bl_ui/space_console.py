@@ -51,6 +51,7 @@ class CONSOLE_MT_console(Menu):
 
         layout.separator()
 
+        layout.operator("console.copy_as_script")
         layout.operator("console.copy")
         layout.operator("console.paste")
         layout.menu("CONSOLE_MT_language")

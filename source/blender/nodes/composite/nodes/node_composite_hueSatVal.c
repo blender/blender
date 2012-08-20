@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_hue_sat_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_hue_sat_fac(bNode *node, float *out, float *in, float *fac)
 {
 	NodeHueSat *nhs= node->storage;
@@ -93,6 +95,8 @@ static void node_composit_exec_hue_sat(void *UNUSED(data), bNode *node, bNodeSta
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_hue_sat(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeHueSat *nhs= MEM_callocN(sizeof(NodeHueSat), "node hue sat");
@@ -111,7 +115,9 @@ void register_node_type_cmp_hue_sat(bNodeTreeType *ttype)
 	node_type_size(&ntype, 150, 80, 250);
 	node_type_init(&ntype, node_composit_init_hue_sat);
 	node_type_storage(&ntype, "NodeHueSat", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_hue_sat);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

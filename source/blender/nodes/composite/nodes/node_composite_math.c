@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_math_out[]= {
 	{ -1, 0, "" } 
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_math(bNode *node, float *out, float *in, float *in2)
 {
 	switch (node->custom1) {
@@ -195,6 +197,8 @@ static void node_composit_exec_math(void *UNUSED(data), bNode *node, bNodeStack 
 	out[0]->data= stackbuf;
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_math(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -203,7 +207,9 @@ void register_node_type_cmp_math(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_math_in, cmp_node_math_out);
 	node_type_size(&ntype, 120, 110, 160);
 	node_type_label(&ntype, node_math_label);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_math);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

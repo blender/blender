@@ -42,6 +42,8 @@ static bNodeSocketTemplate cmp_node_doubleedgemask_out[]= {
 	{ -1, 0, "" }					// output socket array terminator
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
 {
 	int x;
@@ -1271,6 +1273,8 @@ static void node_composit_exec_doubleedgemask(void *UNUSED(data), bNode *node, b
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_doubleedgemask(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;	// allocate a node type data structure
@@ -1278,7 +1282,9 @@ void register_node_type_cmp_doubleedgemask(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);
 	node_type_size(&ntype, 210, 210, 210);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_doubleedgemask);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

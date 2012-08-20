@@ -44,6 +44,7 @@ static bNodeSocketTemplate cmp_node_defocus_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
 
 // line coefs for point sampling & scancon. data.
 typedef struct BokehCoeffs {
@@ -865,6 +866,8 @@ static void node_composit_exec_defocus(void *UNUSED(data), bNode *node, bNodeSta
 	if (zbuf_use && (zbuf_use != zbuf)) free_compbuf(zbuf_use);
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	/* qdn: defocus node */
@@ -891,7 +894,9 @@ void register_node_type_cmp_defocus(bNodeTreeType *ttype)
 	node_type_size(&ntype, 150, 120, 200);
 	node_type_init(&ntype, node_composit_init_defocus);
 	node_type_storage(&ntype, "NodeDefocus", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_defocus);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

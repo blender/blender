@@ -46,6 +46,8 @@ static bNodeSocketTemplate cmp_node_sepycca_out[]= {
 	{  -1, 0, ""   }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_sepycca_601(bNode *UNUSED(node), float *out, float *in)
 {
 	float y, cb, cr;
@@ -146,6 +148,8 @@ static void node_composit_exec_sepycca(void *UNUSED(data), bNode *node, bNodeSta
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_sepycca(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -153,7 +157,9 @@ void register_node_type_cmp_sepycca(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_SEPYCCA, "Separate YCbCrA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_sepycca_in, cmp_node_sepycca_out);
 	node_type_size(&ntype, 80, 40, 140);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_sepycca);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }
@@ -172,6 +178,8 @@ static bNodeSocketTemplate cmp_node_combycca_out[]= {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static void do_comb_ycca_601(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
@@ -291,6 +299,8 @@ static void node_composit_exec_combycca(void *UNUSED(data), bNode *node, bNodeSt
 	}	
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_combycca(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -298,7 +308,9 @@ void register_node_type_cmp_combycca(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_COMBYCCA, "Combine YCbCrA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_combycca_in, cmp_node_combycca_out);
 	node_type_size(&ntype, 80, 40, 140);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_combycca);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_dilateerode_out[] = {
 	{   -1, 0, ""   }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void morpho_dilate(CompBuf *cbuf)
 {
 	int x, y;
@@ -146,6 +148,8 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_dilateerode(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeDilateErode *data = MEM_callocN(sizeof(NodeDilateErode), "NodeDilateErode");
@@ -161,7 +165,9 @@ void register_node_type_cmp_dilateerode(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_dilateerode_in, cmp_node_dilateerode_out);
 	node_type_size(&ntype, 130, 100, 320);
 	node_type_init(&ntype, node_composit_init_dilateerode);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_dilateerode);
+#endif
 	
 	node_type_storage(&ntype, "NodeDilateErode", node_free_standard_storage, node_copy_standard_storage);
 

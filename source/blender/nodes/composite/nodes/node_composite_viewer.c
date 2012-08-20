@@ -41,6 +41,7 @@ static bNodeSocketTemplate cmp_node_viewer_in[] = {
 	{   -1, 0, ""   }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
@@ -122,6 +123,8 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	ImageUser *iuser = MEM_callocN(sizeof(ImageUser), "node image user");
@@ -142,7 +145,9 @@ void register_node_type_cmp_viewer(bNodeTreeType *ttype)
 	node_type_size(&ntype, 80, 60, 200);
 	node_type_init(&ntype, node_composit_init_viewer);
 	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_viewer);
+#endif
 	node_type_internal_connect(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);

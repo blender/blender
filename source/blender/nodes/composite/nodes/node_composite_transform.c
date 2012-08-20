@@ -48,6 +48,8 @@ static bNodeSocketTemplate cmp_node_transform_out[] = {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, float scale, int filter_type)
 {
 	CompBuf *stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, TRUE);
@@ -127,6 +129,8 @@ static void node_composit_exec_transform(void *UNUSED(data), bNode *node, bNodeS
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_transform(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -134,7 +138,9 @@ void register_node_type_cmp_transform(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_TRANSFORM, "Transform", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_transform_in, cmp_node_transform_out);
 	node_type_size(&ntype, 140, 100, 320);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_transform);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

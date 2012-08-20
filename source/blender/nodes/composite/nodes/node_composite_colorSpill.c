@@ -47,6 +47,8 @@ static bNodeSocketTemplate cmp_node_color_spill_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_simple_spillmap_red(bNode *node, float* out, float *in)
 {
 	NodeColorspill *ncs;
@@ -315,6 +317,8 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 	free_compbuf(spillmap);
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeColorspill *ncs= MEM_callocN(sizeof(NodeColorspill), "node colorspill");
@@ -335,7 +339,9 @@ void register_node_type_cmp_color_spill(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 80, 200);
 	node_type_init(&ntype, node_composit_init_color_spill);
 	node_type_storage(&ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_color_spill);
+#endif
 	
 	nodeRegisterType(ttype, &ntype);
 }

@@ -48,6 +48,8 @@ static bNodeSocketTemplate cmp_node_zcombine_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *src2, float *z2)
 {
 	float alpha;
@@ -219,8 +221,9 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 		
 		out[0]->data= stackbuf;
 	}
-
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_zcombine(bNodeTreeType *ttype)
 {
@@ -229,7 +232,9 @@ void register_node_type_cmp_zcombine(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_zcombine_in, cmp_node_zcombine_out);
 	node_type_size(&ntype, 80, 40, 120);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_zcombine);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

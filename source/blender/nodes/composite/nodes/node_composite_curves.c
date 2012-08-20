@@ -41,6 +41,8 @@ static bNodeSocketTemplate cmp_node_time_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	RenderData *rd= data;
@@ -54,6 +56,7 @@ static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack *
 	out[0]->vec[0]= CLAMPIS(fac, 0.0f, 1.0f);
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_curves_time(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
@@ -71,7 +74,9 @@ void register_node_type_cmp_curve_time(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_curves_time);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_curves_time);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }
@@ -89,6 +94,8 @@ static bNodeSocketTemplate cmp_node_curve_vec_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order input:  vec */
@@ -96,6 +103,8 @@ static void node_composit_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeS
 	
 	curvemapping_evaluate_premulRGBF(node->storage, out[0]->vec, in[0]->vec);
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_curve_vec(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
@@ -111,7 +120,9 @@ void register_node_type_cmp_curve_vec(bNodeTreeType *ttype)
 	node_type_size(&ntype, 200, 140, 320);
 	node_type_init(&ntype, node_composit_init_curve_vec);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_curve_vec);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }
@@ -130,6 +141,8 @@ static bNodeSocketTemplate cmp_node_curve_rgb_out[]= {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static void do_curves(bNode *node, float *out, float *in)
 {
@@ -184,6 +197,8 @@ static void node_composit_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeS
 	
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -198,7 +213,9 @@ void register_node_type_cmp_curve_rgb(bNodeTreeType *ttype)
 	node_type_size(&ntype, 200, 140, 320);
 	node_type_init(&ntype, node_composit_init_curve_rgb);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_curve_rgb);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

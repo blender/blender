@@ -2667,6 +2667,14 @@ static void rna_def_space_time(BlenderRNA *brna)
 
 static void rna_def_console_line(BlenderRNA *brna)
 {
+	static EnumPropertyItem console_line_type_items[] = {
+		{CONSOLE_LINE_OUTPUT, "OUTPUT", 0, "Output", ""},
+		{CONSOLE_LINE_INPUT, "INPUT", 0, "Input", ""},
+		{CONSOLE_LINE_INFO, "INFO", 0, "Info", ""},
+		{CONSOLE_LINE_ERROR, "ERROR", 0, "Error", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
@@ -2684,6 +2692,11 @@ static void rna_def_console_line(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "cursor");
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_ConsoleLine_cursor_index_range");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CONSOLE, NULL);
+
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, console_line_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Console line type when used in scrollback");
 }
 	
 static void rna_def_space_console(BlenderRNA *brna)

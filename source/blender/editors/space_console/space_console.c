@@ -326,6 +326,7 @@ static void console_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* python operator - space_text.py */
 #endif
 
+	WM_keymap_add_item(keymap, "CONSOLE_OT_copy_as_script", CKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 #ifdef __APPLE__

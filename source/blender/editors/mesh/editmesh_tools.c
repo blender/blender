@@ -2042,22 +2042,38 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
+	const float mergedist = RNA_float_get(op->ptr, "mergedist");
+	int use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
+	int totvert_orig = em->bm->totvert;
 	int count;
 
-	EDBM_op_init(em, &bmop, op, "find_doubles verts=%hv dist=%f", BM_ELEM_SELECT, RNA_float_get(op->ptr, "mergedist"));
-	BMO_op_exec(em->bm, &bmop);
+	if (use_unselected) {
+		EDBM_op_init(em, &bmop, op,
+		             "automerge verts=%hv dist=%f",
+		             BM_ELEM_SELECT, mergedist);
+		BMO_op_exec(em->bm, &bmop);
 
-	count = BMO_slot_map_count(em->bm, &bmop, "targetmapout");
-
-	if (!EDBM_op_callf(em, op, "weld_verts targetmap=%s", &bmop, "targetmapout")) {
-		BMO_op_finish(em->bm, &bmop);
-		return OPERATOR_CANCELLED;
+		if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+			return OPERATOR_CANCELLED;
+		}
 	}
+	else {
+		EDBM_op_init(em, &bmop, op,
+		             "find_doubles verts=%hv dist=%f",
+		             BM_ELEM_SELECT, mergedist);
+		BMO_op_exec(em->bm, &bmop);
 
-	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
-		return OPERATOR_CANCELLED;
+		if (!EDBM_op_callf(em, op, "weld_verts targetmap=%s", &bmop, "targetmapout")) {
+			BMO_op_finish(em->bm, &bmop);
+			return OPERATOR_CANCELLED;
+		}
+
+		if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+			return OPERATOR_CANCELLED;
+		}
 	}
 	
+	count = totvert_orig - em->bm->totvert;
 	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s", count, (count == 1) ? "ex" : "ices");
 
 	EDBM_update_generic(C, em, TRUE);
@@ -2082,6 +2098,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "mergedist", 0.0001f, 0.000001f, 50.0f, 
 	              "Merge Distance",
 	              "Minimum distance between elements to merge", 0.00001, 10.0);
+	RNA_def_boolean(ot->srna, "use_unselected", 1, "Unselected", "Merge selected to other unselected vertices");
 }
 
 /************************ Vertex Path Operator *************************/

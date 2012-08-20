@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_invert_out[]= {
 	{ -1, 0, "" } 
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_invert(bNode *node, float *out, float *in)
 {
 	if (node->custom1 & CMP_CHAN_RGB) {
@@ -115,6 +117,8 @@ static void node_composit_exec_invert(void *UNUSED(data), bNode *node, bNodeStac
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom1 |= CMP_CHAN_RGB;
@@ -129,7 +133,9 @@ void register_node_type_cmp_invert(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_invert_in, cmp_node_invert_out);
 	node_type_size(&ntype, 120, 120, 140);
 	node_type_init(&ntype, node_composit_init_invert);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_invert);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -67,6 +67,25 @@ class ConsoleAutocomplete(Operator):
             return {'FINISHED'}
 
 
+class ConsoleCopyAsScript(Operator):
+    """Copy the console contents for use in a script"""
+    bl_idname = "console.copy_as_script"
+    bl_label = "Copy to Clipboard (as script)"
+
+    def execute(self, context):
+        sc = context.space_data
+
+        module = _lang_module_get(sc)
+        copy_as_script = getattr(module, "copy_as_script", None)
+
+        if copy_as_script:
+            return copy_as_script(context)
+        else:
+            print("Error: copy_as_script - not found for %r" %
+                  sc.language)
+            return {'FINISHED'}
+
+
 class ConsoleBanner(Operator):
     """Print a message when the terminal initializes"""
     bl_idname = "console.banner"

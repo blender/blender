@@ -39,9 +39,14 @@ static bNodeSocketTemplate cmp_node_trackpos_out[] = {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_trackpos(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
+	/* pass */
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
@@ -59,7 +64,9 @@ void register_node_type_cmp_trackpos(bNodeTreeType *ttype)
 	node_type_size(&ntype, 120, 80, 300);
 	node_type_init(&ntype, init);
 	node_type_storage(&ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_trackpos);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }
