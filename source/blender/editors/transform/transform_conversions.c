@@ -5548,8 +5548,8 @@ static void createTransObject(bContext *C, TransInfo *t)
 static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 {
 	/* hold original location */
-	float locxy[2] = {(node->totr.xmax + node->totr.xmin) / 2.0f,
-	                  (node->totr.ymax + node->totr.ymin) / 2.0f};
+	float locxy[2] = {BLI_RCT_CENTER_X(&node->totr),
+	                  BLI_RCT_CENTER_Y(&node->totr)};
 
 	copy_v2_v2(td2d->loc, locxy);
 	td2d->loc[2] = 0.0f;

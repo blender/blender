@@ -2063,8 +2063,8 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	/* calculate "barycenter" for placing on mouse cursor */
 	zero_v2(center);
 	for (node = clipboard_nodes_lb->first, num_nodes = 0; node; node = node->next, num_nodes++) {
-		center[0] += 0.5f * (node->totr.xmin + node->totr.xmax);
-		center[1] += 0.5f * (node->totr.ymin + node->totr.ymax);
+		center[0] += BLI_RCT_CENTER_X(&node->totr);
+		center[1] += BLI_RCT_CENTER_Y(&node->totr);
 	}
 	mul_v2_fl(center, 1.0 / num_nodes);
 

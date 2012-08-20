@@ -425,8 +425,8 @@ void blf_font_width_and_height(FontBLF *font, const char *str, float *width, flo
 	}
 
 	blf_font_boundbox(font, str, &box);
-	*width = ((box.xmax - box.xmin) * xa);
-	*height = ((box.ymax - box.ymin) * ya);
+	*width  = (BLI_RCT_SIZE_X(&box) * xa);
+	*height = (BLI_RCT_SIZE_Y(&box) * ya);
 }
 
 float blf_font_width(FontBLF *font, const char *str)
@@ -440,7 +440,7 @@ float blf_font_width(FontBLF *font, const char *str)
 		xa = 1.0f;
 
 	blf_font_boundbox(font, str, &box);
-	return (box.xmax - box.xmin) * xa;
+	return BLI_RCT_SIZE_X(&box) * xa;
 }
 
 float blf_font_height(FontBLF *font, const char *str)

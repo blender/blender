@@ -773,8 +773,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			if (hasNumInput(&mm->num))
 				break;
 			
-			dx = v2d->mask.xmax - v2d->mask.xmin;
-			dx = (v2d->cur.xmax - v2d->cur.xmin) / dx;
+			dx = BLI_RCT_SIZE_X(&v2d->cur) / BLI_RCT_SIZE_X(&v2d->mask);
 			
 			if (evt->x != mm->evtx) {   /* XXX maybe init for first time */
 				int a, offs, totmark = 0;

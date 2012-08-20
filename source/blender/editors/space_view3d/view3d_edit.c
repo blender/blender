@@ -382,9 +382,9 @@ static void calctrackballvec(rcti *rect, int mx, int my, float vec[3])
 	radius = TRACKBALLSIZE;
 
 	/* normalize x and y */
-	x = (rect->xmax + rect->xmin) / 2 - mx;
+	x = BLI_RCT_CENTER_X(rect) - mx;
 	x /= (float)((rect->xmax - rect->xmin) / 4);
-	y = (rect->ymax + rect->ymin) / 2 - my;
+	y = BLI_RCT_CENTER_Y(rect) - my;
 	y /= (float)((rect->ymax - rect->ymin) / 2);
 
 	d = sqrt(x * x + y * y);
@@ -1666,8 +1666,8 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 		int ctr[2], len1, len2;
 		/* method which zooms based on how far you move the mouse */
 
-		ctr[0] = (vod->ar->winrct.xmax + vod->ar->winrct.xmin) / 2;
-		ctr[1] = (vod->ar->winrct.ymax + vod->ar->winrct.ymin) / 2;
+		ctr[0] = BLI_RCT_CENTER_X(&vod->ar->winrct);
+		ctr[1] = BLI_RCT_CENTER_Y(&vod->ar->winrct);
 
 		len1 = (int)sqrt((ctr[0] - x) * (ctr[0] - x) + (ctr[1] - y) * (ctr[1] - y)) + 5;
 		len2 = (int)sqrt((ctr[0] - vod->origx) * (ctr[0] - vod->origx) + (ctr[1] - vod->origy) * (ctr[1] - vod->origy)) + 5;

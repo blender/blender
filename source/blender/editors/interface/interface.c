@@ -300,8 +300,8 @@ static void ui_centered_bounds_block(const bContext *C, uiBlock *block)
 	
 	ui_bounds_block(block);
 	
-	width = block->rect.xmax - block->rect.xmin;
-	height = block->rect.ymax - block->rect.ymin;
+	width  = BLI_RCT_SIZE_X(&block->rect);
+	height = BLI_RCT_SIZE_Y(&block->rect);
 	
 	startx = (xmax * 0.5f) - (width * 0.5f);
 	starty = (ymax * 0.5f) - (height * 0.5f);
@@ -488,10 +488,10 @@ static void ui_draw_linkline(uiLinkLine *line, int highlightActiveLines)
 
 	if (line->from == NULL || line->to == NULL) return;
 	
-	rect.xmin = (line->from->rect.xmin + line->from->rect.xmax) / 2.0f;
-	rect.ymin = (line->from->rect.ymin + line->from->rect.ymax) / 2.0f;
-	rect.xmax = (line->to->rect.xmin + line->to->rect.xmax) / 2.0f;
-	rect.ymax = (line->to->rect.ymin + line->to->rect.ymax) / 2.0f;
+	rect.xmin = BLI_RCT_CENTER_X(&line->from->rect);
+	rect.ymin = BLI_RCT_CENTER_Y(&line->from->rect);
+	rect.xmax = BLI_RCT_CENTER_X(&line->to->rect);
+	rect.ymax = BLI_RCT_CENTER_Y(&line->to->rect);
 	
 	if (line->flag & UI_SELECT)
 		glColor3ub(100, 100, 100);

@@ -1010,7 +1010,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		
 		if (alignment == RGN_ALIGN_HSPLIT) {
 			if (rct_fits(remainder, 'h', prefsizex) > 4) {
-				ar->winrct.xmax = (remainder->xmin + remainder->xmax) / 2;
+				ar->winrct.xmax = BLI_RCT_CENTER_X(remainder);
 				remainder->xmin = ar->winrct.xmax + 1;
 			}
 			else {
@@ -1019,7 +1019,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		}
 		else {
 			if (rct_fits(remainder, 'v', prefsizey) > 4) {
-				ar->winrct.ymax = (remainder->ymin + remainder->ymax) / 2;
+				ar->winrct.ymax = BLI_RCT_CENTER_Y(remainder);
 				remainder->ymin = ar->winrct.ymax + 1;
 			}
 			else {
@@ -1051,20 +1051,20 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		}
 		if (quad) {
 			if (quad == 1) { /* left bottom */
-				ar->winrct.xmax = (remainder->xmin + remainder->xmax) / 2;
-				ar->winrct.ymax = (remainder->ymin + remainder->ymax) / 2;
+				ar->winrct.xmax = BLI_RCT_CENTER_X(remainder);
+				ar->winrct.ymax = BLI_RCT_CENTER_Y(remainder);
 			}
 			else if (quad == 2) { /* left top */
-				ar->winrct.xmax = (remainder->xmin + remainder->xmax) / 2;
-				ar->winrct.ymin = 1 + (remainder->ymin + remainder->ymax) / 2;
+				ar->winrct.xmax = BLI_RCT_CENTER_X(remainder);
+				ar->winrct.ymin = BLI_RCT_CENTER_Y(remainder) + 1;
 			}
 			else if (quad == 3) { /* right bottom */
-				ar->winrct.xmin = 1 + (remainder->xmin + remainder->xmax) / 2;
-				ar->winrct.ymax = (remainder->ymin + remainder->ymax) / 2;
+				ar->winrct.xmin = BLI_RCT_CENTER_X(remainder) + 1;
+				ar->winrct.ymax = BLI_RCT_CENTER_Y(remainder);
 			}
 			else {  /* right top */
-				ar->winrct.xmin = 1 + (remainder->xmin + remainder->xmax) / 2;
-				ar->winrct.ymin = 1 + (remainder->ymin + remainder->ymax) / 2;
+				ar->winrct.xmin = BLI_RCT_CENTER_X(remainder) + 1;
+				ar->winrct.ymin = BLI_RCT_CENTER_Y(remainder) + 1;
 				BLI_rcti_init(remainder, 0, 0, 0, 0);
 			}
 

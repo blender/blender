@@ -1843,8 +1843,8 @@ static void ui_hsv_cursor(float x, float y)
 void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my)
 {
 	/* duplication of code... well, simple is better now */
-	float centx = (float)(rect->xmin + rect->xmax) / 2;
-	float centy = (float)(rect->ymin + rect->ymax) / 2;
+	float centx = BLI_RCT_CENTER_X_FL(rect);
+	float centy = BLI_RCT_CENTER_Y_FL(rect);
 	float radius, dist;
 	
 	if (rect->xmax - rect->xmin > rect->ymax - rect->ymin)
@@ -1876,8 +1876,8 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		color_profile = BLI_PR_NONE;
 	
 	radstep = 2.0f * (float)M_PI / (float)tot;
-	centx = (float)(rect->xmin + rect->xmax) / 2;
-	centy = (float)(rect->ymin + rect->ymax) / 2;
+	centx = BLI_RCT_CENTER_X_FL(rect);
+	centy = BLI_RCT_CENTER_Y_FL(rect);
 	
 	if (rect->xmax - rect->xmin > rect->ymax - rect->ymin)
 		radius = (float)(rect->ymax - rect->ymin) / 2;
@@ -2438,8 +2438,8 @@ static void widget_link(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect, in
 		
 		UI_ThemeColor(TH_TEXT_HI);
 		
-		rectlink.xmin = (rect->xmin + rect->xmax) / 2;
-		rectlink.ymin = (rect->ymin + rect->ymax) / 2;
+		rectlink.xmin = BLI_RCT_CENTER_X(rect);
+		rectlink.ymin = BLI_RCT_CENTER_Y(rect);
 		rectlink.xmax = but->linkto[0];
 		rectlink.ymax = but->linkto[1];
 		
@@ -3269,12 +3269,12 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 		if (block->flag & UI_BLOCK_CLIPTOP) {
 			/* XXX no scaling for UI here yet */
 			glColor3ubv((unsigned char *)wt->wcol.text);
-			UI_DrawTriIcon((rect->xmax + rect->xmin) / 2, rect->ymax - 8, 't');
+			UI_DrawTriIcon(BLI_RCT_CENTER_X(rect), rect->ymax - 8, 't');
 		}
 		if (block->flag & UI_BLOCK_CLIPBOTTOM) {
 			/* XXX no scaling for UI here yet */
 			glColor3ubv((unsigned char *)wt->wcol.text);
-			UI_DrawTriIcon((rect->xmax + rect->xmin) / 2, rect->ymin + 10, 'v');
+			UI_DrawTriIcon(BLI_RCT_CENTER_X(rect), rect->ymin + 10, 'v');
 		}
 	}	
 }

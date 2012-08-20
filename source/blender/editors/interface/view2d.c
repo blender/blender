@@ -508,7 +508,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 					cur->xmax += width - (cur->xmax - cur->xmin);
 			}
 			else {
-				temp = (cur->xmax + cur->xmin) * 0.5f;
+				temp = BLI_RCT_CENTER_X(cur);
 				dh = width * 0.5f;
 				
 				cur->xmin = temp - dh;
@@ -526,7 +526,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 					cur->ymax += height - (cur->ymax - cur->ymin);
 			}
 			else {
-				temp = (cur->ymax + cur->ymin) * 0.5f;
+				temp = BLI_RCT_CENTER_Y(cur);
 				dh = height * 0.5f;
 				
 				cur->ymin = temp - dh;
@@ -592,7 +592,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 			 */
 			if ((cur->xmin < tot->xmin) && (cur->xmax > tot->xmax)) {
 				/* outside boundaries on both sides, so take middle-point of tot, and place in balanced way */
-				temp = (tot->xmax + tot->xmin) * 0.5f;
+				temp = BLI_RCT_CENTER_X(tot);
 				diff = curheight * 0.5f;
 				
 				cur->xmin = temp - diff;
@@ -642,7 +642,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 			 */
 			if ((cur->ymin < tot->ymin) && (cur->ymax > tot->ymax)) {
 				/* outside boundaries on both sides, so take middle-point of tot, and place in balanced way */
-				temp = (tot->ymax + tot->ymin) * 0.5f;
+				temp = BLI_RCT_CENTER_Y(tot);
 				diff = curheight * 0.5f;
 				
 				cur->ymin = temp - diff;

@@ -2256,7 +2256,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 		/* only zoom out vertically */
 		if (orig_height > cur_new.ymax - cur_new.ymin) {
-			ymid = (cur_new.ymax + cur_new.ymin) / 2;
+			ymid = BLI_RCT_CENTER_Y(&cur_new);
 
 			cur_new.ymin = ymid - (orig_height / 2);
 			cur_new.ymax = ymid + (orig_height / 2);

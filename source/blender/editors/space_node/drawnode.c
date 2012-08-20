@@ -522,7 +522,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		rect->ymax += NODE_DY;
 		
 		/* input sockets */
-		dy = 0.5f * (rect->ymin + rect->ymax) + NODE_DY * (BLI_countlist(&gnode->inputs) - 1);
+		dy = BLI_RCT_CENTER_Y(rect) + (NODE_DY * (BLI_countlist(&gnode->inputs) - 1));
 		gsock = ngroup->inputs.first;
 		sock = gnode->inputs.first;
 		while (gsock || sock) {
@@ -570,7 +570,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		}
 		
 		/* output sockets */
-		dy = 0.5f * (rect->ymin + rect->ymax) + NODE_DY * (BLI_countlist(&gnode->outputs) - 1);
+		dy = BLI_RCT_CENTER_Y(rect) + (NODE_DY * (BLI_countlist(&gnode->outputs) - 1));
 		gsock = ngroup->outputs.first;
 		sock = gnode->outputs.first;
 		while (gsock || sock) {
@@ -979,7 +979,7 @@ static void node_draw_frame_label(bNode *node, const float aspect)
 	ascender = BLF_ascender(fontid);
 	
 	/* 'x' doesn't need aspect correction */
-	x = 0.5f * (rct->xmin + rct->xmax) - 0.5f * width;
+	x = BLI_RCT_CENTER_X(rct) - (0.5f * width);
 	y = rct->ymax - (((NODE_DY / 4) / aspect) + (ascender * aspect));
 
 	BLF_position(fontid, x, y, 0);

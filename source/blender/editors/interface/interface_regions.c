@@ -1181,7 +1181,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->bbox.ymax = (ar->winrct.ymax - ar->winrct.ymin) - MENU_SHADOW_BOTTOM;
 		
 		/* check if button is lower half */
-		if (but->rect.ymax < (but->block->rect.ymin + but->block->rect.ymax) / 2) {
+		if (but->rect.ymax < BLI_RCT_CENTER_Y(&but->block->rect)) {
 			data->bbox.ymin += (but->rect.ymax - but->rect.ymin);
 		}
 		else {
@@ -1495,8 +1495,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 
 	/* safety calculus */
 	if (but) {
-		float midx = (butrct.xmin + butrct.xmax) / 2.0f;
-		float midy = (butrct.ymin + butrct.ymax) / 2.0f;
+		const float midx = BLI_RCT_CENTER_X(&butrct);
+		const float midy = BLI_RCT_CENTER_Y(&butrct);
 		
 		/* when you are outside parent button, safety there should be smaller */
 		

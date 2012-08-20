@@ -412,7 +412,7 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		g->uv[1][1] = ((float)(g->yoff + g->height)) / ((float)gc->p2_height);
 
 		/* update the x offset for the next glyph. */
-		gc->x_offs += (int)(g->box.xmax - g->box.xmin + gc->pad);
+		gc->x_offs += (int)(BLI_RCT_SIZE_X(&g->box) + gc->pad);
 
 		gc->rem_glyphs--;
 		g->build_tex = 1;

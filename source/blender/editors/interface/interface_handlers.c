@@ -693,7 +693,7 @@ static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, wmEvent *event)
 		rect.xmax = rect.xmin + (rect.ymax - rect.ymin);
 	}
 	else {
-		int delta = (rect.xmax - rect.xmin) - (rect.ymax - rect.ymin);
+		int delta = BLI_RCT_SIZE_X(&rect) - BLI_RCT_SIZE_Y(&rect);
 		rect.xmin += delta / 2;
 		rect.xmax -= delta / 2;
 	}
@@ -2763,7 +2763,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 			/* alt-click on sides to get "arrows" like in NUM buttons, and match wheel usage above */
 			else if (event->type == LEFTMOUSE && event->alt) {
-				int halfpos = (but->rect.xmin + but->rect.xmax) / 2;
+				int halfpos = BLI_RCT_CENTER_X(&but->rect);
 				click = 2;
 				if (mx < halfpos)
 					mx = but->rect.xmin;

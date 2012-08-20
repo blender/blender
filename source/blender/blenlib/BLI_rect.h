@@ -75,6 +75,15 @@ void BLI_rctf_rcti_copy(struct rctf *dst, const struct rcti *src);
 void print_rctf(const char *str, const struct rctf *rect);
 void print_rcti(const char *str, const struct rcti *rect);
 
+#define BLI_RCT_SIZE_X(rct)       ((rct)->xmax - (rct)->xmin)
+#define BLI_RCT_SIZE_Y(rct)       ((rct)->ymax - (rct)->ymin)
+
+#define BLI_RCT_CENTER_X(rct)     (((rct)->xmin + (rct)->xmax) / 2)
+#define BLI_RCT_CENTER_Y(rct)     (((rct)->ymin + (rct)->ymax) / 2)
+
+#define BLI_RCT_CENTER_X_FL(rct)  ((float)((rct)->xmin + (rct)->xmax) / 2.0f)
+#define BLI_RCT_CENTER_Y_FL(rct)  ((float)((rct)->ymin + (rct)->ymax) / 2.0f)
+
 #ifdef __cplusplus
 }
 #endif

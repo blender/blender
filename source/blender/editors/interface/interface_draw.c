@@ -439,8 +439,8 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	//glColor4f(1.0, 0.f, 0.f, 1.f);
 	//fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax)
 
-	w = (rect->xmax - rect->xmin);
-	h = (rect->ymax - rect->ymin);
+	w = BLI_RCT_SIZE_X(rect);
+	h = BLI_RCT_SIZE_Y(rect);
 	/* prevent drawing outside widget area */
 	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + rect->xmin, ar->winrct.ymin + rect->ymin, w, h);
@@ -732,8 +732,8 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
 	rect.ymax = (float)recti->ymax - 1;
 	
-	w = rect.xmax - rect.xmin;
-	h = (rect.ymax - rect.ymin) * hist->ymax;
+	w = BLI_RCT_SIZE_X(&rect);
+	h = BLI_RCT_SIZE_Y(&rect) * hist->ymax;
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

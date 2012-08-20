@@ -1139,7 +1139,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
 			size = (cur_new.xmax - cur_new.xmin);
 			zoom = size / (rect.xmax - rect.xmin);
-			center = (cur_new.xmax + cur_new.xmin) * 0.5f;
+			center = BLI_RCT_CENTER_X(&cur_new);
 			
 			cur_new.xmin = center - (size * zoom);
 			cur_new.xmax = center + (size * zoom);
@@ -1147,7 +1147,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0) {
 			size = (cur_new.ymax - cur_new.ymin);
 			zoom = size / (rect.ymax - rect.ymin);
-			center = (cur_new.ymax + cur_new.ymin) * 0.5f;
+			center = BLI_RCT_CENTER_Y(&cur_new);
 			
 			cur_new.ymin = center - (size * zoom);
 			cur_new.ymax = center + (size * zoom);
@@ -1201,10 +1201,10 @@ static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
 	                   rect_a->ymax - rect_a->ymin};
 	float size_b[2] = {rect_b->xmax - rect_b->xmin,
 	                   rect_b->ymax - rect_b->ymin};
-	float cent_a[2] = {(rect_a->xmax + rect_a->xmin) * 0.5f,
-	                   (rect_a->ymax + rect_a->ymin) * 0.5f};
-	float cent_b[2] = {(rect_b->xmax + rect_b->xmin) * 0.5f,
-	                   (rect_b->ymax + rect_b->ymin) * 0.5f};
+	float cent_a[2] = {BLI_RCT_CENTER_X(rect_a),
+	                   BLI_RCT_CENTER_Y(rect_a)};
+	float cent_b[2] = {BLI_RCT_CENTER_X(rect_b),
+	                   BLI_RCT_CENTER_Y(rect_b)};
 
 	float fac_max = 0.0f;
 	float tfac;

@@ -370,8 +370,8 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 {
 	MemArena *arena = BLI_memarena_new(1 << 16, __func__);
 
-	const float bucket_dim_x = layer->bounds.xmax - layer->bounds.xmin;
-	const float bucket_dim_y = layer->bounds.ymax - layer->bounds.ymin;
+	const float bucket_dim_x = BLI_RCT_SIZE_X(&layer->bounds);
+	const float bucket_dim_y = BLI_RCT_SIZE_Y(&layer->bounds);
 
 	layer->buckets_x = (bucket_dim_x / pixel_size) / (float)BUCKET_PIXELS_PER_CELL;
 	layer->buckets_y = (bucket_dim_y / pixel_size) / (float)BUCKET_PIXELS_PER_CELL;
