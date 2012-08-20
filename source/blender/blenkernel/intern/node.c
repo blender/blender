@@ -1425,13 +1425,37 @@ void nodeSocketSetType(bNodeSocket *sock, int type)
 
 /* ************** Node Clipboard *********** */
 
+#define USE_NODE_CB_VALIDATE
+
+#ifdef USE_NODE_CB_VALIDATE
+/**
+ * This data structure is to validate the node on creation,
+ * otherwise we may reference missing data.
+ *
+ * Currently its only used for ID's, but nodes may one day
+ * referene other pointers which need validation.
+ */
+typedef struct bNodeClipboardExtraInfo {
+    struct bNodeClipboardExtraInfo *next, *prev;
+	ID  *id;
+    char id_name[MAX_ID_NAME];
+    char library_name[FILE_MAX];
+} bNodeClipboardExtraInfo;
+#endif  /* USE_NODE_CB_VALIDATE */
+
+
 typedef struct bNodeClipboard {
 	ListBase nodes;
+
+#ifdef USE_NODE_CB_VALIDATE
+    ListBase nodes_extra_info;
+#endif
+
 	ListBase links;
 	int type;
 } bNodeClipboard;
 
-bNodeClipboard node_clipboard;
+bNodeClipboard node_clipboard = {{0}};
 
 void BKE_node_clipboard_init(struct bNodeTree *ntree)
 {
@@ -1454,11 +1478,83 @@ void BKE_node_clipboard_clear(void)
 		nodeFreeNode(NULL, node);
 	}
 	node_clipboard.nodes.first = node_clipboard.nodes.last = NULL;
+
+#ifdef USE_NODE_CB_VALIDATE
+    BLI_freelistN(&node_clipboard.nodes_extra_info);
+#endif
+}
+
+/* return FALSE when one or more ID's are lost */
+int BKE_node_clipboard_validate(void)
+{
+	int ok = TRUE;
+
+#ifdef USE_NODE_CB_VALIDATE
+	bNodeClipboardExtraInfo *node_info;
+	bNode *node;
+
+
+	/* lists must be aligned */
+	BLI_assert(BLI_countlist(&node_clipboard.nodes) ==
+			   BLI_countlist(&node_clipboard.nodes_extra_info));
+
+	for (node = node_clipboard.nodes.first, node_info = node_clipboard.nodes_extra_info.first;
+		 node;
+		 node = node->next, node_info = node_info->next)
+	{
+		/* validate the node against the stored node info */
+
+		/* re-assign each loop since we may clear,
+		 * open a new file where the ID is valid, and paste again */
+		node->id = node_info->id;
+
+		/* currently only validate the ID */
+		if (node->id) {
+			ListBase *lb = which_libbase(G.main, GS(node_info->id_name));
+			BLI_assert(lb != NULL);
+
+			if (BLI_findindex(lb, node_info->id) == -1) {
+				/* may assign NULL */
+				node->id = BLI_findstring(lb, node_info->id_name + 2, offsetof(ID, name) + 2);
+				printf("%s %p\n", node_info->id_name, node->id);
+				if (node->id == NULL) {
+					ok = FALSE;
+				}
+			}
+		}
+	}
+#endif  /* USE_NODE_CB_VALIDATE */
+
+	return ok;
 }
 
 void BKE_node_clipboard_add_node(bNode *node)
 {
+#ifdef USE_NODE_CB_VALIDATE
+    /* add extra info */
+    bNodeClipboardExtraInfo *node_info = MEM_mallocN(sizeof(bNodeClipboardExtraInfo), STRINGIFY(bNodeClipboardExtraInfo));
+
+	node_info->id = node->id;
+    if (node->id) {
+        BLI_strncpy(node_info->id_name, node->id->name, sizeof(node_info->id_name));
+        if (node->id->lib) {
+            BLI_strncpy(node_info->library_name, node->id->lib->filepath, sizeof(node_info->library_name));
+        }
+        else {
+            node_info->library_name[0] = '\0';
+        }
+    }
+    else {
+        node_info->id_name[0] = '\0';
+        node_info->library_name[0] = '\0';
+    }
+    BLI_addtail(&node_clipboard.nodes_extra_info, node_info);
+	/* end extra info */
+#endif  /* USE_NODE_CB_VALIDATE */
+
+    /* add node */
 	BLI_addtail(&node_clipboard.nodes, node);
+
 }
 
 void BKE_node_clipboard_add_link(bNodeLink *link)

@@ -388,6 +388,7 @@ void            nodeSocketSetType(struct bNodeSocket *sock, int type);
 /* Node Clipboard */
 void                   BKE_node_clipboard_init(struct bNodeTree *ntree);
 void                   BKE_node_clipboard_clear(void);
+int                    BKE_node_clipboard_validate(void);
 void                   BKE_node_clipboard_add_node(struct bNode *node);
 void                   BKE_node_clipboard_add_link(struct bNodeLink *link);
 const struct ListBase *BKE_node_clipboard_get_nodes(void);

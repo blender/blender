@@ -2019,10 +2019,13 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	bNodeTree *ntree = snode->edittree;
 	bNode *gnode = node_tree_get_editgroup(snode->nodetree);
 	float gnode_x = 0.0f, gnode_y = 0.0f;
+	const ListBase *clipboard_nodes_lb;
+	const ListBase *clipboard_links_lb;
 	bNode *node;
 	bNodeLink *link;
 	int num_nodes;
 	float centerx, centery;
+	int is_clipboard_valid;
 
 	if (BKE_node_clipboard_get_type() != ntree->type) {
 		BKE_report(op->reports, RPT_ERROR, "Clipboard nodes are an incompatible type");
@@ -2038,10 +2041,17 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	if (gnode)
 		nodeToView(gnode, 0.0f, 0.0f, &gnode_x, &gnode_y);
 
+
+	/* validate pointers in the clipboard */
+	is_clipboard_valid = BKE_node_clipboard_validate();
+
+	clipboard_nodes_lb = BKE_node_clipboard_get_nodes();
+	clipboard_links_lb = BKE_node_clipboard_get_links();
+
 	/* calculate "barycenter" for placing on mouse cursor */
 	num_nodes = 0;
 	centerx = centery = 0.0f;
-	for (node = BKE_node_clipboard_get_nodes()->first; node; node = node->next) {
+	for (node = clipboard_nodes_lb->first; node; node = node->next) {
 		++num_nodes;
 		centerx += 0.5f * (node->totr.xmin + node->totr.xmax);
 		centery += 0.5f * (node->totr.ymin + node->totr.ymax);
@@ -2050,15 +2060,18 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	centery /= num_nodes;
 
 	/* copy nodes from clipboard */
-	for (node = BKE_node_clipboard_get_nodes()->first; node; node = node->next) {
+	for (node = clipboard_nodes_lb->first; node; node = node->next) {
 		bNode *new_node = nodeCopyNode(ntree, node);
+
+		/* needed since nodeCopyNode() doesn't increase ID's */
+		id_us_plus(node->id);
 
 		/* pasted nodes are selected */
 		node_select(new_node);
 	}
 	
 	/* reparent copied nodes */
-	for (node = BKE_node_clipboard_get_nodes()->first; node; node = node->next) {
+	for (node = clipboard_nodes_lb->first; node; node = node->next) {
 		bNode *new_node = node->new_node;
 		if (new_node->parent)
 			new_node->parent = new_node->parent->new_node;
@@ -2071,7 +2084,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	for (link = BKE_node_clipboard_get_links()->first; link; link = link->next) {
+	for (link = clipboard_links_lb->first; link; link = link->next) {
 		nodeAddLink(ntree, link->fromnode->new_node, link->fromsock->new_sock,
 		            link->tonode->new_node, link->tosock->new_sock);
 	}
@@ -2080,6 +2093,10 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
+
+	if (is_clipboard_valid == FALSE) {
+		BKE_report(op->reports, RPT_ERROR, "Some nodes ID references could not be found");
+	}
 
 	return OPERATOR_FINISHED;
 }
