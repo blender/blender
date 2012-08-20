@@ -2567,7 +2567,8 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 
 			ibuf = do_render_strip_uncached(context, seq, cfra);
 
-			BKE_sequencer_preprocessed_cache_put(context, seq, cfra, SEQ_STRIPELEM_IBUF, ibuf);
+			if (ibuf)
+				BKE_sequencer_preprocessed_cache_put(context, seq, cfra, SEQ_STRIPELEM_IBUF, ibuf);
 		}
 	}
 
