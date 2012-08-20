@@ -1516,7 +1516,7 @@ int BKE_node_clipboard_validate(void)
 			if (BLI_findindex(lb, node_info->id) == -1) {
 				/* may assign NULL */
 				node->id = BLI_findstring(lb, node_info->id_name + 2, offsetof(ID, name) + 2);
-				printf("%s %p\n", node_info->id_name, node->id);
+
 				if (node->id == NULL) {
 					ok = FALSE;
 				}
