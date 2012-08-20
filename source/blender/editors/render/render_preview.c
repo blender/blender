@@ -474,7 +474,9 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 	RenderResult rres;
 	char name[32];
 	int do_gamma_correct = FALSE, do_predivide = FALSE;
-	int offx = 0, newx = rect->xmax - rect->xmin, newy = rect->ymax - rect->ymin;
+	int offx = 0;
+	int newx = BLI_RCT_SIZE_X(rect);
+	int newy = BLI_RCT_SIZE_Y(rect);
 
 	if (id && GS(id->name) != ID_TE) {
 		/* exception: don't color manage texture previews - show the raw values */
@@ -547,7 +549,8 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		SpaceButs *sbuts = sa->spacedata.first;
 		rcti newrect;
 		int ok;
-		int newx = rect->xmax - rect->xmin, newy = rect->ymax - rect->ymin;
+		int newx = BLI_RCT_SIZE_X(rect);
+		int newy = BLI_RCT_SIZE_Y(rect);
 
 		newrect.xmin = rect->xmin;
 		newrect.xmax = rect->xmin;

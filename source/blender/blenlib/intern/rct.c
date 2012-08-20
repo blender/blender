@@ -382,11 +382,11 @@ void BLI_rctf_rcti_copy(rctf *dst, const rcti *src)
 void print_rctf(const char *str, const rctf *rect)
 {
 	printf("%s: xmin %.3f, xmax %.3f, ymin %.3f, ymax %.3f (%.3fx%.3f)\n", str,
-	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, rect->xmax - rect->xmin, rect->ymax - rect->ymin);
+	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_RCT_SIZE_X(rect), BLI_RCT_SIZE_Y(rect));
 }
 
 void print_rcti(const char *str, const rcti *rect)
 {
 	printf("%s: xmin %d, xmax %d, ymin %d, ymax %d (%dx%d)\n", str,
-	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, rect->xmax - rect->xmin, rect->ymax - rect->ymin);
+	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_RCT_SIZE_X(rect), BLI_RCT_SIZE_Y(rect));
 }

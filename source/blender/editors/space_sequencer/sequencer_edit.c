@@ -372,7 +372,7 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 	
 	if (ed == NULL) return NULL;
 	
-	pixelx = (v2d->cur.xmax - v2d->cur.xmin) / (v2d->mask.xmax - v2d->mask.xmin);
+	pixelx = BLI_RCT_SIZE_X(&v2d->cur) / BLI_RCT_SIZE_X(&v2d->mask);
 
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 	
@@ -2142,8 +2142,8 @@ static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 	float winx = (int)(rd->size * rd->xsch) / 100;
 	float winy = (int)(rd->size * rd->ysch) / 100;
 
-	float facx = (v2d->mask.xmax - v2d->mask.xmin) / winx;
-	float facy = (v2d->mask.ymax - v2d->mask.ymin) / winy;
+	float facx = BLI_RCT_SIZE_X(&v2d->mask) / winx;
+	float facy = BLI_RCT_SIZE_Y(&v2d->mask) / winy;
 
 	BLI_rctf_resize(&v2d->cur, (int)(winx * facx * ratio) + 1, (int)(winy * facy * ratio) + 1);
 
@@ -2769,11 +2769,11 @@ static int view_ghost_border_exec(bContext *C, wmOperator *op)
 	if (ed == NULL)
 		return OPERATOR_CANCELLED;
 
-	rect.xmin /=  (float)(ABS(v2d->tot.xmax - v2d->tot.xmin));
-	rect.ymin /=  (float)(ABS(v2d->tot.ymax - v2d->tot.ymin));
+	rect.xmin /=  (float)(ABS(BLI_RCT_SIZE_X(&v2d->tot)));
+	rect.ymin /=  (float)(ABS(BLI_RCT_SIZE_Y(&v2d->tot)));
 
-	rect.xmax /=  (float)(ABS(v2d->tot.xmax - v2d->tot.xmin));
-	rect.ymax /=  (float)(ABS(v2d->tot.ymax - v2d->tot.ymin));
+	rect.xmax /=  (float)(ABS(BLI_RCT_SIZE_X(&v2d->tot)));
+	rect.ymax /=  (float)(ABS(BLI_RCT_SIZE_Y(&v2d->tot)));
 
 	rect.xmin += 0.5f;
 	rect.xmax += 0.5f;

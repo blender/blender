@@ -39,6 +39,7 @@
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -89,9 +90,9 @@ static void sclip_zoom_set(const bContext *C, float zoom, float location[2])
 
 		if ((width < 4) && (height < 4))
 			sc->zoom = oldzoom;
-		else if ((ar->winrct.xmax - ar->winrct.xmin) <= sc->zoom)
+		else if (BLI_RCT_SIZE_X(&ar->winrct) <= sc->zoom)
 			sc->zoom = oldzoom;
-		else if ((ar->winrct.ymax - ar->winrct.ymin) <= sc->zoom)
+		else if (BLI_RCT_SIZE_Y(&ar->winrct) <= sc->zoom)
 			sc->zoom = oldzoom;
 	}
 
@@ -725,8 +726,8 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	h = h * aspy;
 
 	/* check if the image will fit in the image with zoom == 1 */
-	width = ar->winrct.xmax - ar->winrct.xmin + 1;
-	height = ar->winrct.ymax - ar->winrct.ymin + 1;
+	width  = BLI_RCT_SIZE_X(&ar->winrct) + 1;
+	height = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
 
 	if (fit_view) {
 		const int margin = 5; /* margin from border */

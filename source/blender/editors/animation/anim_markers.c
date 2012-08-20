@@ -354,7 +354,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	xpos = marker->frame;
 	
 	/* no time correction for framelen! space is drawn with old values */
-	ypixels = v2d->mask.ymax - v2d->mask.ymin;
+	ypixels = BLI_RCT_SIZE_Y(&v2d->mask);
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	
 	glScalef(1.0f / xscale, 1.0f, 1.0f);

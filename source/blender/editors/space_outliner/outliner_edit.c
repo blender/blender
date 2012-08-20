@@ -579,11 +579,11 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 	te = outliner_find_id(so, &so->tree, (ID *)OBACT);
 	if (te) {
 		/* make te->ys center of view */
-		ytop = (int)(te->ys + (v2d->mask.ymax - v2d->mask.ymin) / 2);
+		ytop = (int)(te->ys + BLI_RCT_SIZE_Y(&v2d->mask) / 2);
 		if (ytop > 0) ytop = 0;
 		
 		v2d->cur.ymax = (float)ytop;
-		v2d->cur.ymin = (float)(ytop - (v2d->mask.ymax - v2d->mask.ymin));
+		v2d->cur.ymin = (float)(ytop - BLI_RCT_SIZE_Y(&v2d->mask));
 		
 		/* make te->xs ==> te->xend center of view */
 		xdelta = (int)(te->xs - v2d->cur.xmin);

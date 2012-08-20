@@ -383,9 +383,9 @@ static void calctrackballvec(rcti *rect, int mx, int my, float vec[3])
 
 	/* normalize x and y */
 	x = BLI_RCT_CENTER_X(rect) - mx;
-	x /= (float)((rect->xmax - rect->xmin) / 4);
+	x /= (float)(BLI_RCT_SIZE_X(rect) / 4);
 	y = BLI_RCT_CENTER_Y(rect) - my;
-	y /= (float)((rect->ymax - rect->ymin) / 2);
+	y /= (float)(BLI_RCT_SIZE_Y(rect) / 2);
 
 	d = sqrt(x * x + y * y);
 	if (d < radius * (float)M_SQRT1_2) { /* Inside sphere */
@@ -2784,8 +2784,8 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		}
 
 		/* work out the ratios, so that everything selected fits when we zoom */
-		xscale = ((rect.xmax - rect.xmin) / vb[0]);
-		yscale = ((rect.ymax - rect.ymin) / vb[1]);
+		xscale = (BLI_RCT_SIZE_X(&rect) / vb[0]);
+		yscale = (BLI_RCT_SIZE_Y(&rect) / vb[1]);
 		new_dist *= maxf(xscale, yscale);
 
 		/* zoom in as required, or as far as we can go */

@@ -33,6 +33,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
@@ -512,12 +513,12 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 
-	/* w = v2d->tot.xmax - v2d->tot.xmin; */
-	/* h = v2d->tot.ymax - v2d->tot.ymin;/*/
+	/* w = BLI_RCT_SIZE_X(&v2d->tot); */
+	/* h = BLI_RCT_SIZE_Y(&v2d->tot);/*/
 
 
-	zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1) / (float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin));
-	zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1) / (float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin));
+	zoomx = (float)(BLI_RCT_SIZE_X(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_X(&ar->v2d.cur));
+	zoomy = (float)(BLI_RCT_SIZE_Y(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_Y(&ar->v2d.cur));
 
 	if (do_scale_applied) {
 		zoomx /= width;

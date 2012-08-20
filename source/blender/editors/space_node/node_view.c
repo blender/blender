@@ -72,8 +72,8 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 	int tot = 0;
 	int has_frame = FALSE;
 	
-	oldwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin;
-	oldheight = ar->v2d.cur.ymax - ar->v2d.cur.ymin;
+	oldwidth  = BLI_RCT_SIZE_X(&ar->v2d.cur);
+	oldheight = BLI_RCT_SIZE_Y(&ar->v2d.cur);
 
 	BLI_rctf_init_minmax(&cur_new);
 

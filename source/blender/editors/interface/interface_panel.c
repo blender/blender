@@ -360,11 +360,11 @@ void UI_DrawTriIcon(float x, float y, char dir)
 static void ui_draw_tria_rect(rctf *rect, char dir)
 {
 	if (dir == 'h') {
-		float half = 0.5f * (rect->ymax - rect->ymin);
+		float half = 0.5f * BLI_RCT_SIZE_Y(rect);
 		ui_draw_anti_tria(rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin + half);
 	}
 	else {
-		float half = 0.5f * (rect->xmax - rect->xmin);
+		float half = 0.5f * BLI_RCT_SIZE_X(rect);
 		ui_draw_anti_tria(rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin + half, rect->ymin);
 	}
 }
@@ -483,8 +483,8 @@ static void rectf_scale(rctf *rect, float scale)
 {
 	float centx = 0.5f * (rect->xmin + rect->xmax);
 	float centy = 0.5f * (rect->ymin + rect->ymax);
-	float sizex = 0.5f * scale * (rect->xmax - rect->xmin);
-	float sizey = 0.5f * scale * (rect->ymax - rect->ymin);
+	float sizex = 0.5f * scale * BLI_RCT_SIZE_X(rect);
+	float sizey = 0.5f * scale * BLI_RCT_SIZE_Y(rect);
 	
 	rect->xmin = centx - sizex;
 	rect->xmax = centx + sizex;
@@ -985,8 +985,8 @@ static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 	dx = (event->x - data->startx) & ~(PNL_GRID - 1);
 	dy = (event->y - data->starty) & ~(PNL_GRID - 1);
 
-	dx *= (float)(ar->v2d.cur.xmax - ar->v2d.cur.xmin) / (float)(ar->winrct.xmax - ar->winrct.xmin);
-	dy *= (float)(ar->v2d.cur.ymax - ar->v2d.cur.ymin) / (float)(ar->winrct.ymax - ar->winrct.ymin);
+	dx *= (float)BLI_RCT_SIZE_X(&ar->v2d.cur) / (float)BLI_RCT_SIZE_X(&ar->winrct);
+	dy *= (float)BLI_RCT_SIZE_Y(&ar->v2d.cur) / (float)BLI_RCT_SIZE_Y(&ar->winrct);
 	
 	if (data->state == PANEL_STATE_DRAG_SCALE) {
 		panel->sizex = MAX2(data->startsizex + dx, UI_PANEL_MINX);

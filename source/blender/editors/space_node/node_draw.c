@@ -1110,7 +1110,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	glEnable(GL_MAP1_VERTEX_3);
 
 	/* aspect+font, set each time */
-	snode->aspect = (v2d->cur.xmax - v2d->cur.xmin) / ((float)ar->winx);
+	snode->aspect = BLI_RCT_SIZE_X(&v2d->cur) / (float)ar->winx;
 	snode->aspect_sqrt = sqrtf(snode->aspect);
 	// XXX snode->curfont= uiSetCurFont_ext(snode->aspect);
 

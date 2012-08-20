@@ -99,8 +99,8 @@ void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y
 	float gx, gy;
 	int sx, sy, getsizex, getsizey;
 
-	getsizex = ar->winrct.xmax - ar->winrct.xmin + 1;
-	getsizey = ar->winrct.ymax - ar->winrct.ymin + 1;
+	getsizex = BLI_RCT_SIZE_X(&ar->winrct) + 1;
+	getsizey = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
 	sx = ar->winrct.xmin;
 	sy = ar->winrct.ymin;
 
@@ -145,8 +145,8 @@ void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y
 	float a, b, c, d, e, f, px, py;
 	int sx, sy, getsizex, getsizey;
 
-	getsizex = ar->winrct.xmax - ar->winrct.xmin + 1;
-	getsizey = ar->winrct.ymax - ar->winrct.ymin + 1;
+	getsizex = BLI_RCT_SIZE_X(&ar->winrct) + 1;
+	getsizey = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
 	sx = ar->winrct.xmin;
 	sy = ar->winrct.ymin;
 
@@ -272,7 +272,7 @@ void ui_bounds_block(uiBlock *block)
 		block->rect.ymax += block->bounds;
 	}
 
-	block->rect.xmax = block->rect.xmin + maxf(block->rect.xmax - block->rect.xmin, block->minbounds);
+	block->rect.xmax = block->rect.xmin + maxf(BLI_RCT_SIZE_X(&block->rect), block->minbounds);
 
 	/* hardcoded exception... but that one is annoying with larger safety */ 
 	bt = block->buttons.first;
@@ -325,8 +325,8 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_
 	
 	wm_window_get_size(window, &xmax, &ymax);
 
-	oldwidth = block->rect.xmax - block->rect.xmin;
-	oldheight = block->rect.ymax - block->rect.ymin;
+	oldwidth  = BLI_RCT_SIZE_X(&block->rect);
+	oldheight = BLI_RCT_SIZE_Y(&block->rect);
 
 	/* first we ensure wide enough text bounds */
 	if (bounds_calc == UI_BLOCK_BOUNDS_POPUP_MENU) {
@@ -341,8 +341,8 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_
 	ui_bounds_block(block);
 
 	/* and we adjust the position to fit within window */
-	width = block->rect.xmax - block->rect.xmin;
-	height = block->rect.ymax - block->rect.ymin;
+	width  = BLI_RCT_SIZE_X(&block->rect);
+	height = BLI_RCT_SIZE_Y(&block->rect);
 
 	/* avoid divide by zero below, caused by calling with no UI, but better not crash */
 	oldwidth = oldwidth > 0 ? oldwidth : MAX2(1, width);
@@ -2204,7 +2204,7 @@ void ui_check_but(uiBut *but)
 	
 	
 	/* safety is 4 to enable small number buttons (like 'users') */
-	// okwidth= -4 + (but->rect.xmax - but->rect.xmin); // UNUSED
+	// okwidth= -4 + (BLI_RCT_SIZE_X(&but->rect)); // UNUSED
 	
 	/* name: */
 	switch (but->type) {
@@ -2212,7 +2212,7 @@ void ui_check_but(uiBut *but)
 		case MENU:
 		case ICONTEXTROW:
 		
-			if (but->rect.xmax - but->rect.xmin > 24) {
+			if (BLI_RCT_SIZE_X(&but->rect) > 24.0f) {
 				UI_GET_BUT_VALUE_INIT(but, value);
 				ui_set_name_menu(but, (int)value);
 			}

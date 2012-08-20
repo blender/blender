@@ -44,6 +44,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "GPU_extensions.h"
 
@@ -148,8 +149,8 @@ void ED_space_clip_get_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoo
 
 	ED_space_clip_get_size(sc, &width, &height);
 
-	*zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1) / (float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin) * width);
-	*zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1) / (float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin) * height);
+	*zoomx = (float)(BLI_RCT_SIZE_X(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_X(&ar->v2d.cur) * width);
+	*zoomy = (float)(BLI_RCT_SIZE_Y(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_Y(&ar->v2d.cur) * height);
 }
 
 void ED_space_clip_get_aspect(SpaceClip *sc, float *aspx, float *aspy)
@@ -393,8 +394,8 @@ int ED_clip_view_selection(const bContext *C, ARegion *ar, int fit)
 
 		ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
-		width = ar->winrct.xmax - ar->winrct.xmin + 1;
-		height = ar->winrct.ymax - ar->winrct.ymin + 1;
+		width  = BLI_RCT_SIZE_X(&ar->winrct) + 1;
+		height = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
 
 		zoomx = (float)width / w / aspx;
 		zoomy = (float)height / h / aspy;

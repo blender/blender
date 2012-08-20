@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
+#include "BLI_rect.h"
 
 #include "BLF_translation.h"
 
@@ -1378,7 +1379,7 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand *coba, rctf *butr, RNAUpdateCb *cb)
 {
 	uiBut *bt;
-	float unit = (butr->xmax - butr->xmin) / 14.0f;
+	float unit = BLI_RCT_SIZE_X(butr) / 14.0f;
 	float xs = butr->xmin;
 
 	uiBlockBeginAlign(block);
@@ -1404,7 +1405,7 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 	               TIP_("Set interpolation between color stops"));
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-	bt = uiDefBut(block, BUT_COLORBAND, 0, "",       xs, butr->ymin, butr->xmax - butr->xmin, UI_UNIT_Y, coba, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, BUT_COLORBAND, 0, "", xs, butr->ymin, BLI_RCT_SIZE_X(butr), UI_UNIT_Y, coba, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	uiBlockEndAlign(block);
@@ -1479,7 +1480,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 
 	hist->height = (hist->height <= UI_UNIT_Y) ? UI_UNIT_Y : hist->height;
 
-	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin, hist->height, hist, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect), hist->height, hist, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	MEM_freeN(cb);
@@ -1516,7 +1517,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	
 	scopes->wavefrm_height = (scopes->wavefrm_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->wavefrm_height;
 
-	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin, scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect), scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
 	(void)bt;  /* UNUSED */
 	
 	MEM_freeN(cb);
@@ -1553,7 +1554,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 
 	scopes->vecscope_height = (scopes->vecscope_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->vecscope_height;
 	
-	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin, scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect), scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 	
 	MEM_freeN(cb);
@@ -1568,11 +1569,11 @@ static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *UNUSED(ar
 	float d;
 
 	/* we allow 20 times zoom */
-	if ( (cumap->curr.xmax - cumap->curr.xmin) > 0.04f * (cumap->clipr.xmax - cumap->clipr.xmin) ) {
-		d = 0.1154f * (cumap->curr.xmax - cumap->curr.xmin);
+	if (BLI_RCT_SIZE_X(&cumap->curr) > 0.04f * BLI_RCT_SIZE_X(&cumap->clipr)) {
+		d = 0.1154f * BLI_RCT_SIZE_X(&cumap->curr);
 		cumap->curr.xmin += d;
 		cumap->curr.xmax -= d;
-		d = 0.1154f * (cumap->curr.ymax - cumap->curr.ymin);
+		d = 0.1154f * BLI_RCT_SIZE_Y(&cumap->curr);
 		cumap->curr.ymin += d;
 		cumap->curr.ymax -= d;
 	}
@@ -1586,8 +1587,8 @@ static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *UNUSED(u
 	float d, d1;
 
 	/* we allow 20 times zoom, but don't view outside clip */
-	if ( (cumap->curr.xmax - cumap->curr.xmin) < 20.0f * (cumap->clipr.xmax - cumap->clipr.xmin) ) {
-		d = d1 = 0.15f * (cumap->curr.xmax - cumap->curr.xmin);
+	if (BLI_RCT_SIZE_X(&cumap->curr) < 20.0f * BLI_RCT_SIZE_X(&cumap->clipr)) {
+		d = d1 = 0.15f * BLI_RCT_SIZE_X(&cumap->curr);
 
 		if (cumap->flag & CUMA_DO_CLIP) 
 			if (cumap->curr.xmin - d < cumap->clipr.xmin)
@@ -1600,7 +1601,7 @@ static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *UNUSED(u
 				d1 = -cumap->curr.xmax + cumap->clipr.xmax;
 		cumap->curr.xmax += d1;
 
-		d = d1 = 0.15f * (cumap->curr.ymax - cumap->curr.ymin);
+		d = d1 = 0.15f * BLI_RCT_SIZE_Y(&cumap->curr);
 
 		if (cumap->flag & CUMA_DO_CLIP) 
 			if (cumap->curr.ymin - d < cumap->clipr.ymin)
