@@ -440,7 +440,7 @@ static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *nex
 
 /* in X, out Y. 
  * X is presumed to be outside first or last */
-static float curvemap_calc_extend(CurveMap *cuma, float x, const float first[2], const float last[2])
+static float curvemap_calc_extend(const CurveMap *cuma, float x, const float first[2], const float last[2])
 {
 	if (x <= first[0]) {
 		if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
@@ -739,7 +739,7 @@ void curvemapping_changed_all(CurveMapping *cumap)
 }
 
 /* table should be verified */
-float curvemap_evaluateF(CurveMap *cuma, float value)
+float curvemap_evaluateF(const CurveMap *cuma, float value)
 {
 	float fi;
 	int i;
@@ -761,33 +761,26 @@ float curvemap_evaluateF(CurveMap *cuma, float value)
 }
 
 /* works with curve 'cur' */
-float curvemapping_evaluateF(CurveMapping *cumap, int cur, float value)
+float curvemapping_evaluateF(const CurveMapping *cumap, int cur, float value)
 {
-	CurveMap *cuma = cumap->cm + cur;
-	
-	/* allocate or bail out */
-	if (cuma->table == NULL) {
-		curvemap_make_table(cuma, &cumap->clipr);
-		if (cuma->table == NULL)
-			return 1.0f - value;
-	}
+	const CurveMap *cuma = cumap->cm + cur;
 	return curvemap_evaluateF(cuma, value);
 }
 
 /* vector case */
-void curvemapping_evaluate3F(CurveMapping *cumap, float vecout[3], const float vecin[3])
+void curvemapping_evaluate3F(const CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
-	vecout[0] = curvemapping_evaluateF(cumap, 0, vecin[0]);
-	vecout[1] = curvemapping_evaluateF(cumap, 1, vecin[1]);
-	vecout[2] = curvemapping_evaluateF(cumap, 2, vecin[2]);
+	vecout[0] = curvemap_evaluateF(&cumap->cm[0], vecin[0]);
+	vecout[1] = curvemap_evaluateF(&cumap->cm[1], vecin[1]);
+	vecout[2] = curvemap_evaluateF(&cumap->cm[2], vecin[2]);
 }
 
 /* RGB case, no black/white points, no premult */
-void curvemapping_evaluateRGBF(CurveMapping *cumap, float vecout[3], const float vecin[3])
+void curvemapping_evaluateRGBF(const CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
-	vecout[0] = curvemapping_evaluateF(cumap, 0, curvemapping_evaluateF(cumap, 3, vecin[0]));
-	vecout[1] = curvemapping_evaluateF(cumap, 1, curvemapping_evaluateF(cumap, 3, vecin[1]));
-	vecout[2] = curvemapping_evaluateF(cumap, 2, curvemapping_evaluateF(cumap, 3, vecin[2]));
+	vecout[0] = curvemap_evaluateF(&cumap->cm[0], curvemap_evaluateF(&cumap->cm[3], vecin[0]));
+	vecout[1] = curvemap_evaluateF(&cumap->cm[1], curvemap_evaluateF(&cumap->cm[3], vecin[1]));
+	vecout[2] = curvemap_evaluateF(&cumap->cm[2], curvemap_evaluateF(&cumap->cm[3], vecin[2]));
 }
 
 /** same as #curvemapping_evaluate_premulRGBF
@@ -799,7 +792,7 @@ void curvemapping_evaluateRGBF(CurveMapping *cumap, float vecout[3], const float
  * \param black Use instead of cumap->black
  * \param bwmul Use instead of cumap->bwmul
  */
-void curvemapping_evaluate_premulRGBF_ex(CurveMapping *cumap, float vecout[3], const float vecin[3],
+void curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap, float vecout[3], const float vecin[3],
                                          const float black[3], const float bwmul[3])
 {
 	vecout[0] = curvemap_evaluateF(&cumap->cm[0], (vecin[0] - black[0]) * bwmul[0]);
@@ -808,7 +801,7 @@ void curvemapping_evaluate_premulRGBF_ex(CurveMapping *cumap, float vecout[3], c
 }
 
 /* RGB with black/white points and premult. tables are checked */
-void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float vecout[3], const float vecin[3])
+void curvemapping_evaluate_premulRGBF(const CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
 	vecout[0] = curvemap_evaluateF(&cumap->cm[0], (vecin[0] - cumap->black[0]) * cumap->bwmul[0]);
 	vecout[1] = curvemap_evaluateF(&cumap->cm[1], (vecin[1] - cumap->black[1]) * cumap->bwmul[1]);
@@ -816,7 +809,7 @@ void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float vecout[3], cons
 }
 
 /* same as above, byte version */
-void curvemapping_evaluate_premulRGB(CurveMapping *cumap, unsigned char vecout_byte[3], const unsigned char vecin_byte[3])
+void curvemapping_evaluate_premulRGB(const CurveMapping *cumap, unsigned char vecout_byte[3], const unsigned char vecin_byte[3])
 {
 	float vecin[3], vecout[3];
 
@@ -889,7 +882,7 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	curvemapping_premultiply(cumap, 1);
 }
 
-int curvemapping_RGBA_does_something(CurveMapping *cumap)
+int curvemapping_RGBA_does_something(const CurveMapping *cumap)
 {
 	int a;
 	
@@ -925,13 +918,12 @@ void curvemapping_initialize(CurveMapping *cumap)
 	}
 }
 
-void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
+void curvemapping_table_RGBA(const CurveMapping *cumap, float **array, int *size)
 {
 	int a;
 	
 	*size = CM_TABLE + 1;
 	*array = MEM_callocN(sizeof(float) * (*size) * 4, "CurveMapping");
-	curvemapping_initialize(cumap);
 
 	for (a = 0; a < *size; a++) {
 		if (cumap->cm[0].table)

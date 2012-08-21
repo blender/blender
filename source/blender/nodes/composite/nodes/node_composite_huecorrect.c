@@ -51,6 +51,8 @@ static void do_huecorrect(bNode *node, float *out, float *in)
 	
 	rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
 	
+	curvemapping_initialize(node->storage);
+
 	/* adjust hue, scaling returned default 0.5 up to 1 */
 	f = curvemapping_evaluateF(node->storage, 0, hsv[0]);
 	hsv[0] += f-0.5f;
@@ -79,6 +81,8 @@ static void do_huecorrect_fac(bNode *node, float *out, float *in, float *fac)
 	
 	rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
 	
+	curvemapping_initialize(node->storage);
+
 	/* adjust hue, scaling returned default 0.5 up to 1 */
 	f = curvemapping_evaluateF(node->storage, 0, hsv[0]);
 	hsv[0] += f-0.5f;
@@ -118,7 +122,7 @@ static void node_composit_exec_huecorrect(void *UNUSED(data), bNode *node, bNode
 		out[0]->data = pass_on_compbuf(cbuf);
 		return;
 	}
-	
+
 	/* input no image? then only color operation */
 	if (in[1]->data==NULL) {
 		do_huecorrect_fac(node, out[0]->vec, in[1]->vec, in[0]->vec);

@@ -33,6 +33,8 @@ TimeNode::TimeNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
+////curvemapping_initialize(&hcmd->curve_mapping);
+
 void TimeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	SetValueOperation *operation = new SetValueOperation();
@@ -53,6 +55,7 @@ void TimeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		fac = (context->getFramenumber() - node->custom1) / (float)(node->custom2 - node->custom1);
 	}
 
+	curvemapping_initialize((CurveMapping *)node->storage);
 	fac = curvemapping_evaluateF((CurveMapping *)node->storage, 0, fac);
 	operation->setValue(CLAMPIS(fac, 0.0f, 1.0f));
 	graph->addOperation(operation);

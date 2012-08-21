@@ -52,7 +52,9 @@ static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack *
 	if (node->custom1 < node->custom2)
 		fac= (rd->cfra - node->custom1)/(float)(node->custom2-node->custom1);
 	
-	fac= curvemapping_evaluateF(node->storage, 0, fac);
+	curvemapping_initialize(node->storage);
+	fac = curvemapping_evaluateF(node->storage, 0, fac);
+
 	out[0]->vec[0]= CLAMPIS(fac, 0.0f, 1.0f);
 }
 
@@ -100,7 +102,8 @@ static void node_composit_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeS
 {
 	/* stack order input:  vec */
 	/* stack order output: vec */
-	
+
+	curvemapping_initialize(node->storage);
 	curvemapping_evaluate_premulRGBF(node->storage, out[0]->vec, in[0]->vec);
 }
 
@@ -146,13 +149,15 @@ static bNodeSocketTemplate cmp_node_curve_rgb_out[]= {
 
 static void do_curves(bNode *node, float *out, float *in)
 {
+	curvemapping_initialize(node->storage);
 	curvemapping_evaluate_premulRGBF(node->storage, out, in);
 	out[3]= in[3];
 }
 
 static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
 {
-	
+	curvemapping_initialize(node->storage);
+
 	if (*fac >= 1.0f)
 		curvemapping_evaluate_premulRGBF(node->storage, out, in);
 	else if (*fac <= 0.0f) {
@@ -175,6 +180,8 @@ static void node_composit_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeS
 	
 	if (out[0]->hasoutput==0)
 		return;
+
+	curvemapping_initialize(node->storage);
 
 	/* input no image? then only color operation */
 	if (in[1]->data==NULL) {
