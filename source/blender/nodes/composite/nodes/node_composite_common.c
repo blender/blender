@@ -30,7 +30,6 @@
  *  \ingroup cmpnodes
  */
 
-
 #include "DNA_node_types.h"
 
 #include "BKE_node.h"
@@ -184,7 +183,9 @@ static void group_free_internal(bNodeTreeExec *gexec)
 	for (i=0, ns=gexec->stack; i < gexec->stacksize; ++i, ++ns) {
 		if (!ns->external && !ns->is_copy) {
 			if (ns->data) {
+#ifdef WITH_COMPOSITOR_LEGACY
 				free_compbuf(ns->data);
+#endif
 				ns->data = NULL;
 			}
 		}
@@ -231,6 +232,7 @@ void register_node_type_cmp_group(bNodeTreeType *ttype)
 	nodeRegisterType(ttype, &ntype);
 }
 
+#ifdef WITH_COMPOSITOR_LEGACY
 
 /**** FOR LOOP ****/
 
@@ -377,3 +379,5 @@ void register_node_type_cmp_whileloop(bNodeTreeType *ttype)
 	nodeRegisterType(ttype, &ntype);
 }
 #endif
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
