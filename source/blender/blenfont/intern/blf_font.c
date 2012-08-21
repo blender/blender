@@ -229,9 +229,9 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	FontBufInfoBLF *buf_info = &font->buf_info;
 	float b_col_float[4];
 	const unsigned char b_col_char[4] = {buf_info->col[0] * 255,
-										 buf_info->col[1] * 255,
-										 buf_info->col[2] * 255,
-										 buf_info->col[3] * 255};
+	                                     buf_info->col[1] * 255,
+	                                     buf_info->col[2] * 255,
+	                                     buf_info->col[3] * 255};
 
 	unsigned char *cbuf;
 	int chx, chy;
@@ -242,7 +242,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 
 	blf_font_ensure_ascii_table(font);
 
-	/* another buffer spesific call for color conversion */
+	/* another buffer specific call for color conversion */
 	if (buf_info->do_color_management) {
 		srgb_to_linearrgb_v4(b_col_float, buf_info->col);
 	}

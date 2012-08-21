@@ -792,16 +792,16 @@ float (*BKE_mask_spline_feather_differentiated_points_with_resolution_ex(MaskSpl
 }
 
 float (*BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline *spline, int width, int height,
-                                                                      int *tot_feather_point))[2]
+                                                                      int *tot_feather_point, const int do_feather_isect))[2]
 {
 	unsigned int resol = BKE_mask_spline_feather_resolution(spline, width, height);
 
-	return BKE_mask_spline_feather_differentiated_points_with_resolution_ex(spline, tot_feather_point, resol, TRUE);
+	return BKE_mask_spline_feather_differentiated_points_with_resolution_ex(spline, tot_feather_point, resol, do_feather_isect);
 }
 
 float (*BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *tot_feather_point))[2]
 {
-	return BKE_mask_spline_feather_differentiated_points_with_resolution(spline, 0, 0, tot_feather_point);
+	return BKE_mask_spline_feather_differentiated_points_with_resolution(spline, 0, 0, tot_feather_point, TRUE);
 }
 
 float (*BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point))[2]
