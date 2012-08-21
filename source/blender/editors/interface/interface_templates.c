@@ -1622,7 +1622,7 @@ static void curvemap_buttons_setclip(bContext *UNUSED(C), void *cumap_v, void *U
 {
 	CurveMapping *cumap = cumap_v;
 
-	curvemapping_changed(cumap, 0);
+	curvemapping_changed(cumap, FALSE);
 }	
 
 static void curvemap_buttons_delete(bContext *C, void *cb_v, void *cumap_v)
@@ -1630,7 +1630,7 @@ static void curvemap_buttons_delete(bContext *C, void *cb_v, void *cumap_v)
 	CurveMapping *cumap = cumap_v;
 
 	curvemap_remove(cumap->cm + cumap->cur, SELECT);
-	curvemapping_changed(cumap, 0);
+	curvemapping_changed(cumap, FALSE);
 
 	rna_update_cb(C, cb_v, NULL);
 }
@@ -1672,26 +1672,26 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 	switch (event) {
 		case 0: /* reset */
 			curvemap_reset(cuma, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
-			curvemapping_changed(cumap, 0);
+			curvemapping_changed(cumap, FALSE);
 			break;
 		case 1:
 			cumap->curr = cumap->clipr;
 			break;
 		case 2: /* set vector */
 			curvemap_sethandle(cuma, 1);
-			curvemapping_changed(cumap, 0);
+			curvemapping_changed(cumap, FALSE);
 			break;
 		case 3: /* set auto */
 			curvemap_sethandle(cuma, 0);
-			curvemapping_changed(cumap, 0);
+			curvemapping_changed(cumap, FALSE);
 			break;
 		case 4: /* extend horiz */
 			cuma->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
-			curvemapping_changed(cumap, 0);
+			curvemapping_changed(cumap, FALSE);
 			break;
 		case 5: /* extend extrapolate */
 			cuma->flag |= CUMA_EXTEND_EXTRAPOLATE;
-			curvemapping_changed(cumap, 0);
+			curvemapping_changed(cumap, FALSE);
 			break;
 	}
 	ED_region_tag_redraw(CTX_wm_region(C));

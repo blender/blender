@@ -79,7 +79,7 @@ static void rna_CurveMapping_clip_set(PointerRNA *ptr, int value)
 	if (value) cumap->flag |= CUMA_DO_CLIP;
 	else cumap->flag &= ~CUMA_DO_CLIP;
 
-	curvemapping_changed(cumap, 0);
+	curvemapping_changed(cumap, FALSE);
 }
 
 static void rna_CurveMapping_black_level_set(PointerRNA *ptr, const float *values)

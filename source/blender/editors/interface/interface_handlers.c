@@ -3647,7 +3647,7 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap,
 		fy *= mval_factor;
 
 		for (a = 0; a < cuma->totpoint; a++) {
-			if (cmp[a].flag & SELECT) {
+			if (cmp[a].flag & CUMA_SELECT) {
 				float origx = cmp[a].x, origy = cmp[a].y;
 				cmp[a].x += fx;
 				cmp[a].y += fy;
@@ -3660,7 +3660,7 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap,
 			}
 		}
 
-		curvemapping_changed(cumap, 0); /* no remove doubles */
+		curvemapping_changed(cumap, FALSE);
 		
 		if (moved_point) {
 			data->draglastx = mx;
@@ -3727,7 +3727,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 				fy = ((float)my - but->rect.ymin) / zoomy + offsy;
 				
 				curvemap_insert(cuma, fx, fy);
-				curvemapping_changed(cumap, 0);
+				curvemapping_changed(cumap, FALSE);
 				changed = 1;
 			}
 
@@ -3756,12 +3756,12 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 				/* loop through the curve segment table and find what's near the mouse.
 				 * 0.05 is kinda arbitrary, but seems to be what works nicely. */
 				for (i = 0; i <= CM_TABLE; i++) {
-					if ( (fabsf(fx - cmp[i].x) < 0.05f) &&
-					     (fabsf(fy - cmp[i].y) < 0.05f))
+					if ((fabsf(fx - cmp[i].x) < 0.05f) &&
+					    (fabsf(fy - cmp[i].y) < 0.05f))
 					{
 					
 						curvemap_insert(cuma, fx, fy);
-						curvemapping_changed(cumap, 0);
+						curvemapping_changed(cumap, FALSE);
 
 						changed = 1;
 						
@@ -3783,11 +3783,11 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 				/* deselect all if this one is deselect. except if we hold shift */
 				if (event->shift == FALSE) {
 					for (a = 0; a < cuma->totpoint; a++)
-						cmp[a].flag &= ~SELECT;
-					cmp[sel].flag |= SELECT;
+						cmp[a].flag &= ~CUMA_SELECT;
+					cmp[sel].flag |= CUMA_SELECT;
 				}
 				else
-					cmp[sel].flag ^= SELECT;
+					cmp[sel].flag ^= CUMA_SELECT;
 			}
 			else {
 				/* move the view */
@@ -3822,12 +3822,13 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 					/* deselect all, select one */
 					if (event->shift == FALSE) {
 						for (a = 0; a < cuma->totpoint; a++)
-							cmp[a].flag &= ~SELECT;
-						cmp[data->dragsel].flag |= SELECT;
+							cmp[a].flag &= ~CUMA_SELECT;
+						cmp[data->dragsel].flag |= CUMA_SELECT;
 					}
 				}
-				else
-					curvemapping_changed(cumap, 1);  /* remove doubles */
+				else {
+					curvemapping_changed(cumap, TRUE);  /* remove doubles */
+				}
 			}
 
 			button_activate_state(C, but, BUTTON_STATE_EXIT);

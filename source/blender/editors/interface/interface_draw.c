@@ -1481,7 +1481,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	glBegin(GL_LINE_STRIP);
 	
 	if (cuma->table == NULL)
-		curvemapping_changed(cumap, 0);  /* 0 = no remove doubles */
+		curvemapping_changed(cumap, FALSE);
 	cmp = cuma->table;
 	
 	/* first point */
@@ -1514,7 +1514,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	glPointSize(3.0f);
 	bglBegin(GL_POINTS);
 	for (a = 0; a < cuma->totpoint; a++) {
-		if (cmp[a].flag & SELECT)
+		if (cmp[a].flag & CUMA_SELECT)
 			UI_ThemeColor(TH_TEXT_HI);
 		else
 			UI_ThemeColor(TH_TEXT);
