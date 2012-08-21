@@ -29,8 +29,9 @@
  *  \ingroup nodes
  */
 
-
 #include "node_composite_util.h"
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 #include <limits.h>
 
@@ -1405,3 +1406,4 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
 #undef YVV
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */

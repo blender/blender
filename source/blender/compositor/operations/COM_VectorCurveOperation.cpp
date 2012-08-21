@@ -56,5 +56,6 @@ void VectorCurveOperation::executePixel(float output[4], float x, float y, Pixel
 
 void VectorCurveOperation::deinitExecution()
 {
+	CurveBaseOperation::deinitExecution();
 	this->m_inputProgram = NULL;
 }

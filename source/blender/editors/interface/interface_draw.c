@@ -1355,8 +1355,14 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	rcti scissor_new;
 	int a;
 
-	cumap = (CurveMapping *)(but->editcumap ? but->editcumap : but->poin);
-	cuma = cumap->cm + cumap->cur;
+	if (but->editcumap) {
+		cumap = but->editcumap;
+	}
+	else {
+		cumap = (CurveMapping *)but->poin;
+	}
+
+	cuma = &cumap->cm[cumap->cur];
 
 	/* need scissor test, curve can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
@@ -1485,8 +1491,9 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	cmp = cuma->table;
 	
 	/* first point */
-	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0)
+	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
 		glVertex2f(rect->xmin, rect->ymin + zoomy * (cmp[0].y - offsy));
+	}
 	else {
 		fx = rect->xmin + zoomx * (cmp[0].x - offsx + cuma->ext_in[0]);
 		fy = rect->ymin + zoomy * (cmp[0].y - offsy + cuma->ext_in[1]);
@@ -1498,8 +1505,9 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 		glVertex2f(fx, fy);
 	}
 	/* last point */
-	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0)
+	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
 		glVertex2f(rect->xmax, rect->ymin + zoomy * (cmp[CM_TABLE].y - offsy));
+	}
 	else {
 		fx = rect->xmin + zoomx * (cmp[CM_TABLE].x - offsx - cuma->ext_out[0]);
 		fy = rect->ymin + zoomy * (cmp[CM_TABLE].y - offsy - cuma->ext_out[1]);

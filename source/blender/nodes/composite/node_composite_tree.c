@@ -95,7 +95,9 @@ static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
 	
 	for (sock= node->outputs.first; sock; sock= sock->next) {
 		if (sock->cache) {
+#ifdef WITH_COMPOSITOR_LEGACY
 			free_compbuf(sock->cache);
+#endif
 			sock->cache= NULL;
 		}
 	}
@@ -159,8 +161,9 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 		
 		for (sock= node->outputs.first; sock; sock= sock->next) {
 			sock->new_sock->cache= sock->cache;
+#ifdef WITH_COMPOSITOR_LEGACY
 			compbuf_set_node(sock->new_sock->cache, node->new_node);
-			
+#endif
 			sock->cache= NULL;
 			sock->new_sock->new_sock= sock;
 		}
@@ -236,7 +239,9 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 			for (lsock= lnode->outputs.first; lsock; lsock= lsock->next) {
 				if (ntreeOutputExists(lnode->new_node, lsock->new_sock)) {
 					lsock->new_sock->cache= lsock->cache;
+#ifdef WITH_COMPOSITOR_LEGACY
 					compbuf_set_node(lsock->new_sock->cache, lnode->new_node);
+#endif
 					lsock->cache= NULL;
 					lsock->new_sock= NULL;
 				}

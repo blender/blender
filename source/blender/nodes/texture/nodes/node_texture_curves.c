@@ -49,6 +49,7 @@ static void time_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNU
 	if (node->custom1 < node->custom2)
 		fac = (p->cfra - node->custom1)/(float)(node->custom2-node->custom1);
 	
+	curvemapping_initialize(node->storage);
 	fac = curvemapping_evaluateF(node->storage, 0, fac);
 	out[0] = CLAMPIS(fac, 0.0f, 1.0f);
 }

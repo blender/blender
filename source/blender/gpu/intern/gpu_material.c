@@ -427,6 +427,7 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 					float *array;
 					int size;
 
+					curvemapping_initialize(lamp->curfalloff);
 					curvemapping_table_RGBA(lamp->curfalloff, &array, &size);
 					GPU_link(mat, "lamp_falloff_curve", GPU_dynamic_uniform(&lamp->dist, GPU_DYNAMIC_LAMP_DISTANCE, lamp->ob), GPU_texture(size, array), *dist, &visifac);
 				}

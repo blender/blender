@@ -3824,6 +3824,11 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->ld2= la->att2;
 	lar->curfalloff = curvemapping_copy(la->curfalloff);
 
+	if (lar->curfalloff) {
+		/* so threads don't conflict on init */
+		curvemapping_initialize(lar->curfalloff);
+	}
+
 	if (lar->type==LA_SPOT) {
 
 		normalize_v3(lar->imat[0]);

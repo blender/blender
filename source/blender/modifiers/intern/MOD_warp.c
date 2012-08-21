@@ -195,6 +195,10 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 	if (wmd->curfalloff == NULL) /* should never happen, but bad lib linking could cause it */
 		wmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 
+	if (wmd->curfalloff) {
+		curvemapping_initialize(wmd->curfalloff);
+	}
+
 	invert_m4_m4(obinv, ob->obmat);
 
 	mult_m4_m4m4(mat_from, obinv, wmd->object_from->obmat);

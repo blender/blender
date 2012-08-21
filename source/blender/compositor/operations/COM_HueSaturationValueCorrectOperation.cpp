@@ -74,5 +74,6 @@ void HueSaturationValueCorrectOperation::executePixel(float output[4], float x, 
 
 void HueSaturationValueCorrectOperation::deinitExecution()
 {
+	CurveBaseOperation::deinitExecution();
 	this->m_inputProgram = NULL;
 }

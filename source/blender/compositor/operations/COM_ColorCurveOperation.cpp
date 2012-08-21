@@ -98,11 +98,11 @@ void ColorCurveOperation::executePixel(float output[4], float x, float y, PixelS
 
 void ColorCurveOperation::deinitExecution()
 {
+	CurveBaseOperation::deinitExecution();
 	this->m_inputFacProgram = NULL;
 	this->m_inputImageProgram = NULL;
 	this->m_inputBlackProgram = NULL;
 	this->m_inputWhiteProgram = NULL;
-	curvemapping_premultiply(this->m_curveMapping, 1);
 }
 
 
@@ -154,7 +154,7 @@ void ConstantLevelColorCurveOperation::executePixel(float output[4], float x, fl
 
 void ConstantLevelColorCurveOperation::deinitExecution()
 {
+	CurveBaseOperation::deinitExecution();
 	this->m_inputFacProgram = NULL;
 	this->m_inputImageProgram = NULL;
-	curvemapping_premultiply(this->m_curveMapping, 1);
 }

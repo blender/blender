@@ -465,6 +465,12 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 	}
 }
 
+/* this function only exists because #curvemap_evaluateF uses a 'const' qualifier */
+float rna_CurveMap_evaluateF(struct CurveMap *cuma, float value)
+{
+	return curvemap_evaluateF(cuma, value);
+}
+
 #else
 
 static void rna_def_curvemappoint(BlenderRNA *brna)
@@ -547,7 +553,7 @@ static void rna_def_curvemap(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Points", "");
 	rna_def_curvemap_points_api(brna, prop);
 
-	func = RNA_def_function(srna, "evaluate", "curvemap_evaluateF");
+	func = RNA_def_function(srna, "evaluate", "rna_CurveMap_evaluateF");
 	RNA_def_function_ui_description(func, "Evaluate curve at given location");
 	parm = RNA_def_float(func, "position", 0.0f, -FLT_MAX, FLT_MAX, "Position", "Position to evaluate curve at", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
