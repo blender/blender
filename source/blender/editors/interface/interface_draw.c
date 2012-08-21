@@ -493,8 +493,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 		charmax = G.charmax = 0xffff;
 
 	/* Calculate the size of the button */
-	width = absBLI_RCT_SIZE_X(rect);
-	height = absBLI_RCT_SIZE_Y(rect);
+	width  = abs(BLI_RCT_SIZE_X(rect));
+	height = abs(BLI_RCT_SIZE_Y(rect));
 	
 	butw = floor(width / 12);
 	buth = floor(height / 6);
@@ -1371,8 +1371,11 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	scissor_new.xmax = ar->winrct.xmin + rect->xmax;
 	scissor_new.ymax = ar->winrct.ymin + rect->ymax;
 	BLI_rcti_isect(&scissor_new, &ar->winrct, &scissor_new);
-	glScissor(scissor_new.xmin, scissor_new.ymin, scissor_new.xmax - scissor_new.xmin, scissor_new.ymax - scissor_new.ymin);
-	
+	glScissor(scissor_new.xmin,
+	          scissor_new.ymin,
+	          BLI_RCT_SIZE_X(&scissor_new),
+	          BLI_RCT_SIZE_Y(&scissor_new));
+
 	/* calculate offset and zoom */
 	zoomx = (BLI_RCT_SIZE_X(rect) - 2.0f * but->aspect) / BLI_RCT_SIZE_X(&cumap->curr);
 	zoomy = (BLI_RCT_SIZE_Y(rect) - 2.0f * but->aspect) / BLI_RCT_SIZE_Y(&cumap->curr);

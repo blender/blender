@@ -547,7 +547,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		
 		/* itemrect smaller */	
 		itemrect.xmax = headrect.xmax - 5.0f / block->aspect;
-		itemrect.xmin = itemrect.xmax - (headrect.ymax - headrect.ymin);
+		itemrect.xmin = itemrect.xmax - BLI_RCT_SIZE_Y(&headrect);
 		itemrect.ymin = headrect.ymin;
 		itemrect.ymax = headrect.ymax;
 
@@ -596,7 +596,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	
 	/* itemrect smaller */	
 	itemrect.xmin = headrect.xmin + 5.0f / block->aspect;
-	itemrect.xmax = itemrect.xmin + (headrect.ymax - headrect.ymin);
+	itemrect.xmax = itemrect.xmin + BLI_RCT_SIZE_Y(&headrect);
 	itemrect.ymin = headrect.ymin;
 	itemrect.ymax = headrect.ymax;
 	

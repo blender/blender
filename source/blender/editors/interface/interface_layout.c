@@ -39,6 +39,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -238,8 +239,10 @@ static void ui_item_size(uiItem *item, int *r_w, int *r_h)
 	if (item->type == ITEM_BUTTON) {
 		uiButtonItem *bitem = (uiButtonItem *)item;
 
-		if (r_w) *r_w = bitem->but->rect.xmax - bitem->but->rect.xmin;
-		if (r_h) *r_h = bitem->but->rect.ymax - bitem->but->rect.ymin;
+
+
+		if (r_w) *r_w = BLI_RCT_SIZE_X(&bitem->but->rect);
+		if (r_h) *r_h = BLI_RCT_SIZE_Y(&bitem->but->rect);
 	}
 	else {
 		uiLayout *litem = (uiLayout *)item;

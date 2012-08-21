@@ -4241,8 +4241,8 @@ static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonDa
 				scopes->marker = BKE_tracking_marker_ensure(scopes->track, scopes->framenr);
 
 			scopes->marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
-			scopes->marker->pos[0] += -dx * scopes->slide_scale[0] / (but->block->rect.xmax - but->block->rect.xmin);
-			scopes->marker->pos[1] += -dy * scopes->slide_scale[1] / (but->block->rect.ymax - but->block->rect.ymin);
+			scopes->marker->pos[0] += -dx * scopes->slide_scale[0] / BLI_RCT_SIZE_X(&but->block->rect);
+			scopes->marker->pos[1] += -dy * scopes->slide_scale[1] / BLI_RCT_SIZE_Y(&but->block->rect);
 
 			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
 		}

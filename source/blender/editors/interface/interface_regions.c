@@ -391,7 +391,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	/* draw text */
 	uiStyleFontSet(&data->fstyle);
 
-	bbox.ymax = bbox.ymax - 0.5f * ((bbox.ymax - bbox.ymin) - data->toth);
+	bbox.ymax = bbox.ymax - 0.5f * (BLI_RCT_SIZE_Y(&bbox) - data->toth);
 	bbox.ymin = bbox.ymax - data->lineh;
 
 	for (i = 0; i < data->totline; i++) {
@@ -730,9 +730,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	/* widget rect, in region coords */
 	data->bbox.xmin = MENU_SHADOW_SIDE;
-	data->bbox.xmax = rect_i.xmax - rect_i.xmin + MENU_SHADOW_SIDE;
+	data->bbox.xmax = BLI_RCT_SIZE_X(&rect_i) + MENU_SHADOW_SIDE;
 	data->bbox.ymin = MENU_SHADOW_BOTTOM;
-	data->bbox.ymax = rect_i.ymax - rect_i.ymin + MENU_SHADOW_BOTTOM;
+	data->bbox.ymax = BLI_RCT_SIZE_Y(&rect_i) + MENU_SHADOW_BOTTOM;
 	
 	/* region bigger for shadow */
 	ar->winrct.xmin = rect_i.xmin - MENU_SHADOW_SIDE;
@@ -865,8 +865,8 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 {
 	/* thumbnail preview */
 	if (data->preview) {
-		int buth = (data->bbox.ymax - data->bbox.ymin - 2 * MENU_TOP) / data->prv_rows;
-		int butw = (data->bbox.xmax - data->bbox.xmin) / data->prv_cols;
+		int butw =  BLI_RCT_SIZE_X(&data->bbox)                 / data->prv_cols;
+		int buth = (BLI_RCT_SIZE_Y(&data->bbox) - 2 * MENU_TOP) / data->prv_rows;
 		int row, col;
 		
 		*rect = data->bbox;
@@ -882,7 +882,7 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 	}
 	/* list view */
 	else {
-		int buth = (data->bbox.ymax - data->bbox.ymin - 2 * MENU_TOP) / SEARCH_ITEMS;
+		int buth = (BLI_RCT_SIZE_Y(&data->bbox) - 2 * MENU_TOP) / SEARCH_ITEMS;
 		
 		*rect = data->bbox;
 		rect->xmin = data->bbox.xmin + 3.0f;
@@ -1200,7 +1200,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		BLI_rctf_translate(&rect_fl, ofsx, ofsy);
 	
 		/* minimal width */
-		if (rect_fl.xmax - rect_fl.xmin < 150) {
+		if (BLI_RCT_SIZE_X(&rect_fl) < 150) {
 			rect_fl.xmax = rect_fl.xmin + 150;  /* XXX arbitrary */
 		}
 		
@@ -1233,15 +1233,15 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->rect.ymax + ofsy, NULL, &newy1);
 			newy1 += butregion->winrct.ymin;
 
-			rect_i.ymax = rect_i.ymax - rect_i.ymin + newy1;
+			rect_i.ymax = BLI_RCT_SIZE_Y(&rect_i) + newy1;
 			rect_i.ymin = newy1;
 		}
 
 		/* widget rect, in region coords */
 		data->bbox.xmin = MENU_SHADOW_SIDE;
-		data->bbox.xmax = rect_i.xmax - rect_i.xmin + MENU_SHADOW_SIDE;
+		data->bbox.xmax = BLI_RCT_SIZE_X(&rect_i) + MENU_SHADOW_SIDE;
 		data->bbox.ymin = MENU_SHADOW_BOTTOM;
-		data->bbox.ymax = rect_i.ymax - rect_i.ymin + MENU_SHADOW_BOTTOM;
+		data->bbox.ymax = BLI_RCT_SIZE_Y(&rect_i) + MENU_SHADOW_BOTTOM;
 		
 		/* region bigger for shadow */
 		ar->winrct.xmin = rect_i.xmin - MENU_SHADOW_SIDE;
@@ -2341,7 +2341,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	if (pup->but) {
 		/* minimum width to enforece */
-		minwidth = pup->but->rect.xmax - pup->but->rect.xmin;
+		minwidth = BLI_RCT_SIZE_X(&pup->but->rect);
 
 		if (pup->but->type == PULLDOWN || pup->but->menu_create_func) {
 			direction = UI_DOWN;
@@ -2383,7 +2383,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			 * button, so it doesn't overlap the text too much, also note
 			 * the offset is negative because we are inverse moving the
 			 * block to be under the mouse */
-			offset[0] = -(bt->rect.xmin + 0.8f * (bt->rect.xmax - bt->rect.xmin));
+			offset[0] = -(bt->rect.xmin + 0.8f * BLI_RCT_SIZE_X(&bt->rect));
 			offset[1] = -(bt->rect.ymin + 0.5f * UI_UNIT_Y);
 		}
 		else {
@@ -2391,7 +2391,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			 * on the first item */
 			offset[0] = 0;
 			for (bt = block->buttons.first; bt; bt = bt->next)
-				offset[0] = mini(offset[0], -(bt->rect.xmin + 0.8f * (bt->rect.xmax - bt->rect.xmin)));
+				offset[0] = mini(offset[0], -(bt->rect.xmin + 0.8f * BLI_RCT_SIZE_X(&bt->rect)));
 
 			offset[1] = 1.5 * UI_UNIT_Y;
 		}
