@@ -246,6 +246,7 @@ void BKE_sequencer_cache_cleanup_sequence(struct Sequence *seq);
 
 struct ImBuf *BKE_sequencer_preprocessed_cache_get(SeqRenderData context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type);
 void BKE_sequencer_preprocessed_cache_put(SeqRenderData context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type, struct ImBuf *ibuf);
+void BKE_sequencer_preprocessed_cache_cleanup(void);
 void BKE_sequencer_preprocessed_cache_cleanup_sequence(struct Sequence *seq);
 
 /* **********************************************************************

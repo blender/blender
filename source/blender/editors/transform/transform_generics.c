@@ -71,6 +71,7 @@
 #include "BKE_mesh.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_sequencer.h"
 #include "BKE_tessmesh.h"
 #include "BKE_tracking.h"
 #include "BKE_mask.h"
@@ -890,6 +891,14 @@ static void recalcData_view3d(TransInfo *t)
 	}
 }
 
+/* helper for recalcData() - for sequencer transforms */
+static void recalcData_sequencer(TransInfo *t)
+{
+	BKE_sequencer_preprocessed_cache_cleanup();
+
+	flushTransSeq(t);
+}
+
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
@@ -897,7 +906,7 @@ void recalcData(TransInfo *t)
 		flushTransNodes(t);
 	}
 	else if (t->spacetype == SPACE_SEQ) {
-		flushTransSeq(t);
+		recalcData_sequencer(t);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		recalcData_actedit(t);

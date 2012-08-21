@@ -68,7 +68,6 @@ static struct MovieCache *moviecache = NULL;
 static struct SeqPreprocessCache *preprocess_cache = NULL;
 
 static void preprocessed_cache_destruct(void);
-static void preprocessed_cache_clean(void);
 
 static int seq_cmp_render_data(const SeqRenderData *a, const SeqRenderData *b)
 {
@@ -193,7 +192,7 @@ void BKE_sequencer_cache_cleanup(void)
 		moviecache = IMB_moviecache_create("seqcache", sizeof(SeqCacheKey), seqcache_hashhash, seqcache_hashcmp);
 	}
 
-	preprocessed_cache_clean();
+	BKE_sequencer_preprocessed_cache_cleanup();
 }
 
 static int seqcache_key_check_seq(void *userkey, void *userdata)
@@ -246,7 +245,7 @@ void BKE_sequencer_cache_put(SeqRenderData context, Sequence *seq, float cfra, s
 	IMB_moviecache_put(moviecache, &key, i);
 }
 
-static void preprocessed_cache_clean(void)
+void BKE_sequencer_preprocessed_cache_cleanup(void)
 {
 	SeqPreprocessCacheElem *elem;
 
@@ -266,7 +265,7 @@ static void preprocessed_cache_destruct(void)
 	if (!preprocess_cache)
 		return;
 
-	preprocessed_cache_clean();
+	BKE_sequencer_preprocessed_cache_cleanup();
 
 	MEM_freeN(preprocess_cache);
 	preprocess_cache = NULL;
@@ -308,7 +307,7 @@ void BKE_sequencer_preprocessed_cache_put(SeqRenderData context, Sequence *seq, 
 	}
 	else {
 		if (preprocess_cache->cfra != cfra)
-			preprocessed_cache_clean();
+			BKE_sequencer_preprocessed_cache_cleanup();
 	}
 
 	elem = MEM_callocN(sizeof(SeqPreprocessCacheElem), "sequencer preprocessed cache element");
