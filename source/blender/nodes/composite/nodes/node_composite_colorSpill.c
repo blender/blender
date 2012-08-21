@@ -342,6 +342,6 @@ void register_node_type_cmp_color_spill(bNodeTreeType *ttype)
 #ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_color_spill);
 #endif
-	
+
 	nodeRegisterType(ttype, &ntype);
 }

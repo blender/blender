@@ -1757,7 +1757,7 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 	cumap->white[0] = cumap->white[1] = cumap->white[2] = 1.0f;
 	curvemapping_set_black_white(cumap, NULL, NULL);
 	
-	curvemapping_changed(cumap, 0);
+	curvemapping_changed(cumap, FALSE);
 
 	rna_update_cb(C, cb_v, NULL);
 }

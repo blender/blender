@@ -106,6 +106,6 @@ void register_node_type_cmp_brightcontrast(bNodeTreeType *ttype)
 #ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_brightcontrast);
 #endif
-	
+
 	nodeRegisterType(ttype, &ntype);
 }

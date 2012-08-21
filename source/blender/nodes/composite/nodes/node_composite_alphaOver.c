@@ -157,5 +157,6 @@ void register_node_type_cmp_alphaover(bNodeTreeType *ttype)
 #ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_alphaover);
 #endif
+
 	nodeRegisterType(ttype, &ntype);
 }
