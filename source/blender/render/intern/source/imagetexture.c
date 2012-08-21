@@ -396,16 +396,16 @@ static float square_rctf(rctf *rf)
 {
 	float x, y;
 
-	x= rf->xmax- rf->xmin;
-	y= rf->ymax- rf->ymin;
-	return (x*y);
+	x = BLI_RCT_SIZE_X(rf);
+	y = BLI_RCT_SIZE_Y(rf);
+	return x * y;
 }
 
 static float clipx_rctf(rctf *rf, float x1, float x2)
 {
 	float size;
 
-	size= rf->xmax - rf->xmin;
+	size = BLI_RCT_SIZE_X(rf);
 
 	if (rf->xmin<x1) {
 		rf->xmin = x1;
@@ -418,7 +418,7 @@ static float clipx_rctf(rctf *rf, float x1, float x2)
 		return 0.0;
 	}
 	else if (size!=0.0f) {
-		return (rf->xmax - rf->xmin)/size;
+		return BLI_RCT_SIZE_X(rf) / size;
 	}
 	return 1.0;
 }
@@ -427,7 +427,7 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
 {
 	float size;
 
-	size= rf->ymax - rf->ymin;
+	size = BLI_RCT_SIZE_Y(rf);
 
 	if (rf->ymin<y1) {
 		rf->ymin = y1;
@@ -440,8 +440,8 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
 		rf->ymin = rf->ymax;
 		return 0.0;
 	}
-	else if (size!=0.0f) {
-		return (rf->ymax - rf->ymin)/size;
+	else if (size != 0.0f) {
+		return BLI_RCT_SIZE_Y(rf) / size;
 	}
 	return 1.0;
 

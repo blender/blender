@@ -1458,7 +1458,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	if (scroll & V2D_SCROLL_HORIZONTAL) {
 		/* scroller 'button' extents */
 		totsize = BLI_RCT_SIZE_X(&v2d->tot);
-		scrollsize = (float)(hor.xmax - hor.xmin);
+		scrollsize = (float)BLI_RCT_SIZE_X(&hor);
 		if (totsize == 0.0f) totsize = 1.0f;  /* avoid divide by zero */
 
 		fac1 = (v2d->cur.xmin - v2d->tot.xmin) / totsize;
@@ -1498,8 +1498,8 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	/* vertical scrollers */
 	if (scroll & V2D_SCROLL_VERTICAL) {
 		/* scroller 'button' extents */
-		totsize = BLI_RCT_SIZE_Y(&v2d->tot);
-		scrollsize = (float)(vert.ymax - vert.ymin);
+		totsize    =        BLI_RCT_SIZE_Y(&v2d->tot);
+		scrollsize = (float)BLI_RCT_SIZE_Y(&vert);
 		if (totsize == 0.0f) totsize = 1.0f;  /* avoid divide by zero */
 
 		fac1 = (v2d->cur.ymin - v2d->tot.ymin) / totsize;
@@ -1545,7 +1545,9 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		scrollers->yclamp = yclamp;
 		scrollers->yunits = yunits;
 		
-		scrollers->grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d, xunits, xclamp, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
+		scrollers->grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d,
+		                                      xunits, xclamp, yunits, yclamp,
+		                                      BLI_RCT_SIZE_X(&hor), BLI_RCT_SIZE_Y(&vert));
 	}
 	
 	/* return scrollers */
@@ -1629,7 +1631,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 */
 			if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 &&
 			    (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) &&
-			    (slider.xmax - slider.xmin > V2D_SCROLLER_HANDLE_SIZE))
+			    (BLI_RCT_SIZE_X(&slider) > V2D_SCROLLER_HANDLE_SIZE))
 			{
 				state |= UI_SCROLL_ARROWS;
 			}
@@ -1650,10 +1652,10 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 *	- dfac is gap between scale markings
 			 */
 			fac = (grid->startx - v2d->cur.xmin) / BLI_RCT_SIZE_X(&v2d->cur);
-			fac = (float)hor.xmin + fac * (hor.xmax - hor.xmin);
+			fac = (float)hor.xmin + fac * BLI_RCT_SIZE_X(&hor);
 			
 			dfac = grid->dx / BLI_RCT_SIZE_X(&v2d->cur);
-			dfac = dfac * (hor.xmax - hor.xmin);
+			dfac = dfac * BLI_RCT_SIZE_X(&hor);
 			
 			/* set starting value, and text color */
 			UI_ThemeColor(TH_TEXT);
@@ -1740,7 +1742,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 */
 			if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 &&
 			    (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) &&
-			    (slider.ymax - slider.ymin > V2D_SCROLLER_HANDLE_SIZE))
+			    (BLI_RCT_SIZE_Y(&slider) > V2D_SCROLLER_HANDLE_SIZE))
 			{
 				state |= UI_SCROLL_ARROWS;
 			}
@@ -1764,10 +1766,10 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 *	  NOTE: it's assumed that that scrollbar is there if this is involved!
 			 */
 			fac = (grid->starty - v2d->cur.ymin) / BLI_RCT_SIZE_Y(&v2d->cur);
-			fac = vert.ymin + fac * (vert.ymax - vert.ymin);
+			fac = vert.ymin + fac * BLI_RCT_SIZE_Y(&vert);
 			
 			dfac = grid->dy / BLI_RCT_SIZE_Y(&v2d->cur);
-			dfac = dfac * (vert.ymax - vert.ymin);
+			dfac = dfac     * BLI_RCT_SIZE_Y(&vert);
 			
 			/* set starting value, and text color */
 			UI_ThemeColor(TH_TEXT);
@@ -2140,7 +2142,7 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 		const char *str = (const char *)(v2s + 1);
 		int xofs = 0, yofs;
 
-		yofs = ceil(0.5f * (v2s->rect.ymax - v2s->rect.ymin - default_height));
+		yofs = ceil(0.5f * (BLI_RCT_SIZE_Y(&v2s->rect) - default_height));
 		if (yofs < 1) yofs = 1;
 
 		if (col_pack_prev != v2s->col.pack) {

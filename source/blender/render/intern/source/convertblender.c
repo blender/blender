@@ -5247,13 +5247,15 @@ static void speedvector_project(Render *re, float zco[2], const float co[3], con
 		/* precalculate amount of radians 1 pixel rotates */
 		if (pano) {
 			/* size of 1 pixel mapped to viewplane coords */
-			float psize= (re->viewplane.xmax-re->viewplane.xmin)/(float)re->winx;
+			float psize;
+
+			psize = BLI_RCT_SIZE_X(&re->viewplane) / (float)re->winx;
 			/* x angle of a pixel */
-			pixelphix= atan(psize/re->clipsta);
+			pixelphix = atan(psize / re->clipsta);
 			
-			psize= (re->viewplane.ymax-re->viewplane.ymin)/(float)re->winy;
+			psize = BLI_RCT_SIZE_Y(&re->viewplane) / (float)re->winy;
 			/* y angle of a pixel */
-			pixelphiy= atan(psize/re->clipsta);
+			pixelphiy = atan(psize / re->clipsta);
 		}
 		zmulx= re->winx/2;
 		zmuly= re->winy/2;

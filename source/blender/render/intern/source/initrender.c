@@ -610,8 +610,8 @@ void initparts(Render *re)
 		}
 		else disprect.ymax = ymaxb;
 		
-		rectx = disprect.xmax - disprect.xmin;
-		recty = disprect.ymax - disprect.ymin;
+		rectx = BLI_RCT_SIZE_X(&disprect);
+		recty = BLI_RCT_SIZE_Y(&disprect);
 		
 		/* so, now can we add this part? */
 		if (rectx > 0 && recty > 0) {

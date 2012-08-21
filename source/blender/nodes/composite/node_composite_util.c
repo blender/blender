@@ -146,7 +146,7 @@ CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, in
 	if (disprect.xmin>= disprect.xmax) return NULL;
 	if (disprect.ymin>= disprect.ymax) return NULL;
 	
-	cbuf= alloc_compbuf(disprect.xmax-disprect.xmin, disprect.ymax-disprect.ymin, type, 1);
+	cbuf= alloc_compbuf(BLI_RCT_SIZE_X(&disprect), BLI_RCT_SIZE_Y(&disprect), type, 1);
 	outfp= cbuf->rect;
 	rectf += type*(disprect.ymin*rectx + disprect.xmin);
 	dx= type*cbuf->x;

@@ -91,8 +91,8 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 	}
 
 	if (tot) {
-		width = cur_new.xmax - cur_new.xmin;
-		height = cur_new.ymax - cur_new.ymin;
+		width  = BLI_RCT_SIZE_X(&cur_new);
+		height = BLI_RCT_SIZE_Y(&cur_new);
 
 		/* for single non-frame nodes, don't zoom in, just pan view,
 		 * but do allow zooming out, this allows for big nodes to be zoomed out */
@@ -104,9 +104,6 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 			BLI_rctf_resize(&cur_new, oldwidth, oldheight);
 		}
 		else {
-			width = cur_new.xmax - cur_new.xmin;
-			height = cur_new.ymax - cur_new.ymin;
-
 			if (width > height) {
 				float newheight;
 				newheight = oldheight * width / oldwidth;

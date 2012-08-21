@@ -668,7 +668,7 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 	CurveMap *cuma = cumap->cm + cumap->cur;
 	CurveMapPoint *cmp = cuma->curve;
 	rctf *clipr = &cumap->clipr;
-	float thresh = 0.01f * (clipr->xmax - clipr->xmin);
+	float thresh = 0.01f * BLI_RCT_SIZE_X(clipr);
 	float dx = 0.0f, dy = 0.0f;
 	int a;
 

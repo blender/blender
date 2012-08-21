@@ -1733,8 +1733,8 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int UNUSE
 	
 	glEnable(GL_BLEND);
 	
-	if (radius > (rct->ymax - rct->ymin - 10.0f) / 2.0f)
-		rad = (rct->ymax - rct->ymin - 10.0f) / 2.0f;
+	if (radius > (BLI_RCT_SIZE_Y(rct) - 10.0f) / 2.0f)
+		rad = (BLI_RCT_SIZE_Y(rct) - 10.0f) / 2.0f;
 	else
 		rad = radius;
 

@@ -471,7 +471,7 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 	
 	if (RNA_boolean_get(op->ptr, "page")) {
 		ARegion *ar = CTX_wm_region(C);
-		RNA_int_set(op->ptr, "deltay", ar->v2d.mask.ymax - ar->v2d.mask.ymin);
+		RNA_int_set(op->ptr, "deltay", BLI_RCT_SIZE_Y(&ar->v2d.mask));
 	}
 	
 	/* apply movement, then we're done */
@@ -1137,7 +1137,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		
 		/* TODO: is this zoom factor calculation valid? It seems to produce same results everytime... */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
-			size = (cur_new.xmax - cur_new.xmin);
+			size = BLI_RCT_SIZE_X(&cur_new);
 			zoom = size / BLI_RCT_SIZE_X(&rect);
 			center = BLI_RCT_CENTER_X(&cur_new);
 			
@@ -1145,7 +1145,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 			cur_new.xmax = center + (size * zoom);
 		}
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0) {
-			size = (cur_new.ymax - cur_new.ymin);
+			size = BLI_RCT_SIZE_Y(&cur_new);
 			zoom = size / BLI_RCT_SIZE_Y(&rect);
 			center = BLI_RCT_CENTER_Y(&cur_new);
 			
@@ -1197,10 +1197,10 @@ struct SmoothView2DStore {
  */
 static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
 {
-	float size_a[2] = {rect_a->xmax - rect_a->xmin,
-	                   rect_a->ymax - rect_a->ymin};
-	float size_b[2] = {rect_b->xmax - rect_b->xmin,
-	                   rect_b->ymax - rect_b->ymin};
+	float size_a[2] = {BLI_RCT_SIZE_X(rect_a),
+	                   BLI_RCT_SIZE_Y(rect_a)};
+	float size_b[2] = {BLI_RCT_SIZE_X(rect_b),
+	                   BLI_RCT_SIZE_Y(rect_b)};
 	float cent_a[2] = {BLI_RCT_CENTER_X(rect_a),
 	                   BLI_RCT_CENTER_Y(rect_a)};
 	float cent_b[2] = {BLI_RCT_CENTER_X(rect_b),
@@ -1477,7 +1477,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 
 	if (in_scroller == 'h') {
 		/* horizontal scroller - calculate adjustment factor first */
-		mask_size = (float)(v2d->hor.xmax - v2d->hor.xmin);
+		mask_size = (float)BLI_RCT_SIZE_X(&v2d->hor);
 		vsm->fac = BLI_RCT_SIZE_X(&v2d->tot) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
@@ -1493,7 +1493,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	}
 	else {
 		/* vertical scroller - calculate adjustment factor first */
-		mask_size = (float)(v2d->vert.ymax - v2d->vert.ymin);
+		mask_size = (float)BLI_RCT_SIZE_Y(&v2d->vert);
 		vsm->fac = BLI_RCT_SIZE_Y(&v2d->tot) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */

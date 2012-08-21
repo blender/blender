@@ -182,8 +182,8 @@ void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
 		*height = (scene->r.ysch * scene->r.size) / 100;
 
 		if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
-			*width *= (scene->r.border.xmax - scene->r.border.xmin);
-			*height *= (scene->r.border.ymax - scene->r.border.ymin);
+			*width  *= BLI_RCT_SIZE_X(&scene->r.border);
+			*height *= BLI_RCT_SIZE_Y(&scene->r.border);
 		}
 
 	}

@@ -107,11 +107,11 @@ void calc_view_vector(float *view, float x, float y)
 		}
 		
 		/* move x and y to real viewplane coords */
-		x= (x/(float)R.winx);
-		view[0]= R.viewplane.xmin + x*(R.viewplane.xmax - R.viewplane.xmin);
+		x = (x / (float)R.winx);
+		view[0] = R.viewplane.xmin + x * BLI_RCT_SIZE_X(&R.viewplane);
 		
-		y= (y/(float)R.winy);
-		view[1]= R.viewplane.ymin + y*(R.viewplane.ymax - R.viewplane.ymin);
+		y = (y / (float)R.winy);
+		view[1] = R.viewplane.ymin + y * BLI_RCT_SIZE_Y(&R.viewplane);
 		
 //		if (R.flag & R_SEC_FIELD) {
 //			if (R.r.mode & R_ODDFIELD) view[1]= (y+R.ystart)*R.ycor;

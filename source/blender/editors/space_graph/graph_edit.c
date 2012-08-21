@@ -224,16 +224,16 @@ static int graphkeys_viewall(bContext *C, const short do_sel_only, const short i
 		return OPERATOR_CANCELLED;
 
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
-	get_graph_keyframe_extents(&ac, 
-							   &cur_new.xmin, &cur_new.xmax,
-							   &cur_new.ymin, &cur_new.ymax,
-							   do_sel_only, include_handles);
+	get_graph_keyframe_extents(&ac,
+	                           &cur_new.xmin, &cur_new.xmax,
+	                           &cur_new.ymin, &cur_new.ymax,
+	                           do_sel_only, include_handles);
 
-	extra = 0.1f * (cur_new.xmax - cur_new.xmin);
+	extra = 0.1f * BLI_RCT_SIZE_X(&cur_new);
 	cur_new.xmin -= extra;
 	cur_new.xmax += extra;
 
-	extra = 0.1f * (cur_new.ymax - cur_new.ymin);
+	extra = 0.1f * BLI_RCT_SIZE_Y(&cur_new);
 	cur_new.ymin -= extra;
 	cur_new.ymax += extra;
 
