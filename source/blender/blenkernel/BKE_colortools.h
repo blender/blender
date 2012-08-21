@@ -53,6 +53,7 @@ void                curvemapping_free_data(struct CurveMapping *cumap);
 void                curvemapping_free(struct CurveMapping *cumap);
 void                curvemapping_copy_data(struct CurveMapping *target, struct CurveMapping *cumap);
 struct CurveMapping *curvemapping_copy(struct CurveMapping *cumap);
+void                curvemapping_set_black_white_ex(const float black[3], const float white[3], float r_bwmul[3]);
 void                curvemapping_set_black_white(struct CurveMapping *cumap, const float black[3], const float white[3]);
 
 #define CURVEMAP_SLOPE_NEGATIVE 0
@@ -73,6 +74,8 @@ float               curvemapping_evaluateF(struct CurveMapping *cumap, int cur, 
 void                curvemapping_evaluate3F(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
 void                curvemapping_evaluateRGBF(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
 void                curvemapping_evaluate_premulRGB(struct CurveMapping *cumap, unsigned char vecout_byte[3], const unsigned char vecin_byte[3]);
+void                curvemapping_evaluate_premulRGBF_ex(struct CurveMapping *cumap, float vecout[3], const float vecin[3],
+                                                        const float black[3], const float bwmul[3]);
 void                curvemapping_evaluate_premulRGBF(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
 void                curvemapping_do_ibuf(struct CurveMapping *cumap, struct ImBuf *ibuf);
 void                curvemapping_premultiply(struct CurveMapping *cumap, int restore);

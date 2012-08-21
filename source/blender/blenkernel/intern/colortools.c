@@ -145,21 +145,31 @@ CurveMapping *curvemapping_copy(CurveMapping *cumap)
 	return NULL;
 }
 
-void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], const float white[3])
+void curvemapping_set_black_white_ex(const float black[3], const float white[3], float r_bwmul[3])
 {
 	int a;
-	
-	if (white)
-		copy_v3_v3(cumap->white, white);
-	if (black)
-		copy_v3_v3(cumap->black, black);
-	
+
 	for (a = 0; a < 3; a++) {
-		if (cumap->white[a] == cumap->black[a])
-			cumap->bwmul[a] = 0.0f;
-		else
-			cumap->bwmul[a] = 1.0f / (cumap->white[a] - cumap->black[a]);
-	}	
+		const float delta = white[a] - black[a];
+		if (delta != 0.0f) {
+			r_bwmul[a] = 1.0f / delta;
+		}
+		else {
+			r_bwmul[a] = 0.0f;
+		}
+	}
+}
+
+void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], const float white[3])
+{
+	if (white) {
+		copy_v3_v3(cumap->white, white);
+	}
+	if (black) {
+		copy_v3_v3(cumap->black, black);
+	}
+
+	curvemapping_set_black_white_ex(cumap->black, cumap->white, cumap->bwmul);
 }
 
 /* ***************** operations on single curve ************* */
@@ -785,6 +795,29 @@ void curvemapping_evaluateRGBF(CurveMapping *cumap, float vecout[3], const float
 	vecout[2] = curvemapping_evaluateF(cumap, 2, curvemapping_evaluateF(cumap, 3, vecin[2]));
 }
 
+/** same as #curvemapping_evaluate_premulRGBF
+ * but black/bwmul are passed as args for the compositor
+ * where they can change per pixel.
+ *
+ * Use in conjunction with #curvemapping_set_black_white_ex
+ *
+ * \param black Use instead of cumap->black
+ * \param bwmul Use instead of cumap->bwmul
+ */
+void curvemapping_evaluate_premulRGBF_ex(CurveMapping *cumap, float vecout[3], const float vecin[3],
+                                         const float black[3], const float bwmul[3])
+{
+	float fac;
+
+	fac = (vecin[0] - black[0]) * bwmul[0];
+	vecout[0] = curvemap_evaluateF(cumap->cm, fac);
+
+	fac = (vecin[1] - black[1]) * bwmul[1];
+	vecout[1] = curvemap_evaluateF(cumap->cm + 1, fac);
+
+	fac = (vecin[2] - black[2]) * bwmul[2];
+	vecout[2] = curvemap_evaluateF(cumap->cm + 2, fac);
+}
 
 /* RGB with black/white points and premult. tables are checked */
 void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float vecout[3], const float vecin[3])
