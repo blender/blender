@@ -845,6 +845,8 @@ class BlenderEnvironment(SConsEnvironment):
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
         lenv = self.Clone()
         lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
+        if lenv['OURPLATFORM'] in ('win32-mingw', 'win64-mingw', 'linuxcross', 'cygwin', 'linux'):
+            lenv.Replace(LINK = '$CXX')
         if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):
             if lenv['BF_DEBUG']:
                 lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb','/NODEFAULTLIB:libcmt'])
