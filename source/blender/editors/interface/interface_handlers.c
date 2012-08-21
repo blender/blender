@@ -2945,9 +2945,11 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 			return WM_UI_HANDLER_BREAK;
 		}
 		else if (ELEM3(but->type, MENU, ICONROW, ICONTEXTROW)) {
-			
-			if (event->type == WHEELDOWNMOUSE && event->alt) {
-				data->value = ui_step_name_menu(but, -1);
+			if (ELEM(event->type, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->alt) {
+				const int direction = (event->type == WHEELDOWNMOUSE) ? -1 : 1;
+
+				data->value = ui_step_name_menu(but, direction);
+
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				ui_apply_button(C, but->block, but, data, 1);
 
@@ -2961,16 +2963,15 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 				data->postbut = but;
 				data->posttype = BUTTON_ACTIVATE_OVER;
 
-				return WM_UI_HANDLER_BREAK;
-			}
-			else if (event->type == WHEELUPMOUSE && event->alt) {
-				data->value = ui_step_name_menu(but, 1);
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-				ui_apply_button(C, but->block, but, data, 1);
-
-				/* why this is needed described above */
-				data->postbut = but;
-				data->posttype = BUTTON_ACTIVATE_OVER;
+				/* without this, a new interface that draws as result of the menu change
+				 * won't register that the mouse is over it, eg:
+				 * Alt+MouseWheel over the render slots, without this,
+				 * the slot menu fails to switch a second time.
+				 *
+				 * Theactive state of the button could be maintained some other way
+				 * and remove this mousemove event.
+				 */
+				WM_event_add_mousemove(C);
 
 				return WM_UI_HANDLER_BREAK;
 			}
