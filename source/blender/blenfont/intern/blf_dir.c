@@ -43,7 +43,10 @@
 
 #include "BKE_utildefines.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
+#include "BLI_listbase.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "BIF_gl.h"
 

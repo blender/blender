@@ -43,10 +43,12 @@
 
 #include "DNA_vec_types.h"
 
-
-#include "BLI_blenlib.h"
-#include "BLI_linklist.h"  /* linknode */
+#include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
+#include "BLI_linklist.h"  /* linknode */
 
 #include "BIF_gl.h"
 #include "BLF_api.h"
@@ -152,7 +154,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 		                   _kern_mode,                                           \
 		                   &(_delta)) == 0)                                      \
 		{                                                                        \
-			_pen_x += delta.x >> 6;                                              \
+			_pen_x += _delta.x >> 6;                                             \
 		}                                                                        \
 	}                                                                            \
 } (void)0
