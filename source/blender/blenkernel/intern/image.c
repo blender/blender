@@ -2165,7 +2165,9 @@ RenderResult *BKE_image_acquire_renderresult(Scene *scene, Image *ima)
 
 void BKE_image_release_renderresult(Scene *scene, Image *ima)
 {
-	if (ima->rr) ;
+	if (ima->rr) {
+		/* pass */
+	}
 	else if (ima->type == IMA_TYPE_R_RESULT) {
 		if (ima->render_slot == ima->last_render_slot)
 			RE_ReleaseResult(RE_GetRender(scene->id.name));

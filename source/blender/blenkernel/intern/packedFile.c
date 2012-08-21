@@ -159,7 +159,7 @@ void freePackedFile(PackedFile *pf)
 		printf("freePackedFile: Trying to free a NULL pointer\n");
 }
 
-PackedFile *dupPackedFileMemory(const PackedFile *pf_src)
+PackedFile *dupPackedFile(const PackedFile *pf_src)
 {
 	PackedFile *pf_dst;
 
