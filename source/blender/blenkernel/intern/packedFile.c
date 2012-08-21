@@ -158,7 +158,17 @@ void freePackedFile(PackedFile *pf)
 	else
 		printf("freePackedFile: Trying to free a NULL pointer\n");
 }
-	
+
+PackedFile *dupPackedFileMemory(const PackedFile *pf_src)
+{
+	PackedFile *pf_dst;
+
+	pf_dst       = MEM_dupallocN(pf_src);
+	pf_dst->data = MEM_dupallocN(pf_src->data);
+
+	return pf_dst;
+}
+
 PackedFile *newPackedFileMemory(void *mem, int memlen)
 {
 	PackedFile *pf = MEM_callocN(sizeof(*pf), "PackedFile");

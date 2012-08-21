@@ -92,7 +92,7 @@ extern "C" {
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
-	void *MEM_dupallocN(void *vmemh)
+	void *MEM_dupallocN(const void *vmemh)
 #if MEM_GNU_ATTRIBUTES
 	__attribute__((warn_unused_result))
 #endif

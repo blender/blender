@@ -2913,6 +2913,7 @@ static void lib_link_vfont(FileData *UNUSED(fd), Main *main)
 static void direct_link_vfont(FileData *fd, VFont *vf)
 {
 	vf->data = NULL;
+	vf->temp_pf = NULL;
 	vf->packedfile = direct_link_packedfile(fd, vf->packedfile);
 }
 

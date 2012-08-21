@@ -248,12 +248,12 @@ size_t MEM_allocN_len(const void *vmemh)
 	}
 }
 
-void *MEM_dupallocN(void *vmemh)
+void *MEM_dupallocN(const void *vmemh)
 {
 	void *newp = NULL;
 	
 	if (vmemh) {
-		MemHead *memh = vmemh;
+		const MemHead *memh = vmemh;
 		memh--;
 
 #ifndef DEBUG_MEMDUPLINAME
