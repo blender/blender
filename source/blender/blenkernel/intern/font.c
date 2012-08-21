@@ -60,7 +60,6 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 
-//static ListBase ttfdata = {NULL, NULL};
 
 /* The vfont code */
 void BKE_vfont_free_data(struct VFont *vfont)
@@ -149,7 +148,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 
 				/* We need to copy a tmp font to memory unless it is already there */
 				if (vfont->temp_pf == NULL) {
-					vfont->temp_pf = dupPackedFileMemory(pf);
+					vfont->temp_pf = dupPackedFile(pf);
 				}
 			}
 			else {
@@ -237,8 +236,6 @@ VFont *BKE_vfont_load(Main *bmain, const char *name)
 		if (!vfont || vfont->packedfile != pf) {
 			freePackedFile(pf);
 		}
-	
-		//XXX waitcursor(0);
 	}
 	
 	return vfont;
@@ -248,13 +245,13 @@ static VFont *which_vfont(Curve *cu, CharInfo *info)
 {
 	switch (info->flag & (CU_CHINFO_BOLD | CU_CHINFO_ITALIC)) {
 		case CU_CHINFO_BOLD:
-			if (cu->vfontb) return(cu->vfontb); else return(cu->vfont);
+			return cu->vfontb ? cu->vfontb : cu->vfont;
 		case CU_CHINFO_ITALIC:
-			if (cu->vfonti) return(cu->vfonti); else return(cu->vfont);
+			return cu->vfonti ? cu->vfonti : cu->vfont;
 		case (CU_CHINFO_BOLD | CU_CHINFO_ITALIC):
-			if (cu->vfontbi) return(cu->vfontbi); else return(cu->vfont);
+			return cu->vfontbi ? cu->vfontbi : cu->vfont;
 		default:
-			return(cu->vfont);
+			return cu->vfont;
 	}
 }
 
