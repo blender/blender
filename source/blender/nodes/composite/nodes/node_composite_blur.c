@@ -741,5 +741,6 @@ void register_node_type_cmp_blur(bNodeTreeType *ttype)
 #ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_blur);
 #endif
+
 	nodeRegisterType(ttype, &ntype);
 }

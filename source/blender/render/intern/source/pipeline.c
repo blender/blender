@@ -59,6 +59,7 @@
 #include "BKE_writeavi.h"  /* <------ should be replaced once with generic movie module */
 
 #include "BLI_math.h"
+#include "BLI_rect.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_path_util.h"
@@ -740,8 +741,8 @@ static RenderPart *find_next_part(Render *re, int minx)
 	/* find center of rendered parts, image center counts for 1 too */
 	for (pa = re->parts.first; pa; pa = pa->next) {
 		if (pa->ready) {
-			centx += (pa->disprect.xmin + pa->disprect.xmax) / 2;
-			centy += (pa->disprect.ymin + pa->disprect.ymax) / 2;
+			centx += BLI_RCT_CENTER_X(&pa->disprect);
+			centy += BLI_RCT_CENTER_Y(&pa->disprect);
 			tot++;
 		}
 	}
@@ -751,8 +752,8 @@ static RenderPart *find_next_part(Render *re, int minx)
 	/* closest of the non-rendering parts */
 	for (pa = re->parts.first; pa; pa = pa->next) {
 		if (pa->ready == 0 && pa->nr == 0) {
-			long long int distx = centx - (pa->disprect.xmin + pa->disprect.xmax) / 2;
-			long long int disty = centy - (pa->disprect.ymin + pa->disprect.ymax) / 2;
+			long long int distx = centx - BLI_RCT_CENTER_X(&pa->disprect);
+			long long int disty = centy - BLI_RCT_CENTER_Y(&pa->disprect);
 			distx = (long long int)sqrt(distx * distx + disty * disty);
 			if (distx < mindist) {
 				if (re->r.mode & R_PANORAMA) {

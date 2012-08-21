@@ -300,8 +300,8 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			out[1] = (float)(mval[1]) / (float)(p->ar->winy) * 100;
 		}
 		else { /* camera view, use subrect */
-			out[0] = ((mval[0] - p->subrect->xmin) / ((p->subrect->xmax - p->subrect->xmin))) * 100;
-			out[1] = ((mval[1] - p->subrect->ymin) / ((p->subrect->ymax - p->subrect->ymin))) * 100;
+			out[0] = ((mval[0] - p->subrect->xmin) / BLI_RCT_SIZE_X(p->subrect)) * 100;
+			out[1] = ((mval[1] - p->subrect->ymin) / BLI_RCT_SIZE_Y(p->subrect)) * 100;
 		}
 	}
 }

@@ -2038,8 +2038,8 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 	x = rect->xmin;
 	y = rect->ymin;
 
-	w = rect->xmax - rect->xmin;
-	h = rect->ymax - rect->ymin;
+	w = BLI_RCT_SIZE_X(rect);
+	h = BLI_RCT_SIZE_Y(rect);
 
 	if (w <= 0 || h <= 0) {
 		if (d->depths)

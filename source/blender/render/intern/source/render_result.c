@@ -43,6 +43,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -420,8 +421,8 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	SceneRenderLayer *srl;
 	int rectx, recty, nr;
 	
-	rectx = partrct->xmax - partrct->xmin;
-	recty = partrct->ymax - partrct->ymin;
+	rectx = BLI_RCT_SIZE_X(partrct);
+	recty = BLI_RCT_SIZE_Y(partrct);
 	
 	if (rectx <= 0 || recty <= 0)
 		return NULL;
@@ -566,8 +567,8 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	}
 	
 	/* border render; calculate offset for use in compositor. compo is centralized coords */
-	rr->xof = re->disprect.xmin + (re->disprect.xmax - re->disprect.xmin) / 2 - re->winx / 2;
-	rr->yof = re->disprect.ymin + (re->disprect.ymax - re->disprect.ymin) / 2 - re->winy / 2;
+	rr->xof = re->disprect.xmin + BLI_RCT_CENTER_X(&re->disprect) - (re->winx / 2);
+	rr->yof = re->disprect.ymin + BLI_RCT_CENTER_Y(&re->disprect) - (re->winy / 2);
 	
 	return rr;
 }

@@ -654,8 +654,8 @@ int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	unsigned int *rt;
 	int a, index;
 	char *selar;
-	int sx = rect->xmax - rect->xmin + 1;
-	int sy = rect->ymax - rect->ymin + 1;
+	int sx = BLI_RCT_SIZE_X(rect) + 1;
+	int sy = BLI_RCT_SIZE_Y(rect) + 1;
 
 	me = vc->obact->data;
 
@@ -765,9 +765,8 @@ static void do_lasso_select_node(int mcords[][2], short moves, short select)
 	
 	/* store selection in temp test flag */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
-		
-		node_centf[0] = (node->totr.xmin + node->totr.xmax) / 2;
-		node_centf[1] = (node->totr.ymin + node->totr.ymax) / 2;
+		node_centf[0] = BLI_RCT_CENTER_X(&node->totr);
+		node_centf[1] = BLI_RCT_CENTER_Y(&node->totr);
 		
 		ipoco_to_areaco_noclip(G.v2d, node_centf, node_cent);
 		if (BLI_in_rcti_v(&rect, node_cent) && BLI_lasso_is_point_inside(mcords, moves, node_cent[0], node_cent[1])) {

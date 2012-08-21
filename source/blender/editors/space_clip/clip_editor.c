@@ -44,6 +44,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "GPU_extensions.h"
 
@@ -148,8 +149,8 @@ void ED_space_clip_get_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoo
 
 	ED_space_clip_get_size(sc, &width, &height);
 
-	*zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1) / (float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin) * width);
-	*zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1) / (float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin) * height);
+	*zoomx = (float)(BLI_RCT_SIZE_X(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_X(&ar->v2d.cur) * width);
+	*zoomy = (float)(BLI_RCT_SIZE_Y(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_Y(&ar->v2d.cur) * height);
 }
 
 void ED_space_clip_get_aspect(SpaceClip *sc, float *aspx, float *aspy)
@@ -245,6 +246,54 @@ ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale
 	}
 
 	return NULL;
+}
+
+/* returns color in SRGB */
+/* matching ED_space_image_color_sample() */
+int ED_space_clip_color_sample(SpaceClip *sc, ARegion *ar, int mval[2], float r_col[3])
+{
+	ImBuf *ibuf;
+	float fx, fy, co[2];
+	int ret = FALSE;
+
+	ibuf = ED_space_clip_get_buffer(sc);
+	if (!ibuf) {
+		return FALSE;
+	}
+
+	/* map the mouse coords to the backdrop image space */
+	ED_clip_mouse_pos(sc, ar, mval, co);
+
+	fx = co[0];
+	fy = co[1];
+
+	if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
+		float *fp;
+		unsigned char *cp;
+		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
+
+		CLAMP(x, 0, ibuf->x - 1);
+		CLAMP(y, 0, ibuf->y - 1);
+
+		if (ibuf->rect_float) {
+			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+			/* IB_PROFILE_NONE is default but infact its linear */
+			if (ELEM(ibuf->profile, IB_PROFILE_LINEAR_RGB, IB_PROFILE_NONE)) {
+				linearrgb_to_srgb_v3_v3(r_col, fp);
+			}
+			else {
+				copy_v3_v3(r_col, fp);
+			}
+			ret = TRUE;
+		}
+		else if (ibuf->rect) {
+			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+			rgb_uchar_to_float(r_col, cp);
+			ret = TRUE;
+		}
+	}
+
+	return ret;
 }
 
 void ED_clip_update_frame(const Main *mainp, int cfra)
@@ -345,8 +394,8 @@ int ED_clip_view_selection(const bContext *C, ARegion *ar, int fit)
 
 		ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
-		width = ar->winrct.xmax - ar->winrct.xmin + 1;
-		height = ar->winrct.ymax - ar->winrct.ymin + 1;
+		width  = BLI_RCT_SIZE_X(&ar->winrct) + 1;
+		height = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
 
 		zoomx = (float)width / w / aspx;
 		zoomy = (float)height / h / aspy;

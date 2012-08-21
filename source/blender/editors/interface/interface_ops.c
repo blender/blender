@@ -27,7 +27,6 @@
  *  \ingroup edinterface
  */
 
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -71,6 +70,7 @@
 
 #include "ED_image.h"  /* for HDR color sampling */
 #include "ED_node.h"   /* for HDR color sampling */
+#include "ED_clip.h"   /* for HDR color sampling */
 
 /* ********************************************************** */
 
@@ -161,6 +161,18 @@ static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int
 					               my - ar->winrct.ymin};
 
 					if (ED_space_node_color_sample(snode, ar, mval, r_col)) {
+						return;
+					}
+				}
+			}
+			else if (sa->spacetype == SPACE_CLIP) {
+				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+				if (BLI_in_rcti(&ar->winrct, mx, my)) {
+					SpaceClip *sc = sa->spacedata.first;
+					int mval[2] = {mx - ar->winrct.xmin,
+					               my - ar->winrct.ymin};
+
+					if (ED_space_clip_color_sample(sc, ar, mval, r_col)) {
 						return;
 					}
 				}

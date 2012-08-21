@@ -2435,7 +2435,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 						tex->pd->falloff_curve->preset = CURVE_PRESET_LINE;
 						tex->pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 						curvemap_reset(tex->pd->falloff_curve->cm, &tex->pd->falloff_curve->clipr, tex->pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
-						curvemapping_changed(tex->pd->falloff_curve, 0);
+						curvemapping_changed(tex->pd->falloff_curve, FALSE);
 					}
 				}
 			}

@@ -116,8 +116,8 @@ void wm_subwindow_getsize(wmWindow *win, int swinid, int *x, int *y)
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
-		*x = swin->winrct.xmax - swin->winrct.xmin + 1;
-		*y = swin->winrct.ymax - swin->winrct.ymin + 1;
+		*x = BLI_RCT_SIZE_X(&swin->winrct) + 1;
+		*y = BLI_RCT_SIZE_Y(&swin->winrct) + 1;
 	}
 }
 

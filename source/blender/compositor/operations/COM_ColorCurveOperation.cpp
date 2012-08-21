@@ -61,35 +61,39 @@ void ColorCurveOperation::initExecution()
 void ColorCurveOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	CurveMapping *cumap = this->m_curveMapping;
-	CurveMapping *workingCopy = (CurveMapping *)MEM_dupallocN(cumap);
 	
-	float black[4];
-	float white[4];
 	float fac[4];
 	float image[4];
+
+	/* local versions of cumap->black, cumap->white, cumap->bwmul */
+	float black[4];
+	float white[4];
+	float bwmul[3];
 
 	this->m_inputBlackProgram->read(black, x, y, sampler);
 	this->m_inputWhiteProgram->read(white, x, y, sampler);
 
-	curvemapping_set_black_white(workingCopy, black, white);
+	/* get our own local bwmul value,
+	 * since we can't be threadsafe and use cumap->bwmul & friends */
+	curvemapping_set_black_white_ex(black, white, bwmul);
 
 	this->m_inputFacProgram->read(fac, x, y, sampler);
 	this->m_inputImageProgram->read(image, x, y, sampler);
 
-	if (*fac >= 1.0f)
-		curvemapping_evaluate_premulRGBF(workingCopy, output, image);
+	if (*fac >= 1.0f) {
+		curvemapping_evaluate_premulRGBF_ex(cumap, output, image,
+		                                    black, bwmul);
+	}
 	else if (*fac <= 0.0f) {
 		copy_v3_v3(output, image);
 	}
 	else {
-		float col[4], mfac = 1.0f - *fac;
-		curvemapping_evaluate_premulRGBF(workingCopy, col, image);
-		output[0] = mfac * image[0] + *fac * col[0];
-		output[1] = mfac * image[1] + *fac * col[1];
-		output[2] = mfac * image[2] + *fac * col[2];
+		float col[4];
+		curvemapping_evaluate_premulRGBF_ex(cumap, col, image,
+		                                    black, bwmul);
+		interp_v3_v3v3(output, image, col, *fac);
 	}
 	output[3] = image[3];
-	MEM_freeN(workingCopy);
 }
 
 void ColorCurveOperation::deinitExecution()
@@ -131,21 +135,19 @@ void ConstantLevelColorCurveOperation::executePixel(float output[4], float x, fl
 	float fac[4];
 	float image[4];
 
-
 	this->m_inputFacProgram->read(fac, x, y, sampler);
 	this->m_inputImageProgram->read(image, x, y, sampler);
 
-	if (*fac >= 1.0f)
+	if (*fac >= 1.0f) {
 		curvemapping_evaluate_premulRGBF(this->m_curveMapping, output, image);
+	}
 	else if (*fac <= 0.0f) {
 		copy_v3_v3(output, image);
 	}
 	else {
-		float col[4], mfac = 1.0f - *fac;
+		float col[4];
 		curvemapping_evaluate_premulRGBF(this->m_curveMapping, col, image);
-		output[0] = mfac * image[0] + *fac * col[0];
-		output[1] = mfac * image[1] + *fac * col[1];
-		output[2] = mfac * image[2] + *fac * col[2];
+		interp_v3_v3v3(output, image, col, *fac);
 	}
 	output[3] = image[3];
 }

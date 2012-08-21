@@ -60,9 +60,12 @@ static bNodeSocketTemplate cmp_node_keying_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void exec(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
+#ifdef WITH_COMPOSITOR_LEGACY
+static void node_composit_exec_keying(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
+	/* pass */
 }
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
@@ -91,7 +94,9 @@ void register_node_type_cmp_keying(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_keying);
 	node_type_storage(&ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, exec);
+#ifdef WITH_COMPOSITOR_LEGACY
+	node_type_exec(&ntype, node_composit_exec_keying);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

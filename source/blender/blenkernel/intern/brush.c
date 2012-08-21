@@ -421,7 +421,7 @@ void BKE_brush_curve_preset(Brush *b, /*CurveMappingPreset*/ int preset)
 
 	b->curve->preset = preset;
 	curvemap_reset(cm, &b->curve->clipr, b->curve->preset, CURVEMAP_SLOPE_NEGATIVE);
-	curvemapping_changed(b->curve, 0);
+	curvemapping_changed(b->curve, FALSE);
 }
 
 int BKE_brush_texture_set_nr(Brush *brush, int nr)

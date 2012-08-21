@@ -47,8 +47,10 @@ typedef struct CurveMapPoint {
 } CurveMapPoint;
 
 /* curvepoint->flag */
-#define CUMA_SELECT		1
-#define CUMA_VECTOR		2
+enum {
+	CUMA_SELECT = 1,
+	CUMA_VECTOR = 2
+};
 
 typedef struct CurveMap {
 	short totpoint, flag;

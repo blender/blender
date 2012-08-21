@@ -1042,8 +1042,8 @@ static void movieclip_main_area_set_view2d(const bContext *C, ARegion *ar)
 	if (clip)
 		h *= clip->aspy / clip->aspx / clip->tracking.camera.pixel_aspect;
 
-	winx = ar->winrct.xmax - ar->winrct.xmin + 1;
-	winy = ar->winrct.ymax - ar->winrct.ymin + 1;
+	winx = BLI_RCT_SIZE_X(&ar->winrct) + 1;
+	winy = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
 
 	ar->v2d.tot.xmin = 0;
 	ar->v2d.tot.ymin = 0;

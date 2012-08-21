@@ -278,5 +278,6 @@ void register_node_type_cmp_bilateralblur(bNodeTreeType *ttype)
 #ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_bilateralblur);
 #endif
+
 	nodeRegisterType(ttype, &ntype);
 }

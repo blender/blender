@@ -525,7 +525,7 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* scrolling here is just annoying, disable it */
-	ar->v2d.cur.ymax = ar->v2d.cur.ymax - ar->v2d.cur.ymin;
+	ar->v2d.cur.ymax = BLI_RCT_SIZE_Y(&ar->v2d.cur);
 	ar->v2d.cur.ymin = 0;
 
 	/* set view2d view matrix for scrolling (without scrollers) */

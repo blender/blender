@@ -402,8 +402,6 @@ void WM_exit_ext(bContext *C, const short do_python)
 //	BIF_GlobalReebFree();
 //	BIF_freeRetarget();
 	BIF_freeTemplates(C);
-	
-	BKE_vfont_free_global_ttf(); /* bke_font.h */
 
 	free_openrecent();
 	

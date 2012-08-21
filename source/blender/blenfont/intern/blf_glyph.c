@@ -46,7 +46,8 @@
 #include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_rect.h"
 
 #include "BIF_gl.h"
 #include "BLF_api.h"
@@ -314,13 +315,14 @@ static void blf_texture_draw(float uv[2][2], float dx, float y1, float dx1, floa
 
 static void blf_texture5_draw(const float shadow_col[4], float uv[2][2], float x1, float y1, float x2, float y2)
 {
-	float soft[25] = {1 / 60.0f, 1 / 60.0f, 2 / 60.0f, 1 / 60.0f, 1 / 60.0f,
-	                  1 / 60.0f, 3 / 60.0f, 5 / 60.0f, 3 / 60.0f, 1 / 60.0f,
-	                  2 / 60.0f, 5 / 60.0f, 8 / 60.0f, 5 / 60.0f, 2 / 60.0f,
-	                  1 / 60.0f, 3 / 60.0f, 5 / 60.0f, 3 / 60.0f, 1 / 60.0f,
-	                  1 / 60.0f, 1 / 60.0f, 2 / 60.0f, 1 / 60.0f, 1 / 60.0f};
+	const float soft[25] = {1 / 60.0f, 1 / 60.0f, 2 / 60.0f, 1 / 60.0f, 1 / 60.0f,
+	                        1 / 60.0f, 3 / 60.0f, 5 / 60.0f, 3 / 60.0f, 1 / 60.0f,
+	                        2 / 60.0f, 5 / 60.0f, 8 / 60.0f, 5 / 60.0f, 2 / 60.0f,
+	                        1 / 60.0f, 3 / 60.0f, 5 / 60.0f, 3 / 60.0f, 1 / 60.0f,
+	                        1 / 60.0f, 1 / 60.0f, 2 / 60.0f, 1 / 60.0f, 1 / 60.0f};
 	
-	float color[4], *fp = soft;
+	const float *fp = soft;
+	float color[4];
 	int dx, dy;
 
 	color[0] = shadow_col[0];
@@ -340,11 +342,12 @@ static void blf_texture5_draw(const float shadow_col[4], float uv[2][2], float x
 
 static void blf_texture3_draw(const float shadow_col[4], float uv[2][2], float x1, float y1, float x2, float y2)
 {
-	float soft[9] = {1 / 16.0f, 2 / 16.0f, 1 / 16.0f,
-	                 2 / 16.0f, 4 / 16.0f, 2 / 16.0f,
-	                 1 / 16.0f, 2 / 16.0f, 1 / 16.0f};
+	const float soft[9] = {1 / 16.0f, 2 / 16.0f, 1 / 16.0f,
+	                       2 / 16.0f, 4 / 16.0f, 2 / 16.0f,
+	                       1 / 16.0f, 2 / 16.0f, 1 / 16.0f};
 
-	float color[4], *fp = soft;
+	const float *fp = soft;
+	float color[4];
 	int dx, dy;
 
 	color[0] = shadow_col[0];
@@ -412,7 +415,7 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		g->uv[1][1] = ((float)(g->yoff + g->height)) / ((float)gc->p2_height);
 
 		/* update the x offset for the next glyph. */
-		gc->x_offs += (int)(g->box.xmax - g->box.xmin + gc->pad);
+		gc->x_offs += (int)(BLI_RCT_SIZE_X(&g->box) + gc->pad);
 
 		gc->rem_glyphs--;
 		g->build_tex = 1;

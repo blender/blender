@@ -41,6 +41,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -173,7 +174,7 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	scopes->track_preview_height =
 		(scopes->track_preview_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->track_preview_height;
 
-	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin,
+	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect),
 	         scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
 }
 

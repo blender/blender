@@ -1095,13 +1095,13 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 			if (data->items.more) {
 				ui_searchbox_butrect(&rect, data, data->items.maxitem - 1);
 				glEnable(GL_BLEND);
-				UI_icon_draw((rect.xmax - rect.xmin) / 2, rect.ymin - 9, ICON_TRIA_DOWN);
+				UI_icon_draw((BLI_RCT_SIZE_X(&rect)) / 2, rect.ymin - 9, ICON_TRIA_DOWN);
 				glDisable(GL_BLEND);
 			}
 			if (data->items.offset) {
 				ui_searchbox_butrect(&rect, data, 0);
 				glEnable(GL_BLEND);
-				UI_icon_draw((rect.xmax - rect.xmin) / 2, rect.ymax - 7, ICON_TRIA_UP);
+				UI_icon_draw((BLI_RCT_SIZE_X(&rect)) / 2, rect.ymax - 7, ICON_TRIA_UP);
 				glDisable(GL_BLEND);
 			}
 		}
@@ -1176,16 +1176,16 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		
 		/* widget rect, in region coords */
 		data->bbox.xmin = MENU_SHADOW_SIDE;
-		data->bbox.xmax = (ar->winrct.xmax - ar->winrct.xmin) - MENU_SHADOW_SIDE;
+		data->bbox.xmax = BLI_RCT_SIZE_X(&ar->winrct) - MENU_SHADOW_SIDE;
 		data->bbox.ymin = MENU_SHADOW_BOTTOM;
-		data->bbox.ymax = (ar->winrct.ymax - ar->winrct.ymin) - MENU_SHADOW_BOTTOM;
+		data->bbox.ymax = BLI_RCT_SIZE_Y(&ar->winrct) - MENU_SHADOW_BOTTOM;
 		
 		/* check if button is lower half */
-		if (but->rect.ymax < (but->block->rect.ymin + but->block->rect.ymax) / 2) {
-			data->bbox.ymin += (but->rect.ymax - but->rect.ymin);
+		if (but->rect.ymax < BLI_RCT_CENTER_Y(&but->block->rect)) {
+			data->bbox.ymin += BLI_RCT_SIZE_Y(&but->rect);
 		}
 		else {
-			data->bbox.ymax -= (but->rect.ymax - but->rect.ymin);
+			data->bbox.ymax -= BLI_RCT_SIZE_Y(&but->rect);
 		}
 	}
 	else {
@@ -1356,15 +1356,15 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		}
 	}
 	
-	/* aspect = (float)(block->rect.xmax - block->rect.xmin + 4);*/ /*UNUSED*/
+	/* aspect = (float)(BLI_RCT_SIZE_X(&block->rect) + 4);*/ /*UNUSED*/
 	ui_block_to_window_fl(butregion, but->block, &block->rect.xmin, &block->rect.ymin);
 	ui_block_to_window_fl(butregion, but->block, &block->rect.xmax, &block->rect.ymax);
 
 	//block->rect.xmin -= 2.0; block->rect.ymin -= 2.0;
 	//block->rect.xmax += 2.0; block->rect.ymax += 2.0;
 	
-	xsize = block->rect.xmax - block->rect.xmin + 4;  /* 4 for shadow */
-	ysize = block->rect.ymax - block->rect.ymin + 4;
+	xsize = BLI_RCT_SIZE_X(&block->rect) + 4;  /* 4 for shadow */
+	ysize = BLI_RCT_SIZE_Y(&block->rect) + 4;
 	/* aspect /= (float)xsize;*/ /*UNUSED*/
 
 	{
@@ -1495,8 +1495,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 
 	/* safety calculus */
 	if (but) {
-		float midx = (butrct.xmin + butrct.xmax) / 2.0f;
-		float midy = (butrct.ymin + butrct.ymax) / 2.0f;
+		const float midx = BLI_RCT_CENTER_X(&butrct);
+		const float midy = BLI_RCT_CENTER_Y(&butrct);
 		
 		/* when you are outside parent button, safety there should be smaller */
 		

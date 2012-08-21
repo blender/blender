@@ -43,6 +43,7 @@ struct ReportList;
 struct VFont;
 
 /* pack */
+struct PackedFile *dupPackedFileMemory(const struct PackedFile *pf_src);
 struct PackedFile *newPackedFile(struct ReportList *reports, const char *filename, const char *relabase);
 struct PackedFile *newPackedFileMemory(void *mem, int memlen);
 

@@ -690,10 +690,10 @@ static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, wmEvent *event)
 	
 	if (but->imb) ;  /* use button size itself */
 	else if (but->flag & UI_ICON_LEFT) {
-		rect.xmax = rect.xmin + (rect.ymax - rect.ymin);
+		rect.xmax = rect.xmin + (BLI_RCT_SIZE_Y(&rect));
 	}
 	else {
-		int delta = (rect.xmax - rect.xmin) - (rect.ymax - rect.ymin);
+		int delta = BLI_RCT_SIZE_X(&rect) - BLI_RCT_SIZE_Y(&rect);
 		rect.xmin += delta / 2;
 		rect.xmax -= delta / 2;
 	}
@@ -714,7 +714,7 @@ static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, 
 		
 		drag = WM_event_start_drag(C, but->icon, but->dragtype, but->dragpoin, ui_get_but_val(but));
 		if (but->imb)
-			WM_event_drag_image(drag, but->imb, but->imb_scale, but->rect.xmax - but->rect.xmin, but->rect.ymax - but->rect.ymin);
+			WM_event_drag_image(drag, but->imb, but->imb_scale, BLI_RCT_SIZE_X(&but->rect), BLI_RCT_SIZE_Y(&but->rect));
 		return 1;
 	}
 	
@@ -1295,7 +1295,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	
 	/* XXX solve generic */
 	if (but->type == NUM || but->type == NUMSLI)
-		startx += (int)(0.5f * (but->rect.ymax - but->rect.ymin));
+		startx += (int)(0.5f * (BLI_RCT_SIZE_Y(&but->rect)));
 	else if (ELEM(but->type, TEX, SEARCH_MENU)) {
 		startx += 5;
 		if (but->flag & UI_HAS_ICON)
@@ -2610,7 +2610,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		softmax = but->softmax;
 
 		if (!ui_is_but_float(but)) {
-			if (mx < (but->rect.xmin + (but->rect.xmax - but->rect.xmin) / 3 - 3)) {
+			if (mx < (but->rect.xmin + BLI_RCT_SIZE_X(&but->rect) / 3 - 3)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				temp = (int)data->value - 1;
@@ -2621,7 +2621,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
-			else if (mx > (but->rect.xmin + (2 * (but->rect.xmax - but->rect.xmin) / 3) + 3)) {
+			else if (mx > (but->rect.xmin + (2 * BLI_RCT_SIZE_X(&but->rect) / 3) + 3)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				temp = (int)data->value + 1;
@@ -2636,7 +2636,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 		}
 		else {
-			if (mx < (but->rect.xmin + (but->rect.xmax - but->rect.xmin) / 3 - 3)) {
+			if (mx < (but->rect.xmin + BLI_RCT_SIZE_X(&but->rect) / 3 - 3)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				tempf = (float)data->value - 0.01f * but->a1;
@@ -2645,7 +2645,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
-			else if (mx > but->rect.xmin + (2 * ((but->rect.xmax - but->rect.xmin) / 3) + 3)) {
+			else if (mx > but->rect.xmin + (2 * (BLI_RCT_SIZE_X(&but->rect) / 3) + 3)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				tempf = (float)data->value + 0.01f * but->a1;
@@ -2673,14 +2673,14 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, const short 
 	softmax = but->softmax;
 	softrange = softmax - softmin;
 
-	if (but->type == NUMSLI) deler = ((but->rect.xmax - but->rect.xmin) - 5.0f * but->aspect);
-	else if (but->type == HSVSLI) deler = ((but->rect.xmax - but->rect.xmin) / 2.0f - 5.0f * but->aspect);
+	if (but->type == NUMSLI) deler = (BLI_RCT_SIZE_X(&but->rect) - 5.0f * but->aspect);
+	else if (but->type == HSVSLI) deler = (BLI_RCT_SIZE_X(&but->rect) / 2.0f - 5.0f * but->aspect);
 	else if (but->type == SCROLL) {
-		int horizontal = (but->rect.xmax - but->rect.xmin > but->rect.ymax - but->rect.ymin);
-		float size = (horizontal) ? (but->rect.xmax - but->rect.xmin) : -(but->rect.ymax - but->rect.ymin);
+		int horizontal = (BLI_RCT_SIZE_X(&but->rect) > BLI_RCT_SIZE_Y(&but->rect));
+		float size = (horizontal) ? BLI_RCT_SIZE_X(&but->rect) : -BLI_RCT_SIZE_Y(&but->rect);
 		deler = size * (but->softmax - but->softmin) / (but->softmax - but->softmin + but->a1);
 	}
-	else deler = (but->rect.xmax - but->rect.xmin - 5.0f * but->aspect);
+	else deler = (BLI_RCT_SIZE_X(&but->rect) - 5.0f * but->aspect);
 
 	f = (float)(mx - data->dragstartx) / deler + data->dragfstart;
 	
@@ -2763,7 +2763,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 			/* alt-click on sides to get "arrows" like in NUM buttons, and match wheel usage above */
 			else if (event->type == LEFTMOUSE && event->alt) {
-				int halfpos = (but->rect.xmin + but->rect.xmax) / 2;
+				int halfpos = BLI_RCT_CENTER_X(&but->rect);
 				click = 2;
 				if (mx < halfpos)
 					mx = but->rect.xmin;
@@ -2830,12 +2830,12 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 #if 0
 			if (but->type == SLI) {
-				f = (float)(mx - but->rect.xmin) / (but->rect.xmax - but->rect.xmin); /* same as below */
+				f = (float)(mx - but->rect.xmin) / (BLI_RCT_SIZE_X(&but->rect)); /* same as below */
 			}
 			else
 #endif
 			{
-				f = (float)(mx - but->rect.xmin) / (but->rect.xmax - but->rect.xmin);
+				f = (float)(mx - but->rect.xmin) / (BLI_RCT_SIZE_X(&but->rect));
 			}
 			
 			f = softmin + f * softrange;
@@ -2876,7 +2876,7 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 {
 	int mx, my /*, click= 0 */;
 	int retval = WM_UI_HANDLER_CONTINUE;
-	int horizontal = (but->rect.xmax - but->rect.xmin > but->rect.ymax - but->rect.ymin);
+	int horizontal = (BLI_RCT_SIZE_X(&but->rect) > BLI_RCT_SIZE_Y(&but->rect));
 	
 	mx = event->x;
 	my = event->y;
@@ -3033,7 +3033,7 @@ static int ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data, int mx, i
 	 * else we'll get a harmless but annoying jump when first clicking */
 
 	fp = data->origvec;
-	rad = (but->rect.xmax - but->rect.xmin);
+	rad = BLI_RCT_SIZE_X(&but->rect);
 	radsq = rad * rad;
 	
 	if (fp[2] > 0.0f) {
@@ -3141,8 +3141,8 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 
 
 	/* relative position within box */
-	x = ((float)mx_fl - but->rect.xmin) / (but->rect.xmax - but->rect.xmin);
-	y = ((float)my_fl - but->rect.ymin) / (but->rect.ymax - but->rect.ymin);
+	x = ((float)mx_fl - but->rect.xmin) / BLI_RCT_SIZE_X(&but->rect);
+	y = ((float)my_fl - but->rect.ymin) / BLI_RCT_SIZE_Y(&but->rect);
 	CLAMP(x, 0.0f, 1.0f);
 	CLAMP(y, 0.0f, 1.0f);
 
@@ -3539,7 +3539,7 @@ static int ui_numedit_but_COLORBAND(uiBut *but, uiHandleButtonData *data, int mx
 	if (data->draglastx == mx)
 		return changed;
 
-	dx = ((float)(mx - data->draglastx)) / (but->rect.xmax - but->rect.xmin);
+	dx = ((float)(mx - data->draglastx)) / BLI_RCT_SIZE_X(&but->rect);
 	data->dragcbd->pos += dx;
 	CLAMP(data->dragcbd->pos, 0.0f, 1.0f);
 	
@@ -3568,7 +3568,7 @@ static int ui_do_but_COLORBAND(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 			if (event->ctrl) {
 				/* insert new key on mouse location */
-				float pos = ((float)(mx - but->rect.xmin)) / (but->rect.xmax - but->rect.xmin);
+				float pos = ((float)(mx - but->rect.xmin)) / BLI_RCT_SIZE_X(&but->rect);
 				colorband_element_add(coba, pos);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
@@ -3580,7 +3580,7 @@ static int ui_do_but_COLORBAND(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 				/* activate new key when mouse is close */
 				for (a = 0, cbd = coba->data; a < coba->tot; a++, cbd++) {
-					xco = but->rect.xmin + (cbd->pos * (but->rect.xmax - but->rect.xmin));
+					xco = but->rect.xmin + (cbd->pos * BLI_RCT_SIZE_X(&but->rect));
 					xco = ABS(xco - mx);
 					if (a == coba->cur) xco += 5;  // selected one disadvantage
 					if (xco < mindist) {
@@ -3621,8 +3621,8 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap,
 	float fx, fy, zoomx, zoomy /*, offsx, offsy */ /* UNUSED */;
 	int a, changed = 0;
 
-	zoomx = (but->rect.xmax - but->rect.xmin) / (cumap->curr.xmax - cumap->curr.xmin);
-	zoomy = (but->rect.ymax - but->rect.ymin) / (cumap->curr.ymax - cumap->curr.ymin);
+	zoomx = BLI_RCT_SIZE_X(&but->rect) / BLI_RCT_SIZE_X(&cumap->curr);
+	zoomy = BLI_RCT_SIZE_Y(&but->rect) / BLI_RCT_SIZE_Y(&cumap->curr);
 	/* offsx= cumap->curr.xmin; */
 	/* offsy= cumap->curr.ymin; */
 
@@ -3647,7 +3647,7 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap,
 		fy *= mval_factor;
 
 		for (a = 0; a < cuma->totpoint; a++) {
-			if (cmp[a].flag & SELECT) {
+			if (cmp[a].flag & CUMA_SELECT) {
 				float origx = cmp[a].x, origy = cmp[a].y;
 				cmp[a].x += fx;
 				cmp[a].y += fy;
@@ -3660,7 +3660,7 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap,
 			}
 		}
 
-		curvemapping_changed(cumap, 0); /* no remove doubles */
+		curvemapping_changed(cumap, FALSE);
 		
 		if (moved_point) {
 			data->draglastx = mx;
@@ -3717,8 +3717,8 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 			float dist, mindist = 200.0f; // 14 pixels radius
 			int sel = -1;
 
-			zoomx = (but->rect.xmax - but->rect.xmin) / (cumap->curr.xmax - cumap->curr.xmin);
-			zoomy = (but->rect.ymax - but->rect.ymin) / (cumap->curr.ymax - cumap->curr.ymin);
+			zoomx = BLI_RCT_SIZE_X(&but->rect) / BLI_RCT_SIZE_X(&cumap->curr);
+			zoomy = BLI_RCT_SIZE_Y(&but->rect) / BLI_RCT_SIZE_Y(&cumap->curr);
 			offsx = cumap->curr.xmin;
 			offsy = cumap->curr.ymin;
 
@@ -3727,7 +3727,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 				fy = ((float)my - but->rect.ymin) / zoomy + offsy;
 				
 				curvemap_insert(cuma, fx, fy);
-				curvemapping_changed(cumap, 0);
+				curvemapping_changed(cumap, FALSE);
 				changed = 1;
 			}
 
@@ -3756,12 +3756,12 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 				/* loop through the curve segment table and find what's near the mouse.
 				 * 0.05 is kinda arbitrary, but seems to be what works nicely. */
 				for (i = 0; i <= CM_TABLE; i++) {
-					if ( (fabsf(fx - cmp[i].x) < 0.05f) &&
-					     (fabsf(fy - cmp[i].y) < 0.05f))
+					if ((fabsf(fx - cmp[i].x) < 0.05f) &&
+					    (fabsf(fy - cmp[i].y) < 0.05f))
 					{
 					
 						curvemap_insert(cuma, fx, fy);
-						curvemapping_changed(cumap, 0);
+						curvemapping_changed(cumap, FALSE);
 
 						changed = 1;
 						
@@ -3783,11 +3783,11 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 				/* deselect all if this one is deselect. except if we hold shift */
 				if (event->shift == FALSE) {
 					for (a = 0; a < cuma->totpoint; a++)
-						cmp[a].flag &= ~SELECT;
-					cmp[sel].flag |= SELECT;
+						cmp[a].flag &= ~CUMA_SELECT;
+					cmp[sel].flag |= CUMA_SELECT;
 				}
 				else
-					cmp[sel].flag ^= SELECT;
+					cmp[sel].flag ^= CUMA_SELECT;
 			}
 			else {
 				/* move the view */
@@ -3822,12 +3822,13 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 					/* deselect all, select one */
 					if (event->shift == FALSE) {
 						for (a = 0; a < cuma->totpoint; a++)
-							cmp[a].flag &= ~SELECT;
-						cmp[data->dragsel].flag |= SELECT;
+							cmp[a].flag &= ~CUMA_SELECT;
+						cmp[data->dragsel].flag |= CUMA_SELECT;
 					}
 				}
-				else
-					curvemapping_changed(cumap, 1);  /* remove doubles */
+				else {
+					curvemapping_changed(cumap, TRUE);  /* remove doubles */
+				}
 			}
 
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -3862,7 +3863,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize histogram widget itself */
-		hist->height = (but->rect.ymax - but->rect.ymin) + (data->dragstarty - my);
+		hist->height = BLI_RCT_SIZE_Y(&but->rect) + (data->dragstarty - my);
 	}
 	else {
 		/* scale histogram values (dy / 10 for better control) */
@@ -3946,7 +3947,7 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize waveform widget itself */
-		scopes->wavefrm_height = (but->rect.ymax - but->rect.ymin) + (data->dragstarty - my);
+		scopes->wavefrm_height = BLI_RCT_SIZE_Y(&but->rect) + (data->dragstarty - my);
 	}
 	else {
 		/* scale waveform values */
@@ -4028,7 +4029,7 @@ static int ui_numedit_but_VECTORSCOPE(uiBut *but, uiHandleButtonData *data, int 
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize vectorscope widget itself */
-		scopes->vecscope_height = (but->rect.ymax - but->rect.ymin) + (data->dragstarty - my);
+		scopes->vecscope_height = BLI_RCT_SIZE_Y(&but->rect) + (data->dragstarty - my);
 	}
 
 	data->draglastx = mx;
@@ -4098,8 +4099,8 @@ static int ui_do_but_CHARTAB(bContext *UNUSED(C), uiBlock *UNUSED(block), uiBut 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			/* Calculate the size of the button */
-			width = abs(but->rect.xmax - but->rect.xmin);
-			height = abs(but->rect.ymax - but->rect.ymin);
+			width  = abs(BLI_RCT_SIZE_X(&but->rect));
+			height = abs(BLI_RCT_SIZE_Y(&but->rect));
 
 			butw = floor(width / 12);
 			buth = floor(height / 6);
@@ -4231,7 +4232,7 @@ static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonDa
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize preview widget itself */
-		scopes->track_preview_height = (but->rect.ymax - but->rect.ymin) + (data->dragstarty - my);
+		scopes->track_preview_height = BLI_RCT_SIZE_Y(&but->rect) + (data->dragstarty - my);
 	}
 	else {
 		if (!scopes->track_locked) {
