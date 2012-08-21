@@ -150,13 +150,8 @@ void curvemapping_set_black_white_ex(const float black[3], const float white[3],
 	int a;
 
 	for (a = 0; a < 3; a++) {
-		const float delta = white[a] - black[a];
-		if (delta != 0.0f) {
-			r_bwmul[a] = 1.0f / delta;
-		}
-		else {
-			r_bwmul[a] = 0.0f;
-		}
+		const float delta = MAX2(white[a] - black[a], 1e-5f);
+		r_bwmul[a] = 1.0f / delta;
 	}
 }
 
