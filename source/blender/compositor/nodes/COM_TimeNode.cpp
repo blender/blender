@@ -33,8 +33,6 @@ TimeNode::TimeNode(bNode *editorNode) : Node(editorNode)
 	/* pass */
 }
 
-////curvemapping_initialize(&hcmd->curve_mapping);
-
 void TimeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	SetValueOperation *operation = new SetValueOperation();
