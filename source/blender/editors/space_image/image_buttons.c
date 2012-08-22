@@ -268,8 +268,8 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
 	int mval[2];
 	
 	if (G.scene->r.mode & R_BORDER) {
-		winx *= (G.scene->r.border.xmax - G.scene->r.border.xmin);
-		winy *= (G.scene->r.border.ymax - G.scene->r.border.ymin);
+		winx *= BLI_RCT_SIZE_X(&G.scene->r.border);
+		winy *= BLI_RCT_SIZE_Y(&G.scene->r.border);
 	}
 	
 	/* while dragging we need to update the rects, otherwise it doesn't end with correct one */

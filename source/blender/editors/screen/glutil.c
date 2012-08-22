@@ -35,6 +35,7 @@
 
 #include "DNA_vec_types.h"
 
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
@@ -668,8 +669,8 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 
 void glaDefine2DArea(rcti *screen_rect)
 {
-	int sc_w = screen_rect->xmax - screen_rect->xmin + 1;
-	int sc_h = screen_rect->ymax - screen_rect->ymin + 1;
+	const int sc_w = BLI_RCT_SIZE_X(screen_rect) + 1;
+	const int sc_h = BLI_RCT_SIZE_Y(screen_rect) + 1;
 
 	glViewport(screen_rect->xmin, screen_rect->ymin, sc_w, sc_h);
 	glScissor(screen_rect->xmin, screen_rect->ymin, sc_w, sc_h);
@@ -713,10 +714,10 @@ void gla2DSetMap(gla2DDrawInfo *di, rctf *rect)
 
 	di->world_rect = *rect;
 	
-	sc_w = (di->screen_rect.xmax - di->screen_rect.xmin);
-	sc_h = (di->screen_rect.ymax - di->screen_rect.ymin);
-	wo_w = (di->world_rect.xmax - di->world_rect.xmin);
-	wo_h = (di->world_rect.ymax - di->world_rect.ymin);
+	sc_w = BLI_RCT_SIZE_X(&di->screen_rect);
+	sc_h = BLI_RCT_SIZE_Y(&di->screen_rect);
+	wo_w = BLI_RCT_SIZE_X(&di->world_rect);
+	wo_h = BLI_RCT_SIZE_Y(&di->world_rect);
 	
 	di->wo_to_sc[0] = sc_w / wo_w;
 	di->wo_to_sc[1] = sc_h / wo_h;
@@ -744,10 +745,10 @@ gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect)
 		di->world_rect.ymax = di->screen_rect.ymax;
 	}
 
-	sc_w = (di->screen_rect.xmax - di->screen_rect.xmin);
-	sc_h = (di->screen_rect.ymax - di->screen_rect.ymin);
-	wo_w = (di->world_rect.xmax - di->world_rect.xmin);
-	wo_h = (di->world_rect.ymax - di->world_rect.ymin);
+	sc_w = BLI_RCT_SIZE_X(&di->screen_rect);
+	sc_h = BLI_RCT_SIZE_Y(&di->screen_rect);
+	wo_w = BLI_RCT_SIZE_X(&di->world_rect);
+	wo_h = BLI_RCT_SIZE_Y(&di->world_rect);
 
 	di->wo_to_sc[0] = sc_w / wo_w;
 	di->wo_to_sc[1] = sc_h / wo_h;

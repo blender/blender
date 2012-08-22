@@ -301,21 +301,29 @@ struct bNodeType *ntreeGetNodeType(struct bNodeTree *ntree);
 struct bNodeSocketType *ntreeGetSocketType(int type);
 
 struct bNodeTree *ntreeAddTree(const char *name, int type, int nodetype);
-void            ntreeInitTypes(struct bNodeTree *ntree);
+void              ntreeInitTypes(struct bNodeTree *ntree);
 
-void            ntreeFreeTree(struct bNodeTree *ntree);
+/* copy/free funcs, need to manage ID users */
+void              ntreeFreeTree_ex(struct bNodeTree *ntree, const short do_id_user);
+void              ntreeFreeTree(struct bNodeTree *ntree);
+struct bNodeTree *ntreeCopyTree_ex(struct bNodeTree *ntree, const short do_id_user);
 struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree);
-void            ntreeSwitchID(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sce_to);
-void            ntreeMakeLocal(struct bNodeTree *ntree);
-int             ntreeHasType(struct bNodeTree *ntree, int type);
+void              ntreeSwitchID_ex(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sce_to, const short do_id_user);
+void              ntreeSwitchID(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sce_to);
+/* node->id user count */
+void              ntreeUserIncrefID(struct bNodeTree *ntree);
+void              ntreeUserDecrefID(struct bNodeTree *ntree);
 
-void            ntreeUpdateTree(struct bNodeTree *ntree);
+
+void              ntreeMakeLocal(struct bNodeTree *ntree);
+int               ntreeHasType(struct bNodeTree *ntree, int type);
+void              ntreeUpdateTree(struct bNodeTree *ntree);
 /* XXX Currently each tree update call does call to ntreeVerifyNodes too.
  * Some day this should be replaced by a decent depsgraph automatism!
  */
-void            ntreeVerifyNodes(struct Main *main, struct ID *id);
+void              ntreeVerifyNodes(struct Main *main, struct ID *id);
 
-void            ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, int *totnodes);
+void              ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, int *totnodes);
 
 /* XXX old trees handle output flags automatically based on special output node types and last active selection.
  * new tree types have a per-output socket flag to indicate the final output to use explicitly.

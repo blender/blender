@@ -971,10 +971,10 @@ static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 	rect_camera = params.viewplane;
 
 	/* get camera border within viewport */
-	viewborder_r->xmin = ((rect_camera.xmin - rect_view.xmin) / (rect_view.xmax - rect_view.xmin)) * ar->winx;
-	viewborder_r->xmax = ((rect_camera.xmax - rect_view.xmin) / (rect_view.xmax - rect_view.xmin)) * ar->winx;
-	viewborder_r->ymin = ((rect_camera.ymin - rect_view.ymin) / (rect_view.ymax - rect_view.ymin)) * ar->winy;
-	viewborder_r->ymax = ((rect_camera.ymax - rect_view.ymin) / (rect_view.ymax - rect_view.ymin)) * ar->winy;
+	viewborder_r->xmin = ((rect_camera.xmin - rect_view.xmin) / BLI_RCT_SIZE_X(&rect_view)) * ar->winx;
+	viewborder_r->xmax = ((rect_camera.xmax - rect_view.xmin) / BLI_RCT_SIZE_X(&rect_view)) * ar->winx;
+	viewborder_r->ymin = ((rect_camera.ymin - rect_view.ymin) / BLI_RCT_SIZE_Y(&rect_view)) * ar->winy;
+	viewborder_r->ymax = ((rect_camera.ymax - rect_view.ymin) / BLI_RCT_SIZE_Y(&rect_view)) * ar->winy;
 }
 
 void ED_view3d_calc_camera_border_size(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, float size_r[2])
@@ -982,8 +982,8 @@ void ED_view3d_calc_camera_border_size(Scene *scene, ARegion *ar, View3D *v3d, R
 	rctf viewborder;
 
 	view3d_camera_border(scene, ar, v3d, rv3d, &viewborder, TRUE, TRUE);
-	size_r[0] = viewborder.xmax - viewborder.xmin;
-	size_r[1] = viewborder.ymax - viewborder.ymin;
+	size_r[0] = BLI_RCT_SIZE_X(&viewborder);
+	size_r[1] = BLI_RCT_SIZE_Y(&viewborder);
 }
 
 void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d,
@@ -1339,7 +1339,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		glDisable(GL_MULTISAMPLE_ARB);
 
 	region_scissor_winrct(ar, &winrct);
-	glScissor(winrct.xmin, winrct.ymin, winrct.xmax - winrct.xmin, winrct.ymax - winrct.ymin);
+	glScissor(winrct.xmin, winrct.ymin, BLI_RCT_SIZE_X(&winrct), BLI_RCT_SIZE_Y(&winrct));
 
 	glClearColor(0.0, 0.0, 0.0, 0.0); 
 	if (v3d->zbuf) {
@@ -2854,10 +2854,10 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 
 		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, FALSE);
 
-		cliprct.xmin = viewborder.xmin + scene->r.border.xmin * (viewborder.xmax - viewborder.xmin);
-		cliprct.ymin = viewborder.ymin + scene->r.border.ymin * (viewborder.ymax - viewborder.ymin);
-		cliprct.xmax = viewborder.xmin + scene->r.border.xmax * (viewborder.xmax - viewborder.xmin);
-		cliprct.ymax = viewborder.ymin + scene->r.border.ymax * (viewborder.ymax - viewborder.ymin);
+		cliprct.xmin = viewborder.xmin + scene->r.border.xmin * BLI_RCT_SIZE_X(&viewborder);
+		cliprct.ymin = viewborder.ymin + scene->r.border.ymin * BLI_RCT_SIZE_Y(&viewborder);
+		cliprct.xmax = viewborder.xmin + scene->r.border.xmax * BLI_RCT_SIZE_X(&viewborder);
+		cliprct.ymax = viewborder.ymin + scene->r.border.ymax * BLI_RCT_SIZE_Y(&viewborder);
 
 		cliprct.xmin += ar->winrct.xmin;
 		cliprct.xmax += ar->winrct.xmin;
@@ -2871,7 +2871,7 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 
 		if (cliprct.xmax > cliprct.xmin && cliprct.ymax > cliprct.ymin) {
 			glGetIntegerv(GL_SCISSOR_BOX, scissor);
-			glScissor(cliprct.xmin, cliprct.ymin, cliprct.xmax - cliprct.xmin, cliprct.ymax - cliprct.ymin);
+			glScissor(cliprct.xmin, cliprct.ymin, BLI_RCT_SIZE_X(&cliprct), BLI_RCT_SIZE_Y(&cliprct));
 		}
 		else
 			return 0;

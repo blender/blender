@@ -456,7 +456,7 @@ float blf_font_height(FontBLF *font, const char *str)
 		ya = 1.0f;
 
 	blf_font_boundbox(font, str, &box);
-	return (box.ymax - box.ymin) * ya;
+	return BLI_RCT_SIZE_Y(&box) * ya;
 }
 
 float blf_font_fixed_width(FontBLF *font)

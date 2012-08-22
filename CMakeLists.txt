@@ -1070,6 +1070,8 @@ elseif(WIN32)
 			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -lpthread")
 			
 			add_definitions(-DFREE_WINDOWS64 -DMS_WIN64)
+			#Turn off OpenMP since it causes crashes on render for subsurfed/multiresolution meshes
+			set(WITH_OPENMP OFF)
 		endif()
 
 		add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)

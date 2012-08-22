@@ -1096,8 +1096,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	if (ar->alignment & RGN_SPLIT_PREV) {
 		if (ar->prev) {
 			remainder = remainder_prev;
-			ar->prev->winx = ar->prev->winrct.xmax - ar->prev->winrct.xmin + 1;
-			ar->prev->winy = ar->prev->winrct.ymax - ar->prev->winrct.ymin + 1;
+			ar->prev->winx = BLI_RCT_SIZE_X(&ar->prev->winrct) + 1;
+			ar->prev->winy = BLI_RCT_SIZE_Y(&ar->prev->winrct) + 1;
 		}
 	}
 	
@@ -1769,7 +1769,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	}
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, ar->v2d.tot.ymax - ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, BLI_RCT_SIZE_Y(&ar->v2d.tot));
 
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);

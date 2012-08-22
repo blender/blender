@@ -31,6 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
@@ -440,8 +441,8 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 		else {
 			quad.xmin = 0;
 			quad.ymin = 0;
-			quad.xmax = vc->ar->winrct.xmax - vc->ar->winrct.xmin;
-			quad.ymax = vc->ar->winrct.ymax - vc->ar->winrct.ymin;
+			quad.xmax = BLI_RCT_SIZE_X(&vc->ar->winrct);
+			quad.ymax = BLI_RCT_SIZE_Y(&vc->ar->winrct);
 		}
 
 		/* set quad color */

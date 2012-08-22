@@ -149,14 +149,16 @@ static void screenshot_crop(ImBuf *ibuf, rcti crop)
 {
 	unsigned int *to = ibuf->rect;
 	unsigned int *from = ibuf->rect + crop.ymin * ibuf->x + crop.xmin;
-	int y, cropw = crop.xmax - crop.xmin, croph = crop.ymax - crop.ymin;
+	int crop_x = BLI_RCT_SIZE_X(&crop);
+	int crop_y = BLI_RCT_SIZE_Y(&crop);
+	int y;
 
-	if (cropw > 0 && croph > 0) {
-		for (y = 0; y < croph; y++, to += cropw, from += ibuf->x)
-			memmove(to, from, sizeof(unsigned int) * cropw);
+	if (crop_x > 0 && crop_y > 0) {
+		for (y = 0; y < crop_y; y++, to += crop_x, from += ibuf->x)
+			memmove(to, from, sizeof(unsigned int) * crop_x);
 
-		ibuf->x = cropw;
-		ibuf->y = croph;
+		ibuf->x = crop_x;
+		ibuf->y = crop_y;
 	}
 }
 

@@ -615,7 +615,7 @@ void OUTLINER_OT_show_active(wmOperatorType *ot)
 static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
-	int dy = ar->v2d.mask.ymax - ar->v2d.mask.ymin;
+	int dy = BLI_RCT_SIZE_Y(&ar->v2d.mask);
 	int up = 0;
 	
 	if (RNA_boolean_get(op->ptr, "up"))
@@ -760,10 +760,10 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 			tselem->flag |= TSE_SELECTED;
 			
 			/* make te->ys center of view */
-			ytop = (int)(te->ys + (ar->v2d.mask.ymax - ar->v2d.mask.ymin) / 2);
+			ytop = (int)(te->ys + BLI_RCT_SIZE_Y(&ar->v2d.mask) / 2);
 			if (ytop > 0) ytop = 0;
 			ar->v2d.cur.ymax = (float)ytop;
-			ar->v2d.cur.ymin = (float)(ytop - (ar->v2d.mask.ymax - ar->v2d.mask.ymin));
+			ar->v2d.cur.ymin = (float)(ytop - BLI_RCT_SIZE_Y(&ar->v2d.mask));
 			
 			/* make te->xs ==> te->xend center of view */
 			xdelta = (int)(te->xs - ar->v2d.cur.xmin);

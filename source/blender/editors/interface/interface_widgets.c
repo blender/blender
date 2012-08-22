@@ -1760,8 +1760,8 @@ static void widget_softshadow(rcti *rect, int roundboxalign, float radin, float 
 	float quad_strip[WIDGET_SIZE_MAX * 2][2];
 	
 	/* prevent tooltips to not show round shadow */
-	if (2.0f * radout > 0.2f * (rect1.ymax - rect1.ymin) )
-		rect1.ymax -= 0.2f * (rect1.ymax - rect1.ymin);
+	if (2.0f * radout > 0.2f * BLI_RCT_SIZE_Y(&rect1))
+		rect1.ymax -= 0.2f * BLI_RCT_SIZE_Y(&rect1);
 	else
 		rect1.ymax -= 2.0f * radout;
 	
@@ -2371,12 +2371,12 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		/* ensure minimium size */
 		min = BLI_RCT_SIZE_Y(rect);
 
-		if (rect1.xmax - rect1.xmin < min) {
+		if (BLI_RCT_SIZE_X(&rect1) < min) {
 			rect1.xmax = rect1.xmin + min;
 
 			if (rect1.xmax > rect->xmax) {
 				rect1.xmax = rect->xmax;
-				rect1.xmin = MAX2(rect1.xmax - min, rect->xmin);
+				rect1.xmin = maxi(rect1.xmax - min, rect->xmin);
 			}
 		}
 	}
@@ -2388,7 +2388,7 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		/* ensure minimium size */
 		min = BLI_RCT_SIZE_X(rect);
 
-		if (rect1.ymax - rect1.ymin < min) {
+		if (BLI_RCT_SIZE_Y(&rect1) < min) {
 			rect1.ymax = rect1.ymin + min;
 
 			if (rect1.ymax > rect->ymax) {
@@ -2416,10 +2416,10 @@ static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int
 	rect_prog.ymax = rect_prog.ymin + 4;
 	rect_bar.ymax = rect_bar.ymin + 4;
 	
-	w = value * (rect_prog.xmax - rect_prog.xmin);
+	w = value * BLI_RCT_SIZE_X(&rect_prog);
 	
 	/* ensure minimium size */
-	min = rect_prog.ymax - rect_prog.ymin;
+	min = BLI_RCT_SIZE_Y(&rect_prog);
 	w = MAX2(w, min);
 	
 	rect_bar.xmax = rect_bar.xmin + w;
@@ -2483,7 +2483,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 		rect1 = *rect;
 		
 		value = ui_get_but_val(but);
-		fac = ((float)value - but->softmin) * (rect1.xmax - rect1.xmin - offs) / (but->softmax - but->softmin);
+		fac = ((float)value - but->softmin) * (BLI_RCT_SIZE_X(&rect1) - offs) / (but->softmax - but->softmin);
 		
 		/* left part of slider, always rounded */
 		rect1.xmax = rect1.xmin + ceil(offs + 1.0f);
@@ -2705,10 +2705,10 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UN
 	widget_init(&wtb);
 	
 	/* square */
-	recttemp.xmax = recttemp.xmin + (recttemp.ymax - recttemp.ymin);
+	recttemp.xmax = recttemp.xmin + BLI_RCT_SIZE_Y(&recttemp);
 	
 	/* smaller */
-	delta = 1 + (recttemp.ymax - recttemp.ymin) / 8;
+	delta = 1 + BLI_RCT_SIZE_Y(&recttemp) / 8;
 	recttemp.xmin += delta;
 	recttemp.ymin += delta;
 	recttemp.xmax -= delta;

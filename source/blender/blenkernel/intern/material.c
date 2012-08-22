@@ -235,7 +235,7 @@ Material *BKE_material_copy(Material *ma)
 	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
 
 	if (ma->nodetree) {
-		man->nodetree = ntreeCopyTree(ma->nodetree); /* 0 == full new tree */
+		man->nodetree = ntreeCopyTree(ma->nodetree);
 	}
 
 	man->gpumaterial.first = man->gpumaterial.last = NULL;
@@ -1483,7 +1483,11 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 	}
 }
 
-/* copy/paste buffer, if we had a propper py api that would be better */
+/**
+ * \brief copy/paste buffer, if we had a propper py api that would be better
+ * \note matcopybuf.nodetree does _NOT_ use ID's
+ * \todo matcopybuf.nodetree's  node->id's are NOT validated, this will crash!
+ */
 static Material matcopybuf;
 static short matcopied = 0;
 
@@ -1511,7 +1515,7 @@ void free_matcopybuf(void)
 	matcopybuf.ramp_spec = NULL;
 
 	if (matcopybuf.nodetree) {
-		ntreeFreeTree(matcopybuf.nodetree);
+		ntreeFreeTree_ex(matcopybuf.nodetree, FALSE);
 		MEM_freeN(matcopybuf.nodetree);
 		matcopybuf.nodetree = NULL;
 	}
@@ -1537,7 +1541,7 @@ void copy_matcopybuf(Material *ma)
 			matcopybuf.mtex[a] = MEM_dupallocN(mtex);
 		}
 	}
-	matcopybuf.nodetree = ntreeCopyTree(ma->nodetree);
+	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, FALSE);
 	matcopybuf.preview = NULL;
 	matcopybuf.gpumaterial.first = matcopybuf.gpumaterial.last = NULL;
 	matcopied = 1;
@@ -1582,7 +1586,7 @@ void paste_matcopybuf(Material *ma)
 		}
 	}
 
-	ma->nodetree = ntreeCopyTree(matcopybuf.nodetree);
+	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, FALSE);
 }
 
 

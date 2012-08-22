@@ -148,7 +148,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockEndAlign(block);
 	
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco + (UI_UNIT_X / 2), ar->v2d.tot.ymax - ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco + (UI_UNIT_X / 2), BLI_RCT_SIZE_Y(&ar->v2d.tot));
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
