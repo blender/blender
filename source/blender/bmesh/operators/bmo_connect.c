@@ -370,39 +370,36 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		/* Find the shortest distance from a vert in vv1 to vv2[0]. Use that
-		 * vertex in vv1 as a starting point in the first loop, while starting
-		 * from vv2[0] in the second loop. This is a simplistic attempt to get
-		 * a better edge-to-edge match between the two loops. */
+		/* Find the smallest sum of distances from verts in vv1 to verts in vv2,
+		 * finding a starting point in the first loop, to start with vv2[0] in the
+		 * second loop. This is a simplistic attempt to get a better edge-to-edge
+		 * match between two loops. */
 		if (cl1) {
-			int previ, nexti;
 			float min = 1e32;
 
-			/* BMESH_TODO: Would be nice to do a more thorough analysis of all
-			 * the vertices in both loops to find a more accurate match for the
-			 * starting point and winding direction of the bridge generation. */
-			
-			for (i = 0; i < BLI_array_count(vv1); i++) {
-				if (len_v3v3(vv1[i]->co, vv2[0]->co) < min) {
-					min = len_v3v3(vv1[i]->co, vv2[0]->co);
+			for (i = 0; i < lenv1; i++) {
+				float len;
+
+				/* compute summed length between vertices in forward direction */
+				len = 0.0f;
+				for (j = 0; j < lenv2; j++)
+					len += len_v3v3(vv1[clamp_index(i+j, lenv1)]->co, vv2[j]->co);
+
+				if (len < min) {
+					min = len;
 					starti = i;
 				}
-			}
 
-			/* Reverse iteration order for the first loop if the distance of
-			 * the (starti - 1) vert from vv1 is a better match for vv2[1] than
-			 * the (starti + 1) vert.
-			 *
-			 * This is not always going to be right, but it will work better in
-			 * the average case.
-			 */
-			previ = clamp_index(starti - 1, lenv1);
-			nexti = clamp_index(starti + 1, lenv1);
+				/* compute summed length between vertices in backward direction */
+				len = 0.0f;
+				for (j = 0; j < lenv2; j++)
+					len += len_v3v3(vv1[clamp_index(i-j, lenv1)]->co, vv2[j]->co);
 
-			/* avoid sqrt for comparison */
-			if (len_squared_v3v3(vv1[nexti]->co, vv2[1]->co) > len_squared_v3v3(vv1[previ]->co, vv2[1]->co)) {
-				/* reverse direction for reading vv1 (1 is forward, -1 is backward) */
-				dir1 = -1;
+				if (len < min) {
+					min = len;
+					starti = i;
+					dir1 = -1;
+				}
 			}
 		}
 
