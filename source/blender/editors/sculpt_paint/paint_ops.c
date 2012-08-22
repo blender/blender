@@ -624,7 +624,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	
 	/* Sculpt mode */
 	keymap = WM_keymap_find(keyconf, "Sculpt", 0, 0);
-	keymap->poll = sculpt_poll;
+	keymap->poll = sculpt_mode_poll;
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0,        0)->ptr, "mode", BRUSH_STROKE_NORMAL);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_CTRL,  0)->ptr, "mode", BRUSH_STROKE_INVERT);
