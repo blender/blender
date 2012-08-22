@@ -1469,6 +1469,18 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					quat_to_mat4(obmat, q);
 					obmat[3][3] = 1.0f;
 					
+					/* add scaling if requested */
+					if ((part->draw & PART_DRAW_NO_SCALE_OB) == 0)
+						mult_m4_m4m4(obmat, obmat, size_mat);
+				}
+				else if (part->draw & PART_DRAW_NO_SCALE_OB) {
+					/* remove scaling */
+					float size_mat[4][4], original_size[3];
+
+					mat4_to_size(original_size, obmat);
+					size_to_mat4(size_mat, original_size);
+					invert_m4(size_mat);
+
 					mult_m4_m4m4(obmat, obmat, size_mat);
 				}
 				
