@@ -446,9 +446,10 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	/* for now don't duplicate metadata */
 	tbuf.metadata = NULL;
 
-	*ibuf2 = tbuf;
+	tbuf.display_buffer_flags = NULL;
+	tbuf.colormanage_cache = NULL;
 
-	IMB_colormanage_cache_free(ibuf2);
+	*ibuf2 = tbuf;
 
 	return(ibuf2);
 }
