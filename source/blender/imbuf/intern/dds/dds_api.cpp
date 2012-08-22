@@ -32,13 +32,16 @@
 #include <stdio.h> // printf
 #include <fstream>
 
+#ifdef WIN32
+#include "utfconv.h"
+#endif
+
 extern "C" {
 
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
-
 
 int imb_save_dds(struct ImBuf * ibuf, const char *name, int flags)
 {
@@ -49,7 +52,15 @@ int imb_save_dds(struct ImBuf * ibuf, const char *name, int flags)
 	if (ibuf->rect == 0) return (0);
 
 	/* open file for writing */
-	std::ofstream fildes(name);
+	std::ofstream fildes;
+
+#ifdef WIN32
+	wchar_t *wname = alloc_utf16_from_8(name, 0);
+	fildes.open(wname);
+	free(wname);
+#else
+	fildes.open(name);
+#endif
 
 	/* write header */
 	fildes << "DDS ";
