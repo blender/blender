@@ -55,6 +55,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_select_linked_to);
 	WM_operatortype_append(NODE_OT_select_linked_from);
 	WM_operatortype_append(NODE_OT_select_border);
+	WM_operatortype_append(NODE_OT_select_lasso);
 	WM_operatortype_append(NODE_OT_select_same_type);
 	WM_operatortype_append(NODE_OT_select_same_type_next);
 	WM_operatortype_append(NODE_OT_select_same_type_prev);
@@ -217,6 +218,11 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_border", EVT_TWEAK_S, KM_ANY, 0, 0);
 	RNA_boolean_set(kmi->ptr, "tweak", TRUE);
 	
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_SHIFT | KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
+
 	/* each of these falls through if not handled... */
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);

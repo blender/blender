@@ -849,6 +849,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
             sub = col.row()
             sub.prop(part, "use_global_dupli")
             sub.prop(part, "use_rotation_dupli")
+            sub.prop(part, "use_scale_dupli")
         elif part.render_type == 'GROUP':
             col.prop(part, "dupli_group")
             split = layout.split()
@@ -865,6 +866,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
             sub.active = (part.use_whole_group is False)
             sub.prop(part, "use_global_dupli")
             sub.prop(part, "use_rotation_dupli")
+            sub.prop(part, "use_scale_dupli")
 
             if part.use_group_count and not part.use_whole_group:
                 row = layout.row()

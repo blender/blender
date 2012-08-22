@@ -59,7 +59,9 @@
 
 #include "tiffio.h"
 
-
+#ifdef WIN32
+#include "utfconv.h"
+#endif
 
 /***********************
  * Local declarations. *
@@ -712,7 +714,13 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	}
 	else {
 		/* create image as a file */
+#ifdef WIN32
+		wchar_t *wname = alloc_utf16_from_8(name, 0);
+		image = TIFFOpenW(wname, "w");
+		free(wname);
+#else
 		image = TIFFOpen(name, "w");
+#endif
 	}
 	if (image == NULL) {
 		fprintf(stderr,

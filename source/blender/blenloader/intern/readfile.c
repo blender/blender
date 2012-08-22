@@ -7925,10 +7925,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 14)) {
+		ParticleSettings *part;
 		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
 
 		if (ntreetype && ntreetype->foreach_nodetree)
 			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_keying_despill_balance);
+
+		/* keep compatibility for dupliobject particle size */
+		for (part=main->particle.first; part; part=part->id.next)
+			if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR))
+				if ((part->draw & PART_DRAW_ROTATE_OB) == 0)
+					part->draw |= PART_DRAW_NO_SCALE_OB;
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 17)) {

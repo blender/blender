@@ -209,7 +209,7 @@ EnumPropertyItem snap_node_element_items[] = {
 
 #define IMAGE_TYPE_ITEMS_IMAGE_ONLY                                           \
 	R_IMF_ENUM_BMP                                                            \
-	R_IMF_ENUM_DDS                                                            \
+	/* DDS save not supported yet R_IMF_ENUM_DDS */                           \
 	R_IMF_ENUM_IRIS                                                           \
 	R_IMF_ENUM_PNG                                                            \
 	R_IMF_ENUM_JPEG                                                           \

@@ -35,6 +35,7 @@
 #include "BKE_node.h"
 
 #include "BLI_rect.h"
+#include "BLI_lasso.h"
 #include "BLI_utildefines.h"
 
 #include "ED_node.h"  /* own include */
@@ -48,7 +49,9 @@
 #include "WM_types.h"
 
 #include "UI_view2d.h"
- 
+
+#include "MEM_guardedalloc.h"
+
 #include "node_intern.h"  /* own include */
 
 /* ****** helpers ****** */
@@ -532,6 +535,92 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);
 	RNA_def_boolean(ot->srna, "tweak", 0, "Tweak", "Only activate when mouse is not over a node - useful for tweak gesture");
+}
+
+/* ****** Lasso Select ****** */
+
+static int do_lasso_select_node(bContext *C, int mcords[][2], short moves, short select)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNode *node;
+
+	ARegion *ar = CTX_wm_region(C);
+
+	rcti rect;
+	int change = FALSE;
+
+	/* get rectangle from operator */
+	BLI_lasso_boundbox(&rect, mcords, moves);
+
+	/* do actual selection */
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
+		int screen_co[2];
+		const float cent[2] = {BLI_RCT_CENTER_X(&node->totr),
+		                       BLI_RCT_CENTER_Y(&node->totr)};
+
+		/* marker in screen coords */
+		UI_view2d_view_to_region(&ar->v2d,
+		                         cent[0], cent[1],
+		                         &screen_co[0], &screen_co[1]);
+
+		if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
+			BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], INT_MAX))
+		{
+			if (select)
+				node_select(node);
+			else
+				node_deselect(node);
+
+			change = TRUE;
+		}
+	}
+
+	if (change) {
+		WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
+	}
+
+	return change;
+}
+
+static int node_lasso_select_exec(bContext *C, wmOperator *op)
+{
+	int mcords_tot;
+	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+
+	if (mcords) {
+		short select;
+
+		select = !RNA_boolean_get(op->ptr, "deselect");
+		do_lasso_select_node(C, mcords, mcords_tot, select);
+
+		MEM_freeN(mcords);
+
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+void NODE_OT_select_lasso(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Lasso Select";
+	ot->description = "Select nodes using lasso selection";
+	ot->idname = "NODE_OT_select_lasso";
+
+	/* api callbacks */
+	ot->invoke = WM_gesture_lasso_invoke;
+	ot->modal = WM_gesture_lasso_modal;
+	ot->exec = node_lasso_select_exec;
+	ot->poll = ED_operator_node_active;
+	ot->cancel = WM_gesture_lasso_cancel;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
+	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 /* ****** Select/Deselect All ****** */
