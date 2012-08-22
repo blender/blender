@@ -101,7 +101,7 @@ void BKE_material_free(Material *ma)
 	
 	/* is no lib link block, but material extension */
 	if (ma->nodetree) {
-		ntreeFreeTree(ma->nodetree);
+		ntreeFreeTree_ex(ma->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
 		MEM_freeN(ma->nodetree);
 	}
 
@@ -235,7 +235,7 @@ Material *BKE_material_copy(Material *ma)
 	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
 
 	if (ma->nodetree) {
-		man->nodetree = ntreeCopyTree(ma->nodetree); /* 0 == full new tree */
+		man->nodetree = ntreeCopyTree_ex(ma->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
 	}
 
 	man->gpumaterial.first = man->gpumaterial.last = NULL;
@@ -1511,7 +1511,7 @@ void free_matcopybuf(void)
 	matcopybuf.ramp_spec = NULL;
 
 	if (matcopybuf.nodetree) {
-		ntreeFreeTree(matcopybuf.nodetree);
+		ntreeFreeTree_ex(matcopybuf.nodetree, FALSE); /* TODO: do_id_user arg needs checking */
 		MEM_freeN(matcopybuf.nodetree);
 		matcopybuf.nodetree = NULL;
 	}
@@ -1537,7 +1537,7 @@ void copy_matcopybuf(Material *ma)
 			matcopybuf.mtex[a] = MEM_dupallocN(mtex);
 		}
 	}
-	matcopybuf.nodetree = ntreeCopyTree(ma->nodetree);
+	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
 	matcopybuf.preview = NULL;
 	matcopybuf.gpumaterial.first = matcopybuf.gpumaterial.last = NULL;
 	matcopied = 1;
@@ -1561,7 +1561,7 @@ void paste_matcopybuf(Material *ma)
 	}
 
 	if (ma->nodetree) {
-		ntreeFreeTree(ma->nodetree);
+		ntreeFreeTree_ex(ma->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
 		MEM_freeN(ma->nodetree);
 	}
 
@@ -1582,7 +1582,7 @@ void paste_matcopybuf(Material *ma)
 		}
 	}
 
-	ma->nodetree = ntreeCopyTree(matcopybuf.nodetree);
+	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, FALSE); /* TODO: do_id_user arg needs checking */
 }
 
 

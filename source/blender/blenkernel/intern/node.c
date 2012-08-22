@@ -671,7 +671,7 @@ bNodeTree *ntreeAddTree(const char *name, int type, int nodetype)
  * copying for internal use (threads for eg), where you wont want it to modify the
  * scene data.
  */
-static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_make_extern)
+static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_id_user, const short do_make_extern)
 {
 	bNodeTree *newtree;
 	bNode *node /*, *nnode */ /* UNUSED */, *last;
@@ -701,6 +701,11 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_make_e
 	
 	last = ntree->nodes.last;
 	for (node = ntree->nodes.first; node; node = node->next) {
+
+		/* ntreeUserDecrefID inline */
+		if (do_id_user) {
+			id_us_min(node->id);
+		}
 
 		if (do_make_extern) {
 			id_lib_extern(node->id);
@@ -751,20 +756,54 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_make_e
 	return newtree;
 }
 
+bNodeTree *ntreeCopyTree_ex(bNodeTree *ntree, const short do_id_user)
+{
+	return ntreeCopyTree_internal(ntree, do_id_user, TRUE);
+}
 bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 {
-	return ntreeCopyTree_internal(ntree, TRUE);
+	return ntreeCopyTree_ex(ntree, TRUE);
 }
 
 /* use when duplicating scenes */
-void ntreeSwitchID(bNodeTree *ntree, ID *id_from, ID *id_to)
+void ntreeSwitchID_ex(bNodeTree *ntree, ID *id_from, ID *id_to, const short do_id_user)
 {
 	bNode *node;
+
+	if (id_from == id_to) {
+		/* should never happen but may as well skip if it does */
+		return;
+	}
+
 	/* for scene duplication only */
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id == id_from) {
+			if (do_id_user) {
+				id_us_min(id_from);
+				id_us_plus(id_to);
+			}
+
 			node->id = id_to;
 		}
+	}
+}
+void ntreeSwitchID(bNodeTree *ntree, ID *id_from, ID *id_to)
+{
+	ntreeSwitchID_ex(ntree, id_from, id_to, TRUE);
+}
+
+void ntreeUserIncrefID(bNodeTree *ntree)
+{
+	bNode *node;
+	for (node = ntree->nodes.first; node; node = node->next) {
+		id_us_plus(node->id);
+	}
+}
+void ntreeUserDecrefID(bNodeTree *ntree)
+{
+	bNode *node;
+	for (node = ntree->nodes.first; node; node = node->next) {
+		id_us_min(node->id);
 	}
 }
 
@@ -913,6 +952,7 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 	}
 }
 
+/** \note caller needs to manage node->id user */
 void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock, *nextsock;
@@ -956,7 +996,7 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 }
 
 /* do not free ntree itself here, BKE_libblock_free calls this function too */
-void ntreeFreeTree(bNodeTree *ntree)
+void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 {
 	bNode *node, *next;
 	bNodeSocket *sock;
@@ -990,6 +1030,12 @@ void ntreeFreeTree(bNodeTree *ntree)
 	
 	for (node = ntree->nodes.first; node; node = next) {
 		next = node->next;
+
+		/* ntreeUserIncrefID inline */
+		if (do_id_user) {
+			id_us_min(node->id);
+		}
+
 		nodeFreeNode(ntree, node);
 	}
 	
@@ -999,6 +1045,11 @@ void ntreeFreeTree(bNodeTree *ntree)
 	for (sock = ntree->outputs.first; sock; sock = sock->next)
 		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&ntree->outputs);
+}
+/* same as ntreeFreeTree_ex but always manage users */
+void ntreeFreeTree(bNodeTree *ntree)
+{
+	ntreeFreeTree_ex(ntree, TRUE);
 }
 
 void ntreeFreeCache(bNodeTree *ntree)
@@ -1137,7 +1188,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	}
 	else if (cd.local && cd.lib) {
 		/* this is the mixed case, we copy the tree and assign it to local users */
-		bNodeTree *newtree = ntreeCopyTree(ntree);
+		bNodeTree *newtree = ntreeCopyTree_ex(ntree, FALSE); /* TODO: do_id_user arg needs checking */
 		
 		newtree->id.us = 0;
 		
@@ -1188,7 +1239,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	}
 
 	/* node copy func */
-	ltree = ntreeCopyTree_internal(ntree, FALSE);
+	ltree = ntreeCopyTree_internal(ntree, FALSE, FALSE);
 
 	if (adt) {
 		AnimData *ladt = BKE_animdata_from_id(&ltree->id);
@@ -1248,7 +1299,7 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 	if (ntreetype->local_merge)
 		ntreetype->local_merge(localtree, ntree);
 
-	ntreeFreeTree(localtree);
+	ntreeFreeTree_ex(localtree, FALSE); /* TODO: do_id_user arg needs checking */
 	MEM_freeN(localtree);
 }
 

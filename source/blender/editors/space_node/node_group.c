@@ -424,7 +424,7 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 	 *	- all of wgroup's nodes are transferred across to their new home
 	 *	- ngroup (i.e. the source NodeTree) is left unscathed
 	 */
-	wgroup = ntreeCopyTree(ngroup);
+	wgroup = ntreeCopyTree_ex(ngroup, FALSE); /* TODO: do_id_user arg needs checking */
 
 	/* add the nodes into the ntree */
 	for (node = wgroup->nodes.first; node; node = nextn) {

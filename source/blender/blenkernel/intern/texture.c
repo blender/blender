@@ -430,7 +430,7 @@ void BKE_texture_free(Tex *tex)
 	tex->id.icon_id = 0;
 	
 	if (tex->nodetree) {
-		ntreeFreeTree(tex->nodetree);
+		ntreeFreeTree_ex(tex->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
 		MEM_freeN(tex->nodetree);
 	}
 }
@@ -697,7 +697,7 @@ Tex *BKE_texture_copy(Tex *tex)
 		if (tex->nodetree->execdata) {
 			ntreeTexEndExecTree(tex->nodetree->execdata, 1);
 		}
-		texn->nodetree = ntreeCopyTree(tex->nodetree);
+		texn->nodetree = ntreeCopyTree_ex(tex->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
 	}
 	
 	return texn;

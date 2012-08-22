@@ -348,7 +348,7 @@ int id_copy(ID *id, ID **newid, int test)
 			if (!test) *newid = (ID *)BKE_action_copy((bAction *)id);
 			return 1;
 		case ID_NT:
-			if (!test) *newid = (ID *)ntreeCopyTree((bNodeTree *)id);
+			if (!test) *newid = (ID *)ntreeCopyTree_ex((bNodeTree *)id, FALSE); /* TODO: do_id_user arg needs checking */
 			return 1;
 		case ID_BR:
 			if (!test) *newid = (ID *)BKE_brush_copy((Brush *)id);
@@ -881,7 +881,7 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 			BKE_action_free((bAction *)id);
 			break;
 		case ID_NT:
-			ntreeFreeTree((bNodeTree *)id);
+			ntreeFreeTree_ex((bNodeTree *)id, FALSE); /* TODO: do_id_user arg needs checking */
 			break;
 		case ID_BR:
 			BKE_brush_free((Brush *)id);

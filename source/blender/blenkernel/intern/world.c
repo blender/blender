@@ -67,7 +67,7 @@ void BKE_world_free(World *wrld)
 
 	/* is no lib link block, but world extension */
 	if (wrld->nodetree) {
-		ntreeFreeTree(wrld->nodetree);
+		ntreeFreeTree_ex(wrld->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
 		MEM_freeN(wrld->nodetree);
 	}
 
@@ -129,7 +129,7 @@ World *BKE_world_copy(World *wrld)
 	}
 
 	if (wrld->nodetree) {
-		wrldn->nodetree = ntreeCopyTree(wrld->nodetree);
+		wrldn->nodetree = ntreeCopyTree_ex(wrld->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
 	}
 	
 	if (wrld->preview)
