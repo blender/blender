@@ -2139,6 +2139,7 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_vecblur(ttype);
 	register_node_type_cmp_dilateerode(ttype);
 	register_node_type_cmp_inpaint(ttype);
+	register_node_type_cmp_despeckle(ttype);
 	register_node_type_cmp_defocus(ttype);
 	
 	register_node_type_cmp_valtorgb(ttype);

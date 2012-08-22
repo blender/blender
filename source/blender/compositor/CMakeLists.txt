@@ -284,6 +284,8 @@ set(SRC
 
 	nodes/COM_FilterNode.cpp
 	nodes/COM_FilterNode.h
+	nodes/COM_DespeckleNode.cpp
+	nodes/COM_DespeckleNode.h
 	nodes/COM_DilateErodeNode.cpp
 	nodes/COM_DilateErodeNode.h
 	nodes/COM_InpaintNode.cpp
@@ -592,6 +594,8 @@ set(SRC
 	operations/COM_ConvolutionFilterOperation.cpp
 	operations/COM_ConvolutionEdgeFilterOperation.h
 	operations/COM_ConvolutionEdgeFilterOperation.cpp
+	operations/COM_DespeckleOperation.cpp
+	operations/COM_DespeckleOperation.h
 	operations/COM_DilateErodeOperation.cpp
 	operations/COM_DilateErodeOperation.h
 	operations/COM_InpaintOperation.cpp

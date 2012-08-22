@@ -122,6 +122,7 @@ DefNode( CompositorNode, CMP_NODE_ZCOMBINE,       def_cmp_zcombine,       "ZCOMB
 DefNode( CompositorNode, CMP_NODE_COMBRGBA,       0,                      "COMBRGBA",       CombRGBA,         "Combine RGBA",      ""              )
 DefNode( CompositorNode, CMP_NODE_DILATEERODE,    def_cmp_dilate_erode,   "DILATEERODE",    DilateErode,      "Dilate/Erode",      ""              )
 DefNode( CompositorNode, CMP_NODE_INPAINT,        def_cmp_inpaint,        "INPAINT",        Inpaint,          "Inpaint",           ""              )
+DefNode( CompositorNode, CMP_NODE_DESPECKLE,      def_cmp_despeckle,      "DESPECKLE",      Despeckle,        "Despeckle",         ""              )
 DefNode( CompositorNode, CMP_NODE_ROTATE,         def_cmp_rotate,         "ROTATE",         Rotate,           "Rotate",            ""              )
 DefNode( CompositorNode, CMP_NODE_SCALE,          def_cmp_scale,          "SCALE",          Scale,            "Scale",             ""              )
 DefNode( CompositorNode, CMP_NODE_SEPYCCA,        def_cmp_ycc,            "SEPYCCA",        SepYCCA,          "Separate YCCA",     ""              )
