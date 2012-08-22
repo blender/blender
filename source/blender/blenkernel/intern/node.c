@@ -1188,7 +1188,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	}
 	else if (cd.local && cd.lib) {
 		/* this is the mixed case, we copy the tree and assign it to local users */
-		bNodeTree *newtree = ntreeCopyTree_ex(ntree, FALSE); /* TODO: do_id_user arg needs checking */
+		bNodeTree *newtree = ntreeCopyTree(ntree);
 		
 		newtree->id.us = 0;
 		
@@ -1299,7 +1299,7 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 	if (ntreetype->local_merge)
 		ntreetype->local_merge(localtree, ntree);
 
-	ntreeFreeTree_ex(localtree, FALSE); /* TODO: do_id_user arg needs checking */
+	ntreeFreeTree_ex(localtree, FALSE);
 	MEM_freeN(localtree);
 }
 

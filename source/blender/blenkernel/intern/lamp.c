@@ -120,7 +120,7 @@ Lamp *BKE_lamp_copy(Lamp *la)
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 
 	if (la->nodetree)
-		lan->nodetree = ntreeCopyTree_ex(la->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
+		lan->nodetree = ntreeCopyTree(la->nodetree);
 	
 	if (la->preview)
 		lan->preview = BKE_previewimg_copy(la->preview);
@@ -223,7 +223,7 @@ void BKE_lamp_free(Lamp *la)
 
 	/* is no lib link block, but lamp extension */
 	if (la->nodetree) {
-		ntreeFreeTree_ex(la->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
+		ntreeFreeTree(la->nodetree);
 		MEM_freeN(la->nodetree);
 	}
 	
