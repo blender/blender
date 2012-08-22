@@ -35,7 +35,7 @@
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_color_types.h"        /* for Histogram and color management */
+#include "DNA_color_types.h"        /* for Histogram */
 #include "DNA_vec_types.h"
 #include "DNA_outliner_types.h"     /* for TreeStoreElem */
 #include "DNA_image_types.h"        /* ImageUser */
@@ -473,9 +473,6 @@ typedef struct SpaceSeq {
 	int overlay_type;
 
 	struct bGPdata *gpd;        /* grease-pencil data */
-
-	/* **** color management **** */
-	ColorManagedViewSettings view_settings;
 } SpaceSeq;
 
 
@@ -711,9 +708,6 @@ typedef struct SpaceImage {
 	char around;
 
 	MaskSpaceInfo mask_info;
-
-	/* **** color management **** */
-	ColorManagedViewSettings view_settings;
 } SpaceImage;
 
 
@@ -903,9 +897,6 @@ typedef struct SpaceNode {
 	ListBase linkdrag;  /* temporary data for modal linking operator */
 	
 	struct bGPdata *gpd;        /* grease-pencil data */
-
-	/* **** color management **** */
-	ColorManagedViewSettings view_settings;
 } SpaceNode;
 
 /* snode->flag */
@@ -1049,9 +1040,6 @@ typedef struct SpaceClip {
 	int around, pad4;             /* pivot point for transforms */
 
 	MaskSpaceInfo mask_info;
-
-	/* **** color management **** */
-	ColorManagedViewSettings view_settings;
 } SpaceClip;
 
 /* SpaceClip->flag */

@@ -8,14 +8,10 @@ description: RRT version ut33
 
 roles:
   color_picking: raw
-  color_timing: adx10
-  compositing_log: adx10
-  data: raw
-  default: raw
-  matte_paint: raw
   reference: aces
   scene_linear: rec709
   texture_paint: raw
+  sequencer: vd16
 
 displays:
   p3dci:
@@ -23,19 +19,19 @@ displays:
     - !<View> {name: Log, colorspace: adx10}
     - !<View> {name: RRT, colorspace: rrt_p3dci}
   sRGB:
+    - !<View> {name: Gamma2.2, colorspace: sRGB}
     - !<View> {name: Raw, colorspace: raw}
-    - !<View> {name: Log, colorspace: adx10}
     - !<View> {name: RRT, colorspace: rrt_srgb}
-    - !<View> {name: SPI Film, colorspace: srgb8}
-    - !<View> {name: SPI Log, colorspace: lg10}
-    - !<View> {name: Nuke rec709, colorspace: nuke_rec709}
+    - !<View> {name: Film, colorspace: srgb8}
+    - !<View> {name: Log, colorspace: lg10}
+    - !<View> {name: rec709, colorspace: nuke_rec709}
   xyz:
     - !<View> {name: Raw, colorspace: raw}
     - !<View> {name: Log, colorspace: adx10}
     - !<View> {name: RRT, colorspace: rrt_xyz}
 
 active_displays: [sRGB, p3dci, xyz]
-active_views: [RRT, Log, SPI Film, SPI Log, Raw]
+active_views: [Gamma2.2, RRT, Log, Film, Log, Raw, rec709]
 
 colorspaces:
   - !<ColorSpace>
@@ -296,3 +292,48 @@ colorspaces:
       children:
         - !<FileTransform> {src: rec709.spi1d, interpolation: linear}
         - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
+
+  - !<ColorSpace>
+    name: sRGB
+    family: ""
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      Standard RGB Display Space
+    isdata: false
+    allocation: uniform
+    allocationvars: [-0.125, 1.125]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
+
+  - !<ColorSpace>
+    name: vd16
+    family: vd
+    equalitygroup:
+    bitdepth: 16ui
+    description: |
+      vd16 : The simple video conversion from a gamma 2.2 srgb space
+    isdata: false
+    allocation: uniform
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: vd16.spi1d, interpolation: nearest}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear}
+
+  - !<ColorSpace>
+    name: Gamma2.2
+    family: ""
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      Emulates a idealized Gamma 2.2 display device.
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        #- !<FileTransform> {src: rec709.spi1d, interpolation: linear}
+        - !<ExponentTransform> {value: [2.2, 2.2, 2.2, 1]}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear}

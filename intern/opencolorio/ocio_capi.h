@@ -42,6 +42,7 @@ extern "C" {
 	#define OCIO_ROLE_SCENE_LINEAR	"scene_linear"
 	#define OCIO_ROLE_COLOR_PICKING	"color_picking"
 	#define OCIO_ROLE_TEXTURE_PAINT	"texture_paint"
+	#define OCIO_ROLE_SEQUENCER	"sequencer"
 
 	OCIO_DECLARE_HANDLE(ConstConfigRcPtr);
 	OCIO_DECLARE_HANDLE(ConstColorSpaceRcPtr);

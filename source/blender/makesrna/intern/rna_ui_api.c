@@ -415,6 +415,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "User interface for setting image format options");
 	parm = RNA_def_pointer(func, "image_settings", "ImageFormatSettings", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
+	RNA_def_boolean(func, "color_management", 0, "", "Show color management settings");
 
 	func = RNA_def_function(srna, "template_movieclip", "uiTemplateMovieClip");
 	RNA_def_function_ui_description(func, "Item(s). User interface for selecting movie clips and their source paths");
@@ -507,7 +508,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. A widget to control color managed view settings settings.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
-	RNA_def_boolean(func, "show_global_settings", 0, "", "Show widgets to control global color management settings");
+	/* RNA_def_boolean(func, "show_global_settings", 0, "", "Show widgets to control global color management settings"); */
 }
 
 #endif

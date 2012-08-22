@@ -56,6 +56,7 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
+#include "BKE_context.h"
 #include "BKE_utildefines.h"
 #include "BKE_main.h"
 
@@ -69,14 +70,16 @@
 
 /* define this to allow byte buffers be color managed */
 #undef COLORMANAGE_BYTE_BUFFER
+#undef COLORMANAGE_USE_ACES_ODT
 
-#define ACES_ODT_TONECORVE "ACES ODT Tonecurve"
+#define ACES_ODT_TONECORVE "ACES"
 
 /* ** list of all supported color spaces, displays and views */
 #ifdef WITH_OCIO
 static char global_role_scene_linear[64];
 static char global_role_color_picking[64];
 static char global_role_texture_painting[64];
+static char global_role_sequencer[64];
 #endif
 
 static ListBase global_colorspaces = {NULL};
@@ -445,7 +448,10 @@ static void colormanage_load_config(ConstConfigRcPtr *config)
 	                                      OCIO_ROLE_COLOR_PICKING, "color picking");
 
 	colormanage_role_color_space_name_get(config, global_role_texture_painting, sizeof(global_role_texture_painting),
-	                                      OCIO_ROLE_TEXTURE_PAINT, "texture_painting");
+	                                      OCIO_ROLE_TEXTURE_PAINT, "texture painting");
+
+	colormanage_role_color_space_name_get(config, global_role_sequencer, sizeof(global_role_sequencer),
+	                                      OCIO_ROLE_SEQUENCER, "sequencer");
 
 	/* load colorspaces */
 	tot_colorspace = OCIO_configGetNumColorSpaces(config);
@@ -571,8 +577,11 @@ void IMB_colormanagement_init(void)
 
 	OCIO_configRelease(config);
 
+#ifdef COLORMANAGE_USE_ACES_ODT
 	/* special views, which does not depend on OCIO  */
 	colormanage_view_add(ACES_ODT_TONECORVE);
+#endif
+
 #endif
 
 	BLI_init_srgb_conversion();
@@ -602,8 +611,6 @@ typedef struct DisplayBufferThread {
 	int channels;
 	int dither;
 	int predivide;
-
-	int buffer_in_srgb;
 } DisplayBufferThread;
 
 typedef struct DisplayBufferInitData {
@@ -647,8 +654,6 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	handle->channels = channels;
 	handle->dither = dither;
 	handle->predivide = predivide;
-
-	handle->buffer_in_srgb = ibuf->colormanagement_flags & IMB_COLORMANAGEMENT_SRGB_SOURCE;
 }
 
 static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned char *byte_buffer,
@@ -693,17 +698,6 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 		                           IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB,
 		                           predivide, width, height, width, width);
 	}
-	else if (handle->buffer_in_srgb) {
-		/* sequencer is working with float buffers which are in sRGB space,
-		 * so we need to ensure float buffer is in linear space before
-		 * applying all the view transformations
-		 */
-		float *buffer = handle->buffer;
-
-		IMB_buffer_float_from_float(linear_buffer, buffer, channels,
-		                            IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB,
-		                            predivide, width, height, width, width);
-	}
 	else {
 		/* some processors would want to modify float original buffer
 		 * before converting it into display byte buffer, so we need to
@@ -720,6 +714,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 	return linear_buffer;
 }
 
+#ifdef COLORMANAGE_USE_ACES_ODT
 static void *do_display_buffer_apply_tonemap_thread(void *handle_v)
 {
 	DisplayBufferThread *handle = (DisplayBufferThread *) handle_v;
@@ -754,6 +749,7 @@ static void display_buffer_apply_tonemap(ImBuf *ibuf, unsigned char *display_buf
 	                              display_buffer, tonecurve_func,
 	                              do_display_buffer_apply_tonemap_thread);
 }
+#endif
 
 static void *do_display_buffer_apply_ocio_thread(void *handle_v)
 {
@@ -861,6 +857,7 @@ static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *displ
                                                const ColorManagedViewSettings *view_settings,
                                                const ColorManagedDisplaySettings *display_settings)
 {
+#ifdef COLORMANAGE_USE_ACES_ODT
 	const char *view_transform = view_settings->view_transform;
 
 	if (!strcmp(view_transform, ACES_ODT_TONECORVE)) {
@@ -870,10 +867,11 @@ static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *displ
 		 */
 		display_buffer_apply_tonemap(ibuf, display_buffer, IMB_ratio_preserving_odt_tonecurve);
 	}
-	else {
+	else
+#endif
+	{
 		display_buffer_apply_ocio(ibuf, display_buffer, view_settings, display_settings);
 	}
-
 }
 
 /*********************** Threaded color space transform routines *************************/
@@ -1001,6 +999,72 @@ void IMB_colormanagement_colorspace_transform(float *buffer, int width, int heig
 #endif
 }
 
+#ifdef WITH_OCIO
+static char *role_colorspace_name_get(int role)
+{
+	switch (role) {
+		case COLOR_ROLE_SCENE_LINEAR:
+			return global_role_scene_linear;
+			break;
+		case COLOR_ROLE_COLOR_PICKING:
+			return global_role_color_picking;
+			break;
+		case COLOR_ROLE_TEXTURE_PAINTING:
+			return global_role_texture_painting;
+			break;
+		case COLOR_ROLE_SEQUENCER:
+			return global_role_sequencer;
+			break;
+		default:
+			printf("Unknown role was passed to %s\n", __func__);
+			BLI_assert(0);
+	}
+
+	return NULL;
+}
+#endif
+
+void IMB_colormanagement_imbuf_to_role(ImBuf *ibuf, int role)
+{
+#ifdef WITH_OCIO
+	if (ibuf->rect_float) {
+		const char *from_colorspace = global_role_scene_linear;
+		const char *to_colorspace = role_colorspace_name_get(role);
+
+		if (ibuf->rect)
+			imb_freerectImBuf(ibuf);
+
+		IMB_colormanagement_colorspace_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
+		                                         from_colorspace, to_colorspace);
+	}
+#else
+	(void) ibuf;
+	(void) role;
+#endif
+}
+
+void IMB_colormanagement_imbuf_from_role(ImBuf *ibuf, int role)
+{
+#ifdef WITH_OCIO
+	if (ibuf->rect_float) {
+		const char *from_colorspace = role_colorspace_name_get(role);
+		const char *to_colorspace = global_role_scene_linear;
+
+		if (ibuf->rect)
+			imb_freerectImBuf(ibuf);
+
+		IMB_colormanagement_colorspace_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
+		                                         from_colorspace, to_colorspace);
+
+		/* buffer in now in scene linear space */
+		ibuf->profile = IB_PROFILE_LINEAR_RGB;
+	}
+#else
+	(void) ibuf;
+	(void) role;
+#endif
+}
+
 void IMB_colormanagement_imbuf_make_scene_linear(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
 {
 #ifdef WITH_OCIO
@@ -1015,6 +1079,64 @@ void IMB_colormanagement_imbuf_make_scene_linear(ImBuf *ibuf, ColorManagedColors
 	(void) ibuf;
 	(void) colorspace_settings;
 #endif
+}
+
+void IMB_colormanagement_imbuf_to_sequencer_space(ImBuf *ibuf, int make_float)
+{
+	(void) make_float;
+
+	if (!ibuf->rect_float) {
+		if (make_float) {
+			/* when converting byte buffer to float in sequencer we need to make float
+			 * buffer be in sequencer's working space, which is currently only doable
+			 * from linear space.
+			 *
+			 */
+
+			/*
+			 * OCIO_TODO: would be nice to support direct single transform from byte to sequencer's
+			 */
+
+			ibuf->profile = IB_PROFILE_SRGB;
+			IMB_float_from_rect(ibuf);
+		}
+		else {
+			/* if there's only byte buffer in image it's already in compositor's working space,
+			 * nothing to do here
+			 */
+
+			return;
+		}
+	}
+
+#ifdef WITH_OCIO
+	if (global_role_sequencer[0]) {
+		IMB_colormanagement_imbuf_to_role(ibuf, COLOR_ROLE_SEQUENCER);
+	}
+	else
+#endif
+	{
+		/* if no sequencer's working space defined fallback to legacy sRGB space */
+		IMB_convert_profile(ibuf, IB_PROFILE_SRGB);
+	}
+}
+
+void IMB_colormanagement_imbuf_from_sequencer_space(ImBuf *ibuf)
+{
+	if (!ibuf->rect_float)
+		return;
+
+#ifdef WITH_OCIO
+	if (global_role_sequencer[0]) {
+		IMB_colormanagement_imbuf_from_role(ibuf, COLOR_ROLE_SEQUENCER);
+	}
+	else
+#endif
+	{
+		/* if no sequencer's working space defined fallback to legacy sRGB space */
+
+		IMB_convert_profile(ibuf, IB_PROFILE_LINEAR_RGB);
+	}
 }
 
 #ifdef WITH_OCIO
@@ -1074,8 +1196,6 @@ void IMB_colormanage_cache_free(ImBuf *ibuf)
 unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
                                           const ColorManagedDisplaySettings *display_settings, void **cache_handle)
 {
-	const char *view_transform = view_settings->view_transform;
-
 	*cache_handle = NULL;
 
 #ifdef WITH_OCIO
@@ -1091,10 +1211,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 	}
 #endif
 
-	if (!strcmp(view_transform, "NONE") ||
-	    global_tot_display == 0 ||
-	    global_tot_view == 0)
-	{
+	if (global_tot_display == 0 || global_tot_view == 0) {
 		/* currently only view-transformation is allowed, input and display
 		 * spaces are hard-coded, so if there's no view transform applying
 		 * it's safe to suppose standard byte buffer is used for display
@@ -1143,7 +1260,6 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 	 * profiles without applying any view / display transformation */
 
 	(void) view_settings;
-	(void) view_transform;
 	(void) display_settings;
 
 	imbuf_verify_float(ibuf);
@@ -1152,21 +1268,35 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 #endif
 }
 
+static void display_transform_settings_get(const bContext *C, ColorManagedViewSettings **view_settings_r, ColorManagedDisplaySettings **display_settings_r)
+{
+	Scene *scene = CTX_data_scene(C);
+
+	*view_settings_r = &scene->view_settings;
+	*display_settings_r = &scene->display_settings;
+}
+
+unsigned char *IMB_display_buffer_acquire_ctx(const bContext *C, ImBuf *ibuf, void **cache_handle)
+{
+	ColorManagedViewSettings *view_settings;
+	ColorManagedDisplaySettings *display_settings;
+
+	display_transform_settings_get(C, &view_settings, &display_settings);
+
+	return IMB_display_buffer_acquire(ibuf, view_settings, display_settings, cache_handle);
+}
+
 void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
                                       const ColorManagedDisplaySettings *display_settings)
 {
 #ifdef WITH_OCIO
-	const char *view_transform = view_settings->view_transform;
 
 #if !defined(COLORMANAGE_BYTE_BUFFER)
 	if (!ibuf->rect_float)
 		return;
 #endif
 
-	if (!strcmp(view_transform, "NONE") ||
-	    global_tot_display == 0 ||
-	    global_tot_view == 0)
-	{
+	if (global_tot_display == 0 || global_tot_view == 0) {
 		imbuf_verify_float(ibuf);
 	}
 	else {
@@ -1229,10 +1359,7 @@ static void colormanage_check_view_settings(ColorManagedViewSettings *view_setti
                                             const ColorManagedView *default_view)
 {
 	if (view_settings->view_transform[0] == '\0') {
-		BLI_strncpy(view_settings->view_transform, "NONE", sizeof(view_settings->view_transform));
-	}
-	else if (!strcmp(view_settings->view_transform, "NONE")) {
-		/* pass */
+		BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
 	}
 	else {
 		ColorManagedView *view = colormanage_view_get_named(view_settings->view_transform);
@@ -1247,7 +1374,6 @@ static void colormanage_check_view_settings(ColorManagedViewSettings *view_setti
 
 	/* OCIO_TODO: move to do_versions() */
 	if (view_settings->exposure == 0.0f && view_settings->gamma == 0.0f) {
-		view_settings->flag |= COLORMANAGE_VIEW_USE_GLOBAL;
 		view_settings->exposure = 0.0f;
 		view_settings->gamma = 1.0f;
 	}
@@ -1279,9 +1405,6 @@ static void colormanage_check_colorspace_settings(ColorManagedColorspaceSettings
 void IMB_colormanagement_check_file_config(Main *bmain)
 {
 #ifdef WITH_OCIO
-	wmWindowManager *wm = bmain->wm.first;
-	wmWindow *win;
-	bScreen *sc;
 	Scene *scene;
 	Image *image;
 	MovieClip *clip;
@@ -1303,54 +1426,9 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 		return;
 	}
 
-	/* ** check display device settings ** */
-
-	if (wm) {
-		for (win = wm->windows.first; win; win = win->next) {
-			colormanage_check_display_settings(&win->display_settings, "window", default_display);
-
-			colormanage_check_view_settings(&win->view_settings, "window", default_view);
-		}
-	}
-
-	/* ** check view transform settings ** */
-	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-		ScrArea *sa;
-
-		for (sa = sc->areabase.first; sa; sa = sa->next) {
-			SpaceLink *sl;
-			for (sl = sa->spacedata.first; sl; sl = sl->next) {
-
-				if (sl->spacetype == SPACE_IMAGE) {
-					SpaceImage *sima = (SpaceImage *) sl;
-
-					colormanage_check_view_settings(&sima->view_settings, "image editor", default_view);
-				}
-				else if (sl->spacetype == SPACE_NODE) {
-					SpaceNode *snode = (SpaceNode *) sl;
-
-					colormanage_check_view_settings(&snode->view_settings, "node editor", default_view);
-				}
-				else if (sl->spacetype == SPACE_CLIP) {
-					SpaceClip *sclip = (SpaceClip *) sl;
-
-					colormanage_check_view_settings(&sclip->view_settings, "clip editor", default_view);
-				}
-				else if (sl->spacetype == SPACE_SEQ) {
-					SpaceSeq *sseq = (SpaceSeq *) sl;
-
-					colormanage_check_view_settings(&sseq->view_settings, "sequencer editor", default_view);
-				}
-			}
-		}
-	}
-
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-		ImageFormatData *imf = 	&scene->r.im_format;
-
-		colormanage_check_display_settings(&imf->display_settings, "scene", default_display);
-
-		colormanage_check_view_settings(&imf->view_settings, "scene", default_view);
+		colormanage_check_display_settings(&scene->display_settings, "scene", default_display);
+		colormanage_check_view_settings(&scene->view_settings, "scene", default_view);
 	}
 
 	/* ** check input color space settings ** */
@@ -1360,21 +1438,34 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 	}
 
 	for (clip = bmain->movieclip.first; clip; clip = clip->id.next) {
-		colormanage_check_colorspace_settings(&clip->colorspace_settings, "image");
+		colormanage_check_colorspace_settings(&clip->colorspace_settings, "clip");
 	}
 #else
 	(void) bmain;
 #endif
 }
 
-const ColorManagedViewSettings *IMB_view_settings_get_effective(wmWindow *win,
-		const ColorManagedViewSettings *view_settings)
+void IMB_colormanagement_validate_settings(ColorManagedDisplaySettings *display_settings,
+                                           ColorManagedViewSettings *view_settings)
 {
-	if (view_settings->flag & COLORMANAGE_VIEW_USE_GLOBAL) {
-		return &win->view_settings;
+#ifdef WITH_OCIO
+	ColorManagedDisplay *display;
+	ColorManagedView *default_view, *view;
+
+	display = colormanage_display_get_named(display_settings->display_device);
+	default_view = colormanage_view_get_default(display);
+
+	for (view = display->views.first; view; view = view->next) {
+		if (!strcmp(view->name, view_settings->view_transform))
+			break;
 	}
 
-	return view_settings;
+	if (view == NULL)
+		BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
+#else
+	(void) display_settings;
+	(void) view_settings;
+#endif
 }
 
 /*********************** Display functions *************************/
@@ -1685,11 +1776,13 @@ void IMB_colormanagement_view_items_add(EnumPropertyItem **items, int *totitem, 
 	ColorManagedDisplay *display = colormanage_display_get_named(display_name);
 	ColorManagedView *view;
 
+#ifdef COLORMANAGE_USE_ACES_ODT
 	/* OCIO_TODO: try to get rid of such a hackish stuff */
 	view = colormanage_view_get_named(ACES_ODT_TONECORVE);
 	if (view) {
 		colormanagement_view_item_add(items, totitem, view);
 	}
+#endif
 
 	if (display) {
 		LinkData *display_view;
@@ -1833,10 +1926,13 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer,
 					ConstProcessorRcPtr *processor = NULL;
 					imb_tonecurveCb tonecurve_func = NULL;
 
+#ifdef COLORMANAGE_USE_ACES_ODT
 					if (!strcmp(view_name, ACES_ODT_TONECORVE)) {
 						tonecurve_func = IMB_ratio_preserving_odt_tonecurve;
 					}
-					else {
+					else
+#endif
+					{
 						processor = create_display_buffer_processor(view_name, display_name, exposure, gamma);
 					}
 
@@ -1864,5 +1960,8 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer,
 	(void) ymin;
 	(void) xmax;
 	(void) ymax;
+	(void) stride;
+	(void) offset_x;
+	(void) offset_y;
 #endif
 }

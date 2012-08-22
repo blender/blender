@@ -829,19 +829,6 @@ class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
         col.prop(sc.clip_user, "use_render_undistorted")
 
 
-class CLIP_PT_display_properties(Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'UI'
-    bl_label = "Display Properties"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        space = context.space_data
-
-        layout.template_colormanaged_view_settings(space, "view_settings", True)
-
-
 class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'

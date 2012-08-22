@@ -2086,11 +2086,6 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Show UV Editor", "Show UV editing related properties");
 
-	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
-	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
-	RNA_def_property_ui_text(prop, "View Settings", "Color management settings used for displaying images on the display");
-
 	prop = RNA_def_property(srna, "show_maskedit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_SpaceImageEditor_show_maskedit_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -2217,11 +2212,6 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
-
-	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
-	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
-	RNA_def_property_ui_text(prop, "View Settings", "Color management settings used for displaying images on the display");
 
 	prop = RNA_def_property(srna, "overlay_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "overlay_type");
@@ -3040,11 +3030,6 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Channels", "Channels of the image to draw");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 
-	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
-	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
-	RNA_def_property_ui_text(prop, "View Settings", "Color management settings used for displaying images on the display");
-
 	prop = RNA_def_property(srna, "show_highlight", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_SHOW_HIGHLIGHT);
 	RNA_def_property_ui_text(prop, "Highlight", "Highlight nodes that are being calculated");
@@ -3368,12 +3353,6 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, pivot_items);
 	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
-
-	/* color management view settings */
-	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
-	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
-	RNA_def_property_ui_text(prop, "View Settings", "Color management settings used for displaying images on the display");
 }
 
 

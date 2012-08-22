@@ -260,7 +260,7 @@ static void verify_buffer_float(ImBuf *ibuf)
 }
 #endif
 
-static void draw_movieclip_buffer(wmWindow *win, SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
+static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
                                   int width, int height, float zoomx, float zoomy)
 {
 	int x, y;
@@ -274,15 +274,13 @@ static void draw_movieclip_buffer(wmWindow *win, SpaceClip *sc, ARegion *ar, ImB
 		glRectf(x, y, x + zoomx * width, y + zoomy * height);
 	}
 	else {
-		const ColorManagedViewSettings *view_settings;
 		unsigned char *display_buffer;
 		void *cache_handle;
 
 		/* OCIO_TODO: finally get rid of this stuff */
 		/* verify_buffer_float(ibuf); */
 
-		view_settings = IMB_view_settings_get_effective(win, &sc->view_settings);
-		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, &win->display_settings, &cache_handle);
+		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
 
 		if (display_buffer) {
 			int need_fallback = 1;
@@ -1429,7 +1427,6 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 {
-	wmWindow *win = CTX_wm_window(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	Scene *scene = CTX_data_scene(C);
 	ImBuf *ibuf;
@@ -1479,7 +1476,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 	}
 
 	if (ibuf) {
-		draw_movieclip_buffer(win, sc, ar, ibuf, width, height, zoomx, zoomy);
+		draw_movieclip_buffer(C, sc, ar, ibuf, width, height, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
 	}
 	else {

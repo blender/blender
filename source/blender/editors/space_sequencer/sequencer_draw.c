@@ -919,13 +919,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		display_buffer = (unsigned char *)ibuf->rect;
 	}
 	else {
-		const ColorManagedViewSettings *view_settings;
-		wmWindow *win = CTX_wm_window(C);
-
-		ibuf->colormanagement_flags |= IMB_COLORMANAGEMENT_SRGB_SOURCE;
-
-		view_settings = IMB_view_settings_get_effective(win, &sseq->view_settings);
-		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, &win->display_settings, &cache_handle);
+		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
 	}
 
 	/* setting up the view - actual drawing starts here */

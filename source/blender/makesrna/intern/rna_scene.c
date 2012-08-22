@@ -4583,6 +4583,17 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Movie Clip", "Active movie clip used for constraints and viewport drawing");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+	/* color management */
+	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
+	RNA_def_property_ui_text(prop, "View Settings", "Color management settings applied on image before saving");
+
+	prop = RNA_def_property(srna, "display_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "display_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedDisplaySettings");
+	RNA_def_property_ui_text(prop, "Display Settings", "Settings of device saved image would be displayed on");
+
 	/* Nestled Data  */
 	rna_def_tool_settings(brna);
 	rna_def_unified_paint_settings(brna);

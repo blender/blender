@@ -253,8 +253,6 @@ static SpaceLink *clip_new(const bContext *C)
 	sc->scopes.track_preview_height = 120;
 	sc->around = V3D_LOCAL;
 
-	BKE_color_managed_view_settings_init(&sc->view_settings);
-
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for clip");
 
@@ -335,7 +333,6 @@ static void clip_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 
 static SpaceLink *clip_duplicate(SpaceLink *sl)
 {
-	SpaceClip *sc = (SpaceClip *) sl;
 	SpaceClip *scn = MEM_dupallocN(sl);
 
 	/* clear or remove stuff from old */
@@ -343,8 +340,6 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 	scn->scopes.track_preview = NULL;
 	scn->scopes.ok = FALSE;
 	scn->draw_context = NULL;
-
-	BKE_color_managed_view_settings_copy(&scn->view_settings, &sc->view_settings);
 
 	return (SpaceLink *)scn;
 }

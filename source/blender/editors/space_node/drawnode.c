@@ -1999,7 +1999,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	int multilayer = (RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER);
 	
 	node_composit_buts_file_output(layout, C, ptr);
-	uiTemplateImageSettings(layout, &imfptr);
+	uiTemplateImageSettings(layout, &imfptr, TRUE);
 	
 	uiItemS(layout);
 	
@@ -2058,7 +2058,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 			
 			col = uiLayoutColumn(layout, FALSE);
 			uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format") == FALSE);
-			uiTemplateImageSettings(col, &imfptr);
+			uiTemplateImageSettings(col, &imfptr, TRUE);
 		}
 	}
 }
@@ -3033,8 +3033,6 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 		if (ibuf) {
 			SpaceNode *snode = CTX_wm_space_node(C);
-			wmWindow *win = CTX_wm_window(C);
-			const ColorManagedViewSettings *view_settings;
 			float x, y; 
 			unsigned char *display_buffer;
 			void *cache_handle;
@@ -3057,8 +3055,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
 			
 
-			view_settings = IMB_view_settings_get_effective(win, &snode->view_settings);
-			display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, &win->display_settings, &cache_handle);
+			display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
 
 			if (display_buffer) {
 				if (snode->flag & (SNODE_SHOW_R | SNODE_SHOW_G | SNODE_SHOW_B)) {

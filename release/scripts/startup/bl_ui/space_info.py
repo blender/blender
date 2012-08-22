@@ -357,7 +357,6 @@ class INFO_MT_window(Menu):
         import sys
 
         window = context.window
-        display_settings = window.display_settings
 
         layout = self.layout
 
@@ -366,9 +365,6 @@ class INFO_MT_window(Menu):
         if sys.platform[:3] == "win":
             layout.separator()
             layout.operator("wm.console_toggle", icon='CONSOLE')
-
-        layout.separator()
-        layout.prop_menu_enum(display_settings, "display_device", text="Display")
 
 
 class INFO_MT_help(Menu):

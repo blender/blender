@@ -430,7 +430,7 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 	MEM_freeN(rectf);
 }
 
-static void draw_image_buffer(wmWindow *win, SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
+static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
 {
 	int x, y;
 	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
@@ -457,7 +457,6 @@ static void draw_image_buffer(wmWindow *win, SpaceImage *sima, ARegion *ar, Scen
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
 	else {
-		const ColorManagedViewSettings *view_settings;
 		unsigned char *display_buffer;
 		void *cache_handle;
 
@@ -472,8 +471,7 @@ static void draw_image_buffer(wmWindow *win, SpaceImage *sima, ARegion *ar, Scen
 		 * convert them, and optionally apply curves */
 		image_verify_buffer_float(ima, ibuf, color_manage);
 
-		view_settings = IMB_view_settings_get_effective(win, &sima->view_settings);
-		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, &win->display_settings, &cache_handle);
+		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
 
 		if (display_buffer)
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
@@ -553,7 +551,7 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 	MEM_freeN(rect);
 }
 
-static void draw_image_buffer_repeated(wmWindow *win, SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float zoomx, float zoomy)
+static void draw_image_buffer_repeated(const bContext *C, SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float zoomx, float zoomy)
 {
 	const double time_current = PIL_check_seconds_timer();
 
@@ -570,7 +568,7 @@ static void draw_image_buffer_repeated(wmWindow *win, SpaceImage *sima, ARegion 
 			if (ima && (ima->tpageflag & IMA_TILES))
 				draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
 			else
-				draw_image_buffer(win, sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
+				draw_image_buffer(C, sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
 
 			/* only draw until running out of time */
 			if ((PIL_check_seconds_timer() - time_current) > 0.25)
@@ -723,7 +721,6 @@ void draw_image_main(const bContext *C, ARegion *ar)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
-	wmWindow *win = CTX_wm_window(C);
 	Image *ima;
 	ImBuf *ibuf;
 	float zoomx, zoomy;
@@ -772,11 +769,11 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	if (ibuf == NULL)
 		ED_region_grid_draw(ar, zoomx, zoomy);
 	else if (sima->flag & SI_DRAW_TILE)
-		draw_image_buffer_repeated(win, sima, ar, scene, ima, ibuf, zoomx, zoomy);
+		draw_image_buffer_repeated(C, sima, ar, scene, ima, ibuf, zoomx, zoomy);
 	else if (ima && (ima->tpageflag & IMA_TILES))
 		draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, 0.0f, 0.0, zoomx, zoomy);
 	else
-		draw_image_buffer(win, sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
+		draw_image_buffer(C, sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 	/* paint helpers */
 	if (sima->mode == SI_MODE_PAINT)

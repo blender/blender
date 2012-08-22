@@ -274,7 +274,7 @@ typedef struct ImageFormatData {
 
 	char pad[7];
 
-	/* --- color management --- */
+	/* color management */
 	ColorManagedViewSettings view_settings;
 	ColorManagedDisplaySettings display_settings;
 } ImageFormatData;
@@ -1137,6 +1137,10 @@ typedef struct Scene {
 
 	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by BKE_object_handle_update() */
 	uint64_t customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
+
+	/* Color Management */
+	ColorManagedViewSettings view_settings;
+	ColorManagedDisplaySettings display_settings;
 } Scene;
 
 

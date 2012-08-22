@@ -261,10 +261,9 @@ extern const char *imb_ext_audio[];
 
 /* imbuf->colormanagement_flags */
 
-/* special flag used for color management of compositor results,
- * which are in sRGB space and requires extra step in color conversions
- * could be replaced with something more general in the future
+/* special flag for image buffers used in sequencer, which stores all
+ * images in display space, even float buffers
  */
-#define IMB_COLORMANAGEMENT_SRGB_SOURCE    (1 << 0)
+#define IMB_COLORMANAGEMENT_NONLINEAR_FLOAT    (1 << 0)
 
 #endif

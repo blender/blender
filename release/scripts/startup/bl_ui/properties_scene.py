@@ -231,6 +231,21 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
 
 
+class SCENE_PT_color_management(Panel):
+    bl_label = "Color Management"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "scene"
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+
+        layout.prop(scene.display_settings, "display_device")
+        layout.template_colormanaged_view_settings(scene, "view_settings")
+
+
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "scene"

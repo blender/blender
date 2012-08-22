@@ -37,11 +37,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-static EnumPropertyItem view_transform_items[] = {
-	{0, "NONE", 0, "None", "Do not perform any color transform on display, use old non-color managed technique for display"},
-	{0, NULL, 0, NULL, NULL}
-};
-
 static EnumPropertyItem color_space_items[] = {
 	{0, "NONE", 0, "None", "Do not perform any color transform on load, treat colors as in scene linear space already"},
 	{0, NULL, 0, NULL, NULL}
@@ -383,6 +378,17 @@ static EnumPropertyItem *rna_ColorManagedDisplaySettings_display_device_itemf(bC
 	return items;
 }
 
+static void rna_ColorManagedDisplaySettings_display_device_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+
+	if (GS(id->name) == ID_SCE) {
+		Scene *scene = (Scene *) id;
+
+		IMB_colormanagement_validate_settings(&scene->display_settings, &scene->view_settings);
+	}
+}
+
 static int rna_ColorManagedViewSettings_view_transform_get(PointerRNA *ptr)
 {
 	ColorManagedViewSettings *view = (ColorManagedViewSettings *) ptr->data;
@@ -403,12 +409,11 @@ static void rna_ColorManagedViewSettings_view_transform_set(PointerRNA *ptr, int
 
 static EnumPropertyItem* rna_ColorManagedViewSettings_view_transform_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
-	wmWindow *win = CTX_wm_window(C);
+	Scene *scene = CTX_data_scene(C);
 	EnumPropertyItem *items = NULL;
-	ColorManagedDisplaySettings *display_settings = &win->display_settings;
+	ColorManagedDisplaySettings *display_settings = &scene->display_settings;
 	int totitem = 0;
 
-	RNA_enum_item_add(&items, &totitem, &view_transform_items[0]);
 	IMB_colormanagement_view_items_add(&items, &totitem, display_settings->display_device);
 	RNA_enum_item_end(&items, &totitem);
 
@@ -820,6 +825,11 @@ static void rna_def_colormanage(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem view_transform_items[] = {
+		{0, "NONE", 0, "None", "Do not perform any color transform on display, use old non-color managed technique for display"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	/* ** Display Settings  **  */
 	srna = RNA_def_struct(brna, "ColorManagedDisplaySettings", NULL);
 	RNA_def_struct_ui_text(srna, "ColorManagedDisplaySettings", "Color management specific to display device");
@@ -830,23 +840,18 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	                                  "rna_ColorManagedDisplaySettings_display_device_set",
 	                                  "rna_ColorManagedDisplaySettings_display_device_itemf");
 	RNA_def_property_ui_text(prop, "Display Device", "Display device name");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedDisplaySettings_display_device_update");
 
 	/* ** View Settings  **  */
 	srna = RNA_def_struct(brna, "ColorManagedViewSettings", NULL);
 	RNA_def_struct_ui_text(srna, "ColorManagedViewSettings", "Color management settings used for displaying images on the display");
-
-	prop = RNA_def_property(srna, "use_global_settings", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLORMANAGE_VIEW_USE_GLOBAL);
-	RNA_def_property_ui_text(prop, "Use Global Settings", "Use global display settings instead of per-space setting");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, view_transform_items);
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedViewSettings_view_transform_get",
 	                                  "rna_ColorManagedViewSettings_view_transform_set",
 	                                  "rna_ColorManagedViewSettings_view_transform_itemf");
-	RNA_def_property_ui_text(prop, "View Transform", "View transform used for this image editor");
+	RNA_def_property_ui_text(prop, "View Transform", "View used ");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_FACTOR);

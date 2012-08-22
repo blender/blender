@@ -1273,8 +1273,6 @@ void BKE_color_managed_view_settings_init(ColorManagedViewSettings *settings)
 
 	settings->gamma = 1.0f;
 	settings->exposure = 0.0f;
-
-	settings->flag |= COLORMANAGE_VIEW_USE_GLOBAL;
 }
 
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,

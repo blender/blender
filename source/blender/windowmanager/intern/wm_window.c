@@ -245,8 +245,6 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	win->drawmethod = -1;
 	win->drawdata = NULL;
 
-	BKE_color_managed_display_settings_copy(&win->display_settings, &winorig->display_settings);
-
 	return win;
 }
 

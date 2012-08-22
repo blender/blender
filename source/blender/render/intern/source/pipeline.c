@@ -2072,8 +2072,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 
 static void colormanage_image_for_write(Scene *scene, ImBuf *ibuf)
 {
-	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->r.im_format.view_settings,
-	                                 &scene->r.im_format.display_settings);
+	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->view_settings, &scene->display_settings);
 
 	if (ibuf)
 		imb_freerectfloatImBuf(ibuf);

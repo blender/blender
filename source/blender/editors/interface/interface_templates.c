@@ -2814,11 +2814,11 @@ void uiTemplateColorspaceSettings(uiLayout *layout, PointerRNA *ptr, const char 
 	uiItemR(layout, &colorspace_settings_ptr, "name", 0, "", ICON_NONE);
 }
 
-void uiTemplateColormanagedViewSettings(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, int show_global_settings)
+void uiTemplateColormanagedViewSettings(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr, const char *propname)
 {
 	PropertyRNA *prop;
 	PointerRNA view_transform_ptr;
-	uiLayout *col;
+	uiLayout *col, *row;
 	ColorManagedViewSettings *view_settings;
 
 	prop = RNA_struct_find_property(ptr, propname);
@@ -2834,23 +2834,8 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout, bContext *C, PointerRN
 
 	col = uiLayoutColumn(layout, FALSE);
 
-	if (show_global_settings) {
-		wmWindow *win = CTX_wm_window(C);
-		bScreen *screen = CTX_wm_screen(C);
-
-		uiItemR(col, &view_transform_ptr, "use_global_settings", 0, NULL, ICON_NONE);
-
-		if (view_settings->flag & COLORMANAGE_VIEW_USE_GLOBAL) {
-			PointerRNA window_ptr;
-
-			RNA_pointer_create(&screen->id, &RNA_Window, win, &window_ptr);
-
-			prop = RNA_struct_find_property(&window_ptr, "view_settings");
-			view_transform_ptr = RNA_property_pointer_get(&window_ptr, prop);
-		}
-	}
-
-	uiItemR(col, &view_transform_ptr, "view_transform", 0, "View", ICON_NONE);
+	row = uiLayoutRow(col, FALSE);
+	uiItemR(row, &view_transform_ptr, "view_transform", UI_ITEM_R_EXPAND, IFACE_("View"), ICON_NONE);
 
 	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, &view_transform_ptr, "exposure", 0, NULL, ICON_NONE);

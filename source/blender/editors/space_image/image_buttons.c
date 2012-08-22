@@ -798,7 +798,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	MEM_freeN(cb);
 }
 
-void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
+void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_management)
 {
 	ImageFormatData *imf = imfptr->data;
 	ID *id = imfptr->id.data;
@@ -874,8 +874,9 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 	}
 
 	/* color management */
-	if (!BKE_imtype_supports_float(imf->imtype) ||
-	    (show_preview && imf->flag & R_IMF_FLAG_PREVIEW_JPG))
+	if (color_management &&
+	    (!BKE_imtype_supports_float(imf->imtype) ||
+	     (show_preview && imf->flag & R_IMF_FLAG_PREVIEW_JPG)))
 	{
 		prop = RNA_struct_find_property(imfptr, "display_settings");
 		display_settings_ptr = RNA_property_pointer_get(imfptr, prop);
@@ -885,7 +886,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 
 		uiItemR(col, &display_settings_ptr, "display_device", 0, NULL, ICON_NONE);
 
-		uiTemplateColormanagedViewSettings(col, NULL, imfptr, "view_settings", FALSE);
+		uiTemplateColormanagedViewSettings(col, NULL, imfptr, "view_settings");
 	}
 }
 

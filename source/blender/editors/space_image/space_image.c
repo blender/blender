@@ -152,8 +152,6 @@ static SpaceLink *image_new(const bContext *UNUSED(C))
 	simage->zoom = 1.0f;
 	simage->lock = TRUE;
 
-	BKE_color_managed_view_settings_init(&simage->view_settings);
-
 	simage->iuser.ok = TRUE;
 	simage->iuser.fie_ima = 2;
 	simage->iuser.frames = 100;
@@ -216,7 +214,6 @@ static void image_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 
 static SpaceLink *image_duplicate(SpaceLink *sl)
 {
-	SpaceImage *simage = (SpaceImage *) sl;
 	SpaceImage *simagen = MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
@@ -224,8 +221,6 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
 		simagen->cumap = curvemapping_copy(simagen->cumap);
 
 	scopes_new(&simagen->scopes);
-
-	BKE_color_managed_view_settings_copy(&simagen->view_settings, &simage->view_settings);
 
 	return (SpaceLink *)simagen;
 }

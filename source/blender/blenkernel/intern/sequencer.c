@@ -72,6 +72,7 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.h"
 
 #include "BKE_context.h"
 #include "BKE_sound.h"
@@ -1838,8 +1839,9 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 	}
 
 	if (seq->flag & SEQ_MAKE_FLOAT) {
-		if (!ibuf->rect_float)
-			IMB_float_from_rect_simple(ibuf);
+		if (!ibuf->rect_float) {
+			IMB_colormanagement_imbuf_to_sequencer_space(ibuf, TRUE);
+		}
 
 		if (ibuf->rect) {
 			imb_freerectImBuf(ibuf);
@@ -2350,11 +2352,8 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 			}
 
 			/* float buffers in the sequencer are not linear */
-			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			else
-				ibuf->profile = IB_PROFILE_NONE;
-			IMB_convert_profile(ibuf, IB_PROFILE_SRGB);			
+			ibuf->profile = IB_PROFILE_LINEAR_RGB;
+			IMB_colormanagement_imbuf_to_sequencer_space(ibuf, FALSE);
 		}
 		else if (rres.rect32) {
 			ibuf = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect);
@@ -2460,8 +2459,7 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 					imb_freerectImBuf(ibuf);
 
 				/* all sequencer color is done in SRGB space, linear gives odd crossfades */
-				if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-					IMB_convert_profile(ibuf, IB_PROFILE_NONE);
+				IMB_colormanagement_imbuf_to_sequencer_space(ibuf, FALSE);
 
 				copy_to_ibuf_still(context, seq, nr, ibuf);
 
@@ -2653,6 +2651,12 @@ static ImBuf *seq_render_strip_stack(SeqRenderData context, ListBase *seqbasep, 
 	
 	if (count == 1) {
 		out = seq_render_strip(context, seq_arr[0], cfra);
+
+		if (out) {
+			/* put buffer back to linear space */
+			IMB_colormanagement_imbuf_from_sequencer_space(out);
+		}
+
 		BKE_sequencer_cache_put(context, seq_arr[0], cfra, SEQ_STRIPELEM_IBUF_COMP, out);
 
 		return out;
@@ -2730,6 +2734,11 @@ static ImBuf *seq_render_strip_stack(SeqRenderData context, ListBase *seqbasep, 
 		}
 
 		BKE_sequencer_cache_put(context, seq_arr[i], cfra, SEQ_STRIPELEM_IBUF_COMP, out);
+	}
+
+	if (out) {
+		/* put buffer back to linear space */
+		IMB_colormanagement_imbuf_from_sequencer_space(out);
 	}
 
 	return out;

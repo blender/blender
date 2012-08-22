@@ -436,18 +436,6 @@ class IMAGE_HT_header(Header):
             layout.prop(sima, "use_realtime_update", text="", icon_only=True, icon='LOCKED')
 
 
-class IMAGE_PT_display_properties(Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'UI'
-    bl_label = "Display Properties"
-
-    def draw(self, context):
-        layout = self.layout
-        space = context.space_data
-
-        layout.template_colormanaged_view_settings(space, "view_settings", True)
-
-
 class IMAGE_PT_image_properties(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'

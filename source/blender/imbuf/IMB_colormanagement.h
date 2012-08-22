@@ -33,6 +33,7 @@
 
 #define BCM_CONFIG_FILE "config.ocio"
 
+struct bContext;
 struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
@@ -42,6 +43,7 @@ struct Main;
 struct rcti;
 struct PartialBufferUpdateContext;
 struct wmWindow;
+struct Scene;
 
 /* ** Initialization / De-initialization ** */
 
@@ -52,8 +54,14 @@ void IMB_colormanagement_exit(void);
 void IMB_colormanagement_colorspace_transform(float *buffer, int width, int height, int channels,
                                               const char *from_colorspace, const char *to_colorspace);
 
+void IMB_colormanagement_imbuf_to_role(struct ImBuf *ibuf, int role);
+void IMB_colormanagement_imbuf_from_role(struct ImBuf *ibuf, int role);
+
 void IMB_colormanagement_imbuf_make_scene_linear(struct ImBuf *ibuf,
 		struct ColorManagedColorspaceSettings *colorspace_settings);
+
+void IMB_colormanagement_imbuf_to_sequencer_space(struct ImBuf *ibuf, int make_float);
+void IMB_colormanagement_imbuf_from_sequencer_space(struct ImBuf *ibuf);
 
 /* ** Public display buffers interfaces ** */
 
@@ -61,6 +69,8 @@ void IMB_colormanage_cache_free(struct ImBuf *ibuf);
 
 unsigned char *IMB_display_buffer_acquire(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                           const struct ColorManagedDisplaySettings *display_settings, void **cache_handle);
+unsigned char *IMB_display_buffer_acquire_ctx(const struct bContext *C, struct ImBuf *ibuf, void **cache_handle);
+
 void IMB_display_buffer_to_imbuf_rect(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                       const struct ColorManagedDisplaySettings *display_settings);
 
@@ -70,8 +80,8 @@ void IMB_display_buffer_invalidate(struct ImBuf *ibuf);
 
 void IMB_colormanagement_check_file_config(struct Main *bmain);
 
-const struct ColorManagedViewSettings *IMB_view_settings_get_effective(struct wmWindow *win,
-		const struct ColorManagedViewSettings *view_settings);
+void IMB_colormanagement_validate_settings(struct ColorManagedDisplaySettings *display_settings,
+                                           struct ColorManagedViewSettings *view_settings);
 
 /* ** Display funcrions ** */
 int IMB_colormanagement_display_get_named_index(const char *name);
@@ -95,5 +105,12 @@ void IMB_colormanagement_colorspace_items_add(struct EnumPropertyItem **items, i
 void IMB_partial_display_buffer_update(struct ImBuf *ibuf, const float *linear_buffer,
                                        int stride, int offset_x, int offset_y,
                                        int xmin, int ymin, int xmax, int ymax);
+
+enum {
+	COLOR_ROLE_SCENE_LINEAR = 0,
+	COLOR_ROLE_COLOR_PICKING,
+	COLOR_ROLE_TEXTURE_PAINTING,
+	COLOR_ROLE_SEQUENCER,
+};
 
 #endif // IMB_COLORMANAGEMENT_H

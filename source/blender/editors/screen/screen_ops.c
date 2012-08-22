@@ -853,10 +853,6 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BLI_rcti_translate(&rect, win->posx, win->posy);
 	newwin = WM_window_open(C, &rect);
 
-	/* copy color management settings from the current window */
-	BKE_color_managed_display_settings_copy(&newwin->display_settings, &win->display_settings);
-	BKE_color_managed_view_settings_copy(&newwin->view_settings, &win->view_settings);
-
 	/* allocs new screen and adds to newly created window, using window size */
 	newsc = ED_screen_add(newwin, CTX_data_scene(C), sc->id.name + 2);
 	newwin->screen = newsc;

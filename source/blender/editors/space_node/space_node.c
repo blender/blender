@@ -98,8 +98,6 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 	/* backdrop */
 	snode->zoom = 1.0f;
 
-	BKE_color_managed_view_settings_init(&snode->view_settings);
-
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for node");
 
@@ -308,14 +306,11 @@ static void node_area_refresh(const struct bContext *C, ScrArea *sa)
 
 static SpaceLink *node_duplicate(SpaceLink *sl)
 {
-	SpaceImage *snode = (SpaceImage *) sl;
 	SpaceNode *snoden = MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
 	snoden->nodetree = NULL;
 	snoden->linkdrag.first = snoden->linkdrag.last = NULL;
-
-	BKE_color_managed_view_settings_copy(&snoden->view_settings, &snode->view_settings);
 
 	return (SpaceLink *)snoden;
 }
