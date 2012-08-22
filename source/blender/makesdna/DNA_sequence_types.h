@@ -102,11 +102,16 @@ typedef struct Strip {
 	StripColorBalance *color_balance;
 } Strip;
 
-/* The sequence structure is the basic struct used by any strip. each of the strips uses a different sequence structure.*/
-/* WATCH IT: first part identical to ID (for use in ipo's)
- * the commend above is historic, probably we can drop the ID compatibility, but take care making this change */
-
-/* WATCH ITv2, this is really a 'Strip' in the UI!, name is highly confusing */
+/**
+ * The sequence structure is the basic struct used by any strip.
+ * each of the strips uses a different sequence structure.
+ *
+ * \warning The first part identical to ID (for use in ipo's)
+ * the commend above is historic, probably we can drop the ID compatibility,
+ * but take care making this change.
+ *
+ * \warning This is really a 'Strip' in the UI!, name is highly confusing.
+ */
 typedef struct Sequence {
 	struct Sequence *next, *prev;
 	void *tmp; /* tmp var for copying, and tagging for linked selection */

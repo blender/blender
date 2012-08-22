@@ -78,9 +78,9 @@ class AddBox(bpy.types.Operator):
     def execute(self, context):
 
         verts_loc, faces = add_box(self.width,
-                                     self.height,
-                                     self.depth,
-                                     )
+                                   self.height,
+                                   self.depth,
+                                   )
 
         mesh = bpy.data.meshes.new("Box")
 
