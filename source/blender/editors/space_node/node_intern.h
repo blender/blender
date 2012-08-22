@@ -107,6 +107,7 @@ void NODE_OT_select_all(wmOperatorType *ot);
 void NODE_OT_select_linked_to(wmOperatorType *ot);
 void NODE_OT_select_linked_from(wmOperatorType *ot);
 void NODE_OT_select_border(struct wmOperatorType *ot);
+void NODE_OT_select_lasso(struct wmOperatorType *ot);
 void NODE_OT_select_same_type(struct wmOperatorType *ot);
 void NODE_OT_select_same_type_next(wmOperatorType *ot);
 void NODE_OT_select_same_type_prev(wmOperatorType *ot);
