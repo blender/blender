@@ -128,7 +128,6 @@ typedef struct ImBuf {
 	unsigned int   encodedbuffersize; /* Size of encodedbuffer */
 
 	/* color management */
-	unsigned int colormanagement_flags;  /* flags filed used by color management rutines */
 	unsigned int *display_buffer_flags;  /* array of per-display display buffers dirty flags */
 	struct ColormanageCache *colormanage_cache;  /* cache used by color management */
 
@@ -258,12 +257,5 @@ extern const char *imb_ext_image[];
 extern const char *imb_ext_image_qt[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
-
-/* imbuf->colormanagement_flags */
-
-/* special flag for image buffers used in sequencer, which stores all
- * images in display space, even float buffers
- */
-#define IMB_COLORMANAGEMENT_NONLINEAR_FLOAT    (1 << 0)
 
 #endif
