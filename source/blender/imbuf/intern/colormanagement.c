@@ -1086,7 +1086,7 @@ void IMB_colormanagement_imbuf_to_sequencer_space(ImBuf *ibuf, int make_float)
 	(void) make_float;
 
 	if (!ibuf->rect_float) {
-		if (make_float) {
+		if (make_float && ibuf->rect) {
 			/* when converting byte buffer to float in sequencer we need to make float
 			 * buffer be in sequencer's working space, which is currently only doable
 			 * from linear space.
@@ -1112,6 +1112,8 @@ void IMB_colormanagement_imbuf_to_sequencer_space(ImBuf *ibuf, int make_float)
 #ifdef WITH_OCIO
 	if (global_role_sequencer[0]) {
 		IMB_colormanagement_imbuf_to_role(ibuf, COLOR_ROLE_SEQUENCER);
+
+		ibuf->profile = IB_PROFILE_SRGB;
 	}
 	else
 #endif
@@ -1128,7 +1130,10 @@ void IMB_colormanagement_imbuf_from_sequencer_space(ImBuf *ibuf)
 
 #ifdef WITH_OCIO
 	if (global_role_sequencer[0]) {
-		IMB_colormanagement_imbuf_from_role(ibuf, COLOR_ROLE_SEQUENCER);
+		if (ibuf->profile == IB_PROFILE_SRGB) {
+			IMB_colormanagement_imbuf_from_role(ibuf, COLOR_ROLE_SEQUENCER);
+			ibuf->profile = IB_PROFILE_LINEAR_RGB;
+		}
 	}
 	else
 #endif
