@@ -153,8 +153,9 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
 
 		if (sce->nodetree) {
-			scen->nodetree = ntreeCopyTree_ex(sce->nodetree, FALSE); /* TODO: do_id_user arg needs checking */ /* copies actions */
-			ntreeSwitchID_ex(scen->nodetree, &sce->id, &scen->id, FALSE);
+			/* ID's are managed on both copy and switch */
+			scen->nodetree = ntreeCopyTree(sce->nodetree);
+			ntreeSwitchID(scen->nodetree, &sce->id, &scen->id);
 		}
 
 		obase = sce->base.first;
@@ -321,7 +322,7 @@ void BKE_scene_free(Scene *sce)
 	}
 	
 	if (sce->nodetree) {
-		ntreeFreeTree_ex(sce->nodetree, FALSE); /* TODO: do_id_user arg needs checking */
+		ntreeFreeTree(sce->nodetree);
 		MEM_freeN(sce->nodetree);
 	}
 

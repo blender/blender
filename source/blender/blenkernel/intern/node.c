@@ -704,7 +704,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_id_use
 
 		/* ntreeUserDecrefID inline */
 		if (do_id_user) {
-			id_us_min(node->id);
+			id_us_plus(node->id);
 		}
 
 		if (do_make_extern) {
