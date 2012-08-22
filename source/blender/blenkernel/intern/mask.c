@@ -158,7 +158,7 @@ MaskLayer *BKE_mask_layer_new(Mask *mask, const char *name)
 
 	mask->masklay_tot++;
 
-	masklay->blend = MASK_BLEND_MERGE;
+	masklay->blend = MASK_BLEND_MERGE_ADD;
 	masklay->alpha = 1.0f;
 
 	return masklay;
