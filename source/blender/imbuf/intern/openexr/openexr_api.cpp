@@ -728,8 +728,9 @@ static int imb_exr_split_token(const char *str, const char *end, const char **to
 {
 	int maxlen = end - str;
 	int len = 0;
-	while (len < maxlen && *(end - len - 1) != '.')
-		++len;
+	while (len < maxlen && *(end - len - 1) != '.') {
+		len++;
+	}
 
 	*token = end - len;
 	return len;

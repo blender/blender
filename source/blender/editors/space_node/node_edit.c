@@ -1838,7 +1838,7 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		BLI_remlink(&node->inputs, sock);
 		BLI_insertlinkbefore(&node->inputs, before, sock);
-		--nimf->active_input;
+		nimf->active_input--;
 	}
 	else {
 		bNodeSocket *after = sock->next;
@@ -1846,7 +1846,7 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		BLI_remlink(&node->inputs, sock);
 		BLI_insertlinkafter(&node->inputs, after, sock);
-		++nimf->active_input;
+		nimf->active_input++;
 	}
 	
 	snode_notify(C, snode);

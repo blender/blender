@@ -226,12 +226,12 @@ void ED_node_sort(bNodeTree *ntree)
 			while (a < k && b < k && node_b) {
 				if (compare_nodes(node_a, node_b) == 0) {
 					node_a = node_a->next;
-					++a;
+					a++;
 				}
 				else {
 					tmp = node_b;
 					node_b = node_b->next;
-					++b;
+					b++;
 					BLI_remlink(&ntree->nodes, tmp);
 					BLI_insertlinkbefore(&ntree->nodes, node_a, tmp);
 				}

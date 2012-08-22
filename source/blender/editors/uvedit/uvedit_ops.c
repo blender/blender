@@ -205,8 +205,8 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 		ED_image_get_uv_aspect(previma, prev_aspect, prev_aspect + 1);
 		ED_image_get_uv_aspect(ima, aspect, aspect + 1);
 
-		fprev_aspect = prev_aspect[0]/prev_aspect[1];
-		faspect = aspect[0]/aspect[1];
+		fprev_aspect = prev_aspect[0] / prev_aspect[1];
+		faspect = aspect[0] / aspect[1];
 #endif
 
 		/* ensure we have a uv map */
