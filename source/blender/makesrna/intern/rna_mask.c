@@ -580,7 +580,8 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 static void rna_def_mask_layer(BlenderRNA *brna)
 {
 	static EnumPropertyItem masklay_blend_mode_items[] = {
-		{MASK_BLEND_MERGE, "MERGE", 0, "Merge", ""},
+		{MASK_BLEND_MERGE_ADD, "MERGE_ADD", 0, "Merge Add", ""},
+		{MASK_BLEND_MERGE_SUBTRACT, "MERGE_SUBTRACT", 0, "Merge Subtract", ""},
 		{MASK_BLEND_ADD, "ADD", 0, "Add", ""},
 		{MASK_BLEND_SUBTRACT, "SUBTRACT", 0, "Subtract", ""},
 		{MASK_BLEND_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
