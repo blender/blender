@@ -749,7 +749,6 @@ static void shader_preview_free(void *customdata)
 	
 	if (sp->matcopy) {
 		struct IDProperty *properties;
-		int a;
 		
 		/* node previews */
 		shader_preview_updatejob(sp);
@@ -757,13 +756,7 @@ static void shader_preview_free(void *customdata)
 		/* get rid of copied material */
 		BLI_remlink(&pr_main->mat, sp->matcopy);
 		
-		/* BKE_material_free decrements texture, prevent this. hack alert! */
-		for (a = 0; a < MAX_MTEX; a++) {
-			MTex *mtex = sp->matcopy->mtex[a];
-			if (mtex && mtex->tex) mtex->tex = NULL;
-		}
-		
-		BKE_material_free(sp->matcopy);
+		BKE_material_free_ex(sp->matcopy, FALSE);
 
 		properties = IDP_GetProperties((ID *)sp->matcopy, FALSE);
 		if (properties) {

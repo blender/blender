@@ -3814,7 +3814,9 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 
 				if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
 				                                 buf, sizeof(buf)))
+				{
 					tmp = BLI_strdup(buf);
+				}
 			}
 		}
 

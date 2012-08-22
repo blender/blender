@@ -858,13 +858,13 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			while (gsock && (!sock || sock->groupsock != gsock)) {
 				draw_group_socket(C, snode, ntree, gnode, NULL, gsock, index, SOCK_IN);
 				gsock = gsock->next;
-				++index;
+				index++;
 			}
 			while (sock && gsock && sock->groupsock == gsock) {
 				draw_group_socket(C, snode, ntree, gnode, sock, gsock, index, SOCK_IN);
 				sock = sock->next;
 				gsock = gsock->next;
-				++index;
+				index++;
 			}
 		}
 		gsock = ngroup->outputs.first;
@@ -878,13 +878,13 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			while (gsock && (!sock || sock->groupsock != gsock)) {
 				draw_group_socket(C, snode, ntree, gnode, NULL, gsock, index, SOCK_OUT);
 				gsock = gsock->next;
-				++index;
+				index++;
 			}
 			while (sock && gsock && sock->groupsock == gsock) {
 				draw_group_socket(C, snode, ntree, gnode, sock, gsock, index, SOCK_OUT);
 				sock = sock->next;
 				gsock = gsock->next;
-				++index;
+				index++;
 			}
 		}
 		

@@ -224,8 +224,9 @@ static void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 				if (!sock_fr)
 					continue;
 
-				if (snode_autoconnect_input(snode, node_fr, sock_fr, node_to, sock_to, replace))
-					++numlinks;
+				if (snode_autoconnect_input(snode, node_fr, sock_fr, node_to, sock_to, replace)) {
+					numlinks++;
+				}
 			}
 		}
 
@@ -246,7 +247,7 @@ static void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 					continue;
 
 				if (snode_autoconnect_input(snode, node_fr, sock_fr, node_to, sock_to, replace)) {
-					++numlinks;
+					numlinks++;
 					break;
 				}
 			}

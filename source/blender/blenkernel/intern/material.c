@@ -80,12 +80,18 @@ void init_def_material(void)
 /* not material itself */
 void BKE_material_free(Material *ma)
 {
+	BKE_material_free_ex(ma, TRUE);
+}
+
+/* not material itself */
+void BKE_material_free_ex(Material *ma, int do_id_user)
+{
 	MTex *mtex;
 	int a;
 	
 	for (a = 0; a < MAX_MTEX; a++) {
 		mtex = ma->mtex[a];
-		if (mtex && mtex->tex) mtex->tex->id.us--;
+		if (do_id_user && mtex && mtex->tex) mtex->tex->id.us--;
 		if (mtex) MEM_freeN(mtex);
 	}
 	
@@ -101,7 +107,7 @@ void BKE_material_free(Material *ma)
 	
 	/* is no lib link block, but material extension */
 	if (ma->nodetree) {
-		ntreeFreeTree(ma->nodetree);
+		ntreeFreeTree_ex(ma->nodetree, do_id_user);
 		MEM_freeN(ma->nodetree);
 	}
 

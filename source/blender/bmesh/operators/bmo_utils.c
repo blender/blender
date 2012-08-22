@@ -182,14 +182,17 @@ static void bmo_region_extend_extend(BMesh *bm, BMOperator *op, int usefaces)
 	if (!usefaces) {
 		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
 			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-				if (!BMO_elem_flag_test(bm, e, SEL_ORIG))
-					break;
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+					if (!BMO_elem_flag_test(bm, e, SEL_ORIG))
+						break;
 			}
 
 			if (e) {
 				BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-					BMO_elem_flag_enable(bm, e, SEL_FLAG);
-					BMO_elem_flag_enable(bm, BM_edge_other_vert(e, v), SEL_FLAG);
+					if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+						BMO_elem_flag_enable(bm, e, SEL_FLAG);
+						BMO_elem_flag_enable(bm, BM_edge_other_vert(e, v), SEL_FLAG);
+					}
 				}
 			}
 		}
@@ -202,8 +205,10 @@ static void bmo_region_extend_extend(BMesh *bm, BMOperator *op, int usefaces)
 		BMO_ITER (f, &siter, bm, op, "geom", BM_FACE) {
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				BM_ITER_ELEM (f2, &fiter, l->e, BM_FACES_OF_EDGE) {
-					if (!BMO_elem_flag_test(bm, f2, SEL_ORIG)) {
-						BMO_elem_flag_enable(bm, f2, SEL_FLAG);
+					if (!BM_elem_flag_test(f2, BM_ELEM_HIDDEN)) {
+						if (!BMO_elem_flag_test(bm, f2, SEL_ORIG)) {
+							BMO_elem_flag_enable(bm, f2, SEL_FLAG);
+						}
 					}
 				}
 			}
@@ -221,15 +226,18 @@ static void bmo_region_extend_constrict(BMesh *bm, BMOperator *op, int usefaces)
 	if (!usefaces) {
 		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
 			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-				if (!BMO_elem_flag_test(bm, e, SEL_ORIG))
-					break;
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+					if (!BMO_elem_flag_test(bm, e, SEL_ORIG))
+						break;
 			}
 
 			if (e) {
 				BMO_elem_flag_enable(bm, v, SEL_FLAG);
 
 				BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-					BMO_elem_flag_enable(bm, e, SEL_FLAG);
+					if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+						BMO_elem_flag_enable(bm, e, SEL_FLAG);
+					}
 				}
 
 			}
@@ -243,9 +251,11 @@ static void bmo_region_extend_constrict(BMesh *bm, BMOperator *op, int usefaces)
 		BMO_ITER (f, &siter, bm, op, "geom", BM_FACE) {
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				BM_ITER_ELEM (f2, &fiter, l->e, BM_FACES_OF_EDGE) {
-					if (!BMO_elem_flag_test(bm, f2, SEL_ORIG)) {
-						BMO_elem_flag_enable(bm, f, SEL_FLAG);
-						break;
+					if (!BM_elem_flag_test(f2, BM_ELEM_HIDDEN)) {
+						if (!BMO_elem_flag_test(bm, f2, SEL_ORIG)) {
+							BMO_elem_flag_enable(bm, f, SEL_FLAG);
+							break;
+						}
 					}
 				}
 			}

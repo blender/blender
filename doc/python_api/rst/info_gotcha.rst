@@ -137,11 +137,11 @@ For the time being this limitation just has to be worked around but we're aware 
 NGons and Tessellation Faces
 ============================
 
-Since 2.63 NGons are supported, this adds some complexity since in some cases you need to access triangles still (some exporters for example).
+Since 2.63 NGons are supported, this adds some complexity since in some cases you need to access triangles/quads still (some exporters for example).
 
 There are now 3 ways to access faces:
 
-* :class:`bpy.types.MeshPolygon` - this is the data stricture which now stores faces in object mode (access as ``mesh.polygons`` rather then ``mesh.faces``).
+* :class:`bpy.types.MeshPolygon` - this is the data structure which now stores faces in object mode (access as ``mesh.polygons`` rather then ``mesh.faces``).
 * :class:`bpy.types.MeshTessFace` - the result of triangulating (tessellated) polygons, the main method of face access in 2.62 or older (access as ``mesh.tessfaces``).
 * :class:`bmesh.types.BMFace` - the polygons as used in editmode.
 

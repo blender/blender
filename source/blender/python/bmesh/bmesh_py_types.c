@@ -2159,7 +2159,9 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 		                                 "|Oi:BMElemSeq.sort",
 		                                 (char **)kwlist,
 		                                 &keyfunc, &reverse))
+		{
 			return NULL;
+		}
 	}
 
 	if (keyfunc != NULL && !PyCallable_Check(keyfunc)) {

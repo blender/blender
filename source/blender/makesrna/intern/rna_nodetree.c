@@ -3746,7 +3746,7 @@ static void def_cmp_keying(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "clip_white");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Clip White", "Value of non-scaled matte pixel which considers as fully foreground pixel");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "blur_pre", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "blur_pre");
@@ -3825,12 +3825,12 @@ static void def_cmp_trackpos(StructRNA *srna)
 	prop = RNA_def_property(srna, "tracking_object", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "tracking_object");
 	RNA_def_property_ui_text(prop, "Tracking Object", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "track_name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "track_name");
 	RNA_def_property_ui_text(prop, "Track", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 /* -- Texture Nodes --------------------------------------------------------- */

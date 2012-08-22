@@ -62,7 +62,7 @@ typedef struct EffectInfo {
 EnumPropertyItem sequence_modifier_type_items[] = {
 	{seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
 	{seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
-	{seqModifierType_HueCorrect,"HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
+	{seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
