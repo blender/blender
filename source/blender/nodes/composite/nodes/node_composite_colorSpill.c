@@ -319,7 +319,7 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeColorspill *ncs= MEM_callocN(sizeof(NodeColorspill), "node colorspill");
 	node->storage=ncs;

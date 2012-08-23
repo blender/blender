@@ -130,7 +130,7 @@ static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_diff_matte(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_diff_matte(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
 	node->storage= c;

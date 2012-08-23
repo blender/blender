@@ -82,7 +82,7 @@ static void node_composit_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeSt
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= add_colorband(1);
 }

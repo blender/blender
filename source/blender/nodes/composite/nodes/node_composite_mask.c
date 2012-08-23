@@ -87,7 +87,7 @@ static void node_composit_exec_mask(void *data, bNode *node, bNodeStack **UNUSED
 }
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeMask *data = MEM_callocN(sizeof(NodeMask), STRINGIFY(NodeMask));
 	data->size_x = data->size_y = 256;

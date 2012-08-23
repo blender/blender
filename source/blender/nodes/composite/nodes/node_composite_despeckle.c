@@ -51,7 +51,7 @@ static void node_composit_exec_despeckle(void *UNUSED(data), bNode *UNUSED(node)
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_despeckle(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_despeckle(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom3 = 0.5f;
 	node->custom4 = 0.5f;

@@ -193,7 +193,7 @@ void BL_Texture::InitGLTex(unsigned int *pix,int x,int y,bool mipmap)
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
-void BL_Texture::InitGLCompressedTex(ImBuf* ibuf, bool mipmap)
+void BL_Texture::InitGLCompressedTex(ImBuf *ibuf, bool mipmap)
 {
 #ifndef WITH_DDS
 	// Fall back to uncompressed if DDS isn't enabled

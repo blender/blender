@@ -141,7 +141,7 @@ static void assign_index(struct bNode *node)
 	node->custom1 = index;
 }
 
-static void init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	TexNodeOutput *tno = MEM_callocN(sizeof(TexNodeOutput), "TEX_output");
 	node->storage= tno;

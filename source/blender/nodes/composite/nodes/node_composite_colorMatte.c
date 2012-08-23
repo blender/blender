@@ -116,7 +116,7 @@ static void node_composit_exec_color_matte(void *data, bNode *node, bNodeStack *
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_color_matte(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_color_matte(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node color");
 	node->storage= c;

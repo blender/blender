@@ -42,7 +42,7 @@ static bNodeSocketTemplate sh_node_tex_magic_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_magic(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_magic(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexMagic *tex = MEM_callocN(sizeof(NodeTexMagic), "NodeTexMagic");
 	default_tex_mapping(&tex->base.tex_mapping);

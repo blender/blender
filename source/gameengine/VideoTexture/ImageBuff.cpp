@@ -144,7 +144,7 @@ void ImageBuff::clear (short width, short height, unsigned char color)
 // img must point to a array of RGBA data of size width*height
 void ImageBuff::plot (unsigned char * img, short width, short height, short x, short y, short mode)
 {
-	struct ImBuf* tmpbuf;
+	struct ImBuf *tmpbuf;
 
 	if (m_size[0] == 0 || m_size[1] == 0 || width <= 0 || height <= 0)
 		return;

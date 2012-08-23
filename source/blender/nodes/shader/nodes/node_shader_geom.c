@@ -120,7 +120,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 	}
 }
 
-static void node_shader_init_geometry(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_geometry(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
 }

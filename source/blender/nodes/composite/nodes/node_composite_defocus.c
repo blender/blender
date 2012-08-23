@@ -868,7 +868,7 @@ static void node_composit_exec_defocus(void *UNUSED(data), bNode *node, bNodeSta
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	/* qdn: defocus node */
 	NodeDefocus *nbd = MEM_callocN(sizeof(NodeDefocus), "node defocus data");

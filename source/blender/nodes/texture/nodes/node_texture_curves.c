@@ -60,7 +60,7 @@ static void time_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out
 }
 
 
-static void time_init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void time_init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom1= 1;
 	node->custom2= 250;
@@ -106,7 +106,7 @@ static void rgb_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	tex_output(node, in, out[0], &rgb_colorfn, data);
 }
 
-static void rgb_init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void rgb_init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }

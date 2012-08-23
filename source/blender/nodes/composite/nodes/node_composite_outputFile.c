@@ -166,7 +166,7 @@ void ntreeCompositOutputFileSetLayer(bNode *node, bNodeSocket *sock, const char 
 	ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 }
 
-static void init_output_file(bNodeTree *ntree, bNode* node, bNodeTemplate *ntemp)
+static void init_output_file(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
 {
 	NodeImageMultiFile *nimf= MEM_callocN(sizeof(NodeImageMultiFile), "node image multi file");
 	ImageFormatData *format = NULL;

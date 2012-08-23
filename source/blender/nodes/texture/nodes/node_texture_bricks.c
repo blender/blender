@@ -50,7 +50,7 @@ static bNodeSocketTemplate outputs[]= {
 	{ -1, 0, ""	}
 };
 
-static void init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom3 = 0.5; /* offset */
 	node->custom4 = 1.0; /* squash */

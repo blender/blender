@@ -523,7 +523,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_image(bNodeTree *ntree, bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_image(bNodeTree *ntree, bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
 	node->storage= iuser;
