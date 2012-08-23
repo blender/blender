@@ -2031,8 +2031,8 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 	ot->poll = ED_operator_screenactive_norender;
 	ot->flag = OPTYPE_UNDO;
 	
-	/* rna */
-	RNA_def_boolean(ot->srna, "next", 1, "Next Keyframe", "");
+	/* properties */
+	RNA_def_boolean(ot->srna, "next", TRUE, "Next Keyframe", "");
 }
 
 /* ************** switch screen operator ***************************** */
