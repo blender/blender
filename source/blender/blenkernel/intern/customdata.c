@@ -99,7 +99,7 @@ typedef struct LayerTypeInfo {
 	 *    (there should be (sub element count)^2 weights per element)
 	 * count gives the number of elements in sources
 	 */
-	void (*interp)(void **sources, float *weights, float *sub_weights,
+	void (*interp)(void **sources, const float *weights, const float *sub_weights,
 	               int count, void *dest);
 
 	/* a function to swap the data in corners of the element */
@@ -203,8 +203,8 @@ static void linklist_free_simple(void *link)
 	MEM_freeN(link);
 }
 
-static void layerInterp_mdeformvert(void **sources, float *weights,
-                                    float *UNUSED(sub_weights), int count, void *dest)
+static void layerInterp_mdeformvert(void **sources, const float *weights,
+                                    const float *UNUSED(sub_weights), int count, void *dest)
 {
 	MDeformVert *dvert = dest;
 	LinkNode *dest_dw = NULL; /* a list of lists of MDeformWeight pointers */
@@ -261,8 +261,8 @@ static void layerInterp_mdeformvert(void **sources, float *weights,
 }
 
 
-static void layerInterp_msticky(void **sources, float *weights,
-                                float *UNUSED(sub_weights), int count, void *dest)
+static void layerInterp_msticky(void **sources, const float *weights,
+                                const float *UNUSED(sub_weights), int count, void *dest)
 {
 	float co[2], w;
 	MSticky *mst;
@@ -291,13 +291,13 @@ static void layerCopy_tface(const void *source, void *dest, int count)
 		dest_tf[i] = source_tf[i];
 }
 
-static void layerInterp_tface(void **sources, float *weights,
-                              float *sub_weights, int count, void *dest)
+static void layerInterp_tface(void **sources, const float *weights,
+                              const float *sub_weights, int count, void *dest)
 {
 	MTFace *tf = dest;
 	int i, j, k;
 	float uv[4][2] = {{0.0f}};
-	float *sub_weight;
+	const float *sub_weight;
 
 	if (count <= 0) return;
 
@@ -392,13 +392,13 @@ static void layerCopy_origspace_face(const void *source, void *dest, int count)
 		dest_tf[i] = source_tf[i];
 }
 
-static void layerInterp_origspace_face(void **sources, float *weights,
-                                       float *sub_weights, int count, void *dest)
+static void layerInterp_origspace_face(void **sources, const float *weights,
+                                       const float *sub_weights, int count, void *dest)
 {
 	OrigSpaceFace *osf = dest;
 	int i, j, k;
 	float uv[4][2] = {{0.0f}};
-	float *sub_weight;
+	const float *sub_weight;
 
 	if (count <= 0) return;
 
@@ -680,12 +680,12 @@ static void layerDefault_mloopcol(void *data, int count)
 
 }
 
-static void layerInterp_mloopcol(void **sources, float *weights,
-                                 float *sub_weights, int count, void *dest)
+static void layerInterp_mloopcol(void **sources, const float *weights,
+                                 const float *sub_weights, int count, void *dest)
 {
 	MLoopCol *mc = dest;
 	int i;
-	float *sub_weight;
+	const float *sub_weight;
 	struct {
 		float a;
 		float r;
@@ -768,8 +768,8 @@ static void layerAdd_mloopuv(void *data1, void *data2)
 	add_v2_v2(l1->uv, l2->uv);
 }
 
-static void layerInterp_mloopuv(void **sources, float *weights,
-                                float *sub_weights, int count, void *dest)
+static void layerInterp_mloopuv(void **sources, const float *weights,
+                                const float *sub_weights, int count, void *dest)
 {
 	MLoopUV *mluv = dest;
 	float *uv = mluv->uv;
@@ -838,8 +838,8 @@ static void layerAdd_mloop_origspace(void *data1, void *data2)
 	add_v2_v2(l1->uv, l2->uv);
 }
 
-static void layerInterp_mloop_origspace(void **sources, float *weights,
-                                        float *sub_weights, int count, void *dest)
+static void layerInterp_mloop_origspace(void **sources, const float *weights,
+                                        const float *sub_weights, int count, void *dest)
 {
 	OrigSpaceLoop *mluv = dest;
 	float *uv = mluv->uv;
@@ -866,8 +866,8 @@ static void layerInterp_mloop_origspace(void **sources, float *weights,
 }
 /* --- end copy */
 
-static void layerInterp_mcol(void **sources, float *weights,
-                             float *sub_weights, int count, void *dest)
+static void layerInterp_mcol(void **sources, const float *weights,
+                             const float *sub_weights, int count, void *dest)
 {
 	MCol *mc = dest;
 	int i, j, k;
@@ -878,7 +878,7 @@ static void layerInterp_mcol(void **sources, float *weights,
 		float b;
 	} col[4] = {{0.0f}};
 
-	float *sub_weight;
+	const float *sub_weight;
 
 	if (count <= 0) return;
 	
@@ -946,8 +946,8 @@ static void layerDefault_mcol(void *data, int count)
 	}
 }
 
-static void layerInterp_bweight(void **sources, float *weights,
-                                float *UNUSED(sub_weights), int count, void *dest)
+static void layerInterp_bweight(void **sources, const float *weights,
+                                const float *UNUSED(sub_weights), int count, void *dest)
 {
 	float *f = dest;
 	float **in = (float **)sources;
@@ -969,8 +969,8 @@ static void layerInterp_bweight(void **sources, float *weights,
 	}
 }
 
-static void layerInterp_shapekey(void **sources, float *weights,
-                                 float *UNUSED(sub_weights), int count, void *dest)
+static void layerInterp_shapekey(void **sources, const float *weights,
+                                 const float *UNUSED(sub_weights), int count, void *dest)
 {
 	float *co = dest;
 	float **in = (float **)sources;
@@ -1003,8 +1003,8 @@ static void layerDefault_mvert_skin(void *data, int count)
 	}
 }
 
-static void layerInterp_mvert_skin(void **sources, float *weights,
-                                   float *UNUSED(sub_weights),
+static void layerInterp_mvert_skin(void **sources, const float *weights,
+                                   const float *UNUSED(sub_weights),
                                    int count, void *dest)
 {
 	float radius[3], w;
