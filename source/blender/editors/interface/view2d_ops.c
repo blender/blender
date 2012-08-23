@@ -672,13 +672,22 @@ static void view_zoomstep_exit(wmOperator *op)
 /* this operator only needs this single callback, where it calls the view_zoom_*() methods */
 static int view_zoomin_exec(bContext *C, wmOperator *op)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	short do_zoom_x = TRUE;
+	short do_zoom_y = TRUE;
+
 	/* check that there's an active region, as View2D data resides there */
 	if (!view_zoom_poll(C))
 		return OPERATOR_PASS_THROUGH;
 	
+	/* default not to zoom the sequencer vertically */
+	if (sa && sa->spacetype == SPACE_SEQ) {
+		do_zoom_y = FALSE;
+	}
+
 	/* set RNA-Props - zooming in by uniform factor */
-	RNA_float_set(op->ptr, "zoomfacx", 0.0375f);
-	RNA_float_set(op->ptr, "zoomfacy", 0.0375f);
+	RNA_float_set(op->ptr, "zoomfacx", do_zoom_x ? 0.0375f : 0.0f);
+	RNA_float_set(op->ptr, "zoomfacy", do_zoom_y ? 0.0375f : 0.0f);
 	
 	/* apply movement, then we're done */
 	view_zoomstep_apply(C, op);
@@ -729,13 +738,22 @@ static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 /* this operator only needs this single callback, where it callsthe view_zoom_*() methods */
 static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	short do_zoom_x = TRUE;
+	short do_zoom_y = TRUE;
+
 	/* check that there's an active region, as View2D data resides there */
 	if (!view_zoom_poll(C))
 		return OPERATOR_PASS_THROUGH;
 	
+	/* default not to zoom the sequencer vertically */
+	if (sa && sa->spacetype == SPACE_SEQ) {
+		do_zoom_y = FALSE;
+	}
+
 	/* set RNA-Props - zooming in by uniform factor */
-	RNA_float_set(op->ptr, "zoomfacx", -0.0375f);
-	RNA_float_set(op->ptr, "zoomfacy", -0.0375f);
+	RNA_float_set(op->ptr, "zoomfacx", do_zoom_x ? -0.0375f : 0.0f);
+	RNA_float_set(op->ptr, "zoomfacy", do_zoom_y ? -0.0375f : 0.0f);
 	
 	/* apply movement, then we're done */
 	view_zoomstep_apply(C, op);
