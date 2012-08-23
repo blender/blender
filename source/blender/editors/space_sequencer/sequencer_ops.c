@@ -190,8 +190,18 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_strip_jump", PAGEUPKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "next", TRUE);
+	RNA_boolean_set(kmi->ptr, "center", FALSE);
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_strip_jump", PAGEDOWNKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "next", FALSE);
+	RNA_boolean_set(kmi->ptr, "center", FALSE);
+
+	/* alt for center */
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_strip_jump", PAGEUPKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "next", TRUE);
+	RNA_boolean_set(kmi->ptr, "center", TRUE);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_strip_jump", PAGEDOWNKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "next", FALSE);
+	RNA_boolean_set(kmi->ptr, "center", TRUE);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", LEFTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_LEFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_RIGHT);

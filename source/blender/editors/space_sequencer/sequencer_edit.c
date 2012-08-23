@@ -2288,7 +2288,9 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 }
 
 
-static int find_next_prev_edit(Scene *scene, int cfra, int side)
+static int find_next_prev_edit(Scene *scene, int cfra,
+                               const short side,
+                               const short do_skip_mute, const short do_center)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq, *best_seq = NULL, *frame_seq = NULL;
@@ -2299,19 +2301,32 @@ static int find_next_prev_edit(Scene *scene, int cfra, int side)
 	if (ed == NULL) return cfra;
 	
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+		int seq_frame;
+
+		if (do_skip_mute && (seq->flag & SEQ_MUTE)) {
+			continue;
+		}
+
+		if (do_center) {
+			seq_frame = (seq->startdisp + seq->enddisp) / 2;
+		}
+		else {
+			seq_frame = seq->startdisp;
+		}
+
 		dist = MAXFRAME * 2;
 			
 		switch (side) {
 			case SEQ_SIDE_LEFT:
-				if (seq->startdisp < cfra) {
-					dist = cfra - seq->startdisp;
+				if (seq_frame < cfra) {
+					dist = cfra - seq_frame;
 				}
 				break;
 			case SEQ_SIDE_RIGHT:
-				if (seq->startdisp > cfra) {
-					dist = seq->startdisp - cfra;
+				if (seq_frame > cfra) {
+					dist = seq_frame - cfra;
 				}
-				else if (seq->startdisp == cfra) {
+				else if (seq_frame == cfra) {
 					frame_seq = seq;
 				}
 				break;
@@ -2326,20 +2341,38 @@ static int find_next_prev_edit(Scene *scene, int cfra, int side)
 	/* if no sequence to the right is found and the
 	 * frame is on the start of the last sequence,
 	 * move to the end of the last sequence */
-	if (frame_seq) cfra = frame_seq->enddisp;
+	if (frame_seq) {
+		if (do_center) {
+			cfra = (frame_seq->startdisp + frame_seq->enddisp) / 2;
+		}
+		else {
+			cfra = frame_seq->enddisp;
+		}
+	}
 
-	return best_seq ? best_seq->startdisp : cfra;
+	if (best_seq) {
+		if (do_center) {
+			cfra = (best_seq->startdisp + best_seq->enddisp) / 2;
+		}
+		else {
+			cfra = best_seq->startdisp;
+		}
+	}
+
+	return cfra;
 }
 
-static int next_prev_edit_internal(Scene *scene, int side)
+static int strip_jump_internal(Scene *scene,
+                                   const short side,
+                                   const short do_skip_mute, const short do_center)
 {
-	int change = 0;
+	int change = FALSE;
 	int cfra = CFRA;
-	int nfra = find_next_prev_edit(scene, cfra, side);
+	int nfra = find_next_prev_edit(scene, cfra, side, do_skip_mute, do_center);
 	
 	if (nfra != cfra) {
 		CFRA = nfra;
-		change = 1;
+		change = TRUE;
 	}
 
 	return change;
@@ -2350,9 +2383,12 @@ static int sequencer_strip_jump_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	short next = RNA_boolean_get(op->ptr, "next");
+	short center = RNA_boolean_get(op->ptr, "center");
 
-	if (!next_prev_edit_internal(scene, next ? SEQ_SIDE_RIGHT : SEQ_SIDE_LEFT))
+	/* currently do_skip_mute is always TRUE */
+	if (!strip_jump_internal(scene, next ? SEQ_SIDE_RIGHT : SEQ_SIDE_LEFT, TRUE, center)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 	
@@ -2365,16 +2401,17 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
 	ot->name = "Jump to Strip";
 	ot->idname = "SEQUENCER_OT_strip_jump";
 	ot->description = "Move frame to previous edit point";
-	
+
 	/* api callbacks */
 	ot->exec = sequencer_strip_jump_exec;
 	ot->poll = sequencer_edit_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "next", TRUE, "Next Strip", "");
+	RNA_def_boolean(ot->srna, "center", TRUE, "Use strip center", "");
 }
 
 static void swap_sequence(Scene *scene, Sequence *seqa, Sequence *seqb)
