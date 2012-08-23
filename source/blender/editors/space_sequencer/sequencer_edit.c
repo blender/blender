@@ -2363,8 +2363,8 @@ static int find_next_prev_edit(Scene *scene, int cfra,
 }
 
 static int strip_jump_internal(Scene *scene,
-                                   const short side,
-                                   const short do_skip_mute, const short do_center)
+                               const short side,
+                               const short do_skip_mute, const short do_center)
 {
 	int change = FALSE;
 	int cfra = CFRA;

@@ -790,7 +790,7 @@ class WM_OT_path_open(Operator):
             return {'CANCELLED'}
 
         if sys.platform[:3] == "win":
-            subprocess.Popen(["start", filepath], shell=True)
+            os.startfile(filepath)
         elif sys.platform == "darwin":
             subprocess.Popen(["open", filepath])
         else:

@@ -2098,7 +2098,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "mergedist", 0.0001f, 0.000001f, 50.0f, 
 	              "Merge Distance",
 	              "Minimum distance between elements to merge", 0.00001, 10.0);
-	RNA_def_boolean(ot->srna, "use_unselected", 1, "Unselected", "Merge selected to other unselected vertices");
+	RNA_def_boolean(ot->srna, "use_unselected", 0, "Unselected", "Merge selected to other unselected vertices");
 }
 
 /************************ Vertex Path Operator *************************/

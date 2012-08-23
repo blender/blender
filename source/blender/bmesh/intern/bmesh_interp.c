@@ -46,7 +46,7 @@
 #include "intern/bmesh_private.h"
 
 /* edge and vertex share, currently theres no need to have different logic */
-static void bm_data_interp_from_elem(BMesh *bm, BMElem *ele1, BMElem *ele2, BMElem *ele_dst, const float fac)
+static void bm_data_interp_from_elem(CustomData *data_layer, BMElem *ele1, BMElem *ele2, BMElem *ele_dst, const float fac)
 {
 	if (ele1->head.data && ele2->head.data) {
 		/* first see if we can avoid interpolation */
@@ -55,8 +55,8 @@ static void bm_data_interp_from_elem(BMesh *bm, BMElem *ele1, BMElem *ele2, BMEl
 				/* do nothing */
 			}
 			else {
-				CustomData_bmesh_free_block(&bm->vdata, &ele_dst->head.data);
-				CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, ele1->head.data, &ele_dst->head.data);
+				CustomData_bmesh_free_block(data_layer, &ele_dst->head.data);
+				CustomData_bmesh_copy_data(data_layer, data_layer, ele1->head.data, &ele_dst->head.data);
 			}
 		}
 		else if (fac >= 1.0f) {
@@ -64,8 +64,8 @@ static void bm_data_interp_from_elem(BMesh *bm, BMElem *ele1, BMElem *ele2, BMEl
 				/* do nothing */
 			}
 			else {
-				CustomData_bmesh_free_block(&bm->vdata, &ele_dst->head.data);
-				CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, ele2->head.data, &ele_dst->head.data);
+				CustomData_bmesh_free_block(data_layer, &ele_dst->head.data);
+				CustomData_bmesh_copy_data(data_layer, data_layer, ele2->head.data, &ele_dst->head.data);
 			}
 		}
 		else {
@@ -76,7 +76,7 @@ static void bm_data_interp_from_elem(BMesh *bm, BMElem *ele1, BMElem *ele2, BMEl
 			src[1] = ele2->head.data;
 			w[0] = 1.0f - fac;
 			w[1] = fac;
-			CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, ele_dst->head.data);
+			CustomData_bmesh_interp(data_layer, src, w, NULL, 2, ele_dst->head.data);
 		}
 	}
 }
@@ -90,7 +90,7 @@ static void bm_data_interp_from_elem(BMesh *bm, BMElem *ele1, BMElem *ele2, BMEl
  */
 void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac)
 {
-	bm_data_interp_from_elem(bm, (BMElem *)v1, (BMElem *)v2, (BMElem *)v, fac);
+	bm_data_interp_from_elem(&bm->vdata, (BMElem *)v1, (BMElem *)v2, (BMElem *)v, fac);
 }
 
 /**
@@ -102,7 +102,7 @@ void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, con
  */
 void BM_data_interp_from_edges(BMesh *bm, BMEdge *e1, BMEdge *e2, BMEdge *e, const float fac)
 {
-	bm_data_interp_from_elem(bm, (BMElem *)e1, (BMElem *)e2, (BMElem *)e, fac);
+	bm_data_interp_from_elem(&bm->edata, (BMElem *)e1, (BMElem *)e2, (BMElem *)e, fac);
 }
 
 /**
