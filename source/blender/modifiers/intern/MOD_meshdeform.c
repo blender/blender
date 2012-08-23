@@ -104,9 +104,9 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 }
 
 static void foreachObjectLink(
-    ModifierData *md, Object *ob,
-    void (*walk)(void *userData, Object *ob, Object **obpoin),
-    void *userData)
+        ModifierData *md, Object *ob,
+        void (*walk)(void *userData, Object *ob, Object **obpoin),
+        void *userData)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
 
@@ -182,8 +182,8 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 }
 
 static void meshdeformModifier_do(
-    ModifierData *md, Object *ob, DerivedMesh *dm,
-    float (*vertexCos)[3], int numVerts)
+        ModifierData *md, Object *ob, DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
 	struct Mesh *me = (mmd->object) ? mmd->object->data : NULL;

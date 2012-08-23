@@ -1487,10 +1487,10 @@ void nodeSocketSetType(bNodeSocket *sock, int type)
  * referene other pointers which need validation.
  */
 typedef struct bNodeClipboardExtraInfo {
-    struct bNodeClipboardExtraInfo *next, *prev;
+	struct bNodeClipboardExtraInfo *next, *prev;
 	ID  *id;
-    char id_name[MAX_ID_NAME];
-    char library_name[FILE_MAX];
+	char id_name[MAX_ID_NAME];
+	char library_name[FILE_MAX];
 } bNodeClipboardExtraInfo;
 #endif  /* USE_NODE_CB_VALIDATE */
 
@@ -1499,7 +1499,7 @@ typedef struct bNodeClipboard {
 	ListBase nodes;
 
 #ifdef USE_NODE_CB_VALIDATE
-    ListBase nodes_extra_info;
+	ListBase nodes_extra_info;
 #endif
 
 	ListBase links;
@@ -1531,7 +1531,7 @@ void BKE_node_clipboard_clear(void)
 	node_clipboard.nodes.first = node_clipboard.nodes.last = NULL;
 
 #ifdef USE_NODE_CB_VALIDATE
-    BLI_freelistN(&node_clipboard.nodes_extra_info);
+	BLI_freelistN(&node_clipboard.nodes_extra_info);
 #endif
 }
 
@@ -1582,28 +1582,28 @@ int BKE_node_clipboard_validate(void)
 void BKE_node_clipboard_add_node(bNode *node)
 {
 #ifdef USE_NODE_CB_VALIDATE
-    /* add extra info */
-    bNodeClipboardExtraInfo *node_info = MEM_mallocN(sizeof(bNodeClipboardExtraInfo), STRINGIFY(bNodeClipboardExtraInfo));
+	/* add extra info */
+	bNodeClipboardExtraInfo *node_info = MEM_mallocN(sizeof(bNodeClipboardExtraInfo), STRINGIFY(bNodeClipboardExtraInfo));
 
 	node_info->id = node->id;
-    if (node->id) {
-        BLI_strncpy(node_info->id_name, node->id->name, sizeof(node_info->id_name));
-        if (node->id->lib) {
-            BLI_strncpy(node_info->library_name, node->id->lib->filepath, sizeof(node_info->library_name));
-        }
-        else {
-            node_info->library_name[0] = '\0';
-        }
-    }
-    else {
-        node_info->id_name[0] = '\0';
-        node_info->library_name[0] = '\0';
-    }
-    BLI_addtail(&node_clipboard.nodes_extra_info, node_info);
+	if (node->id) {
+		BLI_strncpy(node_info->id_name, node->id->name, sizeof(node_info->id_name));
+		if (node->id->lib) {
+			BLI_strncpy(node_info->library_name, node->id->lib->filepath, sizeof(node_info->library_name));
+		}
+		else {
+			node_info->library_name[0] = '\0';
+		}
+	}
+	else {
+		node_info->id_name[0] = '\0';
+		node_info->library_name[0] = '\0';
+	}
+	BLI_addtail(&node_clipboard.nodes_extra_info, node_info);
 	/* end extra info */
 #endif  /* USE_NODE_CB_VALIDATE */
 
-    /* add node */
+	/* add node */
 	BLI_addtail(&node_clipboard.nodes, node);
 
 }

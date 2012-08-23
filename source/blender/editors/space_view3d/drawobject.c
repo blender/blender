@@ -2256,9 +2256,9 @@ void mesh_foreachScreenFace(
 }
 
 void nurbs_foreachScreenVert(
-    ViewContext *vc,
-    void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y),
-    void *userData)
+        ViewContext *vc,
+        void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y),
+        void *userData)
 {
 	Curve *cu = vc->obedit->data;
 	short s[2] = {IS_CLIPPED, 0};

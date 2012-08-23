@@ -82,9 +82,9 @@ static int isDisabled(ModifierData *md, int UNUSED(userRenderParams))
 }
 
 static void foreachObjectLink(
-    ModifierData *md, Object *ob,
-    void (*walk)(void *userData, Object *ob, Object **obpoin),
-    void *userData)
+        ModifierData *md, Object *ob,
+        void (*walk)(void *userData, Object *ob, Object **obpoin),
+        void *userData)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *) md;
 
