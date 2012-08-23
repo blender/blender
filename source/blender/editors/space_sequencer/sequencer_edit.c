@@ -2345,42 +2345,13 @@ static int next_prev_edit_internal(Scene *scene, int side)
 	return change;
 }
 
-/* move frame to next edit point operator */
-static int sequencer_next_edit_exec(bContext *C, wmOperator *UNUSED(op))
+/* jump frame to edit point operator */
+static int sequencer_strip_jump_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	
-	if (!next_prev_edit_internal(scene, SEQ_SIDE_RIGHT))
-		return OPERATOR_CANCELLED;
+	short next = RNA_boolean_get(op->ptr, "next");
 
-	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-
-	return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_next_edit(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Next Edit";
-	ot->idname = "SEQUENCER_OT_next_edit";
-	ot->description = "Move frame to next edit point";
-	
-	/* api callbacks */
-	ot->exec = sequencer_next_edit_exec;
-	ot->poll = sequencer_edit_poll;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
-	/* properties */
-}
-
-/* move frame to previous edit point operator */
-static int sequencer_previous_edit_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Scene *scene = CTX_data_scene(C);
-	
-	if (!next_prev_edit_internal(scene, SEQ_SIDE_LEFT))
+	if (!next_prev_edit_internal(scene, next ? SEQ_SIDE_RIGHT : SEQ_SIDE_LEFT))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
@@ -2388,21 +2359,22 @@ static int sequencer_previous_edit_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
+void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Previous Edit";
-	ot->idname = "SEQUENCER_OT_previous_edit";
+	ot->name = "Jump to Strip";
+	ot->idname = "SEQUENCER_OT_strip_jump";
 	ot->description = "Move frame to previous edit point";
 	
 	/* api callbacks */
-	ot->exec = sequencer_previous_edit_exec;
+	ot->exec = sequencer_strip_jump_exec;
 	ot->poll = sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
+	RNA_def_boolean(ot->srna, "next", TRUE, "Next Strip", "");
 }
 
 static void swap_sequence(Scene *scene, Sequence *seqa, Sequence *seqb)

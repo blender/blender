@@ -72,8 +72,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_meta_make);
 	WM_operatortype_append(SEQUENCER_OT_meta_separate);
 	WM_operatortype_append(SEQUENCER_OT_snap);
-	WM_operatortype_append(SEQUENCER_OT_next_edit);
-	WM_operatortype_append(SEQUENCER_OT_previous_edit);
+	WM_operatortype_append(SEQUENCER_OT_strip_jump);
 	WM_operatortype_append(SEQUENCER_OT_swap);
 	WM_operatortype_append(SEQUENCER_OT_swap_data);
 	WM_operatortype_append(SEQUENCER_OT_rendersize);
@@ -189,8 +188,10 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_next_edit", PAGEUPKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_previous_edit", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_strip_jump", PAGEUPKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "next", TRUE);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_strip_jump", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "next", FALSE);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", LEFTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_LEFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_RIGHT);
