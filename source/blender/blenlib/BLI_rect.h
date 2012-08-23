@@ -57,16 +57,16 @@ void BLI_rctf_interp(struct rctf *rect, const struct rctf *rect_a, const struct 
 //void BLI_rcti_interp(struct rctf *rect, struct rctf *rect_a, struct rctf *rect_b, float fac);
 int  BLI_rctf_compare(const struct rctf *rect_a, const struct rctf *rect_b, const float limit);
 int  BLI_rcti_compare(const struct rcti *rect_a, const struct rcti *rect_b);
-int  BLI_in_rcti(const struct rcti *rect, const int x, const int y);
-int  BLI_in_rcti_v(const struct rcti *rect, const int xy[2]);
-int  BLI_in_rctf(const struct rctf *rect, const float x, const float y);
-int  BLI_in_rctf_v(const struct rctf *rect, const float xy[2]);
+int  BLI_rctf_isect(const struct rctf *src1, const struct rctf *src2, struct rctf *dest);
+int  BLI_rcti_isect(const struct rcti *src1, const struct rcti *src2, struct rcti *dest);
+int  BLI_rcti_isect_pt(const struct rcti *rect, const int x, const int y);
+int  BLI_rcti_isect_pt_v(const struct rcti *rect, const int xy[2]);
+int  BLI_rctf_isect_pt(const struct rctf *rect, const float x, const float y);
+int  BLI_rctf_isect_pt_v(const struct rctf *rect, const float xy[2]);
 int  BLI_rcti_isect_segment(const struct rcti *rect, const int s1[2], const int s2[2]);
 #if 0 /* NOT NEEDED YET */
 int  BLI_rctf_isect_segment(struct rcti *rect, int s1[2], int s2[2]);
 #endif
-int  BLI_rctf_isect(const struct rctf *src1, const struct rctf *src2, struct rctf *dest);
-int  BLI_rcti_isect(const struct rcti *src1, const struct rcti *src2, struct rcti *dest);
 void BLI_rctf_union(struct rctf *rctf1, const struct rctf *rctf2);
 void BLI_rcti_union(struct rcti *rcti1, const struct rcti *rcti2);
 void BLI_rcti_rctf_copy(struct rcti *dst, const struct rctf *src);
@@ -88,4 +88,4 @@ void print_rcti(const char *str, const struct rcti *rect);
 }
 #endif
 
-#endif
+#endif  /* __BLI_RECT_H__ */

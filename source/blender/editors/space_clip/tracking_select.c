@@ -363,7 +363,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
 			if (MARKER_VISIBLE(sc, track, marker)) {
-				if (BLI_in_rctf_v(&rectf, marker->pos)) {
+				if (BLI_rctf_isect_pt_v(&rectf, marker->pos)) {
 					if (mode == GESTURE_MODAL_SELECT)
 						BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
 					else
@@ -441,7 +441,7 @@ static int do_lasso_select_marker(bContext *C, int mcords[][2], short moves, sho
 				/* marker in screen coords */
 				ED_clip_point_stable_pos__reverse(sc, ar, marker->pos, screen_co);
 
-				if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
+				if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
 				{
 					if (select)

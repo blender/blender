@@ -1037,11 +1037,11 @@ static int UNUSED_FUNCTION(node_mouse_groupheader) (SpaceNode * snode)
 // XXX	areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
 	
 	/* click in header or outside? */
-	if (BLI_in_rctf(&gnode->totr, mx, my) == 0) {
+	if (BLI_rctf_isect_pt(&gnode->totr, mx, my) == 0) {
 		rctf rect = gnode->totr;
 		
 		rect.ymax += NODE_DY;
-		if (BLI_in_rctf(&rect, mx, my) == 0)
+		if (BLI_rctf_isect_pt(&rect, mx, my) == 0)
 			snode_make_group_editable(snode, NULL);  /* toggles, so exits editmode */
 //		else
 // XXX			transform_nodes(snode->nodetree, 'g', "Move group");
@@ -1085,7 +1085,7 @@ int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **so
 		if (in_out & SOCK_IN) {
 			for (sock = node->inputs.first; sock; sock = sock->next) {
 				if (!nodeSocketIsHidden(sock)) {
-					if (BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+					if (BLI_rctf_isect_pt(&rect, sock->locx, sock->locy)) {
 						if (node == visible_node(snode, &rect)) {
 							*nodep = node;
 							*sockp = sock;
@@ -1098,7 +1098,7 @@ int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **so
 		if (in_out & SOCK_OUT) {
 			for (sock = node->outputs.first; sock; sock = sock->next) {
 				if (!nodeSocketIsHidden(sock)) {
-					if (BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+					if (BLI_rctf_isect_pt(&rect, sock->locx, sock->locy)) {
 						if (node == visible_node(snode, &rect)) {
 							*nodep = node;
 							*sockp = sock;
@@ -1116,7 +1116,7 @@ int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **so
 	if (in_out & SOCK_IN) {
 		for (sock = snode->edittree->outputs.first; sock; sock = sock->next) {
 			if (!nodeSocketIsHidden(sock)) {
-				if (BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+				if (BLI_rctf_isect_pt(&rect, sock->locx, sock->locy)) {
 					*nodep = NULL;   /* NULL node pointer indicates group socket */
 					*sockp = sock;
 					return 1;
@@ -1127,7 +1127,7 @@ int node_find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **so
 	if (in_out & SOCK_OUT) {
 		for (sock = snode->edittree->inputs.first; sock; sock = sock->next) {
 			if (!nodeSocketIsHidden(sock)) {
-				if (BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+				if (BLI_rctf_isect_pt(&rect, sock->locx, sock->locy)) {
 					*nodep = NULL;   /* NULL node pointer indicates group socket */
 					*sockp = sock;
 					return 1;

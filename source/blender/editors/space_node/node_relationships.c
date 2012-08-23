@@ -1140,7 +1140,7 @@ static int node_attach_exec(bContext *C, wmOperator *UNUSED(op))
 		/* skip selected, those are the nodes we want to attach */
 		if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT))
 			continue;
-		if (BLI_in_rctf(&frame->totr, snode->cursor[0], snode->cursor[1]))
+		if (BLI_rctf_isect_pt(&frame->totr, snode->cursor[0], snode->cursor[1]))
 			break;
 	}
 	if (frame) {

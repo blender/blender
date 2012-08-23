@@ -161,7 +161,7 @@ void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 		ys = (az->y1 + az->y2) / 2;
 
 		/* test if inside */
-		if (BLI_in_rcti(&ar->winrct, xs, ys)) {
+		if (BLI_rcti_isect_pt(&ar->winrct, xs, ys)) {
 			az->do_draw = TRUE;
 		}
 	}
