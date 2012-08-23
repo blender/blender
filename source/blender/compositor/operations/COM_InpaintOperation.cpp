@@ -182,6 +182,7 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 
 	for (int dx = -1; dx <= 1; dx++) {
 		for (int dy = -1; dy <= 1; dy++) {
+			/* changing to both != 0 gives dithering artifacts */
 			if (dx != 0 || dy != 0) {
 				int x_ofs = x + dx;
 				int y_ofs = y + dy;
@@ -213,8 +214,6 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 		interp_v3_v3v3(output, pix, output, output[3]);
 		output[3] = 1.0f;
 	}
-
-	this->get_pixel(x, y)[3] = 1.0f;
 }
 
 void *InpaintSimpleOperation::initializeTileData(rcti *rect)

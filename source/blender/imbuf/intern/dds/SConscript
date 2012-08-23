@@ -11,7 +11,8 @@ incs = ['.',
     '../../../blenkernel',
     '../../../blenlib',
     'intern/include',
-    '#/intern/guardedalloc']
+    '#/intern/guardedalloc',
+    '#/intern/utfconv']
 
 
 defs = ['WITH_DDS']

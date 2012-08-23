@@ -32,7 +32,7 @@
 #include <stdio.h> // printf
 #include <fstream>
 
-#ifdef WIN32
+#if defined (WIN32) && !defined(FREE_WINDOWS)
 #include "utfconv.h"
 #endif
 
@@ -54,7 +54,7 @@ int imb_save_dds(struct ImBuf * ibuf, const char *name, int flags)
 	/* open file for writing */
 	std::ofstream fildes;
 
-#ifdef WIN32
+#if defined (WIN32) && !defined(FREE_WINDOWS)
 	wchar_t *wname = alloc_utf16_from_8(name, 0);
 	fildes.open(wname);
 	free(wname);

@@ -422,6 +422,8 @@ static BMOpDefine bmo_bridge_loops_def = {
 	"bridge_loops",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edge */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* new face */
+	 {BMO_OP_SLOT_BOOL,        "use_merge"},
+	 {BMO_OP_SLOT_FLT,         "merge_factor"},
 	 {0, /* null-terminating sentinel */}},
 	bmo_bridge_loops_exec,
 	0,

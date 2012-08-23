@@ -4804,8 +4804,12 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	
-	if (!EDBM_op_callf(em, op, "bridge_loops edges=%he", BM_ELEM_SELECT))
+	if (!EDBM_op_callf(em, op,
+	                   "bridge_loops edges=%he use_merge=%b merge_factor=%f",
+	                   BM_ELEM_SELECT, RNA_boolean_get(op->ptr, "use_merge"), RNA_float_get(op->ptr, "merge_factor")))
+	{
 		return OPERATOR_CANCELLED;
+	}
 	
 	EDBM_update_generic(C, em, TRUE);
 
@@ -4827,6 +4831,9 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
+
+	RNA_def_boolean(ot->srna, "use_merge", FALSE, "Merge", "Merge rather than creating faces");
+	RNA_def_float(ot->srna, "merge_factor", 0.5f, 0.0f, 1.0f, "Merge Factor", "", 0.0f, 1.0f);
 }
 
 typedef struct {
