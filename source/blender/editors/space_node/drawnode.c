@@ -1812,6 +1812,15 @@ static void node_composit_buts_inpaint(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);
 }
 
+static void node_composit_buts_despeckle(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *col;
+
+	col = uiLayoutColumn(layout, FALSE);
+	uiItemR(col, ptr, "threshold", 0, NULL, ICON_NONE);
+	uiItemR(col, ptr, "threshold_neighbour", 0, NULL, ICON_NONE);
+}
+
 static void node_composit_buts_diff_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *col;
@@ -2673,6 +2682,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_INPAINT:
 			ntype->uifunc = node_composit_buts_inpaint;
+			break;
+		case CMP_NODE_DESPECKLE:
+			ntype->uifunc = node_composit_buts_despeckle;
 			break;
 		case CMP_NODE_OUTPUT_FILE:
 			ntype->uifunc = node_composit_buts_file_output;
