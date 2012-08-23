@@ -118,6 +118,9 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_strip_modifier_add);
 	WM_operatortype_append(SEQUENCER_OT_strip_modifier_remove);
 	WM_operatortype_append(SEQUENCER_OT_strip_modifier_move);
+
+	/* sequencer_view.h */
+	WM_operatortype_append(SEQUENCER_OT_sample);
 }
 
 
@@ -335,6 +338,9 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 #endif
+
+	/* sample */
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
 }
 
 void ED_operatormacros_sequencer(void)

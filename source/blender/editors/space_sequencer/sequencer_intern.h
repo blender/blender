@@ -44,6 +44,7 @@ struct ScrArea;
 struct ARegion;
 struct ARegionType;
 struct Scene;
+struct Main;
 
 /* space_sequencer.c */
 struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
@@ -54,6 +55,8 @@ void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
 void draw_image_seq(const struct bContext* C, struct Scene *scene, struct  ARegion *ar, struct SpaceSeq *sseq, int cfra, int offset, int draw_overlay);
 
 void seq_reset_imageofs(struct SpaceSeq *sseq);
+
+struct ImBuf *sequencer_ibuf_get(struct Main *bmain, struct Scene *scene, struct SpaceSeq *sseq, int cfra, int frame_ofs);
 
 /* sequencer_edit.c */
 struct View2D;
@@ -180,6 +183,9 @@ void SEQUENCER_OT_properties(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_remove(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_move(struct wmOperatorType *ot);
+
+/* sequencer_view.c */
+void SEQUENCER_OT_sample(struct wmOperatorType *ot);
 
 #endif /* __SEQUENCER_INTERN_H__ */
 
