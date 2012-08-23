@@ -76,6 +76,7 @@ EnumPropertyItem sequence_modifier_type_items[] = {
 typedef struct SequenceSearchData {
 	Sequence *seq;
 	void *data;
+	SequenceModifierData *smd;
 } SequenceSearchData;
 
 /* build a temp reference to the parent */
@@ -743,6 +744,7 @@ static int colbalance_seq_cmp_cb(Sequence *seq, void *arg_pt)
 
 	if (seq->strip && seq->strip->color_balance == data->data) {
 		data->seq = seq;
+		data->smd = NULL;
 		return -1; /* done so bail out */
 	}
 
@@ -755,6 +757,7 @@ static int colbalance_seq_cmp_cb(Sequence *seq, void *arg_pt)
 
 				if (&cbmd->color_balance == data->data) {
 					data->seq = seq;
+					data->smd = smd;
 					return -1; /* done so bail out */
 				}
 			}
@@ -764,15 +767,18 @@ static int colbalance_seq_cmp_cb(Sequence *seq, void *arg_pt)
 	return 1;
 }
 
-static Sequence *sequence_get_by_colorbalance(Editing *ed, StripColorBalance *cb)
+static Sequence *sequence_get_by_colorbalance(Editing *ed, StripColorBalance *cb, SequenceModifierData **smd_r)
 {
 	SequenceSearchData data;
 
 	data.seq = NULL;
+	data.smd = NULL;
 	data.data = cb;
 
 	/* irritating we need to search for our sequence! */
 	BKE_sequencer_base_recursive_apply(&ed->seqbase, colbalance_seq_cmp_cb, &data);
+
+	*smd_r = data.smd;
 
 	return data.seq;
 }
@@ -780,11 +786,20 @@ static Sequence *sequence_get_by_colorbalance(Editing *ed, StripColorBalance *cb
 static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
 {
 	Scene *scene = ptr->id.data;
+	SequenceModifierData *smd;
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
-	Sequence *seq = sequence_get_by_colorbalance(ed, ptr->data);
+	Sequence *seq = sequence_get_by_colorbalance(ed, ptr->data, &smd);
 
-	if (seq && seq->name + 2)
-		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].color_balance", seq->name + 2);
+	if (seq && seq->name + 2) {
+		if (!smd) {
+			/* path to old filter color balance */
+			return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].color_balance", seq->name + 2);
+		}
+		else {
+			/* path to modifier */
+			return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].modifiers[\"%s\"].color_balance", seq->name + 2, smd->name);
+		}
+	}
 	else
 		return BLI_strdup("");
 }
@@ -793,9 +808,10 @@ static void rna_SequenceColorBalance_update(Main *UNUSED(bmain), Scene *UNUSED(s
 {
 	Scene *scene = (Scene *) ptr->id.data;
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
-	Sequence *seq = sequence_get_by_colorbalance(ed, ptr->data);
+	SequenceModifierData *smd;
+	Sequence *seq = sequence_get_by_colorbalance(ed, ptr->data, &smd);
 
-	if (seq->strip->color_balance == ptr->data)
+	if (smd == NULL)
 		BKE_sequence_invalidate_cache(scene, seq);
 	else
 		BKE_sequence_invalidate_cache_for_modifier(scene, seq);
@@ -943,8 +959,8 @@ static void rna_SequenceModifier_name_set(PointerRNA *ptr, const char *value)
 	if (adt) {
 		char path[1024];
 
-		BLI_snprintf(path, sizeof(path), "sequence_editor.sequences_all[\"%s\"].modifiers", seq->name);
-		BKE_animdata_fix_paths_rename(&scene->id, adt, NULL, path, oldname, smd->name + 2, 0, 0, 1);
+		BLI_snprintf(path, sizeof(path), "sequence_editor.sequences_all[\"%s\"].modifiers", seq->name + 2);
+		BKE_animdata_fix_paths_rename(&scene->id, adt, NULL, path, oldname, smd->name, 0, 0, 1);
 	}
 }
 
@@ -1239,6 +1255,8 @@ static void rna_def_color_balance(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Saturation", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_ColorBabalnce_update");
 #endif
+
+	RNA_def_struct_path_func(srna, "rna_SequenceColorBalance_path");
 }
 
 static void rna_def_strip_color_balance(BlenderRNA *brna)
@@ -1248,8 +1266,6 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "SequenceColorBalance", "SequenceColorBalanceData");
 	RNA_def_struct_ui_text(srna, "Sequence Color Balance", "Color balance parameters for a sequence strip");
 	RNA_def_struct_sdna(srna, "StripColorBalance");
-
-	RNA_def_struct_path_func(srna, "rna_SequenceColorBalance_path");
 }
 
 EnumPropertyItem blend_mode_items[] = {
