@@ -457,10 +457,12 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				for (i = 0; i < vert_len; i++) {
 					BM_data_interp_from_verts(bm, vv1[i], vv2[i], vv2[i], merge_factor);
 					interp_v3_v3v3(vv2[i]->co, vv1[i]->co, vv2[i]->co, merge_factor);
+					BM_elem_flag_merge(vv1[i], vv2[i]);
 					BM_vert_splice(bm, vv1[i], vv2[i]);
 				}
 				for (i = 0; i < edge_len; i++) {
-					//BM_data_interp_from_edge(bm, vv1[i], vv2[i], vv2[i], merge_factor);
+					BM_data_interp_from_edges(bm, ee1[i], ee2[i], ee2[i], merge_factor);
+					BM_elem_flag_merge(ee1[i], ee2[i]);
 					BM_edge_splice(bm, ee1[i], ee2[i]);
 				}
 			}
