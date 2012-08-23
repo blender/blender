@@ -117,6 +117,7 @@ void sequencer_operatortypes(void)
 	/* sequencer_modifiers.c */
 	WM_operatortype_append(SEQUENCER_OT_strip_modifier_add);
 	WM_operatortype_append(SEQUENCER_OT_strip_modifier_remove);
+	WM_operatortype_append(SEQUENCER_OT_strip_modifier_move);
 }
 
 

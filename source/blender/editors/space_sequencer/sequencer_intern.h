@@ -179,6 +179,7 @@ void SEQUENCER_OT_properties(struct wmOperatorType *ot);
 /* sequencer_modifiers.c */
 void SEQUENCER_OT_strip_modifier_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_remove(struct wmOperatorType *ot);
+void SEQUENCER_OT_strip_modifier_move(struct wmOperatorType *ot);
 
 #endif /* __SEQUENCER_INTERN_H__ */
 
