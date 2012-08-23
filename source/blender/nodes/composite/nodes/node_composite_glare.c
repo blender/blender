@@ -477,7 +477,7 @@ static void node_composit_exec_glare(void *UNUSED(data), bNode *node, bNodeStack
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeGlare *ndg = MEM_callocN(sizeof(NodeGlare), "node glare data");
 	ndg->quality = 1;

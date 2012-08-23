@@ -149,7 +149,7 @@ static void node_composit_exec_tonemap(void *UNUSED(data), bNode *node, bNodeSta
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_tonemap(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_tonemap(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTonemap *ntm = MEM_callocN(sizeof(NodeTonemap), "node tonemap data");
 	ntm->type = 1;

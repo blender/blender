@@ -181,7 +181,7 @@ static void node_composit_exec_keyingscreen(void *data, bNode *node, bNodeStack 
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeKeyingScreenData *data;
 

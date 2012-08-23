@@ -57,7 +57,7 @@ static void node_shader_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeStac
 	}
 }
 
-static void node_shader_init_valtorgb(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= add_colorband(1);
 }

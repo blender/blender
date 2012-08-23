@@ -97,7 +97,7 @@ static void node_composit_exec_hue_sat(void *UNUSED(data), bNode *node, bNodeSta
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_hue_sat(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_hue_sat(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeHueSat *nhs= MEM_callocN(sizeof(NodeHueSat), "node hue sat");
 	node->storage= nhs;

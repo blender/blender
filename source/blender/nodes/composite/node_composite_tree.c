@@ -795,13 +795,13 @@ static void force_hidden_passes(bNode *node, int passflag)
 void ntreeCompositForceHidden(bNodeTree *ntree, Scene *curscene)
 {
 	bNode *node;
-	
-	if (ntree==NULL) return;
-	
-	for (node= ntree->nodes.first; node; node= node->next) {
-		if ( node->type==CMP_NODE_R_LAYERS) {
-			Scene *sce= node->id?(Scene *)node->id:curscene;
-			SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
+
+	if (ntree == NULL) return;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_R_LAYERS) {
+			Scene *sce = node->id ? (Scene *)node->id : curscene;
+			SceneRenderLayer *srl = BLI_findlink(&sce->r.layers, node->custom1);
 			if (srl)
 				force_hidden_passes(node, srl->passflag);
 		}
@@ -809,7 +809,7 @@ void ntreeCompositForceHidden(bNodeTree *ntree, Scene *curscene)
 		 * Updates should only happen when actually necessary.
 		 */
 		#if 0
-		else if ( node->type==CMP_NODE_IMAGE) {
+		else if (node->type == CMP_NODE_IMAGE) {
 			nodeUpdate(ntree, node);
 		}
 		#endif
@@ -822,15 +822,15 @@ void ntreeCompositForceHidden(bNodeTree *ntree, Scene *curscene)
 void ntreeCompositTagRender(Scene *curscene)
 {
 	Scene *sce;
-	
-	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+
+	for (sce = G.main->scene.first; sce; sce = sce->id.next) {
 		if (sce->nodetree) {
 			bNode *node;
-			
-			for (node= sce->nodetree->nodes.first; node; node= node->next) {
-				if (node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
+
+			for (node = sce->nodetree->nodes.first; node; node = node->next) {
+				if (node->id == (ID *)curscene || node->type == CMP_NODE_COMPOSITE)
 					nodeUpdate(sce->nodetree, node);
-				else if (node->type==CMP_NODE_TEXTURE) /* uses scene sizex/sizey */
+				else if (node->type == CMP_NODE_TEXTURE) /* uses scene sizex/sizey */
 					nodeUpdate(sce->nodetree, node);
 			}
 		}
@@ -844,37 +844,37 @@ static int node_animation_properties(bNodeTree *ntree, bNode *node)
 	Link *link;
 	PointerRNA ptr;
 	PropertyRNA *prop;
-	
+
 	/* check to see if any of the node's properties have fcurves */
 	RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
 	lb = RNA_struct_type_properties(ptr.type);
-	
-	for (link=lb->first; link; link=link->next) {
-		int driven, len=1, index;
+
+	for (link = lb->first; link; link = link->next) {
+		int driven, len = 1, index;
 		prop = (PropertyRNA *)link;
-		
+
 		if (RNA_property_array_check(prop))
 			len = RNA_property_array_length(&ptr, prop);
-		
-		for (index=0; index<len; index++) {
+
+		for (index = 0; index < len; index++) {
 			if (rna_get_fcurve(&ptr, prop, index, NULL, &driven)) {
 				nodeUpdate(ntree, node);
 				return 1;
 			}
 		}
 	}
-	
+
 	/* now check node sockets */
-	for (sock = node->inputs.first; sock; sock=sock->next) {
-		int driven, len=1, index;
-		
+	for (sock = node->inputs.first; sock; sock = sock->next) {
+		int driven, len = 1, index;
+
 		RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 		prop = RNA_struct_find_property(&ptr, "default_value");
 		if (prop) {
 			if (RNA_property_array_check(prop))
 				len = RNA_property_array_length(&ptr, prop);
-			
-			for (index=0; index<len; index++) {
+
+			for (index = 0; index < len; index++) {
 				if (rna_get_fcurve(&ptr, prop, index, NULL, &driven)) {
 					nodeUpdate(ntree, node);
 					return 1;
@@ -890,42 +890,42 @@ static int node_animation_properties(bNodeTree *ntree, bNode *node)
 int ntreeCompositTagAnimated(bNodeTree *ntree)
 {
 	bNode *node;
-	int tagged= 0;
-	
-	if (ntree==NULL) return 0;
-	
-	for (node= ntree->nodes.first; node; node= node->next) {
-		
+	int tagged = 0;
+
+	if (ntree == NULL) return 0;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+
 		tagged = node_animation_properties(ntree, node);
-		
+
 		/* otherwise always tag these node types */
-		if (node->type==CMP_NODE_IMAGE) {
-			Image *ima= (Image *)node->id;
+		if (node->type == CMP_NODE_IMAGE) {
+			Image *ima = (Image *)node->id;
 			if (ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				nodeUpdate(ntree, node);
-				tagged= 1;
+				tagged = 1;
 			}
 		}
-		else if (node->type==CMP_NODE_TIME) {
+		else if (node->type == CMP_NODE_TIME) {
 			nodeUpdate(ntree, node);
-			tagged= 1;
+			tagged = 1;
 		}
 		/* here was tag render layer, but this is called after a render, so re-composites fail */
-		else if (node->type==NODE_GROUP) {
-			if ( ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
+		else if (node->type == NODE_GROUP) {
+			if (ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
 				nodeUpdate(ntree, node);
 			}
 		}
 		else if (ELEM(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_TRANSFORM)) {
 			nodeUpdate(ntree, node);
-			tagged= 1;
+			tagged = 1;
 		}
-		else if (node->type==CMP_NODE_MASK) {
+		else if (node->type == CMP_NODE_MASK) {
 			nodeUpdate(ntree, node);
-			tagged= 1;
+			tagged = 1;
 		}
 	}
-	
+
 	return tagged;
 }
 
@@ -934,11 +934,11 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 void ntreeCompositTagGenerators(bNodeTree *ntree)
 {
 	bNode *node;
-	
-	if (ntree==NULL) return;
-	
-	for (node= ntree->nodes.first; node; node= node->next) {
-		if ( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
+
+	if (ntree == NULL) return;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
 			nodeUpdate(ntree, node);
 	}
 }
@@ -947,12 +947,12 @@ void ntreeCompositTagGenerators(bNodeTree *ntree)
 void ntreeCompositClearTags(bNodeTree *ntree)
 {
 	bNode *node;
-	
-	if (ntree==NULL) return;
-	
-	for (node= ntree->nodes.first; node; node= node->next) {
-		node->need_exec= 0;
-		if (node->type==NODE_GROUP)
+
+	if (ntree == NULL) return;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		node->need_exec = 0;
+		if (node->type == NODE_GROUP)
 			ntreeCompositClearTags((bNodeTree *)node->id);
 	}
 }

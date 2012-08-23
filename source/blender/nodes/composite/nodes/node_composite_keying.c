@@ -67,7 +67,7 @@ static void node_composit_exec_keying(void *UNUSED(data), bNode *UNUSED(node), b
 }
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeKeyingData *data;
 

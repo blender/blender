@@ -105,7 +105,7 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTwoXYs *nxy= MEM_callocN(sizeof(NodeTwoXYs), "node xy data");
 	node->storage= nxy;

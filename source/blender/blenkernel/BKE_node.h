@@ -146,7 +146,7 @@ typedef struct bNodeType {
 	/// Additional parameters in the side panel.
 	void (*uifuncbut)(struct uiLayout *, struct bContext *C, struct PointerRNA *ptr);
 	/// Additional drawing on backdrop.
-	void (*uibackdropfunc)(struct SpaceNode* snode, struct ImBuf* backdrop, struct bNode* node, int x, int y);
+	void (*uibackdropfunc)(struct SpaceNode *snode, struct ImBuf *backdrop, struct bNode *node, int x, int y);
 
 	/// Draw a node socket. Default draws the input value button.
 	NodeSocketButtonFunction drawinputfunc;

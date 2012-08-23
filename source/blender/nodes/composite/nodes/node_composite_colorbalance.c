@@ -178,7 +178,7 @@ static void node_composit_exec_colorbalance(void *UNUSED(data), bNode *node, bNo
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeColorBalance *n= node->storage= MEM_callocN(sizeof(NodeColorBalance), "node colorbalance");
 

@@ -571,7 +571,7 @@ static ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
 	return ret;
 }
 
-static void node_reroute_init(bNodeTree *ntree, bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_reroute_init(bNodeTree *ntree, bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	/* Note: Cannot use socket templates for this, since it would reset the socket type
 	 * on each file read via the template verification procedure.

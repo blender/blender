@@ -60,7 +60,7 @@ static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack *
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_curves_time(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_curves_time(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom1= 1;
 	node->custom2= 250;
@@ -109,7 +109,7 @@ static void node_composit_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeS
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_curve_vec(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
@@ -206,7 +206,7 @@ static void node_composit_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeS
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }

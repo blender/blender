@@ -55,7 +55,7 @@ static void node_shader_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeSta
 	curvemapping_evaluate3F(node->storage, out[0]->vec, vec);
 }
 
-static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
@@ -112,7 +112,7 @@ static void node_shader_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeSta
 	}
 }
 
-static void node_shader_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }

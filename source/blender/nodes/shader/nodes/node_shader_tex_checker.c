@@ -43,7 +43,7 @@ static bNodeSocketTemplate sh_node_tex_checker_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexChecker *tex = MEM_callocN(sizeof(NodeTexChecker), "NodeTexChecker");
 	default_tex_mapping(&tex->base.tex_mapping);

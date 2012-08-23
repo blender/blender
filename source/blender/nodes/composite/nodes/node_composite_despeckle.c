@@ -51,6 +51,12 @@ static void node_composit_exec_despeckle(void *UNUSED(data), bNode *UNUSED(node)
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
+static void node_composit_init_despeckle(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+{
+	node->custom3 = 0.5f;
+	node->custom4 = 0.5f;
+}
+
 void register_node_type_cmp_despeckle(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -58,6 +64,7 @@ void register_node_type_cmp_despeckle(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_DESPECKLE, "Despeckle", NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_despeckle_in, cmp_node_despeckle_out);
 	node_type_size(&ntype, 80, 40, 120);
+	node_type_init(&ntype, node_composit_init_despeckle);
 #ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_despeckle);
 #endif

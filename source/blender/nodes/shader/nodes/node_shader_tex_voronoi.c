@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_tex_voronoi_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexVoronoi *tex = MEM_callocN(sizeof(NodeTexVoronoi), "NodeTexVoronoi");
 	default_tex_mapping(&tex->base.tex_mapping);

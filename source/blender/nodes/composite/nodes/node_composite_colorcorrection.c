@@ -47,7 +47,7 @@ static bNodeSocketTemplate cmp_node_colorcorrection_out[]={
 	{	-1,0,""}
 };
 
-static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeColorCorrection *n= node->storage= MEM_callocN(sizeof(NodeColorCorrection), "node colorcorrection");
 	n->startmidtones = 0.2f;

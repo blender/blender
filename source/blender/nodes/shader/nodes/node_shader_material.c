@@ -200,7 +200,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 }
 
 
-static void node_shader_init_material(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_material(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
 }

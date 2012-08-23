@@ -125,7 +125,7 @@ static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStac
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom1= 1; /* Bilinear Filter*/
 }

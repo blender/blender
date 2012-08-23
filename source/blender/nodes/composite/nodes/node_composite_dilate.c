@@ -150,7 +150,7 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_dilateerode(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_dilateerode(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeDilateErode *data = MEM_callocN(sizeof(NodeDilateErode), "NodeDilateErode");
 	data->falloff = PROP_SMOOTH;

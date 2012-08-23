@@ -143,7 +143,7 @@ static void node_composit_exec_huecorrect(void *UNUSED(data), bNode *node, bNode
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	CurveMapping *cumapping = node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	int c;

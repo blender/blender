@@ -186,7 +186,7 @@ static void node_composit_exec_lensdist(void *UNUSED(data), bNode *node, bNodeSt
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
 
-static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeLensDist *nld = MEM_callocN(sizeof(NodeLensDist), "node lensdist data");
 	nld->jit = nld->proj = nld->fit = 0;

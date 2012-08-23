@@ -46,7 +46,7 @@ static bNodeSocketTemplate cmp_node_boxmask_out[]= {
 	{	-1, 0, "" } 
 };
 
-static void node_composit_init_boxmask(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_boxmask(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeBoxMask *data = MEM_callocN(sizeof(NodeBoxMask), "NodeBoxMask");
 	data->x = 0.5;
