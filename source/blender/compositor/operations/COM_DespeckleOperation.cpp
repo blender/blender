@@ -128,8 +128,8 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void *data)
 bool DespeckleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
-	int addx = 1; //(this->m_filterWidth - 1) / 2 + 1;
-	int addy = 1; //(this->m_filterHeight - 1) / 2 + 1;
+	int addx = 2; //(this->m_filterWidth - 1) / 2 + 1;
+	int addy = 2; //(this->m_filterHeight - 1) / 2 + 1;
 	newInput.xmax = input->xmax + addx;
 	newInput.xmin = input->xmin - addx;
 	newInput.ymax = input->ymax + addy;
