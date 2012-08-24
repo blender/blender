@@ -2018,7 +2018,7 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 
 			for (j = 0; j < count; ++j) {
 				/* if this happens we need to do a temp copy, see: USE_INTERP_OVERLAP_FIX */
-				BLI_assert(dest_index != src_indices[j]);
+				BLI_assert(((source == dest) && (dest_index == src_indices[j])) == FALSE);
 
 				sources[j] = (char *)src_data + typeInfo->size * src_indices[j];
 			}
