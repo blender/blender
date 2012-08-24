@@ -66,6 +66,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_constraint.h"
+#include "BKE_colortools.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -480,6 +481,7 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->aspx = clip->aspy = 1.0f;
 
 	BKE_tracking_settings_init(&clip->tracking);
+	BKE_color_managed_colorspace_settings_init(&clip->colorspace_settings);
 
 	clip->proxy.build_size_flag = IMB_PROXY_25;
 	clip->proxy.build_tc_flag = IMB_TC_RECORD_RUN |
