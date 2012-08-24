@@ -31,6 +31,7 @@ set(INC
 	../../../blenlib
 	../../../makesdna
 	../../../../../intern/guardedalloc
+	../../../../../intern/utfconv
 )
 
 set(INC_SYS
