@@ -74,14 +74,18 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		operationx->setbNode(editorNode);
 		operationx->setQuality(quality);
 		operationx->setSize(1.0f);
+		operationx->setFalloff(PROP_SMOOTH);
+		operationx->setSubtract(false);
 		addLink(graph, clamp->getOutputSocket(), operationx->getInputSocket(0));
 		graph->addOperation(operationx);
 
-		GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
+		GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
 		operationy->setData(data);
 		operationy->setbNode(editorNode);
 		operationy->setQuality(quality);
 		operationy->setSize(1.0f);
+		operationy->setFalloff(PROP_SMOOTH);
+		operationy->setSubtract(false);
 		addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
 		graph->addOperation(operationy);
 
