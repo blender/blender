@@ -429,8 +429,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		
 		/* merge loops of bridge faces */
 		if (use_merge) {
-			/* at the moment these will be the same */
-			const int vert_len = mini(BLI_array_count(vv1), BLI_array_count(vv2));
+			const int vert_len = mini(BLI_array_count(vv1), BLI_array_count(vv2)) - ((cl1 || cl2) ? 1 : 0);
 			const int edge_len = mini(BLI_array_count(ee1), BLI_array_count(ee2));
 
 			if (merge_factor <= 0.0f) {
