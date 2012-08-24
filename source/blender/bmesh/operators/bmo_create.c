@@ -1415,6 +1415,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		/* create edge */
 		e = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
 		BMO_elem_flag_enable(bm, e, ELE_OUT);
+		BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, ELE_OUT);
 	}
 	else if (0) { /* nice feature but perhaps it should be a different tool? */
 
@@ -1460,6 +1461,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 				}
 			}
 		}
+		BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, ELE_OUT);
 		/* done creating edges */
 	}
 	else if (amount > 2) {

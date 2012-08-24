@@ -408,6 +408,8 @@ static BMOpDefine bmo_contextual_create_def = {
 	"contextual_create",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, //input geometry.
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"},     /* newly-made face(s) */
+	/* note, this is for stand-alone edges only, not edges which are apart of newly created faces */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"},     /* newly-made edge(s) */
 	 {BMO_OP_SLOT_INT,         "mat_nr"},      /* material to use */
 	 {BMO_OP_SLOT_BOOL,        "use_smooth"},  /* material to use */
 	 {0, /* null-terminating sentinel */}},
