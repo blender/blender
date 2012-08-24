@@ -1950,7 +1950,7 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 			if (view_flags % 2 == 1) {
 				ColormanageCacheViewSettings view_settings = {0};
 				unsigned char *display_buffer;
-				void *cache_handle;
+				void *cache_handle = NULL;
 				int view_index = view + 1; /* views in configuration are 1-based */
 				float exposure, gamma;
 				int buffer_width;

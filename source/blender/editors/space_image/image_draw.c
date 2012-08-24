@@ -651,22 +651,35 @@ static void draw_image_view_tool(Scene *scene)
 }
 #endif
 
-static unsigned char *get_alpha_clone_image(Scene *scene, int *width, int *height)
+static unsigned char *get_alpha_clone_image(const bContext *C, Scene *scene, int *width, int *height)
 {
 	Brush *brush = paint_brush(&scene->toolsettings->imapaint.paint);
 	ImBuf *ibuf;
 	unsigned int size, alpha;
+	unsigned char *display_buffer;
 	unsigned char *rect, *cp;
+	void *cache_handle;
 
 	if (!brush || !brush->clone.image)
 		return NULL;
 	
 	ibuf = BKE_image_get_ibuf(brush->clone.image, NULL);
 
-	if (!ibuf || !ibuf->rect)
+	if (!ibuf)
 		return NULL;
 
-	rect = MEM_dupallocN(ibuf->rect);
+	display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+
+	if (!display_buffer) {
+		IMB_display_buffer_release(cache_handle);
+
+		return NULL;
+	}
+
+	rect = MEM_dupallocN(display_buffer);
+
+	IMB_display_buffer_release(cache_handle);
+
 	if (!rect)
 		return NULL;
 
@@ -685,7 +698,7 @@ static unsigned char *get_alpha_clone_image(Scene *scene, int *width, int *heigh
 	return rect;
 }
 
-static void draw_image_paint_helpers(ARegion *ar, Scene *scene, float zoomx, float zoomy)
+static void draw_image_paint_helpers(const bContext *C, ARegion *ar, Scene *scene, float zoomx, float zoomy)
 {
 	Brush *brush;
 	int x, y, w, h;
@@ -696,7 +709,7 @@ static void draw_image_paint_helpers(ARegion *ar, Scene *scene, float zoomx, flo
 	if (brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
 		/* this is not very efficient, but glDrawPixels doesn't allow
 		 * drawing with alpha */
-		clonerect = get_alpha_clone_image(scene, &w, &h);
+		clonerect = get_alpha_clone_image(C, scene, &w, &h);
 
 		if (clonerect) {
 			UI_view2d_to_region_no_clip(&ar->v2d, brush->clone.offset[0], brush->clone.offset[1], &x, &y);
@@ -777,7 +790,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 
 	/* paint helpers */
 	if (sima->mode == SI_MODE_PAINT)
-		draw_image_paint_helpers(ar, scene, zoomx, zoomy);
+		draw_image_paint_helpers(C, ar, scene, zoomx, zoomy);
 
 
 	/* XXX integrate this code */
