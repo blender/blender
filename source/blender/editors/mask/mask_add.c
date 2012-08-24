@@ -182,7 +182,8 @@ static int find_nearest_diff_point(const bContext *C, Mask *mask, const float no
 
 static void setup_vertex_point(const bContext *C, Mask *mask, MaskSpline *spline, MaskSplinePoint *new_point,
                                const float point_co[2], const float tangent[2], const float u,
-                               MaskSplinePoint *reference_point, const short reference_adjacent)
+                               MaskSplinePoint *reference_point, const short reference_adjacent,
+                               const float view_zoom)
 {
 	ScrArea *sa = CTX_wm_area(C);
 
@@ -225,8 +226,8 @@ static void setup_vertex_point(const bContext *C, Mask *mask, MaskSpline *spline
 	/* initial offset for handles */
 	if (spline->tot_point == 1) {
 		/* first point of splien is aligned horizontally */
-		bezt->vec[0][0] -= len / width;
-		bezt->vec[2][0] += len / width;
+		bezt->vec[0][0] -= len / maxi(width, height) * view_zoom;
+		bezt->vec[2][0] += len / maxi(width, height) * view_zoom;
 	}
 	else if (tangent) {
 		float vec[2];
@@ -391,7 +392,7 @@ static int add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2]
 
 		new_point = &spline->points[point_index + 1];
 
-		setup_vertex_point(C, mask, spline, new_point, co, tangent, u, NULL, TRUE);
+		setup_vertex_point(C, mask, spline, new_point, co, tangent, u, NULL, TRUE, 1.0f);
 
 		/* TODO - we could pass the spline! */
 		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index + 1, TRUE, TRUE);
@@ -490,7 +491,7 @@ static int add_vertex_extrude(const bContext *C, Mask *mask, MaskLayer *masklay,
 
 	masklay->act_point = new_point;
 
-	setup_vertex_point(C, mask, spline, new_point, co, NULL, 0.5f, ref_point, FALSE);
+	setup_vertex_point(C, mask, spline, new_point, co, NULL, 0.5f, ref_point, FALSE, 1.0f);
 
 	if (masklay->splines_shapes.first) {
 		point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
@@ -512,6 +513,7 @@ static int add_vertex_new(const bContext *C, Mask *mask, MaskLayer *masklay, con
 	MaskSpline *spline;
 	MaskSplinePoint *point;
 	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
+	float view_zoom;
 
 	if (!masklay) {
 		/* if there's no masklay currently operationg on, create new one */
@@ -536,7 +538,26 @@ static int add_vertex_new(const bContext *C, Mask *mask, MaskLayer *masklay, con
 
 	masklay->act_point = new_point;
 
-	setup_vertex_point(C, mask, spline, new_point, co, NULL, 0.5f, ref_point, FALSE);
+	{
+		ScrArea *sa = CTX_wm_area(C);
+		ARegion *ar = CTX_wm_region(C);
+
+		/* calc view zoom in a simplistic way */
+		float co_a[2];
+		float co_b[2];
+		int mval_a[2] = {0, 0};
+		int mval_b[2] = {1, 1};
+
+		ED_mask_mouse_pos(sa, ar, mval_a, co_a);
+		ED_mask_mouse_pos(sa, ar, mval_b, co_b);
+
+		view_zoom = ((co_b[0] - co_a[0]) + (co_b[1] - co_a[1])) / 2.0f;
+
+		/* scale up - arbitrarty but works well in the view */
+		view_zoom *= 200.0f;
+	}
+
+	setup_vertex_point(C, mask, spline, new_point, co, NULL, 0.5f, ref_point, FALSE, view_zoom);
 
 	{
 		int point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
