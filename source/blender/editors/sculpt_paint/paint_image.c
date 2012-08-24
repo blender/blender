@@ -104,6 +104,8 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
+#include "IMB_colormanagement.h"
+
 #include "paint_intern.h"
 
 /* Defines and Structs */
@@ -4220,8 +4222,11 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 
 static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
 {
-	if (ibuf->rect_float)
-		ibuf->userflags |= IB_RECT_INVALID;  /* force recreate of char rect */
+	if (ibuf->rect_float) {
+		IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, ibuf->x, 0, 0,
+		                                  imapaintpartial.x1, imapaintpartial.y1,
+		                                  imapaintpartial.x2, imapaintpartial.y2);
+	}
 	
 	if (ibuf->mipmap[0])
 		ibuf->userflags |= IB_MIPMAP_INVALID;

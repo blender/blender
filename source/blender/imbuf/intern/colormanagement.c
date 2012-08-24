@@ -64,6 +64,11 @@
 
 #ifdef WITH_OCIO
 #  include <ocio_capi.h>
+#else
+/* so function can accept processor and care about disabled OCIO inside */
+typedef struct ConstProcessorRcPtr {
+	int pad;
+} ConstProcessorRcPtr;
 #endif
 
 /*********************** Global declarations *************************/
@@ -1853,55 +1858,73 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
  * ImBuf at the time function is being called.
  */
 
-#ifdef WITH_OCIO
 static void partial_buffer_update_rect(unsigned char *display_buffer, const float *linear_buffer, int display_stride,
 									   int linear_stride, int linear_offset_x, int linear_offset_y,
-									   int channels, int dither, int predivide,
+									   int channels, int dither, int predivide, int profile_from,
 									   ConstProcessorRcPtr *processor, imb_tonecurveCb tonecurve_func,
 									   int xmin, int ymin, int xmax, int ymax)
 {
 	int x, y;
 
+	(void) processor; /* silent down compiler when building without OCIO */
+
+	if (profile_from == IB_PROFILE_NONE)
+		profile_from = IB_PROFILE_SRGB;
+
 	for (y = ymin; y < ymax; y++) {
 		for (x = xmin; x < xmax; x++) {
 			int display_index = (y * display_stride + x) * channels;
 			int linear_index = ((y - linear_offset_y) * linear_stride + (x - linear_offset_x)) * channels;
-			float pixel[4];
 
+#ifdef WITH_OCIO
 			if (processor) {
+				float pixel[4];
+
 				copy_v4_v4(pixel, (float *) linear_buffer + linear_index);
 
 				OCIO_processorApplyRGBA(processor, pixel);
 
 				rgba_float_to_uchar(display_buffer + display_index, pixel);
 			}
-			else {
+			else
+#endif
+			if (tonecurve_func) {
 				IMB_buffer_byte_from_float_tonecurve(display_buffer + display_index, linear_buffer + linear_index,
 				                                     channels, dither, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
 				                                     predivide, 1, 1, 1, 1, tonecurve_func);
 			}
+			else {
+				IMB_buffer_byte_from_float(display_buffer + display_index, linear_buffer + linear_index, channels,
+				                           dither, IB_PROFILE_SRGB, profile_from, predivide, 1, 1, 1, 1);
+			}
 		}
 	}
 }
-#endif
 
-void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer,
-                                       int stride, int offset_x, int offset_y,
+void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, int stride, int offset_x, int offset_y,
                                        int xmin, int ymin, int xmax, int ymax)
 {
+	int channels = ibuf->channels;
+	int predivide = ibuf->flags & IB_cm_predivide;
+	int dither = ibuf->dither;
+	int profile_from = ibuf->profile;
+
 #ifdef WITH_OCIO
 	int display;
 
 	int *display_buffer_flags;
 
-	int channels = ibuf->channels;
-	int predivide = ibuf->flags & IB_cm_predivide;
-	int dither = ibuf->dither;
-
 	BLI_lock_thread(LOCK_COLORMANAGE);
 
 	if (!ibuf->display_buffer_flags) {
 		/* there's no cached display buffers, so no need to iterate though bit fields */
+
+		if (ibuf->rect && ibuf->rect_float) {
+			/* update byte buffer created by legacy color management */
+			partial_buffer_update_rect((unsigned char *) ibuf->rect, linear_buffer, ibuf->x, stride, offset_x, offset_y,
+		                           channels, dither, predivide, profile_from, NULL, NULL, xmin, ymin, xmax, ymax);
+		}
+
 		BLI_unlock_thread(LOCK_COLORMANAGE);
 
 		return;
@@ -1961,7 +1984,7 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer,
 					}
 
 					partial_buffer_update_rect(display_buffer, linear_buffer, buffer_width, stride,
-                                               offset_x, offset_y, channels, dither, predivide,
+                                               offset_x, offset_y, channels, dither, predivide, profile_from,
                                                processor, tonecurve_func, xmin, ymin, xmax, ymax);
 
 					if (processor)
@@ -1977,15 +2000,13 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer,
 	}
 
 	MEM_freeN(display_buffer_flags);
-#else
-	(void) ibuf;
-	(void) linear_buffer;
-	(void) xmin;
-	(void) ymin;
-	(void) xmax;
-	(void) ymax;
-	(void) stride;
-	(void) offset_x;
-	(void) offset_y;
 #endif
+
+	BLI_lock_thread(LOCK_COLORMANAGE);
+	if (ibuf->rect && ibuf->rect_float) {
+		/* update byte buffer created by legacy color management */
+		partial_buffer_update_rect((unsigned char *) ibuf->rect, linear_buffer, ibuf->x, stride, offset_x, offset_y,
+	                           channels, dither, predivide, profile_from, NULL, NULL, xmin, ymin, xmax, ymax);
+	}
+	BLI_unlock_thread(LOCK_COLORMANAGE);
 }
