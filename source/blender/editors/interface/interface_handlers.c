@@ -2969,7 +2969,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 				 * Alt+MouseWheel over the render slots, without this,
 				 * the slot menu fails to switch a second time.
 				 *
-				 * Theactive state of the button could be maintained some other way
+				 * The active state of the button could be maintained some other way
 				 * and remove this mousemove event.
 				 */
 				WM_event_add_mousemove(C);

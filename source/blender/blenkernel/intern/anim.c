@@ -282,7 +282,7 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 
 /* ........ */
 
-/* Note on evaluation optimisations:
+/* Note on evaluation optimizations:
  * Optimisations currently used here play tricks with the depsgraph in order to try and 
  * evaluate as few objects as strictly necessary to get nicer performance under standard
  * production conditions. For those people who really need the accurate version, 
@@ -323,7 +323,7 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 /* update scene for current frame */
 static void motionpaths_calc_update_scene(Scene *scene)
 {
-#if 1 // 'production' optimisations always on
+#if 1 // 'production' optimizations always on
 	Base *base, *last = NULL;
 	
 	/* only stuff that moves or needs display still */
@@ -431,7 +431,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	if (efra <= sfra) return;
 	
 	/* optimize the depsgraph for faster updates */
-	/* TODO: whether this is used should depend on some setting for the level of optimisations used */
+	/* TODO: whether this is used should depend on some setting for the level of optimizations used */
 	motionpaths_calc_optimise_depsgraph(scene, targets);
 	
 	/* calculate path over requested range */

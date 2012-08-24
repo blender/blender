@@ -764,7 +764,7 @@ void BKE_nlastrips_clear_metas(ListBase *strips, short onlySel, short onlyTemp)
 }
 
 /* Add the given NLA-Strip to the given Meta-Strip, assuming that the
- * strip isn't attached to anyy list of strips 
+ * strip isn't attached to any list of strips
  */
 short BKE_nlameta_add_strip(NlaStrip *mstrip, NlaStrip *strip)
 {

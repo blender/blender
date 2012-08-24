@@ -541,7 +541,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	CustomData_free(&me->pdata, me->totpoly);
 
 	/* ok, this should now use new CD shapekey data,
-	 * which shouuld be fed through the modifier
+	 * which should be fed through the modifier
 	 * stack*/
 	if (tmp.totvert != me->totvert && !did_shapekeys && me->key) {
 		printf("%s: YEEK! this should be recoded! Shape key loss!: ID '%s'\n", __func__, tmp.id.name);
@@ -1793,7 +1793,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		{
 			finaldm->recalcTessellation(finaldm);
 		}
-		/* Even if tessellation is not needed, some modifiers migh have modified CD layers
+		/* Even if tessellation is not needed, some modifiers might have modified CD layers
 		 * (like mloopcol or mloopuv), hence we have to update those. */
 		else if (finaldm->dirty & DM_DIRTY_TESS_CDLAYERS) {
 			/* A tessellation already exists, it should always have a CD_POLYINDEX. */

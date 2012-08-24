@@ -1165,7 +1165,7 @@ void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float
 static void forward_diff_bezier_cotangent(const float p0[3], const float p1[3], const float p2[3], const float p3[3],
                                           float p[3], int it, int stride)
 {
-	/* note that these are not purpendicular to the curve
+	/* note that these are not perpendicular to the curve
 	 * they need to be rotated for this,
 	 *
 	 * This could also be optimized like BKE_curve_forward_diff_bezier */

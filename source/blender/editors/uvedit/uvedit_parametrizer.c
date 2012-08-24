@@ -45,7 +45,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "BLO_sys_types.h"  /* for intptr_t support */
 
 /* Utils */
 
@@ -1040,7 +1040,7 @@ static PFace *p_face_add(PHandle *handle)
 
 	/* allocate */
 	f = (PFace *)BLI_memarena_alloc(handle->arena, sizeof *f);
-	f->flag = 0; // init !
+	f->flag = 0;  /* init ! */
 
 	e1 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof *e1);
 	e2 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof *e2);
@@ -1139,7 +1139,7 @@ static PBool p_quad_split_direction(PHandle *handle, float **co, PHashKey *vkeys
 	 * that in symmetric models we choose the same split direction instead of
 	 * depending on floating point errors to decide */
 	float bias = 1.0f + 1e-6f;
-	float fac = len_v3v3(co[0], co[2])*bias - len_v3v3(co[1], co[3]);
+	float fac = len_v3v3(co[0], co[2]) * bias - len_v3v3(co[1], co[3]);
 	PBool dir = (fac <= 0.0f);
 
 	/* the face exists check is there because of a special case: when

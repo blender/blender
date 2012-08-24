@@ -1480,7 +1480,7 @@ static void gpencil_draw_apply_event(wmOperator *op, wmEvent *event)
 	float mousef[2];
 	int tablet = 0;
 
-	/* convert from window-space to area-space mouse coordintes 
+	/* convert from window-space to area-space mouse coordinates
 	 * NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding... 
 	 */
 	p->mval[0] = event->mval[0] + 1;
