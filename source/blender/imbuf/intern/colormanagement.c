@@ -1164,8 +1164,11 @@ static void imbuf_verify_float(ImBuf *ibuf)
 	 */
 	BLI_lock_thread(LOCK_COLORMANAGE);
 
-	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)))
+	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID))) {
 		IMB_rect_from_float(ibuf);
+
+		ibuf->userflags &= ~IB_RECT_INVALID;
+	}
 
 	BLI_unlock_thread(LOCK_COLORMANAGE);
 }
@@ -1231,6 +1234,22 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		int buffer_size;
 		ColormanageCacheViewSettings cache_view_settings;
 		ColormanageCacheDisplaySettings cache_display_settings;
+
+		if (ibuf->userflags & IB_RECT_INVALID) {
+			/* if byte buffer is marked as invalid, it means that float buffer was modified
+			 * and display buffer should be updated
+			 * mark all existing color managed display buffers as invalid, also free
+			 * legacy byte buffer to be sure all users would re-calculate display buffers
+			 * after removing RECT_INVALID flag
+			 */
+
+			IMB_display_buffer_invalidate(ibuf);
+
+			if (ibuf->rect)
+				imb_freerectImBuf(ibuf);
+
+			ibuf->userflags &= ~IB_RECT_INVALID;
+		}
 
 		colormanage_view_settings_to_cache(&cache_view_settings, view_settings);
 		colormanage_display_settings_to_cache(&cache_display_settings, display_settings);
