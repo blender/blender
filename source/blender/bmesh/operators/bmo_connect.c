@@ -39,6 +39,7 @@
 #define FACE_NEW	2
 #define EDGE_MARK	4
 #define EDGE_DONE	8
+#define FACE_OUT	16
 
 void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 {
@@ -514,6 +515,8 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 					fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
 				}
 				else {
+					BMO_elem_flag_enable(bm, f, FACE_OUT);
+
 					l_iter = BM_FACE_FIRST_LOOP(f);
 
 					if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
@@ -524,6 +527,8 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
+
+	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, FACE_OUT);
 
 cleanup:
 	BLI_array_free(ee1);
