@@ -4209,7 +4209,7 @@ static void freeSeqData(TransInfo *t)
 			for (a = 0; a < t->total; a++, td++) {
 				if ((seq != seq_prev) && (seq->depth == 0) && (seq->flag & SEQ_OVERLAP)) {
 					seq = ((TransDataSeq *)td->extra)->seq;
-					shuffle_seq(seqbasep, seq);
+					BKE_sequence_base_shuffle(seqbasep, seq, t->scene);
 				}
 
 				seq_prev = seq;
@@ -4244,7 +4244,7 @@ static void freeSeqData(TransInfo *t)
 								has_effect = TRUE;
 							}
 							else {
-								/* Tag seq with a non zero value, used by shuffle_seq_time to identify the ones to shuffle */
+								/* Tag seq with a non zero value, used by BKE_sequence_base_shuffle_time to identify the ones to shuffle */
 								seq->tmp = (void *)1;
 							}
 						}
@@ -4289,7 +4289,7 @@ static void freeSeqData(TransInfo *t)
 						BKE_sequence_base_shuffle_time(seqbasep, t->scene);
 					}
 #else
-					shuffle_seq_time(seqbasep, t->scene);
+					BKE_sequence_base_shuffle_time(seqbasep, t->scene);
 #endif
 
 					if (has_effect) {
@@ -4340,6 +4340,9 @@ static void freeSeqData(TransInfo *t)
 			for (a = 0; a < t->total; a++, td++) {
 				seq = ((TransDataSeq *)td->extra)->seq;
 				if ((seq != seq_prev) && (seq->depth == 0)) {
+					if (seq->flag & SEQ_OVERLAP)
+						BKE_sequence_base_shuffle(seqbasep, seq, t->scene);
+
 					BKE_sequence_calc_disp(t->scene, seq);
 				}
 				seq_prev = seq;
