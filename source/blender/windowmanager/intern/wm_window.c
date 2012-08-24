@@ -341,6 +341,12 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	wm_get_screensize(&scr_w, &scr_h);
 	posy = (scr_h - win->posy - win->sizey);
 	
+#if defined(__APPLE__) && !defined(GHOST_COCOA)
+	{
+		extern int macPrefState; /* creator.c */
+		initial_state += macPrefState;
+	}
+#endif
 	/* Disable AA for now, as GL_SELECT (used for border, lasso, ... select)
 	 * doesn't work well when AA is initialized, even if not used. */
 	ghostwin = GHOST_CreateWindow(g_system, title,

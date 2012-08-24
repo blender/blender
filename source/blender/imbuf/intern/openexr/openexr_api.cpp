@@ -32,16 +32,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
-#include <fstream>
 #include <string>
 #include <set>
 
 
 #include <openexr_api.h>
-
-#if defined (WIN32) && !defined(FREE_WINDOWS)
-#include "utfconv.h"
-#endif
 
 extern "C"
 {
@@ -81,7 +76,6 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include <IlmImf/ImfCompression.h>
 #include <IlmImf/ImfCompressionAttribute.h>
 #include <IlmImf/ImfStringAttribute.h>
-#include <IlmImf/ImfStdIO.h>
 #include <Imath/ImathBox.h>
 #else
 #include <half.h>
@@ -96,7 +90,6 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include <ImfCompression.h>
 #include <ImfCompressionAttribute.h>
 #include <ImfStringAttribute.h>
-#include <ImfStdIO.h>
 #endif
 
 using namespace Imf;
@@ -199,28 +192,6 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
 		header->insert(info->key, StringAttribute(info->value));
 }
 
-static void openexr_ofstream_open(std::ofstream& ofs, const char *name)
-{
-#if defined (WIN32) && !defined(FREE_WINDOWS)
-	wchar_t *wname = alloc_utf16_from_8(name, 0);
-	ofs.open(wname, std::ios_base::binary);
-	free(wname);
-#else
-	ofs.open(name, std::ios_base::binary);
-#endif
-}
-
-static void openexr_ifstream_open(std::ifstream& ifs, const char *name)
-{
-#if defined (WIN32) && !defined(FREE_WINDOWS)
-	wchar_t *wname = alloc_utf16_from_8(name, 0);
-	ifs.open(wname, std::ios_base::binary);
-	free(wname);
-#else
-	ifs.open(name, std::ios_base::binary);
-#endif
-}
-
 static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags)
 {
 	const int channels = ibuf->channels;
@@ -245,13 +216,7 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 			header.channels().insert("Z", Channel(Imf::FLOAT));
 
 		FrameBuffer frameBuffer;
-
-		/* manually create ofstream, so we can handle utf-8 filepaths on windows */
-		std::ofstream std_ostream;
-		openexr_ofstream_open(std_ostream, name);
-		StdOFStream exr_ostream(std_ostream, name);
-
-		OutputFile file(exr_ostream, header);
+		OutputFile *file = new OutputFile(name, header);
 
 		/* we store first everything in half array */
 		RGBAZ *pixels = new RGBAZ[height * width];
@@ -316,9 +281,9 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 
 //		printf("OpenEXR-save: Writing OpenEXR file of height %d.\n", height);
 
-		file.setFrameBuffer(frameBuffer);
-		file.writePixels(height);
-
+		file->setFrameBuffer(frameBuffer);
+		file->writePixels(height);
+		delete file;
 		delete[] pixels;
 	}
 	catch (const std::exception &exc)
@@ -356,14 +321,7 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 			header.channels().insert("Z", Channel(Imf::FLOAT));
 
 		FrameBuffer frameBuffer;
-
-		/* manually create ofstream, so we can handle utf-8 filepaths on windows */
-		std::ofstream std_ostream;
-		openexr_ofstream_open(std_ostream, name);
-		StdOFStream exr_ostream(std_ostream, name);
-
-		OutputFile file(exr_ostream, header);
-
+		OutputFile *file = new OutputFile(name, header);
 		int xstride = sizeof(float) * channels;
 		int ystride = -xstride * width;
 		float *rect[4] = {NULL, NULL, NULL, NULL};
@@ -382,8 +340,9 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		if (is_zbuf)
 			frameBuffer.insert("Z", Slice(Imf::FLOAT, (char *) (ibuf->zbuf_float + (height - 1) * width),
 			                              sizeof(float), sizeof(float) * -width));
-		file.setFrameBuffer(frameBuffer);
-		file.writePixels(height);
+		file->setFrameBuffer(frameBuffer);
+		file->writePixels(height);
+		delete file;
 	}
 	catch (const std::exception &exc)
 	{
@@ -432,15 +391,9 @@ static ListBase exrhandles = {NULL, NULL};
 typedef struct ExrHandle {
 	struct ExrHandle *next, *prev;
 
-	std::ifstream *std_istream;
-	StdIFStream *exr_istream;
 	InputFile *ifile;
-
-	std::ofstream *std_ostream;
-	StdOFStream *exr_ostream;
 	TiledOutputFile *tofile;
 	OutputFile *ofile;
-
 	int tilex, tiley;
 	int width, height;
 	int mipmap;
@@ -533,24 +486,12 @@ int IMB_exr_begin_write(void *handle, const char *filename, int width, int heigh
 	header.insert("BlenderMultiChannel", StringAttribute("Blender V2.55.1 and newer"));
 
 	/* avoid crash/abort when we don't have permission to write here */
-	/* manually create ofstream, so we can handle utf-8 filepaths on windows */
 	try {
-		data->std_ostream = new std::ofstream();
-		openexr_ofstream_open(*(data->std_ostream), filename);
-
-		data->exr_ostream = new StdOFStream(*(data->std_ostream), filename);
-		data->ofile = new OutputFile(*(data->exr_ostream), header);
+		data->ofile = new OutputFile(filename, header);
 	}
 	catch (const std::exception &exc) {
 		std::cerr << "IMB_exr_begin_write: ERROR: " << exc.what() << std::endl;
-
-		delete data->ofile;
-		delete data->exr_ostream;
-		delete data->std_ostream;
-
 		data->ofile = NULL;
-		data->exr_ostream = NULL;
-		data->std_ostream = NULL;
 	}
 
 	return (data->ofile != NULL);
@@ -577,24 +518,7 @@ void IMB_exrtile_begin_write(void *handle, const char *filename, int mipmap, int
 
 	header.insert("BlenderMultiChannel", StringAttribute("Blender V2.43"));
 
-	/* avoid crash/abort when we don't have permission to write here */
-	/* manually create ofstream, so we can handle utf-8 filepaths on windows */
-	try {
-		data->std_ostream = new std::ofstream();
-		openexr_ofstream_open(*(data->std_ostream), filename);
-
-		data->exr_ostream = new StdOFStream(*(data->std_ostream), filename);
-		data->tofile = new TiledOutputFile(*(data->exr_ostream), header);
-	}
-	catch (const std::exception &exc) {
-		delete data->tofile;
-		delete data->exr_ostream;
-		delete data->std_ostream;
-
-		data->tofile = NULL;
-		data->exr_ostream = NULL;
-		data->std_ostream = NULL;
-	}
+	data->tofile = new TiledOutputFile(filename, header);
 }
 
 /* read from file */
@@ -603,25 +527,7 @@ int IMB_exr_begin_read(void *handle, const char *filename, int *width, int *heig
 	ExrHandle *data = (ExrHandle *)handle;
 
 	if (BLI_exists(filename) && BLI_file_size(filename) > 32) {   /* 32 is arbitrary, but zero length files crashes exr */
-		/* avoid crash/abort when we don't have permission to write here */
-		/* manually create ofstream, so we can handle utf-8 filepaths on windows */
-		try {
-			data->std_istream = new std::ifstream();
-			openexr_ifstream_open(*(data->std_istream), filename);
-
-			data->exr_istream = new StdIFStream(*(data->std_istream), filename);
-			data->ifile = new InputFile(*(data->exr_istream));
-		}
-		catch (const std::exception &exc) {
-			delete data->ifile;
-			delete data->exr_istream;
-			delete data->std_istream;
-
-			data->ifile = NULL;
-			data->exr_istream = NULL;
-			data->std_istream = NULL;
-		}
-
+		data->ifile = new InputFile(filename);
 		if (data->ifile) {
 			Box2i dw = data->ifile->header().dataWindow();
 			data->width = *width  = dw.max.x - dw.min.x + 1;
@@ -790,23 +696,16 @@ void IMB_exr_close(void *handle)
 	ExrLayer *lay;
 	ExrPass *pass;
 
-	delete data->ifile;
-	delete data->exr_istream;
-	delete data->std_istream;
-
-	delete data->ofile;
-	delete data->tofile;
-	delete data->exr_ostream;
-	delete data->std_ostream;
+	if (data->ifile)
+		delete data->ifile;
+	else if (data->ofile)
+		delete data->ofile;
+	else if (data->tofile)
+		delete data->tofile;
 
 	data->ifile = NULL;
-	data->exr_istream = NULL;
-	data->std_istream = NULL;
-
 	data->ofile = NULL;
 	data->tofile = NULL;
-	data->exr_ostream = NULL;
-	data->std_ostream = NULL;
 
 	BLI_freelistN(&data->channels);
 

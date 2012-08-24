@@ -10,9 +10,7 @@ incs = ['.',
     '../../../blenlib',
     'intern/include',
     '#/intern/guardedalloc',
-    '../../../makesdna',
-    '#/intern/utfconv']
-
+    '../../../makesdna']
 incs += Split(env['BF_OPENEXR_INC'])
 
 defs = ['WITH_OPENEXR']

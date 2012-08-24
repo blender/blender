@@ -699,6 +699,12 @@ void playanim_window_open(const char *title, int posx, int posy, int sizex, int 
 		inital_state = start_maximized ? GHOST_kWindowStateFullScreen : GHOST_kWindowStateNormal;
 	else
 		inital_state = start_maximized ? GHOST_kWindowStateMaximized : GHOST_kWindowStateNormal;
+#if defined(__APPLE__) && !defined(GHOST_COCOA)
+	{
+		extern int macPrefState; /* creator.c */
+		initial_state += macPrefState;
+	}
+#endif
 
 	g_WS.ghost_window = GHOST_CreateWindow(g_WS.ghost_system,
 	                              title,
