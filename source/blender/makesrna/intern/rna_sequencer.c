@@ -63,6 +63,7 @@ EnumPropertyItem sequence_modifier_type_items[] = {
 	{seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
 	{seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
 	{seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
+	{seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Bright/Contrast", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -918,6 +919,8 @@ static StructRNA *rna_SequenceModifier_refine(struct PointerRNA *ptr)
 			return &RNA_CurvesModifier;
 		case seqModifierType_HueCorrect:
 			return &RNA_HueCorrectModifier;
+		case seqModifierType_BrightContrast:
+			return &RNA_BrightContrastModifier;
 		default:
 			return &RNA_SequenceModifier;
 	}
@@ -2340,12 +2343,34 @@ static void rna_def_hue_modifier(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
 }
 
+static void rna_def_brightcontrast_modifier(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "BrightContrastModifier", "SequenceModifier");
+	RNA_def_struct_sdna(srna, "BrightContrastModifierData");
+	RNA_def_struct_ui_text(srna, "BrightContrastModifier", "Bright/contrast modifier data for sequence strip");
+
+	prop = RNA_def_property(srna, "bright", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "bright");
+	RNA_def_property_ui_text(prop, "Bright", "");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+
+	prop = RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "contrast");
+	RNA_def_property_ui_text(prop, "Contrast", "");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+}
+
 static void rna_def_modifiers(BlenderRNA *brna)
 {
 	rna_def_modifier(brna);
+
 	rna_def_colorbalance_modifier(brna);
 	rna_def_curves_modifier(brna);
 	rna_def_hue_modifier(brna);
+	rna_def_brightcontrast_modifier(brna);
 }
 
 void RNA_def_sequencer(BlenderRNA *brna)

@@ -394,6 +394,106 @@ static SequenceModifierTypeInfo seqModifier_HueCorrect = {
 	hue_correct_apply                 /* apply */
 };
 
+/* **** Bright/Contrast Modifier **** */
+
+typedef struct BrightContrastThreadData {
+	float bright;
+	float contrast;
+} BrightContrastThreadData;
+
+void brightcontrast_apply_threaded(int width, int height, unsigned char *rect, float *rect_float,
+                                   unsigned char *mask_rect, float *mask_rect_float, void *data_v)
+{
+	BrightContrastThreadData *data = (BrightContrastThreadData *) data_v;
+	int x, y;
+
+	float i;
+	int c;
+	float a, b, v;
+	float brightness = data->bright / 100.0f;
+	float contrast = data->contrast;
+	float delta = contrast / 200.0f;
+
+	a = 1.0f - delta * 2.0f;
+	/*
+	 * The algorithm is by Werner D. Streidt
+	 * (http://visca.com/ffactory/archives/5-99/msg00021.html)
+	 * Extracted of OpenCV demhist.c
+	 */
+	if (contrast > 0) {
+		a = 1.0f / a;
+		b = a * (brightness - delta);
+	}
+	else {
+		delta *= -1;
+		b = a * (brightness + delta);
+	}
+
+	for (y = 0; y < height; y++) {
+		for (x = 0; x < width; x++) {
+			int pixel_index = (y * width + x) * 4;
+
+			if (rect) {
+				unsigned char *pixel = rect + pixel_index;
+
+				for (c = 0; c < 3; c++) {
+					i = pixel[c];
+					v = a * i + b;
+
+					if (mask_rect) {
+						unsigned char *m = mask_rect + pixel_index;
+						float t = (float) m[c] / 255.0f;
+
+						pixel[c] = pixel[c] * (1.0f - t) + v * t;
+					}
+					else
+						pixel[c] = v;
+				}
+			}
+			else if (rect_float) {
+				float *pixel = rect_float + pixel_index;
+
+				for (c = 0; c < 3; c++) {
+					i = pixel[c];
+					v = a * i + b;
+
+					if (mask_rect_float) {
+						float *m = mask_rect_float + pixel_index;
+
+						pixel[c] = pixel[c] * (1.0f - m[c]) + v * m[c];
+					}
+					else
+						pixel[c] = v;
+				}
+			}
+		}
+	}
+}
+
+ImBuf *brightcontrast_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+{
+	BrightContrastModifierData *bcmd = (BrightContrastModifierData *) smd;
+	BrightContrastThreadData data;
+	ImBuf *ibuf_new = IMB_dupImBuf(ibuf);
+
+	data.bright = bcmd->bright;
+	data.contrast = bcmd->contrast;
+
+	modifier_apply_threaded(ibuf_new, mask, brightcontrast_apply_threaded, &data);
+
+	return ibuf_new;
+}
+
+static SequenceModifierTypeInfo seqModifier_BrightContrast = {
+	"Bright/Contrast",                   /* name */
+	"BrightContrastModifierData",        /* struct_name */
+	sizeof(BrightContrastModifierData),  /* struct_size */
+	NULL,                                /* init_data */
+	NULL,                                /* free_data */
+	NULL,                                /* copy_data */
+	brightcontrast_apply                 /* apply */
+};
+
 /*********************** Modifier functions *************************/
 
 static void sequence_modifier_type_info_init(void)
@@ -403,6 +503,7 @@ static void sequence_modifier_type_info_init(void)
 	INIT_TYPE(ColorBalance);
 	INIT_TYPE(Curves);
 	INIT_TYPE(HueCorrect);
+	INIT_TYPE(BrightContrast);
 
 #undef INIT_TYPE
 }

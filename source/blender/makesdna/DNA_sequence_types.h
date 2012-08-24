@@ -271,6 +271,13 @@ typedef struct HueCorrectModifierData {
 	struct CurveMapping curve_mapping;
 } HueCorrectModifierData;
 
+typedef struct BrightContrastModifierData {
+	SequenceModifierData modifier;
+
+	float bright;
+	float contrast;
+} BrightContrastModifierData;
+
 #define MAXSEQ          32
 
 #define SELECT 1
@@ -401,6 +408,7 @@ enum {
 	seqModifierType_ColorBalance   = 1,
 	seqModifierType_Curves         = 2,
 	seqModifierType_HueCorrect     = 3,
+	seqModifierType_BrightContrast = 4,
 
 	NUM_SEQUENCE_MODIFIER_TYPES
 };

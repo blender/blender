@@ -825,7 +825,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p, int mval[], int mvalo[], shor
 		}
 		
 		/* do boundbox check first */
-		if (BLI_in_rcti(rect, x0, y0)) {
+		if (BLI_rcti_isect_pt(rect, x0, y0)) {
 			/* only check if point is inside */
 			if ( ((x0 - mval[0]) * (x0 - mval[0]) + (y0 - mval[1]) * (y0 - mval[1])) <= rad * rad) {
 				/* free stroke */
@@ -874,7 +874,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p, int mval[], int mvalo[], shor
 			}
 			
 			/* check that point segment of the boundbox of the eraser stroke */
-			if (BLI_in_rcti(rect, x0, y0) || BLI_in_rcti(rect, x1, y1)) {
+			if (BLI_rcti_isect_pt(rect, x0, y0) || BLI_rcti_isect_pt(rect, x1, y1)) {
 				/* check if point segment of stroke had anything to do with
 				 * eraser region  (either within stroke painted, or on its lines)
 				 *  - this assumes that linewidth is irrelevant

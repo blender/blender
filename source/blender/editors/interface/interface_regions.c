@@ -899,7 +899,7 @@ int ui_searchbox_inside(ARegion *ar, int x, int y)
 {
 	uiSearchboxData *data = ar->regiondata;
 	
-	return(BLI_in_rcti(&data->bbox, x - ar->winrct.xmin, y - ar->winrct.ymin));
+	return(BLI_rcti_isect_pt(&data->bbox, x - ar->winrct.xmin, y - ar->winrct.ymin));
 }
 
 /* string validated to be of correct length (but->hardmax) */
@@ -935,13 +935,13 @@ void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, wmEvent *event)
 			ui_searchbox_select(C, ar, but, 1);
 			break;
 		case MOUSEMOVE:
-			if (BLI_in_rcti(&ar->winrct, event->x, event->y)) {
+			if (BLI_rcti_isect_pt(&ar->winrct, event->x, event->y)) {
 				rcti rect;
 				int a;
 				
 				for (a = 0; a < data->items.totitem; a++) {
 					ui_searchbox_butrect(&rect, data, a);
-					if (BLI_in_rcti(&rect, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin)) {
+					if (BLI_rcti_isect_pt(&rect, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin)) {
 						if (data->active != a + 1) {
 							data->active = a + 1;
 							ui_searchbox_select(C, ar, but, 0);

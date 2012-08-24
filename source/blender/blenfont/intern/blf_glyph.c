@@ -437,13 +437,13 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	y2 = y + g->pos_y - g->height;
 
 	if (font->flags & BLF_CLIPPING) {
-		if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], y1 + font->pos[1]))
+		if (!BLI_rctf_isect_pt(&font->clip_rec, dx + font->pos[0], y1 + font->pos[1]))
 			return 0;
-		if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], y2 + font->pos[1]))
+		if (!BLI_rctf_isect_pt(&font->clip_rec, dx + font->pos[0], y2 + font->pos[1]))
 			return 0;
-		if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], y2 + font->pos[1]))
+		if (!BLI_rctf_isect_pt(&font->clip_rec, dx1 + font->pos[0], y2 + font->pos[1]))
 			return 0;
-		if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], y1 + font->pos[1]))
+		if (!BLI_rctf_isect_pt(&font->clip_rec, dx1 + font->pos[0], y1 + font->pos[1]))
 			return 0;
 	}
 

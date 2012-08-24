@@ -321,7 +321,7 @@ static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
 {
 	BorderSelectuserData *data = (BorderSelectuserData *) userdata;
 
-	if (BLI_in_rctf(&data->rect, scene_framenr, val)) {
+	if (BLI_rctf_isect_pt(&data->rect, scene_framenr, val)) {
 		int flag = 0;
 
 		if (coord == 0)

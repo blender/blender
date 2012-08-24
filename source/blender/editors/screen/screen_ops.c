@@ -522,7 +522,7 @@ static ScrArea *screen_areahascursor(bScreen *scr, int x, int y)
 	ScrArea *sa = NULL;
 	sa = scr->areabase.first;
 	while (sa) {
-		if (BLI_in_rcti(&sa->totrct, x, y)) break;
+		if (BLI_rcti_isect_pt(&sa->totrct, x, y)) break;
 		sa = sa->next;
 	}
 	
@@ -541,7 +541,7 @@ static int actionzone_area_poll(bContext *C)
 		int y = win->eventstate->y;
 		
 		for (az = sa->actionzones.first; az; az = az->next)
-			if (BLI_in_rcti(&az->rect, x, y))
+			if (BLI_rcti_isect_pt(&az->rect, x, y))
 				return 1;
 	}	
 	return 0;
@@ -552,7 +552,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2])
 	AZone *az = NULL;
 	
 	for (az = sa->actionzones.first; az; az = az->next) {
-		if (BLI_in_rcti_v(&az->rect, xy)) {
+		if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
 			if (az->type == AZONE_AREA) {
 				/* no triangle intersect but a hotspot circle based on corner */
 				int radius = (xy[0] - az->x1) * (xy[0] - az->x1) + (xy[1] - az->y1) * (xy[1] - az->y1);

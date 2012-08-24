@@ -199,8 +199,8 @@ static void deformVerts(ModifierData *md, Object *ob,
  * updates is coded */
 #if 0
 static void deformVertsEM(
-    ModifierData *md, Object *ob, EditMesh *editData,
-    DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        ModifierData *md, Object *ob, EditMesh *editData,
+        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 

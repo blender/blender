@@ -1196,7 +1196,7 @@ static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], cons
 
 BLI_INLINE unsigned int layer_bucket_index_from_xy(MaskRasterLayer *layer, const float xy[2])
 {
-	BLI_assert(BLI_in_rctf_v(&layer->bounds, xy));
+	BLI_assert(BLI_rctf_isect_pt_v(&layer->bounds, xy));
 
 	return ( (unsigned int)((xy[0] - layer->bounds.xmin) * layer->buckets_xy_scalar[0])) +
 	       (((unsigned int)((xy[1] - layer->bounds.ymin) * layer->buckets_xy_scalar[1])) * layer->buckets_x);
@@ -1233,7 +1233,7 @@ static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2
 float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2])
 {
 	/* can't do this because some layers may invert */
-	/* if (BLI_in_rctf_v(&mr_handle->bounds, xy)) */
+	/* if (BLI_rctf_isect_pt_v(&mr_handle->bounds, xy)) */
 
 	const unsigned int layers_tot = mr_handle->layers_tot;
 	unsigned int i;
@@ -1246,7 +1246,7 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 		float value_layer;
 
 		/* also used as signal for unused layer (when render is disabled) */
-		if (layer->alpha != 0.0f && BLI_in_rctf_v(&layer->bounds, xy)) {
+		if (layer->alpha != 0.0f && BLI_rctf_isect_pt_v(&layer->bounds, xy)) {
 			value_layer = 1.0f - layer_bucket_depth_from_xy(layer, xy);
 
 			switch (layer->falloff) {

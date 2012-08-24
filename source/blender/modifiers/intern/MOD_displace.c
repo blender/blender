@@ -166,8 +166,8 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 
 /* dm must be a CDDerivedMesh */
 static void displaceModifier_do(
-    DisplaceModifierData *dmd, Object *ob,
-    DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+        DisplaceModifierData *dmd, Object *ob,
+        DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
 	int i;
 	MVert *mvert;

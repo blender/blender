@@ -979,7 +979,7 @@ static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 	short align = panel_aligned(sa, ar), dx = 0, dy = 0;
 	
 	/* first clip for window, no dragging outside */
-	if (!BLI_in_rcti_v(&ar->winrct, &event->x))
+	if (!BLI_rcti_isect_pt_v(&ar->winrct, &event->x))
 		return;
 
 	dx = (event->x - data->startx) & ~(PNL_GRID - 1);

@@ -563,7 +563,7 @@ static int do_lasso_select_node(bContext *C, int mcords[][2], short moves, short
 		                         cent[0], cent[1],
 		                         &screen_co[0], &screen_co[1]);
 
-		if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
+		if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
 			BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], INT_MAX))
 		{
 			if (select)

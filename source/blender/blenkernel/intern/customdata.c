@@ -1962,6 +1962,23 @@ void CustomData_free_elem(CustomData *data, int index, int count)
 
 #define SOURCE_BUF_SIZE 100
 
+/* This define makes it so when we are interpolating customdata,
+ * the source is checked if it matches the destination.
+ *
+ * There are 2 ways to get around this,
+ * - Each interp function could accumulate the final result in a local, stack variable,
+ *   then apply the result at the end.
+ *
+ * - Or we can make a temp copy of the destinations custom data before applying it.
+ *   This isn't so efficient but avoids having to consider feedback loop on each interp function.
+ *   Since this is more of a corner case its also not worth worrying about speed too much.
+ *
+ * (opted for the second option for now), keeping as an ifdef since we may wan't to change how works.
+ *
+ * see bug [#32395] - Campbell.
+ */
+#define USE_INTERP_OVERLAP_FIX
+
 void CustomData_interp(const CustomData *source, CustomData *dest,
                        int *src_indices, float *weights, float *sub_weights,
                        int count, int dest_index)
@@ -1999,8 +2016,12 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 		if (dest->layers[dest_i].type == source->layers[src_i].type) {
 			void *src_data = source->layers[src_i].data;
 
-			for (j = 0; j < count; ++j)
+			for (j = 0; j < count; ++j) {
+				/* if this happens we need to do a temp copy, see: USE_INTERP_OVERLAP_FIX */
+				BLI_assert(((source == dest) && (dest_index == src_indices[j])) == FALSE);
+
 				sources[j] = (char *)src_data + typeInfo->size * src_indices[j];
+			}
 
 			dest_offset = dest_index * typeInfo->size;
 
@@ -2578,6 +2599,11 @@ void CustomData_bmesh_interp(CustomData *data, void **src_blocks, float *weights
 	void *source_buf[SOURCE_BUF_SIZE];
 	void **sources = source_buf;
 
+#ifdef USE_INTERP_OVERLAP_FIX
+	/* incase there is overlap with the source */
+	void *dest_block_copy = NULL;
+#endif
+
 	/* slow fallback in case we're interpolating a ridiculous number of
 	 * elements
 	 */
@@ -2590,13 +2616,34 @@ void CustomData_bmesh_interp(CustomData *data, void **src_blocks, float *weights
 		CustomDataLayer *layer = &data->layers[i];
 		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
 		if (typeInfo->interp) {
-			for (j = 0; j < count; ++j)
+			for (j = 0; j < count; ++j) {
+#ifdef USE_INTERP_OVERLAP_FIX
+				void *src_block;
+				if (UNLIKELY(src_blocks[j] == dest_block)) {
+					if (dest_block_copy == NULL) {
+						CustomData_bmesh_copy_data(data, data, dest_block, &dest_block_copy);
+					}
+					src_block = dest_block_copy;
+				}
+				else {
+					src_block = src_blocks[j];
+				}
+				sources[j] = (char *)src_block + layer->offset;
+#else
 				sources[j] = (char *)src_blocks[j] + layer->offset;
+#endif
+			}
 
 			typeInfo->interp(sources, weights, sub_weights, count,
 			                 (char *)dest_block + layer->offset);
 		}
 	}
+
+#ifdef USE_INTERP_OVERLAP_FIX
+	if (dest_block_copy) {
+		CustomData_bmesh_free_block(data, &dest_block_copy);
+	}
+#endif
 
 	if (count > SOURCE_BUF_SIZE) MEM_freeN(sources);
 }

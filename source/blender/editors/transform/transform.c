@@ -208,6 +208,11 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 			/* TODO - NOT WORKING, this isnt so bad since its only display aspect */
 			ED_space_clip_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		}
+		else {
+			/* should never happen, quiet warnings */
+			BLI_assert(0);
+			aspx = aspy = 1.0f;
+		}
 
 		r_vec[0] *= aspx;
 		r_vec[1] *= aspy;

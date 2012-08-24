@@ -109,7 +109,7 @@ static int vergname(const void *v1, const void *v2)
 	x1= (char **)v1;
 	x2= (char **)v2;
 	
-	return strcmp(*x1, *x2);
+	return BLI_natstrcmp(*x1, *x2);
 }
 
 void make_unique_prop_names(bContext *C, char *str)

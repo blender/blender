@@ -78,8 +78,8 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void *data)
 
 	this->m_inputOperation->read(color_org, x2, y2, NULL);
 
-#define TOT_DIV_ONE 1.0
-#define TOT_DIV_CNR M_SQRT1_2
+#define TOT_DIV_ONE 1.0f
+#define TOT_DIV_CNR (float)M_SQRT1_2
 
 #define	WTOT (TOT_DIV_ONE * 4 + TOT_DIV_CNR * 4)
 
@@ -110,7 +110,7 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void *data)
 	this->m_inputOperation->read(in1, x2, y3, NULL); COLOR_ADD(TOT_DIV_ONE)
 	this->m_inputOperation->read(in1, x3, y3, NULL); COLOR_ADD(TOT_DIV_CNR)
 
-	mul_v4_fl(color_mid, 1.0f / (4.0f + (4.0f * M_SQRT1_2)));
+	mul_v4_fl(color_mid, 1.0f / (4.0f + (4.0f * (float)M_SQRT1_2)));
 	//mul_v4_fl(color_mid, 1.0f / w);
 
 	if ((w != 0.0f) &&

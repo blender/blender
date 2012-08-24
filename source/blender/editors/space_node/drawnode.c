@@ -455,7 +455,7 @@ static int node_resize_area_default(bNode *node, int x, int y)
 		rctf totr = node->totr;
 		/* right part of node */
 		totr.xmin = node->totr.xmax - 20.0f;
-		if (BLI_in_rctf(&totr, x, y))
+		if (BLI_rctf_isect_pt(&totr, x, y))
 			return NODE_RESIZE_RIGHT;
 		else
 			return 0;

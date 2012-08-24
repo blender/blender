@@ -476,12 +476,12 @@ void node_update_default(const bContext *C, bNodeTree *ntree, bNode *node)
 
 int node_select_area_default(bNode *node, int x, int y)
 {
-	return BLI_in_rctf(&node->totr, x, y);
+	return BLI_rctf_isect_pt(&node->totr, x, y);
 }
 
 int node_tweak_area_default(bNode *node, int x, int y)
 {
-	return BLI_in_rctf(&node->totr, x, y);
+	return BLI_rctf_isect_pt(&node->totr, x, y);
 }
 
 int node_get_colorid(bNode *node)
@@ -989,7 +989,7 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode)
 		else {
 			/* check nodes front to back */
 			for (node = ntree->nodes.last; node; node = node->prev) {
-				if (BLI_in_rctf(&node->totr, snode->cursor[0], snode->cursor[1]))
+				if (BLI_rctf_isect_pt(&node->totr, snode->cursor[0], snode->cursor[1]))
 					break;  /* first hit on node stops */
 			}
 			if (node) {
