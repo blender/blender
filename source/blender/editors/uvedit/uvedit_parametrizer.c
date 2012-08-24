@@ -1135,7 +1135,11 @@ static PFace *p_face_add_fill(PChart *chart, PVert *v1, PVert *v2, PVert *v3)
 
 static PBool p_quad_split_direction(PHandle *handle, float **co, PHashKey *vkeys)
 {
-	float fac = len_v3v3(co[0], co[2]) - len_v3v3(co[1], co[3]);
+	/* slight bias to prefer one edge over the other in case they are equal, so
+	 * that in symmetric models we choose the same split direction instead of
+	 * depending on floating point errors to decide */
+	float bias = 1.0f + 1e-6f;
+	float fac = len_v3v3(co[0], co[2])*bias - len_v3v3(co[1], co[3]);
 	PBool dir = (fac <= 0.0f);
 
 	/* the face exists check is there because of a special case: when
