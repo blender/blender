@@ -99,11 +99,11 @@ def rna2xml(fw=print_ln,
             subvalue = getattr(value, prop)
             subvalue_type = type(subvalue)
 
-            if subvalue_type in (int, bool, float):
+            if subvalue_type in {int, bool, float}:
                 node_attrs.append("%s=\"%s\"" % (prop, number_to_str(subvalue, subvalue_type)))
             elif subvalue_type is str:
                 node_attrs.append("%s=%s" % (prop, quoteattr(subvalue)))
-            elif subvalue_type == set:
+            elif subvalue_type is set:
                 node_attrs.append("%s=%s" % (prop, quoteattr("{" + ",".join(list(subvalue)) + "}")))
             elif subvalue is None:
                 node_attrs.append("%s=\"NONE\"" % prop)
@@ -137,7 +137,7 @@ def rna2xml(fw=print_ln,
                             # default
                             def str_recursive(s):
                                 subsubvalue_type = type(s)
-                                if subsubvalue_type in (int, float, bool):
+                                if subsubvalue_type in {int, float, bool}:
                                     return number_to_str(s, subsubvalue_type)
                                 else:
                                     return " ".join([str_recursive(si) for si in s])
