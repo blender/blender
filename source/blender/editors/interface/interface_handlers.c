@@ -1140,8 +1140,9 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	static ColorBand but_copypaste_coba = {0};
 	char buf[UI_MAX_DRAW_STR + 1] = {0};
 
-	if (mode == 'v' && but->lock)
+	if (mode == 'v' && but->lock  == TRUE) {
 		return;
+	}
 
 	if (mode == 'v') {
 		/* extract first line from clipboard in case of multi-line copies */
@@ -4793,7 +4794,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	/* verify if we can edit this button */
 	if (ELEM(event->type, LEFTMOUSE, RETKEY)) {
 		/* this should become disabled button .. */
-		if (but->lock) {
+		if (but->lock == TRUE) {
 			if (but->lockstr) {
 				BKE_report(NULL, RPT_WARNING, but->lockstr);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
