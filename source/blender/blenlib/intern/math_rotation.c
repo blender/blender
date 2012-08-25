@@ -1040,84 +1040,46 @@ void rotate_eul(float *beul, const char axis, const float ang)
 
 }
 
-/* exported to transform.c */
-
 /* order independent! */
 void compatible_eul(float eul[3], const float oldrot[3])
 {
-	float dx, dy, dz;
+	/* we could use M_PI as pi_thresh: which is correct but 5.1 gives better results.
+	 * Checked with baking actions to fcurves - campbell */
+	const float pi_thresh = (5.1f);
+	const float pi_x2     = (2.0f * (float)M_PI);
+
+	float deul[3];
+	unsigned int i;
 
 	/* correct differences of about 360 degrees first */
-	dx = eul[0] - oldrot[0];
-	dy = eul[1] - oldrot[1];
-	dz = eul[2] - oldrot[2];
-
-	while (fabsf(dx) > 5.1f) {
-		if (dx > 0.0f) eul[0] -= 2.0f * (float)M_PI;
-		else eul[0] += 2.0f * (float)M_PI;
-		dx = eul[0] - oldrot[0];
-	}
-	while (fabsf(dy) > 5.1f) {
-		if (dy > 0.0f) eul[1] -= 2.0f * (float)M_PI;
-		else eul[1] += 2.0f * (float)M_PI;
-		dy = eul[1] - oldrot[1];
-	}
-	while (fabsf(dz) > 5.1f) {
-		if (dz > 0.0f) eul[2] -= 2.0f * (float)M_PI;
-		else eul[2] += 2.0f * (float)M_PI;
-		dz = eul[2] - oldrot[2];
+	for (i = 0; i < 3; i++) {
+		deul[i] = eul[i] - oldrot[i];
+		if (deul[i] > pi_thresh) {
+			eul[i] -= floorf(( deul[i] / pi_x2) + 0.5) * pi_x2;
+			deul[i] = eul[i] - oldrot[i];
+		}
+		else if (deul[i] < -pi_thresh) {
+			eul[i] += floorf((-deul[i] / pi_x2) + 0.5) * pi_x2;
+			deul[i] = eul[i] - oldrot[i];
+		}
 	}
 
 	/* is 1 of the axis rotations larger than 180 degrees and the other small? NO ELSE IF!! */
-	if (fabsf(dx) > 3.2f && fabsf(dy) < 1.6f && fabsf(dz) < 1.6f) {
-		if (dx > 0.0f) eul[0] -= 2.0f * (float)M_PI;
-		else eul[0] += 2.0f * (float)M_PI;
+	if (fabsf(deul[0]) > 3.2f && fabsf(deul[1]) < 1.6f && fabsf(deul[2]) < 1.6f) {
+		if (deul[0] > 0.0f) eul[0] -= pi_x2;
+		else                eul[0] += pi_x2;
 	}
-	if (fabsf(dy) > 3.2f && fabsf(dz) < 1.6f && fabsf(dx) < 1.6f) {
-		if (dy > 0.0f) eul[1] -= 2.0f * (float)M_PI;
-		else eul[1] += 2.0f * (float)M_PI;
+	if (fabsf(deul[1]) > 3.2f && fabsf(deul[2]) < 1.6f && fabsf(deul[0]) < 1.6f) {
+		if (deul[1] > 0.0f) eul[1] -= pi_x2;
+		else                eul[1] += pi_x2;
 	}
-	if (fabsf(dz) > 3.2f && fabsf(dx) < 1.6f && fabsf(dy) < 1.6f) {
-		if (dz > 0.0f) eul[2] -= 2.0f * (float)M_PI;
-		else eul[2] += 2.0f * (float)M_PI;
+	if (fabsf(deul[2]) > 3.2f && fabsf(deul[0]) < 1.6f && fabsf(deul[1]) < 1.6f) {
+		if (deul[2] > 0.0f) eul[2] -= pi_x2;
+		else                eul[2] += pi_x2;
 	}
 
-	/* the method below was there from ancient days... but why! probably because the code sucks :)
-	 */
-#if 0
-	/* calc again */
-	dx = eul[0] - oldrot[0];
-	dy = eul[1] - oldrot[1];
-	dz = eul[2] - oldrot[2];
-
-	/* special case, tested for x-z  */
-
-	if ((fabsf(dx) > 3.1f && fabsf(dz) > 1.5f) || (fabsf(dx) > 1.5f && fabsf(dz) > 3.1f)) {
-		if (dx > 0.0f) eul[0] -= M_PI;
-		else eul[0] += M_PI;
-		if (eul[1] > 0.0) eul[1] = M_PI - eul[1];
-		else eul[1] = -M_PI - eul[1];
-		if (dz > 0.0f) eul[2] -= M_PI;
-		else eul[2] += M_PI;
-
-	}
-	else if ((fabsf(dx) > 3.1f && fabsf(dy) > 1.5f) || (fabsf(dx) > 1.5f && fabsf(dy) > 3.1f)) {
-		if (dx > 0.0f) eul[0] -= M_PI;
-		else eul[0] += M_PI;
-		if (dy > 0.0f) eul[1] -= M_PI;
-		else eul[1] += M_PI;
-		if (eul[2] > 0.0f) eul[2] = M_PI - eul[2];
-		else eul[2] = -M_PI - eul[2];
-	}
-	else if ((fabsf(dy) > 3.1f && fabsf(dz) > 1.5f) || (fabsf(dy) > 1.5f && fabsf(dz) > 3.f1)) {
-		if (eul[0] > 0.0f) eul[0] = M_PI - eul[0];
-		else eul[0] = -M_PI - eul[0];
-		if (dy > 0.0f) eul[1] -= M_PI;
-		else eul[1] += M_PI;
-		if (dz > 0.0f) eul[2] -= M_PI;
-		else eul[2] += M_PI;
-	}
-#endif
+#undef PI_THRESH
+#undef PI_2F
 }
 
 /* uses 2 methods to retrieve eulers, and picks the closest */
