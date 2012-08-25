@@ -34,6 +34,8 @@ __all__ = (
     "register_class",
     "register_module",
     "register_manual_map",
+    "unregister_manual_map",
+    "manual_map",
     "resource_path",
     "script_path_user",
     "script_path_pref",
