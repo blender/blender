@@ -68,7 +68,7 @@ def bake_action(frame_start,
     # Helper Functions
 
     def pose_frame_info(obj):
-        from mathutils import Matrix
+        from mathutils import Matrix, Euler
 
         info = {}
 
@@ -181,6 +181,9 @@ def bake_action(frame_start,
             while pbone.constraints:
                 pbone.constraints.remove(pbone.constraints[0])
 
+        # create compatible eulers
+        euler_prev = None
+
         for f in frame_range:
             f_step = (f - frame_start) // frame_step
             matrix = pose_info[f_step][name]["matrix_key"]
@@ -198,7 +201,18 @@ def bake_action(frame_start,
             elif rotation_mode == 'AXIS_ANGLE':
                 pbone.keyframe_insert("rotation_axis_angle", -1, f, name)
             else:  # euler, XYZ, ZXY etc
+                
+                if euler_prev is not None:
+                    euler = pbone.rotation_euler.copy()
+                    euler.make_compatible(euler_prev)
+                    pbone.rotation_euler = euler
+                    euler_prev = euler
+                    del euler
+                
                 pbone.keyframe_insert("rotation_euler", -1, f, name)
+
+                if euler_prev is None:
+                    euler_prev = pbone.rotation_euler.copy()
 
             pbone.keyframe_insert("scale", -1, f, name)
 
@@ -207,6 +221,9 @@ def bake_action(frame_start,
         if do_constraint_clear:
             while obj.constraints:
                 obj.constraints.remove(obj.constraints[0])
+
+        # create compatible eulers
+        euler_prev = None
 
         for f in frame_range:
             matrix = obj_info[(f - frame_start) // frame_step]["matrix_key"]
@@ -221,7 +238,17 @@ def bake_action(frame_start,
             elif rotation_mode == 'AXIS_ANGLE':
                 obj.keyframe_insert("rotation_axis_angle", -1, f)
             else:  # euler, XYZ, ZXY etc
+                if euler_prev is not None:
+                    euler = obj.rotation_euler.copy()
+                    euler.make_compatible(euler_prev)
+                    obj.rotation_euler = euler
+                    euler_prev = euler
+                    del euler
+
                 obj.keyframe_insert("rotation_euler", -1, f)
+
+                if euler_prev is None:
+                    euler_prev = obj.rotation_euler.copy()
 
             obj.keyframe_insert("scale", -1, f)
 
