@@ -33,6 +33,7 @@ __all__ = (
     "refresh_script_paths",
     "register_class",
     "register_module",
+    "register_manual_map",
     "resource_path",
     "script_path_user",
     "script_path_pref",
@@ -55,7 +56,6 @@ import sys as _sys
 import addon_utils as _addon_utils
 
 _script_module_dirs = "startup", "modules"
-
 
 def _test_import(module_name, loaded_modules):
     use_time = _bpy.app.debug_python
@@ -595,3 +595,40 @@ def unregister_module(module, verbose=False):
             traceback.print_exc()
     if verbose:
         print("done.\n")
+
+
+# -----------------------------------------------------------------------------
+# Manual lookups, each function has to return a basepath and a sequence
+# of...
+
+# we start with the built-in default mapping
+def _blender_default_map():
+    import sys
+    import rna_wiki_reference as ref_mod
+    ret = (ref_mod.url_manual_prefix, ref_mod.url_manual_mapping)
+    # avoid storing in memory
+    del sys.modules["rna_wiki_reference"]
+    return ret
+
+# hooks for doc lookups
+_manual_map = [_blender_default_map]
+
+def register_manual_map(manual_hook):
+    _manual_map.append(manual_hook)
+
+def unregister_manual_map(manual_hook):
+    _manual_map.remove(manual_hook)
+
+def manual_map():
+    # reverse so default is called last
+    for cb in reversed(_manual_map):
+        try:
+            prefix, url_manual_mapping = cb()
+        except:
+            print("Error calling %r" % cb)
+            import traceback
+            traceback.print_exc()
+            continue
+
+        yield prefix, url_manual_mapping
+
