@@ -3047,29 +3047,6 @@ void BKE_nurbList_handles_set(ListBase *editnurb, short code)
 	}
 }
 
-static void swapdata(void *adr1, void *adr2, int len)
-{
-
-	if (len <= 0) return;
-
-	if (len < 65) {
-		char adr[64];
-
-		memcpy(adr, adr1, len);
-		memcpy(adr1, adr2, len);
-		memcpy(adr2, adr, len);
-	}
-	else {
-		char *adr;
-
-		adr = (char *)MEM_mallocN(len, "curve swap");
-		memcpy(adr, adr1, len);
-		memcpy(adr1, adr2, len);
-		memcpy(adr2, adr, len);
-		MEM_freeN(adr);
-	}
-}
-
 void BKE_nurb_direction_switch(Nurb *nu)
 {
 	BezTriple *bezt1, *bezt2;
@@ -3077,7 +3054,9 @@ void BKE_nurb_direction_switch(Nurb *nu)
 	float *fp1, *fp2, *tempf;
 	int a, b;
 
-	if (nu->pntsu == 1 && nu->pntsv == 1) return;
+	if (nu->pntsu == 1 && nu->pntsv == 1) {
+		return;
+	}
 
 	if (nu->type == CU_BEZIER) {
 		a = nu->pntsu;
@@ -3086,12 +3065,15 @@ void BKE_nurb_direction_switch(Nurb *nu)
 		if (a & 1) a += 1;  /* if odd, also swap middle content */
 		a /= 2;
 		while (a > 0) {
-			if (bezt1 != bezt2)
+			if (bezt1 != bezt2) {
 				SWAP(BezTriple, *bezt1, *bezt2);
+			}
 
-			swapdata(bezt1->vec[0], bezt1->vec[2], 12);
-			if (bezt1 != bezt2)
-				swapdata(bezt2->vec[0], bezt2->vec[2], 12);
+			swap_v3_v3(bezt1->vec[0], bezt1->vec[2]);
+
+			if (bezt1 != bezt2) {
+				swap_v3_v3(bezt2->vec[0], bezt2->vec[2]);
+			}
 
 			SWAP(char, bezt1->h1, bezt1->h2);
 			SWAP(char, bezt1->f1, bezt1->f3);
