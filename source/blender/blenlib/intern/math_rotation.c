@@ -422,65 +422,65 @@ void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q
 
 void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 {
-	float q2[4], nor[3], *fp, mat[3][3], angle, si, co, x2, y2, z2, len1;
+	float nor[3], tvec[3];
+	float angle, si, co, len;
 
 	assert(axis >= 0 && axis <= 5);
 	assert(upflag >= 0 && upflag <= 2);
 
-	/* first rotate to axis */
+	/* first set the quat to unit */
+	unit_qt(q);
+
+	len = len_v3(vec);
+
+	if (UNLIKELY(len == 0.0f)) {
+		return;
+	}
+
+	/* rotate to axis */
 	if (axis > 2) {
-		x2 = vec[0];
-		y2 = vec[1];
-		z2 = vec[2];
+		copy_v3_v3(tvec, vec);
 		axis -= 3;
 	}
 	else {
-		x2 = -vec[0];
-		y2 = -vec[1];
-		z2 = -vec[2];
+		negate_v3_v3(tvec, vec);
 	}
-
-	q[0] = 1.0;
-	q[1] = q[2] = q[3] = 0.0;
-
-	len1 = (float)sqrt(x2 * x2 + y2 * y2 + z2 * z2);
-	if (len1 == 0.0f) return;
 
 	/* nasty! I need a good routine for this...
 	 * problem is a rotation of an Y axis to the negative Y-axis for example.
 	 */
 
 	if (axis == 0) { /* x-axis */
-		nor[0] = 0.0;
-		nor[1] = -z2;
-		nor[2] = y2;
+		nor[0] =  0.0;
+		nor[1] = -tvec[2];
+		nor[2] =  tvec[1];
 
-		if (fabsf(y2) + fabsf(z2) < 0.0001f)
-			nor[1] = 1.0;
+		if (fabsf(tvec[1]) + fabsf(tvec[2]) < 0.0001f)
+			nor[1] = 1.0f;
 
-		co = x2;
+		co = tvec[0];
 	}
 	else if (axis == 1) { /* y-axis */
-		nor[0] = z2;
-		nor[1] = 0.0;
-		nor[2] = -x2;
+		nor[0] =  tvec[2];
+		nor[1] =  0.0;
+		nor[2] = -tvec[0];
 
-		if (fabsf(x2) + fabsf(z2) < 0.0001f)
-			nor[2] = 1.0;
+		if (fabsf(tvec[0]) + fabsf(tvec[2]) < 0.0001f)
+			nor[2] = 1.0f;
 
-		co = y2;
+		co = tvec[1];
 	}
 	else { /* z-axis */
-		nor[0] = -y2;
-		nor[1] = x2;
-		nor[2] = 0.0;
+		nor[0] = -tvec[1];
+		nor[1] =  tvec[0];
+		nor[2] =  0.0;
 
-		if (fabsf(x2) + fabsf(y2) < 0.0001f)
-			nor[0] = 1.0;
+		if (fabsf(tvec[0]) + fabsf(tvec[1]) < 0.0001f)
+			nor[0] = 1.0f;
 
-		co = z2;
+		co = tvec[2];
 	}
-	co /= len1;
+	co /= len;
 
 	normalize_v3(nor);
 
@@ -492,28 +492,30 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 	q[3] = nor[2] * si;
 
 	if (axis != upflag) {
+		float mat[3][3];
+		float q2[4];
+		const float *fp = mat[2];
 		quat_to_mat3(mat, q);
 
-		fp = mat[2];
 		if (axis == 0) {
-			if (upflag == 1) angle = (float)(0.5 * atan2(fp[2], fp[1]));
-			else angle = (float)(-0.5 * atan2(fp[1], fp[2]));
+			if (upflag == 1) angle =  0.5f * atan2f(fp[2], fp[1]);
+			else             angle = -0.5f * atan2f(fp[1], fp[2]);
 		}
 		else if (axis == 1) {
-			if (upflag == 0) angle = (float)(-0.5 * atan2(fp[2], fp[0]));
-			else angle = (float)(0.5 * atan2(fp[0], fp[2]));
+			if (upflag == 0) angle = -0.5f * atan2f(fp[2], fp[0]);
+			else             angle =  0.5f * atan2f(fp[0], fp[2]);
 		}
 		else {
-			if (upflag == 0) angle = (float)(0.5 * atan2(-fp[1], -fp[0]));
-			else angle = (float)(-0.5 * atan2(-fp[0], -fp[1]));
+			if (upflag == 0) angle =  0.5f * atan2f(-fp[1], -fp[0]);
+			else             angle = -0.5f * atan2f(-fp[0], -fp[1]);
 		}
 
 		co = cosf(angle);
-		si = sinf(angle) / len1;
+		si = sinf(angle) / len;
 		q2[0] = co;
-		q2[1] = x2 * si;
-		q2[2] = y2 * si;
-		q2[3] = z2 * si;
+		q2[1] = tvec[0] * si;
+		q2[2] = tvec[1] * si;
+		q2[3] = tvec[2] * si;
 
 		mul_qt_qtqt(q, q2, q);
 	}
