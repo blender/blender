@@ -90,7 +90,8 @@ typedef enum NodeType {
 	NODE_MIN_MAX,
 	NODE_LIGHT_FALLOFF,
 	NODE_OBJECT_INFO,
-	NODE_PARTICLE_INFO
+	NODE_PARTICLE_INFO,
+	NODE_TEX_BRICK
 } NodeType;
 
 typedef enum NodeAttributeType {

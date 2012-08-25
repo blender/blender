@@ -158,6 +158,14 @@ public:
 	SHADER_NODE_CLASS(CheckerTextureNode)
 };
 
+class BrickTextureNode : public TextureNode {
+public:
+	SHADER_NODE_CLASS(BrickTextureNode)
+	
+	float offset, squash;
+	int offset_frequency, squash_frequency;
+};
+
 class MappingNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MappingNode)

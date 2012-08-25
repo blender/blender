@@ -461,6 +461,17 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			node = checker;
 			break;
 		}
+		case BL::ShaderNode::type_TEX_BRICK: {
+			BL::ShaderNodeTexBrick b_brick_node(b_node);
+			BrickTextureNode *brick = new BrickTextureNode();
+			brick->offset = b_brick_node.offset();
+			brick->offset_frequency = b_brick_node.offset_frequency();
+			brick->squash = b_brick_node.squash();
+			brick->squash_frequency = b_brick_node.squash_frequency();
+			get_tex_mapping(&brick->tex_mapping, b_brick_node.texture_mapping());
+			node = brick;
+			break;
+		}
 		case BL::ShaderNode::type_TEX_NOISE: {
 			BL::ShaderNodeTexNoise b_noise_node(b_node);
 			NoiseTextureNode *noise = new NoiseTextureNode();

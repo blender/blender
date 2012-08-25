@@ -154,6 +154,7 @@ CCL_NAMESPACE_END
 #include "svm_value.h"
 #include "svm_voronoi.h"
 #include "svm_checker.h"
+#include "svm_brick.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -251,6 +252,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			case NODE_TEX_CHECKER:
 				svm_node_tex_checker(kg, sd, stack, node, &offset);
+				break;
+			case NODE_TEX_BRICK:
+				svm_node_tex_brick(kg, sd, stack, node, &offset);
 				break;
 #endif
 			case NODE_CAMERA:

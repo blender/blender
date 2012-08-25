@@ -108,6 +108,7 @@ void register_node_type_sh_tex_wave(struct bNodeTreeType *ttype);
 void register_node_type_sh_tex_musgrave(struct bNodeTreeType *ttype);
 void register_node_type_sh_tex_noise(struct bNodeTreeType *ttype);
 void register_node_type_sh_tex_checker(struct bNodeTreeType *ttype);
+void register_node_type_sh_tex_brick(struct bNodeTreeType *ttype);
 
 #endif
 

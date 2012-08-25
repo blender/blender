@@ -1364,6 +1364,19 @@ static void node_shader_buts_tex_magic(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "turbulence_depth", 0, NULL, ICON_NONE);
 }
 
+static void node_shader_buts_tex_brick(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *col;
+	
+	col = uiLayoutColumn(layout, TRUE);
+	uiItemR(col, ptr, "offset", 0, IFACE_("Offset"), ICON_NONE);
+	uiItemR(col, ptr, "offset_frequency", 0, IFACE_("Frequency"), ICON_NONE);
+	
+	col = uiLayoutColumn(layout, TRUE);
+	uiItemR(col, ptr, "squash", 0, IFACE_("Squash"), ICON_NONE);
+	uiItemR(col, ptr, "squash_frequency", 0, IFACE_("Frequency"), ICON_NONE);
+}
+
 static void node_shader_buts_tex_wave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "wave_type", 0, "", ICON_NONE);
@@ -1447,6 +1460,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_TEX_MAGIC:
 			ntype->uifunc = node_shader_buts_tex_magic;
+			break;
+		case SH_NODE_TEX_BRICK:
+			ntype->uifunc = node_shader_buts_tex_brick;
 			break;
 		case SH_NODE_TEX_WAVE:
 			ntype->uifunc = node_shader_buts_tex_wave;

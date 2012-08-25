@@ -624,6 +624,12 @@ typedef struct NodeTexChecker {
 	NodeTexBase base;
 } NodeTexChecker;
 
+typedef struct NodeTexBrick {
+	NodeTexBase base;
+	int offset_freq, squash_freq;
+	float offset, squash;
+} NodeTexBrick;
+
 typedef struct NodeTexEnvironment {
 	NodeTexBase base;
 	ImageUser iuser;

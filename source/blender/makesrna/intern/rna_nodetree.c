@@ -1598,6 +1598,43 @@ static void def_sh_tex_checker(StructRNA *srna)
 	def_sh_tex(srna);
 }
 
+static void def_sh_tex_brick(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeTexBrick", "storage");
+	def_sh_tex(srna);
+	
+	prop = RNA_def_property(srna, "offset_frequency", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "offset_freq");
+	RNA_def_property_int_default(prop, 2);
+	RNA_def_property_range(prop, 1, 99);
+	RNA_def_property_ui_text(prop, "Offset Frequency", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "squash_frequency", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "squash_freq");
+	RNA_def_property_int_default(prop, 2);
+	RNA_def_property_range(prop, 1, 99);
+	RNA_def_property_ui_text(prop, "Squash Frequency", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Offset Amount", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "squash", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "squash");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_range(prop, 0.0f, 99.0f);
+	RNA_def_property_ui_text(prop, "Squash Amount", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+}
+
 static void def_sh_tex_magic(StructRNA *srna)
 {
 	PropertyRNA *prop;
