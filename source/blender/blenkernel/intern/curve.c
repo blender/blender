@@ -3094,11 +3094,11 @@ void BKE_nurb_direction_switch(Nurb *nu)
 				swapdata(bezt2->vec[0], bezt2->vec[2], 12);
 
 			SWAP(char, bezt1->h1, bezt1->h2);
-			SWAP(short, bezt1->f1, bezt1->f3);
+			SWAP(char, bezt1->f1, bezt1->f3);
 
 			if (bezt1 != bezt2) {
 				SWAP(char, bezt2->h1, bezt2->h2);
-				SWAP(short, bezt2->f1, bezt2->f3);
+				SWAP(char, bezt2->f1, bezt2->f3);
 				bezt1->alfa = -bezt1->alfa;
 				bezt2->alfa = -bezt2->alfa;
 			}

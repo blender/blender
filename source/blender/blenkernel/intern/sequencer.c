@@ -3627,8 +3627,8 @@ int BKE_sequence_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 	SWAP(float, seq_a->blend_opacity, seq_b->blend_opacity);
 
 
-	SWAP(void *, seq_a->prev, seq_b->prev);
-	SWAP(void *, seq_a->next, seq_b->next);
+	SWAP(Sequence *, seq_a->prev, seq_b->prev);
+	SWAP(Sequence *, seq_a->next, seq_b->next);
 	SWAP(int, seq_a->start, seq_b->start);
 	SWAP(int, seq_a->startofs, seq_b->startofs);
 	SWAP(int, seq_a->endofs, seq_b->endofs);

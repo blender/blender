@@ -1938,7 +1938,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 				}
 				else {
 
-					if (newu == 1) SWAP(short, newu, newv);
+					if (newu == 1) SWAP(int, newu, newv);
 
 					newnu = (Nurb *)MEM_mallocN(sizeof(Nurb), "adduplicateN5");
 					memcpy(newnu, nu, sizeof(Nurb));
