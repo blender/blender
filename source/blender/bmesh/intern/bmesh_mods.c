@@ -174,7 +174,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 					f = BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE);
 					/* return if couldn't join faces in manifold
 					 * conditions */
-					//!disabled for testing why bad things happen
+					/* !disabled for testing why bad things happen */
 					if (!f) {
 						return FALSE;
 					}

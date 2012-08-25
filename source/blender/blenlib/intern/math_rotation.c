@@ -34,7 +34,7 @@
 
 /******************************** Quaternions ********************************/
 
-/* used to test is a quat is not normalized */
+/* used to test is a quat is not normalized (only used for debug prints) */
 #define QUAT_EPSILON 0.0001
 
 /* convenience, avoids setting Y axis everywhere */
@@ -111,6 +111,14 @@ void mul_qt_v3(const float q[4], float v[3])
 	v[2] = t0 * -q[3] + v[2] * q[0] - v[0] * q[2] + v[1] * q[1];
 	v[0] = t1;
 	v[1] = t2;
+}
+
+void conjugate_qt_qt(float q1[4], const float q2[4])
+{
+	q1[0] =  q2[0];
+	q1[1] = -q2[1];
+	q1[2] = -q2[2];
+	q1[3] = -q2[3];
 }
 
 void conjugate_qt(float q[4])
@@ -370,7 +378,7 @@ float normalize_qt(float q[4])
 {
 	float len;
 
-	len = (float)sqrt(dot_qtqt(q, q));
+	len = sqrtf(dot_qtqt(q, q));
 	if (len != 0.0f) {
 		mul_qt_fl(q, 1.0f / len);
 	}
@@ -404,15 +412,10 @@ void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2
 void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q2[4])
 {
 	float tquat[4];
-	double dot = 0.0f;
-	int x;
 
-	copy_qt_qt(tquat, q1);
-	conjugate_qt(tquat);
-	dot = 1.0f / dot_qtqt(tquat, tquat);
+	conjugate_qt_qt(tquat, q1);
 
-	for (x = 0; x < 4; x++)
-		tquat[x] *= dot;
+	mul_qt_fl(tquat, 1.0f / dot_qtqt(tquat, tquat));
 
 	mul_qt_qtqt(q, tquat, q2);
 }
@@ -1128,7 +1131,7 @@ typedef struct RotOrderInfo {
 /* Array of info for Rotation Order calculations
  * WARNING: must be kept in same order as eEulerRotationOrders
  */
-static RotOrderInfo rotOrders[] = {
+static const RotOrderInfo rotOrders[] = {
 	/* i, j, k, n */
 	{{0, 1, 2}, 0}, /* XYZ */
 	{{0, 2, 1}, 1}, /* XZY */
@@ -1147,7 +1150,7 @@ static RotOrderInfo rotOrders[] = {
 /* Construct quaternion from Euler angles (in radians). */
 void eulO_to_quat(float q[4], const float e[3], const short order)
 {
-	RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
+	const RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
 	short i = R->axis[0], j = R->axis[1], k = R->axis[2];
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	double a[3];
@@ -1192,7 +1195,7 @@ void quat_to_eulO(float e[3], short const order, const float q[4])
 /* Construct 3x3 matrix from Euler angles (in radians). */
 void eulO_to_mat3(float M[3][3], const float e[3], const short order)
 {
-	RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
+	const RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
 	short i = R->axis[0], j = R->axis[1], k = R->axis[2];
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 
@@ -1233,7 +1236,7 @@ void eulO_to_mat3(float M[3][3], const float e[3], const short order)
 /* returns two euler calculation methods, so we can pick the best */
 static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, const short order)
 {
-	RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
+	const RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
 	short i = R->axis[0], j = R->axis[1], k = R->axis[2];
 	float m[3][3];
 	double cy;
@@ -1368,7 +1371,7 @@ void rotate_eulO(float beul[3], const short order, char axis, float ang)
 /* the matrix is written to as 3 axis vectors */
 void eulO_to_gimbal_axis(float gmat[][3], const float eul[3], const short order)
 {
-	RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
+	const RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
 
 	float mat[3][3];
 	float teul[3];
@@ -1436,10 +1439,9 @@ void mat4_to_dquat(DualQuat *dq, float basemat[][4], float mat[][4])
 	mult_m4_m4m4(baseRS, mat, basemat);
 	mat4_to_size(scale, baseRS);
 
-	copy_v3_v3(dscale, scale);
-	dscale[0] -= 1.0f;
-	dscale[1] -= 1.0f;
-	dscale[2] -= 1.0f;
+	dscale[0] = scale[0] - 1.0f;
+	dscale[1] = scale[1] - 1.0f;
+	dscale[2] = scale[2] - 1.0f;
 
 	if ((determinant_m4(mat) < 0.0f) || len_v3(dscale) > 1e-4f) {
 		/* extract R and S  */
@@ -1475,10 +1477,10 @@ void mat4_to_dquat(DualQuat *dq, float basemat[][4], float mat[][4])
 	/* dual part */
 	t = R[3];
 	q = dq->quat;
-	dq->trans[0] = -0.5f * (t[0] * q[1] + t[1] * q[2] + t[2] * q[3]);
-	dq->trans[1] = 0.5f * (t[0] * q[0] + t[1] * q[3] - t[2] * q[2]);
-	dq->trans[2] = 0.5f * (-t[0] * q[3] + t[1] * q[0] + t[2] * q[1]);
-	dq->trans[3] = 0.5f * (t[0] * q[2] - t[1] * q[1] + t[2] * q[0]);
+	dq->trans[0] = -0.5f * ( t[0] * q[1] + t[1] * q[2] + t[2] * q[3]);
+	dq->trans[1] =  0.5f * ( t[0] * q[0] + t[1] * q[3] - t[2] * q[2]);
+	dq->trans[2] =  0.5f * (-t[0] * q[3] + t[1] * q[0] + t[2] * q[1]);
+	dq->trans[3] =  0.5f * ( t[0] * q[2] - t[1] * q[1] + t[2] * q[0]);
 }
 
 void dquat_to_mat4(float mat[][4], DualQuat *dq)
@@ -1489,7 +1491,7 @@ void dquat_to_mat4(float mat[][4], DualQuat *dq)
 	copy_qt_qt(q0, dq->quat);
 
 	/* normalize */
-	len = (float)sqrt(dot_qtqt(q0, q0));
+	len = sqrtf(dot_qtqt(q0, q0));
 	if (len != 0.0f)
 		mul_qt_fl(q0, 1.0f / len);
 

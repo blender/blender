@@ -662,8 +662,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		if (vod->use_dyn_ofs) {
 			/* compute the post multiplication quat, to rotate the offset correctly */
-			copy_qt_qt(q1, vod->oldquat);
-			conjugate_qt(q1);
+			conjugate_qt_qt(q1, vod->oldquat);
 			mul_qt_qtqt(q1, q1, vod->viewquat);
 
 			conjugate_qt(q1); /* conj == inv for unit quat */
