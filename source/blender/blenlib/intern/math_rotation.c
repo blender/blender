@@ -1231,7 +1231,7 @@ void eulO_to_mat3(float M[3][3], const float e[3], const short order)
 }
 
 /* returns two euler calculation methods, so we can pick the best */
-static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, short order)
+static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, const short order)
 {
 	RotOrderInfo *R = GET_ROTATIONORDER_INFO(order);
 	short i = R->axis[0], j = R->axis[1], k = R->axis[2];
@@ -1311,7 +1311,7 @@ void mat4_to_eulO(float e[3], const short order, float M[4][4])
 }
 
 /* uses 2 methods to retrieve eulers, and picks the closest */
-void mat3_to_compatible_eulO(float eul[3], float oldrot[3], short order, float mat[3][3])
+void mat3_to_compatible_eulO(float eul[3], float oldrot[3], const short order, float mat[3][3])
 {
 	float eul1[3], eul2[3];
 	float d1, d2;
@@ -1331,7 +1331,7 @@ void mat3_to_compatible_eulO(float eul[3], float oldrot[3], short order, float m
 		copy_v3_v3(eul, eul1);
 }
 
-void mat4_to_compatible_eulO(float eul[3], float oldrot[3], short order, float M[4][4])
+void mat4_to_compatible_eulO(float eul[3], float oldrot[3], const short order, float M[4][4])
 {
 	float m[3][3];
 
@@ -1343,7 +1343,7 @@ void mat4_to_compatible_eulO(float eul[3], float oldrot[3], short order, float M
 /* rotate the given euler by the given angle on the specified axis */
 // NOTE: is this safe to do with different axis orders?
 
-void rotate_eulO(float beul[3], short order, char axis, float ang)
+void rotate_eulO(float beul[3], const short order, char axis, float ang)
 {
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 

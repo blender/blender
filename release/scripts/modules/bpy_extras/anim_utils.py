@@ -68,7 +68,7 @@ def bake_action(frame_start,
     # Helper Functions
 
     def pose_frame_info(obj):
-        from mathutils import Matrix, Euler
+        from mathutils import Matrix
 
         info = {}
 
@@ -201,14 +201,14 @@ def bake_action(frame_start,
             elif rotation_mode == 'AXIS_ANGLE':
                 pbone.keyframe_insert("rotation_axis_angle", -1, f, name)
             else:  # euler, XYZ, ZXY etc
-                
+
                 if euler_prev is not None:
                     euler = pbone.rotation_euler.copy()
                     euler.make_compatible(euler_prev)
                     pbone.rotation_euler = euler
                     euler_prev = euler
                     del euler
-                
+
                 pbone.keyframe_insert("rotation_euler", -1, f, name)
 
                 if euler_prev is None:
