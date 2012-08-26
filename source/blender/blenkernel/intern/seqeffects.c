@@ -53,6 +53,7 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_colormanagement.h"
 
 #include "RNA_access.h"
 
@@ -120,13 +121,13 @@ static ImBuf *prepare_effect_imbufs(SeqRenderData context, ImBuf *ibuf1, ImBuf *
 	}
 	
 	if (ibuf1 && !ibuf1->rect_float && out->rect_float) {
-		IMB_float_from_rect_simple(ibuf1);
+		IMB_colormanagement_imbuf_to_sequencer_space(ibuf1, TRUE);
 	}
 	if (ibuf2 && !ibuf2->rect_float && out->rect_float) {
-		IMB_float_from_rect_simple(ibuf2);
+		IMB_colormanagement_imbuf_to_sequencer_space(ibuf2, TRUE);
 	}
 	if (ibuf3 && !ibuf3->rect_float && out->rect_float) {
-		IMB_float_from_rect_simple(ibuf3);
+		IMB_colormanagement_imbuf_to_sequencer_space(ibuf3, TRUE);
 	}
 	
 	if (ibuf1 && !ibuf1->rect && !out->rect_float) {
@@ -138,7 +139,9 @@ static ImBuf *prepare_effect_imbufs(SeqRenderData context, ImBuf *ibuf1, ImBuf *
 	if (ibuf3 && !ibuf3->rect && !out->rect_float) {
 		IMB_rect_from_float(ibuf3);
 	}
-			
+
+	out->profile = IB_PROFILE_SRGB;
+
 	return out;
 }
 
