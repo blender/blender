@@ -370,6 +370,7 @@ void OBJECT_OT_group_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = group_add_exec;
+	ot->poll = ED_operator_objectmode;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -403,6 +404,7 @@ void OBJECT_OT_group_link(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = group_link_exec;
 	ot->invoke = WM_enum_search_invoke;
+	ot->poll = ED_operator_objectmode;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -438,6 +440,7 @@ void OBJECT_OT_group_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = group_remove_exec;
+	ot->poll = ED_operator_objectmode;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
