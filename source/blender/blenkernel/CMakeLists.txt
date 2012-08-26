@@ -101,6 +101,7 @@ set(SRC
 	intern/lamp.c
 	intern/lattice.c
 	intern/library.c
+	intern/mask_evaluate.c
 	intern/mask_rasterize.c
 	intern/mask.c
 	intern/material.c
