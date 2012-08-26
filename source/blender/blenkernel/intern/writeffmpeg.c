@@ -125,9 +125,7 @@ static int write_audio_frame(void)
 	AUD_readDevice(audio_mixdown_device, audio_input_buffer, audio_input_samples);
 	audio_time += (double) audio_input_samples / (double) c->sample_rate;
 
-	pkt.size = avcodec_encode_audio(c, audio_output_buffer,
-	                                audio_outbuf_size,
-	                                (short *)audio_input_buffer);
+	pkt.size = avcodec_encode_audio(c, audio_output_buffer, audio_outbuf_size, (short *) audio_input_buffer);
 
 	if (pkt.size < 0) {
 		// XXX error("Error writing audio packet");
@@ -137,8 +135,7 @@ static int write_audio_frame(void)
 	pkt.data = audio_output_buffer;
 
 	if (c->coded_frame && c->coded_frame->pts != AV_NOPTS_VALUE) {
-		pkt.pts = av_rescale_q(c->coded_frame->pts,
-		                       c->time_base, audio_stream->time_base);
+		pkt.pts = av_rescale_q(c->coded_frame->pts, c->time_base, audio_stream->time_base);
 		PRINT("Audio Frame PTS: %d\n", (int) pkt.pts);
 	}
 
@@ -189,8 +186,7 @@ static const char **get_file_extensions(int format)
 			return rv;
 		}
 		case FFMPEG_MPEG2: {
-			static const char *rv[] = { ".dvd", ".vob", ".mpg", ".mpeg",
-				                        NULL };
+			static const char *rv[] = { ".dvd", ".vob", ".mpg", ".mpeg", NULL };
 			return rv;
 		}
 		case FFMPEG_MPEG4: {
@@ -254,17 +250,14 @@ static int write_video_frame(RenderData *rd, int cfra, AVFrame *frame, ReportLis
 		frame->top_field_first = ((rd->mode & R_ODDFIELD) != 0);
 	}
 
-	outsize = avcodec_encode_video(c, video_buffer, video_buffersize, 
-	                               frame);
+	outsize = avcodec_encode_video(c, video_buffer, video_buffersize,  frame);
 
 	if (outsize > 0) {
 		AVPacket packet;
 		av_init_packet(&packet);
 
 		if (c->coded_frame->pts != AV_NOPTS_VALUE) {
-			packet.pts = av_rescale_q(c->coded_frame->pts,
-			                          c->time_base,
-			                          video_stream->time_base);
+			packet.pts = av_rescale_q(c->coded_frame->pts, c->time_base, video_stream->time_base);
 			PRINT("Video Frame PTS: %d\n", (int)packet.pts);
 		}
 		else {
@@ -401,8 +394,7 @@ static void set_ffmpeg_property_option(AVCodecContext *c, IDProperty *prop)
 	}
 
 	if (!rv) {
-		PRINT("ffmpeg-option not supported: %s! Skipping.\n",
-		        prop->name);
+		PRINT("ffmpeg-option not supported: %s! Skipping.\n", prop->name);
 	}
 }
 
@@ -463,7 +455,6 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	c->codec_id = codec_id;
 	c->codec_type = AVMEDIA_TYPE_VIDEO;
 
-
 	/* Get some values from the current render settings */
 	
 	c->width = rectx;
@@ -495,7 +486,8 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	c->me_method = ME_EPZS;
 	
 	codec = avcodec_find_encoder(c->codec_id);
-	if (!codec) return NULL;
+	if (!codec)
+		return NULL;
 	
 	/* Be sure to use the correct pixel format(e.g. RGB, YUV) */
 
@@ -563,8 +555,7 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	/* xasp & yasp got float lately... */
 
-	st->sample_aspect_ratio = c->sample_aspect_ratio = av_d2q(
-	                              ((double) rd->xasp / (double) rd->yasp), 255);
+	st->sample_aspect_ratio = c->sample_aspect_ratio = av_d2q(((double) rd->xasp / (double) rd->yasp), 255);
 
 	set_ffmpeg_properties(rd, c, "video");
 	
@@ -586,16 +577,11 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	else
 		video_buffersize = avpicture_get_size(c->pix_fmt, c->width, c->height);
 
-	video_buffer = (uint8_t *)MEM_mallocN(video_buffersize * sizeof(uint8_t),
-	                                      "FFMPEG video buffer");
+	video_buffer = (uint8_t *)MEM_mallocN(video_buffersize * sizeof(uint8_t), "FFMPEG video buffer");
 	
 	current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
 
-	img_convert_ctx = sws_getContext(c->width, c->height,
-	                                 PIX_FMT_BGR32,
-	                                 c->width, c->height,
-	                                 c->pix_fmt,
-	                                 SWS_BICUBIC,
+	img_convert_ctx = sws_getContext(c->width, c->height, PIX_FMT_BGR32, c->width, c->height, c->pix_fmt, SWS_BICUBIC,
 	                                 NULL, NULL, NULL);
 	return st;
 }
@@ -647,11 +633,9 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 			audio_outbuf_size = c->frame_size * c->channels * sizeof(int16_t) * 4;
 	}
 
-	audio_output_buffer = (uint8_t *)av_malloc(
-	    audio_outbuf_size);
+	audio_output_buffer = (uint8_t *) av_malloc(audio_outbuf_size);
 
-	audio_input_buffer = (uint8_t *)av_malloc(
-	    audio_input_samples * c->channels * sizeof(int16_t));
+	audio_input_buffer = (uint8_t *) av_malloc(audio_input_samples * c->channels * sizeof(int16_t));
 
 	audio_time = 0.0f;
 
@@ -683,8 +667,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	ffmpeg_video_bitrate = rd->ffcodecdata.video_bitrate;
 	ffmpeg_audio_bitrate = rd->ffcodecdata.audio_bitrate;
 	ffmpeg_gop_size = rd->ffcodecdata.gop_size;
-	ffmpeg_autosplit = rd->ffcodecdata.flags
-	                   & FFMPEG_AUTOSPLIT_OUTPUT;
+	ffmpeg_autosplit = rd->ffcodecdata.flags & FFMPEG_AUTOSPLIT_OUTPUT;
 	
 	/* Determine the correct filename */
 	BKE_ffmpeg_filepath_get(name, rd);
@@ -871,10 +854,8 @@ void flush_ffmpeg(void)
 			break;
 		}
 		if (c->coded_frame->pts != AV_NOPTS_VALUE) {
-			packet.pts = av_rescale_q(c->coded_frame->pts,
-			                          c->time_base,
-			                          video_stream->time_base);
-			PRINT("Video Frame PTS: %d\n", (int)packet.pts);
+			packet.pts = av_rescale_q(c->coded_frame->pts, c->time_base, video_stream->time_base);
+			PRINT("Video Frame PTS: %d\n", (int) packet.pts);
 		}
 		else {
 			PRINT("Video Frame PTS: not set\n");
@@ -920,8 +901,7 @@ void BKE_ffmpeg_filepath_get(char *string, RenderData *rd)
 	}
 
 	while (*fe) {
-		if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), 
-		                   *fe) == 0)
+		if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), *fe) == 0)
 		{
 			break;
 		}
@@ -987,9 +967,7 @@ int BKE_ffmpeg_append(RenderData *rd, int start_frame, int frame, int *pixels, i
 	AVFrame *avframe;
 	int success = 1;
 
-	PRINT("Writing frame %i, "
-	      "render width=%d, render height=%d\n", frame,
-	      rectx, recty);
+	PRINT("Writing frame %i, render width=%d, render height=%d\n", frame, rectx, recty);
 
 // why is this done before writing the video frame and again at end_ffmpeg?
 //	write_audio_frames(frame / (((double)rd->frs_sec) / rd->frs_sec_base));
@@ -1146,8 +1124,7 @@ IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_in
 		BLI_strncpy(name, o->name, sizeof(name));
 	}
 
-	PRINT("ffmpeg_property_add: %s %d %d %s\n",
-	      type, parent_index, opt_index, name);
+	PRINT("ffmpeg_property_add: %s %d %d %s\n", type, parent_index, opt_index, name);
 
 	prop = IDP_GetPropertyFromGroup(group, name);
 	if (prop) {
@@ -1185,8 +1162,7 @@ IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_in
 
 /* not all versions of ffmpeg include that, so here we go ... */
 
-static const AVOption *my_av_find_opt(void *v, const char *name,
-                                      const char *unit, int mask, int flags)
+static const AVOption *my_av_find_opt(void *v, const char *name, const char *unit, int mask, int flags)
 {
 	AVClass *c = *(AVClass **)v;
 	const AVOption *o = c->option;
@@ -1239,14 +1215,11 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 	if (param && o->type != FF_OPT_TYPE_CONST && o->unit) {
 		p = my_av_find_opt(&c, param, o->unit, 0, 0);	
 		if (p) {
-			prop = BKE_ffmpeg_property_add(rd,
-			                               (char *) type, p - c.av_class->option,
-			                               o - c.av_class->option);
+			prop = BKE_ffmpeg_property_add(rd, (char *) type, p - c.av_class->option, o - c.av_class->option);
 		}
 	}
 	else {
-		prop = BKE_ffmpeg_property_add(rd,
-		                               (char *) type, o - c.av_class->option, 0);
+		prop = BKE_ffmpeg_property_add(rd, (char *) type, o - c.av_class->option, 0);
 	}
 		
 
