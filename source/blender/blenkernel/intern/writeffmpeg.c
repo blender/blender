@@ -69,8 +69,6 @@
 
 #include "ffmpeg_compat.h"
 
-extern void do_init_ffmpeg(void);
-
 static int ffmpeg_type = 0;
 static int ffmpeg_codec = CODEC_ID_MPEG4;
 static int ffmpeg_audio_codec = CODEC_ID_NONE;
@@ -100,6 +98,8 @@ static AUD_Device *audio_mixdown_device = 0;
 #endif
 
 #define FFMPEG_AUTOSPLIT_SIZE 2000000000
+
+#define PRINT if (G.debug & G_DEBUG_FFMPEG) printf
 
 /* Delete a picture buffer */
 
@@ -139,7 +139,7 @@ static int write_audio_frame(void)
 	if (c->coded_frame && c->coded_frame->pts != AV_NOPTS_VALUE) {
 		pkt.pts = av_rescale_q(c->coded_frame->pts,
 		                       c->time_base, audio_stream->time_base);
-		fprintf(stderr, "Audio Frame PTS: %d\n", (int)pkt.pts);
+		PRINT("Audio Frame PTS: %d\n", (int) pkt.pts);
 	}
 
 	pkt.stream_index = audio_stream->index;
@@ -265,10 +265,10 @@ static int write_video_frame(RenderData *rd, int cfra, AVFrame *frame, ReportLis
 			packet.pts = av_rescale_q(c->coded_frame->pts,
 			                          c->time_base,
 			                          video_stream->time_base);
-			fprintf(stderr, "Video Frame PTS: %d\n", (int)packet.pts);
+			PRINT("Video Frame PTS: %d\n", (int)packet.pts);
 		}
 		else {
-			fprintf(stderr, "Video Frame PTS: not set\n");
+			PRINT("Video Frame PTS: not set\n");
 		}
 		if (c->coded_frame->key_frame)
 			packet.flags |= AV_PKT_FLAG_KEY;
@@ -364,7 +364,7 @@ static void set_ffmpeg_property_option(AVCodecContext *c, IDProperty *prop)
 	char *param;
 	const AVOption *rv = NULL;
 
-	fprintf(stderr, "FFMPEG expert option: %s: ", prop->name);
+	PRINT("FFMPEG expert option: %s: ", prop->name);
 
 	BLI_strncpy(name, prop->name, sizeof(name));
 
@@ -376,15 +376,15 @@ static void set_ffmpeg_property_option(AVCodecContext *c, IDProperty *prop)
 
 	switch (prop->type) {
 		case IDP_STRING:
-			fprintf(stderr, "%s.\n", IDP_String(prop));
+			PRINT("%s.\n", IDP_String(prop));
 			av_set_string3(c, prop->name, IDP_String(prop), 1, &rv);
 			break;
 		case IDP_FLOAT:
-			fprintf(stderr, "%g.\n", IDP_Float(prop));
+			PRINT("%g.\n", IDP_Float(prop));
 			rv = av_set_double(c, prop->name, IDP_Float(prop));
 			break;
 		case IDP_INT:
-			fprintf(stderr, "%d.\n", IDP_Int(prop));
+			PRINT("%d.\n", IDP_Int(prop));
 
 			if (param) {
 				if (IDP_Int(prop)) {
@@ -401,7 +401,7 @@ static void set_ffmpeg_property_option(AVCodecContext *c, IDProperty *prop)
 	}
 
 	if (!rv) {
-		fprintf(stderr, "ffmpeg-option not supported: %s! Skipping.\n",
+		PRINT("ffmpeg-option not supported: %s! Skipping.\n",
 		        prop->name);
 	}
 }
@@ -446,11 +446,14 @@ static void set_ffmpeg_properties(RenderData *rd, AVCodecContext *c, const char 
 /* prepare a video stream for the output file */
 
 static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContext *of,
-                                    int rectx, int recty)
+                                    int rectx, int recty, char *error, int error_size)
 {
 	AVStream *st;
 	AVCodecContext *c;
 	AVCodec *codec;
+
+	error[0] = '\0';
+
 	st = av_new_stream(of, 0);
 	if (!st) return NULL;
 
@@ -547,13 +550,13 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 //	    || !strcmp(of->oformat->name, "3gp")
 	    )
 	{
-		fprintf(stderr, "Using global header\n");
+		PRINT("Using global header\n");
 		c->flags |= CODEC_FLAG_GLOBAL_HEADER;
 	}
 	
 	/* Determine whether we are encoding interlaced material or not */
 	if (rd->mode & R_FIELDS) {
-		fprintf(stderr, "Encoding interlaced video\n");
+		PRINT("Encoding interlaced video\n");
 		c->flags |= CODEC_FLAG_INTERLACED_DCT;
 		c->flags |= CODEC_FLAG_INTERLACED_ME;
 	}
@@ -566,8 +569,7 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	set_ffmpeg_properties(rd, c, "video");
 	
 	if (avcodec_open(c, codec) < 0) {
-		//
-		//XXX error("Couldn't initialize codec");
+		BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
 		return NULL;
 	}
 
@@ -672,7 +674,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	AVFormatContext *of;
 	AVOutputFormat *fmt;
 	AVDictionary *opts = NULL;
-	char name[256];
+	char name[256], error[1024];
 	const char **exts;
 
 	ffmpeg_type = rd->ffcodecdata.type;
@@ -684,11 +686,9 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	ffmpeg_autosplit = rd->ffcodecdata.flags
 	                   & FFMPEG_AUTOSPLIT_OUTPUT;
 	
-	do_init_ffmpeg();
-
 	/* Determine the correct filename */
 	BKE_ffmpeg_filepath_get(name, rd);
-	fprintf(stderr, "Starting output to %s(ffmpeg)...\n"
+	PRINT("Starting output to %s(ffmpeg)...\n"
 	        "  Using type=%d, codec=%d, audio_codec=%d,\n"
 	        "  video_bitrate=%d, audio_bitrate=%d,\n"
 	        "  gop_size=%d, autosplit=%d\n"
@@ -793,10 +793,14 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	}
 	
 	if (fmt->video_codec != CODEC_ID_NONE) {
-		video_stream = alloc_video_stream(rd, fmt->video_codec, of, rectx, recty);
-		printf("alloc video stream %p\n", video_stream);
+		video_stream = alloc_video_stream(rd, fmt->video_codec, of, rectx, recty, error, sizeof(error));
+		PRINT("alloc video stream %p\n", video_stream);
 		if (!video_stream) {
-			BKE_report(reports, RPT_ERROR, "Error initializing video stream.");
+			if (error[0])
+				BKE_report(reports, RPT_ERROR, error);
+			else
+				BKE_report(reports, RPT_ERROR, "Error initializing video stream.");
+
 			av_dict_free(&opts);
 			return 0;
 		}
@@ -870,10 +874,10 @@ void flush_ffmpeg(void)
 			packet.pts = av_rescale_q(c->coded_frame->pts,
 			                          c->time_base,
 			                          video_stream->time_base);
-			fprintf(stderr, "Video Frame PTS: %d\n", (int)packet.pts);
+			PRINT("Video Frame PTS: %d\n", (int)packet.pts);
 		}
 		else {
-			fprintf(stderr, "Video Frame PTS: not set\n");
+			PRINT("Video Frame PTS: not set\n");
 		}
 		if (c->coded_frame->key_frame) {
 			packet.flags |= AV_PKT_FLAG_KEY;
@@ -983,9 +987,9 @@ int BKE_ffmpeg_append(RenderData *rd, int start_frame, int frame, int *pixels, i
 	AVFrame *avframe;
 	int success = 1;
 
-	fprintf(stderr, "Writing frame %i, "
-	        "render width=%d, render height=%d\n", frame,
-	        rectx, recty);
+	PRINT("Writing frame %i, "
+	      "render width=%d, render height=%d\n", frame,
+	      rectx, recty);
 
 // why is this done before writing the video frame and again at end_ffmpeg?
 //	write_audio_frames(frame / (((double)rd->frs_sec) / rd->frs_sec_base));
@@ -1013,7 +1017,7 @@ void BKE_ffmpeg_end(void)
 {
 	unsigned int i;
 	
-	fprintf(stderr, "Closing ffmpeg...\n");
+	PRINT("Closing ffmpeg...\n");
 
 #if 0
 	if (audio_stream) { /* SEE UPPER */
@@ -1029,7 +1033,7 @@ void BKE_ffmpeg_end(void)
 #endif
 
 	if (video_stream && video_stream->codec) {
-		fprintf(stderr, "Flushing delayed frames...\n");
+		PRINT("Flushing delayed frames...\n");
 		flush_ffmpeg();
 	}
 	
@@ -1041,7 +1045,7 @@ void BKE_ffmpeg_end(void)
 
 	if (video_stream && video_stream->codec) {
 		avcodec_close(video_stream->codec);
-		printf("zero video stream %p\n", video_stream);
+		PRINT("zero video stream %p\n", video_stream);
 		video_stream = 0;
 	}
 
@@ -1142,8 +1146,8 @@ IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_in
 		BLI_strncpy(name, o->name, sizeof(name));
 	}
 
-	fprintf(stderr, "ffmpeg_property_add: %s %d %d %s\n",
-	        type, parent_index, opt_index, name);
+	PRINT("ffmpeg_property_add: %s %d %d %s\n",
+	      type, parent_index, opt_index, name);
 
 	prop = IDP_GetPropertyFromGroup(group, name);
 	if (prop) {
@@ -1316,12 +1320,10 @@ static void ffmpeg_set_expert_options(RenderData *rd)
 		if (rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT)
 			BKE_ffmpeg_property_add_string(rd, "video", "cqp:0");
 	}
-#if 0   /* disabled for after release */
 	else if (codec_id == CODEC_ID_DNXHD) {
 		if (rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT)
-			ffmpeg_property_add_string(rd, "video", "mbd:rd");
+			BKE_ffmpeg_property_add_string(rd, "video", "mbd:rd");
 	}
-#endif
 }
 
 void BKE_ffmpeg_preset_set(RenderData *rd, int preset)

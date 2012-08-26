@@ -1273,6 +1273,7 @@ int main(int argc, const char **argv)
 	initglobals();  /* blender.c */
 
 	IMB_init();
+	IMB_ffmpeg_init();
 
 	BLI_callback_global_init();
 

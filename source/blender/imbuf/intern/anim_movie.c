@@ -439,8 +439,6 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 
 #ifdef WITH_FFMPEG
 
-extern void do_init_ffmpeg(void);
-
 static int startffmpeg(struct anim *anim)
 {
 	int i, videoStream;
@@ -462,8 +460,6 @@ static int startffmpeg(struct anim *anim)
 	if (anim == 0) return(-1);
 
 	streamcount = anim->streamindex;
-
-	do_init_ffmpeg();
 
 	if (avformat_open_input(&pFormatCtx, anim->name, NULL, NULL) != 0) {
 		return -1;
