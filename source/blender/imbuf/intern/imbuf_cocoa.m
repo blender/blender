@@ -92,9 +92,8 @@ struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 	/* allocate the image buffer */
 	ibuf = IMB_allocImBuf(bitmapSize.width, bitmapSize.height, 32/*RGBA*/, 0);
 	if (!ibuf) {
-		fprintf(stderr, 
-			"imb_cocoaLoadImage: could not allocate memory for the " \
-			"image.\n");
+		fprintf(stderr,
+		        "imb_cocoaLoadImage: could not allocate memory for the image.\n");
 		[bitmapImage release];
 		[pool drain];
 		return NULL;
@@ -243,8 +242,8 @@ short imb_cocoaSaveImage(struct ImBuf *ibuf, char *name, int flags)
 			break;
 		default:
 			fprintf(stderr,
-					"imb_cocoaSaveImage: unsupported number of bytes per " 
-					"pixel: %d\n", samplesperpixel);
+			        "imb_cocoaSaveImage: unsupported number of bytes per "
+			        "pixel: %d\n", samplesperpixel);
 			return (0);
 	}
 
@@ -257,16 +256,16 @@ short imb_cocoaSaveImage(struct ImBuf *ibuf, char *name, int flags)
 	
 	/* Create bitmap image rep in blender format */
 	blBitmapFormatImage = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-																  pixelsWide:ibuf->x 
-																  pixelsHigh:ibuf->y
-															   bitsPerSample:bitspersample samplesPerPixel:samplesperpixel hasAlpha:hasAlpha isPlanar:NO
-															  colorSpaceName:colorSpace 
-																bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
-																 bytesPerRow:(ibuf->x*bitspersample*samplesperpixel/8)
-																bitsPerPixel:(bitspersample*samplesperpixel)];
+	                                                              pixelsWide:ibuf->x
+	                                                              pixelsHigh:ibuf->y
+	                                                           bitsPerSample:bitspersample samplesPerPixel:samplesperpixel hasAlpha:hasAlpha isPlanar:NO
+	                                                          colorSpaceName:colorSpace
+	                                                            bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
+	                                                             bytesPerRow:(ibuf->x*bitspersample*samplesperpixel/8)
+	                                                            bitsPerPixel:(bitspersample*samplesperpixel)];
 	if (!blBitmapFormatImage) {
-		[pool drain];
-		return FALSE;
+	    [pool drain];
+	    return FALSE;
 	}
 	
 	/* setup pointers */

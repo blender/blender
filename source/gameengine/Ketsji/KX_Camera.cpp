@@ -1048,7 +1048,9 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
 	{
 		Py_DECREF(argValue);
 		PyErr_SetString(PyExc_TypeError,
-			"Error in getScreenRay. Invalid 2D coordinate. Expected a normalized 2D screen coordinate, a distance and an optional property argument");
+		                "Error in getScreenRay. Invalid 2D coordinate. "
+		                "Expected a normalized 2D screen coordinate, "
+		                "a distance and an optional property argument");
 		return NULL;
 	}
 	Py_DECREF(argValue);

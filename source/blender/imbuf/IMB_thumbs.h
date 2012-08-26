@@ -63,16 +63,16 @@ typedef enum ThumbSource {
 // IB_metadata
 
 /* create thumbnail for file and returns new imbuf for thumbnail */
-ImBuf *IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, ImBuf *ibuf);
+ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, ImBuf *ibuf);
 
 /* read thumbnail for file and returns new imbuf for thumbnail */
-ImBuf *IMB_thumb_read(const char* path, ThumbSize size);
+ImBuf *IMB_thumb_read(const char *path, ThumbSize size);
 
 /* delete all thumbs for the file */
-void IMB_thumb_delete(const char* path, ThumbSize size);
+void IMB_thumb_delete(const char *path, ThumbSize size);
 
 /* return the state of the thumb, needed to determine how to manage the thumb */
-ImBuf *IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source);
+ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source);
 
 /* create the necessary dirs to store the thumbnails */
 void IMB_thumb_makedirs(void);

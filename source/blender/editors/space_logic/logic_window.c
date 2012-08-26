@@ -724,25 +724,25 @@ static const char *actuator_name(int type)
 static const char *actuator_pup(Object *owner)
 {
 	switch (owner->type) {
-	case OB_ARMATURE:
-		return "Actuators  %t|Action %x15|Armature %x23|Motion %x0|Constraint %x9|Ipo %x1"
-			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-						"|Scene %x11|Random %x13|Message %x14|Game %x17"
-			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
-		break;
+		case OB_ARMATURE:
+			return ("Actuators  %t|Action %x15|Armature %x23|Motion %x0|Constraint %x9|Ipo %x1"
+			        "|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
+			        "|Scene %x11|Random %x13|Message %x14|Game %x17"
+			        "|Visibility %x18|2D Filter %x19|Parent %x20|State %x22");
+			break;
 
-	case OB_MESH:
-		return "Actuators  %t|Shape Action %x21|Motion %x0|Constraint %x9|Ipo %x1"
-			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-						"|Scene %x11|Random %x13|Message %x14|Game %x17"
-			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
-		break;
+		case OB_MESH:
+			return ("Actuators  %t|Shape Action %x21|Motion %x0|Constraint %x9|Ipo %x1"
+			        "|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
+			        "|Scene %x11|Random %x13|Message %x14|Game %x17"
+			        "|Visibility %x18|2D Filter %x19|Parent %x20|State %x22");
+			break;
 
-	default:
-		return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
-			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-						"|Scene %x11|Random %x13|Message %x14|Game %x17"
-			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
+		default:
+			return ("Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
+			        "|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
+			        "|Scene %x11|Random %x13|Message %x14|Game %x17"
+			        "|Visibility %x18|2D Filter %x19|Parent %x20|State %x22");
 	}
 }
 

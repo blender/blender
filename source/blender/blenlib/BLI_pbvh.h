@@ -260,8 +260,8 @@ void BLI_pbvh_node_free_proxies(PBVHNode *node);
 PBVHProxyNode *BLI_pbvh_node_add_proxy(PBVH *bvh, PBVHNode *node);
 void BLI_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***nodes,  int *totnode);
 
-//void BLI_pbvh_node_BB_reset(PBVHNode* node);
-//void BLI_pbvh_node_BB_expand(PBVHNode* node, float co[3]);
+//void BLI_pbvh_node_BB_reset(PBVHNode *node);
+//void BLI_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 
 #endif /* __BLI_PBVH_H__ */
 

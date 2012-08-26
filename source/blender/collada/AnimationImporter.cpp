@@ -561,7 +561,7 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 
 		case COLLADAFW::Transformation::MATRIX:
 			/*{
-			   COLLADAFW::Matrix* mat = (COLLADAFW::Matrix*)transform;
+			   COLLADAFW::Matrix *mat = (COLLADAFW::Matrix*)transform;
 			   COLLADABU::Math::Matrix4 mat4 = mat->getMatrix();
 			   switch (binding->animationClass) {
 			   case COLLADAFW::AnimationList::TRANSFORM:

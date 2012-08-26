@@ -2525,7 +2525,7 @@ static void write_libraries(WriteData *wd, Main *main)
 	}
 }
 
-static void write_bone(WriteData *wd, Bone* bone)
+static void write_bone(WriteData *wd, Bone *bone)
 {
 	Bone*	cbone;
 
