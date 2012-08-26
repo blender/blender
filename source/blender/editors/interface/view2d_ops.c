@@ -682,7 +682,10 @@ static int view_zoomin_exec(bContext *C, wmOperator *op)
 	
 	/* default not to zoom the sequencer vertically */
 	if (sa && sa->spacetype == SPACE_SEQ) {
-		do_zoom_y = FALSE;
+		ARegion *ar = CTX_wm_region(C);
+
+		if (ar && ar->regiontype != RGN_TYPE_PREVIEW)
+			do_zoom_y = FALSE;
 	}
 
 	/* set RNA-Props - zooming in by uniform factor */
@@ -727,7 +730,7 @@ static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke = view_zoomin_invoke;
-//	ot->exec = view_zoomin_exec;  // XXX, needs view_zoomdrag_init called first.
+	ot->exec = view_zoomin_exec;  // XXX, needs view_zoomdrag_init called first.
 	ot->poll = view_zoom_poll;
 	
 	/* rna - must keep these in sync with the other operators */
@@ -748,7 +751,10 @@ static int view_zoomout_exec(bContext *C, wmOperator *op)
 	
 	/* default not to zoom the sequencer vertically */
 	if (sa && sa->spacetype == SPACE_SEQ) {
-		do_zoom_y = FALSE;
+		ARegion *ar = CTX_wm_region(C);
+
+		if (ar && ar->regiontype != RGN_TYPE_PREVIEW)
+			do_zoom_y = FALSE;
 	}
 
 	/* set RNA-Props - zooming in by uniform factor */
