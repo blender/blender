@@ -366,8 +366,8 @@ static BMOpDefine bmo_weld_verts_def = {
  */
 static BMOpDefine bmo_create_vert_def = {
 	"create_vert",
-	{{BMO_OP_SLOT_VEC, "co"}, //the coordinate of the new vert
-	 {BMO_OP_SLOT_ELEMENT_BUF, "newvertout"}, //the new vert
+	{{BMO_OP_SLOT_VEC, "co"},  /* the coordinate of the new vert */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "newvertout"},  /* the new vert */
 	 {0, /* null-terminating sentinel */}},
 	bmo_create_vert_exec,
 	0,
@@ -381,8 +381,8 @@ static BMOpDefine bmo_create_vert_def = {
  */
 static BMOpDefine bmo_join_triangles_def = {
 	"join_triangles",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, //input geometry.
-	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, //joined faces
+	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input geometry. */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"},  /* joined faces */
 	 {BMO_OP_SLOT_BOOL, "cmp_sharp"},
 	 {BMO_OP_SLOT_BOOL, "cmp_uvs"},
 	 {BMO_OP_SLOT_BOOL, "cmp_vcols"},
@@ -406,7 +406,7 @@ static BMOpDefine bmo_join_triangles_def = {
  */
 static BMOpDefine bmo_contextual_create_def = {
 	"contextual_create",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, //input geometry.
+	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, /* input geometry. */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"},     /* newly-made face(s) */
 	/* note, this is for stand-alone edges only, not edges which are apart of newly created faces */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"},     /* newly-made edge(s) */
@@ -459,8 +459,8 @@ static BMOpDefine bmo_edgenet_fill_def = {
  */
 static BMOpDefine bmo_edgenet_prepare_def = {
 	"edgenet_prepare",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, //input edges
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, //new edges
+	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},    /* input edges */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"},  /* new edges */
 	 {0, /* null-terminating sentinel */}},
 	bmo_edgenet_prepare,
 	0,
@@ -474,9 +474,9 @@ static BMOpDefine bmo_edgenet_prepare_def = {
  */
 static BMOpDefine bmo_rotate_def = {
 	"rotate",
-	{{BMO_OP_SLOT_VEC, "cent"}, //center of rotation
-	 {BMO_OP_SLOT_MAT, "mat"}, //matrix defining rotation
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"}, //input vertices
+	{{BMO_OP_SLOT_VEC, "cent"},  /* center of rotation */
+	 {BMO_OP_SLOT_MAT, "mat"},   /* matrix defining rotation */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},  /* input vertices */
 	 {0, /* null-terminating sentinel */}},
 	bmo_rotate_exec,
 	0,
@@ -490,8 +490,8 @@ static BMOpDefine bmo_rotate_def = {
  */
 static BMOpDefine bmo_translate_def = {
 	"translate",
-	{{BMO_OP_SLOT_VEC, "vec"}, //translation offset
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"}, //input vertices
+	{{BMO_OP_SLOT_VEC, "vec"},  /* translation offset */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},  /* input vertices */
 	 {0, /* null-terminating sentinel */}},
 	bmo_translate_exec,
 	0,
@@ -504,8 +504,8 @@ static BMOpDefine bmo_translate_def = {
  */
 static BMOpDefine bmo_scale_def = {
 	"scale",
-	{{BMO_OP_SLOT_VEC, "vec"}, //scale factor
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"}, //input vertices
+	{{BMO_OP_SLOT_VEC, "vec"},  /* scale factor */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},  /* input vertices */
 	 {0, /* null-terminating sentinel */}},
 	bmo_scale_exec,
 	0,
@@ -520,8 +520,8 @@ static BMOpDefine bmo_scale_def = {
  */
 static BMOpDefine bmo_transform_def = {
 	"transform",
-	{{BMO_OP_SLOT_MAT, "mat"}, //transform matrix
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"}, //input vertices
+	{{BMO_OP_SLOT_MAT, "mat"},  /* transform matrix */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},  /* input vertices */
 	 {0, /* null-terminating sentinel */}},
 	bmo_transform_exec,
 	0,
@@ -550,9 +550,9 @@ static BMOpDefine bmo_object_load_bmesh_def = {
  */
 static BMOpDefine bmo_bmesh_to_mesh_def = {
 	"bmesh_to_mesh",
-	{{BMO_OP_SLOT_PTR, "mesh"}, //pointer to a mesh structure to fill in
-	 {BMO_OP_SLOT_PTR, "object"}, //pointer to an object structure
-	 {BMO_OP_SLOT_BOOL, "notessellation"}, //don't calculate mfaces
+	{{BMO_OP_SLOT_PTR, "mesh"},    /* pointer to a mesh structure to fill in */
+	 {BMO_OP_SLOT_PTR, "object"},  /* pointer to an object structure */
+	 {BMO_OP_SLOT_BOOL, "notessellation"},  /* don't calculate mfaces */
 	 {0, /* null-terminating sentinel */}},
 	bmo_bmesh_to_mesh_exec,
 	0,
@@ -566,9 +566,9 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
  */
 static BMOpDefine bmo_mesh_to_bmesh_def = {
 	"mesh_to_bmesh",
-	{{BMO_OP_SLOT_PTR, "mesh"}, //pointer to a Mesh structure
-	 {BMO_OP_SLOT_PTR, "object"}, //pointer to an Object structure
-	 {BMO_OP_SLOT_BOOL, "set_shapekey"}, //load active shapekey coordinates into verts
+	{{BMO_OP_SLOT_PTR, "mesh"},    /* pointer to a Mesh structure */
+	 {BMO_OP_SLOT_PTR, "object"},  /* pointer to an Object structure */
+	 {BMO_OP_SLOT_BOOL, "set_shapekey"},  /* load active shapekey coordinates into verts */
 	 {0, /* null-terminating sentinel */}},
 	bmo_mesh_to_bmesh_exec,
 	0
@@ -581,9 +581,9 @@ static BMOpDefine bmo_mesh_to_bmesh_def = {
  */
 static BMOpDefine bmo_extrude_discrete_faces_def = {
 	"extrude_discrete_faces",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, //input faces
-	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, //output faces
-	 {BMO_OP_SLOT_ELEMENT_BUF, "skirtout"}, //output skirt geometry, faces and edges
+	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},     /* input faces */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"},   /* output faces */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "skirtout"},  /* output skirt geometry, faces and edges */
 	 {0} /* null-terminating sentinel */},
 	bmo_extrude_discrete_faces_exec,
 	0
@@ -597,8 +597,8 @@ static BMOpDefine bmo_extrude_discrete_faces_def = {
  */
 static BMOpDefine bmo_extrude_edge_only_def = {
 	"extrude_edge_only",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, //input vertices
-	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"}, //output geometry
+	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},    /* input vertices */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"},  /* output geometry */
 	 {0} /* null-terminating sentinel */},
 	bmo_extrude_edge_only_exec,
 	0
@@ -611,9 +611,9 @@ static BMOpDefine bmo_extrude_edge_only_def = {
  */
 static BMOpDefine bmo_extrude_vert_indiv_def = {
 	"extrude_vert_indiv",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, //input vertices
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, //output wire edges
-	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"}, //output vertices
+	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},    /* input vertices */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"},  /* output wire edges */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"},  /* output vertices */
 	 {0} /* null-terminating sentinel */},
 	bmo_extrude_vert_indiv_exec,
 	0
@@ -651,7 +651,7 @@ static BMOpDefine bmo_dissolve_edges_def = {
 	"dissolve_edges",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "regionout"},
-	 {BMO_OP_SLOT_BOOL, "use_verts"}, // dissolve verts left between only 2 edges.
+	 {BMO_OP_SLOT_BOOL, "use_verts"},  /* dissolve verts left between only 2 edges. */
 	 {0} /* null-terminating sentinel */},
 	bmo_dissolve_edges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -670,7 +670,7 @@ static BMOpDefine bmo_dissolve_faces_def = {
 	"dissolve_faces",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "regionout"},
-	 {BMO_OP_SLOT_BOOL, "use_verts"}, // dissolve verts left between only 2 edges.
+	 {BMO_OP_SLOT_BOOL, "use_verts"},  /* dissolve verts left between only 2 edges. */
 	 {0} /* null-terminating sentinel */},
 	bmo_dissolve_faces_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES

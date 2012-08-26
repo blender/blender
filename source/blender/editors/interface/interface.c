@@ -510,18 +510,18 @@ static void ui_draw_links(uiBlock *block)
 
 	/* Draw the inactive lines (lines with neither button being hovered over).
 	 * As we go, remember if we see any active or selected lines. */
-	int foundselectline = 0;
-	int foundactiveline = 0;
+	int foundselectline = FALSE;
+	int foundactiveline = FALSE;
 	for (but = block->buttons.first; but; but = but->next) {
 		if (but->type == LINK && but->link) {
 			for (line = but->link->lines.first; line; line = line->next) {
 				if (!(line->from->flag & UI_ACTIVE) && !(line->to->flag & UI_ACTIVE))
 					ui_draw_linkline(line, 0);
 				else
-					foundactiveline = 1;
+					foundactiveline = TRUE;
 
 				if ((line->from->flag & UI_SELECT) || (line->to->flag & UI_SELECT))
-					foundselectline = 1;
+					foundselectline = TRUE;
 			}
 		}
 	}	
@@ -680,28 +680,27 @@ int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
 {
 	uiBlock *oldblock;
 	uiBut *oldbut;
-	int activate = 0, found = 0, isactive = 0;
+	int activate = FALSE, found = FALSE, isactive = FALSE;
 	
 	oldblock = block->oldblock;
 	if (!oldblock)
-		activate = 1;
+		activate = TRUE;
 	else {
 		for (oldbut = oldblock->buttons.first; oldbut; oldbut = oldbut->next) {
 			if (ui_but_equals_old(oldbut, but)) {
-				found = 1;
+				found = TRUE;
 				
 				if (oldbut->active)
-					isactive = 1;
+					isactive = TRUE;
 				
 				break;
 			}
 		}
 	}
-	if (activate || found == 0) {
+	if ((activate == TRUE) || (found == FALSE)) {
 		ui_button_activate_do((bContext *)C, CTX_wm_region(C), but);
 	}
-	else if (found && isactive == 0) {
-		
+	else if ((found == TRUE) && (isactive == FALSE)) {
 		BLI_remlink(&block->buttons, but);
 		ui_free_but(C, but);
 		return 0;
@@ -911,7 +910,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 			if (ot == NULL || WM_operator_poll_context((bContext *)C, ot, but->opcontext) == 0) {
 				but->flag |= UI_BUT_DISABLED;
-				but->lock = 1;
+				but->lock = TRUE;
 			}
 
 			if (but->context)
@@ -1067,9 +1066,12 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 
 static void ui_is_but_sel(uiBut *but, double *value)
 {
-	short is_push = 0, is_true = 1;
+	short is_push = 0;  /* (0 == UNSELECT), (1 == SELECT), (2 == DO-NOHING) */
+	short is_true = TRUE;
 
-	if (ELEM3(but->type, TOGN, ICONTOGN, OPTIONN)) is_true = 0;
+	if (ELEM3(but->type, TOGN, ICONTOGN, OPTIONN)) {
+		is_true = FALSE;
+	}
 
 	if (but->bit) {
 		int lvalue;
@@ -1198,14 +1200,14 @@ void uiComposeLinks(uiBlock *block)
 void uiBlockSetButLock(uiBlock *block, int val, const char *lockstr)
 {
 	if (val) {
-		block->lock = val ? 1 : 0;
+		block->lock = val ? TRUE : FALSE;
 		block->lockstr = lockstr;
 	}
 }
 
 void uiBlockClearButLock(uiBlock *block)
 {
-	block->lock = 0;
+	block->lock = FALSE;
 	block->lockstr = NULL;
 }
 
@@ -1515,10 +1517,15 @@ void ui_set_but_val(uiBut *but, double value)
 		if (but->pointype == CHA)
 			value = (char)floor(value + 0.5);
 		else if (but->pointype == SHO) {
-			/* gcc 3.2.1 seems to have problems 
+			/* gcc 3.2.1 seems to have problems
 			 * casting a double like 32772.0 to
-			 * a short so we cast to an int, then 
-			 * to a short */
+			 * a short so we cast to an int, then
+			 * to a short.
+			 *
+			 * Update: even in gcc.4.6 using intermediate int cast gives -32764,
+			 * where as a direct cast from double to short gives -32768,
+			 * if this difference isn't important we could remove this hack,
+			 * since we dont support gcc3 anymore - Campbell */
 			int gcckludge;
 			gcckludge = (int) floor(value + 0.5);
 			value = (short)gcckludge;
@@ -2625,7 +2632,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 
 	but->flag |= (block->flag & UI_BUT_ALIGN);
 
-	if (but->lock) {
+	if (but->lock == TRUE) {
 		if (but->lockstr) {
 			but->flag |= UI_BUT_DISABLED;
 		}
@@ -2855,7 +2862,7 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block, int type, wmOperatorType *
 
 	if (!ot) {
 		but->flag |= UI_BUT_DISABLED;
-		but->lock = 1;
+		but->lock = TRUE;
 		but->lockstr = "";
 	}
 
@@ -2894,7 +2901,7 @@ static uiBut *ui_def_but_operator_text(uiBlock *block, int type, const char *opn
 
 	if (!ot) {
 		but->flag |= UI_BUT_DISABLED;
-		but->lock = 1;
+		but->lock = TRUE;
 		but->lockstr = "";
 	}
 

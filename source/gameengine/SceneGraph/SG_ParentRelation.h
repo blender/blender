@@ -82,7 +82,7 @@ public :
 	 * You must provide a way of duplicating an
 	 * instance of an SG_ParentRelation. This should
 	 * return a pointer to a new duplicate allocated
-	 * on the heap. Responsibilty for deleting the 
+	 * on the heap. Responsibility for deleting the
 	 * duplicate resides with the caller of this method.
 	 */
 

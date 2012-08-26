@@ -153,8 +153,9 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	
 	ibuf = IMB_allocImBuf (width, height, 32, IB_rect);
 	if (!ibuf) {
-		if(QTIME_DEBUG) printf("quicktime_import: could not allocate memory for the " \
-				"image.\n");
+		if (QTIME_DEBUG) {
+			printf("quicktime_import: could not allocate memory for the image.\n");
+		}
 		return NULL;
 	}
 	
@@ -455,8 +456,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	ibuf = IMB_allocImBuf(bitmapSize.width, bitmapSize.height, 32/*RGBA*/, 0);
 	if (!ibuf) {
 		fprintf(stderr, 
-				"imb_cocoaLoadImage: could not allocate memory for the " \
-				"image.\n");
+		        "imb_cocoaLoadImage: could not allocate memory for the image.\n");
 		[bitmapImage release];
 		[pool drain];
 		return NULL;

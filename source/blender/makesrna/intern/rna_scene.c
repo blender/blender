@@ -3006,7 +3006,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
 		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
 		{CODEC_ID_QTRLE, "QTRLE", 0, "QTRLE", ""},
-		/* {CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""}, */ /* disabled for after release */
+		{CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

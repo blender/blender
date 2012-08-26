@@ -4802,19 +4802,32 @@ void MESH_OT_bevel(wmOperatorType *ot)
 
 static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 {
+	BMOperator bmop;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+	const int use_merge = RNA_boolean_get(op->ptr, "use_merge");
+	const float merge_factor = RNA_float_get(op->ptr, "merge_factor");
 	
-	if (!EDBM_op_callf(em, op,
-	                   "bridge_loops edges=%he use_merge=%b merge_factor=%f",
-	                   BM_ELEM_SELECT, RNA_boolean_get(op->ptr, "use_merge"), RNA_float_get(op->ptr, "merge_factor")))
-	{
-		return OPERATOR_CANCELLED;
-	}
-	
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_op_init(em, &bmop, op,
+	             "bridge_loops edges=%he use_merge=%b merge_factor=%f",
+	             BM_ELEM_SELECT, use_merge, merge_factor);
 
-	return OPERATOR_FINISHED;
+	BMO_op_exec(em->bm, &bmop);
+
+	/* when merge is used the edges are joined and remain selected */
+	if (use_merge == FALSE) {
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
+	}
+
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+		return OPERATOR_CANCELLED;
+
+	}
+	else {
+		EDBM_update_generic(C, em, TRUE);
+		return OPERATOR_FINISHED;
+	}
 }
 
 void MESH_OT_bridge_edge_loops(wmOperatorType *ot)

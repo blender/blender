@@ -515,5 +515,9 @@ void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_
                                                       void *customdata),
                                   void *(do_thread) (void *));
 
+/* ffmpeg */
+void IMB_ffmpeg_init(void);
+const char *IMB_ffmpeg_last_error(void);
+
 #endif
 

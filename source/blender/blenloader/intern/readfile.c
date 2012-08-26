@@ -2617,7 +2617,7 @@ static void lib_link_armature(FileData *fd, Main *main)
 	}
 }
 
-static void direct_link_bones(FileData *fd, Bone* bone)
+static void direct_link_bones(FileData *fd, Bone *bone)
 {
 	Bone *child;
 	

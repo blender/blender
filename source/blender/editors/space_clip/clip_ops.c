@@ -456,7 +456,7 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Offset", "Offset in floating point units, 1.0 is the width and height of the image", -FLT_MAX, FLT_MAX);
+	                     "Offset", "Offset in floating point units, 1.0 is the width and height of the image", -FLT_MAX, FLT_MAX);
 }
 
 /********************** view zoom operator *********************/
@@ -580,7 +580,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
-		"Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out", -FLT_MAX, FLT_MAX);
+	              "Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out", -FLT_MAX, FLT_MAX);
 }
 
 /********************** view zoom in/out operator *********************/
@@ -701,7 +701,7 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
-		"Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
+	              "Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
 }
 
 /********************** view all operator *********************/

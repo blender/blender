@@ -72,25 +72,29 @@ typedef struct LayerTypeInfo {
 	const char *structname;  /* name of the struct used, for file writing */
 	int structnum;     /* number of structs per element, for file writing */
 
-	/* default layer name.
+	/**
+	 * default layer name.
 	 * note! when NULL this is a way to ensure there is only ever one item
 	 * see: CustomData_layertype_is_singleton() */
 	const char *defaultname;
 
-	/* a function to copy count elements of this layer's data
+	/**
+	 * a function to copy count elements of this layer's data
 	 * (deep copy if appropriate)
 	 * if NULL, memcpy is used
 	 */
 	void (*copy)(const void *source, void *dest, int count);
 
-	/* a function to free any dynamically allocated components of this
+	/**
+	 * a function to free any dynamically allocated components of this
 	 * layer's data (note the data pointer itself should not be freed)
 	 * size should be the size of one element of this layer's data (e.g.
 	 * LayerTypeInfo.size)
 	 */
 	void (*free)(void *data, int count, int size);
 
-	/* a function to interpolate between count source elements of this
+	/**
+	 * a function to interpolate between count source elements of this
 	 * layer's data and store the result in dest
 	 * if weights == NULL or sub_weights == NULL, they should default to 1
 	 *
@@ -98,18 +102,24 @@ typedef struct LayerTypeInfo {
 	 * sub_weights gives the sub-element weights for each element in sources
 	 *    (there should be (sub element count)^2 weights per element)
 	 * count gives the number of elements in sources
+	 *
+	 * \note in some cases \a dest pointer is in \a sources
+	 *       so all functions have to take this into account and delay
+	 *       applying changes while reading from sources.
+	 *       See bug [#32395] - Campbell.
 	 */
 	void (*interp)(void **sources, const float *weights, const float *sub_weights,
 	               int count, void *dest);
 
-	/* a function to swap the data in corners of the element */
+	/** a function to swap the data in corners of the element */
 	void (*swap)(void *data, const int *corner_indices);
 
-	/* a function to set a layer's data to default values. if NULL, the
+	/**
+	 * a function to set a layer's data to default values. if NULL, the
 	 * default is assumed to be all zeros */
 	void (*set_default)(void *data, int count);
 
-	/* functions necessary for geometry collapse*/
+	/** functions necessary for geometry collapse */
 	int (*equal)(void *data1, void *data2);
 	void (*multiply)(void *data, float fac);
 	void (*initminmax)(void *min, void *max);
@@ -117,13 +127,13 @@ typedef struct LayerTypeInfo {
 	void (*dominmax)(void *data1, void *min, void *max);
 	void (*copyvalue)(void *source, void *dest);
 
-	/* a function to read data from a cdf file */
+	/** a function to read data from a cdf file */
 	int (*read)(CDataFile *cdf, void *data, int count);
 
-	/* a function to write data to a cdf file */
+	/** a function to write data to a cdf file */
 	int (*write)(CDataFile *cdf, void *data, int count);
 
-	/* a function to determine file size */
+	/** a function to determine file size */
 	size_t (*filesize)(CDataFile *cdf, void *data, int count);
 } LayerTypeInfo;
 
@@ -243,6 +253,8 @@ static void layerInterp_mdeformvert(void **sources, const float *weights,
 		}
 	}
 
+	/* delay writing to the destination incase dest is in sources */
+
 	/* now we know how many unique deform weights there are, so realloc */
 	if (dvert->dw) MEM_freeN(dvert->dw);
 
@@ -276,6 +288,7 @@ static void layerInterp_msticky(void **sources, const float *weights,
 		madd_v2_v2fl(co, mst->co, w);
 	}
 
+	/* delay writing to the destination incase dest is in sources */
 	mst = (MSticky *)dest;
 	copy_v2_v2(mst->co, co);
 }
@@ -318,6 +331,7 @@ static void layerInterp_tface(void **sources, const float *weights,
 		}
 	}
 
+	/* delay writing to the destination incase dest is in sources */
 	*tf = *(MTFace *)(*sources);
 	memcpy(tf->uv, uv, sizeof(tf->uv));
 }
@@ -418,6 +432,8 @@ static void layerInterp_origspace_face(void **sources, const float *weights,
 			}
 		}
 	}
+
+	/* delay writing to the destination incase dest is in sources */
 
 #if 0 /* no need, this ONLY contains UV's */
 	*osf = *(OrigSpaceFace *)(*sources);
@@ -719,7 +735,8 @@ static void layerInterp_mloopcol(void **sources, const float *weights,
 	CLAMP(col.r, 0.0f, 255.0f);
 	CLAMP(col.g, 0.0f, 255.0f);
 	CLAMP(col.b, 0.0f, 255.0f);
-	
+
+	/* delay writing to the destination incase dest is in sources */
 	mc->r = (int)col.r;
 	mc->g = (int)col.g;
 	mc->b = (int)col.b;
@@ -771,8 +788,7 @@ static void layerAdd_mloopuv(void *data1, void *data2)
 static void layerInterp_mloopuv(void **sources, const float *weights,
                                 const float *sub_weights, int count, void *dest)
 {
-	MLoopUV *mluv = dest;
-	float *uv = mluv->uv;
+	float uv[2];
 	int i;
 
 	zero_v2(uv);
@@ -793,6 +809,9 @@ static void layerInterp_mloopuv(void **sources, const float *weights,
 			madd_v2_v2fl(uv, src->uv, weight);
 		}
 	}
+
+	/* delay writing to the destination incase dest is in sources */
+	copy_v2_v2(((MLoopUV *)dest)->uv, uv);
 }
 
 /* origspace is almost exact copy of mloopuv's, keep in sync */
@@ -841,8 +860,7 @@ static void layerAdd_mloop_origspace(void *data1, void *data2)
 static void layerInterp_mloop_origspace(void **sources, const float *weights,
                                         const float *sub_weights, int count, void *dest)
 {
-	OrigSpaceLoop *mluv = dest;
-	float *uv = mluv->uv;
+	float uv[2];
 	int i;
 
 	zero_v2(uv);
@@ -858,11 +876,14 @@ static void layerInterp_mloop_origspace(void **sources, const float *weights,
 	}
 	else {
 		for (i = 0; i < count; i++) {
-			float weight = weights ? weights[i] : 1;
+			float weight = weights ? weights[i] : 1.0f;
 			OrigSpaceLoop *src = sources[i];
 			madd_v2_v2fl(uv, src->uv, weight);
 		}
 	}
+
+	/* delay writing to the destination incase dest is in sources */
+	copy_v2_v2(((OrigSpaceLoop *)dest)->uv, uv);
 }
 /* --- end copy */
 
@@ -907,6 +928,7 @@ static void layerInterp_mcol(void **sources, const float *weights,
 		}
 	}
 
+	/* delay writing to the destination incase dest is in sources */
 	for (j = 0; j < 4; ++j) {
 		
 		/* Subdivide smooth or fractal can cause problems without clamping
@@ -949,30 +971,33 @@ static void layerDefault_mcol(void *data, int count)
 static void layerInterp_bweight(void **sources, const float *weights,
                                 const float *UNUSED(sub_weights), int count, void *dest)
 {
-	float *f = dest;
+	float f;
 	float **in = (float **)sources;
 	int i;
 	
 	if (count <= 0) return;
 
-	*f = 0.0f;
+	f = 0.0f;
 
 	if (weights) {
 		for (i = 0; i < count; ++i) {
-			*f += *in[i] * weights[i];
+			f += *in[i] * weights[i];
 		}
 	}
 	else {
 		for (i = 0; i < count; ++i) {
-			*f += *in[i];
+			f += *in[i];
 		}
 	}
+
+	/* delay writing to the destination incase dest is in sources */
+	*((float *)dest) = f;
 }
 
 static void layerInterp_shapekey(void **sources, const float *weights,
                                  const float *UNUSED(sub_weights), int count, void *dest)
 {
-	float *co = dest;
+	float co[3];
 	float **in = (float **)sources;
 	int i;
 
@@ -990,6 +1015,9 @@ static void layerInterp_shapekey(void **sources, const float *weights,
 			add_v3_v3(co, in[i]);
 		}
 	}
+
+	/* delay writing to the destination incase dest is in sources */
+	copy_v3_v3((float *)dest, co);
 }
 
 static void layerDefault_mvert_skin(void *data, int count)
@@ -1019,6 +1047,7 @@ static void layerInterp_mvert_skin(void **sources, const float *weights,
 		madd_v3_v3fl(radius, vs->radius, w);
 	}
 
+	/* delay writing to the destination incase dest is in sources */
 	vs = dest;
 	copy_v3_v3(vs->radius, radius);
 	vs->flag &= ~MVERT_SKIN_ROOT;
@@ -1962,23 +1991,6 @@ void CustomData_free_elem(CustomData *data, int index, int count)
 
 #define SOURCE_BUF_SIZE 100
 
-/* This define makes it so when we are interpolating customdata,
- * the source is checked if it matches the destination.
- *
- * There are 2 ways to get around this,
- * - Each interp function could accumulate the final result in a local, stack variable,
- *   then apply the result at the end.
- *
- * - Or we can make a temp copy of the destinations custom data before applying it.
- *   This isn't so efficient but avoids having to consider feedback loop on each interp function.
- *   Since this is more of a corner case its also not worth worrying about speed too much.
- *
- * (opted for the second option for now), keeping as an ifdef since we may wan't to change how works.
- *
- * see bug [#32395] - Campbell.
- */
-#define USE_INTERP_OVERLAP_FIX
-
 void CustomData_interp(const CustomData *source, CustomData *dest,
                        int *src_indices, float *weights, float *sub_weights,
                        int count, int dest_index)
@@ -2017,9 +2029,6 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 			void *src_data = source->layers[src_i].data;
 
 			for (j = 0; j < count; ++j) {
-				/* if this happens we need to do a temp copy, see: USE_INTERP_OVERLAP_FIX */
-				BLI_assert(((source == dest) && (dest_index == src_indices[j])) == FALSE);
-
 				sources[j] = (char *)src_data + typeInfo->size * src_indices[j];
 			}
 
@@ -2599,11 +2608,6 @@ void CustomData_bmesh_interp(CustomData *data, void **src_blocks, float *weights
 	void *source_buf[SOURCE_BUF_SIZE];
 	void **sources = source_buf;
 
-#ifdef USE_INTERP_OVERLAP_FIX
-	/* incase there is overlap with the source */
-	void *dest_block_copy = NULL;
-#endif
-
 	/* slow fallback in case we're interpolating a ridiculous number of
 	 * elements
 	 */
@@ -2617,33 +2621,13 @@ void CustomData_bmesh_interp(CustomData *data, void **src_blocks, float *weights
 		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
 		if (typeInfo->interp) {
 			for (j = 0; j < count; ++j) {
-#ifdef USE_INTERP_OVERLAP_FIX
-				void *src_block;
-				if (UNLIKELY(src_blocks[j] == dest_block)) {
-					if (dest_block_copy == NULL) {
-						CustomData_bmesh_copy_data(data, data, dest_block, &dest_block_copy);
-					}
-					src_block = dest_block_copy;
-				}
-				else {
-					src_block = src_blocks[j];
-				}
-				sources[j] = (char *)src_block + layer->offset;
-#else
 				sources[j] = (char *)src_blocks[j] + layer->offset;
-#endif
 			}
 
 			typeInfo->interp(sources, weights, sub_weights, count,
 			                 (char *)dest_block + layer->offset);
 		}
 	}
-
-#ifdef USE_INTERP_OVERLAP_FIX
-	if (dest_block_copy) {
-		CustomData_bmesh_free_block(data, &dest_block_copy);
-	}
-#endif
 
 	if (count > SOURCE_BUF_SIZE) MEM_freeN(sources);
 }

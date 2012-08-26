@@ -185,7 +185,7 @@ static void displaceModifier_do(
 
 	if (dmd->texture) {
 		tex_co = MEM_callocN(sizeof(*tex_co) * numVerts,
-							 "displaceModifier_do tex_co");
+		                     "displaceModifier_do tex_co");
 		get_texture_coords((MappingInfoModifierData *)dmd, ob, dm, vertexCos, tex_co, numVerts);
 
 		modifier_init_texture(dmd->modifier.scene, dmd->texture);

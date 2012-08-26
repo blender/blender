@@ -78,22 +78,31 @@ char *BLI_strncpy(char *dst, const char *src, const size_t maxncpy)
 	return dst;
 }
 
-size_t BLI_snprintf(char *buffer, size_t count, const char *format, ...)
+size_t BLI_vsnprintf(char *buffer, size_t count, const char *format, va_list arg)
 {
 	size_t n;
-	va_list arg;
 
-	va_start(arg, format);
 	n = vsnprintf(buffer, count, format, arg);
-	
+
 	if (n != -1 && n < count) {
 		buffer[n] = '\0';
 	}
 	else {
 		buffer[count - 1] = '\0';
 	}
-	
+
+	return n;
+}
+
+size_t BLI_snprintf(char *buffer, size_t count, const char *format, ...)
+{
+	size_t n;
+	va_list arg;
+
+	va_start(arg, format);
+	n = BLI_vsnprintf(buffer, count, format, arg);
 	va_end(arg);
+
 	return n;
 }
 

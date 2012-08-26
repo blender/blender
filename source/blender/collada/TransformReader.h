@@ -56,7 +56,7 @@ public:
 		COLLADAFW::Transformation *tm; // which transform is animated by an AnimationList->id
 	};
 
-	TransformReader(UnitConverter* conv);
+	TransformReader(UnitConverter *conv);
 
 	void get_node_mat(float mat[][4], COLLADAFW::Node *node, std::map<COLLADAFW::UniqueId, Animation> *animation_map, Object *ob);
 	

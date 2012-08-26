@@ -88,8 +88,8 @@ typedef struct QuicktimeExport {
 	AudioStreamBasicDescription audioInputFormat, audioOutputFormat;
 	AudioStreamPacketDescription *audioOutputPktDesc;
 	SInt64 audioFilePos;
-	char* audioInputBuffer;
-	char* audioOutputBuffer;
+	char *audioInputBuffer;
+	char *audioOutputBuffer;
 	UInt32 audioCodecMaxOutputPacketSize;
 	UInt64 audioTotalExportedFrames, audioTotalSavedFrames;
 	UInt64 audioLastFrame;

@@ -489,7 +489,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 	else if (event->type == NDOF_MOTION) {
 		/* do these automagically get delivered? yes. */
 		// puts("ndof motion detected in fly mode!");
-		// static const char* tag_name = "3D mouse position";
+		// static const char *tag_name = "3D mouse position";
 
 		wmNDOFMotionData *incoming_ndof = (wmNDOFMotionData *)event->customdata;
 		switch (incoming_ndof->progress) {

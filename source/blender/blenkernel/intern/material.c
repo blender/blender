@@ -813,7 +813,7 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 		*totcolp = act;
 	}
 
-	// Determine the object/mesh linking
+	/* Determine the object/mesh linking */
 	if (assign_type == BKE_MAT_ASSIGN_USERPREF && ob->totcol && ob->actcol) {
 		/* copy from previous material */
 		bit = ob->matbits[ob->actcol - 1];
@@ -1633,7 +1633,7 @@ static void decode_tfaceflag(Material *ma, int flag, int convertall)
 	/* flag is shifted in 1 to make 0 != no flag yet (see encode_tfaceflag) */
 	flag -= 1;
 
-	alphablend = flag >> 15; //encoded in the encode_tfaceflag function
+	alphablend = flag >> 15;  /* encoded in the encode_tfaceflag function */
 	(*game).flag = 0;
 	
 	/* General Material Options */
@@ -2033,8 +2033,7 @@ int do_version_tface(Main *main, int fileload)
 				nowarning = 0;
 			}
 			else
-				convert_tfacematerial(main, ma);
-			continue;	
+				convert_tfacematerial(main, ma);			continue;	
 		}
 	
 		/* no conflicts in this material - 90% of cases

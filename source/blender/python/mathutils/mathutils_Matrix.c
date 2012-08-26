@@ -995,7 +995,7 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 
 	if (eul_compat) {
 		if (order == 1) mat3_to_compatible_eul(eul, eul_compatf, mat);
-		else mat3_to_compatible_eulO(eul, eul_compatf, order, mat);
+		else            mat3_to_compatible_eulO(eul, eul_compatf, order, mat);
 	}
 	else {
 		if (order == 1) mat3_to_eul(eul, mat);

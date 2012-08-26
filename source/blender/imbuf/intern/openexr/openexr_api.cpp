@@ -153,7 +153,7 @@ void Mem_IStream::clear()
 
 /* File Input Stream */
 
-class IFileStream : public IStream
+class IFileStream : public Imf::IStream
 {
 public:
 	IFileStream(const char *filename)

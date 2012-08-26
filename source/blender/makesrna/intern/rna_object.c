@@ -313,7 +313,7 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	if (!base)
 		return;
 	
-	SWAP(int, base->lay, ob->lay);
+	SWAP(unsigned int, base->lay, ob->lay);
 
 	rna_Object_layer_update__internal(bmain, scene, base, ob);
 	ob->lay = base->lay;

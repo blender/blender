@@ -289,7 +289,7 @@ void  BMO_slot_vec_get(BMOperator *op, const char *slot_name, float r_vec[3]);
 /* only supports square mats */
 /* size must be 3 or 4; this api is meant only for transformation matrices.
  * note that internally the matrix is stored in 4x4 form, and it's safe to
- * call whichever BMO_Get_Mat* function you want. */
+ * call whichever BMO_Get_MatXXX function you want. */
 void BMO_slot_mat_set(BMOperator *op, const char *slot_name, const float *mat, int size);
 void BMO_slot_mat4_get(BMOperator *op, const char *slot_name, float r_mat[4][4]);
 void BMO_slot_mat3_set(BMOperator *op, const char *slot_name, float r_mat[3][3]);

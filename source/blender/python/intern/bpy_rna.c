@@ -369,7 +369,7 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 
 static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop,
                                                   Py_ssize_t start, Py_ssize_t stop, Py_ssize_t length);
-static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback);
+static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, const short order_fallback);
 
 /* bpyrna vector/euler/quat callbacks */
 static unsigned char mathutils_rna_array_cb_index = -1; /* index for our callbacks */
@@ -571,7 +571,7 @@ static Mathutils_Callback mathutils_rna_matrix_cb = {
 	NULL
 };
 
-static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback)
+static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, const short order_fallback)
 {
 	/* attempt to get order */
 	if (*prop_eul_order == NULL)

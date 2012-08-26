@@ -630,7 +630,7 @@ static void ui_item_disabled(uiLayout *layout, const char *name)
 
 	but = uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	but->flag |= UI_BUT_DISABLED;
-	but->lock = 1;
+	but->lock = TRUE;
 	but->lockstr = "";
 }
 

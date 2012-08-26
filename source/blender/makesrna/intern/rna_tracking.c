@@ -910,7 +910,7 @@ static void rna_def_trackingMarkers(BlenderRNA *brna, PropertyRNA *cprop)
 	                   "Frame number to find marker for", MINFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_boolean(func, "exact", TRUE, "Exact",
-			"Get marker at exact frame number rather than get estimated marker");
+	                       "Get marker at exact frame number rather than get estimated marker");
 	parm = RNA_def_pointer(func, "marker", "MovieTrackingMarker", "", "Marker for specified frame");
 	RNA_def_function_return(func, parm);
 

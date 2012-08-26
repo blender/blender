@@ -365,7 +365,7 @@ int binarysearch_bezt_index(BezTriple array[], float frame, int arraylen, short 
 	/* initialize replace-flag first */
 	*replace = 0;
 	
-	/* sneaky optimisations (don't go through searching process if...):
+	/* sneaky optimizations (don't go through searching process if...):
 	 *	- keyframe to be added is to be added out of current bounds
 	 *	- keyframe to be added would replace one of the existing ones on bounds
 	 */

@@ -68,13 +68,23 @@ def add_object_button(self, context):
         icon='PLUGIN')
 
 
+# This allows you to right click on a button and link to the manual
+def add_object_manual_map():
+    url_manual_prefix = "http://wiki.blender.org/index.php/Doc:2.6/Manual/"
+    url_manual_mapping = (
+        ("bpy.ops.mesh.add_object", "Modeling/Objects"),
+        )
+    return url_manual_prefix, url_manual_mapping
+
+
 def register():
     bpy.utils.register_class(OBJECT_OT_add_object)
+    bpy.utils.register_manual_map(add_object_manual_map)
     bpy.types.INFO_MT_mesh_add.append(add_object_button)
-
 
 def unregister():
     bpy.utils.unregister_class(OBJECT_OT_add_object)
+    bpy.utils.unregister_manual_map(add_object_manual_map)
     bpy.types.INFO_MT_mesh_add.remove(add_object_button)
 
 

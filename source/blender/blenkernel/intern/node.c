@@ -1484,7 +1484,7 @@ void nodeSocketSetType(bNodeSocket *sock, int type)
  * otherwise we may reference missing data.
  *
  * Currently its only used for ID's, but nodes may one day
- * referene other pointers which need validation.
+ * reference other pointers which need validation.
  */
 typedef struct bNodeClipboardExtraInfo {
 	struct bNodeClipboardExtraInfo *next, *prev;

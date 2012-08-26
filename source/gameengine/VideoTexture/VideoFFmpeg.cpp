@@ -52,8 +52,6 @@ const long timeScale = 1000;
 #define CATCH_EXCP catch (Exception & exp) \
 { exp.report(); m_status = SourceError; }
 
-extern "C" void do_init_ffmpeg();
-
 // class RenderVideo
 
 // constructor
@@ -521,8 +519,6 @@ void VideoFFmpeg::releaseFrame(AVFrame* frame)
 // open video file
 void VideoFFmpeg::openFile (char * filename)
 {
-	do_init_ffmpeg();
-
 	if (openStream(filename, NULL, NULL) != 0)
 		return;
 
@@ -585,8 +581,6 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 	AVDictionary		*formatParams = NULL;
 	char				filename[28], rateStr[20];
 	char                *p;
-
-	do_init_ffmpeg();
 
 #ifdef WIN32
 	// video capture on windows only through Video For Windows driver
