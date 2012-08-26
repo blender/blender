@@ -1825,6 +1825,9 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
 		((KX_LightObject*)gameobj)->UpdateScene(to);
 
+	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_CAMERA)
+		to->AddCamera((KX_Camera*)gameobj);
+
 	/* Add the object to the scene's logic manager */
 	to->GetLogicManager()->RegisterGameObjectName(gameobj->GetName(), gameobj);
 	to->GetLogicManager()->RegisterGameObj(gameobj->GetBlenderObject(), gameobj);
