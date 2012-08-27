@@ -857,13 +857,21 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 		
 		/* loop through each F-Curve, grabbing the keyframes */
 		for (ale = anim_data.first; ale; ale = ale->next) {
-			fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
 
-			if (ale->datatype == ALE_MASKLAY) {
-				mask_to_keylist(ac->ads, ale->data, keys);
-			}
-			else if (ale->datatype == ALE_GPFRAME) {
-				gpl_to_keylist(ac->ads, ale->data, keys);
+			switch (ale->datatype) {
+				case ALE_FCURVE:
+					fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
+					break;
+				case ALE_MASKLAY:
+					mask_to_keylist(ac->ads, ale->data, keys);
+					break;
+				case ALE_GPFRAME:
+					gpl_to_keylist(ac->ads, ale->data, keys);
+					break;
+				default:
+					printf("%s: datatype %d unhandled\n", __func__, ale->datatype);
+					break;
+
 			}
 		}
 
