@@ -1668,6 +1668,20 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
+static int sequencer_delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+
+	if (ar->regiontype == RGN_TYPE_WINDOW) {
+		/* bounding box of 30 pixels is used for markers shortcuts,
+		 * prevent conflict with markers shortcurts here
+		 */
+		if (event->mval[1] <= 30)
+			return OPERATOR_PASS_THROUGH;
+	}
+
+	return WM_operator_confirm(C, op, event);
+}
 
 void SEQUENCER_OT_delete(wmOperatorType *ot)
 {
@@ -1678,7 +1692,7 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 	ot->description = "Erase selected strips from the sequencer";
 	
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
+	ot->invoke = sequencer_delete_invoke;
 	ot->exec = sequencer_delete_exec;
 	ot->poll = sequencer_edit_poll;
 	

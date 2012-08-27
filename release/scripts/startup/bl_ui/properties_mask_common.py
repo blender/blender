@@ -121,6 +121,7 @@ class MASK_PT_spline():
         spline = mask.layers.active.splines.active
 
         col = layout.column()
+        col.prop(spline, "offset_mode")
         col.prop(spline, "weight_interpolation")
 
         row = col.row()

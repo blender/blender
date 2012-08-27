@@ -1194,17 +1194,6 @@ void BKE_mask_calc_handle_point(MaskSpline *spline, MaskSplinePoint *point)
 	mask_calc_point_handle(point, point_prev, point_next);
 }
 
-static void enforce_dist_v2_v2fl(float v1[2], const float v2[2], const float dist)
-{
-	if (!equals_v2v2(v2, v1)) {
-		float nor[2];
-
-		sub_v2_v2v2(nor, v1, v2);
-		normalize_v2(nor);
-		madd_v2_v2v2fl(v1, v2, nor, dist);
-	}
-}
-
 void BKE_mask_calc_handle_adjacent_interp(MaskSpline *spline, MaskSplinePoint *point, const float u)
 {
 	/* TODO! - make this interpolate between siblings - not always midpoint! */
@@ -1246,8 +1235,8 @@ void BKE_mask_calc_handle_adjacent_interp(MaskSpline *spline, MaskSplinePoint *p
 		length_average /= (float)length_tot;
 		weight_average /= (float)length_tot;
 
-		enforce_dist_v2_v2fl(point->bezt.vec[0], point->bezt.vec[1], length_average);
-		enforce_dist_v2_v2fl(point->bezt.vec[2], point->bezt.vec[1], length_average);
+		dist_ensure_v2_v2fl(point->bezt.vec[0], point->bezt.vec[1], length_average);
+		dist_ensure_v2_v2fl(point->bezt.vec[2], point->bezt.vec[1], length_average);
 		point->bezt.weight = weight_average;
 	}
 }
@@ -1279,8 +1268,8 @@ void BKE_mask_calc_handle_point_auto(MaskSpline *spline, MaskSplinePoint *point,
 
 	/* preserve length by applying it back */
 	if (do_recalc_length == FALSE) {
-		enforce_dist_v2_v2fl(point->bezt.vec[0], point->bezt.vec[1], length_average);
-		enforce_dist_v2_v2fl(point->bezt.vec[2], point->bezt.vec[1], length_average);
+		dist_ensure_v2_v2fl(point->bezt.vec[0], point->bezt.vec[1], length_average);
+		dist_ensure_v2_v2fl(point->bezt.vec[2], point->bezt.vec[1], length_average);
 	}
 }
 

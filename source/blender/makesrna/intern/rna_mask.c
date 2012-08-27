@@ -540,6 +540,12 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem spline_offset_mode_items[] = {
+		{MASK_SPLINE_OFFSET_EVEN, "EVEN", 0, "Even", "Calculate even feather offset"},
+		{MASK_SPLINE_OFFSET_SMOOTH, "SMOOTH", 0, "Smooth", "Calculate feather offset as a second curve"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -547,6 +553,13 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MaskSpline", NULL);
 	RNA_def_struct_ui_text(srna, "Mask spline", "Single spline used for defining mask shape");
+
+	/* offset mode */
+	prop = RNA_def_property(srna, "offset_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "offset_mode");
+	RNA_def_property_enum_items(prop, spline_offset_mode_items);
+	RNA_def_property_ui_text(prop, "Feather Offset", "The method used for calculating the feather offset");
+	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
 	/* weight interpolation */
 	prop = RNA_def_property(srna, "weight_interpolation", PROP_ENUM, PROP_NONE);
