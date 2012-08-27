@@ -1987,12 +1987,14 @@ typedef struct ImageSampleInfo {
 	int draw;
 } ImageSampleInfo;
 
-static void image_sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_info)
+static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 {
 	ImageSampleInfo *info = arg_info;
 	if (info->draw) {
+		Scene *scene = CTX_data_scene(C);
+
 		/* no color management needed for images (color_manage=0) */
-		ED_image_draw_info(ar, 0, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
+		ED_image_draw_info(scene, ar, 0, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
 	}
 }
 

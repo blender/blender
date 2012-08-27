@@ -39,6 +39,7 @@ struct ToolSettings;
 struct uiBlock;
 struct wmWindowManager;
 struct ARegion;
+struct Scene;
 
 /* image_edit.c, exported for transform */
 struct Image *ED_space_image(struct SpaceImage *sima);
@@ -79,7 +80,7 @@ int ED_space_image_maskedit_mask_poll(struct bContext *C);
 /* UI level image (texture) updating... render calls own stuff (too) */
 void ED_image_update_frame(const struct Main *mainp, int cfra);
 
-void ED_image_draw_info(struct ARegion *ar, int color_manage, int channels, int x, int y,
+void ED_image_draw_info(struct Scene *scene, struct ARegion *ar, int color_manage, int channels, int x, int y,
                         const unsigned char cp[4], const float fp[4], int *zp, float *zpf);
 
 #endif /* __ED_IMAGE_H__ */

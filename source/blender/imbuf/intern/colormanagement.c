@@ -1315,6 +1315,23 @@ unsigned char *IMB_display_buffer_acquire_ctx(const bContext *C, ImBuf *ibuf, vo
 	return IMB_display_buffer_acquire(ibuf, view_settings, display_settings, cache_handle);
 }
 
+void IMB_display_buffer_pixel(float result[4], const float pixel[4],  const ColorManagedViewSettings *view_settings,
+                              const ColorManagedDisplaySettings *display_settings)
+{
+	ConstProcessorRcPtr *processor;
+	const float gamma = view_settings->gamma;
+	const float exposure = view_settings->exposure;
+	const char *view_transform = view_settings->view_transform;
+	const char *display = display_settings->display_device;
+
+	copy_v4_v4(result, pixel);
+
+	processor = create_display_buffer_processor(view_transform, display, exposure, gamma);
+
+	if (processor)
+		OCIO_processorApplyRGBA(processor, result);
+}
+
 void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
                                       const ColorManagedDisplaySettings *display_settings)
 {

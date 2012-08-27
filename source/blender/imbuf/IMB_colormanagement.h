@@ -71,6 +71,9 @@ unsigned char *IMB_display_buffer_acquire(struct ImBuf *ibuf, const struct Color
                                           const struct ColorManagedDisplaySettings *display_settings, void **cache_handle);
 unsigned char *IMB_display_buffer_acquire_ctx(const struct bContext *C, struct ImBuf *ibuf, void **cache_handle);
 
+void IMB_display_buffer_pixel(float result[4], const float pixel[4],  const struct ColorManagedViewSettings *view_settings,
+                              const struct ColorManagedDisplaySettings *display_settings);
+
 void IMB_display_buffer_to_imbuf_rect(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                       const struct ColorManagedDisplaySettings *display_settings);
 

@@ -124,7 +124,7 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar)
 }
 
 /* used by node view too */
-void ED_image_draw_info(ARegion *ar, int color_manage, int channels, int x, int y,
+void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int channels, int x, int y,
                         const unsigned char cp[4], const float fp[4], int *zp, float *zpf)
 {
 	char str[256];
@@ -217,6 +217,18 @@ void ED_image_draw_info(ARegion *ar, int color_manage, int channels, int x, int 
 				BLI_snprintf(str, sizeof(str), "  A:%-3d", cp[3]);
 			else
 				BLI_snprintf(str, sizeof(str), "- ");
+			BLF_position(blf_mono_font, dx, 6, 0);
+			BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+			dx += BLF_width(blf_mono_font, str);
+		}
+
+		/* OCIO_TODO: make it fit better to overall color interaction */
+		if (fp && channels == 4) {
+			float pixel[4];
+
+			IMB_display_buffer_pixel(pixel, fp,  &scene->view_settings, &scene->display_settings);
+
+			BLI_snprintf(str, sizeof(str), "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", pixel[0], pixel[1], pixel[2]);
 			BLF_position(blf_mono_font, dx, 6, 0);
 			BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 			dx += BLF_width(blf_mono_font, str);

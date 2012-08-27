@@ -78,7 +78,7 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	ImageSampleInfo *info = arg_info;
 
 	if (info->draw) {
-		ED_image_draw_info(ar, (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
+		ED_image_draw_info(scene, ar, (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
 		                   info->x, info->y, info->col, info->colf, NULL, NULL);
 	}
 }
