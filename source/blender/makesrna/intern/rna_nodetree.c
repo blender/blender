@@ -2161,7 +2161,7 @@ static void def_cmp_despeckle(StructRNA *srna)
 	prop = RNA_def_property(srna, "threshold_neighbour", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "custom4");
 	RNA_def_property_range(prop, 0.0, 1.0f);
-	RNA_def_property_ui_text(prop, "Neighbour", "Threshold for the number of neighbour pixels that must match");
+	RNA_def_property_ui_text(prop, "Neighbor", "Threshold for the number of neighbor pixels that must match");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
