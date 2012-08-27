@@ -470,7 +470,7 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 
 	unsigned int bins[3][256];
 
-	memset(bins, 0, 3 * 256 * sizeof(unsigned int));
+	memset(bins, 0, sizeof(bins));
 
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
@@ -507,10 +507,10 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 static int get_bin_float(float f)
 {
 	if (f < -0.25f) {
-		f = -0.25f;
+		return 0;
 	}
-	else if (f > 1.25f) {
-		f = 1.25f;
+	else if (f >= 1.25f) {
+		return 511;
 	}
 
 	return (int) (((f + 0.25f) / 1.5f) * 512);
@@ -524,7 +524,7 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
 	unsigned int bins[3][512];
 
-	memset(bins, 0, 3 * 256 * sizeof(unsigned int));
+	memset(bins, 0, sizeof(bins));
 
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
