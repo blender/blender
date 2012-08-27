@@ -207,8 +207,10 @@ void BKE_sequence_free(Scene *scene, Sequence *seq)
 	/* free modifiers */
 	BKE_sequence_modifier_clear(seq);
 
-	BKE_sequencer_cache_cleanup_sequence(seq);
-	BKE_sequencer_preprocessed_cache_cleanup_sequence(seq);
+	/* free cached data used by this strip,
+	 * also invalidate cache for all dependent sequences
+	 */
+	BKE_sequence_invalidate_cache(scene, seq);
 
 	MEM_freeN(seq);
 }
@@ -2936,6 +2938,9 @@ static void free_anim_seq(Sequence *seq)
 /* check whether sequence cur depends on seq */
 int BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
 {
+	if (cur->seq1 == seq || cur->seq2 == seq || cur->seq3 == seq)
+		return TRUE;
+
 	/* sequences are not intersecting in time, assume no dependency exists between them */
 	if (cur->enddisp < seq->startdisp || cur->startdisp > seq->enddisp)
 		return FALSE;
