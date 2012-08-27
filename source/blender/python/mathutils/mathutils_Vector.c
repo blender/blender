@@ -2046,7 +2046,7 @@ static PyNumberMethods Vector_NumMethods = {
 	NULL,                       /*nb_divmod*/
 	NULL,                       /*nb_power*/
 	(unaryfunc)     Vector_neg, /*nb_negative*/
-	(unaryfunc)     NULL,       /*tp_positive*/
+	(unaryfunc)     Vector_copy,/*tp_positive*/
 	(unaryfunc)     NULL,       /*tp_absolute*/
 	(inquiry)   NULL,           /*tp_bool*/
 	(unaryfunc) NULL,           /*nb_invert*/

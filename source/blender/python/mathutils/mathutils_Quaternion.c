@@ -903,7 +903,7 @@ static PyNumberMethods Quaternion_NumMethods = {
 	NULL,                           /*nb_divmod*/
 	NULL,                           /*nb_power*/
 	(unaryfunc)     Quaternion_neg, /*nb_negative*/
-	(unaryfunc)     0,  /*tp_positive*/
+	(unaryfunc)     Quaternion_copy,/*tp_positive*/
 	(unaryfunc)     0,  /*tp_absolute*/
 	(inquiry)   0,      /*tp_bool*/
 	(unaryfunc) 0,      /*nb_invert*/
