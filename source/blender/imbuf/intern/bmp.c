@@ -69,16 +69,25 @@ typedef struct BMPHEADER {
 
 static int checkbmp(unsigned char *mem)
 {
+#define CHECK_HEADER_FIELD(mem, field) ((mem[0] == field[0]) && (mem[1] == field[0]))
+
 	int ret_val = 0;
 	BMPINFOHEADER bmi;
 	unsigned int u;
 
 	if (mem) {
-		if ((mem[0] == 'B') && (mem[1] == 'M')) {
+		if (CHECK_HEADER_FIELD(mem, "BM") ||
+		    CHECK_HEADER_FIELD(mem, "BA") ||
+		    CHECK_HEADER_FIELD(mem, "CI") ||
+		    CHECK_HEADER_FIELD(mem, "CP") ||
+		    CHECK_HEADER_FIELD(mem, "IC") ||
+		    CHECK_HEADER_FIELD(mem, "PT"))
+		{
 			/* skip fileheader */
 			mem += BMP_FILEHEADER_SIZE;
 		}
 		else {
+			return 0;
 		}
 
 		/* for systems where an int needs to be 4 bytes aligned */
@@ -97,6 +106,8 @@ static int checkbmp(unsigned char *mem)
 	}
 
 	return(ret_val);
+
+#undef CHECK_HEADER_FIELD
 }
 
 int imb_is_a_bmp(unsigned char *buf)

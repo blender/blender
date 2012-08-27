@@ -83,6 +83,7 @@ const char *imb_ext_image[] = {
 #endif
 #ifdef WITH_OPENJPEG
 	".jp2",
+	".j2c",
 #endif
 #ifdef WITH_HDR
 	".hdr",
