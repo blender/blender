@@ -220,6 +220,9 @@ MINLINE void normal_float_to_short_v3(short r[3], const float n[3]);
 
 void minmax_v3v3_v3(float min[3], float max[3], const float vec[3]);
 
+void dist_ensure_v3_v3fl(float v1[3], const float v2[3], const float dist);
+void dist_ensure_v2_v2fl(float v1[2], const float v2[2], const float dist);
+
 /***************************** Array Functions *******************************/
 /* attempted to follow fixed length vertex functions. names could be improved*/
 double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int size);
