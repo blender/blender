@@ -41,6 +41,7 @@
 #define JP2_FILEHEADER_SIZE 14
 
 static char JP2_HEAD[] = {0x0, 0x0, 0x0, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A};
+static char J2K_HEAD[] = {0xFF, 0x4F, 0xFF, 0x51, 0x00};
 
 /* We only need this because of how the presets are set */
 /* this typedef is copied from 'openjpeg-1.5.0/applications/codec/image_to_j2k.c' */
@@ -59,14 +60,18 @@ typedef struct img_folder {
 
 static int check_jp2(unsigned char *mem) /* J2K_CFMT */
 {
-	return memcmp(JP2_HEAD, mem, 12) ? 0 : 1;
+	return memcmp(JP2_HEAD, mem, sizeof(JP2_HEAD)) ? 0 : 1;
+}
+
+static int check_j2k(unsigned char *mem) /* J2K_CFMT */
+{
+	return memcmp(J2K_HEAD, mem, sizeof(J2K_HEAD)) ? 0 : 1;
 }
 
 int imb_is_a_jp2(unsigned char *buf)
-{	
+{
 	return check_jp2(buf);
 }
-
 
 /**
  * sample error callback expecting a FILE* client object
@@ -116,6 +121,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 	unsigned int i, i_next, w, h, planes;
 	unsigned int y;
 	int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
+	int is_jp2, is_j2k;
 	
 	opj_dparameters_t parameters;   /* decompression parameters */
 	
@@ -125,7 +131,11 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 	opj_dinfo_t *dinfo = NULL;  /* handle to a decompressor */
 	opj_cio_t *cio = NULL;
 
-	if (check_jp2(mem) == 0) return(NULL);
+	is_jp2 = check_jp2(mem);
+	is_j2k = check_j2k(mem);
+
+	if (!is_jp2 && !is_j2k)
+		return(NULL);
 
 	/* configure the event callbacks (not required) */
 	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
@@ -141,7 +151,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 	/* JPEG 2000 compressed image data */
 
 	/* get a decoder handle */
-	dinfo = opj_create_decompress(CODEC_JP2);
+	dinfo = opj_create_decompress(is_jp2 ? CODEC_JP2 : CODEC_J2K);
 
 	/* catch events using our callbacks and give a local context */
 	opj_set_event_mgr((opj_common_ptr)dinfo, &event_mgr, stderr);
