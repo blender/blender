@@ -1641,6 +1641,7 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 
 		CLAMP(vod->rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 	}
+
 	if (viewzoom == USER_ZOOM_CONT) {
 		double time = PIL_check_seconds_timer();
 		float time_step = (float)(time - vod->timer_lastdraw);
@@ -1689,8 +1690,10 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 		}
 		
 		if (use_cam_zoom) {
+			/* zfac is ignored in this case, see below */
+#if 0
 			zfac = vod->camzoom0 * (2.0f * ((len2 / len1) - 1.0f) + 1.0f) / vod->rv3d->camzoom;
-			zfac = 0;
+#endif
 		}
 		else {
 			zfac = vod->dist0 * (2.0f * ((len2 / len1) - 1.0f) + 1.0f) / vod->rv3d->dist;

@@ -6239,7 +6239,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
 	/* count */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-		MaskSpline *spline = masklay->splines.first;
+		MaskSpline *spline;
 
 		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
@@ -6282,7 +6282,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
 	/* create data */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-		MaskSpline *spline = masklay->splines.first;
+		MaskSpline *spline;
 
 		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;

@@ -852,18 +852,30 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 		int filter;
 		
 		/* get F-Curves to take keyframes from */
-		filter = ANIMFILTER_DATA_VISIBLE; // curves only
+		filter = ANIMFILTER_DATA_VISIBLE;
 		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 		/* loop through each F-Curve, grabbing the keyframes */
 		for (ale = anim_data.first; ale; ale = ale->next) {
-			fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
 
-			if (ale->datatype == ALE_MASKLAY) {
-				mask_to_keylist(ac->ads, ale->data, keys);
-			}
-			else if (ale->datatype == ALE_GPFRAME) {
-				gpl_to_keylist(ac->ads, ale->data, keys);
+			/* Why not use all #eAnim_KeyType here?
+			 * All of the other key types are actually "summaries" themselves, and will just end up duplicating stuff
+			 * that comes up through standard filtering of just F-Curves.
+			 * Given the way that these work, there isn't really any benefit at all from including them. - Aligorith */
+
+			switch (ale->datatype) {
+				case ALE_FCURVE:
+					fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
+					break;
+				case ALE_MASKLAY:
+					mask_to_keylist(ac->ads, ale->data, keys);
+					break;
+				case ALE_GPFRAME:
+					gpl_to_keylist(ac->ads, ale->data, keys);
+					break;
+				default:
+					// printf("%s: datatype %d unhandled\n", __func__, ale->datatype);
+					break;
 			}
 		}
 
