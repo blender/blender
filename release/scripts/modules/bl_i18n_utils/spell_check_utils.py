@@ -329,6 +329,7 @@ dict_uimsgs = {
     "bweight",
     "colorband",
     "datablock", "datablocks",
+    "despeckle",
     "dopesheet",
     "dupliface", "duplifaces",
     "dupliframe", "dupliframes",
