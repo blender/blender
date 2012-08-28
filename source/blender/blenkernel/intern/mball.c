@@ -633,66 +633,65 @@ static float densfunc(MetaElem *ball, float x, float y, float z)
 
 	mul_m4_v3((float (*)[4])ball->imat, dvec);
 
-	if (ball->type == MB_BALL) {
-	}
-	else if (ball->type == MB_TUBEX) {
-		if      (dvec[0] >  ball->len) dvec[0] -= ball->len;
-		else if (dvec[0] < -ball->len) dvec[0] += ball->len;
-		else                           dvec[0] = 0.0;
-	}
-	else if (ball->type == MB_TUBEY) {
-		if      (dvec[1] >  ball->len) dvec[1] -= ball->len;
-		else if (dvec[1] < -ball->len) dvec[1] += ball->len;
-		else                           dvec[1] = 0.0;
-	}
-	else if (ball->type == MB_TUBEZ) {
-		if      (dvec[2] >  ball->len) dvec[2] -= ball->len;
-		else if (dvec[2] < -ball->len) dvec[2] += ball->len;
-		else                           dvec[2] = 0.0;
-	}
-	else if (ball->type == MB_TUBE) {
-		if      (dvec[0] >  ball->expx) dvec[0] -= ball->expx;
-		else if (dvec[0] < -ball->expx) dvec[0] += ball->expx;
-		else                            dvec[0] = 0.0;
-	}
-	else if (ball->type == MB_PLANE) {
-		if      (dvec[0] >  ball->expx) dvec[0] -= ball->expx;
-		else if (dvec[0] < -ball->expx) dvec[0] += ball->expx;
-		else                            dvec[0] = 0.0;
-		if      (dvec[1] >  ball->expy) dvec[1] -= ball->expy;
-		else if (dvec[1] < -ball->expy) dvec[1] += ball->expy;
-		else                            dvec[1] = 0.0;
-	}
-	else if (ball->type == MB_ELIPSOID) {
-		dvec[0] *= 1 / ball->expx;
-		dvec[1] *= 1 / ball->expy;
-		dvec[2] *= 1 / ball->expz;
-	}
-	else if (ball->type == MB_CUBE) {
-		if      (dvec[0] >  ball->expx) dvec[0] -= ball->expx;
-		else if (dvec[0] < -ball->expx) dvec[0] += ball->expx;
-		else                            dvec[0] = 0.0;
-		if      (dvec[1] >  ball->expy) dvec[1] -= ball->expy;
-		else if (dvec[1] < -ball->expy) dvec[1] += ball->expy;
-		else                            dvec[1] = 0.0;
-		if      (dvec[2] >  ball->expz) dvec[2] -= ball->expz;
-		else if (dvec[2] < -ball->expz) dvec[2] += ball->expz;
-		else                            dvec[2] = 0.0;
+	switch (ball->type) {
+		case MB_BALL:
+			/* do nothing */
+			break;
+		case MB_TUBEX:
+			if      (dvec[0] >  ball->len) dvec[0] -= ball->len;
+			else if (dvec[0] < -ball->len) dvec[0] += ball->len;
+			else                           dvec[0] = 0.0;
+			break;
+		case MB_TUBEY:
+			if      (dvec[1] >  ball->len) dvec[1] -= ball->len;
+			else if (dvec[1] < -ball->len) dvec[1] += ball->len;
+			else                           dvec[1] = 0.0;
+			break;
+		case MB_TUBEZ:
+			if      (dvec[2] >  ball->len) dvec[2] -= ball->len;
+			else if (dvec[2] < -ball->len) dvec[2] += ball->len;
+			else                           dvec[2] = 0.0;
+			break;
+		case MB_TUBE:
+			if      (dvec[0] >  ball->expx) dvec[0] -= ball->expx;
+			else if (dvec[0] < -ball->expx) dvec[0] += ball->expx;
+			else                            dvec[0] = 0.0;
+			break;
+		case MB_PLANE:
+			if      (dvec[0] >  ball->expx) dvec[0] -= ball->expx;
+			else if (dvec[0] < -ball->expx) dvec[0] += ball->expx;
+			else                            dvec[0] = 0.0;
+			if      (dvec[1] >  ball->expy) dvec[1] -= ball->expy;
+			else if (dvec[1] < -ball->expy) dvec[1] += ball->expy;
+			else                            dvec[1] = 0.0;
+			break;
+		case MB_ELIPSOID:
+			dvec[0] /= ball->expx;
+			dvec[1] /= ball->expy;
+			dvec[2] /= ball->expz;
+			break;
+		case MB_CUBE:
+			if      (dvec[0] >  ball->expx) dvec[0] -= ball->expx;
+			else if (dvec[0] < -ball->expx) dvec[0] += ball->expx;
+			else                            dvec[0] = 0.0;
+
+			if      (dvec[1] >  ball->expy) dvec[1] -= ball->expy;
+			else if (dvec[1] < -ball->expy) dvec[1] += ball->expy;
+			else                            dvec[1] = 0.0;
+
+			if      (dvec[2] >  ball->expz) dvec[2] -= ball->expz;
+			else if (dvec[2] < -ball->expz) dvec[2] += ball->expz;
+			else                            dvec[2] = 0.0;
+			break;
 	}
 
-	dist2 = len_v3(dvec);
+	dist2 = 1.0f - (len_v3(dvec) / ball->rad2);
 
-	if (ball->flag & MB_NEGATIVE) {
-		dist2 = 1.0f - (dist2 / ball->rad2);
-		if (dist2 < 0.0f) return 0.5f;
-
-		return 0.5f - ball->s * dist2 * dist2 * dist2;
+	if ((ball->flag & MB_NEGATIVE) == 0) {
+		return (dist2 < 0.0f) ? -0.5f : (ball->s * dist2 * dist2 * dist2) - 0.5f;
 	}
 	else {
-		dist2 = 1.0f - (dist2 / ball->rad2);
-		if (dist2 < 0.0f) return -0.5f;
-
-		return ball->s * dist2 * dist2 * dist2 - 0.5f;
+		return (dist2 < 0.0f) ? 0.5f : 0.5f - (ball->s * dist2 * dist2 * dist2);
 	}
 }
 
@@ -775,15 +774,12 @@ static float metaball(float x, float y, float z)
 	if (totelem > 1) {
 		node = find_metaball_octal_node(metaball_tree->first, x, y, z, metaball_tree->depth);
 		if (node) {
-			ml_p = node->elems.first;
-
-			while (ml_p) {
+			for (ml_p = node->elems.first; ml_p; ml_p = ml_p->next) {
 				dens += densfunc(ml_p->ml, x, y, z);
-				ml_p = ml_p->next;
 			}
 
 			dens += -0.5f * (metaball_tree->pos - node->pos);
-			dens += 0.5f * (metaball_tree->neg - node->neg);
+			dens +=  0.5f * (metaball_tree->neg - node->neg);
 		}
 		else {
 			for (a = 0; a < totelem; a++) {
@@ -1591,10 +1587,12 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 								
 								/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
 								 * this cube includes found point of Implicit Surface */
-								if (ml->flag & MB_NEGATIVE)
-									add_cube(mbproc, c_i, c_j, c_k, 2);
-								else
+								if ((ml->flag & MB_NEGATIVE) == 0) {
 									add_cube(mbproc, c_i, c_j, c_k, 1);
+								}
+								else {
+									add_cube(mbproc, c_i, c_j, c_k, 2);
+								}
 							}
 							len = len_v3v3(workp, in);
 							workp_v = tmp_v;
@@ -1882,11 +1880,11 @@ static void fill_metaball_octal_node(octal_node *node, MetaElem *ml, short i)
 	BLI_addtail(&(node->nodes[i]->elems), ml_p);
 	node->count++;
 	
-	if (ml->flag & MB_NEGATIVE) {
-		node->nodes[i]->neg++;
+	if ((ml->flag & MB_NEGATIVE) == 0) {
+		node->nodes[i]->pos++;
 	}
 	else {
-		node->nodes[i]->pos++;
+		node->nodes[i]->neg++;
 	}
 }
 
@@ -2212,13 +2210,13 @@ static void init_metaball_octal_tree(int depth)
 		ml_p->ml = mainb[a];
 		BLI_addtail(&node->elems, ml_p);
 
-		if (mainb[a]->flag & MB_NEGATIVE) {
-			/* number of negative MetaElem in scene */
-			metaball_tree->neg++;
-		}
-		else {
+		if ((mainb[a]->flag & MB_NEGATIVE) == 0) {
 			/* number of positive MetaElem in scene */
 			metaball_tree->pos++;
+		}
+		else {
+			/* number of negative MetaElem in scene */
+			metaball_tree->neg++;
 		}
 	}
 
@@ -2262,11 +2260,11 @@ void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	}
 
 	/* if scene includes more then one MetaElem, then octal tree optimization is used */
-	if ((totelem > 1) && (totelem <= 64)) init_metaball_octal_tree(1);
-	if ((totelem > 64) && (totelem <= 128)) init_metaball_octal_tree(2);
-	if ((totelem > 128) && (totelem <= 512)) init_metaball_octal_tree(3);
-	if ((totelem > 512) && (totelem <= 1024)) init_metaball_octal_tree(4);
-	if (totelem > 1024) init_metaball_octal_tree(5);
+	if ((totelem >    1) && (totelem <=   64)) init_metaball_octal_tree(1);
+	if ((totelem >   64) && (totelem <=  128)) init_metaball_octal_tree(2);
+	if ((totelem >  128) && (totelem <=  512)) init_metaball_octal_tree(3);
+	if ((totelem >  512) && (totelem <= 1024)) init_metaball_octal_tree(4);
+	if (totelem  > 1024)                       init_metaball_octal_tree(5);
 
 	/* don't polygonize metaballs with too high resolution (base mball to small)
 	 * note: Eps was 0.0001f but this was giving problems for blood animation for durian, using 0.00001f */
