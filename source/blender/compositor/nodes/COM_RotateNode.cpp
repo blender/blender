@@ -39,19 +39,7 @@ void RotateNode::convertToOperations(ExecutionSystem *system, CompositorContext 
 	RotateOperation *operation = new RotateOperation();
 	SetSamplerOperation *sampler = new SetSamplerOperation();
 
-	switch (this->getbNode()->custom1) {
-		case 0:
-			sampler->setSampler(COM_PS_NEAREST);
-			break;
-		case 1:
-			sampler->setSampler(COM_PS_BILINEAR);
-			break;
-		case 2:
-			sampler->setSampler(COM_PS_BICUBIC);
-			break;
-	
-	}
-
+	sampler->setSampler((PixelSampler)this->getbNode()->custom1);
 	addLink(system, sampler->getOutputSocket(), operation->getInputSocket(0));
 	
 	inputSocket->relinkConnections(sampler->getInputSocket(0), 0, system);

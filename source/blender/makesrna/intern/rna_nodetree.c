@@ -133,6 +133,14 @@ EnumPropertyItem node_filter_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem node_sampler_type_items[] = {
+	{0, "NEAREST",   0, "Nearest",   ""},
+	{1, "BILINEAR",   0, "Bilinear",   ""},
+	{2, "BICUBIC", 0, "Bicubic", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+
 EnumPropertyItem prop_noise_basis_items[] = {
 	{SHD_NOISE_PERLIN, "PERLIN", 0, "Perlin", ""},
 	{SHD_NOISE_VORONOI_F1, "VORONOI_F1", 0, "Voronoi F1", ""},
@@ -2213,16 +2221,9 @@ static void def_cmp_rotate(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem rotate_items[] = {
-		{0, "NEAREST",   0, "Nearest",   ""},
-		{1, "BILINEAR",   0, "Bilinear",   ""},
-		{2, "BICUBIC", 0, "Bicubic", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-	
 	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, rotate_items);
+	RNA_def_property_enum_items(prop, node_sampler_type_items);
 	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter rotation");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -3150,13 +3151,6 @@ static void def_cmp_stabilize2d(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem filter_type_items[] = {
-		{0, "NEAREST",   0, "Nearest",   ""},
-		{1, "BILINEAR",   0, "Bilinear",   ""},
-		{2, "BICUBIC", 0, "Bicubic", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "MovieClip");
@@ -3166,7 +3160,7 @@ static void def_cmp_stabilize2d(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, filter_type_items);
+	RNA_def_property_enum_items(prop, node_sampler_type_items);
 	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter stabilization");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -3264,16 +3258,9 @@ static void dev_cmd_transform(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem filter_type_items[] = {
-		{0, "NEAREST",   0, "Nearest",   ""},
-		{1, "BILINEAR",   0, "Bilinear",   ""},
-		{2, "BICUBIC", 0, "Bicubic", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, filter_type_items);
+	RNA_def_property_enum_items(prop, node_sampler_type_items);
 	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter transform");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
