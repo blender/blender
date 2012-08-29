@@ -73,6 +73,12 @@ void node_copy_standard_storage(bNode *orig_node, bNode *new_node)
 	new_node->storage= MEM_dupallocN(orig_node->storage);
 }
 
+void *node_initexec_curves(bNode *node)
+{
+	curvemapping_initialize(node->storage);
+	return NULL;  /* unused return */
+}
+
 /**** Labels ****/
 
 const char *node_blend_label(bNode *node)

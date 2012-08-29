@@ -77,6 +77,7 @@ void register_node_type_tex_curve_time(bNodeTreeType *ttype)
 	node_type_init(&ntype, time_init);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 	node_type_exec(&ntype, time_exec);
+	node_type_exec_new(&ntype, node_initexec_curves, NULL, NULL);  /* only for its initexec func */
 	
 	nodeRegisterType(ttype, &ntype);
 }
@@ -121,6 +122,7 @@ void register_node_type_tex_curve_rgb(bNodeTreeType *ttype)
 	node_type_init(&ntype, rgb_init);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 	node_type_exec(&ntype, rgb_exec);
+	node_type_exec_new(&ntype, node_initexec_curves, NULL, NULL);  /* only for its initexec func */
 	
 	nodeRegisterType(ttype, &ntype);
 }
