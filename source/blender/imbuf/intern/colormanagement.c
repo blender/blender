@@ -1404,17 +1404,29 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
 static void colormanage_check_view_settings(ColorManagedViewSettings *view_settings, const char *what,
                                             const ColorManagedView *default_view)
 {
+	ColorManagedDisplay *display;
+	ColorManagedView *default_view;
+
 	if (view_settings->view_transform[0] == '\0') {
-		BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
+		display = colormanage_display_get_named(display_settings->display_device);
+		default_view = colormanage_view_get_default(display);
+
+		if (default_view)
+			BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
 	}
 	else {
 		ColorManagedView *view = colormanage_view_get_named(view_settings->view_transform);
 
 		if (!view) {
-			printf("Blender color management: %s view \"%s\" not found, setting default \"%s\".\n",
-			       what, view_settings->view_transform, default_view->name);
+			display = colormanage_display_get_named(display_settings->display_device);
+			default_view = colormanage_view_get_default(display);
 
-			BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
+			if (default_view) {
+				printf("Blender color management: %s view \"%s\" not found, setting default \"%s\".\n",
+				       what, view_settings->view_transform, default_view->name);
+
+				BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
+			}
 		}
 	}
 
@@ -1456,7 +1468,6 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 	MovieClip *clip;
 
 	ColorManagedDisplay *default_display;
-	ColorManagedView *default_view;
 
 	default_display = colormanage_display_get_default();
 
@@ -1465,16 +1476,9 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 		return;
 	}
 
-	default_view = colormanage_view_get_default(default_display);
-
-	if (!default_view) {
-		/* happens when OCIO configuration is incorrect */
-		return;
-	}
-
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 		colormanage_check_display_settings(&scene->display_settings, "scene", default_display);
-		colormanage_check_view_settings(&scene->view_settings, "scene", default_view);
+		colormanage_check_view_settings(&scene->display_settings, &scene->view_settings, "scene", default_view);
 	}
 
 	/* ** check input color space settings ** */

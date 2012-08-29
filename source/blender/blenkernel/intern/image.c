@@ -1024,7 +1024,6 @@ int BKE_imtype_supports_float(const char imtype)
 		case R_IMF_IMTYPE_RADHDR:
 		case R_IMF_IMTYPE_OPENEXR:
 		case R_IMF_IMTYPE_MULTILAYER:
-		case R_IMF_IMTYPE_JP2:
 			return TRUE;
 	}
 	return 0;
