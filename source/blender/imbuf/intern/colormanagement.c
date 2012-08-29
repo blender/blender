@@ -1401,8 +1401,7 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
 	}
 }
 
-static void colormanage_check_view_settings(ColorManagedViewSettings *view_settings, const char *what,
-                                            const ColorManagedView *default_view)
+static void colormanage_check_view_settings(ColorManagedDisplaySettings *display_settings, ColorManagedViewSettings *view_settings, const char *what)
 {
 	ColorManagedDisplay *display;
 	ColorManagedView *default_view;
@@ -1478,7 +1477,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 		colormanage_check_display_settings(&scene->display_settings, "scene", default_display);
-		colormanage_check_view_settings(&scene->display_settings, &scene->view_settings, "scene", default_view);
+		colormanage_check_view_settings(&scene->display_settings, &scene->view_settings, "scene");
 	}
 
 	/* ** check input color space settings ** */
