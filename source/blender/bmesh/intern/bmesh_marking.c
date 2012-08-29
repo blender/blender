@@ -31,6 +31,8 @@
  * that should be addressed eventually.
  */
 
+#include <stddef.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -708,28 +710,19 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 /* --- macro wrapped funcs --- */
 int _bm_select_history_check(BMesh *bm, const BMHeader *ele)
 {
-	BMEditSelection *ese;
-	
-	for (ese = bm->selected.first; ese; ese = ese->next) {
-		if (ese->ele == (BMElem *)ele) {
-			return TRUE;
-		}
-	}
-	
-	return FALSE;
+	return (BLI_findptr(&bm->selected, ele, offsetof(BMEditSelection, ele)) != NULL);
 }
 
 int _bm_select_history_remove(BMesh *bm, BMHeader *ele)
 {
-	BMEditSelection *ese;
-	for (ese = bm->selected.first; ese; ese = ese->next) {
-		if (ese->ele == (BMElem *)ele) {
-			BLI_freelinkN(&(bm->selected), ese);
-			return TRUE;
-		}
+	BMEditSelection *ese = BLI_findptr(&bm->selected, ele, offsetof(BMEditSelection, ele));
+	if (ese) {
+		BLI_freelinkN(&bm->selected, ese);
+		return TRUE;
 	}
-
-	return FALSE;
+	else {
+		return FALSE;
+	}
 }
 
 void _bm_select_history_store_notest(BMesh *bm, BMHeader *ele)

@@ -988,13 +988,11 @@ static int object_select_same_group_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "group", group_name);
 
-	for (group = CTX_data_main(C)->group.first; group; group = group->id.next) {
-		if (!strcmp(group->id.name, group_name))
-			break;
-	}
+	group = (Group *)BKE_libblock_find_name(ID_GR, group_name);
 
-	if (!group)
+	if (!group) {
 		return OPERATOR_PASS_THROUGH;
+	}
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{

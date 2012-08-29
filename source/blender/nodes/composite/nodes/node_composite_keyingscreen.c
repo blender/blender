@@ -50,6 +50,7 @@ static bNodeSocketTemplate cmp_node_keyingscreen_out[] = {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static void compute_gradient_screen(RenderData *rd, NodeKeyingScreenData *keyingscreen_data, MovieClip *clip, CompBuf *screenbuf)
 {
@@ -157,7 +158,7 @@ static void compute_gradient_screen(RenderData *rd, NodeKeyingScreenData *keying
 	BLI_freelistN(&edges);
 }
 
-static void exec(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
+static void node_composit_exec_keyingscreen(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	NodeKeyingScreenData *keyingscreen_data = node->storage;
 	RenderData *rd = data;
@@ -178,7 +179,9 @@ static void exec(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **
 	out[0]->data = screenbuf;
 }
 
-static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeKeyingScreenData *data;
 
@@ -196,7 +199,9 @@ void register_node_type_cmp_keyingscreen(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_keyingscreen);
 	node_type_storage(&ntype, "NodeKeyingScreenData", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, exec);
+#ifdef WITH_COMPOSITOR_LEGACY
+	node_type_exec(&ntype, node_composit_exec_keyingscreen);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

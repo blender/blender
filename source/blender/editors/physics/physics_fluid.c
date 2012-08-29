@@ -1113,7 +1113,7 @@ void fluidsimSettingsFree(FluidsimSettings *UNUSED(fss))
 {
 }
 
-FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
+FluidsimSettings *fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
 {
 	return NULL;
 }

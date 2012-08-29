@@ -39,7 +39,7 @@ static bNodeSocketTemplate sh_node_tex_sky_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexSky *tex = MEM_callocN(sizeof(NodeTexSky), "NodeTexSky");
 	default_tex_mapping(&tex->base.tex_mapping);

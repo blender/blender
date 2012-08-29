@@ -88,7 +88,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 {
 	FMod_Envelope *env = (FMod_Envelope *)fcm->data;
 	FCM_EnvelopeData *fed;
-	const float fac = 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
+	const float fac = 0.05f * BLI_RCT_SIZE_X(&v2d->cur);
 	int i;
 	
 	/* draw two black lines showing the standard reference levels */
@@ -137,7 +137,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 static void draw_fcurve_vertices_keyframes(FCurve *fcu, SpaceIpo *UNUSED(sipo), View2D *v2d, short edit, short sel)
 {
 	BezTriple *bezt = fcu->bezt;
-	const float fac = 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
+	const float fac = 0.05f * BLI_RCT_SIZE_X(&v2d->cur);
 	int i;
 	
 	/* we use bgl points not standard gl points, to workaround vertex 

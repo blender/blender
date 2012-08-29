@@ -37,7 +37,10 @@
 #include "BKE_sequencer.h"
 
 #include "IMB_moviecache.h"
+#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+#include "BLI_listbase.h"
 
 typedef struct SeqCacheKey {
 	struct Sequence *seq;
@@ -46,7 +49,25 @@ typedef struct SeqCacheKey {
 	seq_stripelem_ibuf_t type;
 } SeqCacheKey;
 
+typedef struct SeqPreprocessCacheElem {
+	struct SeqPreprocessCacheElem *next, *prev;
+
+	struct Sequence *seq;
+	SeqRenderData context;
+	seq_stripelem_ibuf_t type;
+
+	ImBuf *ibuf;
+} SeqPreprocessCacheElem;
+
+typedef struct SeqPreprocessCache {
+	int cfra;
+	ListBase elems;
+} SeqPreprocessCache;
+
 static struct MovieCache *moviecache = NULL;
+static struct SeqPreprocessCache *preprocess_cache = NULL;
+
+static void preprocessed_cache_destruct(void);
 
 static int seq_cmp_render_data(const SeqRenderData *a, const SeqRenderData *b)
 {
@@ -160,6 +181,8 @@ void BKE_sequencer_cache_destruct(void)
 {
 	if (moviecache)
 		IMB_moviecache_free(moviecache);
+
+	preprocessed_cache_destruct();
 }
 
 void BKE_sequencer_cache_cleanup(void)
@@ -168,6 +191,8 @@ void BKE_sequencer_cache_cleanup(void)
 		IMB_moviecache_free(moviecache);
 		moviecache = IMB_moviecache_create("seqcache", sizeof(SeqCacheKey), seqcache_hashhash, seqcache_hashcmp);
 	}
+
+	BKE_sequencer_preprocessed_cache_cleanup();
 }
 
 static int seqcache_key_check_seq(void *userkey, void *userdata)
@@ -218,4 +243,101 @@ void BKE_sequencer_cache_put(SeqRenderData context, Sequence *seq, float cfra, s
 	key.type = type;
 
 	IMB_moviecache_put(moviecache, &key, i);
+}
+
+void BKE_sequencer_preprocessed_cache_cleanup(void)
+{
+	SeqPreprocessCacheElem *elem;
+
+	if (!preprocess_cache)
+		return;
+
+	for (elem = preprocess_cache->elems.first; elem; elem = elem->next) {
+		IMB_freeImBuf(elem->ibuf);
+	}
+	BLI_freelistN(&preprocess_cache->elems);
+
+	preprocess_cache->elems.first = preprocess_cache->elems.last = NULL;
+}
+
+static void preprocessed_cache_destruct(void)
+{
+	if (!preprocess_cache)
+		return;
+
+	BKE_sequencer_preprocessed_cache_cleanup();
+
+	MEM_freeN(preprocess_cache);
+	preprocess_cache = NULL;
+}
+
+ImBuf *BKE_sequencer_preprocessed_cache_get(SeqRenderData context, Sequence *seq, float cfra, seq_stripelem_ibuf_t type)
+{
+	SeqPreprocessCacheElem *elem;
+
+	if (!preprocess_cache)
+		return NULL;
+
+	if (preprocess_cache->cfra != cfra)
+		return NULL;
+
+	for (elem = preprocess_cache->elems.first; elem; elem = elem->next) {
+		if (elem->seq != seq)
+			continue;
+
+		if (elem->type != type)
+			continue;
+
+		if (seq_cmp_render_data(&elem->context, &context) != 0)
+			continue;
+
+		IMB_refImBuf(elem->ibuf);
+		return elem->ibuf;
+	}
+
+	return NULL;
+}
+
+void BKE_sequencer_preprocessed_cache_put(SeqRenderData context, Sequence *seq, float cfra, seq_stripelem_ibuf_t type, ImBuf *ibuf)
+{
+	SeqPreprocessCacheElem *elem;
+
+	if (!preprocess_cache) {
+		preprocess_cache = MEM_callocN(sizeof(SeqPreprocessCache), "sequencer preprocessed cache");
+	}
+	else {
+		if (preprocess_cache->cfra != cfra)
+			BKE_sequencer_preprocessed_cache_cleanup();
+	}
+
+	elem = MEM_callocN(sizeof(SeqPreprocessCacheElem), "sequencer preprocessed cache element");
+
+	elem->seq = seq;
+	elem->type = type;
+	elem->context = context;
+	elem->ibuf = ibuf;
+
+	preprocess_cache->cfra = cfra;
+
+	IMB_refImBuf(ibuf);
+
+	BLI_addtail(&preprocess_cache->elems, elem);
+}
+
+void BKE_sequencer_preprocessed_cache_cleanup_sequence(Sequence *seq)
+{
+	SeqPreprocessCacheElem *elem, *elem_next;
+
+	if (!preprocess_cache)
+		return;
+
+	for (elem = preprocess_cache->elems.first; elem; elem = elem_next) {
+		elem_next = elem->next;
+
+		if (elem->seq == seq) {
+			IMB_freeImBuf(elem->ibuf);
+
+			BLI_freelinkN(&preprocess_cache->elems, elem);
+		}
+	}
 }

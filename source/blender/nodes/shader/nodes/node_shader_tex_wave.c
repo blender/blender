@@ -44,7 +44,7 @@ static bNodeSocketTemplate sh_node_tex_wave_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_wave(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_wave(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexWave *tex = MEM_callocN(sizeof(NodeTexWave), "NodeTexWave");
 	default_tex_mapping(&tex->base.tex_mapping);

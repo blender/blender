@@ -175,64 +175,64 @@ static PyObject *bpy_bmlayeritem_name_get(BPy_BMLayerItem *self, void *UNUSED(fl
 }
 
 static PyGetSetDef bpy_bmlayeraccess_vert_getseters[] = {
-    {(char *)"deform", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__deform_doc, (void *)CD_MDEFORMVERT},
+	{(char *)"deform", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__deform_doc, (void *)CD_MDEFORMVERT},
 
-    {(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__float_doc, (void *)CD_PROP_FLT},
-    {(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__int_doc, (void *)CD_PROP_INT},
-    {(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
+	{(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__float_doc, (void *)CD_PROP_FLT},
+	{(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__int_doc, (void *)CD_PROP_INT},
+	{(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
 
-    {(char *)"shape",        (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__shape_doc, (void *)CD_SHAPEKEY},
-    {(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__bevel_weight_doc, (void *)CD_BWEIGHT},
+	{(char *)"shape",        (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__shape_doc, (void *)CD_SHAPEKEY},
+	{(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__bevel_weight_doc, (void *)CD_BWEIGHT},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmlayeraccess_edge_getseters[] = {
-    {(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__float_doc, (void *)CD_PROP_FLT},
-    {(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__int_doc, (void *)CD_PROP_INT},
-    {(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
+	{(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__float_doc, (void *)CD_PROP_FLT},
+	{(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__int_doc, (void *)CD_PROP_INT},
+	{(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
 
-    {(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__bevel_weight_doc, (void *)CD_BWEIGHT},
-    {(char *)"crease",       (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__crease_doc, (void *)CD_CREASE},
+	{(char *)"bevel_weight", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__bevel_weight_doc, (void *)CD_BWEIGHT},
+	{(char *)"crease",       (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__crease_doc, (void *)CD_CREASE},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
-    {(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__float_doc, (void *)CD_PROP_FLT},
-    {(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__int_doc, (void *)CD_PROP_INT},
-    {(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
+	{(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__float_doc, (void *)CD_PROP_FLT},
+	{(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__int_doc, (void *)CD_PROP_INT},
+	{(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
 
-    {(char *)"tex",   (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__tex_doc, (void *)CD_MTEXPOLY},
+	{(char *)"tex",   (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__tex_doc, (void *)CD_MTEXPOLY},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmlayeraccess_loop_getseters[] = {
-    {(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__float_doc, (void *)CD_PROP_FLT},
-    {(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__int_doc, (void *)CD_PROP_INT},
-    {(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
+	{(char *)"float",  (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__float_doc, (void *)CD_PROP_FLT},
+	{(char *)"int",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__int_doc, (void *)CD_PROP_INT},
+	{(char *)"string", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__string_doc, (void *)CD_PROP_STR},
 
-    {(char *)"uv",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__uv_doc, (void *)CD_MLOOPUV},
-    {(char *)"color", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__color_doc, (void *)CD_MLOOPCOL},
+	{(char *)"uv",    (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__uv_doc, (void *)CD_MLOOPUV},
+	{(char *)"color", (getter)bpy_bmlayeraccess_collection_get, (setter)NULL, (char *)bpy_bmlayeraccess_collection__color_doc, (void *)CD_MLOOPCOL},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 
 static PyGetSetDef bpy_bmlayercollection_getseters[] = {
-    /* BMESH_TODO, make writeable */
-    {(char *)"active",       (getter)bpy_bmlayercollection_active_get,       (setter)NULL, (char *)bpy_bmlayercollection_active_doc, NULL},
-    {(char *)"is_singleton", (getter)bpy_bmlayercollection_is_singleton_get, (setter)NULL, (char *)bpy_bmlayercollection_is_singleton_doc, NULL},
+	/* BMESH_TODO, make writeable */
+	{(char *)"active",       (getter)bpy_bmlayercollection_active_get,       (setter)NULL, (char *)bpy_bmlayercollection_active_doc, NULL},
+	{(char *)"is_singleton", (getter)bpy_bmlayercollection_is_singleton_get, (setter)NULL, (char *)bpy_bmlayercollection_is_singleton_doc, NULL},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmlayeritem_getseters[] = {
-    /* BMESH_TODO, make writeable */
-    {(char *)"name", (getter)bpy_bmlayeritem_name_get, (setter)NULL, (char *)bpy_bmlayercollection_name_doc, NULL},
+	/* BMESH_TODO, make writeable */
+	{(char *)"name", (getter)bpy_bmlayeritem_name_get, (setter)NULL, (char *)bpy_bmlayercollection_name_doc, NULL},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 
@@ -556,20 +556,20 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
 }
 
 static struct PyMethodDef bpy_bmlayeritem_methods[] = {
-    {"copy_from", (PyCFunction)bpy_bmlayeritem_copy_from,    METH_O,       bpy_bmlayeritem_copy_from_doc},
-    {NULL, NULL, 0, NULL}
+	{"copy_from", (PyCFunction)bpy_bmlayeritem_copy_from,    METH_O,       bpy_bmlayeritem_copy_from_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmelemseq_methods[] = {
-    {"verify",  (PyCFunction)bpy_bmlayercollection_verify,   METH_NOARGS,  bpy_bmlayercollection_verify_doc},
-    {"new",     (PyCFunction)bpy_bmlayercollection_new,      METH_VARARGS, bpy_bmlayercollection_new_doc},
-    {"remove",  (PyCFunction)bpy_bmlayercollection_remove,   METH_O,       bpy_bmlayercollection_remove_doc},
+	{"verify",  (PyCFunction)bpy_bmlayercollection_verify,   METH_NOARGS,  bpy_bmlayercollection_verify_doc},
+	{"new",     (PyCFunction)bpy_bmlayercollection_new,      METH_VARARGS, bpy_bmlayercollection_new_doc},
+	{"remove",  (PyCFunction)bpy_bmlayercollection_remove,   METH_O,       bpy_bmlayercollection_remove_doc},
 
-    {"keys",    (PyCFunction)bpy_bmlayercollection_keys,     METH_NOARGS,  bpy_bmlayercollection_keys_doc},
-    {"values",  (PyCFunction)bpy_bmlayercollection_values,   METH_NOARGS,  bpy_bmlayercollection_values_doc},
-    {"items",   (PyCFunction)bpy_bmlayercollection_items,    METH_NOARGS,  bpy_bmlayercollection_items_doc},
-    {"get",     (PyCFunction)bpy_bmlayercollection_get,      METH_VARARGS, bpy_bmlayercollection_get_doc},
-    {NULL, NULL, 0, NULL}
+	{"keys",    (PyCFunction)bpy_bmlayercollection_keys,     METH_NOARGS,  bpy_bmlayercollection_keys_doc},
+	{"values",  (PyCFunction)bpy_bmlayercollection_values,   METH_NOARGS,  bpy_bmlayercollection_values_doc},
+	{"items",   (PyCFunction)bpy_bmlayercollection_items,    METH_NOARGS,  bpy_bmlayercollection_items_doc},
+	{"get",     (PyCFunction)bpy_bmlayercollection_get,      METH_VARARGS, bpy_bmlayercollection_get_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 /* Sequences
@@ -724,22 +724,22 @@ static int bpy_bmlayercollection_contains(BPy_BMLayerCollection *self, PyObject 
 }
 
 static PySequenceMethods bpy_bmlayercollection_as_sequence = {
-    (lenfunc)bpy_bmlayercollection_length,       /* sq_length */
-    NULL,                                        /* sq_concat */
-    NULL,                                        /* sq_repeat */
-    (ssizeargfunc)bpy_bmlayercollection_subscript_int, /* sq_item */ /* Only set this so PySequence_Check() returns True */
-    NULL,                                        /* sq_slice */
-    (ssizeobjargproc)NULL,                       /* sq_ass_item */
-    NULL,                                        /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmlayercollection_contains,  /* sq_contains */
-    (binaryfunc) NULL,                           /* sq_inplace_concat */
-    (ssizeargfunc) NULL,                         /* sq_inplace_repeat */
+	(lenfunc)bpy_bmlayercollection_length,       /* sq_length */
+	NULL,                                        /* sq_concat */
+	NULL,                                        /* sq_repeat */
+	(ssizeargfunc)bpy_bmlayercollection_subscript_int, /* sq_item */ /* Only set this so PySequence_Check() returns True */
+	NULL,                                        /* sq_slice */
+	(ssizeobjargproc)NULL,                       /* sq_ass_item */
+	NULL,                                        /* *was* sq_ass_slice */
+	(objobjproc)bpy_bmlayercollection_contains,  /* sq_contains */
+	(binaryfunc) NULL,                           /* sq_inplace_concat */
+	(ssizeargfunc) NULL,                         /* sq_inplace_repeat */
 };
 
 static PyMappingMethods bpy_bmlayercollection_as_mapping = {
-    (lenfunc)bpy_bmlayercollection_length,       /* mp_length */
-    (binaryfunc)bpy_bmlayercollection_subscript, /* mp_subscript */
-    (objobjargproc)NULL,                         /* mp_ass_subscript */
+	(lenfunc)bpy_bmlayercollection_length,       /* mp_length */
+	(binaryfunc)bpy_bmlayercollection_subscript, /* mp_subscript */
+	(objobjargproc)NULL,                         /* mp_ass_subscript */
 };
 
 /* Iterator

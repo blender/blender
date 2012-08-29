@@ -84,8 +84,8 @@ void BMO_error_clear(BMesh *bm);
 	(void)((!(a)) ?  (                                                        \
 		(                                                                     \
 		fprintf(stderr,                                                       \
-			"BMESH_ASSERT failed: %s, %s(), %d at \'%s\'\n",                  \
-			__FILE__, __func__, __LINE__, STRINGIFY(a)),                      \
+		        "BMESH_ASSERT failed: %s, %s(), %d at \'%s\'\n",              \
+		        __FILE__, __func__, __LINE__, STRINGIFY(a)),                  \
 		_BMESH_DUMMY_ABORT(),                                                 \
 		NULL)) : NULL)
 

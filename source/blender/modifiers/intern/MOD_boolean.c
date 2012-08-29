@@ -67,9 +67,9 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 }
 
 static void foreachObjectLink(
-    ModifierData *md, Object *ob,
-    void (*walk)(void *userData, Object *ob, Object **obpoin),
-    void *userData)
+        ModifierData *md, Object *ob,
+        void (*walk)(void *userData, Object *ob, Object **obpoin),
+        void *userData)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
 

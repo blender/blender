@@ -128,8 +128,9 @@ World *BKE_world_copy(World *wrld)
 		}
 	}
 
-	if (wrld->nodetree)
+	if (wrld->nodetree) {
 		wrldn->nodetree = ntreeCopyTree(wrld->nodetree);
+	}
 	
 	if (wrld->preview)
 		wrldn->preview = BKE_previewimg_copy(wrld->preview);

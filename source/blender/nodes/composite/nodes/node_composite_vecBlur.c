@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_vecblur_out[] = {
 	{   -1, 0, ""   }
 };
 
-
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static void node_composit_exec_vecblur(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
@@ -85,6 +85,8 @@ static void node_composit_exec_vecblur(void *UNUSED(data), bNode *node, bNodeSta
 		free_compbuf(img);
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeBlurData *nbd = MEM_callocN(sizeof(NodeBlurData), "node blur data");
@@ -103,7 +105,9 @@ void register_node_type_cmp_vecblur(bNodeTreeType *ttype)
 	node_type_size(&ntype, 120, 80, 200);
 	node_type_init(&ntype, node_composit_init_vecblur);
 	node_type_storage(&ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_vecblur);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

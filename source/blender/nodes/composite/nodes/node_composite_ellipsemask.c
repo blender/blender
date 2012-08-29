@@ -46,7 +46,7 @@ static bNodeSocketTemplate cmp_node_ellipsemask_out[]= {
 	{	-1, 0, "" } 
 };
 
-static void node_composit_init_ellipsemask(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_ellipsemask(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeEllipseMask *data = MEM_callocN(sizeof(NodeEllipseMask), "NodeEllipseMask");
 	data->x = 0.5;

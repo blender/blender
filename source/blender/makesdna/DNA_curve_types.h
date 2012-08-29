@@ -87,20 +87,22 @@ typedef struct BevPoint {
 	short split_tag, dupe_tag;
 } BevPoint;
 
-/* Keyframes on F-Curves (allows code reuse of Bezier eval code) and 
+/**
+ * Keyframes on F-Curves (allows code reuse of Bezier eval code) and
  * Points on Bezier Curves/Paths are generally BezTriples 
- */
-/* note: alfa location in struct is abused by Key system */
-/* vec in BezTriple looks like this:
- * - vec[0][0]=x location of handle 1
- * - vec[0][1]=y location of handle 1
- * - vec[0][2]=z location of handle 1 (not used for FCurve Points(2d))
- * - vec[1][0]=x location of control point
- * - vec[1][1]=y location of control point
- * - vec[1][2]=z location of control point
- * - vec[2][0]=x location of handle 2
- * - vec[2][1]=y location of handle 2
- * - vec[2][2]=z location of handle 2 (not used for FCurve Points(2d))
+ *
+ * \note alfa location in struct is abused by Key system
+ *
+ * \note vec in BezTriple looks like this:
+ * - vec[0][0] = x location of handle 1
+ * - vec[0][1] = y location of handle 1
+ * - vec[0][2] = z location of handle 1 (not used for FCurve Points(2d))
+ * - vec[1][0] = x location of control point
+ * - vec[1][1] = y location of control point
+ * - vec[1][2] = z location of control point
+ * - vec[2][0] = x location of handle 2
+ * - vec[2][1] = y location of handle 2
+ * - vec[2][2] = z location of handle 2 (not used for FCurve Points(2d))
  */
 typedef struct BezTriple {
 	float vec[3][3];
@@ -119,6 +121,10 @@ typedef struct BPoint {
 	float radius, pad;		/* user-set radius per point for beveling etc */
 } BPoint;
 
+/**
+ * \note Nurb name is misleading, since it can be used for polygons too,
+ * also, it should be NURBS (Nurb isn't the singular of Nurbs).
+ */
 typedef struct Nurb {
 	struct Nurb *next, *prev;	/* multiple nurbs per curve object are allowed */
 	short type;

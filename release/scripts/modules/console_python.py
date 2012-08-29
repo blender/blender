@@ -290,6 +290,40 @@ def autocomplete(context):
     return {'FINISHED'}
 
 
+def copy_as_script(context):
+    sc = context.space_data
+    lines = [
+        "import bpy",
+        "import bpy.context as C",
+        "import bpy.data as D",
+        "from mathutils import *",
+        "from math import *",
+        "",
+    ]
+
+    for line in sc.scrollback:
+        text = line.body
+        type = line.type
+        
+        if type == 'INFO':  # ignore autocomp.
+            continue
+        if type == 'INPUT':
+            if text.startswith(PROMPT):
+                text = text[len(PROMPT):]
+            elif text.startswith(PROMPT_MULTI):
+                text = text[len(PROMPT_MULTI):]
+        elif type == 'OUTPUT':
+            text = "#~ " + text
+        elif type == 'ERROR':
+            text = "#! " + text
+
+        lines.append(text)
+
+    context.window_manager.clipboard = "\n".join(lines)
+
+    return {'FINISHED'}
+
+
 def banner(context):
     sc = context.space_data
     version_string = sys.version.strip().replace('\n', ' ')

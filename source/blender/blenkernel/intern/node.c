@@ -671,7 +671,7 @@ bNodeTree *ntreeAddTree(const char *name, int type, int nodetype)
  * copying for internal use (threads for eg), where you wont want it to modify the
  * scene data.
  */
-static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_make_extern)
+static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_id_user, const short do_make_extern)
 {
 	bNodeTree *newtree;
 	bNode *node /*, *nnode */ /* UNUSED */, *last;
@@ -701,6 +701,11 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_make_e
 	
 	last = ntree->nodes.last;
 	for (node = ntree->nodes.first; node; node = node->next) {
+
+		/* ntreeUserDecrefID inline */
+		if (do_id_user) {
+			id_us_plus(node->id);
+		}
 
 		if (do_make_extern) {
 			id_lib_extern(node->id);
@@ -751,20 +756,54 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_make_e
 	return newtree;
 }
 
+bNodeTree *ntreeCopyTree_ex(bNodeTree *ntree, const short do_id_user)
+{
+	return ntreeCopyTree_internal(ntree, do_id_user, TRUE);
+}
 bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 {
-	return ntreeCopyTree_internal(ntree, TRUE);
+	return ntreeCopyTree_ex(ntree, TRUE);
 }
 
 /* use when duplicating scenes */
-void ntreeSwitchID(bNodeTree *ntree, ID *id_from, ID *id_to)
+void ntreeSwitchID_ex(bNodeTree *ntree, ID *id_from, ID *id_to, const short do_id_user)
 {
 	bNode *node;
+
+	if (id_from == id_to) {
+		/* should never happen but may as well skip if it does */
+		return;
+	}
+
 	/* for scene duplication only */
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id == id_from) {
+			if (do_id_user) {
+				id_us_min(id_from);
+				id_us_plus(id_to);
+			}
+
 			node->id = id_to;
 		}
+	}
+}
+void ntreeSwitchID(bNodeTree *ntree, ID *id_from, ID *id_to)
+{
+	ntreeSwitchID_ex(ntree, id_from, id_to, TRUE);
+}
+
+void ntreeUserIncrefID(bNodeTree *ntree)
+{
+	bNode *node;
+	for (node = ntree->nodes.first; node; node = node->next) {
+		id_us_plus(node->id);
+	}
+}
+void ntreeUserDecrefID(bNodeTree *ntree)
+{
+	bNode *node;
+	for (node = ntree->nodes.first; node; node = node->next) {
+		id_us_min(node->id);
 	}
 }
 
@@ -913,6 +952,7 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 	}
 }
 
+/** \note caller needs to manage node->id user */
 void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock, *nextsock;
@@ -956,7 +996,7 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 }
 
 /* do not free ntree itself here, BKE_libblock_free calls this function too */
-void ntreeFreeTree(bNodeTree *ntree)
+void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 {
 	bNode *node, *next;
 	bNodeSocket *sock;
@@ -990,6 +1030,12 @@ void ntreeFreeTree(bNodeTree *ntree)
 	
 	for (node = ntree->nodes.first; node; node = next) {
 		next = node->next;
+
+		/* ntreeUserIncrefID inline */
+		if (do_id_user) {
+			id_us_min(node->id);
+		}
+
 		nodeFreeNode(ntree, node);
 	}
 	
@@ -999,6 +1045,11 @@ void ntreeFreeTree(bNodeTree *ntree)
 	for (sock = ntree->outputs.first; sock; sock = sock->next)
 		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&ntree->outputs);
+}
+/* same as ntreeFreeTree_ex but always manage users */
+void ntreeFreeTree(bNodeTree *ntree)
+{
+	ntreeFreeTree_ex(ntree, TRUE);
 }
 
 void ntreeFreeCache(bNodeTree *ntree)
@@ -1188,7 +1239,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	}
 
 	/* node copy func */
-	ltree = ntreeCopyTree_internal(ntree, FALSE);
+	ltree = ntreeCopyTree_internal(ntree, FALSE, FALSE);
 
 	if (adt) {
 		AnimData *ladt = BKE_animdata_from_id(&ltree->id);
@@ -1248,7 +1299,7 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 	if (ntreetype->local_merge)
 		ntreetype->local_merge(localtree, ntree);
 
-	ntreeFreeTree(localtree);
+	ntreeFreeTree_ex(localtree, FALSE);
 	MEM_freeN(localtree);
 }
 
@@ -1425,13 +1476,37 @@ void nodeSocketSetType(bNodeSocket *sock, int type)
 
 /* ************** Node Clipboard *********** */
 
+#define USE_NODE_CB_VALIDATE
+
+#ifdef USE_NODE_CB_VALIDATE
+/**
+ * This data structure is to validate the node on creation,
+ * otherwise we may reference missing data.
+ *
+ * Currently its only used for ID's, but nodes may one day
+ * reference other pointers which need validation.
+ */
+typedef struct bNodeClipboardExtraInfo {
+	struct bNodeClipboardExtraInfo *next, *prev;
+	ID  *id;
+	char id_name[MAX_ID_NAME];
+	char library_name[FILE_MAX];
+} bNodeClipboardExtraInfo;
+#endif  /* USE_NODE_CB_VALIDATE */
+
+
 typedef struct bNodeClipboard {
 	ListBase nodes;
+
+#ifdef USE_NODE_CB_VALIDATE
+	ListBase nodes_extra_info;
+#endif
+
 	ListBase links;
 	int type;
 } bNodeClipboard;
 
-bNodeClipboard node_clipboard;
+bNodeClipboard node_clipboard = {{0}};
 
 void BKE_node_clipboard_init(struct bNodeTree *ntree)
 {
@@ -1454,11 +1529,83 @@ void BKE_node_clipboard_clear(void)
 		nodeFreeNode(NULL, node);
 	}
 	node_clipboard.nodes.first = node_clipboard.nodes.last = NULL;
+
+#ifdef USE_NODE_CB_VALIDATE
+	BLI_freelistN(&node_clipboard.nodes_extra_info);
+#endif
+}
+
+/* return FALSE when one or more ID's are lost */
+int BKE_node_clipboard_validate(void)
+{
+	int ok = TRUE;
+
+#ifdef USE_NODE_CB_VALIDATE
+	bNodeClipboardExtraInfo *node_info;
+	bNode *node;
+
+
+	/* lists must be aligned */
+	BLI_assert(BLI_countlist(&node_clipboard.nodes) ==
+			   BLI_countlist(&node_clipboard.nodes_extra_info));
+
+	for (node = node_clipboard.nodes.first, node_info = node_clipboard.nodes_extra_info.first;
+		 node;
+		 node = node->next, node_info = node_info->next)
+	{
+		/* validate the node against the stored node info */
+
+		/* re-assign each loop since we may clear,
+		 * open a new file where the ID is valid, and paste again */
+		node->id = node_info->id;
+
+		/* currently only validate the ID */
+		if (node->id) {
+			ListBase *lb = which_libbase(G.main, GS(node_info->id_name));
+			BLI_assert(lb != NULL);
+
+			if (BLI_findindex(lb, node_info->id) == -1) {
+				/* may assign NULL */
+				node->id = BLI_findstring(lb, node_info->id_name + 2, offsetof(ID, name) + 2);
+
+				if (node->id == NULL) {
+					ok = FALSE;
+				}
+			}
+		}
+	}
+#endif  /* USE_NODE_CB_VALIDATE */
+
+	return ok;
 }
 
 void BKE_node_clipboard_add_node(bNode *node)
 {
+#ifdef USE_NODE_CB_VALIDATE
+	/* add extra info */
+	bNodeClipboardExtraInfo *node_info = MEM_mallocN(sizeof(bNodeClipboardExtraInfo), STRINGIFY(bNodeClipboardExtraInfo));
+
+	node_info->id = node->id;
+	if (node->id) {
+		BLI_strncpy(node_info->id_name, node->id->name, sizeof(node_info->id_name));
+		if (node->id->lib) {
+			BLI_strncpy(node_info->library_name, node->id->lib->filepath, sizeof(node_info->library_name));
+		}
+		else {
+			node_info->library_name[0] = '\0';
+		}
+	}
+	else {
+		node_info->id_name[0] = '\0';
+		node_info->library_name[0] = '\0';
+	}
+	BLI_addtail(&node_clipboard.nodes_extra_info, node_info);
+	/* end extra info */
+#endif  /* USE_NODE_CB_VALIDATE */
+
+	/* add node */
 	BLI_addtail(&node_clipboard.nodes, node);
+
 }
 
 void BKE_node_clipboard_add_link(bNodeLink *link)
@@ -1992,6 +2139,7 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_vecblur(ttype);
 	register_node_type_cmp_dilateerode(ttype);
 	register_node_type_cmp_inpaint(ttype);
+	register_node_type_cmp_despeckle(ttype);
 	register_node_type_cmp_defocus(ttype);
 	
 	register_node_type_cmp_valtorgb(ttype);

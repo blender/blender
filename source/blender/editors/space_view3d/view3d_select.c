@@ -291,7 +291,7 @@ static int view3d_selectable_data(bContext *C)
 /* helper also for borderselect */
 static int edge_fully_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
 {
-	return BLI_in_rcti(rect, x1, y1) && BLI_in_rcti(rect, x2, y2);
+	return BLI_rcti_isect_pt(rect, x1, y1) && BLI_rcti_isect_pt(rect, x2, y2);
 }
 
 static int edge_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
@@ -394,7 +394,7 @@ static void do_lasso_select_mesh__doSelectVert(void *userData, BMVert *eve, int 
 {
 	LassoSelectUserData *data = userData;
 
-	if (BLI_in_rcti(data->rect, x, y) &&
+	if (BLI_rcti_isect_pt(data->rect, x, y) &&
 	    BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED))
 	{
 		BM_vert_select_set(data->vc->em->bm, eve, data->select);
@@ -425,7 +425,7 @@ static void do_lasso_select_mesh__doSelectFace(void *userData, BMFace *efa, int 
 {
 	LassoSelectUserData *data = userData;
 
-	if (BLI_in_rcti(data->rect, x, y) &&
+	if (BLI_rcti_isect_pt(data->rect, x, y) &&
 	    BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED))
 	{
 		BM_face_select_set(data->vc->em->bm, efa, data->select);
@@ -654,8 +654,8 @@ int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	unsigned int *rt;
 	int a, index;
 	char *selar;
-	int sx = rect->xmax - rect->xmin + 1;
-	int sy = rect->ymax - rect->ymin + 1;
+	int sx = BLI_RCT_SIZE_X(rect) + 1;
+	int sy = BLI_RCT_SIZE_Y(rect) + 1;
 
 	me = vc->obact->data;
 
@@ -765,12 +765,11 @@ static void do_lasso_select_node(int mcords[][2], short moves, short select)
 	
 	/* store selection in temp test flag */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
-		
-		node_centf[0] = (node->totr.xmin + node->totr.xmax) / 2;
-		node_centf[1] = (node->totr.ymin + node->totr.ymax) / 2;
+		node_centf[0] = BLI_RCT_CENTER_X(&node->totr);
+		node_centf[1] = BLI_RCT_CENTER_Y(&node->totr);
 		
 		ipoco_to_areaco_noclip(G.v2d, node_centf, node_cent);
-		if (BLI_in_rcti_v(&rect, node_cent) && BLI_lasso_is_point_inside(mcords, moves, node_cent[0], node_cent[1])) {
+		if (BLI_rcti_isect_pt_v(&rect, node_cent) && BLI_lasso_is_point_inside(mcords, moves, node_cent[0], node_cent[1])) {
 			if (select) {
 				node->flag |= SELECT;
 			}
@@ -1553,7 +1552,7 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *UNUSED(nu), BPoi
 	Object *obedit = data->vc->obedit;
 	Curve *cu = (Curve *)obedit->data;
 
-	if (BLI_in_rcti(data->rect, x, y)) {
+	if (BLI_rcti_isect_pt(data->rect, x, y)) {
 		if (bp) {
 			bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 			if (bp == cu->lastsel && !(bp->f1 & 1)) cu->lastsel = NULL;
@@ -1600,7 +1599,7 @@ static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, int x, i
 {
 	BoxSelectUserData *data = userData;
 
-	if (BLI_in_rcti(data->rect, x, y)) {
+	if (BLI_rcti_isect_pt(data->rect, x, y)) {
 		bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 	}
 }
@@ -1625,7 +1624,7 @@ static void do_mesh_box_select__doSelectVert(void *userData, BMVert *eve, int x,
 {
 	BoxSelectUserData *data = userData;
 
-	if (BLI_in_rcti(data->rect, x, y)) {
+	if (BLI_rcti_isect_pt(data->rect, x, y)) {
 		BM_vert_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
@@ -1651,7 +1650,7 @@ static void do_mesh_box_select__doSelectFace(void *userData, BMFace *efa, int x,
 {
 	BoxSelectUserData *data = userData;
 
-	if (BLI_in_rcti(data->rect, x, y)) {
+	if (BLI_rcti_isect_pt(data->rect, x, y)) {
 		BM_face_select_set(data->vc->em->bm, efa, data->select);
 	}
 }

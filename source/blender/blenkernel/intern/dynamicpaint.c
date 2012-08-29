@@ -3996,7 +3996,7 @@ void surface_determineForceTargetPoints(PaintSurfaceData *sData, int index, floa
 		float force_intersect;
 		float temp;
 
-		/* project force vector on the plane determined by these two neightbour points
+		/* project force vector on the plane determined by these two neighbor points
 		 *  and calculate relative force angle from it*/
 		cross_v3_v3v3(tangent, bNeighs[closest_id[0]].dir, bNeighs[closest_id[1]].dir);
 		normalize_v3(tangent);

@@ -790,7 +790,7 @@ class WM_OT_path_open(Operator):
             return {'CANCELLED'}
 
         if sys.platform[:3] == "win":
-            subprocess.Popen(["start", filepath], shell=True)
+            os.startfile(filepath)
         elif sys.platform == "darwin":
             subprocess.Popen(["open", filepath])
         else:
@@ -862,26 +862,24 @@ class WM_OT_doc_view_manual(Operator):
         if rna_id is None:
             return {'PASS_THROUGH'}
 
-        import rna_wiki_reference
-        rna_ref = self._find_reference(rna_id, rna_wiki_reference.url_manual_mapping)
+        url = None
 
-        if rna_ref is None:
-            self.report({'WARNING'}, "No reference available '%s', "
-                                     "Update info in %r" %
-                                     (self.doc_id, rna_wiki_reference.__file__))
+        for prefix, url_manual_mapping in bpy.utils.manual_map():
+            rna_ref = self._find_reference(rna_id, url_manual_mapping)
+            if rna_ref is not None:
+                url = prefix + rna_ref
+                break
 
-        import sys
-        del sys.modules["rna_wiki_reference"]
-
-        if rna_ref is None:
+        if url is None:
+            self.report({'WARNING'}, "No reference available %r, "
+                                     "Update info in 'rna_wiki_reference.py' "
+                                     " or callback to bpy.utils.manual_map()" %
+                                     self.doc_id)
             return {'CANCELLED'}
         else:
-            url = rna_wiki_reference.url_manual_prefix + rna_ref
-
-        import webbrowser
-        webbrowser.open(url)
-
-        return {'FINISHED'}
+            import webbrowser
+            webbrowser.open(url)
+            return {'FINISHED'}
 
 
 class WM_OT_doc_view(Operator):

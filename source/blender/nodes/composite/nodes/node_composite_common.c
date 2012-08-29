@@ -30,7 +30,6 @@
  *  \ingroup cmpnodes
  */
 
-
 #include "DNA_node_types.h"
 
 #include "BKE_node.h"
@@ -89,7 +88,7 @@ static void copy_stack(bNodeStack *to, bNodeStack *from)
 		copy_v4_v4(to->vec, from->vec);
 		to->data = from->data;
 		to->datatype = from->datatype;
-		
+
 		/* tag as copy to prevent freeing */
 		to->is_copy = 1;
 	}
@@ -102,7 +101,7 @@ static void move_stack(bNodeStack *to, bNodeStack *from)
 		to->data = from->data;
 		to->datatype = from->datatype;
 		to->is_copy = from->is_copy;
-		
+
 		zero_v4(from->vec);
 		from->data = NULL;
 		from->datatype = 0;
@@ -114,19 +113,19 @@ static void move_stack(bNodeStack *to, bNodeStack *from)
 
 static void *group_initexec(bNode *node)
 {
-	bNodeTree *ngroup= (bNodeTree *)node->id;
+	bNodeTree *ngroup = (bNodeTree *)node->id;
 	bNodeTreeExec *exec;
 	bNodeSocket *sock;
 	bNodeStack *ns;
-	
+
 	if (!ngroup)
 		return NULL;
-	
+
 	/* initialize the internal node tree execution */
 	exec = ntreeCompositBeginExecTree(ngroup, 0);
-	
+
 	/* tag group outputs as external to prevent freeing */
-	for (sock=ngroup->outputs.first; sock; sock=sock->next) {
+	for (sock = ngroup->outputs.first; sock; sock = sock->next) {
 		if (!(sock->flag & SOCK_INTERNAL)) {
 			ns = node_get_socket_stack(exec->stack, sock);
 			ns->external = 1;
@@ -138,8 +137,8 @@ static void *group_initexec(bNode *node)
 
 static void group_freeexec(bNode *UNUSED(node), void *nodedata)
 {
-	bNodeTreeExec *gexec= (bNodeTreeExec *)nodedata;
-	
+	bNodeTreeExec *gexec = (bNodeTreeExec *)nodedata;
+
 	if (gexec)
 		ntreeCompositEndExecTree(gexec, 0);
 }
@@ -167,7 +166,7 @@ static void group_move_outputs(bNode *node, bNodeStack **out, bNodeStack *gstack
 	bNodeSocket *sock;
 	bNodeStack *ns;
 	int a;
-	for (sock=node->outputs.first, a=0; sock; sock=sock->next, ++a) {
+	for (sock = node->outputs.first, a = 0; sock; sock = sock->next, ++a) {
 		if (sock->groupsock) {
 			ns = node_get_socket_stack(gstack, sock->groupsock);
 			move_stack(out[a], ns);
@@ -180,11 +179,13 @@ static void group_free_internal(bNodeTreeExec *gexec)
 {
 	bNodeStack *ns;
 	int i;
-	
-	for (i=0, ns=gexec->stack; i < gexec->stacksize; ++i, ++ns) {
+
+	for (i = 0, ns = gexec->stack; i < gexec->stacksize; ++i, ++ns) {
 		if (!ns->external && !ns->is_copy) {
 			if (ns->data) {
+#ifdef WITH_COMPOSITOR_LEGACY
 				free_compbuf(ns->data);
+#endif
 				ns->data = NULL;
 			}
 		}
@@ -217,7 +218,7 @@ void register_node_type_cmp_group(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, NODE_GROUP, "Group", NODE_CLASS_GROUP, NODE_OPTIONS|NODE_CONST_OUTPUT);
+	node_type_base(ttype, &ntype, NODE_GROUP, "Group", NODE_CLASS_GROUP, NODE_OPTIONS | NODE_CONST_OUTPUT);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
@@ -227,10 +228,11 @@ void register_node_type_cmp_group(bNodeTreeType *ttype)
 	node_type_update(&ntype, NULL, node_group_verify);
 	node_type_group_edit(&ntype, node_group_edit_get, node_group_edit_set, node_group_edit_clear);
 	node_type_exec_new(&ntype, group_initexec, group_freeexec, group_execute);
-	
+
 	nodeRegisterType(ttype, &ntype);
 }
 
+#ifdef WITH_COMPOSITOR_LEGACY
 
 /**** FOR LOOP ****/
 
@@ -377,3 +379,5 @@ void register_node_type_cmp_whileloop(bNodeTreeType *ttype)
 	nodeRegisterType(ttype, &ntype);
 }
 #endif
+
+#endif  /* WITH_COMPOSITOR_LEGACY */

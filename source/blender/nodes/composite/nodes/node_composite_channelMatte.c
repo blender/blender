@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_channel_matte_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_normalized_rgba_to_ycca2(bNode *UNUSED(node), float *out, float *in)
 {
 	/*normalize to the range 0.0 to 1.0) */
@@ -179,13 +181,15 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 	out[0]->data=outbuf;
 	if (out[1]->hasoutput)
 		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
-	
+
 	if (cbuf!=in[0]->data)
 		free_compbuf(cbuf);
 
 }
 
-static void node_composit_init_channel_matte(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_channel_matte(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
 	node->storage=c;
@@ -209,7 +213,9 @@ void register_node_type_cmp_channel_matte(bNodeTreeType *ttype)
 	node_type_size(&ntype, 200, 80, 250);
 	node_type_init(&ntype, node_composit_init_channel_matte);
 	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_channel_matte);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -27,7 +27,6 @@
  *  \ingroup edinterface
  */
 
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -71,6 +70,7 @@
 
 #include "ED_image.h"  /* for HDR color sampling */
 #include "ED_node.h"   /* for HDR color sampling */
+#include "ED_clip.h"   /* for HDR color sampling */
 
 /* ********************************************************** */
 
@@ -140,10 +140,10 @@ static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa;
 	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-		if (BLI_in_rcti(&sa->totrct, mx, my)) {
+		if (BLI_rcti_isect_pt(&sa->totrct, mx, my)) {
 			if (sa->spacetype == SPACE_IMAGE) {
 				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-				if (BLI_in_rcti(&ar->winrct, mx, my)) {
+				if (BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
 					SpaceImage *sima = sa->spacedata.first;
 					int mval[2] = {mx - ar->winrct.xmin,
 					               my - ar->winrct.ymin};
@@ -155,12 +155,24 @@ static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int
 			}
 			else if (sa->spacetype == SPACE_NODE) {
 				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-				if (BLI_in_rcti(&ar->winrct, mx, my)) {
+				if (BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
 					SpaceNode *snode = sa->spacedata.first;
 					int mval[2] = {mx - ar->winrct.xmin,
 					               my - ar->winrct.ymin};
 
 					if (ED_space_node_color_sample(snode, ar, mval, r_col)) {
+						return;
+					}
+				}
+			}
+			else if (sa->spacetype == SPACE_CLIP) {
+				ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+				if (BLI_rcti_isect_pt(&ar->winrct, mx, my)) {
+					SpaceClip *sc = sa->spacedata.first;
+					int mval[2] = {mx - ar->winrct.xmin,
+					               my - ar->winrct.ymin};
+
+					if (ED_space_clip_color_sample(sc, ar, mval, r_col)) {
 						return;
 					}
 				}
@@ -729,10 +741,7 @@ static int ui_editsource_uibut_match(uiBut *but_a, uiBut *but_b)
 	/* this just needs to be a 'good-enough' comparison so we can know beyond
 	 * reasonable doubt that these buttons are the same between redraws.
 	 * if this fails it only means edit-source fails - campbell */
-	if ((but_a->x1 == but_b->x1) &&
-	    (but_a->x2 == but_b->x2) &&
-	    (but_a->y1 == but_b->y1) &&
-	    (but_a->y2 == but_b->y2) &&
+	if (BLI_rctf_compare(&but_a->rect, &but_b->rect, FLT_EPSILON) &&
 	    (but_a->type == but_b->type) &&
 	    (but_a->rnaprop == but_b->rnaprop) &&
 	    (but_a->optype == but_b->optype) &&
@@ -1058,7 +1067,7 @@ void UI_buttons_operatortypes(void)
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);
-	WM_operatortype_append(UI_OT_reports_to_textblock); // XXX: temp?
+	WM_operatortype_append(UI_OT_reports_to_textblock);  /* XXX: temp? */
 
 #ifdef WITH_PYTHON
 	WM_operatortype_append(UI_OT_editsource);

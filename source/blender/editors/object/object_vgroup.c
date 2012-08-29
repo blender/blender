@@ -686,8 +686,9 @@ static void vgroup_duplicate(Object *ob)
 			dw_org = defvert_find_index(dv, idg);
 			if (dw_org) {
 				/* defvert_verify_index re-allocs org so need to store the weight first */
+				const float weight = dw_org->weight;
 				dw_cpy = defvert_verify_index(dv, icdg);
-				dw_cpy->weight = dw_org->weight;
+				dw_cpy->weight = weight;
 			}
 		}
 

@@ -47,15 +47,19 @@ struct rctf;
 #   define DO_INLINE static inline
 #endif
 
+void                curvemapping_set_defaults(struct CurveMapping *cumap, int tot, float minx, float miny, float maxx, float maxy);
 struct CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, float maxy);
+void                curvemapping_free_data(struct CurveMapping *cumap);
 void                curvemapping_free(struct CurveMapping *cumap);
+void                curvemapping_copy_data(struct CurveMapping *target, struct CurveMapping *cumap);
 struct CurveMapping *curvemapping_copy(struct CurveMapping *cumap);
+void                curvemapping_set_black_white_ex(const float black[3], const float white[3], float r_bwmul[3]);
 void                curvemapping_set_black_white(struct CurveMapping *cumap, const float black[3], const float white[3]);
 
 #define CURVEMAP_SLOPE_NEGATIVE 0
 #define CURVEMAP_SLOPE_POSITIVE 1
 void                    curvemap_reset(struct CurveMap *cuma, struct rctf *clipr, int preset, int slope);
-void                    curvemap_remove(struct CurveMap *cuma, int flag);
+void                    curvemap_remove(struct CurveMap *cuma, const short flag);
 void                    curvemap_remove_point(struct CurveMap *cuma, struct CurveMapPoint *cmp);
 struct CurveMapPoint    *curvemap_insert(struct CurveMap *cuma, float x, float y);
 void                    curvemap_sethandle(struct CurveMap *cuma, int type);
@@ -63,22 +67,31 @@ void                    curvemap_sethandle(struct CurveMap *cuma, int type);
 void                curvemapping_changed(struct CurveMapping *cumap, int rem_doubles);
 void                curvemapping_changed_all(struct CurveMapping *cumap);
 
+/* call before _all_ evaluation functions */
+void                curvemapping_initialize(struct CurveMapping *cumap);
+
+/* keep these (const CurveMap) - to help with thread safety */
 /* single curve, no table check */
-float               curvemap_evaluateF(struct CurveMap *cuma, float value);
+float               curvemap_evaluateF(const struct CurveMap *cuma, float value);
 /* single curve, with table check */
-float               curvemapping_evaluateF(struct CurveMapping *cumap, int cur, float value);
-void                curvemapping_evaluate3F(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
-void                curvemapping_evaluateRGBF(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
-void                curvemapping_evaluate_premulRGBF(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
+float               curvemapping_evaluateF(const struct CurveMapping *cumap, int cur, float value);
+void                curvemapping_evaluate3F(const struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
+void                curvemapping_evaluateRGBF(const struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
+void                curvemapping_evaluate_premulRGB(const struct CurveMapping *cumap, unsigned char vecout_byte[3], const unsigned char vecin_byte[3]);
+void                curvemapping_evaluate_premulRGBF_ex(const struct CurveMapping *cumap, float vecout[3], const float vecin[3],
+                                                        const float black[3], const float bwmul[3]);
+void                curvemapping_evaluate_premulRGBF(const struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
+int                 curvemapping_RGBA_does_something(const struct CurveMapping *cumap);
+void                curvemapping_table_RGBA(const struct CurveMapping *cumap, float **array, int *size);
+
+/* non-const, these modify the curve */
 void                curvemapping_do_ibuf(struct CurveMapping *cumap, struct ImBuf *ibuf);
 void                curvemapping_premultiply(struct CurveMapping *cumap, int restore);
-int                 curvemapping_RGBA_does_something(struct CurveMapping *cumap);
-void                curvemapping_initialize(struct CurveMapping *cumap);
-void                curvemapping_table_RGBA(struct CurveMapping *cumap, float **array, int *size);
+
+
 void                BKE_histogram_update_sample_line(struct Histogram *hist, struct ImBuf *ibuf, const short use_color_management);
 void                scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, int use_color_management);
 void                scopes_free(struct Scopes *scopes);
 void                scopes_new(struct Scopes *scopes);
 
 #endif
-

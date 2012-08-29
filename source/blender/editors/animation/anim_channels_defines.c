@@ -3146,9 +3146,9 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 				break;
 			}
 		}
-		
+
 		/* check if there's enough space for the toggles if the sliders are drawn too */
-		if (!(draw_sliders) || ((v2d->mask.xmax - v2d->mask.xmin) > ACHANNEL_BUTTON_WIDTH / 2) ) {
+		if (!(draw_sliders) || (BLI_RCT_SIZE_X(&v2d->mask) > ACHANNEL_BUTTON_WIDTH / 2) ) {
 			/* protect... */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT))
 				offset += ICON_WIDTH;
@@ -3540,7 +3540,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 		}
 		
 		/* check if there's enough space for the toggles if the sliders are drawn too */
-		if (!(draw_sliders) || ((v2d->mask.xmax - v2d->mask.xmin) > ACHANNEL_BUTTON_WIDTH / 2) ) {
+		if (!(draw_sliders) || (BLI_RCT_SIZE_X(&v2d->mask) > ACHANNEL_BUTTON_WIDTH / 2) ) {
 			/* protect... */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
 				offset += ICON_WIDTH; 

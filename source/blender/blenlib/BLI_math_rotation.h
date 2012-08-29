@@ -60,6 +60,7 @@ void sub_qt_qtqt(float q[4], const float a[4], const float b[4]);
 void invert_qt(float q[4]);
 void invert_qt_qt(float q1[4], const float q2[4]);
 void conjugate_qt(float q[4]);
+void conjugate_qt_qt(float q1[4], const float q2[4]);
 float dot_qtqt(const float a[4], const float b[4]);
 float normalize_qt(float q[4]);
 float normalize_qt_qt(float q1[4], const float q2[4]);
@@ -151,10 +152,10 @@ void mat3_to_eulO(float eul[3], const short order, float mat[3][3]);
 void mat4_to_eulO(float eul[3], const short order, float mat[4][4]);
 void axis_angle_to_eulO(float eul[3], const short order, const float axis[3], const float angle);
 
-void mat3_to_compatible_eulO(float eul[3], float old[3], short order, float mat[3][3]);
-void mat4_to_compatible_eulO(float eul[3], float old[3], short order, float mat[4][4]);
+void mat3_to_compatible_eulO(float eul[3], float old[3], const short order, float mat[3][3]);
+void mat4_to_compatible_eulO(float eul[3], float old[3], const short order, float mat[4][4]);
 
-void rotate_eulO(float eul[3], short order, char axis, float angle);
+void rotate_eulO(float eul[3], const short order, char axis, float angle);
 
 /******************************* Dual Quaternions ****************************/
 

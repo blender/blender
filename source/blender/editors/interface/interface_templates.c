@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
+#include "BLI_rect.h"
 
 #include "BLF_translation.h"
 
@@ -1379,7 +1380,7 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand *coba, rctf *butr, RNAUpdateCb *cb)
 {
 	uiBut *bt;
-	float unit = (butr->xmax - butr->xmin) / 14.0f;
+	float unit = BLI_RCT_SIZE_X(butr) / 14.0f;
 	float xs = butr->xmin;
 
 	uiBlockBeginAlign(block);
@@ -1405,7 +1406,7 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 	               TIP_("Set interpolation between color stops"));
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-	bt = uiDefBut(block, BUT_COLORBAND, 0, "",       xs, butr->ymin, butr->xmax - butr->xmin, UI_UNIT_Y, coba, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, BUT_COLORBAND, 0, "", xs, butr->ymin, BLI_RCT_SIZE_X(butr), UI_UNIT_Y, coba, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	uiBlockEndAlign(block);
@@ -1480,7 +1481,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 
 	hist->height = (hist->height <= UI_UNIT_Y) ? UI_UNIT_Y : hist->height;
 
-	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin, hist->height, hist, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect), hist->height, hist, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	MEM_freeN(cb);
@@ -1517,8 +1518,8 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	
 	scopes->wavefrm_height = (scopes->wavefrm_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->wavefrm_height;
 
-	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin, scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
-	(void)bt; // UNUSED
+	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect), scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
+	(void)bt;  /* UNUSED */
 	
 	MEM_freeN(cb);
 }
@@ -1554,7 +1555,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 
 	scopes->vecscope_height = (scopes->vecscope_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->vecscope_height;
 	
-	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin, scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect), scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 	
 	MEM_freeN(cb);
@@ -1569,11 +1570,11 @@ static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *UNUSED(ar
 	float d;
 
 	/* we allow 20 times zoom */
-	if ( (cumap->curr.xmax - cumap->curr.xmin) > 0.04f * (cumap->clipr.xmax - cumap->clipr.xmin) ) {
-		d = 0.1154f * (cumap->curr.xmax - cumap->curr.xmin);
+	if (BLI_RCT_SIZE_X(&cumap->curr) > 0.04f * BLI_RCT_SIZE_X(&cumap->clipr)) {
+		d = 0.1154f * BLI_RCT_SIZE_X(&cumap->curr);
 		cumap->curr.xmin += d;
 		cumap->curr.xmax -= d;
-		d = 0.1154f * (cumap->curr.ymax - cumap->curr.ymin);
+		d = 0.1154f * BLI_RCT_SIZE_Y(&cumap->curr);
 		cumap->curr.ymin += d;
 		cumap->curr.ymax -= d;
 	}
@@ -1587,8 +1588,8 @@ static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *UNUSED(u
 	float d, d1;
 
 	/* we allow 20 times zoom, but don't view outside clip */
-	if ( (cumap->curr.xmax - cumap->curr.xmin) < 20.0f * (cumap->clipr.xmax - cumap->clipr.xmin) ) {
-		d = d1 = 0.15f * (cumap->curr.xmax - cumap->curr.xmin);
+	if (BLI_RCT_SIZE_X(&cumap->curr) < 20.0f * BLI_RCT_SIZE_X(&cumap->clipr)) {
+		d = d1 = 0.15f * BLI_RCT_SIZE_X(&cumap->curr);
 
 		if (cumap->flag & CUMA_DO_CLIP) 
 			if (cumap->curr.xmin - d < cumap->clipr.xmin)
@@ -1601,7 +1602,7 @@ static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *UNUSED(u
 				d1 = -cumap->curr.xmax + cumap->clipr.xmax;
 		cumap->curr.xmax += d1;
 
-		d = d1 = 0.15f * (cumap->curr.ymax - cumap->curr.ymin);
+		d = d1 = 0.15f * BLI_RCT_SIZE_Y(&cumap->curr);
 
 		if (cumap->flag & CUMA_DO_CLIP) 
 			if (cumap->curr.ymin - d < cumap->clipr.ymin)
@@ -1622,7 +1623,7 @@ static void curvemap_buttons_setclip(bContext *UNUSED(C), void *cumap_v, void *U
 {
 	CurveMapping *cumap = cumap_v;
 
-	curvemapping_changed(cumap, 0);
+	curvemapping_changed(cumap, FALSE);
 }	
 
 static void curvemap_buttons_delete(bContext *C, void *cb_v, void *cumap_v)
@@ -1630,7 +1631,7 @@ static void curvemap_buttons_delete(bContext *C, void *cb_v, void *cumap_v)
 	CurveMapping *cumap = cumap_v;
 
 	curvemap_remove(cumap->cm + cumap->cur, SELECT);
-	curvemapping_changed(cumap, 0);
+	curvemapping_changed(cumap, FALSE);
 
 	rna_update_cb(C, cb_v, NULL);
 }
@@ -1672,26 +1673,26 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 	switch (event) {
 		case 0: /* reset */
 			curvemap_reset(cuma, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
-			curvemapping_changed(cumap, 0);
+			curvemapping_changed(cumap, FALSE);
 			break;
 		case 1:
 			cumap->curr = cumap->clipr;
 			break;
 		case 2: /* set vector */
 			curvemap_sethandle(cuma, 1);
-			curvemapping_changed(cumap, 0);
+			curvemapping_changed(cumap, FALSE);
 			break;
 		case 3: /* set auto */
 			curvemap_sethandle(cuma, 0);
-			curvemapping_changed(cumap, 0);
+			curvemapping_changed(cumap, FALSE);
 			break;
 		case 4: /* extend horiz */
 			cuma->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
-			curvemapping_changed(cumap, 0);
+			curvemapping_changed(cumap, FALSE);
 			break;
 		case 5: /* extend extrapolate */
 			cuma->flag |= CUMA_EXTEND_EXTRAPOLATE;
-			curvemapping_changed(cumap, 0);
+			curvemapping_changed(cumap, FALSE);
 			break;
 	}
 	ED_region_tag_redraw(CTX_wm_region(C));
@@ -1757,7 +1758,7 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 	cumap->white[0] = cumap->white[1] = cumap->white[2] = 1.0f;
 	curvemapping_set_black_white(cumap, NULL, NULL);
 	
-	curvemapping_changed(cumap, 0);
+	curvemapping_changed(cumap, FALSE);
 
 	rna_update_cb(C, cb_v, NULL);
 }
@@ -2316,7 +2317,6 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *activeptr, const char *activepropname, const char *prop_list, int rows, int maxrows, int listtype)
 {
-	//Scene *scene = CTX_data_scene(C);
 	PropertyRNA *prop = NULL, *activeprop;
 	PropertyType type, activetype;
 	StructRNA *ptype;
@@ -2627,7 +2627,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiLayout *ui_abs;
 		
 		ui_abs = uiLayoutAbsolute(layout, FALSE);
-		(void)ui_abs; // UNUSED
+		(void)ui_abs;  /* UNUSED */
 		
 		uiDefIconBut(block, BUT, handle_event, ICON_PANEL_CLOSE, 
 		             0, UI_UNIT_Y * 0.1, UI_UNIT_X * 0.8, UI_UNIT_Y * 0.8, NULL, 0.0f, 0.0f, 0, 0, TIP_("Stop this job"));

@@ -44,6 +44,7 @@
 #include "PIL_time.h"
 
 #include "BLI_math.h"
+#include "BLI_rect.h"
 #include "BLI_threads.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -135,7 +136,7 @@ void ED_image_draw_info(ARegion *ar, int color_manage, int channels, int x, int 
 
 	/* noisy, high contrast make impossible to read if lower alpha is used. */
 	glColor4ub(0, 0, 0, 190);
-	glRecti(0.0, 0.0, ar->winrct.xmax - ar->winrct.xmin + 1, 20);
+	glRecti(0.0, 0.0, BLI_RCT_SIZE_X(&ar->winrct) + 1, 20);
 	glDisable(GL_BLEND);
 
 	BLF_size(blf_mono_font, 11, 72);

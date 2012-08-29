@@ -4209,7 +4209,7 @@ static void freeSeqData(TransInfo *t)
 			for (a = 0; a < t->total; a++, td++) {
 				if ((seq != seq_prev) && (seq->depth == 0) && (seq->flag & SEQ_OVERLAP)) {
 					seq = ((TransDataSeq *)td->extra)->seq;
-					shuffle_seq(seqbasep, seq);
+					BKE_sequence_base_shuffle(seqbasep, seq, t->scene);
 				}
 
 				seq_prev = seq;
@@ -4244,7 +4244,7 @@ static void freeSeqData(TransInfo *t)
 								has_effect = TRUE;
 							}
 							else {
-								/* Tag seq with a non zero value, used by shuffle_seq_time to identify the ones to shuffle */
+								/* Tag seq with a non zero value, used by BKE_sequence_base_shuffle_time to identify the ones to shuffle */
 								seq->tmp = (void *)1;
 							}
 						}
@@ -4289,7 +4289,7 @@ static void freeSeqData(TransInfo *t)
 						BKE_sequence_base_shuffle_time(seqbasep, t->scene);
 					}
 #else
-					shuffle_seq_time(seqbasep, t->scene);
+					BKE_sequence_base_shuffle_time(seqbasep, t->scene);
 #endif
 
 					if (has_effect) {
@@ -4340,6 +4340,9 @@ static void freeSeqData(TransInfo *t)
 			for (a = 0; a < t->total; a++, td++) {
 				seq = ((TransDataSeq *)td->extra)->seq;
 				if ((seq != seq_prev) && (seq->depth == 0)) {
+					if (seq->flag & SEQ_OVERLAP)
+						BKE_sequence_base_shuffle(seqbasep, seq, t->scene);
+
 					BKE_sequence_calc_disp(t->scene, seq);
 				}
 				seq_prev = seq;
@@ -5548,8 +5551,8 @@ static void createTransObject(bContext *C, TransInfo *t)
 static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 {
 	/* hold original location */
-	float locxy[2] = {(node->totr.xmax + node->totr.xmin) / 2.0f,
-	                  (node->totr.ymax + node->totr.ymin) / 2.0f};
+	float locxy[2] = {BLI_RCT_CENTER_X(&node->totr),
+	                  BLI_RCT_CENTER_Y(&node->totr)};
 
 	copy_v2_v2(td2d->loc, locxy);
 	td2d->loc[2] = 0.0f;
@@ -6236,7 +6239,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
 	/* count */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-		MaskSpline *spline = masklay->splines.first;
+		MaskSpline *spline;
 
 		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
@@ -6279,7 +6282,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
 	/* create data */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-		MaskSpline *spline = masklay->splines.first;
+		MaskSpline *spline;
 
 		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;

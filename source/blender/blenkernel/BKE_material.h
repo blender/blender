@@ -48,6 +48,7 @@ struct Scene;
 
 void init_def_material(void);
 void BKE_material_free(struct Material *sc); 
+void BKE_material_free_ex(struct Material *ma, int do_id_user);
 void test_object_materials(struct ID *id);
 void resize_object_material(struct Object *ob, const short totcol);
 void init_material(struct Material *ma);

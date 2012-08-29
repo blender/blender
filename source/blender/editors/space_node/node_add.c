@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_node/node_relationships.c
+/** \file blender/editors/space_node/node_add.c
  *  \ingroup spnode
  */
 
@@ -360,7 +360,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 		/* RNA_property_pointer_set increases the user count,
 		 * fixed here as the editor is the initial user.
 		 */
-		--ntree->id.us;
+		ntree->id.us++;
 		RNA_property_update(C, &ptr, prop);
 	}
 	else if (snode) {

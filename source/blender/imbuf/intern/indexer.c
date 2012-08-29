@@ -221,7 +221,7 @@ struct anim_index *IMB_indexer_open(const char *name)
 }
 
 unsigned long long IMB_indexer_get_seek_pos(
-    struct anim_index *idx, int frame_index)
+        struct anim_index *idx, int frame_index)
 {
 	if (frame_index < 0) {
 		frame_index = 0;
@@ -233,7 +233,7 @@ unsigned long long IMB_indexer_get_seek_pos(
 }
 
 unsigned long long IMB_indexer_get_seek_pos_dts(
-    struct anim_index *idx, int frame_index)
+        struct anim_index *idx, int frame_index)
 {
 	if (frame_index < 0) {
 		frame_index = 0;
@@ -581,7 +581,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 }
 
 static int add_to_proxy_output_ffmpeg(
-    struct proxy_output_ctx *ctx, AVFrame *frame)
+        struct proxy_output_ctx *ctx, AVFrame *frame)
 {
 	int outsize = 0;
 

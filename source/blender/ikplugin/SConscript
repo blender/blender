@@ -7,5 +7,6 @@ incs = '#/intern/guardedalloc #/intern/iksolver/extern ../makesdna ../blenlib'
 incs += ' ../blenkernel ../include ../ikplugin #/intern/itasc #/extern/Eigen3'
 
 defs.append('WITH_IK_ITASC')
+defs.append('WITH_IK_SOLVER')
 
 env.BlenderLib ( 'bf_ikplugin', sources, Split(incs), defs, libtype=['core','player'], priority=[180, 190] )

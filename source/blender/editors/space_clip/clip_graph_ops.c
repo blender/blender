@@ -321,7 +321,7 @@ static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
 {
 	BorderSelectuserData *data = (BorderSelectuserData *) userdata;
 
-	if (BLI_in_rctf(&data->rect, scene_framenr, val)) {
+	if (BLI_rctf_isect_pt(&data->rect, scene_framenr, val)) {
 		int flag = 0;
 
 		if (coord == 0)
@@ -580,11 +580,11 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
-	extra = 0.01f * (v2d->cur.xmax - v2d->cur.xmin);
+	extra = 0.01f * BLI_RCT_SIZE_X(&v2d->cur);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
 
-	extra = 0.01f * (v2d->cur.ymax - v2d->cur.ymin);
+	extra = 0.01f * BLI_RCT_SIZE_Y(&v2d->cur);
 	v2d->cur.ymin -= extra;
 	v2d->cur.ymax += extra;
 
@@ -610,7 +610,7 @@ void CLIP_OT_graph_view_all(wmOperatorType *ot)
 void ED_clip_graph_center_current_frame(Scene *scene, ARegion *ar)
 {
 	View2D *v2d = &ar->v2d;
-	float extra = (v2d->cur.xmax - v2d->cur.xmin) / 2.0f;
+	float extra = BLI_RCT_SIZE_X(&v2d->cur) / 2.0f;
 
 	/* set extents of view to start/end frames */
 	v2d->cur.xmin = (float)CFRA - extra;

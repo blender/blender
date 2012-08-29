@@ -45,44 +45,64 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-/**
- * \brief Data, Interp From Verts
- *
- * Interpolates per-vertex data from two sources to a target.
- */
-void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac)
+/* edge and vertex share, currently theres no need to have different logic */
+static void bm_data_interp_from_elem(CustomData *data_layer, BMElem *ele1, BMElem *ele2, BMElem *ele_dst, const float fac)
 {
-	if (v1->head.data && v2->head.data) {
+	if (ele1->head.data && ele2->head.data) {
 		/* first see if we can avoid interpolation */
 		if (fac <= 0.0f) {
-			if (v1 == v) {
+			if (ele1 == ele_dst) {
 				/* do nothing */
 			}
 			else {
-				CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
-				CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, v1->head.data, &v->head.data);
+				CustomData_bmesh_free_block(data_layer, &ele_dst->head.data);
+				CustomData_bmesh_copy_data(data_layer, data_layer, ele1->head.data, &ele_dst->head.data);
 			}
 		}
 		else if (fac >= 1.0f) {
-			if (v2 == v) {
+			if (ele2 == ele_dst) {
 				/* do nothing */
 			}
 			else {
-				CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
-				CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, v2->head.data, &v->head.data);
+				CustomData_bmesh_free_block(data_layer, &ele_dst->head.data);
+				CustomData_bmesh_copy_data(data_layer, data_layer, ele2->head.data, &ele_dst->head.data);
 			}
 		}
 		else {
 			void *src[2];
 			float w[2];
 
-			src[0] = v1->head.data;
-			src[1] = v2->head.data;
+			src[0] = ele1->head.data;
+			src[1] = ele2->head.data;
 			w[0] = 1.0f - fac;
 			w[1] = fac;
-			CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->head.data);
+			CustomData_bmesh_interp(data_layer, src, w, NULL, 2, ele_dst->head.data);
 		}
 	}
+}
+
+/**
+ * \brief Data, Interp From Verts
+ *
+ * Interpolates per-vertex data from two sources to a target.
+ *
+ * \note This is an exact match to #BM_data_interp_from_edges
+ */
+void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac)
+{
+	bm_data_interp_from_elem(&bm->vdata, (BMElem *)v1, (BMElem *)v2, (BMElem *)v, fac);
+}
+
+/**
+ * \brief Data, Interp From Edges
+ *
+ * Interpolates per-edge data from two sources to a target.
+ *
+ * \note This is an exact match to #BM_data_interp_from_verts
+ */
+void BM_data_interp_from_edges(BMesh *bm, BMEdge *e1, BMEdge *e2, BMEdge *e, const float fac)
+{
+	bm_data_interp_from_elem(&bm->edata, (BMElem *)e1, (BMElem *)e2, (BMElem *)e, fac);
 }
 
 /**

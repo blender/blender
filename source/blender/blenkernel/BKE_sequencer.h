@@ -31,11 +31,14 @@
  */
 
 struct bContext;
+struct StripColorBalance;
 struct Editing;
 struct ImBuf;
 struct Main;
+struct Mask;
 struct Scene;
 struct Sequence;
+struct SequenceModifierData;
 struct Strip;
 struct StripElem;
 struct bSound;
@@ -241,6 +244,11 @@ void BKE_sequencer_cache_put(SeqRenderData context, struct Sequence *seq, float 
 
 void BKE_sequencer_cache_cleanup_sequence(struct Sequence *seq);
 
+struct ImBuf *BKE_sequencer_preprocessed_cache_get(SeqRenderData context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type);
+void BKE_sequencer_preprocessed_cache_put(SeqRenderData context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type, struct ImBuf *ibuf);
+void BKE_sequencer_preprocessed_cache_cleanup(void);
+void BKE_sequencer_preprocessed_cache_cleanup_sequence(struct Sequence *seq);
+
 /* **********************************************************************
  * seqeffects.c
  *
@@ -289,6 +297,7 @@ int BKE_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char
 
 int BKE_sequence_check_depend(struct Sequence *seq, struct Sequence *cur);
 void BKE_sequence_invalidate_cache(struct Scene *scene, struct Sequence *seq);
+void BKE_sequence_invalidate_cache_for_modifier(struct Scene *scene, struct Sequence *seq);
 
 void BKE_sequencer_update_sound_bounds_all(struct Scene *scene);
 void BKE_sequencer_update_sound_bounds(struct Scene *scene, struct Sequence *seq);
@@ -346,5 +355,49 @@ extern SequencerDrawView sequencer_view3d_cb;
 /* copy/paste */
 extern ListBase seqbase_clipboard;
 extern int seqbase_clipboard_frame;
+
+/* modifiers */
+typedef struct SequenceModifierTypeInfo {
+	/* default name for the modifier */
+	char name[64];  /* MAX_NAME */
+
+	/* DNA structure name used on load/save filed */
+	char struct_name[64];  /* MAX_NAME */
+
+	/* size of modifier data structure, used by allocation */
+	int struct_size;
+
+	/* data initialization */
+	void (*init_data) (struct SequenceModifierData *smd);
+
+	/* free data used by modifier,
+	 * only modifier-specific data should be freed, modifier descriptor would
+	 * be freed outside of this callback
+	 */
+	void (*free_data) (struct SequenceModifierData *smd);
+
+	/* copy data from one modifier to another */
+	void (*copy_data) (struct SequenceModifierData *smd, struct SequenceModifierData *target);
+
+	/* apply modifier on a given image buffer */
+	struct ImBuf *(*apply) (struct SequenceModifierData *smd, struct ImBuf *ibuf, struct ImBuf *mask);
+} SequenceModifierTypeInfo;
+
+struct SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type);
+
+struct SequenceModifierData *BKE_sequence_modifier_new(struct Sequence *seq, const char *name, int type);
+int BKE_sequence_modifier_remove(struct Sequence *seq, struct SequenceModifierData *smd);
+void BKE_sequence_modifier_clear(struct Sequence *seq);
+void BKE_sequence_modifier_free(struct SequenceModifierData *smd);
+void BKE_sequence_modifier_unique_name(struct Sequence *seq, struct SequenceModifierData *smd);
+struct SequenceModifierData *BKE_sequence_modifier_find_by_name(struct Sequence *seq, char *name);
+struct ImBuf *BKE_sequence_modifier_apply_stack(SeqRenderData context, struct Sequence *seq, struct ImBuf *ibuf, int cfra);
+void BKE_sequence_modifier_list_copy(struct Sequence *seqn, struct Sequence *seq);
+
+int BKE_sequence_supports_modifiers(struct Sequence *seq);
+
+/* internal filters */
+struct ImBuf *BKE_sequencer_render_mask_input(SeqRenderData context, int mask_input_type, struct Sequence *mask_sequence, struct Mask *mask_id, int cfra, int make_float);
+void BKE_sequencer_color_balance_apply(struct StripColorBalance *cb, struct ImBuf *ibuf, float mul, short make_float, struct ImBuf *mask_input);
 
 #endif /* __BKE_SEQUENCER_H__ */

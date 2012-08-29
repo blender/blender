@@ -46,17 +46,7 @@ void TransformNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	TranslateOperation *translateOperation = new TranslateOperation();
 	SetSamplerOperation *sampler = new SetSamplerOperation();
 
-	switch (this->getbNode()->custom1) {
-		case 0:
-			sampler->setSampler(COM_PS_NEAREST);
-			break;
-		case 1:
-			sampler->setSampler(COM_PS_BILINEAR);
-			break;
-		case 2:
-			sampler->setSampler(COM_PS_BICUBIC);
-			break;
-	}
+	sampler->setSampler((PixelSampler)this->getbNode()->custom1);
 	
 	imageInput->relinkConnections(sampler->getInputSocket(0), 0, graph);
 	addLink(graph, sampler->getOutputSocket(), scaleOperation->getInputSocket(0));

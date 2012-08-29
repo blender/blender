@@ -647,9 +647,7 @@ void ui_theme_init_default(void)
 	bTheme *btheme;
 	
 	/* we search for the theme with name Default */
-	for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-		if (strcmp("Default", btheme->name) == 0) break;
-	}
+	btheme = BLI_findstring(&U.themes, "Default", offsetof(bTheme, name));
 	
 	if (btheme == NULL) {
 		btheme = MEM_callocN(sizeof(bTheme), "theme");
@@ -1987,6 +1985,10 @@ void init_userdef_do_versions(void)
 		U.ndof_sensitivity = 1.0f;
 		U.ndof_flag = NDOF_LOCK_HORIZON |
 		              NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE;
+	}
+	
+	if (U.ndof_orbit_sensitivity == 0.0f) {
+		U.ndof_orbit_sensitivity = 1.0f;
 	}
 	if (U.tweak_threshold == 0)
 		U.tweak_threshold = 10;

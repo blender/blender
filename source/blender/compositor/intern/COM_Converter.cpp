@@ -56,6 +56,7 @@
 #include "COM_Converter.h"
 #include "COM_CropNode.h"
 #include "COM_DefocusNode.h"
+#include "COM_DespeckleNode.h"
 #include "COM_DifferenceMatteNode.h"
 #include "COM_DilateErodeNode.h"
 #include "COM_DirectionalBlurNode.h"
@@ -306,6 +307,9 @@ Node *Converter::convert(bNode *b_node, bool fast)
 			break;
 		case CMP_NODE_INPAINT:
 			node = new InpaintNode(b_node);
+			break;
+		case CMP_NODE_DESPECKLE:
+			node = new DespeckleNode(b_node);
 			break;
 		case CMP_NODE_LENSDIST:
 			node = new LensDistortionNode(b_node);

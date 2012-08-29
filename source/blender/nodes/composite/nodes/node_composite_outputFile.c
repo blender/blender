@@ -166,7 +166,7 @@ void ntreeCompositOutputFileSetLayer(bNode *node, bNodeSocket *sock, const char 
 	ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 }
 
-static void init_output_file(bNodeTree *ntree, bNode* node, bNodeTemplate *ntemp)
+static void init_output_file(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
 {
 	NodeImageMultiFile *nimf= MEM_callocN(sizeof(NodeImageMultiFile), "node image multi file");
 	ImageFormatData *format = NULL;
@@ -226,6 +226,8 @@ static void update_output_file(bNodeTree *UNUSED(ntree), bNode *node)
 		}
 	}
 }
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 /* write input data into individual files */
 static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack **in)
@@ -386,7 +388,7 @@ static void exec_output_file_multilayer(RenderData *rd, bNode *node, bNodeStack 
 	IMB_exr_close(exrhandle);
 }
 
-static void exec_output_file(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_composit_exec_outputfile(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
 	RenderData *rd= data;
 	NodeImageMultiFile *nimf= node->storage;
@@ -403,6 +405,7 @@ static void exec_output_file(void *data, bNode *node, bNodeStack **in, bNodeStac
 	else
 		exec_output_file_singlelayer(rd, node, in);
 }
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_output_file(bNodeTreeType *ttype)
 {
@@ -414,7 +417,9 @@ void register_node_type_cmp_output_file(bNodeTreeType *ttype)
 	node_type_init(&ntype, init_output_file);
 	node_type_storage(&ntype, "NodeImageMultiFile", free_output_file, copy_output_file);
 	node_type_update(&ntype, update_output_file, NULL);
-	node_type_exec(&ntype, exec_output_file);
+#ifdef WITH_COMPOSITOR_LEGACY
+	node_type_exec(&ntype, node_composit_exec_outputfile);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

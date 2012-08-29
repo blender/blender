@@ -386,7 +386,7 @@ static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *
 	
 	bt = uiDefButF(block, BUT_NORMAL, B_NODE_EXEC, "",
 	               (int)butr->xmin, (int)butr->xmin,
-	               (short)(butr->xmax - butr->xmin), (short)(butr->xmax - butr->xmin),
+	               (short)BLI_RCT_SIZE_X(butr), (short)BLI_RCT_SIZE_X(butr),
 	               nor, 0.0f, 1.0f, 0, 0, "");
 	uiButSetFunc(bt, node_normal_cb, ntree, node);
 }
@@ -454,7 +454,7 @@ static int node_resize_area_default(bNode *node, int x, int y)
 		rctf totr = node->totr;
 		/* right part of node */
 		totr.xmin = node->totr.xmax - 20.0f;
-		if (BLI_in_rctf(&totr, x, y))
+		if (BLI_rctf_isect_pt(&totr, x, y))
 			return NODE_RESIZE_RIGHT;
 		else
 			return 0;
@@ -522,7 +522,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		rect->ymax += NODE_DY;
 		
 		/* input sockets */
-		dy = 0.5f * (rect->ymin + rect->ymax) + NODE_DY * (BLI_countlist(&gnode->inputs) - 1);
+		dy = BLI_RCT_CENTER_Y(rect) + (NODE_DY * (BLI_countlist(&gnode->inputs) - 1));
 		gsock = ngroup->inputs.first;
 		sock = gnode->inputs.first;
 		while (gsock || sock) {
@@ -570,7 +570,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		}
 		
 		/* output sockets */
-		dy = 0.5f * (rect->ymin + rect->ymax) + NODE_DY * (BLI_countlist(&gnode->outputs) - 1);
+		dy = BLI_RCT_CENTER_Y(rect) + (NODE_DY * (BLI_countlist(&gnode->outputs) - 1));
 		gsock = ngroup->outputs.first;
 		sock = gnode->outputs.first;
 		while (gsock || sock) {
@@ -837,7 +837,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	
 		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 		                       (int)(rect.xmin + NODE_MARGIN_X), (int)(rect.ymax + (group_header - (2.5f * dpi_fac))),
-		                       mini((int)(rect.xmax - rect.xmin - 18.0f), node_group_frame + 20), group_header, UI_GetStyle());
+		                       mini((int)(BLI_RCT_SIZE_X(&rect) - 18.0f), node_group_frame + 20), group_header, UI_GetStyle());
 		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
 		uiTemplateIDBrowse(layout, (bContext *)C, &ptr, "node_tree", NULL, NULL, NULL);
 		uiBlockLayoutResolve(gnode->block, NULL, NULL);
@@ -857,13 +857,13 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			while (gsock && (!sock || sock->groupsock != gsock)) {
 				draw_group_socket(C, snode, ntree, gnode, NULL, gsock, index, SOCK_IN);
 				gsock = gsock->next;
-				++index;
+				index++;
 			}
 			while (sock && gsock && sock->groupsock == gsock) {
 				draw_group_socket(C, snode, ntree, gnode, sock, gsock, index, SOCK_IN);
 				sock = sock->next;
 				gsock = gsock->next;
-				++index;
+				index++;
 			}
 		}
 		gsock = ngroup->outputs.first;
@@ -877,13 +877,13 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			while (gsock && (!sock || sock->groupsock != gsock)) {
 				draw_group_socket(C, snode, ntree, gnode, NULL, gsock, index, SOCK_OUT);
 				gsock = gsock->next;
-				++index;
+				index++;
 			}
 			while (sock && gsock && sock->groupsock == gsock) {
 				draw_group_socket(C, snode, ntree, gnode, sock, gsock, index, SOCK_OUT);
 				sock = sock->next;
 				gsock = gsock->next;
-				++index;
+				index++;
 			}
 		}
 		
@@ -979,7 +979,7 @@ static void node_draw_frame_label(bNode *node, const float aspect)
 	ascender = BLF_ascender(fontid);
 	
 	/* 'x' doesn't need aspect correction */
-	x = 0.5f * (rct->xmin + rct->xmax) - 0.5f * width;
+	x = BLI_RCT_CENTER_X(rct) - (0.5f * width);
 	y = rct->ymax - (((NODE_DY / 4) / aspect) + (ascender * aspect));
 
 	BLF_position(fontid, x, y, 0);
@@ -1810,6 +1810,15 @@ static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C)
 static void node_composit_buts_inpaint(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);
+}
+
+static void node_composit_buts_despeckle(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *col;
+
+	col = uiLayoutColumn(layout, FALSE);
+	uiItemR(col, ptr, "threshold", 0, NULL, ICON_NONE);
+	uiItemR(col, ptr, "threshold_neighbour", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_diff_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -2673,6 +2682,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_INPAINT:
 			ntype->uifunc = node_composit_buts_inpaint;
+			break;
+		case CMP_NODE_DESPECKLE:
+			ntype->uifunc = node_composit_buts_despeckle;
 			break;
 		case CMP_NODE_OUTPUT_FILE:
 			ntype->uifunc = node_composit_buts_file_output;

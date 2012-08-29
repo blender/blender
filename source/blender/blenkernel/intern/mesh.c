@@ -2702,13 +2702,13 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 #endif
 		{
 			/* sort loop indices to ensure winding is correct */
-			if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
-			if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
-			if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+			if (mf->v1 > mf->v2) SWAP(unsigned int, mf->v1, mf->v2);
+			if (mf->v2 > mf->v3) SWAP(unsigned int, mf->v2, mf->v3);
+			if (mf->v1 > mf->v2) SWAP(unsigned int, mf->v1, mf->v2);
 
-			if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
-			if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
-			if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+			if (mf->v1 > mf->v2) SWAP(unsigned int, mf->v1, mf->v2);
+			if (mf->v2 > mf->v3) SWAP(unsigned int, mf->v2, mf->v3);
+			if (mf->v1 > mf->v2) SWAP(unsigned int, mf->v1, mf->v2);
 		}
 
 		/* end abusing the edcode */

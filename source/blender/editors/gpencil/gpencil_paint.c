@@ -300,8 +300,8 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			out[1] = (float)(mval[1]) / (float)(p->ar->winy) * 100;
 		}
 		else { /* camera view, use subrect */
-			out[0] = ((mval[0] - p->subrect->xmin) / ((p->subrect->xmax - p->subrect->xmin))) * 100;
-			out[1] = ((mval[1] - p->subrect->ymin) / ((p->subrect->ymax - p->subrect->ymin))) * 100;
+			out[0] = ((mval[0] - p->subrect->xmin) / BLI_RCT_SIZE_X(p->subrect)) * 100;
+			out[1] = ((mval[1] - p->subrect->ymin) / BLI_RCT_SIZE_Y(p->subrect)) * 100;
 		}
 	}
 }
@@ -819,13 +819,13 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p, int mval[], int mvalo[], shor
 				y0 = (int)(gps->points->y / 100 * p->ar->winy);
 			}
 			else { /* camera view, use subrect */
-				x0 = (int)((gps->points->x / 100) * (p->subrect->xmax - p->subrect->xmin)) + p->subrect->xmin;
-				y0 = (int)((gps->points->y / 100) * (p->subrect->ymax - p->subrect->ymin)) + p->subrect->ymin;
+				x0 = (int)((gps->points->x / 100) * BLI_RCT_SIZE_X(p->subrect)) + p->subrect->xmin;
+				y0 = (int)((gps->points->y / 100) * BLI_RCT_SIZE_Y(p->subrect)) + p->subrect->ymin;
 			}
 		}
 		
 		/* do boundbox check first */
-		if (BLI_in_rcti(rect, x0, y0)) {
+		if (BLI_rcti_isect_pt(rect, x0, y0)) {
 			/* only check if point is inside */
 			if ( ((x0 - mval[0]) * (x0 - mval[0]) + (y0 - mval[1]) * (y0 - mval[1])) <= rad * rad) {
 				/* free stroke */
@@ -866,15 +866,15 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p, int mval[], int mvalo[], shor
 					y1 = (int)(pt2->y / 100 * p->ar->winy);
 				}
 				else { /* camera view, use subrect */ 
-					x0 = (int)((pt1->x / 100) * (p->subrect->xmax - p->subrect->xmin)) + p->subrect->xmin;
-					y0 = (int)((pt1->y / 100) * (p->subrect->ymax - p->subrect->ymin)) + p->subrect->ymin;
-					x1 = (int)((pt2->x / 100) * (p->subrect->xmax - p->subrect->xmin)) + p->subrect->xmin;
-					y1 = (int)((pt2->y / 100) * (p->subrect->ymax - p->subrect->ymin)) + p->subrect->ymin;
+					x0 = (int)((pt1->x / 100) * BLI_RCT_SIZE_X(p->subrect)) + p->subrect->xmin;
+					y0 = (int)((pt1->y / 100) * BLI_RCT_SIZE_Y(p->subrect)) + p->subrect->ymin;
+					x1 = (int)((pt2->x / 100) * BLI_RCT_SIZE_X(p->subrect)) + p->subrect->xmin;
+					y1 = (int)((pt2->y / 100) * BLI_RCT_SIZE_Y(p->subrect)) + p->subrect->ymin;
 				}
 			}
 			
 			/* check that point segment of the boundbox of the eraser stroke */
-			if (BLI_in_rcti(rect, x0, y0) || BLI_in_rcti(rect, x1, y1)) {
+			if (BLI_rcti_isect_pt(rect, x0, y0) || BLI_rcti_isect_pt(rect, x1, y1)) {
 				/* check if point segment of stroke had anything to do with
 				 * eraser region  (either within stroke painted, or on its lines)
 				 *  - this assumes that linewidth is irrelevant
@@ -1480,7 +1480,7 @@ static void gpencil_draw_apply_event(wmOperator *op, wmEvent *event)
 	float mousef[2];
 	int tablet = 0;
 
-	/* convert from window-space to area-space mouse coordintes 
+	/* convert from window-space to area-space mouse coordinates
 	 * NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding... 
 	 */
 	p->mval[0] = event->mval[0] + 1;
@@ -1667,14 +1667,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static int gpencil_area_exists(bContext *C, ScrArea *sa_test)
 {
 	bScreen *sc = CTX_wm_screen(C);
-	ScrArea *sa;
-	
-	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		if (sa == sa_test)
-			return 1;
-	}
-	
-	return 0;
+	return (BLI_findindex(&sc->areabase, sa_test) != -1);
 }
 
 static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)

@@ -38,3 +38,17 @@ void CurveBaseOperation::initExecution()
 {
 	curvemapping_initialize(this->m_curveMapping);
 }
+void CurveBaseOperation::deinitExecution()
+{
+	curvemapping_free(this->m_curveMapping);
+	this->m_curveMapping = NULL;
+}
+
+void CurveBaseOperation::setCurveMapping(CurveMapping *mapping)
+{
+	/* duplicate the curve to avoid glitches while drawing, see bug [#32374] */
+	if (this->m_curveMapping) {
+		curvemapping_free(this->m_curveMapping);
+	}
+	this->m_curveMapping = curvemapping_copy(mapping);
+}

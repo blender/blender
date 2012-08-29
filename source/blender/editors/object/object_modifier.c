@@ -268,17 +268,12 @@ static int object_modifier_safe_to_delete(Main *bmain, Object *ob,
 static int object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
                                   int *sort_depsgraph)
 {
-	ModifierData *obmd;
-
 	/* It seems on rapid delete it is possible to
 	 * get called twice on same modifier, so make
 	 * sure it is in list. */
-	for (obmd = ob->modifiers.first; obmd; obmd = obmd->next)
-		if (obmd == md)
-			break;
-
-	if (!obmd)
+	if (BLI_findindex(&ob->modifiers, md) == -1) {
 		return 0;
+	}
 
 	/* special cases */
 	if (md->type == eModifierType_ParticleSystem) {
@@ -341,7 +336,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	ok = object_modifier_remove(bmain, ob, md, &sort_depsgraph);
 
 	if (!ok) {
-		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", ob->id.name, md->name);
+		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", md->name, ob->id.name);
 		return 0;
 	}
 
@@ -1467,7 +1462,8 @@ static void modifier_skin_customdata_ensure(Object *ob)
 		                          me->totvert);
 
 		/* Mark an arbitrary vertex as root */
-		vs->flag |= MVERT_SKIN_ROOT;
+		if (vs)
+			vs->flag |= MVERT_SKIN_ROOT;
 	}
 }
 

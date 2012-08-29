@@ -19,34 +19,17 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_DistanceMatteOperation_h
-#define _COM_DistanceMatteOperation_h
-#include "COM_MixBaseOperation.h"
+#include "COM_DistanceYCCMatteOperation.h"
+#include "BLI_math.h"
 
+DistanceYCCMatteOperation::DistanceYCCMatteOperation() : DistanceRGBMatteOperation()
+{
+	/* pass */
+}
 
-/**
- * this program converts an input color to an output value.
- * it assumes we are in sRGB color space.
- */
-class DistanceMatteOperation : public NodeOperation {
-private:
-	NodeChroma *m_settings;
-	SocketReader *m_inputImageProgram;
-	SocketReader *m_inputKeyProgram;
-public:
-	/**
-	 * Default constructor
-	 */
-	DistanceMatteOperation();
-	
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
-	
-	void initExecution();
-	void deinitExecution();
-	
-	void setSettings(NodeChroma *nodeChroma) { this->m_settings = nodeChroma; }
-};
-#endif
+float DistanceYCCMatteOperation::calculateDistance(float key[4], float image[4])
+{
+	/* only measure the second 2 values */
+	return len_v2v2(key + 1, image + 1);
+}
+

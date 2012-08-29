@@ -55,14 +55,14 @@ int RE_rayobject_raycast(RayObject *r, struct Isect *i);
 
 /* Acceleration Structures */
 
-RayObject* RE_rayobject_octree_create(int ocres, int size);
-RayObject* RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob);
-RayObject* RE_rayobject_empty_create(void);
+RayObject *RE_rayobject_octree_create(int ocres, int size);
+RayObject *RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob);
+RayObject *RE_rayobject_empty_create(void);
 
-RayObject* RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
-RayObject* RE_rayobject_vbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
-RayObject* RE_rayobject_svbvh_create(int size);		/* raytrace/rayobject_svbvh.c */
-RayObject* RE_rayobject_qbvh_create(int size);		/* raytrace/rayobject_qbvh.c */
+RayObject *RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
+RayObject *RE_rayobject_vbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
+RayObject *RE_rayobject_svbvh_create(int size);		/* raytrace/rayobject_svbvh.c */
+RayObject *RE_rayobject_qbvh_create(int size);		/* raytrace/rayobject_qbvh.c */
 
 /* Building */
 
@@ -85,7 +85,7 @@ typedef struct RayFace {
 
 #define RE_rayface_isQuad(a) ((a)->quad)
 
-RayObject* RE_rayface_from_vlak(RayFace *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
+RayObject *RE_rayface_from_vlak(RayFace *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
 
 /* RayObject representing faces directly from a given VlakRen structure. Thus
  * allowing to save memory, but making code triangle intersection dependent on
@@ -96,7 +96,7 @@ typedef struct VlakPrimitive {
 	struct VlakRen *face;
 } VlakPrimitive;
 
-RayObject* RE_vlakprimitive_from_vlak(VlakPrimitive *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
+RayObject *RE_vlakprimitive_from_vlak(VlakPrimitive *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
 
 /* Bounding Box */
 
@@ -118,4 +118,3 @@ void RE_rayobject_hint_bb(RayObject *r, struct RayHint *hint, float *min, float 
 #endif
 
 #endif
-

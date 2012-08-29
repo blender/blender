@@ -129,7 +129,7 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	ar->v2d.flag = (V2D_PIXELOFS_X|V2D_PIXELOFS_Y);
 }
 
-static void sequencer_init_preview_region(ARegion* ar)
+static void sequencer_init_preview_region(ARegion *ar)
 {
 	// XXX a bit ugly still, copied from space_sequencer
 	/* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */
@@ -1787,7 +1787,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				SpaceLink *sl;
 				for (sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
-						View3D* v3d = (View3D *)sl;
+						View3D *v3d = (View3D *)sl;
 						v3d->flag2 &= ~V3D_RENDER_OVERRIDE;
 					}
 				}
@@ -2206,7 +2206,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			bActuator *act;
 			for (act = ob->actuators.first; act; act = act->next) {
 				if (act->type == ACT_STEERING) {
-					bSteeringActuator* stact = act->data;
+					bSteeringActuator *stact = act->data;
 					if (stact->facingaxis == 0) {
 						stact->facingaxis = 1;
 					}
@@ -2435,7 +2435,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 						tex->pd->falloff_curve->preset = CURVE_PRESET_LINE;
 						tex->pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 						curvemap_reset(tex->pd->falloff_curve->cm, &tex->pd->falloff_curve->clipr, tex->pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
-						curvemapping_changed(tex->pd->falloff_curve, 0);
+						curvemapping_changed(tex->pd->falloff_curve, FALSE);
 					}
 				}
 			}

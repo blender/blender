@@ -33,6 +33,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
@@ -364,6 +365,9 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
                               const short is_active,
                               int width, int height)
 {
+	const unsigned int resol = maxi(BKE_mask_spline_feather_resolution(spline, width, height),
+	                                BKE_mask_spline_resolution(spline, width, height));
+
 	unsigned char rgb_tmp[4];
 
 	const short is_spline_sel = (spline->flag & SELECT) && (masklay->restrictflag & MASK_RESTRICT_SELECT) == 0;
@@ -376,7 +380,7 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 	int tot_feather_point;
 	float (*feather_points)[2];
 
-	diff_points = BKE_mask_spline_differentiate_with_resolution(spline, width, height, &tot_diff_point);
+	diff_points = BKE_mask_spline_differentiate_with_resolution_ex(spline, &tot_diff_point, resol);
 
 	if (!diff_points)
 		return;
@@ -387,7 +391,7 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height, &tot_feather_point);
+	feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution_ex(spline, &tot_feather_point, resol, (is_fill != FALSE));
 
 	/* draw feather */
 	mask_spline_feather_color_get(masklay, spline, is_spline_sel, rgb_tmp);
@@ -512,12 +516,12 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 
-	/* w = v2d->tot.xmax - v2d->tot.xmin; */
-	/* h = v2d->tot.ymax - v2d->tot.ymin;/*/
+	/* w = BLI_RCT_SIZE_X(&v2d->tot); */
+	/* h = BLI_RCT_SIZE_Y(&v2d->tot);/*/
 
 
-	zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1) / (float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin));
-	zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1) / (float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin));
+	zoomx = (float)(BLI_RCT_SIZE_X(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_X(&ar->v2d.cur));
+	zoomy = (float)(BLI_RCT_SIZE_Y(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_Y(&ar->v2d.cur));
 
 	if (do_scale_applied) {
 		zoomx /= width;

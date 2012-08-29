@@ -45,6 +45,12 @@ static bNodeSocketTemplate sh_node_curve_vec_out[]= {
 	{	-1, 0, ""	}
 };
 
+static void *node_shader_initexec_curve(bNode *node)
+{
+	curvemapping_initialize(node->storage);
+	return NULL;  /* unused return */
+}
+
 static void node_shader_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	float vec[3];
@@ -55,7 +61,7 @@ static void node_shader_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeSta
 	curvemapping_evaluate3F(node->storage, out[0]->vec, vec);
 }
 
-static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
@@ -80,6 +86,7 @@ void register_node_type_sh_curve_vec(bNodeTreeType *ttype)
 	node_type_init(&ntype, node_shader_init_curve_vec);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 	node_type_exec(&ntype, node_shader_exec_curve_vec);
+	node_type_exec_new(&ntype, node_shader_initexec_curve, NULL, NULL);  /* only for its initexec func */
 	node_type_gpu(&ntype, gpu_shader_curve_vec);
 
 	nodeRegisterType(ttype, &ntype);
@@ -111,7 +118,7 @@ static void node_shader_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeSta
 	}
 }
 
-static void node_shader_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
@@ -120,6 +127,8 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in,
 {
 	float *array;
 	int size;
+
+	curvemapping_initialize(node->storage);
 	curvemapping_table_RGBA(node->storage, &array, &size);
 	return GPU_stack_link(mat, "curves_rgb", in, out, GPU_texture(size, array));
 }
@@ -135,6 +144,7 @@ void register_node_type_sh_curve_rgb(bNodeTreeType *ttype)
 	node_type_init(&ntype, node_shader_init_curve_rgb);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 	node_type_exec(&ntype, node_shader_exec_curve_rgb);
+	node_type_exec_new(&ntype, node_shader_initexec_curve, NULL, NULL);  /* only for its initexec func */
 	node_type_gpu(&ntype, gpu_shader_curve_rgb);
 
 	nodeRegisterType(ttype, &ntype);

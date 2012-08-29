@@ -1212,10 +1212,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 		rect.ymax = input->ymin + 12;
 	}
 	else {
-		rect.xmin = input->xmin;
-		rect.xmax = input->xmax;
-		rect.ymin = input->ymin;
-		rect.ymax = input->ymax;
+		BLI_rctf_rcti_copy(&rect, input);
 	}
 	
 	setwinmatrixview3d(ar, v3d, &rect);

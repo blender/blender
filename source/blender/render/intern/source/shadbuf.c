@@ -1506,10 +1506,10 @@ static void isb_bsp_split_init(ISBBranch *root, MemArena *mem, int level)
 		root->divider[1]= 0.5f*(root->box.ymin+root->box.ymax);
 		
 		/* find best splitpoint */
-		if (root->box.xmax-root->box.xmin > root->box.ymax-root->box.ymin)
-			i= root->index= 0;
+		if (BLI_RCT_SIZE_X(&root->box) > BLI_RCT_SIZE_Y(&root->box))
+			i = root->index = 0;
 		else
-			i= root->index= 1;
+			i = root->index = 1;
 		
 		left= root->left= BLI_memarena_alloc(mem, sizeof(ISBBranch));
 		right= root->right= BLI_memarena_alloc(mem, sizeof(ISBBranch));
@@ -1551,10 +1551,10 @@ static void isb_bsp_split(ISBBranch *root, MemArena *mem)
 	root->divider[1]/= BSPMAX_SAMPLE;
 	
 	/* find best splitpoint */
-	if (root->box.xmax-root->box.xmin > root->box.ymax-root->box.ymin)
-		i= root->index= 0;
+	if (BLI_RCT_SIZE_X(&root->box) > BLI_RCT_SIZE_Y(&root->box))
+		i = root->index = 0;
 	else
-		i= root->index= 1;
+		i = root->index = 1;
 	
 	/* new branches */
 	left= root->left= BLI_memarena_alloc(mem, sizeof(ISBBranch));
@@ -1824,7 +1824,7 @@ static void isb_bsp_face_inside(ISBBranch *bspn, BSPFace *face)
 			
 			if ((samp->facenr!=face->facenr || samp->obi!=face->obi) && samp->shadfac) {
 				if (face->box.zmin < samp->zco[2]) {
-					if (BLI_in_rctf_v((rctf *)&face->box, samp->zco)) {
+					if (BLI_rctf_isect_pt_v((rctf *)&face->box, samp->zco)) {
 						int inshadow= 0;
 						
 						if (face->type) {

@@ -80,7 +80,7 @@ static void rna_CurveMapping_clip_set(PointerRNA *ptr, int value)
 	if (value) cumap->flag |= CUMA_DO_CLIP;
 	else cumap->flag &= ~CUMA_DO_CLIP;
 
-	curvemapping_changed(cumap, 0);
+	curvemapping_changed(cumap, FALSE);
 }
 
 static void rna_CurveMapping_black_level_set(PointerRNA *ptr, const float *values)
@@ -367,6 +367,12 @@ static void rna_Scopes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointer
 	s->ok = 0;
 }
 
+/* this function only exists because #curvemap_evaluateF uses a 'const' qualifier */
+float rna_CurveMap_evaluateF(struct CurveMap *cuma, float value)
+{
+	return curvemap_evaluateF(cuma, value);
+}
+
 #else
 
 static void rna_def_curvemappoint(BlenderRNA *brna)
@@ -449,7 +455,7 @@ static void rna_def_curvemap(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Points", "");
 	rna_def_curvemap_points_api(brna, prop);
 
-	func = RNA_def_function(srna, "evaluate", "curvemap_evaluateF");
+	func = RNA_def_function(srna, "evaluate", "rna_CurveMap_evaluateF");
 	RNA_def_function_ui_description(func, "Evaluate curve at given location");
 	parm = RNA_def_float(func, "position", 0.0f, -FLT_MAX, FLT_MAX, "Position", "Position to evaluate curve at", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);

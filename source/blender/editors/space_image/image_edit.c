@@ -33,6 +33,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -181,8 +182,8 @@ void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
 		*height = (scene->r.ysch * scene->r.size) / 100;
 
 		if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
-			*width *= (scene->r.border.xmax - scene->r.border.xmin);
-			*height *= (scene->r.border.ymax - scene->r.border.ymin);
+			*width  *= BLI_RCT_SIZE_X(&scene->r.border);
+			*height *= BLI_RCT_SIZE_Y(&scene->r.border);
 		}
 
 	}
@@ -229,8 +230,8 @@ void ED_space_image_get_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float 
 
 	ED_space_image_get_size(sima, &width, &height);
 
-	*zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1) / (float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin) * width);
-	*zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1) / (float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin) * height);
+	*zoomx = (float)(BLI_RCT_SIZE_X(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_X(&ar->v2d.cur) * width);
+	*zoomy = (float)(BLI_RCT_SIZE_Y(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_Y(&ar->v2d.cur) * height);
 }
 
 void ED_space_image_get_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)

@@ -1141,7 +1141,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile <= 212) {
-		bSound* sound;
+		bSound *sound;
 		bProperty *prop;
 		Object *ob;
 		Mesh *me;
@@ -1307,7 +1307,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile <= 224) {
-		bSound* sound;
+		bSound *sound;
 		Scene *sce;
 		Mesh *me;
 		bScreen *sc;

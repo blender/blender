@@ -55,34 +55,34 @@
 
 /* scene does not use BM_* flags. */
 PyC_FlagSet bpy_bm_scene_vert_edge_face_flags[] = {
-    {1, "VERT"},
-    {2, "EDGE"},
-    {4, "FACE"},
-    {0, NULL}
+	{1, "VERT"},
+	{2, "EDGE"},
+	{4, "FACE"},
+	{0, NULL}
 };
 
 PyC_FlagSet bpy_bm_htype_vert_edge_face_flags[] = {
-    {BM_VERT, "VERT"},
-    {BM_EDGE, "EDGE"},
-    {BM_FACE, "FACE"},
-    {0, NULL}
+	{BM_VERT, "VERT"},
+	{BM_EDGE, "EDGE"},
+	{BM_FACE, "FACE"},
+		{0, NULL}
 };
 
 PyC_FlagSet bpy_bm_htype_all_flags[] = {
-    {BM_VERT, "VERT"},
-    {BM_LOOP, "EDGE"},
-    {BM_FACE, "FACE"},
-    {BM_LOOP, "LOOP"},
-    {0, NULL}
+	{BM_VERT, "VERT"},
+	{BM_LOOP, "EDGE"},
+	{BM_FACE, "FACE"},
+	{BM_LOOP, "LOOP"},
+	{0, NULL}
 };
 
 PyC_FlagSet bpy_bm_hflag_all_flags[] = {
-    {BM_ELEM_SELECT,  "SELECT"},
-    {BM_ELEM_HIDDEN,  "HIDE"},
-    {BM_ELEM_SEAM,    "SEAM"},
-    {BM_ELEM_SMOOTH,  "SMOOTH"},
-    {BM_ELEM_TAG,     "TAG"},
-    {0, NULL}
+	{BM_ELEM_SELECT,  "SELECT"},
+	{BM_ELEM_HIDDEN,  "HIDE"},
+	{BM_ELEM_SEAM,    "SEAM"},
+	{BM_ELEM_SMOOTH,  "SMOOTH"},
+	{BM_ELEM_TAG,     "TAG"},
+	{0, NULL}
 };
 
 /* py-type definitions
@@ -556,131 +556,131 @@ static PyObject *bpy_bmelemseq_layers_get(BPy_BMElemSeq *self, void *htype)
 }
 
 static PyGetSetDef bpy_bmesh_getseters[] = {
-    {(char *)"verts", (getter)bpy_bmvertseq_get, (setter)NULL, (char *)bpy_bmvertseq_doc, NULL},
-    {(char *)"edges", (getter)bpy_bmedgeseq_get, (setter)NULL, (char *)bpy_bmedgeseq_doc, NULL},
-    {(char *)"faces", (getter)bpy_bmfaceseq_get, (setter)NULL, (char *)bpy_bmfaceseq_doc, NULL},
-    {(char *)"loops", (getter)bpy_bmloopseq_get, (setter)NULL, (char *)bpy_bmloopseq_doc, NULL},
-    {(char *)"select_mode", (getter)bpy_bmesh_select_mode_get, (setter)bpy_bmesh_select_mode_set, (char *)bpy_bmesh_select_mode_doc, NULL},
+	{(char *)"verts", (getter)bpy_bmvertseq_get, (setter)NULL, (char *)bpy_bmvertseq_doc, NULL},
+	{(char *)"edges", (getter)bpy_bmedgeseq_get, (setter)NULL, (char *)bpy_bmedgeseq_doc, NULL},
+	{(char *)"faces", (getter)bpy_bmfaceseq_get, (setter)NULL, (char *)bpy_bmfaceseq_doc, NULL},
+	{(char *)"loops", (getter)bpy_bmloopseq_get, (setter)NULL, (char *)bpy_bmloopseq_doc, NULL},
+	{(char *)"select_mode", (getter)bpy_bmesh_select_mode_get, (setter)bpy_bmesh_select_mode_set, (char *)bpy_bmesh_select_mode_doc, NULL},
 
-    {(char *)"select_history", (getter)bpy_bmesh_select_history_get, (setter)bpy_bmesh_select_history_set, (char *)bpy_bmesh_select_history_doc, NULL},
+	{(char *)"select_history", (getter)bpy_bmesh_select_history_get, (setter)bpy_bmesh_select_history_set, (char *)bpy_bmesh_select_history_doc, NULL},
 
-    /* readonly checks */
-    {(char *)"is_wrapped", (getter)bpy_bmesh_is_wrapped_get, (setter)NULL, (char *)bpy_bmesh_is_wrapped_doc, NULL}, /* as with mathutils */
-    {(char *)"is_valid",   (getter)bpy_bm_is_valid_get,   (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
+	/* readonly checks */
+	{(char *)"is_wrapped", (getter)bpy_bmesh_is_wrapped_get, (setter)NULL, (char *)bpy_bmesh_is_wrapped_doc, NULL}, /* as with mathutils */
+	{(char *)"is_valid",   (getter)bpy_bm_is_valid_get,   (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmvert_getseters[] = {
-    /* generic */
-    {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
-    {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
-    {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
-    {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
+	/* generic */
+	{(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
+	{(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
+	{(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
+	{(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
-    {(char *)"co",     (getter)bpy_bmvert_co_get,     (setter)bpy_bmvert_co_set,     (char *)bpy_bmvert_co_doc, NULL},
-    {(char *)"normal", (getter)bpy_bmvert_normal_get, (setter)bpy_bmvert_normal_set, (char *)bpy_bmvert_normal_doc, NULL},
+	{(char *)"co",     (getter)bpy_bmvert_co_get,     (setter)bpy_bmvert_co_set,     (char *)bpy_bmvert_co_doc, NULL},
+	{(char *)"normal", (getter)bpy_bmvert_normal_get, (setter)bpy_bmvert_normal_set, (char *)bpy_bmvert_normal_doc, NULL},
 
-    /* connectivity data */
-    {(char *)"link_edges", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmvert_link_edges_doc, (void *)BM_EDGES_OF_VERT},
-    {(char *)"link_faces", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmvert_link_faces_doc, (void *)BM_FACES_OF_VERT},
-    {(char *)"link_loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmvert_link_loops_doc, (void *)BM_LOOPS_OF_VERT},
+	/* connectivity data */
+	{(char *)"link_edges", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmvert_link_edges_doc, (void *)BM_EDGES_OF_VERT},
+	{(char *)"link_faces", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmvert_link_faces_doc, (void *)BM_FACES_OF_VERT},
+	{(char *)"link_loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmvert_link_loops_doc, (void *)BM_LOOPS_OF_VERT},
 
-    /* readonly checks */
-    {(char *)"is_manifold",  (getter)bpy_bmvert_is_manifold_get,  (setter)NULL, (char *)bpy_bmvert_is_manifold_doc, NULL},
-    {(char *)"is_wire",      (getter)bpy_bmvert_is_wire_get,      (setter)NULL, (char *)bpy_bmvert_is_wire_doc, NULL},
-    {(char *)"is_valid",     (getter)bpy_bm_is_valid_get,         (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
+	/* readonly checks */
+	{(char *)"is_manifold",  (getter)bpy_bmvert_is_manifold_get,  (setter)NULL, (char *)bpy_bmvert_is_manifold_doc, NULL},
+	{(char *)"is_wire",      (getter)bpy_bmvert_is_wire_get,      (setter)NULL, (char *)bpy_bmvert_is_wire_doc, NULL},
+	{(char *)"is_valid",     (getter)bpy_bm_is_valid_get,         (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmedge_getseters[] = {
-    /* generic */
-    {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
-    {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
-    {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
-    {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
+	/* generic */
+	{(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
+	{(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
+	{(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
+	{(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
-    {(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
-    {(char *)"seam",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_seam_doc, (void *)BM_ELEM_SEAM},
+	{(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
+	{(char *)"seam",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_seam_doc, (void *)BM_ELEM_SEAM},
 
-    /* connectivity data */
-    {(char *)"verts", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_verts_doc, (void *)BM_VERTS_OF_EDGE},
+	/* connectivity data */
+	{(char *)"verts", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_verts_doc, (void *)BM_VERTS_OF_EDGE},
 
-    {(char *)"link_faces", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_link_faces_doc, (void *)BM_FACES_OF_EDGE},
-    {(char *)"link_loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_link_loops_doc, (void *)BM_LOOPS_OF_EDGE},
+	{(char *)"link_faces", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_link_faces_doc, (void *)BM_FACES_OF_EDGE},
+	{(char *)"link_loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_link_loops_doc, (void *)BM_LOOPS_OF_EDGE},
 
-    /* readonly checks */
-    {(char *)"is_manifold",  (getter)bpy_bmedge_is_manifold_get,  (setter)NULL, (char *)bpy_bmedge_is_manifold_doc, NULL},
-    {(char *)"is_wire",      (getter)bpy_bmedge_is_wire_get,      (setter)NULL, (char *)bpy_bmedge_is_wire_doc, NULL},
-    {(char *)"is_boundary",   (getter)bpy_bmedge_is_boundary_get,   (setter)NULL, (char *)bpy_bmedge_is_boundary_doc, NULL},
-    {(char *)"is_valid",     (getter)bpy_bm_is_valid_get,         (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
+	/* readonly checks */
+	{(char *)"is_manifold",  (getter)bpy_bmedge_is_manifold_get,  (setter)NULL, (char *)bpy_bmedge_is_manifold_doc, NULL},
+	{(char *)"is_wire",      (getter)bpy_bmedge_is_wire_get,      (setter)NULL, (char *)bpy_bmedge_is_wire_doc, NULL},
+	{(char *)"is_boundary",   (getter)bpy_bmedge_is_boundary_get,   (setter)NULL, (char *)bpy_bmedge_is_boundary_doc, NULL},
+	{(char *)"is_valid",     (getter)bpy_bm_is_valid_get,         (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmface_getseters[] = {
-    /* generic */
-    {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
-    {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
-    {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
-    {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
+	/* generic */
+	{(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
+	{(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
+	{(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
+	{(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
-    {(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
+	{(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
 
-    {(char *)"normal", (getter)bpy_bmface_normal_get, (setter)bpy_bmface_normal_set, (char *)bpy_bmface_normal_doc, NULL},
+	{(char *)"normal", (getter)bpy_bmface_normal_get, (setter)bpy_bmface_normal_set, (char *)bpy_bmface_normal_doc, NULL},
 
-    {(char *)"material_index",  (getter)bpy_bmface_material_index_get, (setter)bpy_bmface_material_index_set, (char *)bpy_bmface_material_index_doc,  NULL},
+	{(char *)"material_index",  (getter)bpy_bmface_material_index_get, (setter)bpy_bmface_material_index_set, (char *)bpy_bmface_material_index_doc,  NULL},
 
-    /* connectivity data */
-    {(char *)"verts", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmface_verts_doc, (void *)BM_VERTS_OF_FACE},
-    {(char *)"edges", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmface_edges_doc, (void *)BM_EDGES_OF_FACE},
-    {(char *)"loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmface_loops_doc, (void *)BM_LOOPS_OF_FACE},
+	/* connectivity data */
+	{(char *)"verts", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmface_verts_doc, (void *)BM_VERTS_OF_FACE},
+	{(char *)"edges", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmface_edges_doc, (void *)BM_EDGES_OF_FACE},
+	{(char *)"loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmface_loops_doc, (void *)BM_LOOPS_OF_FACE},
 
-    /* readonly checks */
-    {(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
+	/* readonly checks */
+	{(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmloop_getseters[] = {
-    /* generic */
-    // flags are available but not used for loops.
-    // {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
-    // {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
-    {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
-    {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
+	/* generic */
+	// flags are available but not used for loops.
+	// {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
+	// {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
+	{(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
+	{(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
-    {(char *)"vert", (getter)bpy_bmloop_vert_get, (setter)NULL, (char *)bpy_bmloop_vert_doc, NULL},
-    {(char *)"edge", (getter)bpy_bmloop_edge_get, (setter)NULL, (char *)bpy_bmloop_edge_doc, NULL},
-    {(char *)"face", (getter)bpy_bmloop_face_get, (setter)NULL, (char *)bpy_bmloop_face_doc, NULL},
+	{(char *)"vert", (getter)bpy_bmloop_vert_get, (setter)NULL, (char *)bpy_bmloop_vert_doc, NULL},
+	{(char *)"edge", (getter)bpy_bmloop_edge_get, (setter)NULL, (char *)bpy_bmloop_edge_doc, NULL},
+	{(char *)"face", (getter)bpy_bmloop_face_get, (setter)NULL, (char *)bpy_bmloop_face_doc, NULL},
 
-    /* connectivity data */
-    {(char *)"link_loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmloops_link_loops_doc, (void *)BM_LOOPS_OF_LOOP},
-    {(char *)"link_loop_next", (getter)bpy_bmloop_link_loop_next_get, (setter)NULL, (char *)bpy_bmloop_link_loop_next_doc, NULL},
-    {(char *)"link_loop_prev", (getter)bpy_bmloop_link_loop_prev_get, (setter)NULL, (char *)bpy_bmloop_link_loop_prev_doc, NULL},
+	/* connectivity data */
+	{(char *)"link_loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmloops_link_loops_doc, (void *)BM_LOOPS_OF_LOOP},
+	{(char *)"link_loop_next", (getter)bpy_bmloop_link_loop_next_get, (setter)NULL, (char *)bpy_bmloop_link_loop_next_doc, NULL},
+	{(char *)"link_loop_prev", (getter)bpy_bmloop_link_loop_prev_get, (setter)NULL, (char *)bpy_bmloop_link_loop_prev_doc, NULL},
 
-    /* readonly checks */
-    {(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
+	/* readonly checks */
+	{(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmvertseq_getseters[] = {
-    {(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_VERT},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_VERT},
+		{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 static PyGetSetDef bpy_bmedgeseq_getseters[] = {
-    {(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_EDGE},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_EDGE},
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 static PyGetSetDef bpy_bmfaceseq_getseters[] = {
-    {(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_FACE},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_FACE},
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 static PyGetSetDef bpy_bmloopseq_getseters[] = {
-    {(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_LOOP},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_LOOP},
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 
@@ -2159,12 +2159,14 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 		                                 "|Oi:BMElemSeq.sort",
 		                                 (char **)kwlist,
 		                                 &keyfunc, &reverse))
+		{
 			return NULL;
+		}
 	}
 
 	if (keyfunc != NULL && !PyCallable_Check(keyfunc)) {
 		PyErr_SetString(PyExc_TypeError,
-				"the 'key' argument is not a callable object");
+		                "the 'key' argument is not a callable object");
 		return NULL;
 	}
 
@@ -2278,129 +2280,129 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 }
 
 static struct PyMethodDef bpy_bmesh_methods[] = {
-    /* utility */
-    {"copy",  (PyCFunction)bpy_bmesh_copy,  METH_NOARGS, bpy_bmesh_copy_doc},
-    {"clear", (PyCFunction)bpy_bmesh_clear, METH_NOARGS, bpy_bmesh_clear_doc},
-    {"free",  (PyCFunction)bpy_bmesh_free,  METH_NOARGS, bpy_bmesh_free_doc},
+	/* utility */
+	{"copy",  (PyCFunction)bpy_bmesh_copy,  METH_NOARGS, bpy_bmesh_copy_doc},
+	{"clear", (PyCFunction)bpy_bmesh_clear, METH_NOARGS, bpy_bmesh_clear_doc},
+	{"free",  (PyCFunction)bpy_bmesh_free,  METH_NOARGS, bpy_bmesh_free_doc},
 
-    /* conversion */
-    {"from_object", (PyCFunction)bpy_bmesh_from_object, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_from_object_doc},
-    {"from_mesh",   (PyCFunction)bpy_bmesh_from_mesh,   METH_VARARGS | METH_KEYWORDS, bpy_bmesh_from_mesh_doc},
-    {"to_mesh",     (PyCFunction)bpy_bmesh_to_mesh,     METH_VARARGS,                 bpy_bmesh_to_mesh_doc},
+	/* conversion */
+	{"from_object", (PyCFunction)bpy_bmesh_from_object, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_from_object_doc},
+	{"from_mesh",   (PyCFunction)bpy_bmesh_from_mesh,   METH_VARARGS | METH_KEYWORDS, bpy_bmesh_from_mesh_doc},
+	{"to_mesh",     (PyCFunction)bpy_bmesh_to_mesh,     METH_VARARGS,                 bpy_bmesh_to_mesh_doc},
 
-    /* meshdata */
-    {"select_flush_mode", (PyCFunction)bpy_bmesh_select_flush_mode, METH_NOARGS, bpy_bmesh_select_flush_mode_doc},
-    {"select_flush", (PyCFunction)bpy_bmesh_select_flush, METH_O, bpy_bmesh_select_flush_doc},
-    {"normal_update", (PyCFunction)bpy_bmesh_normal_update, METH_VARARGS, bpy_bmesh_normal_update_doc},
-    {"transform", (PyCFunction)bpy_bmesh_transform, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_transform_doc},
-    {NULL, NULL, 0, NULL}
+	/* meshdata */
+	{"select_flush_mode", (PyCFunction)bpy_bmesh_select_flush_mode, METH_NOARGS, bpy_bmesh_select_flush_mode_doc},
+	{"select_flush", (PyCFunction)bpy_bmesh_select_flush, METH_O, bpy_bmesh_select_flush_doc},
+	{"normal_update", (PyCFunction)bpy_bmesh_normal_update, METH_VARARGS, bpy_bmesh_normal_update_doc},
+	{"transform", (PyCFunction)bpy_bmesh_transform, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_transform_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmvert_methods[] = {
-    {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
-    {"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
-    {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
-    {"copy_from_face_interp", (PyCFunction)bpy_bmvert_copy_from_face_interp, METH_VARARGS, bpy_bmvert_copy_from_face_interp_doc},
-    {"copy_from_vert_interp", (PyCFunction)bpy_bmvert_copy_from_vert_interp, METH_VARARGS, bpy_bmvert_copy_from_vert_interp_doc},
+	{"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
+	{"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
+	{"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+	{"copy_from_face_interp", (PyCFunction)bpy_bmvert_copy_from_face_interp, METH_VARARGS, bpy_bmvert_copy_from_face_interp_doc},
+	{"copy_from_vert_interp", (PyCFunction)bpy_bmvert_copy_from_vert_interp, METH_VARARGS, bpy_bmvert_copy_from_vert_interp_doc},
 
-    {"calc_vert_angle",   (PyCFunction)bpy_bmvert_calc_edge_angle,   METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
-    {"calc_shell_factor", (PyCFunction)bpy_bmvert_calc_shell_factor, METH_NOARGS, bpy_bmvert_calc_shell_factor_doc},
+	{"calc_vert_angle",   (PyCFunction)bpy_bmvert_calc_edge_angle,   METH_NOARGS, bpy_bmvert_calc_edge_angle_doc},
+	{"calc_shell_factor", (PyCFunction)bpy_bmvert_calc_shell_factor, METH_NOARGS, bpy_bmvert_calc_shell_factor_doc},
 
-    {"normal_update",  (PyCFunction)bpy_bmvert_normal_update,  METH_NOARGS,  bpy_bmvert_normal_update_doc},
+	{"normal_update",  (PyCFunction)bpy_bmvert_normal_update,  METH_NOARGS,  bpy_bmvert_normal_update_doc},
 
-    {NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmedge_methods[] = {
-    {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
-    {"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
-    {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+	{"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
+	{"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
+	{"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
 
-    {"other_vert", (PyCFunction)bpy_bmedge_other_vert, METH_O, bpy_bmedge_other_vert_doc},
+	{"other_vert", (PyCFunction)bpy_bmedge_other_vert, METH_O, bpy_bmedge_other_vert_doc},
 
-    {"calc_length",     (PyCFunction)bpy_bmedge_calc_length,     METH_NOARGS,  bpy_bmedge_calc_length_doc},
-    {"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS,  bpy_bmedge_calc_face_angle_doc},
-    {"calc_tangent",    (PyCFunction)bpy_bmedge_calc_tangent,    METH_VARARGS, bpy_bmedge_calc_tangent_doc},
+	{"calc_length",     (PyCFunction)bpy_bmedge_calc_length,     METH_NOARGS,  bpy_bmedge_calc_length_doc},
+	{"calc_face_angle", (PyCFunction)bpy_bmedge_calc_face_angle, METH_NOARGS,  bpy_bmedge_calc_face_angle_doc},
+	{"calc_tangent",    (PyCFunction)bpy_bmedge_calc_tangent,    METH_VARARGS, bpy_bmedge_calc_tangent_doc},
 
-    {"normal_update",  (PyCFunction)bpy_bmedge_normal_update,  METH_NOARGS,  bpy_bmedge_normal_update_doc},
+	{"normal_update",  (PyCFunction)bpy_bmedge_normal_update,  METH_NOARGS,  bpy_bmedge_normal_update_doc},
 
-    {NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmface_methods[] = {
-    {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
-    {"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
+	{"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
+	{"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
 
-    {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
-    {"copy_from_face_interp", (PyCFunction)bpy_bmface_copy_from_face_interp, METH_O, bpy_bmface_copy_from_face_interp_doc},
+	{"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+	{"copy_from_face_interp", (PyCFunction)bpy_bmface_copy_from_face_interp, METH_O, bpy_bmface_copy_from_face_interp_doc},
 
-    {"copy", (PyCFunction)bpy_bmface_copy, METH_VARARGS | METH_KEYWORDS, bpy_bmface_copy_doc},
+	{"copy", (PyCFunction)bpy_bmface_copy, METH_VARARGS | METH_KEYWORDS, bpy_bmface_copy_doc},
 
-    {"calc_area",          (PyCFunction)bpy_bmface_calc_area,          METH_NOARGS, bpy_bmface_calc_area_doc},
-    {"calc_perimeter",     (PyCFunction)bpy_bmface_calc_perimeter,     METH_NOARGS, bpy_bmface_calc_perimeter_doc},
-    {"calc_center_median", (PyCFunction)bpy_bmface_calc_center_mean,   METH_NOARGS, bpy_bmface_calc_center_mean_doc},
-    {"calc_center_bounds", (PyCFunction)bpy_bmface_calc_center_bounds, METH_NOARGS, bpy_bmface_calc_center_bounds_doc},
+	{"calc_area",          (PyCFunction)bpy_bmface_calc_area,          METH_NOARGS, bpy_bmface_calc_area_doc},
+	{"calc_perimeter",     (PyCFunction)bpy_bmface_calc_perimeter,     METH_NOARGS, bpy_bmface_calc_perimeter_doc},
+	{"calc_center_median", (PyCFunction)bpy_bmface_calc_center_mean,   METH_NOARGS, bpy_bmface_calc_center_mean_doc},
+	{"calc_center_bounds", (PyCFunction)bpy_bmface_calc_center_bounds, METH_NOARGS, bpy_bmface_calc_center_bounds_doc},
 
-    {"normal_update",  (PyCFunction)bpy_bmface_normal_update,  METH_NOARGS,  bpy_bmface_normal_update_doc},
+	{"normal_update",  (PyCFunction)bpy_bmface_normal_update,  METH_NOARGS,  bpy_bmface_normal_update_doc},
 
-    {NULL, NULL, 0, NULL}
+		{NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmloop_methods[] = {
-    {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
-    {"copy_from_face_interp", (PyCFunction)bpy_bmloop_copy_from_face_interp, METH_O, bpy_bmloop_copy_from_face_interp_doc},
+	{"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
+	{"copy_from_face_interp", (PyCFunction)bpy_bmloop_copy_from_face_interp, METH_O, bpy_bmloop_copy_from_face_interp_doc},
 
-    {"calc_angle",   (PyCFunction)bpy_bmloop_calc_angle,   METH_NOARGS, bpy_bmloop_calc_angle_doc},
-    {"calc_normal",  (PyCFunction)bpy_bmloop_calc_normal,  METH_NOARGS, bpy_bmloop_calc_normal_doc},
-    {"calc_tangent", (PyCFunction)bpy_bmloop_calc_tangent, METH_NOARGS, bpy_bmloop_calc_tangent_doc},
-    {NULL, NULL, 0, NULL}
+	{"calc_angle",   (PyCFunction)bpy_bmloop_calc_angle,   METH_NOARGS, bpy_bmloop_calc_angle_doc},
+	{"calc_normal",  (PyCFunction)bpy_bmloop_calc_normal,  METH_NOARGS, bpy_bmloop_calc_normal_doc},
+	{"calc_tangent", (PyCFunction)bpy_bmloop_calc_tangent, METH_NOARGS, bpy_bmloop_calc_tangent_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmelemseq_methods[] = {
-    /* odd function, initializes index values */
-    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
-    {NULL, NULL, 0, NULL}
+	/* odd function, initializes index values */
+	{"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmvertseq_methods[] = {
-    {"new",     (PyCFunction)bpy_bmvertseq_new,         METH_VARARGS, bpy_bmvertseq_new_doc},
-    {"remove",  (PyCFunction)bpy_bmvertseq_remove,      METH_O,       bpy_bmvertseq_remove_doc},
+	{"new",     (PyCFunction)bpy_bmvertseq_new,         METH_VARARGS, bpy_bmvertseq_new_doc},
+	{"remove",  (PyCFunction)bpy_bmvertseq_remove,      METH_O,       bpy_bmvertseq_remove_doc},
 
-    /* odd function, initializes index values */
-    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
-    {"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
-    {NULL, NULL, 0, NULL}
+	/* odd function, initializes index values */
+	{"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+	{"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmedgeseq_methods[] = {
-    {"new",     (PyCFunction)bpy_bmedgeseq_new,         METH_VARARGS, bpy_bmedgeseq_new_doc},
-    {"remove",  (PyCFunction)bpy_bmedgeseq_remove,      METH_O,       bpy_bmedgeseq_remove_doc},
-    /* 'bpy_bmelemseq_get' for different purpose */
-    {"get",     (PyCFunction)bpy_bmedgeseq_get__method, METH_VARARGS, bpy_bmedgeseq_get__method_doc},
+	{"new",     (PyCFunction)bpy_bmedgeseq_new,         METH_VARARGS, bpy_bmedgeseq_new_doc},
+	{"remove",  (PyCFunction)bpy_bmedgeseq_remove,      METH_O,       bpy_bmedgeseq_remove_doc},
+	/* 'bpy_bmelemseq_get' for different purpose */
+	{"get",     (PyCFunction)bpy_bmedgeseq_get__method, METH_VARARGS, bpy_bmedgeseq_get__method_doc},
 
-    /* odd function, initializes index values */
-    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
-    {"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
-    {NULL, NULL, 0, NULL}
+	/* odd function, initializes index values */
+	{"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+	{"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmfaceseq_methods[] = {
-    {"new",     (PyCFunction)bpy_bmfaceseq_new,         METH_VARARGS, bpy_bmfaceseq_new_doc},
-    {"remove",  (PyCFunction)bpy_bmfaceseq_remove,      METH_O,       bpy_bmfaceseq_remove_doc},
-    /* 'bpy_bmelemseq_get' for different purpose */
-    {"get",     (PyCFunction)bpy_bmfaceseq_get__method, METH_VARARGS, bpy_bmfaceseq_get__method_doc},
+	{"new",     (PyCFunction)bpy_bmfaceseq_new,         METH_VARARGS, bpy_bmfaceseq_new_doc},
+	{"remove",  (PyCFunction)bpy_bmfaceseq_remove,      METH_O,       bpy_bmfaceseq_remove_doc},
+	/* 'bpy_bmelemseq_get' for different purpose */
+	{"get",     (PyCFunction)bpy_bmfaceseq_get__method, METH_VARARGS, bpy_bmfaceseq_get__method_doc},
 
-    /* odd function, initializes index values */
-    {"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
-    {"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
-    {NULL, NULL, 0, NULL}
+	/* odd function, initializes index values */
+	{"index_update", (PyCFunction)bpy_bmelemseq_index_update, METH_NOARGS, bpy_bmelemseq_index_update_doc},
+	{"sort", (PyCFunction)bpy_bmelemseq_sort, METH_VARARGS | METH_KEYWORDS, bpy_bmelemseq_sort_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyMethodDef bpy_bmloopseq_methods[] = {
-    /* odd function, initializes index values */
-    /* no: index_update() function since we cant iterate over loops */
-    /* no: sort() function since we cant iterate over loops */
-    {NULL, NULL, 0, NULL}
+	/* odd function, initializes index values */
+	/* no: index_update() function since we cant iterate over loops */
+	/* no: sort() function since we cant iterate over loops */
+	{NULL, NULL, 0, NULL}
 };
 
 /* Sequences
@@ -2635,29 +2637,29 @@ static int bpy_bmelem_ass_subscript(BPy_BMElem *self, BPy_BMLayerItem *key, PyOb
 }
 
 static PySequenceMethods bpy_bmelemseq_as_sequence = {
-    (lenfunc)bpy_bmelemseq_length,               /* sq_length */
-    NULL,                                        /* sq_concat */
-    NULL,                                        /* sq_repeat */
-    (ssizeargfunc)bpy_bmelemseq_subscript_int,   /* sq_item */ /* Only set this so PySequence_Check() returns True */
-    NULL,                                        /* sq_slice */
-    (ssizeobjargproc)NULL,                       /* sq_ass_item */
-    NULL,                                        /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmelemseq_contains,          /* sq_contains */
-    (binaryfunc) NULL,                           /* sq_inplace_concat */
-    (ssizeargfunc) NULL,                         /* sq_inplace_repeat */
+	(lenfunc)bpy_bmelemseq_length,               /* sq_length */
+	NULL,                                        /* sq_concat */
+	NULL,                                        /* sq_repeat */
+	(ssizeargfunc)bpy_bmelemseq_subscript_int,   /* sq_item */ /* Only set this so PySequence_Check() returns True */
+	NULL,                                        /* sq_slice */
+	(ssizeobjargproc)NULL,                       /* sq_ass_item */
+	NULL,                                        /* *was* sq_ass_slice */
+	(objobjproc)bpy_bmelemseq_contains,          /* sq_contains */
+	(binaryfunc) NULL,                           /* sq_inplace_concat */
+	(ssizeargfunc) NULL,                         /* sq_inplace_repeat */
 };
 
 static PyMappingMethods bpy_bmelemseq_as_mapping = {
-    (lenfunc)bpy_bmelemseq_length,               /* mp_length */
-    (binaryfunc)bpy_bmelemseq_subscript,         /* mp_subscript */
-    (objobjargproc)NULL,                         /* mp_ass_subscript */
+	(lenfunc)bpy_bmelemseq_length,               /* mp_length */
+	(binaryfunc)bpy_bmelemseq_subscript,         /* mp_subscript */
+	(objobjargproc)NULL,                         /* mp_ass_subscript */
 };
 
 /* for customdata access */
 static PyMappingMethods bpy_bm_elem_as_mapping = {
-    (lenfunc)NULL,                           /* mp_length */ /* keep this empty, messes up 'if elem: ...' test */
-    (binaryfunc)bpy_bmelem_subscript,        /* mp_subscript */
-    (objobjargproc)bpy_bmelem_ass_subscript, /* mp_ass_subscript */
+	(lenfunc)NULL,                           /* mp_length */ /* keep this empty, messes up 'if elem: ...' test */
+	(binaryfunc)bpy_bmelem_subscript,        /* mp_subscript */
+	(objobjargproc)bpy_bmelem_ass_subscript, /* mp_ass_subscript */
 };
 
 /* Iterator
@@ -3053,15 +3055,15 @@ void BPy_BM_init_types(void)
  * ********************* */
 
 static struct PyModuleDef BPy_BM_types_module_def = {
-    PyModuleDef_HEAD_INIT,
-    "bmesh.types",  /* m_name */
-    NULL,  /* m_doc */
-    0,     /* m_size */
-    NULL,  /* m_methods */
-    NULL,  /* m_reload */
-    NULL,  /* m_traverse */
-    NULL,  /* m_clear */
-    NULL,  /* m_free */
+	PyModuleDef_HEAD_INIT,
+	"bmesh.types",  /* m_name */
+	NULL,  /* m_doc */
+	0,     /* m_size */
+	NULL,  /* m_methods */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
 };
 
 PyObject *BPyInit_bmesh_types(void)

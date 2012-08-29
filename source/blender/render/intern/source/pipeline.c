@@ -60,6 +60,7 @@
 #include "BKE_writeavi.h"  /* <------ should be replaced once with generic movie module */
 
 #include "BLI_math.h"
+#include "BLI_rect.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_path_util.h"
@@ -441,8 +442,8 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	re->winy = winy;
 	if (disprect) {
 		re->disprect = *disprect;
-		re->rectx = disprect->xmax - disprect->xmin;
-		re->recty = disprect->ymax - disprect->ymin;
+		re->rectx = BLI_RCT_SIZE_X(disprect);
+		re->recty = BLI_RCT_SIZE_Y(disprect);
 	}
 	else {
 		re->disprect.xmin = re->disprect.ymin = 0;
@@ -674,15 +675,15 @@ static void *do_part_thread(void *pa_v)
 float panorama_pixel_rot(Render *re)
 {
 	float psize, phi, xfac;
-	float borderfac = (float)(re->disprect.xmax - re->disprect.xmin) / (float)re->winx;
+	float borderfac = (float)BLI_RCT_SIZE_X(&re->disprect) / (float)re->winx;
 	
 	/* size of 1 pixel mapped to viewplane coords */
-	psize = (re->viewplane.xmax - re->viewplane.xmin) / (float)(re->winx);
+	psize = BLI_RCT_SIZE_X(&re->viewplane) / (float)re->winx;
 	/* angle of a pixel */
 	phi = atan(psize / re->clipsta);
 	
 	/* correction factor for viewplane shifting, first calculate how much the viewplane angle is */
-	xfac = borderfac * ((re->viewplane.xmax - re->viewplane.xmin)) / (float)re->xparts;
+	xfac = borderfac * BLI_RCT_SIZE_X(&re->viewplane) / (float)re->xparts;
 	xfac = atan(0.5f * xfac / re->clipsta);
 	/* and how much the same viewplane angle is wrapped */
 	psize = 0.5f * phi * ((float)re->partx);
@@ -715,7 +716,7 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 		float phi = panorama_pixel_rot(re);
 
 		R.panodxp = (re->winx - (best->disprect.xmin + best->disprect.xmax) ) / 2;
-		R.panodxv = ((viewplane->xmax - viewplane->xmin) * R.panodxp) / (float)(re->winx);
+		R.panodxv = (BLI_RCT_SIZE_X(viewplane) * R.panodxp) / (float)(re->winx);
 		
 		/* shift viewplane */
 		R.viewplane.xmin = viewplane->xmin + R.panodxv;
@@ -742,8 +743,8 @@ static RenderPart *find_next_part(Render *re, int minx)
 	/* find center of rendered parts, image center counts for 1 too */
 	for (pa = re->parts.first; pa; pa = pa->next) {
 		if (pa->ready) {
-			centx += (pa->disprect.xmin + pa->disprect.xmax) / 2;
-			centy += (pa->disprect.ymin + pa->disprect.ymax) / 2;
+			centx += BLI_RCT_CENTER_X(&pa->disprect);
+			centy += BLI_RCT_CENTER_Y(&pa->disprect);
 			tot++;
 		}
 	}
@@ -753,8 +754,8 @@ static RenderPart *find_next_part(Render *re, int minx)
 	/* closest of the non-rendering parts */
 	for (pa = re->parts.first; pa; pa = pa->next) {
 		if (pa->ready == 0 && pa->nr == 0) {
-			long long int distx = centx - (pa->disprect.xmin + pa->disprect.xmax) / 2;
-			long long int disty = centy - (pa->disprect.ymin + pa->disprect.ymax) / 2;
+			long long int distx = centx - BLI_RCT_CENTER_X(&pa->disprect);
+			long long int disty = centy - BLI_RCT_CENTER_Y(&pa->disprect);
 			distx = (long long int)sqrt(distx * distx + disty * disty);
 			if (distx < mindist) {
 				if (re->r.mode & R_PANORAMA) {

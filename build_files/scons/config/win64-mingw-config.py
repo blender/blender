@@ -170,7 +170,7 @@ WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-mmmx', '-msse', '-msse2']
 
 #May produce errors with unsupported MinGW-w64 builds
-WITH_BF_OPENMP = True
+WITH_BF_OPENMP = False
 
 ##
 CC = 'gcc'

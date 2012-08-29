@@ -210,7 +210,7 @@ EnumPropertyItem snap_node_element_items[] = {
 
 #define IMAGE_TYPE_ITEMS_IMAGE_ONLY                                           \
 	R_IMF_ENUM_BMP                                                            \
-	R_IMF_ENUM_DDS                                                            \
+	/* DDS save not supported yet R_IMF_ENUM_DDS */                           \
 	R_IMF_ENUM_IRIS                                                           \
 	R_IMF_ENUM_PNG                                                            \
 	R_IMF_ENUM_JPEG                                                           \
@@ -3427,7 +3427,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
 		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
 		{CODEC_ID_QTRLE, "QTRLE", 0, "QTRLE", ""},
-		/* {CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""}, */ /* disabled for after release */
+		{CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

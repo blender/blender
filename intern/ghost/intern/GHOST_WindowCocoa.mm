@@ -1150,7 +1150,7 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 			/******* Multithreaded opengl code : uncomment for enabling
 			cglCtx = (CGLContextObj)[tmpOpenGLContext CGLContextObj];
 			if (CGLEnable(cglCtx, kCGLCEMPEngine) == kCGLNoError)
-				printf("\nSwitched openGL to multithreaded mode");
+				printf("\nSwitched openGL to multithreaded mode\n");
 			 */
 			
 			if (!s_firstOpenGLcontext) s_firstOpenGLcontext = tmpOpenGLContext;

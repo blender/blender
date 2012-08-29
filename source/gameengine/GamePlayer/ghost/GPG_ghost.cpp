@@ -194,7 +194,7 @@ void usage(const char* program, bool isBlenderPlayer)
 	}
 	
 	printf("usage:   %s [-w [w h l t]] [-f [fw fh fb ff]] %s[-g gamengineoptions] "
-		"[-s stereomode] [-m aasamples] %s\n", program, consoleoption, example_filename);
+	       "[-s stereomode] [-m aasamples] %s\n", program, consoleoption, example_filename);
 	printf("  -h: Prints this command summary\n\n");
 	printf("  -w: display in a window\n");
 	printf("       --Optional parameters--\n"); 
@@ -970,6 +970,8 @@ int main(int argc, char** argv)
 						{
 							system->processEvents(false);
 							system->dispatchEvents();
+							app.EngineNextFrame();
+
 							if ((exitcode = app.getExitRequested()))
 							{
 								run = false;

@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_gamma_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_gamma(bNode *UNUSED(node), float *out, float *in, float *fac)
 {
 	int i=0;
@@ -75,6 +77,8 @@ static void node_composit_exec_gamma(void *UNUSED(data), bNode *node, bNodeStack
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_gamma(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -82,7 +86,9 @@ void register_node_type_cmp_gamma(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_gamma_in, cmp_node_gamma_out);
 	node_type_size(&ntype, 140, 100, 320);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_gamma);
+#endif
 	
 	nodeRegisterType(ttype, &ntype);
 }

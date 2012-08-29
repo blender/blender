@@ -157,7 +157,7 @@ void CLIP_OT_dopesheet_select_channel(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location to select channel", -100.0f, 100.0f);
+	                     "Location", "Mouse location to select channel", -100.0f, 100.0f);
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection");
+	                "Extend", "Extend selection rather than clearing the existing selection");
 }

@@ -439,8 +439,8 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	//glColor4f(1.0, 0.f, 0.f, 1.f);
 	//fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax)
 
-	w = (rect->xmax - rect->xmin);
-	h = (rect->ymax - rect->ymin);
+	w = BLI_RCT_SIZE_X(rect);
+	h = BLI_RCT_SIZE_Y(rect);
 	/* prevent drawing outside widget area */
 	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + rect->xmin, ar->winrct.ymin + rect->ymin, w, h);
@@ -493,8 +493,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 		charmax = G.charmax = 0xffff;
 
 	/* Calculate the size of the button */
-	width = abs(rect->xmax - rect->xmin);
-	height = abs(rect->ymax - rect->ymin);
+	width  = abs(BLI_RCT_SIZE_X(rect));
+	height = abs(BLI_RCT_SIZE_Y(rect));
 	
 	butw = floor(width / 12);
 	buth = floor(height / 6);
@@ -629,7 +629,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	}
 }
 
-#endif // WITH_INTERNATIONAL
+#endif /* WITH_INTERNATIONAL */
 #endif
 
 static void draw_scope_end(rctf *rect, GLint *scissor)
@@ -642,8 +642,8 @@ static void draw_scope_end(rctf *rect, GLint *scissor)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	/* scale widget */
-	scaler_x1 = rect->xmin + (rect->xmax - rect->xmin) / 2 - SCOPE_RESIZE_PAD;
-	scaler_x2 = rect->xmin + (rect->xmax - rect->xmin) / 2 + SCOPE_RESIZE_PAD;
+	scaler_x1 = rect->xmin + BLI_RCT_SIZE_X(rect) / 2 - SCOPE_RESIZE_PAD;
+	scaler_x2 = rect->xmin + BLI_RCT_SIZE_X(rect) / 2 + SCOPE_RESIZE_PAD;
 	
 	glColor4f(0.f, 0.f, 0.f, 0.25f);
 	fdrawline(scaler_x1, rect->ymin - 4, scaler_x2, rect->ymin - 4);
@@ -732,8 +732,8 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
 	rect.ymax = (float)recti->ymax - 1;
 	
-	w = rect.xmax - rect.xmin;
-	h = (rect.ymax - rect.ymin) * hist->ymax;
+	w = BLI_RCT_SIZE_X(&rect);
+	h = BLI_RCT_SIZE_Y(&rect) * hist->ymax;
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -805,9 +805,9 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 
 	if (scopes->wavefrm_yfac < 0.5f)
 		scopes->wavefrm_yfac = 0.98f;
-	w = rect.xmax - rect.xmin - 7;
-	h = (rect.ymax - rect.ymin) * scopes->wavefrm_yfac;
-	yofs = rect.ymin + (rect.ymax - rect.ymin - h) / 2.0f;
+	w = BLI_RCT_SIZE_X(&rect) - 7;
+	h = BLI_RCT_SIZE_Y(&rect) * scopes->wavefrm_yfac;
+	yofs = rect.ymin + (BLI_RCT_SIZE_Y(&rect) - h) / 2.0f;
 	w3 = w / 3.0f;
 	
 	/* log scale for alpha */
@@ -1033,8 +1033,8 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
 	rect.ymax = (float)recti->ymax - 1;
 	
-	w = rect.xmax - rect.xmin;
-	h = rect.ymax - rect.ymin;
+	w = BLI_RCT_SIZE_X(&rect);
+	h = BLI_RCT_SIZE_Y(&rect);
 	centerx = rect.xmin + w / 2;
 	centery = rect.ymin + h / 2;
 	diam = (w < h) ? w : h;
@@ -1262,12 +1262,12 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	
 	/* transform to button */
 	glPushMatrix();
-	glTranslatef(rect->xmin + 0.5f * (rect->xmax - rect->xmin), rect->ymin + 0.5f * (rect->ymax - rect->ymin), 0.0f);
+	glTranslatef(rect->xmin + 0.5f * BLI_RCT_SIZE_X(rect), rect->ymin + 0.5f * BLI_RCT_SIZE_Y(rect), 0.0f);
 	
-	if (rect->xmax - rect->xmin < rect->ymax - rect->ymin)
-		size = (rect->xmax - rect->xmin) / 200.f;
+	if (BLI_RCT_SIZE_X(rect) < BLI_RCT_SIZE_Y(rect))
+		size = BLI_RCT_SIZE_X(rect) / 200.f;
 	else
-		size = (rect->ymax - rect->ymin) / 200.f;
+		size = BLI_RCT_SIZE_Y(rect) / 200.f;
 	
 	glScalef(size, size, size);
 	
@@ -1355,8 +1355,14 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	rcti scissor_new;
 	int a;
 
-	cumap = (CurveMapping *)(but->editcumap ? but->editcumap : but->poin);
-	cuma = cumap->cm + cumap->cur;
+	if (but->editcumap) {
+		cumap = but->editcumap;
+	}
+	else {
+		cumap = (CurveMapping *)but->poin;
+	}
+
+	cuma = &cumap->cm[cumap->cur];
 
 	/* need scissor test, curve can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
@@ -1365,11 +1371,14 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	scissor_new.xmax = ar->winrct.xmin + rect->xmax;
 	scissor_new.ymax = ar->winrct.ymin + rect->ymax;
 	BLI_rcti_isect(&scissor_new, &ar->winrct, &scissor_new);
-	glScissor(scissor_new.xmin, scissor_new.ymin, scissor_new.xmax - scissor_new.xmin, scissor_new.ymax - scissor_new.ymin);
-	
+	glScissor(scissor_new.xmin,
+	          scissor_new.ymin,
+	          BLI_RCT_SIZE_X(&scissor_new),
+	          BLI_RCT_SIZE_Y(&scissor_new));
+
 	/* calculate offset and zoom */
-	zoomx = (rect->xmax - rect->xmin - 2.0f * but->aspect) / (cumap->curr.xmax - cumap->curr.xmin);
-	zoomy = (rect->ymax - rect->ymin - 2.0f * but->aspect) / (cumap->curr.ymax - cumap->curr.ymin);
+	zoomx = (BLI_RCT_SIZE_X(rect) - 2.0f * but->aspect) / BLI_RCT_SIZE_X(&cumap->curr);
+	zoomy = (BLI_RCT_SIZE_Y(rect) - 2.0f * but->aspect) / BLI_RCT_SIZE_Y(&cumap->curr);
 	offsx = cumap->curr.xmin - but->aspect / zoomx;
 	offsy = cumap->curr.ymin - but->aspect / zoomy;
 	
@@ -1481,12 +1490,13 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	glBegin(GL_LINE_STRIP);
 	
 	if (cuma->table == NULL)
-		curvemapping_changed(cumap, 0);  /* 0 = no remove doubles */
+		curvemapping_changed(cumap, FALSE);
 	cmp = cuma->table;
 	
 	/* first point */
-	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0)
+	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
 		glVertex2f(rect->xmin, rect->ymin + zoomy * (cmp[0].y - offsy));
+	}
 	else {
 		fx = rect->xmin + zoomx * (cmp[0].x - offsx + cuma->ext_in[0]);
 		fy = rect->ymin + zoomy * (cmp[0].y - offsy + cuma->ext_in[1]);
@@ -1498,8 +1508,9 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 		glVertex2f(fx, fy);
 	}
 	/* last point */
-	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0)
+	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
 		glVertex2f(rect->xmax, rect->ymin + zoomy * (cmp[CM_TABLE].y - offsy));
+	}
 	else {
 		fx = rect->xmin + zoomx * (cmp[CM_TABLE].x - offsx - cuma->ext_out[0]);
 		fy = rect->ymin + zoomy * (cmp[CM_TABLE].y - offsy - cuma->ext_out[1]);
@@ -1514,7 +1525,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	glPointSize(3.0f);
 	bglBegin(GL_POINTS);
 	for (a = 0; a < cuma->totpoint; a++) {
-		if (cmp[a].flag & SELECT)
+		if (cmp[a].flag & CUMA_SELECT)
 			UI_ThemeColor(TH_TEXT_HI);
 		else
 			UI_ThemeColor(TH_TEXT);
@@ -1545,8 +1556,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
 	rect.ymax = (float)recti->ymax - 1;
 
-	width = rect.xmax - rect.xmin + 1;
-	height = rect.ymax - rect.ymin;
+	width  = BLI_RCT_SIZE_X(&rect) + 1;
+	height = BLI_RCT_SIZE_Y(&rect);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1621,8 +1632,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			glTranslatef(rect.xmin + track_pos[0], rect.ymin + track_pos[1], 0.f);
 			glScissor(ar->winrct.xmin + rect.xmin,
 			          ar->winrct.ymin + rect.ymin,
-			          rect.xmax - rect.xmin,
-			          rect.ymax - rect.ymin);
+			          BLI_RCT_SIZE_X(&rect),
+			          BLI_RCT_SIZE_Y(&rect));
 
 			for (a = 0; a < 2; a++) {
 				if (a == 1) {
@@ -1722,8 +1733,8 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int UNUSE
 	
 	glEnable(GL_BLEND);
 	
-	if (radius > (rct->ymax - rct->ymin - 10.0f) / 2.0f)
-		rad = (rct->ymax - rct->ymin - 10.0f) / 2.0f;
+	if (radius > (BLI_RCT_SIZE_Y(rct) - 10.0f) / 2.0f)
+		rad = (BLI_RCT_SIZE_Y(rct) - 10.0f) / 2.0f;
 	else
 		rad = radius;
 

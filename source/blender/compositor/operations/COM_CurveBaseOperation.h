@@ -38,7 +38,8 @@ public:
 	 * Initialize the execution
 	 */
 	void initExecution();
+	void deinitExecution();
 	
-	void setCurveMapping(CurveMapping *mapping) { this->m_curveMapping = mapping; }
+	void setCurveMapping(CurveMapping *mapping);
 };
 #endif

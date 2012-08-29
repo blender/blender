@@ -1276,6 +1276,10 @@ int main(int argc, const char **argv)
 
 	IMB_init();
 
+#ifdef WITH_FFMPEG
+	IMB_ffmpeg_init();
+#endif
+
 	BLI_callback_global_init();
 
 #ifdef WITH_GAMEENGINE

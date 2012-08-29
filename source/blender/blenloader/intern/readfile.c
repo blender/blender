@@ -2618,7 +2618,7 @@ static void lib_link_armature(FileData *fd, Main *main)
 	}
 }
 
-static void direct_link_bones(FileData *fd, Bone* bone)
+static void direct_link_bones(FileData *fd, Bone *bone)
 {
 	Bone *child;
 	
@@ -2914,6 +2914,7 @@ static void lib_link_vfont(FileData *UNUSED(fd), Main *main)
 static void direct_link_vfont(FileData *fd, VFont *vf)
 {
 	vf->data = NULL;
+	vf->temp_pf = NULL;
 	vf->packedfile = direct_link_packedfile(fd, vf->packedfile);
 }
 
@@ -4786,6 +4787,16 @@ static void link_paint(FileData *fd, Scene *sce, Paint *p)
 	}
 }
 
+static void lib_link_sequence_modifiers(FileData *fd, Scene *scene, ListBase *lb)
+{
+	SequenceModifierData *smd;
+
+	for (smd = lb->first; smd; smd = smd->next) {
+		if (smd->mask_id)
+			smd->mask_id = newlibadr_us(fd, scene->id.lib, smd->mask_id);
+	}
+}
+
 static void lib_link_scene(FileData *fd, Main *main)
 {
 	Scene *sce;
@@ -4871,6 +4882,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 					}
 				}
 				seq->anim = NULL;
+
+				lib_link_sequence_modifiers(fd, sce, &seq->modifiers);
 			}
 			SEQ_END
 
@@ -4929,6 +4942,29 @@ static void direct_link_paint(FileData *fd, Paint **paint)
 	(*paint) = newdataadr(fd, (*paint));
 	if (*paint && (*paint)->num_input_samples < 1)
 		(*paint)->num_input_samples = 1;
+}
+
+static void direct_link_sequence_modifiers(FileData *fd, ListBase *lb)
+{
+	SequenceModifierData *smd;
+
+	link_list(fd, lb);
+
+	for (smd = lb->first; smd; smd = smd->next) {
+		if (smd->mask_sequence)
+			smd->mask_sequence = newdataadr(fd, smd->mask_sequence);
+
+		if (smd->type == seqModifierType_Curves) {
+			CurvesModifierData *cmd = (CurvesModifierData *) smd;
+
+			direct_link_curvemapping(fd, &cmd->curve_mapping);
+		}
+		else if (smd->type == seqModifierType_HueCorrect) {
+			HueCorrectModifierData *hcmd = (HueCorrectModifierData *) smd;
+
+			direct_link_curvemapping(fd, &hcmd->curve_mapping);
+		}
+	}
 }
 
 static void direct_link_scene(FileData *fd, Scene *sce)
@@ -5044,6 +5080,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 					// seq->strip->color_balance->gui = 0; // XXX - peter, is this relevant in 2.5?
 				}
 			}
+
+			direct_link_sequence_modifiers(fd, &seq->modifiers);
 		}
 		SEQ_END
 		
@@ -8076,10 +8114,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 14)) {
+		ParticleSettings *part;
 		bNodeTreeType *ntreetype = ntreeGetType(NTREE_COMPOSIT);
 
 		if (ntreetype && ntreetype->foreach_nodetree)
 			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_keying_despill_balance);
+
+		/* keep compatibility for dupliobject particle size */
+		for (part=main->particle.first; part; part=part->id.next)
+			if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR))
+				if ((part->draw & PART_DRAW_ROTATE_OB) == 0)
+					part->draw |= PART_DRAW_NO_SCALE_OB;
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 17)) {

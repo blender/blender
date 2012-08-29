@@ -224,8 +224,9 @@ static void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 				if (!sock_fr)
 					continue;
 
-				if (snode_autoconnect_input(snode, node_fr, sock_fr, node_to, sock_to, replace))
-					++numlinks;
+				if (snode_autoconnect_input(snode, node_fr, sock_fr, node_to, sock_to, replace)) {
+					numlinks++;
+				}
 			}
 		}
 
@@ -246,7 +247,7 @@ static void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 					continue;
 
 				if (snode_autoconnect_input(snode, node_fr, sock_fr, node_to, sock_to, replace)) {
-					++numlinks;
+					numlinks++;
 					break;
 				}
 			}
@@ -1139,7 +1140,7 @@ static int node_attach_exec(bContext *C, wmOperator *UNUSED(op))
 		/* skip selected, those are the nodes we want to attach */
 		if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT))
 			continue;
-		if (BLI_in_rctf(&frame->totr, snode->cursor[0], snode->cursor[1]))
+		if (BLI_rctf_isect_pt(&frame->totr, snode->cursor[0], snode->cursor[1]))
 			break;
 	}
 	if (frame) {

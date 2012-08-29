@@ -388,7 +388,11 @@ typedef struct UndoImageTile {
 	char idname[MAX_ID_NAME];  /* name instead of pointer*/
 	char ibufname[IB_FILENAME_SIZE];
 
-	void *rect;
+	union {
+		float        *fp;
+		unsigned int *uint;
+		void         *pt;
+	} rect;
 	int x, y;
 
 	short source, use_float;
@@ -406,10 +410,10 @@ static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int
 	            tile->y * IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 
 	if (ibuf->rect_float) {
-		SWAP(void *, tmpibuf->rect_float, tile->rect);
+		SWAP(float *, tmpibuf->rect_float, tile->rect.fp);
 	}
 	else {
-		SWAP(void *, tmpibuf->rect, tile->rect);
+		SWAP(unsigned int *, tmpibuf->rect, tile->rect.uint);
 	}
 	
 	if (restore)
@@ -428,7 +432,7 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 		if (tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type && ima->source == tile->source)
 			if (tile->use_float == use_float)
 				if (strcmp(tile->idname, ima->id.name) == 0 && strcmp(tile->ibufname, ibuf->name) == 0)
-					return tile->rect;
+					return tile->rect.pt;
 	
 	if (*tmpibuf == NULL)
 		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
@@ -440,7 +444,7 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 
 	allocsize = IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE * 4;
 	allocsize *= (ibuf->rect_float) ? sizeof(float) : sizeof(char);
-	tile->rect = MEM_mapallocN(allocsize, "UndeImageTile.rect");
+	tile->rect.pt = MEM_mapallocN(allocsize, "UndeImageTile.rect");
 
 	BLI_strncpy(tile->ibufname, ibuf->name, sizeof(tile->ibufname));
 
@@ -453,7 +457,7 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 
 	BLI_addtail(lb, tile);
 	
-	return tile->rect;
+	return tile->rect.pt;
 }
 
 static void image_undo_restore(bContext *C, ListBase *lb)
@@ -517,7 +521,7 @@ static void image_undo_free(ListBase *lb)
 	UndoImageTile *tile;
 
 	for (tile = lb->first; tile; tile = tile->next)
-		MEM_freeN(tile->rect);
+		MEM_freeN(tile->rect.pt);
 }
 
 /* get active image for face depending on old/new shading system */
@@ -1615,7 +1619,7 @@ static int line_clip_rect2f(
 		
 		
 		if (fabsf(l1[0] - l2[0]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
-			if (BLI_in_rctf_v(rect, l1)) {
+			if (BLI_rctf_isect_pt_v(rect, l1)) {
 				copy_v2_v2(l1_clip, l1);
 				copy_v2_v2(l2_clip, l2);
 				return 1;
@@ -1643,7 +1647,7 @@ static int line_clip_rect2f(
 		}
 		
 		if (fabsf(l1[1] - l2[1]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
-			if (BLI_in_rctf_v(rect, l1)) {
+			if (BLI_rctf_isect_pt_v(rect, l1)) {
 				copy_v2_v2(l1_clip, l1);
 				copy_v2_v2(l2_clip, l2);
 				return 1;
@@ -1667,12 +1671,12 @@ static int line_clip_rect2f(
 		/* Done with vertical lines */
 		
 		/* are either of the points inside the rectangle ? */
-		if (BLI_in_rctf_v(rect, l1)) {
+		if (BLI_rctf_isect_pt_v(rect, l1)) {
 			copy_v2_v2(l1_clip, l1);
 			ok1 = 1;
 		}
 		
-		if (BLI_in_rctf_v(rect, l2)) {
+		if (BLI_rctf_isect_pt_v(rect, l2)) {
 			copy_v2_v2(l2_clip, l2);
 			ok2 = 1;
 		}
@@ -1820,7 +1824,7 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 	 * this is even less work then an intersection test
 	 */
 #if 0
-	if (BLI_in_rctf_v(bucket_bounds, cent))
+	if (BLI_rctf_isect_pt_v(bucket_bounds, cent))
 		return 1;
 #endif
 	
@@ -1987,9 +1991,9 @@ static void project_bucket_clip_face(
 	float bucket_bounds_ss[4][2];
 
 	/* get the UV space bounding box */
-	inside_bucket_flag |= BLI_in_rctf_v(bucket_bounds, v1coSS);
-	inside_bucket_flag |= BLI_in_rctf_v(bucket_bounds, v2coSS) << 1;
-	inside_bucket_flag |= BLI_in_rctf_v(bucket_bounds, v3coSS) << 2;
+	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v1coSS);
+	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v2coSS) << 1;
+	inside_bucket_flag |= BLI_rctf_isect_pt_v(bucket_bounds, v3coSS) << 2;
 	
 	if (inside_bucket_flag == ISECT_ALL3) {
 		/* all screenspace points are inside the bucket bounding box, this means we don't need to clip and can simply return the UVs */
@@ -2816,7 +2820,7 @@ static int project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int bucke
 	fidx = mf->v4 ? 3 : 2;
 	do {
 		v = ps->screenCoords[(*(&mf->v1 + fidx))];
-		if (BLI_in_rctf_v(&bucket_bounds, v)) {
+		if (BLI_rctf_isect_pt_v(&bucket_bounds, v)) {
 			return 1;
 		}
 	} while (fidx--);
@@ -4545,15 +4549,15 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 
 		/* temporarily add float rect for cloning */
 		if (s->canvas->rect_float && !s->clonecanvas->rect_float) {
-			int profile = IB_PROFILE_NONE;
+			short profile = IB_PROFILE_NONE;
 			
 			/* Don't want to color manage, but don't disturb existing profiles */
-			SWAP(int, s->clonecanvas->profile, profile);
+			SWAP(short, s->clonecanvas->profile, profile);
 
 			IMB_float_from_rect(s->clonecanvas);
 			s->clonefreefloat = 1;
 			
-			SWAP(int, s->clonecanvas->profile, profile);
+			SWAP(short, s->clonecanvas->profile, profile);
 		}
 		else if (!s->canvas->rect_float && !s->clonecanvas->rect)
 			IMB_rect_from_float(s->clonecanvas);

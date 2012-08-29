@@ -440,7 +440,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				/* TODO: handles? */
 				/* TODO: uw? */
 
-				if (BLI_in_rctf_v(&rectf, point_deform->bezt.vec[1])) {
+				if (BLI_rctf_isect_pt_v(&rectf, point_deform->bezt.vec[1])) {
 					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
 					BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
 				}
@@ -525,7 +525,7 @@ static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short
 				                           point_deform->bezt.vec[1][0], point_deform->bezt.vec[1][1],
 				                           &screen_co[0], &screen_co[1]);
 
-				if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
+				if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], INT_MAX))
 				{
 					BKE_mask_point_select_set(point, select);

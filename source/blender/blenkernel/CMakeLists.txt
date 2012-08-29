@@ -103,7 +103,7 @@ set(SRC
 	intern/lattice.c
 	intern/library.c
 	intern/linestyle.c
-	intern/mask_rasterize.c
+	intern/mask_evaluate.c	intern/mask_rasterize.c
 	intern/mask.c
 	intern/material.c
 	intern/mball.c
@@ -130,6 +130,7 @@ set(SRC
 	intern/script.c
 	intern/seqcache.c
 	intern/seqeffects.c
+	intern/seqmodifier.c
 	intern/sequencer.c
 	intern/shrinkwrap.c
 	intern/sketch.c

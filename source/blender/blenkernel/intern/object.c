@@ -1524,7 +1524,7 @@ void BKE_object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 			/* end drot correction */
 
 			if (use_compat) mat3_to_compatible_eulO(ob->rot, ob->rot, ob->rotmode, tmat);
-			else mat3_to_eulO(ob->rot, ob->rotmode, tmat);
+			else            mat3_to_eulO(ob->rot, ob->rotmode, tmat);
 		}
 	}
 }

@@ -46,7 +46,7 @@ static bNodeSocketTemplate sh_node_tex_musgrave_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexMusgrave *tex = MEM_callocN(sizeof(NodeTexMusgrave), "NodeTexMusgrave");
 	default_tex_mapping(&tex->base.tex_mapping);

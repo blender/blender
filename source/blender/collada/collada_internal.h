@@ -59,7 +59,7 @@ public:
 	// Initialize with Z_UP, since Blender uses right-handed, z-up
 	UnitConverter();
 
-	void read_asset(const COLLADAFW::FileInfo* asset);
+	void read_asset(const COLLADAFW::FileInfo *asset);
 
 	void convertVector3(COLLADABU::Math::Vector3 &vec, float *v);
 	

@@ -382,8 +382,6 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		/* assume automated tasks with background, don't write recent file list */
 		const int do_history = (G.background == FALSE) && (CTX_wm_manager(C)->op_undo_depth == 0);
 
-		BKE_vfont_free_global_ttf();
-
 		/* put aside screens to match with persistent windows later */
 		/* also exit screens and editors */
 		wm_window_match_init(C, &wmbase); 
@@ -493,9 +491,7 @@ int WM_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 	ListBase wmbase;
 	char tstr[FILE_MAX];
 	int success = 0;
-	
-	BKE_vfont_free_global_ttf();
-		
+
 	G.relbase_valid = 0;
 	if (!from_memory) {
 		char *cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);

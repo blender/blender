@@ -428,7 +428,7 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 	y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
 	y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
-	pixely = (v2d->cur.ymax - v2d->cur.ymin) / (v2d->mask.ymax - v2d->mask.ymin);
+	pixely = BLI_RCT_SIZE_Y(&v2d->cur) / BLI_RCT_SIZE_Y(&v2d->mask);
 	
 	if (pixely <= 0) return;  /* can happen when the view is split/resized */
 	
@@ -721,7 +721,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	
 	/* draw sound wave */
 	if (seq->type == SEQ_TYPE_SOUND_RAM) {
-		drawseqwave(scene, seq, x1, y1, x2, y2, (ar->v2d.cur.xmax - ar->v2d.cur.xmin) / ar->winx);
+		drawseqwave(scene, seq, x1, y1, x2, y2, BLI_RCT_SIZE_X(&ar->v2d.cur) / ar->winx);
 	}
 
 	/* draw lock */
@@ -811,6 +811,41 @@ static void UNUSED_FUNCTION(set_special_seq_update) (int val)
 	else special_seq_update = NULL;
 }
 
+ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int cfra, int frame_ofs)
+{
+	SeqRenderData context;
+	ImBuf *ibuf;
+	int rectx, recty;
+	float render_size = 0.0;
+	float proxy_size = 100.0;
+
+	render_size = sseq->render_size;
+	if (render_size == 0) {
+		render_size = scene->r.size;
+	}
+	else {
+		proxy_size = render_size;
+	}
+
+	if (render_size < 0) {
+		return NULL;
+	}
+
+	rectx = (render_size * (float)scene->r.xsch) / 100.0f + 0.5f;
+	recty = (render_size * (float)scene->r.ysch) / 100.0f + 0.5f;
+
+	context = BKE_sequencer_new_render_data(bmain, scene, rectx, recty, proxy_size);
+
+	if (special_seq_update)
+		ibuf = BKE_sequencer_give_ibuf_direct(context, cfra + frame_ofs, special_seq_update);
+	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {
+		ibuf = BKE_sequencer_give_ibuf(context, cfra + frame_ofs, sseq->chanshown);
+	else
+		ibuf = BKE_sequencer_give_ibuf_threaded(context, cfra + frame_ofs, sseq->chanshown);
+
+	return ibuf;
+}
+
 void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs, int draw_overlay)
 {
 	struct Main *bmain = CTX_data_main(C);
@@ -824,7 +859,6 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	float col[3];
 	GLuint texid;
 	GLuint last_texid;
-	SeqRenderData context;
 
 	render_size = sseq->render_size;
 	if (render_size == 0) {
@@ -865,14 +899,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if (G.is_rendering)
 		return;
 
-	context = BKE_sequencer_new_render_data(bmain, scene, rectx, recty, proxy_size);
-
-	if (special_seq_update)
-		ibuf = BKE_sequencer_give_ibuf_direct(context, cfra + frame_ofs, special_seq_update);
-	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {
-		ibuf = BKE_sequencer_give_ibuf(context, cfra + frame_ofs, sseq->chanshown);
-	else
-		ibuf = BKE_sequencer_give_ibuf_threaded(context, cfra + frame_ofs, sseq->chanshown);
+	ibuf = sequencer_ibuf_get(bmain, scene, sseq, cfra, frame_ofs);
 	
 	if (ibuf == NULL)
 		return;
@@ -929,10 +956,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if (draw_overlay) {
 		if (sseq->overlay_type == SEQ_DRAW_OVERLAY_RECT) {
 			rctf tot_clip;
-			tot_clip.xmin = v2d->tot.xmin + (ABS(v2d->tot.xmax - v2d->tot.xmin) * scene->ed->over_border.xmin);
-			tot_clip.ymin = v2d->tot.ymin + (ABS(v2d->tot.ymax - v2d->tot.ymin) * scene->ed->over_border.ymin);
-			tot_clip.xmax = v2d->tot.xmin + (ABS(v2d->tot.xmax - v2d->tot.xmin) * scene->ed->over_border.xmax);
-			tot_clip.ymax = v2d->tot.ymin + (ABS(v2d->tot.ymax - v2d->tot.ymin) * scene->ed->over_border.ymax);
+			tot_clip.xmin = v2d->tot.xmin + (ABS(BLI_RCT_SIZE_X(&v2d->tot)) * scene->ed->over_border.xmin);
+			tot_clip.ymin = v2d->tot.ymin + (ABS(BLI_RCT_SIZE_Y(&v2d->tot)) * scene->ed->over_border.ymin);
+			tot_clip.xmax = v2d->tot.xmin + (ABS(BLI_RCT_SIZE_X(&v2d->tot)) * scene->ed->over_border.xmax);
+			tot_clip.ymax = v2d->tot.ymin + (ABS(BLI_RCT_SIZE_Y(&v2d->tot)) * scene->ed->over_border.ymax);
 
 			glTexCoord2f(scene->ed->over_border.xmin, scene->ed->over_border.ymin); glVertex2f(tot_clip.xmin, tot_clip.ymin);
 			glTexCoord2f(scene->ed->over_border.xmin, scene->ed->over_border.ymax); glVertex2f(tot_clip.xmin, tot_clip.ymax);
@@ -1114,7 +1141,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	Sequence *last_seq = BKE_sequencer_active_get(scene);
 	int sel = 0, j;
-	float pixelx = (v2d->cur.xmax - v2d->cur.xmin) / (v2d->mask.xmax - v2d->mask.xmin);
+	float pixelx = BLI_RCT_SIZE_X(&v2d->cur) / BLI_RCT_SIZE_X(&v2d->mask);
 	
 	/* loop through twice, first unselected, then selected */
 	for (j = 0; j < 2; j++) {

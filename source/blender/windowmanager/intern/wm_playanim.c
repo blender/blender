@@ -49,11 +49,12 @@
 
 #include "PIL_time.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
+#include "BLI_path_util.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -65,22 +66,12 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#ifdef WITH_QUICKTIME
-#  ifdef _WIN32
-#    include <QTML.h>
-#    include <Movies.h>
-#  elif defined(__APPLE__)
-#    include <QuickTime/Movies.h>
-#  endif /* __APPLE__ */
-#endif /* WITH_QUICKTIME */
-
 #include "DNA_scene_types.h"
-#include "BLI_utildefines.h"
 #include "ED_datafiles.h" /* for fonts */
-#include "wm_event_types.h"
 #include "GHOST_C-api.h"
 #include "BLF_api.h"
 
+#include "wm_event_types.h"
 
 typedef struct PlayState {
 
@@ -708,12 +699,6 @@ void playanim_window_open(const char *title, int posx, int posy, int sizex, int 
 		inital_state = start_maximized ? GHOST_kWindowStateFullScreen : GHOST_kWindowStateNormal;
 	else
 		inital_state = start_maximized ? GHOST_kWindowStateMaximized : GHOST_kWindowStateNormal;
-#if defined(__APPLE__) && !defined(GHOST_COCOA)
-	{
-		extern int macPrefState; /* creator.c */
-		initial_state += macPrefState;
-	}
-#endif
 
 	g_WS.ghost_window = GHOST_CreateWindow(g_WS.ghost_system,
 	                              title,
@@ -826,26 +811,6 @@ void playanim(int argc, const char **argv)
 			break;
 		}
 	}
-
-#ifdef WITH_QUICKTIME
-#if defined(_WIN32) || defined(__APPLE__) && !defined(GHOST_COCOA)
-	/* Initialize QuickTime */
-#ifndef noErr
-#define noErr 0
-#endif
-
-#ifdef _WIN32
-	if (InitializeQTML(0) != noErr)
-		G.have_quicktime = FALSE;
-	else
-		G.have_quicktime = TRUE;
-#endif /* _WIN32 */
-	if (EnterMovies() != noErr)
-		G.have_quicktime = FALSE;
-	else
-#endif /* _WIN32 || __APPLE__  && !defined(GHOST_COCOA)*/
-	G.have_quicktime = TRUE;
-#endif /* WITH_QUICKTIME */
 
 	if (argc > 1) {
 		BLI_strncpy(filepath, argv[1], sizeof(filepath));
@@ -1098,16 +1063,6 @@ void playanim(int argc, const char **argv)
 
 		ps.picture = ps.picture->next;
 	}
-#ifdef WITH_QUICKTIME
-#if defined(_WIN32) || defined(__APPLE__) && !defined(GHOST_COCOA)
-	if (G.have_quicktime) {
-		ExitMovies();
-#ifdef _WIN32
-		TerminateQTML();
-#endif /* _WIN32 */
-	}
-#endif /* _WIN32 || __APPLE__ && !defined(GHOST_COCOA) */
-#endif /* WITH_QUICKTIME */
 
 	/* cleanup */
 #ifndef USE_IMB_CACHE

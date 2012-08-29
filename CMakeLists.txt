@@ -132,6 +132,7 @@ option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
 option(WITH_COMPOSITOR    "Enable the tile based nodal compositor" ON)
+option(WITH_COMPOSITOR_LEGACY "Enable legacy compositor" ON)
 
 # GHOST Windowing Library Options
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
@@ -1042,6 +1043,8 @@ elseif(WIN32)
 			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -lpthread")
 			
 			add_definitions(-DFREE_WINDOWS64 -DMS_WIN64)
+			#Turn off OpenMP since it causes crashes on render for subsurfed/multiresolution meshes
+			set(WITH_OPENMP OFF)
 		endif()
 
 		add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
@@ -1796,6 +1799,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_GAMEENGINE)
 	info_cfg_option(WITH_PLAYER)
 	info_cfg_option(WITH_BULLET)
+	info_cfg_option(WITH_IK_SOLVER)
 	info_cfg_option(WITH_IK_ITASC)
 	info_cfg_option(WITH_OPENCOLLADA)
 	info_cfg_option(WITH_FFTW3)

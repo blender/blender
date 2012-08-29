@@ -354,7 +354,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	xpos = marker->frame;
 	
 	/* no time correction for framelen! space is drawn with old values */
-	ypixels = v2d->mask.ymax - v2d->mask.ymin;
+	ypixels = BLI_RCT_SIZE_Y(&v2d->mask);
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	
 	glScalef(1.0f / xscale, 1.0f, 1.0f);
@@ -773,8 +773,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			if (hasNumInput(&mm->num))
 				break;
 			
-			dx = v2d->mask.xmax - v2d->mask.xmin;
-			dx = (v2d->cur.xmax - v2d->cur.xmin) / dx;
+			dx = BLI_RCT_SIZE_X(&v2d->cur) / BLI_RCT_SIZE_X(&v2d->mask);
 			
 			if (evt->x != mm->evtx) {   /* XXX maybe init for first time */
 				int a, offs, totmark = 0;

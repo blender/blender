@@ -139,7 +139,7 @@ this object
 			default:
 				{
 					ret =  new CErrorValue(val->GetText() + op2str(op) +
-						"[operator not allowed on booleans]");
+					                       "[operator not allowed on booleans]");
 					break;
 				}
 			}

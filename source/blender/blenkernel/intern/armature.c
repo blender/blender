@@ -1463,7 +1463,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3])
 	 *
 	 * was 0.0000000000001, caused bug [#31333], smaller values give unstable
 	 * roll when toggling editmode again...
-	 * No good value here, trying 0.000000001 as best compromize. :/
+	 * No good value here, trying 0.000000001 as best compromise. :/
 	 */
 	if (dot_v3v3(axis, axis) > 1.0e-9f) {
 		/* if nor is *not* a multiple of target ... */

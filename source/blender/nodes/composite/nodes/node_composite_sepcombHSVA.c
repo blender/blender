@@ -46,6 +46,8 @@ static bNodeSocketTemplate cmp_node_sephsva_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_sephsva(bNode *UNUSED(node), float *out, float *in)
 {
 	float h, s, v;
@@ -99,6 +101,8 @@ static void node_composit_exec_sephsva(void *UNUSED(data), bNode *node, bNodeSta
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_sephsva(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -106,7 +110,9 @@ void register_node_type_cmp_sephsva(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_sephsva_in, cmp_node_sephsva_out);
 	node_type_size(&ntype, 80, 40, 140);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_sephsva);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }
@@ -124,6 +130,8 @@ static bNodeSocketTemplate cmp_node_combhsva_out[]= {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static void do_comb_hsva(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
@@ -168,6 +176,8 @@ static void node_composit_exec_combhsva(void *UNUSED(data), bNode *node, bNodeSt
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_combhsva(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -175,7 +185,9 @@ void register_node_type_cmp_combhsva(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_combhsva_in, cmp_node_combhsva_out);
 	node_type_size(&ntype, 80, 40, 140);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_combhsva);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -158,7 +158,7 @@ struct uiBut {
 	char strdata[UI_MAX_NAME_STR];
 	char drawstr[UI_MAX_DRAW_STR];
 	
-	float x1, y1, x2, y2;
+	rctf rect;
 
 	char *poin;
 	float hardmin, hardmax, softmin, softmax;
@@ -264,8 +264,8 @@ struct uiBlock {
 	char name[UI_MAX_NAME_STR];
 	
 	float winmat[4][4];
-	
-	float minx, miny, maxx, maxy;
+
+	rctf rect;
 	float aspect;
 
 	int puphash;  /* popup menu hash for memory */
@@ -303,27 +303,27 @@ struct uiBlock {
 	const char *lockstr;
 
 	char lock;
-	char active;                // to keep blocks while drawing and free them afterwards
-	char tooltipdisabled;       // to avoid tooltip after click
-	char endblock;              // uiEndBlock done?
-	
-	float xofs, yofs;           // offset to parent button
-	int dobounds, mx, my;       // for doing delayed
-	int bounds, minbounds;      // for doing delayed
+	char active;                /* to keep blocks while drawing and free them afterwards */
+	char tooltipdisabled;       /* to avoid tooltip after click */
+	char endblock;              /* uiEndBlock done? */
 
-	rctf safety;                // pulldowns, to detect outside, can differ per case how it is created
-	ListBase saferct;           // uiSafetyRct list
+	float xofs, yofs;           /* offset to parent button */
+	int dobounds, mx, my;       /* for doing delayed */
+	int bounds, minbounds;      /* for doing delayed */
 
-	uiPopupBlockHandle *handle; // handle
+	rctf safety;                /* pulldowns, to detect outside, can differ per case how it is created */
+	ListBase saferct;           /* uiSafetyRct list */
 
-	struct wmOperator *ui_operator; // use so presets can find the operator,
-	                               // across menus and from nested popups which fail for operator context.
+	uiPopupBlockHandle *handle; /* handle */
 
-	void *evil_C;               // XXX hack for dynamic operator enums
+	struct wmOperator *ui_operator; /* use so presets can find the operator, */
+	                                /* across menus and from nested popups which fail for operator context. */
 
-	struct UnitSettings *unit;  // unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.
-	float _hsv[3];              // XXX, only access via ui_block_hsv_get()
-	char color_profile;         // color profile for correcting linear colors for display
+	void *evil_C;               /* XXX hack for dynamic operator enums */
+
+	struct UnitSettings *unit;  /* unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time. */
+	float _hsv[3];              /* XXX, only access via ui_block_hsv_get() */
+	char color_profile;         /* color profile for correcting linear colors for display */
 };
 
 typedef struct uiSafetyRct {

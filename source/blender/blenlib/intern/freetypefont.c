@@ -293,19 +293,12 @@ static int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 {
 	/* Freetype2 */
 	FT_Face face;
-	struct TmpFont *tf;
-
-	/* Find the correct FreeType font */
-	tf = BKE_vfont_tmpfont_find(vfont);
-
-	/* What, no font found. Something strange here */
-	if (!tf) return FALSE;
 
 	/* Load the font to memory */
-	if (tf->pf) {
+	if (vfont->temp_pf) {
 		err = FT_New_Memory_Face(library,
-		                         tf->pf->data,
-		                         tf->pf->size,
+		                         vfont->temp_pf->data,
+		                         vfont->temp_pf->size,
 		                         0,
 		                         &face);
 		if (err) return FALSE;

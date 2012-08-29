@@ -96,7 +96,7 @@ public:
 protected:
 	const ExportSettings *export_settings;
 
-	void dae_animation(Object* ob, FCurve *fcu, char* transformName, bool is_param, Material *ma = NULL);
+	void dae_animation(Object *ob, FCurve *fcu, char *transformName, bool is_param, Material *ma = NULL);
 
 	void write_bone_animation_matrix(Object *ob_arm, Bone *bone);
 
@@ -161,7 +161,7 @@ protected:
 	
 	bool hasAnimations(Scene *sce);
 	
-	char* extract_transform_name(char *rna_path);
+	char *extract_transform_name(char *rna_path);
 
 	std::string getObjectBoneName(Object *ob, const FCurve * fcu);
 };

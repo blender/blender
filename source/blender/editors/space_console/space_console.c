@@ -142,7 +142,7 @@ static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	/* always keep the bottom part of the view aligned, less annoying */
 	if (prev_y_min != ar->v2d.cur.ymin) {
-		const float cur_y_range = ar->v2d.cur.ymax - ar->v2d.cur.ymin;
+		const float cur_y_range = BLI_RCT_SIZE_Y(&ar->v2d.cur);
 		ar->v2d.cur.ymin = prev_y_min;
 		ar->v2d.cur.ymax = prev_y_min + cur_y_range;
 	}
@@ -326,6 +326,7 @@ static void console_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* python operator - space_text.py */
 #endif
 
+	WM_keymap_add_item(keymap, "CONSOLE_OT_copy_as_script", CKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 #ifdef __APPLE__

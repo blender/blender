@@ -33,6 +33,7 @@ GaussianAlphaXBlurOperation::GaussianAlphaXBlurOperation() : BlurBaseOperation(C
 {
 	this->m_gausstab = NULL;
 	this->m_rad = 0;
+	this->m_falloff = -1;  /* intentionally invalid, so we can detect uninitialized values */
 }
 
 void *GaussianAlphaXBlurOperation::initializeTileData(rcti *rect)

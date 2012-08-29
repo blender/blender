@@ -19,32 +19,37 @@
  *		Dalai Felinto
  */
 
-#include "COM_DistanceMatteOperation.h"
+#include "COM_DistanceRGBMatteOperation.h"
 #include "BLI_math.h"
 
-DistanceMatteOperation::DistanceMatteOperation() : NodeOperation()
+DistanceRGBMatteOperation::DistanceRGBMatteOperation() : NodeOperation()
 {
-	addInputSocket(COM_DT_COLOR);
-	addInputSocket(COM_DT_COLOR);
-	addOutputSocket(COM_DT_VALUE);
+	this->addInputSocket(COM_DT_COLOR);
+	this->addInputSocket(COM_DT_COLOR);
+	this->addOutputSocket(COM_DT_VALUE);
 
 	this->m_inputImageProgram = NULL;
 	this->m_inputKeyProgram = NULL;
 }
 
-void DistanceMatteOperation::initExecution()
+void DistanceRGBMatteOperation::initExecution()
 {
 	this->m_inputImageProgram = this->getInputSocketReader(0);
 	this->m_inputKeyProgram = this->getInputSocketReader(1);
 }
 
-void DistanceMatteOperation::deinitExecution()
+void DistanceRGBMatteOperation::deinitExecution()
 {
 	this->m_inputImageProgram = NULL;
 	this->m_inputKeyProgram = NULL;
 }
 
-void DistanceMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+float DistanceRGBMatteOperation::calculateDistance(float key[4], float image[4])
+{
+	return len_v3v3(key, image);
+}
+
+void DistanceRGBMatteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inKey[4];
 	float inImage[4];
@@ -58,9 +63,7 @@ void DistanceMatteOperation::executePixel(float output[4], float x, float y, Pix
 	this->m_inputKeyProgram->read(inKey, x, y, sampler);
 	this->m_inputImageProgram->read(inImage, x, y, sampler);
 	
-	distance = sqrt(pow((inKey[0] - inImage[0]), 2) +
-	                pow((inKey[1] - inImage[1]), 2) +
-	                pow((inKey[2] - inImage[2]), 2));
+	distance = this->calculateDistance(inKey, inImage);
 
 	/* store matte(alpha) value in [0] to go with
 	 * COM_SetAlphaOperation and the Value output
@@ -87,4 +90,3 @@ void DistanceMatteOperation::executePixel(float output[4], float x, float y, Pix
 		output[0] = inImage[3];
 	}
 }
-

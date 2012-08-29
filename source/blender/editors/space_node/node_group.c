@@ -421,10 +421,11 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		node->new_node = NULL;
 
 	/* wgroup is a temporary copy of the NodeTree we're merging in
-	 *	- all of wgroup's nodes are transferred across to their new home
-	 *	- ngroup (i.e. the source NodeTree) is left unscathed
+	 * - all of wgroup's nodes are transferred across to their new home
+	 * - ngroup (i.e. the source NodeTree) is left unscathed
+	 * - temp copy. don't change ID usercount
 	 */
-	wgroup = ntreeCopyTree(ngroup);
+	wgroup = ntreeCopyTree_ex(ngroup, FALSE);
 
 	/* add the nodes into the ntree */
 	for (node = wgroup->nodes.first; node; node = nextn) {

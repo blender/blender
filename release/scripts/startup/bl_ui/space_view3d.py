@@ -1182,7 +1182,7 @@ class VIEW3D_MT_hook(Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
         layout.operator("object.hook_add_newob")
-        layout.operator("object.hook_add_selob")
+        layout.operator("object.hook_add_selob").use_bone = False
         layout.operator("object.hook_add_selob", text="Hook to Selected Object Bone").use_bone = True
 
         if [mod.type == 'HOOK' for mod in context.active_object.modifiers]:

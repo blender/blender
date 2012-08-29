@@ -39,7 +39,7 @@ static bNodeSocketTemplate sh_node_tex_environment_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexEnvironment *tex = MEM_callocN(sizeof(NodeTexEnvironment), "NodeTexEnvironment");
 	default_tex_mapping(&tex->base.tex_mapping);

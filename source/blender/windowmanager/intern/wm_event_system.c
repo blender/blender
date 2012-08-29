@@ -922,7 +922,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 					ScrArea *sa = CTX_wm_area(C);
 
 					if (ar && ar->regiontype == RGN_TYPE_WINDOW && event &&
-					    BLI_in_rcti_v(&ar->winrct, &event->x))
+					    BLI_rcti_isect_pt_v(&ar->winrct, &event->x))
 					{
 						winrect = &ar->winrct;
 					}
@@ -1642,17 +1642,17 @@ static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 			rcti rect = *handler->bblocal;
 			BLI_rcti_translate(&rect, handler->bbwin->xmin, handler->bbwin->ymin);
 
-			if (BLI_in_rcti_v(&rect, &event->x))
+			if (BLI_rcti_isect_pt_v(&rect, &event->x))
 				return 1;
-			else if (event->type == MOUSEMOVE && BLI_in_rcti_v(&rect, &event->prevx))
+			else if (event->type == MOUSEMOVE && BLI_rcti_isect_pt_v(&rect, &event->prevx))
 				return 1;
 			else
 				return 0;
 		}
 		else {
-			if (BLI_in_rcti_v(handler->bbwin, &event->x))
+			if (BLI_rcti_isect_pt_v(handler->bbwin, &event->x))
 				return 1;
-			else if (event->type == MOUSEMOVE && BLI_in_rcti_v(handler->bbwin, &event->prevx))
+			else if (event->type == MOUSEMOVE && BLI_rcti_isect_pt_v(handler->bbwin, &event->prevx))
 				return 1;
 			else
 				return 0;
@@ -1888,10 +1888,10 @@ static int wm_event_inside_i(wmEvent *event, rcti *rect)
 {
 	if (wm_event_always_pass(event))
 		return 1;
-	if (BLI_in_rcti_v(rect, &event->x))
+	if (BLI_rcti_isect_pt_v(rect, &event->x))
 		return 1;
 	if (event->type == MOUSEMOVE) {
-		if (BLI_in_rcti_v(rect, &event->prevx)) {
+		if (BLI_rcti_isect_pt_v(rect, &event->prevx)) {
 			return 1;
 		}
 		return 0;
@@ -1906,7 +1906,7 @@ static ScrArea *area_event_inside(bContext *C, const int xy[2])
 	
 	if (screen)
 		for (sa = screen->areabase.first; sa; sa = sa->next)
-			if (BLI_in_rcti_v(&sa->totrct, xy))
+			if (BLI_rcti_isect_pt_v(&sa->totrct, xy))
 				return sa;
 	return NULL;
 }
@@ -1919,7 +1919,7 @@ static ARegion *region_event_inside(bContext *C, const int xy[2])
 	
 	if (screen && area)
 		for (ar = area->regionbase.first; ar; ar = ar->next)
-			if (BLI_in_rcti_v(&ar->winrct, xy))
+			if (BLI_rcti_isect_pt_v(&ar->winrct, xy))
 				return ar;
 	return NULL;
 }
@@ -1950,7 +1950,7 @@ static void wm_paintcursor_test(bContext *C, wmEvent *event)
 			wm_paintcursor_tag(C, wm->paintcursors.first, ar);
 		
 		/* if previous position was not in current region, we have to set a temp new context */
-		if (ar == NULL || !BLI_in_rcti_v(&ar->winrct, &event->prevx)) {
+		if (ar == NULL || !BLI_rcti_isect_pt_v(&ar->winrct, &event->prevx)) {
 			ScrArea *sa = CTX_wm_area(C);
 			
 			CTX_wm_area_set(C, area_event_inside(C, &event->prevx));
@@ -2125,7 +2125,7 @@ void wm_event_do_handlers(bContext *C)
 									if (CTX_wm_window(C) == NULL)
 										return;
 
-									doit |= (BLI_in_rcti_v(&ar->winrct, &event->x));
+									doit |= (BLI_rcti_isect_pt_v(&ar->winrct, &event->x));
 									
 									if (action & WM_HANDLER_BREAK)
 										break;
@@ -2617,12 +2617,13 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 	wmNDOFMotionData *data = MEM_mallocN(sizeof(wmNDOFMotionData), "customdata NDOF");
 
 	const float s = U.ndof_sensitivity;
+	const float rs = U.ndof_orbit_sensitivity;
 
 	data->tx = s * ghost->tx;
 
-	data->rx = s * ghost->rx;
-	data->ry = s * ghost->ry;
-	data->rz = s * ghost->rz;
+	data->rx = rs * ghost->rx;
+	data->ry = rs * ghost->ry;
+	data->rz = rs * ghost->rz;
 
 	if (U.ndof_flag & NDOF_ZOOM_UPDOWN) {
 		/* rotate so Y is where Z was */

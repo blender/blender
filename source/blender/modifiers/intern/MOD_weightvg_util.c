@@ -73,6 +73,10 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
 		return;
 	}
 
+	if (cmap && falloff_type == MOD_WVG_MAPPING_CURVE) {
+		curvemapping_initialize(cmap);
+	}
+
 	/* Map each weight (vertex) to its new value, accordingly to the chosen mode. */
 	for (i = 0; i < num; ++i) {
 		float fac = new_w[i];

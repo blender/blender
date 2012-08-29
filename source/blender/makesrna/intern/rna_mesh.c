@@ -1393,6 +1393,46 @@ static PointerRNA rna_Mesh_tessface_uv_texture_new(struct Mesh *me, struct bCont
 	return ptr;
 }
 
+/* only to quiet warnings */
+static void UNUSED_FUNCTION(rna_mesh_unused)(void)
+{
+	/* unused functions made by macros */
+	(void)rna_Mesh_skin_vertice_index_range;
+	(void)rna_Mesh_tessface_uv_texture_active_set;
+	(void)rna_Mesh_tessface_uv_texture_clone_get;
+	(void)rna_Mesh_tessface_uv_texture_clone_index_get;
+	(void)rna_Mesh_tessface_uv_texture_clone_index_set;
+	(void)rna_Mesh_tessface_uv_texture_clone_set;
+	(void)rna_Mesh_tessface_uv_texture_index_range;
+	(void)rna_Mesh_tessface_uv_texture_render_get;
+	(void)rna_Mesh_tessface_uv_texture_render_index_get;
+	(void)rna_Mesh_tessface_uv_texture_render_index_set;
+	(void)rna_Mesh_tessface_uv_texture_render_set;
+	(void)rna_Mesh_tessface_uv_texture_stencil_get;
+	(void)rna_Mesh_tessface_uv_texture_stencil_index_get;
+	(void)rna_Mesh_tessface_uv_texture_stencil_index_set;
+	(void)rna_Mesh_tessface_uv_texture_stencil_set;
+	(void)rna_Mesh_tessface_vertex_color_active_set;
+	(void)rna_Mesh_tessface_vertex_color_index_range;
+	(void)rna_Mesh_tessface_vertex_color_render_get;
+	(void)rna_Mesh_tessface_vertex_color_render_index_get;
+	(void)rna_Mesh_tessface_vertex_color_render_index_set;
+	(void)rna_Mesh_tessface_vertex_color_render_set;
+	(void)rna_Mesh_uv_layer_render_get;
+	(void)rna_Mesh_uv_layer_render_index_get;
+	(void)rna_Mesh_uv_layer_render_index_set;
+	(void)rna_Mesh_uv_layer_render_set;
+	(void)rna_Mesh_uv_texture_render_get;
+	(void)rna_Mesh_uv_texture_render_index_get;
+	(void)rna_Mesh_uv_texture_render_index_set;
+	(void)rna_Mesh_uv_texture_render_set;
+	(void)rna_Mesh_vertex_color_render_get;
+	(void)rna_Mesh_vertex_color_render_index_get;
+	(void)rna_Mesh_vertex_color_render_index_set;
+	(void)rna_Mesh_vertex_color_render_set;
+	/* end unused function block */
+}
+
 #else
 
 static void rna_def_mvert_group(BlenderRNA *brna)
@@ -3028,4 +3068,3 @@ void RNA_def_mesh(BlenderRNA *brna)
 }
 
 #endif
-

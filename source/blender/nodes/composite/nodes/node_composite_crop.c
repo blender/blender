@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_crop_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if (in[0]->data) {
@@ -101,7 +103,9 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 	}
 }
 
-static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTwoXYs *nxy= MEM_callocN(sizeof(NodeTwoXYs), "node xy data");
 	node->storage= nxy;
@@ -120,7 +124,9 @@ void register_node_type_cmp_crop(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_crop);
 	node_type_storage(&ntype, "NodeTwoXYs", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_crop);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -1703,7 +1703,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 	if (!shi->osatex && (tex->type == TEX_IMAGE) && tex->ima) {
 		/* in case we have no proper derivatives, fall back to
 		 * computing du/dv it based on image size */
-		ImBuf* ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
+		ImBuf *ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
 		if (ibuf) {
 			du = 1.f/(float)ibuf->x;
 			dv = 1.f/(float)ibuf->y;
@@ -1878,7 +1878,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 	/* resolve image dimensions */
 	if (found_deriv_map || (mtex->texflag&MTEX_BUMP_TEXTURESPACE)!=0) {
-		ImBuf* ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
+		ImBuf *ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
 		if (ibuf) {
 			dimx = ibuf->x;
 			dimy = ibuf->y;

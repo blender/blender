@@ -36,7 +36,7 @@ static bNodeSocketTemplate sh_node_attribute_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeShaderAttribute *attr = MEM_callocN(sizeof(NodeShaderAttribute), "NodeShaderAttribute");
 	node->storage = attr;

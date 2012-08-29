@@ -59,6 +59,7 @@ set(SRC
 	composite/nodes/node_composite_composite.c
 	composite/nodes/node_composite_crop.c
 	composite/nodes/node_composite_curves.c
+	composite/nodes/node_composite_despeckle.c
 	composite/nodes/node_composite_doubleEdgeMask.c
 	composite/nodes/node_composite_defocus.c
 	composite/nodes/node_composite_diffMatte.c
@@ -249,6 +250,10 @@ if(WITH_COMPOSITOR)
 		../compositor
 	)
 	add_definitions(-DWITH_COMPOSITOR)
+endif()
+
+if(WITH_COMPOSITOR_LEGACY)
+	add_definitions(-DWITH_COMPOSITOR_LEGACY)
 endif()
 
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}")

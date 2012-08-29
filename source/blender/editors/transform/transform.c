@@ -125,11 +125,11 @@ static void convertViewVec2D(View2D *v2d, float r_vec[3], int dx, int dy)
 {
 	float divx, divy;
 	
-	divx = v2d->mask.xmax - v2d->mask.xmin;
-	divy = v2d->mask.ymax - v2d->mask.ymin;
+	divx = BLI_RCT_SIZE_X(&v2d->mask);
+	divy = BLI_RCT_SIZE_Y(&v2d->mask);
 
-	r_vec[0] = (v2d->cur.xmax - v2d->cur.xmin) * dx / divx;
-	r_vec[1] = (v2d->cur.ymax - v2d->cur.ymin) * dy / divy;
+	r_vec[0] = BLI_RCT_SIZE_X(&v2d->cur) * dx / divx;
+	r_vec[1] = BLI_RCT_SIZE_Y(&v2d->cur) * dy / divy;
 	r_vec[2] = 0.0f;
 }
 
@@ -138,11 +138,11 @@ static void convertViewVec2D_mask(View2D *v2d, float r_vec[3], int dx, int dy)
 	float divx, divy;
 	float mulx, muly;
 
-	divx = v2d->mask.xmax - v2d->mask.xmin;
-	divy = v2d->mask.ymax - v2d->mask.ymin;
+	divx = BLI_RCT_SIZE_X(&v2d->mask);
+	divy = BLI_RCT_SIZE_Y(&v2d->mask);
 
-	mulx = (v2d->cur.xmax - v2d->cur.xmin);
-	muly = (v2d->cur.ymax - v2d->cur.ymin);
+	mulx = BLI_RCT_SIZE_X(&v2d->cur);
+	muly = BLI_RCT_SIZE_Y(&v2d->cur);
 
 	/* difference with convertViewVec2D */
 	/* clamp w/h, mask only */
@@ -207,6 +207,11 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		else if (t->options & CTX_MASK) {
 			/* TODO - NOT WORKING, this isnt so bad since its only display aspect */
 			ED_space_clip_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
+		}
+		else {
+			/* should never happen, quiet warnings */
+			BLI_assert(0);
+			aspx = aspy = 1.0f;
 		}
 
 		r_vec[0] *= aspx;
@@ -4978,7 +4983,9 @@ static int createSlideVerts(TransInfo *t)
 					/* This test is only relevant if object is not wire-drawn! See [#32068]. */
 					if (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE &&
 					    !BMBVH_EdgeVisible(btree, e2, ar, v3d, t->obedit))
+					{
 						continue;
+					}
 
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 

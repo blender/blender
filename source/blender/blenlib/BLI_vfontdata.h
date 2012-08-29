@@ -39,14 +39,8 @@
 struct PackedFile;
 struct VFont;
 
-#define MAX_VF_CHARS 256
-
 typedef struct VFontData {
 	ListBase characters;
-	// ListBase nurbsbase[MAX_VF_CHARS];
-	// float	    resol[MAX_VF_CHARS];
-	// float	    width[MAX_VF_CHARS];
-	// float	    *points[MAX_VF_CHARS];
 	char name[128];
 } VFontData;
 
@@ -58,12 +52,6 @@ typedef struct VChar {
 	float width;
 	float           *points;
 } VChar;
-
-struct TmpFont {
-	struct TmpFont *next, *prev;
-	struct PackedFile *pf;
-	struct VFont *vfont;
-};
 
 /**
  * Construct a new VFontData structure from 

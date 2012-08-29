@@ -380,9 +380,17 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
 		if (BM_edge_is_wire(e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
+			BMVert *v1 = e->v1, *v2 = e->v2;
+
 			/* The original edge was excluded,
 			 * this would result in a standalone wire edge - see [#30399] */
 			BM_edge_kill(bm, e);
+
+			/* kill standalone vertices from this edge - see [#32341] */
+			if (!v1->e)
+				BM_vert_kill(bm, v1);
+			if (!v2->e)
+				BM_vert_kill(bm, v1);
 
 			continue;
 		}

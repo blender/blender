@@ -1192,6 +1192,7 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 						visifac*= lar->distkw/(lar->distkw+lar->ld2*dist[0]*dist[0]);
 					break;
 				case LA_FALLOFF_CURVE:
+					/* curvemapping_initialize is called from #add_render_lamp */
 					visifac = curvemapping_evaluateF(lar->curfalloff, 0, dist[0]/lar->dist);
 					break;
 			}

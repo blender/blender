@@ -421,7 +421,7 @@ void BKE_brush_curve_preset(Brush *b, /*CurveMappingPreset*/ int preset)
 
 	b->curve->preset = preset;
 	curvemap_reset(cm, &b->curve->clipr, b->curve->preset, CURVEMAP_SLOPE_NEGATIVE);
-	curvemapping_changed(b->curve, 0);
+	curvemapping_changed(b->curve, FALSE);
 }
 
 int BKE_brush_texture_set_nr(Brush *brush, int nr)
@@ -1253,7 +1253,9 @@ float BKE_brush_curve_strength_clamp(Brush *br, float p, const float len)
 	if (p >= len) return 0;
 	else p = p / len;
 
+	curvemapping_initialize(br->curve);
 	p = curvemapping_evaluateF(br->curve, 0, p);
+
 	if (p < 0.0f) p = 0.0f;
 	else if (p > 1.0f) p = 1.0f;
 	return p;
@@ -1267,6 +1269,7 @@ float BKE_brush_curve_strength(Brush *br, float p, const float len)
 	else
 		p = p / len;
 
+	curvemapping_initialize(br->curve);
 	return curvemapping_evaluateF(br->curve, 0, p);
 }
 

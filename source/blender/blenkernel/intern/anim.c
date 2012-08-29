@@ -282,7 +282,7 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 
 /* ........ */
 
-/* Note on evaluation optimisations:
+/* Note on evaluation optimizations:
  * Optimisations currently used here play tricks with the depsgraph in order to try and 
  * evaluate as few objects as strictly necessary to get nicer performance under standard
  * production conditions. For those people who really need the accurate version, 
@@ -323,7 +323,7 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 /* update scene for current frame */
 static void motionpaths_calc_update_scene(Scene *scene)
 {
-#if 1 // 'production' optimisations always on
+#if 1 // 'production' optimizations always on
 	Base *base, *last = NULL;
 	
 	/* only stuff that moves or needs display still */
@@ -431,7 +431,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	if (efra <= sfra) return;
 	
 	/* optimize the depsgraph for faster updates */
-	/* TODO: whether this is used should depend on some setting for the level of optimisations used */
+	/* TODO: whether this is used should depend on some setting for the level of optimizations used */
 	motionpaths_calc_optimise_depsgraph(scene, targets);
 	
 	/* calculate path over requested range */
@@ -1279,9 +1279,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			if (part->dup_group == NULL || part->dup_group->gobject.first == NULL)
 				return;
 
-			for (go = part->dup_group->gobject.first; go; go = go->next)
-				if (go->ob == par)
-					return;
+			if (BLI_findptr(&part->dup_group->gobject, par, offsetof(GroupObject, ob))) {
+				return;
+			}
 		}
 
 		/* if we have a hair particle system, use the path cache */
@@ -1469,6 +1469,18 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					quat_to_mat4(obmat, q);
 					obmat[3][3] = 1.0f;
 					
+					/* add scaling if requested */
+					if ((part->draw & PART_DRAW_NO_SCALE_OB) == 0)
+						mult_m4_m4m4(obmat, obmat, size_mat);
+				}
+				else if (part->draw & PART_DRAW_NO_SCALE_OB) {
+					/* remove scaling */
+					float size_mat[4][4], original_size[3];
+
+					mat4_to_size(original_size, obmat);
+					size_to_mat4(size_mat, original_size);
+					invert_m4(size_mat);
+
 					mult_m4_m4m4(obmat, obmat, size_mat);
 				}
 				

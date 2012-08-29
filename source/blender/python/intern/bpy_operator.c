@@ -160,7 +160,9 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	
 	if (!PyArg_ParseTuple(args, "sO|O!si:_bpy.ops.call",
 	                      &opname, &context_dict, &PyDict_Type, &kw, &context_str, &is_undo))
+	{
 		return NULL;
+	}
 
 	ot = WM_operatortype_find(opname, TRUE);
 

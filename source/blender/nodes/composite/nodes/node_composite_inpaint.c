@@ -44,9 +44,14 @@ static bNodeSocketTemplate cmp_node_inpaint_out[] = {
 	{   -1, 0, ""   }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void node_composit_exec_inpaint(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
+	/* pass */
 }
+
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_inpaint(bNodeTreeType *ttype)
 {
@@ -55,7 +60,9 @@ void register_node_type_cmp_inpaint(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_INPAINT, "Inpaint", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_inpaint_in, cmp_node_inpaint_out);
 	node_type_size(&ntype, 130, 100, 320);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_inpaint);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

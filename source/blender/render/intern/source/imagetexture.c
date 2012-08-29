@@ -396,16 +396,16 @@ static float square_rctf(rctf *rf)
 {
 	float x, y;
 
-	x= rf->xmax- rf->xmin;
-	y= rf->ymax- rf->ymin;
-	return (x*y);
+	x = BLI_RCT_SIZE_X(rf);
+	y = BLI_RCT_SIZE_Y(rf);
+	return x * y;
 }
 
 static float clipx_rctf(rctf *rf, float x1, float x2)
 {
 	float size;
 
-	size= rf->xmax - rf->xmin;
+	size = BLI_RCT_SIZE_X(rf);
 
 	if (rf->xmin<x1) {
 		rf->xmin = x1;
@@ -418,7 +418,7 @@ static float clipx_rctf(rctf *rf, float x1, float x2)
 		return 0.0;
 	}
 	else if (size!=0.0f) {
-		return (rf->xmax - rf->xmin)/size;
+		return BLI_RCT_SIZE_X(rf) / size;
 	}
 	return 1.0;
 }
@@ -427,7 +427,7 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
 {
 	float size;
 
-	size= rf->ymax - rf->ymin;
+	size = BLI_RCT_SIZE_Y(rf);
 
 	if (rf->ymin<y1) {
 		rf->ymin = y1;
@@ -440,8 +440,8 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
 		rf->ymin = rf->ymax;
 		return 0.0;
 	}
-	else if (size!=0.0f) {
-		return (rf->ymax - rf->ymin)/size;
+	else if (size != 0.0f) {
+		return BLI_RCT_SIZE_Y(rf) / size;
 	}
 	return 1.0;
 
@@ -717,7 +717,7 @@ static int ibuf_get_color_clip_bilerp(float col[4], ImBuf *ibuf, float u, float 
 	return ibuf_get_color_clip(col, ibuf, (int)u, (int)v, extflag);
 }
 
-static void area_sample(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata_t* AFD)
+static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata_t *AFD)
 {
 	int xs, ys, clip = 0;
 	float tc[4], xsd, ysd, cw = 0.f;
@@ -839,7 +839,7 @@ static void imp2radangle(float A, float B, float C, float F, float* a, float* b,
 	}
 }
 
-static void ewa_eval(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata_t* AFD)
+static void ewa_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata_t *AFD)
 {
 	/* scaling dxt/dyt by full resolution can cause overflow because of huge A/B/C and esp. F values,
 	 * scaling by aspect ratio alone does the opposite, so try something in between instead... */
@@ -926,7 +926,7 @@ static void ewa_eval(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata_t*
 	texr->ta = texr->talpha ? texr->ta*d : 1.f; /* TXF alpha (clip ? cw*d : 1.f); */
 }
 
-static void feline_eval(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata_t* AFD)
+static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata_t *AFD)
 {
 	const int maxn = AFD->iProbes - 1;
 	const float ll = ((AFD->majrad == AFD->minrad) ? 2.f*AFD->majrad : 2.f*(AFD->majrad - AFD->minrad)) / (maxn ? (float)maxn : 1.f);
@@ -1219,7 +1219,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 		ImBuf *previbuf, *curibuf;
 		float levf;
 		int maxlev;
-		ImBuf* mipmaps[IB_MIPMAP_LEVELS + 1];
+		ImBuf *mipmaps[IB_MIPMAP_LEVELS + 1];
 
 		/* modify ellipse minor axis if too eccentric, use for area sampling as well
 		 * scaling dxt/dyt as done in pbrt is not the same

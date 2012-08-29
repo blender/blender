@@ -117,12 +117,12 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	PyObject *list;
 
 	int absolute = FALSE;
-	int packed =   FALSE;
-	int local =    FALSE;
+	int packed   = FALSE;
+	int local    = FALSE;
 	static const char *kwlist[] = {"absolute", "packed", "local", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "|ii:blend_paths",
-	                                 (char **)kwlist, &absolute, &packed))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "|iii:blend_paths",
+	                                 (char **)kwlist, &absolute, &packed, &local))
 	{
 		return NULL;
 	}

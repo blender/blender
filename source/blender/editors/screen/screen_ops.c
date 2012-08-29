@@ -521,7 +521,7 @@ static ScrArea *screen_areahascursor(bScreen *scr, int x, int y)
 	ScrArea *sa = NULL;
 	sa = scr->areabase.first;
 	while (sa) {
-		if (BLI_in_rcti(&sa->totrct, x, y)) break;
+		if (BLI_rcti_isect_pt(&sa->totrct, x, y)) break;
 		sa = sa->next;
 	}
 	
@@ -540,7 +540,7 @@ static int actionzone_area_poll(bContext *C)
 		int y = win->eventstate->y;
 		
 		for (az = sa->actionzones.first; az; az = az->next)
-			if (BLI_in_rcti(&az->rect, x, y))
+			if (BLI_rcti_isect_pt(&az->rect, x, y))
 				return 1;
 	}	
 	return 0;
@@ -551,7 +551,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2])
 	AZone *az = NULL;
 	
 	for (az = sa->actionzones.first; az; az = az->next) {
-		if (BLI_in_rcti_v(&az->rect, xy)) {
+		if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
 			if (az->type == AZONE_AREA) {
 				/* no triangle intersect but a hotspot circle based on corner */
 				int radius = (xy[0] - az->x1) * (xy[0] - az->x1) + (xy[1] - az->y1) * (xy[1] - az->y1);
@@ -1612,10 +1612,10 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 	int dist;
 	
 	if (edge == AE_RIGHT_TO_TOPLEFT || edge == AE_LEFT_TO_TOPRIGHT) {
-		dist = sa->totrct.xmax - sa->totrct.xmin;
+		dist = BLI_RCT_SIZE_X(&sa->totrct);
 	}
 	else {  /* AE_BOTTOM_TO_TOPLEFT, AE_TOP_TO_BOTTOMRIGHT */
-		dist = sa->totrct.ymax - sa->totrct.ymin;
+		dist = BLI_RCT_SIZE_Y(&sa->totrct);
 	}
 	
 	/* subtractwidth of regions on opposite side 
@@ -2030,8 +2030,8 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 	ot->poll = ED_operator_screenactive_norender;
 	ot->flag = OPTYPE_UNDO;
 	
-	/* rna */
-	RNA_def_boolean(ot->srna, "next", 1, "Next Keyframe", "");
+	/* properties */
+	RNA_def_boolean(ot->srna, "next", TRUE, "Next Keyframe", "");
 }
 
 /* ************** switch screen operator ***************************** */

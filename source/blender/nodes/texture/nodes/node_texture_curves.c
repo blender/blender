@@ -49,6 +49,7 @@ static void time_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNU
 	if (node->custom1 < node->custom2)
 		fac = (p->cfra - node->custom1)/(float)(node->custom2-node->custom1);
 	
+	curvemapping_initialize(node->storage);
 	fac = curvemapping_evaluateF(node->storage, 0, fac);
 	out[0] = CLAMPIS(fac, 0.0f, 1.0f);
 }
@@ -59,7 +60,7 @@ static void time_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out
 }
 
 
-static void time_init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void time_init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom1= 1;
 	node->custom2= 250;
@@ -105,7 +106,7 @@ static void rgb_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	tex_output(node, in, out[0], &rgb_colorfn, data);
 }
 
-static void rgb_init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void rgb_init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }

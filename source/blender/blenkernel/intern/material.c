@@ -80,12 +80,18 @@ void init_def_material(void)
 /* not material itself */
 void BKE_material_free(Material *ma)
 {
+	BKE_material_free_ex(ma, TRUE);
+}
+
+/* not material itself */
+void BKE_material_free_ex(Material *ma, int do_id_user)
+{
 	MTex *mtex;
 	int a;
 	
 	for (a = 0; a < MAX_MTEX; a++) {
 		mtex = ma->mtex[a];
-		if (mtex && mtex->tex) mtex->tex->id.us--;
+		if (do_id_user && mtex && mtex->tex) mtex->tex->id.us--;
 		if (mtex) MEM_freeN(mtex);
 	}
 	
@@ -101,7 +107,7 @@ void BKE_material_free(Material *ma)
 	
 	/* is no lib link block, but material extension */
 	if (ma->nodetree) {
-		ntreeFreeTree(ma->nodetree);
+		ntreeFreeTree_ex(ma->nodetree, do_id_user);
 		MEM_freeN(ma->nodetree);
 	}
 
@@ -236,7 +242,7 @@ Material *BKE_material_copy(Material *ma)
 	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
 
 	if (ma->nodetree) {
-		man->nodetree = ntreeCopyTree(ma->nodetree); /* 0 == full new tree */
+		man->nodetree = ntreeCopyTree(ma->nodetree);
 	}
 
 	man->gpumaterial.first = man->gpumaterial.last = NULL;
@@ -808,7 +814,7 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 		*totcolp = act;
 	}
 
-	// Determine the object/mesh linking
+	/* Determine the object/mesh linking */
 	if (assign_type == BKE_MAT_ASSIGN_USERPREF && ob->totcol && ob->actcol) {
 		/* copy from previous material */
 		bit = ob->matbits[ob->actcol - 1];
@@ -1484,7 +1490,11 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 	}
 }
 
-/* copy/paste buffer, if we had a propper py api that would be better */
+/**
+ * \brief copy/paste buffer, if we had a propper py api that would be better
+ * \note matcopybuf.nodetree does _NOT_ use ID's
+ * \todo matcopybuf.nodetree's  node->id's are NOT validated, this will crash!
+ */
 static Material matcopybuf;
 static short matcopied = 0;
 
@@ -1512,7 +1522,7 @@ void free_matcopybuf(void)
 	matcopybuf.ramp_spec = NULL;
 
 	if (matcopybuf.nodetree) {
-		ntreeFreeTree(matcopybuf.nodetree);
+		ntreeFreeTree_ex(matcopybuf.nodetree, FALSE);
 		MEM_freeN(matcopybuf.nodetree);
 		matcopybuf.nodetree = NULL;
 	}
@@ -1538,7 +1548,7 @@ void copy_matcopybuf(Material *ma)
 			matcopybuf.mtex[a] = MEM_dupallocN(mtex);
 		}
 	}
-	matcopybuf.nodetree = ntreeCopyTree(ma->nodetree);
+	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, FALSE);
 	matcopybuf.preview = NULL;
 	matcopybuf.gpumaterial.first = matcopybuf.gpumaterial.last = NULL;
 	matcopied = 1;
@@ -1583,7 +1593,7 @@ void paste_matcopybuf(Material *ma)
 		}
 	}
 
-	ma->nodetree = ntreeCopyTree(matcopybuf.nodetree);
+	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, FALSE);
 }
 
 
@@ -1624,7 +1634,7 @@ static void decode_tfaceflag(Material *ma, int flag, int convertall)
 	/* flag is shifted in 1 to make 0 != no flag yet (see encode_tfaceflag) */
 	flag -= 1;
 
-	alphablend = flag >> 15; //encoded in the encode_tfaceflag function
+	alphablend = flag >> 15;  /* encoded in the encode_tfaceflag function */
 	(*game).flag = 0;
 	
 	/* General Material Options */
@@ -2024,8 +2034,7 @@ int do_version_tface(Main *main, int fileload)
 				nowarning = 0;
 			}
 			else
-				convert_tfacematerial(main, ma);
-			continue;	
+				convert_tfacematerial(main, ma);			continue;	
 		}
 	
 		/* no conflicts in this material - 90% of cases

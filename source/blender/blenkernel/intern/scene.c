@@ -155,7 +155,8 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
 
 		if (sce->nodetree) {
-			scen->nodetree = ntreeCopyTree(sce->nodetree); /* copies actions */
+			/* ID's are managed on both copy and switch */
+			scen->nodetree = ntreeCopyTree(sce->nodetree);
 			ntreeSwitchID(scen->nodetree, &sce->id, &scen->id);
 		}
 
@@ -557,14 +558,7 @@ Scene *BKE_scene_add(const char *name)
 
 Base *BKE_scene_base_find(Scene *scene, Object *ob)
 {
-	Base *base;
-	
-	base = scene->base.first;
-	while (base) {
-		if (base->object == ob) return base;
-		base = base->next;
-	}
-	return NULL;
+	return BLI_findptr(&scene->base, ob, offsetof(Base, object));
 }
 
 void BKE_scene_set_background(Main *bmain, Scene *scene)
@@ -589,10 +583,10 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 
 	/* group flags again */
 	for (group = bmain->group.first; group; group = group->id.next) {
-		go = group->gobject.first;
-		while (go) {
-			if (go->ob) go->ob->flag |= OB_FROMGROUP;
-			go = go->next;
+		for (go = group->gobject.first; go; go = go->next) {
+			if (go->ob) {
+				go->ob->flag |= OB_FROMGROUP;
+			}
 		}
 	}
 

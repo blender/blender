@@ -382,10 +382,10 @@ static void calctrackballvec(rcti *rect, int mx, int my, float vec[3])
 	radius = TRACKBALLSIZE;
 
 	/* normalize x and y */
-	x = (rect->xmax + rect->xmin) / 2 - mx;
-	x /= (float)((rect->xmax - rect->xmin) / 4);
-	y = (rect->ymax + rect->ymin) / 2 - my;
-	y /= (float)((rect->ymax - rect->ymin) / 2);
+	x = BLI_RCT_CENTER_X(rect) - mx;
+	x /= (float)(BLI_RCT_SIZE_X(rect) / 4);
+	y = BLI_RCT_CENTER_Y(rect) - my;
+	y /= (float)(BLI_RCT_SIZE_Y(rect) / 2);
 
 	d = sqrt(x * x + y * y);
 	if (d < radius * (float)M_SQRT1_2) { /* Inside sphere */
@@ -662,8 +662,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		if (vod->use_dyn_ofs) {
 			/* compute the post multiplication quat, to rotate the offset correctly */
-			copy_qt_qt(q1, vod->oldquat);
-			conjugate_qt(q1);
+			conjugate_qt_qt(q1, vod->oldquat);
 			mul_qt_qtqt(q1, q1, vod->viewquat);
 
 			conjugate_qt(q1); /* conj == inv for unit quat */
@@ -1022,9 +1021,10 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 
 			/* tune these until everything feels right */
 			const float rot_sensitivity = 1.f;
+#if 0
 			const float zoom_sensitivity = 1.f;
+#endif
 			const float pan_sensitivity = 1.f;
-
 			const int has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
 
 			float view_inv[4];
@@ -1035,20 +1035,6 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 			printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f delivered to 3D view\n",
 			       ndof->tx, ndof->ty, ndof->tz, ndof->rx, ndof->ry, ndof->rz, ndof->dt);
 			#endif
-
-			if (ndof->tz) {
-				/* Zoom!
-				 * velocity should be proportional to the linear velocity attained by rotational motion of same strength
-				 * [got that?]
-				 * proportional to arclength = radius * angle
-				 */
-				float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
-
-				if (U.ndof_flag & NDOF_ZOOM_INVERT)
-					zoom_distance = -zoom_distance;
-
-				rv3d->dist += zoom_distance;
-			}
 
 			if (rv3d->viewlock == RV3D_LOCKED) {
 				/* rotation not allowed -- explore panning options instead */
@@ -1067,34 +1053,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 
 				rv3d->view = RV3D_VIEW_USER;
 
-				if (U.flag & USER_TRACKBALL) {
-					float rot[4];
-					float axis[3];
-					float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
-
-					if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
-						axis[2] = -axis[2];
-
-					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
-						axis[0] = -axis[0];
-
-					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
-						axis[1] = -axis[1];
-
-					/* transform rotation axis from view to world coordinates */
-					mul_qt_v3(view_inv, axis);
-
-					/* update the onscreen doo-dad */
-					rv3d->rot_angle = angle;
-					copy_v3_v3(rv3d->rot_axis, axis);
-
-					axis_angle_to_quat(rot, axis, angle);
-
-					/* apply rotation */
-					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
-				}
-				else {
+				if (U.ndof_flag & NDOF_TURNTABLE) {
 
 					/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
 					float angle, rot[4];
@@ -1126,6 +1085,33 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 					rot[1] = rot[2] = 0.0;
 					rot[3] = sin(angle);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+				}
+				else {
+					float rot[4];
+					float axis[3];
+					float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
+
+					if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
+						axis[2] = -axis[2];
+
+					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
+						axis[0] = -axis[0];
+
+					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
+						axis[1] = -axis[1];
+
+					/* transform rotation axis from view to world coordinates */
+					mul_qt_v3(view_inv, axis);
+
+					/* update the onscreen doo-dad */
+					rv3d->rot_angle = angle;
+					copy_v3_v3(rv3d->rot_axis, axis);
+
+					axis_angle_to_quat(rot, axis, angle);
+
+					/* apply rotation */
+					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
 				}
 			}
 		}
@@ -1241,6 +1227,160 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = ndof_pan_invoke;
+	ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+}
+
+
+/*
+* this is basically just the pan only code + the rotate only code crammed into one function that does both
+*/
+static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (event->type != NDOF_MOTION)
+		return OPERATOR_CANCELLED;
+	else {
+	
+		ViewOpsData *vod;
+		RegionView3D *rv3d;
+		
+		View3D *v3d = CTX_wm_view3d(C);
+		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
+
+		viewops_data_create(C, op, event);
+		vod = op->customdata;
+		rv3d = vod->rv3d;
+
+		ED_view3d_camera_lock_init(v3d, rv3d);
+
+		if (ndof->progress != P_FINISHING) {
+
+			const float dt = ndof->dt;
+			float view_inv[4];
+
+			float speed = 10.f; /* blender units per second */
+			/* ^^ this is ok for default cube scene, but should scale with.. something */
+
+			/* tune these until everything feels right */
+			const float forward_sensitivity = 1.f;
+			const float vertical_sensitivity = 0.4f;
+			const float lateral_sensitivity = 0.6f;
+
+			float pan_vec[3];
+			const float rot_sensitivity = 1.f;
+#if 0
+			const float zoom_sensitivity = 1.f;
+			const float pan_sensitivity = 1.f;
+			float rot[4];
+			float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
+			float axis[3];
+#endif
+
+			if (U.ndof_flag & NDOF_PANX_INVERT_AXIS)
+				pan_vec[0] = -lateral_sensitivity * ndof->tvec[0];
+			else
+				pan_vec[0] = lateral_sensitivity * ndof->tvec[0];
+
+			if (U.ndof_flag & NDOF_PANZ_INVERT_AXIS)
+				pan_vec[1] = -vertical_sensitivity * ndof->tvec[1];
+			else
+				pan_vec[1] = vertical_sensitivity * ndof->tvec[1];
+
+			if (U.ndof_flag & NDOF_PANY_INVERT_AXIS)
+				pan_vec[2] = -forward_sensitivity * ndof->tvec[2];
+			else
+				pan_vec[2] = forward_sensitivity * ndof->tvec[2];
+
+			mul_v3_fl(pan_vec, speed * dt);
+
+			/* transform motion from view to world coordinates */
+			invert_qt_qt(view_inv, rv3d->viewquat);
+			mul_qt_v3(view_inv, pan_vec);
+
+			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
+			sub_v3_v3(rv3d->ofs, pan_vec);
+
+			if (U.ndof_flag & NDOF_TURNTABLE) {
+				/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
+				float angle, rot[4];
+				float xvec[3] = {1, 0, 0};
+
+				/* Determine the direction of the x vector (for rotating up and down) */
+				mul_qt_v3(view_inv, xvec);
+
+				/* Perform the up/down rotation */
+				angle = rot_sensitivity * dt * ndof->rx;
+				if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
+					angle = -angle;
+				rot[0] = cos(angle);
+				mul_v3_v3fl(rot + 1, xvec, sin(angle));
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
+				/* Perform the orbital rotation */
+				angle = rot_sensitivity * dt * ndof->ry;
+				if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
+					angle = -angle;
+
+				/* update the onscreen doo-dad */
+				rv3d->rot_angle = angle;
+				rv3d->rot_axis[0] = 0;
+				rv3d->rot_axis[1] = 0;
+				rv3d->rot_axis[2] = 1;
+
+				rot[0] = cos(angle);
+				rot[1] = rot[2] = 0.0;
+				rot[3] = sin(angle);
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
+			}
+			else {
+
+				float rot[4];
+				float axis[3];
+				float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
+
+				if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
+					axis[2] = -axis[2];
+
+				if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
+					axis[0] = -axis[0];
+
+				if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
+					axis[1] = -axis[1];
+
+				/* transform rotation axis from view to world coordinates */
+				mul_qt_v3(view_inv, axis);
+
+				/* update the onscreen doo-dad */
+				rv3d->rot_angle = angle;
+				copy_v3_v3(rv3d->rot_axis, axis);
+
+				axis_angle_to_quat(rot, axis, angle);
+
+				/* apply rotation */
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
+			}
+		}
+		ED_view3d_camera_lock_sync(v3d, rv3d);
+
+		ED_region_tag_redraw(CTX_wm_region(C));
+		viewops_data_free(C, op);	
+		return OPERATOR_FINISHED;
+	}
+}
+
+void VIEW3D_OT_ndof_all(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "NDOF move View";
+	ot->description = "Position your viewpoint with the 3D mouse";
+	ot->idname = "VIEW3D_OT_ndof_all";
+
+	/* api callbacks */
+	ot->invoke = ndof_all_invoke;
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
@@ -1501,6 +1641,7 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 
 		CLAMP(vod->rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 	}
+
 	if (viewzoom == USER_ZOOM_CONT) {
 		double time = PIL_check_seconds_timer();
 		float time_step = (float)(time - vod->timer_lastdraw);
@@ -1525,8 +1666,8 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 		int ctr[2], len1, len2;
 		/* method which zooms based on how far you move the mouse */
 
-		ctr[0] = (vod->ar->winrct.xmax + vod->ar->winrct.xmin) / 2;
-		ctr[1] = (vod->ar->winrct.ymax + vod->ar->winrct.ymin) / 2;
+		ctr[0] = BLI_RCT_CENTER_X(&vod->ar->winrct);
+		ctr[1] = BLI_RCT_CENTER_Y(&vod->ar->winrct);
 
 		len1 = (int)sqrt((ctr[0] - x) * (ctr[0] - x) + (ctr[1] - y) * (ctr[1] - y)) + 5;
 		len2 = (int)sqrt((ctr[0] - vod->origx) * (ctr[0] - vod->origx) + (ctr[1] - vod->origy) * (ctr[1] - vod->origy)) + 5;
@@ -1549,8 +1690,10 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 		}
 		
 		if (use_cam_zoom) {
+			/* zfac is ignored in this case, see below */
+#if 0
 			zfac = vod->camzoom0 * (2.0f * ((len2 / len1) - 1.0f) + 1.0f) / vod->rv3d->camzoom;
-			zfac = 0;
+#endif
 		}
 		else {
 			zfac = vod->dist0 * (2.0f * ((len2 / len1) - 1.0f) + 1.0f) / vod->rv3d->dist;
@@ -2476,10 +2619,10 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	/* calculate range */
 	ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, FALSE);
 
-	scene->r.border.xmin = ((float)rect.xmin - vb.xmin) / (vb.xmax - vb.xmin);
-	scene->r.border.ymin = ((float)rect.ymin - vb.ymin) / (vb.ymax - vb.ymin);
-	scene->r.border.xmax = ((float)rect.xmax - vb.xmin) / (vb.xmax - vb.xmin);
-	scene->r.border.ymax = ((float)rect.ymax - vb.ymin) / (vb.ymax - vb.ymin);
+	scene->r.border.xmin = ((float)rect.xmin - vb.xmin) / BLI_RCT_SIZE_X(&vb);
+	scene->r.border.ymin = ((float)rect.ymin - vb.ymin) / BLI_RCT_SIZE_Y(&vb);
+	scene->r.border.xmax = ((float)rect.xmax - vb.xmin) / BLI_RCT_SIZE_X(&vb);
+	scene->r.border.ymax = ((float)rect.ymax - vb.ymin) / BLI_RCT_SIZE_Y(&vb);
 
 	/* actually set border */
 	CLAMP(scene->r.border.xmin, 0.0f, 1.0f);
@@ -2643,8 +2786,8 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		}
 
 		/* work out the ratios, so that everything selected fits when we zoom */
-		xscale = ((rect.xmax - rect.xmin) / vb[0]);
-		yscale = ((rect.ymax - rect.ymin) / vb[1]);
+		xscale = (BLI_RCT_SIZE_X(&rect) / vb[0]);
+		yscale = (BLI_RCT_SIZE_Y(&rect) / vb[1]);
 		new_dist *= maxf(xscale, yscale);
 
 		/* zoom in as required, or as far as we can go */
