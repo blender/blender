@@ -113,13 +113,13 @@ static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char
 
 	data->count_tot++;
 
-	if (strncmp(path_src, "//", 2) == 0) {
+	if (BLI_path_is_rel(path_src)) {
 		return FALSE; /* already relative */
 	}
 	else {
 		strcpy(path_dst, path_src);
 		BLI_path_rel(path_dst, data->basedir);
-		if (strncmp(path_dst, "//", 2) == 0) {
+		if (BLI_path_is_rel(path_dst)) {
 			data->count_changed++;
 		}
 		else {
@@ -155,13 +155,13 @@ static int makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char
 
 	data->count_tot++;
 
-	if (strncmp(path_src, "//", 2) != 0) {
+	if (BLI_path_is_rel(path_src) == FALSE) {
 		return FALSE; /* already absolute */
 	}
 	else {
 		strcpy(path_dst, path_src);
 		BLI_path_abs(path_dst, data->basedir);
-		if (strncmp(path_dst, "//", 2) != 0) {
+		if (BLI_path_is_rel(path_dst) == FALSE) {
 			data->count_changed++;
 		}
 		else {
@@ -596,7 +596,7 @@ int BLI_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *pat
 	const char *base_new = ((char **)pathbase_v)[0];
 	const char *base_old = ((char **)pathbase_v)[1];
 
-	if (strncmp(base_old, "//", 2) == 0) {
+	if (BLI_path_is_rel(base_old)) {
 		printf("%s: error, old base path '%s' is not absolute.\n",
 		       __func__, base_old);
 		return FALSE;

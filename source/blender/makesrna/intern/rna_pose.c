@@ -1109,7 +1109,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 		{0, "ANIMATION", 0, "Animation",
 		    "Stateless solver computing pose starting from current action and non-IK constraints"},
 		{ITASC_SIMULATION, "SIMULATION", 0, "Simulation",
-		                   "Statefull solver running in real-time context and ignoring actions "
+		                   "State-full solver running in real-time context and ignoring actions "
 		                   "and non-IK constraints"},
 		{0, NULL, 0, NULL, NULL}
 	};

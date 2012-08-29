@@ -728,6 +728,7 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 	float pt_in[3], pt_out[3], l1[3], l2[3];
 	float lambda;
 	PyObject *ret;
+	int size = 2;
 	
 	if (!PyArg_ParseTuple(args, "O!O!O!:intersect_point_line",
 	                      &vector_Type, &pt,
@@ -745,20 +746,20 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 	}
 
 	/* accept 2d verts */
-	if (pt->size == 3) {     copy_v3_v3(pt_in, pt->vec); }
-	else { pt_in[2] = 0.0f;  copy_v2_v2(pt_in, pt->vec); }
+	if (pt->size >= 3)     { copy_v3_v3(pt_in, pt->vec); size = 3; }
+	else                   { copy_v2_v2(pt_in, pt->vec); pt_in[2] = 0.0f; }
 	
-	if (line_1->size == 3) { copy_v3_v3(l1, line_1->vec); }
-	else { l1[2] = 0.0f;     copy_v2_v2(l1, line_1->vec); }
+	if (line_1->size >= 3) { copy_v3_v3(l1, line_1->vec); size = 3; }
+	else                   { copy_v2_v2(l1, line_1->vec); l1[2] = 0.0f; }
 	
-	if (line_2->size == 3) { copy_v3_v3(l2, line_2->vec); }
-	else { l2[2] = 0.0f;     copy_v2_v2(l2, line_2->vec); }
+	if (line_2->size >= 3) { copy_v3_v3(l2, line_2->vec); size = 3; }
+	else                   { copy_v2_v2(l2, line_2->vec); l2[2] = 0.0f; }
 	
 	/* do the calculation */
 	lambda = closest_to_line_v3(pt_out, pt_in, l1, l2);
 	
 	ret = PyTuple_New(2);
-	PyTuple_SET_ITEM(ret, 0, Vector_CreatePyObject(pt_out, 3, Py_NEW, NULL));
+	PyTuple_SET_ITEM(ret, 0, Vector_CreatePyObject(pt_out, size, Py_NEW, NULL));
 	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(lambda));
 	return ret;
 }

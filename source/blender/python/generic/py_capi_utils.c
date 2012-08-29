@@ -523,7 +523,9 @@ void PyC_SetHomePath(const char *py_path_bundle)
 	}
 }
 
-/* Would be nice if python had this built in */
+/* Would be nice if python had this built in
+ * See: http://wiki.blender.org/index.php/Dev:Doc/Tools/Debugging/PyFromC
+ */
 void PyC_RunQuicky(const char *filepath, int n, ...)
 {
 	FILE *fp = fopen(filepath, "r");

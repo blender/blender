@@ -154,6 +154,8 @@ int BLI_path_frame_range(char *path, int sta, int end, int digits);
 int BLI_path_cwd(char *path);
 void BLI_path_rel(char *file, const char *relfile);
 
+int BLI_path_is_rel(const char *path);
+
 #ifdef WIN32
 #  define BLI_path_cmp BLI_strcasecmp
 #  define BLI_path_ncmp BLI_strncasecmp

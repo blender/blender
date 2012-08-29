@@ -6109,7 +6109,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 			 * it absolute. This can happen when appending an object with a relative
 			 * link into an unsaved blend file. See [#27405].
 			 * The remap relative option will make it relative again on save - campbell */
-			if (strncmp(lib->name, "//", 2) == 0) {
+			if (BLI_path_is_rel(lib->name)) {
 				BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
 			}
 		}
@@ -6118,7 +6118,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 		for (lib = main->library.first; lib; lib = lib->id.next) {
 			/* Libraries store both relative and abs paths, recreate relative paths,
 			 * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
-			if (strncmp(lib->name, "//", 2) == 0) { /* if this is relative to begin with? */
+			if (BLI_path_is_rel(lib->name)) {  /* if this is relative to begin with? */
 				BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
 				BLI_path_rel(lib->name, basepath);
 			}

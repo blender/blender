@@ -1528,7 +1528,7 @@ void BKE_library_filepath_set(Library *lib, const char *filepath)
 
 	/* not essential but set filepath is an absolute copy of value which
 	 * is more useful if its kept in sync */
-	if (strncmp(lib->filepath, "//", 2) == 0) {
+	if (BLI_path_is_rel(lib->filepath)) {
 		/* note that the file may be unsaved, in this case, setting the
 		 * filepath on an indirectly linked path is not allowed from the
 		 * outliner, and its not really supported but allow from here for now

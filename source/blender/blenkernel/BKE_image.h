@@ -107,6 +107,12 @@ struct RenderResult;
 #define IMA_TYPE_R_RESULT   4
 #define IMA_TYPE_COMPOSITE  5
 
+enum {
+	IMA_GENTYPE_BLANK = 0,
+	IMA_GENTYPE_GRID = 1,
+	IMA_GENTYPE_GRID_COLOR = 2
+};
+
 /* ima->ok */
 #define IMA_OK              1
 #define IMA_OK_LOADED       2

@@ -644,8 +644,8 @@ static PyNumberMethods Color_NumMethods = {
 	NULL,               /*nb_remainder*/
 	NULL,               /*nb_divmod*/
 	NULL,               /*nb_power*/
-	(unaryfunc) Color_neg, /*nb_negative*/
-	(unaryfunc) NULL,   /*tp_positive*/
+	(unaryfunc) Color_neg,   /*nb_negative*/
+	(unaryfunc) Color_copy,  /*tp_positive*/
 	(unaryfunc) NULL,   /*tp_absolute*/
 	(inquiry)   NULL,   /*tp_bool*/
 	(unaryfunc) NULL,   /*nb_invert*/
