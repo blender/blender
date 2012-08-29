@@ -42,6 +42,13 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
+EnumPropertyItem image_generated_type_items[] = {
+	{IMA_GENTYPE_BLANK, "BLANK", 0, "Blank", "Generate a blank image"},
+	{IMA_GENTYPE_GRID, "UV_GRID", 0, "UV Grid", "Generated grid to test UV mappings"},
+	{IMA_GENTYPE_GRID_COLOR, "COLOR_GRID", 0, "Color Grid", "Generated improved UV grid to test UV mappings"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static EnumPropertyItem image_source_items[] = {
 	{IMA_SRC_FILE, "FILE", 0, "Single Image", "Single image file"},
 	{IMA_SRC_SEQUENCE, "SEQUENCE", 0, "Image Sequence", "Multiple image files, as a sequence"},
@@ -436,12 +443,6 @@ static void rna_def_image(BlenderRNA *brna)
 		{IMA_TYPE_COMPOSITE, "COMPOSITING", 0, "Compositing", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static const EnumPropertyItem prop_generated_type_items[] = {
-		{0, "BLANK", 0, "Blank", "Generate a blank image"},
-		{1, "UV_GRID", 0, "UV Grid", "Generated grid to test UV mappings"},
-		{2, "COLOR_GRID", 0, "Color Grid", "Generated improved UV grid to test UV mappings"},
-		{0, NULL, 0, NULL, NULL}
-	};
 	static const EnumPropertyItem prop_mapping_items[] = {
 		{0, "UV", 0, "UV Coordinates", "Use UV coordinates for mapping the image"},
 		{IMA_REFLECT, "REFLECTION", 0, "Reflection", "Use reflection mapping for mapping the image"},
@@ -520,7 +521,7 @@ static void rna_def_image(BlenderRNA *brna)
 	/* generated image (image_generated_change_cb) */
 	prop = RNA_def_property(srna, "generated_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gen_type");
-	RNA_def_property_enum_items(prop, prop_generated_type_items);
+	RNA_def_property_enum_items(prop, image_generated_type_items);
 	RNA_def_property_ui_text(prop, "Generated Type", "Generated image type");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
 

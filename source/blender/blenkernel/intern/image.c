@@ -595,7 +595,7 @@ Image *BKE_image_load_exists(const char *filepath)
 	return BKE_image_load(filepath);
 }
 
-static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
+static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, float color[4])
 {
 	ImBuf *ibuf;
 	unsigned char *rect = NULL;
@@ -615,11 +615,11 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
 	ibuf->userflags |= IB_BITMAPDIRTY;
 
-	switch (uvtestgrid) {
-		case 1:
+	switch (gen_type) {
+		case IMA_GENTYPE_GRID:
 			BKE_image_buf_fill_checker(rect, rect_float, width, height);
 			break;
-		case 2:
+		case IMA_GENTYPE_GRID_COLOR:
 			BKE_image_buf_fill_checker_color(rect, rect_float, width, height);
 			break;
 		default:
@@ -630,7 +630,7 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_image_add_generated(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
+Image *BKE_image_add_generated(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, float color[4])
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima = image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
@@ -641,10 +641,10 @@ Image *BKE_image_add_generated(unsigned int width, unsigned int height, const ch
 		/* BLI_strncpy(ima->name, name, FILE_MAX); */ /* don't do this, this writes in ain invalid filepath! */
 		ima->gen_x = width;
 		ima->gen_y = height;
-		ima->gen_type = uvtestgrid;
+		ima->gen_type = gen_type;
 		ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
 
-		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, uvtestgrid, color);
+		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, gen_type, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 
 		ima->ok = IMA_OK_LOADED;

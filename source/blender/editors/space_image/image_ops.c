@@ -1586,7 +1586,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	PropertyRNA *prop;
 	char name[MAX_ID_NAME - 2];
 	float color[4];
-	int width, height, floatbuf, uvtestgrid, alpha;
+	int width, height, floatbuf, gen_type, alpha;
 
 	/* retrieve state */
 	sima = CTX_wm_space_image(C);
@@ -1597,7 +1597,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	width = RNA_int_get(op->ptr, "width");
 	height = RNA_int_get(op->ptr, "height");
 	floatbuf = RNA_boolean_get(op->ptr, "float");
-	uvtestgrid = RNA_boolean_get(op->ptr, "uv_test_grid");
+	gen_type = RNA_enum_get(op->ptr, "generated_type");
 	RNA_float_get_array(op->ptr, "color", color);
 	alpha = RNA_boolean_get(op->ptr, "alpha");
 	
@@ -1607,7 +1607,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	if (!alpha)
 		color[3] = 1.0f;
 
-	ima = BKE_image_add_generated(width, height, name, alpha ? 32 : 24, floatbuf, uvtestgrid, color);
+	ima = BKE_image_add_generated(width, height, name, alpha ? 32 : 24, floatbuf, gen_type, color);
 
 	if (!ima)
 		return OPERATOR_CANCELLED;
@@ -1664,7 +1664,8 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	prop = RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
 	RNA_def_property_float_array_default(prop, default_color);
 	RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
-	RNA_def_boolean(ot->srna, "uv_test_grid", 0, "UV Test Grid", "Fill the image with a grid for UV map testing");
+	RNA_def_enum(ot->srna, "generated_type", image_generated_type_items, IMA_GENTYPE_BLANK,
+	             "Generated Type", "Fill the image with a grid for UV map testing");
 	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth");
 }
 
