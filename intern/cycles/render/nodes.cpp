@@ -2391,6 +2391,8 @@ MathNode::MathNode()
 {
 	type = ustring("Add");
 
+	use_clamp = false;
+
 	add_input("Value1", SHADER_SOCKET_FLOAT);
 	add_input("Value2", SHADER_SOCKET_FLOAT);
 	add_output("Value",  SHADER_SOCKET_FLOAT);
@@ -2435,11 +2437,17 @@ void MathNode::compile(SVMCompiler& compiler)
 
 	compiler.add_node(NODE_MATH, type_enum[type], value1_in->stack_offset, value2_in->stack_offset);
 	compiler.add_node(NODE_MATH, value_out->stack_offset);
+
+	if(use_clamp) {
+		compiler.add_node(NODE_MATH, NODE_MATH_CLAMP, value_out->stack_offset);
+		compiler.add_node(NODE_MATH, value_out->stack_offset);
+	}
 }
 
 void MathNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("type", type);
+	compiler.parameter("Clamp", use_clamp);
 	compiler.add(this, "node_math");
 }
 

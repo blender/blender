@@ -183,7 +183,8 @@ typedef enum NodeMath {
 	NODE_MATH_MAXIMUM,
 	NODE_MATH_ROUND,
 	NODE_MATH_LESS_THAN,
-	NODE_MATH_GREATER_THAN
+	NODE_MATH_GREATER_THAN,
+	NODE_MATH_CLAMP /* used for the clamp UI option */
 } NodeMath;
 
 typedef enum NodeVectorMath {

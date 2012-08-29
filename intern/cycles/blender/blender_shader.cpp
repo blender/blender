@@ -244,6 +244,7 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			BL::ShaderNodeMath b_math_node(b_node);
 			MathNode *math = new MathNode();
 			math->type = MathNode::type_enum[b_math_node.operation()];
+			math->use_clamp = b_math_node.use_clamp();
 			node = math;
 			break;
 		}
