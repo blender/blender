@@ -1051,7 +1051,7 @@ static int image_replace_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 		return image_replace_exec(C, op);
 
 	if (!RNA_struct_property_is_set(op->ptr, "relative_path"))
-		RNA_boolean_set(op->ptr, "relative_path", (strncmp(sima->image->name, "//", 2)) == 0);
+		RNA_boolean_set(op->ptr, "relative_path", BLI_path_is_rel(sima->image->name));
 
 	image_filesel(C, op, sima->image->name);
 

@@ -1067,8 +1067,9 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	if (pid->cache->flag & PTCACHE_EXTERNAL) {
 		strcpy(filename, pid->cache->path);
 
-		if (strncmp(filename, "//", 2)==0)
+		if (BLI_path_is_rel(filename)) {
 			BLI_path_abs(filename, blendfilename);
+		}
 
 		return BLI_add_slash(filename); /* new strlen() */
 	}
