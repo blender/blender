@@ -761,7 +761,7 @@ void GPU_pass_bind(GPUPass *pass, double time, int mipmap)
 	/* now bind the textures */
 	for (input=inputs->first; input; input=input->next) {
 		if (input->ima)
-			input->tex = GPU_texture_from_blender(input->ima, input->iuser, time, mipmap);
+			input->tex = GPU_texture_from_blender(input->ima, input->iuser, input->imagencd, time, mipmap);
 
 		if (input->tex && input->bindtex) {
 			GPU_texture_bind(input->tex, input->texid);
@@ -917,6 +917,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, int type)
 
 		input->ima = link->ptr1;
 		input->iuser = link->ptr2;
+		input->imagencd = link->imagencd;
 		input->textarget = GL_TEXTURE_2D;
 		input->textype = GPU_TEX2D;
 		MEM_freeN(link);
@@ -1109,13 +1110,14 @@ GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data)
 	return link;
 }
 
-GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser)
+GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, int ncd)
 {
 	GPUNodeLink *link = GPU_node_link_create(0);
 
 	link->image= 1;
 	link->ptr1= ima;
 	link->ptr2= iuser;
+	link->imagencd= ncd;
 
 	return link;
 }
