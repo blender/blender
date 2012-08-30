@@ -410,9 +410,8 @@ static void initSnappingMode(TransInfo *t)
 	}
 	else {
 		/* force project off when not supported */
-		if (ts->snap_mode != SCE_SNAP_MODE_FACE) {
+		if (t->spacetype == SPACE_IMAGE || ts->snap_mode != SCE_SNAP_MODE_FACE)
 			t->tsnap.project = 0;
-		}
 		
 		t->tsnap.mode = ts->snap_mode;
 	}
