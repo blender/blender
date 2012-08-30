@@ -569,6 +569,8 @@ void nlDeleteContext(NLContext context_in) {
 				__NL_DELETE(context->variable[i].a);
 			}
 		}
+
+		__NL_DELETE_ARRAY(context->variable);
 	}
 	if(context->alloc_b) {
 		__NL_DELETE_ARRAY(context->b);
