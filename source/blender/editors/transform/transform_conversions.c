@@ -4990,7 +4990,7 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 
 static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 {
-	Mask *mask;
+	Mask *mask = NULL;
 
 	if (t->spacetype == SPACE_CLIP) {
 		SpaceClip *sc = t->sa->spacedata.first;
