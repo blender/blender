@@ -1187,12 +1187,20 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		else if (mode == 'c') {
 
 			ui_get_but_vectorf(but, rgb);
+			/* convert to linear color to do compatible copy between gamma and non-gamma */
+			if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+				srgb_to_linearrgb_v3_v3(rgb, rgb);
+
 			BLI_snprintf(buf, sizeof(buf), "[%f, %f, %f]", rgb[0], rgb[1], rgb[2]);
 			WM_clipboard_text_set(buf, 0);
 			
 		}
 		else {
 			if (sscanf(buf, "[%f, %f, %f]", &rgb[0], &rgb[1], &rgb[2]) == 3) {
+				/* assume linear colors in buffer */
+				if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+					linearrgb_to_srgb_v3_v3(rgb, rgb);
+
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				ui_set_but_vectorf(but, rgb);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
