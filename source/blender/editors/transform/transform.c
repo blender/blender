@@ -2431,8 +2431,9 @@ void initWarp(TransInfo *t)
 		mul_m3_v3(t->data[i].mtx, center);
 		mul_m4_v3(t->viewmat, center);
 		sub_v3_v3(center, t->viewmat[3]);
-		if (i)
+		if (i) {
 			minmax_v3v3_v3(min, max, center);
+		}
 		else {
 			copy_v3_v3(max, center);
 			copy_v3_v3(min, center);
@@ -2739,12 +2740,14 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 		}
 	}
 	else {
-		if (t->flag & T_2D_EDIT)
+		if (t->flag & T_2D_EDIT) {
 			spos += sprintf(spos, "Scale X: %s   Y: %s%s %s", &tvec[0], &tvec[NUM_STR_REP_LEN],
 			                t->con.text, t->proptext);
-		else
+		}
+		else {
 			spos += sprintf(spos, "Scale X: %s   Y: %s  Z: %s%s %s", &tvec[0], &tvec[NUM_STR_REP_LEN],
 			                &tvec[NUM_STR_REP_LEN * 2], t->con.text, t->proptext);
+		}
 	}
 	
 	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
@@ -3647,9 +3650,10 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 		if (!(t->flag & T_2D_EDIT) && t->scene->unit.system) {
 			int i, do_split = t->scene->unit.flag & USER_UNIT_OPT_SPLIT ? 1 : 0;
 
-			for (i = 0; i < 3; i++)
+			for (i = 0; i < 3; i++) {
 				bUnit_AsString(&tvec[i * NUM_STR_REP_LEN], NUM_STR_REP_LEN, dvec[i] * t->scene->unit.scale_length,
 				               4, t->scene->unit.system, B_UNIT_LENGTH, do_split, 1);
+			}
 		}
 		else {
 			sprintf(&tvec[0], "%.4f", dvec[0]);
@@ -3691,12 +3695,14 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 		}
 	}
 	else {
-		if (t->flag & T_2D_EDIT)
+		if (t->flag & T_2D_EDIT) {
 			spos += sprintf(spos, "Dx: %s   Dy: %s (%s)%s %s", &tvec[0], &tvec[NUM_STR_REP_LEN],
 			                distvec, t->con.text, t->proptext);
-		else
+		}
+		else {
 			spos += sprintf(spos, "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s", &tvec[0], &tvec[NUM_STR_REP_LEN],
 			                &tvec[NUM_STR_REP_LEN * 2], distvec, t->con.text, t->proptext, &autoik[0]);
+		}
 	}
 	
 	if (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) {
