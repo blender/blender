@@ -580,6 +580,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 	*em = *em_tmp;
 	
 	em->selectmode = um->selectmode;
+	bm->selectmode = um->selectmode;
 	em->ob = ob;
 
 	MEM_freeN(em_tmp);
