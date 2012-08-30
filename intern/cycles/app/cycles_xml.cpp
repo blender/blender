@@ -484,6 +484,7 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "mix")) {
 			MixNode *mix = new MixNode();
 			xml_read_enum(&mix->type, MixNode::type_enum, node, "type");
+			xml_read_bool(&mix->use_clamp, node, "use_clamp");
 			snode = mix;
 		}
 		else if(string_iequals(node.name(), "gamma")) {
@@ -515,6 +516,7 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "math")) {
 			MathNode *math = new MathNode();
 			xml_read_enum(&math->type, MathNode::type_enum, node, "type");
+			xml_read_bool(&math->use_clamp, node, "use_clamp");
 			snode = math;
 		}
 		else if(string_iequals(node.name(), "vector_math")) {

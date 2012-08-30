@@ -276,6 +276,17 @@ __device float3 svm_mix_linear(float t, float3 col1, float3 col2)
 	return outcol;
 }
 
+__device float3 svm_mix_clamp(float3 col)
+{
+	float3 outcol = col;
+
+	outcol.x = clamp(col.x, 0.0f, 1.0f);
+	outcol.y = clamp(col.y, 0.0f, 1.0f);
+	outcol.z = clamp(col.z, 0.0f, 1.0f);
+
+	return outcol;
+}
+
 __device float3 svm_mix(NodeMix type, float fac, float3 c1, float3 c2)
 {
 	float t = clamp(fac, 0.0f, 1.0f);
@@ -299,6 +310,7 @@ __device float3 svm_mix(NodeMix type, float fac, float3 c1, float3 c2)
 		case NODE_MIX_COLOR: return svm_mix_color(t, c1, c2);
 		case NODE_MIX_SOFT: return svm_mix_soft(t, c1, c2);
 		case NODE_MIX_LINEAR: return svm_mix_linear(t, c1, c2);
+		case NODE_MIX_CLAMP: return svm_mix_clamp(c1);
 	}
 
 	return make_float3(0.0f, 0.0f, 0.0f);

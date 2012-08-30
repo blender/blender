@@ -329,6 +329,8 @@ class MixNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MixNode)
 
+	bool use_clamp;
+
 	ustring type;
 	static ShaderEnum type_enum;
 };

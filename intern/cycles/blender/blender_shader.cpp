@@ -221,6 +221,7 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			BL::ShaderNodeMixRGB b_mix_node(b_node);
 			MixNode *mix = new MixNode();
 			mix->type = MixNode::type_enum[b_mix_node.blend_type()];
+			mix->use_clamp = b_mix_node.use_clamp();
 			node = mix;
 			break;
 		}
