@@ -1648,7 +1648,7 @@ int RE_seq_render_active(Scene *scene, RenderData *rd)
 static void do_render_seq(Render *re)
 {
 	static int recurs_depth = 0;
-	struct ImBuf *ibuf;
+	struct ImBuf *ibuf, *out;
 	RenderResult *rr; /* don't assign re->result here as it might change during give_ibuf_seq */
 	int cfra = re->r.cfra;
 	SeqRenderData context;
@@ -1675,7 +1675,11 @@ static void do_render_seq(Render *re)
 		                              100);
 	}
 
-	ibuf = BKE_sequencer_give_ibuf(context, cfra, 0);
+	out = BKE_sequencer_give_ibuf(context, cfra, 0);
+
+	ibuf = IMB_dupImBuf(out);
+	IMB_freeImBuf(out);
+	IMB_colormanagement_imbuf_from_sequencer_space(ibuf);
 
 	recurs_depth--;
 

@@ -616,6 +616,8 @@ typedef struct DisplayBufferThread {
 	int channels;
 	int dither;
 	int predivide;
+
+	int nolinear_float;
 } DisplayBufferThread;
 
 typedef struct DisplayBufferInitData {
@@ -659,6 +661,8 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	handle->channels = channels;
 	handle->dither = dither;
 	handle->predivide = predivide;
+
+	handle->nolinear_float = ibuf->colormanage_flags & IMB_COLORMANAGE_NOLINEAR_FLOAT;
 }
 
 static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned char *byte_buffer,
@@ -702,6 +706,20 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 		IMB_buffer_float_from_byte(linear_buffer, byte_buffer,
 		                           IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB,
 		                           predivide, width, height, width, width);
+	}
+	else if (handle->nolinear_float) {
+		/* currently float is non-linear only in sequencer, which is working
+		 * in it's own color space even to handle float buffers, so we need to ensure
+		 * float buffer is in linear space before applying all the view transformations
+		 */
+
+		const char *from_colorspace = global_role_sequencer;
+		const char *to_colorspace = global_role_scene_linear;
+
+		memcpy(linear_buffer, handle->buffer, buffer_size * sizeof(float));
+
+		IMB_colormanagement_colorspace_transform(linear_buffer, width, height, channels,
+		                                         from_colorspace, to_colorspace);
 	}
 	else {
 		/* some processors would want to modify float original buffer
@@ -1060,9 +1078,6 @@ void IMB_colormanagement_imbuf_from_role(ImBuf *ibuf, int role)
 
 		IMB_colormanagement_colorspace_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
 		                                         from_colorspace, to_colorspace);
-
-		/* buffer in now in scene linear space */
-		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	}
 #else
 	(void) ibuf;
@@ -1118,13 +1133,13 @@ void IMB_colormanagement_imbuf_to_sequencer_space(ImBuf *ibuf, int make_float)
 	if (global_role_sequencer[0]) {
 		IMB_colormanagement_imbuf_to_role(ibuf, COLOR_ROLE_SEQUENCER);
 
-		ibuf->profile = IB_PROFILE_SRGB;
+		ibuf->profile = IB_PROFILE_NONE;
 	}
 	else
 #endif
 	{
 		/* if no sequencer's working space defined fallback to legacy sRGB space */
-		IMB_convert_profile(ibuf, IB_PROFILE_SRGB);
+		IMB_convert_profile(ibuf, IB_PROFILE_NONE);
 	}
 }
 
@@ -1135,10 +1150,8 @@ void IMB_colormanagement_imbuf_from_sequencer_space(ImBuf *ibuf)
 
 #ifdef WITH_OCIO
 	if (global_role_sequencer[0]) {
-		if (ibuf->profile == IB_PROFILE_SRGB) {
-			IMB_colormanagement_imbuf_from_role(ibuf, COLOR_ROLE_SEQUENCER);
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
-		}
+		IMB_colormanagement_imbuf_from_role(ibuf, COLOR_ROLE_SEQUENCER);
+		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	}
 	else
 #endif

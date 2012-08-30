@@ -140,8 +140,6 @@ static ImBuf *prepare_effect_imbufs(SeqRenderData context, ImBuf *ibuf1, ImBuf *
 		IMB_rect_from_float(ibuf3);
 	}
 
-	out->profile = IB_PROFILE_SRGB;
-
 	return out;
 }
 

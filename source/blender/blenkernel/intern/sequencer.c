@@ -2461,7 +2461,8 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 					imb_freerectImBuf(ibuf);
 
 				/* all sequencer color is done in SRGB space, linear gives odd crossfades */
-				IMB_colormanagement_imbuf_to_sequencer_space(ibuf, FALSE);
+				if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+					IMB_colormanagement_imbuf_to_sequencer_space(ibuf, FALSE);
 
 				copy_to_ibuf_still(context, seq, nr, ibuf);
 
@@ -2653,17 +2654,12 @@ static ImBuf *seq_render_strip_stack(SeqRenderData context, ListBase *seqbasep, 
 	
 	if (count == 1) {
 		out = seq_render_strip(context, seq_arr[0], cfra);
-
-		if (out) {
-			/* put buffer back to linear space */
-			IMB_colormanagement_imbuf_from_sequencer_space(out);
-		}
+		out->colormanage_flags |= IMB_COLORMANAGE_NOLINEAR_FLOAT;
 
 		BKE_sequencer_cache_put(context, seq_arr[0], cfra, SEQ_STRIPELEM_IBUF_COMP, out);
 
 		return out;
 	}
-
 
 	for (i = count - 1; i >= 0; i--) {
 		int early_out;
@@ -2738,10 +2734,7 @@ static ImBuf *seq_render_strip_stack(SeqRenderData context, ListBase *seqbasep, 
 		BKE_sequencer_cache_put(context, seq_arr[i], cfra, SEQ_STRIPELEM_IBUF_COMP, out);
 	}
 
-	if (out) {
-		/* put buffer back to linear space */
-		IMB_colormanagement_imbuf_from_sequencer_space(out);
-	}
+	out->colormanage_flags |= IMB_COLORMANAGE_NOLINEAR_FLOAT;
 
 	return out;
 }

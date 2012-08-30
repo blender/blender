@@ -1089,22 +1089,14 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd)
 	return ibuf;
 }
 
-void render_result_rect_from_ibuf(RenderResult *rr, RenderData *rd, ImBuf *ibuf)
+void render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), ImBuf *ibuf)
 {
 	if (ibuf->rect_float) {
-		/* color management: when off ensure rectf is non-lin, since thats what the internal
-		 * render engine delivers */
-		int profile_to = (rd->color_mgt_flag & R_COLOR_MANAGEMENT) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_SRGB;
-		int profile_from = (ibuf->profile == IB_PROFILE_LINEAR_RGB) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_SRGB;
-		int predivide = (rd->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
-
 		if (!rr->rectf)
 			rr->rectf = MEM_mallocN(4 * sizeof(float) * rr->rectx * rr->recty, "render_seq rectf");
 		
-		IMB_buffer_float_from_float(rr->rectf, ibuf->rect_float,
-		                            4, profile_to, profile_from, predivide,
-		                            rr->rectx, rr->recty, rr->rectx, rr->rectx);
-		
+		memcpy(rr->rectf, ibuf->rect_float, 4 * sizeof(float) * rr->rectx * rr->recty);
+
 		/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
 		 * can hang around when sequence render has rendered a 32 bits one before */
 		if (rr->rect32) {
