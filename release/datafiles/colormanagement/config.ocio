@@ -29,6 +29,7 @@ displays:
     - !<View> {name: Raw, colorspace: raw}
     - !<View> {name: Log, colorspace: adx10}
     - !<View> {name: RRT, colorspace: rrt_xyz}
+    - !<View> {name: DCI, colorspace: xyz_DCI}
 
 active_displays: [sRGB, p3dci, xyz]
 active_views: [Gamma2.2, RRT, Log, Film, Log, Raw, rec709]
@@ -337,3 +338,19 @@ colorspaces:
         #- !<FileTransform> {src: rec709.spi1d, interpolation: linear}
         - !<ExponentTransform> {value: [2.2, 2.2, 2.2, 1]}
         - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear}
+
+  - !<ColorSpace>
+    name: xyz_DCI
+    family: ""
+    equalitygroup: ""
+    bitdepth: 16f
+    description: |
+      OpenDCP output LUT with DCI reference white and Gamma 2.6
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    from_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear, direction: inverse}
+        - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
+        - !<FileTransform> {src: xyz_dci.spi1d, interpolation: linear}
