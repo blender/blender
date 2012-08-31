@@ -67,6 +67,10 @@ void ParticleSystemManager::device_update_particles(Device *device, DeviceScene 
 	
 	/* dummy particle */
 	particles[0] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	particles[1] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	particles[2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	particles[3] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	particles[4] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 	
 	int i = 1;
 	foreach(ParticleSystem *psys, scene->particle_systems) {
