@@ -1682,6 +1682,10 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 		}
 	}
 
+	/* flip active group index */
+	if (flip_vgroups && flip_map[def_nr] >= 0)
+		ob->actdef = flip_map[def_nr] + 1;
+
 cleanup:
 	if (flip_map) MEM_freeN(flip_map);
 
@@ -2674,7 +2678,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "mirror_weights", TRUE, "Mirror Weights", "Mirror weights");
-	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names");
+	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Group Names", "Flip vertex group names");
 	RNA_def_boolean(ot->srna, "all_groups", FALSE, "All Groups", "Mirror all vertex groups weights");
 
 }
