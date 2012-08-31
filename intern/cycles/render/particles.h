@@ -35,6 +35,11 @@ struct Particle {
 	int index;
 	float age;
 	float lifetime;
+	float3 location;
+	float4 rotation;
+	float size;
+	float3 velocity;
+	float3 angular_velocity;
 };
 
 class ParticleSystem {

@@ -168,6 +168,11 @@ void BlenderSync::sync_particles(BL::Object b_ob, BL::ParticleSystem b_psys)
 				pa.index = index;
 				pa.age = b_scene.frame_current() - b_pa->birth_time();
 				pa.lifetime = b_pa->lifetime();
+				pa.location = get_float3(b_pa->location());
+				pa.rotation = get_float4(b_pa->rotation());
+				pa.size = b_pa->size();
+				pa.velocity = get_float3(b_pa->velocity());
+				pa.angular_velocity = get_float3(b_pa->angular_velocity());
 				
 				psys->particles.push_back(pa);
 			}

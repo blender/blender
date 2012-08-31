@@ -74,7 +74,11 @@ void ParticleSystemManager::device_update_particles(Device *device, DeviceScene 
 			/* pack in texture */
 			int offset = i*PARTICLE_SIZE;
 			
-			particles[offset] = make_float4(pa.index, pa.age, pa.lifetime, 0.0f);
+			particles[offset] = make_float4(pa.index, pa.age, pa.lifetime, pa.size);
+			particles[offset+1] = pa.rotation;
+			particles[offset+2] = make_float4(pa.location.x, pa.location.y, pa.location.z, pa.velocity.x);
+			particles[offset+3] = make_float4(pa.velocity.y, pa.velocity.z, pa.angular_velocity.x, pa.angular_velocity.y);
+			particles[offset+4] = make_float4(pa.angular_velocity.z, 0.0f, 0.0f, 0.0f);
 			
 			i++;
 			

@@ -150,6 +150,11 @@ static inline float3 get_float3(BL::Array<float, 4> array)
 	return make_float3(array[0], array[1], array[2]);
 }
 
+static inline float4 get_float4(BL::Array<float, 4> array)
+{
+	return make_float4(array[0], array[1], array[2], array[3]);
+}
+
 static inline int4 get_int4(BL::Array<int, 4> array)
 {
 	return make_int4(array[0], array[1], array[2], array[3]);

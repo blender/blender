@@ -1801,6 +1801,13 @@ ParticleInfoNode::ParticleInfoNode()
 	add_output("Index", SHADER_SOCKET_FLOAT);
 	add_output("Age", SHADER_SOCKET_FLOAT);
 	add_output("Lifetime", SHADER_SOCKET_FLOAT);
+	add_output("Location", SHADER_SOCKET_POINT);
+	#if 0	/* not yet supported */
+	add_output("Rotation", SHADER_SOCKET_QUATERNION);
+	#endif
+	add_output("Size", SHADER_SOCKET_FLOAT);
+	add_output("Velocity", SHADER_SOCKET_VECTOR);
+	add_output("Angular Velocity", SHADER_SOCKET_VECTOR);
 }
 
 void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
@@ -1810,6 +1817,18 @@ void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
 	if(!output("Age")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
 	if(!output("Lifetime")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	if(!output("Location")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	#if 0	/* not yet supported */
+	if(!output("Rotation")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	#endif
+	if(!output("Size")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	if(!output("Velocity")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	if(!output("Angular Velocity")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
 
 	ShaderNode::attributes(attributes);
@@ -1835,6 +1854,38 @@ void ParticleInfoNode::compile(SVMCompiler& compiler)
 	if(!out->links.empty()) {
 		compiler.stack_assign(out);
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_LIFETIME, out->stack_offset);
+	}
+	
+	out = output("Location");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_LOCATION, out->stack_offset);
+	}
+	
+	#if 0	/* XXX Quaternion data is not yet supported by Cycles */
+	out = output("Rotation");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_ROTATION, out->stack_offset);
+	}
+	#endif
+	
+	out = output("Size");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_SIZE, out->stack_offset);
+	}
+	
+	out = output("Velocity");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_VELOCITY, out->stack_offset);
+	}
+	
+	out = output("Angular Velocity");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_ANGULAR_VELOCITY, out->stack_offset);
 	}
 }
 

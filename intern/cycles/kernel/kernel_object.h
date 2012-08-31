@@ -172,22 +172,59 @@ __device int shader_pass_id(KernelGlobals *kg, ShaderData *sd)
 __device_inline float particle_index(KernelGlobals *kg, int particle)
 {
 	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset);
+	float4 f = kernel_tex_fetch(__particles, offset + 0);
 	return f.x;
 }
 
 __device float particle_age(KernelGlobals *kg, int particle)
 {
 	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset);
+	float4 f = kernel_tex_fetch(__particles, offset + 0);
 	return f.y;
 }
 
 __device float particle_lifetime(KernelGlobals *kg, int particle)
 {
 	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset);
+	float4 f = kernel_tex_fetch(__particles, offset + 0);
 	return f.z;
+}
+
+__device float particle_size(KernelGlobals *kg, int particle)
+{
+	int offset = particle*PARTICLE_SIZE;
+	float4 f = kernel_tex_fetch(__particles, offset + 0);
+	return f.w;
+}
+
+__device float4 particle_rotation(KernelGlobals *kg, int particle)
+{
+	int offset = particle*PARTICLE_SIZE;
+	float4 f = kernel_tex_fetch(__particles, offset + 1);
+	return f;
+}
+
+__device float3 particle_location(KernelGlobals *kg, int particle)
+{
+	int offset = particle*PARTICLE_SIZE;
+	float4 f = kernel_tex_fetch(__particles, offset + 2);
+	return make_float3(f.x, f.y, f.z);
+}
+
+__device float3 particle_velocity(KernelGlobals *kg, int particle)
+{
+	int offset = particle*PARTICLE_SIZE;
+	float4 f2 = kernel_tex_fetch(__particles, offset + 2);
+	float4 f3 = kernel_tex_fetch(__particles, offset + 3);
+	return make_float3(f2.w, f3.x, f3.y);
+}
+
+__device float3 particle_angular_velocity(KernelGlobals *kg, int particle)
+{
+	int offset = particle*PARTICLE_SIZE;
+	float4 f3 = kernel_tex_fetch(__particles, offset + 3);
+	float4 f4 = kernel_tex_fetch(__particles, offset + 4);
+	return make_float3(f3.z, f3.w, f4.x);
 }
 
 
