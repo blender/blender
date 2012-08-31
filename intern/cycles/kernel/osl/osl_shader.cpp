@@ -123,7 +123,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 			sc.weight = weight;
 
 			switch (prim->category()) {
-				case ClosurePrimitive::BSDF: {
+				case OSL::ClosurePrimitive::BSDF: {
 					if (sd->num_closure == MAX_CLOSURE)
 						return;
 
@@ -153,7 +153,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					sd->closure[sd->num_closure++] = sc;
 					break;
 				}
-				case ClosurePrimitive::Emissive: {
+				case OSL::ClosurePrimitive::Emissive: {
 					if (sd->num_closure == MAX_CLOSURE)
 						return;
 
@@ -169,7 +169,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					sd->closure[sd->num_closure++] = sc;
 					break;
 				}
-				case ClosurePrimitive::Holdout:
+				case OSL::ClosurePrimitive::Holdout:
 					if (sd->num_closure == MAX_CLOSURE)
 						return;
 
@@ -178,11 +178,11 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					sd->flag |= SD_HOLDOUT;
 					sd->closure[sd->num_closure++] = sc;
 					break;
-				case ClosurePrimitive::BSSRDF:
-				case ClosurePrimitive::Debug:
+				case OSL::ClosurePrimitive::BSSRDF:
+				case OSL::ClosurePrimitive::Debug:
 					break; /* not implemented */
-				case ClosurePrimitive::Background:
-				case ClosurePrimitive::Volume:
+				case OSL::ClosurePrimitive::Background:
+				case OSL::ClosurePrimitive::Volume:
 					break; /* not relevant */
 			}
 		}
@@ -297,7 +297,7 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 			sc.weight = weight;
 
 			switch (prim->category()) {
-				case ClosurePrimitive::Volume: {
+				case OSL::ClosurePrimitive::Volume: {
 					if (sd->num_closure == MAX_CLOSURE)
 						return;
 
@@ -311,13 +311,13 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 					sd->closure[sd->num_closure++] = sc;
 					break;
 				}
-				case ClosurePrimitive::Holdout:
-				case ClosurePrimitive::Debug:
+				case OSL::ClosurePrimitive::Holdout:
+				case OSL::ClosurePrimitive::Debug:
 					break; /* not implemented */
-				case ClosurePrimitive::Background:
-				case ClosurePrimitive::BSDF:
-				case ClosurePrimitive::Emissive:
-				case ClosurePrimitive::BSSRDF:
+				case OSL::ClosurePrimitive::Background:
+				case OSL::ClosurePrimitive::BSDF:
+				case OSL::ClosurePrimitive::Emissive:
+				case OSL::ClosurePrimitive::BSSRDF:
 					break; /* not relevant */
 			}
 		}
