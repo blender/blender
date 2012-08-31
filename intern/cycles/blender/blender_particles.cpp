@@ -111,7 +111,8 @@ static bool use_particle_system(BL::ParticleSystem b_psys)
 
 static bool use_particle(BL::Particle b_pa)
 {
-	return b_pa.is_exist() && b_pa.is_visible() && b_pa.alive_state()==BL::Particle::alive_state_ALIVE;
+	return b_pa.is_exist() && b_pa.is_visible() &&
+	        (b_pa.alive_state()==BL::Particle::alive_state_ALIVE || b_pa.alive_state()==BL::Particle::alive_state_DYING);
 }
 
 static int psys_count_particles(BL::ParticleSystem b_psys)
