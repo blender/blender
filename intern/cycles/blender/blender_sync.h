@@ -77,6 +77,7 @@ private:
 	void sync_world();
 	void sync_render_layers(BL::SpaceView3D b_v3d, const char *layer);
 	void sync_shaders();
+	void sync_particle_systems();
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
@@ -85,14 +86,14 @@ private:
 	void sync_background_light();
 	void sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion);
 	void sync_camera_motion(BL::Object b_ob, int motion);
-	void sync_particles(Object *ob, BL::Object b_ob);
+	void sync_particles(BL::Object b_ob, BL::ParticleSystem b_psys);
 
 	/* util */
 	void find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader);
 	bool BKE_object_is_modified(BL::Object b_ob);
 	bool object_is_mesh(BL::Object b_ob);
 	bool object_is_light(BL::Object b_ob);
-	bool object_need_particle_update(BL::Object b_ob);
+	bool psys_need_update(BL::ParticleSystem b_psys);
 	int object_count_particles(BL::Object b_ob);
 
 	/* variables */
@@ -103,6 +104,7 @@ private:
 	id_map<ObjectKey, Object> object_map;
 	id_map<void*, Mesh> mesh_map;
 	id_map<ObjectKey, Light> light_map;
+	id_map<ParticleSystemKey, ParticleSystem> particle_system_map;
 	set<Mesh*> mesh_synced;
 	void *world_map;
 	bool world_recalc;

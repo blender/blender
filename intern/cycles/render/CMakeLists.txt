@@ -27,6 +27,7 @@ set(SRC
 	nodes.cpp
 	object.cpp
 	osl.cpp
+	particles.cpp
 	scene.cpp
 	session.cpp
 	shader.cpp
@@ -51,6 +52,7 @@ set(SRC_HEADERS
 	nodes.h
 	object.h
 	osl.h
+	particles.h
 	scene.h
 	session.h
 	shader.h

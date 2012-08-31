@@ -16,9 +16,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "object.h"
-
 #include "mesh.h"
+#include "particles.h"
+
 #include "blender_sync.h"
 #include "blender_util.h"
 
@@ -31,7 +31,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Particles Sync */
 
-bool BlenderSync::object_need_particle_update(BL::Object b_ob)
+bool BlenderSync::psys_need_update(BL::ParticleSystem b_psys)
 {
 	/* Particle data is only needed for
 	 * a) Billboard render mode if object's own material uses particle info
@@ -41,9 +41,7 @@ bool BlenderSync::object_need_particle_update(BL::Object b_ob)
 	 */
 	bool need_update = false;
 	
-	BL::Object::particle_systems_iterator b_psys;
-	for (b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys) {
-		switch (b_psys->settings().render_type()) {
+	switch (b_psys.settings().render_type()) {
 		/* XXX not implemented yet! 
 		 * billboards/strands would become part of the mesh data (?),
 		 * so the mesh attributes would store whether particle info is required.
@@ -61,7 +59,7 @@ bool BlenderSync::object_need_particle_update(BL::Object b_ob)
 		#endif
 		
 		case BL::ParticleSettings::render_type_OBJECT: {
-			BL::Object b_dupli_ob = b_psys->settings().dupli_object();
+			BL::Object b_dupli_ob = b_psys.settings().dupli_object();
 			if (b_dupli_ob) {
 				BL::ID key = (BKE_object_is_modified(b_dupli_ob))? b_dupli_ob: b_dupli_ob.data();
 				Mesh *mesh = mesh_map.find(key);
@@ -73,7 +71,7 @@ bool BlenderSync::object_need_particle_update(BL::Object b_ob)
 		}
 		
 		case BL::ParticleSettings::render_type_GROUP: {
-			BL::Group b_dupli_group = b_psys->settings().dupli_group();
+			BL::Group b_dupli_group = b_psys.settings().dupli_group();
 			if (b_dupli_group) {
 				BL::Group::objects_iterator b_gob;
 				for (b_dupli_group.objects.begin(b_gob); b_gob != b_dupli_group.objects.end(); ++b_gob) {
@@ -90,7 +88,6 @@ bool BlenderSync::object_need_particle_update(BL::Object b_ob)
 		default:
 			/* avoid compiler warning */
 			break;
-		}
 	}
 	
 	return need_update;
@@ -117,50 +114,98 @@ static bool use_particle(BL::Particle b_pa)
 	return b_pa.is_exist() && b_pa.is_visible() && b_pa.alive_state()==BL::Particle::alive_state_ALIVE;
 }
 
+static int psys_count_particles(BL::ParticleSystem b_psys)
+{
+	int tot = 0;
+	BL::ParticleSystem::particles_iterator b_pa;
+	for(b_psys.particles.begin(b_pa); b_pa != b_psys.particles.end(); ++b_pa) {
+		if(use_particle(*b_pa))
+			++tot;
+	}
+	return tot;
+}
+
 int BlenderSync::object_count_particles(BL::Object b_ob)
 {
 	int tot = 0;
 	BL::Object::particle_systems_iterator b_psys;
 	for(b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys) {
-		if (use_particle_system(*b_psys)) {
-			BL::ParticleSystem::particles_iterator b_pa;
-			for(b_psys->particles.begin(b_pa); b_pa != b_psys->particles.end(); ++b_pa) {
-				if(use_particle(*b_pa))
-					++tot;
-			}
-		}
+		if (use_particle_system(*b_psys))
+			tot += psys_count_particles(*b_psys);
 	}
 	return tot;
 }
 
-void BlenderSync::sync_particles(Object *ob, BL::Object b_ob)
+void BlenderSync::sync_particles(BL::Object b_ob, BL::ParticleSystem b_psys)
 {
-	int tot = object_count_particles(b_ob);
+	/* depending on settings the psys may not even be rendered */
+	if (!use_particle_system(b_psys))
+		return;
 	
-	ob->particles.clear();
-	ob->particles.reserve(tot);
+	/* key to lookup particle system */
+	ParticleSystemKey key(b_ob, b_psys);
+	ParticleSystem *psys;
 	
-	int index;
-	BL::Object::particle_systems_iterator b_psys;
-	for(b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys) {
-		if (use_particle_system(*b_psys)) {
-			int pa_index = 0;
-			BL::ParticleSystem::particles_iterator b_pa;
-			for(b_psys->particles.begin(b_pa), index = 0; b_pa != b_psys->particles.end(); ++b_pa, ++index) {
-				if(use_particle(*b_pa)) {
-					Particle pa;
-					
-					pa.index = pa_index;
-					pa.age = b_scene.frame_current() - b_pa->birth_time();
-					pa.lifetime = b_pa->lifetime();
-					
-					ob->particles.push_back(pa);
-				}
+	/* test if we need to sync */
+	bool object_updated = false;
+	
+	if(particle_system_map.sync(&psys, b_ob, b_ob, key))
+		object_updated = true;
+	
+	bool need_update = psys_need_update(b_psys);
+	
+	if (object_updated || need_update) {
+		int tot = psys_count_particles(b_psys);
+		psys->particles.clear();
+		psys->particles.reserve(tot);
+		
+		int index = 0;
+		BL::ParticleSystem::particles_iterator b_pa;
+		for(b_psys.particles.begin(b_pa); b_pa != b_psys.particles.end(); ++b_pa) {
+			if(use_particle(*b_pa)) {
+				Particle pa;
 				
-				++pa_index;
+				pa.index = index;
+				pa.age = b_scene.frame_current() - b_pa->birth_time();
+				pa.lifetime = b_pa->lifetime();
+				
+				psys->particles.push_back(pa);
+			}
+			
+			++index;
+		}
+	}
+}
+
+void BlenderSync::sync_particle_systems()
+{
+	/* layer data */
+	uint scene_layer = render_layer.scene_layer;
+	
+	particle_system_map.pre_sync();
+
+	/* object loop */
+	BL::Scene::objects_iterator b_ob;
+	BL::Scene b_sce = b_scene;
+
+	for(; b_sce; b_sce = b_sce.background_set()) {
+		for(b_sce.objects.begin(b_ob); b_ob != b_sce.objects.end(); ++b_ob) {
+			bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
+			uint ob_layer = get_layer(b_ob->layers(), b_ob->layers_local_view(), object_is_light(*b_ob));
+			CYCLES_LOCAL_LAYER_HACK(render_layer.use_localview, ob_layer);
+			hide = hide || !(ob_layer & scene_layer);
+
+			if(!hide) {
+				BL::Object::particle_systems_iterator b_psys;
+				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
+					sync_particles(*b_ob, *b_psys);
 			}
 		}
 	}
+
+	/* handle removed data and modified pointers */
+	if(particle_system_map.post_sync())
+		scene->particle_system_manager->tag_update(scene);
 }
 
 CCL_NAMESPACE_END

@@ -16,69 +16,54 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __OBJECT_H__
-#define __OBJECT_H__
+#ifndef __PARTICLES_H__
+#define __PARTICLES_H__
 
-#include "util_boundbox.h"
-#include "util_param.h"
-#include "util_transform.h"
 #include "util_types.h"
+#include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
-class Mesh;
 class Progress;
 class Scene;
-struct Transform;
 
-/* Object */
+/* Particle System */
 
-class Object {
+struct Particle {
+	int index;
+	float age;
+	float lifetime;
+};
+
+class ParticleSystem {
 public:
-	Mesh *mesh;
-	Transform tfm;
-	BoundBox bounds;
-	ustring name;
-	uint random_id;
-	int pass_id;
-	vector<ParamValue> attributes;
-	uint visibility;
-	MotionTransform motion;
-	bool use_motion;
-	bool use_holdout;
-
-	int particle_id;
-
-	Object();
-	~Object();
+	ParticleSystem();
+	~ParticleSystem();
 
 	void tag_update(Scene *scene);
 
-	void compute_bounds(bool motion_blur);
-	void apply_transform();
+	vector<Particle> particles;
 };
 
-/* Object Manager */
+/* ParticleSystem Manager */
 
-class ObjectManager {
+class ParticleSystemManager {
 public:
 	bool need_update;
 
-	ObjectManager();
-	~ObjectManager();
+	ParticleSystemManager();
+	~ParticleSystemManager();
 
+	void device_update_particles(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
 
 	void tag_update(Scene *scene);
-
-	void apply_static_transforms(Scene *scene, Progress& progress);
 };
 
 CCL_NAMESPACE_END
 
-#endif /* __OBJECT_H__ */
+#endif /* __PARTICLES_H__ */
 

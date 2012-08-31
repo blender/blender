@@ -389,6 +389,17 @@ struct ObjectKey {
 	{ return (parent < k.parent || (parent == k.parent && (index < k.index || (index == k.index && ob < k.ob)))); }
 };
 
+struct ParticleSystemKey {
+	void *ob;
+	void *psys;
+
+	ParticleSystemKey(void *ob_, void *psys_)
+	: ob(ob_), psys(psys_) {}
+
+	bool operator<(const ParticleSystemKey& k) const
+	{ return (ob < k.ob && psys < k.psys); }
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __BLENDER_UTIL_H__ */
