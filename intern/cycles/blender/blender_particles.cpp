@@ -179,6 +179,8 @@ void BlenderSync::sync_particles(BL::Object b_ob, BL::ParticleSystem b_psys)
 			
 			++index;
 		}
+		
+		psys->tag_update(scene);
 	}
 }
 
