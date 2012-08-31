@@ -2056,7 +2056,7 @@ static void UV_OT_select(wmOperatorType *ot)
 	ot->name = "Select";
 	ot->description = "Select UV vertices";
 	ot->idname = "UV_OT_select";
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = select_exec;
@@ -2101,7 +2101,7 @@ static void UV_OT_select_loop(wmOperatorType *ot)
 	ot->name = "Loop Select";
 	ot->description = "Select a loop of connected UV vertices";
 	ot->idname = "UV_OT_select_loop";
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = select_loop_exec;
@@ -2203,7 +2203,7 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 	ot->name = "Select Linked Pick";
 	ot->description = "Select all UV vertices linked under the mouse";
 	ot->idname = "UV_OT_select_linked_pick";
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* api callbacks */
 	ot->invoke = select_linked_pick_invoke;
