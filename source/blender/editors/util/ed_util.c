@@ -49,6 +49,7 @@
 #include "BKE_packedFile.h"
 
 #include "ED_armature.h"
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_sculpt.h"
@@ -67,6 +68,7 @@
 
 void ED_editors_init(bContext *C)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *sce = CTX_data_scene(C);
 	Object *ob, *obact = (sce && sce->basact) ? sce->basact->object : NULL;
@@ -86,6 +88,9 @@ void ED_editors_init(bContext *C)
 				ED_object_toggle_modes(C, mode);
 		}
 	}
+
+	/* image editor paint mode */
+	ED_space_image_paint_update(wm, sce->toolsettings);
 }
 
 /* frees all editmode stuff */
