@@ -36,25 +36,27 @@ tls_ptr(OSLGlobals::ThreadData, OSLGlobals::thread_data);
 
 void OSLShader::thread_init(KernelGlobals *kg)
 {
-	OSL::pvt::ShadingSystemImpl *ssi = (OSL::pvt::ShadingSystemImpl *)kg->osl.ss;
+	OSL::ShadingSystem *ss = kg->osl.ss;
 
 	OSLGlobals::ThreadData *tdata = new OSLGlobals::ThreadData();
 
 	memset(&tdata->globals, 0, sizeof(OSL::ShaderGlobals));
-	tdata->thread_info = ssi->create_thread_info();
+	tdata->thread_info = ss->create_thread_info();
 
 	tls_set(kg->osl.thread_data, tdata);
 
-	((OSLRenderServices *)ssi->renderer())->thread_init(kg);
+	//((OSLRenderServices *)ssi->renderer())->thread_init(kg);
+	/* XXX not sure here - dingto */
+	thread_init(kg);
 }
 
 void OSLShader::thread_free(KernelGlobals *kg)
 {
-	OSL::pvt::ShadingSystemImpl *ssi = (OSL::pvt::ShadingSystemImpl *)kg->osl.ss;
+	OSL::ShadingSystem *ss = kg->osl.ss;
 
 	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
 
-	ssi->destroy_thread_info(tdata->thread_info);
+	ss->destroy_thread_info(tdata->thread_info);
 
 	delete tdata;
 }
@@ -201,10 +203,10 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int path_flag)
 {
 	/* gather pointers */
-	OSL::pvt::ShadingSystemImpl *ssi = (OSL::pvt::ShadingSystemImpl *)kg->osl.ss;
+	OSL::ShadingSystem *ss = kg->osl.ss;
 	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
 	OSL::ShaderGlobals *globals = &tdata->globals;
-	OSL::pvt::ShadingContext *ctx = ssi->get_context(tdata->thread_info);
+	OSL::ShadingContext *ctx = ss->get_context(tdata->thread_info);
 
 	/* setup shader globals from shader data */
 	sd->osl_ctx = ctx;
@@ -214,7 +216,7 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int
 	int shader = sd->shader & SHADER_MASK;
 
 	if (kg->osl.surface_state[shader])
-		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.surface_state[shader]), *globals);
+		ss->execute(*ctx, *(kg->osl.surface_state[shader]), *globals);
 
 	/* flatten closure tree */
 	sd->num_closure = 0;
@@ -259,10 +261,10 @@ static float3 flatten_background_closure_tree(const OSL::ClosureColor *closure)
 float3 OSLShader::eval_background(KernelGlobals *kg, ShaderData *sd, int path_flag)
 {
 	/* gather pointers */
-	OSL::pvt::ShadingSystemImpl *ssi = (OSL::pvt::ShadingSystemImpl *)kg->osl.ss;
+	OSL::ShadingSystem *ss = kg->osl.ss;
 	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
 	OSL::ShaderGlobals *globals = &tdata->globals;
-	OSL::pvt::ShadingContext *ctx = ssi->get_context(tdata->thread_info);
+	OSL::ShadingContext *ctx = ss->get_context(tdata->thread_info);
 
 	/* setup shader globals from shader data */
 	sd->osl_ctx = ctx;
@@ -270,7 +272,7 @@ float3 OSLShader::eval_background(KernelGlobals *kg, ShaderData *sd, int path_fl
 
 	/* execute shader for this point */
 	if (kg->osl.background_state)
-		ctx->execute(OSL::pvt::ShadUseSurface, *kg->osl.background_state, *globals);
+		ss->execute(*ctx, *(kg->osl.background_state), *globals);
 
 	/* return background color immediately */
 	if (globals->Ci)
@@ -336,10 +338,10 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int path_flag)
 {
 	/* gather pointers */
-	OSL::pvt::ShadingSystemImpl *ssi = (OSL::pvt::ShadingSystemImpl *)kg->osl.ss;
+	OSL::ShadingSystem *ss = kg->osl.ss;
 	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
 	OSL::ShaderGlobals *globals = &tdata->globals;
-	OSL::pvt::ShadingContext *ctx = ssi->get_context(tdata->thread_info);
+	OSL::ShadingContext *ctx = ss->get_context(tdata->thread_info);
 
 	/* setup shader globals from shader data */
 	sd->osl_ctx = ctx;
@@ -349,7 +351,7 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int 
 	int shader = sd->shader & SHADER_MASK;
 
 	if (kg->osl.volume_state[shader])
-		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.volume_state[shader]), *globals);
+		ss->execute(*ctx, *(kg->osl.volume_state[shader]), *globals);
 
 	if (globals->Ci)
 		flatten_volume_closure_tree(sd, globals->Ci);
@@ -360,10 +362,10 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int 
 void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd)
 {
 	/* gather pointers */
-	OSL::pvt::ShadingSystemImpl *ssi = (OSL::pvt::ShadingSystemImpl *)kg->osl.ss;
+	OSL::ShadingSystem *ss = kg->osl.ss;
 	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
 	OSL::ShaderGlobals *globals = &tdata->globals;
-	OSL::pvt::ShadingContext *ctx = ssi->get_context(tdata->thread_info);
+	OSL::ShadingContext *ctx = ss->get_context(tdata->thread_info);
 
 	/* setup shader globals from shader data */
 	sd->osl_ctx = ctx;
@@ -373,7 +375,7 @@ void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd)
 	int shader = sd->shader & SHADER_MASK;
 
 	if (kg->osl.displacement_state[shader])
-		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.displacement_state[shader]), *globals);
+		ss->execute(*ctx, *(kg->osl.displacement_state[shader]), *globals);
 
 	/* get back position */
 	sd->P = TO_FLOAT3(globals->P);
@@ -381,10 +383,11 @@ void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd)
 
 void OSLShader::release(KernelGlobals *kg, const ShaderData *sd)
 {
-	OSL::pvt::ShadingSystemImpl *ssi = (OSL::pvt::ShadingSystemImpl *)kg->osl.ss;
+	OSL::ShadingSystem *ss = kg->osl.ss;
 	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
+	OSL::ShadingContext *ctx = ss->get_context(tdata->thread_info);
 
-	ssi->release_context((OSL::pvt::ShadingContext *)sd->osl_ctx, tdata->thread_info);
+	ss->release_context(ctx);
 }
 
 /* BSDF Closure */
