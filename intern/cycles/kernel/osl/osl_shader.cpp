@@ -137,11 +137,9 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					/* sample weight */
 					float albedo = bsdf->albedo(TO_VEC3(sd->I));
 					float sample_weight = fabsf(average(weight)) * albedo;
-					float sample_sum = sd->osl_closure.bsdf_sample_sum + sample_weight;
 
 					sc.sample_weight = sample_weight;
 					sc.type = CLOSURE_BSDF_ID;
-					sd->osl_closure.bsdf_sample_sum = sample_sum;
 
 					/* scattering flags */
 					if (scattering == OSL::Labels::DIFFUSE)
@@ -161,11 +159,9 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 
 					/* sample weight */
 					float sample_weight = fabsf(average(weight));
-					float sample_sum = sd->osl_closure.emissive_sample_sum + sample_weight;
 
 					sc.sample_weight = sample_weight;
 					sc.type = CLOSURE_EMISSION_ID;
-					sd->osl_closure.emissive_sample_sum = sample_sum;
 
 					/* flag */
 					sd->flag |= SD_EMISSION;
@@ -307,11 +303,9 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 
 					/* sample weight */
 					float sample_weight = fabsf(average(weight));
-					float sample_sum = sd->osl_closure.volume_sample_sum + sample_weight;
 
 					sc.sample_weight = sample_weight;
 					sc.type = CLOSURE_VOLUME_ID;
-					sd->osl_closure.volume_sample_sum = sample_sum;
 
 					/* add */
 					sd->closure[sd->num_closure++] = sc;
@@ -356,11 +350,6 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int 
 
 	if (kg->osl.volume_state[shader])
 		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.volume_state[shader]), *globals);
-
-	/* retrieve resulting closures */
-	sd->osl_closure.volume_sample_sum = 0.0f;
-	sd->osl_closure.num_volume = 0;
-	sd->osl_closure.randb = randb;
 
 	if (globals->Ci)
 		flatten_volume_closure_tree(sd, globals->Ci);
@@ -458,9 +447,8 @@ float3 OSLShader::emissive_eval(const ShaderData *sd, const ShaderClosure *sc)
 {
 	OSL::EmissiveClosure *emissive = (OSL::EmissiveClosure *)sc->prim;
 	OSL::Color3 emissive_eval = emissive->eval(TO_VEC3(sd->Ng), TO_VEC3(sd->I));
-	eval += TO_FLOAT3(emissive_eval);
 
-	return eval;
+	return TO_FLOAT3(emissive_eval);
 }
 
 /* Volume Closure */
