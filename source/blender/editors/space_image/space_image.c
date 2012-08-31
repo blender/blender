@@ -392,11 +392,12 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	else if (obedit && obedit->type == OB_MESH) {
 		Mesh *me = (Mesh *)obedit->data;
 		struct BMEditMesh *em = me->edit_btmesh;
-		int sloppy = 1; /* partially selected face is ok */
+		int sloppy = TRUE; /* partially selected face is ok */
+		int selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION); /* only selected active face? */
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			/* new shading system, get image from material */
-			BMFace *efa = BM_active_face_get(em->bm, sloppy);
+			BMFace *efa = BM_active_face_get(em->bm, sloppy, selected);
 
 			if (efa) {
 				Image *node_ima;
@@ -413,8 +414,8 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 			if (em && EDBM_mtexpoly_check(em)) {
 				sima->image = NULL;
 				
-				tf = EDBM_mtexpoly_active_get(em, NULL, TRUE); /* partially selected face is ok */
-				
+				tf = EDBM_mtexpoly_active_get(em, NULL, sloppy, selected);
+
 				if (tf) {
 					/* don't need to check for pin here, see above */
 					sima->image = tf->tpage;

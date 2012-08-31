@@ -71,7 +71,7 @@ int BM_mesh_elem_hflag_count_disabled(BMesh *bm, const char htype, const char hf
 
 /* edit selection stuff */
 void    BM_active_face_set(BMesh *bm, BMFace *f);
-BMFace *BM_active_face_get(BMesh *bm, int sloppy);
+BMFace *BM_active_face_get(BMesh *bm, int sloppy, int selected);
 
 void    BM_editselection_center(BMEditSelection *ese, float r_center[3]);
 void    BM_editselection_normal(BMEditSelection *ese, float r_normal[3]);

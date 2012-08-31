@@ -174,6 +174,8 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 	BMIter iter;
 	MTexPoly *tf;
 	int update = 0;
+	int sloppy = TRUE;
+	int selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
 	
 	/* skip assigning these procedural images... */
 	if (ima && (ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE))
@@ -190,8 +192,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 
 	if (BKE_scene_use_new_shading_nodes(scene)) {
 		/* new shading system, assign image in material */
-		int sloppy = 1;
-		BMFace *efa = BM_active_face_get(em->bm, sloppy);
+		BMFace *efa = BM_active_face_get(em->bm, sloppy, selected);
 
 		if (efa)
 			ED_object_assign_active_image(bmain, obedit, efa->mat_nr + 1, ima);

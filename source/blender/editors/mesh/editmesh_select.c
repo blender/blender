@@ -2221,7 +2221,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 		}
 	}
 	else if (em->selectmode & SCE_SELECT_FACE) {
-		f = BM_active_face_get(em->bm, TRUE);
+		f = BM_active_face_get(em->bm, TRUE, FALSE);
 		if (f) {
 			*r_efa = f;
 			return;
