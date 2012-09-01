@@ -97,7 +97,7 @@ bool BlenderSync::sync_recalc()
 				light_map.set_recalc(*b_ob);
 		}
 		
-		if(b_ob->is_updated_data() || b_ob->data().is_updated()) {
+		if(b_ob->is_updated_data()) {
 			BL::Object::particle_systems_iterator b_psys;
 			for (b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
 				particle_system_map.set_recalc(*b_ob);
