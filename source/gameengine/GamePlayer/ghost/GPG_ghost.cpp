@@ -47,6 +47,7 @@
 #endif // __APPLE__
 #include "KX_KetsjiEngine.h"
 #include "KX_PythonInit.h"
+#include "KX_PythonMain.h"
 
 /**********************************
 * Begin Blender include block
@@ -330,6 +331,40 @@ static BlendFileData *load_game_data(const char *progname, char *filename = NULL
 	BKE_reports_clear(&reports);
 	
 	return bfd;
+}
+
+bool GPG_NextFrame(GHOST_ISystem* system, GPG_Application *app, int &exitcode, STR_String &exitstring, GlobalSettings *gs)
+{
+    bool run = true;
+    system->processEvents(false);
+    system->dispatchEvents();
+    if ((exitcode = app->getExitRequested()))
+    {
+        run = false;
+        exitstring = app->getExitString();
+        *gs = *app->getGlobalSettings();
+    }
+    return run;
+}
+
+struct GPG_NextFrameState {
+	GHOST_ISystem* system;
+	GPG_Application *app;
+	GlobalSettings *gs;
+} gpg_nextframestate;
+
+int GPG_PyNextFrame(void *state0)
+{
+	GPG_NextFrameState *state = (GPG_NextFrameState *) state0;
+	int exitcode;
+	STR_String exitstring;
+	bool run = GPG_NextFrame(state->system, state->app, exitcode, exitstring, state->gs);
+	if (run) return 0;  
+	else {
+		if (exitcode) 
+			fprintf(stderr, "Exit code %d: %s\n", exitcode, exitstring.ReadPtr());
+		return 1;
+	}
 }
 
 int main(int argc, char** argv)
@@ -966,17 +1001,39 @@ int main(int argc, char** argv)
 						
 						// Enter main loop
 						bool run = true;
-						while (run)
+                        char *python_main = NULL;
+						pynextframestate.state = NULL;
+						pynextframestate.func = NULL;
+#ifdef WITH_PYTHON
+						python_main = KX_GetPythonMain(scene);
+#endif // WITH_PYTHON
+						if (python_main) 
 						{
-							system->processEvents(false);
-							system->dispatchEvents();
-							app.EngineNextFrame();
-
-							if ((exitcode = app.getExitRequested()))
+							char *python_code = KX_GetPythonCode(maggie, python_main);
+							if (python_code)
 							{
-								run = false;
-								exitstring = app.getExitString();
-								gs = *app.getGlobalSettings();
+#ifdef WITH_PYTHON			    
+								gpg_nextframestate.system = system;
+								gpg_nextframestate.app = &app;
+								gpg_nextframestate.gs = &gs;
+								pynextframestate.state = &gpg_nextframestate;
+								pynextframestate.func = &GPG_PyNextFrame;			
+
+                                printf("Yielding control to Python script '%s'...\n", python_main);
+                                PyRun_SimpleString(python_code);
+                                printf("Exit Python script '%s'\n", python_main);
+#endif // WITH_PYTHON				
+                                MEM_freeN(python_code);
+                            }
+                            else {
+                                fprintf(stderr, "ERROR: cannot yield control to Python: no Python text data block named '%s'\n", python_main);
+                            }
+                        }
+                        else
+						{
+							while (run)
+							{
+								run = GPG_NextFrame(system, &app, exitcode, exitstring, &gs);
 							}
 						}
 						app.StopGameEngine();
@@ -986,6 +1043,7 @@ int main(int argc, char** argv)
 						system->removeEventConsumer(&app);
 
 						BLO_blendfiledata_free(bfd);
+						if (python_main) MEM_freeN(python_main);
 					}
 				} while (exitcode == KX_EXIT_REQUEST_RESTART_GAME || exitcode == KX_EXIT_REQUEST_START_OTHER_GAME);
 			}
