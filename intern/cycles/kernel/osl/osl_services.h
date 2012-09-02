@@ -30,10 +30,6 @@
 #include <OSL/oslexec.h>
 #include <OSL/oslclosure.h>
 
-#ifdef WITH_PARTIO
-#include <Partio.h>
-#endif
-
 CCL_NAMESPACE_BEGIN
 
 class Object;
@@ -53,8 +49,12 @@ public:
 
 	bool get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform, float time);
 	bool get_inverse_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform, float time);
+	
 	bool get_matrix(OSL::Matrix44 &result, ustring from, float time);
 	bool get_inverse_matrix(OSL::Matrix44 &result, ustring to, float time);
+	
+	bool get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform);
+	bool get_matrix(OSL::Matrix44 &result, ustring from);
 
 	bool get_array_attribute(void *renderstate, bool derivatives, 
 	                         ustring object, TypeDesc type, ustring name,
@@ -68,32 +68,16 @@ public:
 
 	void *get_pointcloud_attr_query(ustring *attr_names,
 	                                TypeDesc *attr_types, int nattrs);
-	int pointcloud(ustring filename, const OSL::Vec3 &center, float radius,
-	               int max_points, void *attr_query, void **attr_outdata);
+				   
+	int pointcloud_search(OSL::ShaderGlobals *sg, ustring filename, const OSL::Vec3 &center,
+						float radius, int max_points, bool sort, size_t *out_indices,
+						float *out_distances, int derivs_offset);
+
+	int pointcloud_get(ustring filename, size_t *indices, int count, ustring attr_name,
+						TypeDesc attr_type, void *out_data);
 
 private:
 	KernelGlobals *kernel_globals;
-
-#ifdef WITH_PARTIO
-	/* OSL gets pointers to this but its definition is private.
-	 * right now it only caches the types already converted to
-	 * Partio constants. this is what get_pointcloud_attr_query
-	 * returns */
-	struct AttrQuery {
-		/* names of the attributes to query */
-		std::vector<ustring> attr_names;
-		/* types as (enum Partio::ParticleAttributeType) of the
-		 * attributes in the query */
-		std::vector<int> attr_partio_types;
-		/* for sanity checks, capacity of the output arrays */
-		int capacity;
-	};
-
-	Partio::ParticlesData *get_pointcloud(ustring filename);
-
-	/* keep a list so adding elements doesn't invalidate pointers */
-	std::list<AttrQuery> m_attr_queries;
-#endif
 
 	static ustring u_distance;
 	static ustring u_index;

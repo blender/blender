@@ -160,6 +160,18 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, ustring to, fl
 	return false;
 }
 
+bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform)
+{
+	// XXX implementation
+	return true;
+}
+
+bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, ustring from)
+{
+	// XXX implementation
+	return true;
+}
+
 bool OSLRenderServices::get_array_attribute(void *renderstate, bool derivatives, 
                                             ustring object, TypeDesc type, ustring name,
                                             int index, void *val)
@@ -297,137 +309,16 @@ bool OSLRenderServices::has_userdata(ustring name, TypeDesc type, void *renderst
 	return false; /* never called by OSL */
 }
 
-void *OSLRenderServices::get_pointcloud_attr_query(ustring *attr_names,
-                                                   TypeDesc *attr_types, int nattrs)
+int OSLRenderServices::pointcloud_search(OSL::ShaderGlobals *sg, ustring filename, const OSL::Vec3 &center,
+		float radius, int max_points, bool sort, size_t *out_indices, float *out_distances, int derivs_offset)
 {
-#ifdef WITH_PARTIO
-	m_attr_queries.push_back(AttrQuery());
-	AttrQuery &query = m_attr_queries.back();
-
-	/* make space for what we need. the only reason to use
-	 * std::vector is to skip the delete */
-	query.attr_names.resize(nattrs);
-	query.attr_partio_types.resize(nattrs);
-	/* capacity will keep the length of the smallest array passed
-	 * to the query. Just to prevent buffer overruns */
-	query.capacity = -1;
-
-	for (int i = 0; i < nattrs; ++i) {
-		query.attr_names[i] = attr_names[i];
-
-		TypeDesc element_type = attr_types[i].elementtype();
-
-		if (query.capacity < 0)
-			query.capacity = attr_types[i].numelements();
-		else
-			query.capacity = min(query.capacity, (int)attr_types[i].numelements());
-
-		/* convert the OSL (OIIO) type to the equivalent Partio type so
-		 * we can do a fast check at query time. */
-		if (element_type == TypeDesc::TypeFloat) {
-			query.attr_partio_types[i] = Partio::FLOAT;
-		}
-		else if (element_type == TypeDesc::TypeInt) {
-			query.attr_partio_types[i] = Partio::INT;
-		}
-		else if (element_type == TypeDesc::TypeColor  || element_type == TypeDesc::TypePoint ||
-		         element_type == TypeDesc::TypeVector || element_type == TypeDesc::TypeNormal)
-		{
-			query.attr_partio_types[i] = Partio::VECTOR;
-		}
-		else {
-			return NULL;  /* report some error of unknown type */
-		}
-	}
-
-	/* this is valid until the end of RenderServices */
-	return &query;
-#else
-	return NULL;
-#endif
+    return 0;
 }
 
-#ifdef WITH_PARTIO
-Partio::ParticlesData *OSLRenderServices::get_pointcloud(ustring filename)
+int OSLRenderServices::pointcloud_get(ustring filename, size_t *indices, int count,
+		ustring attr_name, TypeDesc attr_type, void *out_data)
 {
-	return Partio::readCached(filename.c_str(), true);
-}
-
-#endif
-
-int OSLRenderServices::pointcloud(ustring filename, const OSL::Vec3 &center, float radius,
-                                  int max_points, void *_attr_query, void **attr_outdata)
-{
-	/* todo: this code has never been tested, and most likely does not
-	 * work. it's based on the example code in OSL */
-
-#ifdef WITH_PARTIO
-	/* query Partio for this pointcloud lookup using cached attr_query */
-	if (!_attr_query)
-		return 0;
-
-	AttrQuery *attr_query = (AttrQuery *)_attr_query;
-	if (attr_query->capacity < max_points)
-		return 0;
-
-	/* get the pointcloud entry for the given filename */
-	Partio::ParticlesData *cloud = get_pointcloud(filename);
-
-	/* now we have to look up all the attributes in the file. we can't do this
-	 * before hand cause we never know what we are going to load. */
-	int nattrs = attr_query->attr_names.size();
-	Partio::ParticleAttribute *attr = (Partio::ParticleAttribute *)alloca(sizeof(Partio::ParticleAttribute) * nattrs);
-
-	for (int i = 0; i < nattrs; ++i) {
-		/* special case attributes */
-		if (attr_query->attr_names[i] == u_distance || attr_query->attr_names[i] == u_index)
-			continue;
-
-		/* lookup the attribute by name*/
-		if (!cloud->attributeInfo(attr_query->attr_names[i].c_str(), attr[i])) {
-			/* issue an error here and return, types don't match */
-			Partio::endCachedAccess(cloud);
-			cloud->release();
-			return 0;
-		}
-	}
-
-	std::vector<Partio::ParticleIndex> indices;
-	std::vector<float> dist2;
-
-	Partio::beginCachedAccess(cloud);
-
-	/* finally, do the lookup */
-	cloud->findNPoints((const float *)&center, max_points, radius, indices, dist2);
-	int count = indices.size();
-
-	/* retrieve the attributes directly to user space */
-	for (int j = 0; j < nattrs; ++j) {
-		/* special cases */
-		if (attr_query->attr_names[j] == u_distance) {
-			for (int i = 0; i < count; ++i)
-				((float *)attr_outdata[j])[i] = sqrtf(dist2[i]);
-		}
-		else if (attr_query->attr_names[j] == u_index) {
-			for (int i = 0; i < count; ++i)
-				((int *)attr_outdata[j])[i] = indices[i];
-		}
-		else {
-			/* note we make a single call per attribute, we don't loop over the
-			 * points. Partio does it, so it is there that we have to care about
-			 * performance */
-			cloud->data(attr[j], count, &indices[0], true, attr_outdata[j]);
-		}
-	}
-
-	Partio::endCachedAccess(cloud);
-	cloud->release();
-
-	return count;
-#else
-	return 0;
-#endif
+    return 0;
 }
 
 CCL_NAMESPACE_END
-
