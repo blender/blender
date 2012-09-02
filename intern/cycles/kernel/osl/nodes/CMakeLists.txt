@@ -56,6 +56,7 @@ set(SRC_OSL_HEADERS
 	node_color.h
 	node_fresnel.h
 	stdosl.h
+	oslutil.h
 )
 
 set(SRC_OSO
