@@ -303,7 +303,7 @@ __device_inline void path_radiance_clamp(PathRadiance *L, float3 *L_sum, float c
 {
 	float sum = fabsf((*L_sum).x) + fabsf((*L_sum).y) + fabsf((*L_sum).z);
 
-	if(!isfinite(sum)) {
+	if(!std::isfinite(sum)) {
 		/* invalid value, reject */
 		*L_sum = make_float3(0.0f, 0.0f, 0.0f);
 

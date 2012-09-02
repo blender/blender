@@ -24,8 +24,7 @@ shader node_normal(
 	output normal NormalOut = normal(0.0, 0.0, 0.0),
 	output float Dot = 1.0)
 {
-	Direction = normalize(Direction);
-	NormalOut = Direction;
-	Dot = dot(Direction, NormalIn);
+	NormalOut = normalize(Direction);
+	Dot = dot(NormalOut, NormalIn);
 }
 

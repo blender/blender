@@ -18,23 +18,12 @@
 
 #include "stdosl.h"
 
-shader node_separate_rgb(
-	color Image = color(0.8, 0.8, 0.8),
-	output float R = 0.0,
-	output float G = 0.0,
-	output float B = 0.0)
-{
-		R = Image[0];
-		G = Image[1];
-		B = Image[2];
-}
-
 shader node_combine_rgb(
 	float R = 0.0,
 	float G = 0.0,
 	float B = 0.0,
-	output color Image = color(0.8, 0.8, 0.8)
+	output color Image = color(0.8, 0.8, 0.8))
 {
-	Image = color(R, G, B)
+	Image = color(R, G, B);
 }
 
