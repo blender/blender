@@ -27,7 +27,7 @@ float noise(point p, string basis, float distortion, float detail)
 	int hard = 0;
 	float fac = 0.0;
 	
-	if(distortion != 0.0( {
+	if(distortion != 0.0) {
 		r[0] = noise_basis(p + point(13.5), basis) * distortion;
 		r[1] = noise_basis(p, basis) * distortion;
 		r[2] = noise_basis(p - point(13.5), basis) * distortion;

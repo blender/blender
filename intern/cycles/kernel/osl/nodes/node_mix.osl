@@ -280,7 +280,7 @@ color node_mix_clamp(color col)
 
 shader node_mix(
 	string type = "Mix",
-	int Clamp = false,
+	int Clamp = 0,
 	float Fac = 0.5,
 	color Color1 = color(0.0, 0.0, 0.0),
 	color Color2 = color(0.0, 0.0, 0.0),
