@@ -2021,27 +2021,20 @@ static void picker_new_hide_reveal(uiBlock *block, short colormode)
 	
 	/* tag buttons */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
-		
-		if (bt->type == LABEL) {
-			if (bt->str[1] == 'G') {
-				if (colormode == 2) bt->flag &= ~UI_HIDDEN;
-				else bt->flag |= UI_HIDDEN;
-			}
+		if (bt->func == do_picker_rna_cb && bt->type == NUMSLI) {
+			/* RGB sliders (color circle is always shown) */
+			if (colormode == 0) bt->flag &= ~UI_HIDDEN;
+			else bt->flag |= UI_HIDDEN;
 		}
-		
-		if (bt->type == NUMSLI || bt->type == TEX) {
-			if (bt->str[1] == 'e') {
-				if (colormode == 2) bt->flag &= ~UI_HIDDEN;
-				else bt->flag |= UI_HIDDEN;
-			}
-			else if (ELEM3(bt->str[0], 'R', 'G', 'B')) {
-				if (colormode == 0) bt->flag &= ~UI_HIDDEN;
-				else bt->flag |= UI_HIDDEN;
-			}
-			else if (ELEM3(bt->str[0], 'H', 'S', 'V')) {
-				if (colormode == 1) bt->flag &= ~UI_HIDDEN;
-				else bt->flag |= UI_HIDDEN;
-			}
+		else if (bt->func == do_hsv_rna_cb) {
+			/* HSV sliders */
+			if (colormode == 1) bt->flag &= ~UI_HIDDEN;
+			else bt->flag |= UI_HIDDEN;
+		}
+		else if (bt->func == do_hex_rna_cb || bt->type == LABEL) {
+			/* hex input or gamma correction status label */
+			if (colormode == 2) bt->flag &= ~UI_HIDDEN;
+			else bt->flag |= UI_HIDDEN;
 		}
 	}
 }
