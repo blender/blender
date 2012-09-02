@@ -35,7 +35,7 @@ float noise(point p, string basis, float distortion, float detail)
 		p += r;
 	}
 
-	fac = noise_turbulence(p, basis, (int)detail, hard);
+	fac = noise_turbulence(p, basis, detail, hard);
 	
 	return fac;
     

@@ -38,7 +38,7 @@ float wave(point p, float scale, string type, float detail, float distortion, fl
 	}
 	
 	if(distortion != 0.0) {
-		n = n +(distortion * noise_turbulence(p*dscale, "Perlin", (int)detail, 0));
+		n = n +(distortion * noise_turbulence(p*dscale, "Perlin", detail, 0));
 	}
 	result = noise_wave("Sine", n);
 	
