@@ -415,7 +415,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
 
 	glColor3ub(112, 112, 112);
 
-	if (me->mtface) {
+	if (me->mtpoly) {
 		MPoly *mpoly = me->mpoly;
 		MTexPoly *tface = me->mtpoly;
 		MLoopUV *mloopuv;
