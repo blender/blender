@@ -83,4 +83,5 @@ endforeach()
 
 add_custom_target(shader ALL DEPENDS ${SRC_OSO} ${SRC_OSL_HEADERS})
 
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_OSO}" ${CYCLES_INSTALL_PATH}/shader)
+# CMAKE_CURRENT_SOURCE_DIR is already included in OSO paths
+delayed_install("" "${SRC_OSO}" ${CYCLES_INSTALL_PATH}/shader)
