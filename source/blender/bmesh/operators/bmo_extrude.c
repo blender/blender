@@ -390,7 +390,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 			if (!v1->e)
 				BM_vert_kill(bm, v1);
 			if (!v2->e)
-				BM_vert_kill(bm, v1);
+				BM_vert_kill(bm, v2);
 
 			continue;
 		}
