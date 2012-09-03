@@ -382,10 +382,9 @@ typedef struct ShaderClosure {
 
 #ifdef __OSL__
 	void *prim;
-#else
+#endif
 	float data0;
 	float data1;
-#endif
 
 } ShaderClosure;
 
