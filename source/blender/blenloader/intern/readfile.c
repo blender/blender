@@ -1554,16 +1554,13 @@ static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, FileData *f
 	}
 	else if (prop->subtype == IDP_DOUBLE) {
 		if (switch_endian) {
-			for (i = 0; i < prop->len; i++) {
-				BLI_endian_switch_double(&((double *)prop->data.pointer)[i]);
-			}
+			BLI_endian_switch_double_array(prop->data.pointer, prop->len);
 		}
 	}
 	else {
 		if (switch_endian) {
-			for (i = 0; i < prop->len; i++) {
-				BLI_endian_switch_int32(&((int *)prop->data.pointer)[i]);
-			}
+			/* also used for floats */
+			BLI_endian_switch_int32_array(prop->data.pointer, prop->len);
 		}
 	}
 }
@@ -1858,9 +1855,7 @@ static void direct_link_fmodifiers(FileData *fd, ListBase *list)
 				data->coefficients = newdataadr(fd, data->coefficients);
 				
 				if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-					unsigned int a;
-					for (a = 0; a < data->arraysize; a++)
-						BLI_endian_switch_float(&data->coefficients[a]);
+					BLI_endian_switch_float_array(data->coefficients, data->arraysize);
 				}
 			}
 				break;
@@ -2764,11 +2759,8 @@ static void switch_endian_keyblock(Key *key, KeyBlock *kb)
 				case IPO_BPOINT:
 				case IPO_BEZTRIPLE:
 					b = cp[0];
-					
-					while (b--) {
-						BLI_endian_switch_float((float *)poin);
-						poin += 4;
-					}
+					BLI_endian_switch_float_array((float *)poin, b);
+					poin += sizeof(float) * b;
 					break;
 			}
 			
@@ -3059,19 +3051,11 @@ static void lib_link_curve(FileData *fd, Main *main)
 
 static void switch_endian_knots(Nurb *nu)
 {
-	int len;
-	
 	if (nu->knotsu) {
-		len = KNOTSU(nu);
-		while (len--) {
-			BLI_endian_switch_float(&nu->knotsu[len]);
-		}
+		BLI_endian_switch_float_array(nu->knotsu, KNOTSU(nu));
 	}
 	if (nu->knotsv) {
-		len = KNOTSV(nu);
-		while (len--) {
-			BLI_endian_switch_float(&nu->knotsv[len]);
-		}
+		BLI_endian_switch_float_array(nu->knotsv, KNOTSV(nu));
 	}
 }
 
@@ -3289,12 +3273,10 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 				
 				/* the cache saves non-struct data without DNA */
 				if (pm->data[i] && ptcache_data_struct[i][0]=='\0' && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
-					int j, tot = (BKE_ptcache_data_size (i) * pm->totpoint)/4; /* data_size returns bytes */
+					int tot = (BKE_ptcache_data_size (i) * pm->totpoint) / sizeof(int); /* data_size returns bytes */
 					int *poin = pm->data[i];
 					
-					for (j = 0; j < tot; j++) {
-						BLI_endian_switch_int32(&poin[j]);
-					}
+					BLI_endian_switch_int32_array(poin, tot);
 				}
 			}
 			
@@ -3763,12 +3745,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 			if ((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && (mdisps[i].disps)) {
 				/* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
 				/* this does swap for data written at write_mdisps() - readfile.c */
-				int x;
-				float *tmpdisps = *mdisps[i].disps;
-				for (x = 0; x < mdisps[i].totdisp * 3; x++) {
-					BLI_endian_switch_float(tmpdisps);
-					tmpdisps++;
-				}
+				BLI_endian_switch_float_array(*mdisps[i].disps, mdisps[i].totdisp * 3);
 			}
 			if (!external && !mdisps[i].disps)
 				mdisps[i].totdisp = 0;
@@ -3938,11 +3915,8 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		TFace *tf = mesh->tface;
 		int i;
 		
-		for (i = 0; i < (mesh->totface); i++, tf++) {
-			BLI_endian_switch_uint32(&tf->col[0]);
-			BLI_endian_switch_uint32(&tf->col[1]);
-			BLI_endian_switch_uint32(&tf->col[2]);
-			BLI_endian_switch_uint32(&tf->col[3]);
+		for (i = 0; i < mesh->totface; i++, tf++) {
+			BLI_endian_switch_uint32_array(tf->col, 4);
 		}
 	}
 }
@@ -4468,10 +4442,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			
 			hmd->indexar = newdataadr(fd, hmd->indexar);
 			if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-				int a;
-				for (a = 0; a < hmd->totindex; a++) {
-					BLI_endian_switch_int32(&hmd->indexar[a]);
-				}
+				BLI_endian_switch_int32_array(hmd->indexar, hmd->totindex);
 			}
 		}
 		else if (md->type == eModifierType_ParticleSystem) {
@@ -4501,24 +4472,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			mmd->bindcos = newdataadr(fd, mmd->bindcos);
 			
 			if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-				int a;
-				
-				if (mmd->bindoffsets)
-					for (a=0; a<mmd->totvert+1; a++)
-						BLI_endian_switch_int32(&mmd->bindoffsets[a]);
-				if (mmd->bindcagecos)
-					for (a=0; a<mmd->totcagevert*3; a++)
-						BLI_endian_switch_float(&mmd->bindcagecos[a]);
-				if (mmd->dynverts)
-					for (a=0; a<mmd->totvert; a++)
-						BLI_endian_switch_int32(&mmd->dynverts[a]);
-				
-				if (mmd->bindweights)
-					for (a=0; a<mmd->totcagevert*mmd->totvert; a++)
-						BLI_endian_switch_float(&mmd->bindweights[a]);
-				if (mmd->bindcos)
-					for (a=0; a<mmd->totcagevert*3; a++)
-						BLI_endian_switch_float(&mmd->bindcos[a]);
+				if (mmd->bindoffsets)  BLI_endian_switch_int32_array(mmd->bindoffsets, mmd->totvert + 1);
+				if (mmd->bindcagecos)  BLI_endian_switch_float_array(mmd->bindcagecos, mmd->totcagevert * 3);
+				if (mmd->dynverts)     BLI_endian_switch_int32_array(mmd->dynverts, mmd->totvert);
+				if (mmd->bindweights)  BLI_endian_switch_float_array(mmd->bindweights, mmd->totvert);
+				if (mmd->bindcos)      BLI_endian_switch_float_array(mmd->bindcos, mmd->totcagevert * 3);
 			}
 		}
 		else if (md->type == eModifierType_Ocean) {
@@ -4712,10 +4670,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		
 		hook->indexar= newdataadr(fd, hook->indexar);
 		if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-			int a;
-			for (a = 0; a < hook->totindex; a++) {
-				BLI_endian_switch_int32(&hook->indexar[a]);
-			}
+			BLI_endian_switch_int32_array(hook->indexar, hook->totindex);
 		}
 		
 		/* Do conversion here because if we have loaded

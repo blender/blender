@@ -318,20 +318,13 @@ int cdf_read_layer(CDataFile *cdf, CDataFileLayer *blay)
 
 int cdf_read_data(CDataFile *cdf, unsigned int size, void *data)
 {
-	float *fdata;
-	unsigned int a;
-
 	/* read data */
 	if (!fread(data, size, 1, cdf->readf))
 		return 0;
 
 	/* switch endian if necessary */
 	if (cdf->switchendian) {
-		fdata = data;
-
-		for (a = 0; a < size / sizeof(float); a++) {
-			BLI_endian_switch_float(&fdata[a]);
-		}
+		BLI_endian_switch_float_array(data, size / sizeof(float));
 	}
 
 	return 1;

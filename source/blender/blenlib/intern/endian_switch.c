@@ -23,3 +23,96 @@
 /** \file blender/blenlib/intern/endian_switch.c
  *  \ingroup bli
  */
+
+#include "BLO_sys_types.h"
+#include "BLI_utildefines.h"
+#include "BLI_endian_switch.h"
+
+void BLI_endian_switch_int16_array(short *val, const int size)
+{
+	if (size > 0) {
+		int i = size;
+		val = val + (size - 1);
+		while (i--) {
+			BLI_endian_switch_int16(val--);
+		}
+	}
+}
+
+void BLI_endian_switch_uint16_array(unsigned short *val, const int size)
+{
+	if (size > 0) {
+		int i = size;
+		val = val + (size - 1);
+		while (i--) {
+			BLI_endian_switch_uint16(val--);
+		}
+	}
+}
+
+void BLI_endian_switch_int32_array(int *val, const int size)
+{
+	if (size > 0) {
+		int i = size;
+		val = val + (size - 1);
+		while (i--) {
+			BLI_endian_switch_int32(val--);
+		}
+	}
+}
+
+void BLI_endian_switch_uint32_array(unsigned int *val, const int size)
+{
+	if (size > 0) {
+		int i = size;
+		val = val + (size - 1);
+		while (i--) {
+			BLI_endian_switch_uint32(val--);
+		}
+	}
+}
+
+void BLI_endian_switch_float_array(float *val, const int size)
+{
+	if (size > 0) {
+		int i = size;
+		val = val + (size - 1);
+		while (i--) {
+			BLI_endian_switch_float(val--);
+		}
+	}
+}
+
+void BLI_endian_switch_int64_array(int64_t *val, const int size)
+{
+	if (size > 0) {
+		int i = size;
+		val = val + (size - 1);
+		while (i--) {
+			BLI_endian_switch_int64(val--);
+		}
+	}
+}
+
+void BLI_endian_switch_uint64_array(uint64_t *val, const int size)
+{
+	if (size > 0) {
+		int i = size;
+		val = val + (size - 1);
+		while (i--) {
+			BLI_endian_switch_uint64(val--);
+		}
+	}
+}
+
+
+void BLI_endian_switch_double_array(double *val, const int size)
+{
+	if (size > 0) {
+		int i = size;
+		val = val + (size - 1);
+		while (i--) {
+			BLI_endian_switch_double(val--);
+		}
+	}
+}

@@ -29,5 +29,14 @@
 
 #include "BLI_endian_switch_inline.h"
 
+/* endian_switch.c */
+void BLI_endian_switch_int16_array(short *val, const int size);
+void BLI_endian_switch_uint16_array(unsigned short *val, const int size);
+void BLI_endian_switch_int32_array(int *val, const int size);
+void BLI_endian_switch_uint32_array(unsigned int *val, const int size);
+void BLI_endian_switch_float_array(float *val, const int size);
+void BLI_endian_switch_int64_array(int64_t *val, const int size);
+void BLI_endian_switch_uint64_array(uint64_t *val, const int size);
+void BLI_endian_switch_double_array(double *val, const int size);
 
 #endif  /* __BLI_ENDIAN_SWITCH_H__ */
