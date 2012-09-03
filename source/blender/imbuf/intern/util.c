@@ -225,16 +225,6 @@ static int isqtime(const char *name)
 
 static char ffmpeg_last_error[1024];
 
-void silence_log_ffmpeg(int quiet)
-{
-	if (quiet) {
-		av_log_set_level(AV_LOG_QUIET);
-	}
-	else {
-		av_log_set_level(AV_LOG_DEBUG);
-	}
-}
-
 void ffmpeg_log_callback(void *ptr, int level, const char *format, va_list arg)
 {
 	if (ELEM(level, AV_LOG_FATAL, AV_LOG_ERROR)) {
@@ -244,21 +234,16 @@ void ffmpeg_log_callback(void *ptr, int level, const char *format, va_list arg)
 		ffmpeg_last_error[n - 1] = '\0';
 	}
 
-	/* call default logger to print all message to console */
-	av_log_default_callback(ptr, level, format, arg);
+	if (G.debug & G_DEBUG_FFMPEG) {
+		/* call default logger to print all message to console */
+		av_log_default_callback(ptr, level, format, arg);
+	}
 }
 
 void IMB_ffmpeg_init(void)
 {
 	av_register_all();
 	avdevice_register_all();
-
-	if ((G.debug & G_DEBUG_FFMPEG) == 0) {
-		silence_log_ffmpeg(1);
-	}
-	else {
-		silence_log_ffmpeg(0);
-	}
 
 	ffmpeg_last_error[0] = '\0';
 
