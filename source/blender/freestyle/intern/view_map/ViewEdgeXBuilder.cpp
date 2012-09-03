@@ -221,6 +221,7 @@ ViewEdge * ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge& iWEdge) {
   OWXEdge previousWEdge = firstWEdge;
   OWXEdge currentWEdge = firstWEdge;
   list<OWXEdge> edgesChain;
+#if 0 /* TK 02-Sep-2012 Experimental fix for incorrect view edge visibility. */
   // bidirectional chaining
   // first direction:
   while(!stopSharpViewEdge(currentWEdge.e)){
@@ -240,6 +241,12 @@ ViewEdge * ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge& iWEdge) {
     // Find the previous edge!
     currentWEdge =  FindPreviousWEdge(currentWEdge);
   }
+#else
+  edgesChain.push_back(currentWEdge);
+  ++size;
+  currentWEdge.e->userdata = (void*)1; // processed
+  OWXEdge endWEdge = edgesChain.back();
+#endif
   firstWEdge = edgesChain.front();
 
   // build FEdges
