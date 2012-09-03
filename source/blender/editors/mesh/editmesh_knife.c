@@ -1113,7 +1113,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 			KnifeEdge *kfe = ref->ref;
 
 			if (BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
-				continue;  // We already found a hit on this knife edge
+				continue;  /* We already found a hit on this knife edge */
 			}
 
 			if (isect_line_tri_v3(kfe->v1->cageco, kfe->v2->cageco, v1, v2, v3, &lambda, NULL)) {
@@ -1145,10 +1145,11 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 					float p1[3], lambda1;
 
 					/* if face isn't planer, p may be behind the current tesselated tri,
-					   so move it onto that and then a little towards eye */
+					 * so move it onto that and then a little towards eye */
 					if (isect_line_tri_v3(p, view, ls[0]->v->co, ls[1]->v->co, ls[2]->v->co, &lambda1, NULL)) {
 						interp_v3_v3v3(p1, p, view, lambda1);
-					} else {
+					}
+					else {
 						copy_v3_v3(p1, p);
 					}
 					sub_v3_v3(view, p1);
@@ -1170,7 +1171,9 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 	
 					if (len_squared_v3v3(p, kcd->curr.co) < depsilon_squared ||
 					    len_squared_v3v3(p, kcd->prev.co) < depsilon_squared)
+					{
 						continue;
+					}
 
 					hit.kfe = kfe;
 					hit.v = NULL;
@@ -1190,15 +1193,18 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 						/* select the closest from the edge endpoints or the midpoint */
 						if (perc < 0.25f) {
 							perc = 0.0f;
-						} else if (perc < 0.75f) {
+						}
+						else if (perc < 0.75f) {
 							perc = 0.5f;
-						} else {
+						}
+						else {
 							perc = 1.0f;
 						}
 
 						interp_v3_v3v3(hit.hit, kfe->v1->co, kfe->v2->co, perc);
 						interp_v3_v3v3(hit.cagehit, kfe->v1->cageco, kfe->v2->cageco, perc);
-					} else {
+					}
+					else {
 						copy_v3_v3(hit.hit, p);
 					}
 					knife_project_v3(kcd, hit.cagehit, hit.schit);
