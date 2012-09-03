@@ -95,7 +95,6 @@
 #include "BKE_property.h" // for get_ob_property
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
 

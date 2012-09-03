@@ -100,6 +100,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_endian_switch.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
@@ -140,7 +141,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_text.h" // for txt_extended_ascii_as_utf8
 #include "BKE_tracking.h"
-#include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
+#include "BKE_utildefines.h"
 #include "BKE_sound.h"
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
@@ -220,16 +221,6 @@
 
 /* from misc_util: flip the bytes from x  */
 /*  #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
-
-// only used here in readfile.c
-#define SWITCH_LONGINT(a) { \
-	char s_i, *p_i; \
-	p_i= (char *)&(a);  \
-	s_i=p_i[0]; p_i[0]=p_i[7]; p_i[7]=s_i; \
-	s_i=p_i[1]; p_i[1]=p_i[6]; p_i[6]=s_i; \
-	s_i=p_i[2]; p_i[2]=p_i[5]; p_i[5]=s_i; \
-	s_i=p_i[3]; p_i[3]=p_i[4]; p_i[4]=s_i; \
-} (void)0
 
 /***/
 
@@ -577,9 +568,9 @@ static void switch_endian_bh4(BHead4 *bhead)
 	if ((bhead->code & 0xFFFF)==0) bhead->code >>= 16;
 	
 	if (bhead->code != ENDB) {
-		SWITCH_INT(bhead->len);
-		SWITCH_INT(bhead->SDNAnr);
-		SWITCH_INT(bhead->nr);
+		BLI_endian_switch_int32(&bhead->len);
+		BLI_endian_switch_int32(&bhead->SDNAnr);
+		BLI_endian_switch_int32(&bhead->nr);
 	}
 }
 
@@ -589,9 +580,9 @@ static void switch_endian_bh8(BHead8 *bhead)
 	if ((bhead->code & 0xFFFF)==0) bhead->code >>= 16;
 	
 	if (bhead->code != ENDB) {
-		SWITCH_INT(bhead->len);
-		SWITCH_INT(bhead->SDNAnr);
-		SWITCH_INT(bhead->nr);
+		BLI_endian_switch_int32(&bhead->len);
+		BLI_endian_switch_int32(&bhead->SDNAnr);
+		BLI_endian_switch_int32(&bhead->nr);
 	}
 }
 
@@ -612,7 +603,7 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, int do_endian_swap)
 		 * 0x0000000000000000000012345678 would become 0x12345678000000000000000000000000
 		 */
 		if (do_endian_swap) {
-			SWITCH_LONGINT(bhead8->old);
+			BLI_endian_switch_int64(&bhead8->old);
 		}
 		
 		/* this patch is to avoid a long long being read from not-eight aligned positions
@@ -1476,11 +1467,7 @@ static void link_glob_list(FileData *fd, ListBase *lb)		/* for glob data */
 
 static void test_pointer_array(FileData *fd, void **mat)
 {
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-	__int64 *lpoin, *lmat;
-#else
-	long long *lpoin, *lmat;
-#endif
+	int64_t *lpoin, *lmat;
 	int *ipoin, *imat;
 	size_t len;
 
@@ -1497,7 +1484,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 			
 			while (len-- > 0) {
 				if ((fd->flags & FD_FLAGS_SWITCH_ENDIAN))
-					SWITCH_LONGINT(*lpoin);
+					BLI_endian_switch_int64(lpoin);
 				*ipoin = (int)((*lpoin) >> 3);
 				ipoin++;
 				lpoin++;
@@ -1568,14 +1555,14 @@ static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, FileData *f
 	else if (prop->subtype == IDP_DOUBLE) {
 		if (switch_endian) {
 			for (i = 0; i < prop->len; i++) {
-				SWITCH_LONGINT(((double *)prop->data.pointer)[i]);
+				BLI_endian_switch_double(&((double *)prop->data.pointer)[i]);
 			}
 		}
 	}
 	else {
 		if (switch_endian) {
 			for (i = 0; i < prop->len; i++) {
-				SWITCH_INT(((int *)prop->data.pointer)[i]);
+				BLI_endian_switch_int32(&((int *)prop->data.pointer)[i]);
 			}
 		}
 	}
@@ -1628,9 +1615,9 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
 			 */
 			
 			if (switch_endian) {
-				SWITCH_INT(prop->data.val);
-				SWITCH_INT(prop->data.val2);
-				SWITCH_LONGINT(prop->data.val);
+				BLI_endian_switch_int32(&prop->data.val);
+				BLI_endian_switch_int32(&prop->data.val2);
+				BLI_endian_switch_int64((int64_t *)&prop->data.val);
 			}
 			
 			break;
@@ -1873,7 +1860,7 @@ static void direct_link_fmodifiers(FileData *fd, ListBase *list)
 				if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 					unsigned int a;
 					for (a = 0; a < data->arraysize; a++)
-						SWITCH_INT(data->coefficients[a]);
+						BLI_endian_switch_float(&data->coefficients[a]);
 				}
 			}
 				break;
@@ -2779,7 +2766,7 @@ static void switch_endian_keyblock(Key *key, KeyBlock *kb)
 					b = cp[0];
 					
 					while (b--) {
-						SWITCH_INT((*poin));
+						BLI_endian_switch_float((float *)poin);
 						poin += 4;
 					}
 					break;
@@ -3077,13 +3064,13 @@ static void switch_endian_knots(Nurb *nu)
 	if (nu->knotsu) {
 		len = KNOTSU(nu);
 		while (len--) {
-			SWITCH_INT(nu->knotsu[len]);
+			BLI_endian_switch_float(&nu->knotsu[len]);
 		}
 	}
 	if (nu->knotsv) {
 		len = KNOTSV(nu);
 		while (len--) {
-			SWITCH_INT(nu->knotsv[len]);
+			BLI_endian_switch_float(&nu->knotsv[len]);
 		}
 	}
 }
@@ -3305,8 +3292,9 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 					int j, tot = (BKE_ptcache_data_size (i) * pm->totpoint)/4; /* data_size returns bytes */
 					int *poin = pm->data[i];
 					
-					for (j = 0; j < tot; j++)
-						SWITCH_INT(poin[j]);
+					for (j = 0; j < tot; j++) {
+						BLI_endian_switch_int32(&poin[j]);
+					}
 				}
 			}
 			
@@ -3778,7 +3766,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 				int x;
 				float *tmpdisps = *mdisps[i].disps;
 				for (x = 0; x < mdisps[i].totdisp * 3; x++) {
-					SWITCH_INT(*tmpdisps);
+					BLI_endian_switch_float(tmpdisps);
 					tmpdisps++;
 				}
 			}
@@ -3951,10 +3939,10 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		int i;
 		
 		for (i = 0; i < (mesh->totface); i++, tf++) {
-			SWITCH_INT(tf->col[0]);
-			SWITCH_INT(tf->col[1]);
-			SWITCH_INT(tf->col[2]);
-			SWITCH_INT(tf->col[3]);
+			BLI_endian_switch_uint32(&tf->col[0]);
+			BLI_endian_switch_uint32(&tf->col[1]);
+			BLI_endian_switch_uint32(&tf->col[2]);
+			BLI_endian_switch_uint32(&tf->col[3]);
 		}
 	}
 }
@@ -4482,7 +4470,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 				int a;
 				for (a = 0; a < hmd->totindex; a++) {
-					SWITCH_INT(hmd->indexar[a]);
+					BLI_endian_switch_int32(&hmd->indexar[a]);
 				}
 			}
 		}
@@ -4517,20 +4505,20 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				
 				if (mmd->bindoffsets)
 					for (a=0; a<mmd->totvert+1; a++)
-						SWITCH_INT(mmd->bindoffsets[a]);
+						BLI_endian_switch_int32(&mmd->bindoffsets[a]);
 				if (mmd->bindcagecos)
 					for (a=0; a<mmd->totcagevert*3; a++)
-						SWITCH_INT(mmd->bindcagecos[a]);
+						BLI_endian_switch_float(&mmd->bindcagecos[a]);
 				if (mmd->dynverts)
 					for (a=0; a<mmd->totvert; a++)
-						SWITCH_INT(mmd->dynverts[a]);
+						BLI_endian_switch_int32(&mmd->dynverts[a]);
 				
 				if (mmd->bindweights)
 					for (a=0; a<mmd->totcagevert*mmd->totvert; a++)
-						SWITCH_INT(mmd->bindweights[a]);
+						BLI_endian_switch_float(&mmd->bindweights[a]);
 				if (mmd->bindcos)
 					for (a=0; a<mmd->totcagevert*3; a++)
-						SWITCH_INT(mmd->bindcos[a]);
+						BLI_endian_switch_float(&mmd->bindcos[a]);
 			}
 		}
 		else if (md->type == eModifierType_Ocean) {
@@ -4726,7 +4714,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 			int a;
 			for (a = 0; a < hook->totindex; a++) {
-				SWITCH_INT(hook->indexar[a]);
+				BLI_endian_switch_int32(&hook->indexar[a]);
 			}
 		}
 		
