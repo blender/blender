@@ -554,6 +554,64 @@ static int verge_linehit(const void *vlh1, const void *vlh2)
 	else return 0;
 }
 
+/* If there's a linehit connected (same face) as testi in range [firsti, lasti], return the first such, else -1.
+  * If testi is out of range, look for connection to f instead, if f is non-NULL */
+static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, int firsti, int lasti)
+{
+	int i;
+
+	for (i = firsti; i <= lasti; i++) {
+		if (testi >= 0 && testi < kcd->totlinehit) {
+			if (knife_find_common_face(&kcd->linehits[testi].kfe->faces,
+									   &kcd->linehits[i].kfe->faces))
+				return i;
+		} else if (f) {
+			if (find_ref(&kcd->linehits[i].kfe->faces, f))
+				return i;
+		}
+	}
+	return -1;
+}
+
+/* Sort in order of distance along cut line, but take care when distances are equal */
+static void knife_sort_linehits(KnifeTool_OpData *kcd)
+{
+	int i, j, k, nexti, nsame;
+
+	qsort(kcd->linehits, kcd->totlinehit, sizeof(BMEdgeHit), verge_linehit);
+
+	/* for ranges of equal "l", swap if neccesary to make predecessor and
+	 * successor faces connected to the linehits at either end of the range */
+	for (i = 0; i < kcd->totlinehit -1; i = nexti) {
+		for (j = i + 1; j < kcd->totlinehit; j++) {
+			if (fabsf(kcd->linehits[j].l - kcd->linehits[i].l) > 80*FLT_EPSILON)
+				break;
+		}
+		nexti = j;
+		j--;
+		nsame = j - i;
+		if (nsame > 0) {
+			/* find something connected to predecessor of equal range */
+			k = find_connected_linehit(kcd, i - 1, kcd->prev.bmface, i, j);
+			if (k != -1) {
+				if (k != i) {
+					SWAP(BMEdgeHit, kcd->linehits[i], kcd->linehits[k]);
+				}
+				i++;
+				nsame--;
+			}
+			if (nsame > 0) {
+				/* find something connected to successor of equal range */
+				k = find_connected_linehit(kcd, j + 1, kcd->curr.bmface, i, j);
+				if (k != -1 && k != j) {
+					SWAP(BMEdgeHit, kcd->linehits[j], kcd->linehits[k]);
+				}
+			}
+			/* rest of same range doesn't matter because we won't connect them */
+		}
+	}
+}
+
 static void knife_add_single_cut_through(KnifeTool_OpData *kcd, KnifeVert *v1, KnifeVert *v2, BMFace *f)
 {
 	KnifeEdge *kfenew;
@@ -618,6 +676,7 @@ static void knife_cut_through(KnifeTool_OpData *kcd)
 		return;
 	}
 
+	/* TODO: probably don't need to sort at all */
 	qsort(kcd->linehits, kcd->totlinehit, sizeof(BMEdgeHit), verge_linehit);
 	splitkfe = MEM_callocN(kcd->totlinehit * sizeof(KnifeEdge *), "knife_cut_through");
 
@@ -713,7 +772,7 @@ static void knife_cut_through(KnifeTool_OpData *kcd)
 }
 
 /* User has just left-clicked after the first time.
- * Add all knife cuts implied by line from prev to cur.
+ * Add all knife cuts implied by line from prev to curr.
  * If that line crossed edges then kcd->linehits will be non-NULL. */
 static void knife_add_cut(KnifeTool_OpData *kcd)
 {
@@ -726,8 +785,7 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 		BMEdgeHit *lh, *lastlh, *firstlh;
 		int i;
 
-		/* TODO: not a stable sort! need to figure out what to do for equal lambdas */
-		qsort(kcd->linehits, kcd->totlinehit, sizeof(BMEdgeHit), verge_linehit);
+		knife_sort_linehits(kcd);
 
 		lh = kcd->linehits;
 		lastlh = firstlh = NULL;
@@ -758,6 +816,10 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 			if (len_v3v3(kcd->curr.cage, lh->realhit) < FLT_EPSILON * 80)
 				continue;
 
+			/* first linehit may be down face parallel to view */
+			if (!lastlh && fabsf(lh->l) < FLT_EPSILON * 80)
+				continue;
+
 			if (kcd->prev.is_space) {
 				kcd->prev.is_space = 0;
 				copy_v3_v3(kcd->prev.co, lh->hit);
@@ -774,6 +836,12 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 			kcd->curr.vert = lh->v;
 			copy_v3_v3(kcd->curr.co, lh->hit);
 			copy_v3_v3(kcd->curr.cage, lh->cagehit);
+
+			/* don't draw edges down faces parallel to view */
+			if (lastlh && fabsf(lastlh->l - lh->l) < FLT_EPSILON * 80) {
+				kcd->prev = kcd->curr;
+				continue;
+			}
 
 			knife_add_single_cut(kcd);
 		}

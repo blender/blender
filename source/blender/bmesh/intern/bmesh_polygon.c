@@ -606,11 +606,11 @@ int BM_face_point_inside_test(BMFace *f, const float co[3])
 	do {
 		float v1[2], v2[2];
 		
-		v1[0] = (l_iter->prev->v->co[ax] - cent[ax]) * onepluseps + cent[ax];
-		v1[1] = (l_iter->prev->v->co[ay] - cent[ay]) * onepluseps + cent[ay];
+		v1[0] = (l_iter->prev->v->co[ax] - cent[0]) * onepluseps + cent[0];
+		v1[1] = (l_iter->prev->v->co[ay] - cent[1]) * onepluseps + cent[1];
 		
-		v2[0] = (l_iter->v->co[ax] - cent[ax]) * onepluseps + cent[ax];
-		v2[1] = (l_iter->v->co[ay] - cent[ay]) * onepluseps + cent[ay];
+		v2[0] = (l_iter->v->co[ax] - cent[0]) * onepluseps + cent[0];
+		v2[1] = (l_iter->v->co[ay] - cent[1]) * onepluseps + cent[1];
 		
 		crosses += linecrossesf(v1, v2, co2, out) != 0;
 	} while ((l_iter = l_iter->next) != l_first);
