@@ -47,41 +47,6 @@ extern "C" {
 #define FILE_MAX            1024
 #endif
 
-/* this weirdo pops up in two places ... */
-#if !defined(WIN32)
-#  ifndef O_BINARY
-#    define O_BINARY 0
-#  endif
-#endif
-
-/* INTEGER CODES */
-#ifdef __BIG_ENDIAN__
-/* Big Endian */
-#  define MAKE_ID(a, b, c, d) ( (int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d) )
-#else
-/* Little Endian */
-#  define MAKE_ID(a, b, c, d) ( (int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a) )
-#endif
-
-#define DATA MAKE_ID('D', 'A', 'T', 'A')
-#define GLOB MAKE_ID('G', 'L', 'O', 'B')
-
-#define DNA1 MAKE_ID('D', 'N', 'A', '1')
-#define TEST MAKE_ID('T', 'E', 'S', 'T') /* used as preview between 'REND' and 'GLOB' */
-#define REND MAKE_ID('R', 'E', 'N', 'D')
-#define USER MAKE_ID('U', 'S', 'E', 'R')
-
-#define ENDB MAKE_ID('E', 'N', 'D', 'B')
-
-/* Bit operations */
-#define BTST(a, b)     ( ( (a) & 1 << (b) ) != 0)
-#define BNTST(a, b)    ( ( (a) & 1 << (b) ) == 0)
-#define BTST2(a, b, c) (BTST( (a), (b) ) || BTST( (a), (c) ) )
-#define BSET(a, b)     ( (a) | 1 << (b) )
-#define BCLR(a, b)     ( (a) & ~(1 << (b)) )
-/* bit-row */
-#define BROW(min, max)  (((max) >= 31 ? 0xFFFFFFFF : (1 << (max + 1)) - 1) - ((min) ? ((1 << (min)) - 1) : 0) )
-
 #ifdef __cplusplus
 }
 #endif

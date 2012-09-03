@@ -150,6 +150,7 @@
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
+#include "BLO_blend_defs.h"
 
 #include "RE_engine.h"
 

@@ -131,6 +131,14 @@ typedef enum {
 /* for scope resize zone */
 #define SCOPE_RESIZE_PAD    9
 
+/* bit button defines */
+/* Bit operations */
+#define UI_BITBUT_TEST(a, b)     ( ( (a) & 1 << (b) ) != 0)
+#define UI_BITBUT_SET(a, b)     ( (a) | 1 << (b) )
+#define UI_BITBUT_CLR(a, b)     ( (a) & ~(1 << (b)) )
+/* bit-row */
+#define UI_BITBUT_ROW(min, max)  (((max) >= 31 ? 0xFFFFFFFF : (1 << (max + 1)) - 1) - ((min) ? ((1 << (min)) - 1) : 0) )
+
 typedef struct uiLinkLine {  /* only for draw/edit */
 	struct uiLinkLine *next, *prev;
 	struct uiBut *from, *to;

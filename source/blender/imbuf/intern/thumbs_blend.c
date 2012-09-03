@@ -35,6 +35,8 @@
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 
+#include "BLO_blend_defs.h"
+
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 

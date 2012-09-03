@@ -501,9 +501,9 @@ static void ui_apply_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data)
 	lvalue = (int)value;
 	
 	if (but->bit) {
-		w = BTST(lvalue, but->bitnr);
-		if (w) lvalue = BCLR(lvalue, but->bitnr);
-		else lvalue = BSET(lvalue, but->bitnr);
+		w = UI_BITBUT_TEST(lvalue, but->bitnr);
+		if (w) lvalue = UI_BITBUT_CLR(lvalue, but->bitnr);
+		else   lvalue = UI_BITBUT_SET(lvalue, but->bitnr);
 		
 		if (but->type == TOGR) {
 			if (!data->togonly) {
@@ -605,27 +605,27 @@ static void ui_apply_but_TOG3(bContext *C, uiBut *but, uiHandleButtonData *data)
 	if (but->pointype == SHO) {
 		short *sp = (short *)but->poin;
 		
-		if (BTST(sp[1], but->bitnr)) {
-			sp[1] = BCLR(sp[1], but->bitnr);
-			sp[0] = BCLR(sp[0], but->bitnr);
+		if (UI_BITBUT_TEST(sp[1], but->bitnr)) {
+			sp[1] = UI_BITBUT_CLR(sp[1], but->bitnr);
+			sp[0] = UI_BITBUT_CLR(sp[0], but->bitnr);
 		}
-		else if (BTST(sp[0], but->bitnr)) {
-			sp[1] = BSET(sp[1], but->bitnr);
+		else if (UI_BITBUT_TEST(sp[0], but->bitnr)) {
+			sp[1] = UI_BITBUT_SET(sp[1], but->bitnr);
 		}
 		else {
-			sp[0] = BSET(sp[0], but->bitnr);
+			sp[0] = UI_BITBUT_SET(sp[0], but->bitnr);
 		}
 	}
 	else {
-		if (BTST(*(but->poin + 2), but->bitnr)) {
-			*(but->poin + 2) = BCLR(*(but->poin + 2), but->bitnr);
-			*(but->poin) = BCLR(*(but->poin), but->bitnr);
+		if (UI_BITBUT_TEST(*(but->poin + 2), but->bitnr)) {
+			*(but->poin + 2) = UI_BITBUT_CLR(*(but->poin + 2), but->bitnr);
+			*(but->poin)     = UI_BITBUT_CLR(*(but->poin),     but->bitnr);
 		}
-		else if (BTST(*(but->poin), but->bitnr)) {
-			*(but->poin + 2) = BSET(*(but->poin + 2), but->bitnr);
+		else if (UI_BITBUT_TEST(*(but->poin), but->bitnr)) {
+			*(but->poin + 2) = UI_BITBUT_SET(*(but->poin + 2), but->bitnr);
 		}
 		else {
-			*(but->poin) = BSET(*(but->poin), but->bitnr);
+			*(but->poin) = UI_BITBUT_SET(*(but->poin), but->bitnr);
 		}
 	}
 	

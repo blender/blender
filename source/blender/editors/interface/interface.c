@@ -1077,8 +1077,12 @@ static void ui_is_but_sel(uiBut *but, double *value)
 		int lvalue;
 		UI_GET_BUT_VALUE_INIT(but, *value);
 		lvalue = (int)*value;
-		if (BTST(lvalue, (but->bitnr)) ) is_push = is_true;
-		else is_push = !is_true;
+		if (UI_BITBUT_TEST(lvalue, (but->bitnr))) {
+			is_push = is_true;
+		}
+		else {
+			is_push = !is_true;
+		}
 	}
 	else {
 		switch (but->type) {
