@@ -248,7 +248,9 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	}
 
 	/* object sync */
-	if(object_updated || (object->mesh && object->mesh->need_update)) {
+	/* transform comparison should not be needed, but duplis don't work perfect
+	 * in the depsgraph and may not signal changes, so this is a workaround */
+	if(object_updated || (object->mesh && object->mesh->need_update) || tfm != object->tfm) {
 		object->name = b_ob.name().c_str();
 		object->pass_id = b_ob.pass_index();
 		object->tfm = tfm;
