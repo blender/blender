@@ -849,7 +849,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
         elif value_type in (bool, int, float, str, tuple):
             # constant, not much fun we can do here except to list it.
             # TODO, figure out some way to document these!
-            #fw(".. data:: %s\n\n" % attribute)
+            fw(".. data:: %s\n\n" % attribute)
             write_indented_lines("   ", fw, "constant value %s" % repr(value), False)
             fw("\n")
         else:
