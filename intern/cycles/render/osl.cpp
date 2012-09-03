@@ -101,6 +101,7 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 	/* setup shader engine */
 	og->ss = ss;
+	og->services = services;
 	int background_id = scene->shader_manager->get_shader_id(scene->default_background);
 	og->background_state = og->surface_state[background_id & SHADER_MASK];
 	og->use = true;

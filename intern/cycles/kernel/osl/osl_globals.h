@@ -30,12 +30,15 @@
 
 CCL_NAMESPACE_BEGIN
 
+class OSLRenderServices;
+
 struct OSLGlobals {
 	/* use */
 	bool use;
 
 	/* shading system */ 
 	OSL::ShadingSystem *ss;
+	OSLRenderServices *services;
 
 	/* shader states */
 	vector<OSL::ShadingAttribStateRef> surface_state;

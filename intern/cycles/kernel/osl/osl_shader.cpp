@@ -45,9 +45,7 @@ void OSLShader::thread_init(KernelGlobals *kg)
 
 	tls_set(kg->osl.thread_data, tdata);
 
-	//((OSLRenderServices *)ssi->renderer())->thread_init(kg);
-	/* XXX not sure here - dingto */
-	thread_init(kg);
+	kg->osl.services->thread_init(kg);
 }
 
 void OSLShader::thread_free(KernelGlobals *kg)
