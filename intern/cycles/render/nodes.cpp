@@ -1036,6 +1036,7 @@ ProxyNode::ProxyNode(ShaderSocketType from_, ShaderSocketType to_)
 {
 	from = from_;
 	to = to_;
+	special_type = SHADER_SPECIAL_TYPE_PROXY;
 
 	add_input("Input", from);
 	add_output("Output", to);
@@ -1971,6 +1972,8 @@ void AddClosureNode::compile(OSLCompiler& compiler)
 MixClosureNode::MixClosureNode()
 : ShaderNode("mix_closure")
 {
+	special_type = SHADER_SPECIAL_TYPE_MIX_CLOSURE;
+	
 	add_input("Fac", SHADER_SOCKET_FLOAT, 0.5f);
 	add_input("Closure1", SHADER_SOCKET_CLOSURE);
 	add_input("Closure2", SHADER_SOCKET_CLOSURE);
