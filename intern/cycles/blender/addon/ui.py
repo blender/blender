@@ -920,6 +920,9 @@ def draw_device(self, context):
             layout.prop(cscene, "device")
         elif device_type == 'OPENCL' and cscene.feature_set == 'EXPERIMENTAL':
             layout.prop(cscene, "device")
+            
+        if cscene.feature_set == 'EXPERIMENTAL' and cscene.device == 'CPU' and engine.with_osl():
+            layout.prop(cscene, "shading_system")
 
 
 def draw_pause(self, context):
