@@ -1396,10 +1396,10 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		GPU_material_enable_alpha(mat);
 
 	if ((mat->scene->gm.flag & GAME_GLSL_NO_LIGHTS) || (ma->mode & MA_SHLESS)) {
-		shr->combined = shi->rgb;
-		shr->alpha = shi->alpha;
 		GPU_link(mat, "set_rgb", shi->rgb, &shr->diff);
 		GPU_link(mat, "set_rgb_zero", &shr->spec);
+		GPU_link(mat, "set_value", shi->alpha, &shr->alpha);
+		shr->combined = shr->diff;
 	}
 	else {
 		if (GPU_link_changed(shi->emit) || ma->emit != 0.0f) {
@@ -1418,7 +1418,8 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		material_lights(shi, shr);
 
 		shr->combined = shr->diff;
-		shr->alpha = shi->alpha;
+
+		GPU_link(mat, "set_value", shi->alpha, &shr->alpha);
 
 		if (world) {
 			/* exposure correction */
