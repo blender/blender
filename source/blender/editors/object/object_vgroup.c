@@ -1786,6 +1786,21 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 	if (ob->actdef < 1 && ob->defbase.first)
 		ob->actdef = 1;
 
+	/* remove all dverts */
+	if (ob->defbase.first == NULL) {
+		if (ob->type == OB_MESH) {
+			Mesh *me = ob->data;
+			CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
+			me->dvert = NULL;
+		}
+		else if (ob->type == OB_LATTICE) {
+			Lattice *lt = ob->data;
+			if (lt->dvert) {
+				MEM_freeN(lt->dvert);
+				lt->dvert = NULL;
+			}
+		}
+	}
 }
 
 /* only in editmode */
