@@ -1331,6 +1331,7 @@ unsigned char *IMB_display_buffer_acquire_ctx(const bContext *C, ImBuf *ibuf, vo
 void IMB_display_buffer_pixel(float result[4], const float pixel[4],  const ColorManagedViewSettings *view_settings,
                               const ColorManagedDisplaySettings *display_settings)
 {
+#ifdef WITH_OCIO
 	ConstProcessorRcPtr *processor;
 	const float gamma = view_settings->gamma;
 	const float exposure = view_settings->exposure;
@@ -1343,6 +1344,12 @@ void IMB_display_buffer_pixel(float result[4], const float pixel[4],  const Colo
 
 	if (processor)
 		OCIO_processorApplyRGBA(processor, result);
+#else
+	(void) view_settings;
+	(void) display_settings;
+
+	copy_v4_v4(result, pixel);
+#endif
 }
 
 void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
