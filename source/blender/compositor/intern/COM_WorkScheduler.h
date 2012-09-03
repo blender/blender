@@ -74,8 +74,10 @@ public:
 	 * After mutex initialization the system is queried in order to count the number of CPUDevices and GPUDevices to be created.
 	 * For every hardware thread a CPUDevice and for every OpenCL GPU device a OpenCLDevice is created.
 	 * these devices are stored in a separate list (cpudevices & gpudevices)
+	 *
+	 * This function can be called multiple times to lazily initialize OpenCL.
 	 */
-	static void initialize();
+	static void initialize(bool use_opencl);
 
 	/**
 	 * @brief deinitialize the WorkScheduler
