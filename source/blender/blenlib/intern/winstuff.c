@@ -41,12 +41,12 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 
 #define WIN32_SKIP_HKEY_PROTECTION      // need to use HKEY
 #include "BLI_winstuff.h"
 #include "BLI_utildefines.h"
+#include "BLI_path_util.h"
 
 #include "utf_winfunc.h"
 #include "utfconv.h"

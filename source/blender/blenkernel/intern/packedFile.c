@@ -57,7 +57,6 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
-#include "BKE_utildefines.h"
 
 #ifdef _WIN32
 #define open _open

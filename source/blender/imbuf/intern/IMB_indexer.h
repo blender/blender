@@ -31,7 +31,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "BKE_utildefines.h"
 #include "IMB_anim.h"
 /*
  * separate animation index files to solve the following problems:

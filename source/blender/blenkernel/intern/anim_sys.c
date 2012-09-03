@@ -59,7 +59,6 @@
 #include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 

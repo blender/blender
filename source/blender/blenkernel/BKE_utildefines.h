@@ -15,13 +15,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
@@ -39,13 +32,7 @@
 extern "C" {
 #endif
 
-/* these values need to be hardcoded in structs, dna does not recognize defines */
-/* also defined in DNA_space_types.h */
-#ifndef FILE_MAXDIR
-#define FILE_MAXDIR         768
-#define FILE_MAXFILE        256
-#define FILE_MAX            1024
-#endif
+/* currently unused but we may want to add macros here for BKE later */
 
 #ifdef __cplusplus
 }

@@ -49,7 +49,6 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
 
 #include "GPU_material.h"
 

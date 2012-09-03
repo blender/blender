@@ -24,10 +24,11 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "DNA_scene_types.h"
+
+#include "BLI_path_util.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -37,7 +38,6 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "BKE_utildefines.h"
 
 #ifdef RNA_RUNTIME
 

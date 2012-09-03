@@ -98,7 +98,6 @@ extern char datatoc_bfont_ttf[];
 #include "RAS_IRasterizer.h"
 
 #include "BKE_main.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_define.h"
 

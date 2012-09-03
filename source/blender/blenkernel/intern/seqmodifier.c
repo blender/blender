@@ -43,7 +43,6 @@
 
 #include "BKE_colortools.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

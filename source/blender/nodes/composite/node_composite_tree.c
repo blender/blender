@@ -48,7 +48,6 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_tracking.h"
-#include "BKE_utildefines.h"
 
 #include "node_common.h"
 #include "node_exec.h"

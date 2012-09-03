@@ -41,7 +41,12 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
+#include "BLI_path_util.h"
+#include "BLI_rect.h"
+
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
@@ -50,7 +55,6 @@
 #include "BKE_unit.h"
 #include "BKE_screen.h"
 #include "BKE_idprop.h"
-#include "BKE_utildefines.h" /* FILE_MAX */
 
 #include "BIF_gl.h"
 

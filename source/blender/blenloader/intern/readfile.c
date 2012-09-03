@@ -141,7 +141,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_text.h" // for txt_extended_ascii_as_utf8
 #include "BKE_tracking.h"
-#include "BKE_utildefines.h"
 #include "BKE_sound.h"
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff

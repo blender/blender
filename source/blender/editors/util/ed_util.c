@@ -45,7 +45,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_utildefines.h"
 #include "BKE_packedFile.h"
 
 #include "ED_armature.h"

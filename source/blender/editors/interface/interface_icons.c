@@ -59,7 +59,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
-#include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

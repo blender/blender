@@ -290,7 +290,7 @@ static void knife_add_edge_faces_to_vert(KnifeTool_OpData *kcd, KnifeVert *kfv, 
 }
 
 /* Find a face in common in the two faces lists.
-   If more than one, return the first; if none, return NULL */
+ * If more than one, return the first; if none, return NULL */
 static BMFace *knife_find_common_face(ListBase *faces1, ListBase *faces2)
 {
 	Ref *ref1, *ref2;

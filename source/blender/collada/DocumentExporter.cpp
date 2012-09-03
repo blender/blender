@@ -99,7 +99,6 @@ extern char build_rev[];
 #include "BKE_action.h" // pose functions
 #include "BKE_armature.h"
 #include "BKE_image.h"
-#include "BKE_utildefines.h"
 #include "BKE_object.h"
 
 #include "BLI_math.h"

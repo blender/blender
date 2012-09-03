@@ -78,7 +78,6 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 #include "BKE_image.h" /* so we can check the image's type */
 
 static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)

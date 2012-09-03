@@ -38,7 +38,6 @@
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 #include "BKE_bmesh.h"
 

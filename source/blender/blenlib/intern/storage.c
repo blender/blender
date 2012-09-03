@@ -86,13 +86,10 @@
 
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
-#include "BLI_fileops.h"
-
-#include "BLI_fileops_types.h"
 #include "BLI_string.h"
 #include "BLI_fileops.h"
-
-#include "BKE_utildefines.h"
+#include "BLI_fileops_types.h"
+#include "BLI_path_util.h"
 
 /* vars: */
 static int totnum, actnum;

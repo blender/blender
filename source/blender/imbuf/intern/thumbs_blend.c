@@ -37,7 +37,6 @@
 
 #include "BLO_blend_defs.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 
 #include "IMB_imbuf_types.h"

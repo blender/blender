@@ -68,7 +68,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h" /* for DAG_on_visible_update */

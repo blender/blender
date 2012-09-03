@@ -154,7 +154,6 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_subsurf.h"
-#include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
 #include "BKE_pointcache.h"

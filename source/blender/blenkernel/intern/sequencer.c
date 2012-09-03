@@ -62,7 +62,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
 #include "BKE_mask.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 

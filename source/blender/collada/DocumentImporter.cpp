@@ -62,12 +62,12 @@ extern "C" {
 #include "BKE_texture.h"
 #include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
-#include "BLI_path_util.h"
 #include "BKE_scene.h"
 #include "BKE_global.h"
 #include "BKE_material.h"
-#include "BKE_utildefines.h"
 #include "BKE_image.h"
+
+#include "BLI_path_util.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"

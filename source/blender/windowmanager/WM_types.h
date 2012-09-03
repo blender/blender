@@ -115,7 +115,6 @@ struct ImBuf;
 
 #include "RNA_types.h"
 #include "DNA_listBase.h"
-#include "BKE_utildefines.h" /* FILE_MAX */
 
 /* exported types for WM */
 #include "wm_cursors.h"

@@ -80,12 +80,9 @@
 #include "BKE_sound.h"
 #include "RE_pipeline.h"
 
-
 #include "BLO_undofile.h"
 #include "BLO_readfile.h" 
 #include "BLO_writefile.h" 
-
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 

@@ -133,7 +133,6 @@ extern "C" {
 
 #include "PHY_IPhysicsEnvironment.h"
 #include "BKE_main.h"
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"

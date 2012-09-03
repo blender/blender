@@ -4514,7 +4514,7 @@ static void con_relink_id_cb(bConstraint *UNUSED(con), ID **idpoin, short UNUSED
 	 * since we've got the actual ID block, let's just inline this
 	 * code. 
 	 *
-	 * See ID_NEW(a) in BKE_utildefines.h
+	 * See ID_NEW(a) in DNA_ID.h
 	 */
 	if ((*idpoin) && (*idpoin)->newid)
 		(*idpoin) = (void *)(*idpoin)->newid;
