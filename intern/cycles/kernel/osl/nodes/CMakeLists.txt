@@ -24,6 +24,7 @@ set(SRC_OSL
 	node_geometry.osl
 	node_glass_bsdf.osl
 	node_glossy_bsdf.osl
+	node_holdout.osl
 	node_hsv.osl
 	node_image_texture.osl
 	node_invert.osl
