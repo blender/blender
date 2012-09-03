@@ -4977,8 +4977,8 @@ static int createSlideVerts(TransInfo *t)
 	zero_v3(dir);
 	maxdist = -1.0f;
 
-	loop_dir = MEM_callocN(sizeof(float)*3*loop_nr, "sv loop_dir");
-	loop_maxdist = MEM_callocN(sizeof(float)*loop_nr, "sv loop_maxdist");
+	loop_dir = MEM_callocN(sizeof(float) * 3 * loop_nr, "sv loop_dir");
+	loop_maxdist = MEM_callocN(sizeof(float) * loop_nr, "sv loop_maxdist");
 	for (j = 0; j < loop_nr; j++)
 		loop_maxdist[j] = -1.0f;
 

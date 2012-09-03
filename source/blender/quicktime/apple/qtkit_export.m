@@ -318,7 +318,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 
 	if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
 	
-	[QTMovie enterQTKitOnThread];		
+	[QTMovie enterQTKitOnThread];
 	
 	/* Check first if the QuickTime 7.2.1 initToWritableFile: method is available */
 	if ([[[[QTMovie alloc] init] autorelease] respondsToSelector:@selector(initToWritableFile:error:)] != YES) {
@@ -328,7 +328,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 	else {
 		makeqtstring(rd, name);
 		qtexport->filename = [[NSString alloc] initWithCString:name
-								  encoding:[NSString defaultCStringEncoding]];
+		                                                       encoding:[NSString defaultCStringEncoding]];
 		qtexport->movie = nil;
 		qtexport->audioFile = NULL;
 
@@ -354,7 +354,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 					strcpy(extension,".aiff");
 					break;
 			}
-					
+
 			tmpnam(name);
 			strcat(name, extension);
 			outputFileURL = CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault,(UInt8*) name, strlen(name), false);
@@ -362,7 +362,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 			if (outputFileURL) {
 				
 				qtexport->audioFileName = [[NSString alloc] initWithCString:name
-															 encoding:[NSString defaultCStringEncoding]];
+				                                                            encoding:[NSString defaultCStringEncoding]];
 				
 				qtexport->audioInputFormat.mSampleRate = U.audiorate;
 				qtexport->audioInputFormat.mFormatID = kAudioFormatLinearPCM;
@@ -471,7 +471,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 						qtexport->audioOutputFormat.mBytesPerFrame = qtexport->audioOutputFormat.mBytesPerPacket;
 						break;
 				}
-												
+
 				err = AudioFileCreateWithURL(outputFileURL, audioFileType, &qtexport->audioOutputFormat, kAudioFileFlags_EraseFile, &qtexport->audioFile);
 				CFRelease(outputFileURL);
 				
@@ -489,27 +489,27 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 					else {
 						UInt32 prop,propSize;
 						/* Set up codec properties */
-						if (rd->qtcodecsettings.audiocodecType == kAudioFormatMPEG4AAC) { /*Lossy compressed format*/
+						if (rd->qtcodecsettings.audiocodecType == kAudioFormatMPEG4AAC) {  /* Lossy compressed format */
 							prop = rd->qtcodecsettings.audioBitRate;
 							AudioConverterSetProperty(qtexport->audioConverter, kAudioConverterEncodeBitRate,
-													  sizeof(prop), &prop);
+							                          sizeof(prop), &prop);
 							
 							if (rd->qtcodecsettings.audioCodecFlags & QTAUDIO_FLAG_CODEC_ISCBR)
 								prop = kAudioCodecBitRateControlMode_Constant;
 							else
 								prop = kAudioCodecBitRateControlMode_LongTermAverage;
 							AudioConverterSetProperty(qtexport->audioConverter, kAudioCodecPropertyBitRateControlMode,
-															sizeof(prop), &prop);
+							                          sizeof(prop), &prop);
 						}
 						/* Conversion quality : if performance impact then offer degraded option */
-						if ((rd->qtcodecsettings.audioCodecFlags & QTAUDIO_FLAG_RESAMPLE_NOHQ) == 0) {							
+						if ((rd->qtcodecsettings.audioCodecFlags & QTAUDIO_FLAG_RESAMPLE_NOHQ) == 0) {
 							prop = kAudioConverterSampleRateConverterComplexity_Mastering;
 							AudioConverterSetProperty(qtexport->audioConverter, kAudioConverterSampleRateConverterComplexity,
-													  sizeof(prop), &prop);
+							                          sizeof(prop), &prop);
 							
 							prop = kAudioConverterQuality_Max;
 							AudioConverterSetProperty(qtexport->audioConverter, kAudioConverterSampleRateConverterQuality,
-													  sizeof(prop), &prop);
+							                          sizeof(prop), &prop);
 						}
 						
 						write_cookie(qtexport->audioConverter, qtexport->audioFile);
@@ -517,29 +517,30 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 						/* Allocate output buffer */
 						if (qtexport->audioOutputFormat.mBytesPerPacket ==0) /* VBR */
 							AudioConverterGetProperty(qtexport->audioConverter, kAudioConverterPropertyMaximumOutputPacketSize,
-												  &propSize, &qtexport->audioCodecMaxOutputPacketSize);
+							                          &propSize, &qtexport->audioCodecMaxOutputPacketSize);
 						else
 							qtexport->audioCodecMaxOutputPacketSize = qtexport->audioOutputFormat.mBytesPerPacket;
 						
 						qtexport->audioInputBuffer = MEM_mallocN(AUDIOOUTPUTBUFFERSIZE, "qt_audio_inputPacket");
 						qtexport->audioOutputBuffer = MEM_mallocN(AUDIOOUTPUTBUFFERSIZE, "qt_audio_outputPacket");
-						qtexport->audioOutputPktDesc = MEM_mallocN(sizeof(AudioStreamPacketDescription)*AUDIOOUTPUTBUFFERSIZE/qtexport->audioCodecMaxOutputPacketSize,
-																   "qt_audio_pktdesc");
+						qtexport->audioOutputPktDesc = MEM_mallocN(sizeof(AudioStreamPacketDescription) * AUDIOOUTPUTBUFFERSIZE / qtexport->audioCodecMaxOutputPacketSize,
+						                                           "qt_audio_pktdesc");
 					}
 				}
 			}
-			
+
 			if (err == noErr) {
-				qtexport->videoTempFileName = [[NSString alloc] initWithCString:tmpnam(nil) 
-															 encoding:[NSString defaultCStringEncoding]];			
-				if (qtexport->videoTempFileName)
+				qtexport->videoTempFileName = [[NSString alloc] initWithCString:tmpnam(nil)
+				                                                encoding:[NSString defaultCStringEncoding]];
+				if (qtexport->videoTempFileName) {
 					qtexport->movie = [[QTMovie alloc] initToWritableFile:qtexport->videoTempFileName error:&error];
+				}
 
 			}
 		}
 		else
 			qtexport->movie = [[QTMovie alloc] initToWritableFile:qtexport->filename error:&error];
-			
+
 		if(qtexport->movie == nil) {
 			BKE_report(reports, RPT_ERROR, "Unable to create quicktime movie.");
 			success= 0;
@@ -585,7 +586,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 				specs.rate = U.audiorate;
 				qtexport->audioInputDevice = AUD_openReadDevice(specs);
 				AUD_playDevice(qtexport->audioInputDevice, scene->sound_scene, rd->sfra * rd->frs_sec_base / rd->frs_sec);
-								
+
 				qtexport->audioOutputPktPos = 0;
 				qtexport->audioTotalExportedFrames = 0;
 				qtexport->audioTotalSavedFrames = 0;
@@ -655,13 +656,13 @@ int append_qt(struct RenderData *rd, int start_frame, int frame, int *pixels, in
 			audioPacketsConverted = AUDIOOUTPUTBUFFERSIZE / qtexport->audioCodecMaxOutputPacketSize;
 			
 			err = AudioConverterFillComplexBuffer(qtexport->audioConverter, AudioConverterInputCallback,
-											NULL, &audioPacketsConverted, &qtexport->audioBufferList, qtexport->audioOutputPktDesc);
+			                                      NULL, &audioPacketsConverted, &qtexport->audioBufferList, qtexport->audioOutputPktDesc);
 			if (audioPacketsConverted) {
 				AudioFileWritePackets(qtexport->audioFile, false, qtexport->audioBufferList.mBuffers[0].mDataByteSize,
-									  qtexport->audioOutputPktDesc, qtexport->audioOutputPktPos, &audioPacketsConverted, qtexport->audioOutputBuffer);
+				        qtexport->audioOutputPktDesc, qtexport->audioOutputPktPos, &audioPacketsConverted, qtexport->audioOutputBuffer);
 				qtexport->audioOutputPktPos += audioPacketsConverted;
 				
-				if (qtexport->audioOutputFormat.mFramesPerPacket) { 
+				if (qtexport->audioOutputFormat.mFramesPerPacket) {
 					// this is the common case: format has constant frames per packet
 					qtexport->audioTotalSavedFrames += (audioPacketsConverted * qtexport->audioOutputFormat.mFramesPerPacket);
 				}
@@ -751,8 +752,8 @@ void end_qt(void)
 			}
 			
 			/* Save file */
-			dict = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] 
-											   forKey:QTMovieFlatten];
+			dict = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES]
+			        forKey:QTMovieFlatten];
 
 			if (dict) {
 				[qtexport->movie writeToFile:qtexport->filename withAttributes:dict];
