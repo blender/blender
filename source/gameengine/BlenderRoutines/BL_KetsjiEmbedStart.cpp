@@ -439,7 +439,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			rasterizer->SetBackColor(scene->gm.framing.col[0], scene->gm.framing.col[1], scene->gm.framing.col[2], 0.0f);
 		}
 		
-		char *python_main = NULL;
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
 			if (rv3d->persp != RV3D_CAMOB)
@@ -534,18 +533,17 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				// Could be in StartEngine set the framerate, we need the scene to do this
 				ketsjiengine->SetAnimFrameRate(FPS);
 				
+#ifdef WITH_PYTHON
 				char *python_main = NULL;
 				pynextframestate.state = NULL;
 				pynextframestate.func = NULL;
-#ifdef WITH_PYTHON
 				python_main = KX_GetPythonMain(scene);
-#endif // WITH_PYTHON
+
 				// the mainloop
 				printf("\nBlender Game Engine Started\n");
 				if (python_main) {
 					char *python_code = KX_GetPythonCode(blenderdata, python_main);
 					if (python_code) {
-#ifdef WITH_PYTHON			    
 						ketsjinextframestate.ketsjiengine = ketsjiengine;
 						ketsjinextframestate.C = C;
 						ketsjinextframestate.win = win;
@@ -560,11 +558,12 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 						printf("Yielding control to Python script '%s'...\n", python_main);
 						PyRun_SimpleString(python_code);
 						printf("Exit Python script '%s'\n", python_main);
-#endif // WITH_PYTHON				
 						MEM_freeN(python_code);
-					}				
+					}
 				}
-				else {
+				else
+#endif  /* WITH_PYTHON */
+				{
 					while (!exitrequested)
 					{
 						exitrequested = BL_KetsjiNextFrame(ketsjiengine, C, win, scene, ar, keyboarddevice, mousedevice, draw_letterbox);
@@ -572,7 +571,9 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				}
 				printf("Blender Game Engine Finished\n");
 				exitstring = ketsjiengine->GetExitString();
+#ifdef WITH_PYTHON
 				if (python_main) MEM_freeN(python_main);
+#endif  /* WITH_PYTHON */
 
 				gs = *(ketsjiengine->GetGlobalSettings());
 

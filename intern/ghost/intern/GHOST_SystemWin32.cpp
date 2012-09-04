@@ -724,7 +724,7 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 		int r;
 		GetKeyboardState((PBYTE)state);
 
-		if (r = ToUnicodeEx(vk, 0, state, utf16, 2, 0, system->m_keylayout)) {
+		if ((r = ToUnicodeEx(vk, 0, state, utf16, 2, 0, system->m_keylayout))) {
 			if ((r > 0 && r < 3)) {
 				utf16[r] = 0;
 				conv_utf_16_to_8(utf16, utf8_char, 6);

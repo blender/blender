@@ -36,43 +36,42 @@
 extern "C" {
 #endif
 
-#include "RNA_access.h"
+#include <stddef.h>
+
 #include "MEM_guardedalloc.h"
+
+#include "BLI_string.h"
+#include "BLI_listbase.h"
+
 #include "BKE_text.h"
 #include "BKE_main.h"
+#include "BKE_idprop.h"
+
 
 #ifdef __cplusplus
 }
 #endif
 
-extern "C" char *KX_GetPythonMain(struct Scene* scene)
+extern "C" char *KX_GetPythonMain(struct Scene *scene)
 {
-    //examine custom scene properties
+	/* examine custom scene properties */
+	if (scene->id.properties) {
+		IDProperty *item = IDP_GetPropertyTypeFromGroup(scene->id.properties, "__main__", IDP_STRING);
+		if (item) {
+			return BLI_strdup(IDP_String(item));
+		}
+	}
 
-    PointerRNA sceneptr;
-    RNA_id_pointer_create(&scene->id, &sceneptr);
-
-    PropertyRNA *pymain = RNA_struct_find_property(&sceneptr, "[\"__main__\"]");
-    if (pymain == NULL) return NULL;
-    char *python_main;
-    int len;
-    python_main = RNA_property_string_get_alloc(&sceneptr, pymain, NULL, 0, &len);
-    return python_main;
+	return NULL;
 }
 
-extern "C" char *KX_GetPythonCode(Main *main, char *python_main)
+extern "C" char *KX_GetPythonCode(Main *bmain, char *python_main)
 {
-    PointerRNA mainptr, txtptr;
-    PropertyRNA *texts;
+	Text *text;
 
-    RNA_main_pointer_create(main, &mainptr);
-    texts = RNA_struct_find_property(&mainptr, "texts");
-    char *python_code = NULL;
-    int ok = RNA_property_collection_lookup_string(&mainptr, texts, python_main, &txtptr);
-    if (ok) {
-        Text *text = (Text *) txtptr.data;
-        python_code = txt_to_buf(text);
-    }
-    return python_code;
+	if ((text = (Text *)BLI_findstring(&bmain->text, python_main, offsetof(ID, name) + 2))) {
+		return txt_to_buf(text);
+	}
+
+	return NULL;
 }
-
