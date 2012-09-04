@@ -100,6 +100,13 @@ public:
 	void addSetVectorOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex);
 	
 	/**
+	 * when a node has no valid data (missing image or a group nodes ID pointer is NULL)
+	 * call this function from #convertToOperations, this way the node sockets are converted
+	 * into valid outputs, without this the compositor system gets confused and crashes, see [#32490]
+	 */
+	void convertToOperations_invalid(ExecutionSystem *graph, CompositorContext *context);
+
+	/**
 	 * Creates a new link between an outputSocket and inputSocket and registrates the link to the graph
 	 * @return the new created link
 	 */

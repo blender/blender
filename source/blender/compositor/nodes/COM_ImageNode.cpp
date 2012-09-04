@@ -72,12 +72,16 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 
 	/* force a load, we assume iuser index will be set OK anyway */
 	if (image && image->type == IMA_TYPE_MULTILAYER) {
+		bool is_multilayer_ok = false;
 		BKE_image_get_ibuf(image, imageuser);
 		if (image->rr) {
 			RenderLayer *rl = (RenderLayer *)BLI_findlink(&image->rr->layers, imageuser->layer);
 			if (rl) {
 				OutputSocket *socket;
 				int index;
+
+				is_multilayer_ok = true;
+
 				for (index = 0; index < numberOfOutputs; index++) {
 					socket = this->getOutputSocket(index);
 					if (socket->isConnected() || index == 0) {
@@ -113,6 +117,11 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 					}
 				}
 			}
+		}
+
+		/* without this, multilayer that fail to load will crash blender [#32490] */
+		if (is_multilayer_ok == false) {
+			convertToOperations_invalid(graph, context);
 		}
 	}
 	else {
