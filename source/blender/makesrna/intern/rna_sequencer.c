@@ -244,28 +244,6 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 	BKE_sequencer_sort(scene);
 }
 
-/* properties that need to allocate structs */
-static void rna_Sequence_use_color_balance_set(PointerRNA *ptr, int value)
-{
-	Sequence *seq = (Sequence *)ptr->data;
-	int c;
-	
-	if (value) {
-		seq->flag |= SEQ_USE_COLOR_BALANCE;
-		if (seq->strip->color_balance == NULL) {
-			seq->strip->color_balance = MEM_callocN(sizeof(struct StripColorBalance), "StripColorBalance");
-			for (c = 0; c < 3; c++) {
-				seq->strip->color_balance->lift[c] = 1.0f;
-				seq->strip->color_balance->gamma[c] = 1.0f;
-				seq->strip->color_balance->gain[c] = 1.0f;
-			}
-		}
-	}
-	else {
-		seq->flag ^= SEQ_USE_COLOR_BALANCE;
-	}
-}
-
 static void rna_Sequence_use_proxy_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq = (Sequence *)ptr->data;
@@ -1630,16 +1608,6 @@ static void rna_def_filter_video(StructRNA *srna)
 	RNA_def_property_range(prop, 1.0f, 30.0f);
 	RNA_def_property_ui_text(prop, "Strobe", "Only display every nth frame");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-
-	prop = RNA_def_property(srna, "use_color_balance", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_COLOR_BALANCE);
-	RNA_def_property_ui_text(prop, "Use Color Balance", "(3-Way color correction) on input");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Sequence_use_color_balance_set");
-	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-
-	prop = RNA_def_property(srna, "color_balance", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "strip->color_balance");
-	RNA_def_property_ui_text(prop, "Color Balance", "");
 
 	prop = RNA_def_property(srna, "use_translation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_TRANSFORM);

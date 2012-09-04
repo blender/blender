@@ -99,7 +99,7 @@ typedef struct Strip {
 	StripProxy *proxy;
 	StripCrop *crop;
 	StripTransform *transform;
-	StripColorBalance *color_balance;
+	StripColorBalance *color_balance DNA_DEPRECATED;
 } Strip;
 
 /**
@@ -315,7 +315,7 @@ typedef struct BrightContrastModifierData {
 #define SEQ_USE_PROXY               (1 << 15)
 #define SEQ_USE_TRANSFORM           (1 << 16)
 #define SEQ_USE_CROP                (1 << 17)
-#define SEQ_USE_COLOR_BALANCE       (1 << 18)
+/* #define SEQ_USE_COLOR_BALANCE       (1 << 18) */ /* DEPRECATED */
 #define SEQ_USE_PROXY_CUSTOM_DIR    (1 << 19)
 
 #define SEQ_USE_PROXY_CUSTOM_FILE   (1 << 21)

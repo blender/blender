@@ -793,10 +793,6 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         col.prop(strip, "use_premultiply")
         col.prop(strip, "use_float")
 
-        layout.prop(strip, "use_color_balance")
-        if strip.use_color_balance and strip.color_balance:  # TODO - need to add this somehow
-            draw_color_balance(layout, strip.color_balance)
-
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
     bl_label = "Proxy / Timecode"
