@@ -37,6 +37,8 @@
 #define RR_USE_MEM		0
 #define RR_USE_EXR		1
 
+#define RR_ALL_LAYERS	NULL
+
 struct ImBuf;
 struct ListBase;
 struct Render;
@@ -49,7 +51,7 @@ struct rcti;
 /* New */
 
 struct RenderResult *render_result_new(struct Render *re,
-	struct rcti *partrct, int crop, int savebuffers);
+	struct rcti *partrct, int crop, int savebuffers, const char *layername);
 struct RenderResult *render_result_new_full_sample(struct Render *re,
 	struct ListBase *lb, struct rcti *partrct, int crop, int savebuffers);
 
@@ -76,9 +78,9 @@ void render_result_exr_file_end(struct Render *re);
 
 void render_result_exr_file_merge(struct RenderResult *rr, struct RenderResult *rrpart);
 
-void render_result_exr_file_path(struct Scene *scene, int sample, char *filepath);
+void render_result_exr_file_path(struct Scene *scene, const char *layname, int sample, char *filepath);
 int render_result_exr_file_read(struct Render *re, int sample);
-int render_result_exr_file_read_path(struct RenderResult *rr, const char *filepath);
+int render_result_exr_file_read_path(struct RenderResult *rr, struct RenderLayer *rl_single, const char *filepath);
 
 /* Combined Pixel Rect */
 

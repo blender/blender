@@ -689,7 +689,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 		if(kernel_data.integrator.use_ambient_occlusion) {
 			int num_samples = kernel_data.integrator.ao_samples;
 			float num_samples_inv = 1.0f/num_samples;
-			float ao_factor = kernel_data.background.ao_factor/num_samples;
+			float ao_factor = kernel_data.background.ao_factor;
 
 			for(int j = 0; j < num_samples; j++) {
 				/* todo: solve correlation */

@@ -74,6 +74,29 @@ int BufferParams::get_passes_size()
 	return align_up(size, 4);
 }
 
+/* Render Buffer Task */
+
+RenderTile::RenderTile()
+{
+	x = 0;
+	y = 0;
+	w = 0;
+	h = 0;
+
+	start_sample = 0;
+	num_samples = 0;
+	resolution = 0;
+
+	offset = 0;
+	stride = 0;
+
+	buffer = 0;
+	rng_state = 0;
+	rgba = 0;
+
+	buffers = NULL;
+}
+
 /* Render Buffers */
 
 RenderBuffers::RenderBuffers(Device *device_)
@@ -135,7 +158,7 @@ bool RenderBuffers::copy_from_device()
 	return true;
 }
 
-bool RenderBuffers::get_pass(PassType type, float exposure, int sample, int components, float *pixels)
+bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels)
 {
 	int pass_offset = 0;
 

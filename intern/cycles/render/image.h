@@ -28,8 +28,11 @@ CCL_NAMESPACE_BEGIN
 
 #define TEX_NUM_FLOAT_IMAGES	5
 #define TEX_NUM_IMAGES			95
-#define TEX_IMAGE_MAX			(TEX_NUM_IMAGES + TEX_NUM_FLOAT_IMAGES)
-#define TEX_IMAGE_FLOAT_START	TEX_NUM_IMAGES
+#define TEX_IMAGE_BYTE_START	TEX_NUM_FLOAT_IMAGES
+
+#define TEX_EXTENDED_NUM_FLOAT_IMAGES	5
+#define TEX_EXTENDED_NUM_IMAGES			512
+#define TEX_EXTENDED_IMAGE_BYTE_START	TEX_EXTENDED_NUM_FLOAT_IMAGES
 
 /* color to use when textures are not found */
 #define TEX_IMAGE_MISSING_R 1
@@ -55,9 +58,15 @@ public:
 	void set_osl_texture_system(void *texture_system);
 	void set_pack_images(bool pack_images_);
 
+	void set_extended_image_limits(void);
+
 	bool need_update;
 
 private:
+	int tex_num_images;
+	int tex_num_float_images;
+	int tex_image_byte_start;
+
 	struct Image {
 		string filename;
 

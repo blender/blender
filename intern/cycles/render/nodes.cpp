@@ -112,7 +112,18 @@ static ShaderEnum color_space_init()
 	return enm;
 }
 
+static ShaderEnum image_projection_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Flat", 0);
+	enm.insert("Box", 1);
+
+	return enm;
+}
+
 ShaderEnum ImageTextureNode::color_space_enum = color_space_init();
+ShaderEnum ImageTextureNode::projection_enum = image_projection_init();
 
 ImageTextureNode::ImageTextureNode()
 : TextureNode("image_texture")
@@ -122,6 +133,8 @@ ImageTextureNode::ImageTextureNode()
 	is_float = false;
 	filename = "";
 	color_space = ustring("Color");
+	projection = ustring("Flat");;
+	projection_blend = 0.0f;
 
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_UV);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -169,13 +182,25 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 			tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
 		}
 
-		compiler.add_node(NODE_TEX_IMAGE,
-			slot,
-			compiler.encode_uchar4(
-				vector_offset,
-				color_out->stack_offset,
-				alpha_out->stack_offset,
-				srgb));
+		if(projection == "Flat") {
+			compiler.add_node(NODE_TEX_IMAGE,
+				slot,
+				compiler.encode_uchar4(
+					vector_offset,
+					color_out->stack_offset,
+					alpha_out->stack_offset,
+					srgb));
+		}
+		else {
+			compiler.add_node(NODE_TEX_IMAGE_BOX,
+				slot,
+				compiler.encode_uchar4(
+					vector_offset,
+					color_out->stack_offset,
+					alpha_out->stack_offset,
+					srgb),
+				__float_as_int(projection_blend));
+		}
 	
 		if(vector_offset != vector_in->stack_offset)
 			compiler.stack_clear_offset(vector_in->type, vector_offset);
@@ -205,7 +230,7 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 
 /* Environment Texture */
 
-static ShaderEnum projection_init()
+static ShaderEnum env_projection_init()
 {
 	ShaderEnum enm;
 
@@ -216,7 +241,7 @@ static ShaderEnum projection_init()
 }
 
 ShaderEnum EnvironmentTextureNode::color_space_enum = color_space_init();
-ShaderEnum EnvironmentTextureNode::projection_enum = projection_init();
+ShaderEnum EnvironmentTextureNode::projection_enum = env_projection_init();
 
 EnvironmentTextureNode::EnvironmentTextureNode()
 : TextureNode("environment_texture")
@@ -871,6 +896,98 @@ void CheckerTextureNode::compile(SVMCompiler& compiler)
 void CheckerTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.add(this, "node_checker_texture");
+}
+
+/* Brick Texture */
+
+BrickTextureNode::BrickTextureNode()
+: TextureNode("brick_texture")
+{
+	offset = 0.5f;
+	offset_frequency = 2;
+	squash = 1.0f;
+	squash_frequency = 2;
+	
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
+	add_input("Color1", SHADER_SOCKET_COLOR);
+	add_input("Color2", SHADER_SOCKET_COLOR);
+	add_input("Mortar", SHADER_SOCKET_COLOR);
+	add_input("Scale", SHADER_SOCKET_FLOAT, 5.0f);
+	add_input("Mortar Size", SHADER_SOCKET_FLOAT, 0.02f);
+	add_input("Bias", SHADER_SOCKET_FLOAT, 0.0f);
+	add_input("Brick Width", SHADER_SOCKET_FLOAT, 0.5f);
+	add_input("Row Height", SHADER_SOCKET_FLOAT, 0.25f);
+
+	add_output("Color", SHADER_SOCKET_COLOR);
+	add_output("Fac", SHADER_SOCKET_FLOAT);
+}
+
+void BrickTextureNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *vector_in = input("Vector");
+	ShaderInput *color1_in = input("Color1");
+	ShaderInput *color2_in = input("Color2");
+	ShaderInput *mortar_in = input("Mortar");
+	ShaderInput *scale_in = input("Scale");
+	ShaderInput *mortar_size_in = input("Mortar Size");
+	ShaderInput *bias_in = input("Bias");
+	ShaderInput *brick_width_in = input("Brick Width");
+	ShaderInput *row_height_in = input("Row Height");
+	
+	ShaderOutput *color_out = output("Color");
+	ShaderOutput *fac_out = output("Fac");
+
+	compiler.stack_assign(vector_in);
+	compiler.stack_assign(color1_in);
+	compiler.stack_assign(color2_in);
+	compiler.stack_assign(mortar_in);
+	if(scale_in->link) compiler.stack_assign(scale_in);
+	if(mortar_size_in->link) compiler.stack_assign(mortar_size_in);
+	if(bias_in->link) compiler.stack_assign(bias_in);
+	if(brick_width_in->link) compiler.stack_assign(brick_width_in);
+	if(row_height_in->link) compiler.stack_assign(row_height_in);
+
+	int vector_offset = vector_in->stack_offset;
+
+	if(!tex_mapping.skip()) {
+		vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
+		tex_mapping.compile(compiler, vector_in->stack_offset, vector_offset);
+	}
+
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
+	if(!fac_out->links.empty())
+		compiler.stack_assign(fac_out);
+
+	compiler.add_node(NODE_TEX_BRICK,
+		compiler.encode_uchar4(vector_offset,
+			color1_in->stack_offset, color2_in->stack_offset, mortar_in->stack_offset),
+		compiler.encode_uchar4(scale_in->stack_offset,
+			mortar_size_in->stack_offset, bias_in->stack_offset, brick_width_in->stack_offset),
+		compiler.encode_uchar4(row_height_in->stack_offset,
+			color_out->stack_offset, fac_out->stack_offset));
+			
+	compiler.add_node(compiler.encode_uchar4(offset_frequency, squash_frequency),
+		__float_as_int(scale_in->value.x),
+		__float_as_int(mortar_size_in->value.x),
+		__float_as_int(bias_in->value.x));
+
+	compiler.add_node(__float_as_int(brick_width_in->value.x),
+		__float_as_int(row_height_in->value.x),
+		__float_as_int(offset),
+		__float_as_int(squash));
+
+	if(vector_offset != vector_in->stack_offset)
+		compiler.stack_clear_offset(vector_in->type, vector_offset);
+}
+
+void BrickTextureNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter("Offset", offset);
+	compiler.parameter("Offset Frequency", offset_frequency);
+	compiler.parameter("Squash", squash);
+	compiler.parameter("Squash Frequency", squash_frequency);
+	compiler.add(this, "node_brick_texture");
 }
 
 /* Normal */

@@ -35,10 +35,15 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_CPU__
 
+#define MAX_BYTE_IMAGES   512
+#define MAX_FLOAT_IMAGES  5
+
 typedef struct KernelGlobals {
+	texture_image_uchar4 texture_byte_images[MAX_BYTE_IMAGES];
+	texture_image_float4 texture_float_images[MAX_FLOAT_IMAGES];
 
 #define KERNEL_TEX(type, ttype, name) ttype name;
-#define KERNEL_IMAGE_TEX(type, ttype, name) ttype name;
+#define KERNEL_IMAGE_TEX(type, ttype, name)
 #include "kernel_textures.h"
 
 	KernelData __data;

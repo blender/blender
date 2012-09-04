@@ -70,8 +70,11 @@ public:
 	bool is_float;
 	string filename;
 	ustring color_space;
+	ustring projection;
+	float projection_blend;
 
 	static ShaderEnum color_space_enum;
+	static ShaderEnum projection_enum;
 };
 
 class EnvironmentTextureNode : public TextureNode {
@@ -153,6 +156,14 @@ public:
 class CheckerTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(CheckerTextureNode)
+};
+
+class BrickTextureNode : public TextureNode {
+public:
+	SHADER_NODE_CLASS(BrickTextureNode)
+	
+	float offset, squash;
+	int offset_frequency, squash_frequency;
 };
 
 class MappingNode : public ShaderNode {

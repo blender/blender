@@ -36,6 +36,10 @@ ImageManager::ImageManager()
 	need_update = true;
 	pack_images = false;
 	osl_texture_system = NULL;
+
+	tex_num_images = TEX_NUM_IMAGES;
+	tex_num_float_images = TEX_NUM_FLOAT_IMAGES;
+	tex_image_byte_start = TEX_IMAGE_BYTE_START;
 }
 
 ImageManager::~ImageManager()
@@ -54,6 +58,13 @@ void ImageManager::set_pack_images(bool pack_images_)
 void ImageManager::set_osl_texture_system(void *texture_system)
 {
 	osl_texture_system = texture_system;
+}
+
+void ImageManager::set_extended_image_limits(void)
+{
+	tex_num_images = TEX_EXTENDED_NUM_IMAGES;
+	tex_num_float_images = TEX_EXTENDED_NUM_FLOAT_IMAGES;
+	tex_image_byte_start = TEX_EXTENDED_IMAGE_BYTE_START;
 }
 
 static bool is_float_image(const string& filename)
@@ -97,7 +108,7 @@ int ImageManager::add_image(const string& filename, bool& is_float)
 		for(slot = 0; slot < float_images.size(); slot++) {
 			if(float_images[slot] && float_images[slot]->filename == filename) {
 				float_images[slot]->users++;
-				return slot+TEX_IMAGE_FLOAT_START;
+				return slot;
 			}
 		}
 
@@ -110,8 +121,8 @@ int ImageManager::add_image(const string& filename, bool& is_float)
 		if(slot == float_images.size()) {
 			/* max images limit reached */
 			if(float_images.size() == TEX_NUM_FLOAT_IMAGES) {
-				printf("ImageManager::add_image: byte image limit reached %d, skipping '%s'\n",
-				       TEX_NUM_IMAGES, filename.c_str());
+				printf("ImageManager::add_image: float image limit reached %d, skipping '%s'\n",
+				       tex_num_float_images, filename.c_str());
 				return -1;
 			}
 
@@ -125,14 +136,12 @@ int ImageManager::add_image(const string& filename, bool& is_float)
 		img->users = 1;
 
 		float_images[slot] = img;
-		/* report slot out of total set of textures */
-		slot += TEX_IMAGE_FLOAT_START;
 	}
 	else {
 		for(slot = 0; slot < images.size(); slot++) {
 			if(images[slot] && images[slot]->filename == filename) {
 				images[slot]->users++;
-				return slot;
+				return slot+tex_image_byte_start;
 			}
 		}
 
@@ -144,9 +153,9 @@ int ImageManager::add_image(const string& filename, bool& is_float)
 
 		if(slot == images.size()) {
 			/* max images limit reached */
-			if(images.size() == TEX_NUM_IMAGES) {
+			if(images.size() == tex_num_images) {
 				printf("ImageManager::add_image: byte image limit reached %d, skipping '%s'\n",
-				       TEX_NUM_IMAGES, filename.c_str());
+				       tex_num_images, filename.c_str());
 				return -1;
 			}
 
@@ -160,6 +169,8 @@ int ImageManager::add_image(const string& filename, bool& is_float)
 		img->users = 1;
 
 		images[slot] = img;
+
+		slot += tex_image_byte_start;
 	}
 	need_update = true;
 
@@ -340,20 +351,20 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 	Image *img;
 	bool is_float;
 
-	if(slot < TEX_IMAGE_FLOAT_START) {
-		img = images[slot];
+	if(slot >= tex_image_byte_start) {
+		img = images[slot - tex_image_byte_start];
 		is_float = false;
 	}
 	else {
-		img = float_images[slot - TEX_IMAGE_FLOAT_START];
+		img = float_images[slot];
 		is_float = true;
 	}
 
 	if(is_float) {
-		string filename = path_filename(float_images[slot - TEX_IMAGE_FLOAT_START]->filename);
+		string filename = path_filename(float_images[slot]->filename);
 		progress->set_status("Updating Images", "Loading " + filename);
 
-		device_vector<float4>& tex_img = dscene->tex_float_image[slot - TEX_IMAGE_FLOAT_START];
+		device_vector<float4>& tex_img = dscene->tex_float_image[slot];
 
 		if(tex_img.device_pointer)
 			device->tex_free(tex_img);
@@ -377,10 +388,10 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 			device->tex_alloc(name.c_str(), tex_img, true, true);
 	}
 	else {
-		string filename = path_filename(images[slot]->filename);
+		string filename = path_filename(images[slot - tex_image_byte_start]->filename);
 		progress->set_status("Updating Images", "Loading " + filename);
 
-		device_vector<uchar4>& tex_img = dscene->tex_image[slot];
+		device_vector<uchar4>& tex_img = dscene->tex_image[slot - tex_image_byte_start];
 
 		if(tex_img.device_pointer)
 			device->tex_free(tex_img);
@@ -412,12 +423,12 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int sl
 	Image *img;
 	bool is_float;
 
-	if(slot < TEX_IMAGE_FLOAT_START) {
-		img = images[slot];
+	if(slot >= tex_image_byte_start) {
+		img = images[slot - tex_image_byte_start];
 		is_float = false;
 	}
 	else {
-		img = float_images[slot - TEX_IMAGE_FLOAT_START];
+		img = float_images[slot];
 		is_float = true;
 	}
 
@@ -429,18 +440,18 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int sl
 #endif
 		}
 		else if(is_float) {
-			device->tex_free(dscene->tex_float_image[slot - TEX_IMAGE_FLOAT_START]);
-			dscene->tex_float_image[slot - TEX_IMAGE_FLOAT_START].clear();
+			device->tex_free(dscene->tex_float_image[slot]);
+			dscene->tex_float_image[slot].clear();
 
-			delete float_images[slot - TEX_IMAGE_FLOAT_START];
-			float_images[slot - TEX_IMAGE_FLOAT_START] = NULL;
+			delete float_images[slot];
+			float_images[slot] = NULL;
 		}
 		else {
-			device->tex_free(dscene->tex_image[slot]);
-			dscene->tex_image[slot].clear();
+			device->tex_free(dscene->tex_image[slot - tex_image_byte_start]);
+			dscene->tex_image[slot - tex_image_byte_start].clear();
 
-			delete images[slot];
-			images[slot] = NULL;
+			delete images[slot - tex_image_byte_start];
+			images[slot - tex_image_byte_start] = NULL;
 		}
 	}
 }
@@ -457,11 +468,11 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 			continue;
 
 		if(images[slot]->users == 0) {
-			device_free_image(device, dscene, slot);
+			device_free_image(device, dscene, slot + tex_image_byte_start);
 		}
 		else if(images[slot]->need_load) {
 			if(!osl_texture_system) 
-				pool.push(function_bind(&ImageManager::device_load_image, this, device, dscene, slot, &progress));
+				pool.push(function_bind(&ImageManager::device_load_image, this, device, dscene, slot + tex_image_byte_start, &progress));
 		}
 	}
 
@@ -470,11 +481,11 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 			continue;
 
 		if(float_images[slot]->users == 0) {
-			device_free_image(device, dscene, slot + TEX_IMAGE_FLOAT_START);
+			device_free_image(device, dscene, slot);
 		}
 		else if(float_images[slot]->need_load) {
 			if(!osl_texture_system) 
-				pool.push(function_bind(&ImageManager::device_load_image, this, device, dscene, slot + TEX_IMAGE_FLOAT_START, &progress));
+				pool.push(function_bind(&ImageManager::device_load_image, this, device, dscene, slot, &progress));
 		}
 	}
 
@@ -526,9 +537,9 @@ void ImageManager::device_pack_images(Device *device, DeviceScene *dscene, Progr
 void ImageManager::device_free(Device *device, DeviceScene *dscene)
 {
 	for(size_t slot = 0; slot < images.size(); slot++)
-		device_free_image(device, dscene, slot);
+		device_free_image(device, dscene, slot + tex_image_byte_start);
 	for(size_t slot = 0; slot < float_images.size(); slot++)
-		device_free_image(device, dscene, slot + TEX_IMAGE_FLOAT_START);
+		device_free_image(device, dscene, slot);
 
 	device->tex_free(dscene->tex_image_packed);
 	dscene->tex_image_packed.clear();

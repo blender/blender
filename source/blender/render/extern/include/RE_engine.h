@@ -86,9 +86,14 @@ typedef struct RenderEngine {
 	int flag;
 	struct Object *camera_override;
 
+	int tile_x;
+	int tile_y;
+
 	struct Render *re;
 	ListBase fullresult;
 	char *text;
+
+	int resolution_x, resolution_y;
 } RenderEngine;
 
 RenderEngine *RE_engine_create(RenderEngineType *type);
@@ -97,9 +102,9 @@ void RE_engine_free(RenderEngine *engine);
 void RE_layer_load_from_file(struct RenderLayer *layer, struct ReportList *reports, const char *filename, int x, int y);
 void RE_result_load_from_file(struct RenderResult *result, struct ReportList *reports, const char *filename);
 
-struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
+struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h, const char *layername);
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
-void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
+void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int cancel);
 
 int RE_engine_test_break(RenderEngine *engine);
 void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);

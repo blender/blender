@@ -537,7 +537,7 @@ void freeparts(Render *re)
 	BLI_freelistN(&re->parts);
 }
 
-void initparts(Render *re)
+void initparts(Render *re, int do_crop)
 {
 	int nr, xd, yd, partx, party, xparts, yparts;
 	int xminb, xmaxb, yminb, ymaxb;
@@ -618,7 +618,7 @@ void initparts(Render *re)
 			RenderPart *pa = MEM_callocN(sizeof(RenderPart), "new part");
 			
 			/* Non-box filters need 2 pixels extra to work */
-			if ((re->r.filtertype || (re->r.mode & R_EDGE))) {
+			if (do_crop && (re->r.filtertype || (re->r.mode & R_EDGE))) {
 				pa->crop = 2;
 				disprect.xmin -= pa->crop;
 				disprect.ymin -= pa->crop;

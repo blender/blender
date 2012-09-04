@@ -92,6 +92,9 @@ typedef struct RenderLayer {
 	float *acolrect;	/* 4 float, optional transparent buffer, needs storage for display updates */
 	float *scolrect;	/* 4 float, optional strand buffer, needs storage for display updates */
 	int rectx, recty;
+
+	/* optional saved endresult on disk */
+	void *exrhandle;
 	
 	ListBase passes;
 	
@@ -124,7 +127,7 @@ typedef struct RenderResult {
 	volatile RenderLayer *renlay;
 	
 	/* optional saved endresult on disk */
-	void *exrhandle;
+	int do_exr_tile;
 	
 	/* for render results in Image, verify validity for sequences */
 	int framenr;

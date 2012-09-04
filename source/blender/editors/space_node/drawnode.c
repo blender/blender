@@ -1324,6 +1324,10 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
+
+	if(RNA_enum_get(ptr, "projection") == SHD_PROJ_BOX)
+		uiItemR(layout, ptr, "projection_blend", 0, "Blend", ICON_NONE);
 
 	/* note: image user properties used directly here, unlike compositor image node,
 	 * which redefines them in the node struct RNA to get proper updates.
@@ -1357,6 +1361,19 @@ static void node_shader_buts_tex_gradient(uiLayout *layout, bContext *UNUSED(C),
 static void node_shader_buts_tex_magic(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "turbulence_depth", 0, NULL, ICON_NONE);
+}
+
+static void node_shader_buts_tex_brick(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *col;
+	
+	col = uiLayoutColumn(layout, TRUE);
+	uiItemR(col, ptr, "offset", 0, IFACE_("Offset"), ICON_NONE);
+	uiItemR(col, ptr, "offset_frequency", 0, IFACE_("Frequency"), ICON_NONE);
+	
+	col = uiLayoutColumn(layout, TRUE);
+	uiItemR(col, ptr, "squash", 0, IFACE_("Squash"), ICON_NONE);
+	uiItemR(col, ptr, "squash_frequency", 0, IFACE_("Frequency"), ICON_NONE);
 }
 
 static void node_shader_buts_tex_wave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -1442,6 +1459,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_TEX_MAGIC:
 			ntype->uifunc = node_shader_buts_tex_magic;
+			break;
+		case SH_NODE_TEX_BRICK:
+			ntype->uifunc = node_shader_buts_tex_brick;
 			break;
 		case SH_NODE_TEX_WAVE:
 			ntype->uifunc = node_shader_buts_tex_wave;

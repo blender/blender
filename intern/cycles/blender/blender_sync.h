@@ -49,7 +49,7 @@ class ShaderNode;
 
 class BlenderSync {
 public:
-	BlenderSync(BL::BlendData b_data, BL::Scene b_scene, Scene *scene_, bool preview_);
+	BlenderSync(BL::RenderEngine b_engine_, BL::BlendData b_data, BL::Scene b_scene, Scene *scene_, bool preview_, Progress &progress_);
 	~BlenderSync();
 
 	/* sync */
@@ -61,7 +61,7 @@ public:
 
 	/* get parameters */
 	static SceneParams get_scene_params(BL::Scene b_scene, bool background);
-	static SessionParams get_session_params(BL::UserPreferences b_userpref, BL::Scene b_scene, bool background);
+	static SessionParams get_session_params(BL::RenderEngine b_engine, BL::UserPreferences b_userpref, BL::Scene b_scene, bool background);
 	static bool get_session_pause(BL::Scene b_scene, bool background);
 	static BufferParams get_buffer_params(BL::Scene b_scene, Camera *cam, int width, int height);
 
@@ -97,6 +97,7 @@ private:
 	int object_count_particles(BL::Object b_ob);
 
 	/* variables */
+	BL::RenderEngine b_engine;
 	BL::BlendData b_data;
 	BL::Scene b_scene;
 
@@ -132,21 +133,9 @@ private:
 		bool use_localview;
 		int samples;
 	} render_layer;
-};
 
-/* we don't have spare bits for localview (normally 20-28)
- * because PATH_RAY_LAYER_SHIFT uses 20-32.
- * So - check if we have localview and if so, shift local
- * view bits down to 1-8, since this is done for the view
- * port only - it should be OK and not conflict with
- * render layers. - Campbell.
- *
- * ... as an alternative we could use uint64_t
- */
-#define CYCLES_LOCAL_LAYER_HACK(use_localview, layer)   \
-	if (use_localview) {                                \
-		layer >>= 20;                                   \
-	} (void)0
+	Progress &progress;
+};
 
 CCL_NAMESPACE_END
 

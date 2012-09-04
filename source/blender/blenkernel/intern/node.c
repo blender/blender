@@ -2263,6 +2263,7 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_tex_gradient(ttype);
 	register_node_type_sh_tex_magic(ttype);
 	register_node_type_sh_tex_checker(ttype);
+	register_node_type_sh_tex_brick(ttype);
 }
 
 static void registerTextureNodes(bNodeTreeType *ttype)

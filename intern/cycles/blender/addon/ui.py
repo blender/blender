@@ -197,8 +197,13 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
 
         sub = col.column(align=True)
         sub.label(text="Tiles:")
-        sub.prop(cscene, "debug_tile_size")
-        sub.prop(cscene, "debug_min_size")
+
+        sub.prop(rd, "parts_x", text="X")
+        sub.prop(rd, "parts_y", text="Y")
+
+        subsub = sub.column()
+        subsub.enabled = not rd.use_border
+        subsub.prop(rd, "use_save_buffers")
 
         col = split.column()
 
@@ -207,6 +212,10 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "debug_bvh_type", text="")
         sub.prop(cscene, "debug_use_spatial_splits")
         sub.prop(cscene, "use_cache")
+
+        sub = col.column(align=True)
+        sub.label(text="Viewport:")
+        sub.prop(cscene, "resolution_divider")
 
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):

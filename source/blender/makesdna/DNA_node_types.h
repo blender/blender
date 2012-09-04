@@ -614,17 +614,27 @@ typedef struct NodeTexSky {
 typedef struct NodeTexImage {
 	NodeTexBase base;
 	ImageUser iuser;
-	int color_space, pad;
+	int color_space;
+	int projection;
+	float projection_blend;
+	int pad;
 } NodeTexImage;
 
 typedef struct NodeTexChecker {
 	NodeTexBase base;
 } NodeTexChecker;
 
+typedef struct NodeTexBrick {
+	NodeTexBase base;
+	int offset_freq, squash_freq;
+	float offset, squash;
+} NodeTexBrick;
+
 typedef struct NodeTexEnvironment {
 	NodeTexBase base;
 	ImageUser iuser;
-	int color_space, projection;
+	int color_space;
+	int projection;
 } NodeTexEnvironment;
 
 typedef struct NodeTexGradient {
@@ -763,6 +773,10 @@ typedef struct NodeTrackPosData {
 /* environment texture */
 #define SHD_PROJ_EQUIRECTANGULAR	0
 #define SHD_PROJ_MIRROR_BALL		1
+
+/* image texture */
+#define SHD_PROJ_FLAT				0
+#define SHD_PROJ_BOX				1
 
 /* blur node */
 #define CMP_NODE_BLUR_ASPECT_NONE		0

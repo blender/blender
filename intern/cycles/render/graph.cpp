@@ -402,6 +402,20 @@ void ShaderGraph::clean()
 	/* break cycles */
 	break_cycles(output(), visited, on_stack);
 
+	/* disconnect unused nodes */
+	foreach(ShaderNode *node, nodes) {
+		if(!visited[node->id]) {
+			foreach(ShaderInput *to, node->inputs) {
+				ShaderOutput *from = to->link;
+
+				if (from) {
+					to->link = NULL;
+					from->links.erase(remove(from->links.begin(), from->links.end(), to), from->links.end());
+				}
+			}
+		}
+	}
+
 	/* remove unused nodes */
 	foreach(ShaderNode *node, nodes) {
 		if(visited[node->id])

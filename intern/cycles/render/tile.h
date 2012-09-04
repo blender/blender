@@ -31,9 +31,14 @@ CCL_NAMESPACE_BEGIN
 class Tile {
 public:
 	int x, y, w, h;
+	int device;
+	bool rendering;
 
-	Tile(int x_, int y_, int w_, int h_)
-	: x(x_), y(y_), w(w_), h(h_) {}
+	Tile()
+	{}
+
+	Tile(int x_, int y_, int w_, int h_, int device_)
+	: x(x_), y(y_), w(w_), h(h_), device(device_), rendering(false) {}
 };
 
 /* Tile Manager */
@@ -45,27 +50,34 @@ public:
 	struct State {
 		BufferParams buffer;
 		int sample;
+		int num_samples;
 		int resolution;
+		int num_tiles;
+		int num_rendered_tiles;
 		list<Tile> tiles;
 	} state;
 
-	TileManager(bool progressive, int samples, int tile_size, int min_size);
+	TileManager(bool progressive, int num_samples, int2 tile_size, int resolution, int num_devices = 1);
 	~TileManager();
 
-	void reset(BufferParams& params, int samples);
-	void set_samples(int samples);
+	void reset(BufferParams& params, int num_samples);
+	void set_samples(int num_samples);
 	bool next();
+	bool next_tile(Tile& tile, int device = 0);
 	bool done();
 
 protected:
 	void set_tiles();
 
 	bool progressive;
-	int samples;
-	int tile_size;
-	int min_size;
+	int num_samples;
+	int2 tile_size;
+	int resolution;
+	int num_devices;
 
 	int start_resolution;
+
+	list<Tile>::iterator next_center_tile(int device = 0);
 };
 
 CCL_NAMESPACE_END
