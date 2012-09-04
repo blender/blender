@@ -70,7 +70,7 @@ __device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *stack
 	/* RNA properties */
 	uint offset_frequency, squash_frequency;
 	
-	float tint = 0;
+	float tint = 0.0f;
 
 	decode_node_uchar4(node.y, &co_offset, &color1_offset, &color2_offset, &mortar_offset);
 	decode_node_uchar4(node.z, &scale_offset, &mortar_size_offset, &bias_offset, &brick_width_offset);
