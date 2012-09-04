@@ -1453,17 +1453,20 @@ void IMB_colormanagement_validate_settings(ColorManagedDisplaySettings *display_
 {
 #ifdef WITH_OCIO
 	ColorManagedDisplay *display;
-	ColorManagedView *default_view, *view;
+	ColorManagedView *default_view;
+	LinkData *view_link;
 
 	display = colormanage_display_get_named(display_settings->display_device);
 	default_view = colormanage_view_get_default(display);
 
-	for (view = display->views.first; view; view = view->next) {
+	for (view_link = display->views.first; view_link; view_link = view_link->next) {
+		ColorManagedView *view = view_link->data;
+
 		if (!strcmp(view->name, view_settings->view_transform))
 			break;
 	}
 
-	if (view == NULL)
+	if (view_link == NULL)
 		BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
 #else
 	(void) display_settings;
