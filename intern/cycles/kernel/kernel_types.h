@@ -33,7 +33,7 @@ CCL_NAMESPACE_BEGIN
 #define LIGHT_SIZE			4
 #define FILTER_TABLE_SIZE	256
 #define RAMP_TABLE_SIZE		256
-#define PARTICLE_SIZE 		1
+#define PARTICLE_SIZE 		5
 #define TIME_INVALID		FLT_MAX
 
 /* device capabilities */
@@ -382,10 +382,9 @@ typedef struct ShaderClosure {
 
 #ifdef __OSL__
 	void *prim;
-#else
+#endif
 	float data0;
 	float data1;
-#endif
 
 } ShaderClosure;
 

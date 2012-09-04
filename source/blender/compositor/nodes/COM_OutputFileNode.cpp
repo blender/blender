@@ -24,8 +24,8 @@
 #include "COM_OutputFileNode.h"
 #include "COM_OutputFileOperation.h"
 #include "COM_ExecutionSystem.h"
+
 #include "BLI_path_util.h"
-#include "BKE_utildefines.h"
 
 OutputFileNode::OutputFileNode(bNode *editorNode) : Node(editorNode)
 {

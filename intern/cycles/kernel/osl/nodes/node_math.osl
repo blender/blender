@@ -40,6 +40,7 @@ float safe_log(float a, float b)
 
 shader node_math(
 	string type = "Add",
+	int Clamp = 0,
 	float Value1 = 0.0,
 	float Value2 = 0.0,
 	output float Value = 0.0)
@@ -80,5 +81,8 @@ shader node_math(
 		Value = Value1 < Value2;
 	if(type == "Greater Than")
 		Value = Value1 > Value2;
+
+	if(Clamp)
+		Value = clamp(Value1, 0.0, 1.0);
 }
 

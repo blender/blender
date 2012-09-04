@@ -69,7 +69,7 @@ typedef struct BMPHEADER {
 
 static int checkbmp(unsigned char *mem)
 {
-#define CHECK_HEADER_FIELD(mem, field) ((mem[0] == field[0]) && (mem[1] == field[0]))
+#define CHECK_HEADER_FIELD(mem, field) ((mem[0] == field[0]) && (mem[1] == field[1]))
 
 	int ret_val = 0;
 	BMPINFOHEADER bmi;

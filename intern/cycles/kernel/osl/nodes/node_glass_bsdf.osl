@@ -34,8 +34,8 @@ shader node_glass_bsdf(
 	if(distribution == "Sharp")
 		BSDF = Color*(Fr*reflection(Normal) + (1.0-Fr)*refraction(Normal, eta));
 	else if(distribution == "Beckmann")
-		BSDF = Color*(Fr*microfacet_beckmann(Normal, Roughness) + (1.0-Fr)*microfacet_beckmann_refraction(Normal, Roughness, eta));
+		BSDF = Color*(Fr*microfacet_beckmann(Normal, Roughness, eta) + (1.0-Fr)*microfacet_beckmann_refraction(Normal, Roughness, eta));
 	else if(distribution == "GGX")
-		BSDF = Color*(Fr*microfacet_ggx(Normal, Roughness) + (1.0-Fr)*microfacet_ggx_refraction(Normal, Roughness, eta));
+		BSDF = Color*(Fr*microfacet_ggx(Normal, Roughness, eta) + (1.0-Fr)*microfacet_ggx_refraction(Normal, Roughness, eta));
 }
 

@@ -82,8 +82,7 @@
 #include "BKE_text.h"
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"
-
-#define FILE_MAX 1024 // repeated here to avoid dependency from BKE_utildefines.h
+#include "BLI_path_util.h"
 
 #include "KX_NetworkMessageActuator.h"
 

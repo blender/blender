@@ -70,7 +70,6 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_utildefines.h"
 #include "BKE_movieclip.h"
 #include "BKE_image.h"  /* openanim */
 #include "BKE_tracking.h"

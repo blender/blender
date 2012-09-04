@@ -49,10 +49,10 @@ shader node_checker_texture(
 {
 	Fac = checker(Vector*Scale);
 	if(Fac == 1.0) {
-		Color = color(Color1, Color1, Color1);
+		Color = Color1;
 	}
 	else {
-		Color = color(Color2, Color2, Color2);
+		Color = Color2;
 	}
 }
 

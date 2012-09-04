@@ -24,17 +24,20 @@
 
 #include <stdlib.h>
 
-#include "IMB_indexer.h"
-#include "IMB_anim.h"
-#include "AVI_avi.h"
-#include "imbuf.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_endian_switch.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "BLI_math_base.h"
+
+#include "IMB_indexer.h"
+#include "IMB_anim.h"
+#include "AVI_avi.h"
+#include "imbuf.h"
 
 #include "MEM_guardedalloc.h"
 #include "DNA_userdef_types.h"
@@ -208,10 +211,10 @@ struct anim_index *IMB_indexer_open(const char *name)
 
 	if (((ENDIAN_ORDER == B_ENDIAN) != (header[8] == 'V'))) {
 		for (i = 0; i < idx->num_entries; i++) {
-			SWITCH_INT(idx->entries[i].frameno);
-			SWITCH_INT64(idx->entries[i].seek_pos);
-			SWITCH_INT64(idx->entries[i].seek_pos_dts);
-			SWITCH_INT64(idx->entries[i].pts);
+			BLI_endian_switch_int32(&idx->entries[i].frameno);
+			BLI_endian_switch_int64((int64_t *)&idx->entries[i].seek_pos);
+			BLI_endian_switch_int64((int64_t *)&idx->entries[i].seek_pos_dts);
+			BLI_endian_switch_int64((int64_t *)&idx->entries[i].pts);
 		}
 	}
 

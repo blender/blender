@@ -1551,7 +1551,7 @@ void BKE_armature_where_is(bArmature *arm)
 static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected)
 {
 	bPose *pose = ob->pose, *frompose = from->pose;
-	bPoseChannel *pchan, *pchanp, pchanw;
+	bPoseChannel *pchan, *pchanp;
 	bConstraint *con;
 	int error = 0;
 
@@ -1587,31 +1587,32 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 		pchanp = BKE_pose_channel_find_name(frompose, pchan->name);
-
+		
 		if (UNLIKELY(pchanp == NULL)) {
 			/* happens for proxies that become invalid because of a missing link
 			 * for regulat cases it shouldn't happen at all */
 		}
 		else if (pchan->bone->layer & layer_protected) {
 			ListBase proxylocal_constraints = {NULL, NULL};
-
+			bPoseChannel pchanw = {NULL};
+			
 			/* copy posechannel to temp, but restore important pointers */
 			pchanw = *pchanp;
 			pchanw.prev = pchan->prev;
 			pchanw.next = pchan->next;
 			pchanw.parent = pchan->parent;
 			pchanw.child = pchan->child;
-
+			
 			/* this is freed so copy a copy, else undo crashes */
 			if (pchanw.prop) {
 				pchanw.prop = IDP_CopyProperty(pchanw.prop);
-
+				
 				/* use the values from the the existing props */
 				if (pchan->prop) {
 					IDP_SyncGroupValues(pchanw.prop, pchan->prop);
 				}
 			}
-
+			
 			/* constraints - proxy constraints are flushed... local ones are added after
 			 *     1. extract constraints not from proxy (CONSTRAINT_PROXY_LOCAL) from pchan's constraints
 			 *     2. copy proxy-pchan's constraints on-to new
@@ -1622,30 +1623,30 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			extract_proxylocal_constraints(&proxylocal_constraints, &pchan->constraints);
 			copy_constraints(&pchanw.constraints, &pchanp->constraints, FALSE);
 			BLI_movelisttolist(&pchanw.constraints, &proxylocal_constraints);
-
+			
 			/* constraints - set target ob pointer to own object */
 			for (con = pchanw.constraints.first; con; con = con->next) {
 				bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
-
+				
 				if (cti && cti->get_constraint_targets) {
 					cti->get_constraint_targets(con, &targets);
-
+					
 					for (ct = targets.first; ct; ct = ct->next) {
 						if (ct->tar == from)
 							ct->tar = ob;
 					}
-
+					
 					if (cti->flush_constraint_targets)
 						cti->flush_constraint_targets(con, &targets, 0);
 				}
 			}
-
+			
 			/* free stuff from current channel */
 			BKE_pose_channel_free(pchan);
-
-			/* the final copy */
+			
+			/* copy data in temp back over to the cleaned-out (but still allocated) original channel */
 			*pchan = pchanw;
 		}
 		else {

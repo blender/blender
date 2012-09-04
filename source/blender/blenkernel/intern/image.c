@@ -81,7 +81,6 @@
 #include "BKE_scene.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h" /* seq_foreground_frame_get() */
-#include "BKE_utildefines.h"
 
 #include "BLF_api.h"
 

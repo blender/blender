@@ -570,7 +570,7 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
 	if (loose_edge_count > 0) {
 
 		unsigned int face_edge_count  = me->totedge;
-		unsigned int total_edge_count = loose_edge_count + face_edge_count;
+		/* unsigned int total_edge_count = loose_edge_count + face_edge_count; */ /* UNUSED */
 		
 		mesh_add_edges(me, loose_edge_count);
 		MEdge *med = me->medge + face_edge_count;

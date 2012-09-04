@@ -89,7 +89,6 @@
 #include "BKE_node.h"
 #include "BKE_mask.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_markers.h"

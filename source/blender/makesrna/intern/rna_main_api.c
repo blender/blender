@@ -35,12 +35,13 @@
 
 #include "DNA_ID.h"
 
+#include "BLI_path_util.h"
+
 #include "RNA_define.h"
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
-#include "rna_internal.h"
 
-#include "BKE_utildefines.h"
+#include "rna_internal.h"
 
 #ifdef RNA_RUNTIME
 

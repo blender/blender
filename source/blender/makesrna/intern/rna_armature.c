@@ -146,6 +146,18 @@ static void rna_Armature_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
+/* called whenever a bone is renamed */
+static void rna_Bone_update_renamed(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+	
+	/* redraw view */
+	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+	
+	/* update animation channels */
+	WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, id);
+}
+
 static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
@@ -470,7 +482,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_struct_name_property(srna, prop);
 	if (editbone) RNA_def_property_string_funcs(prop, NULL, NULL, "rna_EditBone_name_set");
 	else RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Bone_name_set");
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_update(prop, 0, "rna_Bone_update_renamed");
 
 	/* flags */
 	prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);

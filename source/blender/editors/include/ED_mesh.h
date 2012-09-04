@@ -135,7 +135,7 @@ struct UvElementMap *EDBM_uv_element_map_create(struct BMEditMesh *em, int selec
 void                 EDBM_uv_element_map_free(struct UvElementMap *vmap);
 
 int              EDBM_mtexpoly_check(struct BMEditMesh *em);
-struct MTexPoly *EDBM_mtexpoly_active_get(struct BMEditMesh *em, struct BMFace **r_act_efa, int sloppy);
+struct MTexPoly *EDBM_mtexpoly_active_get(struct BMEditMesh *em, struct BMFace **r_act_efa, int sloppy, int selected);
 
 void              EDBM_uv_vert_map_free(struct UvVertMap *vmap);
 struct UvMapVert *EDBM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);

@@ -154,7 +154,6 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_subsurf.h"
-#include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
 #include "BKE_pointcache.h"
@@ -163,6 +162,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
+#include "BLO_blend_defs.h"
 
 #include "readfile.h"
 

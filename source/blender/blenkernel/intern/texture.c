@@ -56,7 +56,6 @@
 
 #include "IMB_imbuf.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_ocean.h"

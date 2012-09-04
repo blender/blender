@@ -580,6 +580,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 	*em = *em_tmp;
 	
 	em->selectmode = um->selectmode;
+	bm->selectmode = um->selectmode;
 	em->ob = ob;
 
 	MEM_freeN(em_tmp);
@@ -991,15 +992,15 @@ void EDBM_uv_element_map_free(UvElementMap *element_map)
 
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
  * at the moment, last_sel is mainly useful for making sure the space image dosnt flicker */
-MTexPoly *EDBM_mtexpoly_active_get(BMEditMesh *em, BMFace **r_act_efa, int sloppy)
+MTexPoly *EDBM_mtexpoly_active_get(BMEditMesh *em, BMFace **r_act_efa, int sloppy, int selected)
 {
 	BMFace *efa = NULL;
 	
 	if (!EDBM_mtexpoly_check(em))
 		return NULL;
 	
-	efa = BM_active_face_get(em->bm, sloppy);
-	
+	efa = BM_active_face_get(em->bm, sloppy, selected);
+
 	if (efa) {
 		if (r_act_efa) *r_act_efa = efa;
 		return CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);

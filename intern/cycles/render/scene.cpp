@@ -28,6 +28,7 @@
 #include "shader.h"
 #include "mesh.h"
 #include "object.h"
+#include "particles.h"
 #include "scene.h"
 #include "svm.h"
 #include "osl.h"
@@ -53,6 +54,7 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 	integrator = new Integrator();
 	image_manager = new ImageManager();
 	shader_manager = ShaderManager::create(this);
+	particle_system_manager = new ParticleSystemManager();
 
 	if (device_info_.type == DEVICE_CPU)
 		image_manager->set_extended_image_limits();
@@ -95,9 +97,14 @@ Scene::~Scene()
 		delete o;
 	foreach(Light *l, lights)
 		delete l;
+	foreach(ParticleSystem *p, particle_systems)
+		delete p;
 
 	if(device) image_manager->device_free(device, &dscene);
 	delete image_manager;
+
+	if(device) particle_system_manager->device_free(device, &dscene);
+	delete particle_system_manager;
 }
 
 void Scene::device_update(Device *device_, Progress& progress)
@@ -149,6 +156,11 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	progress.set_status("Updating Lights");
 	light_manager->device_update(device, &dscene, this, progress);
+
+	if(progress.get_cancel()) return;
+
+	progress.set_status("Updating Particle Systems");
+	particle_system_manager->device_update(device, &dscene, this, progress);
 
 	if(progress.get_cancel()) return;
 
@@ -213,7 +225,8 @@ bool Scene::need_reset()
 		|| light_manager->need_update
 		|| filter->need_update
 		|| integrator->need_update
-		|| shader_manager->need_update);
+		|| shader_manager->need_update
+		|| particle_system_manager->need_update);
 }
 
 CCL_NAMESPACE_END

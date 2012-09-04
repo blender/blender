@@ -65,8 +65,8 @@ typedef struct IpoDriver {
 typedef struct IpoCurve {
 	struct IpoCurve *next,  *prev;
 	
-	struct BPoint *bp;					/* array of BPoints (sizeof(BPoint)*totvert) - i.e. baked/imported data */
-	struct BezTriple *bezt;				/* array of BezTriples (sizeof(BezTriple)*totvert)  - i.e. user-editable keyframes  */
+	struct BPoint *bp;					/* array of BPoints (sizeof(BPoint) * totvert) - i.e. baked/imported data */
+	struct BezTriple *bezt;				/* array of BezTriples (sizeof(BezTriple) * totvert)  - i.e. user-editable keyframes  */
 
 	rctf maxrct, totrct;				/* bounding boxes */
 

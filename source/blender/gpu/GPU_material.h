@@ -107,7 +107,7 @@ typedef struct GPUNodeStack {
 GPUNodeLink *GPU_attribute(int type, const char *name);
 GPUNodeLink *GPU_uniform(float *num);
 GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data);
-GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser);
+GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, int ncd);
 GPUNodeLink *GPU_texture(int size, float *pixels);
 GPUNodeLink *GPU_dynamic_texture(struct GPUTexture *tex, int dynamictype, void *data);
 GPUNodeLink *GPU_socket(GPUNodeStack *sock);

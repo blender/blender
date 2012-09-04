@@ -415,7 +415,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
 
 	glColor3ub(112, 112, 112);
 
-	if (me->mtface) {
+	if (me->mtpoly) {
 		MPoly *mpoly = me->mpoly;
 		MTexPoly *tface = me->mtpoly;
 		MLoopUV *mloopuv;
@@ -455,8 +455,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 	StitchPreviewer *stitch_preview = uv_get_stitch_previewer();
 
-	activetf = EDBM_mtexpoly_active_get(em, &efa_act, FALSE); /* will be set to NULL if hidden */
-	activef = BM_active_face_get(bm, FALSE);
+	activetf = EDBM_mtexpoly_active_get(em, &efa_act, FALSE, FALSE); /* will be set to NULL if hidden */
+	activef = BM_active_face_get(bm, FALSE, FALSE);
 	ts = scene->toolsettings;
 
 	drawfaces = draw_uvs_face_check(scene);

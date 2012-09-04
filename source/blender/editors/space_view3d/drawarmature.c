@@ -2378,7 +2378,11 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-
+	
+	/* before disposing of temp pose, use it to restore object to a sane state */
+	BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)cfrao, ADT_RECALC_ALL);
+	
+	/* clean up temporary pose */
 	ghost_poses_tag_unselected(ob, 1);      /* unhide unselected bones if need be */
 	BKE_pose_free(posen);
 	
@@ -2386,7 +2390,6 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	BKE_pose_rebuild(ob, ob->data);
 	ob->mode |= OB_MODE_POSE;
 	ob->ipoflag = ipoflago;
 }
@@ -2457,7 +2460,11 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-
+	
+	/* before disposing of temp pose, use it to restore object to a sane state */
+	BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)cfrao, ADT_RECALC_ALL);
+	
+	/* clean up temporary pose */
 	ghost_poses_tag_unselected(ob, 1);  /* unhide unselected bones if need be */
 	BLI_dlrbTree_free(&keys);
 	BKE_pose_free(posen);
@@ -2466,7 +2473,6 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	BKE_pose_rebuild(ob, ob->data);
 	ob->mode |= OB_MODE_POSE;
 }
 
@@ -2544,7 +2550,11 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-
+	
+	/* before disposing of temp pose, use it to restore object to a sane state */
+	BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)cfrao, ADT_RECALC_ALL);
+	
+	/* clean up temporary pose */
 	ghost_poses_tag_unselected(ob, 1);      /* unhide unselected bones if need be */
 	BKE_pose_free(posen);
 	
@@ -2552,7 +2562,6 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	BKE_pose_rebuild(ob, ob->data);
 	ob->mode |= OB_MODE_POSE;
 }
 

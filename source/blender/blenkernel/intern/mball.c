@@ -157,7 +157,7 @@ struct pgn_elements {
 
 /* Forward declarations */
 static int vertid(const CORNER *c1, const CORNER *c2, PROCESS *p, MetaBall *mb);
-static int setcenter(CENTERLIST *table[], int i, int j, int k);
+static int setcenter(CENTERLIST *table[], const int i, const int j, const int k);
 static CORNER *setcorner(PROCESS *p, int i, int j, int k);
 static void converge(const float p1[3], const float p2[3], float v1, float v2,
                      float (*function)(float, float, float), float p[3], MetaBall *mb, int f);

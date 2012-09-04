@@ -178,7 +178,7 @@ BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse']
 #CUDA
 WITH_BF_CYCLES_CUDA_BINARIES = False
 #BF_CYCLES_CUDA_NVCC = "" # Path to the nvidia compiler
-BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21'] # don't build sm_13 until the compile can fit in 32bit process again :)
+BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21', 'sm_30']
 
 ##
 CC = 'gcc'

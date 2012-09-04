@@ -21,13 +21,7 @@
 shader node_gamma(
 	color ColorIn = color(0.8, 0.8, 0.8),
 	float Gamma = 1.0,
-	output ColorOut = color(0.8, 0.8, 0.8)
+	output color ColorOut = color(0.0, 0.0, 0.0))
 {
-	int i;
-	for (i=0;i<3;i++) {
-		if (ColorIn[i] > 0.0)
-			ColorIn[i] = powf(ColorIn[i], Gamma);
-	}
-
-	ColorOut = ColorIn;
+	ColorOut = pow(ColorIn, Gamma);
 }

@@ -46,7 +46,6 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -1257,9 +1256,9 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		if (but->type == BUT_TOGDUAL) {
 			int dualset = 0;
 			if (but->pointype == SHO)
-				dualset = BTST(*(((short *)but->poin) + 1), but->bitnr);
+				dualset = UI_BITBUT_TEST(*(((short *)but->poin) + 1), but->bitnr);
 			else if (but->pointype == INT)
-				dualset = BTST(*(((int *)but->poin) + 1), but->bitnr);
+				dualset = UI_BITBUT_TEST(*(((int *)but->poin) + 1), but->bitnr);
 			
 			widget_draw_icon(but, ICON_DOT, dualset ? 1.0f : 0.25f, rect);
 		}

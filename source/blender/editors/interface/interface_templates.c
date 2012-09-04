@@ -2581,6 +2581,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 #define B_STOPCOMPO     4
 #define B_STOPSEQ       5
 #define B_STOPCLIP      6
+#define B_STOPOTHER     7
 
 static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 {
@@ -2602,6 +2603,9 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 			break;
 		case B_STOPCLIP:
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
+			break;
+		case B_STOPOTHER:
+			G.is_break = TRUE;
 			break;
 	}
 }
@@ -2640,6 +2644,10 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 			}
 			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
 				handle_event = B_STOPCOMPO;
+				break;
+			}
+			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY)) {
+				handle_event = B_STOPOTHER;
 				break;
 			}
 		}

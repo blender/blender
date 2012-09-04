@@ -33,8 +33,6 @@
 #include <string.h>
 #include "BLI_path_util.h"
 
-#include "BKE_utildefines.h"
-
 #include "node_composite_util.h"
 
 #include "IMB_imbuf.h"

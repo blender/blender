@@ -810,6 +810,10 @@ if(WITH_CYCLES)
 		cycles_kernel
 		cycles_util
 		cycles_subd)
+	
+	if(WITH_CYCLES_OSL)
+		list(APPEND BLENDER_LINK_LIBS cycles_kernel_osl)
+	endif()
 endif()
 
 #if(UNIX)
@@ -972,6 +976,10 @@ endif()
 
 	if(WITH_GHOST_XDND)
 		list(APPEND BLENDER_SORTED_LIBS extern_xdnd)
+	endif()
+
+	if(WITH_CYCLES_OSL)
+		list_insert_after(BLENDER_SORTED_LIBS "cycles_kernel" "cycles_kernel_osl")
 	endif()
 
 	foreach(SORTLIB ${BLENDER_SORTED_LIBS})

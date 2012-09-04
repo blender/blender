@@ -51,7 +51,7 @@
 #  define __func__ __FUNCTION__
 #endif
 
-/* copied from BKE_utildefines.h ugh */
+/* copied from BLI_utildefines.h ugh */
 #ifdef __GNUC__
 #  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #else
@@ -2881,8 +2881,8 @@ static const char *cpp_classes = ""
 "	T data[Tsize];\n"
 "\n"
 "   Array() {}\n"
-"	Array(const Array<T, Tsize>& other) { memcpy(data, other.data, sizeof(T)*Tsize); }\n"
-"	const Array<T, Tsize>& operator=(const Array<T, Tsize>& other) { memcpy(data, other.data, sizeof(T)*Tsize); "
+"	Array(const Array<T, Tsize>& other) { memcpy(data, other.data, sizeof(T) * Tsize); }\n"
+"	const Array<T, Tsize>& operator=(const Array<T, Tsize>& other) { memcpy(data, other.data, sizeof(T) * Tsize); "
 "return *this; }\n"
 "\n"
 "	operator T*() { return data; }\n"

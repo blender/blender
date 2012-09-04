@@ -31,14 +31,14 @@ float wave(point p, float scale, string type, float detail, float distortion, fl
 	float n = 0.0;
 
 	if(type == "Bands") {
-		n = (x + y + z)*10.0);
+		n = (x + y + z)*10.0;
 	}
 	else if(type == "Rings") {
 		n = (sqrt(x*x + y*y + z*z)*20.0);
 	}
 	
 	if(distortion != 0.0) {
-		n = n +(distortion * noise_turbulence(p*dscale, "Perlin", detail, 0);
+		n = n +(distortion * noise_turbulence(p*dscale, "Perlin", detail, 0));
 	}
 	result = noise_wave("Sine", n);
 	

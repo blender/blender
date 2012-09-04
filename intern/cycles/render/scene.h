@@ -47,6 +47,8 @@ class Mesh;
 class MeshManager;
 class Object;
 class ObjectManager;
+class ParticleSystemManager;
+class ParticleSystem;
 class Shader;
 class ShaderManager;
 class Progress;
@@ -155,6 +157,7 @@ public:
 	vector<Mesh*> meshes;
 	vector<Shader*> shaders;
 	vector<Light*> lights;
+	vector<ParticleSystem*> particle_systems;
 
 	/* data managers */
 	ImageManager *image_manager;
@@ -162,6 +165,7 @@ public:
 	ShaderManager *shader_manager;
 	MeshManager *mesh_manager;
 	ObjectManager *object_manager;
+	ParticleSystemManager *particle_system_manager;
 
 	/* default shaders */
 	int default_surface;

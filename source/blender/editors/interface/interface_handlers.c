@@ -501,9 +501,9 @@ static void ui_apply_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data)
 	lvalue = (int)value;
 	
 	if (but->bit) {
-		w = BTST(lvalue, but->bitnr);
-		if (w) lvalue = BCLR(lvalue, but->bitnr);
-		else lvalue = BSET(lvalue, but->bitnr);
+		w = UI_BITBUT_TEST(lvalue, but->bitnr);
+		if (w) lvalue = UI_BITBUT_CLR(lvalue, but->bitnr);
+		else   lvalue = UI_BITBUT_SET(lvalue, but->bitnr);
 		
 		if (but->type == TOGR) {
 			if (!data->togonly) {
@@ -605,27 +605,27 @@ static void ui_apply_but_TOG3(bContext *C, uiBut *but, uiHandleButtonData *data)
 	if (but->pointype == SHO) {
 		short *sp = (short *)but->poin;
 		
-		if (BTST(sp[1], but->bitnr)) {
-			sp[1] = BCLR(sp[1], but->bitnr);
-			sp[0] = BCLR(sp[0], but->bitnr);
+		if (UI_BITBUT_TEST(sp[1], but->bitnr)) {
+			sp[1] = UI_BITBUT_CLR(sp[1], but->bitnr);
+			sp[0] = UI_BITBUT_CLR(sp[0], but->bitnr);
 		}
-		else if (BTST(sp[0], but->bitnr)) {
-			sp[1] = BSET(sp[1], but->bitnr);
+		else if (UI_BITBUT_TEST(sp[0], but->bitnr)) {
+			sp[1] = UI_BITBUT_SET(sp[1], but->bitnr);
 		}
 		else {
-			sp[0] = BSET(sp[0], but->bitnr);
+			sp[0] = UI_BITBUT_SET(sp[0], but->bitnr);
 		}
 	}
 	else {
-		if (BTST(*(but->poin + 2), but->bitnr)) {
-			*(but->poin + 2) = BCLR(*(but->poin + 2), but->bitnr);
-			*(but->poin) = BCLR(*(but->poin), but->bitnr);
+		if (UI_BITBUT_TEST(*(but->poin + 2), but->bitnr)) {
+			*(but->poin + 2) = UI_BITBUT_CLR(*(but->poin + 2), but->bitnr);
+			*(but->poin)     = UI_BITBUT_CLR(*(but->poin),     but->bitnr);
 		}
-		else if (BTST(*(but->poin), but->bitnr)) {
-			*(but->poin + 2) = BSET(*(but->poin + 2), but->bitnr);
+		else if (UI_BITBUT_TEST(*(but->poin), but->bitnr)) {
+			*(but->poin + 2) = UI_BITBUT_SET(*(but->poin + 2), but->bitnr);
 		}
 		else {
-			*(but->poin) = BSET(*(but->poin), but->bitnr);
+			*(but->poin) = UI_BITBUT_SET(*(but->poin), but->bitnr);
 		}
 	}
 	
@@ -1187,12 +1187,20 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		else if (mode == 'c') {
 
 			ui_get_but_vectorf(but, rgb);
+			/* convert to linear color to do compatible copy between gamma and non-gamma */
+			if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+				srgb_to_linearrgb_v3_v3(rgb, rgb);
+
 			BLI_snprintf(buf, sizeof(buf), "[%f, %f, %f]", rgb[0], rgb[1], rgb[2]);
 			WM_clipboard_text_set(buf, 0);
 			
 		}
 		else {
 			if (sscanf(buf, "[%f, %f, %f]", &rgb[0], &rgb[1], &rgb[2]) == 3) {
+				/* assume linear colors in buffer */
+				if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+					linearrgb_to_srgb_v3_v3(rgb, rgb);
+
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				ui_set_but_vectorf(but, rgb);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);

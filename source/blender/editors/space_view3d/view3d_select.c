@@ -2268,6 +2268,7 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, const int m
 		/* bbsel= */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
 		edbm_backbuf_check_and_select_tfaces(me, select == LEFTMOUSE);
 		EDBM_backbuf_free();
+		paintface_flush_flags(ob);
 	}
 }
 

@@ -48,6 +48,7 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
+#include "BLI_endian_switch.h"
 
 #include "BKE_anim.h"
 #include "BKE_camera.h"
@@ -1397,7 +1398,9 @@ unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
 	glReadPixels(x,  y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  &col);
 	glReadBuffer(GL_BACK);	
 	
-	if (ENDIAN_ORDER == B_ENDIAN) SWITCH_INT(col);
+	if (ENDIAN_ORDER == B_ENDIAN) {
+		BLI_endian_switch_uint32(&col);
+	}
 	
 	return WM_framebuffer_to_index(col);
 }

@@ -55,7 +55,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 #include "BKE_writeavi.h"  /* <------ should be replaced once with generic movie module */
 
 #include "BLI_math.h"

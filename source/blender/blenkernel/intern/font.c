@@ -50,7 +50,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_packedFile.h"
 #include "BKE_library.h"
 #include "BKE_font.h"

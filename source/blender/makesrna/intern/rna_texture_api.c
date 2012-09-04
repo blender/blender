@@ -24,14 +24,13 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "BLI_path_util.h"
 
 #include "RNA_define.h"
-#include "BKE_utildefines.h"
 
 #ifdef RNA_RUNTIME
 

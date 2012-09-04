@@ -193,6 +193,14 @@ void BLI_system_temporary_dir(char *dir);
 void BLI_string_to_utf8(char *original, char *utf_8, const char *code);
 #endif
 
+/* these values need to be hardcoded in structs, dna does not recognize defines */
+/* also defined in DNA_space_types.h */
+#ifndef FILE_MAXDIR
+#  define FILE_MAXDIR         768
+#  define FILE_MAXFILE        256
+#  define FILE_MAX            1024
+#endif
+
 #ifdef __cplusplus
 }
 #endif

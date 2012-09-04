@@ -60,8 +60,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
-
 #include "BLO_sys_types.h" // for intptr_t support
 
 

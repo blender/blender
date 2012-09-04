@@ -33,7 +33,8 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
- 
+#include <stddef.h>  /* offsetof() */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -41,7 +42,12 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
+#include "BLI_path_util.h"
+#include "BLI_rect.h"
+
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
@@ -50,7 +56,6 @@
 #include "BKE_unit.h"
 #include "BKE_screen.h"
 #include "BKE_idprop.h"
-#include "BKE_utildefines.h" /* FILE_MAX */
 
 #include "BIF_gl.h"
 
@@ -1077,8 +1082,12 @@ static void ui_is_but_sel(uiBut *but, double *value)
 		int lvalue;
 		UI_GET_BUT_VALUE_INIT(but, *value);
 		lvalue = (int)*value;
-		if (BTST(lvalue, (but->bitnr)) ) is_push = is_true;
-		else is_push = !is_true;
+		if (UI_BITBUT_TEST(lvalue, (but->bitnr))) {
+			is_push = is_true;
+		}
+		else {
+			is_push = !is_true;
+		}
 	}
 	else {
 		switch (but->type) {

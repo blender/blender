@@ -61,7 +61,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
-#include "BKE_utildefines.h"
 
 
 unsigned int BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)

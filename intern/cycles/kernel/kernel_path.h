@@ -842,15 +842,20 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 				path_state_next(kg, &ps, label);
 
 				/* setup ray */
-				ray.P = ray_offset(sd.P, (label & LABEL_TRANSMIT)? -sd.Ng: sd.Ng);
-				ray.D = bsdf_omega_in;
-				ray.t = FLT_MAX;
+				Ray bsdf_ray;
+
+				bsdf_ray.P = ray_offset(sd.P, (label & LABEL_TRANSMIT)? -sd.Ng: sd.Ng);
+				bsdf_ray.D = bsdf_omega_in;
+				bsdf_ray.t = FLT_MAX;
 #ifdef __RAY_DIFFERENTIALS__
-				ray.dP = sd.dP;
-				ray.dD = bsdf_domega_in;
+				bsdf_ray.dP = sd.dP;
+				bsdf_ray.dD = bsdf_domega_in;
+#endif
+#ifdef __MOTION__
+				bsdf_ray.time = sd.time;
 #endif
 
-				kernel_path_indirect(kg, rng, sample*num_samples, ray, buffer,
+				kernel_path_indirect(kg, rng, sample*num_samples, bsdf_ray, buffer,
 					tp*num_samples_inv, min_ray_pdf, bsdf_pdf, ps, rng_offset+PRNG_BOUNCE_NUM, &L);
 			}
 		}

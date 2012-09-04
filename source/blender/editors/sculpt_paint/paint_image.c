@@ -5339,12 +5339,25 @@ static void toggle_paint_cursor(bContext *C, int enable)
  * ensure that the cursor is hidden when not in paint mode */
 void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 {
+	wmWindow *win;
+	ScrArea *sa;
 	ImagePaintSettings *imapaint = &settings->imapaint;
+	int enabled = FALSE;
 
-	if (!imapaint->paintcursor) {
-		imapaint->paintcursor =
-		    WM_paint_cursor_activate(wm, image_paint_poll,
-		                             brush_drawcursor, NULL);
+	for (win = wm->windows.first; win; win = win->next)
+		for (sa = win->screen->areabase.first; sa; sa = sa->next)
+			if (sa->spacetype == SPACE_IMAGE)
+				if (((SpaceImage*)sa->spacedata.first)->mode == SI_MODE_PAINT)
+					enabled = TRUE;
+
+	if (enabled) {
+		BKE_paint_init(&imapaint->paint, PAINT_CURSOR_TEXTURE_PAINT);
+
+		if (!imapaint->paintcursor) {
+			imapaint->paintcursor =
+				WM_paint_cursor_activate(wm, image_paint_poll,
+										 brush_drawcursor, NULL);
+		}
 	}
 }
 

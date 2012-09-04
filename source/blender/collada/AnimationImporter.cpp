@@ -683,12 +683,11 @@ void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId& listid
 				for (unsigned int i = 0; i < fcu->totvert; i++) {
 
 					double input_fov = fcu->bezt[i].vec[1][1];
-					double xfov = (fov_type == CAMERA_YFOV) ? aspect * input_fov : input_fov;
 
-					// fov is in degrees, cam->lens is in millimiters
-					double fov = fov_to_focallength(DEG2RADF(input_fov), cam->sensor_x);
+					// NOTE: Needs more testing (As we curretnly have no official test data for this)
+					double xfov = (fov_type == CAMERA_YFOV) ? (2.0f * atanf(aspect * tanf(DEG2RADF(input_fov) * 0.5f))) : DEG2RADF(input_fov);
 
-					fcu->bezt[i].vec[1][1] = fov;
+					fcu->bezt[i].vec[1][1] = fov_to_focallength(xfov, cam->sensor_x);
 				}
 
 				BLI_addtail(AnimCurves, fcu);

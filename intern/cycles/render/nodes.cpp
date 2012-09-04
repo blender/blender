@@ -1153,6 +1153,7 @@ ProxyNode::ProxyNode(ShaderSocketType from_, ShaderSocketType to_)
 {
 	from = from_;
 	to = to_;
+	special_type = SHADER_SPECIAL_TYPE_PROXY;
 
 	add_input("Input", from);
 	add_output("Output", to);
@@ -1918,6 +1919,13 @@ ParticleInfoNode::ParticleInfoNode()
 	add_output("Index", SHADER_SOCKET_FLOAT);
 	add_output("Age", SHADER_SOCKET_FLOAT);
 	add_output("Lifetime", SHADER_SOCKET_FLOAT);
+	add_output("Location", SHADER_SOCKET_POINT);
+	#if 0	/* not yet supported */
+	add_output("Rotation", SHADER_SOCKET_QUATERNION);
+	#endif
+	add_output("Size", SHADER_SOCKET_FLOAT);
+	add_output("Velocity", SHADER_SOCKET_VECTOR);
+	add_output("Angular Velocity", SHADER_SOCKET_VECTOR);
 }
 
 void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
@@ -1927,6 +1935,18 @@ void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
 	if(!output("Age")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
 	if(!output("Lifetime")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	if(!output("Location")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	#if 0	/* not yet supported */
+	if(!output("Rotation")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	#endif
+	if(!output("Size")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	if(!output("Velocity")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	if(!output("Angular Velocity")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
 
 	ShaderNode::attributes(attributes);
@@ -1952,6 +1972,38 @@ void ParticleInfoNode::compile(SVMCompiler& compiler)
 	if(!out->links.empty()) {
 		compiler.stack_assign(out);
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_LIFETIME, out->stack_offset);
+	}
+	
+	out = output("Location");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_LOCATION, out->stack_offset);
+	}
+	
+	#if 0	/* XXX Quaternion data is not yet supported by Cycles */
+	out = output("Rotation");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_ROTATION, out->stack_offset);
+	}
+	#endif
+	
+	out = output("Size");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_SIZE, out->stack_offset);
+	}
+	
+	out = output("Velocity");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_VELOCITY, out->stack_offset);
+	}
+	
+	out = output("Angular Velocity");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_ANGULAR_VELOCITY, out->stack_offset);
 	}
 }
 
@@ -2037,6 +2089,8 @@ void AddClosureNode::compile(OSLCompiler& compiler)
 MixClosureNode::MixClosureNode()
 : ShaderNode("mix_closure")
 {
+	special_type = SHADER_SPECIAL_TYPE_MIX_CLOSURE;
+	
 	add_input("Fac", SHADER_SOCKET_FLOAT, 0.5f);
 	add_input("Closure1", SHADER_SOCKET_CLOSURE);
 	add_input("Closure2", SHADER_SOCKET_CLOSURE);
@@ -2088,6 +2142,8 @@ MixNode::MixNode()
 {
 	type = ustring("Mix");
 
+	use_clamp = false;
+
 	add_input("Fac", SHADER_SOCKET_FLOAT, 0.5f);
 	add_input("Color1", SHADER_SOCKET_COLOR);
 	add_input("Color2", SHADER_SOCKET_COLOR);
@@ -2136,11 +2192,17 @@ void MixNode::compile(SVMCompiler& compiler)
 
 	compiler.add_node(NODE_MIX, fac_in->stack_offset, color1_in->stack_offset, color2_in->stack_offset);
 	compiler.add_node(NODE_MIX, type_enum[type], color_out->stack_offset);
+
+	if(use_clamp) {
+		compiler.add_node(NODE_MIX, 0, color_out->stack_offset);
+		compiler.add_node(NODE_MIX, NODE_MIX_CLAMP, color_out->stack_offset);
+	}
 }
 
 void MixNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("type", type);
+	compiler.parameter("Clamp", use_clamp);
 	compiler.add(this, "node_mix");
 }
 
@@ -2466,7 +2528,7 @@ void LayerWeightNode::compile(SVMCompiler& compiler)
 
 void LayerWeightNode::compile(OSLCompiler& compiler)
 {
-	compiler.add(this, "node_layer_height");
+	compiler.add(this, "node_blend_weight");
 }
 
 /* Output */
@@ -2507,6 +2569,8 @@ MathNode::MathNode()
 : ShaderNode("math")
 {
 	type = ustring("Add");
+
+	use_clamp = false;
 
 	add_input("Value1", SHADER_SOCKET_FLOAT);
 	add_input("Value2", SHADER_SOCKET_FLOAT);
@@ -2552,11 +2616,17 @@ void MathNode::compile(SVMCompiler& compiler)
 
 	compiler.add_node(NODE_MATH, type_enum[type], value1_in->stack_offset, value2_in->stack_offset);
 	compiler.add_node(NODE_MATH, value_out->stack_offset);
+
+	if(use_clamp) {
+		compiler.add_node(NODE_MATH, NODE_MATH_CLAMP, value_out->stack_offset);
+		compiler.add_node(NODE_MATH, value_out->stack_offset);
+	}
 }
 
 void MathNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("type", type);
+	compiler.parameter("Clamp", use_clamp);
 	compiler.add(this, "node_math");
 }
 

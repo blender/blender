@@ -422,7 +422,7 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int mipmap)
+int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int mipmap, int ncd)
 {
 	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
@@ -492,7 +492,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		}
 
 		/* TODO unneeded when float images are correctly treated as linear always */
-		if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+		if (!ncd && ibuf->profile == IB_PROFILE_LINEAR_RGB)
 			do_color_management = TRUE;
 
 		if (ibuf->rect==NULL)
@@ -807,7 +807,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap, int alphablend)
 	gpu_verify_alpha_blend(alphablend);
 	gpu_verify_reflection(ima);
 
-	if (GPU_verify_image(ima, NULL, tface->tile, 1, mipmap)) {
+	if (GPU_verify_image(ima, NULL, tface->tile, 1, mipmap, FALSE)) {
 		GTS.curtile= GTS.tile;
 		GTS.curima= GTS.ima;
 		GTS.curtilemode= GTS.tilemode;

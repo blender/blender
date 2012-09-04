@@ -41,8 +41,6 @@
 
 #include "DNA_vec_types.h"
 
-#include "BKE_utildefines.h"
-
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"

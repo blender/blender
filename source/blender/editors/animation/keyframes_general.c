@@ -45,7 +45,6 @@
 
 
 #include "BKE_fcurve.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 #include "BKE_library.h"
 #include "BKE_global.h"

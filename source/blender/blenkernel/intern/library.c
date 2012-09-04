@@ -107,7 +107,6 @@
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
 #include "BKE_speaker.h"
-#include "BKE_utildefines.h"
 #include "BKE_movieclip.h"
 #include "BKE_mask.h"
 

@@ -55,7 +55,6 @@
 #include "BKE_curve.h" 
 #include "BKE_global.h"
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 

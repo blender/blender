@@ -22,7 +22,7 @@ endif()
 
 if(WITH_CYCLES_OSL)
 
-	set(CYCLES_OSL "" CACHE PATH "Path to OpenShadingLanguage installation")
+	set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
 
 	message(STATUS "CYCLES_OSL = ${CYCLES_OSL}")
 

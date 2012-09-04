@@ -63,7 +63,6 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 #include "BKE_depsgraph.h"
 #include "BKE_anim.h"
@@ -494,36 +493,42 @@ void calc_curvepath(Object *ob)
 	/* in a path vertices are with equal differences: path->len = number of verts */
 	/* NOW WITH BEVELCURVE!!! */
 	
-	if (ob == NULL || ob->type != OB_CURVE) return;
+	if (ob == NULL || ob->type != OB_CURVE) {
+		return;
+	}
 	cu = ob->data;
-
-	nurbs = BKE_curve_nurbs_get(cu);
-	nu = nurbs->first;
 
 	if (cu->path) free_path(cu->path);
 	cu->path = NULL;
 	
+	/* weak! can only use first curve */
 	bl = cu->bev.first;
-	if (bl == NULL || !bl->nr) return;
+	if (bl == NULL || !bl->nr) {
+		return;
+	}
+
+	nurbs = BKE_curve_nurbs_get(cu);
+	nu = nurbs->first;
 
 	cu->path = path = MEM_callocN(sizeof(Path), "calc_curvepath");
 	
 	/* if POLY: last vertice != first vertice */
 	cycl = (bl->poly != -1);
 	
-	if (cycl) tot = bl->nr;
-	else tot = bl->nr - 1;
+	tot = cycl ? bl->nr : bl->nr - 1;
 	
 	path->len = tot + 1;
 	/* exception: vector handle paths and polygon paths should be subdivided at least a factor resolu */
-	if (path->len < nu->resolu * SEGMENTSU(nu)) path->len = nu->resolu * SEGMENTSU(nu);
+	if (path->len < nu->resolu * SEGMENTSU(nu)) {
+		path->len = nu->resolu * SEGMENTSU(nu);
+	}
 	
 	dist = (float *)MEM_mallocN((tot + 1) * 4, "calcpathdist");
 
 	/* all lengths in *dist */
 	bevp = bevpfirst = (BevPoint *)(bl + 1);
 	fp = dist;
-	*fp = 0;
+	*fp = 0.0f;
 	for (a = 0; a < tot; a++) {
 		fp++;
 		if (cycl && a == tot - 1)
@@ -558,19 +563,16 @@ void calc_curvepath(Object *ob)
 			fp++;
 			if (bevp < bevplast) bevp++;
 			bevpn = bevp + 1;
-			if (bevpn > bevplast) {
-				if (cycl) bevpn = bevpfirst;
-				else bevpn = bevplast;
+			if (UNLIKELY(bevpn > bevplast)) {
+				bevpn = cycl ? bevpfirst : bevplast;
 			}
 		}
 		
-		fac1 = *(fp) - *(fp - 1);
-		fac2 = *(fp) - d;
-		fac1 = fac2 / fac1;
+		fac1 = (*(fp) - d) / (*(fp) - *(fp - 1));
 		fac2 = 1.0f - fac1;
-		
+
 		interp_v3_v3v3(pp->vec, bevp->vec, bevpn->vec, fac2);
-		pp->vec[3] = fac1 * bevp->alfa + fac2 * bevpn->alfa;
+		pp->vec[3] = fac1 * bevp->alfa   + fac2 * bevpn->alfa;
 		pp->radius = fac1 * bevp->radius + fac2 * bevpn->radius;
 		pp->weight = fac1 * bevp->weight + fac2 * bevpn->weight;
 		interp_qt_qtqt(pp->quat, bevp->quat, bevpn->quat, fac2);
@@ -582,18 +584,14 @@ void calc_curvepath(Object *ob)
 	MEM_freeN(dist);
 }
 
-
-/* is this only used internally?*/
-int interval_test(int min, int max, int p1, int cycl)
+static int interval_test(const int min, const int max, int p1, const int cycl)
 {
 	if (cycl) {
-		if (p1 < min) 
-			p1 =  ((p1 - min) % (max - min + 1)) + max + 1;
-		else if (p1 > max)
-			p1 =  ((p1 - min) % (max - min + 1)) + min;
+		if      (p1 < min) p1 = ((p1 - min) % (max - min + 1)) + max + 1;
+		else if (p1 > max) p1 = ((p1 - min) % (max - min + 1)) + min;
 	}
 	else {
-		if (p1 < min) p1 = min;
+		if      (p1 < min) p1 = min;
 		else if (p1 > max) p1 = max;
 	}
 	return p1;

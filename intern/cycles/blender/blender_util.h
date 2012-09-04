@@ -149,6 +149,11 @@ static inline float3 get_float3(BL::Array<float, 4> array)
 	return make_float3(array[0], array[1], array[2]);
 }
 
+static inline float4 get_float4(BL::Array<float, 4> array)
+{
+	return make_float4(array[0], array[1], array[2], array[3]);
+}
+
 static inline int4 get_int4(BL::Array<int, 4> array)
 {
 	return make_int4(array[0], array[1], array[2], array[3]);
@@ -386,6 +391,17 @@ struct ObjectKey {
 
 	bool operator<(const ObjectKey& k) const
 	{ return (parent < k.parent || (parent == k.parent && (index < k.index || (index == k.index && ob < k.ob)))); }
+};
+
+struct ParticleSystemKey {
+	void *ob;
+	void *psys;
+
+	ParticleSystemKey(void *ob_, void *psys_)
+	: ob(ob_), psys(psys_) {}
+
+	bool operator<(const ParticleSystemKey& k) const
+	{ return (ob < k.ob && psys < k.psys); }
 };
 
 CCL_NAMESPACE_END

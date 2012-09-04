@@ -1682,6 +1682,10 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 		}
 	}
 
+	/* flip active group index */
+	if (flip_vgroups && flip_map[def_nr] >= 0)
+		ob->actdef = flip_map[def_nr] + 1;
+
 cleanup:
 	if (flip_map) MEM_freeN(flip_map);
 
@@ -1782,6 +1786,21 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 	if (ob->actdef < 1 && ob->defbase.first)
 		ob->actdef = 1;
 
+	/* remove all dverts */
+	if (ob->defbase.first == NULL) {
+		if (ob->type == OB_MESH) {
+			Mesh *me = ob->data;
+			CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
+			me->dvert = NULL;
+		}
+		else if (ob->type == OB_LATTICE) {
+			Lattice *lt = ob->data;
+			if (lt->dvert) {
+				MEM_freeN(lt->dvert);
+				lt->dvert = NULL;
+			}
+		}
+	}
 }
 
 /* only in editmode */
@@ -2674,7 +2693,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "mirror_weights", TRUE, "Mirror Weights", "Mirror weights");
-	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names");
+	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Group Names", "Flip vertex group names");
 	RNA_def_boolean(ot->srna, "all_groups", FALSE, "All Groups", "Mirror all vertex groups weights");
 
 }

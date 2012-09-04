@@ -271,6 +271,10 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		// Register this window as a droptarget. Requires m_hWnd to be valid.
 		// Note that OleInitialize(0) has to be called prior to this. Done in GHOST_SystemWin32.
 		m_dropTarget = new GHOST_DropTargetWin32(this, m_system);
+		if (m_dropTarget) {
+			::RegisterDragDrop(m_hWnd, m_dropTarget);
+		}
+
 		// Store a pointer to this class in the window structure
 		::SetWindowLongPtr(m_hWnd, GWL_USERDATA, (LONG_PTR) this);
 
@@ -415,7 +419,13 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 		m_hDC = 0;
 	}
 	if (m_hWnd) {
-		m_dropTarget->Release(); // frees itself.
+		if (m_dropTarget) {
+			// Disable DragDrop
+			RevokeDragDrop(m_hWnd);
+			// Release our reference of the DropTarget and it will delete itself eventually.
+			m_dropTarget->Release();
+		}
+
 		::DestroyWindow(m_hWnd);
 		m_hWnd = 0;
 	}

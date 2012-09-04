@@ -50,7 +50,6 @@
 #include "BKE_global.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 
