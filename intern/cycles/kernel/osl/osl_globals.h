@@ -64,7 +64,6 @@ struct OSLGlobals {
 	struct ThreadData {
 		OSL::ShaderGlobals globals;
 		OSL::PerThreadInfo *thread_info;
-		OSL::ShadingContext *ctx;
 	};
 
 	static tls_ptr(ThreadData, thread_data);

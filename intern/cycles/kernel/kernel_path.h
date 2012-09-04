@@ -395,6 +395,8 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 		label = shader_bsdf_sample(kg, &sd, bsdf_u, bsdf_v, &bsdf_eval,
 			&bsdf_omega_in, &bsdf_domega_in, &bsdf_pdf);
 
+		shader_release(kg, &sd);
+
 		if(bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval))
 			break;
 
@@ -566,6 +568,8 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 
 		label = shader_bsdf_sample(kg, &sd, bsdf_u, bsdf_v, &bsdf_eval,
 			&bsdf_omega_in, &bsdf_domega_in, &bsdf_pdf);
+
+		shader_release(kg, &sd);
 
 		if(bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval))
 			break;
@@ -858,6 +862,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 
 		/* continue in case of transparency */
 		throughput *= shader_bsdf_transparency(kg, &sd);
+		shader_release(kg, &sd);
 
 		if(is_zero(throughput))
 			break;

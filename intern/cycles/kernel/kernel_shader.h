@@ -773,5 +773,15 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 }
 #endif
 
+/* Free ShaderData */
+
+__device void shader_release(KernelGlobals *kg, ShaderData *sd)
+{
+#ifdef __OSL__
+	if (kernel_osl_use(kg))
+		OSLShader::release(kg, sd);
+#endif
+}
+
 CCL_NAMESPACE_END
 
