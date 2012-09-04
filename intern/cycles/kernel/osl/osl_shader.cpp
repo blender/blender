@@ -382,10 +382,8 @@ void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd)
 void OSLShader::release(KernelGlobals *kg, const ShaderData *sd)
 {
 	OSL::ShadingSystem *ss = kg->osl.ss;
-	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
-	OSL::ShadingContext *ctx = ss->get_context(tdata->thread_info);
-
-	ss->release_context(ctx);
+	
+	ss->release_context((OSL::ShadingContext *)sd->osl_ctx);
 }
 
 /* BSDF Closure */
