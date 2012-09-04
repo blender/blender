@@ -1019,6 +1019,46 @@ void IMB_colormanagement_imbuf_from_role(ImBuf *ibuf, int role)
 #endif
 }
 
+void IMB_colormanagement_pixel_to_role(float pixel[4], int role)
+{
+#ifdef WITH_OCIO
+		ConstProcessorRcPtr *processor;
+		const char *from_colorspace = global_role_scene_linear;
+		const char *to_colorspace = role_colorspace_name_get(role);
+
+		processor = create_colorspace_transform_processor(from_colorspace, to_colorspace);
+
+		if (processor) {
+			OCIO_processorApplyRGBA(processor, pixel);
+
+			OCIO_processorRelease(processor);
+		}
+#else
+	(void) pixel;
+	(void) role;
+#endif
+}
+
+void IMB_colormanagement_pixel_from_role(float pixel[4], int role)
+{
+#ifdef WITH_OCIO
+		ConstProcessorRcPtr *processor;
+		const char *from_colorspace = role_colorspace_name_get(role);
+		const char *to_colorspace = global_role_scene_linear;
+
+		processor = create_colorspace_transform_processor(from_colorspace, to_colorspace);
+
+		if (processor) {
+			OCIO_processorApplyRGBA(processor, pixel);
+
+			OCIO_processorRelease(processor);
+		}
+#else
+	(void) pixel;
+	(void) role;
+#endif
+}
+
 void IMB_colormanagement_imbuf_make_scene_linear(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
 {
 #ifdef WITH_OCIO
@@ -1033,67 +1073,6 @@ void IMB_colormanagement_imbuf_make_scene_linear(ImBuf *ibuf, ColorManagedColors
 	(void) ibuf;
 	(void) colorspace_settings;
 #endif
-}
-
-void IMB_colormanagement_imbuf_to_sequencer_space(ImBuf *ibuf, int make_float)
-{
-	(void) make_float;
-
-	if (!ibuf->rect_float) {
-		if (make_float && ibuf->rect) {
-			/* when converting byte buffer to float in sequencer we need to make float
-			 * buffer be in sequencer's working space, which is currently only doable
-			 * from linear space.
-			 *
-			 */
-
-			/*
-			 * OCIO_TODO: would be nice to support direct single transform from byte to sequencer's
-			 */
-
-			ibuf->profile = IB_PROFILE_SRGB;
-			IMB_float_from_rect(ibuf);
-		}
-		else {
-			/* if there's only byte buffer in image it's already in compositor's working space,
-			 * nothing to do here
-			 */
-
-			return;
-		}
-	}
-
-#ifdef WITH_OCIO
-	if (global_role_sequencer[0]) {
-		IMB_colormanagement_imbuf_to_role(ibuf, COLOR_ROLE_SEQUENCER);
-
-		ibuf->profile = IB_PROFILE_NONE;
-	}
-	else
-#endif
-	{
-		/* if no sequencer's working space defined fallback to legacy sRGB space */
-		IMB_convert_profile(ibuf, IB_PROFILE_NONE);
-	}
-}
-
-void IMB_colormanagement_imbuf_from_sequencer_space(ImBuf *ibuf)
-{
-	if (!ibuf->rect_float)
-		return;
-
-#ifdef WITH_OCIO
-	if (global_role_sequencer[0]) {
-		IMB_colormanagement_imbuf_from_role(ibuf, COLOR_ROLE_SEQUENCER);
-		ibuf->profile = IB_PROFILE_LINEAR_RGB;
-	}
-	else
-#endif
-	{
-		/* if no sequencer's working space defined fallback to legacy sRGB space */
-
-		IMB_convert_profile(ibuf, IB_PROFILE_LINEAR_RGB);
-	}
 }
 
 #ifdef WITH_OCIO
@@ -1957,4 +1936,82 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 	(void) display;
 	(void) display_buffer_flags;
 #endif
+}
+
+/*********************** Area-specific functions *************************/
+
+/* ** Sequencer ** */
+
+void IMB_colormanagement_imbuf_to_sequencer_space(ImBuf *ibuf, int make_float)
+{
+	(void) make_float;
+
+	if (!ibuf->rect_float) {
+		if (make_float && ibuf->rect) {
+			/* when converting byte buffer to float in sequencer we need to make float
+			 * buffer be in sequencer's working space, which is currently only doable
+			 * from linear space.
+			 *
+			 */
+
+			/*
+			 * OCIO_TODO: would be nice to support direct single transform from byte to sequencer's
+			 */
+
+			ibuf->profile = IB_PROFILE_SRGB;
+			IMB_float_from_rect(ibuf);
+		}
+		else {
+			/* if there's only byte buffer in image it's already in compositor's working space,
+			 * nothing to do here
+			 */
+
+			return;
+		}
+	}
+
+#ifdef WITH_OCIO
+	if (global_role_sequencer[0]) {
+		IMB_colormanagement_imbuf_to_role(ibuf, COLOR_ROLE_SEQUENCER);
+
+		ibuf->profile = IB_PROFILE_NONE;
+	}
+	else
+#endif
+	{
+		/* if no sequencer's working space defined fallback to legacy sRGB space */
+		IMB_convert_profile(ibuf, IB_PROFILE_NONE);
+	}
+}
+
+void IMB_colormanagement_imbuf_from_sequencer_space(ImBuf *ibuf)
+{
+	if (!ibuf->rect_float)
+		return;
+
+#ifdef WITH_OCIO
+	if (global_role_sequencer[0]) {
+		IMB_colormanagement_imbuf_from_role(ibuf, COLOR_ROLE_SEQUENCER);
+		ibuf->profile = IB_PROFILE_LINEAR_RGB;
+	}
+	else
+#endif
+	{
+		/* if no sequencer's working space defined fallback to legacy sRGB space */
+
+		IMB_convert_profile(ibuf, IB_PROFILE_LINEAR_RGB);
+	}
+}
+
+void IMB_colormanagement_pixel_from_sequencer_space(float pixel[4])
+{
+#ifdef WITH_OCIO
+	if (global_role_sequencer[0]) {
+		IMB_colormanagement_pixel_from_role(pixel, COLOR_ROLE_SEQUENCER);
+	}
+	else
+#endif
+	{
+		srgb_to_linearrgb_v4(pixel, pixel);
+	}
 }

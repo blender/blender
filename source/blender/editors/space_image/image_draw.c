@@ -222,8 +222,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int channel
 			dx += BLF_width(blf_mono_font, str);
 		}
 
-		/* OCIO_TODO: make it fit better to overall color interaction */
-		if (fp && channels == 4) {
+		if (color_manage && channels == 4) {
 			float pixel[4];
 
 			IMB_display_buffer_pixel(pixel, fp,  &scene->view_settings, &scene->display_settings);
@@ -276,11 +275,12 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int channel
 	}
 
 	if (color_manage) {
-		linearrgb_to_srgb_v4(finalcol, col);
+		IMB_display_buffer_pixel(finalcol, col,  &scene->view_settings, &scene->display_settings);
 	}
 	else {
 		copy_v4_v4(finalcol, col);
 	}
+
 	glDisable(GL_BLEND);
 	glColor3fv(finalcol);
 	dx += 5;

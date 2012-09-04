@@ -54,14 +54,14 @@ void IMB_colormanagement_exit(void);
 void IMB_colormanagement_colorspace_transform(float *buffer, int width, int height, int channels,
                                               const char *from_colorspace, const char *to_colorspace);
 
+void IMB_colormanagement_pixel_to_role(float pixel[4], int role);
+void IMB_colormanagement_pixel_from_role(float pixel[4], int role);
+
 void IMB_colormanagement_imbuf_to_role(struct ImBuf *ibuf, int role);
 void IMB_colormanagement_imbuf_from_role(struct ImBuf *ibuf, int role);
 
 void IMB_colormanagement_imbuf_make_scene_linear(struct ImBuf *ibuf,
 		struct ColorManagedColorspaceSettings *colorspace_settings);
-
-void IMB_colormanagement_imbuf_to_sequencer_space(struct ImBuf *ibuf, int make_float);
-void IMB_colormanagement_imbuf_from_sequencer_space(struct ImBuf *ibuf);
 
 /* ** Public display buffers interfaces ** */
 
@@ -109,6 +109,17 @@ void IMB_partial_display_buffer_update(struct ImBuf *ibuf, const float *linear_b
                                        int stride, int offset_x, int offset_y,
                                        int xmin, int ymin, int xmax, int ymax);
 
+/* ** Area-specific functions ** */
+
+/* Sequencer */
+
+void IMB_colormanagement_imbuf_to_sequencer_space(struct ImBuf *ibuf, int make_float);
+void IMB_colormanagement_imbuf_from_sequencer_space(struct ImBuf *ibuf);
+
+void IMB_colormanagement_pixel_from_sequencer_space(float pixel[4]);
+
+
+/* Roles */
 enum {
 	COLOR_ROLE_SCENE_LINEAR = 0,
 	COLOR_ROLE_COLOR_PICKING,

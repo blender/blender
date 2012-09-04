@@ -1986,6 +1986,7 @@ typedef struct ImageSampleInfo {
 	float *zfp;
 
 	int draw;
+	int color_manage;
 } ImageSampleInfo;
 
 static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
@@ -1994,8 +1995,7 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	if (info->draw) {
 		Scene *scene = CTX_data_scene(C);
 
-		/* no color management needed for images (color_manage=0) */
-		ED_image_draw_info(scene, ar, 0, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
+		ED_image_draw_info(scene, ar, info->color_manage, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
 	}
 }
 
@@ -2094,6 +2094,8 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 			info->colf[2] = (float)cp[2] / 255.0f;
 			info->colf[3] = (float)cp[3] / 255.0f;
 			info->colfp = info->colf;
+
+			info->color_manage = FALSE;
 		}
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
@@ -2103,6 +2105,8 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 			info->colf[2] = fp[2];
 			info->colf[3] = fp[3];
 			info->colfp = info->colf;
+
+			info->color_manage = TRUE;
 		}
 
 		if (ibuf->zbuf) {
