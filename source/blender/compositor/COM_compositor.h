@@ -301,8 +301,15 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering);
 
 /**
  * @brief Deinitialize the compositor caches and allocated memory.
+ * Use COM_clearCaches to only free the caches.
  */
 void COM_deinitialize(void);
+
+/**
+ * @brief Clear all compositor caches. (Compositor system will still remain available). 
+ * To deinitialize the compositor use the COM_deinitialize method.
+ */
+void COM_clearCaches(void);
 
 /**
  * @brief Return a list of highlighted bnodes pointers.
