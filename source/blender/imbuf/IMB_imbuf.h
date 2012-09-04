@@ -392,15 +392,6 @@ void IMB_buffer_byte_from_byte(unsigned char *rect_to, const unsigned char *rect
 	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_float_clamp(float *buf, int width, int height);
 
-/* converting pixel buffers using tonecurve */
-
-typedef void (*imb_tonecurveCb) (float rgbOut[3], const float rgbIn[3]);
-
-void IMB_buffer_byte_from_float_tonecurve(unsigned char *rect_to, const float *rect_from,
-                                          int channels_from, float dither, int profile_to, int profile_from, int predivide,
-                                          int width, int height, int stride_to, int stride_from,
-                                          imb_tonecurveCb tonecurve_func);
-
 /**
  * Change the ordering of the color bytes pointed to by rect from
  * rgba to abgr. size * 4 color bytes are reordered.

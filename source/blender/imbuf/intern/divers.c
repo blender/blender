@@ -38,14 +38,9 @@
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "IMB_filter.h"
 #include "IMB_allocimbuf.h"
 
 #include "MEM_guardedalloc.h"
-
-#ifdef WITH_OCIO
-#include <ocio_capi.h>
-#endif
 
 /**************************** Interlace/Deinterlace **************************/
 
@@ -190,13 +185,11 @@ MINLINE void float_to_byte_dither_v4(uchar b[4], const float f[4], DitherContext
 }
 
 /* float to byte pixels, output 4-channel RGBA */
-void IMB_buffer_byte_from_float_tonecurve(uchar *rect_to, const float *rect_from,
-                                          int channels_from, float dither, int profile_to, int profile_from, int predivide,
-                                          int width, int height, int stride_to, int stride_from,
-                                          imb_tonecurveCb tonecurve_func)
+void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
+                                int channels_from, float dither, int profile_to, int profile_from, int predivide,
+                                int width, int height, int stride_to, int stride_from)
 {
 	float tmp[4];
-	float corrected[4];
 	int x, y;
 	DitherContext *di;
 
@@ -206,9 +199,6 @@ void IMB_buffer_byte_from_float_tonecurve(uchar *rect_to, const float *rect_from
 
 	if (dither)
 		di = create_dither_context(width, dither);
-
-	if (!tonecurve_func)
-		tonecurve_func = copy_v3_v3;
 
 	for (y = 0; y < height; y++) {
 		if (channels_from == 1) {
@@ -234,8 +224,7 @@ void IMB_buffer_byte_from_float_tonecurve(uchar *rect_to, const float *rect_from
 			else if (profile_to == IB_PROFILE_SRGB) {
 				/* convert from linear to sRGB */
 				for (x = 0; x < width; x++, from += 3, to += 4) {
-					tonecurve_func(corrected, from);
-					linearrgb_to_srgb_v3_v3(tmp, corrected);
+					linearrgb_to_srgb_v3_v3(tmp, from);
 					rgb_float_to_uchar(to, tmp);
 					to[3] = 255;
 				}
@@ -271,37 +260,25 @@ void IMB_buffer_byte_from_float_tonecurve(uchar *rect_to, const float *rect_from
 
 				if (dither && predivide) {
 					for (x = 0; x < width; x++, from += 4, to += 4) {
-						tonecurve_func(corrected, from);
-						corrected[3] = from[3];
-
-						linearrgb_to_srgb_ushort4_predivide(us, corrected);
+						linearrgb_to_srgb_ushort4_predivide(us, from);
 						ushort_to_byte_dither_v4(to, us, di);
 					}
 				}
 				else if (dither) {
 					for (x = 0; x < width; x++, from += 4, to += 4) {
-						tonecurve_func(corrected, from);
-						corrected[3] = from[3];
-
-						linearrgb_to_srgb_ushort4(us, corrected);
+						linearrgb_to_srgb_ushort4(us, from);
 						ushort_to_byte_dither_v4(to, us, di);
 					}
 				}
 				else if (predivide) {
 					for (x = 0; x < width; x++, from += 4, to += 4) {
-						tonecurve_func(corrected, from);
-						corrected[3] = from[3];
-
-						linearrgb_to_srgb_ushort4_predivide(us, corrected);
+						linearrgb_to_srgb_ushort4_predivide(us, from);
 						ushort_to_byte_v4(to, us);
 					}
 				}
 				else {
 					for (x = 0; x < width; x++, from += 4, to += 4) {
-						tonecurve_func(corrected, from);
-						corrected[3] = from[3];
-
-						linearrgb_to_srgb_ushort4(us, corrected);
+						linearrgb_to_srgb_ushort4(us, from);
 						ushort_to_byte_v4(to, us);
 					}
 				}
@@ -342,15 +319,6 @@ void IMB_buffer_byte_from_float_tonecurve(uchar *rect_to, const float *rect_from
 	if (dither)
 		clear_dither_context(di);
 }
-
-void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
-                                int channels_from, float dither, int profile_to, int profile_from, int predivide,
-                                int width, int height, int stride_to, int stride_from)
-{
-	IMB_buffer_byte_from_float_tonecurve(rect_to, rect_from, channels_from, dither, profile_to, profile_from, predivide,
-	                                     width, height, stride_to, stride_from, NULL);
-}
-
 
 /* byte to float pixels, input and output 4-channel RGBA  */
 void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,

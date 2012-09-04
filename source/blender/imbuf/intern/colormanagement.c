@@ -75,9 +75,6 @@ typedef struct ConstProcessorRcPtr {
 
 /* define this to allow byte buffers be color managed */
 #undef COLORMANAGE_BYTE_BUFFER
-#undef COLORMANAGE_USE_ACES_ODT
-
-#define ACES_ODT_TONECORVE "ACES"
 
 /* ** list of all supported color spaces, displays and views */
 #ifdef WITH_OCIO
@@ -582,11 +579,6 @@ void IMB_colormanagement_init(void)
 
 	OCIO_configRelease(config);
 
-#ifdef COLORMANAGE_USE_ACES_ODT
-	/* special views, which does not depend on OCIO  */
-	colormanage_view_add(ACES_ODT_TONECORVE);
-#endif
-
 #endif
 
 	BLI_init_srgb_conversion();
@@ -737,44 +729,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 	return linear_buffer;
 }
 
-#ifdef COLORMANAGE_USE_ACES_ODT
-static void *do_display_buffer_apply_tonemap_thread(void *handle_v)
-{
-	DisplayBufferThread *handle = (DisplayBufferThread *) handle_v;
-	imb_tonecurveCb tonecurve_func = (imb_tonecurveCb) handle->processor;
-
-	float *buffer = handle->buffer;
-	unsigned char *display_buffer = handle->display_buffer;
-
-	int channels = handle->channels;
-	int width = handle->width;
-	int height = handle->tot_line;
-	int dither = handle->dither;
-	int predivide = handle->predivide;
-
-	float *linear_buffer = display_buffer_apply_get_linear_buffer(handle);
-
-	IMB_buffer_byte_from_float_tonecurve(display_buffer, linear_buffer, channels, dither,
-	                                     IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
-	                                     predivide, width, height, width, width,
-	                                     tonecurve_func);
-
-	if (linear_buffer != buffer)
-		MEM_freeN(linear_buffer);
-
-	return NULL;
-}
-
-static void display_buffer_apply_tonemap(ImBuf *ibuf, unsigned char *display_buffer,
-                                         imb_tonecurveCb tonecurve_func)
-{
-	display_buffer_apply_threaded(ibuf, ibuf->rect_float, (unsigned char *)ibuf->rect,
-	                              display_buffer, tonecurve_func,
-	                              do_display_buffer_apply_tonemap_thread);
-}
-#endif
-
-static void *do_display_buffer_apply_ocio_thread(void *handle_v)
+static void *do_display_buffer_apply_thread(void *handle_v)
 {
 	DisplayBufferThread *handle = (DisplayBufferThread *) handle_v;
 	ConstProcessorRcPtr *processor = (ConstProcessorRcPtr *) handle->processor;
@@ -856,9 +811,9 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 	return processor;
 }
 
-static void display_buffer_apply_ocio(ImBuf *ibuf, unsigned char *display_buffer,
-                                      const ColorManagedViewSettings *view_settings,
-                                      const ColorManagedDisplaySettings *display_settings)
+static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *display_buffer,
+                                               const ColorManagedViewSettings *view_settings,
+                                               const ColorManagedDisplaySettings *display_settings)
 {
 	ConstProcessorRcPtr *processor;
 	const float gamma = view_settings->gamma;
@@ -870,31 +825,10 @@ static void display_buffer_apply_ocio(ImBuf *ibuf, unsigned char *display_buffer
 
 	if (processor) {
 		display_buffer_apply_threaded(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect,
-		                              display_buffer, processor, do_display_buffer_apply_ocio_thread);
+		                              display_buffer, processor, do_display_buffer_apply_thread);
 	}
 
 	OCIO_processorRelease(processor);
-}
-
-static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *display_buffer,
-                                               const ColorManagedViewSettings *view_settings,
-                                               const ColorManagedDisplaySettings *display_settings)
-{
-#ifdef COLORMANAGE_USE_ACES_ODT
-	const char *view_transform = view_settings->view_transform;
-
-	if (!strcmp(view_transform, ACES_ODT_TONECORVE)) {
-		/* special case for Mango team, this does not actually apply
-		 * any input space -> display space conversion and just applies
-		 * a tonecurve for better linear float -> sRGB byte conversion
-		 */
-		display_buffer_apply_tonemap(ibuf, display_buffer, IMB_ratio_preserving_odt_tonecurve);
-	}
-	else
-#endif
-	{
-		display_buffer_apply_ocio(ibuf, display_buffer, view_settings, display_settings);
-	}
 }
 
 /*********************** Threaded color space transform routines *************************/
@@ -1845,14 +1779,6 @@ void IMB_colormanagement_view_items_add(EnumPropertyItem **items, int *totitem, 
 	ColorManagedDisplay *display = colormanage_display_get_named(display_name);
 	ColorManagedView *view;
 
-#ifdef COLORMANAGE_USE_ACES_ODT
-	/* OCIO_TODO: try to get rid of such a hackish stuff */
-	view = colormanage_view_get_named(ACES_ODT_TONECORVE);
-	if (view) {
-		colormanagement_view_item_add(items, totitem, view);
-	}
-#endif
-
 	if (display) {
 		LinkData *display_view;
 
@@ -1901,8 +1827,7 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
 static void partial_buffer_update_rect(unsigned char *display_buffer, const float *linear_buffer, int display_stride,
 									   int linear_stride, int linear_offset_x, int linear_offset_y,
 									   int channels, int dither, int predivide, int profile_from,
-									   ConstProcessorRcPtr *processor, imb_tonecurveCb tonecurve_func,
-									   int xmin, int ymin, int xmax, int ymax)
+									   ConstProcessorRcPtr *processor, int xmin, int ymin, int xmax, int ymax)
 {
 	int x, y;
 
@@ -1928,12 +1853,7 @@ static void partial_buffer_update_rect(unsigned char *display_buffer, const floa
 			}
 			else
 #endif
-			if (tonecurve_func) {
-				IMB_buffer_byte_from_float_tonecurve(display_buffer + display_index, linear_buffer + linear_index,
-				                                     channels, dither, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
-				                                     predivide, 1, 1, 1, 1, tonecurve_func);
-			}
-			else {
+			{
 				IMB_buffer_byte_from_float(display_buffer + display_index, linear_buffer + linear_index, channels,
 				                           dither, IB_PROFILE_SRGB, profile_from, predivide, 1, 1, 1, 1);
 			}
@@ -1948,22 +1868,21 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 	int predivide = ibuf->flags & IB_cm_predivide;
 	int dither = ibuf->dither;
 	int profile_from = ibuf->profile;
+	int display;
+	int *display_buffer_flags;
 
 #ifdef WITH_OCIO
-	int display;
-
-	int *display_buffer_flags;
 
 	BLI_lock_thread(LOCK_COLORMANAGE);
 
+	if (ibuf->rect && ibuf->rect_float) {
+		/* update byte buffer created by legacy color management */
+		partial_buffer_update_rect((unsigned char *) ibuf->rect, linear_buffer, ibuf->x, stride, offset_x, offset_y,
+	                               channels, dither, predivide, profile_from, NULL, xmin, ymin, xmax, ymax);
+	}
+
 	if (!ibuf->display_buffer_flags) {
 		/* there's no cached display buffers, so no need to iterate though bit fields */
-
-		if (ibuf->rect && ibuf->rect_float) {
-			/* update byte buffer created by legacy color management */
-			partial_buffer_update_rect((unsigned char *) ibuf->rect, linear_buffer, ibuf->x, stride, offset_x, offset_y,
-		                           channels, dither, predivide, profile_from, NULL, NULL, xmin, ymin, xmax, ymax);
-		}
 
 		BLI_unlock_thread(LOCK_COLORMANAGE);
 
@@ -2011,21 +1930,12 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 				if (display_buffer) {
 					const char *view_name = IMB_colormanagement_view_get_indexed_name(view_index);
 					ConstProcessorRcPtr *processor = NULL;
-					imb_tonecurveCb tonecurve_func = NULL;
 
-#ifdef COLORMANAGE_USE_ACES_ODT
-					if (!strcmp(view_name, ACES_ODT_TONECORVE)) {
-						tonecurve_func = IMB_ratio_preserving_odt_tonecurve;
-					}
-					else
-#endif
-					{
-						processor = create_display_buffer_processor(view_name, display_name, exposure, gamma);
-					}
+					processor = create_display_buffer_processor(view_name, display_name, exposure, gamma);
 
 					partial_buffer_update_rect(display_buffer, linear_buffer, buffer_width, stride,
                                                offset_x, offset_y, channels, dither, predivide, profile_from,
-                                               processor, tonecurve_func, xmin, ymin, xmax, ymax);
+                                               processor, xmin, ymin, xmax, ymax);
 
 					if (processor)
 						OCIO_processorRelease(processor);
@@ -2040,13 +1950,8 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 	}
 
 	MEM_freeN(display_buffer_flags);
+#else
+	(void) display;
+	(void) display_buffer_flags;
 #endif
-
-	BLI_lock_thread(LOCK_COLORMANAGE);
-	if (ibuf->rect && ibuf->rect_float) {
-		/* update byte buffer created by legacy color management */
-		partial_buffer_update_rect((unsigned char *) ibuf->rect, linear_buffer, ibuf->x, stride, offset_x, offset_y,
-	                           channels, dither, predivide, profile_from, NULL, NULL, xmin, ymin, xmax, ymax);
-	}
-	BLI_unlock_thread(LOCK_COLORMANAGE);
 }
