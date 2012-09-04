@@ -69,6 +69,7 @@ void register_node_type_sh_invert(struct bNodeTreeType *ttype);
 void register_node_type_sh_seprgb(struct bNodeTreeType *ttype);
 void register_node_type_sh_combrgb(struct bNodeTreeType *ttype);
 void register_node_type_sh_hue_sat(struct bNodeTreeType *ttype);
+void register_node_type_sh_tex_brick(struct bNodeTreeType *ttype);
 
 void register_node_type_sh_attribute(struct bNodeTreeType *ttype);
 void register_node_type_sh_geometry(struct bNodeTreeType *ttype);
