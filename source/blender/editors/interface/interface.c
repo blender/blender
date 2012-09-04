@@ -3722,8 +3722,14 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 
 		if (type == BUT_GET_LABEL) {
 			if (but->str) {
-				/* Menu labels can have some complex formating stuff marked by pipes, we don't want those here! */
-				char *tc = strchr(but->str, '|');
+				/* Menu labels can have some complex formating stuff marked by pipes or %t, we don't want those here! */
+				const char *tc;
+				
+				if (but->type == MENU)
+					tc = strstr(but->str, "%t");
+				else
+					tc = strchr(but->str, '|');
+				
 				if (tc)
 					tmp = BLI_strdupn(but->str, tc - but->str);
 				else
