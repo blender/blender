@@ -44,9 +44,9 @@
  * \return pointer to the object
  */
 int shadeHaloFloat(HaloRen *har, 
-					float *col, int zz, 
-					float dist, float xn, 
-					float yn, short flarec);
+                   float *col, int zz,
+                   float dist, float xn,
+                   float yn, short flarec);
 
 /**
  * Render the sky at pixel (x, y).

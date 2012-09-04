@@ -7029,8 +7029,8 @@ static void do_version_ntree_mask_264(void *UNUSED(data), ID *UNUSED(id), bNodeT
 			if (node->storage == NULL) {
 				NodeMask *data = MEM_callocN(sizeof(NodeMask), __func__);
 				/* move settings into own struct */
-				data->size_x = node->custom3;
-				data->size_y = node->custom4;
+				data->size_x = (int)node->custom3;
+				data->size_y = (int)node->custom4;
 				node->custom3 = 0.5f; /* default shutter */
 				node->storage = data;
 			}

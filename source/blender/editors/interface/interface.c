@@ -33,7 +33,8 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
- 
+#include <stddef.h>  /* offsetof() */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
