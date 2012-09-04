@@ -77,9 +77,6 @@ public:
 
 	static float3 volume_eval_phase(const ShaderData *sd, const ShaderClosure *sc,
 	                                const float3 omega_in, const float3 omega_out);
-
-	/* release */
-	static void release(KernelGlobals *kg, const ShaderData *sd);
 };
 
 CCL_NAMESPACE_END
