@@ -50,12 +50,12 @@ shader node_wave_texture(
 	float Scale = 5.0,
 	float Distortion = 0.0,
 	float Detail = 2.0,
-	float dscale = 1.0,
+	float DetailScale = 1.0,
 	point Vector = P,
 	output float Fac = 0.0,
 	output color Color = color (0.0, 0.0, 0.0))
 {
-	Fac = wave(Vector, Scale, Type, Detail, Distortion, dscale);
+	Fac = wave(Vector, Scale, Type, Detail, Distortion, DetailScale);
 	Color = color(Fac, Fac, Fac);
 }
 
