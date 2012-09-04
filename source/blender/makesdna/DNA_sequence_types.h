@@ -150,9 +150,6 @@ typedef struct Sequence {
 	/* pointers for effects: */
 	struct Sequence *seq1, *seq2, *seq3;
 
-	/* maks input for effects */
-	struct Sequence *mask_sequence;
-
 	ListBase seqbase;       /* list of strips for metastrips */
 
 	struct bSound *sound;   /* the linked "bSound" object */

@@ -4959,7 +4959,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->seq1= newdataadr(fd, seq->seq1);
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
-			seq->mask_sequence= newdataadr(fd, seq->mask_sequence);
 			/* a patch: after introduction of effects with 3 input strips */
 			if (seq->seq3 == NULL) seq->seq3 = seq->seq2;
 			

@@ -56,7 +56,6 @@ typedef struct EffectInfo {
 	const char *ui_desc;
 	void (*func)(StructRNA *);
 	int inputs;
-	int supports_mask;
 } EffectInfo;
 
 EnumPropertyItem sequence_modifier_type_items[] = {
@@ -586,13 +585,6 @@ static int rna_Sequence_input_count_get(PointerRNA *ptr)
 	return BKE_sequence_effect_get_num_inputs(seq->type);
 }
 
-static int rna_Sequence_supports_mask_get(PointerRNA *ptr)
-{
-	Sequence *seq = (Sequence *)(ptr->data);
-
-	return BKE_sequence_effect_get_supports_mask(seq->type);
-}
-
 #if 0
 static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 {
@@ -618,20 +610,6 @@ static void rna_Sequence_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 
 		BKE_sequence_invalidate_cache(scene, seq);
 	}
-}
-
-static int rna_Sequence_otherSequence_poll(PointerRNA *ptr, PointerRNA value)
-{
-	Sequence *seq = (Sequence *) ptr->data;
-	Sequence *cur = (Sequence *) value.data;
-
-	if (seq == cur)
-		return FALSE;
-
-	if (BKE_sequence_check_depend(seq, cur))
-		return FALSE;
-
-	return TRUE;
 }
 
 static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -1674,17 +1652,13 @@ static void rna_def_input(StructRNA *srna)
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 }
 
-static void rna_def_effect_inputs(StructRNA *srna, int count, int supports_mask)
+static void rna_def_effect_inputs(StructRNA *srna, int count)
 {
 	PropertyRNA *prop;
 
 	prop = RNA_def_property(srna, "input_count", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_Sequence_input_count_get", NULL, NULL);
-
-	prop = RNA_def_property(srna, "is_supports_mask", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_int_funcs(prop, "rna_Sequence_supports_mask_get", NULL, NULL);
 
 	if (count >= 1) {
 		prop = RNA_def_property(srna, "input_1",  PROP_POINTER, PROP_NONE);
@@ -1708,15 +1682,6 @@ static void rna_def_effect_inputs(StructRNA *srna, int count, int supports_mask)
 		RNA_def_property_ui_text(prop, "Input 3", "Third input for the effect strip");
 	}
 	*/
-
-	if (supports_mask) {
-		prop = RNA_def_property(srna, "input_mask_strip",  PROP_POINTER, PROP_NONE);
-		RNA_def_property_pointer_sdna(prop, NULL, "mask_sequence");
-		RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Sequence_otherSequence_poll");
-		RNA_def_property_flag(prop, PROP_EDITABLE);
-		RNA_def_property_ui_text(prop, "Mask", "Mask input for the effect strip");
-		RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-	}
 }
 
 static void rna_def_image(BlenderRNA *brna)
@@ -2157,28 +2122,28 @@ static void rna_def_speed_control(StructRNA *srna)
 }
 
 static EffectInfo def_effects[] = {
-	{"AddSequence", "Add Sequence", "Add Sequence", NULL, 2, FALSE},
+	{"AddSequence", "Add Sequence", "Add Sequence", NULL, 2},
 	{"AdjustmentSequence", "Adjustment Layer Sequence",
-	 "Sequence strip to perform filter adjustments to layers below", rna_def_input, 0, TRUE},
-	{"AlphaOverSequence", "Alpha Over Sequence", "Alpha Over Sequence", NULL, 2, FALSE},
-	{"AlphaUnderSequence", "Alpha Under Sequence", "Alpha Under Sequence", NULL, 2, FALSE},
+	 "Sequence strip to perform filter adjustments to layers below", rna_def_input, 0},
+	{"AlphaOverSequence", "Alpha Over Sequence", "Alpha Over Sequence", NULL, 2},
+	{"AlphaUnderSequence", "Alpha Under Sequence", "Alpha Under Sequence", NULL, 2},
 	{"ColorSequence", "Color Sequence",
-	 "Sequence strip creating an image filled with a single color", rna_def_solid_color, 0, FALSE},
-	{"CrossSequence", "Cross Sequence", "Cross Sequence", NULL, 2, FALSE},
-	{"GammaCrossSequence", "Gamma Cross Sequence", "Gamma Cross Sequence", NULL, 2, FALSE},
-	{"GlowSequence", "Glow Sequence", "Sequence strip creating a glow effect", rna_def_glow, 1, FALSE},
+	 "Sequence strip creating an image filled with a single color", rna_def_solid_color, 0},
+	{"CrossSequence", "Cross Sequence", "Cross Sequence", NULL, 2},
+	{"GammaCrossSequence", "Gamma Cross Sequence", "Gamma Cross Sequence", NULL, 2},
+	{"GlowSequence", "Glow Sequence", "Sequence strip creating a glow effect", rna_def_glow, 1},
 	{"MulticamSequence", "Multicam Select Sequence", "Sequence strip to perform multicam editing",
-	 rna_def_multicam, 0, FALSE},
-	{"MultiplySequence", "Multiply Sequence", "Multiply Sequence", NULL, 2, FALSE},
-	{"OverDropSequence", "Over Drop Sequence", "Over Drop Sequence", NULL, 2, FALSE},
+	 rna_def_multicam, 0},
+	{"MultiplySequence", "Multiply Sequence", "Multiply Sequence", NULL, 2},
+	{"OverDropSequence", "Over Drop Sequence", "Over Drop Sequence", NULL, 2},
 	{"SpeedControlSequence", "SpeedControl Sequence",
-	 "Sequence strip to control the speed of other strips", rna_def_speed_control, 1, FALSE},
-	{"SubtractSequence", "Subtract Sequence", "Subtract Sequence", NULL, 2, FALSE},
+	 "Sequence strip to control the speed of other strips", rna_def_speed_control, 1},
+	{"SubtractSequence", "Subtract Sequence", "Subtract Sequence", NULL, 2},
 	{"TransformSequence", "Transform Sequence",
-	 "Sequence strip applying affine transformations to other strips", rna_def_transform, 1, FALSE},
+	 "Sequence strip applying affine transformations to other strips", rna_def_transform, 1},
 	{"WipeSequence", "Wipe Sequence", "Sequence strip creating a wipe transition",
-	 rna_def_wipe, 1, FALSE},
-	{"", "", "", NULL, 0, FALSE}
+	 rna_def_wipe, 1},
+	{"", "", "", NULL, 0}
 };
 
 static void rna_def_effects(BlenderRNA *brna)
@@ -2191,7 +2156,7 @@ static void rna_def_effects(BlenderRNA *brna)
 		RNA_def_struct_ui_text(srna, effect->ui_name, effect->ui_desc);
 		RNA_def_struct_sdna(srna, "Sequence");
 
-		rna_def_effect_inputs(srna, effect->inputs, effect->supports_mask);
+		rna_def_effect_inputs(srna, effect->inputs);
 
 		if (effect->func)
 			effect->func(srna);
