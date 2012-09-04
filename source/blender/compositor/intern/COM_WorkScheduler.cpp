@@ -120,8 +120,7 @@ void COM_startReadHighlights()
 
 int COM_isHighlightedbNode(bNode *bnode)
 {
-	if (!g_highlightInitialized)
-	{
+	if (!g_highlightInitialized) {
 		return false;
 	}
 	
@@ -129,7 +128,7 @@ int COM_isHighlightedbNode(bNode *bnode)
 		return false;
 	}
 
-	for (int i = 0 ; i < MAX_HIGHLIGHT; i++) {
+	for (int i = 0; i < MAX_HIGHLIGHT; i++) {
 		void *p = g_highlightedNodesRead[i];
 		if (!p) return false;
 		if (p == bnode) return true;
@@ -409,14 +408,12 @@ void WorkScheduler::deinitialize()
 	/* deinitialize highlighting */
 	if (g_highlightInitialized) {
 		g_highlightInitialized = false;
-		if (g_highlightedNodes) 
-		{
+		if (g_highlightedNodes) {
 			MEM_freeN(g_highlightedNodes);
 			g_highlightedNodes = NULL;
 		}
 
-		if (g_highlightedNodesRead) 
-		{
+		if (g_highlightedNodesRead) {
 			MEM_freeN(g_highlightedNodesRead);
 			g_highlightedNodesRead = NULL;
 		}

@@ -2837,7 +2837,9 @@ static void ui_layout_operator_buts__reset_cb(bContext *UNUSED(C), void *op_pt, 
 }
 
 /* this function does not initialize the layout, functions can be called on the layout before and after */
-void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op, int (*check_prop)(struct PointerRNA *, struct PropertyRNA *), const char label_align, const short flag)
+void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,
+                          int (*check_prop)(struct PointerRNA *, struct PropertyRNA *),
+                          const char label_align, const short flag)
 {
 	if (!op->properties) {
 		IDPropertyTemplate val = {0};

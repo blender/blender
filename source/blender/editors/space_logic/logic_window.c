@@ -4352,38 +4352,38 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row;
 	uiLayout *col;
 
-	uiItemR(layout, ptr, "mode", 0, NULL, 0);
-	uiItemR(layout, ptr, "target", 0, NULL, 0);
-	uiItemR(layout, ptr, "navmesh", 0, NULL, 0);	
+	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "target", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "navmesh", 0, NULL, ICON_NONE);
 
 	row = uiLayoutRow(layout, FALSE);
-	uiItemR(row, ptr, "distance", 0, NULL, 0);
-	uiItemR(row, ptr, "velocity", 0, NULL, 0);
+	uiItemR(row, ptr, "distance", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "velocity", 0, NULL, ICON_NONE);
 	row = uiLayoutRow(layout, FALSE);
-	uiItemR(row, ptr, "acceleration", 0, NULL, 0);
-	uiItemR(row, ptr, "turn_speed", 0, NULL, 0);
+	uiItemR(row, ptr, "acceleration", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "turn_speed", 0, NULL, ICON_NONE);
 
 	row = uiLayoutRow(layout, FALSE);
 	col = uiLayoutColumn(row, FALSE);
-	uiItemR(col, ptr, "facing", 0, NULL, 0);
+	uiItemR(col, ptr, "facing", 0, NULL, ICON_NONE);
 	col = uiLayoutColumn(row, FALSE);
-	uiItemR(col, ptr, "facing_axis", 0, NULL, 0);
+	uiItemR(col, ptr, "facing_axis", 0, NULL, ICON_NONE);
 	if (!RNA_boolean_get(ptr, "facing")) {
 		uiLayoutSetActive(col, FALSE);
 	}
 	col = uiLayoutColumn(row, FALSE);
-	uiItemR(col, ptr, "normal_up", 0, NULL, 0);
+	uiItemR(col, ptr, "normal_up", 0, NULL, ICON_NONE);
 	if (!RNA_pointer_get(ptr, "navmesh").data) {
 		uiLayoutSetActive(col, FALSE);
 	}
 
 	row = uiLayoutRow(layout, FALSE);
-	uiItemR(row, ptr, "self_terminated", 0, NULL, 0);
+	uiItemR(row, ptr, "self_terminated", 0, NULL, ICON_NONE);
 	if (RNA_enum_get(ptr, "mode")==ACT_STEERING_PATHFOLLOWING) {
-		uiItemR(row, ptr, "update_period", 0, NULL, 0);	
+		uiItemR(row, ptr, "update_period", 0, NULL, ICON_NONE);
 		row = uiLayoutRow(layout, FALSE);
 	}
-	uiItemR(row, ptr, "show_visualization", 0, NULL, 0);	
+	uiItemR(row, ptr, "show_visualization", 0, NULL, ICON_NONE);
 }
 
 static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
