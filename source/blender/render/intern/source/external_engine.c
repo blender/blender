@@ -205,17 +205,19 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 	Render *re = engine->re;
 	RenderPart *pa;
 
-	if (!result)
+	if (!result) {
 		return;
+	}
 
 	/* merge. on break, don't merge in result for preview renders, looks nicer */
 	if (!cancel) {
 		/* for exr tile render, detect tiles that are done */
 		for (pa = re->parts.first; pa; pa = pa->next) {
 			if (result->tilerect.xmin == pa->disprect.xmin &&
-			   result->tilerect.ymin == pa->disprect.ymin &&
-			   result->tilerect.xmax == pa->disprect.xmax &&
-			   result->tilerect.ymax == pa->disprect.ymax) {
+			    result->tilerect.ymin == pa->disprect.ymin &&
+			    result->tilerect.xmax == pa->disprect.xmax &&
+			    result->tilerect.ymax == pa->disprect.ymax)
+			{
 				pa->ready = 1;
 			}
 		}

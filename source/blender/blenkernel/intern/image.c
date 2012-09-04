@@ -2526,7 +2526,9 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	dither = iuser->scene->r.dither_intensity;
 
 	/* combined layer gets added as first layer */
-	if (rres.have_combined && layer == 0) ;
+	if (rres.have_combined && layer == 0) {
+		/* pass */
+	}
 	else if (rres.layers.first) {
 		RenderLayer *rl = BLI_findlink(&rres.layers, layer - (rres.have_combined ? 1 : 0));
 		if (rl) {

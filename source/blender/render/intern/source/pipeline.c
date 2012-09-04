@@ -194,14 +194,12 @@ float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
 
 RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
 {
-	RenderLayer *rl;
-	
-	if (rr == NULL) return NULL;
-	
-	for (rl = rr->layers.first; rl; rl = rl->next)
-		if (strncmp(rl->name, name, RE_MAXNAME) == 0)
-			return rl;
-	return NULL;
+	if (rr == NULL) {
+		return NULL;
+	}
+	else {
+		return BLI_findstring(&rr->layers, name, offsetof(RenderLayer, name));
+	}
 }
 
 RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty)
@@ -1108,7 +1106,10 @@ static void merge_renderresult_fields(RenderResult *rr, RenderResult *rr1, Rende
 		/* passes are allocated in sync */
 		rpass1 = rl1->passes.first;
 		rpass2 = rl2->passes.first;
-		for (rpass = rl->passes.first; rpass && rpass1 && rpass2; rpass = rpass->next, rpass1 = rpass1->next, rpass2 = rpass2->next) {
+		for (rpass = rl->passes.first;
+		     rpass && rpass1 && rpass2;
+		     rpass = rpass->next, rpass1 = rpass1->next, rpass2 = rpass2->next)
+		{
 			interleave_rect(rr, rpass->rect, rpass1->rect, rpass2->rect, rpass->channels);
 		}
 	}
