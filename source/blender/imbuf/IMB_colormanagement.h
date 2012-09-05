@@ -50,6 +50,13 @@ struct Scene;
 void IMB_colormanagement_init(void);
 void IMB_colormanagement_exit(void);
 
+/* ** Generic functions ** */
+
+void IMB_colormanagement_check_file_config(struct Main *bmain);
+
+void IMB_colormanagement_validate_settings(struct ColorManagedDisplaySettings *display_settings,
+                                           struct ColorManagedViewSettings *view_settings);
+
 /* ** Color space transformation functions ** */
 void IMB_colormanagement_colorspace_transform(float *buffer, int width, int height, int channels,
                                               const char *from_colorspace, const char *to_colorspace);
@@ -60,8 +67,10 @@ void IMB_colormanagement_pixel_from_role(float pixel[4], int role);
 void IMB_colormanagement_imbuf_to_role(struct ImBuf *ibuf, int role);
 void IMB_colormanagement_imbuf_from_role(struct ImBuf *ibuf, int role);
 
-void IMB_colormanagement_imbuf_make_scene_linear(struct ImBuf *ibuf,
-		struct ColorManagedColorspaceSettings *colorspace_settings);
+void IMB_colormanagement_imbuf_make_scene_linear(struct ImBuf *ibuf, struct ColorManagedColorspaceSettings *colorspace_settings);
+
+void IMB_colormanagement_imbuf_make_display_space(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
+                                                  const struct ColorManagedDisplaySettings *display_settings);
 
 /* ** Public display buffers interfaces ** */
 
@@ -81,11 +90,6 @@ void IMB_display_buffer_release(void *cache_handle);
 
 void IMB_display_buffer_invalidate(struct ImBuf *ibuf);
 
-void IMB_colormanagement_check_file_config(struct Main *bmain);
-
-void IMB_colormanagement_validate_settings(struct ColorManagedDisplaySettings *display_settings,
-                                           struct ColorManagedViewSettings *view_settings);
-
 /* ** Display funcrions ** */
 int IMB_colormanagement_display_get_named_index(const char *name);
 const char *IMB_colormanagement_display_get_indexed_name(int index);
@@ -104,7 +108,7 @@ void IMB_colormanagement_display_items_add(struct EnumPropertyItem **items, int 
 void IMB_colormanagement_view_items_add(struct EnumPropertyItem **items, int *totitem, const char *display_name);
 void IMB_colormanagement_colorspace_items_add(struct EnumPropertyItem **items, int *totitem);
 
-/* Tile-based buffer management */
+/* ** Tile-based buffer management ** */
 void IMB_partial_display_buffer_update(struct ImBuf *ibuf, const float *linear_buffer,
                                        int stride, int offset_x, int offset_y,
                                        int xmin, int ymin, int xmax, int ymax);

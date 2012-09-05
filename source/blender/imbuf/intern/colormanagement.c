@@ -599,7 +599,9 @@ typedef struct DisplayBufferThread {
 
 	float *buffer;
 	unsigned char *byte_buffer;
-	unsigned char *display_buffer;
+
+	float *display_buffer;
+	unsigned char *display_buffer_byte;
 
 	int width;
 	int start_line;
@@ -617,7 +619,10 @@ typedef struct DisplayBufferInitData {
 	void *processor;
 	float *buffer;
 	unsigned char *byte_buffer;
-	unsigned char *display_buffer;
+
+	float *display_buffer;
+	unsigned char *display_buffer_byte;
+
 	int width;
 } DisplayBufferInitData;
 
@@ -643,7 +648,11 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	if (init_data->byte_buffer)
 		handle->byte_buffer = init_data->byte_buffer + offset;
 
-	handle->display_buffer = init_data->display_buffer + offset;
+	if (init_data->display_buffer)
+		handle->display_buffer = init_data->display_buffer + offset;
+
+	if (init_data->display_buffer_byte)
+		handle->display_buffer_byte = init_data->display_buffer_byte + offset;
 
 	handle->width = ibuf->x;
 
@@ -658,7 +667,7 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 }
 
 static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned char *byte_buffer,
-                                          unsigned char *display_buffer,
+                                          float *display_buffer, unsigned char *display_buffer_byte,
                                           void *processor, void *(do_thread) (void *))
 {
 	DisplayBufferInitData init_data;
@@ -668,6 +677,7 @@ static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned c
 	init_data.buffer = buffer;
 	init_data.byte_buffer = byte_buffer;
 	init_data.display_buffer = display_buffer;
+	init_data.display_buffer_byte = display_buffer_byte;
 
 	IMB_processor_apply_threaded(ibuf->y, sizeof(DisplayBufferThread), &init_data,
 	                             display_buffer_init_handle, do_thread);
@@ -735,7 +745,8 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	ConstProcessorRcPtr *processor = (ConstProcessorRcPtr *) handle->processor;
 	PackedImageDesc *img;
 	float *buffer = handle->buffer;
-	unsigned char *display_buffer = handle->display_buffer;
+	float *display_buffer = handle->display_buffer;
+	unsigned char *display_buffer_byte = handle->display_buffer_byte;
 	int channels = handle->channels;
 	int width = handle->width;
 	int height = handle->tot_line;
@@ -751,10 +762,16 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 
 	OCIO_packedImageDescRelease(img);
 
-	/* do conversion */
-	IMB_buffer_byte_from_float(display_buffer, linear_buffer,
-	                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-	                           predivide, width, height, width, width);
+	if (display_buffer_byte) {
+		/* do conversion */
+		IMB_buffer_byte_from_float(display_buffer_byte, linear_buffer,
+		                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
+		                           predivide, width, height, width, width);
+	}
+
+	if (display_buffer) {
+		memcpy(display_buffer, linear_buffer, width * height * channels * sizeof(float));
+	}
 
 	if (linear_buffer != buffer)
 		MEM_freeN(linear_buffer);
@@ -811,9 +828,9 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 	return processor;
 }
 
-static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *display_buffer,
-                                               const ColorManagedViewSettings *view_settings,
-                                               const ColorManagedDisplaySettings *display_settings)
+static void colormanage_display_buffer_process_ex(ImBuf *ibuf, float *display_buffer, unsigned char *display_buffer_byte,
+                                                  const ColorManagedViewSettings *view_settings,
+                                                  const ColorManagedDisplaySettings *display_settings)
 {
 	ConstProcessorRcPtr *processor;
 	const float gamma = view_settings->gamma;
@@ -825,10 +842,18 @@ static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *displ
 
 	if (processor) {
 		display_buffer_apply_threaded(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect,
-		                              display_buffer, processor, do_display_buffer_apply_thread);
+		                              display_buffer, display_buffer_byte, processor,
+		                              do_display_buffer_apply_thread);
 	}
 
 	OCIO_processorRelease(processor);
+}
+
+static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *display_buffer,
+                                               const ColorManagedViewSettings *view_settings,
+                                               const ColorManagedDisplaySettings *display_settings)
+{
+	colormanage_display_buffer_process_ex(ibuf, NULL, display_buffer, view_settings, display_settings);
 }
 
 /*********************** Threaded color space transform routines *************************/
@@ -1075,6 +1100,30 @@ void IMB_colormanagement_imbuf_make_scene_linear(ImBuf *ibuf, ColorManagedColors
 #endif
 }
 
+void IMB_colormanagement_imbuf_make_display_space(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
+                                                  const ColorManagedDisplaySettings *display_settings)
+{
+#ifdef WITH_OCIO
+	/* OCIO_TODO: byte buffer management is not supported here yet */
+	if (!ibuf->rect_float)
+		return;
+
+	if (global_tot_display == 0 || global_tot_view == 0) {
+		IMB_buffer_float_from_float(ibuf->rect_float, ibuf->rect_float, ibuf->channels, IB_PROFILE_LINEAR_RGB, ibuf->profile,
+		                            ibuf->flags & IB_cm_predivide, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+	}
+	else {
+		colormanage_display_buffer_process_ex(ibuf, ibuf->rect_float, NULL, view_settings, display_settings);
+	}
+#else
+	(void) view_settings;
+	(void) display_settings;
+
+	IMB_buffer_float_from_float(ibuf->rect_float, ibuf->rect_float, ibuf->channels, IB_PROFILE_LINEAR_RGB, ibuf->profile,
+	                            ibuf->flags & IB_cm_predivide, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+#endif
+}
+
 #ifdef WITH_OCIO
 static void colormanage_flags_allocate(ImBuf *ibuf)
 {
@@ -1265,6 +1314,7 @@ void IMB_display_buffer_pixel(float result[4], const float pixel[4],  const Colo
 #endif
 }
 
+/* covert float buffer to display space and store it in image buffer's byte array */
 void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
                                       const ColorManagedDisplaySettings *display_settings)
 {

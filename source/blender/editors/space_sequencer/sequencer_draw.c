@@ -912,27 +912,35 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL)
 		return;
-	
-	switch (sseq->mainb) {
-		case SEQ_DRAW_IMG_IMBUF:
-			if (sseq->zebra != 0) {
-				scope = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
-			}
-			break;
-		case SEQ_DRAW_IMG_WAVEFORM:
-			if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
-				scope = make_sep_waveform_view_from_ibuf(ibuf);
-			}
-			else {
-				scope = make_waveform_view_from_ibuf(ibuf);
-			}
-			break;
-		case SEQ_DRAW_IMG_VECTORSCOPE:
-			scope = make_vectorscope_view_from_ibuf(ibuf);
-			break;
-		case SEQ_DRAW_IMG_HISTOGRAM:
-			scope = make_histogram_view_from_ibuf(ibuf);
-			break;
+
+	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		if (sseq->zebra != 0) {
+			scope = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
+		}
+	}
+	else {
+		ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
+
+		IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings, &scene->display_settings);
+
+		switch (sseq->mainb) {
+			case SEQ_DRAW_IMG_WAVEFORM:
+				if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
+					scope = make_sep_waveform_view_from_ibuf(display_ibuf);
+				}
+				else {
+					scope = make_waveform_view_from_ibuf(display_ibuf);
+				}
+				break;
+			case SEQ_DRAW_IMG_VECTORSCOPE:
+				scope = make_vectorscope_view_from_ibuf(display_ibuf);
+				break;
+			case SEQ_DRAW_IMG_HISTOGRAM:
+				scope = make_histogram_view_from_ibuf(display_ibuf);
+				break;
+		}
+
+		IMB_freeImBuf(display_ibuf);
 	}
 
 	if (scope) {
