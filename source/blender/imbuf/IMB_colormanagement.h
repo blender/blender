@@ -59,7 +59,8 @@ void IMB_colormanagement_validate_settings(struct ColorManagedDisplaySettings *d
 
 /* ** Color space transformation functions ** */
 void IMB_colormanagement_colorspace_transform(float *buffer, int width, int height, int channels,
-                                              const char *from_colorspace, const char *to_colorspace);
+                                              const char *from_colorspace, const char *to_colorspace,
+                                              int predivide);
 
 void IMB_colormanagement_pixel_to_role(float pixel[4], int role);
 void IMB_colormanagement_pixel_from_role(float pixel[4], int role);

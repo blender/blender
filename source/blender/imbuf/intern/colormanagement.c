@@ -176,6 +176,7 @@ typedef struct ColormanageCacheKey {
 typedef struct ColormnaageCacheData {
 	float exposure;  /* exposure value cached buffer is calculated with */
 	float gamma;     /* gamma value cached buffer is calculated with */
+	int predivide;   /* predivide flag of cached buffer */
 } ColormnaageCacheData;
 
 typedef struct ColormanageCache {
@@ -308,6 +309,7 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 	ColormanageCacheKey key;
 	ImBuf *cache_ibuf;
 	int view_flag = 1 << (view_settings->view - 1);
+	int predivide = ibuf->flags & IB_cm_predivide;
 
 	colormanage_settings_to_key(&key, view_settings, display_settings);
 
@@ -335,7 +337,8 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 		cache_data = colormanage_cachedata_get(cache_ibuf);
 
 		if (cache_data->exposure != view_settings->exposure ||
-		    cache_data->gamma != view_settings->gamma)
+		    cache_data->gamma != view_settings->gamma ||
+			cache_data->predivide != predivide)
 		{
 			*cache_handle = NULL;
 
@@ -358,6 +361,7 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 	ImBuf *cache_ibuf;
 	ColormnaageCacheData *cache_data;
 	int view_flag = 1 << (view_settings->view - 1);
+	int predivide = ibuf->flags & IB_cm_predivide;
 	struct MovieCache *moviecache = colormanage_moviecache_ensure(ibuf);
 
 	colormanage_settings_to_key(&key, view_settings, display_settings);
@@ -376,6 +380,7 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 	cache_data = MEM_callocN(sizeof(ColormnaageCacheData), "color manage cache imbuf data");
 	cache_data->exposure = view_settings->exposure;
 	cache_data->gamma = view_settings->gamma;
+	cache_data->predivide = predivide;
 
 	colormanage_cachedata_set(cache_ibuf, cache_data);
 
@@ -693,7 +698,6 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 
 	int buffer_size = channels * width * height;
 
-	/* TODO: do we actually need to handle alpha premultiply in some way here? */
 	int predivide = handle->predivide;
 
 	linear_buffer = MEM_callocN(buffer_size * sizeof(float), "color conversion linear buffer");
@@ -721,7 +725,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 		memcpy(linear_buffer, handle->buffer, buffer_size * sizeof(float));
 
 		IMB_colormanagement_colorspace_transform(linear_buffer, width, height, channels,
-		                                         from_colorspace, to_colorspace);
+		                                         from_colorspace, to_colorspace, predivide);
 	}
 	else {
 		/* some processors would want to modify float original buffer
@@ -758,7 +762,10 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	img = OCIO_createPackedImageDesc(linear_buffer, width, height, channels, sizeof(float),
 	                                 channels * sizeof(float), channels * sizeof(float) * width);
 
-	OCIO_processorApply(processor, img);
+	if (predivide)
+		OCIO_processorApply_predivide(processor, img);
+	else
+		OCIO_processorApply(processor, img);
 
 	OCIO_packedImageDescRelease(img);
 
@@ -865,6 +872,7 @@ typedef struct ColorspaceTransformThread {
 	int start_line;
 	int tot_line;
 	int channels;
+	int predivide;
 } ColorspaceTransformThread;
 
 typedef struct ColorspaceTransformInit {
@@ -873,6 +881,7 @@ typedef struct ColorspaceTransformInit {
 	int width;
 	int height;
 	int channels;
+	int predivide;
 } ColorspaceTransformInitData;
 
 static void colorspace_transform_init_handle(void *handle_v, int start_line, int tot_line, void *init_data_v)
@@ -882,6 +891,7 @@ static void colorspace_transform_init_handle(void *handle_v, int start_line, int
 
 	int channels = init_data->channels;
 	int width = init_data->width;
+	int predivide = init_data->predivide;
 
 	int offset = channels * start_line * width;
 
@@ -897,10 +907,11 @@ static void colorspace_transform_init_handle(void *handle_v, int start_line, int
 	handle->tot_line = tot_line;
 
 	handle->channels = channels;
+	handle->predivide = predivide;
 }
 
 static void colorspace_transform_apply_threaded(float *buffer, int width, int height, int channels,
-                                                void *processor, void *(do_thread) (void *))
+                                                void *processor, int predivide, void *(do_thread) (void *))
 {
 	ColorspaceTransformInitData init_data;
 
@@ -909,6 +920,7 @@ static void colorspace_transform_apply_threaded(float *buffer, int width, int he
 	init_data.width = width;
 	init_data.height = height;
 	init_data.channels = channels;
+	init_data.predivide = predivide;
 
 	IMB_processor_apply_threaded(height, sizeof(ColorspaceTransformThread), &init_data,
 	                             colorspace_transform_init_handle, do_thread);
@@ -923,11 +935,15 @@ static void *do_color_space_transform_thread(void *handle_v)
 	int channels = handle->channels;
 	int width = handle->width;
 	int height = handle->tot_line;
+	int predivide = handle->predivide;
 
 	img = OCIO_createPackedImageDesc(buffer, width, height, channels, sizeof(float),
 	                                 channels * sizeof(float), channels * sizeof(float) * width);
 
-	OCIO_processorApply(processor, img);
+	if (predivide)
+		OCIO_processorApply_predivide(processor, img);
+	else
+		OCIO_processorApply(processor, img);
 
 	OCIO_packedImageDescRelease(img);
 
@@ -947,7 +963,8 @@ static ConstProcessorRcPtr *create_colorspace_transform_processor(const char *fr
 #endif
 
 void IMB_colormanagement_colorspace_transform(float *buffer, int width, int height, int channels,
-                                              const char *from_colorspace, const char *to_colorspace)
+                                              const char *from_colorspace, const char *to_colorspace,
+                                              int predivide)
 {
 #ifdef WITH_OCIO
 	ConstProcessorRcPtr *processor;
@@ -966,8 +983,8 @@ void IMB_colormanagement_colorspace_transform(float *buffer, int width, int heig
 	processor = create_colorspace_transform_processor(from_colorspace, to_colorspace);
 
 	if (processor) {
-		colorspace_transform_apply_threaded(buffer, width, height, channels,
-		                                    processor, do_color_space_transform_thread);
+		colorspace_transform_apply_threaded(buffer, width, height, channels, processor, predivide,
+		                                    do_color_space_transform_thread);
 
 		OCIO_processorRelease(processor);
 	}
@@ -1012,12 +1029,13 @@ void IMB_colormanagement_imbuf_to_role(ImBuf *ibuf, int role)
 	if (ibuf->rect_float) {
 		const char *from_colorspace = global_role_scene_linear;
 		const char *to_colorspace = role_colorspace_name_get(role);
+		int predivide = ibuf->flags & IB_cm_predivide;
 
 		if (ibuf->rect)
 			imb_freerectImBuf(ibuf);
 
 		IMB_colormanagement_colorspace_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-		                                         from_colorspace, to_colorspace);
+		                                         from_colorspace, to_colorspace, predivide);
 	}
 #else
 	(void) ibuf;
@@ -1031,12 +1049,13 @@ void IMB_colormanagement_imbuf_from_role(ImBuf *ibuf, int role)
 	if (ibuf->rect_float) {
 		const char *from_colorspace = role_colorspace_name_get(role);
 		const char *to_colorspace = global_role_scene_linear;
+		int predivide = ibuf->flags & IB_cm_predivide;
 
 		if (ibuf->rect)
 			imb_freerectImBuf(ibuf);
 
 		IMB_colormanagement_colorspace_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-		                                         from_colorspace, to_colorspace);
+		                                         from_colorspace, to_colorspace, predivide);
 	}
 #else
 	(void) ibuf;
@@ -1090,9 +1109,10 @@ void IMB_colormanagement_imbuf_make_scene_linear(ImBuf *ibuf, ColorManagedColors
 	if (ibuf->rect_float) {
 		const char *from_colorspace = colorspace_settings->name;
 		const char *to_colorspace = global_role_scene_linear;
+		int predivide = ibuf->flags & IB_cm_predivide;
 
 		IMB_colormanagement_colorspace_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-		                                         from_colorspace, to_colorspace);
+		                                         from_colorspace, to_colorspace, predivide);
 	}
 #else
 	(void) ibuf;
@@ -1879,7 +1899,10 @@ static void partial_buffer_update_rect(unsigned char *display_buffer, const floa
 
 				copy_v4_v4(pixel, (float *) linear_buffer + linear_index);
 
-				OCIO_processorApplyRGBA(processor, pixel);
+				if (predivide)
+					OCIO_processorApplyRGBA_predivide(processor, pixel);
+				else
+					OCIO_processorApplyRGBA(processor, pixel);
 
 				rgba_float_to_uchar(display_buffer + display_index, pixel);
 			}

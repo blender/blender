@@ -443,6 +443,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 				case ND_MODE:
 				case ND_RENDER_RESULT:
+				case ND_RENDER_OPTIONS:
 				case ND_COMPO_RESULT:
 					if (ED_space_image_show_render(sima))
 						image_scopes_tag_refresh(sa);

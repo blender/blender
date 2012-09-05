@@ -83,8 +83,10 @@ ConstProcessorRcPtr *OCIO_configGetProcessorWithNames(ConstConfigRcPtr *config, 
 ConstProcessorRcPtr *OCIO_configGetProcessor(ConstConfigRcPtr *config, ConstTransformRcPtr *transform);
 
 void OCIO_processorApply(ConstProcessorRcPtr *processor, PackedImageDesc *img);
+void OCIO_processorApply_predivide(ConstProcessorRcPtr *processor, PackedImageDesc *img);
 void OCIO_processorApplyRGB(ConstProcessorRcPtr *processor, float *pixel);
 void OCIO_processorApplyRGBA(ConstProcessorRcPtr *processor, float *pixel);
+void OCIO_processorApplyRGBA_predivide(ConstProcessorRcPtr *processor, float *pixel);
 
 void OCIO_processorRelease(ConstProcessorRcPtr *p);
 

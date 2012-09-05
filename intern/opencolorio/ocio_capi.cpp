@@ -304,6 +304,34 @@ void OCIO_processorApply(ConstProcessorRcPtr *processor, PackedImageDesc *img)
 	}
 }
 
+void OCIO_processorApply_predivide(ConstProcessorRcPtr *processor, PackedImageDesc *img)
+{
+	try {
+		int channels = img->getNumChannels();
+
+		if (channels == 4) {
+			float *pixels = img->getData();
+
+			int width = img->getWidth();
+			int height = img->getHeight();
+
+			for (int y = 0; y < height; y++) {
+				for (int x = 0; x < width; x++) {
+					float *pixel = pixels + 4 * (y * width + x);
+
+					OCIO_processorApplyRGBA_predivide(processor, pixel);
+				}
+			}
+		}
+		else {
+			(*processor)->apply(*img);
+		}
+	}
+	catch (Exception &exception) {
+		OCIO_reportException(exception);
+	}
+}
+
 void OCIO_processorApplyRGB(ConstProcessorRcPtr *processor, float *pixel)
 {
 	(*processor)->applyRGB(pixel);
@@ -312,6 +340,29 @@ void OCIO_processorApplyRGB(ConstProcessorRcPtr *processor, float *pixel)
 void OCIO_processorApplyRGBA(ConstProcessorRcPtr *processor, float *pixel)
 {
 	(*processor)->applyRGBA(pixel);
+}
+
+void OCIO_processorApplyRGBA_predivide(ConstProcessorRcPtr *processor, float *pixel)
+{
+	if (pixel[3] == 1.0f || pixel[3] == 0.0f) {
+		(*processor)->applyRGBA(pixel);
+	}
+	else {
+		float alpha, inv_alpha;
+
+		alpha = pixel[3];
+		inv_alpha = 1.0f / alpha;
+
+		pixel[0] *= inv_alpha;
+		pixel[1] *= inv_alpha;
+		pixel[2] *= inv_alpha;
+
+		(*processor)->applyRGBA(pixel);
+
+		pixel[0] *= alpha;
+		pixel[1] *= alpha;
+		pixel[2] *= alpha;
+	}
 }
 
 void OCIO_processorRelease(ConstProcessorRcPtr *p)
