@@ -102,6 +102,8 @@ ustring Attribute::standard_name(AttributeStandard std)
 		return ustring("motion_pre");
 	else if(std == ATTR_STD_MOTION_POST)
 		return ustring("motion_post");
+	else if(std == ATTR_STD_PARTICLE)
+		return ustring("particle");
 
 	return ustring();
 }
