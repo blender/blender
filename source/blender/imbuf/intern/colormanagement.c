@@ -318,6 +318,8 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 	ImBuf *cache_ibuf;
 	int view_flag = 1 << (view_settings->view - 1);
 	int predivide = ibuf->flags & IB_cm_predivide;
+	CurveMapping *curve_mapping = view_settings->curve_mapping;
+	int curve_mapping_timestamp = curve_mapping ? curve_mapping->changed_timestamp : 0;
 
 	colormanage_settings_to_key(&key, view_settings, display_settings);
 
@@ -348,8 +350,8 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 		    cache_data->gamma != view_settings->gamma ||
 			cache_data->predivide != predivide ||
 			cache_data->flag != view_settings->flag ||
-			cache_data->curve_mapping != view_settings->curve_mapping ||
-			cache_data->curve_mapping_timestamp != view_settings->curve_mapping->changed_timestamp)
+			cache_data->curve_mapping != curve_mapping ||
+			cache_data->curve_mapping_timestamp != curve_mapping_timestamp)
 		{
 			*cache_handle = NULL;
 
@@ -374,6 +376,8 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 	int view_flag = 1 << (view_settings->view - 1);
 	int predivide = ibuf->flags & IB_cm_predivide;
 	struct MovieCache *moviecache = colormanage_moviecache_ensure(ibuf);
+	CurveMapping *curve_mapping = view_settings->curve_mapping;
+	int curve_mapping_timestamp = curve_mapping ? curve_mapping->changed_timestamp : 0;
 
 	colormanage_settings_to_key(&key, view_settings, display_settings);
 
@@ -393,8 +397,8 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 	cache_data->gamma = view_settings->gamma;
 	cache_data->predivide = predivide;
 	cache_data->flag = view_settings->flag;
-	cache_data->curve_mapping = view_settings->curve_mapping;
-	cache_data->curve_mapping_timestamp = view_settings->curve_mapping->changed_timestamp;
+	cache_data->curve_mapping = curve_mapping;
+	cache_data->curve_mapping_timestamp = curve_mapping_timestamp;
 
 	colormanage_cachedata_set(cache_ibuf, cache_data);
 
