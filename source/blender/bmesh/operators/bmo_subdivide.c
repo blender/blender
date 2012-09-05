@@ -989,7 +989,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			 * - concave corner of an ngon.
 			 * - 2 edges being used in 2+ ngons.
 			 */
-			BM_face_legal_splits(bm, face, loops_split, BLI_array_count(loops_split));
+//			BM_face_legal_splits(bm, face, loops_split, BLI_array_count(loops_split));
 
 			for (j = 0; j < BLI_array_count(loops_split); j++) {
 				if (loops_split[j][0]) {
