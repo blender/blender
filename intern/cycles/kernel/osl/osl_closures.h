@@ -51,6 +51,8 @@ enum {
 	OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_ID,
 	OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID,
 	OSL_CLOSURE_BSDF_WARD_ID,
+	OSL_CLOSURE_BSDF_PHONG_ID,
+	OSL_CLOSURE_BSDF_PHONG_RAMP_ID,
 	OSL_CLOSURE_BSDF_ASHIKHMIN_VELVET_ID,
 	OSL_CLOSURE_BSDF_WESTIN_BACKSCATTER_ID,
 	OSL_CLOSURE_BSDF_WESTIN_SHEEN_ID,
@@ -73,6 +75,8 @@ extern OSL::ClosureParam bsdf_microfacet_ggx_refraction_params[];
 extern OSL::ClosureParam bsdf_microfacet_beckmann_params[];
 extern OSL::ClosureParam bsdf_microfacet_beckmann_refraction_params[];
 extern OSL::ClosureParam bsdf_ward_params[];
+extern OSL::ClosureParam bsdf_phong_params[];
+extern OSL::ClosureParam bsdf_phong_ramp_params[];
 extern OSL::ClosureParam bsdf_ashikhmin_velvet_params[];
 extern OSL::ClosureParam bsdf_westin_backscatter_params[];
 extern OSL::ClosureParam bsdf_westin_sheen_params[];
@@ -94,6 +98,8 @@ void bsdf_microfacet_ggx_refraction_prepare(OSL::RendererServices *, int id, voi
 void bsdf_microfacet_beckmann_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_microfacet_beckmann_refraction_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_ward_prepare(OSL::RendererServices *, int id, void *data);
+void bsdf_phong_prepare(OSL::RendererServices *, int id, void *data);
+void bsdf_phong_ramp_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_ashikhmin_velvet_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_westin_backscatter_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_westin_sheen_prepare(OSL::RendererServices *, int id, void *data);
