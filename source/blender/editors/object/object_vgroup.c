@@ -62,6 +62,7 @@
 #include "BKE_tessmesh.h"
 #include "BKE_report.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_object_deform.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1136,7 +1137,6 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	}
 }
 
-/* TODO - select between groups */
 static void vgroup_normalize_all(Object *ob, int lock_active)
 {
 	MDeformVert *dv, **dvert_array = NULL;
@@ -1152,27 +1152,33 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
-		if (lock_active) {
+		const int defbase_tot = BLI_countlist(&ob->defbase);
+		char *lock_flags = BKE_objdef_lock_flags_get(ob, defbase_tot);
 
-			for (i = 0; i < dvert_tot; i++) {
-				/* in case its not selected */
-				if (!(dv = dvert_array[i])) {
-					continue;
+		if ((lock_active == TRUE) &&
+		    (lock_flags != NULL) &&
+		    (def_nr < defbase_tot))
+		{
+			lock_flags[def_nr] = TRUE;
+		}
+
+		for (i = 0; i < dvert_tot; i++) {
+			/* in case its not selected */
+			if ((dv = dvert_array[i])) {
+				if (lock_flags) {
+					defvert_normalize_lock_map(dv, lock_flags, defbase_tot);
 				}
-
-				defvert_normalize_lock(dv, def_nr);
+				else if (lock_active) {
+					defvert_normalize_lock_single(dv, def_nr);
+				}
+				else {
+					defvert_normalize(dv);
+				}
 			}
 		}
-		else {
-			for (i = 0; i < dvert_tot; i++) {
 
-				/* in case its not selected */
-				if (!(dv = dvert_array[i])) {
-					continue;
-				}
-
-				defvert_normalize(dv);
-			}
+		if (lock_flags) {
+			MEM_freeN(lock_flags);
 		}
 
 		MEM_freeN(dvert_array);
