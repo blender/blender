@@ -938,9 +938,9 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			BLI_array_empty(splits);
 
 			/* for case of two edges, connecting them shouldn't be too hard */
-			BM_ITER_ELEM (l, &liter, face, BM_LOOPS_OF_FACE) {
-				BLI_array_grow_one(loops);
-				loops[BLI_array_count(loops) - 1] = l;
+			BLI_array_grow_items(loops, face->len);
+			BM_ITER_ELEM_INDEX (l, &liter, face, BM_LOOPS_OF_FACE, a) {
+				loops[a] = l;
 			}
 			
 			vlen = BLI_array_count(loops);
@@ -971,18 +971,21 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			
 			b += numcuts - 1;
 
+			BLI_array_grow_items(splits, numcuts * 2);
 			for (j = 0; j < numcuts; j++) {
-				BLI_array_grow_one(splits);
-				splits[BLI_array_count(splits) - 1] = loops[a];
-				
-				BLI_array_grow_one(splits);
-				splits[BLI_array_count(splits) - 1] = loops[b];
+				splits[j * 2 + 0] = loops[a];
+				splits[j * 2 + 1] = loops[b];
 
 				b = (b - 1) % vlen;
 				a = (a + 1) % vlen;
 			}
 			
-			//BM_face_legal_splits(bmesh, face, splits, BLI_array_count(splits) / 2);
+			/* Since these are newly created vertices, we don't need to worry about them being legal,
+			 * ... though there are some cases we _should_ check for
+			 * - concave corner of an ngon.
+			 * - 2 edges being used in 2+ ngons.
+			 */
+			// BM_face_legal_splits(bm, face, (BMLoop *(*)[2])splits, BLI_array_count(splits) / 2);
 
 			for (j = 0; j < BLI_array_count(splits) / 2; j++) {
 				if (splits[j * 2]) {
@@ -997,27 +1000,19 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		j = a = 0;
-		for (nl = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, face);
-		     nl;
-		     nl = BM_iter_step(&liter))
-		{
+		a = 0;
+		BM_ITER_ELEM_INDEX (nl, &liter, face, BM_LOOPS_OF_FACE, j) {
 			if (nl->v == facedata[i].start) {
 				a = j + 1;
 				break;
 			}
-			j++;
 		}
 
-		for (j = 0; j < face->len; j++) {
-			BLI_array_grow_one(verts);
-		}
-		
-		j = 0;
-		for (nl = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, face); nl; nl = BM_iter_step(&liter)) {
+		BLI_array_grow_items(verts, face->len);
+
+		BM_ITER_ELEM_INDEX (nl, &liter, face, BM_LOOPS_OF_FACE, j) {
 			b = (j - a + face->len) % face->len;
 			verts[b] = nl->v;
-			j += 1;
 		}
 
 		BM_CHECK_ELEMENT(face);
