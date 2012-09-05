@@ -152,7 +152,6 @@ EnumPropertyItem clip_editor_mode_items[] = {
 #include "ED_sequencer.h"
 #include "ED_clip.h"
 
-#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
 static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
@@ -1904,7 +1903,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 		{SB_TEXC_MAT_OR_LAMP, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
 		{0, NULL, 0, NULL, NULL}
 	};                             /*actually populated dynamically trough a function */
-
+		
 	srna = RNA_def_struct(brna, "SpaceProperties", "Space");
 	RNA_def_struct_sdna(srna, "SpaceButs");
 	RNA_def_struct_ui_text(srna, "Properties Space", "Properties space data");

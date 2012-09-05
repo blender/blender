@@ -40,7 +40,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_node.h"
@@ -307,7 +306,7 @@ static void node_area_refresh(const struct bContext *C, ScrArea *sa)
 static SpaceLink *node_duplicate(SpaceLink *sl)
 {
 	SpaceNode *snoden = MEM_dupallocN(sl);
-	
+
 	/* clear or remove stuff from old */
 	snoden->nodetree = NULL;
 	snoden->linkdrag.first = snoden->linkdrag.last = NULL;

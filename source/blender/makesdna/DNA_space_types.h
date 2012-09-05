@@ -40,6 +40,7 @@
 #include "DNA_outliner_types.h"     /* for TreeStoreElem */
 #include "DNA_image_types.h"        /* ImageUser */
 #include "DNA_movieclip_types.h"    /* MovieClipUser */
+#include "DNA_sequence_types.h"    /* SequencerScopes */
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
 

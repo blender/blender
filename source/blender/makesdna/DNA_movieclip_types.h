@@ -38,7 +38,6 @@
 #include "DNA_ID.h"
 #include "DNA_tracking_types.h"
 #include "DNA_color_types.h"  /* for color management */
-#include "DNA_sequence_types.h"
 
 struct anim;
 struct AnimData;

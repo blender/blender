@@ -356,8 +356,6 @@ class INFO_MT_window(Menu):
     def draw(self, context):
         import sys
 
-        window = context.window
-
         layout = self.layout
 
         layout.operator("wm.window_duplicate")

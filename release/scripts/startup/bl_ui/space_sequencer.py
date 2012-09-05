@@ -874,11 +874,6 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
             col.prop(st, "show_separate_color")
         col.prop(st, "proxy_render_size")
 
-        #col = layout.column()
-        #col.separator()
-        #col.label(text="Color Management:")
-        #col.template_colormanaged_view_settings(st, "view_settings", True)
-
 
 class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
     bl_label = "Modifiers"

@@ -49,7 +49,6 @@
 #include "DNA_mask_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -852,7 +851,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rect = sa->totrct;
 	BLI_rcti_translate(&rect, win->posx, win->posy);
 	newwin = WM_window_open(C, &rect);
-
+	
 	/* allocs new screen and adds to newly created window, using window size */
 	newsc = ED_screen_add(newwin, CTX_data_scene(C), sc->id.name + 2);
 	newwin->screen = newsc;

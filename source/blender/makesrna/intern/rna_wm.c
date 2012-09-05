@@ -440,8 +440,6 @@ EnumPropertyItem wm_report_items[] = {
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_colormanagement.h"
-
 static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)
 {
 	wmWindowManager *wm = ptr->id.data;
