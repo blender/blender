@@ -195,9 +195,7 @@ static SpaceLink *image_new(const bContext *UNUSED(C))
 static void image_free(SpaceLink *sl)
 {	
 	SpaceImage *simage = (SpaceImage *) sl;
-	
-	if (simage->cumap)
-		curvemapping_free(simage->cumap);
+
 	scopes_free(&simage->scopes);
 }
 
@@ -217,8 +215,6 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
 	SpaceImage *simagen = MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
-	if (simagen->cumap)
-		simagen->cumap = curvemapping_copy(simagen->cumap);
 
 	scopes_new(&simagen->scopes);
 

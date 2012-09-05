@@ -2053,7 +2053,9 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
 	ImageSampleInfo *info = op->customdata;
 	float fx, fy;
-	
+	Scene *scene = CTX_data_scene(C);
+	CurveMapping *curve_mapping = scene->view_settings.curve_mapping;
+
 	if (ibuf == NULL) {
 		ED_space_image_release_buffer(sima, lock);
 		info->draw = 0;
@@ -2117,25 +2119,21 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 			info->zf = ibuf->zbuf_float[y * ibuf->x + x];
 			info->zfp = &info->zf;
 		}
-		
-		if (sima->cumap && ibuf->channels == 4) {
+
+		if (curve_mapping && ibuf->channels == 4) {
 			/* we reuse this callback for set curves point operators */
 			if (RNA_struct_find_property(op->ptr, "point")) {
 				int point = RNA_enum_get(op->ptr, "point");
 
 				if (point == 1) {
-					curvemapping_set_black_white(sima->cumap, NULL, info->colfp);
-					if (ibuf->rect_float)
-						curvemapping_do_ibuf(sima->cumap, ibuf);
+					curvemapping_set_black_white(curve_mapping, NULL, info->colfp);
 				}
 				else if (point == 0) {
-					curvemapping_set_black_white(sima->cumap, info->colfp, NULL);
-					if (ibuf->rect_float)
-						curvemapping_do_ibuf(sima->cumap, ibuf);
+					curvemapping_set_black_white(curve_mapping, info->colfp, NULL);
 				}
 			}
 		}
-				
+
 		// XXX node curve integration ..
 #if 0
 		{

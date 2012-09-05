@@ -423,6 +423,22 @@ static EnumPropertyItem* rna_ColorManagedViewSettings_view_transform_itemf(bCont
 	return items;
 }
 
+static void rna_ColorManagedViewSettings_use_curves_set(PointerRNA *ptr, int value)
+{
+	ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *) ptr->data;
+
+	if (value) {
+		view_settings->flag |= COLORMANAGE_VIEW_USE_CURVES;
+
+		if (view_settings->curve_mapping == NULL) {
+			view_settings->curve_mapping = curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+		}
+	}
+	else {
+		view_settings->flag &= ~COLORMANAGE_VIEW_USE_CURVES;
+	}
+}
+
 static int rna_ColorManagedColorspaceSettings_colorspace_get(struct PointerRNA *ptr)
 {
 	ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *) ptr->data;
@@ -869,14 +885,25 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "exposure");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
 	RNA_def_property_float_default(prop, 0.0f);
-	RNA_def_property_ui_text(prop, "Exposure", "Exposure (stops) applied on displaying image buffers");
+	RNA_def_property_ui_text(prop, "Exposure", "Exposure (stops) applied after display transform");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
 	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "gamma");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.0f, 5.0f);
-	RNA_def_property_ui_text(prop, "Gamma", "Amount f gamma modification for displaying image buffers");
+	RNA_def_property_ui_text(prop, "Gamma", "Amount of gamma modification applied after display transform");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+	prop = RNA_def_property(srna, "curve_mapping", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "curve_mapping");
+	RNA_def_property_ui_text(prop, "Curve", "Color curve mapping applied before display transform");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+	prop = RNA_def_property(srna, "use_curve_mapping", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLORMANAGE_VIEW_USE_CURVES);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_ColorManagedViewSettings_use_curves_set");
+	RNA_def_property_ui_text(prop, "Use Curves", "Use RGB curved for pre-display transformation");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
 	/* ** Colorspace **  */

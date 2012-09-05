@@ -40,7 +40,7 @@
 #include "DNA_outliner_types.h"     /* for TreeStoreElem */
 #include "DNA_image_types.h"        /* ImageUser */
 #include "DNA_movieclip_types.h"    /* MovieClipUser */
-#include "DNA_sequence_types.h"    /* SequencerScopes */
+#include "DNA_sequence_types.h"     /* SequencerScopes */
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
 
@@ -688,8 +688,9 @@ typedef struct SpaceImage {
 
 	struct Image *image;
 	struct ImageUser iuser;
-	struct CurveMapping *cumap;
-	
+
+	struct CurveMapping *cumap DNA_DEPRECATED;  /* was switched to scene's color management settings */
+
 	struct Scopes scopes;           /* histogram waveform and vectorscope */
 	struct Histogram sample_line_hist;  /* sample line histogram */
 

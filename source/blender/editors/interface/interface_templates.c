@@ -2848,4 +2848,9 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout, bContext *UNUSED(C), P
 	col = uiLayoutColumn(layout, FALSE);
 	uiItemR(col, &view_transform_ptr, "exposure", 0, NULL, ICON_NONE);
 	uiItemR(col, &view_transform_ptr, "gamma", 0, NULL, ICON_NONE);
+
+	col = uiLayoutColumn(layout, FALSE);
+	uiItemR(col, &view_transform_ptr, "use_curve_mapping", 0, NULL, ICON_NONE);
+	if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES)
+		uiTemplateCurveMapping(col, &view_transform_ptr, "curve_mapping", 'c', TRUE, 0);
 }

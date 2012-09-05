@@ -175,6 +175,7 @@ void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], con
 	}
 
 	curvemapping_set_black_white_ex(cumap->black, cumap->white, cumap->bwmul);
+	cumap->changed_timestamp++;
 }
 
 /* ***************** operations on single curve ************* */
@@ -1289,8 +1290,18 @@ void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings
 {
 	BLI_strncpy(new_settings->view_transform, settings->view_transform, sizeof(new_settings->view_transform));
 
+	new_settings->flag = settings->flag;
 	new_settings->exposure = settings->exposure;
 	new_settings->gamma = settings->gamma;
+
+	if (settings->curve_mapping)
+		new_settings->curve_mapping = curvemapping_copy(settings->curve_mapping);
+}
+
+void BKE_color_managed_view_settings_free(ColorManagedViewSettings *settings)
+{
+	if (settings->curve_mapping)
+		curvemapping_free(settings->curve_mapping);
 }
 
 void BKE_color_managed_colorspace_settings_init(ColorManagedColorspaceSettings *colorspace_settings)

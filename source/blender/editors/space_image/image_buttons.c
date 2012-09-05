@@ -169,47 +169,6 @@ struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 
 /* ************ panel stuff ************* */
 
-/* is used for both read and write... */
-
-static int image_panel_poll(const bContext *C, PanelType *UNUSED(pt))
-{
-	SpaceImage *sima = CTX_wm_space_image(C);
-	ImBuf *ibuf;
-	void *lock;
-	int result;
-
-	ibuf = ED_space_image_acquire_buffer(sima, &lock);
-	result = ibuf && ibuf->rect_float;
-	ED_space_image_release_buffer(sima, lock);
-	
-	return result;
-}
-
-static void image_panel_curves(const bContext *C, Panel *pa)
-{
-	bScreen *sc = CTX_wm_screen(C);
-	SpaceImage *sima = CTX_wm_space_image(C);
-	ImBuf *ibuf;
-	PointerRNA simaptr;
-	int levels;
-	void *lock;
-	
-	ibuf = ED_space_image_acquire_buffer(sima, &lock);
-	
-	if (ibuf) {
-		if (sima->cumap == NULL)
-			sima->cumap = curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
-
-		/* curvemap black/white levels only works for RGBA */
-		levels = (ibuf->channels == 4);
-
-		RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &simaptr);
-		uiTemplateCurveMapping(pa->layout, &simaptr, "curve", 'c', levels, 0);
-	}
-
-	ED_space_image_release_buffer(sima, lock);
-}
-
 #if 0
 /* 0: disable preview 
  * otherwise refresh preview
@@ -913,14 +872,6 @@ void image_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt = MEM_callocN(sizeof(PanelType), "spacetype image panel curves");
-	strcpy(pt->idname, "IMAGE_PT_curves");
-	strcpy(pt->label, "Curves");
-	pt->draw = image_panel_curves;
-	pt->poll = image_panel_poll;
-	pt->flag |= PNL_DEFAULT_CLOSED;
-	BLI_addtail(&art->paneltypes, pt);
-	
 	pt = MEM_callocN(sizeof(PanelType), "spacetype image panel gpencil");
 	strcpy(pt->idname, "IMAGE_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");

@@ -56,6 +56,7 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
 #include "BKE_main.h"
@@ -159,9 +160,11 @@ static int global_tot_view = 0;
  *       to color management cache system and keeps calls small and nice.
  */
 typedef struct ColormanageCacheViewSettings {
+	int flag;
 	int view;
 	float exposure;
 	float gamma;
+	CurveMapping *curve_mapping;
 } ColormanageCacheViewSettings;
 
 typedef struct ColormanageCacheDisplaySettings {
@@ -174,9 +177,12 @@ typedef struct ColormanageCacheKey {
 } ColormanageCacheKey;
 
 typedef struct ColormnaageCacheData {
+	int flag;        /* view flags of cached buffer */
 	float exposure;  /* exposure value cached buffer is calculated with */
 	float gamma;     /* gamma value cached buffer is calculated with */
 	int predivide;   /* predivide flag of cached buffer */
+	CurveMapping *curve_mapping;  /* curve mapping used for cached buffer */
+	int curve_mapping_timestamp;  /* time stamp of curve mapping used for cached buffer */
 } ColormnaageCacheData;
 
 typedef struct ColormanageCache {
@@ -264,6 +270,8 @@ static void colormanage_view_settings_to_cache(ColormanageCacheViewSettings *cac
 	cache_view_settings->view = view;
 	cache_view_settings->exposure = view_settings->exposure;
 	cache_view_settings->gamma = view_settings->gamma;
+	cache_view_settings->flag = view_settings->flag;
+	cache_view_settings->curve_mapping = view_settings->curve_mapping;
 }
 
 static void colormanage_display_settings_to_cache(ColormanageCacheDisplaySettings *cache_display_settings,
@@ -338,7 +346,10 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 
 		if (cache_data->exposure != view_settings->exposure ||
 		    cache_data->gamma != view_settings->gamma ||
-			cache_data->predivide != predivide)
+			cache_data->predivide != predivide ||
+			cache_data->flag != view_settings->flag ||
+			cache_data->curve_mapping != view_settings->curve_mapping ||
+			cache_data->curve_mapping_timestamp != view_settings->curve_mapping->changed_timestamp)
 		{
 			*cache_handle = NULL;
 
@@ -381,6 +392,9 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 	cache_data->exposure = view_settings->exposure;
 	cache_data->gamma = view_settings->gamma;
 	cache_data->predivide = predivide;
+	cache_data->flag = view_settings->flag;
+	cache_data->curve_mapping = view_settings->curve_mapping;
+	cache_data->curve_mapping_timestamp = view_settings->curve_mapping->changed_timestamp;
 
 	colormanage_cachedata_set(cache_ibuf, cache_data);
 
@@ -600,6 +614,7 @@ void IMB_colormanagement_exit(void)
 
 #ifdef WITH_OCIO
 typedef struct DisplayBufferThread {
+	CurveMapping *curve_mapping;
 	void *processor;
 
 	float *buffer;
@@ -621,6 +636,7 @@ typedef struct DisplayBufferThread {
 
 typedef struct DisplayBufferInitData {
 	ImBuf *ibuf;
+	CurveMapping *curve_mapping;
 	void *processor;
 	float *buffer;
 	unsigned char *byte_buffer;
@@ -636,6 +652,7 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	DisplayBufferThread *handle = (DisplayBufferThread *) handle_v;
 	DisplayBufferInitData *init_data = (DisplayBufferInitData *) init_data_v;
 	ImBuf *ibuf = init_data->ibuf;
+	CurveMapping *curve_mapping = init_data->curve_mapping;
 
 	int predivide = ibuf->flags & IB_cm_predivide;
 	int channels = ibuf->channels;
@@ -667,17 +684,19 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	handle->channels = channels;
 	handle->dither = dither;
 	handle->predivide = predivide;
+	handle->curve_mapping = curve_mapping;
 
 	handle->nolinear_float = ibuf->colormanage_flags & IMB_COLORMANAGE_NOLINEAR_FLOAT;
 }
 
 static void display_buffer_apply_threaded(ImBuf *ibuf, float *buffer, unsigned char *byte_buffer,
                                           float *display_buffer, unsigned char *display_buffer_byte,
-                                          void *processor, void *(do_thread) (void *))
+                                          CurveMapping *curve_mapping, void *processor, void *(do_thread) (void *))
 {
 	DisplayBufferInitData init_data;
 
 	init_data.ibuf = ibuf;
+	init_data.curve_mapping = curve_mapping;
 	init_data.processor = processor;
 	init_data.buffer = buffer;
 	init_data.byte_buffer = byte_buffer;
@@ -746,6 +765,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 static void *do_display_buffer_apply_thread(void *handle_v)
 {
 	DisplayBufferThread *handle = (DisplayBufferThread *) handle_v;
+	CurveMapping *curve_mapping = handle->curve_mapping;
 	ConstProcessorRcPtr *processor = (ConstProcessorRcPtr *) handle->processor;
 	PackedImageDesc *img;
 	float *buffer = handle->buffer;
@@ -758,6 +778,27 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	int predivide = handle->predivide;
 
 	float *linear_buffer = display_buffer_apply_get_linear_buffer(handle);
+
+	if (curve_mapping) {
+		int x, y;
+
+		for (y = 0; y < height; y++) {
+			for (x = 0; x < width; x++) {
+				float *pixel = linear_buffer + channels * (y * width + x);
+
+				if (channels == 1) {
+					pixel[0] = curvemap_evaluateF(curve_mapping->cm, pixel[0]);
+				}
+				else if (channels == 2) {
+					pixel[0] = curvemap_evaluateF(curve_mapping->cm, pixel[0]);
+					pixel[1] = curvemap_evaluateF(curve_mapping->cm, pixel[1]);
+				}
+				else {
+					curvemapping_evaluate_premulRGBF(curve_mapping, pixel, pixel);
+				}
+			}
+		}
+	}
 
 	img = OCIO_createPackedImageDesc(linear_buffer, width, height, channels, sizeof(float),
 	                                 channels * sizeof(float), channels * sizeof(float) * width);
@@ -848,9 +889,20 @@ static void colormanage_display_buffer_process_ex(ImBuf *ibuf, float *display_bu
 	processor = create_display_buffer_processor(view_transform, display, exposure, gamma);
 
 	if (processor) {
+		CurveMapping *curve_mapping = NULL;
+
+		if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
+			curve_mapping = view_settings->curve_mapping;
+
+			curvemapping_premultiply(curve_mapping, FALSE);
+		}
+
 		display_buffer_apply_threaded(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect,
-		                              display_buffer, display_buffer_byte, processor,
+		                              display_buffer, display_buffer_byte, curve_mapping, processor,
 		                              do_display_buffer_apply_thread);
+
+		if (curve_mapping)
+			curvemapping_premultiply(curve_mapping, TRUE);
 	}
 
 	OCIO_processorRelease(processor);
@@ -1324,8 +1376,32 @@ void IMB_display_buffer_pixel(float result[4], const float pixel[4],  const Colo
 
 	processor = create_display_buffer_processor(view_transform, display, exposure, gamma);
 
-	if (processor)
-		OCIO_processorApplyRGBA(processor, result);
+	if (processor) {
+
+		if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
+			CurveMapping *curve_mapping = NULL;
+
+			/* curve mapping could be used meanwhile to compute display buffer,
+			 * so need to lock here to be sure we're not changing curve mapping
+			 * from separated threads
+			 */
+			BLI_lock_thread(LOCK_COLORMANAGE);
+
+			curve_mapping = view_settings->curve_mapping;
+
+			curvemapping_premultiply(curve_mapping, FALSE);
+
+			curvemapping_evaluate_premulRGBF(curve_mapping, result, result);
+			OCIO_processorApplyRGBA(processor, result);
+
+			curvemapping_premultiply(curve_mapping, TRUE);
+
+			BLI_unlock_thread(LOCK_COLORMANAGE);
+		}
+		else {
+			OCIO_processorApplyRGBA(processor, result);
+		}
+	}
 #else
 	(void) view_settings;
 	(void) display_settings;

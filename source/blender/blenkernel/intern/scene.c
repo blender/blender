@@ -342,6 +342,8 @@ void BKE_scene_free(Scene *sce)
 		MEM_freeN(sce->fps_info);
 
 	sound_destroy_scene(sce);
+
+	BKE_color_managed_view_settings_free(&sce->view_settings);
 }
 
 Scene *BKE_scene_add(const char *name)

@@ -4904,6 +4904,14 @@ static void direct_link_sequence_modifiers(FileData *fd, ListBase *lb)
 	}
 }
 
+static void direct_link_view_settings(FileData *fd, ColorManagedViewSettings *view_settings)
+{
+	view_settings->curve_mapping = newdataadr(fd, view_settings->curve_mapping);
+
+	if (view_settings->curve_mapping)
+		direct_link_curvemapping(fd, view_settings->curve_mapping);
+}
+
 static void direct_link_scene(FileData *fd, Scene *sce)
 {
 	Editing *ed;
@@ -5081,6 +5089,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->nodetree = newdataadr(fd, sce->nodetree);
 	if (sce->nodetree)
 		direct_link_nodetree(fd, sce->nodetree);
+
+	direct_link_view_settings(fd, &sce->view_settings);
 }
 
 /* ************ READ WM ***************** */

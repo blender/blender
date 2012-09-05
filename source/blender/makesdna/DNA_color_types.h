@@ -161,9 +161,11 @@ typedef struct Scopes {
 #define SCOPES_WAVEFRM_YCC_JPEG	4
 
 typedef struct ColorManagedViewSettings {
+	int flag, pad;
 	char view_transform[64];   /* view transform which is being applied when displaying buffer on the screen */
 	float exposure;            /* fstop exposure */
 	float gamma;               /* post-display gamma transform */
+	struct CurveMapping *curve_mapping;  /* pre-display RGB curves transform */
 } ColorManagedViewSettings;
 
 typedef struct ColorManagedDisplaySettings {
@@ -174,5 +176,9 @@ typedef struct ColorManagedColorspaceSettings {
 	char name[64];
 } ColorManagedColorspaceSettings;
 
-#endif
+/* ColorManagedViewSettings->flag */
+enum {
+	COLORMANAGE_VIEW_USE_CURVES = (1 << 0)
+};
 
+#endif
