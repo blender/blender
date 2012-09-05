@@ -22,6 +22,8 @@
 #include "kernel_math.h"
 #include "svm/svm_types.h"
 
+#include "util_param.h"
+
 #ifndef __KERNEL_GPU__
 #define __KERNEL_CPU__
 #endif
@@ -367,6 +369,30 @@ typedef enum AttributeStandard {
 
 	ATTR_STD_NOT_FOUND = ~0
 } AttributeStandard;
+
+__device ustring attribute_standard_name(AttributeStandard std)
+{
+	if(std == ATTR_STD_VERTEX_NORMAL)
+		return ustring("N");
+	else if(std == ATTR_STD_FACE_NORMAL)
+		return ustring("Ng");
+	else if(std == ATTR_STD_UV)
+		return ustring("uv");
+	else if(std == ATTR_STD_GENERATED)
+		return ustring("generated");
+	else if(std == ATTR_STD_POSITION_UNDEFORMED)
+		return ustring("undeformed");
+	else if(std == ATTR_STD_POSITION_UNDISPLACED)
+		return ustring("undisplaced");
+	else if(std == ATTR_STD_MOTION_PRE)
+		return ustring("motion_pre");
+	else if(std == ATTR_STD_MOTION_POST)
+		return ustring("motion_post");
+	else if(std == ATTR_STD_PARTICLE)
+		return ustring("particle");
+	
+	return ustring();
+}
 
 /* Closure data */
 

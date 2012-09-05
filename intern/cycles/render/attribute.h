@@ -71,7 +71,6 @@ public:
 	const float *data_float() const { return (float*)data(); }
 
 	static bool same_storage(TypeDesc a, TypeDesc b);
-	static ustring standard_name(AttributeStandard std);
 };
 
 /* Attribute Set

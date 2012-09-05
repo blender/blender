@@ -366,7 +366,7 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 
 			if(req.std != ATTR_STD_NONE) {
 				/* if standard attribute, add lookup by std:: name convention */
-				ustring stdname = ustring(string("std::") + Attribute::standard_name(req.std).c_str());
+				ustring stdname = ustring(string("std::") + attribute_standard_name(req.std).c_str());
 				og->attribute_map[i][stdname] = osl_attr;
 			}
 			else if(req.name != ustring()) {
