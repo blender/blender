@@ -33,16 +33,7 @@ GroupNode::GroupNode(bNode *editorNode) : Node(editorNode)
 void GroupNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	if (this->getbNode()->id == NULL) {
-		/* this is a really bad situation - bring on the pink! - so artists know this is bad */
-		const float warning_color[4] = {1.0f, 0.0f, 1.0f, 1.0f};
-		int index;
-		vector<OutputSocket *> &outputsockets = this->getOutputSockets();
-		for (index = 0; index < outputsockets.size(); index++) {
-			SetColorOperation *operation = new SetColorOperation();
-			this->getOutputSocket(index)->relinkConnections(operation->getOutputSocket());
-			operation->setChannels(warning_color);
-			graph->addOperation(operation);
-		}
+		convertToOperations_invalid(graph, context);
 	}
 }
 

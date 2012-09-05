@@ -62,6 +62,14 @@ private:
 	DataType m_datatype;
 	
 	bNodeSocket *m_editorSocket;
+
+protected:
+	/**
+	 * @brief Declaration of the virtual destructor 
+	 * @note resolve warning gcc 4.7
+	 */
+	virtual ~Socket() {}
+	
 public:
 	Socket(DataType datatype);
 	

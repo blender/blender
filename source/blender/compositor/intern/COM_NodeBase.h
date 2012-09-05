@@ -71,13 +71,14 @@ protected:
 	inline vector<OutputSocket *>& getOutputSockets() { return this->m_outputsockets; }
 
 
-public:
+protected:
 	/**
 	 * @brief destructor
 	 * clean up memory related to this NodeBase.
 	 */
 	virtual ~NodeBase();
 	
+public:
 	/**
 	 * @brief get the reference to the SDNA bNode struct
 	 */

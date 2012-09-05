@@ -53,8 +53,7 @@ public:
 	void write_render_tile(RenderTile& rtile);
 
 	/* update functions are used to update display buffer only after sample was rendered
-	 * only needed for better visual feedback
-	 */
+	 * only needed for better visual feedback */
 	void update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile);
 	void update_render_tile(RenderTile& rtile);
 

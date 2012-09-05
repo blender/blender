@@ -627,11 +627,11 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 				row = uiLayoutRow(split, FALSE);
 				col = uiLayoutColumn(row, FALSE);
 
-				uiItemR(col, &inputptr, "default_value", 0, "", 0);
+				uiItemR(col, &inputptr, "default_value", 0, "", ICON_NONE);
 			}
 			else {
 				row = uiLayoutRow(split, TRUE);
-				uiItemR(row, &inputptr, "default_value", 0, "", 0);
+				uiItemR(row, &inputptr, "default_value", 0, "", ICON_NONE);
 			}
 		}
 		else

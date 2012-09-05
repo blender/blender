@@ -93,13 +93,9 @@ extern struct Render R;
 
 static void init_render_texture(Render *re, Tex *tex)
 {
-	int cfra= re->scene->r.cfra;
-	
-	if (re) cfra= re->r.cfra;
-	
 	/* imap test */
 	if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-		BKE_image_user_frame_calc(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
+		BKE_image_user_frame_calc(&tex->iuser, re->r.cfra, re?re->flag & R_SEC_FIELD:0);
 	}
 	
 	else if (tex->type==TEX_ENVMAP) {

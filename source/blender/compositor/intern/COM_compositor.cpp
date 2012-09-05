@@ -37,6 +37,11 @@ extern "C" {
 static ThreadMutex s_compositorMutex;
 static char is_compositorMutex_init = FALSE;
 
+void intern_freeCompositorCaches() 
+{
+	deintializeDistortionCache();
+}
+
 void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 {
 	/* initialize mutex, TODO this mutex init is actually not thread safe and
@@ -63,7 +68,7 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 	/* set progress bar to 0% and status to init compositing */
 	editingtree->progress(editingtree->prh, 0.0);
 
-	bool twopass = (editingtree->flag&NTREE_TWO_PASS) > 0 && !rendering;
+	bool twopass = (editingtree->flag & NTREE_TWO_PASS) > 0 && !rendering;
 	/* initialize execution system */
 	if (twopass) {
 		ExecutionSystem *system = new ExecutionSystem(rd, editingtree, rendering, twopass);
@@ -86,14 +91,21 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering)
 	BLI_mutex_unlock(&s_compositorMutex);
 }
 
+void COM_freeCaches() 
+{
+	if (is_compositorMutex_init) {
+		BLI_mutex_lock(&s_compositorMutex);
+		intern_freeCompositorCaches();
+		BLI_mutex_unlock(&s_compositorMutex);
+	}
+}
+
 void COM_deinitialize() 
 {
 	if (is_compositorMutex_init) {
 		BLI_mutex_lock(&s_compositorMutex);
-
-		deintializeDistortionCache();
+		intern_freeCompositorCaches();
 		WorkScheduler::deinitialize();
-
 		is_compositorMutex_init = FALSE;
 		BLI_mutex_unlock(&s_compositorMutex);
 		BLI_mutex_end(&s_compositorMutex);

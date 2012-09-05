@@ -33,6 +33,7 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -41,7 +42,10 @@
 
 #include "BKE_deform.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 
@@ -204,13 +208,15 @@ void defvert_normalize(MDeformVert *dvert)
 	}
 }
 
-void defvert_normalize_lock(MDeformVert *dvert, const int def_nr_lock)
+void defvert_normalize_lock_single(MDeformVert *dvert, const int def_nr_lock)
 {
 	if (dvert->totweight <= 0) {
 		/* nothing */
 	}
 	else if (dvert->totweight == 1) {
-		dvert->dw[0].weight = 1.0f;
+		if (def_nr_lock != 0) {
+			dvert->dw[0].weight = 1.0f;
+		}
 	}
 	else {
 		MDeformWeight *dw_lock = NULL;
@@ -236,6 +242,50 @@ void defvert_normalize_lock(MDeformVert *dvert, const int def_nr_lock)
 			float scalar = (1.0f / tot_weight) * lock_iweight;
 			for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
 				if (dw != dw_lock) {
+					dw->weight *= scalar;
+
+					/* in case of division errors with very low weights */
+					CLAMP(dw->weight, 0.0f, 1.0f);
+				}
+			}
+		}
+	}
+}
+
+void defvert_normalize_lock_map(MDeformVert *dvert, const char *lock_flags, const int defbase_tot)
+{
+	if (dvert->totweight <= 0) {
+		/* nothing */
+	}
+	else if (dvert->totweight == 1) {
+		if (LIKELY(defbase_tot >= 1) && lock_flags[0]) {
+			dvert->dw[0].weight = 1.0f;
+		}
+	}
+	else {
+		MDeformWeight *dw;
+		unsigned int i;
+		float tot_weight = 0.0f;
+		float lock_iweight = 0.0f;
+
+		for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
+			if ((dw->def_nr < defbase_tot) && (lock_flags[dw->def_nr] == FALSE)) {
+				tot_weight += dw->weight;
+			}
+			else {
+				/* invert after */
+				lock_iweight += dw->weight;
+			}
+		}
+
+		lock_iweight = maxf(0.0f, 1.0f - lock_iweight);
+
+		if (tot_weight > 0.0f) {
+			/* paranoid, should be 1.0 but in case of float error clamp anyway */
+
+			float scalar = (1.0f / tot_weight) * lock_iweight;
+			for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
+				if ((dw->def_nr < defbase_tot) && (lock_flags[dw->def_nr] == FALSE)) {
 					dw->weight *= scalar;
 
 					/* in case of division errors with very low weights */

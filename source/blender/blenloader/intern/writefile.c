@@ -2214,9 +2214,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					if (seq->flag & SEQ_USE_PROXY && strip->proxy) {
 						writestruct(wd, DATA, "StripProxy", 1, strip->proxy);
 					}
-					if (seq->flag & SEQ_USE_COLOR_BALANCE && strip->color_balance) {
-						writestruct(wd, DATA, "StripColorBalance", 1, strip->color_balance);
-					}
 					if (seq->type==SEQ_TYPE_IMAGE)
 						writestruct(wd, DATA, "StripElem", MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem), strip->stripdata);
 					else if (seq->type==SEQ_TYPE_MOVIE || seq->type==SEQ_TYPE_SOUND_RAM || seq->type == SEQ_TYPE_SOUND_HD)

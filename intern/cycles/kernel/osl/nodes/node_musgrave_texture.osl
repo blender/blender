@@ -186,32 +186,35 @@ float noise_musgrave_ridged_multi_fractal(point p, string basis, float H, float 
 
 shader node_musgrave_texture(
 	string Type = "fBM",
-	string Basis = "Perlin",
 	float Dimension = 2.0,
 	float Lacunarity = 1.0,
-	float Octaves = 2.0,
+	float Detail = 2.0,
 	float Offset = 0.0,
-	float Intensity = 1.0,
 	float Gain = 1.0,
 	float Scale = 5.0,
 	point Vector = P,
-	output float Fac = 0.0)
+	output float Fac = 0.0,
+	output color Color = color(0.0, 0.0, 0.0))
 {
-	float dimension = max(Dimension, 0.0);
-	float octaves = max(Octaves, 0.0);
+	float dimension = max(Dimension, 1e-5);
+	float octaves = clamp(Detail, 0.0, 16.0);
 	float lacunarity = max(Lacunarity, 1e-5);
+	string Basis = "Perlin";
+	float intensity = 1.0;
 
 	point p = Vector*Scale;
 
 	if(Type == "Multifractal")
-		Fac = Intensity*noise_musgrave_multi_fractal(p, Basis, dimension, lacunarity, octaves);
+		Fac = intensity*noise_musgrave_multi_fractal(p, Basis, dimension, lacunarity, octaves);
 	else if(Type == "fBM")
-		Fac = Intensity*noise_musgrave_fBm(p, Basis, dimension, lacunarity, octaves);
+		Fac = intensity*noise_musgrave_fBm(p, Basis, dimension, lacunarity, octaves);
 	else if(Type == "Hybrid Multifractal")
-		Fac = Intensity*noise_musgrave_hybrid_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
+		Fac = intensity*noise_musgrave_hybrid_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
 	else if(Type == "Ridged Multifractal")
-		Fac = Intensity*noise_musgrave_ridged_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
+		Fac = intensity*noise_musgrave_ridged_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
 	else if(Type == "Hetero Terrain")
-		Fac = Intensity*noise_musgrave_hetero_terrain(p, Basis, dimension, lacunarity, octaves, Offset);
+		Fac = intensity*noise_musgrave_hetero_terrain(p, Basis, dimension, lacunarity, octaves, Offset);
+	
+	Color = color(Fac, Fac, Fac);
 }
 

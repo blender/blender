@@ -1030,7 +1030,7 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 	if (draw_flags & DRAW_FACE_SELECT)
 		facemask = wpaint__setSolidDrawOptions_facemask;
 
-	if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
+	if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 
 		if (do_light) {
 			const float spec[4] = {0.47f, 0.47f, 0.47f, 0.47f};

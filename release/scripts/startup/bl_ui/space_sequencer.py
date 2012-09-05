@@ -449,7 +449,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         return strip.type in {'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
-                              'MULTICAM', 'ADJUSTMENT'}
+                              'MULTICAM'}
 
     def draw(self, context):
         layout = self.layout
@@ -462,10 +462,6 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             col.prop(strip, "input_1")
             if strip.input_count > 1:
                 col.prop(strip, "input_2")
-
-        if strip.is_supports_mask:
-            col = layout.column()
-            col.prop_search(strip, "input_mask_strip", sequencer, "sequences", text="Mask")
 
         if strip.type == 'COLOR':
             layout.prop(strip, "color")
@@ -792,10 +788,6 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         col.prop(strip, "color_multiply", text="Multiply")
         col.prop(strip, "use_premultiply")
         col.prop(strip, "use_float")
-
-        layout.prop(strip, "use_color_balance")
-        if strip.use_color_balance and strip.color_balance:  # TODO - need to add this somehow
-            draw_color_balance(layout, strip.color_balance)
 
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):

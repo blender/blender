@@ -30,6 +30,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
@@ -554,8 +555,9 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 			IMB_exr_add_channel(rl->exrhandle, rl->name, "Combined.B", 0, 0, NULL);
 			IMB_exr_add_channel(rl->exrhandle, rl->name, "Combined.A", 0, 0, NULL);
 		}
-		else
+		else {
 			rl->rectf = MEM_mapallocN(rectx * recty * sizeof(float) * 4, "Combined rgba");
+		}
 		
 		/* note, this has to be in sync with scene.c */
 		rl->lay = (1 << 20) - 1;
@@ -691,16 +693,18 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
 	RenderPass *rpass, *rpassp;
 	
 	for (rl = rr->layers.first; rl; rl = rl->next) {
-		for (rlp = rrpart->layers.first; rlp; rlp = rlp->next) {
-			if (strcmp(rlp->name, rl->name) == 0) {
-				/* combined */
-				if (rl->rectf && rlp->rectf)
-					do_merge_tile(rr, rrpart, rl->rectf, rlp->rectf, 4);
-				
-				/* passes are allocated in sync */
-				for (rpass = rl->passes.first, rpassp = rlp->passes.first; rpass && rpassp; rpass = rpass->next, rpassp = rpassp->next) {
-					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, rpass->channels);
-				}
+		rlp = RE_GetRenderLayer(rrpart, rl->name);
+		if (rlp) {
+			/* combined */
+			if (rl->rectf && rlp->rectf)
+				do_merge_tile(rr, rrpart, rl->rectf, rlp->rectf, 4);
+
+			/* passes are allocated in sync */
+			for (rpass = rl->passes.first, rpassp = rlp->passes.first;
+			     rpass && rpassp;
+			     rpass = rpass->next, rpassp = rpassp->next)
+			{
+				do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, rpass->channels);
 			}
 		}
 	}
@@ -746,21 +750,24 @@ int RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *file
 		/* combined */
 		if (rl->rectf) {
 			int a, xstride = 4;
-			for (a = 0; a < xstride; a++)
-				IMB_exr_add_channel(exrhandle, rl->name, get_pass_name(SCE_PASS_COMBINED, a), 
+			for (a = 0; a < xstride; a++) {
+				IMB_exr_add_channel(exrhandle, rl->name, get_pass_name(SCE_PASS_COMBINED, a),
 				                    xstride, xstride * rr->rectx, rl->rectf + a);
+			}
 		}
 		
 		/* passes are allocated in sync */
 		for (rpass = rl->passes.first; rpass; rpass = rpass->next) {
 			int a, xstride = rpass->channels;
 			for (a = 0; a < xstride; a++) {
-				if (rpass->passtype)
-					IMB_exr_add_channel(exrhandle, rl->name, get_pass_name(rpass->passtype, a), 
+				if (rpass->passtype) {
+					IMB_exr_add_channel(exrhandle, rl->name, get_pass_name(rpass->passtype, a),
 					                    xstride, xstride * rr->rectx, rpass->rect + a);
-				else
-					IMB_exr_add_channel(exrhandle, rl->name, make_pass_name(rpass, a), 
+				}
+				else {
+					IMB_exr_add_channel(exrhandle, rl->name, make_pass_name(rpass, a),
 					                    xstride, xstride * rr->rectx, rpass->rect + a);
+				}
 			}
 		}
 	}
@@ -818,8 +825,9 @@ void render_result_single_layer_end(Render *re)
 		
 		/* reconstruct render result layers */
 		for (nr = 0, srl = re->scene->r.layers.first; srl; srl = srl->next, nr++) {
-			if (nr == re->r.actlay)
+			if (nr == re->r.actlay) {
 				BLI_addtail(&re->result->layers, rl);
+			}
 			else {
 				rlpush = RE_GetRenderLayer(re->pushedresult, srl->name);
 				if (rlpush) {
@@ -845,10 +853,14 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart)
 	BLI_lock_thread(LOCK_IMAGE);
 	
 	for (rlp = rrpart->layers.first; rlp; rlp = rlp->next) {
-		for (rl = rr->layers.first; rl; rl = rl->next)
-			if (strcmp(rl->name, rlp->name) == 0)
-				break;
-		
+		rl = RE_GetRenderLayer(rr, rlp->name);
+
+		/* should never happen but prevents crash if it does */
+		BLI_assert(rl);
+		if (UNLIKELY(rl == NULL)) {
+			continue;
+		}
+
 		if (rrpart->crop) { /* filters add pixel extra */
 			offs = (rrpart->crop + rrpart->crop * rrpart->rectx);
 		}
@@ -859,17 +871,19 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart)
 		/* combined */
 		if (rlp->rectf) {
 			int a, xstride = 4;
-			for (a = 0; a < xstride; a++)
+			for (a = 0; a < xstride; a++) {
 				IMB_exr_set_channel(rl->exrhandle, rlp->name, get_pass_name(SCE_PASS_COMBINED, a), 
 				                    xstride, xstride * rrpart->rectx, rlp->rectf + a + xstride * offs);
+			}
 		}
 		
 		/* passes are allocated in sync */
 		for (rpassp = rlp->passes.first; rpassp; rpassp = rpassp->next) {
 			int a, xstride = rpassp->channels;
-			for (a = 0; a < xstride; a++)
+			for (a = 0; a < xstride; a++) {
 				IMB_exr_set_channel(rl->exrhandle, rlp->name, get_pass_name(rpassp->passtype, a), 
 				                    xstride, xstride * rrpart->rectx, rpassp->rect + a + xstride * offs);
+			}
 		}
 		
 	}
@@ -878,10 +892,14 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart)
 	partx = rrpart->tilerect.xmin + rrpart->crop;
 
 	for (rlp = rrpart->layers.first; rlp; rlp = rlp->next) {
-		for (rl = rr->layers.first; rl; rl = rl->next)
-			if (strcmp(rl->name, rlp->name) == 0)
-				break;
-	
+		rl = RE_GetRenderLayer(rr, rlp->name);
+
+		/* should never happen but prevents crash if it does */
+		BLI_assert(rl);
+		if (UNLIKELY(rl == NULL)) {
+			continue;
+		}
+
 		IMB_exrtile_write_channels(rl->exrhandle, partx, party, 0);
 	}
 

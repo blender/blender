@@ -137,6 +137,21 @@ void Node::addSetVectorOperation(ExecutionSystem *graph, InputSocket *inputsocke
 	graph->addOperation(operation);
 }
 
+/* when a node has no valid data (missing image or group pointer) */
+void Node::convertToOperations_invalid(ExecutionSystem *graph, CompositorContext *context)
+{
+	/* this is a really bad situation - bring on the pink! - so artists know this is bad */
+	const float warning_color[4] = {1.0f, 0.0f, 1.0f, 1.0f};
+	int index;
+	vector<OutputSocket *> &outputsockets = this->getOutputSockets();
+	for (index = 0; index < outputsockets.size(); index++) {
+		SetColorOperation *operation = new SetColorOperation();
+		this->getOutputSocket(index)->relinkConnections(operation->getOutputSocket());
+		operation->setChannels(warning_color);
+		graph->addOperation(operation);
+	}
+}
+
 bNodeSocket *Node::getEditorInputSocket(int editorNodeInputSocketIndex)
 {
 	bNodeSocket *bSock = (bNodeSocket *)this->getbNode()->inputs.first;

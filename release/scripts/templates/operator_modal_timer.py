@@ -21,8 +21,8 @@ class ModalTimerOperator(bpy.types.Operator):
         return {'PASS_THROUGH'}
 
     def execute(self, context):
-        context.window_manager.modal_handler_add(self)
         self._timer = context.window_manager.event_timer_add(0.1, context.window)
+        context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
     def cancel(self, context):

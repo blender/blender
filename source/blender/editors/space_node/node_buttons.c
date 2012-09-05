@@ -110,8 +110,8 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	uiItemR(col, &ptr, "use_custom_color", UI_ITEM_R_ICON_ONLY, NULL, ICON_NONE);
 	sub = uiLayoutRow(col, FALSE);
 	if (!(node->flag & NODE_CUSTOM_COLOR))
-		uiLayoutSetEnabled(sub, 0);
-	uiItemR(sub, &ptr, "color", 0, "", 0);
+		uiLayoutSetEnabled(sub, FALSE);
+	uiItemR(sub, &ptr, "color", 0, "", ICON_NONE);
 	
 	col = uiLayoutColumn(row, TRUE);
 	uiItemO(col, "", ICON_ZOOMIN, "node.node_color_preset_add");

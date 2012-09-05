@@ -984,9 +984,9 @@ void BrickTextureNode::compile(SVMCompiler& compiler)
 void BrickTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("Offset", offset);
-	compiler.parameter("Offset Frequency", offset_frequency);
+	compiler.parameter("OffsetFrequency", offset_frequency);
 	compiler.parameter("Squash", squash);
-	compiler.parameter("Squash Frequency", squash_frequency);
+	compiler.parameter("SquashFrequency", squash_frequency);
 	compiler.add(this, "node_brick_texture");
 }
 

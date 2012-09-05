@@ -166,9 +166,6 @@ static void seq_free_strip(Strip *strip)
 	if (strip->transform) {
 		MEM_freeN(strip->transform);
 	}
-	if (strip->color_balance) {
-		MEM_freeN(strip->color_balance);
-	}
 
 	MEM_freeN(strip);
 }
@@ -1671,26 +1668,6 @@ void BKE_sequencer_color_balance_apply(StripColorBalance *cb, ImBuf *ibuf, float
 		imb_freerectImBuf(ibuf);
 }
 
-static void sequence_color_balance(SeqRenderData context, Sequence *seq, ImBuf *ibuf, float mul, int cfra)
-{
-	StripColorBalance *cb = seq->strip->color_balance;
-	ImBuf *mask_input = NULL;
-	short make_float = seq->flag & SEQ_MAKE_FLOAT;
-
-	if (seq->mask_sequence) {
-		if (seq->mask_sequence != seq && !BKE_sequence_check_depend(seq, seq->mask_sequence)) {
-			int make_float = ibuf->rect_float != NULL;
-
-			mask_input = BKE_sequencer_render_mask_input(context, SEQUENCE_MASK_INPUT_STRIP, seq->mask_sequence, NULL, cfra, make_float);
-		}
-	}
-
-	BKE_sequencer_color_balance_apply(cb, ibuf, mul, make_float, mask_input);
-
-	if (mask_input)
-		IMB_freeImBuf(mask_input);
-}
-
 /*
  *  input preprocessing for SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP and SEQ_TYPE_SCENE
  *
@@ -1713,9 +1690,7 @@ int BKE_sequencer_input_have_to_preprocess(SeqRenderData UNUSED(context), Sequen
 {
 	float mul;
 
-	if (seq->flag & (SEQ_FILTERY | SEQ_USE_CROP | SEQ_USE_TRANSFORM | SEQ_FLIPX |
-	                 SEQ_FLIPY | SEQ_USE_COLOR_BALANCE | SEQ_MAKE_PREMUL | SEQ_MAKE_FLOAT))
-	{
+	if (seq->flag & (SEQ_FILTERY | SEQ_USE_CROP | SEQ_USE_TRANSFORM | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_PREMUL | SEQ_MAKE_FLOAT)) {
 		return TRUE;
 	}
 
@@ -1832,11 +1807,6 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 
 	if (seq->blend_mode == SEQ_BLEND_REPLACE) {
 		mul *= seq->blend_opacity / 100.0f;
-	}
-
-	if (seq->flag & SEQ_USE_COLOR_BALANCE && seq->strip->color_balance) {
-		sequence_color_balance(context, seq, ibuf, mul, cfra);
-		mul = 1.0;
 	}
 
 	if (seq->flag & SEQ_MAKE_FLOAT) {
@@ -4018,10 +3988,6 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 	if (seq->strip->proxy) {
 		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
 		seqn->strip->proxy->anim = NULL;
-	}
-
-	if (seq->strip->color_balance) {
-		seqn->strip->color_balance = MEM_dupallocN(seq->strip->color_balance);
 	}
 
 	if (seqn->modifiers.first) {

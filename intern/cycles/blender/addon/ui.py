@@ -213,6 +213,8 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "debug_use_spatial_splits")
         sub.prop(cscene, "use_cache")
 
+        sub = col.column(align=True)
+        sub.label(text="Viewport:")
         sub.prop(cscene, "resolution_divider")
 
 

@@ -115,6 +115,7 @@ set(SRC
 	intern/nla.c
 	intern/node.c
 	intern/object.c
+	intern/object_deform.c
 	intern/ocean.c
 	intern/packedFile.c
 	intern/paint.c
@@ -203,6 +204,7 @@ set(SRC
 	BKE_nla.h
 	BKE_node.h
 	BKE_object.h
+	BKE_object_deform.h
 	BKE_ocean.h
 	BKE_packedFile.h
 	BKE_paint.h

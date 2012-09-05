@@ -209,6 +209,8 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 				if(ray->t != FLT_MAX)
 					ray->D = normalize_len(Pend - ray->P, &ray->t);
 
+				shader_release(kg, &sd);
+
 				bounce++;
 			}
 		}
@@ -294,8 +296,10 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 				L_transparent += average(holdout_weight*throughput);
 			}
 
-			if(sd.flag & SD_HOLDOUT_MASK)
+			if(sd.flag & SD_HOLDOUT_MASK) {
+				shader_release(kg, &sd);
 				break;
+			}
 		}
 #endif
 
@@ -313,8 +317,10 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 		float probability = path_state_terminate_probability(kg, &state, throughput);
 		float terminate = path_rng(kg, rng, sample, rng_offset + PRNG_TERMINATE);
 
-		if(terminate >= probability)
+		if(terminate >= probability) {
+			shader_release(kg, &sd);
 			break;
+		}
 
 		throughput /= probability;
 
@@ -380,8 +386,10 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 #endif
 
 		/* no BSDF? we can stop here */
-		if(!(sd.flag & SD_BSDF))
+		if(!(sd.flag & SD_BSDF)) {
+			shader_release(kg, &sd);
 			break;
+		}
 
 		/* sample BSDF */
 		float bsdf_pdf;
@@ -486,8 +494,10 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 		float probability = path_state_terminate_probability(kg, &state, throughput);
 		float terminate = path_rng(kg, rng, sample, rng_offset + PRNG_TERMINATE);
 
-		if(terminate >= probability)
+		if(terminate >= probability) {
+			shader_release(kg, &sd);
 			break;
+		}
 
 		throughput /= probability;
 
@@ -554,8 +564,10 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 #endif
 
 		/* no BSDF? we can stop here */
-		if(!(sd.flag & SD_BSDF))
+		if(!(sd.flag & SD_BSDF)) {
+			shader_release(kg, &sd);
 			break;
+		}
 
 		/* sample BSDF */
 		float bsdf_pdf;
@@ -661,8 +673,10 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 				L_transparent += average(holdout_weight*throughput);
 			}
 
-			if(sd.flag & SD_HOLDOUT_MASK)
+			if(sd.flag & SD_HOLDOUT_MASK) {
+				shader_release(kg, &sd);
 				break;
+			}
 		}
 #endif
 
@@ -682,8 +696,10 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 			float probability = path_state_terminate_probability(kg, &state, throughput);
 			float terminate = path_rng(kg, rng, sample, rng_offset + PRNG_TERMINATE);
 
-			if(terminate >= probability)
+			if(terminate >= probability) {
+				shader_release(kg, &sd);
 				break;
+			}
 
 			throughput /= probability;
 		}

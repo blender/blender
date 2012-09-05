@@ -148,7 +148,7 @@ def modules(module_cache):
     for path in path_list:
 
         # force all contrib addons to be 'TESTING'
-        if path.endswith("addons_contrib") or path.endswith("addons_extern"):
+        if path.endswith(("addons_contrib", "addons_extern")):
             force_support = 'TESTING'
         else:
             force_support = None

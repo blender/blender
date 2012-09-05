@@ -4959,7 +4959,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->seq1= newdataadr(fd, seq->seq1);
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
-			seq->mask_sequence= newdataadr(fd, seq->mask_sequence);
 			/* a patch: after introduction of effects with 3 input strips */
 			if (seq->seq3 == NULL) seq->seq3 = seq->seq2;
 			
@@ -5005,16 +5004,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				else {
 					seq->strip->proxy = NULL;
 				}
-				if (seq->flag & SEQ_USE_COLOR_BALANCE) {
-					seq->strip->color_balance = newdataadr(
-						fd, seq->strip->color_balance);
-				}
-				else {
-					seq->strip->color_balance = NULL;
-				}
-				if (seq->strip->color_balance) {
-					// seq->strip->color_balance->gui = 0; // XXX - peter, is this relevant in 2.5?
-				}
+
+				/* need to load color balance to it could be converted to modifier */
+				seq->strip->color_balance = newdataadr(fd, seq->strip->color_balance);
 			}
 
 			direct_link_sequence_modifiers(fd, &seq->modifiers);
@@ -7888,6 +7880,42 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_mask_264);
 	}
 
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 18)) {
+		Scene *scene;
+
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			if (scene->ed) {
+				Sequence *seq;
+
+				SEQ_BEGIN (scene->ed, seq)
+				{
+					Strip *strip = seq->strip;
+
+					if (strip && strip->color_balance) {
+						SequenceModifierData *smd;
+						ColorBalanceModifierData *cbmd;
+
+						smd = BKE_sequence_modifier_new(seq, NULL, seqModifierType_ColorBalance);
+						cbmd = (ColorBalanceModifierData *) smd;
+
+						cbmd->color_balance = *strip->color_balance;
+
+						/* multiplication with color balance used is handled differently,
+						 * so we need to move multiplication to modifier so files would be
+						 * compatible
+						 */
+						cbmd->color_multiply = seq->mul;
+						seq->mul = 1.0f;
+
+						MEM_freeN(strip->color_balance);
+						strip->color_balance = NULL;
+					}
+				}
+				SEQ_END
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
@@ -9443,9 +9471,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								cleanup_path(G.main->name, mainptr->curlib->filepath);
 								
 								fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
-								fd->mainlist = mainlist;
-								
+
 								if (fd) {
+									fd->mainlist = mainlist;
 									printf("found: '%s', party on macuno!\n", mainptr->curlib->filepath);
 								}
 							}

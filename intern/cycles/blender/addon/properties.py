@@ -244,7 +244,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.resolution_divider = IntProperty(
                 name="Resolution Divider",
-                description="Start viewport rendering with lower resolution which would be real resolution divided by two in power of this value",
+                description="For viewport render, the number of lower resolutions to render before the full resolution",
                 min=1, max=512,
                 default=4,
                 )

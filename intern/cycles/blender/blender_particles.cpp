@@ -199,8 +199,7 @@ void BlenderSync::sync_particle_systems()
 	for(; b_sce; b_sce = b_sce.background_set()) {
 		for(b_sce.objects.begin(b_ob); b_ob != b_sce.objects.end(); ++b_ob) {
 			bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
-			uint ob_layer = get_layer(b_ob->layers(), b_ob->layers_local_view(), object_is_light(*b_ob));
-			CYCLES_LOCAL_LAYER_HACK(render_layer.use_localview, ob_layer);
+			uint ob_layer = get_layer(b_ob->layers(), b_ob->layers_local_view(), render_layer.use_localview, object_is_light(*b_ob));
 			hide = hide || !(ob_layer & scene_layer);
 
 			if(!hide) {

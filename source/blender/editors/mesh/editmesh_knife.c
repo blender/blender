@@ -555,7 +555,7 @@ static int verge_linehit(const void *vlh1, const void *vlh2)
 }
 
 /* If there's a linehit connected (same face) as testi in range [firsti, lasti], return the first such, else -1.
-  * If testi is out of range, look for connection to f instead, if f is non-NULL */
+ * If testi is out of range, look for connection to f instead, if f is non-NULL */
 static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, int firsti, int lasti)
 {
 	int i;
@@ -563,9 +563,10 @@ static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, i
 	for (i = firsti; i <= lasti; i++) {
 		if (testi >= 0 && testi < kcd->totlinehit) {
 			if (knife_find_common_face(&kcd->linehits[testi].kfe->faces,
-									   &kcd->linehits[i].kfe->faces))
+			                           &kcd->linehits[i].kfe->faces))
 				return i;
-		} else if (f) {
+		}
+		else if (f) {
 			if (find_ref(&kcd->linehits[i].kfe->faces, f))
 				return i;
 		}
@@ -582,9 +583,9 @@ static void knife_sort_linehits(KnifeTool_OpData *kcd)
 
 	/* for ranges of equal "l", swap if neccesary to make predecessor and
 	 * successor faces connected to the linehits at either end of the range */
-	for (i = 0; i < kcd->totlinehit -1; i = nexti) {
+	for (i = 0; i < kcd->totlinehit - 1; i = nexti) {
 		for (j = i + 1; j < kcd->totlinehit; j++) {
-			if (fabsf(kcd->linehits[j].l - kcd->linehits[i].l) > 80*FLT_EPSILON)
+			if (fabsf(kcd->linehits[j].l - kcd->linehits[i].l) > 80 * FLT_EPSILON)
 				break;
 		}
 		nexti = j;

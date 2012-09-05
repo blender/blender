@@ -152,10 +152,10 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	/* Export Options: */
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Export Data Options:"), ICON_MESH_DATA);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
 	col   = uiLayoutColumn(split, FALSE);
 	uiItemR(col, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);

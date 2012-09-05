@@ -154,14 +154,11 @@ void colorBalance_init_data(SequenceModifierData *smd)
 	}
 }
 
-ImBuf *colorBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+void colorBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
 	ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *) smd;
-	ImBuf *ibuf_new = IMB_dupImBuf(ibuf);
 
-	BKE_sequencer_color_balance_apply(&cbmd->color_balance, ibuf_new, cbmd->color_multiply, FALSE, mask);
-
-	return ibuf_new;
+	BKE_sequencer_color_balance_apply(&cbmd->color_balance, ibuf, cbmd->color_multiply, FALSE, mask);
 }
 
 static SequenceModifierTypeInfo seqModifier_ColorBalance = {
@@ -252,10 +249,9 @@ void curves_apply_threaded(int width, int height, unsigned char *rect, float *re
 	}
 }
 
-ImBuf *curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+void curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
 	CurvesModifierData *cmd = (CurvesModifierData *) smd;
-	ImBuf *ibuf_new = IMB_dupImBuf(ibuf);
 
 	float black[3] = {0.0f, 0.0f, 0.0f};
 	float white[3] = {1.0f, 1.0f, 1.0f};
@@ -265,11 +261,9 @@ ImBuf *curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 	curvemapping_premultiply(&cmd->curve_mapping, 0);
 	curvemapping_set_black_white(&cmd->curve_mapping, black, white);
 
-	modifier_apply_threaded(ibuf_new, mask, curves_apply_threaded, &cmd->curve_mapping);
+	modifier_apply_threaded(ibuf, mask, curves_apply_threaded, &cmd->curve_mapping);
 
 	curvemapping_premultiply(&cmd->curve_mapping, 1);
-
-	return ibuf_new;
 }
 
 static SequenceModifierTypeInfo seqModifier_Curves = {
@@ -371,16 +365,13 @@ void hue_correct_apply_threaded(int width, int height, unsigned char *rect, floa
 	}
 }
 
-ImBuf *hue_correct_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+void hue_correct_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
 	HueCorrectModifierData *hcmd = (HueCorrectModifierData *) smd;
-	ImBuf *ibuf_new = IMB_dupImBuf(ibuf);
 
 	curvemapping_initialize(&hcmd->curve_mapping);
 
-	modifier_apply_threaded(ibuf_new, mask, hue_correct_apply_threaded, &hcmd->curve_mapping);
-
-	return ibuf_new;
+	modifier_apply_threaded(ibuf, mask, hue_correct_apply_threaded, &hcmd->curve_mapping);
 }
 
 static SequenceModifierTypeInfo seqModifier_HueCorrect = {
@@ -469,18 +460,15 @@ void brightcontrast_apply_threaded(int width, int height, unsigned char *rect, f
 	}
 }
 
-ImBuf *brightcontrast_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+void brightcontrast_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
 	BrightContrastModifierData *bcmd = (BrightContrastModifierData *) smd;
 	BrightContrastThreadData data;
-	ImBuf *ibuf_new = IMB_dupImBuf(ibuf);
 
 	data.bright = bcmd->bright;
 	data.contrast = bcmd->contrast;
 
-	modifier_apply_threaded(ibuf_new, mask, brightcontrast_apply_threaded, &data);
-
-	return ibuf_new;
+	modifier_apply_threaded(ibuf, mask, brightcontrast_apply_threaded, &data);
 }
 
 static SequenceModifierTypeInfo seqModifier_BrightContrast = {
@@ -595,7 +583,6 @@ ImBuf *BKE_sequence_modifier_apply_stack(SeqRenderData context, Sequence *seq, I
 
 	for (smd = seq->modifiers.first; smd; smd = smd->next) {
 		SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
-		ImBuf *ibuf_new;
 
 		/* could happen if modifier is being removed or not exists in current version of blender */
 		if (!smti)
@@ -611,12 +598,7 @@ ImBuf *BKE_sequence_modifier_apply_stack(SeqRenderData context, Sequence *seq, I
 			if (processed_ibuf == ibuf)
 				processed_ibuf = IMB_dupImBuf(ibuf);
 
-			ibuf_new = smti->apply(smd, processed_ibuf, mask);
-
-			if (ibuf_new != processed_ibuf) {
-				IMB_freeImBuf(processed_ibuf);
-				processed_ibuf = ibuf_new;
-			}
+			smti->apply(smd, processed_ibuf, mask);
 
 			if (mask)
 				IMB_freeImBuf(mask);

@@ -147,6 +147,7 @@ set(SRC
 	BLI_utildefines.h
 	BLI_uvproject.h
 	BLI_vfontdata.h
+	BLI_voronoi.h
 	BLI_voxel.h
 	BLI_winstuff.h
 	PIL_time.h

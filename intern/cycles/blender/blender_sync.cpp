@@ -231,8 +231,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 		}
 		else {
 			render_layer.use_localview = (b_v3d.local_view() ? true : false);
-			render_layer.scene_layer = get_layer(b_v3d.layers(), b_v3d.layers_local_view());
-			CYCLES_LOCAL_LAYER_HACK(render_layer.use_localview, render_layer.scene_layer);
+			render_layer.scene_layer = get_layer(b_v3d.layers(), b_v3d.layers_local_view(), render_layer.use_localview);
 			render_layer.layer = render_layer.scene_layer;
 			render_layer.holdout_layer = 0;
 			render_layer.material_override = PointerRNA_NULL;
@@ -354,8 +353,6 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 
 	/* tiles */
 	if(params.device.type != DEVICE_CPU && !background) {
-		printf("%d\n", get_int(cscene, "debug_tile_size"));
-
 		/* currently GPU could be much slower than CPU when using tiles,
 		 * still need to be investigated, but meanwhile make it possible
 		 * to work in viewport smoothly

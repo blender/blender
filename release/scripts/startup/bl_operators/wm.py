@@ -735,7 +735,7 @@ class WM_OT_context_modal_mouse(Operator):
 
         if not self._values:
             self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" %
-                    (self.data_path_iter, self.data_path_item))
+                        (self.data_path_iter, self.data_path_item))
 
             return {'CANCELLED'}
         else:

@@ -31,7 +31,14 @@
  * work are packaged as a WorkPackage instance.
  */
 class Device {
+
 public:
+	/**
+	 * @brief Declaration of the virtual destructor 
+	 * @note resolve warning gcc 4.7
+	 */
+	virtual ~Device() {}
+	
 	/**
 	 * @brief initialize the device
 	 */

@@ -48,12 +48,14 @@ float wave(point p, float scale, string type, float detail, float distortion, fl
 shader node_wave_texture(
 	string Type = "Bands",
 	float Scale = 5.0,
-	float distortion = 0.0,
-	float detail = 2.0,
-	float dscale = 1.0,
+	float Distortion = 0.0,
+	float Detail = 2.0,
+	float DetailScale = 1.0,
 	point Vector = P,
-	output float Fac = 0.0)
+	output float Fac = 0.0,
+	output color Color = color (0.0, 0.0, 0.0))
 {
-	Fac = wave(Vector, Scale, Type, detail, distortion, dscale);
+	Fac = wave(Vector, Scale, Type, Detail, Distortion, DetailScale);
+	Color = color(Fac, Fac, Fac);
 }
 
