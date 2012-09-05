@@ -53,14 +53,13 @@ class ModalDrawOperator(bpy.types.Operator):
 
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
-            context.window_manager.modal_handler_add(self)
-
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
             self._handle = context.region.callback_add(draw_callback_px, (self, context), 'POST_PIXEL')
 
             self.mouse_path = []
 
+            context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")

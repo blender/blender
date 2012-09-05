@@ -26,9 +26,10 @@ class ModalOperator(bpy.types.Operator):
 
     def invoke(self, context, event):
         if context.object:
-            context.window_manager.modal_handler_add(self)
             self.first_mouse_x = event.mouse_x
             self.first_value = context.object.location.x
+
+            context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
         else:
             self.report({'WARNING'}, "No active object, could not finish")

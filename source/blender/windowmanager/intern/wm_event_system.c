@@ -1444,14 +1444,15 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 		}
 		else {
-			printf("%s: error - missing modal\n", __func__);
+			printf("%s: error '%s' missing modal\n", __func__, op->idname);
 		}
 	}
 	else {
 		wmOperatorType *ot = WM_operatortype_find(event->keymap_idname, 0);
 
-		if (ot)
+		if (ot) {
 			retval = wm_operator_invoke(C, ot, event, properties, NULL, FALSE);
+		}
 	}
 	/* Finished and pass through flag as handled */
 
