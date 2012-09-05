@@ -172,12 +172,13 @@ static int compare_int(const void *av, const void *bv)
 
 static void IMB_moviecache_destructor(void *p)
 {
-	MovieCacheItem *item = (MovieCacheItem *) p;
-	MovieCache *cache = item->cache_owner;
-
-	PRINT("%s: cache '%s' destroy item %p buffer %p\n", __func__, cache->name, item, item->ibuf);
+	MovieCacheItem *item = (MovieCacheItem *)p;
 
 	if (item && item->ibuf) {
+		MovieCache *cache = item->cache_owner;
+
+		PRINT("%s: cache '%s' destroy item %p buffer %p\n", __func__, cache->name, item, item->ibuf);
+
 		IMB_freeImBuf(item->ibuf);
 
 		item->ibuf = NULL;

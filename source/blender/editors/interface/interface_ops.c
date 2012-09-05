@@ -908,19 +908,19 @@ static void UI_OT_editsource(wmOperatorType *ot)
 
 void edittranslation_find_po_file(const char *root, const char *uilng, char *path, const size_t maxlen)
 {
-	char t[32]; /* Should be more than enough! */
+	char tstr[32]; /* Should be more than enough! */
 	/* First, full lang code. */
-	sprintf(t, "%s.po", uilng);
+	BLI_snprintf(tstr, sizeof(tstr), "%s.po", uilng);
 	BLI_join_dirfile(path, maxlen, root, uilng);
-	BLI_join_dirfile(path, maxlen, path, t);
+	BLI_join_dirfile(path, maxlen, path, tstr);
 	if (BLI_is_file(path))
 		return;
 	/* Now try without the second iso code part (_ES in es_ES). */
-	strncpy(t, uilng, 2);
-	strcpy(t + 2, uilng + 5); /* Because of some codes like sr_SR@latin... */
-	BLI_join_dirfile(path, maxlen, root, t);
-	sprintf(t, "%s.po", t);
-	BLI_join_dirfile(path, maxlen, path, t);
+	strncpy(tstr, uilng, 2);
+	BLI_strncpy(tstr + 2, uilng + 5, sizeof(tstr) - 2); /* Because of some codes like sr_SR@latin... */
+	BLI_join_dirfile(path, maxlen, root, tstr);
+	strcat(tstr, ".po");
+	BLI_join_dirfile(path, maxlen, path, tstr);
 	if (BLI_is_file(path))
 		return;
 	path[0] = '\0';

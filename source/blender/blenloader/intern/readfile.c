@@ -9471,9 +9471,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								cleanup_path(G.main->name, mainptr->curlib->filepath);
 								
 								fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
-								fd->mainlist = mainlist;
-								
+
 								if (fd) {
+									fd->mainlist = mainlist;
 									printf("found: '%s', party on macuno!\n", mainptr->curlib->filepath);
 								}
 							}
