@@ -285,7 +285,7 @@ void calc_poly_plane(float (*verts)[3], const int nverts)
  * the list that bridges a concave region of the face or intersects
  * any of the faces's edges.
  */
-static void shrink_edgef(float v1[3], float v2[3], const float fac)
+static void scale_edge_v3f(float v1[3], float v2[3], const float fac)
 {
 	float mid[3];
 
@@ -502,7 +502,7 @@ void BM_face_normal_flip(BMesh *bm, BMFace *f)
 
 /* detects if two line segments cross each other (intersects).
  * note, there could be more winding cases then there needs to be. */
-static int linecrossesf(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
+static int line_crosses_v2f(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
 
 #define GETMIN2_AXIS(a, b, ma, mb, axis)   \
@@ -612,7 +612,7 @@ int BM_face_point_inside_test(BMFace *f, const float co[3])
 		v2[0] = (l_iter->v->co[ax] - cent[0]) * onepluseps + cent[0];
 		v2[1] = (l_iter->v->co[ay] - cent[1]) * onepluseps + cent[1];
 		
-		crosses += linecrossesf(v1, v2, co2, out) != 0;
+		crosses += line_crosses_v2f(v1, v2, co2, out) != 0;
 	} while ((l_iter = l_iter->next) != l_first);
 	
 	return crosses % 2 != 0;
@@ -959,7 +959,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	BMIter iter;
 	BMLoop *l;
 	float v1[3], v2[3], v3[3] /*, v4[3 */, no[3], mid[3], *p1, *p2, *p3, *p4;
-	float out[3] = {-234324.0f, -234324.0f, 0.0f};
+	float out[3] = {-FLT_MAX, -FLT_MAX, 0.0f};
 	float (*projverts)[3];
 	float (*edgeverts)[3];
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
@@ -980,7 +980,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		copy_v3_v3(v1, loops[i][0]->v->co);
 		copy_v3_v3(v2, loops[i][1]->v->co);
 
-		shrink_edgef(v1, v2, fac2);
+		scale_edge_v3f(v1, v2, fac2);
 		
 		copy_v3_v3(edgeverts[a], v1);
 		a++;
@@ -994,14 +994,16 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 
 	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
 		p1 = projverts[i];
-		out[0] = maxf(out[0], p1[0]) + 0.01f;
-		out[1] = maxf(out[1], p1[1]) + 0.01f;
-		out[2] = 0.0f;
-		p1[2] = 0.0f;
+		out[0] = maxf(out[0], p1[0]);
+		out[1] = maxf(out[1], p1[1]);
+		/* out[2] = 0.0f; */ /* keep at zero */
 
-		//copy_v3_v3(l->v->co, p1);
+		p1[2] = 0.0f;
 	}
 	
+	/* ensure we are well outside the face bounds (value is arbitrary) */
+	add_v2_fl(out, 1.0f);
+
 	for (i = 0; i < len; i++) {
 		edgeverts[i * 2][2] = 0.0f;
 		edgeverts[i * 2 + 1][2] = 0.0f;
@@ -1019,19 +1021,26 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			p1 = projverts[j];
 			p2 = projverts[(j + 1) % f->len];
 			
+#if 0
 			copy_v3_v3(v1, p1);
 			copy_v3_v3(v2, p2);
 
-			shrink_edgef(v1, v2, fac1);
-
-			if (linecrossesf(p1, p2, mid, out)) clen++;
+			scale_edge_v3f(v1, v2, fac1);
+			if (line_crosses_v2f(v1, v2, mid, out)) {
+				clen++;
+			}
+#else
+			if (line_crosses_v2f(p1, p2, mid, out)) {
+				clen++;
+			}
+#endif
 		}
-		
+
 		if (clen % 2 == 0) {
 			loops[i][0] = NULL;
 		}
 	}
-	
+
 	/* do line crossing test */
 	for (i = 0; i < f->len; i++) {
 		p1 = projverts[i];
@@ -1040,7 +1049,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		copy_v3_v3(v1, p1);
 		copy_v3_v3(v2, p2);
 
-		shrink_edgef(v1, v2, fac1);
+		scale_edge_v3f(v1, v2, fac1);
 
 		for (j = 0; j < len; j++) {
 			if (!loops[j][0]) {
@@ -1050,7 +1059,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			p3 = edgeverts[j * 2];
 			p4 = edgeverts[j * 2 + 1];
 
-			if (linecrossesf(v1, v2, p3, p4)) {
+			if (line_crosses_v2f(v1, v2, p3, p4)) {
 				loops[j][0] = NULL;
 			}
 		}
@@ -1067,9 +1076,9 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 				copy_v3_v3(v1, p1);
 				copy_v3_v3(v2, p2);
 
-				shrink_edgef(v1, v2, fac1);
+				scale_edge_v3f(v1, v2, fac1);
 
-				if (linecrossesf(v1, v2, p3, p4)) {
+				if (line_crosses_v2f(v1, v2, p3, p4)) {
 					loops[i][0] = NULL;
 				}
 			}
