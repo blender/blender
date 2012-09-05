@@ -885,7 +885,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "exposure");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
 	RNA_def_property_float_default(prop, 0.0f);
-	RNA_def_property_ui_text(prop, "Exposure", "Exposure (stops) applied after display transform");
+	RNA_def_property_ui_text(prop, "Exposure", "Exposure (stops) applied before display transform");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
 	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_FACTOR);
