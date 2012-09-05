@@ -93,8 +93,10 @@ void **g_highlightedNodesRead;
 				if (node->original) { \
 					node = node->original; \
 				} \
-				if (g_highlightIndex < MAX_HIGHLIGHT) { \
-					g_highlightedNodes[g_highlightIndex++] = node; \
+				if (g_highlightInitialized && g_highlightedNodes) { \
+					if (g_highlightIndex < MAX_HIGHLIGHT) { \
+						g_highlightedNodes[g_highlightIndex++] = node; \
+					} \
 				} \
 			} \
 		} \
