@@ -5,6 +5,7 @@ set(SRC_OSL
 	node_add_closure.osl
 	node_attribute.osl
 	node_background.osl
+	node_brick_texture.osl
 	node_bump.osl
 	node_camera.osl
 	node_checker_texture.osl
