@@ -731,8 +731,11 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			}
 
 			if (ima->source != IMA_SRC_GENERATED) {
-				col = uiLayoutColumn(layout, FALSE);
-				uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
+				/* OCIO_TODO: color space transformation for byte images is not implemented yet */
+				if (ibuf && ibuf->rect_float) {
+					col = uiLayoutColumn(layout, FALSE);
+					uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
+				}
 
 				if (compact == 0) { /* background image view doesnt need these */
 					uiItemS(layout);
