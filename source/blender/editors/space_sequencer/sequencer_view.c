@@ -162,7 +162,11 @@ static void sample_exit(bContext *C, wmOperator *op)
 static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
+	SpaceSeq *sseq = CTX_wm_space_seq(C);
 	ImageSampleInfo *info;
+
+	if (sseq->mainb != SEQ_DRAW_IMG_IMBUF)
+		return OPERATOR_CANCELLED;
 
 	info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
 	info->art = ar->type;
