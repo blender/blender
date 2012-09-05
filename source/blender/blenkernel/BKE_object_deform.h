@@ -33,5 +33,6 @@ struct Object;
 
 char *BKE_objdef_lock_flags_get(struct Object *ob, const int defbase_tot);
 char *BKE_objdef_validmap_get(struct Object *ob, const int defbase_tot);
+char *BKE_objdef_selected_get(struct Object *ob, int defbase_tot, int *r_dg_flags_sel_tot);
 
 #endif  /* __BKE_OBJECT_DEFORM_H__ */

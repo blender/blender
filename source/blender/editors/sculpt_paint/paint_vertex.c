@@ -2160,7 +2160,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float alpha;
 	float mval[2];
 	int use_vert_sel;
-	char *defbase_sel;
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
 	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
@@ -2194,12 +2193,13 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 
 
+
 	/* *** setup WeightPaintInfo - pass onto do_weight_paint_vertex *** */
 	wpi.defbase_tot =        wpd->defbase_tot;
-	defbase_sel =            MEM_mallocN(wpi.defbase_tot * sizeof(char), "wpi.defbase_sel");
-	wpi.defbase_tot_sel =    get_selected_defgroups(ob, defbase_sel, wpi.defbase_tot);
-	wpi.defbase_sel =        defbase_sel; /* so we can stay const */
-	if (wpi.defbase_tot_sel == 0 && ob->actdef > 0) wpi.defbase_tot_sel = 1;
+	wpi.defbase_sel = BKE_objdef_selected_get(ob, wpi.defbase_tot, &wpi.defbase_tot_sel);
+	if (wpi.defbase_tot_sel == 0 && ob->actdef > 0) {
+		wpi.defbase_tot_sel = 1;
+	}
 
 	wpi.defbase_tot_unsel =  wpi.defbase_tot - wpi.defbase_tot_sel;
 	wpi.vgroup_active =      wpd->vgroup_active;

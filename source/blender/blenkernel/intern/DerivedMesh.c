@@ -59,6 +59,7 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_multires.h"
@@ -1015,14 +1016,14 @@ static void calc_weightpaint_vert_color(
         unsigned char r_col[4],
         MDeformVert *dv, ColorBand *coba,
         const int defbase_tot, const int defbase_act,
-        const char *dg_flags,
-        const int selected, const int draw_flag)
+        const char *defbase_sel, const int defbase_sel_tot,
+        const int draw_flag)
 {
 	float input = 0.0f;
 	
 	int make_black = FALSE;
 
-	if ((selected > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
+	if ((defbase_sel_tot > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
 		int was_a_nonzero = FALSE;
 		unsigned int i;
 
@@ -1031,7 +1032,7 @@ static void calc_weightpaint_vert_color(
 			/* in multipaint, get the average if auto normalize is inactive
 			 * get the sum if it is active */
 			if (dw->def_nr < defbase_tot) {
-				if (dg_flags[dw->def_nr]) {
+				if (defbase_sel[dw->def_nr]) {
 					if (dw->weight) {
 						input += dw->weight;
 						was_a_nonzero = TRUE;
@@ -1045,7 +1046,7 @@ static void calc_weightpaint_vert_color(
 			make_black = TRUE;
 		}
 		else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == FALSE) {
-			input /= selected; /* get the average */
+			input /= defbase_sel_tot; /* get the average */
 		}
 	}
 	else {
@@ -1090,14 +1091,21 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, i
 		/* variables for multipaint */
 		const int defbase_tot = BLI_countlist(&ob->defbase);
 		const int defbase_act = ob->actdef - 1;
-		char *dg_flags = MEM_mallocN(defbase_tot * sizeof(char), __func__);
-		const int selected = get_selected_defgroups(ob, dg_flags, defbase_tot);
 
-		for (i = numVerts; i != 0; i--, wc += 4, dv++) {
-			calc_weightpaint_vert_color(wc, dv, coba, defbase_tot, defbase_act, dg_flags, selected, draw_flag);
+		int defbase_sel_tot = 0;
+		char *defbase_sel = NULL;
+
+		if (draw_flag & CALC_WP_MULTIPAINT) {
+			defbase_sel = BKE_objdef_selected_get(ob, defbase_tot, &defbase_sel_tot);
 		}
 
-		MEM_freeN(dg_flags);
+		for (i = numVerts; i != 0; i--, wc += 4, dv++) {
+			calc_weightpaint_vert_color(wc, dv, coba, defbase_tot, defbase_act, defbase_sel, defbase_sel_tot, draw_flag);
+		}
+
+		if (defbase_sel) {
+			MEM_freeN(defbase_sel);
+		}
 	}
 	else {
 		int col_i;

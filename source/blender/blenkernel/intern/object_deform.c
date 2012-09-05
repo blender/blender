@@ -23,13 +23,16 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
+#include "BKE_action.h"
 #include "BKE_object_deform.h"  /* own include */
+#include "BKE_object.h"
 #include "BKE_modifier.h"
 
 #include "DNA_armature_types.h"
@@ -120,4 +123,34 @@ char *BKE_objdef_validmap_get(Object *ob, const int defbase_tot)
 	BLI_ghash_free(gh, NULL, NULL);
 
 	return vgroup_validmap;
+}
+
+/* Returns total selected vgroups,
+ * wpi.defbase_sel is assumed malloc'd, all values are set */
+char *BKE_objdef_selected_get(Object *ob, int defbase_tot, int *r_dg_flags_sel_tot)
+{
+	char *dg_selection = MEM_mallocN(defbase_tot * sizeof(char), __func__);
+	bDeformGroup *defgroup;
+	unsigned int i;
+	Object *armob = BKE_object_pose_armature_get(ob);
+	(*r_dg_flags_sel_tot) = 0;
+
+	if (armob) {
+		bPose *pose = armob->pose;
+		for (i = 0, defgroup = ob->defbase.first; i < defbase_tot && defgroup; defgroup = defgroup->next, i++) {
+			bPoseChannel *pchan = BKE_pose_channel_find_name(pose, defgroup->name);
+			if (pchan && (pchan->bone->flag & BONE_SELECTED)) {
+				dg_selection[i] = TRUE;
+				(*r_dg_flags_sel_tot) += 1;
+			}
+			else {
+				dg_selection[i] = FALSE;
+			}
+		}
+	}
+	else {
+		memset(dg_selection, FALSE, sizeof(char) * defbase_tot);
+	}
+
+	return dg_selection;
 }

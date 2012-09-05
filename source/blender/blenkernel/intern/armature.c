@@ -2517,36 +2517,6 @@ void BKE_pose_where_is(Scene *scene, Object *ob)
 	}
 }
 
-
-/* Returns total selected vgroups,
- * wpi.defbase_sel is assumed malloc'd, all values are set */
-int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_tot)
-{
-	bDeformGroup *defgroup;
-	unsigned int i;
-	Object *armob = BKE_object_pose_armature_get(ob);
-	int dg_flags_sel_tot = 0;
-
-	if (armob) {
-		bPose *pose = armob->pose;
-		for (i = 0, defgroup = ob->defbase.first; i < defbase_tot && defgroup; defgroup = defgroup->next, i++) {
-			bPoseChannel *pchan = BKE_pose_channel_find_name(pose, defgroup->name);
-			if (pchan && (pchan->bone->flag & BONE_SELECTED)) {
-				dg_selection[i] = TRUE;
-				dg_flags_sel_tot++;
-			}
-			else {
-				dg_selection[i] = FALSE;
-			}
-		}
-	}
-	else {
-		memset(dg_selection, FALSE, sizeof(char) * defbase_tot);
-	}
-
-	return dg_flags_sel_tot;
-}
-
 /************** Bounding box ********************/
 static int minmax_armature(Object *ob, float r_min[3], float r_max[3])
 {

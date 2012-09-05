@@ -210,7 +210,9 @@ void defvert_normalize_lock(MDeformVert *dvert, const int def_nr_lock)
 		/* nothing */
 	}
 	else if (dvert->totweight == 1) {
-		dvert->dw[0].weight = 1.0f;
+		if (def_nr_lock != 0) {
+			dvert->dw[0].weight = 1.0f;
+		}
 	}
 	else {
 		MDeformWeight *dw_lock = NULL;
