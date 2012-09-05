@@ -308,7 +308,7 @@ static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
 	}
 }
 
-static SubDPattern quad_1edge = {
+static const SubDPattern quad_1edge = {
 	{1, 0, 0, 0},
 	quad_1edge_split,
 	4,
@@ -337,7 +337,7 @@ static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **vert
 	connect_smallest_face(bm, verts[numcuts * 2 + 3], verts[numcuts * 2 + 1], &nf);
 }
 
-static SubDPattern quad_2edge_path = {
+static const SubDPattern quad_2edge_path = {
 	{1, 1, 0, 0},
 	quad_2edge_split_path,
 	4,
@@ -379,7 +379,7 @@ static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert *
 	connect_smallest_face(bm, lastv, verts[numcuts * 2 + 2], &nf);
 }
 
-static SubDPattern quad_2edge_innervert = {
+static const SubDPattern quad_2edge_innervert = {
 	{1, 1, 0, 0},
 	quad_2edge_split_innervert,
 	4,
@@ -410,7 +410,7 @@ static void quad_2edge_split_fan(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 	}
 }
 
-static SubDPattern quad_2edge_fan = {
+static const SubDPattern quad_2edge_fan = {
 	{1, 1, 0, 0},
 	quad_2edge_split_fan,
 	4,
@@ -449,7 +449,7 @@ static void quad_3edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	}
 }
 
-static SubDPattern quad_3edge = {
+static const SubDPattern quad_3edge = {
 	{1, 1, 1, 0},
 	quad_3edge_split,
 	4,
@@ -559,7 +559,7 @@ static void tri_1edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	}
 }
 
-static SubDPattern tri_1edge = {
+static const SubDPattern tri_1edge = {
 	{1, 0, 0},
 	tri_1edge_split,
 	3,
@@ -660,51 +660,55 @@ cleanup:
 	MEM_freeN(lines);
 }
 
-static SubDPattern tri_3edge = {
+static const SubDPattern tri_3edge = {
 	{1, 1, 1},
 	tri_3edge_subdivide,
 	3,
 };
 
 
-static SubDPattern quad_4edge = {
+static const SubDPattern quad_4edge = {
 	{1, 1, 1, 1},
 	quad_4edge_subdivide,
 	4,
 };
 
-static SubDPattern *patterns[] = {
-	NULL, //quad single edge pattern is inserted here
-	NULL, //quad corner vert pattern is inserted here
-	NULL, //tri single edge pattern is inserted here
+static const SubDPattern *patterns[] = {
+	NULL,  /* quad single edge pattern is inserted here */
+	NULL,  /* quad corner vert pattern is inserted here */
+	NULL,  /* tri single edge pattern is inserted here */
 	NULL,
 	&quad_3edge,
 	NULL,
 };
 
-#define PLEN  (sizeof(patterns) / sizeof(void *))
+#define PATTERNS_TOT  (sizeof(patterns) / sizeof(void *))
 
 typedef struct SubDFaceData {
-	BMVert *start; SubDPattern *pat;
-	int totedgesel; //only used if pat was NULL, e.g. no pattern was found
+	BMVert *start;
+	const SubDPattern *pat;
+	int totedgesel;  /* only used if pat was NULL, e.g. no pattern was found */
 	BMFace *face;
 } SubDFaceData;
 
 void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *einput;
-	SubDPattern *pat;
+	const SubDPattern *pat;
 	SubDParams params;
 	SubDFaceData *facedata = NULL;
+	BLI_array_declare(facedata);
 	BMIter viter, fiter, liter;
 	BMVert *v, **verts = NULL;
-	BMEdge *edge, **edges = NULL;
-	BMLoop *nl, *l, **splits = NULL, **loops = NULL;
-	BMFace *face;
-	BLI_array_declare(splits);
-	BLI_array_declare(loops);
-	BLI_array_declare(facedata);
+	BMEdge *edge;
+	BMEdge **edges = NULL;
 	BLI_array_declare(edges);
+	BMLoop *(*loops_split)[2] = NULL;
+	BLI_array_declare(loops_split);
+	BMLoop **loops = NULL;
+	BLI_array_declare(loops);
+	BMLoop *nl, *l;
+	BMFace *face;
 	BLI_array_declare(verts);
 	float smooth, fractal, along_normal;
 	int use_sphere, cornertype, use_singleedge, use_gridfill;
@@ -726,7 +730,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BLI_srandom(seed);
 	
 	patterns[1] = NULL;
-	//straight cut is patterns[1] == NULL
+	/* straight cut is patterns[1] == NULL */
 	switch (cornertype) {
 		case SUBD_PATH:
 			patterns[1] = &quad_2edge_path;
@@ -861,7 +865,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		for (i = 0; i < PLEN; i++) {
+		for (i = 0; i < PATTERNS_TOT; i++) {
 			pat = patterns[i];
 			if (!pat) {
 				continue;
@@ -935,7 +939,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			
 			/* ok, no pattern.  we still may be able to do something */
 			BLI_array_empty(loops);
-			BLI_array_empty(splits);
+			BLI_array_empty(loops_split);
 
 			/* for case of two edges, connecting them shouldn't be too hard */
 			BLI_array_grow_items(loops, face->len);
@@ -971,10 +975,10 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			
 			b += numcuts - 1;
 
-			BLI_array_grow_items(splits, numcuts * 2);
+			BLI_array_grow_items(loops_split, numcuts);
 			for (j = 0; j < numcuts; j++) {
-				splits[j * 2 + 0] = loops[a];
-				splits[j * 2 + 1] = loops[b];
+				loops_split[j][0] = loops[a];
+				loops_split[j][1] = loops[b];
 
 				b = (b - 1) % vlen;
 				a = (a + 1) % vlen;
@@ -985,12 +989,12 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			 * - concave corner of an ngon.
 			 * - 2 edges being used in 2+ ngons.
 			 */
-			// BM_face_legal_splits(bm, face, (BMLoop *(*)[2])splits, BLI_array_count(splits) / 2);
+			BM_face_legal_splits(bm, face, loops_split, BLI_array_count(loops_split));
 
-			for (j = 0; j < BLI_array_count(splits) / 2; j++) {
-				if (splits[j * 2]) {
+			for (j = 0; j < BLI_array_count(loops_split); j++) {
+				if (loops_split[j][0]) {
 					/* BMFace *nf = */ /* UNUSED */
-					BM_face_split(bm, face, splits[j * 2]->v, splits[j * 2 + 1]->v, &nl, NULL, FALSE);
+					BM_face_split(bm, face, loops_split[j][0]->v, loops_split[j][1]->v, &nl, NULL, FALSE);
 				}
 			}
 
@@ -1030,7 +1034,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	if (facedata) BLI_array_free(facedata);
 	if (edges) BLI_array_free(edges);
 	if (verts) BLI_array_free(verts);
-	BLI_array_free(splits);
+	BLI_array_free(loops_split);
 	BLI_array_free(loops);
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, "outinner", BM_ALL, ELE_INNER);
