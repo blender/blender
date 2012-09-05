@@ -57,7 +57,18 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "IMB_imbuf.h"
+
 #include "sequencer_intern.h"   // own include
+
+/**************************** common state *****************************/
+
+static void sequencer_scopes_tag_refresh(ScrArea *sa)
+{
+	SpaceSeq *sseq = (SpaceSeq *)sa->spacedata.first;
+
+	sseq->scopes.reference_ibuf = NULL;
+}
 
 /* ******************** manage regions ********************* */
 
@@ -183,12 +194,27 @@ static SpaceLink *sequencer_new(const bContext *C)
 }
 
 /* not spacelink itself */
-static void sequencer_free(SpaceLink *UNUSED(sl))
+static void sequencer_free(SpaceLink *sl)
 {	
-//	SpaceSeq *sseq= (SpaceSequencer*) sl;
-	
+	SpaceSeq *sseq= (SpaceSeq *) sl;
+	SequencerScopes *scopes = &sseq->scopes;
+
 // XXX	if (sseq->gpd) BKE_gpencil_free(sseq->gpd);
 
+	if (scopes->zebra_ibuf)
+		IMB_freeImBuf(scopes->zebra_ibuf);
+
+	if (scopes->waveform_ibuf)
+		IMB_freeImBuf(scopes->waveform_ibuf);
+
+	if (scopes->sep_waveform_ibuf)
+		IMB_freeImBuf(scopes->sep_waveform_ibuf);
+
+	if (scopes->vector_ibuf)
+		IMB_freeImBuf(scopes->vector_ibuf);
+
+	if (scopes->histogram_ibuf)
+		IMB_freeImBuf(scopes->histogram_ibuf);
 }
 
 
@@ -290,7 +316,24 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 	return (SpaceLink *)sseqn;
 }
 
-
+static void sequencer_listener(ScrArea *sa, wmNotifier *wmn)
+{
+	/* context changes */
+	switch (wmn->category) {
+		case NC_SCENE:
+			switch (wmn->data) {
+				case ND_FRAME:
+				case ND_SEQUENCER:
+					sequencer_scopes_tag_refresh(sa);
+					break;
+			}
+			break;
+		case NC_SPACE:
+			if (wmn->data == ND_SPACE_SEQUENCER)
+				sequencer_scopes_tag_refresh(sa);
+			break;
+	}
+}
 
 /* *********************** sequencer (main) region ************************ */
 /* add handlers, stuff you only do once or on area/region changes */
@@ -610,6 +653,7 @@ void ED_spacetype_sequencer(void)
 	st->context = sequencer_context;
 	st->dropboxes = sequencer_dropboxes;
 	st->refresh = sequencer_refresh;
+	st->listener = sequencer_listener;
 
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");

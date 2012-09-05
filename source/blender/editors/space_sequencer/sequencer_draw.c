@@ -850,6 +850,50 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	return ibuf;
 }
 
+static void sequencer_check_scopes(SequencerScopes *scopes, ImBuf *ibuf)
+{
+	if (scopes->reference_ibuf != ibuf) {
+		if (scopes->zebra_ibuf) {
+			IMB_freeImBuf(scopes->zebra_ibuf);
+			scopes->zebra_ibuf = NULL;
+		}
+
+		if (scopes->waveform_ibuf) {
+			IMB_freeImBuf(scopes->waveform_ibuf);
+			scopes->waveform_ibuf = NULL;
+		}
+
+		if (scopes->sep_waveform_ibuf) {
+			IMB_freeImBuf(scopes->sep_waveform_ibuf);
+			scopes->sep_waveform_ibuf = NULL;
+		}
+
+		if (scopes->vector_ibuf) {
+			IMB_freeImBuf(scopes->vector_ibuf);
+			scopes->vector_ibuf = NULL;
+		}
+
+		if (scopes->histogram_ibuf) {
+			IMB_freeImBuf(scopes->histogram_ibuf);
+			scopes->histogram_ibuf = NULL;
+		}
+	}
+}
+
+static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scope_cb) (ImBuf *ibuf))
+{
+	ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
+	ImBuf *scope;
+
+	IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings, &scene->display_settings);
+
+	scope = make_scope_cb(display_ibuf);
+
+	IMB_freeImBuf(display_ibuf);
+
+	return scope;
+}
+
 void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs, int draw_overlay)
 {
 	struct Main *bmain = CTX_data_main(C);
@@ -913,34 +957,47 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL)
 		return;
 
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-		if (sseq->zebra != 0) {
-			scope = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
-		}
-	}
-	else {
-		ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
+	if (sseq->mainb != SEQ_DRAW_IMG_IMBUF || sseq->zebra != 0) {
+		SequencerScopes *scopes = &sseq->scopes;
 
-		IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings, &scene->display_settings);
+		sequencer_check_scopes(scopes, ibuf);
 
 		switch (sseq->mainb) {
+			case SEQ_DRAW_IMG_IMBUF:
+				if (!scopes->zebra_ibuf) {
+					ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
+
+					IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings, &scene->display_settings);
+					scopes->zebra_ibuf = make_zebra_view_from_ibuf(display_ibuf, sseq->zebra);
+					IMB_freeImBuf(display_ibuf);
+				}
+				scope = scopes->zebra_ibuf;
+				break;
 			case SEQ_DRAW_IMG_WAVEFORM:
 				if ((sseq->flag & SEQ_DRAW_COLOR_SEPARATED) != 0) {
-					scope = make_sep_waveform_view_from_ibuf(display_ibuf);
+					if (!scopes->sep_waveform_ibuf)
+						scopes->sep_waveform_ibuf = sequencer_make_scope(scene, ibuf, make_sep_waveform_view_from_ibuf);
+					scope = scopes->sep_waveform_ibuf;
 				}
 				else {
-					scope = make_waveform_view_from_ibuf(display_ibuf);
+					if (!scopes->waveform_ibuf)
+						scopes->waveform_ibuf = sequencer_make_scope(scene, ibuf, make_waveform_view_from_ibuf);
+					scope = scopes->waveform_ibuf;
 				}
 				break;
 			case SEQ_DRAW_IMG_VECTORSCOPE:
-				scope = make_vectorscope_view_from_ibuf(display_ibuf);
+				if (!scopes->vector_ibuf)
+					scopes->vector_ibuf = sequencer_make_scope(scene, ibuf, make_vectorscope_view_from_ibuf);
+				scope = scopes->vector_ibuf;
 				break;
 			case SEQ_DRAW_IMG_HISTOGRAM:
-				scope = make_histogram_view_from_ibuf(display_ibuf);
+				if (!scopes->histogram_ibuf)
+					scopes->histogram_ibuf = sequencer_make_scope(scene, ibuf, make_histogram_view_from_ibuf);
+				scope = scopes->histogram_ibuf;
 				break;
 		}
 
-		IMB_freeImBuf(display_ibuf);
+		scopes->reference_ibuf = ibuf;
 	}
 
 	if (scope) {
@@ -1049,7 +1106,8 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	/* draw grease-pencil (image aligned) */
 	draw_gpencil_2dimage(C);
 
-	IMB_freeImBuf(ibuf);
+	if (!scope)
+		IMB_freeImBuf(ibuf);
 	
 	/* ortho at pixel level */
 	UI_view2d_view_restore(C);

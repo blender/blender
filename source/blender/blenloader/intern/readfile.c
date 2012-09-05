@@ -5294,6 +5294,13 @@ static void lib_link_screen(FileData *fd, Main *main)
 						 * so fingers crossed this works fine!
 						 */
 						sseq->gpd = newlibadr_us(fd, sc->id.lib, sseq->gpd);
+
+						sseq->scopes.reference_ibuf = NULL;
+						sseq->scopes.zebra_ibuf = NULL;
+						sseq->scopes.waveform_ibuf = NULL;
+						sseq->scopes.sep_waveform_ibuf = NULL;
+						sseq->scopes.vector_ibuf = NULL;
+						sseq->scopes.histogram_ibuf = NULL;
 					}
 					else if (sl->spacetype == SPACE_NLA) {
 						SpaceNla *snla= (SpaceNla *)sl;

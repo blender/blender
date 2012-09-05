@@ -473,6 +473,8 @@ typedef struct SpaceSeq {
 	int overlay_type;
 
 	struct bGPdata *gpd;        /* grease-pencil data */
+
+	struct SequencerScopes scopes;  /* different scoped displayed in space */
 } SpaceSeq;
 
 

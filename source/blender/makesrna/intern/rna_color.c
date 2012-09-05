@@ -386,6 +386,8 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *UNUSED(b
 		Scene *scene = (Scene *) id;
 
 		IMB_colormanagement_validate_settings(&scene->display_settings, &scene->view_settings);
+
+		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 	}
 }
 
@@ -467,6 +469,15 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 
 		BKE_movieclip_reload(clip);
 		WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
+	}
+}
+
+static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+
+	if (GS(id->name) == ID_SCE) {
+		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 	}
 }
 
@@ -852,21 +863,21 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	                                  "rna_ColorManagedViewSettings_view_transform_set",
 	                                  "rna_ColorManagedViewSettings_view_transform_itemf");
 	RNA_def_property_ui_text(prop, "View Transform", "View used ");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
 	prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "exposure");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_ui_text(prop, "Exposure", "Exposure (stops) applied on displaying image buffers");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
 	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "gamma");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Gamma", "Amount f gamma modification for displaying image buffers");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
 	/* ** Colorspace **  */
 	srna = RNA_def_struct(brna, "ColorManagedColorspaceSettings", NULL);
