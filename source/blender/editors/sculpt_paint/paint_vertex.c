@@ -72,6 +72,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
@@ -1308,29 +1309,6 @@ static char has_locked_group(MDeformVert *dvert, const int defbase_tot,
 	}
 	return FALSE;
 }
-/* 
- * gen_lck_flags gets the status of "flag" for each bDeformGroup
- * in ob->defbase and returns an array containing them
- */
-static char *gen_lock_flags(Object *ob, int defbase_tot)
-{
-	char is_locked = FALSE;
-	int i;
-	//int defbase_tot = BLI_countlist(&ob->defbase);
-	char *lock_flags = MEM_mallocN(defbase_tot * sizeof(char), "defflags");
-	bDeformGroup *defgroup;
-
-	for (i = 0, defgroup = ob->defbase.first; i < defbase_tot && defgroup; defgroup = defgroup->next, i++) {
-		lock_flags[i] = ((defgroup->flag & DG_LOCK_WEIGHT) != 0);
-		is_locked |= lock_flags[i];
-	}
-	if (is_locked) {
-		return lock_flags;
-	}
-
-	MEM_freeN(lock_flags);
-	return NULL;
-}
 
 static int has_locked_group_selected(int defbase_tot, const char *defbase_sel, const char *lock_flags)
 {
@@ -1722,10 +1700,6 @@ static int get_first_selected_nonzero_weight(MDeformVert *dvert, const int defba
 	return -1;
 }
 
-
-static char *wpaint_make_validmap(Object *ob);
-
-
 static void do_weight_paint_vertex(
         /* vars which remain the same for every vert */
         VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
@@ -2067,63 +2041,6 @@ struct WPaintData {
 	int defbase_tot;
 };
 
-static char *wpaint_make_validmap(Object *ob)
-{
-	bDeformGroup *dg;
-	ModifierData *md;
-	char *vgroup_validmap;
-	GHash *gh;
-	int i, step1 = 1;
-
-	if (ob->defbase.first == NULL) {
-		return NULL;
-	}
-
-	gh = BLI_ghash_str_new("wpaint_make_validmap gh");
-
-	/* add all names to a hash table */
-	for (dg = ob->defbase.first; dg; dg = dg->next) {
-		BLI_ghash_insert(gh, dg->name, NULL);
-	}
-
-	/* now loop through the armature modifiers and identify deform bones */
-	for (md = ob->modifiers.first; md; md = !md->next && step1 ? (step1 = 0), modifiers_getVirtualModifierList(ob) : md->next) {
-		if (!(md->mode & (eModifierMode_Realtime | eModifierMode_Virtual)))
-			continue;
-
-		if (md->type == eModifierType_Armature) {
-			ArmatureModifierData *amd = (ArmatureModifierData *) md;
-
-			if (amd->object && amd->object->pose) {
-				bPose *pose = amd->object->pose;
-				bPoseChannel *chan;
-				
-				for (chan = pose->chanbase.first; chan; chan = chan->next) {
-					if (chan->bone->flag & BONE_NO_DEFORM)
-						continue;
-
-					if (BLI_ghash_remove(gh, chan->name, NULL, NULL)) {
-						BLI_ghash_insert(gh, chan->name, SET_INT_IN_POINTER(1));
-					}
-				}
-			}
-		}
-	}
-
-	vgroup_validmap = MEM_mallocN(BLI_ghash_size(gh), "wpaint valid map");
-
-	/* add all names to a hash table */
-	for (dg = ob->defbase.first, i = 0; dg; dg = dg->next, i++) {
-		vgroup_validmap[i] = (BLI_ghash_lookup(gh, dg->name) != NULL);
-	}
-
-	BLI_assert(i == BLI_ghash_size(gh));
-
-	BLI_ghash_free(gh, NULL, NULL);
-
-	return vgroup_validmap;
-}
-
 static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNUSED(mouse[2]))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -2202,9 +2119,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 	/* set up auto-normalize, and generate map for detecting which
 	 * vgroups affect deform bones */
 	wpd->defbase_tot = BLI_countlist(&ob->defbase);
-	wpd->lock_flags = gen_lock_flags(ob, wpd->defbase_tot);
+	wpd->lock_flags = BKE_objdef_lock_flags_get(ob, wpd->defbase_tot);
 	if (ts->auto_normalize || ts->multipaint || wpd->lock_flags) {
-		wpd->vgroup_validmap = wpaint_make_validmap(ob);
+		wpd->vgroup_validmap = BKE_objdef_validmap_get(ob, wpd->defbase_tot);
 	}
 
 	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
