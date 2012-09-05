@@ -254,6 +254,15 @@ void BPY_python_start(int argc, const char **argv)
 
 	Py_Initialize();
 
+#ifdef WIN32
+	/* this is disappointing, its likely a bug in python?
+	 * for some reason 'PYTHONIOENCODING' is ignored in windows
+	 * see: [#31555] for details. */
+	PyRun_SimpleString("import sys, io\n"
+	                   "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='surrogateescape', line_buffering=True)\n"
+	                   "sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='surrogateescape', line_buffering=True)\n");
+#endif  /* WIN32 */
+
 	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
 	/* sigh, why do python guys not have a (char **) version anymore? */
 	{
