@@ -63,6 +63,8 @@ __device void kernel_shader_evaluate(KernelGlobals *kg, uint4 *input, float4 *ou
 		out = shader_eval_background(kg, &sd, flag);
 	}
 	
+	shader_release(kg, &sd);
+	
 	/* write output */
 	output[i] = make_float4(out.x, out.y, out.z, 0.0f);
 }

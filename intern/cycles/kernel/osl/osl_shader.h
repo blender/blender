@@ -79,7 +79,8 @@ public:
 	                                const float3 omega_in, const float3 omega_out);
 
 	/* release */
-	static void release(KernelGlobals *kg, const ShaderData *sd);
+	static void init(KernelGlobals *kg, ShaderData *sd);
+	static void release(KernelGlobals *kg, ShaderData *sd);
 };
 
 CCL_NAMESPACE_END

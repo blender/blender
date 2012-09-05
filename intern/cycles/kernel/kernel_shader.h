@@ -46,6 +46,11 @@ CCL_NAMESPACE_BEGIN
 __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	const Intersection *isect, const Ray *ray)
 {
+#ifdef __OSL__
+	if (kernel_osl_use(kg))
+		OSLShader::init(kg, sd);
+#endif
+
 	/* fetch triangle data */
 	int prim = kernel_tex_fetch(__prim_index, isect->prim);
 	float4 Ns = kernel_tex_fetch(__tri_normal, prim);
@@ -129,6 +134,11 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	const float3 P, const float3 Ng, const float3 I,
 	int shader, int object, int prim, float u, float v, float t, float time)
 {
+#ifdef __OSL__
+	if (kernel_osl_use(kg))
+		OSLShader::init(kg, sd);
+#endif
+
 	/* vectors */
 	sd->P = P;
 	sd->N = Ng;
@@ -233,6 +243,8 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 __device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 	int object, int prim, float u, float v)
 {
+	/* Note: no OSLShader::init call here, this is done in shader_setup_from_sample! */
+
 	float3 P, Ng, I = make_float3(0.0f, 0.0f, 0.0f);
 	int shader;
 
@@ -251,6 +263,11 @@ __device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 
 __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData *sd, const Ray *ray)
 {
+#ifdef __OSL__
+	if (kernel_osl_use(kg))
+		OSLShader::init(kg, sd);
+#endif
+
 	/* vectors */
 	sd->P = ray->D;
 	sd->N = -sd->P;
