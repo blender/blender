@@ -2836,8 +2836,8 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 
 		engine = RE_engine_create(type);
 
-		engine->tile_x = scene->r.xparts;
-		engine->tile_y = scene->r.yparts;
+		engine->tile_x = ceil(ar->winx/(float)scene->r.xparts);
+		engine->tile_y = ceil(ar->winy/(float)scene->r.yparts);
 
 		type->view_update(engine, C);
 
