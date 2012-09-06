@@ -18,8 +18,6 @@
 
 #include "kernel_projection.h"
 
-#include "util_param.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Point on triangle for Moller-Trumbore triangles */
