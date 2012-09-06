@@ -309,7 +309,7 @@ void COM_deinitialize(void);
  * @brief Clear all compositor caches. (Compositor system will still remain available). 
  * To deinitialize the compositor use the COM_deinitialize method.
  */
-void COM_clearCaches(void);
+// void COM_clearCaches(void); // NOT YET WRITTEN
 
 /**
  * @brief Return a list of highlighted bnodes pointers.

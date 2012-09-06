@@ -141,9 +141,6 @@ void              EDBM_uv_vert_map_free(struct UvVertMap *vmap);
 struct UvMapVert *EDBM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);
 struct UvVertMap *EDBM_uv_vert_map_create(struct BMEditMesh *em, int selected, int do_face_idx_array, const float limit[2]);
 
-void EDBM_data_layer_add(struct BMEditMesh *em, struct CustomData *data, int type, const char *name);
-void EDBM_data_layer_free(struct BMEditMesh *em, struct CustomData *data, int type);
-
 void EDBM_select_toggle_all(struct BMEditMesh *em);
 void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
 int  EDBM_select_interior_faces(struct BMEditMesh *em);

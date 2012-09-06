@@ -3272,7 +3272,7 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 	freeEdgeIndex(&indexed_edges);
 	
 #ifdef DEBUG_REEB
-	weightToVCol(em, 1);
+//	weightToVCol(em, 1);
 #endif
 	
 	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);

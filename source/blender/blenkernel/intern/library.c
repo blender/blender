@@ -862,7 +862,7 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 			BKE_text_free((Text *)id);
 			break;
 		case ID_SCRIPT:
-			//XXX free_script((Script *)id);
+			/* deprecated */
 			break;
 		case ID_SPK:
 			BKE_speaker_free((Speaker *)id);

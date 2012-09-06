@@ -46,10 +46,6 @@ struct BMLoop;
 struct BMEdge;
 struct BMVert;
 
-/* id can be from 0 to 3 */
-#define TF_PIN_MASK(id) (TF_PIN1 << id)
-#define TF_SEL_MASK(id) (TF_SEL1 << id)
-
 /* visibility and selection */
 int uvedit_face_visible_nolocal(struct Scene *scene, struct BMFace *efa);
 

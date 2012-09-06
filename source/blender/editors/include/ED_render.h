@@ -56,17 +56,11 @@ void ED_render_scene_update(struct Main *bmain, struct Scene *scene, int updated
 typedef struct RenderInfo {
 	int pr_rectx;
 	int pr_recty;
-	short curtile, tottile, status;
+	short curtile, tottile;
 	rcti disprect;          /* storage for view3d preview rect */
 	unsigned int *rect;
 	struct Render *re;      /* persistent render */
 } RenderInfo;
-
-/* ri->status */
-#define PR_DBASE            1
-#define PR_DISPRECT         2
-#define PR_PROJECTED        4
-#define PR_ROTATED          8
 
 /* Render the preview
  *
