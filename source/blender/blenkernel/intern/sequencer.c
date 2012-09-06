@@ -169,7 +169,8 @@ static void seq_free_strip(Strip *strip)
 	MEM_freeN(strip);
 }
 
-void BKE_sequence_free(Scene *scene, Sequence *seq, const int do_cache)
+/* only give option to skip cache locally (static func) */
+static void BKE_sequence_free_ex(Scene *scene, Sequence *seq, const int do_cache)
 {
 	if (seq->strip)
 		seq_free_strip(seq->strip);
@@ -219,6 +220,11 @@ void BKE_sequence_free(Scene *scene, Sequence *seq, const int do_cache)
 	MEM_freeN(seq);
 }
 
+void BKE_sequence_free(Scene *scene, Sequence *seq)
+{
+	BKE_sequence_free_ex(scene, seq, TRUE);
+}
+
 /* cache must be freed before calling this function
  * since it leaves the seqbase in an invalid state */
 static void seq_free_sequence_recurse(Scene *scene, Sequence *seq)
@@ -230,7 +236,7 @@ static void seq_free_sequence_recurse(Scene *scene, Sequence *seq)
 		seq_free_sequence_recurse(scene, iseq);
 	}
 
-	BKE_sequence_free(scene, seq, FALSE);
+	BKE_sequence_free_ex(scene, seq, FALSE);
 }
 
 
@@ -251,7 +257,7 @@ static void seq_free_clipboard_recursive(Sequence *seq_parent)
 		seq_free_clipboard_recursive(seq);
 	}
 
-	BKE_sequence_free(NULL, seq_parent, FALSE);
+	BKE_sequence_free_ex(NULL, seq_parent, FALSE);
 }
 
 void BKE_sequencer_free_clipboard(void)
@@ -290,7 +296,8 @@ void BKE_sequencer_editing_free(Scene *scene)
 
 	SEQ_BEGIN (ed, seq)
 	{
-		BKE_sequence_free(scene, seq, FALSE);
+		/* handle cache freeing above */
+		BKE_sequence_free_ex(scene, seq, FALSE);
 	}
 	SEQ_END
 

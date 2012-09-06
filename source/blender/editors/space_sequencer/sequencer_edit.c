@@ -613,7 +613,7 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 			BLI_remlink(lb, seq);
 			if (seq == last_seq) BKE_sequencer_active_set(scene, NULL);
 			if (seq->type == SEQ_TYPE_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
-			BKE_sequence_free(scene, seq, TRUE);
+			BKE_sequence_free(scene, seq);
 		}
 		seq = seqn;
 	}
@@ -1812,7 +1812,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				start_ofs += step;
 			}
 
-			BKE_sequence_free(scene, seq, TRUE);
+			BKE_sequence_free(scene, seq);
 			seq = seq->next;
 		}
 		else {
@@ -2010,7 +2010,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 	last_seq->seqbase.last = NULL;
 
 	BLI_remlink(ed->seqbasep, last_seq);
-	BKE_sequence_free(scene, last_seq, TRUE);
+	BKE_sequence_free(scene, last_seq);
 
 	/* emtpy meta strip, delete all effects depending on it */
 	for (seq = ed->seqbasep->first; seq; seq = seq->next)
