@@ -394,15 +394,15 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Obje
 	float co1[3], co2[3], co3[3], dir1[4], dir2[4], dir3[4];
 	float origin[3], invmat[4][4];
 	float epsilon = 0.01f; 
-	float mval_f[2], end[3];
+	float end[3];
+	const float mval_f[2] = {ar->winx / 2.0f,
+	                         ar->winy / 2.0f};
 	
 	if (!ar) {
 		printf("error in BMBVH_EdgeVisible!\n");
 		return 0;
 	}
-	
-	mval_f[0] = ar->winx / 2.0f;
-	mval_f[1] = ar->winy / 2.0f;
+
 	ED_view3d_win_to_segment_clip(ar, v3d, mval_f, origin, end);
 	
 	invert_m4_m4(invmat, obedit->obmat);

@@ -164,9 +164,7 @@ static void convertViewVec2D_mask(View2D *v2d, float r_vec[3], int dx, int dy)
 void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 {
 	if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) {
-		float mval_f[2];
-		mval_f[0] = dx;
-		mval_f[1] = dy;
+		const float mval_f[2] = {(float)dx, (float)dy};
 		ED_view3d_win_to_delta(t->ar, mval_f, r_vec);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {

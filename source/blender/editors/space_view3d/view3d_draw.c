@@ -1389,14 +1389,17 @@ unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
 {
 	unsigned int col;
 	
-	if (x >= vc->ar->winx || y >= vc->ar->winy) return 0;
+	if (x >= vc->ar->winx || y >= vc->ar->winy) {
+		return 0;
+	}
+
 	x += vc->ar->winrct.xmin;
 	y += vc->ar->winrct.ymin;
 	
 	view3d_validate_backbuf(vc);
 
-	glReadPixels(x,  y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  &col);
-	glReadBuffer(GL_BACK);	
+	glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
+	glReadBuffer(GL_BACK);
 	
 	if (ENDIAN_ORDER == B_ENDIAN) {
 		BLI_endian_switch_uint32(&col);

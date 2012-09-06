@@ -1027,13 +1027,11 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				Scene *scene = vc.scene;
 				ToolSettings *ts = vc.scene->toolsettings;
 				Brush *brush = paint_brush(&ts->wpaint->paint);
-				float mval_f[2];
+				const float mval_f[2] = {(float)event->mval[0],
+				                         (float)event->mval[1]};
 				int v_idx_best = -1;
 				int fidx;
 				float len_best = FLT_MAX;
-
-				mval_f[0] = (float)event->mval[0];
-				mval_f[1] = (float)event->mval[1];
 
 				fidx = mp->totloop - 1;
 				do {
@@ -1098,10 +1096,12 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 
 			if (me && me->dvert && vc.v3d && vc.rv3d) {
 				int index;
+				int mval[2] = {win->eventstate->x - vc.ar->winrct.xmin,
+				               win->eventstate->y - vc.ar->winrct.ymin};
 
 				view3d_operator_needs_opengl(C);
 
-				index = view3d_sample_backbuf(&vc, win->eventstate->x - vc.ar->winrct.xmin, win->eventstate->y - vc.ar->winrct.ymin);
+				index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
 
 				if (index && index <= me->totpoly) {
 					const int defbase_tot = BLI_countlist(&vc.obact->defbase);

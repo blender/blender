@@ -475,8 +475,8 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 
 	{
 		/* for dolly */
-		float mval_f[2];
-		VECCOPY2D(mval_f, event->mval);
+		const float mval_f[2] = {(float)event->mval[0],
+		                         (float)event->mval[1]};
 		ED_view3d_win_to_vector(vod->ar, mval_f, vod->mousevec);
 	}
 
