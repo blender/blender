@@ -500,7 +500,8 @@ void Converter::convertResolution(SocketConnection *connection, ExecutionSystem 
 			system->addOperation(sxop);
 			system->addOperation(syop);
 
-			unsigned int resolution[2] = {fromWidth, fromHeight};
+			unsigned int resolution[2] = {fromOperation->getWidth(),
+			                              fromOperation->getHeight()};
 			scaleOperation->setResolution(resolution);
 			sxop->setResolution(resolution);
 			syop->setResolution(resolution);
@@ -522,7 +523,8 @@ void Converter::convertResolution(SocketConnection *connection, ExecutionSystem 
 		system->addOperation(xop);
 		system->addOperation(yop);
 
-		unsigned int resolution[2] = {toWidth, toHeight};
+		unsigned int resolution[2] = {toOperation->getWidth(),
+		                              toOperation->getHeight()};
 		translateOperation->setResolution(resolution);
 		xop->setResolution(resolution);
 		yop->setResolution(resolution);

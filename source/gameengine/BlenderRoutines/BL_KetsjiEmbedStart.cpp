@@ -125,68 +125,66 @@ static BlendFileData *load_game_data(char *filename)
 	return bfd;
 }
 
-int BL_KetsjiNextFrame(struct KX_KetsjiEngine* ketsjiengine, struct bContext *C, struct wmWindow* win, struct Scene* scene, struct ARegion *ar,
-                    KX_BlenderKeyboardDevice* keyboarddevice, KX_BlenderMouseDevice* mousedevice, int draw_letterbox)
+int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win, Scene *scene, ARegion *ar,
+                       KX_BlenderKeyboardDevice* keyboarddevice, KX_BlenderMouseDevice* mousedevice, int draw_letterbox)
 {
-    int exitrequested;
+	int exitrequested;
 
-    // first check if we want to exit
-    exitrequested = ketsjiengine->GetExitCode();
+	// first check if we want to exit
+	exitrequested = ketsjiengine->GetExitCode();
 
-    // kick the engine
-    bool render = ketsjiengine->NextFrame();
+	// kick the engine
+	bool render = ketsjiengine->NextFrame();
 
-    if (render)
-    {
-        if(draw_letterbox) {
-            // Clear screen to border color
-            // We do this here since we set the canvas to be within the frames. This means the engine
-            // itself is unaware of the extra space, so we clear the whole region for it.
-            glClearColor(scene->gm.framing.col[0], scene->gm.framing.col[1], scene->gm.framing.col[2], 1.0f);
-            glViewport(ar->winrct.xmin, ar->winrct.ymin,
+	if (render) {
+		if (draw_letterbox) {
+			// Clear screen to border color
+			// We do this here since we set the canvas to be within the frames. This means the engine
+			// itself is unaware of the extra space, so we clear the whole region for it.
+			glClearColor(scene->gm.framing.col[0], scene->gm.framing.col[1], scene->gm.framing.col[2], 1.0f);
+			glViewport(ar->winrct.xmin, ar->winrct.ymin,
 			           BLI_RCT_SIZE_X(&ar->winrct), BLI_RCT_SIZE_Y(&ar->winrct));
-            glClear(GL_COLOR_BUFFER_BIT);
-        }
+			glClear(GL_COLOR_BUFFER_BIT);
+		}
 
-        // render the frame
-        ketsjiengine->Render();
-    }
+		// render the frame
+		ketsjiengine->Render();
+	}
 
-    wm_window_process_events_nosleep();
+	wm_window_process_events_nosleep();
 
-    // test for the ESC key
-    //XXX while (qtest())
-    while(wmEvent *event= (wmEvent *)win->queue.first)
-    {
-        short val = 0;
-        //unsigned short event = 0; //XXX extern_qread(&val);
+	// test for the ESC key
+	//XXX while (qtest())
+	while (wmEvent *event= (wmEvent *)win->queue.first) {
+		short val = 0;
+		//unsigned short event = 0; //XXX extern_qread(&val);
 
-        if (keyboarddevice->ConvertBlenderEvent(event->type,event->val))
-            exitrequested = KX_EXIT_REQUEST_BLENDER_ESC;
+		if (keyboarddevice->ConvertBlenderEvent(event->type,event->val))
+			exitrequested = KX_EXIT_REQUEST_BLENDER_ESC;
 
-            /* Coordinate conversion... where
-            * should this really be?
-        */
-        if (event->type==MOUSEMOVE) {
-            /* Note, not nice! XXX 2.5 event hack */
-            val = event->x - ar->winrct.xmin;
-            mousedevice->ConvertBlenderEvent(MOUSEX, val);
+		/* Coordinate conversion... where
+		 * should this really be?
+		 */
+		if (event->type == MOUSEMOVE) {
+			/* Note, not nice! XXX 2.5 event hack */
+			val = event->x - ar->winrct.xmin;
+			mousedevice->ConvertBlenderEvent(MOUSEX, val);
 
-            val = ar->winy - (event->y - ar->winrct.ymin) - 1;
-            mousedevice->ConvertBlenderEvent(MOUSEY, val);
-        }
-        else {
-            mousedevice->ConvertBlenderEvent(event->type,event->val);
-        }
+			val = ar->winy - (event->y - ar->winrct.ymin) - 1;
+			mousedevice->ConvertBlenderEvent(MOUSEY, val);
+		}
+		else {
+			mousedevice->ConvertBlenderEvent(event->type,event->val);
+		}
 
-        BLI_remlink(&win->queue, event);
-        wm_event_free(event);
-    }
+		BLI_remlink(&win->queue, event);
+		wm_event_free(event);
+	}
 
-    if(win != CTX_wm_window(C)) {
-        exitrequested= KX_EXIT_REQUEST_OUTSIDE; /* window closed while bge runs */
-    }
-    return exitrequested;
+	if (win != CTX_wm_window(C)) {
+		exitrequested= KX_EXIT_REQUEST_OUTSIDE; /* window closed while bge runs */
+	}
+	return exitrequested;
 }
 
 struct BL_KetsjiNextFrameState {
