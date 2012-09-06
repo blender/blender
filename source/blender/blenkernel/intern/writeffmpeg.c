@@ -946,6 +946,7 @@ int BKE_ffmpeg_start(struct Scene *scene, RenderData *rd, int rectx, int recty, 
 }
 
 void BKE_ffmpeg_end(void);
+static void end_ffmpeg_impl(int is_autosplit);
 
 #ifdef WITH_AUDASPACE
 static void write_audio_frames(double to_pts)
@@ -978,7 +979,7 @@ int BKE_ffmpeg_append(RenderData *rd, int start_frame, int frame, int *pixels, i
 
 		if (ffmpeg_autosplit) {
 			if (avio_tell(outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {
-				BKE_ffmpeg_end();
+				end_ffmpeg_impl(TRUE);
 				ffmpeg_autosplit_count++;
 				success &= start_ffmpeg_impl(rd, rectx, recty, reports);
 			}
@@ -991,7 +992,7 @@ int BKE_ffmpeg_append(RenderData *rd, int start_frame, int frame, int *pixels, i
 	return success;
 }
 
-void BKE_ffmpeg_end(void)
+static void end_ffmpeg_impl(int is_autosplit)
 {
 	unsigned int i;
 	
@@ -1004,9 +1005,11 @@ void BKE_ffmpeg_end(void)
 #endif
 
 #ifdef WITH_AUDASPACE
-	if (audio_mixdown_device) {
-		AUD_closeReadDevice(audio_mixdown_device);
-		audio_mixdown_device = 0;
+	if (is_autosplit == FALSE) {
+		if (audio_mixdown_device) {
+			AUD_closeReadDevice(audio_mixdown_device);
+			audio_mixdown_device = 0;
+		}
 	}
 #endif
 
@@ -1067,6 +1070,11 @@ void BKE_ffmpeg_end(void)
 		sws_freeContext(img_convert_ctx);
 		img_convert_ctx = 0;
 	}
+}
+
+void BKE_ffmpeg_end(void)
+{
+	end_ffmpeg_impl(FALSE);
 }
 
 /* properties */
