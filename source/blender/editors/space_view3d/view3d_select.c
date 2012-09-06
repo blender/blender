@@ -2027,36 +2027,6 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
-/* much like facesel_face_pick()*/
-/* returns 0 if not found, otherwise 1 */
-static int vertsel_vert_pick(struct bContext *C, Mesh *me, const int mval[2], unsigned int *index, int size)
-{
-	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
-
-	if (!me || me->totvert == 0)
-		return 0;
-
-	if (size > 0) {
-		/* sample rect to increase changes of selecting, so that when clicking
-		 * on an face in the backbuf, we can still select a vert */
-
-		int dist;
-		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totvert + 1, &dist, 0, NULL, NULL);
-	}
-	else {
-		/* sample only on the exact position */
-		*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
-	}
-
-	if ((*index) <= 0 || (*index) > (unsigned int)me->totvert)
-		return 0;
-
-	(*index)--;
-	
-	return 1;
-}
-
 /* mouse selection in weight paint */
 /* gets called via generic mouse select operator */
 static int mouse_weight_paint_vertex_select(bContext *C, const int mval[2], short extend, short deselect, short toggle, Object *obact)
@@ -2065,7 +2035,7 @@ static int mouse_weight_paint_vertex_select(bContext *C, const int mval[2], shor
 	unsigned int index = 0;
 	MVert *mv;
 
-	if (vertsel_vert_pick(C, me, mval, &index, 50)) {
+	if (ED_mesh_pick_vert(C, me, mval, &index, 50)) {
 		mv = me->mvert + index;
 		if (extend) {
 			mv->flag |= SELECT;

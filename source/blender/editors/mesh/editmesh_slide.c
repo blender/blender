@@ -749,10 +749,13 @@ static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_u
 
 	return OPERATOR_FINISHED;
 }
+
+#if 0
 static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
 {
 	return edbm_vertex_slide_exec_ex(C, op, TRUE);
 }
+#endif
 
 void MESH_OT_vert_slide(wmOperatorType *ot)
 {

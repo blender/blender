@@ -276,6 +276,11 @@ void EDBM_redo_state_restore(struct BMBackup, struct BMEditMesh *em, int recalct
 /* delete the backup, optionally flushing it to an editmesh */
 void EDBM_redo_state_free(struct BMBackup *, struct BMEditMesh *em, int recalctess);
 
+/* mesh_tools.c */
+int ED_mesh_pick_face(struct bContext *C, struct Mesh *me, struct Object *ob, const int mval[2], unsigned int *index, short rect);
+int ED_mesh_pick_vert(struct bContext *C, struct Mesh *me, const int mval[2], unsigned int *index, int size);
+
+
 #ifdef __cplusplus
 }
 #endif
