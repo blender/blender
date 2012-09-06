@@ -262,7 +262,7 @@ PyMethodDef PyObjectPlus::Methods[] = {
   {NULL, NULL}		/* Sentinel */
 };
 
-#define attr_invalid (&(PyObjectPlus::Attributes[0]))
+#define BGE_PY_ATTR_INVALID (&(PyObjectPlus::Attributes[0]))
 PyAttributeDef PyObjectPlus::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("invalid",		PyObjectPlus, pyattr_get_invalid),
 	{NULL} //Sentinel
@@ -281,7 +281,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 	PyObjectPlus *ref= (BGE_PROXY_REF(self_py));
 	char* ptr = (attrdef->m_usePtr) ? (char*)BGE_PROXY_PTR(self_py) : (char*)ref;
 	if (ptr == NULL || (BGE_PROXY_PYREF(self_py) && (ref==NULL || !ref->py_is_valid()))) {
-		if (attrdef == attr_invalid)
+		if (attrdef == BGE_PY_ATTR_INVALID)
 			Py_RETURN_TRUE; // don't bother running the function
 
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
