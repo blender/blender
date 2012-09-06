@@ -301,7 +301,7 @@ __device_inline float3 path_radiance_sum(KernelGlobals *kg, PathRadiance *L)
 
 __device_inline void path_radiance_clamp(PathRadiance *L, float3 *L_sum, float clamp)
 {
-	#ifdef WITH_OSL
+	#ifdef __OSL__
 	using std::isfinite;
 	#endif
 

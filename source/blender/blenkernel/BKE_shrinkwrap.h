@@ -52,7 +52,7 @@ struct DerivedMesh *object_get_derived_final(struct Object *ob);
  * the matrix calculation.
  *
  * A SpaceTransform is initialized using:
- *   space_transform_setup( &data,  ob1, ob2 )
+ *   SPACE_TRANSFORM_SETUP( &data,  ob1, ob2 )
  *
  * After that the following calls can be used:
  *   space_transform_apply (&data, co); //converts a coordinate in ob1 coords space to the corresponding ob2 coords
@@ -75,7 +75,7 @@ void space_transform_from_matrixs(struct SpaceTransform *data, float local[4][4]
 void space_transform_apply(const struct SpaceTransform *data, float co[3]);
 void space_transform_invert(const struct SpaceTransform *data, float co[3]);
 
-#define space_transform_setup(data, local, target) space_transform_from_matrixs(data, (local)->obmat, (target)->obmat)
+#define SPACE_TRANSFORM_SETUP(data, local, target) space_transform_from_matrixs(data, (local)->obmat, (target)->obmat)
 
 /* Shrinkwrap stuff */
 #include "BKE_bvhutils.h"
@@ -126,7 +126,7 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object
 /*
  * This function casts a ray in the given BVHTree.. but it takes into consideration the space_transform, that is:
  *
- * if transf was configured with "space_transform_setup( &transf,  ob1, ob2 )"
+ * if transf was configured with "SPACE_TRANSFORM_SETUP( &transf,  ob1, ob2 )"
  * then the input (vert, dir, BVHTreeRayHit) must be defined in ob1 coordinates space
  * and the BVHTree must be built in ob2 coordinate space.
  *

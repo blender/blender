@@ -55,9 +55,9 @@ class GHOST_NDOFManager;
  * interface.
  * GHOST_System is an abstract class because not all methods of GHOST_ISystem
  * are implemented.
- * @see GHOST_ISystem.
- * @author	Maarten Gribnau
- * @date	May 7, 2001
+ * \see GHOST_ISystem.
+ * \author	Maarten Gribnau
+ * \date	May 7, 2001
  */
 class GHOST_System : public GHOST_ISystem
 {
@@ -83,7 +83,7 @@ public:
 	 * Returns the system time.
 	 * Returns the number of milliseconds since the start of the system process.
 	 * Based on ANSI clock() routine.
-	 * @return The number of milliseconds.
+	 * \return The number of milliseconds.
 	 */
 	virtual GHOST_TUns64 getMilliSeconds() const;
 
@@ -91,11 +91,11 @@ public:
 	 * Installs a timer.
 	 * Note that, on most operating systems, messages need to be processed in order 
 	 * for the timer callbacks to be invoked.
-	 * @param delay		The time to wait for the first call to the timerProc (in milliseconds)
-	 * @param interval	The interval between calls to the timerProc
-	 * @param timerProc	The callback invoked when the interval expires,
-	 * @param userData	Placeholder for user data.
-	 * @return A timer task (0 if timer task installation failed).
+	 * \param delay		The time to wait for the first call to the timerProc (in milliseconds)
+	 * \param interval	The interval between calls to the timerProc
+	 * \param timerProc	The callback invoked when the interval expires,
+	 * \param userData	Placeholder for user data.
+	 * \return A timer task (0 if timer task installation failed).
 	 */
 	virtual GHOST_ITimerTask *installTimer(GHOST_TUns64 delay,
 	                                       GHOST_TUns64 interval,
@@ -104,8 +104,8 @@ public:
 
 	/**
 	 * Removes a timer.
-	 * @param timerTask Timer task to be removed.
-	 * @return Indication of success.
+	 * \param timerTask Timer task to be removed.
+	 * \return Indication of success.
 	 */
 	virtual GHOST_TSuccess removeTimer(GHOST_ITimerTask *timerTask);
 
@@ -123,47 +123,47 @@ public:
 
 	/**
 	 * Dispose a window.
-	 * @param	window Pointer to the window to be disposed.
-	 * @return	Indication of success.
+	 * \param	window Pointer to the window to be disposed.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess disposeWindow(GHOST_IWindow *window);
 
 	/**
 	 * Returns whether a window is valid.
-	 * @param	window Pointer to the window to be checked.
-	 * @return	Indication of validity.
+	 * \param	window Pointer to the window to be checked.
+	 * \return	Indication of validity.
 	 */
 	virtual bool validWindow(GHOST_IWindow *window);
 
 	/**
 	 * Begins full screen mode.
-	 * @param setting	The new setting of the display.
-	 * @param window	Window displayed in full screen.
-	 * @param stereoVisual	Stereo visual for quad buffered stereo.
+	 * \param setting	The new setting of the display.
+	 * \param window	Window displayed in full screen.
+	 * \param stereoVisual	Stereo visual for quad buffered stereo.
 	 * This window is invalid after full screen has been ended.
-	 * @return	Indication of success.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window,
 	                                       const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0);
 		
 	/**
 	 * Updates the resolution while in fullscreen mode.
-	 * @param setting	The new setting of the display.
-	 * @param window	Window displayed in full screen.
+	 * \param setting	The new setting of the display.
+	 * \param window	Window displayed in full screen.
 	 *
-	 * @return	Indication of success.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window);
 
 	/**
 	 * Ends full screen mode.
-	 * @return	Indication of success.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess endFullScreen(void);
 
 	/**
 	 * Returns current full screen mode status.
-	 * @return The current status.
+	 * \return The current status.
 	 */
 	virtual bool getFullScreen(void);
 
@@ -183,21 +183,21 @@ public:
 	/**
 	 * Dispatches all the events on the stack.
 	 * The event stack will be empty afterwards.
-	 * @return Indication as to whether any of the consumers handled the events.
+	 * \return Indication as to whether any of the consumers handled the events.
 	 */
 	virtual bool dispatchEvents();
 
 	/**
 	 * Adds the given event consumer to our list.
-	 * @param consumer The event consumer to add.
-	 * @return Indication of success.
+	 * \param consumer The event consumer to add.
+	 * \return Indication of success.
 	 */
 	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer *consumer);
 
 	/**
 	 * Remove the given event consumer to our list.
-	 * @param consumer The event consumer to remove.
-	 * @return Indication of success.
+	 * \param consumer The event consumer to remove.
+	 * \return Indication of success.
 	 */
 	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer *consumer);
 
@@ -216,17 +216,17 @@ public:
 
 	/**
 	 * Returns the state of a modifier key (ouside the message queue).
-	 * @param mask		The modifier key state to retrieve.
-	 * @param isDown	The state of a modifier key (true == pressed).
-	 * @return			Indication of success.
+	 * \param mask		The modifier key state to retrieve.
+	 * \param isDown	The state of a modifier key (true == pressed).
+	 * \return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getModifierKeyState(GHOST_TModifierKeyMask mask, bool& isDown) const;
 
 	/**
 	 * Returns the state of a mouse button (ouside the message queue).
-	 * @param mask		The button state to retrieve.
-	 * @param isDown	Button state.
-	 * @return			Indication of success.
+	 * \param mask		The button state to retrieve.
+	 * \param isDown	Button state.
+	 * \return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const;
 	
@@ -238,62 +238,62 @@ public:
 	 * Pushes an event on the stack.
 	 * To dispatch it, call dispatchEvent() or dispatchEvents().
 	 * Do not delete the event!
-	 * @param event	The event to push on the stack.
+	 * \param event	The event to push on the stack.
 	 */
 	virtual GHOST_TSuccess pushEvent(GHOST_IEvent *event);
 
 	/**
 	 * Returns the timer manager.
-	 * @return The timer manager.
+	 * \return The timer manager.
 	 */
 	inline virtual GHOST_TimerManager *getTimerManager() const;
 
 	/**
 	 * Returns a pointer to our event manager.
-	 * @return A pointer to our event manager.
+	 * \return A pointer to our event manager.
 	 */
 	virtual inline GHOST_EventManager *getEventManager() const;
 
 	/**
 	 * Returns a pointer to our window manager.
-	 * @return A pointer to our window manager.
+	 * \return A pointer to our window manager.
 	 */
 	virtual inline GHOST_WindowManager *getWindowManager() const;
 
 #ifdef WITH_INPUT_NDOF
 	/**
 	 * Returns a pointer to our n-degree of freedeom manager.
-	 * @return A pointer to our n-degree of freedeom manager.
+	 * \return A pointer to our n-degree of freedeom manager.
 	 */
 	virtual inline GHOST_NDOFManager *getNDOFManager() const;
 #endif
 
 	/**
 	 * Returns the state of all modifier keys.
-	 * @param keys	The state of all modifier keys (true == pressed).
-	 * @return		Indication of success.
+	 * \param keys	The state of all modifier keys (true == pressed).
+	 * \return		Indication of success.
 	 */
 	virtual GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys& keys) const = 0;
 
 	/**
 	 * Returns the state of the mouse buttons (ouside the message queue).
-	 * @param buttons	The state of the buttons.
-	 * @return			Indication of success.
+	 * \param buttons	The state of the buttons.
+	 * \return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const = 0;
 
 	/**
 	 * Returns the selection buffer
-	 * @param selection		Only used on X11
-	 * @return              Returns the clipboard data
+	 * \param selection		Only used on X11
+	 * \return              Returns the clipboard data
 	 *
 	 */
 	virtual GHOST_TUns8 *getClipboard(bool selection) const = 0;
 	  
 	/**
 	 * Put data to the Clipboard
-	 * @param buffer		The buffer to copy to the clipboard
-	 * @param selection	The clipboard to copy too only used on X11
+	 * \param buffer		The buffer to copy to the clipboard
+	 * \param selection	The clipboard to copy too only used on X11
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
 
@@ -308,20 +308,20 @@ public:
 protected:
 	/**
 	 * Initialize the system.
-	 * @return Indication of success.
+	 * \return Indication of success.
 	 */
 	virtual GHOST_TSuccess init();
 
 	/**
 	 * Shut the system down.
-	 * @return Indication of success.
+	 * \return Indication of success.
 	 */
 	virtual GHOST_TSuccess exit();
 
 	/**
 	 * Creates a fullscreen window.
-	 * @param window The window created.
-	 * @return Indication of success.
+	 * \param window The window created.
+	 * \return Indication of success.
 	 */
 	virtual GHOST_TSuccess createFullScreenWindow(GHOST_Window **window,
 	                                              const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0);

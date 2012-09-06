@@ -55,7 +55,7 @@ public:
 	 * this node is converted to a Node instance.
 	 * and the converted node is returned
 	 *
-	 * @param bNode node to add
+	 * @param b_node node to add
 	 * @return Node that represents the bNode or null when not able to convert.
 	 */
 	static Node *addNode(vector<Node *>& nodes, bNode *b_node, bool isInActiveGroup, bool fast);

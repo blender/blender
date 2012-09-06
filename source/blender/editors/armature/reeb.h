@@ -146,9 +146,9 @@ struct EdgeIndex;
 int weightToHarmonic(struct EditMesh *em, struct EdgeIndex *indexed_edges);
 int weightFromDistance(struct EditMesh *em, struct EdgeIndex *indexed_edges);
 int weightFromLoc(struct EditMesh *me, int axis);
-void weightToVCol(struct EditMesh *em, int index);
+//void weightToVCol(struct EditMesh *em, int index);
 void arcToVCol(struct ReebGraph *rg, struct EditMesh *em, int index);
-void angleToVCol(struct EditMesh *em, int index);
+//void angleToVCol(struct EditMesh *em, int index);
 void renormalizeWeight(struct EditMesh *em, float newmax);
 
 ReebGraph *generateReebGraph(struct EditMesh *me, int subdivisions);

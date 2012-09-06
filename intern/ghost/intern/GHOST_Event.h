@@ -38,17 +38,17 @@
 
 /**
  * Base class for events received the operating system.
- * @author	Maarten Gribnau
- * @date	May 11, 2001
+ * \author	Maarten Gribnau
+ * \date	May 11, 2001
  */
 class GHOST_Event : public GHOST_IEvent
 {
 public:
 	/**
 	 * Constructor.
-	 * @param msec	The time this event was generated.
-	 * @param type	The type of this event.
-	 * @param window The generating window (or NULL if system event).
+	 * \param msec	The time this event was generated.
+	 * \param type	The type of this event.
+	 * \param window The generating window (or NULL if system event).
 	 */
 	GHOST_Event(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow *window)
 		: m_type(type), m_time(msec), m_window(window), m_data(0)
@@ -57,7 +57,7 @@ public:
 
 	/**
 	 * Returns the event type.
-	 * @return The event type.
+	 * \return The event type.
 	 */
 	virtual GHOST_TEventType getType()
 	{ 
@@ -66,7 +66,7 @@ public:
 
 	/**
 	 * Returns the time this event was generated.
-	 * @return The event generation time.
+	 * \return The event generation time.
 	 */
 	virtual GHOST_TUns64 getTime()
 	{
@@ -76,7 +76,7 @@ public:
 	/**
 	 * Returns the window this event was generated on, 
 	 * or NULL if it is a 'system' event.
-	 * @return The generating window.
+	 * \return The generating window.
 	 */
 	virtual GHOST_IWindow *getWindow()
 	{
@@ -85,7 +85,7 @@ public:
 
 	/**
 	 * Returns the event data.
-	 * @return The event data.
+	 * \return The event data.
 	 */
 	virtual GHOST_TEventDataPtr getData()
 	{

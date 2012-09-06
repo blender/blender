@@ -30,8 +30,8 @@
  * Simple test file for the GHOST library.
  * The OpenGL gear code is taken from the Qt sample code which,
  * in turn, is probably taken from somewhere as well.
- * @author	Maarten Gribnau
- * @date	May 31, 2001
+ * \author	Maarten Gribnau
+ * \date	May 31, 2001
  * Stereo code by Raymond de Vries, januari 2002
  */
 

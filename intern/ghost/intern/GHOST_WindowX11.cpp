@@ -1376,8 +1376,8 @@ GHOST_WindowX11::
 
 /**
  * Tries to install a rendering context in this window.
- * @param type	The type of rendering context installed.
- * @return Indication as to whether installation has succeeded.
+ * \param type	The type of rendering context installed.
+ * \return Indication as to whether installation has succeeded.
  */
 GHOST_TSuccess
 GHOST_WindowX11::
@@ -1418,7 +1418,7 @@ installDrawingContext(
 
 /**
  * Removes the current drawing context.
- * @return Indication as to whether removal has succeeded.
+ * \return Indication as to whether removal has succeeded.
  */
 GHOST_TSuccess
 GHOST_WindowX11::

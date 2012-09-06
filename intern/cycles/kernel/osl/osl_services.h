@@ -35,9 +35,9 @@ CCL_NAMESPACE_BEGIN
 class Object;
 class Scene;
 class Shader;
-class ShaderData;
-class float3;
-class KernelGlobals;
+struct ShaderData;
+struct float3;
+struct KernelGlobals;
 
 class OSLRenderServices : public OSL::RendererServices
 {

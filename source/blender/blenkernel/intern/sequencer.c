@@ -170,7 +170,8 @@ static void seq_free_strip(Strip *strip)
 	MEM_freeN(strip);
 }
 
-void BKE_sequence_free(Scene *scene, Sequence *seq)
+/* only give option to skip cache locally (static func) */
+static void BKE_sequence_free_ex(Scene *scene, Sequence *seq, const int do_cache)
 {
 	if (seq->strip)
 		seq_free_strip(seq->strip);
@@ -206,21 +207,37 @@ void BKE_sequence_free(Scene *scene, Sequence *seq)
 
 	/* free cached data used by this strip,
 	 * also invalidate cache for all dependent sequences
+	 *
+	 * be _very_ careful here, invalidating cache loops over the scene sequences and
+	 * assumes the listbase is valid for all strips, this may not be the case if lists are being freed.
+	 * this is optional BKE_sequence_invalidate_cache
 	 */
-	BKE_sequence_invalidate_cache(scene, seq);
+	if (do_cache) {
+		if (scene) {
+			BKE_sequence_invalidate_cache(scene, seq);
+		}
+	}
 
 	MEM_freeN(seq);
 }
 
+void BKE_sequence_free(Scene *scene, Sequence *seq)
+{
+	BKE_sequence_free_ex(scene, seq, TRUE);
+}
+
+/* cache must be freed before calling this function
+ * since it leaves the seqbase in an invalid state */
 static void seq_free_sequence_recurse(Scene *scene, Sequence *seq)
 {
-	Sequence *iseq;
+	Sequence *iseq, *iseq_next;
 
-	for (iseq = seq->seqbase.first; iseq; iseq = iseq->next) {
+	for (iseq = seq->seqbase.first; iseq; iseq = iseq_next) {
+		iseq_next = iseq->next;
 		seq_free_sequence_recurse(scene, iseq);
 	}
 
-	BKE_sequence_free(scene, seq);
+	BKE_sequence_free_ex(scene, seq, FALSE);
 }
 
 
@@ -241,7 +258,7 @@ static void seq_free_clipboard_recursive(Sequence *seq_parent)
 		seq_free_clipboard_recursive(seq);
 	}
 
-	BKE_sequence_free(NULL, seq_parent);
+	BKE_sequence_free_ex(NULL, seq_parent, FALSE);
 }
 
 void BKE_sequencer_free_clipboard(void)
@@ -270,22 +287,22 @@ Editing *BKE_sequencer_editing_ensure(Scene *scene)
 void BKE_sequencer_editing_free(Scene *scene)
 {
 	Editing *ed = scene->ed;
-	MetaStack *ms;
 	Sequence *seq;
 
 	if (ed == NULL)
 		return;
 
+	/* this may not be the active scene!, could be smarter about this */
+	BKE_sequencer_cache_cleanup();
+
 	SEQ_BEGIN (ed, seq)
 	{
-		BKE_sequence_free(scene, seq);
+		/* handle cache freeing above */
+		BKE_sequence_free_ex(scene, seq, FALSE);
 	}
 	SEQ_END
 
-	while ((ms = ed->metastack.first)) {
-		BLI_remlink(&ed->metastack, ms);
-		MEM_freeN(ms);
-	}
+	BLI_freelistN(&ed->metastack);
 
 	MEM_freeN(ed);
 

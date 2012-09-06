@@ -32,8 +32,8 @@
 
 /**
  * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 11, 2001
+ * \author	Maarten Gribnau
+ * \date	May 11, 2001
  */
 
 #include "GHOST_WindowManager.h"

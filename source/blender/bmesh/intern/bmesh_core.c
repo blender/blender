@@ -1483,6 +1483,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  * and collapses the edge on that vertex.
  *
  * \par Examples:
+ *
  * <pre>
  *     Before:         OE      KE
  *                   ------- -------

@@ -203,7 +203,7 @@ getNumDisplays() const
 
 /**
  * Returns the dimensions of the main display on this system.
- * @return The dimension of the main display.
+ * \return The dimension of the main display.
  */
 void
 GHOST_SystemX11::
@@ -221,17 +221,17 @@ getMainDisplayDimensions(
  * Create a new window.
  * The new window is added to the list of windows managed.
  * Never explicitly delete the window, use disposeWindow() instead.
- * @param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
- * @param	left	The coordinate of the left edge of the window.
- * @param	top		The coordinate of the top edge of the window.
- * @param	width	The width the window.
- * @param	height	The height the window.
- * @param	state	The state of the window when opened.
- * @param	type	The type of drawing context installed in this window.
- * @param	stereoVisual	Stereo visual for quad buffered stereo.
- * @param	numOfAASamples	Number of samples used for AA (zero if no AA)
- * @param	parentWindow    Parent (embedder) window
- * @return	The new window (or 0 if creation failed).
+ * \param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
+ * \param	left	The coordinate of the left edge of the window.
+ * \param	top		The coordinate of the top edge of the window.
+ * \param	width	The width the window.
+ * \param	height	The height the window.
+ * \param	state	The state of the window when opened.
+ * \param	type	The type of drawing context installed in this window.
+ * \param	stereoVisual	Stereo visual for quad buffered stereo.
+ * \param	numOfAASamples	Number of samples used for AA (zero if no AA)
+ * \param	parentWindow    Parent (embedder) window
+ * \return	The new window (or 0 if creation failed).
  */
 GHOST_IWindow *
 GHOST_SystemX11::

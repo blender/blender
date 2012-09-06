@@ -46,10 +46,10 @@ namespace OSL = ::OSL;
 
 class OSLRenderServices;
 class Scene;
-class ShaderClosure;
-class ShaderData;
-class differential3;
-class KernelGlobals;
+struct ShaderClosure;
+struct ShaderData;
+struct differential3;
+struct KernelGlobals;
 
 class OSLShader {
 public:

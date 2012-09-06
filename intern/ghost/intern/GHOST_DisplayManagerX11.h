@@ -40,8 +40,8 @@ class GHOST_SystemX11;
 
 /**
  * Manages system displays  (X11 implementation).
- * @author	Laurence Bourn
- * @date	October 26, 2001
+ * \author	Laurence Bourn
+ * \date	October 26, 2001
  */
 class GHOST_DisplayManagerX11 : public GHOST_DisplayManager
 {
@@ -55,8 +55,8 @@ public:
 
 	/**
 	 * Returns the number of display devices on this system.
-	 * @param numDisplays The number of displays on this system.
-	 * @return Indication of success.
+	 * \param numDisplays The number of displays on this system.
+	 * \return Indication of success.
 	 */
 	GHOST_TSuccess
 	getNumDisplays(
@@ -65,9 +65,9 @@ public:
 
 	/**
 	 * Returns the number of display settings for this display device.
-	 * @param display The index of the display to query with 0 <= display < getNumDisplays().
-	 * @param setting The number of settings of the display device with this index.
-	 * @return Indication of success.
+	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
+	 * \param setting The number of settings of the display device with this index.
+	 * \return Indication of success.
 	 */
 	GHOST_TSuccess
 	getNumDisplaySettings(
@@ -77,10 +77,10 @@ public:
 
 	/**
 	 * Returns the current setting for this display device. 
-	 * @param display The index of the display to query with 0 <= display < getNumDisplays().
-	 * @param index	  The setting index to be returned.
-	 * @param setting The setting of the display device with this index.
-	 * @return Indication of success.
+	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
+	 * \param index	  The setting index to be returned.
+	 * \param setting The setting of the display device with this index.
+	 * \return Indication of success.
 	 */
 	GHOST_TSuccess
 	getDisplaySetting(
@@ -91,9 +91,9 @@ public:
 
 	/**
 	 * Returns the current setting for this display device. 
-	 * @param display The index of the display to query with 0 <= display < getNumDisplays().
-	 * @param setting The current setting of the display device with this index.
-	 * @return Indication of success.
+	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
+	 * \param setting The current setting of the display device with this index.
+	 * \return Indication of success.
 	 */
 	GHOST_TSuccess
 	getCurrentDisplaySetting(
@@ -103,9 +103,9 @@ public:
 
 	/**
 	 * Changes the current setting for this display device. 
-	 * @param display The index of the display to query with 0 <= display < getNumDisplays().
-	 * @param setting The current setting of the display device with this index.
-	 * @return Indication of success.
+	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
+	 * \param setting The current setting of the display device with this index.
+	 * \return Indication of success.
 	 */
 	GHOST_TSuccess
 	setCurrentDisplaySetting(

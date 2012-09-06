@@ -231,6 +231,13 @@ MINLINE void swap_v4_v4(float a[4], float b[4])
 
 /********************************* Arithmetic ********************************/
 
+MINLINE void add_v2_fl(float r[2], float f)
+{
+	r[0] += f;
+	r[1] += f;
+}
+
+
 MINLINE void add_v3_fl(float r[3], float f)
 {
 	r[0] += f;

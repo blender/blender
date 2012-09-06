@@ -27,6 +27,7 @@
 /* Takes heavily from editmesh_loopcut.c */
 
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -99,7 +100,7 @@ typedef struct VertexSlideOp {
 } VertexSlideOp;
 
 static void vtx_slide_draw(const bContext *C, ARegion *ar, void *arg);
-static int edbm_vertex_slide_exec(bContext *C, wmOperator *op);
+static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_update);
 static void vtx_slide_exit(const bContext *C, wmOperator *op);
 static int vtx_slide_set_frame(VertexSlideOp *vso);
 
@@ -195,16 +196,38 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 	VertexSlideOp *vso = op->customdata;
 	BMEditMesh *em = BMEdit_FromObject(vso->obj);
 	BMesh *bm = em->bm;
+	BMVert *other = NULL;
+
+	BMVert *mirr_vtx = NULL;
+	BMVert *mirr_vtx_other = NULL;
 
 	/* Select new edge */
 	BM_edge_select_set(bm, vso->sel_edge, TRUE);
 
-	/* Invoke operator */
-	edbm_vertex_slide_exec(C, op);
+	if (vso->snap_n_merge) {
+		other = BM_edge_other_vert(vso->sel_edge, vso->start_vtx);
+	}
+
+	if (em->me->editflag & ME_EDIT_MIRROR_X) {
+		EDBM_verts_mirror_cache_begin(em, TRUE);
+
+		mirr_vtx = EDBM_verts_mirror_get(em, vso->start_vtx);
+		if (vso->snap_n_merge) {
+			mirr_vtx_other = EDBM_verts_mirror_get(em, other);
+		}
+	}
+
+	/* Invoke operator - warning */
+	edbm_vertex_slide_exec_ex(C, op, FALSE);
+
+	if (mirr_vtx) {
+		mirr_vtx->co[0] = -vso->start_vtx->co[0];
+		mirr_vtx->co[1] =  vso->start_vtx->co[1];
+		mirr_vtx->co[2] =  vso->start_vtx->co[2];
+	}
 
 	if (vso->snap_n_merge) {
 		float other_d;
-		BMVert *other = BM_edge_other_vert(vso->sel_edge, vso->start_vtx);
 		other_d = len_v3v3(vso->interp, other->co);
 
 		/* Only snap if within threshold */
@@ -213,6 +236,13 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 			BM_vert_select_set(bm, vso->start_vtx, TRUE);
 			EDBM_op_callf(em, op, "pointmerge verts=%hv merge_co=%v", BM_ELEM_SELECT, other->co);
 			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+			if (mirr_vtx_other) {
+				BM_vert_select_set(bm, mirr_vtx, TRUE);
+				BM_vert_select_set(bm, mirr_vtx_other, TRUE);
+				EDBM_op_callf(em, op, "pointmerge verts=%hv merge_co=%v", BM_ELEM_SELECT, mirr_vtx_other->co);
+				EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+			}
 		}
 		else {
 			/* Store in historty if not merging */
@@ -223,6 +253,10 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 		/* Store edit selection of the active vertex, allows other
 		 *  ops to run without reselecting */
 		BM_select_history_store(em->bm, vso->start_vtx);
+	}
+
+	if (em->me->editflag & ME_EDIT_MIRROR_X) {
+		EDBM_verts_mirror_cache_end(em);
 	}
 
 	EDBM_selectmode_flush(em);
@@ -644,7 +678,7 @@ static int edbm_vertex_slide_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 }
 
 /* Vertex Slide */
-static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
+static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_update)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -708,10 +742,16 @@ static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* Update Geometry */
-	EDBM_update_generic(C, em, TRUE);
+	if (do_update) {
+		/* Update Geometry */
+		EDBM_update_generic(C, em, TRUE);
+	}
 
 	return OPERATOR_FINISHED;
+}
+static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
+{
+	return edbm_vertex_slide_exec_ex(C, op, TRUE);
 }
 
 void MESH_OT_vert_slide(wmOperatorType *ot)

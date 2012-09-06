@@ -334,17 +334,16 @@ static BlendFileData *load_game_data(const char *progname, char *filename = NULL
 
 bool GPG_NextFrame(GHOST_ISystem* system, GPG_Application *app, int &exitcode, STR_String &exitstring, GlobalSettings *gs)
 {
-    bool run = true;
-    system->processEvents(false);
-    system->dispatchEvents();
+	bool run = true;
+	system->processEvents(false);
+	system->dispatchEvents();
 	app->EngineNextFrame();
-    if ((exitcode = app->getExitRequested()))
-    {
-        run = false;
-        exitstring = app->getExitString();
-        *gs = *app->getGlobalSettings();
-    }
-    return run;
+	if ((exitcode = app->getExitRequested())) {
+		run = false;
+		exitstring = app->getExitString();
+		*gs = *app->getGlobalSettings();
+	}
+	return run;
 }
 
 struct GPG_NextFrameState {

@@ -124,8 +124,6 @@ void CustomData_free_temporary(struct CustomData *data, int totelem);
 /* adds a data layer of the given type to the CustomData object, optionally
  * backed by an external data array. the different allocation types are
  * defined above. returns the data of the layer.
- *
- * in editmode, use EDBM_data_layer_add instead of this function
  */
 void *CustomData_add_layer(struct CustomData *data, int type, int alloctype,
                            void *layer, int totelem);

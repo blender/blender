@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
- 
+
 #include "kernel_projection.h"
 
 CCL_NAMESPACE_BEGIN
@@ -183,17 +183,39 @@ __device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData *s
 
 /* motion */
 
+/* note: declared in kernel.h, have to add it here because kernel.h is not available */
+bool kernel_osl_use(KernelGlobals *kg);
+
 __device int triangle_find_attribute(KernelGlobals *kg, ShaderData *sd, uint id)
 {
-	/* find attribute by unique id */
-	uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
-	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 
-	while(attr_map.x != id)
-		attr_map = kernel_tex_fetch(__attributes_map, ++attr_offset);
-
-	/* return result */
-	return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : attr_map.z;
+#ifdef __OSL__
+	if (kernel_osl_use(kg)) {
+		/* for OSL, a hash map is used to lookup the attribute by name. */
+		OSLGlobals::AttributeMap &attr_map = kg->osl.attribute_map[sd->object];
+		ustring stdname = ustring(std::string("std::") + attribute_standard_name((AttributeStandard)id).c_str());
+		OSLGlobals::AttributeMap::const_iterator it = attr_map.find(stdname);
+		if (it != attr_map.end()) {
+			const OSLGlobals::Attribute &osl_attr = it->second;
+			/* return result */
+			return (osl_attr.elem == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : osl_attr.offset;
+		}
+		else
+			return (int)ATTR_STD_NOT_FOUND;
+	}
+	else
+#endif
+	{
+		/* for SVM, find attribute by unique id */
+		uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
+		uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+		
+		while(attr_map.x != id)
+			attr_map = kernel_tex_fetch(__attributes_map, ++attr_offset);
+		
+		/* return result */
+		return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : attr_map.z;
+	}
 }
 
 __device float4 triangle_motion_vector(KernelGlobals *kg, ShaderData *sd)

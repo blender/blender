@@ -41,9 +41,6 @@ void shade_volume_outside(ShadeInput *shi, ShadeResult *shr);
 void shade_volume_inside(ShadeInput *shi, ShadeResult *shr);
 void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct Isect *last_is);
 
-#define STEPSIZE_VIEW	0
-#define STEPSIZE_SHADE	1
-
 #define VOL_IS_BACKFACE			1
 #define VOL_IS_SAMEMATERIAL		2
 
