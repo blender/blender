@@ -26,7 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/** \file gameengine/Ketsji/KX_KetsjiPythonMain.cpp
+/** \file gameengine/Ketsji/KX_PythonMain.cpp
  *  \ingroup ketsji
  */
 

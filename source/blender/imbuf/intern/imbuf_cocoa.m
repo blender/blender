@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/imbuf/intern/imbuf_coca.m
+/** \file blender/imbuf/intern/imbuf_cocoa.m
  *  \ingroup imbuf
  *
  * Provides image file loading and saving for Blender, via Cocoa.

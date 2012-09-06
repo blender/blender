@@ -39,16 +39,16 @@
 /**
  * Event consumer that will forward events to a call-back routine.
  * Especially useful for the C-API.
- * @author	Maarten Gribnau
- * @date	October 25, 2001
+ * \author	Maarten Gribnau
+ * \date	October 25, 2001
  */
 class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer
 {
 public:
 	/**
 	 * Constructor.
-	 * @param	eventCallback	The call-back routine invoked.
-	 * @param	userData		The data passed back though the call-back routine.
+	 * \param	eventCallback	The call-back routine invoked.
+	 * \param	userData		The data passed back though the call-back routine.
 	 */
 	GHOST_CallbackEventConsumer(
 	    GHOST_EventCallbackProcPtr eventCallback,
@@ -63,8 +63,8 @@ public:
 
 	/**
 	 * This method is called by an event producer when an event is available.
-	 * @param event	The event that can be handled or ignored.
-	 * @return Indication as to whether the event was handled.
+	 * \param event	The event that can be handled or ignored.
+	 * \return Indication as to whether the event was handled.
 	 */
 	virtual bool processEvent(GHOST_IEvent *event);
 

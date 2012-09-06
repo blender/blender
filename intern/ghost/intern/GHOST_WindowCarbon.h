@@ -54,8 +54,8 @@
  * which is called the gutter.
  * When OpenGL contexts are active, GHOST will use AGL_BUFFER_RECT to prevent
  * OpenGL drawing outside the reduced client rectangle.
- * @author	Maarten Gribnau
- * @date	May 23, 2001
+ * \author	Maarten Gribnau
+ * \date	May 23, 2001
  */
 class GHOST_WindowCarbon : public GHOST_Window {
 public:
@@ -63,14 +63,14 @@ public:
 	 * Constructor.
 	 * Creates a new window and opens it.
 	 * To check if the window was created properly, use the getValid() method.
-	 * @param title		The text shown in the title bar of the window.
-	 * @param left		The coordinate of the left edge of the window.
-	 * @param top		The coordinate of the top edge of the window.
-	 * @param width		The width the window.
-	 * @param height	The height the window.
-	 * @param state		The state the window is initially opened with.
-	 * @param type		The type of drawing context installed in this window.
-	 * @param stereoVisual	Stereo visual for quad buffered stereo.
+	 * \param title		The text shown in the title bar of the window.
+	 * \param left		The coordinate of the left edge of the window.
+	 * \param top		The coordinate of the top edge of the window.
+	 * \param width		The width the window.
+	 * \param height	The height the window.
+	 * \param state		The state the window is initially opened with.
+	 * \param type		The type of drawing context installed in this window.
+	 * \param stereoVisual	Stereo visual for quad buffered stereo.
 	 */
 	GHOST_WindowCarbon(
 	    const STR_String& title,
@@ -92,109 +92,109 @@ public:
 
 	/**
 	 * Returns indication as to whether the window is valid.
-	 * @return The validity of the window.
+	 * \return The validity of the window.
 	 */
 	virtual bool getValid() const;
 
 	/**
 	 * Sets the title displayed in the title bar.
-	 * @param title	The title to display in the title bar.
+	 * \param title	The title to display in the title bar.
 	 */
 	virtual void setTitle(const STR_String& title);
 
 	/**
 	 * Returns the title displayed in the title bar.
-	 * @param title	The title displayed in the title bar.
+	 * \param title	The title displayed in the title bar.
 	 */
 	virtual void getTitle(STR_String& title) const;
 
 	/**
 	 * Returns the window rectangle dimensions.
 	 * The dimensions are given in screen coordinates that are relative to the upper-left corner of the screen. 
-	 * @param bounds The bounding rectangle of the window.
+	 * \param bounds The bounding rectangle of the window.
 	 */
 	virtual void getWindowBounds(GHOST_Rect& bounds) const;
 	
 	/**
 	 * Returns the client rectangle dimensions.
 	 * The left and top members of the rectangle are always zero.
-	 * @param bounds The bounding rectangle of the cleient area of the window.
+	 * \param bounds The bounding rectangle of the cleient area of the window.
 	 */
 	virtual void getClientBounds(GHOST_Rect& bounds) const;
 
 	/**
 	 * Resizes client rectangle width.
-	 * @param width The new width of the client area of the window.
+	 * \param width The new width of the client area of the window.
 	 */
 	virtual GHOST_TSuccess setClientWidth(GHOST_TUns32 width);
 
 	/**
 	 * Resizes client rectangle height.
-	 * @param height The new height of the client area of the window.
+	 * \param height The new height of the client area of the window.
 	 */
 	virtual GHOST_TSuccess setClientHeight(GHOST_TUns32 height);
 
 	/**
 	 * Resizes client rectangle.
-	 * @param width		The new width of the client area of the window.
-	 * @param height	The new height of the client area of the window.
+	 * \param width		The new width of the client area of the window.
+	 * \param height	The new height of the client area of the window.
 	 */
 	virtual GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height);
 
 	/**
 	 * Returns the state of the window (normal, minimized, maximized).
-	 * @return The state of the window.
+	 * \return The state of the window.
 	 */
 	virtual GHOST_TWindowState getState() const;
 
 	/**
 	 * Converts a point in screen coordinates to client rectangle coordinates
-	 * @param inX	The x-coordinate on the screen.
-	 * @param inY	The y-coordinate on the screen.
-	 * @param outX	The x-coordinate in the client rectangle.
-	 * @param outY	The y-coordinate in the client rectangle.
+	 * \param inX	The x-coordinate on the screen.
+	 * \param inY	The y-coordinate on the screen.
+	 * \param outX	The x-coordinate in the client rectangle.
+	 * \param outY	The y-coordinate in the client rectangle.
 	 */
 	virtual void screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
 
 	/**
 	 * Converts a point in screen coordinates to client rectangle coordinates
-	 * @param inX	The x-coordinate in the client rectangle.
-	 * @param inY	The y-coordinate in the client rectangle.
-	 * @param outX	The x-coordinate on the screen.
-	 * @param outY	The y-coordinate on the screen.
+	 * \param inX	The x-coordinate in the client rectangle.
+	 * \param inY	The y-coordinate in the client rectangle.
+	 * \param outX	The x-coordinate on the screen.
+	 * \param outY	The y-coordinate on the screen.
 	 */
 	virtual void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
 
 	/**
 	 * Sets the state of the window (normal, minimized, maximized).
-	 * @param state The state of the window.
-	 * @return Indication of success.
+	 * \param state The state of the window.
+	 * \return Indication of success.
 	 */
 	virtual GHOST_TSuccess setState(GHOST_TWindowState state);
 
 	/**
 	 * Sets the order of the window (bottom, top).
-	 * @param order The order of the window.
-	 * @return Indication of success.
+	 * \param order The order of the window.
+	 * \return Indication of success.
 	 */
 	virtual GHOST_TSuccess setOrder(GHOST_TWindowOrder order);
 
 	/**
 	 * Swaps front and back buffers of a window.
-	 * @return	A boolean success indicator.
+	 * \return	A boolean success indicator.
 	 */
 	virtual GHOST_TSuccess swapBuffers();
 
 	/**
 	 * Updates the drawing context of this window. Needed
 	 * whenever the window is changed.
-	 * @return Indication of success.
+	 * \return Indication of success.
 	 */
 	GHOST_TSuccess updateDrawingContext();
 
 	/**
 	 * Activates the drawing context of this window.
-	 * @return	A boolean success indicator.
+	 * \return	A boolean success indicator.
 	 */
 	virtual GHOST_TSuccess activateDrawingContext();
 
@@ -202,7 +202,7 @@ public:
 
 	/**
 	 * Returns the dirty state of the window when in full-screen mode.
-	 * @return Whether it is dirty.
+	 * \return Whether it is dirty.
 	 */
 	virtual bool getFullScreenDirty();
 
@@ -223,20 +223,20 @@ public:
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
-	 * @param type	The type of rendering context installed.
-	 * @return Indication as to whether installation has succeeded.
+	 * \param type	The type of rendering context installed.
+	 * \return Indication as to whether installation has succeeded.
 	 */
 	virtual GHOST_TSuccess installDrawingContext(GHOST_TDrawingContextType type);
 
 	/**
 	 * Removes the current drawing context.
-	 * @return Indication as to whether removal has succeeded.
+	 * \return Indication as to whether removal has succeeded.
 	 */
 	virtual GHOST_TSuccess removeDrawingContext();
     
 	/**
 	 * Invalidates the contents of this window.
-	 * @return Indication of success.
+	 * \return Indication of success.
 	 */
 	virtual GHOST_TSuccess invalidate();
 
@@ -263,15 +263,15 @@ protected:
 
 	/**
 	 * Converts a string object to a Mac Pascal string.
-	 * @param in	The string object to be converted.
-	 * @param out	The converted string.
+	 * \param in	The string object to be converted.
+	 * \param out	The converted string.
 	 */
 	virtual void gen2mac(const STR_String& in, Str255 out) const;
 
 	/**
 	 * Converts a Mac Pascal string to a string object.
-	 * @param in	The string to be converted.
-	 * @param out	The converted string object.
+	 * \param in	The string to be converted.
+	 * \param out	The converted string object.
 	 */
 	virtual void mac2gen(const Str255 in, STR_String& out) const;
 	

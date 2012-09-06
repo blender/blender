@@ -196,6 +196,11 @@
  *
  * There may be a better place for this section, but adding here for now.
  *
+ * \subsection bm_todo_api API
+ *
+ * - make crease and bevel weight optional, they come for free in meshes but are allocated layers
+ *   in the bmesh data structure.
+ *
  *
  * \subsection bm_todo_tools Tools
  *

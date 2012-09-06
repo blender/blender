@@ -277,6 +277,9 @@ extern "C" {
  * It can be executed during editing (blenkernel/node.c) or rendering
  * (renderer/pipeline.c)
  *
+ * @param rd [struct RenderData]
+ *   Render data for this composite, this won't always belong to a scene.
+ *
  * @param editingtree [struct bNodeTree]
  *   reference to the compositor editing tree
  *

@@ -987,7 +987,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 				 * and not try to be clever guessing which face to cut up.
 				 *
 				 * To avoid this case we need to check:
-				 * Do the verts of each loop share a face (but not connect to make an edge of that face)
+				 * Do the verts of each share a face besides the one we are subdividing,
+				 *  (but not connect to make an edge of that face).
 				 */
 				{
 					BMLoop *other_loop;

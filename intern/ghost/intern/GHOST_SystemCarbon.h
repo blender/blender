@@ -48,9 +48,9 @@ class GHOST_EventWindow;
 
 /**
  * OSX/Carbon Implementation of GHOST_System class.
- * @see GHOST_System.
- * @author	Maarten Gribnau
- * @date	May 21, 2001
+ * \see GHOST_System.
+ * \author	Maarten Gribnau
+ * \date	May 21, 2001
  */
 class GHOST_SystemCarbon : public GHOST_System {
 public:
@@ -72,7 +72,7 @@ public:
 	 * Returns the system time.
 	 * Returns the number of milliseconds since the start of the system process.
 	 * Based on ANSI clock() routine.
-	 * @return The number of milliseconds.
+	 * \return The number of milliseconds.
 	 */
 	virtual GHOST_TUns64 getMilliSeconds() const;
 
@@ -82,13 +82,13 @@ public:
 
 	/**
 	 * Returns the number of displays on this system.
-	 * @return The number of displays.
+	 * \return The number of displays.
 	 */
 	virtual GHOST_TUns8 getNumDisplays() const;
 
 	/**
 	 * Returns the dimensions of the main display on this system.
-	 * @return The dimension of the main display.
+	 * \return The dimension of the main display.
 	 */
 	virtual void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
 	
@@ -96,15 +96,15 @@ public:
 	 * Create a new window.
 	 * The new window is added to the list of windows managed. 
 	 * Never explicitly delete the window, use disposeWindow() instead.
-	 * @param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
-	 * @param	left	The coordinate of the left edge of the window.
-	 * @param	top		The coordinate of the top edge of the window.
-	 * @param	width	The width the window.
-	 * @param	height	The height the window.
-	 * @param	state	The state of the window when opened.
-	 * @param	type	The type of drawing context installed in this window.
-	 * @param	parentWindow Parent (embedder) window
-	 * @return	The new window (or 0 if creation failed).
+	 * \param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
+	 * \param	left	The coordinate of the left edge of the window.
+	 * \param	top		The coordinate of the top edge of the window.
+	 * \param	width	The width the window.
+	 * \param	height	The height the window.
+	 * \param	state	The state of the window when opened.
+	 * \param	type	The type of drawing context installed in this window.
+	 * \param	parentWindow Parent (embedder) window
+	 * \return	The new window (or 0 if creation failed).
 	 */
 	virtual GHOST_IWindow *createWindow(
 	    const STR_String& title,
@@ -133,8 +133,8 @@ public:
 
 	/**
 	 * Gets events from the system and stores them in the queue.
-	 * @param waitForEvent Flag to wait for an event (or return immediately).
-	 * @return Indication of the presence of events.
+	 * \param waitForEvent Flag to wait for an event (or return immediately).
+	 * \return Indication of the presence of events.
 	 */
 	virtual bool processEvents(bool waitForEvent);
 	
@@ -144,17 +144,17 @@ public:
 
 	/**
 	 * Returns the current location of the cursor (location in screen coordinates)
-	 * @param x			The x-coordinate of the cursor.
-	 * @param y			The y-coordinate of the cursor.
-	 * @return			Indication of success.
+	 * \param x			The x-coordinate of the cursor.
+	 * \param y			The y-coordinate of the cursor.
+	 * \return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const;
 
 	/**
 	 * Updates the location of the cursor (location in screen coordinates).
-	 * @param x			The x-coordinate of the cursor.
-	 * @param y			The y-coordinate of the cursor.
-	 * @return			Indication of success.
+	 * \param x			The x-coordinate of the cursor.
+	 * \param y			The y-coordinate of the cursor.
+	 * \return			Indication of success.
 	 */
 	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
 
@@ -164,34 +164,34 @@ public:
 
 	/**
 	 * Returns the state of all modifier keys.
-	 * @param keys	The state of all modifier keys (true == pressed).
-	 * @return		Indication of success.
+	 * \param keys	The state of all modifier keys (true == pressed).
+	 * \return		Indication of success.
 	 */
 	virtual GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys& keys) const;
 
 	/**
 	 * Returns the state of the mouse buttons (ouside the message queue).
-	 * @param buttons	The state of the buttons.
-	 * @return			Indication of success.
+	 * \param buttons	The state of the buttons.
+	 * \return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const;
 
 	/**
 	 * Returns Clipboard data
-	 * @param selection		Indicate which buffer to return
-	 * @return				Returns the selected buffer
+	 * \param selection		Indicate which buffer to return
+	 * \return				Returns the selected buffer
 	 */
 	virtual GHOST_TUns8 *getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard
-	 * @param buffer	The buffer to be copied
-	 * @param selection	Indicates which buffer to copy too, only used on X11
+	 * \param buffer	The buffer to be copied
+	 * \param selection	Indicates which buffer to copy too, only used on X11
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
 	/**
-	 * @see GHOST_ISystem
+	 * \see GHOST_ISystem
 	 */
 	int toggleConsole(int action) {
 		return 0;
@@ -201,55 +201,55 @@ protected:
 	/**
 	 * Initializes the system.
 	 * For now, it justs registers the window class (WNDCLASS).
-	 * @return A success value.
+	 * \return A success value.
 	 */
 	virtual GHOST_TSuccess init();
 
 	/**
 	 * Closes the system down.
-	 * @return A success value.
+	 * \return A success value.
 	 */
 	virtual GHOST_TSuccess exit();
 
 	
 	/**
 	 * Handles a tablet event.
-	 * @param event	A Mac event.
-	 * @return Indication whether the event was handled.
+	 * \param event	A Mac event.
+	 * \return Indication whether the event was handled.
 	 */
 	OSStatus handleTabletEvent(EventRef event);
 	/**
 	 * Handles a mouse event.
-	 * @param event	A Mac event.
-	 * @return Indication whether the event was handled.
+	 * \param event	A Mac event.
+	 * \return Indication whether the event was handled.
 	 */
 	OSStatus handleMouseEvent(EventRef event);
 
 	/**
 	 * Handles a key event.
-	 * @param event	A Mac event.
-	 * @return Indication whether the event was handled.
+	 * \param event	A Mac event.
+	 * \return Indication whether the event was handled.
 	 */
 	OSStatus handleKeyEvent(EventRef event);
 
 	/**
 	 * Handles a window event.
-	 * @param event	A Mac event.
-	 * @return Indication whether the event was handled.
+	 * \param event	A Mac event.
+	 * \return Indication whether the event was handled.
 	 */
 	OSStatus handleWindowEvent(EventRef event);
 
 	/**
 	 * Handles all basic Mac application stuff for a mouse down event.
-	 * @param event	A Mac event.
-	 * @return Indication whether the event was handled.
+	 * \param event	A Mac event.
+	 * \return Indication whether the event was handled.
 	 */
 	bool handleMouseDown(EventRef event);
 
 	/**
 	 * Handles a Mac menu command.
-	 * @param menuResult A Mac menu/item identifier.
-	 * @return Indication whether the event was handled.
+	 * \param menuResult A Mac menu/item identifier.
+	 * \return Indication whether the event was handled.
 	 */
 	bool handleMenuCommand(GHOST_TInt32 menuResult);
 
@@ -270,7 +270,7 @@ protected:
 
 	/**
 	 * Callback for Mac Timer tasks that expire.
-	 * @param tmTask Pointer to the timer task that expired.
+	 * \param tmTask Pointer to the timer task that expired.
 	 */
 	//static void s_timerCallback(TMTaskPtr tmTask);
 
