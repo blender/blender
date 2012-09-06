@@ -1394,13 +1394,13 @@ static size_t animdata_filter_mask_data(ListBase *anim_data, Mask *mask, const i
 		/* only if selected */
 		if (ANIMCHANNEL_SELOK(SEL_MASKLAY(masklay)) ) {
 			/* only if editable */
-//			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
+			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_MASK(masklay)) {
 				/* active... */
 				if (!(filter_mode & ANIMFILTER_ACTIVE) || (masklay_act == masklay)) {
 					/* add to list */
 					ANIMCHANNEL_NEW_CHANNEL(masklay, ANIMTYPE_MASKLAYER, mask);
 				}
-//			}
+			}
 		}
 	}
 

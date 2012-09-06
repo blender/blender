@@ -640,21 +640,6 @@ static float densfunc(MetaElem *ball, float x, float y, float z)
 		case MB_BALL:
 			/* do nothing */
 			break;
-		case MB_TUBEX:
-			if      (dvec[0] >  ball->len) dvec[0] -= ball->len;
-			else if (dvec[0] < -ball->len) dvec[0] += ball->len;
-			else                           dvec[0] = 0.0;
-			break;
-		case MB_TUBEY:
-			if      (dvec[1] >  ball->len) dvec[1] -= ball->len;
-			else if (dvec[1] < -ball->len) dvec[1] += ball->len;
-			else                           dvec[1] = 0.0;
-			break;
-		case MB_TUBEZ:
-			if      (dvec[2] >  ball->len) dvec[2] -= ball->len;
-			else if (dvec[2] < -ball->len) dvec[2] += ball->len;
-			else                           dvec[2] = 0.0;
-			break;
 		case MB_TUBE:
 			if      (dvec[0] >  ball->expx) dvec[0] -= ball->expx;
 			else if (dvec[0] < -ball->expx) dvec[0] += ball->expx;
@@ -686,6 +671,24 @@ static float densfunc(MetaElem *ball, float x, float y, float z)
 			else if (dvec[2] < -ball->expz) dvec[2] += ball->expz;
 			else                            dvec[2] = 0.0;
 			break;
+
+		/* *** deprecated, could be removed?, do-versioned at least *** */
+		case MB_TUBEX:
+			if      (dvec[0] >  ball->len) dvec[0] -= ball->len;
+			else if (dvec[0] < -ball->len) dvec[0] += ball->len;
+			else                           dvec[0] = 0.0;
+			break;
+		case MB_TUBEY:
+			if      (dvec[1] >  ball->len) dvec[1] -= ball->len;
+			else if (dvec[1] < -ball->len) dvec[1] += ball->len;
+			else                           dvec[1] = 0.0;
+			break;
+		case MB_TUBEZ:
+			if      (dvec[2] >  ball->len) dvec[2] -= ball->len;
+			else if (dvec[2] < -ball->len) dvec[2] += ball->len;
+			else                           dvec[2] = 0.0;
+			break;
+		/* *** end deprecated *** */
 	}
 
 	dist2 = 1.0f - (len_v3(dvec) / ball->rad2);
