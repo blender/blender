@@ -977,8 +977,44 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 			BLI_array_grow_items(loops_split, numcuts);
 			for (j = 0; j < numcuts; j++) {
-				loops_split[j][0] = loops[a];
-				loops_split[j][1] = loops[b];
+				int ok = TRUE;
+
+				/* Check for special case: [#32500]
+				 * This edge pair could be used by more then one face,
+				 * in this case it used to (2.63), split both faces along the same verts
+				 * while it could be calculated which face should do the split,
+				 * its ambigious, so in this case we're better off to skip them as exceptional cases
+				 * and not try to be clever guessing which face to cut up.
+				 *
+				 * To avoid this case we need to check:
+				 * Do the verts of each loop share a face (but not connect to make an edge of that face)
+				 */
+				{
+					BMLoop *other_loop;
+					BMIter other_fiter;
+					BM_ITER_ELEM (other_loop, &other_fiter, loops[a]->v, BM_LOOPS_OF_VERT) {
+						if (other_loop->f != face) {
+							if (BM_vert_in_face(other_loop->f, loops[a]->v)) {
+								/* we assume that these verts are not making an edge in the face */
+								BLI_assert(other_loop->prev->v != loops[a]->v);
+								BLI_assert(other_loop->next->v != loops[a]->v);
+
+								ok = FALSE;
+								break;
+							}
+						}
+					}
+				}
+
+
+				if (ok == TRUE) {
+					loops_split[j][0] = loops[a];
+					loops_split[j][1] = loops[b];
+				}
+				else {
+					loops_split[j][0] = NULL;
+					loops_split[j][1] = NULL;
+				}
 
 				b = (b - 1) % vlen;
 				a = (a + 1) % vlen;
@@ -993,6 +1029,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 			for (j = 0; j < BLI_array_count(loops_split); j++) {
 				if (loops_split[j][0]) {
+					BLI_assert(BM_edge_exists(loops_split[j][0]->v, loops_split[j][1]->v) == FALSE);
+
 					/* BMFace *nf = */ /* UNUSED */
 					BM_face_split(bm, face, loops_split[j][0]->v, loops_split[j][1]->v, &nl, NULL, FALSE);
 				}
