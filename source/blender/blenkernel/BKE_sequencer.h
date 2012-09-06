@@ -199,7 +199,7 @@ int BKE_sequencer_recursive_apply(struct Sequence *seq, int (*apply_func)(struct
 
 void BKE_sequencer_free_clipboard(void);
 
-void BKE_sequence_free(struct Scene *scene, struct Sequence *seq);
+void BKE_sequence_free(struct Scene *scene, struct Sequence *seq, const int do_cache);
 const char *BKE_sequence_give_name(struct Sequence *seq);
 void BKE_sequence_calc(struct Scene *scene, struct Sequence *seq);
 void BKE_sequence_calc_disp(struct Scene *scene, struct Sequence *seq);

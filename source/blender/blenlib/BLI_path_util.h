@@ -97,7 +97,6 @@ typedef enum bli_rebase_state {
 } bli_rebase_state;
 
 int BLI_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const char *base_dir, const char *src_dir, const char *dest_dir);
-#define BKE_rebase_path BLI_rebase_path /* remove after a 2012 */
 
 char *BLI_last_slash(const char *string);
 int   BLI_add_slash(char *string);
