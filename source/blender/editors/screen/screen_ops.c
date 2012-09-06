@@ -349,6 +349,29 @@ int ED_operator_editarmature(bContext *C)
 	return 0;
 }
 
+/**
+ * \brief check for pose mode (no mixed modes)
+ *
+ * We wan't to enable most pose operations in weight paint mode,
+ * when it comes to transforming bones, but managing bomes layers/groups
+ * can be left for pose mode only. (not weight paint mode)
+ */
+int ED_operator_posemode_exclusive(bContext *C)
+{
+	Object *obact = CTX_data_active_object(C);
+
+	if (obact && !(obact->mode & OB_MODE_EDIT)) {
+		Object *obpose;
+		if ((obpose = BKE_object_pose_armature_get(obact))) {
+			if (obact == obpose) {
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 int ED_operator_posemode(bContext *C)
 {
 	Object *obact = CTX_data_active_object(C);

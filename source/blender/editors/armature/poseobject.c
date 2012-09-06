@@ -274,7 +274,7 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = pose_calculate_paths_invoke;
 	ot->exec = pose_calculate_paths_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -319,7 +319,7 @@ void POSE_OT_paths_update(wmOperatorType *ot)
 	
 	/* api callbakcs */
 	ot->exec = pose_update_paths_exec;
-	ot->poll = ED_operator_posemode; /* TODO: this should probably check for active bone and/or existing paths */
+	ot->poll = ED_operator_posemode_exclusive; /* TODO: this should probably check for active bone and/or existing paths */
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -380,7 +380,7 @@ void POSE_OT_paths_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_clear_paths_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2192,7 +2192,7 @@ void POSE_OT_bone_layers(wmOperatorType *ot)
 	/* callbacks */
 	ot->invoke = pose_bone_layers_invoke;
 	ot->exec = pose_bone_layers_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
