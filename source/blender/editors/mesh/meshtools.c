@@ -1185,6 +1185,55 @@ int ED_mesh_pick_face(bContext *C, Mesh *me, const int mval[2], unsigned int *in
 
 	return 1;
 }
+/**
+ * Use when the back buffer stores face index values. but we want a vert.
+ * This gets the face then finds the closest vertex to mval.
+ */
+int ED_mesh_pick_face_vert(bContext *C, Mesh *me, Object *ob, const int mval[2], unsigned int *index, int size)
+{
+	unsigned int poly_index;
+
+	if (ED_mesh_pick_face(C, me, mval, &poly_index, size)) {
+		Scene *scene = CTX_data_scene(C);
+		struct ARegion *ar = CTX_wm_region(C);
+
+		/* derived mesh to find deformed locations */
+		DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+		int v_idx_best = -1;
+
+		if (dm->getVertCo) {
+			/* find the vert closest to 'mval' */
+			const float mval_f[2] = {(float)mval[0],
+			                         (float)mval[1]};
+			MPoly *mp = &me->mpoly[poly_index];
+			int fidx;
+			float len_best = FLT_MAX;
+
+			fidx = mp->totloop - 1;
+			do {
+				float co[3], sco[2], len;
+				const int v_idx = me->mloop[mp->loopstart + fidx].v;
+				dm->getVertCo(dm, v_idx, co);
+				mul_m4_v3(ob->obmat, co);
+				project_float_noclip(ar, co, sco);
+				len = len_squared_v2v2(mval_f, sco);
+				if (len < len_best) {
+					len_best = len;
+					v_idx_best = v_idx;
+				}
+			} while (fidx--);
+		}
+
+		dm->release(dm);
+
+		if (v_idx_best != -1) {
+			*index = v_idx_best;
+			return 1;
+		}
+	}
+
+	return 0;
+}
 
 /**
  * Vertex selection in object mode,

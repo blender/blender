@@ -980,6 +980,7 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
 
         col = layout.column()
 
+        col.prop(wpaint, "use_all_faces")
         col.prop(wpaint, "use_normal")
         col.prop(wpaint, "use_spray")
         col.prop(wpaint, "use_group_restrict")

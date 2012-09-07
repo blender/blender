@@ -1009,50 +1009,34 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	me = BKE_mesh_from_object(vc.obact);
 
 	if (me && me->dvert && vc.v3d && vc.rv3d) {
-		int index;
+		const int use_vert_sel = (me->editflag & ME_EDIT_VERT_SEL) != 0;
+		int v_idx_best = -1;
+		unsigned int index;
 
 		view3d_operator_needs_opengl(C);
 
-		index = view3d_sample_backbuf(&vc, event->mval[0], event->mval[1]);
-
-		if (index && index <= me->totpoly) {
-			DerivedMesh *dm = mesh_get_derived_final(vc.scene, vc.obact, CD_MASK_BAREMESH);
-
-			if (dm->getVertCo == NULL) {
+		if (use_vert_sel) {
+			if (ED_mesh_pick_vert(C, me, event->mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE)) {
+				v_idx_best = index;
+			}
+		}
+		else {
+			if (ED_mesh_pick_face_vert(C, me, vc.obact, event->mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
+				v_idx_best = index;
+			}
+			else if (ED_mesh_pick_face(C, me, event->mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
+				/* this relies on knowning the internal worksings of ED_mesh_pick_face_vert() */
 				BKE_report(op->reports, RPT_WARNING, "The modifier used does not support deformed locations");
 			}
-			else {
-				MPoly *mp = ((MPoly *)me->mpoly) + (index - 1);
-				const int vgroup_active = vc.obact->actdef - 1;
-				Scene *scene = vc.scene;
-				ToolSettings *ts = vc.scene->toolsettings;
-				Brush *brush = paint_brush(&ts->wpaint->paint);
-				const float mval_f[2] = {(float)event->mval[0],
-				                         (float)event->mval[1]};
-				int v_idx_best = -1;
-				int fidx;
-				float len_best = FLT_MAX;
+		}
 
-				fidx = mp->totloop - 1;
-				do {
-					float co[3], sco[3], len;
-					const int v_idx = me->mloop[mp->loopstart + fidx].v;
-					dm->getVertCo(dm, v_idx, co);
-					project_float_noclip(vc.ar, co, sco);
-					len = len_squared_v2v2(mval_f, sco);
-					if (len < len_best) {
-						len_best = len;
-						v_idx_best = v_idx;
-					}
-				} while (fidx--);
-
-				if (v_idx_best != -1) { /* should always be valid */
-					float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
-					BKE_brush_weight_set(scene, brush, vgroup_weight);
-					change = TRUE;
-				}
-			}
-			dm->release(dm);
+		if (v_idx_best != -1) { /* should always be valid */
+			ToolSettings *ts = vc.scene->toolsettings;
+			Brush *brush = paint_brush(&ts->wpaint->paint);
+			const int vgroup_active = vc.obact->actdef - 1;
+			float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
+			BKE_brush_weight_set(vc.scene, brush, vgroup_weight);
+			change = TRUE;
 		}
 	}
 

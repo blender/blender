@@ -281,6 +281,7 @@ int           *mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em)
 
 int ED_mesh_pick_vert(struct bContext *C, struct Mesh *me, const int mval[2], unsigned int *index, int size);
 int ED_mesh_pick_face(struct bContext *C, struct Mesh *me, const int mval[2], unsigned int *index, int size);
+int ED_mesh_pick_face_vert(struct bContext *C, struct Mesh *me, struct Object *ob, const int mval[2], unsigned int *index, int size);
 
 #define ED_MESH_PICK_DEFAULT_VERT_SIZE 50
 #define ED_MESH_PICK_DEFAULT_FACE_SIZE 3
