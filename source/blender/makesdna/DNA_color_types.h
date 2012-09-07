@@ -166,6 +166,7 @@ typedef struct ColorManagedViewSettings {
 	float exposure;            /* fstop exposure */
 	float gamma;               /* post-display gamma transform */
 	struct CurveMapping *curve_mapping;  /* pre-display RGB curves transform */
+	void *pad2;
 } ColorManagedViewSettings;
 
 typedef struct ColorManagedDisplaySettings {
