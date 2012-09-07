@@ -294,7 +294,7 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]
 	if (mode == 0 || mode == 1) {
 		/* XXX - Causes glitches, not sure why */
 #if 0
-		if (!ED_mesh_pick_face(C, me, mval, &index, 1))
+		if (!ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
 			return;
 #endif
 	}
@@ -481,7 +481,7 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 	/* Get the face under the cursor */
 	me = BKE_mesh_from_object(ob);
 
-	if (!ED_mesh_pick_face(C, me, ob, mval, &index, 1))
+	if (!ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
 		return 0;
 	
 	if (index >= me->totpoly)

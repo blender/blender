@@ -2035,8 +2035,8 @@ static int mouse_weight_paint_vertex_select(bContext *C, const int mval[2], shor
 	unsigned int index = 0;
 	MVert *mv;
 
-	if (ED_mesh_pick_vert(C, me, mval, &index, 50)) {
-		mv = me->mvert + index;
+	if (ED_mesh_pick_vert(C, me, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE)) {
+		mv = &me->mvert[index];
 		if (extend) {
 			mv->flag |= SELECT;
 		}

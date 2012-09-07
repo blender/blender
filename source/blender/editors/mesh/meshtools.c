@@ -42,6 +42,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -1156,28 +1157,21 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
  *
  * \return boolean TRUE == Found
  */
-int ED_mesh_pick_face(bContext *C, Mesh *me, Object *ob, const int mval[2], unsigned int *index, short rect)
+int ED_mesh_pick_face(bContext *C, Mesh *me, const int mval[2], unsigned int *index, int size)
 {
-	Scene *scene = CTX_data_scene(C);
 	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
 
 	if (!me || me->totpoly == 0)
 		return 0;
 
-	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH, 0);
+	view3d_set_viewcontext(C, &vc);
 
-	// XXX  if (v3d->flag & V3D_INVALID_BACKBUF) {
-// XXX drawview.c!		check_backbuf();
-// XXX		persp(PERSP_VIEW);
-// XXX  }
-
-	if (rect) {
-		/* sample rect to increase changes of selecting, so that when clicking
+	if (size) {
+		/* sample rect to increase chances of selecting, so that when clicking
 		 * on an edge in the backbuf, we can still select a face */
 
-		int dist;
-		*index = view3d_sample_backbuf_rect(&vc, mval, 3, 1, me->totpoly + 1, &dist, 0, NULL, NULL);
+		int dummy_dist;
+		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totpoly + 1, &dummy_dist, 0, NULL, NULL);
 	}
 	else {
 		/* sample only on the exact position */
@@ -1201,17 +1195,18 @@ int ED_mesh_pick_face(bContext *C, Mesh *me, Object *ob, const int mval[2], unsi
 int ED_mesh_pick_vert(bContext *C, Mesh *me, const int mval[2], unsigned int *index, int size)
 {
 	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
 
 	if (!me || me->totvert == 0)
 		return 0;
 
+	view3d_set_viewcontext(C, &vc);
+
 	if (size > 0) {
-		/* sample rect to increase changes of selecting, so that when clicking
+		/* sample rect to increase chances of selecting, so that when clicking
 		 * on an face in the backbuf, we can still select a vert */
 
-		int dist;
-		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totvert + 1, &dist, 0, NULL, NULL);
+		int dummy_dist;
+		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totvert + 1, &dummy_dist, 0, NULL, NULL);
 	}
 	else {
 		/* sample only on the exact position */
