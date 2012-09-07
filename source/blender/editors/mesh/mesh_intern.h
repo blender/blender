@@ -85,8 +85,6 @@ float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3])
 
 /* ******************** editface.c */
 
-void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);
-
 void MESH_OT_separate(struct wmOperatorType *ot);
 
 /* ******************* editmesh_add.c */

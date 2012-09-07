@@ -1063,7 +1063,7 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const short use_select)
 	int li, topo = 0;
 
 	/* one or the other is used depending if topo is enabled */
-	BMBVHTree *tree = NULL;
+	struct BMBVHTree *tree = NULL;
 	MirrTopoStore_t mesh_topo_store = {NULL, -1, -1, -1};
 
 	if (me && (me->editflag & ME_EDIT_MIRROR_TOPO)) {

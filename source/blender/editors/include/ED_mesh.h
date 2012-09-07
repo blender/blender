@@ -71,14 +71,8 @@ struct Material;
 struct Object;
 struct rcti;
 
-intptr_t    mesh_octree_table(struct Object *ob, struct BMEditMesh *em, const float co[3], char mode);
-int         mesh_mirrtopo_table(struct Object *ob, char mode);
 
 /* editmesh_utils.c */
-
-/* retrieves mirrored cache vert, or NULL if there isn't one.
- * note: calling this without ensuring the mirror cache state
- * is bad.*/
 void           EDBM_verts_mirror_cache_begin(struct BMEditMesh *em, const short use_select); /* note, replaces EM_cache_x_mirror_vert in trunk */
 void           EDBM_verts_mirror_apply(struct BMEditMesh *em, const int sel_from, const int sel_to);
 struct BMVert *EDBM_verts_mirror_get(struct BMEditMesh *em, struct BMVert *v);
@@ -86,7 +80,9 @@ void           EDBM_verts_mirror_cache_clear(struct BMEditMesh *em, struct BMVer
 void           EDBM_verts_mirror_cache_end(struct BMEditMesh *em);
 
 void EDBM_mesh_normals_update(struct BMEditMesh *em);
+void EDBM_mesh_clear(struct BMEditMesh *em);
 
+void EDBM_selectmode_to_scene(struct bContext *C);
 void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object *ob);
 void EDBM_mesh_free(struct BMEditMesh *tm);
 void EDBM_mesh_load(struct Object *ob);
@@ -110,26 +106,14 @@ void EDBM_selectmode_flush(struct BMEditMesh *em);
 void EDBM_deselect_flush(struct BMEditMesh *em);
 void EDBM_select_flush(struct BMEditMesh *em);
 
-void EDBM_selectmode_set(struct BMEditMesh *em);
-void EDBM_selectmode_convert(struct BMEditMesh *em, short oldmode, const short selectmode);
 void undo_push_mesh(struct bContext *C, const char *name);
 
 int  EDBM_vert_color_check(struct BMEditMesh *em);
-
 
 void EDBM_mesh_hide(struct BMEditMesh *em, int swap);
 void EDBM_mesh_reveal(struct BMEditMesh *em);
 
 void EDBM_update_generic(struct bContext *C, struct BMEditMesh *em, const short do_tessface);
-
-int  EDBM_backbuf_check(unsigned int index);
-int EDBM_backbuf_border_mask_init(struct ViewContext *vc, int mcords[][2], short tot,
-                                  short xmin, short ymin, short xmax, short ymax);
-void EDBM_backbuf_free(void);
-int  EDBM_backbuf_border_init(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
-int  EDBM_backbuf_circle_init(struct ViewContext *vc, short xs, short ys, short rads);
-
-void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select);
 
 struct UvElementMap *EDBM_uv_element_map_create(struct BMEditMesh *em, int selected, int doIslands);
 void                 EDBM_uv_element_map_free(struct UvElementMap *vmap);
@@ -141,60 +125,86 @@ void              EDBM_uv_vert_map_free(struct UvVertMap *vmap);
 struct UvMapVert *EDBM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);
 struct UvVertMap *EDBM_uv_vert_map_create(struct BMEditMesh *em, int selected, int do_face_idx_array, const float limit[2]);
 
-void EDBM_select_toggle_all(struct BMEditMesh *em);
-void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
-int  EDBM_select_interior_faces(struct BMEditMesh *em);
-
 void EDBM_flag_enable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
+
+
+/* editmesh_select.c */
 void EDBM_select_mirrored(struct Object *obedit, struct BMEditMesh *em, int extend);
 void EDBM_automerge(struct Scene *scene, struct Object *ob, int update);
 
-/* editmesh_mods.c */
+int  EDBM_backbuf_border_init(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
+int  EDBM_backbuf_check(unsigned int index);
+void EDBM_backbuf_free(void);
+
+int  EDBM_backbuf_border_mask_init(struct ViewContext *vc, int mcords[][2], short tot,
+                                   short xmin, short ymin, short xmax, short ymax);
+int  EDBM_backbuf_circle_init(struct ViewContext *vc, short xs, short ys, short rads);
+
+struct BMVert *EDBM_vert_find_nearest(struct ViewContext *vc, int *dist, short sel, short strict);
+struct BMEdge *EDBM_edge_find_nearest(struct ViewContext *vc, int *dist);
+struct BMFace *EDBM_face_find_nearest(struct ViewContext *vc, int *dist);
+
+int  EDBM_select_pick(struct bContext *C, const int mval[2], short extend, short deselect, short toggle);
+
+void EDBM_selectmode_set(struct BMEditMesh *em);
+void EDBM_selectmode_convert(struct BMEditMesh *em, short oldmode, const short selectmode);
+
+void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select);
+
+void EDBM_select_toggle_all(struct BMEditMesh *em);
+
+void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
+int  EDBM_select_interior_faces(struct BMEditMesh *em);
+void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);  /* rename? */
+
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
-int         mouse_mesh(struct bContext *C, const int mval[2], short extend, short deselect, short toggle);
-
-struct BMVert *editbmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh *em, struct BMVert *eve, const float co[3], int index);
-int            mesh_get_x_mirror_vert(struct Object *ob, int index);
-int           *mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em);
-
-int         join_mesh_exec(struct bContext *C, struct wmOperator *op);
-int         join_mesh_shapes_exec(struct bContext *C, struct wmOperator *op);
 
 /* mesh_ops.c */
 void        ED_operatortypes_mesh(void);
 void        ED_operatormacros_mesh(void);
 void        ED_keymap_mesh(struct wmKeyConfig *keyconf);
-
-
-/* editmesh.c */
-
-void        ED_spacetypes_init(void);
 void        ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
-/* bmesh_mods.c */
-extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
-/* bmesh_tools.c (could be moved) */
+/* spacetypes.c */
+void        ED_spacetypes_init(void);
+
+
+/* editmesh_tools.c (could be moved) */
 void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct Object *obedit, struct BMEditMesh *em);
+
 
 /* editface.c */
 void paintface_flush_flags(struct Object *ob);
-int paintface_mouse_select(struct bContext *C, struct Object *ob, const int mval[2], int extend, int deselect, int toggle);
-int do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int select, int extend);
+int  paintface_mouse_select(struct bContext *C, struct Object *ob, const int mval[2], int extend, int deselect, int toggle);
+int  do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int select, int extend);
 void paintface_deselect_all_visible(struct Object *ob, int action, short flush_flags);
 void paintface_select_linked(struct bContext *C, struct Object *ob, int mval[2], int mode);
-int paintface_minmax(struct Object *ob, float r_min[3], float r_max[3]);
+int  paintface_minmax(struct Object *ob, float r_min[3], float r_max[3]);
 
 void paintface_hide(struct Object *ob, const int unselected);
 void paintface_reveal(struct Object *ob);
 
 void paintvert_deselect_all_visible(struct Object *ob, int action, short flush_flags);
-void        paintvert_flush_flags(struct Object *ob);
+void paintvert_flush_flags(struct Object *ob);
+
+/* mirrtopo */
+typedef struct MirrTopoStore_t {
+	intptr_t *index_lookup;
+	int prev_vert_tot;
+	int prev_edge_tot;
+	int prev_ob_mode;
+} MirrTopoStore_t;
+
+int  ED_mesh_mirrtopo_recalc_check(struct Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store);
+void ED_mesh_mirrtopo_init(struct Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store,
+                           const short skip_em_vert_array_init);
+void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
+
 
 /* object_vgroup.c */
-
 #define WEIGHT_REPLACE 1
 #define WEIGHT_ADD 2
 #define WEIGHT_SUBTRACT 3
@@ -215,9 +225,6 @@ void                 ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *
 void                 ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 float                ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 
-struct BMVert *EDBM_vert_find_nearest(struct ViewContext *vc, int *dist, short sel, short strict);
-struct BMEdge *EDBM_edge_find_nearest(struct ViewContext *vc, int *dist);
-struct BMFace *EDBM_face_find_nearest(struct ViewContext *vc, int *dist);
 
 /* mesh_data.c */
 // void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
@@ -245,25 +252,6 @@ int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob
 int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 int ED_mesh_color_remove_named(struct bContext *C, struct Object *ob, struct Mesh *me, const char *name);
 
-void EDBM_selectmode_to_scene(struct bContext *C);
-void EDBM_mesh_clear(struct BMEditMesh *em);
-
-#include "../mesh/editmesh_bvh.h"
-
-
-/* mirrtopo */
-typedef struct MirrTopoStore_t {
-	intptr_t *index_lookup;
-	int prev_vert_tot;
-	int prev_edge_tot;
-	int prev_ob_mode;
-} MirrTopoStore_t;
-
-int  ED_mesh_mirrtopo_recalc_check(struct Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store);
-void ED_mesh_mirrtopo_init(struct Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store,
-                           const short skip_em_vert_array_init);
-void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
-
 /* mesh backup */
 typedef struct BMBackup {
 	struct BMesh *bmcopy;
@@ -275,6 +263,30 @@ struct BMBackup EDBM_redo_state_store(struct BMEditMesh *em);
 void EDBM_redo_state_restore(struct BMBackup, struct BMEditMesh *em, int recalctess);
 /* delete the backup, optionally flushing it to an editmesh */
 void EDBM_redo_state_free(struct BMBackup *, struct BMEditMesh *em, int recalctess);
+
+
+/* meshtools.c */
+int         join_mesh_exec(struct bContext *C, struct wmOperator *op);
+int         join_mesh_shapes_exec(struct bContext *C, struct wmOperator *op);
+
+intptr_t    mesh_octree_table(struct Object *ob, struct BMEditMesh *em, const float co[3], char mode);
+int         mesh_mirrtopo_table(struct Object *ob, char mode);
+
+/* retrieves mirrored cache vert, or NULL if there isn't one.
+ * note: calling this without ensuring the mirror cache state
+ * is bad.*/
+int            mesh_get_x_mirror_vert(struct Object *ob, int index);
+struct BMVert *editbmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh *em, struct BMVert *eve, const float co[3], int index);
+int           *mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em);
+
+int ED_mesh_pick_vert(struct bContext *C, struct Mesh *me, const int mval[2], unsigned int *index, int size);
+int ED_mesh_pick_face(struct bContext *C, struct Mesh *me, const int mval[2], unsigned int *index, int size);
+int ED_mesh_pick_face_vert(struct bContext *C, struct Mesh *me, struct Object *ob, const int mval[2], unsigned int *index, int size);
+
+#define ED_MESH_PICK_DEFAULT_VERT_SIZE 50
+#define ED_MESH_PICK_DEFAULT_FACE_SIZE 3
+
+#include "../mesh/editmesh_bvh.h"
 
 #ifdef __cplusplus
 }

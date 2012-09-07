@@ -3074,11 +3074,11 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
 	BKE_mesh_tessface_ensure(me);
 
-	/* needs to be called after we ensure tessface */
-	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-
 	if (!mmd) ss->kb = ob_get_keyblock(ob);
 	else ss->kb = NULL;
+
+	/* needs to be called after we ensure tessface */
+	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 
 	if (mmd) {
 		ss->multires = mmd;

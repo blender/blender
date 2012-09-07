@@ -25,6 +25,7 @@
 
 #include "kernel_types.h"
 
+#include "util_attribute.h"
 #include "util_param.h"
 #include "util_string.h"
 #include "util_thread.h"

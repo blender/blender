@@ -21,6 +21,7 @@
 
 #include "kernel_types.h"
 
+#include "util_attribute.h"
 #include "util_list.h"
 #include "util_param.h"
 #include "util_types.h"
