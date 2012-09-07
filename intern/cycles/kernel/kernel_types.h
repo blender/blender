@@ -19,8 +19,6 @@
 #ifndef __KERNEL_TYPES_H__
 #define __KERNEL_TYPES_H__
 
-#include <string>
-
 #include "kernel_math.h"
 #include "svm/svm_types.h"
 
@@ -353,46 +351,6 @@ typedef enum AttributeElement {
 	ATTR_ELEMENT_VALUE,
 	ATTR_ELEMENT_NONE
 } AttributeElement;
-
-typedef enum AttributeStandard {
-	ATTR_STD_NONE = 0,
-	ATTR_STD_VERTEX_NORMAL,
-	ATTR_STD_FACE_NORMAL,
-	ATTR_STD_UV,
-	ATTR_STD_GENERATED,
-	ATTR_STD_POSITION_UNDEFORMED,
-	ATTR_STD_POSITION_UNDISPLACED,
-	ATTR_STD_MOTION_PRE,
-	ATTR_STD_MOTION_POST,
-	ATTR_STD_PARTICLE,
-	ATTR_STD_NUM,
-
-	ATTR_STD_NOT_FOUND = ~0
-} AttributeStandard;
-
-__device std::string attribute_standard_name(AttributeStandard std)
-{
-	if(std == ATTR_STD_VERTEX_NORMAL)
-		return std::string("N");
-	else if(std == ATTR_STD_FACE_NORMAL)
-		return std::string("Ng");
-	else if(std == ATTR_STD_UV)
-		return std::string("uv");
-	else if(std == ATTR_STD_GENERATED)
-		return std::string("generated");
-	else if(std == ATTR_STD_POSITION_UNDEFORMED)
-		return std::string("undeformed");
-	else if(std == ATTR_STD_POSITION_UNDISPLACED)
-		return std::string("undisplaced");
-	else if(std == ATTR_STD_MOTION_PRE)
-		return std::string("motion_pre");
-	else if(std == ATTR_STD_MOTION_POST)
-		return std::string("motion_post");
-	else if(std == ATTR_STD_PARTICLE)
-		return std::string("particle");
-	
-	return std::string();
-}
 
 /* Closure data */
 

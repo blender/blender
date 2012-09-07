@@ -16,6 +16,7 @@ set(SRC
 set(SRC_HEADERS
 	kernel.h
 	kernel_accumulate.h
+	kernel_attribute.h
 	kernel_bvh.h
 	kernel_camera.h
 	kernel_compat_cpu.h
