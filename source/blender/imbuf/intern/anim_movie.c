@@ -801,6 +801,34 @@ static int ffmpeg_decode_video_frame(struct anim *anim)
 		anim->next_packet.stream_index = -1;
 	}
 	
+	if (rval == AVERROR_EOF) {
+		anim->next_packet.size = 0;
+		anim->next_packet.data = 0;
+
+		anim->pFrameComplete = 0;
+
+		avcodec_decode_video2(
+			anim->pCodecCtx,
+			anim->pFrame, &anim->pFrameComplete,
+			&anim->next_packet);
+
+		if (anim->pFrameComplete) {
+			anim->next_pts = av_get_pts_from_frame(
+				anim->pFormatCtx, anim->pFrame);
+
+			av_log(anim->pFormatCtx,
+			       AV_LOG_DEBUG,
+			       "  FRAME DONE (after EOF): next_pts=%lld "
+			       "pkt_pts=%lld, guessed_pts=%lld\n",
+			       (anim->pFrame->pts == AV_NOPTS_VALUE) ?
+			       -1 : (long long int)anim->pFrame->pts,
+			       (anim->pFrame->pkt_pts == AV_NOPTS_VALUE) ?
+			       -1 : (long long int)anim->pFrame->pkt_pts,
+			       (long long int)anim->next_pts);
+			rval = 0;
+		}
+	}
+
 	if (rval < 0) {
 		anim->next_packet.stream_index = -1;
 
