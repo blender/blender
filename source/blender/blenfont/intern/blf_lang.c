@@ -108,6 +108,7 @@ static const char *locales[] = {
 	"turkish", "tr_TR",
 	"hungarian", "hu_HU",
 	"brazilian portuguese", "pt_BR",
+	"hebrew", "he_IL",
 };
 
 void BLF_lang_init(void)
