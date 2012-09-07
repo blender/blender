@@ -464,25 +464,10 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 
 			dist = FLT_MAX;
 
-			if (is_wire) {
-				for (i = 0; i < vout_len; i++) {
-					BM_ITER_ELEM (e, &iter, vout[i], BM_EDGES_OF_VERT) {
-						if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-							float e_mid_co[3];
-							mid_v3_v3v3(e_mid_co, e->v1->co, e->v2->co);
+			for (i = 0; i < vout_len; i++) {
 
-							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, e_mid_co, fmval);
-
-							if (d < dist) {
-								dist = d;
-								vi_best = i;
-							}
-						}
-					}
-				}
-			}
-			else {
-				for (i = 0; i < vout_len; i++) {
+				if (BM_vert_is_wire(vout[i]) == FALSE) {
+					/* find the best face corner */
 					BM_ITER_ELEM (l, &iter, vout[i], BM_LOOPS_OF_VERT) {
 						if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
 							float l_mid_co[3];
@@ -493,6 +478,22 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 							add_v3_v3(l_mid_co, v->co);
 
 							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval);
+
+							if (d < dist) {
+								dist = d;
+								vi_best = i;
+							}
+						}
+					}
+				}
+				else {
+					/* a wire vert, find the best edge */
+					BM_ITER_ELEM (e, &iter, vout[i], BM_EDGES_OF_VERT) {
+						if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+							float e_mid_co[3];
+							mid_v3_v3v3(e_mid_co, e->v1->co, e->v2->co);
+
+							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, e_mid_co, fmval);
 
 							if (d < dist) {
 								dist = d;
