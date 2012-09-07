@@ -49,6 +49,7 @@
 #include "ED_mesh.h"
 #include "ED_view3d.h"
 
+#include "editmesh_bvh.h"  /* own include */
 
 typedef struct BMBVHTree {
 	BMEditMesh *em;

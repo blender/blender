@@ -1494,7 +1494,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 /* ************************************************** */
 /* here actual select happens */
 /* gets called via generic mouse select operator */
-int mouse_mesh(bContext *C, const int mval[2], short extend, short deselect, short toggle)
+int EDBM_select_pick(bContext *C, const int mval[2], short extend, short deselect, short toggle)
 {
 	ViewContext vc;
 	BMVert *eve = NULL;

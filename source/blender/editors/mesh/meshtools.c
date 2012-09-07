@@ -877,7 +877,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, const float co[3], char m
 	return 0;
 }
 
-MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
+static MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
 
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */

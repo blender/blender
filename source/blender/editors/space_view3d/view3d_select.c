@@ -2086,7 +2086,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (obedit && object == FALSE) {
 		if (obedit->type == OB_MESH)
-			retval = mouse_mesh(C, event->mval, extend, deselect, toggle);
+			retval = EDBM_select_pick(C, event->mval, extend, deselect, toggle);
 		else if (obedit->type == OB_ARMATURE)
 			retval = mouse_armature(C, event->mval, extend, deselect, toggle);
 		else if (obedit->type == OB_LATTICE)
