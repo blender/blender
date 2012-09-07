@@ -1083,6 +1083,20 @@ void PAINT_OT_weight_sample(wmOperatorType *ot)
 }
 
 /* samples cursor location, and gives menu with vertex groups to activate */
+static int weight_paint_sample_enum_itemf__helper(const MDeformVert *dvert, const int defbase_tot, int *groups)
+{
+	/* this func fills in used vgroup's */
+	int found = FALSE;
+	int i = dvert->totweight;
+	MDeformWeight *dw;
+	for (dw = dvert->dw; i > 0; dw++, i--) {
+		if (dw->def_nr < defbase_tot) {
+			groups[dw->def_nr] = TRUE;
+			found = TRUE;
+		}
+	}
+	return found;
+}
 static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	if (C) {
@@ -1094,58 +1108,57 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 			view3d_set_viewcontext(C, &vc);
 			me = BKE_mesh_from_object(vc.obact);
 
-			if (me && me->dvert && vc.v3d && vc.rv3d) {
-				int index;
+			if (me && me->dvert && vc.v3d && vc.rv3d && vc.obact->defbase.first) {
+				const int defbase_tot = BLI_countlist(&vc.obact->defbase);
+				const int use_vert_sel = (me->editflag & ME_EDIT_VERT_SEL) != 0;
+				int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
+				int found = FALSE;
+				unsigned int index;
+
 				int mval[2] = {win->eventstate->x - vc.ar->winrct.xmin,
 				               win->eventstate->y - vc.ar->winrct.ymin};
 
 				view3d_operator_needs_opengl(C);
 
-				index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
-
-				if (index && index <= me->totpoly) {
-					const int defbase_tot = BLI_countlist(&vc.obact->defbase);
-					if (defbase_tot) {
-						MPoly *mp = ((MPoly *)me->mpoly) + (index - 1);
+				if (use_vert_sel) {
+					if (ED_mesh_pick_vert(C, me, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE)) {
+						MDeformVert *dvert = &me->dvert[index];
+						found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
+					}
+				}
+				else {
+					if (ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
+						MPoly *mp = &me->mpoly[index];
 						unsigned int fidx = mp->totloop - 1;
-						int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
-						int found = FALSE;
 
 						do {
-							MDeformVert *dvert = me->dvert + me->mloop[mp->loopstart + fidx].v;
-							int i = dvert->totweight;
-							MDeformWeight *dw;
-							for (dw = dvert->dw; i > 0; dw++, i--) {
-								if (dw->def_nr < defbase_tot) {
-									groups[dw->def_nr] = TRUE;
-									found = TRUE;
-								}
-							}
+							MDeformVert *dvert = &me->dvert[me->mloop[mp->loopstart + fidx].v];
+							found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
 						} while (fidx--);
+					}
+				}
 
-						if (found == FALSE) {
-							MEM_freeN(groups);
-						}
-						else {
-							EnumPropertyItem *item = NULL, item_tmp = {0};
-							int totitem = 0;
-							int i = 0;
-							bDeformGroup *dg;
-							for (dg = vc.obact->defbase.first; dg && i < defbase_tot; i++, dg = dg->next) {
-								if (groups[i]) {
-									item_tmp.identifier = item_tmp.name = dg->name;
-									item_tmp.value = i;
-									RNA_enum_item_add(&item, &totitem, &item_tmp);
-								}
-							}
-
-							RNA_enum_item_end(&item, &totitem);
-							*free = 1;
-
-							MEM_freeN(groups);
-							return item;
+				if (found == FALSE) {
+					MEM_freeN(groups);
+				}
+				else {
+					EnumPropertyItem *item = NULL, item_tmp = {0};
+					int totitem = 0;
+					int i = 0;
+					bDeformGroup *dg;
+					for (dg = vc.obact->defbase.first; dg && i < defbase_tot; i++, dg = dg->next) {
+						if (groups[i]) {
+							item_tmp.identifier = item_tmp.name = dg->name;
+							item_tmp.value = i;
+							RNA_enum_item_add(&item, &totitem, &item_tmp);
 						}
 					}
+
+					RNA_enum_item_end(&item, &totitem);
+					*free = 1;
+
+					MEM_freeN(groups);
+					return item;
 				}
 			}
 		}
