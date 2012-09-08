@@ -86,8 +86,9 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
 
 		/* exception: don't copy the original shapekey index */
 		keyi = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_SHAPE_KEYINDEX);
-		if(keyi)
+		if (keyi) {
 			*keyi = ORIGINDEX_NONE;
+		}
 	}
 
 	BM_CHECK_ELEMENT(v);

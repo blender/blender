@@ -193,7 +193,7 @@ DO_INLINE lfVector *create_lfvector(unsigned int verts)
 DO_INLINE void del_lfvector(float (*fLongVector)[3])
 {
 	if (fLongVector != NULL) {
-		MEM_freeN (fLongVector);
+		MEM_freeN(fLongVector);
 		// cloth_aligned_free(&MEMORY_BASE, fLongVector);
 	}
 }
@@ -523,7 +523,7 @@ DO_INLINE fmatrix3x3 *create_bfmatrix(unsigned int verts, unsigned int springs)
 DO_INLINE void del_bfmatrix(fmatrix3x3 *matrix)
 {
 	if (matrix != NULL) {
-		MEM_freeN (matrix);
+		MEM_freeN(matrix);
 	}
 }
 

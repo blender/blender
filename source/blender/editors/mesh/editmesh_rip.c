@@ -464,6 +464,8 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 
 			dist = FLT_MAX;
 
+			/* in the loop below we find the best vertex to drag based on its connected geometry,
+			 * either by its face corner, or connected edge (when no faces are attached) */
 			for (i = 0; i < vout_len; i++) {
 
 				if (BM_vert_is_wire(vout[i]) == FALSE) {
@@ -473,7 +475,8 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 							float l_mid_co[3];
 							BM_loop_calc_face_tangent(l, l_mid_co);
 
-							/* scale to average of surrounding edge size, only needs to be approx */
+							/* scale to average of surrounding edge size, only needs to be approx, but should
+							 * be roughly equivalent to the check below which uses the middle of the edge. */
 							mul_v3_fl(l_mid_co, (BM_edge_calc_length(l->e) + BM_edge_calc_length(l->prev->e)) / 2.0f);
 							add_v3_v3(l_mid_co, v->co);
 
