@@ -560,7 +560,8 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		case LEFTMOUSE:
 		case RIGHTMOUSE:
-		case MIDDLEMOUSE: {
+		case MIDDLEMOUSE:
+		{
 			for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
 				link = linkdata->data;
 

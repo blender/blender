@@ -723,6 +723,17 @@ typedef struct FFmpegIndexBuilderContext {
 
 	IMB_Timecode_Type tcs_in_use;
 	IMB_Proxy_Size proxy_sizes_in_use;
+
+	unsigned long long seek_pos;
+	unsigned long long last_seek_pos;
+	unsigned long long seek_pos_dts;
+	unsigned long long seek_pos_pts;
+	unsigned long long last_seek_pos_dts;
+	unsigned long long start_pts;
+	double frame_rate;
+	double pts_time_base;
+	int frameno, frameno_gapless;
+	int start_pts_set;
 } FFmpegIndexBuilderContext;
 
 static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Timecode_Type tcs_in_use,
@@ -839,20 +850,63 @@ static void index_rebuild_ffmpeg_finish(FFmpegIndexBuilderContext *context, int 
 	MEM_freeN(context);
 }
 
+static void index_rebuild_ffmpeg_proc_decoded_frame(
+	FFmpegIndexBuilderContext *context, 
+	AVPacket * curr_packet,
+	AVFrame *in_frame)
+{
+	int i;
+	unsigned long long s_pos = context->seek_pos;
+	unsigned long long s_dts = context->seek_pos_dts;
+	unsigned long long pts = av_get_pts_from_frame(context->iFormatCtx, in_frame);
+
+	for (i = 0; i < context->num_proxy_sizes; i++) {
+		add_to_proxy_output_ffmpeg(context->proxy_ctx[i], in_frame);
+	}
+
+	if (!context->start_pts_set) {
+		context->start_pts = pts;
+		context->start_pts_set = TRUE;
+	}
+
+	context->frameno = floor((pts - context->start_pts) 
+				 * context->pts_time_base 
+				 * context->frame_rate + 0.5f);
+
+	/* decoding starts *always* on I-Frames,
+	 * so: P-Frames won't work, even if all the
+	 * information is in place, when we seek
+	 * to the I-Frame presented *after* the P-Frame,
+	 * but located before the P-Frame within
+	 * the stream */
+
+	if (pts < context->seek_pos_pts) {
+		s_pos = context->last_seek_pos;
+		s_dts = context->last_seek_pos_dts;
+	}
+
+	for (i = 0; i < context->num_indexers; i++) {
+		if (context->tcs_in_use & tc_types[i]) {
+			int tc_frameno = context->frameno;
+
+			if (tc_types[i] == IMB_TC_RECORD_RUN_NO_GAPS)
+				tc_frameno = context->frameno_gapless;
+			
+			IMB_index_builder_proc_frame(
+				context->indexer[i],
+				curr_packet->data,
+				curr_packet->size,
+				tc_frameno,
+				s_pos, s_dts, pts);
+		}
+	}
+	
+	context->frameno_gapless++;
+}
+
 static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
                                 short *stop, short *do_update, float *progress)
 {
-	int i;
-	unsigned long long seek_pos = 0;
-	unsigned long long last_seek_pos = 0;
-	unsigned long long seek_pos_dts = 0;
-	unsigned long long seek_pos_pts = 0;
-	unsigned long long last_seek_pos_dts = 0;
-	unsigned long long start_pts = 0;
-	double frame_rate;
-	double pts_time_base;
-	int frameno = 0, frameno_gapless = 0;
-	int start_pts_set = FALSE;
 	AVFrame *in_frame = 0;
 	AVPacket next_packet;
 	uint64_t stream_size;
@@ -861,8 +915,8 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 
 	stream_size = avio_size(context->iFormatCtx->pb);
 
-	frame_rate = av_q2d(context->iStream->r_frame_rate);
-	pts_time_base = av_q2d(context->iStream->time_base);
+	context->frame_rate = av_q2d(context->iStream->r_frame_rate);
+	context->pts_time_base = av_q2d(context->iStream->time_base);
 
 	while (av_read_frame(context->iFormatCtx, &next_packet) >= 0) {
 		int frame_finished = 0;
@@ -881,11 +935,11 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 
 		if (next_packet.stream_index == context->videoStream) {
 			if (next_packet.flags & AV_PKT_FLAG_KEY) {
-				last_seek_pos = seek_pos;
-				last_seek_pos_dts = seek_pos_dts;
-				seek_pos = next_packet.pos;
-				seek_pos_dts = next_packet.dts;
-				seek_pos_pts = next_packet.pts;
+				context->last_seek_pos = context->seek_pos;
+				context->last_seek_pos_dts = context->seek_pos_dts;
+				context->seek_pos = next_packet.pos;
+				context->seek_pos_dts = next_packet.dts;
+				context->seek_pos_pts = next_packet.pts;
 			}
 
 			avcodec_decode_video2(
@@ -894,54 +948,34 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 		}
 
 		if (frame_finished) {
-			unsigned long long s_pos = seek_pos;
-			unsigned long long s_dts = seek_pos_dts;
-			unsigned long long pts = av_get_pts_from_frame(context->iFormatCtx, in_frame);
-
-			for (i = 0; i < context->num_proxy_sizes; i++) {
-				add_to_proxy_output_ffmpeg(
-				        context->proxy_ctx[i], in_frame);
-			}
-
-			if (!start_pts_set) {
-				start_pts = pts;
-				start_pts_set = TRUE;
-			}
-
-			frameno = floor((pts - start_pts) *
-			                pts_time_base * frame_rate + 0.5f);
-
-			/* decoding starts *always* on I-Frames,
-			 * so: P-Frames won't work, even if all the
-			 * information is in place, when we seek
-			 * to the I-Frame presented *after* the P-Frame,
-			 * but located before the P-Frame within
-			 * the stream */
-
-			if (pts < seek_pos_pts) {
-				s_pos = last_seek_pos;
-				s_dts = last_seek_pos_dts;
-			}
-
-			for (i = 0; i < context->num_indexers; i++) {
-				if (context->tcs_in_use & tc_types[i]) {
-					int tc_frameno = frameno;
-
-					if (tc_types[i] == IMB_TC_RECORD_RUN_NO_GAPS)
-						tc_frameno = frameno_gapless;
-
-					IMB_index_builder_proc_frame(
-					        context->indexer[i],
-					        next_packet.data,
-					        next_packet.size,
-					        tc_frameno,
-					        s_pos, s_dts, pts);
-				}
-			}
-
-			frameno_gapless++;
+			index_rebuild_ffmpeg_proc_decoded_frame(
+				context, &next_packet, in_frame);
 		}
 		av_free_packet(&next_packet);
+	}
+
+	/* process pictures still stuck in decoder engine after EOF
+	   according to ffmpeg docs using 0-size packets. 
+
+	   At least, if we haven't already stopped... */
+	if (!*stop) {
+		int frame_finished;
+
+		next_packet.size = 0;
+		next_packet.data = 0;
+
+		do {
+			frame_finished = 0;
+
+			avcodec_decode_video2(
+				context->iCodecCtx, in_frame, &frame_finished,
+				&next_packet);
+
+			if (frame_finished) {
+				index_rebuild_ffmpeg_proc_decoded_frame(
+					context, &next_packet, in_frame);
+			}
+		} while (frame_finished);
 	}
 
 	av_free(in_frame);

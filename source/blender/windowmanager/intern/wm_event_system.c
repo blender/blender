@@ -2708,7 +2708,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 	
 	switch (type) {
 		/* mouse move */
-		case GHOST_kEventCursorMove: {
+		case GHOST_kEventCursorMove:
+		{
 			if (win->active) {
 				GHOST_TEventCursorData *cd = customdata;
 				wmEvent *lastevent = win->queue.last;
@@ -2751,7 +2752,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			}
 			break;
 		}
-		case GHOST_kEventTrackpad: {
+		case GHOST_kEventTrackpad:
+		{
 			GHOST_TEventTrackpadData *pd = customdata;
 			switch (pd->subtype) {
 				case GHOST_kTrackpadEventMagnify:
@@ -2783,7 +2785,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		}
 		/* mouse button */
 		case GHOST_kEventButtonDown:
-		case GHOST_kEventButtonUp: {
+		case GHOST_kEventButtonUp:
+		{
 			GHOST_TEventButtonData *bd = customdata;
 
 			event.val = (type == GHOST_kEventButtonDown) ? KM_PRESS : KM_RELEASE;
@@ -2831,7 +2834,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		}
 		/* keyboard */
 		case GHOST_kEventKeyDown:
-		case GHOST_kEventKeyUp: {
+		case GHOST_kEventKeyUp:
+		{
 			GHOST_TEventKeyData *kd = customdata;
 			event.type = convert_key(kd->key);
 			event.ascii = kd->ascii;
@@ -2915,7 +2919,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			break;
 		}
 			
-		case GHOST_kEventWheel: {
+		case GHOST_kEventWheel:
+		{
 			GHOST_TEventWheelData *wheelData = customdata;
 			
 			if (wheelData->z > 0)
@@ -2928,7 +2933,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			
 			break;
 		}
-		case GHOST_kEventTimer: {
+		case GHOST_kEventTimer:
+		{
 			event.type = TIMER;
 			event.custom = EVT_DATA_TIMER;
 			event.customdata = customdata;
@@ -2937,7 +2943,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			break;
 		}
 
-		case GHOST_kEventNDOFMotion: {
+		case GHOST_kEventNDOFMotion:
+		{
 			event.type = NDOF_MOTION;
 			attach_ndof_data(&event, customdata);
 			wm_event_add(win, &event);
@@ -2947,7 +2954,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			break;
 		}
 
-		case GHOST_kEventNDOFButton: {
+		case GHOST_kEventNDOFButton:
+		{
 			GHOST_TEventNDOFButtonData *e = customdata;
 
 			event.type = NDOF_BUTTON_NONE + e->button;
@@ -2973,12 +2981,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kNumEventTypes:
 			break;
 
-		case GHOST_kEventWindowDeactivate: {
+		case GHOST_kEventWindowDeactivate:
+		{
 			event.type = WINDEACTIVATE;
 			wm_event_add(win, &event);
 
 			break;
-			
 		}
 
 	}

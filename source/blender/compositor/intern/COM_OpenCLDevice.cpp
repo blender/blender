@@ -110,7 +110,7 @@ void OpenCLDevice::COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offse
 {
 	if (offsetIndex != -1) {
 		cl_int error;
-		cl_int2 offset = {operation->getWidth(), operation->getHeight()};
+		cl_int2 offset = {(cl_int)operation->getWidth(), (cl_int)operation->getHeight()};
 
 		error = clSetKernelArg(kernel, offsetIndex, sizeof(cl_int2), &offset);
 		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
@@ -127,7 +127,7 @@ void OpenCLDevice::COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel ker
 void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemoryBuffer)
 {
 	cl_int error;
-	const size_t size[] = {outputMemoryBuffer->getWidth(), outputMemoryBuffer->getHeight()};
+	const size_t size[] = {(size_t)outputMemoryBuffer->getWidth(), (size_t)outputMemoryBuffer->getHeight()};
 
 	error = clEnqueueNDRangeKernel(this->m_queue, kernel, 2, NULL, size, 0, 0, 0, NULL);
 	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
@@ -144,7 +144,10 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemo
 	size_t size[2];
 	cl_int2 offset;
 
-	if (this->m_vendorID == NVIDIA) {localSize = 32;}
+	if (this->m_vendorID == NVIDIA) {
+		localSize = 32;
+	}
+
 	bool breaked = false;
 	for (offsety = 0; offsety < height && (!breaked); offsety += localSize) {
 		offset[1] = offsety;
@@ -154,6 +157,7 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemo
 		else {
 			size[1] = height - offsety;
 		}
+
 		for (offsetx = 0; offsetx < width && (!breaked); offsetx += localSize) {
 			if (offsetx + localSize < width) {
 				size[0] = localSize;

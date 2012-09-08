@@ -2982,7 +2982,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
 	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
 	/* Note: As this list is in alphabetical order, and not defined order,
-	 *       here is the highest define currently in use: 32 (Brazilian Portuguese). */
+	 *       here is the highest define currently in use: 33 (Hebrew). */
 	static EnumPropertyItem language_items[] = {
 		{ 0, "", 0, N_("Nearly done"), ""},
 		{ 0, "DEFAULT", 0, "Default (Default)", ""},
@@ -3008,6 +3008,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
 		{ 5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
+		{33, "HEBREW", 0, "Hebrew (עִבְרִית)", "he_IL"},
 		{31, "HUNGARIAN", 0, "Hungarian (magyar)", "hu_HU"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ky_KG"},

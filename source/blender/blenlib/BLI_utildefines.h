@@ -198,7 +198,10 @@
 #define INPR(v1, v2) ( (v1)[0] * (v2)[0] + (v1)[1] * (v2)[1] + (v1)[2] * (v2)[2])
 
 /* some misc stuff.... */
-#define CLAMP(a, b, c)  if ((a) < (b)) (a) = (b); else if ((a) > (c)) (a) = (c)
+#define CLAMP(a, b, c)  {           \
+	if ((a) < (b)) (a) = (b);       \
+	else if ((a) > (c)) (a) = (c);  \
+} (void)0
 
 #define CLAMPIS(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
 #define CLAMPTEST(a, b, c)                                                    \

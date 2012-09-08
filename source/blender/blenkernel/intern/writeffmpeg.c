@@ -177,58 +177,71 @@ static AVFrame *alloc_picture(int pix_fmt, int width, int height)
 static const char **get_file_extensions(int format)
 {
 	switch (format) {
-		case FFMPEG_DV: {
+		case FFMPEG_DV:
+		{
 			static const char *rv[] = { ".dv", NULL };
 			return rv;
 		}
-		case FFMPEG_MPEG1: {
+		case FFMPEG_MPEG1:
+		{
 			static const char *rv[] = { ".mpg", ".mpeg", NULL };
 			return rv;
 		}
-		case FFMPEG_MPEG2: {
+		case FFMPEG_MPEG2:
+		{
 			static const char *rv[] = { ".dvd", ".vob", ".mpg", ".mpeg", NULL };
 			return rv;
 		}
-		case FFMPEG_MPEG4: {
+		case FFMPEG_MPEG4:
+		{
 			static const char *rv[] = { ".mp4", ".mpg", ".mpeg", NULL };
 			return rv;
 		}
-		case FFMPEG_AVI: {
+		case FFMPEG_AVI:
+		{
 			static const char *rv[] = { ".avi", NULL };
 			return rv;
 		}
-		case FFMPEG_MOV: {
+		case FFMPEG_MOV:
+		{
 			static const char *rv[] = { ".mov", NULL };
 			return rv;
 		}
-		case FFMPEG_H264: {
+		case FFMPEG_H264:
+		{
 			/* FIXME: avi for now... */
 			static const char *rv[] = { ".avi", NULL };
 			return rv;
 		}
 
-		case FFMPEG_XVID: {
+		case FFMPEG_XVID:
+		{
 			/* FIXME: avi for now... */
 			static const char *rv[] = { ".avi", NULL };
 			return rv;
 		}
-		case FFMPEG_FLV: {
+		case FFMPEG_FLV:
+		{
 			static const char *rv[] = { ".flv", NULL };
 			return rv;
 		}
-		case FFMPEG_MKV: {
+		case FFMPEG_MKV:
+		{
 			static const char *rv[] = { ".mkv", NULL };
 			return rv;
 		}
-		case FFMPEG_OGG: {
+		case FFMPEG_OGG:
+		{
 			static const char *rv[] = { ".ogg", ".ogv", NULL };
 			return rv;
 		}
-		case FFMPEG_MP3: {
+		case FFMPEG_MP3:
+		{
 			static const char *rv[] = { ".mp3", NULL };
 			return rv;
 		}
-		case FFMPEG_WAV: {
+		case FFMPEG_WAV:
+		{
 			static const char *rv[] = { ".wav", NULL };
 			return rv;
 		}

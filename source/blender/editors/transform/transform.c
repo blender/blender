@@ -5363,7 +5363,8 @@ int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 						return 1;
 					}
 					break;
-				case FKEY: {
+				case FKEY:
+				{
 					if (event->val == KM_PRESS) {
 						if (sld->is_proportional == FALSE) {
 							sld->flipped_vtx = !sld->flipped_vtx;
@@ -5372,13 +5373,16 @@ int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 					}
 					break;
 				}
-				case EVT_MODAL_MAP: {
+				case EVT_MODAL_MAP:
+				{
 					switch (event->val) {
-						case TFM_MODAL_EDGESLIDE_DOWN: {
+						case TFM_MODAL_EDGESLIDE_DOWN:
+						{
 							sld->curr_sv_index = ((sld->curr_sv_index - 1) + sld->totsv) % sld->totsv;
 							break;
 						}
-						case TFM_MODAL_EDGESLIDE_UP: {
+						case TFM_MODAL_EDGESLIDE_UP:
+						{
 							sld->curr_sv_index = (sld->curr_sv_index + 1) % sld->totsv;
 							break;
 						}

@@ -1791,8 +1791,8 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			retval = WM_UI_HANDLER_BREAK;
 			break;
-		case LEFTMOUSE: {
-			
+		case LEFTMOUSE:
+		{
 			/* exit on LMB only on RELEASE for searchbox, to mimic other popups, and allow multiple menu levels */
 			if (data->searchbox)
 				inbox = ui_searchbox_inside(data->searchbox, event->x, event->y);
@@ -1958,7 +1958,8 @@ static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, u
 	int mx, my, retval = WM_UI_HANDLER_CONTINUE;
 
 	switch (event->type) {
-		case MOUSEMOVE: {
+		case MOUSEMOVE:
+		{
 			mx = event->x;
 			my = event->y;
 			ui_window_to_block(data->region, block, &mx, &my);
@@ -5704,7 +5705,8 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 				}
 
 				break;
-			case TIMER: {
+			case TIMER:
+			{
 				/* handle tooltip timer */
 				if (event->customdata == data->tooltiptimer) {
 					WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
@@ -5781,9 +5783,11 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	}
 	else if (data->state == BUTTON_STATE_WAIT_FLASH) {
 		switch (event->type) {
-			case TIMER: {
-				if (event->customdata == data->flashtimer)
+			case TIMER:
+			{
+				if (event->customdata == data->flashtimer) {
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
+				}
 			}
 		}
 
@@ -5793,21 +5797,25 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 		/* check for exit because of mouse-over another button */
 		switch (event->type) {
 			case MOUSEMOVE:
-				
-				if (data->menu && data->menu->region)
-					if (ui_mouse_inside_region(data->menu->region, event->x, event->y))
-						break;
-			
-				{
-					uiBut *bt = ui_but_find_mouse_over(ar, event->x, event->y);
+			{
+				uiBut *bt;
 
-					if (bt && bt->active != data) {
-						if (but->type != COL) /* exception */
-							data->cancel = 1;
-						button_activate_state(C, but, BUTTON_STATE_EXIT);
+				if (data->menu && data->menu->region) {
+					if (ui_mouse_inside_region(data->menu->region, event->x, event->y)) {
+						break;
 					}
-					break;
 				}
+
+				bt = ui_but_find_mouse_over(ar, event->x, event->y);
+
+				if (bt && bt->active != data) {
+					if (but->type != COL) {  /* exception */
+						data->cancel = 1;
+					}
+					button_activate_state(C, but, BUTTON_STATE_EXIT);
+				}
+				break;
+			}
 		}
 
 		ui_do_button(C, block, but, event);
