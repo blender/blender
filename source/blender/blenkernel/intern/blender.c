@@ -715,8 +715,9 @@ void BKE_undo_save_quit(void)
 {
 	UndoElem *uel;
 	MemFileChunk *chunk;
-	int file;
 	char str[FILE_MAX];
+	const int flag = O_BINARY + O_WRONLY + O_CREAT + O_TRUNC + O_EXCL;
+	int file;
 
 	if ((U.uiflag & USER_GLOBALUNDO) == 0) {
 		return;
@@ -736,8 +737,17 @@ void BKE_undo_save_quit(void)
 	/* save the undo state as quit.blend */
 	BLI_make_file_string("/", str, BLI_temporary_dir(), "quit.blend");
 
+	/* first try create the file, if it exists call without 'O_CREAT',
+	 * to avoid writing to a symlink - use 'O_EXCL' (CVE-2008-1103) */
 	errno = 0;
-	file = BLI_open(str, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
+	file = BLI_open(str, flag, 0666);
+	if (file == -1) {
+		if (errno == EEXIST) {
+			errno = 0;
+			file = BLI_open(str, flag & ~O_CREAT, 0666);
+		}
+	}
+
 	if (file == -1) {
 		fprintf(stderr, "Unable to save '%s': %s\n",
 		        str, errno ? strerror(errno) : "Unknown error opening file");
