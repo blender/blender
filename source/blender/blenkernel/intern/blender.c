@@ -44,7 +44,8 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <string.h>
-#include <fcntl.h> // for open
+#include <fcntl.h>  /* for open */
+#include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -716,36 +717,48 @@ void BKE_undo_save_quit(void)
 	MemFileChunk *chunk;
 	int file;
 	char str[FILE_MAX];
-	
-	if ( (U.uiflag & USER_GLOBALUNDO) == 0) return;
-	
+
+	if ((U.uiflag & USER_GLOBALUNDO) == 0) {
+		return;
+	}
+
 	uel = curundo;
 	if (uel == NULL) {
-		printf("No undo buffer to save recovery file\n");
+		fprintf(stderr, "No undo buffer to save recovery file\n");
 		return;
 	}
-	
+
 	/* no undo state to save */
-	if (undobase.first == undobase.last) return;
-		
+	if (undobase.first == undobase.last) {
+		return;
+	}
+
+	/* save the undo state as quit.blend */
 	BLI_make_file_string("/", str, BLI_temporary_dir(), "quit.blend");
 
+	errno = 0;
 	file = BLI_open(str, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 	if (file == -1) {
-		//XXX error("Unable to save %s, check you have permissions", str);
+		fprintf(stderr, "Unable to save '%s': %s\n",
+		        str, errno ? strerror(errno) : "Unknown error opening file");
 		return;
 	}
 
-	chunk = uel->memfile.chunks.first;
-	while (chunk) {
-		if (write(file, chunk->buf, chunk->size) != chunk->size) break;
-		chunk = chunk->next;
+	for (chunk = uel->memfile.chunks.first; chunk; chunk = chunk->next) {
+		if (write(file, chunk->buf, chunk->size) != chunk->size) {
+			break;
+		}
 	}
-	
+
 	close(file);
 	
-	if (chunk) ;  //XXX error("Unable to save %s, internal error", str);
-	else printf("Saved session recovery to %s\n", str);
+	if (chunk) {
+		fprintf(stderr, "Unable to save '%s': %s\n",
+		        str, errno ? strerror(errno) : "Unknown error writing file");
+	}
+	else {
+		printf("Saved session recovery to '%s'\n", str);
+	}
 }
 
 /* sets curscene */
