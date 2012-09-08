@@ -529,7 +529,10 @@ char *GHOST_GetTitle(GHOST_WindowHandle windowhandle)
 
 	char *ctitle = (char *) malloc(title.Length() + 1);
 
-	if (ctitle == NULL) return NULL;
+	if (ctitle == NULL) {
+		return NULL;
+	}
+
 	strcpy(ctitle, title.Ptr());
 
 	return ctitle;

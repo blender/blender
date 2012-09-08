@@ -3192,19 +3192,22 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 						/* handle conversions */
 						if (set) {
 							switch (itemtype) {
-								case PROP_BOOLEAN: {
+								case PROP_BOOLEAN:
+								{
 									int b;
 									RAW_GET(int, b, in, a);
 									RNA_property_boolean_set(&itemptr, iprop, b);
 									break;
 								}
-								case PROP_INT: {
+								case PROP_INT:
+								{
 									int i;
 									RAW_GET(int, i, in, a);
 									RNA_property_int_set(&itemptr, iprop, i);
 									break;
 								}
-								case PROP_FLOAT: {
+								case PROP_FLOAT:
+								{
 									float f;
 									RAW_GET(float, f, in, a);
 									RNA_property_float_set(&itemptr, iprop, f);
@@ -3216,17 +3219,20 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 						}
 						else {
 							switch (itemtype) {
-								case PROP_BOOLEAN: {
+								case PROP_BOOLEAN:
+								{
 									int b = RNA_property_boolean_get(&itemptr, iprop);
 									RAW_SET(int, in, a, b);
 									break;
 								}
-								case PROP_INT: {
+								case PROP_INT:
+								{
 									int i = RNA_property_int_get(&itemptr, iprop);
 									RAW_SET(int, in, a, i);
 									break;
 								}
-								case PROP_FLOAT: {
+								case PROP_FLOAT:
+								{
 									float f = RNA_property_float_get(&itemptr, iprop);
 									RAW_SET(float, in, a, f);
 									break;
@@ -3251,19 +3257,22 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 						/* handle conversions */
 						if (set) {
 							switch (itemtype) {
-								case PROP_BOOLEAN: {
+								case PROP_BOOLEAN:
+								{
 									for (j = 0; j < itemlen; j++, a++)
 										RAW_GET(int, ((int *)tmparray)[j], in, a);
 									RNA_property_boolean_set_array(&itemptr, iprop, tmparray);
 									break;
 								}
-								case PROP_INT: {
+								case PROP_INT:
+								{
 									for (j = 0; j < itemlen; j++, a++)
 										RAW_GET(int, ((int *)tmparray)[j], in, a);
 									RNA_property_int_set_array(&itemptr, iprop, tmparray);
 									break;
 								}
-								case PROP_FLOAT: {
+								case PROP_FLOAT:
+								{
 									for (j = 0; j < itemlen; j++, a++)
 										RAW_GET(float, ((float *)tmparray)[j], in, a);
 									RNA_property_float_set_array(&itemptr, iprop, tmparray);
@@ -3275,19 +3284,22 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 						}
 						else {
 							switch (itemtype) {
-								case PROP_BOOLEAN: {
+								case PROP_BOOLEAN:
+								{
 									RNA_property_boolean_get_array(&itemptr, iprop, tmparray);
 									for (j = 0; j < itemlen; j++, a++)
 										RAW_SET(int, in, a, ((int *)tmparray)[j]);
 									break;
 								}
-								case PROP_INT: {
+								case PROP_INT:
+								{
 									RNA_property_int_get_array(&itemptr, iprop, tmparray);
 									for (j = 0; j < itemlen; j++, a++)
 										RAW_SET(int, in, a, ((int *)tmparray)[j]);
 									break;
 								}
-								case PROP_FLOAT: {
+								case PROP_FLOAT:
+								{
 									RNA_property_float_get_array(&itemptr, iprop, tmparray);
 									for (j = 0; j < itemlen; j++, a++)
 										RAW_SET(float, in, a, ((float *)tmparray)[j]);
@@ -3301,17 +3313,20 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 					else {
 						if (set) {
 							switch (itemtype) {
-								case PROP_BOOLEAN: {
+								case PROP_BOOLEAN:
+								{
 									RNA_property_boolean_set_array(&itemptr, iprop, &((int *)in.array)[a]);
 									a += itemlen;
 									break;
 								}
-								case PROP_INT: {
+								case PROP_INT:
+								{
 									RNA_property_int_set_array(&itemptr, iprop, &((int *)in.array)[a]);
 									a += itemlen;
 									break;
 								}
-								case PROP_FLOAT: {
+								case PROP_FLOAT:
+								{
 									RNA_property_float_set_array(&itemptr, iprop, &((float *)in.array)[a]);
 									a += itemlen;
 									break;
@@ -3322,17 +3337,20 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 						}
 						else {
 							switch (itemtype) {
-								case PROP_BOOLEAN: {
+								case PROP_BOOLEAN:
+								{
 									RNA_property_boolean_get_array(&itemptr, iprop, &((int *)in.array)[a]);
 									a += itemlen;
 									break;
 								}
-								case PROP_INT: {
+								case PROP_INT:
+								{
 									RNA_property_int_get_array(&itemptr, iprop, &((int *)in.array)[a]);
 									a += itemlen;
 									break;
 								}
-								case PROP_FLOAT: {
+								case PROP_FLOAT:
+								{
 									RNA_property_float_get_array(&itemptr, iprop, &((float *)in.array)[a]);
 									a += itemlen;
 									break;
@@ -4924,7 +4942,8 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *UNUSE
 				case PROP_ENUM:
 					memcpy(data, &((EnumPropertyRNA *)parm)->defaultvalue, size);
 					break;
-				case PROP_STRING: {
+				case PROP_STRING:
+				{
 					const char *defvalue = ((StringPropertyRNA *)parm)->defaultvalue;
 					if (defvalue && defvalue[0]) {
 						/* causes bug [#29988], possibly this is only correct for thick wrapped

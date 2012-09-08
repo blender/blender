@@ -358,14 +358,16 @@ int bmesh_elem_check(void *element, const char htype)
 		return 2;
 	
 	switch (htype) {
-		case BM_VERT: {
+		case BM_VERT:
+		{
 			BMVert *v = element;
 			if (v->e && v->e->head.htype != BM_EDGE) {
 				err |= 4;
 			}
 			break;
 		}
-		case BM_EDGE: {
+		case BM_EDGE:
+		{
 			BMEdge *e = element;
 			if (e->l && e->l->head.htype != BM_LOOP)
 				err |= 8;
@@ -384,7 +386,8 @@ int bmesh_elem_check(void *element, const char htype)
 				err |= 128;
 			break;
 		}
-		case BM_LOOP: {
+		case BM_LOOP:
+		{
 			BMLoop *l = element, *l2;
 			int i;
 
@@ -424,7 +427,8 @@ int bmesh_elem_check(void *element, const char htype)
 
 			break;
 		}
-		case BM_FACE: {
+		case BM_FACE:
+		{
 			BMFace *f = element;
 			BMLoop *l_iter;
 			BMLoop *l_first;

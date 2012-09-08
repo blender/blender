@@ -309,7 +309,8 @@ void ED_node_shader_default(Scene *scene, ID *id)
 	ntree = ntreeAddTree("Shader Nodetree", NTREE_SHADER, 0);
 
 	switch (GS(id->name)) {
-		case ID_MA: {
+		case ID_MA:
+		{
 			Material *ma = (Material *)id;
 			ma->nodetree = ntree;
 
@@ -326,7 +327,8 @@ void ED_node_shader_default(Scene *scene, ID *id)
 			strength = 0.0f;
 			break;
 		}
-		case ID_WO: {
+		case ID_WO:
+		{
 			World *wo = (World *)id;
 			wo->nodetree = ntree;
 
@@ -337,7 +339,8 @@ void ED_node_shader_default(Scene *scene, ID *id)
 			strength = 1.0f;
 			break;
 		}
-		case ID_LA: {
+		case ID_LA:
+		{
 			Lamp *la = (Lamp *)id;
 			la->nodetree = ntree;
 
