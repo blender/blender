@@ -134,7 +134,7 @@ void ui_block_to_window(const ARegion *ar, uiBlock *block, int *x, int *y)
 	*y = (int)(fy + 0.5f);
 }
 
-void ui_block_to_window_rct(const ARegion *ar, uiBlock *block, rctf *graph, rcti *winr)
+void ui_block_to_window_rct(const ARegion *ar, uiBlock *block, const rctf *graph, rcti *winr)
 {
 	rctf tmpr;
 

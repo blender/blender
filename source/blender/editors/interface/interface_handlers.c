@@ -81,6 +81,8 @@
 static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to);
 static void ui_add_link(bContext *C, uiBut *from, uiBut *to);
 
+static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *menu, int mx, int my);
+
 /***************** structs and defines ****************/
 
 #define BUTTON_TOOLTIP_DELAY        0.500
@@ -5798,22 +5800,35 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 		switch (event->type) {
 			case MOUSEMOVE:
 			{
-				uiBut *bt;
+				/* if the mouse is over the button, do nothing */
+				if (ui_mouse_inside_button(data->region, but, event->x, event->y)) {
+					break;
+				}
 
+				/* if the mouse is over the menu, also do nothing */
 				if (data->menu && data->menu->region) {
 					if (ui_mouse_inside_region(data->menu->region, event->x, event->y)) {
 						break;
 					}
-				}
+					else {
+						/* make a rectangle between the menu and the button that opened it,
+						 * this avoids any space between them exiting the popup. see [#29072] - campbell */
+						rctf rct_all = but->rect;
+						rctf rct_win;
 
-				bt = ui_but_find_mouse_over(ar, event->x, event->y);
+						ui_block_to_window_fl(ar, block, &rct_all.xmin, &rct_all.ymin);
+						ui_block_to_window_fl(ar, block, &rct_all.xmax, &rct_all.ymax);
 
-				if (bt && bt->active != data) {
-					if (but->type != COL) {  /* exception */
-						data->cancel = 1;
+						BLI_rctf_rcti_copy(&rct_win, &data->menu->region->winrct);
+						BLI_rctf_union(&rct_all, &rct_win);
+
+						if (BLI_rctf_isect_pt(&rct_all, event->x, event->y)) {
+							break;
+						}
 					}
-					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
+
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				break;
 			}
 		}
