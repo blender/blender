@@ -755,7 +755,7 @@ static void ui_delete_active_linkline(uiBlock *block)
 							b = 0;
 							for (a = 0; a < (*(link->totlink)); a++) {
 								
-								if ( (*(link->ppoin))[a] != line->to->poin) {
+								if ((*(link->ppoin))[a] != line->to->poin) {
 									(*(link->ppoin))[b] = (*(link->ppoin))[a];
 									b++;
 								}
@@ -866,7 +866,7 @@ static void ui_add_link(bContext *C, uiBut *from, uiBut *to)
 	void **oldppoin;
 	int a;
 	
-	if ( (line = ui_is_a_link(from, to)) ) {
+	if ((line = ui_is_a_link(from, to))) {
 		line->flag |= UI_SELECT;
 		ui_delete_active_linkline(from->block);
 		return;

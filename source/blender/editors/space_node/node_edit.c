@@ -1459,7 +1459,7 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
 			if (toggle_flag == NODE_OPTIONS && (node->typeinfo->flag & NODE_OPTIONS) == 0)
 				continue;
 			
-			if ( (tot_eq && tot_neq) || tot_eq == 0)
+			if ((tot_eq && tot_neq) || tot_eq == 0)
 				node->flag |= toggle_flag;
 			else
 				node->flag &= ~toggle_flag;

@@ -810,7 +810,7 @@ void framechange_poses_clear_unkeyed(void)
 	/* TODO: proxies may/may not be correctly handled here... (this needs checking) */
 	for (ob = G.main->object.first; ob; ob = ob->id.next) {
 		/* we only need to do this on objects with a pose */
-		if ( (pose = ob->pose) ) {
+		if ((pose = ob->pose)) {
 			for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 				if (pchan->bone) 
 					pchan->bone->flag &= ~BONE_UNKEYED;

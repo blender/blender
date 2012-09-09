@@ -1471,7 +1471,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	
 	/* are there cameras in the views that are not in the scene? */
 	for (sc = CTX_data_main(C)->screen.first; sc; sc = sc->id.next) {
-		if ( (U.flag & USER_SCENEGLOBAL) || sc == screen) {
+		if ((U.flag & USER_SCENEGLOBAL) || sc == screen) {
 			ScrArea *sa = sc->areabase.first;
 			while (sa) {
 				SpaceLink *sl = sa->spacedata.first;

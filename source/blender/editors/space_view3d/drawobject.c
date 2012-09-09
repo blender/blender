@@ -2888,7 +2888,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 		if (ts->selectmode == SCE_SELECT_FACE) {
 			draw_dm_edges_sel(em, cageDM, wireCol, selCol, actCol, eed_act);
 		}
-		else if ( (me->drawflag & ME_DRAWEDGES) || (ts->selectmode & SCE_SELECT_EDGE) ) {
+		else if ((me->drawflag & ME_DRAWEDGES) || (ts->selectmode & SCE_SELECT_EDGE)) {
 			if (cageDM->drawMappedEdgesInterp && (ts->selectmode & SCE_SELECT_VERTEX)) {
 				glShadeModel(GL_SMOOTH);
 				draw_dm_edges_sel_interp(em, cageDM, wireCol, selCol);
@@ -3317,8 +3317,8 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 			draw_dm_vert_normals(em, scene, ob, cageDM);
 		}
 
-		if ( (me->drawflag & (ME_DRAWEXTRA_EDGELEN | ME_DRAWEXTRA_FACEAREA | ME_DRAWEXTRA_FACEANG)) &&
-		     !(v3d->flag2 & V3D_RENDER_OVERRIDE))
+		if ((me->drawflag & (ME_DRAWEXTRA_EDGELEN | ME_DRAWEXTRA_FACEAREA | ME_DRAWEXTRA_FACEANG)) &&
+		    !(v3d->flag2 & V3D_RENDER_OVERRIDE))
 		{
 			draw_em_measure_stats(v3d, ob, em, &scene->unit);
 		}
@@ -3415,14 +3415,14 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if (dt == OB_WIRE || totface == 0) {
 		draw_wire = OBDRAW_WIRE_ON; /* draw wire only, no depth buffer stuff  */
 	}
-	else if ( ((is_obact && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
-	          check_object_draw_texture(scene, v3d, dt))
+	else if (((is_obact && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
+	         check_object_draw_texture(scene, v3d, dt))
 	{
-		if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
-		     ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-		     (base->flag & SELECT) &&
-		     !(G.f & G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) &&
-		     (draw_wire == OBDRAW_WIRE_OFF))
+		if ((v3d->flag & V3D_SELECT_OUTLINE) &&
+		    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+		    (base->flag & SELECT) &&
+		    !(G.f & G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) &&
+		    (draw_wire == OBDRAW_WIRE_OFF))
 		{
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
@@ -3460,11 +3460,11 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				const float spec[4] = {0.47f, 0.47f, 0.47f, 0.47f};
 
 				/* draw outline */
-				if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
-				     ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-				     (base->flag & SELECT) &&
-				     (draw_wire == OBDRAW_WIRE_OFF) &&
-				     (ob->sculpt == NULL))
+				if ((v3d->flag & V3D_SELECT_OUTLINE) &&
+				    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+				    (base->flag & SELECT) &&
+				    (draw_wire == OBDRAW_WIRE_OFF) &&
+				    (ob->sculpt == NULL))
 				{
 					draw_mesh_object_outline(v3d, ob, dm);
 				}
@@ -3492,11 +3492,11 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		else {
 			Paint *p;
 
-			if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
-			     ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-			     (base->flag & SELECT) &&
-			     (draw_wire == OBDRAW_WIRE_OFF) &&
-			     (ob->sculpt == NULL))
+			if ((v3d->flag & V3D_SELECT_OUTLINE) &&
+			    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+			    (base->flag & SELECT) &&
+			    (draw_wire == OBDRAW_WIRE_OFF) &&
+			    (ob->sculpt == NULL))
 			{
 				draw_mesh_object_outline(v3d, ob, dm);
 			}
@@ -4347,7 +4347,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	timestep = psys_get_timestep(&sim);
 
-	if ( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
+	if ((base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP)) {
 		float mat[4][4];
 		mult_m4_m4m4(mat, ob->obmat, psys->imat);
 		glMultMatrixf(mat);
@@ -4893,7 +4893,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		pdd->ma_col = NULL;
 	}
 
-	if ( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
+	if ((base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP)) {
 		glLoadMatrixf(rv3d->viewmat);
 	}
 }
@@ -5253,7 +5253,7 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 		a = nu->pntsu;
 		while (a--) {
 			if (bezt->hide == 0) {
-				if ( (bezt->f2 & SELECT) == sel) {
+				if ((bezt->f2 & SELECT) == sel) {
 					fp = bezt->vec[0];
 
 					glColor3ubv(handle_cols[MIN2(bezt->h1, TH_HANDLE_COL_TOT - 1)]);
@@ -5264,14 +5264,14 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 					glVertex3fv(fp + 3);
 					glVertex3fv(fp + 6);
 				}
-				else if ( (bezt->f1 & SELECT) == sel) {
+				else if ((bezt->f1 & SELECT) == sel) {
 					fp = bezt->vec[0];
 
 					glColor3ubv(handle_cols[MIN2(bezt->h1, TH_HANDLE_COL_TOT - 1)]);
 					glVertex3fv(fp);
 					glVertex3fv(fp + 3);
 				}
-				else if ( (bezt->f3 & SELECT) == sel) {
+				else if ((bezt->f3 & SELECT) == sel) {
 					fp = bezt->vec[1];
 
 					glColor3ubv(handle_cols[MIN2(bezt->h2, TH_HANDLE_COL_TOT - 1)]);
@@ -5506,7 +5506,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 						for (a = nu->pntsu - 1; a > 0; a--, bp++) {
 							if (bp->hide == 0 && bp1->hide == 0) {
 								if (sel) {
-									if ( (bp->f1 & SELECT) && (bp1->f1 & SELECT) ) {
+									if ((bp->f1 & SELECT) && (bp1->f1 & SELECT)) {
 										UI_ThemeColor(TH_NURB_SEL_ULINE);
 
 										glBegin(GL_LINE_STRIP);
@@ -5541,7 +5541,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 							for (a = nu->pntsv - 1; a > 0; a--, bp += ofs) {
 								if (bp->hide == 0 && bp1->hide == 0) {
 									if (sel) {
-										if ( (bp->f1 & SELECT) && (bp1->f1 & SELECT) ) {
+										if ((bp->f1 & SELECT) && (bp1->f1 & SELECT)) {
 											UI_ThemeColor(TH_NURB_SEL_VLINE);
 
 											glBegin(GL_LINE_STRIP);
@@ -6930,9 +6930,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	/* draw edit particles last so that they can draw over child particles */
-	if ( (warning_recursive == 0) &&
-	     (dflag & DRAW_PICKING) == 0 &&
-	     (!scene->obedit))
+	if ((warning_recursive == 0) &&
+	    (dflag & DRAW_PICKING) == 0 &&
+	    (!scene->obedit))
 	{
 
 		if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {

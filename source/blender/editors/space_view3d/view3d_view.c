@@ -1653,7 +1653,7 @@ static void game_set_commmandline_options(GameData *gm)
 	SYS_SystemHandle syshandle;
 	int test;
 
-	if ( (syshandle = SYS_GetSystem()) ) {
+	if ((syshandle = SYS_GetSystem())) {
 		/* User defined settings */
 		test = (U.gameflags & USER_DISABLE_MIPMAP);
 		GPU_set_mipmap(!test);

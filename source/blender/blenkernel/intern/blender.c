@@ -513,8 +513,13 @@ void BKE_write_undo(bContext *C, const char *name)
 	int nr /*, success */ /* UNUSED */;
 	UndoElem *uel;
 	
-	if ( (U.uiflag & USER_GLOBALUNDO) == 0) return;
-	if (U.undosteps == 0) return;
+	if ((U.uiflag & USER_GLOBALUNDO) == 0) {
+		return;
+	}
+
+	if (U.undosteps == 0) {
+		return;
+	}
 	
 	/* remove all undos after (also when curundo == NULL) */
 	while (undobase.last != curundo) {

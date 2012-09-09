@@ -177,8 +177,8 @@ static void gp_draw_stroke_point(bGPDspoint *points, short thickness, short dfla
 		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple dot looks ok
 		 *  - also mandatory in if Image Editor 'image-based' dot
 		 */
-		if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) ||
-		     ((dflag & GP_DRAWDATA_IEDITHACK) && (sflag & GP_STROKE_2DSPACE)) )
+		if ((thickness < GP_DRAWTHICKNESS_SPECIAL) ||
+		    ((dflag & GP_DRAWDATA_IEDITHACK) && (sflag & GP_STROKE_2DSPACE)))
 		{
 			glBegin(GL_POINTS);
 			glVertex2fv(co);
@@ -253,8 +253,8 @@ static void gp_draw_stroke(bGPDspoint *points, int totpoints, short thickness_s,
 	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better
 	 *  - 'smooth' opengl lines are also required if Image Editor 'image-based' stroke
 	 */
-	if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) || 
-	     ((dflag & GP_DRAWDATA_IEDITHACK) && (dflag & GP_DRAWDATA_ONLYV2D)) )
+	if ((thickness < GP_DRAWTHICKNESS_SPECIAL) ||
+	    ((dflag & GP_DRAWDATA_IEDITHACK) && (dflag & GP_DRAWDATA_ONLYV2D)))
 	{
 		bGPDspoint *pt;
 		int i;

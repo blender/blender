@@ -137,10 +137,10 @@ void paintface_hide(Object *ob, const int unselected)
 	while (a--) {
 		if ((mpoly->flag & ME_HIDE) == 0) {
 			if (unselected) {
-				if ( (mpoly->flag & ME_FACE_SEL) == 0) mpoly->flag |= ME_HIDE;
+				if ((mpoly->flag & ME_FACE_SEL) == 0) mpoly->flag |= ME_HIDE;
 			}
 			else {
-				if ( (mpoly->flag & ME_FACE_SEL)) mpoly->flag |= ME_HIDE;
+				if ((mpoly->flag & ME_FACE_SEL)) mpoly->flag |= ME_HIDE;
 			}
 		}
 		if (mpoly->flag & ME_HIDE) mpoly->flag &= ~ME_FACE_SEL;

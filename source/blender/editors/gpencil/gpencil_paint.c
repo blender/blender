@@ -778,7 +778,8 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 }
 
 /* eraser tool - check if part of stroke occurs within last segment drawn by eraser */
-static short gp_stroke_eraser_strokeinside(int mval[], int UNUSED(mvalo[]), short rad, short x0, short y0, short x1, short y1)
+static short gp_stroke_eraser_strokeinside(const int mval[], const int UNUSED(mvalo[]),
+                                           int rad, int x0, int y0, int x1, int y1)
 {
 	/* simple within-radius check for now */
 	if (edge_inside_circle(mval[0], mval[1], rad, x0, y0, x1, y1))
@@ -790,7 +791,9 @@ static short gp_stroke_eraser_strokeinside(int mval[], int UNUSED(mvalo[]), shor
 
 /* eraser tool - evaluation per stroke */
 // TODO: this could really do with some optimization (KD-Tree/BVH?)
-static void gp_stroke_eraser_dostroke(tGPsdata *p, int mval[], int mvalo[], short rad, rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
+static void gp_stroke_eraser_dostroke(tGPsdata *p,
+                                      const int mval[], const int mvalo[],
+                                      short rad, const rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
 {
 	bGPDspoint *pt1, *pt2;
 	int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
@@ -827,7 +830,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p, int mval[], int mvalo[], shor
 		/* do boundbox check first */
 		if (BLI_rcti_isect_pt(rect, x0, y0)) {
 			/* only check if point is inside */
-			if ( ((x0 - mval[0]) * (x0 - mval[0]) + (y0 - mval[1]) * (y0 - mval[1])) <= rad * rad) {
+			if (((x0 - mval[0]) * (x0 - mval[0]) + (y0 - mval[1]) * (y0 - mval[1])) <= rad * rad) {
 				/* free stroke */
 				MEM_freeN(gps->points);
 				BLI_freelinkN(&gpf->strokes, gps);
