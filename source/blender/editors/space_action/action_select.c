@@ -255,8 +255,8 @@ static void borderselect_action(bAnimContext *ac, rcti rect, short mode, short s
 		}
 		
 		/* perform vertical suitability check (if applicable) */
-		if ( (mode == ACTKEYS_BORDERSEL_FRAMERANGE) || 
-		     !((ymax < rectf.ymin) || (ymin > rectf.ymax)) )
+		if ((mode == ACTKEYS_BORDERSEL_FRAMERANGE) ||
+		    !((ymax < rectf.ymin) || (ymin > rectf.ymax)))
 		{
 			/* loop over data selecting */
 			if (ale->type == ANIMTYPE_GPLAYER)
@@ -802,8 +802,8 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 			TimeMarker *marker;
 			
 			for (marker = markers->first; marker; marker = marker->next) {
-				if ( ((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
-				     ((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA)) )
+				if (((leftright == ACTKEYS_LRSEL_LEFT)  && (marker->frame <  CFRA)) ||
+				    ((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA)))
 				{
 					marker->flag |= SELECT;
 				}

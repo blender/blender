@@ -544,7 +544,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 		curheight = BLI_RCT_SIZE_Y(cur);
 		
 		/* width */
-		if ( (curwidth > totwidth) && !(v2d->keepzoom & (V2D_KEEPZOOM | V2D_LOCKZOOM_X | V2D_LIMITZOOM)) ) {
+		if ((curwidth > totwidth) && !(v2d->keepzoom & (V2D_KEEPZOOM | V2D_LOCKZOOM_X | V2D_LIMITZOOM))) {
 			/* if zoom doesn't have to be maintained, just clamp edges */
 			if (cur->xmin < tot->xmin) cur->xmin = tot->xmin;
 			if (cur->xmax > tot->xmax) cur->xmax = tot->xmax;
@@ -627,7 +627,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 		}
 		
 		/* height */
-		if ( (curheight > totheight) && !(v2d->keepzoom & (V2D_KEEPZOOM | V2D_LOCKZOOM_Y | V2D_LIMITZOOM)) ) {
+		if ((curheight > totheight) && !(v2d->keepzoom & (V2D_KEEPZOOM | V2D_LOCKZOOM_Y | V2D_LIMITZOOM))) {
 			/* if zoom doesn't have to be maintained, just clamp edges */
 			if (cur->ymin < tot->ymin) cur->ymin = tot->ymin;
 			if (cur->ymax > tot->ymax) cur->ymax = tot->ymax;
@@ -1874,7 +1874,7 @@ void UI_view2d_listview_view_to_cell(View2D *v2d, short columnwidth, short rowhe
 	const int y = (int)(floorf(fabsf(viewy) + 0.5f) - starty);
 	
 	/* sizes must not be negative */
-	if ( (v2d == NULL) || ((columnwidth <= 0) && (rowheight <= 0)) ) {
+	if ((v2d == NULL) || ((columnwidth <= 0) && (rowheight <= 0))) {
 		if (column) *column = 0;
 		if (row) *row = 0;
 		

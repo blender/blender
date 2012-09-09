@@ -2733,12 +2733,12 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 		/* convert border to 3d coordinates */
-		if ( (!gluUnProject(cent[0], cent[1], depth_close,
-		                    mats.modelview, mats.projection, (GLint *)mats.viewport,
-		                    &p[0], &p[1], &p[2])) ||
-		     (!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close,
-		                    mats.modelview, mats.projection, (GLint *)mats.viewport,
-		                    &p_corner[0], &p_corner[1], &p_corner[2])))
+		if ((!gluUnProject(cent[0], cent[1], depth_close,
+		                   mats.modelview, mats.projection, (GLint *)mats.viewport,
+		                   &p[0], &p[1], &p[2])) ||
+		    (!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close,
+		                   mats.modelview, mats.projection, (GLint *)mats.viewport,
+		                   &p_corner[0], &p_corner[1], &p_corner[2])))
 		{
 			return OPERATOR_CANCELLED;
 		}

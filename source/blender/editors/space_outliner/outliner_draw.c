@@ -1273,8 +1273,8 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		 *	we don't expand items when searching in the datablocks but we 
 		 *	still want to highlight any filter matches. 
 		 */
-		if ( (SEARCHING_OUTLINER(soops) || (soops->outlinevis == SO_DATABLOCKS && soops->search_string[0] != 0)) &&
-		     (tselem->flag & TSE_SEARCHMATCH))
+		if ((SEARCHING_OUTLINER(soops) || (soops->outlinevis == SO_DATABLOCKS && soops->search_string[0] != 0)) &&
+		    (tselem->flag & TSE_SEARCHMATCH))
 		{
 			char col[4];
 			UI_GetThemeColorType4ubv(TH_MATCH, SPACE_OUTLINER, col);

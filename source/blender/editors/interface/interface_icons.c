@@ -620,7 +620,7 @@ static void init_iconfile_list(struct ListBase *list)
 	if (restoredir && !chdir(olddir)) {} /* fix warning about checking return value */
 
 	for (i = 0; i < totfile; i++) {
-		if ( (dir[i].type & S_IFREG) ) {
+		if ((dir[i].type & S_IFREG)) {
 			char *filename = dir[i].relname;
 			
 			if (BLI_testextensie(filename, ".png")) {

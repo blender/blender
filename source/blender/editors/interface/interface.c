@@ -134,7 +134,7 @@ void ui_block_to_window(const ARegion *ar, uiBlock *block, int *x, int *y)
 	*y = (int)(fy + 0.5f);
 }
 
-void ui_block_to_window_rct(const ARegion *ar, uiBlock *block, rctf *graph, rcti *winr)
+void ui_block_to_window_rct(const ARegion *ar, uiBlock *block, const rctf *graph, rcti *winr)
 {
 	rctf tmpr;
 
@@ -1242,8 +1242,7 @@ void ui_delete_linkline(uiLinkLine *line, uiBut *but)
 		else {
 			b = 0;
 			for (a = 0; a < (*(link->totlink)); a++) {
-				
-				if ( (*(link->ppoin))[a] != line->to->poin) {
+				if ((*(link->ppoin))[a] != line->to->poin) {
 					(*(link->ppoin))[b] = (*(link->ppoin))[a];
 					b++;
 				}
@@ -2468,7 +2467,7 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 					flag |= UI_BUT_ALIGN_TOP;
 				}
 				
-				if ( (flag & UI_BUT_ALIGN_TOP) == 0) {    /* stil top row */
+				if ((flag & UI_BUT_ALIGN_TOP) == 0) {  /* stil top row */
 					if (prev) {
 						if (next && buts_are_horiz(but, next))
 							flag = UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT;

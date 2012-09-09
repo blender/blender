@@ -4292,8 +4292,8 @@ bConstraintTypeInfo *get_constraint_typeinfo(int type)
 	}
 	
 	/* only return for valid types */
-	if ( (type >= CONSTRAINT_TYPE_NULL) && 
-	     (type < NUM_CONSTRAINT_TYPES) )
+	if ((type >= CONSTRAINT_TYPE_NULL) &&
+	    (type < NUM_CONSTRAINT_TYPES))
 	{
 		/* there shouldn't be any segfaults here... */
 		return constraintsTypeInfo[type];

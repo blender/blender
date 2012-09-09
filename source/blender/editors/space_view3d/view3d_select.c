@@ -1527,10 +1527,10 @@ int edge_inside_circle(int centx, int centy, int rad, int x1, int y1, int x2, in
 	int radsq = rad * rad;
 
 	/* check points in circle itself */
-	if ( (x1 - centx) * (x1 - centx) + (y1 - centy) * (y1 - centy) <= radsq) {
+	if ((x1 - centx) * (x1 - centx) + (y1 - centy) * (y1 - centy) <= radsq) {
 		return TRUE;
 	}
-	else if ( (x2 - centx) * (x2 - centx) + (y2 - centy) * (y2 - centy) <= radsq) {
+	else if ((x2 - centx) * (x2 - centx) + (y2 - centy) * (y2 - centy) <= radsq) {
 		return TRUE;
 	}
 	else {
@@ -2467,7 +2467,7 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 			
 		/* only if the endpoints didn't get selected, deal with the middle of the bone too */
 		/* XXX should we just do this always? */
-		if ( (didpoint == 0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1]) ) {
+		if ((didpoint == 0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if (select) 
 				ebone->flag |= BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED;
 			else 

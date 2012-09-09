@@ -245,8 +245,8 @@ static void borderselect_nla_strips(bAnimContext *ac, rcti rect, short mode, sho
 		ymin = ymax - NLACHANNEL_STEP(snla);
 		
 		/* perform vertical suitability check (if applicable) */
-		if ( (mode == NLA_BORDERSEL_FRAMERANGE) ||
-		     !((ymax < rectf.ymin) || (ymin > rectf.ymax)) )
+		if ((mode == NLA_BORDERSEL_FRAMERANGE) ||
+		    !((ymax < rectf.ymin) || (ymin > rectf.ymax)))
 		{
 			/* loop over data selecting (only if NLA-Track) */
 			if (ale->type == ANIMTYPE_NLATRACK) {
@@ -255,8 +255,8 @@ static void borderselect_nla_strips(bAnimContext *ac, rcti rect, short mode, sho
 				
 				/* only select strips if they fall within the required ranges (if applicable) */
 				for (strip = nlt->strips.first; strip; strip = strip->next) {
-					if ( (mode == NLA_BORDERSEL_CHANNELS) ||
-					     BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax))
+					if ((mode == NLA_BORDERSEL_CHANNELS) ||
+					    BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax))
 					{
 						/* set selection */
 						ACHANNEL_SET_FLAG(strip, selectmode, NLASTRIP_FLAG_SELECT);

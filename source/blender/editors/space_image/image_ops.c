@@ -1161,7 +1161,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 
 		/* check for empty path */
 		if (guess_path && simopts->filepath[0] == 0) {
-			if ( (G.ima[0] == '/') && (G.ima[1] == '/') && (G.ima[2] == '\0') ) {
+			if ((G.ima[0] == '/') && (G.ima[1] == '/') && (G.ima[2] == '\0')) {
 				BLI_strncpy(simopts->filepath, "//untitled", FILE_MAX);
 			}
 			else {

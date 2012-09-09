@@ -1639,9 +1639,9 @@ static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
 	dv_test.totweight = dv->totweight;
 	/* do not multi-paint if a locked group is selected or the active group is locked
 	 * !lock_flags[dw->def_nr] helps if nothing is selected, but active group is locked */
-	if ( (wpi->lock_flags == NULL) ||
-	     ((wpi->lock_flags[dw->def_nr] == FALSE) && /* def_nr range has to be checked for by caller */
-	      has_locked_group_selected(wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags) == FALSE))
+	if ((wpi->lock_flags == NULL) ||
+	    ((wpi->lock_flags[dw->def_nr] == FALSE) && /* def_nr range has to be checked for by caller */
+	     has_locked_group_selected(wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags) == FALSE))
 	{
 		if (wpi->do_multipaint && wpi->defbase_tot_sel > 1) {
 			if (change && change != 1) {
@@ -1787,8 +1787,8 @@ static void do_weight_paint_vertex(
 
 	/* If there are no locks or multipaint,
 	 * then there is no need to run the more complicated checks */
-	if ( (do_multipaint_totsel == FALSE) &&
-	     (wpi->lock_flags == NULL || has_locked_group(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags) == FALSE))
+	if ((do_multipaint_totsel == FALSE) &&
+	    (wpi->lock_flags == NULL || has_locked_group(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags) == FALSE))
 	{
 		dw->weight = wpaint_blend(wp, dw->weight, dw_prev->weight, alpha, paintweight,
 		                          wpi->brush_alpha_value, wpi->do_flip, FALSE);

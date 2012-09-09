@@ -1542,8 +1542,8 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 	int *flip_map, flip_map_len;
 	const int def_nr = ob->actdef - 1;
 
-	if ( (mirror_weights == 0 && flip_vgroups == 0) ||
-	     (BLI_findlink(&ob->defbase, def_nr) == NULL) )
+	if ((mirror_weights == 0 && flip_vgroups == 0) ||
+	    (BLI_findlink(&ob->defbase, def_nr) == NULL))
 	{
 		return;
 	}

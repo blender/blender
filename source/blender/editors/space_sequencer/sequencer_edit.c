@@ -381,8 +381,8 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 	while (seq) {
 		if (seq->machine == (int)y) {
 			/* check for both normal strips, and strips that have been flipped horizontally */
-			if ( ((seq->startdisp < seq->enddisp) && (seq->startdisp <= x && seq->enddisp >= x)) ||
-			     ((seq->startdisp > seq->enddisp) && (seq->startdisp >= x && seq->enddisp <= x)) )
+			if (((seq->startdisp < seq->enddisp) && (seq->startdisp <= x && seq->enddisp >= x)) ||
+			    ((seq->startdisp > seq->enddisp) && (seq->startdisp >= x && seq->enddisp <= x)) )
 			{
 				if (BKE_sequence_tx_test(seq)) {
 					
@@ -2447,7 +2447,7 @@ static Sequence *sequence_find_parent(Scene *scene, Sequence *child)
 	if (ed == NULL) return NULL;
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-		if ( (seq != child) && seq_is_parent(seq, child) ) {
+		if ((seq != child) && seq_is_parent(seq, child)) {
 			parent = seq;
 			break;
 		}
@@ -2563,7 +2563,7 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (se) {
 		// prevent setting the render size if sequence values aren't initialized
-		if ( (se->orig_width > 0) && (se->orig_height > 0) ) {
+		if ((se->orig_width > 0) && (se->orig_height > 0)) {
 			scene->r.xsch = se->orig_width;
 			scene->r.ysch = se->orig_height;
 			WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);

@@ -2021,8 +2021,8 @@ static void picker_new_hide_reveal(uiBlock *block, short colormode)
 	
 	/* tag buttons */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
-		if (bt->func == do_picker_rna_cb && bt->type == NUMSLI) {
-			/* RGB sliders (color circle is always shown) */
+		if (bt->func == do_picker_rna_cb && bt->type == NUMSLI && bt->rnaindex != 3) {
+			/* RGB sliders (color circle and alpha are always shown) */
 			if (colormode == 0) bt->flag &= ~UI_HIDDEN;
 			else bt->flag |= UI_HIDDEN;
 		}
