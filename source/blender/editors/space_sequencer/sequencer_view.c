@@ -80,7 +80,7 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	ImageSampleInfo *info = arg_info;
 
 	if (info->draw) {
-		ED_image_draw_info(scene, ar, info->color_manage, info->channels,
+		ED_image_draw_info(scene, ar, info->color_manage, FALSE, info->channels,
 		                   info->x, info->y, info->colp, info->colfp, NULL, NULL);
 	}
 }

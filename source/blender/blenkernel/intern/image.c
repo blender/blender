@@ -246,6 +246,9 @@ static Image *image_alloc(const char *name, short source, short type)
 		ima->source = source;
 		ima->type = type;
 
+		if (source == IMA_SRC_VIEWER)
+			ima->flag |= IMA_VIEW_AS_RENDER;
+
 		BKE_color_managed_colorspace_settings_init(&ima->colorspace_settings);
 	}
 	return ima;

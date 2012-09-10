@@ -635,9 +635,15 @@ static void display_transform_get_from_ctx(const bContext *C, ColorManagedViewSe
                                            ColorManagedDisplaySettings **display_settings_r)
 {
 	Scene *scene = CTX_data_scene(C);
+	SpaceImage *sima = CTX_wm_space_image(C);
 
 	*view_settings_r = &scene->view_settings;
 	*display_settings_r = &scene->display_settings;
+
+	if (sima) {
+		if ((sima->image->flag & IMA_VIEW_AS_RENDER) == 0)
+			*view_settings_r = NULL;
+	}
 }
 
 #ifdef WITH_OCIO
@@ -800,6 +806,26 @@ static ConstProcessorRcPtr *display_to_scene_linear_processor(ColorManagedDispla
 	}
 
 	return (ConstProcessorRcPtr *) display->to_scene_linear;
+}
+
+static void init_default_view_settings(const ColorManagedDisplaySettings *display_settings,
+                                       ColorManagedViewSettings *view_settings)
+{
+	ColorManagedDisplay *display;
+	ColorManagedView *default_view;
+
+	display = colormanage_display_get_named(display_settings->display_device);
+	default_view = colormanage_view_get_default(display);
+
+	if (default_view)
+		BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
+	else
+		view_settings->view_transform[0] = '\0';
+
+	view_settings->flag = 0;
+	view_settings->gamma = 1.0f;
+	view_settings->exposure = 0.0f;
+	view_settings->curve_mapping = NULL;
 }
 #endif
 
@@ -1763,8 +1789,22 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		int buffer_size;
 		ColormanageCacheViewSettings cache_view_settings;
 		ColormanageCacheDisplaySettings cache_display_settings;
+		ColorManagedViewSettings default_view_settings;
+		const ColorManagedViewSettings *applied_view_settings;
 
-		colormanage_view_settings_to_cache(&cache_view_settings, view_settings);
+		if (view_settings) {
+			applied_view_settings = view_settings;
+		}
+		else {
+			/* if no view settings were specified, use default display transformation
+			 * this happens for images which don't want to be displayed with render settings
+			 */
+
+			init_default_view_settings(display_settings,  &default_view_settings);
+			applied_view_settings = &default_view_settings;
+		}
+
+		colormanage_view_settings_to_cache(&cache_view_settings, applied_view_settings);
 		colormanage_display_settings_to_cache(&cache_display_settings, display_settings);
 
 		BLI_lock_thread(LOCK_COLORMANAGE);
@@ -1793,7 +1833,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		buffer_size = ibuf->channels * ibuf->x * ibuf->y * sizeof(float);
 		display_buffer = MEM_callocN(buffer_size, "imbuf display buffer");
 
-		colormanage_display_buffer_process(ibuf, display_buffer, view_settings, display_settings);
+		colormanage_display_buffer_process(ibuf, display_buffer, applied_view_settings, display_settings);
 
 		colormanage_cache_put(ibuf, &cache_view_settings, &cache_display_settings, display_buffer, cache_handle);
 
@@ -2415,12 +2455,25 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(const ColorManag
 	cm_processor = MEM_callocN(sizeof(ColormanageProcessor), "colormanagement processor");
 
 #ifdef WITH_OCIO
-	cm_processor->processor = create_display_buffer_processor(view_settings->view_transform, display_settings->display_device,
-	                                                          view_settings->exposure, view_settings->gamma);
+	{
+		ColorManagedViewSettings default_view_settings;
+		const ColorManagedViewSettings *applied_view_settings;
 
-	if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
-		cm_processor->curve_mapping = curvemapping_copy(view_settings->curve_mapping);
-		curvemapping_premultiply(cm_processor->curve_mapping, FALSE);
+		if (view_settings) {
+			applied_view_settings = view_settings;
+		}
+		else {
+			init_default_view_settings(display_settings,  &default_view_settings);
+			applied_view_settings = &default_view_settings;
+		}
+
+		cm_processor->processor = create_display_buffer_processor(applied_view_settings->view_transform, display_settings->display_device,
+		                                                          applied_view_settings->exposure, applied_view_settings->gamma);
+
+		if (applied_view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
+			cm_processor->curve_mapping = curvemapping_copy(applied_view_settings->curve_mapping);
+			curvemapping_premultiply(cm_processor->curve_mapping, FALSE);
+		}
 	}
 #else
 	(void) view_settings;

@@ -692,6 +692,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 			col = uiLayoutColumn(layout, FALSE);
 			uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
+			uiItemR(col, &imaptr, "view_as_render", 0, NULL, ICON_NONE);
 
 			if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) { /* background image view doesnt need these */

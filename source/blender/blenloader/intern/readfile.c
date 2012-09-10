@@ -7926,6 +7926,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* color management pipeline changes compatibility code */
 	{
 		Scene *scene;
+		Image *ima;
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			if ((scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) == 0) {
@@ -7935,6 +7936,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					BKE_scene_disable_color_management(scene);
 				}
 			}
+		}
+
+		for (ima = main->image.first; ima; ima = ima->id.next) {
+			if (ima->source == IMA_SRC_VIEWER)
+				ima->flag |= IMA_VIEW_AS_RENDER;
 		}
 	}
 

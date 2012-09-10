@@ -1183,6 +1183,8 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 static void save_image_options_from_op(SaveImageOptions *simopts, wmOperator *op)
 {
 	if (op->customdata) {
+		BKE_color_managed_view_settings_free(&simopts->im_format.view_settings);
+
 		simopts->im_format = *(ImageFormatData *)op->customdata;
 	}
 
@@ -1195,13 +1197,15 @@ static void save_image_options_from_op(SaveImageOptions *simopts, wmOperator *op
 static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
 {
 	if (op->customdata) {
+		BKE_color_managed_view_settings_free(&((ImageFormatData *)op->customdata)->view_settings);
+
 		*(ImageFormatData *)op->customdata = simopts->im_format;
 	}
 
 	RNA_string_set(op->ptr, "filepath", simopts->filepath);
 }
 
-static ImBuf *save_image_colormanaged_imbuf_acquire(ImBuf *ibuf, SaveImageOptions *simopts, void **cache_handle)
+static ImBuf *save_image_colormanaged_imbuf_acquire(ImBuf *ibuf, SaveImageOptions *simopts, int save_as_render, void **cache_handle)
 {
 	ImageFormatData *imf = &simopts->im_format;
 	ImBuf *colormanaged_ibuf;
@@ -1211,8 +1215,12 @@ static ImBuf *save_image_colormanaged_imbuf_acquire(ImBuf *ibuf, SaveImageOption
 	do_colormanagement = !BKE_imtype_supports_float(imf->imtype);
 
 	if (do_colormanagement) {
-		unsigned char *display_buffer =
-			IMB_display_buffer_acquire(ibuf, &imf->view_settings, &imf->display_settings, cache_handle);
+		unsigned char *display_buffer;
+
+		if (save_as_render)
+			display_buffer = IMB_display_buffer_acquire(ibuf, &imf->view_settings, &imf->display_settings, cache_handle);
+		else
+			display_buffer = IMB_display_buffer_acquire(ibuf, NULL, &imf->display_settings, cache_handle);
 
 		if (*cache_handle) {
 			colormanaged_ibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, 0);
@@ -1247,6 +1255,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 		const char *relbase = ID_BLEND_PATH(CTX_data_main(C), &ima->id);
 		const short relative = (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
 		const short save_copy = (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
+		const short save_as_render = (RNA_struct_find_property(op->ptr, "save_as_render") && RNA_boolean_get(op->ptr, "save_as_render"));
 		short ok = FALSE;
 
 		/* old global to ensure a 2nd save goes to same dir */
@@ -1271,7 +1280,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			}
 		}
 
-		colormanaged_ibuf = save_image_colormanaged_imbuf_acquire(ibuf, simopts, &cache_handle);
+		colormanaged_ibuf = save_image_colormanaged_imbuf_acquire(ibuf, simopts, save_as_render, &cache_handle);
 
 		if (simopts->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
 			Scene *scene = CTX_data_scene(C);
@@ -1350,6 +1359,9 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 static void image_save_as_free(wmOperator *op)
 {
 	if (op->customdata) {
+		ImageFormatData *im_format = (ImageFormatData *)op->customdata;
+		BKE_color_managed_view_settings_free(&im_format->view_settings);
+
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
 	}
@@ -1402,6 +1414,11 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 		RNA_boolean_set(op->ptr, "copy", TRUE);
 	}
 
+	if (ima->source == IMA_SRC_VIEWER)
+		RNA_boolean_set(op->ptr, "save_as_render", TRUE);
+	else
+		RNA_boolean_set(op->ptr, "save_as_render", FALSE);
+
 	op->customdata = MEM_mallocN(sizeof(simopts.im_format), __func__);
 	memcpy(op->customdata, &simopts.im_format, sizeof(simopts.im_format));
 
@@ -1437,7 +1454,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 
 	/* image template */
 	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, imf, &ptr);
-	uiTemplateImageSettings(layout, &ptr, TRUE);
+	uiTemplateImageSettings(layout, &ptr, FALSE);
 
 	/* main draw call */
 	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
@@ -1465,6 +1482,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
+	RNA_def_boolean(ot->srna, "save_as_render", 0, "Save As Render", "Apply render part of display transform when saving byte image");
 	RNA_def_boolean(ot->srna, "copy", 0, "Copy", "Create a new image file without modifying the current image in blender");
 
 	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE | MOVIEFILE, FILE_SPECIAL, FILE_SAVE,
@@ -1989,6 +2007,7 @@ typedef struct ImageSampleInfo {
 
 	int draw;
 	int color_manage;
+	int use_default_view;
 } ImageSampleInfo;
 
 static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
@@ -1997,7 +2016,8 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	if (info->draw) {
 		Scene *scene = CTX_data_scene(C);
 
-		ED_image_draw_info(scene, ar, info->color_manage, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
+		ED_image_draw_info(scene, ar, info->color_manage, info->use_default_view, info->channels,
+		                   info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
 	}
 }
 
@@ -2070,6 +2090,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		float *fp;
 		unsigned char *cp;
 		int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
+		Image *image = ED_space_image(sima);
 
 		CLAMP(x, 0, ibuf->x - 1);
 		CLAMP(y, 0, ibuf->y - 1);
@@ -2083,7 +2104,9 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		info->colfp = NULL;
 		info->zp = NULL;
 		info->zfp = NULL;
-		
+
+		info->use_default_view = (image->flag & IMA_VIEW_AS_RENDER) ? FALSE : TRUE;
+
 		if (ibuf->rect) {
 			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
 

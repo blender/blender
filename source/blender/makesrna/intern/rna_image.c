@@ -513,6 +513,11 @@ static void rna_def_image(BlenderRNA *brna)
 	                         "to avoid fringing for images with light backgrounds");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_free_update");
 
+	prop = RNA_def_property(srna, "view_as_render", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_VIEW_AS_RENDER);
+	RNA_def_property_ui_text(prop, "View as Render", "Apply render part of display transformation when displaying this image on the screen");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
+
 	prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Image_dirty_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
