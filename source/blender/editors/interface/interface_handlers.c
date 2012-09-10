@@ -54,6 +54,7 @@
 
 #include "PIL_time.h"
 
+#include "BKE_blender.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
@@ -80,8 +81,6 @@
 /* proto */
 static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to);
 static void ui_add_link(bContext *C, uiBut *from, uiBut *to);
-
-static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *menu, int mx, int my);
 
 /***************** structs and defines ****************/
 
