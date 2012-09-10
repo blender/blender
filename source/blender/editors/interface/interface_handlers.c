@@ -197,7 +197,7 @@ typedef struct uiAfterFunc {
 
 	bContextStore *context;
 
-	char undostr[512];
+	char undostr[BKE_UNDO_STR_MAX];
 
 	int autokey;
 } uiAfterFunc;

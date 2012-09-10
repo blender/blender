@@ -29,8 +29,6 @@
  *  \ingroup edutil
  */
 
-
-
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -44,7 +42,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
-
+#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -82,8 +80,6 @@
 static void error(const char *UNUSED(arg)) {}
 /* ****** XXX ***** */
 
-
-#define MAXUNDONAME 64
 typedef struct UndoElem {
 	struct UndoElem *next, *prev;
 	ID id;          // copy of editmode object ID
@@ -91,7 +87,7 @@ typedef struct UndoElem {
 	int type;       // type of edited object
 	void *undodata;
 	uintptr_t undosize;
-	char name[MAXUNDONAME];
+	char name[BKE_UNDO_STR_MAX];
 	void * (*getdata)(bContext * C);
 	void (*freedata)(void *);
 	void (*to_editmode)(void *, void *, void *);

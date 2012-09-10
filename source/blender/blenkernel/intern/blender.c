@@ -463,11 +463,10 @@ int blender_test_break(void)
 
 #define UNDO_DISK   0
 
-#define MAXUNDONAME 64
 typedef struct UndoElem {
 	struct UndoElem *next, *prev;
 	char str[FILE_MAX];
-	char name[MAXUNDONAME];
+	char name[BKE_UNDO_STR_MAX];
 	MemFile memfile;
 	uintptr_t undosize;
 } UndoElem;

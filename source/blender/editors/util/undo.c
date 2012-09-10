@@ -74,8 +74,6 @@
 
 #include "util_intern.h"
 
-#define MAXUNDONAME 64 /* XXX, make common define */
-
 /* ***************** generic undo system ********************* */
 
 void ED_undo_push(bContext *C, const char *str)
@@ -283,7 +281,7 @@ static int ed_undo_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int ed_undo_push_exec(bContext *C, wmOperator *op)
 {
-	char str[MAXUNDONAME];
+	char str[BKE_UNDO_STR_MAX];
 	RNA_string_get(op->ptr, "message", str);
 	ED_undo_push(C, str);
 	return OPERATOR_FINISHED;
@@ -321,7 +319,7 @@ void ED_OT_undo_push(wmOperatorType *ot)
 
 	ot->flag = OPTYPE_INTERNAL;
 
-	RNA_def_string(ot->srna, "message", "Add an undo step *function may be moved*", MAXUNDONAME, "Undo Message", "");
+	RNA_def_string(ot->srna, "message", "Add an undo step *function may be moved*", BKE_UNDO_STR_MAX, "Undo Message", "");
 }
 
 void ED_OT_redo(wmOperatorType *ot)
