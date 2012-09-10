@@ -3163,8 +3163,10 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 
 	ui_get_but_vectorf(but, rgb);
 
-	rgb_to_hsv_compat_v(rgb, hsv);
+	if (color_profile && (int)but->a1)
+		ui_block_to_display_space_v3(but->block, rgb);
 
+	rgb_to_hsv_compat_v(rgb, hsv);
 
 	/* relative position within box */
 	x = ((float)mx_fl - but->rect.xmin) / BLI_RCT_SIZE_X(&but->rect);
@@ -3200,19 +3202,16 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 			/* exception only for value strip - use the range set in but->min/max */
 			hsv[2] = y * (but->softmax - but->softmin) + but->softmin;
 
-			if (color_profile) {
-				/* OCIO_TODO: how to handle this situation? */
-				hsv[2] = srgb_to_linearrgb(hsv[2]);
-			}
-
-			if (hsv[2] > but->softmax)
-				hsv[2] = but->softmax;
 			break;
 		default:
 			assert(!"invalid hsv type");
 	}
 
 	hsv_to_rgb_v(hsv, rgb);
+
+	if (color_profile && (int)but->a1)
+		ui_block_to_scene_linear_v3(but->block, rgb);
+
 	copy_v3_v3(data->vec, rgb);
 
 	data->draglastx = mx;
@@ -3235,6 +3234,10 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 	}
 
 	ui_get_but_vectorf(but, rgb);
+
+	if (color_profile && (int)but->a1)
+		ui_block_to_display_space_v3(but->block, rgb);
+
 	rgb_to_hsv_compat_v(rgb, hsv);
 	
 	switch ((int)but->a1) {
@@ -3265,17 +3268,16 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 			/* exception only for value strip - use the range set in but->min/max */
 			hsv[2] += ndof->rx * sensitivity;
 			
-			if (color_profile) {
-				/* OCIO_TODO: how to handle this situation? */
-				hsv[2] = srgb_to_linearrgb(hsv[2]);
-			}
-			
 			CLAMP(hsv[2], but->softmin, but->softmax);
 		default:
 			assert(!"invalid hsv type");
 	}
-	
+
 	hsv_to_rgb_v(hsv, rgb);
+
+	if (color_profile && (int)but->a1)
+		ui_block_to_scene_linear_v3(but->block, rgb);
+
 	copy_v3_v3(data->vec, rgb);
 	ui_set_but_vectorf(but, data->vec);
 }
