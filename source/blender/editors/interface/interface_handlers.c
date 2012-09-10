@@ -2100,6 +2100,10 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 			handlefunc = ui_block_func_COL;
 			arg = but;
 			break;
+
+			/* quiet warnings for unhandled types */
+		default:
+			break;
 	}
 
 	if (func || handlefunc) {
@@ -4929,6 +4933,10 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		case CHARTAB:
 			retval = ui_do_but_CHARTAB(C, block, but, data, event);
 			break;
+#else
+			/* do nothing */
+		case CHARTAB:
+			break;
 #endif
 
 		case LINK:
@@ -4937,6 +4945,11 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			break;
 		case TRACKPREVIEW:
 			retval = ui_do_but_TRACKPREVIEW(C, block, but, data, event);
+			break;
+
+			/* quiet warnings for unhandled types */
+		case SEPR:
+		case BUT_EXTRA:
 			break;
 	}
 	

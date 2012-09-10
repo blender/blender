@@ -159,8 +159,8 @@ typedef struct {
 struct uiBut {
 	struct uiBut *next, *prev;
 	int flag, drawflag;
-	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
-	short pad1;
+	eButType type;
+	short pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
 
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
@@ -529,4 +529,3 @@ int ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);
 
 #endif
-

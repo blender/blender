@@ -199,58 +199,60 @@ typedef struct uiLayout uiLayout;
 #define BUTPOIN (FLO | SHO | CHA)
 
 /* assigned to but->type, OR'd with the flags above when passing args */
-#define BUT (1 << 9)
-#define ROW (2 << 9)
-#define TOG (3 << 9)
-#define SLI (4 << 9)
-#define NUM (5 << 9)
-#define TEX (6 << 9)
-#define TOG3    (7 << 9)
-#define TOGR    (8 << 9)
-#define TOGN    (9 << 9)
-#define LABEL   (10 << 9)
-#define MENU    (11 << 9)
-#define ICONROW (12 << 9)
-#define ICONTOG (13 << 9)
-#define NUMSLI  (14 << 9)
-#define COL     (15 << 9)
-#define IDPOIN  (16 << 9)
-#define HSVSLI  (17 << 9)
-#define SCROLL  (18 << 9)
-#define BLOCK   (19 << 9)
-#define BUTM    (20 << 9)
-#define SEPR    (21 << 9)
-#define LINK    (22 << 9)
-#define INLINK  (23 << 9)
-#define KEYEVT  (24 << 9)
-#define ICONTEXTROW (25 << 9)
-#define HSVCUBE     (26 << 9)
-#define PULLDOWN    (27 << 9)
-#define ROUNDBOX    (28 << 9)
-#define CHARTAB     (29 << 9)
-#define BUT_COLORBAND (30 << 9)
-#define BUT_NORMAL  (31 << 9)
-#define BUT_CURVE   (32 << 9)
-#define BUT_TOGDUAL (33 << 9)
-#define ICONTOGN    (34 << 9)
-#define FTPREVIEW   (35 << 9)
-#define NUMABS      (36 << 9)
-#define TOGBUT      (37 << 9)
-#define OPTION      (38 << 9)
-#define OPTIONN     (39 << 9)
-#define TRACKPREVIEW    (40 << 9)
-/* buttons with value >= SEARCH_MENU don't get undo pushes */
-#define SEARCH_MENU (41 << 9)
-#define BUT_EXTRA   (42 << 9)
-#define HSVCIRCLE   (43 << 9)
-#define LISTBOX     (44 << 9)
-#define LISTROW     (45 << 9)
-#define HOTKEYEVT   (46 << 9)
-#define BUT_IMAGE   (47 << 9)
-#define HISTOGRAM   (48 << 9)
-#define WAVEFORM    (49 << 9)
-#define VECTORSCOPE (50 << 9)
-#define PROGRESSBAR (51 << 9)
+typedef enum {
+	BUT           = (1 << 9),
+	ROW           = (2 << 9),
+	TOG           = (3 << 9),
+	SLI           = (4 << 9),
+	NUM           = (5 << 9),
+	TEX           = (6 << 9),
+	TOG3          = (7 << 9),
+	TOGR          = (8 << 9),
+	TOGN          = (9 << 9),
+	LABEL         = (10 << 9),
+	MENU          = (11 << 9),
+	ICONROW       = (12 << 9),
+	ICONTOG       = (13 << 9),
+	NUMSLI        = (14 << 9),
+	COL           = (15 << 9),
+	IDPOIN        = (16 << 9),
+	HSVSLI        = (17 << 9),
+	SCROLL        = (18 << 9),
+	BLOCK         = (19 << 9),
+	BUTM          = (20 << 9),
+	SEPR          = (21 << 9),
+	LINK          = (22 << 9),
+	INLINK        = (23 << 9),
+	KEYEVT        = (24 << 9),
+	ICONTEXTROW   = (25 << 9),
+	HSVCUBE       = (26 << 9),
+	PULLDOWN      = (27 << 9),
+	ROUNDBOX      = (28 << 9),
+	CHARTAB       = (29 << 9),
+	BUT_COLORBAND = (30 << 9),
+	BUT_NORMAL    = (31 << 9),
+	BUT_CURVE     = (32 << 9),
+	BUT_TOGDUAL   = (33 << 9),
+	ICONTOGN      = (34 << 9),
+	/* FTPREVIEW  = (35 << 9), */  /* UNUSED */
+	NUMABS        = (36 << 9),
+	TOGBUT        = (37 << 9),
+	OPTION        = (38 << 9),
+	OPTIONN       = (39 << 9),
+	TRACKPREVIEW  = (40 << 9),
+	/* buttons with value >= SEARCH_MENU don't get undo pushes */
+	SEARCH_MENU   = (41 << 9),
+	BUT_EXTRA     = (42 << 9),
+	HSVCIRCLE     = (43 << 9),
+	LISTBOX       = (44 << 9),
+	LISTROW       = (45 << 9),
+	HOTKEYEVT     = (46 << 9),
+	BUT_IMAGE     = (47 << 9),
+	HISTOGRAM     = (48 << 9),
+	WAVEFORM      = (49 << 9),
+	VECTORSCOPE   = (50 << 9),
+	PROGRESSBAR   = (51 << 9)
+} eButType;
 
 #define BUTTYPE     (63 << 9)
 

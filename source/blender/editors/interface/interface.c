@@ -2215,6 +2215,10 @@ void ui_check_but(uiBut *but)
 				but->iconadd = (int)value - (int)(but->hardmin);
 			}
 			break;
+
+			/* quiet warnings for unhandled types */
+		default:
+			break;
 	}
 	
 	
@@ -2556,7 +2560,7 @@ void ui_block_do_align(uiBlock *block)
  *      1,2,3, and a maximum of 4, all greater values will be clamped to 4.
  */
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
-						 int x, int y, short width, short height,
+                         int x, int y, short width, short height,
                          void *poin, float min, float max, float a1, float a2, const char *tip)
 {
 	uiBut *but;
@@ -2648,7 +2652,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 
 	/* keep track of UI_interface.h */
 	if (ELEM7(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM)) ;
-	else if (ELEM3(but->type, SCROLL, SEPR, FTPREVIEW)) ;
+	else if (ELEM(but->type, SCROLL, SEPR /* , FTPREVIEW */ )) ;
 	else if (but->type >= SEARCH_MENU) ;
 	else but->flag |= UI_BUT_UNDO;
 
