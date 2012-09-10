@@ -397,7 +397,8 @@ void uiBlockBeginAlign(uiBlock *block);
 void uiBlockEndAlign(uiBlock *block);
 
 /* block bounds/position calculation */
-enum {
+typedef enum {
+	UI_BLOCK_BOUNDS_NONE = 0,
 	UI_BLOCK_BOUNDS = 1,
 	UI_BLOCK_BOUNDS_TEXT,
 	UI_BLOCK_BOUNDS_POPUP_MOUSE,

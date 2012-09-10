@@ -316,7 +316,8 @@ struct uiBlock {
 	char endblock;              /* uiEndBlock done? */
 
 	float xofs, yofs;           /* offset to parent button */
-	int dobounds, mx, my;       /* for doing delayed */
+	eBlockBoundsCalc bounds_type;  /* for doing delayed */
+	int mx, my;
 	int bounds, minbounds;      /* for doing delayed */
 
 	rctf safety;                /* pulldowns, to detect outside, can differ per case how it is created */
