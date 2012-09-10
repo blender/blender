@@ -1322,7 +1322,10 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		
 		while (i > 0) {
 			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &i)) {
-				if (BLF_width(fstyle->uifont_id, origstr + i) > (startx - x) * 0.25f) break;  // 0.25 == scale factor for less sensitivity
+				/* 0.25 == scale factor for less sensitivity */
+				if (BLF_width(fstyle->uifont_id, origstr + i) > (startx - x) * 0.25f) {
+					break;
+				}
 			}
 			else {
 				break; /* unlikely but possible */
@@ -1385,7 +1388,7 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
 	else if (x < data->selstartx) data->selextend = EXTEND_LEFT;
 
 	ui_textedit_set_cursor_pos(but, data, x);
-						
+
 	if (data->selextend == EXTEND_RIGHT) but->selend = but->pos;
 	if (data->selextend == EXTEND_LEFT) but->selsta = but->pos;
 
@@ -1439,7 +1442,8 @@ static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char asc
 	return ui_textedit_type_buf(but, data, buf, 1);
 }
 
-static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, strCursorJumpDirection direction, int select, strCursorJumpType jump)
+static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, strCursorJumpDirection direction,
+                             int select, strCursorJumpType jump)
 {
 	const char *str = data->str;
 	const int len = strlen(str);
@@ -1845,11 +1849,13 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 				break;
 			case RIGHTARROWKEY:
-				ui_textedit_move(but, data, STRCUR_DIR_NEXT, event->shift, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+				ui_textedit_move(but, data, STRCUR_DIR_NEXT,
+				                 event->shift, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case LEFTARROWKEY:
-				ui_textedit_move(but, data, STRCUR_DIR_PREV, event->shift, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+				ui_textedit_move(but, data, STRCUR_DIR_PREV,
+				                 event->shift, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case DOWNARROWKEY:
@@ -1859,7 +1865,8 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 			/* pass on purposedly */
 			case ENDKEY:
-				ui_textedit_move(but, data, STRCUR_DIR_NEXT, event->shift, STRCUR_JUMP_ALL);
+				ui_textedit_move(but, data, STRCUR_DIR_NEXT,
+				                 event->shift, STRCUR_JUMP_ALL);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case UPARROWKEY:
@@ -1869,7 +1876,8 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 			/* pass on purposedly */
 			case HOMEKEY:
-				ui_textedit_move(but, data, STRCUR_DIR_PREV, event->shift, STRCUR_JUMP_ALL);
+				ui_textedit_move(but, data, STRCUR_DIR_PREV,
+				                 event->shift, STRCUR_JUMP_ALL);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case PADENTER:
@@ -1878,12 +1886,14 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 			case DELKEY:
-				changed = ui_textedit_delete(but, data, 1, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+				changed = ui_textedit_delete(but, data, 1,
+				                             event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 
 			case BACKSPACEKEY:
-				changed = ui_textedit_delete(but, data, 0, event->shift ? STRCUR_JUMP_ALL :  (event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE));
+				changed = ui_textedit_delete(but, data, 0,
+				                             event->shift ? STRCUR_JUMP_ALL : (event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE));
 				retval = WM_UI_HANDLER_BREAK;
 				break;
 				
@@ -4747,7 +4757,10 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			ui_but_drop(C, event, but, data);
 		}
 		/* handle keyframing */
-		else if (event->type == IKEY && !ELEM(KM_MOD_FIRST, event->ctrl, event->oskey) && event->val == KM_PRESS) {
+		else if ((event->type == IKEY) &&
+		         !ELEM(KM_MOD_FIRST, event->ctrl, event->oskey) &&
+		         (event->val == KM_PRESS))
+		{
 			if (event->alt) {
 				if (event->shift) {
 					ui_but_anim_clear_keyframe(C);
@@ -4765,7 +4778,10 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* handle drivers */
-		else if (event->type == DKEY && !ELEM3(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
+		else if ((event->type == DKEY) &&
+		         !ELEM3(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift) &&
+		         (event->val == KM_PRESS))
+		{
 			if (event->alt)
 				ui_but_anim_remove_driver(C);
 			else
@@ -4776,7 +4792,10 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* handle keyingsets */
-		else if (event->type == KKEY && !ELEM3(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
+		else if ((event->type == KKEY) &&
+		         !ELEM3(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift) &&
+		         (event->val == KM_PRESS))
+		{
 			if (event->alt)
 				ui_but_anim_remove_keyingset(C);
 			else
@@ -5200,13 +5219,22 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 			if (data->used_mouse && !data->autoopentimer) {
 				int time;
 
-				if (but->block->auto_open == TRUE) time = 1;  // test for toolbox
-				else if ((but->block->flag & UI_BLOCK_LOOP && but->type != BLOCK) || but->block->auto_open == TRUE) time = 5 * U.menuthreshold2;
-				else if (U.uiflag & USER_MENUOPENAUTO) time = 5 * U.menuthreshold1;
-				else time = -1;
+				if (but->block->auto_open == TRUE) {  /* test for toolbox */
+					time = 1;
+				}
+				else if ((but->block->flag & UI_BLOCK_LOOP && but->type != BLOCK) || but->block->auto_open == TRUE) {
+					time = 5 * U.menuthreshold2;
+				}
+				else if (U.uiflag & USER_MENUOPENAUTO) {
+					time = 5 * U.menuthreshold1;
+				}
+				else {
+					time = -1;  /* do nothing */
+				}
 
-				if (time >= 0)
+				if (time >= 0) {
 					data->autoopentimer = WM_event_add_timer(data->wm, data->window, TIMER, 0.02 * (double)time);
+				}
 			}
 		}
 	}
@@ -6195,7 +6223,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				case WHEELUPMOUSE:
 				case WHEELDOWNMOUSE:
 					/* arrowkeys: only handle for block_loop blocks */
-					if (event->alt || event->shift || event->ctrl || event->oskey) ;
+					if (event->alt || event->shift || event->ctrl || event->oskey) {
+						/* pass */
+					}
 					else if (inside || (block->flag & UI_BLOCK_LOOP)) {
 						if (event->val == KM_PRESS) {
 							but = ui_but_find_activated(ar);
@@ -6244,8 +6274,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 									}
 								}
 
-								if (bt)
+								if (bt) {
 									ui_handle_button_activate(C, ar, bt, BUTTON_ACTIVATE);
+								}
 							}
 						}
 
@@ -6439,7 +6470,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 	 * buttons inside this region. disabled inside check .. not sure
 	 * anymore why it was there? but it meant enter didn't work
 	 * for example when mouse was not over submenu */
-	if ((/*inside &&*/ (!menu->menuretval || (menu->menuretval & UI_RETURN_UPDATE)) && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
+	if ((event->type == TIMER) ||
+	    (/*inside &&*/ (!menu->menuretval || (menu->menuretval & UI_RETURN_UPDATE)) && retval == WM_UI_HANDLER_CONTINUE))
+	{
 		but = ui_but_find_activated(ar);
 
 		if (but) {
