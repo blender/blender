@@ -5227,7 +5227,12 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 		/* automatic open pulldown block timer */
 		if (ELEM3(but->type, BLOCK, PULLDOWN, ICONTEXTROW)) {
-			if (data->used_mouse && !data->autoopentimer) {
+			if ((data->used_mouse == TRUE) &&
+			    (data->autoopentimer == FALSE) &&
+			    /* don't popup the first time,
+			     * see description on this member for info */
+			    (but->block->auto_is_first_event == FALSE))
+			{
 				int time;
 
 				if (but->block->auto_open == TRUE) {  /* test for toolbox */
@@ -5247,6 +5252,8 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 					data->autoopentimer = WM_event_add_timer(data->wm, data->window, TIMER, 0.02 * (double)time);
 				}
 			}
+
+			but->block->auto_is_first_event = FALSE;
 		}
 	}
 	else {
