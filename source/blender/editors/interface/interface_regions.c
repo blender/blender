@@ -1648,6 +1648,18 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	ar->regiondata = handle;
 
+	/* set UI_BLOCK_NUMSELECT before uiEndBlock() so we get alphanumeric keys assigned */
+	if (but) {
+		if (but->type == PULLDOWN) {
+			block->flag |= UI_BLOCK_NUMSELECT;
+		}
+	}
+	else {
+		block->flag |= UI_BLOCK_POPUP | UI_BLOCK_NUMSELECT;
+	}
+
+	block->flag |= UI_BLOCK_LOOP;
+
 	if (!block->endblock)
 		uiEndBlock(C, block);
 
@@ -1665,7 +1677,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 		saferct = MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
 		saferct->safety = block->safety;
 		BLI_addhead(&block->saferct, saferct);
-		block->flag |= UI_BLOCK_POPUP | UI_BLOCK_NUMSELECT;
 	}
 
 	/* clip block with window boundary */
@@ -1680,8 +1691,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	ar->winrct.ymax = block->rect.ymax + MENU_TOP;
 	
 	ui_block_translate(block, -ar->winrct.xmin, -ar->winrct.ymin);
-	
-	block->flag |= UI_BLOCK_LOOP;
 
 	/* adds subwindow */
 	ED_region_init(C, ar);
@@ -2427,6 +2436,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	uiPopupMenu *pup;
 	pup = MEM_callocN(sizeof(uiPopupMenu), __func__);
 	pup->block = uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
+	pup->block->flag |= UI_BLOCK_NUMSELECT;  /* default menus to numselect */
 	pup->layout = uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	pup->slideout = (but && (but->block->flag & UI_BLOCK_LOOP));
 	pup->but = but;
