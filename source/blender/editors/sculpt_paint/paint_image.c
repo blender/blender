@@ -3695,7 +3695,7 @@ typedef struct ProjectHandle {
 	int thread_index;
 } ProjectHandle;
 
-static void blend_color_mix(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
+static void blend_color_mix(unsigned char cp[4], const unsigned char cp1[4], const unsigned char cp2[4], const int fac)
 {
 	/* this and other blending modes previously used >>8 instead of /255. both
 	 * are not equivalent (>>8 is /256), and the former results in rounding
@@ -3708,7 +3708,7 @@ static void blend_color_mix(unsigned char *cp, const unsigned char *cp1, const u
 	cp[3] = (mfac * cp1[3] + fac * cp2[3]) / 255;
 }
 
-static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2, const float fac)
+static void blend_color_mix_float(float cp[4], const float cp1[4], const float cp2[4], const float fac)
 {
 	const float mfac = 1.0f - fac;
 	cp[0] = mfac * cp1[0] + fac * cp2[0];
