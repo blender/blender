@@ -208,7 +208,7 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 		other = BM_edge_other_vert(vso->sel_edge, vso->start_vtx);
 	}
 
-	if (em->me->editflag & ME_EDIT_MIRROR_X) {
+	if (((Mesh *)em->ob->data)->editflag & ME_EDIT_MIRROR_X) {
 		EDBM_verts_mirror_cache_begin(em, TRUE);
 
 		mirr_vtx = EDBM_verts_mirror_get(em, vso->start_vtx);
@@ -255,7 +255,7 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 		BM_select_history_store(em->bm, vso->start_vtx);
 	}
 
-	if (em->me->editflag & ME_EDIT_MIRROR_X) {
+	if (((Mesh *)em->ob->data)->editflag & ME_EDIT_MIRROR_X) {
 		EDBM_verts_mirror_cache_end(em);
 	}
 
