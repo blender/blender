@@ -37,11 +37,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-static EnumPropertyItem color_space_items[] = {
-	{0, "NONE", 0, "None", "Do not perform any color transform on load, treat colors as in scene linear space already"},
-	{0, NULL, 0, NULL, NULL}
-};
-
 #ifdef RNA_RUNTIME
 
 #include "RNA_access.h"
@@ -461,7 +456,6 @@ static EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_itemf(bCo
 	EnumPropertyItem *items = NULL;
 	int totitem = 0;
 
-	RNA_enum_item_add(&items, &totitem, &color_space_items[0]);
 	IMB_colormanagement_colorspace_items_add(&items, &totitem);
 	RNA_enum_item_end(&items, &totitem);
 
@@ -854,6 +848,11 @@ static void rna_def_colormanage(BlenderRNA *brna)
 
 	static EnumPropertyItem view_transform_items[] = {
 		{0, "NONE", 0, "None", "Do not perform any color transform on display, use old non-color managed technique for display"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem color_space_items[] = {
+		{0, "NONE", 0, "None", "Do not perform any color transform on load, treat colors as in scene linear space already"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

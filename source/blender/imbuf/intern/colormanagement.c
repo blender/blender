@@ -904,9 +904,6 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
 static void colormanage_check_colorspace_settings(ColorManagedColorspaceSettings *colorspace_settings, const char *what)
 {
 	if (colorspace_settings->name[0] == '\0') {
-		BLI_strncpy(colorspace_settings->name, "NONE", sizeof(colorspace_settings->name));
-	}
-	else if (!strcmp(colorspace_settings->name, "NONE")) {
 		/* pass */
 	}
 	else {
@@ -916,7 +913,7 @@ static void colormanage_check_colorspace_settings(ColorManagedColorspaceSettings
 			printf("Color management: %s colorspace \"%s\" not found, setting NONE instead.\n",
 			       what, colorspace_settings->name);
 
-			BLI_strncpy(colorspace_settings->name, "NONE", sizeof(colorspace_settings->name));
+			BLI_strncpy(colorspace_settings->name, "", sizeof(colorspace_settings->name));
 		}
 	}
 
@@ -1375,7 +1372,7 @@ static void colormanagement_transform_ex(float *buffer, int width, int height, i
 {
 	ColormanageProcessor *cm_processor;
 
-	if (!strcmp(from_colorspace, "NONE")) {
+	if (from_colorspace[0] == '\0') {
 		return;
 	}
 
@@ -1416,7 +1413,7 @@ void IMB_colormanagement_transform_v4(float pixel[4], const char *from_colorspac
 {
 	ColormanageProcessor *cm_processor;
 
-	if (!strcmp(from_colorspace, "NONE")) {
+	if (from_colorspace[0] == '\0') {
 		return;
 	}
 
@@ -1667,9 +1664,8 @@ void IMB_colormanagement_pixel_from_role_v4(float pixel[4], int role)
 void IMB_colormanagement_imbuf_assign_spaces(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
 {
 #ifdef WITH_OCIO
-	/* OCIO_TODO: get rid of NONE color space */
 	if (colorspace_settings) {
-		if (colorspace_settings->name[0] == 0 || !strcmp(colorspace_settings->name, "NONE")) {
+		if (colorspace_settings->name[0] == '\0') {
 			/* when opening new image, assign it's color space based on default roles */
 
 			if (ibuf->rect_float)
@@ -2121,7 +2117,7 @@ const char *IMB_colormanagement_view_get_indexed_name(int index)
 		return view->name;
 	}
 
-	return "NONE";
+	return NULL;
 }
 
 const char *IMB_colormanagement_view_get_default_name(const char *display_name)
@@ -2225,7 +2221,7 @@ const char *IMB_colormanagement_colorspace_get_indexed_name(int index)
 		return colorspace->name;
 	}
 
-	return "NONE";
+	return "";
 }
 
 /*********************** RNA helper functions *************************/
