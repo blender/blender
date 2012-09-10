@@ -924,7 +924,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	/* simple preventing of too deep nested groups */
 	if (level > MAX_DUPLI_RECUR) return;
 	
-	em = me->edit_btmesh;
+	em = BMEdit_FromObject(par);
 	
 	if (em) {
 		dm = editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
@@ -1050,7 +1050,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	if (level > MAX_DUPLI_RECUR) return;
 	
 	copy_m4_m4(pmat, par->obmat);
-	em = me->edit_btmesh;
+	em = BMEdit_FromObject(par);
 
 	if (em) {
 		dm = editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);

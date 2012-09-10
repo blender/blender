@@ -104,11 +104,14 @@ class PlayRenderedAnim(Operator):
 
             file = ("".join((c if file_b[i] == c else "#")
                     for i, c in enumerate(file_a)))
+            del file_a, file_b, frame_tmp
+            file = bpy.path.abspath(file)  # expand '//'
         else:
             # works for movies and images
             file = rd.frame_path(frame=scene.frame_start)
-
-        file = bpy.path.abspath(file)  # expand '//'
+            file = bpy.path.abspath(file)  # expand '//'
+            if not os.path.exists(file):
+                self.report({'WARNING'}, "File %r not found" % file)
 
         cmd = [player_path]
         # extra options, fps controls etc.

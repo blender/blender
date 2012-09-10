@@ -317,7 +317,7 @@ static void ui_centered_bounds_block(const bContext *C, uiBlock *block)
 	ui_bounds_block(block);
 	
 }
-static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_calc)
+static void ui_popup_bounds_block(const bContext *C, uiBlock *block, eBlockBoundsCalc bounds_calc)
 {
 	wmWindow *window = CTX_wm_window(C);
 	int startx, starty, endx, endy, width, height, oldwidth, oldheight;
@@ -388,21 +388,21 @@ void uiBoundsBlock(uiBlock *block, int addval)
 		return;
 	
 	block->bounds = addval;
-	block->dobounds = UI_BLOCK_BOUNDS;
+	block->bounds_type = UI_BLOCK_BOUNDS;
 }
 
 /* used for pulldowns */
 void uiTextBoundsBlock(uiBlock *block, int addval)
 {
 	block->bounds = addval;
-	block->dobounds = UI_BLOCK_BOUNDS_TEXT;
+	block->bounds_type = UI_BLOCK_BOUNDS_TEXT;
 }
 
 /* used for block popups */
 void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 {
 	block->bounds = addval;
-	block->dobounds = UI_BLOCK_BOUNDS_POPUP_MOUSE;
+	block->bounds_type = UI_BLOCK_BOUNDS_POPUP_MOUSE;
 	block->mx = mx;
 	block->my = my;
 }
@@ -411,7 +411,7 @@ void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 void uiMenuPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 {
 	block->bounds = addval;
-	block->dobounds = UI_BLOCK_BOUNDS_POPUP_MENU;
+	block->bounds_type = UI_BLOCK_BOUNDS_POPUP_MENU;
 	block->mx = mx;
 	block->my = my;
 }
@@ -420,7 +420,7 @@ void uiMenuPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 void uiCenteredBoundsBlock(uiBlock *block, int addval)
 {
 	block->bounds = addval;
-	block->dobounds = UI_BLOCK_BOUNDS_POPUP_CENTER;
+	block->bounds_type = UI_BLOCK_BOUNDS_POPUP_CENTER;
 }
 
 void uiExplicitBoundsBlock(uiBlock *block, int minx, int miny, int maxx, int maxy)
@@ -429,7 +429,7 @@ void uiExplicitBoundsBlock(uiBlock *block, int minx, int miny, int maxx, int max
 	block->rect.ymin = miny;
 	block->rect.xmax = maxx;
 	block->rect.ymax = maxy;
-	block->dobounds = 0;
+	block->bounds_type = UI_BLOCK_BOUNDS_NONE;
 }
 
 /* ************** LINK LINE DRAWING  ************* */
@@ -934,21 +934,45 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	}
 
 	/* handle pending stuff */
-	if (block->layouts.first) uiBlockLayoutResolve(block, NULL, NULL);
+	if (block->layouts.first) {
+		uiBlockLayoutResolve(block, NULL, NULL);
+	}
 	ui_block_do_align(block);
 	if ((block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_NUMSELECT)) {
 		ui_menu_block_set_keyaccels(block); /* could use a different flag to check */
 	}
-	if (block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
+
+	if (block->flag & UI_BLOCK_LOOP) {
+		ui_menu_block_set_keymaps(C, block);
+	}
 	
 	/* after keymaps! */
-	if (block->dobounds == UI_BLOCK_BOUNDS) ui_bounds_block(block);
-	else if (block->dobounds == UI_BLOCK_BOUNDS_TEXT) ui_text_bounds_block(block, 0.0f);
-	else if (block->dobounds == UI_BLOCK_BOUNDS_POPUP_CENTER) ui_centered_bounds_block(C, block);
-	else if (block->dobounds) ui_popup_bounds_block(C, block, block->dobounds);
+	switch (block->bounds_type) {
+		case UI_BLOCK_BOUNDS_NONE:
+			break;
+		case UI_BLOCK_BOUNDS:
+			ui_bounds_block(block);
+			break;
+		case UI_BLOCK_BOUNDS_TEXT:
+			ui_text_bounds_block(block, 0.0f);
+			break;
+		case UI_BLOCK_BOUNDS_POPUP_CENTER:
+			ui_centered_bounds_block(C, block);
+			break;
 
-	if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) uiBoundsBlock(block, 0);
-	if (block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
+			/* fallback */
+		case UI_BLOCK_BOUNDS_POPUP_MOUSE:
+		case UI_BLOCK_BOUNDS_POPUP_MENU:
+			ui_popup_bounds_block(C, block, block->bounds_type);
+			break;
+	}
+
+	if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) {
+		uiBoundsBlock(block, 0);
+	}
+	if (block->flag & UI_BUT_ALIGN) {
+		uiBlockEndAlign(block);
+	}
 
 	block->endblock = 1;
 }
@@ -2215,6 +2239,10 @@ void ui_check_but(uiBut *but)
 				but->iconadd = (int)value - (int)(but->hardmin);
 			}
 			break;
+
+			/* quiet warnings for unhandled types */
+		default:
+			break;
 	}
 	
 	
@@ -2536,11 +2564,13 @@ void ui_block_do_align(uiBlock *block)
 			/* skip with same number */
 			for (; but && but->alignnr == nr; but = but->next) ;
 
-			if (!but)
+			if (!but) {
 				break;
+			}
 		}
-		else
+		else {
 			but = but->next;
+		}
 	}
 }
 
@@ -2556,7 +2586,7 @@ void ui_block_do_align(uiBlock *block)
  *      1,2,3, and a maximum of 4, all greater values will be clamped to 4.
  */
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
-						 int x, int y, short width, short height,
+                         int x, int y, short width, short height,
                          void *poin, float min, float max, float a1, float a2, const char *tip)
 {
 	uiBut *but;
@@ -2648,7 +2678,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 
 	/* keep track of UI_interface.h */
 	if (ELEM7(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM)) ;
-	else if (ELEM3(but->type, SCROLL, SEPR, FTPREVIEW)) ;
+	else if (ELEM(but->type, SCROLL, SEPR /* , FTPREVIEW */ )) ;
 	else if (but->type >= SEARCH_MENU) ;
 	else but->flag |= UI_BUT_UNDO;
 

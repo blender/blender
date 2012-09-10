@@ -83,6 +83,8 @@ void BKE_userdef_free(void);
 void set_blender_test_break_cb(void (*func)(void) );
 int blender_test_break(void);
 
+#define BKE_UNDO_STR_MAX 64
+
 /* global undo */
 extern void BKE_write_undo(struct bContext *C, const char *name);
 extern void BKE_undo_step(struct bContext *C, int step);

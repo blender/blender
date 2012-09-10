@@ -159,8 +159,8 @@ typedef struct {
 struct uiBut {
 	struct uiBut *next, *prev;
 	int flag, drawflag;
-	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
-	short pad1;
+	eButType type;
+	short pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
 
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
@@ -305,7 +305,17 @@ struct uiBlock {
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied to buttons */
 	char auto_open;
-	char _pad[7];
+
+	/* this setting is used so newly opened menu's dont popout the first item under the mouse,
+	 * the reasoning behind this is because of muscle memory for opening menus.
+	 *
+	 * Without this, the first time opening a Submenu and activating an item in it will be 2 steps,
+	 * but the second time the same item is accessed the menu memory would auto activate the
+	 * last used menu and the key intended to select that submenu ends up being passed into the submenu.
+	 * - Campbell
+	 */
+	char auto_is_first_event;
+	char _pad[6];
 	double auto_open_last;
 
 	const char *lockstr;
@@ -316,7 +326,8 @@ struct uiBlock {
 	char endblock;              /* uiEndBlock done? */
 
 	float xofs, yofs;           /* offset to parent button */
-	int dobounds, mx, my;       /* for doing delayed */
+	eBlockBoundsCalc bounds_type;  /* for doing delayed */
+	int mx, my;
 	int bounds, minbounds;      /* for doing delayed */
 
 	rctf safety;                /* pulldowns, to detect outside, can differ per case how it is created */
@@ -529,4 +540,3 @@ int ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);
 
 #endif
-

@@ -92,7 +92,8 @@ typedef struct Mesh {
 	struct MCol *mcol;		
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
-	
+
+	/* When the object is available, the preferred access method is: BMEdit_FromObject(ob) */
 	struct BMEditMesh *edit_btmesh;	/* not saved in file! */
 
 	struct CustomData vdata, edata, fdata;

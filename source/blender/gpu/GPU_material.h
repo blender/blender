@@ -135,6 +135,8 @@ int GPU_material_bound(GPUMaterial *material);
 void GPU_material_vertex_attributes(GPUMaterial *material,
 	struct GPUVertexAttribs *attrib);
 
+int GPU_material_do_color_management(GPUMaterial *mat);
+
 /* Exported shading */
 
 typedef struct GPUShadeInput {

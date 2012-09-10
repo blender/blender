@@ -387,7 +387,7 @@ void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
 
 /* Code generation */
 
-static int gpu_do_color_management(GPUMaterial *mat)
+int GPU_material_do_color_management(GPUMaterial *mat)
 {
 	return ((mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) &&
 	   !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT)));
@@ -1076,7 +1076,7 @@ static void do_material_tex(GPUShadeInput *shi)
 				}
 
 				if (tex->type==TEX_IMAGE)
-					if (gpu_do_color_management(mat))
+					if (GPU_material_do_color_management(mat))
 						GPU_link(mat, "srgb_to_linearrgb", tcol, &tcol);
 				
 				if (mtex->mapto & MAP_COL) {
@@ -1372,7 +1372,7 @@ void GPU_shadeinput_set(GPUMaterial *mat, Material *ma, GPUShadeInput *shi)
 	GPU_link(mat, "set_value", GPU_uniform(&ma->amb), &shi->amb);
 	GPU_link(mat, "shade_view", GPU_builtin(GPU_VIEW_POSITION), &shi->view);
 	GPU_link(mat, "vcol_attribute", GPU_attribute(CD_MCOL, ""), &shi->vcol);
-	if (gpu_do_color_management(mat))
+	if (GPU_material_do_color_management(mat))
 		GPU_link(mat, "srgb_to_linearrgb", shi->vcol, &shi->vcol);
 	GPU_link(mat, "texco_refl", shi->vn, shi->view, &shi->ref);
 }
@@ -1516,12 +1516,9 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 		GPU_material_output_link(mat, outlink);
 	}
 
-	if (!BKE_scene_use_new_shading_nodes(scene)) {
-		if (gpu_do_color_management(mat))
-			if (mat->outlink)
-				GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
-	}
-
+	if (GPU_material_do_color_management(mat))
+		if (mat->outlink)
+			GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
 
 	GPU_material_construct_end(mat);
 

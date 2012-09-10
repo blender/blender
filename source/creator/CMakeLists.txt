@@ -810,7 +810,6 @@ if(WITH_CYCLES)
 		cycles_kernel
 		cycles_util
 		cycles_subd)
-	
 	if(WITH_CYCLES_OSL)
 		list(APPEND BLENDER_LINK_LIBS cycles_kernel_osl)
 	endif()
