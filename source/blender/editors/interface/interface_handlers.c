@@ -6353,7 +6353,16 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 							}
 							
 							if (doit) {
-								ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_APPLY);
+								/* activate buttons but open menu's */
+								uiButtonActivateType activate;
+								if (but->type == PULLDOWN) {
+									activate = BUTTON_ACTIVATE_OPEN;
+								}
+								else {
+									activate = BUTTON_ACTIVATE_APPLY;
+								}
+
+								ui_handle_button_activate(C, ar, but, activate);
 								break;
 							}
 						}
