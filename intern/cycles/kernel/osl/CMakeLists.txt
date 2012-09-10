@@ -43,7 +43,3 @@ include_directories(${INC})
 add_library(cycles_kernel_osl ${SRC} ${HEADER_SRC})
 
 add_subdirectory(nodes)
-
-if(WITH_CYCLES_OSL)
-	target_link_libraries(cycles_kernel_osl ${OSL_LIBRARIES})
-endif()

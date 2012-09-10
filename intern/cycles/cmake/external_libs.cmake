@@ -18,32 +18,6 @@ else()
 endif()
 
 ###########################################################################
-# OpenShadingLanguage
-
-if(WITH_CYCLES_OSL)
-
-	set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
-
-	message(STATUS "CYCLES_OSL = ${CYCLES_OSL}")
-
-	find_library(OSL_LIBRARIES NAMES oslexec oslcomp oslquery PATHS ${CYCLES_OSL}/lib ${CYCLES_OSL}/dist)
-	find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include ${CYCLES_OSL}/dist)
-	find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin ${CYCLES_OSL}/dist)
-
-	if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
-		set(OSL_FOUND TRUE)
-		message(STATUS "OSL includes = ${OSL_INCLUDES}")
-		message(STATUS "OSL library = ${OSL_LIBRARIES}")
-		message(STATUS "OSL compiler = ${OSL_COMPILER}")
-	else()
-		message(STATUS "OSL not found")
-	endif()
-
-	include_directories(${OSL_INCLUDES} ${OSL_INCLUDES}/OSL ${OSL_INCLUDES}/../../../src/liboslexec)
-
-endif()
-
-###########################################################################
 # Partio
 
 if(WITH_CYCLES_PARTIO)
