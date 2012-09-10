@@ -145,8 +145,8 @@ typedef struct FontBufInfoBLF {
 	/* number of channels. */
 	int ch;
 
-	/* is the float buffer linear */
-	int do_color_management;
+	/* display device used for color management */
+	struct ColorManagedDisplay *display;
 
 	/* and the color, the alphas is get from the glyph!
 	 * color is srgb space */

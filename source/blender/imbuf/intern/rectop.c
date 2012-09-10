@@ -42,6 +42,7 @@
 #include "IMB_imbuf.h"
 
 #include "IMB_allocimbuf.h"
+#include "IMB_colormanagement.h"
 
 
 /* blend modes */
@@ -486,7 +487,7 @@ void IMB_rectfill(struct ImBuf *drect, const float col[4])
 
 
 void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
-					   const float col[4], const int do_color_management,
+					   const float col[4], struct ColorManagedDisplay *display,
 					   int x1, int y1, int x2, int y2)
 {
 	int i, j;
@@ -553,11 +554,12 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 		float col_conv[4];
 		float *pixel;
 
-		if (do_color_management) {
-			srgb_to_linearrgb_v4(col_conv, col);
+		if (display) {
+			copy_v4_v4(col_conv, col);
+			IMB_colormanagement_display_to_scene_linear_v3(col_conv, display);
 		}
 		else {
-			copy_v4_v4(col_conv, col);
+			srgb_to_linearrgb_v4(col_conv, col);
 		}
 
 		for (j = 0; j < y2 - y1; j++) {
@@ -581,12 +583,10 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 	}
 }
 
-void IMB_rectfill_area(struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2)
+void IMB_rectfill_area(struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2, struct ColorManagedDisplay *display)
 {
-	int do_color_management;
 	if (!ibuf) return;
-	do_color_management = (ibuf->profile == IB_PROFILE_LINEAR_RGB);
-	buf_rectfill_area((unsigned char *) ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, col, do_color_management,
+	buf_rectfill_area((unsigned char *) ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, col, display,
 					  x1, y1, x2, y2);
 }
 

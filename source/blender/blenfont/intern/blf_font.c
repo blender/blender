@@ -53,6 +53,8 @@
 #include "BIF_gl.h"
 #include "BLF_api.h"
 
+#include "IMB_colormanagement.h"
+
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
@@ -245,11 +247,12 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	blf_font_ensure_ascii_table(font);
 
 	/* another buffer specific call for color conversion */
-	if (buf_info->do_color_management) {
-		srgb_to_linearrgb_v4(b_col_float, buf_info->col);
+	if (buf_info->display) {
+		copy_v4_v4(b_col_float, buf_info->col);
+		IMB_colormanagement_display_to_scene_linear_v3(b_col_float, buf_info->display);
 	}
 	else {
-		copy_v4_v4(b_col_float, buf_info->col);
+		srgb_to_linearrgb_v4(b_col_float, buf_info->col);
 	}
 
 	while (str[i]) {

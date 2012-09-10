@@ -82,6 +82,8 @@ struct ImBuf;
  */
 struct anim;
 
+struct ColorManagedDisplay;
+
 /**
  *
  * \attention Defined in allocimbuf.c
@@ -478,12 +480,12 @@ void IMB_freezbuffloatImBuf(struct ImBuf *ibuf);
  * \attention Defined in rectop.c
  */
 void IMB_rectfill(struct ImBuf *drect, const float col[4]);
-void IMB_rectfill_area(struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2);
+void IMB_rectfill_area(struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2, struct ColorManagedDisplay *display);
 void IMB_rectfill_alpha(struct ImBuf *ibuf, const float value);
 
 /* this should not be here, really, we needed it for operating on render data, IMB_rectfill_area calls it */
 void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
-                       const float col[4], const int do_color_management,
+                       const float col[4], struct ColorManagedDisplay *display,
                        int x1, int y1, int x2, int y2);
 
 /* defined in metadata.c */

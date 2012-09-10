@@ -1505,18 +1505,20 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	int x, y, y_ofs;
 	float h_fixed;
 	const int mono = blf_mono_font_render; // XXX
+	struct ColorManagedDisplay *display;
+	const char *display_device;
 
 	/* this could be an argument if we want to operate on non linear float imbuf's
 	 * for now though this is only used for renders which use scene settings */
-
-	/* OCIO_TODO: for now harcode sRGB to linearrgb conversion, need to be fixed ASAP */
-	const int do_color_management = TRUE;
 
 #define BUFF_MARGIN_X 2
 #define BUFF_MARGIN_Y 1
 
 	if (!rect && !rectf)
 		return;
+
+	display_device = scene->display_settings.display_device;
+	display = IMB_colormanagement_display_get_named(display_device);
 
 	stampdata(scene, camera, &stamp_data, 1);
 
@@ -1527,7 +1529,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	/* set before return */
 	BLF_size(mono, scene->r.stamp_font_id, 72);
 
-	BLF_buffer(mono, rectf, rect, width, height, channels, do_color_management);
+	BLF_buffer(mono, rectf, rect, width, height, channels, display);
 	BLF_buffer_col(mono, scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
 	pad = BLF_width_max(mono);
 
@@ -1544,7 +1546,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* also a little of space to the background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		/* and draw the text. */
@@ -1561,7 +1563,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1577,7 +1579,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1593,7 +1595,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1608,7 +1610,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.marker, &w, &h); h = h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp,  do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp,  display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		/* and pad the text. */
@@ -1624,7 +1626,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.time, &w, &h); h = h_fixed;
 
 		/* extra space for background */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		/* and pad the text. */
@@ -1639,7 +1641,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.frame, &w, &h); h = h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		/* and pad the text. */
@@ -1654,7 +1656,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.camera, &w, &h); h = h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.camera);
@@ -1667,7 +1669,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.cameralens, &w, &h); h = h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.cameralens);
@@ -1680,7 +1682,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		x = width - w - 2;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		/* and pad the text. */
@@ -1696,7 +1698,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y = height - h;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
