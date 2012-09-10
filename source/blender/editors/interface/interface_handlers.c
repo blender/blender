@@ -5856,6 +5856,9 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 					}
 				}
 
+				if (but->type != COL) {  /* exception */
+					data->cancel = 1;
+				}
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				break;
 			}
