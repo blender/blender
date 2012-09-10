@@ -69,6 +69,7 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_colormanagement.h"
 
 #include "GPU_draw.h" /* GPU_free_image */
 
@@ -685,7 +686,7 @@ static void apply_heights_data(void *bake_data)
 		}
 	}
 
-	ibuf->userflags = IB_RECT_INVALID;
+	ibuf->userflags = IB_RECT_INVALID | IB_DISPLAY_BUFFER_INVALID;
 }
 
 static void free_heights_data(void *bake_data)
@@ -769,6 +770,8 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 		char *rrgb = (char *)ibuf->rect + pixel * 4;
 		rrgb[3] = 255;
 	}
+
+	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 }
 
 /* MultiresBake callback for normals' baking
@@ -826,6 +829,8 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 		rgb_float_to_uchar(rrgb, vec);
 		rrgb[3] = 255;
 	}
+
+	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 }
 
 static void count_images(MultiresBakeRender *bkr)
@@ -895,7 +900,7 @@ static void finish_images(MultiresBakeRender *bkr)
 
 		RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, bkr->bake_filter);
 
-		ibuf->userflags |= IB_BITMAPDIRTY;
+		ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;;
 
 		if (ibuf->rect_float)
 			ibuf->userflags |= IB_RECT_INVALID;
@@ -1366,6 +1371,7 @@ static void finish_bake_internal(BakeRender *bkr)
 				ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
 				if (ibuf) {
 					if (ibuf->userflags & IB_BITMAPDIRTY) {
+						ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 						GPU_free_image(ima);
 						imb_freemipmapImBuf(ibuf);
 					}

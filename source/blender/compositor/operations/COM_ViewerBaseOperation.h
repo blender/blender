@@ -30,7 +30,6 @@ class ViewerBaseOperation : public NodeOperation {
 protected:
 	float *m_outputBuffer;
 	float *m_depthBuffer;
-	unsigned char *m_outputBufferDisplay;
 	Image *m_image;
 	ImageUser *m_imageUser;
 	void *m_lock;
@@ -38,10 +37,11 @@ protected:
 	float m_centerX;
 	float m_centerY;
 	OrderOfChunks m_chunkOrder;
-	bool m_doColorManagement;
-	bool m_doColorPredivide;
 	bool m_doDepthBuffer;
 	ImBuf *m_ibuf;
+
+	const ColorManagedViewSettings *m_viewSettings;
+	const ColorManagedDisplaySettings *m_displaySettings;
 
 public:
 	bool isOutputOperation(bool rendering) const { return isActiveViewerOutput(); }
@@ -58,10 +58,10 @@ public:
 	float getCenterY() { return this->m_centerY; }
 	OrderOfChunks getChunkOrder() { return this->m_chunkOrder; }
 	const CompositorPriority getRenderPriority() const;
-	void setColorManagement(bool doColorManagement) { this->m_doColorManagement = doColorManagement; }
-	void setColorPredivide(bool doColorPredivide) { this->m_doColorPredivide = doColorPredivide; }
 	bool isViewerOperation() { return true; }
-		
+
+	void setViewSettings(const ColorManagedViewSettings *viewSettings) { this->m_viewSettings = viewSettings; }
+	void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings) { this->m_displaySettings = displaySettings; }
 protected:
 	ViewerBaseOperation();
 	void updateImage(rcti *rect);

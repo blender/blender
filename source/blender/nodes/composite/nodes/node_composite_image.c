@@ -290,6 +290,9 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 
 	*alloc= FALSE;
 
+	/* OCIO_TODO: this is a part of legacy compositor system, don't bother with porting this code
+	 *            to new color management system since this code would likely be simply removed soon
+	 */
 	if (rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
 		if (ibuf->profile != IB_PROFILE_NONE) {
 			rect= ibuf->rect_float;

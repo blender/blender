@@ -25,6 +25,7 @@ class ExecutionGroup;
 #ifndef _COM_ExecutionSystem_h
 #define _COM_ExecutionSystem_h
 
+#include "DNA_color_types.h"
 #include "DNA_node_types.h"
 #include <vector>
 #include "COM_Node.h"
@@ -156,7 +157,8 @@ public:
 	 * @param editingtree [bNodeTree *]
 	 * @param rendering [true false]
 	 */
-	ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation);
+	ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation,
+	                const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
 
 	/**
 	 * Destructor

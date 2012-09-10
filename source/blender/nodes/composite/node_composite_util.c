@@ -606,6 +606,9 @@ static CompBuf *generate_procedural_preview(CompBuf *cbuf, int newx, int newy)
 	return outbuf;
 }
 
+/* OCIO_TODO: this function is only used by legacy compositor system only, which would likely be removed soon,
+ *            keep check for old color management flag for now
+ */
 void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 {
 	RenderData *rd= data;

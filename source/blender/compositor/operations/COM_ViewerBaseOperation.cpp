@@ -44,10 +44,10 @@ ViewerBaseOperation::ViewerBaseOperation() : NodeOperation()
 	this->setImageUser(NULL);
 	this->m_outputBuffer = NULL;
 	this->m_depthBuffer = NULL;
-	this->m_outputBufferDisplay = NULL;
 	this->m_active = false;
-	this->m_doColorManagement = true;
 	this->m_doDepthBuffer = false;
+	this->m_viewSettings = NULL;
+	this->m_displaySettings = NULL;
 }
 
 void ViewerBaseOperation::initExecution()
@@ -71,11 +71,10 @@ void ViewerBaseOperation::initImage()
 		IMB_freezbuffloatImBuf(ibuf);
 		ibuf->x = getWidth();
 		ibuf->y = getHeight();
-		imb_addrectImBuf(ibuf);
 		imb_addrectfloatImBuf(ibuf);
 		anImage->ok = IMA_OK_LOADED;
 
-		IMB_display_buffer_invalidate(ibuf);
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
 		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 	}
@@ -88,7 +87,6 @@ void ViewerBaseOperation::initImage()
 
 	/* now we combine the input with ibuf */
 	this->m_outputBuffer = ibuf->rect_float;
-	this->m_outputBufferDisplay = (unsigned char *)ibuf->rect;
 
 	/* needed for display buffer update
 	 *
@@ -107,7 +105,8 @@ void ViewerBaseOperation::initImage()
 }
 void ViewerBaseOperation:: updateImage(rcti *rect)
 {
-	IMB_partial_display_buffer_update(this->m_ibuf, this->m_outputBuffer, getWidth(), 0, 0,
+	IMB_partial_display_buffer_update(this->m_ibuf, this->m_outputBuffer, NULL, getWidth(), 0, 0,
+	                                  this->m_viewSettings, this->m_displaySettings,
 	                                  rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);

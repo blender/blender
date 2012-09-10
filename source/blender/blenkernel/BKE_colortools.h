@@ -92,8 +92,11 @@ void                curvemapping_do_ibuf(struct CurveMapping *cumap, struct ImBu
 void                curvemapping_premultiply(struct CurveMapping *cumap, int restore);
 
 
-void                BKE_histogram_update_sample_line(struct Histogram *hist, struct ImBuf *ibuf, const short use_color_management);
-void                scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, int use_color_management);
+void                BKE_histogram_update_sample_line(struct Histogram *hist, struct ImBuf *ibuf,
+                                                     const struct ColorManagedViewSettings *view_settings,
+                                                     const struct ColorManagedDisplaySettings *display_settings);
+void                scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
+                                  const struct ColorManagedDisplaySettings *display_settings);
 void                scopes_free(struct Scopes *scopes);
 void                scopes_new(struct Scopes *scopes);
 

@@ -267,6 +267,9 @@ static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack
 			ibuf->rect_float = cbuf->rect;
 			ibuf->dither = rd->dither_intensity;
 			
+			/* OCIO_TODO: this is a part of legacy compositor, which likely would be removed before next release
+			 *            keep old color management flag untouched for now
+			 */
 			if (rd->color_mgt_flag & R_COLOR_MANAGEMENT)
 				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 			

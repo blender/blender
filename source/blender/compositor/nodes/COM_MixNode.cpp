@@ -128,7 +128,7 @@ void MixNode::convertToOperations(ExecutionSystem *graph, CompositorContext *con
 	color1Socket->relinkConnections(convertProg->getInputSocket(1), 1, graph);
 	color2Socket->relinkConnections(convertProg->getInputSocket(2), 2, graph);
 	outputSocket->relinkConnections(convertProg->getOutputSocket(0));
-	addPreviewOperation(graph, convertProg->getOutputSocket(0));
+	addPreviewOperation(graph, context, convertProg->getOutputSocket(0));
 	
 	convertProg->getInputSocket(2)->setResizeMode(color2Socket->getResizeMode());
 	

@@ -998,7 +998,8 @@ static void save_sample_line(Scopes *scopes, const int idx, const float fx, cons
 	}
 }
 
-void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const short use_color_management)
+void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
+                                      const ColorManagedDisplaySettings *display_settings)
 {
 	int i, x, y;
 	float *fp;
@@ -1010,12 +1011,17 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const short 
 	int y1 = 0.5f + hist->co[0][1] * ibuf->y;
 	int y2 = 0.5f + hist->co[1][1] * ibuf->y;
 
+	struct ColormanageProcessor *cm_processor = NULL;
+
 	hist->channels = 3;
 	hist->x_resolution = 256;
 	hist->xmax = 1.0f;
 	/* hist->ymax = 1.0f; */ /* now do this on the operator _only_ */
 
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return;
+
+	if (ibuf->rect_float)
+		cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
 
 	/* persistent draw */
 	hist->flag |= HISTO_FLAG_SAMPLELINE; /* keep drawing the flag after */
@@ -1031,10 +1037,8 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const short 
 			if (ibuf->rect_float) {
 				fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
 
-				if (use_color_management)
-					linearrgb_to_srgb_v3_v3(rgb, fp);
-				else
-					copy_v3_v3(rgb, fp);
+				copy_v3_v3(rgb, fp);
+				IMB_colormanagement_processor_apply_v3(cm_processor, rgb);
 
 				hist->data_luma[i]  = rgb_to_luma(rgb);
 				hist->data_r[i]     = rgb[0];
@@ -1052,9 +1056,13 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const short 
 			}
 		}
 	}
+
+	if (cm_processor)
+		IMB_colormanagement_processor_free(cm_processor);
 }
 
-void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
+void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
+                   const ColorManagedDisplaySettings *display_settings)
 {
 	int x, y, c;
 	unsigned int n, nl;
@@ -1066,6 +1074,8 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	float rgba[4], ycc[3], luma;
 	int ycc_mode = -1;
 	const short is_float = (ibuf->rect_float != NULL);
+
+	struct ColormanageProcessor *cm_processor = NULL;
 
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return;
 
@@ -1136,6 +1146,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	else
 		rc = (unsigned char *)ibuf->rect;
 
+	if (ibuf->rect_float)
+		cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
+
 	for (y = 0; y < ibuf->y; y++) {
 		if (savedlines < scopes->sample_lines && y >= ((savedlines) * ibuf->y) / (scopes->sample_lines + 1)) {
 			saveline = 1;
@@ -1146,11 +1159,8 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 		for (x = 0; x < ibuf->x; x++) {
 
 			if (is_float) {
-				if (use_color_management)
-					linearrgb_to_srgb_v3_v3(rgba, rf);
-				else
-					copy_v3_v3(rgba, rf);
-				rgba[3] = rf[3];
+				copy_v4_v4(rgba, rf);
+				IMB_colormanagement_processor_apply_v4(cm_processor, rgba);
 			}
 			else {
 				for (c = 0; c < 4; c++)
@@ -1220,6 +1230,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	MEM_freeN(bin_g);
 	MEM_freeN(bin_b);
 	MEM_freeN(bin_a);
+
+	if (cm_processor)
+		IMB_colormanagement_processor_free(cm_processor);
 
 	scopes->ok = 1;
 }

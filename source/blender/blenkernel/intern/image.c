@@ -301,6 +301,12 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 		else
 			ibuf->flags &= ~IB_cm_predivide;
 
+		if (ima->source == IMA_SRC_GENERATED) {
+			/* for other image types spaces are set by image_initialize_after_load */
+
+			IMB_colormanagement_imbuf_assign_spaces(ibuf, &ima->colorspace_settings);
+		}
+
 		/* this function accepts (link == NULL) */
 		BLI_insertlinkbefore(&ima->ibufs, link, ibuf);
 
@@ -1499,7 +1505,9 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 
 	/* this could be an argument if we want to operate on non linear float imbuf's
 	 * for now though this is only used for renders which use scene settings */
-	const int do_color_management = (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) != 0;
+
+	/* OCIO_TODO: for now harcode sRGB to linearrgb conversion, need to be fixed ASAP */
+	const int do_color_management = TRUE;
 
 #define BUFF_MARGIN_X 2
 #define BUFF_MARGIN_Y 1
@@ -2586,7 +2594,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	/* invalidate color managed buffers if render result changed */
 	BLI_lock_thread(LOCK_COLORMANAGE);
 	if (ibuf->x != rres.rectx || ibuf->y != rres.recty || ibuf->rect_float != rectf) {
-		IMB_display_buffer_invalidate(ibuf);
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 	}
 
 	ibuf->x = rres.rectx;
@@ -2626,8 +2634,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 
 	BLI_unlock_thread(LOCK_COLORMANAGE);
 
-	/* since its possible to access the buffer from the image directly, set the profile [#25073] */
-	ibuf->profile = (iuser->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_NONE;
+	ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	ibuf->dither = dither;
 
 	if (iuser->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE) {

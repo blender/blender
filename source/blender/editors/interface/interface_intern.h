@@ -342,7 +342,12 @@ struct uiBlock {
 
 	struct UnitSettings *unit;  /* unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time. */
 	float _hsv[3];              /* XXX, only access via ui_block_hsv_get() */
+
 	char color_profile;         /* color profile for correcting linear colors for display */
+
+	char *display_device;       /* display devide name used to display this block,
+	                             * used by color widgets to transform colors from/to scene linear
+	                             */
 };
 
 typedef struct uiSafetyRct {
@@ -391,6 +396,10 @@ extern int  ui_is_but_utf8(uiBut *but);
 extern void ui_bounds_block(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);
 extern void ui_block_do_align(uiBlock *block);
+
+extern struct ColorManagedDisplay *ui_block_display_get(uiBlock *block);
+void ui_block_to_display_space_v3(uiBlock *block, float pixel[3]);
+void ui_block_to_scene_linear_v3(uiBlock *block, float pixel[3]);
 
 /* interface_regions.c */
 

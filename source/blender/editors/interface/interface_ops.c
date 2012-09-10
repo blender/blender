@@ -58,6 +58,8 @@
 
 #include "UI_interface.h"
 
+#include "IMB_colormanagement.h"
+
 #include "interface_intern.h"
 
 #include "WM_api.h"
@@ -75,7 +77,7 @@
 /* ********************************************************** */
 
 typedef struct Eyedropper {
-	short do_color_management;
+	struct ColorManagedDisplay *display;
 
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -89,8 +91,6 @@ typedef struct Eyedropper {
 static int eyedropper_init(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	const int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
-
 	Eyedropper *eye;
 	
 	op->customdata = eye = MEM_callocN(sizeof(Eyedropper), "Eyedropper");
@@ -106,7 +106,12 @@ static int eyedropper_init(bContext *C, wmOperator *op)
 		return FALSE;
 	}
 
-	eye->do_color_management = (color_manage && RNA_property_subtype(eye->prop) == PROP_COLOR);
+	if (RNA_property_subtype(eye->prop) == PROP_COLOR) {
+		const char *display_device;
+
+		display_device = scene->display_settings.display_device;
+		eye->display = IMB_colormanagement_display_get_named(display_device);
+	}
 
 	return TRUE;
 }
@@ -194,9 +199,10 @@ static void eyedropper_color_set(bContext *C, Eyedropper *eye, const float col[3
 	/* to maintain alpha */
 	RNA_property_float_get_array(&eye->ptr, eye->prop, col_conv);
 
-	/* convert from screen (srgb) space to linear rgb space */
-	if (eye->do_color_management) {
-		srgb_to_linearrgb_v3_v3(col_conv, col);
+	/* convert from display space to linear rgb space */
+	if (eye->display) {
+		copy_v3_v3(col_conv, col);
+		IMB_colormanagement_display_to_scene_linear_v3(col_conv, eye->display);
 	}
 	else {
 		copy_v3_v3(col_conv, col);

@@ -39,10 +39,12 @@ extern "C" {
 
 
 #ifndef OCIO_CAPI_IMPLEMENTATION
-	#define OCIO_ROLE_SCENE_LINEAR	"scene_linear"
-	#define OCIO_ROLE_COLOR_PICKING	"color_picking"
-	#define OCIO_ROLE_TEXTURE_PAINT	"texture_paint"
-	#define OCIO_ROLE_SEQUENCER	"sequencer"
+	#define OCIO_ROLE_SCENE_LINEAR       "scene_linear"
+	#define OCIO_ROLE_COLOR_PICKING      "color_picking"
+	#define OCIO_ROLE_TEXTURE_PAINT      "texture_paint"
+	#define OCIO_ROLE_DEFAULT_BYTE       "default_byte"
+	#define OCIO_ROLE_DEFAULT_FLOAT      "default_float"
+	#define OCIO_ROLE_DEFAULT_SEQUENCER  "default_sequencer"
 
 	OCIO_DECLARE_HANDLE(ConstConfigRcPtr);
 	OCIO_DECLARE_HANDLE(ConstColorSpaceRcPtr);

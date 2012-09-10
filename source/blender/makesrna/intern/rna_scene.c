@@ -1093,34 +1093,6 @@ static void rna_Scene_glsl_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 	DAG_id_tag_update(&scene->id, 0);
 }
 
-static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	/* reset image nodes */
-	Scene *scene = (Scene *)ptr->id.data;
-	bNodeTree *ntree = scene->nodetree;
-	bNode *node;
-	
-	if (ntree && scene->use_nodes) {
-		/* images are freed here, stop render and preview threads, until
-		 * Image is threadsafe. when we are changing this property from a
-		 * python script in the render thread, don't stop own thread */
-		if (BLI_thread_is_main())
-			WM_jobs_stop_all(bmain->wm.first);
-		
-		for (node = ntree->nodes.first; node; node = node->next) {
-			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_IMAGE)) {
-				ED_node_changed_update(&scene->id, node);
-				WM_main_add_notifier(NC_NODE | NA_EDITED, node);
-				
-				if (node->type == CMP_NODE_IMAGE)
-					BKE_image_signal((Image *)node->id, NULL, IMA_SIGNAL_FREE);
-			}
-		}
-	}
-
-	rna_Scene_glsl_update(bmain, scene, ptr);
-}
-
 static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
@@ -3709,11 +3681,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	                         "editor pipeline, if sequencer strips exist");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
-	prop = RNA_def_property(srna, "use_color_management", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "color_mgt_flag", R_COLOR_MANAGEMENT);
-	RNA_def_property_ui_text(prop, "Color Management", "Use linear workflow - gamma corrected imaging pipeline");
-	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_RenderSettings_color_management_update");
-	
 	prop = RNA_def_property(srna, "use_color_unpremultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "color_mgt_flag", R_COLOR_MANAGEMENT_PREDIVIDE);
 	RNA_def_property_ui_text(prop, "Color Unpremultiply",
@@ -4595,6 +4562,11 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "display_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedDisplaySettings");
 	RNA_def_property_ui_text(prop, "Display Settings", "Settings of device saved image would be displayed on");
+
+	prop = RNA_def_property(srna, "sequencer_colorspace_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "sequencer_colorspace_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedColorspaceSettings");
+	RNA_def_property_ui_text(prop, "Sequencer Colorspace Settings", "Settings of color space sequencer is working in");
 
 	/* Nestled Data  */
 	rna_def_tool_settings(brna);

@@ -334,7 +334,7 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 	RenderResult rres;
 	
 	RE_AcquireResultImage(re, &rres);
-	render_result_rect_get_pixels(&rres, &re->r, rect, re->rectx, re->recty);
+	render_result_rect_get_pixels(&rres, &re->r, rect, re->rectx, re->recty, &re->scene->view_settings, &re->scene->display_settings);
 	RE_ReleaseResultImage(re);
 }
 
@@ -1435,7 +1435,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			ntreeCompositTagRender(re->scene);
 			ntreeCompositTagAnimated(ntree);
 			
-			ntreeCompositExecTree(ntree, &re->r, 1, G.background == 0);
+			ntreeCompositExecTree(ntree, &re->r, 1, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
 		}
 		
 		/* ensure we get either composited result or the active layer */
@@ -1599,7 +1599,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				if (re->r.scemode & R_FULL_SAMPLE)
 					do_merge_fullsample(re, ntree);
 				else {
-					ntreeCompositExecTree(ntree, &re->r, 1, G.background == 0);
+					ntreeCompositExecTree(ntree, &re->r, 1, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
 				}
 				
 				ntree->stats_draw = NULL;
@@ -1679,7 +1679,7 @@ static void do_render_seq(Render *re)
 
 	ibuf = IMB_dupImBuf(out);
 	IMB_freeImBuf(out);
-	IMB_colormanagement_imbuf_from_sequencer_space(ibuf);
+	BKE_sequencer_imbuf_from_sequencer_space(re->scene, ibuf);
 
 	recurs_depth--;
 
@@ -2500,8 +2500,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 		return 0;
 	}
 
-	if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-		ibuf->profile = IB_PROFILE_LINEAR_RGB;
+	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->view_settings, &scene->display_settings);
 
 	/* to save, we first get absolute path */
 	BLI_strncpy(filepath, relpath, sizeof(filepath));

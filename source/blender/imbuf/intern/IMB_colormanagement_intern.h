@@ -35,11 +35,16 @@
 
 #define BCM_CONFIG_FILE "config.ocio"
 
+struct ConstProcessorRcPtr;
+
 typedef struct ColorSpace {
 	struct ColorSpace *next, *prev;
 	int index;
 	char name[64];
 	char description[64];
+
+	struct ConstProcessorRcPtr *to_scene_linear;
+	struct ConstProcessorRcPtr *from_scene_linear;
 } ColorSpace;
 
 typedef struct ColorManagedDisplay {
@@ -47,6 +52,9 @@ typedef struct ColorManagedDisplay {
 	int index;
 	char name[64];
 	ListBase views;
+
+	struct ConstProcessorRcPtr *to_scene_linear;
+	struct ConstProcessorRcPtr *from_scene_linear;
 } ColorManagedDisplay;
 
 typedef struct ColorManagedView {
@@ -55,11 +63,14 @@ typedef struct ColorManagedView {
 	char name[64];
 } ColorManagedView;
 
+void colormanage_cache_free(struct ImBuf *ibuf);
+
 struct ColorManagedDisplay *colormanage_display_get_default(void);
 struct ColorManagedDisplay *colormanage_display_add(const char *name);
 struct ColorManagedDisplay *colormanage_display_get_named(const char *name);
 struct ColorManagedDisplay *colormanage_display_get_indexed(int index);
 
+const char *colormanage_view_get_default_name(const ColorManagedDisplay *display);
 struct ColorManagedView *colormanage_view_get_default(const ColorManagedDisplay *display);
 struct ColorManagedView *colormanage_view_add(const char *name);
 struct ColorManagedView *colormanage_view_get_indexed(int index);
@@ -69,4 +80,4 @@ struct ColorSpace *colormanage_colorspace_add(const char *name, const char *desc
 struct ColorSpace *colormanage_colorspace_get_named(const char *name);
 struct ColorSpace *colormanage_colorspace_get_indexed(int index);
 
-#endif // IMB_COLORMANAGEMENT_INTERN_H
+#endif  /* IMB_COLORMANAGEMENT_INTERN_H */

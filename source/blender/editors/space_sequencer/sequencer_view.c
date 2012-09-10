@@ -146,7 +146,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 			info->colfp = info->colf;
 
 			/* sequencer's image buffers are in non-linear space, need to make them linear */
-			IMB_colormanagement_pixel_from_sequencer_space(info->colf);
+			BKE_sequencer_pixel_from_sequencer_space_v4(scene, info->colf);
 
 			info->color_manage = TRUE;
 		}

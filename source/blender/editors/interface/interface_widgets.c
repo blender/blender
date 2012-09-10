@@ -1872,7 +1872,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	int color_profile = but->block->color_profile;
 	
 	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-		color_profile = BLI_PR_NONE;
+		color_profile = FALSE;
 	
 	radstep = 2.0f * (float)M_PI / (float)tot;
 	centx = BLI_RCT_CENTER_X_FL(rect);
@@ -1894,8 +1894,10 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	 * Useful for color correction tools where you're only interested in hue. */
 	if (but->flag & UI_BUT_COLOR_LOCK)
 		hsv[2] = 1.f;
-	else if (color_profile)
+	else if (color_profile) {
+		/* OCIO_TODO: how to handle this situation? */
 		hsv[2] = linearrgb_to_srgb(hsv[2]);
+	}
 	
 	hsv_to_rgb(0.f, 0.f, hsv[2], colcent, colcent + 1, colcent + 2);
 	
@@ -2137,14 +2139,16 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	int color_profile = but->block->color_profile;
 	
 	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-		color_profile = BLI_PR_NONE;
+		color_profile = FALSE;
 
 	ui_get_but_vectorf(but, rgb);
 	rgb_to_hsv_v(rgb, hsv);
 	v = hsv[2];
 	
-	if (color_profile)
+	if (color_profile) {
+		/* OCIO_TODO: how to handle this situation? */
 		v = linearrgb_to_srgb(v);
+	}
 
 	/* map v from property range to [0,1] */
 	range = but->softmax - but->softmin;
@@ -2529,7 +2533,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-			color_profile = BLI_PR_NONE;
+			color_profile = FALSE;
 
 		if (RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4) {
 			col[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
@@ -2557,7 +2561,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	}
 	
 	if (color_profile)
-		linearrgb_to_srgb_v3_v3(col, col);
+		ui_block_to_display_space_v3(but->block, col);
 	
 	rgba_float_to_uchar((unsigned char *)wcol->inner, col);
 

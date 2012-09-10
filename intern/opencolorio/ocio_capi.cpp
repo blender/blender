@@ -28,6 +28,7 @@
 
 #include <OpenColorIO/OpenColorIO.h>
 
+#include "MEM_guardedalloc.h"
 
 #define OCIO_CAPI_IMPLEMENTATION
 #include "ocio_capi.h"
@@ -38,6 +39,13 @@
 #  include <stdlib.h>
 #  define OCIO_abort() abort()
 #endif
+
+#if defined(_MSC_VER)
+#  define __func__ __FUNCTION__
+#endif
+
+#define MEM_NEW(type) new(MEM_mallocN(sizeof(type), __func__)) type()
+#define MEM_DELETE(what, type) { what->~type(); MEM_freeN(what); } (void)0
 
 static void OCIO_reportError(const char *err)
 {
@@ -53,7 +61,8 @@ static void OCIO_reportException(Exception &exception)
 
 ConstConfigRcPtr *OCIO_getCurrentConfig(void)
 {
-	ConstConfigRcPtr *config =  new ConstConfigRcPtr();
+	ConstConfigRcPtr *config = MEM_NEW(ConstConfigRcPtr);
+
 	try {
 		*config = GetCurrentConfig();
 
@@ -79,7 +88,7 @@ void OCIO_setCurrentConfig(const ConstConfigRcPtr *config)
 
 ConstConfigRcPtr *OCIO_configCreateFromEnv(void)
 {
-	ConstConfigRcPtr *config =  new ConstConfigRcPtr();
+	ConstConfigRcPtr *config = MEM_NEW(ConstConfigRcPtr);
 
 	try {
 		*config = Config::CreateFromEnv();
@@ -97,7 +106,7 @@ ConstConfigRcPtr *OCIO_configCreateFromEnv(void)
 
 ConstConfigRcPtr *OCIO_configCreateFromFile(const char *filename)
 {
-	ConstConfigRcPtr *config =  new ConstConfigRcPtr();
+	ConstConfigRcPtr *config = MEM_NEW(ConstConfigRcPtr);
 
 	try {
 		*config = Config::CreateFromFile(filename);
@@ -114,7 +123,7 @@ ConstConfigRcPtr *OCIO_configCreateFromFile(const char *filename)
 
 void OCIO_configRelease(ConstConfigRcPtr *config)
 {
-	delete config;
+	MEM_DELETE(config, ConstConfigRcPtr);
 }
 
 int OCIO_configGetNumColorSpaces(ConstConfigRcPtr *config)
@@ -143,7 +152,7 @@ const char *OCIO_configGetColorSpaceNameByIndex(ConstConfigRcPtr *config, int in
 
 ConstColorSpaceRcPtr *OCIO_configGetColorSpace(ConstConfigRcPtr *config, const char *name)
 {
-	ConstColorSpaceRcPtr *cs =  new ConstColorSpaceRcPtr();
+	ConstColorSpaceRcPtr *cs = MEM_NEW(ConstColorSpaceRcPtr);
 
 	try {
 		*cs = (*config)->getColorSpace(name);
@@ -153,7 +162,7 @@ ConstColorSpaceRcPtr *OCIO_configGetColorSpace(ConstConfigRcPtr *config, const c
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
-		delete cs;
+		MEM_DELETE(cs, ConstColorSpaceRcPtr);
 	}
 
 	return NULL;
@@ -257,12 +266,12 @@ const char *OCIO_configGetDisplayColorSpaceName(ConstConfigRcPtr *config, const 
 
 void OCIO_colorSpaceRelease(ConstColorSpaceRcPtr *cs)
 {
-	delete cs;
+	MEM_DELETE(cs, ConstColorSpaceRcPtr);
 }
 
 ConstProcessorRcPtr *OCIO_configGetProcessorWithNames(ConstConfigRcPtr *config, const char *srcName, const char *dstName)
 {
-	ConstProcessorRcPtr *p =  new ConstProcessorRcPtr();
+	ConstProcessorRcPtr *p = MEM_NEW(ConstProcessorRcPtr);
 
 	try {
 		*p = (*config)->getProcessor(srcName, dstName);
@@ -279,7 +288,7 @@ ConstProcessorRcPtr *OCIO_configGetProcessorWithNames(ConstConfigRcPtr *config, 
 
 ConstProcessorRcPtr *OCIO_configGetProcessor(ConstConfigRcPtr *config, ConstTransformRcPtr *transform)
 {
-	ConstProcessorRcPtr *p =  new ConstProcessorRcPtr();
+	ConstProcessorRcPtr *p = MEM_NEW(ConstProcessorRcPtr);
 
 	try {
 		*p = (*config)->getProcessor(*transform);
@@ -367,7 +376,8 @@ void OCIO_processorApplyRGBA_predivide(ConstProcessorRcPtr *processor, float *pi
 
 void OCIO_processorRelease(ConstProcessorRcPtr *p)
 {
-	delete p;
+	p->~ConstProcessorRcPtr();
+	MEM_freeN(p);
 }
 
 const char *OCIO_colorSpaceGetName(ConstColorSpaceRcPtr *cs)
@@ -387,7 +397,7 @@ const char *OCIO_colorSpaceGetFamily(ConstColorSpaceRcPtr *cs)
 
 DisplayTransformRcPtr *OCIO_createDisplayTransform(void)
 {
-	DisplayTransformRcPtr *dt =  new DisplayTransformRcPtr();
+	DisplayTransformRcPtr *dt = MEM_NEW(DisplayTransformRcPtr);
 
 	*dt = DisplayTransform::Create();
 
@@ -421,15 +431,15 @@ void OCIO_displayTransformSetLinearCC(DisplayTransformRcPtr *dt, ConstTransformR
 
 void OCIO_displayTransformRelease(DisplayTransformRcPtr *dt)
 {
-	delete dt;
-	dt = NULL;
+	MEM_DELETE(dt, DisplayTransformRcPtr);
 }
 
 PackedImageDesc *OCIO_createPackedImageDesc(float *data, long width, long height, long numChannels,
-											long chanStrideBytes, long xStrideBytes, long yStrideBytes)
+                                            long chanStrideBytes, long xStrideBytes, long yStrideBytes)
 {
 	try {
-		PackedImageDesc *id = new PackedImageDesc(data, width, height, numChannels, chanStrideBytes, xStrideBytes, yStrideBytes);
+		void *mem = MEM_mallocN(sizeof(PackedImageDesc), __func__);
+		PackedImageDesc *id = new(mem) PackedImageDesc(data, width, height, numChannels, chanStrideBytes, xStrideBytes, yStrideBytes);
 
 		return id;
 	}
@@ -442,13 +452,12 @@ PackedImageDesc *OCIO_createPackedImageDesc(float *data, long width, long height
 
 void OCIO_packedImageDescRelease(PackedImageDesc* id)
 {
-	delete id;
-	id = NULL;
+	MEM_DELETE(id, PackedImageDesc);
 }
 
 ExponentTransformRcPtr *OCIO_createExponentTransform(void)
 {
-	ExponentTransformRcPtr *et =  new ExponentTransformRcPtr();
+	ExponentTransformRcPtr *et = MEM_NEW(ExponentTransformRcPtr);
 
 	*et = ExponentTransform::Create();
 
@@ -462,12 +471,12 @@ void OCIO_exponentTransformSetValue(ExponentTransformRcPtr *et, const float *exp
 
 void OCIO_exponentTransformRelease(ExponentTransformRcPtr *et)
 {
-	delete et;
+	MEM_DELETE(et, ExponentTransformRcPtr);
 }
 
 MatrixTransformRcPtr *OCIO_createMatrixTransform(void)
 {
-	MatrixTransformRcPtr *mt = new MatrixTransformRcPtr();
+	MatrixTransformRcPtr *mt = MEM_NEW(MatrixTransformRcPtr);
 
 	*mt = MatrixTransform::Create();
 
@@ -481,7 +490,7 @@ void OCIO_matrixTransformSetValue(MatrixTransformRcPtr *mt, const float *m44, co
 
 void OCIO_matrixTransformRelease(MatrixTransformRcPtr *mt)
 {
-	delete mt;
+	MEM_DELETE(mt, MatrixTransformRcPtr);
 }
 
 void OCIO_matrixTransformScale(float * m44, float * offset4, const float *scale4f)

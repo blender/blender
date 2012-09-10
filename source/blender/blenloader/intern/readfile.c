@@ -7923,6 +7923,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	/* color management pipeline changes compatibility code */
+	{
+		Scene *scene;
+
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			if ((scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) == 0) {
+				ColorManagedDisplaySettings *display_settings = &scene->display_settings;
+
+				if (display_settings->display_device[0] == 0) {
+					BKE_scene_disable_color_management(scene);
+				}
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

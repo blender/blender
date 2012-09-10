@@ -50,6 +50,7 @@
 #include "BKE_global.h" /* grr: G.main->name */
 
 #include "IMB_imbuf.h"
+#include "IMB_colormanagement.h"
 
 #include "BIF_gl.h"
 #include "GPU_draw.h"
@@ -80,16 +81,17 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 			BKE_reportf(reports, RPT_ERROR, "Couldn't acquire buffer from image");
 		}
 		else {
-			/* temp swap out the color */
-			const unsigned char imb_planes_back = ibuf->planes;
-			const float dither_back = ibuf->dither;
-			ibuf->planes = scene->r.im_format.planes;
-			ibuf->dither = scene->r.dither_intensity;
-			if (!BKE_imbuf_write(ibuf, path, &scene->r.im_format)) {
+			ImBuf *write_ibuf = IMB_dupImBuf(ibuf);
+
+			IMB_display_buffer_to_imbuf_rect(write_ibuf, &scene->view_settings, &scene->display_settings);
+
+			write_ibuf->planes = scene->r.im_format.planes;
+			write_ibuf->dither = scene->r.dither_intensity;
+
+			if (!BKE_imbuf_write(write_ibuf, path, &scene->r.im_format)) {
 				BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 			}
-			ibuf->planes = imb_planes_back;
-			ibuf->dither = dither_back;
+			IMB_freeImBuf(write_ibuf);
 		}
 
 		BKE_image_release_ibuf(image, lock);

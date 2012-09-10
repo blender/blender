@@ -29,7 +29,7 @@ set(INC
 )
 
 set(INC_SYS
-
+	../guardedalloc
 )
 
 set(SRC

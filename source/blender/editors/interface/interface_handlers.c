@@ -3158,7 +3158,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-			color_profile = BLI_PR_NONE;
+			color_profile = FALSE;
 	}
 
 	ui_get_but_vectorf(but, rgb);
@@ -3200,8 +3200,10 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 			/* exception only for value strip - use the range set in but->min/max */
 			hsv[2] = y * (but->softmax - but->softmin) + but->softmin;
 
-			if (color_profile)
+			if (color_profile) {
+				/* OCIO_TODO: how to handle this situation? */
 				hsv[2] = srgb_to_linearrgb(hsv[2]);
+			}
 
 			if (hsv[2] > but->softmax)
 				hsv[2] = but->softmax;
@@ -3229,7 +3231,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 	
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-			color_profile = BLI_PR_NONE;
+			color_profile = FALSE;
 	}
 
 	ui_get_but_vectorf(but, rgb);
@@ -3263,8 +3265,10 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 			/* exception only for value strip - use the range set in but->min/max */
 			hsv[2] += ndof->rx * sensitivity;
 			
-			if (color_profile)
+			if (color_profile) {
+				/* OCIO_TODO: how to handle this situation? */
 				hsv[2] = srgb_to_linearrgb(hsv[2]);
+			}
 			
 			CLAMP(hsv[2], but->softmin, but->softmax);
 		default:

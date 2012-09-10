@@ -242,8 +242,19 @@ class SCENE_PT_color_management(Panel):
 
         scene = context.scene
 
-        layout.prop(scene.display_settings, "display_device")
-        layout.template_colormanaged_view_settings(scene, "view_settings")
+        col = layout.column()
+        col.label(text="Display:")
+        col.prop(scene.display_settings, "display_device")
+
+        col = layout.column()
+        col.separator()
+        col.label(text="Render:")
+        col.template_colormanaged_view_settings(scene, "view_settings")
+
+        col = layout.column()
+        col.separator()
+        col.label(text="Sequencer:")
+        col.prop(scene.sequencer_colorspace_settings, "name")
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):

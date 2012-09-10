@@ -48,6 +48,7 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1110,10 +1111,14 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 	float v3[2], v1[2], v2[2], v1a[2], v2a[2];
 	int a;
 	float pos, colf[4] = {0, 0, 0, 0}; /* initialize in case the colorband isn't valid */
-		
+	struct ColorManagedDisplay *display = NULL;
+
 	coba = (ColorBand *)(but->editcoba ? but->editcoba : but->poin);
 	if (coba == NULL) return;
-	
+
+	if (but->block->color_profile)
+		display = ui_block_display_get(but->block);
+
 	x1 = rect->xmin;
 	y1 = rect->ymin;
 	sizex = rect->xmax - x1;
@@ -1146,8 +1151,8 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 	for (a = 1; a <= sizex; a++) {
 		pos = ((float)a) / (sizex - 1);
 		do_colorband(coba, pos, colf);
-		if (but->block->color_profile != BLI_PR_NONE)
-			linearrgb_to_srgb_v3_v3(colf, colf);
+		if (display)
+			IMB_colormanagement_scene_linear_to_display_v3(colf, display);
 		
 		v1[0] = v2[0] = x1 + a;
 		

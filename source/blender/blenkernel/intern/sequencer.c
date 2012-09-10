@@ -309,6 +309,94 @@ void BKE_sequencer_editing_free(Scene *scene)
 	scene->ed = NULL;
 }
 
+/*********************** Sequencer color space functions  *************************/
+
+void BKE_sequencer_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
+{
+	IMB_colormanagement_imbuf_assign_spaces(ibuf, NULL);
+	IMB_colormanagement_imbuf_assign_float_space(ibuf, &scene->sequencer_colorspace_settings);
+}
+
+void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, int make_float)
+{
+	const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+	const char *to_colorspace = scene->sequencer_colorspace_settings.name;
+	int predivide = ibuf->flags & IB_cm_predivide;
+
+	if (!ibuf->rect_float) {
+		if (make_float && ibuf->rect) {
+			/* when converting byte buffer to float in sequencer we need to make float
+			 * buffer be in sequencer's working space, which is currently only doable
+			 * from linear space.
+			 *
+			 */
+
+			/*
+			 * OCIO_TODO: would be nice to support direct single transform from byte to sequencer's
+			 */
+
+			IMB_colormanagement_imbuf_float_from_rect(ibuf);
+		}
+		else {
+			/* if there's only byte buffer in image it's already in compositor's working space,
+			 * nothing to do here
+			 */
+
+			return;
+		}
+	}
+
+	if (from_colorspace && from_colorspace[0] != '\0') {
+		if (ibuf->rect)
+			imb_freerectImBuf(ibuf);
+
+		IMB_colormanagement_transform_threaded(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
+		                                       from_colorspace, to_colorspace, predivide);
+
+		ibuf->profile = IB_PROFILE_SRGB;
+	}
+	else {
+		/* if no color management enables fallback to legacy conversion */
+		IMB_convert_profile(ibuf, IB_PROFILE_NONE);
+	}
+}
+
+void BKE_sequencer_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf)
+{
+	const char *from_colorspace = scene->sequencer_colorspace_settings.name;
+	const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+
+	if (!ibuf->rect_float)
+		return;
+
+	if (to_colorspace && to_colorspace[0] != '\0') {
+		int predivide = ibuf->flags & IB_cm_predivide;
+
+		IMB_colormanagement_transform_threaded(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
+		                                       from_colorspace, to_colorspace, predivide);
+
+		ibuf->profile = IB_PROFILE_LINEAR_RGB;
+	}
+	else {
+		/* if no color management enables fallback to legacy conversion */
+		IMB_convert_profile(ibuf, IB_PROFILE_LINEAR_RGB);
+	}
+}
+
+void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4])
+{
+	const char *from_colorspace = scene->sequencer_colorspace_settings.name;
+	const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+
+	if (to_colorspace && to_colorspace[0] != '\0') {
+		IMB_colormanagement_transform_v4(pixel, from_colorspace, to_colorspace);
+	}
+	else {
+		/* if no color management enables fallback to legacy conversion */
+		srgb_to_linearrgb_v4(pixel, pixel);
+	}
+}
+
 /*********************** sequencer pipeline functions *************************/
 
 SeqRenderData BKE_sequencer_new_render_data(Main *bmain, Scene *scene, int rectx, int recty, int preview_render_size)
@@ -1220,7 +1308,12 @@ static ImBuf *seq_proxy_fetch(SeqRenderData context, Sequence *seq, int cfra)
 	}
 
 	if (BLI_exists(name)) {
-		return IMB_loadiffname(name, IB_rect);
+		ImBuf *ibuf = IMB_loadiffname(name, IB_rect);
+
+		if (ibuf)
+			BKE_sequencer_imbuf_assign_spaces(context.scene, ibuf);
+
+		return ibuf;
 	}
 	else {
 		return NULL;
@@ -1828,7 +1921,7 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 
 	if (seq->flag & SEQ_MAKE_FLOAT) {
 		if (!ibuf->rect_float) {
-			IMB_colormanagement_imbuf_to_sequencer_space(ibuf, TRUE);
+			BKE_sequencer_imbuf_to_sequencer_space(context.scene, ibuf, TRUE);
 		}
 
 		if (ibuf->rect) {
@@ -1894,6 +1987,8 @@ static void copy_to_ibuf_still(SeqRenderData context, Sequence *seq, float nr, I
 		 * could be preprocessed afterwards (thereby silently
 		 * changing the cached image... */
 		ibuf = IMB_dupImBuf(ibuf);
+
+		BKE_sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
 		if (nr == 0) {
 			BKE_sequencer_cache_put(context, seq, seq->start, SEQ_STRIPELEM_IBUF_STARTSTILL, ibuf);
@@ -2309,7 +2404,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		/* opengl offscreen render */
 		BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
 		ibuf = sequencer_view3d_cb(scene, camera, context.rectx, context.recty,
-		                           IB_rect, context.scene->r.seq_prev_type, TRUE, err_out);
+		                           IB_rect, context.scene->r.seq_prev_type, TRUE, FALSE, err_out);
 		if (ibuf == NULL) {
 			fprintf(stderr, "seq_render_scene_strip failed to get opengl buffer: %s\n", err_out);
 		}
@@ -2341,7 +2436,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 
 			/* float buffers in the sequencer are not linear */
 			ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			IMB_colormanagement_imbuf_to_sequencer_space(ibuf, FALSE);
+			BKE_sequencer_imbuf_to_sequencer_space(context.scene, ibuf, FALSE);
 		}
 		else if (rres.rect32) {
 			ibuf = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect);
@@ -2448,7 +2543,7 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 
 				/* all sequencer color is done in SRGB space, linear gives odd crossfades */
 				if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-					IMB_colormanagement_imbuf_to_sequencer_space(ibuf, FALSE);
+					BKE_sequencer_imbuf_to_sequencer_space(context.scene, ibuf, FALSE);
 
 				copy_to_ibuf_still(context, seq, nr, ibuf);
 
@@ -2496,6 +2591,7 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 		case SEQ_TYPE_MOVIECLIP:
 		{
 			ibuf = seq_render_movieclip_strip(context, seq, nr);
+			BKE_sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
 			if (ibuf && use_preprocess) {
 				ImBuf *i = IMB_dupImBuf(ibuf);
@@ -2518,6 +2614,9 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 			break;
 		}
 	}
+
+	if (ibuf)
+		BKE_sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
 	return ibuf;
 }

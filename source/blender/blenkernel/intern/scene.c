@@ -77,6 +77,8 @@
 
 #include "RE_engine.h"
 
+#include "IMB_colormanagement.h"
+
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
 
@@ -384,7 +386,14 @@ Scene *BKE_scene_add(const char *name)
 	sce->r.frs_sec_base = 1;
 	sce->r.edgeint = 10;
 	sce->r.ocres = 128;
+
+	/* OCIO_TODO: for forwards compatibiliy only, so if no tonecurve are used,
+	 *            images would look in the same way as in current blender
+	 *
+	 *            perhaps at some point should be completely deprecated?
+	 */
 	sce->r.color_mgt_flag |= R_COLOR_MANAGEMENT;
+
 	sce->r.gauss = 1.0;
 	
 	/* deprecated but keep for upwards compat */
@@ -1253,5 +1262,21 @@ void BKE_scene_base_flag_from_objects(struct Scene *scene)
 	while (base) {
 		base->flag = base->object->flag;
 		base = base->next;
+	}
+}
+
+void BKE_scene_disable_color_management(Scene *scene)
+{
+	ColorManagedDisplaySettings *display_settings = &scene->display_settings;
+	ColorManagedViewSettings *view_settings = &scene->view_settings;
+	const char *view;
+
+	/* NOTE: None display with Default view should always exist in OCIO configuration, otherwise it wouldn't work as expected */
+	BLI_strncpy(display_settings->display_device, "None", sizeof(display_settings->display_device));
+
+	view = IMB_colormanagement_view_get_default_name(display_settings->display_device);
+
+	if (view) {
+		BLI_strncpy(view_settings->view_transform, view, sizeof(view_settings->view_transform));
 	}
 }

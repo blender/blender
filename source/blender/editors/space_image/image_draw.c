@@ -195,7 +195,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int channel
 		if (color_manage && channels == 4) {
 			float pixel[4];
 
-			IMB_display_buffer_pixel(pixel, fp,  &scene->view_settings, &scene->display_settings);
+			IMB_colormanagement_pixel_to_display_space_v4(pixel, fp,  &scene->view_settings, &scene->display_settings);
 
 			BLI_snprintf(str, sizeof(str), "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", pixel[0], pixel[1], pixel[2]);
 			BLF_position(blf_mono_font, dx, 6, 0);
@@ -245,7 +245,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int channel
 	}
 
 	if (color_manage) {
-		IMB_display_buffer_pixel(finalcol, col,  &scene->view_settings, &scene->display_settings);
+		IMB_colormanagement_pixel_to_display_space_v4(finalcol, col,  &scene->view_settings, &scene->display_settings);
 	}
 	else {
 		copy_v4_v4(finalcol, col);

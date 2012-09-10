@@ -111,7 +111,7 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 									break;
 							}
 							if (index == 0 && operation) {
-								addPreviewOperation(graph, operation->getOutputSocket());
+								addPreviewOperation(graph, context, operation->getOutputSocket());
 							}
 						}
 					}
@@ -134,7 +134,7 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 			operation->setImageUser(imageuser);
 			operation->setFramenumber(framenumber);
 			graph->addOperation(operation);
-			addPreviewOperation(graph, operation->getOutputSocket());
+			addPreviewOperation(graph, context, operation->getOutputSocket());
 		}
 		
 		if (numberOfOutputs > 1) {

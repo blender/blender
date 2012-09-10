@@ -1,3 +1,7 @@
+# OpenCOlorIO configuration file for Blender
+#
+# Based on aces, nuke-default and spi configurations from OpenColorIO-Config
+
 ocio_profile_version: 1
 
 search_path: luts
@@ -7,11 +11,23 @@ luma: [0.2126, 0.7152, 0.0722]
 description: RRT version ut33
 
 roles:
-  color_picking: raw
   reference: aces
+
+  # Internal scene linear space
   scene_linear: rec709
+
+  # Default color space for byte image
+  default_byte: sRGB
+
+  # Default color space for float images
+  default_float: rec709
+
+  # Default color space sequencer is working in
+  default_sequencer: sRGB
+
+  # Color spaces for color picking and exture painting (not internally supported yet)
+  color_picking: raw
   texture_paint: raw
-  sequencer: vd16
 
 displays:
   sRGB:
@@ -33,8 +49,10 @@ displays:
     - !<View> {name: DCI, colorspace: dci_xyz}
     - !<View> {name: Raw, colorspace: raw}
     - !<View> {name: Log, colorspace: adx10}
+  None:
+    - !<View> {name: Default, colorspace: raw}
 
-active_displays: [sRGB, P3DCI, Rec709, XYZ]
+active_displays: [sRGB, P3DCI, Rec709, XYZ, None]
 active_views: [Default, RRT, Raw, Log]
 
 colorspaces:
@@ -238,3 +256,14 @@ colorspaces:
       children:
         - !<FileTransform> {src: vd16.spi1d, interpolation: nearest}
         - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear}
+
+  - !<ColorSpace>
+    name: Non-Color
+    family: raw
+    description: |
+        Color space used for images which contains non-color data (i,e, normal maps)
+    equalitygroup:
+    bitdepth: 32f
+    isdata: true
+    allocation: uniform
+    allocationvars: [0, 1]

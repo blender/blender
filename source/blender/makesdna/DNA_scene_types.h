@@ -1141,6 +1141,7 @@ typedef struct Scene {
 	/* Color Management */
 	ColorManagedViewSettings view_settings;
 	ColorManagedDisplaySettings display_settings;
+	ColorManagedColorspaceSettings sequencer_colorspace_settings;
 } Scene;
 
 
@@ -1262,7 +1263,7 @@ typedef struct Scene {
 #define R_ALPHAKEY		2
 
 /* color_mgt_flag */
-#define R_COLOR_MANAGEMENT              (1 << 0)
+#define R_COLOR_MANAGEMENT              (1 << 0)  /* deprecated, should only be used in versioning code only */
 #define R_COLOR_MANAGEMENT_PREDIVIDE    (1 << 1)
 
 /* subimtype, flag options for imtype */

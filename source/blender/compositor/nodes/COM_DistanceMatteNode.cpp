@@ -77,7 +77,7 @@ void DistanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 	addLink(graph, operation->getOutputSocket(), operationAlpha->getInputSocket(1));
 
 	graph->addOperation(operationAlpha);
-	addPreviewOperation(graph, operationAlpha->getOutputSocket());
+	addPreviewOperation(graph, context, operationAlpha->getOutputSocket());
 
 	if (outputSocketImage->isConnected()) {
 		outputSocketImage->relinkConnections(operationAlpha->getOutputSocket());

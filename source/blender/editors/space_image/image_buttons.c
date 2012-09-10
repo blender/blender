@@ -193,6 +193,7 @@ void image_preview_event(int event)
 	}
 	
 	if (exec && G.scene->nodetree) {
+		Scene *scene = G.scene;
 		/* should work when no node editor in screen..., so we execute right away */
 		
 		ntreeCompositTagGenerators(G.scene->nodetree);
@@ -203,7 +204,7 @@ void image_preview_event(int event)
 		
 		BIF_store_spare();
 		
-		ntreeCompositExecTree(G.scene->nodetree, &G.scene->r, 1);   /* 1 is do_previews */
+		ntreeCompositExecTree(scene->nodetree, &scene->r, 1, &scene->view_settings, &scene->display_settings);   /* 1 is do_previews */
 		
 		G.scene->nodetree->timecursor = NULL;
 		G.scene->nodetree->test_break = NULL;
@@ -689,13 +690,10 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				}
 			}
 
-			if (ima->source != IMA_SRC_GENERATED) {
-				/* OCIO_TODO: color space transformation for byte images is not implemented yet */
-				if (ibuf && ibuf->rect_float) {
-					col = uiLayoutColumn(layout, FALSE);
-					uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
-				}
+			col = uiLayoutColumn(layout, FALSE);
+			uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
 
+			if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) { /* background image view doesnt need these */
 					uiItemS(layout);
 

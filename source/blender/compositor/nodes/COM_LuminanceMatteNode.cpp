@@ -55,7 +55,7 @@ void LuminanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorC
 	addLink(graph, rgbToYUV->getInputSocket(0)->getConnection()->getFromSocket(), operation->getInputSocket(0));
 	addLink(graph, operationSet->getOutputSocket(), operation->getInputSocket(1));
 	graph->addOperation(operation);
-	addPreviewOperation(graph, operation->getOutputSocket());
+	addPreviewOperation(graph, context, operation->getOutputSocket());
 
 	if (outputSocketImage->isConnected()) {
 		outputSocketImage->relinkConnections(operation->getOutputSocket());

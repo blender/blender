@@ -316,10 +316,7 @@ class RENDER_PT_shading(RenderButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rd, "use_raytrace", text="Ray Tracing")
-        col.prop(rd, "use_color_management")
-        sub = col.row()
-        sub.active = rd.use_color_management == True
-        sub.prop(rd, "use_color_unpremultiply")
+        col.prop(rd, "use_color_unpremultiply")
         col.prop(rd, "alpha_mode", text="Alpha")
 
 

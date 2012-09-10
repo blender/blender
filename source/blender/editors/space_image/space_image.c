@@ -770,9 +770,9 @@ static void image_scope_area_draw(const bContext *C, ARegion *ar)
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
 	if (ibuf) {
 		if (!sima->scopes.ok) {
-			BKE_histogram_update_sample_line(&sima->sample_line_hist, ibuf, scene->r.color_mgt_flag & R_COLOR_MANAGEMENT);
+			BKE_histogram_update_sample_line(&sima->sample_line_hist, ibuf, &scene->view_settings, &scene->display_settings);
 		}
-		scopes_update(&sima->scopes, ibuf, scene->r.color_mgt_flag & R_COLOR_MANAGEMENT);
+		scopes_update(&sima->scopes, ibuf, &scene->view_settings, &scene->display_settings);
 	}
 	ED_space_image_release_buffer(sima, lock);
 	

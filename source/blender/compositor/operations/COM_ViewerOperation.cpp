@@ -72,7 +72,6 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	float *buffer = this->m_outputBuffer;
 	float *depthbuffer = this->m_depthBuffer;
-	unsigned char *bufferDisplay = this->m_outputBufferDisplay;
 	if (!buffer) return;
 	const int x1 = rect->xmin;
 	const int y1 = rect->ymin;
@@ -82,7 +81,7 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 	const int offsetadd4 = offsetadd * 4;
 	int offset = (y1 * this->getWidth() + x1);
 	int offset4 = offset * 4;
-	float alpha[4], srgb[4], depth[4];
+	float alpha[4], depth[4];
 	int x;
 	int y;
 	bool breaked = false;
@@ -98,19 +97,6 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 				this->m_depthInput->read(depth, x, y, COM_PS_NEAREST);
 				depthbuffer[offset] = depth[0];
 			} 
-			if (this->m_doColorManagement) {
-				if (this->m_doColorPredivide) {
-					linearrgb_to_srgb_predivide_v4(srgb, buffer + offset4);
-				}
-				else {
-					linearrgb_to_srgb_v4(srgb, buffer + offset4);
-				}
-			}
-			else {
-				copy_v4_v4(srgb, buffer + offset4);
-			}
-
-			rgba_float_to_uchar(bufferDisplay + offset4, srgb);
 
 			offset ++;
 			offset4 += 4;

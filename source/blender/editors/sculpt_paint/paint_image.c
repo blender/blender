@@ -141,7 +141,7 @@
 #define IMAPAINT_TILE_SIZE          (1 << IMAPAINT_TILE_BITS)
 #define IMAPAINT_TILE_NUMBER(size)  (((size) + IMAPAINT_TILE_SIZE - 1) >> IMAPAINT_TILE_BITS)
 
-static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
+static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
 
 
 typedef struct ImagePaintState {
@@ -512,7 +512,7 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 			ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
 		if (ibuf->mipmap[0])
 			ibuf->userflags |= IB_MIPMAP_INVALID;  /* force mipmap recreatiom */
-
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 	}
 
 	IMB_freeImBuf(tmpibuf);
@@ -3595,7 +3595,7 @@ static int project_image_refresh_tagged(ProjPaintState *ps)
 				pr = &(projIma->partRedrawRect[i]);
 				if (pr->x2 != -1) { /* TODO - use 'enabled' ? */
 					imapaintpartial = *pr;
-					imapaint_image_update(NULL, projIma->ima, projIma->ibuf, 1); /*last 1 is for texpaint*/
+					imapaint_image_update(NULL, NULL, projIma->ima, projIma->ibuf, 1); /*last 1 is for texpaint*/
 					redraw = 1;
 				}
 			}
@@ -4224,12 +4224,16 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 		IMB_freeImBuf(tmpibuf);
 }
 
-static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
+static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
 {
-	if (ibuf->rect_float) {
-		IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, ibuf->x, 0, 0,
+	if (scene) {
+		IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect, ibuf->x, 0, 0,
+		                                  &scene->view_settings, &scene->display_settings,
 		                                  imapaintpartial.x1, imapaintpartial.y1,
 		                                  imapaintpartial.x2, imapaintpartial.y2);
+	}
+	else {
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 	}
 	
 	if (ibuf->mipmap[0])
@@ -4592,7 +4596,7 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 
 	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, ibuf->profile == IB_PROFILE_LINEAR_RGB)) {
 		if (update)
-			imapaint_image_update(s->sima, image, ibuf, texpaint);
+			imapaint_image_update(s->scene, s->sima, image, ibuf, texpaint);
 		return 1;
 	}
 	else return 0;
@@ -5867,7 +5871,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (w > maxsize) w = maxsize;
 	if (h > maxsize) h = maxsize;
 
-	ibuf = ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect, FALSE, err_out);
+	ibuf = ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect, FALSE, FALSE, err_out);
 	if (!ibuf) {
 		/* Mostly happens when OpenGL offscreen buffer was failed to create, */
 		/* but could be other reasons. Should be handled in the future. nazgul */
