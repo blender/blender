@@ -6414,7 +6414,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 						for (but = block->buttons.first; but; but = but->next) {
 
 							if (but->menu_key == event->type) {
-								if (but->type == BUT) {
+								if (ELEM(but->type, BUT, BUTM)) {
 									/* mainly for operator buttons */
 									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_APPLY);
 								}

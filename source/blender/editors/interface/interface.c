@@ -759,7 +759,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 		 * fun first pass on all buttons so first word chars always get first priority */
 
 		for (but = block->buttons.first; but; but = but->next) {
-			if (!ELEM4(but->type, BUT, MENU, BLOCK, PULLDOWN) || (but->flag & UI_HIDDEN)) {
+			if (!ELEM5(but->type, BUT, BUTM, MENU, BLOCK, PULLDOWN) || (but->flag & UI_HIDDEN)) {
 				/* pass */
 			}
 			else if (but->menu_key == '\0') {
