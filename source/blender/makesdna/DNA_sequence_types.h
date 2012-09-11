@@ -329,6 +329,7 @@ typedef struct SequencerScopes {
 
 #define SEQ_USE_PROXY_CUSTOM_FILE   (1 << 21)
 #define SEQ_USE_EFFECT_DEFAULT_FADE (1 << 22)
+#define SEQ_USE_LINEAR_MODIFIERS    (1 << 23)
 
 // flags for whether those properties are animated or not
 #define SEQ_AUDIO_VOLUME_ANIMATED   (1 << 24)
