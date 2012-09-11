@@ -187,13 +187,14 @@ typedef struct uiLayout uiLayout;
  * - bit  8:    for 'bit'
  * - bit  9-15: button type (now 6 bits, 64 types)
  * */
-
-#define CHA 32
-#define SHO 64
-#define INT 96
-#define FLO 128
-/*#define FUN	192*/ /*UNUSED*/
-#define BIT 256
+typedef enum {
+	CHA = 32,
+	SHO = 64,
+	INT = 96,
+	FLO = 128,
+/*	FUN = 192, */ /*UNUSED*/
+	BIT = 256
+} eButPointerType;
 
 /* button reqyires a pointer */
 #define BUTPOIN (FLO | SHO | CHA)
@@ -214,7 +215,7 @@ typedef enum {
 	ICONROW       = (12 << 9),
 	ICONTOG       = (13 << 9),
 	NUMSLI        = (14 << 9),
-	COL           = (15 << 9),
+	COLOR         = (15 << 9),
 	IDPOIN        = (16 << 9),
 	HSVSLI        = (17 << 9),
 	SCROLL        = (18 << 9),

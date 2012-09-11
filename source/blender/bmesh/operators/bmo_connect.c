@@ -339,7 +339,6 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			goto cleanup;
 		}
 
-		j = 0;
 		if (vv1[0] == vv1[lenv1 - 1]) {
 			lenv1--;
 		}

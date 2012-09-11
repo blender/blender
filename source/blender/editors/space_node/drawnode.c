@@ -171,7 +171,7 @@ static void node_socket_button_color(const bContext *C, uiBlock *block,
 		int labelw = width - 40;
 		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
 		
-		bt = uiDefButR(block, COL, B_NODE_EXEC, "",
+		bt = uiDefButR(block, COLOR, B_NODE_EXEC, "",
 		               x, y + 2, (labelw > 0 ? 40 : width), NODE_DY - 2,
 		               &ptr, "default_value", 0, 0, 0, -1, -1, NULL);
 		if (node)

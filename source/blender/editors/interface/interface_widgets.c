@@ -3154,7 +3154,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				wt = widget_type(UI_WTYPE_MENU_ITEM);
 				break;
 				
-			case COL:
+			case COLOR:
 				wt = widget_type(UI_WTYPE_SWATCH);
 				break;
 				

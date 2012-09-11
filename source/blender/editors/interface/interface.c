@@ -1149,7 +1149,7 @@ static void ui_is_but_sel(uiBut *but, double *value)
 					if (*value == (double)but->hardmax) is_push = 1;
 				}
 				break;
-			case COL:
+			case COLOR:
 				is_push = 2;
 				break;
 			default:
