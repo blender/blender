@@ -164,10 +164,7 @@ FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
 	 *	- add if not found and allowed to add one
 	 *		TODO: add auto-grouping support? how this works will need to be resolved
 	 */
-	if (act)
-		fcu = list_find_fcurve(&act->curves, rna_path, array_index);
-	else
-		fcu = NULL;
+	fcu = list_find_fcurve(&act->curves, rna_path, array_index);
 	
 	if ((fcu == NULL) && (add)) {
 		/* use default settings to make a F-Curve */

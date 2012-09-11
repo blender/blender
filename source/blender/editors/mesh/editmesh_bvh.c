@@ -398,11 +398,6 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Obje
 	float end[3];
 	const float mval_f[2] = {ar->winx / 2.0f,
 	                         ar->winy / 2.0f};
-	
-	if (!ar) {
-		printf("error in BMBVH_EdgeVisible!\n");
-		return 0;
-	}
 
 	ED_view3d_win_to_segment_clip(ar, v3d, mval_f, origin, end);
 	
