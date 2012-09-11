@@ -11,53 +11,54 @@ luma: [0.2126, 0.7152, 0.0722]
 description: RRT version ut33
 
 roles:
-  reference: aces
+  reference: Linear ACES
 
   # Internal scene linear space
-  scene_linear: rec709
+  scene_linear: Linear
 
   # Default color space for byte image
   default_byte: sRGB
 
   # Default color space for float images
-  default_float: rec709
+  default_float: Linear
 
   # Default color space sequencer is working in
   default_sequencer: sRGB
 
   # Color spaces for color picking and exture painting (not internally supported yet)
-  color_picking: raw
-  texture_paint: raw
+  color_picking: Raw
+  texture_paint: Raw
 
 displays:
   sRGB:
     - !<View> {name: Default, colorspace: sRGB}
     - !<View> {name: RRT, colorspace: rrt_srgb}
     - !<View> {name: Film, colorspace: srgb8}
-    - !<View> {name: Raw, colorspace: raw}
+    - !<View> {name: Raw, colorspace: Raw}
     - !<View> {name: Log, colorspace: lg10}
-  P3DCI:
+  DCI-P3:
     - !<View> {name: RRT, colorspace: rrt_p3dci}
-    - !<View> {name: Raw, colorspace: raw}
+    - !<View> {name: Film, colorspace: p3dci8}
+    - !<View> {name: Raw, colorspace: Raw}
     - !<View> {name: Log, colorspace: adx10}
   Rec709:
     - !<View> {name: Default, colorspace: nuke_rec709}
     - !<View> {name: RRT, colorspace: rrt_rec709}
   XYZ:
-    - !<View> {name: Default, colorspace: xyz}
+    - !<View> {name: Default, colorspace: XYZ}
     - !<View> {name: RRT, colorspace: rrt_xyz}
     - !<View> {name: DCI, colorspace: dci_xyz}
-    - !<View> {name: Raw, colorspace: raw}
+    - !<View> {name: Raw, colorspace: Raw}
     - !<View> {name: Log, colorspace: adx10}
   None:
     - !<View> {name: Default, colorspace: raw}
 
-active_displays: [sRGB, P3DCI, Rec709, XYZ, None]
+active_displays: [sRGB, DCIP3, Rec709, XYZ, None]
 active_views: [Default, RRT, Raw, Log]
 
 colorspaces:
   - !<ColorSpace>
-    name: aces
+    name: Linear ACES
     family: aces
     equalitygroup:
     bitdepth: 32f
@@ -66,7 +67,7 @@ colorspaces:
     allocationvars: [-8.5, 5]
 
   - !<ColorSpace>
-    name: raw
+    name: Raw
     family: raw
     equalitygroup:
     bitdepth: 32f
@@ -76,7 +77,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: adx10
-    family: adx
+    family: display
     equalitygroup:
     bitdepth: 10ui
     description: |
@@ -94,12 +95,12 @@ colorspaces:
         - !<FileTransform> {src: adx_exp_to_aces.spimtx}
 
   - !<ColorSpace>
-    name: rec709
+    name: Linear
     family:
     equalitygroup:
     bitdepth: 32f
     description: |
-      Rec. 709 (Full Range), Blender native internal space
+      Rec. 709 (Full Range), Blender native linear space
     isdata: false
     allocation: uniform
     allocationvars: [-0.125, 1.125]
@@ -160,7 +161,7 @@ colorspaces:
         - !<FileTransform> {src: rrt_ut33_p3dci.spi3d, interpolation: tetrahedral}
 
   - !<ColorSpace>
-    name: xyz
+    name: XYZ
     family:
     equalitygroup:
     bitdepth: 32f
@@ -202,11 +203,11 @@ colorspaces:
 
   - !<ColorSpace>
     name: lg10
-    family: lg
+    family: display
     equalitygroup:
     bitdepth: 10ui
     description: |
-      lg10 : conversion from film log
+      conversion from film log
     isdata: false
     allocation: uniform
     to_reference: !<GroupTransform>
@@ -220,12 +221,12 @@ colorspaces:
     equalitygroup:
     bitdepth: 8ui
     description: |
-      srgb8 :rgb display space for the srgb standard.
+      RGB display space for the sRGB standard.
     isdata: false
     allocation: uniform
     from_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: aces, dst: lg10}
+        - !<ColorSpaceTransform> {src: Linear ACES, dst: lg10}
         - !<FileTransform> {src: spi_ocio_srgb_test.spi3d, interpolation: linear}
 
   - !<ColorSpace>
@@ -244,12 +245,12 @@ colorspaces:
         - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
 
   - !<ColorSpace>
-    name: vd16
+    name: VD16
     family: vd
     equalitygroup:
     bitdepth: 16ui
     description: |
-      vd16 : The simple video conversion from a gamma 2.2 srgb space
+      The simple video conversion from a gamma 2.2 sRGB space
     isdata: false
     allocation: uniform
     to_reference: !<GroupTransform>
@@ -267,3 +268,17 @@ colorspaces:
     isdata: true
     allocation: uniform
     allocationvars: [0, 1]
+
+  - !<ColorSpace>
+    name: p3dci8
+    family: display
+    equalitygroup:
+    bitdepth: 8ui
+    description: |
+      p3dci8 :rgb display space for gamma 2.6 P3 projection.
+    isdata: false
+    allocation: uniform
+    from_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear ACES, dst: lg10}
+        - !<FileTransform> {src: colorworks_filmlg_to_p3.3dl, interpolation: linear}

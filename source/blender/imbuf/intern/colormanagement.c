@@ -444,7 +444,7 @@ static void colormanage_role_color_space_name_get(ConstConfigRcPtr *config, char
 		OCIO_colorSpaceRelease(ociocs);
 	}
 	else {
-		printf("Blender color management: Error could not find role %s role.\n", role);
+		printf("Color management: Error could not find role %s role.\n", role);
 	}
 }
 
@@ -2162,10 +2162,10 @@ static void colormanage_description_strip(char *description)
 
 ColorSpace *colormanage_colorspace_add(const char *name, const char *description, int is_invertible)
 {
-	ColorSpace *colorspace;
+	ColorSpace *colorspace, *prev_space;
+	int counter = 1;
 
 	colorspace = MEM_callocN(sizeof(ColorSpace), "ColorSpace");
-	colorspace->index = global_tot_colorspace + 1;
 
 	BLI_strncpy(colorspace->name, name, sizeof(colorspace->name));
 
@@ -2177,7 +2177,22 @@ ColorSpace *colormanage_colorspace_add(const char *name, const char *description
 
 	colorspace->is_invertible = is_invertible;
 
-	BLI_addtail(&global_colorspaces, colorspace);
+	for (prev_space = global_colorspaces.first; prev_space; prev_space = prev_space->next) {
+		if (BLI_strcasecmp(prev_space->name, colorspace->name) > 0)
+			break;
+
+		prev_space->index = counter++;
+	}
+
+	if (!prev_space)
+		BLI_addtail(&global_colorspaces, colorspace);
+	else
+		BLI_insertlinkbefore(&global_colorspaces, prev_space, colorspace);
+
+	colorspace->index = counter++;
+	for (; prev_space; prev_space = prev_space->next) {
+		prev_space->index = counter++;
+	}
 
 	global_tot_colorspace++;
 
