@@ -947,10 +947,11 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 
 		sequencer_colorspace_settings = &scene->sequencer_colorspace_settings;
 
+		colormanage_check_colorspace_settings(sequencer_colorspace_settings, "sequencer");
+
 		if (sequencer_colorspace_settings->name[0] == '\0') {
 			BLI_strncpy(sequencer_colorspace_settings->name, global_role_default_sequencer, MAX_COLORSPACE_NAME);
 		}
-		colormanage_check_colorspace_settings(sequencer_colorspace_settings, "sequencer");
 	}
 
 	/* ** check input color space settings ** */
