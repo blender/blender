@@ -470,31 +470,12 @@ int BM_edge_face_count(BMEdge *e)
 }
 
 /**
- *	Returns the number of faces around this vert
+ * Returns the number of faces around this vert
+ * length matches #BM_LOOPS_OF_VERT iterator
  */
 int BM_vert_face_count(BMVert *v)
 {
-	int count = 0;
-	BMLoop *l;
-	BMIter iter;
-
-	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-		count++;
-	}
-
-	return count;
-#if 0 //this code isn't working
-	BMEdge *curedge = NULL;
-
-	if (v->e) {
-		curedge = v->e;
-		do {
-			if (curedge->l) count += BM_edge_face_count(curedge);
-			curedge = bmesh_disk_edge_next(curedge, v);
-		} while (curedge != v->e);
-	}
-	return count;
-#endif
+	return bmesh_disk_facevert_count(v);
 }
 
 /**
@@ -503,22 +484,21 @@ int BM_vert_face_count(BMVert *v)
  */
 int BM_vert_is_wire(BMVert *v)
 {
-	BMEdge *curedge;
+	if (v->e) {
+		BMEdge *e_first, *e_iter;
 
-	if (v->e == NULL) {
+		e_first = e_iter = v->e;
+		do {
+			if (e_iter->l) {
+				return FALSE;
+			}
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+
+		return TRUE;
+	}
+	else {
 		return FALSE;
 	}
-	
-	curedge = v->e;
-	do {
-		if (curedge->l) {
-			return FALSE;
-		}
-
-		curedge = bmesh_disk_edge_next(curedge, v);
-	} while (curedge != v->e);
-
-	return TRUE;
 }
 
 /**

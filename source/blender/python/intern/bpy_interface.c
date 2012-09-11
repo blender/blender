@@ -163,8 +163,17 @@ void bpy_context_clear(bContext *UNUSED(C), PyGILState_STATE *gilstate)
 void BPY_text_free_code(Text *text)
 {
 	if (text->compiled) {
+		PyGILState_STATE gilstate;
+		int use_gil = !PYC_INTERPRETER_ACTIVE;
+
+		if (use_gil)
+			gilstate = PyGILState_Ensure();
+
 		Py_DECREF((PyObject *)text->compiled);
 		text->compiled = NULL;
+
+		if (use_gil)
+			PyGILState_Release(gilstate);
 	}
 }
 

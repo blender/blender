@@ -1412,23 +1412,45 @@ static float project_paint_uvpixel_mask(
 	
 	/* calculate mask */
 	if (ps->do_mask_normal) {
-		MFace *mf = ps->dm_mface + face_index;
-		short *no1, *no2, *no3;
+		MFace *mf = &ps->dm_mface[face_index];
 		float no[3], angle;
-		no1 = ps->dm_mvert[mf->v1].no;
-		if (side == 1) {
-			no2 = ps->dm_mvert[mf->v3].no;
-			no3 = ps->dm_mvert[mf->v4].no;
+		if (mf->flag & ME_SMOOTH) {
+			short *no1, *no2, *no3;
+			no1 = ps->dm_mvert[mf->v1].no;
+			if (side == 1) {
+				no2 = ps->dm_mvert[mf->v3].no;
+				no3 = ps->dm_mvert[mf->v4].no;
+			}
+			else {
+				no2 = ps->dm_mvert[mf->v2].no;
+				no3 = ps->dm_mvert[mf->v3].no;
+			}
+
+			no[0] = w[0] * no1[0] + w[1] * no2[0] + w[2] * no3[0];
+			no[1] = w[0] * no1[1] + w[1] * no2[1] + w[2] * no3[1];
+			no[2] = w[0] * no1[2] + w[1] * no2[2] + w[2] * no3[2];
+			normalize_v3(no);
 		}
 		else {
-			no2 = ps->dm_mvert[mf->v2].no;
-			no3 = ps->dm_mvert[mf->v3].no;
+			/* incase the */
+#if 1
+			/* normalizing per pixel isn't optimal, we could cache or check ps->*/
+			if (mf->v4)
+				normal_quad_v3(no,
+				               ps->dm_mvert[mf->v1].co,
+				               ps->dm_mvert[mf->v2].co,
+				               ps->dm_mvert[mf->v3].co,
+				               ps->dm_mvert[mf->v4].co);
+			else
+				normal_tri_v3(no,
+				              ps->dm_mvert[mf->v1].co,
+				              ps->dm_mvert[mf->v2].co,
+				              ps->dm_mvert[mf->v3].co);
+#else
+			/* don't use because some modifiers dont have normal data (subsurf for eg) */
+			copy_v3_v3(no, (float *)ps->dm->getTessFaceData(ps->dm, face_index, CD_NORMAL));
+#endif
 		}
-		
-		no[0] = w[0] * no1[0] + w[1] * no2[0] + w[2] * no3[0];
-		no[1] = w[0] * no1[1] + w[1] * no2[1] + w[2] * no3[1];
-		no[2] = w[0] * no1[2] + w[1] * no2[2] + w[2] * no3[2];
-		normalize_v3(no);
 		
 		/* now we can use the normal as a mask */
 		if (ps->is_ortho) {

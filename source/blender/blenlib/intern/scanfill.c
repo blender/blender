@@ -423,12 +423,16 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 
 	for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
 		if (eve->h == 1) {
-			/* find the edge which has vertex eve */
-			ed1 = sf_ctx->filledgebase.first;
-			while (ed1) {
-				if (ed1->v1 == eve || ed1->v2 == eve) break;
-				ed1 = ed1->next;
+			/* find the edge which has vertex eve,
+			 * note: we _know_ this will crash if 'ed1' becomes NULL
+			 * but this will never happen. */
+			for (ed1 = sf_ctx->filledgebase.first;
+			     !(ed1->v1 == eve || ed1->v2 == eve);
+			     ed1 = ed1->next)
+			{
+				/* do nothing */
 			}
+
 			if (ed1->v1 == eve) {
 				ed1->v1 = ed1->v2;
 				ed1->v2 = eve;

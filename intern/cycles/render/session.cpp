@@ -320,7 +320,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	/* get next tile from manager */
 	Tile tile;
-	int device_num = device->device_number(tile_device);
+	int device_num = (params.background)? 0: device->device_number(tile_device);
 
 	if(!tile_manager.next_tile(tile, device_num))
 		return false;

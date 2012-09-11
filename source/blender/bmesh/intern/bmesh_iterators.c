@@ -28,6 +28,8 @@
  * See: bmesh_iterators_inlin.c too, some functions are here for speed reasons.
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
 
 #include "bmesh.h"
@@ -102,6 +104,38 @@ int BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, cons
 	}
 
 	return i;
+}
+
+/**
+ * \brief Iterator as Array
+ *
+ * Allocates a new array, has the advantage that you dont need to know the size ahead of time.
+ *
+ * Takes advantage of less common iterator usage to avoid counting twice,
+ * which you might end up doing when #BM_iter_as_array is used.
+ *
+ * Caller needs to free the array.
+ */
+void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len)
+{
+	BMIter iter;
+
+	if (BM_iter_init(&iter, bm, itype, data) && iter.count > 0) {
+		BMElem *ele;
+		BMElem **array = MEM_mallocN(sizeof(ele) * iter.count, __func__);
+		int i;
+
+		*r_len = iter.count;  /* set before iterating */
+
+		for (ele = BM_iter_step(&iter), i = 0; ele; ele = BM_iter_step(&iter), i++) {
+			array[i] = ele;
+		}
+		return array;
+	}
+	else {
+		*r_len = 0;
+		return NULL;
+	}
 }
 
 /**

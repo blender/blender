@@ -268,11 +268,14 @@ int EDBM_backbuf_border_mask_init(ViewContext *vc, int mcords[][2], short tot, s
 	
 	/* grab mask */
 	bufmask = view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
-	drm = bufmask->rect;
+
 	if (bufmask == NULL) {
 		return 0; /* only when mem alloc fails, go crash somewhere else! */
 	}
-	
+	else {
+		drm = bufmask->rect;
+	}
+
 	/* build selection lookup */
 	selbuf = MEM_callocN(bm_vertoffs + 1, "selbuf");
 	

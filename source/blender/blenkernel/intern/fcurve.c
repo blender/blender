@@ -74,12 +74,10 @@ void free_fcurve(FCurve *fcu)
 {
 	if (fcu == NULL) 
 		return;
-	
+
 	/* free curve data */
-	if (fcu) {
-		if (fcu->bezt) MEM_freeN(fcu->bezt);
-		if (fcu->fpt) MEM_freeN(fcu->fpt);
-	}
+	if (fcu->bezt) MEM_freeN(fcu->bezt);
+	if (fcu->fpt)  MEM_freeN(fcu->fpt);
 	
 	/* free RNA-path, as this were allocated when getting the path string */
 	if (fcu->rna_path)
