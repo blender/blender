@@ -1292,7 +1292,7 @@ void BKE_color_managed_view_settings_init(ColorManagedViewSettings *settings)
 	*             and proper versioning stuff is added.
 	*             for now use NONE to be compatible with all current files
 	*/
-	BLI_strncpy(settings->view_transform, "NONE", sizeof(settings->view_transform));
+	BLI_strncpy(settings->view_transform, "Default", sizeof(settings->view_transform));
 
 	settings->gamma = 1.0f;
 	settings->exposure = 0.0f;
@@ -1319,7 +1319,7 @@ void BKE_color_managed_view_settings_free(ColorManagedViewSettings *settings)
 
 void BKE_color_managed_colorspace_settings_init(ColorManagedColorspaceSettings *colorspace_settings)
 {
-	BLI_strncpy(colorspace_settings->name, "NONE", sizeof(colorspace_settings->name));
+	BLI_strncpy(colorspace_settings->name, "", sizeof(colorspace_settings->name));
 }
 
 void BKE_color_managed_colorspace_settings_copy(ColorManagedColorspaceSettings *colorspace_settings,
