@@ -37,31 +37,6 @@ CombineChannelsOperation::CombineChannelsOperation() : NodeOperation()
 	this->m_inputChannel4Operation = NULL;
 }
 
-bool CombineChannelsOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) 
-{
-	rcti tempOutput;
-	bool first = true;
-	for (int i = 0 ; i < 4 ; i ++) {
-		NodeOperation * inputOperation = this->getInputOperation(i);
-		if (inputOperation->determineDependingAreaOfInterest(input, readOperation, &tempOutput)) {
-			if (first) {
-				output->xmin = tempOutput.xmin;
-				output->ymin = tempOutput.ymin;
-				output->xmax = tempOutput.xmax;
-				output->ymax = tempOutput.ymax;
-				first = false;
-			}
-			else {
-				output->xmin = MIN2(output->xmin, tempOutput.xmin);
-				output->ymin = MIN2(output->ymin, tempOutput.ymin);
-				output->xmax = MAX2(output->xmax, tempOutput.xmax);
-				output->ymax = MAX2(output->ymax, tempOutput.ymax);
-			}
-		}
-	}
-	return !first;
-}
-
 void CombineChannelsOperation::initExecution()
 {
 	this->m_inputChannel1Operation = this->getInputSocketReader(0);
@@ -82,7 +57,6 @@ void CombineChannelsOperation::deinitExecution()
 void CombineChannelsOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float input[4];
-	/// @todo: remove if statements
 	if (this->m_inputChannel1Operation) {
 		this->m_inputChannel1Operation->read(input, x, y, sampler);
 		output[0] = input[0];
