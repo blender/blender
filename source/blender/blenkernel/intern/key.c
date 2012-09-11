@@ -691,8 +691,8 @@ static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, const 
 		if (nu->bp) {
 			step = nu->pntsu * nu->pntsv;
 
-			a1 = MAX2(a, start);
-			a2 = MIN2(a + step, end);
+			a1 = maxi(a, start);
+			a2 = mini(a + step, end);
 
 			if (a1 < a2) cp_key(a1, a2, tot, out, key, actkb, kb, NULL, KEY_MODE_BPOINT);
 		}
@@ -700,8 +700,8 @@ static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, const 
 			step = 3 * nu->pntsu;
 
 			/* exception because keys prefer to work with complete blocks */
-			a1 = MAX2(a, start);
-			a2 = MIN2(a + step, end);
+			a1 = maxi(a, start);
+			a2 = mini(a + step, end);
 
 			if (a1 < a2) cp_key(a1, a2, tot, out, key, actkb, kb, NULL, KEY_MODE_BEZTRIPLE);
 		}
@@ -1217,7 +1217,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 					remain = step;
 				}
 
-				count = MIN2(remain, estep);
+				count = mini(remain, estep);
 				if (mode == KEY_MODE_BEZTRIPLE) {
 					count += 3 - count % 3;
 				}
@@ -1573,7 +1573,7 @@ void key_to_latt(KeyBlock *kb, Lattice *lt)
 	fp = kb->data;
 
 	tot = lt->pntsu * lt->pntsv * lt->pntsw;
-	tot = MIN2(kb->totelem, tot);
+	tot = mini(kb->totelem, tot);
 
 	for (a = 0; a < tot; a++, fp += 3, bp++) {
 		copy_v3_v3(bp->vec, fp);
@@ -1645,7 +1645,7 @@ void key_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 
 	tot = BKE_nurbList_verts_count(nurb);
 
-	tot = MIN2(kb->totelem, tot);
+	tot = mini(kb->totelem, tot);
 
 	while (nu && tot > 0) {
 
@@ -1713,7 +1713,7 @@ void key_to_mesh(KeyBlock *kb, Mesh *me)
 	mvert = me->mvert;
 	fp = kb->data;
 
-	tot = MIN2(kb->totelem, me->totvert);
+	tot = mini(kb->totelem, me->totvert);
 
 	for (a = 0; a < tot; a++, fp += 3, mvert++) {
 		copy_v3_v3(mvert->co, fp);

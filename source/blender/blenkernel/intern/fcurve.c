@@ -504,8 +504,8 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 						xmaxv = MAX3(xmaxv, bezt_last->vec[1][0],  bezt_last->vec[2][0]);
 					}
 					else {
-						xminv = MIN2(xminv, bezt_first->vec[1][0]);
-						xmaxv = MAX2(xmaxv, bezt_last->vec[1][0]);
+						xminv = minf(xminv, bezt_first->vec[1][0]);
+						xmaxv = maxf(xmaxv, bezt_last->vec[1][0]);
 					}
 				}
 			}
@@ -521,8 +521,8 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 							ymaxv = MAX4(ymaxv, bezt->vec[1][1], bezt->vec[0][1], bezt->vec[2][1]);
 						}
 						else {
-							yminv = MIN2(yminv, bezt->vec[1][1]);
-							ymaxv = MAX2(ymaxv, bezt->vec[1][1]);
+							yminv = minf(yminv, bezt->vec[1][1]);
+							ymaxv = maxf(ymaxv, bezt->vec[1][1]);
 						}
 						
 						foundvert = TRUE;
@@ -533,8 +533,8 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 		else if (fcu->fpt) {
 			/* frame range can be directly calculated from end verts */
 			if (xmin || xmax) {
-				xminv = MIN2(xminv, fcu->fpt[0].vec[0]);
-				xmaxv = MAX2(xmaxv, fcu->fpt[fcu->totvert - 1].vec[0]);
+				xminv = minf(xminv, fcu->fpt[0].vec[0]);
+				xmaxv = maxf(xmaxv, fcu->fpt[fcu->totvert - 1].vec[0]);
 			}
 			
 			/* only loop over keyframes to find extents for values if needed */
@@ -591,15 +591,15 @@ void calc_fcurve_range(FCurve *fcu, float *start, float *end,
 			if (bezt_first) {
 				BLI_assert(bezt_last != NULL);
 				
-				min = MIN2(min, bezt_first->vec[1][0]);
-				max = MAX2(max, bezt_last->vec[1][0]);
+				min = minf(min, bezt_first->vec[1][0]);
+				max = maxf(max, bezt_last->vec[1][0]);
 				
 				foundvert = TRUE;
 			}
 		}
 		else if (fcu->fpt) {
-			min = MIN2(min, fcu->fpt[0].vec[0]);
-			max = MAX2(max, fcu->fpt[fcu->totvert - 1].vec[0]);
+			min = minf(min, fcu->fpt[0].vec[0]);
+			max = maxf(max, fcu->fpt[fcu->totvert - 1].vec[0]);
 			
 			foundvert = TRUE;
 		}

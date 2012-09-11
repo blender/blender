@@ -1659,8 +1659,9 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 		IDP_Int(idprop) = value;
 		rna_idproperty_touch(idprop);
 	}
-	else if (bprop->set)
+	else if (bprop->set) {
 		bprop->set(ptr, value);
+	}
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
