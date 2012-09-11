@@ -3398,7 +3398,13 @@ static void draw_sensor_message(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_mouse(uiLayout *layout, PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "mouse_event", 0, NULL, ICON_NONE);
+	uiLayout *split;
+
+	split = uiLayoutSplit(layout, 0.8f, FALSE);
+	uiItemR(split, ptr, "mouse_event", 0, NULL, ICON_NONE);
+
+	if (RNA_enum_get(ptr, "mouse_event") == BL_SENS_MOUSE_MOUSEOVER_ANY)
+		uiItemR(split, ptr, "use_pulse", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 }
 
 static void draw_sensor_near(uiLayout *layout, PointerRNA *ptr)
