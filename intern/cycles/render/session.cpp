@@ -140,6 +140,12 @@ void Session::reset_gpu(BufferParams& buffer_params, int samples)
 	pause_cond.notify_all();
 }
 
+bool Session::resetting_gpu() const
+{
+	/* no need to wait for gpu device */
+	return false;
+}
+
 bool Session::draw_gpu(BufferParams& buffer_params)
 {
 	/* block for buffer access */
@@ -288,6 +294,11 @@ void Session::reset_cpu(BufferParams& buffer_params, int samples)
 	device->task_cancel();
 
 	pause_cond.notify_all();
+}
+
+bool Session::resetting_cpu() const
+{
+	return device->task_cancelled();
 }
 
 bool Session::draw_cpu(BufferParams& buffer_params)
@@ -582,6 +593,14 @@ void Session::reset(BufferParams& buffer_params, int samples)
 		reset_gpu(buffer_params, samples);
 	else
 		reset_cpu(buffer_params, samples);
+}
+
+bool Session::resetting() const
+{
+	if(device_use_gl)
+		return resetting_gpu();
+	else
+		return resetting_cpu();
 }
 
 void Session::set_samples(int samples)
