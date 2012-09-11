@@ -33,6 +33,10 @@
 #ifndef CERES_INTERNAL_COLLECTIONS_PORT_H_
 #define CERES_INTERNAL_COLLECTIONS_PORT_H_
 
+#ifdef CERES_HASH_BOOST
+#include <boost/tr1/unordered_map.hpp>
+#include <boost/tr1/unordered_set.hpp>
+#else
 #if defined(_MSC_VER) && _MSC_VER <= 1700
 #include <unordered_map>
 #include <unordered_set>
@@ -40,6 +44,8 @@
 #include <tr1/unordered_map>
 #include <tr1/unordered_set>
 #endif
+#endif
+
 #include <utility>
 #include "ceres/integral_types.h"
 #include "ceres/internal/port.h"
@@ -118,7 +124,11 @@ CERES_HASH_NAMESPACE_START
 
 // Hasher for STL pairs. Requires hashers for both members to be defined.
 template<typename T>
+#ifdef CERES_HASH_BOOST
+struct hash {
+#else
 struct hash<pair<T, T> > {
+#endif
   size_t operator()(const pair<T, T>& p) const {
     size_t h1 = hash<T>()(p.first);
     size_t h2 = hash<T>()(p.second);
