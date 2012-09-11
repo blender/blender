@@ -33,6 +33,7 @@ extern "C" {
 	#include "RE_render_ext.h"
 	#include "IMB_imbuf.h"
 	#include "IMB_imbuf_types.h"
+	#include "IMB_colormanagement.h"
 }
 
 BaseImageOperation::BaseImageOperation() : NodeOperation()
@@ -70,7 +71,7 @@ ImBuf *BaseImageOperation::getImBuf()
 	}
 	
 	if (ibuf->rect_float == NULL) {
-		IMB_float_from_rect(ibuf);
+		IMB_colormanagement_imbuf_float_from_rect(ibuf);
 	}
 	return ibuf;
 }
