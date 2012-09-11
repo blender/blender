@@ -45,6 +45,8 @@ typedef struct ColorSpace {
 
 	struct ConstProcessorRcPtr *to_scene_linear;
 	struct ConstProcessorRcPtr *from_scene_linear;
+
+	int is_invertible;
 } ColorSpace;
 
 typedef struct ColorManagedDisplay {
@@ -76,7 +78,7 @@ struct ColorManagedView *colormanage_view_add(const char *name);
 struct ColorManagedView *colormanage_view_get_indexed(int index);
 struct ColorManagedView *colormanage_view_get_named(const char *name);
 
-struct ColorSpace *colormanage_colorspace_add(const char *name, const char *description);
+struct ColorSpace *colormanage_colorspace_add(const char *name, const char *description, int is_invertible);
 struct ColorSpace *colormanage_colorspace_get_named(const char *name);
 struct ColorSpace *colormanage_colorspace_get_indexed(int index);
 

@@ -19,12 +19,14 @@
  * All rights reserved.
  *
  * Contributor(s): Xavier Thomas
- *                 Lukas Toene
+ *                 Lukas Toene,
+ *                 Sergey Sharybin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <iostream>
+#include <string.h>
 
 #include <OpenColorIO/OpenColorIO.h>
 
@@ -262,6 +264,30 @@ const char *OCIO_configGetDisplayColorSpaceName(ConstConfigRcPtr *config, const 
 	}
 
 	return NULL;
+}
+
+int OCIO_colorSpaceIsInvertible(ConstColorSpaceRcPtr *cs)
+{
+	const char *family = (*cs)->getFamily();
+
+	if (!strcmp(family, "rrt") || !strcmp(family, "display")) {
+		/* assume display and rrt transformations are not invertible
+		 * in fact some of them could be, but it doesn't make much sense to allow use them as invertible
+		 */
+		return false;
+	}
+
+	if ((*cs)->isData()) {
+		/* data color spaces don't have transformation at all */
+		return true;
+	}
+
+	if ((*cs)->getTransform(COLORSPACE_DIR_TO_REFERENCE)) {
+		/* if there's defined transform to reference space, color space could be converted to scene linear */
+		return true;
+	}
+
+	return true;
 }
 
 void OCIO_colorSpaceRelease(ConstColorSpaceRcPtr *cs)

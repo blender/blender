@@ -466,13 +466,15 @@ static void colormanage_load_config(ConstConfigRcPtr *config)
 	for (index = 0 ; index < tot_colorspace; index++) {
 		ConstColorSpaceRcPtr *ocio_colorspace;
 		const char *description;
+		int is_invertible;
 
 		name = OCIO_configGetColorSpaceNameByIndex(config, index);
 
 		ocio_colorspace = OCIO_configGetColorSpace(config, name);
 		description = OCIO_colorSpaceGetDescription(ocio_colorspace);
+		is_invertible = OCIO_colorSpaceIsInvertible(ocio_colorspace);
 
-		colormanage_colorspace_add(name, description);
+		colormanage_colorspace_add(name, description, is_invertible);
 
 		OCIO_colorSpaceRelease(ocio_colorspace);
 	}
@@ -2158,7 +2160,7 @@ static void colormanage_description_strip(char *description)
 	}
 }
 
-ColorSpace *colormanage_colorspace_add(const char *name, const char *description)
+ColorSpace *colormanage_colorspace_add(const char *name, const char *description, int is_invertible)
 {
 	ColorSpace *colorspace;
 
@@ -2172,6 +2174,8 @@ ColorSpace *colormanage_colorspace_add(const char *name, const char *description
 
 		colormanage_description_strip(colorspace->description);
 	}
+
+	colorspace->is_invertible = is_invertible;
 
 	BLI_addtail(&global_colorspaces, colorspace);
 
@@ -2278,6 +2282,9 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
 
 	for (colorspace = global_colorspaces.first; colorspace; colorspace = colorspace->next) {
 		EnumPropertyItem item;
+
+		if (!colorspace->is_invertible)
+			continue;
 
 		item.value = colorspace->index;
 		item.name = colorspace->name;

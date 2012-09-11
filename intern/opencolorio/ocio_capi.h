@@ -71,6 +71,8 @@ const char *OCIO_configGetColorSpaceNameByIndex(ConstConfigRcPtr *config, int in
 ConstColorSpaceRcPtr *OCIO_configGetColorSpace(ConstConfigRcPtr *config, const char *name);
 int OCIO_configGetIndexForColorSpace(ConstConfigRcPtr *config, const char *name);
 
+int OCIO_colorSpaceIsInvertible(ConstColorSpaceRcPtr *cs);
+
 void OCIO_colorSpaceRelease(ConstColorSpaceRcPtr *cs);
 
 const char *OCIO_configGetDefaultDisplay(ConstConfigRcPtr *config);

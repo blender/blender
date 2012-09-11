@@ -120,7 +120,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: nuke_rec709
-    family:
+    family: display
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -186,7 +186,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: dci_xyz
-    family:
+    family: display
     equalitygroup:
     bitdepth: 16f
     description: |
@@ -216,7 +216,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: srgb8
-    family: srgb
+    family: display
     equalitygroup:
     bitdepth: 8ui
     description: |
