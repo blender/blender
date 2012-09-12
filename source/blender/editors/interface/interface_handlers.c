@@ -494,10 +494,12 @@ static void ui_apply_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data)
 	
 	/* local hack... */
 	if (but->type == BUT_TOGDUAL && data->togdual) {
-		if (but->pointype == SHO)
+		if (but->pointype == UI_BUT_POIN_SHORT) {
 			but->poin += 2;
-		else if (but->pointype == INT)
+		}
+		else if (but->pointype == UI_BUT_POIN_INT) {
 			but->poin += 4;
+		}
 	}
 	
 	value = ui_get_but_val(but);
@@ -534,10 +536,12 @@ static void ui_apply_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data)
 	
 	/* end local hack... */
 	if (but->type == BUT_TOGDUAL && data->togdual) {
-		if (but->pointype == SHO)
+		if (but->pointype == UI_BUT_POIN_SHORT) {
 			but->poin -= 2;
-		else if (but->pointype == INT)
+		}
+		else if (but->pointype == UI_BUT_POIN_INT) {
 			but->poin -= 4;
+		}
 	}
 	
 	ui_apply_but_func(C, but);
@@ -605,7 +609,7 @@ static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_apply_but_TOG3(bContext *C, uiBut *but, uiHandleButtonData *data)
 { 
-	if (but->pointype == SHO) {
+	if (but->pointype == UI_BUT_POIN_SHORT) {
 		short *sp = (short *)but->poin;
 		
 		if (UI_BITBUT_TEST(sp[1], but->bitnr)) {

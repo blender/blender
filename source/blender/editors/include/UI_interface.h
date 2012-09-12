@@ -188,16 +188,16 @@ typedef struct uiLayout uiLayout;
  * - bit  9-15: button type (now 6 bits, 64 types)
  * */
 typedef enum {
-	CHA = 32,
-	SHO = 64,
-	INT = 96,
-	FLO = 128,
-/*	FUN = 192, */ /*UNUSED*/
-	BIT = 256
+	UI_BUT_POIN_CHAR = 32,
+	UI_BUT_POIN_SHORT = 64,
+	UI_BUT_POIN_INT = 96,
+	UI_BUT_POIN_FLOAT = 128,
+/*	UI_BUT_POIN_FUNCTION = 192, */ /*UNUSED*/
+	UI_BUT_POIN_BIT = 256  /* OR'd with a bit index*/
 } eButPointerType;
 
-/* button reqyires a pointer */
-#define BUTPOIN (FLO | SHO | CHA)
+/* button requires a pointer */
+#define UI_BUT_POIN_TYPES (UI_BUT_POIN_FLOAT | UI_BUT_POIN_SHORT | UI_BUT_POIN_CHAR)
 
 /* assigned to but->type, OR'd with the flags above when passing args */
 typedef enum {

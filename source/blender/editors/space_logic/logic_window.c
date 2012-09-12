@@ -2162,7 +2162,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					          0.0, 1.0, 0, 0, "Sets the volume of this sound");
 					uiDefButF(block, NUM, 0, "Pitch:", xco+wval+10, yco-66, wval, 19, &sa->pitch, -12.0,
 					          12.0, 0, 0, "Sets the pitch of this sound");
-					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19,
+					uiDefButS(block, TOG | UI_BUT_POIN_BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19,
 					          &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space");
 					if (sa->flag & ACT_SND_3D_SOUND) {
 						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19,
