@@ -119,12 +119,15 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 			
 				// This image is already located on the file system.
 				// But we want to create copies here.
-				// To avoid overwroting images with same file name but
-				// differenet source locations
+				// To move images into the same export directory.
+				// Note: If an image is already located in the exprot folder,
+				// skip the copy (as it would result in a file copy error
 
-				if (BLI_copy(source_path, export_path) != 0) {
-					fprintf(stderr, "Collada export: Cannot copy image:\n source:%s\ndest :%s\n", source_path, export_path);
-					return;
+				if (BLI_path_cmp(source_path, export_path) != 0) {
+					if (BLI_copy(source_path, export_path) != 0) {
+						fprintf(stderr, "Collada export: Cannot copy image:\n source:%s\ndest :%s\n", source_path, export_path);
+						return;
+					}
 				}
 
 				BLI_strncpy(export_path, export_file, sizeof(export_path));
@@ -132,7 +135,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 			}
 			else {
 
-				// Do not make any vopies, but use the source path directly as reference
+				// Do not make any copies, but use the source path directly as reference
 				// to the original image
 
 				BLI_strncpy(export_path, source_path, sizeof(export_path));
