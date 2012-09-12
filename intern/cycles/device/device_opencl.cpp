@@ -739,29 +739,31 @@ Device *device_opencl_create(DeviceInfo& info, bool background)
 void device_opencl_info(vector<DeviceInfo>& devices)
 {
 	vector<cl_device_id> device_ids;
-	cl_uint num_devices;
-	cl_platform_id platform_id;
-	cl_uint num_platforms;
+	cl_uint num_devices = 0;
+	vector<cl_platform_id> platform_ids;
+	cl_uint num_platforms = 0;
 
 	/* get devices */
 	if(clGetPlatformIDs(0, NULL, &num_platforms) != CL_SUCCESS || num_platforms == 0)
 		return;
+	
+	platform_ids.resize(num_platforms);
 
-	if(clGetPlatformIDs(1, &platform_id, NULL) != CL_SUCCESS)
+	if(clGetPlatformIDs(num_platforms, &platform_ids[0], NULL) != CL_SUCCESS)
 		return;
 
-	if(clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 0, NULL, &num_devices) != CL_SUCCESS)
+	if(clGetDeviceIDs(platform_ids[0], CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
 		return;
 	
 	device_ids.resize(num_devices);
 
-	if(clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, num_devices, &device_ids[0], NULL) != CL_SUCCESS)
+	if(clGetDeviceIDs(platform_ids[0], CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, num_devices, &device_ids[0], NULL) != CL_SUCCESS)
 		return;
 	
 	/* add devices */
 	for(int num = 0; num < num_devices; num++) {
 		cl_device_id device_id = device_ids[num];
-		char name[1024];
+		char name[1024] = "\0";
 
 		if(clGetDeviceInfo(device_id, CL_DEVICE_NAME, sizeof(name), &name, NULL) != CL_SUCCESS)
 			continue;
