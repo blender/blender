@@ -1658,7 +1658,7 @@ static int skin_radii_equalize_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_skin_radii_equalize(wmOperatorType *ot)
 {
 	ot->name = "Skin Radii Equalize";
-	ot->description = "Make skin radii of selected vertices equal";
+	ot->description = "Make skin radii of selected vertices equal on each axis";
 	ot->idname = "OBJECT_OT_skin_radii_equalize";
 
 	ot->poll = skin_edit_poll;
