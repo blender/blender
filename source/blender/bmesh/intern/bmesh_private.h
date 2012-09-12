@@ -53,12 +53,6 @@ int bmesh_elem_check(void *element, const char htype);
 	} (void)0
 #endif
 
-#define BM_DISK_EDGE_LINK_GET(e, v)  (                                        \
-	((v) == ((BMEdge *)(e))->v1) ?                                            \
-		&((e)->v1_disk_link) :                                                \
-		&((e)->v2_disk_link)                                                  \
-	)
-
 int bmesh_radial_length(BMLoop *l);
 int bmesh_disk_count(BMVert *v);
 
