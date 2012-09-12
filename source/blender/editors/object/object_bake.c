@@ -1347,6 +1347,8 @@ static void init_bake_internal(BakeRender *bkr, bContext *C)
 
 static void finish_bake_internal(BakeRender *bkr)
 {
+	Image *ima;
+
 	RE_Database_Free(bkr->re);
 
 	/* restore raytrace and AO */
@@ -1358,25 +1360,26 @@ static void finish_bake_internal(BakeRender *bkr)
 		if (bkr->prev_r_raytrace == 0)
 			bkr->scene->r.mode &= ~R_RAYTRACE;
 
-	if (bkr->result == BAKE_RESULT_OK) {
-		Image *ima;
-		/* force OpenGL reload and mipmap recalc */
-		for (ima = G.main->image.first; ima; ima = ima->id.next) {
+
+	/* force OpenGL reload and mipmap recalc */
+	for (ima = G.main->image.first; ima; ima = ima->id.next) {
+		ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
+
+		if (bkr->result == BAKE_RESULT_OK) {
 			if (ima->ok == IMA_OK_LOADED) {
-				ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
 				if (ibuf) {
 					if (ibuf->userflags & IB_BITMAPDIRTY) {
 						GPU_free_image(ima);
 						imb_freemipmapImBuf(ibuf);
 					}
-
-					/* freed when baking is done, but if its canceled we need to free here */
-					if (ibuf->userdata) {
-						MEM_freeN(ibuf->userdata);
-						ibuf->userdata = NULL;
-					}
 				}
 			}
+		}
+
+		/* freed when baking is done, but if its canceled we need to free here */
+		if (ibuf->userdata) {
+			MEM_freeN(ibuf->userdata);
+			ibuf->userdata = NULL;
 		}
 	}
 }
