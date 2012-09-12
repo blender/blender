@@ -152,7 +152,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	MPoly *mpoly, *orig_mpoly;
 	MLoop *mloop, *orig_mloop;
 	MVert *mvert, *orig_mvert;
-	int totvert, totpoly, totloop, totedge;
+	int totvert, totpoly, totloop /* , totedge */;
 	int maxvert, maxpoly, maxloop, totpart = 0, first_particle = 0;
 	int k, p, p_skip;
 	short track = ob->trackflag % 3, trackneg, axis = pimd->axis;
@@ -210,7 +210,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	totvert = dm->getNumVerts(dm);
 	totpoly = dm->getNumPolys(dm);
 	totloop = dm->getNumLoops(dm);
-	totedge = dm->getNumEdges(dm);
+	/* totedge = dm->getNumEdges(dm); */ /* UNUSED */
 
 	/* count particles */
 	maxvert = 0;

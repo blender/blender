@@ -1377,9 +1377,11 @@ static void finish_bake_internal(BakeRender *bkr)
 		}
 
 		/* freed when baking is done, but if its canceled we need to free here */
-		if (ibuf->userdata) {
-			MEM_freeN(ibuf->userdata);
-			ibuf->userdata = NULL;
+		if (ibuf) {
+			if (ibuf->userdata) {
+				MEM_freeN(ibuf->userdata);
+				ibuf->userdata = NULL;
+			}
 		}
 	}
 }
