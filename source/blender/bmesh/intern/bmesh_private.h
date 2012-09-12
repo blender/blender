@@ -37,15 +37,21 @@
  */
 
 /* returns positive nonzero on error */
-int bmesh_elem_check(void *element, const char htype);
 
-#define BM_CHECK_ELEMENT(el)                                                  \
+#ifdef NDEBUG
+   /* no error checking for release,
+    * it can take most of the CPU time when running some tools */
+#  define BM_CHECK_ELEMENT(el)  (void)(el)
+#else
+int bmesh_elem_check(void *element, const char htype);
+#  define BM_CHECK_ELEMENT(el)                                                \
 	if (bmesh_elem_check(el, ((BMHeader *)el)->htype)) {                      \
 	    printf("check_element failure, with code %i on line %i in file\n"     \
 	    "    \"%s\"\n\n",                                                     \
-	    bmesh_elem_check(el, ((BMHeader *)el)->htype),                    \
+	    bmesh_elem_check(el, ((BMHeader *)el)->htype),                        \
 	    __LINE__, __FILE__);                                                  \
-	}
+	} (void)0
+#endif
 
 #define BM_DISK_EDGE_LINK_GET(e, v)  (                                        \
 	((v) == ((BMEdge *)(e))->v1) ?                                            \
