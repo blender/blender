@@ -41,6 +41,7 @@
 
 #include "BLF_translation.h"
 
+#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -64,7 +65,7 @@ static void do_node_add(bContext *C, bNodeTemplate *ntemp)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar;
-	bNode *node;
+	bNode *node, *node_new;
 	
 	/* get location to add node at mouse */
 	for (ar = sa->regionbase.first; ar; ar = ar->next) {
@@ -84,7 +85,7 @@ static void do_node_add(bContext *C, bNodeTemplate *ntemp)
 		else node->flag &= ~NODE_TEST;
 	}
 	
-	/* node= */ node_add_node(snode, bmain, scene, ntemp, snode->cursor[0], snode->cursor[1]);
+	node_new = node_add_node(snode, bmain, scene, ntemp, snode->cursor[0], snode->cursor[1]);
 	
 	/* select previous selection before autoconnect */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
@@ -95,7 +96,14 @@ static void do_node_add(bContext *C, bNodeTemplate *ntemp)
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_TEST) node->flag &= ~NODE_SELECT;
 	}
-		
+
+	/* once this is called from an operator, this should be removed */
+	if (node_new) {
+		char undostr[BKE_UNDO_STR_MAX];
+		BLI_snprintf(undostr, sizeof(BKE_UNDO_STR_MAX), "Add Node %s", nodeLabel(node_new));
+		BKE_write_undo(C, undostr);
+	}
+
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
 }

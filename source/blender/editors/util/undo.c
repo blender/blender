@@ -107,8 +107,7 @@ void ED_undo_push(bContext *C, const char *str)
 		PE_undo_push(CTX_data_scene(C), str);
 	}
 	else {
-		if (U.uiflag & USER_GLOBALUNDO) 
-			BKE_write_undo(C, str);
+		BKE_write_undo(C, str);
 	}
 	
 	if (wm->file_saved) {
