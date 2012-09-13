@@ -573,7 +573,7 @@ void IMB_colormanagement_init(void)
 
 	ocio_env = getenv("OCIO");
 
-	if (ocio_env)
+	if (ocio_env && ocio_env[0] != '\0')
 		config = OCIO_configCreateFromEnv();
 
 	if (config == NULL) {
@@ -590,9 +590,9 @@ void IMB_colormanagement_init(void)
 		OCIO_setCurrentConfig(config);
 
 		colormanage_load_config(config);
-	}
 
-	OCIO_configRelease(config);
+		OCIO_configRelease(config);
+	}
 #endif
 
 	BLI_init_srgb_conversion();
