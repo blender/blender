@@ -1049,6 +1049,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 		if (mask) {
 			int width, height;
+			float aspx = 1.0f, aspy = 1.0f;
 			// ED_mask_get_size(C, &width, &height);
 
 			//Scene *scene = CTX_data_scene(C);
@@ -1058,6 +1059,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			ED_mask_draw_region(mask, ar,
 			                    0, 0,  /* TODO */
 			                    width, height,
+			                    aspx, aspy,
 			                    FALSE, TRUE,
 			                    NULL, C);
 		}

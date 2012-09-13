@@ -682,10 +682,13 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	if (mask) {
 		int width, height;
+		float aspx, aspy;
 		ED_space_image_get_size(sima, &width, &height);
+		ED_space_image_get_aspect(sima, &aspx, &aspy);
 		ED_mask_draw_region(mask, ar,
 		                    sima->mask_info.draw_flag, sima->mask_info.draw_type,
 		                    width, height,
+		                    aspx, aspy,
 		                    TRUE, FALSE,
 		                    NULL, C);
 
