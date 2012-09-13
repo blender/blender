@@ -230,13 +230,19 @@ void ED_space_image_get_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
 
 void ED_image_get_uv_aspect(Image *ima, ImageUser *iuser, float *aspx, float *aspy)
 {
-	int w, h;
+	if (ima) {
+		int w, h;
 
-	BKE_image_get_aspect(ima, aspx, aspy);
-	BKE_image_get_size(ima, iuser, &w, &h);
+		BKE_image_get_aspect(ima, aspx, aspy);
+		BKE_image_get_size(ima, iuser, &w, &h);
 
-	*aspx *= (float)w;
-	*aspy *= (float)h;
+		*aspx *= (float)w;
+		*aspy *= (float)h;
+	}
+	else {
+		*aspx = 1.0f;
+		*aspy = 1.0f;
+	}
 }
 
 /* takes event->mval */
