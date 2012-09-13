@@ -273,6 +273,11 @@ public:
 	{
 		task_pool.cancel();
 	}
+
+	bool task_cancelled()
+	{
+		return task_pool.cancelled();
+	}
 };
 
 Device *device_cpu_create(DeviceInfo& info, int threads)

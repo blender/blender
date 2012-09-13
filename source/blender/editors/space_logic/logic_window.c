@@ -2162,7 +2162,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 					          0.0, 1.0, 0, 0, "Sets the volume of this sound");
 					uiDefButF(block, NUM, 0, "Pitch:", xco+wval+10, yco-66, wval, 19, &sa->pitch, -12.0,
 					          12.0, 0, 0, "Sets the pitch of this sound");
-					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19,
+					uiDefButS(block, TOG | UI_BUT_POIN_BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19,
 					          &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space");
 					if (sa->flag & ACT_SND_3D_SOUND) {
 						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19,
@@ -3398,7 +3398,13 @@ static void draw_sensor_message(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_mouse(uiLayout *layout, PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "mouse_event", 0, NULL, ICON_NONE);
+	uiLayout *split;
+
+	split = uiLayoutSplit(layout, 0.8f, FALSE);
+	uiItemR(split, ptr, "mouse_event", 0, NULL, ICON_NONE);
+
+	if (RNA_enum_get(ptr, "mouse_event") == BL_SENS_MOUSE_MOUSEOVER_ANY)
+		uiItemR(split, ptr, "use_pulse", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 }
 
 static void draw_sensor_near(uiLayout *layout, PointerRNA *ptr)

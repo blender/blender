@@ -494,10 +494,12 @@ static void ui_apply_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data)
 	
 	/* local hack... */
 	if (but->type == BUT_TOGDUAL && data->togdual) {
-		if (but->pointype == SHO)
+		if (but->pointype == UI_BUT_POIN_SHORT) {
 			but->poin += 2;
-		else if (but->pointype == INT)
+		}
+		else if (but->pointype == UI_BUT_POIN_INT) {
 			but->poin += 4;
+		}
 	}
 	
 	value = ui_get_but_val(but);
@@ -534,10 +536,12 @@ static void ui_apply_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data)
 	
 	/* end local hack... */
 	if (but->type == BUT_TOGDUAL && data->togdual) {
-		if (but->pointype == SHO)
+		if (but->pointype == UI_BUT_POIN_SHORT) {
 			but->poin -= 2;
-		else if (but->pointype == INT)
+		}
+		else if (but->pointype == UI_BUT_POIN_INT) {
 			but->poin -= 4;
+		}
 	}
 	
 	ui_apply_but_func(C, but);
@@ -605,7 +609,7 @@ static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_apply_but_TOG3(bContext *C, uiBut *but, uiHandleButtonData *data)
 { 
-	if (but->pointype == SHO) {
+	if (but->pointype == UI_BUT_POIN_SHORT) {
 		short *sp = (short *)but->poin;
 		
 		if (UI_BITBUT_TEST(sp[1], but->bitnr)) {
@@ -1049,7 +1053,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case PULLDOWN:
 			ui_apply_but_BLOCK(C, but, data);
 			break;
-		case COL:
+		case COLOR:
 			if (data->cancel)
 				ui_apply_but_VEC(C, but, data);
 			else
@@ -1180,7 +1184,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	}
 
 	/* RGB triple */
-	else if (but->type == COL) {
+	else if (but->type == COLOR) {
 		float rgb[3];
 		
 		if (but->poin == NULL && but->rnapoin.data == NULL) ;
@@ -2092,12 +2096,12 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 			menufunc = ui_block_func_ICONTEXTROW;
 			arg = but;
 			break;
-		case COL:
+		case COLOR:
 			ui_get_but_vectorf(but, data->origvec);
 			copy_v3_v3(data->vec, data->origvec);
 			but->editvec = data->vec;
 
-			handlefunc = ui_block_func_COL;
+			handlefunc = ui_block_func_COLOR;
 			arg = but;
 			break;
 
@@ -3001,7 +3005,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 				return WM_UI_HANDLER_BREAK;
 			}
 		}
-		else if (but->type == COL) {
+		else if (but->type == COLOR) {
 			if (ELEM(event->type, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->alt) {
 				float *hsv = ui_block_hsv_get(but->block);
 				float col[3];
@@ -4914,7 +4918,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		case BUTM:
 			retval = ui_do_but_BUT(C, but, data, event);
 			break;
-		case COL:
+		case COLOR:
 			if (but->a1 == UI_GRAD_V_ALT)  /* signal to prevent calling up color picker */
 				retval = ui_do_but_EXIT(C, but, data, event);
 			else
@@ -5880,7 +5884,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 					}
 				}
 
-				if (but->type != COL) {  /* exception */
+				if (but->type != COLOR) {  /* exception */
 					data->cancel = TRUE;
 				}
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -5990,7 +5994,7 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 
 	/* copy over return values from the closing menu */
 	if ((menu->menuretval & UI_RETURN_OK) || (menu->menuretval & UI_RETURN_UPDATE)) {
-		if (but->type == COL)
+		if (but->type == COLOR)
 			copy_v3_v3(data->vec, menu->retvec);
 		else if (ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
 			data->value = menu->retvalue;
@@ -6420,7 +6424,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 						for (but = block->buttons.first; but; but = but->next) {
 
 							if (but->menu_key == event->type) {
-								if (but->type == BUT) {
+								if (ELEM(but->type, BUT, BUTM)) {
 									/* mainly for operator buttons */
 									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_APPLY);
 								}

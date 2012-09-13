@@ -857,7 +857,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			mp_new->loopstart = mpoly_index * 4;
 			mp_new->totloop = 4;
-			mp_new->flag = ME_SMOOTH;
+			mp_new->flag = mpoly_flag;
 			origindex[mpoly_index] = ORIGINDEX_NONE;
 			mp_new++;
 			ml_new += 4;

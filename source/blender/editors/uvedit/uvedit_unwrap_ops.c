@@ -201,7 +201,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 			float aspx, aspy;
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
-			ED_image_get_uv_aspect(tf->tpage, &aspx, &aspy);
+			ED_image_get_uv_aspect(tf->tpage, NULL, &aspx, &aspy);
 		
 			if (aspx != aspy)
 				param_aspect_ratio(handle, aspx, aspy);
@@ -393,7 +393,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 			float aspx, aspy;
 			tf = CustomData_bmesh_get(&em->bm->pdata, editFace->head.data, CD_MTEXPOLY);
 
-			ED_image_get_uv_aspect(tf->tpage, &aspx, &aspy);
+			ED_image_get_uv_aspect(tf->tpage, NULL, &aspx, &aspy);
 
 			if (aspx != aspy)
 				param_aspect_ratio(handle, aspx, aspy);
@@ -1021,7 +1021,7 @@ static void correct_uv_aspect(BMEditMesh *em)
 		MTexPoly *tf;
 
 		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-		ED_image_get_uv_aspect(tf->tpage, &aspx, &aspy);
+		ED_image_get_uv_aspect(tf->tpage, NULL, &aspx, &aspy);
 	}
 	
 	if (aspx == aspy)

@@ -123,12 +123,12 @@ void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len)
 	if (BM_iter_init(&iter, bm, itype, data) && iter.count > 0) {
 		BMElem *ele;
 		BMElem **array = MEM_mallocN(sizeof(ele) * iter.count, __func__);
-		int i;
+		int i = 0;
 
 		*r_len = iter.count;  /* set before iterating */
 
-		for (ele = BM_iter_step(&iter), i = 0; ele; ele = BM_iter_step(&iter), i++) {
-			array[i] = ele;
+		while ((ele = BM_iter_step(&iter))) {
+			array[i++] = ele;
 		}
 		return array;
 	}

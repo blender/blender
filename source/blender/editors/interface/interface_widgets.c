@@ -1255,10 +1255,12 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 				
 		if (but->type == BUT_TOGDUAL) {
 			int dualset = 0;
-			if (but->pointype == SHO)
+			if (but->pointype == UI_BUT_POIN_SHORT) {
 				dualset = UI_BITBUT_TEST(*(((short *)but->poin) + 1), but->bitnr);
-			else if (but->pointype == INT)
+			}
+			else if (but->pointype == UI_BUT_POIN_INT) {
 				dualset = UI_BITBUT_TEST(*(((int *)but->poin) + 1), but->bitnr);
+			}
 			
 			widget_draw_icon(but, ICON_DOT, dualset ? 1.0f : 0.25f, rect);
 		}
@@ -3158,7 +3160,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				wt = widget_type(UI_WTYPE_MENU_ITEM);
 				break;
 				
-			case COL:
+			case COLOR:
 				wt = widget_type(UI_WTYPE_SWATCH);
 				break;
 				

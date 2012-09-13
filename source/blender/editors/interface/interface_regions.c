@@ -1808,11 +1808,11 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			bt->flag = UI_TEXT_LEFT;
 		}
 		else if (entry->icon) {
-			uiDefIconTextButF(block, BUTM | FLO, B_NOP, entry->icon, entry->str, 0, 0,
+			uiDefIconTextButF(block, BUTM, B_NOP, entry->icon, entry->str, 0, 0,
 			                  UI_UNIT_X * 5, UI_UNIT_Y, &handle->retvalue, (float) entry->retval, 0.0, 0, 0, "");
 		}
 		else {
-			uiDefButF(block, BUTM | FLO, B_NOP, entry->str, 0, 0,
+			uiDefButF(block, BUTM, B_NOP, entry->str, 0, 0,
 			          UI_UNIT_X * 5, UI_UNIT_X, &handle->retvalue, (float) entry->retval, 0.0, 0, 0, "");
 		}
 	}
@@ -1830,7 +1830,7 @@ void ui_block_func_ICONROW(bContext *UNUSED(C), uiLayout *layout, void *arg_but)
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	for (a = (int)but->hardmin; a <= (int)but->hardmax; a++)
-		uiDefIconButF(block, BUTM | FLO, B_NOP, but->icon + (a - but->hardmin), 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
+		uiDefIconButF(block, BUTM, B_NOP, but->icon + (a - but->hardmin), 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
 		              &handle->retvalue, (float)a, 0.0, 0, 0, "");
 }
 
@@ -1860,7 +1860,7 @@ void ui_block_func_ICONTEXTROW(bContext *UNUSED(C), uiLayout *layout, void *arg_
 		if (entry->sepr)
 			uiItemS(layout);
 		else
-			uiDefIconTextButF(block, BUTM | FLO, B_NOP, (short)((but->icon) + (entry->retval - but->hardmin)), entry->str,
+			uiDefIconTextButF(block, BUTM, B_NOP, (short)((but->icon) + (entry->retval - but->hardmin)), entry->str,
 			                  0, 0, UI_UNIT_X * 5, UI_UNIT_Y, &handle->retvalue, (float) entry->retval, 0.0, 0, 0, "");
 	}
 
@@ -2244,7 +2244,7 @@ static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, w
 	return 0;
 }
 
-uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
+uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
 {
 	uiBut *but = arg_but;
 	uiBlock *block;

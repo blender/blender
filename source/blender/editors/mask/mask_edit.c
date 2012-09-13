@@ -109,11 +109,9 @@ void ED_mask_mouse_pos(ScrArea *sa, ARegion *ar, const int mval[2], float co[2])
 			}
 			case SPACE_IMAGE:
 			{
-				float frame_size[2];
 				SpaceImage *sima = sa->spacedata.first;
-				ED_space_image_get_size_fl(sima, frame_size);
 				ED_image_mouse_pos(sima, ar, mval, co);
-				BKE_mask_coord_from_frame(co, co, frame_size);
+				BKE_mask_coord_from_image(sima->image, &sima->iuser, co, co);
 				break;
 			}
 			default:
@@ -149,11 +147,9 @@ void ED_mask_point_pos(ScrArea *sa, ARegion *ar, float x, float y, float *xr, fl
 				break;
 			case SPACE_IMAGE:
 			{
-				float frame_size[2];
 				SpaceImage *sima = sa->spacedata.first;
-				ED_space_image_get_size_fl(sima, frame_size);
 				ED_image_point_pos(sima, ar, x, y, &co[0], &co[1]);
-				BKE_mask_coord_from_frame(co, co, frame_size);
+				BKE_mask_coord_from_image(sima->image, &sima->iuser, co, co);
 				break;
 			}
 			default:
@@ -192,13 +188,10 @@ void ED_mask_point_pos__reverse(ScrArea *sa, ARegion *ar, float x, float y, floa
 				break;
 			case SPACE_IMAGE:
 			{
-				float frame_size[2];
 				SpaceImage *sima = sa->spacedata.first;
-				ED_space_image_get_size_fl(sima, frame_size);
-
 				co[0] = x;
 				co[1] = y;
-				BKE_mask_coord_to_frame(co, co, frame_size);
+				BKE_mask_coord_to_image(sima->image, &sima->iuser, co, co);
 				ED_image_point_pos__reverse(sima, ar, co, co);
 				break;
 			}

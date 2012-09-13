@@ -1141,12 +1141,16 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if ((seq->flag & SEQ_LOCK) == 0) {
 			if (selected) { /* mute unselected */
-				if (seq->flag & SELECT)
+				if (seq->flag & SELECT) {
 					seq->flag |= SEQ_MUTE;
+					BKE_sequence_invalidate_deendent(scene, seq);
+				}
 			}
 			else {
-				if ((seq->flag & SELECT) == 0)
+				if ((seq->flag & SELECT) == 0) {
 					seq->flag |= SEQ_MUTE;
+					BKE_sequence_invalidate_deendent(scene, seq);
+				}
 			}
 		}
 	}
@@ -1188,12 +1192,16 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if ((seq->flag & SEQ_LOCK) == 0) {
 			if (selected) { /* unmute unselected */
-				if (seq->flag & SELECT)
+				if (seq->flag & SELECT) {
 					seq->flag &= ~SEQ_MUTE;
+					BKE_sequence_invalidate_deendent(scene, seq);
+				}
 			}
 			else {
-				if ((seq->flag & SELECT) == 0)
+				if ((seq->flag & SELECT) == 0) {
 					seq->flag &= ~SEQ_MUTE;
+					BKE_sequence_invalidate_deendent(scene, seq);
+				}
 			}
 		}
 	}

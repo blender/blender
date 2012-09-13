@@ -53,19 +53,20 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
+        device_type = context.user_preferences.system.compute_device_type
 
         split = layout.split()
 
         col = split.column()
         sub = col.column()
-        sub.active = cscene.device == 'CPU'
+        sub.enabled = (device_type == 'NONE' or cscene.device == 'CPU')
         sub.prop(cscene, "progressive")
 
         sub = col.column(align=True)
         sub.prop(cscene, "seed")
         sub.prop(cscene, "sample_clamp")
 
-        if cscene.progressive or cscene.device != 'CPU':
+        if cscene.progressive or (device_type != 'NONE' and cscene.device == 'GPU'):
             col = split.column()
             col.label(text="Samples:")
             sub = col.column(align=True)

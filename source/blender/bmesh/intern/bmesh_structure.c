@@ -153,10 +153,22 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
  * advantage is that no intrinsic properties of the data structures are dependent upon the
  * cycle order and all non-manifold conditions are represented trivially.
  */
+
+BLI_INLINE BMDiskLink *bmesh_disk_edge_link_from_vert(BMEdge *e, BMVert *v)
+{
+	if (v == e->v1) {
+		return &e->v1_disk_link;
+	}
+	else {
+		BLI_assert(v == e->v2);
+		return &e->v2_disk_link;
+	}
+}
+
 int bmesh_disk_edge_append(BMEdge *e, BMVert *v)
 {
 	if (!v->e) {
-		BMDiskLink *dl1 = BM_DISK_EDGE_LINK_GET(e, v);
+		BMDiskLink *dl1 = bmesh_disk_edge_link_from_vert(e, v);
 
 		v->e = e;
 		dl1->next = dl1->prev = e;
@@ -164,9 +176,9 @@ int bmesh_disk_edge_append(BMEdge *e, BMVert *v)
 	else {
 		BMDiskLink *dl1, *dl2, *dl3;
 
-		dl1 = BM_DISK_EDGE_LINK_GET(e, v);
-		dl2 = BM_DISK_EDGE_LINK_GET(v->e, v);
-		dl3 = dl2->prev ? BM_DISK_EDGE_LINK_GET(dl2->prev, v) : NULL;
+		dl1 = bmesh_disk_edge_link_from_vert(e, v);
+		dl2 = bmesh_disk_edge_link_from_vert(v->e, v);
+		dl3 = dl2->prev ? bmesh_disk_edge_link_from_vert(dl2->prev, v) : NULL;
 
 		dl1->next = v->e;
 		dl1->prev = dl2->prev;
@@ -183,14 +195,14 @@ void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
 {
 	BMDiskLink *dl1, *dl2;
 
-	dl1 = BM_DISK_EDGE_LINK_GET(e, v);
+	dl1 = bmesh_disk_edge_link_from_vert(e, v);
 	if (dl1->prev) {
-		dl2 = BM_DISK_EDGE_LINK_GET(dl1->prev, v);
+		dl2 = bmesh_disk_edge_link_from_vert(dl1->prev, v);
 		dl2->next = dl1->next;
 	}
 
 	if (dl1->next) {
-		dl2 = BM_DISK_EDGE_LINK_GET(dl1->next, v);
+		dl2 = bmesh_disk_edge_link_from_vert(dl1->next, v);
 		dl2->prev = dl1->prev;
 	}
 

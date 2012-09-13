@@ -40,6 +40,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -894,6 +895,17 @@ static void recalcData_view3d(TransInfo *t)
 /* helper for recalcData() - for sequencer transforms */
 static void recalcData_sequencer(TransInfo *t)
 {
+	Editing *ed = BKE_sequencer_editing_get(t->scene, FALSE);
+	Sequence *seq;
+
+	SEQ_BEGIN(ed, seq)
+	{
+		if (seq->flag & SELECT) {
+			BKE_sequence_invalidate_deendent(t->scene, seq);
+		}
+	}
+	SEQ_END
+
 	BKE_sequencer_preprocessed_cache_cleanup();
 
 	flushTransSeq(t);

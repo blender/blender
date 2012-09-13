@@ -526,14 +526,8 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, int copycon)
 	bPose *outPose;
 	bPoseChannel *pchan;
 	ListBase listb;
-	
+
 	if (!src) {
-		*dst = NULL;
-		return;
-	}
-	
-	if (*dst == src) {
-		printf("BKE_pose_copy_data source and target are the same\n");
 		*dst = NULL;
 		return;
 	}

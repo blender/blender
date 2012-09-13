@@ -496,13 +496,17 @@ void ED_mask_draw(const bContext *C,
  * width, height are to match the values from ED_mask_get_size() */
 void ED_mask_draw_region(Mask *mask, ARegion *ar,
                          const char draw_flag, const char draw_type,
-                         int width, int height,
+                         const int width_i, const int height_i,  /* convert directly into aspect corrected vars */
+                         const float aspx, const float aspy,
                          const short do_scale_applied, const short do_post_draw,
                          float stabmat[4][4], /* optional - only used by clip */
                          const bContext *C    /* optional - only used when do_post_draw is set */
                          )
 {
 	struct View2D *v2d = &ar->v2d;
+
+	/* aspect always scales vertically in movie and image spaces */
+	const float width = width_i, height = (float)height_i * (aspy / aspx);
 
 	int x, y;
 	/* int w, h; */

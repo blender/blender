@@ -163,6 +163,8 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	    COLLADABU::NativeString(std::string(this->export_settings->filepath));
 	COLLADASW::StreamWriter sw(native_filename);
 
+	fprintf(stdout, "Collada export: %s\n", this->export_settings->filepath);
+
 	// open <collada>
 	sw.startDocument();
 

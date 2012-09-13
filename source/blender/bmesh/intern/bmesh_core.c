@@ -340,6 +340,8 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	return f;
 }
 
+#ifndef NDEBUG
+
 /**
  * Check the element is valid.
  *
@@ -475,6 +477,8 @@ int bmesh_elem_check(void *element, const char htype)
 
 	return err;
 }
+
+#endif /* NDEBUG */
 
 /**
  * low level function, only frees the vert,

@@ -915,6 +915,7 @@ static void delete_feather_points(MaskSplinePoint *point)
 
 static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Scene *scene = CTX_data_scene(C);
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 
@@ -1002,7 +1003,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* TODO: only update edited splines */
-	BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+	BKE_mask_update_display(mask, CFRA);
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
@@ -1060,7 +1061,7 @@ static int mask_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (change) {
 		/* TODO: only update this spline */
-		BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+		BKE_mask_update_display(mask, CFRA);
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 
@@ -1126,7 +1127,7 @@ static int mask_normals_make_consistent_exec(bContext *C, wmOperator *UNUSED(op)
 
 	if (change) {
 		/* TODO: only update this spline */
-		BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+		BKE_mask_update_display(mask, CFRA);
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 
@@ -1324,6 +1325,7 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
 
 static int mask_feather_weight_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Scene *scene = CTX_data_scene(C);
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 	int changed = FALSE;
@@ -1351,7 +1353,7 @@ static int mask_feather_weight_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (changed) {
 		/* TODO: only update edited splines */
-		BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+		BKE_mask_update_display(mask, CFRA);
 
 		WM_event_add_notifier(C, NC_MASK | ND_DRAW, mask);
 		DAG_id_tag_update(&mask->id, 0);

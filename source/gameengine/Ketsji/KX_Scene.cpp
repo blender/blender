@@ -1727,11 +1727,6 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	brick->Replace_IScene(to);
 	brick->Replace_NetworkScene(to->GetNetworkScene());
 
-	SCA_ISensor *sensor=  dynamic_cast<class SCA_ISensor *>(brick);
-	if (sensor) {
-		sensor->Replace_EventManager(logicmgr);
-	}
-
 	/* near sensors have physics controllers */
 #ifdef USE_BULLET
 	KX_TouchSensor *touch_sensor = dynamic_cast<class KX_TouchSensor *>(brick);
@@ -1739,6 +1734,14 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 		touch_sensor->GetPhysicsController()->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 	}
 #endif
+
+	// If we end up replacing a KX_TouchEventManager, we need to make sure
+	// physics controllers are properly in place. In other words, do this
+	// after merging physics controllers!
+	SCA_ISensor *sensor=  dynamic_cast<class SCA_ISensor *>(brick);
+	if (sensor) {
+		sensor->Replace_EventManager(logicmgr);
+	}
 }
 
 #ifdef USE_BULLET

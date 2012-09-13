@@ -1019,6 +1019,7 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned 
 static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 {
 	ListBase *markers = ED_context_get_markers(C);
+	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = UI_view2d_fromcontext(C);
 	float viewx;
 	int x, y, cfra;
@@ -1026,8 +1027,8 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 	if (markers == NULL)
 		return OPERATOR_PASS_THROUGH;
 
-	x = evt->x - CTX_wm_region(C)->winrct.xmin;
-	y = evt->y - CTX_wm_region(C)->winrct.ymin;
+	x = evt->x - ar->winrct.xmin;
+	y = evt->y - ar->winrct.ymin;
 	
 	UI_view2d_region_to_view(v2d, x, y, &viewx, NULL);	
 	

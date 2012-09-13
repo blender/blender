@@ -94,8 +94,7 @@ typedef enum {
 	UI_WTYPE_BOX,
 	UI_WTYPE_SCROLL,
 	UI_WTYPE_LISTITEM,
-	UI_WTYPE_PROGRESSBAR,
-	
+	UI_WTYPE_PROGRESSBAR
 } uiWidgetTypeEnum;
 
 /* panel limits */
@@ -133,7 +132,7 @@ typedef enum {
 
 /* bit button defines */
 /* Bit operations */
-#define UI_BITBUT_TEST(a, b)     ( ( (a) & 1 << (b) ) != 0)
+#define UI_BITBUT_TEST(a, b)    ( ( (a) & 1 << (b) ) != 0)
 #define UI_BITBUT_SET(a, b)     ( (a) | 1 << (b) )
 #define UI_BITBUT_CLR(a, b)     ( (a) & ~(1 << (b)) )
 /* bit-row */
@@ -159,8 +158,9 @@ typedef struct {
 struct uiBut {
 	struct uiBut *next, *prev;
 	int flag, drawflag;
-	eButType type;
-	short pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
+	eButType         type;
+	eButPointerType  pointype;
+	short bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
 
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
@@ -430,7 +430,7 @@ struct uiPopupBlockHandle {
 	float retvec[4];
 };
 
-uiBlock *ui_block_func_COL(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
 void ui_block_func_ICONROW(struct bContext *C, uiLayout *layout, void *arg_but);
 void ui_block_func_ICONTEXTROW(struct bContext *C, uiLayout *layout, void *arg_but);
 
