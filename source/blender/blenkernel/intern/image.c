@@ -2931,3 +2931,40 @@ int BKE_image_has_alpha(struct Image *image)
 	else
 		return 0;
 }
+
+void BKE_image_get_size(Image *image, ImageUser *iuser, int *width, int *height)
+{
+	ImBuf *ibuf = NULL;
+	void *lock;
+
+	ibuf = BKE_image_acquire_ibuf(image, iuser, &lock);
+
+	if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
+		*width = ibuf->x;
+		*height = ibuf->y;
+	}
+	else {
+		*width  = IMG_SIZE_FALLBACK;
+		*height = IMG_SIZE_FALLBACK;
+	}
+
+	BKE_image_release_ibuf(image, lock);
+}
+
+void BKE_image_get_size_fl(Image *image, ImageUser *iuser, float size[2])
+{
+	int width, height;
+	BKE_image_get_size(image, iuser, &width, &height);
+
+	size[0] = (float)width;
+	size[1] = (float)height;
+
+}
+
+void BKE_image_get_aspect(Image *image, float *aspx, float *aspy)
+{
+	*aspx = 1.0;
+
+	/* x is always 1 */
+	*aspy = image->aspy / image->aspx;
+}

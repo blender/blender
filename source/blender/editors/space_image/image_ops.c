@@ -632,7 +632,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ima = ED_space_image(sima);
 	ED_space_image_get_size(sima, &width, &height);
-	ED_image_get_aspect(ima, &aspx, &aspy);
+	ED_space_image_get_aspect(sima, &aspx, &aspy);
 
 	width = width * aspx;
 	height = height * aspy;

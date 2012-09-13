@@ -202,6 +202,10 @@ int BKE_image_scale(struct Image *image, int width, int height);
 /* check if texture has alpha (depth=32) */
 int BKE_image_has_alpha(struct Image *image);
 
+void BKE_image_get_size(struct Image *image, struct ImageUser *iuser, int *width, int *height);
+void BKE_image_get_size_fl(struct Image *image, struct ImageUser *iuser, float size[2]);
+void BKE_image_get_aspect(struct Image *image, float *aspx, float *aspy);
+
 /* image_gen.c */
 void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, const float color[4]);
 void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int height, int width);

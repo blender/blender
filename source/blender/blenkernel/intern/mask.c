@@ -55,6 +55,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
+#include "BKE_image.h"
 
 static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline, MaskSplinePoint *points_array, MaskSplinePoint *point)
 {
@@ -1010,14 +1011,26 @@ void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float fra
 }
 void BKE_mask_coord_from_movieclip(MovieClip *clip, MovieClipUser *user, float r_co[2], const float co[2])
 {
-	int width, height;
+	float aspx, aspy;
 	float frame_size[2];
 
 	/* scaling for the clip */
-	BKE_movieclip_get_size(clip, user, &width, &height);
+	BKE_movieclip_get_size_fl(clip, user, frame_size);
+	BKE_movieclip_get_aspect(clip, &aspx, &aspy);
 
-	frame_size[0] = (float)width;
-	frame_size[1] = (float)height;
+	frame_size[1] *= (aspy / aspx);
+
+	BKE_mask_coord_from_frame(r_co, co, frame_size);
+}
+void BKE_mask_coord_from_image(Image *image, ImageUser *iuser, float r_co[2], const float co[2])
+{
+	float aspx, aspy;
+	float frame_size[2];
+
+	BKE_image_get_size_fl(image, iuser, frame_size);
+	BKE_image_get_aspect(image, &aspx, &aspy);
+
+	frame_size[1] *= (aspy / aspx);
 
 	BKE_mask_coord_from_frame(r_co, co, frame_size);
 }
@@ -1040,14 +1053,27 @@ void BKE_mask_coord_to_frame(float r_co[2], const float co[2], const float frame
 }
 void BKE_mask_coord_to_movieclip(MovieClip *clip, MovieClipUser *user, float r_co[2], const float co[2])
 {
-	int width, height;
+	float aspx, aspy;
 	float frame_size[2];
 
 	/* scaling for the clip */
-	BKE_movieclip_get_size(clip, user, &width, &height);
+	BKE_movieclip_get_size_fl(clip, user, frame_size);
+	BKE_movieclip_get_aspect(clip, &aspx, &aspy);
 
-	frame_size[0] = (float)width;
-	frame_size[1] = (float)height;
+	frame_size[1] /= (aspy / aspx);
+
+	BKE_mask_coord_to_frame(r_co, co, frame_size);
+}
+void BKE_mask_coord_to_image(Image *image, ImageUser *iuser, float r_co[2], const float co[2])
+{
+	float aspx, aspy;
+	float frame_size[2];
+
+	/* scaling for the clip */
+	BKE_image_get_size_fl(image, iuser, frame_size);
+	BKE_image_get_aspect(image, &aspx, &aspy);
+
+	frame_size[1] /= (aspy / aspx);
 
 	BKE_mask_coord_to_frame(r_co, co, frame_size);
 }

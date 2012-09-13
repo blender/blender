@@ -28,6 +28,8 @@
 #ifndef __BKE_MASK_H__
 #define __BKE_MASK_H__
 
+struct ImageUser;
+struct Image;
 struct ListBase;
 struct Main;
 struct Mask;
@@ -103,10 +105,12 @@ struct Mask *BKE_mask_copy(struct Mask *mask);
 void BKE_mask_free(struct Mask *mask);
 void BKE_mask_unlink(struct Main *bmain, struct Mask *mask);
 
-void BKE_mask_coord_from_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
 void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float frame_size[2]);
-void BKE_mask_coord_to_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_from_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_from_image(struct Image *image, struct ImageUser *iuser, float r_co[2], const float co[2]);
 void BKE_mask_coord_to_frame(float r_co[2], const float co[2], const float frame_size[2]);
+void BKE_mask_coord_to_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_to_image(struct Image *image, struct ImageUser *iuser, float r_co[2], const float co[2]);
 
 /* parenting */
 

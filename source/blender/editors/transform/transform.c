@@ -65,6 +65,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_unit.h"
+#include "BKE_mask.h"
 
 #include "ED_image.h"
 #include "ED_keyframing.h"
@@ -228,9 +229,27 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 			project_int_noclip(t->ar, vec, adr);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
+		SpaceImage *sima = t->sa->spacedata.first;
+
 		if (t->options & CTX_MASK) {
+			/* not working quite right, TODO (see below too) */
+			float aspx, aspy;
 			float v[2];
-			ED_mask_point_pos__reverse(t->sa, t->ar, vec[0], vec[1], &v[0], &v[1]);
+
+			ED_space_image_get_aspect(sima, &aspx, &aspy);
+
+			copy_v2_v2(v, vec);
+
+			v[0] = v[0] / aspx;
+			v[1] = v[1] / aspy;
+
+			BKE_mask_coord_to_image(sima->image, &sima->iuser, v, v);
+
+			v[0] = v[0] / aspx;
+			v[1] = v[1] / aspy;
+
+			ED_image_point_pos__reverse(sima, t->ar, v, v);
+
 			adr[0] = v[0];
 			adr[1] = v[1];
 		}
@@ -278,23 +297,41 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 		adr[1] = out[1];
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		float v[2];
-		float aspx = 1.0f, aspy = 1.0f;
+		SpaceClip *sc = t->sa->spacedata.first;
 
-		copy_v2_v2(v, vec);
+		if (t->options & CTX_MASK) {
+			/* not working quite right, TODO (see above too) */
+			float aspx, aspy;
+			float v[2];
 
-		if (t->options & CTX_MOVIECLIP) {
+			ED_space_clip_get_aspect(sc, &aspx, &aspy);
+
+			copy_v2_v2(v, vec);
+
+			v[0] = v[0] / aspx;
+			v[1] = v[1] / aspy;
+
+			BKE_mask_coord_to_movieclip(sc->clip, &sc->user, v, v);
+
+			v[0] = v[0] / aspx;
+			v[1] = v[1] / aspy;
+
+			ED_clip_point_stable_pos__reverse(sc, t->ar, v, v);
+
+			adr[0] = v[0];
+			adr[1] = v[1];
+		}
+		else if (t->options & CTX_MOVIECLIP) {
+			float v[2], aspx, aspy;
+
+			copy_v2_v2(v, vec);
 			ED_space_clip_get_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
-		}
-		else if (t->options & CTX_MASK) {
-			/* MASKTODO - not working as expected */
-			ED_space_clip_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
-		}
 
-		v[0] /= aspx;
-		v[1] /= aspy;
+			v[0] /= aspx;
+			v[1] /= aspy;
 
-		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr + 1);
+			UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr + 1);
+		}
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], adr, adr + 1);
