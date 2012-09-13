@@ -133,11 +133,11 @@ typedef struct RegionView3D {
 	short rflag;
 	
 
-	/* last view */
+	/* last view (use when switching out of camera view) */
 	float lviewquat[4];
 	short lpersp, lview; /* lpersp can never be set to 'RV3D_CAMOB' */
+
 	float gridview;
-	
 	float twangle[3];
 
 

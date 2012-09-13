@@ -26,6 +26,46 @@
 
 /** \file blender/blenkernel/intern/mask_rasterize.c
  *  \ingroup bke
+ *
+ * This module exposes a rasterizer that works as a black box - implementation details are confined to this file,
+ *
+ * The basic method to access is:
+ * - create & initialize a handle from a #Mask datablock.
+ * - execute pixel lookups.
+ * - free the handle.
+ *
+ * This file is admittedly a bit confusticated, in quite few areas speed was chosen over readability,
+ * though it is commented - so shouldn't be so hard to see whats going on.
+ *
+ *
+ * Implementation:
+ *
+ * To rasterize the mask its converted into geometry that use a ray-cast for each pixel lookup.
+ *
+ * Initially 'kdopbvh' was used but this ended up being too slow.
+ *
+ * To gain some extra speed we take advantage of a few shortcuts that can be made rasterizing masks specifically.
+ * - all triangles are known to be completely white - so no depth check is done on triangle intersection.
+ * - all quads are known to be feather outlines - the 1 and 0 depths are known by the vertex order in the quad,
+ * - there is no color - just a value for each mask pixel.
+ * - the mask spacial structure always maps to space 0-1 on X and Y axis.
+ * - bucketing is used to speed up lookups for geometry.
+ *
+ * Other Details:
+ * - used unsigned values all over for some extra speed on some arch's.
+ * - anti-aliasing is faked, just ensuring at least one pixel feather - avoids oversampling.
+ * - initializing the spacial structure doesn't need to be as optimized as pixel lookups are.
+ * - mask lookups need not be pixel aligned so any sub-pixel values from x/y (0 - 1), can be found.
+ *   (perhaps masks can be used as a vector texture in 3D later on)
+ *
+ *
+ * Currently, to build the spacial structure we have to calculate the total number of faces ahead of time.
+ *
+ * This is getting a bit complicated with the addition of unfilled splines and end capping -
+ * If large changes are needed here we would be better off using an iterable
+ * BLI_mempool for triangles and converting to a contiguous array afterwards.
+ *
+ * - Campbell
  */
 
 #include "MEM_guardedalloc.h"
