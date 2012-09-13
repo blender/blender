@@ -27,7 +27,10 @@ macro(list_insert_after
 	list_id item_check item_add
 	)
 	set(_index)
-	list(FIND ${list_id} "${item_check}" _index)
+	list(FIND "${list_id}" "${item_check}" _index)
+	if("${_index}" MATCHES "-1")
+		message(FATAL_ERROR "'${list_id}' doesn't contain '${item_check}'")
+	endif()
 	math(EXPR _index "${_index} + 1")
 	list(INSERT ${list_id} "${_index}" ${item_add})
 	unset(_index)
@@ -37,7 +40,10 @@ macro(list_insert_before
 	list_id item_check item_add
 	)
 	set(_index)
-	list(FIND ${list_id} "${item_check}" _index)
+	list(FIND "${list_id}" "${item_check}" _index)
+	if("${_index}" MATCHES "-1")
+		message(FATAL_ERROR "'${list_id}' doesn't contain '${item_check}'")
+	endif()
 	list(INSERT ${list_id} "${_index}" ${item_add})
 	unset(_index)
 endmacro()
