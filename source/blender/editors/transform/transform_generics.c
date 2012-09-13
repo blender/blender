@@ -900,7 +900,9 @@ static void recalcData_sequencer(TransInfo *t)
 
 	SEQ_BEGIN(ed, seq)
 	{
-		BKE_sequencer_cache_cleanup_sequence(seq);
+		if (seq->flag & SELECT) {
+			BKE_sequence_invalidate_deendent(t->scene, seq);
+		}
 	}
 	SEQ_END
 

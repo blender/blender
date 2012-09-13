@@ -297,6 +297,7 @@ int BKE_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char
 
 int BKE_sequence_check_depend(struct Sequence *seq, struct Sequence *cur);
 void BKE_sequence_invalidate_cache(struct Scene *scene, struct Sequence *seq);
+void BKE_sequence_invalidate_deendent(struct Scene *scene, struct Sequence *seq);
 void BKE_sequence_invalidate_cache_for_modifier(struct Scene *scene, struct Sequence *seq);
 
 void BKE_sequencer_update_sound_bounds_all(struct Scene *scene);

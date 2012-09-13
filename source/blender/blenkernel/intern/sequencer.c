@@ -2948,13 +2948,18 @@ int BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
 	return TRUE;
 }
 
-static void sequence_invalidate_cache(Scene *scene, Sequence *seq, int invalidate_preprocess)
+static void sequence_invalidate_cache(Scene *scene, Sequence *seq, int invalidate_self, int invalidate_preprocess)
 {
 	Editing *ed = scene->ed;
 	Sequence *cur;
 
 	/* invalidate cache for current sequence */
-	BKE_sequencer_cache_cleanup_sequence(seq);
+	if (invalidate_self)
+		BKE_sequencer_cache_cleanup_sequence(seq);
+
+	/* if invalidation is invoked from sequence free routine, effectdata would be NULL here */
+	if (seq->effectdata && seq->type == SEQ_TYPE_SPEED)
+		BKE_sequence_effect_speed_rebuild_map(scene, seq, TRUE);
 
 	if (invalidate_preprocess)
 		BKE_sequencer_preprocessed_cache_cleanup_sequence(seq);
@@ -2975,12 +2980,17 @@ static void sequence_invalidate_cache(Scene *scene, Sequence *seq, int invalidat
 
 void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
 {
-	sequence_invalidate_cache(scene, seq, TRUE);
+	sequence_invalidate_cache(scene, seq, TRUE, TRUE);
+}
+
+void BKE_sequence_invalidate_deendent(Scene *scene, Sequence *seq)
+{
+	sequence_invalidate_cache(scene, seq, FALSE, TRUE);
 }
 
 void BKE_sequence_invalidate_cache_for_modifier(Scene *scene, Sequence *seq)
 {
-	sequence_invalidate_cache(scene, seq, FALSE);
+	sequence_invalidate_cache(scene, seq, TRUE, FALSE);
 }
 
 void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, int check_mem_usage, int keep_file_handles)
