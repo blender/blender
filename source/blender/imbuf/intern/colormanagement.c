@@ -1068,8 +1068,6 @@ typedef struct DisplayBufferThread {
 	float dither;
 	int predivide;
 
-	int nolinear_float;
-
 	const char *byte_colorspace;
 	const char *float_colorspace;
 } DisplayBufferThread;
@@ -1128,8 +1126,6 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 
 	handle->byte_colorspace = init_data->byte_colorspace;
 	handle->float_colorspace = init_data->float_colorspace;
-
-	handle->nolinear_float = ibuf->colormanage_flags & IMB_COLORMANAGE_NOLINEAR_FLOAT;
 }
 
 static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
@@ -1168,7 +1164,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 		IMB_colormanagement_transform(linear_buffer, width, height, channels,
 		                              from_colorspace, to_colorspace, predivide);
 	}
-	else if (handle->nolinear_float) {
+	else if (handle->float_colorspace) {
 		/* currently float is non-linear only in sequencer, which is working
 		 * in it's own color space even to handle float buffers.
 		 * This color space is the same for byte and float images.

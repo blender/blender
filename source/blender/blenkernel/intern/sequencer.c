@@ -2659,8 +2659,10 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 		}
 	}
 
-	if (ibuf == NULL)
+	if (ibuf == NULL) {
 		ibuf = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rect);
+		BKE_sequencer_imbuf_assign_spaces(context.scene, ibuf);
+	}
 
 	if (ibuf->x != context.rectx || ibuf->y != context.recty)
 		use_preprocess = TRUE;
@@ -2739,7 +2741,6 @@ static ImBuf *seq_render_strip_stack(SeqRenderData context, ListBase *seqbasep, 
 	
 	if (count == 1) {
 		out = seq_render_strip(context, seq_arr[0], cfra);
-		out->colormanage_flags |= IMB_COLORMANAGE_NOLINEAR_FLOAT;
 
 		BKE_sequencer_cache_put(context, seq_arr[0], cfra, SEQ_STRIPELEM_IBUF_COMP, out);
 
@@ -2818,8 +2819,6 @@ static ImBuf *seq_render_strip_stack(SeqRenderData context, ListBase *seqbasep, 
 
 		BKE_sequencer_cache_put(context, seq_arr[i], cfra, SEQ_STRIPELEM_IBUF_COMP, out);
 	}
-
-	out->colormanage_flags |= IMB_COLORMANAGE_NOLINEAR_FLOAT;
 
 	return out;
 }
