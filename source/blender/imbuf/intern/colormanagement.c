@@ -64,28 +64,19 @@
 
 #include "RNA_define.h"
 
-#ifdef WITH_OCIO
-#  include <ocio_capi.h>
-#else
-/* so function can accept processor and care about disabled OCIO inside */
-typedef struct ConstProcessorRcPtr {
-	int pad;
-} ConstProcessorRcPtr;
-#endif
+#include <ocio_capi.h>
 
 /*********************** Global declarations *************************/
 
 #define MAX_COLORSPACE_NAME 64
 
 /* ** list of all supported color spaces, displays and views */
-#ifdef WITH_OCIO
 static char global_role_scene_linear[MAX_COLORSPACE_NAME];
 static char global_role_color_picking[MAX_COLORSPACE_NAME];
 static char global_role_texture_painting[MAX_COLORSPACE_NAME];
 static char global_role_default_byte[MAX_COLORSPACE_NAME];
 static char global_role_default_float[MAX_COLORSPACE_NAME];
 static char global_role_default_sequencer[MAX_COLORSPACE_NAME];
-#endif
 
 static ListBase global_colorspaces = {NULL};
 static ListBase global_displays = {NULL};
@@ -98,14 +89,6 @@ static int global_tot_view = 0;
 typedef struct ColormanageProcessor {
 	ConstProcessorRcPtr *processor;
 	CurveMapping *curve_mapping;
-
-#ifndef WITH_OCIO
-	/* this callback is only used in cases when Blender was build without OCIO
-	 * and aimed to preserve compatibility with previous Blender versions
-	 */
-	void (*display_transform_cb_v3) (float result[3], const float pixel[3]);
-	void (*display_transform_predivide_cb_v4) (float result[4], const float pixel[4]);
-#endif
 } ColormanageProcessor;
 
 /*********************** Color managed cache *************************/
@@ -222,7 +205,6 @@ static ColormnaageCacheData *colormanage_cachedata_get(const ImBuf *ibuf)
 	return ibuf->colormanage_cache->data;
 }
 
-#ifdef WITH_OCIO
 static unsigned int colormanage_hashhash(const void *key_v)
 {
 	ColormanageCacheKey *key = (ColormanageCacheKey *)key_v;
@@ -419,7 +401,6 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 
 	IMB_moviecache_put(moviecache, &key, cache_ibuf);
 }
-#endif
 
 static void colormanage_cache_handle_release(void *cache_handle)
 {
@@ -430,7 +411,6 @@ static void colormanage_cache_handle_release(void *cache_handle)
 
 /*********************** Initialization / De-initialization *************************/
 
-#ifdef WITH_OCIO
 static void colormanage_role_color_space_name_get(ConstConfigRcPtr *config, char *colorspace_name, const char *role)
 {
 	ConstColorSpaceRcPtr *ociocs;
@@ -562,11 +542,9 @@ void colormanage_free_config(void)
 	/* free views */
 	BLI_freelistN(&global_views);
 }
-#endif
 
 void IMB_colormanagement_init(void)
 {
-#ifdef WITH_OCIO
 	const char *ocio_env;
 	const char *configdir;
 	char configfile[FILE_MAX];
@@ -594,16 +572,13 @@ void IMB_colormanagement_init(void)
 
 		OCIO_configRelease(config);
 	}
-#endif
 
 	BLI_init_srgb_conversion();
 }
 
 void IMB_colormanagement_exit(void)
 {
-#ifdef WITH_OCIO
 	colormanage_free_config();
-#endif
 }
 
 /*********************** Internal functions *************************/
@@ -649,7 +624,6 @@ static void display_transform_get_from_ctx(const bContext *C, ColorManagedViewSe
 	}
 }
 
-#ifdef WITH_OCIO
 static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_transform, const char *display,
                                                             float exposure, float gamma)
 {
@@ -830,7 +804,6 @@ static void init_default_view_settings(const ColorManagedDisplaySettings *displa
 	view_settings->exposure = 0.0f;
 	view_settings->curve_mapping = NULL;
 }
-#endif
 
 static void curve_mapping_apply_pixel(CurveMapping *curve_mapping, float *pixel, int channels)
 {
@@ -859,7 +832,6 @@ void colorspace_set_default_role(char *colorspace, int size, int role)
 
 void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 {
-#ifdef WITH_OCIO
 	if (ibuf->rect_float) {
 		const char *to_colorspace = global_role_scene_linear;
 		int predivide = ibuf->flags & IB_cm_predivide;
@@ -872,15 +844,10 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 
 		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	}
-#else
-	(void) ibuf;
-	(void) role;
-#endif
 }
 
 /*********************** Generic functions *************************/
 
-#ifdef WITH_OCIO
 static void colormanage_check_display_settings(ColorManagedDisplaySettings *display_settings, const char *what,
                                                const ColorManagedDisplay *default_display)
 {
@@ -954,11 +921,9 @@ static void colormanage_check_colorspace_settings(ColorManagedColorspaceSettings
 
 	(void) what;
 }
-#endif
 
 void IMB_colormanagement_check_file_config(Main *bmain)
 {
-#ifdef WITH_OCIO
 	Scene *scene;
 	Image *image;
 	MovieClip *clip;
@@ -996,15 +961,11 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 	for (clip = bmain->movieclip.first; clip; clip = clip->id.next) {
 		colormanage_check_colorspace_settings(&clip->colorspace_settings, "clip");
 	}
-#else
-	(void) bmain;
-#endif
 }
 
 void IMB_colormanagement_validate_settings(ColorManagedDisplaySettings *display_settings,
                                            ColorManagedViewSettings *view_settings)
 {
-#ifdef WITH_OCIO
 	ColorManagedDisplay *display;
 	ColorManagedView *default_view;
 	LinkData *view_link;
@@ -1021,15 +982,10 @@ void IMB_colormanagement_validate_settings(ColorManagedDisplaySettings *display_
 
 	if (view_link == NULL)
 		BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
-#else
-	(void) display_settings;
-	(void) view_settings;
-#endif
 }
 
 const char *IMB_colormanagement_role_colorspace_name_get(int role)
 {
-#ifdef WITH_OCIO
 	switch (role) {
 		case COLOR_ROLE_SCENE_LINEAR:
 			return global_role_scene_linear;
@@ -1053,9 +1009,6 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role)
 			printf("Unknown role was passed to %s\n", __func__);
 			BLI_assert(0);
 	}
-#else
-	(void) role;
-#endif
 
 	return NULL;
 }
@@ -1083,7 +1036,6 @@ void IMB_colormanagement_imbuf_float_from_rect(ImBuf *ibuf)
 
 /*********************** Threaded display buffer transform routines *************************/
 
-#ifdef WITH_OCIO
 typedef struct DisplayBufferThread {
 	ColormanageProcessor *cm_processor;
 
@@ -1317,7 +1269,6 @@ static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *displ
 {
 	colormanage_display_buffer_process_ex(ibuf, NULL, display_buffer, view_settings, display_settings);
 }
-#endif
 
 /*********************** Threaded processor transform routines *************************/
 
@@ -1468,7 +1419,6 @@ void IMB_colormanagement_transform_v4(float pixel[4], const char *from_colorspac
  */
 void IMB_colormanagement_colorspace_to_scene_linear_v3(float pixel[3], ColorSpace *colorspace)
 {
-#ifdef WITH_OCIO
 	ConstProcessorRcPtr *processor;
 
 	if (!colorspace) {
@@ -1483,16 +1433,11 @@ void IMB_colormanagement_colorspace_to_scene_linear_v3(float pixel[3], ColorSpac
 
 	if (processor)
 		OCIO_processorApplyRGB(processor, pixel);
-#else
-	(void) pixel;
-	(void) colorspace;
-#endif
 }
 
 /* same as above, but converts colors in opposite direction */
 void IMB_colormanagement_scene_linear_to_colorspace_v3(float pixel[3], ColorSpace *colorspace)
 {
-#ifdef WITH_OCIO
 	ConstProcessorRcPtr *processor;
 
 	if (!colorspace) {
@@ -1507,16 +1452,10 @@ void IMB_colormanagement_scene_linear_to_colorspace_v3(float pixel[3], ColorSpac
 
 	if (processor)
 		OCIO_processorApplyRGB(processor, pixel);
-
-#else
-	(void) pixel;
-	(void) colorspace;
-#endif
 }
 
 void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, int height, int channels, struct ColorSpace *colorspace, int predivide)
 {
-#ifdef WITH_OCIO
 	ConstProcessorRcPtr *processor;
 
 	if (!colorspace) {
@@ -1542,14 +1481,6 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
 
 		OCIO_packedImageDescRelease(img);
 	}
-#else
-	(void) buffer;
-	(void) channels;
-	(void) width;
-	(void) height;
-	(void) colorspace;
-	(void) predivide;
-#endif
 }
 
 /* convert pixel from scene linear to display space using default view
@@ -1558,33 +1489,23 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
  */
 void IMB_colormanagement_scene_linear_to_display_v3(float pixel[3], ColorManagedDisplay *display)
 {
-#ifdef WITH_OCIO
 	ConstProcessorRcPtr *processor;
 
 	processor = display_from_scene_linear_processor(display);
 
 	if (processor)
 		OCIO_processorApplyRGB(processor, pixel);
-#else
-	(void) pixel;
-	(void) display;
-#endif
 }
 
 /* same as above, but converts color in opposite direction */
 void IMB_colormanagement_display_to_scene_linear_v3(float pixel[3], ColorManagedDisplay *display)
 {
-#ifdef WITH_OCIO
 	ConstProcessorRcPtr *processor;
 
 	processor = display_to_scene_linear_processor(display);
 
 	if (processor)
 		OCIO_processorApplyRGB(processor, pixel);
-#else
-	(void) pixel;
-	(void) display;
-#endif
 }
 
 void IMB_colormanagement_pixel_to_display_space_v4(float result[4], const float pixel[4],
@@ -1615,7 +1536,6 @@ void IMB_colormanagement_pixel_to_display_space_v3(float result[3], const float 
 
 void IMB_colormanagement_imbuf_assign_spaces(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
 {
-#ifdef WITH_OCIO
 	if (colorspace_settings) {
 		if (colorspace_settings->name[0] == '\0') {
 			/* when opening new image, assign it's color space based on default roles */
@@ -1634,10 +1554,6 @@ void IMB_colormanagement_imbuf_assign_spaces(ImBuf *ibuf, ColorManagedColorspace
 		else
 			ibuf->rect_colorspace = colormanage_colorspace_get_named(global_role_default_byte);
 	}
-#else
-	(void) ibuf;
-	(void) colorspace_settings;
-#endif
 }
 
 void IMB_colormanagement_imbuf_assign_float_space(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
@@ -1648,7 +1564,6 @@ void IMB_colormanagement_imbuf_assign_float_space(ImBuf *ibuf, ColorManagedColor
 void IMB_colormanagement_imbuf_make_display_space(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
                                                   const ColorManagedDisplaySettings *display_settings)
 {
-#ifdef WITH_OCIO
 	/* OCIO_TODO: byte buffer management is not supported here yet */
 	if (!ibuf->rect_float)
 		return;
@@ -1660,13 +1575,6 @@ void IMB_colormanagement_imbuf_make_display_space(ImBuf *ibuf, const ColorManage
 	else {
 		colormanage_display_buffer_process_ex(ibuf, ibuf->rect_float, NULL, view_settings, display_settings);
 	}
-#else
-	(void) view_settings;
-	(void) display_settings;
-
-	IMB_buffer_float_from_float(ibuf->rect_float, ibuf->rect_float, ibuf->channels, IB_PROFILE_LINEAR_RGB, ibuf->profile,
-	                            ibuf->flags & IB_cm_predivide, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-#endif
 }
 
 static void imbuf_verify_float(ImBuf *ibuf)
@@ -1708,7 +1616,6 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 
 		return (unsigned char *) ibuf->rect;
 	}
-#ifdef WITH_OCIO
 	else {
 		unsigned char *display_buffer;
 		int buffer_size;
@@ -1766,12 +1673,6 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 
 		return display_buffer;
 	}
-#else
-	(void) view_settings;
-	(void) display_settings;
-
-	return NULL;
-#endif
 }
 
 /* same as IMB_display_buffer_acquire but gets view and display settings from context */
@@ -1789,7 +1690,6 @@ unsigned char *IMB_display_buffer_acquire_ctx(const bContext *C, ImBuf *ibuf, vo
 void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
                                       const ColorManagedDisplaySettings *display_settings)
 {
-#ifdef WITH_OCIO
 	if (global_tot_display == 0 || global_tot_view == 0) {
 		imbuf_verify_float(ibuf);
 	}
@@ -1800,19 +1700,12 @@ void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSetting
 
 		colormanage_display_buffer_process(ibuf, (unsigned char *) ibuf->rect, view_settings, display_settings);
 	}
-#else
-	(void) view_settings;
-	(void) display_settings;
-
-	imbuf_verify_float(ibuf);
-#endif
 }
 
 void IMB_display_buffer_transform_apply(unsigned char *display_buffer, float *linear_buffer, int width, int height,
                                         int channels, const ColorManagedViewSettings *view_settings,
                                         const ColorManagedDisplaySettings *display_settings, int predivide)
 {
-#ifdef WITH_OCIO
 	if (global_tot_display == 0 || global_tot_view == 0) {
 		IMB_buffer_byte_from_float(display_buffer, linear_buffer, 4, 0.0f, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, FALSE,
 		                           width, height, width, width);
@@ -1833,13 +1726,6 @@ void IMB_display_buffer_transform_apply(unsigned char *display_buffer, float *li
 
 		MEM_freeN(buffer);
 	}
-#else
-	(void) view_settings;
-	(void) display_settings;
-
-	IMB_buffer_byte_from_float(display_buffer, linear_buffer, channels, 0.0f, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, predivide,
-	                           width, height, width, width);
-#endif
 }
 
 void IMB_display_buffer_release(void *cache_handle)
@@ -1855,7 +1741,6 @@ void IMB_display_buffer_release(void *cache_handle)
 
 /*********************** Display functions *************************/
 
-#ifdef WITH_OCIO
 ColorManagedDisplay *colormanage_display_get_default(void)
 {
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
@@ -1876,7 +1761,6 @@ ColorManagedDisplay *colormanage_display_get_default(void)
 
 	return colormanage_display_get_named(display);
 }
-#endif
 
 ColorManagedDisplay *colormanage_display_add(const char *name)
 {
@@ -1946,13 +1830,9 @@ const char *IMB_colormanagement_display_get_indexed_name(int index)
 
 const char *IMB_colormanagement_display_get_default_name(void)
 {
-#ifdef WITH_OCIO
 	ColorManagedDisplay *display = colormanage_display_get_default();
 
 	return display->name;
-#else
-	return NULL;
-#endif
 }
 
 /* used by performance-critical pixel processing areas, such as color widgets */
@@ -1963,7 +1843,6 @@ ColorManagedDisplay *IMB_colormanagement_display_get_named(const char *name)
 
 /*********************** View functions *************************/
 
-#ifdef WITH_OCIO
 const char *colormanage_view_get_default_name(const ColorManagedDisplay *display)
 {
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
@@ -1991,7 +1870,6 @@ ColorManagedView *colormanage_view_get_default(const ColorManagedDisplay *displa
 
 	return colormanage_view_get_named(name);
 }
-#endif
 
 ColorManagedView *colormanage_view_add(const char *name)
 {
@@ -2051,16 +1929,12 @@ const char *IMB_colormanagement_view_get_indexed_name(int index)
 
 const char *IMB_colormanagement_view_get_default_name(const char *display_name)
 {
-#if WITH_OCIO
 	ColorManagedDisplay *display = colormanage_display_get_named(display_name);
 	ColorManagedView *view = colormanage_view_get_default(display);
 
 	if (view) {
 		return view->name;
 	}
-#else
-	(void) display_name;
-#endif
 
 	return NULL;
 }
@@ -2277,7 +2151,6 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
  * the rest buffers would be marked as dirty
  */
 
-#ifdef WITH_OCIO
 static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffer, const float *linear_buffer,
                                        const unsigned char *byte_buffer, int display_stride, int linear_stride,
                                        int linear_offset_x, int linear_offset_y, ColormanageProcessor *cm_processor,
@@ -2336,7 +2209,6 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 		MEM_freeN(display_buffer_float);
 	}
 }
-#endif
 
 void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, const unsigned char *byte_buffer,
                                        int stride, int offset_x, int offset_y, const ColorManagedViewSettings *view_settings,
@@ -2362,7 +2234,6 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 		                           IB_PROFILE_SRGB, profile_from, predivide, width, height, ibuf->x, stride);
 	}
 
-#ifdef WITH_OCIO
 	if (ibuf->display_buffer_flags) {
 		ColormanageCacheViewSettings cache_view_settings;
 		ColormanageCacheDisplaySettings cache_display_settings;
@@ -2405,11 +2276,6 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 			IMB_display_buffer_release(cache_handle);
 		}
 	}
-#else
-	(void) byte_buffer;
-	(void) view_settings;
-	(void) display_settings;
-#endif
 }
 
 /*********************** Pixel processor functions *************************/
@@ -2421,7 +2287,6 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(const ColorManag
 
 	cm_processor = MEM_callocN(sizeof(ColormanageProcessor), "colormanagement processor");
 
-#ifdef WITH_OCIO
 	{
 		ColorManagedViewSettings default_view_settings;
 		const ColorManagedViewSettings *applied_view_settings;
@@ -2442,16 +2307,6 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(const ColorManag
 			curvemapping_premultiply(cm_processor->curve_mapping, FALSE);
 		}
 	}
-#else
-	(void) view_settings;
-	(void) display_settings;
-
-	/* assume input is in linear space and color management is always enabled
-	 * seams to be quite reasonable behavior in cases there's no OCIO
-	 */
-	cm_processor->display_transform_cb_v3 = linearrgb_to_srgb_v3_v3;
-	cm_processor->display_transform_predivide_cb_v4 = linearrgb_to_srgb_predivide_v4;
-#endif
 
 	return cm_processor;
 }
@@ -2462,12 +2317,7 @@ ColormanageProcessor *IMB_colormanagement_colorspace_processor_new(const char *f
 
 	cm_processor = MEM_callocN(sizeof(ColormanageProcessor), "colormanagement processor");
 
-#ifdef WITH_OCIO
 	cm_processor->processor = create_colorspace_transform_processor(from_colorspace, to_colorspace);
-#else
-	(void) from_colorspace;
-	(void) to_colorspace;
-#endif
 
 	return cm_processor;
 }
@@ -2477,12 +2327,7 @@ void IMB_colormanagement_processor_apply_v4(ColormanageProcessor *cm_processor, 
 	if (cm_processor->curve_mapping)
 		curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
 
-#ifdef WITH_OCIO
 	OCIO_processorApplyRGBA(cm_processor->processor, pixel);
-#else
-	if (cm_processor->display_transform_cb_v3)
-		cm_processor->display_transform_cb_v3(pixel, pixel);
-#endif
 }
 
 void IMB_colormanagement_processor_apply_v3(ColormanageProcessor *cm_processor, float pixel[3])
@@ -2490,12 +2335,7 @@ void IMB_colormanagement_processor_apply_v3(ColormanageProcessor *cm_processor, 
 	if (cm_processor->curve_mapping)
 		curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
 
-#ifdef WITH_OCIO
 	OCIO_processorApplyRGB(cm_processor->processor, pixel);
-#else
-	if (cm_processor->display_transform_cb_v3)
-		cm_processor->display_transform_cb_v3(pixel, pixel);
-#endif
 }
 
 void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, float *buffer, int width, int height,
@@ -2514,7 +2354,6 @@ void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, flo
 		}
 	}
 
-#ifdef WITH_OCIO
 	{
 		PackedImageDesc *img;
 
@@ -2529,37 +2368,14 @@ void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, flo
 
 		OCIO_packedImageDescRelease(img);
 	}
-#else
-	if (cm_processor->display_transform_cb_v3) {
-		int x, y;
-
-		for (y = 0; y < height; y++) {
-			for (x = 0; x < width; x++) {
-				float *pixel = buffer + channels * (y * width + x);
-
-				if (channels == 3) {
-					cm_processor->display_transform_cb_v3(pixel, pixel);
-				}
-				else if (channels == 4) {
-					if (!predivide)
-						cm_processor->display_transform_predivide_cb_v4(pixel, pixel);
-					else
-						cm_processor->display_transform_cb_v3(pixel, pixel);
-				}
-			}
-		}
-	}
-#endif
 }
 
 void IMB_colormanagement_processor_free(ColormanageProcessor *cm_processor)
 {
-#ifdef WITH_OCIO
 	if (cm_processor->curve_mapping)
 		curvemapping_free(cm_processor->curve_mapping);
 
 	OCIO_processorRelease(cm_processor->processor);
-#endif
 
 	MEM_freeN(cm_processor);
 }

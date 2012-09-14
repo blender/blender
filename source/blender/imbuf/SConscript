@@ -6,7 +6,7 @@ sources = env.Glob('intern/*.c')
 
 incs = '. ../makesdna ../makesrna #/intern/guardedalloc #/intern/memutil ../blenlib'
 incs += ' ../avi ../blenkernel ../blenloader'
-incs += ' #/intern/ffmpeg'
+incs += ' #/intern/ffmpeg #intern/opencolorio'
 
 incs += ' ' + env['BF_JPEG_INC']
 incs += ' ' + env['BF_PNG_INC']
@@ -57,9 +57,5 @@ if env['WITH_BF_REDCODE']:
 if env['WITH_BF_QUICKTIME']:
     incs += ' ../quicktime ' + env['BF_QUICKTIME_INC']
     defs.append('WITH_QUICKTIME')
-
-if env['WITH_BF_OCIO']:
-    defs.append('WITH_OCIO')
-    incs += ' #intern/opencolorio'
 
 env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [185,115] )

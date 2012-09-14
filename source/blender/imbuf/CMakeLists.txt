@@ -183,14 +183,9 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
-if(WITH_OPENCOLORIO)
-	list(APPEND SRC
-	)
-	list(APPEND INC
-		../../../intern/opencolorio
-	)
-	add_definitions(-DWITH_OCIO)
-endif()
+list(APPEND INC
+	../../../intern/opencolorio
+)
 
 if(WIN32)
 	list(APPEND INC
