@@ -133,7 +133,7 @@ option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
 option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ON)
 option(WITH_COMPOSITOR    "Enable the tile based nodal compositor" ON)
-option(WITH_COMPOSITOR_LEGACY "Enable legacy compositor" ON)
+option(WITH_COMPOSITOR_LEGACY "Enable legacy compositor" OFF)
 
 # GHOST Windowing Library Options
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
