@@ -272,6 +272,9 @@ static void options_parse(int argc, const char **argv)
 		options.scene_params.shadingsystem = SceneParams::OSL;
 	else if(ssname == "svm")
 		options.scene_params.shadingsystem = SceneParams::SVM;
+		
+	/* Progressive rendering */
+	options.session_params.progressive = true;
 
 	/* find matching device */
 	DeviceType device_type = Device::type_from_string(devicename.c_str());
