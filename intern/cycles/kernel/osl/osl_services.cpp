@@ -179,55 +179,65 @@ bool OSLRenderServices::get_array_attribute(void *renderstate, bool derivatives,
 	return false;
 }
 
-static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd,
-                               const OSLGlobals::Attribute& attr, bool derivatives, void *val)
+static void set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, void *val)
 {
-	if (attr.type == TypeDesc::TypeFloat) {
-		float *fval = (float *)val;
-		fval[0] = triangle_attribute_float(kg, sd, attr.elem, attr.offset,
-		                                   (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+	if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
+	        type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
+		float3 *fval = (float3 *)val;
+		fval[0] = f[0];
+		if (derivatives) {
+			fval[1] = f[1];
+			fval[2] = f[2];
+		}
 	}
 	else {
-		/* todo: this won't work when float3 has w component */
-		float3 *fval = (float3 *)val;
-		fval[0] = triangle_attribute_float3(kg, sd, attr.elem, attr.offset,
-		                                    (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+		float *fval = (float *)val;
+		fval[0] = average(f[0]);
+		if (derivatives) {
+			fval[1] = average(f[1]);
+			fval[2] = average(f[2]);
+		}
 	}
-
-	return true;
 }
 
-static bool get_mesh_attribute_convert(KernelGlobals *kg, const ShaderData *sd,
-                                       const OSLGlobals::Attribute& attr, const TypeDesc& type, bool derivatives, void *val)
+static void set_attribute_float(float f[3], TypeDesc type, bool derivatives, void *val)
+{
+	if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
+	        type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
+		float3 *fval = (float3 *)val;
+		fval[0] = make_float3(f[0], f[0], f[0]);
+		if (derivatives) {
+			fval[1] = make_float3(f[1], f[2], f[1]);
+			fval[2] = make_float3(f[2], f[2], f[2]);
+		}
+	}
+	else {
+		float *fval = (float *)val;
+		fval[0] = f[0];
+		if (derivatives) {
+			fval[1] = f[1];
+			fval[2] = f[2];
+		}
+	}
+}
+
+static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd, const OSLGlobals::Attribute& attr,
+                               const TypeDesc& type, bool derivatives, void *val)
 {
 	if (attr.type == TypeDesc::TypeFloat) {
-		float tmp[3];
-		float3 *fval = (float3 *)val;
-
-		get_mesh_attribute(kg, sd, attr, derivatives, tmp);
-
-		fval[0] = make_float3(tmp[0], tmp[0], tmp[0]);
-		if (derivatives) {
-			fval[1] = make_float3(tmp[1], tmp[1], tmp[1]);
-			fval[2] = make_float3(tmp[2], tmp[2], tmp[2]);
-		}
-
+		float fval[3];
+		fval[0] = triangle_attribute_float(kg, sd, attr.elem, attr.offset,
+		                                   (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+		set_attribute_float(fval, type, derivatives, val);
 		return true;
 	}
 	else if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
-	         attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor)
-	{
-		float3 tmp[3];
-		float *fval = (float *)val;
-
-		get_mesh_attribute(kg, sd, attr, derivatives, tmp);
-
-		fval[0] = average(tmp[0]);
-		if (derivatives) {
-			fval[1] = average(tmp[1]);
-			fval[2] = average(tmp[2]);
-		}
-
+	         attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor) {
+		/* todo: this won't work when float3 has w component */
+		float3 fval[3];
+		fval[0] = triangle_attribute_float3(kg, sd, attr.elem, attr.offset,
+		                                    (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
 	else
@@ -243,11 +253,46 @@ static void get_object_attribute(const OSLGlobals::Attribute& attr, bool derivat
 		memset((char *)val + datasize, 0, datasize * 2);
 }
 
+static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
+                                          TypeDesc type, bool derivatives, void *val)
+{
+	if (name == "std::object_location") {
+		float3 loc[3];
+		loc[0] = object_location(kg, sd);
+		loc[1] = loc[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
+		set_attribute_float3(loc, type, derivatives, val);
+		return true;
+	}
+	else if (name == "std::object_index") {
+		float loc[3];
+		loc[0] = object_pass_id(kg, sd->object);
+		loc[1] = loc[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(loc, type, derivatives, val);
+		return true;
+	}
+	else if (name == "std::material_index") {
+		float loc[3];
+		loc[0] = shader_pass_id(kg, sd);
+		loc[1] = loc[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(loc, type, derivatives, val);
+		return true;
+	}
+	else if (name == "std::object_random") {
+		float loc[3];
+		loc[0] = object_random_number(kg, sd->object);
+		loc[1] = loc[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(loc, type, derivatives, val);
+		return true;
+	}
+	else
+		return false;
+}
+
 bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustring object_name,
                                       TypeDesc type, ustring name, void *val)
 {
 	KernelGlobals *kg = kernel_globals;
-	const ShaderData *sd = (const ShaderData *)renderstate;
+	ShaderData *sd = (ShaderData *)renderstate;
 	int object = sd->object;
 	int tri = sd->prim;
 
@@ -270,29 +315,23 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 	OSLGlobals::AttributeMap& attribute_map = kg->osl.attribute_map[object];
 	OSLGlobals::AttributeMap::iterator it = attribute_map.find(name);
 
-	if (it == attribute_map.end())
-		return false;
-
-	/* type mistmatch? */
-	const OSLGlobals::Attribute& attr = it->second;
-
-	if (attr.elem != ATTR_ELEMENT_VALUE) {
-		/* triangle and vertex attributes */
-		if (tri != ~0) {
-			if (attr.type == type || (attr.type == TypeDesc::TypeColor &&
-			                          (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector || type == TypeDesc::TypeNormal)))
-			{
-				return get_mesh_attribute(kg, sd, attr, derivatives, val);
-			}
-			else {
-				return get_mesh_attribute_convert(kg, sd, attr, type, derivatives, val);
-			}
+	if (it != attribute_map.end()) {
+		const OSLGlobals::Attribute& attr = it->second;
+		
+		if (attr.elem != ATTR_ELEMENT_VALUE) {
+			/* triangle and vertex attributes */
+			if (tri != ~0)
+				return get_mesh_attribute(kg, sd, attr, type, derivatives, val);
+		}
+		else {
+			/* object attribute */
+			get_object_attribute(attr, derivatives, val);
+			return true;
 		}
 	}
 	else {
-		/* object attribute */
-		get_object_attribute(attr, derivatives, val);
-		return true;
+		/* not found in attribute, check standard object info */
+		return get_object_standard_attribute(kg, sd, name, type, derivatives, val);
 	}
 
 	return false;
