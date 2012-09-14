@@ -93,7 +93,7 @@ void MaskOperation::initExecution()
 				frame_iter += frame_step;
 			}
 
-			BKE_mask_free(mask_temp);
+			BKE_mask_free_nolib(mask_temp);
 			MEM_freeN(mask_temp);
 		}
 	}

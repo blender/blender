@@ -910,7 +910,8 @@ void BKE_mask_layer_free_list(ListBase *masklayers)
 	}
 }
 
-void BKE_mask_free(Mask *mask)
+/** free for temp copy, but don't manage unlinking from other pointers */
+void BKE_mask_free_nolib(Mask *mask)
 {
 	BKE_mask_layer_free_list(&mask->masklayers);
 }
@@ -928,7 +929,7 @@ static void ntree_unlink_mask_cb(void *calldata, struct ID *UNUSED(owner_id), st
 	}
 }
 
-void BKE_mask_unlink(Main *bmain, Mask *mask)
+void BKE_mask_free(Main *bmain, Mask *mask)
 {
 	bScreen *scr;
 	ScrArea *area;
@@ -991,7 +992,8 @@ void BKE_mask_unlink(Main *bmain, Mask *mask)
 		treetype->foreach_nodetree(bmain, (void *)mask, &ntree_unlink_mask_cb);
 	}
 
-	BKE_libblock_free(&bmain->mask, mask);
+	/* free mask data */
+	BKE_mask_layer_free_list(&mask->masklayers);
 }
 
 void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float frame_size[2])

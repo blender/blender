@@ -556,7 +556,7 @@ Mask *rna_Main_mask_new(Main *UNUSED(bmain), const char *name)
 
 void rna_Main_masks_remove(Main *bmain, Mask *mask)
 {
-	BKE_mask_unlink(bmain, mask);
+	BKE_mask_free(bmain, mask);
 	BKE_libblock_free(&bmain->mask, mask);
 	/* XXX python now has invalid pointer? */
 }
