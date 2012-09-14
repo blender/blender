@@ -41,6 +41,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
+#include "BLI_threads.h"
 
 #include "IMB_moviecache.h"
 
@@ -58,6 +59,7 @@
 #endif
 
 static MEM_CacheLimiterC *limitor = NULL;
+static pthread_mutex_t limitor_lock = BLI_MUTEX_INITIALIZER;
 
 typedef struct MovieCache {
 	char name[64];
@@ -335,15 +337,19 @@ void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 	BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
 	BLI_ghash_insert(cache->hash, key, item);
 
-	item->c_handle = MEM_CacheLimiter_insert(limitor, item);
-
 	if (cache->last_userkey) {
 		memcpy(cache->last_userkey, userkey, cache->keysize);
 	}
 
+	BLI_mutex_lock(&limitor_lock);
+
+	item->c_handle = MEM_CacheLimiter_insert(limitor, item);
+
 	MEM_CacheLimiter_ref(item->c_handle);
 	MEM_CacheLimiter_enforce_limits(limitor);
 	MEM_CacheLimiter_unref(item->c_handle);
+
+	BLI_mutex_unlock(&limitor_lock);
 
 	/* cache limiter can't remove unused keys which points to destoryed values */
 	check_unused_keys(cache);
@@ -365,7 +371,10 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey)
 
 	if (item) {
 		if (item->ibuf) {
+			BLI_mutex_lock(&limitor_lock);
 			MEM_CacheLimiter_touch(item->c_handle);
+			BLI_mutex_unlock(&limitor_lock);
+
 			IMB_refImBuf(item->ibuf);
 
 			return item->ibuf;
