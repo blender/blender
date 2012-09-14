@@ -36,6 +36,9 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_filetype.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 #include "openjpeg.h"
 
 #define JP2_FILEHEADER_SIZE 14
@@ -109,7 +112,7 @@ static void info_callback(const char *msg, void *client_data)
 	} \
 	} (void)0 \
 
-struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
+struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
 	int use_float = FALSE; /* for precision higher then 8 use float */
@@ -136,6 +139,9 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 
 	if (!is_jp2 && !is_j2k)
 		return(NULL);
+
+	/* both 8, 12 and 16 bit JP2Ks are default to standard byte colorspace */
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
 	/* configure the event callbacks (not required) */
 	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));

@@ -2411,7 +2411,8 @@ void RE_init_threadcount(Render *re)
  * x/y offsets are only used on a partial copy when dimensions don't match */
 void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char *filename, int x, int y)
 {
-	ImBuf *ibuf = IMB_loadiffname(filename, IB_rect);
+	/* OCIO_TODO: assume layer was saved in defaule color space */
+	ImBuf *ibuf = IMB_loadiffname(filename, IB_rect, NULL);
 
 	if (ibuf && (ibuf->rect || ibuf->rect_float)) {
 		if (ibuf->x == layer->rectx && ibuf->y == layer->recty) {

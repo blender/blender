@@ -70,6 +70,8 @@
 #ifndef __IMB_IMBUF_H__
 #define __IMB_IMBUF_H__
 
+#define IM_MAX_SPACE 64
+
 /**
  *
  * \attention defined in ???
@@ -95,20 +97,19 @@ void IMB_exit(void);
  *
  * \attention Defined in readimage.c
  */
-struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size,
-                                    int flags, const char *descr);
+struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
 
 /**
  *
  * \attention Defined in readimage.c
  */
-struct ImBuf *IMB_testiffname(const char *filepath, int flags);
+struct ImBuf *IMB_testiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
 
 /**
  *
  * \attention Defined in readimage.c
  */
-struct ImBuf *IMB_loadiffname(const char *filepath, int flags);
+struct ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
 
 /**
  *
@@ -247,7 +248,7 @@ int IMB_anim_get_fps(struct anim * anim,
  *
  * \attention Defined in anim_movie.c
  */
-struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex);
+struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex, char colorspace[IM_MAX_SPACE]);
 void IMB_close_anim(struct anim *anim);
 void IMB_close_anim_proxies(struct anim *anim);
 
@@ -419,7 +420,7 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *col, flo
  *
  * \attention defined in readimage.c
  */  
-struct ImBuf *IMB_loadifffile(int file, int flags, const char *descr);
+struct ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
 
 /**
  *

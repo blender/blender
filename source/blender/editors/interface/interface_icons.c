@@ -466,7 +466,7 @@ static void init_brush_icons(void)
 	{                                                                         \
 		bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_ ##name## _png, \
 		                             datatoc_ ##name## _png_size,             \
-		                             IB_rect, "<brush icon>");                \
+		                             IB_rect, NULL, "<brush icon>");          \
 		def_internal_icon(bbuf, icon_id, 0, 0, w, ICON_TYPE_BUFFER);          \
 		IMB_freeImBuf(bbuf);                                                  \
 	} (void)0
@@ -520,7 +520,7 @@ static void init_internal_icons(void)
 		char *icondir = BLI_get_folder(BLENDER_DATAFILES, "icons");
 		if (icondir) {
 			BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
-			bbuf = IMB_loadiffname(iconfilestr, IB_rect); /* if the image is missing bbuf will just be NULL */
+			bbuf = IMB_loadiffname(iconfilestr, IB_rect, NULL); /* if the image is missing bbuf will just be NULL */
 			if (bbuf && (bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H)) {
 				printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
 				IMB_freeImBuf(bbuf);
@@ -533,7 +533,7 @@ static void init_internal_icons(void)
 	}
 	if (bbuf == NULL)
 		bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons_png,
-		                             datatoc_blender_icons_png_size, IB_rect, "<blender icons>");
+		                             datatoc_blender_icons_png_size, IB_rect, NULL, "<blender icons>");
 
 	if (bbuf) {
 		/* free existing texture if any */

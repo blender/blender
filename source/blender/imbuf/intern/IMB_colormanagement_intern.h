@@ -36,6 +36,7 @@
 #define BCM_CONFIG_FILE "config.ocio"
 
 struct ConstProcessorRcPtr;
+struct ImBuf;
 
 typedef struct ColorSpace {
 	struct ColorSpace *next, *prev;
@@ -80,6 +81,11 @@ struct ColorManagedView *colormanage_view_get_named(const char *name);
 
 struct ColorSpace *colormanage_colorspace_add(const char *name, const char *description, int is_invertible);
 struct ColorSpace *colormanage_colorspace_get_named(const char *name);
+struct ColorSpace *colormanage_colorspace_get_roled(int role);
 struct ColorSpace *colormanage_colorspace_get_indexed(int index);
+
+void colorspace_set_default_role(char *colorspace, int size, int role);
+
+void colormanage_imbuf_make_linear(struct ImBuf *ibuf, const char *from_colorspace);
 
 #endif  /* IMB_COLORMANAGEMENT_INTERN_H */

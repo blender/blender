@@ -57,6 +57,9 @@
 #include "IMB_filetype.h"
 #include "IMB_filter.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 #include "tiffio.h"
 
 #ifdef WIN32
@@ -508,7 +511,7 @@ void imb_inittiff(void)
  *
  * \return: A newly allocated ImBuf structure if successful, otherwise NULL.
  */
-ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
+ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	TIFF *image = NULL;
 	ImBuf *ibuf = NULL, *hbuf;
@@ -526,6 +529,9 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 	}
 	if (imb_is_a_tiff(mem) == 0)
 		return NULL;
+
+	/* both 8 and 16 bit PNGs are default to standard byte colorspace */
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
 	image = imb_tiff_client_open(&memFile, mem, size);
 

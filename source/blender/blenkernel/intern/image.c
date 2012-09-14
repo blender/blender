@@ -304,12 +304,6 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 		else
 			ibuf->flags &= ~IB_cm_predivide;
 
-		if (ima->source == IMA_SRC_GENERATED) {
-			/* for other image types spaces are set by image_initialize_after_load */
-
-			IMB_colormanagement_imbuf_assign_spaces(ibuf, &ima->colorspace_settings);
-		}
-
 		/* this function accepts (link == NULL) */
 		BLI_insertlinkbefore(&ima->ibufs, link, ibuf);
 
@@ -1910,12 +1904,12 @@ void BKE_makepicstring(char *string, const char *base, const char *relbase, int 
 }
 
 /* used by sequencer too */
-struct anim *openanim(const char *name, int flags, int streamindex)
+struct anim *openanim(const char *name, int flags, int streamindex, char colorspace[IMA_MAX_SPACE])
 {
 	struct anim *anim;
 	struct ImBuf *ibuf;
 
-	anim = IMB_open_anim(name, flags, streamindex);
+	anim = IMB_open_anim(name, flags, streamindex, colorspace);
 	if (anim == NULL) return NULL;
 
 	ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -2224,9 +2218,6 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 /* common stuff to do with images after loading */
 static void image_initialize_after_load(Image *ima, ImBuf *ibuf)
 {
-	/* make float buffer stored in ImBuf scene linear space */
-	IMB_colormanagement_imbuf_make_scene_linear(ibuf, &ima->colorspace_settings);
-
 	/* preview is NULL when it has never been used as an icon before */
 	if (G.background == 0 && ima->preview == NULL)
 		BKE_icon_changed(BKE_icon_getid(&ima->id));
@@ -2261,7 +2252,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 		flag |= IB_premul;
 
 	/* read ibuf */
-	ibuf = IMB_loadiffname(name, flag);
+	ibuf = IMB_loadiffname(name, flag, ima->colorspace_settings.name);
 
 #if 0
 	if (ibuf) {
@@ -2369,7 +2360,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 		BKE_image_user_file_path(iuser, ima, str);
 
 		/* FIXME: make several stream accessible in image editor, too*/
-		ima->anim = openanim(str, IB_rect, 0);
+		ima->anim = openanim(str, IB_rect, 0, ima->colorspace_settings.name);
 
 		/* let's initialize this user */
 		if (ima->anim && iuser && iuser->frames == 0)
@@ -2420,8 +2411,8 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		flag = IB_rect | IB_multilayer;
 		if (ima->flag & IMA_DO_PREMUL) flag |= IB_premul;
 
-		ibuf = IMB_ibImageFromMemory((unsigned char *)ima->packedfile->data,
-		                             ima->packedfile->size, flag, "<packed data>");
+		ibuf = IMB_ibImageFromMemory((unsigned char *)ima->packedfile->data, ima->packedfile->size, flag,
+		                             ima->colorspace_settings.name, "<packed data>");
 	}
 	else {
 		flag = IB_rect | IB_multilayer | IB_metadata;
@@ -2433,7 +2424,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		BKE_image_user_file_path(iuser, ima, str);
 
 		/* read ibuf */
-		ibuf = IMB_loadiffname(str, flag);
+		ibuf = IMB_loadiffname(str, flag, ima->colorspace_settings.name);
 	}
 
 	if (ibuf) {

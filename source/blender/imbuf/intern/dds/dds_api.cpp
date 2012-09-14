@@ -43,6 +43,9 @@ extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 int imb_save_dds(struct ImBuf * ibuf, const char *name, int flags)
 {
 	return(0); /* todo: finish this function */
@@ -79,7 +82,7 @@ int imb_is_a_dds(unsigned char *mem) // note: use at most first 32 bytes
 	return(1);
 }
 
-struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags)
+struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf * ibuf = 0;
 	DirectDrawSurface dds(mem, size); /* reads header */
@@ -91,6 +94,12 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags)
 	unsigned char *cp = (unsigned char *) &col;
 	Color32 pixel;
 	Color32 *pixels = 0;
+
+	/* OCIO_TODO: never was able to save DDS, so can'ttest loading
+	 *            but profile used to be set to sRGB and can't see rect_float here, so
+	 *            default byte space should work fine
+	 */
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
 	if (!imb_is_a_dds(mem))
 		return (0);

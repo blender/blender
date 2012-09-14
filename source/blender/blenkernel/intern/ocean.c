@@ -1117,19 +1117,20 @@ void BKE_simulate_ocean_cache(struct OceanCache *och, int frame)
 	/* if image is already loaded in mem, return */
 	if (och->ibufs_disp[f] != NULL) return;
 
+	/* use default color spaces since we know for sure cache files were saved with default settings too */
 
 	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_DISPLACE);
-	och->ibufs_disp[f] = IMB_loadiffname(string, 0);
+	och->ibufs_disp[f] = IMB_loadiffname(string, 0, NULL);
 	//if (och->ibufs_disp[f] == NULL) printf("error loading %s\n", string);
 	//else printf("loaded cache %s\n", string);
 
 	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_FOAM);
-	och->ibufs_foam[f] = IMB_loadiffname(string, 0);
+	och->ibufs_foam[f] = IMB_loadiffname(string, 0, NULL);
 	//if (och->ibufs_foam[f] == NULL) printf("error loading %s\n", string);
 	//else printf("loaded cache %s\n", string);
 
 	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_NORMAL);
-	och->ibufs_norm[f] = IMB_loadiffname(string, 0);
+	och->ibufs_norm[f] = IMB_loadiffname(string, 0, NULL);
 	//if (och->ibufs_norm[f] == NULL) printf("error loading %s\n", string);
 	//else printf("loaded cache %s\n", string);
 }

@@ -1212,15 +1212,12 @@ static ImBuf *save_image_colormanaged_imbuf_acquire(ImBuf *ibuf, SaveImageOption
 	int do_colormanagement;
 
 	*cache_handle = NULL;
-	do_colormanagement = !BKE_imtype_supports_float(imf->imtype);
+	do_colormanagement = save_as_render && !BKE_imtype_supports_float(imf->imtype);
 
 	if (do_colormanagement) {
 		unsigned char *display_buffer;
 
-		if (save_as_render)
-			display_buffer = IMB_display_buffer_acquire(ibuf, &imf->view_settings, &imf->display_settings, cache_handle);
-		else
-			display_buffer = IMB_display_buffer_acquire(ibuf, NULL, &imf->display_settings, cache_handle);
+		display_buffer = IMB_display_buffer_acquire(ibuf, &imf->view_settings, &imf->display_settings, cache_handle);
 
 		if (*cache_handle) {
 			colormanaged_ibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, 0);
@@ -1295,7 +1292,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else {
-			if (BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, &simopts->im_format, save_copy)) {
+			if (BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, &simopts->im_format, save_copy))
+			{
 				ok = TRUE;
 			}
 		}
@@ -1334,6 +1332,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 				if (relative) {
 					BLI_path_rel(ima->name, relbase); /* only after saving */
 				}
+
+				IMB_colormanagment_colorspace_from_ibuf_ftype(&ima->colorspace_settings, ibuf);
 			}
 		}
 		else {

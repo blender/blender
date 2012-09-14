@@ -191,6 +191,7 @@ struct anim {
 	struct anim *proxy_anim[IMB_PROXY_MAX_SLOT];
 	struct anim_index *curr_idx[IMB_TC_MAX_SLOT];
 
+	char colorspace[64];
 };
 
 #endif

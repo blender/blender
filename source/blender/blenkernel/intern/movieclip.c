@@ -199,19 +199,25 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 	struct ImBuf *ibuf;
 	char name[FILE_MAX];
 	int loadflag, use_proxy = FALSE;
+	char *colorspace;
 
 	use_proxy = (flag & MCLIP_USE_PROXY) && user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL;
 	if (use_proxy) {
 		int undistort = user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT;
 		get_proxy_fname(clip, user->render_size, undistort, framenr, name);
+
+		/* proxies were built using default color space settings */
+		colorspace = NULL;
 	}
-	else
+	else {
 		get_sequence_fname(clip, framenr, name);
+		colorspace = clip->colorspace_settings.name;
+	}
 
 	loadflag = IB_rect | IB_multilayer;
 
 	/* read ibuf */
-	ibuf = IMB_loadiffname(name, loadflag);
+	ibuf = IMB_loadiffname(name, loadflag, colorspace);
 
 	return ibuf;
 }
@@ -225,7 +231,7 @@ static void movieclip_open_anim_file(MovieClip *clip)
 		BLI_path_abs(str, ID_BLEND_PATH(G.main, &clip->id));
 
 		/* FIXME: make several stream accessible in image editor, too */
-		clip->anim = openanim(str, IB_rect, 0);
+		clip->anim = openanim(str, IB_rect, 0, clip->colorspace_settings.name);
 
 		if (clip->anim) {
 			if (clip->flag & MCLIP_USE_PROXY_CUSTOM_DIR) {
@@ -779,11 +785,6 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 		}
 		else {
 			ibuf = movieclip_load_movie_file(clip, user, framenr, flag);
-		}
-
-		if (ibuf) {
-			/* make float buffer stored in ImBuf scene linear space */
-			IMB_colormanagement_imbuf_make_scene_linear(ibuf, &clip->colorspace_settings);
 		}
 
 		if (ibuf && (cache_flag & MOVIECLIP_CACHE_SKIP) == 0)

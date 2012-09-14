@@ -118,7 +118,8 @@ ImBuf *get_brush_icon(Brush *brush)
 				BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
 				BLI_path_abs(path, G.main->name);
 
-				brush->icon_imbuf = IMB_loadiffname(path, flags);
+				/* use default colorspaces for brushes */
+				brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
 
 				// otherwise lets try to find it in other directories
 				if (!(brush->icon_imbuf)) {
@@ -126,8 +127,10 @@ ImBuf *get_brush_icon(Brush *brush)
 
 					BLI_make_file_string(G.main->name, path, folder, brush->icon_filepath);
 
-					if (path[0])
-						brush->icon_imbuf = IMB_loadiffname(path, flags);
+					if (path[0]) {
+						/* use fefault color spaces */
+						brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
+					}
 				}
 
 				if (brush->icon_imbuf)

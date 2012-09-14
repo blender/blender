@@ -64,6 +64,9 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include "IMB_allocimbuf.h"
 #include "IMB_metadata.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 #include "openexr_multi.h"
 }
 
@@ -1129,12 +1132,14 @@ static int exr_is_multilayer(InputFile *file)
 	return 0;
 }
 
-struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
+struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
 	InputFile *file = NULL;
 
 	if (imb_is_a_openexr(mem) == 0) return(NULL);
+
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 
 	try
 	{
