@@ -1613,46 +1613,6 @@ void IMB_colormanagement_pixel_to_display_space_v3(float result[3], const float 
 	IMB_colormanagement_processor_free(cm_processor);
 }
 
-void IMB_colormanagement_pixel_to_role_v4(float pixel[4], int role)
-{
-#ifdef WITH_OCIO
-		ConstProcessorRcPtr *processor;
-		const char *from_colorspace = global_role_scene_linear;
-		const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(role);
-
-		processor = create_colorspace_transform_processor(from_colorspace, to_colorspace);
-
-		if (processor) {
-			OCIO_processorApplyRGBA(processor, pixel);
-
-			OCIO_processorRelease(processor);
-		}
-#else
-	(void) pixel;
-	(void) role;
-#endif
-}
-
-void IMB_colormanagement_pixel_from_role_v4(float pixel[4], int role)
-{
-#ifdef WITH_OCIO
-		ConstProcessorRcPtr *processor;
-		const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(role);
-		const char *to_colorspace = global_role_scene_linear;
-
-		processor = create_colorspace_transform_processor(from_colorspace, to_colorspace);
-
-		if (processor) {
-			OCIO_processorApplyRGBA(processor, pixel);
-
-			OCIO_processorRelease(processor);
-		}
-#else
-	(void) pixel;
-	(void) role;
-#endif
-}
-
 void IMB_colormanagement_imbuf_assign_spaces(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
 {
 #ifdef WITH_OCIO
@@ -1678,11 +1638,6 @@ void IMB_colormanagement_imbuf_assign_spaces(ImBuf *ibuf, ColorManagedColorspace
 	(void) ibuf;
 	(void) colorspace_settings;
 #endif
-}
-
-void IMB_colormanagement_imbuf_assign_default_spaces(ImBuf *ibuf)
-{
-	IMB_colormanagement_imbuf_assign_spaces(ibuf, NULL);
 }
 
 void IMB_colormanagement_imbuf_assign_float_space(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
@@ -1712,16 +1667,6 @@ void IMB_colormanagement_imbuf_make_display_space(ImBuf *ibuf, const ColorManage
 	IMB_buffer_float_from_float(ibuf->rect_float, ibuf->rect_float, ibuf->channels, IB_PROFILE_LINEAR_RGB, ibuf->profile,
 	                            ibuf->flags & IB_cm_predivide, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 #endif
-}
-
-void IMB_colormanagement_imbuf_make_colorspace(ImBuf *ibuf, const char *to_colorspace, int flag)
-{
-	int predivide = ibuf->flags & IB_cm_predivide;
-
-	if (ibuf->rect_float && (flag & IB_rectfloat)) {
-		IMB_colormanagement_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-		                              global_role_scene_linear, to_colorspace, predivide);
-	}
 }
 
 static void imbuf_verify_float(ImBuf *ibuf)

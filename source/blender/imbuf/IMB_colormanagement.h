@@ -85,17 +85,11 @@ void IMB_colormanagement_pixel_to_display_space_v4(float result[4], const float 
 void IMB_colormanagement_pixel_to_display_space_v3(float result[3], const float pixel[3],  const struct ColorManagedViewSettings *view_settings,
                                                    const struct ColorManagedDisplaySettings *display_settings);
 
-void IMB_colormanagement_pixel_to_role_v4(float pixel[4], int role);
-void IMB_colormanagement_pixel_from_role_v4(float pixel[4], int role);
-
 void IMB_colormanagement_imbuf_assign_spaces(struct ImBuf *ibuf, struct ColorManagedColorspaceSettings *colorspace_settings);
-void IMB_colormanagement_imbuf_assign_default_spaces(struct ImBuf *ibuf);
 void IMB_colormanagement_imbuf_assign_float_space(struct ImBuf *ibuf, struct ColorManagedColorspaceSettings *colorspace_settings);
 
 void IMB_colormanagement_imbuf_make_display_space(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                                   const struct ColorManagedDisplaySettings *display_settings);
-
-void IMB_colormanagement_imbuf_make_colorspace(struct ImBuf *ibuf, const char *to_colorspace, int flag);
 
 /* ** Public display buffers interfaces ** */
 
