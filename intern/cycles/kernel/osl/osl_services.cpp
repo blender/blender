@@ -256,34 +256,104 @@ static void get_object_attribute(const OSLGlobals::Attribute& attr, bool derivat
 static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
                                           TypeDesc type, bool derivatives, void *val)
 {
+	/* Object Attributes */
 	if (name == "std::object_location") {
-		float3 loc[3];
-		loc[0] = object_location(kg, sd);
-		loc[1] = loc[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
-		set_attribute_float3(loc, type, derivatives, val);
+		float3 fval[3];
+		fval[0] = object_location(kg, sd);
+		fval[1] = fval[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
+		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
 	else if (name == "std::object_index") {
-		float loc[3];
-		loc[0] = object_pass_id(kg, sd->object);
-		loc[1] = loc[2] = 0.0;	/* derivates set to 0 */
-		set_attribute_float(loc, type, derivatives, val);
+		float fval[3];
+		fval[0] = object_pass_id(kg, sd->object);
+		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(fval, type, derivatives, val);
 		return true;
 	}
 	else if (name == "std::material_index") {
-		float loc[3];
-		loc[0] = shader_pass_id(kg, sd);
-		loc[1] = loc[2] = 0.0;	/* derivates set to 0 */
-		set_attribute_float(loc, type, derivatives, val);
+		float fval[3];
+		fval[0] = shader_pass_id(kg, sd);
+		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(fval, type, derivatives, val);
 		return true;
 	}
 	else if (name == "std::object_random") {
-		float loc[3];
-		loc[0] = object_random_number(kg, sd->object);
-		loc[1] = loc[2] = 0.0;	/* derivates set to 0 */
-		set_attribute_float(loc, type, derivatives, val);
+		float fval[3];
+		fval[0] = object_random_number(kg, sd->object);
+		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(fval, type, derivatives, val);
 		return true;
 	}
+
+	/* Particle Attributes */
+	else if (name == "std::particle_index") {
+		float fval[3];
+		uint particle_id = object_particle_id(kg, sd->object);
+		fval[0] = particle_index(kg, particle_id);
+		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(fval, type, derivatives, val);
+		return true;
+	}
+	else if (name == "std::particle_age") {
+		float fval[3];
+		uint particle_id = object_particle_id(kg, sd->object);
+		fval[0] = particle_age(kg, particle_id);
+		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(fval, type, derivatives, val);
+		return true;
+	}
+	else if (name == "std::particle_lifetime") {
+		float fval[3];
+		uint particle_id = object_particle_id(kg, sd->object);
+		fval[0] = particle_lifetime(kg, particle_id);
+		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(fval, type, derivatives, val);
+		return true;
+	}
+	else if (name == "std::particle_location") {
+		float3 fval[3];
+		uint particle_id = object_particle_id(kg, sd->object);
+		fval[0] = particle_location(kg, particle_id);
+		fval[1] = fval[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
+		set_attribute_float3(fval, type, derivatives, val);
+		return true;
+	}
+#if 0	/* unsupported */
+	else if (name == "std::particle_rotation") {
+		float4 fval[3];
+		uint particle_id = object_particle_id(kg, sd->object);
+		fval[0] = particle_rotation(kg, particle_id);
+		fval[1] = fval[2] = make_float4(0.0, 0.0, 0.0, 0.0);	/* derivates set to 0 */
+		set_attribute_float4(fval, type, derivatives, val);
+		return true;
+	}
+#endif
+	else if (name == "std::particle_size") {
+		float fval[3];
+		uint particle_id = object_particle_id(kg, sd->object);
+		fval[0] = particle_size(kg, particle_id);
+		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(fval, type, derivatives, val);
+		return true;
+	}
+	else if (name == "std::particle_velocity") {
+		float3 fval[3];
+		uint particle_id = object_particle_id(kg, sd->object);
+		fval[0] = particle_velocity(kg, particle_id);
+		fval[1] = fval[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
+		set_attribute_float3(fval, type, derivatives, val);
+		return true;
+	}
+	else if (name == "std::particle_angular_velocity") {
+		float3 fval[3];
+		uint particle_id = object_particle_id(kg, sd->object);
+		fval[0] = particle_angular_velocity(kg, particle_id);
+		fval[1] = fval[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
+		set_attribute_float3(fval, type, derivatives, val);
+		return true;
+	}
+	
 	else
 		return false;
 }

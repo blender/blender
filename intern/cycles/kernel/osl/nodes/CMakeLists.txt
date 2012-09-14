@@ -42,6 +42,7 @@ set(SRC_OSL
 	node_output_displacement.osl
 	node_output_surface.osl
 	node_output_volume.osl
+	node_particle_info.osl
 	node_separate_rgb.osl
 	node_sky_texture.osl
 	node_texture_coordinate.osl
