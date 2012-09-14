@@ -182,7 +182,8 @@ bool OSLRenderServices::get_array_attribute(void *renderstate, bool derivatives,
 static void set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, void *val)
 {
 	if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
-	        type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
+	    type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor)
+	{
 		float3 *fval = (float3 *)val;
 		fval[0] = f[0];
 		if (derivatives) {
@@ -203,7 +204,8 @@ static void set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, v
 static void set_attribute_float(float f[3], TypeDesc type, bool derivatives, void *val)
 {
 	if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
-	        type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
+	    type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor)
+	{
 		float3 *fval = (float3 *)val;
 		fval[0] = make_float3(f[0], f[0], f[0]);
 		if (derivatives) {
@@ -232,7 +234,8 @@ static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd, const OS
 		return true;
 	}
 	else if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
-	         attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor) {
+	         attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor)
+	{
 		/* todo: this won't work when float3 has w component */
 		float3 fval[3];
 		fval[0] = triangle_attribute_float3(kg, sd, attr.elem, attr.offset,
@@ -419,15 +422,16 @@ bool OSLRenderServices::has_userdata(ustring name, TypeDesc type, void *renderst
 }
 
 int OSLRenderServices::pointcloud_search(OSL::ShaderGlobals *sg, ustring filename, const OSL::Vec3 &center,
-		float radius, int max_points, bool sort, size_t *out_indices, float *out_distances, int derivs_offset)
+                                         float radius, int max_points, bool sort,
+                                         size_t *out_indices, float *out_distances, int derivs_offset)
 {
-    return 0;
+	return 0;
 }
 
 int OSLRenderServices::pointcloud_get(ustring filename, size_t *indices, int count,
-		ustring attr_name, TypeDesc attr_type, void *out_data)
+                                      ustring attr_name, TypeDesc attr_type, void *out_data)
 {
-    return 0;
+	return 0;
 }
 
 CCL_NAMESPACE_END

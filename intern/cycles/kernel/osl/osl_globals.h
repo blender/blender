@@ -36,7 +36,7 @@ struct OSLGlobals {
 	/* use */
 	bool use;
 
-	/* shading system */ 
+	/* shading system */
 	OSL::ShadingSystem *ss;
 	OSLRenderServices *services;
 

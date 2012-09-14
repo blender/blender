@@ -56,22 +56,22 @@ public:
 	bool get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform);
 	bool get_matrix(OSL::Matrix44 &result, ustring from);
 
-	bool get_array_attribute(void *renderstate, bool derivatives, 
+	bool get_array_attribute(void *renderstate, bool derivatives,
 	                         ustring object, TypeDesc type, ustring name,
 	                         int index, void *val);
 	bool get_attribute(void *renderstate, bool derivatives, ustring object,
 	                   TypeDesc type, ustring name, void *val);
 
-	bool get_userdata(bool derivatives, ustring name, TypeDesc type, 
+	bool get_userdata(bool derivatives, ustring name, TypeDesc type,
 	                  void *renderstate, void *val);
 	bool has_userdata(ustring name, TypeDesc type, void *renderstate);
-				   
+
 	int pointcloud_search(OSL::ShaderGlobals *sg, ustring filename, const OSL::Vec3 &center,
-						float radius, int max_points, bool sort, size_t *out_indices,
-						float *out_distances, int derivs_offset);
+	                      float radius, int max_points, bool sort, size_t *out_indices,
+	                      float *out_distances, int derivs_offset);
 
 	int pointcloud_get(ustring filename, size_t *indices, int count, ustring attr_name,
-						TypeDesc attr_type, void *out_data);
+	                   TypeDesc attr_type, void *out_data);
 
 private:
 	KernelGlobals *kernel_globals;
