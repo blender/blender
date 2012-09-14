@@ -98,12 +98,14 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 
 static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= ED_object_context(C);
+	Object *ob = ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
-	int mode_orig = ob->mode;
+	int mode_orig;
+
 	if (!scene || !ob)
 		return OPERATOR_CANCELLED;
 
+	mode_orig = ob->mode;
 	object_remove_particle_system(scene, ob);
 
 	/* possible this isn't the active object

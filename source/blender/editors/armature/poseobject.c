@@ -2350,20 +2350,18 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 		for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
 			pose_bone_do_paste(ob, pchan, only_select, 0);
 		}
-		
+
 		/* free temp data - free manually as was copied without constraints */
-		if (dummyPose) {
-			for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
-				if (pchan->prop) {
-					IDP_FreeProperty(pchan->prop);
-					MEM_freeN(pchan->prop);
-				}
+		for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
+			if (pchan->prop) {
+				IDP_FreeProperty(pchan->prop);
+				MEM_freeN(pchan->prop);
 			}
-			
-			/* was copied without constraints */
-			BLI_freelistN(&dummyPose->chanbase);
-			MEM_freeN(dummyPose);
 		}
+
+		/* was copied without constraints */
+		BLI_freelistN(&dummyPose->chanbase);
+		MEM_freeN(dummyPose);
 	}
 	else {
 		/* no animation, so just reset whole pose to rest pose 

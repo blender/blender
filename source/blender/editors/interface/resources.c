@@ -944,7 +944,7 @@ void UI_SetTheme(int spacetype, int regionid)
 	}
 }
 
-bTheme *UI_GetTheme()
+bTheme *UI_GetTheme(void)
 {
 	return U.themes.first;
 }

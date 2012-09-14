@@ -835,7 +835,7 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 		if (G.debug & G_DEBUG)
 			printf("%s, error: requested preview image does not exist", __func__);
 	}
-	if (!prv_img->rect[size]) {
+	else if (!prv_img->rect[size]) {
 		prv_img->w[size] = render_size;
 		prv_img->h[size] = render_size;
 		prv_img->changed[size] = 1;

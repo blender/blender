@@ -89,7 +89,9 @@ void ED_editors_init(bContext *C)
 	}
 
 	/* image editor paint mode */
-	ED_space_image_paint_update(wm, sce->toolsettings);
+	if (sce) {
+		ED_space_image_paint_update(wm, sce->toolsettings);
+	}
 }
 
 /* frees all editmode stuff */

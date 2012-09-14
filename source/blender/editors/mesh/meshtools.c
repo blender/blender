@@ -442,18 +442,20 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			}
 			
 			if (me->totpoly) {
-				/* make mapping for materials */
-				for (a = 1; a <= base->object->totcol; a++) {
-					ma = give_current_material(base->object, a);
+				if (totmat) {
+					/* make mapping for materials */
+					for (a = 1; a <= base->object->totcol; a++) {
+						ma = give_current_material(base->object, a);
 
-					for (b = 0; b < totcol; b++) {
-						if (ma == matar[b]) {
-							matmap[a - 1] = b;
-							break;
+						for (b = 0; b < totcol; b++) {
+							if (ma == matar[b]) {
+								matmap[a - 1] = b;
+								break;
+							}
 						}
 					}
 				}
-				
+
 				CustomData_merge(&me->pdata, &pdata, CD_MASK_MESH, CD_DEFAULT, totpoly);
 				CustomData_copy_data(&me->pdata, &pdata, 0, polyofs, me->totpoly);
 				

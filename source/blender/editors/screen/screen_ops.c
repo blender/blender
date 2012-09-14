@@ -1370,12 +1370,12 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->type == EVT_ACTIONZONE_AREA) {
 		sActionzoneData *sad = event->customdata;
 		
-		if (sad->modifier > 0) {
+		if (sad == NULL || sad->modifier > 0) {
 			return OPERATOR_PASS_THROUGH;
 		}
 		
 		/* verify *sad itself */
-		if (sad == NULL || sad->sa1 == NULL || sad->az == NULL)
+		if (sad->sa1 == NULL || sad->az == NULL)
 			return OPERATOR_PASS_THROUGH;
 		
 		/* is this our *sad? if areas not equal it should be passed on */
@@ -2284,12 +2284,12 @@ static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->type == EVT_ACTIONZONE_AREA) {
 		sActionzoneData *sad = event->customdata;
 		
-		if (sad->modifier > 0) {
+		if (sad == NULL || sad->modifier > 0) {
 			return OPERATOR_PASS_THROUGH;
 		}
 		
 		/* verify *sad itself */
-		if (sad == NULL || sad->sa1 == NULL || sad->sa2 == NULL)
+		if (sad->sa1 == NULL || sad->sa2 == NULL)
 			return OPERATOR_PASS_THROUGH;
 		
 		/* is this our *sad? if areas equal it should be passed on */
