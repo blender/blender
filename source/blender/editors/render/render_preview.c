@@ -535,12 +535,12 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 
 				}
 				else {
-					/* OCIO_TODO: currently seems an exception for textures,
+					/* OCIO_TODO: currently seems an exception for textures (came fro mlegacish time),
 					 *            but is it indeed expected behavior, or textures should be
 					 *            color managed as well?
 					 */
 					IMB_buffer_byte_from_float(rect_byte, rres.rectf,
-					                           4, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, do_predivide,
+					                           4, dither, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, do_predivide,
 					                           rres.rectx, rres.recty, rres.rectx, rres.rectx);
 				}
 

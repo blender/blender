@@ -71,7 +71,7 @@ ImBuf *BaseImageOperation::getImBuf()
 	}
 	
 	if (ibuf->rect_float == NULL) {
-		IMB_colormanagement_imbuf_float_from_rect(ibuf);
+		IMB_float_from_rect(ibuf);
 	}
 	return ibuf;
 }

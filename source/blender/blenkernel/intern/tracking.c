@@ -1627,7 +1627,6 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *sea
 	float *mask = NULL;
 
 	pattern_ibuf = IMB_allocImBuf(num_samples_x, num_samples_y, 32, IB_rectfloat);
-	pattern_ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 	if (!search_ibuf->rect_float) {
 		IMB_float_from_rect(search_ibuf);
@@ -1722,7 +1721,6 @@ ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mov
 	h = (marker->search_max[1] - marker->search_min[1]) * ibuf->y;
 
 	searchibuf = IMB_allocImBuf(w, h, 32, ibuf->rect_float ? IB_rectfloat : IB_rect);
-	searchibuf->profile = ibuf->profile;
 
 	IMB_rectcpy(searchibuf, ibuf, 0, 0, x, y, w, h);
 
@@ -3317,7 +3315,6 @@ static ImBuf *stabilization_allocate_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int 
 	}
 	else {
 		cacheibuf = IMB_allocImBuf(srcibuf->x, srcibuf->y, srcibuf->planes, flags);
-		cacheibuf->profile = srcibuf->profile;
 	}
 
 	return cacheibuf;

@@ -394,10 +394,6 @@ ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags, char colorspace[I
 
 	if (ibuf) {
 		ibuf->ftype = PNG;
-		if (bit_depth == 16)
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
-		else
-			ibuf->profile = IB_PROFILE_SRGB;
 
 		if (png_get_valid(png_ptr, info_ptr, PNG_INFO_pHYs)) {
 			int unit_type;

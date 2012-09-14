@@ -492,7 +492,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		}
 
 		/* TODO unneeded when float images are correctly treated as linear always */
-		if (!ncd && ibuf->profile == IB_PROFILE_LINEAR_RGB)
+		if (!ncd)
 			do_color_management = TRUE;
 
 		if (ibuf->rect==NULL)
@@ -535,7 +535,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 				if (do_color_management) {
 					srgb_frect = MEM_mallocN(ibuf->x*ibuf->y*sizeof(float)*4, "floar_buf_col_cor");
 					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
-						ibuf->channels, IB_PROFILE_SRGB, ibuf->profile, 0,
+						ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, 0,
 						ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
 					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
@@ -560,7 +560,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 				if (do_color_management) {
 					frect = srgb_frect = MEM_mallocN(ibuf->x*ibuf->y*sizeof(*srgb_frect)*4, "floar_buf_col_cor");
 					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
-							ibuf->channels, IB_PROFILE_SRGB, ibuf->profile, 0,
+							ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, 0,
 							ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
 					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
@@ -901,7 +901,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 		glGetIntegerv(GL_UNPACK_SKIP_ROWS, &skip_rows);
 
 		/* if color correction is needed, we must update the part that needs updating. */
-		if (ibuf->rect_float && (!U.use_16bit_textures || (ibuf->profile == IB_PROFILE_LINEAR_RGB))) {
+		if (ibuf->rect_float) {
 			float *buffer = MEM_mallocN(w*h*sizeof(float)*4, "temp_texpaint_float_buf");
 			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h);
 

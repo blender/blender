@@ -80,7 +80,7 @@ ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, char co
 						/* byte buffer is never internally converted to some standard space,
 						 * store pointer to it's color space descriptor instead
 						 */
-						ibuf->rect_colorspace = colormanage_colorspace_get_named(colorspace);
+						ibuf->rect_colorspace = colormanage_colorspace_get_named(effective_colorspace);
 					}
 
 					BLI_strncpy(colorspace, effective_colorspace, IM_MAX_SPACE);

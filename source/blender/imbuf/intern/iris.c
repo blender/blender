@@ -529,7 +529,6 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags, char colo
 	}
 
 	ibuf->ftype = IMAGIC;
-	ibuf->profile = IB_PROFILE_SRGB;
 
 	test_endian_zbuf(ibuf);
 

@@ -467,8 +467,6 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 		_TIFFfree(sbuf);
 
 	if (success) {
-		ibuf->profile = (bitspersample == 32) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_SRGB;
-
 		/* Code seems to be not needed for 16 bits tif, on PPC G5 OSX (ton) */
 		if (bitspersample < 16)
 			if (ENDIAN_ORDER == B_ENDIAN)
@@ -792,10 +790,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 				/* convert from float source */
 				float rgb[4];
 				
-				if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-					linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
-				else
-					copy_v3_v3(rgb, &fromf[from_i]);
+				linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
 
 				rgb[3] = fromf[from_i + 3];
 

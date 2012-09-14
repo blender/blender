@@ -612,12 +612,10 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 	if (floatbuf) {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rectfloat);
 		rect_float = ibuf->rect_float;
-		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	}
 	else {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
 		rect = (unsigned char *)ibuf->rect;
-		ibuf->profile = IB_PROFILE_SRGB;
 	}
 
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
@@ -2330,7 +2328,6 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int f
 			ibuf->flags |= IB_rectfloat;
 			ibuf->mall = IB_rectfloat;
 			ibuf->channels = rpass->channels;
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			image_initialize_after_load(ima, ibuf);
 			image_assign_ibuf(ima, ibuf, iuser ? iuser->multi_index : 0, frame);
@@ -2481,7 +2478,6 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 			ibuf->rect_float = rpass->rect;
 			ibuf->flags |= IB_rectfloat;
 			ibuf->channels = rpass->channels;
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			image_assign_ibuf(ima, ibuf, iuser ? iuser->multi_index : IMA_NO_INDEX, 0);
 		}
@@ -2630,7 +2626,6 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 
 	BLI_unlock_thread(LOCK_COLORMANAGE);
 
-	ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	ibuf->dither = dither;
 
 	if (iuser->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE) {

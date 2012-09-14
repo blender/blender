@@ -375,7 +375,6 @@ void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y
 void IMB_float_from_rect(struct ImBuf *ibuf);
 void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
 /* note, check that the conversion exists, only some are supported */
-void IMB_convert_profile(struct ImBuf *ibuf, int profile);
 float *IMB_float_profile_ensure(struct ImBuf *ibuf, int profile, int *alloc);
 void IMB_color_to_bw(struct ImBuf *ibuf);
 void IMB_saturation(struct ImBuf *ibuf, float sat);

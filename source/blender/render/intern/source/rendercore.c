@@ -2621,8 +2621,6 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		ima->flag&= ~IMA_USED_FOR_RENDER;
 		if (ibuf) {
 			ibuf->userdata = NULL; /* use for masking if needed */
-			if (ibuf->rect_float)
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 		}
 	}
 	

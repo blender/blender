@@ -155,7 +155,6 @@ typedef struct ImagePaintState {
 	Image *image;
 	ImBuf *canvas;
 	ImBuf *clonecanvas;
-	short clonefreefloat;
 	char *warnpackedfile;
 	char *warnmultifile;
 
@@ -3947,7 +3946,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 					last_projIma->touch = 1;
 					is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
-					use_color_correction = (last_projIma->ibuf->profile == IB_PROFILE_LINEAR_RGB) ? 1 : 0;
+					use_color_correction = TRUE;
 				}
 				/* end copy */
 
@@ -4030,7 +4029,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 								last_projIma->touch = 1;
 								is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
-								use_color_correction = (last_projIma->ibuf->profile == IB_PROFILE_LINEAR_RGB) ? 1 : 0;
+								use_color_correction = TRUE;
 							}
 							/* end copy */
 
@@ -4580,15 +4579,7 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 
 		/* temporarily add float rect for cloning */
 		if (s->canvas->rect_float && !s->clonecanvas->rect_float) {
-			short profile = IB_PROFILE_NONE;
-			
-			/* Don't want to color manage, but don't disturb existing profiles */
-			SWAP(short, s->clonecanvas->profile, profile);
-
 			IMB_float_from_rect(s->clonecanvas);
-			s->clonefreefloat = 1;
-			
-			SWAP(short, s->clonecanvas->profile, profile);
 		}
 		else if (!s->canvas->rect_float && !s->clonecanvas->rect)
 			IMB_rect_from_float(s->clonecanvas);
@@ -4597,10 +4588,8 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 	return 1;
 }
 
-static void imapaint_canvas_free(ImagePaintState *s)
+static void imapaint_canvas_free(ImagePaintState *UNUSED(s))
 {
-	if (s->clonefreefloat)
-		imb_freerectfloatImBuf(s->clonecanvas);
 }
 
 static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, Image *image, short texpaint, float *uv, double time, int update, float pressure)
@@ -4616,7 +4605,10 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 
 	BKE_brush_painter_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
 
-	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, ibuf->profile == IB_PROFILE_LINEAR_RGB)) {
+	/* OCIO_TODO: float buffers are now always linear, so always use color correction
+	 *            this should probably be changed when texture painting color space is supported
+	 */
+	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, TRUE)) {
 		if (update)
 			imapaint_image_update(s->scene, s->sima, image, ibuf, texpaint);
 		return 1;

@@ -142,7 +142,6 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags, char colo
 	if (ibuf == 0) return(0); /* memory allocation failed */
 
 	ibuf->ftype = DDS;
-	ibuf->profile = IB_PROFILE_SRGB;
 	ibuf->dds_data.fourcc = dds.fourCC();
 	ibuf->dds_data.nummipmaps = dds.mipmapCount();
 

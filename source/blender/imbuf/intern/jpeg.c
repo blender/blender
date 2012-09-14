@@ -438,7 +438,6 @@ next_stamp_marker:
 		jpeg_destroy((j_common_ptr) cinfo);
 		if (ibuf) {
 			ibuf->ftype = ibuf_ftype;
-			ibuf->profile = IB_PROFILE_SRGB;
 		}
 	}
 

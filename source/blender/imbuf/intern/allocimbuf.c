@@ -386,6 +386,9 @@ ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar planes, unsigned int
 				return NULL;
 			}
 		}
+
+		/* assign default spaces */
+		colormanage_imbuf_set_default_spaces(ibuf);
 	}
 	return (ibuf);
 }

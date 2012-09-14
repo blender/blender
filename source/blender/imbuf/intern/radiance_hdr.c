@@ -212,7 +212,6 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags, char color
 
 			if (ibuf == NULL) return NULL;
 			ibuf->ftype = RADHDR;
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			if (flags & IB_test) return ibuf;
 

@@ -294,32 +294,16 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 	 *            to new color management system since this code would likely be simply removed soon
 	 */
 	if (rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
-		if (ibuf->profile != IB_PROFILE_NONE) {
-			rect= ibuf->rect_float;
-		}
-		else {
-			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
-
-			IMB_buffer_float_from_float(rect, ibuf->rect_float,
-				4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, predivide,
-				ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-
-			*alloc= TRUE;
-		}
+		rect= ibuf->rect_float;
 	}
 	else {
-		if (ibuf->profile == IB_PROFILE_NONE) {
-			rect= ibuf->rect_float;
-		}
-		else {
-			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
+		rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
 
-			IMB_buffer_float_from_float(rect, ibuf->rect_float,
-				4, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, predivide,
-				ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+		IMB_buffer_float_from_float(rect, ibuf->rect_float,
+			4, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, predivide,
+			ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 
 			*alloc= TRUE;
-		}
 	}
 
 	return rect;

@@ -1086,13 +1086,9 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd)
 	 * note that sequence editor can generate 8bpc render buffers
 	 */
 	if (ibuf->rect) {
-		ibuf->profile = IB_PROFILE_SRGB;
 		if (BKE_imtype_valid_depths(rd->im_format.imtype) & (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32)) {
-			IMB_colormanagement_imbuf_float_from_rect(ibuf);
+			IMB_float_from_rect(ibuf);
 		}
-	}
-	else {
-		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	}
 
 	/* color -> grayscale */

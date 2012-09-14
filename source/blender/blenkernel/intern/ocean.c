@@ -1173,8 +1173,6 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 		ibuf_disp = IMB_allocImBuf(res_x, res_y, 32, IB_rectfloat);
 		ibuf_normal = IMB_allocImBuf(res_x, res_y, 32, IB_rectfloat);
 
-		ibuf_disp->profile = ibuf_foam->profile = ibuf_normal->profile = IB_PROFILE_LINEAR_RGB;
-
 		BKE_simulate_ocean(o, och->time[i], och->wave_scale, och->chop_amount);
 
 		/* add new foam */

@@ -830,6 +830,11 @@ void colorspace_set_default_role(char *colorspace, int size, int role)
 	}
 }
 
+void colormanage_imbuf_set_default_spaces(ImBuf *ibuf)
+{
+	ibuf->rect_colorspace = colormanage_colorspace_get_named(global_role_default_byte);
+}
+
 void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 {
 	if (ibuf->rect_float) {
@@ -841,8 +846,6 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 
 		IMB_colormanagement_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
 		                              from_colorspace, to_colorspace, predivide);
-
-		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	}
 }
 
@@ -912,7 +915,7 @@ static void colormanage_check_colorspace_settings(ColorManagedColorspaceSettings
 		ColorSpace *colorspace = colormanage_colorspace_get_named(colorspace_settings->name);
 
 		if (!colorspace) {
-			printf("Color management: %s colorspace \"%s\" not found, setting NONE instead.\n",
+			printf("Color management: %s colorspace \"%s\" not found, will use default instead.\n",
 			       what, colorspace_settings->name);
 
 			BLI_strncpy(colorspace_settings->name, "", sizeof(colorspace_settings->name));
@@ -1011,27 +1014,6 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role)
 	}
 
 	return NULL;
-}
-
-void IMB_colormanagement_imbuf_float_from_rect(ImBuf *ibuf)
-{
-	int predivide = ibuf->flags & IB_cm_predivide;
-
-	if (ibuf->rect == NULL)
-		return;
-
-	if (ibuf->rect_float == NULL) {
-		if (imb_addrectfloatImBuf(ibuf) == 0)
-			return;
-	}
-
-	/* first, create float buffer in non-linear space */
-	IMB_buffer_float_from_byte(ibuf->rect_float, (unsigned char *) ibuf->rect, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-	                           FALSE, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-
-	/* then make float be in linear space */
-	IMB_colormanagement_colorspace_to_scene_linear(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-	                                               ibuf->rect_colorspace, predivide);
 }
 
 /*********************** Threaded display buffer transform routines *************************/
@@ -1534,28 +1516,6 @@ void IMB_colormanagement_pixel_to_display_space_v3(float result[3], const float 
 	IMB_colormanagement_processor_free(cm_processor);
 }
 
-void IMB_colormanagement_imbuf_assign_spaces(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
-{
-	if (colorspace_settings) {
-		if (colorspace_settings->name[0] == '\0') {
-			/* when opening new image, assign it's color space based on default roles */
-
-			if (ibuf->rect_float)
-				BLI_strncpy(colorspace_settings->name, global_role_default_float, MAX_COLORSPACE_NAME);
-			else
-				BLI_strncpy(colorspace_settings->name, global_role_default_byte, MAX_COLORSPACE_NAME);
-		}
-
-		ibuf->rect_colorspace = colormanage_colorspace_get_named(colorspace_settings->name);
-	}
-	else {
-		if (ibuf->rect_float)
-			ibuf->rect_colorspace = colormanage_colorspace_get_named(global_role_default_float);
-		else
-			ibuf->rect_colorspace = colormanage_colorspace_get_named(global_role_default_byte);
-	}
-}
-
 void IMB_colormanagement_imbuf_assign_float_space(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
 {
 	ibuf->float_colorspace = colormanage_colorspace_get_named(colorspace_settings->name);
@@ -1569,7 +1529,7 @@ void IMB_colormanagement_imbuf_make_display_space(ImBuf *ibuf, const ColorManage
 		return;
 
 	if (global_tot_display == 0 || global_tot_view == 0) {
-		IMB_buffer_float_from_float(ibuf->rect_float, ibuf->rect_float, ibuf->channels, IB_PROFILE_LINEAR_RGB, ibuf->profile,
+		IMB_buffer_float_from_float(ibuf->rect_float, ibuf->rect_float, ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
 		                            ibuf->flags & IB_cm_predivide, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 	}
 	else {
@@ -2221,17 +2181,13 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 		unsigned char *rect = (unsigned char *) ibuf->rect;
 		int predivide = ibuf->flags & IB_cm_predivide;
 		int channels = ibuf->channels;
-		int profile_from = ibuf->profile;
 		int width = xmax - xmin;
 		int height = ymax - ymin;
 		int rect_index = (ymin * ibuf->x + xmin) * channels;
 		int linear_index = ((ymin - offset_y) * stride + (xmin - offset_x)) * channels;
 
-		if (profile_from == IB_PROFILE_NONE)
-			profile_from = IB_PROFILE_LINEAR_RGB;
-
 		IMB_buffer_byte_from_float(rect + rect_index, linear_buffer + linear_index, channels, ibuf->dither,
-		                           IB_PROFILE_SRGB, profile_from, predivide, width, height, ibuf->x, stride);
+		                           IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, predivide, width, height, ibuf->x, stride);
 	}
 
 	if (ibuf->display_buffer_flags) {

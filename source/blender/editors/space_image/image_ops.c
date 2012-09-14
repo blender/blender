@@ -2047,13 +2047,7 @@ int ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], floa
 
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
-
-			if (ELEM(ibuf->profile, IB_PROFILE_LINEAR_RGB, IB_PROFILE_NONE)) {
-				linearrgb_to_srgb_v3_v3(r_col, fp);
-			}
-			else {
-				copy_v3_v3(r_col, fp);
-			}
+			linearrgb_to_srgb_v3_v3(r_col, fp);
 			ret = TRUE;
 		}
 		else if (ibuf->rect) {

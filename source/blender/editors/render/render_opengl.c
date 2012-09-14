@@ -144,22 +144,30 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		ibuf = BKE_sequencer_give_ibuf(context, CFRA, chanshown);
 
 		if (ibuf) {
+			ImBuf *linear_ibuf;
+
 			BLI_assert((oglrender->sizex == ibuf->x) && (oglrender->sizey == ibuf->y));
 
-			if (ibuf->rect_float == NULL) {
-				/* internally sequencer working in sRGB space and stores both bytes and float
-				 * buffers in sRGB space, but if byte->float onversion doesn't happen in sequencer
-				 * (e.g. when adding image sequence/movie into sequencer) there'll be only
-				 * byte buffer and profile will still indicate sRGB->linear space conversion is needed
-				 * here we're ensure there'll be no conversion happen and float buffer would store
-				 * linear frame (sergey) */
-				ibuf->profile = IB_PROFILE_NONE;
-				IMB_float_from_rect(ibuf);
+			linear_ibuf = IMB_dupImBuf(ibuf);
+			IMB_freeImBuf(ibuf);
+
+			if (linear_ibuf->rect_float == NULL) {
+				/* internally sequencer working in display space and stores both bytes and float buffers in that space.
+				 * It is possible that byte->float onversion didn't happen in sequencer (e.g. when adding image sequence/movie
+				 * into sequencer) there'll be only byte buffer. Create float buffer from existing byte buffer, making it linear
+				 */
+
+				IMB_float_from_rect(linear_ibuf);
+			}
+			else {
+				/* ensure float buffer is in linear space, not in display space */
+				BKE_sequencer_imbuf_from_sequencer_space(scene, linear_ibuf);
 			}
 
-			memcpy(rr->rectf, ibuf->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
 
-			IMB_freeImBuf(ibuf);
+			memcpy(rr->rectf, linear_ibuf->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
+
+			IMB_freeImBuf(linear_ibuf);
 		}
 	}
 	else if (view_context) {
@@ -234,11 +242,6 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		}
 	}
 	
-	/* rr->rectf is now filled with image data */
-
-	if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
-		BKE_stamp_buf(scene, camera, NULL, rr->rectf, rr->rectx, rr->recty, 4);
-
 	/* note on color management:
 	 *
 	 * OpenGL renders into sRGB colors, but render buffers are expected to be
@@ -247,9 +250,18 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	 * correct linear float buffer.
 	 */
 
-	IMB_buffer_float_from_float(rr->rectf, rr->rectf,
-	                            4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, FALSE,
-	                            oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
+	if (!oglrender->is_sequencer) {
+		/* sequencer has got tricker ocnversion happened above */
+
+		IMB_buffer_float_from_float(rr->rectf, rr->rectf,
+		                            4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, FALSE,
+		                            oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
+	}
+
+	/* rr->rectf is now filled with image data */
+
+	if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
+		BKE_stamp_buf(scene, camera, NULL, rr->rectf, rr->rectx, rr->recty, 4);
 
 	RE_ReleaseResult(oglrender->re);
 

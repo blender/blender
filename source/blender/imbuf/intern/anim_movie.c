@@ -443,7 +443,6 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 		MEM_freeN(tmp);
 	}
 	
-	ibuf->profile = IB_PROFILE_SRGB;
 	ibuf->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
 
 	return ibuf;
@@ -645,8 +644,6 @@ static void ffmpeg_postprocess(struct anim *anim)
 	AVFrame *input = anim->pFrame;
 	ImBuf *ibuf = anim->last_frame;
 	int filter_y = 0;
-
-	ibuf->profile = IB_PROFILE_SRGB;
 
 	if (!anim->pFrameComplete) {
 		return;
@@ -1332,7 +1329,6 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim, int position,
 			if (ibuf) {
 				anim->curposition = position;
 				IMB_convert_rgba_to_abgr(ibuf);
-				ibuf->profile = IB_PROFILE_SRGB;
 			}
 			break;
 		case ANIM_AVI:

@@ -62,7 +62,6 @@ void IMB_colormanagement_validate_settings(struct ColorManagedDisplaySettings *d
                                            struct ColorManagedViewSettings *view_settings);
 
 const char *IMB_colormanagement_role_colorspace_name_get(int role);
-void IMB_colormanagement_imbuf_float_from_rect(struct ImBuf *ibuf);
 
 /* ** Color space transformation functions ** */
 void IMB_colormanagement_transform(float *buffer, int width, int height, int channels,
@@ -85,7 +84,6 @@ void IMB_colormanagement_pixel_to_display_space_v4(float result[4], const float 
 void IMB_colormanagement_pixel_to_display_space_v3(float result[3], const float pixel[3],  const struct ColorManagedViewSettings *view_settings,
                                                    const struct ColorManagedDisplaySettings *display_settings);
 
-void IMB_colormanagement_imbuf_assign_spaces(struct ImBuf *ibuf, struct ColorManagedColorspaceSettings *colorspace_settings);
 void IMB_colormanagement_imbuf_assign_float_space(struct ImBuf *ibuf, struct ColorManagedColorspaceSettings *colorspace_settings);
 
 void IMB_colormanagement_imbuf_make_display_space(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,

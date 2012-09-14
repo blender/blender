@@ -565,7 +565,6 @@ ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags, char colors
 
 	if (ibuf == NULL) return(NULL);
 	ibuf->ftype = TGA;
-	ibuf->profile = IB_PROFILE_SRGB;
 	mem = mem + 18 + tga.numid;
 	
 	cp[0] = 0xff;
