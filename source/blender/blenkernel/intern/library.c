@@ -800,6 +800,7 @@ static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
 void BKE_libblock_free(ListBase *lb, void *idv)
 {
+	Main *bmain = G.main;  /* should eventually be an arg */
 	ID *id = idv;
 
 #ifdef WITH_PYTHON
@@ -899,7 +900,7 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 			BKE_movieclip_free((MovieClip *)id);
 			break;
 		case ID_MSK:
-			BKE_mask_free((Mask *)id);
+			BKE_mask_free(bmain, (Mask *)id);
 			break;
 	}
 
@@ -911,7 +912,7 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 	BLI_remlink(lb, id);
 
 	/* this ID may be a driver target! */
-	BKE_animdata_main_cb(G.main, animdata_dtar_clear_cb, (void *)id);
+	BKE_animdata_main_cb(bmain, animdata_dtar_clear_cb, (void *)id);
 
 	MEM_freeN(id);
 }
@@ -946,9 +947,52 @@ void free_main(Main *mainvar)
 		ID *id;
 		
 		while ( (id = lb->first) ) {
+#if 1
 			BKE_libblock_free(lb, id);
+#else
+			/* errors freeing ID's can be hard to track down,
+			 * enable this so valgrind will give the line number in its error log */
+			switch (a) {
+				case   0: BKE_libblock_free(lb, id); break;
+				case   1: BKE_libblock_free(lb, id); break;
+				case   2: BKE_libblock_free(lb, id); break;
+				case   3: BKE_libblock_free(lb, id); break;
+				case   4: BKE_libblock_free(lb, id); break;
+				case   5: BKE_libblock_free(lb, id); break;
+				case   6: BKE_libblock_free(lb, id); break;
+				case   7: BKE_libblock_free(lb, id); break;
+				case   8: BKE_libblock_free(lb, id); break;
+				case   9: BKE_libblock_free(lb, id); break;
+				case  10: BKE_libblock_free(lb, id); break;
+				case  11: BKE_libblock_free(lb, id); break;
+				case  12: BKE_libblock_free(lb, id); break;
+				case  13: BKE_libblock_free(lb, id); break;
+				case  14: BKE_libblock_free(lb, id); break;
+				case  15: BKE_libblock_free(lb, id); break;
+				case  16: BKE_libblock_free(lb, id); break;
+				case  17: BKE_libblock_free(lb, id); break;
+				case  18: BKE_libblock_free(lb, id); break;
+				case  19: BKE_libblock_free(lb, id); break;
+				case  20: BKE_libblock_free(lb, id); break;
+				case  21: BKE_libblock_free(lb, id); break;
+				case  22: BKE_libblock_free(lb, id); break;
+				case  23: BKE_libblock_free(lb, id); break;
+				case  24: BKE_libblock_free(lb, id); break;
+				case  25: BKE_libblock_free(lb, id); break;
+				case  26: BKE_libblock_free(lb, id); break;
+				case  27: BKE_libblock_free(lb, id); break;
+				case  28: BKE_libblock_free(lb, id); break;
+				case  29: BKE_libblock_free(lb, id); break;
+				case  30: BKE_libblock_free(lb, id); break;
+				case  31: BKE_libblock_free(lb, id); break;
+				case  32: BKE_libblock_free(lb, id); break;
+				default:
+					BLI_assert(0);
+			}
+#endif
 		}
 	}
+	a = set_listbasepointers(mainvar, lbarray);
 
 	MEM_freeN(mainvar);
 }

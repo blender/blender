@@ -48,12 +48,6 @@ static int imb_ftype_default(ImFileType *type, ImBuf *ibuf)
 {
 	return (ibuf->ftype & type->filetype);
 }
-#if defined(__APPLE__) && defined(IMBUF_COCOA)
-static int imb_ftype_cocoa(ImFileType *type, ImBuf *ibuf)
-{
-	return (ibuf->ftype & TIF);
-}
-#endif
 static int imb_ftype_iris(ImFileType *type, ImBuf *ibuf)
 {
 	(void)type;
@@ -83,8 +77,6 @@ ImFileType IMB_FILE_TYPES[] = {
 #endif
 #ifdef WITH_TIFF
 	{imb_inittiff, NULL, imb_is_a_tiff, imb_ftype_default, imb_loadtiff, imb_savetiff, imb_loadtiletiff, 0, TIF},
-#elif defined(__APPLE__) && defined(IMBUF_COCOA)
-	{NULL, NULL, imb_is_a_cocoa, imb_ftype_cocoa, imb_imb_cocoaLoadImage, imb_savecocoa, NULL, 0, TIF},
 #endif
 #ifdef WITH_HDR
 	{NULL, NULL, imb_is_a_hdr, imb_ftype_default, imb_loadhdr, imb_savehdr, NULL, IM_FTYPE_FLOAT, RADHDR},

@@ -412,7 +412,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, DLRBT_Tree *beztTree,
 	 *	-> firstly, handles must have same central value as each other
 	 *	-> secondly, handles which control that section of the curve must be constant
 	 */
-	if ((!prev) || (!beztn)) return;
+	if (prev == NULL) return;
 	if (IS_EQF(beztn->vec[1][1], prev->vec[1][1]) == 0) return;
 	if (IS_EQF(beztn->vec[1][1], beztn->vec[0][1]) == 0) return;
 	if (IS_EQF(prev->vec[1][1], prev->vec[2][1]) == 0) return;

@@ -488,7 +488,7 @@ static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir
 	/* test for cyclic */
 	bl = cu->bev.first;
 	if (!bl->nr) return 0;
-	if (bl && bl->poly > -1) cycl = 1;
+	if (bl->poly > -1) cycl = 1;
 
 	if (cycl == 0) {
 		ctime1 = CLAMPIS(ctime, 0.0f, 1.0f);

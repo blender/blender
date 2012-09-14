@@ -2254,7 +2254,7 @@ static ImBuf *seq_render_mask(SeqRenderData context, Mask *mask, float nr, short
 
 		BKE_maskrasterize_handle_init(mr_handle, mask_temp, context.rectx, context.recty, TRUE, TRUE, TRUE);
 
-		BKE_mask_free(mask_temp);
+		BKE_mask_free_nolib(mask_temp);
 		MEM_freeN(mask_temp);
 
 		BKE_maskrasterize_buffer(mr_handle, context.rectx, context.recty, maskbuf);

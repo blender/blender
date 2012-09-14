@@ -341,7 +341,7 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 {
 	/* callback when opening texture user selection menu, to create buttons. */
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
-	ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;
+	ButsContextTexture *ct = sbuts->texuser;
 	ButsTextureUser *user;
 	uiBlock *block = uiLayoutGetBlock(layout);
 	const char *last_category = NULL;

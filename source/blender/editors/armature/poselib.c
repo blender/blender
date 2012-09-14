@@ -1006,7 +1006,7 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
 			/* get search-string */
 			index = pld->search_cursor;
 			
-			if (index >= 0 && index <= sizeof(tempstr) - 1) {
+			if (index >= 0 && index < sizeof(tempstr) - 1) {
 				memcpy(&tempstr[0], &pld->searchstr[0], index);
 				tempstr[index] = '|';
 				memcpy(&tempstr[index + 1], &pld->searchstr[index], (sizeof(tempstr) - 1) - index);

@@ -950,7 +950,7 @@ static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
 		int toselect = (link->tonode && (link->tonode->flag & NODE_SELECT) && link->tonode != gnode);
 		linkn = link->next;
 
-		if (gnode && ((fromselect && link->tonode == gnode) || (toselect && link->fromnode == gnode))) {
+		if ((fromselect && link->tonode == gnode) || (toselect && link->fromnode == gnode)) {
 			/* remove all links to/from the gnode.
 			 * this can remove link information, but there's no general way to preserve it.
 			 */

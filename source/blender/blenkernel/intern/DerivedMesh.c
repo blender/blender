@@ -2081,7 +2081,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	if ((*final_r)->type != DM_TYPE_EDITBMESH) {
 		DM_ensure_tessface(*final_r);
 	}
-	if (cage_r) {
+	if (cage_r && *cage_r) {
 		if ((*cage_r)->type != DM_TYPE_EDITBMESH) {
 			if (*cage_r != *final_r) {
 				DM_ensure_tessface(*cage_r);

@@ -5381,8 +5381,8 @@ void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 
 		if (!imapaint->paintcursor) {
 			imapaint->paintcursor =
-				WM_paint_cursor_activate(wm, image_paint_poll,
-										 brush_drawcursor, NULL);
+			        WM_paint_cursor_activate(wm, image_paint_poll,
+			                                 brush_drawcursor, NULL);
 		}
 	}
 }
