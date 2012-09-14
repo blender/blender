@@ -2993,46 +2993,27 @@ void BKE_sequence_invalidate_cache_for_modifier(Scene *scene, Sequence *seq)
 	sequence_invalidate_cache(scene, seq, TRUE, FALSE);
 }
 
-void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, int check_mem_usage, int keep_file_handles)
+void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, int for_render)
 {
 	Sequence *seq;
 
-	if (check_mem_usage) {
-		/* Let the cache limitor take care of this (schlaile) */
-		/* While render let's keep all memory available for render 
-		 * (ton)
-		 * At least if free memory is tight...
-		 * This can make a big difference in encoding speed
-		 * (it is around 4 times(!) faster, if we do not waste time
-		 * on freeing _all_ buffers every time on long timelines...)
-		 * (schlaile)
-		 */
-	
-		uintptr_t mem_in_use;
-		uintptr_t mmap_in_use;
-		uintptr_t max;
-	
-		mem_in_use = MEM_get_memory_in_use();
-		mmap_in_use = MEM_get_mapped_memory_in_use();
-		max = MEM_CacheLimiter_get_maximum();
-	
-		if (max == 0 || mem_in_use + mmap_in_use <= max) {
-			return;
-		}
-	}
-
 	BKE_sequencer_cache_cleanup();
-	
+
 	for (seq = seqbase->first; seq; seq = seq->next) {
+		if (for_render && CFRA >= seq->startdisp && CFRA <= seq->enddisp) {
+			continue;
+		}
+
 		if (seq->strip) {
-			if (seq->type == SEQ_TYPE_MOVIE && !keep_file_handles)
+			if (seq->type == SEQ_TYPE_MOVIE) {
 				free_anim_seq(seq);
+			}
 			if (seq->type == SEQ_TYPE_SPEED) {
 				BKE_sequence_effect_speed_rebuild_map(scene, seq, 1);
 			}
 		}
 		if (seq->type == SEQ_TYPE_META) {
-			BKE_sequencer_free_imbuf(scene, &seq->seqbase, FALSE, keep_file_handles);
+			BKE_sequencer_free_imbuf(scene, &seq->seqbase, for_render);
 		}
 		if (seq->type == SEQ_TYPE_SCENE) {
 			/* FIXME: recurs downwards, 

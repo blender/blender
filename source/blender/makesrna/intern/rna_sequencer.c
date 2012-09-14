@@ -617,7 +617,7 @@ static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *UNUSED(
 	Scene *scene = (Scene *) ptr->id.data;
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
-	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE, FALSE);
+	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE);
 
 	if (RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
 		BKE_sequencer_update_sound_bounds(scene, ptr->data);

@@ -1689,7 +1689,7 @@ static void do_render_seq(Render *re)
 		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
 			Editing *ed = re->scene->ed;
 			if (ed)
-				BKE_sequencer_free_imbuf(re->scene, &ed->seqbase, TRUE, TRUE);
+				BKE_sequencer_free_imbuf(re->scene, &ed->seqbase, TRUE);
 		}
 		IMB_freeImBuf(ibuf);
 	}
