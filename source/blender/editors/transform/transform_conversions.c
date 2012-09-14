@@ -5609,6 +5609,9 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 		return;
 	}
 
+	/* nodes dont support PET and probably never will */
+	t->flag &= ~(T_PROP_EDIT | T_PROP_CONNECTED);
+
 	/* set transform flags on nodes */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_SELECT && is_node_parent_select(node) == FALSE) {
