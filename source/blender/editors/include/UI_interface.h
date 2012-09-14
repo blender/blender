@@ -196,7 +196,7 @@ typedef enum {
 	UI_BUT_POIN_BIT = 256  /* OR'd with a bit index*/
 } eButPointerType;
 
-/* button requires a pointer */
+/* requires (but->poin != NULL) */
 #define UI_BUT_POIN_TYPES (UI_BUT_POIN_FLOAT | UI_BUT_POIN_SHORT | UI_BUT_POIN_CHAR)
 
 /* assigned to but->type, OR'd with the flags above when passing args */

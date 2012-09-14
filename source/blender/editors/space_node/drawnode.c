@@ -647,23 +647,22 @@ static void update_group_output_cb(bContext *UNUSED(C), void *UNUSED(snode_v), v
 static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *sock,
                                    int in_out, float xoffset, float yoffset)
 {
-	bNodeTree *ngroup = (bNodeTree *)gnode->id;
-	uiBut *bt;
-	const char *ui_name = IFACE_(sock->name);
-	
 	if (sock->flag & SOCK_DYNAMIC) {
-		bt = uiDefBut(gnode->block, TEX, 0, "", 
-		              sock->locx + xoffset, sock->locy + 1 + yoffset, 72, NODE_DY,
-		              sock->name, 0, sizeof(sock->name), 0, 0, "");
+		bNodeTree *ngroup = (bNodeTree *)gnode->id;
+		uiBut *but;
+		but = uiDefBut(gnode->block, TEX, 0, "",
+		               sock->locx + xoffset, sock->locy + 1 + yoffset, 72, NODE_DY,
+		               sock->name, 0, sizeof(sock->name), 0, 0, "");
 		if (in_out == SOCK_IN)
-			uiButSetFunc(bt, update_group_input_cb, snode, ngroup);
+			uiButSetFunc(but, update_group_input_cb, snode, ngroup);
 		else
-			uiButSetFunc(bt, update_group_output_cb, snode, ngroup);
+			uiButSetFunc(but, update_group_output_cb, snode, ngroup);
 	}
 	else {
+		const char *ui_name = IFACE_(sock->name);
 		uiDefBut(gnode->block, LABEL, 0, ui_name,
 		         sock->locx + xoffset, sock->locy + 1 + yoffset, 72, NODE_DY,
-		         NULL, 0, sizeof(ui_name), 0, 0, "");
+		         NULL, 0, 0, 0, 0, "");
 	}
 }
 

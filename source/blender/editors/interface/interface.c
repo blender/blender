@@ -2592,10 +2592,17 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 {
 	uiBut *but;
 	int slen;
-	
-	if (type & UI_BUT_POIN_TYPES) {       /* a pointer is required */
-		if (poin == NULL)
+
+	/* we could do some more error checks here */
+	if ((type & BUTTYPE) == LABEL) {
+		BLI_assert((poin != NULL || a1 != 0.0f || a2 != 0.0f || min != 0.0f || max != 0.0f) == FALSE);
+	}
+
+	if (type & UI_BUT_POIN_TYPES) {  /* a pointer is required */
+		if (poin == NULL) {
+			BLI_assert(0);
 			return NULL;
+		}
 	}
 
 	but = MEM_callocN(sizeof(uiBut), "uiBut");
