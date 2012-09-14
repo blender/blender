@@ -2623,7 +2623,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 
 	/* we could do some more error checks here */
 	if ((type & BUTTYPE) == LABEL) {
-		BLI_assert((poin != NULL || a1 != 0.0f || a2 != 0.0f || min != 0.0f || max != 0.0f) == FALSE);
+		BLI_assert((poin != NULL || min != 0.0f || max != 0.0f || (a1 == 0.0f && a2 != 0.0f) || (a1 != 0.0f && a1 != 1.0f)) == FALSE);
 	}
 
 	if (type & UI_BUT_POIN_TYPES) {  /* a pointer is required */
