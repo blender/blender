@@ -153,7 +153,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_normal_state(GHOST_kWindowStateNormal),
 	m_stereo(stereoVisual),
 	m_nextWindow(NULL),
-	m_parentWindowHwnd(parentwindowhwnd),
+	m_parentWindowHwnd(parentwindowhwnd)
 {
 	OSVERSIONINFOEX versionInfo;
 	bool hasMinVersionForTaskbar = false;
