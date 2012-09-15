@@ -3288,7 +3288,7 @@ void BKE_object_groups_clear(Scene *scene, Base *base, Object *object)
 {
 	Group *group = NULL;
 
-	BLI_assert(base->object == object);
+	BLI_assert((base == NULL) || (base->object == object));
 
 	if (scene && base == NULL) {
 		base = BKE_scene_base_find(scene, object);

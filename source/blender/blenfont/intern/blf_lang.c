@@ -129,7 +129,7 @@ void BLF_lang_init(void)
 }
 
 /* get LANG/LANGUAGE environment variable */
-static void get_language_variable(const char *varname, char *var, int maxlen)
+static void get_language_variable(const char *varname, char *var, const size_t maxlen)
 {
 	char *env = getenv(varname);
 
@@ -149,7 +149,7 @@ static void get_language_variable(const char *varname, char *var, int maxlen)
 /* get language to be used based on locale(which might be empty when using default language) and
  * LANG environment variable
  */
-static void get_language(const char *locale, const char *lang, char *language, int maxlen)
+static void get_language(const char *locale, const char *lang, char *language, const size_t maxlen)
 {
 	if (locale[0]) {
 		BLI_strncpy(language, locale, maxlen);
