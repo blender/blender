@@ -497,7 +497,7 @@ static void colormanage_load_config(ConstConfigRcPtr *config)
 	global_tot_display = tot_display;
 }
 
-void colormanage_free_config(void)
+static void colormanage_free_config(void)
 {
 	ColorSpace *colorspace;
 	ColorManagedDisplay *display;

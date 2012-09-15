@@ -311,7 +311,7 @@ void BKE_sequencer_editing_free(Scene *scene)
 
 /*********************** Sequencer color space functions  *************************/
 
-void BKE_sequencer_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
+static void sequencer_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 {
 	IMB_colormanagement_imbuf_assign_float_space(ibuf, &scene->sequencer_colorspace_settings);
 }
@@ -1303,7 +1303,7 @@ static ImBuf *seq_proxy_fetch(SeqRenderData context, Sequence *seq, int cfra)
 		ImBuf *ibuf = IMB_loadiffname(name, IB_rect, NULL);
 
 		if (ibuf)
-			BKE_sequencer_imbuf_assign_spaces(context.scene, ibuf);
+			sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
 		return ibuf;
 	}
@@ -1981,7 +1981,7 @@ static void copy_to_ibuf_still(SeqRenderData context, Sequence *seq, float nr, I
 		 * changing the cached image... */
 		ibuf = IMB_dupImBuf(ibuf);
 
-		BKE_sequencer_imbuf_assign_spaces(context.scene, ibuf);
+		sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
 		if (nr == 0) {
 			BKE_sequencer_cache_put(context, seq, seq->start, SEQ_STRIPELEM_IBUF_STARTSTILL, ibuf);
@@ -2583,7 +2583,7 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 		case SEQ_TYPE_MOVIECLIP:
 		{
 			ibuf = seq_render_movieclip_strip(context, seq, nr);
-			BKE_sequencer_imbuf_assign_spaces(context.scene, ibuf);
+			sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
 			if (ibuf && use_preprocess) {
 				ImBuf *i = IMB_dupImBuf(ibuf);
@@ -2608,7 +2608,7 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 	}
 
 	if (ibuf)
-		BKE_sequencer_imbuf_assign_spaces(context.scene, ibuf);
+		sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
 	return ibuf;
 }
@@ -2653,7 +2653,7 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 
 	if (ibuf == NULL) {
 		ibuf = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rect);
-		BKE_sequencer_imbuf_assign_spaces(context.scene, ibuf);
+		sequencer_imbuf_assign_spaces(context.scene, ibuf);
 	}
 
 	if (ibuf->x != context.rectx || ibuf->y != context.recty)
