@@ -593,7 +593,7 @@ def read_opts(env, cfg, args):
         ('BF_BOOST_LIB_STATIC', 'Boost static library', ''),
 
         (BoolVariable('WITH_GHOST_XDND', 'Build with drag-n-drop support on Linux platforms using XDND protocol', True)),
-        (BoolVariable('WITH_BF_COMPOSITOR_LEGACY', 'Enable the legacy compositor', True))
+        (BoolVariable('WITH_BF_COMPOSITOR_LEGACY', 'Enable the legacy compositor', False))
     ) # end of opts.AddOptions()
 
     return localopts
