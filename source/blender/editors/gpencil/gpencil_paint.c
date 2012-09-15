@@ -299,8 +299,8 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			out[1] = (float)(mval[1]) / (float)(p->ar->winy) * 100;
 		}
 		else { /* camera view, use subrect */
-			out[0] = ((mval[0] - p->subrect->xmin) / BLI_RCT_SIZE_X(p->subrect)) * 100;
-			out[1] = ((mval[1] - p->subrect->ymin) / BLI_RCT_SIZE_Y(p->subrect)) * 100;
+			out[0] = ((mval[0] - p->subrect->xmin) / BLI_rctf_size_x(p->subrect)) * 100;
+			out[1] = ((mval[1] - p->subrect->ymin) / BLI_rctf_size_y(p->subrect)) * 100;
 		}
 	}
 }
@@ -821,8 +821,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				y0 = (int)(gps->points->y / 100 * p->ar->winy);
 			}
 			else { /* camera view, use subrect */
-				x0 = (int)((gps->points->x / 100) * BLI_RCT_SIZE_X(p->subrect)) + p->subrect->xmin;
-				y0 = (int)((gps->points->y / 100) * BLI_RCT_SIZE_Y(p->subrect)) + p->subrect->ymin;
+				x0 = (int)((gps->points->x / 100) * BLI_rctf_size_x(p->subrect)) + p->subrect->xmin;
+				y0 = (int)((gps->points->y / 100) * BLI_rctf_size_y(p->subrect)) + p->subrect->ymin;
 			}
 		}
 		
@@ -868,10 +868,10 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 					y1 = (int)(pt2->y / 100 * p->ar->winy);
 				}
 				else { /* camera view, use subrect */ 
-					x0 = (int)((pt1->x / 100) * BLI_RCT_SIZE_X(p->subrect)) + p->subrect->xmin;
-					y0 = (int)((pt1->y / 100) * BLI_RCT_SIZE_Y(p->subrect)) + p->subrect->ymin;
-					x1 = (int)((pt2->x / 100) * BLI_RCT_SIZE_X(p->subrect)) + p->subrect->xmin;
-					y1 = (int)((pt2->y / 100) * BLI_RCT_SIZE_Y(p->subrect)) + p->subrect->ymin;
+					x0 = (int)((pt1->x / 100) * BLI_rctf_size_x(p->subrect)) + p->subrect->xmin;
+					y0 = (int)((pt1->y / 100) * BLI_rctf_size_y(p->subrect)) + p->subrect->ymin;
+					x1 = (int)((pt2->x / 100) * BLI_rctf_size_x(p->subrect)) + p->subrect->xmin;
+					y1 = (int)((pt2->y / 100) * BLI_rctf_size_y(p->subrect)) + p->subrect->ymin;
 				}
 			}
 			

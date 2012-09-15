@@ -654,8 +654,8 @@ static int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int 
 	unsigned int *rt;
 	int a, index;
 	char *selar;
-	int sx = BLI_RCT_SIZE_X(rect) + 1;
-	int sy = BLI_RCT_SIZE_Y(rect) + 1;
+	int sx = BLI_rcti_size_x(rect) + 1;
+	int sy = BLI_rcti_size_y(rect) + 1;
 
 	me = vc->obact->data;
 

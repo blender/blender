@@ -441,8 +441,8 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 		else {
 			quad.xmin = 0;
 			quad.ymin = 0;
-			quad.xmax = BLI_RCT_SIZE_X(&vc->ar->winrct);
-			quad.ymax = BLI_RCT_SIZE_Y(&vc->ar->winrct);
+			quad.xmax = BLI_rcti_size_x(&vc->ar->winrct);
+			quad.ymax = BLI_rcti_size_y(&vc->ar->winrct);
 		}
 
 		/* set quad color */

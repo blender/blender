@@ -143,7 +143,7 @@ int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win
 			// itself is unaware of the extra space, so we clear the whole region for it.
 			glClearColor(scene->gm.framing.col[0], scene->gm.framing.col[1], scene->gm.framing.col[2], 1.0f);
 			glViewport(ar->winrct.xmin, ar->winrct.ymin,
-			           BLI_RCT_SIZE_X(&ar->winrct), BLI_RCT_SIZE_Y(&ar->winrct));
+			           BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 

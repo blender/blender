@@ -1635,10 +1635,10 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 	int dist;
 	
 	if (edge == AE_RIGHT_TO_TOPLEFT || edge == AE_LEFT_TO_TOPRIGHT) {
-		dist = BLI_RCT_SIZE_X(&sa->totrct);
+		dist = BLI_rcti_size_x(&sa->totrct);
 	}
 	else {  /* AE_BOTTOM_TO_TOPLEFT, AE_TOP_TO_BOTTOMRIGHT */
-		dist = BLI_RCT_SIZE_Y(&sa->totrct);
+		dist = BLI_rcti_size_y(&sa->totrct);
 	}
 	
 	/* subtractwidth of regions on opposite side 

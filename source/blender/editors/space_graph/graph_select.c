@@ -325,7 +325,7 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
-		if ((BLI_RCT_SIZE_X(&rect)) >= (BLI_RCT_SIZE_Y(&rect)))
+		if ((BLI_rcti_size_x(&rect)) >= (BLI_rcti_size_y(&rect)))
 			mode = BEZT_OK_FRAMERANGE;
 		else
 			mode = BEZT_OK_VALUERANGE;

@@ -375,17 +375,17 @@ typedef struct ViewOpsData {
 
 #define TRACKBALLSIZE  (1.1)
 
-static void calctrackballvec(rcti *rect, int mx, int my, float vec[3])
+static void calctrackballvec(const rcti *rect, int mx, int my, float vec[3])
 {
 	float x, y, radius, d, z, t;
 
 	radius = TRACKBALLSIZE;
 
 	/* normalize x and y */
-	x = BLI_RCT_CENTER_X(rect) - mx;
-	x /= (float)(BLI_RCT_SIZE_X(rect) / 4);
-	y = BLI_RCT_CENTER_Y(rect) - my;
-	y /= (float)(BLI_RCT_SIZE_Y(rect) / 2);
+	x = BLI_rcti_cent_x(rect) - mx;
+	x /= (float)(BLI_rcti_size_x(rect) / 4);
+	y = BLI_rcti_cent_y(rect) - my;
+	y /= (float)(BLI_rcti_size_y(rect) / 2);
 
 	d = sqrt(x * x + y * y);
 	if (d < radius * (float)M_SQRT1_2) { /* Inside sphere */
@@ -1666,8 +1666,8 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 		int ctr[2], len1, len2;
 		/* method which zooms based on how far you move the mouse */
 
-		ctr[0] = BLI_RCT_CENTER_X(&vod->ar->winrct);
-		ctr[1] = BLI_RCT_CENTER_Y(&vod->ar->winrct);
+		ctr[0] = BLI_rcti_cent_x(&vod->ar->winrct);
+		ctr[1] = BLI_rcti_cent_y(&vod->ar->winrct);
 
 		len1 = (int)sqrt((ctr[0] - x) * (ctr[0] - x) + (ctr[1] - y) * (ctr[1] - y)) + 5;
 		len2 = (int)sqrt((ctr[0] - vod->origx) * (ctr[0] - vod->origx) + (ctr[1] - vod->origy) * (ctr[1] - vod->origy)) + 5;
@@ -2619,10 +2619,10 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	/* calculate range */
 	ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, FALSE);
 
-	scene->r.border.xmin = ((float)rect.xmin - vb.xmin) / BLI_RCT_SIZE_X(&vb);
-	scene->r.border.ymin = ((float)rect.ymin - vb.ymin) / BLI_RCT_SIZE_Y(&vb);
-	scene->r.border.xmax = ((float)rect.xmax - vb.xmin) / BLI_RCT_SIZE_X(&vb);
-	scene->r.border.ymax = ((float)rect.ymax - vb.ymin) / BLI_RCT_SIZE_Y(&vb);
+	scene->r.border.xmin = ((float)rect.xmin - vb.xmin) / BLI_rctf_size_x(&vb);
+	scene->r.border.ymin = ((float)rect.ymin - vb.ymin) / BLI_rctf_size_y(&vb);
+	scene->r.border.xmax = ((float)rect.xmax - vb.xmin) / BLI_rctf_size_x(&vb);
+	scene->r.border.ymax = ((float)rect.ymax - vb.ymin) / BLI_rctf_size_y(&vb);
 
 	/* actually set border */
 	CLAMP(scene->r.border.xmin, 0.0f, 1.0f);
@@ -2786,8 +2786,8 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		}
 
 		/* work out the ratios, so that everything selected fits when we zoom */
-		xscale = (BLI_RCT_SIZE_X(&rect) / vb[0]);
-		yscale = (BLI_RCT_SIZE_Y(&rect) / vb[1]);
+		xscale = (BLI_rcti_size_x(&rect) / vb[0]);
+		yscale = (BLI_rcti_size_y(&rect) / vb[1]);
 		new_dist *= maxf(xscale, yscale);
 
 		/* zoom in as required, or as far as we can go */

@@ -440,8 +440,8 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	//glColor4f(1.0, 0.f, 0.f, 1.f);
 	//fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax)
 
-	w = BLI_RCT_SIZE_X(rect);
-	h = BLI_RCT_SIZE_Y(rect);
+	w = BLI_rcti_size_x(rect);
+	h = BLI_rcti_size_y(rect);
 	/* prevent drawing outside widget area */
 	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + rect->xmin, ar->winrct.ymin + rect->ymin, w, h);
@@ -494,8 +494,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 		charmax = G.charmax = 0xffff;
 
 	/* Calculate the size of the button */
-	width  = abs(BLI_RCT_SIZE_X(rect));
-	height = abs(BLI_RCT_SIZE_Y(rect));
+	width  = abs(BLI_rcti_size_x(rect));
+	height = abs(BLI_rcti_size_y(rect));
 	
 	butw = floor(width / 12);
 	buth = floor(height / 6);
@@ -633,7 +633,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 #endif /* WITH_INTERNATIONAL */
 #endif
 
-static void draw_scope_end(rctf *rect, GLint *scissor)
+static void draw_scope_end(const rctf *rect, GLint *scissor)
 {
 	float scaler_x1, scaler_x2;
 	
@@ -643,8 +643,8 @@ static void draw_scope_end(rctf *rect, GLint *scissor)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	/* scale widget */
-	scaler_x1 = rect->xmin + BLI_RCT_SIZE_X(rect) / 2 - SCOPE_RESIZE_PAD;
-	scaler_x2 = rect->xmin + BLI_RCT_SIZE_X(rect) / 2 + SCOPE_RESIZE_PAD;
+	scaler_x1 = rect->xmin + BLI_rctf_size_x(rect) / 2 - SCOPE_RESIZE_PAD;
+	scaler_x2 = rect->xmin + BLI_rctf_size_y(rect) / 2 + SCOPE_RESIZE_PAD;
 	
 	glColor4f(0.f, 0.f, 0.f, 0.25f);
 	fdrawline(scaler_x1, rect->ymin - 4, scaler_x2, rect->ymin - 4);
@@ -733,8 +733,8 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
 	rect.ymax = (float)recti->ymax - 1;
 	
-	w = BLI_RCT_SIZE_X(&rect);
-	h = BLI_RCT_SIZE_Y(&rect) * hist->ymax;
+	w = BLI_rctf_size_x(&rect);
+	h = BLI_rctf_size_y(&rect) * hist->ymax;
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -806,9 +806,9 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 
 	if (scopes->wavefrm_yfac < 0.5f)
 		scopes->wavefrm_yfac = 0.98f;
-	w = BLI_RCT_SIZE_X(&rect) - 7;
-	h = BLI_RCT_SIZE_Y(&rect) * scopes->wavefrm_yfac;
-	yofs = rect.ymin + (BLI_RCT_SIZE_Y(&rect) - h) / 2.0f;
+	w = BLI_rctf_size_x(&rect) - 7;
+	h = BLI_rctf_size_y(&rect) * scopes->wavefrm_yfac;
+	yofs = rect.ymin + (BLI_rctf_size_y(&rect) - h) / 2.0f;
 	w3 = w / 3.0f;
 	
 	/* log scale for alpha */
@@ -1034,8 +1034,8 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
 	rect.ymax = (float)recti->ymax - 1;
 	
-	w = BLI_RCT_SIZE_X(&rect);
-	h = BLI_RCT_SIZE_Y(&rect);
+	w = BLI_rctf_size_x(&rect);
+	h = BLI_rctf_size_y(&rect);
 	centerx = rect.xmin + w / 2;
 	centery = rect.ymin + h / 2;
 	diam = (w < h) ? w : h;
@@ -1267,12 +1267,12 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	
 	/* transform to button */
 	glPushMatrix();
-	glTranslatef(rect->xmin + 0.5f * BLI_RCT_SIZE_X(rect), rect->ymin + 0.5f * BLI_RCT_SIZE_Y(rect), 0.0f);
+	glTranslatef(rect->xmin + 0.5f * BLI_rcti_size_x(rect), rect->ymin + 0.5f * BLI_rcti_size_y(rect), 0.0f);
 	
-	if (BLI_RCT_SIZE_X(rect) < BLI_RCT_SIZE_Y(rect))
-		size = BLI_RCT_SIZE_X(rect) / 200.f;
+	if (BLI_rcti_size_x(rect) < BLI_rcti_size_y(rect))
+		size = BLI_rcti_size_x(rect) / 200.f;
 	else
-		size = BLI_RCT_SIZE_Y(rect) / 200.f;
+		size = BLI_rcti_size_y(rect) / 200.f;
 	
 	glScalef(size, size, size);
 	
@@ -1378,12 +1378,12 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	BLI_rcti_isect(&scissor_new, &ar->winrct, &scissor_new);
 	glScissor(scissor_new.xmin,
 	          scissor_new.ymin,
-	          BLI_RCT_SIZE_X(&scissor_new),
-	          BLI_RCT_SIZE_Y(&scissor_new));
+	          BLI_rcti_size_x(&scissor_new),
+	          BLI_rcti_size_y(&scissor_new));
 
 	/* calculate offset and zoom */
-	zoomx = (BLI_RCT_SIZE_X(rect) - 2.0f * but->aspect) / BLI_RCT_SIZE_X(&cumap->curr);
-	zoomy = (BLI_RCT_SIZE_Y(rect) - 2.0f * but->aspect) / BLI_RCT_SIZE_Y(&cumap->curr);
+	zoomx = (BLI_rcti_size_x(rect) - 2.0f * but->aspect) / BLI_rctf_size_x(&cumap->curr);
+	zoomy = (BLI_rcti_size_y(rect) - 2.0f * but->aspect) / BLI_rctf_size_y(&cumap->curr);
 	offsx = cumap->curr.xmin - but->aspect / zoomx;
 	offsy = cumap->curr.ymin - but->aspect / zoomy;
 	
@@ -1561,8 +1561,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
 	rect.ymax = (float)recti->ymax - 1;
 
-	width  = BLI_RCT_SIZE_X(&rect) + 1;
-	height = BLI_RCT_SIZE_Y(&rect);
+	width  = BLI_rctf_size_x(&rect) + 1;
+	height = BLI_rctf_size_y(&rect);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1637,8 +1637,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			glTranslatef(rect.xmin + track_pos[0], rect.ymin + track_pos[1], 0.f);
 			glScissor(ar->winrct.xmin + rect.xmin,
 			          ar->winrct.ymin + rect.ymin,
-			          BLI_RCT_SIZE_X(&rect),
-			          BLI_RCT_SIZE_Y(&rect));
+			          BLI_rctf_size_x(&rect),
+			          BLI_rctf_size_y(&rect));
 
 			for (a = 0; a < 2; a++) {
 				if (a == 1) {
@@ -1729,7 +1729,7 @@ void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, fl
 }
 
 
-void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int UNUSED(select))
+void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int UNUSED(select))
 {
 	int i;
 	float rad;
@@ -1738,8 +1738,8 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int UNUSE
 	
 	glEnable(GL_BLEND);
 	
-	if (radius > (BLI_RCT_SIZE_Y(rct) - 10.0f) / 2.0f)
-		rad = (BLI_RCT_SIZE_Y(rct) - 10.0f) / 2.0f;
+	if (radius > (BLI_rctf_size_y(rct) - 10.0f) / 2.0f)
+		rad = (BLI_rctf_size_y(rct) - 10.0f) / 2.0f;
 	else
 		rad = radius;
 

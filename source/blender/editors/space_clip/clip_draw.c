@@ -957,12 +957,12 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 static void view2d_to_region_float(View2D *v2d, float x, float y, float *regionx, float *regiony)
 {
 	/* express given coordinates as proportional values */
-	x = -v2d->cur.xmin / BLI_RCT_SIZE_X(&v2d->cur);
-	y = -v2d->cur.ymin / BLI_RCT_SIZE_Y(&v2d->cur);
+	x = -v2d->cur.xmin / BLI_rctf_size_x(&v2d->cur);
+	y = -v2d->cur.ymin / BLI_rctf_size_y(&v2d->cur);
 
 	/* convert proportional distances to screen coordinates */
-	*regionx = v2d->mask.xmin + x * BLI_RCT_SIZE_X(&v2d->mask);
-	*regiony = v2d->mask.ymin + y * BLI_RCT_SIZE_Y(&v2d->mask);
+	*regionx = v2d->mask.xmin + x * BLI_rcti_size_x(&v2d->mask);
+	*regiony = v2d->mask.ymin + y * BLI_rcti_size_y(&v2d->mask);
 }
 
 static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,

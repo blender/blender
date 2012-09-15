@@ -163,7 +163,8 @@ void UI_view2d_view_orthoSpecial(struct ARegion *ar, struct View2D *v2d, short x
 void UI_view2d_view_restore(const struct bContext *C);
 
 /* grid drawing */
-View2DGrid *UI_view2d_grid_calc(struct Scene *scene, struct View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int winx, int winy);
+View2DGrid *UI_view2d_grid_calc(struct Scene *scene, struct View2D *v2d,
+                                short xunits, short xclamp, short yunits, short yclamp, int winx, int winy);
 void UI_view2d_grid_draw(struct View2D *v2d, View2DGrid *grid, int flag);
 void UI_view2d_constant_grid_draw(struct View2D *v2d);
 void UI_view2d_multi_grid_draw(struct View2D *v2d, float step, int level_size, int totlevels);
@@ -171,14 +172,21 @@ void UI_view2d_grid_size(View2DGrid *grid, float *r_dx, float *r_dy);
 void UI_view2d_grid_free(View2DGrid *grid);
 
 /* scrollbar drawing */
-View2DScrollers *UI_view2d_scrollers_calc(const struct bContext *C, struct View2D *v2d, short xunits, short xclamp, short yunits, short yclamp);
+View2DScrollers *UI_view2d_scrollers_calc(const struct bContext *C, struct View2D *v2d,
+                                          short xunits, short xclamp, short yunits, short yclamp);
 void UI_view2d_scrollers_draw(const struct bContext *C, struct View2D *v2d, View2DScrollers *scrollers);
 void UI_view2d_scrollers_free(View2DScrollers *scrollers);
 
 /* list view tools */
-void UI_view2d_listview_cell_to_view(struct View2D *v2d, short columnwidth, short rowheight, float startx, float starty, int column, int row, struct rctf *rect);
-void UI_view2d_listview_view_to_cell(struct View2D *v2d, short columnwidth, short rowheight, float startx, float starty, float viewx, float viewy, int *column, int *row);
-void UI_view2d_listview_visible_cells(struct View2D *v2d, short columnwidth, short rowheight, float startx, float starty, int *column_min, int *column_max, int *row_min, int *row_max);
+void UI_view2d_listview_cell_to_view(struct View2D *v2d, short columnwidth, short rowheight,
+                                     float startx, float starty, int column, int row,
+                                     struct rctf *rect);
+void UI_view2d_listview_view_to_cell(struct View2D *v2d, short columnwidth, short rowheight,
+                                     float startx, float starty, float viewx, float viewy,
+                                     int *column, int *row);
+void UI_view2d_listview_visible_cells(struct View2D *v2d, short columnwidth, short rowheight,
+                                      float startx, float starty, int *column_min, int *column_max,
+                                      int *row_min, int *row_max);
 
 /* coordinate conversion */
 void UI_view2d_region_to_view(struct View2D *v2d, int x, int y, float *viewx, float *viewy);

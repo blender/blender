@@ -65,7 +65,7 @@
 /* width of socket columns in group display */
 #define NODE_GROUP_FRAME  120
 /* XXX interface.h */
-extern void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int select);
+extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
 /* XXX update functions for node editor are a mess, needs a clear concept */
 void ED_node_tree_update(SpaceNode *snode, Scene *scene)
@@ -343,7 +343,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 			if (node->prvr.ymax < node->prvr.ymin) SWAP(float, node->prvr.ymax, node->prvr.ymin);
 		}
 		else {
-			float oldh = BLI_RCT_SIZE_Y(&node->prvr);
+			float oldh = BLI_rctf_size_y(&node->prvr);
 			if (oldh == 0.0f)
 				oldh = 0.6f * node->width - NODE_DY;
 			dy -= NODE_DYS / 2;
@@ -584,9 +584,9 @@ void node_socket_circle_draw(bNodeTree *UNUSED(ntree), bNodeSocket *sock, float 
 /* not a callback */
 static void node_draw_preview(bNodePreview *preview, rctf *prv)
 {
-	float xscale = BLI_RCT_SIZE_X(prv) / ((float)preview->xsize);
-	float yscale = BLI_RCT_SIZE_Y(prv) / ((float)preview->ysize);
-	float tile   = BLI_RCT_SIZE_X(prv) / 10.0f;
+	float xscale = BLI_rctf_size_x(prv) / ((float)preview->xsize);
+	float yscale = BLI_rctf_size_y(prv) / ((float)preview->ysize);
+	float tile   = BLI_rctf_size_x(prv) / 10.0f;
 	float x, y;
 	
 	/* draw checkerboard backdrop to show alpha */
@@ -852,8 +852,8 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 {
 	bNodeSocket *sock;
 	rctf *rct = &node->totr;
-	float dx, centy = BLI_RCT_CENTER_Y(rct);
-	float hiddenrad = BLI_RCT_SIZE_Y(rct) / 2.0f;
+	float dx, centy = BLI_rctf_cent_y(rct);
+	float hiddenrad = BLI_rctf_size_y(rct) / 2.0f;
 	float socket_size = NODE_SOCKSIZE * U.dpi / 72;
 	int color_id = node_get_colorid(node);
 	char showname[128]; /* 128 is used below */
@@ -932,7 +932,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 
 		uiDefBut(node->block, LABEL, 0, showname,
 		         (int)(rct->xmin + (NODE_MARGIN_X / snode->aspect_sqrt)), (int)(centy - 10),
-		         (short)(BLI_RCT_SIZE_X(rct) - 18.0f - 12.0f), (short)NODE_DY,
+		         (short)(BLI_rctf_size_x(rct) - 18.0f - 12.0f), (short)NODE_DY,
 		         NULL, 0, 0, 0, 0, "");
 	}	
 
@@ -1108,7 +1108,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	glEnable(GL_MAP1_VERTEX_3);
 
 	/* aspect+font, set each time */
-	snode->aspect = BLI_RCT_SIZE_X(&v2d->cur) / (float)ar->winx;
+	snode->aspect = BLI_rctf_size_x(&v2d->cur) / (float)ar->winx;
 	snode->aspect_sqrt = sqrtf(snode->aspect);
 	// XXX snode->curfont= uiSetCurFont_ext(snode->aspect);
 

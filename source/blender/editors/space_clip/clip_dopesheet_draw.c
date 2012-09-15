@@ -274,7 +274,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	dopesheet = &tracking->dopesheet;
 	height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT * 2);
 
-	if (height > BLI_RCT_SIZE_Y(&v2d->mask)) {
+	if (height > BLI_rcti_size_y(&v2d->mask)) {
 		/* don't use totrect set, as the width stays the same
 		 * (NOTE: this is ok here, the configuration is pretty straightforward)
 		 */

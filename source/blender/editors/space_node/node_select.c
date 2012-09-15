@@ -555,8 +555,8 @@ static int do_lasso_select_node(bContext *C, int mcords[][2], short moves, short
 	/* do actual selection */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		int screen_co[2];
-		const float cent[2] = {BLI_RCT_CENTER_X(&node->totr),
-		                       BLI_RCT_CENTER_Y(&node->totr)};
+		const float cent[2] = {BLI_rctf_cent_x(&node->totr),
+		                       BLI_rctf_cent_y(&node->totr)};
 
 		/* marker in screen coords */
 		UI_view2d_view_to_region(&ar->v2d,

@@ -533,8 +533,8 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	unsigned int *rt;
 	char *selar;
 	int a, index;
-	int sx = BLI_RCT_SIZE_X(rect) + 1;
-	int sy = BLI_RCT_SIZE_Y(rect) + 1;
+	int sx = BLI_rcti_size_x(rect) + 1;
+	int sy = BLI_rcti_size_y(rect) + 1;
 	
 	me = BKE_mesh_from_object(ob);
 

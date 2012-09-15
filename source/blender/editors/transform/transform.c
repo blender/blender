@@ -126,11 +126,11 @@ static void convertViewVec2D(View2D *v2d, float r_vec[3], int dx, int dy)
 {
 	float divx, divy;
 	
-	divx = BLI_RCT_SIZE_X(&v2d->mask);
-	divy = BLI_RCT_SIZE_Y(&v2d->mask);
+	divx = BLI_rcti_size_x(&v2d->mask);
+	divy = BLI_rcti_size_y(&v2d->mask);
 
-	r_vec[0] = BLI_RCT_SIZE_X(&v2d->cur) * dx / divx;
-	r_vec[1] = BLI_RCT_SIZE_Y(&v2d->cur) * dy / divy;
+	r_vec[0] = BLI_rctf_size_x(&v2d->cur) * dx / divx;
+	r_vec[1] = BLI_rctf_size_y(&v2d->cur) * dy / divy;
 	r_vec[2] = 0.0f;
 }
 
@@ -139,11 +139,11 @@ static void convertViewVec2D_mask(View2D *v2d, float r_vec[3], int dx, int dy)
 	float divx, divy;
 	float mulx, muly;
 
-	divx = BLI_RCT_SIZE_X(&v2d->mask);
-	divy = BLI_RCT_SIZE_Y(&v2d->mask);
+	divx = BLI_rcti_size_x(&v2d->mask);
+	divy = BLI_rcti_size_y(&v2d->mask);
 
-	mulx = BLI_RCT_SIZE_X(&v2d->cur);
-	muly = BLI_RCT_SIZE_Y(&v2d->cur);
+	mulx = BLI_rctf_size_x(&v2d->cur);
+	muly = BLI_rctf_size_y(&v2d->cur);
 
 	/* difference with convertViewVec2D */
 	/* clamp w/h, mask only */

@@ -161,8 +161,8 @@ void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
 		*height = (scene->r.ysch * scene->r.size) / 100;
 
 		if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
-			*width  *= BLI_RCT_SIZE_X(&scene->r.border);
-			*height *= BLI_RCT_SIZE_Y(&scene->r.border);
+			*width  *= BLI_rctf_size_x(&scene->r.border);
+			*height *= BLI_rctf_size_y(&scene->r.border);
 		}
 
 	}
@@ -204,8 +204,8 @@ void ED_space_image_get_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float 
 
 	ED_space_image_get_size(sima, &width, &height);
 
-	*zoomx = (float)(BLI_RCT_SIZE_X(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_X(&ar->v2d.cur) * width);
-	*zoomy = (float)(BLI_RCT_SIZE_Y(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_Y(&ar->v2d.cur) * height);
+	*zoomx = (float)(BLI_rcti_size_x(&ar->winrct) + 1) / (float)(BLI_rctf_size_x(&ar->v2d.cur) * width);
+	*zoomy = (float)(BLI_rcti_size_y(&ar->winrct) + 1) / (float)(BLI_rctf_size_y(&ar->v2d.cur) * height);
 }
 
 void ED_space_image_get_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)

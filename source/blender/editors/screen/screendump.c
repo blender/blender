@@ -149,8 +149,8 @@ static void screenshot_crop(ImBuf *ibuf, rcti crop)
 {
 	unsigned int *to = ibuf->rect;
 	unsigned int *from = ibuf->rect + crop.ymin * ibuf->x + crop.xmin;
-	int crop_x = BLI_RCT_SIZE_X(&crop);
-	int crop_y = BLI_RCT_SIZE_Y(&crop);
+	int crop_x = BLI_rcti_size_x(&crop);
+	int crop_y = BLI_rcti_size_y(&crop);
 	int y;
 
 	if (crop_x > 0 && crop_y > 0) {

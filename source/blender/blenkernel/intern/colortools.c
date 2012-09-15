@@ -262,7 +262,7 @@ CurveMapPoint *curvemap_insert(CurveMap *cuma, float x, float y)
 	return newcmp;
 }
 
-void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
+void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 {
 	if (cuma->curve)
 		MEM_freeN(cuma->curve);
@@ -481,7 +481,7 @@ static float curvemap_calc_extend(const CurveMap *cuma, float x, const float fir
 }
 
 /* only creates a table for a single channel in CurveMapping */
-static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
+static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
 {
 	CurveMapPoint *cmp = cuma->curve;
 	BezTriple *bezt;
@@ -679,7 +679,7 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 	CurveMap *cuma = cumap->cm + cumap->cur;
 	CurveMapPoint *cmp = cuma->curve;
 	rctf *clipr = &cumap->clipr;
-	float thresh = 0.01f * BLI_RCT_SIZE_X(clipr);
+	float thresh = 0.01f * BLI_rctf_size_x(clipr);
 	float dx = 0.0f, dy = 0.0f;
 	int a;
 

@@ -75,14 +75,28 @@ void BLI_rctf_rcti_copy(struct rctf *dst, const struct rcti *src);
 void print_rctf(const char *str, const struct rctf *rect);
 void print_rcti(const char *str, const struct rcti *rect);
 
-#define BLI_RCT_SIZE_X(rct)       ((rct)->xmax - (rct)->xmin)
-#define BLI_RCT_SIZE_Y(rct)       ((rct)->ymax - (rct)->ymin)
+/* hrmf, we need to work out this inline stuff */
+#if defined(_MSC_VER)
+#  define BLI_INLINE static __forceinline
+#elif defined(__GNUC__)
+#  define BLI_INLINE static inline __attribute((always_inline))
+#else
+/* #warning "MSC/GNUC defines not found, inline non-functional" */
+#  define BLI_INLINE static
+#endif
 
-#define BLI_RCT_CENTER_X(rct)     (((rct)->xmin + (rct)->xmax) / 2)
-#define BLI_RCT_CENTER_Y(rct)     (((rct)->ymin + (rct)->ymax) / 2)
+#include "DNA_vec_types.h"
+BLI_INLINE float BLI_rcti_cent_x_fl(const struct rcti *rct) { return (float)(rct->xmin + rct->xmax) / 2.0f; }
+BLI_INLINE float BLI_rcti_cent_y_fl(const struct rcti *rct) { return (float)(rct->ymin + rct->ymax) / 2.0f; }
+BLI_INLINE int   BLI_rcti_cent_x(const struct rcti *rct) { return (rct->xmin + rct->xmax) / 2; }
+BLI_INLINE int   BLI_rcti_cent_y(const struct rcti *rct) { return (rct->ymin + rct->ymax) / 2; }
+BLI_INLINE int   BLI_rctf_cent_x(const struct rctf *rct) { return (rct->xmin + rct->xmax) / 2.0f; }
+BLI_INLINE int   BLI_rctf_cent_y(const struct rctf *rct) { return (rct->ymin + rct->ymax) / 2.0f; }
 
-#define BLI_RCT_CENTER_X_FL(rct)  ((float)((rct)->xmin + (rct)->xmax) / 2.0f)
-#define BLI_RCT_CENTER_Y_FL(rct)  ((float)((rct)->ymin + (rct)->ymax) / 2.0f)
+BLI_INLINE int   BLI_rcti_size_x(const struct rcti *rct) { return (rct->xmax - rct->xmin); }
+BLI_INLINE int   BLI_rcti_size_y(const struct rcti *rct) { return (rct->ymax - rct->ymin); }
+BLI_INLINE float BLI_rctf_size_x(const struct rctf *rct) { return (rct->xmax - rct->xmin); }
+BLI_INLINE float BLI_rctf_size_y(const struct rctf *rct) { return (rct->ymax - rct->ymin); }
 
 #ifdef __cplusplus
 }

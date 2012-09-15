@@ -5554,8 +5554,8 @@ static void createTransObject(bContext *C, TransInfo *t)
 static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 {
 	/* hold original location */
-	float locxy[2] = {BLI_RCT_CENTER_X(&node->totr),
-	                  BLI_RCT_CENTER_Y(&node->totr)};
+	float locxy[2] = {BLI_rctf_cent_x(&node->totr),
+	                  BLI_rctf_cent_y(&node->totr)};
 
 	copy_v2_v2(td2d->loc, locxy);
 	td2d->loc[2] = 0.0f;

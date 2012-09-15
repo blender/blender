@@ -118,7 +118,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 
 	/* noisy, high contrast make impossible to read if lower alpha is used. */
 	glColor4ub(0, 0, 0, 190);
-	glRecti(0.0, 0.0, BLI_RCT_SIZE_X(&ar->winrct) + 1, 20);
+	glRecti(0.0, 0.0, BLI_rcti_size_x(&ar->winrct) + 1, 20);
 	glDisable(GL_BLEND);
 
 	BLF_size(blf_mono_font, 11, 72);

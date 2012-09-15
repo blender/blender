@@ -422,8 +422,8 @@ static void gp_strokepoint_convertcoords(bContext *C, bGPDstroke *gps, bGPDspoin
 		}
 		else {
 			if (subrect) {
-				mvalf[0] = (((float)pt->x / 100.0f) * BLI_RCT_SIZE_X(subrect)) + subrect->xmin;
-				mvalf[1] = (((float)pt->y / 100.0f) * BLI_RCT_SIZE_Y(subrect)) + subrect->ymin;
+				mvalf[0] = (((float)pt->x / 100.0f) * BLI_rctf_size_x(subrect)) + subrect->xmin;
+				mvalf[1] = (((float)pt->y / 100.0f) * BLI_rctf_size_y(subrect)) + subrect->ymin;
 			}
 			else {
 				mvalf[0] = (float)pt->x / 100.0f * ar->winx;

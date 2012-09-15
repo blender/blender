@@ -437,8 +437,8 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	re->winy = winy;
 	if (disprect) {
 		re->disprect = *disprect;
-		re->rectx = BLI_RCT_SIZE_X(disprect);
-		re->recty = BLI_RCT_SIZE_Y(disprect);
+		re->rectx = BLI_rcti_size_x(disprect);
+		re->recty = BLI_rcti_size_y(disprect);
 	}
 	else {
 		re->disprect.xmin = re->disprect.ymin = 0;
@@ -670,15 +670,15 @@ static void *do_part_thread(void *pa_v)
 float panorama_pixel_rot(Render *re)
 {
 	float psize, phi, xfac;
-	float borderfac = (float)BLI_RCT_SIZE_X(&re->disprect) / (float)re->winx;
+	float borderfac = (float)BLI_rcti_size_x(&re->disprect) / (float)re->winx;
 	
 	/* size of 1 pixel mapped to viewplane coords */
-	psize = BLI_RCT_SIZE_X(&re->viewplane) / (float)re->winx;
+	psize = BLI_rctf_size_x(&re->viewplane) / (float)re->winx;
 	/* angle of a pixel */
 	phi = atan(psize / re->clipsta);
 	
 	/* correction factor for viewplane shifting, first calculate how much the viewplane angle is */
-	xfac = borderfac * BLI_RCT_SIZE_X(&re->viewplane) / (float)re->xparts;
+	xfac = borderfac * BLI_rctf_size_x(&re->viewplane) / (float)re->xparts;
 	xfac = atan(0.5f * xfac / re->clipsta);
 	/* and how much the same viewplane angle is wrapped */
 	psize = 0.5f * phi * ((float)re->partx);
@@ -711,7 +711,7 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 		float phi = panorama_pixel_rot(re);
 
 		R.panodxp = (re->winx - (best->disprect.xmin + best->disprect.xmax) ) / 2;
-		R.panodxv = (BLI_RCT_SIZE_X(viewplane) * R.panodxp) / (float)(re->winx);
+		R.panodxv = (BLI_rctf_size_x(viewplane) * R.panodxp) / (float)(re->winx);
 
 		/* shift viewplane */
 		R.viewplane.xmin = viewplane->xmin + R.panodxv;
@@ -738,8 +738,8 @@ static RenderPart *find_next_part(Render *re, int minx)
 	/* find center of rendered parts, image center counts for 1 too */
 	for (pa = re->parts.first; pa; pa = pa->next) {
 		if (pa->ready) {
-			centx += BLI_RCT_CENTER_X(&pa->disprect);
-			centy += BLI_RCT_CENTER_Y(&pa->disprect);
+			centx += BLI_rcti_cent_x(&pa->disprect);
+			centy += BLI_rcti_cent_y(&pa->disprect);
 			tot++;
 		}
 	}
@@ -749,8 +749,8 @@ static RenderPart *find_next_part(Render *re, int minx)
 	/* closest of the non-rendering parts */
 	for (pa = re->parts.first; pa; pa = pa->next) {
 		if (pa->ready == 0 && pa->nr == 0) {
-			long long int distx = centx - BLI_RCT_CENTER_X(&pa->disprect);
-			long long int disty = centy - BLI_RCT_CENTER_Y(&pa->disprect);
+			long long int distx = centx - BLI_rcti_cent_x(&pa->disprect);
+			long long int disty = centy - BLI_rcti_cent_y(&pa->disprect);
 			distx = (long long int)sqrt(distx * distx + disty * disty);
 			if (distx < mindist) {
 				if (re->r.mode & R_PANORAMA) {

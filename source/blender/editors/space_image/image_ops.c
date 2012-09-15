@@ -99,9 +99,9 @@ static void sima_zoom_set(SpaceImage *sima, ARegion *ar, float zoom, float locat
 
 		if ((width < 4) && (height < 4))
 			sima->zoom = oldzoom;
-		else if (BLI_RCT_SIZE_X(&ar->winrct) <= sima->zoom)
+		else if (BLI_rcti_size_x(&ar->winrct) <= sima->zoom)
 			sima->zoom = oldzoom;
-		else if (BLI_RCT_SIZE_Y(&ar->winrct) <= sima->zoom)
+		else if (BLI_rcti_size_y(&ar->winrct) <= sima->zoom)
 			sima->zoom = oldzoom;
 	}
 
@@ -582,8 +582,8 @@ static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	h = height * aspy;
 	
 	/* check if the image will fit in the image with (zoom == 1) */
-	width  = BLI_RCT_SIZE_X(&ar->winrct) + 1;
-	height = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
+	width  = BLI_rcti_size_x(&ar->winrct) + 1;
+	height = BLI_rcti_size_y(&ar->winrct) + 1;
 
 	if ((w >= width || h >= height) && (width > 0 && height > 0)) {
 		/* find the zoom value that will fit the image in the image space */

@@ -270,12 +270,12 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *ar)
 	int numfiles;
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
-		int width = (int)(BLI_RCT_SIZE_X(&ar->v2d.cur) - 2 * layout->tile_border_x);
+		int width = (int)(BLI_rctf_size_x(&ar->v2d.cur) - 2 * layout->tile_border_x);
 		numfiles = (int)((float)width / (float)layout->tile_w + 0.5f);
 		return numfiles * layout->rows;
 	}
 	else {
-		int height = (int)(BLI_RCT_SIZE_Y(&ar->v2d.cur) - 2 * layout->tile_border_y);
+		int height = (int)(BLI_rctf_size_y(&ar->v2d.cur) - 2 * layout->tile_border_y);
 		numfiles = (int)((float)height / (float)layout->tile_h + 0.5f);
 		return numfiles * layout->columns;
 	}
@@ -503,7 +503,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		layout->prv_border_y = 6;
 		layout->tile_w = layout->prv_w + 2 * layout->prv_border_x;
 		layout->tile_h = layout->prv_h + 2 * layout->prv_border_y + textheight;
-		layout->width = (int)(BLI_RCT_SIZE_X(&v2d->cur) - 2 * layout->tile_border_x);
+		layout->width = (int)(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
 		layout->columns = layout->width / (layout->tile_w + 2 * layout->tile_border_x);
 		if (layout->columns > 0)
 			layout->rows = numfiles / layout->columns + 1;  // XXX dirty, modulo is zero
@@ -522,7 +522,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		layout->prv_border_x = 0;
 		layout->prv_border_y = 0;
 		layout->tile_h = textheight * 3 / 2;
-		layout->height = (int)(BLI_RCT_SIZE_Y(&v2d->cur) - 2 * layout->tile_border_y);
+		layout->height = (int)(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);
 		layout->rows = layout->height / (layout->tile_h + 2 * layout->tile_border_y);
 
 		column_widths(sfile->files, layout);

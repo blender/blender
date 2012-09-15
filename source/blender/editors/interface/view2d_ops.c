@@ -119,10 +119,10 @@ static int view_pan_init(bContext *C, wmOperator *op)
 	vpd->ar = ar;
 	
 	/* calculate translation factor - based on size of view */
-	winx = (float)(BLI_RCT_SIZE_X(&ar->winrct) + 1);
-	winy = (float)(BLI_RCT_SIZE_Y(&ar->winrct) + 1);
-	vpd->facx = (BLI_RCT_SIZE_X(&v2d->cur)) / winx;
-	vpd->facy = (BLI_RCT_SIZE_Y(&v2d->cur)) / winy;
+	winx = (float)(BLI_rcti_size_x(&ar->winrct) + 1);
+	winy = (float)(BLI_rcti_size_y(&ar->winrct) + 1);
+	vpd->facx = (BLI_rctf_size_x(&v2d->cur)) / winx;
+	vpd->facy = (BLI_rctf_size_y(&v2d->cur)) / winy;
 	
 	return 1;
 }
@@ -471,7 +471,7 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 	
 	if (RNA_boolean_get(op->ptr, "page")) {
 		ARegion *ar = CTX_wm_region(C);
-		RNA_int_set(op->ptr, "deltay", BLI_RCT_SIZE_Y(&ar->v2d.mask));
+		RNA_int_set(op->ptr, "deltay", BLI_rcti_size_y(&ar->v2d.mask));
 	}
 	
 	/* apply movement, then we're done */
@@ -590,12 +590,12 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 	facy = RNA_float_get(op->ptr, "zoomfacy");
 
 	if (facx >= 0.0f) {
-		dx = BLI_RCT_SIZE_X(&v2d->cur) * facx;
-		dy = BLI_RCT_SIZE_Y(&v2d->cur) * facy;
+		dx = BLI_rctf_size_x(&v2d->cur) * facx;
+		dy = BLI_rctf_size_y(&v2d->cur) * facy;
 	}
 	else {
-		dx = (BLI_RCT_SIZE_X(&v2d->cur) / (1.0f + 2.0f * facx)) * facx;
-		dy = (BLI_RCT_SIZE_Y(&v2d->cur) / (1.0f + 2.0f * facy)) * facy;
+		dx = (BLI_rctf_size_x(&v2d->cur) / (1.0f + 2.0f * facx)) * facx;
+		dy = (BLI_rctf_size_y(&v2d->cur) / (1.0f + 2.0f * facy)) * facy;
 	}
 
 	/* only resize view on an axis if change is allowed */
@@ -611,7 +611,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 		}
 		else {
 			if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
-				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / BLI_RCT_SIZE_X(&v2d->cur);
+				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
 				float mval_faci = 1.0f - mval_fac;
 				float ofs = (mval_fac * dx) - (mval_faci * dx);
 				
@@ -636,7 +636,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 		}
 		else {
 			if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
-				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / BLI_RCT_SIZE_Y(&v2d->cur);
+				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
 				float mval_faci = 1.0f - mval_fac;
 				float ofs = (mval_fac * dy) - (mval_faci * dy);
 				
@@ -845,7 +845,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 		}
 		else {
 			if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
-				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / BLI_RCT_SIZE_X(&v2d->cur);
+				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
 				float mval_faci = 1.0f - mval_fac;
 				float ofs = (mval_fac * dx) - (mval_faci * dx);
 				
@@ -864,7 +864,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 		}
 		else {
 			if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
-				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / BLI_RCT_SIZE_Y(&v2d->cur);
+				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
 				float mval_faci = 1.0f - mval_fac;
 				float ofs = (mval_fac * dy) - (mval_faci * dy);
 				
@@ -942,8 +942,8 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		 * with magnify information that is stored in x axis 
 		 */
 		fac = 0.01f * (event->x - event->prevx);
-		dx = fac * BLI_RCT_SIZE_X(&v2d->cur) / 10.0f;
-		dy = fac * BLI_RCT_SIZE_Y(&v2d->cur) / 10.0f;
+		dx = fac * BLI_rctf_size_x(&v2d->cur) / 10.0f;
+		dy = fac * BLI_rctf_size_y(&v2d->cur) / 10.0f;
 
 		RNA_float_set(op->ptr, "deltax", dx);
 		RNA_float_set(op->ptr, "deltay", dy);
@@ -1009,14 +1009,14 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			float dist;
 			
 			/* x-axis transform */
-			dist = BLI_RCT_SIZE_X(&v2d->mask) / 2.0f;
+			dist = BLI_rcti_size_x(&v2d->mask) / 2.0f;
 			dx = 1.0f - (fabsf(vzd->lastx - dist) + 2.0f) / (fabsf(event->x - dist) + 2.0f);
-			dx *= 0.5f * BLI_RCT_SIZE_X(&v2d->cur);
+			dx *= 0.5f * BLI_rctf_size_x(&v2d->cur);
 			
 			/* y-axis transform */
-			dist = BLI_RCT_SIZE_Y(&v2d->mask) / 2.0f;
+			dist = BLI_rcti_size_y(&v2d->mask) / 2.0f;
 			dy = 1.0f - (fabsf(vzd->lasty - dist) + 2.0f) / (fabsf(event->y - dist) + 2.0f);
-			dy *= 0.5f * BLI_RCT_SIZE_Y(&v2d->cur);
+			dy *= 0.5f * BLI_rctf_size_y(&v2d->cur);
 		}
 		else {
 			/* 'continuous' or 'dolly' */
@@ -1024,11 +1024,11 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* x-axis transform */
 			fac = 0.01f * (event->x - vzd->lastx);
-			dx = fac * BLI_RCT_SIZE_X(&v2d->cur);
+			dx = fac * BLI_rctf_size_x(&v2d->cur);
 			
 			/* y-axis transform */
 			fac = 0.01f * (event->y - vzd->lasty);
-			dy = fac * BLI_RCT_SIZE_Y(&v2d->cur);
+			dy = fac * BLI_rctf_size_y(&v2d->cur);
 #if 0
 			/* continuous zoom shouldn't move that fast... */
 			if (U.viewzoom == USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
@@ -1161,17 +1161,17 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		
 		/* TODO: is this zoom factor calculation valid? It seems to produce same results everytime... */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
-			size = BLI_RCT_SIZE_X(&cur_new);
-			zoom = size / BLI_RCT_SIZE_X(&rect);
-			center = BLI_RCT_CENTER_X(&cur_new);
+			size = BLI_rctf_size_x(&cur_new);
+			zoom = size / BLI_rctf_size_x(&rect);
+			center = BLI_rctf_cent_x(&cur_new);
 			
 			cur_new.xmin = center - (size * zoom);
 			cur_new.xmax = center + (size * zoom);
 		}
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0) {
-			size = BLI_RCT_SIZE_Y(&cur_new);
-			zoom = size / BLI_RCT_SIZE_Y(&rect);
-			center = BLI_RCT_CENTER_Y(&cur_new);
+			size = BLI_rctf_size_y(&cur_new);
+			zoom = size / BLI_rctf_size_y(&rect);
+			center = BLI_rctf_cent_y(&cur_new);
 			
 			cur_new.ymin = center - (size * zoom);
 			cur_new.ymax = center + (size * zoom);
@@ -1221,14 +1221,14 @@ struct SmoothView2DStore {
  */
 static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
 {
-	float size_a[2] = {BLI_RCT_SIZE_X(rect_a),
-	                   BLI_RCT_SIZE_Y(rect_a)};
-	float size_b[2] = {BLI_RCT_SIZE_X(rect_b),
-	                   BLI_RCT_SIZE_Y(rect_b)};
-	float cent_a[2] = {BLI_RCT_CENTER_X(rect_a),
-	                   BLI_RCT_CENTER_Y(rect_a)};
-	float cent_b[2] = {BLI_RCT_CENTER_X(rect_b),
-	                   BLI_RCT_CENTER_Y(rect_b)};
+	float size_a[2] = {BLI_rctf_size_x(rect_a),
+	                   BLI_rctf_size_y(rect_a)};
+	float size_b[2] = {BLI_rctf_size_x(rect_b),
+	                   BLI_rctf_size_y(rect_b)};
+	float cent_a[2] = {BLI_rctf_cent_x(rect_a),
+	                   BLI_rctf_cent_y(rect_a)};
+	float cent_b[2] = {BLI_rctf_cent_x(rect_b),
+	                   BLI_rctf_cent_y(rect_b)};
 
 	float fac_max = 0.0f;
 	float tfac;
@@ -1501,8 +1501,8 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 
 	if (in_scroller == 'h') {
 		/* horizontal scroller - calculate adjustment factor first */
-		mask_size = (float)BLI_RCT_SIZE_X(&v2d->hor);
-		vsm->fac = BLI_RCT_SIZE_X(&v2d->tot) / mask_size;
+		mask_size = (float)BLI_rcti_size_x(&v2d->hor);
+		vsm->fac = BLI_rctf_size_x(&v2d->tot) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
 		vsm->zone = mouse_in_scroller_handle(event->mval[0], v2d->hor.xmin, v2d->hor.xmax, scrollers->hor_min, scrollers->hor_max);
@@ -1517,8 +1517,8 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	}
 	else {
 		/* vertical scroller - calculate adjustment factor first */
-		mask_size = (float)BLI_RCT_SIZE_Y(&v2d->vert);
-		vsm->fac = BLI_RCT_SIZE_Y(&v2d->tot) / mask_size;
+		mask_size = (float)BLI_rcti_size_y(&v2d->vert);
+		vsm->fac = BLI_rctf_size_y(&v2d->tot) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
 		vsm->zone = mouse_in_scroller_handle(event->mval[1], v2d->vert.ymin, v2d->vert.ymax, scrollers->vert_min, scrollers->vert_max);
@@ -1798,8 +1798,8 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 	int winx, winy;
 
 	/* zoom 1.0 */
-	winx = (float)(BLI_RCT_SIZE_X(&v2d->mask) + 1);
-	winy = (float)(BLI_RCT_SIZE_Y(&v2d->mask) + 1);
+	winx = (float)(BLI_rcti_size_x(&v2d->mask) + 1);
+	winy = (float)(BLI_rcti_size_y(&v2d->mask) + 1);
 
 	v2d->cur.xmax = v2d->cur.xmin + winx;
 	v2d->cur.ymax = v2d->cur.ymin + winy;

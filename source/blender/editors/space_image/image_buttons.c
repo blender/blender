@@ -228,13 +228,13 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
 	int mval[2];
 	
 	if (G.scene->r.mode & R_BORDER) {
-		winx *= BLI_RCT_SIZE_X(&G.scene->r.border);
-		winy *= BLI_RCT_SIZE_Y(&G.scene->r.border);
+		winx *= BLI_rcti_size_x(&G.scene->r.border);
+		winy *= BLI_rctf_size_y(&G.scene->r.border);
 	}
 	
 	/* while dragging we need to update the rects, otherwise it doesn't end with correct one */
 
-	BLI_rctf_init(&dispf, 15.0f, BLI_RCT_SIZE_X(&block->rect) - 15.0f, 15.0f, (BLI_RCT_SIZE_Y(&block->rect)) - 15.0f);
+	BLI_rctf_init(&dispf, 15.0f, BLI_rcti_size_x(&block->rect) - 15.0f, 15.0f, (BLI_rctf_size_y(&block->rect)) - 15.0f);
 	ui_graphics_to_window_rct(sa->win, &dispf, disprect);
 	
 	/* correction for gla draw */

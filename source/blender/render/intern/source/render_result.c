@@ -422,8 +422,8 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	SceneRenderLayer *srl;
 	int rectx, recty, nr;
 	
-	rectx = BLI_RCT_SIZE_X(partrct);
-	recty = BLI_RCT_SIZE_Y(partrct);
+	rectx = BLI_rcti_size_x(partrct);
+	recty = BLI_rcti_size_y(partrct);
 	
 	if (rectx <= 0 || recty <= 0)
 		return NULL;
@@ -569,8 +569,8 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	}
 	
 	/* border render; calculate offset for use in compositor. compo is centralized coords */
-	rr->xof = re->disprect.xmin + BLI_RCT_CENTER_X(&re->disprect) - (re->winx / 2);
-	rr->yof = re->disprect.ymin + BLI_RCT_CENTER_Y(&re->disprect) - (re->winy / 2);
+	rr->xof = re->disprect.xmin + BLI_rcti_cent_x(&re->disprect) - (re->winx / 2);
+	rr->yof = re->disprect.ymin + BLI_rcti_cent_y(&re->disprect) - (re->winy / 2);
 	
 	return rr;
 }

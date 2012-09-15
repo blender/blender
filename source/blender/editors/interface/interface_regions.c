@@ -393,7 +393,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	/* draw text */
 	uiStyleFontSet(&data->fstyle);
 
-	bbox.ymax = bbox.ymax - 0.5f * (BLI_RCT_SIZE_Y(&bbox) - data->toth);
+	bbox.ymax = bbox.ymax - 0.5f * (BLI_rcti_size_y(&bbox) - data->toth);
 	bbox.ymin = bbox.ymax - data->lineh;
 
 	for (i = 0; i < data->totline; i++) {
@@ -732,9 +732,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	/* widget rect, in region coords */
 	data->bbox.xmin = MENU_SHADOW_SIDE;
-	data->bbox.xmax = BLI_RCT_SIZE_X(&rect_i) + MENU_SHADOW_SIDE;
+	data->bbox.xmax = BLI_rcti_size_x(&rect_i) + MENU_SHADOW_SIDE;
 	data->bbox.ymin = MENU_SHADOW_BOTTOM;
-	data->bbox.ymax = BLI_RCT_SIZE_Y(&rect_i) + MENU_SHADOW_BOTTOM;
+	data->bbox.ymax = BLI_rcti_size_y(&rect_i) + MENU_SHADOW_BOTTOM;
 	
 	/* region bigger for shadow */
 	ar->winrct.xmin = rect_i.xmin - MENU_SHADOW_SIDE;
@@ -867,8 +867,8 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 {
 	/* thumbnail preview */
 	if (data->preview) {
-		int butw =  BLI_RCT_SIZE_X(&data->bbox)                 / data->prv_cols;
-		int buth = (BLI_RCT_SIZE_Y(&data->bbox) - 2 * MENU_TOP) / data->prv_rows;
+		int butw =  BLI_rcti_size_x(&data->bbox)                 / data->prv_cols;
+		int buth = (BLI_rcti_size_y(&data->bbox) - 2 * MENU_TOP) / data->prv_rows;
 		int row, col;
 		
 		*rect = data->bbox;
@@ -884,7 +884,7 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 	}
 	/* list view */
 	else {
-		int buth = (BLI_RCT_SIZE_Y(&data->bbox) - 2 * MENU_TOP) / SEARCH_ITEMS;
+		int buth = (BLI_rcti_size_y(&data->bbox) - 2 * MENU_TOP) / SEARCH_ITEMS;
 		
 		*rect = data->bbox;
 		rect->xmin = data->bbox.xmin + 3.0f;
@@ -1097,13 +1097,13 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 			if (data->items.more) {
 				ui_searchbox_butrect(&rect, data, data->items.maxitem - 1);
 				glEnable(GL_BLEND);
-				UI_icon_draw((BLI_RCT_SIZE_X(&rect)) / 2, rect.ymin - 9, ICON_TRIA_DOWN);
+				UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymin - 9, ICON_TRIA_DOWN);
 				glDisable(GL_BLEND);
 			}
 			if (data->items.offset) {
 				ui_searchbox_butrect(&rect, data, 0);
 				glEnable(GL_BLEND);
-				UI_icon_draw((BLI_RCT_SIZE_X(&rect)) / 2, rect.ymax - 7, ICON_TRIA_UP);
+				UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymax - 7, ICON_TRIA_UP);
 				glDisable(GL_BLEND);
 			}
 		}
@@ -1178,16 +1178,16 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		
 		/* widget rect, in region coords */
 		data->bbox.xmin = MENU_SHADOW_SIDE;
-		data->bbox.xmax = BLI_RCT_SIZE_X(&ar->winrct) - MENU_SHADOW_SIDE;
+		data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - MENU_SHADOW_SIDE;
 		data->bbox.ymin = MENU_SHADOW_BOTTOM;
-		data->bbox.ymax = BLI_RCT_SIZE_Y(&ar->winrct) - MENU_SHADOW_BOTTOM;
+		data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - MENU_SHADOW_BOTTOM;
 		
 		/* check if button is lower half */
-		if (but->rect.ymax < BLI_RCT_CENTER_Y(&but->block->rect)) {
-			data->bbox.ymin += BLI_RCT_SIZE_Y(&but->rect);
+		if (but->rect.ymax < BLI_rctf_cent_y(&but->block->rect)) {
+			data->bbox.ymin += BLI_rctf_size_y(&but->rect);
 		}
 		else {
-			data->bbox.ymax -= BLI_RCT_SIZE_Y(&but->rect);
+			data->bbox.ymax -= BLI_rctf_size_y(&but->rect);
 		}
 	}
 	else {
@@ -1202,7 +1202,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		BLI_rctf_translate(&rect_fl, ofsx, ofsy);
 	
 		/* minimal width */
-		if (BLI_RCT_SIZE_X(&rect_fl) < 150) {
+		if (BLI_rctf_size_x(&rect_fl) < 150) {
 			rect_fl.xmax = rect_fl.xmin + 150;  /* XXX arbitrary */
 		}
 		
@@ -1235,15 +1235,15 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->rect.ymax + ofsy, NULL, &newy1);
 			newy1 += butregion->winrct.ymin;
 
-			rect_i.ymax = BLI_RCT_SIZE_Y(&rect_i) + newy1;
+			rect_i.ymax = BLI_rcti_size_y(&rect_i) + newy1;
 			rect_i.ymin = newy1;
 		}
 
 		/* widget rect, in region coords */
 		data->bbox.xmin = MENU_SHADOW_SIDE;
-		data->bbox.xmax = BLI_RCT_SIZE_X(&rect_i) + MENU_SHADOW_SIDE;
+		data->bbox.xmax = BLI_rcti_size_x(&rect_i) + MENU_SHADOW_SIDE;
 		data->bbox.ymin = MENU_SHADOW_BOTTOM;
-		data->bbox.ymax = BLI_RCT_SIZE_Y(&rect_i) + MENU_SHADOW_BOTTOM;
+		data->bbox.ymax = BLI_rcti_size_y(&rect_i) + MENU_SHADOW_BOTTOM;
 		
 		/* region bigger for shadow */
 		ar->winrct.xmin = rect_i.xmin - MENU_SHADOW_SIDE;
@@ -1358,15 +1358,15 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		}
 	}
 	
-	/* aspect = (float)(BLI_RCT_SIZE_X(&block->rect) + 4);*/ /*UNUSED*/
+	/* aspect = (float)(BLI_rcti_size_x(&block->rect) + 4);*/ /*UNUSED*/
 	ui_block_to_window_fl(butregion, but->block, &block->rect.xmin, &block->rect.ymin);
 	ui_block_to_window_fl(butregion, but->block, &block->rect.xmax, &block->rect.ymax);
 
 	//block->rect.xmin -= 2.0; block->rect.ymin -= 2.0;
 	//block->rect.xmax += 2.0; block->rect.ymax += 2.0;
 	
-	xsize = BLI_RCT_SIZE_X(&block->rect) + 4;  /* 4 for shadow */
-	ysize = BLI_RCT_SIZE_Y(&block->rect) + 4;
+	xsize = BLI_rctf_size_x(&block->rect) + 4;  /* 4 for shadow */
+	ysize = BLI_rctf_size_y(&block->rect) + 4;
 	/* aspect /= (float)xsize;*/ /*UNUSED*/
 
 	{
@@ -1497,8 +1497,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 
 	/* safety calculus */
 	{
-		const float midx = BLI_RCT_CENTER_X(&butrct);
-		const float midy = BLI_RCT_CENTER_Y(&butrct);
+		const float midx = BLI_rctf_cent_x(&butrct);
+		const float midy = BLI_rctf_cent_y(&butrct);
 		
 		/* when you are outside parent button, safety there should be smaller */
 		
@@ -2343,7 +2343,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	if (pup->but) {
 		/* minimum width to enforece */
-		minwidth = BLI_RCT_SIZE_X(&pup->but->rect);
+		minwidth = BLI_rctf_size_x(&pup->but->rect);
 
 		if (pup->but->type == PULLDOWN || pup->but->menu_create_func) {
 			direction = UI_DOWN;
@@ -2385,7 +2385,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			 * button, so it doesn't overlap the text too much, also note
 			 * the offset is negative because we are inverse moving the
 			 * block to be under the mouse */
-			offset[0] = -(bt->rect.xmin + 0.8f * BLI_RCT_SIZE_X(&bt->rect));
+			offset[0] = -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect));
 			offset[1] = -(bt->rect.ymin + 0.5f * UI_UNIT_Y);
 		}
 		else {
@@ -2393,7 +2393,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			 * on the first item */
 			offset[0] = 0;
 			for (bt = block->buttons.first; bt; bt = bt->next)
-				offset[0] = mini(offset[0], -(bt->rect.xmin + 0.8f * BLI_RCT_SIZE_X(&bt->rect)));
+				offset[0] = mini(offset[0], -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect)));
 
 			offset[1] = 1.5 * UI_UNIT_Y;
 		}

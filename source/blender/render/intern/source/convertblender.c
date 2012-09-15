@@ -5242,11 +5242,11 @@ static void speedvector_project(Render *re, float zco[2], const float co[3], con
 			/* size of 1 pixel mapped to viewplane coords */
 			float psize;
 
-			psize = BLI_RCT_SIZE_X(&re->viewplane) / (float)re->winx;
+			psize = BLI_rctf_size_x(&re->viewplane) / (float)re->winx;
 			/* x angle of a pixel */
 			pixelphix = atan(psize / re->clipsta);
 			
-			psize = BLI_RCT_SIZE_Y(&re->viewplane) / (float)re->winy;
+			psize = BLI_rctf_size_y(&re->viewplane) / (float)re->winy;
 			/* y angle of a pixel */
 			pixelphiy = atan(psize / re->clipsta);
 		}

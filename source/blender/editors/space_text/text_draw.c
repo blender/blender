@@ -1232,7 +1232,7 @@ static void draw_textscroll(SpaceText *st, rcti *scroll, rcti *back)
 	uiWidgetScrollDraw(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT) ? UI_SCROLL_PRESSED : 0);
 
 	uiSetRoundBox(UI_CNR_ALL);
-	rad = 0.4f * mini(BLI_RCT_SIZE_X(&st->txtscroll), BLI_RCT_SIZE_Y(&st->txtscroll));
+	rad = 0.4f * mini(BLI_rcti_size_x(&st->txtscroll), BLI_rcti_size_y(&st->txtscroll));
 	UI_GetThemeColor3ubv(TH_HILITE, col);
 	col[3] = 48;
 	glColor4ubv(col);

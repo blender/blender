@@ -104,8 +104,8 @@ static void region_draw_emboss(ARegion *ar, rcti *scirct)
 
 void ED_region_pixelspace(ARegion *ar)
 {
-	int width  = BLI_RCT_SIZE_X(&ar->winrct) + 1;
-	int height = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
+	int width  = BLI_rcti_size_x(&ar->winrct) + 1;
+	int height = BLI_rcti_size_y(&ar->winrct) + 1;
 	
 	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
 	glLoadIdentity();
@@ -901,10 +901,10 @@ static void region_azone_add(ScrArea *sa, ARegion *ar, int alignment)
 static int rct_fits(rcti *rect, char dir, int size)
 {
 	if (dir == 'h') {
-		return BLI_RCT_SIZE_X(rect) - size;
+		return BLI_rcti_size_x(rect) - size;
 	}
 	else {  /* 'v' */
-		return BLI_RCT_SIZE_Y(rect) - size;
+		return BLI_rcti_size_y(rect) - size;
 	}
 }
 
@@ -1010,7 +1010,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		
 		if (alignment == RGN_ALIGN_HSPLIT) {
 			if (rct_fits(remainder, 'h', prefsizex) > 4) {
-				ar->winrct.xmax = BLI_RCT_CENTER_X(remainder);
+				ar->winrct.xmax = BLI_rcti_cent_x(remainder);
 				remainder->xmin = ar->winrct.xmax + 1;
 			}
 			else {
@@ -1019,7 +1019,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		}
 		else {
 			if (rct_fits(remainder, 'v', prefsizey) > 4) {
-				ar->winrct.ymax = BLI_RCT_CENTER_Y(remainder);
+				ar->winrct.ymax = BLI_rcti_cent_y(remainder);
 				remainder->ymin = ar->winrct.ymax + 1;
 			}
 			else {
@@ -1051,20 +1051,20 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		}
 		if (quad) {
 			if (quad == 1) { /* left bottom */
-				ar->winrct.xmax = BLI_RCT_CENTER_X(remainder);
-				ar->winrct.ymax = BLI_RCT_CENTER_Y(remainder);
+				ar->winrct.xmax = BLI_rcti_cent_x(remainder);
+				ar->winrct.ymax = BLI_rcti_cent_y(remainder);
 			}
 			else if (quad == 2) { /* left top */
-				ar->winrct.xmax = BLI_RCT_CENTER_X(remainder);
-				ar->winrct.ymin = BLI_RCT_CENTER_Y(remainder) + 1;
+				ar->winrct.xmax = BLI_rcti_cent_x(remainder);
+				ar->winrct.ymin = BLI_rcti_cent_y(remainder) + 1;
 			}
 			else if (quad == 3) { /* right bottom */
-				ar->winrct.xmin = BLI_RCT_CENTER_X(remainder) + 1;
-				ar->winrct.ymax = BLI_RCT_CENTER_Y(remainder);
+				ar->winrct.xmin = BLI_rcti_cent_x(remainder) + 1;
+				ar->winrct.ymax = BLI_rcti_cent_y(remainder);
 			}
 			else {  /* right top */
-				ar->winrct.xmin = BLI_RCT_CENTER_X(remainder) + 1;
-				ar->winrct.ymin = BLI_RCT_CENTER_Y(remainder) + 1;
+				ar->winrct.xmin = BLI_rcti_cent_x(remainder) + 1;
+				ar->winrct.ymin = BLI_rcti_cent_y(remainder) + 1;
 				BLI_rcti_init(remainder, 0, 0, 0, 0);
 			}
 
@@ -1073,8 +1073,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	}
 	
 	/* for speedup */
-	ar->winx = BLI_RCT_SIZE_X(&ar->winrct) + 1;
-	ar->winy = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
+	ar->winx = BLI_rcti_size_x(&ar->winrct) + 1;
+	ar->winy = BLI_rcti_size_y(&ar->winrct) + 1;
 	
 	/* set winrect for azones */
 	if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
@@ -1096,8 +1096,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	if (ar->alignment & RGN_SPLIT_PREV) {
 		if (ar->prev) {
 			remainder = remainder_prev;
-			ar->prev->winx = BLI_RCT_SIZE_X(&ar->prev->winrct) + 1;
-			ar->prev->winy = BLI_RCT_SIZE_Y(&ar->prev->winrct) + 1;
+			ar->prev->winx = BLI_rcti_size_x(&ar->prev->winrct) + 1;
+			ar->prev->winy = BLI_rcti_size_y(&ar->prev->winrct) + 1;
 		}
 	}
 	
@@ -1133,8 +1133,8 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 	else sa->totrct.ymax = sa->v2->vec.y;
 	
 	/* for speedup */
-	sa->winx = BLI_RCT_SIZE_X(&sa->totrct) + 1;
-	sa->winy = BLI_RCT_SIZE_Y(&sa->totrct) + 1;
+	sa->winx = BLI_rcti_size_x(&sa->totrct) + 1;
+	sa->winy = BLI_rcti_size_y(&sa->totrct) + 1;
 }
 
 
@@ -1268,8 +1268,8 @@ void ED_region_init(bContext *C, ARegion *ar)
 	/* refresh can be called before window opened */
 	region_subwindow(CTX_wm_window(C), ar);
 	
-	ar->winx = BLI_RCT_SIZE_X(&ar->winrct) + 1;
-	ar->winy = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
+	ar->winx = BLI_rcti_size_x(&ar->winrct) + 1;
+	ar->winy = BLI_rcti_size_y(&ar->winrct) + 1;
 	
 	/* UI convention */
 	wmOrtho2(-0.01f, ar->winx - 0.01f, -0.01f, ar->winy - 0.01f);
@@ -1574,7 +1574,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		newcontext = UI_view2d_tab_set(v2d, contextnr);
 
 	if (vertical) {
-		w = BLI_RCT_SIZE_X(&v2d->cur);
+		w = BLI_rctf_size_x(&v2d->cur);
 		em = (ar->type->prefsizex) ? UI_UNIT_Y / 2 : UI_UNIT_Y;
 	}
 	else {
@@ -1769,7 +1769,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	}
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, BLI_RCT_SIZE_Y(&ar->v2d.tot));
+	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, BLI_rctf_size_y(&ar->v2d.tot));
 
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
@@ -1798,16 +1798,16 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 	/* background box */
 	rect = ar->winrct;
 	rect.xmin = 0;
-	rect.ymin = BLI_RCT_SIZE_Y(&ar->winrct) - header_height;
+	rect.ymin = BLI_rcti_size_y(&ar->winrct) - header_height;
 
 	if (block) {
-		rect.xmax = BLI_RCT_SIZE_X(&ar->winrct);
+		rect.xmax = BLI_rcti_size_x(&ar->winrct);
 	}
 	else {
 		rect.xmax = rect.xmin + BLF_width(fontid, text) + 24;
 	}
 
-	rect.ymax = BLI_RCT_SIZE_Y(&ar->winrct);
+	rect.ymax = BLI_rcti_size_y(&ar->winrct);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

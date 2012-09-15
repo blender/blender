@@ -473,7 +473,7 @@ extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
 extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */
-extern void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int select);
+extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
 void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const float alpha);
 

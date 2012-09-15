@@ -252,8 +252,8 @@ void BLI_rctf_translate(rctf *rect, float x, float y)
 /* change width & height around the central location */
 void BLI_rcti_resize(rcti *rect, int x, int y)
 {
-	rect->xmin = rect->xmax = BLI_RCT_CENTER_X(rect);
-	rect->ymin = rect->ymax = BLI_RCT_CENTER_Y(rect);
+	rect->xmin = rect->xmax = BLI_rcti_cent_x(rect);
+	rect->ymin = rect->ymax = BLI_rcti_cent_y(rect);
 	rect->xmin -= x / 2;
 	rect->ymin -= y / 2;
 	rect->xmax = rect->xmin + x;
@@ -262,8 +262,8 @@ void BLI_rcti_resize(rcti *rect, int x, int y)
 
 void BLI_rctf_resize(rctf *rect, float x, float y)
 {
-	rect->xmin = rect->xmax = BLI_RCT_CENTER_X(rect);
-	rect->ymin = rect->ymax = BLI_RCT_CENTER_Y(rect);
+	rect->xmin = rect->xmax = BLI_rctf_cent_x(rect);
+	rect->ymin = rect->ymax = BLI_rctf_cent_y(rect);
 	rect->xmin -= x * 0.5f;
 	rect->ymin -= y * 0.5f;
 	rect->xmax = rect->xmin + x;
@@ -366,9 +366,9 @@ int BLI_rcti_isect(const rcti *src1, const rcti *src2, rcti *dest)
 void BLI_rcti_rctf_copy(rcti *dst, const rctf *src)
 {
 	dst->xmin = floorf(src->xmin + 0.5f);
-	dst->xmax = dst->xmin + floorf(BLI_RCT_SIZE_X(src) + 0.5f);
+	dst->xmax = dst->xmin + floorf(BLI_rctf_size_x(src) + 0.5f);
 	dst->ymin = floorf(src->ymin + 0.5f);
-	dst->ymax = dst->ymin + floorf(BLI_RCT_SIZE_Y(src) + 0.5f);
+	dst->ymax = dst->ymin + floorf(BLI_rctf_size_y(src) + 0.5f);
 }
 
 void BLI_rctf_rcti_copy(rctf *dst, const rcti *src)
@@ -382,11 +382,11 @@ void BLI_rctf_rcti_copy(rctf *dst, const rcti *src)
 void print_rctf(const char *str, const rctf *rect)
 {
 	printf("%s: xmin %.3f, xmax %.3f, ymin %.3f, ymax %.3f (%.3fx%.3f)\n", str,
-	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_RCT_SIZE_X(rect), BLI_RCT_SIZE_Y(rect));
+	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_rctf_size_x(rect), BLI_rctf_size_y(rect));
 }
 
 void print_rcti(const char *str, const rcti *rect)
 {
 	printf("%s: xmin %d, xmax %d, ymin %d, ymax %d (%dx%d)\n", str,
-	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_RCT_SIZE_X(rect), BLI_RCT_SIZE_Y(rect));
+	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
 }
