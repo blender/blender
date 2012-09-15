@@ -573,6 +573,14 @@ void OSLCompiler::parameter_vector(const char *name, float3 f)
 {
 }
 
+void OSLCompiler::parameter_point(const char *name, float3 f)
+{
+}
+
+void OSLCompiler::parameter_normal(const char *name, float3 f)
+{
+}
+
 void OSLCompiler::parameter(const char *name, int f)
 {
 }
