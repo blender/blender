@@ -305,17 +305,27 @@ void BKE_object_free(Object *ob)
 		ID *id = ob->data;
 		id->us--;
 		if (id->us == 0) {
-			if (ob->type == OB_MESH) BKE_mesh_unlink(ob->data);
-			else if (ob->type == OB_CURVE) BKE_curve_unlink(ob->data);
-			else if (ob->type == OB_MBALL) BKE_mball_unlink(ob->data);
+			switch (ob->type) {
+				case OB_MESH:
+					BKE_mesh_unlink((Mesh *)id);
+					break;
+				case OB_CURVE:
+					BKE_curve_unlink((Curve *)id);
+					break;
+				case OB_MBALL:
+					BKE_mball_unlink((MetaBall *)id);
+					break;
+			}
 		}
 		ob->data = NULL;
 	}
-	
-	for (a = 0; a < ob->totcol; a++) {
-		if (ob->mat[a]) ob->mat[a]->id.us--;
+
+	if (ob->mat) {
+		for (a = 0; a < ob->totcol; a++) {
+			if (ob->mat[a]) ob->mat[a]->id.us--;
+		}
+		MEM_freeN(ob->mat);
 	}
-	if (ob->mat) MEM_freeN(ob->mat);
 	if (ob->matbits) MEM_freeN(ob->matbits);
 	ob->mat = NULL;
 	ob->matbits = NULL;
@@ -1757,8 +1767,8 @@ static void give_parvert(Object *par, int nr, float vec[3])
 {
 	BMEditMesh *em;
 	int a, count;
-	
-	vec[0] = vec[1] = vec[2] = 0.0f;
+
+	zero_v3(vec);
 	
 	if (par->type == OB_MESH) {
 		Mesh *me = par->data;
@@ -1850,7 +1860,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 				while (a--) {
 					if (count == nr) {
 						found = 1;
-						memcpy(vec, bp->vec, sizeof(float) * 3);
+						copy_v3_v3(vec, bp->vec);
 						break;
 					}
 					count++;
@@ -1875,9 +1885,9 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		while (a--) {
 			if (count == nr) {
 				if (co)
-					memcpy(vec, co, 3 * sizeof(float));
+					copy_v3_v3(vec, co);
 				else
-					memcpy(vec, bp->vec, 3 * sizeof(float));
+					copy_v3_v3(vec, bp->vec);
 				break;
 			}
 			count++;
