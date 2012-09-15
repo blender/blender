@@ -2225,8 +2225,8 @@ static ImBuf *tracking_context_get_frame_ibuf(MovieTrackingContext *context, int
 	return ibuf;
 }
 
-MovieTrackingMarker *tracking_context_get_keyframed_marker(MovieTrackingContext *context, MovieTrackingTrack *track,
-                                                           MovieTrackingMarker *marker)
+static MovieTrackingMarker *tracking_context_get_keyframed_marker(MovieTrackingContext *context, MovieTrackingTrack *track,
+                                                                  MovieTrackingMarker *marker)
 {
 	int a = marker - track->markers;
 	MovieTrackingMarker *marker_keyed = marker;
