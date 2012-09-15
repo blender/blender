@@ -3305,7 +3305,8 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 		draw_em_fancy_edges(em, scene, v3d, me, cageDM, 0, eed_act);
 	}
-	if (em) {
+
+	{
 		draw_em_fancy_verts(scene, v3d, ob, em, cageDM, eve_act, rv3d);
 
 		if (me->drawflag & ME_DRAWNORMALS) {

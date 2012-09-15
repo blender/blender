@@ -79,14 +79,10 @@ void ExecutionSystemHelper::addNode(vector<Node *>& nodes, Node *node)
 
 Node *ExecutionSystemHelper::addNode(vector<Node *>& nodes, bNode *b_node, bool inActiveGroup, bool fast)
 {
-	Node *node;
-	node = Converter::convert(b_node, fast);
+	Node *node = Converter::convert(b_node, fast);
 	node->setIsInActiveGroup(inActiveGroup);
-	if (node != NULL) {
-		addNode(nodes, node);
-		return node;
-	}
-	return NULL;
+	addNode(nodes, node);
+	return node;
 }
 void ExecutionSystemHelper::addOperation(vector<NodeOperation *>& operations, NodeOperation *operation)
 {

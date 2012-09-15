@@ -507,7 +507,7 @@ static void update_tface_color_layer(DerivedMesh *dm)
 					finalCol[i * 4 + j].r = 255;
 				}
 		}
-		else if (tface && mface && set_draw_settings_cached(0, tface, ma, Gtexdraw)) {
+		else if (tface && set_draw_settings_cached(0, tface, ma, Gtexdraw)) {
 			for (j = 0; j < 4; j++) {
 				finalCol[i * 4 + j].b = 255;
 				finalCol[i * 4 + j].g = 0;
