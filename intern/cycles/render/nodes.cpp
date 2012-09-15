@@ -1021,7 +1021,7 @@ void NormalNode::compile(SVMCompiler& compiler)
 
 void NormalNode::compile(OSLCompiler& compiler)
 {
-	compiler.parameter_vector("Direction", direction);
+	compiler.parameter_normal("Direction", direction);
 	compiler.add(this, "node_normal");
 }
 

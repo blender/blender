@@ -589,6 +589,38 @@ void OSLCompiler::parameter(const char *name, const Transform& tfm)
 {
 }
 
+void OSLCompiler::parameter_array(const char *name, const float f[], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_color_array(const char *name, const float f[][3], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_vector_array(const char *name, const float f[][3], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_normal_array(const char *name, const float f[][3], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_point_array(const char *name, const float f[][3], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_array(const char *name, const int f[], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_array(const char *name, const char * const s[], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_array(const char *name, const Transform tfm[], int arraylen)
+{
+}
+
 #endif /* WITH_OSL */
 
 CCL_NAMESPACE_END
