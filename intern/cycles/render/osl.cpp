@@ -154,13 +154,42 @@ string OSLCompiler::id(ShaderNode *node)
 	return stream.str();
 }
 
-string OSLCompiler::compatible_name(const char *name)
+string OSLCompiler::compatible_name(ShaderNode *node, ShaderInput *input)
 {
-	string sname = name;
+	string sname(input->name);
 	size_t i;
 
+	/* strip whitespace */
 	while((i = sname.find(" ")) != string::npos)
 		sname.replace(i, 1, "");
+	
+	/* if output exists with the same name, add "In" suffix */
+	foreach(ShaderOutput *output, node->outputs) {
+		if (strcmp(input->name, output->name)==0) {
+			sname += "In";
+			break;
+		}
+	}
+	
+	return sname;
+}
+
+string OSLCompiler::compatible_name(ShaderNode *node, ShaderOutput *output)
+{
+	string sname(output->name);
+	size_t i;
+
+	/* strip whitespace */
+	while((i = sname.find(" ")) != string::npos)
+		sname.replace(i, 1, "");
+	
+	/* if output exists with the same name, add "In" suffix */
+	foreach(ShaderInput *input, node->inputs) {
+		if (strcmp(input->name, output->name)==0) {
+			sname += "Out";
+			break;
+		}
+	}
 	
 	return sname;
 }
@@ -198,21 +227,22 @@ void OSLCompiler::add(ShaderNode *node, const char *name)
 			else if(input->default_value != ShaderInput::NONE)
 				continue;
 
+			string param_name = compatible_name(node, input);
 			switch(input->type) {
 				case SHADER_SOCKET_COLOR:
-					parameter_color(compatible_name(input->name).c_str(), input->value);
+					parameter_color(param_name.c_str(), input->value);
 					break;
 				case SHADER_SOCKET_POINT:
-					parameter_point(compatible_name(input->name).c_str(), input->value);
+					parameter_point(param_name.c_str(), input->value);
 					break;
 				case SHADER_SOCKET_VECTOR:
-					parameter_vector(compatible_name(input->name).c_str(), input->value);
+					parameter_vector(param_name.c_str(), input->value);
 					break;
 				case SHADER_SOCKET_NORMAL:
-					parameter_normal(compatible_name(input->name).c_str(), input->value);
+					parameter_normal(param_name.c_str(), input->value);
 					break;
 				case SHADER_SOCKET_FLOAT:
-					parameter(compatible_name(input->name).c_str(), input->value.x);
+					parameter(param_name.c_str(), input->value.x);
 					break;
 				case SHADER_SOCKET_CLOSURE:
 					break;
@@ -242,12 +272,8 @@ void OSLCompiler::add(ShaderNode *node, const char *name)
 			/* connect shaders */
 			string id_from = id(input->link->parent);
 			string id_to = id(node);
-			string param_from = compatible_name(input->link->name);
-			string param_to = compatible_name(input->name);
-
-			/* avoid name conflict with same input/output socket name */
-			if(input->link->parent->input(input->link->name))
-				param_from += "_";
+			string param_from = compatible_name(input->link->parent, input->link);
+			string param_to = compatible_name(node, input);
 
 			ss->ConnectShaders(id_from.c_str(), param_from.c_str(), id_to.c_str(), param_to.c_str());
 		}
