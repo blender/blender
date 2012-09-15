@@ -73,6 +73,8 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 
 #define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
 
+void customData_mask_layers__print(CustomDataMask mask);
+
 /**
  * Checks if the layer at physical offset \a layer_n (in data->layers) support math
  * the below operations.

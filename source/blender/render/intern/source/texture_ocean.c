@@ -42,6 +42,8 @@
 
 #include "texture.h"
 
+#include "texture_ocean.h"  /* own include */
+
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */

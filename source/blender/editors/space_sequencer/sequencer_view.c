@@ -211,7 +211,7 @@ static int sample_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-int sample_poll(bContext *C)
+static int sample_poll(bContext *C)
 {
 	return BKE_sequencer_editing_get(CTX_data_scene(C), FALSE) != NULL;
 }

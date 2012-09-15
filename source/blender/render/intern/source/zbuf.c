@@ -3476,7 +3476,7 @@ void zbuffer_abuf_shadow(Render *re, LampRen *lar, float winmat[][4], APixstr *A
 /* speed pointer NULL = sky, we clear */
 /* else if either alpha is full or no solid was filled in: copy speed */
 /* else fill in minimum speed */
-void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, intptr_t *rdrect)
+static void add_transp_speed(RenderLayer *rl, int offset, float speed[4], float alpha, intptr_t *rdrect)
 {
 	RenderPass *rpass;
 	
@@ -3525,7 +3525,7 @@ static void add_transp_obindex(RenderLayer *rl, int offset, Object *ob)
 
 /* ONLY OSA! merge all shaderesult samples to one */
 /* target should have been cleared */
-void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
+static void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 {
 	RenderPass *rpass;
 	float weight= 1.0f/((float)R.osa);
@@ -3627,7 +3627,7 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 				
 }
 
-void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alpha)
+static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alpha)
 {
 	RenderPass *rpass;
 	

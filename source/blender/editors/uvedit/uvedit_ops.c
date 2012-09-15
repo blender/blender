@@ -2836,7 +2836,7 @@ static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_PASS_THROUGH;
 }
 
-void UV_OT_select_lasso(wmOperatorType *ot)
+static void UV_OT_select_lasso(wmOperatorType *ot)
 {
 	ot->name = "Lasso Select UV";
 	ot->description = "Select UVs using lasso selection";

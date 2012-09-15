@@ -80,9 +80,9 @@
 /* UNUSED so far, may be enabled later */
 /* #define USE_SMOKE_COLLISION_DM */
 
-#ifdef WITH_SMOKE
-
 #include "smoke_API.h"
+
+#ifdef WITH_SMOKE
 
 #ifdef _WIN32
 #include <time.h>
@@ -148,7 +148,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 
 /* Stubs to use when smoke is disabled */
 struct WTURBULENCE *smoke_turbulence_init(int *UNUSED(res), int UNUSED(amplify), int UNUSED(noisetype)) { return NULL; }
-struct FLUID_3D *smoke_init(int *UNUSED(res), float *UNUSED(p0)) { return NULL; }
+// struct FLUID_3D *smoke_init(int *UNUSED(res), float *UNUSED(p0)) { return NULL; }
 void smoke_free(struct FLUID_3D *UNUSED(fluid)) {}
 float *smoke_get_density(struct FLUID_3D *UNUSED(fluid)) { return NULL; }
 void smoke_turbulence_free(struct WTURBULENCE *UNUSED(wt)) {}

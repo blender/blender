@@ -179,7 +179,7 @@ static DMDrawOption draw_mesh_face_select__drawFaceOptsInv(void *userData, int i
 		return DM_DRAW_OPTION_SKIP;
 }
 
-void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
+static void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 {
 	drawMeshFaceSelect_userData data;
 
@@ -780,8 +780,8 @@ static int compareDrawOptionsEm(void *userData, int cur_index, int next_index)
 	return 1;
 }
 
-void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d,
-                            Object *ob, DerivedMesh *dm, const int draw_flags)
+static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d,
+                                   Object *ob, DerivedMesh *dm, const int draw_flags)
 {
 	Mesh *me = ob->data;
 	

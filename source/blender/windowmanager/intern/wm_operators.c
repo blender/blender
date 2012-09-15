@@ -1693,7 +1693,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 
 /* **************** link/append *************** */
 
-int wm_link_append_poll(bContext *C)
+static int wm_link_append_poll(bContext *C)
 {
 	if (WM_operator_winactive(C)) {
 		/* linking changes active object which is pretty useful in general,

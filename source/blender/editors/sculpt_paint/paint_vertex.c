@@ -257,7 +257,7 @@ static void do_shared_vertex_tesscol(Mesh *me)
 	MEM_freeN(scolmain);
 }
 
-void do_shared_vertexcol(Mesh *me, int do_tessface)
+static void do_shared_vertexcol(Mesh *me, int do_tessface)
 {
 	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_MASK);
 	MPoly *mp;

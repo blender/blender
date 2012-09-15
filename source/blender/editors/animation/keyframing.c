@@ -1086,7 +1086,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
  *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe deletion. These include the quick refresh options.
  */
-short clear_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, short UNUSED(flag))
+static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, short UNUSED(flag))
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	PointerRNA id_ptr, ptr;

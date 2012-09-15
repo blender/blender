@@ -44,6 +44,8 @@
 
 #include "bmesh.h"
 
+#include "intern/bmesh_operators_private.h"  /* own include */
+
 #define HULL_EPSILON_FLT 0.0001f
 /* values above 0.0001 cause errors, see below for details, don't increase
  * without checking against bug [#32027] */
@@ -628,7 +630,7 @@ static void hull_tag_unused(BMesh *bm, BMOperator *op)
 	}
 }
 
-void hull_tag_holes(BMesh *bm, BMOperator *op)
+static void hull_tag_holes(BMesh *bm, BMOperator *op)
 {
 	BMIter iter;
 	BMOIter oiter;

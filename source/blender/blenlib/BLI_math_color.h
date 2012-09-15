@@ -67,6 +67,8 @@ void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv);
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, int colorspace);
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
 void rgb_to_hsv_v(const float rgb[3], float r_hsv[3]);
+void rgb_to_hsl(float r, float g, float b, float *lh, float *ls, float *ll);
+void rgb_to_hsl_v(const float rgb[3], float r_hsl[3]);
 void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *lv);
 void rgb_to_hsv_compat_v(const float rgb[3], float r_hsv[3]);
 void rgb_to_lab(float r, float g, float b, float *ll, float *la, float *lb);

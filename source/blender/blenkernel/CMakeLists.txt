@@ -44,6 +44,7 @@ set(INC
 	../../../intern/mikktspace
 	../../../intern/opennl/extern
 	../../../intern/raskter
+	../../../intern/smoke/extern
 
 	# XXX - BAD LEVEL CALL WM_api.h
 	../windowmanager
@@ -342,9 +343,6 @@ if(WITH_MOD_FLUID)
 endif()
 
 if(WITH_MOD_SMOKE)
-	list(APPEND INC
-		../../../intern/smoke/extern
-	)
 	add_definitions(-DWITH_SMOKE)
 endif()
 

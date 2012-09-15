@@ -589,11 +589,7 @@ static void switch_endian_bh8(BHead8 *bhead)
 static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, int do_endian_swap)
 {
 	BHead4 *bhead4 = (BHead4 *) bhead;
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-	__int64 old;
-#else
-	long long old;
-#endif
+	int64_t old;
 
 	bhead4->code = bhead8->code;
 	bhead4->len = bhead8->len;
@@ -5455,7 +5451,7 @@ static void lib_link_clipboard_restore(Main *newmain)
 /* called from kernel/blender.c */
 /* used to link a file (without UI) to the current UI */
 /* note that it assumes the old pointers in UI are still valid, so old Main is not freed */
-void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
+void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 {
 	wmWindow *win;
 	wmWindowManager *wm;
@@ -6700,7 +6696,7 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
 	}
 }
 
-void do_versions_image_settings_2_60(Scene *sce)
+static void do_versions_image_settings_2_60(Scene *sce)
 {
 	/* note: rd->subimtype is moved into individual settings now and no longer
 	 * exists */

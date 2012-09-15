@@ -253,9 +253,9 @@ void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 }
 
 
-void maskrasterize_spline_differentiate_point_outset(float (*diff_feather_points)[2], float (*diff_points)[2],
-                                                     const unsigned int tot_diff_point, const float ofs,
-                                                     const short do_test)
+static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather_points)[2], float (*diff_points)[2],
+                                                            const unsigned int tot_diff_point, const float ofs,
+                                                            const short do_test)
 {
 	unsigned int k_prev = tot_diff_point - 2;
 	unsigned int k_curr = tot_diff_point - 1;

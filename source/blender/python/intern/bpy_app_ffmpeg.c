@@ -26,11 +26,8 @@
 
 #include <Python.h>
 #include "BLI_utildefines.h"
-#include "BLI_callbacks.h"
 
-#include "RNA_types.h"
-#include "RNA_access.h"
-#include "bpy_rna.h"
+#include "bpy_app_ffmpeg.h"
 
 #ifdef WITH_FFMPEG
 #include <libavcodec/avcodec.h>

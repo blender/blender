@@ -130,7 +130,7 @@ static void find_nearest_tracking_segment_cb(void *userdata, MovieTrackingTrack 
 	copy_v2_v2(data->prev_co, co);
 }
 
-void find_nearest_tracking_segment_end_cb(void *userdata)
+static void find_nearest_tracking_segment_end_cb(void *userdata)
 {
 	MouseSelectUserData *data = userdata;
 

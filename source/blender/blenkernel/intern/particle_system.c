@@ -3776,7 +3776,7 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
  * simulation. This should be called once per particle during a simulation
  * step, after the velocity has been updated. element_size defines the scale of
  * the simulation, and is typically the distance to neighbourning particles. */
-void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
+static void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
 	float dtime, SPHData *sphdata)
 {
 	float relative_vel[3];
@@ -3788,8 +3788,7 @@ void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
 		sim->courant_num = speed * dtime / sphdata->element_size;
 }
 /* Update time step size to suit current conditions. */
-float update_timestep(ParticleSystem *psys, ParticleSimulationData *sim,
-	float t_frac)
+static float update_timestep(ParticleSystem *psys, ParticleSimulationData *sim, float t_frac)
 {
 	if (sim->courant_num == 0.0f)
 		psys->dt_frac = 1.0f;

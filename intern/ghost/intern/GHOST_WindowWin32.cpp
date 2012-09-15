@@ -20,20 +20,13 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Maarten Gribnau.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file ghost/intern/GHOST_WindowWin32.cpp
  *  \ingroup GHOST
- */
-
-
-/**
- * Copyright (C) 2001 NaN Technologies B.V.
- * \author	Maarten Gribnau
- * \date	May 10, 2001
  */
 
 #include <string.h>
@@ -50,7 +43,7 @@
 
 // MSVC6 still doesn't define M_PI
 #ifndef M_PI
-#define M_PI 3.1415926536
+#  define M_PI 3.1415926536
 #endif
 
 // Some more multisample defines
@@ -58,14 +51,14 @@
 #define WGL_SAMPLES_ARB         0x2042
 
 // win64 doesn't define GWL_USERDATA
-#ifdef WIN32
-#ifndef GWL_USERDATA
-#define GWL_USERDATA GWLP_USERDATA
-#define GWL_WNDPROC GWLP_WNDPROC
-#endif
+#ifdef WIN32  /* why? - probably should remove */
+#  ifndef GWL_USERDATA
+#    define GWL_USERDATA GWLP_USERDATA
+#    define GWL_WNDPROC GWLP_WNDPROC
+#  endif
 #endif
 
-wchar_t *GHOST_WindowWin32::s_windowClassName = L"GHOST_WindowClass";
+const wchar_t *GHOST_WindowWin32::s_windowClassName = L"GHOST_WindowClass";
 const int GHOST_WindowWin32::s_maxTitleLength = 128;
 HGLRC GHOST_WindowWin32::s_firsthGLRc = NULL;
 HDC GHOST_WindowWin32::s_firstHDC = NULL;
@@ -149,7 +142,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_tablet(0),
 	m_maxPressure(0),
 	m_multisample(numOfAASamples),
-	m_parentWindowHwnd(parentwindowhwnd),
 	m_multisampleEnabled(msEnabled),
 	m_msPixelFormat(msPixelFormat),
 	//For recreation
@@ -160,7 +152,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_height(height),
 	m_normal_state(GHOST_kWindowStateNormal),
 	m_stereo(stereoVisual),
-	m_nextWindow(NULL)
+	m_nextWindow(NULL),
+	m_parentWindowHwnd(parentwindowhwnd)
 {
 	OSVERSIONINFOEX versionInfo;
 	bool hasMinVersionForTaskbar = false;
@@ -1208,6 +1201,7 @@ static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 	return ch;
 }
 
+#if 0  /* UNUSED */
 /** Reverse the bits in a GHOST_TUns16 */
 static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 {
@@ -1217,6 +1211,7 @@ static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 	shrt = ((shrt >> 8) & 0x00FF) | ((shrt << 8) & 0xFF00);
 	return shrt;
 }
+#endif
 GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2],
                                                              GHOST_TUns8 mask[16][2],
                                                              int hotX, int hotY)

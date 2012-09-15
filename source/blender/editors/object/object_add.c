@@ -198,7 +198,7 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
 
 /********************* Add Object Operator ********************/
 
-void view_align_update(struct Main *UNUSED(main), struct Scene *UNUSED(scene), struct PointerRNA *ptr)
+static void view_align_update(struct Main *UNUSED(main), struct Scene *UNUSED(scene), struct PointerRNA *ptr)
 {
 	RNA_struct_idprops_unset(ptr, "rotation");
 }

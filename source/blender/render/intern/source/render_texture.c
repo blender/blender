@@ -83,6 +83,8 @@
 
 #include "renderdatabase.h" /* needed for UV */
 
+#include "RE_render_ext.h"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
 /* only to be used here in this file, it's for speed */
@@ -1260,18 +1262,19 @@ int multitex_nodes(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, 
 }
 
 /* this is called for surface shading */
-int multitex_mtex(ShadeInput *shi, MTex *mtex, float *texvec, float *dxt, float *dyt, TexResult *texres)
+static int multitex_mtex(ShadeInput *shi, MTex *mtex, float *texvec, float *dxt, float *dyt, TexResult *texres)
 {
-	Tex *tex= mtex->tex;
+	Tex *tex = mtex->tex;
 
 	if (tex->use_nodes && tex->nodetree) {
 		/* stupid exception here .. but we have to pass shi and mtex to
 		 * textures nodes for 2d mapping and color management for images */
 		return ntreeTexExecTree(tex->nodetree, texres, texvec, dxt, dyt, shi->osatex, shi->thread,
-			tex, mtex->which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0, shi, mtex);
+		                        tex, mtex->which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0, shi, mtex);
 	}
-	else
+	else {
 		return multitex(mtex->tex, texvec, dxt, dyt, shi->osatex, texres, shi->thread, mtex->which_output);
+	}
 }
 
 /* Warning, if the texres's values are not declared zero, check the return value to be sure

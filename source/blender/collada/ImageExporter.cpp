@@ -74,6 +74,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 
 		short image_source = image->source;
 		bool  is_generated = image_source == IMA_SRC_GENERATED;
+		bool  is_packed    = image->packedfile != NULL;
 
 		char export_path[FILE_MAX];
 		char source_path[FILE_MAX];
@@ -83,7 +84,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 		// Destination folder for exported assets
 		BLI_split_dir_part(this->export_settings->filepath, export_dir, sizeof(export_dir));
 
-		if (is_generated || is_dirty || use_copies) {
+		if (is_generated || is_dirty || use_copies || is_packed) {
 
 			// make absolute destination path
 
@@ -96,7 +97,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 			BLI_make_existing_file(export_path);
 		}
 
-		if (is_generated || is_dirty) {
+		if (is_generated || is_dirty || is_packed) {
 
 			// This image in its current state only exists in Blender memory.
 			// So we have to export it. The export will keep the image state intact,

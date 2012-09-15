@@ -94,7 +94,7 @@ static void tracking_segment_point_cb(void *UNUSED(userdata), MovieTrackingTrack
 	glVertex2f(scene_framenr, val);
 }
 
-void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track, int coord)
+static void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track, int coord)
 {
 	static float colors[2][3] = {{1.0f, 0.0f, 0.0f},
 	                             {0.0f, 1.0f, 0.0f}};
@@ -116,7 +116,7 @@ void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track, int co
 	glBegin(GL_LINE_STRIP);
 }
 
-void tracking_segment_end_cb(void *UNUSED(userdata))
+static void tracking_segment_end_cb(void *UNUSED(userdata))
 {
 	glEnd();
 

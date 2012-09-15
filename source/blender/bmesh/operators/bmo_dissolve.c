@@ -484,7 +484,7 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 /* multiply vertex edge angle by face angle
  * this means we are not left with sharp corners between _almost_ planer faces
  * convert angles [0-PI/2] -> [0-1], multiply together, then convert back to radians. */
-float bm_vert_edge_face_angle(BMVert *v)
+static float bm_vert_edge_face_angle(BMVert *v)
 {
 	const float angle = BM_vert_calc_edge_angle(v);
 	/* note: could be either edge, it doesn't matter */
