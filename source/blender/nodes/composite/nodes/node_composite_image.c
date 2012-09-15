@@ -282,6 +282,8 @@ static void cmp_node_image_update(bNodeTree *ntree, bNode *node)
 		cmp_node_image_verify_outputs(ntree, node);
 }
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* float buffer from the image with matching color management */
 float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 {
@@ -321,8 +323,6 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 
 	return rect;
 }
-
-#ifdef WITH_COMPOSITOR_LEGACY
 
 /* note: this function is used for multilayer too, to ensure uniform 
  * handling with BKE_image_get_ibuf() */
