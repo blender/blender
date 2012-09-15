@@ -384,7 +384,7 @@ void DM_ensure_tessface(DerivedMesh *dm)
 		}
 	}
 
-	else if (dm->dirty && DM_DIRTY_TESS_CDLAYERS) {
+	else if (dm->dirty & DM_DIRTY_TESS_CDLAYERS) {
 		BLI_assert(CustomData_has_layer(&dm->faceData, CD_POLYINDEX));
 		DM_update_tessface_data(dm);
 	}
