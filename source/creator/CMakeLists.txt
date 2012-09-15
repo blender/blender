@@ -301,6 +301,15 @@ if(WITH_INTERNATIONAL)
 	)
 endif()
 
+# color management
+if(WITH_OPENCOLORIO)
+	install(
+		DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/colormanagement
+		DESTINATION ${TARGETDIR_VER}/datafiles
+		PATTERN ".svn" EXCLUDE
+	)
+endif()
+
 # helpful tip when using make
 if("${CMAKE_GENERATOR}" MATCHES ".*Makefiles.*")
 	# message after building.
@@ -636,6 +645,17 @@ elseif(WIN32)
 		endif()
 	endif()
 
+	if(WITH_OPENCOLORIO)
+		if(NOT MINGW)
+			set_lib_path(OCIOBIN "opencolorio/bin")
+			install(
+				FILES
+					${OCIOBIN}/OpenColorIO.dll
+				DESTINATION ${TARGETDIR}
+			)
+		endif()
+	endif()
+
 elseif(APPLE)
 
 	# handy install macro to exclude files, we use \$ escape for the "to"
@@ -907,6 +927,7 @@ endif()
 		cycles_util
 		cycles_subd
 		bf_intern_raskter
+		bf_intern_opencolorio
 	)
 
 	if(WITH_COMPOSITOR)

@@ -41,6 +41,7 @@
 extern "C" {
 #endif
 
+#include "DNA_color_types.h"  /* color management */
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
@@ -273,6 +274,9 @@ typedef struct ImageFormatData {
 
 	char pad[7];
 
+	/* color management */
+	ColorManagedViewSettings view_settings;
+	ColorManagedDisplaySettings display_settings;
 } ImageFormatData;
 
 
@@ -1133,6 +1137,11 @@ typedef struct Scene {
 
 	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by BKE_object_handle_update() */
 	uint64_t customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
+
+	/* Color Management */
+	ColorManagedViewSettings view_settings;
+	ColorManagedDisplaySettings display_settings;
+	ColorManagedColorspaceSettings sequencer_colorspace_settings;
 } Scene;
 
 
@@ -1254,7 +1263,7 @@ typedef struct Scene {
 #define R_ALPHAKEY		2
 
 /* color_mgt_flag */
-#define R_COLOR_MANAGEMENT              (1 << 0)
+#define R_COLOR_MANAGEMENT              (1 << 0)  /* deprecated, should only be used in versioning code only */
 #define R_COLOR_MANAGEMENT_PREDIVIDE    (1 << 1)
 
 /* subimtype, flag options for imtype */

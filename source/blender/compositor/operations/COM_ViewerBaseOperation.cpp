@@ -34,6 +34,7 @@ extern "C" {
 	#include "MEM_guardedalloc.h"
 	#include "IMB_imbuf.h"
 	#include "IMB_imbuf_types.h"
+	#include "IMB_colormanagement.h"
 }
 
 
@@ -43,10 +44,10 @@ ViewerBaseOperation::ViewerBaseOperation() : NodeOperation()
 	this->setImageUser(NULL);
 	this->m_outputBuffer = NULL;
 	this->m_depthBuffer = NULL;
-	this->m_outputBufferDisplay = NULL;
 	this->m_active = false;
-	this->m_doColorManagement = true;
 	this->m_doDepthBuffer = false;
+	this->m_viewSettings = NULL;
+	this->m_displaySettings = NULL;
 }
 
 void ViewerBaseOperation::initExecution()
@@ -60,7 +61,7 @@ void ViewerBaseOperation::initImage()
 {
 	Image *anImage = this->m_image;
 	ImBuf *ibuf = BKE_image_acquire_ibuf(anImage, this->m_imageUser, &this->m_lock);
-	
+
 	if (!ibuf) return;
 	BLI_lock_thread(LOCK_DRAW_IMAGE);
 	if (ibuf->x != (int)getWidth() || ibuf->y != (int)getHeight()) {
@@ -70,30 +71,44 @@ void ViewerBaseOperation::initImage()
 		IMB_freezbuffloatImBuf(ibuf);
 		ibuf->x = getWidth();
 		ibuf->y = getHeight();
-		imb_addrectImBuf(ibuf);
 		imb_addrectfloatImBuf(ibuf);
 		anImage->ok = IMA_OK_LOADED;
 
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+
+		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 	}
+
 	if (m_doDepthBuffer) 
 	{
 		addzbuffloatImBuf(ibuf);
 	}
 	BLI_unlock_thread(LOCK_DRAW_IMAGE);
-	
-	
+
 	/* now we combine the input with ibuf */
 	this->m_outputBuffer = ibuf->rect_float;
-	this->m_outputBufferDisplay = (unsigned char *)ibuf->rect;
+
+	/* needed for display buffer update
+	 *
+	 * no need to lock / reference the image buffer because it's seems
+	 * to be the single place which changes buffers of viewer image
+	 * which is this node
+	 */
+	this->m_ibuf = ibuf;
+
 	if (m_doDepthBuffer)
 	{
 		this->m_depthBuffer = ibuf->zbuf_float;
 	}
-	
+
 	BKE_image_release_ibuf(this->m_image, this->m_lock);
 }
 void ViewerBaseOperation:: updateImage(rcti *rect)
 {
+	IMB_partial_display_buffer_update(this->m_ibuf, this->m_outputBuffer, NULL, getWidth(), 0, 0,
+	                                  this->m_viewSettings, this->m_displaySettings,
+	                                  rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+
 	WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
 }
 

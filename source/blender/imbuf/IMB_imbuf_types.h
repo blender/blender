@@ -101,7 +101,6 @@ typedef struct ImBuf {
 
 	/* parameters used by conversion between byte and float */
 	float dither;				/* random dither value, for conversion from float -> byte rect */
-	short profile;				/* color space/profile preset that the byte rect buffer represents */
 
 	/* mipmapping */
 	struct ImBuf *mipmap[IB_MIPMAP_LEVELS]; /* MipMap levels, a series of halved images */
@@ -127,6 +126,12 @@ typedef struct ImBuf {
 	unsigned int   encodedsize;       /* Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /* Size of encodedbuffer */
 
+	/* color management */
+	struct ColorSpace *rect_colorspace;          /* color space of byte buffer */
+	struct ColorSpace *float_colorspace;         /* color space of float buffer, used by sequencer only */
+	unsigned int *display_buffer_flags;          /* array of per-display display buffers dirty flags */
+	struct ColormanageCache *colormanage_cache;  /* cache used by color management */
+
 	/* information for compressed textures */
 	struct DDSData dds_data;
 } ImBuf;
@@ -136,10 +141,11 @@ typedef struct ImBuf {
  * \brief userflags: Flags used internally by blender for imagebuffers
  */
 
-#define IB_BITMAPFONT		(1 << 0)	/* this image is a font */
-#define IB_BITMAPDIRTY		(1 << 1)	/* image needs to be saved is not the same as filename */
-#define IB_MIPMAP_INVALID	(1 << 2)	/* image mipmaps are invalid, need recreate */
-#define IB_RECT_INVALID		(1 << 3)    /* float buffer changed, needs recreation of byte rect */
+#define IB_BITMAPFONT			(1 << 0)	/* this image is a font */
+#define IB_BITMAPDIRTY			(1 << 1)	/* image needs to be saved is not the same as filename */
+#define IB_MIPMAP_INVALID		(1 << 2)	/* image mipmaps are invalid, need recreate */
+#define IB_RECT_INVALID			(1 << 3)	/* float buffer changed, needs recreation of byte rect */
+#define IB_DISPLAY_BUFFER_INVALID	(1 << 4)	/* either float or byte buffer changed, need to re-calculate display buffers */
 
 /**
  * \name Imbuf Component flags

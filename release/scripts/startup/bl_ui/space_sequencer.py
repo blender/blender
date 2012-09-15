@@ -884,6 +884,8 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
         strip = act_strip(context)
         sequencer = context.scene.sequence_editor
 
+        layout.prop(strip, "use_linear_modifiers")
+
         layout.operator_menu_enum("sequencer.strip_modifier_add", "type")
 
         for mod in strip.modifiers:

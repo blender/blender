@@ -389,8 +389,12 @@ void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
 
 int GPU_material_do_color_management(GPUMaterial *mat)
 {
-	return ((mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) &&
-	   !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT)));
+	/* OCIO_TODO: for now assume scene always does color management. probably could be
+	 *            improved in the future to support real display transform
+	 *            also probably we'll need to get rid ofgame engine's color management flag
+	 */
+
+	return !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT));
 }
 
 static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **lv, GPUNodeLink **dist)

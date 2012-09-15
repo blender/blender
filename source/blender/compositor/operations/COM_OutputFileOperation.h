@@ -28,6 +28,8 @@
 #include "BLI_rect.h"
 #include "BLI_path_util.h"
 
+#include "DNA_color_types.h"
+
 #include "intern/openexr/openexr_multi.h"
 
 /* Writes the image to a single-layer file. */
@@ -43,8 +45,11 @@ private:
 	DataType m_datatype;
 	SocketReader *m_imageInput;
 
+	const ColorManagedViewSettings *m_viewSettings;
+	const ColorManagedDisplaySettings *m_displaySettings;
 public:
-	OutputSingleLayerOperation(const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path);
+	OutputSingleLayerOperation(const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path,
+	                           const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
 	
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	bool isOutputOperation(bool rendering) const { return true; }

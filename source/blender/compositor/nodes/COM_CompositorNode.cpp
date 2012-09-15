@@ -45,5 +45,5 @@ void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	alphaSocket->relinkConnections(compositorOperation->getInputSocket(1));
 	depthSocket->relinkConnections(compositorOperation->getInputSocket(2));
 	graph->addOperation(compositorOperation);
-	addPreviewOperation(graph, compositorOperation->getInputSocket(0));
+	addPreviewOperation(graph, context, compositorOperation->getInputSocket(0));
 }

@@ -42,6 +42,9 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_filetype.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 typedef struct {
 	unsigned short  imagic;      /* stuff saved on disk . . */
 	unsigned short  type;
@@ -247,7 +250,7 @@ int imb_is_a_iris(unsigned char *mem)
  *
  */
 
-struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
+struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	unsigned int *base, *lptr = NULL;
 	float *fbase, *fptr = NULL;
@@ -264,6 +267,9 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 	(void)size; /* unused */
 	
 	if (!imb_is_a_iris(mem)) return NULL;
+
+	/* OCIO_TODO: only tested with 1 byte per pixel, not sure how to test with other settings */
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
 	/*printf("new iris\n");*/
 	
@@ -523,7 +529,6 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 	}
 
 	ibuf->ftype = IMAGIC;
-	ibuf->profile = IB_PROFILE_SRGB;
 
 	test_endian_zbuf(ibuf);
 

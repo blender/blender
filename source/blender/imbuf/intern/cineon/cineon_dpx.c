@@ -44,6 +44,9 @@
 #include "IMB_imbuf.h"
 #include "IMB_filetype.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 #include "BKE_global.h"
 
 #include "MEM_guardedalloc.h"
@@ -63,7 +66,7 @@ static void cineon_conversion_parameters(LogImageByteConversionParameters *param
 }
 #endif
 
-static ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, int flags)
+static ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	ImBuf *ibuf;
 	LogImageFile *image;
@@ -71,6 +74,8 @@ static ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, 
 	unsigned short *row, *upix;
 	int width, height, depth;
 	float *frow;
+
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 
 	logImageSetVerbose((G.debug & G_DEBUG) ? 1:0);
 	
@@ -202,10 +207,10 @@ int imb_is_cineon(unsigned char *buf)
 	return cineonIsMemFileCineon(buf);
 }
 
-ImBuf *imb_loadcineon(unsigned char *mem, size_t size, int flags)
+ImBuf *imb_loadcineon(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	if (imb_is_cineon(mem))
-		return imb_load_dpx_cineon(mem, 1, size, flags);
+		return imb_load_dpx_cineon(mem, 1, size, flags, colorspace);
 	return NULL;
 }
 
@@ -219,9 +224,9 @@ int imb_is_dpx(unsigned char *buf)
 	return dpxIsMemFileCineon(buf);
 }
 
-ImBuf *imb_loaddpx(unsigned char *mem, size_t size, int flags)
+ImBuf *imb_loaddpx(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	if (imb_is_dpx(mem))
-		return imb_load_dpx_cineon(mem, 0, size, flags);
+		return imb_load_dpx_cineon(mem, 0, size, flags, colorspace);
 	return NULL;
 }

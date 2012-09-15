@@ -316,10 +316,7 @@ class RENDER_PT_shading(RenderButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rd, "use_raytrace", text="Ray Tracing")
-        col.prop(rd, "use_color_management")
-        sub = col.row()
-        sub.active = rd.use_color_management == True
-        sub.prop(rd, "use_color_unpremultiply")
+        col.prop(rd, "use_color_unpremultiply")
         col.prop(rd, "alpha_mode", text="Alpha")
 
 
@@ -467,7 +464,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         flow.prop(rd, "use_placeholder")
         flow.prop(rd, "use_file_extension")
 
-        layout.template_image_settings(image_settings)
+        layout.template_image_settings(image_settings, color_management=False)
 
         if file_format == 'QUICKTIME_CARBON':
             layout.operator("scene.render_data_set_quicktime_codec")

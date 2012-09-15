@@ -50,6 +50,7 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.h"
 
 #include "intern/openexr/openexr_multi.h"
 
@@ -1081,16 +1082,12 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd)
 	/* float factor for random dither, imbuf takes care of it */
 	ibuf->dither = rd->dither_intensity;
 	
-	/* prepare to gamma correct to sRGB color space */
-	if (rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
-		/* sequence editor can generate 8bpc render buffers */
-		if (ibuf->rect) {
-			ibuf->profile = IB_PROFILE_SRGB;
-			if (BKE_imtype_valid_depths(rd->im_format.imtype) & (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32))
-				IMB_float_from_rect(ibuf);
-		}
-		else {
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
+	/* prepare to gamma correct to sRGB color space
+	 * note that sequence editor can generate 8bpc render buffers
+	 */
+	if (ibuf->rect) {
+		if (BKE_imtype_valid_depths(rd->im_format.imtype) & (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32)) {
+			IMB_float_from_rect(ibuf);
 		}
 	}
 
@@ -1106,22 +1103,14 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd)
 	return ibuf;
 }
 
-void render_result_rect_from_ibuf(RenderResult *rr, RenderData *rd, ImBuf *ibuf)
+void render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), ImBuf *ibuf)
 {
 	if (ibuf->rect_float) {
-		/* color management: when off ensure rectf is non-lin, since thats what the internal
-		 * render engine delivers */
-		int profile_to = (rd->color_mgt_flag & R_COLOR_MANAGEMENT) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_SRGB;
-		int profile_from = (ibuf->profile == IB_PROFILE_LINEAR_RGB) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_SRGB;
-		int predivide = (rd->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
-
 		if (!rr->rectf)
 			rr->rectf = MEM_mallocN(4 * sizeof(float) * rr->rectx * rr->recty, "render_seq rectf");
 		
-		IMB_buffer_float_from_float(rr->rectf, ibuf->rect_float,
-		                            4, profile_to, profile_from, predivide,
-		                            rr->rectx, rr->recty, rr->rectx, rr->rectx);
-		
+		memcpy(rr->rectf, ibuf->rect_float, 4 * sizeof(float) * rr->rectx * rr->recty);
+
 		/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
 		 * can hang around when sequence render has rendered a 32 bits one before */
 		if (rr->rect32) {
@@ -1153,19 +1142,17 @@ void render_result_rect_fill_zero(RenderResult *rr)
 		rr->rect32 = MEM_callocN(sizeof(int) * rr->rectx * rr->recty, "render_seq rect");
 }
 
-void render_result_rect_get_pixels(RenderResult *rr, RenderData *rd, unsigned int *rect, int rectx, int recty)
+void render_result_rect_get_pixels(RenderResult *rr, RenderData *rd, unsigned int *rect, int rectx, int recty,
+                                   const ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
 {
 	if (rr->rect32) {
 		memcpy(rect, rr->rect32, sizeof(int) * rr->rectx * rr->recty);
 	}
 	else if (rr->rectf) {
-		int profile_from = (rd->color_mgt_flag & R_COLOR_MANAGEMENT) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_SRGB;
 		int predivide = (rd->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
-		int dither = 0;
 
-		IMB_buffer_byte_from_float((unsigned char *)rect, rr->rectf,
-		                           4, dither, IB_PROFILE_SRGB, profile_from, predivide,
-		                           rr->rectx, rr->recty, rr->rectx, rr->rectx);
+		IMB_display_buffer_transform_apply((unsigned char *) rect, rr->rectf, rr->rectx, rr->recty, 4,
+		                                   view_settings, display_settings, predivide);
 	}
 	else
 		/* else fill with black */

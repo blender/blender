@@ -66,6 +66,8 @@
 
 #include "ED_screen.h"
 
+#include "IMB_colormanagement.h"
+
 #include "interface_intern.h"
 
 #define MENU_SEPR_HEIGHT    6
@@ -1893,11 +1895,15 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3])
 {
 	uiBut *bt;
 	float *hsv = ui_block_hsv_get(block);
+	struct ColorManagedDisplay *display = NULL;
 	
 	/* this is to keep the H and S value when V is equal to zero
 	 * and we are working in HSV mode, of course!
 	 */
 	rgb_to_hsv_compat_v(rgb, hsv);
+
+	if (block->color_profile)
+		display = ui_block_display_get(block);
 	
 	/* this updates button strings, is hackish... but button pointers are on stack of caller function */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
@@ -1913,12 +1919,11 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3])
 			
 			/* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
 			
-			if (block->color_profile == BLI_PR_NONE) {
-				copy_v3_v3(rgb_gamma, rgb);
-			}
-			else {
-				/* make an sRGB version, for Hex code */
-				linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
+			copy_v3_v3(rgb_gamma, rgb);
+
+			if (display) {
+				/* make a display version, for Hex code */
+				IMB_colormanagement_scene_linear_to_display_v3(rgb_gamma, display);
 			}
 			
 			if (rgb_gamma[0] > 1.0f) rgb_gamma[0] = modf(rgb_gamma[0], &intpart);
@@ -1997,9 +2002,9 @@ static void do_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexcl)
 	hex_to_rgb(hexcol, rgb, rgb + 1, rgb + 2);
 	
 	/* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
-	if (but->block->color_profile != BLI_PR_NONE) {
+	if (but->block->color_profile) {
 		/* so we need to linearise it for Blender */
-		srgb_to_linearrgb_v3_v3(rgb, rgb);
+		ui_block_to_scene_linear_v3(but->block, rgb);
 	}
 	
 	ui_update_block_buts_rgb(but->block, rgb);
@@ -2107,14 +2112,16 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	
 	/* existence of profile means storage is in linear color space, with display correction */
 	/* XXX That tip message is not use anywhere! */
-	if (block->color_profile == BLI_PR_NONE) {
+	if (!block->color_profile) {
 		BLI_strncpy(tip, N_("Value in Display Color Space"), sizeof(tip));
 		copy_v3_v3(rgb_gamma, rgba);
 	}
 	else {
 		BLI_strncpy(tip, N_("Value in Linear RGB Color Space"), sizeof(tip));
-		/* make an sRGB version, for Hex code */
-		linearrgb_to_srgb_v3_v3(rgb_gamma, rgba);
+
+		/* make a display version, for Hex code */
+		copy_v3_v3(rgb_gamma, rgba);
+		ui_block_to_display_space_v3(block, rgb_gamma);
 	}
 	
 	/* sneaky way to check for alpha */
@@ -2239,7 +2246,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 	
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
-			block->color_profile = BLI_PR_NONE;
+			block->color_profile = FALSE;
 		}
 	}
 	

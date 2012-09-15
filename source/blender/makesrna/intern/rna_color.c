@@ -34,24 +34,30 @@
 #include "DNA_color_types.h"
 #include "DNA_texture_types.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #include "RNA_access.h"
 
+#include "DNA_image_types.h"
 #include "DNA_material_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
+#include "BKE_image.h"
+#include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "ED_node.h"
+
+#include "IMB_colormanagement.h"
 
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {
@@ -335,6 +341,154 @@ static void rna_Scopes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointer
 {
 	Scopes *s = (Scopes *)ptr->data;
 	s->ok = 0;
+}
+
+static int rna_ColorManagedDisplaySettings_display_device_get(struct PointerRNA *ptr)
+{
+	ColorManagedDisplaySettings *display = (ColorManagedDisplaySettings *) ptr->data;
+
+	return IMB_colormanagement_display_get_named_index(display->display_device);
+}
+
+static void rna_ColorManagedDisplaySettings_display_device_set(struct PointerRNA *ptr, int value)
+{
+	ColorManagedDisplaySettings *display = (ColorManagedDisplaySettings *) ptr->data;
+	const char *name = IMB_colormanagement_display_get_indexed_name(value);
+
+	if (name) {
+		BLI_strncpy(display->display_device, name, sizeof(display->display_device));
+	}
+}
+
+static EnumPropertyItem *rna_ColorManagedDisplaySettings_display_device_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	EnumPropertyItem *items = NULL;
+	int totitem = 0;
+
+	IMB_colormanagement_display_items_add(&items, &totitem);
+	RNA_enum_item_end(&items, &totitem);
+
+	*free = TRUE;
+
+	return items;
+}
+
+static void rna_ColorManagedDisplaySettings_display_device_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+
+	if (GS(id->name) == ID_SCE) {
+		Scene *scene = (Scene *) id;
+
+		IMB_colormanagement_validate_settings(&scene->display_settings, &scene->view_settings);
+
+		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+	}
+}
+
+static int rna_ColorManagedViewSettings_view_transform_get(PointerRNA *ptr)
+{
+	ColorManagedViewSettings *view = (ColorManagedViewSettings *) ptr->data;
+
+	return IMB_colormanagement_view_get_named_index(view->view_transform);
+}
+
+static void rna_ColorManagedViewSettings_view_transform_set(PointerRNA *ptr, int value)
+{
+	ColorManagedViewSettings *view = (ColorManagedViewSettings *) ptr->data;
+
+	const char *name = IMB_colormanagement_view_get_indexed_name(value);
+
+	if (name) {
+		BLI_strncpy(view->view_transform, name, sizeof(view->view_transform));
+	}
+}
+
+static EnumPropertyItem* rna_ColorManagedViewSettings_view_transform_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	Scene *scene = CTX_data_scene(C);
+	EnumPropertyItem *items = NULL;
+	ColorManagedDisplaySettings *display_settings = &scene->display_settings;
+	int totitem = 0;
+
+	IMB_colormanagement_view_items_add(&items, &totitem, display_settings->display_device);
+	RNA_enum_item_end(&items, &totitem);
+
+	*free = TRUE;
+	return items;
+}
+
+static void rna_ColorManagedViewSettings_use_curves_set(PointerRNA *ptr, int value)
+{
+	ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *) ptr->data;
+
+	if (value) {
+		view_settings->flag |= COLORMANAGE_VIEW_USE_CURVES;
+
+		if (view_settings->curve_mapping == NULL) {
+			view_settings->curve_mapping = curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+		}
+	}
+	else {
+		view_settings->flag &= ~COLORMANAGE_VIEW_USE_CURVES;
+	}
+}
+
+static int rna_ColorManagedColorspaceSettings_colorspace_get(struct PointerRNA *ptr)
+{
+	ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *) ptr->data;
+
+	return IMB_colormanagement_colorspace_get_named_index(colorspace->name);
+}
+
+static void rna_ColorManagedColorspaceSettings_colorspace_set(struct PointerRNA *ptr, int value)
+{
+	ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *) ptr->data;
+	const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
+
+	if (name) {
+		BLI_strncpy(colorspace->name, name, sizeof(colorspace->name));
+	}
+}
+
+static EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	EnumPropertyItem *items = NULL;
+	int totitem = 0;
+
+	IMB_colormanagement_colorspace_items_add(&items, &totitem);
+	RNA_enum_item_end(&items, &totitem);
+
+	*free = TRUE;
+
+	return items;
+}
+
+static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+
+	if (GS(id->name) == ID_IM) {
+		Image *ima = (Image *) id;
+
+		BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+		WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
+	}
+	else if (GS(id->name) == ID_MC) {
+		MovieClip *clip = (MovieClip *) id;
+
+		BKE_movieclip_reload(clip);
+		WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
+	}
+}
+
+static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+
+	if (GS(id->name) == ID_SCE) {
+		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+	}
 }
 
 /* this function only exists because #curvemap_evaluateF uses a 'const' qualifier */
@@ -682,6 +836,87 @@ static void rna_def_scopes(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vectorscope Opacity", "Opacity of the points");
 }
 
+static void rna_def_colormanage(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem display_device_items[] = {
+		{0, "DEFAULT", 0, "Default", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem view_transform_items[] = {
+		{0, "NONE", 0, "None", "Do not perform any color transform on display, use old non-color managed technique for display"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem color_space_items[] = {
+		{0, "NONE", 0, "None", "Do not perform any color transform on load, treat colors as in scene linear space already"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* ** Display Settings  **  */
+	srna = RNA_def_struct(brna, "ColorManagedDisplaySettings", NULL);
+	RNA_def_struct_ui_text(srna, "ColorManagedDisplaySettings", "Color management specific to display device");
+
+	prop= RNA_def_property(srna, "display_device", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, display_device_items);
+	RNA_def_property_enum_funcs(prop, "rna_ColorManagedDisplaySettings_display_device_get",
+	                                  "rna_ColorManagedDisplaySettings_display_device_set",
+	                                  "rna_ColorManagedDisplaySettings_display_device_itemf");
+	RNA_def_property_ui_text(prop, "Display Device", "Display device name");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedDisplaySettings_display_device_update");
+
+	/* ** View Settings  **  */
+	srna = RNA_def_struct(brna, "ColorManagedViewSettings", NULL);
+	RNA_def_struct_ui_text(srna, "ColorManagedViewSettings", "Color management settings used for displaying images on the display");
+
+	prop= RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, view_transform_items);
+	RNA_def_property_enum_funcs(prop, "rna_ColorManagedViewSettings_view_transform_get",
+	                                  "rna_ColorManagedViewSettings_view_transform_set",
+	                                  "rna_ColorManagedViewSettings_view_transform_itemf");
+	RNA_def_property_ui_text(prop, "View Transform", "View used ");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+	prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "exposure");
+	RNA_def_property_range(prop, -10.0f, 10.0f);
+	RNA_def_property_float_default(prop, 0.0f);
+	RNA_def_property_ui_text(prop, "Exposure", "Exposure (stops) applied before display transform");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "gamma");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_range(prop, 0.0f, 5.0f);
+	RNA_def_property_ui_text(prop, "Gamma", "Amount of gamma modification applied after display transform");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+	prop = RNA_def_property(srna, "curve_mapping", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "curve_mapping");
+	RNA_def_property_ui_text(prop, "Curve", "Color curve mapping applied before display transform");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+	prop = RNA_def_property(srna, "use_curve_mapping", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLORMANAGE_VIEW_USE_CURVES);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_ColorManagedViewSettings_use_curves_set");
+	RNA_def_property_ui_text(prop, "Use Curves", "Use RGB curved for pre-display transformation");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+	/* ** Colorspace **  */
+	srna = RNA_def_struct(brna, "ColorManagedColorspaceSettings", NULL);
+	RNA_def_struct_ui_text(srna, "ColorManagedColorspaceSettings", "Input color space settings");
+
+	prop= RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, color_space_items);
+	RNA_def_property_enum_funcs(prop, "rna_ColorManagedColorspaceSettings_colorspace_get",
+	                                  "rna_ColorManagedColorspaceSettings_colorspace_set",
+	                                  "rna_ColorManagedColorspaceSettings_colorspace_itemf");
+	RNA_def_property_ui_text(prop, "Color Space", "Input color space name");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
+}
 
 void RNA_def_color(BlenderRNA *brna)
 {
@@ -692,6 +927,7 @@ void RNA_def_color(BlenderRNA *brna)
 	rna_def_color_ramp(brna);
 	rna_def_histogram(brna);
 	rna_def_scopes(brna);
+	rna_def_colormanage(brna);
 }
 
 #endif

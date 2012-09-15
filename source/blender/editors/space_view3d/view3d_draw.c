@@ -69,6 +69,7 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_colormanagement.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -2375,7 +2376,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		mult_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, FALSE);
+		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, FALSE, FALSE);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
 		v3d->drawtype = drawtype;
@@ -2514,7 +2515,7 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
                               int winx, int winy, float viewmat[][4], float winmat[][4],
-                              int do_bgpic)
+                              int do_bgpic, int colormanage_background)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
@@ -2553,10 +2554,25 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	/* set background color, fallback on the view background color
 	 * (if active clip is set but frame is failed to load fallback to horizon color as background) */
 	if (scene->world) {
-		if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+		/* NOTE: currently OpenGL is supposed to always work in sRGB space and do not
+		 *       apply any tonemaps since it's really tricky to support for all features (GLSL, textures, etc)
+		 *       but due to compatibility issues background is being affected display transform, so we can
+		 *       emulate behavior of disabled colro management
+		 *       but this function is also used for sequencer's scene strips which shouldn't be affected by
+		 *       tonemaps now and should be purely sRGB, that's why we've got this colormanage_background
+		 *       we can drop this flag in cost of some compatibility loss -- background wouldn't be
+		 *       color managed in 3d viewport
+		 *       same goes to opengl rendering, where color profile should be applied as very final step
+		 */
+
+		if (colormanage_background) {
+			IMB_colormanagement_pixel_to_display_space_v3(backcol, &scene->world->horr, &scene->view_settings,
+			                                              &scene->display_settings);
+		}
+		else {
 			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
-		else
-			copy_v3_v3(backcol, &scene->world->horr);
+		}
+
 		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
 	}
 	else {
@@ -2661,7 +2677,8 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 
 /* utility func for ED_view3d_draw_offscreen */
 ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
-                                      int sizex, int sizey, unsigned int flag, int draw_background, char err_out[256])
+                                      int sizex, int sizey, unsigned int flag, int draw_background,
+                                      int colormanage_background, char err_out[256])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ImBuf *ibuf;
@@ -2686,10 +2703,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 		BKE_camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
 		BKE_camera_params_compute_matrix(&params);
 
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background, colormanage_background);
 	}
 	else {
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL, draw_background);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL, draw_background, colormanage_background);
 	}
 
 	/* read in pixels & stamp */
@@ -2714,7 +2731,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 
 /* creates own 3d views, used by the sequencer */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height,
-                                             unsigned int flag, int drawtype, int draw_background, char err_out[256])
+                                             unsigned int flag, int drawtype, int draw_background,
+                                             int colormanage_background, char err_out[256])
 {
 	View3D v3d = {NULL};
 	ARegion ar = {NULL};
@@ -2753,7 +2771,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	mult_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag, draw_background, err_out);
+	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag,
+	                                      draw_background, colormanage_background, err_out);
 
 	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
 }
@@ -2936,10 +2955,9 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 	/* clear background */
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) && scene->world) {
-		if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
-		else
-			copy_v3_v3(backcol, &scene->world->horr);
+		IMB_colormanagement_pixel_to_display_space_v3(backcol, &scene->world->horr, &scene->view_settings,
+		                                              &scene->display_settings);
+
 		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
 	}
 	else
@@ -3162,6 +3180,17 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	const char *grid_unit = NULL;
 	int draw_border = (rv3d->persp == RV3D_CAMOB && (scene->r.mode & R_BORDER));
+
+	/* --- until we get a clue and make viewport threadsafe (temp mango change for stability) */
+	if (G.is_rendering) {
+		ED_region_pixelspace(ar);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		UI_ThemeClearColor(TH_BACK);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		BLF_draw_default(10,10,0, "do do da da.. da da.. da da.. can't touch this!   it's render time", 512);
+		return;
+	}
+	/* --- end temp mango change */
 
 	/* draw viewport using opengl */
 	if (v3d->drawtype != OB_RENDER || !view3d_main_area_do_render_draw(C) || draw_border) {

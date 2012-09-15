@@ -31,6 +31,9 @@
  *  \ingroup bke
  */
 
+struct ColorManagedColorspaceSettings;
+struct ColorManagedDisplaySettings;
+struct ColorManagedViewSettings;
 struct CurveMapping;
 struct CurveMap;
 struct CurveMapPoint;
@@ -89,9 +92,25 @@ void                curvemapping_do_ibuf(struct CurveMapping *cumap, struct ImBu
 void                curvemapping_premultiply(struct CurveMapping *cumap, int restore);
 
 
-void                BKE_histogram_update_sample_line(struct Histogram *hist, struct ImBuf *ibuf, const short use_color_management);
-void                scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, int use_color_management);
+void                BKE_histogram_update_sample_line(struct Histogram *hist, struct ImBuf *ibuf,
+                                                     const struct ColorManagedViewSettings *view_settings,
+                                                     const struct ColorManagedDisplaySettings *display_settings);
+void                scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
+                                  const struct ColorManagedDisplaySettings *display_settings);
 void                scopes_free(struct Scopes *scopes);
 void                scopes_new(struct Scopes *scopes);
+
+void BKE_color_managed_display_settings_init(struct ColorManagedDisplaySettings *settings);
+void BKE_color_managed_display_settings_copy(struct ColorManagedDisplaySettings *new_settings,
+                                             const struct ColorManagedDisplaySettings *settings);
+
+void BKE_color_managed_view_settings_init(struct ColorManagedViewSettings *settings);
+void BKE_color_managed_view_settings_copy(struct ColorManagedViewSettings *new_settings,
+                                          const struct ColorManagedViewSettings *settings);
+void BKE_color_managed_view_settings_free(struct ColorManagedViewSettings *settings);
+
+void BKE_color_managed_colorspace_settings_init(struct ColorManagedColorspaceSettings *colorspace_settings);
+void BKE_color_managed_colorspace_settings_copy(struct ColorManagedColorspaceSettings *colorspace_settings,
+                                                const struct ColorManagedColorspaceSettings *settings);
 
 #endif

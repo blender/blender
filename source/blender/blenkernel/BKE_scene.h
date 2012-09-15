@@ -108,6 +108,8 @@ float get_render_aosss_error(struct RenderData *r, float error);
 
 int BKE_scene_use_new_shading_nodes(struct Scene *scene);
 
+void BKE_scene_disable_color_management(struct Scene *scene);
+
 #ifdef __cplusplus
 }
 #endif

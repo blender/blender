@@ -2119,6 +2119,13 @@ static void write_sequence_modifiers(WriteData *wd, ListBase *modbase)
 	}
 }
 
+static void write_view_settings(WriteData *wd, ColorManagedViewSettings *view_settings)
+{
+	if (view_settings->curve_mapping) {
+		write_curvemapping(wd, view_settings->curve_mapping);
+	}
+}
+
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
 	Scene *sce;
@@ -2261,7 +2268,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			writestruct(wd, DATA, "bNodeTree", 1, sce->nodetree);
 			write_nodetree(wd, sce->nodetree);
 		}
-		
+
+		write_view_settings(wd, &sce->view_settings);
+
 		sce= sce->id.next;
 	}
 	/* flush helps the compression for undo-save */

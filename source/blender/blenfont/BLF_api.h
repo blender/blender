@@ -33,6 +33,7 @@
 #define __BLF_API_H__
 
 struct rctf;
+struct ColorManagedDisplay;
 
 int BLF_init(int points, int dpi);
 void BLF_exit(void);
@@ -151,7 +152,7 @@ void BLF_shadow_offset(int fontid, int x, int y);
  *
  *     BLF_buffer(NULL, NULL, 0, 0, 0, FALSE);
  */
-void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch, int do_color_management);
+void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch, struct ColorManagedDisplay *display);
 
 /* Set the color to be used for text. */
 void BLF_buffer_col(int fontid, float r, float g, float b, float a);

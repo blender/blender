@@ -30,6 +30,7 @@ set(INC
 	../blenlib
 	../blenloader
 	../makesdna
+	../makesrna
 	../../../intern/guardedalloc
 	../../../intern/memutil
 )
@@ -45,6 +46,7 @@ set(SRC
 	intern/anim_movie.c
 	intern/bmp.c
 	intern/cache.c
+	intern/colormanagement.c
 	intern/divers.c
 	intern/filetype.c
 	intern/filter.c
@@ -67,6 +69,7 @@ set(SRC
 	intern/util.c
 	intern/writeimage.c
 
+	IMB_colormanagement.h
 	IMB_imbuf.h
 	IMB_imbuf_types.h
 	IMB_moviecache.h
@@ -179,6 +182,10 @@ if(WITH_IMAGE_HDR)
 	)
 	add_definitions(-DWITH_HDR)
 endif()
+
+list(APPEND INC
+	../../../intern/opencolorio
+)
 
 if(WIN32)
 	list(APPEND INC

@@ -389,7 +389,7 @@ void filelist_init_icons(void)
 #ifdef WITH_HEADLESS
 	bbuf = NULL;
 #else
-	bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_prvicons_png, datatoc_prvicons_png_size, IB_rect, "<splash>");
+	bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_prvicons_png, datatoc_prvicons_png_size, IB_rect, NULL, "<splash>");
 #endif
 	if (bbuf) {
 		for (y = 0; y < SPECIAL_IMG_ROWS; y++) {

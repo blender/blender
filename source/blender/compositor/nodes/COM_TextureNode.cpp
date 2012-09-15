@@ -40,7 +40,7 @@ void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext
 	operation->setTexture(texture);
 	operation->setRenderData(context->getRenderData());
 	system->addOperation(operation);
-	addPreviewOperation(system, operation->getOutputSocket());
+	addPreviewOperation(system, context, operation->getOutputSocket());
 
 	if (this->getOutputSocket(0)->isConnected()) {
 		TextureAlphaOperation *alphaOperation = new TextureAlphaOperation();

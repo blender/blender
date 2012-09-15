@@ -61,6 +61,7 @@
 #include "ED_object.h"
 
 #include "RE_pipeline.h"
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -78,7 +79,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 {
 	float *rectf = NULL;
 	int ymin, ymax, xmin, xmax;
-	int rymin, rxmin, predivide, profile_from;
+	int rymin, rxmin;
 	unsigned char *rectc;
 
 	/* if renrect argument, we only refresh scanlines */
@@ -138,18 +139,9 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	rectf += 4 * (rr->rectx * ymin + xmin);
 	rectc = (unsigned char *)(ibuf->rect + ibuf->x * rymin + rxmin);
 
-	if (scene && (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
-		profile_from = IB_PROFILE_LINEAR_RGB;
-		predivide = (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
-	}
-	else {
-		profile_from = IB_PROFILE_SRGB;
-		predivide = 0;
-	}
-
-	IMB_buffer_byte_from_float(rectc, rectf,
-	                           4, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,
-	                           xmax, ymax, ibuf->x, rr->rectx);
+	IMB_partial_display_buffer_update(ibuf, rectf, NULL, rr->rectx, rxmin, rymin,
+	                                  &scene->view_settings, &scene->display_settings,
+	                                  rxmin, rymin, rxmin + xmax, rymin + ymax);
 }
 
 /* ****************************** render invoking ***************** */

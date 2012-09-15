@@ -1433,6 +1433,11 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_channel_set", NULL); /* overlap test */
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
+	prop = RNA_def_property(srna, "use_linear_modifiers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_LINEAR_MODIFIERS);
+	RNA_def_property_ui_text(prop, "Use Linear Modifiers", "Calculate modifiers in linear space instead of sequencer's space");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+
 	/* blending */
 
 	prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);

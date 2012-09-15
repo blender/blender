@@ -70,6 +70,8 @@
 #ifndef __IMB_IMBUF_H__
 #define __IMB_IMBUF_H__
 
+#define IM_MAX_SPACE 64
+
 /**
  *
  * \attention defined in ???
@@ -82,6 +84,8 @@ struct ImBuf;
  */
 struct anim;
 
+struct ColorManagedDisplay;
+
 /**
  *
  * \attention Defined in allocimbuf.c
@@ -93,20 +97,19 @@ void IMB_exit(void);
  *
  * \attention Defined in readimage.c
  */
-struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size,
-                                    int flags, const char *descr);
+struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
 
 /**
  *
  * \attention Defined in readimage.c
  */
-struct ImBuf *IMB_testiffname(const char *filepath, int flags);
+struct ImBuf *IMB_testiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
 
 /**
  *
  * \attention Defined in readimage.c
  */
-struct ImBuf *IMB_loadiffname(const char *filepath, int flags);
+struct ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
 
 /**
  *
@@ -245,7 +248,7 @@ int IMB_anim_get_fps(struct anim * anim,
  *
  * \attention Defined in anim_movie.c
  */
-struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex);
+struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex, char colorspace[IM_MAX_SPACE]);
 void IMB_close_anim(struct anim *anim);
 void IMB_close_anim_proxies(struct anim *anim);
 
@@ -372,7 +375,6 @@ void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y
 void IMB_float_from_rect(struct ImBuf *ibuf);
 void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
 /* note, check that the conversion exists, only some are supported */
-void IMB_convert_profile(struct ImBuf *ibuf, int profile);
 float *IMB_float_profile_ensure(struct ImBuf *ibuf, int profile, int *alloc);
 void IMB_color_to_bw(struct ImBuf *ibuf);
 void IMB_saturation(struct ImBuf *ibuf, float sat);
@@ -417,7 +419,7 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *col, flo
  *
  * \attention defined in readimage.c
  */  
-struct ImBuf *IMB_loadifffile(int file, int flags, const char *descr);
+struct ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
 
 /**
  *
@@ -478,12 +480,12 @@ void IMB_freezbuffloatImBuf(struct ImBuf *ibuf);
  * \attention Defined in rectop.c
  */
 void IMB_rectfill(struct ImBuf *drect, const float col[4]);
-void IMB_rectfill_area(struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2);
+void IMB_rectfill_area(struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2, struct ColorManagedDisplay *display);
 void IMB_rectfill_alpha(struct ImBuf *ibuf, const float value);
 
 /* this should not be here, really, we needed it for operating on render data, IMB_rectfill_area calls it */
 void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
-                       const float col[4], const int do_color_management,
+                       const float col[4], struct ColorManagedDisplay *display,
                        int x1, int y1, int x2, int y2);
 
 /* defined in metadata.c */

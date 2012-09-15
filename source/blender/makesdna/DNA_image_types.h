@@ -33,6 +33,7 @@
 #define __DNA_IMAGE_TYPES_H__
 
 #include "DNA_ID.h"
+#include "DNA_color_types.h"  /* for color management */
 
 struct PackedFile;
 struct Scene;
@@ -107,6 +108,9 @@ typedef struct Image {
 	
 	/* display aspect - for UV editing images resized for faster openGL display */
 	float aspx, aspy;
+
+	/* color management */
+	ColorManagedColorspaceSettings colorspace_settings;
 } Image;
 
 
@@ -123,6 +127,7 @@ typedef struct Image {
 #define IMA_CM_PREDIVIDE	256
 #define IMA_USED_FOR_RENDER	512
 #define IMA_USER_FRAME_IN_RANGE	1024 /* for image user, but these flags are mixed */
+#define IMA_VIEW_AS_RENDER	2048
 
 /* Image.tpageflag */
 #define IMA_TILES			1

@@ -84,7 +84,7 @@ void ChannelMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	graph->addOperation(operationAlpha);
 
 	addLink(graph, operation->getOutputSocket(), operationAlpha->getInputSocket(1));
-	addPreviewOperation(graph, operationAlpha->getOutputSocket());
+	addPreviewOperation(graph, context, operationAlpha->getOutputSocket());
 
 	if (outputSocketImage->isConnected()) {
 		outputSocketImage->relinkConnections(operationAlpha->getOutputSocket());

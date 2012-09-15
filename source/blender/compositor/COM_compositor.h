@@ -24,6 +24,7 @@
 extern "C" {
  #endif
 
+#include "DNA_color_types.h"
 #include "DNA_node_types.h"
 
 /**
@@ -299,8 +300,20 @@ extern "C" {
  *
  *     - output nodes can have different priorities in the WorkScheduler.
  * This is implemented in the COM_execute function.
+ *
+ * @param viewSettings
+ *   reference to view settings used for color management
+ *
+ * @param displaySettings
+ *   reference to display settings used for color management
+ *
+ * OCIO_TODO: this options only used in rare cases, namely in output file node,
+ *            so probably this settings could be passed in a nicer way.
+ *            should be checked further, probably it'll be also needed for preview
+ *            generation in display space
  */
-void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering);
+void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
+                 const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
 
 /**
  * @brief Deinitialize the compositor caches and allocated memory.

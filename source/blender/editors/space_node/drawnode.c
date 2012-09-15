@@ -63,6 +63,7 @@
 
 #include "UI_resources.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -2023,7 +2024,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	int multilayer = (RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER);
 	
 	node_composit_buts_file_output(layout, C, ptr);
-	uiTemplateImageSettings(layout, &imfptr);
+	uiTemplateImageSettings(layout, &imfptr, TRUE);
 	
 	uiItemS(layout);
 	
@@ -2082,7 +2083,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 			
 			col = uiLayoutColumn(layout, FALSE);
 			uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format") == FALSE);
-			uiTemplateImageSettings(col, &imfptr);
+			uiTemplateImageSettings(col, &imfptr, TRUE);
 		}
 	}
 }
@@ -3051,7 +3052,7 @@ void ED_node_init_butfuncs(void)
 
 /* ************** Generic drawing ************** */
 
-void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
+void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 {
 	
 	if ((snode->flag & SNODE_BACKDRAW) && snode->treetype == NTREE_COMPOSIT) {
@@ -3059,7 +3060,10 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 		void *lock;
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 		if (ibuf) {
+			SpaceNode *snode = CTX_wm_space_node(C);
 			float x, y; 
+			unsigned char *display_buffer;
+			void *cache_handle;
 			
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
@@ -3078,15 +3082,10 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			x = (ar->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
 			y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
 			
-			if (!ibuf->rect) {
-				if (color_manage)
-					ibuf->profile = IB_PROFILE_LINEAR_RGB;
-				else
-					ibuf->profile = IB_PROFILE_NONE;
-				IMB_rect_from_float(ibuf);
-			}
 
-			if (ibuf->rect) {
+			display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+
+			if (display_buffer) {
 				if (snode->flag & (SNODE_SHOW_R | SNODE_SHOW_G | SNODE_SHOW_B)) {
 					int ofs;
 
@@ -3114,7 +3113,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 #ifdef __BIG_ENDIAN__
 					glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
 #endif
-					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT, ibuf->rect);
+					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT, display_buffer);
 
 #ifdef __BIG_ENDIAN__
 					glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
@@ -3126,7 +3125,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glPixelZoom(snode->zoom, snode->zoom);
 					
-					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
 					
 					glPixelZoom(1.0f, 1.0f);
 					glDisable(GL_BLEND);
@@ -3134,11 +3133,13 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 				else {
 					glPixelZoom(snode->zoom, snode->zoom);
 					
-					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
 					
 					glPixelZoom(1.0f, 1.0f);
 				}
 			}
+
+			IMB_display_buffer_release(cache_handle);
 
 			/** @note draw selected info on backdrop */
 			if (snode->edittree) {

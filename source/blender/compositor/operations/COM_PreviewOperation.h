@@ -24,6 +24,7 @@
 #define _COM_PreviewOperation_h
 #include "COM_NodeOperation.h"
 #include "DNA_image_types.h"
+#include "DNA_color_types.h"
 #include "BLI_rect.h"
 
 class PreviewOperation : public NodeOperation {
@@ -37,8 +38,10 @@ protected:
 	SocketReader *m_input;
 	float m_divider;
 
+	const ColorManagedViewSettings *m_viewSettings;
+	const ColorManagedDisplaySettings *m_displaySettings;
 public:
-	PreviewOperation();
+	PreviewOperation(const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
 	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
 	void deinitExecution();

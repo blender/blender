@@ -31,6 +31,8 @@ CompositorContext::CompositorContext()
 	this->m_hasActiveOpenCLDevices = false;
 	this->m_activegNode = NULL;
 	this->m_fastCalculation = false;
+	this->m_viewSettings = NULL;
+	this->m_displaySettings = NULL;
 }
 
 const int CompositorContext::getFramenumber() const
@@ -40,15 +42,5 @@ const int CompositorContext::getFramenumber() const
 	}
 	else {
 		return -1; /* this should never happen */
-	}
-}
-
-const int CompositorContext::isColorManaged() const
-{
-	if (this->m_rd) {
-		return this->m_rd->color_mgt_flag & R_COLOR_MANAGEMENT;
-	}
-	else {
-		return 0; /* this should never happen */
 	}
 }

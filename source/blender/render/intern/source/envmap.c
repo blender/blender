@@ -472,9 +472,6 @@ static void render_envmap(Render *re, EnvMap *env)
 			ibuf = IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect | IB_rectfloat);
 			memcpy(ibuf->rect_float, rl->rectf, ibuf->channels * ibuf->x * ibuf->y * sizeof(float));
 			
-			if (re->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			
 			/* envmap renders without alpha */
 			alpha = ibuf->rect_float + 3;
 			for (y = ibuf->x * ibuf->y - 1; y >= 0; y--, alpha += 4)

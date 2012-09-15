@@ -275,6 +275,18 @@ typedef struct BrightContrastModifierData {
 	float contrast;
 } BrightContrastModifierData;
 
+/* ***************** Scopes ****************** */
+
+typedef struct SequencerScopes {
+	struct ImBuf *reference_ibuf;
+
+	struct ImBuf *zebra_ibuf;
+	struct ImBuf *waveform_ibuf;
+	struct ImBuf *sep_waveform_ibuf;
+	struct ImBuf *vector_ibuf;
+	struct ImBuf *histogram_ibuf;
+} SequencerScopes;
+
 #define MAXSEQ          32
 
 #define SELECT 1
@@ -317,6 +329,7 @@ typedef struct BrightContrastModifierData {
 
 #define SEQ_USE_PROXY_CUSTOM_FILE   (1 << 21)
 #define SEQ_USE_EFFECT_DEFAULT_FADE (1 << 22)
+#define SEQ_USE_LINEAR_MODIFIERS    (1 << 23)
 
 // flags for whether those properties are animated or not
 #define SEQ_AUDIO_VOLUME_ANIMATED   (1 << 24)

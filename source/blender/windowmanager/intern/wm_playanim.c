@@ -281,7 +281,8 @@ static void build_pict_list(char *first, int totframes, int fstep, int fontid)
 	struct anim *anim;
 
 	if (IMB_isanim(first)) {
-		anim = IMB_open_anim(first, IB_rect, 0);
+		/* OCIO_TODO: support different input color space */
+		anim = IMB_open_anim(first, IB_rect, 0, NULL);
 		if (anim) {
 			int pic;
 			ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -380,12 +381,13 @@ static void build_pict_list(char *first, int totframes, int fstep, int fontid)
 			pupdate_time();
 
 			if (ptottime > 1.0) {
+				/* OCIO_TODO: support different input color space */
 				if (picture->mem) {
 					ibuf = IMB_ibImageFromMemory((unsigned char *)picture->mem, picture->size,
-					                             picture->IB_flags, picture->name);
+					                             picture->IB_flags, NULL, picture->name);
 				}
 				else {
-					ibuf = IMB_loadiffname(picture->name, picture->IB_flags);
+					ibuf = IMB_loadiffname(picture->name, picture->IB_flags, NULL);
 				}
 				if (ibuf) {
 					playanim_toscreen(picture, ibuf, fontid);
@@ -826,7 +828,8 @@ void WM_main_playanim(int argc, const char **argv)
 	}
 
 	if (IMB_isanim(filepath)) {
-		anim = IMB_open_anim(filepath, IB_rect, 0);
+		/* OCIO_TODO: support different input color spaces */
+		anim = IMB_open_anim(filepath, IB_rect, 0, NULL);
 		if (anim) {
 			ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
 			IMB_close_anim(anim);
@@ -838,7 +841,8 @@ void WM_main_playanim(int argc, const char **argv)
 	}
 
 	if (ibuf == NULL) {
-		ibuf = IMB_loadiffname(filepath, IB_rect);
+		/* OCIO_TODO: support different input color space */
+		ibuf = IMB_loadiffname(filepath, IB_rect, NULL);
 	}
 
 	if (ibuf == NULL) {
@@ -950,11 +954,13 @@ void WM_main_playanim(int argc, const char **argv)
 				ibuf = IMB_anim_absolute(ps.picture->anim, ps.picture->frame, IMB_TC_NONE, IMB_PROXY_NONE);
 			}
 			else if (ps.picture->mem) {
+				/* use correct colorspace here */
 				ibuf = IMB_ibImageFromMemory((unsigned char *) ps.picture->mem, ps.picture->size,
-				                             ps.picture->IB_flags, ps.picture->name);
+				                             ps.picture->IB_flags, NULL, ps.picture->name);
 			}
 			else {
-				ibuf = IMB_loadiffname(ps.picture->name, ps.picture->IB_flags);
+				/* use correct colorspace here */
+				ibuf = IMB_loadiffname(ps.picture->name, ps.picture->IB_flags, NULL);
 			}
 
 			if (ibuf) {

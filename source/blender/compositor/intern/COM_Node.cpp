@@ -75,12 +75,12 @@ void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket
 	graph->addOperation(operation);
 }
 
-void Node::addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket)
+void Node::addPreviewOperation(ExecutionSystem *system, CompositorContext *context, OutputSocket *outputSocket)
 {
 	if (this->isInActiveGroup()) {
 		if (!(this->getbNode()->flag & NODE_HIDDEN)) { // do not calculate previews of hidden nodes.
 			if (this->getbNode()->flag & NODE_PREVIEW) {
-				PreviewOperation *operation = new PreviewOperation();
+				PreviewOperation *operation = new PreviewOperation(context->getViewSettings(), context->getDisplaySettings());
 				system->addOperation(operation);
 				operation->setbNode(this->getbNode());
 				operation->setbNodeTree(system->getContext().getbNodeTree());
@@ -90,11 +90,11 @@ void Node::addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSock
 	}
 }
 
-void Node::addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket)
+void Node::addPreviewOperation(ExecutionSystem *system, CompositorContext *context, InputSocket *inputSocket)
 {
 	if (inputSocket->isConnected() && this->isInActiveGroup()) {
 		OutputSocket *outputsocket = inputSocket->getConnection()->getFromSocket();
-		this->addPreviewOperation(system, outputsocket);
+		this->addPreviewOperation(system, context, outputsocket);
 	}
 }
 

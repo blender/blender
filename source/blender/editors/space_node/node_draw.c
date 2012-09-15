@@ -1091,8 +1091,6 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 {
 	View2DScrollers *scrollers;
 	SpaceNode *snode = CTX_wm_space_node(C);
-	Scene *scene = CTX_data_scene(C);
-	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	bNodeLinkDrag *nldrag;
 	LinkData *linkdata;
 	
@@ -1118,7 +1116,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	UI_view2d_multi_grid_draw(v2d, 25.0f, 5, 2);
 
 	/* backdrop */
-	draw_nodespace_back_pix(ar, snode, color_manage);
+	draw_nodespace_back_pix(C, ar, snode);
 	
 	/* nodes */
 	snode_set_context(snode, CTX_data_scene(C));

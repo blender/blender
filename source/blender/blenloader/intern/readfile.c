@@ -4900,6 +4900,14 @@ static void direct_link_sequence_modifiers(FileData *fd, ListBase *lb)
 	}
 }
 
+static void direct_link_view_settings(FileData *fd, ColorManagedViewSettings *view_settings)
+{
+	view_settings->curve_mapping = newdataadr(fd, view_settings->curve_mapping);
+
+	if (view_settings->curve_mapping)
+		direct_link_curvemapping(fd, view_settings->curve_mapping);
+}
+
 static void direct_link_scene(FileData *fd, Scene *sce)
 {
 	Editing *ed;
@@ -5077,6 +5085,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->nodetree = newdataadr(fd, sce->nodetree);
 	if (sce->nodetree)
 		direct_link_nodetree(fd, sce->nodetree);
+
+	direct_link_view_settings(fd, &sce->view_settings);
 }
 
 /* ************ READ WM ***************** */
@@ -5290,6 +5300,13 @@ static void lib_link_screen(FileData *fd, Main *main)
 						 * so fingers crossed this works fine!
 						 */
 						sseq->gpd = newlibadr_us(fd, sc->id.lib, sseq->gpd);
+
+						sseq->scopes.reference_ibuf = NULL;
+						sseq->scopes.zebra_ibuf = NULL;
+						sseq->scopes.waveform_ibuf = NULL;
+						sseq->scopes.sep_waveform_ibuf = NULL;
+						sseq->scopes.vector_ibuf = NULL;
+						sseq->scopes.histogram_ibuf = NULL;
 					}
 					else if (sl->spacetype == SPACE_NLA) {
 						SpaceNla *snla= (SpaceNla *)sl;
@@ -7898,6 +7915,47 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 				SEQ_END
+			}
+		}
+	}
+
+	/* color management pipeline changes compatibility code */
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 19)) {
+		Scene *scene;
+		Image *ima;
+		int colormanagement_disabled = FALSE;
+
+		/* make scenes which are not using color management have got None as display device,
+		 * so they wouldn't perform linear-to-sRGB conversion on display
+		 */
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			if ((scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) == 0) {
+				ColorManagedDisplaySettings *display_settings = &scene->display_settings;
+
+				if (display_settings->display_device[0] == 0) {
+					BKE_scene_disable_color_management(scene);
+
+				}
+
+				colormanagement_disabled = TRUE;
+			}
+		}
+
+		for (ima = main->image.first; ima; ima = ima->id.next) {
+			if (ima->source == IMA_SRC_VIEWER) {
+				ima->flag |= IMA_VIEW_AS_RENDER;
+			}
+			else if (colormanagement_disabled) {
+				/* if colormanagement not used, set image's color space to raw, so no sRGB->linear conversion
+				 * would happen on display and render
+				 * there's no clear way to check whether color management is enabled or not in render engine
+				 * so set all images to raw if there's at least one scene with color management disabled
+				 * this would still behave incorrect in cases when color management was used for only some
+				 * of scenes, but such a setup is crazy anyway and think it's fair enough to break compatibility
+				 * in that cases
+				 */
+
+				BLI_strncpy(ima->colorspace_settings.name, "Raw", sizeof(ima->colorspace_settings.name));
 			}
 		}
 	}

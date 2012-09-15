@@ -169,47 +169,6 @@ struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 
 /* ************ panel stuff ************* */
 
-/* is used for both read and write... */
-
-static int image_panel_poll(const bContext *C, PanelType *UNUSED(pt))
-{
-	SpaceImage *sima = CTX_wm_space_image(C);
-	ImBuf *ibuf;
-	void *lock;
-	int result;
-
-	ibuf = ED_space_image_acquire_buffer(sima, &lock);
-	result = ibuf && ibuf->rect_float;
-	ED_space_image_release_buffer(sima, lock);
-	
-	return result;
-}
-
-static void image_panel_curves(const bContext *C, Panel *pa)
-{
-	bScreen *sc = CTX_wm_screen(C);
-	SpaceImage *sima = CTX_wm_space_image(C);
-	ImBuf *ibuf;
-	PointerRNA simaptr;
-	int levels;
-	void *lock;
-	
-	ibuf = ED_space_image_acquire_buffer(sima, &lock);
-	
-	if (ibuf) {
-		if (sima->cumap == NULL)
-			sima->cumap = curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
-
-		/* curvemap black/white levels only works for RGBA */
-		levels = (ibuf->channels == 4);
-
-		RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &simaptr);
-		uiTemplateCurveMapping(pa->layout, &simaptr, "curve", 'c', levels, 0);
-	}
-
-	ED_space_image_release_buffer(sima, lock);
-}
-
 #if 0
 /* 0: disable preview 
  * otherwise refresh preview
@@ -234,6 +193,7 @@ void image_preview_event(int event)
 	}
 	
 	if (exec && G.scene->nodetree) {
+		Scene *scene = G.scene;
 		/* should work when no node editor in screen..., so we execute right away */
 		
 		ntreeCompositTagGenerators(G.scene->nodetree);
@@ -244,7 +204,7 @@ void image_preview_event(int event)
 		
 		BIF_store_spare();
 		
-		ntreeCompositExecTree(G.scene->nodetree, &G.scene->r, 1);   /* 1 is do_previews */
+		ntreeCompositExecTree(scene->nodetree, &scene->r, 1, &scene->view_settings, &scene->display_settings);   /* 1 is do_previews */
 		
 		G.scene->nodetree->timecursor = NULL;
 		G.scene->nodetree->test_break = NULL;
@@ -611,6 +571,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	uiLayout *row, *split, *col;
 	uiBlock *block;
 	char str[128];
+
 	void *lock;
 
 	if (!ptr->data)
@@ -728,7 +689,11 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					uiItemL(layout, str, ICON_NONE);
 				}
 			}
-			
+
+			col = uiLayoutColumn(layout, FALSE);
+			uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
+			uiItemR(col, &imaptr, "view_as_render", 0, NULL, ICON_NONE);
+
 			if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) { /* background image view doesnt need these */
 					uiItemS(layout);
@@ -794,15 +759,18 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	MEM_freeN(cb);
 }
 
-void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
+void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_management)
 {
 	ImageFormatData *imf = imfptr->data;
 	ID *id = imfptr->id.data;
+	PointerRNA display_settings_ptr;
+	PropertyRNA *prop;
 	const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
 	/* some settings depend on this being a scene thats rendered */
 	const short is_render_out = (id && GS(id->name) == ID_SCE);
 
 	uiLayout *col, *row, *split, *sub;
+	int show_preview = FALSE;
 
 	col = uiLayoutColumn(layout, FALSE);
 
@@ -843,6 +811,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 	}
 
 	if (is_render_out && (imf->imtype == R_IMF_IMTYPE_OPENEXR)) {
+		show_preview = TRUE;
 		uiItemR(row, imfptr, "use_preview", 0, NULL, ICON_NONE);
 	}
 
@@ -863,6 +832,22 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 		uiItemR(col, imfptr, "cineon_white", 0, NULL, ICON_NONE);
 		uiItemR(col, imfptr, "cineon_gamma", 0, NULL, ICON_NONE);
 #endif
+	}
+
+	/* color management */
+	if (color_management &&
+	    (!BKE_imtype_supports_float(imf->imtype) ||
+	     (show_preview && imf->flag & R_IMF_FLAG_PREVIEW_JPG)))
+	{
+		prop = RNA_struct_find_property(imfptr, "display_settings");
+		display_settings_ptr = RNA_property_pointer_get(imfptr, prop);
+
+		col = uiLayoutColumn(layout, FALSE);
+		uiItemL(col, IFACE_("Color Management"), ICON_NONE);
+
+		uiItemR(col, &display_settings_ptr, "display_device", 0, NULL, ICON_NONE);
+
+		uiTemplateColormanagedViewSettings(col, NULL, imfptr, "view_settings");
 	}
 }
 
@@ -886,14 +871,6 @@ void image_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt = MEM_callocN(sizeof(PanelType), "spacetype image panel curves");
-	strcpy(pt->idname, "IMAGE_PT_curves");
-	strcpy(pt->label, "Curves");
-	pt->draw = image_panel_curves;
-	pt->poll = image_panel_poll;
-	pt->flag |= PNL_DEFAULT_CLOSED;
-	BLI_addtail(&art->paneltypes, pt);
-	
 	pt = MEM_callocN(sizeof(PanelType), "spacetype image panel gpencil");
 	strcpy(pt->idname, "IMAGE_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");

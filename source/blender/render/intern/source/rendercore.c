@@ -62,6 +62,7 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_colormanagement.h"
 
 /* local include */
 #include "rayintersection.h"
@@ -1993,6 +1994,8 @@ typedef struct BakeShade {
 	float dxco[3], dyco[3];
 
 	short *do_update;
+
+	struct ColorSpace *rect_colorspace;
 } BakeShade;
 
 static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInput *shi, int quad, int UNUSED(isect), int x, int y, float u, float v)
@@ -2168,8 +2171,12 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 	else {
 		unsigned char *col= (unsigned char *)(bs->rect + bs->rectx*y + x);
 
-		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE) && (R.r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
-			linearrgb_to_srgb_uchar3(col, shr.combined);
+		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE)) {
+			float rgb[3];
+
+			copy_v3_v3(rgb, shr.combined);
+			IMB_colormanagement_scene_linear_to_colorspace_v3(rgb, bs->rect_colorspace);
+			rgb_float_to_uchar(col, rgb);
 		}
 		else {
 			rgb_float_to_uchar(col, shr.combined);
@@ -2503,6 +2510,7 @@ static void shade_tface(BakeShade *bs)
 	bs->rectx= bs->ibuf->x;
 	bs->recty= bs->ibuf->y;
 	bs->rect= bs->ibuf->rect;
+	bs->rect_colorspace= bs->ibuf->rect_colorspace;
 	bs->rect_float= bs->ibuf->rect_float;
 	bs->quad= 0;
 	
@@ -2613,8 +2621,6 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		ima->flag&= ~IMA_USED_FOR_RENDER;
 		if (ibuf) {
 			ibuf->userdata = NULL; /* use for masking if needed */
-			if (ibuf->rect_float)
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 		}
 	}
 	

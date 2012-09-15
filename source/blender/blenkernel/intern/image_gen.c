@@ -289,7 +289,11 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 
 	BLF_size(mono, 54, 72); /* hard coded size! */
 
-	BLF_buffer(mono, rect_float, rect, width, height, 4, TRUE);
+	/* OCIO_TODO: using NULL as display will assume using sRGB display
+	 *            this is correct since currently generated images are assumed to be in sRGB space,
+	 *            but this would probably needed to be fixed in some way
+	 */
+	BLF_buffer(mono, rect_float, rect, width, height, 4, NULL);
 
 	for (y = 0; y < height; y += step) {
 		text[1] = '1';

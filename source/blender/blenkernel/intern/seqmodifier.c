@@ -581,6 +581,11 @@ ImBuf *BKE_sequence_modifier_apply_stack(SeqRenderData context, Sequence *seq, I
 	SequenceModifierData *smd;
 	ImBuf *processed_ibuf = ibuf;
 
+	if (seq->modifiers.first && (seq->flag & SEQ_USE_LINEAR_MODIFIERS)) {
+		processed_ibuf = IMB_dupImBuf(ibuf);
+		BKE_sequencer_imbuf_from_sequencer_space(context.scene, processed_ibuf);
+	}
+
 	for (smd = seq->modifiers.first; smd; smd = smd->next) {
 		SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
 
@@ -603,6 +608,10 @@ ImBuf *BKE_sequence_modifier_apply_stack(SeqRenderData context, Sequence *seq, I
 			if (mask)
 				IMB_freeImBuf(mask);
 		}
+	}
+
+	if (seq->modifiers.first && (seq->flag & SEQ_USE_LINEAR_MODIFIERS)) {
+		BKE_sequencer_imbuf_to_sequencer_space(context.scene, processed_ibuf, FALSE);
 	}
 
 	return processed_ibuf;

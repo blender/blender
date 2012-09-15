@@ -1874,7 +1874,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	int color_profile = but->block->color_profile;
 	
 	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-		color_profile = BLI_PR_NONE;
+		color_profile = FALSE;
 	
 	radstep = 2.0f * (float)M_PI / (float)tot;
 	centx = BLI_RCT_CENTER_X_FL(rect);
@@ -1887,17 +1887,20 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	
 	/* color */
 	ui_get_but_vectorf(but, rgb);
-	copy_v3_v3(hsv, ui_block_hsv_get(but->block));
+	/* copy_v3_v3(hsv, ui_block_hsv_get(but->block)); */ /* UNUSED */
+
+	rgb_to_hsv_compat_v(rgb, hsvo);
+
+	if (color_profile)
+		ui_block_to_display_space_v3(but->block, rgb);
+
 	rgb_to_hsv_compat_v(rgb, hsv);
-	copy_v3_v3(hsvo, hsv);
 	
 	/* exception: if 'lock' is set
 	 * lock the value of the color wheel to 1.
 	 * Useful for color correction tools where you're only interested in hue. */
 	if (but->flag & UI_BUT_COLOR_LOCK)
 		hsv[2] = 1.f;
-	else if (color_profile)
-		hsv[2] = linearrgb_to_srgb(hsv[2]);
 	
 	hsv_to_rgb(0.f, 0.f, hsv[2], colcent, colcent + 1, colcent + 2);
 	
@@ -2139,15 +2142,16 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	int color_profile = but->block->color_profile;
 	
 	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-		color_profile = BLI_PR_NONE;
+		color_profile = FALSE;
 
 	ui_get_but_vectorf(but, rgb);
+
+	if (color_profile)
+		ui_block_to_display_space_v3(but->block, rgb);
+
 	rgb_to_hsv_v(rgb, hsv);
 	v = hsv[2];
 	
-	if (color_profile)
-		v = linearrgb_to_srgb(v);
-
 	/* map v from property range to [0,1] */
 	range = but->softmax - but->softmin;
 	v = (v - but->softmin) / range;
@@ -2531,7 +2535,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-			color_profile = BLI_PR_NONE;
+			color_profile = FALSE;
 
 		if (RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4) {
 			col[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
@@ -2559,7 +2563,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	}
 	
 	if (color_profile)
-		linearrgb_to_srgb_v3_v3(col, col);
+		ui_block_to_display_space_v3(but->block, col);
 	
 	rgba_float_to_uchar((unsigned char *)wcol->inner, col);
 

@@ -282,10 +282,12 @@ int ED_view3d_scene_layer_set(int lay, const int *values, int *active);
 
 int ED_view3d_context_activate(struct bContext *C);
 void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct ARegion *ar,
-                              int winx, int winy, float viewmat[][4], float winmat[][4], int do_bgpic);
+                              int winx, int winy, float viewmat[][4], float winmat[][4], int do_bgpic, int colormanage_background);
 
-struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag, int draw_background, char err_out[256]);
-struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Scene *scene, struct Object *camera, int width, int height, unsigned int flag, int drawtype, int draw_background, char err_out[256]);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag,
+                                             int draw_background, int colormanage_background, char err_out[256]);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Scene *scene, struct Object *camera, int width, int height, unsigned int flag, int drawtype,
+                                                    int draw_background, int colormanage_background, char err_out[256]);
 
 
 struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);

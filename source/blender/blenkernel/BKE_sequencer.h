@@ -177,6 +177,16 @@ struct ImBuf *BKE_sequencer_give_ibuf_seqbase(SeqRenderData context, float cfra,
 void BKE_sequencer_give_ibuf_prefetch_request(SeqRenderData context, float cfra, int chan_shown);
 
 /* **********************************************************************
+ * sequencer.c
+ *
+ * sequencer color space functions
+ * ********************************************************************** */
+
+void BKE_sequencer_imbuf_to_sequencer_space(struct Scene *scene, struct ImBuf *ibuf, int make_float);
+void BKE_sequencer_imbuf_from_sequencer_space(struct Scene *scene, struct ImBuf *ibuf);
+void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4]);
+
+/* **********************************************************************
  * sequencer scene functions
  * ********************************************************************** */
 struct Editing  *BKE_sequencer_editing_get(struct Scene *scene, int alloc);
@@ -350,7 +360,7 @@ struct Sequence *BKE_sequencer_add_sound_strip(struct bContext *C, ListBase *seq
 struct Sequence *BKE_sequencer_add_movie_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 
 /* view3d draw callback, run when not in background view */
-typedef struct ImBuf *(*SequencerDrawView)(struct Scene *, struct Object *, int, int, unsigned int, int, int, char[256]);
+typedef struct ImBuf *(*SequencerDrawView)(struct Scene *, struct Object *, int, int, unsigned int, int, int, int, char[256]);
 extern SequencerDrawView sequencer_view3d_cb;
 
 /* copy/paste */

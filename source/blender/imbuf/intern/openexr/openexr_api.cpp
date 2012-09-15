@@ -64,6 +64,9 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include "IMB_allocimbuf.h"
 #include "IMB_metadata.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 #include "openexr_multi.h"
 }
 
@@ -379,30 +382,15 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		else {
 			unsigned char *from;
 
-			if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
-				for (int i = ibuf->y - 1; i >= 0; i--) {
-					from = (unsigned char *)ibuf->rect + channels * i * width;
+			for (int i = ibuf->y - 1; i >= 0; i--) {
+				from = (unsigned char *)ibuf->rect + channels * i * width;
 
-					for (int j = ibuf->x; j > 0; j--) {
-						to->r = (float)(from[0]) / 255.0f;
-						to->g = (float)(from[1]) / 255.0f;
-						to->b = (float)(from[2]) / 255.0f;
-						to->a = (float)(channels >= 4) ? from[3] / 255.0f : 1.0f;
-						to++; from += 4;
-					}
-				}
-			}
-			else {
-				for (int i = ibuf->y - 1; i >= 0; i--) {
-					from = (unsigned char *)ibuf->rect + channels * i * width;
-
-					for (int j = ibuf->x; j > 0; j--) {
-						to->r = srgb_to_linearrgb((float)from[0] / 255.0f);
-						to->g = srgb_to_linearrgb((float)from[1] / 255.0f);
-						to->b = srgb_to_linearrgb((float)from[2] / 255.0f);
-						to->a = channels >= 4 ? (float)from[3] / 255.0f : 1.0f;
-						to++; from += 4;
-					}
+				for (int j = ibuf->x; j > 0; j--) {
+					to->r = srgb_to_linearrgb((float)from[0] / 255.0f);
+					to->g = srgb_to_linearrgb((float)from[1] / 255.0f);
+					to->b = srgb_to_linearrgb((float)from[2] / 255.0f);
+					to->a = channels >= 4 ? (float)from[3] / 255.0f : 1.0f;
+					to++; from += 4;
 				}
 			}
 		}
@@ -1129,12 +1117,14 @@ static int exr_is_multilayer(InputFile *file)
 	return 0;
 }
 
-struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
+struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
 	InputFile *file = NULL;
 
 	if (imb_is_a_openexr(mem) == 0) return(NULL);
+
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 
 	try
 	{
@@ -1163,9 +1153,6 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 
 			ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, 0);
 			ibuf->ftype = OPENEXR;
-
-			/* openEXR is linear as per EXR spec */
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			if (!(flags & IB_test)) {
 				if (is_multi) { /* only enters with IB_multilayer flag set */

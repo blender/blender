@@ -135,8 +135,8 @@ public:
 	 */
 	OutputSocket *findOutputSocketBybNodeSocket(bNodeSocket *socket);
 protected:
-	void addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket);
-	void addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket);
+	void addPreviewOperation(ExecutionSystem *system, CompositorContext *context, InputSocket *inputSocket);
+	void addPreviewOperation(ExecutionSystem *system, CompositorContext *context, OutputSocket *outputSocket);
 	
 	bNodeSocket *getEditorInputSocket(int editorNodeInputSocketIndex);
 	bNodeSocket *getEditorOutputSocket(int editorNodeOutputSocketIndex);

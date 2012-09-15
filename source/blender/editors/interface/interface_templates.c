@@ -2801,3 +2801,56 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 	}
 }
 
+/********************************* Color management *************************************/
+
+void uiTemplateColorspaceSettings(uiLayout *layout, PointerRNA *ptr, const char *propname)
+{
+	PropertyRNA *prop;
+	PointerRNA colorspace_settings_ptr;
+
+	prop = RNA_struct_find_property(ptr, propname);
+
+	if (!prop) {
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	colorspace_settings_ptr = RNA_property_pointer_get(ptr, prop);
+
+	uiItemL(layout, "Color Space:", ICON_NONE);
+	uiItemR(layout, &colorspace_settings_ptr, "name", 0, "", ICON_NONE);
+}
+
+void uiTemplateColormanagedViewSettings(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr, const char *propname)
+{
+	PropertyRNA *prop;
+	PointerRNA view_transform_ptr;
+	uiLayout *col, *row;
+	ColorManagedViewSettings *view_settings;
+
+	prop = RNA_struct_find_property(ptr, propname);
+
+	if (!prop) {
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	view_transform_ptr = RNA_property_pointer_get(ptr, prop);
+	view_settings = view_transform_ptr.data;
+
+	col = uiLayoutColumn(layout, FALSE);
+
+	row = uiLayoutRow(col, FALSE);
+	uiItemR(row, &view_transform_ptr, "view_transform", UI_ITEM_R_EXPAND, IFACE_("View"), ICON_NONE);
+
+	col = uiLayoutColumn(layout, FALSE);
+	uiItemR(col, &view_transform_ptr, "exposure", 0, NULL, ICON_NONE);
+	uiItemR(col, &view_transform_ptr, "gamma", 0, NULL, ICON_NONE);
+
+	col = uiLayoutColumn(layout, FALSE);
+	uiItemR(col, &view_transform_ptr, "use_curve_mapping", 0, NULL, ICON_NONE);
+	if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES)
+		uiTemplateCurveMapping(col, &view_transform_ptr, "curve_mapping", 'c', TRUE, 0);
+}

@@ -67,6 +67,7 @@
 #include "BLI_callbacks.h"
 
 #include "PIL_time.h"
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -333,7 +334,7 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 	RenderResult rres;
 	
 	RE_AcquireResultImage(re, &rres);
-	render_result_rect_get_pixels(&rres, &re->r, rect, re->rectx, re->recty);
+	render_result_rect_get_pixels(&rres, &re->r, rect, re->rectx, re->recty, &re->scene->view_settings, &re->scene->display_settings);
 	RE_ReleaseResultImage(re);
 }
 
@@ -1434,7 +1435,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			ntreeCompositTagRender(re->scene);
 			ntreeCompositTagAnimated(ntree);
 			
-			ntreeCompositExecTree(ntree, &re->r, 1, G.background == 0);
+			ntreeCompositExecTree(ntree, &re->r, 1, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
 		}
 		
 		/* ensure we get either composited result or the active layer */
@@ -1598,7 +1599,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				if (re->r.scemode & R_FULL_SAMPLE)
 					do_merge_fullsample(re, ntree);
 				else {
-					ntreeCompositExecTree(ntree, &re->r, 1, G.background == 0);
+					ntreeCompositExecTree(ntree, &re->r, 1, G.background == 0, &re->scene->view_settings, &re->scene->display_settings);
 				}
 				
 				ntree->stats_draw = NULL;
@@ -1647,7 +1648,7 @@ int RE_seq_render_active(Scene *scene, RenderData *rd)
 static void do_render_seq(Render *re)
 {
 	static int recurs_depth = 0;
-	struct ImBuf *ibuf;
+	struct ImBuf *ibuf, *out;
 	RenderResult *rr; /* don't assign re->result here as it might change during give_ibuf_seq */
 	int cfra = re->r.cfra;
 	SeqRenderData context;
@@ -1674,7 +1675,11 @@ static void do_render_seq(Render *re)
 		                              100);
 	}
 
-	ibuf = BKE_sequencer_give_ibuf(context, cfra, 0);
+	out = BKE_sequencer_give_ibuf(context, cfra, 0);
+
+	ibuf = IMB_dupImBuf(out);
+	IMB_freeImBuf(out);
+	BKE_sequencer_imbuf_from_sequencer_space(re->scene, ibuf);
 
 	recurs_depth--;
 
@@ -2069,6 +2074,14 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	G.is_rendering = FALSE;
 }
 
+static void colormanage_image_for_write(Scene *scene, ImBuf *ibuf)
+{
+	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->view_settings, &scene->display_settings);
+
+	if (ibuf)
+		imb_freerectfloatImBuf(ibuf);
+}
+
 static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovieHandle *mh, const char *name_override)
 {
 	char name[FILE_MAX];
@@ -2081,19 +2094,27 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	/* write movie or image */
 	if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		int do_free = FALSE;
-		unsigned int *rect32 = (unsigned int *)rres.rect32;
+		ImBuf *ibuf = render_result_rect_to_ibuf(&rres, &scene->r);
+
 		/* note; the way it gets 32 bits rects is weak... */
-		if (rres.rect32 == NULL) {
-			rect32 = MEM_mapallocN(sizeof(int) * rres.rectx * rres.recty, "temp 32 bits rect");
-			RE_ResultGet32(re, rect32);
+		if (ibuf->rect == NULL) {
+			ibuf->rect = MEM_mapallocN(sizeof(int) * rres.rectx * rres.recty, "temp 32 bits rect");
+			RE_ResultGet32(re, ibuf->rect);
 			do_free = TRUE;
 		}
 
-		ok = mh->append_movie(&re->r, scene->r.sfra, scene->r.cfra, (int *)rect32,
-		                      rres.rectx, rres.recty, re->reports);
+		colormanage_image_for_write(scene, ibuf);
+
+		ok = mh->append_movie(&re->r, scene->r.sfra, scene->r.cfra, (int *) ibuf->rect,
+		                      ibuf->x, ibuf->y, re->reports);
 		if (do_free) {
-			MEM_freeN(rect32);
+			MEM_freeN(ibuf->rect);
+			ibuf->rect = NULL;
 		}
+
+		/* imbuf knows which rects are not part of ibuf */
+		IMB_freeImBuf(ibuf);
+
 		printf("Append frame %d", scene->r.cfra);
 	} 
 	else {
@@ -2110,6 +2131,12 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		}
 		else {
 			ImBuf *ibuf = render_result_rect_to_ibuf(&rres, &scene->r);
+			int do_colormanagement;
+
+			do_colormanagement = !BKE_imtype_supports_float(scene->r.im_format.imtype);
+
+			if (do_colormanagement)
+				colormanage_image_for_write(scene, ibuf);
 
 			ok = BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
 			
@@ -2127,6 +2154,9 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 					name[strlen(name) - 4] = 0;
 				BKE_add_image_extension(name, R_IMF_IMTYPE_JPEG90);
 				ibuf->planes = 24;
+
+				colormanage_image_for_write(scene, ibuf);
+
 				BKE_imbuf_write_stamp(scene, camera, ibuf, name, &imf);
 				printf("\nSaved: %s", name);
 			}
@@ -2381,7 +2411,8 @@ void RE_init_threadcount(Render *re)
  * x/y offsets are only used on a partial copy when dimensions don't match */
 void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char *filename, int x, int y)
 {
-	ImBuf *ibuf = IMB_loadiffname(filename, IB_rect);
+	/* OCIO_TODO: assume layer was saved in defaule color space */
+	ImBuf *ibuf = IMB_loadiffname(filename, IB_rect, NULL);
 
 	if (ibuf && (ibuf->rect || ibuf->rect_float)) {
 		if (ibuf->x == layer->rectx && ibuf->y == layer->recty) {
@@ -2470,8 +2501,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 		return 0;
 	}
 
-	if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-		ibuf->profile = IB_PROFILE_LINEAR_RGB;
+	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->view_settings, &scene->display_settings);
 
 	/* to save, we first get absolute path */
 	BLI_strncpy(filepath, relpath, sizeof(filepath));

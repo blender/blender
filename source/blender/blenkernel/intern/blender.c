@@ -89,6 +89,8 @@
 
 #include "WM_api.h" // XXXXX BAD, very BAD dependency (bad level call) - remove asap, elubie
 
+#include "IMB_colormanagement.h"
+
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
@@ -320,7 +322,11 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 
 	/* baseflags, groups, make depsgraph, etc */
 	BKE_scene_set_background(G.main, CTX_data_scene(C));
-	
+
+	if (mode != 'u') {
+		IMB_colormanagement_check_file_config(G.main);
+	}
+
 	MEM_freeN(bfd);
 
 	(void)curscene; /* quiet warning */

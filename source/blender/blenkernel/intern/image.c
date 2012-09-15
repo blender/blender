@@ -47,6 +47,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -70,6 +71,7 @@
 #include "BLI_bpath.h"
 
 #include "BKE_bmfont.h"
+#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
@@ -243,6 +245,11 @@ static Image *image_alloc(const char *name, short source, short type)
 
 		ima->source = source;
 		ima->type = type;
+
+		if (source == IMA_SRC_VIEWER)
+			ima->flag |= IMA_VIEW_AS_RENDER;
+
+		BKE_color_managed_colorspace_settings_init(&ima->colorspace_settings);
 	}
 	return ima;
 }
@@ -324,6 +331,8 @@ Image *BKE_image_copy(Image *ima)
 
 	nima->aspx = ima->aspx;
 	nima->aspy = ima->aspy;
+
+	BKE_color_managed_colorspace_settings_copy(&nima->colorspace_settings, &ima->colorspace_settings);
 
 	return nima;
 }
@@ -603,12 +612,10 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 	if (floatbuf) {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rectfloat);
 		rect_float = ibuf->rect_float;
-		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	}
 	else {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
 		rect = (unsigned char *)ibuf->rect;
-		ibuf->profile = IB_PROFILE_SRGB;
 	}
 
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
@@ -1005,6 +1012,19 @@ int BKE_imtype_supports_quality(const char imtype)
 		case R_IMF_IMTYPE_JP2:
 		case R_IMF_IMTYPE_AVIJPEG:
 			return 1;
+	}
+	return 0;
+}
+
+int BKE_imtype_supports_float(const char imtype)
+{
+	switch (imtype) {
+		case R_IMF_IMTYPE_CINEON:
+		case R_IMF_IMTYPE_DPX:
+		case R_IMF_IMTYPE_RADHDR:
+		case R_IMF_IMTYPE_OPENEXR:
+		case R_IMF_IMTYPE_MULTILAYER:
+			return TRUE;
 	}
 	return 0;
 }
@@ -1477,16 +1497,20 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	int x, y, y_ofs;
 	float h_fixed;
 	const int mono = blf_mono_font_render; // XXX
+	struct ColorManagedDisplay *display;
+	const char *display_device;
 
 	/* this could be an argument if we want to operate on non linear float imbuf's
 	 * for now though this is only used for renders which use scene settings */
-	const int do_color_management = (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) != 0;
 
 #define BUFF_MARGIN_X 2
 #define BUFF_MARGIN_Y 1
 
 	if (!rect && !rectf)
 		return;
+
+	display_device = scene->display_settings.display_device;
+	display = IMB_colormanagement_display_get_named(display_device);
 
 	stampdata(scene, camera, &stamp_data, 1);
 
@@ -1497,7 +1521,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 	/* set before return */
 	BLF_size(mono, scene->r.stamp_font_id, 72);
 
-	BLF_buffer(mono, rectf, rect, width, height, channels, do_color_management);
+	BLF_buffer(mono, rectf, rect, width, height, channels, display);
 	BLF_buffer_col(mono, scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
 	pad = BLF_width_max(mono);
 
@@ -1514,7 +1538,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* also a little of space to the background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		/* and draw the text. */
@@ -1531,7 +1555,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1547,7 +1571,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1563,7 +1587,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y -= h;
 
 		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1578,7 +1602,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.marker, &w, &h); h = h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp,  do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp,  display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		/* and pad the text. */
@@ -1594,7 +1618,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.time, &w, &h); h = h_fixed;
 
 		/* extra space for background */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		/* and pad the text. */
@@ -1609,7 +1633,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.frame, &w, &h); h = h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		/* and pad the text. */
@@ -1624,7 +1648,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.camera, &w, &h); h = h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.camera);
@@ -1637,7 +1661,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		BLF_width_and_height(mono, stamp_data.cameralens, &w, &h); h = h_fixed;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.cameralens);
@@ -1650,7 +1674,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		x = width - w - 2;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		/* and pad the text. */
@@ -1666,7 +1690,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 		y = height - h;
 
 		/* extra space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, do_color_management,
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 						  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
@@ -1878,12 +1902,12 @@ void BKE_makepicstring(char *string, const char *base, const char *relbase, int 
 }
 
 /* used by sequencer too */
-struct anim *openanim(const char *name, int flags, int streamindex)
+struct anim *openanim(const char *name, int flags, int streamindex, char colorspace[IMA_MAX_SPACE])
 {
 	struct anim *anim;
 	struct ImBuf *ibuf;
 
-	anim = IMB_open_anim(name, flags, streamindex);
+	anim = IMB_open_anim(name, flags, streamindex, colorspace);
 	if (anim == NULL) return NULL;
 
 	ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -2226,7 +2250,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 		flag |= IB_premul;
 
 	/* read ibuf */
-	ibuf = IMB_loadiffname(name, flag);
+	ibuf = IMB_loadiffname(name, flag, ima->colorspace_settings.name);
 
 #if 0
 	if (ibuf) {
@@ -2304,7 +2328,6 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int f
 			ibuf->flags |= IB_rectfloat;
 			ibuf->mall = IB_rectfloat;
 			ibuf->channels = rpass->channels;
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			image_initialize_after_load(ima, ibuf);
 			image_assign_ibuf(ima, ibuf, iuser ? iuser->multi_index : 0, frame);
@@ -2334,7 +2357,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 		BKE_image_user_file_path(iuser, ima, str);
 
 		/* FIXME: make several stream accessible in image editor, too*/
-		ima->anim = openanim(str, IB_rect, 0);
+		ima->anim = openanim(str, IB_rect, 0, ima->colorspace_settings.name);
 
 		/* let's initialize this user */
 		if (ima->anim && iuser && iuser->frames == 0)
@@ -2385,8 +2408,8 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		flag = IB_rect | IB_multilayer;
 		if (ima->flag & IMA_DO_PREMUL) flag |= IB_premul;
 
-		ibuf = IMB_ibImageFromMemory((unsigned char *)ima->packedfile->data,
-		                             ima->packedfile->size, flag, "<packed data>");
+		ibuf = IMB_ibImageFromMemory((unsigned char *)ima->packedfile->data, ima->packedfile->size, flag,
+		                             ima->colorspace_settings.name, "<packed data>");
 	}
 	else {
 		flag = IB_rect | IB_multilayer | IB_metadata;
@@ -2398,7 +2421,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		BKE_image_user_file_path(iuser, ima, str);
 
 		/* read ibuf */
-		ibuf = IMB_loadiffname(str, flag);
+		ibuf = IMB_loadiffname(str, flag, ima->colorspace_settings.name);
 	}
 
 	if (ibuf) {
@@ -2455,7 +2478,6 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 			ibuf->rect_float = rpass->rect;
 			ibuf->flags |= IB_rectfloat;
 			ibuf->channels = rpass->channels;
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			image_assign_ibuf(ima, ibuf, iuser ? iuser->multi_index : IMA_NO_INDEX, 0);
 		}
@@ -2561,6 +2583,12 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 	}
 
+	/* invalidate color managed buffers if render result changed */
+	BLI_lock_thread(LOCK_COLORMANAGE);
+	if (ibuf->x != rres.rectx || ibuf->y != rres.recty || ibuf->rect_float != rectf) {
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+	}
+
 	ibuf->x = rres.rectx;
 	ibuf->y = rres.recty;
 
@@ -2592,8 +2620,8 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		ibuf->flags &= ~IB_zbuffloat;
 	}
 
-	/* since its possible to access the buffer from the image directly, set the profile [#25073] */
-	ibuf->profile = (iuser->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_NONE;
+	BLI_unlock_thread(LOCK_COLORMANAGE);
+
 	ibuf->dither = dither;
 
 	if (iuser->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE) {

@@ -3,6 +3,10 @@ Import ('env')
 import os
 
 sources = env.Glob('intern/*.c')
+sources.remove('intern' + os.sep + 'mask_rasterize.c')
+sources.remove('intern' + os.sep + 'mask.c')
+
+sources_mask = env.Glob('intern/mask*.c')
 
 incs = '. #/intern/guardedalloc #/intern/memutil'
 incs += ' ../blenlib ../blenfont ../makesdna ../windowmanager'
@@ -118,7 +122,10 @@ if env['WITH_BF_INTERNATIONAL']:
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
+
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
     env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [166,25]) #, cc_compileflags = env['CCFLAGS'].append('/WX') )
 else:
     env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player', 'player2'], priority = [166,25,0] )
+
+env.BlenderLib ( libname = 'bf_blenkernel_mask', sources = sources_mask, includes = Split(incs), defines = defs, libtype=['core','player', 'player2'], priority = [200,25,0] )

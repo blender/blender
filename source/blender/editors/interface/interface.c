@@ -75,6 +75,8 @@
 
 #include "BPY_extern.h"
 
+#include "IMB_colormanagement.h"
+
 #include "interface_intern.h"
 
 #define MENU_WIDTH          120
@@ -2138,7 +2140,14 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 	block->evil_C = (void *)C;  /* XXX */
 
 	if (scn) {
-		block->color_profile = (scn->r.color_mgt_flag & R_COLOR_MANAGEMENT);
+		block->color_profile = TRUE;
+
+		/* store display device name, don't lookup for transformations yet
+		 * block could be used for non-color displays where looking up for transformation
+		 * would slow down redraw, so only lookup for actual transform when it's indeed
+		 * needed
+		 */
+		block->display_device = scn->display_settings.display_device;
 
 		/* copy to avoid crash when scene gets deleted with ui still open */
 		block->unit = MEM_mallocN(sizeof(scn->unit), "UI UnitSettings");
@@ -2573,6 +2582,25 @@ void ui_block_do_align(uiBlock *block)
 			but = but->next;
 		}
 	}
+}
+
+struct ColorManagedDisplay *ui_block_display_get(uiBlock *block)
+{
+	return IMB_colormanagement_display_get_named(block->display_device);
+}
+
+void ui_block_to_display_space_v3(uiBlock *block, float pixel[3])
+{
+	struct ColorManagedDisplay *display = ui_block_display_get(block);
+
+	IMB_colormanagement_scene_linear_to_display_v3(pixel, display);
+}
+
+void ui_block_to_scene_linear_v3(uiBlock *block, float pixel[3])
+{
+	struct ColorManagedDisplay *display = ui_block_display_get(block);
+
+	IMB_colormanagement_display_to_scene_linear_v3(pixel, display);
 }
 
 /**
