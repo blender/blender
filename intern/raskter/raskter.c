@@ -38,7 +38,7 @@
 
 
 // this is needed for inlining behavior
-#if defined _WIN32
+#if defined _MSC_VER
 #   define DO_INLINE __inline
 #elif defined (__sun) || defined (__sun__)
 #   define DO_INLINE

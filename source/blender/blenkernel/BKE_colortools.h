@@ -39,7 +39,7 @@ struct Histogram;
 struct ImBuf;
 struct rctf;
 
-#if defined _WIN32
+#if defined _MSC_VER
 #   define DO_INLINE __inline
 #elif defined(__sun) || defined(__sun__)
 #   define DO_INLINE

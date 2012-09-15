@@ -68,7 +68,7 @@ int BLI_getInstallationDir(char *str)
 	return 1;
 }
 
-void RegisterBlendExtension_Fail(HKEY root)
+static void RegisterBlendExtension_Fail(HKEY root)
 {
 	printf("failed\n");
 	if (root)
