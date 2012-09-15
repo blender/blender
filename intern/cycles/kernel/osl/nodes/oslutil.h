@@ -29,6 +29,9 @@
 #ifndef CCL_OSLUTIL_H
 #define CCL_OSLUTIL_H
 
+/* NB: must match the value in kernel_types.h */
+#define RAMP_TABLE_SIZE 256
+
 // Return wireframe opacity factor [0, 1] given a geometry type in
 // ("triangles", "polygons" or "patches"), and a line_width in raster
 // or world space depending on the last (raster) boolean argument.

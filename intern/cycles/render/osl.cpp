@@ -309,6 +309,70 @@ void OSLCompiler::parameter(const char *name, const Transform& tfm)
 	ss->Parameter(name, TypeDesc::TypeMatrix, (float*)&tfm);
 }
 
+void OSLCompiler::parameter_array(const char *name, const float f[], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeFloat;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_color_array(const char *name, const float f[][3], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeColor;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_vector_array(const char *name, const float f[][3], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeVector;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_normal_array(const char *name, const float f[][3], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeNormal;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_point_array(const char *name, const float f[][3], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypePoint;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_array(const char *name, const int f[], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeInt;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_array(const char *name, const char * const s[], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeString;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, s);
+}
+
+void OSLCompiler::parameter_array(const char *name, const Transform tfm[], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeMatrix;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, (const float *)tfm);
+}
+
 void OSLCompiler::find_dependencies(set<ShaderNode*>& dependencies, ShaderInput *input)
 {
 	ShaderNode *node = (input->link)? input->link->parent: NULL;

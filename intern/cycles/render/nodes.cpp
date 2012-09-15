@@ -2768,6 +2768,19 @@ void RGBRampNode::compile(SVMCompiler& compiler)
 
 void RGBRampNode::compile(OSLCompiler& compiler)
 {
+	/* OSL shader only takes separate RGB and A array, split the RGBA base array */
+	/* NB: cycles float3 type is actually 4 floats! need to use an explicit array */
+	float ramp_color[RAMP_TABLE_SIZE][3];
+	float ramp_alpha[RAMP_TABLE_SIZE];
+	for (int i = 0; i < RAMP_TABLE_SIZE; ++i) {
+		ramp_color[i][0] = ramp[i].x;
+		ramp_color[i][1] = ramp[i].y;
+		ramp_color[i][2] = ramp[i].z;
+		ramp_alpha[i] = ramp[i].w;
+	}
+	compiler.parameter_color_array("ramp_color", ramp_color, RAMP_TABLE_SIZE);
+	compiler.parameter_array("ramp_alpha", ramp_alpha, RAMP_TABLE_SIZE);
+	
 	compiler.add(this, "node_rgb_ramp");
 }
 
