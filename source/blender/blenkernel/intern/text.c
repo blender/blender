@@ -1919,6 +1919,7 @@ static unsigned int txt_undo_read_unicode(const char *undo_buf, int *undo_pos, s
 			break;
 		case 4: /* 32-bit unicode symbol */
 			unicode = txt_undo_read_uint32(undo_buf, undo_pos);
+			break;
 		default:
 			/* should never happen */
 			BLI_assert(0);
