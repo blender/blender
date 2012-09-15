@@ -3181,17 +3181,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	const char *grid_unit = NULL;
 	int draw_border = (rv3d->persp == RV3D_CAMOB && (scene->r.mode & R_BORDER));
 
-	/* --- until we get a clue and make viewport threadsafe (temp mango change for stability) */
-	if (G.is_rendering) {
-		ED_region_pixelspace(ar);
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		UI_ThemeClearColor(TH_BACK);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		BLF_draw_default(10,10,0, "do do da da.. da da.. da da.. can't touch this!   it's render time", 512);
-		return;
-	}
-	/* --- end temp mango change */
-
 	/* draw viewport using opengl */
 	if (v3d->drawtype != OB_RENDER || !view3d_main_area_do_render_draw(C) || draw_border) {
 		view3d_main_area_draw_objects(C, ar, &grid_unit);
