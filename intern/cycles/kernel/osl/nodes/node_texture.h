@@ -156,7 +156,7 @@ float noise_basis(point p, string basis)
 	float result = 0.0;
 
 	if (basis == "Perlin")
-		result = noise(p);
+		result = noise(p); /* returns perlin noise in range 0..1 */
 	if (basis == "Voronoi F1")
 		result = voronoi_F1S(p);
 	if (basis == "Voronoi F2")
