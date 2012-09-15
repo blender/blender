@@ -470,6 +470,7 @@ macro(remove_strict_flags)
 
 	if(CMAKE_COMPILER_IS_GNUCC)
 		remove_cc_flag("-Wstrict-prototypes")
+		remove_cc_flag("-Wmissing-prototypes")
 		remove_cc_flag("-Wunused-parameter")
 		remove_cc_flag("-Wwrite-strings")
 		remove_cc_flag("-Wundef")

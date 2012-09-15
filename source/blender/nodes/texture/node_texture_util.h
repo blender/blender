@@ -61,6 +61,8 @@
 
 #include "node_util.h"
 
+#include "NOD_texture.h"
+
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"

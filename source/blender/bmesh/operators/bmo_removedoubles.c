@@ -487,7 +487,7 @@ void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
 	}
 }
 
-void bmesh_find_doubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, const char *targetmapname)
+static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, const char *targetmapname)
 {
 	BMOIter oiter;
 	BMVert *v, *v2;

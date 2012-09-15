@@ -383,7 +383,7 @@ static int moviecache_hashcmp(const void *av, const void *bv)
 	return 0;
 }
 
-void *moviecache_getprioritydata(void *key_v)
+static void *moviecache_getprioritydata(void *key_v)
 {
 	MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey *) key_v;
 	MovieClipCachePriorityData *priority_data;
@@ -394,7 +394,7 @@ void *moviecache_getprioritydata(void *key_v)
 	return priority_data;
 }
 
-int moviecache_getitempriority(void *last_userkey_v, void *priority_data_v)
+static int moviecache_getitempriority(void *last_userkey_v, void *priority_data_v)
 {
 	MovieClipImBufCacheKey *last_userkey = (MovieClipImBufCacheKey *) last_userkey_v;
 	MovieClipCachePriorityData *priority_data = (MovieClipCachePriorityData *) priority_data_v;
@@ -402,7 +402,7 @@ int moviecache_getitempriority(void *last_userkey_v, void *priority_data_v)
 	return -abs(last_userkey->framenr - priority_data->framenr);
 }
 
-void moviecache_prioritydeleter(void *priority_data_v)
+static void moviecache_prioritydeleter(void *priority_data_v)
 {
 	MovieClipCachePriorityData *priority_data = (MovieClipCachePriorityData *) priority_data_v;
 

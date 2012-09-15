@@ -175,6 +175,10 @@ PyObject *BPY_rna_types(void);
 PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr);
 PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop);
 
+/* extern'd by other modules which don't deal closely with RNA */
+PyObject *pyrna_id_CreatePyObject(struct ID *id);
+int       pyrna_id_FromPyObject(PyObject *obj, struct ID **id);
+
 /* operators also need this to set args */
 int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const char *error_prefix);
 PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);

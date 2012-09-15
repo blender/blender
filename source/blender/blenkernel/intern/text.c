@@ -3031,30 +3031,6 @@ void txt_uncomment(Text *text)
 	}
 }
 
-
-void txt_move_lines_up(struct Text *text)
-{
-	TextLine *prev_line;
-	
-	if (!text || !text->curl || !text->sell) return;
-	
-	txt_order_cursors(text);
-	
-	prev_line = text->curl->prev;
-	
-	if (!prev_line) return;
-	
-	BLI_remlink(&text->lines, prev_line);
-	BLI_insertlinkafter(&text->lines, text->sell, prev_line);
-	
-	txt_make_dirty(text);
-	txt_clean_text(text);
-	
-	if (!undoing) {
-		txt_undo_add_op(text, UNDO_MOVE_LINES_UP);
-	}
-}
-
 void txt_move_lines(struct Text *text, const int direction)
 {
 	TextLine *line_other;

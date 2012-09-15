@@ -819,7 +819,7 @@ int PLX_raskterize_feather(float(*base_verts)[2], int num_base_verts, float(*fea
 
 #ifndef __PLX__FAKE_AA__
 
-int get_range_expanded_pixel_coord(float normalized_value, int max_value) {
+static int get_range_expanded_pixel_coord(float normalized_value, int max_value) {
     return (int)((normalized_value * (float)(max_value)) + 0.5f);
 }
 
@@ -1395,7 +1395,7 @@ int PLX_antialias_buffer(float *buf, int buf_x, int buf_y) {
 
 #define SWAP_POLYVERT(a,b)	point_temp[0]=(a)[0]; point_temp[1]=(a)[1]; (a)[0]=(b)[0]; (a)[1]=(b)[1]; (b)[0]=point_temp[0]; (b)[1]=point_temp[1];
 #define __PLX_SMALL_COUNT__ 13
-void plx_floatsort(float(*f)[2], unsigned int n, int sortby) {
+static void plx_floatsort(float(*f)[2], unsigned int n, int sortby) {
     unsigned int a;
     unsigned int b;
     unsigned int c;
@@ -1474,7 +1474,7 @@ void plx_floatsort(float(*f)[2], unsigned int n, int sortby) {
     }
 }
 
-int plx_find_lower_bound(float v, float(*a)[2], int num_feather_verts) {
+static int plx_find_lower_bound(float v, float(*a)[2], int num_feather_verts) {
     int x;
     int l;
     int r;
@@ -1502,7 +1502,7 @@ int plx_find_lower_bound(float v, float(*a)[2], int num_feather_verts) {
     }
 }
 
-int plx_find_upper_bound(float v, float(*a)[2], int num_feather_verts) {
+static int plx_find_upper_bound(float v, float(*a)[2], int num_feather_verts) {
     int x;
     int l;
     int r;

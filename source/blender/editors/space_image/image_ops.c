@@ -191,7 +191,7 @@ int space_image_main_area_poll(bContext *C)
 }
 
 /* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or editmode */
-int space_image_main_area_not_uv_brush_poll(bContext *C)
+static int space_image_main_area_not_uv_brush_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);

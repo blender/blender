@@ -32,6 +32,7 @@
 #include <Python.h>
 
 #include "bpy_util.h"
+#include "bpy.h"  /* own include */
 
 #include "WM_api.h"
 

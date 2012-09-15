@@ -225,7 +225,7 @@ static int isqtime(const char *name)
 
 static char ffmpeg_last_error[1024];
 
-void ffmpeg_log_callback(void *ptr, int level, const char *format, va_list arg)
+static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_list arg)
 {
 	if (ELEM(level, AV_LOG_FATAL, AV_LOG_ERROR)) {
 		size_t n = BLI_vsnprintf(ffmpeg_last_error, sizeof(ffmpeg_last_error), format, arg);

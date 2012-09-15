@@ -106,7 +106,7 @@ typedef struct DitherContext {
 	float f;
 } DitherContext;
 
-DitherContext *create_dither_context(int w, float factor)
+static DitherContext *create_dither_context(int w, float factor)
 {
 	DitherContext *di;
 	int i;

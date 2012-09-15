@@ -338,7 +338,6 @@ static void free_openrecent(void)
 extern void free_anim_copybuf(void);
 extern void free_anim_drivers_copybuf(void);
 extern void free_fmodifiers_copybuf(void);
-extern void free_posebuf(void);
 
 #if WIN32
 /* Read console events until there is a key event.  Also returns on any error. */
@@ -421,7 +420,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	free_anim_copybuf();
 	free_anim_drivers_copybuf();
 	free_fmodifiers_copybuf();
-	free_posebuf();
+	ED_clipboard_posebuf_free();
 	BKE_node_clipboard_clear();
 
 	BLF_exit();

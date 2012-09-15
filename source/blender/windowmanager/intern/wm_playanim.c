@@ -72,6 +72,8 @@
 
 #include "wm_event_types.h"
 
+#include "WM_api.h"  /* only for WM_main_playanim */
+
 typedef struct PlayState {
 
 	/* playback state */
@@ -142,7 +144,7 @@ static struct WindowStateGlobal {
 	eWS_Qual qual;
 } g_WS = {NULL};
 
-void playanim_window_get_size(int *width_r, int *height_r)
+static void playanim_window_get_size(int *width_r, int *height_r)
 {
 	GHOST_RectangleHandle bounds = GHOST_GetClientBounds(g_WS.ghost_window);
 	*width_r = GHOST_GetWidthRectangle(bounds);
@@ -689,7 +691,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 	return 1;
 }
 
-void playanim_window_open(const char *title, int posx, int posy, int sizex, int sizey, int start_maximized)
+static void playanim_window_open(const char *title, int posx, int posy, int sizex, int sizey, int start_maximized)
 {
 	GHOST_TWindowState inital_state;
 	GHOST_TUns32 scr_w, scr_h;
@@ -720,7 +722,7 @@ void playanim_window_open(const char *title, int posx, int posy, int sizex, int 
 }
 
 
-void playanim(int argc, const char **argv)
+void WM_main_playanim(int argc, const char **argv)
 {
 	struct ImBuf *ibuf = NULL;
 	char filepath[FILE_MAX];

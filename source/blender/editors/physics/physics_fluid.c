@@ -782,7 +782,7 @@ static void fluidbake_endjob(void *customdata)
 	}
 }
 
-int runSimulationCallback(void *data, int status, int frame)
+static int runSimulationCallback(void *data, int status, int frame)
 {
 	FluidBakeJob *fb = (FluidBakeJob *)data;
 	elbeemSimulationSettings *settings = fb->settings;
@@ -1095,7 +1095,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	return 1;
 }
 
-void fluidsimFreeBake(Object *UNUSED(ob))
+static void UNUSED_FUNCTION(fluidsimFreeBake)(Object *UNUSED(ob))
 {
 	/* not implemented yet */
 }

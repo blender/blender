@@ -892,7 +892,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	}
 }
 
-void node_uifunc_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_uifunc_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateIDBrowse(layout, C, ptr, "node_tree", NULL, NULL, NULL);
 }
@@ -2387,7 +2387,7 @@ static void node_composit_buts_bokehblur(uiLayout *layout, bContext *UNUSED(C), 
 	uiItemR(layout, ptr, "blur_max", 0, NULL, ICON_NONE);
 }
 
-void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
+static void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
 {
 //	node_composit_backdrop_canvas(snode, backdrop, node, x, y);
 	if (node->custom1 == 0) {
@@ -2407,7 +2407,7 @@ void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNode *nod
 	}
 }
 
-void node_composit_backdrop_boxmask(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
+static void node_composit_backdrop_boxmask(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
 {
 	NodeBoxMask *boxmask = node->storage;
 	const float backdropWidth = backdrop->x;
@@ -2448,7 +2448,7 @@ void node_composit_backdrop_boxmask(SpaceNode *snode, ImBuf *backdrop, bNode *no
 	glEnd();
 }
 
-void node_composit_backdrop_ellipsemask(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
+static void node_composit_backdrop_ellipsemask(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
 {
 	NodeEllipseMask *ellipsemask = node->storage;
 	const float backdropWidth = backdrop->x;

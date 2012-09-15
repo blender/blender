@@ -37,6 +37,7 @@
 #include "bpy_rna.h"
 #include "bpy_app.h"
 #include "bpy_props.h"
+#include "bpy_library.h"
 #include "bpy_operator.h"
 
 #include "BLI_path_util.h"
@@ -238,7 +239,6 @@ static PyObject *bpy_import_test(const char *modname)
 void BPy_init_modules(void)
 {
 	extern BPy_StructRNA *bpy_context_module;
-	extern int bpy_lib_init(PyObject *);
 	PointerRNA ctx_ptr;
 	PyObject *mod;
 
@@ -273,7 +273,7 @@ void BPy_init_modules(void)
 	PyModule_AddObject(mod, "StructMetaPropGroup", (PyObject *)&pyrna_struct_meta_idprop_Type);
 
 	/* needs to be first so bpy_types can run */
-	bpy_lib_init(mod);
+	BPY_library_module(mod);
 
 	bpy_import_test("bpy_types");
 	PyModule_AddObject(mod, "data", BPY_rna_module()); /* imports bpy_types by running this */

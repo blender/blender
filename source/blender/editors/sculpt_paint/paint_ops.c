@@ -602,7 +602,7 @@ static void ed_keymap_paint_brush_radial_control(wmKeyMap *keymap, const char *p
 	}
 }
 
-void paint_partial_visibility_keys(wmKeyMap *keymap)
+static void paint_partial_visibility_keys(wmKeyMap *keymap)
 {
 	wmKeyMapItem *kmi;
 	

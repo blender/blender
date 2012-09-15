@@ -1112,7 +1112,8 @@ static int BKE_mask_evaluate_parent(MaskParent *parent, float ctime, float r_co[
 	return FALSE;
 }
 
-int BKE_mask_evaluate_parent_delta(MaskParent *parent, float ctime, float r_delta[2])
+/* could make external but for now its only used internally */
+static int mask_evaluate_parent_delta(MaskParent *parent, float ctime, float r_delta[2])
 {
 	float parent_co[2];
 
@@ -1452,7 +1453,7 @@ void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const int do
 				*point_deform = *point;
 				point_deform->uw = point->uw ? MEM_dupallocN(point->uw) : NULL;
 
-				if (BKE_mask_evaluate_parent_delta(&point->parent, ctime, delta)) {
+				if (mask_evaluate_parent_delta(&point->parent, ctime, delta)) {
 					add_v2_v2(point_deform->bezt.vec[0], delta);
 					add_v2_v2(point_deform->bezt.vec[1], delta);
 					add_v2_v2(point_deform->bezt.vec[2], delta);

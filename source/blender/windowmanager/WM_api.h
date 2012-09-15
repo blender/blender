@@ -361,6 +361,8 @@ void		WM_progress_clear(struct wmWindow *win);
 			/* Draw (for screenshot) */
 void		WM_redraw_windows(struct bContext *C);
 
+void        WM_main_playanim(int argc, const char **argv);
+
 /* debugging only, convenience function to write on crash */
 int write_crash_blend(void);
 

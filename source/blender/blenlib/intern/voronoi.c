@@ -480,7 +480,7 @@ static void voronoi_removeParabola(VoronoiProcess *process, VoronoiEvent *event)
 	voronoi_checkCircle(process, p2);
 }
 
-void voronoi_finishEdge(VoronoiProcess *process, VoronoiParabola *parabola)
+static void voronoi_finishEdge(VoronoiProcess *process, VoronoiParabola *parabola)
 {
 	float mx;
 
@@ -503,12 +503,12 @@ void voronoi_finishEdge(VoronoiProcess *process, VoronoiParabola *parabola)
 	MEM_freeN(parabola);
 }
 
-void voronoi_clampEdgeVertex(int width, int height, float *coord, float *other_coord)
+static void voronoi_clampEdgeVertex(int width, int height, float *coord, float *other_coord)
 {
 	const float corners[4][2] = {{0.0f, 0.0f},
-								 {width - 1, 0.0f},
-								 {width - 1, height - 1},
-								 {0.0f, height - 1}};
+	                             {width - 1, 0.0f},
+	                             {width - 1, height - 1},
+	                             {0.0f, height - 1}};
 	int i;
 
 	if (IN_RANGE_INCL(coord[0], 0, width - 1) && IN_RANGE_INCL(coord[1], 0, height - 1)) {
@@ -541,7 +541,7 @@ void voronoi_clampEdgeVertex(int width, int height, float *coord, float *other_c
 	}
 }
 
-void voronoi_clampEdges(ListBase *edges, int width, int height, ListBase *clamped_edges)
+static void voronoi_clampEdges(ListBase *edges, int width, int height, ListBase *clamped_edges)
 {
 	VoronoiEdge *edge;
 

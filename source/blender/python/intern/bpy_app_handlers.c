@@ -37,6 +37,8 @@
 #include "bpy_rna.h"
 #include "bpy_app_handlers.h"
 
+#include "BPY_extern.h"
+
 void bpy_app_generic_callback(struct Main *main, struct ID *id, void *arg);
 
 static PyTypeObject BlenderAppCbType;

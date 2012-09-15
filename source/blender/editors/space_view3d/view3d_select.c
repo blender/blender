@@ -646,7 +646,7 @@ static void do_lasso_select_meta(ViewContext *vc, int mcords[][2], short moves, 
 	}
 }
 
-int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
+static int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
 	Mesh *me;
 	MVert *mvert;

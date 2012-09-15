@@ -15,29 +15,18 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2009, Blender Foundation
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file ED_sequencer.h
- *  \ingroup editors
+/** \file blender/python/intern/bpy_library.h
+ *  \ingroup pythonintern
  */
 
-#ifndef __ED_SEQUENCER_H__
-#define __ED_SEQUENCER_H__
+#ifndef __BPY_LIBRARY_H__
+#define __BPY_LIBRARY_H__
 
-struct Scene;
-struct Sequence;
-struct SpaceSeq;
+int BPY_library_module(PyObject *);
 
-void ED_sequencer_select_sequence_single(struct Scene *scene, struct Sequence *seq, int deselect_all);
-void ED_sequencer_deselect_all(struct Scene *scene);
-
-int ED_space_sequencer_maskedit_mask_poll(struct bContext *C);
-int ED_space_sequencer_check_show_maskedit(struct SpaceSeq *sseq, struct Scene *scene);
-int ED_space_sequencer_maskedit_poll(struct bContext *C);
-
-void ED_operatormacros_sequencer(void);
-
-#endif /*  __ED_SEQUENCER_H__ */
+#endif  /* __BPY_LIBRARY_H__ */
