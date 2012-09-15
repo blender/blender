@@ -161,7 +161,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 	}                                                                            \
 } (void)0
 
-void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
+void blf_font_draw(FontBLF *font, const char *str, size_t len)
 {
 	unsigned int c;
 	GlyphBLF *g, *g_prev = NULL;
@@ -193,7 +193,7 @@ void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 }
 
 /* faster version of blf_font_draw, ascii only for view dimensions */
-void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
+void blf_font_draw_ascii(FontBLF *font, const char *str, size_t len)
 {
 	unsigned char c;
 	GlyphBLF *g, *g_prev = NULL;

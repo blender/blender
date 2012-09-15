@@ -4589,7 +4589,9 @@ void ED_pose_deselectall(Object *ob, int test)
 	int selectmode = 0;
 	
 	/* we call this from outliner too */
-	if (ELEM(NULL, ob, ob->pose)) return;
+	if (ob->pose == NULL) {
+		return;
+	}
 	
 	/*	Determine if we're selecting or deselecting	*/
 	if (test == 1) {

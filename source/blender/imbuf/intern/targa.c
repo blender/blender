@@ -685,9 +685,11 @@ ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags, char colors
 		}
 	}
 	
-	if (tga.imgdes & 0x20) IMB_flipy(ibuf);
+	if (tga.imgdes & 0x20) {
+		IMB_flipy(ibuf);
+	}
 
-	if (ibuf && ibuf->rect)
+	if (ibuf->rect)
 		IMB_convert_rgba_to_abgr(ibuf);
 	
 	return(ibuf);

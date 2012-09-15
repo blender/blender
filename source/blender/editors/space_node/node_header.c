@@ -100,7 +100,7 @@ static void do_node_add(bContext *C, bNodeTemplate *ntemp)
 	/* once this is called from an operator, this should be removed */
 	if (node_new) {
 		char undostr[BKE_UNDO_STR_MAX];
-		BLI_snprintf(undostr, sizeof(BKE_UNDO_STR_MAX), "Add Node %s", nodeLabel(node_new));
+		BLI_snprintf(undostr, sizeof(undostr), "Add Node %s", nodeLabel(node_new));
 		BKE_write_undo(C, undostr);
 	}
 

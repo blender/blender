@@ -188,11 +188,9 @@ static void deformVerts(ModifierData *md, Object *ob,
 		psmd->totdmface = psmd->dm->getNumTessFaces(psmd->dm);
 	}
 
-	if (psys) {
-		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(md->scene, ob, psys);
-		psmd->flag |= eParticleSystemFlag_psys_updated;
-	}
+	psmd->flag &= ~eParticleSystemFlag_psys_updated;
+	particle_system_update(md->scene, ob, psys);
+	psmd->flag |= eParticleSystemFlag_psys_updated;
 }
 
 /* disabled particles in editmode for now, until support for proper derivedmesh

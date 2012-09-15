@@ -3070,7 +3070,6 @@ int setcurr_tab_spaces(Text *text, int space)
 	const char *comm = "#";
 	const char indent = (text->flags & TXT_TABSTOSPACES) ? ' ' : '\t';
 	static const char *back_words[] = {"return", "break", "continue", "pass", "yield", NULL};
-	if (!text) return 0;
 	if (!text->curl) return 0;
 
 	while (text->curl->line[i] == indent) {

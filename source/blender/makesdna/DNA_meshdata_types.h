@@ -119,7 +119,8 @@ typedef struct MLoopUV {
 #define MLOOPUV_PINNED	4
 
 /* at the moment alpha is abused for vertex painting
- * and not used for transparency, note that red and blue are swapped */
+ * and not used for transparency,
+ * note that red and blue are _not_ swapped, as they are with #MCol */
 typedef struct MLoopCol {
 	char r, g, b, a;
 } MLoopCol;

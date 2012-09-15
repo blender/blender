@@ -62,7 +62,7 @@ void IMB_metadata_free(struct ImBuf *img);
  *  \param len - length of value buffer allocated by user.
  *  \return    - 1 (true) if ImageInfo present and value for the key found, 0 (false) otherwise
  */
-int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *value, int len);
+int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *value, const size_t len);
 
 /** set user data in the ImMetaData struct, which has to be allocated with IMB_metadata_create
  *  before calling this function.

@@ -728,7 +728,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 	short changed = 0;
 	
 	/* sanity check */
-	if (ELEM(NULL, ob, ob->pose))
+	if (ob->pose == NULL)
 		return OPERATOR_CANCELLED;
 		
 	/* selection types 

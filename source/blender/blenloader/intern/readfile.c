@@ -7821,7 +7821,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					MovieTrackingMarker *marker = &track->markers[i];
 
 					if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
-					    is_zero_v2(marker->pattern_corners[3]) && is_zero_v2(marker->pattern_corners[3]))
+					    is_zero_v2(marker->pattern_corners[2]) && is_zero_v2(marker->pattern_corners[3]))
 					{
 						marker->pattern_corners[0][0] = track->pat_min[0];
 						marker->pattern_corners[0][1] = track->pat_min[1];

@@ -99,8 +99,8 @@ public:
 		       this->m_inverted == inverted &&
 		       this->m_width == width &&
 		       this->m_height == height &&
-		       this->m_calibration_width == this->m_calibration_width &&
-		       this->m_calibration_height == this->m_calibration_height;
+		       this->m_calibration_width == calibration_width &&
+		       this->m_calibration_height == claibration_height;
 	}
 	
 	void getUV(MovieTracking *trackingData, int x, int y, float *u, float *v)

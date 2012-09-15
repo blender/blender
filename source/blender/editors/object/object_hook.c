@@ -585,13 +585,11 @@ void OBJECT_OT_hook_add_newobj(wmOperatorType *ot)
 static int object_hook_remove_exec(bContext *C, wmOperator *op)
 {
 	int num = RNA_enum_get(op->ptr, "modifier");
-	Object *ob = NULL;
+	Object *ob = CTX_data_edit_object(C);
 	HookModifierData *hmd = NULL;
 
-	ob = CTX_data_edit_object(C);
 	hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
-
-	if (!ob || !hmd) {
+	if (!hmd) {
 		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
