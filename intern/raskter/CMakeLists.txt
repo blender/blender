@@ -33,11 +33,8 @@ set(INC_SYS
 
 set(SRC
 	raskter.c
-	raskter_mt.c
-	raskter_kdtree.c
 
 	raskter.h
-	raskter_kdtree.h
 )
 
 blender_add_lib(bf_intern_raskter "${SRC}" "${INC}" "${INC_SYS}")
