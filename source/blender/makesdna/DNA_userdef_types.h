@@ -47,7 +47,6 @@ struct ColorBand;
 /* ************************ style definitions ******************** */
 
 #define MAX_STYLE_NAME	64
-#define MAX_FONT_NAME	256
 
 /* default uifont_id offered by Blender */
 #define UIFONT_DEFAULT	0

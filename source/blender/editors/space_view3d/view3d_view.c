@@ -87,8 +87,9 @@ void view3d_operator_needs_opengl(const bContext *C)
 void view3d_region_operator_needs_opengl(wmWindow *win, ARegion *ar)
 {
 	/* for debugging purpose, context should always be OK */
-	if ((ar == NULL) || (ar->regiontype != RGN_TYPE_WINDOW))
+	if ((ar == NULL) || (ar->regiontype != RGN_TYPE_WINDOW)) {
 		printf("view3d_region_operator_needs_opengl error, wrong region\n");
+	}
 	else {
 		RegionView3D *rv3d = ar->regiondata;
 		
@@ -1652,7 +1653,7 @@ static void game_set_commmandline_options(GameData *gm)
 	SYS_SystemHandle syshandle;
 	int test;
 
-	if ( (syshandle = SYS_GetSystem()) ) {
+	if ((syshandle = SYS_GetSystem())) {
 		/* User defined settings */
 		test = (U.gameflags & USER_DISABLE_MIPMAP);
 		GPU_set_mipmap(!test);

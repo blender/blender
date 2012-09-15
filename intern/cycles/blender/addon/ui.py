@@ -53,19 +53,20 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
+        device_type = context.user_preferences.system.compute_device_type
 
         split = layout.split()
 
         col = split.column()
         sub = col.column()
-        sub.active = cscene.device == 'CPU'
+        sub.enabled = (device_type == 'NONE' or cscene.device == 'CPU')
         sub.prop(cscene, "progressive")
 
         sub = col.column(align=True)
         sub.prop(cscene, "seed")
         sub.prop(cscene, "sample_clamp")
 
-        if cscene.progressive or cscene.device != 'CPU':
+        if cscene.progressive or (device_type != 'NONE' and cscene.device == 'GPU'):
             col = split.column()
             col.label(text="Samples:")
             sub = col.column(align=True)
@@ -197,8 +198,13 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
 
         sub = col.column(align=True)
         sub.label(text="Tiles:")
-        sub.prop(cscene, "debug_tile_size")
-        sub.prop(cscene, "debug_min_size")
+
+        sub.prop(rd, "parts_x", text="X")
+        sub.prop(rd, "parts_y", text="Y")
+
+        subsub = sub.column()
+        subsub.enabled = not rd.use_border
+        subsub.prop(rd, "use_save_buffers")
 
         col = split.column()
 
@@ -207,6 +213,10 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "debug_bvh_type", text="")
         sub.prop(cscene, "debug_use_spatial_splits")
         sub.prop(cscene, "use_cache")
+
+        sub = col.column(align=True)
+        sub.label(text="Viewport:")
+        sub.prop(cscene, "resolution_divider")
 
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
@@ -920,6 +930,9 @@ def draw_device(self, context):
             layout.prop(cscene, "device")
         elif device_type == 'OPENCL' and cscene.feature_set == 'EXPERIMENTAL':
             layout.prop(cscene, "device")
+            
+        if cscene.feature_set == 'EXPERIMENTAL' and cscene.device == 'CPU' and engine.with_osl():
+            layout.prop(cscene, "shading_system")
 
 
 def draw_pause(self, context):

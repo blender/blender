@@ -47,7 +47,6 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_blender.h"    // BLENDER_VERSION
 
 #include "GHOST_Path-api.h"
@@ -411,6 +410,11 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	BLI_del_slash(dir);
 }
 
+int BLI_path_is_rel(const char *path)
+{
+	return path[0] == '/' && path[1] == '/';
+}
+
 void BLI_path_rel(char *file, const char *relfile)
 {
 	char *lslash;
@@ -418,10 +422,14 @@ void BLI_path_rel(char *file, const char *relfile)
 	char res[FILE_MAX];
 	
 	/* if file is already relative, bail out */
-	if (file[0] == '/' && file[1] == '/') return;
+	if (BLI_path_is_rel(file)) {
+		return;
+	}
 	
 	/* also bail out if relative path is not set */
-	if (relfile[0] == 0) return;
+	if (relfile[0] == '\0') {
+		return;
+	}
 
 #ifdef WIN32
 	if (BLI_strnlen(relfile, 3) > 2 && relfile[1] != ':') {
@@ -630,7 +638,7 @@ int BLI_path_frame_range(char *path, int sta, int end, int digits)
 
 int BLI_path_abs(char *path, const char *basepath)
 {
-	int wasrelative = (strncmp(path, "//", 2) == 0);
+	int wasrelative = BLI_path_is_rel(path);
 	char tmp[FILE_MAX];
 	char base[FILE_MAX];
 #ifdef WIN32

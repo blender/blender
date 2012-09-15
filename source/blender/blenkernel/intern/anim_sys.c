@@ -59,7 +59,6 @@
 #include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -622,15 +621,30 @@ static char *rna_path_rename_fix(ID *owner_id, const char *prefix, const char *o
 }
 
 /* Check RNA-Paths for a list of F-Curves */
-static void fcurves_path_rename_fix(ID *owner_id, const char *prefix, char *oldName, char *newName, ListBase *curves, int verify_paths)
+static void fcurves_path_rename_fix(ID *owner_id, const char *prefix, const char *oldName, const char *newName, 
+                                    const char *oldKey, const char *newKey, ListBase *curves, int verify_paths)
 {
 	FCurve *fcu;
 	
 	/* we need to check every curve... */
 	for (fcu = curves->first; fcu; fcu = fcu->next) {
-		/* firstly, handle the F-Curve's own path */
-		if (fcu->rna_path)
-			fcu->rna_path = rna_path_rename_fix(owner_id, prefix, oldName, newName, fcu->rna_path, verify_paths);
+		if (fcu->rna_path) {
+			char *old_path = fcu->rna_path;
+			
+			/* firstly, handle the F-Curve's own path */
+			fcu->rna_path = rna_path_rename_fix(owner_id, prefix, oldKey, newKey, fcu->rna_path, verify_paths);
+			
+			/* if path changed and the F-Curve is grouped, check if its group also needs renaming
+			 * (i.e. F-Curve is first of a bone's F-Curves; hence renaming this should also trigger rename)
+			 */
+			if (fcu->rna_path != old_path) {
+				bActionGroup *agrp = fcu->grp;
+				
+				if ((agrp) && strcmp(oldName, agrp->name)==0) {
+					BLI_strncpy(agrp->name, newName, sizeof(agrp->name));
+				}
+			}
+		}
 	}
 }
 
@@ -676,7 +690,8 @@ static void drivers_path_rename_fix(ID *owner_id, ID *ref_id, const char *prefix
 }
 
 /* Fix all RNA-Paths for Actions linked to NLA Strips */
-static void nlastrips_path_rename_fix(ID *owner_id, const char *prefix, char *oldName, char *newName, ListBase *strips, int verify_paths)
+static void nlastrips_path_rename_fix(ID *owner_id, const char *prefix, const char *oldName, const char *newName, 
+                                      const char *oldKey, const char *newKey, ListBase *strips, int verify_paths)
 {
 	NlaStrip *strip;
 	
@@ -684,11 +699,11 @@ static void nlastrips_path_rename_fix(ID *owner_id, const char *prefix, char *ol
 	for (strip = strips->first; strip; strip = strip->next) {
 		/* fix strip's action */
 		if (strip->act)
-			fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &strip->act->curves, verify_paths);
+			fcurves_path_rename_fix(owner_id, prefix, oldName, newName, oldKey, newKey, &strip->act->curves, verify_paths);
 		/* ignore own F-Curves, since those are local...  */
 		
 		/* check sub-strips (if metas) */
-		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, &strip->strips, verify_paths);
+		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, oldKey, newKey, &strip->strips, verify_paths);
 	}
 }
 
@@ -718,16 +733,16 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 	
 	/* Active action and temp action */
 	if (adt->action)
-		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->action->curves, verify_paths);
+		fcurves_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &adt->action->curves, verify_paths);
 	if (adt->tmpact)
-		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->tmpact->curves, verify_paths);
+		fcurves_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &adt->tmpact->curves, verify_paths);
 		
 	/* Drivers - Drivers are really F-Curves */
 	drivers_path_rename_fix(owner_id, ref_id, prefix, oldName, newName, oldN, newN, &adt->drivers, verify_paths);
 	
 	/* NLA Data - Animation Data for Strips */
 	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next)
-		nlastrips_path_rename_fix(owner_id, prefix, oldN, newN, &nlt->strips, verify_paths);
+		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &nlt->strips, verify_paths);
 		
 	/* free the temp names */
 	MEM_freeN(oldN);
@@ -1152,6 +1167,7 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 		/* set value - only for animatable numerical values */
 		if (RNA_property_animateable(&new_ptr, prop)) {
 			int array_len = RNA_property_array_length(&new_ptr, prop);
+			int written = FALSE;
 			
 			if (array_len && array_index >= array_len) {
 				if (G.debug & G_DEBUG) {
@@ -1165,25 +1181,52 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 			
 			switch (RNA_property_type(prop)) {
 				case PROP_BOOLEAN:
-					if (array_len)
-						RNA_property_boolean_set_index(&new_ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
-					else
-						RNA_property_boolean_set(&new_ptr, prop, ANIMSYS_FLOAT_AS_BOOL(value));
+					if (array_len) {
+						if (RNA_property_boolean_get_index(&new_ptr, prop, array_index) != ANIMSYS_FLOAT_AS_BOOL(value)) {
+							RNA_property_boolean_set_index(&new_ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
+							written = TRUE;
+						}
+					}
+					else {
+						if (RNA_property_boolean_get(&new_ptr, prop) != ANIMSYS_FLOAT_AS_BOOL(value)) {
+							RNA_property_boolean_set(&new_ptr, prop, ANIMSYS_FLOAT_AS_BOOL(value));
+							written = TRUE;
+						}
+					}
 					break;
 				case PROP_INT:
-					if (array_len)
-						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
-					else
-						RNA_property_int_set(&new_ptr, prop, (int)value);
+					if (array_len) {
+						if (RNA_property_int_get_index(&new_ptr, prop, array_index) != (int)value) {
+							RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
+							written = TRUE;
+						}
+					}
+					else {
+						if (RNA_property_int_get(&new_ptr, prop) != (int)value) {
+							RNA_property_int_set(&new_ptr, prop, (int)value);
+							written = TRUE;
+						}
+					}
 					break;
 				case PROP_FLOAT:
-					if (array_len)
-						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
-					else
-						RNA_property_float_set(&new_ptr, prop, value);
+					if (array_len) {
+						if (RNA_property_float_get_index(&new_ptr, prop, array_index) != value) {
+							RNA_property_float_set_index(&new_ptr, prop, array_index, value);
+							written = TRUE;
+						}
+					}
+					else {
+						if (RNA_property_float_get(&new_ptr, prop) != value) {
+							RNA_property_float_set(&new_ptr, prop, value);
+							written = TRUE;
+						}
+					}
 					break;
 				case PROP_ENUM:
-					RNA_property_enum_set(&new_ptr, prop, (int)value);
+					if (RNA_property_enum_get(&new_ptr, prop) != (int)value) {
+						RNA_property_enum_set(&new_ptr, prop, (int)value);
+						written = TRUE;
+					}
 					break;
 				default:
 					/* nothing can be done here... so it is unsuccessful? */
@@ -1193,7 +1236,7 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 			/* RNA property update disabled for now - [#28525] [#28690] [#28774] [#28777] */
 #if 0
 			/* buffer property update for later flushing */
-			if (RNA_property_update_check(prop)) {
+			if (written && RNA_property_update_check(prop)) {
 				short skip_updates_hack = 0;
 				
 				/* optimization hacks: skip property updates for those properties
@@ -1213,7 +1256,7 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 			/* as long as we don't do property update, we still tag datablock
 			 * as having been updated. this flag does not cause any updates to
 			 * be run, it's for e.g. render engines to synchronize data */
-			if (new_ptr.id.data) {
+			if (written && new_ptr.id.data) {
 				ID *id = new_ptr.id.data;
 				id->flag |= LIB_ID_RECALC;
 				DAG_id_type_tag(G.main, GS(id->name));

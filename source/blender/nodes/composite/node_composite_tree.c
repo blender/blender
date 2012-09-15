@@ -48,7 +48,6 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_tracking.h"
-#include "BKE_utildefines.h"
 
 #include "node_common.h"
 #include "node_exec.h"
@@ -607,11 +606,9 @@ static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_pr
 	bNode *node;
 	ListBase threads;
 	ThreadData thdata;
-	int totnode, curnode, rendering= 1, n;
-	bNodeTreeExec *exec= ntree->execdata;
-	
-	if (ntree == NULL) return;
-	
+	int totnode, curnode, rendering = TRUE, n;
+	bNodeTreeExec *exec = ntree->execdata;
+
 	if (do_preview)
 		ntreeInitPreview(ntree, 0, 0);
 	
@@ -788,7 +785,6 @@ static void force_hidden_passes(bNode *node, int passflag)
 	if (!(passflag & SCE_PASS_TRANSM_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_COLOR);
 	if (!(passflag & SCE_PASS_TRANSM_COLOR)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_COLOR);
 }
 
 /* based on rules, force sockets hidden always */

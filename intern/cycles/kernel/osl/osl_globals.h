@@ -30,12 +30,15 @@
 
 CCL_NAMESPACE_BEGIN
 
+class OSLRenderServices;
+
 struct OSLGlobals {
 	/* use */
 	bool use;
 
-	/* shading system */ 
+	/* shading system */
 	OSL::ShadingSystem *ss;
+	OSLRenderServices *services;
 
 	/* shader states */
 	vector<OSL::ShadingAttribStateRef> surface_state;
@@ -60,7 +63,7 @@ struct OSLGlobals {
 	/* thread key for thread specific data lookup */
 	struct ThreadData {
 		OSL::ShaderGlobals globals;
-		void *thread_info;
+		OSL::PerThreadInfo *thread_info;
 	};
 
 	static tls_ptr(ThreadData, thread_data);

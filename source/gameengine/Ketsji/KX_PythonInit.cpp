@@ -133,7 +133,6 @@ extern "C" {
 
 #include "PHY_IPhysicsEnvironment.h"
 #include "BKE_main.h"
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"
@@ -811,6 +810,23 @@ static PyObject *gLibList(PyObject*, PyObject* args)
 	return list;
 }
 
+struct PyNextFrameState pynextframestate;
+static PyObject *gPyNextFrame(PyObject *)
+{
+	if (pynextframestate.func == NULL) Py_RETURN_NONE;
+	if (pynextframestate.state == NULL) Py_RETURN_NONE; //should never happen; raise exception instead?
+
+	if (pynextframestate.func(pynextframestate.state)) //nonzero = stop
+	{ 
+		Py_RETURN_TRUE;
+	}
+	else // 0 = go on
+	{
+		Py_RETURN_FALSE;
+	}
+}
+
+
 static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (const char *)gPyExpandPath_doc},
 	{"startGame", (PyCFunction)gPyStartGame, METH_VARARGS, (const char *)gPyStartGame_doc},
@@ -840,7 +856,7 @@ static struct PyMethodDef game_methods[] = {
 	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (const char *)"Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (const char *)"Prints GL Extension Info"},
 	{"PrintMemInfo", (PyCFunction)pyPrintStats, METH_NOARGS, (const char *)"Print engine statistics"},
-	
+	{"NextFrame", (PyCFunction)gPyNextFrame, METH_NOARGS, (const char *)"Render next frame (if Python has control)"},
 	/* library functions */
 	{"LibLoad", (PyCFunction)gLibLoad, METH_VARARGS|METH_KEYWORDS, (const char *)""},
 	{"LibNew", (PyCFunction)gLibNew, METH_VARARGS, (const char *)""},

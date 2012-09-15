@@ -22,9 +22,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "IMB_indexer.h"
 #include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
+#include "BLI_path_util.h"
+
+#include "IMB_indexer.h"
 #include <time.h>
 
 typedef struct indexer_dv_bitstream {

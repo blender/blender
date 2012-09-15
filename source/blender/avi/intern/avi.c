@@ -734,9 +734,10 @@ AviError AVI_close(AviMovie *movie)
 
 	fclose(movie->fp);
 
-	for (i = 0; i < movie->header->Streams; i++) {
-		if (movie->streams[i].sf != NULL)
+	for (i = 0; movie->header && (i < movie->header->Streams); i++) {
+		if (movie->streams && (movie->streams[i].sf != NULL)) {
 			MEM_freeN(movie->streams[i].sf);
+		}
 	}
 
 	if (movie->header != NULL)
@@ -1081,9 +1082,10 @@ AviError AVI_close_compress(AviMovie *movie)
 
 	fclose(movie->fp);
 
-	for (i = 0; i < movie->header->Streams; i++) {
-		if (movie->streams[i].sf != NULL)
+	for (i = 0; movie->header && (i < movie->header->Streams); i++) {
+		if (movie->streams && (movie->streams[i].sf != NULL)) {
 			MEM_freeN(movie->streams[i].sf);
+		}
 	}
 	if (movie->header != NULL)
 		MEM_freeN(movie->header);

@@ -192,13 +192,16 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	handle = param_construct_begin();
 
 	if (correct_aspect) {
-		efa = BM_active_face_get(em->bm, TRUE);
+		int sloppy = TRUE;
+		int selected = FALSE;
+
+		efa = BM_active_face_get(em->bm, sloppy, selected);
 
 		if (efa) {
 			float aspx, aspy;
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
-			ED_image_get_uv_aspect(tf->tpage, &aspx, &aspy);
+			ED_image_get_uv_aspect(tf->tpage, NULL, &aspx, &aspy);
 		
 			if (aspx != aspy)
 				param_aspect_ratio(handle, aspx, aspy);
@@ -380,14 +383,17 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 	handle = param_construct_begin();
 
 	if (correct_aspect) {
-		editFace = BM_active_face_get(em->bm, TRUE);
+		int sloppy = TRUE;
+		int selected = FALSE;
+
+		editFace = BM_active_face_get(em->bm, sloppy, selected);
 
 		if (editFace) {
 			MTexPoly *tf;
 			float aspx, aspy;
 			tf = CustomData_bmesh_get(&em->bm->pdata, editFace->head.data, CD_MTEXPOLY);
 
-			ED_image_get_uv_aspect(tf->tpage, &aspx, &aspy);
+			ED_image_get_uv_aspect(tf->tpage, NULL, &aspx, &aspy);
 
 			if (aspx != aspy)
 				param_aspect_ratio(handle, aspx, aspy);
@@ -1003,7 +1009,9 @@ static void uv_transform_properties(wmOperatorType *ot, int radius)
 
 static void correct_uv_aspect(BMEditMesh *em)
 {
-	BMFace *efa = BM_active_face_get(em->bm, TRUE);
+	int sloppy = TRUE;
+	int selected = FALSE;
+	BMFace *efa = BM_active_face_get(em->bm, sloppy, selected);
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
@@ -1013,7 +1021,7 @@ static void correct_uv_aspect(BMEditMesh *em)
 		MTexPoly *tf;
 
 		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-		ED_image_get_uv_aspect(tf->tpage, &aspx, &aspy);
+		ED_image_get_uv_aspect(tf->tpage, NULL, &aspx, &aspy);
 	}
 	
 	if (aspx == aspy)

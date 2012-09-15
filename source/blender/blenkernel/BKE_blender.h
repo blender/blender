@@ -42,7 +42,7 @@ extern "C" {
  * and keep comment above the defines.
  * Use STRINGIFY() rather than defining with quotes */
 #define BLENDER_VERSION         263
-#define BLENDER_SUBVERSION      17
+#define BLENDER_SUBVERSION      18
 
 /* 262 was the last editmesh release but its has compatibility code for bmesh data,
  * so set the minversion to 2.61 */
@@ -82,6 +82,8 @@ void BKE_userdef_free(void);
 /* set this callback when a UI is running */
 void set_blender_test_break_cb(void (*func)(void) );
 int blender_test_break(void);
+
+#define BKE_UNDO_STR_MAX 64
 
 /* global undo */
 extern void BKE_write_undo(struct bContext *C, const char *name);

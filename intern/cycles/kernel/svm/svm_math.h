@@ -108,6 +108,8 @@ __device float svm_math(NodeMath type, float Fac1, float Fac2)
 		Fac = Fac1 < Fac2;
 	else if(type == NODE_MATH_GREATER_THAN)
 		Fac = Fac1 > Fac2;
+	else if(type == NODE_MATH_CLAMP)
+		Fac = clamp(Fac1, 0.0f, 1.0f);
 	else
 		Fac = 0.0f;
 	

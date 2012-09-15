@@ -380,6 +380,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 	float dist = FLT_MAX;
 	float d;
+	int is_wire;
 
 	BMEditSelection ese;
 	int totboundary_edge = 0;
@@ -402,6 +403,8 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 	/* this should be impossible, but sanity checks are a good thing */
 	if (!v)
 		return OPERATOR_CANCELLED;
+
+	is_wire = BM_vert_is_wire(v);
 
 	e2 = NULL;
 
@@ -430,8 +433,11 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 	 * - we cant find an edge - this means we are ripping a faces vert that is connected to other
 	 *   geometry only at the vertex.
 	 * - the boundary edge total is greater then 2,
-	 *   in this case edge split _can_ work but we get far nicer results if we use this special case. */
-	if (totboundary_edge > 2) {
+	 *   in this case edge split _can_ work but we get far nicer results if we use this special case.
+	 * - there are only 2 edges but we are a wire vert. */
+	if ((is_wire == FALSE && totboundary_edge > 2) ||
+	    (is_wire == TRUE  && totboundary_edge > 1))
+	{
 		BMVert **vout;
 		int vout_len;
 
@@ -458,21 +464,44 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 
 			dist = FLT_MAX;
 
+			/* in the loop below we find the best vertex to drag based on its connected geometry,
+			 * either by its face corner, or connected edge (when no faces are attached) */
 			for (i = 0; i < vout_len; i++) {
-				BM_ITER_ELEM (l, &iter, vout[i], BM_LOOPS_OF_VERT) {
-					if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
-						float l_mid_co[3];
-						BM_loop_calc_face_tangent(l, l_mid_co);
 
-						/* scale to average of surrounding edge size, only needs to be approx */
-						mul_v3_fl(l_mid_co, (BM_edge_calc_length(l->e) + BM_edge_calc_length(l->prev->e)) / 2.0f);
-						add_v3_v3(l_mid_co, v->co);
+				if (BM_vert_is_wire(vout[i]) == FALSE) {
+					/* find the best face corner */
+					BM_ITER_ELEM (l, &iter, vout[i], BM_LOOPS_OF_VERT) {
+						if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
+							float l_mid_co[3];
+							BM_loop_calc_face_tangent(l, l_mid_co);
 
-						d = edbm_rip_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval);
+							/* scale to average of surrounding edge size, only needs to be approx, but should
+							 * be roughly equivalent to the check below which uses the middle of the edge. */
+							mul_v3_fl(l_mid_co, (BM_edge_calc_length(l->e) + BM_edge_calc_length(l->prev->e)) / 2.0f);
+							add_v3_v3(l_mid_co, v->co);
 
-						if (d < dist) {
-							dist = d;
-							vi_best = i;
+							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval);
+
+							if (d < dist) {
+								dist = d;
+								vi_best = i;
+							}
+						}
+					}
+				}
+				else {
+					/* a wire vert, find the best edge */
+					BM_ITER_ELEM (e, &iter, vout[i], BM_EDGES_OF_VERT) {
+						if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+							float e_mid_co[3];
+							mid_v3_v3v3(e_mid_co, e->v1->co, e->v2->co);
+
+							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, e_mid_co, fmval);
+
+							if (d < dist) {
+								dist = d;
+								vi_best = i;
+							}
 						}
 					}
 				}

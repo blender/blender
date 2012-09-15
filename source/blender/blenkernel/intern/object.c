@@ -2710,7 +2710,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 				if (pid->cache->flag & PTCACHE_OUTDATED || (pid->cache->flag & PTCACHE_SIMULATION_VALID) == 0) {
 					scene->physics_settings.quick_cache_step =
 					        scene->physics_settings.quick_cache_step ?
-					        MIN2(scene->physics_settings.quick_cache_step, pid->cache->step) :
+					        mini(scene->physics_settings.quick_cache_step, pid->cache->step) :
 					        pid->cache->step;
 				}
 			}

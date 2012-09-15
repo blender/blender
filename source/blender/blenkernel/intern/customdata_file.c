@@ -32,6 +32,7 @@
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_endian_switch.h"
 
 #include "BKE_customdata_file.h"
 #include "BKE_global.h"
@@ -165,9 +166,9 @@ static int cdf_read_header(CDataFile *cdf)
 	header->endian = cdf_endian();
 
 	if (cdf->switchendian) {
-		SWITCH_INT(header->type);
-		SWITCH_INT(header->totlayer);
-		SWITCH_INT(header->structbytes);
+		BLI_endian_switch_int32(&header->type);
+		BLI_endian_switch_int32(&header->totlayer);
+		BLI_endian_switch_int32(&header->structbytes);
 	}
 
 	if (!ELEM(header->type, CDF_TYPE_IMAGE, CDF_TYPE_MESH))
@@ -185,10 +186,10 @@ static int cdf_read_header(CDataFile *cdf)
 			return 0;
 
 		if (cdf->switchendian) {
-			SWITCH_INT(image->width);
-			SWITCH_INT(image->height);
-			SWITCH_INT(image->tile_size);
-			SWITCH_INT(image->structbytes);
+			BLI_endian_switch_int32(&image->width);
+			BLI_endian_switch_int32(&image->height);
+			BLI_endian_switch_int32(&image->tile_size);
+			BLI_endian_switch_int32(&image->structbytes);
 		}
 
 		offset += image->structbytes;
@@ -200,7 +201,7 @@ static int cdf_read_header(CDataFile *cdf)
 			return 0;
 
 		if (cdf->switchendian)
-			SWITCH_INT(mesh->structbytes);
+			BLI_endian_switch_int32(&mesh->structbytes);
 
 		offset += mesh->structbytes;
 		mesh->structbytes = sizeof(CDataFileMeshHeader);
@@ -219,10 +220,10 @@ static int cdf_read_header(CDataFile *cdf)
 			return 0;
 
 		if (cdf->switchendian) {
-			SWITCH_INT(layer->type);
-			SWITCH_INT(layer->datatype);
-			SWITCH_INT64(layer->datasize);
-			SWITCH_INT(layer->structbytes);
+			BLI_endian_switch_int32(&layer->type);
+			BLI_endian_switch_int32(&layer->datatype);
+			BLI_endian_switch_uint64(&layer->datasize);
+			BLI_endian_switch_int32(&layer->structbytes);
 		}
 
 		if (layer->datatype != CDF_DATA_FLOAT)
@@ -317,20 +318,13 @@ int cdf_read_layer(CDataFile *cdf, CDataFileLayer *blay)
 
 int cdf_read_data(CDataFile *cdf, unsigned int size, void *data)
 {
-	float *fdata;
-	unsigned int a;
-
 	/* read data */
 	if (!fread(data, size, 1, cdf->readf))
 		return 0;
 
 	/* switch endian if necessary */
 	if (cdf->switchendian) {
-		fdata = data;
-
-		for (a = 0; a < size / sizeof(float); a++) {
-			SWITCH_INT(fdata[a]);
-		}
+		BLI_endian_switch_float_array(data, size / sizeof(float));
 	}
 
 	return 1;

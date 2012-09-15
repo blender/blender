@@ -1719,8 +1719,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		 * NOTE: see view2d.c for latest conditions, and keep this in sync with that
 		 */
 		if (ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
-			if ( ((vsm->scroller == 'h') && (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) == 0) ||
-			     ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) == 0) )
+			if (((vsm->scroller == 'h') && (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) == 0) ||
+			    ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) == 0))
 			{
 				/* switch to bar (i.e. no scaling gets handled) */
 				vsm->zone = SCROLLHANDLE_BAR;
@@ -1729,8 +1729,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* check if zone is inappropriate (i.e. 'bar' but panning is banned), so cannot continue */
 		if (vsm->zone == SCROLLHANDLE_BAR) {
-			if ( ((vsm->scroller == 'h') && (v2d->keepofs & V2D_LOCKOFS_X)) ||
-			     ((vsm->scroller == 'v') && (v2d->keepofs & V2D_LOCKOFS_Y)) )
+			if (((vsm->scroller == 'h') && (v2d->keepofs & V2D_LOCKOFS_X)) ||
+			    ((vsm->scroller == 'v') && (v2d->keepofs & V2D_LOCKOFS_Y)))
 			{
 				/* free customdata initialized */
 				scroller_activate_exit(C, op);
@@ -1741,8 +1741,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		
 		/* zone is also inappropriate if scroller is not visible... */
-		if ( ((vsm->scroller == 'h') && (v2d->scroll & (V2D_SCROLL_HORIZONTAL_HIDE | V2D_SCROLL_HORIZONTAL_FULLR))) ||
-		     ((vsm->scroller == 'v') && (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE | V2D_SCROLL_VERTICAL_FULLR))) )
+		if (((vsm->scroller == 'h') && (v2d->scroll & (V2D_SCROLL_HORIZONTAL_HIDE | V2D_SCROLL_HORIZONTAL_FULLR))) ||
+		    ((vsm->scroller == 'v') && (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE | V2D_SCROLL_VERTICAL_FULLR))) )
 		{
 			/* free customdata initialized */
 			scroller_activate_exit(C, op);

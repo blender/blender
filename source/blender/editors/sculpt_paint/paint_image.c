@@ -1410,23 +1410,45 @@ static float project_paint_uvpixel_mask(
 	
 	/* calculate mask */
 	if (ps->do_mask_normal) {
-		MFace *mf = ps->dm_mface + face_index;
-		short *no1, *no2, *no3;
+		MFace *mf = &ps->dm_mface[face_index];
 		float no[3], angle;
-		no1 = ps->dm_mvert[mf->v1].no;
-		if (side == 1) {
-			no2 = ps->dm_mvert[mf->v3].no;
-			no3 = ps->dm_mvert[mf->v4].no;
+		if (mf->flag & ME_SMOOTH) {
+			short *no1, *no2, *no3;
+			no1 = ps->dm_mvert[mf->v1].no;
+			if (side == 1) {
+				no2 = ps->dm_mvert[mf->v3].no;
+				no3 = ps->dm_mvert[mf->v4].no;
+			}
+			else {
+				no2 = ps->dm_mvert[mf->v2].no;
+				no3 = ps->dm_mvert[mf->v3].no;
+			}
+
+			no[0] = w[0] * no1[0] + w[1] * no2[0] + w[2] * no3[0];
+			no[1] = w[0] * no1[1] + w[1] * no2[1] + w[2] * no3[1];
+			no[2] = w[0] * no1[2] + w[1] * no2[2] + w[2] * no3[2];
+			normalize_v3(no);
 		}
 		else {
-			no2 = ps->dm_mvert[mf->v2].no;
-			no3 = ps->dm_mvert[mf->v3].no;
+			/* incase the */
+#if 1
+			/* normalizing per pixel isn't optimal, we could cache or check ps->*/
+			if (mf->v4)
+				normal_quad_v3(no,
+				               ps->dm_mvert[mf->v1].co,
+				               ps->dm_mvert[mf->v2].co,
+				               ps->dm_mvert[mf->v3].co,
+				               ps->dm_mvert[mf->v4].co);
+			else
+				normal_tri_v3(no,
+				              ps->dm_mvert[mf->v1].co,
+				              ps->dm_mvert[mf->v2].co,
+				              ps->dm_mvert[mf->v3].co);
+#else
+			/* don't use because some modifiers dont have normal data (subsurf for eg) */
+			copy_v3_v3(no, (float *)ps->dm->getTessFaceData(ps->dm, face_index, CD_NORMAL));
+#endif
 		}
-		
-		no[0] = w[0] * no1[0] + w[1] * no2[0] + w[2] * no3[0];
-		no[1] = w[0] * no1[1] + w[1] * no2[1] + w[2] * no3[1];
-		no[2] = w[0] * no1[2] + w[1] * no2[2] + w[2] * no3[2];
-		normalize_v3(no);
 		
 		/* now we can use the normal as a mask */
 		if (ps->is_ortho) {
@@ -3695,7 +3717,7 @@ typedef struct ProjectHandle {
 	int thread_index;
 } ProjectHandle;
 
-static void blend_color_mix(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
+static void blend_color_mix(unsigned char cp[4], const unsigned char cp1[4], const unsigned char cp2[4], const int fac)
 {
 	/* this and other blending modes previously used >>8 instead of /255. both
 	 * are not equivalent (>>8 is /256), and the former results in rounding
@@ -3708,7 +3730,7 @@ static void blend_color_mix(unsigned char *cp, const unsigned char *cp1, const u
 	cp[3] = (mfac * cp1[3] + fac * cp2[3]) / 255;
 }
 
-static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2, const float fac)
+static void blend_color_mix_float(float cp[4], const float cp1[4], const float cp2[4], const float fac)
 {
 	const float mfac = 1.0f - fac;
 	cp[0] = mfac * cp1[0] + fac * cp2[0];
@@ -5334,12 +5356,25 @@ static void toggle_paint_cursor(bContext *C, int enable)
  * ensure that the cursor is hidden when not in paint mode */
 void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 {
+	wmWindow *win;
+	ScrArea *sa;
 	ImagePaintSettings *imapaint = &settings->imapaint;
+	int enabled = FALSE;
 
-	if (!imapaint->paintcursor) {
-		imapaint->paintcursor =
-		    WM_paint_cursor_activate(wm, image_paint_poll,
-		                             brush_drawcursor, NULL);
+	for (win = wm->windows.first; win; win = win->next)
+		for (sa = win->screen->areabase.first; sa; sa = sa->next)
+			if (sa->spacetype == SPACE_IMAGE)
+				if (((SpaceImage*)sa->spacedata.first)->mode == SI_MODE_PAINT)
+					enabled = TRUE;
+
+	if (enabled) {
+		BKE_paint_init(&imapaint->paint, PAINT_CURSOR_TEXTURE_PAINT);
+
+		if (!imapaint->paintcursor) {
+			imapaint->paintcursor =
+			        WM_paint_cursor_activate(wm, image_paint_poll,
+			                                 brush_drawcursor, NULL);
+		}
 	}
 }
 

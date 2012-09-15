@@ -35,12 +35,13 @@
 
 #include "DNA_ID.h"
 
+#include "BLI_path_util.h"
+
 #include "RNA_define.h"
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
-#include "rna_internal.h"
 
-#include "BKE_utildefines.h"
+#include "rna_internal.h"
 
 #ifdef RNA_RUNTIME
 
@@ -556,7 +557,7 @@ Mask *rna_Main_mask_new(Main *UNUSED(bmain), const char *name)
 
 void rna_Main_masks_remove(Main *bmain, Mask *mask)
 {
-	BKE_mask_unlink(bmain, mask);
+	BKE_mask_free(bmain, mask);
 	BKE_libblock_free(&bmain->mask, mask);
 	/* XXX python now has invalid pointer? */
 }

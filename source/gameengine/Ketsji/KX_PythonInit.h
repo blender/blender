@@ -70,6 +70,16 @@ class KX_Scene;
 void KX_SetActiveScene(class KX_Scene* scene);
 class KX_Scene* KX_GetActiveScene();
 class KX_KetsjiEngine* KX_GetActiveEngine();
+
+typedef int (*PyNextFrameFunc)(void *);
+struct PyNextFrameState {
+    //state: can be either a GPG_NextFrameState or a BL_KetsjiNextFrameState
+    void *state;
+    //func: can be either GPG_PyNextFrame or BL_KetsjiPyNextFrame
+    PyNextFrameFunc func;
+};
+extern struct PyNextFrameState pynextframestate;
+
 #include "MT_Vector3.h"
 
 void		KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color);

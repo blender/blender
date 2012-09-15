@@ -724,11 +724,13 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
 				break;
 			}
-			case GHOST_kEventWindowClose: {
+			case GHOST_kEventWindowClose:
+			{
 				wm_window_close(C, wm, win);
 				break;
 			}
-			case GHOST_kEventWindowUpdate: {
+			case GHOST_kEventWindowUpdate:
+			{
 				if (G.debug & G_DEBUG_EVENTS) {
 					printf("%s: ghost redraw %d\n", __func__, win->winid);
 				}
@@ -739,7 +741,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				break;
 			}
 			case GHOST_kEventWindowSize:
-			case GHOST_kEventWindowMove: {
+			case GHOST_kEventWindowMove:
+			{
 				GHOST_TWindowState state;
 				state = GHOST_GetWindowState(win->ghostwin);
 				win->windowstate = state;

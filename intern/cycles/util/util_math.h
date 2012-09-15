@@ -277,6 +277,11 @@ __device_inline float cross(const float2 a, const float2 b)
 
 #ifndef __KERNEL_OPENCL__
 
+__device_inline bool operator==(const int2 a, const int2 b)
+{
+	return (a.x == b.x && a.y == b.y);
+}
+
 __device_inline float len(const float2 a)
 {
 	return sqrtf(dot(a, a));

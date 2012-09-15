@@ -84,7 +84,8 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 	switch (ob->type) {
 		case OB_FONT:
 		case OB_CURVE:
-		case OB_SURF: {
+		case OB_SURF:
+		{
 			ListBase dispbase = {NULL, NULL};
 			DerivedMesh *derivedFinal = NULL;
 			int uv_from_orco;
@@ -163,7 +164,8 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			break;
 		}
 
-		case OB_MBALL: {
+		case OB_MBALL:
+		{
 			/* metaballs don't have modifiers, so just convert to mesh */
 			Object *basis_ob = BKE_mball_basis_find(sce, ob);
 			/* todo, re-generatre for render-res */

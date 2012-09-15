@@ -1185,7 +1185,7 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = pose_constraints_clear_exec;
-	ot->poll = ED_operator_posemode; // XXX - do we want to ensure there are selected bones too?
+	ot->poll = ED_operator_posemode_exclusive; // XXX - do we want to ensure there are selected bones too?
 }
 
 
@@ -1266,7 +1266,7 @@ void POSE_OT_constraints_copy(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_constraint_copy_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1392,9 +1392,9 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 			/* just use the first object we encounter (that isn't the active object) 
 			 * and which fulfills the criteria for the object-target that we've got 
 			 */
-			if ( (ob != obact) &&
-			     ((!only_curve) || (ob->type == OB_CURVE)) &&
-			     ((!only_mesh) || (ob->type == OB_MESH)) )
+			if ((ob != obact) &&
+			    ((!only_curve) || (ob->type == OB_CURVE)) &&
+			    ((!only_mesh) || (ob->type == OB_MESH)))
 			{
 				/* set target */
 				*tar_ob = ob;
@@ -1478,15 +1478,15 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	if (type == CONSTRAINT_TYPE_NULL) {
 		return OPERATOR_CANCELLED;
 	}
-	if ( (type == CONSTRAINT_TYPE_RIGIDBODYJOINT) && (list != &ob->constraints) ) {
+	if ((type == CONSTRAINT_TYPE_RIGIDBODYJOINT) && (list != &ob->constraints)) {
 		BKE_report(op->reports, RPT_ERROR, "Rigid Body Joint Constraint can only be added to Objects");
 		return OPERATOR_CANCELLED;
 	}
-	if ( (type == CONSTRAINT_TYPE_KINEMATIC) && ((!pchan) || (list != &pchan->constraints)) ) {
+	if ((type == CONSTRAINT_TYPE_KINEMATIC) && ((!pchan) || (list != &pchan->constraints))) {
 		BKE_report(op->reports, RPT_ERROR, "IK Constraint can only be added to Bones");
 		return OPERATOR_CANCELLED;
 	}
-	if ( (type == CONSTRAINT_TYPE_SPLINEIK) && ((!pchan) || (list != &pchan->constraints)) ) {
+	if ((type == CONSTRAINT_TYPE_SPLINEIK) && ((!pchan) || (list != &pchan->constraints))) {
 		BKE_report(op->reports, RPT_ERROR, "Spline IK Constraint can only be added to Bones");
 		return OPERATOR_CANCELLED;
 	}
@@ -1661,7 +1661,7 @@ void POSE_OT_constraint_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = pose_constraint_add_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1680,7 +1680,7 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = pose_constraint_add_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1766,7 +1766,7 @@ void POSE_OT_ik_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = pose_ik_add_invoke;
 	ot->exec = pose_ik_add_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1816,7 +1816,7 @@ void POSE_OT_ik_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_ik_clear_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

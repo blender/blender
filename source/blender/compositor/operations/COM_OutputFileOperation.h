@@ -24,8 +24,9 @@
 #ifndef _COM_OutputFileOperation_h
 #define _COM_OutputFileOperation_h
 #include "COM_NodeOperation.h"
+
 #include "BLI_rect.h"
-#include "BKE_utildefines.h"
+#include "BLI_path_util.h"
 
 #include "intern/openexr/openexr_multi.h"
 

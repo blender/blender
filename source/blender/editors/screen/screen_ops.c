@@ -349,6 +349,29 @@ int ED_operator_editarmature(bContext *C)
 	return 0;
 }
 
+/**
+ * \brief check for pose mode (no mixed modes)
+ *
+ * We wan't to enable most pose operations in weight paint mode,
+ * when it comes to transforming bones, but managing bomes layers/groups
+ * can be left for pose mode only. (not weight paint mode)
+ */
+int ED_operator_posemode_exclusive(bContext *C)
+{
+	Object *obact = CTX_data_active_object(C);
+
+	if (obact && !(obact->mode & OB_MODE_EDIT)) {
+		Object *obpose;
+		if ((obpose = BKE_object_pose_armature_get(obact))) {
+			if (obact == obpose) {
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 int ED_operator_posemode(bContext *C)
 {
 	Object *obact = CTX_data_active_object(C);
@@ -1347,12 +1370,12 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->type == EVT_ACTIONZONE_AREA) {
 		sActionzoneData *sad = event->customdata;
 		
-		if (sad->modifier > 0) {
+		if (sad == NULL || sad->modifier > 0) {
 			return OPERATOR_PASS_THROUGH;
 		}
 		
 		/* verify *sad itself */
-		if (sad == NULL || sad->sa1 == NULL || sad->az == NULL)
+		if (sad->sa1 == NULL || sad->az == NULL)
 			return OPERATOR_PASS_THROUGH;
 		
 		/* is this our *sad? if areas not equal it should be passed on */
@@ -2261,12 +2284,12 @@ static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->type == EVT_ACTIONZONE_AREA) {
 		sActionzoneData *sad = event->customdata;
 		
-		if (sad->modifier > 0) {
+		if (sad == NULL || sad->modifier > 0) {
 			return OPERATOR_PASS_THROUGH;
 		}
 		
 		/* verify *sad itself */
-		if (sad == NULL || sad->sa1 == NULL || sad->sa2 == NULL)
+		if (sad->sa1 == NULL || sad->sa2 == NULL)
 			return OPERATOR_PASS_THROUGH;
 		
 		/* is this our *sad? if areas equal it should be passed on */

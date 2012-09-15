@@ -416,8 +416,7 @@ void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4]
 static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[][4])
 {
 	DerivedMesh *dm = NULL;
-	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	float vec[3] = {0.0f, 0.0f, 0.0f};
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
@@ -4292,8 +4291,8 @@ bConstraintTypeInfo *get_constraint_typeinfo(int type)
 	}
 	
 	/* only return for valid types */
-	if ( (type >= CONSTRAINT_TYPE_NULL) && 
-	     (type < NUM_CONSTRAINT_TYPES) )
+	if ((type >= CONSTRAINT_TYPE_NULL) &&
+	    (type < NUM_CONSTRAINT_TYPES))
 	{
 		/* there shouldn't be any segfaults here... */
 		return constraintsTypeInfo[type];
@@ -4514,7 +4513,7 @@ static void con_relink_id_cb(bConstraint *UNUSED(con), ID **idpoin, short UNUSED
 	 * since we've got the actual ID block, let's just inline this
 	 * code. 
 	 *
-	 * See ID_NEW(a) in BKE_utildefines.h
+	 * See ID_NEW(a) in DNA_ID.h
 	 */
 	if ((*idpoin) && (*idpoin)->newid)
 		(*idpoin) = (void *)(*idpoin)->newid;

@@ -54,6 +54,7 @@
 #include "KX_BlenderSceneConverter.h"
 #include "KX_PythonInit.h"
 #include "KX_PyConstraintBinding.h"
+#include "KX_PythonMain.h"
 
 #include "RAS_GLExtensionManager.h"
 #include "RAS_OpenGLRasterizer.h"
@@ -79,6 +80,9 @@ extern "C" {
 #include "DNA_windowmanager_types.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
+
+#include "MEM_guardedalloc.h"
+
 /* #include "BKE_screen.h" */ /* cant include this because of 'new' function name */
 extern float BKE_screen_view3d_zoom_to_fac(float camzoom);
 
@@ -119,6 +123,93 @@ static BlendFileData *load_game_data(char *filename)
 	BKE_reports_clear(&reports);
 
 	return bfd;
+}
+
+int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win, Scene *scene, ARegion *ar,
+                       KX_BlenderKeyboardDevice* keyboarddevice, KX_BlenderMouseDevice* mousedevice, int draw_letterbox)
+{
+	int exitrequested;
+
+	// first check if we want to exit
+	exitrequested = ketsjiengine->GetExitCode();
+
+	// kick the engine
+	bool render = ketsjiengine->NextFrame();
+
+	if (render) {
+		if (draw_letterbox) {
+			// Clear screen to border color
+			// We do this here since we set the canvas to be within the frames. This means the engine
+			// itself is unaware of the extra space, so we clear the whole region for it.
+			glClearColor(scene->gm.framing.col[0], scene->gm.framing.col[1], scene->gm.framing.col[2], 1.0f);
+			glViewport(ar->winrct.xmin, ar->winrct.ymin,
+			           BLI_RCT_SIZE_X(&ar->winrct), BLI_RCT_SIZE_Y(&ar->winrct));
+			glClear(GL_COLOR_BUFFER_BIT);
+		}
+
+		// render the frame
+		ketsjiengine->Render();
+	}
+
+	wm_window_process_events_nosleep();
+
+	// test for the ESC key
+	//XXX while (qtest())
+	while (wmEvent *event= (wmEvent *)win->queue.first) {
+		short val = 0;
+		//unsigned short event = 0; //XXX extern_qread(&val);
+
+		if (keyboarddevice->ConvertBlenderEvent(event->type,event->val))
+			exitrequested = KX_EXIT_REQUEST_BLENDER_ESC;
+
+		/* Coordinate conversion... where
+		 * should this really be?
+		 */
+		if (event->type == MOUSEMOVE) {
+			/* Note, not nice! XXX 2.5 event hack */
+			val = event->x - ar->winrct.xmin;
+			mousedevice->ConvertBlenderEvent(MOUSEX, val);
+
+			val = ar->winy - (event->y - ar->winrct.ymin) - 1;
+			mousedevice->ConvertBlenderEvent(MOUSEY, val);
+		}
+		else {
+			mousedevice->ConvertBlenderEvent(event->type,event->val);
+		}
+
+		BLI_remlink(&win->queue, event);
+		wm_event_free(event);
+	}
+
+	if (win != CTX_wm_window(C)) {
+		exitrequested= KX_EXIT_REQUEST_OUTSIDE; /* window closed while bge runs */
+	}
+	return exitrequested;
+}
+
+struct BL_KetsjiNextFrameState {
+	struct KX_KetsjiEngine* ketsjiengine;
+	struct bContext *C;
+	struct wmWindow* win;
+	struct Scene* scene;
+	struct ARegion *ar;
+	KX_BlenderKeyboardDevice* keyboarddevice;
+	KX_BlenderMouseDevice* mousedevice;
+	int draw_letterbox;
+} ketsjinextframestate;
+
+int BL_KetsjiPyNextFrame(void *state0) 
+{
+	BL_KetsjiNextFrameState *state = (BL_KetsjiNextFrameState *) state0;
+	return BL_KetsjiNextFrame(
+		state->ketsjiengine, 
+		state->C, 
+		state->win, 
+		state->scene, 
+		state->ar,
+		state->keyboarddevice, 
+		state->mousedevice, 
+		state->draw_letterbox);
 }
 
 extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *cam_frame, int always_use_expand_framing)
@@ -440,71 +531,49 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				// Could be in StartEngine set the framerate, we need the scene to do this
 				ketsjiengine->SetAnimFrameRate(FPS);
 				
+#ifdef WITH_PYTHON
+				char *python_main = NULL;
+				pynextframestate.state = NULL;
+				pynextframestate.func = NULL;
+				python_main = KX_GetPythonMain(scene);
+
 				// the mainloop
 				printf("\nBlender Game Engine Started\n");
-				while (!exitrequested)
+				if (python_main) {
+					char *python_code = KX_GetPythonCode(blenderdata, python_main);
+					if (python_code) {
+						ketsjinextframestate.ketsjiengine = ketsjiengine;
+						ketsjinextframestate.C = C;
+						ketsjinextframestate.win = win;
+						ketsjinextframestate.scene = scene;
+						ketsjinextframestate.ar = ar;
+						ketsjinextframestate.keyboarddevice = keyboarddevice;
+						ketsjinextframestate.mousedevice = mousedevice;
+						ketsjinextframestate.draw_letterbox = draw_letterbox;
+			
+						pynextframestate.state = &ketsjinextframestate;
+						pynextframestate.func = &BL_KetsjiPyNextFrame;			
+						printf("Yielding control to Python script '%s'...\n", python_main);
+						PyRun_SimpleString(python_code);
+						printf("Exit Python script '%s'\n", python_main);
+						MEM_freeN(python_code);
+					}
+				}
+				else
+#endif  /* WITH_PYTHON */
 				{
-					// first check if we want to exit
-					exitrequested = ketsjiengine->GetExitCode();
-					
-					// kick the engine
-					bool render = ketsjiengine->NextFrame();
-					
-					if (render)
+					while (!exitrequested)
 					{
-						if (draw_letterbox) {
-							// Clear screen to border color
-							// We do this here since we set the canvas to be within the frames. This means the engine
-							// itself is unaware of the extra space, so we clear the whole region for it.
-							glClearColor(scene->gm.framing.col[0], scene->gm.framing.col[1], scene->gm.framing.col[2], 1.0f);
-							glViewport(ar->winrct.xmin, ar->winrct.ymin,
-							           BLI_RCT_SIZE_X(&ar->winrct), BLI_RCT_SIZE_Y(&ar->winrct));
-							glClear(GL_COLOR_BUFFER_BIT);
-						}
-
-						// render the frame
-						ketsjiengine->Render();
-					}
-					
-					wm_window_process_events_nosleep();
-					
-					// test for the ESC key
-					//XXX while (qtest())
-					while(wmEvent *event= (wmEvent *)win->queue.first)
-					{
-						short val = 0;
-						//unsigned short event = 0; //XXX extern_qread(&val);
-						
-						if (keyboarddevice->ConvertBlenderEvent(event->type,event->val))
-							exitrequested = KX_EXIT_REQUEST_BLENDER_ESC;
-						
-							/* Coordinate conversion... where
-							* should this really be?
-						*/
-						if (event->type==MOUSEMOVE) {
-							/* Note, not nice! XXX 2.5 event hack */
-							val = event->x - ar->winrct.xmin;
-							mousedevice->ConvertBlenderEvent(MOUSEX, val);
-							
-							val = ar->winy - (event->y - ar->winrct.ymin) - 1;
-							mousedevice->ConvertBlenderEvent(MOUSEY, val);
-						}
-						else {
-							mousedevice->ConvertBlenderEvent(event->type,event->val);
-						}
-						
-						BLI_remlink(&win->queue, event);
-						wm_event_free(event);
-					}
-					
-					if (win != CTX_wm_window(C)) {
-						exitrequested= KX_EXIT_REQUEST_OUTSIDE; /* window closed while bge runs */
+						exitrequested = BL_KetsjiNextFrame(ketsjiengine, C, win, scene, ar, keyboarddevice, mousedevice, draw_letterbox);
 					}
 				}
 				printf("Blender Game Engine Finished\n");
 				exitstring = ketsjiengine->GetExitString();
-				gs = *(ketsjiengine->GetGlobalSettings());
+#ifdef WITH_PYTHON
+				if (python_main) MEM_freeN(python_main);
+#endif  /* WITH_PYTHON */
 
+				gs = *(ketsjiengine->GetGlobalSettings());
 
 				// when exiting the mainloop
 #ifdef WITH_PYTHON

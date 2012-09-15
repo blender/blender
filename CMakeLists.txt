@@ -132,7 +132,7 @@ option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
 option(WITH_COMPOSITOR    "Enable the tile based nodal compositor" ON)
-option(WITH_COMPOSITOR_LEGACY "Enable legacy compositor" ON)
+option(WITH_COMPOSITOR_LEGACY "Enable legacy compositor" OFF)
 
 # GHOST Windowing Library Options
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
@@ -672,6 +672,31 @@ if(UNIX AND NOT APPLE)
 		endif()
 	endif()
 
+	if(WITH_CYCLES_OSL)
+		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
+	
+		message(STATUS "CYCLES_OSL = ${CYCLES_OSL}")
+	
+		find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
+		find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
+		find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
+		# WARNING! depends on correct order of OSL libs linking
+		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
+		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
+		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
+	
+		if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
+			set(OSL_FOUND TRUE)
+			message(STATUS "OSL includes = ${OSL_INCLUDES}")
+			message(STATUS "OSL library = ${OSL_LIBRARIES}")
+			message(STATUS "OSL compiler = ${OSL_COMPILER}")
+		else()
+			message(STATUS "OSL not found")
+		endif()
+	
+		include_directories(${OSL_INCLUDES})
+	endif()
+
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
 	set(PLATFORM_LINKLIBS "-lutil -lc -lm -lpthread -lstdc++")
 
@@ -814,6 +839,31 @@ elseif(WIN32)
 
 	if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 		add_definitions(-D__SSE__ -D__MMX__)
+	endif()
+
+	if(WITH_CYCLES_OSL)
+		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
+	
+		message(STATUS "CYCLES_OSL = ${CYCLES_OSL}")
+	
+		find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
+		find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
+		find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
+		# WARNING! depends on correct order of OSL libs linking
+		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
+		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
+		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
+	
+		if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
+			set(OSL_FOUND TRUE)
+			message(STATUS "OSL includes = ${OSL_INCLUDES}")
+			message(STATUS "OSL library = ${OSL_LIBRARIES}")
+			message(STATUS "OSL compiler = ${OSL_COMPILER}")
+		else()
+			message(STATUS "OSL not found")
+		endif()
+	
+		include_directories(${OSL_INCLUDES})
 	endif()
 
 	if(MSVC)
@@ -1430,6 +1480,31 @@ elseif(APPLE)
 		set(OPENIMAGEIO_LIBRARIES OpenImageIO ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib ${JPEG_LIBPATH} ${PNG_LIBPATH} ${TIFF_LIBPATH} ${OPENEXR_LIBPATH} ${ZLIB_LIBPATH})
 		set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
+	endif()
+
+	if(WITH_CYCLES_OSL)
+		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
+	
+		message(STATUS "CYCLES_OSL = ${CYCLES_OSL}")
+	
+		find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
+		find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
+		find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
+		# WARNING! depends on correct order of OSL libs linking
+		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
+		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
+		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
+	
+		if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
+			set(OSL_FOUND TRUE)
+			message(STATUS "OSL includes = ${OSL_INCLUDES}")
+			message(STATUS "OSL library = ${OSL_LIBRARIES}")
+			message(STATUS "OSL compiler = ${OSL_COMPILER}")
+		else()
+			message(STATUS "OSL not found")
+		endif()
+	
+		include_directories(${OSL_INCLUDES})
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)

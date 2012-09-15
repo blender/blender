@@ -82,7 +82,7 @@ static const char *locales[] = {
 	"spanish", "es",
 	"catalan", "ca_AD",
 	"czech", "cs_CZ",
-	"portuguese", "pt",
+	"portuguese", "pt_PT",
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	"Chinese (Simplified)_China.1252", "zh_CN",
 	"Chinese (Traditional)_China.1252", "zh_TW",
@@ -107,6 +107,8 @@ static const char *locales[] = {
 	"kyrgyz", "ky_KG",
 	"turkish", "tr_TR",
 	"hungarian", "hu_HU",
+	"brazilian portuguese", "pt_BR",
+	"hebrew", "he_IL",
 };
 
 void BLF_lang_init(void)

@@ -13,6 +13,7 @@ set(SRC
 	bsdf_ashikhmin_velvet.cpp
 	bsdf_diffuse.cpp
 	bsdf_oren_nayar.cpp
+	bsdf_phong.cpp
 	bsdf_microfacet.cpp
 	bsdf_reflection.cpp
 	bsdf_refraction.cpp

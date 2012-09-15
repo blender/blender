@@ -63,7 +63,6 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 #include "BKE_depsgraph.h"
 #include "BKE_anim.h"
@@ -75,7 +74,8 @@
 /* --------------------- */
 /* forward declarations */
 
-static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4], int par_index, int level, int animated);
+static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4], int par_index,
+                                       int level, short animated, short update);
 
 /* ******************************************************************** */
 /* Animation Visualization */
@@ -494,36 +494,42 @@ void calc_curvepath(Object *ob)
 	/* in a path vertices are with equal differences: path->len = number of verts */
 	/* NOW WITH BEVELCURVE!!! */
 	
-	if (ob == NULL || ob->type != OB_CURVE) return;
+	if (ob == NULL || ob->type != OB_CURVE) {
+		return;
+	}
 	cu = ob->data;
-
-	nurbs = BKE_curve_nurbs_get(cu);
-	nu = nurbs->first;
 
 	if (cu->path) free_path(cu->path);
 	cu->path = NULL;
 	
+	/* weak! can only use first curve */
 	bl = cu->bev.first;
-	if (bl == NULL || !bl->nr) return;
+	if (bl == NULL || !bl->nr) {
+		return;
+	}
+
+	nurbs = BKE_curve_nurbs_get(cu);
+	nu = nurbs->first;
 
 	cu->path = path = MEM_callocN(sizeof(Path), "calc_curvepath");
 	
 	/* if POLY: last vertice != first vertice */
 	cycl = (bl->poly != -1);
 	
-	if (cycl) tot = bl->nr;
-	else tot = bl->nr - 1;
+	tot = cycl ? bl->nr : bl->nr - 1;
 	
 	path->len = tot + 1;
 	/* exception: vector handle paths and polygon paths should be subdivided at least a factor resolu */
-	if (path->len < nu->resolu * SEGMENTSU(nu)) path->len = nu->resolu * SEGMENTSU(nu);
+	if (path->len < nu->resolu * SEGMENTSU(nu)) {
+		path->len = nu->resolu * SEGMENTSU(nu);
+	}
 	
 	dist = (float *)MEM_mallocN((tot + 1) * 4, "calcpathdist");
 
 	/* all lengths in *dist */
 	bevp = bevpfirst = (BevPoint *)(bl + 1);
 	fp = dist;
-	*fp = 0;
+	*fp = 0.0f;
 	for (a = 0; a < tot; a++) {
 		fp++;
 		if (cycl && a == tot - 1)
@@ -558,19 +564,16 @@ void calc_curvepath(Object *ob)
 			fp++;
 			if (bevp < bevplast) bevp++;
 			bevpn = bevp + 1;
-			if (bevpn > bevplast) {
-				if (cycl) bevpn = bevpfirst;
-				else bevpn = bevplast;
+			if (UNLIKELY(bevpn > bevplast)) {
+				bevpn = cycl ? bevpfirst : bevplast;
 			}
 		}
 		
-		fac1 = *(fp) - *(fp - 1);
-		fac2 = *(fp) - d;
-		fac1 = fac2 / fac1;
+		fac1 = (*(fp) - d) / (*(fp) - *(fp - 1));
 		fac2 = 1.0f - fac1;
-		
+
 		interp_v3_v3v3(pp->vec, bevp->vec, bevpn->vec, fac2);
-		pp->vec[3] = fac1 * bevp->alfa + fac2 * bevpn->alfa;
+		pp->vec[3] = fac1 * bevp->alfa   + fac2 * bevpn->alfa;
 		pp->radius = fac1 * bevp->radius + fac2 * bevpn->radius;
 		pp->weight = fac1 * bevp->weight + fac2 * bevpn->weight;
 		interp_qt_qtqt(pp->quat, bevp->quat, bevpn->quat, fac2);
@@ -582,18 +585,14 @@ void calc_curvepath(Object *ob)
 	MEM_freeN(dist);
 }
 
-
-/* is this only used internally?*/
-int interval_test(int min, int max, int p1, int cycl)
+static int interval_test(const int min, const int max, int p1, const int cycl)
 {
 	if (cycl) {
-		if (p1 < min) 
-			p1 =  ((p1 - min) % (max - min + 1)) + max + 1;
-		else if (p1 > max)
-			p1 =  ((p1 - min) % (max - min + 1)) + min;
+		if      (p1 < min) p1 = ((p1 - min) % (max - min + 1)) + max + 1;
+		else if (p1 > max) p1 = ((p1 - min) % (max - min + 1)) + min;
 	}
 	else {
-		if (p1 < min) p1 = min;
+		if      (p1 < min) p1 = min;
 		else if (p1 > max) p1 = max;
 	}
 	return p1;
@@ -701,7 +700,7 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 /* ******************************************************************** */
 /* Dupli-Geometry */
 
-static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index, int par_index, int type, int animated)
+static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index, int par_index, int type, short animated)
 {
 	DupliObject *dob = MEM_callocN(sizeof(DupliObject), "dupliobject");
 	
@@ -719,7 +718,8 @@ static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], i
 	return dob;
 }
 
-static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_index, int level, int animated)
+static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_index,
+                            int level, short animated, short update)
 {
 	DupliObject *dob;
 	Group *group;
@@ -733,8 +733,14 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_inde
 	if (level > MAX_DUPLI_RECUR) return;
 	
 	/* handles animated groups, and */
+
 	/* we need to check update for objects that are not in scene... */
-	group_handle_recalc_and_update(scene, ob, group);
+	if (update) {
+		/* note: update is optional because we don't always need object
+		 * transformations to be correct. Also fixes bug [#29616]. */
+		group_handle_recalc_and_update(scene, ob, group);
+	}
+
 	animated = animated || group_is_animated(ob, group);
 	
 	for (go = group->gobject.first; go; go = go->next) {
@@ -766,14 +772,14 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_inde
 
 			if (go->ob->transflag & OB_DUPLI) {
 				copy_m4_m4(dob->ob->obmat, dob->mat);
-				object_duplilist_recursive(&group->id, scene, go->ob, lb, ob->obmat, par_index, level + 1, animated);
+				object_duplilist_recursive(&group->id, scene, go->ob, lb, ob->obmat, par_index, level + 1, animated, update);
 				copy_m4_m4(dob->ob->obmat, dob->omat);
 			}
 		}
 	}
 }
 
-static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_index, int level, int animated)
+static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_index, int level, short animated)
 {
 	extern int enable_cu_speed; /* object.c */
 	Object copyob;
@@ -845,7 +851,8 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_ind
 typedef struct VertexDupliData {
 	ID *id; /* scene or group, for recursive loops */
 	int level;
-	int animated;
+	short animated;
+	short update;
 	ListBase *lb;
 	float pmat[4][4];
 	float obmat[4][4]; /* Only used for dupliverts inside dupligroups, where the ob->obmat is modified */
@@ -901,12 +908,13 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 		float tmpmat[4][4];
 		copy_m4_m4(tmpmat, vdd->ob->obmat);
 		copy_m4_m4(vdd->ob->obmat, obmat); /* pretend we are really this mat */
-		object_duplilist_recursive((ID *)vdd->id, vdd->scene, vdd->ob, vdd->lb, obmat, vdd->par_index, vdd->level + 1, vdd->animated);
+		object_duplilist_recursive((ID *)vdd->id, vdd->scene, vdd->ob, vdd->lb, obmat, vdd->par_index, vdd->level + 1, vdd->animated, vdd->update);
 		copy_m4_m4(vdd->ob->obmat, tmpmat);
 	}
 }
 
-static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int par_index, int level, int animated)
+static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int par_index,
+                             int level, short animated, short update)
 {
 	Object *ob, *ob_iter;
 	Mesh *me = par->data;
@@ -926,7 +934,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	/* simple preventing of too deep nested groups */
 	if (level > MAX_DUPLI_RECUR) return;
 	
-	em = me->edit_btmesh;
+	em = BMEdit_FromObject(par);
 	
 	if (em) {
 		dm = editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
@@ -985,6 +993,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 					vdd.id = id;
 					vdd.level = level;
 					vdd.animated = animated;
+					vdd.update = update;
 					vdd.lb = lb;
 					vdd.ob = ob;
 					vdd.scene = scene;
@@ -1029,7 +1038,8 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	dm->release(dm);
 }
 
-static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int par_index, int level, int animated)
+static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int par_index,
+                           int level, short animated, short update)
 {
 	Object *ob, *ob_iter;
 	Base *base = NULL;
@@ -1052,7 +1062,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	if (level > MAX_DUPLI_RECUR) return;
 	
 	copy_m4_m4(pmat, par->obmat);
-	em = me->edit_btmesh;
+	em = BMEdit_FromObject(par);
 
 	if (em) {
 		dm = editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
@@ -1199,7 +1209,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 							float tmpmat[4][4];
 							copy_m4_m4(tmpmat, ob->obmat);
 							copy_m4_m4(ob->obmat, obmat); /* pretend we are really this mat */
-							object_duplilist_recursive((ID *)id, scene, ob, lb, ob->obmat, par_index, level + 1, animated);
+							object_duplilist_recursive((ID *)id, scene, ob, lb, ob->obmat, par_index, level + 1, animated, update);
 							copy_m4_m4(ob->obmat, tmpmat);
 						}
 					}
@@ -1219,7 +1229,8 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	dm->release(dm);
 }
 
-static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int UNUSED(par_index), ParticleSystem *psys, int level, int animated)
+static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int UNUSED(par_index), ParticleSystem *psys,
+                                   int level, short animated, short update)
 {
 	GroupObject *go;
 	Object *ob = NULL, **oblist = NULL, obcopy, *obcopylist = NULL;
@@ -1302,7 +1313,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 		/* gather list of objects or single object */
 		if (part->ren_as == PART_DRAW_GR) {
-			group_handle_recalc_and_update(scene, par, part->dup_group);
+			if (update) {
+				group_handle_recalc_and_update(scene, par, part->dup_group);
+			}
 
 			if (part->draw & PART_DRAW_COUNT_GR) {
 				for (dw = part->dupliweights.first; dw; dw = dw->next)
@@ -1557,7 +1570,7 @@ static Object *find_family_object(Object **obar, char *family, char ch)
 }
 
 
-static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int par_index, int level, int animated)
+static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int par_index, int level, short animated)
 {
 	Object *ob, *obar[256] = {NULL};
 	Curve *cu;
@@ -1605,7 +1618,8 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int par_inde
 
 /* ------------- */
 
-static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4], int par_index, int level, int animated)
+static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4], int par_index,
+                                       int level, short animated, short update)
 {	
 	if ((ob->transflag & OB_DUPLI) == 0)
 		return;
@@ -1625,11 +1639,11 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 	if (ob->transflag & OB_DUPLIPARTS) {
 		ParticleSystem *psys = ob->particlesystem.first;
 		for (; psys; psys = psys->next)
-			new_particle_duplilist(duplilist, id, scene, ob, par_space_mat, par_index, psys, level + 1, animated);
+			new_particle_duplilist(duplilist, id, scene, ob, par_space_mat, par_index, psys, level + 1, animated, update);
 	}
 	else if (ob->transflag & OB_DUPLIVERTS) {
 		if (ob->type == OB_MESH) {
-			vertex_duplilist(duplilist, id, scene, ob, par_space_mat, par_index, level + 1, animated);
+			vertex_duplilist(duplilist, id, scene, ob, par_space_mat, par_index, level + 1, animated, update);
 		}
 		else if (ob->type == OB_FONT) {
 			if (GS(id->name) == ID_SCE) { /* TODO - support dupligroups */
@@ -1639,7 +1653,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 	}
 	else if (ob->transflag & OB_DUPLIFACES) {
 		if (ob->type == OB_MESH)
-			face_duplilist(duplilist, id, scene, ob, par_space_mat, par_index, level + 1, animated);
+			face_duplilist(duplilist, id, scene, ob, par_space_mat, par_index, level + 1, animated, update);
 	}
 	else if (ob->transflag & OB_DUPLIFRAMES) {
 		if (GS(id->name) == ID_SCE) { /* TODO - support dupligroups */
@@ -1649,7 +1663,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 	else if (ob->transflag & OB_DUPLIGROUP) {
 		DupliObject *dob;
 		
-		group_duplilist(duplilist, scene, ob, par_index, level + 1, animated); /* now recursive */
+		group_duplilist(duplilist, scene, ob, par_index, level + 1, animated, update); /* now recursive */
 
 		if (level == 0) {
 			for (dob = duplilist->first; dob; dob = dob->next)
@@ -1661,13 +1675,21 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 
 /* Returns a list of DupliObject
  * note; group dupli's already set transform matrix. see note in group_duplilist() */
-ListBase *object_duplilist(Scene *sce, Object *ob)
+ListBase *object_duplilist_ex(Scene *sce, Object *ob, int update)
 {
 	ListBase *duplilist = MEM_mallocN(sizeof(ListBase), "duplilist");
 	duplilist->first = duplilist->last = NULL;
-	object_duplilist_recursive((ID *)sce, sce, ob, duplilist, NULL, 0, 0, 0);
+	object_duplilist_recursive((ID *)sce, sce, ob, duplilist, NULL, 0, 0, 0, update);
 	return duplilist;
 }
+
+/* note: previously updating was always done, this is why it defaults to be on
+ * but there are likely places it can be called without updating */
+ListBase *object_duplilist(Scene *sce, Object *ob)
+{
+	return object_duplilist_ex(sce, ob, TRUE);
+}
+
 
 void free_object_duplilist(ListBase *lb)
 {

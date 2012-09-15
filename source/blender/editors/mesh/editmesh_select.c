@@ -268,11 +268,14 @@ int EDBM_backbuf_border_mask_init(ViewContext *vc, int mcords[][2], short tot, s
 	
 	/* grab mask */
 	bufmask = view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
-	drm = bufmask->rect;
+
 	if (bufmask == NULL) {
 		return 0; /* only when mem alloc fails, go crash somewhere else! */
 	}
-	
+	else {
+		drm = bufmask->rect;
+	}
+
 	/* build selection lookup */
 	selbuf = MEM_callocN(bm_vertoffs + 1, "selbuf");
 	
@@ -1504,7 +1507,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 /* ************************************************** */
 /* here actual select happens */
 /* gets called via generic mouse select operator */
-int mouse_mesh(bContext *C, const int mval[2], short extend, short deselect, short toggle)
+int EDBM_select_pick(bContext *C, const int mval[2], short extend, short deselect, short toggle)
 {
 	ViewContext vc;
 	BMVert *eve = NULL;
@@ -2231,7 +2234,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **r_eve, BMEdge **r_eed, 
 		}
 	}
 	else if (em->selectmode & SCE_SELECT_FACE) {
-		f = BM_active_face_get(em->bm, TRUE);
+		f = BM_active_face_get(em->bm, TRUE, FALSE);
 		if (f) {
 			*r_efa = f;
 			return;
@@ -2306,8 +2309,7 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 	view3d_set_viewcontext(C, vc);
 	
 	if (vc->obedit) {
-		Mesh *me = vc->obedit->data;
-		vc->em = me->edit_btmesh;
+		vc->em = BMEdit_FromObject(vc->obedit);
 	}
 }
 
@@ -2332,25 +2334,19 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	BMEdge *e;
 	BMLoop *l1, *l2;
-	float sharp = RNA_float_get(op->ptr, "sharpness"), angle;
+	const float sharp = RNA_float_get(op->ptr, "sharpness");
 
 	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) || !e->l)
-			continue;
+		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == FALSE &&
+		    BM_edge_loop_pair(e, &l1, &l2))
+		{
+			/* edge has exactly two neighboring faces, check angle */
+			const float angle = angle_normalized_v3v3(l1->f->no, l2->f->no);
 
-		l1 = e->l;
-		l2 = l1->radial_next;
-
-		if (l1 == l2)
-			continue;
-
-		/* edge has exactly two neighboring faces, check angle */
-		angle = angle_normalized_v3v3(l1->f->no, l2->f->no);
-
-		if (fabsf(angle) < sharp) {
-			BM_edge_select_set(em->bm, e, TRUE);
+			if (fabsf(angle) > sharp) {
+				BM_edge_select_set(em->bm, e, TRUE);
+			}
 		}
-
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
@@ -2377,7 +2373,7 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 	/* props */
 	prop = RNA_def_float_rotation(ot->srna, "sharpness", 0, NULL, DEG2RADF(0.01f), DEG2RADF(180.0f),
 	                              "Sharpness", "", DEG2RADF(1.0f), DEG2RADF(180.0f));
-	RNA_def_property_float_default(prop, DEG2RADF(1.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(30.0f));
 }
 
 static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)

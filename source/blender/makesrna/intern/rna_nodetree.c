@@ -1526,6 +1526,15 @@ static void def_sh_tex_image(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem prop_projection_items[] = {
+		{SHD_PROJ_FLAT, "FLAT", 0, "Flat",
+		                "Image is projected flat using the X and Y coordinates of the texture vector"},
+		{SHD_PROJ_BOX,  "BOX", 0, "Box",
+		                "Image is projected using different components for each side of the object space bounding box"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+
 	PropertyRNA *prop;
 
 	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
@@ -1541,6 +1550,15 @@ static void def_sh_tex_image(StructRNA *srna)
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_color_space_items);
 	RNA_def_property_ui_text(prop, "Color Space", "Image file color space");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "projection", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_projection_items);
+	RNA_def_property_ui_text(prop, "Projection", "Method to project 2D image on object with a 3D texture vector");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "projection_blend", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_ui_text(prop, "Projection Blend", "For box projection, amount of blend to use between sides");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
@@ -1586,6 +1604,43 @@ static void def_sh_tex_checker(StructRNA *srna)
 {
 	RNA_def_struct_sdna_from(srna, "NodeTexChecker", "storage");
 	def_sh_tex(srna);
+}
+
+static void def_sh_tex_brick(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeTexBrick", "storage");
+	def_sh_tex(srna);
+	
+	prop = RNA_def_property(srna, "offset_frequency", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "offset_freq");
+	RNA_def_property_int_default(prop, 2);
+	RNA_def_property_range(prop, 1, 99);
+	RNA_def_property_ui_text(prop, "Offset Frequency", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "squash_frequency", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "squash_freq");
+	RNA_def_property_int_default(prop, 2);
+	RNA_def_property_range(prop, 1, 99);
+	RNA_def_property_ui_text(prop, "Squash Frequency", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Offset Amount", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "squash", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "squash");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_range(prop, 0.0f, 99.0f);
+	RNA_def_property_ui_text(prop, "Squash Amount", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
 }
 
 static void def_sh_tex_magic(StructRNA *srna)

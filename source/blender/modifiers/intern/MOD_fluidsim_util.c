@@ -51,7 +51,6 @@
 #include "BKE_fluidsim.h" /* ensure definitions here match */
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
-#include "BKE_utildefines.h"
 #include "BKE_global.h" /* G.main->name only */
 
 #include "MOD_fluidsim_util.h"

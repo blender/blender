@@ -23,7 +23,6 @@
  *  \brief Undo system for painting and sculpting.
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -35,7 +34,7 @@
 
 #include "DNA_userdef_types.h"
 
-
+#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 
@@ -43,11 +42,9 @@
 
 #include "paint_intern.h"
 
-#define MAXUNDONAME 64
-
 typedef struct UndoElem {
 	struct UndoElem *next, *prev;
-	char name[MAXUNDONAME];
+	char name[BKE_UNDO_STR_MAX];
 	uintptr_t undosize;
 
 	ListBase elems;
@@ -272,4 +269,3 @@ void ED_undo_paint_free(void)
 	undo_stack_free(&ImageUndoStack);
 	undo_stack_free(&MeshUndoStack);
 }
-

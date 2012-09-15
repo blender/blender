@@ -101,8 +101,9 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 	/* setup shader engine */
 	og->ss = ss;
+	og->services = services;
 	int background_id = scene->shader_manager->get_shader_id(scene->default_background);
-	og->background_state = og->surface_state[background_id];
+	og->background_state = og->surface_state[background_id & SHADER_MASK];
 	og->use = true;
 
 	tls_create(OSLGlobals::ThreadData, og->thread_data);
@@ -199,19 +200,19 @@ void OSLCompiler::add(ShaderNode *node, const char *name)
 
 			switch(input->type) {
 				case SHADER_SOCKET_COLOR:
-					parameter_color(input->name, input->value);
+					parameter_color(compatible_name(input->name).c_str(), input->value);
 					break;
 				case SHADER_SOCKET_POINT:
-					parameter_point(input->name, input->value);
+					parameter_point(compatible_name(input->name).c_str(), input->value);
 					break;
 				case SHADER_SOCKET_VECTOR:
-					parameter_vector(input->name, input->value);
+					parameter_vector(compatible_name(input->name).c_str(), input->value);
 					break;
 				case SHADER_SOCKET_NORMAL:
-					parameter_normal(input->name, input->value);
+					parameter_normal(compatible_name(input->name).c_str(), input->value);
 					break;
 				case SHADER_SOCKET_FLOAT:
-					parameter(input->name, input->value.x);
+					parameter(compatible_name(input->name).c_str(), input->value.x);
 					break;
 				case SHADER_SOCKET_CLOSURE:
 					break;

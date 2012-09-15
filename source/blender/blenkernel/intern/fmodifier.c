@@ -965,8 +965,8 @@ FModifierTypeInfo *get_fmodifier_typeinfo(int type)
 	}
 	
 	/* only return for valid types */
-	if ( (type >= FMODIFIER_TYPE_NULL) && 
-	     (type <= FMODIFIER_NUM_TYPES) )
+	if ((type >= FMODIFIER_TYPE_NULL) &&
+	    (type <  FMODIFIER_NUM_TYPES))
 	{
 		/* there shouldn't be any segfaults here... */
 		return fmodifiersTypeInfo[type];

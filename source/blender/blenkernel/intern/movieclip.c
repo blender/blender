@@ -69,7 +69,6 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_utildefines.h"
 #include "BKE_movieclip.h"
 #include "BKE_image.h"  /* openanim */
 #include "BKE_tracking.h"
@@ -1002,6 +1001,14 @@ void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, in
 			IMB_freeImBuf(ibuf);
 	}
 }
+void BKE_movieclip_get_size_fl(MovieClip *clip, MovieClipUser *user, float size[2])
+{
+	int width, height;
+	BKE_movieclip_get_size(clip, user, &width, &height);
+
+	size[0] = (float)width;
+	size[1] = (float)height;
+}
 
 int BKE_movieclip_get_duration(MovieClip *clip)
 {
@@ -1012,9 +1019,9 @@ int BKE_movieclip_get_duration(MovieClip *clip)
 	return clip->len;
 }
 
-void BKE_movieclip_aspect(MovieClip *clip, float *aspx, float *aspy)
+void BKE_movieclip_get_aspect(MovieClip *clip, float *aspx, float *aspy)
 {
-	*aspx = *aspy = 1.0;
+	*aspx = 1.0;
 
 	/* x is always 1 */
 	*aspy = clip->aspy / clip->aspx / clip->tracking.camera.pixel_aspect;

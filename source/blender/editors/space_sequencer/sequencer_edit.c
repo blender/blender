@@ -170,7 +170,7 @@ static void proxy_endjob(void *pjv)
 		BKE_sequencer_proxy_rebuild_finish(link->data, pj->stop);
 	}
 
-	BKE_sequencer_free_imbuf(pj->scene, &ed->seqbase, FALSE, FALSE);
+	BKE_sequencer_free_imbuf(pj->scene, &ed->seqbase, FALSE);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, pj->scene);
 }
@@ -381,8 +381,8 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 	while (seq) {
 		if (seq->machine == (int)y) {
 			/* check for both normal strips, and strips that have been flipped horizontally */
-			if ( ((seq->startdisp < seq->enddisp) && (seq->startdisp <= x && seq->enddisp >= x)) ||
-			     ((seq->startdisp > seq->enddisp) && (seq->startdisp >= x && seq->enddisp <= x)) )
+			if (((seq->startdisp < seq->enddisp) && (seq->startdisp <= x && seq->enddisp >= x)) ||
+			    ((seq->startdisp > seq->enddisp) && (seq->startdisp >= x && seq->enddisp <= x)) )
 			{
 				if (BKE_sequence_tx_test(seq)) {
 					
@@ -1141,12 +1141,16 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if ((seq->flag & SEQ_LOCK) == 0) {
 			if (selected) { /* mute unselected */
-				if (seq->flag & SELECT)
+				if (seq->flag & SELECT) {
 					seq->flag |= SEQ_MUTE;
+					BKE_sequence_invalidate_deendent(scene, seq);
+				}
 			}
 			else {
-				if ((seq->flag & SELECT) == 0)
+				if ((seq->flag & SELECT) == 0) {
 					seq->flag |= SEQ_MUTE;
+					BKE_sequence_invalidate_deendent(scene, seq);
+				}
 			}
 		}
 	}
@@ -1188,12 +1192,16 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if ((seq->flag & SEQ_LOCK) == 0) {
 			if (selected) { /* unmute unselected */
-				if (seq->flag & SELECT)
+				if (seq->flag & SELECT) {
 					seq->flag &= ~SEQ_MUTE;
+					BKE_sequence_invalidate_deendent(scene, seq);
+				}
 			}
 			else {
-				if ((seq->flag & SELECT) == 0)
+				if ((seq->flag & SELECT) == 0) {
 					seq->flag &= ~SEQ_MUTE;
+					BKE_sequence_invalidate_deendent(scene, seq);
+				}
 			}
 		}
 	}
@@ -1340,7 +1348,7 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
-	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE, FALSE);
+	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2447,7 +2455,7 @@ static Sequence *sequence_find_parent(Scene *scene, Sequence *child)
 	if (ed == NULL) return NULL;
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-		if ( (seq != child) && seq_is_parent(seq, child) ) {
+		if ((seq != child) && seq_is_parent(seq, child)) {
 			parent = seq;
 			break;
 		}
@@ -2563,7 +2571,7 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (se) {
 		// prevent setting the render size if sequence values aren't initialized
-		if ( (se->orig_width > 0) && (se->orig_height > 0) ) {
+		if ((se->orig_width > 0) && (se->orig_height > 0)) {
 			scene->r.xsch = se->orig_width;
 			scene->r.ysch = se->orig_height;
 			WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
@@ -2903,7 +2911,7 @@ static int sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
 	BKE_sequencer_update_changed_seq_and_deps(scene, seq, 0, 1);
 
 	/* important else we don't get the imbuf cache flushed */
-	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE, FALSE);
+	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2963,7 +2971,7 @@ static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
 	BKE_sequencer_update_changed_seq_and_deps(scene, seq, 0, 1);
 
 	/* important else we don't get the imbuf cache flushed */
-	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE, FALSE);
+	BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -3036,7 +3044,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 		BKE_sequence_calc(scene, seq);
 
 		/* important else we don't get the imbuf cache flushed */
-		BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE, FALSE);
+		BKE_sequencer_free_imbuf(scene, &ed->seqbase, FALSE);
 	}
 	else {
 		/* lame, set rna filepath */

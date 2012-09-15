@@ -25,6 +25,8 @@
 #include "device.h"
 #include "device_intern.h"
 
+#include "buffers.h"
+
 #include "util_foreach.h"
 #include "util_map.h"
 #include "util_math.h"
@@ -41,6 +43,7 @@ CCL_NAMESPACE_BEGIN
 class OpenCLDevice : public Device
 {
 public:
+	TaskPool task_pool;
 	cl_context cxContext;
 	cl_command_queue cqCommandQueue;
 	cl_platform_id cpPlatform;
@@ -435,6 +438,8 @@ public:
 
 	~OpenCLDevice()
 	{
+		task_pool.stop();
+
 		if(null_mem)
 			clReleaseMemObject(CL_MEM_PTR(null_mem));
 
@@ -540,19 +545,19 @@ public:
 		return global_size + ((r == 0)? 0: group_size - r);
 	}
 
-	void path_trace(DeviceTask& task)
+	void path_trace(RenderTile& rtile, int sample)
 	{
 		/* cast arguments to cl types */
 		cl_mem d_data = CL_MEM_PTR(const_mem_map["__data"]->device_pointer);
-		cl_mem d_buffer = CL_MEM_PTR(task.buffer);
-		cl_mem d_rng_state = CL_MEM_PTR(task.rng_state);
-		cl_int d_x = task.x;
-		cl_int d_y = task.y;
-		cl_int d_w = task.w;
-		cl_int d_h = task.h;
-		cl_int d_sample = task.sample;
-		cl_int d_offset = task.offset;
-		cl_int d_stride = task.stride;
+		cl_mem d_buffer = CL_MEM_PTR(rtile.buffer);
+		cl_mem d_rng_state = CL_MEM_PTR(rtile.rng_state);
+		cl_int d_x = rtile.x;
+		cl_int d_y = rtile.y;
+		cl_int d_w = rtile.w;
+		cl_int d_h = rtile.h;
+		cl_int d_sample = sample;
+		cl_int d_offset = rtile.offset;
+		cl_int d_stride = rtile.stride;
 
 		/* sample arguments */
 		int narg = 0;
@@ -613,12 +618,12 @@ public:
 		return err;
 	}
 
-	void tonemap(DeviceTask& task)
+	void tonemap(DeviceTask& task, device_ptr buffer, device_ptr rgba)
 	{
 		/* cast arguments to cl types */
 		cl_mem d_data = CL_MEM_PTR(const_mem_map["__data"]->device_pointer);
-		cl_mem d_rgba = CL_MEM_PTR(task.rgba);
-		cl_mem d_buffer = CL_MEM_PTR(task.buffer);
+		cl_mem d_rgba = CL_MEM_PTR(rgba);
+		cl_mem d_buffer = CL_MEM_PTR(buffer);
 		cl_int d_x = task.x;
 		cl_int d_y = task.y;
 		cl_int d_w = task.w;
@@ -667,30 +672,62 @@ public:
 		opencl_assert(clFinish(cqCommandQueue));
 	}
 
-	void task_add(DeviceTask& maintask)
+	void thread_run(DeviceTask *task)
 	{
-		list<DeviceTask> tasks;
-
-		/* arbitrary limit to work around apple ATI opencl issue */
-		if(platform_name == "Apple")
-			maintask.split_max_size(tasks, 76800);
-		else
-			tasks.push_back(maintask);
-
-		foreach(DeviceTask& task, tasks) {
-			if(task.type == DeviceTask::TONEMAP)
-				tonemap(task);
-			else if(task.type == DeviceTask::PATH_TRACE)
-				path_trace(task);
+		if(task->type == DeviceTask::TONEMAP) {
+			tonemap(*task, task->buffer, task->rgba);
 		}
+		else if(task->type == DeviceTask::PATH_TRACE) {
+			RenderTile tile;
+			
+			/* keep rendering tiles until done */
+			while(task->acquire_tile(this, tile)) {
+				int start_sample = tile.start_sample;
+				int end_sample = tile.start_sample + tile.num_samples;
+
+				for(int sample = start_sample; sample < end_sample; sample++) {
+					if (task->get_cancel())
+						break;
+
+					path_trace(tile, sample);
+
+					tile.sample = sample + 1;
+
+					task->update_progress(tile);
+				}
+
+				task->release_tile(tile);
+			}
+		}
+	}
+
+	class OpenCLDeviceTask : public DeviceTask {
+	public:
+		OpenCLDeviceTask(OpenCLDevice *device, DeviceTask& task)
+		: DeviceTask(task)
+		{
+			run = function_bind(&OpenCLDevice::thread_run, device, this);
+		}
+	};
+
+	void task_add(DeviceTask& task)
+	{
+		task_pool.push(new OpenCLDeviceTask(this, task));
 	}
 
 	void task_wait()
 	{
+		task_pool.wait_work();
 	}
 
 	void task_cancel()
 	{
+		task_pool.cancel();
+	}
+
+	bool task_cancelled()
+	{
+		return task_pool.cancelled();
 	}
 };
 
@@ -702,29 +739,31 @@ Device *device_opencl_create(DeviceInfo& info, bool background)
 void device_opencl_info(vector<DeviceInfo>& devices)
 {
 	vector<cl_device_id> device_ids;
-	cl_uint num_devices;
-	cl_platform_id platform_id;
-	cl_uint num_platforms;
+	cl_uint num_devices = 0;
+	vector<cl_platform_id> platform_ids;
+	cl_uint num_platforms = 0;
 
 	/* get devices */
 	if(clGetPlatformIDs(0, NULL, &num_platforms) != CL_SUCCESS || num_platforms == 0)
 		return;
+	
+	platform_ids.resize(num_platforms);
 
-	if(clGetPlatformIDs(1, &platform_id, NULL) != CL_SUCCESS)
+	if(clGetPlatformIDs(num_platforms, &platform_ids[0], NULL) != CL_SUCCESS)
 		return;
 
-	if(clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 0, NULL, &num_devices) != CL_SUCCESS)
+	if(clGetDeviceIDs(platform_ids[0], CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 0, NULL, &num_devices) != CL_SUCCESS || num_devices == 0)
 		return;
 	
 	device_ids.resize(num_devices);
 
-	if(clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, num_devices, &device_ids[0], NULL) != CL_SUCCESS)
+	if(clGetDeviceIDs(platform_ids[0], CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, num_devices, &device_ids[0], NULL) != CL_SUCCESS)
 		return;
 	
 	/* add devices */
 	for(int num = 0; num < num_devices; num++) {
 		cl_device_id device_id = device_ids[num];
-		char name[1024];
+		char name[1024] = "\0";
 
 		if(clGetDeviceInfo(device_id, CL_DEVICE_NAME, sizeof(name), &name, NULL) != CL_SUCCESS)
 			continue;

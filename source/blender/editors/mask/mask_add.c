@@ -556,6 +556,7 @@ static int add_vertex_new(const bContext *C, Mask *mask, MaskLayer *masklay, con
 
 static int add_vertex_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 
@@ -595,7 +596,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 				BKE_mask_calc_handle_point_auto(spline, point_other, FALSE);
 
 				/* TODO: only update this spline */
-				BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+				BKE_mask_update_display(mask, CFRA);
 
 				WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 				return OPERATOR_FINISHED;
@@ -617,7 +618,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 	}
 
 	/* TODO: only update this spline */
-	BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+	BKE_mask_update_display(mask, CFRA);
 
 	return OPERATOR_FINISHED;
 }

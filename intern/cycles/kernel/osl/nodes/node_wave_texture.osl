@@ -31,14 +31,14 @@ float wave(point p, float scale, string type, float detail, float distortion, fl
 	float n = 0.0;
 
 	if(type == "Bands") {
-		n = (x + y + z)*10.0);
+		n = (x + y + z)*10.0;
 	}
 	else if(type == "Rings") {
 		n = (sqrt(x*x + y*y + z*z)*20.0);
 	}
 	
 	if(distortion != 0.0) {
-		n = n +(distortion * noise_turbulence(p*dscale, "Perlin", detail, 0);
+		n = n +(distortion * noise_turbulence(p*dscale, "Perlin", detail, 0));
 	}
 	result = noise_wave("Sine", n);
 	
@@ -48,12 +48,14 @@ float wave(point p, float scale, string type, float detail, float distortion, fl
 shader node_wave_texture(
 	string Type = "Bands",
 	float Scale = 5.0,
-	float distortion = 0.0,
-	float detail = 2.0,
-	float dscale = 1.0,
+	float Distortion = 0.0,
+	float Detail = 2.0,
+	float DetailScale = 1.0,
 	point Vector = P,
-	output float Fac = 0.0)
+	output float Fac = 0.0,
+	output color Color = color (0.0, 0.0, 0.0))
 {
-	Fac = wave(Vector, Scale, Type, detail, distortion, dscale);
+	Fac = wave(Vector, Scale, Type, Detail, Distortion, DetailScale);
+	Color = color(Fac, Fac, Fac);
 }
 

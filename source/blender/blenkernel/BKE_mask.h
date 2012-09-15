@@ -28,6 +28,8 @@
 #ifndef __BKE_MASK_H__
 #define __BKE_MASK_H__
 
+struct ImageUser;
+struct Image;
 struct ListBase;
 struct Main;
 struct Mask;
@@ -100,13 +102,15 @@ struct Mask *BKE_mask_new(const char *name);
 struct Mask *BKE_mask_copy_nolib(struct Mask *mask);
 struct Mask *BKE_mask_copy(struct Mask *mask);
 
-void BKE_mask_free(struct Mask *mask);
-void BKE_mask_unlink(struct Main *bmain, struct Mask *mask);
+void BKE_mask_free_nolib(struct Mask *mask);
+void BKE_mask_free(struct Main *bmain, struct Mask *mask);
 
-void BKE_mask_coord_from_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
 void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float frame_size[2]);
-void BKE_mask_coord_to_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_from_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_from_image(struct Image *image, struct ImageUser *iuser, float r_co[2], const float co[2]);
 void BKE_mask_coord_to_frame(float r_co[2], const float co[2], const float frame_size[2]);
+void BKE_mask_coord_to_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_to_image(struct Image *image, struct ImageUser *iuser, float r_co[2], const float co[2]);
 
 /* parenting */
 
@@ -127,7 +131,6 @@ void BKE_mask_get_handle_point_adjacent(struct MaskSpline *spline, struct MaskSp
 void BKE_mask_layer_calc_handles(struct MaskLayer *masklay);
 void BKE_mask_layer_calc_handles_deform(struct MaskLayer *masklay);
 void BKE_mask_calc_handles(struct Mask *mask);
-void BKE_mask_calc_handles_deform(struct Mask *mask);
 void BKE_mask_spline_ensure_deform(struct MaskSpline *spline);
 
 /* animation */
@@ -153,8 +156,6 @@ int BKE_mask_layer_shape_spline_from_index(struct MaskLayer *masklay, int index,
                                             struct MaskSpline **r_masklay_shape, int *r_index);
 int BKE_mask_layer_shape_spline_to_index(struct MaskLayer *masklay, struct MaskSpline *spline);
 
-int BKE_mask_layer_shape_spline_index(struct MaskLayer *masklay, int index,
-                                       struct MaskSpline **r_masklay_shape, int *r_index);
 void BKE_mask_layer_shape_changed_add(struct MaskLayer *masklay, int index,
                                        int do_init, int do_init_interpolate);
 

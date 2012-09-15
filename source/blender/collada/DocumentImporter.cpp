@@ -62,12 +62,12 @@ extern "C" {
 #include "BKE_texture.h"
 #include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
-#include "BLI_path_util.h"
 #include "BKE_scene.h"
 #include "BKE_global.h"
 #include "BKE_material.h"
-#include "BKE_utildefines.h"
 #include "BKE_image.h"
+
+#include "BLI_path_util.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
@@ -867,9 +867,11 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 				{
 					double yfov = camera->getYFov().getValue();
 					double aspect = camera->getAspectRatio().getValue();
-					double xfov = aspect * yfov;
-					// xfov is in degrees, cam->lens is in millimiters
-					cam->lens = fov_to_focallength(DEG2RADF(xfov), cam->sensor_x);
+
+					// NOTE: Needs more testing (As we curretnly have no official test data for this)
+
+					double xfov = 2.0f * atanf(aspect * tanf(DEG2RADF(yfov) * 0.5f));
+					cam->lens = fov_to_focallength(xfov, cam->sensor_x);
 				}
 				break;
 			}

@@ -104,11 +104,14 @@ class PlayRenderedAnim(Operator):
 
             file = ("".join((c if file_b[i] == c else "#")
                     for i, c in enumerate(file_a)))
+            del file_a, file_b, frame_tmp
+            file = bpy.path.abspath(file)  # expand '//'
         else:
             # works for movies and images
             file = rd.frame_path(frame=scene.frame_start)
-
-        file = bpy.path.abspath(file)  # expand '//'
+            file = bpy.path.abspath(file)  # expand '//'
+            if not os.path.exists(file):
+                self.report({'WARNING'}, "File %r not found" % file)
 
         cmd = [player_path]
         # extra options, fps controls etc.
@@ -143,8 +146,14 @@ class PlayRenderedAnim(Operator):
         # launch it
         print("Executing command:\n  %r" % " ".join(cmd))
 
+        # workaround for boost 1.46, can be eventually removed. bug: [#32350]
+        env_copy = os.environ.copy()
+        if preset == 'INTERNAL':
+            env_copy["LC_ALL"] = "C"
+        # end workaround
+
         try:
-            subprocess.Popen(cmd)
+            subprocess.Popen(cmd, env=env_copy)
         except Exception as e:
             self.report({'ERROR'},
                         "Couldn't run external animation player with command "

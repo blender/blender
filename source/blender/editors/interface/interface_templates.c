@@ -1025,7 +1025,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco + 10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
 
 	if (con->flag & CONSTRAINT_DISABLE)
-		uiLayoutSetRedAlert(row, 1);
+		uiLayoutSetRedAlert(row, TRUE);
 	
 	if (proxy_protected == 0) {
 		uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
@@ -1033,7 +1033,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	else
 		uiItemL(row, con->name, ICON_NONE);
 	
-	uiLayoutSetRedAlert(row, 0);
+	uiLayoutSetRedAlert(row, FALSE);
 	
 	/* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
 	if (proxy_protected) {
@@ -1201,7 +1201,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, M
 	block = uiLayoutGetBlock(layout);
 	row = uiLayoutRow(layout, FALSE);
 	col = uiLayoutColumn(row, FALSE);
-	uiLayoutSetKeepAspect(col, 1);
+	uiLayoutSetKeepAspect(col, TRUE);
 	
 	/* add preview */
 	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, pid, 0.0, 0.0, 0, 0, "");
@@ -1745,6 +1745,13 @@ static void curvemap_buttons_redraw(bContext *C, void *UNUSED(arg1), void *UNUSE
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
+static void curvemap_buttons_update(bContext *UNUSED(C), void *UNUSED(arg1), void *cumap_v)
+{
+	CurveMapping *cumap = cumap_v;
+
+	curvemapping_changed(cumap, TRUE);
+}
+
 static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 {
 	CurveMapping *cumap = cumap_v;
@@ -1767,12 +1774,14 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labeltype, int levels, int brush, RNAUpdateCb *cb)
 {
 	CurveMapping *cumap = ptr->data;
+	CurveMap *cm = &cumap->cm[cumap->cur];
+	CurveMapPoint *cmp = NULL;
 	uiLayout *row, *sub, *split;
 	uiBlock *block;
 	uiBut *bt;
 	float dx = UI_UNIT_X;
 	int icon, size;
-	int bg = -1;
+	int bg = -1, i;
 
 	block = uiLayoutGetBlock(layout);
 
@@ -1876,6 +1885,21 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	size = uiLayoutGetWidth(layout);
 	row = uiLayoutRow(layout, FALSE);
 	uiDefBut(block, BUT_CURVE, 0, "", 0, 0, size, MIN2(size, 200), cumap, 0.0f, 1.0f, bg, 0, "");
+
+	/* sliders for selected point */
+	for (i = 0; i < cm->totpoint; i++) {
+		if (cm->curve[i].flag & CUMA_SELECT) {
+			cmp = &cm->curve[i];
+			break;
+		}
+	}
+
+	if (cmp) {
+		uiLayoutRow(layout, TRUE);
+		uiBlockSetNFunc(block, curvemap_buttons_update, NULL, cumap);
+		uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y, &cmp->x, 0.0f, 1.0f, 1, 5, "");
+		uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y, &cmp->y, 0.0f, 1.0f, 1, 5, "");
+	}
 
 	/* black/white levels */
 	if (levels) {
@@ -2182,7 +2206,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		row = uiLayoutRow(split, TRUE);
 		if (i == 0 || (key->type != KEY_RELATIVE)) uiItemL(row, "", ICON_NONE);
 		else uiItemR(row, itemptr, "value", 0, "", ICON_NONE);
-		uiItemR(row, itemptr, "mute", 0, "", 0);
+		uiItemR(row, itemptr, "mute", 0, "", ICON_NONE);
 
 		if ((kb->flag & KEYBLOCK_MUTE) ||
 		    (ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH)))
@@ -2251,9 +2275,9 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		row = uiLayoutRow(split, TRUE);
 		uiItemR(row, itemptr, "alpha", 0, "", ICON_NONE);
-		uiItemR(row, itemptr, "hide", 0, "", 0);
-		uiItemR(row, itemptr, "hide_select", 0, "", 0);
-		uiItemR(row, itemptr, "hide_render", 0, "", 0);
+		uiItemR(row, itemptr, "hide", 0, "", ICON_NONE);
+		uiItemR(row, itemptr, "hide_select", 0, "", ICON_NONE);
+		uiItemR(row, itemptr, "hide_render", 0, "", ICON_NONE);
 
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
@@ -2298,7 +2322,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 				while (id < prop_names_end) {
 					if ((id_next = strchr(id, ':'))) *id_next++ = '\0';
 					else id_next = prop_names_end;
-					uiItemR(row, itemptr, id, 0, NULL, 0);
+					uiItemR(row, itemptr, id, 0, NULL, ICON_NONE);
 					id = id_next;
 				}
 				MEM_freeN(prop_names);
@@ -2558,6 +2582,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 #define B_STOPCOMPO     4
 #define B_STOPSEQ       5
 #define B_STOPCLIP      6
+#define B_STOPOTHER     7
 
 static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 {
@@ -2579,6 +2604,9 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 			break;
 		case B_STOPCLIP:
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
+			break;
+		case B_STOPOTHER:
+			G.is_break = TRUE;
 			break;
 	}
 }
@@ -2617,6 +2645,10 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 			}
 			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
 				handle_event = B_STOPCOMPO;
+				break;
+			}
+			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY)) {
+				handle_event = B_STOPOTHER;
 				break;
 			}
 		}

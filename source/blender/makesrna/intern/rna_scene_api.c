@@ -32,13 +32,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "BLI_path_util.h"
+
 #include "RNA_define.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "BKE_utildefines.h"
-
 
 #ifdef RNA_RUNTIME
 

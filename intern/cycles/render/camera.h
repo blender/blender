@@ -91,6 +91,7 @@ public:
 	/* update */
 	bool need_update;
 	bool need_device_update;
+	int previous_need_motion;
 
 	/* functions */
 	Camera();

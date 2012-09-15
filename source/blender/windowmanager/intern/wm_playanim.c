@@ -61,7 +61,6 @@
 
 #include "BKE_blender.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -327,7 +326,11 @@ static void build_pict_list(char *first, int totframes, int fstep, int fontid)
 			int file;
 
 			file = open(filepath, O_BINARY | O_RDONLY, 0);
-			if (file < 0) return;
+			if (file < 0) {
+				/* print errno? */
+				return;
+			}
+
 			picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
 			if (picture == NULL) {
 				printf("Not enough memory for pict struct '%s'\n", filepath);
@@ -701,11 +704,11 @@ void playanim_window_open(const char *title, int posx, int posy, int sizex, int 
 		inital_state = start_maximized ? GHOST_kWindowStateMaximized : GHOST_kWindowStateNormal;
 
 	g_WS.ghost_window = GHOST_CreateWindow(g_WS.ghost_system,
-	                              title,
-	                              posx, posy, sizex, sizey,
-	                              inital_state,
-	                              GHOST_kDrawingContextTypeOpenGL,
-	                              FALSE /* no stereo */, FALSE);
+	                                       title,
+	                                       posx, posy, sizex, sizey,
+	                                       inital_state,
+	                                       GHOST_kDrawingContextTypeOpenGL,
+	                                       FALSE /* no stereo */, FALSE);
 
 	//if (ghostwin) {
 	//if (win) {

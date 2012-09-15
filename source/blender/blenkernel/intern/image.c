@@ -79,7 +79,6 @@
 #include "BKE_scene.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h" /* seq_foreground_frame_get() */
-#include "BKE_utildefines.h"
 
 #include "BLF_api.h"
 
@@ -595,7 +594,7 @@ Image *BKE_image_load_exists(const char *filepath)
 	return BKE_image_load(filepath);
 }
 
-static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
+static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, float color[4])
 {
 	ImBuf *ibuf;
 	unsigned char *rect = NULL;
@@ -615,11 +614,11 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
 	ibuf->userflags |= IB_BITMAPDIRTY;
 
-	switch (uvtestgrid) {
-		case 1:
+	switch (gen_type) {
+		case IMA_GENTYPE_GRID:
 			BKE_image_buf_fill_checker(rect, rect_float, width, height);
 			break;
-		case 2:
+		case IMA_GENTYPE_GRID_COLOR:
 			BKE_image_buf_fill_checker_color(rect, rect_float, width, height);
 			break;
 		default:
@@ -630,7 +629,7 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_image_add_generated(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
+Image *BKE_image_add_generated(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, float color[4])
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima = image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
@@ -641,10 +640,10 @@ Image *BKE_image_add_generated(unsigned int width, unsigned int height, const ch
 		/* BLI_strncpy(ima->name, name, FILE_MAX); */ /* don't do this, this writes in ain invalid filepath! */
 		ima->gen_x = width;
 		ima->gen_y = height;
-		ima->gen_type = uvtestgrid;
+		ima->gen_type = gen_type;
 		ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
 
-		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, uvtestgrid, color);
+		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, gen_type, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 
 		ima->ok = IMA_OK_LOADED;
@@ -2527,7 +2526,9 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	dither = iuser->scene->r.dither_intensity;
 
 	/* combined layer gets added as first layer */
-	if (rres.have_combined && layer == 0) ;
+	if (rres.have_combined && layer == 0) {
+		/* pass */
+	}
 	else if (rres.layers.first) {
 		RenderLayer *rl = BLI_findlink(&rres.layers, layer - (rres.have_combined ? 1 : 0));
 		if (rl) {
@@ -2929,4 +2930,41 @@ int BKE_image_has_alpha(struct Image *image)
 		return 1;
 	else
 		return 0;
+}
+
+void BKE_image_get_size(Image *image, ImageUser *iuser, int *width, int *height)
+{
+	ImBuf *ibuf = NULL;
+	void *lock;
+
+	ibuf = BKE_image_acquire_ibuf(image, iuser, &lock);
+
+	if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
+		*width = ibuf->x;
+		*height = ibuf->y;
+	}
+	else {
+		*width  = IMG_SIZE_FALLBACK;
+		*height = IMG_SIZE_FALLBACK;
+	}
+
+	BKE_image_release_ibuf(image, lock);
+}
+
+void BKE_image_get_size_fl(Image *image, ImageUser *iuser, float size[2])
+{
+	int width, height;
+	BKE_image_get_size(image, iuser, &width, &height);
+
+	size[0] = (float)width;
+	size[1] = (float)height;
+
+}
+
+void BKE_image_get_aspect(Image *image, float *aspx, float *aspy)
+{
+	*aspx = 1.0;
+
+	/* x is always 1 */
+	*aspy = image->aspy / image->aspx;
 }

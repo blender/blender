@@ -72,6 +72,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
@@ -1008,52 +1009,34 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	me = BKE_mesh_from_object(vc.obact);
 
 	if (me && me->dvert && vc.v3d && vc.rv3d) {
-		int index;
+		const int use_vert_sel = (me->editflag & ME_EDIT_VERT_SEL) != 0;
+		int v_idx_best = -1;
+		unsigned int index;
 
 		view3d_operator_needs_opengl(C);
 
-		index = view3d_sample_backbuf(&vc, event->mval[0], event->mval[1]);
-
-		if (index && index <= me->totpoly) {
-			DerivedMesh *dm = mesh_get_derived_final(vc.scene, vc.obact, CD_MASK_BAREMESH);
-
-			if (dm->getVertCo == NULL) {
+		if (use_vert_sel) {
+			if (ED_mesh_pick_vert(C, me, event->mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE)) {
+				v_idx_best = index;
+			}
+		}
+		else {
+			if (ED_mesh_pick_face_vert(C, me, vc.obact, event->mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
+				v_idx_best = index;
+			}
+			else if (ED_mesh_pick_face(C, me, event->mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
+				/* this relies on knowning the internal worksings of ED_mesh_pick_face_vert() */
 				BKE_report(op->reports, RPT_WARNING, "The modifier used does not support deformed locations");
 			}
-			else {
-				MPoly *mp = ((MPoly *)me->mpoly) + (index - 1);
-				const int vgroup_active = vc.obact->actdef - 1;
-				Scene *scene = vc.scene;
-				ToolSettings *ts = vc.scene->toolsettings;
-				Brush *brush = paint_brush(&ts->wpaint->paint);
-				float mval_f[2];
-				int v_idx_best = -1;
-				int fidx;
-				float len_best = FLT_MAX;
+		}
 
-				mval_f[0] = (float)event->mval[0];
-				mval_f[1] = (float)event->mval[1];
-
-				fidx = mp->totloop - 1;
-				do {
-					float co[3], sco[3], len;
-					const int v_idx = me->mloop[mp->loopstart + fidx].v;
-					dm->getVertCo(dm, v_idx, co);
-					project_float_noclip(vc.ar, co, sco);
-					len = len_squared_v2v2(mval_f, sco);
-					if (len < len_best) {
-						len_best = len;
-						v_idx_best = v_idx;
-					}
-				} while (fidx--);
-
-				if (v_idx_best != -1) { /* should always be valid */
-					float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
-					BKE_brush_weight_set(scene, brush, vgroup_weight);
-					change = TRUE;
-				}
-			}
-			dm->release(dm);
+		if (v_idx_best != -1) { /* should always be valid */
+			ToolSettings *ts = vc.scene->toolsettings;
+			Brush *brush = paint_brush(&ts->wpaint->paint);
+			const int vgroup_active = vc.obact->actdef - 1;
+			float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
+			BKE_brush_weight_set(vc.scene, brush, vgroup_weight);
+			change = TRUE;
 		}
 	}
 
@@ -1084,6 +1067,20 @@ void PAINT_OT_weight_sample(wmOperatorType *ot)
 }
 
 /* samples cursor location, and gives menu with vertex groups to activate */
+static int weight_paint_sample_enum_itemf__helper(const MDeformVert *dvert, const int defbase_tot, int *groups)
+{
+	/* this func fills in used vgroup's */
+	int found = FALSE;
+	int i = dvert->totweight;
+	MDeformWeight *dw;
+	for (dw = dvert->dw; i > 0; dw++, i--) {
+		if (dw->def_nr < defbase_tot) {
+			groups[dw->def_nr] = TRUE;
+			found = TRUE;
+		}
+	}
+	return found;
+}
 static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	if (C) {
@@ -1095,56 +1092,57 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 			view3d_set_viewcontext(C, &vc);
 			me = BKE_mesh_from_object(vc.obact);
 
-			if (me && me->dvert && vc.v3d && vc.rv3d) {
-				int index;
+			if (me && me->dvert && vc.v3d && vc.rv3d && vc.obact->defbase.first) {
+				const int defbase_tot = BLI_countlist(&vc.obact->defbase);
+				const int use_vert_sel = (me->editflag & ME_EDIT_VERT_SEL) != 0;
+				int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
+				int found = FALSE;
+				unsigned int index;
+
+				int mval[2] = {win->eventstate->x - vc.ar->winrct.xmin,
+				               win->eventstate->y - vc.ar->winrct.ymin};
 
 				view3d_operator_needs_opengl(C);
 
-				index = view3d_sample_backbuf(&vc, win->eventstate->x - vc.ar->winrct.xmin, win->eventstate->y - vc.ar->winrct.ymin);
-
-				if (index && index <= me->totpoly) {
-					const int defbase_tot = BLI_countlist(&vc.obact->defbase);
-					if (defbase_tot) {
-						MPoly *mp = ((MPoly *)me->mpoly) + (index - 1);
+				if (use_vert_sel) {
+					if (ED_mesh_pick_vert(C, me, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE)) {
+						MDeformVert *dvert = &me->dvert[index];
+						found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
+					}
+				}
+				else {
+					if (ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
+						MPoly *mp = &me->mpoly[index];
 						unsigned int fidx = mp->totloop - 1;
-						int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
-						int found = FALSE;
 
 						do {
-							MDeformVert *dvert = me->dvert + me->mloop[mp->loopstart + fidx].v;
-							int i = dvert->totweight;
-							MDeformWeight *dw;
-							for (dw = dvert->dw; i > 0; dw++, i--) {
-								if (dw->def_nr < defbase_tot) {
-									groups[dw->def_nr] = TRUE;
-									found = TRUE;
-								}
-							}
+							MDeformVert *dvert = &me->dvert[me->mloop[mp->loopstart + fidx].v];
+							found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
 						} while (fidx--);
+					}
+				}
 
-						if (found == FALSE) {
-							MEM_freeN(groups);
-						}
-						else {
-							EnumPropertyItem *item = NULL, item_tmp = {0};
-							int totitem = 0;
-							int i = 0;
-							bDeformGroup *dg;
-							for (dg = vc.obact->defbase.first; dg && i < defbase_tot; i++, dg = dg->next) {
-								if (groups[i]) {
-									item_tmp.identifier = item_tmp.name = dg->name;
-									item_tmp.value = i;
-									RNA_enum_item_add(&item, &totitem, &item_tmp);
-								}
-							}
-
-							RNA_enum_item_end(&item, &totitem);
-							*free = 1;
-
-							MEM_freeN(groups);
-							return item;
+				if (found == FALSE) {
+					MEM_freeN(groups);
+				}
+				else {
+					EnumPropertyItem *item = NULL, item_tmp = {0};
+					int totitem = 0;
+					int i = 0;
+					bDeformGroup *dg;
+					for (dg = vc.obact->defbase.first; dg && i < defbase_tot; i++, dg = dg->next) {
+						if (groups[i]) {
+							item_tmp.identifier = item_tmp.name = dg->name;
+							item_tmp.value = i;
+							RNA_enum_item_add(&item, &totitem, &item_tmp);
 						}
 					}
+
+					RNA_enum_item_end(&item, &totitem);
+					*free = 1;
+
+					MEM_freeN(groups);
+					return item;
 				}
 			}
 		}
@@ -1307,29 +1305,6 @@ static char has_locked_group(MDeformVert *dvert, const int defbase_tot,
 		}
 	}
 	return FALSE;
-}
-/* 
- * gen_lck_flags gets the status of "flag" for each bDeformGroup
- * in ob->defbase and returns an array containing them
- */
-static char *gen_lock_flags(Object *ob, int defbase_tot)
-{
-	char is_locked = FALSE;
-	int i;
-	//int defbase_tot = BLI_countlist(&ob->defbase);
-	char *lock_flags = MEM_mallocN(defbase_tot * sizeof(char), "defflags");
-	bDeformGroup *defgroup;
-
-	for (i = 0, defgroup = ob->defbase.first; i < defbase_tot && defgroup; defgroup = defgroup->next, i++) {
-		lock_flags[i] = ((defgroup->flag & DG_LOCK_WEIGHT) != 0);
-		is_locked |= lock_flags[i];
-	}
-	if (is_locked) {
-		return lock_flags;
-	}
-
-	MEM_freeN(lock_flags);
-	return NULL;
 }
 
 static int has_locked_group_selected(int defbase_tot, const char *defbase_sel, const char *lock_flags)
@@ -1664,9 +1639,9 @@ static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
 	dv_test.totweight = dv->totweight;
 	/* do not multi-paint if a locked group is selected or the active group is locked
 	 * !lock_flags[dw->def_nr] helps if nothing is selected, but active group is locked */
-	if ( (wpi->lock_flags == NULL) ||
-	     ((wpi->lock_flags[dw->def_nr] == FALSE) && /* def_nr range has to be checked for by caller */
-	      has_locked_group_selected(wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags) == FALSE))
+	if ((wpi->lock_flags == NULL) ||
+	    ((wpi->lock_flags[dw->def_nr] == FALSE) && /* def_nr range has to be checked for by caller */
+	     has_locked_group_selected(wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags) == FALSE))
 	{
 		if (wpi->do_multipaint && wpi->defbase_tot_sel > 1) {
 			if (change && change != 1) {
@@ -1721,10 +1696,6 @@ static int get_first_selected_nonzero_weight(MDeformVert *dvert, const int defba
 	}
 	return -1;
 }
-
-
-static char *wpaint_make_validmap(Object *ob);
-
 
 static void do_weight_paint_vertex(
         /* vars which remain the same for every vert */
@@ -1816,8 +1787,8 @@ static void do_weight_paint_vertex(
 
 	/* If there are no locks or multipaint,
 	 * then there is no need to run the more complicated checks */
-	if ( (do_multipaint_totsel == FALSE) &&
-	     (wpi->lock_flags == NULL || has_locked_group(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags) == FALSE))
+	if ((do_multipaint_totsel == FALSE) &&
+	    (wpi->lock_flags == NULL || has_locked_group(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags) == FALSE))
 	{
 		dw->weight = wpaint_blend(wp, dw->weight, dw_prev->weight, alpha, paintweight,
 		                          wpi->brush_alpha_value, wpi->do_flip, FALSE);
@@ -2067,63 +2038,6 @@ struct WPaintData {
 	int defbase_tot;
 };
 
-static char *wpaint_make_validmap(Object *ob)
-{
-	bDeformGroup *dg;
-	ModifierData *md;
-	char *vgroup_validmap;
-	GHash *gh;
-	int i, step1 = 1;
-
-	if (ob->defbase.first == NULL) {
-		return NULL;
-	}
-
-	gh = BLI_ghash_str_new("wpaint_make_validmap gh");
-
-	/* add all names to a hash table */
-	for (dg = ob->defbase.first; dg; dg = dg->next) {
-		BLI_ghash_insert(gh, dg->name, NULL);
-	}
-
-	/* now loop through the armature modifiers and identify deform bones */
-	for (md = ob->modifiers.first; md; md = !md->next && step1 ? (step1 = 0), modifiers_getVirtualModifierList(ob) : md->next) {
-		if (!(md->mode & (eModifierMode_Realtime | eModifierMode_Virtual)))
-			continue;
-
-		if (md->type == eModifierType_Armature) {
-			ArmatureModifierData *amd = (ArmatureModifierData *) md;
-
-			if (amd->object && amd->object->pose) {
-				bPose *pose = amd->object->pose;
-				bPoseChannel *chan;
-				
-				for (chan = pose->chanbase.first; chan; chan = chan->next) {
-					if (chan->bone->flag & BONE_NO_DEFORM)
-						continue;
-
-					if (BLI_ghash_remove(gh, chan->name, NULL, NULL)) {
-						BLI_ghash_insert(gh, chan->name, SET_INT_IN_POINTER(1));
-					}
-				}
-			}
-		}
-	}
-
-	vgroup_validmap = MEM_mallocN(BLI_ghash_size(gh), "wpaint valid map");
-
-	/* add all names to a hash table */
-	for (dg = ob->defbase.first, i = 0; dg; dg = dg->next, i++) {
-		vgroup_validmap[i] = (BLI_ghash_lookup(gh, dg->name) != NULL);
-	}
-
-	BLI_assert(i == BLI_ghash_size(gh));
-
-	BLI_ghash_free(gh, NULL, NULL);
-
-	return vgroup_validmap;
-}
-
 static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNUSED(mouse[2]))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -2202,9 +2116,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 	/* set up auto-normalize, and generate map for detecting which
 	 * vgroups affect deform bones */
 	wpd->defbase_tot = BLI_countlist(&ob->defbase);
-	wpd->lock_flags = gen_lock_flags(ob, wpd->defbase_tot);
+	wpd->lock_flags = BKE_objdef_lock_flags_get(ob, wpd->defbase_tot);
 	if (ts->auto_normalize || ts->multipaint || wpd->lock_flags) {
-		wpd->vgroup_validmap = wpaint_make_validmap(ob);
+		wpd->vgroup_validmap = BKE_objdef_validmap_get(ob, wpd->defbase_tot);
 	}
 
 	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
@@ -2243,7 +2157,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float alpha;
 	float mval[2];
 	int use_vert_sel;
-	char *defbase_sel;
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
 	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
@@ -2277,12 +2190,13 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 
 
+
 	/* *** setup WeightPaintInfo - pass onto do_weight_paint_vertex *** */
 	wpi.defbase_tot =        wpd->defbase_tot;
-	defbase_sel =            MEM_mallocN(wpi.defbase_tot * sizeof(char), "wpi.defbase_sel");
-	wpi.defbase_tot_sel =    get_selected_defgroups(ob, defbase_sel, wpi.defbase_tot);
-	wpi.defbase_sel =        defbase_sel; /* so we can stay const */
-	if (wpi.defbase_tot_sel == 0 && ob->actdef > 0) wpi.defbase_tot_sel = 1;
+	wpi.defbase_sel = BKE_objdef_selected_get(ob, wpi.defbase_tot, &wpi.defbase_tot_sel);
+	if (wpi.defbase_tot_sel == 0 && ob->actdef > 0) {
+		wpi.defbase_tot_sel = 1;
+	}
 
 	wpi.defbase_tot_unsel =  wpi.defbase_tot - wpi.defbase_tot_sel;
 	wpi.vgroup_active =      wpd->vgroup_active;

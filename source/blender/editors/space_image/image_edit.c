@@ -143,27 +143,6 @@ int ED_space_image_has_buffer(SpaceImage *sima)
 	return has_buffer;
 }
 
-void ED_image_get_size(Image *ima, int *width, int *height)
-{
-	ImBuf *ibuf = NULL;
-	void *lock;
-
-	if (ima)
-		ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
-
-	if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
-		*width = ibuf->x;
-		*height = ibuf->y;
-	}
-	else {
-		*width  = IMG_SIZE_FALLBACK;
-		*height = IMG_SIZE_FALLBACK;
-	}
-
-	if (ima)
-		BKE_image_release_ibuf(ima, lock);
-}
-
 void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
 {
 	Scene *scene = sima->iuser.scene;
@@ -205,23 +184,18 @@ void ED_space_image_get_size_fl(SpaceImage *sima, float size[2])
 	size[1] = size_i[1];
 }
 
-void ED_image_get_aspect(Image *ima, float *aspx, float *aspy)
-{
-	*aspx = *aspy = 1.0;
-
-	if ((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
-	    (ima->aspx == 0.0f || ima->aspy == 0.0f))
-	{
-		return;
-	}
-
-	/* x is always 1 */
-	*aspy = ima->aspy / ima->aspx;
-}
 
 void ED_space_image_get_aspect(SpaceImage *sima, float *aspx, float *aspy)
 {
-	ED_image_get_aspect(ED_space_image(sima), aspx, aspy);
+	Image *ima = sima->image;
+	if ((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
+	    (ima->aspx == 0.0f || ima->aspy == 0.0f))
+	{
+		*aspx = *aspy = 1.0;
+	}
+	else {
+		BKE_image_get_aspect(ima, aspx, aspy);
+	}
 }
 
 void ED_space_image_get_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zoomy)
@@ -254,15 +228,21 @@ void ED_space_image_get_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
 	}
 }
 
-void ED_image_get_uv_aspect(Image *ima, float *aspx, float *aspy)
+void ED_image_get_uv_aspect(Image *ima, ImageUser *iuser, float *aspx, float *aspy)
 {
-	int w, h;
+	if (ima) {
+		int w, h;
 
-	ED_image_get_aspect(ima, aspx, aspy);
-	ED_image_get_size(ima, &w, &h);
+		BKE_image_get_aspect(ima, aspx, aspy);
+		BKE_image_get_size(ima, iuser, &w, &h);
 
-	*aspx *= (float)w;
-	*aspy *= (float)h;
+		*aspx *= (float)w;
+		*aspy *= (float)h;
+	}
+	else {
+		*aspx = 1.0f;
+		*aspy = 1.0f;
+	}
 }
 
 /* takes event->mval */

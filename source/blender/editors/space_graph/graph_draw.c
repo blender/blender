@@ -235,7 +235,7 @@ static void draw_fcurve_vertices_handles(FCurve *fcu, SpaceIpo *sipo, View2D *v2
 		 * if a Graph Editor option to only show handles of selected keys is on.
 		 */
 		if (!sel_handle_only || BEZSELECTED(bezt) ) {
-			if ( (!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ)) ) {
+			if ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
 				if ((bezt->f1 & SELECT) == sel) /* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax)*/
 					draw_fcurve_handle_control(bezt->vec[0][0], bezt->vec[0][1], xscale, yscale, hsize);
 			}
@@ -378,8 +378,8 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 			}
 			else {
 				/* only draw first handle if previous segment was had handles, and selection is ok */
-				if ( ((bezt->f1 & SELECT) == sel) &&
-				     ( (!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ)) ) )
+				if (((bezt->f1 & SELECT) == sel) &&
+				    ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))))
 				{
 					fp = bezt->vec[0];
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
@@ -390,8 +390,8 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 				}
 				
 				/* only draw second handle if this segment is bezier, and selection is ok */
-				if ( ((bezt->f3 & SELECT) == sel) &&
-				     (bezt->ipo == BEZT_IPO_BEZ) )
+				if (((bezt->f3 & SELECT) == sel) &&
+				    (bezt->ipo == BEZT_IPO_BEZ))
 				{
 					fp = bezt->vec[1];
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
@@ -846,11 +846,11 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 		/* 1) draw curve line */
 		{
 			/* set color/drawing style for curve itself */
-			if ( ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) || (fcu->flag & FCURVE_PROTECTED) ) {
+			if (((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) || (fcu->flag & FCURVE_PROTECTED)) {
 				/* protected curves (non editable) are drawn with dotted lines */
 				setlinestyle(2);
 			}
-			if ( ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED) ) {
+			if (((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED)) {
 				/* muted curves are drawn in a grayish hue */
 				// XXX should we have some variations?
 				UI_ThemeColorShade(TH_HEADER, 50);
@@ -878,7 +878,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				 */
 				draw_fcurve_curve(ac, ale->id, fcu, &ar->v2d, grid);
 			}
-			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
+			else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
 				/* just draw curve based on defined data (i.e. no modifiers) */
 				if (fcu->bezt)
 					draw_fcurve_curve_bezts(ac, ale->id, fcu, &ar->v2d);
@@ -908,7 +908,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 					}
 				}
 			}
-			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
+			else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
 				/* apply unit mapping */
 				ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, fcu, 0);
 				

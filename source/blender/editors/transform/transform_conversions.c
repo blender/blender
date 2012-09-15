@@ -861,7 +861,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	data->rootbone = 0; /* watch-it! has to be 0 here, since we're still on the same bone for the first time through the loop [#25885] */
 	
 	/* we only include bones that are part of a continual connected chain */
-	while (pchan) {
+	do {
 		/* here, we set ik-settings for bone from pchan->protectflag */
 		// XXX: careful with quats/axis-angle rotations where we're locking 4d components
 		if (pchan->protectflag & OB_LOCK_ROTX) pchan->ikflag |= BONE_IK_NO_XDOF_TEMP;
@@ -876,7 +876,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 			pchan = pchan->parent;
 		else
 			pchan = NULL;
-	}
+	} while (pchan);
 
 	/* make a copy of maximum chain-length */
 	data->max_rootbone = data->rootbone;
@@ -991,6 +991,9 @@ static void createTransPose(TransInfo *t, Object *ob)
 
 	t->flag |= T_POSE;
 	t->poseobj = ob; /* we also allow non-active objects to be transformed, in weightpaint */
+
+	/* disable PET, its not usable in pose mode yet [#32444] */
+	t->flag &= ~(T_PROP_EDIT | T_PROP_CONNECTED);
 
 	/* init trans data */
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransPoseBone");
@@ -4990,7 +4993,7 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 
 static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 {
-	Mask *mask;
+	Mask *mask = NULL;
 
 	if (t->spacetype == SPACE_CLIP) {
 		SpaceClip *sc = t->sa->spacedata.first;
@@ -5605,6 +5608,9 @@ static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 	if (!snode->edittree) {
 		return;
 	}
+
+	/* nodes dont support PET and probably never will */
+	t->flag &= ~(T_PROP_EDIT | T_PROP_CONNECTED);
 
 	/* set transform flags on nodes */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {

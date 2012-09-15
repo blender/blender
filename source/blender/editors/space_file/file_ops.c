@@ -156,7 +156,7 @@ static FileSelection file_selection_get(bContext *C, const rcti *rect, short fil
 	return sel;
 }
 
-static FileSelect file_select_do(bContext *C, int selected_idx)
+static FileSelect file_select_do(bContext *C, int selected_idx, short do_diropen)
 {
 	FileSelect retval = FILE_SELECT_NOTHING;
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -172,8 +172,12 @@ static FileSelect file_select_do(bContext *C, int selected_idx)
 		params->active_file = selected_idx;
 
 		if (S_ISDIR(file->type)) {
+			if (do_diropen == FALSE) {
+				params->file[0] = '\0';
+				retval = FILE_SELECT_DIR;
+			}
 			/* the path is too long and we are not going up! */
-			if (strcmp(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX) {
+			else if (strcmp(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX) {
 				// XXX error("Path too long, cannot enter this directory");
 			}
 			else {
@@ -202,7 +206,7 @@ static FileSelect file_select_do(bContext *C, int selected_idx)
 }
 
 
-static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select, short fill)
+static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select, short fill, short do_diropen)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelect retval = FILE_SELECT_NOTHING;
@@ -219,7 +223,7 @@ static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select,
 	if ((sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE))) {
 		/* Check last selection, if selected, act on the file or dir */
 		if (filelist_is_selected(sfile->files, sel.last, check_type)) {
-			retval = file_select_do(C, sel.last);
+			retval = file_select_do(C, sel.last, do_diropen);
 		}
 	}
 
@@ -284,7 +288,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 
 	BLI_rcti_isect(&(ar->v2d.mask), &rect, &rect);
 
-	ret = file_select(C, &rect, select ? FILE_SEL_ADD : FILE_SEL_REMOVE, 0);
+	ret = file_select(C, &rect, select ? FILE_SEL_ADD : FILE_SEL_REMOVE, FALSE, FALSE);
 	if (FILE_SELECT_DIR == ret) {
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	}
@@ -320,6 +324,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rcti rect;
 	int extend = RNA_boolean_get(op->ptr, "extend");
 	int fill = RNA_boolean_get(op->ptr, "fill");
+	int do_diropen = RNA_boolean_get(op->ptr, "open");
 
 	if (ar->regiontype != RGN_TYPE_WINDOW)
 		return OPERATOR_CANCELLED;
@@ -333,7 +338,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* single select, deselect all selected first */
 	if (!extend) file_deselect_all(sfile, SELECTED_FILE);
 
-	ret = file_select(C, &rect, extend ? FILE_SEL_TOGGLE : FILE_SEL_ADD, fill);
+	ret = file_select(C, &rect, extend ? FILE_SEL_TOGGLE : FILE_SEL_ADD, fill, do_diropen);
 	if (FILE_SELECT_DIR == ret)
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	else if (FILE_SELECT_FILE == ret)
@@ -357,8 +362,9 @@ void FILE_OT_select(wmOperatorType *ot)
 	ot->poll = ED_operator_file_active;
 
 	/* rna */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
-	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "Select everything beginning with the last selection");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "fill", FALSE, "Fill", "Select everything beginning with the last selection");
+	RNA_def_boolean(ot->srna, "open", TRUE, "Open", "Open a directory when selecting it");
 }
 
 static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1113,7 +1119,7 @@ static void file_expand_directory(bContext *C)
 	
 	if (sfile->params) {
 		/* TODO, what about // when relbase isn't valid? */
-		if (G.relbase_valid && strncmp(sfile->params->dir, "//", 2) == 0) {
+		if (G.relbase_valid && BLI_path_is_rel(sfile->params->dir)) {
 			BLI_path_abs(sfile->params->dir, G.main->name);
 		}
 		else if (sfile->params->dir[0] == '~') {

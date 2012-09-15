@@ -37,8 +37,6 @@
 
 #include "BKE_image.h"
 #include "BKE_ocean.h"
-#include "BKE_utildefines.h"
-
 #include "BKE_global.h" // XXX TESTING
 
 #include "BLI_math_base.h"

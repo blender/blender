@@ -101,8 +101,6 @@ void get_objectspace_bone_matrix(struct Bone *bone, float M_accumulatedMatrix[][
 void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3]);
 void mat3_to_vec_roll(float mat[][3], float *vec, float *roll);
 
-int get_selected_defgroups(struct Object *ob, char *defbase_sel, int defbase_len);
-
 /* Common Conversions Between Co-ordinate Spaces */
 void BKE_armature_mat_world_to_pose(struct Object *ob, float inmat[][4], float outmat[][4]);
 void BKE_armature_loc_world_to_pose(struct Object *ob, const float inloc[3], float outloc[3]);

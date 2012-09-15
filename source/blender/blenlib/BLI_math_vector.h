@@ -81,6 +81,7 @@ MINLINE void copy_v4db_v4fl(double r[4], const float a[4]);
 
 /********************************* Arithmetic ********************************/
 
+MINLINE void add_v2_fl(float r[2], float f);
 MINLINE void add_v3_fl(float r[3], float f);
 MINLINE void add_v4_fl(float r[4], float f);
 MINLINE void add_v2_v2(float r[2], const float a[2]);

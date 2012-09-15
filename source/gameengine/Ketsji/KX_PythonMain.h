@@ -1,5 +1,7 @@
-/*
- * Copyright 2011, Blender Foundation.
+/* 
+ * $Id: KX_PythonMain.h 37750 2011-06-27 09:27:56Z sjoerd $
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -14,27 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "stdosl.h"
+/** \file KX_PythonMain.h
+ *  \ingroup ketsji
+ */
 
-shader node_separate_rgb(
-	color Image = color(0.8, 0.8, 0.8),
-	output float R = 0.0,
-	output float G = 0.0,
-	output float B = 0.0)
-{
-		R = Image[0];
-		G = Image[1];
-		B = Image[2];
-}
+#ifndef __KX_PYTHON_MAIN
+#define __KX_PYTHON_MAIN
 
-shader node_combine_rgb(
-	float R = 0.0,
-	float G = 0.0,
-	float B = 0.0,
-	output color Image = color(0.8, 0.8, 0.8)
-{
-	Image = color(R, G, B)
-}
-
+#include "BKE_main.h"
+#include "DNA_scene_types.h"
+extern "C" char *KX_GetPythonMain(struct Scene* scene);
+extern "C" char *KX_GetPythonCode(struct Main *main, char *python_main);
+#endif

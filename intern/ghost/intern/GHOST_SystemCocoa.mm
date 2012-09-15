@@ -228,9 +228,9 @@ static GHOST_TButtonMask convertButton(int button)
 /**
  * Converts Mac rawkey codes (same for Cocoa & Carbon)
  * into GHOST key codes
- * @param rawCode The raw physical key code
- * @param recvChar the character ignoring modifiers (except for shift)
- * @return Ghost key code
+ * \param rawCode The raw physical key code
+ * \param recvChar the character ignoring modifiers (except for shift)
+ * \return Ghost key code
  */
 static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction) 
 {	
@@ -594,9 +594,8 @@ GHOST_SystemCocoa::~GHOST_SystemCocoa()
 
 GHOST_TSuccess GHOST_SystemCocoa::init()
 {
-	
-    GHOST_TSuccess success = GHOST_System::init();
-    if (success) {
+	GHOST_TSuccess success = GHOST_System::init();
+	if (success) {
 
 #ifdef WITH_INPUT_NDOF
 		m_ndofManager = new GHOST_NDOFManagerCocoa(*this);
@@ -676,8 +675,8 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 		[NSApp finishLaunching];
 		
 		[pool drain];
-    }
-    return success;
+	}
+	return success;
 }
 
 
@@ -739,7 +738,7 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 	const GHOST_TEmbedderWindowID parentWindow
 )
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_IWindow* window = 0;
 	
 	//Get the available rect for including window contents
@@ -755,45 +754,44 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 
 	window = new GHOST_WindowCocoa (this, title, left, bottom, width, height, state, type, stereoVisual, numOfAASamples);
 
-    if (window) {
-        if (window->getValid()) {
-            // Store the pointer to the window 
-            GHOST_ASSERT(m_windowManager, "m_windowManager not initialized");
-            m_windowManager->addWindow(window);
-            m_windowManager->setActiveWindow(window);
+	if (window) {
+		if (window->getValid()) {
+			// Store the pointer to the window
+			GHOST_ASSERT(m_windowManager, "m_windowManager not initialized");
+			m_windowManager->addWindow(window);
+			m_windowManager->setActiveWindow(window);
 			//Need to tell window manager the new window is the active one (Cocoa does not send the event activate upon window creation)
-            pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window));
+			pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window));
 			pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
-
-        }
-        else {
+		}
+		else {
 			GHOST_PRINT("GHOST_SystemCocoa::createWindow(): window invalid\n");
-            delete window;
-            window = 0;
-        }
-    }
+			delete window;
+			window = 0;
+		}
+	}
 	else {
 		GHOST_PRINT("GHOST_SystemCocoa::createWindow(): could not create window\n");
 	}
 	[pool drain];
-    return window;
+	return window;
 }
 
 /**
- * @note : returns coordinates in Cocoa screen coordinates
+ * \note : returns coordinates in Cocoa screen coordinates
  */
 GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const
 {
-    NSPoint mouseLoc = [NSEvent mouseLocation];
+	NSPoint mouseLoc = [NSEvent mouseLocation];
 	
-    // Returns the mouse location in screen coordinates
-    x = (GHOST_TInt32)mouseLoc.x;
-    y = (GHOST_TInt32)mouseLoc.y;
-    return GHOST_kSuccess;
+	// Returns the mouse location in screen coordinates
+	x = (GHOST_TInt32)mouseLoc.x;
+	y = (GHOST_TInt32)mouseLoc.y;
+	return GHOST_kSuccess;
 }
 
 /**
- * @note : expect Cocoa screen coordinates
+ * \note : expect Cocoa screen coordinates
  */
 GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
 {
@@ -833,7 +831,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(GHOST_TInt32 x, GHOST_T
 	CGDisplayMoveCursorToPoint((CGDirectDisplayID)[[[windowScreen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue], CGPointMake(xf, yf));
 
 	[pool drain];
-    return GHOST_kSuccess;
+	return GHOST_kSuccess;
 }
 
 
@@ -844,18 +842,18 @@ GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys& keys) cons
 	keys.set(GHOST_kModifierKeyLeftShift, (m_modifierMask & NSShiftKeyMask) ? true : false);
 	keys.set(GHOST_kModifierKeyLeftControl, (m_modifierMask & NSControlKeyMask) ? true : false);
 	
-    return GHOST_kSuccess;
+	return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons& buttons) const
 {
 	buttons.clear();
-    buttons.set(GHOST_kButtonMaskLeft, m_pressedMouseButtons & GHOST_kButtonMaskLeft);
+	buttons.set(GHOST_kButtonMaskLeft, m_pressedMouseButtons & GHOST_kButtonMaskLeft);
 	buttons.set(GHOST_kButtonMaskRight, m_pressedMouseButtons & GHOST_kButtonMaskRight);
 	buttons.set(GHOST_kButtonMaskMiddle, m_pressedMouseButtons & GHOST_kButtonMaskMiddle);
 	buttons.set(GHOST_kButtonMaskButton4, m_pressedMouseButtons & GHOST_kButtonMaskButton4);
 	buttons.set(GHOST_kButtonMaskButton5, m_pressedMouseButtons & GHOST_kButtonMaskButton5);
-    return GHOST_kSuccess;
+	return GHOST_kSuccess;
 }
 
 
@@ -976,7 +974,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 	
 	m_ignoreWindowSizedMessages = false;
 	
-    return anyProcessed;
+	return anyProcessed;
 }
 
 //Note: called from NSApplication delegate
@@ -1442,7 +1440,7 @@ bool GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
-    GHOST_WindowCocoa* window;
+	GHOST_WindowCocoa* window;
 	
 	window = (GHOST_WindowCocoa*)m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
 	if (!window) {
@@ -1450,8 +1448,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		return GHOST_kFailure;
 	}
 
-	switch ([event type])
-    {
+	switch ([event type]) {
 		case NSLeftMouseDown:
 		case NSRightMouseDown:
 		case NSOtherMouseDown:
@@ -1459,7 +1456,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			//Handle tablet events combined with mouse events
 			handleTabletEvent(event);
 			break;
-						
+
 		case NSLeftMouseUp:
 		case NSRightMouseUp:
 		case NSOtherMouseUp:

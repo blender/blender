@@ -94,8 +94,7 @@ typedef enum {
 	UI_WTYPE_BOX,
 	UI_WTYPE_SCROLL,
 	UI_WTYPE_LISTITEM,
-	UI_WTYPE_PROGRESSBAR,
-	
+	UI_WTYPE_PROGRESSBAR
 } uiWidgetTypeEnum;
 
 /* panel limits */
@@ -131,6 +130,14 @@ typedef enum {
 /* for scope resize zone */
 #define SCOPE_RESIZE_PAD    9
 
+/* bit button defines */
+/* Bit operations */
+#define UI_BITBUT_TEST(a, b)    ( ( (a) & 1 << (b) ) != 0)
+#define UI_BITBUT_SET(a, b)     ( (a) | 1 << (b) )
+#define UI_BITBUT_CLR(a, b)     ( (a) & ~(1 << (b)) )
+/* bit-row */
+#define UI_BITBUT_ROW(min, max)  (((max) >= 31 ? 0xFFFFFFFF : (1 << (max + 1)) - 1) - ((min) ? ((1 << (min)) - 1) : 0) )
+
 typedef struct uiLinkLine {  /* only for draw/edit */
 	struct uiLinkLine *next, *prev;
 	struct uiBut *from, *to;
@@ -151,8 +158,9 @@ typedef struct {
 struct uiBut {
 	struct uiBut *next, *prev;
 	int flag, drawflag;
-	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
-	short pad1;
+	eButType         type;
+	eButPointerType  pointype;
+	short bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
 
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
@@ -297,7 +305,17 @@ struct uiBlock {
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied to buttons */
 	char auto_open;
-	char _pad[7];
+
+	/* this setting is used so newly opened menu's dont popout the first item under the mouse,
+	 * the reasoning behind this is because of muscle memory for opening menus.
+	 *
+	 * Without this, the first time opening a Submenu and activating an item in it will be 2 steps,
+	 * but the second time the same item is accessed the menu memory would auto activate the
+	 * last used menu and the key intended to select that submenu ends up being passed into the submenu.
+	 * - Campbell
+	 */
+	char auto_is_first_event;
+	char _pad[6];
 	double auto_open_last;
 
 	const char *lockstr;
@@ -308,7 +326,8 @@ struct uiBlock {
 	char endblock;              /* uiEndBlock done? */
 
 	float xofs, yofs;           /* offset to parent button */
-	int dobounds, mx, my;       /* for doing delayed */
+	eBlockBoundsCalc bounds_type;  /* for doing delayed */
+	int mx, my;
 	int bounds, minbounds;      /* for doing delayed */
 
 	rctf safety;                /* pulldowns, to detect outside, can differ per case how it is created */
@@ -340,7 +359,7 @@ void ui_fontscale(short *points, float aspect);
 
 extern void ui_block_to_window_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_block_to_window(const struct ARegion *ar, uiBlock *block, int *x, int *y);
-extern void ui_block_to_window_rct(const struct ARegion *ar, uiBlock *block, rctf *graph, rcti *winr);
+extern void ui_block_to_window_rct(const struct ARegion *ar, uiBlock *block, const rctf *graph, rcti *winr);
 extern void ui_window_to_block_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_window_to_block(const struct ARegion *ar, uiBlock *block, int *x, int *y);
 extern void ui_window_to_region(const ARegion *ar, int *x, int *y);
@@ -402,7 +421,7 @@ struct uiPopupBlockHandle {
 	float retvec[4];
 };
 
-uiBlock *ui_block_func_COL(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
 void ui_block_func_ICONROW(struct bContext *C, uiLayout *layout, void *arg_but);
 void ui_block_func_ICONTEXTROW(struct bContext *C, uiLayout *layout, void *arg_but);
 
@@ -521,4 +540,3 @@ int ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);
 
 #endif
-

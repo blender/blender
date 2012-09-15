@@ -22,10 +22,10 @@
 #include <stdlib.h>
 
 #include "device_memory.h"
+#include "device_task.h"
 
 #include "util_list.h"
 #include "util_string.h"
-#include "util_task.h"
 #include "util_thread.h"
 #include "util_types.h"
 #include "util_vector.h"
@@ -33,6 +33,7 @@
 CCL_NAMESPACE_BEGIN
 
 class Progress;
+class RenderTile;
 
 /* Device Types */
 
@@ -65,32 +66,6 @@ public:
 		advanced_shading = true;
 		pack_images = false;
 	}
-};
-
-/* Device Task */
-
-class DeviceTask : public Task {
-public:
-	typedef enum { PATH_TRACE, TONEMAP, SHADER } Type;
-	Type type;
-
-	int x, y, w, h;
-	device_ptr rng_state;
-	device_ptr rgba;
-	device_ptr buffer;
-	int sample;
-	int resolution;
-	int offset, stride;
-
-	device_ptr shader_input;
-	device_ptr shader_output;
-	int shader_eval_type;
-	int shader_x, shader_w;
-
-	DeviceTask(Type type = PATH_TRACE);
-
-	void split(list<DeviceTask>& tasks, int num);
-	void split_max_size(list<DeviceTask>& tasks, int max_size);
 };
 
 /* Device */
@@ -140,6 +115,7 @@ public:
 	virtual void task_add(DeviceTask& task) = 0;
 	virtual void task_wait() = 0;
 	virtual void task_cancel() = 0;
+	virtual bool task_cancelled() = 0;
 	
 	/* opengl drawing */
 	virtual void draw_pixels(device_memory& mem, int y, int w, int h,
@@ -149,6 +125,10 @@ public:
 	/* networking */
 	void server_run();
 #endif
+
+	/* multi device */
+	virtual void map_tile(Device *sub_device, RenderTile& tile) {}
+	virtual int device_number(Device *sub_device) { return 0; }
 
 	/* static */
 	static Device *create(DeviceInfo& info, bool background = true, int threads = 0);

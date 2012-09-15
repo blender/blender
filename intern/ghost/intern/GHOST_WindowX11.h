@@ -53,8 +53,8 @@ class GHOST_DropTargetX11;
 /**
  * X11 implementation of GHOST_IWindow.
  * Dimensions are given in screen coordinates that are relative to the upper-left corner of the screen. 
- * @author	Laurence Bourn
- * @date	October 26, 2001
+ * \author	Laurence Bourn
+ * \date	October 26, 2001
  */
 
 class GHOST_WindowX11 : public GHOST_Window
@@ -64,16 +64,16 @@ public:
 	 * Constructor.
 	 * Creates a new window and opens it.
 	 * To check if the window was created properly, use the getValid() method.
-	 * @param title		The text shown in the title bar of the window.
-	 * @param left		The coordinate of the left edge of the window.
-	 * @param top		The coordinate of the top edge of the window.
-	 * @param width		The width the window.
-	 * @param height	The height the window.
-	 * @param state		The state the window is initially opened with.
-	 * @param parentWindow  Parent (embedder) window
-	 * @param type		The type of drawing context installed in this window.
-	 * @param stereoVisual	Stereo visual for quad buffered stereo.
-	 * @param numOfAASamples	Number of samples used for AA (zero if no AA)
+	 * \param title		The text shown in the title bar of the window.
+	 * \param left		The coordinate of the left edge of the window.
+	 * \param top		The coordinate of the top edge of the window.
+	 * \param width		The width the window.
+	 * \param height	The height the window.
+	 * \param state		The state the window is initially opened with.
+	 * \param parentWindow  Parent (embedder) window
+	 * \param type		The type of drawing context installed in this window.
+	 * \param stereoVisual	Stereo visual for quad buffered stereo.
+	 * \param numOfAASamples	Number of samples used for AA (zero if no AA)
 	 */
 	GHOST_WindowX11(
 	    GHOST_SystemX11 *system,
@@ -176,7 +176,7 @@ public:
 	~GHOST_WindowX11();
 
 	/**
-	 * @section x11specific X11 system specific calls
+	 * \section x11specific X11 system specific calls
 	 */
 
 	/**
@@ -256,8 +256,8 @@ public:
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
-	 * @param type	The type of rendering context installed.
-	 * @return Indication as to whether installation has succeeded.
+	 * \param type	The type of rendering context installed.
+	 * \return Indication as to whether installation has succeeded.
 	 */
 	GHOST_TSuccess
 	installDrawingContext(
@@ -266,7 +266,7 @@ protected:
 
 	/**
 	 * Removes the current drawing context.
-	 * @return Indication as to whether removal has succeeded.
+	 * \return Indication as to whether removal has succeeded.
 	 */
 	GHOST_TSuccess
 	removeDrawingContext(
@@ -284,7 +284,7 @@ protected:
 	/**
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
-	 * @param warp	Only used when grab is enabled, hides the mouse and allows gragging outside the screen.
+	 * \param warp	Only used when grab is enabled, hides the mouse and allows gragging outside the screen.
 	 */
 	GHOST_TSuccess
 	setWindowCursorGrab(

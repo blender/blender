@@ -313,7 +313,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		auxMesh = object_get_derived_final(calc->smd->auxTarget);
 		if (!auxMesh)
 			return;
-		space_transform_setup(&local2aux, calc->ob, calc->smd->auxTarget);
+		SPACE_TRANSFORM_SETUP(&local2aux, calc->ob, calc->smd->auxTarget);
 	}
 
 	//After sucessufuly build the trees, start projection vertexs
@@ -500,7 +500,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 		//TODO there might be several "bugs" on non-uniform scales matrixs
 		//because it will no longer be nearest surface, not sphere projection
 		//because space has been deformed
-		space_transform_setup(&calc.local2target, ob, smd->target);
+		SPACE_TRANSFORM_SETUP(&calc.local2target, ob, smd->target);
 
 		//TODO: smd->keepDist is in global units.. must change to local
 		calc.keepDist = smd->keepDist;

@@ -328,7 +328,6 @@ typedef struct MVertSkin {
 #define TF_SEL2		8
 #define TF_SEL3		16
 #define TF_SEL4		32
-#define TF_HIDE		64 /* unused, same as TF_SELECT */
 
 /* mtface->mode */
 #define TF_DYNAMIC		1

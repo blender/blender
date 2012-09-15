@@ -1518,7 +1518,7 @@ static void single_object_users(Scene *scene, View3D *v3d, int flag)
 		 */
 		ob->id.newid = NULL;
 		
-		if ( (base->flag & flag) == flag) {
+		if ((base->flag & flag) == flag) {
 			if (ob->id.lib == NULL && ob->id.us > 1) {
 				/* base gets copy of object */
 				obn = BKE_object_copy(ob);

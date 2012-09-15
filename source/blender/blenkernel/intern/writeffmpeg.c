@@ -177,58 +177,71 @@ static AVFrame *alloc_picture(int pix_fmt, int width, int height)
 static const char **get_file_extensions(int format)
 {
 	switch (format) {
-		case FFMPEG_DV: {
+		case FFMPEG_DV:
+		{
 			static const char *rv[] = { ".dv", NULL };
 			return rv;
 		}
-		case FFMPEG_MPEG1: {
+		case FFMPEG_MPEG1:
+		{
 			static const char *rv[] = { ".mpg", ".mpeg", NULL };
 			return rv;
 		}
-		case FFMPEG_MPEG2: {
+		case FFMPEG_MPEG2:
+		{
 			static const char *rv[] = { ".dvd", ".vob", ".mpg", ".mpeg", NULL };
 			return rv;
 		}
-		case FFMPEG_MPEG4: {
+		case FFMPEG_MPEG4:
+		{
 			static const char *rv[] = { ".mp4", ".mpg", ".mpeg", NULL };
 			return rv;
 		}
-		case FFMPEG_AVI: {
+		case FFMPEG_AVI:
+		{
 			static const char *rv[] = { ".avi", NULL };
 			return rv;
 		}
-		case FFMPEG_MOV: {
+		case FFMPEG_MOV:
+		{
 			static const char *rv[] = { ".mov", NULL };
 			return rv;
 		}
-		case FFMPEG_H264: {
+		case FFMPEG_H264:
+		{
 			/* FIXME: avi for now... */
 			static const char *rv[] = { ".avi", NULL };
 			return rv;
 		}
 
-		case FFMPEG_XVID: {
+		case FFMPEG_XVID:
+		{
 			/* FIXME: avi for now... */
 			static const char *rv[] = { ".avi", NULL };
 			return rv;
 		}
-		case FFMPEG_FLV: {
+		case FFMPEG_FLV:
+		{
 			static const char *rv[] = { ".flv", NULL };
 			return rv;
 		}
-		case FFMPEG_MKV: {
+		case FFMPEG_MKV:
+		{
 			static const char *rv[] = { ".mkv", NULL };
 			return rv;
 		}
-		case FFMPEG_OGG: {
+		case FFMPEG_OGG:
+		{
 			static const char *rv[] = { ".ogg", ".ogv", NULL };
 			return rv;
 		}
-		case FFMPEG_MP3: {
+		case FFMPEG_MP3:
+		{
 			static const char *rv[] = { ".mp3", NULL };
 			return rv;
 		}
-		case FFMPEG_WAV: {
+		case FFMPEG_WAV:
+		{
 			static const char *rv[] = { ".wav", NULL };
 			return rv;
 		}
@@ -946,6 +959,7 @@ int BKE_ffmpeg_start(struct Scene *scene, RenderData *rd, int rectx, int recty, 
 }
 
 void BKE_ffmpeg_end(void);
+static void end_ffmpeg_impl(int is_autosplit);
 
 #ifdef WITH_AUDASPACE
 static void write_audio_frames(double to_pts)
@@ -978,7 +992,7 @@ int BKE_ffmpeg_append(RenderData *rd, int start_frame, int frame, int *pixels, i
 
 		if (ffmpeg_autosplit) {
 			if (avio_tell(outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {
-				BKE_ffmpeg_end();
+				end_ffmpeg_impl(TRUE);
 				ffmpeg_autosplit_count++;
 				success &= start_ffmpeg_impl(rd, rectx, recty, reports);
 			}
@@ -991,7 +1005,7 @@ int BKE_ffmpeg_append(RenderData *rd, int start_frame, int frame, int *pixels, i
 	return success;
 }
 
-void BKE_ffmpeg_end(void)
+static void end_ffmpeg_impl(int is_autosplit)
 {
 	unsigned int i;
 	
@@ -1004,9 +1018,11 @@ void BKE_ffmpeg_end(void)
 #endif
 
 #ifdef WITH_AUDASPACE
-	if (audio_mixdown_device) {
-		AUD_closeReadDevice(audio_mixdown_device);
-		audio_mixdown_device = 0;
+	if (is_autosplit == FALSE) {
+		if (audio_mixdown_device) {
+			AUD_closeReadDevice(audio_mixdown_device);
+			audio_mixdown_device = 0;
+		}
 	}
 #endif
 
@@ -1067,6 +1083,11 @@ void BKE_ffmpeg_end(void)
 		sws_freeContext(img_convert_ctx);
 		img_convert_ctx = 0;
 	}
+}
+
+void BKE_ffmpeg_end(void)
+{
+	end_ffmpeg_impl(FALSE);
 }
 
 /* properties */

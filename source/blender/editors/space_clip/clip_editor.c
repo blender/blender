@@ -158,7 +158,7 @@ void ED_space_clip_get_aspect(SpaceClip *sc, float *aspx, float *aspy)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 
 	if (clip)
-		BKE_movieclip_aspect(clip, aspx, aspy);
+		BKE_movieclip_get_aspect(clip, aspx, aspy);
 	else
 		*aspx = *aspy = 1.0f;
 

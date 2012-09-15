@@ -1160,7 +1160,7 @@ typedef struct Scene {
 #define R_EDGE			0x0020
 #define R_FIELDS		0x0040
 #define R_FIELDSTILL	0x0080
-#define R_RADIO			0x0100
+/*#define R_RADIO			0x0100 */ /* deprecated */
 #define R_BORDER		0x0200
 #define R_PANORAMA		0x0400	/* deprecated as scene option, still used in renderer */
 #define R_CROP			0x0800
@@ -1362,9 +1362,6 @@ typedef struct Scene {
 #define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (double)(a)) / (double)scene->r.frs_sec)
 #define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (double)(a)) / (double)scene->r.frs_sec_base)
 #define FPS                     (((double) scene->r.frs_sec) / (double)scene->r.frs_sec_base)
-
-#define RAD_PHASE_PATCHES	1
-#define RAD_PHASE_FACES		2
 
 /* base->flag is in DNA_object_types.h */
 

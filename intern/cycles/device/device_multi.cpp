@@ -23,6 +23,8 @@
 #include "device_intern.h"
 #include "device_network.h"
 
+#include "buffers.h"
+
 #include "util_foreach.h"
 #include "util_list.h"
 #include "util_map.h"
@@ -255,6 +257,30 @@ public:
 		rgba.device_pointer = tmp;
 	}
 
+	void map_tile(Device *sub_device, RenderTile& tile)
+	{
+		foreach(SubDevice& sub, devices) {
+			if(sub.device == sub_device) {
+				if(tile.buffer) tile.buffer = sub.ptr_map[tile.buffer];
+				if(tile.rng_state) tile.rng_state = sub.ptr_map[tile.rng_state];
+				if(tile.rgba) tile.rgba = sub.ptr_map[tile.rgba];
+			}
+		}
+	}
+
+	int device_number(Device *sub_device)
+	{
+		int i = 0;
+
+		foreach(SubDevice& sub, devices) {
+			if(sub.device == sub_device)
+				return i;
+			i++;
+		}
+
+		return -1;
+	}
+
 	void task_add(DeviceTask& task)
 	{
 		list<DeviceTask> tasks;
@@ -266,7 +292,6 @@ public:
 				tasks.pop_front();
 
 				if(task.buffer) subtask.buffer = sub.ptr_map[task.buffer];
-				if(task.rng_state) subtask.rng_state = sub.ptr_map[task.rng_state];
 				if(task.rgba) subtask.rgba = sub.ptr_map[task.rgba];
 				if(task.shader_input) subtask.shader_input = sub.ptr_map[task.shader_input];
 				if(task.shader_output) subtask.shader_output = sub.ptr_map[task.shader_output];
@@ -286,6 +311,14 @@ public:
 	{
 		foreach(SubDevice& sub, devices)
 			sub.device->task_cancel();
+	}
+
+	bool task_cancelled()
+	{
+		foreach(SubDevice& sub, devices)
+			if (sub.device->task_cancelled())
+				return true;
+		return false;
 	}
 };
 

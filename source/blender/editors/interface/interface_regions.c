@@ -1648,6 +1648,18 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	ar->regiondata = handle;
 
+	/* set UI_BLOCK_NUMSELECT before uiEndBlock() so we get alphanumeric keys assigned */
+	if (but) {
+		if (but->type == PULLDOWN) {
+			block->flag |= UI_BLOCK_NUMSELECT;
+		}
+	}
+	else {
+		block->flag |= UI_BLOCK_POPUP | UI_BLOCK_NUMSELECT;
+	}
+
+	block->flag |= UI_BLOCK_LOOP;
+
 	if (!block->endblock)
 		uiEndBlock(C, block);
 
@@ -1665,7 +1677,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 		saferct = MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
 		saferct->safety = block->safety;
 		BLI_addhead(&block->saferct, saferct);
-		block->flag |= UI_BLOCK_POPUP | UI_BLOCK_NUMSELECT;
 	}
 
 	/* clip block with window boundary */
@@ -1680,8 +1691,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	ar->winrct.ymax = block->rect.ymax + MENU_TOP;
 	
 	ui_block_translate(block, -ar->winrct.xmin, -ar->winrct.ymin);
-	
-	block->flag |= UI_BLOCK_LOOP;
 
 	/* adds subwindow */
 	ED_region_init(C, ar);
@@ -1797,11 +1806,11 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 			bt->flag = UI_TEXT_LEFT;
 		}
 		else if (entry->icon) {
-			uiDefIconTextButF(block, BUTM | FLO, B_NOP, entry->icon, entry->str, 0, 0,
+			uiDefIconTextButF(block, BUTM, B_NOP, entry->icon, entry->str, 0, 0,
 			                  UI_UNIT_X * 5, UI_UNIT_Y, &handle->retvalue, (float) entry->retval, 0.0, 0, 0, "");
 		}
 		else {
-			uiDefButF(block, BUTM | FLO, B_NOP, entry->str, 0, 0,
+			uiDefButF(block, BUTM, B_NOP, entry->str, 0, 0,
 			          UI_UNIT_X * 5, UI_UNIT_X, &handle->retvalue, (float) entry->retval, 0.0, 0, 0, "");
 		}
 	}
@@ -1819,7 +1828,7 @@ void ui_block_func_ICONROW(bContext *UNUSED(C), uiLayout *layout, void *arg_but)
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	for (a = (int)but->hardmin; a <= (int)but->hardmax; a++)
-		uiDefIconButF(block, BUTM | FLO, B_NOP, but->icon + (a - but->hardmin), 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
+		uiDefIconButF(block, BUTM, B_NOP, but->icon + (a - but->hardmin), 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
 		              &handle->retvalue, (float)a, 0.0, 0, 0, "");
 }
 
@@ -1849,7 +1858,7 @@ void ui_block_func_ICONTEXTROW(bContext *UNUSED(C), uiLayout *layout, void *arg_
 		if (entry->sepr)
 			uiItemS(layout);
 		else
-			uiDefIconTextButF(block, BUTM | FLO, B_NOP, (short)((but->icon) + (entry->retval - but->hardmin)), entry->str,
+			uiDefIconTextButF(block, BUTM, B_NOP, (short)((but->icon) + (entry->retval - but->hardmin)), entry->str,
 			                  0, 0, UI_UNIT_X * 5, UI_UNIT_Y, &handle->retvalue, (float) entry->retval, 0.0, 0, 0, "");
 	}
 
@@ -2021,27 +2030,20 @@ static void picker_new_hide_reveal(uiBlock *block, short colormode)
 	
 	/* tag buttons */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
-		
-		if (bt->type == LABEL) {
-			if (bt->str[1] == 'G') {
-				if (colormode == 2) bt->flag &= ~UI_HIDDEN;
-				else bt->flag |= UI_HIDDEN;
-			}
+		if (bt->func == do_picker_rna_cb && bt->type == NUMSLI && bt->rnaindex != 3) {
+			/* RGB sliders (color circle and alpha are always shown) */
+			if (colormode == 0) bt->flag &= ~UI_HIDDEN;
+			else bt->flag |= UI_HIDDEN;
 		}
-		
-		if (bt->type == NUMSLI || bt->type == TEX) {
-			if (bt->str[1] == 'e') {
-				if (colormode == 2) bt->flag &= ~UI_HIDDEN;
-				else bt->flag |= UI_HIDDEN;
-			}
-			else if (ELEM3(bt->str[0], 'R', 'G', 'B')) {
-				if (colormode == 0) bt->flag &= ~UI_HIDDEN;
-				else bt->flag |= UI_HIDDEN;
-			}
-			else if (ELEM3(bt->str[0], 'H', 'S', 'V')) {
-				if (colormode == 1) bt->flag &= ~UI_HIDDEN;
-				else bt->flag |= UI_HIDDEN;
-			}
+		else if (bt->func == do_hsv_rna_cb) {
+			/* HSV sliders */
+			if (colormode == 1) bt->flag &= ~UI_HIDDEN;
+			else bt->flag |= UI_HIDDEN;
+		}
+		else if (bt->func == do_hex_rna_cb || bt->type == LABEL) {
+			/* hex input or gamma correction status label */
+			if (colormode == 2) bt->flag &= ~UI_HIDDEN;
+			else bt->flag |= UI_HIDDEN;
 		}
 	}
 }
@@ -2235,7 +2237,7 @@ static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, w
 	return 0;
 }
 
-uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
+uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
 {
 	uiBut *but = arg_but;
 	uiBlock *block;
@@ -2434,6 +2436,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	uiPopupMenu *pup;
 	pup = MEM_callocN(sizeof(uiPopupMenu), __func__);
 	pup->block = uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
+	pup->block->flag |= UI_BLOCK_NUMSELECT;  /* default menus to numselect */
 	pup->layout = uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	pup->slideout = (but && (but->block->flag & UI_BLOCK_LOOP));
 	pup->but = but;
@@ -2499,6 +2502,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 	pup->block = uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
 	pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
 	pup->block->puphash = ui_popup_menu_hash(title);
+	pup->block->auto_is_first_event = TRUE;
 	pup->layout = uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
 

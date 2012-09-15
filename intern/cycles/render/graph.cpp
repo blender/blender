@@ -55,6 +55,7 @@ ShaderNode::ShaderNode(const char *name_)
 	name = name_;
 	id = -1;
 	bump = SHADER_BUMP_NONE;
+	special_type = SHADER_SPECIAL_TYPE_NONE;
 }
 
 ShaderNode::~ShaderNode()
@@ -298,8 +299,8 @@ void ShaderGraph::copy_nodes(set<ShaderNode*>& nodes, map<ShaderNode*, ShaderNod
 void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 {
 	foreach(ShaderNode *node, nodes) {
-		ProxyNode *proxy = dynamic_cast<ProxyNode*>(node);
-		if (proxy) {
+		if (node->special_type == SHADER_SPECIAL_TYPE_PROXY) {
+			ProxyNode *proxy = static_cast<ProxyNode*>(node);
 			ShaderInput *input = proxy->inputs[0];
 			ShaderOutput *output = proxy->outputs[0];
 			
@@ -330,9 +331,8 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 		}
 
 		/* remove useless mix closures nodes */
-		MixClosureNode *mix = dynamic_cast<MixClosureNode*>(node);
-
-		if(mix) {
+		if(node->special_type == SHADER_SPECIAL_TYPE_MIX_CLOSURE) {
+			MixClosureNode *mix = static_cast<MixClosureNode*>(node);
 			if(mix->outputs[0]->links.size() && mix->inputs[1]->link == mix->inputs[2]->link) {
 				ShaderOutput *output = mix->inputs[1]->link;
 				vector<ShaderInput*> inputs = mix->outputs[0]->links;
@@ -401,6 +401,20 @@ void ShaderGraph::clean()
 
 	/* break cycles */
 	break_cycles(output(), visited, on_stack);
+
+	/* disconnect unused nodes */
+	foreach(ShaderNode *node, nodes) {
+		if(!visited[node->id]) {
+			foreach(ShaderInput *to, node->inputs) {
+				ShaderOutput *from = to->link;
+
+				if (from) {
+					to->link = NULL;
+					from->links.erase(remove(from->links.begin(), from->links.end(), to), from->links.end());
+				}
+			}
+		}
+	}
 
 	/* remove unused nodes */
 	foreach(ShaderNode *node, nodes) {

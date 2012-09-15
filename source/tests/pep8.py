@@ -43,7 +43,7 @@ FORCE_PEP8_ALL = False
 def file_list_py(path):
     for dirpath, dirnames, filenames in os.walk(path):
         for filename in filenames:
-            if filename.endswith(".py") or filename.endswith(".cfg"):
+            if filename.endswith((".py", ".cfg")):
                 yield os.path.join(dirpath, filename)
 
 

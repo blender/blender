@@ -531,12 +531,7 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 
 static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	SpaceImage *sima = (SpaceImage *)(ptr->data);
-	if (sima->mode == SI_MODE_PAINT) {
-		BKE_paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
-
-		ED_space_image_paint_update(bmain->wm.first, scene->toolsettings);
-	}
+	ED_space_image_paint_update(bmain->wm.first, scene->toolsettings);
 }
 
 static int rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)
@@ -1560,7 +1555,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "near");
 	RNA_def_property_range(prop, 0.001f, FLT_MAX);
 	RNA_def_property_float_default(prop, 0.1f);
-	RNA_def_property_ui_text(prop, "Clip Start", "3D View near clipping distance");
+	RNA_def_property_ui_text(prop, "Clip Start", "3D View near clipping distance (perspective view only)");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);

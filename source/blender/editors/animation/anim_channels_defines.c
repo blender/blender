@@ -62,7 +62,6 @@
 #include "BKE_curve.h"
 #include "BKE_key.h"
 #include "BKE_context.h"
-#include "BKE_utildefines.h" /* FILE_MAX */
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"

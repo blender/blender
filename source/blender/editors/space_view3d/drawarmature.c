@@ -272,7 +272,7 @@ static short set_pchan_glColor(short colCode, int boneflag, short constflag)
 		case PCHAN_COLOR_LINEBONE:
 		{
 			/* inner part in background color or constraint */
-			if ( (constflag) && ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) ) {
+			if ((constflag) && ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS))) {
 				if (constflag & PCHAN_HAS_TARGET) glColor3ub(255, 150, 0);
 				else if (constflag & PCHAN_HAS_IK) glColor3ub(255, 255, 0);
 				else if (constflag & PCHAN_HAS_SPLINEIK) glColor3ub(200, 255, 0);
@@ -1540,7 +1540,7 @@ static void draw_pose_dofs(Object *ob)
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
 		
-		if ( (bone) && !(bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
+		if ((bone != NULL) && !(bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
 			if (bone->flag & BONE_SELECTED) {
 				if (bone->layer & arm->layer) {
 					if (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT)) {
@@ -1701,8 +1701,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 					/* 1) bone must be visible, 2) for OpenGL select-drawing cannot have unselectable [#27194] 
 					 * NOTE: this is the only case with (NO_DEFORM == 0) flag, as this is for envelope influence drawing
 					 */
-					if ( (bone->flag & (BONE_HIDDEN_P | BONE_NO_DEFORM | BONE_HIDDEN_PG)) == 0 &&
-					     ((G.f & G_PICKSEL) == 0 || (bone->flag & BONE_UNSELECTABLE) == 0) )
+					if (((bone->flag & (BONE_HIDDEN_P | BONE_NO_DEFORM | BONE_HIDDEN_PG)) == 0) &&
+					    ((G.f & G_PICKSEL) == 0 || (bone->flag & BONE_UNSELECTABLE) == 0))
 					{
 						if (bone->flag & (BONE_SELECTED)) {
 							if (bone->layer & arm->layer)
@@ -1732,8 +1732,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			arm->layer_used |= bone->layer;
 			
 			/* 1) bone must be visible, 2) for OpenGL select-drawing cannot have unselectable [#27194] */
-			if ( (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0 &&
-			     ((G.f & G_PICKSEL) == 0 || (bone->flag & BONE_UNSELECTABLE) == 0) )
+			if (((bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0) &&
+			    ((G.f & G_PICKSEL) == 0 || (bone->flag & BONE_UNSELECTABLE) == 0))
 			{
 				if (bone->layer & arm->layer) {
 					int use_custom = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
@@ -1748,8 +1748,9 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 					
 					/* catch exception for bone with hidden parent */
 					flag = bone->flag;
-					if ( (bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) )
+					if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
 						flag &= ~BONE_CONNECTED;
+					}
 					
 					/* set temporary flag for drawing bone as active, but only if selected */
 					if (bone == arm->act_bone)
@@ -1819,8 +1820,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			bone = pchan->bone;
 			
 			/* 1) bone must be visible, 2) for OpenGL select-drawing cannot have unselectable [#27194] */
-			if ( (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0 &&
-			     ((G.f & G_PICKSEL) == 0 || (bone->flag & BONE_UNSELECTABLE) == 0) )
+			if (((bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0) &&
+			    ((G.f & G_PICKSEL) == 0 || (bone->flag & BONE_UNSELECTABLE) == 0) )
 			{
 				if (bone->layer & arm->layer) {
 					if (pchan->custom) {
@@ -1895,8 +1896,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			arm->layer_used |= bone->layer;
 			
 			/* 1) bone must be visible, 2) for OpenGL select-drawing cannot have unselectable [#27194] */
-			if ( (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0 &&
-			     ((G.f & G_PICKSEL) == 0 || (bone->flag & BONE_UNSELECTABLE) == 0) )
+			if (((bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0) &&
+			    ((G.f & G_PICKSEL) == 0 || (bone->flag & BONE_UNSELECTABLE) == 0))
 			{
 				if (bone->layer & arm->layer) {
 					const short constflag = pchan->constflag;
@@ -1904,7 +1905,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 						/* Draw a line from our root to the parent's tip 
 						 * - only if V3D_HIDE_HELPLINES is enabled...
 						 */
-						if ( (do_dashed & 2) && ((bone->flag & BONE_CONNECTED) == 0) ) {
+						if ((do_dashed & 2) && ((bone->flag & BONE_CONNECTED) == 0)) {
 							if (arm->flag & ARM_POSEMODE) {
 								glLoadName(index & 0xFFFF);  /* object tag, for bordersel optim */
 								UI_ThemeColor(TH_WIRE);
@@ -2047,7 +2048,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 						}	
 						
 						/*	Draw additional axes on the bone tail  */
-						if ( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ) {
+						if ((arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE)) {
 							glPushMatrix();
 							copy_m4_m4(bmat, pchan->pose_mat);
 							bone_matrix_translate_y(bmat, pchan->bone->length);
@@ -2134,8 +2135,9 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 					
 					/* catch exception for bone with hidden parent */
 					flag = eBone->flag;
-					if ( (eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent))
+					if ((eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent)) {
 						flag &= ~BONE_CONNECTED;
+					}
 						
 					/* set temporary flag for drawing bone as active, but only if selected */
 					if (eBone == arm->act_edbone)
@@ -2176,8 +2178,9 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 				
 				/* catch exception for bone with hidden parent */
 				flag = eBone->flag;
-				if ( (eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent))
+				if ((eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent)) {
 					flag &= ~BONE_CONNECTED;
+				}
 					
 				/* set temporary flag for drawing bone as active, but only if selected */
 				if (eBone == arm->act_edbone)
@@ -2378,7 +2381,11 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-
+	
+	/* before disposing of temp pose, use it to restore object to a sane state */
+	BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)cfrao, ADT_RECALC_ALL);
+	
+	/* clean up temporary pose */
 	ghost_poses_tag_unselected(ob, 1);      /* unhide unselected bones if need be */
 	BKE_pose_free(posen);
 	
@@ -2386,7 +2393,6 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	BKE_pose_rebuild(ob, ob->data);
 	ob->mode |= OB_MODE_POSE;
 	ob->ipoflag = ipoflago;
 }
@@ -2457,7 +2463,11 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-
+	
+	/* before disposing of temp pose, use it to restore object to a sane state */
+	BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)cfrao, ADT_RECALC_ALL);
+	
+	/* clean up temporary pose */
 	ghost_poses_tag_unselected(ob, 1);  /* unhide unselected bones if need be */
 	BLI_dlrbTree_free(&keys);
 	BKE_pose_free(posen);
@@ -2466,7 +2476,6 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	BKE_pose_rebuild(ob, ob->data);
 	ob->mode |= OB_MODE_POSE;
 }
 
@@ -2544,7 +2553,11 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-
+	
+	/* before disposing of temp pose, use it to restore object to a sane state */
+	BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)cfrao, ADT_RECALC_ALL);
+	
+	/* clean up temporary pose */
 	ghost_poses_tag_unselected(ob, 1);      /* unhide unselected bones if need be */
 	BKE_pose_free(posen);
 	
@@ -2552,7 +2565,6 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	BKE_pose_rebuild(ob, ob->data);
 	ob->mode |= OB_MODE_POSE;
 }
 

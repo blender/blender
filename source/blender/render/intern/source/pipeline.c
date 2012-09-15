@@ -56,7 +56,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 #include "BKE_writeavi.h"  /* <------ should be replaced once with generic movie module */
 
 #include "BLI_math.h"
@@ -198,14 +197,12 @@ float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
 
 RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
 {
-	RenderLayer *rl;
-	
-	if (rr == NULL) return NULL;
-	
-	for (rl = rr->layers.first; rl; rl = rl->next)
-		if (strncmp(rl->name, name, RE_MAXNAME) == 0)
-			return rl;
-	return NULL;
+	if (rr == NULL) {
+		return NULL;
+	}
+	else {
+		return BLI_findstring(&rr->layers, name, offsetof(RenderLayer, name));
+	}
 }
 
 RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty)
@@ -644,7 +641,7 @@ static void *do_part_thread(void *pa_v)
 		if (!R.sss_points && (R.r.scemode & R_FULL_SAMPLE))
 			pa->result = render_result_new_full_sample(&R, &pa->fullresult, &pa->disprect, pa->crop, RR_USE_MEM);
 		else
-			pa->result = render_result_new(&R, &pa->disprect, pa->crop, RR_USE_MEM);
+			pa->result = render_result_new(&R, &pa->disprect, pa->crop, RR_USE_MEM, RR_ALL_LAYERS);
 
 		if (R.sss_points)
 			zbufshade_sss_tile(pa);
@@ -654,7 +651,7 @@ static void *do_part_thread(void *pa_v)
 			zbufshade_tile(pa);
 		
 		/* merge too on break! */
-		if (R.result->exrhandle) {
+		if (R.result->do_exr_tile) {
 			render_result_exr_file_merge(R.result, pa->result);
 		}
 		else if (render_display_draw_enabled(&R)) {
@@ -798,12 +795,12 @@ static void threaded_tile_processor(Render *re)
 		render_result_free(re->result);
 	
 		if (re->sss_points && render_display_draw_enabled(re))
-			re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM);
+			re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
 		else if (re->r.scemode & R_FULL_SAMPLE)
 			re->result = render_result_new_full_sample(re, &re->fullresult, &re->disprect, 0, RR_USE_EXR);
 		else
 			re->result = render_result_new(re, &re->disprect, 0,
-			                               (re->r.scemode & R_EXR_TILE_FILE) ? RR_USE_EXR : RR_USE_MEM);
+			                               (re->r.scemode & R_EXR_TILE_FILE) ? RR_USE_EXR : RR_USE_MEM, RR_ALL_LAYERS);
 	}
 
 	BLI_rw_mutex_unlock(&re->resultmutex);
@@ -813,9 +810,9 @@ static void threaded_tile_processor(Render *re)
 	
 	/* warning; no return here without closing exr file */
 	
-	initparts(re);
+	initparts(re, TRUE);
 
-	if (re->result->exrhandle)
+	if (re->result->do_exr_tile)
 		render_result_exr_file_begin(re);
 	
 	BLI_init_threads(&threads, do_part_thread, re->r.threads);
@@ -895,7 +892,7 @@ static void threaded_tile_processor(Render *re)
 		
 	}
 	
-	if (re->result->exrhandle) {
+	if (re->result->do_exr_tile) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 		render_result_exr_file_end(re);
 		BLI_rw_mutex_unlock(&re->resultmutex);
@@ -1055,7 +1052,7 @@ static void do_render_blur_3d(Render *re)
 	int blur = re->r.mblur_samples;
 	
 	/* create accumulation render result */
-	rres = render_result_new(re, &re->disprect, 0, RR_USE_MEM);
+	rres = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
 	
 	/* do the blur steps */
 	while (blur--) {
@@ -1119,7 +1116,10 @@ static void merge_renderresult_fields(RenderResult *rr, RenderResult *rr1, Rende
 		/* passes are allocated in sync */
 		rpass1 = rl1->passes.first;
 		rpass2 = rl2->passes.first;
-		for (rpass = rl->passes.first; rpass && rpass1 && rpass2; rpass = rpass->next, rpass1 = rpass1->next, rpass2 = rpass2->next) {
+		for (rpass = rl->passes.first;
+		     rpass && rpass1 && rpass2;
+		     rpass = rpass->next, rpass1 = rpass1->next, rpass2 = rpass2->next)
+		{
 			interleave_rect(rr, rpass->rect, rpass1->rect, rpass2->rect, rpass->channels);
 		}
 	}
@@ -1180,7 +1180,7 @@ static void do_render_fields_3d(Render *re)
 	re->disprect.ymax *= 2;
 
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-	re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM);
+	re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
 
 	if (rr2) {
 		if (re->r.mode & R_ODDFIELD)
@@ -1243,7 +1243,7 @@ static void do_render_fields_blur_3d(Render *re)
 				re->rectx = re->winx;
 				re->recty = re->winy;
 				
-				rres = render_result_new(re, &re->disprect, 0, RR_USE_MEM);
+				rres = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
 				
 				render_result_merge(rres, re->result);
 				render_result_free(re->result);
@@ -1632,7 +1632,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 		
 		render_result_free(re->result);
-		re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM);
+		re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
 
 		BLI_rw_mutex_unlock(&re->resultmutex);
 		
@@ -1770,7 +1770,7 @@ static void do_render_seq(Render *re)
 		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
 			Editing *ed = re->scene->ed;
 			if (ed)
-				BKE_sequencer_free_imbuf(re->scene, &ed->seqbase, TRUE, TRUE);
+				BKE_sequencer_free_imbuf(re->scene, &ed->seqbase, TRUE);
 		}
 		IMB_freeImBuf(ibuf);
 	}
@@ -1929,7 +1929,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	if (scene->r.scemode & (R_EXR_TILE_FILE | R_FULL_SAMPLE)) {
 		char str[FILE_MAX];
 		
-		render_result_exr_file_path(scene, 0, str);
+		render_result_exr_file_path(scene, "", 0, str);
 		
 		if (BLI_file_is_writable(str) == 0) {
 			BKE_report(reports, RPT_ERROR, "Can not save render buffers, check the temp default path");
@@ -2013,7 +2013,7 @@ static void validate_render_settings(Render *re)
 
 	if (RE_engine_is_external(re)) {
 		/* not supported yet */
-		re->r.scemode &= ~(R_EXR_TILE_FILE | R_FULL_SAMPLE);
+		re->r.scemode &= ~(R_FULL_SAMPLE);
 		re->r.mode &= ~(R_FIELDS | R_MBLUR);
 	}
 }
@@ -2512,7 +2512,7 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char
 
 void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filename)
 {
-	if (!render_result_exr_file_read_path(result, filename)) {
+	if (!render_result_exr_file_read_path(result, NULL, filename)) {
 		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);
 		return;
 	}

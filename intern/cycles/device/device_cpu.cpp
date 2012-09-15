@@ -27,6 +27,8 @@
 
 #include "osl_shader.h"
 
+#include "buffers.h"
+
 #include "util_debug.h"
 #include "util_foreach.h"
 #include "util_function.h"
@@ -141,28 +143,56 @@ public:
 			OSLShader::thread_init(kg);
 #endif
 
+		RenderTile tile;
+		
+		while(task.acquire_tile(this, tile)) {
+			float *render_buffer = (float*)tile.buffer;
+			uint *rng_state = (uint*)tile.rng_state;
+			int start_sample = tile.start_sample;
+			int end_sample = tile.start_sample + tile.num_samples;
+
 #ifdef WITH_OPTIMIZED_KERNEL
-		if(system_cpu_support_optimized()) {
-			for(int y = task.y; y < task.y + task.h; y++) {
-				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_optimized_path_trace(kg, (float*)task.buffer, (unsigned int*)task.rng_state,
-						task.sample, x, y, task.offset, task.stride);
+			if(system_cpu_support_optimized()) {
+				for(int sample = start_sample; sample < end_sample; sample++) {
+					if (task.get_cancel() || task_pool.cancelled())
+						break;
 
-				if(task_pool.cancelled())
-					break;
+					for(int y = tile.y; y < tile.y + tile.h; y++) {
+						for(int x = tile.x; x < tile.x + tile.w; x++) {
+							kernel_cpu_optimized_path_trace(kg, render_buffer, rng_state,
+								sample, x, y, tile.offset, tile.stride);
+						}
+					}
+
+					tile.sample = sample + 1;
+
+					task.update_progress(tile);
+				}
 			}
-		}
-		else
+			else
 #endif
-		{
-			for(int y = task.y; y < task.y + task.h; y++) {
-				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_path_trace(kg, (float*)task.buffer, (unsigned int*)task.rng_state,
-						task.sample, x, y, task.offset, task.stride);
+			{
+				for(int sample = start_sample; sample < end_sample; sample++) {
+					if (task.get_cancel() || task_pool.cancelled())
+						break;
 
-				if(task_pool.cancelled())
-					break;
+					for(int y = tile.y; y < tile.y + tile.h; y++) {
+						for(int x = tile.x; x < tile.x + tile.w; x++) {
+							kernel_cpu_path_trace(kg, render_buffer, rng_state,
+								sample, x, y, tile.offset, tile.stride);
+						}
+					}
+
+					tile.sample = sample + 1;
+
+					task.update_progress(tile);
+				}
 			}
+
+			task.release_tile(tile);
+
+			if(task_pool.cancelled())
+				break;
 		}
 
 #ifdef WITH_OSL
@@ -228,8 +258,7 @@ public:
 		/* split task into smaller ones, more than number of threads for uneven
 		 * workloads where some parts of the image render slower than others */
 		list<DeviceTask> tasks;
-
-		task.split(tasks, TaskScheduler::num_threads()*10);
+		task.split(tasks, TaskScheduler::num_threads()+1);
 
 		foreach(DeviceTask& task, tasks)
 			task_pool.push(new CPUDeviceTask(this, task));
@@ -243,6 +272,11 @@ public:
 	void task_cancel()
 	{
 		task_pool.cancel();
+	}
+
+	bool task_cancelled()
+	{
+		return task_pool.cancelled();
 	}
 };
 

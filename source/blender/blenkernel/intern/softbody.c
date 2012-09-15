@@ -2291,7 +2291,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			/* done goal stuff */
 
 			/* gravitation */
-			if (sb && scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
+			if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
 				float gravity[3];
 				copy_v3_v3(gravity, scene->physics_settings.gravity);
 				mul_v3_fl(gravity, sb_grav_force_scale(ob)*_final_mass(ob, bp)*sb->effector_weights->global_gravity); /* individual mass of node here */

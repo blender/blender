@@ -63,7 +63,6 @@ struct ReportList;
 struct Main;
 
 #define TABLEINITSIZE 1024
-#define LAMPINITSIZE 256
 
 typedef struct SampleTables {
 	float centLut[16];

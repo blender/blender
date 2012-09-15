@@ -62,6 +62,7 @@
 #include "BKE_tessmesh.h"
 #include "BKE_report.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_object_deform.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1136,7 +1137,6 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	}
 }
 
-/* TODO - select between groups */
 static void vgroup_normalize_all(Object *ob, int lock_active)
 {
 	MDeformVert *dv, **dvert_array = NULL;
@@ -1152,27 +1152,33 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
 	if (dvert_array) {
-		if (lock_active) {
+		const int defbase_tot = BLI_countlist(&ob->defbase);
+		char *lock_flags = BKE_objdef_lock_flags_get(ob, defbase_tot);
 
-			for (i = 0; i < dvert_tot; i++) {
-				/* in case its not selected */
-				if (!(dv = dvert_array[i])) {
-					continue;
+		if ((lock_active == TRUE) &&
+		    (lock_flags != NULL) &&
+		    (def_nr < defbase_tot))
+		{
+			lock_flags[def_nr] = TRUE;
+		}
+
+		for (i = 0; i < dvert_tot; i++) {
+			/* in case its not selected */
+			if ((dv = dvert_array[i])) {
+				if (lock_flags) {
+					defvert_normalize_lock_map(dv, lock_flags, defbase_tot);
 				}
-
-				defvert_normalize_lock(dv, def_nr);
+				else if (lock_active) {
+					defvert_normalize_lock_single(dv, def_nr);
+				}
+				else {
+					defvert_normalize(dv);
+				}
 			}
 		}
-		else {
-			for (i = 0; i < dvert_tot; i++) {
 
-				/* in case its not selected */
-				if (!(dv = dvert_array[i])) {
-					continue;
-				}
-
-				defvert_normalize(dv);
-			}
+		if (lock_flags) {
+			MEM_freeN(lock_flags);
 		}
 
 		MEM_freeN(dvert_array);
@@ -1536,8 +1542,8 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 	int *flip_map, flip_map_len;
 	const int def_nr = ob->actdef - 1;
 
-	if ( (mirror_weights == 0 && flip_vgroups == 0) ||
-	     (BLI_findlink(&ob->defbase, def_nr) == NULL) )
+	if ((mirror_weights == 0 && flip_vgroups == 0) ||
+	    (BLI_findlink(&ob->defbase, def_nr) == NULL))
 	{
 		return;
 	}
@@ -1682,6 +1688,10 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 		}
 	}
 
+	/* flip active group index */
+	if (flip_vgroups && flip_map[def_nr] >= 0)
+		ob->actdef = flip_map[def_nr] + 1;
+
 cleanup:
 	if (flip_map) MEM_freeN(flip_map);
 
@@ -1782,6 +1792,21 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 	if (ob->actdef < 1 && ob->defbase.first)
 		ob->actdef = 1;
 
+	/* remove all dverts */
+	if (ob->defbase.first == NULL) {
+		if (ob->type == OB_MESH) {
+			Mesh *me = ob->data;
+			CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
+			me->dvert = NULL;
+		}
+		else if (ob->type == OB_LATTICE) {
+			Lattice *lt = ob->data;
+			if (lt->dvert) {
+				MEM_freeN(lt->dvert);
+				lt->dvert = NULL;
+			}
+		}
+	}
 }
 
 /* only in editmode */
@@ -2674,7 +2699,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "mirror_weights", TRUE, "Mirror Weights", "Mirror weights");
-	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names");
+	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Group Names", "Flip vertex group names");
 	RNA_def_boolean(ot->srna, "all_groups", FALSE, "All Groups", "Mirror all vertex groups weights");
 
 }

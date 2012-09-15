@@ -35,12 +35,6 @@ struct Transform;
 
 /* Object */
 
-struct Particle {
-	int index;
-	float age;
-	float lifetime;
-};
-
 class Object {
 public:
 	Mesh *mesh;
@@ -56,7 +50,6 @@ public:
 	bool use_holdout;
 
 	int particle_id;
-	vector<Particle> particles;
 
 	Object();
 	~Object();
@@ -78,7 +71,6 @@ public:
 
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_update_particles(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
 
 	void tag_update(Scene *scene);

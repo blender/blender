@@ -41,9 +41,9 @@
  * processEvent() method. They should then be registered with the system that
  * they want to receive events. The system will call the processEvent() method
  * for every installed event consumer to pass events.
- * @see GHOST_ISystem#addEventConsumer
- * @author	Maarten Gribnau
- * @date	May 14, 2001
+ * \see GHOST_ISystem#addEventConsumer
+ * \author	Maarten Gribnau
+ * \date	May 14, 2001
  */
 class GHOST_IEventConsumer
 {
@@ -57,9 +57,9 @@ public:
 
 	/**
 	 * This method is called by the system when it has events to dispatch.
-	 * @see GHOST_ISystem#dispatchEvents
-	 * @param	event	The event that can be handled or ignored.
-	 * @return	Indication as to whether the event was handled.
+	 * \see GHOST_ISystem#dispatchEvents
+	 * \param	event	The event that can be handled or ignored.
+	 * \return	Indication as to whether the event was handled.
 	 */
 	virtual bool processEvent(GHOST_IEvent *event) = 0;
 	

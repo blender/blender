@@ -60,12 +60,12 @@ void animviz_calc_motionpaths(struct Scene *scene, ListBase *targets);
 
 void free_path(struct Path *path);
 void calc_curvepath(struct Object *ob);
-int interval_test(int min, int max, int p1, int cycl);
 int where_on_path(struct Object *ob, float ctime, float vec[4], float dir[3], float quat[4], float *radius, float *weight);
 
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */
 
+struct ListBase *object_duplilist_ex(struct Scene *sce, struct Object *ob, int update);
 struct ListBase *object_duplilist(struct Scene *sce, struct Object *ob);
 void free_object_duplilist(struct ListBase *lb);
 int count_duplilist(struct Object *ob);

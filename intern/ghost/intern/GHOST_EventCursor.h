@@ -37,18 +37,18 @@
 
 /**
  * Cursor event.
- * @author	Maarten Gribnau
- * @date	May 11, 2001
+ * \author	Maarten Gribnau
+ * \date	May 11, 2001
  */
 class GHOST_EventCursor : public GHOST_Event
 {
 public:
 	/**
 	 * Constructor.
-	 * @param msec		The time this event was generated.
-	 * @param type		The type of this event.
-	 * @param x			The x-coordinate of the location the cursor was at at the time of the event.
-	 * @param y			The y-coordinate of the location the cursor was at at the time of the event.
+	 * \param msec		The time this event was generated.
+	 * \param type		The type of this event.
+	 * \param x			The x-coordinate of the location the cursor was at at the time of the event.
+	 * \param y			The y-coordinate of the location the cursor was at at the time of the event.
 	 */
 	GHOST_EventCursor(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow *window, GHOST_TInt32 x, GHOST_TInt32 y)
 		: GHOST_Event(msec, type, window)

@@ -221,6 +221,7 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			BL::ShaderNodeMixRGB b_mix_node(b_node);
 			MixNode *mix = new MixNode();
 			mix->type = MixNode::type_enum[b_mix_node.blend_type()];
+			mix->use_clamp = b_mix_node.use_clamp();
 			node = mix;
 			break;
 		}
@@ -244,6 +245,7 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			BL::ShaderNodeMath b_math_node(b_node);
 			MathNode *math = new MathNode();
 			math->type = MathNode::type_enum[b_math_node.operation()];
+			math->use_clamp = b_math_node.use_clamp();
 			node = math;
 			break;
 		}
@@ -404,6 +406,8 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			if(b_image)
 				image->filename = image_user_file_path(b_image_node.image_user(), b_image, b_scene.frame_current());
 			image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
+			image->projection = ImageTextureNode::projection_enum[(int)b_image_node.projection()];
+			image->projection_blend = b_image_node.projection_blend();
 			get_tex_mapping(&image->tex_mapping, b_image_node.texture_mapping());
 			node = image;
 			break;
@@ -457,6 +461,17 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			CheckerTextureNode *checker = new CheckerTextureNode();
 			get_tex_mapping(&checker->tex_mapping, b_checker_node.texture_mapping());
 			node = checker;
+			break;
+		}
+		case BL::ShaderNode::type_TEX_BRICK: {
+			BL::ShaderNodeTexBrick b_brick_node(b_node);
+			BrickTextureNode *brick = new BrickTextureNode();
+			brick->offset = b_brick_node.offset();
+			brick->offset_frequency = b_brick_node.offset_frequency();
+			brick->squash = b_brick_node.squash();
+			brick->squash_frequency = b_brick_node.squash_frequency();
+			get_tex_mapping(&brick->tex_mapping, b_brick_node.texture_mapping());
+			node = brick;
 			break;
 		}
 		case BL::ShaderNode::type_TEX_NOISE: {

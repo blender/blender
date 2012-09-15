@@ -1002,7 +1002,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, style);
 
 	if (!WM_operator_check_ui_enabled(C, op->type->name))
-		uiLayoutSetEnabled(layout, 0);
+		uiLayoutSetEnabled(layout, FALSE);
 
 	if (op->type->flag & OPTYPE_MACRO) {
 		for (op = op->macro.first; op; op = op->next) {

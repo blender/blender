@@ -57,7 +57,6 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
-#include "BKE_utildefines.h"
 #include "BKE_constraint.h"
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"

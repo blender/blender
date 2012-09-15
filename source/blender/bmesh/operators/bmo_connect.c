@@ -45,18 +45,18 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
 	BMFace *f, *nf;
-	BMLoop **loops = NULL, *lastl = NULL;
-	BLI_array_declare(loops);
-	BMLoop *l, *nl;
-	BMVert **verts = NULL;
-	BLI_array_declare(verts);
+	BMLoop *(*loops_split)[2] = NULL;
+	BLI_array_declare(loops_split);
+	BMLoop *l, *nl, *lastl = NULL;
+	BMVert *(*verts_pair)[2] = NULL;
+	BLI_array_declare(verts_pair);
 	int i;
 	
 	BMO_slot_buffer_flag_enable(bm, op, "verts", BM_VERT, VERT_INPUT);
 
 	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
-		BLI_array_empty(loops);
-		BLI_array_empty(verts);
+		BLI_array_empty(loops_split);
+		BLI_array_empty(verts_pair);
 		
 		if (BMO_elem_flag_test(bm, f, FACE_NEW)) {
 			continue;
@@ -72,50 +72,44 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 				}
 
 				if (lastl != l->prev && lastl != l->next) {
-					BLI_array_grow_one(loops);
-					loops[BLI_array_count(loops) - 1] = lastl;
-
-					BLI_array_grow_one(loops);
-					loops[BLI_array_count(loops) - 1] = l;
+					BLI_array_grow_one(loops_split);
+					loops_split[BLI_array_count(loops_split) - 1][0] = lastl;
+					loops_split[BLI_array_count(loops_split) - 1][1] = l;
 
 				}
 				lastl = l;
 			}
 		}
 
-		if (BLI_array_count(loops) == 0) {
+		if (BLI_array_count(loops_split) == 0) {
 			continue;
 		}
 		
-		if (BLI_array_count(loops) > 2) {
-			BLI_array_grow_one(loops);
-			loops[BLI_array_count(loops) - 1] = loops[BLI_array_count(loops) - 2];
-
-			BLI_array_grow_one(loops);
-			loops[BLI_array_count(loops) - 1] = loops[0];
+		if (BLI_array_count(loops_split) > 1) {
+			BLI_array_grow_one(loops_split);
+			loops_split[BLI_array_count(loops_split) - 1][0] = loops_split[BLI_array_count(loops_split) - 2][1];
+			loops_split[BLI_array_count(loops_split) - 1][1] = loops_split[0][0];
 		}
 
-		BM_face_legal_splits(bm, f, (BMLoop *(*)[2])loops, BLI_array_count(loops) / 2);
+		BM_face_legal_splits(bm, f, loops_split, BLI_array_count(loops_split));
 		
-		for (i = 0; i < BLI_array_count(loops) / 2; i++) {
-			if (loops[i * 2] == NULL) {
+		for (i = 0; i < BLI_array_count(loops_split); i++) {
+			if (loops_split[i][0] == NULL) {
 				continue;
 			}
 
-			BLI_array_grow_one(verts);
-			verts[BLI_array_count(verts) - 1] = loops[i * 2]->v;
-
-			BLI_array_grow_one(verts);
-			verts[BLI_array_count(verts) - 1] = loops[i * 2 + 1]->v;
+			BLI_array_grow_one(verts_pair);
+			verts_pair[BLI_array_count(verts_pair) - 1][0] = loops_split[i][0]->v;
+			verts_pair[BLI_array_count(verts_pair) - 1][1] = loops_split[i][1]->v;
 		}
 
-		for (i = 0; i < BLI_array_count(verts) / 2; i++) {
-			nf = BM_face_split(bm, f, verts[i * 2], verts[i * 2 + 1], &nl, NULL, FALSE);
+		for (i = 0; i < BLI_array_count(verts_pair); i++) {
+			nf = BM_face_split(bm, f, verts_pair[i][0], verts_pair[i][1], &nl, NULL, FALSE);
 			f = nf;
 			
 			if (!nl || !nf) {
 				BMO_error_raise(bm, op, BMERR_CONNECTVERT_FAILED, NULL);
-				BLI_array_free(loops);
+				BLI_array_free(loops_split);
 				return;
 			}
 			BMO_elem_flag_enable(bm, nf, FACE_NEW);
@@ -125,8 +119,8 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EDGE_OUT);
 
-	BLI_array_free(loops);
-	BLI_array_free(verts);
+	BLI_array_free(loops_split);
+	BLI_array_free(verts_pair);
 }
 
 static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
@@ -345,7 +339,6 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			goto cleanup;
 		}
 
-		j = 0;
 		if (vv1[0] == vv1[lenv1 - 1]) {
 			lenv1--;
 		}

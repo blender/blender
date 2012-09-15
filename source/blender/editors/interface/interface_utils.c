@@ -78,7 +78,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 
 			if (arraylen && index == -1) {
 				if (ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA))
-					but = uiDefButR_prop(block, COL, 0, name, x1, y1, x2, y2, ptr, prop, 0, 0, 0, -1, -1, NULL);
+					but = uiDefButR_prop(block, COLOR, 0, name, x1, y1, x2, y2, ptr, prop, 0, 0, 0, -1, -1, NULL);
 			}
 			else if (RNA_property_subtype(prop) == PROP_PERCENTAGE || RNA_property_subtype(prop) == PROP_FACTOR)
 				but = uiDefButR_prop(block, NUMSLI, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
@@ -102,7 +102,8 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			else
 				but = uiDefButR_prop(block, TEX, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			break;
-		case PROP_POINTER: {
+		case PROP_POINTER:
+		{
 			PointerRNA pptr;
 
 			pptr = RNA_property_pointer_get(ptr, prop);
@@ -115,7 +116,8 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			but = uiDefIconTextButR_prop(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 			break;
 		}
-		case PROP_COLLECTION: {
+		case PROP_COLLECTION:
+		{
 			char text[256];
 			BLI_snprintf(text, sizeof(text), IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
 			but = uiDefBut(block, LABEL, 0, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, NULL);

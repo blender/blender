@@ -29,7 +29,7 @@ __device_inline float3 svm_background_offset(KernelGlobals *kg)
 __device_inline float3 svm_world_to_ndc(KernelGlobals *kg, ShaderData *sd, float3 P)
 {
 	if(kernel_data.cam.type != CAMERA_PANORAMA) {
-		if(sd->object != ~0)
+		if(sd->object == ~0)
 			P += svm_background_offset(kg);
 
 		Transform tfm = kernel_data.cam.worldtondc;

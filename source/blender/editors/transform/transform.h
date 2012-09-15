@@ -198,6 +198,8 @@ typedef struct TransDataSlideVert {
 	float edge_len;
 
 	float upvec[3], downvec[3];
+
+	int loop_nr;
 } TransDataSlideVert;
 
 typedef struct SlideData {

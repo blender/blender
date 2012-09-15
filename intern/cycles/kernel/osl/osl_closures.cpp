@@ -75,6 +75,8 @@ void OSLShader::register_closures(OSL::ShadingSystem *ss)
 	register_closure(ss, "microfacet_beckmann", OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_ID, bsdf_microfacet_beckmann_params, bsdf_microfacet_beckmann_prepare);
 	register_closure(ss, "microfacet_beckmann_refraction", OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID, bsdf_microfacet_beckmann_refraction_params, bsdf_microfacet_beckmann_refraction_prepare);
 	register_closure(ss, "ward", OSL_CLOSURE_BSDF_WARD_ID, bsdf_ward_params, bsdf_ward_prepare);
+	register_closure(ss, "phong", OSL_CLOSURE_BSDF_PHONG_ID, bsdf_phong_params, bsdf_phong_prepare);
+	register_closure(ss, "phong_ramp", OSL_CLOSURE_BSDF_PHONG_RAMP_ID, bsdf_phong_ramp_params, bsdf_phong_ramp_prepare);
 	register_closure(ss, "ashikhmin_velvet", OSL_CLOSURE_BSDF_ASHIKHMIN_VELVET_ID, bsdf_ashikhmin_velvet_params, bsdf_ashikhmin_velvet_prepare);
 	register_closure(ss, "westin_backscatter", OSL_CLOSURE_BSDF_WESTIN_BACKSCATTER_ID, bsdf_westin_backscatter_params, bsdf_westin_backscatter_prepare);
 	register_closure(ss, "westin_sheen", OSL_CLOSURE_BSDF_WESTIN_SHEEN_ID, bsdf_westin_sheen_params, bsdf_westin_sheen_prepare);

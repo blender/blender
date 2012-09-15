@@ -249,38 +249,6 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 	device->tex_alloc("__object_flag", dscene->object_flag);
 }
 
-void ObjectManager::device_update_particles(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
-{
-	/* count particles.
-	 * adds one dummy particle at the beginning to avoid invalid lookups,
-	 * in case a shader uses particle info without actual particle data.
-	 */
-	int num_particles = 1;
-	foreach(Object *ob, scene->objects)
-		num_particles += ob->particles.size();
-	
-	float4 *particles = dscene->particles.resize(PARTICLE_SIZE*num_particles);
-	
-	/* dummy particle */
-	particles[0] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-	
-	int i = 1;
-	foreach(Object *ob, scene->objects) {
-		foreach(Particle &pa, ob->particles) {
-			/* pack in texture */
-			int offset = i*PARTICLE_SIZE;
-			
-			particles[offset] = make_float4(pa.index, pa.age, pa.lifetime, 0.0f);
-			
-			i++;
-			
-			if(progress.get_cancel()) return;
-		}
-	}
-	
-	device->tex_alloc("__particles", dscene->particles);
-}
-
 void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	if(!need_update)
@@ -306,11 +274,6 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 
 	if(progress.get_cancel()) return;
 
-	progress.set_status("Updating Objects", "Copying Particles to device");
-	device_update_particles(device, dscene, scene, progress);
-	
-	if(progress.get_cancel()) return;
-	
 	need_update = false;
 }
 
@@ -321,9 +284,6 @@ void ObjectManager::device_free(Device *device, DeviceScene *dscene)
 
 	device->tex_free(dscene->object_flag);
 	dscene->object_flag.clear();
-	
-	device->tex_free(dscene->particles);
-	dscene->particles.clear();
 }
 
 void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)

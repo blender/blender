@@ -75,7 +75,6 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
-#include "BKE_utildefines.h"
 
 #include "depsgraph_private.h"
  

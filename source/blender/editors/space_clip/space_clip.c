@@ -1131,10 +1131,13 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		if (mask) {
 			ScrArea *sa = CTX_wm_area(C);
 			int width, height;
+			float aspx, aspy;
 			ED_mask_get_size(sa, &width, &height);
+			ED_space_clip_get_aspect(sc, &aspx, &aspy);
 			ED_mask_draw_region(mask, ar,
 			                    sc->mask_info.draw_flag, sc->mask_info.draw_type,
 			                    width, height,
+			                    aspx, aspy,
 			                    TRUE, TRUE,
 			                    sc->stabmat, C);
 		}

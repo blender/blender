@@ -24,14 +24,15 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
+
+#include "DNA_object_fluidsim.h"
+
+#include "BLI_path_util.h"
 
 #include "RNA_define.h"
 
 #include "rna_internal.h"
-
-#include "DNA_object_fluidsim.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

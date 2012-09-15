@@ -69,7 +69,6 @@
 #include "BKE_scene.h"
 #include "BKE_smoke.h"
 #include "BKE_softbody.h"
-#include "BKE_utildefines.h"
 
 #include "BIK_api.h"
 
@@ -1030,7 +1029,8 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 	if (scene && (duplis-- > 0) && (ob->transflag & OB_DUPLI)) {
 		ListBase *lb_dupli_ob;
 
-		if ((lb_dupli_ob=object_duplilist(scene, ob))) {
+		/* don't update the dupli groups, we only wan't their pid's */
+		if ((lb_dupli_ob = object_duplilist_ex(scene, ob, FALSE))) {
 			DupliObject *dob;
 			for (dob= lb_dupli_ob->first; dob; dob= dob->next) {
 				if (dob->ob != ob) { /* avoids recursive loops with dupliframes: bug 22988 */
@@ -1067,8 +1067,9 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	if (pid->cache->flag & PTCACHE_EXTERNAL) {
 		strcpy(filename, pid->cache->path);
 
-		if (strncmp(filename, "//", 2)==0)
+		if (BLI_path_is_rel(filename)) {
 			BLI_path_abs(filename, blendfilename);
+		}
 
 		return BLI_add_slash(filename); /* new strlen() */
 	}

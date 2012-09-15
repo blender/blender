@@ -46,7 +46,7 @@ struct MemArena {
 	LinkNode *bufs;
 };
 
-MemArena *BLI_memarena_new(int bufsize, const char *name)
+MemArena *BLI_memarena_new(const int bufsize, const char *name)
 {
 	MemArena *ma = MEM_callocN(sizeof(*ma), "memarena");
 	ma->bufsize = bufsize;
@@ -66,7 +66,7 @@ void BLI_memarena_use_malloc(MemArena *ma)
 	ma->use_calloc = 0;
 }
 
-void BLI_memarena_use_align(struct MemArena *ma, int align)
+void BLI_memarena_use_align(struct MemArena *ma, const int align)
 {
 	/* align should be a power of two */
 	ma->align = align;

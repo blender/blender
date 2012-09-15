@@ -31,6 +31,9 @@
  */
 class CompositorOperation : public NodeOperation {
 private:
+	/**
+	 * @brief Scene name, used for getting the render output, includes 'SC' prefix.
+	 */
 	char m_sceneName[MAX_ID_NAME];
 
 	/**

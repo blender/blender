@@ -58,6 +58,8 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, GPUNodeStack
 {
 	Image *ima= (Image*)node->id;
 	ImageUser *iuser= NULL;
+	NodeTexImage *tex = node->storage;
+	int ncd = tex->color_space == SHD_COLORSPACE_NONE;
 
 	if (!ima)
 		return GPU_stack_link(mat, "node_tex_image_empty", in, out);
@@ -67,7 +69,10 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, GPUNodeStack
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	return GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser));
+	if (out[0].link && GPU_material_do_color_management(mat))
+		GPU_link(mat, "srgb_to_linearrgb", out[0].link, &out[0].link);
+
+	return GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser, ncd));
 }
 
 /* node type definition */

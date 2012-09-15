@@ -119,8 +119,8 @@ int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const int m
 	initgrabz(vc->rv3d, fp[0], fp[1], fp[2]);
 
 	if (mval_cpy[0] != IS_CLIPPED) {
-		float mval_f[2];
-		VECSUB2D(mval_f, mval_cpy, mval);
+		const float mval_f[2] = {(float)(mval_cpy[0] - mval[0]),
+		                         (float)(mval_cpy[1] - mval[1])};
 		ED_view3d_win_to_delta(vc->ar, mval_f, dvec);
 		sub_v3_v3(fp, dvec);
 
@@ -1527,10 +1527,10 @@ int edge_inside_circle(int centx, int centy, int rad, int x1, int y1, int x2, in
 	int radsq = rad * rad;
 
 	/* check points in circle itself */
-	if ( (x1 - centx) * (x1 - centx) + (y1 - centy) * (y1 - centy) <= radsq) {
+	if ((x1 - centx) * (x1 - centx) + (y1 - centy) * (y1 - centy) <= radsq) {
 		return TRUE;
 	}
-	else if ( (x2 - centx) * (x2 - centx) + (y2 - centy) * (y2 - centy) <= radsq) {
+	else if ((x2 - centx) * (x2 - centx) + (y2 - centy) * (y2 - centy) <= radsq) {
 		return TRUE;
 	}
 	else {
@@ -2027,36 +2027,6 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
-/* much like facesel_face_pick()*/
-/* returns 0 if not found, otherwise 1 */
-static int vertsel_vert_pick(struct bContext *C, Mesh *me, const int mval[2], unsigned int *index, int size)
-{
-	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
-
-	if (!me || me->totvert == 0)
-		return 0;
-
-	if (size > 0) {
-		/* sample rect to increase changes of selecting, so that when clicking
-		 * on an face in the backbuf, we can still select a vert */
-
-		int dist;
-		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totvert + 1, &dist, 0, NULL, NULL);
-	}
-	else {
-		/* sample only on the exact position */
-		*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
-	}
-
-	if ((*index) <= 0 || (*index) > (unsigned int)me->totvert)
-		return 0;
-
-	(*index)--;
-	
-	return 1;
-}
-
 /* mouse selection in weight paint */
 /* gets called via generic mouse select operator */
 static int mouse_weight_paint_vertex_select(bContext *C, const int mval[2], short extend, short deselect, short toggle, Object *obact)
@@ -2065,8 +2035,8 @@ static int mouse_weight_paint_vertex_select(bContext *C, const int mval[2], shor
 	unsigned int index = 0;
 	MVert *mv;
 
-	if (vertsel_vert_pick(C, me, mval, &index, 50)) {
-		mv = me->mvert + index;
+	if (ED_mesh_pick_vert(C, me, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE)) {
+		mv = &me->mvert[index];
 		if (extend) {
 			mv->flag |= SELECT;
 		}
@@ -2116,7 +2086,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (obedit && object == FALSE) {
 		if (obedit->type == OB_MESH)
-			retval = mouse_mesh(C, event->mval, extend, deselect, toggle);
+			retval = EDBM_select_pick(C, event->mval, extend, deselect, toggle);
 		else if (obedit->type == OB_ARMATURE)
 			retval = mouse_armature(C, event->mval, extend, deselect, toggle);
 		else if (obedit->type == OB_LATTICE)
@@ -2268,6 +2238,7 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, const int m
 		/* bbsel= */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
 		edbm_backbuf_check_and_select_tfaces(me, select == LEFTMOUSE);
 		EDBM_backbuf_free();
+		paintface_flush_flags(ob);
 	}
 }
 
@@ -2496,7 +2467,7 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 			
 		/* only if the endpoints didn't get selected, deal with the middle of the bone too */
 		/* XXX should we just do this always? */
-		if ( (didpoint == 0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1]) ) {
+		if ((didpoint == 0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if (select) 
 				ebone->flag |= BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED;
 			else 

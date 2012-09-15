@@ -38,18 +38,18 @@
 
 /**
  * Implementation of a timer task.
- * @author	Maarten Gribnau
- * @date	May 28, 2001
+ * \author	Maarten Gribnau
+ * \date	May 28, 2001
  */
 class GHOST_TimerTask : public GHOST_ITimerTask
 {
 public:
 	/**
 	 * Constructor.
-	 * @param start		The timer start time.
-	 * @param interval	The interval between calls to the timerProc
-	 * @param timerProc	The callbak invoked when the interval expires.
-	 * @param data		The timer user data.
+	 * \param start		The timer start time.
+	 * \param interval	The interval between calls to the timerProc
+	 * \param timerProc	The callbak invoked when the interval expires.
+	 * \param data		The timer user data.
 	 */
 	GHOST_TimerTask(GHOST_TUns64 start,
 	                GHOST_TUns64 interval,
@@ -66,7 +66,7 @@ public:
 
 	/**
 	 * Returns the timer start time.
-	 * @return The timer start time.
+	 * \return The timer start time.
 	 */
 	inline virtual GHOST_TUns64 getStart() const
 	{
@@ -75,7 +75,7 @@ public:
 
 	/**
 	 * Changes the timer start time.
-	 * @param start The timer start time.
+	 * \param start The timer start time.
 	 */
 	virtual void setStart(GHOST_TUns64 start)
 	{ 
@@ -84,7 +84,7 @@ public:
 
 	/**
 	 * Returns the timer interval.
-	 * @return The timer interval.
+	 * \return The timer interval.
 	 */
 	inline virtual GHOST_TUns64 getInterval() const
 	{
@@ -93,7 +93,7 @@ public:
 
 	/**
 	 * Changes the timer interval.
-	 * @param interval The timer interval.
+	 * \param interval The timer interval.
 	 */
 	virtual void setInterval(GHOST_TUns64 interval)
 	{ 
@@ -102,7 +102,7 @@ public:
 
 	/**
 	 * Returns the time the timerProc will be called.
-	 * @return The time the timerProc will be called.
+	 * \return The time the timerProc will be called.
 	 */
 	inline virtual GHOST_TUns64 getNext() const
 	{
@@ -111,7 +111,7 @@ public:
 
 	/**
 	 * Changes the time the timerProc will be called.
-	 * @param next The time the timerProc will be called.
+	 * \param next The time the timerProc will be called.
 	 */
 	virtual void setNext(GHOST_TUns64 next)
 	{ 
@@ -120,7 +120,7 @@ public:
 
 	/**
 	 * Returns the timer callback.
-	 * @return the timer callback.
+	 * \return the timer callback.
 	 */
 	inline virtual GHOST_TimerProcPtr getTimerProc() const
 	{
@@ -129,7 +129,7 @@ public:
 
 	/**
 	 * Changes the timer callback.
-	 * @param The timer callback.
+	 * \param The timer callback.
 	 */
 	inline virtual void setTimerProc(const GHOST_TimerProcPtr timerProc)
 	{
@@ -138,7 +138,7 @@ public:
 
 	/**
 	 * Returns the timer user data.
-	 * @return The timer user data.
+	 * \return The timer user data.
 	 */
 	inline virtual GHOST_TUserDataPtr getUserData() const
 	{
@@ -147,7 +147,7 @@ public:
 	
 	/**
 	 * Changes the time user data.
-	 * @param data The timer user data.
+	 * \param data The timer user data.
 	 */
 	virtual void setUserData(const GHOST_TUserDataPtr userData)
 	{
@@ -156,7 +156,7 @@ public:
 
 	/**
 	 * Returns the auxiliary storage room.
-	 * @return The auxiliary storage room.
+	 * \return The auxiliary storage room.
 	 */
 	inline virtual GHOST_TUns32 getAuxData() const
 	{
@@ -165,7 +165,7 @@ public:
 
 	/**
 	 * Changes the auxiliary storage room.
-	 * @param auxData The auxiliary storage room.
+	 * \param auxData The auxiliary storage room.
 	 */
 	virtual void setAuxData(GHOST_TUns32 auxData)
 	{ 

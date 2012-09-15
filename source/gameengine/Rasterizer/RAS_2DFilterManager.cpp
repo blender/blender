@@ -431,7 +431,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	// reverting to texunit 0, without this we get bug [#28462]
 	glActiveTextureARB(GL_TEXTURE0);
 
-	glViewport(rect.GetLeft(), rect.GetBottom(), rect_width, rect.GetHeight()+1);
+	glViewport(rect.GetLeft(), rect.GetBottom(), rect_width, rect_height);
 
 	glDisable(GL_DEPTH_TEST);
 	// in case the previous material was wire

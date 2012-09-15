@@ -123,43 +123,6 @@ void paintface_flush_flags(Object *ob)
 	}
 }
 
-/* returns 0 if not found, otherwise 1 */
-static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, const int mval[2], unsigned int *index, short rect)
-{
-	Scene *scene = CTX_data_scene(C);
-	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
-
-	if (!me || me->totpoly == 0)
-		return 0;
-
-	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH, 0);
-
-	// XXX  if (v3d->flag & V3D_INVALID_BACKBUF) {
-// XXX drawview.c!		check_backbuf();
-// XXX		persp(PERSP_VIEW);
-// XXX  }
-
-	if (rect) {
-		/* sample rect to increase changes of selecting, so that when clicking
-		 * on an edge in the backbuf, we can still select a face */
-
-		int dist;
-		*index = view3d_sample_backbuf_rect(&vc, mval, 3, 1, me->totpoly + 1, &dist, 0, NULL, NULL);
-	}
-	else {
-		/* sample only on the exact position */
-		*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
-	}
-
-	if ((*index) <= 0 || (*index) > (unsigned int)me->totpoly)
-		return 0;
-
-	(*index)--;
-	
-	return 1;
-}
-
 void paintface_hide(Object *ob, const int unselected)
 {
 	Mesh *me;
@@ -174,10 +137,10 @@ void paintface_hide(Object *ob, const int unselected)
 	while (a--) {
 		if ((mpoly->flag & ME_HIDE) == 0) {
 			if (unselected) {
-				if ( (mpoly->flag & ME_FACE_SEL) == 0) mpoly->flag |= ME_HIDE;
+				if ((mpoly->flag & ME_FACE_SEL) == 0) mpoly->flag |= ME_HIDE;
 			}
 			else {
-				if ( (mpoly->flag & ME_FACE_SEL)) mpoly->flag |= ME_HIDE;
+				if ((mpoly->flag & ME_FACE_SEL)) mpoly->flag |= ME_HIDE;
 			}
 		}
 		if (mpoly->flag & ME_HIDE) mpoly->flag &= ~ME_FACE_SEL;
@@ -331,7 +294,7 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]
 	if (mode == 0 || mode == 1) {
 		/* XXX - Causes glitches, not sure why */
 #if 0
-		if (!facesel_face_pick(C, me, mval, &index, 1))
+		if (!ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
 			return;
 #endif
 	}
@@ -518,7 +481,7 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 	/* Get the face under the cursor */
 	me = BKE_mesh_from_object(ob);
 
-	if (!facesel_face_pick(C, me, ob, mval, &index, 1))
+	if (!ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
 		return 0;
 	
 	if (index >= me->totpoly)

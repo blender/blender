@@ -45,7 +45,6 @@
 #include "BKE_main.h"
 #include "BLI_math.h"
 #include "BKE_node.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_types.h"

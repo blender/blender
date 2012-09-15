@@ -29,9 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #include "RNA_define.h"
-#include "BKE_utildefines.h"
 
 #ifdef RNA_RUNTIME
 

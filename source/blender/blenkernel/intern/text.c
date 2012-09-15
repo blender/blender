@@ -1684,7 +1684,8 @@ void txt_print_undo(Text *text)
 					printf("%c%c%c", text->undo_buf[i], text->undo_buf[i + 1], text->undo_buf[i + 2]);
 					i += 3;
 					break;
-				case UNDO_INSERT_4: case UNDO_BS_4: case UNDO_DEL_4: {
+				case UNDO_INSERT_4: case UNDO_BS_4: case UNDO_DEL_4:
+				{
 					unsigned int uc;
 					char c[BLI_UTF8_MAX + 1];
 					size_t c_len;

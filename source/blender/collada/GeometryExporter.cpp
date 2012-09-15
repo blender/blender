@@ -132,14 +132,17 @@ void GeometryExporter::operator()(Object *ob)
 
 	createLooseEdgeList(ob, me, geom_id, norind);
 
-	// XXX slow		
-	if (ob->totcol) {
-		for (int a = 0; a < ob->totcol; a++) {
-			createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
+	// Only create Polylists if number of faces > 0
+	if (me->totface > 0) {
+		// XXX slow
+		if (ob->totcol) {
+			for (int a = 0; a < ob->totcol; a++) {
+				createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
+			}
 		}
-	}
-	else {
-		createPolylist(0, has_uvs, has_color, ob, me, geom_id, norind);
+		else {
+			createPolylist(0, has_uvs, has_color, ob, me, geom_id, norind);
+		}
 	}
 	
 	closeMesh();
@@ -248,7 +251,7 @@ void GeometryExporter::createPolylist(short material_index,
 
 	// no faces using this material
 	if (faces_in_polylist == 0) {
-		fprintf(stderr, "%s: no faces use material %d\n", id_name(ob).c_str(), material_index);
+		fprintf(stderr, "%s: material with index %d is not used.\n", id_name(ob).c_str(), material_index);
 		return;
 	}
 		

@@ -402,6 +402,15 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 		if (PyBytes_Check(py_str)) {
 			return PyBytes_AS_STRING(py_str);
 		}
+#ifdef WIN32
+		/* bug [#31856] oddly enough, Python3.2 --> 3.3 on Windows will throw an
+		 * exception here this needs to be fixed in python:
+		 * see: bugs.python.org/issue15859 */
+		else if (!PyUnicode_Check(py_str)) {
+			PyErr_BadArgument();
+			return NULL;
+		}
+#endif
 		else if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
 			return PyBytes_AS_STRING(*coerce);
 		}

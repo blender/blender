@@ -16,6 +16,7 @@ set(SRC
 set(SRC_HEADERS
 	kernel.h
 	kernel_accumulate.h
+	kernel_attribute.h
 	kernel_bvh.h
 	kernel_camera.h
 	kernel_compat_cpu.h
@@ -61,6 +62,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_closure.h
 	svm/svm_convert.h
 	svm/svm_checker.h
+	svm/svm_brick.h
 	svm/svm_displace.h
 	svm/svm_fresnel.h
 	svm/svm_gamma.h

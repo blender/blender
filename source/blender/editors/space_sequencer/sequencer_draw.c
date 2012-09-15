@@ -852,7 +852,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	struct ImBuf *ibuf = NULL;
 	struct ImBuf *scope = NULL;
 	struct View2D *v2d = &ar->v2d;
-	int rectx, recty;
+	/* int rectx, recty; */ /* UNUSED */
 	float viewrectx, viewrecty;
 	float render_size = 0.0;
 	float proxy_size = 100.0;
@@ -874,8 +874,8 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	viewrectx = (render_size * (float)scene->r.xsch) / 100.0f;
 	viewrecty = (render_size * (float)scene->r.ysch) / 100.0f;
 
-	rectx = viewrectx + 0.5f;
-	recty = viewrecty + 0.5f;
+	/* rectx = viewrectx + 0.5f; */ /* UNUSED */
+	/* recty = viewrecty + 0.5f; */ /* UNUSED */
 
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 		viewrectx *= scene->r.xasp / scene->r.yasp;
@@ -1049,6 +1049,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 		if (mask) {
 			int width, height;
+			float aspx = 1.0f, aspy = 1.0f;
 			// ED_mask_get_size(C, &width, &height);
 
 			//Scene *scene = CTX_data_scene(C);
@@ -1058,6 +1059,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			ED_mask_draw_region(mask, ar,
 			                    0, 0,  /* TODO */
 			                    width, height,
+			                    aspx, aspy,
 			                    FALSE, TRUE,
 			                    NULL, C);
 		}

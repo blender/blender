@@ -257,7 +257,7 @@ uiStyle *UI_GetStyle(void)
 {
 	uiStyle *style = NULL;
 	/* offset is two struct uiStyle pointers */
-	/* style = BLI_findstring( &U.uistyles, "Unifont Style", sizeof(style)*2 ) */;
+	/* style = BLI_findstring(&U.uistyles, "Unifont Style", sizeof(style) * 2) */;
 	return (style != NULL) ? style : U.uistyles.first;
 }
 

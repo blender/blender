@@ -411,6 +411,8 @@ void BKE_tracking_clipboard_free(void)
 
 		track = next_track;
 	}
+
+	tracking_clipboard.tracks.first = tracking_clipboard.tracks.last = NULL;
 }
 
 void BKE_tracking_clipboard_copy_tracks(MovieTracking *tracking, MovieTrackingObject *object)

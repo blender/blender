@@ -24,10 +24,11 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "DNA_scene_types.h"
+
+#include "BLI_path_util.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -37,7 +38,6 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "BKE_utildefines.h"
 
 #ifdef RNA_RUNTIME
 
@@ -317,6 +317,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 	prop = RNA_def_int(func, "h", 0, 0, INT_MAX, "Height", "", 0, INT_MAX);
 	RNA_def_property_flag(prop, PROP_REQUIRED);
+	RNA_def_string(func, "layer", "", 0, "Layer", "Single layer to get render result for");  /* NULL ok here */
 	prop = RNA_def_pointer(func, "result", "RenderResult", "Result", "");
 	RNA_def_function_return(func, prop);
 
@@ -326,6 +327,8 @@ static void rna_def_render_engine(BlenderRNA *brna)
 
 	func = RNA_def_function(srna, "end_result", "RE_engine_end_result");
 	prop = RNA_def_pointer(func, "result", "RenderResult", "Result", "");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop = RNA_def_boolean(func, "cancel", 0, "Cancel", "Don't merge back results");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "test_break", "RE_engine_test_break");
@@ -359,6 +362,19 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "camera_override", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "camera_override");
 	RNA_def_property_struct_type(prop, "Object");
+
+	prop = RNA_def_property(srna, "tile_x", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "tile_x");
+	prop = RNA_def_property(srna, "tile_y", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "tile_y");
+
+	prop = RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "resolution_x");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "resolution_y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "resolution_y");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	/* registration */
 

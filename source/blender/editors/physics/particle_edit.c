@@ -3540,7 +3540,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 			switch (pset->brushtype) {
 				case PE_BRUSH_COMB:
 				{
-					float mval_f[2];
+					const float mval_f[2] = {dx, dy};
 					data.mval= mval;
 					data.rad= (float)brush->size;
 
@@ -3552,8 +3552,6 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 					invert_m4_m4(ob->imat, ob->obmat);
 
-					mval_f[0]= dx;
-					mval_f[1]= dy;
 					ED_view3d_win_to_delta(ar, mval_f, vec);
 					data.dvec= vec;
 
@@ -4137,7 +4135,7 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 	if (cache && cache->flag & PTCACHE_DISK_CACHE)
 		return;
 
-	if (psys == NULL && cache->mem_cache.first == NULL)
+	if (psys == NULL && (cache && cache->mem_cache.first == NULL))
 		return;
 
 	if (!edit) {

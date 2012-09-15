@@ -942,7 +942,7 @@ static void nearest_fcurve_vert_store(ListBase *matches, View2D *v2d, FCurve *fc
 			/* if there is already a point for the F-Curve, check if this point is closer than that was */
 			if ((nvi) && (nvi->fcu == fcu)) {
 				/* replace if we are closer, or if equal and that one wasn't selected but we are... */
-				if ( (nvi->dist > dist) || ((nvi->sel == 0) && BEZSELECTED(bezt)) )
+				if ((nvi->dist > dist) || ((nvi->sel == 0) && BEZSELECTED(bezt)))
 					replace = 1;
 			}
 			/* add new if not replacing... */

@@ -526,14 +526,8 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, int copycon)
 	bPose *outPose;
 	bPoseChannel *pchan;
 	ListBase listb;
-	
+
 	if (!src) {
-		*dst = NULL;
-		return;
-	}
-	
-	if (*dst == src) {
-		printf("BKE_pose_copy_data source and target are the same\n");
 		*dst = NULL;
 		return;
 	}
@@ -810,7 +804,7 @@ void framechange_poses_clear_unkeyed(void)
 	/* TODO: proxies may/may not be correctly handled here... (this needs checking) */
 	for (ob = G.main->object.first; ob; ob = ob->id.next) {
 		/* we only need to do this on objects with a pose */
-		if ( (pose = ob->pose) ) {
+		if ((pose = ob->pose)) {
 			for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 				if (pchan->bone) 
 					pchan->bone->flag &= ~BONE_UNKEYED;

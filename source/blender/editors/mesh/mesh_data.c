@@ -43,10 +43,10 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_path_util.h"
 #include "BLI_array.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"

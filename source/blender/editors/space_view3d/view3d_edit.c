@@ -475,8 +475,8 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 
 	{
 		/* for dolly */
-		float mval_f[2];
-		VECCOPY2D(mval_f, event->mval);
+		const float mval_f[2] = {(float)event->mval[0],
+		                         (float)event->mval[1]};
 		ED_view3d_win_to_vector(vod->ar, mval_f, vod->mousevec);
 	}
 
@@ -2733,12 +2733,12 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 		/* convert border to 3d coordinates */
-		if ( (!gluUnProject(cent[0], cent[1], depth_close,
-		                    mats.modelview, mats.projection, (GLint *)mats.viewport,
-		                    &p[0], &p[1], &p[2])) ||
-		     (!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close,
-		                    mats.modelview, mats.projection, (GLint *)mats.viewport,
-		                    &p_corner[0], &p_corner[1], &p_corner[2])))
+		if ((!gluUnProject(cent[0], cent[1], depth_close,
+		                   mats.modelview, mats.projection, (GLint *)mats.viewport,
+		                   &p[0], &p[1], &p[2])) ||
+		    (!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close,
+		                   mats.modelview, mats.projection, (GLint *)mats.viewport,
+		                   &p_corner[0], &p_corner[1], &p_corner[2])))
 		{
 			return OPERATOR_CANCELLED;
 		}

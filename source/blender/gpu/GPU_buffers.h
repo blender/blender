@@ -159,18 +159,18 @@ int GPU_buffer_legacy(struct DerivedMesh *dm );
 typedef struct GPU_Buffers GPU_Buffers;
 
 GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
-			struct MFace *mface, struct MVert *mvert,
-            int *face_indices, int totface);
+                                    struct MFace *mface, struct MVert *mvert,
+                                    int *face_indices, int totface);
 
 void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MVert *mvert,
-			int *vert_indices, int totvert, const float *vmask);
+                             int *vert_indices, int totvert, const float *vmask);
 
 GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
-									unsigned int **grid_hidden, int gridsize);
+                                    unsigned int **grid_hidden, int gridsize);
 
 void GPU_update_grid_buffers(GPU_Buffers *buffers, struct CCGElem **grids,
-							 const struct DMFlagMat *grid_flag_mats,
-							 int *grid_indices, int totgrid, const struct CCGKey *key);
+                             const struct DMFlagMat *grid_flag_mats,
+                             int *grid_indices, int totgrid, const struct CCGKey *key);
 
 void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial);
 

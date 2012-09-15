@@ -735,7 +735,7 @@ class WM_OT_context_modal_mouse(Operator):
 
         if not self._values:
             self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" %
-                    (self.data_path_iter, self.data_path_item))
+                        (self.data_path_iter, self.data_path_item))
 
             return {'CANCELLED'}
         else:
@@ -847,28 +847,35 @@ class WM_OT_doc_view_manual(Operator):
     doc_id = doc_id
 
     @staticmethod
-    def _find_reference(rna_id, url_mapping):
-        print("online manual check for: '%s'... " % rna_id)
+    def _find_reference(rna_id, url_mapping, verbose=True):
+        if verbose:
+            print("online manual check for: '%s'... " % rna_id)
         from fnmatch import fnmatch
         for pattern, url_suffix in url_mapping:
             if fnmatch(rna_id, pattern):
-                print("            match found: '%s' --> '%s'" % (pattern, url_suffix))
+                if verbose:
+                    print("            match found: '%s' --> '%s'" % (pattern, url_suffix))
                 return url_suffix
-        print("match not found")
+        if verbose:
+            print("match not found")
         return None
+
+    @staticmethod
+    def _lookup_rna_url(rna_id, verbose=True):
+        url = None
+        for prefix, url_manual_mapping in bpy.utils.manual_map():
+            rna_ref = WM_OT_doc_view_manual._find_reference(rna_id, url_manual_mapping, verbose=verbose)
+            if rna_ref is not None:
+                url = prefix + rna_ref
+                break
+        return url
 
     def execute(self, context):
         rna_id = _wm_doc_get_id(self.doc_id, do_url=False)
         if rna_id is None:
             return {'PASS_THROUGH'}
 
-        url = None
-
-        for prefix, url_manual_mapping in bpy.utils.manual_map():
-            rna_ref = self._find_reference(rna_id, url_manual_mapping)
-            if rna_ref is not None:
-                url = prefix + rna_ref
-                break
+        url = self._lookup_rna_url(rna_id)
 
         if url is None:
             self.report({'WARNING'}, "No reference available %r, "

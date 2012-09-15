@@ -2992,11 +2992,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
 	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
 	/* Note: As this list is in alphabetical order, and not defined order,
-	 *       here is the highest define currently in use: 31 (Hungarian). */
+	 *       here is the highest define currently in use: 33 (Hebrew). */
 	static EnumPropertyItem language_items[] = {
 		{ 0, "", 0, N_("Nearly done"), ""},
 		{ 0, "DEFAULT", 0, "Default (Default)", ""},
 		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
+		{32, "BRAZILIANPORTUGUESE", 0, "Brazilian Portuguese (Português do Brasil)", "pt_BR"},
 		{ 1, "ENGLISH", 0, "English (English)", "en_US"},
 		{ 8, "FRENCH", 0, "French (Français)", "fr_FR"},
 		{ 4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
@@ -3017,6 +3018,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
 		{ 5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
+		{33, "HEBREW", 0, "Hebrew (עִבְרִית)", "he_IL"},
 		{31, "HUNGARIAN", 0, "Hungarian (magyar)", "hu_HU"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ky_KG"},
@@ -3273,6 +3275,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, compute_device_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_userdef_compute_device_type_itemf");
 	RNA_def_property_ui_text(prop, "Compute Device Type", "Device to use for computation (rendering with Cycles)");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, NULL);
 
 	prop = RNA_def_property(srna, "compute_device", PROP_ENUM, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);

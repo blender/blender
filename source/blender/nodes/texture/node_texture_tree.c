@@ -58,7 +58,7 @@
 static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 {
 	Tex *tx;
-	for (tx= main->tex.first; tx; tx= tx->id.next) {
+	for (tx = main->tex.first; tx; tx = tx->id.next) {
 		if (tx->nodetree) {
 			func(calldata, &tx->id, tx->nodetree);
 		}
@@ -83,7 +83,7 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 	bNode *node, *node_next;
 	
 	/* replace muted nodes and reroute nodes by internal links */
-	for (node= localtree->nodes.first; node; node= node_next) {
+	for (node = localtree->nodes.first; node; node = node_next) {
 		node_next = node->next;
 		
 		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
@@ -98,15 +98,15 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 	bNode *lnode;
 	
 	/* copy over contents of previews */
-	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+	for (lnode = localtree->nodes.first; lnode; lnode = lnode->next) {
 		if (ntreeNodeExists(ntree, lnode->new_node)) {
-			bNode *node= lnode->new_node;
+			bNode *node = lnode->new_node;
 			
 			if (node->preview && node->preview->rect) {
 				if (lnode->preview && lnode->preview->rect) {
-					int xsize= node->preview->xsize;
-					int ysize= node->preview->ysize;
-					memcpy(node->preview->rect, lnode->preview->rect, 4*xsize + xsize*ysize*sizeof(char)*4);
+					int xsize = node->preview->xsize;
+					int ysize = node->preview->ysize;
+					memcpy(node->preview->rect, lnode->preview->rect, 4 * xsize + xsize * ysize * sizeof(char) * 4);
 				}
 			}
 		}
@@ -141,15 +141,15 @@ int ntreeTexTagAnimated(bNodeTree *ntree)
 {
 	bNode *node;
 	
-	if (ntree==NULL) return 0;
+	if (ntree == NULL) return 0;
 	
-	for (node= ntree->nodes.first; node; node= node->next) {
-		if (node->type==TEX_NODE_CURVE_TIME) {
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == TEX_NODE_CURVE_TIME) {
 			nodeUpdate(ntree, node);
 			return 1;
 		}
-		else if (node->type==NODE_GROUP) {
-			if ( ntreeTexTagAnimated((bNodeTree *)node->id) ) {
+		else if (node->type == NODE_GROUP) {
+			if (ntreeTexTagAnimated((bNodeTree *)node->id) ) {
 				return 1;
 			}
 		}
@@ -178,10 +178,10 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree, int use_tree_data)
 	exec = ntree_exec_begin(ntree);
 	
 	/* allocate the thread stack listbase array */
-	exec->threadstack= MEM_callocN(BLENDER_MAX_THREADS*sizeof(ListBase), "thread stack array");
+	exec->threadstack = MEM_callocN(BLENDER_MAX_THREADS * sizeof(ListBase), "thread stack array");
 	
-	for (node= exec->nodetree->nodes.first; node; node= node->next)
-		node->need_exec= 1;
+	for (node = exec->nodetree->nodes.first; node; node = node->next)
+		node->need_exec = 1;
 	
 	if (use_tree_data) {
 		/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
@@ -200,9 +200,9 @@ static void tex_free_delegates(bNodeTreeExec *exec)
 	bNodeStack *ns;
 	int th, a;
 	
-	for (th=0; th<BLENDER_MAX_THREADS; th++)
-		for (nts=exec->threadstack[th].first; nts; nts=nts->next)
-			for (ns= nts->stack, a=0; a<exec->stacksize; a++, ns++)
+	for (th = 0; th < BLENDER_MAX_THREADS; th++)
+		for (nts = exec->threadstack[th].first; nts; nts = nts->next)
+			for (ns = nts->stack, a = 0; a < exec->stacksize; a++, ns++)
 				if (ns->data && !ns->is_copy)
 					MEM_freeN(ns->data);
 }
@@ -213,21 +213,21 @@ static void tex_free_delegates(bNodeTreeExec *exec)
 void ntreeTexEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 {
 	if (exec) {
-		bNodeTree *ntree= exec->nodetree;
+		bNodeTree *ntree = exec->nodetree;
 		bNodeThreadStack *nts;
 		int a;
 		
 		if (exec->threadstack) {
 			tex_free_delegates(exec);
 			
-			for (a=0; a<BLENDER_MAX_THREADS; a++) {
-				for (nts=exec->threadstack[a].first; nts; nts=nts->next)
+			for (a = 0; a < BLENDER_MAX_THREADS; a++) {
+				for (nts = exec->threadstack[a].first; nts; nts = nts->next)
 					if (nts->stack) MEM_freeN(nts->stack);
 				BLI_freelistN(&exec->threadstack[a]);
 			}
 			
 			MEM_freeN(exec->threadstack);
-			exec->threadstack= NULL;
+			exec->threadstack = NULL;
 		}
 		
 		ntree_exec_end(exec);
@@ -254,10 +254,10 @@ int ntreeTexExecTree(
 	MTex *mtex
 ) {
 	TexCallData data;
-	float *nor= texres->nor;
+	float *nor = texres->nor;
 	int retval = TEX_INT;
 	bNodeThreadStack *nts = NULL;
-	bNodeTreeExec *exec= nodes->execdata;
+	bNodeTreeExec *exec = nodes->execdata;
 
 	data.co = co;
 	data.dxt = dxt;
@@ -267,9 +267,9 @@ int ntreeTexExecTree(
 	data.do_preview = preview;
 	data.thread = thread;
 	data.which_output = which_output;
-	data.cfra= cfra;
-	data.mtex= mtex;
-	data.shi= shi;
+	data.cfra = cfra;
+	data.mtex = mtex;
+	data.shi = shi;
 	
 	/* ensure execdata is only initialized once */
 	if (!exec) {
@@ -278,10 +278,10 @@ int ntreeTexExecTree(
 			ntreeTexBeginExecTree(nodes, 1);
 		BLI_unlock_thread(LOCK_NODES);
 
-		exec= nodes->execdata;
+		exec = nodes->execdata;
 	}
 	
-	nts= ntreeGetThreadStack(exec, thread);
+	nts = ntreeGetThreadStack(exec, thread);
 	ntreeExecThreadNodes(exec, nts, &data, thread);
 	ntreeReleaseThreadStack(nts);
 
@@ -289,7 +289,7 @@ int ntreeTexExecTree(
 	retval |= TEX_RGB;
 	/* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was set
 	 * however, the texture code checks this for other reasons (namely, a normal is required for material) */
-	texres->nor= nor;
+	texres->nor = nor;
 
 	return retval;
 }

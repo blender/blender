@@ -25,7 +25,7 @@
 
 #include "COM_RenderLayersBaseProg.h"
 
-/// @TODO rename to image operation
+/// @todo rename to image operation
 class RenderLayersColorProg : public RenderLayersBaseProg {
 public:
 	RenderLayersColorProg();

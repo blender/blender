@@ -86,8 +86,9 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
 
 		/* exception: don't copy the original shapekey index */
 		keyi = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_SHAPE_KEYINDEX);
-		if(keyi)
+		if (keyi) {
 			*keyi = ORIGINDEX_NONE;
+		}
 	}
 
 	BM_CHECK_ELEMENT(v);
@@ -339,6 +340,8 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	return f;
 }
 
+#ifndef NDEBUG
+
 /**
  * Check the element is valid.
  *
@@ -357,14 +360,16 @@ int bmesh_elem_check(void *element, const char htype)
 		return 2;
 	
 	switch (htype) {
-		case BM_VERT: {
+		case BM_VERT:
+		{
 			BMVert *v = element;
 			if (v->e && v->e->head.htype != BM_EDGE) {
 				err |= 4;
 			}
 			break;
 		}
-		case BM_EDGE: {
+		case BM_EDGE:
+		{
 			BMEdge *e = element;
 			if (e->l && e->l->head.htype != BM_LOOP)
 				err |= 8;
@@ -383,7 +388,8 @@ int bmesh_elem_check(void *element, const char htype)
 				err |= 128;
 			break;
 		}
-		case BM_LOOP: {
+		case BM_LOOP:
+		{
 			BMLoop *l = element, *l2;
 			int i;
 
@@ -423,7 +429,8 @@ int bmesh_elem_check(void *element, const char htype)
 
 			break;
 		}
-		case BM_FACE: {
+		case BM_FACE:
+		{
 			BMFace *f = element;
 			BMLoop *l_iter;
 			BMLoop *l_first;
@@ -470,6 +477,8 @@ int bmesh_elem_check(void *element, const char htype)
 
 	return err;
 }
+
+#endif /* NDEBUG */
 
 /**
  * low level function, only frees the vert,
@@ -1483,6 +1492,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  * and collapses the edge on that vertex.
  *
  * \par Examples:
+ *
  * <pre>
  *     Before:         OE      KE
  *                   ------- -------
@@ -1792,18 +1802,21 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 {
 	BMEdge *e;
-	BMLoop *l;
-	BMIter liter;
+
+	BMLoop **loops;
+	int i, loops_tot;
 
 	/* verts already spliced */
 	if (v == vtarget) {
 		return FALSE;
 	}
 
-	/* retarget all the loops of v to vtarget */
-	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-		l->v = vtarget;
+	/* we can't modify the vert while iterating so first allocate an array of loops */
+	loops = BM_iter_as_arrayN(bm, BM_LOOPS_OF_VERT, v, &loops_tot);
+	for (i = 0; i < loops_tot; i++) {
+		loops[i]->v = vtarget;
 	}
+	MEM_freeN(loops);
 
 	/* move all the edges from v's disk to vtarget's disk */
 	while ((e = v->e)) {

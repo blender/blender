@@ -2595,7 +2595,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 	int format = (surface->image_fileformat & MOD_DPAINT_IMGFORMAT_OPENEXR) ? R_IMF_IMTYPE_OPENEXR : R_IMF_IMTYPE_PNG;
 	char output_file[FILE_MAX];
 
-	if (!sData || !sData->type_data) { setError(surface->canvas, "Image save failed: Invalid surface."); return; }
+	if (!sData->type_data) { setError(surface->canvas, "Image save failed: Invalid surface."); return; }
 	/* if selected format is openexr, but current build doesnt support one */
 	#ifndef WITH_OPENEXR
 	if (format == R_IMF_IMTYPE_OPENEXR) format = R_IMF_IMTYPE_PNG;
@@ -4800,7 +4800,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 	PaintBakeData *bData = sData->bData;
 	DynamicPaintCanvasSettings *canvas = surface->canvas;
 	int ret = 1;
-	if (!sData || sData->total_points < 1) return 0;
+	if (sData->total_points < 1) return 0;
 
 	dynamicPaint_surfacePreStep(surface, timescale);
 	/*
@@ -4875,7 +4875,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					/* Apply brush on the surface depending on it's collision type */
 					/* Particle brush: */
 					if (brush->collision == MOD_DPAINT_COL_PSYS) {
-						if (brush && brush->psys && brush->psys->part && brush->psys->part->type == PART_EMITTER &&
+						if (brush->psys && brush->psys->part && brush->psys->part->type == PART_EMITTER &&
 						    psys_check_enabled(brushObj, brush->psys))
 						{
 

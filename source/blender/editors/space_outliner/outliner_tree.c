@@ -1216,8 +1216,8 @@ static int treesort_obtype_alpha(const void *v1, const void *v2)
 	else {
 		/* 2nd we check ob type */
 		if (x1->idcode == ID_OB && x2->idcode == ID_OB) {
-			if ( ((Object *)x1->id)->type > ((Object *)x2->id)->type) return 1;
-			else if ( ((Object *)x1->id)->type > ((Object *)x2->id)->type) return -1;
+			if (((Object *)x1->id)->type > ((Object *)x2->id)->type) return 1;
+			else if (((Object *)x1->id)->type > ((Object *)x2->id)->type) return -1;
 			else return 0;
 		}
 		else {
@@ -1243,7 +1243,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 	tselem = TREESTORE(te);
 	
 	/* sorting rules; only object lists or deformgroups */
-	if ( (tselem->type == TSE_DEFGROUP) || (tselem->type == 0 && te->idcode == ID_OB)) {
+	if ((tselem->type == TSE_DEFGROUP) || (tselem->type == 0 && te->idcode == ID_OB)) {
 		
 		/* count first */
 		for (te = lb->first; te; te = te->next) totelem++;

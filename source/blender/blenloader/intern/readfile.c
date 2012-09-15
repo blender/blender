@@ -101,6 +101,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_endian_switch.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
@@ -141,7 +142,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_text.h" // for txt_extended_ascii_as_utf8
 #include "BKE_tracking.h"
-#include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_sound.h"
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
@@ -150,6 +150,7 @@
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
+#include "BLO_blend_defs.h"
 
 #include "RE_engine.h"
 
@@ -221,16 +222,6 @@
 
 /* from misc_util: flip the bytes from x  */
 /*  #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
-
-// only used here in readfile.c
-#define SWITCH_LONGINT(a) { \
-	char s_i, *p_i; \
-	p_i= (char *)&(a);  \
-	s_i=p_i[0]; p_i[0]=p_i[7]; p_i[7]=s_i; \
-	s_i=p_i[1]; p_i[1]=p_i[6]; p_i[6]=s_i; \
-	s_i=p_i[2]; p_i[2]=p_i[5]; p_i[5]=s_i; \
-	s_i=p_i[3]; p_i[3]=p_i[4]; p_i[4]=s_i; \
-} (void)0
 
 /***/
 
@@ -578,9 +569,9 @@ static void switch_endian_bh4(BHead4 *bhead)
 	if ((bhead->code & 0xFFFF)==0) bhead->code >>= 16;
 	
 	if (bhead->code != ENDB) {
-		SWITCH_INT(bhead->len);
-		SWITCH_INT(bhead->SDNAnr);
-		SWITCH_INT(bhead->nr);
+		BLI_endian_switch_int32(&bhead->len);
+		BLI_endian_switch_int32(&bhead->SDNAnr);
+		BLI_endian_switch_int32(&bhead->nr);
 	}
 }
 
@@ -590,9 +581,9 @@ static void switch_endian_bh8(BHead8 *bhead)
 	if ((bhead->code & 0xFFFF)==0) bhead->code >>= 16;
 	
 	if (bhead->code != ENDB) {
-		SWITCH_INT(bhead->len);
-		SWITCH_INT(bhead->SDNAnr);
-		SWITCH_INT(bhead->nr);
+		BLI_endian_switch_int32(&bhead->len);
+		BLI_endian_switch_int32(&bhead->SDNAnr);
+		BLI_endian_switch_int32(&bhead->nr);
 	}
 }
 
@@ -613,7 +604,7 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, int do_endian_swap)
 		 * 0x0000000000000000000012345678 would become 0x12345678000000000000000000000000
 		 */
 		if (do_endian_swap) {
-			SWITCH_LONGINT(bhead8->old);
+			BLI_endian_switch_int64(&bhead8->old);
 		}
 		
 		/* this patch is to avoid a long long being read from not-eight aligned positions
@@ -1477,11 +1468,7 @@ static void link_glob_list(FileData *fd, ListBase *lb)		/* for glob data */
 
 static void test_pointer_array(FileData *fd, void **mat)
 {
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-	__int64 *lpoin, *lmat;
-#else
-	long long *lpoin, *lmat;
-#endif
+	int64_t *lpoin, *lmat;
 	int *ipoin, *imat;
 	size_t len;
 
@@ -1498,7 +1485,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 			
 			while (len-- > 0) {
 				if ((fd->flags & FD_FLAGS_SWITCH_ENDIAN))
-					SWITCH_LONGINT(*lpoin);
+					BLI_endian_switch_int64(lpoin);
 				*ipoin = (int)((*lpoin) >> 3);
 				ipoin++;
 				lpoin++;
@@ -1568,16 +1555,13 @@ static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, FileData *f
 	}
 	else if (prop->subtype == IDP_DOUBLE) {
 		if (switch_endian) {
-			for (i = 0; i < prop->len; i++) {
-				SWITCH_LONGINT(((double *)prop->data.pointer)[i]);
-			}
+			BLI_endian_switch_double_array(prop->data.pointer, prop->len);
 		}
 	}
 	else {
 		if (switch_endian) {
-			for (i = 0; i < prop->len; i++) {
-				SWITCH_INT(((int *)prop->data.pointer)[i]);
-			}
+			/* also used for floats */
+			BLI_endian_switch_int32_array(prop->data.pointer, prop->len);
 		}
 	}
 }
@@ -1629,9 +1613,9 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
 			 */
 			
 			if (switch_endian) {
-				SWITCH_INT(prop->data.val);
-				SWITCH_INT(prop->data.val2);
-				SWITCH_LONGINT(prop->data.val);
+				BLI_endian_switch_int32(&prop->data.val);
+				BLI_endian_switch_int32(&prop->data.val2);
+				BLI_endian_switch_int64((int64_t *)&prop->data.val);
 			}
 			
 			break;
@@ -1872,9 +1856,7 @@ static void direct_link_fmodifiers(FileData *fd, ListBase *list)
 				data->coefficients = newdataadr(fd, data->coefficients);
 				
 				if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-					unsigned int a;
-					for (a = 0; a < data->arraysize; a++)
-						SWITCH_INT(data->coefficients[a]);
+					BLI_endian_switch_float_array(data->coefficients, data->arraysize);
 				}
 			}
 				break;
@@ -2778,11 +2760,8 @@ static void switch_endian_keyblock(Key *key, KeyBlock *kb)
 				case IPO_BPOINT:
 				case IPO_BEZTRIPLE:
 					b = cp[0];
-					
-					while (b--) {
-						SWITCH_INT((*poin));
-						poin += 4;
-					}
+					BLI_endian_switch_float_array((float *)poin, b);
+					poin += sizeof(float) * b;
 					break;
 			}
 			
@@ -3073,19 +3052,11 @@ static void lib_link_curve(FileData *fd, Main *main)
 
 static void switch_endian_knots(Nurb *nu)
 {
-	int len;
-	
 	if (nu->knotsu) {
-		len = KNOTSU(nu);
-		while (len--) {
-			SWITCH_INT(nu->knotsu[len]);
-		}
+		BLI_endian_switch_float_array(nu->knotsu, KNOTSU(nu));
 	}
 	if (nu->knotsv) {
-		len = KNOTSV(nu);
-		while (len--) {
-			SWITCH_INT(nu->knotsv[len]);
-		}
+		BLI_endian_switch_float_array(nu->knotsv, KNOTSV(nu));
 	}
 }
 
@@ -3303,11 +3274,10 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 				
 				/* the cache saves non-struct data without DNA */
 				if (pm->data[i] && ptcache_data_struct[i][0]=='\0' && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
-					int j, tot = (BKE_ptcache_data_size (i) * pm->totpoint)/4; /* data_size returns bytes */
+					int tot = (BKE_ptcache_data_size (i) * pm->totpoint) / sizeof(int); /* data_size returns bytes */
 					int *poin = pm->data[i];
 					
-					for (j = 0; j < tot; j++)
-						SWITCH_INT(poin[j]);
+					BLI_endian_switch_int32_array(poin, tot);
 				}
 			}
 			
@@ -3776,12 +3746,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 			if ((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && (mdisps[i].disps)) {
 				/* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
 				/* this does swap for data written at write_mdisps() - readfile.c */
-				int x;
-				float *tmpdisps = *mdisps[i].disps;
-				for (x = 0; x < mdisps[i].totdisp * 3; x++) {
-					SWITCH_INT(*tmpdisps);
-					tmpdisps++;
-				}
+				BLI_endian_switch_float_array(*mdisps[i].disps, mdisps[i].totdisp * 3);
 			}
 			if (!external && !mdisps[i].disps)
 				mdisps[i].totdisp = 0;
@@ -3951,11 +3916,8 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		TFace *tf = mesh->tface;
 		int i;
 		
-		for (i = 0; i < (mesh->totface); i++, tf++) {
-			SWITCH_INT(tf->col[0]);
-			SWITCH_INT(tf->col[1]);
-			SWITCH_INT(tf->col[2]);
-			SWITCH_INT(tf->col[3]);
+		for (i = 0; i < mesh->totface; i++, tf++) {
+			BLI_endian_switch_uint32_array(tf->col, 4);
 		}
 	}
 }
@@ -4481,10 +4443,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			
 			hmd->indexar = newdataadr(fd, hmd->indexar);
 			if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-				int a;
-				for (a = 0; a < hmd->totindex; a++) {
-					SWITCH_INT(hmd->indexar[a]);
-				}
+				BLI_endian_switch_int32_array(hmd->indexar, hmd->totindex);
 			}
 		}
 		else if (md->type == eModifierType_ParticleSystem) {
@@ -4514,24 +4473,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			mmd->bindcos = newdataadr(fd, mmd->bindcos);
 			
 			if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-				int a;
-				
-				if (mmd->bindoffsets)
-					for (a=0; a<mmd->totvert+1; a++)
-						SWITCH_INT(mmd->bindoffsets[a]);
-				if (mmd->bindcagecos)
-					for (a=0; a<mmd->totcagevert*3; a++)
-						SWITCH_INT(mmd->bindcagecos[a]);
-				if (mmd->dynverts)
-					for (a=0; a<mmd->totvert; a++)
-						SWITCH_INT(mmd->dynverts[a]);
-				
-				if (mmd->bindweights)
-					for (a=0; a<mmd->totcagevert*mmd->totvert; a++)
-						SWITCH_INT(mmd->bindweights[a]);
-				if (mmd->bindcos)
-					for (a=0; a<mmd->totcagevert*3; a++)
-						SWITCH_INT(mmd->bindcos[a]);
+				if (mmd->bindoffsets)  BLI_endian_switch_int32_array(mmd->bindoffsets, mmd->totvert + 1);
+				if (mmd->bindcagecos)  BLI_endian_switch_float_array(mmd->bindcagecos, mmd->totcagevert * 3);
+				if (mmd->dynverts)     BLI_endian_switch_int32_array(mmd->dynverts, mmd->totvert);
+				if (mmd->bindweights)  BLI_endian_switch_float_array(mmd->bindweights, mmd->totvert);
+				if (mmd->bindcos)      BLI_endian_switch_float_array(mmd->bindcos, mmd->totcagevert * 3);
 			}
 		}
 		else if (md->type == eModifierType_Ocean) {
@@ -4725,10 +4671,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		
 		hook->indexar= newdataadr(fd, hook->indexar);
 		if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-			int a;
-			for (a = 0; a < hook->totindex; a++) {
-				SWITCH_INT(hook->indexar[a]);
-			}
+			BLI_endian_switch_int32_array(hook->indexar, hook->totindex);
 		}
 		
 		/* Do conversion here because if we have loaded
@@ -5023,7 +4966,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->seq1= newdataadr(fd, seq->seq1);
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
-			seq->mask_sequence= newdataadr(fd, seq->mask_sequence);
 			/* a patch: after introduction of effects with 3 input strips */
 			if (seq->seq3 == NULL) seq->seq3 = seq->seq2;
 			
@@ -5069,16 +5011,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				else {
 					seq->strip->proxy = NULL;
 				}
-				if (seq->flag & SEQ_USE_COLOR_BALANCE) {
-					seq->strip->color_balance = newdataadr(
-						fd, seq->strip->color_balance);
-				}
-				else {
-					seq->strip->color_balance = NULL;
-				}
-				if (seq->strip->color_balance) {
-					// seq->strip->color_balance->gui = 0; // XXX - peter, is this relevant in 2.5?
-				}
+
+				/* need to load color balance to it could be converted to modifier */
+				seq->strip->color_balance = newdataadr(fd, seq->strip->color_balance);
 			}
 
 			direct_link_sequence_modifiers(fd, &seq->modifiers);
@@ -5825,7 +5760,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	ScrArea *sa;
 	ScrVert *sv;
 	ScrEdge *se;
-	int a;
 	
 	link_list(fd, &(sc->vertbase));
 	link_list(fd, &(sc->edgebase));
@@ -5835,16 +5769,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	
 	sc->mainwin = sc->subwinactive= 0;	/* indices */
 	sc->swap = 0;
-	
-	/* hacky patch... but people have been saving files with the verse-blender,
-	 * causing the handler to keep running for ever, with no means to disable it */
-	for (a = 0; a < SCREEN_MAXHANDLER; a+=2) {
-		if (sc->handler[a] == SCREEN_HANDLER_VERSE) {
-			sc->handler[a] = 0;
-			break;
-		}
-	}
-	
+
 	/* edges */
 	for (se = sc->edgebase.first; se; se = se->next) {
 		se->v1 = newdataadr(fd, se->v1);
@@ -6123,7 +6048,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 			 * it absolute. This can happen when appending an object with a relative
 			 * link into an unsaved blend file. See [#27405].
 			 * The remap relative option will make it relative again on save - campbell */
-			if (strncmp(lib->name, "//", 2) == 0) {
+			if (BLI_path_is_rel(lib->name)) {
 				BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
 			}
 		}
@@ -6132,7 +6057,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 		for (lib = main->library.first; lib; lib = lib->id.next) {
 			/* Libraries store both relative and abs paths, recreate relative paths,
 			 * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
-			if (strncmp(lib->name, "//", 2) == 0) { /* if this is relative to begin with? */
+			if (BLI_path_is_rel(lib->name)) {  /* if this is relative to begin with? */
 				BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
 				BLI_path_rel(lib->name, basepath);
 			}
@@ -7275,8 +7200,8 @@ static void do_version_ntree_mask_264(void *UNUSED(data), ID *UNUSED(id), bNodeT
 			if (node->storage == NULL) {
 				NodeMask *data = MEM_callocN(sizeof(NodeMask), __func__);
 				/* move settings into own struct */
-				data->size_x = node->custom3;
-				data->size_y = node->custom4;
+				data->size_x = (int)node->custom3;
+				data->size_y = (int)node->custom4;
 				node->custom3 = 0.5f; /* default shutter */
 				node->storage = data;
 			}
@@ -8132,6 +8057,42 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		if (ntreetype && ntreetype->foreach_nodetree)
 			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_mask_264);
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 18)) {
+		Scene *scene;
+
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			if (scene->ed) {
+				Sequence *seq;
+
+				SEQ_BEGIN (scene->ed, seq)
+				{
+					Strip *strip = seq->strip;
+
+					if (strip && strip->color_balance) {
+						SequenceModifierData *smd;
+						ColorBalanceModifierData *cbmd;
+
+						smd = BKE_sequence_modifier_new(seq, NULL, seqModifierType_ColorBalance);
+						cbmd = (ColorBalanceModifierData *) smd;
+
+						cbmd->color_balance = *strip->color_balance;
+
+						/* multiplication with color balance used is handled differently,
+						 * so we need to move multiplication to modifier so files would be
+						 * compatible
+						 */
+						cbmd->color_multiply = seq->mul;
+						seq->mul = 1.0f;
+
+						MEM_freeN(strip->color_balance);
+						strip->color_balance = NULL;
+					}
+				}
+				SEQ_END
+			}
+		}
 	}
 
 	/* default values in Freestyle settings */
@@ -9750,9 +9711,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								cleanup_path(G.main->name, mainptr->curlib->filepath);
 								
 								fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
-								fd->mainlist = mainlist;
-								
+
 								if (fd) {
+									fd->mainlist = mainlist;
 									printf("found: '%s', party on macuno!\n", mainptr->curlib->filepath);
 								}
 							}

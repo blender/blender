@@ -44,7 +44,7 @@
 #include "BLI_utildefines.h"
 
 static PyObject *Buffer_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
-static PyObject *Method_ShaderSource (PyObject *self, PyObject *args);
+static PyObject *Method_ShaderSource(PyObject *self, PyObject *args);
 
 /* Buffer sequence methods */
 

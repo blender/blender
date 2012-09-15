@@ -56,6 +56,7 @@ set(SRC
 	intern/cpu.c
 	intern/dynlib.c
 	intern/edgehash.c
+	intern/endian_switch.c
 	intern/fileops.c
 	intern/fnmatch.c
 	intern/freetypefont.c
@@ -106,6 +107,8 @@ set(SRC
 	BLI_dynlib.h
 	BLI_dynstr.h
 	BLI_edgehash.h
+	BLI_endian_switch.h
+	BLI_endian_switch_inline.h
 	BLI_fileops.h
 	BLI_fileops_types.h
 	BLI_fnmatch.h
@@ -145,6 +148,7 @@ set(SRC
 	BLI_utildefines.h
 	BLI_uvproject.h
 	BLI_vfontdata.h
+	BLI_voronoi.h
 	BLI_voxel.h
 	BLI_winstuff.h
 	PIL_time.h

@@ -50,7 +50,6 @@
 #  include "AUD_C-API.h"
 #endif
 
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_sound.h"
