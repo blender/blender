@@ -1494,7 +1494,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	BLI_rctf_translate(&block->rect, xof, yof);
 
 	/* safety calculus */
-	if (but) {
+	{
 		const float midx = BLI_RCT_CENTER_X(&butrct);
 		const float midy = BLI_RCT_CENTER_Y(&butrct);
 		
@@ -1521,20 +1521,13 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		}
 		block->direction = dir1;
 	}
-	else {
-		block->safety.xmin = block->rect.xmin - 40;
-		block->safety.ymin = block->rect.ymin - 40;
-		block->safety.xmax = block->rect.xmax + 40;
-		block->safety.ymax = block->rect.ymax + 40;
-	}
 
 	/* keep a list of these, needed for pulldown menus */
 	saferct = MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
 	saferct->parent = butrct;
 	saferct->safety = block->safety;
 	BLI_freelistN(&block->saferct);
-	if (but)
-		BLI_duplicatelist(&block->saferct, &but->block->saferct);
+	BLI_duplicatelist(&block->saferct, &but->block->saferct);
 	BLI_addhead(&block->saferct, saferct);
 }
 
