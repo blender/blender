@@ -2195,7 +2195,6 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 		for (con = td->con; con; con = con->next) {
 			bConstraintTypeInfo *cti = NULL;
 			ListBase targets = {NULL, NULL};
-			float tmat[4][4];
 			
 			/* only consider constraint if enabled */
 			if (con->flag & CONSTRAINT_DISABLE) continue;
@@ -2221,8 +2220,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					copy_m4_m4(tmat, cob.matrix);
-					mul_m4_m3m4(cob.matrix, td->mtx, tmat);
+					mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
 				}
 				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
 					/* skip... incompatable spacetype */
@@ -2237,9 +2235,8 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				
 				/* convert spaces again */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-					/* just multiply by td->mtx (this should be ok) */
-					copy_m4_m4(tmat, cob.matrix);
-					mul_m4_m3m4(cob.matrix, td->smtx, tmat);
+					/* just multiply by td->smtx (this should be ok) */
+					mul_m4_m3m4(cob.matrix, td->smtx, cob.matrix);
 				}
 				
 				/* free targets list */
@@ -2287,18 +2284,17 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 		bConstraintOb cob;
 		bConstraint *con;
 		int do_limit = FALSE;
-		
+
 		/* Evaluate valid constraints */
 		for (con = td->con; con; con = con->next) {
 			/* only consider constraint if enabled */
 			if (con->flag & CONSTRAINT_DISABLE) continue;
 			if (con->enforce == 0.0f) continue;
-			
+
 			/* we're only interested in Limit-Rotation constraints */
 			if (con->type == CONSTRAINT_TYPE_ROTLIMIT) {
 				bRotLimitConstraint *data = con->data;
-				float tmat[4][4];
-				
+
 				/* only use it if it's tagged for this purpose */
 				if ((data->flag2 & LIMIT_TRANSFORM) == 0)
 					continue;
@@ -2312,12 +2308,11 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 					constraintob_from_transdata(&cob, td);
 					do_limit = TRUE;
 				}
-				
+
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					copy_m4_m4(tmat, cob.matrix);
-					mul_m4_m3m4(cob.matrix, td->mtx, tmat);
+					mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
 				}
 				
 				/* do constraint */
@@ -2325,9 +2320,8 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 				
 				/* convert spaces again */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-					/* just multiply by td->mtx (this should be ok) */
-					copy_m4_m4(tmat, cob.matrix);
-					mul_m4_m3m4(cob.matrix, td->smtx, tmat);
+					/* just multiply by td->smtx (this should be ok) */
+					mul_m4_m3m4(cob.matrix, td->smtx, cob.matrix);
 				}
 			}
 		}
@@ -2382,7 +2376,6 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			/* we're only interested in Limit-Scale constraints */
 			if (con->type == CONSTRAINT_TYPE_SIZELIMIT) {
 				bSizeLimitConstraint *data = con->data;
-				float tmat[4][4];
 				
 				/* only use it if it's tagged for this purpose */
 				if ((data->flag2 & LIMIT_TRANSFORM) == 0)
@@ -2391,11 +2384,10 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					copy_m4_m4(tmat, cob.matrix);
-					mul_m4_m3m4(cob.matrix, td->mtx, tmat);
+					mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
 				}
 				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
-					/* skip... incompatable spacetype */
+					/* skip... incompatible spacetype */
 					continue;
 				}
 				
@@ -2404,13 +2396,12 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 				
 				/* convert spaces again */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-					/* just multiply by td->mtx (this should be ok) */
-					copy_m4_m4(tmat, cob.matrix);
-					mul_m4_m3m4(cob.matrix, td->smtx, tmat);
+					/* just multiply by td->smtx (this should be ok) */
+					mul_m4_m3m4(cob.matrix, td->smtx, cob.matrix);
 				}
 			}
 		}
-		
+
 		/* copy results from cob->matrix */
 		if ((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
 			/* scale val and reset size */
@@ -2420,7 +2411,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			/* Reset val if SINGLESIZE but using a constraint */
 			if (td->flag & TD_SINGLESIZE)
 				return;
-			
+
 			mat4_to_size(td->ext->size, cob.matrix);
 		}
 	}
@@ -2852,11 +2843,11 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 		
 		if (t->flag & (T_OBJECT | T_TEXTURE | T_POSE)) {
 			float obsizemat[3][3];
-			// Reorient the size mat to fit the oriented object.
+			/* Reorient the size mat to fit the oriented object. */
 			mul_m3_m3m3(obsizemat, tmat, td->axismtx);
-			//print_m3("obsizemat", obsizemat);
+			/* print_m3("obsizemat", obsizemat); */
 			TransMat3ToSize(obsizemat, td->axismtx, fsize);
-			//print_v3("fsize", fsize);
+			/* print_v3("fsize", fsize); */
 		}
 		else {
 			mat3_to_size(fsize, tmat);
@@ -2864,7 +2855,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 		
 		protectedSizeBits(td->protectflag, fsize);
 		
-		if ((t->flag & T_V3D_ALIGN) == 0) {   // align mode doesn't resize objects itself
+		if ((t->flag & T_V3D_ALIGN) == 0) {   /* align mode doesn't resize objects itself */
 			if ((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
 				/* scale val and reset size */
 				*td->val = td->ival * (1 + (fsize[0] - 1) * td->factor);
