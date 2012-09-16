@@ -78,6 +78,11 @@ ConstConfigRcPtr *OCIO_getCurrentConfig(void)
 	return NULL;
 }
 
+ConstConfigRcPtr *OCIO_getDefaultConfig(void)
+{
+	return NULL;
+}
+
 void OCIO_setCurrentConfig(const ConstConfigRcPtr *config)
 {
 	try {

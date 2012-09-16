@@ -59,6 +59,7 @@ extern "C" {
 
 
 ConstConfigRcPtr *OCIO_getCurrentConfig(void);
+ConstConfigRcPtr *OCIO_getDefaultConfig(void);
 void OCIO_setCurrentConfig(const ConstConfigRcPtr *config);
 
 ConstConfigRcPtr *OCIO_configCreateFromEnv(void);

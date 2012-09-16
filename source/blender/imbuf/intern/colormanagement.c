@@ -565,6 +565,10 @@ void IMB_colormanagement_init(void)
 		}
 	}
 
+	if (config == NULL) {
+		config = OCIO_getDefaultConfig();
+	}
+
 	if (config) {
 		OCIO_setCurrentConfig(config);
 
