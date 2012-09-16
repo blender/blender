@@ -26,6 +26,8 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include "PyObjectPlus.h"
 
+#include "KX_PythonInit.h"
+
 #include <RAS_GLExtensionManager.h>
 
 #include <RAS_IPolygonMaterial.h>
@@ -168,7 +170,7 @@ static struct PyModuleDef VideoTexture_module_def = {
 	0,  /* m_free */
 };
 
-static PyObject *initVideoTexture(void)
+PyObject *initVideoTexture(void)
 {
 	PyObject * m;
 	
