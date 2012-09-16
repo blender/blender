@@ -24,7 +24,7 @@ defs.append('CERES_NO_CXSPARSE')
 defs.append('CERES_NO_PROTOCOL_BUFFERS')
 defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
 
-lif 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
+if 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
     defs.append('CERES_NO_TR1')
 
 incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags'
