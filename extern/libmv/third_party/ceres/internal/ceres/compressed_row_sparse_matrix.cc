@@ -32,15 +32,22 @@
 
 #include <algorithm>
 #include <vector>
-#include "ceres/matrix_proto.h"
+#include "ceres/crs_matrix.h"
 #include "ceres/internal/port.h"
+#include "ceres/matrix_proto.h"
 
 namespace ceres {
 namespace internal {
 namespace {
 
 // Helper functor used by the constructor for reordering the contents
-// of a TripletSparseMatrix.
+// of a TripletSparseMatrix. This comparator assumes thay there are no
+// duplicates in the pair of arrays rows and cols, i.e., there is no
+// indices i and j (not equal to each other) s.t.
+//
+//  rows[i] == rows[j] && cols[i] == cols[j]
+//
+// If this is the case, this functor will not be a StrictWeakOrdering.
 struct RowColLessThan {
   RowColLessThan(const int* rows, const int* cols)
       : rows(rows), cols(cols) {
@@ -128,7 +135,7 @@ CompressedRowSparseMatrix::CompressedRowSparseMatrix(
   CHECK_EQ(num_nonzeros(), m.num_nonzeros());
 }
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
 CompressedRowSparseMatrix::CompressedRowSparseMatrix(
     const SparseMatrixProto& outer_proto) {
   CHECK(outer_proto.has_compressed_row_matrix());
@@ -241,7 +248,7 @@ void CompressedRowSparseMatrix::ToDenseMatrix(Matrix* dense_matrix) const {
   }
 }
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
 void CompressedRowSparseMatrix::ToProto(SparseMatrixProto* outer_proto) const {
   CHECK_NOTNULL(outer_proto);
 
@@ -328,6 +335,19 @@ void CompressedRowSparseMatrix::ToTextFile(FILE* file) const {
       fprintf(file, "% 10d % 10d %17f\n", r, cols_[idx], values_[idx]);
     }
   }
+}
+
+void CompressedRowSparseMatrix::ToCRSMatrix(CRSMatrix* matrix) const {
+  matrix->num_rows = num_rows();
+  matrix->num_cols = num_cols();
+
+  matrix->rows.resize(matrix->num_rows + 1);
+  matrix->cols.resize(num_nonzeros());
+  matrix->values.resize(num_nonzeros());
+
+  copy(rows_.get(), rows_.get() + matrix->num_rows + 1, matrix->rows.begin());
+  copy(cols_.get(), cols_.get() + num_nonzeros(), matrix->cols.begin());
+  copy(values_.get(), values_.get() + num_nonzeros(), matrix->values.begin());
 }
 
 }  // namespace internal

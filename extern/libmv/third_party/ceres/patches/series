@@ -1,1 +1,1 @@
-msvc_isfinite.patch
+collections_port.h.mingw.patch

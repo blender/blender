@@ -30,22 +30,20 @@
 
 #include "ceres/implicit_schur_complement.h"
 
-#include <glog/logging.h>
 #include "Eigen/Dense"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/types.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
 
 ImplicitSchurComplement::ImplicitSchurComplement(int num_eliminate_blocks,
-                                                 bool constant_sparsity,
                                                  bool preconditioner)
     : num_eliminate_blocks_(num_eliminate_blocks),
-      constant_sparsity_(constant_sparsity),
       preconditioner_(preconditioner),
       A_(NULL),
       D_(NULL),
@@ -62,7 +60,7 @@ void ImplicitSchurComplement::Init(const BlockSparseMatrixBase& A,
                                    const double* b) {
   // Since initialization is reasonably heavy, perhaps we can save on
   // constructing a new object everytime.
-  if ((A_ == NULL) || !constant_sparsity_) {
+  if (A_ == NULL) {
     A_.reset(new PartitionedMatrixView(A, num_eliminate_blocks_));
   }
 
@@ -71,7 +69,7 @@ void ImplicitSchurComplement::Init(const BlockSparseMatrixBase& A,
 
   // Initialize temporary storage and compute the block diagonals of
   // E'E and F'E.
-  if ((!constant_sparsity_) || (block_diagonal_EtE_inverse_ == NULL)) {
+  if (block_diagonal_EtE_inverse_ == NULL) {
     block_diagonal_EtE_inverse_.reset(A_->CreateBlockDiagonalEtE());
     if (preconditioner_) {
       block_diagonal_FtF_inverse_.reset(A_->CreateBlockDiagonalFtF());
@@ -92,17 +90,10 @@ void ImplicitSchurComplement::Init(const BlockSparseMatrixBase& A,
   // The block diagonals of the augmented linear system contain
   // contributions from the diagonal D if it is non-null. Add that to
   // the block diagonals and invert them.
-  if (D_ != NULL)  {
-    AddDiagonalAndInvert(D_, block_diagonal_EtE_inverse_.get());
-    if (preconditioner_) {
-      AddDiagonalAndInvert(D_ + A_->num_cols_e(),
-                           block_diagonal_FtF_inverse_.get());
-    }
-  } else {
-    AddDiagonalAndInvert(NULL, block_diagonal_EtE_inverse_.get());
-    if (preconditioner_) {
-      AddDiagonalAndInvert(NULL, block_diagonal_FtF_inverse_.get());
-    }
+  AddDiagonalAndInvert(D_, block_diagonal_EtE_inverse_.get());
+  if (preconditioner_)  {
+    AddDiagonalAndInvert((D_ ==  NULL) ? NULL : D_ + A_->num_cols_e(),
+                         block_diagonal_FtF_inverse_.get());
   }
 
   // Compute the RHS of the Schur complement system.

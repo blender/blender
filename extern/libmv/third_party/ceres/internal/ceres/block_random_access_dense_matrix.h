@@ -89,7 +89,7 @@ class BlockRandomAccessDenseMatrix : public BlockRandomAccessMatrix {
   vector<int> block_layout_;
   scoped_array<double> values_;
 
-  DISALLOW_COPY_AND_ASSIGN(BlockRandomAccessDenseMatrix);
+  CERES_DISALLOW_COPY_AND_ASSIGN(BlockRandomAccessDenseMatrix);
 };
 
 }  // namespace internal

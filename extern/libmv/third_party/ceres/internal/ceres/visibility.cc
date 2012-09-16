@@ -34,11 +34,10 @@
 #include <set>
 #include <vector>
 #include <utility>
-
-#include <glog/logging.h>
 #include "ceres/block_structure.h"
 #include "ceres/collections_port.h"
 #include "ceres/graph.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

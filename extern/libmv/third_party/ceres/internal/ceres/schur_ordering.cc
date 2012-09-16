@@ -30,25 +30,14 @@
 
 #include "ceres/schur_ordering.h"
 
-#include <glog/logging.h>
 #include "ceres/graph.h"
 #include "ceres/graph_algorithms.h"
+#include "ceres/internal/scoped_ptr.h"
 #include "ceres/map_util.h"
 #include "ceres/parameter_block.h"
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
-#include "ceres/internal/scoped_ptr.h"
-
-CERES_HASH_NAMESPACE_START
-
-// Allow us to hash pointers as if they were int's
-template<> struct hash< ::ceres::internal::ParameterBlock*> {
-  size_t operator()(::ceres::internal::ParameterBlock* x) const {
-    return reinterpret_cast<size_t>(x);
-  }
-};
-
-CERES_HASH_NAMESPACE_END
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -59,8 +48,7 @@ int ComputeSchurOrdering(const Program& program,
 
   scoped_ptr<Graph< ParameterBlock*> > graph(
       CHECK_NOTNULL(CreateHessianGraph(program)));
-  int independent_set_size =
-      IndependentSetOrdering<ParameterBlock*>(*graph, ordering);
+  int independent_set_size = IndependentSetOrdering(*graph, ordering);
   const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
 
   // Add the excluded blocks to back of the ordering vector.

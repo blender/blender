@@ -20,8 +20,12 @@ defs.append('CERES_HAVE_PTHREAD')
 defs.append('CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {')
 defs.append('CERES_HASH_NAMESPACE_END=}}')
 defs.append('CERES_NO_SUITESPARSE')
-defs.append('CERES_DONT_HAVE_PROTOCOL_BUFFERS')
+defs.append('CERES_NO_CXSPARSE')
+defs.append('CERES_NO_PROTOCOL_BUFFERS')
 defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
+
+lif 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
+    defs.append('CERES_NO_TR1')
 
 incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags'
 

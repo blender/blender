@@ -65,7 +65,7 @@ class ConjugateGradientsSolver : public LinearSolver {
 
  private:
   const LinearSolver::Options options_;
-  DISALLOW_COPY_AND_ASSIGN(ConjugateGradientsSolver);
+  CERES_DISALLOW_COPY_AND_ASSIGN(ConjugateGradientsSolver);
 };
 
 }  // namespace internal

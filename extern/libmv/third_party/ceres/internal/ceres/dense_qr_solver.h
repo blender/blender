@@ -28,7 +28,7 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 //
-// Solve dense rectangular systems Ax = b using the QR factoriztion.
+// Solve dense rectangular systems Ax = b using the QR factorization.
 #ifndef CERES_INTERNAL_DENSE_QR_SOLVER_H_
 #define CERES_INTERNAL_DENSE_QR_SOLVER_H_
 
@@ -90,7 +90,7 @@ class DenseQRSolver: public DenseSparseMatrixSolver {
       double* x);
 
   const LinearSolver::Options options_;
-  DISALLOW_COPY_AND_ASSIGN(DenseQRSolver);
+  CERES_DISALLOW_COPY_AND_ASSIGN(DenseQRSolver);
 };
 
 }  // namespace internal

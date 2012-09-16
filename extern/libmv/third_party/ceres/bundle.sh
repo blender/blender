@@ -7,16 +7,22 @@ else
   exit 1
 fi
 
-repo="https://code.google.com/p/ceres-solver/"
-branch="windows"
+repo="https://ceres-solver.googlesource.com/ceres-solver"
+branch="master"
+tag="1.3.0"
 tmp=`mktemp -d`
+checkout="$tmp/ceres"
 
-GIT="git --git-dir $tmp/ceres/.git --work-tree $tmp/ceres"
+GIT="git --git-dir $tmp/ceres/.git --work-tree $checkout"
 
-git clone $repo $tmp/ceres
+git clone $repo $checkout
 
 if [ $branch != "master" ]; then
     $GIT checkout -t remotes/origin/$branch
+else
+  if [ "x$tag" != "x" ]; then
+      $GIT checkout $tag
+  fi
 fi
 
 $GIT log -n 50 > ChangeLog
@@ -153,9 +159,18 @@ add_definitions(
 	-D"CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {"
 	-D"CERES_HASH_NAMESPACE_END=}}"
 	-DCERES_NO_SUITESPARSE
-	-DCERES_DONT_HAVE_PROTOCOL_BUFFERS
+	-DCERES_NO_CXSPARSE
+	-DCERES_NO_PROTOCOL_BUFFERS
 	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
 )
+
+if(APPLE)
+	if(${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.5")
+		add_definitions(
+			-DCERES_NO_TR1
+		)
+	endif()
+endif()
 
 blender_add_lib(extern_ceres "\${SRC}" "\${INC}" "\${INC_SYS}")
 EOF
@@ -183,8 +198,12 @@ defs.append('CERES_HAVE_PTHREAD')
 defs.append('CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {')
 defs.append('CERES_HASH_NAMESPACE_END=}}')
 defs.append('CERES_NO_SUITESPARSE')
-defs.append('CERES_DONT_HAVE_PROTOCOL_BUFFERS')
+defs.append('CERES_NO_CXSPARSE')
+defs.append('CERES_NO_PROTOCOL_BUFFERS')
 defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
+
+lif 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
+    defs.append('CERES_NO_TR1')
 
 incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags'
 

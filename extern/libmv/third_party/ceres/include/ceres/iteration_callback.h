@@ -28,8 +28,9 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 //
-// When an iteration callback is specified, Ceres calls the callback after each
-// optimizer step and pass it an IterationSummary object, defined below.
+// When an iteration callback is specified, Ceres calls the callback
+// after each minimizer step (if the minimizer has not converged) and
+// passes it an IterationSummary object, defined below.
 
 #ifndef CERES_PUBLIC_ITERATION_CALLBACK_H_
 #define CERES_PUBLIC_ITERATION_CALLBACK_H_
@@ -44,7 +45,15 @@ struct IterationSummary {
   // Current iteration number.
   int32 iteration;
 
+  // Step was numerically valid, i.e., all values are finite and the
+  // step reduces the value of the linearized model.
+  //
+  // Note: step_is_valid is false when iteration = 0.
+  bool step_is_valid;
+
   // Whether or not the algorithm made progress in this iteration.
+  //
+  // Note: step_is_successful is false when iteration = 0.
   bool step_is_successful;
 
   // Value of the objective function.
@@ -66,9 +75,10 @@ struct IterationSummary {
   // cost and the change in the cost of the linearized approximation.
   double relative_decrease;
 
-  // Value of the regularization parameter for Levenberg-Marquardt
-  // algorithm at the end of the current iteration.
-  double mu;
+  // Size of the trust region at the end of the current iteration. For
+  // the Levenberg-Marquardt algorithm, the regularization parameter
+  // mu = 1.0 / trust_region_radius.
+  double trust_region_radius;
 
   // For the inexact step Levenberg-Marquardt algorithm, this is the
   // relative accuracy with which the Newton(LM) step is solved. This
@@ -81,13 +91,15 @@ struct IterationSummary {
   // Newton step.
   int linear_solver_iterations;
 
-  // TODO(sameeragarwal): Change to use a higher precision timer using
-  // clock_gettime.
-  // Time (in seconds) spent inside the linear least squares solver.
-  int iteration_time_sec;
+  // Time (in seconds) spent inside the minimizer loop in the current
+  // iteration.
+  double iteration_time_in_seconds;
 
-  // Time (in seconds) spent inside the linear least squares solver.
-  int linear_solver_time_sec;
+  // Time (in seconds) spent inside the trust region step solver.
+  double step_solver_time_in_seconds;
+
+  // Time (in seconds) since the user called Solve().
+  double cumulative_time_in_seconds;
 };
 
 // Interface for specifying callbacks that are executed at the end of
@@ -133,7 +145,7 @@ struct IterationSummary {
 //                                    summary.gradient_max_norm,
 //                                    summary.step_norm,
 //                                    summary.relative_decrease,
-//                                    summary.mu,
+//                                    summary.trust_region_radius,
 //                                    summary.eta,
 //                                    summary.linear_solver_iterations);
 //       if (log_to_stdout_) {

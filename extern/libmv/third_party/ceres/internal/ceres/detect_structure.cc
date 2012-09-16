@@ -28,9 +28,9 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#include <glog/logging.h>
 #include "ceres/detect_structure.h"
 #include "ceres/internal/eigen.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -60,10 +60,10 @@ void DetectStructure(const CompressedRowBlockStructure& bs,
       *row_block_size = row.block.size;
     } else if (*row_block_size != Eigen::Dynamic &&
                *row_block_size != row.block.size) {
-      *row_block_size = Eigen::Dynamic;
       VLOG(2) << "Dynamic row block size because the block size changed from "
               << *row_block_size << " to "
               << row.block.size;
+      *row_block_size = Eigen::Dynamic;
     }
 
 
@@ -71,10 +71,10 @@ void DetectStructure(const CompressedRowBlockStructure& bs,
       *e_block_size = bs.cols[e_block_id].size;
     } else if (*e_block_size != Eigen::Dynamic &&
                *e_block_size != bs.cols[e_block_id].size) {
-      *e_block_size = Eigen::Dynamic;
       VLOG(2) << "Dynamic e block size because the block size changed from "
               << *e_block_size << " to "
               << bs.cols[e_block_id].size;
+      *e_block_size = Eigen::Dynamic;
     }
 
     if (*f_block_size == 0) {
@@ -85,11 +85,11 @@ void DetectStructure(const CompressedRowBlockStructure& bs,
     } else if (*f_block_size != Eigen::Dynamic) {
       for (int c = 1; c < row.cells.size(); ++c) {
         if (*f_block_size != bs.cols[row.cells[c].block_id].size) {
-          *f_block_size = Eigen::Dynamic;
           VLOG(2) << "Dynamic f block size because the block size "
-                    << "changed from " << *f_block_size << " to "
-                    << bs.cols[row.cells[c].block_id].size;
-            break;
+                  << "changed from " << *f_block_size << " to "
+                  << bs.cols[row.cells[c].block_id].size;
+          *f_block_size = Eigen::Dynamic;
+          break;
         }
       }
     }

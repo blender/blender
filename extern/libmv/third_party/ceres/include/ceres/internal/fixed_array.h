@@ -34,6 +34,8 @@
 
 #include <cstddef>
 #include <glog/logging.h>
+#include "Eigen/Core"
+#include "ceres/internal/macros.h"
 #include "ceres/internal/manual_constructor.h"
 
 namespace ceres {
@@ -136,7 +138,6 @@ class FixedArray {
   // and T must be the same, otherwise callers' assumptions about use
   // of this code will be broken.
   struct InnerContainer {
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     T element;
   };
 

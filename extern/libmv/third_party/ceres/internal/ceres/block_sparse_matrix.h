@@ -74,7 +74,7 @@ class BlockSparseMatrixBase : public SparseMatrix {
   virtual const double* RowBlockValues(int row_block_index) const = 0;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(BlockSparseMatrixBase);
+  CERES_DISALLOW_COPY_AND_ASSIGN(BlockSparseMatrixBase);
 };
 
 // This class implements the SparseMatrix interface for storing and
@@ -96,7 +96,7 @@ class BlockSparseMatrix : public BlockSparseMatrixBase {
   explicit BlockSparseMatrix(CompressedRowBlockStructure* block_structure);
 
   // Construct a block sparse matrix from a protocol buffer.
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
   explicit BlockSparseMatrix(const SparseMatrixProto& proto);
 #endif
 
@@ -110,7 +110,7 @@ class BlockSparseMatrix : public BlockSparseMatrixBase {
   virtual void SquaredColumnNorm(double* x) const;
   virtual void ScaleColumns(const double* scale);
   virtual void ToDenseMatrix(Matrix* dense_matrix) const;
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
   virtual void ToProto(SparseMatrixProto* proto) const;
 #endif
   virtual void ToTextFile(FILE* file) const;
@@ -135,7 +135,7 @@ class BlockSparseMatrix : public BlockSparseMatrixBase {
   int num_nonzeros_;
   scoped_array<double> values_;
   scoped_ptr<CompressedRowBlockStructure> block_structure_;
-  DISALLOW_COPY_AND_ASSIGN(BlockSparseMatrix);
+  CERES_DISALLOW_COPY_AND_ASSIGN(BlockSparseMatrix);
 };
 
 }  // namespace internal

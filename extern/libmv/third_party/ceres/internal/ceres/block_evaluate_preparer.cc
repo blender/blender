@@ -40,16 +40,26 @@
 namespace ceres {
 namespace internal {
 
-void BlockEvaluatePreparer::Init(int** jacobian_layout) {
+void BlockEvaluatePreparer::Init(int const* const* jacobian_layout,
+                                 int max_derivatives_per_residual_block) {
   jacobian_layout_ = jacobian_layout;
+  scratch_evaluate_preparer_.Init(max_derivatives_per_residual_block);
 }
 
 // Point the jacobian blocks directly into the block sparse matrix.
 void BlockEvaluatePreparer::Prepare(const ResidualBlock* residual_block,
                                     int residual_block_index,
                                     SparseMatrix* jacobian,
-                                    double** jacobians) const {
-  CHECK(jacobian != NULL);
+                                    double** jacobians) {
+  // If the overall jacobian is not available, use the scratch space.
+  if (jacobian == NULL) {
+    scratch_evaluate_preparer_.Prepare(residual_block,
+                                       residual_block_index,
+                                       jacobian,
+                                       jacobians);
+    return;
+  }
+
   double* jacobian_values =
       down_cast<BlockSparseMatrix*>(jacobian)->mutable_values();
 

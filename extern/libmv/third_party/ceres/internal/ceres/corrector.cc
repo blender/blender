@@ -32,8 +32,8 @@
 
 #include <cstddef>
 #include <cmath>
-#include <glog/logging.h>
 #include "ceres/internal/eigen.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

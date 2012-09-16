@@ -95,11 +95,11 @@
 #ifndef CERES_INTERNAL_MUTEX_H_
 #define CERES_INTERNAL_MUTEX_H_
 
-#if defined(NO_THREADS)
+#if defined(CERES_NO_THREADS)
   typedef int MutexType;      // to keep a lock-count
 #elif defined(_WIN32) || defined(__CYGWIN32__) || defined(__CYGWIN64__)
-# define WIN32_LEAN_AND_MEAN  // We only need minimal includes
-# ifdef GMUTEX_TRYLOCK
+# define CERES_WIN32_LEAN_AND_MEAN  // We only need minimal includes
+# ifdef CERES_GMUTEX_TRYLOCK
   // We need Windows NT or later for TryEnterCriticalSection().  If you
   // don't need that functionality, you can remove these _WIN32_WINNT
   // lines, and change TryLock() to assert(0) or something.
@@ -108,9 +108,9 @@
 #   endif
 # endif
 // To avoid macro definition of ERROR.
-# define NOGDI
+# define CERES_NOGDI
 // To avoid macro definition of min/max.
-# define NOMINMAX
+# define CERES_NOMINMAX
 # include <windows.h>
   typedef CRITICAL_SECTION MutexType;
 #elif defined(CERES_HAVE_PTHREAD) && defined(CERES_HAVE_RWLOCK)
@@ -151,7 +151,7 @@ class Mutex {
 
   inline void Lock();    // Block if needed until free then acquire exclusively
   inline void Unlock();  // Release a lock acquired via Lock()
-#ifdef GMUTEX_TRYLOCK
+#ifdef CERES_GMUTEX_TRYLOCK
   inline bool TryLock(); // If free, Lock() and return true, else return false
 #endif
   // Note that on systems that don't support read-write locks, these may
@@ -183,7 +183,7 @@ class Mutex {
 };
 
 // Now the implementation of Mutex for various systems
-#if defined(NO_THREADS)
+#if defined(CERES_NO_THREADS)
 
 // When we don't have threads, we can be either reading or writing,
 // but not both.  We can have lots of readers at once (in no-threads
@@ -199,7 +199,7 @@ Mutex::Mutex() : mutex_(0) { }
 Mutex::~Mutex()            { assert(mutex_ == 0); }
 void Mutex::Lock()         { assert(--mutex_ == -1); }
 void Mutex::Unlock()       { assert(mutex_++ == -1); }
-#ifdef GMUTEX_TRYLOCK
+#ifdef CERES_GMUTEX_TRYLOCK
 bool Mutex::TryLock()      { if (mutex_) return false; Lock(); return true; }
 #endif
 void Mutex::ReaderLock()   { assert(++mutex_ > 0); }
@@ -220,91 +220,101 @@ void Mutex::ReaderUnlock() { Unlock(); }
 
 #elif defined(CERES_HAVE_PTHREAD) && defined(CERES_HAVE_RWLOCK)
 
-#define SAFE_PTHREAD(fncall)  do {   /* run fncall if is_safe_ is true */  \
-  if (is_safe_ && fncall(&mutex_) != 0) abort();                           \
+#define CERES_SAFE_PTHREAD(fncall) do { /* run fncall if is_safe_ is true */ \
+  if (is_safe_ && fncall(&mutex_) != 0) abort();                             \
 } while (0)
 
 Mutex::Mutex() {
   SetIsSafe();
   if (is_safe_ && pthread_rwlock_init(&mutex_, NULL) != 0) abort();
 }
-Mutex::~Mutex()            { SAFE_PTHREAD(pthread_rwlock_destroy); }
-void Mutex::Lock()         { SAFE_PTHREAD(pthread_rwlock_wrlock); }
-void Mutex::Unlock()       { SAFE_PTHREAD(pthread_rwlock_unlock); }
-#ifdef GMUTEX_TRYLOCK
+Mutex::~Mutex()            { CERES_SAFE_PTHREAD(pthread_rwlock_destroy); }
+void Mutex::Lock()         { CERES_SAFE_PTHREAD(pthread_rwlock_wrlock); }
+void Mutex::Unlock()       { CERES_SAFE_PTHREAD(pthread_rwlock_unlock); }
+#ifdef CERES_GMUTEX_TRYLOCK
 bool Mutex::TryLock()      { return is_safe_ ?
                                     pthread_rwlock_trywrlock(&mutex_) == 0 :
                                     true; }
 #endif
-void Mutex::ReaderLock()   { SAFE_PTHREAD(pthread_rwlock_rdlock); }
-void Mutex::ReaderUnlock() { SAFE_PTHREAD(pthread_rwlock_unlock); }
-#undef SAFE_PTHREAD
+void Mutex::ReaderLock()   { CERES_SAFE_PTHREAD(pthread_rwlock_rdlock); }
+void Mutex::ReaderUnlock() { CERES_SAFE_PTHREAD(pthread_rwlock_unlock); }
+#undef CERES_SAFE_PTHREAD
 
 #elif defined(CERES_HAVE_PTHREAD)
 
-#define SAFE_PTHREAD(fncall)  do {   /* run fncall if is_safe_ is true */  \
-  if (is_safe_ && fncall(&mutex_) != 0) abort();                           \
+#define CERES_SAFE_PTHREAD(fncall) do { /* run fncall if is_safe_ is true */  \
+  if (is_safe_ && fncall(&mutex_) != 0) abort();                              \
 } while (0)
 
 Mutex::Mutex()             {
   SetIsSafe();
   if (is_safe_ && pthread_mutex_init(&mutex_, NULL) != 0) abort();
 }
-Mutex::~Mutex()            { SAFE_PTHREAD(pthread_mutex_destroy); }
-void Mutex::Lock()         { SAFE_PTHREAD(pthread_mutex_lock); }
-void Mutex::Unlock()       { SAFE_PTHREAD(pthread_mutex_unlock); }
-#ifdef GMUTEX_TRYLOCK
+Mutex::~Mutex()            { CERES_SAFE_PTHREAD(pthread_mutex_destroy); }
+void Mutex::Lock()         { CERES_SAFE_PTHREAD(pthread_mutex_lock); }
+void Mutex::Unlock()       { CERES_SAFE_PTHREAD(pthread_mutex_unlock); }
+#ifdef CERES_GMUTEX_TRYLOCK
 bool Mutex::TryLock()      { return is_safe_ ?
                                  pthread_mutex_trylock(&mutex_) == 0 : true; }
 #endif
 void Mutex::ReaderLock()   { Lock(); }
 void Mutex::ReaderUnlock() { Unlock(); }
-#undef SAFE_PTHREAD
+#undef CERES_SAFE_PTHREAD
 
 #endif
 
 // --------------------------------------------------------------------------
 // Some helper classes
 
-// MutexLock(mu) acquires mu when constructed and releases it when destroyed.
-class MutexLock {
+// Note: The weird "Ceres" prefix for the class is a workaround for having two
+// similar mutex.h files included in the same translation unit. This is a
+// problem because macros do not respect C++ namespaces, and as a result, this
+// does not work well (e.g. inside Chrome). The offending macros are
+// "MutexLock(x) COMPILE_ASSERT(false)". To work around this, "Ceres" is
+// prefixed to the class names; this permits defining the classes.
+
+// CeresMutexLock(mu) acquires mu when constructed and releases it when destroyed.
+class CeresMutexLock {
  public:
-  explicit MutexLock(Mutex *mu) : mu_(mu) { mu_->Lock(); }
-  ~MutexLock() { mu_->Unlock(); }
+  explicit CeresMutexLock(Mutex *mu) : mu_(mu) { mu_->Lock(); }
+  ~CeresMutexLock() { mu_->Unlock(); }
  private:
   Mutex * const mu_;
   // Disallow "evil" constructors
-  MutexLock(const MutexLock&);
-  void operator=(const MutexLock&);
+  CeresMutexLock(const CeresMutexLock&);
+  void operator=(const CeresMutexLock&);
 };
 
-// ReaderMutexLock and WriterMutexLock do the same, for rwlocks
-class ReaderMutexLock {
+// CeresReaderMutexLock and CeresWriterMutexLock do the same, for rwlocks
+class CeresReaderMutexLock {
  public:
-  explicit ReaderMutexLock(Mutex *mu) : mu_(mu) { mu_->ReaderLock(); }
-  ~ReaderMutexLock() { mu_->ReaderUnlock(); }
+  explicit CeresReaderMutexLock(Mutex *mu) : mu_(mu) { mu_->ReaderLock(); }
+  ~CeresReaderMutexLock() { mu_->ReaderUnlock(); }
  private:
   Mutex * const mu_;
   // Disallow "evil" constructors
-  ReaderMutexLock(const ReaderMutexLock&);
-  void operator=(const ReaderMutexLock&);
+  CeresReaderMutexLock(const CeresReaderMutexLock&);
+  void operator=(const CeresReaderMutexLock&);
 };
 
-class WriterMutexLock {
+class CeresWriterMutexLock {
  public:
-  explicit WriterMutexLock(Mutex *mu) : mu_(mu) { mu_->WriterLock(); }
-  ~WriterMutexLock() { mu_->WriterUnlock(); }
+  explicit CeresWriterMutexLock(Mutex *mu) : mu_(mu) { mu_->WriterLock(); }
+  ~CeresWriterMutexLock() { mu_->WriterUnlock(); }
  private:
   Mutex * const mu_;
   // Disallow "evil" constructors
-  WriterMutexLock(const WriterMutexLock&);
-  void operator=(const WriterMutexLock&);
+  CeresWriterMutexLock(const CeresWriterMutexLock&);
+  void operator=(const CeresWriterMutexLock&);
 };
 
 // Catch bug where variable name is omitted, e.g. MutexLock (&mu);
-#define MutexLock(x) COMPILE_ASSERT(0, mutex_lock_decl_missing_var_name)
-#define ReaderMutexLock(x) COMPILE_ASSERT(0, rmutex_lock_decl_missing_var_name)
-#define WriterMutexLock(x) COMPILE_ASSERT(0, wmutex_lock_decl_missing_var_name)
+#define CeresMutexLock(x) \
+    COMPILE_ASSERT(0, ceres_mutex_lock_decl_missing_var_name)
+#define CeresReaderMutexLock(x) \
+    COMPILE_ASSERT(0, ceres_rmutex_lock_decl_missing_var_name)
+#define CeresWriterMutexLock(x) \
+    COMPILE_ASSERT(0, ceres_wmutex_lock_decl_missing_var_name)
 
 }  // namespace internal
 }  // namespace ceres

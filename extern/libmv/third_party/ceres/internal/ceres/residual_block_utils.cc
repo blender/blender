@@ -33,45 +33,16 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
-#include <glog/logging.h>
-#include "ceres/residual_block.h"
-#include "ceres/parameter_block.h"
-#include "ceres/stringprintf.h"
+#include "ceres/array_utils.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"
-
-#ifdef _MSC_VER
-#  define isfinite _finite
-#endif
+#include "ceres/parameter_block.h"
+#include "ceres/residual_block.h"
+#include "ceres/stringprintf.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
-
-// It is a near impossibility that user code generates this exact
-// value in normal operation, thus we will use it to fill arrays
-// before passing them to user code. If on return an element of the
-// array still contains this value, we will assume that the user code
-// did not write to that memory location.
-static const double kImpossibleValue = 1e302;
-
-bool IsArrayValid(const int size, const double* x) {
-  if (x != NULL) {
-    for (int i = 0; i < size; ++i) {
-      if (!isfinite(x[i]) || (x[i] == kImpossibleValue))  {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-void InvalidateArray(const int size, double* x) {
-  if (x != NULL) {
-    for (int i = 0; i < size; ++i) {
-      x[i] = kImpossibleValue;
-    }
-  }
-}
 
 void InvalidateEvaluation(const ResidualBlock& block,
                           double* cost,

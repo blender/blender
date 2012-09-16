@@ -77,6 +77,70 @@ void CauchyLoss::Evaluate(double s, double rho[3]) const {
   rho[2] = - c_ * (inv * inv);
 }
 
+void ArctanLoss::Evaluate(double s, double rho[3]) const {
+  const double sum = 1 + s * s * b_;
+  const double inv = 1 / sum;
+  // 'sum' and 'inv' are always positive.
+  rho[0] = a_ * atan2(s, a_);
+  rho[1] = inv;
+  rho[2] = -2 * s * b_ * (inv * inv);
+}
+
+TolerantLoss::TolerantLoss(double a, double b)
+    : a_(a),
+      b_(b),
+      c_(b * log(1.0 + exp(-a / b))) {
+  CHECK_GE(a, 0.0);
+  CHECK_GT(b, 0.0);
+}
+
+void TolerantLoss::Evaluate(double s, double rho[3]) const {
+  const double x = (s - a_) / b_;
+  // The basic equation is rho[0] = b ln(1 + e^x).  However, if e^x is too
+  // large, it will overflow.  Since numerically 1 + e^x == e^x when the
+  // x is greater than about ln(2^53) for doubles, beyond this threshold
+  // we substitute x for ln(1 + e^x) as a numerically equivalent approximation.
+  static const double kLog2Pow53 = 36.7;  // ln(MathLimits<double>::kEpsilon).
+  if (x > kLog2Pow53) {
+    rho[0] = s - a_ - c_;
+    rho[1] = 1.0;
+    rho[2] = 0.0;
+  } else {
+    const double e_x = exp(x);
+    rho[0] = b_ * log(1.0 + e_x) - c_;
+    rho[1] = e_x / (1.0 + e_x);
+    rho[2] = 0.5 / (b_ * (1.0 + cosh(x)));
+  }
+}
+
+ComposedLoss::ComposedLoss(const LossFunction* f, Ownership ownership_f,
+                           const LossFunction* g, Ownership ownership_g)
+    : f_(CHECK_NOTNULL(f)),
+      g_(CHECK_NOTNULL(g)),
+      ownership_f_(ownership_f),
+      ownership_g_(ownership_g) {
+}
+
+ComposedLoss::~ComposedLoss() {
+  if (ownership_f_ == DO_NOT_TAKE_OWNERSHIP) {
+    f_.release();
+  }
+  if (ownership_g_ == DO_NOT_TAKE_OWNERSHIP) {
+    g_.release();
+  }
+}
+
+void ComposedLoss::Evaluate(double s, double rho[3]) const {
+  double rho_f[3], rho_g[3];
+  g_->Evaluate(s, rho_g);
+  f_->Evaluate(rho_g[0], rho_f);
+  rho[0] = rho_f[0];
+  // f'(g(s)) * g'(s).
+  rho[1] = rho_f[1] * rho_g[1];
+  // f''(g(s)) * g'(s) * g'(s) + f'(g(s)) * g''(s).
+  rho[2] = rho_f[2] * rho_g[1] * rho_g[1] + rho_f[1] * rho_g[2];
+}
+
 void ScaledLoss::Evaluate(double s, double rho[3]) const {
   if (rho_.get() == NULL) {
     rho[0] = a_ * s;

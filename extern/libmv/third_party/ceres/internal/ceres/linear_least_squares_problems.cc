@@ -33,17 +33,17 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-#include <glog/logging.h>
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
 #include "ceres/casts.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/file.h"
-#include "ceres/matrix_proto.h"
-#include "ceres/triplet_sparse_matrix.h"
-#include "ceres/stringprintf.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/matrix_proto.h"
+#include "ceres/stringprintf.h"
+#include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -64,7 +64,7 @@ LinearLeastSquaresProblem* CreateLinearLeastSquaresProblemFromId(int id) {
   return NULL;
 }
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
 LinearLeastSquaresProblem* CreateLinearLeastSquaresProblemFromFile(
     const string& filename) {
   LinearLeastSquaresProblemProto problem_proto;
@@ -130,7 +130,7 @@ LinearLeastSquaresProblem* CreateLinearLeastSquaresProblemFromFile(
       << "Ceres to be built with Protocol Buffers support.";
   return NULL;
 }
-#endif  // CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#endif  // CERES_NO_PROTOCOL_BUFFERS
 
 /*
 A = [1   2]
@@ -600,7 +600,7 @@ bool DumpLinearLeastSquaresProblemToConsole(const string& directory,
   return true;
 };
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
 bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
                                                    int iteration,
                                                    const SparseMatrix* A,
@@ -681,30 +681,55 @@ bool DumpLinearLeastSquaresProblemToTextFile(const string& directory,
   string filename_prefix =
       StringPrintf(format_string.c_str(), iteration);
 
+  LOG(INFO) << "writing to: " << filename_prefix << "*";
+
+  string matlab_script;
+  StringAppendF(&matlab_script,
+                "function lsqp = lm_iteration_%03d()\n", iteration);
+  StringAppendF(&matlab_script,
+                "lsqp.num_rows = %d;\n", A->num_rows());
+  StringAppendF(&matlab_script,
+                "lsqp.num_cols = %d;\n", A->num_cols());
+
   {
     string filename = filename_prefix + "_A.txt";
-    LOG(INFO) << "writing to: " << filename;
     FILE* fptr = fopen(filename.c_str(), "w");
     CHECK_NOTNULL(fptr);
     A->ToTextFile(fptr);
     fclose(fptr);
+    StringAppendF(&matlab_script,
+                  "tmp = load('%s', '-ascii');\n", filename.c_str());
+    StringAppendF(
+        &matlab_script,
+        "lsqp.A = sparse(tmp(:, 1) + 1, tmp(:, 2) + 1, tmp(:, 3), %d, %d);\n",
+        A->num_rows(),
+        A->num_cols());
   }
+
 
   if (D != NULL) {
     string filename = filename_prefix + "_D.txt";
     WriteArrayToFileOrDie(filename, D, A->num_cols());
+    StringAppendF(&matlab_script,
+                  "lsqp.D = load('%s', '-ascii');\n", filename.c_str());
   }
 
   if (b != NULL) {
     string filename = filename_prefix + "_b.txt";
     WriteArrayToFileOrDie(filename, b, A->num_rows());
+    StringAppendF(&matlab_script,
+                  "lsqp.b = load('%s', '-ascii');\n", filename.c_str());
   }
 
   if (x != NULL) {
     string filename = filename_prefix + "_x.txt";
     WriteArrayToFileOrDie(filename, x, A->num_cols());
+    StringAppendF(&matlab_script,
+                  "lsqp.x = load('%s', '-ascii');\n", filename.c_str());
   }
 
+  string matlab_filename = filename_prefix + ".m";
+  WriteStringToFileOrDie(matlab_script, matlab_filename);
   return true;
 }
 
