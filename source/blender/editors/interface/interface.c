@@ -2572,7 +2572,9 @@ void ui_block_do_align(uiBlock *block)
 			ui_block_do_align_but(but, nr);
 
 			/* skip with same number */
-			for (; but && but->alignnr == nr; but = but->next) ;
+			for (; but && but->alignnr == nr; but = but->next) {
+				/* pass */
+			}
 
 			if (!but) {
 				break;

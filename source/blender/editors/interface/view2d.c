@@ -990,9 +990,8 @@ void UI_view2d_view_ortho(View2D *v2d)
 	
 	/* apply mask-based adjustments to cur rect (due to scrollers), to eliminate scaling artifacts */
 	view2d_map_cur_using_mask(v2d, &curmasked);
-	
-	curmasked.xmin -= xofs; curmasked.xmax -= xofs;
-	curmasked.ymin -= yofs; curmasked.ymax -= yofs;
+
+	BLI_rctf_translate(&curmasked, -xofs, -yofs);
 	
 	/* XXX ton: this flag set by outliner, for icons */
 	if (v2d->flag & V2D_PIXELOFS_X) {

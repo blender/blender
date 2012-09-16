@@ -1869,7 +1869,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-	if (cumap->flag & CUMA_DO_CLIP) icon = ICON_CLIPUV_HLT; else icon = ICON_CLIPUV_DEHLT;
+	icon = (cumap->flag & CUMA_DO_CLIP) ? ICON_CLIPUV_HLT : ICON_CLIPUV_DEHLT;
 	bt = uiDefIconBlockBut(block, curvemap_clipping_func, cumap, 0, icon, 0, 0, dx, dx, TIP_("Clipping Options"));
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 

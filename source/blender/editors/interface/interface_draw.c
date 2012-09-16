@@ -86,7 +86,7 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 	
 	/* mult */
 	for (a = 0; a < 7; a++) {
-		vec[a][0] *= rad; vec[a][1] *= rad;
+		mul_v2_fl(vec[a], rad);
 	}
 
 	glBegin(mode);
@@ -157,18 +157,18 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	
 	/* mult */
 	for (a = 0; a < 7; a++) {
-		vec[a][0] *= rad; vec[a][1] *= rad;
+		mul_v2_fl(vec[a], rad);
 	}
 	/* get current color, needs to be outside of glBegin/End */
 	glGetFloatv(GL_CURRENT_COLOR, color);
 
 	/* 'shade' defines strength of shading */	
-	coltop[0] = color[0] + shadetop; if (coltop[0] > 1.0f) coltop[0] = 1.0f;
-	coltop[1] = color[1] + shadetop; if (coltop[1] > 1.0f) coltop[1] = 1.0f;
-	coltop[2] = color[2] + shadetop; if (coltop[2] > 1.0f) coltop[2] = 1.0f;
-	coldown[0] = color[0] + shadedown; if (coldown[0] < 0.0f) coldown[0] = 0.0f;
-	coldown[1] = color[1] + shadedown; if (coldown[1] < 0.0f) coldown[1] = 0.0f;
-	coldown[2] = color[2] + shadedown; if (coldown[2] < 0.0f) coldown[2] = 0.0f;
+	coltop[0]  = minf(1.0f, color[0] + shadetop);
+	coltop[1]  = minf(1.0f, color[1] + shadetop);
+	coltop[2]  = minf(1.0f, color[2] + shadetop);
+	coldown[0] = maxf(0.0f, color[0] + shadedown);
+	coldown[1] = maxf(0.0f, color[1] + shadedown);
+	coldown[2] = maxf(0.0f, color[2] + shadedown);
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);
@@ -266,18 +266,18 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	
 	/* mult */
 	for (a = 0; a < 7; a++) {
-		vec[a][0] *= rad; vec[a][1] *= rad;
+		mul_v2_fl(vec[a], rad);
 	}
 	/* get current color, needs to be outside of glBegin/End */
 	glGetFloatv(GL_CURRENT_COLOR, color);
 
 	/* 'shade' defines strength of shading */	
-	colLeft[0] = color[0] + shadeLeft; if (colLeft[0] > 1.0f) colLeft[0] = 1.0f;
-	colLeft[1] = color[1] + shadeLeft; if (colLeft[1] > 1.0f) colLeft[1] = 1.0f;
-	colLeft[2] = color[2] + shadeLeft; if (colLeft[2] > 1.0f) colLeft[2] = 1.0f;
-	colRight[0] = color[0] + shadeRight; if (colRight[0] < 0.0f) colRight[0] = 0.0f;
-	colRight[1] = color[1] + shadeRight; if (colRight[1] < 0.0f) colRight[1] = 0.0f;
-	colRight[2] = color[2] + shadeRight; if (colRight[2] < 0.0f) colRight[2] = 0.0f;
+	colLeft[0]  = minf(1.0f, color[0] + shadeLeft);
+	colLeft[1]  = minf(1.0f, color[1] + shadeLeft);
+	colLeft[2]  = minf(1.0f, color[2] + shadeLeft);
+	colRight[0] = maxf(0.0f, color[0] + shadeRight);
+	colRight[1] = maxf(0.0f, color[1] + shadeRight);
+	colRight[2] = maxf(0.0f, color[2] + shadeRight);
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);
@@ -601,7 +601,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			}
 
 			/* Calculate the next position and character */
-			sx += butw; ex += butw;
+			sx += butw;
+			ex += butw;
 			cs++;
 		}
 		/* Add the y position and reset x position */
@@ -1146,8 +1147,9 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 	glBegin(GL_QUAD_STRIP);
 	
 	glColor4fv(&cbd->r);
-	glVertex2fv(v1); glVertex2fv(v2);
-	
+	glVertex2fv(v1);
+	glVertex2fv(v2);
+
 	for (a = 1; a <= sizex; a++) {
 		pos = ((float)a) / (sizex - 1);
 		do_colorband(coba, pos, colf);
@@ -1157,7 +1159,8 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 		v1[0] = v2[0] = x1 + a;
 		
 		glColor4fv(colf);
-		glVertex2fv(v1); glVertex2fv(v2);
+		glVertex2fv(v1);
+		glVertex2fv(v2);
 	}
 	
 	glEnd();
@@ -1244,7 +1247,8 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	
 	/* sphere color */
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffn);
-	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
 	
 	/* disable blender light */
 	for (a = 0; a < 8; a++) {
