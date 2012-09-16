@@ -1,6 +1,5 @@
 #!/bin/sh
 
-if false; then
 if [ "x$1" = "x--i-really-know-what-im-doing" ] ; then
   echo Proceeding as requested by command line ...
 else
@@ -36,8 +35,6 @@ cat "files.txt" | while read f; do
 done
 
 rm -rf $tmp
-
-fi
 
 sources=`find ./include ./internal -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t/' | grep -v -E 'schur_eliminator_[0-9]_[0-9]_[0-9d].cc' | sort -d`
 generated_sources=`find ./include ./internal -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//#\t\t/' | grep -E 'schur_eliminator_[0-9]_[0-9]_[0-9d].cc' | sort -d`
@@ -190,6 +187,11 @@ defs.append('CERES_DONT_HAVE_PROTOCOL_BUFFERS')
 defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
 
 incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags'
+
+# work around broken hashtable in 10.5 SDK
+if env['OURPLATFORM'] == 'darwin' and env['WITH_BF_BOOST']:
+    incs += ' ' + env['BF_BOOST_INC']
+    defs.append('CERES_HASH_BOOST')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
