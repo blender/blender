@@ -152,7 +152,7 @@ void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *UNUSED(min), float *UNUSED(m
 	}
 }
 
-void bfree(VBVHTree *tree)
+static void bfree(VBVHTree *tree)
 {
 	if (tot_pushup + tot_pushdown + tot_hints + tot_moves) {
 		if (G.debug & G_DEBUG) {

@@ -2029,7 +2029,7 @@ static void track_context_free(void *customdata)
 {
 	TrackContext *track_context = (TrackContext *)customdata;
 
-#if WITH_LIBMV
+#ifdef WITH_LIBMV
 	if (track_context->search_area)
 		MEM_freeN(track_context->search_area);
 
@@ -2776,7 +2776,7 @@ static int reconstruct_count_tracks_on_both_keyframes(MovieTracking *tracking, L
 
 int BKE_tracking_reconstruction_check(MovieTracking *tracking, MovieTrackingObject *object, char *error_msg, int error_size)
 {
-#if WITH_LIBMV
+#ifdef WITH_LIBMV
 	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 
 	if (tracking->settings.motion_flag & TRACKING_MOTION_MODAL) {

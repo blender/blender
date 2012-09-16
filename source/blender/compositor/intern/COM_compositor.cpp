@@ -37,7 +37,7 @@ extern "C" {
 static ThreadMutex s_compositorMutex;
 static char is_compositorMutex_init = FALSE;
 
-void intern_freeCompositorCaches() 
+static void intern_freeCompositorCaches()
 {
 	deintializeDistortionCache();
 }
@@ -93,7 +93,7 @@ void COM_execute(RenderData *rd, bNodeTree *editingtree, int rendering,
 	BLI_mutex_unlock(&s_compositorMutex);
 }
 
-void COM_freeCaches() 
+static void UNUSED_FUNCTION(COM_freeCaches)()
 {
 	if (is_compositorMutex_init) {
 		BLI_mutex_lock(&s_compositorMutex);
@@ -102,7 +102,7 @@ void COM_freeCaches()
 	}
 }
 
-void COM_deinitialize() 
+void COM_deinitialize()
 {
 	if (is_compositorMutex_init) {
 		BLI_mutex_lock(&s_compositorMutex);

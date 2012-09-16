@@ -253,7 +253,7 @@ static void imp2radangle(float A, float B, float C, float F, float *a, float *b,
 	}
 }
 
-float clipuv(float x, float limit)
+static float clipuv(float x, float limit)
 {
 	x = (x < 0) ? 0 : ((x >= limit) ? (limit - 1) : x);
 	return x;

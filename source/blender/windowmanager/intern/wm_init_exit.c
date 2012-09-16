@@ -32,8 +32,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#if WIN32
-#include <Windows.h>
+#ifdef WIN32
+#  include <Windows.h>
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -340,7 +340,7 @@ extern void free_anim_copybuf(void);
 extern void free_anim_drivers_copybuf(void);
 extern void free_fmodifiers_copybuf(void);
 
-#if WIN32
+#ifdef WIN32
 /* Read console events until there is a key event.  Also returns on any error. */
 static void wait_for_console_key(void)
 {

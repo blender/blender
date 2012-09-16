@@ -417,7 +417,8 @@ static int rast_scan_fill(struct r_FillContext *ctx, struct PolyVert *verts, int
 }
 
 int PLX_raskterize(float(*base_verts)[2], int num_base_verts,
-                   float *buf, int buf_x, int buf_y) {
+                   float *buf, int buf_x, int buf_y)
+{
 	int i;                                   /* i: Loop counter. */
 	struct PolyVert *ply;                   /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
 	struct r_FillContext ctx = {0};

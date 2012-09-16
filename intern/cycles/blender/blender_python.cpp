@@ -183,7 +183,7 @@ static struct PyModuleDef module = {
 	NULL, NULL, NULL, NULL
 };
 
-CCLDeviceInfo *compute_device_list(DeviceType type)
+static CCLDeviceInfo *compute_device_list(DeviceType type)
 {
 	/* device list stored static */
 	static ccl::vector<CCLDeviceInfo> device_list;

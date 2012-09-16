@@ -393,7 +393,7 @@ static bool constraint_valid(bConstraint *con)
 	return true;
 }
 
-int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
+static int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
 {
 	bConstraint *con;
 	int treecount;

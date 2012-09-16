@@ -1170,7 +1170,8 @@ static int nlaedit_bake_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static void NLA_OT_bake(wmOperatorType *ot)
+/* why isn't this used? */
+static void UNUSED_FUNCTION(NLA_OT_bake)(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Bake Strips";

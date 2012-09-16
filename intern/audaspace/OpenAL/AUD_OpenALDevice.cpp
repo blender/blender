@@ -767,7 +767,7 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::setConeVolumeOuter(float volume)
 /**************************** Threading Code **********************************/
 /******************************************************************************/
 
-void* AUD_openalRunThread(void* device)
+static void *AUD_openalRunThread(void *device)
 {
 	AUD_OpenALDevice* dev = (AUD_OpenALDevice*)device;
 	dev->updateStreams();
@@ -993,7 +993,7 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 		AUD_THROW(AUD_ERROR_OPENAL, open_error);
 
 	// at least try to set the frequency
-	ALCint attribs[] = { ALC_FREQUENCY, specs.rate, 0 };
+	ALCint attribs[] = { ALC_FREQUENCY, (ALCint)specs.rate, 0 };
 	ALCint* attributes = attribs;
 	if(specs.rate == AUD_RATE_INVALID)
 		attributes = NULL;

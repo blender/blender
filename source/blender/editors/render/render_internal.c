@@ -80,7 +80,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	float *rectf = NULL;
 	int ymin, ymax, xmin, xmax;
 	int rymin, rxmin;
-	unsigned char *rectc;
+	/* unsigned char *rectc; */  /* UNUSED */
 
 	/* if renrect argument, we only refresh scanlines */
 	if (renrect) {
@@ -137,7 +137,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 		imb_addrectImBuf(ibuf);
 	
 	rectf += 4 * (rr->rectx * ymin + xmin);
-	rectc = (unsigned char *)(ibuf->rect + ibuf->x * rymin + rxmin);
+	/* rectc = (unsigned char *)(ibuf->rect + ibuf->x * rymin + rxmin); */  /* UNUSED */
 
 	IMB_partial_display_buffer_update(ibuf, rectf, NULL, rr->rectx, rxmin, rymin,
 	                                  &scene->view_settings, &scene->display_settings,
