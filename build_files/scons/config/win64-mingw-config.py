@@ -159,7 +159,7 @@ BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
-WITH_BF_OCIO = False
+WITH_BF_OCIO = True
 BF_OCIO = LIBDIR + '/opencolorio'
 BF_OCIO_INC = '${BF_OCIO}/include'
 BF_OCIO_LIB = 'OpenColorIO'

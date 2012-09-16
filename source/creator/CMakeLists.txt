@@ -646,11 +646,17 @@ elseif(WIN32)
 	endif()
 
 	if(WITH_OPENCOLORIO)
+		set_lib_path(OCIOBIN "opencolorio/bin")
 		if(NOT MINGW)
-			set_lib_path(OCIOBIN "opencolorio/bin")
 			install(
 				FILES
 					${OCIOBIN}/OpenColorIO.dll
+				DESTINATION ${TARGETDIR}
+			)
+		else()
+			install(
+				FILES
+					${OCIOBIN}/libOpenColorIO.dll
 				DESTINATION ${TARGETDIR}
 			)
 		endif()
