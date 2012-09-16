@@ -2576,6 +2576,11 @@ static void confirm_cancel_operator(void *opv)
 }
 
 static void vconfirm_opname(bContext *C, const char *opname, const char *title, const char *itemfmt, va_list ap)
+#ifdef __GNUC__
+__attribute__ ((format(printf, 4, 0)))
+#endif
+;
+static void vconfirm_opname(bContext *C, const char *opname, const char *title, const char *itemfmt, va_list ap)
 {
 	uiPopupBlockHandle *handle;
 	char *s, buf[512];

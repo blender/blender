@@ -88,8 +88,16 @@ public:
 	inline ~STR_String()											{ delete[] this->m_data; }
 
 	// Operations
-	STR_String&			Format(const char *fmt, ...);				// Set formatted text to string
-	STR_String&			FormatAdd(const char *fmt, ...);			// Add formatted text to string
+	STR_String&			Format(const char *fmt, ...)				// Set formatted text to string
+#ifdef __GNUC__
+	__attribute__ ((format(printf, 2, 3)))
+#endif
+	;
+	STR_String&			FormatAdd(const char *fmt, ...)				// Add formatted text to string
+#ifdef __GNUC__
+	__attribute__ ((format(printf, 2, 3)))
+#endif
+	;
 	inline void			Clear()										{ this->m_len = this->m_data[0] = 0; }
 	inline const STR_String	& Reverse()
 	{
@@ -208,12 +216,10 @@ protected:
 #endif
 };
 
-inline  STR_String operator+(rcSTR_String    lhs, rcSTR_String   rhs)	{ return STR_String(lhs.ReadPtr(), lhs.Length(), rhs.ReadPtr(), rhs.Length()); }
-inline  STR_String operator+(rcSTR_String    lhs, char        rhs)		{ return STR_String(lhs.ReadPtr(), lhs.Length(), &rhs, 1); }
-inline  STR_String operator+(char            lhs, rcSTR_String   rhs)	{ return STR_String(&lhs, 1, rhs.ReadPtr(), rhs.Length()); }
-inline  STR_String operator+(rcSTR_String    lhs, const char *rhs)		{ return STR_String(lhs.ReadPtr(), lhs.Length(), rhs, strlen(rhs)); }
-inline  STR_String operator+(const char      *lhs, rcSTR_String   rhs)	{ return STR_String(lhs, strlen(lhs), rhs.ReadPtr(), rhs.Length()); }
-
+inline  STR_String operator+(rcSTR_String    lhs, rcSTR_String rhs)	{ return STR_String(lhs.ReadPtr(), lhs.Length(), rhs.ReadPtr(), rhs.Length()); }
+inline  STR_String operator+(rcSTR_String    lhs, char         rhs)	{ return STR_String(lhs.ReadPtr(), lhs.Length(), &rhs, 1); }
+inline  STR_String operator+(char            lhs, rcSTR_String rhs)	{ return STR_String(&lhs, 1, rhs.ReadPtr(), rhs.Length()); }
+inline  STR_String operator+(rcSTR_String    lhs, const char  *rhs)	{ return STR_String(lhs.ReadPtr(), lhs.Length(), rhs, strlen(rhs)); }
+inline  STR_String operator+(const char     *lhs, rcSTR_String rhs)	{ return STR_String(lhs, strlen(lhs), rhs.ReadPtr(), rhs.Length()); }
 
 #endif //__STR_STRING_H__
-
