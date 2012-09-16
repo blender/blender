@@ -1245,8 +1245,8 @@ elseif(WIN32)
 				set(BOOST_POSTFIX "mgw47-mt-s-1_49")
 				set(BOOST_DEBUG_POSTFIX "mgw47-mt-sd-1_49")
 			else()
-				set(BOOST_POSTFIX "mgw46-mt-s-1_47")
-				set(BOOST_DEBUG_POSTFIX "mgw46-mt-sd-1_47")
+				set(BOOST_POSTFIX "mgw46-mt-s-1_49")
+				set(BOOST_DEBUG_POSTFIX "mgw46-mt-sd-1_49")
 			endif()		
 			set(BOOST_LIBRARIES
 				optimized boost_date_time-${BOOST_POSTFIX} boost_filesystem-${BOOST_POSTFIX}
