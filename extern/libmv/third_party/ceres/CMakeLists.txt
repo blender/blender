@@ -231,13 +231,23 @@ endif()
 
 add_definitions(
 	-DCERES_HAVE_PTHREAD
-	-D"CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {"
-	-D"CERES_HASH_NAMESPACE_END=}}"
 	-DCERES_NO_SUITESPARSE
 	-DCERES_NO_CXSPARSE
 	-DCERES_NO_PROTOCOL_BUFFERS
 	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
 )
+
+if(MSVC10)
+	add_definitions(
+		-D"CERES_HASH_NAMESPACE_START=namespace std {"
+		-D"CERES_HASH_NAMESPACE_END=}"
+	)
+else()
+	add_definitions(
+		-D"CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {"
+		-D"CERES_HASH_NAMESPACE_END=}}"
+	)
+endif()
 
 if(APPLE)
 	if( STREQUAL "10.5")

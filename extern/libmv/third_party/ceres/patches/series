@@ -1,1 +1,2 @@
 collections_port.h.mingw.patch
+msvc_glog_fix.patch
