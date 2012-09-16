@@ -84,6 +84,7 @@
 /* size of indent steps */
 #define INDENT_STEP_SIZE    7
 
+/* size of string buffers used for animation channel displayed names */
 #define ANIM_CHAN_NAME_SIZE 256
 
 /* get the pointer used for some flag */
@@ -292,7 +293,7 @@ static short acf_nodetree_rootType_offset(bNodeTree *ntree)
 		}
 	}
 	
-	// unknown
+	/* unknown */
 	return 0;
 }
 
@@ -422,7 +423,7 @@ static void acf_summary_name(bAnimListElem *UNUSED(ale), char *name)
 		BLI_strncpy(name, "DopeSheet Summary", ANIM_CHAN_NAME_SIZE);
 }
 
-// TODO: this is really a temp icon I think
+// FIXME: this is really a temp icon I think
 static int acf_summary_icon(bAnimListElem *UNUSED(ale))
 {
 	return ICON_BORDERMOVE;
@@ -601,7 +602,6 @@ static int acf_object_icon(bAnimListElem *ale)
 	Object *ob = base->object;
 	
 	/* icon depends on object-type */
-
 	switch (ob->type) {
 		case OB_LAMP:
 			return ICON_OUTLINER_OB_LAMP;
@@ -628,7 +628,6 @@ static int acf_object_icon(bAnimListElem *ale)
 		default:
 			return ICON_OBJECT_DATA;
 	}
-	
 }
 
 /* name for object */
@@ -2178,7 +2177,7 @@ static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 {
 	/* clear extra return data first */
 	*neg = 0;
-
+	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			return SPK_DS_EXPAND;
@@ -2202,10 +2201,10 @@ static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 static void *acf_dsspk_setting_ptr(bAnimListElem *ale, int setting, short *type)
 {
 	Speaker *spk = (Speaker *)ale->data;
-
+	
 	/* clear extra return data first */
 	*type = 0;
-
+	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			return GET_ACF_FLAG_PTR(spk->flag, type);
@@ -2477,7 +2476,7 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, short *ne
 			return GP_LAYER_HIDE;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg = 1; - if we change this to edtiability
+			// *neg = 1; - if we change this to editability
 			return GP_LAYER_LOCKED;
 			
 		default: /* unsupported */
@@ -2526,7 +2525,7 @@ static void acf_mask_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale),
 // TODO: just get this from RNA?
 static int acf_mask_icon(bAnimListElem *UNUSED(ale))
 {
-	return ICON_GREASEPENCIL; // MASK_TODO - need real icon
+	return ICON_MOD_MASK;
 }
 
 /* check if some setting exists for this channel */
@@ -2573,15 +2572,15 @@ static void *acf_mask_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short
 /* mask datablock type define */
 static bAnimChannelType ACF_MASKDATA =
 {
-	"Mask Datablock",            /* type name */
+	"Mask Datablock",                /* type name */
 	
 	acf_mask_color,                  /* backdrop color */
-	acf_group_backdrop,             /* backdrop */
-	acf_generic_indention_0,        /* indent level */
-	acf_generic_group_offset,       /* offset */
+	acf_group_backdrop,              /* backdrop */
+	acf_generic_indention_0,         /* indent level */
+	acf_generic_group_offset,        /* offset */
 	
-	acf_generic_idblock_name,       /* name */
-	acf_generic_idfill_nameprop,    /* name prop */
+	acf_generic_idblock_name,        /* name */
+	acf_generic_idfill_nameprop,     /* name prop */
 	acf_mask_icon,                   /* icon */
 	
 	acf_mask_setting_valid,          /* has setting */
@@ -2642,7 +2641,7 @@ static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac), int setting, short
 //			return GP_LAYER_HIDE;
 		
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg = 1; - if we change this to edtiability
+			// *neg = 1; - if we change this to editability
 			return MASK_LAYERFLAG_LOCKED;
 		
 		default: /* unsupported */
@@ -2654,7 +2653,7 @@ static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac), int setting, short
 static void *acf_masklay_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
 {
 	MaskLayer *masklay = (MaskLayer *)ale->data;
-
+	
 	/* all flags are just in agrp->flag for now... */
 	return GET_ACF_FLAG_PTR(masklay->flag, type);
 }
@@ -2662,20 +2661,20 @@ static void *acf_masklay_setting_ptr(bAnimListElem *ale, int UNUSED(setting), sh
 /* grease pencil layer type define */
 static bAnimChannelType ACF_MASKLAYER =
 {
-	"Mask Layer",                /* type name */
-
+	"Mask Layer",                   /* type name */
+	
 	acf_generic_channel_color,      /* backdrop color */
 	acf_generic_channel_backdrop,   /* backdrop */
 	acf_generic_indention_flexible, /* indent level */
 	acf_generic_group_offset,       /* offset */
-
-	acf_masklay_name,                   /* name */
-	acf_masklay_name_prop,              /* name prop */
+	
+	acf_masklay_name,               /* name */
+	acf_masklay_name_prop,          /* name prop */
 	NULL,                           /* icon */
-
-	acf_masklay_setting_valid,          /* has setting */
-	acf_masklay_setting_flag,           /* flag for setting */
-	acf_masklay_setting_ptr             /* pointer for setting */
+	
+	acf_masklay_setting_valid,      /* has setting */
+	acf_masklay_setting_flag,       /* flag for setting */
+	acf_masklay_setting_ptr         /* pointer for setting */
 };
 
 
@@ -2776,7 +2775,7 @@ void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
 			acf->name(ale, name);
 		else
 			BLI_strncpy(name, "<No name>", sizeof(name));
-
+		
 		/* print type name + ui name */
 		printf("ChanType: <%s> Name: \"%s\"\n", acf->channel_type_name, name);
 	}
@@ -2920,7 +2919,6 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
 #define RENAME_TEXT_WIDTH 100
 
 /* Draw the given channel */
-// TODO: make this use UI controls for the buttons
 void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
 	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
@@ -3010,20 +3008,20 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 	/* TODO: when renaming, we might not want to draw this, especially if name happens to be longer than channel */
 	if (acf->name) {
 		char name[ANIM_CHAN_NAME_SIZE]; /* hopefully this will be enough! */
-
+		
 		/* set text color */
 		/* XXX: if active, highlight differently? */
 		if (selected)
 			UI_ThemeColor(TH_TEXT_HI);
 		else
 			UI_ThemeColor(TH_TEXT);
-
+		
 		/* get name */
 		acf->name(ale, name);
-
+		
 		offset += 3;
 		UI_DrawString(offset, ytext, name);
-
+		
 		/* draw red underline if channel is disabled */
 		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) {
 			/* FIXME: replace hardcoded color here, and check on extents! */
@@ -3153,7 +3151,6 @@ static void achannel_setting_rename_done_cb(bContext *C, void *ads_poin, void *U
 	ads->renameIndex = 0;
 	
 	/* send notifiers */
-	// XXX: right notifier?
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
 }
 
@@ -3437,7 +3434,6 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 	offset = 0;
 	
 	// TODO: when drawing sliders, make those draw instead of these toggles if not enough space
-	
 	if (v2d) {
 		short draw_sliders = 0;
 		
