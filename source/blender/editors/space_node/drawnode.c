@@ -643,13 +643,13 @@ static void update_group_output_cb(bContext *UNUSED(C), void *UNUSED(snode_v), v
 }
 
 static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *sock,
-                                   int in_out, float xoffset, float yoffset)
+                                   int in_out, float xoffset, float yoffset, short width, short height)
 {
 	if (sock->flag & SOCK_DYNAMIC) {
 		bNodeTree *ngroup = (bNodeTree *)gnode->id;
 		uiBut *but;
 		but = uiDefBut(gnode->block, TEX, 0, "",
-		               sock->locx + xoffset, sock->locy + 1 + yoffset, 72, NODE_DY,
+		               sock->locx + xoffset, sock->locy + 1 + yoffset, width, height,
 		               sock->name, 0, sizeof(sock->name), 0, 0, "");
 		if (in_out == SOCK_IN)
 			uiButSetFunc(but, update_group_input_cb, snode, ngroup);
@@ -659,7 +659,7 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 	else {
 		const char *ui_name = IFACE_(sock->name);
 		uiDefBut(gnode->block, LABEL, 0, ui_name,
-		         sock->locx + xoffset, sock->locy + 1 + yoffset, 72, NODE_DY,
+		         sock->locx + xoffset, sock->locy + 1 + yoffset, width, height,
 		         NULL, 0, 0, 0, 0, "");
 	}
 }
@@ -667,23 +667,26 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *ntree, bNode *gnode,
                               bNodeSocket *sock, bNodeSocket *gsock, int index, int in_out)
 {
+	const float dpi_fac = U.dpi / 72.0f;
 	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNodeSocketType *stype = ntreeGetSocketType(gsock ? gsock->type : sock->type);
 	uiBut *bt;
 	float offset;
 	int draw_value;
-	float node_group_frame = U.dpi * NODE_GROUP_FRAME / 72;
-	float socket_size = NODE_SOCKSIZE * U.dpi / 72;
-	float arrowbutw = 0.8f * UI_UNIT_X;
+	const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
+	const float socket_size      = NODE_SOCKSIZE * dpi_fac;
+	const float arrowbutw        = 0.8f * UI_UNIT_X;
+	const short co_text_w = 72 * dpi_fac;
+	const float co_margin = 6.0f * dpi_fac;
 	/* layout stuff for buttons on group left frame */
-	float colw = 0.6f * node_group_frame;
-	float col1 = 6 - node_group_frame;
-	float col2 = col1 + colw + 6;
-	float col3 = -arrowbutw - 6;
+	const float colw = 0.6f * node_group_frame;
+	const float col1 = co_margin - node_group_frame;
+	const float col2 = col1 + colw + co_margin;
+	const float col3 = -arrowbutw - co_margin;
 	/* layout stuff for buttons on group right frame */
-	float cor1 = 6;
-	float cor2 = cor1 + arrowbutw + 6;
-	float cor3 = cor2 + arrowbutw + 6;
+	const float cor1 = co_margin;
+	const float cor2 = cor1 + arrowbutw;
+	const float cor3 = cor2 + arrowbutw + co_margin;
 	
 	/* node and group socket circles */
 	if (sock)
@@ -713,13 +716,13 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	if (draw_value) {
 		/* both name and value buttons */
 		if (gsock) {
-			draw_group_socket_name(snode, gnode, gsock, in_out, offset, 0);
+			draw_group_socket_name(snode, gnode, gsock, in_out, offset, 0, co_text_w, NODE_DY);
 			if (stype->buttonfunc)
 				stype->buttonfunc(C, gnode->block, ngroup, NULL, gsock, "",
 				                  gsock->locx + offset, gsock->locy - NODE_DY, colw);
 		}
 		else {
-			draw_group_socket_name(snode, gnode, sock, in_out, offset, 0);
+			draw_group_socket_name(snode, gnode, sock, in_out, offset, 0, co_text_w, NODE_DY);
 			if (stype->buttonfunc)
 				stype->buttonfunc(C, gnode->block, ngroup, NULL, sock, "",
 				                  sock->locx + offset, sock->locy - NODE_DY, colw);
@@ -728,9 +731,9 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	else {
 		/* only name, no value button */
 		if (gsock)
-			draw_group_socket_name(snode, gnode, gsock, in_out, offset, -NODE_DYS);
+			draw_group_socket_name(snode, gnode, gsock, in_out, offset, -NODE_DYS, co_text_w, NODE_DY);
 		else
-			draw_group_socket_name(snode, gnode, sock, in_out, offset, -NODE_DYS);
+			draw_group_socket_name(snode, gnode, sock, in_out, offset, -NODE_DYS, co_text_w, NODE_DY);
 	}
 	
 	if (gsock && (gsock->flag & SOCK_DYNAMIC)) {

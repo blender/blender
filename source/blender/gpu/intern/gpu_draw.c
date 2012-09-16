@@ -709,7 +709,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
  */
 int GPU_upload_dxt_texture(ImBuf *ibuf)
 {
-#if WITH_DDS
+#ifdef WITH_DDS
 	GLint format = 0;
 	int blocksize, height, width, i, size, offset = 0;
 
