@@ -25,7 +25,7 @@ class CStringValue : public CPropValue
 {
 
 	
-	//PLUGIN_DECLARE_SERIAL(CStringValue,CValue)		
+	//PLUGIN_DECLARE_SERIAL(CStringValue,CValue)
 public:
 	/// Construction / destruction
 	CStringValue();

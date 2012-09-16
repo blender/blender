@@ -239,7 +239,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	
 	/*	build the from and to point in normalized device coordinates 
 	 *	Normalized device coordinates are [-1,1] in x, y, z
-	 *	
+	 *
 	 *	The actual z coordinates used don't have to be exact just infront and 
 	 *	behind of the near and far clip planes.
 	 */ 
@@ -392,19 +392,19 @@ PyAttributeDef KX_MouseFocusSensor::Attributes[] = {
 };
 
 /* Attributes */
-PyObject* KX_MouseFocusSensor::pyattr_get_ray_source(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_MouseFocusSensor::pyattr_get_ray_source(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->RaySource());
 }
 
-PyObject* KX_MouseFocusSensor::pyattr_get_ray_target(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_MouseFocusSensor::pyattr_get_ray_target(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->RayTarget());
 }
 
-PyObject* KX_MouseFocusSensor::pyattr_get_ray_direction(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_MouseFocusSensor::pyattr_get_ray_direction(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	MT_Vector3 dir = self->RayTarget() - self->RaySource();
@@ -413,7 +413,7 @@ PyObject* KX_MouseFocusSensor::pyattr_get_ray_direction(void *self_v, const KX_P
 	return PyObjectFrom(dir);
 }
 
-PyObject* KX_MouseFocusSensor::pyattr_get_hit_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_MouseFocusSensor::pyattr_get_hit_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	
@@ -423,19 +423,19 @@ PyObject* KX_MouseFocusSensor::pyattr_get_hit_object(void *self_v, const KX_PYAT
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_MouseFocusSensor::pyattr_get_hit_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_MouseFocusSensor::pyattr_get_hit_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->HitPosition());
 }
 
-PyObject* KX_MouseFocusSensor::pyattr_get_hit_normal(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_MouseFocusSensor::pyattr_get_hit_normal(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->HitNormal());
 }
 
-PyObject* KX_MouseFocusSensor::pyattr_get_hit_uv(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_MouseFocusSensor::pyattr_get_hit_uv(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->HitUV());

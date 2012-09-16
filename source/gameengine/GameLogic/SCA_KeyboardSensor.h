@@ -134,7 +134,7 @@ bool IsPrintable(int keyIndex);
 
 /**
  * Tests whether this is a delete key.
- */	
+ */
 bool IsDelete(int keyIndex);
 
 

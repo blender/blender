@@ -119,7 +119,7 @@ static KX_LightObject *getLamp(PyObject *obj)
 
 
 // get material ID
-short getMaterialID(PyObject * obj, const char *name)
+short getMaterialID(PyObject *obj, const char *name)
 {
 	// search for material
 	for (short matID = 0;; ++matID)
@@ -167,8 +167,8 @@ static PyObject *Texture_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 
 // forward declaration
-PyObject * Texture_close(Texture * self);
-int Texture_setSource (Texture * self, PyObject * value, void * closure);
+PyObject *Texture_close(Texture * self);
+int Texture_setSource (Texture * self, PyObject *value, void *closure);
 
 
 // Texture object deallocation
@@ -177,12 +177,12 @@ static void Texture_dealloc(Texture *self)
 	// release renderer
 	Py_XDECREF(self->m_source);
 	// close texture
-	PyObject* ret = Texture_close(self);
+	PyObject *ret = Texture_close(self);
 	Py_DECREF(ret);
 	// release scaled image buffer
 	delete [] self->m_scaledImg;
 	// release object
-	Py_TYPE((PyObject *)self)->tp_free((PyObject*)self);
+	Py_TYPE((PyObject *)self)->tp_free((PyObject *)self);
 }
 
 
@@ -193,7 +193,7 @@ ExpDesc MaterialNotAvailDesc (MaterialNotAvail, "Texture material is not availab
 static int Texture_init(Texture *self, PyObject *args, PyObject *kwds)
 {
 	// parameters - game object with video texture
-	PyObject * obj = NULL;
+	PyObject *obj = NULL;
 	// material ID
 	short matID = 0;
 	// texture ID
@@ -275,7 +275,7 @@ static int Texture_init(Texture *self, PyObject *args, PyObject *kwds)
 
 
 // close added texture
-PyObject * Texture_close(Texture * self)
+PyObject *Texture_close(Texture * self)
 {
 	// restore texture
 	if (self->m_orgSaved)
@@ -301,7 +301,7 @@ PyObject * Texture_close(Texture * self)
 static PyObject *Texture_refresh(Texture *self, PyObject *args)
 {
 	// get parameter - refresh source
-	PyObject * param;
+	PyObject *param;
 	double ts = -1.0;
 
 	if (!PyArg_ParseTuple(args, "O|d:refresh", &param, &ts) || !PyBool_Check(param))
@@ -435,7 +435,7 @@ static PyObject *Texture_getSource(Texture *self, PyObject *value, void *closure
 
 
 // set source object
-int Texture_setSource (Texture * self, PyObject * value, void * closure)
+int Texture_setSource (Texture * self, PyObject *value, void *closure)
 {
 	// check new value
 	if (value == NULL || !pyImageTypes.in(Py_TYPE(value)))

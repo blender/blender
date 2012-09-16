@@ -118,7 +118,7 @@ protected :
 	 */
 
 	SG_ParentRelation(
-	) {	
+	) {
 	};
 
 	/**

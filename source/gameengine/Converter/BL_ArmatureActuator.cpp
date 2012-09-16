@@ -146,7 +146,7 @@ void BL_ArmatureActuator::FindConstraint()
 bool BL_ArmatureActuator::Update(double curtime, bool frame)
 {
 	// the only role of this actuator is to ensure that the armature pose will be evaluated
-	bool result = false;	
+	bool result = false;
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
 
@@ -227,11 +227,11 @@ PyAttributeDef BL_ArmatureActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* BL_ArmatureActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ArmatureActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	BL_ArmatureActuator* actuator = static_cast<BL_ArmatureActuator*>(self);
 	KX_GameObject *target = (!strcmp(attrdef->m_name, "target")) ? actuator->m_gametarget : actuator->m_gamesubtarget;
-	if (!target)	
+	if (!target)
 		Py_RETURN_NONE;
 	else
 		return target->GetProxy();
@@ -247,7 +247,7 @@ int BL_ArmatureActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBU
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (target != NULL)
-		target->UnregisterActuator(actuator);	
+		target->UnregisterActuator(actuator);
 
 	target = gameobj;
 		
@@ -257,11 +257,11 @@ int BL_ArmatureActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBU
 	return PY_SET_ATTR_SUCCESS;
 }
 
-PyObject* BL_ArmatureActuator::pyattr_get_constraint(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ArmatureActuator::pyattr_get_constraint(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	BL_ArmatureActuator* actuator = static_cast<BL_ArmatureActuator*>(self);
 	BL_ArmatureConstraint* constraint = actuator->m_constraint;
-	if (!constraint)	
+	if (!constraint)
 		Py_RETURN_NONE;
 	else
 		return constraint->GetProxy();

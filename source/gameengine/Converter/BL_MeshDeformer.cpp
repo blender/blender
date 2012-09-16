@@ -84,7 +84,7 @@ bool BL_MeshDeformer::Apply(RAS_IPolyMaterial*)
 }
 
 BL_MeshDeformer::~BL_MeshDeformer()
-{	
+{
 	if (m_transverts)
 		delete [] m_transverts;
 	if (m_transnors)

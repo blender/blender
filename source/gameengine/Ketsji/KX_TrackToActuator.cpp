@@ -166,7 +166,7 @@ static void compatible_eulFast(float *eul, float *oldrot)
 
 static MT_Matrix3x3 matrix3x3_interpol(MT_Matrix3x3 oldmat, MT_Matrix3x3 mat, int m_time)
 {
-	float eul[3], oldeul[3];	
+	float eul[3], oldeul[3];
 
 	Mat3ToEulOld(oldmat, oldeul);
 	Mat3ToEulOld(mat, eul);
@@ -238,7 +238,7 @@ void KX_TrackToActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 
 bool KX_TrackToActuator::Update(double curtime, bool frame)
 {
-	bool result = false;	
+	bool result = false;
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
 
@@ -395,7 +395,7 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 			localpos = curobj->GetSGNode()->GetLocalPosition();
 			// Get the inverse of the parent matrix
 			MT_Matrix3x3 parentmatinv;
-			parentmatinv = m_parentobj->NodeGetWorldOrientation ().inverse ();				
+			parentmatinv = m_parentobj->NodeGetWorldOrientation ().inverse ();
 			// transform the local coordinate system into the parents system
 			mat = parentmatinv * mat;
 			// append the initial parent local rotation matrix
@@ -458,10 +458,10 @@ PyAttributeDef KX_TrackToActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_TrackToActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_TrackToActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_TrackToActuator* actuator = static_cast<KX_TrackToActuator*>(self);
-	if (!actuator->m_object)	
+	if (!actuator->m_object)
 		Py_RETURN_NONE;
 	else
 		return actuator->m_object->GetProxy();
@@ -476,7 +476,7 @@ int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUT
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_object != NULL)
-		actuator->m_object->UnregisterActuator(actuator);	
+		actuator->m_object->UnregisterActuator(actuator);
 
 	actuator->m_object = (SCA_IObject*) gameobj;
 		

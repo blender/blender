@@ -460,7 +460,7 @@ Mathutils_Callback mathutils_obactu_vector_cb = {
 	mathutils_obactu_vector_set_index
 };
 
-PyObject* KX_ObjectActuator::pyattr_get_linV(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_ObjectActuator::pyattr_get_linV(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	return Vector_CreatePyObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxobactu_vector_cb_index, MATHUTILS_VEC_CB_LINV);
 }
@@ -476,7 +476,7 @@ int KX_ObjectActuator::pyattr_set_linV(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	return PY_SET_ATTR_SUCCESS;
 }
 
-PyObject* KX_ObjectActuator::pyattr_get_angV(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_ObjectActuator::pyattr_get_angV(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	return Vector_CreatePyObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxobactu_vector_cb_index, MATHUTILS_VEC_CB_ANGV);
 }
@@ -501,7 +501,7 @@ void KX_ObjectActuator_Mathutils_Callback_Init(void)
 
 #endif // USE_MATHUTILS
 
-PyObject* KX_ObjectActuator::pyattr_get_forceLimitX(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_ObjectActuator::pyattr_get_forceLimitX(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_ObjectActuator* self = reinterpret_cast<KX_ObjectActuator*>(self_v);
 	PyObject *retVal = PyList_New(3);
@@ -517,7 +517,7 @@ int KX_ObjectActuator::pyattr_set_forceLimitX(void *self_v, const KX_PYATTRIBUTE
 {
 	KX_ObjectActuator* self = reinterpret_cast<KX_ObjectActuator*>(self_v);
 
-	PyObject* seq = PySequence_Fast(value, "");
+	PyObject *seq = PySequence_Fast(value, "");
 	if (seq && PySequence_Fast_GET_SIZE(seq) == 3)
 	{
 		self->m_drot[0] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
@@ -537,7 +537,7 @@ int KX_ObjectActuator::pyattr_set_forceLimitX(void *self_v, const KX_PYATTRIBUTE
 	return PY_SET_ATTR_FAIL;
 }
 
-PyObject* KX_ObjectActuator::pyattr_get_forceLimitY(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_ObjectActuator::pyattr_get_forceLimitY(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_ObjectActuator* self = reinterpret_cast<KX_ObjectActuator*>(self_v);
 	PyObject *retVal = PyList_New(3);
@@ -553,7 +553,7 @@ int	KX_ObjectActuator::pyattr_set_forceLimitY(void *self_v, const KX_PYATTRIBUTE
 {
 	KX_ObjectActuator* self = reinterpret_cast<KX_ObjectActuator*>(self_v);
 
-	PyObject* seq = PySequence_Fast(value, "");
+	PyObject *seq = PySequence_Fast(value, "");
 	if (seq && PySequence_Fast_GET_SIZE(seq) == 3)
 	{
 		self->m_drot[1] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
@@ -573,7 +573,7 @@ int	KX_ObjectActuator::pyattr_set_forceLimitY(void *self_v, const KX_PYATTRIBUTE
 	return PY_SET_ATTR_FAIL;
 }
 
-PyObject* KX_ObjectActuator::pyattr_get_forceLimitZ(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_ObjectActuator::pyattr_get_forceLimitZ(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_ObjectActuator* self = reinterpret_cast<KX_ObjectActuator*>(self_v);
 	PyObject *retVal = PyList_New(3);
@@ -589,7 +589,7 @@ int	KX_ObjectActuator::pyattr_set_forceLimitZ(void *self_v, const KX_PYATTRIBUTE
 {
 	KX_ObjectActuator* self = reinterpret_cast<KX_ObjectActuator*>(self_v);
 
-	PyObject* seq = PySequence_Fast(value, "");
+	PyObject *seq = PySequence_Fast(value, "");
 	if (seq && PySequence_Fast_GET_SIZE(seq) == 3)
 	{
 		self->m_drot[2] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
@@ -609,7 +609,7 @@ int	KX_ObjectActuator::pyattr_set_forceLimitZ(void *self_v, const KX_PYATTRIBUTE
 	return PY_SET_ATTR_FAIL;
 }
 
-PyObject* KX_ObjectActuator::pyattr_get_reference(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_ObjectActuator::pyattr_get_reference(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_ObjectActuator* actuator = static_cast<KX_ObjectActuator*>(self);
 	if (!actuator->m_reference)
@@ -632,7 +632,7 @@ int KX_ObjectActuator::pyattr_set_reference(void *self, const struct KX_PYATTRIB
 	if (refOb==NULL) {
 		actuator->m_reference= NULL;
 	}
-	else {	
+	else {
 		actuator->m_reference = refOb;
 		actuator->m_reference->RegisterActuator(actuator);
 	}

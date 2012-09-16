@@ -45,7 +45,7 @@
 
 #ifdef WITH_PYTHON
 /* utility conversion function */
-bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix);
+bool ConvertPythonToCamera(PyObject *value, KX_Camera **object, bool py_none_ok, const char *error_prefix);
 #endif
 
 class KX_Camera : public KX_GameObject
@@ -156,7 +156,7 @@ public:
 	 * instance allocated on the heap. Ownership of the new 
 	 * object belongs with the caller.
 	 */
-	virtual	CValue*				
+	virtual	CValue*
 	GetReplica(
 	);
 	virtual void ProcessReplica();
@@ -286,8 +286,8 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getCameraToWorld);
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getWorldToCamera);
 	
-	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);	
-	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);	
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);
 
 	KX_PYMETHOD_DOC_O(KX_Camera, getScreenPosition);
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenVect);

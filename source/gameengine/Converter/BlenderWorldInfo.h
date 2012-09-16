@@ -73,27 +73,27 @@ public:
 		float g,
 		float b
 	);
-		void	
+		void
 	setMistStart(
 		float d
 	);
 
-		void	
+		void
 	setMistDistance(
 		float d
 	);
 
-		void	
+		void
 	setMistColorRed(
 		float d
 	);
 
-		void	
+		void
 	setMistColorGreen(
 		float d
 	);
 
-		void	
+		void
 	setMistColorBlue(
 		float d
 	);   

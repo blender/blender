@@ -903,7 +903,7 @@ void BL_ConvertActuators(const char* maggiename,
 					modeArg = SCA_RandomActuator::KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL;
 					break;
 				default:
-					; /* error */				
+					; /* error */
 				}
 				tmprandomact = new SCA_RandomActuator(gameobj,
 					seedArg,

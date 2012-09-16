@@ -63,7 +63,7 @@ public:
 	 * make a deep copy.
 	 */
 
-		void	
+		void
 	AddChild(
 		SG_Node* child
 	);
@@ -75,7 +75,7 @@ public:
 	 * If the node was not a child of this object no action is performed.
 	 */
 
-		void	
+		void
 	RemoveChild(
 		SG_Node* child
 	);
@@ -149,7 +149,7 @@ public:
 	 * Disconnect this node from it's parent
 	 */
 
-		void				
+		void
 	DisconnectFromParent(
 	);
 
@@ -182,12 +182,12 @@ public:
 
 
 
-	/**		
+	/**
 	 * Update the spatial data of this node. Iterate through
 	 * the children of this node and update their world data.
 	 */
 
-		void		
+		void
 	UpdateWorldData(
 		double time,
 		bool parentUpdated=false
@@ -198,7 +198,7 @@ public:
 	 * the children nodes and update their simulated time.
 	 */
 
-		void		
+		void
 	SetSimulatedTime(
 		double time,
 		bool recurse
@@ -244,17 +244,17 @@ public:
 	 * Node replication functions.
 	 */
 
-		SG_Node*	
+		SG_Node*
 	GetSGReplica(
 	);
 
-		void		
+		void
 	Destruct(
 	);
 	
 private:
 
-		void		
+		void
 	ProcessSGReplica(
 		SG_Node** replica
 	);

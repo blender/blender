@@ -524,7 +524,7 @@ void VideoFFmpeg::openFile (char * filename)
 
 	if (m_codecCtx->gop_size)
 		m_preseek = (m_codecCtx->gop_size < 25) ? m_codecCtx->gop_size+1 : 25;
-	else if (m_codecCtx->has_b_frames)		
+	else if (m_codecCtx->has_b_frames)
 		m_preseek = 25;	// should determine gopsize
 	else
 		m_preseek = 0;
@@ -1076,14 +1076,14 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 
 
 // cast Image pointer to VideoFFmpeg
-inline VideoFFmpeg * getVideoFFmpeg (PyImage * self)
+inline VideoFFmpeg * getVideoFFmpeg (PyImage *self)
 { return static_cast<VideoFFmpeg*>(self->m_image); }
 
 
 // object initialization
-static int VideoFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+static int VideoFFmpeg_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
-	PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// parameters - video source
 	// file name or format type for capture (only for Linux: video4linux or dv1394)
 	char * file = NULL;
@@ -1239,9 +1239,9 @@ PyTypeObject VideoFFmpegType =
 };
 
 // object initialization
-static int ImageFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+static int ImageFFmpeg_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
-	PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// parameters - video source
 	// file name or format type for capture (only for Linux: video4linux or dv1394)
 	char * file = NULL;

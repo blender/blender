@@ -54,7 +54,7 @@ SCA_TimeEventManager::~SCA_TimeEventManager()
 			!(it == m_timevalues.end()); ++it)
 	{
 		(*it)->Release();
-	}	
+	}
 }
 
 

@@ -278,7 +278,7 @@ public:
 		line.m_type = OglDebugShape::CIRCLE;
 		line.m_pos= center;
 		line.m_param = normal;
-		line.m_color = color;	
+		line.m_color = color;
 		line.m_param2.x() = radius;
 		line.m_param2.y() = (float) nsector;
 		m_debugShapes.push_back(line);

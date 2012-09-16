@@ -216,7 +216,7 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 		
 	// SYSTEM                                                                                                  
 		
-#if 0			
+#if 0
 	/* **** XXX **** */
 	m[KEYBD				] = SCA_IInputDevice::KX_KEYBD;                  
 	m[RAWKEYBD			] = SCA_IInputDevice::KX_RAWKEYBD;                  
@@ -229,7 +229,7 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 	m[WINQUIT			] = SCA_IInputDevice::KX_WINQUIT;                  
 	m[Q_FIRSTTIME		] = SCA_IInputDevice::KX_Q_FIRSTTIME;                  
 	/* **** XXX **** */
-#endif	
+#endif
 		
 	// standard keyboard                                                                                       
 		
@@ -447,7 +447,7 @@ static void GetRGB(short type,
 			else { // backup white
 				c0 = KX_rgbaint2uint_new(color);
 				c1 = KX_rgbaint2uint_new(color);
-				c2 = KX_rgbaint2uint_new(color);	
+				c2 = KX_rgbaint2uint_new(color);
 				if (mface->v4)
 					c3 = KX_rgbaint2uint_new( color );
 			}
@@ -469,7 +469,7 @@ static void GetRGB(short type,
 			}
 			c0 = KX_rgbaint2uint_new(color);
 			c1 = KX_rgbaint2uint_new(color);
-			c2 = KX_rgbaint2uint_new(color);	
+			c2 = KX_rgbaint2uint_new(color);
 			if (mface->v4)
 				c3 = KX_rgbaint2uint_new(color);
 		} break;
@@ -478,7 +478,7 @@ static void GetRGB(short type,
 		{
 			c0 = KX_rgbaint2uint_new(color);
 			c1 = KX_rgbaint2uint_new(color);
-			c2 = KX_rgbaint2uint_new(color);	
+			c2 = KX_rgbaint2uint_new(color);
 			if (mface->v4)
 				c3 = KX_rgbaint2uint_new(color);
 		} break;
@@ -1150,7 +1150,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 
 					rgb0 = KX_rgbaint2uint_new(color);
 					rgb1 = KX_rgbaint2uint_new(color);
-					rgb2 = KX_rgbaint2uint_new(color);	
+					rgb2 = KX_rgbaint2uint_new(color);
 					
 					if (mface->v4)
 						rgb3 = KX_rgbaint2uint_new(color);
@@ -1694,7 +1694,7 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
 			//objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
 			/* disable welding: it doesn't bring any additional stability and it breaks the relation between soft body collision shape and graphic mesh */
-			objprop.m_soft_welding = 0.f;		
+			objprop.m_soft_welding = 0.f;
 			objprop.m_margin = blenderobject->bsoft->margin;
 			objprop.m_contactProcessingThreshold = 0.f;
 		} else
@@ -2617,7 +2617,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				KX_SlowParentRelation * slow_parent_relation = KX_SlowParentRelation::New(blenderchild->sf);
 				pcit->m_gamechildnode->SetParentRelation(slow_parent_relation);
 				break;
-			}	
+			}
 			case PARBONE:
 			{
 				// parent this to a bone
@@ -2741,7 +2741,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			}
 		
 		
-		}	
+		}
 
 		// create physics joints
 	for (i=0;i<sumolist->GetCount();i++)
@@ -2825,7 +2825,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
 										}
 										dofbit<<=1;
-									}								
+									}
 								}
 								else if (dat->type == PHY_LINEHINGE_CONSTRAINT)
 								{

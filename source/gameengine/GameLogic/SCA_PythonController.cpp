@@ -179,7 +179,7 @@ int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
 #ifdef WITH_PYTHON
 
 /* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
-PyObject* SCA_PythonController::sPyGetCurrentController(PyObject *self)
+PyObject *SCA_PythonController::sPyGetCurrentController(PyObject *self)
 {
 	if (m_sCurrentController==NULL)
 	{
@@ -271,7 +271,7 @@ void SCA_PythonController::ErrorPrint(const char *error_msg)
 }
 
 bool SCA_PythonController::Compile()
-{	
+{
 	//printf("py script modified '%s'\n", m_scriptName.Ptr());
 	m_bModified= false;
 	
@@ -374,7 +374,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	m_sCurrentLogicManager = logicmgr;
 	
 	PyObject *excdict=		NULL;
-	PyObject* resultobj=	NULL;
+	PyObject *resultobj=	NULL;
 	
 	switch(m_mode) {
 	case SCA_PYEXEC_SCRIPT:
@@ -447,13 +447,13 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		// This doesn't appear to be needed anymore
 		//PyDict_Clear(excdict);
 		Py_DECREF(excdict);
-	}	
+	}
 	
 	m_triggeredSensors.clear();
 	m_sCurrentController = NULL;
 }
 
-PyObject* SCA_PythonController::PyActivate(PyObject *value)
+PyObject *SCA_PythonController::PyActivate(PyObject *value)
 {
 	if (m_sCurrentController != this) {
 		PyErr_SetString(PyExc_SystemError, "Cannot add an actuator from a non-active controller");
@@ -468,7 +468,7 @@ PyObject* SCA_PythonController::PyActivate(PyObject *value)
 	Py_RETURN_NONE;
 }
 
-PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
+PyObject *SCA_PythonController::PyDeActivate(PyObject *value)
 {
 	if (m_sCurrentController != this) {
 		PyErr_SetString(PyExc_SystemError, "Cannot add an actuator from a non-active controller");
@@ -483,7 +483,7 @@ PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
 	Py_RETURN_NONE;
 }
 
-PyObject* SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	//SCA_PythonController* self= static_cast<SCA_PythonController*>(static_cast<SCA_IController*>(static_cast<SCA_ILogicBrick*>(static_cast<CValue*>(static_cast<PyObjectPlus*>(self_v)))));
 	// static_cast<void *>(dynamic_cast<Derived *>(obj)) - static_cast<void *>(obj)

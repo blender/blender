@@ -489,7 +489,7 @@ bool RAS_MeshSlot::Split(bool force)
 }
 
 
-#ifdef USE_SPLIT	
+#ifdef USE_SPLIT
 bool RAS_MeshSlot::IsCulled()
 {
 	if (m_joinSlot)
@@ -502,7 +502,7 @@ bool RAS_MeshSlot::IsCulled()
 			return false;
 	return true;
 }
-#endif	
+#endif
 
 /* material bucket sorting */
 
@@ -531,12 +531,12 @@ RAS_IPolyMaterial* RAS_MaterialBucket::GetPolyMaterial() const
 }
 
 bool RAS_MaterialBucket::IsAlpha() const
-{	
+{
 	return (m_material->IsAlpha());
 }
 
 bool RAS_MaterialBucket::IsZSort() const
-{	
+{
 	return (m_material->IsZSort());
 }
 

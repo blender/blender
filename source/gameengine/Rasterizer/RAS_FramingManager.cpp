@@ -43,7 +43,7 @@ ComputeDefaultFrustum(
 	const short sensor_fit,
 	const float design_aspect_ratio,
 	RAS_FrameFrustum & frustum
-) {		
+) {
 	float halfSize;
 	float sizeX;
 	float sizeY;
@@ -202,7 +202,7 @@ ComputeViewport(
 		{
 			ComputeBestFitViewRect(
 				availableViewport,
-				design_aspect_ratio,	
+				design_aspect_ratio,
 				viewport
 			);
 		
@@ -260,7 +260,7 @@ ComputeFrustum(
 			RAS_Rect vt;
 			ComputeBestFitViewRect(
 				availableViewport,
-				design_aspect_ratio,	
+				design_aspect_ratio,
 				vt
 			);
 
@@ -277,13 +277,13 @@ ComputeFrustum(
 			frustum.y2 *= y_scale;
 	
 			break;
-		}	
+		}
 		case RAS_FrameSettings::e_frame_scale :
 		case RAS_FrameSettings::e_frame_bars:
 		default :
 			break;
 	}
-}	
+}
 
 	void
 RAS_FramingManager::
@@ -330,7 +330,7 @@ RAS_FramingManager::
 			RAS_Rect vt;
 			ComputeBestFitViewRect(
 				availableViewport,
-				design_aspect_ratio,	
+				design_aspect_ratio,
 				vt
 			);
 
@@ -347,7 +347,7 @@ RAS_FramingManager::
 			frustum.y2 *= y_scale;
 	
 			break;
-		}	
+		}
 		case RAS_FrameSettings::e_frame_scale :
 		case RAS_FrameSettings::e_frame_bars:
 		default :

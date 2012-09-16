@@ -73,7 +73,7 @@ public:
 	};
 
 protected:
-	bool			m_useShapeDrivers;	
+	bool			m_useShapeDrivers;
 	double			m_lastShapeUpdate;
 	struct Key*		m_key;
 

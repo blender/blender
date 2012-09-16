@@ -54,7 +54,7 @@ public:
 						Scene *scene,
 						Object *bmeshobj,
 						RAS_MeshObject *mesh)
-						:	
+						:
 						BL_ShapeDeformer(gameobj,bmeshobj, mesh),
 						m_lastModifierUpdate(-1),
 						m_scene(scene),

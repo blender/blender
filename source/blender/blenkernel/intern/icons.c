@@ -65,7 +65,7 @@ static void icon_free(void *val)
 	Icon *icon = val;
 
 	if (icon) {
-		if (icon->drawinfo_free) {		
+		if (icon->drawinfo_free) {
 			icon->drawinfo_free(icon->drawinfo);
 		}
 		else if (icon->drawinfo) {
@@ -255,7 +255,7 @@ void BKE_icon_changed(int id)
 				prv->changed_timestamp[i]++;
 			}
 		}
-	}	
+	}
 }
 
 int BKE_icon_getid(struct ID *id)

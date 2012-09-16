@@ -358,7 +358,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_SoundActuator, stopSound,
 }
 
 /* Atribute setting and getting -------------------------------------------- */
-PyObject* KX_SoundActuator::pyattr_get_3d_property(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_SoundActuator::pyattr_get_3d_property(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	const char* prop = attrdef->m_name;
@@ -392,11 +392,11 @@ PyObject* KX_SoundActuator::pyattr_get_3d_property(void *self, const struct KX_P
 		Py_RETURN_NONE;
 	}
 
-	PyObject* result = PyFloat_FromDouble(result_value);
+	PyObject *result = PyFloat_FromDouble(result_value);
 	return result;
 }
 
-PyObject* KX_SoundActuator::pyattr_get_audposition(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_SoundActuator::pyattr_get_audposition(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	float position = 0.0;
@@ -404,32 +404,32 @@ PyObject* KX_SoundActuator::pyattr_get_audposition(void *self, const struct KX_P
 	if (!actuator->m_handle.isNull())
 		position = actuator->m_handle->getPosition();
 
-	PyObject* result = PyFloat_FromDouble(position);
+	PyObject *result = PyFloat_FromDouble(position);
 
 	return result;
 }
 
-PyObject* KX_SoundActuator::pyattr_get_gain(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_SoundActuator::pyattr_get_gain(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	float gain = actuator->m_volume;
 
-	PyObject* result = PyFloat_FromDouble(gain);
+	PyObject *result = PyFloat_FromDouble(gain);
 
 	return result;
 }
 
-PyObject* KX_SoundActuator::pyattr_get_pitch(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_SoundActuator::pyattr_get_pitch(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	float pitch = actuator->m_pitch;
 
-	PyObject* result = PyFloat_FromDouble(pitch);
+	PyObject *result = PyFloat_FromDouble(pitch);
 
 	return result;
 }
 
-PyObject* KX_SoundActuator::pyattr_get_sound(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_SoundActuator::pyattr_get_sound(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	if (!actuator->m_sound.isNull())
@@ -542,7 +542,7 @@ int KX_SoundActuator::pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_D
 
 int KX_SoundActuator::pyattr_set_sound(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	PyObject* sound = NULL;
+	PyObject *sound = NULL;
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	if (!PyArg_Parse(value, "O", &sound))
 		return PY_SET_ATTR_FAIL;

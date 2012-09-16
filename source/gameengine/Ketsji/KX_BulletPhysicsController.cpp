@@ -269,7 +269,7 @@ void    KX_BulletPhysicsController::AddCompoundChild(KX_IPhysicsController* chil
 	rootScale[2] = 1.0/rootScale[2];
 	// relative scale = child_scale/parent_scale
 	btVector3 relativeScale = childShape->getLocalScaling()*rootScale;
-	btMatrix3x3 rootRotInverse = rootTrans.getBasis().transpose();	
+	btMatrix3x3 rootRotInverse = rootTrans.getBasis().transpose();
 	// relative pos = parent_rot^-1 * ((parent_pos-child_pos)/parent_scale)
 	btVector3 relativePos = rootRotInverse*((childTrans.getOrigin()-rootTrans.getOrigin())*rootScale);
 	// relative rot = parent_rot^-1 * child_rot

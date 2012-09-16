@@ -211,7 +211,7 @@ ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3])
 	
 	copy_v3_v3(eve->co, vec);
 
-	return eve;	
+	return eve;
 }
 
 ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, ScanFillVert *v1, ScanFillVert *v2)
@@ -521,7 +521,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 	while (eve) {
 		printf("vert: %x co: %f %f\n", eve, eve->xy[0], eve->xy[1]);
 		eve = eve->next;
-	}	
+	}
 	eed = sf_ctx->filledgebase.first;
 	while (eed) {
 		printf("edge: %x  verts: %x %x\n", eed, eed->v1, eed->v2);

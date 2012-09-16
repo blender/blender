@@ -218,21 +218,21 @@ public:
 	CValue();
 
 #ifdef WITH_PYTHON
-	//static PyObject*	PyMake(PyObject*,PyObject*);
+	//static PyObject *PyMake(PyObject *, PyObject *);
 	virtual PyObject *py_repr(void)
 	{
 		return PyUnicode_From_STR_String(GetText());
 	}
 
-	virtual PyObject*	ConvertValueToPython() {
+	virtual PyObject *ConvertValueToPython() {
 		return NULL;
 	}
 
-	virtual CValue*	ConvertPythonToValue(PyObject* pyobj, const char *error_prefix);
+	virtual CValue *ConvertPythonToValue(PyObject *pyobj, const char *error_prefix);
 	
-	static PyObject * pyattr_get_name(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
+	static PyObject *pyattr_get_name(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 	
-	virtual PyObject* ConvertKeysToPython( void );
+	virtual PyObject *ConvertKeysToPython( void );
 #endif // WITH_PYTHON
 
 	
@@ -250,13 +250,13 @@ public:
 	};
 
 	/// Reference Counting
-	int					GetRefCount()											
+	int GetRefCount()
 	{ 
 		return m_refcount; 
 	}
 
 	// Add a reference to this value
-	CValue*				AddRef()												
+	CValue *AddRef()
 	{
 		// Increase global reference count, used to see at the end of the program
 		// if all CValue-derived classes have been dereferenced to 0
@@ -269,7 +269,7 @@ public:
 	}
 
 	// Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
-	int			Release()								
+	int			Release()
 	{
 		// Decrease global reference count, used to see at the end of the program
 		// if all CValue-derived classes have been dereferenced to 0
@@ -354,16 +354,16 @@ public:
 	virtual void		SetCustomFlag2(bool bCustomFlag)						{ m_ValFlags.CustomFlag2 = bCustomFlag;}
 	virtual bool		IsCustomFlag2()											{ return m_ValFlags.CustomFlag2;}
 
-protected:																		
+protected:
 	virtual void		DisableRefCount();										// Disable reference counting for this value
-	//virtual void		AddDataToReplica(CValue* replica);						
+	//virtual void		AddDataToReplica(CValue* replica);
 	virtual				~CValue();
 private:
-	// Member variables															
+	// Member variables
 	std::map<STR_String,CValue*>*		m_pNamedPropertyArray;									// Properties for user/game etc
 	ValueFlags			m_ValFlags;												// Frequently used flags in a bitfield (low memoryusage)
-	int					m_refcount;												// Reference Counter	
-	static	double m_sZeroVec[3];	
+	int					m_refcount;												// Reference Counter
+	static	double m_sZeroVec[3];
 
 };
 

@@ -344,7 +344,7 @@ PyAttributeDef KX_LightObject::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_LightObject::pyattr_get_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_LightObject::pyattr_get_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 	return Py_BuildValue("[fff]", self->m_lightobj.m_red, self->m_lightobj.m_green, self->m_lightobj.m_blue);
@@ -365,9 +365,9 @@ int KX_LightObject::pyattr_set_color(void *self_v, const KX_PYATTRIBUTE_DEF *att
 	return PY_SET_ATTR_FAIL;
 }
 
-PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	PyObject* retvalue;
+	PyObject *retvalue;
 
 	const char* type = attrdef->m_name;
 
@@ -387,13 +387,13 @@ PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUT
 	return retvalue;
 }
 
-PyObject* KX_LightObject::pyattr_get_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_LightObject::pyattr_get_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 	return PyLong_FromSsize_t(self->m_lightobj.m_type);
 }
 
-int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value)
+int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 	int val = PyLong_AsSsize_t(value);

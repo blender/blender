@@ -91,7 +91,7 @@ public:
 
 protected:
 	class RAS_MeshObject	*m_pMesh;
-	bool  m_bDynamic;	
+	bool  m_bDynamic;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

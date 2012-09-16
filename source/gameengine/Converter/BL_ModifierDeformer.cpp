@@ -175,7 +175,7 @@ bool BL_ModifierDeformer::Update(void)
 			 * It may not be the case here because of replace mesh actuator */
 			Mesh *oldmesh = (Mesh*)blendobj->data;
 			blendobj->data = m_bmesh;
-			/* execute the modifiers */		
+			/* execute the modifiers */
 			DerivedMesh *dm = mesh_create_derived_no_virtual(m_scene, blendobj, m_transverts, CD_MASK_MESH);
 			/* restore object data */
 			blendobj->data = oldmesh;

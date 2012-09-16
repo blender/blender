@@ -32,11 +32,11 @@ struct	PHY__Vector2
 	operator const float* () const 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 	operator float* () 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 };
 
 struct	PHY__Vector3
@@ -46,11 +46,11 @@ struct	PHY__Vector3
 	operator const float* () const 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 	operator float* () 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 };
 
 struct	PHY__Vector4
@@ -75,11 +75,11 @@ struct	PHY__Vector4
 	operator const float* () const 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 	operator float* () 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 };
 
 //typedef 	float	PHY__Vector3[4];

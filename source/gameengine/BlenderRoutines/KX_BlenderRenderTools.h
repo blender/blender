@@ -62,7 +62,7 @@ class KX_BlenderRenderTools  : public RAS_IRenderTools
 
 public:
 						KX_BlenderRenderTools();
-	virtual				~KX_BlenderRenderTools();	
+	virtual				~KX_BlenderRenderTools();
 
 	void				EndFrame(RAS_IRasterizer* rasty);
 	void				BeginFrame(RAS_IRasterizer* rasty);

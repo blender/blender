@@ -57,7 +57,7 @@ public :
 	static 
 		KX_BoneParentRelation *
 	New(Bone* bone
-	);		
+	);
 
 	/**
 	 *  Updates the childs world coordinates relative to the parent's

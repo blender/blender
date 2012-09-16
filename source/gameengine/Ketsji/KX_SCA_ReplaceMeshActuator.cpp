@@ -87,7 +87,7 @@ PyAttributeDef KX_SCA_ReplaceMeshActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_SCA_ReplaceMeshActuator::pyattr_get_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_SCA_ReplaceMeshActuator::pyattr_get_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SCA_ReplaceMeshActuator* actuator = static_cast<KX_SCA_ReplaceMeshActuator*>(self);
 	if (!actuator->m_mesh)

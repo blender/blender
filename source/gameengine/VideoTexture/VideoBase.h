@@ -164,14 +164,14 @@ protected:
 
 
 // cast Image pointer to Video
-inline VideoBase * getVideo (PyImage * self)
+inline VideoBase *getVideo(PyImage *self)
 { return static_cast<VideoBase*>(self->m_image); }
 
 
 extern ExceptionID SourceVideoCreation;
 
 // object initialization
-template <class T> void Video_init (PyImage * self)
+template <class T> void Video_init(PyImage *self)
 {
 	// create source video object
 	if (self->m_image != NULL) delete self->m_image;
@@ -182,18 +182,18 @@ template <class T> void Video_init (PyImage * self)
 
 
 // video functions
-void Video_open (VideoBase * self, char * file, short captureID);
-PyObject * Video_play (PyImage * self);
-PyObject * Video_pause (PyImage * self);
-PyObject * Video_stop (PyImage * self);
-PyObject * Video_refresh (PyImage * self);
-PyObject * Video_getStatus (PyImage * self, void * closure);
-PyObject * Video_getRange (PyImage * self, void * closure);
-int Video_setRange (PyImage * self, PyObject * value, void * closure);
-PyObject * Video_getRepeat (PyImage * self, void * closure);
-int Video_setRepeat (PyImage * self, PyObject * value, void * closure);
-PyObject * Video_getFrameRate (PyImage * self, void * closure);
-int Video_setFrameRate (PyImage * self, PyObject * value, void * closure);
+void      Video_open(VideoBase * self, char * file, short captureID);
+PyObject *Video_play(PyImage *self);
+PyObject *Video_pause(PyImage *self);
+PyObject *Video_stop(PyImage *self);
+PyObject *Video_refresh(PyImage *self);
+PyObject *Video_getStatus(PyImage *self, void *closure);
+PyObject *Video_getRange(PyImage *self, void *closure);
+int       Video_setRange(PyImage *self, PyObject *value, void *closure);
+PyObject *Video_getRepeat(PyImage *self, void *closure);
+int       Video_setRepeat(PyImage *self, PyObject *value, void *closure);
+PyObject *Video_getFrameRate(PyImage *self, void *closure);
+int       Video_setFrameRate(PyImage *self, PyObject *value, void *closure);
 
 
 #endif

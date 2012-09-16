@@ -105,7 +105,7 @@ KX_MeshProxy::~KX_MeshProxy()
 
 // stuff for cvalue related things
 CValue*		KX_MeshProxy::Calc(VALUE_OPERATOR op, CValue *val) { return NULL;}
-CValue*		KX_MeshProxy::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val) { return NULL;}	
+CValue*		KX_MeshProxy::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val) { return NULL;}
 
 const STR_String &	KX_MeshProxy::GetText() {return m_meshobj->GetName();};
 double		KX_MeshProxy::GetNumber() { return -1;}
@@ -116,7 +116,7 @@ CValue*		KX_MeshProxy::GetReplica() { return NULL;}
 
 // stuff for python integration
 
-PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* args, PyObject* kwds)
+PyObject *KX_MeshProxy::PyGetMaterialName(PyObject *args, PyObject *kwds)
 {
 	int matid= 1;
 	STR_String matname;
@@ -134,7 +134,7 @@ PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* args, PyObject* kwds)
 }
 
 
-PyObject* KX_MeshProxy::PyGetTextureName(PyObject* args, PyObject* kwds)
+PyObject *KX_MeshProxy::PyGetTextureName(PyObject *args, PyObject *kwds)
 {
 	int matid= 1;
 	STR_String matname;
@@ -151,7 +151,7 @@ PyObject* KX_MeshProxy::PyGetTextureName(PyObject* args, PyObject* kwds)
 		
 }
 
-PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* args, PyObject* kwds)
+PyObject *KX_MeshProxy::PyGetVertexArrayLength(PyObject *args, PyObject *kwds)
 {
 	int matid= 0;
 	int length = 0;
@@ -174,7 +174,7 @@ PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* args, PyObject* kwds)
 }
 
 
-PyObject* KX_MeshProxy::PyGetVertex(PyObject* args, PyObject* kwds)
+PyObject *KX_MeshProxy::PyGetVertex(PyObject *args, PyObject *kwds)
 {
 	int vertexindex;
 	int matindex;
@@ -192,10 +192,10 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* args, PyObject* kwds)
 	return (new KX_VertexProxy(this, vertex))->NewProxy(true);
 }
 
-PyObject* KX_MeshProxy::PyGetPolygon(PyObject* args, PyObject* kwds)
+PyObject *KX_MeshProxy::PyGetPolygon(PyObject *args, PyObject *kwds)
 {
 	int polyindex= 1;
-	PyObject* polyob = NULL;
+	PyObject *polyob = NULL;
 
 	if (!PyArg_ParseTuple(args,"i:getPolygon",&polyindex))
 		return NULL;
@@ -218,7 +218,7 @@ PyObject* KX_MeshProxy::PyGetPolygon(PyObject* args, PyObject* kwds)
 	return polyob;
 }
 
-PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_MeshProxy* self= static_cast<KX_MeshProxy*>(self_v);
 	
@@ -233,7 +233,7 @@ PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 	for (i=0; i<tot; mit++, i++) {
 		RAS_IPolyMaterial *polymat = mit->m_bucket->GetPolyMaterial(); 	 
 		
-		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject*)? - Campbell */
+		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject *)? - Campbell */
 		if (polymat->GetFlag() & RAS_BLENDERMAT) 	 
 		{ 	 
 			KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial*>(polymat); 	 
@@ -243,7 +243,7 @@ PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 			KX_PolygonMaterial *mat = static_cast<KX_PolygonMaterial*>(polymat);
 			PyList_SET_ITEM(materials, i, mat->GetProxy());
 		}
-	}	
+	}
 	return materials;
 }
 
@@ -260,7 +260,7 @@ PyObject * KX_MeshProxy::pyattr_get_numPolygons(void * selfv, const KX_PYATTRIBU
 }
 
 /* a close copy of ConvertPythonToGameObject but for meshes */
-bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none_ok, const char *error_prefix)
+bool ConvertPythonToMesh(PyObject *value, RAS_MeshObject **object, bool py_none_ok, const char *error_prefix)
 {
 	if (value==NULL) {
 		PyErr_Format(PyExc_TypeError, "%s, python pointer NULL, should never happen", error_prefix);
@@ -297,7 +297,7 @@ bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none
 		if (kx_mesh==NULL) {
 			PyErr_Format(PyExc_SystemError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
 			return false;
-		}		
+		}
 		
 		*object = kx_mesh->GetMesh();
 		return true;

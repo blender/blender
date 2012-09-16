@@ -47,7 +47,7 @@
 #include "KX_Python.h"
 #include "KX_PyMath.h"
 
-bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &rot, const char *error_prefix)
+bool PyOrientationTo(PyObject *pyval, MT_Matrix3x3 &rot, const char *error_prefix)
 {
 	int size= PySequence_Size(pyval);
 	
@@ -80,7 +80,7 @@ bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &rot, const char *error_prefi
 	return false;
 }
 
-bool PyQuatTo(PyObject* pyval, MT_Quaternion &qrot)
+bool PyQuatTo(PyObject *pyval, MT_Quaternion &qrot)
 {
 	if (!PyVecTo(pyval, qrot))
 		return false;
@@ -95,7 +95,7 @@ bool PyQuatTo(PyObject* pyval, MT_Quaternion &qrot)
 	return true;
 }
 
-PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
+PyObject *PyObjectFrom(const MT_Matrix4x4 &mat)
 {
 #ifdef USE_MATHUTILS
 	float fmat[16];
@@ -119,7 +119,7 @@ PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
 #endif
 }
 
-PyObject* PyObjectFrom(const MT_Matrix3x3 &mat)
+PyObject *PyObjectFrom(const MT_Matrix3x3 &mat)
 {
 #ifdef USE_MATHUTILS
 	float fmat[9];
@@ -143,7 +143,7 @@ PyObject* PyObjectFrom(const MT_Matrix3x3 &mat)
 }
 
 #ifdef USE_MATHUTILS
-PyObject* PyObjectFrom(const MT_Quaternion &qrot)
+PyObject *PyObjectFrom(const MT_Quaternion &qrot)
 {
 	/* NOTE, were re-ordering here for Mathutils compat */
 	float fvec[4];
@@ -152,7 +152,7 @@ PyObject* PyObjectFrom(const MT_Quaternion &qrot)
 }
 #endif
 
-PyObject* PyObjectFrom(const MT_Tuple4 &vec)
+PyObject *PyObjectFrom(const MT_Tuple4 &vec)
 {
 #ifdef USE_MATHUTILS
 	float fvec[4];
@@ -168,7 +168,7 @@ PyObject* PyObjectFrom(const MT_Tuple4 &vec)
 #endif
 }
 
-PyObject* PyObjectFrom(const MT_Tuple3 &vec)
+PyObject *PyObjectFrom(const MT_Tuple3 &vec)
 {
 #ifdef USE_MATHUTILS
 	float fvec[3];
@@ -180,10 +180,10 @@ PyObject* PyObjectFrom(const MT_Tuple3 &vec)
 	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(vec[1]));
 	PyList_SET_ITEM(list, 2, PyFloat_FromDouble(vec[2]));
 	return list;
-#endif	
+#endif
 }
 
-PyObject* PyObjectFrom(const MT_Tuple2 &vec)
+PyObject *PyObjectFrom(const MT_Tuple2 &vec)
 {
 #ifdef USE_MATHUTILS
 	float fvec[2];

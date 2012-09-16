@@ -67,7 +67,7 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 {
 	
 	bProperty* prop = (bProperty*)object->prop.first;
-	CValue* propval;	
+	CValue* propval;
 	bool show_debug_info;
 	while(prop)
 	{

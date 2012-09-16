@@ -237,7 +237,7 @@ protected:
 
 	/**
 	 * The execution priority of replicated object actuators?
-	 */	
+	 */
 	int	m_ueberExecutionPriority;
 
 	/**
@@ -295,7 +295,7 @@ protected:
 
 	KX_ObstacleSimulation* m_obstacleSimulation;
 
-public:	
+public:
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
 		class NG_NetworkDeviceInterface* ndi,
@@ -303,7 +303,7 @@ public:
 		struct Scene* scene,
 		class RAS_ICanvas* canvas);
 
-	virtual	
+	virtual
 	~KX_Scene();
 
 	RAS_BucketManager* GetBucketManager();
@@ -349,11 +349,11 @@ public:
 	void LogicUpdateFrame(double curtime, bool frame);
 	void UpdateAnimations(double curtime);
 
-		void						
+		void
 	LogicEndFrame(
 	);
 
-		CListValue*				
+		CListValue*
 	GetTempObjectList(
 	);
 
@@ -361,23 +361,23 @@ public:
 	GetObjectList(
 	);
 
-		CListValue*				
+		CListValue*
 	GetInactiveList(
 	);
 
-		CListValue*				
+		CListValue*
 	GetRootParentList(
 	);
 
-		CListValue*				
+		CListValue*
 	GetLightList(
 	);
 
-		SCA_LogicManager*		
+		SCA_LogicManager *
 	GetLogicManager(
 	);
 
-		SCA_TimeEventManager*	
+		SCA_TimeEventManager *
 	GetTimeEventManager(
 	);
 
@@ -426,7 +426,7 @@ public:
 	);
 
 	/** Find the currently active camera. */
-		KX_Camera*				
+		KX_Camera*
 	GetActiveCamera(
 	);
 
@@ -435,7 +435,7 @@ public:
 	 * camera is not present in the camera list, it will be added
 	 */
 
-		void					
+		void
 	SetActiveCamera(
 		class KX_Camera*
 	);
@@ -453,7 +453,7 @@ public:
 	 * Activates new desired canvas width set at design time.
 	 * \param width	The new desired width.
 	 */
-		void					
+		void
 	SetCanvasDesignWidth(
 		unsigned int width
 	);
@@ -461,7 +461,7 @@ public:
 	 * Activates new desired canvas height set at design time.
 	 * \param width	The new desired height.
 	 */
-		void					
+		void
 	SetCanvasDesignHeight(
 		unsigned int height
 	);
@@ -469,7 +469,7 @@ public:
 	 * Returns the current desired canvas width set at design time.
 	 * \return The desired width.
 	 */
-		unsigned int			
+		unsigned int
 	GetCanvasDesignWidth(
 		void
 	) const;
@@ -478,7 +478,7 @@ public:
 	 * Returns the current desired canvas height set at design time.
 	 * \return The desired height.
 	 */
-		unsigned int			
+		unsigned int
 	GetCanvasDesignHeight(
 		void
 	) const;
@@ -617,7 +617,7 @@ public:
 	static PyObject*	pyattr_get_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_drawing_callback_post(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
-	virtual PyObject* py_repr(void) { return PyUnicode_From_STR_String(GetName()); }
+	virtual PyObject *py_repr(void) { return PyUnicode_From_STR_String(GetName()); }
 	
 	/* getitem/setitem */
 	static PyMappingMethods	Mapping;
@@ -626,10 +626,10 @@ public:
 	/**
 	 * Run the registered python drawing functions.
 	 */
-	void RunDrawingCallbacks(PyObject* cb_list);
+	void RunDrawingCallbacks(PyObject *cb_list);
 	
-	PyObject* GetPreDrawCB() { return m_draw_call_pre; }
-	PyObject* GetPostDrawCB() { return m_draw_call_post; }
+	PyObject *GetPreDrawCB() { return m_draw_call_pre; }
+	PyObject *GetPostDrawCB() { return m_draw_call_post; }
 #endif
 
 	/**

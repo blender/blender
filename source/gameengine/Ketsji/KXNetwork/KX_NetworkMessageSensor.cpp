@@ -38,7 +38,7 @@
 #include "NG_NetworkMessage.h"
 #include "NG_NetworkScene.h"
 #include "NG_NetworkObject.h"
-#include "SCA_IObject.h"	
+#include "SCA_IObject.h"
 #include "InputParser.h"
 #include "ListValue.h"
 #include "StringValue.h"
@@ -201,7 +201,7 @@ PyAttributeDef KX_NetworkMessageSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_NetworkMessageSensor::pyattr_get_bodies(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_NetworkMessageSensor::pyattr_get_bodies(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_NetworkMessageSensor *self = static_cast<KX_NetworkMessageSensor*>(self_v);
 	if (self->m_BodyList) {
@@ -211,7 +211,7 @@ PyObject* KX_NetworkMessageSensor::pyattr_get_bodies(void *self_v, const KX_PYAT
 	}
 }
 
-PyObject* KX_NetworkMessageSensor::pyattr_get_subjects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_NetworkMessageSensor::pyattr_get_subjects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_NetworkMessageSensor *self = static_cast<KX_NetworkMessageSensor*>(self_v);
 	if (self->m_SubjectList) {

@@ -438,7 +438,7 @@ void RAS_OpenGLRasterizer::EndFrame()
 	glDisable(GL_MULTISAMPLE_ARB);
 
 	m_2DCanvas->EndFrame();
-}	
+}
 
 void RAS_OpenGLRasterizer::SetRenderArea()
 {
@@ -975,7 +975,7 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 	/* Get into argument. Looks a bit dodgy, but it's ok. */
 	mat.getValue(matrix);
 	/* Internally, MT_Matrix4x4 uses doubles (MT_Scalar). */
-	glLoadMatrixd(matrix);	
+	glLoadMatrixd(matrix);
 
 	m_camortho= (mat[3][3] != 0.0);
 }

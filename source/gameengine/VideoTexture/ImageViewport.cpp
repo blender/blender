@@ -165,7 +165,7 @@ void ImageViewport::calcImage (unsigned int texId, double ts)
 
 
 // cast Image pointer to ImageViewport
-inline ImageViewport * getImageViewport (PyImage * self)
+inline ImageViewport * getImageViewport (PyImage *self)
 { return static_cast<ImageViewport*>(self->m_image); }
 
 
@@ -173,14 +173,14 @@ inline ImageViewport * getImageViewport (PyImage * self)
 
 
 // get whole
-PyObject * ImageViewport_getWhole (PyImage * self, void * closure)
+PyObject *ImageViewport_getWhole (PyImage *self, void *closure)
 {
 	if (self->m_image != NULL && getImageViewport(self)->getWhole()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
 }
 
 // set whole
-int ImageViewport_setWhole (PyImage * self, PyObject * value, void * closure)
+int ImageViewport_setWhole (PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -203,14 +203,14 @@ int ImageViewport_setWhole (PyImage * self, PyObject * value, void * closure)
 }
 
 // get alpha
-PyObject * ImageViewport_getAlpha (PyImage * self, void * closure)
+PyObject *ImageViewport_getAlpha (PyImage *self, void *closure)
 {
 	if (self->m_image != NULL && getImageViewport(self)->getAlpha()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
 }
 
 // set whole
-int ImageViewport_setAlpha (PyImage * self, PyObject * value, void * closure)
+int ImageViewport_setAlpha (PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -226,14 +226,14 @@ int ImageViewport_setAlpha (PyImage * self, PyObject * value, void * closure)
 
 
 // get position
-static PyObject * ImageViewport_getPosition (PyImage * self, void * closure)
+static PyObject *ImageViewport_getPosition (PyImage *self, void *closure)
 {
 	return Py_BuildValue("(ii)", getImageViewport(self)->getPosition()[0],
 		getImageViewport(self)->getPosition()[1]);
 }
 
 // set position
-static int ImageViewport_setPosition (PyImage * self, PyObject * value, void * closure)
+static int ImageViewport_setPosition (PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
@@ -254,14 +254,14 @@ static int ImageViewport_setPosition (PyImage * self, PyObject * value, void * c
 }
 
 // get capture size
-PyObject * ImageViewport_getCaptureSize (PyImage * self, void * closure)
+PyObject *ImageViewport_getCaptureSize (PyImage *self, void *closure)
 {
 	return Py_BuildValue("(ii)", getImageViewport(self)->getCaptureSize()[0],
 		getImageViewport(self)->getCaptureSize()[1]);
 }
 
 // set capture size
-int ImageViewport_setCaptureSize (PyImage * self, PyObject * value, void * closure)
+int ImageViewport_setCaptureSize (PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2

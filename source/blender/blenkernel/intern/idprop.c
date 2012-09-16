@@ -484,7 +484,7 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 		
 		BLI_remlink(&group->data.group, loop);
 		IDP_FreeProperty(loop);
-		MEM_freeN(loop);			
+		MEM_freeN(loop);
 	}
 	else {
 		group->len++;
@@ -679,7 +679,7 @@ IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *n
 		case IDP_DOUBLE:
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty float");
 			*(double *)&prop->data.val = val->d;
-			break;		
+			break;
 		case IDP_ARRAY:
 		{
 			/* for now, we only support float and int and double arrays */

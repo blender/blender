@@ -252,7 +252,7 @@ PyAttributeDef KX_FontObject::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_FontObject* self= static_cast<KX_FontObject*>(self_v);
 	STR_String str = STR_String();

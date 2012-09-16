@@ -68,7 +68,7 @@ struct bAction;
 
 #ifdef WITH_PYTHON
 /* utility conversion function */
-bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok, const char *error_prefix);
+bool ConvertPythonToGameObject(PyObject *value, KX_GameObject **object, bool py_none_ok, const char *error_prefix);
 #endif
 
 #ifdef USE_MATHUTILS
@@ -159,7 +159,7 @@ public:
 	 * side effect of storing the result internally. The
 	 * memory for the matrix remains the property of this class.
 	 */ 
-		double*						
+		double *
 	GetOpenGLMatrix(
 	);
 
@@ -170,7 +170,7 @@ public:
 	 * memory for the returned matrix.
 	 */
 
-		MT_CmMatrix4x4*				
+		MT_CmMatrix4x4 *
 	GetOpenGLMatrixPtr(
 	) { 
 		return &m_OpenGL_4x4Matrix;
@@ -193,18 +193,18 @@ public:
 	 * object. It is the responsibility of the caller to decrement
 	 * the reference count when you have finished with it.
 	 */
-		KX_GameObject*				
+		KX_GameObject*
 	GetParent(
 	);
 
 	/** 
 	 * Sets the parent of this object to a game object
-	 */			
+	 */
 	void SetParent(KX_Scene *scene, KX_GameObject *obj, bool addToCompound=true, bool ghost=true);
 
 	/** 
 	 * Removes the parent of this object to a game object
-	 */			
+	 */
 	void RemoveParent(KX_Scene *scene);
 
 	/*********************************
@@ -292,7 +292,7 @@ public:
 	/**
 	 * Inherited from CValue -- does nothing!
 	 */
-		CValue*				
+		CValue*
 	Calc(
 		VALUE_OPERATOR op,
 		CValue *val
@@ -301,7 +301,7 @@ public:
 	/**
 	 * Inherited from CValue -- does nothing!
 	 */
-		CValue*				
+		CValue*
 	CalcFinal(
 		VALUE_DATA_TYPE dtype,
 		VALUE_OPERATOR op,
@@ -312,7 +312,7 @@ public:
 	 * Inherited from CValue -- does nothing!
 	 */
 	const 
-		STR_String &	
+		STR_String &
 	GetText(
 	);
 
@@ -331,14 +331,14 @@ public:
 	/**
 	 * Inherited from CValue -- returns the name of this object.
 	 */
-		STR_String&			
+		STR_String&
 	GetName(
 	);
 
 	/**
 	 * Inherited from CValue -- set the name of this object.
 	 */
-		void				
+		void
 	SetName(
 		const char *name
 	);
@@ -348,7 +348,7 @@ public:
 	 * instance allocated on the heap. Ownership of the new 
 	 * object belongs with the caller.
 	 */
-	virtual	CValue*				
+	virtual	CValue*
 	GetReplica(
 	);
 	
@@ -356,7 +356,7 @@ public:
 	 * Inherited from CValue -- Makes sure any internal 
 	 * data owned by this class is deep copied. Called internally
 	 */
-	virtual	void				
+	virtual	void
 	ProcessReplica();
 
 	/** 
@@ -379,7 +379,7 @@ public:
 	/**
 	 * Return the mass of the object
 	 */
-		MT_Scalar	
+		MT_Scalar
 	GetMass();
 
 	/**
@@ -410,7 +410,7 @@ public:
 	 * Quick'n'dirty obcolor ipo stuff
 	 */
 
-		void				
+		void
 	SetObjectColor(
 		const MT_Vector4& rgbavec
 	);
@@ -482,7 +482,7 @@ public:
 	// adapt local position so that world position is set to desired position
 	void	NodeSetWorldPosition(const MT_Point3& trans);
 
-		void						
+		void
 	NodeUpdateGS(
 		double time
 	);
@@ -504,7 +504,7 @@ public:
 		return m_pSGNode;
 	}
 
-	const 	SG_Node* GetSGNode(	) const	
+	const 	SG_Node* GetSGNode(	) const
 	{ 
 		return m_pSGNode;
 	}
@@ -581,48 +581,48 @@ public:
 	 * place.
 	 */
 
-		void						
+		void
 	ApplyForce(
 		const MT_Vector3& force,	bool local
 	);
 
-		void						
+		void
 	ApplyTorque(
 		const MT_Vector3& torque,
 		bool local
 	);
 
-		void						
+		void
 	ApplyRotation(
 		const MT_Vector3& drot,
 		bool local
 	);
 
-		void						
+		void
 	ApplyMovement(
 		const MT_Vector3& dloc,
 		bool local
 	);
 
-		void						
+		void
 	addLinearVelocity(
 		const MT_Vector3& lin_vel,
 		bool local
 	);
 
-		void						
+		void
 	setLinearVelocity(
 		const MT_Vector3& lin_vel,
 		bool local
 	);
 
-		void						
+		void
 	setAngularVelocity(
 		const MT_Vector3& ang_vel,
 		bool local
 	);
 
-	/**	
+	/**
 	 * Update the physics object transform based upon the current SG_Node
 	 * position.
 	 */
@@ -642,7 +642,7 @@ public:
 	/**
 	 * Function to set IPO option at start of IPO
 	 */ 
-		void	
+		void
 	InitIPO(
 		bool ipo_as_force,
 		bool ipo_add,
@@ -652,7 +652,7 @@ public:
 	/**
 	 * Odd function to update an ipo. ???
 	 */ 
-		void	
+		void
 	UpdateIPO(
 		float curframetime,
 		bool recurse
@@ -676,20 +676,20 @@ public:
 	 * \section Mesh accessor functions.
 	 */
 
-	/**	
+	/**
 	 * Update buckets to indicate that there is a new
 	 * user of this object's meshes.
 	 */
-		void						
+		void
 	AddMeshUser(
 	);
 	
-	/**	
+	/**
 	 * Update buckets with data about the mesh after
 	 * creating or duplicating the object, changing
 	 * visibility, object color, .. .
 	 */
-		void						
+		void
 	UpdateBuckets(
 		bool recursive
 	);
@@ -699,7 +699,7 @@ public:
 	 * and remove from the bucketing system.
 	 * Don't think this actually deletes any of the meshes.
 	 */
-		void						
+		void
 	RemoveMeshes(
 	);
 
@@ -709,7 +709,7 @@ public:
 	 * Make sure you call RemoveMeshes() before deleting the
 	 * mesh though,
 	 */
-		void						
+		void
 	AddMesh(
 		RAS_MeshObject* mesh
 	) {
@@ -719,7 +719,7 @@ public:
 	/**
 	 * Pick out a mesh associated with the integer 'num'.
 	 */
-		RAS_MeshObject*				
+		RAS_MeshObject*
 	GetMesh(
 		int num
 	) const { 
@@ -730,17 +730,17 @@ public:
 	 * Return the number of meshes currently associated with this
 	 * game object.
 	 */
-		int							
+		int
 	GetMeshCount(
 	) const { 
 		return m_meshes.size(); 
 	}
 	
-	/**	
+	/**
 	 * Set the debug color of the meshes associated with this
 	 * class. Does this still work?
 	 */
-		void						
+		void
 	SetDebugColor(
 		unsigned int bgra
 	);
@@ -748,7 +748,7 @@ public:
 	/** 
 	 * Reset the debug color of meshes associated with this class.
 	 */
-		void						
+		void
 	ResetDebugColor(
 	);
 
@@ -855,7 +855,7 @@ public:
 		m_bSuspendDynamics = true;
 	}
 	
-	void RestoreDynamics(void) {	
+	void RestoreDynamics(void) {
 		if (!m_bSuspendDynamics)
 		{
 			return;
@@ -887,7 +887,7 @@ public:
 	/**
 	 * \section Python interface functions.
 	 */
-	virtual PyObject* py_repr(void)
+	virtual PyObject *py_repr(void)
 	{
 		return PyUnicode_From_STR_String(GetName());
 	}
@@ -983,7 +983,7 @@ public:
 	static PyObject*	pyattr_get_worldAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_worldAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_localAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static int			pyattr_set_localAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);	
+	static int			pyattr_set_localAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

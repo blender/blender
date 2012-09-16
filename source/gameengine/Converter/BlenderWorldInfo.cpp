@@ -199,7 +199,7 @@ void BlenderWorldInfo::setBackColor(float r, float g, float b)
 	m_backgroundcolor[2] = b;
 }
 
-	void	
+	void
 BlenderWorldInfo::setMistStart(
 	float d
 ) {
@@ -215,7 +215,7 @@ BlenderWorldInfo::setMistDistance(
 }
 
 
-	void	
+	void
 BlenderWorldInfo::setMistColorRed(
 	float d
 ) {
@@ -231,7 +231,7 @@ BlenderWorldInfo::setMistColorGreen(
 }
 
 
-	void	
+	void
 BlenderWorldInfo::setMistColorBlue(
 	float d
 ) {

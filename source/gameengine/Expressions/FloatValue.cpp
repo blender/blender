@@ -314,7 +314,7 @@ CValue* CFloatValue::GetReplica()
 
 
 #ifdef WITH_PYTHON
-PyObject* CFloatValue::ConvertValueToPython()
+PyObject *CFloatValue::ConvertValueToPython()
 {
 	return PyFloat_FromDouble(m_float);
 }

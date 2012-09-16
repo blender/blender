@@ -232,8 +232,8 @@ void RAS_BucketManager::Renderbuckets(
 	/* beginning each frame, clear (texture/material) caching information */
 	rasty->ClearCachingInfo();
 
-	RenderSolidBuckets(cameratrans, rasty, rendertools);	
-	RenderAlphaBuckets(cameratrans, rasty, rendertools);	
+	RenderSolidBuckets(cameratrans, rasty, rendertools);
+	RenderAlphaBuckets(cameratrans, rasty, rendertools);
 
 	rendertools->SetClientObject(rasty, NULL);
 }

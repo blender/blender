@@ -394,7 +394,7 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 	{NULL}
 };
 
-PyObject* KX_CameraActuator::pyattr_get_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_CameraActuator::pyattr_get_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_CameraActuator* self= static_cast<KX_CameraActuator*>(self_v);
 	if (self->m_ob==NULL)
@@ -412,7 +412,7 @@ int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF 
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 	
 	if (self->m_ob)
-		self->m_ob->UnregisterActuator(self);	
+		self->m_ob->UnregisterActuator(self);
 
 	if ((self->m_ob = (SCA_IObject*)gameobj))
 		self->m_ob->RegisterActuator(self);

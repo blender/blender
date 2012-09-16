@@ -210,7 +210,7 @@ void unlink_controllers(ListBase *lb)
 	bController *cont;
 	
 	for (cont= lb->first; cont; cont= cont->next)
-		unlink_controller(cont);	
+		unlink_controller(cont);
 }
 
 void free_controller(bController *cont)
@@ -536,7 +536,7 @@ void clear_sca_new_poins(void)
 	ob= G.main->object.first;
 	while (ob) {
 		clear_sca_new_poins_ob(ob);
-		ob= ob->id.next;	
+		ob= ob->id.next;
 	}
 }
 
@@ -624,7 +624,7 @@ void set_sca_new_poins(void)
 	ob= G.main->object.first;
 	while (ob) {
 		set_sca_new_poins_ob(ob);
-		ob= ob->id.next;	
+		ob= ob->id.next;
 	}
 }
 
@@ -696,7 +696,7 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 			if (sta->target == ob) sta->target = NULL;
 		}
 		act= act->next;
-	}	
+	}
 }
 
 /* ******************** INTERFACE ******************* */

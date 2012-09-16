@@ -552,7 +552,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 						ketsjinextframestate.draw_letterbox = draw_letterbox;
 			
 						pynextframestate.state = &ketsjinextframestate;
-						pynextframestate.func = &BL_KetsjiPyNextFrame;			
+						pynextframestate.func = &BL_KetsjiPyNextFrame;
 						printf("Yielding control to Python script '%s'...\n", python_main);
 						PyRun_SimpleString(python_code);
 						printf("Exit Python script '%s'\n", python_main);
@@ -590,7 +590,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				const Py_ssize_t numitems= PyList_GET_SIZE(gameLogic_keys_new);
 				Py_ssize_t listIndex;
 				for (listIndex=0; listIndex < numitems; listIndex++) {
-					PyObject* item = PyList_GET_ITEM(gameLogic_keys_new, listIndex);
+					PyObject *item = PyList_GET_ITEM(gameLogic_keys_new, listIndex);
 					if (!PySequence_Contains(gameLogic_keys, item)) {
 						PyDict_DelItem(	PyModule_GetDict(gameLogic), item);
 					}
