@@ -1123,13 +1123,13 @@ static int VideoFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 	return 0;
 }
 
-PyObject * VideoFFmpeg_getPreseek (PyImage *self, void * closure)
+static PyObject *VideoFFmpeg_getPreseek(PyImage *self, void *closure)
 {
 	return Py_BuildValue("h", getFFmpeg(self)->getPreseek());
 }
 
 // set range
-int VideoFFmpeg_setPreseek (PyImage * self, PyObject * value, void * closure)
+static int VideoFFmpeg_setPreseek(PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PyLong_Check(value))
@@ -1144,7 +1144,7 @@ int VideoFFmpeg_setPreseek (PyImage * self, PyObject * value, void * closure)
 }
 
 // get deinterlace
-PyObject * VideoFFmpeg_getDeinterlace (PyImage * self, void * closure)
+static PyObject *VideoFFmpeg_getDeinterlace(PyImage *self, void *closure)
 {
 	if (getFFmpeg(self)->getDeinterlace())
 		Py_RETURN_TRUE;
@@ -1153,7 +1153,7 @@ PyObject * VideoFFmpeg_getDeinterlace (PyImage * self, void * closure)
 }
 
 // set flip
-int VideoFFmpeg_setDeinterlace (PyImage * self, PyObject * value, void * closure)
+static int VideoFFmpeg_setDeinterlace(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -1269,7 +1269,7 @@ static int ImageFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 	return 0;
 }
 
-PyObject * Image_reload (PyImage * self, PyObject *args)
+static PyObject *Image_reload(PyImage *self, PyObject *args)
 {
 	char * newname = NULL;
 	if (!PyArg_ParseTuple(args, "|s:reload", &newname))

@@ -491,7 +491,7 @@ typedef struct MTF_localLayer {
 } MTF_localLayer;
 
 // ------------------------------------
-bool ConvertMaterial(
+static bool ConvertMaterial(
 	BL_Material *material,
 	Material *mat, 
 	MTFace* tface,  
@@ -1535,14 +1535,14 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 //////////////////////////////////////////////////////
 
 
-void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
-							   const MT_Point3& localAabbMin,
-							   const MT_Point3& localAabbMax,
-							   KX_Scene* kxscene,
-							   bool isActive,
-							   e_PhysicsEngine physics_engine)
+static void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
+                                      const MT_Point3& localAabbMin,
+                                      const MT_Point3& localAabbMax,
+                                      KX_Scene* kxscene,
+                                      bool isActive,
+                                      e_PhysicsEngine physics_engine)
 {
-	if (gameobj->GetMeshCount() > 0) 
+	if (gameobj->GetMeshCount() > 0)
 	{
 		switch (physics_engine)
 		{
@@ -1574,16 +1574,16 @@ void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
 	}
 }
 
-void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
-						 struct Object* blenderobject,
-						 RAS_MeshObject* meshobj,
-						 KX_Scene* kxscene,
-						 int activeLayerBitInfo,
-						 e_PhysicsEngine	physics_engine,
-						 KX_BlenderSceneConverter *converter,
-						 bool processCompoundChildren
-						 )
-					
+static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
+                                      struct Object* blenderobject,
+                                      RAS_MeshObject* meshobj,
+                                      KX_Scene* kxscene,
+                                      int activeLayerBitInfo,
+                                      e_PhysicsEngine	physics_engine,
+                                      KX_BlenderSceneConverter *converter,
+                                      bool processCompoundChildren
+                                      )
+
 {
 	//SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
 	//int userigidbody = SYS_GetCommandLineInt(syshandle,"norigidbody",0);
@@ -2086,7 +2086,7 @@ struct parentChildLink {
 #include "DNA_constraint_types.h"
 //XXX #include "BIF_editconstraint.h"
 
-bPoseChannel *get_active_posechannel2 (Object *ob)
+static bPoseChannel *get_active_posechannel2 (Object *ob)
 {
 	bArmature *arm= (bArmature*)ob->data;
 	bPoseChannel *pchan;
@@ -2100,7 +2100,7 @@ bPoseChannel *get_active_posechannel2 (Object *ob)
 	return NULL;
 }
 
-ListBase *get_active_constraints2(Object *ob)
+static ListBase *get_active_constraints2(Object *ob)
 {
 	if (!ob)
 		return NULL;
@@ -2120,7 +2120,7 @@ ListBase *get_active_constraints2(Object *ob)
 }
 
 
-void RBJconstraints(Object *ob)//not used
+static void RBJconstraints(Object *ob)//not used
 {
 	ListBase *conlist;
 	bConstraint *curcon;
@@ -2141,7 +2141,7 @@ void RBJconstraints(Object *ob)//not used
 #include "KX_IPhysicsController.h"
 #include "PHY_DynamicTypes.h"
 
-KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
+static KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
 
 	for (int j=0;j<sumolist->GetCount();j++)
 	{
@@ -2154,7 +2154,7 @@ KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
 
 }
 
-KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
+static KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
 {
 
 	for (int j=0;j<sumolist->GetCount();j++)

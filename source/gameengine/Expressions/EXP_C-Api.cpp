@@ -102,8 +102,8 @@ int EXP_IsValid(EXP_ValueHandle inval)
 
 /* assign property 'propval' to 'destinationval' */
 void EXP_SetProperty(EXP_ValueHandle destinationval,
-					 const char* propname,
-					 EXP_ValueHandle propval)
+                     const char *propname,
+                     EXP_ValueHandle propval)
 {
 	((CValue*) destinationval)->SetProperty(propname,(CValue*)propval);
 }

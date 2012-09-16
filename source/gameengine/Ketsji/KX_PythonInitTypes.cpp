@@ -164,9 +164,9 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 #define PyType_Ready_Attr(d, n, i)   PyType_Ready_ADD(d, &n::Type, n::Attributes, NULL, i)
 #define PyType_Ready_AttrPtr(d, n, i)   PyType_Ready_ADD(d, &n::Type, n::Attributes, n::AttributesPtr, i)
 
-void initPyTypes(void)
+static void initPyTypes(void)
 {
-	
+
 /*
  * initPyObjectPlusType(BL_ActionActuator::Parents);
  * .....

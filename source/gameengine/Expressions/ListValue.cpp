@@ -278,7 +278,7 @@ bool CListValue::IsModified()
 /* Python interface ---------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-Py_ssize_t listvalue_bufferlen(PyObject* self)
+static Py_ssize_t listvalue_bufferlen(PyObject* self)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	if (list==NULL)
@@ -287,7 +287,7 @@ Py_ssize_t listvalue_bufferlen(PyObject* self)
 	return (Py_ssize_t)list->GetCount();
 }
 
-PyObject* listvalue_buffer_item(PyObject* self, Py_ssize_t index)
+static PyObject* listvalue_buffer_item(PyObject* self, Py_ssize_t index)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	CValue *cval;
@@ -316,7 +316,7 @@ PyObject* listvalue_buffer_item(PyObject* self, Py_ssize_t index)
 		return cval->GetProxy();
 }
 
-PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
+static PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	if (list==NULL) {
@@ -348,7 +348,7 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 
 
 /* just slice it into a python list... */
-PyObject* listvalue_buffer_slice(PyObject* self,Py_ssize_t ilow, Py_ssize_t ihigh)
+static PyObject* listvalue_buffer_slice(PyObject* self,Py_ssize_t ilow, Py_ssize_t ihigh)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	if (list==NULL) {

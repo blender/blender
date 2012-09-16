@@ -314,7 +314,7 @@ static int KX_PythonSeq_contains(PyObject *self, PyObject *key)
 }
 
 /* Matches python dict.get(key, [default]) */
-PyObject* KX_PythonSeq_get(PyObject * self, PyObject *args)
+static PyObject* KX_PythonSeq_get(PyObject * self, PyObject *args)
 {
 	char *key;
 	PyObject* def = Py_None;

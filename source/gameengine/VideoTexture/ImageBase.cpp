@@ -644,7 +644,7 @@ PyObject * Image_valid(PyImage * self, void * closure)
 	}
 }
 
-int Image_getbuffer(PyImage *self, Py_buffer *view, int flags)
+static int Image_getbuffer(PyImage *self, Py_buffer *view, int flags)
 {
 	unsigned int * image;
 	int ret;
@@ -691,7 +691,7 @@ error:
 	
 }
 
-void Image_releaseBuffer(PyImage *self, Py_buffer *buffer)
+static void Image_releaseBuffer(PyImage *self, Py_buffer *buffer)
 {
 	self->m_image->m_exports--;
 }

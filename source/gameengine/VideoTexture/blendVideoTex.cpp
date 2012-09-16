@@ -168,7 +168,7 @@ static struct PyModuleDef VideoTexture_module_def = {
 	0,  /* m_free */
 };
 
-PyObject* initVideoTexture(void) 
+static PyObject *initVideoTexture(void)
 {
 	PyObject * m;
 	

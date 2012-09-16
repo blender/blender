@@ -108,7 +108,7 @@ RAS_IPolyMaterial * getMaterial (PyObject *obj, short matID)
 }
 
 // get pointer to a lamp
-KX_LightObject * getLamp(PyObject *obj)
+static KX_LightObject *getLamp(PyObject *obj)
 {
 	// if object is available
 	if (obj == NULL) return NULL;
@@ -147,7 +147,7 @@ short getMaterialID(PyObject * obj, const char *name)
 
 
 // Texture object allocation
-PyObject * Texture_new (PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Texture_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	// allocate object
 	Texture * self = reinterpret_cast<Texture*>(type->tp_alloc(type, 0));
@@ -172,7 +172,7 @@ int Texture_setSource (Texture * self, PyObject * value, void * closure);
 
 
 // Texture object deallocation
-void Texture_dealloc (Texture * self)
+static void Texture_dealloc(Texture *self)
 {
 	// release renderer
 	Py_XDECREF(self->m_source);
@@ -190,7 +190,7 @@ ExceptionID MaterialNotAvail;
 ExpDesc MaterialNotAvailDesc (MaterialNotAvail, "Texture material is not available");
 
 // Texture object initialization
-int Texture_init (Texture *self, PyObject *args, PyObject *kwds)
+static int Texture_init(Texture *self, PyObject *args, PyObject *kwds)
 {
 	// parameters - game object with video texture
 	PyObject * obj = NULL;
@@ -298,7 +298,7 @@ PyObject * Texture_close(Texture * self)
 
 
 // refresh texture
-PyObject * Texture_refresh (Texture * self, PyObject * args)
+static PyObject *Texture_refresh(Texture *self, PyObject *args)
 {
 	// get parameter - refresh source
 	PyObject * param;
@@ -390,14 +390,14 @@ PyObject * Texture_refresh (Texture * self, PyObject * args)
 }
 
 // get OpenGL Bind Id
-PyObject * Texture_getBindId (Texture * self, void * closure)
+static PyObject *Texture_getBindId(Texture *self, void *closure)
 {
 	unsigned int id = self->m_actTex;
 	return Py_BuildValue("h", id);
 }
 
 // get mipmap value
-PyObject * Texture_getMipmap (Texture * self, void * closure)
+static PyObject *Texture_getMipmap(Texture *self, void *closure)
 {
 	// return true if flag is set, otherwise false
 	if (self->m_mipmap) Py_RETURN_TRUE;
@@ -405,7 +405,7 @@ PyObject * Texture_getMipmap (Texture * self, void * closure)
 }
 
 // set mipmap value
-int Texture_setMipmap (Texture * self, PyObject * value, void * closure)
+static int Texture_setMipmap(Texture *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -421,7 +421,7 @@ int Texture_setMipmap (Texture * self, PyObject * value, void * closure)
 
 
 // get source object
-PyObject * Texture_getSource (Texture * self, PyObject * value, void * closure)
+static PyObject *Texture_getSource(Texture *self, PyObject *value, void *closure)
 {
 	// if source exists
 	if (self->m_source != NULL)

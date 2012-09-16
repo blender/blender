@@ -716,10 +716,11 @@ PyObject* initPythonConstraintBinding()
 	return d;
 }
 
-
-void	KX_RemovePythonConstraintBinding()
+#if 0
+static void KX_RemovePythonConstraintBinding()
 {
 }
+#endif
 
 void	PHY_SetActiveEnvironment(class	PHY_IPhysicsEnvironment* env)
 {

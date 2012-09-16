@@ -125,8 +125,8 @@ static BlendFileData *load_game_data(char *filename)
 	return bfd;
 }
 
-int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win, Scene *scene, ARegion *ar,
-                       KX_BlenderKeyboardDevice* keyboarddevice, KX_BlenderMouseDevice* mousedevice, int draw_letterbox)
+static int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win, Scene *scene, ARegion *ar,
+                              KX_BlenderKeyboardDevice* keyboarddevice, KX_BlenderMouseDevice* mousedevice, int draw_letterbox)
 {
 	int exitrequested;
 
@@ -198,7 +198,7 @@ struct BL_KetsjiNextFrameState {
 	int draw_letterbox;
 } ketsjinextframestate;
 
-int BL_KetsjiPyNextFrame(void *state0) 
+static int BL_KetsjiPyNextFrame(void *state0)
 {
 	BL_KetsjiNextFrameState *state = (BL_KetsjiNextFrameState *) state0;
 	return BL_KetsjiNextFrame(

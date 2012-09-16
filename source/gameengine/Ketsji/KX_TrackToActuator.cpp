@@ -90,7 +90,7 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 
 
 /* old function from Blender */
-MT_Matrix3x3 EulToMat3(float *eul)
+static MT_Matrix3x3 EulToMat3(float eul[3])
 {
 	MT_Matrix3x3 mat;
 	float ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
@@ -122,7 +122,7 @@ MT_Matrix3x3 EulToMat3(float *eul)
 
 
 /* old function from Blender */
-void Mat3ToEulOld(MT_Matrix3x3 mat, float eul[3])
+static void Mat3ToEulOld(MT_Matrix3x3 mat, float eul[3])
 {
 	const float cy = sqrtf(mat[0][0] * mat[0][0] + mat[0][1] * mat[0][1]);
 
@@ -141,7 +141,7 @@ void Mat3ToEulOld(MT_Matrix3x3 mat, float eul[3])
 
 
 /* old function from Blender */
-void compatible_eulFast(float *eul, float *oldrot)
+static void compatible_eulFast(float *eul, float *oldrot)
 {
 	float dx, dy, dz;
 	
@@ -164,7 +164,7 @@ void compatible_eulFast(float *eul, float *oldrot)
 
 
 
-MT_Matrix3x3 matrix3x3_interpol(MT_Matrix3x3 oldmat, MT_Matrix3x3 mat, int m_time)
+static MT_Matrix3x3 matrix3x3_interpol(MT_Matrix3x3 oldmat, MT_Matrix3x3 mat, int m_time)
 {
 	float eul[3], oldeul[3];	
 

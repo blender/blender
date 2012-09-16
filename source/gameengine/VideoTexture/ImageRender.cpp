@@ -333,7 +333,7 @@ static int ImageRender_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 
 
 // get background color
-PyObject * getBackground (PyImage * self, void * closure)
+static PyObject *getBackground (PyImage *self, void *closure)
 {
 	return Py_BuildValue("[BBBB]",
 	                     getImageRender(self)->getBackground(0),
@@ -510,7 +510,7 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 }
 
 // get background color
-PyObject * getClip (PyImage * self, void * closure)
+static PyObject *getClip (PyImage *self, void *closure)
 {
 	return PyFloat_FromDouble(getImageRender(self)->getClip());
 }

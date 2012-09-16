@@ -108,7 +108,7 @@ inline ImageMix * getImageMix (PyImage * self)
 // python methods
 
 // get source weight
-PyObject * getWeight (PyImage * self, PyObject * args)
+static PyObject *getWeight (PyImage * self, PyObject * args)
 {
 	// weight
 	short weight = 0;
@@ -125,7 +125,7 @@ PyObject * getWeight (PyImage * self, PyObject * args)
 
 
 // set source weight
-PyObject * setWeight (PyImage * self, PyObject * args)
+static PyObject *setWeight (PyImage *self, PyObject *args)
 {
 	// get arguments
 	char * id;

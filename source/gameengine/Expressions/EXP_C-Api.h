@@ -53,7 +53,7 @@ extern void					EXP_ReleaseValue(EXP_ValueHandle);
 extern int					EXP_IsValid(EXP_ValueHandle);
 
 /* assign property 'propval' to 'destinationval' */
-extern void					EXP_SetProperty(EXP_ValueHandle propval,EXP_ValueHandle destinationval);
+extern void					EXP_SetProperty(EXP_ValueHandle destinationval, const char *propname, EXP_ValueHandle propval);
 
 /* returns NULL if property doesn't exist */
 extern EXP_ValueHandle		EXP_GetProperty(EXP_ValueHandle inval,const char* propname);

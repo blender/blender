@@ -67,7 +67,7 @@ extern "C"{
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
 
-short get_deformflags(struct Object *bmeshobj)
+static short get_deformflags(struct Object *bmeshobj)
 {
 	short flags = ARM_DEF_VGROUP;
 
@@ -85,9 +85,9 @@ short get_deformflags(struct Object *bmeshobj)
 }
 
 BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
-								struct Object *bmeshobj, 
-								class RAS_MeshObject *mesh,
-								BL_ArmatureObject* arma)
+                                 struct Object *bmeshobj,
+                                 class RAS_MeshObject *mesh,
+                                 BL_ArmatureObject* arma)
 							:	//
 							BL_MeshDeformer(gameobj, bmeshobj, mesh),
 							m_armobj(arma),
