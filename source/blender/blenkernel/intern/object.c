@@ -1766,13 +1766,13 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 static void give_parvert(Object *par, int nr, float vec[3])
 {
 	BMEditMesh *em;
-	int a, count;
 
 	zero_v3(vec);
 	
 	if (par->type == OB_MESH) {
 		Mesh *me = par->data;
 		DerivedMesh *dm;
+		int count;
 
 		em = me->edit_btmesh;
 
@@ -1795,18 +1795,28 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		dm = (em) ? em->derivedFinal : par->derivedFinal;
 			
 		if (dm) {
-			MVert *mvert = dm->getVertArray(dm);
-			int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-			int i, vindex, numVerts = dm->getNumVerts(dm);
+			int numVerts = dm->getNumVerts(dm);
 
-			/* get the average of all verts with (original index == nr) */
-			count = 0;
-			for (i = 0; i < numVerts; i++) {
-				vindex = (index) ? index[i] : i;
+			if (nr < numVerts) {
+				MVert *mvert = dm->getVertArray(dm);
+				int   *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
+				int i;
 
-				if (vindex == nr) {
-					add_v3_v3(vec, mvert[i].co);
-					count++;
+				/* get the average of all verts with (original index == nr) */
+				count = 0;
+				if (index) {
+					for (i = 0; i < numVerts; i++) {
+						if (index[i] == nr) {
+							add_v3_v3(vec, mvert[i].co);
+							count++;
+						}
+					}
+				}
+				else {
+					if (nr < numVerts) {
+						add_v3_v3(vec, mvert[nr].co);
+						count++;
+					}
 				}
 			}
 
@@ -1828,71 +1838,31 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		}
 	}
 	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
-		Nurb *nu;
-		Curve *cu;
-		BPoint *bp;
-		BezTriple *bezt;
-		int found = 0;
-		ListBase *nurbs;
+		Curve *cu       = par->data;
+		ListBase *nurb  = BKE_curve_nurbs_get(cu);;
 
-		cu = par->data;
-		nurbs = BKE_curve_nurbs_get(cu);
-		nu = nurbs->first;
-
-		count = 0;
-		while (nu && !found) {
-			if (nu->type == CU_BEZIER) {
-				bezt = nu->bezt;
-				a = nu->pntsu;
-				while (a--) {
-					if (count == nr) {
-						found = 1;
-						copy_v3_v3(vec, bezt->vec[1]);
-						break;
-					}
-					count++;
-					bezt++;
-				}
-			}
-			else {
-				bp = nu->bp;
-				a = nu->pntsu * nu->pntsv;
-				while (a--) {
-					if (count == nr) {
-						found = 1;
-						copy_v3_v3(vec, bp->vec);
-						break;
-					}
-					count++;
-					bp++;
-				}
-			}
-			nu = nu->next;
-		}
-
+		BKE_nurbList_index_get_co(nurb, nr, vec);
 	}
 	else if (par->type == OB_LATTICE) {
-		Lattice *latt = par->data;
-		BPoint *bp;
-		DispList *dl = BKE_displist_find(&par->disp, DL_VERTS);
-		float *co = dl ? dl->verts : NULL;
-		
+		Lattice *latt  = par->data;
+		DispList *dl   = BKE_displist_find(&par->disp, DL_VERTS);
+		float (*co)[3] = dl ? (float (*)[3])dl->verts : NULL;
+		int tot;
+
 		if (latt->editlatt) latt = latt->editlatt->latt;
-		
-		a = latt->pntsu * latt->pntsv * latt->pntsw;
-		count = 0;
-		bp = latt->def;
-		while (a--) {
-			if (count == nr) {
-				if (co)
-					copy_v3_v3(vec, co);
-				else
-					copy_v3_v3(vec, bp->vec);
-				break;
+
+		tot = latt->pntsu * latt->pntsv * latt->pntsw;
+
+		/* ensure dl is correct size */
+		BLI_assert(dl == NULL || dl->nr == tot);
+
+		if (nr < tot) {
+			if (co) {
+				copy_v3_v3(vec, co[nr]);
 			}
-			count++;
-			if (co) co += 3;
-			else bp++;
+			else {
+				copy_v3_v3(vec, latt->def[nr].vec);
+			}
 		}
 	}
 }
