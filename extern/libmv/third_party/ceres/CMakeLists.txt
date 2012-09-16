@@ -250,7 +250,7 @@ else()
 endif()
 
 if(APPLE)
-	if( STREQUAL "10.5")
+	if(CMAKE_OSX_DEPLOYMENT_TARGET STREQUAL "10.5")
 		add_definitions(
 			-DCERES_NO_TR1
 		)
