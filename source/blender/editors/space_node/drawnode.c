@@ -200,25 +200,22 @@ static void node_draw_output_default(const bContext *C, uiBlock *block,
                                      const char *name, int UNUSED(x), int UNUSED(y), int UNUSED(width))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
-	float slen;
-	int ofs = 0;
 	const char *ui_name = IFACE_(name);
-	int len = strlen(ui_name);
+	float slen;
+
 	UI_ThemeColor(TH_TEXT);
 	slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
-	while (slen > node->width && ofs < len) {
-		ofs++;
-		slen = (UI_GetStringWidth(ui_name + ofs) + NODE_MARGIN_X) * snode->aspect_sqrt;
+	while (slen > node->width && *ui_name) {
+		ui_name = BLI_str_find_next_char_utf8(ui_name, NULL);
+		slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
 	}
-
-	if (ofs < len) {
-		uiDefBut(block, LABEL, 0, ui_name + ofs,
-		         (int)(sock->locx - slen), (int)(sock->locy - 9.0f),
-		         (short)(node->width - NODE_DY), (short)NODE_DY,
-		         NULL, 0, 0, 0, 0, "");
+	
+	if (*ui_name) {
+		uiDefBut(block, LABEL, 0, ui_name,
+				 (int)(sock->locx - slen), (int)(sock->locy - 9.0f),
+				 (short)slen, (short)NODE_DY,
+				 NULL, 0, 0, 0, 0, "");
 	}
-
-	(void)snode;
 }
 
 /* ****************** BASE DRAW FUNCTIONS FOR NEW OPERATOR NODES ***************** */
