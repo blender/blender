@@ -38,6 +38,7 @@
 #endif  // CERES_NO_CXSPARSE
 
 #include "Eigen/Dense"
+#include "glog/logging.h"
 #include "ceres/block_random_access_dense_matrix.h"
 #include "ceres/block_random_access_matrix.h"
 #include "ceres/block_random_access_sparse_matrix.h"
