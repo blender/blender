@@ -713,14 +713,6 @@ static void playanim_window_open(const char *title, int posx, int posy, int size
 	                                       inital_state,
 	                                       GHOST_kDrawingContextTypeOpenGL,
 	                                       FALSE /* no stereo */, FALSE);
-
-	//if (ghostwin) {
-	//if (win) {
-	// GHOST_SetWindowUserData(ghostwin, win);
-	//} else {
-	//	GHOST_DisposeWindow(g_WS.ghost_system, ghostwin);
-	//}
-	//}
 }
 
 

@@ -515,7 +515,7 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
 }
 
-static int reset_recent_exec(bContext *C, wmOperator *op)
+static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	char name[FILE_MAX];

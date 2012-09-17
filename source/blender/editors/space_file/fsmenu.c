@@ -206,7 +206,8 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const c
 		if (flag & FS_INSERT_FIRST) {
 			fsm_iter->next = fsm_head;
 			fsmenu_set_category(fsmenu, category, fsm_iter);
-		} else {
+		}
+		else {
 			fsm_iter->next = fsm_prev->next;
 			fsm_prev->next = fsm_iter;
 		}

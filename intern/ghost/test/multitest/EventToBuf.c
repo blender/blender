@@ -208,7 +208,8 @@ void event_to_buf(GHOST_EventHandle evt, char buf[128])
 		char *s= GHOST_GetTitle(win);
 		pos += sprintf(pos, " - win: %s", s);
 		free(s);
-	} else {
+	}
+	else {
 		pos+= sprintf(pos, " - sys evt");
 	}
 	switch (type) {

@@ -179,9 +179,10 @@ public:
 			return;
 		}
 
-		if(getDataSize) {
+		if (getDataSize) {
 			mem_in_use = total_size();
-		} else {
+		}
+		else {
 			mem_in_use = MEM_get_memory_in_use();
 		}
 
@@ -196,16 +197,18 @@ public:
 
 			priority_queue.pop();
 
-			if(getDataSize) {
+			if (getDataSize) {
 				cur_size = getDataSize(elem->get()->get_data());
-			} else {
+			}
+			else {
 				cur_size = mem_in_use;
 			}
 
 			if (elem->destroy_if_possible()) {
 				if (getDataSize) {
 					mem_in_use -= cur_size;
-				} else {
+				}
+				else {
 					mem_in_use -= cur_size - MEM_get_memory_in_use();
 				}
 			}
