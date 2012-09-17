@@ -32,7 +32,7 @@
 	__attribute__((nonnull(1))) \
 	__attribute__((pure))
 #else
-#  define ATTR_NONULL
+#  define ATTR_ENDIAN_SWITCH
 #endif
 
 /* BLI_endian_switch_inline.h */
