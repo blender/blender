@@ -312,14 +312,6 @@ public:
 		foreach(SubDevice& sub, devices)
 			sub.device->task_cancel();
 	}
-
-	bool task_cancelled()
-	{
-		foreach(SubDevice& sub, devices)
-			if (sub.device->task_cancelled())
-				return true;
-		return false;
-	}
 };
 
 Device *device_multi_create(DeviceInfo& info, bool background)

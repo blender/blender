@@ -892,11 +892,6 @@ public:
 	{
 		task_pool.cancel();
 	}
-
-	bool task_cancelled()
-	{
-		return task_pool.cancelled();
-	}
 };
 
 Device *device_cuda_create(DeviceInfo& info, bool background)
