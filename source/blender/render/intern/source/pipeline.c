@@ -1677,9 +1677,14 @@ static void do_render_seq(Render *re)
 
 	out = BKE_sequencer_give_ibuf(context, cfra, 0);
 
-	ibuf = IMB_dupImBuf(out);
-	IMB_freeImBuf(out);
-	BKE_sequencer_imbuf_from_sequencer_space(re->scene, ibuf);
+	if (out) {
+		ibuf = IMB_dupImBuf(out);
+		IMB_freeImBuf(out);
+		BKE_sequencer_imbuf_from_sequencer_space(re->scene, ibuf);
+	}
+	else {
+		ibuf = NULL;
+	}
 
 	recurs_depth--;
 
