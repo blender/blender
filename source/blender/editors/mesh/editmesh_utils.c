@@ -535,6 +535,16 @@ static void *getEditMesh(bContext *C)
 typedef struct UndoMesh {
 	Mesh me;
 	int selectmode;
+
+	/** \note
+	 * this isn't a prefect solution, if you edit keys and change shapes this works well (fixing [#32442]),
+	 * but editing shape keys, going into object mode, removing or changing their order,
+	 * then go back into editmode and undo will give issues - where the old index will be out of sync
+	 * with the new object index.
+	 *
+	 * There are a few ways this could be made to work but for now its a known limitation with mixing
+	 * object and editmode operations - Campbell */
+	int shapenr;
 } UndoMesh;
 
 /* undo simply makes copies of a bmesh */
@@ -553,6 +563,7 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	BM_mesh_bm_to_me(em->bm, &um->me, FALSE);
 
 	um->selectmode = em->selectmode;
+	um->shapenr = em->bm->shapenr;
 
 	return um;
 }
@@ -564,7 +575,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *UNUSED(obdata))
 	UndoMesh *um = umv;
 	BMesh *bm;
 
-	ob->shapenr = em->bm->shapenr;
+	ob->shapenr = em->bm->shapenr = um->shapenr;
 
 	EDBM_mesh_free(em);
 
