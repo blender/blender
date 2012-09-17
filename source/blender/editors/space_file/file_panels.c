@@ -152,9 +152,14 @@ static void file_panel_bookmarks(const bContext *C, Panel *pa)
 static void file_panel_recent(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
+	uiLayout *row;
 
 	if (sfile) {
 		if (!(U.uiflag & USER_HIDE_RECENT) ) {
+			row = uiLayoutRow(pa->layout, FALSE);
+			uiItemO(row, IFACE_("Reset"), ICON_X, "file.reset_recent");
+			uiItemL(row, NULL, ICON_NONE);
+
 			file_panel_category(C, pa, FS_CATEGORY_RECENT, &sfile->recentnr, ICON_FILE_FOLDER, 0);
 		}
 	}

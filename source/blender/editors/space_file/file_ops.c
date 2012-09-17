@@ -515,6 +515,35 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
 }
 
+static int reset_recent_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	char name[FILE_MAX];
+	struct FSMenu *fsmenu = fsmenu_get();
+	
+	while (fsmenu_get_entry(fsmenu, FS_CATEGORY_RECENT, 0) != NULL) {
+		fsmenu_remove_entry(fsmenu, FS_CATEGORY_RECENT, 0);
+	}
+	BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+	fsmenu_write_file(fsmenu, name);
+	ED_area_tag_redraw(sa);
+		
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_reset_recent(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Reset Recent";
+	ot->description = "Reset Recent files";
+	ot->idname = "FILE_OT_reset_recent";
+	
+	/* api callbacks */
+	ot->exec = reset_recent_exec;
+	ot->poll = ED_operator_file_active;
+
+}
+
 int file_highlight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 {
 	View2D *v2d = &ar->v2d;
