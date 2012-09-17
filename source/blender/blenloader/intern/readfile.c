@@ -6289,6 +6289,14 @@ static void direct_link_mask(FileData *fd, Mask *mask)
 
 		for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
 			masklay_shape->data = newdataadr(fd, masklay_shape->data);
+
+			if (masklay_shape->tot_vert) {
+				if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+					BLI_endian_switch_float_array(masklay_shape->data,
+					                              masklay_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+
+				}
+			}
 		}
 
 		masklay->act_spline = newdataadr(fd, masklay->act_spline);
