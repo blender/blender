@@ -36,7 +36,7 @@ CCL_NAMESPACE_BEGIN
 
 Session::Session(const SessionParams& params_)
 : params(params_),
-  tile_manager(params.progressive, params.samples, params.tile_size, params.resolution,
+  tile_manager(params.progressive, params.samples, params.tile_size, params.start_resolution,
   	(params.background)? 1: max(params.device.multi_devices.size(), 1))
 {
 	device_use_gl = ((params.device.type != DEVICE_CPU) && !params.background);
@@ -343,7 +343,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 	rtile.h = tile.h;
 	rtile.start_sample = tile_manager.state.sample;
 	rtile.num_samples = tile_manager.state.num_samples;
-	rtile.resolution = tile_manager.state.resolution;
+	rtile.resolution = tile_manager.state.resolution_divider;
 
 	tile_lock.unlock();
 
@@ -668,7 +668,7 @@ void Session::update_scene()
 void Session::update_status_time(bool show_pause, bool show_done)
 {
 	int sample = tile_manager.state.sample;
-	int resolution = tile_manager.state.resolution;
+	int resolution = tile_manager.state.resolution_divider;
 	int num_tiles = tile_manager.state.num_tiles;
 	int tile = tile_manager.state.num_rendered_tiles;
 
@@ -757,7 +757,7 @@ void Session::tonemap()
 	task.rgba = display->rgba.device_pointer;
 	task.buffer = buffers->buffer.device_pointer;
 	task.sample = tile_manager.state.sample;
-	task.resolution = tile_manager.state.resolution;
+	task.resolution = tile_manager.state.resolution_divider;
 	tile_manager.state.buffer.get_offset_stride(task.offset, task.stride);
 
 	if(task.w > 0 && task.h > 0) {

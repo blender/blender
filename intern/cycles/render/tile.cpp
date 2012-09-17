@@ -23,11 +23,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-TileManager::TileManager(bool progressive_, int num_samples_, int2 tile_size_, int resolution_, int num_devices_)
+TileManager::TileManager(bool progressive_, int num_samples_, int2 tile_size_, int start_resolution_, int num_devices_)
 {
 	progressive = progressive_;
 	tile_size = tile_size_;
-	resolution = resolution_;
+	start_resolution = start_resolution_;
 	num_devices = num_devices_;
 
 	BufferParams buffer_params;
@@ -42,6 +42,18 @@ void TileManager::reset(BufferParams& params_, int num_samples_)
 {
 	params = params_;
 
+	int divider = 1;
+	int w = params.width, h = params.height;
+
+	if(start_resolution != INT_MAX) {
+		while(w*h > start_resolution*start_resolution) {
+			w = max(1, w/2); 
+			h = max(1, h/2); 
+
+			divider *= 2;
+		}
+	}
+
 	num_samples = num_samples_;
 
 	state.buffer = BufferParams();
@@ -49,7 +61,7 @@ void TileManager::reset(BufferParams& params_, int num_samples_)
 	state.num_tiles = 0;
 	state.num_rendered_tiles = 0;
 	state.num_samples = 0;
-	state.resolution = resolution;
+	state.resolution_divider = divider;
 	state.tiles.clear();
 }
 
@@ -60,7 +72,7 @@ void TileManager::set_samples(int num_samples_)
 
 void TileManager::set_tiles()
 {
-	int resolution = state.resolution;
+	int resolution = state.resolution_divider;
 	int image_w = max(1, params.width/resolution);
 	int image_h = max(1, params.height/resolution);
 
@@ -104,7 +116,7 @@ list<Tile>::iterator TileManager::next_center_tile(int device)
 {
 	list<Tile>::iterator iter, best = state.tiles.end();
 
-	int resolution = state.resolution;
+	int resolution = state.resolution_divider;
 	int image_w = max(1, params.width/resolution);
 	int image_h = max(1, params.height/resolution);
 
@@ -167,7 +179,7 @@ bool TileManager::next_tile(Tile& tile, int device)
 
 bool TileManager::done()
 {
-	return (state.sample+state.num_samples >= num_samples && state.resolution == 1);
+	return (state.sample+state.num_samples >= num_samples && state.resolution_divider == 1);
 }
 
 bool TileManager::next()
@@ -175,9 +187,9 @@ bool TileManager::next()
 	if(done())
 		return false;
 
-	if(progressive && state.resolution > 1) {
+	if(progressive && state.resolution_divider > 1) {
 		state.sample = 0;
-		state.resolution /= 2;
+		state.resolution_divider /= 2;
 		state.num_samples = 1;
 		set_tiles();
 	}
@@ -189,7 +201,7 @@ bool TileManager::next()
 		else
 			state.num_samples = num_samples;
 
-		state.resolution = 1;
+		state.resolution_divider = 1;
 		set_tiles();
 	}
 

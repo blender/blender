@@ -216,7 +216,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
 
         sub = col.column(align=True)
         sub.label(text="Viewport:")
-        sub.prop(cscene, "resolution_divider")
+        sub.prop(cscene, "preview_start_resolution")
 
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):

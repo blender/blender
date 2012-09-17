@@ -368,7 +368,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 		params.tile_size = make_int2(tile_x, tile_y);
 	}
 
-	params.resolution = 1 << get_int(cscene, "resolution_divider");
+	params.start_resolution = get_int(cscene, "preview_start_resolution");
 
 	/* other parameters */
 	params.threads = b_scene.render().threads();
@@ -379,7 +379,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 
 	if(background) {
 		params.progressive = false;
-		params.resolution = 1;
+		params.start_resolution = INT_MAX;
 	}
 	else
 		params.progressive = true;
