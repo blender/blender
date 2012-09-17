@@ -164,14 +164,22 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const c
 	FSMenuEntry *prev;
 	FSMenuEntry *fsme;
 	FSMenuEntry *fsms;
+	FSMenuEntry *fsms_first;
 
 	fsms = fsmenu_get_category(fsmenu, category);
-	prev = fsme = fsms;
+	prev = fsme = fsms_first = fsms;
 
 	for (; fsme; prev = fsme, fsme = fsme->next) {
 		if (fsme->path) {
 			const int cmp_ret = BLI_path_cmp(path, fsme->path);
 			if (cmp_ret == 0) {
+				if (FS_INSERT_FIRST) {
+					if (fsme != fsms_first) {
+						prev->next = fsme->next;
+						fsme->next = fsms_first;
+						fsmenu_set_category(fsmenu, category, fsme);
+					}
+				}
 				return;
 			}
 			else if ((flag & FS_INSERT_SORTED) && cmp_ret < 0) {

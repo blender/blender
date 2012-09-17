@@ -770,8 +770,9 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 		file_sfile_to_operator(op, sfile, filepath);
 
-		if (BLI_exists(sfile->params->dir))
-			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, FS_INSERT_SAVE);
+		if (BLI_exists(sfile->params->dir)) {
+			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, FS_INSERT_SAVE | FS_INSERT_FIRST);
+		}
 
 		BLI_make_file_string(G.main->name, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);
