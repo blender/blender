@@ -360,7 +360,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			FSRefMakePath(&dir, path, FILE_MAX);
 			if (strcmp((char *)path, "/home") && strcmp((char *)path, "/net")) {
 				/* /net and /home are meaningless on OSX, home folders are stored in /Users */
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, FS_INSERT_SORTED);
 			}
 		}
 
@@ -370,26 +370,26 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 		home = getenv("HOME");
 		if (read_bookmarks && home) {
 			BLI_snprintf(line, 256, "%s/", home);
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, FS_INSERT_SORTED);
 			BLI_snprintf(line, 256, "%s/Desktop/", home);
 			if (BLI_exists(line)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
 			BLI_snprintf(line, 256, "%s/Documents/", home);
 			if (BLI_exists(line)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
 			BLI_snprintf(line, 256, "%s/Pictures/", home);
 			if (BLI_exists(line)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
 			BLI_snprintf(line, 256, "%s/Music/", home);
 			if (BLI_exists(line)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
 			BLI_snprintf(line, 256, "%s/Movies/", home);
 			if (BLI_exists(line)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, FS_INSERT_SORTED);
 			}
 		}
 #else
@@ -422,7 +422,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			
 			if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
 				continue;
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, 1, 0);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, FS_INSERT_SORTED);
 			
 			CFRelease(pathString);
 			CFRelease(cfURL);
@@ -449,7 +449,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			
 			
 			FSRefMakePath(&dir, path, FILE_MAX);
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, FS_INSERT_SORTED);
 		}
 		
 		/* Finally get user favorite places */
@@ -472,7 +472,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				
 				if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
 					continue;
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, FS_INSERT_SORTED);
 				
 				CFRelease(pathString);
 				CFRelease(cfURL);
