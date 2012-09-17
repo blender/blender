@@ -965,14 +965,19 @@ static void ui_text_clip_give_next_off(uiBut *but)
 	but->ofs += bytes;
 }
 
-/* sets but->ofs to make sure text is correctly visible */
+/**
+ * Cut off the start of the text to fit into the width of \a rect
+ *
+ * \note Sets but->ofs to make sure text is correctly visible.
+ * \note Clips right in some cases, this function could be cleaned up.
+ */
 static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 {
 	int border = (but->flag & UI_BUT_ALIGN_RIGHT) ? 8 : 10;
 	int okwidth = BLI_rcti_size_x(rect) - border;
 	
 	if (but->flag & UI_HAS_ICON) okwidth -= UI_DPI_ICON_SIZE;
-	
+
 	/* need to set this first */
 	uiStyleFontSet(fstyle);
 	
@@ -984,10 +989,13 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		if (but->ofs > but->pos)
 			but->ofs = but->pos;
 
-		if (BLF_width(fstyle->uifont_id, but->drawstr) <= okwidth)
+		if (BLF_width(fstyle->uifont_id, but->drawstr) <= okwidth) {
 			but->ofs = 0;
+		}
 	}
-	else but->ofs = 0;
+	else {
+		but->ofs = 0;
+	}
 	
 	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
 	
@@ -1005,8 +1013,9 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 			width = BLF_width(fstyle->uifont_id, buf + but->ofs);
 			
 			/* if cursor is at 20 pixels of right side button we clip left */
-			if (width > okwidth - 20)
+			if (width > okwidth - 20) {
 				ui_text_clip_give_next_off(but);
+			}
 			else {
 				int len, bytes;
 				/* shift string to the left */
@@ -1017,24 +1026,32 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 				but->drawstr[len - bytes] = 0;
 			}
 		}
-		else
+		else {
 			ui_text_clip_give_next_off(but);
+		}
 
 		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
 		
 		if (but->strwidth < 10) break;
 	}
-	
-	if (fstyle->kerning == 1)
+
+	if (fstyle->kerning == 1) {
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+	}
 }
 
+/**
+ * Cut off the end of text to fit into the width of \a rect.
+ *
+ * \note deals with ': ' especially for number buttons
+ */
 static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 {
 	int border = (but->flag & UI_BUT_ALIGN_RIGHT) ? 8 : 10;
 	int okwidth = BLI_rcti_size_x(rect) - border;
 	char *cpoin = NULL;
-	char *cpend = but->drawstr + strlen(but->drawstr);
+	int drawstr_len = strlen(but->drawstr);
+	char *cpend = but->drawstr + drawstr_len;
 	
 	/* need to set this first */
 	uiStyleFontSet(fstyle);
@@ -1045,6 +1062,13 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr);
 	but->ofs = 0;
 	
+
+	/* First shorten num-buttopns eg,
+	 *   Translucency: 0.000
+	 * becomes
+	 *   Trans: 0.000
+	 */
+
 	/* find the space after ':' separator */
 	cpoin = strrchr(but->drawstr, ':');
 	
@@ -1057,8 +1081,11 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 			int bytes = cp2 - prev_utf8;
 
 			/* shift the text after and including cp2 back by 1 char, +1 to include null terminator */
-			memmove(cp2 - bytes, cp2, strlen(cp2) + 1);
+			memmove(cp2 - bytes, cp2, drawstr_len + 1);
 			cp2 -= bytes;
+
+			drawstr_len -= bytes;
+			// BLI_assert(strlen(but->drawstr) == drawstr_len);
 			
 			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
 			if (but->strwidth < 10) break;
@@ -1074,14 +1101,17 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		
 	}
 
+
+	/* Now just remove trailing chars */
 	/* once the label's gone, chop off the least significant digits */
 	while (but->strwidth > okwidth) {
-		int len = strlen(but->drawstr);
-		int bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->drawstr, but->drawstr + len));
+		int bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->drawstr, but->drawstr + drawstr_len));
 		if (bytes < 0)
 			bytes = 1;
 
-		but->drawstr[len - bytes] = 0;
+		drawstr_len -= bytes;
+		but->drawstr[drawstr_len] = 0;
+		// BLI_assert(strlen(but->drawstr) == drawstr_len);
 		
 		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
 		if (but->strwidth < 10) break;
