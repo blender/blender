@@ -971,11 +971,10 @@ static void ui_text_clip_give_next_off(uiBut *but)
  * \note Sets but->ofs to make sure text is correctly visible.
  * \note Clips right in some cases, this function could be cleaned up.
  */
-static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
+static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 {
 	int border = (but->flag & UI_BUT_ALIGN_RIGHT) ? 8 : 10;
 	int okwidth = BLI_rcti_size_x(rect) - border;
-	
 	if (but->flag & UI_HAS_ICON) okwidth -= UI_DPI_ICON_SIZE;
 
 	/* need to set this first */
@@ -984,34 +983,55 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	if (fstyle->kerning == 1) /* for BLF_width */
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 
-	/* if text editing we define ofs dynamically */
-	if (but->editstr && but->pos >= 0) {
+	but->ofs = 0;
+	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr);
+
+	while (but->strwidth > okwidth) {
+		ui_text_clip_give_next_off(but);
+		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+		if (but->strwidth < 10) break;
+	}
+
+	if (fstyle->kerning == 1) {
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+	}
+}
+
+/**
+ * Cut off the text, taking into account the cursor location (text display while editing).
+ */
+static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, rcti *rect)
+{
+	int border = (but->flag & UI_BUT_ALIGN_RIGHT) ? 8 : 10;
+	int okwidth = BLI_rcti_size_x(rect) - border;
+	if (but->flag & UI_HAS_ICON) okwidth -= UI_DPI_ICON_SIZE;
+
+	BLI_assert(but->editstr && but->pos >= 0);
+
+	/* need to set this first */
+	uiStyleFontSet(fstyle);
+
+	if (fstyle->kerning == 1) /* for BLF_width */
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+
+	if ((but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr)) <= okwidth) {
+		but->ofs = 0;
+	}
+	else {
+		/* define ofs dynamically */
 		if (but->ofs > but->pos)
 			but->ofs = but->pos;
 
-		if (BLF_width(fstyle->uifont_id, but->drawstr) <= okwidth) {
-			but->ofs = 0;
-		}
-	}
-	else {
-		but->ofs = 0;
-	}
-	
-	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
-	
-	while (but->strwidth > okwidth) {
-		
-		/* textbut exception, clip right when... */
-		if (but->editstr && but->pos >= 0) {
+		while (but->strwidth > okwidth) {
 			float width;
 			char buf[UI_MAX_DRAW_STR];
-			
+
 			/* copy draw string */
 			BLI_strncpy_utf8(buf, but->drawstr, sizeof(buf));
 			/* string position of cursor */
 			buf[but->pos] = 0;
 			width = BLF_width(fstyle->uifont_id, buf + but->ofs);
-			
+
 			/* if cursor is at 20 pixels of right side button we clip left */
 			if (width > okwidth - 20) {
 				ui_text_clip_give_next_off(but);
@@ -1025,14 +1045,11 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 				bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->drawstr, but->drawstr + len));
 				but->drawstr[len - bytes] = 0;
 			}
-		}
-		else {
-			ui_text_clip_give_next_off(but);
-		}
 
-		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
-		
-		if (but->strwidth < 10) break;
+			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+
+			if (but->strwidth < 10) break;
+		}
 	}
 
 	if (fstyle->kerning == 1) {
@@ -1045,7 +1062,7 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
  *
  * \note deals with ': ' especially for number buttons
  */
-static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
+static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 {
 	int border = (but->flag & UI_BUT_ALIGN_RIGHT) ? 8 : 10;
 	int okwidth = BLI_rcti_size_x(rect) - border;
@@ -1259,30 +1276,31 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 /* draws text and icons for buttons */
 static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
-	
-	if (but == NULL) return;
+	if (but == NULL) {
+		return;
+	}
 
 	/* clip but->drawstr to fit in available space */
 	if (but->editstr && but->pos >= 0) {
-		ui_text_leftclip(fstyle, but, rect);
+		ui_text_clip_cursor(fstyle, but, rect);
 	}
 	else if (ELEM4(but->type, NUM, NUMABS, NUMSLI, SLI)) {
-		ui_text_label_rightclip(fstyle, but, rect);
+		ui_text_clip_right_label(fstyle, but, rect);
 	}
 	else if (ELEM(but->type, TEX, SEARCH_MENU)) {
-		ui_text_leftclip(fstyle, but, rect);
+		ui_text_clip_left(fstyle, but, rect);
 	}
 	else if ((but->block->flag & UI_BLOCK_LOOP) && (but->type == BUT)) {
-		ui_text_leftclip(fstyle, but, rect);
+		ui_text_clip_left(fstyle, but, rect);
 	}
 	else but->ofs = 0;
-	
+
 	/* check for button text label */
 	if (but->type == ICONTEXTROW) {
 		widget_draw_icon(but, (BIFIconID) (but->icon + but->iconadd), 1.0f, rect);
 	}
 	else {
-				
+
 		if (but->type == BUT_TOGDUAL) {
 			int dualset = 0;
 			if (but->pointype == UI_BUT_POIN_SHORT) {
@@ -1291,7 +1309,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			else if (but->pointype == UI_BUT_POIN_INT) {
 				dualset = UI_BITBUT_TEST(*(((int *)but->poin) + 1), but->bitnr);
 			}
-			
+
 			widget_draw_icon(but, ICON_DOT, dualset ? 1.0f : 0.25f, rect);
 		}
 		else if (but->type == MENU && (but->flag & UI_BUT_NODE_LINK)) {
@@ -1300,21 +1318,21 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			widget_draw_icon(but, ICON_LAYER_USED, 1.0f, rect);
 			rect->xmin = tmp;
 		}
-		
+
 		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
 		 * and offset the text label to accommodate it */
-		
+
 		if (but->flag & UI_HAS_ICON) {
 			widget_draw_icon(but, but->icon + but->iconadd, 1.0f, rect);
-			
+
 			rect->xmin += (int)((float)UI_icon_get_width(but->icon + but->iconadd) * UI_DPI_ICON_FAC);
-			
-			if (but->editstr || (but->flag & UI_TEXT_LEFT)) 
+
+			if (but->editstr || (but->flag & UI_TEXT_LEFT))
 				rect->xmin += 5;
 		}
-		else if ((but->flag & UI_TEXT_LEFT)) 
+		else if ((but->flag & UI_TEXT_LEFT))
 			rect->xmin += 5;
-		
+
 		/* always draw text for textbutton cursor */
 		widget_draw_text(fstyle, wcol, but, rect);
 
