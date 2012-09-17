@@ -1944,8 +1944,9 @@ void BKE_mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpo
 		MVert *mv = &mverts[i];
 		float *no = tnorms[i];
 
-		if (normalize_v3(no) == 0.0f)
+		if (UNLIKELY(normalize_v3(no) == 0.0f)) {
 			normalize_v3_v3(no, mv->co);
+		}
 
 		normal_float_to_short_v3(mv->no, no);
 	}
@@ -1981,8 +1982,9 @@ void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, 
 		MVert *mv = &mverts[i];
 		float *no = tnorms[i];
 		
-		if (normalize_v3(no) == 0.0f)
+		if (UNLIKELY(normalize_v3(no) == 0.0f)) {
 			normalize_v3_v3(no, mv->co);
+		}
 
 		normal_float_to_short_v3(mv->no, no);
 	}

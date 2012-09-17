@@ -282,7 +282,7 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 		if (skip_hidden && BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
-		if (normalize_v3(v->no) == 0.0f) {
+		if (UNLIKELY(normalize_v3(v->no) == 0.0f)) {
 			normalize_v3_v3(v->no, v->co);
 		}
 	}

@@ -1253,7 +1253,7 @@ int BMO_error_occurred(BMesh *bm)
 	return bm->errorstack.first != NULL;
 }
 
-/* returns error code or 0 if no erro */
+/* returns error code or 0 if no error */
 int BMO_error_get(BMesh *bm, const char **msg, BMOperator **op)
 {
 	BMOpError *err = bm->errorstack.first;
