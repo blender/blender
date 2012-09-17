@@ -328,16 +328,16 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				tmps[2] = '\\';
 				tmps[3] = 0;
 				
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, 1, 0);
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, FS_INSERT_SORTED);
 			}
 		}
 
 		/* Adding Desktop and My Documents */
 		if (read_bookmarks) {
 			SHGetSpecialFolderPath(0, line, CSIDL_PERSONAL, 0);
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, FS_INSERT_SORTED);
 			SHGetSpecialFolderPath(0, line, CSIDL_DESKTOPDIRECTORY, 0);
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, FS_INSERT_SORTED);
 		}
 	}
 #else
