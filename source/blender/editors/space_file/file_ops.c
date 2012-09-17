@@ -459,7 +459,7 @@ static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
 	if (params->dir[0] != '\0') {
 		char name[FILE_MAX];
 	
-		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, 0, 1);
+		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, FS_INSERT_SAVE);
 		BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu, name);
 	}
@@ -771,7 +771,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		file_sfile_to_operator(op, sfile, filepath);
 
 		if (BLI_exists(sfile->params->dir))
-			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, 0, 1);
+			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, FS_INSERT_SAVE);
 
 		BLI_make_file_string(G.main->name, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);

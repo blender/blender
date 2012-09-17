@@ -43,6 +43,11 @@ typedef enum FSMenuCategory {
 	FS_CATEGORY_RECENT
 } FSMenuCategory;
 
+typedef enum FSMenuInsert {
+	FS_INSERT_SORTED = (1 << 0),
+	FS_INSERT_SAVE   = (1 << 1)
+} FSMenuInsert;
+
 struct FSMenu;
 
 struct FSMenu *fsmenu_get(void);
@@ -59,7 +64,7 @@ char *fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category, int index
  * Duplicate entries are not added.
  * \param sorted Should entry be inserted in sorted order?
  */
-void    fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const char *path, int sorted, short save);
+void    fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const char *path, const FSMenuInsert flag);
 
 /** Return whether the entry was created by the user and can be saved and deleted */
 short   fsmenu_can_save(struct FSMenu *fsmenu, FSMenuCategory category, int index);
