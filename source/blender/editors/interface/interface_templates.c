@@ -35,6 +35,7 @@
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_utildefines.h"
@@ -427,8 +428,15 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			               TIP_("Display number of users of this data (click to make a single-user copy)"));
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
-			if (!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib) || !editable)
+			if (/* test only */
+			    (id_copy(id, NULL, 1) == FALSE) ||
+			    (idfrom && idfrom->lib) ||
+			    (editable == FALSE) ||
+			    /* object in editmode - don't change data */
+			    (idfrom && GS(idfrom->name) == ID_OB && (((Object *)idfrom)->mode & OB_MODE_EDIT)))
+			{
 				uiButSetFlag(but, UI_BUT_DISABLED);
+			}
 		}
 	
 		if (user_alert) uiButSetFlag(but, UI_BUT_REDALERT);
