@@ -175,7 +175,7 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const c
 		if (fsm_iter->path) {
 			const int cmp_ret = BLI_path_cmp(path, fsm_iter->path);
 			if (cmp_ret == 0) {
-				if (FS_INSERT_FIRST) {
+				if (flag & FS_INSERT_FIRST) {
 					if (fsm_iter != fsm_head) {
 						fsm_prev->next = fsm_iter->next;
 						fsm_iter->next = fsm_head;
