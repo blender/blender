@@ -76,10 +76,12 @@ set(SRC
 	IMB_thumbs.h
 	intern/IMB_allocimbuf.h
 	intern/IMB_anim.h
+	intern/IMB_colormanagement_intern.h
 	intern/IMB_filetype.h
 	intern/IMB_filter.h
 	intern/IMB_indexer.h
 	intern/IMB_metadata.h
+	intern/imbuf.h
 	intern/cineon/cin_debug_stuff.h
 	intern/cineon/cineonfile.h
 	intern/cineon/cineonlib.h
@@ -97,7 +99,6 @@ set(SRC
 	intern/dds/PixelFormat.h
 	intern/dds/Stream.h
 	intern/dds/dds_api.h
-	intern/imbuf.h
 	intern/openexr/openexr_api.h
 	intern/openexr/openexr_multi.h
 	

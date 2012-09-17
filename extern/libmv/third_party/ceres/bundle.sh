@@ -145,7 +145,7 @@ if(WIN32)
 
 	if(NOT MINGW)
 		list(APPEND INC
-			third_party/msinttypes
+			../msinttypes
 		)
 	endif()
 else()
