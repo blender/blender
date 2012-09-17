@@ -1043,14 +1043,6 @@ void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
 			}
 		}
 	}
-	else if (event == CLAMP_SEARCH_DIM) {
-		float dim[2];
-		sub_v2_v2v2(dim, pat_max, pat_min);
-		for (a = 0; a < 2; a++) {
-			marker->search_min[a] = pat_min[a];
-			marker->search_max[a] = pat_max[a];
-		}
-	}
 }
 
 MovieTrackingMarker *BKE_tracking_marker_get(MovieTrackingTrack *track, int framenr)
