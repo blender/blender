@@ -411,11 +411,14 @@ static void colormanage_cache_handle_release(void *cache_handle)
 
 /*********************** Initialization / De-initialization *************************/
 
-static void colormanage_role_color_space_name_get(ConstConfigRcPtr *config, char *colorspace_name, const char *role)
+static void colormanage_role_color_space_name_get(ConstConfigRcPtr *config, char *colorspace_name, const char *role, const char *backup_role)
 {
 	ConstColorSpaceRcPtr *ociocs;
 
 	ociocs = OCIO_configGetColorSpace(config, role);
+
+	if (!ociocs && backup_role)
+		ociocs = OCIO_configGetColorSpace(config, backup_role);
 
 	if (ociocs) {
 		const char *name = OCIO_colorSpaceGetName(ociocs);
@@ -435,12 +438,12 @@ static void colormanage_load_config(ConstConfigRcPtr *config)
 	const char *name;
 
 	/* get roles */
-	colormanage_role_color_space_name_get(config, global_role_scene_linear, OCIO_ROLE_SCENE_LINEAR);
-	colormanage_role_color_space_name_get(config, global_role_color_picking, OCIO_ROLE_COLOR_PICKING);
-	colormanage_role_color_space_name_get(config, global_role_texture_painting, OCIO_ROLE_TEXTURE_PAINT);
-	colormanage_role_color_space_name_get(config, global_role_default_sequencer, OCIO_ROLE_DEFAULT_SEQUENCER);
-	colormanage_role_color_space_name_get(config, global_role_default_byte, OCIO_ROLE_DEFAULT_BYTE);
-	colormanage_role_color_space_name_get(config, global_role_default_float, OCIO_ROLE_DEFAULT_FLOAT);
+	colormanage_role_color_space_name_get(config, global_role_scene_linear, OCIO_ROLE_SCENE_LINEAR, NULL);
+	colormanage_role_color_space_name_get(config, global_role_color_picking, OCIO_ROLE_COLOR_PICKING, NULL);
+	colormanage_role_color_space_name_get(config, global_role_texture_painting, OCIO_ROLE_TEXTURE_PAINT, NULL);
+	colormanage_role_color_space_name_get(config, global_role_default_sequencer, OCIO_ROLE_DEFAULT_SEQUENCER, OCIO_ROLE_SCENE_LINEAR);
+	colormanage_role_color_space_name_get(config, global_role_default_byte, OCIO_ROLE_DEFAULT_BYTE, OCIO_ROLE_TEXTURE_PAINT);
+	colormanage_role_color_space_name_get(config, global_role_default_float, OCIO_ROLE_DEFAULT_FLOAT, OCIO_ROLE_SCENE_LINEAR);
 
 	/* load colorspaces */
 	tot_colorspace = OCIO_configGetNumColorSpaces(config);
@@ -793,10 +796,12 @@ static void init_default_view_settings(const ColorManagedDisplaySettings *displa
                                        ColorManagedViewSettings *view_settings)
 {
 	ColorManagedDisplay *display;
-	ColorManagedView *default_view;
+	ColorManagedView *default_view = NULL;
 
 	display = colormanage_display_get_named(display_settings->display_device);
-	default_view = colormanage_view_get_default(display);
+
+	if (display)
+		default_view = colormanage_view_get_default(display);
 
 	if (default_view)
 		BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
@@ -878,11 +883,13 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
                                             ColorManagedViewSettings *view_settings, const char *what)
 {
 	ColorManagedDisplay *display;
-	ColorManagedView *default_view;
+	ColorManagedView *default_view = NULL;
 
 	if (view_settings->view_transform[0] == '\0') {
 		display = colormanage_display_get_named(display_settings->display_device);
-		default_view = colormanage_view_get_default(display);
+
+		if (display)
+			default_view = colormanage_view_get_default(display);
 
 		if (default_view)
 			BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
@@ -892,7 +899,9 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
 
 		if (!view) {
 			display = colormanage_display_get_named(display_settings->display_device);
-			default_view = colormanage_view_get_default(display);
+
+			if (display)
+				default_view = colormanage_view_get_default(display);
 
 			if (default_view) {
 				printf("Color management: %s view \"%s\" not found, setting default \"%s\".\n",
@@ -974,11 +983,13 @@ void IMB_colormanagement_validate_settings(ColorManagedDisplaySettings *display_
                                            ColorManagedViewSettings *view_settings)
 {
 	ColorManagedDisplay *display;
-	ColorManagedView *default_view;
+	ColorManagedView *default_view = NULL;
 	LinkData *view_link;
 
 	display = colormanage_display_get_named(display_settings->display_device);
-	default_view = colormanage_view_get_default(display);
+
+	if (display)
+		default_view = colormanage_view_get_default(display);
 
 	for (view_link = display->views.first; view_link; view_link = view_link->next) {
 		ColorManagedView *view = view_link->data;
@@ -987,7 +998,7 @@ void IMB_colormanagement_validate_settings(ColorManagedDisplaySettings *display_
 			break;
 	}
 
-	if (view_link == NULL)
+	if (view_link == NULL && default_view)
 		BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
 }
 
@@ -1894,11 +1905,13 @@ const char *IMB_colormanagement_view_get_indexed_name(int index)
 const char *IMB_colormanagement_view_get_default_name(const char *display_name)
 {
 	ColorManagedDisplay *display = colormanage_display_get_named(display_name);
-	ColorManagedView *view = colormanage_view_get_default(display);
+	ColorManagedView *view = NULL;
+	
+	if (display)
+		view = colormanage_view_get_default(display);
 
-	if (view) {
+	if (view)
 		return view->name;
-	}
 
 	return NULL;
 }
@@ -2287,7 +2300,8 @@ void IMB_colormanagement_processor_apply_v4(ColormanageProcessor *cm_processor, 
 	if (cm_processor->curve_mapping)
 		curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
 
-	OCIO_processorApplyRGBA(cm_processor->processor, pixel);
+	if (cm_processor->processor)
+		OCIO_processorApplyRGBA(cm_processor->processor, pixel);
 }
 
 void IMB_colormanagement_processor_apply_v3(ColormanageProcessor *cm_processor, float pixel[3])
@@ -2295,7 +2309,8 @@ void IMB_colormanagement_processor_apply_v3(ColormanageProcessor *cm_processor, 
 	if (cm_processor->curve_mapping)
 		curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
 
-	OCIO_processorApplyRGB(cm_processor->processor, pixel);
+	if (cm_processor->processor)
+		OCIO_processorApplyRGB(cm_processor->processor, pixel);
 }
 
 void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, float *buffer, int width, int height,
@@ -2314,7 +2329,7 @@ void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, flo
 		}
 	}
 
-	{
+	if (cm_processor->processor) {
 		PackedImageDesc *img;
 
 		/* apply OCIO processor */
@@ -2334,8 +2349,8 @@ void IMB_colormanagement_processor_free(ColormanageProcessor *cm_processor)
 {
 	if (cm_processor->curve_mapping)
 		curvemapping_free(cm_processor->curve_mapping);
-
-	OCIO_processorRelease(cm_processor->processor);
+	if (cm_processor->processor)
+		OCIO_processorRelease(cm_processor->processor);
 
 	MEM_freeN(cm_processor);
 }
