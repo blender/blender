@@ -37,8 +37,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-extern EnumPropertyItem blend_mode_items[];
-
 #ifdef RNA_RUNTIME
 
 //#include "DNA_anim_types.h"

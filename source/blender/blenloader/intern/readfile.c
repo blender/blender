@@ -2717,6 +2717,16 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 
 /* ************ READ keys ***************** */
 
+static void do_versions_key_uidgen(Key *key)
+{
+	KeyBlock *block;
+
+	key->uidgen = 1;
+	for (block = key->block.first; block; block = block->next) {
+		block->uid = key->uidgen++;
+	}
+}
+
 static void lib_link_key(FileData *fd, Main *main)
 {
 	Key *key;
@@ -2724,12 +2734,7 @@ static void lib_link_key(FileData *fd, Main *main)
 	for (key = main->key.first; key; key = key->id.next) {
 		/*check if we need to generate unique ids for the shapekeys*/
 		if (!key->uidgen) {
-			KeyBlock *block;
-			
-			key->uidgen = 1;
-			for (block=key->block.first; block; block=block->next) {
-				block->uid = key->uidgen++;
-			}
+			do_versions_key_uidgen(key);
 		}
 		
 		if (key->id.flag & LIB_NEED_LINK) {
@@ -7971,6 +7976,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				BLI_strncpy(ima->colorspace_settings.name, "Raw", sizeof(ima->colorspace_settings.name));
 			}
+		}
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 20)) {
+		Key *key;
+		for (key = main->key.first; key; key = key->id.next) {
+			do_versions_key_uidgen(key);
 		}
 	}
 

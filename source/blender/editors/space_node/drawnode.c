@@ -69,9 +69,6 @@
 
 #include "node_intern.h"  /* own include */
 
-/* XXX interface.h */
-extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
-
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 
 static void node_sync_cb(bContext *UNUSED(C), void *snode_v, void *node_v)
