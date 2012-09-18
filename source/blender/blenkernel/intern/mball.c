@@ -691,7 +691,7 @@ static float densfunc(MetaElem *ball, float x, float y, float z)
 		/* *** end deprecated *** */
 	}
 
-	dist2 = 1.0f - (len_v3(dvec) / ball->rad2);
+	dist2 = 1.0f - (len_squared_v3(dvec) / ball->rad2);
 
 	if ((ball->flag & MB_NEGATIVE) == 0) {
 		return (dist2 < 0.0f) ? -0.5f : (ball->s * dist2 * dist2 * dist2) - 0.5f;
