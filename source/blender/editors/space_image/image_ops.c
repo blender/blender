@@ -1414,7 +1414,7 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 		RNA_boolean_set(op->ptr, "copy", TRUE);
 	}
 
-	if (ima->source == IMA_SRC_VIEWER)
+	if (ima->source == IMA_SRC_VIEWER || (ima->flag & IMA_VIEW_AS_RENDER))
 		RNA_boolean_set(op->ptr, "save_as_render", TRUE);
 	else
 		RNA_boolean_set(op->ptr, "save_as_render", FALSE);
