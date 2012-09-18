@@ -836,9 +836,16 @@ static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
 
 	/* only works if the sensor and the actuator are from the same object */
 	if (!act_iter) return;
+	
+	/* in case the linked controller is not the active one */
+	PointerRNA props_ptr, object_ptr;
+	RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
+	
+	WM_operator_properties_create(&props_ptr, "LOGIC_OT_controller_add");
+	RNA_string_set(&props_ptr, "object", ob->id.name+2);
 
 	/* (3) add a new controller */
-	if (WM_operator_name_call(C, "LOGIC_OT_controller_add", WM_OP_EXEC_DEFAULT, NULL) & OPERATOR_FINISHED) {
+	if (WM_operator_name_call(C, "LOGIC_OT_controller_add", WM_OP_EXEC_DEFAULT, &props_ptr) & OPERATOR_FINISHED) {
 		cont = (bController *)ob->controllers.last;
 		cont->type = CONT_LOGIC_AND; /* Quick fix to make sure we always have an AND controller. It might be nicer to make sure the operator gives us the right one though... */
 
@@ -858,6 +865,7 @@ static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
 		MEM_freeN(tmp_but->link);
 		MEM_freeN(tmp_but);
 	}
+	WM_operator_properties_free(&props_ptr);
 }
 
 static void ui_add_link(bContext *C, uiBut *from, uiBut *to)
