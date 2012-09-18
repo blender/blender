@@ -124,8 +124,14 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	if (rr->rectf)
 		rectf = rr->rectf;
 	else {
-		if (rr->rect32)
+		if (rr->rect32) {
+			/* special case, currently only happens with sequencer rendering,
+			 * which updates the whole frame, so we can only mark display buffer
+			 * as invalid here (sergey)
+			 */
+			ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 			return;
+		}
 		else {
 			if (rr->renlay == NULL || rr->renlay->rectf == NULL) return;
 			rectf = rr->renlay->rectf;

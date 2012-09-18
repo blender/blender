@@ -1718,6 +1718,9 @@ static void do_render_seq(Render *re)
 		re->progress(re->prh, (float)(cfra - re->r.sfra) / (re->r.efra - re->r.sfra));
 	else
 		re->progress(re->prh, 1.0f);
+
+	/* would mark display buffers as invalid */
+	re->display_draw(re->ddh, re->result, NULL);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

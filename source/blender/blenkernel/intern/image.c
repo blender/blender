@@ -2585,7 +2585,9 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 
 	/* invalidate color managed buffers if render result changed */
 	BLI_lock_thread(LOCK_COLORMANAGE);
-	if (ibuf->x != rres.rectx || ibuf->y != rres.recty || ibuf->rect_float != rectf) {
+	if (ibuf->x != rres.rectx || ibuf->y != rres.recty ||
+	    ibuf->rect_float != rectf || ibuf->rect != rect)
+	{
 		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 	}
 
