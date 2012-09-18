@@ -1227,6 +1227,9 @@ void BKE_imformat_defaults(ImageFormatData *im_format)
 	im_format->imtype = R_IMF_IMTYPE_PNG;
 	im_format->quality = 90;
 	im_format->compress = 90;
+
+	BKE_color_managed_display_settings_init(&im_format->display_settings);
+	BKE_color_managed_view_settings_init(&im_format->view_settings);
 }
 
 void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *imbuf)

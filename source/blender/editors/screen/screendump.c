@@ -245,7 +245,7 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
 
 	/* image template */
 	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &scd->im_format, &ptr);
-	uiTemplateImageSettings(layout, &ptr, TRUE);
+	uiTemplateImageSettings(layout, &ptr, FALSE);
 
 	/* main draw call */
 	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);

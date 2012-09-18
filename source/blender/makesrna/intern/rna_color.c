@@ -377,6 +377,9 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *UNUSED(b
 {
 	ID *id = ptr->id.data;
 
+	if (!id)
+		return;
+
 	if (GS(id->name) == ID_SCE) {
 		Scene *scene = (Scene *) id;
 
@@ -485,6 +488,9 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
+
+	if (!id)
+		return;
 
 	if (GS(id->name) == ID_SCE) {
 		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
