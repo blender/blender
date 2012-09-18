@@ -135,8 +135,6 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		MEM_freeN(scen->toolsettings);
 	}
 	else {
-		ImageFormatData *im_format, *im_formatn;
-
 		scen = BKE_libblock_copy(&sce->id);
 		BLI_duplicatelist(&(scen->base), &(sce->base));
 		
@@ -174,11 +172,9 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		}
 
 		/* copy color management settings */
-		im_format = &sce->r.im_format;
-		im_formatn = &scen->r.im_format;
-
 		BKE_color_managed_display_settings_copy(&scen->display_settings, &sce->display_settings);
 		BKE_color_managed_view_settings_copy(&scen->view_settings, &sce->view_settings);
+		BKE_color_managed_view_settings_copy(&scen->r.im_format.view_settings, &sce->r.im_format.view_settings);
 	}
 
 	/* tool settings */
