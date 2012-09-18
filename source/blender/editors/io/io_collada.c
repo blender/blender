@@ -54,6 +54,8 @@
 
 #include "../../collada/collada.h"
 
+#include "io_collada.h"
+
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -121,30 +123,32 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
 
-	if (collada_export(
-	        CTX_data_scene(C),
-	        filepath,
-	        apply_modifiers,
-			export_mesh_type,
-	        selected,
-	        include_children,
-	        include_armatures,
-	        deform_bones_only,
+	if (collada_export(CTX_data_scene(C),
+	                   filepath,
+	                   apply_modifiers,
+	                   export_mesh_type,
+	                   selected,
+	                   include_children,
+	                   include_armatures,
+	                   deform_bones_only,
 
-			active_uv_only,
-			include_uv_textures,
-			include_material_textures,
-			use_texture_copies,
+	                   active_uv_only,
+	                   include_uv_textures,
+	                   include_material_textures,
+	                   use_texture_copies,
 
-	        use_object_instantiation,
-	        sort_by_name,
-	        second_life)) {
+	                   use_object_instantiation,
+	                   sort_by_name,
+	                   second_life)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
 		return OPERATOR_CANCELLED;
 	}
 }
+
+/* Prototype now needed, it seems... Else gcc in paranoid warning=error mode fails to build! */
+void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr);
 
 void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 {
@@ -233,7 +237,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	ot->name = "Export COLLADA";
 	ot->description = "Save a Collada file";
 	ot->idname = "WM_OT_collada_export";
-	
+
 	ot->invoke = wm_collada_export_invoke;
 	ot->exec = wm_collada_export_exec;
 	ot->poll = WM_operator_winactive;
@@ -241,7 +245,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	ot->flag |= OPTYPE_PRESET;
 
 	ot->ui = wm_collada_export_draw;
-	
+
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
@@ -296,7 +300,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	
+
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
@@ -304,9 +308,9 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", filename);
 	if (collada_import(C, filename)) return OPERATOR_FINISHED;
-	
+
 	BKE_report(op->reports, RPT_ERROR, "Errors found during parsing COLLADA document. Please see console for error log.");
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -315,11 +319,11 @@ void WM_OT_collada_import(wmOperatorType *ot)
 	ot->name = "Import COLLADA";
 	ot->description = "Load a Collada file";
 	ot->idname = "WM_OT_collada_import";
-	
+
 	ot->invoke = WM_operator_filesel;
 	ot->exec = wm_collada_import_exec;
 	ot->poll = WM_operator_winactive;
-	
+
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 }

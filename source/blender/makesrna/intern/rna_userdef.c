@@ -2984,7 +2984,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* Note: As this list is in alphabetical order, and not defined order,
 	 *       here is the highest define currently in use: 33 (Hebrew). */
 	static EnumPropertyItem language_items[] = {
-		{ 0, "", 0, N_("Nearly done"), ""},
+		{ 0, "", 0, N_("Nearly Done"), ""},
 		{ 0, "DEFAULT", 0, "Default (Default)", ""},
 		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
 		{32, "BRAZILIANPORTUGUESE", 0, "Brazilian Portuguese (Português do Brasil)", "pt_BR"},
@@ -2998,7 +2998,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{ 9, "SPANISH", 0, "Spanish (Español)", "es"},
 		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
 		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
-		{ 0, "", 0, N_("In progress"), ""},
+		{ 0, "", 0, N_("In Progress"), ""},
 		/* using the utf8 flipped form of Arabic (العربية) */
 		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
 		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
@@ -3009,7 +3009,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{ 5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
 		{33, "HEBREW", 0, "Hebrew (עִבְרִית)", "he_IL"},
-		{31, "HUNGARIAN", 0, "Hungarian (magyar)", "hu_HU"},
+		{31, "HUNGARIAN", 0, "Hungarian (Magyar)", "hu_HU"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ky_KG"},
 /*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"}, */ /* XXX No po's yet. */
@@ -3019,7 +3019,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
 /*		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"}, */ /* XXX No po's yet. */
 		{17, "SERBIAN", 0, "Serbian (Српски)", "sr_RS"},
-		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr_RS@latin"},
+		{28, "SERBIAN_LATIN", 0, "Serbian Latin (Srpski latinica)", "sr_RS@latin"},
 		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
 		{30, "TURKISH", 0, "Turkish (Türkçe)", "tr_TR"},
 		{ 0, NULL, 0, NULL, NULL}
