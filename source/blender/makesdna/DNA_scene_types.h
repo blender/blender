@@ -829,14 +829,15 @@ typedef struct VPaint {
 	void *paintcursor;					/* wm handle */
 } VPaint;
 
-/* VPaint flag */
-#define VP_COLINDEX	1
-#define VP_AREA		2  /* vertex paint only */
-
-#define VP_NORMALS	8
-#define VP_SPRAY	16
-// #define VP_MIRROR_X	32 // deprecated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X)
-#define VP_ONLYVGROUP	128  /* weight paint only */
+/* VPaint.flag */
+enum {
+	// VP_COLINDEX  = (1 << 0),  /* only paint onto active material*/  /* deprecated since before 2.49 */
+	VP_AREA         = (1 << 1),
+	VP_NORMALS      = (1 << 3),
+	VP_SPRAY        = (1 << 4),
+	// VP_MIRROR_X  = (1 << 5),  /* deprecated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X) */
+	VP_ONLYVGROUP   = (1 << 7)   /* weight paint only */
+};
 
 /* *************************************************************** */
 /* Transform Orientations */

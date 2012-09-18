@@ -2119,8 +2119,7 @@ static ListBase *get_active_constraints2(Object *ob)
 	return NULL;
 }
 
-
-static void RBJconstraints(Object *ob)//not used
+static void UNUSED_FUNCTION(RBJconstraints)(Object *ob)//not used
 {
 	ListBase *conlist;
 	bConstraint *curcon;
@@ -2141,6 +2140,7 @@ static void RBJconstraints(Object *ob)//not used
 #include "KX_IPhysicsController.h"
 #include "PHY_DynamicTypes.h"
 
+#if 0  /* UNUSED */
 static KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
 
 	for (int j=0;j<sumolist->GetCount();j++)
@@ -2151,8 +2151,8 @@ static KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//n
 	}
 
 	return 0;
-
 }
+#endif
 
 static KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
 {

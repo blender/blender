@@ -2227,19 +2227,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		if (indexar[0]) totindex = 1;
 		else totindex = 0;
 	}
-			
-	if (wp->flag & VP_COLINDEX) {
-		for (index = 0; index < totindex; index++) {
-			if (indexar[index] && indexar[index] <= me->totpoly) {
-				MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
-						
-				if (mpoly->mat_nr != ob->actcol - 1) {
-					indexar[index] = 0;
-				}
-			}
-		}
-	}
-			
+
 	if ((me->editflag & ME_EDIT_PAINT_MASK) && me->mpoly) {
 		for (index = 0; index < totindex; index++) {
 			if (indexar[index] && indexar[index] <= me->totpoly) {
@@ -2639,52 +2627,13 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	return 1;
 }
 
-#if 0
-static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob,
-                              const unsigned int index, const float mval[2],
-                              const float brush_size_pressure, const float brush_alpha_pressure,
-                              int UNUSED(flip))
+static void copy_lcol_to_mcol(MCol *mcol, const MLoopCol *lcol)
 {
-	ViewContext *vc = &vpd->vc;
-	Brush *brush = paint_brush(&vp->paint);
-	Mesh *me = BKE_mesh_from_object(ob);
-	MFace *mface = &me->mface[index];
-	unsigned int *mcol = ((unsigned int *)me->mcol) + 4 * index;
-	unsigned int *mcolorig = ((unsigned int *)vp->vpaint_prev) + 4 * index;
-	float alpha;
-	int i;
-
-	int brush_alpha_pressure_i;
-	
-	if ((vp->flag & VP_COLINDEX && mface->mat_nr != ob->actcol - 1) ||
-	    ((me->editflag & ME_EDIT_PAINT_MASK) && !(mface->flag & ME_FACE_SEL)))
-		return;
-
-	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
-		unsigned int fcol1 = mcol_blend(mcol[0], mcol[1], 128);
-		if (mface->v4) {
-			unsigned int fcol2 = mcol_blend(mcol[2], mcol[3], 128);
-			vpd->paintcol = mcol_blend(fcol1, fcol2, 128);
-		}
-		else {
-			vpd->paintcol = mcol_blend(mcol[2], fcol1, 170);
-		}
-	}
-
-	brush_alpha_pressure_i = (int)(brush_alpha_pressure * 255.0f);
-
-	for (i = 0; i < (mface->v4 ? 4 : 3); ++i) {
-		alpha = calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos + 6 * (&mface->v1)[i],
-		                         mval, brush_size_pressure, brush_alpha_pressure);
-		if (alpha) {
-			const int alpha_i = (int)(alpha * 255.0f);
-			mcol[i] = vpaint_blend(vp, mcol[i], mcolorig[i], vpd->paintcol, alpha_i, brush_alpha_pressure_i);
-		}
-	}
+	mcol->a = lcol->a;
+	mcol->r = lcol->r;
+	mcol->g = lcol->g;
+	mcol->b = lcol->b;
 }
-#endif
-
-/* BMESH version of vpaint_paint_face (commented above) */
 
 static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
                               const unsigned int index, const float mval[2],
@@ -2744,33 +2693,22 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
 	}
 
 	if (vpd->use_fast_update) {
-
-#ifdef CPYCOL
-#  undef CPYCOL
-#endif
-#define CPYCOL(c, l) (c)->a = (l)->a, (c)->r = (l)->r, (c)->g = (l)->g, (c)->b = (l)->b
-
 		/* update vertex colors for tessellations incrementally,
 		 * rather then regenerating the tessellation altogether */
 		for (e = vpd->polyfacemap[index].first; e; e = e->next) {
-			mf = me->mface + e->facenr;
-			mc = me->mcol + e->facenr * 4;
+			mf = &me->mface[e->facenr];
+			mc = &me->mcol[e->facenr * 4];
 
 			ml = me->mloop + mpoly->loopstart;
 			mlc = me->mloopcol + mpoly->loopstart;
 			for (j = 0; j < mpoly->totloop; j++, ml++, mlc++) {
-				if (ml->v == mf->v1)
-					CPYCOL(mc, mlc);
-				else if (ml->v == mf->v2)
-					CPYCOL(mc + 1, mlc);
-				else if (ml->v == mf->v3)
-					CPYCOL(mc + 2, mlc);
-				else if (mf->v4 && ml->v == mf->v4)
-					CPYCOL(mc + 3, mlc);
+				if      (ml->v == mf->v1)            copy_lcol_to_mcol(mc + 0, mlc);
+				else if (ml->v == mf->v2)            copy_lcol_to_mcol(mc + 1, mlc);
+				else if (ml->v == mf->v3)            copy_lcol_to_mcol(mc + 2, mlc);
+				else if (mf->v4 && ml->v == mf->v4)  copy_lcol_to_mcol(mc + 3, mlc);
 
 			}
 		}
-#undef CPYCOL
 	}
 
 }
@@ -2804,7 +2742,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	mval[0] -= vc->ar->winrct.xmin;
 	mval[1] -= vc->ar->winrct.ymin;
 
-			
+
 	/* which faces are involved */
 	if (vp->flag & VP_AREA) {
 		totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
@@ -2814,19 +2752,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		if (indexar[0]) totindex = 1;
 		else totindex = 0;
 	}
-			
-			
-	if (vp->flag & VP_COLINDEX) {
-		for (index = 0; index < totindex; index++) {
-			if (indexar[index] && indexar[index] <= me->totpoly) {
-				MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
-						
-				if (mpoly->mat_nr != ob->actcol - 1) {
-					indexar[index] = 0;
-				}
-			}
-		}
-	}
 
 	if ((me->editflag & ME_EDIT_PAINT_MASK) && me->mpoly) {
 		for (index = 0; index < totindex; index++) {
@@ -2835,15 +2760,13 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 						
 				if ((mpoly->flag & ME_FACE_SEL) == 0)
 					indexar[index] = 0;
-			}					
+			}
 		}
 	}
 	
 	swap_m4m4(vc->rv3d->persmat, mat);
 
-			
 	for (index = 0; index < totindex; index++) {
-				
 		if (indexar[index] && indexar[index] <= me->totpoly) {
 			vpaint_paint_poly(vp, vpd, ob, indexar[index] - 1, mval, brush_size_pressure, brush_alpha_pressure);
 		}
