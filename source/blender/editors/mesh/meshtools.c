@@ -104,7 +104,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	MLoop *mloop = NULL;
 	Key *key, *nkey = NULL;
 	KeyBlock *kb, *okb, *kbn;
-	float imat[4][4], cmat[4][4], *fp1, *fp2, curpos;
+	float imat[4][4], cmat[4][4], *fp1, *fp2;
 	int a, b, totcol, totmat = 0, totedge = 0, totvert = 0, ok = 0;
 	int totloop = 0, totpoly = 0, vertofs, *matmap = NULL;
 	int i, j, index, haskey = 0, edgeofs, loopofs, polyofs;
@@ -246,26 +246,21 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 					for (kb = me->key->block.first; kb; kb = kb->next) {
 						/* if key doesn't exist in destination mesh, add it */
 						if (key_get_named_keyblock(key, kb->name) == NULL) {
-							/* copy this existing one over to the new shapekey block */
-							kbn = MEM_dupallocN(kb);
-							kbn->prev = kbn->next = NULL;
+							kbn = add_keyblock(key, kb->name);
 							
+							/* copy most settings */
+							kbn->pos        = kb->pos;
+							kbn->curval     = kb->curval;
+							kbn->type       = kb->type;
+							kbn->relative   = kb->relative;
+							BLI_strncpy(kbn->vgroup, kb->vgroup, sizeof(kbn->vgroup));
+							kbn->slidermin  = kb->slidermin;
+							kbn->slidermax  = kb->slidermax;
+
 							/* adjust settings to fit (allocate a new data-array) */
 							kbn->data = MEM_callocN(sizeof(float) * 3 * totvert, "joined_shapekey");
-							kbn->totelem = totvert;
-							kbn->weights = NULL;
-							
-							okb = key->block.last;
-							curpos = (okb) ? okb->pos : -0.1f;
-							if (key->type == KEY_RELATIVE)
-								kbn->pos = curpos + 0.1f;
-							else
-								kbn->pos = curpos;
-							
-							BLI_addtail(&key->block, kbn);
-							key->totkey++;
-							if (key->totkey == 1) key->refkey = kbn;
-							
+							kbn->totelem = totvert;	
+		
 							/* XXX 2.5 Animato */
 #if 0
 							/* also, copy corresponding ipo-curve to ipo-block if applicable */
