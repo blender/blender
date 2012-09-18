@@ -1772,7 +1772,6 @@ static void give_parvert(Object *par, int nr, float vec[3])
 	if (par->type == OB_MESH) {
 		Mesh *me = par->data;
 		DerivedMesh *dm;
-		int count;
 
 		em = me->edit_btmesh;
 
@@ -1795,6 +1794,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		dm = (em) ? em->derivedFinal : par->derivedFinal;
 			
 		if (dm) {
+			int count = 0;
 			int numVerts = dm->getNumVerts(dm);
 
 			if (nr < numVerts) {
@@ -1803,7 +1803,6 @@ static void give_parvert(Object *par, int nr, float vec[3])
 				int i;
 
 				/* get the average of all verts with (original index == nr) */
-				count = 0;
 				if (index) {
 					for (i = 0; i < numVerts; i++) {
 						if (index[i] == nr) {

@@ -709,9 +709,9 @@ static void mesh_octree_add_nodes(MocNode **basetable, const float co[3], const 
 	float fx, fy, fz;
 	int vx, vy, vz;
 	
-	if (!finite(co[0]) ||
-	    !finite(co[1]) ||
-	    !finite(co[2]))
+	if ((finite(co[0]) == FALSE) ||
+	    (finite(co[1]) == FALSE) ||
+	    (finite(co[2]) == FALSE))
 	{
 		return;
 	}
@@ -940,9 +940,9 @@ static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, c
 	intptr_t poinval;
 	
 	/* ignore nan verts */
-	if (!finite(co[0]) ||
-	    !finite(co[1]) ||
-	    !finite(co[2]))
+	if ((finite(co[0]) == FALSE) ||
+	    (finite(co[1]) == FALSE) ||
+	    (finite(co[2]) == FALSE))
 	{
 		return NULL;
 	}

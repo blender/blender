@@ -983,8 +983,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		
 		default: {
 #ifdef WITH_X11_XINPUT
-			if (xe->type == window->GetXTablet().MotionEvent)
-			{
+			if (xe->type == window->GetXTablet().MotionEvent) {
 				XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;
 
 				/* stroke might begin without leading ProxyIn event,
@@ -993,23 +992,23 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				setTabletMode(window, data->deviceid);
 
 				window->GetXTablet().CommonData.Pressure =
-				    data->axis_data[2] / ((float)window->GetXTablet().PressureLevels);
-			
+				        data->axis_data[2] / ((float)window->GetXTablet().PressureLevels);
+
 				/* the (short) cast and the &0xffff is bizarre and unexplained anywhere,
 				 * but I got garbage data without it. Found it in the xidump.c source --matt */
 				window->GetXTablet().CommonData.Xtilt =
-				    (short)(data->axis_data[3] & 0xffff) / ((float)window->GetXTablet().XtiltLevels);
+				        (short)(data->axis_data[3] & 0xffff) / ((float)window->GetXTablet().XtiltLevels);
 				window->GetXTablet().CommonData.Ytilt =
-				    (short)(data->axis_data[4] & 0xffff) / ((float)window->GetXTablet().YtiltLevels);
+				        (short)(data->axis_data[4] & 0xffff) / ((float)window->GetXTablet().YtiltLevels);
 			}
-			else if (xe->type == window->GetXTablet().ProxInEvent)
-			{
+			else if (xe->type == window->GetXTablet().ProxInEvent) {
 				XProximityNotifyEvent *data = (XProximityNotifyEvent *)xe;
 
 				setTabletMode(window, data->deviceid);
 			}
-			else if (xe->type == window->GetXTablet().ProxOutEvent)
+			else if (xe->type == window->GetXTablet().ProxOutEvent) {
 				window->GetXTablet().CommonData.Active = GHOST_kTabletModeNone;
+			}
 #endif // WITH_X11_XINPUT
 			break;
 		}
