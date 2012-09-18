@@ -351,9 +351,9 @@ void EuclideanResectionAnsarDaniilidis(const Mat2X &x_camera,
 }
 
 // Selects 4 virtual control points using mean and PCA.
-void SelectControlPoints(const Mat3X &X_world, 
-                         Mat *X_centered, 
-                         Mat34 *X_control_points) {
+static void SelectControlPoints(const Mat3X &X_world,
+                                Mat *X_centered,
+                                Mat34 *X_control_points) {
   size_t num_points = X_world.cols();
 
   // The first virtual control point, C0, is the centroid.
@@ -377,9 +377,9 @@ void SelectControlPoints(const Mat3X &X_world,
 }
 
 // Computes the barycentric coordinates for all real points
-void ComputeBarycentricCoordinates(const Mat3X &X_world_centered, 
-                                   const Mat34 &X_control_points,
-                                   Mat4X *alphas) {
+static void ComputeBarycentricCoordinates(const Mat3X &X_world_centered,
+                                          const Mat34 &X_control_points,
+                                          Mat4X *alphas) {
   size_t num_points = X_world_centered.cols();
   Mat3 C2 ;
   for (size_t c = 1; c < 4; c++) {
@@ -398,7 +398,7 @@ void ComputeBarycentricCoordinates(const Mat3X &X_world_centered,
 }
 
 // Estimates the coordinates of all real points in the camera coordinate frame
-void ComputePointsCoordinatesInCameraFrame(
+static void ComputePointsCoordinatesInCameraFrame(
     const Mat4X &alphas, 
     const Vec4 &betas,
     const Eigen::Matrix<double, 12, 12> &U,
