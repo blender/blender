@@ -2998,5 +2998,8 @@ void BKE_image_get_aspect(Image *image, float *aspx, float *aspy)
 	*aspx = 1.0;
 
 	/* x is always 1 */
-	*aspy = image->aspy / image->aspx;
+	if (image)
+		*aspy = image->aspy / image->aspx;
+	else
+		*aspy = 1.0f;
 }
