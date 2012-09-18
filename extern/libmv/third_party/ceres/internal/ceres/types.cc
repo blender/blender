@@ -98,7 +98,8 @@ const char* SolverTerminationTypeToString(
   }
 }
 
-const char* SparseLinearAlgebraTypeToString(
+#if 0  /* UNUSED */
+static const char* SparseLinearAlgebraTypeToString(
     SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type) {
   switch (sparse_linear_algebra_library_type) {
     CASESTR(CX_SPARSE);
@@ -107,6 +108,7 @@ const char* SparseLinearAlgebraTypeToString(
       return "UNKNOWN";
   }
 }
+#endif
 
 const char* TrustRegionStrategyTypeToString(
     TrustRegionStrategyType trust_region_strategy_type) {

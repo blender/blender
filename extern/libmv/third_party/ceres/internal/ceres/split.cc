@@ -31,6 +31,7 @@
 #include <string>
 #include <vector>
 #include <iterator>
+#include "ceres/split.h"
 #include "ceres/internal/port.h"
 
 namespace ceres {

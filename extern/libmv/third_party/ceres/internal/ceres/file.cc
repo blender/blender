@@ -31,6 +31,7 @@
 // Really simple file IO.
 
 #include <cstdio>
+#include "file.h"
 #include "glog/logging.h"
 
 namespace ceres {

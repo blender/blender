@@ -1,0 +1,199 @@
+diff --git a/internal/ceres/file.cc b/internal/ceres/file.cc
+index 387f359..6fe7557 100644
+--- a/internal/ceres/file.cc
++++ b/internal/ceres/file.cc
+@@ -31,6 +31,7 @@
+ // Really simple file IO.
+ 
+ #include <cstdio>
++#include "file.h"
+ #include "glog/logging.h"
+ 
+ namespace ceres {
+diff --git a/internal/ceres/linear_least_squares_problems.cc b/internal/ceres/linear_least_squares_problems.cc
+index 3e3bcd0..a91e254 100644
+--- a/internal/ceres/linear_least_squares_problems.cc
++++ b/internal/ceres/linear_least_squares_problems.cc
+@@ -573,13 +573,13 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem3() {
+   return problem;
+ }
+ 
+-bool DumpLinearLeastSquaresProblemToConsole(const string& directory,
+-                                            int iteration,
+-                                            const SparseMatrix* A,
+-                                            const double* D,
+-                                            const double* b,
+-                                            const double* x,
+-                                            int num_eliminate_blocks) {
++static bool DumpLinearLeastSquaresProblemToConsole(const string& directory,
++                                                   int iteration,
++                                                   const SparseMatrix* A,
++                                                   const double* D,
++                                                   const double* b,
++                                                   const double* x,
++                                                   int num_eliminate_blocks) {
+   CHECK_NOTNULL(A);
+   Matrix AA;
+   A->ToDenseMatrix(&AA);
+@@ -601,13 +601,13 @@ bool DumpLinearLeastSquaresProblemToConsole(const string& directory,
+ };
+ 
+ #ifndef CERES_NO_PROTOCOL_BUFFERS
+-bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
+-                                                   int iteration,
+-                                                   const SparseMatrix* A,
+-                                                   const double* D,
+-                                                   const double* b,
+-                                                   const double* x,
+-                                                   int num_eliminate_blocks) {
++static bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
++                                                          int iteration,
++                                                          const SparseMatrix* A,
++                                                          const double* D,
++                                                          const double* b,
++                                                          const double* x,
++                                                          int num_eliminate_blocks) {
+   CHECK_NOTNULL(A);
+   LinearLeastSquaresProblemProto lsqp;
+   A->ToProto(lsqp.mutable_a());
+@@ -641,13 +641,13 @@ bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
+   return true;
+ }
+ #else
+-bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
+-                                                   int iteration,
+-                                                   const SparseMatrix* A,
+-                                                   const double* D,
+-                                                   const double* b,
+-                                                   const double* x,
+-                                                   int num_eliminate_blocks) {
++static bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
++                                                          int iteration,
++                                                          const SparseMatrix* A,
++                                                          const double* D,
++                                                          const double* b,
++                                                          const double* x,
++                                                          int num_eliminate_blocks) {
+   LOG(ERROR) << "Dumping least squares problems is only "
+              << "supported when Ceres is compiled with "
+              << "protocol buffer support.";
+@@ -655,9 +655,9 @@ bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
+ }
+ #endif
+ 
+-void WriteArrayToFileOrDie(const string& filename,
+-                           const double* x,
+-                           const int size) {
++static void WriteArrayToFileOrDie(const string& filename,
++                                  const double* x,
++                                  const int size) {
+   CHECK_NOTNULL(x);
+   VLOG(2) << "Writing array to: " << filename;
+   FILE* fptr = fopen(filename.c_str(), "w");
+@@ -668,13 +668,13 @@ void WriteArrayToFileOrDie(const string& filename,
+   fclose(fptr);
+ }
+ 
+-bool DumpLinearLeastSquaresProblemToTextFile(const string& directory,
+-                                             int iteration,
+-                                             const SparseMatrix* A,
+-                                             const double* D,
+-                                             const double* b,
+-                                             const double* x,
+-                                             int num_eliminate_blocks) {
++static bool DumpLinearLeastSquaresProblemToTextFile(const string& directory,
++                                                    int iteration,
++                                                    const SparseMatrix* A,
++                                                    const double* D,
++                                                    const double* b,
++                                                    const double* x,
++                                                    int num_eliminate_blocks) {
+   CHECK_NOTNULL(A);
+   string format_string = JoinPath(directory,
+                                   "lm_iteration_%03d");
+diff --git a/internal/ceres/residual_block_utils.cc b/internal/ceres/residual_block_utils.cc
+index ff18e21..9442bb2 100644
+--- a/internal/ceres/residual_block_utils.cc
++++ b/internal/ceres/residual_block_utils.cc
+@@ -63,7 +63,7 @@ void InvalidateEvaluation(const ResidualBlock& block,
+ 
+ // Utility routine to print an array of doubles to a string. If the
+ // array pointer is NULL, it is treated as an array of zeros.
+-void AppendArrayToString(const int size, const double* x, string* result) {
++static void AppendArrayToString(const int size, const double* x, string* result) {
+   for (int i = 0; i < size; ++i) {
+     if (x == NULL) {
+       StringAppendF(result, "Not Computed  ");
+diff --git a/internal/ceres/solver_impl.cc b/internal/ceres/solver_impl.cc
+index 2802a75..8ef5b98 100644
+--- a/internal/ceres/solver_impl.cc
++++ b/internal/ceres/solver_impl.cc
+@@ -685,8 +685,8 @@ bool SolverImpl::ApplyUserOrdering(const ProblemImpl& problem_impl,
+ // Find the minimum index of any parameter block to the given residual.
+ // Parameter blocks that have indices greater than num_eliminate_blocks are
+ // considered to have an index equal to num_eliminate_blocks.
+-int MinParameterBlock(const ResidualBlock* residual_block,
+-                      int num_eliminate_blocks) {
++static int MinParameterBlock(const ResidualBlock* residual_block,
++                             int num_eliminate_blocks) {
+   int min_parameter_block_position = num_eliminate_blocks;
+   for (int i = 0; i < residual_block->NumParameterBlocks(); ++i) {
+     ParameterBlock* parameter_block = residual_block->parameter_blocks()[i];
+diff --git a/internal/ceres/split.cc b/internal/ceres/split.cc
+index 4fa1bd4..c65c8a5 100644
+--- a/internal/ceres/split.cc
++++ b/internal/ceres/split.cc
+@@ -31,6 +31,7 @@
+ #include <string>
+ #include <vector>
+ #include <iterator>
++#include "ceres/split.h"
+ #include "ceres/internal/port.h"
+ 
+ namespace ceres {
+diff --git a/internal/ceres/stringprintf.cc b/internal/ceres/stringprintf.cc
+index c0f3522..396a48b 100644
+--- a/internal/ceres/stringprintf.cc
++++ b/internal/ceres/stringprintf.cc
+@@ -34,6 +34,7 @@
+ #include <string>
+ #include <vector>
+ 
++#include "ceres/stringprintf.h"
+ #include "ceres/internal/port.h"
+ 
+ namespace ceres {
+diff --git a/internal/ceres/types.cc b/internal/ceres/types.cc
+index 2e950c5..05e573f 100644
+--- a/internal/ceres/types.cc
++++ b/internal/ceres/types.cc
+@@ -98,7 +98,8 @@ const char* SolverTerminationTypeToString(
+   }
+ }
+ 
+-const char* SparseLinearAlgebraTypeToString(
++#if 0  /* UNUSED */
++static const char* SparseLinearAlgebraTypeToString(
+     SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type) {
+   switch (sparse_linear_algebra_library_type) {
+     CASESTR(CX_SPARSE);
+@@ -107,6 +108,7 @@ const char* SparseLinearAlgebraTypeToString(
+       return "UNKNOWN";
+   }
+ }
++#endif
+ 
+ const char* TrustRegionStrategyTypeToString(
+     TrustRegionStrategyType trust_region_strategy_type) {
+diff --git a/internal/ceres/visibility.cc b/internal/ceres/visibility.cc
+index 9d80654..564cc54 100644
+--- a/internal/ceres/visibility.cc
++++ b/internal/ceres/visibility.cc
+@@ -36,6 +36,7 @@
+ #include <utility>
+ #include "ceres/block_structure.h"
+ #include "ceres/collections_port.h"
++#include "ceres/visibility.h"
+ #include "ceres/graph.h"
+ #include "glog/logging.h"
+ 

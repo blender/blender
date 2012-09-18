@@ -573,13 +573,13 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem3() {
   return problem;
 }
 
-bool DumpLinearLeastSquaresProblemToConsole(const string& directory,
-                                            int iteration,
-                                            const SparseMatrix* A,
-                                            const double* D,
-                                            const double* b,
-                                            const double* x,
-                                            int num_eliminate_blocks) {
+static bool DumpLinearLeastSquaresProblemToConsole(const string& directory,
+                                                   int iteration,
+                                                   const SparseMatrix* A,
+                                                   const double* D,
+                                                   const double* b,
+                                                   const double* x,
+                                                   int num_eliminate_blocks) {
   CHECK_NOTNULL(A);
   Matrix AA;
   A->ToDenseMatrix(&AA);
@@ -601,13 +601,13 @@ bool DumpLinearLeastSquaresProblemToConsole(const string& directory,
 };
 
 #ifndef CERES_NO_PROTOCOL_BUFFERS
-bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
-                                                   int iteration,
-                                                   const SparseMatrix* A,
-                                                   const double* D,
-                                                   const double* b,
-                                                   const double* x,
-                                                   int num_eliminate_blocks) {
+static bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
+                                                          int iteration,
+                                                          const SparseMatrix* A,
+                                                          const double* D,
+                                                          const double* b,
+                                                          const double* x,
+                                                          int num_eliminate_blocks) {
   CHECK_NOTNULL(A);
   LinearLeastSquaresProblemProto lsqp;
   A->ToProto(lsqp.mutable_a());
@@ -641,13 +641,13 @@ bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
   return true;
 }
 #else
-bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
-                                                   int iteration,
-                                                   const SparseMatrix* A,
-                                                   const double* D,
-                                                   const double* b,
-                                                   const double* x,
-                                                   int num_eliminate_blocks) {
+static bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
+                                                          int iteration,
+                                                          const SparseMatrix* A,
+                                                          const double* D,
+                                                          const double* b,
+                                                          const double* x,
+                                                          int num_eliminate_blocks) {
   LOG(ERROR) << "Dumping least squares problems is only "
              << "supported when Ceres is compiled with "
              << "protocol buffer support.";
@@ -655,9 +655,9 @@ bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
 }
 #endif
 
-void WriteArrayToFileOrDie(const string& filename,
-                           const double* x,
-                           const int size) {
+static void WriteArrayToFileOrDie(const string& filename,
+                                  const double* x,
+                                  const int size) {
   CHECK_NOTNULL(x);
   VLOG(2) << "Writing array to: " << filename;
   FILE* fptr = fopen(filename.c_str(), "w");
@@ -668,13 +668,13 @@ void WriteArrayToFileOrDie(const string& filename,
   fclose(fptr);
 }
 
-bool DumpLinearLeastSquaresProblemToTextFile(const string& directory,
-                                             int iteration,
-                                             const SparseMatrix* A,
-                                             const double* D,
-                                             const double* b,
-                                             const double* x,
-                                             int num_eliminate_blocks) {
+static bool DumpLinearLeastSquaresProblemToTextFile(const string& directory,
+                                                    int iteration,
+                                                    const SparseMatrix* A,
+                                                    const double* D,
+                                                    const double* b,
+                                                    const double* x,
+                                                    int num_eliminate_blocks) {
   CHECK_NOTNULL(A);
   string format_string = JoinPath(directory,
                                   "lm_iteration_%03d");

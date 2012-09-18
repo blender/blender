@@ -36,6 +36,7 @@
 #include <utility>
 #include "ceres/block_structure.h"
 #include "ceres/collections_port.h"
+#include "ceres/visibility.h"
 #include "ceres/graph.h"
 #include "glog/logging.h"
 

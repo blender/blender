@@ -685,8 +685,8 @@ bool SolverImpl::ApplyUserOrdering(const ProblemImpl& problem_impl,
 // Find the minimum index of any parameter block to the given residual.
 // Parameter blocks that have indices greater than num_eliminate_blocks are
 // considered to have an index equal to num_eliminate_blocks.
-int MinParameterBlock(const ResidualBlock* residual_block,
-                      int num_eliminate_blocks) {
+static int MinParameterBlock(const ResidualBlock* residual_block,
+                             int num_eliminate_blocks) {
   int min_parameter_block_position = num_eliminate_blocks;
   for (int i = 0; i < residual_block->NumParameterBlocks(); ++i) {
     ParameterBlock* parameter_block = residual_block->parameter_blocks()[i];
