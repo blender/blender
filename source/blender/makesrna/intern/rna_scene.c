@@ -4566,7 +4566,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "sequencer_colorspace_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "sequencer_colorspace_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedColorspaceSettings");
-	RNA_def_property_ui_text(prop, "Sequencer Colorspace Settings", "Settings of color space sequencer is working in");
+	RNA_def_property_ui_text(prop, "Sequencer Color Space Settings", "Settings of color space sequencer is working in");
 
 	/* Nestled Data  */
 	rna_def_tool_settings(brna);
