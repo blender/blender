@@ -4265,7 +4265,7 @@ static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, 
 		int w = imapaintpartial.x2 - imapaintpartial.x1;
 		int h = imapaintpartial.y2 - imapaintpartial.y1;
 		/* Testing with partial update in uv editor too */
-		GPU_paint_update_image(image, imapaintpartial.x1, imapaintpartial.y1, w, h, 0); //!texpaint);
+		GPU_paint_update_image(image, imapaintpartial.x1, imapaintpartial.y1, w, h); //!texpaint);
 	}
 }
 

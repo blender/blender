@@ -878,13 +878,13 @@ void GPU_paint_set_mipmap(int mipmap)
 	}
 }
 
-void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
+void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 {
 	ImBuf *ibuf;
 	
 	ibuf = BKE_image_get_ibuf(ima, NULL);
 	
-	if (ima->repbind || (GPU_get_mipmap() && mipmap) || !ima->bindcode || !ibuf ||
+	if (ima->repbind || (GPU_get_mipmap() && !GTS.gpu_mipmap) || !ima->bindcode || !ibuf ||
 	    (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) ||
 	    (w == 0) || (h == 0))
 	{
@@ -911,8 +911,13 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 
 			MEM_freeN(buffer);
 
-			if (ima->tpageflag & IMA_MIPMAP_COMPLETE)
+			/* we have already accounted for the case where GTS.gpu_mipmap is false
+			 * so we will be using GPU mipmap generation here */
+			if (GPU_get_mipmap()) {
+				glGenerateMipmapEXT(GL_TEXTURE_2D);
+			} else {
 				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+			}
 
 			return;
 		}
@@ -934,8 +939,12 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, skip_rows);
 
-		if (ima->tpageflag & IMA_MIPMAP_COMPLETE)
+		/* see comment above as to why we are using gpu mipmap generation here */
+		if (GPU_get_mipmap()) {
+			glGenerateMipmapEXT(GL_TEXTURE_2D);
+		} else {
 			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+		}
 	}
 }
 
