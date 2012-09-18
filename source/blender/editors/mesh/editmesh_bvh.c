@@ -309,7 +309,7 @@ static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co
 	}
 }
 
-BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, const float co[3], float maxdist)
+BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, const float co[3], const float maxdist)
 {
 	BVHTreeNearest hit;
 
@@ -325,7 +325,7 @@ BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, const float co[3], float maxdist)
 		float dist, curdist = tree->maxdist, v[3];
 		int cur = 0, i;
 
-		maxdist = tree->maxdist;
+		/* maxdist = tree->maxdist; */  /* UNUSED */
 
 		for (i = 0; i < 3; i++) {
 			sub_v3_v3v3(v, hit.co, ls[i]->v->co);

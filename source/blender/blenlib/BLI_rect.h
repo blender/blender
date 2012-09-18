@@ -90,8 +90,8 @@ BLI_INLINE float BLI_rcti_cent_x_fl(const struct rcti *rct) { return (float)(rct
 BLI_INLINE float BLI_rcti_cent_y_fl(const struct rcti *rct) { return (float)(rct->ymin + rct->ymax) / 2.0f; }
 BLI_INLINE int   BLI_rcti_cent_x(const struct rcti *rct) { return (rct->xmin + rct->xmax) / 2; }
 BLI_INLINE int   BLI_rcti_cent_y(const struct rcti *rct) { return (rct->ymin + rct->ymax) / 2; }
-BLI_INLINE int   BLI_rctf_cent_x(const struct rctf *rct) { return (rct->xmin + rct->xmax) / 2.0f; }
-BLI_INLINE int   BLI_rctf_cent_y(const struct rctf *rct) { return (rct->ymin + rct->ymax) / 2.0f; }
+BLI_INLINE float BLI_rctf_cent_x(const struct rctf *rct) { return (rct->xmin + rct->xmax) / 2.0f; }
+BLI_INLINE float BLI_rctf_cent_y(const struct rctf *rct) { return (rct->ymin + rct->ymax) / 2.0f; }
 
 BLI_INLINE int   BLI_rcti_size_x(const struct rcti *rct) { return (rct->xmax - rct->xmin); }
 BLI_INLINE int   BLI_rcti_size_y(const struct rcti *rct) { return (rct->ymax - rct->ymin); }
