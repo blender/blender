@@ -147,10 +147,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	}
 }
 
-/* Prototype now needed, it seems... Else gcc in paranoid warning=error mode fails to build! */
-void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr);
-
-void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
+static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 {
 	uiLayout *box, *row, *col, *split;
 
