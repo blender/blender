@@ -1106,7 +1106,7 @@ elseif(WIN32)
 		set(PLATFORM_LINKFLAGS_DEBUG "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
 		# used in many places so include globally, like OpenGL
-		blender_include_dirs("${PTHREADS_INCLUDE_DIRS}")
+		blender_include_dirs_sys("${PTHREADS_INCLUDE_DIRS}")
 
 	elseif(CMAKE_COMPILER_IS_GNUCC)
 	# keep GCC specific stuff here		
