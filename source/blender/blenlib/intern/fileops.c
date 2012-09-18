@@ -341,7 +341,7 @@ void BLI_dir_create_recursive(const char *dirname)
 {
 	char *lslash;
 	char tmp[MAXPATHLEN];
-	
+
 	/* First remove possible slash at the end of the dirname.
 	 * This routine otherwise tries to create
 	 * blah1/blah2/ (with slash) after creating
@@ -349,23 +349,29 @@ void BLI_dir_create_recursive(const char *dirname)
 
 	BLI_strncpy(tmp, dirname, sizeof(tmp));
 	lslash = BLI_last_slash(tmp);
-	
-	if (lslash == tmp + strlen(tmp) - 1) {
-		*lslash = 0;
+
+	if (lslash && (*(lslash + 1) == '\0')) {
+		*lslash = '\0';
 	}
-	
+
+	/* check special case "c:\foo", don't try create "c:", harmless but prints an error below */
+	if (isalpha(tmp[0]) && (tmp[1] == ':') && tmp[2] == '\0') return;
+
 	if (BLI_exists(tmp)) return;
 
 	lslash = BLI_last_slash(tmp);
+
 	if (lslash) {
 		/* Split about the last slash and recurse */
 		*lslash = 0;
 		BLI_dir_create_recursive(tmp);
 	}
-	
-	if (dirname[0]) /* patch, this recursive loop tries to create a nameless directory */
-		if (umkdir(dirname) == -1)
+
+	if (dirname[0]) {  /* patch, this recursive loop tries to create a nameless directory */
+		if (umkdir(dirname) == -1) {
 			printf("Unable to create directory %s\n", dirname);
+		}
+	}
 }
 
 int BLI_rename(const char *from, const char *to)
