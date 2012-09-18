@@ -638,7 +638,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	MLoopCol *mloopcol = me->mloopcol;  /* why does mcol exist? */
 	MLoopCol *lcol;
 
-	bProperty *prop = get_ob_property(ob, "Text");
+	bProperty *prop = BKE_bproperty_object_get(ob, "Text");
 	GPUVertexAttribs gattribs;
 	int a, totpoly = me->totpoly;
 
@@ -732,7 +732,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			/* The BM_FONT handling is in the gpu module, shared with the
 			 * game engine, was duplicated previously */
 
-			set_property_valstr(prop, string);
+			BKE_bproperty_set_valstr(prop, string);
 			characters = strlen(string);
 			
 			if (!BKE_image_get_ibuf(mtpoly->tpage, NULL))
@@ -832,7 +832,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	}
 
 	/* draw game engine text hack */
-	if (get_ob_property(ob, "Text"))
+	if (BKE_bproperty_object_get(ob, "Text"))
 		draw_mesh_text(scene, ob, 0);
 
 	draw_textured_end();

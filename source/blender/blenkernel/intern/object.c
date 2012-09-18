@@ -340,7 +340,7 @@ void BKE_object_free(Object *ob)
 		BKE_pose_free(ob->pose);
 	if (ob->mpath)
 		animviz_free_motionpath(ob->mpath);
-	free_properties(&ob->prop);
+	BKE_bproperty_free_list(&ob->prop);
 	BKE_object_free_modifiers(ob);
 	
 	free_sensors(&ob->sensors);
@@ -1147,7 +1147,7 @@ Object *BKE_object_copy(Object *ob)
 	}
 
 	obn->prop.first = obn->prop.last = NULL;
-	copy_properties(&obn->prop, &ob->prop);
+	BKE_bproperty_copy_list(&obn->prop, &ob->prop);
 	
 	copy_sensors(&obn->sensors, &ob->sensors);
 	copy_controllers(&obn->controllers, &ob->controllers);

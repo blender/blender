@@ -649,11 +649,11 @@ static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
 		for (base = FIRSTBASE; base; base = base->next) {
 			if ((base != BASACT) && (TESTBASELIB(v3d, base))) {
 				if (nr == 1) { /* replace */
-					copy_properties(&base->object->prop, &ob->prop);
+					BKE_bproperty_copy_list(&base->object->prop, &ob->prop);
 				}
 				else {
 					for (prop = ob->prop.first; prop; prop = prop->next) {
-						set_ob_property(base->object, prop);
+						BKE_bproperty_object_set(base->object, prop);
 					}
 				}
 			}
@@ -665,7 +665,7 @@ static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
 		if (prop) {
 			for (base = FIRSTBASE; base; base = base->next) {
 				if ((base != BASACT) && (TESTBASELIB(v3d, base))) {
-					set_ob_property(base->object, prop);
+					BKE_bproperty_object_set(base->object, prop);
 				}
 			}
 		}
@@ -1585,7 +1585,7 @@ static int game_property_new(bContext *C, wmOperator *op)
 	char name[MAX_NAME];
 	int type = RNA_enum_get(op->ptr, "type");
 
-	prop = new_property(type);
+	prop = BKE_bproperty_new(type);
 	BLI_addtail(&ob->prop, prop);
 
 	RNA_string_get(op->ptr, "name", name);
@@ -1593,7 +1593,7 @@ static int game_property_new(bContext *C, wmOperator *op)
 		BLI_strncpy(prop->name, name, sizeof(prop->name));
 	}
 
-	unique_property(NULL, prop, 0); // make_unique_prop_names(prop->name);
+	BKE_bproperty_unique(NULL, prop, 0); // make_unique_prop_names(prop->name);
 
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
 	return OPERATOR_FINISHED;
@@ -1631,7 +1631,7 @@ static int game_property_remove(bContext *C, wmOperator *op)
 
 	if (prop) {
 		BLI_remlink(&ob->prop, prop);
-		free_property(prop);
+		BKE_bproperty_free(prop);
 
 		WM_event_add_notifier(C, NC_LOGIC, NULL);
 		return OPERATOR_FINISHED;
@@ -1711,7 +1711,7 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 			CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 			{
 				if (ob != ob_iter)
-					set_ob_property(ob_iter, prop);
+					BKE_bproperty_object_set(ob_iter, prop);
 			} CTX_DATA_END;
 		}
 	}
@@ -1721,12 +1721,12 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 		{
 			if (ob != ob_iter) {
 				if (type == COPY_PROPERTIES_REPLACE) {
-					copy_properties(&ob_iter->prop, &ob->prop);
+					BKE_bproperty_copy_list(&ob_iter->prop, &ob->prop);
 				}
 				else {
 					/* merge - the default when calling with no argument */
 					for (prop = ob->prop.first; prop; prop = prop->next) {
-						set_ob_property(ob_iter, prop);
+						BKE_bproperty_object_set(ob_iter, prop);
 					}
 				}
 			}
@@ -1763,7 +1763,7 @@ static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
-		free_properties(&ob_iter->prop);
+		BKE_bproperty_free_list(&ob_iter->prop);
 	}
 	CTX_DATA_END;
 

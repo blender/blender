@@ -133,7 +133,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_property.h" // for get_ob_property
+#include "BKE_property.h" // for BKE_bproperty_object_get
 #include "BKE_report.h"
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
@@ -7382,7 +7382,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			for (ob= main->object.first; ob; ob= ob->id.next) {
 				if (ob->type == OB_FONT) {
-					prop = get_ob_property(ob, "Text");
+					prop = BKE_bproperty_object_get(ob, "Text");
 					if (prop) {
 						BKE_reportf_wrap(fd->reports, RPT_WARNING,
 						                 "Game property name conflict in object: \"%s\".\nText objects reserve the "

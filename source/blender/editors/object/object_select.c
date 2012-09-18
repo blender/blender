@@ -723,7 +723,7 @@ static short objects_share_gameprop(Object *a, Object *b)
 	/*make a copy of all its properties*/
 
 	for (prop = a->prop.first; prop; prop = prop->next) {
-		if (get_ob_property(b, prop->name) )
+		if (BKE_bproperty_object_get(b, prop->name) )
 			return 1;
 	}
 	return 0;

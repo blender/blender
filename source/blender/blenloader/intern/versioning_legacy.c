@@ -92,7 +92,7 @@
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_property.h" // for get_ob_property
+#include "BKE_property.h" // for BKE_bproperty_object_get
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 
@@ -945,7 +945,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			while (act) {
 				if (act->type == ACT_IPO) {
 					ia = act->data;
-					prop = get_ob_property(ob, ia->name);
+					prop = BKE_bproperty_object_get(ob, ia->name);
 					if (prop) {
 						ia->type = ACT_IPO_FROM_PROP;
 					}

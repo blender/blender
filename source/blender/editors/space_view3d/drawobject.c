@@ -3432,7 +3432,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
 			dm->drawFacesGLSL(dm, GPU_enable_material);
-//			if (get_ob_property(ob, "Text"))
+//			if (BKE_bproperty_object_get(ob, "Text"))
 // XXX				draw_mesh_text(ob, 1);
 			GPU_disable_material();
 
