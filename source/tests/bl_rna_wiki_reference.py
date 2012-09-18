@@ -21,15 +21,30 @@
 # Use for validating our wiki interlinking.
 #  ./blender.bin --background -noaudio --python source/tests/bl_rna_wiki_reference.py
 #
-# 1) test_lookup_coverage()   -- ensure that we have lookups for _every_ RNA path
-# 2) test_urls()              -- ensure all the URL's are correct
-# 3) test_language_coverage() -- ensure language lookup table is complete
+# 1) test_data()              -- ensure the data we have is correct format
+# 2) test_lookup_coverage()   -- ensure that we have lookups for _every_ RNA path
+# 3) test_urls()              -- ensure all the URL's are correct
+# 4) test_language_coverage() -- ensure language lookup table is complete
 #
 
 import bpy
 
-# a stripped down version of api_dump() in rna_info_dump.py
+def test_data():
+    import rna_wiki_reference
+    
+    assert(isinstance(rna_wiki_reference.url_manual_mapping, tuple))
+    for i, value in enumerate(rna_wiki_reference.url_manual_mapping):
+        try:
+            assert(len(value) == 2)
+            assert(isinstance(value[0], str))
+            assert(isinstance(value[1], str))
+        except:
+            print("Expected a tuple of 2 strings, instead item %d is a %s: %r" % (i, type(value), value))
+            import traceback
+            traceback.print_exc()
+            raise
 
+# a stripped down version of api_dump() in rna_info_dump.py
 
 def test_lookup_coverage():
 
@@ -63,6 +78,7 @@ def test_language_coverage():
 
 
 def main():
+    test_data()
     test_lookup_coverage()
     test_language_coverage()
 
