@@ -1826,7 +1826,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 
 		/* check if obdata is copied */
 		if (didit) {
-			Key *key = ob_get_key(obn);
+			Key *key = BKE_key_from_object(obn);
 			
 			if (dupflag & USER_DUP_ACT) {
 				bActuator *act;

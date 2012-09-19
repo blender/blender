@@ -3196,7 +3196,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 {
 	Key *key = (Key *)key_poin;
 	KeyBlock *kb = (KeyBlock *)kb_poin;
-	char *rna_path = key_get_curValue_rnaPath(key, kb);
+	char *rna_path = BKE_keyblock_curval_rnapath_get(key, kb);
 	
 	ReportList *reports = CTX_wm_reports(C);
 	Scene *scene = CTX_data_scene(C);
@@ -3503,7 +3503,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 					KeyBlock *kb = (KeyBlock *)ale->data;
 					Key *key = (Key *)ale->id;
 					
-					rna_path = key_get_curValue_rnaPath(key, kb);
+					rna_path = BKE_keyblock_curval_rnapath_get(key, kb);
 					free_path = 1;
 				}
 				

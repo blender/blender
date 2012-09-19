@@ -808,7 +808,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 	if (mti->isDisabled && mti->isDisabled(md, 0)) return NULL;
 	
 	if (build_shapekey_layers && me->key && (kb = BLI_findlink(&me->key->block, ob->shapenr - 1))) {
-		key_to_mesh(kb, me);
+		BKE_key_convert_to_mesh(kb, me);
 	}
 	
 	if (mti->type == eModifierTypeType_OnlyDeform) {
@@ -878,7 +878,7 @@ static void *get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *free
 		 * by a more flexible customdata system, but not simple */
 		if (!em) {
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-			KeyBlock *kb = key_get_keyblock(ob_get_key(ob), clmd->sim_parms->shapekey_rest);
+			KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ob), clmd->sim_parms->shapekey_rest);
 
 			if (kb->data)
 				return kb->data;
@@ -1276,7 +1276,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 		}
 		
 		if (!kb) {
-			kb = add_keyblock(me->key, layer->name);
+			kb = BKE_keyblock_add(me->key, layer->name);
 			kb->uid = layer->uid;
 		}
 		

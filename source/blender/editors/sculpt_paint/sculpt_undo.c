@@ -107,8 +107,8 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 		if (ss->kb && strcmp(ss->kb->name, unode->shapeName)) {
 			/* shape key has been changed before calling undo operator */
 
-			Key *key = ob_get_key(ob);
-			KeyBlock *kb = key_get_named_keyblock(key, unode->shapeName);
+			Key *key = BKE_key_from_object(ob);
+			KeyBlock *kb = BKE_keyblock_find_name(key, unode->shapeName);
 
 			if (kb) {
 				ob->shapenr = BLI_findindex(&key->block, kb) + 1;
@@ -127,7 +127,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 
 		if (ss->kb) {
 			float (*vertCos)[3];
-			vertCos = key_to_vertcos(ob, ss->kb);
+			vertCos = BKE_key_convert_to_vertcos(ob, ss->kb);
 
 			for (i = 0; i < unode->totvert; i++) {
 				if (ss->modifiers_active) sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);

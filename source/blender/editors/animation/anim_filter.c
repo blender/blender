@@ -99,7 +99,7 @@
 /* ----------- Private Stuff - Action Editor ------------- */
 
 /* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
-/* Note: there's a similar function in key.c (ob_get_key) */
+/* Note: there's a similar function in key.c (BKE_key_from_object) */
 static Key *actedit_get_shapekeys(bAnimContext *ac)
 {
 	Scene *scene = ac->scene;
@@ -114,7 +114,7 @@ static Key *actedit_get_shapekeys(bAnimContext *ac)
 	//if (saction->pin) return NULL;
 	
 	/* shapekey data is stored with geometry data */
-	key = ob_get_key(ob);
+	key = BKE_key_from_object(ob);
 	
 	if (key) {
 		if (key->type == KEY_RELATIVE)
@@ -799,7 +799,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 					/* the corresponding keyframes are from the animdata */
 					if (ale->adt && ale->adt->action) {
 						bAction *act = ale->adt->action;
-						char *rna_path = key_get_curValue_rnaPath(key, kb);
+						char *rna_path = BKE_keyblock_curval_rnapath_get(key, kb);
 						
 						/* try to find the F-Curve which corresponds to this exactly,
 						 * then free the MEM_alloc'd string
@@ -1940,7 +1940,7 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data
 	/* filter data contained under object first */
 	BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_OBJC(ob))
 	{
-		Key *key = ob_get_key(ob);
+		Key *key = BKE_key_from_object(ob);
 		
 		/* object-level animation */
 		if ((ob->adt) && !(ads->filterflag & ADS_FILTER_NOOBJ)) {

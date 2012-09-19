@@ -2868,22 +2868,22 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, int 
 	int newkey = 0;
 
 	if (key == NULL) {
-		key = me->key = add_key((ID *)me);
+		key = me->key = BKE_key_add((ID *)me);
 		key->type = KEY_RELATIVE;
 		newkey = 1;
 	}
 
 	if (newkey || from_mix == FALSE) {
 		/* create from mesh */
-		kb = add_keyblock_ctime(key, name, FALSE);
-		mesh_to_key(me, kb);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
+		BKE_key_convert_from_mesh(me, kb);
 	}
 	else {
 		/* copy from current values */
 		float *data = do_ob_key(scene, ob);
 
 		/* create new block with prepared data */
-		kb = add_keyblock_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		kb->data = data;
 		kb->totelem = me->totvert;
 	}
@@ -2899,20 +2899,20 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int 
 	int newkey = 0;
 
 	if (key == NULL) {
-		key = lt->key = add_key((ID *)lt);
+		key = lt->key = BKE_key_add((ID *)lt);
 		key->type = KEY_RELATIVE;
 		newkey = 1;
 	}
 
 	if (newkey || from_mix == FALSE) {
-		kb = add_keyblock_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		if (!newkey) {
 			KeyBlock *basekb = (KeyBlock *)key->block.first;
 			kb->data = MEM_dupallocN(basekb->data);
 			kb->totelem = basekb->totelem;
 		}
 		else {
-			latt_to_key(lt, kb);
+			BKE_key_convert_from_lattice(lt, kb);
 		}
 	}
 	else {
@@ -2920,7 +2920,7 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int 
 		float *data = do_ob_key(scene, ob);
 
 		/* create new block with prepared data */
-		kb = add_keyblock_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		kb->totelem = lt->pntsu * lt->pntsv * lt->pntsw;
 		kb->data = data;
 	}
@@ -2937,21 +2937,21 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 	int newkey = 0;
 
 	if (key == NULL) {
-		key = cu->key = add_key((ID *)cu);
+		key = cu->key = BKE_key_add((ID *)cu);
 		key->type = KEY_RELATIVE;
 		newkey = 1;
 	}
 
 	if (newkey || from_mix == FALSE) {
 		/* create from curve */
-		kb = add_keyblock_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		if (!newkey) {
 			KeyBlock *basekb = (KeyBlock *)key->block.first;
 			kb->data = MEM_dupallocN(basekb->data);
 			kb->totelem = basekb->totelem;
 		}
 		else {
-			curve_to_key(cu, kb, lb);
+			BKE_key_convert_from_curve(cu, kb, lb);
 		}
 	}
 	else {
@@ -2959,7 +2959,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 		float *data = do_ob_key(scene, ob);
 
 		/* create new block with prepared data */
-		kb = add_keyblock_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		kb->totelem = BKE_nurbList_verts_count(lb);
 		kb->data = data;
 	}
@@ -2989,7 +2989,7 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
 {
 	int flag = 0;
 
-	if (ob_get_key(ob)) {
+	if (BKE_key_from_object(ob)) {
 		flag |= eModifierMode_Render;
 	}
 	else {

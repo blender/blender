@@ -368,7 +368,7 @@ static void stats_string(Scene *scene)
 	s += sprintf(s, "%s | ", versionstr);
 
 	if (scene->obedit) {
-		if (ob_get_keyblock(scene->obedit))
+		if (BKE_keyblock_from_object(scene->obedit))
 			s += sprintf(s, "(Key) ");
 
 		if (scene->obedit->type == OB_MESH) {

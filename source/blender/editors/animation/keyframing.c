@@ -1836,7 +1836,7 @@ static short object_frame_has_keyframe(Object *ob, float frame, short filter)
 	
 	/* try shapekey keyframes (if available, and allowed by filter) */
 	if (!(filter & ANIMFILTER_KEYS_LOCAL) && !(filter & ANIMFILTER_KEYS_NOSKEY) ) {
-		Key *key = ob_get_key(ob);
+		Key *key = BKE_key_from_object(ob);
 		
 		/* shapekeys can have keyframes ('Relative Shape Keys') 
 		 * or depend on time (old 'Absolute Shape Keys') 

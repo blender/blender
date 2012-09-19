@@ -901,7 +901,7 @@ static void draw_selected_name(Scene *scene, Object *ob)
 			
 			/* try to display active shapekey too */
 			shapes[0] = '\0';
-			key = ob_get_key(ob);
+			key = BKE_key_from_object(ob);
 			if (key) {
 				kb = BLI_findlink(&key->block, ob->shapenr - 1);
 				if (kb) {

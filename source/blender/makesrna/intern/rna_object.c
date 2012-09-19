@@ -1101,7 +1101,7 @@ static void rna_GameObjectSettings_used_state_get(PointerRNA *ptr, int *values)
 static void rna_Object_active_shape_key_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Object *ob = (Object *)ptr->id.data;
-	Key *key = ob_get_key(ob);
+	Key *key = BKE_key_from_object(ob);
 
 	*min = 0;
 	if (key) {
@@ -1130,7 +1130,7 @@ static void rna_Object_active_shape_key_index_set(PointerRNA *ptr, int value)
 static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
-	Key *key = ob_get_key(ob);
+	Key *key = BKE_key_from_object(ob);
 	KeyBlock *kb;
 	PointerRNA keyptr;
 

@@ -424,7 +424,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	float axis_x[3], axis_y[3];
 	
 	/* ignore 2-edged faces */
-	if (target->f->len < 3)
+	if (UNLIKELY(target->f->len < 3))
 		return;
 	
 	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))

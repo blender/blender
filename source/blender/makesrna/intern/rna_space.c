@@ -849,7 +849,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *UNUSED(bmain), Scene *s
 			adt = BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
 		}
 		else if (saction->mode == SACTCONT_SHAPEKEY) {
-			Key *key = ob_get_key(obact);
+			Key *key = BKE_key_from_object(obact);
 			if (key)
 				adt = BKE_id_add_animdata(&key->id);  /* this only adds if non-existant */
 		}
@@ -876,7 +876,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 	
 	/* special exceptions for ShapeKey Editor mode */
 	if (saction->mode == SACTCONT_SHAPEKEY) {
-		Key *key = ob_get_key(obact);
+		Key *key = BKE_key_from_object(obact);
 		
 		/* 1)	update the action stored for the editor */
 		if (key)

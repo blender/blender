@@ -2649,7 +2649,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 			}
 
 	if (is_basis) {
-		ofs = key_to_vertcos(ob, kb);
+		ofs = BKE_key_convert_to_vertcos(ob, kb);
 
 		/* calculate key coord offsets (from previous location) */
 		for (a = 0; a < me->totvert; a++) {
@@ -2662,7 +2662,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 			int apply_offset = ((currkey != kb) && (ob->shapenr - 1 == currkey->relative));
 
 			if (apply_offset)
-				offset_to_key(ob, currkey, ofs);
+				BKE_key_convert_from_offset(ob, currkey, ofs);
 
 			currkey = currkey->next;
 		}
@@ -2683,7 +2683,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 	}
 
 	/* apply new coords on active key block */
-	vertcos_to_key(ob, kb, vertCos);
+	BKE_key_convert_from_vertcos(ob, kb, vertCos);
 }
 
 static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
@@ -3074,7 +3074,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
 	BKE_mesh_tessface_ensure(me);
 
-	if (!mmd) ss->kb = ob_get_keyblock(ob);
+	if (!mmd) ss->kb = BKE_keyblock_from_object(ob);
 	else ss->kb = NULL;
 
 	/* needs to be called after we ensure tessface */
@@ -3109,7 +3109,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 
 			free_sculptsession_deformMats(ss);
 
-			ss->orig_cos = (ss->kb) ? key_to_vertcos(ob, ss->kb) : mesh_getVertexCos(me, NULL);
+			ss->orig_cos = (ss->kb) ? BKE_key_convert_to_vertcos(ob, ss->kb) : mesh_getVertexCos(me, NULL);
 
 			crazyspace_build_sculpt(scene, ob, &ss->deform_imats, &ss->deform_cos);
 			BLI_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos);
@@ -3123,7 +3123,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 
 	/* if pbvh is deformed, key block is already applied to it */
 	if (ss->kb && !BLI_pbvh_isDeformed(ss->pbvh)) {
-		float (*vertCos)[3] = key_to_vertcos(ob, ss->kb);
+		float (*vertCos)[3] = BKE_key_convert_to_vertcos(ob, ss->kb);
 
 		if (vertCos) {
 			/* apply shape keys coordinates to PBVH */

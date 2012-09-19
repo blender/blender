@@ -556,7 +556,7 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	UndoMesh *um = MEM_callocN(sizeof(UndoMesh), "undo Mesh");
 	
 	/* make sure shape keys work */
-	um->me.key = obme->key ? copy_key_nolib(obme->key) : NULL;
+	um->me.key = obme->key ? BKE_key_copy_nolib(obme->key) : NULL;
 
 	/* BM_mesh_validate(em->bm); */ /* for troubleshooting */
 

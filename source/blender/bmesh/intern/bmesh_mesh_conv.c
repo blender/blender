@@ -758,7 +758,7 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 			}
 
 			if (!currkey) {
-				currkey = add_keyblock(me->key, bm->vdata.layers[i].name);
+				currkey = BKE_keyblock_add(me->key, bm->vdata.layers[i].name);
 				currkey->uid = bm->vdata.layers[i].uid;
 			}
 

@@ -94,7 +94,7 @@ void BKE_key_free(Key *key)
 	
 }
 
-void free_key_nolib(Key *key)
+void BKE_key_free_nolib(Key *key)
 {
 	KeyBlock *kb;
 	
@@ -121,7 +121,7 @@ void free_key_nolib(Key *key)
 /* from misc_util: flip the bytes from x  */
 /*  #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
 
-Key *add_key(ID *id)    /* common function */
+Key *BKE_key_add(ID *id)    /* common function */
 {
 	Key *key;
 	char *el;
@@ -196,7 +196,7 @@ Key *BKE_key_copy(Key *key)
 }
 
 
-Key *copy_key_nolib(Key *key)
+Key *BKE_key_copy_nolib(Key *key)
 {
 	Key *keyn;
 	KeyBlock *kbn, *kb;
@@ -241,7 +241,7 @@ void BKE_key_make_local(Key *key)
  * currently being called.
  */
 
-void sort_keys(Key *key)
+void BKE_key_sort(Key *key)
 {
 	KeyBlock *kb;
 	KeyBlock *kb2;
@@ -711,7 +711,7 @@ static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, const 
 	}
 }
 
-void do_rel_key(const int start, int end, const int tot, char *basispoin, Key *key, KeyBlock *actkb, const int mode)
+void BKE_key_evaluate_relative(const int start, int end, const int tot, char *basispoin, Key *key, KeyBlock *actkb, const int mode)
 {
 	KeyBlock *kb;
 	int *ofsp, ofs[3], elemsize, b;
@@ -1071,7 +1071,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 
 static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
 {
-	KeyBlock *k[4], *actkb = ob_get_keyblock(ob);
+	KeyBlock *k[4], *actkb = BKE_keyblock_from_object(ob);
 	float t[4];
 	int flag = 0;
 
@@ -1106,7 +1106,7 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 				kb->weights = get_weights_array(ob, kb->vgroup);
 			}
 
-			do_rel_key(0, tot, tot, (char *)out, key, actkb, KEY_MODE_DUMMY);
+			BKE_key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, KEY_MODE_DUMMY);
 			
 			for (kb = key->block.first; kb; kb = kb->next) {
 				if (kb->weights) MEM_freeN(kb->weights);
@@ -1154,11 +1154,11 @@ static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, char *out, const
 	for (a = 0, nu = cu->nurb.first; nu; nu = nu->next, a += step) {
 		if (nu->bp) {
 			step = nu->pntsu * nu->pntsv;
-			do_rel_key(a, a + step, tot, out, key, actkb, KEY_MODE_BPOINT);
+			BKE_key_evaluate_relative(a, a + step, tot, out, key, actkb, KEY_MODE_BPOINT);
 		}
 		else if (nu->bezt) {
 			step = 3 * nu->pntsu;
-			do_rel_key(a, a + step, tot, out, key, actkb, KEY_MODE_BEZTRIPLE);
+			BKE_key_evaluate_relative(a, a + step, tot, out, key, actkb, KEY_MODE_BEZTRIPLE);
 		}
 		else {
 			step = 0;
@@ -1169,7 +1169,7 @@ static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, char *out, const
 static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
 {
 	Curve *cu = ob->data;
-	KeyBlock *k[4], *actkb = ob_get_keyblock(ob);
+	KeyBlock *k[4], *actkb = BKE_keyblock_from_object(ob);
 	float t[4];
 	int flag = 0;
 
@@ -1251,7 +1251,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int tot)
 {
 	Lattice *lt = ob->data;
-	KeyBlock *k[4], *actkb = ob_get_keyblock(ob);
+	KeyBlock *k[4], *actkb = BKE_keyblock_from_object(ob);
 	float t[4];
 	int flag;
 	
@@ -1277,7 +1277,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 			for (kb = key->block.first; kb; kb = kb->next)
 				kb->weights = get_weights_array(ob, kb->vgroup);
 			
-			do_rel_key(0, tot, tot, out, key, actkb, KEY_MODE_DUMMY);
+			BKE_key_evaluate_relative(0, tot, tot, out, key, actkb, KEY_MODE_DUMMY);
 			
 			for (kb = key->block.first; kb; kb = kb->next) {
 				if (kb->weights) MEM_freeN(kb->weights);
@@ -1302,8 +1302,8 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 /* returns key coordinates (+ tilt) when key applied, NULL otherwise */
 float *do_ob_key(Scene *scene, Object *ob)
 {
-	Key *key = ob_get_key(ob);
-	KeyBlock *actkb = ob_get_keyblock(ob);
+	Key *key = BKE_key_from_object(ob);
+	KeyBlock *actkb = BKE_keyblock_from_object(ob);
 	char *out;
 	int tot = 0, size = 0;
 	
@@ -1386,7 +1386,7 @@ float *do_ob_key(Scene *scene, Object *ob)
 	return (float *)out;
 }
 
-Key *ob_get_key(Object *ob)
+Key *BKE_key_from_object(Object *ob)
 {
 	if (ob == NULL) return NULL;
 	
@@ -1405,7 +1405,7 @@ Key *ob_get_key(Object *ob)
 	return NULL;
 }
 
-KeyBlock *add_keyblock(Key *key, const char *name)
+KeyBlock *BKE_keyblock_add(Key *key, const char *name)
 {
 	KeyBlock *kb;
 	float curpos = -0.1;
@@ -1439,7 +1439,7 @@ KeyBlock *add_keyblock(Key *key, const char *name)
 
 	/**
 	 * \note caller may want to set this to current time, but don't do it here since we need to sort
-	 * which could cause problems in some cases, see #add_keyblock_ctime */
+	 * which could cause problems in some cases, see #BKE_keyblock_add_ctime */
 	kb->pos = curpos + 0.1f; /* only used for absolute shape keys */
 
 	return kb;
@@ -1453,22 +1453,22 @@ KeyBlock *add_keyblock(Key *key, const char *name)
  * \param name Optional name for the new keyblock.
  * \param do_force always use ctime even for relative keys.
  */
-KeyBlock *add_keyblock_ctime(Key *key, const char *name, const short do_force)
+KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const short do_force)
 {
-	KeyBlock *kb = add_keyblock(key, name);
+	KeyBlock *kb = BKE_keyblock_add(key, name);
 
 	if (do_force || (key->type != KEY_RELATIVE)) {
 		kb->pos = key->ctime / 100.0f;
-		sort_keys(key);
+		BKE_key_sort(key);
 	}
 
 	return kb;
 }
 
 /* only the active keyblock */
-KeyBlock *ob_get_keyblock(Object *ob) 
+KeyBlock *BKE_keyblock_from_object(Object *ob) 
 {
-	Key *key = ob_get_key(ob);
+	Key *key = BKE_key_from_object(ob);
 	
 	if (key) {
 		KeyBlock *kb = BLI_findlink(&key->block, ob->shapenr - 1);
@@ -1478,9 +1478,9 @@ KeyBlock *ob_get_keyblock(Object *ob)
 	return NULL;
 }
 
-KeyBlock *ob_get_reference_keyblock(Object *ob)
+KeyBlock *BKE_keyblock_from_object_reference(Object *ob)
 {
-	Key *key = ob_get_key(ob);
+	Key *key = BKE_key_from_object(ob);
 	
 	if (key)
 		return key->refkey;
@@ -1489,7 +1489,7 @@ KeyBlock *ob_get_reference_keyblock(Object *ob)
 }
 
 /* get the appropriate KeyBlock given an index */
-KeyBlock *key_get_keyblock(Key *key, int index)
+KeyBlock *BKE_keyblock_from_key(Key *key, int index)
 {
 	KeyBlock *kb;
 	int i;
@@ -1509,7 +1509,7 @@ KeyBlock *key_get_keyblock(Key *key, int index)
 }
 
 /* get the appropriate KeyBlock given a name to search for */
-KeyBlock *key_get_named_keyblock(Key *key, const char name[])
+KeyBlock *BKE_keyblock_find_name(Key *key, const char name[])
 {
 	if (key && name)
 		return BLI_findstring(&key->block, name, offsetof(KeyBlock, name));
@@ -1520,7 +1520,7 @@ KeyBlock *key_get_named_keyblock(Key *key, const char name[])
 /* Get RNA-Path for 'value' setting of the given ShapeKey 
  * NOTE: the user needs to free the returned string once they're finish with it
  */
-char *key_get_curValue_rnaPath(Key *key, KeyBlock *kb)
+char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
@@ -1542,7 +1542,7 @@ char *key_get_curValue_rnaPath(Key *key, KeyBlock *kb)
 /* conversion functions */
 
 /************************* Lattice ************************/
-void latt_to_key(Lattice *lt, KeyBlock *kb)
+void BKE_key_convert_from_lattice(Lattice *lt, KeyBlock *kb)
 {
 	BPoint *bp;
 	float *fp;
@@ -1563,7 +1563,7 @@ void latt_to_key(Lattice *lt, KeyBlock *kb)
 	}
 }
 
-void key_to_latt(KeyBlock *kb, Lattice *lt)
+void BKE_key_convert_to_lattice(KeyBlock *kb, Lattice *lt)
 {
 	BPoint *bp;
 	float *fp;
@@ -1581,7 +1581,7 @@ void key_to_latt(KeyBlock *kb, Lattice *lt)
 }
 
 /************************* Curve ************************/
-void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
+void BKE_key_convert_from_curve(Curve *cu, KeyBlock *kb, ListBase *nurb)
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -1632,7 +1632,7 @@ void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
 	}
 }
 
-void key_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
+void BKE_key_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -1683,7 +1683,7 @@ void key_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 }
 
 /************************* Mesh ************************/
-void mesh_to_key(Mesh *me, KeyBlock *kb)
+void BKE_key_convert_from_mesh(Mesh *me, KeyBlock *kb)
 {
 	MVert *mvert;
 	float *fp;
@@ -1704,7 +1704,7 @@ void mesh_to_key(Mesh *me, KeyBlock *kb)
 	}
 }
 
-void key_to_mesh(KeyBlock *kb, Mesh *me)
+void BKE_key_convert_to_mesh(KeyBlock *kb, Mesh *me)
 {
 	MVert *mvert;
 	float *fp;
@@ -1721,7 +1721,7 @@ void key_to_mesh(KeyBlock *kb, Mesh *me)
 }
 
 /************************* vert coords ************************/
-float (*key_to_vertcos(Object * ob, KeyBlock * kb))[3]
+float (*BKE_key_convert_to_vertcos(Object * ob, KeyBlock * kb))[3]
 {
 	float (*vertCos)[3], *co;
 	float *fp = kb->data;
@@ -1743,7 +1743,7 @@ float (*key_to_vertcos(Object * ob, KeyBlock * kb))[3]
 
 	if (tot == 0) return NULL;
 
-	vertCos = MEM_callocN(tot * sizeof(*vertCos), "key_to_vertcos vertCos");
+	vertCos = MEM_callocN(tot * sizeof(*vertCos), "BKE_key_convert_to_vertcos vertCos");
 
 	/* Copy coords to array */
 	co = (float *)vertCos;
@@ -1797,7 +1797,7 @@ float (*key_to_vertcos(Object * ob, KeyBlock * kb))[3]
 	return vertCos;
 }
 
-void vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
+void BKE_key_convert_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 {
 	float *co = (float *)vertCos, *fp;
 	int tot = 0, a, elemsize;
@@ -1826,7 +1826,7 @@ void vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		return;
 	}
 
-	fp = kb->data = MEM_callocN(tot * elemsize, "key_to_vertcos vertCos");
+	fp = kb->data = MEM_callocN(tot * elemsize, "BKE_key_convert_to_vertcos vertCos");
 
 	/* Copy coords to keyblock */
 
@@ -1877,7 +1877,7 @@ void vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 	}
 }
 
-void offset_to_key(Object *ob, KeyBlock *kb, float (*ofs)[3])
+void BKE_key_convert_from_offset(Object *ob, KeyBlock *kb, float (*ofs)[3])
 {
 	int a;
 	float *co = (float *)ofs, *fp = kb->data;

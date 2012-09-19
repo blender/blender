@@ -61,7 +61,7 @@ static Key *rna_ShapeKey_find_key(ID *id)
 		case ID_KE: return (Key *)id;
 		case ID_LT: return ((Lattice *)id)->key;
 		case ID_ME: return ((Mesh *)id)->key;
-		case ID_OB: return ob_get_key((Object *)id);
+		case ID_OB: return BKE_key_from_object((Object *)id);
 		default: return NULL;
 	}
 }
@@ -360,7 +360,7 @@ static void rna_Key_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *p
 	Object *ob;
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		if (ob_get_key(ob) == key) {
+		if (BKE_key_from_object(ob) == key) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 		}

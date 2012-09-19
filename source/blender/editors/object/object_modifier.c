@@ -565,15 +565,15 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		}
 		
 		if (key == NULL) {
-			key = me->key = add_key((ID *)me);
+			key = me->key = BKE_key_add((ID *)me);
 			key->type = KEY_RELATIVE;
 			/* if that was the first key block added, then it was the basis.
 			 * Initialize it with the mesh, and add another for the modifier */
-			kb = add_keyblock(key, NULL);
-			mesh_to_key(me, kb);
+			kb = BKE_keyblock_add(key, NULL);
+			BKE_key_convert_from_mesh(me, kb);
 		}
 
-		kb = add_keyblock(key, md->name);
+		kb = BKE_keyblock_add(key, md->name);
 		DM_to_meshkey(dm, me, kb);
 		
 		dm->release(dm);

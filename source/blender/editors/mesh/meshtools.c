@@ -196,7 +196,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	else if (haskey) {
 		/* add a new key-block and add to the mesh */
-		key = me->key = add_key((ID *)me);
+		key = me->key = BKE_key_add((ID *)me);
 		key->type = KEY_RELATIVE;
 	}
 	
@@ -245,8 +245,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				if (me->key && key) {
 					for (kb = me->key->block.first; kb; kb = kb->next) {
 						/* if key doesn't exist in destination mesh, add it */
-						if (key_get_named_keyblock(key, kb->name) == NULL) {
-							kbn = add_keyblock(key, kb->name);
+						if (BKE_keyblock_find_name(key, kb->name) == NULL) {
+							kbn = BKE_keyblock_add(key, kb->name);
 							
 							/* copy most settings */
 							kbn->pos        = kb->pos;
@@ -351,7 +351,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							fp1 = ((float *)kb->data) + (vertofs * 3);
 							
 							/* check if this mesh has such a shapekey */
-							okb = key_get_named_keyblock(me->key, kb->name);
+							okb = BKE_keyblock_find_name(me->key, kb->name);
 							if (okb) {
 								/* copy this mesh's shapekey to the destination shapekey (need to transform first) */
 								fp2 = ((float *)(okb->data));
@@ -381,7 +381,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							fp1 = ((float *)kb->data) + (vertofs * 3);
 							
 							/* check if this was one of the original shapekeys */
-							okb = key_get_named_keyblock(nkey, kb->name);
+							okb = BKE_keyblock_find_name(nkey, kb->name);
 							if (okb) {
 								/* copy this mesh's shapekey to the destination shapekey */
 								fp2 = ((float *)(okb->data));
@@ -602,12 +602,12 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	}
 	
 	if (key == NULL) {
-		key = me->key = add_key((ID *)me);
+		key = me->key = BKE_key_add((ID *)me);
 		key->type = KEY_RELATIVE;
 
 		/* first key added, so it was the basis. initialize it with the existing mesh */
-		kb = add_keyblock(key, NULL);
-		mesh_to_key(me, kb);
+		kb = BKE_keyblock_add(key, NULL);
+		BKE_key_convert_from_mesh(me, kb);
 	}
 	
 	/* now ready to add new keys from selected meshes */
@@ -623,7 +623,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 				
 				if (!dm) continue;
 					
-				kb = add_keyblock(key, base->object->id.name + 2);
+				kb = BKE_keyblock_add(key, base->object->id.name + 2);
 				
 				DM_to_meshkey(dm, me, kb);
 				
