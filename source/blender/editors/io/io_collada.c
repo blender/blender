@@ -143,6 +143,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
+		BKE_report(op->reports, RPT_WARNING, "Export file not created.");
 		return OPERATOR_CANCELLED;
 	}
 }
