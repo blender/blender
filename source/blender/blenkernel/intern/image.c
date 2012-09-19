@@ -643,6 +643,7 @@ Image *BKE_image_add_generated(unsigned int width, unsigned int height, const ch
 
 	if (ima) {
 		ImBuf *ibuf;
+		const char *colorspace;
 
 		/* BLI_strncpy(ima->name, name, FILE_MAX); */ /* don't do this, this writes in ain invalid filepath! */
 		ima->gen_x = width;
@@ -652,6 +653,14 @@ Image *BKE_image_add_generated(unsigned int width, unsigned int height, const ch
 
 		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, gen_type, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+
+		/* assign colorspaces */
+		if (floatbuf)
+			colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT);
+		else
+			colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+
+		BLI_strncpy(ima->colorspace_settings.name, colorspace, sizeof(ima->colorspace_settings.name));
 
 		ima->ok = IMA_OK_LOADED;
 	}
