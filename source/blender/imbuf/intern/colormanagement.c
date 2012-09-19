@@ -450,15 +450,16 @@ static void colormanage_load_config(ConstConfigRcPtr *config)
 	for (index = 0 ; index < tot_colorspace; index++) {
 		ConstColorSpaceRcPtr *ocio_colorspace;
 		const char *description;
-		int is_invertible;
+		int is_invertible, is_data;
 
 		name = OCIO_configGetColorSpaceNameByIndex(config, index);
 
 		ocio_colorspace = OCIO_configGetColorSpace(config, name);
 		description = OCIO_colorSpaceGetDescription(ocio_colorspace);
 		is_invertible = OCIO_colorSpaceIsInvertible(ocio_colorspace);
+		is_data = OCIO_colorSpaceIsData(ocio_colorspace);
 
-		colormanage_colorspace_add(name, description, is_invertible);
+		colormanage_colorspace_add(name, description, is_invertible, is_data);
 
 		OCIO_colorSpaceRelease(ocio_colorspace);
 	}
@@ -847,8 +848,14 @@ void colormanage_imbuf_set_default_spaces(ImBuf *ibuf)
 void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 {
 	if (ibuf->rect_float) {
+		ColorSpace *colorspace = colormanage_colorspace_get_named(from_colorspace);
 		const char *to_colorspace = global_role_scene_linear;
 		int predivide = ibuf->flags & IB_cm_predivide;
+
+		if (colorspace->is_data) {
+			ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
+			return;
+		}
 
 		if (ibuf->rect)
 			imb_freerectImBuf(ibuf);
@@ -1049,6 +1056,7 @@ typedef struct DisplayBufferThread {
 	int channels;
 	float dither;
 	int predivide;
+	int is_data;
 
 	const char *byte_colorspace;
 	const char *float_colorspace;
@@ -1078,6 +1086,7 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	int predivide = ibuf->flags & IB_cm_predivide;
 	int channels = ibuf->channels;
 	float dither = ibuf->dither;
+	int is_data = ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA;
 
 	int offset = channels * start_line * ibuf->x;
 
@@ -1105,6 +1114,7 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	handle->channels = channels;
 	handle->dither = dither;
 	handle->predivide = predivide;
+	handle->is_data = is_data;
 
 	handle->byte_colorspace = init_data->byte_colorspace;
 	handle->float_colorspace = init_data->float_colorspace;
@@ -1189,11 +1199,19 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	int height = handle->tot_line;
 	float dither = handle->dither;
 	int predivide = handle->predivide;
+	int is_data = handle->is_data;
 
 	float *linear_buffer = display_buffer_apply_get_linear_buffer(handle);
 
-	/* apply processor */
-	IMB_colormanagement_processor_apply(cm_processor, linear_buffer, width, height, channels, predivide);
+	if (is_data) {
+		/* special case for data buffers - no color space conversions,
+		 * only generate byte buffers
+		 */
+	}
+	else {
+		/* apply processor */
+		IMB_colormanagement_processor_apply(cm_processor, linear_buffer, width, height, channels, predivide);
+	}
 
 	/* copy result to output buffers */
 	if (display_buffer_byte) {
@@ -1938,7 +1956,7 @@ static void colormanage_description_strip(char *description)
 	}
 }
 
-ColorSpace *colormanage_colorspace_add(const char *name, const char *description, int is_invertible)
+ColorSpace *colormanage_colorspace_add(const char *name, const char *description, int is_invertible, int is_data)
 {
 	ColorSpace *colorspace, *prev_space;
 	int counter = 1;
@@ -1954,6 +1972,7 @@ ColorSpace *colormanage_colorspace_add(const char *name, const char *description
 	}
 
 	colorspace->is_invertible = is_invertible;
+	colorspace->is_data = is_data;
 
 	for (prev_space = global_colorspaces.first; prev_space; prev_space = prev_space->next) {
 		if (BLI_strcasecmp(prev_space->name, colorspace->name) > 0)
@@ -2141,6 +2160,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 	float *display_buffer_float = NULL;
 	int width = xmax - xmin;
 	int height = ymax - ymin;
+	int is_data = ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA;
 
 	if (dither != 0.0f) {
 		display_buffer_float = MEM_callocN(channels * width * height * sizeof(float), "display buffer for dither");
@@ -2161,10 +2181,12 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 				IMB_colormanagement_colorspace_to_scene_linear_v3(pixel, rect_colorspace);
 			}
 
-			if (predivide)
-				IMB_colormanagement_processor_apply_v4(cm_processor, pixel);
-			else
-				IMB_colormanagement_processor_apply_v4(cm_processor, pixel);
+			if (!is_data) {
+				if (predivide)
+					IMB_colormanagement_processor_apply_v4(cm_processor, pixel);
+				else
+					IMB_colormanagement_processor_apply_v4(cm_processor, pixel);
+			}
 
 			if (display_buffer_float) {
 				int index = ((y - ymin) * width + (x - xmin)) * channels;

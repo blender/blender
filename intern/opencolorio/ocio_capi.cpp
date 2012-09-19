@@ -302,6 +302,11 @@ int OCIO_colorSpaceIsInvertible(ConstColorSpaceRcPtr *cs)
 	return true;
 }
 
+int OCIO_colorSpaceIsData(ConstColorSpaceRcPtr *cs)
+{
+	return ((*cs)->isData());
+}
+
 void OCIO_colorSpaceRelease(ConstColorSpaceRcPtr *cs)
 {
 	MEM_DELETE(cs, ConstColorSpaceRcPtr);

@@ -131,6 +131,7 @@ typedef struct ImBuf {
 	struct ColorSpace *float_colorspace;         /* color space of float buffer, used by sequencer only */
 	unsigned int *display_buffer_flags;          /* array of per-display display buffers dirty flags */
 	struct ColormanageCache *colormanage_cache;  /* cache used by color management */
+	int colormanage_flag;
 
 	/* information for compressed textures */
 	struct DDSData dds_data;
@@ -259,5 +260,9 @@ extern const char *imb_ext_image[];
 extern const char *imb_ext_image_qt[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
+
+enum {
+	IMB_COLORMANAGE_IS_DATA = (1 << 0)
+};
 
 #endif

@@ -4596,9 +4596,12 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 {
 	ImBuf *ibuf = BKE_image_get_ibuf(image, s->sima ? &s->sima->iuser : NULL);
 	float pos[2];
+	int is_data;
 
 	if (!ibuf)
 		return 0;
+
+	is_data = ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA;
 
 	pos[0] = uv[0] * ibuf->x;
 	pos[1] = uv[1] * ibuf->y;
@@ -4608,7 +4611,7 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	/* OCIO_TODO: float buffers are now always linear, so always use color correction
 	 *            this should probably be changed when texture painting color space is supported
 	 */
-	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, TRUE)) {
+	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, is_data == FALSE)) {
 		if (update)
 			imapaint_image_update(s->scene, s->sima, image, ibuf, texpaint);
 		return 1;

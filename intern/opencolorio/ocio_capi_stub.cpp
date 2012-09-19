@@ -174,6 +174,11 @@ int OCIO_colorSpaceIsInvertible(ConstColorSpaceRcPtr *cs)
 	return 1;
 }
 
+int OCIO_colorSpaceIsData(ConstColorSpaceRcPtr *cs)
+{
+	return 0;
+}
+
 void OCIO_colorSpaceRelease(ConstColorSpaceRcPtr *cs)
 {
 }
