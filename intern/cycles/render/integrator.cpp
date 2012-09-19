@@ -123,6 +123,8 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	max_samples *= (max_bounce + transparent_max_bounce + 2);
 
 	int dimensions = PRNG_BASE_NUM + max_samples*PRNG_BOUNCE_NUM;
+	dimensions = min(dimensions, SOBOL_MAX_DIMENSIONS);
+
 	uint *directions = dscene->sobol_directions.resize(SOBOL_BITS*dimensions);
 
 	sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);
