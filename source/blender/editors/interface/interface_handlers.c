@@ -4501,6 +4501,7 @@ static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 
 static int ui_but_menu(bContext *C, uiBut *but)
 {
+	ARegion *ar = CTX_wm_region(C);
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int length;
@@ -4724,7 +4725,12 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		uiItemS(layout);
 	}
 
-	
+	/* Show header tools for header buttons. */
+	if (ar->regiontype == RGN_TYPE_HEADER) {
+		uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
+		uiItemS(layout);
+	}
+
 	{   /* Docs */
 		char buf[512];
 		PointerRNA ptr_props;

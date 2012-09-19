@@ -2850,35 +2850,40 @@ static void SCREEN_OT_header_flip(wmOperatorType *ot)
 }
 
 /* ************** header tools operator ***************************** */
-
-static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	
-	pup = uiPupMenuBegin(C, "Header", ICON_NONE);
-	layout = uiPupMenuLayout(pup);
-	
-	// XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator
+
+	/* XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator. */
 	if (ar->alignment == RGN_ALIGN_TOP)
-		uiItemO(layout, "Flip to Bottom", ICON_NONE, "SCREEN_OT_header_flip");
+		uiItemO(layout, IFACE_("Flip to Bottom"), ICON_NONE, "SCREEN_OT_header_flip");
 	else
-		uiItemO(layout, "Flip to Top", ICON_NONE, "SCREEN_OT_header_flip");
-	
+		uiItemO(layout, IFACE_("Flip to Top"), ICON_NONE, "SCREEN_OT_header_flip");
+
 	uiItemS(layout);
-	
+
 	/* file browser should be fullscreen all the time, but other regions can be maximized/restored... */
 	if (sa->spacetype != SPACE_FILE) {
 		if (sa->full) 
-			uiItemO(layout, "Tile Area", ICON_NONE, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, IFACE_("Tile Area"), ICON_NONE, "SCREEN_OT_screen_full_area");
 		else
-			uiItemO(layout, "Maximize Area", ICON_NONE, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, IFACE_("Maximize Area"), ICON_NONE, "SCREEN_OT_screen_full_area");
 	}
-	
+}
+
+static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup = uiPupMenuBegin(C, N_("Header"), ICON_NONE);
+	layout = uiPupMenuLayout(pup);
+
+	ED_screens_header_tools_menu_create(C, layout, NULL);
+
 	uiPupMenuEnd(C, pup);
-	
+
 	return OPERATOR_CANCELLED;
 }
 
