@@ -2281,9 +2281,9 @@ static ImBuf *tracking_context_get_reference_ibuf(MovieTrackingContext *context,
 	return ibuf;
 }
 
-static void track_context_update_reference(MovieTrackingContext *context, TrackContext *track_context,
-                                           MovieTrackingTrack *track, MovieTrackingMarker *marker, int curfra,
-                                           int frame_width, int frame_height)
+static int track_context_update_reference(MovieTrackingContext *context, TrackContext *track_context,
+                                          MovieTrackingTrack *track, MovieTrackingMarker *marker, int curfra,
+                                          int frame_width, int frame_height)
 {
 	MovieTrackingMarker *marker_keyed = NULL;
 	ImBuf *reference_ibuf = NULL;
@@ -2291,6 +2291,10 @@ static void track_context_update_reference(MovieTrackingContext *context, TrackC
 
 	/* calculate patch for keyframed position */
 	reference_ibuf = tracking_context_get_reference_ibuf(context, track, marker, curfra, &marker_keyed);
+
+	if (!reference_ibuf)
+		return FALSE;
+
 	track_context->marker = *marker_keyed;
 
 	if (track_context->search_area) {
@@ -2309,6 +2313,8 @@ static void track_context_update_reference(MovieTrackingContext *context, TrackC
 	}
 
 	IMB_freeImBuf(reference_ibuf);
+
+	return TRUE;
 }
 
 static void tracking_configure_tracker(TrackContext *track_context, MovieTrackingTrack *track,
@@ -2473,8 +2479,12 @@ int BKE_tracking_context_step(MovieTrackingContext *context)
 				float *patch_new;
 
 				if (need_readjust) {
-					track_context_update_reference(context, track_context, track, marker,
-					                               curfra, frame_width, frame_height);
+					if (track_context_update_reference(context, track_context, track, marker,
+					                                   curfra, frame_width, frame_height) == FALSE)
+					{
+						/* happens when reference frame fails to be loaded */
+						continue;
+					}
 				}
 
 				/* for now track to the same search area dimension as marker has got for current frame
