@@ -1123,6 +1123,9 @@ void CreateBrutePattern(const double *x1, const double *y1,
 // correlation. Instead, this is a dumb implementation. Surprisingly, it is
 // fast enough in practice.
 //
+// Returns true if any alignment was found, and false if the projected pattern
+// is zero sized.
+//
 // TODO(keir): The normalization is less effective for the brute force search
 // than it is with the Ceres solver. It's unclear if this is a bug or due to
 // the original frame being too different from the reprojected reference in the
@@ -1133,7 +1136,7 @@ void CreateBrutePattern(const double *x1, const double *y1,
 // totally different warping interface, since access to more than a the source
 // and current destination frame is necessary.
 template<typename Warp>
-void BruteTranslationOnlyInitialize(const FloatImage &image1,
+bool BruteTranslationOnlyInitialize(const FloatImage &image1,
                                     const FloatImage *image1_mask,
                                     const FloatImage &image2,
                                     const int num_extra_points,
@@ -1179,6 +1182,7 @@ void BruteTranslationOnlyInitialize(const FloatImage &image1,
   int best_c = -1;
   int w = pattern.cols();
   int h = pattern.rows();
+
   for (int r = 0; r < (image2.Height() - h); ++r) {
     for (int c = 0; c < (image2.Width() - w); ++c) {
       // Compute the weighted sum of absolute differences, Eigen style. Note
@@ -1203,8 +1207,12 @@ void BruteTranslationOnlyInitialize(const FloatImage &image1,
       }
     }
   }
-  CHECK_NE(best_r, -1);
-  CHECK_NE(best_c, -1);
+
+  // This mean the effective pattern area is zero. This check could go earlier,
+  // but this is less code.
+  if (best_r == -1 || best_c == -1) {
+    return false;
+  }
 
   LG << "Brute force translation found a shift. "
      << "best_c: " << best_c << ", best_r: " << best_r << ", "
@@ -1219,6 +1227,7 @@ void BruteTranslationOnlyInitialize(const FloatImage &image1,
     x2[i] += best_c - origin_x;
     y2[i] += best_r - origin_y;
   }
+  return true;
 }
 
 }  // namespace
@@ -1270,12 +1279,19 @@ void TemplatedTrackRegion(const FloatImage &image1,
   if (SearchAreaTooBigForDescent(image2, x2, y2) &&
       options.use_brute_initialization) {
     LG << "Running brute initialization...";
-    BruteTranslationOnlyInitialize<Warp>(image_and_gradient1,
-                                         options.image1_mask,
-                                         image2,
-                                         options.num_extra_points,
-                                         options.use_normalized_intensities,
-                                         x1, y1, x2, y2);
+    bool found_any_alignment = BruteTranslationOnlyInitialize<Warp>(
+        image_and_gradient1,
+        options.image1_mask,
+        image2,
+        options.num_extra_points,
+        options.use_normalized_intensities,
+        x1, y1, x2, y2);
+    if (!found_any_alignment) {
+      LG << "Brute failed to find an alignment; pattern too small. "
+         << "Failing entire track operation.";
+      result->termination = TrackRegionResult::INSUFFICIENT_PATTERN_AREA;
+      return;
+    }
     for (int i = 0; i < 4; ++i) {
       LG << "P" << i << ": (" << x1[i] << ", " << y1[i] << "); brute ("
          << x2[i] << ", " << y2[i] << "); (dx, dy): (" << (x2[i] - x1[i])

@@ -111,6 +111,7 @@ struct TrackRegionResult {
     DESTINATION_OUT_OF_BOUNDS,
     FELL_OUT_OF_BOUNDS,
     INSUFFICIENT_CORRELATION,
+    INSUFFICIENT_PATTERN_AREA,
     CONFIGURATION_ERROR,
   };
   Termination termination;
