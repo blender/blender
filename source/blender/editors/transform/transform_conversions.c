@@ -5722,10 +5722,9 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 	unit_m3(td->smtx);
 }
 
-static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
+static void trackToTransData(const int framenr, TransData *td, TransData2D *td2d,
                              TransDataTracking *tdt, MovieTrackingTrack *track, float aspx, float aspy)
 {
-	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	MovieTrackingMarker *marker = BKE_tracking_marker_ensure(track, framenr);
 
 	tdt->flag = marker->flag;
@@ -5777,7 +5776,6 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
-	MovieTrackingMarker *marker;
 	TransDataTracking *tdt;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	float aspx, aspy;
@@ -5788,8 +5786,6 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-			marker = BKE_tracking_marker_get(track, framenr);
-
 			t->total++; /* offset */
 
 			if (track->flag & SELECT)
@@ -5820,9 +5816,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-			marker = BKE_tracking_marker_get(track, framenr);
-
-			trackToTransData(sc, td, td2d, tdt, track, aspx, aspy);
+			trackToTransData(framenr, td, td2d, tdt, track, aspx, aspy);
 
 			/* offset */
 			td++;
@@ -5845,12 +5839,6 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 				td += 2;
 				td2d += 2;
 				tdt += 2;
-
-				if (marker->flag & MARKER_DISABLED) {
-					td += 3;
-					td2d += 3;
-					tdt += 3;
-				};
 			}
 		}
 

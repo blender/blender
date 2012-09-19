@@ -346,7 +346,6 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event
 	/* check for flying ortho camera - which we cant support well
 	 * we _could_ also check for an ortho camera but this is easier */
 	if ((fly->rv3d->persp == RV3D_CAMOB) &&
-	    (fly->v3d->camera != NULL) &&
 	    (fly->rv3d->is_persp == FALSE))
 	{
 		((Camera *)fly->v3d->camera->data)->type = CAM_PERSP;
