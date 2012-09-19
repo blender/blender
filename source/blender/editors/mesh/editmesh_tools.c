@@ -2858,9 +2858,6 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
 {
 	Base *base_new;
-	BMIter iter;
-	BMVert *v;
-	BMEdge *e;
 	Object *obedit = base_old->object;
 	BMesh *bm_new;
 
@@ -2886,15 +2883,10 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 	BMO_op_callf(bm_old, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	             "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_FACES);
 
-	/* deselect loose data - this used to get deleted */
-	BM_ITER_MESH (e, &iter, bm_old, BM_EDGES_OF_MESH) {
-		BM_edge_select_set(bm_old, e, FALSE);
-	}
-
-	/* clean up any loose verts */
-	BM_ITER_MESH (v, &iter, bm_old, BM_VERTS_OF_MESH) {
-		BM_vert_select_set(bm_old, v, FALSE);
-	}
+	/* deselect loose data - this used to get deleted,
+	 * we could de-select edges and verts only, but this turns out to be less complicated
+	 * since de-selecting all skips selection flushing logic */
+	BM_mesh_elem_hflag_disable_all(bm_old, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
 
 	BM_mesh_normals_update(bm_new, FALSE);
 
@@ -2908,7 +2900,10 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 
 static int mesh_separate_selected(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
 {
-	/* tag -> select */
+	/* we may have tags from previous operators */
+	BM_mesh_elem_hflag_disable_all(bm_old, BM_FACE | BM_EDGE | BM_VERT, BM_ELEM_TAG, FALSE);
+
+	/* sel -> tag */
 	BM_mesh_elem_hflag_enable_test(bm_old, BM_FACE | BM_EDGE | BM_VERT, BM_ELEM_TAG, TRUE, BM_ELEM_SELECT);
 
 	return mesh_separate_tagged(bmain, scene, base_old, bm_old);
