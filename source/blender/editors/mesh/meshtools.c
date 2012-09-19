@@ -243,19 +243,24 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				
 				/* if this mesh has shapekeys, check if destination mesh already has matching entries too */
 				if (me->key && key) {
-					for (kb = me->key->block.first; kb; kb = kb->next) {
+					/* for remapping KeyBlock.relative */
+					int      *index_map = MEM_mallocN(sizeof(int)        * me->key->totkey, __func__);
+					KeyBlock **kb_map   = MEM_mallocN(sizeof(KeyBlock *) * me->key->totkey, __func__);
+
+					for (kb = me->key->block.first, i = 0; kb; kb = kb->next, i++) {
+						BLI_assert(i < me->key->totkey);
+
+						kbn = BKE_keyblock_find_name(key, kb->name);
 						/* if key doesn't exist in destination mesh, add it */
-						if (BKE_keyblock_find_name(key, kb->name) == NULL) {
+						if (kbn) {
+							index_map[i] = BLI_findindex(&key->block, kbn);
+						}
+						else {
+							index_map[i] = key->totkey;
+
 							kbn = BKE_keyblock_add(key, kb->name);
-							
-							/* copy most settings */
-							kbn->pos        = kb->pos;
-							kbn->curval     = kb->curval;
-							kbn->type       = kb->type;
-							kbn->relative   = kb->relative;
-							BLI_strncpy(kbn->vgroup, kb->vgroup, sizeof(kbn->vgroup));
-							kbn->slidermin  = kb->slidermin;
-							kbn->slidermax  = kb->slidermax;
+
+							BKE_keyblock_copy_settings(kbn, kb);
 
 							/* adjust settings to fit (allocate a new data-array) */
 							kbn->data = MEM_callocN(sizeof(float) * 3 * totvert, "joined_shapekey");
@@ -270,13 +275,26 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							}
 #endif
 						}
+
+						kb_map[i] = kbn;
 					}
+
+					/* remap relative index values */
+					for (kb = me->key->block.first, i = 0; kb; kb = kb->next, i++) {
+						if (LIKELY(kb->relative < me->key->totkey)) {  /* sanity check, should always be true */
+							kb_map[i]->relative = index_map[kb->relative];
+						}
+					}
+
+					MEM_freeN(index_map);
+					MEM_freeN(kb_map);
 				}
 			}
 		}
 	}
 	CTX_DATA_END;
-	
+
+
 	/* setup new data for destination mesh */
 	memset(&vdata, 0, sizeof(vdata));
 	memset(&edata, 0, sizeof(edata));
@@ -351,7 +369,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							fp1 = ((float *)kb->data) + (vertofs * 3);
 							
 							/* check if this mesh has such a shapekey */
-							okb = BKE_keyblock_find_name(me->key, kb->name);
+							okb = me->key ? BKE_keyblock_find_name(me->key, kb->name) : NULL;
+
 							if (okb) {
 								/* copy this mesh's shapekey to the destination shapekey (need to transform first) */
 								fp2 = ((float *)(okb->data));
@@ -422,8 +441,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 					if ((mmd = get_multires_modifier(scene, base->object, TRUE))) {
 						ED_object_iter_other(bmain, base->object, TRUE,
-											 ED_object_multires_update_totlevels_cb,
-											 &mmd->totlvl);
+						                     ED_object_multires_update_totlevels_cb,
+						                     &mmd->totlvl);
 					}
 				}
 				
@@ -543,6 +562,12 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		MEM_freeN(nkey);
 	}
 	
+	/* ensure newly inserted keys are time sorted */
+	if (key && (key->type != KEY_RELATIVE)) {
+		BKE_key_sort(key);
+	}
+
+
 	DAG_scene_sort(bmain, scene);   // removed objects, need to rebuild dag before editmode call
 
 #if 0

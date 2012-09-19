@@ -69,6 +69,7 @@ struct KeyBlock *BKE_keyblock_add(struct Key *key, const char *name);
 struct KeyBlock *BKE_keyblock_add_ctime(struct Key *key, const char *name, const short do_force);
 struct KeyBlock *BKE_keyblock_from_key(struct Key *key, int index);
 struct KeyBlock *BKE_keyblock_find_name(struct Key *key, const char name[]);
+void             BKE_keyblock_copy_settings(struct KeyBlock *kb_dst, const struct KeyBlock *kb_src);
 char            *BKE_keyblock_curval_rnapath_get(struct Key *key, struct KeyBlock *kb);
 // needed for the GE
 void BKE_key_evaluate_relative(const int start, int end, const int tot, char *basispoin, struct Key *key, struct KeyBlock *actkb, const int mode);

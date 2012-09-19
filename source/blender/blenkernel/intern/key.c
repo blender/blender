@@ -1511,10 +1511,21 @@ KeyBlock *BKE_keyblock_from_key(Key *key, int index)
 /* get the appropriate KeyBlock given a name to search for */
 KeyBlock *BKE_keyblock_find_name(Key *key, const char name[])
 {
-	if (key && name)
-		return BLI_findstring(&key->block, name, offsetof(KeyBlock, name));
-	
-	return NULL;
+	return BLI_findstring(&key->block, name, offsetof(KeyBlock, name));
+}
+
+/**
+ * \brief copy shape-key attributes, but not key data.or name/uid
+ */
+void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
+{
+	kb_dst->pos        = kb_src->pos;
+	kb_dst->curval     = kb_src->curval;
+	kb_dst->type       = kb_src->type;
+	kb_dst->relative   = kb_src->relative;
+	BLI_strncpy(kb_dst->vgroup, kb_src->vgroup, sizeof(kb_dst->vgroup));
+	kb_dst->slidermin  = kb_src->slidermin;
+	kb_dst->slidermax  = kb_src->slidermax;
 }
 
 /* Get RNA-Path for 'value' setting of the given ShapeKey 

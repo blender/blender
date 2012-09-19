@@ -6070,7 +6070,7 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
 }
 
 /************** join operator, to be used externally? ****************/
-
+/* TODO: shape keys - as with meshes */
 int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
