@@ -273,5 +273,20 @@ MINLINE float rgb_to_luma_y(const float rgb[3])
 	return 0.212671f * rgb[0] + 0.71516f * rgb[1] + 0.072169f * rgb[2];
 }
 
+MINLINE int compare_rgb_uchar(const unsigned char col_a[3], const unsigned char col_b[3], const int limit)
+{
+	int r = (int)col_a[0] - (int)col_b[0];
+	if (ABS(r) < limit) {
+		int g = (int)col_a[1] - (int)col_b[1];
+		if (ABS(g) < limit) {
+			int b = (int)col_a[2] - (int)col_b[2];
+			if (ABS(b) < limit) {
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
 
 #endif /* __MATH_COLOR_INLINE_C__ */

@@ -173,6 +173,7 @@ MINLINE int is_one_v3(const float a[3]);
 
 MINLINE int equals_v2v2(const float v1[2], const float v2[2]);
 MINLINE int equals_v3v3(const float a[3], const float b[3]);
+MINLINE int compare_v2v2(const float a[3], const float b[3], const float limit);
 MINLINE int compare_v3v3(const float a[3], const float b[3], const float limit);
 MINLINE int compare_len_v3v3(const float a[3], const float b[3], const float limit);
 
