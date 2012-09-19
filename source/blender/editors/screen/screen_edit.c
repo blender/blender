@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -1506,6 +1507,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	
 	CTX_data_scene_set(C, scene);
 	BKE_scene_set_background(bmain, scene);
+	DAG_on_visible_update(bmain, FALSE);
 	
 	ED_render_engine_changed(bmain);
 	ED_update_for_newframe(bmain, scene, 1);
