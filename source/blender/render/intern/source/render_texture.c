@@ -98,7 +98,7 @@ static void init_render_texture(Render *re, Tex *tex)
 {
 	/* imap test */
 	if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-		BKE_image_user_frame_calc(&tex->iuser, re->r.cfra, re?re->flag & R_SEC_FIELD:0);
+		BKE_image_user_frame_calc(&tex->iuser, re ? re->r.cfra : 0, re ? re->flag & R_SEC_FIELD:0);
 	}
 	
 	else if (tex->type==TEX_ENVMAP) {
@@ -2760,11 +2760,9 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float col_
 				/* stencil maps on the texture control slider, not texture intensity value */
 				
 				/* convert RGB to intensity if intensity info isn't provided */
-				if (!(rgbnor & TEX_INT)) {
-					if (rgbnor & TEX_RGB) {
-						if (texres.talpha)  texres.tin = texres.ta;
-						else                texres.tin = rgb_to_grayscale(&texres.tr);
-					}
+				if (rgbnor & TEX_RGB) {
+					if (texres.talpha)  texres.tin = texres.ta;
+					else                texres.tin = rgb_to_grayscale(&texres.tr);
 				}
 				
 				if ((mapto_flag & MAP_EMISSION) && (mtex->mapto & MAP_EMISSION)) {
