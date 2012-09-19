@@ -438,6 +438,10 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_redraw(sa);
 					break;
 				case ND_MODE:
+					if (wmn->subtype == NS_EDITMODE_MESH)
+						ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
+					break;
 				case ND_RENDER_RESULT:
 				case ND_RENDER_OPTIONS:
 				case ND_COMPO_RESULT:
