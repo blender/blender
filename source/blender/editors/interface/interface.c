@@ -3790,15 +3790,16 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 		if (type == BUT_GET_LABEL) {
 			if (but->str) {
 				/* Menu labels can have some complex formating stuff marked by pipes or %t, we don't want those here! */
-				const char *tc;
-				
-				if (but->type == MENU)
-					tc = strstr(but->str, "%t");
-				else
-					tc = strchr(but->str, '|');
-				
-				if (tc)
-					tmp = BLI_strdupn(but->str, tc - but->str);
+				const char *tc1, *tc2;
+
+				tc1 = strstr(but->str, "%t");
+				tc2 = strstr(but->str, "|"); /* XXX For some reason strchr seems to not work here? */
+
+				if (tc2 && (!tc1 || tc1 > tc2))
+					tc1 = tc2;
+
+				if (tc1)
+					tmp = BLI_strdupn(but->str, tc1 - but->str);
 				else
 					tmp = BLI_strdup(but->str);
 			}

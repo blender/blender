@@ -4513,17 +4513,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	
 	button_timers_tooltip_remove(C, but);
 
-#if 0
-	if (but->rnaprop)
-		name = RNA_property_ui_name(but->rnaprop);
-	else if (but->optype && but->optype->srna)
-		name = RNA_struct_ui_name(but->optype->srna);
-	else
-		name = IFACE_("<needs_name>");  // XXX - should never happen.
-#else
 	uiButGetStrInfo(C, but, 1, &label);
 	name = label.strinfo;
-#endif
 
 	pup = uiPupMenuBegin(C, name, ICON_NONE);
 	layout = uiPupMenuLayout(pup);
