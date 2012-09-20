@@ -4710,7 +4710,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 				mdiff[0] = opdata->mcenter[0] - event->mval[0];
 				mdiff[1] = opdata->mcenter[1] - event->mval[1];
 
-				factor = -len_v2(mdiff) / opdata->initial_length + 1.0f;
+				factor = opdata->initial_length / -len_v2(mdiff) + 1.0f;
 
 				/* Fake shift-transform... */
 				if (event->shift) {
@@ -5074,9 +5074,9 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 				mdiff[1] = opdata->mcenter[1] - event->mval[1];
 
 				if (opdata->modify_depth)
-					amount = opdata->old_depth + len_v2(mdiff) / opdata->initial_length - 1.0f;
+					amount = opdata->old_depth + opdata->initial_length / len_v2(mdiff) - 1.0f;
 				else
-					amount = opdata->old_thickness - len_v2(mdiff) / opdata->initial_length + 1.0f;
+					amount = opdata->old_thickness - opdata->initial_length / len_v2(mdiff) + 1.0f;
 
 				/* Fake shift-transform... */
 				if (opdata->shift)
