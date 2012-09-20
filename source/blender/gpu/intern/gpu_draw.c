@@ -915,7 +915,8 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 			 * so we will be using GPU mipmap generation here */
 			if (GPU_get_mipmap()) {
 				glGenerateMipmapEXT(GL_TEXTURE_2D);
-			} else {
+			}
+			else {
 				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 			}
 
@@ -942,7 +943,8 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 		/* see comment above as to why we are using gpu mipmap generation here */
 		if (GPU_get_mipmap()) {
 			glGenerateMipmapEXT(GL_TEXTURE_2D);
-		} else {
+		}
+		else {
 			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 		}
 	}

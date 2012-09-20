@@ -239,8 +239,8 @@ color node_mix_soft(float t, color col1, color col2)
 {
 	float tm = 1.0 - t;
 
-	color one= color(1.0);
-	color scr= one - (one - col2)*(one - col1);
+	color one = color(1.0);
+	color scr = one - (one - col2)*(one - col1);
 
 	return tm*col1 + t*((one - col1)*col2*col1 + col1*scr);
 }

@@ -42,7 +42,7 @@ public:
 	/**
 	 * Destroys the reader.
 	 */
-	virtual ~AUD_IReader(){}
+	virtual ~AUD_IReader() {}
 
 	/**
 	 * Tells whether the source provides seeking functionality or not.

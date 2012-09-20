@@ -104,7 +104,7 @@ __device float grad(int hash, float x, float y, float z)
 	// use vectors pointing to the edges of the cube
 	int h = hash & 15;
 	float u = h<8 ? x : y;
-	float v = h<4 ? y : h==12||h==14 ? x : z;
+	float v = h<4 ? y : h == 12 || h == 14 ? x : z;
 	return ((h&1) ? -u : u) + ((h&2) ? -v : v);
 }
 

@@ -459,7 +459,8 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 		strncpy(buf, g_firstFileBuf, FIRSTFILEBUFLG - 1);
 		buf[FIRSTFILEBUFLG - 1] = '\0';
 		return 1;
-	} else {
+	}
+	else {
 		return 0; 
 	}
 }

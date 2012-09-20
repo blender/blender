@@ -37,39 +37,39 @@ color magic(point p, int n, float distortion)
 		y *= dist;
 
 		if(n > 1) {
-			x= cos(x-y-z);
+			x = cos(x-y-z);
 			x *= dist;
 
 			if(n > 2) {
-				z= sin(-x-y-z);
+				z = sin(-x-y-z);
 				z *= dist;
 
 				if(n > 3) {
-					x= -cos(-x+y-z);
+					x = -cos(-x+y-z);
 					x *= dist;
 
 					if(n > 4) {
-						y= -sin(-x+y+z);
+						y = -sin(-x+y+z);
 						y *= dist;
 
 						if(n > 5) {
-							y= -cos(-x+y+z);
+							y = -cos(-x+y+z);
 							y *= dist;
 
 							if(n > 6) {
-								x= cos(x+y+z);
+								x = cos(x+y+z);
 								x *= dist;
 
 								if(n > 7) {
-									z= sin(x+y-z);
+									z = sin(x+y-z);
 									z *= dist;
 
 									if(n > 8) {
-										x= -cos(-x-y+z);
+										x = -cos(-x-y+z);
 										x *= dist;
 
 										if(n > 9) {
-											y= -sin(x-y+z);
+											y = -sin(x-y+z);
 											y *= dist;
 										}
 									}

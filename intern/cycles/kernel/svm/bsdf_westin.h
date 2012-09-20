@@ -196,8 +196,10 @@ __device int bsdf_westin_sheen_sample(const ShaderData *sd, const ShaderClosure 
 		*domega_in_dx *= 125.0f;
 		*domega_in_dy *= 125.0f;
 #endif
-	} else
+	}
+	else {
 		pdf = 0;
+	}
 	return LABEL_REFLECT|LABEL_DIFFUSE;
 }
 

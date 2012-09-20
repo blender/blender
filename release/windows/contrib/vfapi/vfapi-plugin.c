@@ -157,7 +157,8 @@ static int my_gets(SOCKET sock, char * line, int maxlen)
 			line++;
 			*line = 0;
 			break;
-		} else {
+		}
+		else {
 			line++;
 			maxlen--;
 		}
@@ -251,15 +252,20 @@ HRESULT __stdcall VF_OpenFileFunc_Blen(
 			
 			if (strcmp(key, "width") == 0) {
 				rval->width = atoi(val);
-			} else if (strcmp(key, "height") == 0) {
+			}
+			else if (strcmp(key, "height") == 0) {
 				rval->height = atoi(val);
-			} else if (strcmp(key, "start") == 0) {
+			}
+			else if (strcmp(key, "start") == 0) {
 				rval->start = atoi(val);
-			} else if (strcmp(key, "end") == 0) {
+			}
+			else if (strcmp(key, "end") == 0) {
 				rval->end = atoi(val);
-			} else if (strcmp(key, "rate") == 0) {
+			}
+			else if (strcmp(key, "rate") == 0) {
 				rval->rate = atoi(val);
-			} else if (strcmp(key, "ratescale") == 0) {
+			}
+			else if (strcmp(key, "ratescale") == 0) {
 				rval->ratescale = atoi(val);
 			}
 		}
