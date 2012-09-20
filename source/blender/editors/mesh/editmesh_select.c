@@ -487,7 +487,6 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, int x0, int 
 			vec[0] = eed->v1->co[0] + labda * (eed->v2->co[0] - eed->v1->co[0]);
 			vec[1] = eed->v1->co[1] + labda * (eed->v2->co[1] - eed->v1->co[1]);
 			vec[2] = eed->v1->co[2] + labda * (eed->v2->co[2] - eed->v1->co[2]);
-			mul_m4_v3(data->vc.obedit->obmat, vec);
 
 			if (ED_view3d_clipping_test(data->vc.rv3d, vec, TRUE) == 0) {
 				data->dist = distance;
@@ -531,7 +530,7 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, int *dist)
 		data.closest = NULL;
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, 2);
+		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, V3D_CLIP_TEST_REGION);
 
 		*dist = data.dist;
 		return data.closest;
