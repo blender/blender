@@ -123,20 +123,11 @@ public:
 		parent->touch(this);
 	}
 
-	void set_priority(int priority) {
-		this->priority = priority;
-	}
-
-	int get_priority(void) {
-		return this->priority;
-	}
-
 private:
 	friend class MEM_CacheLimiter<T>;
 
 	T * data;
 	int refcount;
-	int priority;
 	typename std::list<MEM_CacheLimiterHandle<T> *, MEM_Allocator<MEM_CacheLimiterHandle<T> *> >::iterator me;
 	MEM_CacheLimiter<T> * parent;
 };
@@ -171,7 +162,6 @@ public:
 	}
 
 	void enforce_limits() {
-		MEM_CachePriorityQueue priority_queue;
 		size_t max = MEM_CacheLimiter_get_maximum();
 		size_t mem_in_use, cur_size;
 
@@ -190,12 +180,11 @@ public:
 			return;
 		}
 
-		priority_queue = get_priority_queue();
+		while (!queue.empty() && mem_in_use > max) {
+			MEM_CacheElementPtr elem = get_least_priority_destroyable_element();
 
-		while (!priority_queue.empty() && mem_in_use > max) {
-			MEM_CacheElementPtr elem = priority_queue.top();
-
-			priority_queue.pop();
+			if (!elem)
+				break;
 
 			if (getDataSize) {
 				cur_size = getDataSize(elem->get()->get_data());
@@ -232,14 +221,6 @@ private:
 	typedef std::list<MEM_CacheElementPtr, MEM_Allocator<MEM_CacheElementPtr> > MEM_CacheQueue;
 	typedef typename MEM_CacheQueue::iterator iterator;
 
-	struct compare_element_priority : public std::binary_function<MEM_CacheElementPtr, MEM_CacheElementPtr, bool> {
-		bool operator()(const MEM_CacheElementPtr left_elem, const MEM_CacheElementPtr right_elem) const {
-			return left_elem->get_priority() > right_elem->get_priority();
-		}
-	};
-
-	typedef std::priority_queue<MEM_CacheElementPtr, std::vector<MEM_CacheElementPtr>, compare_element_priority > MEM_CachePriorityQueue;
-
 	size_t total_size() {
 		size_t size = 0;
 		for (iterator it = queue.begin(); it != queue.end(); it++) {
@@ -248,28 +229,35 @@ private:
 		return size;
 	}
 
-	MEM_CachePriorityQueue get_priority_queue(void) {
-		MEM_CachePriorityQueue priority_queue;
+	MEM_CacheElementPtr get_least_priority_destroyable_element(void) {
+		if (queue.empty())
+			return NULL;
+
+		if (!getItemPriority)
+			return *queue.begin();
+
+		MEM_CacheElementPtr best_match_elem = NULL;
+		int best_match_priority = 0;
 		iterator it;
 		int i;
 
 		for (it = queue.begin(), i = 0; it != queue.end(); it++, i++) {
 			MEM_CacheElementPtr elem = *it;
-			int priority;
+
+			if (!elem->can_destroy())
+				continue;
 
 			/* by default 0 means higherst priority element */
-			priority = -(queue.size() - i - 1);
+			int priority = -(queue.size() - i - 1);
+			priority = getItemPriority(elem->get()->get_data(), priority);
 
-			if (getItemPriority) {
-				priority = getItemPriority(elem->get()->get_data(), priority);
+			if (priority < best_match_priority || best_match_elem == NULL) {
+				best_match_priority = priority;
+				best_match_elem = elem;
 			}
-
-			elem->set_priority(priority);
-
-			priority_queue.push(elem);
 		}
 
-		return priority_queue;
+		return best_match_elem;
 	}
 
 	MEM_CacheQueue queue;
