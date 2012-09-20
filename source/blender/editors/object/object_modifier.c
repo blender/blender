@@ -1692,19 +1692,15 @@ static void skin_armature_bone_create(Object *skin_ob,
 
 		v = (e->v1 == parent_v ? e->v2 : e->v1);
 
-		bone = MEM_callocN(sizeof(EditBone),
-		                   "skin_armature_bone_create EditBone");
+		bone = ED_armature_edit_bone_add(arm, "Bone");
 
 		bone->parent = parent_bone;
-		bone->layer = 1;
 		bone->flag |= BONE_CONNECTED;
 
 		copy_v3_v3(bone->head, mvert[parent_v].co);
 		copy_v3_v3(bone->tail, mvert[v].co);
 		bone->rad_head = bone->rad_tail = 0.25;
 		BLI_snprintf(bone->name, sizeof(bone->name), "Bone.%.2d", endx);
-
-		BLI_addtail(arm->edbo, bone);
 
 		/* add bDeformGroup */
 		if ((dg = ED_vgroup_add_name(skin_ob, bone->name))) {
@@ -1770,16 +1766,13 @@ static Object *modifier_skin_armature_create(struct Scene *scene,
 			 * a fake root bone (have it going off in the Y direction
 			 * (arbitrary) */
 			if (emap[v].count > 1) {
-				bone = MEM_callocN(sizeof(EditBone), "EditBone");
+				bone = ED_armature_edit_bone_add(arm, "Bone");
 
 				copy_v3_v3(bone->head, me->mvert[v].co);
 				copy_v3_v3(bone->tail, me->mvert[v].co);
-				bone->layer = 1;
 
 				bone->head[1] = 1.0f;
 				bone->rad_head = bone->rad_tail = 0.25;
-
-				BLI_addtail(arm->edbo, bone);
 			}
 			
 			if (emap[v].count >= 1) {
