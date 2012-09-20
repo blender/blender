@@ -203,9 +203,9 @@ RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
 	}
 }
 
-RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty)
+RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty)
 {
-	return render_result_new_from_exr(exrhandle, rectx, recty);
+	return render_result_new_from_exr(exrhandle, colorspace, predivide, rectx, recty);
 }
 
 RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)

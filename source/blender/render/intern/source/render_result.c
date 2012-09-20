@@ -627,12 +627,13 @@ static void ml_addpass_cb(void *UNUSED(base), void *lay, const char *str, float 
 }
 
 /* from imbuf, if a handle was returned we convert this to render result */
-RenderResult *render_result_new_from_exr(void *exrhandle, int rectx, int recty)
+RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty)
 {
 	RenderResult *rr = MEM_callocN(sizeof(RenderResult), __func__);
 	RenderLayer *rl;
 	RenderPass *rpass;
-	
+	const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+
 	rr->rectx = rectx;
 	rr->recty = recty;
 	
@@ -645,6 +646,11 @@ RenderResult *render_result_new_from_exr(void *exrhandle, int rectx, int recty)
 		for (rpass = rl->passes.first; rpass; rpass = rpass->next) {
 			rpass->rectx = rectx;
 			rpass->recty = recty;
+
+			if (rpass->channels >= 3) {
+				IMB_colormanagement_transform(rpass->rect, rpass->rectx, rpass->recty, rpass->channels,
+				                              colorspace, to_colorspace, predivide);
+			}
 		}
 	}
 	

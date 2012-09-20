@@ -68,7 +68,8 @@
 
 /*********************** Global declarations *************************/
 
-#define MAX_COLORSPACE_NAME 64
+#define MAX_COLORSPACE_NAME     64
+#define DISPLAY_BUFFER_CHANNELS 4
 
 /* ** list of all supported color spaces, displays and views */
 static char global_role_scene_linear[MAX_COLORSPACE_NAME];
@@ -329,8 +330,7 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 		ColormnaageCacheData *cache_data;
 
 		BLI_assert(cache_ibuf->x == ibuf->x &&
-		           cache_ibuf->y == ibuf->y &&
-		           cache_ibuf->channels == ibuf->channels);
+		           cache_ibuf->y == ibuf->y);
 
 		/* only buffers with different color space conversions are being stored
 		 * in cache separately. buffer which were used only different exposure/gamma
@@ -1089,6 +1089,7 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	int is_data = ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA;
 
 	int offset = channels * start_line * ibuf->x;
+	int display_buffer_byte_offset = DISPLAY_BUFFER_CHANNELS * start_line * ibuf->x;
 
 	memset(handle, 0, sizeof(DisplayBufferThread));
 
@@ -1104,7 +1105,7 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 		handle->display_buffer = init_data->display_buffer + offset;
 
 	if (init_data->display_buffer_byte)
-		handle->display_buffer_byte = init_data->display_buffer_byte + offset;
+		handle->display_buffer_byte = init_data->display_buffer_byte + display_buffer_byte_offset;
 
 	handle->width = ibuf->x;
 
@@ -1655,7 +1656,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 			return display_buffer;
 		}
 
-		buffer_size = ibuf->channels * ibuf->x * ibuf->y * sizeof(float);
+		buffer_size = DISPLAY_BUFFER_CHANNELS * ibuf->x * ibuf->y * sizeof(float);
 		display_buffer = MEM_callocN(buffer_size, "imbuf display buffer");
 
 		colormanage_display_buffer_process(ibuf, display_buffer, applied_view_settings, display_settings);
@@ -1700,7 +1701,7 @@ void IMB_display_buffer_transform_apply(unsigned char *display_buffer, float *li
                                         const ColorManagedDisplaySettings *display_settings, int predivide)
 {
 	if (global_tot_display == 0 || global_tot_view == 0) {
-		IMB_buffer_byte_from_float(display_buffer, linear_buffer, 4, 0.0f, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, FALSE,
+		IMB_buffer_byte_from_float(display_buffer, linear_buffer, channels, 0.0f, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, FALSE,
 		                           width, height, width, width);
 	}
 	else {
@@ -2351,7 +2352,7 @@ void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, flo
 		}
 	}
 
-	if (cm_processor->processor) {
+	if (cm_processor->processor && channels >= 3) {
 		PackedImageDesc *img;
 
 		/* apply OCIO processor */

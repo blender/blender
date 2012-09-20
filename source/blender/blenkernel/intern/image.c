@@ -2213,8 +2213,10 @@ void BKE_image_backup_render(Scene *scene, Image *ima)
 /* in that case we have to build a render-result */
 static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 {
+	const char *colorspace = ima->colorspace_settings.name;
+	int predivide = ima->flag & IMA_CM_PREDIVIDE;
 
-	ima->rr = RE_MultilayerConvert(ibuf->userdata, ibuf->x, ibuf->y);
+	ima->rr = RE_MultilayerConvert(ibuf->userdata, colorspace, predivide, ibuf->x, ibuf->y);
 
 #ifdef WITH_OPENEXR
 	IMB_exr_close(ibuf->userdata);
