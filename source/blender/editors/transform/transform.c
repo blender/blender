@@ -226,7 +226,7 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 {
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (t->ar->regiontype == RGN_TYPE_WINDOW)
-			project_int_noclip(t->ar, vec, adr);
+			ED_view3d_project_int_noclip(t->ar, vec, adr);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = t->sa->spacedata.first;
@@ -344,7 +344,7 @@ void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
 		case SPACE_VIEW3D:
 		{
 			if (t->ar->regiontype == RGN_TYPE_WINDOW) {
-				project_float_noclip(t->ar, vec, adr);
+				ED_view3d_project_float_noclip(t->ar, vec, adr);
 				return;
 			}
 			break;
@@ -4765,7 +4765,7 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, SlideData *sld, const flo
 			sv->edge_len = len_v3v3(dw_p, up_p);
 
 			mul_v3_m4v3(v_proj, t->obedit->obmat, sv->v->co);
-			project_float_noclip(t->ar, v_proj, v_proj);
+			ED_view3d_project_float_noclip(t->ar, v_proj, v_proj);
 
 			dist = len_squared_v2v2(mval, v_proj);
 			if (dist < min_dist) {
@@ -5031,19 +5031,19 @@ static int createSlideVerts(TransInfo *t)
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 
 					if (sv_array[j].down) {
-						ED_view3d_project_float_v3(ar, sv_array[j].down->co, vec1, projectMat);
+						ED_view3d_project_float_v3_m4(ar, sv_array[j].down->co, vec1, projectMat);
 					}
 					else {
 						add_v3_v3v3(vec1, v->co, sv_array[j].downvec);
-						ED_view3d_project_float_v3(ar, vec1, vec1, projectMat);
+						ED_view3d_project_float_v3_m4(ar, vec1, vec1, projectMat);
 					}
 					
 					if (sv_array[j].up) {
-						ED_view3d_project_float_v3(ar, sv_array[j].up->co, vec2, projectMat);
+						ED_view3d_project_float_v3_m4(ar, sv_array[j].up->co, vec2, projectMat);
 					}
 					else {
 						add_v3_v3v3(vec2, v->co, sv_array[j].upvec);
-						ED_view3d_project_float_v3(ar, vec2, vec2, projectMat);
+						ED_view3d_project_float_v3_m4(ar, vec2, vec2, projectMat);
 					}
 					
 					/* global direction */

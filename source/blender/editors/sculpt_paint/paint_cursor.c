@@ -322,8 +322,8 @@ static int project_brush_radius(ViewContext *vc,
 	add_v3_v3v3(offset, location, ortho);
 
 	/* project the center of the brush, and the tangent point to the view onto the screen */
-	project_float(vc->ar, location, p1);
-	project_float(vc->ar, offset, p2);
+	ED_view3d_project_float(vc->ar, location, p1);
+	ED_view3d_project_float(vc->ar, offset, p2);
 
 	/* the distance between these points is the size of the projected brush in pixels */
 	return len_v2v2(p1, p2);

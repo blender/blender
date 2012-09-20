@@ -163,7 +163,7 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, Object *obedit, BMEditMes
 			float mval[2], vec[3], no_dummy[3];
 			int dist_dummy;
 			mul_v3_m4v3(vec, obedit->obmat, eve->co);
-			project_float_noclip(ar, vec, mval);
+			ED_view3d_project_float_noclip(ar, vec, mval);
 			if (snapObjectsContext(C, mval, &dist_dummy, vec, no_dummy, SNAP_NOT_OBEDIT)) {
 				mul_v3_m4v3(eve->co, obedit->imat, vec);
 			}
@@ -761,8 +761,8 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 				float co1[3], co2[3];
 				mul_v3_m4v3(co1, vc.obedit->obmat, eed->v1->co);
 				mul_v3_m4v3(co2, vc.obedit->obmat, eed->v2->co);
-				project_float_noclip(vc.ar, co1, co1);
-				project_float_noclip(vc.ar, co2, co2);
+				ED_view3d_project_float_noclip(vc.ar, co1, co1);
+				ED_view3d_project_float_noclip(vc.ar, co2, co2);
 
 				/* 2D rotate by 90d while adding.
 				 *  (x, y) = (y, -x)
@@ -2770,7 +2770,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 		copy_v3_v3(co, bv->co);
 		co[3] = 1.0f;
 		mul_m4_v4(obedit->obmat, co);
-		project_float(ar, co, scr);
+		ED_view3d_project_float(ar, co, scr);
 		BLI_ghash_insert(gh, bv, scr);
 	}
 

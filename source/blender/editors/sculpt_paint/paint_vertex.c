@@ -850,7 +850,7 @@ static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float vert_n
 	float dist_squared;
 	float vertco[2], delta[2];
 
-	project_float_noclip(vc->ar, vert_nor, vertco);
+	ED_view3d_project_float_noclip(vc->ar, vert_nor, vertco);
 	sub_v2_v2v2(delta, mval, vertco);
 	dist_squared = dot_v2v2(delta, delta); /* len squared */
 	if (dist_squared > brush_size_pressure * brush_size_pressure) {

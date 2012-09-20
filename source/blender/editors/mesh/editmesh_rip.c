@@ -61,8 +61,8 @@ static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4],
 {
 	float vec1[3], vec2[3];
 
-	ED_view3d_project_float_v2(ar, co1, vec1, mat);
-	ED_view3d_project_float_v2(ar, co2, vec2, mat);
+	ED_view3d_project_float_v2_m4(ar, co1, vec1, mat);
+	ED_view3d_project_float_v2_m4(ar, co2, vec2, mat);
 
 	/* TODO: use dist_squared_to_line_segment_v2() looks like we only ever use for comparison */
 	return dist_to_line_segment_v2(mvalf, vec1, vec2);
@@ -97,11 +97,11 @@ static float edbm_rip_edge_side_measure(BMEdge *e, BMLoop *e_l,
 	mid_v3_v3v3(cent, v1_other->co, v2_other->co);
 	mid_v3_v3v3(mid, e->v1->co, e->v2->co);
 
-	ED_view3d_project_float_v2(ar, cent, cent, projectMat);
-	ED_view3d_project_float_v2(ar, mid, mid, projectMat);
+	ED_view3d_project_float_v2_m4(ar, cent, cent, projectMat);
+	ED_view3d_project_float_v2_m4(ar, mid, mid, projectMat);
 
-	ED_view3d_project_float_v2(ar, e->v1->co, e_v1_co, projectMat);
-	ED_view3d_project_float_v2(ar, e->v2->co, e_v2_co, projectMat);
+	ED_view3d_project_float_v2_m4(ar, e->v1->co, e_v1_co, projectMat);
+	ED_view3d_project_float_v2_m4(ar, e->v2->co, e_v2_co, projectMat);
 
 	sub_v2_v2v2(vec, cent, mid);
 	normalize_v2(vec);

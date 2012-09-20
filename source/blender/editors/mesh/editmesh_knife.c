@@ -224,7 +224,7 @@ static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 
 static void knife_project_v3(KnifeTool_OpData *kcd, const float co[3], float sco[3])
 {
-	ED_view3d_project_float_v3(kcd->ar, co, sco, kcd->projmat);
+	ED_view3d_project_float_v3_m4(kcd->ar, co, sco, kcd->projmat);
 }
 
 static void knife_pos_data_clear(KnifePosData *kpd)
@@ -1205,7 +1205,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 				}
 
 				knife_project_v3(kcd, p, sp);
-				view3d_unproject(mats, view, sp[0], sp[1], 0.0f);
+				ED_view3d_unproject(mats, view, sp[0], sp[1], 0.0f);
 				mul_m4_v3(kcd->ob->imat, view);
 
 				if (kcd->cut_through) {
@@ -1388,7 +1388,7 @@ static void knife_input_ray_cast(KnifeTool_OpData *kcd, const int mval_i[2],
 	mval[1] = (float)mval_i[1];
 
 	/* unproject to find view ray */
-	view3d_unproject(&mats, r_origin, mval[0], mval[1], 0.0f);
+	ED_view3d_unproject(&mats, r_origin, mval[0], mval[1], 0.0f);
 
 	if (kcd->is_ortho) {
 		negate_v3_v3(r_ray, kcd->vc.rv3d->viewinv[2]);

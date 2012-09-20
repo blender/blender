@@ -559,7 +559,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 	/* we don't want the clipping for cursor */
 	flag = v3d->flag;
 	v3d->flag = 0;
-	project_int(ar, give_cursor(scene, v3d), co);
+	ED_view3d_project_int(ar, give_cursor(scene, v3d), co);
 	v3d->flag = flag;
 	
 	mx = co[0];
@@ -1699,7 +1699,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				asp = ( (float)ibuf->y) / (float)ibuf->x;
 
 				zero_v3(vec);
-				ED_view3d_project_float_v2(ar, vec, sco, rv3d->persmat);
+				ED_view3d_project_float_v2_m4(ar, vec, sco, rv3d->persmat);
 				cx = sco[0];
 				cy = sco[1];
 

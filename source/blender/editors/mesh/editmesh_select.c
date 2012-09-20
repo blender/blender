@@ -1055,8 +1055,8 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 
 				/* We can't be sure this has already been set... */
 				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
-				project_float_noclip(vc.ar, eed->v1->co, v1_co);
-				project_float_noclip(vc.ar, eed->v2->co, v2_co);
+				ED_view3d_project_float_noclip(vc.ar, eed->v1->co, v1_co);
+				ED_view3d_project_float_noclip(vc.ar, eed->v2->co, v2_co);
 #if 0
 				printf("mouse to v1: %f\nmouse to v2: %f\n", len_squared_v2v2(mvalf, v1_co),
 				       len_squared_v2v2(mvalf, v2_co));
@@ -1084,7 +1084,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 						float co[2], tdist;
 
 						BM_face_calc_center_mean(f, cent);
-						project_float_noclip(vc.ar, cent, co);
+						ED_view3d_project_float_noclip(vc.ar, cent, co);
 						tdist = len_squared_v2v2(mvalf, co);
 						if (tdist < best_dist) {
 /*							printf("Best face: %p (%f)\n", f, tdist);*/

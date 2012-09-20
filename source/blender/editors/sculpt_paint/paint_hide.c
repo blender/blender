@@ -251,7 +251,7 @@ static void clip_planes_from_rect(bContext *C,
 	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);
 	view3d_get_transformation(vc.ar, vc.rv3d, vc.obact, &mats);
-	ED_view3d_calc_clipping(&bb, clip_planes, &mats, rect);
+	ED_view3d_clipping_calc(&bb, clip_planes, &mats, rect);
 	mul_m4_fl(clip_planes, -1.0f);
 }
 

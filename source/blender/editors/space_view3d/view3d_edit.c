@@ -3465,7 +3465,7 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 
 	view3d_set_viewcontext(C, &vc);
 	view3d_get_transformation(vc.ar, vc.rv3d, NULL, &mats); /* NULL because we don't want it in object space */
-	ED_view3d_calc_clipping(rv3d->clipbb, rv3d->clip, &mats, &rect);
+	ED_view3d_clipping_calc(rv3d->clipbb, rv3d->clip, &mats, &rect);
 
 	return OPERATOR_FINISHED;
 }
@@ -3529,7 +3529,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 //	if (obedit && ctrl) lr_click= 1;
 	copy_v3_v3(oldcurs, fp);
 
-	project_int_noclip(ar, fp, mval);
+	ED_view3d_project_int_noclip(ar, fp, mval);
 	flip = initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	
 	/* reset the depth based on the view offset */
@@ -3537,7 +3537,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 		negate_v3_v3(fp, rv3d->ofs);
 
 		/* re initialize */
-		project_int_noclip(ar, fp, mval);
+		ED_view3d_project_int_noclip(ar, fp, mval);
 		flip = initgrabz(rv3d, fp[0], fp[1], fp[2]);
 		(void)flip;
 	}
@@ -3837,10 +3837,12 @@ int ED_view3d_autodist_depth_seg(ARegion *ar, const int mval_sta[2], const int m
 }
 
 /**
- * Gets the view transformation from a camera
- * currently dosnt take camzoom into account
+ * Set the view transformation from a 4x4 matrix.
  *
- * The dist is not modified for this function, if NULL its assumed zero
+ * \param mat The view 4x4 transformation matrix to assign.
+ * \param ofs The view offset, normally from RegionView3D.ofs.
+ * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.
+ * \param dist The view distance from ofs, normally from RegionView3D.dist.
  */
 void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 {
@@ -3871,6 +3873,14 @@ void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 	}
 }
 
+/**
+ * Calculate the view transformation matrix from RegionView3D input.
+ * The resulting matrix is equivalent to RegionView3D.viewinv
+ * \param mat The view 4x4 transformation matrix to calculate.
+ * \param ofs The view offset, normally from RegionView3D.ofs.
+ * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.
+ * \param dist The view distance from ofs, normally from RegionView3D.dist.
+ */
 void ED_view3d_to_m4(float mat[][4], const float ofs[3], const float quat[4], const float dist)
 {
 	float iviewquat[4] = {-quat[0], quat[1], quat[2], quat[3]};
@@ -3881,8 +3891,14 @@ void ED_view3d_to_m4(float mat[][4], const float ofs[3], const float quat[4], co
 	sub_v3_v3v3(mat[3], dvec, ofs);
 }
 
-
-/* object -> view */
+/**
+ * Set the RegionView3D members from an objects transformation and optionally lens.
+ * \param ob The object to set the view to.
+ * \param ofs The view offset to be set, normally from RegionView3D.ofs.
+ * \param quat The view rotation to be set, quaternion normally from RegionView3D.viewquat.
+ * \param dist The view distance from ofs to be set, normally from RegionView3D.dist.
+ * \param lens The view lens angle set for cameras and lamps, normally from View3D.lens.
+ */
 void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist, float *lens)
 {
 	ED_view3d_from_m4(ob->obmat, ofs, quat, dist);
@@ -3896,7 +3912,13 @@ void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist,
 	}
 }
 
-/* view -> object */
+/**
+ * Set the object transformation from RegionView3D members.
+ * \param ob The object which has the transformation assigned.
+ * \param ofs The view offset, normally from RegionView3D.ofs.
+ * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.
+ * \param dist The view distance from ofs, normally from RegionView3D.dist.
+ */
 void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], const float dist)
 {
 	float mat[4][4];

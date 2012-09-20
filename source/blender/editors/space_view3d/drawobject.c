@@ -2092,7 +2092,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const flo
 		else {
 			float co2[2];
 			mul_v3_m4v3(co2, data->vc.obedit->obmat, co);
-			project_short_noclip(data->vc.ar, co2, s);
+			ED_view3d_project_short_noclip(data->vc.ar, co2, s);
 		}
 
 		if (s[0] != IS_CLIPPED)
@@ -2169,8 +2169,8 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 			mul_v3_m4v3(v1_co, data->vc.obedit->obmat, v0co);
 			mul_v3_m4v3(v2_co, data->vc.obedit->obmat, v1co);
 
-			project_short_noclip(data->vc.ar, v1_co, s[0]);
-			project_short_noclip(data->vc.ar, v2_co, s[1]);
+			ED_view3d_project_short_noclip(data->vc.ar, v1_co, s[0]);
+			ED_view3d_project_short_noclip(data->vc.ar, v2_co, s[1]);
 
 			if (data->clipVerts == V3D_CLIP_TEST_REGION) {
 				/* make an int copy */
@@ -2225,7 +2225,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const flo
 		short s[2];
 
 		mul_v3_m4v3(cent2, data->vc.obedit->obmat, cent);
-		project_short(data->vc.ar, cent2, s);
+		ED_view3d_project_short(data->vc.ar, cent2, s);
 
 		if (s[0] != IS_CLIPPED) {
 			data->func(data->userData, efa, s[0], s[1], index);
@@ -6614,7 +6614,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* which wire color */
 	if ((dflag & DRAW_CONSTCOLOR) == 0) {
 
-		project_short(ar, ob->obmat[3], &base->sx);
+		ED_view3d_project_short(ar, ob->obmat[3], &base->sx);
 
 		draw_object_wire_color(scene, base, _ob_wire_col, warning_recursive);
 		ob_wire_col = _ob_wire_col;

@@ -278,7 +278,7 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			gp_get_3d_reference(p, rvec);
 			
 			/* method taken from editview.c - mouse_cursor() */
-			project_int_noclip(p->ar, rvec, mval_prj);
+			ED_view3d_project_int_noclip(p->ar, rvec, mval_prj);
 			
 			VECSUB2D(mval_f, mval_prj, mval);
 			ED_view3d_win_to_delta(p->ar, mval_f, dvec);
@@ -808,7 +808,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 	else if (gps->totpoints == 1) {
 		/* get coordinates */
 		if (gps->flag & GP_STROKE_3DSPACE) {
-			project_int(p->ar, &gps->points->x, xyval);
+			ED_view3d_project_int(p->ar, &gps->points->x, xyval);
 			x0 = xyval[0];
 			y0 = xyval[1];
 		}
@@ -847,11 +847,11 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			
 			/* get coordinates */
 			if (gps->flag & GP_STROKE_3DSPACE) {
-				project_int(p->ar, &pt1->x, xyval);
+				ED_view3d_project_int(p->ar, &pt1->x, xyval);
 				x0 = xyval[0];
 				y0 = xyval[1];
 				
-				project_int(p->ar, &pt2->x, xyval);
+				ED_view3d_project_int(p->ar, &pt2->x, xyval);
 				x1 = xyval[0];
 				y1 = xyval[1];
 			}

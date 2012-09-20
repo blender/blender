@@ -771,7 +771,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		if (ss->cache->radial_symmetry_pass)
 			mul_m4_v3(ss->cache->symm_rot_mat_inv, symm_point);
 
-		ED_view3d_project_float_v2(ss->cache->vc->ar, symm_point, point_2d, ss->cache->projection_mat);
+		ED_view3d_project_float_v2_m4(ss->cache->vc->ar, symm_point, point_2d, ss->cache->projection_mat);
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			/* keep coordinates relative to mouse */

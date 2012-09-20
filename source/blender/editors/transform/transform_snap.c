@@ -315,7 +315,7 @@ void applyProject(TransInfo *t)
 				copy_v3_v3(iloc, td->ob->obmat[3]);
 			}
 			
-			project_float(t->ar, iloc, mval);
+			ED_view3d_project_float(t->ar, iloc, mval);
 			
 			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect)) {
 //				if (t->flag & (T_EDIT|T_POSE)) {
@@ -601,7 +601,7 @@ int updateSelectedSnapPoint(TransInfo *t)
 			int dx, dy;
 			int dist;
 
-			project_int(t->ar, p->co, screen_loc);
+			ED_view3d_project_int(t->ar, p->co, screen_loc);
 
 			dx = t->mval[0] - screen_loc[0];
 			dy = t->mval[1] - screen_loc[1];
@@ -1164,7 +1164,7 @@ static int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], fl
 		
 		new_depth = len_v3v3(location, ray_start);					
 		
-		project_int(ar, location, screen_loc);
+		ED_view3d_project_int(ar, location, screen_loc);
 		new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
 		
 		if (new_dist <= *dist && new_depth < *depth) {
@@ -1232,7 +1232,7 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 			
 			new_depth = len_v3v3(location, ray_start);					
 			
-			project_int(ar, location, screen_loc);
+			ED_view3d_project_int(ar, location, screen_loc);
 			new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
 			
 			/* 10% threshold if edge is closer but a bit further
@@ -1289,7 +1289,7 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[][4],
 		
 		new_depth = len_v3v3(location, ray_start);
 		
-		project_int(ar, location, screen_loc);
+		ED_view3d_project_int(ar, location, screen_loc);
 		new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
 		
 		if (new_dist <= *r_dist && new_depth < *r_depth) {

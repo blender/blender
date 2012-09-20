@@ -644,7 +644,7 @@ static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, int mval[2], in
 			short pval[2];
 			int pdist;
 
-			project_short_noclip(ar, stk->points[i].p, pval);
+			ED_view3d_project_short_noclip(ar, stk->points[i].p, pval);
 
 			pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 
@@ -679,7 +679,7 @@ static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones,
 		{
 			copy_v3_v3(vec, bone->head);
 			mul_m4_v3(ob->obmat, vec);
-			project_short_noclip(ar, vec, pval);
+			ED_view3d_project_short_noclip(ar, vec, pval);
 
 			pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 
@@ -695,7 +695,7 @@ static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones,
 
 		copy_v3_v3(vec, bone->tail);
 		mul_m4_v3(ob->obmat, vec);
-		project_short_noclip(ar, vec, pval);
+		ED_view3d_project_short_noclip(ar, vec, pval);
 
 		pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 
@@ -907,7 +907,7 @@ static void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end,
 		float delta = len_v3v3(stk->points[i].p, stk->points[i + 1].p);
 		float pval[2];
 
-		project_float(ar, stk->points[i].p, pval);
+		ED_view3d_project_float(ar, stk->points[i].p, pval);
 		ED_view3d_win_to_ray(ar, v3d, pval, ray_start, ray_normal);
 
 		mul_v3_fl(ray_normal, distance * progress / length);
@@ -934,7 +934,7 @@ static void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_Dr
 	initgrabz(ar->regiondata, fp[0], fp[1], fp[2]);
 
 	/* method taken from editview.c - mouse_cursor() */
-	project_short_noclip(ar, fp, cval);
+	ED_view3d_project_short_noclip(ar, fp, cval);
 	VECSUB2D(mval_f, cval, dd->mval);
 	ED_view3d_win_to_delta(ar, mval_f, dvec);
 	sub_v3_v3v3(vec, fp, dvec);
@@ -1453,8 +1453,8 @@ static int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gestu
 		float s_p2[3] = {0, 0, 0};
 		int g_i;
 
-		project_float(ar, gesture->points[s_i].p, s_p1);
-		project_float(ar, gesture->points[s_i + 1].p, s_p2);
+		ED_view3d_project_float(ar, gesture->points[s_i].p, s_p1);
+		ED_view3d_project_float(ar, gesture->points[s_i + 1].p, s_p2);
 
 		/* start checking from second next, because two consecutive cannot intersect */
 		for (g_i = s_i + 2; g_i < gesture->nb_points - 1; g_i++) {
@@ -1463,8 +1463,8 @@ static int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gestu
 			float vi[3];
 			float lambda;
 
-			project_float(ar, gesture->points[g_i].p, g_p1);
-			project_float(ar, gesture->points[g_i + 1].p, g_p2);
+			ED_view3d_project_float(ar, gesture->points[g_i].p, g_p1);
+			ED_view3d_project_float(ar, gesture->points[g_i + 1].p, g_p2);
 
 			if (isect_line_line_strict_v3(s_p1, s_p2, g_p1, g_p2, vi, &lambda)) {
 				SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
@@ -1531,8 +1531,8 @@ static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, S
 			float s_p2[3] = {0, 0, 0};
 			int g_i;
 
-			project_float(ar, stk->points[s_i].p, s_p1);
-			project_float(ar, stk->points[s_i + 1].p, s_p2);
+			ED_view3d_project_float(ar, stk->points[s_i].p, s_p1);
+			ED_view3d_project_float(ar, stk->points[s_i + 1].p, s_p2);
 
 			for (g_i = 0; g_i < gesture->nb_points - 1; g_i++) {
 				float g_p1[3] = {0, 0, 0};
@@ -1540,8 +1540,8 @@ static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, S
 				float vi[3];
 				float lambda;
 
-				project_float(ar, gesture->points[g_i].p, g_p1);
-				project_float(ar, gesture->points[g_i + 1].p, g_p2);
+				ED_view3d_project_float(ar, gesture->points[g_i].p, g_p1);
+				ED_view3d_project_float(ar, gesture->points[g_i + 1].p, g_p2);
 
 				if (isect_line_line_strict_v3(s_p1, s_p2, g_p1, g_p2, vi, &lambda)) {
 					SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
@@ -1784,8 +1784,8 @@ int sk_detectMergeGesture(bContext *C, SK_Gesture *gest, SK_Sketch *UNUSED(sketc
 		short start_val[2], end_val[2];
 		short dist;
 
-		project_short_noclip(ar, gest->stk->points[0].p, start_val);
-		project_short_noclip(ar, sk_lastStrokePoint(gest->stk)->p, end_val);
+		ED_view3d_project_short_noclip(ar, gest->stk->points[0].p, start_val);
+		ED_view3d_project_short_noclip(ar, sk_lastStrokePoint(gest->stk)->p, end_val);
 
 		dist = MAX2(ABS(start_val[0] - end_val[0]), ABS(start_val[1] - end_val[1]));
 
