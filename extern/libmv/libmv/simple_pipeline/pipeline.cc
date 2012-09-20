@@ -242,9 +242,9 @@ void InternalCompleteReconstruction(
                                        (double)tot_resects/(max_image));
       if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, true)) {
         num_resects++;
-        LG << "Ran Resect() for image " << image;
+        LG << "Ran final Resect() for image " << image;
       } else {
-        LG << "Failed Resect() for image " << image;
+        LG << "Failed final Resect() for image " << image;
       }
     }
   }

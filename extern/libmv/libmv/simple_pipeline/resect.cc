@@ -108,6 +108,10 @@ bool EuclideanResect(const vector<Marker> &markers,
     // printf("Resection for image %d failed\n", markers[0].image);
     LG << "Resection for image " << markers[0].image << " failed;"
        << " trying fallback projective resection.";
+
+    LG << "No fallback; failing resection for " << markers[0].image;
+    return false;
+
     if (!final_pass) return false;
     // Euclidean resection failed. Fall back to projective resection, which is
     // less reliable but better conditioned when there are many points.

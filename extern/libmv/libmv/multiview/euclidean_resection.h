@@ -29,6 +29,9 @@ namespace euclidean_resection {
   
 enum ResectionMethod {
   RESECTION_ANSAR_DANIILIDIS,
+
+  // The "EPnP" algorithm by Lepetit et al.
+  // http://cvlab.epfl.ch/~lepetit/papers/lepetit_ijcv08.pdf
   RESECTION_EPNP,
 };
 

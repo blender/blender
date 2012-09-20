@@ -535,7 +535,16 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
   vector<Vec3> ts(3);
   Vec rmse(3);
 
-  // TODO(julien): Document where the "1e-3" magical constant comes from below.
+  // At one point this threshold was 1e-3, and caused no end of problems in
+  // Blender by causing frames to not resect when they would have worked fine.
+  // When the resect failed, the projective followup is run leading to worse
+  // results, and often the dreaded "flipping" where objects get flipped
+  // between frames. Instead, disable the check for now, always succeeding. The
+  // ultimate check is always reprojection error anyway.
+  //
+  // TODO(keir): Decide if setting this to infinity, effectively disabling the
+  // check, is the right approach. So far this seems the case.
+  double kSuccessThreshold = std::numeric_limits<double>::max();
 
   // Find the first possible solution for R, t corresponding to:
   // Betas          = [b00 b01 b11 b02 b12 b22 b03 b13 b23 b33]
@@ -548,7 +557,7 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
   Eigen::JacobiSVD<Mat> svd_of_l4(l_6x4, 
                                   Eigen::ComputeFullU | Eigen::ComputeFullV);
   Vec4 b4 = svd_of_l4.solve(rho);
-  if ((l_6x4 * b4).isApprox(rho, 1e-3)) {
+  if ((l_6x4 * b4).isApprox(rho, kSuccessThreshold)) {
     if (b4(0) < 0) {
       b4 = -b4;
     } 
@@ -574,7 +583,7 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
   Vec3 b3 = svdOfL3.solve(rho);
   VLOG(2) << " rho = " << rho;
   VLOG(2) << " l_6x3 * b3 = " << l_6x3 * b3;
-  if ((l_6x3 * b3).isApprox(rho, 1e-3)) {
+  if ((l_6x3 * b3).isApprox(rho, kSuccessThreshold)) {
     if (b3(0) < 0) {
       betas(0) = std::sqrt(-b3(0));
       betas(1) = (b3(2) < 0) ? std::sqrt(-b3(2)) : 0;
@@ -605,7 +614,7 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
   Eigen::JacobiSVD<Mat> svdOfL5(l_6x5, 
                                 Eigen::ComputeFullU | Eigen::ComputeFullV);
   Vec5 b5 = svdOfL5.solve(rho);
-  if ((l_6x5 * b5).isApprox(rho, 1e-3)) {
+  if ((l_6x5 * b5).isApprox(rho, kSuccessThreshold)) {
     if (b5(0) < 0) {
       betas(0) = std::sqrt(-b5(0));
       if (b5(2) < 0) {
