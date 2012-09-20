@@ -136,6 +136,7 @@ TrackRegionOptions::TrackRegionOptions()
       sigma(0.9),
       num_extra_points(0),
       regularization_coefficient(0.0),
+      minimum_corner_shift_tolerance_pixels(0.005),
       image1_mask(NULL) {
 }
 
@@ -187,45 +188,93 @@ static T SampleWithDerivative(const FloatImage &image_and_gradient,
 }
 
 template<typename Warp>
-class BoundaryCheckingCallback : public ceres::IterationCallback {
+class TerminationCheckingCallback : public ceres::IterationCallback {
  public:
-  BoundaryCheckingCallback(const FloatImage& image2,
-                           const Warp &warp,
-                           const double *x1, const double *y1)
-      : image2_(image2), warp_(warp), x1_(x1), y1_(y1) {}
+  TerminationCheckingCallback(const TrackRegionOptions &options,
+                              const FloatImage& image2,
+                              const Warp &warp,
+                              const double *x1, const double *y1)
+      : options_(options), image2_(image2), warp_(warp), x1_(x1), y1_(y1),
+        have_last_successful_step_(false) {}
 
   virtual ceres::CallbackReturnType operator()(
       const ceres::IterationSummary& summary) {
+    // If the step wasn't successful, there's nothing to do.
+    if (!summary.step_is_successful) {
+      return ceres::SOLVER_CONTINUE;
+    }
     // Warp the original 4 points with the current warp into image2.
     double x2[4];
     double y2[4];
     for (int i = 0; i < 4; ++i) {
       warp_.Forward(warp_.parameters, x1_[i], y1_[i], x2 + i, y2 + i);
     }
-    // Enusre they are all in bounds.
+    // Ensure the corners are all in bounds.
     if (!AllInBounds(image2_, x2, y2)) {
+      LG << "Successful step fell outside of the pattern bounds; aborting.";
       return ceres::SOLVER_ABORT;
     }
+
+    // Ensure the minimizer is making large enough shifts to bother continuing.
+    // Ideally, this check would happen on the parameters themselves which
+    // Ceres supports directly; however, the mapping from parameter change
+    // magnitude to corner movement in pixels is not a simple norm. Hence, the
+    // need for a stateful callback which tracks the last successful set of
+    // parameters (and the position of the projected patch corners).
+    if (have_last_successful_step_) {
+      // Compute the maximum shift of any corner in pixels since the last
+      // successful iteration.
+      double max_change_pixels = 0;
+      for (int i = 0; i < 4; ++i) {
+        double dx = x2[i] - x2_last_successful_[i];
+        double dy = y2[i] - y2_last_successful_[i];
+        double change_pixels = dx*dx + dy*dy;
+        if (change_pixels > max_change_pixels) {
+          max_change_pixels = change_pixels;
+        }
+      }
+      max_change_pixels = sqrt(max_change_pixels);
+      LG << "Max patch corner shift is " << max_change_pixels;
+
+      // Bail if the shift is too small.
+      if (max_change_pixels < options_.minimum_corner_shift_tolerance_pixels) {
+        LG << "Max patch corner shift is " << max_change_pixels
+           << " from the last iteration; returning success.";
+        return ceres::SOLVER_TERMINATE_SUCCESSFULLY;
+      }
+    }
+
+    // Save the projected corners for checking on the next successful iteration.
+    for (int i = 0; i < 4; ++i) {
+      x2_last_successful_[i] = x2[i];
+      y2_last_successful_[i] = y2[i];
+    }
+    have_last_successful_step_ = true;
     return ceres::SOLVER_CONTINUE;
   }
 
  private:
+  const TrackRegionOptions &options_;
   const FloatImage &image2_;
   const Warp &warp_;
   const double *x1_;
   const double *y1_;
+
+  bool have_last_successful_step_;
+  double x2_last_successful_[4];
+  double y2_last_successful_[4];
 };
 
 template<typename Warp>
 class PixelDifferenceCostFunctor {
  public:
   PixelDifferenceCostFunctor(const TrackRegionOptions &options,
-                  const FloatImage &image_and_gradient1,
-                  const FloatImage &image_and_gradient2,
-                  const Mat3 &canonical_to_image1,
-                  int num_samples_x,
-                  int num_samples_y,
-                  const Warp &warp)
+                             const FloatImage &image_and_gradient1,
+                             const FloatImage &image_and_gradient2,
+                             const Mat3 &canonical_to_image1,
+                             int num_samples_x,
+                             int num_samples_y,
+                             const Warp &warp)
       : options_(options),
         image_and_gradient1_(image_and_gradient1),       
         image_and_gradient2_(image_and_gradient2),       
@@ -1355,14 +1404,15 @@ void TemplatedTrackRegion(const FloatImage &image1,
 
   // Configure the solve.
   ceres::Solver::Options solver_options;
-  solver_options.linear_solver_type = ceres::DENSE_QR;
+  solver_options.linear_solver_type = ceres::DENSE_NORMAL_CHOLESKY;
   solver_options.max_num_iterations = options.max_iterations;
   solver_options.update_state_every_iteration = true;
   solver_options.parameter_tolerance = 1e-16;
   solver_options.function_tolerance = 1e-16;
 
-  // Prevent the corners from going outside the destination image.
-  BoundaryCheckingCallback<Warp> callback(image2, warp, x1, y1);
+  // Prevent the corners from going outside the destination image and
+  // terminate if the optimizer is making tiny moves (converged).
+  TerminationCheckingCallback<Warp> callback(options, image2, warp, x1, y1);
   solver_options.callbacks.push_back(&callback);
 
   // Run the solve.
@@ -1389,6 +1439,17 @@ void TemplatedTrackRegion(const FloatImage &image1,
     result->termination = TrackRegionResult::FELL_OUT_OF_BOUNDS;
     return;
   }
+
+  // This happens when the minimum corner shift tolerance is reached. Due to
+  // how the tolerance is computed this can't be done by Ceres. So return the
+  // same termination enum as Ceres, even though this is slightly different
+  // than Ceres's parameter tolerance, which operates on the raw parameter
+  // values rather than the pixel shifts of the patch corners.
+  if (summary.termination_type == ceres::USER_SUCCESS) {
+    result->termination = TrackRegionResult::PARAMETER_TOLERANCE;
+    return;
+  }
+
 #define HANDLE_TERMINATION(termination_enum) \
   if (summary.termination_type == ceres::termination_enum) { \
     result->termination = TrackRegionResult::termination_enum; \
