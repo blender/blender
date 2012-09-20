@@ -498,7 +498,7 @@ static void rna_Scene_framelen_update(Main *UNUSED(bmain), Scene *scene, Pointer
 }
 
 
-static void rna_Scene_current_frame_set(PointerRNA *ptr, int value)
+static void rna_Scene_frame_current_set(PointerRNA *ptr, int value)
 {
 	Scene *data = (Scene *)ptr->data;
 	
@@ -4300,7 +4300,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
-	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_current_frame_set", NULL);
+	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_frame_current_set", NULL);
 	RNA_def_property_ui_text(prop, "Current Frame",
 	                         "Current Frame, to update animation data from python frame_set() instead");
 	RNA_def_property_update(prop, NC_SCENE | ND_FRAME, "rna_Scene_frame_update");

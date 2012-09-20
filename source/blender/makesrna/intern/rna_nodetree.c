@@ -3839,7 +3839,7 @@ static void def_cmp_trackpos(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Position", "Which marker position to use for output");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-	prop = RNA_def_property(srna, "relative_frame", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "frame_relative", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom2");
 	RNA_def_property_ui_text(prop, "Frame", "Frame to be used for relative position");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
