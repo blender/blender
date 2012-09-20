@@ -1532,11 +1532,11 @@ bool SamplePlanarPatch(const FloatImage &image,
                    image_position(0),
                    &(*patch)(r, c, 0));
       if (mask) {
-        float maskValue = SampleLinear(*mask, image_position(1),
-                                       image_position(0), 0);
+        float mask_value = SampleLinear(*mask, image_position(1),
+                                        image_position(0), 0);
 
         for (int d = 0; d < image.Depth(); d++)
-          (*patch)(r, c, d) *= maskValue;
+          (*patch)(r, c, d) *= mask_value;
       }
     }
   }
