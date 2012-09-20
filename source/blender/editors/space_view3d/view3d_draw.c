@@ -1543,11 +1543,6 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 {
 	RegionView3D *rv3d = ar->regiondata;
 	BGpic *bgpic;
-	Image *ima;
-	MovieClip *clip;
-	ImBuf *ibuf = NULL, *freeibuf;
-	float vec[4], fac, asp, zoomx, zoomy;
-	float x1, y1, x2, y2, cx, cy;
 	int fg_flag = do_foreground ? V3D_BGPIC_FOREGROUND : 0;
 
 	for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
@@ -1560,6 +1555,13 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 		    (rv3d->persp == RV3D_CAMOB && bgpic->view == (1 << RV3D_VIEW_CAMERA)))
 		{
 			float image_aspect[2];
+			float fac, asp, zoomx, zoomy;
+			float x1, y1, x2, y2;
+
+			ImBuf *ibuf = NULL, *freeibuf;
+
+			Image *ima;
+			MovieClip *clip;
 
 			/* disable individual images */
 			if ((bgpic->flag & V3D_BGPIC_DISABLED))
@@ -1687,26 +1689,25 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				}
 			}
 			else {
+				float tvec[3];
 				float sco[2];
 				const float mval_f[2] = {1.0f, 0.0f};
 
 				/* calc window coord */
 				initgrabz(rv3d, 0.0, 0.0, 0.0);
-				ED_view3d_win_to_delta(ar, mval_f, vec);
-				fac = maxf(fabsf(vec[0]), maxf(fabsf(vec[1]), fabsf(vec[2]))); /* largest abs axis */
+				ED_view3d_win_to_delta(ar, mval_f, tvec);
+				fac = maxf(fabsf(tvec[0]), maxf(fabsf(tvec[1]), fabsf(tvec[2]))); /* largest abs axis */
 				fac = 1.0f / fac;
 
-				asp = ( (float)ibuf->y) / (float)ibuf->x;
+				asp = (float)ibuf->y / (float)ibuf->x;
 
-				zero_v3(vec);
-				ED_view3d_project_float_v2_m4(ar, vec, sco, rv3d->persmat);
-				cx = sco[0];
-				cy = sco[1];
+				zero_v3(tvec);
+				ED_view3d_project_float_v2_m4(ar, tvec, sco, rv3d->persmat);
 
-				x1 =  cx + fac * (bgpic->xof - bgpic->size);
-				y1 =  cy + asp * fac * (bgpic->yof - bgpic->size);
-				x2 =  cx + fac * (bgpic->xof + bgpic->size);
-				y2 =  cy + asp * fac * (bgpic->yof + bgpic->size);
+				x1 =  sco[0] + fac * (bgpic->xof - bgpic->size);
+				y1 =  sco[1] + asp * fac * (bgpic->yof - bgpic->size);
+				x2 =  sco[0] + fac * (bgpic->xof + bgpic->size);
+				y2 =  sco[1] + asp * fac * (bgpic->yof + bgpic->size);
 			}
 
 			/* complete clip? */
@@ -1772,8 +1773,9 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			glDepthMask(1);
 			if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
-			if (freeibuf)
+			if (freeibuf) {
 				IMB_freeImBuf(freeibuf);
+			}
 		}
 	}
 }
