@@ -1192,7 +1192,6 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 {
 	DisplayBufferThread *handle = (DisplayBufferThread *) handle_v;
 	ColormanageProcessor *cm_processor = handle->cm_processor;
-	float *buffer = handle->buffer;
 	float *display_buffer = handle->display_buffer;
 	unsigned char *display_buffer_byte = handle->display_buffer_byte;
 	int channels = handle->channels;
@@ -1202,31 +1201,43 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	int predivide = handle->predivide;
 	int is_data = handle->is_data;
 
-	float *linear_buffer = display_buffer_apply_get_linear_buffer(handle);
+	if (cm_processor == NULL) {
+		if (display_buffer_byte) {
+			IMB_buffer_byte_from_byte(display_buffer_byte, handle->byte_buffer, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
+			                          FALSE, width, height, width, width);
+		}
 
-	if (is_data) {
-		/* special case for data buffers - no color space conversions,
-		 * only generate byte buffers
-		 */
+		if (display_buffer) {
+			IMB_buffer_float_from_byte(display_buffer, handle->byte_buffer, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
+			                           FALSE, width, height, width, width);
+		}
 	}
 	else {
-		/* apply processor */
-		IMB_colormanagement_processor_apply(cm_processor, linear_buffer, width, height, channels, predivide);
-	}
+		float *linear_buffer = display_buffer_apply_get_linear_buffer(handle);
 
-	/* copy result to output buffers */
-	if (display_buffer_byte) {
-		/* do conversion */
-		IMB_buffer_byte_from_float(display_buffer_byte, linear_buffer,
-		                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-		                           predivide, width, height, width, width);
-	}
+		if (is_data) {
+			/* special case for data buffers - no color space conversions,
+			 * only generate byte buffers
+			 */
+		}
+		else {
+			/* apply processor */
+			IMB_colormanagement_processor_apply(cm_processor, linear_buffer, width, height, channels, predivide);
+		}
 
-	if (display_buffer)
-		memcpy(display_buffer, linear_buffer, width * height * channels * sizeof(float));
+		/* copy result to output buffers */
+		if (display_buffer_byte) {
+			/* do conversion */
+			IMB_buffer_byte_from_float(display_buffer_byte, linear_buffer,
+			                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
+			                           predivide, width, height, width, width);
+		}
 
-	if (linear_buffer != buffer)
+		if (display_buffer)
+			memcpy(display_buffer, linear_buffer, width * height * channels * sizeof(float));
+
 		MEM_freeN(linear_buffer);
+	}
 
 	return NULL;
 }
@@ -1269,14 +1280,43 @@ static void colormanage_display_buffer_process_ex(ImBuf *ibuf, float *display_bu
                                                   const ColorManagedViewSettings *view_settings,
                                                   const ColorManagedDisplaySettings *display_settings)
 {
-	ColormanageProcessor *cm_processor;
+	ColormanageProcessor *cm_processor = NULL;
+	int skip_transform = FALSE;
 
-	cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
+	/* if we're going to transform byte buffer, check whether transformation would
+	 * happen to the same color space as byte buffer itself is
+	 * this would save byte -> float -> byte conversions making display buffer
+	 * computation noticeable faster
+	 */
+	if (ibuf->rect_float == NULL && ibuf->rect_colorspace) {
+		if ((view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) == 0 &&
+		    view_settings->exposure == 0.0f &&
+		    view_settings->gamma == 1.0f)
+		{
+			ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+
+			if (config) {
+				const char *display = display_settings->display_device;
+				const char *view = view_settings->view_transform;
+				const char *from_colorspace = ibuf->rect_colorspace->name;
+				const char *to_colorspace = OCIO_configGetDisplayColorSpaceName(config, display, view);
+
+				if (!strcmp(from_colorspace, to_colorspace))
+					skip_transform = TRUE;
+
+				OCIO_configRelease(config);
+			}
+		}
+	}
+
+	if (skip_transform == FALSE)
+		cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
 
 	display_buffer_apply_threaded(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect,
 	                              display_buffer, display_buffer_byte, cm_processor);
 
-	IMB_colormanagement_processor_free(cm_processor);
+	if (cm_processor)
+		IMB_colormanagement_processor_free(cm_processor);
 }
 
 static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *display_buffer,
