@@ -43,7 +43,7 @@ using namespace std;
 class IK_QSolver {
 public:
 	IK_QSolver() : root(NULL) {
-	};
+	}
 
 	IK_QJacobianSolver solver;
 	IK_QSegment *root;

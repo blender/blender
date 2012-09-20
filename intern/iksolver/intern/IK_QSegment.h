@@ -158,10 +158,10 @@ public:
 	virtual void UpdateAngleApply()=0;
 
 	// set joint limits
-	virtual void SetLimit(int, MT_Scalar, MT_Scalar) {};
+	virtual void SetLimit(int, MT_Scalar, MT_Scalar) {}
 
 	// set joint weights (per axis)
-	virtual void SetWeight(int, MT_Scalar) {};
+	virtual void SetWeight(int, MT_Scalar) {}
 
 	virtual void SetBasis(const MT_Matrix3x3& basis) { m_basis = basis; }
 

@@ -70,8 +70,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~GHOST_Rect()
-	{};
+	virtual ~GHOST_Rect() {}
 
 	/**
 	 * Access to rectangle width.

@@ -107,7 +107,7 @@ class GHOST_NDOFManager
 public:
 	GHOST_NDOFManager(GHOST_System&);
 
-	virtual ~GHOST_NDOFManager() {};
+	virtual ~GHOST_NDOFManager() {}
 
 	// whether multi-axis functionality is available (via the OS or driver)
 	// does not imply that a device is plugged in or being used
