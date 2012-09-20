@@ -195,7 +195,7 @@ GHOST_IWindow *GHOST_WindowManager::getWindowAssociatedWithOSWindow(void *osWind
 {
 	std::vector<GHOST_IWindow *>::iterator iter;
 
-	for (iter = m_windows.begin(); iter != m_windows.end(); iter++) {
+	for (iter = m_windows.begin(); iter != m_windows.end(); ++iter) {
 		if ((*iter)->getOSWindow() == osWindow)
 			return *iter;
 	}
@@ -208,7 +208,7 @@ bool GHOST_WindowManager::getAnyModifiedState()
 	bool isAnyModified = false;
 	std::vector<GHOST_IWindow *>::iterator iter;
 	
-	for (iter = m_windows.begin(); iter != m_windows.end(); iter++) {
+	for (iter = m_windows.begin(); iter != m_windows.end(); ++iter) {
 		if ((*iter)->getModifiedState())
 			isAnyModified = true;
 	}

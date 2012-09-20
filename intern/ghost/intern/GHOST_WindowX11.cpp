@@ -1326,7 +1326,7 @@ GHOST_WindowX11::
 	c_owner = XGetSelectionOwner(m_display, Clipboard_atom);
 	
 	std::map<unsigned int, Cursor>::iterator it = m_standard_cursors.begin();
-	for (; it != m_standard_cursors.end(); it++) {
+	for (; it != m_standard_cursors.end(); ++it) {
 		XFreeCursor(m_display, it->second);
 	}
 
