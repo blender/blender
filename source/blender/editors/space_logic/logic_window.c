@@ -91,7 +91,6 @@
 
 #define B_SOUNDACT_BROWSE	2712
 
-#define B_SETSECTOR		2713
 #define B_SETPROP		2714
 #define B_SETACTOR		2715
 #define B_SETMAINACTOR		2716

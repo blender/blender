@@ -71,8 +71,18 @@ void		WM_init_state_normal_set(void);
 
 void		WM_init				(struct bContext *C, int argc, const char **argv);
 void		WM_exit_ext			(struct bContext *C, const short do_python);
-void		WM_exit				(struct bContext *C);
-void		WM_main				(struct bContext *C);
+
+void		WM_exit				(struct bContext *C)
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((noreturn))
+#endif
+;
+
+void		WM_main				(struct bContext *C)
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((noreturn))
+#endif
+;
 
 int 		WM_init_game		(struct bContext *C);
 void		WM_init_splash		(struct bContext *C);

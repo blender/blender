@@ -96,7 +96,6 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 #define B_MAN_ROT   117
 #define B_MAN_SCALE 118
 #define B_MAN_MODE  120
-#define B_NOP       123
 
 /* XXX quickly ported across */
 static void handle_view3d_lock(bContext *C)

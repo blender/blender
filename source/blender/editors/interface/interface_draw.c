@@ -60,8 +60,6 @@
 /* own include */
 #include "interface_intern.h"
 
-#define UI_DISABLED_ALPHA_OFFS  -160
-
 static int roundboxtype = UI_CNR_ALL;
 
 void uiSetRoundBox(int type)

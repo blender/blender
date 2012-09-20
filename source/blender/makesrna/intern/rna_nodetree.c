@@ -4036,7 +4036,7 @@ static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
 }
 
 /* shared between all note tree types*/
-static void rna_def_nodetree_active_api(StructRNA *srna, PropertyRNA *cprop)
+static void rna_def_nodetree_active_api(StructRNA *srna, PropertyRNA *UNUSED(cprop))
 {
 	PropertyRNA *prop;
 

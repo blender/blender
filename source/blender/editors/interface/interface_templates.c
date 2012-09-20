@@ -937,28 +937,26 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 
-#define REDRAWIPO                   1
-#define REDRAWNLA                   2
-#define REDRAWBUTSOBJECT            3
-#define REDRAWACTION                4
 #define B_CONSTRAINT_TEST           5
-#define B_CONSTRAINT_CHANGETARGET   6
-#define REMAKEIPO                   8
-#define B_DIFF                      9
+// #define B_CONSTRAINT_CHANGETARGET   6
 
 static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 {
-	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = (Object *)ob_pt;
 
 	switch (event) {
 		case B_CONSTRAINT_TEST:
 			break; /* no handling */
+#if 0	/* UNUSED */
 		case B_CONSTRAINT_CHANGETARGET:
+		{
+			Main *bmain = CTX_data_main(C);
+			Scene *scene = CTX_data_scene(C);
 			if (ob->pose) ob->pose->flag |= POSE_RECALC;  /* checks & sorts pose channels */
 			DAG_scene_sort(bmain, scene);
 			break;
+		}
+#endif
 		default:
 			break;
 	}
@@ -1269,8 +1267,6 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 	 * and notifier, even if the CurveMapping struct is shared. */
 	RNA_property_update(C, &cb->ptr, cb->prop);
 }
-
-#define B_BANDCOL 1
 
 static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
 {

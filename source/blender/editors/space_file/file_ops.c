@@ -64,11 +64,6 @@
 #include <stdio.h>
 #include <ctype.h>
 
-/* for events */
-#define NOTACTIVEFILE       0
-#define ACTIVATE            1
-#define INACTIVATE          2
-
 /* ---------- FILE SELECTION ------------ */
 static FileSelection find_file_mouse_rect(SpaceFile *sfile, ARegion *ar, const rcti *rect)
 {

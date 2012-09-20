@@ -69,12 +69,6 @@
 
 #include "graph_intern.h"   // own include
 
-/* XXX */
-
-/* temporary definition for limits of float number buttons (FLT_MAX tends to infinity with old system) */
-#define UI_FLT_MAX  10000.0f
-
-
 /* ******************* graph editor space & buttons ************** */
 
 #define B_REDR 1

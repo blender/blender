@@ -70,7 +70,6 @@
 
 #include "interface_intern.h"
 
-#define MENU_SEPR_HEIGHT    6
 #define B_NOP               -1
 #define MENU_SHADOW_SIDE    8
 #define MENU_SHADOW_BOTTOM  10
@@ -1874,12 +1873,6 @@ static void ui_warp_pointer(int x, int y)
 
 /********************* Color Button ****************/
 
-/* picker sizes S hsize, F full size, D spacer, B button/pallette height  */
-#define SPICK   110.0
-#define FPICK   180.0
-#define DPICK   6.0
-#define BPICK   24.0
-
 /* for picker, while editing hsv */
 void ui_set_but_hsv(uiBut *but)
 {
@@ -2052,10 +2045,6 @@ static void do_picker_new_mode_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(a
 	short colormode = ui_get_but_val(bt);
 	picker_new_hide_reveal(bt->block, colormode);
 }
-
-/* picker sizes S hsize, F full size, D spacer, B button/pallette height  */
-#define SPICK1  150.0
-#define DPICK1  6.0
 
 #define PICKER_H    150
 #define PICKER_W    150

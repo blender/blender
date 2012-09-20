@@ -62,8 +62,6 @@
 #include "node_intern.h"  /* own include */
 #include "COM_compositor.h"
 
-/* width of socket columns in group display */
-#define NODE_GROUP_FRAME  120
 /* XXX interface.h */
 extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 

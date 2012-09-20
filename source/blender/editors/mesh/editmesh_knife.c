@@ -29,7 +29,9 @@
  *  \ingroup edmesh
  */
 
-#define _USE_MATH_DEFINES
+#ifdef _MSC_VER
+#  define _USE_MATH_DEFINES
+#endif
 
 #include "MEM_guardedalloc.h"
 
@@ -1753,6 +1755,9 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 	return 1;
 }
 
+#define SCANFILL_CUTS 0
+#if SCANFILL_CUTS
+
 #define MARK            4
 #define DEL             8
 #define VERT_ON_EDGE    16
@@ -1760,9 +1765,6 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 #define FACE_FLIP       64
 #define BOUNDARY        128
 #define FACE_NEW        256
-
-#define SCANFILL_CUTS 0
-#if SCANFILL_CUTS
 
 typedef struct facenet_entry {
 	struct facenet_entry *next, *prev;

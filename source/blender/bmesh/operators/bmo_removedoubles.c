@@ -244,11 +244,11 @@ static int vergaverco(const void *e1, const void *e2)
 	else return 0;
 }
 
-#define VERT_TESTED	1
+// #define VERT_TESTED	1 // UNUSED
 #define VERT_DOUBLE	2
 #define VERT_TARGET	4
 #define VERT_KEEP	8
-#define VERT_MARK	16
+// #define VERT_MARK	16 // UNUSED
 #define VERT_IN		32
 
 #define EDGE_MARK	1

@@ -1773,9 +1773,6 @@ void flushTransParticles(TransInfo *t)
 
 /* ********************* mesh ****************** */
 
-/* proportional distance based on connectivity  */
-#define THRESHOLDFACTOR (1.0f - 0.0001f)
-
 /* I did this wrong, it should be a breadth-first search
  * but instead it's a depth-first search, fudged
  * to report shortest distances.  I have no idea how fast

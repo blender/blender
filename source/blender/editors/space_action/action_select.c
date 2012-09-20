@@ -912,9 +912,6 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
  * selection mode between replacing the selection (without) and inverting the selection (with).
  */
 
-/* sensitivity factor for frame-selections */
-#define FRAME_CLICK_THRESH      0.1f
-
 /* ------------------- */
  
 /* option 1) select keyframe directly under mouse */

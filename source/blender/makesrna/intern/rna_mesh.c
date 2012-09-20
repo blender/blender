@@ -2609,7 +2609,7 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
-static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA *cprop)
+static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA *UNUSED(cprop))
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

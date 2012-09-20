@@ -79,10 +79,6 @@
 
 #include "interface_intern.h"
 
-#define MENU_WIDTH          120
-#define MENU_ITEM_HEIGHT    20
-#define MENU_SEP_HEIGHT     6
-
 #define PRECISION_FLOAT_MAX 6
 #define PRECISION_FLOAT_MAX_POW 1000000 /* pow(10, PRECISION_FLOAT_MAX)  */
 

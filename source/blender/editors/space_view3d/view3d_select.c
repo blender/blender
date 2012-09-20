@@ -319,11 +319,6 @@ static int edge_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
 	return 1;
 }
 
-
-#define MOVES_GESTURE 50
-#define MOVES_LASSO 500
-
-
 /* warning; lasso select with backbuffer-check draws in backbuf with persp(PERSP_WIN) 
  * and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
  */

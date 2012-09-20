@@ -103,7 +103,6 @@
 #define RE_RAD_ELEMS		4
 #define RE_STRAND_ELEMS		1
 #define RE_TANGENT_ELEMS	3
-#define RE_STRESS_ELEMS		1
 #define RE_WINSPEED_ELEMS	4
 #define RE_MTFACE_ELEMS		1
 #define RE_MCOL_ELEMS		4

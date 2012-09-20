@@ -240,8 +240,6 @@ typedef struct ImagePaintRegion {
 /* vert flags */
 #define PROJ_VERT_CULL 1
 
-#define PI_80_DEG ((M_PI_2 / 9) * 8)
-
 /* This is mainly a convenience struct used so we can keep an array of images we use
  * Thir imbufs, etc, in 1 array, When using threads this array is copied for each thread
  * because 'partRedrawRect' and 'touch' values would not be thread safe */

@@ -1196,9 +1196,6 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
  * call exit() or cancel() and remove handler
  */
 
-#define SPLIT_STARTED   1
-#define SPLIT_PROGRESS  2
-
 typedef struct sAreaSplitData {
 	int x, y;   /* last used mouse position */
 	

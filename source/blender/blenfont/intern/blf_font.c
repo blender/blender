@@ -174,7 +174,7 @@ void blf_font_draw(FontBLF *font, const char *str, size_t len)
 
 	blf_font_ensure_ascii_table(font);
 
-	while (str[i] && i < len) {
+	while ((i < len) && str[i]) {
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
 		if (c == BLI_UTF8_ERR)

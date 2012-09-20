@@ -78,8 +78,6 @@
 
 #include "image_intern.h"
 
-#define HEADER_HEIGHT 18
-
 static void draw_render_info(Scene *scene, Image *ima, ARegion *ar)
 {
 	RenderResult *rr;

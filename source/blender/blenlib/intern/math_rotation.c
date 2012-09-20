@@ -35,7 +35,9 @@
 /******************************** Quaternions ********************************/
 
 /* used to test is a quat is not normalized (only used for debug prints) */
-#define QUAT_EPSILON 0.0001
+#ifdef DEBUG
+#  define QUAT_EPSILON 0.0001
+#endif
 
 /* convenience, avoids setting Y axis everywhere */
 void unit_axis_angle(float axis[3], float *angle)

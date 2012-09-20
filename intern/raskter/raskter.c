@@ -35,7 +35,6 @@
 /* from BLI_utildefines.h */
 #define MIN2(x, y)               ( (x) < (y) ? (x) : (y) )
 #define MAX2(x, y)               ( (x) > (y) ? (x) : (y) )
-#define ABS(a)                   ( (a) < 0 ? (-(a)) : (a) )
 
 struct PolyVert {
 	int x;

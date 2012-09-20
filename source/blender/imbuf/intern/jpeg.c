@@ -51,9 +51,9 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-#define IS_jpg(x)       (x->ftype & JPG)
+// #define IS_jpg(x)       (x->ftype & JPG) // UNUSED
 #define IS_stdjpg(x)    ((x->ftype & JPG_MSK) == JPG_STD)
-#define IS_vidjpg(x)    ((x->ftype & JPG_MSK) == JPG_VID)
+// #define IS_vidjpg(x)    ((x->ftype & JPG_MSK) == JPG_VID) // UNUSED
 #define IS_jstjpg(x)    ((x->ftype & JPG_MSK) == JPG_JST)
 #define IS_maxjpg(x)    ((x->ftype & JPG_MSK) == JPG_MAX)
 

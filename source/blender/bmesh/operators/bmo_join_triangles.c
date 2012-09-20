@@ -37,11 +37,6 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-/* Bitflags for edges */
-#define T2QDELETE	1
-#define T2QCOMPLEX	2
-#define T2QJOIN		4
-
 /* assumes edges are validated before reaching this poin */
 static float measure_facepair(BMVert *v1, BMVert *v2,
                               BMVert *v3, BMVert *v4, float limit)

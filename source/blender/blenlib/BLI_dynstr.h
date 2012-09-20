@@ -111,7 +111,6 @@ char *BLI_dynstr_get_cstring(DynStr *ds);
  *
  * \param ds The DynStr of interest.
  * \param str The string to fill.
- * \return The contents of \a ds as a c-string.
  */
 void    BLI_dynstr_get_cstring_ex(DynStr *ds, char *str);
 

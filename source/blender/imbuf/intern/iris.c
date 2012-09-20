@@ -83,21 +83,21 @@ typedef struct {
 #define OFFSET_R    0   /* this is byte order dependent */
 #define OFFSET_G    1
 #define OFFSET_B    2
-#define OFFSET_A    3
+// #define OFFSET_A    3
 
 #define CHANOFFSET(z)   (3 - (z)) /* this is byte order dependent */
 
-#define TYPEMASK        0xff00
+// #define TYPEMASK        0xff00
 #define BPPMASK         0x00ff
-#define ITYPE_VERBATIM      0x0000
+// #define ITYPE_VERBATIM      0x0000 // UNUSED
 #define ITYPE_RLE       0x0100
 #define ISRLE(type)     (((type) & 0xff00) == ITYPE_RLE)
-#define ISVERBATIM(type)    (((type) & 0xff00) == ITYPE_VERBATIM)
+// #define ISVERBATIM(type)    (((type) & 0xff00) == ITYPE_VERBATIM)
 #define BPP(type)       ((type) & BPPMASK)
 #define RLE(bpp)        (ITYPE_RLE | (bpp))
-#define VERBATIM(bpp)       (ITYPE_VERBATIM | (bpp))
-#define IBUFSIZE(pixels)    ((pixels + (pixels >> 6)) << 2)
-#define RLE_NOP         0x00
+// #define VERBATIM(bpp)       (ITYPE_VERBATIM | (bpp)) // UNUSED
+// #define IBUFSIZE(pixels)    ((pixels + (pixels >> 6)) << 2) // UNUSED
+// #define RLE_NOP         0x00
 
 /* funcs */
 static void readheader(FILE *inf, IMAGE *image);

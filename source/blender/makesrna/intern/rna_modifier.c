@@ -2658,7 +2658,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 #endif
 }
 
-static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
+static void rna_def_modifier_weightvg_mask(BlenderRNA *UNUSED(brna), StructRNA *srna)
 {
 	static EnumPropertyItem weightvg_mask_tex_map_items[] = {
 		{MOD_DISP_MAP_LOCAL, "LOCAL", 0, "Local", "Use local generated coordinates"},

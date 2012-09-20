@@ -2526,12 +2526,6 @@ void MESH_OT_solidify(wmOperatorType *ot)
 	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
 }
 
-#define TRAIL_POLYLINE 1 /* For future use, They don't do anything yet */
-#define TRAIL_FREEHAND 2
-#define TRAIL_MIXED    3 /* (1|2) */
-#define TRAIL_AUTO     4 
-#define TRAIL_MIDPOINTS 8
-
 typedef struct CutCurve {
 	float x;
 	float y;

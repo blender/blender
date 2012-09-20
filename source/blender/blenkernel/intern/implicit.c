@@ -48,7 +48,9 @@
 #include "BKE_global.h"
 
 
-#define CLOTH_OPENMP_LIMIT 512
+#ifdef _OPENMP
+#  define CLOTH_OPENMP_LIMIT 512
+#endif
 
 #if 0  /* debug timing */
 #ifdef _WIN32

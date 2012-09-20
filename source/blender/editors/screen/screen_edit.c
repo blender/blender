@@ -705,10 +705,6 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 
 /* *********************** DRAWING **************************************** */
 
-
-#define SCR_BACK 0.55
-#define SCR_ROUND 12
-
 /* draw vertical shape visualizing future joining (left as well
  * right direction of future joining) */
 static void draw_horizontal_join_shape(ScrArea *sa, char dir)

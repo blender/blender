@@ -58,9 +58,6 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
 
-#define myMIN_ASCII     32
-#define myMAX_ASCII     255
-
 /* local variables */
 static FT_Library library;
 static FT_Error err;

@@ -530,7 +530,7 @@ static void rna_Actuator_action_action_set(PointerRNA *ptr, PointerRNA value)
 
 #else
 
-void rna_def_actuator(BlenderRNA *brna)
+static void rna_def_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

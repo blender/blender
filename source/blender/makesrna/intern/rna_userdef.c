@@ -3593,7 +3593,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	                         "Enables automatic saving of preview images in the .blend file");
 }
 
-void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
+static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 	FunctionRNA *func;
