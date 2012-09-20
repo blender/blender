@@ -583,7 +583,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         if context.scene.tool_settings.mesh_select_mode[2] == False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
         layout.operator("mesh.select_loose_verts", text="Loose Verts/Edges")
-        layout.operator("mesh.select_similar", text="Similar")
+        layout.operator_menu_enum("mesh.select_similar", "type", text="Similar")
 
         layout.separator()
 
@@ -722,6 +722,7 @@ class VIEW3D_MT_select_edit_armature(Menu):
         props.extend = True
         props.direction = 'CHILD'
 
+        layout.operator_menu_enum("armature.select_similar", "type", text="Similar")
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
