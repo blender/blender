@@ -6,6 +6,8 @@ set(INC
 	../kernel/svm
 	../render
 )
+set(INC_SYS
+)
 
 set(SRC
 	subd_build.cpp
@@ -31,5 +33,6 @@ set(SRC_HEADERS
 )
 
 include_directories(${INC})
+include_directories(SYSTEM ${INC_SYS})
 
 add_library(cycles_subd ${SRC} ${SRC_HEADERS})

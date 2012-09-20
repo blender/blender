@@ -56,6 +56,7 @@ add_definitions(-DWITH_CUDA)
 add_definitions(-DWITH_MULTI)
 
 include_directories(
+	SYSTEM
 	${BOOST_INCLUDE_DIR}
 	${OPENIMAGEIO_INCLUDE_DIRS}
 	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO)
