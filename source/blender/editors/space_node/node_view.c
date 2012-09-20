@@ -358,6 +358,13 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 	float fx, fy, bufx, bufy;
 	int ret = FALSE;
 
+	if (snode->treetype != NTREE_COMPOSIT || (snode->flag & SNODE_BACKDRAW) == 0) {
+		/* use viewer image for color sampling only if we're in compositor tree
+		 * with backdrop enabled
+		 */
+		return FALSE;
+	}
+
 	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 	if (!ibuf) {
