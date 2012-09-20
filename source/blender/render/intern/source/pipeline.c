@@ -1387,7 +1387,7 @@ static void render_composit_stats(void *UNUSED(arg), char *str)
 static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 {
 	float *rectf, filt[3][3];
-	int sample;
+	int x, y, sample;
 	
 	/* interaction callbacks */
 	if (ntree) {
@@ -1408,7 +1408,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 	for (sample = 0; sample < re->r.osa; sample++) {
 		Render *re1;
 		RenderResult rres;
-		int x, y, mask;
+		int mask;
 		
 		/* enable full sample print */
 		R.i.curfsa = sample + 1;
@@ -1470,6 +1470,18 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		
 		if (re->test_break(re->tbh))
 			break;
+	}
+
+	/* clamp alpha and RGB to 0..1 and 0..inf, can go outside due to filter */
+	for (y = 0; y < re->recty; y++) {
+		float *rf = rectf + 4 * y * re->rectx;
+			
+		for (x = 0; x < re->rectx; x++, rf += 4) {
+			rf[0] = MAX2(rf[0], 0.0f);
+			rf[1] = MAX2(rf[1], 0.0f);
+			rf[2] = MAX2(rf[2], 0.0f);
+			CLAMP(rf[3], 0.0f, 1.0f);
+		}
 	}
 	
 	/* clear interaction callbacks */

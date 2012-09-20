@@ -990,6 +990,30 @@ static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
 	}
 }
 
+/* clamp alpha and RGB to 0..1 and 0..inf, can go outside due to filter */
+static void clamp_alpha_rgb_range(RenderPart *pa, RenderLayer *rl)
+{
+	RenderLayer *rlpp[RE_MAX_OSA];
+	int y, sample, totsample;
+	
+	totsample= get_sample_layers(pa, rl, rlpp);
+
+	/* not for full sample, there we clamp after compositing */
+	if (totsample > 1)
+		return;
+	
+	for (sample= 0; sample<totsample; sample++) {
+		float *rectf= rlpp[sample]->rectf;
+		
+		for (y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
+			rectf[0] = MAX2(rectf[0], 0.0f);
+			rectf[1] = MAX2(rectf[1], 0.0f);
+			rectf[2] = MAX2(rectf[2], 0.0f);
+			CLAMP(rectf[3], 0.0f, 1.0f);
+		}
+	}
+}
+
 /* adds only alpha values */
 static void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
 {
@@ -1270,6 +1294,9 @@ void zbufshadeDA_tile(RenderPart *pa)
 		
 		if (rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
+
+		/* clamp alpha to 0..1 range, can go outside due to filter */
+		clamp_alpha_rgb_range(pa, rl);
 		
 		/* de-premul alpha */
 		if (R.r.alphamode & R_ALPHAKEY)
