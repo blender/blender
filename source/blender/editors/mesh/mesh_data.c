@@ -810,6 +810,42 @@ void MESH_OT_customdata_clear_mask(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* Clear Skin */
+static int mesh_customdata_clear_skin_poll(bContext *C)
+{
+	Object *ob = ED_object_context(C);
+
+	if (ob && ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		if (me->id.lib == NULL) {
+			CustomData *data = GET_CD_DATA(me, vdata);
+			if (CustomData_has_layer(data, CD_MVERT_SKIN)) {
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+static int mesh_customdata_clear_skin_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_MVERT_SKIN);
+}
+
+void MESH_OT_customdata_clear_skin(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Skin Data";
+	ot->idname = "MESH_OT_customdata_clear_skin";
+	ot->description = "Clear vertex skin layer";
+
+	/* api callbacks */
+	ot->exec = mesh_customdata_clear_skin_exec;
+	ot->poll = mesh_customdata_clear_skin_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /************************** Add Geometry Layers *************************/
 
 void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
