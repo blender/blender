@@ -4091,9 +4091,9 @@ void initMaskShrinkFatten(TransInfo *t)
 
 int MaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 {
-	TransData *td = t->data;
+	TransData *td;
 	float ratio;
-	int i;
+	int i, initial_feather = FALSE;
 	char str[50];
 
 	ratio = t->values[0];
@@ -4107,13 +4107,30 @@ int MaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		char c[NUM_STR_REP_LEN];
 
 		outputNumInput(&(t->num), c);
-		sprintf(str, "Shrink/Fatten: %s", c);
+		sprintf(str, "Feather Shrink/Fatten: %s", c);
 	}
 	else {
-		sprintf(str, "Shrink/Fatten: %3f", ratio);
+		sprintf(str, "Feather Shrink/Fatten: %3f", ratio);
 	}
 
-	for (i = 0; i < t->total; i++, td++) {
+	/* detect if no points have feather yet */
+	if (ratio > 1.0f) {
+		initial_feather = TRUE;
+
+		for (td = t->data, i = 0; i < t->total; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
+
+			if (td->flag & TD_SKIP)
+				continue;
+
+			if (td->ival >= 0.001f)
+				initial_feather = FALSE;
+		}
+	}
+
+	/* apply shrink/fatten */
+	for (td = t->data, i = 0; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
 
@@ -4121,7 +4138,11 @@ int MaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 			continue;
 
 		if (td->val) {
-			*td->val = td->ival * ratio;
+			if (initial_feather)
+				*td->val = td->ival + (ratio - 1.0f) * 0.01f;
+			else
+				*td->val = td->ival * ratio;
+
 			/* apply PET */
 			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
 			if (*td->val <= 0.0f) *td->val = 0.001f;
