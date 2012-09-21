@@ -130,12 +130,19 @@ class SEQUENCER_MT_view(Menu):
 
         st = context.space_data
 
+        if st.view_type in {'PREVIEW'}:
+            # Specifying the REGION_PREVIEW context is needed in preview-only
+            # mode, else the lookup for the shortcut will fail in
+            # wm_keymap_item_find_props() (see #32595).
+            layout.operator_context = 'INVOKE_REGION_PREVIEW'
         layout.operator("sequencer.properties", icon='MENU_PANEL')
+        layout.operator_context = 'INVOKE_DEFAULT'
 
         layout.separator()
 
         if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             layout.operator("sequencer.view_all", text="View all Sequences")
+            layout.operator("sequencer.view_selected")
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text="Fit preview in window")
@@ -144,8 +151,6 @@ class SEQUENCER_MT_view(Menu):
 
             # # XXX, invokes in the header view
             # layout.operator("sequencer.view_ghost_border", text="Overlay Border")
-
-        layout.operator("sequencer.view_selected")
 
         layout.prop(st, "show_seconds")
 
