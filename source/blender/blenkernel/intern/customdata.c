@@ -1155,7 +1155,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(GridPaintMask), "GridPaintMask", 1, NULL, layerCopy_grid_paint_mask,
 	 layerFree_grid_paint_mask, NULL, NULL, NULL},
 	/* 36: CD_SKIN_NODE */
-	{sizeof(MVertSkin), "MVertSkin", 1, "Skin", NULL, NULL,
+	{sizeof(MVertSkin), "MVertSkin", 1, NULL, NULL, NULL,
 	 layerInterp_mvert_skin, NULL, layerDefault_mvert_skin}
 };
 
