@@ -45,7 +45,6 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 	{TEXCO_ORCO, "ORCO", 0, "Generated", "Use the original undeformed coordinates of the object"},
 	{TEXCO_STRAND, "STRAND", 0, "Strand / Particle",
 	               "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"},
-//	{TEXCO_STICKY, "STICKY", 0, "Sticky", "Use mesh's sticky coordinates for the texture coordinates"},
 	{TEXCO_WINDOW, "WINDOW", 0, "Window", "Use screen coordinates as texture coordinates"},
 	{TEXCO_NORM, "NORMAL", 0, "Normal", "Use normal vector as texture coordinates"},
 	{TEXCO_REFL, "REFLECTION", 0, "Reflection", "Use reflection vector as texture coordinates"},
@@ -303,7 +302,6 @@ static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED
 	else if (ELEM3(ma->material_type, MA_TYPE_SURFACE, MA_TYPE_HALO, MA_TYPE_WIRE)) {
 		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_UV);
 		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_STRAND);
-		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_STICKY);
 		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_WINDOW);
 		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_NORM);
 		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_REFL);

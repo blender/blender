@@ -134,7 +134,7 @@ typedef struct ShadeInput {
 	int har; /* hardness */
 	
 	/* texture coordinates */
-	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[4];
+	float lo[3], gl[3], ref[3], orn[3], winco[3], vcol[4];
 	float refcol[4], displace[3];
 	float strandco, tang[3], nmapnorm[3], nmaptang[4], stress, winspeed[4];
 	float duplilo[3], dupliuv[3];
@@ -150,7 +150,6 @@ typedef struct ShadeInput {
 	float dxno[3], dyno[3], dxview, dyview;
 	float dxlv[3], dylv[3];
 	float dxwin[3], dywin[3];
-	float dxsticky[3], dysticky[3];
 	float dxrefract[3], dyrefract[3];
 	float dxstrand, dystrand;
 	

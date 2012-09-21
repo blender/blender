@@ -146,13 +146,9 @@ typedef struct MLoopCol {
 	mcol__tmp->a = mloopcol__tmp->a;            \
 } (void)0
 
-typedef struct MSticky {
-	float co[2];
-} MSticky;
-
 typedef struct MSelect {
 	int index;
-	int type; /* EDITVERT/EDITEDGE/EDITFACE */
+	int type;  /* ME_VSEL/ME_ESEL/ME_FSEL */
 } MSelect;
 
 /*tessellation uv face data*/

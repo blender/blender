@@ -2261,14 +2261,6 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	if ((texco & TEXCO_ORCO) && (vr->orco)) {
 		copy_v3_v3(shi->lo, vr->orco);
 	}
-	if (texco & TEXCO_STICKY) {
-		float *sticky= RE_vertren_get_sticky(obr, vr, 0);
-		if (sticky) {
-			shi->sticky[0]= sticky[0];
-			shi->sticky[1]= sticky[1];
-			shi->sticky[2]= 0.0f;
-		}
-	}
 	if (texco & TEXCO_GLOB) {
 		copy_v3_v3(shi->gl, shi->co);
 		mul_m4_v3(re->viewinv, shi->gl);
@@ -3250,7 +3242,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	VlakRen *vlr; //, *vlr1;
 	VertRen *ver;
 	Material *ma;
-	MSticky *ms = NULL;
 	DerivedMesh *dm;
 	CustomDataMask mask;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
@@ -3335,8 +3326,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	if (do_autosmooth && me->totvert==totvert && me->totface==dm->getNumTessFaces(dm))
 		use_original_normals= TRUE;
 	
-	ms = NULL;  /* STICKY_TODO */
-	
 	ma= give_render_material(re, ob, 1);
 
 
@@ -3355,15 +3344,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				normalize_v3(ver->n);
 				negate_v3(ver->n);
 			}
-  
+
 			if (orco) {
 				ver->orco= orco;
 				orco+=3;
-			}
-			if (ms) {
-				float *sticky= RE_vertren_get_sticky(obr, ver, 1);
-				copy_v2_v2(sticky, ms->co);
-				ms++;
 			}
 		}
 		

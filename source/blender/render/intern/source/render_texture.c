@@ -2153,9 +2153,6 @@ void do_material_tex(ShadeInput *shi, Render *re)
 					co= shi->lo; dx= shi->dxlo; dy= shi->dylo;
 				}
 			}
-			else if (mtex->texco==TEXCO_STICKY) {
-				co= shi->sticky; dx= shi->dxsticky; dy= shi->dysticky;
-			}
 			else if (mtex->texco==TEXCO_OBJECT) {
 				Object *ob= mtex->object;
 				if (ob) {

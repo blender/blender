@@ -765,9 +765,6 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
-	/* clears points such as me->sticky */
-	mesh_update_customdata_pointers(me, FALSE);
-
 	return OPERATOR_FINISHED;
 }
 

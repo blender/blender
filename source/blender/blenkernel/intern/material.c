@@ -941,7 +941,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			
 			if (ma->texco & (TEXCO_ORCO | TEXCO_REFL | TEXCO_NORM | TEXCO_STRAND | TEXCO_STRESS)) needuv = 1;
 			else if (ma->texco & (TEXCO_GLOB | TEXCO_UV | TEXCO_OBJECT | TEXCO_SPEED)) needuv = 1;
-			else if (ma->texco & (TEXCO_LAVECTOR | TEXCO_VIEW | TEXCO_STICKY)) needuv = 1;
+			else if (ma->texco & (TEXCO_LAVECTOR | TEXCO_VIEW)) needuv = 1;
 
 			if ((ma->mapto & MAP_NORM) && (mtex->normapspace == MTEX_NSPACE_TANGENT))
 				needtang = 1;

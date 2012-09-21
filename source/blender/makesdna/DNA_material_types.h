@@ -339,7 +339,7 @@ typedef struct Material {
 #define TEXCO_OBJECT	32
 #define TEXCO_LAVECTOR	64
 #define TEXCO_VIEW		128
-#define TEXCO_STICKY	256  // DEPRECATED
+#define TEXCO_STICKY_	256  // DEPRECATED
 #define TEXCO_OSA		512
 #define TEXCO_WINDOW	1024
 #define NEED_UV			2048

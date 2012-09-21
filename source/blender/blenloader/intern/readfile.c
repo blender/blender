@@ -7992,7 +7992,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			int a;
 			for (a = 0; a < MAX_MTEX; a++) {
 				if (ma->mtex[a]) {
-					if (ma->mtex[a]->texco == TEXCO_STICKY) {
+					if (ma->mtex[a]->texco == TEXCO_STICKY_) {
 						ma->mtex[a]->texco = TEXCO_UV;
 					}
 				}
