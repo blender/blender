@@ -47,6 +47,8 @@
 #include "BLI_array.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
+#include "BLI_linklist.h"
+#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -143,24 +145,10 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	int i, actindex, rndindex, cloneindex, stencilindex, tot;
 
 	if (layer->type == CD_MLOOPCOL || layer->type == CD_MLOOPUV) {
-		if (me->edit_btmesh) {
-			data = &me->edit_btmesh->bm->ldata;
-			tot = me->edit_btmesh->bm->totloop;
-		}
-		else {
-			data = &me->ldata;
-			tot = me->totloop;
-		}
+		data = mesh_customdata_get_type(me, BM_LOOP, &tot);
 	}
 	else {
-		if (me->edit_btmesh) {
-			data = &me->edit_btmesh->bm->pdata;
-			tot = me->edit_btmesh->bm->totface;
-		}
-		else {
-			data = &me->pdata;
-			tot = me->totpoly;
-		}
+		data = mesh_customdata_get_type(me, BM_FACE, &tot);
 	}
 	
 	index = CustomData_get_layer_index(data, type);
@@ -761,38 +749,111 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 
 /*********************** sticky operators ************************/
 
-/* FIXME - this operator is broken - only updates active but operates on selected */
-static int mesh_sticky_add_exec(bContext *C, wmOperator *UNUSED(op))
+static Object *mesh_customdata_get_camera_for_sticky(wmOperator *op, Scene *scene, View3D *v3d)
+{
+	/* report an error if we can't find the camera */
+
+	Object *camera = NULL;
+	if (scene->obedit) {
+		BKE_report(op->reports, RPT_ERROR, "Unable to make sticky in Edit Mode");
+	}
+	else {
+		if (v3d)            camera = V3D_CAMERA_LOCAL(v3d);
+		if (camera == NULL) camera = scene->camera;
+
+		if (camera == NULL) {
+			BKE_report(op->reports, RPT_ERROR, "Need camera to make sticky");
+		}
+	}
+
+	return camera;
+}
+
+static int mesh_customdata_add_sticky_selected_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Object *ob = ED_object_context(C);
-	Mesh *me = ob->data;
+	Object *camera = mesh_customdata_get_camera_for_sticky(op, scene, v3d);
+	LinkNode *objects = NULL;
+	LinkNode *ob_iter;
 
-	/* why is this commented out? */
-#if 0
-	if (me->msticky)
+	if (camera == NULL) {
 		return OPERATOR_CANCELLED;
-#endif
+	}
 
-	RE_make_sticky(scene, v3d);
+	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
+	{
+		if (ob->type == OB_MESH) {
+			BLI_linklist_prepend(&objects, ob);
+		}
+	}
+	CTX_DATA_END;
 
-	DAG_id_tag_update(&me->id, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+	if (objects == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
+	RE_make_sticky(scene, camera, objects);
+
+	for (ob_iter = objects; ob_iter; ob_iter = ob_iter->next) {
+		Object *ob = ob_iter->link;
+		DAG_id_tag_update(ob->data, 0);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	}
+
+	BLI_linklist_free(objects, NULL);
 
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_customdata_add_sticky(wmOperatorType *ot)
+void MESH_OT_customdata_create_sticky_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add Sticky";
-	ot->description = "Add sticky UV texture layer";
-	ot->idname = "MESH_OT_customdata_add_sticky";
-	
+	ot->name = "Calculate Sticky for Selection";
+	ot->description = "Calculate sticky UV texture layer from the camera on selected objects";
+	ot->idname = "MESH_OT_customdata_create_sticky_selected";
+
 	/* api callbacks */
 	ot->poll = layers_poll;
-	ot->exec = mesh_sticky_add_exec;
+	ot->exec = mesh_customdata_add_sticky_selected_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int mesh_customdata_add_sticky_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = ED_object_context(C);
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	Object *camera = mesh_customdata_get_camera_for_sticky(op, scene, v3d);
+	LinkNode objects = {NULL};
+
+	if (camera == NULL) {
+		return OPERATOR_CANCELLED;  /* error is set */
+	}
+
+	objects.link = obedit;
+	objects.next = NULL;
+
+	RE_make_sticky(scene, camera, &objects);
+
+	DAG_id_tag_update(obedit->data, 0);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_customdata_create_sticky(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Calculate Sticky";
+	ot->description = "Calculate sticky UV texture layer from the camera";
+	ot->idname = "MESH_OT_customdata_create_sticky";
+
+	/* api callbacks */
+	ot->poll = layers_poll;
+	ot->exec = mesh_customdata_add_sticky_exec;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

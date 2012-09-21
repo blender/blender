@@ -143,7 +143,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_uv_texture_remove);
 	WM_operatortype_append(MESH_OT_vertex_color_add);
 	WM_operatortype_append(MESH_OT_vertex_color_remove);
-	WM_operatortype_append(MESH_OT_customdata_add_sticky);
+	WM_operatortype_append(MESH_OT_customdata_create_sticky_selected);
+	WM_operatortype_append(MESH_OT_customdata_create_sticky);
 	WM_operatortype_append(MESH_OT_customdata_clear_sticky);
 	WM_operatortype_append(MESH_OT_customdata_clear_mask);
 	WM_operatortype_append(MESH_OT_customdata_clear_skin);

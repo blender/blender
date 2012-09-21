@@ -41,6 +41,7 @@
 #include "BLI_rand.h"
 #include "BLI_memarena.h"
 #include "BLI_ghash.h"
+#include "BLI_linklist.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -5819,36 +5820,43 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 /* Sticky texture coords													 */
 /* ------------------------------------------------------------------------- */
 
-void RE_make_sticky(Scene *scene, View3D *v3d)
+static void re_make_sticky_object(Render *re, Object *ob)
 {
-	Object *ob;
-	Base *base;
 	MVert *mvert;
 	Mesh *me;
 	MSticky *ms;
-	Render *re;
-	float ho[4], mat[4][4];
+	float mat[4][4];
+	float ho[4];
 	int a;
-	Object *camera= NULL;
 
-	if (v3d==NULL) {
-		printf("Need a 3d view to make sticky\n");
-		return;
+	me = ob->data;
+	mvert = me->mvert;
+
+	if (me->msticky) {
+		CustomData_free_layer_active(&me->vdata, CD_MSTICKY, me->totvert);
 	}
 
-	if (v3d)				camera= V3D_CAMERA_LOCAL(v3d);
-	if (camera == NULL)	camera= scene->camera;
+	me->msticky = CustomData_add_layer(&me->vdata, CD_MSTICKY, CD_CALLOC, NULL, me->totvert);
 
-	if (camera==NULL) {
-		printf("Need camera to make sticky\n");
-		return;
+	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
+
+	ms = me->msticky;
+	for (a=0; a < me->totvert; a++, ms++, mvert++) {
+		copy_v3_v3(ho, mvert->co);
+		mul_m4_v3(mat, ho);
+		projectverto(ho, re->winmat, ho);
+		ms->co[0] = ho[0] / ho[3];
+		ms->co[1] = ho[1] / ho[3];
 	}
-	if (scene->obedit) {
-		printf("Unable to make sticky in Edit Mode\n");
-		return;
-	}
-	
-	re= RE_NewRender("_make sticky_");
+}
+
+void RE_make_sticky(Scene *scene, Object *camera, LinkNode *objects)
+{
+	Render *re;
+	float mat[4][4];
+	LinkNode *ob_iter;
+
+	re = RE_NewRender("_make sticky_");
 	RE_InitState(re, NULL, &scene->r, NULL, scene->r.xsch, scene->r.ysch, NULL);
 	
 	/* use renderdata and camera to set viewplane */
@@ -5859,31 +5867,8 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 	invert_m4_m4(mat, camera->obmat);
 	RE_SetView(re, mat);
 	
-	for (base= FIRSTBASE; base; base= base->next) {
-		if (TESTBASELIB(v3d, base)) {
-			if (base->object->type==OB_MESH) {
-				ob= base->object;
-				
-				me= ob->data;
-				mvert= me->mvert;
-				if (me->msticky)
-					CustomData_free_layer_active(&me->vdata, CD_MSTICKY, me->totvert);
-				me->msticky= CustomData_add_layer(&me->vdata, CD_MSTICKY,
-					CD_CALLOC, NULL, me->totvert);
-				
-				BKE_object_where_is_calc(scene, ob);
-				mult_m4_m4m4(mat, re->viewmat, ob->obmat);
-				
-				ms= me->msticky;
-				for (a=0; a<me->totvert; a++, ms++, mvert++) {
-					copy_v3_v3(ho, mvert->co);
-					mul_m4_v3(mat, ho);
-					projectverto(ho, re->winmat, ho);
-					ms->co[0]= ho[0]/ho[3];
-					ms->co[1]= ho[1]/ho[3];
-				}
-			}
-		}
+	for (ob_iter = objects; ob_iter; ob_iter = ob_iter->next) {
+		re_make_sticky_object(re, ob_iter->link);
 	}
 }
 

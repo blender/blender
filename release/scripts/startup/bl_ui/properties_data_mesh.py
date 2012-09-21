@@ -326,9 +326,9 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
 
         # me = context.mesh
         col = layout.column(align=True)
-        # row = col.row(align=True)
-        # row.operator("mesh.customdata_add_sticky", icon='ZOOMIN')
-        col.operator("mesh.customdata_clear_sticky", icon='X')
+        row = col.row(align=True)
+        row.operator("mesh.customdata_create_sticky")
+        row.operator("mesh.customdata_clear_sticky", icon='X')
         col.operator("mesh.customdata_clear_mask", icon='X')
         col.operator("mesh.customdata_clear_skin", icon='X')
 
