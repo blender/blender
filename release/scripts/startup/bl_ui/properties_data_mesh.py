@@ -316,10 +316,28 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
             layout.prop(lay, "name")
 
 
+class DATA_PT_customdata(MeshButtonsPanel, Panel):
+    bl_label = "Geometry Data"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        # me = context.mesh
+        col = layout.column(align=True)
+        # row = col.row(align=True)
+        # row.operator("mesh.customdata_add_sticky", icon='ZOOMIN')
+        col.operator("mesh.customdata_clear_sticky", icon='X')
+        col.operator("mesh.customdata_clear_mask", icon='X')
+        col.operator("mesh.customdata_clear_skin", icon='X')
+
+
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Mesh
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

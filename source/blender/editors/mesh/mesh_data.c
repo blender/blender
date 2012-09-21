@@ -74,6 +74,64 @@
 
 #include "mesh_intern.h"
 
+static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_tot)
+{
+	CustomData *data;
+	BMesh *bm = (me->edit_btmesh) ? me->edit_btmesh->bm : NULL;
+	int tot;
+
+	/* this  */
+	switch (htype) {
+		case BM_VERT:
+			if (bm) {
+				data = &bm->vdata;
+				tot  = bm->totvert;
+			}
+			else {
+				data = &me->vdata;
+				tot  = me->totvert;
+			}
+			break;
+		case BM_EDGE:
+			if (bm) {
+				data = &bm->edata;
+				tot  = bm->totedge;
+			}
+			else {
+				data = &me->edata;
+				tot  = me->totedge;
+			}
+			break;
+		case BM_LOOP:
+			if (bm) {
+				data = &bm->ldata;
+				tot  = bm->totloop;
+			}
+			else {
+				data = &me->ldata;
+				tot  = me->totloop;
+			}
+			break;
+		case BM_FACE:
+			if (bm) {
+				data = &bm->pdata;
+				tot  = bm->totface;
+			}
+			else {
+				data = &me->pdata;
+				tot  = me->totpoly;
+			}
+			break;
+		default:
+			BLI_assert(0);
+			tot = 0;
+			data = NULL;
+	}
+
+	*r_tot = tot;
+	return data;
+}
+
 #define GET_CD_DATA(me, data) (me->edit_btmesh ? &me->edit_btmesh->bm->data : &me->data)
 static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *layer)
 {
@@ -703,6 +761,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 
 /*********************** sticky operators ************************/
 
+/* FIXME - this operator is broken - only updates active but operates on selected */
 static int mesh_sticky_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -724,12 +783,12 @@ static int mesh_sticky_add_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_sticky_add(wmOperatorType *ot)
+void MESH_OT_customdata_add_sticky(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Sticky";
 	ot->description = "Add sticky UV texture layer";
-	ot->idname = "MESH_OT_sticky_add";
+	ot->idname = "MESH_OT_customdata_add_sticky";
 	
 	/* api callbacks */
 	ot->poll = layers_poll;
@@ -739,33 +798,139 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int mesh_sticky_remove_exec(bContext *C, wmOperator *UNUSED(op))
+/* *** CustomData clear functions, we need an operator for each *** */
+
+static int mesh_customdata_clear_exec__internal(bContext *C,
+                                                char htype, int type)
 {
-	Object *ob = ED_object_context(C);
-	Mesh *me = ob->data;
+	Object *obedit = ED_object_context(C);
+	Mesh       *me = obedit->data;
 
-	if (!me->msticky)
-		return OPERATOR_CANCELLED;
+	int tot;
+	CustomData *data = mesh_customdata_get_type(me, htype, &tot);
 
-	CustomData_free_layer_active(&me->vdata, CD_MSTICKY, me->totvert);
-	me->msticky = NULL;
+	BLI_assert(CustomData_layertype_is_singleton(type) == TRUE);
+
+	CustomData_free_layers(data, type, tot);
 
 	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
+	/* clears points such as me->sticky */
+	mesh_update_customdata_pointers(me, FALSE);
+
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_sticky_remove(wmOperatorType *ot)
+/* Clear Mask */
+static int mesh_customdata_clear_mask_poll(bContext *C)
+{
+	Object *ob = ED_object_context(C);
+
+	/* special case - can't run this if we're in sculpt mode */
+	if (ob->mode & OB_MODE_SCULPT) {
+		return FALSE;
+	}
+
+	if (ob && ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		if (me->id.lib == NULL) {
+			CustomData *data = GET_CD_DATA(me, vdata);
+			if (CustomData_has_layer(data, CD_PAINT_MASK)) {
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+static int mesh_customdata_clear_mask_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_PAINT_MASK);
+}
+
+void MESH_OT_customdata_clear_mask(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name = "Clear Sculpt-Mask Data";
+	ot->idname = "MESH_OT_customdata_clear_mask";
+	ot->description = "Clear vertex sculpt masking data from the mesh";
+
+	/* api callbacks */
+	ot->exec = mesh_customdata_clear_mask_exec;
+	ot->poll = mesh_customdata_clear_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* Clear Sticky */
+static int mesh_customdata_clear_sticky_poll(bContext *C)
+{
+	Object *ob = ED_object_context(C);
+
+	if (ob && ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		if (me->id.lib == NULL) {
+			CustomData *data = GET_CD_DATA(me, vdata);
+			if (CustomData_has_layer(data, CD_MSTICKY)) {
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+static int mesh_customdata_clear_sticky_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_MSTICKY);
+}
+
+void MESH_OT_customdata_clear_sticky(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Remove Sticky";
-	ot->description = "Remove sticky UV texture layer";
-	ot->idname = "MESH_OT_sticky_remove";
-	
+	ot->name = "Clear Sticky Data";
+	ot->idname = "MESH_OT_customdata_clear_sticky";
+	ot->description = "Clear vertex sticky UV texture layer";
+
 	/* api callbacks */
-	ot->poll = layers_poll;
-	ot->exec = mesh_sticky_remove_exec;
+	ot->exec = mesh_customdata_clear_sticky_exec;
+	ot->poll = mesh_customdata_clear_sticky_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* Clear Skin */
+static int mesh_customdata_clear_skin_poll(bContext *C)
+{
+	Object *ob = ED_object_context(C);
+
+	if (ob && ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		if (me->id.lib == NULL) {
+			CustomData *data = GET_CD_DATA(me, vdata);
+			if (CustomData_has_layer(data, CD_MVERT_SKIN)) {
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+static int mesh_customdata_clear_skin_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_MVERT_SKIN);
+}
+
+void MESH_OT_customdata_clear_skin(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Skin Data";
+	ot->idname = "MESH_OT_customdata_clear_skin";
+	ot->description = "Clear vertex skin layer";
+
+	/* api callbacks */
+	ot->exec = mesh_customdata_clear_skin_exec;
+	ot->poll = mesh_customdata_clear_skin_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
