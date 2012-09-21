@@ -4448,7 +4448,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	Object *act_ob= ob;
 	ID **idar;
 	
-	PointerRNA logic_ptr, settings_ptr;
+	PointerRNA logic_ptr, settings_ptr, object_ptr;
 	
 	uiLayout *layout, *row, *box;
 	uiBlock *block;
@@ -4541,8 +4541,10 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 		row = uiLayoutRow(split, TRUE);
 		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide controllers");
-		if (ob == act_ob)
-			uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", ICON_NONE);
+
+		RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
+		uiLayoutSetContextPointer(row, "object", &object_ptr);
+		uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", ICON_NONE);
 
 		if (RNA_boolean_get(&settings_ptr, "show_state_panel")) {
 
@@ -4636,8 +4638,10 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 		row = uiLayoutRow(layout, TRUE);
 		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
-		if (ob == act_ob)
-			uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", ICON_NONE);
+
+		RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
+		uiLayoutSetContextPointer(row, "object", &object_ptr);
+		uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", ICON_NONE);
 		
 		if ((ob->scaflag & OB_SHOWSENS) == 0) continue;
 		
@@ -4704,8 +4708,10 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 		row = uiLayoutRow(layout, TRUE);
 		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
-		if (ob == act_ob)
-			uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", ICON_NONE);
+
+		RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
+		uiLayoutSetContextPointer(row, "object", &object_ptr);
+		uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", ICON_NONE);
 
 		if ((ob->scaflag & OB_SHOWACT) == 0) continue;
 		
