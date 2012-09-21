@@ -325,7 +325,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         layout = self.layout
 
         # me = context.mesh
-        col = layout.column(align=True)
+        col = layout.column()
         # sticky has no UI access since 2.49 - we may remove
         '''
         row = col.row(align=True)
@@ -333,6 +333,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         row.operator("mesh.customdata_clear_sticky", icon='X')
         '''
         col.operator("mesh.customdata_clear_mask", icon='X')
+        col.operator("mesh.customdata_clear_skin", icon='X')
 
 
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
