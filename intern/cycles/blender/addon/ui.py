@@ -513,6 +513,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
         lamp = context.lamp
         clamp = lamp.cycles
         cscene = context.scene.cycles
+        device_type = context.user_preferences.system.compute_device_type
 
         layout.prop(lamp, "type", expand=True)
 
@@ -531,7 +532,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
                 sub.prop(lamp, "size", text="Size X")
                 sub.prop(lamp, "size_y", text="Size Y")
 
-        if not cscene.progressive and cscene.device == 'CPU':
+        if not cscene.progressive and (device_type == 'NONE' or cscene.device == 'CPU'):
             col.prop(clamp, "samples")
 
         col = split.column()
@@ -656,6 +657,7 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         world = context.world
         cworld = world.cycles
         cscene = context.scene.cycles
+        device_type = context.user_preferences.system.compute_device_type
 
         col = layout.column()
 
@@ -663,7 +665,7 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         sub = col.row(align=True)
         sub.active = cworld.sample_as_light
         sub.prop(cworld, "sample_map_resolution")
-        if not cscene.progressive and cscene.device == 'CPU':
+        if not cscene.progressive and (device_type == 'NONE' or cscene.device == 'CPU'):
             sub.prop(cworld, "samples")
 
 
