@@ -603,7 +603,8 @@ Image *BKE_image_load_exists(const char *filepath)
 	return BKE_image_load(filepath);
 }
 
-static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, float color[4])
+static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type,
+                            float color[4], const char *colorspace)
 {
 	ImBuf *ibuf;
 	unsigned char *rect = NULL;
@@ -616,6 +617,9 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 	else {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
 		rect = (unsigned char *)ibuf->rect;
+
+		if (colorspace)
+			IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace);
 	}
 
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
@@ -651,7 +655,7 @@ Image *BKE_image_add_generated(unsigned int width, unsigned int height, const ch
 		ima->gen_type = gen_type;
 		ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
 
-		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, gen_type, color);
+		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, gen_type, color, NULL);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 
 		/* assign colorspaces */
@@ -2793,7 +2797,8 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 				/* UV testgrid or black or solid etc */
 				if (ima->gen_x == 0) ima->gen_x = 1024;
 				if (ima->gen_y == 0) ima->gen_y = 1024;
-				ibuf = add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, (ima->gen_flag & IMA_GEN_FLOAT) != 0, ima->gen_type, color);
+				ibuf = add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, (ima->gen_flag & IMA_GEN_FLOAT) != 0, ima->gen_type,
+				                     color, ima->colorspace_settings.name);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok = IMA_OK_LOADED;
 			}

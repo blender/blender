@@ -144,14 +144,14 @@ void WM_init(bContext *C, int argc, const char **argv)
 	
 	ED_spacetypes_init();   /* editors/space_api/spacetype.c */
 	
+	/* initialize color management stuff */
+	IMB_colormanagement_init();
+
 	ED_file_init();         /* for fsmenu */
 	ED_node_init_butfuncs();
 	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();
-
-	/* initialize color management stuff */
-	IMB_colormanagement_init();
 
 	/* get the default database, plus a wm */
 	WM_homefile_read(C, NULL, G.factory_startup);

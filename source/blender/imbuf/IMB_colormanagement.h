@@ -62,6 +62,7 @@ void IMB_colormanagement_validate_settings(struct ColorManagedDisplaySettings *d
                                            struct ColorManagedViewSettings *view_settings);
 
 const char *IMB_colormanagement_role_colorspace_name_get(int role);
+void IMB_colormanagement_assign_rect_colorspace(struct ImBuf *ibuf, const char *name);
 
 /* ** Color space transformation functions ** */
 void IMB_colormanagement_transform(float *buffer, int width, int height, int channels,

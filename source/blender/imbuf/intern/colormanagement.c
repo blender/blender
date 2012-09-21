@@ -847,15 +847,16 @@ void colormanage_imbuf_set_default_spaces(ImBuf *ibuf)
 
 void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 {
+	ColorSpace *colorspace = colormanage_colorspace_get_named(from_colorspace);
+
+	if (colorspace->is_data) {
+		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
+		return;
+	}
+
 	if (ibuf->rect_float) {
-		ColorSpace *colorspace = colormanage_colorspace_get_named(from_colorspace);
 		const char *to_colorspace = global_role_scene_linear;
 		int predivide = ibuf->flags & IB_cm_predivide;
-
-		if (colorspace->is_data) {
-			ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
-			return;
-		}
 
 		if (ibuf->rect)
 			imb_freerectImBuf(ibuf);
@@ -1038,6 +1039,17 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role)
 	return NULL;
 }
 
+void IMB_colormanagement_assign_rect_colorspace(ImBuf *ibuf, const char *name)
+{
+	ColorSpace *colorspace = colormanage_colorspace_get_named(name);
+	ibuf->rect_colorspace = colorspace;
+
+	if (colorspace->is_data)
+		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
+	else
+		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
+}
+
 /*********************** Threaded display buffer transform routines *************************/
 
 typedef struct DisplayBufferThread {
@@ -1132,6 +1144,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 	int buffer_size = channels * width * height;
 
 	int predivide = handle->predivide;
+	int is_data = handle->is_data;
 
 	linear_buffer = MEM_callocN(buffer_size * sizeof(float), "color conversion linear buffer");
 
@@ -1153,9 +1166,11 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 			*fp = (float)(*cp) / 255.0f;
 		}
 
-		/* convert float buffer to scene linear space */
-		IMB_colormanagement_transform(linear_buffer, width, height, channels,
-		                              from_colorspace, to_colorspace, predivide);
+		if (!is_data) {
+			/* convert float buffer to scene linear space */
+			IMB_colormanagement_transform(linear_buffer, width, height, channels,
+			                              from_colorspace, to_colorspace, predivide);
+		}
 	}
 	else if (handle->float_colorspace) {
 		/* currently float is non-linear only in sequencer, which is working
