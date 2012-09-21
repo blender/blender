@@ -140,6 +140,8 @@ typedef struct Material {
 	float param[4];		/* size, smooth, size, smooth, for toonshader, 0 (fac) and 1 (fresnel) also for fresnel shader */
 	float rms;
 	float darkness;
+
+	/* runtime - OR'd from 'mtex' */
 	short texco, mapto;
 	
 	/* ramp colors */
@@ -337,7 +339,7 @@ typedef struct Material {
 #define TEXCO_OBJECT	32
 #define TEXCO_LAVECTOR	64
 #define TEXCO_VIEW		128
-#define TEXCO_STICKY	256
+#define TEXCO_STICKY	256  // DEPRECATED
 #define TEXCO_OSA		512
 #define TEXCO_WINDOW	1024
 #define NEED_UV			2048

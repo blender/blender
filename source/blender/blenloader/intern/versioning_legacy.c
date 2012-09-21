@@ -387,8 +387,6 @@ static void customdata_version_242(Mesh *me)
 	if (!me->vdata.totlayer) {
 		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, me->mvert, me->totvert);
 
-		if (me->msticky)
-			CustomData_add_layer(&me->vdata, CD_MSTICKY, CD_ASSIGN, me->msticky, me->totvert);
 		if (me->dvert)
 			CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_ASSIGN, me->dvert, me->totvert);
 	}

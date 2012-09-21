@@ -367,7 +367,6 @@ void mesh_update_customdata_pointers(Mesh *me, const short do_ensure_tess_cd)
 
 	me->mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
 	me->dvert = CustomData_get_layer(&me->vdata, CD_MDEFORMVERT);
-	me->msticky = CustomData_get_layer(&me->vdata, CD_MSTICKY);
 
 	me->medge = CustomData_get_layer(&me->edata, CD_MEDGE);
 

@@ -3821,7 +3821,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->tface = newdataadr(fd, mesh->tface);
 	mesh->mtface = newdataadr(fd, mesh->mtface);
 	mesh->mcol = newdataadr(fd, mesh->mcol);
-	mesh->msticky = newdataadr(fd, mesh->msticky);
 	mesh->dvert = newdataadr(fd, mesh->dvert);
 	mesh->mloopcol = newdataadr(fd, mesh->mloopcol);
 	mesh->mloopuv = newdataadr(fd, mesh->mloopuv);
@@ -7983,6 +7982,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Key *key;
 		for (key = main->key.first; key; key = key->id.next) {
 			do_versions_key_uidgen(key);
+		}
+	}
+
+	/* remove texco */
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 21)) {
+		Material *ma;
+		for (ma = main->mat.first; ma; ma = ma->id.next) {
+			int a;
+			for (a = 0; a < MAX_MTEX; a++) {
+				if (ma->mtex[a]) {
+					if (ma->mtex[a]->texco == TEXCO_STICKY) {
+						ma->mtex[a]->texco = TEXCO_UV;
+					}
+				}
+			}
 		}
 	}
 

@@ -3335,7 +3335,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	if (do_autosmooth && me->totvert==totvert && me->totface==dm->getNumTessFaces(dm))
 		use_original_normals= TRUE;
 	
-	ms = (totvert==me->totvert)?me->msticky:NULL;
+	ms = NULL;  /* STICKY_TODO */
 	
 	ma= give_render_material(re, ob, 1);
 
@@ -5815,60 +5815,3 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 			if (re->r.mode & R_SHADOW)
 				make_occ_tree(re);
 }
-
-/* ------------------------------------------------------------------------- */
-/* Sticky texture coords													 */
-/* ------------------------------------------------------------------------- */
-
-static void re_make_sticky_object(Render *re, Object *ob)
-{
-	MVert *mvert;
-	Mesh *me;
-	MSticky *ms;
-	float mat[4][4];
-	float ho[4];
-	int a;
-
-	me = ob->data;
-	mvert = me->mvert;
-
-	if (me->msticky) {
-		CustomData_free_layer_active(&me->vdata, CD_MSTICKY, me->totvert);
-	}
-
-	me->msticky = CustomData_add_layer(&me->vdata, CD_MSTICKY, CD_CALLOC, NULL, me->totvert);
-
-	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
-
-	ms = me->msticky;
-	for (a=0; a < me->totvert; a++, ms++, mvert++) {
-		copy_v3_v3(ho, mvert->co);
-		mul_m4_v3(mat, ho);
-		projectverto(ho, re->winmat, ho);
-		ms->co[0] = ho[0] / ho[3];
-		ms->co[1] = ho[1] / ho[3];
-	}
-}
-
-void RE_make_sticky(Scene *scene, Object *camera, LinkNode *objects)
-{
-	Render *re;
-	float mat[4][4];
-	LinkNode *ob_iter;
-
-	re = RE_NewRender("_make sticky_");
-	RE_InitState(re, NULL, &scene->r, NULL, scene->r.xsch, scene->r.ysch, NULL);
-	
-	/* use renderdata and camera to set viewplane */
-	RE_SetCamera(re, camera);
-
-	/* and set view matrix */
-	normalize_m4(camera->obmat);
-	invert_m4_m4(mat, camera->obmat);
-	RE_SetView(re, mat);
-	
-	for (ob_iter = objects; ob_iter; ob_iter = ob_iter->next) {
-		re_make_sticky_object(re, ob_iter->link);
-	}
-}
-
