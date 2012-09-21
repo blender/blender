@@ -810,6 +810,8 @@ void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, const char
 void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int value_slider, int lock, int lock_luminosity, int cubic);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
                       PointerRNA *used_ptr, const char *used_propname, int active_layer);
+void uiTemplateGameStates(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
+                      PointerRNA *used_ptr, const char *used_propname, int active_state);
 void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact);
 void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, int color_management);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);

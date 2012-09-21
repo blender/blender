@@ -875,3 +875,20 @@ void unlink_logicbricks(void **poin, void ***ppoin, short *tot)
 		return;
 	}
 }
+
+const char *sca_state_name_get(Object *ob, short bit)
+{
+	bController *cont;
+	unsigned int mask;
+
+	mask = (1<<bit);
+	cont = ob->controllers.first;
+	while (cont) {
+		if (cont->state_mask & mask) {
+			return cont->name;
+		}
+		cont = cont->next;
+	}
+	return NULL;
+}
+

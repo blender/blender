@@ -1786,22 +1786,6 @@ static void update_object_actuator_PID(bContext *UNUSED(C), void *act, void *UNU
 	oa->forcerot[0] = 60.0f*oa->forcerot[1];
 }
 
-static char *get_state_name(Object *ob, short bit)
-{
-	bController *cont;
-	unsigned int mask;
-
-	mask = (1<<bit);
-	cont = ob->controllers.first;
-	while (cont) {
-		if (cont->state_mask & mask) {
-			return cont->name;
-		}
-		cont = cont->next;
-	}
-	return (char*)"";
-}
-
 static void check_state_mask(bContext *C, void *arg1_but, void *arg2_mask)
 {
 	wmWindow *win= CTX_wm_window(C);
@@ -2632,11 +2616,11 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			for (wval=0; wval<15; wval+=5) {
 				uiBlockBeginAlign(block);
 				for (stbit=0; stbit<5; stbit++) {
-					but = uiDefButBitI(block,  TOG, 1<<(stbit+wval), stbit+wval, "",	(short)(xco+85+12*stbit+13*wval), yco-17, 12, 12, (int *)&(staAct->mask), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+wval)));
+					but = uiDefButBitI(block,  TOG, 1<<(stbit+wval), stbit+wval, "",	(short)(xco+85+12*stbit+13*wval), yco-17, 12, 12, (int *)&(staAct->mask), 0, 0, 0, 0, sca_state_name_get(ob, (short)(stbit+wval)));
 					uiButSetFunc(but, check_state_mask, but, &(staAct->mask));
 				}
 				for (stbit=0; stbit<5; stbit++) {
-					but = uiDefButBitI(block, TOG, 1<<(stbit+wval+15), stbit+wval+15, "",	(short)(xco+85+12*stbit+13*wval), yco-29, 12, 12, (int *)&(staAct->mask), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+wval+15)));
+					but = uiDefButBitI(block, TOG, 1<<(stbit+wval+15), stbit+wval+15, "",	(short)(xco+85+12*stbit+13*wval), yco-29, 12, 12, (int *)&(staAct->mask), 0, 0, 0, 0, sca_state_name_get(ob, (short)(stbit+wval+15)));
 					uiButSetFunc(but, check_state_mask, but, &(staAct->mask));
 				}
 			}
@@ -4573,9 +4557,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			col = uiLayoutColumn(subsplit, FALSE);
 			row = uiLayoutRow(col, FALSE);
 			uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "use_all_states") == FALSE);
-			uiTemplateLayers(row, &settings_ptr, "states_visible", &settings_ptr, "used_states", 0);
+			uiTemplateGameStates(row, &settings_ptr, "states_visible", &settings_ptr, "used_states", 0);
 			row = uiLayoutRow(col, FALSE);
-			uiTemplateLayers(row, &settings_ptr, "states_initial", &settings_ptr, "used_states", 0);
+			uiTemplateGameStates(row, &settings_ptr, "states_initial", &settings_ptr, "used_states", 0);
 
 			col = uiLayoutColumn(subsplit, FALSE);
 			uiItemR(col, &settings_ptr, "use_all_states", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
@@ -4880,11 +4864,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 			for (offset=0; offset<15; offset+=5) {
 				uiBlockBeginAlign(block);
 				for (stbit=0; stbit<5; stbit++) {
-					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset), stbit+offset, "",	(short)(xco+31+12*stbit+13*offset), yco, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset)));
+					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset), stbit+offset, "",	(short)(xco+31+12*stbit+13*offset), yco, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, sca_state_name_get(ob, (short)(stbit+offset)));
 					uiButSetFunc(but, check_state_mask, but, &(ob->state));
 				}
 				for (stbit=0; stbit<5; stbit++) {
-					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset+15)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset+15), stbit+offset+15, "",	(short)(xco+31+12*stbit+13*offset), yco-12, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset+15)));
+					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset+15)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset+15), stbit+offset+15, "",	(short)(xco+31+12*stbit+13*offset), yco-12, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, sca_state_name_get(ob, (short)(stbit+offset+15)));
 					uiButSetFunc(but, check_state_mask, but, &(ob->state));
 				}
 			}
