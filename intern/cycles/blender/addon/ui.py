@@ -978,6 +978,7 @@ def get_panels():
         bpy.types.DATA_PT_camera,
         bpy.types.DATA_PT_camera_display,
         bpy.types.DATA_PT_lens,
+        bpy.types.DATA_PT_customdata,
         bpy.types.DATA_PT_custom_props_mesh,
         bpy.types.DATA_PT_custom_props_camera,
         bpy.types.DATA_PT_custom_props_lamp,
