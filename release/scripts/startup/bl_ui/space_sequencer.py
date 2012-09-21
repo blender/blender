@@ -152,17 +152,21 @@ class SEQUENCER_MT_view(Menu):
             # # XXX, invokes in the header view
             # layout.operator("sequencer.view_ghost_border", text="Overlay Border")
 
-        layout.prop(st, "show_seconds")
+        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
+            layout.prop(st, "show_seconds")
+            layout.prop(st, "show_frame_indicator")
 
-        layout.prop(st, "show_frame_indicator")
-        if st.display_mode == 'IMAGE':
-            layout.prop(st, "show_safe_margin")
-        if st.display_mode == 'WAVEFORM':
-            layout.prop(st, "show_separate_color")
+        if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
+            if st.display_mode == 'IMAGE':
+                layout.prop(st, "show_safe_margin")
+            elif st.display_mode == 'WAVEFORM':
+                layout.prop(st, "show_separate_color")
 
         layout.separator()
-        layout.prop(st, "use_marker_sync")
-        layout.separator()
+
+        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
+            layout.prop(st, "use_marker_sync")
+            layout.separator()
 
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
