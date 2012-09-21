@@ -144,7 +144,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 	
 	ED_spacetypes_init();   /* editors/space_api/spacetype.c */
 	
-	/* initialize color management stuff */
+	/* initialize color management stuff
+	 * do this before ED_file_init because that function would load images,
+	 * so at least default byte color space should be already known
+	 */
 	IMB_colormanagement_init();
 
 	ED_file_init();         /* for fsmenu */
