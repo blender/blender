@@ -680,10 +680,19 @@ void BPY_modules_load_user(bContext *C)
 
 int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result)
 {
-	PyObject *pyctx = (PyObject *)CTX_py_dict_get(C);
-	PyObject *item = PyDict_GetItemString(pyctx, member);
+	PyGILState_STATE gilstate;
+	int use_gil = !PYC_INTERPRETER_ACTIVE;
+
+	PyObject *pyctx;
+	PyObject *item;
 	PointerRNA *ptr = NULL;
 	int done = FALSE;
+
+	if (use_gil)
+		gilstate = PyGILState_Ensure();
+
+	pyctx = (PyObject *)CTX_py_dict_get(C);
+	item = PyDict_GetItemString(pyctx, member);
 
 	if (item == NULL) {
 		/* pass */
@@ -720,7 +729,8 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 					CTX_data_list_add(result, ptr->id.data, ptr->type, ptr->data);
 				}
 				else {
-					printf("List item not a valid type\n");
+					printf("PyContext: '%s' list item not a valid type in sequece type '%s'\n",
+					       member, Py_TYPE(item)->tp_name);
 				}
 
 			}
@@ -739,6 +749,9 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 			printf("PyContext '%s' found\n", member);
 		}
 	}
+
+	if (use_gil)
+		PyGILState_Release(gilstate);
 
 	return done;
 }
