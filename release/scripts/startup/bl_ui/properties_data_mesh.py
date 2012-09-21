@@ -333,7 +333,6 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         row.operator("mesh.customdata_clear_sticky", icon='X')
         '''
         col.operator("mesh.customdata_clear_mask", icon='X')
-        col.operator("mesh.customdata_clear_skin", icon='X')
 
 
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
