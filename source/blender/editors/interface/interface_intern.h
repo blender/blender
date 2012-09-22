@@ -305,17 +305,7 @@ struct uiBlock {
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied to buttons */
 	char auto_open;
-
-	/* this setting is used so newly opened menu's dont popout the first item under the mouse,
-	 * the reasoning behind this is because of muscle memory for opening menus.
-	 *
-	 * Without this, the first time opening a Submenu and activating an item in it will be 2 steps,
-	 * but the second time the same item is accessed the menu memory would auto activate the
-	 * last used menu and the key intended to select that submenu ends up being passed into the submenu.
-	 * - Campbell
-	 */
-	char auto_is_first_event;
-	char _pad[6];
+	char _pad[7];
 	double auto_open_last;
 
 	const char *lockstr;
