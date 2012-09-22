@@ -83,11 +83,11 @@ class SEQUENCER_HT_header(Header):
 
             layout.separator()
             layout.operator("sequencer.refresh_all")
-        elif st.view_type == 'SEQUENCER_PREVIEW':
-            layout.separator()
-            layout.operator("sequencer.refresh_all")
-            layout.prop(st, "display_channel", text="Channel")
         else:
+            if st.view_type == 'SEQUENCER_PREVIEW':
+                layout.separator()
+                layout.operator("sequencer.refresh_all")
+
             layout.prop(st, "display_channel", text="Channel")
 
             ed = context.scene.sequence_editor
@@ -101,12 +101,12 @@ class SEQUENCER_HT_header(Header):
                     row = layout.row()
                     row.prop(st, "overlay_type", text="")
 
-                row = layout.row(align=True)
-                props = row.operator("render.opengl", text="", icon='RENDER_STILL')
-                props.sequencer = True
-                props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
-                props.animation = True
-                props.sequencer = True
+        row = layout.row(align=True)
+        props = row.operator("render.opengl", text="", icon='RENDER_STILL')
+        props.sequencer = True
+        props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
+        props.animation = True
+        props.sequencer = True
 
         layout.template_running_jobs()
 
