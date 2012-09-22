@@ -1937,6 +1937,12 @@ void RNA_def_material(BlenderRNA *brna)
 	                         "- for anisotropic shading effects");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
+	prop = RNA_def_property(srna, "use_uv_project", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mapflag", MA_MAPFLAG_UVPROJECT);
+	RNA_def_property_ui_text(prop, "UV Project",
+	                         "Use to ensure UV interpolation is correct for camera projections (use with UV project modifier)");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
 	/* nested structs */
 	prop = RNA_def_property(srna, "raytrace_mirror", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);

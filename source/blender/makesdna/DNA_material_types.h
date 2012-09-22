@@ -130,8 +130,11 @@ typedef struct Material {
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
-	short pr_back, pr_lamp, pr_texture, ml_flag;	/* ml_flag is for disable base material */
+	short pr_lamp, pr_texture, ml_flag;	/* ml_flag is for disable base material */
 	
+	/* mapping */
+	char mapflag, pad;
+
 	/* shaders */
 	short diff_shader, spec_shader;
 	float roughness, refrac;
@@ -272,6 +275,9 @@ typedef struct Material {
 #define MA_STR_SURFDIFF 0x80000000
 
 #define	MA_MODE_MASK	0x6fffffff	/* all valid mode bits */
+
+/* mapflag */
+#define MA_MAPFLAG_UVPROJECT (1 << 0)
 
 /* ray mirror fadeout */
 #define MA_RAYMIR_FADETOSKY	0

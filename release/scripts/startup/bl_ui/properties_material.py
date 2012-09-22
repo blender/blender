@@ -763,6 +763,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
         col.prop(mat, "use_vertex_color_paint")
         col.prop(mat, "use_vertex_color_light")
         col.prop(mat, "use_object_color")
+        col.prop(mat, "use_uv_project")
         if simple_material(base_mat):
             col.prop(mat, "pass_index")
 

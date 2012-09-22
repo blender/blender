@@ -1120,50 +1120,113 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 			for (i = 0; (tface = RE_vlakren_get_tface(obr, vlr, i, &name, 0)); i++) {
 				ShadeInputUV *suv = &shi->uv[i];
-				float *uv1, *uv2, *uv3;
+				const float *uv1 = tface->uv[j1];
+				const float *uv2 = tface->uv[j2];
+				const float *uv3 = tface->uv[j3];
 
 				shi->totuv++;
 				suv->name = name;
-				
-				uv1 = tface->uv[j1];
-				uv2 = tface->uv[j2];
-				uv3 = tface->uv[j3];
 
-				suv->uv[0] = -1.0f + 2.0f * (l * uv3[0] - u * uv1[0] - v * uv2[0]);
-				suv->uv[1] = -1.0f + 2.0f * (l * uv3[1] - u * uv1[1] - v * uv2[1]);
-				suv->uv[2] = 0.0f;   /* texture.c assumes there are 3 coords */
+				if ((shi->mat->mapflag & MA_MAPFLAG_UVPROJECT) && (shi->depth == 0)) {
+					float x = shi->xs;
+					float y = shi->ys;
 
-				if (shi->osatex) {
-					float duv[2];
-					
-					dl = shi->dx_u + shi->dx_v;
-					duv[0] = shi->dx_u;
-					duv[1] = shi->dx_v;
+					float s1[2] = {-1.0f + 2.0f * uv1[0], -1.0f + 2.0f * uv1[1]};
+					float s2[2] = {-1.0f + 2.0f * uv2[0], -1.0f + 2.0f * uv2[1]};
+					float s3[2] = {-1.0f + 2.0f * uv3[0], -1.0f + 2.0f * uv3[1]};
 
-					suv->dxuv[0] = 2.0f * (dl * uv3[0] - duv[0] * uv1[0] - duv[1] * uv2[0]);
-					suv->dxuv[1] = 2.0f * (dl * uv3[1] - duv[0] * uv1[1] - duv[1] * uv2[1]);
 
-					dl = shi->dy_u + shi->dy_v;
-					duv[0] = shi->dy_u;
-					duv[1] = shi->dy_v;
+					float obwinmat[4][4], winmat[4][4], ho1[4], ho2[4], ho3[4];
+					float Zmulx, Zmuly;
+					float hox, hoy, l, dl, u, v;
+					float s00, s01, s10, s11, detsh;
 
-					suv->dyuv[0] = 2.0f * (dl * uv3[0] - duv[0] * uv1[0] - duv[1] * uv2[0]);
-					suv->dyuv[1] = 2.0f * (dl * uv3[1] - duv[0] * uv1[1] - duv[1] * uv2[1]);
-				}
+					/* old globals, localized now */
+					Zmulx =  ((float)R.winx) / 2.0f;
+					Zmuly =  ((float)R.winy) / 2.0f;
 
-				if ((mode & MA_FACETEXTURE) && i == obr->actmtface) {
-					if ((mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) == 0) {
-						shi->vcol[0] = 1.0f;
-						shi->vcol[1] = 1.0f;
-						shi->vcol[2] = 1.0f;
-						shi->vcol[3] = 1.0f;
+					zbuf_make_winmat(&R, winmat);
+					if (shi->obi->flag & R_TRANSFORMED)
+						mult_m4_m4m4(obwinmat, winmat, obi->mat);
+					else
+						copy_m4_m4(obwinmat, winmat);
+
+					zbuf_render_project(obwinmat, v1->co, ho1);
+					zbuf_render_project(obwinmat, v2->co, ho2);
+					zbuf_render_project(obwinmat, v3->co, ho3);
+
+					s00 = ho3[0] / ho3[3] - ho1[0] / ho1[3];
+					s01 = ho3[1] / ho3[3] - ho1[1] / ho1[3];
+					s10 = ho3[0] / ho3[3] - ho2[0] / ho2[3];
+					s11 = ho3[1] / ho3[3] - ho2[1] / ho2[3];
+
+					detsh = s00 * s11 - s10 * s01;
+					detsh = (detsh != 0.0f) ? 1.0f / detsh : 0.0f;
+					s00 *= detsh; s01 *= detsh;
+					s10 *= detsh; s11 *= detsh;
+
+					/* recalc u and v again */
+					hox = x / Zmulx - 1.0f;
+					hoy = y / Zmuly - 1.0f;
+					u = (hox - ho3[0] / ho3[3]) * s11 - (hoy - ho3[1] / ho3[3]) * s10;
+					v = (hoy - ho3[1] / ho3[3]) * s00 - (hox - ho3[0] / ho3[3]) * s01;
+					l = 1.0f + u + v;
+
+					suv->uv[0] = l * s3[0] - u * s1[0] - v * s2[0];
+					suv->uv[1] = l * s3[1] - u * s1[1] - v * s2[1];
+					suv->uv[2] = 0.0f;
+
+					if (shi->osatex) {
+						float dxuv[2], dyuv[2];
+						dxuv[0] =  s11 / Zmulx;
+						dxuv[1] =  -s01 / Zmulx;
+						dyuv[0] =  -s10 / Zmuly;
+						dyuv[1] =  s00 / Zmuly;
+
+						dl = dxuv[0] + dxuv[1];
+						suv->dxuv[0] = dl * s3[0] - dxuv[0] * s1[0] - dxuv[1] * s2[0];
+						suv->dxuv[1] = dl * s3[1] - dxuv[0] * s1[1] - dxuv[1] * s2[1];
+						dl = dyuv[0] + dyuv[1];
+						suv->dyuv[0] = dl * s3[0] - dyuv[0] * s1[0] - dyuv[1] * s2[0];
+						suv->dyuv[1] = dl * s3[1] - dyuv[0] * s1[1] - dyuv[1] * s2[1];
 					}
-					if (tface->tpage) {
-						render_realtime_texture(shi, tface->tpage);
+				}
+				else {
+
+					suv->uv[0] = -1.0f + 2.0f * (l * uv3[0] - u * uv1[0] - v * uv2[0]);
+					suv->uv[1] = -1.0f + 2.0f * (l * uv3[1] - u * uv1[1] - v * uv2[1]);
+					suv->uv[2] = 0.0f;   /* texture.c assumes there are 3 coords */
+
+					if (shi->osatex) {
+						float duv[2];
+
+						dl = shi->dx_u + shi->dx_v;
+						duv[0] = shi->dx_u;
+						duv[1] = shi->dx_v;
+
+						suv->dxuv[0] = 2.0f * (dl * uv3[0] - duv[0] * uv1[0] - duv[1] * uv2[0]);
+						suv->dxuv[1] = 2.0f * (dl * uv3[1] - duv[0] * uv1[1] - duv[1] * uv2[1]);
+
+						dl = shi->dy_u + shi->dy_v;
+						duv[0] = shi->dy_u;
+						duv[1] = shi->dy_v;
+
+						suv->dyuv[0] = 2.0f * (dl * uv3[0] - duv[0] * uv1[0] - duv[1] * uv2[0]);
+						suv->dyuv[1] = 2.0f * (dl * uv3[1] - duv[0] * uv1[1] - duv[1] * uv2[1]);
+					}
+
+					if ((mode & MA_FACETEXTURE) && i == obr->actmtface) {
+						if ((mode & (MA_VERTEXCOL | MA_VERTEXCOLP)) == 0) {
+							shi->vcol[0] = 1.0f;
+							shi->vcol[1] = 1.0f;
+							shi->vcol[2] = 1.0f;
+							shi->vcol[3] = 1.0f;
+						}
+						if (tface->tpage) {
+							render_realtime_texture(shi, tface->tpage);
+						}
 					}
 				}
-
-
 			}
 
 			shi->dupliuv[0] = -1.0f + 2.0f * obi->dupliuv[0];
