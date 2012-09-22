@@ -281,6 +281,27 @@ void BLI_rctf_interp(rctf *rect, const rctf *rect_a, const rctf *rect_b, const f
 
 /* BLI_rcti_interp() not needed yet */
 
+
+int BLI_rctf_clamp_pt_v(const struct rctf *rect, float xy[2])
+{
+	int change = 0;
+	if (xy[0] < rect->xmin) { xy[0] = rect->xmin; change = 1; }
+	if (xy[0] > rect->xmax) { xy[0] = rect->xmax; change = 1; }
+	if (xy[1] < rect->ymin) { xy[1] = rect->ymin; change = 1; }
+	if (xy[1] > rect->ymax) { xy[1] = rect->ymax; change = 1; }
+	return change;
+}
+
+int BLI_rcti_clamp_pt_v(const struct rcti *rect, int xy[2])
+{
+	int change = 0;
+	if (xy[0] < rect->xmin) { xy[0] = rect->xmin; change = 1; }
+	if (xy[0] > rect->xmax) { xy[0] = rect->xmax; change = 1; }
+	if (xy[1] < rect->ymin) { xy[1] = rect->ymin; change = 1; }
+	if (xy[1] > rect->ymax) { xy[1] = rect->ymax; change = 1; }
+	return change;
+}
+
 int BLI_rctf_compare(const struct rctf *rect_a, const struct rctf *rect_b, const float limit)
 {
 	if (fabsf(rect_a->xmin - rect_b->xmin) < limit)
