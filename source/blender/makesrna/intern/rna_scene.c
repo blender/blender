@@ -159,11 +159,12 @@ EnumPropertyItem snap_node_element_items[] = {
 #define R_IMF_ENUM_TAGA_RAW {R_IMF_IMTYPE_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", \
                                                   "Output image in uncompressed Targa format"},
 
-
+#if 0 /* UNUSED (so far) */
 #ifdef WITH_DDS
 #  define R_IMF_ENUM_DDS {R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
 #else
 #  define R_IMF_ENUM_DDS
+#endif
 #endif
 
 #ifdef WITH_OPENJPEG

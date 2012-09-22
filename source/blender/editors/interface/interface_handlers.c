@@ -1614,6 +1614,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 	
 	/* paste */
 	if (paste) {
+		/* TODO, ensure UTF8 ui_is_but_utf8() - campbell */
 		/* extract the first line from the clipboard */
 		p = pbuf = WM_clipboard_text_get(0);
 

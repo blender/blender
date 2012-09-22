@@ -72,10 +72,7 @@
 
 #include "logic_intern.h"
 
-
-#define MAX_RENDER_PASS   100
 #define B_REDR		1
-#define B_IDNAME	2
 
 #define B_ADD_SENS		2703
 #define B_CHANGE_SENS		2704

@@ -39,6 +39,8 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "rna_internal.h"  /* own include */
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_context.h"
