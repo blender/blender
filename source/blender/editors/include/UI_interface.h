@@ -120,11 +120,12 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_CLIP_EVENTS    8192    /* stop handling mouse events */
 
 /* uiPopupBlockHandle->menuretval */
-#define UI_RETURN_CANCEL    1       /* cancel all menus cascading */
-#define UI_RETURN_OK        2       /* choice made */
-#define UI_RETURN_OUT       4       /* left the menu */
-#define UI_RETURN_UPDATE    8       /* update the button that opened */
-#define UI_RETURN_POPUP_OK  16      /* popup is ok to be handled */
+#define UI_RETURN_CANCEL     1       /* cancel all menus cascading */
+#define UI_RETURN_OK         2       /* choice made */
+#define UI_RETURN_OUT        4       /* left the menu */
+#define UI_RETURN_OUT_PARENT 8       /* let the parent handle this event */
+#define UI_RETURN_UPDATE     16      /* update the button that opened */
+#define UI_RETURN_POPUP_OK   32      /* popup is ok to be handled */
 
 /* block->flag bits 12-15 are identical to but->flag bits */
 

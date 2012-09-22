@@ -6219,7 +6219,7 @@ static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my)
 	return 0;
 }
 
-static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, int UNUSED(topmenu))
+static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, int level)
 {
 	ARegion *ar;
 	uiBlock *block;
@@ -6264,10 +6264,22 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 		}
 		
 		/* first block own event func */
-		if (block->block_event_func && block->block_event_func(C, block, event)) ;
-		/* events not for active search menu button */
+		if (block->block_event_func && block->block_event_func(C, block, event)) {
+			/* pass */
+		}   /* events not for active search menu button */
 		else if (but == NULL || but->type != SEARCH_MENU) {
 			switch (event->type) {
+
+
+			/* let the parent menu get the event */
+#define     PASS_EVENT_TO_PARENT_IF_NONACTIVE                                 \
+				if ((level != 0) && (but == NULL)) {                          \
+					menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;  \
+					BLI_assert(retval == WM_UI_HANDLER_CONTINUE);             \
+					break;                                                    \
+				} (void)0
+
+
 				/* closing sublevels of pulldowns */
 				case LEFTARROWKEY:
 					if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP))
@@ -6280,6 +6292,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				/* opening sublevels of pulldowns */
 				case RIGHTARROWKEY:	
 					if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP)) {
+
+						PASS_EVENT_TO_PARENT_IF_NONACTIVE;
+
 						but = ui_but_find_activated(ar);
 
 						if (!but) {
@@ -6305,6 +6320,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 					}
 					else if (inside || (block->flag & UI_BLOCK_LOOP)) {
 						if (event->val == KM_PRESS) {
+
+							PASS_EVENT_TO_PARENT_IF_NONACTIVE;
+
 							but = ui_but_find_activated(ar);
 							if (but) {
 								/* is there a situation where UI_LEFT or UI_RIGHT would also change navigation direction? */
@@ -6384,6 +6402,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 					if (act == 0) act = 10;
 
 					if ((block->flag & UI_BLOCK_NUMSELECT) && event->val == KM_PRESS) {
+
+						PASS_EVENT_TO_PARENT_IF_NONACTIVE;
+
 						if (event->alt) act += 10;
 
 						count = 0;
@@ -6461,6 +6482,8 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 					    (event->ctrl  == FALSE) &&
 					    (event->oskey == FALSE))
 					{
+						PASS_EVENT_TO_PARENT_IF_NONACTIVE;
+
 						for (but = block->buttons.first; but; but = but->next) {
 
 							if (but->menu_key == event->type) {
@@ -6550,6 +6573,10 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 						retval = WM_UI_HANDLER_BREAK;
 				}
 			}
+
+			/* end switch */
+#undef PASS_EVENT_TO_PARENT_IF_NONACTIVE
+
 		}
 	}
 
@@ -6638,7 +6665,7 @@ static int ui_handle_menu_return_submenu(bContext *C, wmEvent *event, uiPopupBlo
 		return WM_UI_HANDLER_BREAK;
 }
 
-static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiPopupBlockHandle *menu)
+static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, int level)
 {
 	uiBut *but;
 	uiHandleButtonData *data;
@@ -6651,14 +6678,20 @@ static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiPopupBlockHa
 	submenu = (data) ? data->menu : NULL;
 
 	if (submenu)
-		retval = ui_handle_menus_recursive(C, event, submenu);
+		retval = ui_handle_menus_recursive(C, event, submenu, level + 1);
 
 	/* now handle events for our own menu */
 	if (retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
-		if (submenu && submenu->menuretval)
+		if (submenu && submenu->menuretval) {
 			retval = ui_handle_menu_return_submenu(C, event, menu);
-		else
-			retval = ui_handle_menu_event(C, event, menu, (submenu == NULL));
+			/* we may wan't to quit the submenu and handle the even in this menu */
+			if ((retval == WM_UI_HANDLER_BREAK) && (submenu->menuretval & UI_RETURN_OUT_PARENT)) {
+				retval = ui_handle_menu_event(C, event, menu, level);
+			}
+		}
+		else {
+			retval = ui_handle_menu_event(C, event, menu, level);  /* same as above */
+		}
 	}
 
 	return retval;
@@ -6746,7 +6779,7 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *UNUSED(user
 		if (data->state == BUTTON_STATE_MENU_OPEN) {
 			/* handle events for menus and their buttons recursively,
 			 * this will handle events from the top to the bottom menu */
-			retval = ui_handle_menus_recursive(C, event, data->menu);
+			retval = ui_handle_menus_recursive(C, event, data->menu, 0);
 
 			/* handle events for the activated button */
 			if (retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
@@ -6790,7 +6823,7 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 		retval = WM_UI_HANDLER_CONTINUE;
 	}
 
-	ui_handle_menus_recursive(C, event, menu);
+	ui_handle_menus_recursive(C, event, menu, 0);
 
 	/* free if done, does not free handle itself */
 	if (menu->menuretval) {
