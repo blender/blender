@@ -1637,7 +1637,7 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 	if (use_cam_zoom) {
 		float delta;
 		delta = (x - vod->origx + y - vod->origy) / 10.0f;
-		vod->rv3d->camzoom = vod->camzoom0 - delta;
+		vod->rv3d->camzoom = vod->camzoom0 + (zoom_invert ? delta : -delta);
 
 		CLAMP(vod->rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 	}
