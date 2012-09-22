@@ -147,7 +147,7 @@ static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *
 }
 
 
-char *rna_ImageUser_path(PointerRNA *ptr)
+static char *rna_ImageUser_path(PointerRNA *ptr)
 {
 	if (ptr->id.data) {
 		/* ImageUser *iuser= ptr->data; */

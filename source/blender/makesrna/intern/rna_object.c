@@ -231,7 +231,7 @@ void rna_Object_internal_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->id.data);
 }
 
-void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob = ptr->id.data;
 
@@ -496,7 +496,7 @@ static void rna_Object_dup_group_set(PointerRNA *ptr, PointerRNA value)
 		           "Cannot set dupli-group as object belongs in group being instanced thus causing a cycle");
 }
 
-void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
+static void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = (Object *)ptr->id.data;
 	bDeformGroup *dg = (bDeformGroup *)ptr->data;

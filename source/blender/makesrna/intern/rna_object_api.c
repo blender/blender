@@ -39,6 +39,8 @@
 #include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
 
+#include "rna_internal.h"  /* own include */
+
 #ifdef RNA_RUNTIME
 #include "BLI_math.h"
 
@@ -72,7 +74,7 @@
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
-Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
+static Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
@@ -335,7 +337,7 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 		dupli_render_particle_set(scene, go->ob, level + 1, enable);
 }
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
-void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
+static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
 {
 	if (!(ob->transflag & OB_DUPLI)) {
 		BKE_report(reports, RPT_ERROR, "Object does not have duplis");
@@ -357,7 +359,7 @@ void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }
 
-void rna_Object_free_duplilist(Object *ob)
+static void rna_Object_free_duplilist(Object *ob)
 {
 	if (ob->duplilist) {
 		free_object_duplilist(ob->duplilist);
@@ -385,7 +387,7 @@ static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *
 	}
 }
 
-int rna_Object_is_visible(Object *ob, Scene *sce)
+static int rna_Object_is_visible(Object *ob, Scene *sce)
 {
 	return !(ob->restrictflag & OB_RESTRICT_VIEW) && (ob->lay & sce->lay);
 }
@@ -428,8 +430,8 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 #endif
 
 /* BMESH_TODO, return polygon index, not tessface */
-void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3],
-                         float r_location[3], float r_normal[3], int *index)
+static void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3],
+                                float r_location[3], float r_normal[3], int *index)
 {
 	BVHTreeFromMesh treeData = {NULL};
 	
@@ -470,8 +472,8 @@ void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], fl
 	*index = -1;
 }
 
-void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float point_co[3], float max_dist,
-                                      float n_location[3], float n_normal[3], int *index)
+static void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float point_co[3], float max_dist,
+                                             float n_location[3], float n_normal[3], int *index)
 {
 	BVHTreeFromMesh treeData = {NULL};
 	
@@ -510,17 +512,17 @@ void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float poi
 
 /* ObjectBase */
 
-void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
+static void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
 {
 	base->lay = base->object->lay = v3d->lay;
 }
 
-int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
+static int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
 {
 	return BKE_object_is_modified(scene, ob) & settings;
 }
 
-int rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
+static int rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
 {
 	return BKE_object_is_deform_modified(scene, ob) & settings;
 }

@@ -36,6 +36,8 @@
 
 #include "UI_resources.h"
 
+#include "rna_internal.h"
+
 #ifdef RNA_RUNTIME
 
 static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, int icon,

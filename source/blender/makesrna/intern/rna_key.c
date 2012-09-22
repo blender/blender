@@ -66,7 +66,7 @@ static Key *rna_ShapeKey_find_key(ID *id)
 	}
 }
 
-void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
+static void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 {
 	KeyBlock *kb = ptr->data;
 	char oldname[sizeof(kb->name)];

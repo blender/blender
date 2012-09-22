@@ -1136,7 +1136,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 	return dummyot.ext.srna;
 }
 
-void **rna_Operator_instance(PointerRNA *ptr)
+static void **rna_Operator_instance(PointerRNA *ptr)
 {
 	wmOperator *op = ptr->data;
 	return &op->py_instance;

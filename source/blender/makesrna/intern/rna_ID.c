@@ -256,7 +256,7 @@ StructRNA *rna_PropertyGroup_refine(PointerRNA *ptr)
 	return ptr->type;
 }
 
-ID *rna_ID_copy(ID *id)
+static ID *rna_ID_copy(ID *id)
 {
 	ID *newid;
 
@@ -309,7 +309,7 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 	DAG_id_tag_update(id, flag);
 }
 
-void rna_ID_user_clear(ID *id)
+static void rna_ID_user_clear(ID *id)
 {
 	id->us = 0; /* don't save */
 	id->flag &= ~LIB_FAKEUSER;
@@ -341,7 +341,7 @@ int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assig
 	}
 }
 
-void rna_IDMaterials_append_id(ID *id, Material *ma)
+static void rna_IDMaterials_append_id(ID *id, Material *ma)
 {
 	material_append_id(id, ma);
 
@@ -349,7 +349,7 @@ void rna_IDMaterials_append_id(ID *id, Material *ma)
 	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
 }
 
-Material *rna_IDMaterials_pop_id(ID *id, int index_i, int remove_material_slot)
+static Material *rna_IDMaterials_pop_id(ID *id, int index_i, int remove_material_slot)
 {
 	Material *ma = material_pop_id(id, index_i, remove_material_slot);
 
@@ -360,7 +360,7 @@ Material *rna_IDMaterials_pop_id(ID *id, int index_i, int remove_material_slot)
 	return ma;
 }
 
-void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
+static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Library *lib = (Library *)ptr->data;
 	BKE_library_filepath_set(lib, value);

@@ -74,12 +74,12 @@ static int rna_event_modal_handler_add(struct bContext *C, struct wmOperator *op
 }
 
 /* XXX, need a way for python to know event types, 0x0110 is hard coded */
-wmTimer *rna_event_timer_add(struct wmWindowManager *wm, float time_step, wmWindow *win)
+static wmTimer *rna_event_timer_add(struct wmWindowManager *wm, float time_step, wmWindow *win)
 {
 	return WM_event_add_timer(wm, win, 0x0110, time_step);
 }
 
-void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
+static void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
 {
 	WM_event_remove_timer(wm, timer->win, timer);
 }

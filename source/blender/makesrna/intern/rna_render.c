@@ -50,12 +50,12 @@
 
 /* RenderEngine Callbacks */
 
-void engine_tag_redraw(RenderEngine *engine)
+static void engine_tag_redraw(RenderEngine *engine)
 {
 	engine->flag |= RE_ENGINE_DO_DRAW;
 }
 
-void engine_tag_update(RenderEngine *engine)
+static void engine_tag_update(RenderEngine *engine)
 {
 	engine->flag |= RE_ENGINE_DO_UPDATE;
 }
@@ -234,7 +234,7 @@ static void rna_RenderLayer_rect_get(PointerRNA *ptr, float *values)
 	memcpy(values, rl->rectf, sizeof(float) * rl->rectx * rl->recty * 4);
 }
 
-void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values)
+static void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values)
 {
 	RenderLayer *rl = (RenderLayer *)ptr->data;
 	memcpy(rl->rectf, values, sizeof(float) * rl->rectx * rl->recty * 4);
@@ -256,7 +256,7 @@ static void rna_RenderPass_rect_get(PointerRNA *ptr, float *values)
 	memcpy(values, rpass->rect, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
 }
 
-void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
+static void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
 {
 	RenderPass *rpass = (RenderPass *)ptr->data;
 	memcpy(rpass->rect, values, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);

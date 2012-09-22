@@ -478,7 +478,7 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 }
 
 /* api call */
-void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
+static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
 {
 	bScreen *sc = (bScreen *)id;
 
@@ -1102,7 +1102,7 @@ static void rna_def_space(BlenderRNA *brna)
 }
 
 /* for all spaces that use a mask */
-void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *mask_set_func)
+static void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *mask_set_func)
 {
 	PropertyRNA *prop;
 

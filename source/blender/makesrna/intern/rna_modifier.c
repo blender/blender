@@ -215,7 +215,7 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
 	}
 }
 
-void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
+static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 {
 	ModifierData *md = ptr->data;
 	char oldname[sizeof(md->name)];

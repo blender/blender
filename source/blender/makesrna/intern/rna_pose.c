@@ -148,7 +148,7 @@ void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
 	}
 }
 
-void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
+static void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = ptr->id.data;
 	bActionGroup *agrp = ptr->data;
@@ -257,7 +257,7 @@ static int rna_PoseChannel_has_ik_get(PointerRNA *ptr)
 	return ED_pose_channel_in_IK_chain(ob, pchan);
 }
 
-StructRNA *rna_IKParam_refine(PointerRNA *ptr)
+static StructRNA *rna_IKParam_refine(PointerRNA *ptr)
 {
 	bIKParam *param = (bIKParam *)ptr->data;
 
@@ -269,7 +269,7 @@ StructRNA *rna_IKParam_refine(PointerRNA *ptr)
 	}
 }
 
-PointerRNA rna_Pose_ikparam_get(struct PointerRNA *ptr)
+static PointerRNA rna_Pose_ikparam_get(struct PointerRNA *ptr)
 {
 	bPose *pose = (bPose *)ptr->data;
 	return rna_pointer_inherit_refine(ptr, &RNA_IKParam, pose->ikparam);
@@ -593,7 +593,7 @@ static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
 }
 
 /* not essential, but much faster then the default lookup function */
-int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
+static int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
 	bPose *pose = (bPose *)ptr->data;
 	bPoseChannel *pchan = BKE_pose_channel_find_name(pose, key);

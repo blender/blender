@@ -233,7 +233,7 @@ static void rna_idproperty_touch(IDProperty *idprop)
 }
 
 /* return a UI local ID prop definition for this prop */
-IDProperty *rna_idproperty_ui(PropertyRNA *prop)
+static IDProperty *rna_idproperty_ui(PropertyRNA *prop)
 {
 	IDProperty *idprop;
 
@@ -618,7 +618,7 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 }
 
 /* Find the property which uses the given nested struct */
-PropertyRNA *RNA_struct_find_nested(PointerRNA *ptr, StructRNA *srna)
+static PropertyRNA *RNA_struct_find_nested(PointerRNA *ptr, StructRNA *srna)
 {
 	PropertyRNA *prop = NULL;
 

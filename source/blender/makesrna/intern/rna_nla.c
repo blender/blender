@@ -360,7 +360,7 @@ static void rna_NlaStrip_remove(NlaTrack *track, bContext *C, ReportList *report
 /* Set the 'solo' setting for the given NLA-track, making sure that it is the only one
  * that has this status in its AnimData block.
  */
-void rna_NlaTrack_solo_set(PointerRNA *ptr, int value)
+static void rna_NlaTrack_solo_set(PointerRNA *ptr, int value)
 {
 	NlaTrack *data = (NlaTrack *)ptr->data;
 	AnimData *adt = BKE_animdata_from_id(ptr->id.data);

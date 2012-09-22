@@ -314,7 +314,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 	}
 }
 
-void rna_ColorRamp_eval(struct ColorBand *coba, float position, float color[4])
+static void rna_ColorRamp_eval(struct ColorBand *coba, float position, float color[4])
 {
 	do_colorband(coba, position, color);
 }
@@ -498,7 +498,7 @@ static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 }
 
 /* this function only exists because #curvemap_evaluateF uses a 'const' qualifier */
-float rna_CurveMap_evaluateF(struct CurveMap *cuma, float value)
+static float rna_CurveMap_evaluateF(struct CurveMap *cuma, float value)
 {
 	return curvemap_evaluateF(cuma, value);
 }
