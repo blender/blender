@@ -114,8 +114,8 @@ void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(int val);
-void		WM_cursor_grab_enable(struct wmWindow *win, int wrap, int hide, int *bounds);
-void		WM_cursor_grab_disable(struct wmWindow *win);
+void		WM_cursor_grab_enable(struct wmWindow *win, int wrap, int hide, int bounds[4]);
+void		WM_cursor_grab_disable(struct wmWindow *win, int mouse_ungrab_xy[2]);
 void		WM_cursor_time		(struct wmWindow *win, int nr);
 
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm,

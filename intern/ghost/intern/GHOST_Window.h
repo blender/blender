@@ -178,7 +178,7 @@ public:
 	 * \param	mode The new grab state of the cursor.
 	 * \return	Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds);
+	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds, GHOST_TInt32 mouse_ungrab_xy[2]);
 
 	/**
 	 * Gets the cursor grab region, if unset the window is used.

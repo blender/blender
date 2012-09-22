@@ -5372,14 +5372,21 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
 		ui_numedit_end(but, data);
 		if (ui_is_a_warp_but(but)) {
-			WM_cursor_grab_disable(CTX_wm_window(C));
 
-			/* XXX, you can see that the cursor is revealed, then moved - should do at once */
 #ifdef USE_CONT_MOUSE_CORRECT
 			if (data->ungrab_mval[0] != FLT_MAX) {
+				int mouse_ungrab_xy[2];
 				ui_block_to_window_fl(data->region, but->block, &data->ungrab_mval[0], &data->ungrab_mval[1]);
-				WM_cursor_warp(CTX_wm_window(C), data->ungrab_mval[0], data->ungrab_mval[1]);
+				mouse_ungrab_xy[0] = data->ungrab_mval[0];
+				mouse_ungrab_xy[1] = data->ungrab_mval[1];
+
+				WM_cursor_grab_disable(data->window, mouse_ungrab_xy);
 			}
+			else {
+				WM_cursor_grab_disable(data->window, NULL);
+			}
+#else
+			WM_cursor_grab_disable(data->window, );
 #endif
 		}
 	}
