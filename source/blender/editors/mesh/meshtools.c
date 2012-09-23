@@ -400,7 +400,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							fp1 = ((float *)kb->data) + (vertofs * 3);
 							
 							/* check if this was one of the original shapekeys */
-							okb = BKE_keyblock_find_name(nkey, kb->name);
+							okb = nkey ? BKE_keyblock_find_name(nkey, kb->name) : NULL;
 							if (okb) {
 								/* copy this mesh's shapekey to the destination shapekey */
 								fp2 = ((float *)(okb->data));
