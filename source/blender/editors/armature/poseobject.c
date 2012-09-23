@@ -81,6 +81,23 @@
 
 #include "armature_intern.h"
 
+/* matches logic with ED_operator_posemode_context() */
+Object *ED_pose_object_from_context(bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	Object *ob;
+
+	/* since this call may also be used from the buttons window, we need to check for where to get the object */
+	if (sa && sa->spacetype == SPACE_BUTS) {
+		ob = ED_object_context(C);
+	}
+	else {
+		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	}
+
+	return ob;
+}
+
 /* This function is used to process the necessary updates for */
 void ED_armature_enter_posemode(bContext *C, Base *base)
 {
@@ -1331,15 +1348,8 @@ void POSE_OT_paste(wmOperatorType *ot)
 
 static int pose_group_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-		
+	Object *ob = ED_pose_object_from_context(C);
+
 	/* only continue if there's an object */
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
@@ -1362,7 +1372,7 @@ void POSE_OT_group_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_group_add_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1371,14 +1381,7 @@ void POSE_OT_group_add(wmOperatorType *ot)
 
 static int pose_group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = ED_pose_object_from_context(C);
 	
 	/* only continue if there's an object */
 	if (ob == NULL)
@@ -1402,7 +1405,7 @@ void POSE_OT_group_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_group_remove_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1413,20 +1416,13 @@ void POSE_OT_group_remove(wmOperatorType *ot)
 /* invoke callback which presents a list of bone-groups for the user to choose from */
 static int pose_groups_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
+	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose;
 	
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	bActionGroup *grp;
 	int i;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose)) 
@@ -1466,17 +1462,10 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 /* Assign selected pchans to the bone group that the user selects */
 static int pose_group_assign_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
+	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose;
 	short done = FALSE;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	
+
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
@@ -1518,7 +1507,7 @@ void POSE_OT_group_assign(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = pose_groups_menu_invoke;
 	ot->exec = pose_group_assign_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1530,15 +1519,8 @@ void POSE_OT_group_assign(wmOperatorType *ot)
 
 static int pose_group_unassign_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
+	Object *ob = ED_pose_object_from_context(C);
 	short done = FALSE;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
@@ -1573,7 +1555,7 @@ void POSE_OT_group_unassign(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_group_unassign_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1581,7 +1563,7 @@ void POSE_OT_group_unassign(wmOperatorType *ot)
 
 static int group_move_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = ED_object_context(C);
+	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose = (ob) ? ob->pose : NULL;
 	bPoseChannel *pchan;
 	bActionGroup *grp;
@@ -1654,7 +1636,7 @@ void POSE_OT_group_move(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = group_move_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1679,7 +1661,7 @@ static int compare_agroup(const void *sgrp_a_ptr, const void *sgrp_b_ptr)
 
 static int group_sort_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = ED_object_context(C);
+	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose = (ob) ? ob->pose : NULL;
 	bPoseChannel *pchan;
 	tSortActionGroup *agrp_array;
@@ -1738,7 +1720,7 @@ void POSE_OT_group_sort(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = group_sort_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1766,14 +1748,7 @@ static void pose_group_select(bContext *C, Object *ob, int select)
 
 static int pose_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = ED_pose_object_from_context(C);
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
@@ -1796,7 +1771,7 @@ void POSE_OT_group_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_group_select_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1804,14 +1779,7 @@ void POSE_OT_group_select(wmOperatorType *ot)
 
 static int pose_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = ED_pose_object_from_context(C);
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
@@ -1834,7 +1802,7 @@ void POSE_OT_group_deselect(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_group_deselect_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

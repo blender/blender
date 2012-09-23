@@ -772,14 +772,14 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 static int mesh_customdata_clear_mask_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
-
-	/* special case - can't run this if we're in sculpt mode */
-	if (ob->mode & OB_MODE_SCULPT) {
-		return FALSE;
-	}
-
 	if (ob && ob->type == OB_MESH) {
 		Mesh *me = ob->data;
+
+		/* special case - can't run this if we're in sculpt mode */
+		if (ob->mode & OB_MODE_SCULPT) {
+			return FALSE;
+		}
+
 		if (me->id.lib == NULL) {
 			CustomData *data = GET_CD_DATA(me, vdata);
 			if (CustomData_has_layer(data, CD_PAINT_MASK)) {

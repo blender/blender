@@ -93,6 +93,7 @@ void BKE_object_to_mat3(struct Object *ob, float mat[][3]);
 void BKE_object_to_mat4(struct Object *ob, float mat[][4]);
 void BKE_object_apply_mat4(struct Object *ob, float mat[][4], const short use_compat, const short use_parent);
 
+int BKE_object_pose_context_check(struct Object *ob);
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
 
 void BKE_object_where_is_calc(struct Scene *scene, struct Object *ob);

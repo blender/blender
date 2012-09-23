@@ -1079,12 +1079,12 @@ static void copy_object_pose(Object *obn, Object *ob)
 	}
 }
 
-static int object_pose_context(Object *ob)
+int BKE_object_pose_context_check(Object *ob)
 {
-	if ( (ob) &&
-	     (ob->type == OB_ARMATURE) &&
-	     (ob->pose) &&
-	     (ob->mode & OB_MODE_POSE))
+	if ((ob) &&
+	    (ob->type == OB_ARMATURE) &&
+	    (ob->pose) &&
+	    (ob->mode & OB_MODE_POSE))
 	{
 		return 1;
 	}
@@ -1098,12 +1098,12 @@ Object *BKE_object_pose_armature_get(Object *ob)
 	if (ob == NULL)
 		return NULL;
 
-	if (object_pose_context(ob))
+	if (BKE_object_pose_context_check(ob))
 		return ob;
 
 	ob = modifiers_isDeformedByArmature(ob);
 
-	if (object_pose_context(ob))
+	if (BKE_object_pose_context_check(ob))
 		return ob;
 
 	return NULL;
