@@ -604,7 +604,7 @@ Image *BKE_image_load_exists(const char *filepath)
 }
 
 static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type,
-                            float color[4], const char *colorspace)
+                            float color[4], ColorManagedColorspaceSettings *colorspace_settings)
 {
 	ImBuf *ibuf;
 	unsigned char *rect = NULL;
@@ -613,13 +613,24 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 	if (floatbuf) {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rectfloat);
 		rect_float = ibuf->rect_float;
+
+		if (colorspace_settings->name[0] == '\0') {
+			const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT);
+
+			BLI_strncpy(colorspace_settings->name, colorspace, sizeof(colorspace_settings->name));
+		}
 	}
 	else {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
 		rect = (unsigned char *)ibuf->rect;
 
-		if (colorspace)
-			IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace);
+		if (colorspace_settings->name[0] == '\0') {
+			const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+
+			BLI_strncpy(colorspace_settings->name, colorspace, sizeof(colorspace_settings->name));
+		}
+
+		IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace_settings->name);
 	}
 
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
@@ -647,7 +658,6 @@ Image *BKE_image_add_generated(unsigned int width, unsigned int height, const ch
 
 	if (ima) {
 		ImBuf *ibuf;
-		const char *colorspace;
 
 		/* BLI_strncpy(ima->name, name, FILE_MAX); */ /* don't do this, this writes in ain invalid filepath! */
 		ima->gen_x = width;
@@ -655,16 +665,8 @@ Image *BKE_image_add_generated(unsigned int width, unsigned int height, const ch
 		ima->gen_type = gen_type;
 		ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
 
-		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, gen_type, color, NULL);
+		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, gen_type, color, &ima->colorspace_settings);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
-
-		/* assign colorspaces */
-		if (floatbuf)
-			colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT);
-		else
-			colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
-
-		BLI_strncpy(ima->colorspace_settings.name, colorspace, sizeof(ima->colorspace_settings.name));
 
 		ima->ok = IMA_OK_LOADED;
 	}
@@ -2798,7 +2800,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 				if (ima->gen_x == 0) ima->gen_x = 1024;
 				if (ima->gen_y == 0) ima->gen_y = 1024;
 				ibuf = add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, (ima->gen_flag & IMA_GEN_FLOAT) != 0, ima->gen_type,
-				                     color, ima->colorspace_settings.name);
+				                     color, &ima->colorspace_settings);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok = IMA_OK_LOADED;
 			}
