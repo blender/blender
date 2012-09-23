@@ -602,9 +602,12 @@ static int text_run_script(bContext *C, ReportList *reports)
 
 	/* Don't report error messages while live editing */
 	if (!is_live) {
-		if (text->curl != curl_prev || curc_prev != text->curc) {
-			text_update_cursor_moved(C);
-			WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+		/* text may have freed its self */
+		if (CTX_data_edit_text(C) == text) {
+			if (text->curl != curl_prev || curc_prev != text->curc) {
+				text_update_cursor_moved(C);
+				WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+			}
 		}
 
 		BKE_report(reports, RPT_ERROR, "Python script fail, look in the console for now...");

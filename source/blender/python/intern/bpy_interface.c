@@ -53,6 +53,7 @@
 
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -383,6 +384,7 @@ typedef struct {
 static int python_script_exec(bContext *C, const char *fn, struct Text *text,
                               struct ReportList *reports, const short do_jump)
 {
+	Main *bmain_old = CTX_data_main(C);
 	PyObject *main_mod = NULL;
 	PyObject *py_dict = NULL, *py_result = NULL;
 	PyGILState_STATE gilstate;
@@ -461,7 +463,11 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 	if (!py_result) {
 		if (text) {
 			if (do_jump) {
-				python_script_error_jump_text(text);
+				/* ensure text is valid before use, the script may have freed its self */
+				Main *bmain_new = CTX_data_main(C);
+				if ((bmain_old == bmain_new) && (BLI_findindex(&bmain_new->text, text) != -1)) {
+					python_script_error_jump_text(text);
+				}
 			}
 		}
 		BPy_errors_to_report(reports);
