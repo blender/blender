@@ -208,6 +208,7 @@ static PyObject *Freestyle_evaluateCurveMappingF( PyObject *self, PyObject *args
 		return NULL;
 	}
 	cumap = (CurveMapping *)py_srna->ptr.data;
+	curvemapping_initialize(cumap);
 	/* disable extrapolation if enabled */
 	if ((cumap->cm[cur].flag & CUMA_EXTEND_EXTRAPOLATE)) {
 		cumap->cm[cur].flag &= ~( CUMA_EXTEND_EXTRAPOLATE );
