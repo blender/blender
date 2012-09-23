@@ -581,8 +581,8 @@ static void rna_Main_textures_tag(Main *bmain, int value) { tag_main_lb(&bmain->
 static void rna_Main_brushes_tag(Main *bmain, int value) { tag_main_lb(&bmain->brush, value); }
 static void rna_Main_worlds_tag(Main *bmain, int value) { tag_main_lb(&bmain->world, value); }
 static void rna_Main_groups_tag(Main *bmain, int value) { tag_main_lb(&bmain->group, value); }
-static void rna_Main_shape_keys_tag(Main *bmain, int value) { tag_main_lb(&bmain->key, value); }
-static void rna_Main_scripts_tag(Main *bmain, int value) { tag_main_lb(&bmain->script, value); }
+// static void rna_Main_shape_keys_tag(Main *bmain, int value) { tag_main_lb(&bmain->key, value); }
+// static void rna_Main_scripts_tag(Main *bmain, int value) { tag_main_lb(&bmain->script, value); }
 static void rna_Main_texts_tag(Main *bmain, int value) { tag_main_lb(&bmain->text, value); }
 static void rna_Main_speakers_tag(Main *bmain, int value) { tag_main_lb(&bmain->speaker, value); }
 static void rna_Main_sounds_tag(Main *bmain, int value) { tag_main_lb(&bmain->sound, value); }

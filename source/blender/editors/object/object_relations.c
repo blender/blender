@@ -1275,6 +1275,9 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 
 	DAG_ids_flush_update(bmain, 0);
 
+	/* redraw the 3D view because the object center points are colored differently */
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
+
 	/* one day multiple scenes will be visible, then we should have some update function for them */
 	return OPERATOR_FINISHED;
 }
