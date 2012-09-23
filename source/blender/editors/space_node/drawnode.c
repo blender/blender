@@ -3100,7 +3100,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
 
 					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT,
-					                  ((unsigned char *)ibuf->rect) + ofs);
+					                  display_buffer + ofs);
 
 					glPixelZoom(1.0f, 1.0f);
 				}
