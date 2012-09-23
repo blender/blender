@@ -244,6 +244,9 @@ void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char 
 
 BlendFileData *blo_read_blendafterruntime(int file, const char *name, int actualsize, struct ReportList *reports);
 
+/* internal function but we need to expose it */
+void blo_lib_link_screen_restore(struct Main *newmain, struct bScreen *curscreen, struct Scene *curscene);
+
 #ifdef __cplusplus
 } 
 #endif

@@ -78,14 +78,14 @@ struct Texture
 extern PyTypeObject TextureType;
 
 // load texture
-void loadTexture (unsigned int texId, unsigned int * texture, short * size,
-                  bool mipmap = false);
+void loadTexture(unsigned int texId, unsigned int *texture, short *size,
+                 bool mipmap = false);
 
 // get material
-RAS_IPolyMaterial * getMaterial (PyObject *obj, short matID);
+RAS_IPolyMaterial *getMaterial(PyObject *obj, short matID);
 
 // get material ID
-short getMaterialID (PyObject * obj, const char *name);
+short getMaterialID(PyObject *obj, const char *name);
 
 // Exceptions
 extern ExceptionID MaterialNotAvail;

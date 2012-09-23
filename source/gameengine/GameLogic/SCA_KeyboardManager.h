@@ -54,7 +54,7 @@ public:
 
 	bool			IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode);
 	
-	virtual void 	NextFrame();	
+	virtual void 	NextFrame();
 	SCA_IInputDevice* GetInputDevice();
 
 

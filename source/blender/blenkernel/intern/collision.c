@@ -161,8 +161,6 @@ void bvhtree_update_from_mvert(BVHTree * bvhtree, MFace *faces, int numfaces, MV
 /***********************************
 Collision modifier code end
 ***********************************/
-#define mySWAP(a, b) do { double tmp = b ; b = a ; a = tmp ; } while (0)
-
 
 // w3 is not perfect
 static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 )

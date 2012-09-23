@@ -277,7 +277,7 @@ void ImageRender::Render()
 
 
 // cast Image pointer to ImageRender
-inline ImageRender * getImageRender (PyImage * self)
+inline ImageRender * getImageRender (PyImage *self)
 { return static_cast<ImageRender*>(self->m_image); }
 
 
@@ -290,10 +290,10 @@ BlendType<KX_Camera> cameraType ("KX_Camera");
 
 
 // object initialization
-static int ImageRender_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+static int ImageRender_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
 	// parameters - scene object
-	PyObject * scene;
+	PyObject *scene;
 	// camera object
 	PyObject * camera;
 	// parameter keywords
@@ -317,7 +317,7 @@ static int ImageRender_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 		if (cameraPtr == NULL) THRWEXCP(CameraInvalid, S_OK);
 
 		// get pointer to image structure
-		PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+		PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 		// create source object
 		if (self->m_image != NULL) delete self->m_image;
 		self->m_image = new ImageRender(scenePtr, cameraPtr);
@@ -333,7 +333,7 @@ static int ImageRender_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 
 
 // get background color
-PyObject * getBackground (PyImage * self, void * closure)
+static PyObject *getBackground (PyImage *self, void *closure)
 {
 	return Py_BuildValue("[BBBB]",
 	                     getImageRender(self)->getBackground(0),
@@ -343,7 +343,7 @@ PyObject * getBackground (PyImage * self, void * closure)
 }
 
 // set color
-static int setBackground (PyImage * self, PyObject * value, void * closure)
+static int setBackground (PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 4
@@ -434,14 +434,14 @@ PyTypeObject ImageRenderType =
 };
 
 // object initialization
-static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+static int ImageMirror_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
 	// parameters - scene object
-	PyObject * scene;
+	PyObject *scene;
 	// reference object for mirror
-	PyObject * observer;
+	PyObject *observer;
 	// object holding the mirror
-	PyObject * mirror;
+	PyObject *mirror;
 	// material of the mirror
 	short materialID = 0;
 	// parameter keywords
@@ -490,7 +490,7 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 			THRWEXCP(MaterialNotAvail, S_OK);
 
 		// get pointer to image structure
-		PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+		PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 
 		// create source object
 		if (self->m_image != NULL)
@@ -510,13 +510,13 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 }
 
 // get background color
-PyObject * getClip (PyImage * self, void * closure)
+static PyObject *getClip (PyImage *self, void *closure)
 {
 	return PyFloat_FromDouble(getImageRender(self)->getClip());
 }
 
 // set clip
-static int setClip (PyImage * self, PyObject * value, void * closure)
+static int setClip (PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	double clip;

@@ -357,14 +357,14 @@ void UI_DrawTriIcon(float x, float y, char dir)
 }
 
 /* triangle 'icon' inside rect */
-static void ui_draw_tria_rect(rctf *rect, char dir)
+static void ui_draw_tria_rect(const rctf *rect, char dir)
 {
 	if (dir == 'h') {
-		float half = 0.5f * BLI_RCT_SIZE_Y(rect);
+		float half = 0.5f * BLI_rctf_size_y(rect);
 		ui_draw_anti_tria(rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin + half);
 	}
 	else {
-		float half = 0.5f * BLI_RCT_SIZE_X(rect);
+		float half = 0.5f * BLI_rctf_size_x(rect);
 		ui_draw_anti_tria(rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin + half, rect->ymin);
 	}
 }
@@ -479,12 +479,12 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 	}
 }
 
-static void rectf_scale(rctf *rect, float scale)
+static void rectf_scale(rctf *rect, const float scale)
 {
-	float centx = 0.5f * (rect->xmin + rect->xmax);
-	float centy = 0.5f * (rect->ymin + rect->ymax);
-	float sizex = 0.5f * scale * BLI_RCT_SIZE_X(rect);
-	float sizey = 0.5f * scale * BLI_RCT_SIZE_Y(rect);
+	float centx = BLI_rctf_cent_x(rect);
+	float centy = BLI_rctf_cent_y(rect);
+	float sizex = BLI_rctf_size_x(rect) * 0.5f * scale;
+	float sizey = BLI_rctf_size_y(rect) * 0.5f * scale;
 	
 	rect->xmin = centx - sizex;
 	rect->xmax = centx + sizex;
@@ -547,7 +547,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		
 		/* itemrect smaller */	
 		itemrect.xmax = headrect.xmax - 5.0f / block->aspect;
-		itemrect.xmin = itemrect.xmax - BLI_RCT_SIZE_Y(&headrect);
+		itemrect.xmin = itemrect.xmax - BLI_rcti_size_y(&headrect);
 		itemrect.ymin = headrect.ymin;
 		itemrect.ymax = headrect.ymax;
 
@@ -596,7 +596,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	
 	/* itemrect smaller */	
 	itemrect.xmin = headrect.xmin + 5.0f / block->aspect;
-	itemrect.xmax = itemrect.xmin + BLI_RCT_SIZE_Y(&headrect);
+	itemrect.xmax = itemrect.xmin + BLI_rcti_size_y(&headrect);
 	itemrect.ymin = headrect.ymin;
 	itemrect.ymax = headrect.ymax;
 	
@@ -985,8 +985,8 @@ static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 	dx = (event->x - data->startx) & ~(PNL_GRID - 1);
 	dy = (event->y - data->starty) & ~(PNL_GRID - 1);
 
-	dx *= (float)BLI_RCT_SIZE_X(&ar->v2d.cur) / (float)BLI_RCT_SIZE_X(&ar->winrct);
-	dy *= (float)BLI_RCT_SIZE_Y(&ar->v2d.cur) / (float)BLI_RCT_SIZE_Y(&ar->winrct);
+	dx *= (float)BLI_rctf_size_x(&ar->v2d.cur) / (float)BLI_rcti_size_x(&ar->winrct);
+	dy *= (float)BLI_rctf_size_y(&ar->v2d.cur) / (float)BLI_rcti_size_y(&ar->winrct);
 	
 	if (data->state == PANEL_STATE_DRAG_SCALE) {
 		panel->sizex = MAX2(data->startsizex + dx, UI_PANEL_MINX);

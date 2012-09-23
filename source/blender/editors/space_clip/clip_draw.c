@@ -42,6 +42,7 @@
 #include "BKE_tracking.h"
 #include "BKE_mask.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -246,14 +247,7 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 		ED_region_info_draw(ar, str, block, 0.6f);
 }
 
-static void verify_buffer_float(ImBuf *ibuf)
-{
-	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID))) {
-		IMB_rect_from_float(ibuf);
-	}
-}
-
-static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
+static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
                                   int width, int height, float zoomx, float zoomy)
 {
 	int x, y;
@@ -267,13 +261,16 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 		glRectf(x, y, x + zoomx * width, y + zoomy * height);
 	}
 	else {
-		verify_buffer_float(ibuf);
+		unsigned char *display_buffer;
+		void *cache_handle;
 
-		if (ibuf->rect) {
+		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+
+		if (display_buffer) {
 			int need_fallback = 1;
 
 			if (ED_space_clip_texture_buffer_supported(sc)) {
-				if (ED_space_clip_load_movieclip_buffer(sc, ibuf)) {
+				if (ED_space_clip_load_movieclip_buffer(sc, ibuf, display_buffer)) {
 					glPushMatrix();
 					glTranslatef(x, y, 0.0f);
 					glScalef(zoomx, zoomy, 1.0f);
@@ -299,12 +296,14 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 				/* set zoom */
 				glPixelZoom(zoomx * width / ibuf->x, zoomy * height / ibuf->y);
 
-				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
 
 				/* reset zoom */
 				glPixelZoom(1.0f, 1.0f);
 			}
 		}
+
+		IMB_display_buffer_release(cache_handle);
 	}
 
 	/* draw boundary border for frame if stabilization is enabled */
@@ -958,12 +957,12 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 static void view2d_to_region_float(View2D *v2d, float x, float y, float *regionx, float *regiony)
 {
 	/* express given coordinates as proportional values */
-	x = -v2d->cur.xmin / BLI_RCT_SIZE_X(&v2d->cur);
-	y = -v2d->cur.ymin / BLI_RCT_SIZE_Y(&v2d->cur);
+	x = -v2d->cur.xmin / BLI_rctf_size_x(&v2d->cur);
+	y = -v2d->cur.ymin / BLI_rctf_size_y(&v2d->cur);
 
 	/* convert proportional distances to screen coordinates */
-	*regionx = v2d->mask.xmin + x * BLI_RCT_SIZE_X(&v2d->mask);
-	*regiony = v2d->mask.ymin + y * BLI_RCT_SIZE_Y(&v2d->mask);
+	*regionx = v2d->mask.xmin + x * BLI_rcti_size_x(&v2d->mask);
+	*regiony = v2d->mask.ymin + y * BLI_rcti_size_y(&v2d->mask);
 }
 
 static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
@@ -1461,7 +1460,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 	}
 
 	if (ibuf) {
-		draw_movieclip_buffer(sc, ar, ibuf, width, height, zoomx, zoomy);
+		draw_movieclip_buffer(C, sc, ar, ibuf, width, height, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
 	}
 	else {

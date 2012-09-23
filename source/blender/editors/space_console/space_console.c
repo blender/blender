@@ -142,7 +142,7 @@ static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	/* always keep the bottom part of the view aligned, less annoying */
 	if (prev_y_min != ar->v2d.cur.ymin) {
-		const float cur_y_range = BLI_RCT_SIZE_Y(&ar->v2d.cur);
+		const float cur_y_range = BLI_rctf_size_y(&ar->v2d.cur);
 		ar->v2d.cur.ymin = prev_y_min;
 		ar->v2d.cur.ymax = prev_y_min + cur_y_range;
 	}

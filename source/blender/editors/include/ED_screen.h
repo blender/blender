@@ -111,6 +111,7 @@ ScrArea *ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
 void    ED_screen_full_prevspace(struct bContext *C, ScrArea *sa);
 void    ED_screen_full_restore(struct bContext *C, ScrArea *sa);
 struct ScrArea *ED_screen_full_toggle(struct bContext *C, struct wmWindow *win, struct ScrArea *sa);
+void    ED_screens_header_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
 
 /* anim */
 void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, int mute);
@@ -170,6 +171,7 @@ int     ED_operator_editmball(struct bContext *C);
 int     ED_operator_uvedit(struct bContext *C);
 int     ED_operator_uvmap(struct bContext *C);
 int     ED_operator_posemode_exclusive(struct bContext *C);
+int     ED_operator_posemode_context(struct bContext *C);
 int     ED_operator_posemode(struct bContext *C);
 int     ED_operator_mask(struct bContext *C);
 

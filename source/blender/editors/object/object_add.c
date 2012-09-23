@@ -198,7 +198,7 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
 
 /********************* Add Object Operator ********************/
 
-void view_align_update(struct Main *UNUSED(main), struct Scene *UNUSED(scene), struct PointerRNA *ptr)
+static void view_align_update(struct Main *UNUSED(main), struct Scene *UNUSED(scene), struct PointerRNA *ptr)
 {
 	RNA_struct_idprops_unset(ptr, "rotation");
 }
@@ -439,7 +439,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 		((Curve *)ob->data)->flag |= CU_PATH | CU_3D;
 		ED_object_enter_editmode(C, 0);
 		ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
-		BLI_addtail(object_editcurve_get(ob), add_nurbs_primitive(C, mat, CU_NURBS | CU_PRIM_PATH, 1));
+		BLI_addtail(object_editcurve_get(ob), add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, 1));
 
 		if (!enter_editmode)
 			ED_object_exit_editmode(C, EM_FREEDATA);
@@ -574,7 +574,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	
-	/* elem= (MetaElem *) */ add_metaball_primitive(C, mat, RNA_enum_get(op->ptr, "type"), newob);
+	/* elem= (MetaElem *) */ add_metaball_primitive(C, obedit, mat, RNA_enum_get(op->ptr, "type"), newob);
 
 	/* userdef */
 	if (newob && !enter_editmode) {
@@ -1826,7 +1826,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 
 		/* check if obdata is copied */
 		if (didit) {
-			Key *key = ob_get_key(obn);
+			Key *key = BKE_key_from_object(obn);
 			
 			if (dupflag & USER_DUP_ACT) {
 				bActuator *act;

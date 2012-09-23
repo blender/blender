@@ -63,7 +63,7 @@ void IMB_metadata_free(struct ImBuf *img)
 	}
 }
 
-int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, int len)
+int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, const size_t len)
 {
 	ImMetaData *info;
 	int retval = 0;

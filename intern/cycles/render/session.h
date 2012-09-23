@@ -48,7 +48,7 @@ public:
 	bool experimental;
 	int samples;
 	int2 tile_size;
-	int resolution;
+	int start_resolution;
 	int threads;
 
 	double cancel_timeout;
@@ -64,7 +64,7 @@ public:
 		experimental = false;
 		samples = INT_MAX;
 		tile_size = make_int2(64, 64);
-		resolution = 4;
+		start_resolution = INT_MAX;
 		threads = 0;
 
 		cancel_timeout = 0.1;
@@ -81,7 +81,7 @@ public:
 		&& progressive == params.progressive
 		&& experimental == params.experimental
 		&& tile_size == params.tile_size
-		&& resolution == params.resolution
+		&& start_resolution == params.start_resolution
 		&& threads == params.threads
 		&& cancel_timeout == params.cancel_timeout
 		&& reset_timeout == params.reset_timeout
@@ -116,7 +116,6 @@ public:
 
 	bool ready_to_reset();
 	void reset(BufferParams& params, int samples);
-	bool resetting() const;
 	void set_samples(int samples);
 	void set_pause(bool pause);
 
@@ -140,12 +139,10 @@ protected:
 	void run_cpu();
 	bool draw_cpu(BufferParams& params);
 	void reset_cpu(BufferParams& params, int samples);
-	bool resetting_cpu() const;
 
 	void run_gpu();
 	bool draw_gpu(BufferParams& params);
 	void reset_gpu(BufferParams& params, int samples);
-	bool resetting_gpu() const;
 
 	bool acquire_tile(Device *tile_device, RenderTile& tile);
 	void update_tile_sample(RenderTile& tile);

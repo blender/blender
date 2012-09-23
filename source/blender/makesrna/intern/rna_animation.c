@@ -829,7 +829,7 @@ void rna_def_animdata_common(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Animation Data", "Animation data for this datablock");
 }
 
-void rna_def_animdata(BlenderRNA *brna)
+static void rna_def_animdata(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

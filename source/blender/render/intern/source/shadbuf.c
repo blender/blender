@@ -72,6 +72,9 @@
 #  define ACOMP	3
 #endif
 
+#define RCT_SIZE_X(rct)       ((rct)->xmax - (rct)->xmin)
+#define RCT_SIZE_Y(rct)       ((rct)->ymax - (rct)->ymin)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
 /* only to be used here in this file, it's for speed */
@@ -1506,7 +1509,7 @@ static void isb_bsp_split_init(ISBBranch *root, MemArena *mem, int level)
 		root->divider[1]= 0.5f*(root->box.ymin+root->box.ymax);
 		
 		/* find best splitpoint */
-		if (BLI_RCT_SIZE_X(&root->box) > BLI_RCT_SIZE_Y(&root->box))
+		if (RCT_SIZE_X(&root->box) > RCT_SIZE_Y(&root->box))
 			i = root->index = 0;
 		else
 			i = root->index = 1;
@@ -1551,7 +1554,7 @@ static void isb_bsp_split(ISBBranch *root, MemArena *mem)
 	root->divider[1]/= BSPMAX_SAMPLE;
 	
 	/* find best splitpoint */
-	if (BLI_RCT_SIZE_X(&root->box) > BLI_RCT_SIZE_Y(&root->box))
+	if (RCT_SIZE_X(&root->box) > RCT_SIZE_Y(&root->box))
 		i = root->index = 0;
 	else
 		i = root->index = 1;

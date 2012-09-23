@@ -53,6 +53,8 @@
 #include "BIF_gl.h"
 #include "BLF_api.h"
 
+#include "IMB_colormanagement.h"
+
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
@@ -159,7 +161,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 	}                                                                            \
 } (void)0
 
-void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
+void blf_font_draw(FontBLF *font, const char *str, size_t len)
 {
 	unsigned int c;
 	GlyphBLF *g, *g_prev = NULL;
@@ -172,7 +174,7 @@ void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 
 	blf_font_ensure_ascii_table(font);
 
-	while (str[i] && i < len) {
+	while ((i < len) && str[i]) {
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
 		if (c == BLI_UTF8_ERR)
@@ -191,7 +193,7 @@ void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 }
 
 /* faster version of blf_font_draw, ascii only for view dimensions */
-void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
+void blf_font_draw_ascii(FontBLF *font, const char *str, size_t len)
 {
 	unsigned char c;
 	GlyphBLF *g, *g_prev = NULL;
@@ -245,11 +247,12 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	blf_font_ensure_ascii_table(font);
 
 	/* another buffer specific call for color conversion */
-	if (buf_info->do_color_management) {
-		srgb_to_linearrgb_v4(b_col_float, buf_info->col);
+	if (buf_info->display) {
+		copy_v4_v4(b_col_float, buf_info->col);
+		IMB_colormanagement_display_to_scene_linear_v3(b_col_float, buf_info->display);
 	}
 	else {
-		copy_v4_v4(b_col_float, buf_info->col);
+		srgb_to_linearrgb_v4(b_col_float, buf_info->col);
 	}
 
 	while (str[i]) {
@@ -427,8 +430,8 @@ void blf_font_width_and_height(FontBLF *font, const char *str, float *width, flo
 	}
 
 	blf_font_boundbox(font, str, &box);
-	*width  = (BLI_RCT_SIZE_X(&box) * xa);
-	*height = (BLI_RCT_SIZE_Y(&box) * ya);
+	*width  = (BLI_rctf_size_x(&box) * xa);
+	*height = (BLI_rctf_size_y(&box) * ya);
 }
 
 float blf_font_width(FontBLF *font, const char *str)
@@ -442,7 +445,7 @@ float blf_font_width(FontBLF *font, const char *str)
 		xa = 1.0f;
 
 	blf_font_boundbox(font, str, &box);
-	return BLI_RCT_SIZE_X(&box) * xa;
+	return BLI_rctf_size_x(&box) * xa;
 }
 
 float blf_font_height(FontBLF *font, const char *str)
@@ -456,7 +459,7 @@ float blf_font_height(FontBLF *font, const char *str)
 		ya = 1.0f;
 
 	blf_font_boundbox(font, str, &box);
-	return BLI_RCT_SIZE_Y(&box) * ya;
+	return BLI_rctf_size_y(&box) * ya;
 }
 
 float blf_font_fixed_width(FontBLF *font)

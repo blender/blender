@@ -765,14 +765,14 @@ static void rna_wmKeyMapItem_name_get(PointerRNA *ptr, char *value)
 {
 	wmKeyMapItem *kmi = ptr->data;
 	wmOperatorType *ot = WM_operatortype_find(kmi->idname, 1);
-	strcpy(value, ot ? ot->name : kmi->idname);
+	strcpy(value, ot ? RNA_struct_ui_name(ot->srna) : kmi->idname);
 }
 
 static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 {
 	wmKeyMapItem *kmi = ptr->data;
 	wmOperatorType *ot = WM_operatortype_find(kmi->idname, 1);
-	return strlen(ot ? ot->name : kmi->idname);
+	return strlen(ot ? RNA_struct_ui_name(ot->srna) : kmi->idname);
 }
 
 static int rna_KeyMapItem_userdefined_get(PointerRNA *ptr)
@@ -1136,7 +1136,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 	return dummyot.ext.srna;
 }
 
-void **rna_Operator_instance(PointerRNA *ptr)
+static void **rna_Operator_instance(PointerRNA *ptr)
 {
 	wmOperator *op = ptr->data;
 	return &op->py_instance;
@@ -1793,7 +1793,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	 * fallback on the operator ID */
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Name of operator to call on input event");
+	RNA_def_property_ui_text(prop, "Name", "Name of operator (translated) to call on input event");
 	RNA_def_property_string_funcs(prop, "rna_wmKeyMapItem_name_get", "rna_wmKeyMapItem_name_length", NULL);
 	
 	prop = RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);

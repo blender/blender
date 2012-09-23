@@ -104,6 +104,8 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
+#include "IMB_colormanagement.h"
+
 #include "paint_intern.h"
 
 /* Defines and Structs */
@@ -139,7 +141,7 @@
 #define IMAPAINT_TILE_SIZE          (1 << IMAPAINT_TILE_BITS)
 #define IMAPAINT_TILE_NUMBER(size)  (((size) + IMAPAINT_TILE_SIZE - 1) >> IMAPAINT_TILE_BITS)
 
-static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
+static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
 
 
 typedef struct ImagePaintState {
@@ -153,7 +155,6 @@ typedef struct ImagePaintState {
 	Image *image;
 	ImBuf *canvas;
 	ImBuf *clonecanvas;
-	short clonefreefloat;
 	char *warnpackedfile;
 	char *warnmultifile;
 
@@ -238,8 +239,6 @@ typedef struct ImagePaintRegion {
 
 /* vert flags */
 #define PROJ_VERT_CULL 1
-
-#define PI_80_DEG ((M_PI_2 / 9) * 8)
 
 /* This is mainly a convenience struct used so we can keep an array of images we use
  * Thir imbufs, etc, in 1 array, When using threads this array is copied for each thread
@@ -510,7 +509,7 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 			ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
 		if (ibuf->mipmap[0])
 			ibuf->userflags |= IB_MIPMAP_INVALID;  /* force mipmap recreatiom */
-
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 	}
 
 	IMB_freeImBuf(tmpibuf);
@@ -3137,7 +3136,7 @@ static void project_paint_begin(ProjPaintState *ps)
 				ps->is_ortho = params.is_ortho;
 			}
 
-			/* same as view3d_get_object_project_mat */
+			/* same as #ED_view3d_ob_project_mat_get */
 			mult_m4_m4m4(vmat, viewmat, ps->ob->obmat);
 			mult_m4_m4m4(ps->projectMat, winmat, vmat);
 		}
@@ -3615,7 +3614,7 @@ static int project_image_refresh_tagged(ProjPaintState *ps)
 				pr = &(projIma->partRedrawRect[i]);
 				if (pr->x2 != -1) { /* TODO - use 'enabled' ? */
 					imapaintpartial = *pr;
-					imapaint_image_update(NULL, projIma->ima, projIma->ibuf, 1); /*last 1 is for texpaint*/
+					imapaint_image_update(NULL, NULL, projIma->ima, projIma->ibuf, 1); /*last 1 is for texpaint*/
 					redraw = 1;
 				}
 			}
@@ -3945,7 +3944,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 					last_projIma->touch = 1;
 					is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
-					use_color_correction = (last_projIma->ibuf->profile == IB_PROFILE_LINEAR_RGB) ? 1 : 0;
+					use_color_correction = TRUE;
 				}
 				/* end copy */
 
@@ -4028,7 +4027,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 								last_projIma->touch = 1;
 								is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
-								use_color_correction = (last_projIma->ibuf->profile == IB_PROFILE_LINEAR_RGB) ? 1 : 0;
+								use_color_correction = TRUE;
 							}
 							/* end copy */
 
@@ -4244,10 +4243,17 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 		IMB_freeImBuf(tmpibuf);
 }
 
-static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
+static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
 {
-	if (ibuf->rect_float)
-		ibuf->userflags |= IB_RECT_INVALID;  /* force recreate of char rect */
+	if (scene) {
+		IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect, ibuf->x, 0, 0,
+		                                  &scene->view_settings, &scene->display_settings,
+		                                  imapaintpartial.x1, imapaintpartial.y1,
+		                                  imapaintpartial.x2, imapaintpartial.y2);
+	}
+	else {
+		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+	}
 	
 	if (ibuf->mipmap[0])
 		ibuf->userflags |= IB_MIPMAP_INVALID;
@@ -4257,7 +4263,7 @@ static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, s
 		int w = imapaintpartial.x2 - imapaintpartial.x1;
 		int h = imapaintpartial.y2 - imapaintpartial.y1;
 		/* Testing with partial update in uv editor too */
-		GPU_paint_update_image(image, imapaintpartial.x1, imapaintpartial.y1, w, h, 0); //!texpaint);
+		GPU_paint_update_image(image, imapaintpartial.x1, imapaintpartial.y1, w, h); //!texpaint);
 	}
 }
 
@@ -4571,15 +4577,7 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 
 		/* temporarily add float rect for cloning */
 		if (s->canvas->rect_float && !s->clonecanvas->rect_float) {
-			short profile = IB_PROFILE_NONE;
-			
-			/* Don't want to color manage, but don't disturb existing profiles */
-			SWAP(short, s->clonecanvas->profile, profile);
-
 			IMB_float_from_rect(s->clonecanvas);
-			s->clonefreefloat = 1;
-			
-			SWAP(short, s->clonecanvas->profile, profile);
 		}
 		else if (!s->canvas->rect_float && !s->clonecanvas->rect)
 			IMB_rect_from_float(s->clonecanvas);
@@ -4588,28 +4586,32 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 	return 1;
 }
 
-static void imapaint_canvas_free(ImagePaintState *s)
+static void imapaint_canvas_free(ImagePaintState *UNUSED(s))
 {
-	if (s->clonefreefloat)
-		imb_freerectfloatImBuf(s->clonecanvas);
 }
 
 static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, Image *image, short texpaint, float *uv, double time, int update, float pressure)
 {
 	ImBuf *ibuf = BKE_image_get_ibuf(image, s->sima ? &s->sima->iuser : NULL);
 	float pos[2];
+	int is_data;
 
 	if (!ibuf)
 		return 0;
+
+	is_data = ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA;
 
 	pos[0] = uv[0] * ibuf->x;
 	pos[1] = uv[1] * ibuf->y;
 
 	BKE_brush_painter_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
 
-	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, ibuf->profile == IB_PROFILE_LINEAR_RGB)) {
+	/* OCIO_TODO: float buffers are now always linear, so always use color correction
+	 *            this should probably be changed when texture painting color space is supported
+	 */
+	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, is_data == FALSE)) {
 		if (update)
-			imapaint_image_update(s->sima, image, ibuf, texpaint);
+			imapaint_image_update(s->scene, s->sima, image, ibuf, texpaint);
 		return 1;
 	}
 	else return 0;
@@ -5257,7 +5259,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
-int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
+static int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
@@ -5884,7 +5886,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (w > maxsize) w = maxsize;
 	if (h > maxsize) h = maxsize;
 
-	ibuf = ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect, FALSE, err_out);
+	ibuf = ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect, FALSE, FALSE, err_out);
 	if (!ibuf) {
 		/* Mostly happens when OpenGL offscreen buffer was failed to create, */
 		/* but could be other reasons. Should be handled in the future. nazgul */

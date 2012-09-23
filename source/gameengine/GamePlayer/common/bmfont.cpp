@@ -110,7 +110,7 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 		
 		buffer = (unsigned char*)MEM_mallocN(bytes, "readBitmapFontVersion0:buffer");
 		
-		index = 0;	
+		index = 0;
 		for (i = 0; i < bytes; i++) {
 			buffer[i] = rect[index];
 			index += step;

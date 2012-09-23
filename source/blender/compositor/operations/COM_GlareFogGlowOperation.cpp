@@ -244,7 +244,7 @@ static void fht_convolve(fREAL *d1, fREAL *d2, unsigned int M, unsigned int N)
 }
 //------------------------------------------------------------------------------
 
-void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
+static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 {
 	fREAL *data1, *data2, *fp;
 	unsigned int w2, h2, hw, hh, log2_w, log2_h;

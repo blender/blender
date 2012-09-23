@@ -37,6 +37,7 @@ class OSLGlobals;
 class Scene;
 class ShaderGraph;
 class ShaderNode;
+class ShaderInput;
 class ShaderOutput;
 
 #ifdef WITH_OSL
@@ -79,6 +80,15 @@ public:
 	void parameter(const char *name, ustring str);
 	void parameter(const char *name, const Transform& tfm);
 
+	void parameter_array(const char *name, const float f[], int arraylen);
+	void parameter_color_array(const char *name, const float f[][3], int arraylen);
+	void parameter_vector_array(const char *name, const float f[][3], int arraylen);
+	void parameter_normal_array(const char *name, const float f[][3], int arraylen);
+	void parameter_point_array(const char *name, const float f[][3], int arraylen);
+	void parameter_array(const char *name, const int f[], int arraylen);
+	void parameter_array(const char *name, const char * const s[], int arraylen);
+	void parameter_array(const char *name, const Transform tfm[], int arraylen);
+
 	ShaderType output_type() { return current_type; }
 
 	bool background;
@@ -87,7 +97,8 @@ private:
 	string id(ShaderNode *node);
 	void compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
 	bool node_skip_input(ShaderNode *node, ShaderInput *input);
-	string compatible_name(const char *name);
+	string compatible_name(ShaderNode *node, ShaderInput *input);
+	string compatible_name(ShaderNode *node, ShaderOutput *output);
 
 	void find_dependencies(set<ShaderNode*>& dependencies, ShaderInput *input);
 	void generate_nodes(const set<ShaderNode*>& nodes);

@@ -76,12 +76,12 @@ static BL_InterpolatorList *GetAdtList(struct bAction *for_act, KX_BlenderSceneC
 {
 	BL_InterpolatorList *adtList= converter->FindInterpolatorList(for_act);
 
-	if (!adtList) {		
+	if (!adtList) {
 		adtList = new BL_InterpolatorList(for_act);
 		converter->RegisterInterpolatorList(adtList, for_act);
 	}
 			
-	return adtList;	
+	return adtList;
 }
 
 SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_BlenderSceneConverter *converter)
@@ -441,7 +441,7 @@ static void ConvertMaterialIpos(
 			}
 			interpolator= new KX_ScalarInterpolator(&ipocontr->m_ref, sinterp);
 			ipocontr->AddInterpolator(interpolator);
-		}	
+		}
 		
 		if ((sinterp = adtList->GetScalarInterpolator("emit", 0))) {
 			if (!ipocontr) {
@@ -452,7 +452,7 @@ static void ConvertMaterialIpos(
 			interpolator= new KX_ScalarInterpolator(&ipocontr->m_emit, sinterp);
 			ipocontr->AddInterpolator(interpolator);
 		}
-	}		
+	}
 }
 
 void BL_ConvertMaterialIpos(

@@ -205,7 +205,7 @@ CValue* CBoolValue::GetReplica()
 }
 
 #ifdef WITH_PYTHON
-PyObject* CBoolValue::ConvertValueToPython()
+PyObject *CBoolValue::ConvertValueToPython()
 {
 	return PyBool_FromLong(m_bool != 0);
 }

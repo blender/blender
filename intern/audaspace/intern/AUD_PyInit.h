@@ -40,7 +40,7 @@ extern "C" {
 /**
  * Initalizes the Python module.
  */
-extern PyObject* AUD_initPython(void);
+extern PyObject *AUD_initPython(void);
 
 #ifdef __cplusplus
 }

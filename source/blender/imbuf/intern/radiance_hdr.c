@@ -53,6 +53,9 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_filetype.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 /* needed constants */
 #define MINELEN 8
 #define MAXELEN 0x7fff
@@ -171,7 +174,7 @@ int imb_is_a_hdr(unsigned char *buf)
 	return 0;
 }
 
-struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags)
+struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf;
 	RGBE *sline;
@@ -184,6 +187,8 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags)
 	char oriY[80], oriX[80];
 
 	if (imb_is_a_hdr((void *)mem)) {
+		colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
+
 		/* find empty line, next line is resolution info */
 		for (x = 1; x < size; x++) {
 			if ((mem[x - 1] == '\n') && (mem[x] == '\n')) {
@@ -207,7 +212,6 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags)
 
 			if (ibuf == NULL) return NULL;
 			ibuf->ftype = RADHDR;
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			if (flags & IB_test) return ibuf;
 

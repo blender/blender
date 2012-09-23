@@ -64,6 +64,8 @@ struct Tex;
 struct SpaceNode;
 struct ARegion;
 struct Object;
+struct ColorManagedViewSettings;
+struct ColorManagedDisplaySettings;
 
 /* ************** NODE TYPE DEFINITIONS ***** */
 
@@ -725,7 +727,8 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 struct CompBuf;
 struct bNodeTreeExec *ntreeCompositBeginExecTree(struct bNodeTree *ntree, int use_tree_data);
 void ntreeCompositEndExecTree(struct bNodeTreeExec *exec, int use_tree_data);
-void ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int rendering, int do_previews);
+void ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int rendering, int do_previews,
+                           const struct ColorManagedViewSettings *view_settings, const struct ColorManagedDisplaySettings *display_settings);
 void ntreeCompositTagRender(struct Scene *sce);
 int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);

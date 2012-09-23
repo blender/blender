@@ -140,7 +140,7 @@ static void modifier_apply_threaded(ImBuf *ibuf, ImBuf *mask, modifier_apply_thr
 
 /* **** Color Balance Modifier **** */
 
-void colorBalance_init_data(SequenceModifierData *smd)
+static void colorBalance_init_data(SequenceModifierData *smd)
 {
 	ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *) smd;
 	int c;
@@ -154,7 +154,7 @@ void colorBalance_init_data(SequenceModifierData *smd)
 	}
 }
 
-void colorBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+static void colorBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
 	ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *) smd;
 
@@ -173,21 +173,21 @@ static SequenceModifierTypeInfo seqModifier_ColorBalance = {
 
 /* **** Curves Modifier **** */
 
-void curves_init_data(SequenceModifierData *smd)
+static void curves_init_data(SequenceModifierData *smd)
 {
 	CurvesModifierData *cmd = (CurvesModifierData *) smd;
 
 	curvemapping_set_defaults(&cmd->curve_mapping, 4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-void curves_free_data(SequenceModifierData *smd)
+static void curves_free_data(SequenceModifierData *smd)
 {
 	CurvesModifierData *cmd = (CurvesModifierData *) smd;
 
 	curvemapping_free_data(&cmd->curve_mapping);
 }
 
-void curves_copy_data(SequenceModifierData *target, SequenceModifierData *smd)
+static void curves_copy_data(SequenceModifierData *target, SequenceModifierData *smd)
 {
 	CurvesModifierData *cmd = (CurvesModifierData *) smd;
 	CurvesModifierData *cmd_target = (CurvesModifierData *) target;
@@ -195,8 +195,8 @@ void curves_copy_data(SequenceModifierData *target, SequenceModifierData *smd)
 	curvemapping_copy_data(&cmd_target->curve_mapping, &cmd->curve_mapping);
 }
 
-void curves_apply_threaded(int width, int height, unsigned char *rect, float *rect_float,
-                           unsigned char *mask_rect, float *mask_rect_float, void *data_v)
+static void curves_apply_threaded(int width, int height, unsigned char *rect, float *rect_float,
+                                  unsigned char *mask_rect, float *mask_rect_float, void *data_v)
 {
 	CurveMapping *curve_mapping = (CurveMapping *) data_v;
 	int x, y;
@@ -249,7 +249,7 @@ void curves_apply_threaded(int width, int height, unsigned char *rect, float *re
 	}
 }
 
-void curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+static void curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
 	CurvesModifierData *cmd = (CurvesModifierData *) smd;
 
@@ -278,7 +278,7 @@ static SequenceModifierTypeInfo seqModifier_Curves = {
 
 /* **** Hue Correct Modifier **** */
 
-void hue_correct_init_data(SequenceModifierData *smd)
+static void hue_correct_init_data(SequenceModifierData *smd)
 {
 	HueCorrectModifierData *hcmd = (HueCorrectModifierData *) smd;
 	int c;
@@ -296,14 +296,14 @@ void hue_correct_init_data(SequenceModifierData *smd)
 	hcmd->curve_mapping.cur = 1;
 }
 
-void hue_correct_free_data(SequenceModifierData *smd)
+static void hue_correct_free_data(SequenceModifierData *smd)
 {
 	HueCorrectModifierData *hcmd = (HueCorrectModifierData *) smd;
 
 	curvemapping_free_data(&hcmd->curve_mapping);
 }
 
-void hue_correct_copy_data(SequenceModifierData *target, SequenceModifierData *smd)
+static void hue_correct_copy_data(SequenceModifierData *target, SequenceModifierData *smd)
 {
 	HueCorrectModifierData *hcmd = (HueCorrectModifierData *) smd;
 	HueCorrectModifierData *hcmd_target = (HueCorrectModifierData *) target;
@@ -311,7 +311,7 @@ void hue_correct_copy_data(SequenceModifierData *target, SequenceModifierData *s
 	curvemapping_copy_data(&hcmd_target->curve_mapping, &hcmd->curve_mapping);
 }
 
-void hue_correct_apply_threaded(int width, int height, unsigned char *rect, float *rect_float,
+static void hue_correct_apply_threaded(int width, int height, unsigned char *rect, float *rect_float,
                                 unsigned char *mask_rect, float *mask_rect_float, void *data_v)
 {
 	CurveMapping *curve_mapping = (CurveMapping *) data_v;
@@ -365,7 +365,7 @@ void hue_correct_apply_threaded(int width, int height, unsigned char *rect, floa
 	}
 }
 
-void hue_correct_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+static void hue_correct_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
 	HueCorrectModifierData *hcmd = (HueCorrectModifierData *) smd;
 
@@ -391,8 +391,8 @@ typedef struct BrightContrastThreadData {
 	float contrast;
 } BrightContrastThreadData;
 
-void brightcontrast_apply_threaded(int width, int height, unsigned char *rect, float *rect_float,
-                                   unsigned char *mask_rect, float *mask_rect_float, void *data_v)
+static void brightcontrast_apply_threaded(int width, int height, unsigned char *rect, float *rect_float,
+                                          unsigned char *mask_rect, float *mask_rect_float, void *data_v)
 {
 	BrightContrastThreadData *data = (BrightContrastThreadData *) data_v;
 	int x, y;
@@ -460,7 +460,7 @@ void brightcontrast_apply_threaded(int width, int height, unsigned char *rect, f
 	}
 }
 
-void brightcontrast_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+static void brightcontrast_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
 	BrightContrastModifierData *bcmd = (BrightContrastModifierData *) smd;
 	BrightContrastThreadData data;
@@ -581,6 +581,11 @@ ImBuf *BKE_sequence_modifier_apply_stack(SeqRenderData context, Sequence *seq, I
 	SequenceModifierData *smd;
 	ImBuf *processed_ibuf = ibuf;
 
+	if (seq->modifiers.first && (seq->flag & SEQ_USE_LINEAR_MODIFIERS)) {
+		processed_ibuf = IMB_dupImBuf(ibuf);
+		BKE_sequencer_imbuf_from_sequencer_space(context.scene, processed_ibuf);
+	}
+
 	for (smd = seq->modifiers.first; smd; smd = smd->next) {
 		SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
 
@@ -603,6 +608,10 @@ ImBuf *BKE_sequence_modifier_apply_stack(SeqRenderData context, Sequence *seq, I
 			if (mask)
 				IMB_freeImBuf(mask);
 		}
+	}
+
+	if (seq->modifiers.first && (seq->flag & SEQ_USE_LINEAR_MODIFIERS)) {
+		BKE_sequencer_imbuf_to_sequencer_space(context.scene, processed_ibuf, FALSE);
 	}
 
 	return processed_ibuf;

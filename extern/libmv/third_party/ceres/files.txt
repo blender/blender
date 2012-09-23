@@ -2,6 +2,8 @@ include/ceres/autodiff_cost_function.h
 include/ceres/ceres.h
 include/ceres/conditioned_cost_function.h
 include/ceres/cost_function.h
+include/ceres/crs_matrix.h
+include/ceres/fpclassify.h
 include/ceres/internal/autodiff.h
 include/ceres/internal/eigen.h
 include/ceres/internal/fixed_array.h
@@ -20,6 +22,8 @@ include/ceres/rotation.h
 include/ceres/sized_cost_function.h
 include/ceres/solver.h
 include/ceres/types.h
+internal/ceres/array_utils.cc
+internal/ceres/array_utils.h
 internal/ceres/block_evaluate_preparer.cc
 internal/ceres/block_evaluate_preparer.h
 internal/ceres/block_jacobian_writer.cc
@@ -52,13 +56,19 @@ internal/ceres/conjugate_gradients_solver.cc
 internal/ceres/conjugate_gradients_solver.h
 internal/ceres/corrector.cc
 internal/ceres/corrector.h
+internal/ceres/cxsparse.cc
+internal/ceres/cxsparse.h
 internal/ceres/dense_jacobian_writer.h
+internal/ceres/dense_normal_cholesky_solver.cc
+internal/ceres/dense_normal_cholesky_solver.h
 internal/ceres/dense_qr_solver.cc
 internal/ceres/dense_qr_solver.h
 internal/ceres/dense_sparse_matrix.cc
 internal/ceres/dense_sparse_matrix.h
 internal/ceres/detect_structure.cc
 internal/ceres/detect_structure.h
+internal/ceres/dogleg_strategy.cc
+internal/ceres/dogleg_strategy.h
 internal/ceres/evaluator.cc
 internal/ceres/evaluator.h
 internal/ceres/file.cc
@@ -79,6 +89,7 @@ internal/ceres/generated/schur_eliminator_4_4_3.cc
 internal/ceres/generated/schur_eliminator_4_4_4.cc
 internal/ceres/generated/schur_eliminator_4_4_d.cc
 internal/ceres/generated/schur_eliminator_d_d_d.cc
+internal/ceres/generate_eliminator_specialization.py
 internal/ceres/gradient_checking_cost_function.cc
 internal/ceres/gradient_checking_cost_function.h
 internal/ceres/graph_algorithms.h
@@ -88,8 +99,8 @@ internal/ceres/implicit_schur_complement.h
 internal/ceres/integral_types.h
 internal/ceres/iterative_schur_complement_solver.cc
 internal/ceres/iterative_schur_complement_solver.h
-internal/ceres/levenberg_marquardt.cc
-internal/ceres/levenberg_marquardt.h
+internal/ceres/levenberg_marquardt_strategy.cc
+internal/ceres/levenberg_marquardt_strategy.h
 internal/ceres/linear_least_squares_problems.cc
 internal/ceres/linear_least_squares_problems.h
 internal/ceres/linear_operator.cc
@@ -106,6 +117,8 @@ internal/ceres/normal_prior.cc
 internal/ceres/parameter_block.h
 internal/ceres/partitioned_matrix_view.cc
 internal/ceres/partitioned_matrix_view.h
+internal/ceres/polynomial_solver.cc
+internal/ceres/polynomial_solver.h
 internal/ceres/problem.cc
 internal/ceres/problem_impl.cc
 internal/ceres/problem_impl.h
@@ -136,6 +149,7 @@ internal/ceres/sparse_matrix.h
 internal/ceres/sparse_normal_cholesky_solver.cc
 internal/ceres/sparse_normal_cholesky_solver.h
 internal/ceres/split.cc
+internal/ceres/split.h
 internal/ceres/stl_util.h
 internal/ceres/stringprintf.cc
 internal/ceres/stringprintf.h
@@ -143,6 +157,10 @@ internal/ceres/suitesparse.cc
 internal/ceres/suitesparse.h
 internal/ceres/triplet_sparse_matrix.cc
 internal/ceres/triplet_sparse_matrix.h
+internal/ceres/trust_region_minimizer.cc
+internal/ceres/trust_region_minimizer.h
+internal/ceres/trust_region_strategy.cc
+internal/ceres/trust_region_strategy.h
 internal/ceres/types.cc
 internal/ceres/visibility_based_preconditioner.cc
 internal/ceres/visibility_based_preconditioner.h

@@ -161,7 +161,7 @@ bool SCA_RandomActuator::Update()
 		while (b >= a) {
 			b = b * m_base->DrawFloat();
 			res++;
-		};	
+		};
 		tmpval = new CIntValue(res);
 	}
 	break;
@@ -361,9 +361,9 @@ PyAttributeDef SCA_RandomActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,MAX_PROP_NAME,false,SCA_RandomActuator,m_propname,CheckProperty),
 	KX_PYATTRIBUTE_RW_FUNCTION("seed",SCA_RandomActuator,pyattr_get_seed,pyattr_set_seed),
 	{ NULL }	//Sentinel
-};	
+};
 
-PyObject* SCA_RandomActuator::pyattr_get_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_RandomActuator::pyattr_get_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_RandomActuator* act = static_cast<SCA_RandomActuator*>(self);
 	return PyLong_FromSsize_t(act->m_base->GetSeed());
@@ -420,7 +420,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setBoolBernouilli,
 	}
 	
 	m_distribution = KX_RANDOMACT_BOOL_BERNOUILLI;
-	m_parameter1 = paraArg;	
+	m_parameter1 = paraArg;
 	enforceConstraints();
 	Py_RETURN_NONE;
 }
@@ -473,7 +473,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setIntPoisson,
 	}
 	
 	m_distribution = KX_RANDOMACT_INT_POISSON;
-	m_parameter1 = paraArg;	
+	m_parameter1 = paraArg;
 	enforceConstraints();
 	Py_RETURN_NONE;
 }
@@ -489,7 +489,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatConst,
 	}
 	
 	m_distribution = KX_RANDOMACT_FLOAT_CONST;
-	m_parameter1 = paraArg;	
+	m_parameter1 = paraArg;
 	enforceConstraints();
 	Py_RETURN_NONE;
 }
@@ -544,7 +544,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatNegativeExponential,
 	}
 	
 	m_distribution = KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL;
-	m_parameter1 = paraArg;	
+	m_parameter1 = paraArg;
 	enforceConstraints();
 	Py_RETURN_NONE;
 }

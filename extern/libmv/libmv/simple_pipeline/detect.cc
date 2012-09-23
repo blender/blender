@@ -35,7 +35,7 @@ namespace libmv {
 
 typedef unsigned int uint;
 
-int featurecmp(const void *a_v, const void *b_v)
+static int featurecmp(const void *a_v, const void *b_v)
 {
   Feature *a = (Feature*)a_v;
   Feature *b = (Feature*)b_v;

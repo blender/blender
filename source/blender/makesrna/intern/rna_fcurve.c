@@ -403,13 +403,13 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
+static DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
 {
 	/* call the API function for this */
 	return driver_add_new_variable(driver);
 }
 
-void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *reports, DriverVar *dvar)
+static void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *reports, DriverVar *dvar)
 {
 	if (BLI_findindex(&driver->variables, dvar) == -1) {
 		BKE_report(reports, RPT_ERROR, "Variable does not exist in this driver");

@@ -5,6 +5,8 @@ set(INC
 	osl
 	svm
 )
+set(INC_SYS
+)
 
 set(SRC
 	kernel.cpp
@@ -135,6 +137,7 @@ endif()
 # CPU module
 
 include_directories(${INC})
+include_directories(SYSTEM ${INC_SYS})
 
 add_library(cycles_kernel ${SRC} ${SRC_HEADERS} ${SRC_SVM_HEADERS})
 

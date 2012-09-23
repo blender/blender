@@ -80,7 +80,11 @@ void    BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 __attribute__ ((format(printf, 2, 3)))
 #endif
 ;
-void    BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args);
+void    BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
+#ifdef __GNUC__
+__attribute__ ((format(printf, 2, 0)))
+#endif
+;
 
 /**
  * Find the length of a DynStr.
@@ -107,7 +111,6 @@ char *BLI_dynstr_get_cstring(DynStr *ds);
  *
  * \param ds The DynStr of interest.
  * \param str The string to fill.
- * \return The contents of \a ds as a c-string.
  */
 void    BLI_dynstr_get_cstring_ex(DynStr *ds, char *str);
 

@@ -39,12 +39,13 @@ void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	ImageUser *imageUser = (ImageUser *) this->getbNode()->storage;
 	if (image1Socket->isConnected() && image2Socket->isConnected()) {
 		SplitViewerOperation *splitViewerOperation = new SplitViewerOperation();
-		splitViewerOperation->setColorManagement(context->getRenderData()->color_mgt_flag & R_COLOR_MANAGEMENT);
-		splitViewerOperation->setColorPredivide(context->getRenderData()->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
 		splitViewerOperation->setImage(image);
 		splitViewerOperation->setImageUser(imageUser);
 		splitViewerOperation->setActive((this->getbNode()->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
 		splitViewerOperation->setSplitPercentage(this->getbNode()->custom1);
+
+		splitViewerOperation->setViewSettings(context->getViewSettings());
+		splitViewerOperation->setDisplaySettings(context->getDisplaySettings());
 
 		/* defaults - the viewer node has these options but not exposed for split view
 		 * we could use the split to define an area of interest on one axis at least */
@@ -55,7 +56,7 @@ void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		splitViewerOperation->setXSplit(!this->getbNode()->custom2);
 		image1Socket->relinkConnections(splitViewerOperation->getInputSocket(0), 0, graph);
 		image2Socket->relinkConnections(splitViewerOperation->getInputSocket(1), 1, graph);
-		addPreviewOperation(graph, splitViewerOperation->getInputSocket(0));
+		addPreviewOperation(graph, context, splitViewerOperation->getInputSocket(0));
 		graph->addOperation(splitViewerOperation);
 	}
 }

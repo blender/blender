@@ -90,10 +90,10 @@ PyTypeList pyFilterTypes;
 
 
 // object allocation
-PyObject * Filter_allocNew (PyTypeObject * type, PyObject * args, PyObject * kwds)
+PyObject *Filter_allocNew (PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	// allocate object
-	PyFilter * self = reinterpret_cast<PyFilter*>(type->tp_alloc(type, 0));
+	PyFilter *self = reinterpret_cast<PyFilter*>(type->tp_alloc(type, 0));
 	// initialize object structure
 	self->m_filter = NULL;
 	// return allocated object
@@ -101,7 +101,7 @@ PyObject * Filter_allocNew (PyTypeObject * type, PyObject * args, PyObject * kwd
 }
 
 // object deallocation
-void Filter_dealloc (PyFilter * self)
+void Filter_dealloc (PyFilter *self)
 {
 	// release object attributes
 	if (self->m_filter != NULL)
@@ -114,7 +114,7 @@ void Filter_dealloc (PyFilter * self)
 
 
 // get previous pixel filter object
-PyObject * Filter_getPrevious (PyFilter * self, void * closure)
+PyObject *Filter_getPrevious (PyFilter *self, void *closure)
 {
 	// if filter object is available
 	if (self->m_filter != NULL)
@@ -135,7 +135,7 @@ PyObject * Filter_getPrevious (PyFilter * self, void * closure)
 
 
 // set previous pixel filter object
-int Filter_setPrevious (PyFilter * self, PyObject * value, void * closure)
+int Filter_setPrevious (PyFilter *self, PyObject *value, void *closure)
 {
 	// if filter object is available
 	if (self->m_filter != NULL)

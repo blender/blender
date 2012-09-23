@@ -492,7 +492,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		}
 
 		/* TODO unneeded when float images are correctly treated as linear always */
-		if (!ncd && ibuf->profile == IB_PROFILE_LINEAR_RGB)
+		if (!ncd)
 			do_color_management = TRUE;
 
 		if (ibuf->rect==NULL)
@@ -535,7 +535,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 				if (do_color_management) {
 					srgb_frect = MEM_mallocN(ibuf->x*ibuf->y*sizeof(float)*4, "floar_buf_col_cor");
 					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
-						ibuf->channels, IB_PROFILE_SRGB, ibuf->profile, 0,
+						ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, 0,
 						ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
 					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
@@ -560,7 +560,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 				if (do_color_management) {
 					frect = srgb_frect = MEM_mallocN(ibuf->x*ibuf->y*sizeof(*srgb_frect)*4, "floar_buf_col_cor");
 					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
-							ibuf->channels, IB_PROFILE_SRGB, ibuf->profile, 0,
+							ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, 0,
 							ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
 					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
@@ -709,7 +709,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
  */
 int GPU_upload_dxt_texture(ImBuf *ibuf)
 {
-#if WITH_DDS
+#ifdef WITH_DDS
 	GLint format = 0;
 	int blocksize, height, width, i, size, offset = 0;
 
@@ -878,13 +878,13 @@ void GPU_paint_set_mipmap(int mipmap)
 	}
 }
 
-void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
+void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 {
 	ImBuf *ibuf;
 	
 	ibuf = BKE_image_get_ibuf(ima, NULL);
 	
-	if (ima->repbind || (GPU_get_mipmap() && mipmap) || !ima->bindcode || !ibuf ||
+	if (ima->repbind || (GPU_get_mipmap() && !GTS.gpu_mipmap) || !ima->bindcode || !ibuf ||
 	    (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) ||
 	    (w == 0) || (h == 0))
 	{
@@ -901,7 +901,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 		glGetIntegerv(GL_UNPACK_SKIP_ROWS, &skip_rows);
 
 		/* if color correction is needed, we must update the part that needs updating. */
-		if (ibuf->rect_float && (!U.use_16bit_textures || (ibuf->profile == IB_PROFILE_LINEAR_RGB))) {
+		if (ibuf->rect_float) {
 			float *buffer = MEM_mallocN(w*h*sizeof(float)*4, "temp_texpaint_float_buf");
 			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h);
 
@@ -911,8 +911,14 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 
 			MEM_freeN(buffer);
 
-			if (ima->tpageflag & IMA_MIPMAP_COMPLETE)
+			/* we have already accounted for the case where GTS.gpu_mipmap is false
+			 * so we will be using GPU mipmap generation here */
+			if (GPU_get_mipmap()) {
+				glGenerateMipmapEXT(GL_TEXTURE_2D);
+			}
+			else {
 				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+			}
 
 			return;
 		}
@@ -934,8 +940,13 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, skip_rows);
 
-		if (ima->tpageflag & IMA_MIPMAP_COMPLETE)
+		/* see comment above as to why we are using gpu mipmap generation here */
+		if (GPU_get_mipmap()) {
+			glGenerateMipmapEXT(GL_TEXTURE_2D);
+		}
+		else {
 			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+		}
 	}
 }
 
@@ -1197,7 +1208,12 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUMaterial *gpumat;
 	GPUBlendMode alphablend;
 	int a;
-	int gamma = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+
+	/* OCIO_TODO: assume color management is always enabled. could be nice to support real display transform here,
+	 *            but that's not so important and could be done later
+	 */
+	int gamma = TRUE;
+
 	int new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	
 	/* initialize state */
@@ -1221,7 +1237,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	 * - object transparency off: for glsl we draw both in a single pass, and
 	 * for solid we don't use transparency at all. */
 	GMS.use_alpha_pass = (do_alpha_after != NULL);
-	GMS.is_alpha_pass = (v3d && v3d->transp);
+	GMS.is_alpha_pass = (v3d->transp != FALSE);
 	if (GMS.use_alpha_pass)
 		*do_alpha_after = FALSE;
 	
@@ -1422,6 +1438,21 @@ void GPU_disable_material(void)
 	}
 
 	GPU_set_material_alpha_blend(GPU_BLEND_SOLID);
+}
+
+void GPU_material_diffuse_get(int nr, float diff[4])
+{
+	/* prevent index to use un-initialized array items */
+	if (nr >= GMS.totmat)
+		nr = 0;
+
+	/* no GPU_begin_object_materials, use default material */
+	if (!GMS.matbuf) {
+		mul_v3_v3fl(diff, &defmaterial.r, defmaterial.ref + defmaterial.emit);
+	}
+	else {
+		copy_v4_v4(diff, GMS.matbuf[nr].diff);
+	}
 }
 
 void GPU_end_object_materials(void)

@@ -98,7 +98,7 @@
 
 #include <stdio.h>
 
-void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
+static void *KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	KX_GameObject* replica = ((KX_Scene*)scene)->AddNodeReplicaObject(node,(KX_GameObject*)gameobj);
 
@@ -108,7 +108,7 @@ void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 	return (void*)replica;
 }
 
-void* KX_SceneDestructionFunc(SG_IObject* node,void* gameobj,void* scene)
+static void *KX_SceneDestructionFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	((KX_Scene*)scene)->RemoveNodeDestructObject(node,(KX_GameObject*)gameobj);
 
@@ -368,7 +368,7 @@ void KX_Scene::SetFramingType(RAS_FrameSettings & frame_settings)
 const RAS_FrameSettings& KX_Scene::GetFramingType() const 
 {
 	return m_frame_settings;
-};	
+};
 
 
 
@@ -441,7 +441,7 @@ void KX_Scene::EnableZBufferClearing(bool isclearingZbuffer)
 
 void KX_Scene::RemoveNodeDestructObject(class SG_IObject* node,class CValue* gameobj)
 {
-	KX_GameObject* orgobj = (KX_GameObject*)gameobj;	
+	KX_GameObject* orgobj = (KX_GameObject*)gameobj;
 	if (NewRemoveObject(orgobj) != 0)
 	{
 		// object is not yet deleted because a reference is hanging somewhere.
@@ -1072,7 +1072,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 	}
 
 	if (use_gfx && mesh != NULL)
-	{		
+	{
 	gameobj->RemoveMeshes();
 	gameobj->AddMesh(mesh);
 	
@@ -1278,7 +1278,7 @@ void KX_Scene::AddCamera(KX_Camera* cam)
 
 
 KX_Camera* KX_Scene::GetActiveCamera()
-{	
+{
 	// NULL if not defined
 	return m_active_camera;
 }
@@ -1634,16 +1634,17 @@ void KX_Scene::UpdateObjectActivity(void)
 				 * Manhattan distance. */
 				MT_Point3 obpos = ob->NodeGetWorldPosition();
 				
-				if ( (fabs(camloc[0] - obpos[0]) > m_activity_box_radius)
-					 || (fabs(camloc[1] - obpos[1]) > m_activity_box_radius)
-					 || (fabs(camloc[2] - obpos[2]) > m_activity_box_radius) )
-				{			
+				if ((fabs(camloc[0] - obpos[0]) > m_activity_box_radius) ||
+				    (fabs(camloc[1] - obpos[1]) > m_activity_box_radius) ||
+				    (fabs(camloc[2] - obpos[2]) > m_activity_box_radius) )
+				{
 					ob->Suspend();
-				} else {
+				}
+				else {
 					ob->Resume();
 				}
 			}
-		}		
+		}
 	}
 }
 
@@ -1944,15 +1945,15 @@ void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
 
 #ifdef WITH_PYTHON
 
-void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
+void KX_Scene::RunDrawingCallbacks(PyObject *cb_list)
 {
 	Py_ssize_t len;
 
 	if (cb_list && (len=PyList_GET_SIZE(cb_list)))
 	{
-		PyObject* args= PyTuple_New(0); // save python creating each call
-		PyObject* func;
-		PyObject* ret;
+		PyObject *args = PyTuple_New(0); // save python creating each call
+		PyObject *func;
+		PyObject *ret;
 
 		// Iterate the list and run the callbacks
 		for (Py_ssize_t pos=0; pos < len; pos++)
@@ -2019,7 +2020,7 @@ static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 {
 	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
 	const char *attr_str= _PyUnicode_AsString(item);
-	PyObject* pyconvert;
+	PyObject *pyconvert;
 	
 	if (self==NULL) {
 		PyErr_SetString(PyExc_SystemError, "val = scene[key]: KX_Scene, "BGE_PROXY_ERROR_MSG);
@@ -2122,31 +2123,31 @@ PySequenceMethods KX_Scene::Sequence = {
 	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
-PyObject* KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
 	return PyUnicode_From_STR_String(self->GetName());
 }
 
-PyObject* KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
 	return self->GetObjectList()->GetProxy();
 }
 
-PyObject* KX_Scene::pyattr_get_objects_inactive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_objects_inactive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
 	return self->GetInactiveList()->GetProxy();
 }
 
-PyObject* KX_Scene::pyattr_get_lights(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_lights(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
 	return self->GetLightList()->GetProxy();
 }
 
-PyObject* KX_Scene::pyattr_get_cameras(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_cameras(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	/* With refcounts in this case...
 	 * the new CListValue is owned by python, so its possible python holds onto it longer then the BGE
@@ -2167,7 +2168,7 @@ PyObject* KX_Scene::pyattr_get_cameras(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	return clist->NewProxy(true);
 }
 
-PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
 	KX_Camera* cam= self->GetActiveCamera();
@@ -2190,7 +2191,7 @@ int KX_Scene::pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	return PY_SET_ATTR_SUCCESS;
 }
 
-PyObject* KX_Scene::pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 
@@ -2200,7 +2201,7 @@ PyObject* KX_Scene::pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATT
 	return self->m_draw_call_pre;
 }
 
-PyObject* KX_Scene::pyattr_get_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 
@@ -2354,8 +2355,8 @@ KX_PYMETHODDEF_DOC(KX_Scene, drawObstacleSimulation,
 KX_PYMETHODDEF_DOC(KX_Scene, get, "")
 {
 	PyObject *key;
-	PyObject* def = Py_None;
-	PyObject* ret;
+	PyObject *def = Py_None;
+	PyObject *ret;
 
 	if (!PyArg_ParseTuple(args, "O|O:get", &key, &def))
 		return NULL;

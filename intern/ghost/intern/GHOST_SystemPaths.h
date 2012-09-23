@@ -40,13 +40,13 @@ protected:
 	 * Constructor.
 	 * Protected default constructor to force use of static createSystem member.
 	 */
-	GHOST_SystemPaths() {};
+	GHOST_SystemPaths() {}
 
 	/**
 	 * Destructor.
 	 * Protected default constructor to force use of static dispose member.
 	 */
-	virtual ~GHOST_SystemPaths() {};
+	virtual ~GHOST_SystemPaths() {}
 
 public:
 

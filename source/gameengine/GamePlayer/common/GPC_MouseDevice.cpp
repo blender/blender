@@ -67,7 +67,8 @@ void GPC_MouseDevice::NextFrame()
 	for (int mouseevent= KX_BEGINMOUSE; mouseevent< KX_ENDMOUSEBUTTONS; mouseevent++) {
 		SCA_InputEvent& oldevent = m_eventStatusTables[previousTable][mouseevent];
 		if (oldevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
-			oldevent.m_status == SCA_InputEvent::KX_ACTIVE) {
+		    oldevent.m_status == SCA_InputEvent::KX_ACTIVE)
+		{
 			m_eventStatusTables[m_currentTable][mouseevent] = oldevent;
 			m_eventStatusTables[m_currentTable][mouseevent].m_status = SCA_InputEvent::KX_ACTIVE;
 		}
@@ -76,7 +77,8 @@ void GPC_MouseDevice::NextFrame()
 		SCA_InputEvent& oldevent = m_eventStatusTables[previousTable][mousemove];
 		m_eventStatusTables[m_currentTable][mousemove] = oldevent;
 		if (oldevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
-			oldevent.m_status == SCA_InputEvent::KX_ACTIVE) {	
+		    oldevent.m_status == SCA_InputEvent::KX_ACTIVE)
+		{
 			m_eventStatusTables[m_currentTable][mousemove].m_status = SCA_InputEvent::KX_JUSTRELEASED;
 		}
 		else {

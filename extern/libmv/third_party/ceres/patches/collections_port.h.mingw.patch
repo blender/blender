@@ -1,10 +1,10 @@
-Index: internal/ceres/collections_port.h
-===================================================================
---- internal/ceres/collections_port.h	(revision 47730)
-+++ internal/ceres/collections_port.h	(working copy)
-@@ -53,7 +53,7 @@
+diff --git a/internal/ceres/collections_port.h b/internal/ceres/collections_port.h
+index a356cc0..c2fce90 100644
+--- a/internal/ceres/collections_port.h
++++ b/internal/ceres/collections_port.h
+@@ -77,7 +77,7 @@ struct HashMap : std::tr1::unordered_map<K, V> {};
  template<typename K>
- struct HashSet : tr1::unordered_set<K> {};
+ struct HashSet : std::tr1::unordered_set<K> {};
  
 -#ifdef _WIN32
 +#if defined(_WIN32) && !defined(__MINGW64__) && !defined(__MINGW32__)

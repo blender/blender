@@ -393,7 +393,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 					mul_m4_v3(mtx_tx, vc->co);
 					/* length in 2d, don't sqrt because this is only for comparison */
-					vc->dist =  vc->co[other_axis_1] * vc->co[other_axis_1] +
+					vc->dist = vc->co[other_axis_1] * vc->co[other_axis_1] +
 					           vc->co[other_axis_2] * vc->co[other_axis_2];
 
 					/* printf("location %f %f %f -- %f\n", vc->co[0], vc->co[1], vc->co[2], vc->dist);*/
@@ -410,7 +410,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					vc->v[0] = vc->v[1] = -1;
 
 					/* length in 2d, don't sqrt because this is only for comparison */
-					vc->dist =  vc->co[other_axis_1] * vc->co[other_axis_1] +
+					vc->dist = vc->co[other_axis_1] * vc->co[other_axis_1] +
 					           vc->co[other_axis_2] * vc->co[other_axis_2];
 
 					/* printf("location %f %f %f -- %f\n", vc->co[0], vc->co[1], vc->co[2], vc->dist);*/
@@ -430,7 +430,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					vc->e[1] = med_new;
 				}
 				else {
-					vc->v[0] = vc->v[1] = -2; /* erro value  - don't use, 3 edges on vert */
+					vc->v[0] = vc->v[1] = -2; /* error value  - don't use, 3 edges on vert */
 				}
 
 				vc = &vert_connect[med_new->v2];
@@ -445,7 +445,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					vc->e[1] = med_new;
 				}
 				else {
-					vc->v[0] = vc->v[1] = -2; /* erro value  - don't use, 3 edges on vert */
+					vc->v[0] = vc->v[1] = -2; /* error value  - don't use, 3 edges on vert */
 				}
 			}
 

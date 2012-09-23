@@ -836,8 +836,6 @@ static void bm_elements_systag_disable(void *veles, int tot, int flag)
 	}
 }
 
-#define FACE_MARK  (1 << 10)
-
 static int count_flagged_radial(BMesh *bm, BMLoop *l, int flag)
 {
 	BMLoop *l2 = l;

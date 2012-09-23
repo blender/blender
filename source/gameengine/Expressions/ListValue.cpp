@@ -278,7 +278,7 @@ bool CListValue::IsModified()
 /* Python interface ---------------------------------------------------- */
 /* --------------------------------------------------------------------- */
 
-Py_ssize_t listvalue_bufferlen(PyObject* self)
+static Py_ssize_t listvalue_bufferlen(PyObject *self)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	if (list==NULL)
@@ -287,7 +287,7 @@ Py_ssize_t listvalue_bufferlen(PyObject* self)
 	return (Py_ssize_t)list->GetCount();
 }
 
-PyObject* listvalue_buffer_item(PyObject* self, Py_ssize_t index)
+static PyObject *listvalue_buffer_item(PyObject *self, Py_ssize_t index)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	CValue *cval;
@@ -309,14 +309,14 @@ PyObject* listvalue_buffer_item(PyObject* self, Py_ssize_t index)
 	
 	cval= list->GetValue(index);
 	
-	PyObject* pyobj = cval->ConvertValueToPython();
+	PyObject *pyobj = cval->ConvertValueToPython();
 	if (pyobj)
 		return pyobj;
 	else
 		return cval->GetProxy();
 }
 
-PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
+static PyObject *listvalue_mapping_subscript(PyObject *self, PyObject *pyindex)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	if (list==NULL) {
@@ -328,7 +328,7 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 	{
 		CValue *item = ((CListValue*) list)->FindValue(_PyUnicode_AsString(pyindex));
 		if (item) {
-			PyObject* pyobj = item->ConvertValueToPython();
+			PyObject *pyobj = item->ConvertValueToPython();
 			if (pyobj)
 				return pyobj;
 			else
@@ -348,7 +348,7 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 
 
 /* just slice it into a python list... */
-PyObject* listvalue_buffer_slice(PyObject* self,Py_ssize_t ilow, Py_ssize_t ihigh)
+static PyObject *listvalue_buffer_slice(PyObject *self,Py_ssize_t ilow, Py_ssize_t ihigh)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	if (list==NULL) {
@@ -374,17 +374,17 @@ PyObject* listvalue_buffer_slice(PyObject* self,Py_ssize_t ilow, Py_ssize_t ihig
 
 	for (i = ilow, j = 0; i < ihigh; i++, j++)
 	{
-		PyObject* pyobj = list->GetValue(i)->ConvertValueToPython();
+		PyObject *pyobj = list->GetValue(i)->ConvertValueToPython();
 		if (!pyobj)
 			pyobj = list->GetValue(i)->GetProxy();
 		PyList_SET_ITEM(newlist, i, pyobj);
-	}	
+	}
 	return newlist;
 }
 
 
 /* clist + list, return a list that python owns */
-static PyObject *listvalue_buffer_concat(PyObject * self, PyObject * other)
+static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
 {
 	CListValue *listval= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	Py_ssize_t i, numitems, numitems_orig;
@@ -560,7 +560,7 @@ PyAttributeDef CListValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* CListValue::Pyappend(PyObject* value)
+PyObject *CListValue::Pyappend(PyObject *value)
 {
 	CValue* objval = ConvertPythonToValue(value, "CList.append(i): CValueList, ");
 
@@ -577,15 +577,15 @@ PyObject* CListValue::Pyappend(PyObject* value)
 	Py_RETURN_NONE;
 }
 
-PyObject* CListValue::Pyreverse()
+PyObject *CListValue::Pyreverse()
 {
 	std::reverse(m_pValueArray.begin(),m_pValueArray.end());
 	Py_RETURN_NONE;
 }
 
-PyObject* CListValue::Pyindex(PyObject *value)
+PyObject *CListValue::Pyindex(PyObject *value)
 {
-	PyObject* result = NULL;
+	PyObject *result = NULL;
 
 	CValue* checkobj = ConvertPythonToValue(value, "val = cList[i]: CValueList, ");
 	if (checkobj==NULL)
@@ -612,7 +612,7 @@ PyObject* CListValue::Pyindex(PyObject *value)
 
 
 
-PyObject* CListValue::Pycount(PyObject* value)
+PyObject *CListValue::Pycount(PyObject *value)
 {
 	int numfound = 0;
 
@@ -638,17 +638,17 @@ PyObject* CListValue::Pycount(PyObject* value)
 }
 
 /* Matches python dict.get(key, [default]) */
-PyObject* CListValue::Pyget(PyObject *args)
+PyObject *CListValue::Pyget(PyObject *args)
 {
 	char *key;
-	PyObject* def = Py_None;
+	PyObject *def = Py_None;
 
 	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
 		return NULL;
 
 	CValue *item = FindValue((const char *)key);
 	if (item) {
-		PyObject* pyobj = item->ConvertValueToPython();
+		PyObject *pyobj = item->ConvertValueToPython();
 		if (pyobj)
 			return pyobj;
 		else
@@ -659,7 +659,7 @@ PyObject* CListValue::Pyget(PyObject *args)
 }
 
 
-PyObject* CListValue::Pyfrom_id(PyObject* value)
+PyObject *CListValue::Pyfrom_id(PyObject *value)
 {
 	uintptr_t id= (uintptr_t)PyLong_AsVoidPtr(value);
 

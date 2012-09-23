@@ -31,14 +31,19 @@
 #ifndef CERES_INTERNAL_COMPRESSED_ROW_SPARSE_MATRIX_H_
 #define CERES_INTERNAL_COMPRESSED_ROW_SPARSE_MATRIX_H_
 
+#include <vector>
 #include <glog/logging.h>
 #include "ceres/sparse_matrix.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/macros.h"
+#include "ceres/internal/port.h"
 #include "ceres/types.h"
 
 namespace ceres {
+
+class CRSMatrix;
+
 namespace internal {
 
 class SparseMatrixProto;
@@ -52,7 +57,7 @@ class CompressedRowSparseMatrix : public SparseMatrix {
   //
   // We assume that m does not have any repeated entries.
   explicit CompressedRowSparseMatrix(const TripletSparseMatrix& m);
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
   explicit CompressedRowSparseMatrix(const SparseMatrixProto& proto);
 #endif
 
@@ -85,7 +90,7 @@ class CompressedRowSparseMatrix : public SparseMatrix {
   virtual void ScaleColumns(const double* scale);
 
   virtual void ToDenseMatrix(Matrix* dense_matrix) const;
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
   virtual void ToProto(SparseMatrixProto* proto) const;
 #endif
   virtual void ToTextFile(FILE* file) const;
@@ -103,12 +108,20 @@ class CompressedRowSparseMatrix : public SparseMatrix {
   // have the same number of columns as this matrix.
   void AppendRows(const CompressedRowSparseMatrix& m);
 
+  void ToCRSMatrix(CRSMatrix* matrix) const;
+
   // Low level access methods that expose the structure of the matrix.
   const int* cols() const { return cols_.get(); }
   int* mutable_cols() { return cols_.get(); }
 
   const int* rows() const { return rows_.get(); }
   int* mutable_rows() { return rows_.get(); }
+
+  const vector<int>& row_blocks() const { return row_blocks_; }
+  vector<int>* mutable_row_blocks() { return &row_blocks_; }
+
+  const vector<int>& col_blocks() const { return col_blocks_; }
+  vector<int>* mutable_col_blocks() { return &col_blocks_; }
 
  private:
   scoped_array<int> cols_;
@@ -117,10 +130,17 @@ class CompressedRowSparseMatrix : public SparseMatrix {
 
   int num_rows_;
   int num_cols_;
-
   int max_num_nonzeros_;
 
-  DISALLOW_COPY_AND_ASSIGN(CompressedRowSparseMatrix);
+  // If the matrix has an underlying block structure, then it can also
+  // carry with it row and column block sizes. This is auxilliary and
+  // optional information for use by algorithms operating on the
+  // matrix. The class itself does not make use of this information in
+  // any way.
+  vector<int> row_blocks_;
+  vector<int> col_blocks_;
+
+  CERES_DISALLOW_COPY_AND_ASSIGN(CompressedRowSparseMatrix);
 };
 
 }  // namespace internal

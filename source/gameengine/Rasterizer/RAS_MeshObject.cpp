@@ -173,7 +173,7 @@ const STR_String& RAS_MeshObject::GetMaterialName(unsigned int matid)
 
 RAS_MeshMaterial* RAS_MeshObject::GetMeshMaterial(unsigned int matid)
 {
-	if (m_materials.size() > 0 && (matid < m_materials.size()))
+	if ((m_materials.empty() == false) && (matid < m_materials.size()))
 	{
 		list<RAS_MeshMaterial>::iterator it = m_materials.begin();
 		while (matid--) ++it;

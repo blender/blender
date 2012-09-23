@@ -88,7 +88,7 @@ public:
 	 * @return [true:false]
 	 * @see NodeBase
 	 */
-	const int isOperation() const { return true; }
+	const bool isOperation() const { return true; }
 
 	/**
 	 * @brief determine the resolution of this node

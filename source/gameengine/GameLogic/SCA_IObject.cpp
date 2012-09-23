@@ -224,7 +224,7 @@ SCA_IController* SCA_IObject::FindController(const STR_String& controllername)
 		{
 			foundcontroller = (*itc);
 			break;
-		}	
+		}
 	}
 	return foundcontroller;
 }

@@ -118,9 +118,9 @@ extern PyTypeList pyFilterTypes;
 // functions for python interface
 
 // object initialization
-template <class T> static int Filter_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+template <class T> static int Filter_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
-	PyFilter * self = reinterpret_cast<PyFilter*>(pySelf);
+	PyFilter *self = reinterpret_cast<PyFilter*>(pySelf);
 	// create filter object
 	if (self->m_filter != NULL) delete self->m_filter;
 	self->m_filter = new T();
@@ -129,14 +129,14 @@ template <class T> static int Filter_init (PyObject * pySelf, PyObject * args, P
 }
 
 // object allocation
-PyObject * Filter_allocNew (PyTypeObject * type, PyObject * args, PyObject * kwds);
+PyObject *Filter_allocNew(PyTypeObject *type, PyObject *args, PyObject *kwds);
 // object deallocation
-void Filter_dealloc (PyFilter * self);
+void Filter_dealloc(PyFilter *self);
 
 // get previous pixel filter object
-PyObject * Filter_getPrevious (PyFilter * self, void * closure);
+PyObject *Filter_getPrevious(PyFilter *self, void *closure);
 // set previous pixel filter object
-int Filter_setPrevious (PyFilter * self, PyObject * value, void * closure);
+int Filter_setPrevious(PyFilter *self, PyObject *value, void *closure);
 
 
 #endif

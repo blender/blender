@@ -75,6 +75,8 @@ void GPU_end_object_materials(void);
 int GPU_enable_material(int nr, void *attribs);
 void GPU_disable_material(void);
 
+void GPU_material_diffuse_get(int nr, float diff[4]);
+
 void GPU_set_material_alpha_blend(int alphablend);
 int GPU_get_material_alpha_blend(void);
 
@@ -119,7 +121,7 @@ void GPU_set_gpu_mipmapping(int gpu_mipmap);
 /* Image updates and free
  * - these deal with images bound as opengl textures */
 
-void GPU_paint_update_image(struct Image *ima, int x, int y, int w, int h, int mipmap);
+void GPU_paint_update_image(struct Image *ima, int x, int y, int w, int h);
 void GPU_update_images_framechange(void);
 int GPU_update_image_time(struct Image *ima, double time);
 int GPU_verify_image(struct Image *ima, struct ImageUser *iuser, int tftile, int compare, int mipmap, int ncd);

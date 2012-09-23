@@ -56,7 +56,7 @@ protected:
 	/**
 	 * The sensor should only look for objects with this property.
 	 */
-	STR_String				m_touchedpropname;	
+	STR_String				m_touchedpropname;
 	bool					m_bFindMaterial;
 	bool					m_bTouchPulse;		/* changes in the colliding objects trigger pulses */
 	

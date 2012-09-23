@@ -301,7 +301,7 @@ public:
 	virtual int	GetDrawingMode()=0;
 	/**
 	 * Sets face culling
-	 */	
+	 */
 	virtual void	SetCullFace(bool enable)=0;
 	/**
 	 * Sets wireframe mode.

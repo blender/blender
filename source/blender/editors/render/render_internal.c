@@ -61,6 +61,7 @@
 #include "ED_object.h"
 
 #include "RE_pipeline.h"
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -78,8 +79,8 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 {
 	float *rectf = NULL;
 	int ymin, ymax, xmin, xmax;
-	int rymin, rxmin, predivide, profile_from;
-	unsigned char *rectc;
+	int rymin, rxmin;
+	/* unsigned char *rectc; */  /* UNUSED */
 
 	/* if renrect argument, we only refresh scanlines */
 	if (renrect) {
@@ -123,8 +124,14 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	if (rr->rectf)
 		rectf = rr->rectf;
 	else {
-		if (rr->rect32)
+		if (rr->rect32) {
+			/* special case, currently only happens with sequencer rendering,
+			 * which updates the whole frame, so we can only mark display buffer
+			 * as invalid here (sergey)
+			 */
+			ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 			return;
+		}
 		else {
 			if (rr->renlay == NULL || rr->renlay->rectf == NULL) return;
 			rectf = rr->renlay->rectf;
@@ -136,20 +143,11 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 		imb_addrectImBuf(ibuf);
 	
 	rectf += 4 * (rr->rectx * ymin + xmin);
-	rectc = (unsigned char *)(ibuf->rect + ibuf->x * rymin + rxmin);
+	/* rectc = (unsigned char *)(ibuf->rect + ibuf->x * rymin + rxmin); */  /* UNUSED */
 
-	if (scene && (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
-		profile_from = IB_PROFILE_LINEAR_RGB;
-		predivide = (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
-	}
-	else {
-		profile_from = IB_PROFILE_SRGB;
-		predivide = 0;
-	}
-
-	IMB_buffer_byte_from_float(rectc, rectf,
-	                           4, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,
-	                           xmax, ymax, ibuf->x, rr->rectx);
+	IMB_partial_display_buffer_update(ibuf, rectf, NULL, rr->rectx, rxmin, rymin,
+	                                  &scene->view_settings, &scene->display_settings,
+	                                  rxmin, rymin, rxmin + xmax, rymin + ymax);
 }
 
 /* ****************************** render invoking ***************** */

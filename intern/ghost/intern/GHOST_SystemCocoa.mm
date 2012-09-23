@@ -355,16 +355,18 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 			/* alphanumerical or punctuation key that is remappable in int'l keyboards */
 			if ((recvChar >= 'A') && (recvChar <= 'Z')) {
 				return (GHOST_TKey) (recvChar - 'A' + GHOST_kKeyA);
-			} else if ((recvChar >= 'a') && (recvChar <= 'z')) {
+			}
+			else if ((recvChar >= 'a') && (recvChar <= 'z')) {
 				return (GHOST_TKey) (recvChar - 'a' + GHOST_kKeyA);
-			} else {
+			}
+			else {
 #if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
 				KeyboardLayoutRef keyLayout;
 				UCKeyboardLayout *uchrData;
 				
 				KLGetCurrentKeyboardLayout(&keyLayout);
 				KLGetKeyboardLayoutProperty(keyLayout, kKLuchrData, (const void **)
-											&uchrData);
+				                            &uchrData);
 				/*get actual character value of the "remappable" keys in int'l keyboards,
 				 if keyboard layout is not correctly reported (e.g. some non Apple keyboards in Tiger),
 				 then fallback on using the received charactersIgnoringModifiers */
@@ -457,7 +459,8 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 		strncpy(buf, g_firstFileBuf, FIRSTFILEBUFLG - 1);
 		buf[FIRSTFILEBUFLG - 1] = '\0';
 		return 1;
-	} else {
+	}
+	else {
 		return 0; 
 	}
 }
@@ -870,29 +873,30 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 	
 	//	SetMouseCoalescingEnabled(false, NULL);
 	//TODO : implement timer ??
-	
-	/*do {
+#if 0
+	do {
 		GHOST_TimerManager* timerMgr = getTimerManager();
 		
 		if (waitForEvent) {
-		GHOST_TUns64 next = timerMgr->nextFireTime();
-		double timeOut;
+			GHOST_TUns64 next = timerMgr->nextFireTime();
+			double timeOut;
 
-		if (next == GHOST_kFireTimeNever) {
-		timeOut = kEventDurationForever;
-		} else {
-		timeOut = (double)(next - getMilliSeconds())/1000.0;
-		if (timeOut < 0.0)
-		timeOut = 0.0;
-		}
+			if (next == GHOST_kFireTimeNever) {
+				timeOut = kEventDurationForever;
+			}
+			else {
+				timeOut = (double)(next - getMilliSeconds())/1000.0;
+				if (timeOut < 0.0)
+					timeOut = 0.0;
+			}
 
-		::ReceiveNextEvent(0, NULL, timeOut, false, &event);
+			::ReceiveNextEvent(0, NULL, timeOut, false, &event);
 		}
 
 		if (timerMgr->fireTimers(getMilliSeconds())) {
-		anyProcessed = true;
+			anyProcessed = true;
 		}
-		*/
+#endif
 		
 		do {
 			NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -963,7 +967,9 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 			[NSApp sendEvent:event];
 			[pool drain];
 		} while (event!= nil);		
-	//} while (waitForEvent && !anyProcessed); Needed only for timer implementation
+#if 0
+	} while (waitForEvent && !anyProcessed); // Needed only for timer implementation
+#endif
 	
 	if (m_needDelayedApplicationBecomeActiveEventProcessing) handleApplicationBecomeActiveEvent();
 	
@@ -1285,12 +1291,13 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 	if (m_windowManager->getAnyModifiedState())
 	{
 		int shouldQuit = NSRunAlertPanel(@"Exit Blender", @"Some changes have not been saved.\nDo you really want to quit ?",
-										 @"Cancel", @"Quit Anyway", nil);
+		                                 @"Cancel", @"Quit Anyway", nil);
 		if (shouldQuit == NSAlertAlternateReturn)
 		{
 			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL) );
 			return GHOST_kExitNow;
-		} else {
+		}
+		else {
 			//Give back focus to the blender window if user selected cancel quit
 			NSArray *windowsList = [NSApp orderedWindows];
 			if ([windowsList count]) {
@@ -1405,7 +1412,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 						ct.Active = GHOST_kTabletModeNone;
 						break;
 				}
-			} else {
+			}
+			else {
 				// pointer is leaving - return to mouse
 				ct.Active = GHOST_kTabletModeNone;
 			}
@@ -1694,7 +1702,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 			if ([event type] == NSKeyDown) {
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyDown, window, keyCode, ascii, utf8_buf) );
 				//printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
-			} else {
+			}
+			else {
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyUp, window, keyCode, 0, '\0') );
 				//printf("Key up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			}
@@ -1780,7 +1789,8 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 
 	if(temp_buff) {
 		return temp_buff;
-	} else {
+	}
+	else {
 		return NULL;
 	}
 }

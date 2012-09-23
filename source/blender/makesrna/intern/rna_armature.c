@@ -100,7 +100,7 @@ static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, const char *name)
+static EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, const char *name)
 {
 	if (arm->edbo == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant add an editbone", arm->id.name + 2);
@@ -109,7 +109,7 @@ EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, const 
 	return ED_armature_edit_bone_add(arm, name);
 }
 
-void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone *ebone)
+static void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone *ebone)
 {
 	if (arm->edbo == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant remove an editbone", arm->id.name + 2);

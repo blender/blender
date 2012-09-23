@@ -178,7 +178,7 @@ public:
 	 * \param	mode The new grab state of the cursor.
 	 * \return	Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds);
+	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds, GHOST_TInt32 mouse_ungrab_xy[2]);
 
 	/**
 	 * Gets the cursor grab region, if unset the window is used.
@@ -192,14 +192,14 @@ public:
 	 */
 	virtual GHOST_TSuccess setProgressBar(float progress) {
 		return GHOST_kFailure;
-	};
+	}
 	
 	/**
 	 * Hides the progress bar in the icon
 	 */
 	virtual GHOST_TSuccess endProgressBar() {
 		return GHOST_kFailure;
-	};
+	}
 	
 	/**
 	 * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
@@ -284,7 +284,7 @@ protected:
 	 */
 	virtual GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) {
 		return GHOST_kSuccess;
-	};
+	}
 	
 	/**
 	 * Sets the cursor shape on the window using

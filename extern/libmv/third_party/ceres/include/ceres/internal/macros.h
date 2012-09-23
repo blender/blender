@@ -43,11 +43,13 @@
 //
 // For disallowing only assign or copy, write the code directly, but declare
 // the intend in a comment, for example:
-// void operator=(const TypeName&);  // DISALLOW_ASSIGN
-// Note, that most uses of DISALLOW_ASSIGN and DISALLOW_COPY are broken
-// semantically, one should either use disallow both or neither. Try to
-// avoid these in new code.
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+//
+//   void operator=(const TypeName&);  // _DISALLOW_ASSIGN
+
+// Note, that most uses of CERES_DISALLOW_ASSIGN and CERES_DISALLOW_COPY
+// are broken semantically, one should either use disallow both or
+// neither. Try to avoid these in new code.
+#define CERES_DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&);               \
   void operator=(const TypeName&)
 
@@ -57,9 +59,9 @@
 // This should be used in the private: declarations for a class
 // that wants to prevent anyone from instantiating it. This is
 // especially useful for classes containing only static methods.
-#define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName) \
+#define CERES_DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName) \
   TypeName();                                    \
-  DISALLOW_COPY_AND_ASSIGN(TypeName)
+  CERES_DISALLOW_COPY_AND_ASSIGN(TypeName)
 
 // The arraysize(arr) macro returns the # of elements in an array arr.
 // The expression is a compile-time constant, and therefore can be
@@ -149,6 +151,21 @@ char (&ArraySizeHelper(const T (&array)[N]))[N];
 #define MUST_USE_RESULT __attribute__ ((warn_unused_result))
 #else
 #define MUST_USE_RESULT
+#endif
+
+// Platform independent macros to get aligned memory allocations.
+// For example
+//
+//   MyFoo my_foo CERES_ALIGN_ATTRIBUTE(16);
+//
+// Gives us an instance of MyFoo which is aligned at a 16 byte
+// boundary.
+#if defined(_MSC_VER)
+#define CERES_ALIGN_ATTRIBUTE(n) __declspec(align(n))
+#define CERES_ALIGN_OF(T) __alignof(T)
+#elif defined(__GNUC__)
+#define CERES_ALIGN_ATTRIBUTE(n) __attribute__((aligned(n)))
+#define CERES_ALIGN_OF(T) __alignof(T)
 #endif
 
 #endif  // CERES_PUBLIC_INTERNAL_MACROS_H_

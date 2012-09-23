@@ -38,6 +38,7 @@
 #include "ceres/block_random_access_matrix.h"
 #include "ceres/collections_port.h"
 #include "ceres/triplet_sparse_matrix.h"
+#include "ceres/integral_types.h"
 #include "ceres/internal/macros.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
@@ -84,11 +85,11 @@ class BlockRandomAccessSparseMatrix : public BlockRandomAccessMatrix {
   TripletSparseMatrix* mutable_matrix() { return tsm_.get(); }
 
  private:
-  long int IntPairToLong(int a, int b) {
+  int64 IntPairToLong(int a, int b) {
     return a * kMaxRowBlocks + b;
   }
 
-  const int kMaxRowBlocks;
+  const int64 kMaxRowBlocks;
   // row/column block sizes.
   const vector<int> blocks_;
 
@@ -100,7 +101,8 @@ class BlockRandomAccessSparseMatrix : public BlockRandomAccessMatrix {
   // The underlying matrix object which actually stores the cells.
   scoped_ptr<TripletSparseMatrix> tsm_;
 
-  DISALLOW_COPY_AND_ASSIGN(BlockRandomAccessSparseMatrix);
+  friend class BlockRandomAccessSparseMatrixTest;
+  CERES_DISALLOW_COPY_AND_ASSIGN(BlockRandomAccessSparseMatrix);
 };
 
 }  // namespace internal

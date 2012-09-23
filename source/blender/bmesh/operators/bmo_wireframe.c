@@ -34,7 +34,7 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-BMLoop *bm_edge_tag_faceloop(BMEdge *e)
+static BMLoop *bm_edge_tag_faceloop(BMEdge *e)
 {
 	BMLoop *l, *l_first;
 

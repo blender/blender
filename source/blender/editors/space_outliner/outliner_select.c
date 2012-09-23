@@ -433,8 +433,11 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 	
 	if (set) {
 		if (!(bone->flag & BONE_HIDDEN_P)) {
-			if (set == 2) ED_pose_deselectall(OBACT, 2);  // 2 is clear active tag
-			else ED_pose_deselectall(OBACT, 0);
+			Object *ob = OBACT;
+			if (ob) {
+				if (set == 2) ED_pose_deselectall(ob, 2);  // 2 is clear active tag
+				else ED_pose_deselectall(ob, 0);
+			}
 			
 			if (set == 2 && (bone->flag & BONE_SELECTED)) {
 				bone->flag &= ~BONE_SELECTED;
@@ -444,7 +447,7 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 				arm->act_bone = bone;
 			}
 			
-			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, OBACT);
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, ob);
 		}
 	}
 	else {

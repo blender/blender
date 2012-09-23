@@ -175,6 +175,7 @@ class HuberLoss : public LossFunction {
  public:
   explicit HuberLoss(double a) : a_(a), b_(a * a) { }
   virtual void Evaluate(double, double*) const;
+
  private:
   const double a_;
   // b = a^2.
@@ -190,6 +191,7 @@ class SoftLOneLoss : public LossFunction {
  public:
   explicit SoftLOneLoss(double a) : b_(a * a), c_(1 / b_) { }
   virtual void Evaluate(double, double*) const;
+
  private:
   // b = a^2.
   const double b_;
@@ -206,11 +208,84 @@ class CauchyLoss : public LossFunction {
  public:
   explicit CauchyLoss(double a) : b_(a * a), c_(1 / b_) { }
   virtual void Evaluate(double, double*) const;
+
  private:
   // b = a^2.
   const double b_;
   // c = 1 / a^2.
   const double c_;
+};
+
+// Loss that is capped beyond a certain level using the arc-tangent function.
+// The scaling parameter 'a' determines the level where falloff occurs.
+// For costs much smaller than 'a', the loss function is linear and behaves like
+// TrivialLoss, and for values much larger than 'a' the value asymptotically
+// approaches the constant value of a * PI / 2.
+//
+//   rho(s) = a atan(s / a).
+//
+// At s = 0: rho = [0, 1, 0].
+class ArctanLoss : public LossFunction {
+ public:
+  explicit ArctanLoss(double a) : a_(a), b_(1 / (a * a)) { }
+  virtual void Evaluate(double, double*) const;
+
+ private:
+  const double a_;
+  // b = 1 / a^2.
+  const double b_;
+};
+
+// Loss function that maps to approximately zero cost in a range around the
+// origin, and reverts to linear in error (quadratic in cost) beyond this range.
+// The tolerance parameter 'a' sets the nominal point at which the
+// transition occurs, and the transition size parameter 'b' sets the nominal
+// distance over which most of the transition occurs. Both a and b must be
+// greater than zero, and typically b will be set to a fraction of a.
+// The slope rho'[s] varies smoothly from about 0 at s <= a - b to
+// about 1 at s >= a + b.
+//
+// The term is computed as:
+//
+//   rho(s) = b log(1 + exp((s - a) / b)) - c0.
+//
+// where c0 is chosen so that rho(0) == 0
+//
+//   c0 = b log(1 + exp(-a / b)
+//
+// This has the following useful properties:
+//
+//   rho(s) == 0               for s = 0
+//   rho'(s) ~= 0              for s << a - b
+//   rho'(s) ~= 1              for s >> a + b
+//   rho''(s) > 0              for all s
+//
+// In addition, all derivatives are continuous, and the curvature is
+// concentrated in the range a - b to a + b.
+//
+// At s = 0: rho = [0, ~0, ~0].
+class TolerantLoss : public LossFunction {
+ public:
+  explicit TolerantLoss(double a, double b);
+  virtual void Evaluate(double, double*) const;
+
+ private:
+  const double a_, b_, c_;
+};
+
+// Composition of two loss functions.  The error is the result of first
+// evaluating g followed by f to yield the composition f(g(s)).
+// The loss functions must not be NULL.
+class ComposedLoss : public LossFunction {
+ public:
+  explicit ComposedLoss(const LossFunction* f, Ownership ownership_f,
+                        const LossFunction* g, Ownership ownership_g);
+  virtual ~ComposedLoss();
+  virtual void Evaluate(double, double*) const;
+
+ private:
+  internal::scoped_ptr<const LossFunction> f_, g_;
+  const Ownership ownership_f_, ownership_g_;
 };
 
 // The discussion above has to do with length scaling: it affects the space
@@ -249,7 +324,7 @@ class ScaledLoss : public LossFunction {
   internal::scoped_ptr<const LossFunction> rho_;
   const double a_;
   const Ownership ownership_;
-  DISALLOW_COPY_AND_ASSIGN(ScaledLoss);
+  CERES_DISALLOW_COPY_AND_ASSIGN(ScaledLoss);
 };
 
 // Sometimes after the optimization problem has been constructed, we
@@ -314,7 +389,7 @@ class LossFunctionWrapper : public LossFunction {
  private:
   internal::scoped_ptr<const LossFunction> rho_;
   Ownership ownership_;
-  DISALLOW_COPY_AND_ASSIGN(LossFunctionWrapper);
+  CERES_DISALLOW_COPY_AND_ASSIGN(LossFunctionWrapper);
 };
 
 }  // namespace ceres

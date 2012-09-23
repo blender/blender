@@ -64,7 +64,7 @@ static int find_nearest_diff_point(const bContext *C, Mask *mask, const float no
 	MaskLayer *masklay, *point_masklay;
 	MaskSpline *point_spline;
 	MaskSplinePoint *point = NULL;
-	float dist, co[2];
+	float dist = FLT_MAX, co[2];
 	int width, height;
 	float u;
 	float scalex, scaley;
@@ -125,7 +125,7 @@ static int find_nearest_diff_point(const bContext *C, Mask *mask, const float no
 
 						cur_dist = dist_to_line_segment_v2(co, a, b);
 
-						if (point == NULL || cur_dist < dist) {
+						if (cur_dist < dist) {
 							if (tangent)
 								sub_v2_v2v2(tangent, &diff_points[2 * i + 2], &diff_points[2 * i]);
 

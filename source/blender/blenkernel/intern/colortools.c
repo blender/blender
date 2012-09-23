@@ -49,6 +49,7 @@
 #include "BKE_fcurve.h"
 
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -174,6 +175,7 @@ void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], con
 	}
 
 	curvemapping_set_black_white_ex(cumap->black, cumap->white, cumap->bwmul);
+	cumap->changed_timestamp++;
 }
 
 /* ***************** operations on single curve ************* */
@@ -260,7 +262,7 @@ CurveMapPoint *curvemap_insert(CurveMap *cuma, float x, float y)
 	return newcmp;
 }
 
-void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
+void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 {
 	if (cuma->curve)
 		MEM_freeN(cuma->curve);
@@ -479,7 +481,7 @@ static float curvemap_calc_extend(const CurveMap *cuma, float x, const float fir
 }
 
 /* only creates a table for a single channel in CurveMapping */
-static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
+static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
 {
 	CurveMapPoint *cmp = cuma->curve;
 	BezTriple *bezt;
@@ -677,7 +679,7 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 	CurveMap *cuma = cumap->cm + cumap->cur;
 	CurveMapPoint *cmp = cuma->curve;
 	rctf *clipr = &cumap->clipr;
-	float thresh = 0.01f * BLI_RCT_SIZE_X(clipr);
+	float thresh = 0.01f * BLI_rctf_size_x(clipr);
 	float dx = 0.0f, dy = 0.0f;
 	int a;
 
@@ -996,7 +998,8 @@ static void save_sample_line(Scopes *scopes, const int idx, const float fx, cons
 	}
 }
 
-void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const short use_color_management)
+void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
+                                      const ColorManagedDisplaySettings *display_settings)
 {
 	int i, x, y;
 	float *fp;
@@ -1008,12 +1011,17 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const short 
 	int y1 = 0.5f + hist->co[0][1] * ibuf->y;
 	int y2 = 0.5f + hist->co[1][1] * ibuf->y;
 
+	struct ColormanageProcessor *cm_processor = NULL;
+
 	hist->channels = 3;
 	hist->x_resolution = 256;
 	hist->xmax = 1.0f;
 	/* hist->ymax = 1.0f; */ /* now do this on the operator _only_ */
 
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return;
+
+	if (ibuf->rect_float)
+		cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
 
 	/* persistent draw */
 	hist->flag |= HISTO_FLAG_SAMPLELINE; /* keep drawing the flag after */
@@ -1029,10 +1037,8 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const short 
 			if (ibuf->rect_float) {
 				fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
 
-				if (use_color_management)
-					linearrgb_to_srgb_v3_v3(rgb, fp);
-				else
-					copy_v3_v3(rgb, fp);
+				copy_v3_v3(rgb, fp);
+				IMB_colormanagement_processor_apply_v3(cm_processor, rgb);
 
 				hist->data_luma[i]  = rgb_to_luma(rgb);
 				hist->data_r[i]     = rgb[0];
@@ -1050,9 +1056,13 @@ void BKE_histogram_update_sample_line(Histogram *hist, ImBuf *ibuf, const short 
 			}
 		}
 	}
+
+	if (cm_processor)
+		IMB_colormanagement_processor_free(cm_processor);
 }
 
-void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
+void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
+                   const ColorManagedDisplaySettings *display_settings)
 {
 	int x, y, c;
 	unsigned int n, nl;
@@ -1064,6 +1074,8 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	float rgba[4], ycc[3], luma;
 	int ycc_mode = -1;
 	const short is_float = (ibuf->rect_float != NULL);
+
+	struct ColormanageProcessor *cm_processor = NULL;
 
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return;
 
@@ -1134,6 +1146,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	else
 		rc = (unsigned char *)ibuf->rect;
 
+	if (ibuf->rect_float)
+		cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
+
 	for (y = 0; y < ibuf->y; y++) {
 		if (savedlines < scopes->sample_lines && y >= ((savedlines) * ibuf->y) / (scopes->sample_lines + 1)) {
 			saveline = 1;
@@ -1144,11 +1159,8 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 		for (x = 0; x < ibuf->x; x++) {
 
 			if (is_float) {
-				if (use_color_management)
-					linearrgb_to_srgb_v3_v3(rgba, rf);
-				else
-					copy_v3_v3(rgba, rf);
-				rgba[3] = rf[3];
+				copy_v4_v4(rgba, rf);
+				IMB_colormanagement_processor_apply_v4(cm_processor, rgba);
 			}
 			else {
 				for (c = 0; c < 4; c++)
@@ -1219,6 +1231,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	MEM_freeN(bin_b);
 	MEM_freeN(bin_a);
 
+	if (cm_processor)
+		IMB_colormanagement_processor_free(cm_processor);
+
 	scopes->ok = 1;
 }
 
@@ -1256,4 +1271,59 @@ void scopes_new(Scopes *scopes)
 	scopes->waveform_2 = NULL;
 	scopes->waveform_3 = NULL;
 	scopes->vecscope = NULL;
+}
+
+void BKE_color_managed_display_settings_init(ColorManagedDisplaySettings *settings)
+{
+	const char *display_name = IMB_colormanagement_display_get_default_name();
+
+	BLI_strncpy(settings->display_device, display_name, sizeof(settings->display_device));
+}
+
+void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_settings,
+                                             const ColorManagedDisplaySettings *settings)
+{
+	BLI_strncpy(new_settings->display_device, settings->display_device, sizeof(new_settings->display_device));
+}
+
+void BKE_color_managed_view_settings_init(ColorManagedViewSettings *settings)
+{
+	/* OCIO_TODO: use default view transform here when OCIO is completely integrated
+	*             and proper versioning stuff is added.
+	*             for now use NONE to be compatible with all current files
+	*/
+	BLI_strncpy(settings->view_transform, "Default", sizeof(settings->view_transform));
+
+	settings->gamma = 1.0f;
+	settings->exposure = 0.0f;
+}
+
+void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,
+                                          const ColorManagedViewSettings *settings)
+{
+	BLI_strncpy(new_settings->view_transform, settings->view_transform, sizeof(new_settings->view_transform));
+
+	new_settings->flag = settings->flag;
+	new_settings->exposure = settings->exposure;
+	new_settings->gamma = settings->gamma;
+
+	if (settings->curve_mapping)
+		new_settings->curve_mapping = curvemapping_copy(settings->curve_mapping);
+}
+
+void BKE_color_managed_view_settings_free(ColorManagedViewSettings *settings)
+{
+	if (settings->curve_mapping)
+		curvemapping_free(settings->curve_mapping);
+}
+
+void BKE_color_managed_colorspace_settings_init(ColorManagedColorspaceSettings *colorspace_settings)
+{
+	BLI_strncpy(colorspace_settings->name, "", sizeof(colorspace_settings->name));
+}
+
+void BKE_color_managed_colorspace_settings_copy(ColorManagedColorspaceSettings *colorspace_settings,
+                                                const ColorManagedColorspaceSettings *settings)
+{
+	BLI_strncpy(colorspace_settings->name, settings->name, sizeof(colorspace_settings->name));
 }

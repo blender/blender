@@ -172,10 +172,10 @@ PyAttributeDef KX_ParentActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_ParentActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_ParentActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_ParentActuator* actuator = static_cast<KX_ParentActuator*>(self);
-	if (!actuator->m_ob)	
+	if (!actuator->m_ob)
 		Py_RETURN_NONE;
 	else
 		return actuator->m_ob->GetProxy();
@@ -190,7 +190,7 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_ob != NULL)
-		actuator->m_ob->UnregisterActuator(actuator);	
+		actuator->m_ob->UnregisterActuator(actuator);
 
 	actuator->m_ob = (SCA_IObject*) gameobj;
 		

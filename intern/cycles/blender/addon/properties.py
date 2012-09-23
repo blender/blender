@@ -242,11 +242,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=1024,
                 )
 
-        cls.resolution_divider = IntProperty(
-                name="Resolution Divider",
-                description="For viewport render, the number of lower resolutions to render before the full resolution",
-                min=1, max=512,
-                default=4,
+        cls.preview_start_resolution = IntProperty(
+                name="Start Resolution",
+                description="Resolution to start rendering preview at, progressively increasing it to the full viewport size",
+                min=8, max=16384,
+                default=64,
                 )
 
         cls.debug_reset_timeout = FloatProperty(

@@ -120,11 +120,12 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_CLIP_EVENTS    8192    /* stop handling mouse events */
 
 /* uiPopupBlockHandle->menuretval */
-#define UI_RETURN_CANCEL    1       /* cancel all menus cascading */
-#define UI_RETURN_OK        2       /* choice made */
-#define UI_RETURN_OUT       4       /* left the menu */
-#define UI_RETURN_UPDATE    8       /* update the button that opened */
-#define UI_RETURN_POPUP_OK  16      /* popup is ok to be handled */
+#define UI_RETURN_CANCEL     1       /* cancel all menus cascading */
+#define UI_RETURN_OK         2       /* choice made */
+#define UI_RETURN_OUT        4       /* left the menu */
+#define UI_RETURN_OUT_PARENT 8       /* let the parent handle this event */
+#define UI_RETURN_UPDATE     16      /* update the button that opened */
+#define UI_RETURN_POPUP_OK   32      /* popup is ok to be handled */
 
 /* block->flag bits 12-15 are identical to but->flag bits */
 
@@ -810,8 +811,10 @@ void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, const char
 void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int value_slider, int lock, int lock_luminosity, int cubic);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
                       PointerRNA *used_ptr, const char *used_propname, int active_layer);
+void uiTemplateGameStates(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
+                      PointerRNA *used_ptr, const char *used_propname, int active_state);
 void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact);
-void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr);
+void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, int color_management);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);
@@ -830,6 +833,9 @@ void uiTemplateTextureShow(uiLayout *layout, struct bContext *C, struct PointerR
 void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact);
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int cmpact);
+
+void uiTemplateColorspaceSettings(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);
+void uiTemplateColormanagedViewSettings(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname);
 
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);

@@ -386,7 +386,7 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey)
 
 void IMB_moviecache_free(MovieCache *cache)
 {
-	PRINT("%s: create '%s' free\n", __func__, cache->name);
+	PRINT("%s: cache '%s' free\n", __func__, cache->name);
 
 	BLI_ghash_free(cache->hash, moviecache_keyfree, moviecache_valfree);
 

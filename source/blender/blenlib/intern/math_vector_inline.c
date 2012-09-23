@@ -724,6 +724,15 @@ MINLINE int equals_v4v4(const float v1[4], const float v2[4])
 	return ((v1[0] == v2[0]) && (v1[1] == v2[1]) && (v1[2] == v2[2]) && (v1[3] == v2[3]));
 }
 
+MINLINE int compare_v2v2(const float v1[2], const float v2[2], const float limit)
+{
+	if (fabsf(v1[0] - v2[0]) < limit)
+		if (fabsf(v1[1] - v2[1]) < limit)
+			return 1;
+
+	return 0;
+}
+
 MINLINE int compare_v3v3(const float v1[3], const float v2[3], const float limit)
 {
 	if (fabsf(v1[0] - v2[0]) < limit)

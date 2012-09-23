@@ -482,7 +482,7 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 	}
 
 	/* shape key modifier, not yet for curves */
-	if (ELEM(ob->type, OB_MESH, OB_LATTICE) && ob_get_key(ob)) {
+	if (ELEM(ob->type, OB_MESH, OB_LATTICE) && BKE_key_from_object(ob)) {
 		if (ob->type == OB_MESH && (ob->shapeflag & OB_SHAPE_EDIT_MODE))
 			smd.modifier.mode |= eModifierMode_Editmode | eModifierMode_OnCage;
 		else

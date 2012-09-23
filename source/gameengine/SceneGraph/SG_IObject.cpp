@@ -70,7 +70,7 @@ AddSGController(
 	m_SGcontrollers.push_back(cont);
 }
 
-	void				
+	void
 SG_IObject::
 RemoveSGController(
 	SG_Controller* cont

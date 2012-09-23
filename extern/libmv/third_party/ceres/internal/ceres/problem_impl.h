@@ -118,7 +118,7 @@ class ProblemImpl {
   map<double*, ParameterBlock*> parameter_block_map_;
 
   internal::scoped_ptr<internal::Program> program_;
-  DISALLOW_COPY_AND_ASSIGN(ProblemImpl);
+  CERES_DISALLOW_COPY_AND_ASSIGN(ProblemImpl);
 };
 
 }  // namespace internal

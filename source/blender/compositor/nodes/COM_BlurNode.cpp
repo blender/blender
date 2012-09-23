@@ -57,7 +57,7 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		this->getInputSocket(1)->relinkConnections(operationfgb->getInputSocket(1), 1, graph);
 		this->getOutputSocket(0)->relinkConnections(operationfgb->getOutputSocket(0));
 		graph->addOperation(operationfgb);
-		addPreviewOperation(graph, operationfgb->getOutputSocket());
+		addPreviewOperation(graph, context, operationfgb->getOutputSocket());
 	}
 	else if (editorNode->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) {
 		MathAddOperation *clamp = new MathAddOperation();
@@ -97,7 +97,7 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		addLink(graph, operationy->getOutputSocket(), operation->getInputSocket(1));
 		graph->addOperation(operation);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-		addPreviewOperation(graph, operation->getOutputSocket());
+		addPreviewOperation(graph, context, operation->getOutputSocket());
 	}
 	else if (!data->bokeh) {
 		GaussianXBlurOperation *operationx = new GaussianXBlurOperation();
@@ -115,7 +115,7 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		graph->addOperation(operationy);
 		addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
 		addLink(graph, operationx->getInputSocket(1)->getConnection()->getFromSocket(), operationy->getInputSocket(1));
-		addPreviewOperation(graph, operationy->getOutputSocket());
+		addPreviewOperation(graph, context, operationy->getOutputSocket());
 
 		if (!connectedSizeSocket) {
 			operationx->setSize(size);
@@ -131,7 +131,7 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		operation->setQuality(quality);
 		graph->addOperation(operation);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-		addPreviewOperation(graph, operation->getOutputSocket());
+		addPreviewOperation(graph, context, operation->getOutputSocket());
 
 		if (!connectedSizeSocket) {
 			operation->setSize(size);

@@ -103,7 +103,7 @@ public:
 		const MT_Quaternion &q
 	) {
 		setRotation(q);
-	};
+	}
 
 	/** 
 	 * Accessors
@@ -118,7 +118,7 @@ public:
 	vector(
 	) const {
 		return m_v;
-	};
+	}
 
 	/** 
 	 * Set the exponential map from a quaternion

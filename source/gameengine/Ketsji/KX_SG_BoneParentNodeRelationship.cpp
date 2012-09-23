@@ -51,14 +51,14 @@ KX_BoneParentRelation::
 New(Bone* bone
 ) {
 	return new KX_BoneParentRelation(bone);
-}		
+}
 
 	bool
 KX_BoneParentRelation::
 UpdateChildCoordinates(
 	SG_Spatial * child,
 	const SG_Spatial * parent,
-	bool& parentUpdated	
+	bool& parentUpdated
 ) {
 	MT_assert(child != NULL);
 	
@@ -71,7 +71,7 @@ UpdateChildCoordinates(
 	// we don't know if the armature has been updated or not, assume yes
 	parentUpdated = true;
 
-	// the childs world locations which we will update.	
+	// the childs world locations which we will update.
 	
 	MT_Vector3 child_w_scale;
 	MT_Point3 child_w_pos;

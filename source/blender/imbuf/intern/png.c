@@ -47,6 +47,9 @@
 #include "IMB_metadata.h"
 #include "IMB_filetype.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 typedef struct PNGReadStruct {
 	unsigned char *data;
 	unsigned int size;
@@ -302,7 +305,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	return(1);
 }
 
-ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
+ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
 	png_structp png_ptr;
@@ -317,10 +320,12 @@ ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 	unsigned char *from, *to;
 	unsigned short *from16;
 	float *to_float;
-	float tmp[4];
 	int i, bytesperpixel;
 
 	if (imb_is_a_png(mem) == 0) return(NULL);
+
+	/* both 8 and 16 bit PNGs are default to standard byte colorspace */
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
 	                                 NULL, NULL, NULL);
@@ -389,10 +394,6 @@ ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 
 	if (ibuf) {
 		ibuf->ftype = PNG;
-		if (bit_depth == 16)
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
-		else
-			ibuf->profile = IB_PROFILE_SRGB;
 
 		if (png_get_valid(png_ptr, info_ptr, PNG_INFO_pHYs)) {
 			int unit_type;
@@ -443,37 +444,33 @@ ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 			switch (bytesperpixel) {
 				case 4:
 					for (i = ibuf->x * ibuf->y; i > 0; i--) {
-						tmp[0] = from16[0] / 65535.0;
-						tmp[1] = from16[1] / 65535.0;
-						tmp[2] = from16[2] / 65535.0;
-						tmp[3] = from16[3] / 65535.0;
-						srgb_to_linearrgb_v4(to_float, tmp);
+						to_float[0] = from16[0] / 65535.0;
+						to_float[1] = from16[1] / 65535.0;
+						to_float[2] = from16[2] / 65535.0;
+						to_float[3] = from16[3] / 65535.0;
 						to_float += 4; from16 += 4;
 					}
 					break;
 				case 3:
 					for (i = ibuf->x * ibuf->y; i > 0; i--) {
-						tmp[0] = from16[0] / 65535.0;
-						tmp[1] = from16[1] / 65535.0;
-						tmp[2] = from16[2] / 65535.0;
-						tmp[3] = 1.0;
-						srgb_to_linearrgb_v4(to_float, tmp);
+						to_float[0] = from16[0] / 65535.0;
+						to_float[1] = from16[1] / 65535.0;
+						to_float[2] = from16[2] / 65535.0;
+						to_float[3] = 1.0;
 						to_float += 4; from16 += 3;
 					}
 					break;
 				case 2:
 					for (i = ibuf->x * ibuf->y; i > 0; i--) {
-						tmp[0] = tmp[1] = tmp[2] = from16[0] / 65535.0;
-						tmp[3] = from16[1] / 65535.0;
-						srgb_to_linearrgb_v4(to_float, tmp);
+						to_float[0] = to_float[1] = to_float[2] = from16[0] / 65535.0;
+						to_float[3] = from16[1] / 65535.0;
 						to_float += 4; from16 += 2;
 					}
 					break;
 				case 1:
 					for (i = ibuf->x * ibuf->y; i > 0; i--) {
-						tmp[0] = tmp[1] = tmp[2] = from16[0] / 65535.0;
-						tmp[3] = 1.0;
-						srgb_to_linearrgb_v4(to_float, tmp);
+						to_float[0] = to_float[1] = to_float[2] = from16[0] / 65535.0;
+						to_float[3] = 1.0;
 						to_float += 4; from16++;
 					}
 					break;

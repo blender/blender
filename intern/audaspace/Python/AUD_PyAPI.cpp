@@ -80,7 +80,7 @@ typedef enum
 
 // ====================================================================
 
-static PyObject* AUDError;
+static PyObject *AUDError;
 
 static const char* device_not_3d_error = "Device is not a 3D device!";
 
@@ -92,7 +92,7 @@ Factory_dealloc(Factory* self)
 	if(self->factory)
 		delete reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory);
 	Py_XDECREF(self->child_list);
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 static PyObject *
@@ -139,7 +139,7 @@ PyDoc_STRVAR(M_aud_Factory_sine_doc,
 			 ":rtype: :class:`Factory`");
 
 static PyObject *
-Factory_sine(PyTypeObject* type, PyObject* args)
+Factory_sine(PyTypeObject* type, PyObject *args)
 {
 	float frequency;
 	double rate = 44100;
@@ -179,7 +179,7 @@ PyDoc_STRVAR(M_aud_Factory_file_doc,
 			 "playback of that factory.");
 
 static PyObject *
-Factory_file(PyTypeObject* type, PyObject* args)
+Factory_file(PyTypeObject* type, PyObject *args)
 {
 	const char* filename = NULL;
 
@@ -218,7 +218,7 @@ PyDoc_STRVAR(M_aud_Factory_lowpass_doc,
 			 ":rtype: :class:`Factory`");
 
 static PyObject *
-Factory_lowpass(Factory* self, PyObject* args)
+Factory_lowpass(Factory* self, PyObject *args)
 {
 	float frequency;
 	float Q = 0.5;
@@ -232,7 +232,7 @@ Factory_lowpass(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -260,7 +260,7 @@ PyDoc_STRVAR(M_aud_Factory_delay_doc,
 			 ":rtype: :class:`Factory`");
 
 static PyObject *
-Factory_delay(Factory* self, PyObject* args)
+Factory_delay(Factory* self, PyObject *args)
 {
 	float delay;
 
@@ -273,7 +273,7 @@ Factory_delay(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -301,7 +301,7 @@ PyDoc_STRVAR(M_aud_Factory_join_doc,
 			 "(channels and samplerate).");
 
 static PyObject *
-Factory_join(Factory* self, PyObject* object)
+Factory_join(Factory* self, PyObject *object)
 {
 	PyTypeObject* type = Py_TYPE(self);
 
@@ -346,7 +346,7 @@ PyDoc_STRVAR(M_aud_Factory_highpass_doc,
 			 ":rtype: :class:`Factory`");
 
 static PyObject *
-Factory_highpass(Factory* self, PyObject* args)
+Factory_highpass(Factory* self, PyObject *args)
 {
 	float frequency;
 	float Q = 0.5;
@@ -360,7 +360,7 @@ Factory_highpass(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -388,7 +388,7 @@ PyDoc_STRVAR(M_aud_Factory_limit_doc,
 			 ":rtype: :class:`Factory`");
 
 static PyObject *
-Factory_limit(Factory* self, PyObject* args)
+Factory_limit(Factory* self, PyObject *args)
 {
 	float start, end;
 
@@ -401,7 +401,7 @@ Factory_limit(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -432,7 +432,7 @@ PyDoc_STRVAR(M_aud_Factory_pitch_doc,
 			 ":attr:`Handle.pitch` instead.");
 
 static PyObject *
-Factory_pitch(Factory* self, PyObject* args)
+Factory_pitch(Factory* self, PyObject *args)
 {
 	float factor;
 
@@ -445,7 +445,7 @@ Factory_pitch(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -474,7 +474,7 @@ PyDoc_STRVAR(M_aud_Factory_volume_doc,
 			 ":attr:`Handle.volume` instead.");
 
 static PyObject *
-Factory_volume(Factory* self, PyObject* args)
+Factory_volume(Factory* self, PyObject *args)
 {
 	float volume;
 
@@ -487,7 +487,7 @@ Factory_volume(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -517,7 +517,7 @@ PyDoc_STRVAR(M_aud_Factory_fadein_doc,
 			 ".. note:: Before the fade starts it plays silence.");
 
 static PyObject *
-Factory_fadein(Factory* self, PyObject* args)
+Factory_fadein(Factory* self, PyObject *args)
 {
 	float start, length;
 
@@ -530,7 +530,7 @@ Factory_fadein(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -561,7 +561,7 @@ PyDoc_STRVAR(M_aud_Factory_fadeout_doc,
 			 "the length of the factory is not altered.");
 
 static PyObject *
-Factory_fadeout(Factory* self, PyObject* args)
+Factory_fadeout(Factory* self, PyObject *args)
 {
 	float start, length;
 
@@ -574,7 +574,7 @@ Factory_fadeout(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -603,7 +603,7 @@ PyDoc_STRVAR(M_aud_Factory_loop_doc,
 			 ":attr:`Handle.loop_count` instead.");
 
 static PyObject *
-Factory_loop(Factory* self, PyObject* args)
+Factory_loop(Factory* self, PyObject *args)
 {
 	int loop;
 
@@ -616,7 +616,7 @@ Factory_loop(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -644,7 +644,7 @@ PyDoc_STRVAR(M_aud_Factory_mix_doc,
 			 "(channels and samplerate).");
 
 static PyObject *
-Factory_mix(Factory* self, PyObject* object)
+Factory_mix(Factory* self, PyObject *object)
 {
 	PyTypeObject* type = Py_TYPE(self);
 
@@ -692,7 +692,7 @@ Factory_pingpong(Factory* self)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -731,7 +731,7 @@ Factory_reverse(Factory* self)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -795,7 +795,7 @@ PyDoc_STRVAR(M_aud_Factory_square_doc,
 			 ":rtype: :class:`Factory`");
 
 static PyObject *
-Factory_square(Factory* self, PyObject* args)
+Factory_square(Factory* self, PyObject *args)
 {
 	float threshold = 0;
 
@@ -808,7 +808,7 @@ Factory_square(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -842,10 +842,10 @@ PyDoc_STRVAR(M_aud_Factory_filter_doc,
 			 ":rtype: :class:`Factory`");
 
 static PyObject *
-Factory_filter(Factory* self, PyObject* args)
+Factory_filter(Factory* self, PyObject *args)
 {
-	PyObject* py_b;
-	PyObject* py_a = NULL;
+	PyObject *py_b;
+	PyObject *py_a = NULL;
 	Py_ssize_t py_a_len;
 	Py_ssize_t py_b_len;
 
@@ -868,7 +868,7 @@ Factory_filter(Factory* self, PyObject* args)
 	}
 
 	std::vector<float> a, b;
-	PyObject* py_value;
+	PyObject *py_value;
 	float value;
 
 	for(Py_ssize_t i = 0; i < py_b_len; i++)
@@ -911,7 +911,7 @@ Factory_filter(Factory* self, PyObject* args)
 	if(parent != NULL)
 	{
 		Py_INCREF(self);
-		parent->child_list = (PyObject*)self;
+		parent->child_list = (PyObject *)self;
 
 		try
 		{
@@ -1040,7 +1040,7 @@ Handle_dealloc(Handle* self)
 {
 	if(self->handle)
 		delete reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle);
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 PyDoc_STRVAR(M_aud_Handle_pause_doc,
@@ -1135,7 +1135,7 @@ Handle_get_position(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_position(Handle *self, PyObject* args, void* nothing)
+Handle_set_position(Handle *self, PyObject *args, void* nothing)
 {
 	float position;
 
@@ -1180,7 +1180,7 @@ Handle_get_keep(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_keep(Handle *self, PyObject* args, void* nothing)
+Handle_set_keep(Handle *self, PyObject *args, void* nothing)
 {
 	if(!PyBool_Check(args))
 	{
@@ -1239,7 +1239,7 @@ Handle_get_volume(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_volume(Handle *self, PyObject* args, void* nothing)
+Handle_set_volume(Handle *self, PyObject *args, void* nothing)
 {
 	float volume;
 
@@ -1278,7 +1278,7 @@ Handle_get_pitch(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_pitch(Handle *self, PyObject* args, void* nothing)
+Handle_set_pitch(Handle *self, PyObject *args, void* nothing)
 {
 	float pitch;
 
@@ -1317,7 +1317,7 @@ Handle_get_loop_count(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
+Handle_set_loop_count(Handle *self, PyObject *args, void* nothing)
 {
 	int loops;
 
@@ -1366,7 +1366,7 @@ Handle_get_location(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_location(Handle *self, PyObject* args, void* nothing)
+Handle_set_location(Handle *self, PyObject *args, void* nothing)
 {
 	float x, y, z;
 
@@ -1422,7 +1422,7 @@ Handle_get_velocity(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_velocity(Handle *self, PyObject* args, void* nothing)
+Handle_set_velocity(Handle *self, PyObject *args, void* nothing)
 {
 	float x, y, z;
 
@@ -1478,7 +1478,7 @@ Handle_get_orientation(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_orientation(Handle *self, PyObject* args, void* nothing)
+Handle_set_orientation(Handle *self, PyObject *args, void* nothing)
 {
 	float w, x, y, z;
 
@@ -1533,7 +1533,7 @@ Handle_get_relative(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_relative(Handle *self, PyObject* args, void* nothing)
+Handle_set_relative(Handle *self, PyObject *args, void* nothing)
 {
 	if(!PyBool_Check(args))
 	{
@@ -1591,7 +1591,7 @@ Handle_get_volume_minimum(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_volume_minimum(Handle *self, PyObject* args, void* nothing)
+Handle_set_volume_minimum(Handle *self, PyObject *args, void* nothing)
 {
 	float volume;
 
@@ -1646,7 +1646,7 @@ Handle_get_volume_maximum(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_volume_maximum(Handle *self, PyObject* args, void* nothing)
+Handle_set_volume_maximum(Handle *self, PyObject *args, void* nothing)
 {
 	float volume;
 
@@ -1702,7 +1702,7 @@ Handle_get_distance_reference(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_distance_reference(Handle *self, PyObject* args, void* nothing)
+Handle_set_distance_reference(Handle *self, PyObject *args, void* nothing)
 {
 	float distance;
 
@@ -1758,7 +1758,7 @@ Handle_get_distance_maximum(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_distance_maximum(Handle *self, PyObject* args, void* nothing)
+Handle_set_distance_maximum(Handle *self, PyObject *args, void* nothing)
 {
 	float distance;
 
@@ -1814,7 +1814,7 @@ Handle_get_attenuation(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_attenuation(Handle *self, PyObject* args, void* nothing)
+Handle_set_attenuation(Handle *self, PyObject *args, void* nothing)
 {
 	float factor;
 
@@ -1875,7 +1875,7 @@ Handle_get_cone_angle_inner(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_cone_angle_inner(Handle *self, PyObject* args, void* nothing)
+Handle_set_cone_angle_inner(Handle *self, PyObject *args, void* nothing)
 {
 	float angle;
 
@@ -1930,7 +1930,7 @@ Handle_get_cone_angle_outer(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_cone_angle_outer(Handle *self, PyObject* args, void* nothing)
+Handle_set_cone_angle_outer(Handle *self, PyObject *args, void* nothing)
 {
 	float angle;
 
@@ -1985,7 +1985,7 @@ Handle_get_cone_volume_outer(Handle *self, void* nothing)
 }
 
 static int
-Handle_set_cone_volume_outer(Handle *self, PyObject* args, void* nothing)
+Handle_set_cone_volume_outer(Handle *self, PyObject *args, void* nothing)
 {
 	float volume;
 
@@ -2105,7 +2105,7 @@ Device_dealloc(Device* self)
 {
 	if(self->device)
 		delete reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device);
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 static PyObject *
@@ -2201,8 +2201,8 @@ PyDoc_STRVAR(M_aud_Device_play_doc,
 static PyObject *
 Device_play(Device *self, PyObject *args, PyObject *kwds)
 {
-	PyObject* object;
-	PyObject* keepo = NULL;
+	PyObject *object;
+	PyObject *keepo = NULL;
 
 	bool keep = false;
 
@@ -2402,7 +2402,7 @@ Device_get_volume(Device *self, void* nothing)
 }
 
 static int
-Device_set_volume(Device *self, PyObject* args, void* nothing)
+Device_set_volume(Device *self, PyObject *args, void* nothing)
 {
 	float volume;
 
@@ -2449,7 +2449,7 @@ Device_get_listener_location(Device *self, void* nothing)
 }
 
 static int
-Device_set_listener_location(Device *self, PyObject* args, void* nothing)
+Device_set_listener_location(Device *self, PyObject *args, void* nothing)
 {
 	float x, y, z;
 
@@ -2504,7 +2504,7 @@ Device_get_listener_velocity(Device *self, void* nothing)
 }
 
 static int
-Device_set_listener_velocity(Device *self, PyObject* args, void* nothing)
+Device_set_listener_velocity(Device *self, PyObject *args, void* nothing)
 {
 	float x, y, z;
 
@@ -2559,7 +2559,7 @@ Device_get_listener_orientation(Device *self, void* nothing)
 }
 
 static int
-Device_set_listener_orientation(Device *self, PyObject* args, void* nothing)
+Device_set_listener_orientation(Device *self, PyObject *args, void* nothing)
 {
 	float w, x, y, z;
 
@@ -2614,7 +2614,7 @@ Device_get_speed_of_sound(Device *self, void* nothing)
 }
 
 static int
-Device_set_speed_of_sound(Device *self, PyObject* args, void* nothing)
+Device_set_speed_of_sound(Device *self, PyObject *args, void* nothing)
 {
 	float speed;
 
@@ -2670,7 +2670,7 @@ Device_get_doppler_factor(Device *self, void* nothing)
 }
 
 static int
-Device_set_doppler_factor(Device *self, PyObject* args, void* nothing)
+Device_set_doppler_factor(Device *self, PyObject *args, void* nothing)
 {
 	float factor;
 
@@ -2724,7 +2724,7 @@ Device_get_distance_model(Device *self, void* nothing)
 }
 
 static int
-Device_set_distance_model(Device *self, PyObject* args, void* nothing)
+Device_set_distance_model(Device *self, PyObject *args, void* nothing)
 {
 	int model;
 
@@ -2833,7 +2833,7 @@ Factory_empty()
 }
 
 Factory*
-checkFactory(PyObject* factory)
+checkFactory(PyObject *factory)
 {
 	if(!PyObject_TypeCheck(factory, &FactoryType))
 	{
@@ -2862,7 +2862,7 @@ static struct PyModuleDef audmodule = {
 PyMODINIT_FUNC
 PyInit_aud(void)
 {
-	PyObject* m;
+	PyObject *m;
 
 	if(PyType_Ready(&FactoryType) < 0)
 		return NULL;
@@ -2878,13 +2878,13 @@ PyInit_aud(void)
 		return NULL;
 
 	Py_INCREF(&FactoryType);
-	PyModule_AddObject(m, "Factory", (PyObject*)&FactoryType);
+	PyModule_AddObject(m, "Factory", (PyObject *)&FactoryType);
 
 	Py_INCREF(&DeviceType);
-	PyModule_AddObject(m, "Device", (PyObject*)&DeviceType);
+	PyModule_AddObject(m, "Device", (PyObject *)&DeviceType);
 
 	Py_INCREF(&HandleType);
-	PyModule_AddObject(m, "Handle", (PyObject*)&HandleType);
+	PyModule_AddObject(m, "Handle", (PyObject *)&HandleType);
 
 	AUDError = PyErr_NewException("aud.error", NULL, NULL);
 	Py_INCREF(AUDError);

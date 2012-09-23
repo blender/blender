@@ -31,6 +31,7 @@
 #ifndef CERES_INTERNAL_PROGRAM_H_
 #define CERES_INTERNAL_PROGRAM_H_
 
+#include <string>
 #include <vector>
 #include "ceres/internal/port.h"
 
@@ -71,8 +72,13 @@ class Program {
   bool StateVectorToParameterBlocks(const double *state);
   void ParameterBlocksToStateVector(double *state) const;
 
-  // Copy internal state out to the user's parameters.
+  // Copy internal state to the user's parameters.
   void CopyParameterBlockStateToUserState();
+
+  // Set the parameter block pointers to the user pointers. Since this
+  // runs parameter block set state internally, which may call local
+  // parameterizations, this can fail. False is returned on failure.
+  bool SetParameterBlockStatePtrsToUserStatePtrs();
 
   // Update a state vector for the program given a delta.
   bool Plus(const double* state,
@@ -103,16 +109,11 @@ class Program {
   int MaxScratchDoublesNeededForEvaluate() const;
   int MaxDerivativesPerResidualBlock() const;
   int MaxParametersPerResidualBlock() const;
+  int MaxResidualsPerResidualBlock() const;
 
-  // Evaluate the cost and maybe the residuals for the program. If residuals is
-  // NULL, then residuals are not calculated. If the jacobian is needed, instead
-  // use the various evaluators (e.g. dense_evaluator.h).
-  //
-  // This is a trivial implementation of evaluate not intended for use in the
-  // core solving loop. The other evaluators, which support constructing the
-  // jacobian in addition to the cost and residuals, are considerably
-  // complicated by the need to construct the jacobian.
-  bool Evaluate(double* cost, double* residuals);
+  // A human-readable dump of the parameter blocks for debugging.
+  // TODO(keir): If necessary, also dump the residual blocks.
+  string ToString() const;
 
  private:
   // The Program does not own the ParameterBlock or ResidualBlock objects.

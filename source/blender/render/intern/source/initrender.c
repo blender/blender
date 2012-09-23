@@ -610,8 +610,8 @@ void initparts(Render *re, int do_crop)
 		}
 		else disprect.ymax = ymaxb;
 		
-		rectx = BLI_RCT_SIZE_X(&disprect);
-		recty = BLI_RCT_SIZE_Y(&disprect);
+		rectx = BLI_rcti_size_x(&disprect);
+		recty = BLI_rcti_size_y(&disprect);
 		
 		/* so, now can we add this part? */
 		if (rectx > 0 && recty > 0) {

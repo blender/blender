@@ -53,12 +53,12 @@ class IK_QJacobianSolver
 {
 public:
 	IK_QJacobianSolver();
-	~IK_QJacobianSolver() {};
+	~IK_QJacobianSolver() {}
 
 	// setup pole vector constraint
 	void SetPoleVectorConstraint(IK_QSegment *tip, MT_Vector3& goal,
 		MT_Vector3& polegoal, float poleangle, bool getangle);
-	float GetPoleAngle() { return m_poleangle; };
+	float GetPoleAngle() { return m_poleangle; }
 
 	// call setup once before solving, if it fails don't solve
 	bool Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks);

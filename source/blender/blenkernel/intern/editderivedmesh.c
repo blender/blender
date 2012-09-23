@@ -152,7 +152,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 		/* don't consider two-edged faces */
-		if (efa->len < 3) {
+		if (UNLIKELY(efa->len < 3)) {
 			/* do nothing */
 		}
 

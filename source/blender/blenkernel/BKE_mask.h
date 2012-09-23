@@ -131,6 +131,7 @@ void BKE_mask_get_handle_point_adjacent(struct MaskSpline *spline, struct MaskSp
 void BKE_mask_layer_calc_handles(struct MaskLayer *masklay);
 void BKE_mask_layer_calc_handles_deform(struct MaskLayer *masklay);
 void BKE_mask_calc_handles(struct Mask *mask);
+void BKE_mask_update_deform(struct Mask *mask);
 void BKE_mask_spline_ensure_deform(struct MaskSpline *spline);
 
 /* animation */
@@ -163,10 +164,10 @@ void BKE_mask_layer_shape_changed_remove(struct MaskLayer *masklay, int index, i
 
 int BKE_mask_get_duration(struct Mask *mask);
 
-#define MASKPOINT_ISSEL_ANY(p)          ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT)
+#define MASKPOINT_ISSEL_ANY(p)          ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f3) & SELECT)
 #define MASKPOINT_ISSEL_KNOT(p)         ( (p)->bezt.f2 & SELECT)
-#define MASKPOINT_ISSEL_HANDLE_ONLY(p)  ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) && (((p)->bezt.f2 & SELECT) == 0) )
-#define MASKPOINT_ISSEL_HANDLE(p)       ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) )
+#define MASKPOINT_ISSEL_HANDLE_ONLY(p)  ( (((p)->bezt.f1 | (p)->bezt.f3) & SELECT) && (((p)->bezt.f2 & SELECT) == 0) )
+#define MASKPOINT_ISSEL_HANDLE(p)       ( (((p)->bezt.f1 | (p)->bezt.f3) & SELECT) )
 
 #define MASKPOINT_SEL_ALL(p)    { (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
 #define MASKPOINT_DESEL_ALL(p)  { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f2 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0

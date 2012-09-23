@@ -74,13 +74,6 @@
 #define B_REDR                  1
 #define B_FMODIFIER_REDRAW      20
 
-/* macro for use here to draw background box and set height */
-// XXX for now, roundbox has it's callback func set to NULL to not intercept events
-#define DRAW_BACKDROP(height) \
-	{ \
-		uiDefBut(block, ROUNDBOX, B_REDR, "", -3, yco - height, width + 3, height - 1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
-	} (void)0
-
 /* callback to verify modifier data */
 static void validate_fmodifier_cb(bContext *UNUSED(C), void *fcm_v, void *UNUSED(arg))
 {

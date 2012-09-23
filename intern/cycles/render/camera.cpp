@@ -245,7 +245,7 @@ void Camera::device_free(Device *device, DeviceScene *dscene)
 
 bool Camera::modified(const Camera& cam)
 {
-	return !((shuttertime== cam.shuttertime) &&
+	return !((shuttertime == cam.shuttertime) &&
 		(aperturesize == cam.aperturesize) &&
 		(blades == cam.blades) &&
 		(bladesrotation == cam.bladesrotation) &&

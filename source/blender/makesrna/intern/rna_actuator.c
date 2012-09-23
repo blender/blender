@@ -29,6 +29,7 @@
 
 #include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 #include "DNA_constraint_types.h"
@@ -110,7 +111,7 @@ static StructRNA *rna_Actuator_refine(struct PointerRNA *ptr)
 	}
 }
 
-void rna_Actuator_name_set(PointerRNA *ptr, const char *value)
+static void rna_Actuator_name_set(PointerRNA *ptr, const char *value)
 {
 	bActuator *act = (bActuator *)ptr->data;
 
@@ -530,7 +531,7 @@ static void rna_Actuator_action_action_set(PointerRNA *ptr, PointerRNA value)
 
 #else
 
-void rna_def_actuator(BlenderRNA *brna)
+static void rna_def_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

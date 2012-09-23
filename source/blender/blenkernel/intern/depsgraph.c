@@ -501,7 +501,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 	if (ob->adt)
 		dag_add_driver_relation(ob->adt, dag, node, (ob->type == OB_ARMATURE));  // XXX isdata arg here doesn't give an accurate picture of situation
 		
-	key = ob_get_key(ob);
+	key = BKE_key_from_object(ob);
 	if (key && key->adt)
 		dag_add_driver_relation(key->adt, dag, node, 1);
 
@@ -2650,7 +2650,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 		/* set flags based on ShapeKey */
 		if (idtype == ID_KE) {
 			for (obt = bmain->object.first; obt; obt = obt->id.next) {
-				Key *key = ob_get_key(obt);
+				Key *key = BKE_key_from_object(obt);
 				if (!(ob && obt == ob) && ((ID *)key == id)) {
 					obt->flag |= (OB_RECALC_OB | OB_RECALC_DATA);
 					lib_id_recalc_tag(bmain, &obt->id);

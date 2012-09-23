@@ -28,10 +28,11 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#include <glog/logging.h>
-#include "ceres/internal/eigen.h"
 #include "ceres/local_parameterization.h"
+
+#include "ceres/internal/eigen.h"
 #include "ceres/rotation.h"
+#include "glog/logging.h"
 
 namespace ceres {
 

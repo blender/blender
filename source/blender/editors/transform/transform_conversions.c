@@ -1773,9 +1773,6 @@ void flushTransParticles(TransInfo *t)
 
 /* ********************* mesh ****************** */
 
-/* proportional distance based on connectivity  */
-#define THRESHOLDFACTOR (1.0f - 0.0001f)
-
 /* I did this wrong, it should be a breadth-first search
  * but instead it's a depth-first search, fudged
  * to report shortest distances.  I have no idea how fast
@@ -5170,7 +5167,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* Depending on the lock status, draw necessary views */
 			// fixme... some of this stuff is not good
 			if (ob) {
-				if (ob->pose || ob_get_key(ob))
+				if (ob->pose || BKE_key_from_object(ob))
 					DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 				else
 					DAG_id_tag_update(&ob->id, OB_RECALC_OB);
@@ -5554,8 +5551,8 @@ static void createTransObject(bContext *C, TransInfo *t)
 static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 {
 	/* hold original location */
-	float locxy[2] = {BLI_RCT_CENTER_X(&node->totr),
-	                  BLI_RCT_CENTER_Y(&node->totr)};
+	float locxy[2] = {BLI_rctf_cent_x(&node->totr),
+	                  BLI_rctf_cent_y(&node->totr)};
 
 	copy_v2_v2(td2d->loc, locxy);
 	td2d->loc[2] = 0.0f;
@@ -5722,10 +5719,9 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 	unit_m3(td->smtx);
 }
 
-static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
+static void trackToTransData(const int framenr, TransData *td, TransData2D *td2d,
                              TransDataTracking *tdt, MovieTrackingTrack *track, float aspx, float aspy)
 {
-	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	MovieTrackingMarker *marker = BKE_tracking_marker_ensure(track, framenr);
 
 	tdt->flag = marker->flag;
@@ -5777,7 +5773,6 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
-	MovieTrackingMarker *marker;
 	TransDataTracking *tdt;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	float aspx, aspy;
@@ -5788,8 +5783,6 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-			marker = BKE_tracking_marker_get(track, framenr);
-
 			t->total++; /* offset */
 
 			if (track->flag & SELECT)
@@ -5820,9 +5813,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-			marker = BKE_tracking_marker_get(track, framenr);
-
-			trackToTransData(sc, td, td2d, tdt, track, aspx, aspy);
+			trackToTransData(framenr, td, td2d, tdt, track, aspx, aspy);
 
 			/* offset */
 			td++;
@@ -5845,12 +5836,6 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 				td += 2;
 				td2d += 2;
 				tdt += 2;
-
-				if (marker->flag & MARKER_DISABLED) {
-					td += 3;
-					td2d += 3;
-					tdt += 3;
-				};
 			}
 		}
 

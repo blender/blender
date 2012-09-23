@@ -278,7 +278,7 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			gp_get_3d_reference(p, rvec);
 			
 			/* method taken from editview.c - mouse_cursor() */
-			project_int_noclip(p->ar, rvec, mval_prj);
+			ED_view3d_project_int_noclip(p->ar, rvec, mval_prj);
 			
 			VECSUB2D(mval_f, mval_prj, mval);
 			ED_view3d_win_to_delta(p->ar, mval_f, dvec);
@@ -299,8 +299,8 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			out[1] = (float)(mval[1]) / (float)(p->ar->winy) * 100;
 		}
 		else { /* camera view, use subrect */
-			out[0] = ((mval[0] - p->subrect->xmin) / BLI_RCT_SIZE_X(p->subrect)) * 100;
-			out[1] = ((mval[1] - p->subrect->ymin) / BLI_RCT_SIZE_Y(p->subrect)) * 100;
+			out[0] = ((mval[0] - p->subrect->xmin) / BLI_rctf_size_x(p->subrect)) * 100;
+			out[1] = ((mval[1] - p->subrect->ymin) / BLI_rctf_size_y(p->subrect)) * 100;
 		}
 	}
 }
@@ -808,7 +808,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 	else if (gps->totpoints == 1) {
 		/* get coordinates */
 		if (gps->flag & GP_STROKE_3DSPACE) {
-			project_int(p->ar, &gps->points->x, xyval);
+			ED_view3d_project_int(p->ar, &gps->points->x, xyval);
 			x0 = xyval[0];
 			y0 = xyval[1];
 		}
@@ -821,8 +821,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				y0 = (int)(gps->points->y / 100 * p->ar->winy);
 			}
 			else { /* camera view, use subrect */
-				x0 = (int)((gps->points->x / 100) * BLI_RCT_SIZE_X(p->subrect)) + p->subrect->xmin;
-				y0 = (int)((gps->points->y / 100) * BLI_RCT_SIZE_Y(p->subrect)) + p->subrect->ymin;
+				x0 = (int)((gps->points->x / 100) * BLI_rctf_size_x(p->subrect)) + p->subrect->xmin;
+				y0 = (int)((gps->points->y / 100) * BLI_rctf_size_y(p->subrect)) + p->subrect->ymin;
 			}
 		}
 		
@@ -847,11 +847,11 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			
 			/* get coordinates */
 			if (gps->flag & GP_STROKE_3DSPACE) {
-				project_int(p->ar, &pt1->x, xyval);
+				ED_view3d_project_int(p->ar, &pt1->x, xyval);
 				x0 = xyval[0];
 				y0 = xyval[1];
 				
-				project_int(p->ar, &pt2->x, xyval);
+				ED_view3d_project_int(p->ar, &pt2->x, xyval);
 				x1 = xyval[0];
 				y1 = xyval[1];
 			}
@@ -868,10 +868,10 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 					y1 = (int)(pt2->y / 100 * p->ar->winy);
 				}
 				else { /* camera view, use subrect */ 
-					x0 = (int)((pt1->x / 100) * BLI_RCT_SIZE_X(p->subrect)) + p->subrect->xmin;
-					y0 = (int)((pt1->y / 100) * BLI_RCT_SIZE_Y(p->subrect)) + p->subrect->ymin;
-					x1 = (int)((pt2->x / 100) * BLI_RCT_SIZE_X(p->subrect)) + p->subrect->xmin;
-					y1 = (int)((pt2->y / 100) * BLI_RCT_SIZE_Y(p->subrect)) + p->subrect->ymin;
+					x0 = (int)((pt1->x / 100) * BLI_rctf_size_x(p->subrect)) + p->subrect->xmin;
+					y0 = (int)((pt1->y / 100) * BLI_rctf_size_y(p->subrect)) + p->subrect->ymin;
+					x1 = (int)((pt2->x / 100) * BLI_rctf_size_x(p->subrect)) + p->subrect->xmin;
+					y1 = (int)((pt2->y / 100) * BLI_rctf_size_y(p->subrect)) + p->subrect->ymin;
 				}
 			}
 			

@@ -160,11 +160,12 @@ EnumPropertyItem snap_node_element_items[] = {
 #define R_IMF_ENUM_TAGA_RAW {R_IMF_IMTYPE_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", \
                                                   "Output image in uncompressed Targa format"},
 
-
+#if 0 /* UNUSED (so far) */
 #ifdef WITH_DDS
 #  define R_IMF_ENUM_DDS {R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
 #else
 #  define R_IMF_ENUM_DDS
+#endif
 #endif
 
 #ifdef WITH_OPENJPEG
@@ -501,7 +502,7 @@ static void rna_Scene_framelen_update(Main *UNUSED(bmain), Scene *scene, Pointer
 }
 
 
-static void rna_Scene_current_frame_set(PointerRNA *ptr, int value)
+static void rna_Scene_frame_current_set(PointerRNA *ptr, int value)
 {
 	Scene *data = (Scene *)ptr->data;
 	
@@ -1094,34 +1095,6 @@ static void rna_Scene_glsl_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 	Scene *scene = (Scene *)ptr->id.data;
 
 	DAG_id_tag_update(&scene->id, 0);
-}
-
-static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	/* reset image nodes */
-	Scene *scene = (Scene *)ptr->id.data;
-	bNodeTree *ntree = scene->nodetree;
-	bNode *node;
-	
-	if (ntree && scene->use_nodes) {
-		/* images are freed here, stop render and preview threads, until
-		 * Image is threadsafe. when we are changing this property from a
-		 * python script in the render thread, don't stop own thread */
-		if (BLI_thread_is_main())
-			WM_jobs_stop_all(bmain->wm.first);
-		
-		for (node = ntree->nodes.first; node; node = node->next) {
-			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_IMAGE)) {
-				ED_node_changed_update(&scene->id, node);
-				WM_main_add_notifier(NC_NODE | NA_EDITED, node);
-				
-				if (node->type == CMP_NODE_IMAGE)
-					BKE_image_signal((Image *)node->id, NULL, IMA_SIGNAL_FREE);
-			}
-		}
-	}
-
-	rna_Scene_glsl_update(bmain, scene, ptr);
 }
 
 static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
@@ -3390,6 +3363,17 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "G", "Log conversion gamma");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	/* color management */
+	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
+	RNA_def_property_ui_text(prop, "View Settings", "Color management settings applied on image before saving");
+
+	prop = RNA_def_property(srna, "display_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "display_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedDisplaySettings");
+	RNA_def_property_ui_text(prop, "Display Settings", "Settings of device saved image would be displayed on");
 }
 
 static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
@@ -4140,11 +4124,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	                         "editor pipeline, if sequencer strips exist");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
-	prop = RNA_def_property(srna, "use_color_management", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "color_mgt_flag", R_COLOR_MANAGEMENT);
-	RNA_def_property_ui_text(prop, "Color Management", "Use linear workflow - gamma corrected imaging pipeline");
-	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_RenderSettings_color_management_update");
-	
 	prop = RNA_def_property(srna, "use_color_unpremultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "color_mgt_flag", R_COLOR_MANAGEMENT_PREDIVIDE);
 	RNA_def_property_ui_text(prop, "Color Unpremultiply",
@@ -4426,6 +4405,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, engine_items);
 	RNA_def_property_enum_funcs(prop, "rna_RenderSettings_engine_get", "rna_RenderSettings_engine_set",
 	                            "rna_RenderSettings_engine_itemf");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Engine", "Engine to use for rendering");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_RenderSettings_engine_update");
 
@@ -4774,7 +4754,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
-	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_current_frame_set", NULL);
+	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_frame_current_set", NULL);
 	RNA_def_property_ui_text(prop, "Current Frame",
 	                         "Current Frame, to update animation data from python frame_set() instead");
 	RNA_def_property_update(prop, NC_SCENE | ND_FRAME, "rna_Scene_frame_update");
@@ -5026,6 +5006,22 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MovieClip");
 	RNA_def_property_ui_text(prop, "Active Movie Clip", "Active movie clip used for constraints and viewport drawing");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* color management */
+	prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "view_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedViewSettings");
+	RNA_def_property_ui_text(prop, "View Settings", "Color management settings applied on image before saving");
+
+	prop = RNA_def_property(srna, "display_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "display_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedDisplaySettings");
+	RNA_def_property_ui_text(prop, "Display Settings", "Settings of device saved image would be displayed on");
+
+	prop = RNA_def_property(srna, "sequencer_colorspace_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "sequencer_colorspace_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedColorspaceSettings");
+	RNA_def_property_ui_text(prop, "Sequencer Color Space Settings", "Settings of color space sequencer is working in");
 
 	/* Nestled Data  */
 	rna_def_tool_settings(brna);

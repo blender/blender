@@ -171,7 +171,7 @@ public:
 	btVector3				m_halfExtend;
 	btTransform				m_childTrans;
 	btVector3				m_childScale;
-	void*					m_userData;	
+	void*					m_userData;
 	btAlignedObjectArray<btScalar>	m_vertexArray;	// Contains both vertex array for polytope shape and
 											// triangle array for concave mesh shape. Each vertex is 3 consecutive values
 											// In this case a triangle is made of 3 consecutive points
@@ -397,7 +397,7 @@ class btCollisionObject;
 class btSoftBody;
 
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
-class CcdPhysicsController : public PHY_IPhysicsController	
+class CcdPhysicsController : public PHY_IPhysicsController
 {
 protected:
 	btCollisionObject* m_object;

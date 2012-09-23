@@ -50,36 +50,7 @@
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 
-#ifdef _WIN32
-void tstart( void )
-{}
-void tend( void )
-{
-}
-double tval( void )
-{
-	return 0;
-}
-#else
-#include <sys/time.h>
-static struct timeval _tstart, _tend;
-static struct timezone tz;
-void tstart( void )
-{
-	gettimeofday(&_tstart, &tz);
-}
-void tend(void)
-{
-	gettimeofday(&_tend, &tz);
-}
-double tval(void)
-{
-	double t1, t2;
-	t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );
-	t2 = ( double ) _tend.tv_sec + ( double ) _tend.tv_usec/ ( 1000*1000 );
-	return t2-t1;
-}
-#endif
+// #include "PIL_time.h"  /* timing for debug prints */
 
 /* Our available solvers. */
 // 255 is the magic reserved number, so NEVER try to put 255 solvers in here!
@@ -410,13 +381,13 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	cloth_apply_vgroup ( clmd, result );
 	cloth_update_springs( clmd );
 	
-	tstart();
+	// TIMEIT_START(cloth_step)
 
 	/* call the solver. */
 	if (solvers [clmd->sim_parms->solver_type].solver)
 		ret = solvers[clmd->sim_parms->solver_type].solver(ob, framenr, clmd, effectors);
 
-	tend();
+	// TIMEIT_END(cloth_step)
 
 	pdEndEffectors(&effectors);
 

@@ -282,7 +282,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			relativeRot.getValue(rot);
 			shapeInfo->m_childTrans.getBasis().setFromOpenGLSubMatrix(rot);
 
-			parentShapeInfo->AddShape(shapeInfo);	
+			parentShapeInfo->AddShape(shapeInfo);
 			compoundShape->addChildShape(shapeInfo->m_childTrans,bm);
 			//do some recalc?
 			//recalc inertia for rigidbody
@@ -439,7 +439,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	{
 		env->addCcdPhysicsController( physicscontroller);
 	}
-	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
+	physicscontroller->setNewClientInfo(gameobj->getClientInfo());
 	{
 		btRigidBody* rbody = physicscontroller->GetRigidBody();
 

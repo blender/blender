@@ -34,13 +34,13 @@ class KX_GameObject;
 class KX_NavMeshObject;
 
 enum KX_OBSTACLE_TYPE
-{	
+{
 	KX_OBSTACLE_OBJ, 
 	KX_OBSTACLE_NAV_MESH,
 };
 
 enum KX_OBSTACLE_SHAPE
-{	
+{
 	KX_OBSTACLE_CIRCLE, 
 	KX_OBSTACLE_SEGMENT,
 };
@@ -86,9 +86,9 @@ public:
 	void DestroyObstacleForObj(KX_GameObject* gameobj);
 	void AddObstaclesForNavMesh(KX_NavMeshObject* navmesh);
 	KX_Obstacle* GetObstacle(KX_GameObject* gameobj);
-	void UpdateObstacles();	
+	void UpdateObstacles();
 	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
-								MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);
+	                                    MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);
 
 };
 class KX_ObstacleSimulationTOI: public KX_ObstacleSimulation

@@ -380,7 +380,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 	}
 
 	sub_v3_v3v3(far_vec, far, cent);
-	far_dist = len_v3(far_vec); /* real dist */
+	// far_dist = len_v3(far_vec); /* real dist */ /* UNUSED */
 
 	/* --- */
 

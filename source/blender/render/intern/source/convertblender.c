@@ -41,6 +41,7 @@
 #include "BLI_rand.h"
 #include "BLI_memarena.h"
 #include "BLI_ghash.h"
+#include "BLI_linklist.h"
 #include "BLI_edgehash.h"
 
 #include "DNA_armature_types.h"
@@ -118,6 +119,7 @@
 #include "zbuf.h"
 #include "sunsky.h"
 
+#include "RE_render_ext.h"
 
 /* 10 times larger than normal epsilon, test it on default nurbs sphere with ray_transp (for quad detection) */
 /* or for checking vertex normal flips */
@@ -2260,14 +2262,6 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	if ((texco & TEXCO_ORCO) && (vr->orco)) {
 		copy_v3_v3(shi->lo, vr->orco);
 	}
-	if (texco & TEXCO_STICKY) {
-		float *sticky= RE_vertren_get_sticky(obr, vr, 0);
-		if (sticky) {
-			shi->sticky[0]= sticky[0];
-			shi->sticky[1]= sticky[1];
-			shi->sticky[2]= 0.0f;
-		}
-	}
 	if (texco & TEXCO_GLOB) {
 		copy_v3_v3(shi->gl, shi->co);
 		mul_m4_v3(re->viewinv, shi->gl);
@@ -3267,7 +3261,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	VlakRen *vlr; //, *vlr1;
 	VertRen *ver;
 	Material *ma;
-	MSticky *ms = NULL;
 	DerivedMesh *dm;
 	CustomDataMask mask;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
@@ -3352,8 +3345,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	if (do_autosmooth && me->totvert==totvert && me->totface==dm->getNumTessFaces(dm))
 		use_original_normals= TRUE;
 	
-	ms = (totvert==me->totvert)?me->msticky:NULL;
-	
 	ma= give_render_material(re, ob, 1);
 
 
@@ -3372,15 +3363,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				normalize_v3(ver->n);
 				negate_v3(ver->n);
 			}
-  
+
 			if (orco) {
 				ver->orco= orco;
 				orco+=3;
-			}
-			if (ms) {
-				float *sticky= RE_vertren_get_sticky(obr, ver, 1);
-				copy_v2_v2(sticky, ms->co);
-				ms++;
 			}
 		}
 		
@@ -5301,11 +5287,11 @@ static void speedvector_project(Render *re, float zco[2], const float co[3], con
 			/* size of 1 pixel mapped to viewplane coords */
 			float psize;
 
-			psize = BLI_RCT_SIZE_X(&re->viewplane) / (float)re->winx;
+			psize = BLI_rctf_size_x(&re->viewplane) / (float)re->winx;
 			/* x angle of a pixel */
 			pixelphix = atan(psize / re->clipsta);
 			
-			psize = BLI_RCT_SIZE_Y(&re->viewplane) / (float)re->winy;
+			psize = BLI_rctf_size_y(&re->viewplane) / (float)re->winy;
 			/* y angle of a pixel */
 			pixelphiy = atan(psize / re->clipsta);
 		}
@@ -5873,76 +5859,3 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 			if (re->r.mode & R_SHADOW)
 				make_occ_tree(re);
 }
-
-/* ------------------------------------------------------------------------- */
-/* Sticky texture coords													 */
-/* ------------------------------------------------------------------------- */
-
-void RE_make_sticky(Scene *scene, View3D *v3d)
-{
-	Object *ob;
-	Base *base;
-	MVert *mvert;
-	Mesh *me;
-	MSticky *ms;
-	Render *re;
-	float ho[4], mat[4][4];
-	int a;
-	Object *camera= NULL;
-
-	if (v3d==NULL) {
-		printf("Need a 3d view to make sticky\n");
-		return;
-	}
-
-	if (v3d)				camera= V3D_CAMERA_LOCAL(v3d);
-	if (camera == NULL)	camera= scene->camera;
-
-	if (camera==NULL) {
-		printf("Need camera to make sticky\n");
-		return;
-	}
-	if (scene->obedit) {
-		printf("Unable to make sticky in Edit Mode\n");
-		return;
-	}
-	
-	re= RE_NewRender("_make sticky_");
-	RE_InitState(re, NULL, &scene->r, NULL, scene->r.xsch, scene->r.ysch, NULL);
-	
-	/* use renderdata and camera to set viewplane */
-	RE_SetCamera(re, camera);
-
-	/* and set view matrix */
-	normalize_m4(camera->obmat);
-	invert_m4_m4(mat, camera->obmat);
-	RE_SetView(re, mat);
-	
-	for (base= FIRSTBASE; base; base= base->next) {
-		if (TESTBASELIB(v3d, base)) {
-			if (base->object->type==OB_MESH) {
-				ob= base->object;
-				
-				me= ob->data;
-				mvert= me->mvert;
-				if (me->msticky)
-					CustomData_free_layer_active(&me->vdata, CD_MSTICKY, me->totvert);
-				me->msticky= CustomData_add_layer(&me->vdata, CD_MSTICKY,
-					CD_CALLOC, NULL, me->totvert);
-				
-				BKE_object_where_is_calc(scene, ob);
-				mult_m4_m4m4(mat, re->viewmat, ob->obmat);
-				
-				ms= me->msticky;
-				for (a=0; a<me->totvert; a++, ms++, mvert++) {
-					copy_v3_v3(ho, mvert->co);
-					mul_m4_v3(mat, ho);
-					projectverto(ho, re->winmat, ho);
-					ms->co[0]= ho[0]/ho[3];
-					ms->co[1]= ho[1]/ho[3];
-				}
-			}
-		}
-	}
-}
-

@@ -57,7 +57,7 @@ class CgnrSolver : public LinearSolver {
  private:
   const LinearSolver::Options options_;
   scoped_ptr<BlockJacobiPreconditioner> jacobi_preconditioner_;
-  DISALLOW_COPY_AND_ASSIGN(CgnrSolver);
+  CERES_DISALLOW_COPY_AND_ASSIGN(CgnrSolver);
 };
 
 }  // namespace internal

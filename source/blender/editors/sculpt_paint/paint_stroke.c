@@ -254,7 +254,10 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 				pressure = event_tablet_data(event, NULL);
 			
 			if (pressure > FLT_EPSILON) {
-				scale = (BKE_brush_size_get(scene, stroke->brush) * pressure * stroke->brush->spacing / 50.0f) / length;
+				/* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
+				 * causing very high step sizes, hanging blender [#32381] */
+				const float size_clamp = maxf(1.0f, BKE_brush_size_get(scene, stroke->brush) * pressure);
+				scale = (size_clamp * stroke->brush->spacing / 50.0f) / length;
 				if (scale > FLT_EPSILON) {
 					mul_v2_fl(vec, scale);
 
@@ -521,8 +524,10 @@ int paint_poll(bContext *C)
 {
 	Paint *p = paint_get_active_from_context(C);
 	Object *ob = CTX_data_active_object(C);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
 
 	return p && ob && paint_brush(p) &&
-	       CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
-	       CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
+	       (sa && sa->spacetype == SPACE_VIEW3D) &&
+	       (ar && ar->regiontype == RGN_TYPE_WINDOW);
 }

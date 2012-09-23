@@ -63,6 +63,7 @@
 #include "RE_pipeline.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_colormanagement.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -143,22 +144,30 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		ibuf = BKE_sequencer_give_ibuf(context, CFRA, chanshown);
 
 		if (ibuf) {
+			ImBuf *linear_ibuf;
+
 			BLI_assert((oglrender->sizex == ibuf->x) && (oglrender->sizey == ibuf->y));
 
-			if (ibuf->rect_float == NULL) {
-				/* internally sequencer working in sRGB space and stores both bytes and float
-				 * buffers in sRGB space, but if byte->float onversion doesn't happen in sequencer
-				 * (e.g. when adding image sequence/movie into sequencer) there'll be only
-				 * byte buffer and profile will still indicate sRGB->linear space conversion is needed
-				 * here we're ensure there'll be no conversion happen and float buffer would store
-				 * linear frame (sergey) */
-				ibuf->profile = IB_PROFILE_NONE;
-				IMB_float_from_rect(ibuf);
+			linear_ibuf = IMB_dupImBuf(ibuf);
+			IMB_freeImBuf(ibuf);
+
+			if (linear_ibuf->rect_float == NULL) {
+				/* internally sequencer working in display space and stores both bytes and float buffers in that space.
+				 * It is possible that byte->float onversion didn't happen in sequencer (e.g. when adding image sequence/movie
+				 * into sequencer) there'll be only byte buffer. Create float buffer from existing byte buffer, making it linear
+				 */
+
+				IMB_float_from_rect(linear_ibuf);
+			}
+			else {
+				/* ensure float buffer is in linear space, not in display space */
+				BKE_sequencer_imbuf_from_sequencer_space(scene, linear_ibuf);
 			}
 
-			memcpy(rr->rectf, ibuf->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
 
-			IMB_freeImBuf(ibuf);
+			memcpy(rr->rectf, linear_ibuf->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
+
+			IMB_freeImBuf(linear_ibuf);
 		}
 	}
 	else if (view_context) {
@@ -181,7 +190,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		}
 
 		if ((scene->r.mode & R_OSA) == 0) { 
-			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE);
+			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE, FALSE);
 			GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, rr->rectf);
 		}
 		else {
@@ -195,7 +204,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			BLI_jitter_init(jit_ofs[0], scene->r.osa);
 
 			/* first sample buffer, also initializes 'rv3d->persmat' */
-			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE);
+			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE, FALSE);
 			GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, accum_buffer);
 
 			/* skip the first sample */
@@ -205,7 +214,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 				                    (jit_ofs[j][0] * 2.0f) / sizex,
 				                    (jit_ofs[j][1] * 2.0f) / sizey);
 
-				ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat_jitter, TRUE);
+				ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat_jitter, TRUE, FALSE);
 				GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, accum_tmp);
 				add_vn_vn(accum_buffer, accum_tmp, sizex * sizey * sizeof(float));
 			}
@@ -221,7 +230,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	else {
 		/* shouldnt suddenly give errors mid-render but possible */
 		char err_out[256] = "unknown";
-		ImBuf *ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, oglrender->sizex, oglrender->sizey, IB_rectfloat, OB_SOLID, TRUE, err_out);
+		ImBuf *ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, oglrender->sizex, oglrender->sizey, IB_rectfloat, OB_SOLID, TRUE, FALSE, err_out);
 		camera = scene->camera;
 
 		if (ibuf_view) {
@@ -233,26 +242,26 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		}
 	}
 	
+	/* note on color management:
+	 *
+	 * OpenGL renders into sRGB colors, but render buffers are expected to be
+	 * linear So we convert to linear here, so the conversion back to bytes can make it
+	 * sRGB (or other display space) again, and so that e.g. openexr saving also saves the
+	 * correct linear float buffer.
+	 */
+
+	if (!oglrender->is_sequencer) {
+		/* sequencer has got tricker ocnversion happened above */
+
+		IMB_buffer_float_from_float(rr->rectf, rr->rectf,
+		                            4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, FALSE,
+		                            oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
+	}
+
 	/* rr->rectf is now filled with image data */
 
 	if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
 		BKE_stamp_buf(scene, camera, NULL, rr->rectf, rr->rectx, rr->recty, 4);
-
-	/* note on color management:
-	 *
-	 * OpenGL renders into sRGB colors, but render buffers are expected to be
-	 * linear if color management is enabled. So we convert to linear here, so
-	 * the conversion back to bytes using the color management flag can make it
-	 * sRGB again, and so that e.g. openexr saving also saves the correct linear
-	 * float buffer. */
-
-	if (oglrender->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-		int predivide = 0; /* no alpha */
-
-		IMB_buffer_float_from_float(rr->rectf, rr->rectf,
-		                            4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, predivide,
-		                            oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
-	}
 
 	RE_ReleaseResult(oglrender->re);
 
@@ -536,12 +545,28 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	ibuf = BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
 
 	if (ibuf) {
+		int needs_free = FALSE;
+
+		if (is_movie || !BKE_imtype_supports_float(scene->r.im_format.imtype)) {
+			ImBuf *colormanage_ibuf = IMB_dupImBuf(ibuf);
+
+			IMB_display_buffer_to_imbuf_rect(colormanage_ibuf, &scene->view_settings, &scene->display_settings);
+			imb_freerectfloatImBuf(colormanage_ibuf);
+
+			// IMB_freeImBuf(ibuf); /* owned by the image */
+			ibuf = colormanage_ibuf;
+			needs_free = TRUE;
+		}
+
 		/* color -> grayscale */
 		/* editing directly would alter the render view */
 		if (scene->r.im_format.planes == R_IMF_PLANES_BW) {
-			ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);
+			 ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);
 			IMB_color_to_bw(ibuf_bw);
-			// IMB_freeImBuf(ibuf); /* owned by the image */
+
+			if (needs_free)
+				IMB_freeImBuf(ibuf);
+
 			ibuf = ibuf_bw;
 		}
 		else {
@@ -551,6 +576,13 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 			ibuf_cpy->rect = ibuf->rect;
 			ibuf_cpy->rect_float = ibuf->rect_float;
 			ibuf_cpy->zbuf_float = ibuf->zbuf_float;
+
+			if (needs_free) {
+				ibuf_cpy->mall = ibuf->mall;
+				ibuf->mall = 0;
+				IMB_freeImBuf(ibuf);
+			}
+
 			ibuf = ibuf_cpy;
 		}
 

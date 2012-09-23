@@ -203,7 +203,8 @@ namespace StrokeShaders {
       ifstream ifs(j->c_str());
       if (ifs.is_open()) {
 		//soc image.load(j->c_str());
-		image = IMB_loadiffname(j->c_str(), 0);
+		/* OCIO_TODO: support different input color space */
+		image = IMB_loadiffname(j->c_str(), 0, NULL);
 		break;
       }
     }
@@ -350,7 +351,8 @@ namespace StrokeShaders {
     for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); j++) {
       ifstream ifs(j->c_str());
       if (ifs.is_open()) {
-		image = IMB_loadiffname(j->c_str(), 0); //soc
+		/* OCIO_TODO: support different input color space */
+		image = IMB_loadiffname(j->c_str(), 0, NULL); //soc
 		break;
       }
     }

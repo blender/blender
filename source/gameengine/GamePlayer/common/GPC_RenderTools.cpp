@@ -442,7 +442,7 @@ void GPC_RenderTools::PopMatrix()
 
 int GPC_RenderTools::applyLights(int objectlayer, const MT_Transform& viewmat)
 {
-	// taken from blender source, incompatibility between Blender Object / GameObject	
+	// taken from blender source, incompatibility between Blender Object / GameObject
 	KX_Scene* kxscene = (KX_Scene*)m_auxilaryClientInfo;
 	float glviewmat[16];
 	unsigned int count;

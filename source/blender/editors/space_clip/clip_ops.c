@@ -90,9 +90,9 @@ static void sclip_zoom_set(const bContext *C, float zoom, float location[2])
 
 		if ((width < 4) && (height < 4))
 			sc->zoom = oldzoom;
-		else if (BLI_RCT_SIZE_X(&ar->winrct) <= sc->zoom)
+		else if (BLI_rcti_size_x(&ar->winrct) <= sc->zoom)
 			sc->zoom = oldzoom;
-		else if (BLI_RCT_SIZE_Y(&ar->winrct) <= sc->zoom)
+		else if (BLI_rcti_size_y(&ar->winrct) <= sc->zoom)
 			sc->zoom = oldzoom;
 	}
 
@@ -726,8 +726,8 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	h = h * aspy;
 
 	/* check if the image will fit in the image with zoom == 1 */
-	width  = BLI_RCT_SIZE_X(&ar->winrct) + 1;
-	height = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
+	width  = BLI_rcti_size_x(&ar->winrct) + 1;
+	height = BLI_rcti_size_y(&ar->winrct) + 1;
 
 	if (fit_view) {
 		const int margin = 5; /* margin from border */

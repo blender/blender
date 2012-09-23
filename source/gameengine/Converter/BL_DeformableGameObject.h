@@ -89,7 +89,7 @@ public:
 
 public:
 	
-protected:	
+protected:
 	
 	RAS_Deformer		*m_pDeformer;
 

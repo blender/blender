@@ -303,13 +303,13 @@ static void DrawAabb(btIDebugDraw* debugDrawer,const btVector3& from,const btVec
 	{
 		for (j=0;j<3;j++)
 		{
-			pa = btVector3(edgecoord[0]*halfExtents[0], edgecoord[1]*halfExtents[1],		
+			pa = btVector3(edgecoord[0]*halfExtents[0], edgecoord[1]*halfExtents[1],
 				edgecoord[2]*halfExtents[2]);
 			pa+=center;
 
 			int othercoord = j%3;
 			edgecoord[othercoord]*=-1.f;
-			pb = btVector3(edgecoord[0]*halfExtents[0], edgecoord[1]*halfExtents[1],	
+			pb = btVector3(edgecoord[0]*halfExtents[0], edgecoord[1]*halfExtents[1],
 				edgecoord[2]*halfExtents[2]);
 			pb+=center;
 
@@ -484,9 +484,8 @@ void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctr
 				body->getCollisionShape()->calculateLocalInertia(newMass, inertia);
 			body->setMassProps(newMass, inertia);
 			m_dynamicsWorld->addRigidBody(body, newCollisionGroup, newCollisionMask);
-		}	
-		else
-		{
+		}
+		else {
 			m_dynamicsWorld->addCollisionObject(obj, newCollisionGroup, newCollisionMask);
 		}
 	}
@@ -605,7 +604,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep,float
 
 	float subStep = timeStep / float(m_numTimeSubSteps);
 	i = m_dynamicsWorld->stepSimulation(interval,25,subStep);//perform always a full simulation step
-//uncomment next line to see where Bullet spend its time (printf in console)	
+//uncomment next line to see where Bullet spend its time (printf in console)
 //CProfileManager::dumpAll();
 
 	processFhSprings(curTime,i*subStep);
@@ -1084,7 +1083,7 @@ static bool GetHitTriangle(btCollisionShape* shape, CcdShapeConstructionInfo* sh
 
 		btScalar* graphicsbase = (btScalar*)(vertexbase+graphicsindex*stride);
 
-		triangle[j] = btVector3(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),graphicsbase[2]*meshScaling.getZ());		
+		triangle[j] = btVector3(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),graphicsbase[2]*meshScaling.getZ());
 	}
 	meshInterface->unLockReadOnlyVertexBase(0);
 	return true;
@@ -1248,7 +1247,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 		result.m_hitNormal[1] = rayCallback.m_hitNormalWorld.getY();
 		result.m_hitNormal[2] = rayCallback.m_hitNormalWorld.getZ();
 		filterCallback.reportHit(&result);
-	}	
+	}
 
 
 	return result.m_controller;
@@ -1391,7 +1390,7 @@ struct OcclusionBuffer
 	static bool	project(btVector4* p,int n)
 	{
 		for (int i=0;i<n;++i)
-		{			
+		{
 			p[i][2]=1/p[i][3];
 			p[i][0]*=p[i][2];
 			p[i][1]*=p[i][2];
@@ -1611,7 +1610,7 @@ struct OcclusionBuffer
 			const int		a=x[2]*y[0]+x[0]*y[1]-x[2]*y[1]-x[0]*y[2]+x[1]*y[2]-x[1]*y[0];
 			const btScalar	ia=1/(btScalar)a;
 			const btScalar	dzx=ia*(y[2]*(z[1]-z[0])+y[1]*(z[0]-z[2])+y[0]*(z[2]-z[1]));
-			const btScalar	dzy=ia*(x[2]*(z[0]-z[1])+x[0]*(z[1]-z[2])+x[1]*(z[2]-z[0]))-(dzx*width);		
+			const btScalar	dzy=ia*(x[2]*(z[0]-z[1])+x[0]*(z[1]-z[2])+x[1]*(z[2]-z[0]))-(dzx*width);
 			int				c[]={	miy*x[1]+mix*y[0]-x[1]*y[0]-mix*y[1]+x[0]*y[1]-miy*x[0],
 									miy*x[2]+mix*y[1]-x[2]*y[1]-mix*y[2]+x[1]*y[2]-miy*x[1],
 									miy*x[0]+mix*y[2]-x[0]*y[2]-mix*y[0]+x[2]*y[0]-miy*x[2]};
@@ -1674,7 +1673,7 @@ struct OcclusionBuffer
 								const float* c,
 								const float* d,
 								const float face)
-	{	
+	{
 		btVector4	p[4];
 		transformM(a,p[0]);
 		transformM(b,p[1]);
@@ -1744,7 +1743,7 @@ struct	DbvtCullingCallback : btDbvt::ICollide
 		Process(node);
 	}
 	void Process(const btDbvtNode* leaf)
-	{	
+	{
 		btBroadphaseProxy*	proxy=(btBroadphaseProxy*)leaf->data;
 		// the client object is a graphic controller
 		CcdGraphicController* ctrl = static_cast<CcdGraphicController*>(proxy->m_clientObject);
@@ -1817,11 +1816,11 @@ bool CcdPhysicsEnvironment::cullingTest(PHY_CullingCallback callback, void* user
 		dispatcher.m_ocb = &gOcb;
 		// occlusion culling, the direction of the view is taken from the first plan which MUST be the near plane
 		btDbvt::collideOCL(m_cullingTree->m_sets[1].m_root,planes_n,planes_o,planes_n[0],nplanes,dispatcher);
-		btDbvt::collideOCL(m_cullingTree->m_sets[0].m_root,planes_n,planes_o,planes_n[0],nplanes,dispatcher);		
+		btDbvt::collideOCL(m_cullingTree->m_sets[0].m_root,planes_n,planes_o,planes_n[0],nplanes,dispatcher);
 	}
 	else {
 		btDbvt::collideKDOP(m_cullingTree->m_sets[1].m_root,planes_n,planes_o,nplanes,dispatcher);
-		btDbvt::collideKDOP(m_cullingTree->m_sets[0].m_root,planes_n,planes_o,nplanes,dispatcher);		
+		btDbvt::collideKDOP(m_cullingTree->m_sets[0].m_root,planes_n,planes_o,nplanes,dispatcher);
 	}
 	return true;
 }

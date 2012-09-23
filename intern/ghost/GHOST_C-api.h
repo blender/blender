@@ -387,11 +387,12 @@ extern GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
  * \param windowhandle The handle to the window
  * \param mode The new grab state of the cursor.
  * \param bounds The grab ragion (optional) - left,top,right,bottom
+ * \param mouse_ungrab_xy XY for new mouse location (optional) - x,y
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
                                           GHOST_TGrabCursorMode mode,
-                                          int *bounds);
+                                          int bounds[4], int mouse_ungrab_xy[2]);
 
 /***************************************************************************************
  * Access to mouse button and keyboard states.

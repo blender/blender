@@ -49,7 +49,7 @@ public:
 		bool active,
 		const IK_QSegment *segment
 	);
-	virtual ~IK_QTask() {};
+	virtual ~IK_QTask() {}
 
 	int Id() const
 	{ return m_size; }
@@ -119,7 +119,7 @@ public:
 		const MT_Matrix3x3& goal
 	);
 
-	MT_Scalar Distance() const { return m_distance; };
+	MT_Scalar Distance() const { return m_distance; }
 	void ComputeJacobian(IK_QJacobian& jacobian);
 
 private:

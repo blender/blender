@@ -40,11 +40,10 @@
 namespace ceres {
 namespace internal {
 
-BlockJacobiPreconditioner::BlockJacobiPreconditioner(
-    const LinearOperator& A)
-    : block_structure_(
-        *(down_cast<const BlockSparseMatrix*>(&A)->block_structure())),
-      num_rows_(A.num_rows()) {
+BlockJacobiPreconditioner::BlockJacobiPreconditioner(const LinearOperator& A)
+    : num_rows_(A.num_rows()),
+      block_structure_(
+        *(down_cast<const BlockSparseMatrix*>(&A)->block_structure())) {
   // Calculate the amount of storage needed.
   int storage_needed = 0;
   for (int c = 0; c < block_structure_.cols.size(); ++c) {

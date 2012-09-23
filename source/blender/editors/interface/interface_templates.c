@@ -35,6 +35,7 @@
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_utildefines.h"
@@ -56,6 +57,7 @@
 #include "BKE_texture.h"
 #include "BKE_report.h"
 #include "BKE_displist.h"
+#include "BKE_sca.h"
 #include "BKE_scene.h"
 
 #include "ED_screen.h"
@@ -428,8 +430,15 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			               TIP_("Display number of users of this data (click to make a single-user copy)"));
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
-			if (!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib) || !editable)
+			if (/* test only */
+			    (id_copy(id, NULL, 1) == FALSE) ||
+			    (idfrom && idfrom->lib) ||
+			    (editable == FALSE) ||
+			    /* object in editmode - don't change data */
+			    (idfrom && GS(idfrom->name) == ID_OB && (((Object *)idfrom)->mode & OB_MODE_EDIT)))
+			{
 				uiButSetFlag(but, UI_BUT_DISABLED);
+			}
 		}
 	
 		if (user_alert) uiButSetFlag(but, UI_BUT_REDALERT);
@@ -930,28 +939,26 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 
-#define REDRAWIPO                   1
-#define REDRAWNLA                   2
-#define REDRAWBUTSOBJECT            3
-#define REDRAWACTION                4
 #define B_CONSTRAINT_TEST           5
-#define B_CONSTRAINT_CHANGETARGET   6
-#define REMAKEIPO                   8
-#define B_DIFF                      9
+// #define B_CONSTRAINT_CHANGETARGET   6
 
 static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 {
-	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = (Object *)ob_pt;
 
 	switch (event) {
 		case B_CONSTRAINT_TEST:
 			break; /* no handling */
+#if 0	/* UNUSED */
 		case B_CONSTRAINT_CHANGETARGET:
+		{
+			Main *bmain = CTX_data_main(C);
+			Scene *scene = CTX_data_scene(C);
 			if (ob->pose) ob->pose->flag |= POSE_RECALC;  /* checks & sorts pose channels */
 			DAG_scene_sort(bmain, scene);
 			break;
+		}
+#endif
 		default:
 			break;
 	}
@@ -1263,8 +1270,6 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 	RNA_property_update(C, &cb->ptr, cb->prop);
 }
 
-#define B_BANDCOL 1
-
 static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
 {
 	ColorBand *coba = coba_v;
@@ -1380,7 +1385,7 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand *coba, rctf *butr, RNAUpdateCb *cb)
 {
 	uiBut *bt;
-	float unit = BLI_RCT_SIZE_X(butr) / 14.0f;
+	float unit = BLI_rctf_size_x(butr) / 14.0f;
 	float xs = butr->xmin;
 
 	uiBlockBeginAlign(block);
@@ -1406,7 +1411,7 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 	               TIP_("Set interpolation between color stops"));
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-	bt = uiDefBut(block, BUT_COLORBAND, 0, "", xs, butr->ymin, BLI_RCT_SIZE_X(butr), UI_UNIT_Y, coba, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, BUT_COLORBAND, 0, "", xs, butr->ymin, BLI_rctf_size_x(butr), UI_UNIT_Y, coba, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	uiBlockEndAlign(block);
@@ -1481,7 +1486,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 
 	hist->height = (hist->height <= UI_UNIT_Y) ? UI_UNIT_Y : hist->height;
 
-	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect), hist->height, hist, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), hist->height, hist, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	MEM_freeN(cb);
@@ -1518,7 +1523,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	
 	scopes->wavefrm_height = (scopes->wavefrm_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->wavefrm_height;
 
-	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect), scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
 	(void)bt;  /* UNUSED */
 	
 	MEM_freeN(cb);
@@ -1555,7 +1560,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 
 	scopes->vecscope_height = (scopes->vecscope_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->vecscope_height;
 	
-	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect), scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
+	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 	
 	MEM_freeN(cb);
@@ -1570,11 +1575,11 @@ static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *UNUSED(ar
 	float d;
 
 	/* we allow 20 times zoom */
-	if (BLI_RCT_SIZE_X(&cumap->curr) > 0.04f * BLI_RCT_SIZE_X(&cumap->clipr)) {
-		d = 0.1154f * BLI_RCT_SIZE_X(&cumap->curr);
+	if (BLI_rctf_size_x(&cumap->curr) > 0.04f * BLI_rctf_size_x(&cumap->clipr)) {
+		d = 0.1154f * BLI_rctf_size_x(&cumap->curr);
 		cumap->curr.xmin += d;
 		cumap->curr.xmax -= d;
-		d = 0.1154f * BLI_RCT_SIZE_Y(&cumap->curr);
+		d = 0.1154f * BLI_rctf_size_y(&cumap->curr);
 		cumap->curr.ymin += d;
 		cumap->curr.ymax -= d;
 	}
@@ -1588,8 +1593,8 @@ static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *UNUSED(u
 	float d, d1;
 
 	/* we allow 20 times zoom, but don't view outside clip */
-	if (BLI_RCT_SIZE_X(&cumap->curr) < 20.0f * BLI_RCT_SIZE_X(&cumap->clipr)) {
-		d = d1 = 0.15f * BLI_RCT_SIZE_X(&cumap->curr);
+	if (BLI_rctf_size_x(&cumap->curr) < 20.0f * BLI_rctf_size_x(&cumap->clipr)) {
+		d = d1 = 0.15f * BLI_rctf_size_x(&cumap->curr);
 
 		if (cumap->flag & CUMA_DO_CLIP) 
 			if (cumap->curr.xmin - d < cumap->clipr.xmin)
@@ -1602,7 +1607,7 @@ static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *UNUSED(u
 				d1 = -cumap->curr.xmax + cumap->clipr.xmax;
 		cumap->curr.xmax += d1;
 
-		d = d1 = 0.15f * BLI_RCT_SIZE_Y(&cumap->curr);
+		d = d1 = 0.15f * BLI_rctf_size_y(&cumap->curr);
 
 		if (cumap->flag & CUMA_DO_CLIP) 
 			if (cumap->curr.ymin - d < cumap->clipr.ymin)
@@ -1870,7 +1875,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-	if (cumap->flag & CUMA_DO_CLIP) icon = ICON_CLIPUV_HLT; else icon = ICON_CLIPUV_DEHLT;
+	icon = (cumap->flag & CUMA_DO_CLIP) ? ICON_CLIPUV_HLT : ICON_CLIPUV_DEHLT;
 	bt = uiDefIconBlockBut(block, curvemap_clipping_func, cumap, 0, icon, 0, 0, dx, dx, TIP_("Clipping Options"));
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
@@ -2080,6 +2085,74 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, const char *propname,
 				
 				but = uiDefAutoButR(block, ptr, prop, layer, "", icon, 0, 0, UI_UNIT_X / 2, UI_UNIT_Y / 2);
 				uiButSetFunc(but, handle_layer_buttons, but, SET_INT_IN_POINTER(layer));
+				but->type = TOG;
+			}
+		}
+	}
+}
+
+void uiTemplateGameStates(uiLayout *layout, PointerRNA *ptr, const char *propname,
+                      PointerRNA *used_ptr, const char *used_propname, int active_state)
+{
+	uiLayout *uRow, *uCol;
+	PropertyRNA *prop, *used_prop = NULL;
+	int groups, cols, states;
+	int group, col, state, row;
+	int cols_per_group = 5;
+	Object *ob = (Object *)ptr->id.data;
+
+	prop = RNA_struct_find_property(ptr, propname);
+	if (!prop) {
+		RNA_warning("states property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+	
+	/* the number of states determines the way we group them 
+	 *	- we want 2 rows only (for now)
+	 *	- the number of columns (cols) is the total number of buttons per row
+	 *	  the 'remainder' is added to this, as it will be ok to have first row slightly wider if need be
+	 *	- for now, only split into groups if group will have at least 5 items
+	 */
+	states = RNA_property_array_length(ptr, prop);
+	cols = (states / 2) + (states % 2);
+	groups = ((cols / 2) < cols_per_group) ? (1) : (cols / cols_per_group);
+
+	if (used_ptr && used_propname) {
+		used_prop = RNA_struct_find_property(used_ptr, used_propname);
+		if (!used_prop) {
+			RNA_warning("used layers property not found: %s.%s", RNA_struct_identifier(ptr->type), used_propname);
+			return;
+		}
+
+		if (RNA_property_array_length(used_ptr, used_prop) < states)
+			used_prop = NULL;
+	}
+	
+	/* layers are laid out going across rows, with the columns being divided into groups */
+	
+	for (group = 0; group < groups; group++) {
+		uCol = uiLayoutColumn(layout, TRUE);
+		
+		for (row = 0; row < 2; row++) {
+			uiBlock *block;
+			uiBut *but;
+
+			uRow = uiLayoutRow(uCol, TRUE);
+			block = uiLayoutGetBlock(uRow);
+			state = groups * cols_per_group * row + cols_per_group * group;
+			
+			/* add layers as toggle buts */
+			for (col = 0; (col < cols_per_group) && (state < states); col++, state++) {
+				int icon = 0;
+				int butlay = 1 << state;
+
+				if (active_state & butlay)
+					icon = ICON_LAYER_ACTIVE;
+				else if (used_prop && RNA_property_boolean_get_index(used_ptr, used_prop, state))
+					icon = ICON_LAYER_USED;
+				
+				but = uiDefIconButR_prop(block, ICONTOG, 0, icon, 0, 0, UI_UNIT_X / 2, UI_UNIT_Y / 2, ptr, prop, state, 0, 0, -1, -1, sca_state_name_get(ob, state));
+				uiButSetFunc(but, handle_layer_buttons, but, SET_INT_IN_POINTER(state));
 				but->type = TOG;
 			}
 		}
@@ -2802,3 +2875,56 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 	}
 }
 
+/********************************* Color management *************************************/
+
+void uiTemplateColorspaceSettings(uiLayout *layout, PointerRNA *ptr, const char *propname)
+{
+	PropertyRNA *prop;
+	PointerRNA colorspace_settings_ptr;
+
+	prop = RNA_struct_find_property(ptr, propname);
+
+	if (!prop) {
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	colorspace_settings_ptr = RNA_property_pointer_get(ptr, prop);
+
+	uiItemL(layout, "Color Space:", ICON_NONE);
+	uiItemR(layout, &colorspace_settings_ptr, "name", 0, "", ICON_NONE);
+}
+
+void uiTemplateColormanagedViewSettings(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr, const char *propname)
+{
+	PropertyRNA *prop;
+	PointerRNA view_transform_ptr;
+	uiLayout *col, *row;
+	ColorManagedViewSettings *view_settings;
+
+	prop = RNA_struct_find_property(ptr, propname);
+
+	if (!prop) {
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	view_transform_ptr = RNA_property_pointer_get(ptr, prop);
+	view_settings = view_transform_ptr.data;
+
+	col = uiLayoutColumn(layout, FALSE);
+
+	row = uiLayoutRow(col, FALSE);
+	uiItemR(row, &view_transform_ptr, "view_transform", UI_ITEM_R_EXPAND, IFACE_("View"), ICON_NONE);
+
+	col = uiLayoutColumn(layout, FALSE);
+	uiItemR(col, &view_transform_ptr, "exposure", 0, NULL, ICON_NONE);
+	uiItemR(col, &view_transform_ptr, "gamma", 0, NULL, ICON_NONE);
+
+	col = uiLayoutColumn(layout, FALSE);
+	uiItemR(col, &view_transform_ptr, "use_curve_mapping", 0, NULL, ICON_NONE);
+	if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES)
+		uiTemplateCurveMapping(col, &view_transform_ptr, "curve_mapping", 'c', TRUE, 0);
+}

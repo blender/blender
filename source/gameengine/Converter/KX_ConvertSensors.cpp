@@ -183,7 +183,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					
 					
 					if (gameobj->GetPhysicsController())
-					{	
+					{
 						gamesensor = new KX_TouchSensor(eventmgr,
 							gameobj,
 							bFindMaterial,
@@ -209,7 +209,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					}
 					bool bFindMaterial = true;
 					if (gameobj->GetPhysicsController())
-					{	
+					{
 						gamesensor = new KX_TouchSensor(eventmgr,
 							gameobj,
 							bFindMaterial,
@@ -224,7 +224,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				KX_NetworkEventManager* eventmgr = (KX_NetworkEventManager*)
 					logicmgr->FindEventManager(SCA_EventManager::NETWORK_EVENTMGR);
 				if (eventmgr) {
-					bMessageSensor* msgSens = (bMessageSensor*) sens->data;	
+					bMessageSensor* msgSens = (bMessageSensor*) sens->data;
 					
 					/* Get our NetworkScene */
 					NG_NetworkScene *NetworkScene = kxscene->GetNetworkScene();
@@ -247,7 +247,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::TOUCH_EVENTMGR);
 				if (eventmgr)
 				{
-					STR_String nearpropertyname;	
+					STR_String nearpropertyname;
 					bNearSensor* blendernearsensor = (bNearSensor*)sens->data;
 					if (blendernearsensor->name)
 					{
@@ -311,7 +311,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			}
 		case SENS_MOUSE:
 			{
-				int keytype = SCA_MouseSensor::KX_MOUSESENSORMODE_NODEF;			
+				int keytype = SCA_MouseSensor::KX_MOUSESENSORMODE_NODEF;
 				int trackfocus = 0;
 				bMouseSensor *bmouse = (bMouseSensor *)sens->data;
 				
@@ -639,7 +639,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			gamesensor->SetInvert(invert);
 			gamesensor->SetLevel(level);
 			gamesensor->SetTap(tap);
-			gamesensor->SetName(sens->name);			
+			gamesensor->SetName(sens->name);
 			
 			gameobj->AddSensor(gamesensor);
 			

@@ -148,7 +148,7 @@ struct BMFace *EDBM_face_find_nearest(struct ViewContext *vc, int *dist);
 int  EDBM_select_pick(struct bContext *C, const int mval[2], short extend, short deselect, short toggle);
 
 void EDBM_selectmode_set(struct BMEditMesh *em);
-void EDBM_selectmode_convert(struct BMEditMesh *em, short oldmode, const short selectmode);
+void EDBM_selectmode_convert(struct BMEditMesh *em, short selectmode_old, const short selectmode_new);
 
 void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select);
 

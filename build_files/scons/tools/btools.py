@@ -163,6 +163,7 @@ def validate_arguments(args, bc):
             'WITH_BF_3DMOUSE', 'WITH_BF_STATIC3DMOUSE', 'BF_3DMOUSE', 'BF_3DMOUSE_INC', 'BF_3DMOUSE_LIB', 'BF_3DMOUSE_LIBPATH', 'BF_3DMOUSE_LIB_STATIC',
             'WITH_BF_CYCLES', 'WITH_BF_CYCLES_CUDA_BINARIES', 'BF_CYCLES_CUDA_NVCC', 'BF_CYCLES_CUDA_NVCC', 'WITH_BF_CYCLES_CUDA_THREADED_COMPILE',
             'WITH_BF_OIIO', 'WITH_BF_STATICOIIO', 'BF_OIIO', 'BF_OIIO_INC', 'BF_OIIO_LIB', 'BF_OIIO_LIB_STATIC', 'BF_OIIO_LIBPATH',
+            'WITH_BF_OCIO', 'WITH_BF_STATICOCIO', 'BF_OCIO', 'BF_OCIO_INC', 'BF_OCIO_LIB', 'BF_OCIO_LIB_STATIC', 'BF_OCIO_LIBPATH',
             'WITH_BF_BOOST', 'WITH_BF_STATICBOOST', 'BF_BOOST', 'BF_BOOST_INC', 'BF_BOOST_LIB', 'BF_BOOST_LIB_STATIC', 'BF_BOOST_LIBPATH',
             'WITH_BF_LIBMV'
             ]
@@ -575,6 +576,14 @@ def read_opts(env, cfg, args):
         ('BF_OIIO_LIBPATH', 'OIIO library path', ''),
         ('BF_OIIO_LIB_STATIC', 'OIIO static library', ''),
 
+        (BoolVariable('WITH_BF_OCIO', 'Build with OpenColorIO', False)),
+        (BoolVariable('WITH_BF_STATICOCIO', 'Staticly link to OpenColorIO', False)),
+        ('BF_OCIO', 'OCIO root path', ''),
+        ('BF_OCIO_INC', 'OCIO include path', ''),
+        ('BF_OCIO_LIB', 'OCIO library', ''),
+        ('BF_OCIO_LIBPATH', 'OCIO library path', ''),
+        ('BF_OCIO_LIB_STATIC', 'OCIO static library', ''),
+
         (BoolVariable('WITH_BF_BOOST', 'Build with Boost', False)),
         (BoolVariable('WITH_BF_STATICBOOST', 'Staticly link to boost', False)),
         ('BF_BOOST', 'Boost root path', ''),
@@ -584,7 +593,7 @@ def read_opts(env, cfg, args):
         ('BF_BOOST_LIB_STATIC', 'Boost static library', ''),
 
         (BoolVariable('WITH_GHOST_XDND', 'Build with drag-n-drop support on Linux platforms using XDND protocol', True)),
-        (BoolVariable('WITH_BF_COMPOSITOR_LEGACY', 'Enable the legacy compositor', True))
+        (BoolVariable('WITH_BF_COMPOSITOR_LEGACY', 'Enable the legacy compositor', False))
     ) # end of opts.AddOptions()
 
     return localopts

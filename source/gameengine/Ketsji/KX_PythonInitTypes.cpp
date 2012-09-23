@@ -29,13 +29,9 @@
  *  \ingroup ketsji
  */
 
-
-
-
-#ifndef _adr_py_init_types_h_				// only process once,
-#define _adr_py_init_types_h_				// even if multiply included
-
 #ifdef WITH_PYTHON
+
+#include "KX_PythonInitTypes.h"
 
 /* Only for Class::Parents */
 #include "BL_BlenderShader.h"
@@ -166,7 +162,7 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 
 void initPyTypes(void)
 {
-	
+
 /*
  * initPyObjectPlusType(BL_ActionActuator::Parents);
  * .....
@@ -266,5 +262,3 @@ void initPyTypes(void)
 }
 
 #endif // WITH_PYTHON
-
-#endif

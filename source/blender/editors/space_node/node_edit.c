@@ -148,8 +148,9 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 {
 	CompoJob *cj = cjv;
 	bNodeTree *ntree = cj->localtree;
+	Scene *scene = cj->scene;
 
-	if (cj->scene->use_nodes == FALSE)
+	if (scene->use_nodes == FALSE)
 		return;
 	
 	cj->stop = stop;
@@ -165,7 +166,7 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 	
 	// XXX BIF_store_spare();
 	
-	ntreeCompositExecTree(ntree, &cj->scene->r, 0, 1);  /* 1 is do_previews */
+	ntreeCompositExecTree(ntree, &cj->scene->r, 0, 1, &scene->view_settings, &scene->display_settings);  /* 1 is do_previews */
 
 	ntree->test_break = NULL;
 	ntree->stats_draw = NULL;
@@ -2066,8 +2067,8 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 	/* calculate "barycenter" for placing on mouse cursor */
 	zero_v2(center);
 	for (node = clipboard_nodes_lb->first, num_nodes = 0; node; node = node->next, num_nodes++) {
-		center[0] += BLI_RCT_CENTER_X(&node->totr);
-		center[1] += BLI_RCT_CENTER_Y(&node->totr);
+		center[0] += BLI_rctf_cent_x(&node->totr);
+		center[1] += BLI_rctf_cent_y(&node->totr);
 	}
 	mul_v2_fl(center, 1.0 / num_nodes);
 

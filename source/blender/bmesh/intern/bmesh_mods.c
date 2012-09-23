@@ -558,7 +558,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 				/* cant kill data we loop on, build a list and remove those */
 				BLI_array_empty(bad_faces);
 				BM_ITER_ELEM (f, &fiter, verts[i], BM_FACES_OF_VERT) {
-					if (f->len < 3) {
+					if (UNLIKELY(f->len < 3)) {
 						BLI_array_append(bad_faces, f);
 					}
 				}

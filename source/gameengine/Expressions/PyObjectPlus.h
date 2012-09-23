@@ -190,9 +190,9 @@ public:                                                                       \
  * macro is one that also requires a documentation string
  */
 #define KX_PYMETHOD(class_name, method_name)                                   \
-	PyObject* Py##method_name(PyObject* args, PyObject* kwds);                 \
-	static PyObject*                                                           \
-	sPy##method_name(PyObject* self, PyObject* args, PyObject* kwds) {         \
+	PyObject *Py##method_name(PyObject *args, PyObject *kwds);                 \
+	static PyObject *                                                          \
+	sPy##method_name(PyObject *self, PyObject *args, PyObject *kwds) {         \
 		if(BGE_PROXY_REF(self)==NULL) {                                        \
 			PyErr_SetString(PyExc_RuntimeError,                                \
 			                #class_name "." #method_name "() - "               \
@@ -203,9 +203,9 @@ public:                                                                       \
 	}                                                                          \
 
 #define KX_PYMETHOD_VARARGS(class_name, method_name)                           \
-	PyObject* Py##method_name(PyObject* args);                                 \
+	PyObject *Py##method_name(PyObject *args);                                 \
 	static PyObject*                                                           \
-	sPy##method_name(PyObject* self, PyObject* args) {                         \
+	sPy##method_name(PyObject *self, PyObject *args) {                         \
 		if(BGE_PROXY_REF(self)==NULL) {                                        \
 			PyErr_SetString(PyExc_RuntimeError,                                \
 			                #class_name "." #method_name "() - "               \
@@ -215,9 +215,9 @@ public:                                                                       \
 	}                                                                          \
 
 #define KX_PYMETHOD_NOARGS(class_name, method_name)                            \
-	PyObject* Py##method_name();                                               \
+	PyObject *Py##method_name();                                               \
 	static PyObject*                                                           \
-	sPy##method_name(PyObject* self) {                                         \
+	sPy##method_name(PyObject *self) {                                         \
 		if(BGE_PROXY_REF(self)==NULL) {                                        \
 			PyErr_SetString(PyExc_RuntimeError,                                \
 			                #class_name "." #method_name "() - "               \
@@ -227,9 +227,9 @@ public:                                                                       \
 	}                                                                          \
 
 #define KX_PYMETHOD_O(class_name, method_name)                                 \
-	PyObject* Py##method_name(PyObject* value);                                \
+	PyObject *Py##method_name(PyObject *value);                                \
 	static PyObject*                                                           \
-	sPy##method_name(PyObject* self, PyObject* value) {                        \
+	sPy##method_name(PyObject *self, PyObject *value) {                        \
 		if(BGE_PROXY_REF(self)==NULL) {                                        \
 			PyErr_SetString(PyExc_RuntimeError,                                \
 			                #class_name "." #method_name "(value) - "          \
@@ -239,9 +239,9 @@ public:                                                                       \
 	}                                                                          \
 
 #define KX_PYMETHOD_DOC(class_name, method_name)                               \
-	PyObject* Py##method_name(PyObject* args, PyObject* kwds);                 \
+	PyObject *Py##method_name(PyObject *args, PyObject *kwds);                 \
 	static PyObject*                                                           \
-	sPy##method_name(PyObject* self, PyObject* args, PyObject* kwds) {         \
+	sPy##method_name(PyObject *self, PyObject *args, PyObject *kwds) {         \
 		if(BGE_PROXY_REF(self)==NULL) {                                        \
 			PyErr_SetString(PyExc_RuntimeError,                                \
 			                #class_name "." #method_name "(...) - "            \
@@ -252,9 +252,9 @@ public:                                                                       \
 	static const char method_name##_doc[];                                     \
 
 #define KX_PYMETHOD_DOC_VARARGS(class_name, method_name)                       \
-	PyObject* Py##method_name(PyObject* args);                                 \
+	PyObject *Py##method_name(PyObject *args);                                 \
 	static PyObject*                                                           \
-	sPy##method_name(PyObject* self, PyObject* args) {                         \
+	sPy##method_name(PyObject *self, PyObject *args) {                         \
 		if(BGE_PROXY_REF(self)==NULL) {                                        \
 			PyErr_SetString(PyExc_RuntimeError,                                \
 			                #class_name "." #method_name "(...) - "            \
@@ -266,9 +266,9 @@ public:                                                                       \
 	static const char method_name##_doc[];                                     \
 
 #define KX_PYMETHOD_DOC_O(class_name, method_name)                             \
-	PyObject* Py##method_name(PyObject* value);                                \
-	static PyObject*                                                           \
-	sPy##method_name(PyObject* self, PyObject* value) {                        \
+	PyObject *Py##method_name(PyObject *value);                                \
+	static PyObject *                                                          \
+	sPy##method_name(PyObject *self, PyObject *value) {                        \
 		if(BGE_PROXY_REF(self)==NULL) {                                        \
 			PyErr_SetString(PyExc_RuntimeError,                                \
 			                #class_name "." #method_name "(value) - "          \
@@ -280,9 +280,9 @@ public:                                                                       \
 	static const char method_name##_doc[];                                     \
 
 #define KX_PYMETHOD_DOC_NOARGS(class_name, method_name)                        \
-	PyObject* Py##method_name();                                               \
-	static PyObject*                                                           \
-	sPy##method_name(PyObject* self) {                                         \
+	PyObject *Py##method_name();                                               \
+	static PyObject *                                                          \
+	sPy##method_name(PyObject *self) {                                         \
 		if(BGE_PROXY_REF(self)==NULL) {                                        \
 			PyErr_SetString(PyExc_RuntimeError,                                \
 			                #class_name "." #method_name "() - "               \
@@ -315,19 +315,19 @@ public:                                                                       \
  */
 #define KX_PYMETHODDEF_DOC(class_name, method_name, doc_string) \
 const char class_name::method_name##_doc[] = doc_string; \
-PyObject* class_name::Py##method_name(PyObject* args, PyObject* kwds)
+PyObject *class_name::Py##method_name(PyObject *args, PyObject *kwds)
 
 #define KX_PYMETHODDEF_DOC_VARARGS(class_name, method_name, doc_string) \
 const char class_name::method_name##_doc[] = doc_string; \
-PyObject* class_name::Py##method_name(PyObject* args)
+PyObject *class_name::Py##method_name(PyObject *args)
 
 #define KX_PYMETHODDEF_DOC_O(class_name, method_name, doc_string) \
 const char class_name::method_name##_doc[] = doc_string; \
-PyObject* class_name::Py##method_name(PyObject* value)
+PyObject *class_name::Py##method_name(PyObject *value)
 
 #define KX_PYMETHODDEF_DOC_NOARGS(class_name, method_name, doc_string) \
 const char class_name::method_name##_doc[] = doc_string; \
-PyObject* class_name::Py##method_name()
+PyObject *class_name::Py##method_name()
 
 /**
  * Attribute management
@@ -354,7 +354,7 @@ enum KX_PYATTRIBUTE_ACCESS {
 struct KX_PYATTRIBUTE_DEF;
 typedef int (*KX_PYATTRIBUTE_CHECK_FUNCTION)(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 typedef int (*KX_PYATTRIBUTE_SET_FUNCTION)(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-typedef PyObject* (*KX_PYATTRIBUTE_GET_FUNCTION)(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+typedef PyObject *(*KX_PYATTRIBUTE_GET_FUNCTION)(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 
 typedef struct KX_PYATTRIBUTE_DEF {
 	const char *m_name;				// name of the python attribute

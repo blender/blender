@@ -35,19 +35,18 @@ struct bProperty;
 struct ListBase;
 struct Object;
 
-void free_property(struct bProperty *prop);
-void free_properties(struct ListBase *lb);
-struct bProperty *copy_property(struct bProperty *prop);
-void copy_properties(struct ListBase *lbn, struct ListBase *lbo);
-void init_property(struct bProperty *prop);
-struct bProperty *new_property(int type);
-void unique_property(struct bProperty *first, struct  bProperty *prop, int force);
-struct bProperty *get_ob_property(struct Object *ob, const char *name);
-void set_ob_property(struct Object *ob, struct bProperty *propc);
-int compare_property(struct bProperty *prop, const char *str);
-void set_property(struct bProperty *prop, const char *str);
-void add_property(struct bProperty *prop, const char *str);
-void set_property_valstr(struct bProperty *prop, char *str);
-void cp_property(struct bProperty *prop1, struct bProperty *prop2);
+void              BKE_bproperty_free(struct bProperty *prop);
+void              BKE_bproperty_free_list(struct ListBase *lb);
+struct bProperty *BKE_bproperty_copy(struct bProperty *prop);
+void              BKE_bproperty_copy_list(struct ListBase *lbn, struct ListBase *lbo);
+void              BKE_bproperty_init(struct bProperty *prop);
+struct bProperty *BKE_bproperty_new(int type);
+void              BKE_bproperty_unique(struct bProperty *first, struct  bProperty *prop, int force);
+struct bProperty *BKE_bproperty_object_get(struct Object *ob, const char *name);
+void              BKE_bproperty_object_set(struct Object *ob, struct bProperty *propc);
+// int               BKE_bproperty_cmp(struct bProperty *prop, const char *str);
+void              BKE_bproperty_set(struct bProperty *prop, const char *str);
+void              BKE_bproperty_add(struct bProperty *prop, const char *str);
+void              BKE_bproperty_set_valstr(struct bProperty *prop, char *str);
 	
 #endif

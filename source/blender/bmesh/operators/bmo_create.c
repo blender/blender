@@ -364,8 +364,6 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	/* BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE); */ /* UNUSE */
 	int i;
 	
-#define SIGN(n) ((n) < 0.0f)
-	
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		BMIter eiter;
 		float no[3], cent[3];

@@ -48,10 +48,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 
-
-#define SMALL -1.0e-10
-#define SELECT 1
-
 /* ******************************** F-Modifiers ********************************* */
 
 /* Info ------------------------------- */

@@ -185,7 +185,7 @@ RTBuilder *rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 	return tmp;
 }
 
-void rtbuild_calc_bb(RTBuilder *b)
+static void rtbuild_calc_bb(RTBuilder *b)
 {
 	if (b->bb[0] == 1.0e30f) {
 		for (RTBuilder::Object **index = b->sorted_begin[0]; index != b->sorted_end[0]; index++)

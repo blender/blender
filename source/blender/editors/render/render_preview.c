@@ -64,6 +64,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -75,11 +76,13 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_world.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -115,7 +118,8 @@ ImBuf *get_brush_icon(Brush *brush)
 				BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
 				BLI_path_abs(path, G.main->name);
 
-				brush->icon_imbuf = IMB_loadiffname(path, flags);
+				/* use default colorspaces for brushes */
+				brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
 
 				// otherwise lets try to find it in other directories
 				if (!(brush->icon_imbuf)) {
@@ -123,8 +127,10 @@ ImBuf *get_brush_icon(Brush *brush)
 
 					BLI_make_file_string(G.main->name, path, folder, brush->icon_filepath);
 
-					if (path[0])
-						brush->icon_imbuf = IMB_loadiffname(path, flags);
+					if (path[0]) {
+						/* use fefault color spaces */
+						brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
+					}
 				}
 
 				if (brush->icon_imbuf)
@@ -254,6 +260,10 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		}
 		
 		sce->r.color_mgt_flag = scene->r.color_mgt_flag;
+		BKE_color_managed_display_settings_copy(&sce->display_settings, &scene->display_settings);
+
+		BKE_color_managed_view_settings_free(&sce->view_settings);
+		BKE_color_managed_view_settings_copy(&sce->view_settings, &scene->view_settings);
 		
 		/* prevent overhead for small renders and icons (32) */
 		if (id && sp->sizex < 40)
@@ -263,7 +273,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		
 		/* exception: don't color manage texture previews or icons */
 		if ((id && sp->pr_method == PR_ICON_RENDER) || id_type == ID_TE)
-			sce->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT;
+			BKE_scene_disable_color_management(sce);
 		
 		if ((id && sp->pr_method == PR_ICON_RENDER) && id_type != ID_WO)
 			sce->r.alphamode = R_ALPHAPREMUL;
@@ -475,13 +485,13 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 	char name[32];
 	int do_gamma_correct = FALSE, do_predivide = FALSE;
 	int offx = 0;
-	int newx = BLI_RCT_SIZE_X(rect);
-	int newy = BLI_RCT_SIZE_Y(rect);
+	int newx = BLI_rcti_size_x(rect);
+	int newy = BLI_rcti_size_y(rect);
 
 	if (id && GS(id->name) != ID_TE) {
 		/* exception: don't color manage texture previews - show the raw values */
 		if (sce) {
-			do_gamma_correct = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+			do_gamma_correct = TRUE;
 			do_predivide = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE;
 		}
 	}
@@ -514,15 +524,25 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 				/* temporary conversion to byte for drawing */
 				float fx = rect->xmin + offx;
 				float fy = rect->ymin;
-				int profile_from = (do_gamma_correct) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_SRGB;
 				int dither = 0;
 				unsigned char *rect_byte;
 
 				rect_byte = MEM_mallocN(rres.rectx * rres.recty * sizeof(int), "ed_preview_draw_rect");
 
-				IMB_buffer_byte_from_float(rect_byte, rres.rectf,
-				                           4, dither, IB_PROFILE_SRGB, profile_from, do_predivide,
-				                           rres.rectx, rres.recty, rres.rectx, rres.rectx);
+				if (do_gamma_correct) {
+					IMB_display_buffer_transform_apply(rect_byte, rres.rectf, rres.rectx, rres.recty, 4,
+					                                   &sce->view_settings, &sce->display_settings, do_predivide);
+
+				}
+				else {
+					/* OCIO_TODO: currently seems an exception for textures (came fro mlegacish time),
+					 *            but is it indeed expected behavior, or textures should be
+					 *            color managed as well?
+					 */
+					IMB_buffer_byte_from_float(rect_byte, rres.rectf,
+					                           4, dither, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, do_predivide,
+					                           rres.rectx, rres.recty, rres.rectx, rres.rectx);
+				}
 
 				glaDrawPixelsSafe(fx, fy, rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_UNSIGNED_BYTE, rect_byte);
 
@@ -549,8 +569,8 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		SpaceButs *sbuts = sa->spacedata.first;
 		rcti newrect;
 		int ok;
-		int newx = BLI_RCT_SIZE_X(rect);
-		int newy = BLI_RCT_SIZE_Y(rect);
+		int newx = BLI_rcti_size_x(rect);
+		int newy = BLI_rcti_size_y(rect);
 
 		newrect.xmin = rect->xmin;
 		newrect.xmax = rect->xmin;

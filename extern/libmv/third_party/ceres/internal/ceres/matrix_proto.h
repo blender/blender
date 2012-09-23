@@ -33,7 +33,7 @@
 #ifndef CERES_INTERNAL_MATRIX_PROTO_H_
 #define CERES_INTERNAL_MATRIX_PROTO_H_
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
 #include "ceres/matrix.pb.h"
 #endif
 

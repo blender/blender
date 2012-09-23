@@ -88,9 +88,9 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-#define EDGE_MARK   1
-
 #ifdef USE_BM_BEVEL_OP_AS_MOD
+
+#define EDGE_MARK   1
 
 /* BMESH_TODO
  *

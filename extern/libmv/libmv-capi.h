@@ -147,14 +147,14 @@ void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmvIntr
 
 /* dsitortion */
 void libmv_undistortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			unsigned char *src, unsigned char *dst, int width, int height, int channels);
+			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
 void libmv_undistortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			float *src, float *dst, int width, int height, int channels);
+			float *src, float *dst, int width, int height, float overscan, int channels);
 
 void libmv_distortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			unsigned char *src, unsigned char *dst, int width, int height, int channels);
+			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
 void libmv_distortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			float *src, float *dst, int width, int height, int channels);
+			float *src, float *dst, int width, int height, float overscan, int channels);
 
 /* utils */
 void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,

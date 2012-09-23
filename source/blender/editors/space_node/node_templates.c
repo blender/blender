@@ -230,7 +230,7 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 
 /****************************** Node Link Menu *******************************/
 
-#define UI_NODE_LINK_ADD        0
+// #define UI_NODE_LINK_ADD        0
 #define UI_NODE_LINK_DISCONNECT -1
 #define UI_NODE_LINK_REMOVE     -2
 

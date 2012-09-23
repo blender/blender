@@ -253,9 +253,9 @@ void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 }
 
 
-void maskrasterize_spline_differentiate_point_outset(float (*diff_feather_points)[2], float (*diff_points)[2],
-                                                     const unsigned int tot_diff_point, const float ofs,
-                                                     const short do_test)
+static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather_points)[2], float (*diff_points)[2],
+                                                            const unsigned int tot_diff_point, const float ofs,
+                                                            const short do_test)
 {
 	unsigned int k_prev = tot_diff_point - 2;
 	unsigned int k_curr = tot_diff_point - 1;
@@ -410,8 +410,8 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 {
 	MemArena *arena = BLI_memarena_new(1 << 16, __func__);
 
-	const float bucket_dim_x = BLI_RCT_SIZE_X(&layer->bounds);
-	const float bucket_dim_y = BLI_RCT_SIZE_Y(&layer->bounds);
+	const float bucket_dim_x = BLI_rctf_size_x(&layer->bounds);
+	const float bucket_dim_y = BLI_rctf_size_y(&layer->bounds);
 
 	layer->buckets_x = (bucket_dim_x / pixel_size) / (float)BUCKET_PIXELS_PER_CELL;
 	layer->buckets_y = (bucket_dim_y / pixel_size) / (float)BUCKET_PIXELS_PER_CELL;

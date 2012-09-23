@@ -67,7 +67,7 @@ extern "C"{
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
 
-short get_deformflags(struct Object *bmeshobj)
+static short get_deformflags(struct Object *bmeshobj)
 {
 	short flags = ARM_DEF_VGROUP;
 
@@ -85,9 +85,9 @@ short get_deformflags(struct Object *bmeshobj)
 }
 
 BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
-								struct Object *bmeshobj, 
-								class RAS_MeshObject *mesh,
-								BL_ArmatureObject* arma)
+                                 struct Object *bmeshobj,
+                                 class RAS_MeshObject *mesh,
+                                 BL_ArmatureObject* arma)
 							:	//
 							BL_MeshDeformer(gameobj, bmeshobj, mesh),
 							m_armobj(arma),
@@ -110,7 +110,7 @@ BL_SkinDeformer::BL_SkinDeformer(
 	class RAS_MeshObject *mesh,
 	bool release_object,
 	bool recalc_normal,
-	BL_ArmatureObject* arma)	:	
+	BL_ArmatureObject* arma)	:
 		BL_MeshDeformer(gameobj, bmeshobj_old, mesh),
 		m_armobj(arma),
 		m_lastArmaUpdate(-1),
@@ -327,7 +327,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 {
 	/* See if the armature has been updated for this frame */
-	if (PoseUpdated()) {	
+	if (PoseUpdated()) {
 
 		if (!shape_applied) {
 			/* store verts locally */

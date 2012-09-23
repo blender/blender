@@ -30,6 +30,8 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_filetype.h"
 
+#include "IMB_colormanagement.h"
+
 #ifdef WITH_OPENEXR
 #include "openexr/openexr_api.h"
 #endif
@@ -66,34 +68,34 @@ void quicktime_exit(void);
 #endif
 
 ImFileType IMB_FILE_TYPES[] = {
-	{NULL, NULL, imb_is_a_jpeg, imb_ftype_default, imb_load_jpeg, imb_savejpeg, NULL, 0, JPG},
-	{NULL, NULL, imb_is_a_png, imb_ftype_default, imb_loadpng, imb_savepng, NULL, 0, PNG},
-	{NULL, NULL, imb_is_a_bmp, imb_ftype_default, imb_bmp_decode, imb_savebmp, NULL, 0, BMP},
-	{NULL, NULL, imb_is_a_targa, imb_ftype_default, imb_loadtarga, imb_savetarga, NULL, 0, TGA},
-	{NULL, NULL, imb_is_a_iris, imb_ftype_iris, imb_loadiris, imb_saveiris, NULL, 0, IMAGIC},
+	{NULL, NULL, imb_is_a_jpeg, imb_ftype_default, imb_load_jpeg, imb_savejpeg, NULL, 0, JPG, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_png, imb_ftype_default, imb_loadpng, imb_savepng, NULL, 0, PNG, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_bmp, imb_ftype_default, imb_bmp_decode, imb_savebmp, NULL, 0, BMP, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_targa, imb_ftype_default, imb_loadtarga, imb_savetarga, NULL, 0, TGA, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_iris, imb_ftype_iris, imb_loadiris, imb_saveiris, NULL, 0, IMAGIC, COLOR_ROLE_DEFAULT_BYTE},
 #ifdef WITH_CINEON
-	{NULL, NULL, imb_is_dpx, imb_ftype_default, imb_loaddpx, imb_save_dpx, NULL, IM_FTYPE_FLOAT, DPX},
-	{NULL, NULL, imb_is_cineon, imb_ftype_default, imb_loadcineon, imb_savecineon, NULL, IM_FTYPE_FLOAT, CINEON},
+	{NULL, NULL, imb_is_dpx, imb_ftype_default, imb_loaddpx, imb_save_dpx, NULL, IM_FTYPE_FLOAT, DPX, COLOR_ROLE_DEFAULT_FLOAT},
+	{NULL, NULL, imb_is_cineon, imb_ftype_default, imb_loadcineon, imb_savecineon, NULL, IM_FTYPE_FLOAT, CINEON, COLOR_ROLE_DEFAULT_FLOAT},
 #endif
 #ifdef WITH_TIFF
-	{imb_inittiff, NULL, imb_is_a_tiff, imb_ftype_default, imb_loadtiff, imb_savetiff, imb_loadtiletiff, 0, TIF},
+	{imb_inittiff, NULL, imb_is_a_tiff, imb_ftype_default, imb_loadtiff, imb_savetiff, imb_loadtiletiff, 0, TIF, COLOR_ROLE_DEFAULT_BYTE},
 #endif
 #ifdef WITH_HDR
-	{NULL, NULL, imb_is_a_hdr, imb_ftype_default, imb_loadhdr, imb_savehdr, NULL, IM_FTYPE_FLOAT, RADHDR},
+	{NULL, NULL, imb_is_a_hdr, imb_ftype_default, imb_loadhdr, imb_savehdr, NULL, IM_FTYPE_FLOAT, RADHDR, COLOR_ROLE_DEFAULT_FLOAT},
 #endif
 #ifdef WITH_OPENEXR
-	{imb_initopenexr, NULL, imb_is_a_openexr, imb_ftype_default, imb_load_openexr, imb_save_openexr, NULL, IM_FTYPE_FLOAT, OPENEXR},
+	{imb_initopenexr, NULL, imb_is_a_openexr, imb_ftype_default, imb_load_openexr, imb_save_openexr, NULL, IM_FTYPE_FLOAT, OPENEXR, COLOR_ROLE_DEFAULT_FLOAT},
 #endif
 #ifdef WITH_OPENJPEG
-	{NULL, NULL, imb_is_a_jp2, imb_ftype_default, imb_jp2_decode, imb_savejp2, NULL, IM_FTYPE_FLOAT, JP2},
+	{NULL, NULL, imb_is_a_jp2, imb_ftype_default, imb_jp2_decode, imb_savejp2, NULL, IM_FTYPE_FLOAT, JP2, COLOR_ROLE_DEFAULT_BYTE},
 #endif
 #ifdef WITH_DDS
-	{NULL, NULL, imb_is_a_dds, imb_ftype_default, imb_load_dds, NULL, NULL, 0, DDS},
+	{NULL, NULL, imb_is_a_dds, imb_ftype_default, imb_load_dds, NULL, NULL, 0, DDS, COLOR_ROLE_DEFAULT_BYTE},
 #endif
 #ifdef WITH_QUICKTIME
-	{quicktime_init, quicktime_exit, imb_is_a_quicktime, imb_ftype_quicktime, imb_quicktime_decode, NULL, NULL, 0, QUICKTIME},
+	{quicktime_init, quicktime_exit, imb_is_a_quicktime, imb_ftype_quicktime, imb_quicktime_decode, NULL, NULL, 0, QUICKTIME, COLOR_ROLE_DEFAULT_BYTE},
 #endif
-	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0}
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0}
 };
 	
 void imb_filetypes_init(void)

@@ -119,14 +119,14 @@ bool KX_SCA_DynamicActuator::Update()
 
 	switch (m_dyn_operation)
 	{
-		case 0:			
-			obj->RestoreDynamics();	
+		case 0:
+			obj->RestoreDynamics();
 			break;
 		case 1:
 			obj->SuspendDynamics();
 			break;
 		case 2:
-			controller->setRigidBody(true);	
+			controller->setRigidBody(true);
 			break;
 		case 3:
 			controller->setRigidBody(false);

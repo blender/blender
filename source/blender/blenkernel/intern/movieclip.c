@@ -66,6 +66,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_constraint.h"
+#include "BKE_colortools.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -73,6 +74,7 @@
 #include "BKE_image.h"  /* openanim */
 #include "BKE_tracking.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_moviecache.h"
@@ -197,19 +199,25 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 	struct ImBuf *ibuf;
 	char name[FILE_MAX];
 	int loadflag, use_proxy = FALSE;
+	char *colorspace;
 
 	use_proxy = (flag & MCLIP_USE_PROXY) && user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL;
 	if (use_proxy) {
 		int undistort = user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT;
 		get_proxy_fname(clip, user->render_size, undistort, framenr, name);
+
+		/* proxies were built using default color space settings */
+		colorspace = NULL;
 	}
-	else
+	else {
 		get_sequence_fname(clip, framenr, name);
+		colorspace = clip->colorspace_settings.name;
+	}
 
 	loadflag = IB_rect | IB_multilayer;
 
 	/* read ibuf */
-	ibuf = IMB_loadiffname(name, loadflag);
+	ibuf = IMB_loadiffname(name, loadflag, colorspace);
 
 	return ibuf;
 }
@@ -223,7 +231,7 @@ static void movieclip_open_anim_file(MovieClip *clip)
 		BLI_path_abs(str, ID_BLEND_PATH(G.main, &clip->id));
 
 		/* FIXME: make several stream accessible in image editor, too */
-		clip->anim = openanim(str, IB_rect, 0);
+		clip->anim = openanim(str, IB_rect, 0, clip->colorspace_settings.name);
 
 		if (clip->anim) {
 			if (clip->flag & MCLIP_USE_PROXY_CUSTOM_DIR) {
@@ -383,7 +391,7 @@ static int moviecache_hashcmp(const void *av, const void *bv)
 	return 0;
 }
 
-void *moviecache_getprioritydata(void *key_v)
+static void *moviecache_getprioritydata(void *key_v)
 {
 	MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey *) key_v;
 	MovieClipCachePriorityData *priority_data;
@@ -394,7 +402,7 @@ void *moviecache_getprioritydata(void *key_v)
 	return priority_data;
 }
 
-int moviecache_getitempriority(void *last_userkey_v, void *priority_data_v)
+static int moviecache_getitempriority(void *last_userkey_v, void *priority_data_v)
 {
 	MovieClipImBufCacheKey *last_userkey = (MovieClipImBufCacheKey *) last_userkey_v;
 	MovieClipCachePriorityData *priority_data = (MovieClipCachePriorityData *) priority_data_v;
@@ -402,7 +410,7 @@ int moviecache_getitempriority(void *last_userkey_v, void *priority_data_v)
 	return -abs(last_userkey->framenr - priority_data->framenr);
 }
 
-void moviecache_prioritydeleter(void *priority_data_v)
+static void moviecache_prioritydeleter(void *priority_data_v)
 {
 	MovieClipCachePriorityData *priority_data = (MovieClipCachePriorityData *) priority_data_v;
 
@@ -478,6 +486,7 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->aspx = clip->aspy = 1.0f;
 
 	BKE_tracking_settings_init(&clip->tracking);
+	BKE_color_managed_colorspace_settings_init(&clip->colorspace_settings);
 
 	clip->proxy.build_size_flag = IMB_PROXY_25;
 	clip->proxy.build_tc_flag = IMB_TC_RECORD_RUN |

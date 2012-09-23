@@ -51,13 +51,13 @@ public:
 		BufferParams buffer;
 		int sample;
 		int num_samples;
-		int resolution;
+		int resolution_divider;
 		int num_tiles;
 		int num_rendered_tiles;
 		list<Tile> tiles;
 	} state;
 
-	TileManager(bool progressive, int num_samples, int2 tile_size, int resolution, int num_devices = 1);
+	TileManager(bool progressive, int num_samples, int2 tile_size, int start_resolution, int num_devices = 1);
 	~TileManager();
 
 	void reset(BufferParams& params, int num_samples);
@@ -72,10 +72,8 @@ protected:
 	bool progressive;
 	int num_samples;
 	int2 tile_size;
-	int resolution;
-	int num_devices;
-
 	int start_resolution;
+	int num_devices;
 
 	list<Tile>::iterator next_center_tile(int device = 0);
 };

@@ -147,7 +147,7 @@ static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *
 }
 
 
-char *rna_ImageUser_path(PointerRNA *ptr)
+static char *rna_ImageUser_path(PointerRNA *ptr)
 {
 	if (ptr->id.data) {
 		/* ImageUser *iuser= ptr->data; */
@@ -513,6 +513,11 @@ static void rna_def_image(BlenderRNA *brna)
 	                         "to avoid fringing for images with light backgrounds");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_free_update");
 
+	prop = RNA_def_property(srna, "view_as_render", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_VIEW_AS_RENDER);
+	RNA_def_property_ui_text(prop, "View as Render", "Apply render part of display transformation when displaying this image on the screen");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
+
 	prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Image_dirty_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -651,6 +656,11 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pixels", "Image pixels in floating point values");
 	RNA_def_property_dynamic_array_funcs(prop, "rna_Image_pixels_get_length");
 	RNA_def_property_float_funcs(prop, "rna_Image_pixels_get", "rna_Image_pixels_set", NULL);
+
+	prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedColorspaceSettings");
+	RNA_def_property_ui_text(prop, "Color Space Settings", "Input color space settings");
 
 	RNA_api_image(srna);
 }

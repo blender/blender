@@ -239,10 +239,8 @@ static void ui_item_size(uiItem *item, int *r_w, int *r_h)
 	if (item->type == ITEM_BUTTON) {
 		uiButtonItem *bitem = (uiButtonItem *)item;
 
-
-
-		if (r_w) *r_w = BLI_RCT_SIZE_X(&bitem->but->rect);
-		if (r_h) *r_h = BLI_RCT_SIZE_Y(&bitem->but->rect);
+		if (r_w) *r_w = BLI_rctf_size_x(&bitem->but->rect);
+		if (r_h) *r_h = BLI_rctf_size_y(&bitem->but->rect);
 	}
 	else {
 		uiLayout *litem = (uiLayout *)item;

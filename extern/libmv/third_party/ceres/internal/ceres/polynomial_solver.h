@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2012 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,40 +26,40 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: sameeragarwal@google.com (Sameer Agarwal)
-//
-// Implmentation of Levenberg Marquardt algorithm based on "Methods for
-// Nonlinear Least Squares" by K. Madsen, H.B. Nielsen and
-// O. Tingleff. Available to download from
-//
-// http://www2.imm.dtu.dk/pubdb/views/edoc_download.php/3215/pdf/imm3215.pdf
-//
+// Author: moll.markus@arcor.de (Markus Moll)
 
-#ifndef CERES_INTERNAL_LEVENBERG_MARQUARDT_H_
-#define CERES_INTERNAL_LEVENBERG_MARQUARDT_H_
+#ifndef CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
+#define CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
 
-#include "ceres/minimizer.h"
-#include "ceres/solver.h"
+#include "ceres/internal/eigen.h"
 
 namespace ceres {
 namespace internal {
 
-class Evaluator;
-class LinearSolver;
+// Use the companion matrix eigenvalues to determine the roots of the polynomial
+//
+//   sum_{i=0}^N polynomial(i) x^{N-i}.
+//
+// This function returns true on success, false otherwise.
+// Failure indicates that the polynomial is invalid (of size 0) or
+// that the eigenvalues of the companion matrix could not be computed.
+// On failure, a more detailed message will be written to LOG(ERROR).
+// If real is not NULL, the real parts of the roots will be returned in it.
+// Likewise, if imaginary is not NULL, imaginary parts will be returned in it.
+bool FindPolynomialRoots(const Vector& polynomial,
+                         Vector* real,
+                         Vector* imaginary);
 
-class LevenbergMarquardt : public Minimizer {
- public:
-  virtual ~LevenbergMarquardt();
-
-  virtual void Minimize(const Minimizer::Options& options,
-                        Evaluator* evaluator,
-                        LinearSolver* linear_solver,
-                        const double* initial_parameters,
-                        double* final_parameters,
-                        Solver::Summary* summary);
-};
+// Evaluate the polynomial at x using the Horner scheme.
+inline double EvaluatePolynomial(const Vector& polynomial, double x) {
+  double v = 0.0;
+  for (int i = 0; i < polynomial.size(); ++i) {
+    v = v * x + polynomial(i);
+  }
+  return v;
+}
 
 }  // namespace internal
 }  // namespace ceres
 
-#endif  // CERES_INTERNAL_LEVENBERG_MARQUARDT_H_
+#endif  // CERES_INTERNAL_POLYNOMIAL_SOLVER_H_

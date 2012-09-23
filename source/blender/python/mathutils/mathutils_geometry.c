@@ -46,8 +46,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#define SWAP_FLOAT(a, b, tmp) tmp = a; a = b; b = tmp
-
 /*-------------------------DOC STRINGS ---------------------------*/
 PyDoc_STRVAR(M_Geometry_doc,
 "The Blender geometry module"

@@ -149,7 +149,7 @@ void rna_Mesh_update_draw(Main *bmain, Scene *scene, PointerRNA *ptr)
 }
 
 
-void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Mesh *me = ptr->data;
 	if ((me->editflag & ME_EDIT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_MASK)) {
@@ -158,7 +158,7 @@ void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }
 
-void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Mesh *me = ptr->data;
 	if ((me->editflag & ME_EDIT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_MASK)) {
@@ -1204,11 +1204,6 @@ static char *rna_MeshColor_path(PointerRNA *ptr)
 	return rna_LoopCustomData_data_path(ptr, "vertex_colors", CD_MLOOPCOL);
 }
 
-static char *rna_MeshSticky_path(PointerRNA *ptr)
-{
-	return BLI_sprintfN("sticky[%d]", (int)((MSticky *)ptr->data - rna_mesh(ptr)->msticky));
-}
-
 static char *rna_MeshIntPropertyLayer_path(PointerRNA *ptr)
 {
 	return BLI_sprintfN("int_layers[\"%s\"]", ((CustomDataLayer *)ptr->data)->name);
@@ -1972,21 +1967,6 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 #endif
 }
 
-static void rna_def_msticky(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "MeshSticky", NULL);
-	RNA_def_struct_sdna(srna, "MSticky");
-	RNA_def_struct_ui_text(srna, "Mesh Vertex Sticky Texture Coordinate", "Sticky texture coordinate");
-	RNA_def_struct_path_func(srna, "rna_MeshSticky_path");
-
-	prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_ui_text(prop, "Location", "Sticky texture coordinate location");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-}
-
 static void rna_def_mcol(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2624,7 +2604,7 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
-static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA *cprop)
+static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA *UNUSED(cprop))
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -2710,11 +2690,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MeshPolygon");
 	RNA_def_property_ui_text(prop, "Polygons", "Polygons of the mesh");
 	rna_def_mesh_polygons(brna, prop);
-
-	prop = RNA_def_property(srna, "sticky", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "msticky", "totvert");
-	RNA_def_property_struct_type(prop, "MeshSticky");
-	RNA_def_property_ui_text(prop, "Sticky", "Sticky texture coordinates");
 
 	/* TODO, should this be allowed to be its self? */
 	prop = RNA_def_property(srna, "texture_mesh", PROP_POINTER, PROP_NONE);
@@ -3061,7 +3036,6 @@ void RNA_def_mesh(BlenderRNA *brna)
 	rna_def_mloopuv(brna);
 	rna_def_mtface(brna);
 	rna_def_mtexpoly(brna);
-	rna_def_msticky(brna);
 	rna_def_mcol(brna);
 	rna_def_mloopcol(brna);
 	rna_def_mproperties(brna);

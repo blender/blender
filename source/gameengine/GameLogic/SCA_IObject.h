@@ -43,7 +43,7 @@ class SCA_IController;
 class SCA_IActuator;
 
 #ifdef WITH_PYTHON
-template<class T> T PyVecTo(PyObject*);
+template<class T> T PyVecTo(PyObject *);
 #endif
 
 typedef std::vector<SCA_ISensor *>       SCA_SensorList;
@@ -213,7 +213,7 @@ public:
 	 */
 	unsigned int GetState(void)	{ return m_state; }
 
-//	const class MT_Point3&	ConvertPythonPylist(PyObject* pylist);
+//	const class MT_Point3&	ConvertPythonPylist(PyObject *pylist);
 
 	virtual int GetGameObjectType() {return -1;}
 	

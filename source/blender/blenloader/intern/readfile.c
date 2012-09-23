@@ -134,7 +134,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_property.h" // for get_ob_property
+#include "BKE_property.h" // for BKE_bproperty_object_get
 #include "BKE_report.h"
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
@@ -249,6 +249,12 @@ static void convert_tface_mt(FileData *fd, Main *main);
  * bit kludge but better then doubling up on prints,
  * we could alternatively have a versions of a report function which forces printing - campbell
  */
+
+static void BKE_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
+#ifdef __GNUC__
+__attribute__ ((format(printf, 3, 4)))
+#endif
+;
 static void BKE_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
 {
 	char fixed_buf[1024]; /* should be long enough */
@@ -590,11 +596,7 @@ static void switch_endian_bh8(BHead8 *bhead)
 static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, int do_endian_swap)
 {
 	BHead4 *bhead4 = (BHead4 *) bhead;
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-	__int64 old;
-#else
-	long long old;
-#endif
+	int64_t old;
 
 	bhead4->code = bhead8->code;
 	bhead4->len = bhead8->len;
@@ -2716,6 +2718,16 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 
 /* ************ READ keys ***************** */
 
+static void do_versions_key_uidgen(Key *key)
+{
+	KeyBlock *block;
+
+	key->uidgen = 1;
+	for (block = key->block.first; block; block = block->next) {
+		block->uid = key->uidgen++;
+	}
+}
+
 static void lib_link_key(FileData *fd, Main *main)
 {
 	Key *key;
@@ -2723,12 +2735,7 @@ static void lib_link_key(FileData *fd, Main *main)
 	for (key = main->key.first; key; key = key->id.next) {
 		/*check if we need to generate unique ids for the shapekeys*/
 		if (!key->uidgen) {
-			KeyBlock *block;
-			
-			key->uidgen = 1;
-			for (block=key->block.first; block; block=block->next) {
-				block->uid = key->uidgen++;
-			}
+			do_versions_key_uidgen(key);
 		}
 		
 		if (key->id.flag & LIB_NEED_LINK) {
@@ -3815,7 +3822,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->tface = newdataadr(fd, mesh->tface);
 	mesh->mtface = newdataadr(fd, mesh->mtface);
 	mesh->mcol = newdataadr(fd, mesh->mcol);
-	mesh->msticky = newdataadr(fd, mesh->msticky);
 	mesh->dvert = newdataadr(fd, mesh->dvert);
 	mesh->mloopcol = newdataadr(fd, mesh->mloopcol);
 	mesh->mloopuv = newdataadr(fd, mesh->mloopuv);
@@ -4910,6 +4916,14 @@ static void direct_link_sequence_modifiers(FileData *fd, ListBase *lb)
 	}
 }
 
+static void direct_link_view_settings(FileData *fd, ColorManagedViewSettings *view_settings)
+{
+	view_settings->curve_mapping = newdataadr(fd, view_settings->curve_mapping);
+
+	if (view_settings->curve_mapping)
+		direct_link_curvemapping(fd, view_settings->curve_mapping);
+}
+
 static void direct_link_scene(FileData *fd, Scene *sce)
 {
 	Editing *ed;
@@ -5095,6 +5109,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->nodetree = newdataadr(fd, sce->nodetree);
 	if (sce->nodetree)
 		direct_link_nodetree(fd, sce->nodetree);
+
+	direct_link_view_settings(fd, &sce->view_settings);
 }
 
 /* ************ READ WM ***************** */
@@ -5308,6 +5324,13 @@ static void lib_link_screen(FileData *fd, Main *main)
 						 * so fingers crossed this works fine!
 						 */
 						sseq->gpd = newlibadr_us(fd, sc->id.lib, sseq->gpd);
+
+						sseq->scopes.reference_ibuf = NULL;
+						sseq->scopes.zebra_ibuf = NULL;
+						sseq->scopes.waveform_ibuf = NULL;
+						sseq->scopes.sep_waveform_ibuf = NULL;
+						sseq->scopes.vector_ibuf = NULL;
+						sseq->scopes.histogram_ibuf = NULL;
 					}
 					else if (sl->spacetype == SPACE_NLA) {
 						SpaceNla *snla= (SpaceNla *)sl;
@@ -5452,7 +5475,7 @@ static void lib_link_clipboard_restore(Main *newmain)
 /* called from kernel/blender.c */
 /* used to link a file (without UI) to the current UI */
 /* note that it assumes the old pointers in UI are still valid, so old Main is not freed */
-void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
+void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 {
 	wmWindow *win;
 	wmWindowManager *wm;
@@ -6284,6 +6307,14 @@ static void direct_link_mask(FileData *fd, Mask *mask)
 
 		for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
 			masklay_shape->data = newdataadr(fd, masklay_shape->data);
+
+			if (masklay_shape->tot_vert) {
+				if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+					BLI_endian_switch_float_array(masklay_shape->data,
+					                              masklay_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+
+				}
+			}
 		}
 
 		masklay->act_spline = newdataadr(fd, masklay->act_spline);
@@ -6872,7 +6903,7 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
 	}
 }
 
-void do_versions_image_settings_2_60(Scene *sce)
+static void do_versions_image_settings_2_60(Scene *sce)
 {
 	/* note: rd->subimtype is moved into individual settings now and no longer
 	 * exists */
@@ -7544,7 +7575,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			for (ob= main->object.first; ob; ob= ob->id.next) {
 				if (ob->type == OB_FONT) {
-					prop = get_ob_property(ob, "Text");
+					prop = BKE_bproperty_object_get(ob, "Text");
 					if (prop) {
 						BKE_reportf_wrap(fd->reports, RPT_WARNING,
 						                 "Game property name conflict in object: \"%s\".\nText objects reserve the "
@@ -7997,7 +8028,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					MovieTrackingMarker *marker = &track->markers[i];
 
 					if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
-					    is_zero_v2(marker->pattern_corners[3]) && is_zero_v2(marker->pattern_corners[3]))
+					    is_zero_v2(marker->pattern_corners[2]) && is_zero_v2(marker->pattern_corners[3]))
 					{
 						marker->pattern_corners[0][0] = track->pat_min[0];
 						marker->pattern_corners[0][1] = track->pat_min[1];
@@ -8091,6 +8122,76 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 				SEQ_END
+			}
+		}
+	}
+
+	/* color management pipeline changes compatibility code */
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 19)) {
+		Scene *scene;
+		Image *ima;
+		int colormanagement_disabled = FALSE;
+
+		/* make scenes which are not using color management have got None as display device,
+		 * so they wouldn't perform linear-to-sRGB conversion on display
+		 */
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			if ((scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) == 0) {
+				ColorManagedDisplaySettings *display_settings = &scene->display_settings;
+
+				if (display_settings->display_device[0] == 0) {
+					BKE_scene_disable_color_management(scene);
+
+				}
+
+				colormanagement_disabled = TRUE;
+			}
+		}
+
+		for (ima = main->image.first; ima; ima = ima->id.next) {
+			if (ima->source == IMA_SRC_VIEWER) {
+				ima->flag |= IMA_VIEW_AS_RENDER;
+			}
+			else if (colormanagement_disabled) {
+				/* if colormanagement not used, set image's color space to raw, so no sRGB->linear conversion
+				 * would happen on display and render
+				 * there's no clear way to check whether color management is enabled or not in render engine
+				 * so set all images to raw if there's at least one scene with color management disabled
+				 * this would still behave incorrect in cases when color management was used for only some
+				 * of scenes, but such a setup is crazy anyway and think it's fair enough to break compatibility
+				 * in that cases
+				 */
+
+				BLI_strncpy(ima->colorspace_settings.name, "Raw", sizeof(ima->colorspace_settings.name));
+			}
+		}
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 20)) {
+		Key *key;
+		for (key = main->key.first; key; key = key->id.next) {
+			do_versions_key_uidgen(key);
+		}
+	}
+
+	/* remove texco */
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 21)) {
+		Material *ma;
+		for (ma = main->mat.first; ma; ma = ma->id.next) {
+			int a;
+			for (a = 0; a < MAX_MTEX; a++) {
+				if (ma->mtex[a]) {
+					if (ma->mtex[a]->texco == TEXCO_STICKY_) {
+						ma->mtex[a]->texco = TEXCO_UV;
+					}
+				}
+			}
+		}
+
+		{
+			Mesh *me;
+			for (me = main->mesh.first; me; me = me->id.next) {
+				CustomData_free_layers(&me->vdata, CD_MSTICKY, me->totvert);
 			}
 		}
 	}

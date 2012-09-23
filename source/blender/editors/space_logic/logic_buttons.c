@@ -84,10 +84,10 @@ static int cut_links_intersect(uiLinkLine *line, float mcoords[][2], int tot)
 	int i, b;
 	rcti rectlink;
 
-	rectlink.xmin = (int)BLI_RCT_CENTER_X(&line->from->rect);
-	rectlink.ymin = (int)BLI_RCT_CENTER_Y(&line->from->rect);
-	rectlink.xmax = (int)BLI_RCT_CENTER_X(&line->to->rect);
-	rectlink.ymax = (int)BLI_RCT_CENTER_Y(&line->to->rect);
+	rectlink.xmin = (int)BLI_rctf_cent_x(&line->from->rect);
+	rectlink.ymin = (int)BLI_rctf_cent_y(&line->from->rect);
+	rectlink.xmax = (int)BLI_rctf_cent_x(&line->to->rect);
+	rectlink.ymax = (int)BLI_rctf_cent_y(&line->to->rect);
 
 	if (ui_link_bezier_points(&rectlink, coord_array, LINK_RESOL)) {
 		for (i=0; i<tot-1; i++)

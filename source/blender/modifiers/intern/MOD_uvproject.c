@@ -157,15 +157,12 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	int override_image = ((umd->flags & MOD_UVPROJECT_OVERRIDEIMAGE) != 0);
 	Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
 	int num_projectors = 0;
-	float aspect;
 	char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 	float aspx = umd->aspectx ? umd->aspectx : 1.0f;
 	float aspy = umd->aspecty ? umd->aspecty : 1.0f;
 	float scax = umd->scalex ? umd->scalex : 1.0f;
 	float scay = umd->scaley ? umd->scaley : 1.0f;
 	int free_uci = 0;
-
-	aspect = aspx / aspy;
 
 	for (i = 0; i < umd->num_projectors; ++i)
 		if (umd->projectors[i])
@@ -199,39 +196,23 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				free_uci = 1;
 			}
 			else {
-				float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
-				int sensor_fit = BKE_camera_sensor_fit(cam->sensor_fit, aspx, aspy);
-				float scale = (cam->type == CAM_PERSP) ? cam->clipsta * sensor / cam->lens : cam->ortho_scale;
-				float xmax, xmin, ymax, ymin;
+				CameraParams params;
 
-				if (sensor_fit == CAMERA_SENSOR_FIT_HOR) {
-					xmax = 0.5f * scale;
-					ymax = xmax / aspect;
-				}
-				else {
-					ymax = 0.5f * scale;
-					xmax = ymax * aspect;
-				}
+				/* setup parameters */
+				BKE_camera_params_init(&params);
+				BKE_camera_params_from_object(&params, projectors[i].ob);
 
-				xmin = -xmax;
-				ymin = -ymax;
+				/* compute matrix, viewplane, .. */
+				BKE_camera_params_compute_viewplane(&params, 1, 1, aspx, aspy);
 
-				/* scale the matrix */
-				xmin *= scax;
-				xmax *= scax;
-				ymin *= scay;
-				ymax *= scay;
+				/* scale the view-plane */
+				params.viewplane.xmin *= scax;
+				params.viewplane.xmax *= scax;
+				params.viewplane.ymin *= scay;
+				params.viewplane.ymax *= scay;
 
-				if (cam->type == CAM_PERSP) {
-					float perspmat[4][4];
-					perspective_m4(perspmat, xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
-					mult_m4_m4m4(tmpmat, perspmat, projectors[i].projmat);
-				}
-				else { /* if (cam->type == CAM_ORTHO) */
-					float orthomat[4][4];
-					orthographic_m4(orthomat, xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
-					mult_m4_m4m4(tmpmat, orthomat, projectors[i].projmat);
-				}
+				BKE_camera_params_compute_matrix(&params);
+				mult_m4_m4m4(tmpmat, params.winmat, projectors[i].projmat);
 			}
 		}
 		else {
@@ -241,22 +222,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		unit_m4(offsetmat);
 		mul_mat3_m4_fl(offsetmat, 0.5);
 		offsetmat[3][0] = offsetmat[3][1] = offsetmat[3][2] = 0.5;
-		
-		if (cam) {
-			if (aspx == aspy) { 
-				offsetmat[3][0] -= cam->shiftx;
-				offsetmat[3][1] -= cam->shifty;
-			}
-			else if (aspx < aspy) {
-				offsetmat[3][0] -= (cam->shiftx * aspy / aspx);
-				offsetmat[3][1] -= cam->shifty;
-			}
-			else {
-				offsetmat[3][0] -= cam->shiftx;
-				offsetmat[3][1] -= (cam->shifty * aspx / aspy);
-			}
-		}
-		
+
 		mult_m4_m4m4(projectors[i].projmat, offsetmat, tmpmat);
 
 		/* calculate worldspace projector normal (for best projector test) */

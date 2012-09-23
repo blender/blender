@@ -152,7 +152,8 @@ void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *UNUSED(min), float *UNUSED(m
 	}
 }
 
-void bfree(VBVHTree *tree)
+#if 0  /* UNUSED */
+static void bfree(VBVHTree *tree)
 {
 	if (tot_pushup + tot_pushdown + tot_hints + tot_moves) {
 		if (G.debug & G_DEBUG) {
@@ -169,6 +170,7 @@ void bfree(VBVHTree *tree)
 	}
 	bvh_free(tree);
 }
+#endif
 
 /* the cast to pointer function is needed to workarround gcc bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=11407 */
 template<class Tree, int STACK_SIZE>

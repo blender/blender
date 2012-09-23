@@ -69,11 +69,11 @@ __device float3 hsv_to_rgb(float3 hsv)
 	s = hsv.y;
 	v = hsv.z;
 
-	if(s==0.0f) {
+	if(s == 0.0f) {
 		rgb = make_float3(v, v, v);
 	}
 	else {
-		if(h==1.0f)
+		if(h == 1.0f)
 			h = 0.0f;
 		
 		h *= 6.0f;

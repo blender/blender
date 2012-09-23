@@ -67,9 +67,6 @@
 
 /* ******************* nla editor space & buttons ************** */
 
-#define B_NOP       1
-#define B_REDR      2
-
 /* -------------- */
 
 static void do_nla_region_buttons(bContext *C, void *UNUSED(arg), int event)

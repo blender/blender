@@ -1254,7 +1254,8 @@ struct anim *IMB_anim_open_proxy(
 
 	get_proxy_filename(anim, preview_size, fname, FALSE);
 
-	anim->proxy_anim[i] = IMB_open_anim(fname, 0, 0);
+	/* proxies are generated in default color space */
+	anim->proxy_anim[i] = IMB_open_anim(fname, 0, 0, NULL);
 	
 	anim->proxies_tried |= preview_size;
 

@@ -21,15 +21,30 @@
 # Use for validating our wiki interlinking.
 #  ./blender.bin --background -noaudio --python source/tests/bl_rna_wiki_reference.py
 #
-# 1) test_lookup_coverage()   -- ensure that we have lookups for _every_ RNA path
-# 2) test_urls()              -- ensure all the URL's are correct
-# 3) test_language_coverage() -- ensure language lookup table is complete
+# 1) test_data()              -- ensure the data we have is correct format
+# 2) test_lookup_coverage()   -- ensure that we have lookups for _every_ RNA path
+# 3) test_urls()              -- ensure all the URL's are correct
+# 4) test_language_coverage() -- ensure language lookup table is complete
 #
 
 import bpy
 
-# a stripped down version of api_dump() in rna_info_dump.py
+def test_data():
+    import rna_wiki_reference
+    
+    assert(isinstance(rna_wiki_reference.url_manual_mapping, tuple))
+    for i, value in enumerate(rna_wiki_reference.url_manual_mapping):
+        try:
+            assert(len(value) == 2)
+            assert(isinstance(value[0], str))
+            assert(isinstance(value[1], str))
+        except:
+            print("Expected a tuple of 2 strings, instead item %d is a %s: %r" % (i, type(value), value))
+            import traceback
+            traceback.print_exc()
+            raise
 
+# a stripped down version of api_dump() in rna_info_dump.py
 
 def test_lookup_coverage():
 
@@ -39,20 +54,37 @@ def test_lookup_coverage():
         struct = rna_info.BuildRNAInfo()[0]
         for struct_id, v in sorted(struct.items()):
             props = [(prop.identifier, prop) for prop in v.properties]
+            struct_path = "bpy.types.%s" % struct_id[1]
             for prop_id, prop in props:
-                yield "bpy.types.%s.%s" % (struct_id[1], prop_id)
+                yield (struct_path, "%s.%s" % (struct_path, prop_id))
 
         for submod_id in dir(bpy.ops):
+            op_path = "bpy.ops.%s" % submod_id
             for op_id in dir(getattr(bpy.ops, submod_id)):
-                yield "bpy.ops.%s.%s" % (submod_id, op_id)
+                yield (op_path, "%s.%s" % (op_path, op_id))
 
     # check coverage
     from bl_operators import wm
 
-    for rna_id in rna_ids():
+    set_group_all = set()
+    set_group_doc = set()
+
+    for rna_group, rna_id in rna_ids():
         url = wm.WM_OT_doc_view_manual._lookup_rna_url(rna_id, verbose=False)
         print(rna_id, "->", url)
 
+        set_group_all.add(rna_group)
+        if url is not None:
+            set_group_doc.add(rna_group)
+
+    # finally report undocumented groups
+    print("")
+    print("---------------------")
+    print("Undocumented Sections")
+    
+    for rna_group in sorted(set_group_all):
+        if rna_group not in set_group_doc:
+            print("%s.*" % rna_group)
 
 def test_urls():
     pass  # TODO
@@ -63,6 +95,7 @@ def test_language_coverage():
 
 
 def main():
+    test_data()
     test_lookup_coverage()
     test_language_coverage()
 

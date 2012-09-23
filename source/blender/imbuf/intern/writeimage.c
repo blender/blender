@@ -38,7 +38,27 @@
 #include "IMB_imbuf.h"
 #include "IMB_filetype.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 #include "imbuf.h"
+
+static ImBuf *prepare_write_imbuf(ImFileType *type, ImBuf *ibuf)
+{
+	ImBuf *write_ibuf = ibuf;
+
+	if (type->flag & IM_FTYPE_FLOAT) {
+		/* pass */
+	}
+	else {
+		if (ibuf->rect == NULL && ibuf->rect_float) {
+			ibuf->rect_colorspace = colormanage_colorspace_get_roled(COLOR_ROLE_DEFAULT_BYTE);
+			IMB_rect_from_float(ibuf);
+		}
+	}
+
+	return write_ibuf;
+}
 
 short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 {
@@ -49,11 +69,17 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 
 	for (type = IMB_FILE_TYPES; type->is_a; type++) {
 		if (type->save && type->ftype(type, ibuf)) {
-			if (!(type->flag & IM_FTYPE_FLOAT)) {
-				if (ibuf->rect == NULL && ibuf->rect_float)
-					IMB_rect_from_float(ibuf);
-			}
-			return type->save(ibuf, name, flags);
+			ImBuf *write_ibuf;
+			short result = FALSE;
+
+			write_ibuf = prepare_write_imbuf(type, ibuf);
+
+			result = type->save(write_ibuf, name, flags);
+
+			if (write_ibuf != ibuf)
+				IMB_freeImBuf(write_ibuf);
+
+			return result;
 		}
 	}
 

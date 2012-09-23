@@ -53,14 +53,14 @@ void ED_keymap_mask(struct wmKeyConfig *keyconf);
 void ED_operatormacros_mask(void);
 
 /* mask_draw.c */
-void ED_mask_draw(const bContext *C, const char draw_flag, const char draw_type);
+void ED_mask_draw(const struct bContext *C, const char draw_flag, const char draw_type);
 void ED_mask_draw_region(struct Mask *mask, struct ARegion *ar,
                          const char draw_flag, const char draw_type,
                          const int width_i, const int height_i,
                          const float aspx, const float aspy,
                          const short do_scale_applied, const short do_post_draw,
                          float stabmat[4][4],
-                         const bContext *C);
+                         const struct bContext *C);
 
 void ED_mask_draw_frames(struct Mask *mask, struct ARegion *ar, const int cfra, const int sfra, const int efra);
 

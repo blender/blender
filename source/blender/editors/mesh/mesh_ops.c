@@ -136,7 +136,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_vertices_smooth);
 	WM_operatortype_append(MESH_OT_noise);
 	WM_operatortype_append(MESH_OT_flip_normals);
-	//WM_operatortype_append(MESH_OT_knife_cut);
 	WM_operatortype_append(MESH_OT_rip);
 	WM_operatortype_append(MESH_OT_blend_from_shape);
 	WM_operatortype_append(MESH_OT_shape_propagate_to_all);
@@ -145,8 +144,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_uv_texture_remove);
 	WM_operatortype_append(MESH_OT_vertex_color_add);
 	WM_operatortype_append(MESH_OT_vertex_color_remove);
-	WM_operatortype_append(MESH_OT_sticky_add);
-	WM_operatortype_append(MESH_OT_sticky_remove);
+	WM_operatortype_append(MESH_OT_customdata_clear_mask);
+	WM_operatortype_append(MESH_OT_customdata_clear_skin);
 	WM_operatortype_append(MESH_OT_drop_named_image);
 
 	WM_operatortype_append(MESH_OT_edgering_select);

@@ -119,6 +119,8 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 		uiTemplateID(layout, C, ptr, propname, NULL, "CLIP_OT_open", NULL);
 
 	if (clip) {
+		uiLayout *col;
+
 		row = uiLayoutRow(layout, FALSE);
 		block = uiLayoutGetBlock(row);
 		uiDefBut(block, LABEL, 0, "File Path:", 0, 19, 145, 19, NULL, 0, 0, 0, 0, "");
@@ -129,6 +131,9 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 
 		uiItemR(row, &clipptr, "filepath", 0, "", ICON_NONE);
 		uiItemO(row, "", ICON_FILE_REFRESH, "clip.reload");
+
+		col = uiLayoutColumn(layout, FALSE);
+		uiTemplateColorspaceSettings(col, &clipptr, "colorspace_settings");
 	}
 }
 
@@ -169,7 +174,7 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	scopes->track_preview_height =
 		(scopes->track_preview_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->track_preview_height;
 
-	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, BLI_RCT_SIZE_X(&rect),
+	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect),
 	         scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
 }
 

@@ -114,7 +114,7 @@ int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const int m
 	mval_cpy[0] = mval[0];
 	mval_cpy[1] = mval[1];
 
-	project_int_noclip(vc->ar, fp, mval_cpy);
+	ED_view3d_project_int_noclip(vc->ar, fp, mval_cpy);
 
 	initgrabz(vc->rv3d, fp[0], fp[1], fp[2]);
 
@@ -319,11 +319,6 @@ static int edge_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
 	return 1;
 }
 
-
-#define MOVES_GESTURE 50
-#define MOVES_LASSO 500
-
-
 /* warning; lasso select with backbuffer-check draws in backbuf with persp(PERSP_WIN) 
  * and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
  */
@@ -339,9 +334,9 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, int mcords[][2], s
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		if (PBONE_VISIBLE(arm, pchan->bone) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 			mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
-			project_int(vc->ar, vec, sco1);
+			ED_view3d_project_int(vc->ar, vec, sco1);
 			mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
-			project_int(vc->ar, vec, sco2);
+			ED_view3d_project_int(vc->ar, vec, sco2);
 			
 			if (BLI_lasso_is_edge_inside(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1], IS_CLIPPED)) {
 				if (select) pchan->bone->flag |= BONE_SELECTED;
@@ -376,7 +371,7 @@ static void do_lasso_select_objects(ViewContext *vc, int mcords[][2], short move
 
 	for (base = vc->scene->base.first; base; base = base->next) {
 		if (BASE_SELECTABLE(vc->v3d, base)) { /* use this to avoid un-needed lasso lookups */
-			project_short(vc->ar, base->object->obmat[3], &base->sx);
+			ED_view3d_project_short(vc->ar, base->object->obmat[3], &base->sx);
 			if (BLI_lasso_is_point_inside(mcords, moves, base->sx, base->sy, IS_CLIPPED)) {
 				
 				if (select) ED_base_object_select(base, BA_SELECT);
@@ -583,9 +578,9 @@ static void do_lasso_select_armature(ViewContext *vc, int mcords[][2], short mov
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
 			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
-			project_short(vc->ar, vec, sco1);
+			ED_view3d_project_short(vc->ar, vec, sco1);
 			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
-			project_short(vc->ar, vec, sco2);
+			ED_view3d_project_short(vc->ar, vec, sco2);
 			
 			didpoint = 0;
 			if (BLI_lasso_is_point_inside(mcords, moves, sco1[0], sco1[1], IS_CLIPPED)) {
@@ -637,7 +632,7 @@ static void do_lasso_select_meta(ViewContext *vc, int mcords[][2], short moves, 
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		
 		mul_v3_m4v3(vec, vc->obedit->obmat, &ml->x);
-		project_short(vc->ar, vec, sco);
+		ED_view3d_project_short(vc->ar, vec, sco);
 
 		if (BLI_lasso_is_point_inside(mcords, moves, sco[0], sco[1], IS_CLIPPED)) {
 			if (select) ml->flag |= SELECT;
@@ -646,7 +641,7 @@ static void do_lasso_select_meta(ViewContext *vc, int mcords[][2], short moves, 
 	}
 }
 
-int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
+static int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
 	Mesh *me;
 	MVert *mvert;
@@ -654,8 +649,8 @@ int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	unsigned int *rt;
 	int a, index;
 	char *selar;
-	int sx = BLI_RCT_SIZE_X(rect) + 1;
-	int sy = BLI_RCT_SIZE_Y(rect) + 1;
+	int sx = BLI_rcti_size_x(rect) + 1;
+	int sy = BLI_rcti_size_y(rect) + 1;
 
 	me = vc->obact->data;
 
@@ -1065,7 +1060,7 @@ static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int
 		else {
 			int temp, dist = 15;
 
-			project_short(vc->ar, base->object->obmat[3], &base->sx);
+			ED_view3d_project_short(vc->ar, base->object->obmat[3], &base->sx);
 			
 			temp = abs(base->sx - mval[0]) + abs(base->sy - mval[1]);
 			if (temp < dist)
@@ -1346,7 +1341,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 			base = startbase;
 			while (base) {
 				if (BASE_SELECTABLE(v3d, base)) {
-					project_short(ar, base->object->obmat[3], &base->sx);
+					ED_view3d_project_short(ar, base->object->obmat[3], &base->sx);
 					
 					temp = abs(base->sx - mval[0]) + abs(base->sy - mval[1]);
 					if (base == BASACT) temp += 10;
@@ -2383,11 +2378,11 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 		
 		/* project head location to screenspace */
 		mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_head);
-		project_short(vc->ar, vec, sco1);
+		ED_view3d_project_short(vc->ar, vec, sco1);
 		
 		/* project tail location to screenspace */
 		mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_tail);
-		project_short(vc->ar, vec, sco2);
+		ED_view3d_project_short(vc->ar, vec, sco2);
 		
 		/* check if the head and/or tail is in the circle 
 		 *	- the call to check also does the selection already
@@ -2451,11 +2446,11 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 		
 		/* project head location to screenspace */
 		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
-		project_short(vc->ar, vec, sco1);
+		ED_view3d_project_short(vc->ar, vec, sco1);
 		
 		/* project tail location to screenspace */
 		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
-		project_short(vc->ar, vec, sco2);
+		ED_view3d_project_short(vc->ar, vec, sco2);
 		
 		/* check if the head and/or tail is in the circle 
 		 *	- the call to check also does the selection already
@@ -2561,7 +2556,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		select = select ? BA_SELECT : BA_DESELECT;
 		for (base = FIRSTBASE; base; base = base->next) {
 			if (BASE_SELECTABLE(v3d, base)) {
-				project_short(ar, base->object->obmat[3], &base->sx);
+				ED_view3d_project_short(ar, base->object->obmat[3], &base->sx);
 				if (base->sx != IS_CLIPPED) {
 					int dx = base->sx - x;
 					int dy = base->sy - y;

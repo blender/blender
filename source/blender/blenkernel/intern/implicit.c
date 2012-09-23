@@ -48,8 +48,11 @@
 #include "BKE_global.h"
 
 
-#define CLOTH_OPENMP_LIMIT 512
+#ifdef _OPENMP
+#  define CLOTH_OPENMP_LIMIT 512
+#endif
 
+#if 0  /* debug timing */
 #ifdef _WIN32
 #include <windows.h>
 static LARGE_INTEGER _itstart, _itend;
@@ -81,7 +84,7 @@ double itval(void)
 
 static struct timeval _itstart, _itend;
 static struct timezone itz;
-void itstart(void)
+static void itstart(void)
 {
 	gettimeofday(&_itstart, &itz);
 }
@@ -89,7 +92,7 @@ static void itend(void)
 {
 	gettimeofday(&_itend, &itz);
 }
-double itval(void)
+static double itval(void)
 {
 	double t1, t2;
 	t1 =  (double)_itstart.tv_sec + (double)_itstart.tv_usec/(1000*1000);
@@ -97,6 +100,7 @@ double itval(void)
 	return t2-t1;
 }
 #endif
+#endif  /* debug timing */
 
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
@@ -1691,13 +1695,13 @@ static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVect
 	mul_bfmatrix_lfvector(dFdXmV, dFdX, lV);
 
 	add_lfvectorS_lfvectorS(B, lF, dt, dFdXmV, (dt*dt), numverts);
-	
-	itstart();
-	
+
+	// itstart();
+
 	cg_filtered(dV, A, B, z, S); /* conjugate gradient algorithm to solve Ax=b */
 	// cg_filtered_pre(dV, A, B, z, S, P, Pinv, bigI);
-	
-	itend();
+
+	// itend();
 	// printf("cg_filtered calc time: %f\n", (float)itval());
 	
 	cp_lfvector(olddV, dV, numverts);
@@ -1713,7 +1717,7 @@ static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVect
  * (edge distance constraints) in a lagrangian solver.  then add forces to help
  * guide the implicit solver to that state.  this function is called after
  * collisions*/
-int cloth_calc_helper_forces(Object *UNUSED(ob), ClothModifierData * clmd, float (*initial_cos)[3], float UNUSED(step), float dt)
+static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothModifierData * clmd, float (*initial_cos)[3], float UNUSED(step), float dt)
 {
 	Cloth *cloth= clmd->clothObject;
 	float (*cos)[3] = MEM_callocN(sizeof(float)*3*cloth->numverts, "cos cloth_calc_helper_forces");

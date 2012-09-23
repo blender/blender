@@ -242,7 +242,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 		key = (ParamKey)efa;
 
-		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		// tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);  // UNUSED
 
 		if (efa->len == 3 || efa->len == 4) {
 			/* for quads let parametrize split, it can make better decisions

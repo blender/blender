@@ -34,7 +34,7 @@
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdlib.h>	
+#include <stdlib.h>
 
 #ifndef WIN32
 #include <dirent.h>

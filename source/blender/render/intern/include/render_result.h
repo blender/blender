@@ -47,6 +47,8 @@ struct RenderLayer;
 struct RenderResult;
 struct Scene;
 struct rcti;
+struct ColorManagedDisplaySettings;
+struct ColorManagedViewSettings;
 
 /* New */
 
@@ -55,7 +57,7 @@ struct RenderResult *render_result_new(struct Render *re,
 struct RenderResult *render_result_new_full_sample(struct Render *re,
 	struct ListBase *lb, struct rcti *partrct, int crop, int savebuffers);
 
-struct RenderResult *render_result_new_from_exr(void *exrhandle, int rectx, int recty);
+struct RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty);
 
 /* Merge */
 
@@ -90,7 +92,9 @@ void render_result_rect_from_ibuf(struct RenderResult *rr, struct RenderData *rd
 
 void render_result_rect_fill_zero(struct RenderResult *rr);
 void render_result_rect_get_pixels(struct RenderResult *rr, struct RenderData *rd,
-	unsigned int *rect, int rectx, int recty);
+	unsigned int *rect, int rectx, int recty,
+	const struct ColorManagedViewSettings *view_settings,
+	const struct ColorManagedDisplaySettings *display_settings);
 
 #endif /* __RENDER_RESULT_H__ */
 

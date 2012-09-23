@@ -41,8 +41,10 @@
 #include "BKE_mesh.h"
 #include "ED_mesh.h"
 
+#include "rna_internal.h"  /* own include */
+
 #ifdef RNA_RUNTIME
-const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, struct Mesh *mesh2)
+static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, bContext *C, struct Mesh *mesh2)
 {
 	const char *ret = BKE_mesh_cmp(mesh, mesh2, FLT_EPSILON * 60);
 	

@@ -1030,7 +1030,6 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 	if (VALID_CONS_TARGET(ct)) {
 		float size[3], vec[3];
 		float totmat[3][3];
-		float tmat[4][4];
 		
 		/* Get size property, since ob->size is only the object's own relative size, not its global one */
 		mat4_to_size(size, cob->matrix);
@@ -1053,9 +1052,8 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		vectomat(vec, ct->matrix[2], 
 		         (short)data->reserved1, (short)data->reserved2,
 		         data->flags, totmat);
-		
-		copy_m4_m4(tmat, cob->matrix);
-		mul_m4_m3m4(cob->matrix, totmat, tmat);
+
+		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }
 
@@ -2281,7 +2279,6 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		float totmat[3][3];
 		float tmpmat[3][3];
 		float invmat[3][3];
-		float tmat[4][4];
 		float mdet;
 		
 		/* Vector object -> target */
@@ -2509,8 +2506,6 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		totmat[1][0] = tmpmat[1][0]; totmat[1][1] = tmpmat[1][1]; totmat[1][2] = tmpmat[1][2];
 		totmat[2][0] = tmpmat[2][0]; totmat[2][1] = tmpmat[2][1]; totmat[2][2] = tmpmat[2][2];
 		
-		copy_m4_m4(tmat, cob->matrix);
-		
 		mdet = determinant_m3(totmat[0][0], totmat[0][1], totmat[0][2],
 		                      totmat[1][0], totmat[1][1], totmat[1][2],
 		                      totmat[2][0], totmat[2][1], totmat[2][2]);
@@ -2519,7 +2514,7 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		}
 		
 		/* apply out transformaton to the object */
-		mul_m4_m3m4(cob->matrix, totmat, tmat);
+		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }
 
@@ -2717,7 +2712,6 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 	if (VALID_CONS_TARGET(ct)) {
 		float size[3], scale[3], vec[3], xx[3], zz[3], orth[3];
 		float totmat[3][3];
-		float tmat[4][4];
 		float dist;
 		
 		/* store scaling before destroying obmat */
@@ -2815,9 +2809,8 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 				normalize_v3_v3(totmat[2], zz);
 				break;
 		} /* switch (data->plane) */
-		
-		copy_m4_m4(tmat, cob->matrix);
-		mul_m4_m3m4(cob->matrix, totmat, tmat);
+
+		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }
 
@@ -4061,32 +4054,36 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 				copy_v3_v3(cob->matrix[3], disp);
 			}
 
-			if (data->depth_ob && data->depth_ob->derivedFinal) {
+			if (data->depth_ob) {
 				Object *depth_ob = data->depth_ob;
-				BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
-				BVHTreeRayHit hit;
-				float ray_start[3], ray_end[3], ray_nor[3], imat[4][4];
-				int result;
+				DerivedMesh *target = object_get_derived_final(depth_ob);
+				if (target) {
+					BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
+					BVHTreeRayHit hit;
+					float ray_start[3], ray_end[3], ray_nor[3], imat[4][4];
+					int result;
 
-				invert_m4_m4(imat, depth_ob->obmat);
+					invert_m4_m4(imat, depth_ob->obmat);
 
-				mul_v3_m4v3(ray_start, imat, camob->obmat[3]);
-				mul_v3_m4v3(ray_end, imat, cob->matrix[3]);
+					mul_v3_m4v3(ray_start, imat, camob->obmat[3]);
+					mul_v3_m4v3(ray_end, imat, cob->matrix[3]);
 
-				sub_v3_v3v3(ray_nor, ray_end, ray_start);
+					sub_v3_v3v3(ray_nor, ray_end, ray_start);
 
-				bvhtree_from_mesh_faces(&treeData, depth_ob->derivedFinal, 0.0f, 4, 6);
+					bvhtree_from_mesh_faces(&treeData, target, 0.0f, 4, 6);
 
-				hit.dist = FLT_MAX;
-				hit.index = -1;
+					hit.dist = FLT_MAX;
+					hit.index = -1;
 
-				result = BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
+					result = BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
 
-				if (result != -1) {
-					mul_v3_m4v3(cob->matrix[3], depth_ob->obmat, hit.co);
+					if (result != -1) {
+						mul_v3_m4v3(cob->matrix[3], depth_ob->obmat, hit.co);
+					}
+
+					free_bvhtree_from_mesh(&treeData);
+					target->release(target);
 				}
-
-				free_bvhtree_from_mesh(&treeData);
 			}
 		}
 	}

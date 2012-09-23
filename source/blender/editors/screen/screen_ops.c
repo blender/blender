@@ -372,6 +372,21 @@ int ED_operator_posemode_exclusive(bContext *C)
 	return 0;
 }
 
+/* allows for pinned pose objects to be used in the object buttons
+ * and the the non-active pose object to be used in the 3D view */
+int ED_operator_posemode_context(bContext *C)
+{
+	Object *obpose = ED_pose_object_from_context(C);
+
+	if (obpose && !(obpose->mode & OB_MODE_EDIT)) {
+		if (BKE_object_pose_context_check(obpose)) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 int ED_operator_posemode(bContext *C)
 {
 	Object *obact = CTX_data_active_object(C);
@@ -1196,9 +1211,6 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
  * call exit() or cancel() and remove handler
  */
 
-#define SPLIT_STARTED   1
-#define SPLIT_PROGRESS  2
-
 typedef struct sAreaSplitData {
 	int x, y;   /* last used mouse position */
 	
@@ -1635,10 +1647,10 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 	int dist;
 	
 	if (edge == AE_RIGHT_TO_TOPLEFT || edge == AE_LEFT_TO_TOPRIGHT) {
-		dist = BLI_RCT_SIZE_X(&sa->totrct);
+		dist = BLI_rcti_size_x(&sa->totrct);
 	}
 	else {  /* AE_BOTTOM_TO_TOPLEFT, AE_TOP_TO_BOTTOMRIGHT */
-		dist = BLI_RCT_SIZE_Y(&sa->totrct);
+		dist = BLI_rcti_size_y(&sa->totrct);
 	}
 	
 	/* subtractwidth of regions on opposite side 
@@ -2850,35 +2862,40 @@ static void SCREEN_OT_header_flip(wmOperatorType *ot)
 }
 
 /* ************** header tools operator ***************************** */
-
-static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	
-	pup = uiPupMenuBegin(C, "Header", ICON_NONE);
-	layout = uiPupMenuLayout(pup);
-	
-	// XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator
+
+	/* XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator. */
 	if (ar->alignment == RGN_ALIGN_TOP)
-		uiItemO(layout, "Flip to Bottom", ICON_NONE, "SCREEN_OT_header_flip");
+		uiItemO(layout, IFACE_("Flip to Bottom"), ICON_NONE, "SCREEN_OT_header_flip");
 	else
-		uiItemO(layout, "Flip to Top", ICON_NONE, "SCREEN_OT_header_flip");
-	
+		uiItemO(layout, IFACE_("Flip to Top"), ICON_NONE, "SCREEN_OT_header_flip");
+
 	uiItemS(layout);
-	
+
 	/* file browser should be fullscreen all the time, but other regions can be maximized/restored... */
 	if (sa->spacetype != SPACE_FILE) {
 		if (sa->full) 
-			uiItemO(layout, "Tile Area", ICON_NONE, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, IFACE_("Tile Area"), ICON_NONE, "SCREEN_OT_screen_full_area");
 		else
-			uiItemO(layout, "Maximize Area", ICON_NONE, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, IFACE_("Maximize Area"), ICON_NONE, "SCREEN_OT_screen_full_area");
 	}
-	
+}
+
+static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup = uiPupMenuBegin(C, N_("Header"), ICON_NONE);
+	layout = uiPupMenuLayout(pup);
+
+	ED_screens_header_tools_menu_create(C, layout, NULL);
+
 	uiPupMenuEnd(C, pup);
-	
+
 	return OPERATOR_CANCELLED;
 }
 

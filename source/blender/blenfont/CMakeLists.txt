@@ -27,6 +27,7 @@ set(INC
 	../blenlib
 	../editors/include
 	../makesdna
+	../imbuf
 	../../../intern/guardedalloc
 )
 

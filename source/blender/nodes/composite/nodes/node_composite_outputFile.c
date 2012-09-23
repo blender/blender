@@ -267,9 +267,6 @@ static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack
 			ibuf->rect_float = cbuf->rect;
 			ibuf->dither = rd->dither_intensity;
 			
-			if (rd->color_mgt_flag & R_COLOR_MANAGEMENT)
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			
 			/* get full path */
 			BLI_join_dirfile(path, FILE_MAX, nimf->base_path, sockdata->path);
 			BKE_makepicstring(filename, path, bmain->name, rd->cfra, format->imtype, (rd->scemode & R_EXTENSION), TRUE);

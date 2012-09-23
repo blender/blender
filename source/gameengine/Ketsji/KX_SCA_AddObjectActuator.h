@@ -112,7 +112,7 @@ public:
 	virtual bool 
 	Update();
 
-		SCA_IObject*	
+		SCA_IObject *
 	GetLastCreatedObject(
 	) const;
 
@@ -122,9 +122,9 @@ public:
 
 	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,InstantAddObject);
 
-	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-	static PyObject* pyattr_get_objectLastCreated(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_objectLastCreated(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	
 #endif // WITH_PYTHON
 

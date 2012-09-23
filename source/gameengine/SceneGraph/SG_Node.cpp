@@ -143,7 +143,7 @@ Destruct()
 }
 
 const 
-	SG_Node*	
+	SG_Node *
 SG_Node::
 GetRootSGParent(
 ) const {

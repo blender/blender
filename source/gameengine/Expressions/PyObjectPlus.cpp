@@ -145,7 +145,7 @@ PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the ent
 }
 
 
-PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+PyObject *PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyTypeObject *base_type;
 	PyObjectPlus_Proxy *base = NULL;
@@ -270,7 +270,7 @@ PyAttributeDef PyObjectPlus::Attributes[] = {
 
 
 
-PyObject* PyObjectPlus::pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *PyObjectPlus::pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	return PyBool_FromLong(self_v ? 0:1);
 }
@@ -303,7 +303,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 	ptr += attrdef->m_offset;
 	if (attrdef->m_length > 1)
 	{
-		PyObject* resultlist = PyList_New(attrdef->m_length);
+		PyObject *resultlist = PyList_New(attrdef->m_length);
 		for (unsigned int i=0; i<attrdef->m_length; i++)
 		{
 			switch (attrdef->m_type) {
@@ -420,7 +420,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 #ifdef USE_MATHUTILS
 						return Vector_CreatePyObject(val, attrdef->m_imax, Py_NEW, NULL);
 #else
-						PyObject* resultlist = PyList_New(attrdef->m_imax);
+						PyObject *resultlist = PyList_New(attrdef->m_imax);
 						for (unsigned int i=0; i<attrdef->m_imax; i++)
 						{
 							PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble(val[i]));
@@ -437,10 +437,10 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 #ifdef USE_MATHUTILS
 					return Matrix_CreatePyObject(val, attrdef->m_imin, attrdef->m_imax, Py_WRAP, NULL);
 #else
-					PyObject* collist = PyList_New(attrdef->m_imin);
+					PyObject *collist = PyList_New(attrdef->m_imin);
 					for (unsigned int i=0; i<attrdef->m_imin; i++)
 					{
-						PyObject* col = PyList_New(attrdef->m_imax);
+						PyObject *col = PyList_New(attrdef->m_imax);
 						for (unsigned int j=0; j<attrdef->m_imax; j++)
 						{
 							PyList_SET_ITEM(col,j,PyFloat_FromDouble(val[j]));
@@ -460,7 +460,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 				val->getValue(fval);
 				return Vector_CreatePyObject(fval, 3, Py_NEW, NULL);
 #else
-				PyObject* resultlist = PyList_New(3);
+				PyObject *resultlist = PyList_New(3);
 				for (unsigned int i=0; i<3; i++)
 				{
 					PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble((*val)[i]));
@@ -1100,7 +1100,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 	}
 	if (undoBuffer)
 		free(undoBuffer);
-	return 0;	
+	return 0;
 }
 
 
@@ -1139,7 +1139,7 @@ PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 	if (!self) 
 	{
 		// in case of proxy without reference to game object
-		PyObject* proxy = reinterpret_cast<PyObject *>PyObject_NEW( PyObjectPlus_Proxy, tp);
+		PyObject *proxy = reinterpret_cast<PyObject *>PyObject_NEW( PyObjectPlus_Proxy, tp);
 		BGE_PROXY_PYREF(proxy) = false;
 		BGE_PROXY_PYOWNS(proxy) = py_owns;
 		BGE_PROXY_REF(proxy) = NULL; 

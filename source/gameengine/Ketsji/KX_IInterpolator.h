@@ -38,7 +38,7 @@
 #include "MEM_guardedalloc.h"
 #endif
 
-class KX_IInterpolator {	
+class KX_IInterpolator {
 public:
 	virtual ~KX_IInterpolator() {}
 	

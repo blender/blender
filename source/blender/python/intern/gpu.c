@@ -74,8 +74,7 @@ static struct PyModuleDef gpumodule = {
 	NULL, NULL, NULL, NULL, NULL
 };
 
-PyMODINIT_FUNC
-PyInit_gpu(void)
+static PyObject *PyInit_gpu(void)
 {
 	PyObject *m;
 

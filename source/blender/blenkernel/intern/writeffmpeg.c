@@ -847,7 +847,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
  * parameter.
  * </p>
  */
-void flush_ffmpeg(void)
+static void flush_ffmpeg(void)
 {
 	int outsize = 0;
 	int ret = 0;

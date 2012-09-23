@@ -156,8 +156,8 @@ typedef struct Temp_UvData {
 
 
 
-void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float mouse_coord[2],
-                                float alpha, float radius, float aspectRatio)
+static void HC_relaxation_iteration_uv(BMEditMesh *em, UvSculptData *sculptdata, float mouse_coord[2],
+                                       float alpha, float radius, float aspectRatio)
 {
 	Temp_UVData *tmp_uvdata;
 	float diff[2];

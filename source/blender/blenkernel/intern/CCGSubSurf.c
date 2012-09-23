@@ -1397,7 +1397,7 @@ CCGError ccgSubSurf_processSync(CCGSubSurf *ss)
 	return eCCGError_None;
 }
 
-#define VERT_getNo(e, lvl)                  _vert_getNo(e, lvl, vertDataSize, normalDataOffset)
+#define VERT_getNo(e, lvl)                  _vert_getNo(v, lvl, vertDataSize, normalDataOffset)
 #define EDGE_getNo(e, lvl, x)               _edge_getNo(e, lvl, x, vertDataSize, normalDataOffset)
 #define FACE_getIFNo(f, lvl, S, x, y)       _face_getIFNo(f, lvl, S, x, y, subdivLevels, vertDataSize, normalDataOffset)
 #define FACE_calcIFNo(f, lvl, S, x, y, no)  _face_calcIFNo(f, lvl, S, x, y, no, subdivLevels, vertDataSize)
@@ -1491,7 +1491,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	/* XXX can I reduce the number of normalisations here? */
 	for (ptrIdx = 0; ptrIdx < numEffectedV; ptrIdx++) {
 		CCGVert *v = (CCGVert *) effectedV[ptrIdx];
-		float length, *no = _vert_getNo(v, lvl, vertDataSize, normalDataOffset);
+		float length, *no = VERT_getNo(v, lvl);
 
 		NormZero(no);
 

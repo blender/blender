@@ -53,6 +53,7 @@
 
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -383,6 +384,7 @@ typedef struct {
 static int python_script_exec(bContext *C, const char *fn, struct Text *text,
                               struct ReportList *reports, const short do_jump)
 {
+	Main *bmain_old = CTX_data_main(C);
 	PyObject *main_mod = NULL;
 	PyObject *py_dict = NULL, *py_result = NULL;
 	PyGILState_STATE gilstate;
@@ -461,7 +463,11 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 	if (!py_result) {
 		if (text) {
 			if (do_jump) {
-				python_script_error_jump_text(text);
+				/* ensure text is valid before use, the script may have freed its self */
+				Main *bmain_new = CTX_data_main(C);
+				if ((bmain_old == bmain_new) && (BLI_findindex(&bmain_new->text, text) != -1)) {
+					python_script_error_jump_text(text);
+				}
 			}
 		}
 		BPy_errors_to_report(reports);
@@ -680,10 +686,19 @@ void BPY_modules_load_user(bContext *C)
 
 int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result)
 {
-	PyObject *pyctx = (PyObject *)CTX_py_dict_get(C);
-	PyObject *item = PyDict_GetItemString(pyctx, member);
+	PyGILState_STATE gilstate;
+	int use_gil = !PYC_INTERPRETER_ACTIVE;
+
+	PyObject *pyctx;
+	PyObject *item;
 	PointerRNA *ptr = NULL;
 	int done = FALSE;
+
+	if (use_gil)
+		gilstate = PyGILState_Ensure();
+
+	pyctx = (PyObject *)CTX_py_dict_get(C);
+	item = PyDict_GetItemString(pyctx, member);
 
 	if (item == NULL) {
 		/* pass */
@@ -720,7 +735,8 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 					CTX_data_list_add(result, ptr->id.data, ptr->type, ptr->data);
 				}
 				else {
-					printf("List item not a valid type\n");
+					printf("PyContext: '%s' list item not a valid type in sequece type '%s'\n",
+					       member, Py_TYPE(item)->tp_name);
 				}
 
 			}
@@ -739,6 +755,9 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 			printf("PyContext '%s' found\n", member);
 		}
 	}
+
+	if (use_gil)
+		PyGILState_Release(gilstate);
 
 	return done;
 }

@@ -44,7 +44,7 @@ void DespeckleNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	inputImageSocket->relinkConnections(operation->getInputSocket(0), 1, graph);
 	inputSocket->relinkConnections(operation->getInputSocket(1), 0, graph);
 	outputSocket->relinkConnections(operation->getOutputSocket());
-	addPreviewOperation(graph, operation->getOutputSocket(0));
+	addPreviewOperation(graph, context, operation->getOutputSocket(0));
 
 	graph->addOperation(operation);
 }

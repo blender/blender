@@ -142,7 +142,6 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
 		/* check if there are bones, and whether the name matches any 
 		 * NOTE: this feature will only really work if groups by default contain the F-Curves for a single bone
 		 */
-		// TODO: if bone gets renamed, it would be best to be able to rename the group
 		if (ob->pose) {
 			bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
 			bArmature *arm = ob->data;
@@ -319,7 +318,6 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
 	FCurve *active_fcurve = NULL;
 	
 	/* get animation context info for filtering the channels */
-	// TODO: check on whether we need to set the area specially instead, since active area might not be ok?
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
 	

@@ -58,13 +58,13 @@ SCA_PythonKeyboard::~SCA_PythonKeyboard()
 /* ------------------------------------------------------------------------- */
 
 /* clipboard */
-static PyObject* gPyGetClipboard(PyObject* args, PyObject* kwds)
+static PyObject *gPyGetClipboard(PyObject *args, PyObject *kwds)
 {
 	char *buf = (char *)GHOST_getClipboard(0);
 	return PyUnicode_FromString(buf?buf:"");
 }
 
-static PyObject* gPySetClipboard(PyObject* args, PyObject* value)
+static PyObject *gPySetClipboard(PyObject *args, PyObject *value)
 {
 	char* buf;
 	if (!PyArg_ParseTuple(value,"s:setClipboard",&buf))
@@ -109,7 +109,7 @@ PyAttributeDef SCA_PythonKeyboard::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_PythonKeyboard::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_PythonKeyboard::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonKeyboard* self = static_cast<SCA_PythonKeyboard*>(self_v);
 	
@@ -123,7 +123,7 @@ PyObject* SCA_PythonKeyboard::pyattr_get_events(void *self_v, const KX_PYATTRIBU
 	return self->m_event_dict;
 }
 
-PyObject* SCA_PythonKeyboard::pyattr_get_active_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_PythonKeyboard::pyattr_get_active_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonKeyboard* self = static_cast<SCA_PythonKeyboard*>(self_v);
 

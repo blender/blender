@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -703,10 +704,6 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 }
 
 /* *********************** DRAWING **************************************** */
-
-
-#define SCR_BACK 0.55
-#define SCR_ROUND 12
 
 /* draw vertical shape visualizing future joining (left as well
  * right direction of future joining) */
@@ -1506,6 +1503,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	
 	CTX_data_scene_set(C, scene);
 	BKE_scene_set_background(bmain, scene);
+	DAG_on_visible_update(bmain, FALSE);
 	
 	ED_render_engine_changed(bmain);
 	ED_update_for_newframe(bmain, scene, 1);

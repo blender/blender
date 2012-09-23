@@ -429,6 +429,33 @@ void BKE_curve_texspace_calc(Curve *cu)
 	}
 }
 
+int BKE_nurbList_index_get_co(ListBase *nurb, const int index, float r_co[3])
+{
+	Nurb *nu;
+	int tot = 0;
+
+	for (nu = nurb->first; nu; nu = nu->next) {
+		int tot_nu;
+		if (nu->type == CU_BEZIER) {
+			tot_nu = nu->pntsu;
+			if (index - tot < tot_nu) {
+				copy_v3_v3(r_co, nu->bezt[index - tot].vec[1]);
+				return TRUE;
+			}
+		}
+		else {
+			tot_nu = nu->pntsu * nu->pntsv;
+			if (index - tot < tot_nu) {
+				copy_v3_v3(r_co, nu->bp[index - tot].vec);
+				return TRUE;
+			}
+		}
+		tot += tot_nu;
+	}
+
+	return FALSE;
+}
+
 int BKE_nurbList_verts_count(ListBase *nurb)
 {
 	Nurb *nu;

@@ -37,7 +37,7 @@ struct RenderResult;
 ID *rna_Object_to_mesh(void *_self, void *reports, void *scene, int apply_modifiers, int settings);
 void rna_Main_meshes_remove(void *bmain, void *reports, void *mesh);
 void rna_Object_create_duplilist(void *ob, void *reports, void *sce);
-void rna_Object_free_duplilist(void *ob, void *reports);
+void rna_Object_free_duplilist(void *ob);
 void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values);
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h, const char *layername);
@@ -89,7 +89,7 @@ static inline void object_create_duplilist(BL::Object self, BL::Scene scene)
 
 static inline void object_free_duplilist(BL::Object self)
 {
-	rna_Object_free_duplilist(self.ptr.data, NULL);
+	rna_Object_free_duplilist(self.ptr.data);
 }
 
 static inline bool BKE_object_is_modified(BL::Object self, BL::Scene scene, bool preview)

@@ -412,7 +412,7 @@ KX_BlenderMaterial::ActivatShaders(
 
 		if ((mMaterial->ras_mode &WIRE) ||
 		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
-		{		
+		{
 			if (mMaterial->ras_mode &WIRE) 
 				rasty->SetCullFace(false);
 			rasty->SetLines(true);
@@ -457,7 +457,7 @@ KX_BlenderMaterial::ActivateBlenderShaders(
 
 		if ((mMaterial->ras_mode &WIRE) ||
 		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
-		{		
+		{
 			if (mMaterial->ras_mode &WIRE) 
 				rasty->SetCullFace(false);
 			rasty->SetLines(true);
@@ -506,7 +506,7 @@ KX_BlenderMaterial::ActivateMat(
 
 		if ((mMaterial->ras_mode &WIRE) ||
 		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
-		{		
+		{
 			if (mMaterial->ras_mode &WIRE) 
 				rasty->SetCullFace(false);
 			rasty->SetLines(true);
@@ -614,7 +614,7 @@ void KX_BlenderMaterial::ActivatGLMaterials( RAS_IRasterizer* rasty )const
 			mMaterial->matcolor[2]*mMaterial->ref+mMaterial->emit,
 			1.0f);
 
-		rasty->SetEmissive(	
+		rasty->SetEmissive(
 			mMaterial->matcolor[0]*mMaterial->emit,
 			mMaterial->matcolor[1]*mMaterial->emit,
 			mMaterial->matcolor[2]*mMaterial->emit,
@@ -835,19 +835,19 @@ PyTypeObject KX_BlenderMaterial::Type = {
 	py_base_new
 };
 
-PyObject* KX_BlenderMaterial::pyattr_get_shader(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_BlenderMaterial::pyattr_get_shader(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
 	return self->PygetShader(NULL, NULL);
 }
 
-PyObject* KX_BlenderMaterial::pyattr_get_materialIndex(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_BlenderMaterial::pyattr_get_materialIndex(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
 	return PyLong_FromSsize_t(self->GetMaterialIndex());
 }
 
-PyObject* KX_BlenderMaterial::pyattr_get_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_BlenderMaterial::pyattr_get_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
 	unsigned int* bfunc = self->getBlendFunc();
@@ -857,7 +857,7 @@ PyObject* KX_BlenderMaterial::pyattr_get_blending(void *self_v, const KX_PYATTRI
 int KX_BlenderMaterial::pyattr_set_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
-	PyObject* obj = self->PysetBlending(value, NULL);
+	PyObject *obj = self->PysetBlending(value, NULL);
 	if (obj)
 	{
 		Py_DECREF(obj);

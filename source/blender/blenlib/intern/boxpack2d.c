@@ -73,7 +73,9 @@ typedef struct BoxVert {
                         ((b)->v[BR]->x = (b)->v[TR]->x)
 #define UPDATE_V34Y(b)  ((b)->v[TL]->y = (b)->v[TR]->y); \
                         ((b)->v[BR]->y = (b)->v[BL]->y)
-#define UPDATE_V34(b) UPDATE_V34X(b); UPDATE_V34Y(b)
+						
+/* UNUSED */
+// #define UPDATE_V34(b) UPDATE_V34X(b); UPDATE_V34Y(b)
 
 #define SET_BOXLEFT(b, f)   (b)->v[TR]->x = f + (b)->w; \
                             (b)->v[BL]->x = f;          \
@@ -93,8 +95,8 @@ typedef struct BoxVert {
       BOXRIGHT(b1)  - EPSILON <= BOXLEFT(b2)  || \
       BOXTOP(b1)    - EPSILON <= BOXBOTTOM(b2))
 
-#define MIN2(x, y)              ((x) < (y) ? (x) : (y))
-#define MAX2(x, y)              ((x) > (y) ? (x) : (y))
+/* compiler should inline */
+static float maxf(const float a, const float b) { return b > a ? b : a; }
 
 #if 0
 #define BOXDEBUG(b) \
@@ -131,8 +133,8 @@ static int vertex_sort(const void *p1, const void *p2)
 	v1 = vertarray + ((int *)p1)[0];
 	v2 = vertarray + ((int *)p2)[0];
 
-	a1 = MAX2(v1->x + box_width, v1->y + box_height);
-	a2 = MAX2(v2->x + box_width, v2->y + box_height);
+	a1 = maxf(v1->x + box_width, v1->y + box_height);
+	a2 = maxf(v2->x + box_width, v2->y + box_height);
 
 	/* sort largest to smallest */
 	if      (a1 > a2) return 1;
@@ -312,8 +314,8 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 					if (!isect) {
 
 						/* maintain the total width and height */
-						(*tot_width) = MAX2(BOXRIGHT(box), (*tot_width));
-						(*tot_height) = MAX2(BOXTOP(box), (*tot_height));
+						(*tot_width) = maxf(BOXRIGHT(box), (*tot_width));
+						(*tot_height) = maxf(BOXTOP(box), (*tot_height));
 
 						/* Place the box */
 						vert->free &= ~quad_flags[j];

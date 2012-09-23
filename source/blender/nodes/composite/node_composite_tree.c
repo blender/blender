@@ -33,6 +33,7 @@
 #include <stdio.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_color_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_node_types.h"
 
@@ -693,7 +694,9 @@ static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_pr
 
 void *COM_linker_hack = NULL;
 
-void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int do_preview)
+void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int do_preview,
+                           const ColorManagedViewSettings *view_settings,
+                           const ColorManagedDisplaySettings *display_settings)
 {
 #ifdef WITH_COMPOSITOR
 #ifdef WITH_COMPOSITOR_LEGACY
@@ -704,10 +707,11 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int 
 	else
 #endif
 	{
-		COM_execute(rd, ntree, rendering);
+		COM_execute(rd, ntree, rendering, view_settings, display_settings);
 	}
 #else
 	(void)ntree, (void)rd, (void)rendering, (void)do_preview;
+	(void)view_settings, (void)display_settings;
 #endif
 
 	(void)do_preview;

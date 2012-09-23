@@ -86,7 +86,7 @@ class SparseMatrix : public LinearOperator {
   // sparse matrix.
   virtual void ToDenseMatrix(Matrix* dense_matrix) const = 0;
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
   // Dump the sparse matrix to a proto. Destroys the contents of proto.
   virtual void ToProto(SparseMatrixProto* proto) const = 0;
 #endif

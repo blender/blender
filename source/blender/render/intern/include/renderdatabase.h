@@ -55,7 +55,6 @@ struct RadFace;
 typedef struct VertTableNode {
 	struct VertRen *vert;
 	float *rad;
-	float *sticky;
 	float *strand;
 	float *tangent;
 	float *stress;
@@ -110,7 +109,6 @@ struct ObjectRen *RE_addRenderObject(struct Render *re, struct Object *ob, struc
 struct ObjectInstanceRen *RE_addRenderInstance(struct Render *re, struct ObjectRen *obr, struct Object *ob, struct Object *par, int index, int psysindex, float mat[][4], int lay);
 void RE_makeRenderInstances(struct Render *re);
 
-float *RE_vertren_get_sticky(struct ObjectRen *obr, struct VertRen *ver, int verify);
 float *RE_vertren_get_stress(struct ObjectRen *obr, struct VertRen *ver, int verify);
 float *RE_vertren_get_rad(struct ObjectRen *obr, struct VertRen *ver, int verify);
 float *RE_vertren_get_strand(struct ObjectRen *obr, struct VertRen *ver, int verify);

@@ -1,324 +1,524 @@
-commit ca72152362ae1f4b9928c012e74b4d49d094a4ca
-Merge: d297f8d 0a04199
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed May 9 13:10:59 2012 -0700
+commit 552f9f85bba89f00ca307bc18fbda1dff23bd0e4
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Aug 31 07:27:22 2012 -0700
 
-    Merge branch 'master' into windows
-
-commit 0a04199ef279cc9ea97f665fed8e7fae717813c3
-Merge: fdeb577 f2571f1
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed May 9 12:54:56 2012 -0700
-
-    Merge branch 'master' of https://code.google.com/p/ceres-solver
-
-commit fdeb5772cc5eeebca4d776d220d80cc91b6d0f74
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed May 9 07:38:07 2012 -0700
-
-    Support varying numbers of residuals in autodiff.
+    Various minor bug fixes to the solver logic.
     
-    This commit modifies the only function in autodiff that takes a
-    templated number of outputs (i.e. residuals) and makes that
-    template parameter a normal parameter. With that change, it
-    is a trivial matter to support a dynamic number of residuals.
+    1. CostFunction returning false is handled better.
+    If only the cost is being evaluated, it is possible to
+    use the false value as an infinite value signal/outside
+    a region of validity. This allows a weak form of constraint
+    handling. Useful for example in handling infinities.
     
-    The API for dynamic residuals is to pass a fake number of
-    residuals as the second template argument to
-    AutoDiffCostFunction, and to pass the real number of
-    parameters as a second constructor argument.
-
-commit da3e0563cc12e08e7b3e0fbf11d9cc8cfe9658aa
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed May 9 11:57:47 2012 -0700
-
-    Typo corrections in the documentation from Bing
-
-commit aa9526d8e8fb34c23d63e3af5bf9239b0c4ea603
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue May 8 21:22:09 2012 -0700
-
-    Share search paths across various library searches.
-    Fix typos in glog search.
-    Split the error messages for include and lib.
-    Enable building of tests by default.
-    Made building on homebrew installations a bit better.
-    Remove temporary variables for glog and gflags.
-
-commit f2571f186850ed3dd316236ac4be488979df7d30
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed May 9 11:57:47 2012 -0700
-
-    Typo corrections in the documentation from Bing
-
-commit 8f7f11ff7d07737435428a2620c52419cf99f98e
-Merge: e6c17c4 eaccbb3
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed May 9 11:34:15 2012 -0700
-
-    Merge branch 'master' of https://code.google.com/p/ceres-solver
-
-commit e6c17c4c9d9307218f6f739cea39bc2d87733d4d
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue May 8 21:22:09 2012 -0700
-
-    Share search paths across various library searches.
-    Fix typos in glog search.
-    Split the error messages for include and lib.
-    Enable building of tests by default.
-    Made building on homebrew installations a bit better.
-    Remove temporary variables for glog and gflags.
-
-commit eaccbb345614c0d24c5e21fa931f470cfda874df
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed May 9 05:31:29 2012 -0700
-
-    Remove unused template parameter from VariadicEvaluate.
-
-commit 82f4b88c34b0b2cf85064e5fc20e374e978b2e3b
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun May 6 21:05:28 2012 -0700
-
-    Extend support writing linear least squares problems to disk.
+    2. Changed the way how the slop around zero when model_cost
+    is larger than the current cost. Relative instead of absolute
+    tolerances are used. The same logic is propagated how the
+    corresponding clamping of the model_cost is done.
     
-    1. Make the mechanism for writing problems to disk, generic and
-    controllable using an enum DumpType visible in the API.
+    3. Fixed a minor indexing bug in nist.cc.
     
-    2. Instead of single file containing protocol buffers, now matrices can
-    be written in a matlab/octave friendly format. This is now the default.
+    4. Some minor logging fixes to nist.cc to make it more
+    compatible with the rest of ceres.
     
-    3. The support for writing problems to disk is moved into
-    linear_least_squares_problem.cc/h
+    Together these changes, take the successful solve count from
+    41/54 to 46/54 and eliminate all NUMERICAL_FAILURE problems.
     
-    4. SparseMatrix now has a ToTextFile virtual method which is
-    implemented by each of its subclasses to write a (i,j,s) triplets.
-    
-    5. Minor changes to simple_bundle_adjuster to enable logging at startup.
+    Change-Id: If94170ea4731af5b243805c0200963dd31aa94a7
 
-commit d297f8d3d3f5025c24752f0f4c1ec2469a769f99
-Merge: 7e74d81 f8bd7fa
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue May 8 05:39:56 2012 -0700
-
-    Merge branch 'master' into windows
-
-commit f8bd7fa9aa9dbf64b6165606630287cf8cf21194
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue May 8 05:39:32 2012 -0700
-
-    Small tweaks to the block jacobi preconditioner.
-
-commit 7e74d81ad57a159f14110eb5348b3bc7990b8bd4
-Merge: ecd7c8d e2a6cdc
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon May 7 07:02:49 2012 -0700
-
-    Merge branch 'master' into windows
-
-commit e2a6cdc0816af9d0c77933f5017f137da3d52a35
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon May 7 06:39:56 2012 -0700
-
-    Address some of the comments on CGNR patch
-    
-    - Rename BlockDiagonalPreconditioner to BlockJacobiPreconditioner
-    - Include the diagonal in the block jacobi preconditioner.
-    - Better flag help for eta.
-    - Enable test for CGNR
-    - Rename CONJUGATE_GRADIENTS to CGNR.
-    - etc.
-
-commit 1b95dc580aa5d89be021c0915e26df83f18013bb
-Merge: 211812a 7646039
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon May 7 04:34:10 2012 -0700
-
-    Merge branch 'master' of https://code.google.com/p/ceres-solver
-
-commit 211812a57360d2011cbcfd115cd55e0eb73600db
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon May 7 04:33:50 2012 -0700
-
-    Better error handling in bundle_adjuster.cc
-
-commit 7646039ad9672b267495f5b31925473ad3022ac8
+commit 0b776b5cc9634d3b88d623905b96006f7647ce3e
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun May 6 22:02:19 2012 -0700
+Date:   Thu Aug 30 15:26:17 2012 -0700
 
-    Kashif's corrections to the docs
-
-commit 0d2d34148d10c5c7e924b3ca82ad2b237573ef64
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun May 6 21:16:03 2012 -0700
-
-    glog minimum version requirements
+    Update docs.
     
-    Building Ceres requires version 0.3.1 or better of glog.
-    Fedora 16 ships with a busted version 0.3.
+    Change-Id: I69d50bcd37aed3bea2190ca614f023e83172901b
+
+commit 2d7176ad7c8fb7238ca8abd6de73415d95877494
+Author: Petter Strandmark <petter.strandmark@gmail.com>
+Date:   Thu Aug 30 19:51:24 2012 -0700
+
+    max_consecutive_nonmonotonic_steps should be int
     
-    issue 15 contains the gory details.
+    Found via Visual Studio warning.
     
-    Added a note to the build documentation to this effect.
+    Change-Id: Id2cd7de562dfc8cd35df5d5f5220dd2d7350eb2c
 
-commit 39efc5ec4b64b8f5a2c5a3dbacdbc45421221547
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun May 6 16:09:52 2012 -0700
-
-    Fix tests broken by the CGNR change.
-
-commit 3faa08b7f7c4ac73661c6a15a6824c12080dfcb1
+commit 1a89bcc94e88933f89b20427a45bc40cdd23c056
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun May 6 16:08:22 2012 -0700
+Date:   Thu Aug 30 15:26:17 2012 -0700
 
-    Formatting fixed based on Keir's comments and extended the tests
-
-commit 4f21c68409bc478c431a9b6aedf9e5cfdf11d2f3
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun May 6 15:33:47 2012 -0700
-
-    Fix the struct weak ordering used by independent set ordering, tests for it
-
-commit 887b156b917ccd4c172484452b059d33ea45f4f0
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun May 6 15:14:47 2012 -0700
-
-    fix he degree ordering routine
-
-commit ecd7c8df2af19404dc394b36bbe96e9db3bce840
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun May 6 00:09:41 2012 -0700
-
-    First step towards windows compatibilty
+    Better reporting on the NIST problems.
     
-    This adds some small changes to Ceres to make it mostly
-    compile on Windows. There are still issues with the
-    hash map use in schur_ordering.cc but I will fix those
-    shortly.
+    Change-Id: I7cf774ec3242c0612dbe52fc233c3fc6cff3f031
 
-commit f7898fba1b92f0e996571b5bfa22a37f5e3644de
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sat May 5 20:55:08 2012 -0700
+commit ea11704857a1e4a735e096896e4d775d83981499
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Aug 29 18:18:48 2012 -0700
 
-    Add a general sparse iterative solver: CGNR
+    Basic harness for testing NIST problems.
     
-    This adds a new LinearOperator which implements symmetric
-    products of a matrix, and a new CGNR solver to leverage
-    CG to directly solve the normal equations. This also
-    includes a block diagonal preconditioner. In experiments
-    on problem-16, the non-preconditioned version is about
-    1/5 the speed of SPARSE_SCHUR, and the preconditioned
-    version using block cholesky is about 20% slower than
-    SPARSE_SCHUR.
+    Change-Id: I5baaa24dbf0506ceedf4a9be4ed17c84974d71a1
 
-commit 0a359d6198d257776a8831c3eb98f64ee91cf836
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sat May 5 20:33:46 2012 -0700
+commit 98bf14d2b95386c2c4a6c29154637943dae4c36c
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 30 10:26:44 2012 -0700
 
-    Comment formatting.
-
-commit db4ec9312bb2f1ca7b2337812f6bad6cdd75b227
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sat May 5 20:33:16 2012 -0700
-
-    Comment formatting
-
-commit f10163aaf3e57f52551bcd60bbdae873890a49dd
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri May 4 21:33:53 2012 -0700
-
-    Warn about disabled schur specializations.
+    Miscellaneous fixes.
     
-    This commit brought to you from 30,000ft.
+    Change-Id: I521e11f2d20bf24960bbc6b5dab4ec8bb1503d23
 
-commit ad7b2b4aaf3ccc51f2b854febd53a9df54686cfe
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri May 4 20:15:28 2012 -0700
+commit 1e3cbd9a4442cdd8fda43a7fb452f19dac8c74af
+Author: Petter Strandmark <strandmark@google.com>
+Date:   Wed Aug 29 09:39:56 2012 -0700
 
-    Add vim swapfiles to .gitignore
-
-commit 6447219826bf6e47b0c99d9ff0eaf5e2ba573d79
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu May 3 21:53:07 2012 -0700
-
-    1. Changes the tutorial to refer to BriefReport.
-    2. Some of the enums have commas at the end.
-    3. Fix a bug in the default value of circle_fit.cc in the examples.
-
-commit 30c5f93c7f88dec49f76168663372772e06f17f5
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu May 3 10:44:43 2012 -0700
-
-    Rework the glog and gtest path checking to be consistent with the rest of the file and disable the dashboard support enabled by the earlier ctesting related patch.
-
-commit f10b033eb4aca77919987bc551d16d8a88b10110
-Merge: cc38774 e0a52a9
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu May 3 08:45:20 2012 -0700
-
-    Merge branch 'ctest'
-
-commit e0a52a993394e73bc7f7db8d520728926feab83e
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu May 3 08:43:34 2012 -0700
-
-    Arnaus Gelas' patch to add better path searching for gflags and glog
-
-commit a9b8e815e1c026599734510399b10f4cf014c9cd
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu May 3 08:41:52 2012 -0700
-
-    Arnaus Gelas' patch to add .gitignore
-
-commit a0cefc3347c32b2065053bbaff4f34d11529d931
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu May 3 08:38:33 2012 -0700
-
-    Arnaus Gelas' patch to move to Ctest
-
-commit cc38774d74e287704915282425fbd16818a72ec3
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu May 3 01:27:50 2012 -0700
-
-    Clarify ProgramEvaluator comments.
-
-commit 017c9530df557863f78212fb5ccd02814baa9fa8
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed May 2 08:21:59 2012 -0700
-
-    Mac OS X build instructions are much simpler, as homebrew takes care of gflags when glog is brought in. Also CMAKE does not need any flags to do the default thing
-
-commit 92d5ab5f8ae6fe355c30b606a5f230415ee0494b
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue May 1 18:33:08 2012 -0700
-
-    Link BLAS explicitly on non-Mac platforms
+    Caching the symbolic Cholesky factorization when using CXSparse
     
-    Fixes issue #3.
-
-commit df3e54eb4a6b001b7f0560a2da73a5bd7f18615e
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue May 1 18:22:51 2012 -0700
-
-    Fix link order of CHOLMOD
+    Average factorization times for bundle adjustment test problem:
+    SuiteSparse: 0.2794 s.
+    CXSparse: 0.4039 s.
+    CXSparse cached: 0.2399 s.
     
-    This was working by accident due to dynamic linking. Fixes issue #2.
-
-commit f477a3835329e2b48eb20c34c631a480b0f0d5bf
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue May 1 18:10:48 2012 -0700
-
-    Fix Eigen search paths
+    CXSparse will still be slower, though, because it has to compute
+    the transpose and J^T * J.
     
-    Fixes issue #1 on http://code.google.com/p/ceres-solver.
+    Change-Id: If9cdaa3dd520bee84b56e5fd4953b56a93db6bde
 
-commit 17fbc8ebb894c1d22bb3b0b02ea1394b580120f8
+commit 8b64140878ccd1e183d3715c38942a81fdecefde
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue May 1 00:21:19 2012 -0700
+Date:   Wed Aug 29 05:41:22 2012 -0700
 
-    Minor changes to the documentation. Formatting, and typos.
+    Documentation update
+    
+    Change-Id: I271a0422e7f6f42bcfd1dc6b5dc10c7a18f6a179
 
-commit 8ebb0730388045570f22b89fe8672c860cd2ad1b
+commit a5353acd85a9fd19370b3d74035d87b0f0bac230
+Author: Petter Strandmark <petter.strandmark@gmail.com>
+Date:   Tue Aug 28 18:16:41 2012 -0700
+
+    Adding gflags include to test_util.cc
+    
+    test_util seems to need gflags.
+    
+    Change-Id: I0c4757960f8ac69ad599c138aea58e3c88a4ea28
+
+commit 87ca1b2ba28ec512752bbcf5fc994ce1434eb765
+Author: Petter Strandmark <petter.strandmark@gmail.com>
+Date:   Tue Aug 28 18:05:20 2012 -0700
+
+    Changing random.h to use cstdlib for Windows compability.
+    
+    As discussed with Sameer today.
+    
+    Change-Id: If3d0284830c6591c71cc77b8400cafb45c0da61f
+
+commit aeb00a07323808a0a1816e733ad18a87d5109ea3
+Author: Petter Strandmark <strandmark@google.com>
+Date:   Mon Aug 27 22:22:57 2012 -0700
+
+    Removing gomp for Visual Studio
+    
+    Linking currently fails in Visual Studio due to a missing library
+    "gomp.lib". This is not needed in Visual Studio. OpenMP works
+    without it.
+    
+    Change-Id: I39e204a8dd4f1b7425df7d4b222d86a8bb961432
+
+commit 6f362464ba99b800494d2f15c27768a342ddaa68
+Author: Markus Moll <markus.moll@esat.kuleuven.be>
+Date:   Tue Aug 28 01:03:38 2012 +0200
+
+    Add some tests for DoglegStrategy.
+    
+    Not necessarily a complete set.
+    
+    Change-Id: I14eb3a38c6fe976c8212f3934655411b6d1e0aa4
+
+commit 122cf836a6dc9726489ce2fbecc6143bddc1caaf
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Aug 24 16:28:27 2012 -0700
+
+    Documentation update.
+    
+    Change-Id: I0a3c5ae4bc981a8f5bdd5a8905f923dc5f09a024
+
+commit 69081719f73da8de2935774a42d237837a91952a
 Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon Apr 30 23:09:08 2012 -0700
+Date:   Mon Aug 27 13:28:56 2012 -0700
 
-    Initial commit of Ceres Solver.
+    Remove unnecessary overload for hash<>
+    
+    The overload for pointers in hash tables was applied in normal
+    usage of schur_ordering.cc. However, the tests did not include the
+    overload since they only included collections_port.h. As a result,
+    the routines in schur_ordering.cc were using a different hash
+    function than that inside the tests.
+    
+    The fix is to remove the specialization. If this breaks one of the
+    compiler configurations, we will find a workaround at that time.
+    
+    Change-Id: Idbf60415d5e2aec0c865b514ad0c577d21b91405
+
+commit 1762420b6ed76b1c4d30b913b2cac1927b666534
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Aug 22 10:01:31 2012 -0700
+
+    Update changelog.
+    
+    Change-Id: Idf5af69d5a9dbe35f58e30a8afcbfcd29bb7ebfe
+
+commit 976ab7aca908309b8282cb40bc080ca859136854
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Aug 23 18:21:36 2012 -0700
+
+    Remove Google-era vestigial unit test.
+    
+    Change-Id: Ia7a295a5c759a17c1675a3055d287d3e40e9e0fe
+
+commit 6ad6257de0e2152ac5e77dc003758de45187d6ea
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Aug 22 11:10:31 2012 -0700
+
+    Add a workaround for an Android NDK compiler bug.
+    
+    On certain NDK build configurations, one of the innermost
+    parts of the Schur eliminator would get compiled
+    incorrectly. The compiler changed a -= to a +=.
+    
+    The normal Ceres unit tests caught the problem; however,
+    since it is not possible to build the tests with the NDK
+    (only with the standalone toolchain) this was difficult to
+    track down. Finding the issue involved pasting the schur
+    eliminator unit test inside of solver_impl.cc and other such
+    hacks.
+    
+    Change-Id: Ie91bb545d74fe39f0c8cbd1a6eb69ee4d8b25fb2
+
+commit aecb2dc92b4aa7f3bf77a1ac918e62953602392b
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Aug 22 10:08:17 2012 -0700
+
+    Fix relative path bug in bibtex call.
+    
+    Change-Id: I0d31786564320a6831259bcdf4c75a6b665c43ad
+
+commit 1e2892009e591804df6286caebd5c960e7e3b099
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Aug 21 18:00:54 2012 -0700
+
+    Update Summary::FullReport to report dogleg type.
+    
+    Change-Id: I0b4be8d7486c1c4b36b299693b3fe8b0d3426537
+
+commit 295ade1122a86b83e1ea605d5ca394f315874717
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Aug 22 06:51:22 2012 -0700
+
+    Fix Eigen3 Row/Column Major storage issue.
+    
+    Eigen3 does not allow column vectors to be stored in row-major
+    format. NumericDiffCostFunction by default stores its Jacobian
+    matrices in row-major format. This works fine if the residual
+    contains more than one variable. But if the residual block
+    depends on one variable and has more than one residuals, the
+    resulting Jacobian matrix is a column matrix in row-major format
+    resulting in a compile time error.
+    
+    The fix is to check the template parameters and switch to column-major
+    storage as needed.
+    
+    Thanks to Lena Gieseke for reporting this.
+    
+    Change-Id: Icc51c5b38e1f3609e0e1ecb3c4e4a02aecd72c3b
+
+commit 9ad27e8e9fb1bbd2054e2f6ae37623e01428f1c0
+Author: Arnaud Gelas <arnaudgelas@gmail.com>
+Date:   Tue Aug 21 09:56:30 2012 +0200
+
+    Add one uninstall target to remove all installed files
+    
+    Change-Id: Ifcf89a6c27b25f28403d95a50e29c093a525298f
+
+commit 0c3a748ee49e04fe334f8f5a433649d18003d550
+Author: Markus Moll <markus.moll@esat.kuleuven.be>
+Date:   Tue Aug 21 14:44:59 2012 +0200
+
+    Allow equal lower and upper bound for diagonal scaling.
+    
+    This way, setting the lower and upper bound both to 1.0, one can disable
+    the automatic trust region scaling.
+    
+    Change-Id: Ifa317a6911b813a89c1cf7fdfde25af603705319
+
+commit 3d644b76adefac6475b91dc53c3ae5e01c4f4d66
+Author: Arnaud Gelas <arnaudgelas@gmail.com>
+Date:   Thu Aug 16 17:33:21 2012 +0200
+
+    Install headers, libraries and pdf
+    
+    Headers are installed in ${CMAKE_INSTALL_PREFIX}/include/ceres
+    Libraries are installed in ${CMAKE_INSTALL_PREFIX}/lib
+    pdf is installed in ${CMAKE_INSTALL_PREFIX}/share/ceres/docs
+    
+    Change-Id: Ic175f2c2f5fa86820a1e8c64c2ed171f4a302a68
+
+commit d2fb5adea4d8c2aeb43c4289c6976798a54d3cf1
+Author: Arnaud Gelas <arnaudgelas@gmail.com>
+Date:   Fri Aug 17 10:11:02 2012 +0200
+
+    Configure gerrit hook at CMake time
+    
+    If the source directory is a clone, at CMake time the commit-msg hook gets
+    downloaded and installed in the right location.
+    
+    Change-Id: I5fee17d050ca22d8b92a49fdcc2a1cd6659f209b
+
+commit 73166098fc4b1072adc30321c666188a3909c43c
+Author: Arnaud Gelas <arnaudgelas@gmail.com>
+Date:   Mon Aug 20 15:40:41 2012 +0200
+
+    Add one CMake option to build the examples.
+    
+    Currently the examples are always built. For external projects, it is useful
+    not to compile the examples.
+    
+    Change-Id: I41d3bde19c7e742818e60f78222d39c43992ca8b
+
+commit 86d4f1ba41ef14eb1b6b61a7936af83387b35eb2
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Aug 20 11:52:04 2012 -0700
+
+    Add missing return statement.
+    
+    Change-Id: I5eaf718318e27040e3c97e32ee46cf0a11176a37
+
+commit 51eb229da34187a4e8ce73ed9cc0e731998bb2be
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Aug 20 11:46:12 2012 -0700
+
+    Add Program::ToString() to aid debugging.
+    
+    Change-Id: I0ab37ed2fe0947ca87a152919d4e7dc9b56dedc6
+
+commit bcc7100635e2047dc2b77df19a4ded8a6ab4d4b9
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Aug 20 11:45:04 2012 -0700
+
+    Ignore minted.sty.
+    
+    Change-Id: I2467a6f801812b9007b51bf14b00757f026e4322
+
+commit 9705a736dd3d6fbead0d8a6ff77102c69bbcdc08
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Aug 20 11:24:05 2012 -0700
+
+    Add ParameterBlock::ToString() to aid debugging.
+    
+    Change-Id: Id3f5cb27b855c536dd65a986f345bd8eb2799dfa
+
+commit 0c714a70e6123ceb68e5cfcd3cfbee0d09deb1db
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Aug 20 11:18:16 2012 -0700
+
+    Fix blanks before private in loss_function.h
+    
+    Change-Id: I068bed6431bc7c9b7958af391655df61499000b2
+
+commit 51cf7cbe3bac45c6807c2703a2fc3175d76a1b47
+Author: Markus Moll <markus.moll@esat.kuleuven.be>
+Date:   Mon Aug 20 20:10:20 2012 +0200
+
+    Add the two-dimensional subspace search to DoglegStrategy
+    
+    Change-Id: I5163744c100cdf07dd93343d0734ffe0e80364f3
+
+commit ad1f7b772e559a911ac3a3b078b0aee1836fe785
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Aug 20 11:10:34 2012 -0700
+
+    Add ArcTanLoss, TolerantLoss and ComposedLossFunction.
+    
+    Based on work by James Roseborough.
+    
+    Change-Id: Idc4e0b099028f67702bfc7fe3e43dbd96b6f9256
+
+commit 05292bf8fc5208b86b4a13544615b584f6efa936
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Aug 20 07:40:45 2012 -0700
+
+    Add a TrustRegionStrategy::Summary object.
+    
+    Change-Id: I7caee35a3408ee4a0ec16ba407410d822929340d
+
+commit b12b906c4d21c3949f0dce62c4c0d083c8edecf1
+Author: Arnaud Gelas <arnaudgelas@gmail.com>
+Date:   Wed Aug 15 16:27:38 2012 +0200
+
+    Add one option to generate the PDF from CMake at build time
+    
+    Make sure pygmentize is installed
+    
+    Change-Id: I068ba45c33a8e96acc906a464b12d10d58b3e231
+
+commit b9f15a59361c609ffc4a328aea9be3d265b5da81
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sat Aug 18 13:06:19 2012 -0700
+
+    Add a dense Cholesky factorization based linear solver.
+    
+    For problems with a small number of variables, but a large
+    number of residuals, it is sometimes beneficial to use the
+    Cholesky factorization on the normal equations, instead of
+    the dense QR factorization of the Jacobian, even though it
+    is numerically the better thing to do.
+    
+    Change-Id: I3506b006195754018deec964e6e190b7e8c9ac8f
+
+commit b3fa009435acf476cd373052e62988f6437970b1
+Author: Arnaud Gelas <arnaudgelas@gmail.com>
+Date:   Fri Aug 17 10:31:41 2012 +0200
+
+    Set CMAKE_*_OUTPUT_DIRECTORY
+    
+    Gather
+     * all executables in ${CMAKE_BINARY_DIR}/bin
+     * all libraries (static and dynamic) in ${CMAKE_BINARY_DIR}/lib
+    
+    Change-Id: Ibc2fa1adfb6f0aea65d66d570259b79546bf3b07
+
+commit 1b8a4d5d11671ed83cf6077e363dd95333f08ef8
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Aug 17 16:49:11 2012 -0700
+
+    Fix a minor bug in detect_structure logging.
+    
+    Change-Id: I117f7745e4c67595b3ff9244cde82b5b5b34ee4b
+
+commit 31c1e784ab2cb9294c6e05414cf06aae2b3766de
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri Aug 17 16:16:32 2012 -0700
+
+    Minor cleanups.
+    
+    Change-Id: Ida4866997deeaa1bc2cebd6b69313a05ac82e457
+
+commit e83f7879a8b21c6976e116958caf35bcdcf41cb0
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Aug 17 15:34:42 2012 -0700
+
+    Fix SuiteSparse3 UFConfig.h detection really.
+    
+    Change-Id: Id187102e755b7d778dff4363f22f9a4697ed12dd
+
+commit 96f25dc57658d296ee6b6633818b4f1e51d7d587
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Aug 17 15:34:42 2012 -0700
+
+    Fix SuiteSparse3 UFConfig.h detection.
+    
+    Change-Id: Ia59aefdb0ad7f713f76ed79692f2db4fa2821e5b
+
+commit c497bd6cd9aa944f518aa491d3bc645851ff9594
+Author: Markus Moll <markus.moll@esat.kuleuven.be>
+Date:   Fri Aug 17 14:40:13 2012 +0200
+
+    Add UFconfig and/or SuiteSparse_config test to CMakeLists.txt
+    
+    SuiteSparse 4 requires linking to libsuitesparseconfig.a.
+    Both SuiteSparse 3 and SuiteSparse 4 require an additional header
+    (either UFconfig.h or SuiteSparse_config.h) that is not found if it is
+    in a separate path. Therefore, add explicit checks.
+    
+    Change-Id: I699902b5db4f1b7f17134b5a54f9aa681445e294
+
+commit 383c04f4236d92801c7c674892814362dedf7ad6
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Aug 17 10:14:04 2012 -0700
+
+    Fix QuaternionToAngleAxis to ensure rotations are between -pi and pi.
+    
+    Thanks to Guoxuan Zhang for reporting this.
+    
+    Change-Id: I2831ca3a04d5dc6467849c290461adbe23faaea3
+
+commit dd2b17d7dd9750801ba4720bdece2062e59b7ae3
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 16 19:34:57 2012 -0700
+
+    CERES_DONT_HAVE_PROTOCOL_BUFFERS -> CERES_NO_PROTOCOL_BUFFERS.
+    
+    Change-Id: I6c9f50e4c006faf4e75a8f417455db18357f3187
+
+commit 8b4cb7aa2c74a0da62c638b2023566aa242af995
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 16 19:26:55 2012 -0700
+
+    Fix sparse linear algebra library logging in Summary::FullReport.
+    
+    Change-Id: Id2c902dc86c00954fde7749c7b4a67dd94215a31
+
+commit 47d26bcd3b38b5ff53b34768c33b499d47b26bd0
+Author: Markus Moll <markus.moll@esat.kuleuven.be>
+Date:   Thu Aug 16 00:23:38 2012 +0200
+
+    Do not implicitly negate the step in the TrustRegionMinimizer.
+    
+    In the TrustRegionMinimizer, the step is currently implicitly negated.
+    This is done so that the linearized residual is |r - J*step|^2, which
+    corresponds to J*step = r, so neither J nor r have to be modified.
+    However, it leads to the rather unintuitive situation that the strategy
+    returns a step in positive gradient direction, which you would expect to
+    increase the function value. One way is to rename the "step" parameter in
+    the strategy to "negative_step" and document it.
+    This patch instead moves the negation inside the strategy, just around
+    the linear solver call, so that it is done in a local context and easier
+    to document.
+    
+    Change-Id: Idb258149a01f61c64e22128ea221c5a30cd89c89
+
+commit 51da590c8457e6664f76fe9813425a0c71351497
+Author: Markus Moll <markus.moll@esat.kuleuven.be>
+Date:   Fri Aug 17 12:56:09 2012 +0200
+
+    Remove tmp file
+    
+    Change-Id: I07496fafae7b0c5c12cc26ae336e0db3b5592735
+
+commit 7006a1f2b1701b8d89b8d1525fc0101943802221
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Aug 16 18:04:22 2012 -0700
+
+    Correct example code in Powell's function example.
+    
+    Thanks to Petter Strandmark for pointing this out.
+    
+    Change-Id: I967632235dccdb481396e94904bb911c9a1efe1e
+
+commit 57a44b27bc6fc95b4e70fdc25c25c9925a2072a0
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Aug 16 17:04:50 2012 -0700
+
+    Remove unnecessary flags in NDK build.
+    
+    Change-Id: Ib5b4d0b7f2d898671252734978c789b8171d96a8
+
+commit f21bee247251a8b2e836c215a84c4668c31d75cd
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Aug 16 16:27:10 2012 -0700
+
+    Fix for fpclassify.h NDK porting work.
+    
+    Change-Id: I69df1b4caf2941ed96a53e35e43ec54073f84f59
+
+commit 8ceb02cb75b66602de44a35e413225386cb21c27
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Aug 16 14:23:47 2012 -0700
+
+    Add Android NDK build files.
+    
+    This adds a Android.mk build that builds a Ceres static library
+    suitable for embetting in larger Android applications. This is
+    useful when needing to build Ceres without GPL'd components, since
+    the standalone toolchain (needed for the CMake Android build) does
+    not work with STLPort.
+    
+    Change-Id: I8d857237f6f82658741017d161b2e31d9a20e5a7

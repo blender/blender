@@ -458,8 +458,8 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 	
 	win->posx = rect->xmin;
 	win->posy = rect->ymin;
-	win->sizex = BLI_RCT_SIZE_X(rect);
-	win->sizey = BLI_RCT_SIZE_Y(rect);
+	win->sizex = BLI_rcti_size_x(rect);
+	win->sizey = BLI_rcti_size_y(rect);
 
 	win->drawmethod = -1;
 	win->drawdata = NULL;
@@ -494,8 +494,8 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 		win->posy = position->ymin;
 	}
 	
-	win->sizex = BLI_RCT_SIZE_X(position);
-	win->sizey = BLI_RCT_SIZE_Y(position);
+	win->sizex = BLI_rcti_size_x(position);
+	win->sizey = BLI_rcti_size_y(position);
 	
 	if (win->ghostwin) {
 		wm_window_set_size(win, win->sizex, win->sizey);

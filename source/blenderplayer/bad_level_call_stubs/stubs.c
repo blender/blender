@@ -431,6 +431,8 @@ void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct Poi
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) {}
 void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int compact) {}
 void uiTemplateImageSettings(struct uiLayout *layout, struct PointerRNA *imfptr) {}
+void uiTemplateColorspaceSettings(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) {}
+void uiTemplateColormanagedViewSettings(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int show_global_settings) {}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h) {return (struct RenderResult *) NULL;}

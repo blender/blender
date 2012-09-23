@@ -64,11 +64,6 @@
 #include <stdio.h>
 #include <ctype.h>
 
-/* for events */
-#define NOTACTIVEFILE       0
-#define ACTIVATE            1
-#define INACTIVATE          2
-
 /* ---------- FILE SELECTION ------------ */
 static FileSelection find_file_mouse_rect(SpaceFile *sfile, ARegion *ar, const rcti *rect)
 {
@@ -459,7 +454,7 @@ static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
 	if (params->dir[0] != '\0') {
 		char name[FILE_MAX];
 	
-		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, 0, 1);
+		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, FS_INSERT_SAVE);
 		BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu, name);
 	}
@@ -513,6 +508,35 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 	ot->poll = ED_operator_file_active;
 
 	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
+}
+
+static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ScrArea *sa = CTX_wm_area(C);
+	char name[FILE_MAX];
+	struct FSMenu *fsmenu = fsmenu_get();
+	
+	while (fsmenu_get_entry(fsmenu, FS_CATEGORY_RECENT, 0) != NULL) {
+		fsmenu_remove_entry(fsmenu, FS_CATEGORY_RECENT, 0);
+	}
+	BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+	fsmenu_write_file(fsmenu, name);
+	ED_area_tag_redraw(sa);
+		
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_reset_recent(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Reset Recent";
+	ot->description = "Reset Recent files";
+	ot->idname = "FILE_OT_reset_recent";
+	
+	/* api callbacks */
+	ot->exec = reset_recent_exec;
+	ot->poll = ED_operator_file_active;
+
 }
 
 int file_highlight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
@@ -770,8 +794,9 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 		file_sfile_to_operator(op, sfile, filepath);
 
-		if (BLI_exists(sfile->params->dir))
-			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, 0, 1);
+		if (BLI_exists(sfile->params->dir)) {
+			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, FS_INSERT_SAVE | FS_INSERT_FIRST);
+		}
 
 		BLI_make_file_string(G.main->name, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);

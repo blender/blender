@@ -38,7 +38,7 @@
 /* result remain identical (ton)                                            */   
 
 /* gamma is only used here for correcting adding colors or alpha */
-#define RE_DEFAULT_GAMMA 2.0
+// #define RE_DEFAULT_GAMMA 2.0 // UNUSED
 
 /* This 400 is sort of based on the number of intensity levels needed for    */
 /* the typical dynamic range of a medium, in this case CRTs. (Foley)         */

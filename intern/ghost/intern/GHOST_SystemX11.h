@@ -210,8 +210,8 @@ public:
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 	XIM
-	getX11_XIM(
-	        ) {
+	getX11_XIM()
+	{
 		return m_xim;
 	}
 #endif
@@ -235,7 +235,7 @@ public:
 	 */
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
-#if WITH_XDND
+#ifdef WITH_XDND
 	/**
 	 * Creates a drag'n'drop event and pushes it immediately onto the event queue. 
 	 * Called by GHOST_DropTargetX11 class.

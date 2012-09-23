@@ -36,7 +36,7 @@ CCL_NAMESPACE_BEGIN
 
 Session::Session(const SessionParams& params_)
 : params(params_),
-  tile_manager(params.progressive, params.samples, params.tile_size, params.resolution,
+  tile_manager(params.progressive, params.samples, params.tile_size, params.start_resolution,
   	(params.background)? 1: max(params.device.multi_devices.size(), 1))
 {
 	device_use_gl = ((params.device.type != DEVICE_CPU) && !params.background);
@@ -138,12 +138,6 @@ void Session::reset_gpu(BufferParams& buffer_params, int samples)
 	gpu_need_tonemap_cond.notify_all();
 
 	pause_cond.notify_all();
-}
-
-bool Session::resetting_gpu() const
-{
-	/* no need to wait for gpu device */
-	return false;
 }
 
 bool Session::draw_gpu(BufferParams& buffer_params)
@@ -296,11 +290,6 @@ void Session::reset_cpu(BufferParams& buffer_params, int samples)
 	pause_cond.notify_all();
 }
 
-bool Session::resetting_cpu() const
-{
-	return device->task_cancelled();
-}
-
 bool Session::draw_cpu(BufferParams& buffer_params)
 {
 	thread_scoped_lock display_lock(display_mutex);
@@ -343,7 +332,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 	rtile.h = tile.h;
 	rtile.start_sample = tile_manager.state.sample;
 	rtile.num_samples = tile_manager.state.num_samples;
-	rtile.resolution = tile_manager.state.resolution;
+	rtile.resolution = tile_manager.state.resolution_divider;
 
 	tile_lock.unlock();
 
@@ -595,14 +584,6 @@ void Session::reset(BufferParams& buffer_params, int samples)
 		reset_cpu(buffer_params, samples);
 }
 
-bool Session::resetting() const
-{
-	if(device_use_gl)
-		return resetting_gpu();
-	else
-		return resetting_cpu();
-}
-
 void Session::set_samples(int samples)
 {
 	if(samples != params.samples) {
@@ -668,7 +649,7 @@ void Session::update_scene()
 void Session::update_status_time(bool show_pause, bool show_done)
 {
 	int sample = tile_manager.state.sample;
-	int resolution = tile_manager.state.resolution;
+	int resolution = tile_manager.state.resolution_divider;
 	int num_tiles = tile_manager.state.num_tiles;
 	int tile = tile_manager.state.num_rendered_tiles;
 
@@ -757,7 +738,7 @@ void Session::tonemap()
 	task.rgba = display->rgba.device_pointer;
 	task.buffer = buffers->buffer.device_pointer;
 	task.sample = tile_manager.state.sample;
-	task.resolution = tile_manager.state.resolution;
+	task.resolution = tile_manager.state.resolution_divider;
 	tile_manager.state.buffer.get_offset_stride(task.offset, task.stride);
 
 	if(task.w > 0 && task.h > 0) {

@@ -75,11 +75,9 @@
 
 #include "BPY_extern.h"
 
-#include "interface_intern.h"
+#include "IMB_colormanagement.h"
 
-#define MENU_WIDTH          120
-#define MENU_ITEM_HEIGHT    20
-#define MENU_SEP_HEIGHT     6
+#include "interface_intern.h"
 
 #define PRECISION_FLOAT_MAX 6
 #define PRECISION_FLOAT_MAX_POW 1000000 /* pow(10, PRECISION_FLOAT_MAX)  */
@@ -104,8 +102,8 @@ void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y
 	float gx, gy;
 	int sx, sy, getsizex, getsizey;
 
-	getsizex = BLI_RCT_SIZE_X(&ar->winrct) + 1;
-	getsizey = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
+	getsizex = BLI_rcti_size_x(&ar->winrct) + 1;
+	getsizey = BLI_rcti_size_y(&ar->winrct) + 1;
 	sx = ar->winrct.xmin;
 	sy = ar->winrct.ymin;
 
@@ -150,8 +148,8 @@ void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y
 	float a, b, c, d, e, f, px, py;
 	int sx, sy, getsizex, getsizey;
 
-	getsizex = BLI_RCT_SIZE_X(&ar->winrct) + 1;
-	getsizey = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
+	getsizex = BLI_rcti_size_x(&ar->winrct) + 1;
+	getsizey = BLI_rcti_size_y(&ar->winrct) + 1;
 	sx = ar->winrct.xmin;
 	sy = ar->winrct.ymin;
 
@@ -277,7 +275,7 @@ void ui_bounds_block(uiBlock *block)
 		block->rect.ymax += block->bounds;
 	}
 
-	block->rect.xmax = block->rect.xmin + maxf(BLI_RCT_SIZE_X(&block->rect), block->minbounds);
+	block->rect.xmax = block->rect.xmin + maxf(BLI_rctf_size_x(&block->rect), block->minbounds);
 
 	/* hardcoded exception... but that one is annoying with larger safety */ 
 	bt = block->buttons.first;
@@ -305,8 +303,8 @@ static void ui_centered_bounds_block(const bContext *C, uiBlock *block)
 	
 	ui_bounds_block(block);
 	
-	width  = BLI_RCT_SIZE_X(&block->rect);
-	height = BLI_RCT_SIZE_Y(&block->rect);
+	width  = BLI_rctf_size_x(&block->rect);
+	height = BLI_rctf_size_y(&block->rect);
 	
 	startx = (xmax * 0.5f) - (width * 0.5f);
 	starty = (ymax * 0.5f) - (height * 0.5f);
@@ -330,8 +328,8 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, eBlockBound
 	
 	wm_window_get_size(window, &xmax, &ymax);
 
-	oldwidth  = BLI_RCT_SIZE_X(&block->rect);
-	oldheight = BLI_RCT_SIZE_Y(&block->rect);
+	oldwidth  = BLI_rctf_size_x(&block->rect);
+	oldheight = BLI_rctf_size_y(&block->rect);
 
 	/* first we ensure wide enough text bounds */
 	if (bounds_calc == UI_BLOCK_BOUNDS_POPUP_MENU) {
@@ -346,8 +344,8 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, eBlockBound
 	ui_bounds_block(block);
 
 	/* and we adjust the position to fit within window */
-	width  = BLI_RCT_SIZE_X(&block->rect);
-	height = BLI_RCT_SIZE_Y(&block->rect);
+	width  = BLI_rctf_size_x(&block->rect);
+	height = BLI_rctf_size_y(&block->rect);
 
 	/* avoid divide by zero below, caused by calling with no UI, but better not crash */
 	oldwidth = oldwidth > 0 ? oldwidth : MAX2(1, width);
@@ -493,10 +491,10 @@ static void ui_draw_linkline(uiLinkLine *line, int highlightActiveLines)
 
 	if (line->from == NULL || line->to == NULL) return;
 	
-	rect.xmin = BLI_RCT_CENTER_X(&line->from->rect);
-	rect.ymin = BLI_RCT_CENTER_Y(&line->from->rect);
-	rect.xmax = BLI_RCT_CENTER_X(&line->to->rect);
-	rect.ymax = BLI_RCT_CENTER_Y(&line->to->rect);
+	rect.xmin = BLI_rctf_cent_x(&line->from->rect);
+	rect.ymin = BLI_rctf_cent_y(&line->from->rect);
+	rect.xmax = BLI_rctf_cent_x(&line->to->rect);
+	rect.ymax = BLI_rctf_cent_y(&line->to->rect);
 	
 	if (line->flag & UI_SELECT)
 		glColor3ub(100, 100, 100);
@@ -2138,7 +2136,14 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 	block->evil_C = (void *)C;  /* XXX */
 
 	if (scn) {
-		block->color_profile = (scn->r.color_mgt_flag & R_COLOR_MANAGEMENT);
+		block->color_profile = TRUE;
+
+		/* store display device name, don't lookup for transformations yet
+		 * block could be used for non-color displays where looking up for transformation
+		 * would slow down redraw, so only lookup for actual transform when it's indeed
+		 * needed
+		 */
+		block->display_device = scn->display_settings.display_device;
 
 		/* copy to avoid crash when scene gets deleted with ui still open */
 		block->unit = MEM_mallocN(sizeof(scn->unit), "UI UnitSettings");
@@ -2248,7 +2253,7 @@ void ui_check_but(uiBut *but)
 	
 	
 	/* safety is 4 to enable small number buttons (like 'users') */
-	// okwidth= -4 + (BLI_RCT_SIZE_X(&but->rect)); // UNUSED
+	// okwidth= -4 + (BLI_rcti_size_x(&but->rect)); // UNUSED
 	
 	/* name: */
 	switch (but->type) {
@@ -2256,7 +2261,7 @@ void ui_check_but(uiBut *but)
 		case MENU:
 		case ICONTEXTROW:
 		
-			if (BLI_RCT_SIZE_X(&but->rect) > 24.0f) {
+			if (BLI_rctf_size_x(&but->rect) > 24.0f) {
 				UI_GET_BUT_VALUE_INIT(but, value);
 				ui_set_name_menu(but, (int)value);
 			}
@@ -2563,7 +2568,9 @@ void ui_block_do_align(uiBlock *block)
 			ui_block_do_align_but(but, nr);
 
 			/* skip with same number */
-			for (; but && but->alignnr == nr; but = but->next) ;
+			for (; but && but->alignnr == nr; but = but->next) {
+				/* pass */
+			}
 
 			if (!but) {
 				break;
@@ -2573,6 +2580,25 @@ void ui_block_do_align(uiBlock *block)
 			but = but->next;
 		}
 	}
+}
+
+struct ColorManagedDisplay *ui_block_display_get(uiBlock *block)
+{
+	return IMB_colormanagement_display_get_named(block->display_device);
+}
+
+void ui_block_to_display_space_v3(uiBlock *block, float pixel[3])
+{
+	struct ColorManagedDisplay *display = ui_block_display_get(block);
+
+	IMB_colormanagement_scene_linear_to_display_v3(pixel, display);
+}
+
+void ui_block_to_scene_linear_v3(uiBlock *block, float pixel[3])
+{
+	struct ColorManagedDisplay *display = ui_block_display_get(block);
+
+	IMB_colormanagement_display_to_scene_linear_v3(pixel, display);
 }
 
 /**
@@ -2592,6 +2618,9 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 {
 	uiBut *but;
 	int slen;
+
+	BLI_assert(width >= 0);
+	BLI_assert(height >= 0);
 
 	/* we could do some more error checks here */
 	if ((type & BUTTYPE) == LABEL) {
@@ -3760,15 +3789,16 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 		if (type == BUT_GET_LABEL) {
 			if (but->str) {
 				/* Menu labels can have some complex formating stuff marked by pipes or %t, we don't want those here! */
-				const char *tc;
-				
-				if (but->type == MENU)
-					tc = strstr(but->str, "%t");
-				else
-					tc = strchr(but->str, '|');
-				
-				if (tc)
-					tmp = BLI_strdupn(but->str, tc - but->str);
+				const char *tc1, *tc2;
+
+				tc1 = strstr(but->str, "%t");
+				tc2 = strstr(but->str, "|"); /* XXX For some reason strchr seems to not work here? */
+
+				if (tc2 && (!tc1 || tc1 > tc2))
+					tc1 = tc2;
+
+				if (tc1)
+					tmp = BLI_strdupn(but->str, tc1 - but->str);
 				else
 					tmp = BLI_strdup(but->str);
 			}

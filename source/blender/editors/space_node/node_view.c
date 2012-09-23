@@ -72,8 +72,8 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 	int tot = 0;
 	int has_frame = FALSE;
 	
-	oldwidth  = BLI_RCT_SIZE_X(&ar->v2d.cur);
-	oldheight = BLI_RCT_SIZE_Y(&ar->v2d.cur);
+	oldwidth  = BLI_rctf_size_x(&ar->v2d.cur);
+	oldheight = BLI_rctf_size_y(&ar->v2d.cur);
 
 	BLI_rctf_init_minmax(&cur_new);
 
@@ -91,8 +91,8 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 	}
 
 	if (tot) {
-		width  = BLI_RCT_SIZE_X(&cur_new);
-		height = BLI_RCT_SIZE_Y(&cur_new);
+		width  = BLI_rctf_size_x(&cur_new);
+		height = BLI_rctf_size_y(&cur_new);
 
 		/* for single non-frame nodes, don't zoom in, just pan view,
 		 * but do allow zooming out, this allows for big nodes to be zoomed out */
@@ -327,12 +327,12 @@ typedef struct ImageSampleInfo {
 	void *draw_handle;
 	int x, y;
 	int channels;
-	int color_manage;
 
 	unsigned char col[4];
 	float colf[4];
 
 	int draw;
+	int color_manage;
 } ImageSampleInfo;
 
 static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
@@ -341,7 +341,7 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	ImageSampleInfo *info = arg_info;
 
 	if (info->draw) {
-		ED_image_draw_info(ar, (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
+		ED_image_draw_info(scene, ar, info->color_manage, FALSE, info->channels,
 		                   info->x, info->y, info->col, info->colf,
 		                   NULL, NULL /* zbuf - unused for nodes */
 		                   );
@@ -357,6 +357,13 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 	ImBuf *ibuf;
 	float fx, fy, bufx, bufy;
 	int ret = FALSE;
+
+	if (snode->treetype != NTREE_COMPOSIT || (snode->flag & SNODE_BACKDRAW) == 0) {
+		/* use viewer image for color sampling only if we're in compositor tree
+		 * with backdrop enabled
+		 */
+		return FALSE;
+	}
 
 	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
@@ -381,12 +388,7 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
 			/* IB_PROFILE_NONE is default but infact its linear */
-			if (ELEM(ibuf->profile, IB_PROFILE_LINEAR_RGB, IB_PROFILE_NONE)) {
-				linearrgb_to_srgb_v3_v3(r_col, fp);
-			}
-			else {
-				copy_v3_v3(r_col, fp);
-			}
+			linearrgb_to_srgb_v3_v3(r_col, fp);
 			ret = TRUE;
 		}
 		else if (ibuf->rect) {
@@ -419,10 +421,6 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if (!ibuf->rect) {
-		if (info->color_manage)
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
-		else
-			ibuf->profile = IB_PROFILE_NONE;
 		IMB_rect_from_float(ibuf);
 	}
 
@@ -457,6 +455,8 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 			info->colf[1] = (float)cp[1] / 255.0f;
 			info->colf[2] = (float)cp[2] / 255.0f;
 			info->colf[3] = (float)cp[3] / 255.0f;
+
+			info->color_manage = FALSE;
 		}
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
@@ -465,6 +465,8 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 			info->colf[1] = fp[1];
 			info->colf[2] = fp[2];
 			info->colf[3] = fp[3];
+
+			info->color_manage = TRUE;
 		}
 
 		ED_node_sample_set(info->colf);

@@ -90,8 +90,11 @@ public:
 			float cosNH = m_N.dot(H);
 			float cosHO = fabsf(omega_out.dot(H));
 
+			if(!(fabsf(cosNH) < 1.0f-1e-5f && cosHO > 1e-5f))
+				return Color3(0, 0, 0);
+
 			float cosNHdivHO = cosNH / cosHO;
-			cosNHdivHO = max(cosNHdivHO, 0.00001f);
+			cosNHdivHO = max(cosNHdivHO, 1e-5f);
 
 			float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
 			float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
@@ -134,28 +137,32 @@ public:
 			float cosNH = m_N.dot(H);
 			float cosHO = fabsf(omega_out.dot(H));
 
-			float cosNHdivHO = cosNH / cosHO;
-			cosNHdivHO = max(cosNHdivHO, 0.00001f);
+			if(fabsf(cosNO) > 1e-5f && fabsf(cosNH) < 1.0f-1e-5f && cosHO > 1e-5f) {
+				float cosNHdivHO = cosNH / cosHO;
+				cosNHdivHO = max(cosNHdivHO, 1e-5f);
 
-			float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
-			float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
+				float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
+				float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
 
-			float sinNH2 = 1 - cosNH * cosNH;
-			float sinNH4 = sinNH2 * sinNH2;
-			float cotangent2 =  (cosNH * cosNH) / sinNH2;
+				float sinNH2 = 1 - cosNH * cosNH;
+				float sinNH4 = sinNH2 * sinNH2;
+				float cotangent2 =  (cosNH * cosNH) / sinNH2;
 
-			float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * float(M_1_PI) / sinNH4;
-			float G = min(1.0f, min(fac1, fac2)); // TODO: derive G from D analytically
+				float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * float(M_1_PI) / sinNH4;
+				float G = min(1.0f, min(fac1, fac2)); // TODO: derive G from D analytically
 
-			float power = 0.25f * (D * G) / cosNO;
+				float power = 0.25f * (D * G) / cosNO;
 
-			eval.setValue(power, power, power);
+				eval.setValue(power, power, power);
 
-			// TODO: find a better approximation for the retroreflective bounce
-			domega_in_dx = (2 * m_N.dot(domega_out_dx)) * m_N - domega_out_dx;
-			domega_in_dy = (2 * m_N.dot(domega_out_dy)) * m_N - domega_out_dy;
-			domega_in_dx *= 125;
-			domega_in_dy *= 125;
+				// TODO: find a better approximation for the retroreflective bounce
+				domega_in_dx = (2 * m_N.dot(domega_out_dx)) * m_N - domega_out_dx;
+				domega_in_dy = (2 * m_N.dot(domega_out_dy)) * m_N - domega_out_dy;
+				domega_in_dx *= 125;
+				domega_in_dy *= 125;
+			}
+			else
+				pdf = 0;
 		}
 		else
 			pdf = 0;

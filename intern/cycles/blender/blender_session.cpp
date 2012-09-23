@@ -372,12 +372,6 @@ void BlenderSession::synchronize()
 		return;
 	}
 
-	/* if the session is still resetting the device come back later */
-	if(session->resetting()) {
-		tag_update();
-		return;
-	}
-
 	/* increase samples, but never decrease */
 	session->set_samples(session_params.samples);
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));

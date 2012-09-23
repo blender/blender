@@ -115,7 +115,6 @@ public:
 	virtual void task_add(DeviceTask& task) = 0;
 	virtual void task_wait() = 0;
 	virtual void task_cancel() = 0;
-	virtual bool task_cancelled() = 0;
 	
 	/* opengl drawing */
 	virtual void draw_pixels(device_memory& mem, int y, int w, int h,

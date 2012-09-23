@@ -83,11 +83,11 @@ class SEQUENCER_HT_header(Header):
 
             layout.separator()
             layout.operator("sequencer.refresh_all")
-        elif st.view_type == 'SEQUENCER_PREVIEW':
-            layout.separator()
-            layout.operator("sequencer.refresh_all")
-            layout.prop(st, "display_channel", text="Channel")
         else:
+            if st.view_type == 'SEQUENCER_PREVIEW':
+                layout.separator()
+                layout.operator("sequencer.refresh_all")
+
             layout.prop(st, "display_channel", text="Channel")
 
             ed = context.scene.sequence_editor
@@ -101,12 +101,12 @@ class SEQUENCER_HT_header(Header):
                     row = layout.row()
                     row.prop(st, "overlay_type", text="")
 
-                row = layout.row(align=True)
-                props = row.operator("render.opengl", text="", icon='RENDER_STILL')
-                props.sequencer = True
-                props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
-                props.animation = True
-                props.sequencer = True
+        row = layout.row(align=True)
+        props = row.operator("render.opengl", text="", icon='RENDER_STILL')
+        props.sequencer = True
+        props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
+        props.animation = True
+        props.sequencer = True
 
         layout.template_running_jobs()
 
@@ -130,12 +130,19 @@ class SEQUENCER_MT_view(Menu):
 
         st = context.space_data
 
+        if st.view_type in {'PREVIEW'}:
+            # Specifying the REGION_PREVIEW context is needed in preview-only
+            # mode, else the lookup for the shortcut will fail in
+            # wm_keymap_item_find_props() (see #32595).
+            layout.operator_context = 'INVOKE_REGION_PREVIEW'
         layout.operator("sequencer.properties", icon='MENU_PANEL')
+        layout.operator_context = 'INVOKE_DEFAULT'
 
         layout.separator()
 
         if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             layout.operator("sequencer.view_all", text="View all Sequences")
+            layout.operator("sequencer.view_selected")
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text="Fit preview in window")
@@ -145,19 +152,21 @@ class SEQUENCER_MT_view(Menu):
             # # XXX, invokes in the header view
             # layout.operator("sequencer.view_ghost_border", text="Overlay Border")
 
-        layout.operator("sequencer.view_selected")
+        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
+            layout.prop(st, "show_seconds")
+            layout.prop(st, "show_frame_indicator")
 
-        layout.prop(st, "show_seconds")
-
-        layout.prop(st, "show_frame_indicator")
-        if st.display_mode == 'IMAGE':
-            layout.prop(st, "show_safe_margin")
-        if st.display_mode == 'WAVEFORM':
-            layout.prop(st, "show_separate_color")
+        if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
+            if st.display_mode == 'IMAGE':
+                layout.prop(st, "show_safe_margin")
+            elif st.display_mode == 'WAVEFORM':
+                layout.prop(st, "show_separate_color")
 
         layout.separator()
-        layout.prop(st, "use_marker_sync")
-        layout.separator()
+
+        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
+            layout.prop(st, "use_marker_sync")
+            layout.separator()
 
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
@@ -883,6 +892,8 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
 
         strip = act_strip(context)
         sequencer = context.scene.sequence_editor
+
+        layout.prop(strip, "use_linear_modifiers")
 
         layout.operator_menu_enum("sequencer.strip_modifier_add", "type")
 

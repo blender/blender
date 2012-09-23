@@ -56,6 +56,7 @@ struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct 
 void sculpt(struct Sculpt *sd);
 
 int sculpt_mode_poll(struct bContext *C);
+int sculpt_mode_poll_view3d(struct bContext *C);
 int sculpt_poll(struct bContext *C);
 void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct Object *ob, int need_pmap);
 

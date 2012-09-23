@@ -164,7 +164,7 @@ class Vector
 
     // constructors
 
-    Vector() : v_(0), vm1_(0), n_(0)  {};
+    Vector() : v_(0), vm1_(0), n_(0)  {}
 
     Vector(const Vector<T> &A) : v_(0), vm1_(0), n_(0)
     {

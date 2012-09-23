@@ -48,9 +48,12 @@
 #include "jpeglib.h" 
 #include "jerror.h"
 
-#define IS_jpg(x)       (x->ftype & JPG)
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
+// #define IS_jpg(x)       (x->ftype & JPG) // UNUSED
 #define IS_stdjpg(x)    ((x->ftype & JPG_MSK) == JPG_STD)
-#define IS_vidjpg(x)    ((x->ftype & JPG_MSK) == JPG_VID)
+// #define IS_vidjpg(x)    ((x->ftype & JPG_MSK) == JPG_VID) // UNUSED
 #define IS_jstjpg(x)    ((x->ftype & JPG_MSK) == JPG_JST)
 #define IS_maxjpg(x)    ((x->ftype & JPG_MSK) == JPG_MAX)
 
@@ -435,21 +438,22 @@ next_stamp_marker:
 		jpeg_destroy((j_common_ptr) cinfo);
 		if (ibuf) {
 			ibuf->ftype = ibuf_ftype;
-			ibuf->profile = IB_PROFILE_SRGB;
 		}
 	}
 
 	return(ibuf);
 }
 
-ImBuf *imb_load_jpeg(unsigned char *buffer, size_t size, int flags)
+ImBuf *imb_load_jpeg(unsigned char *buffer, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;
 	ImBuf *ibuf;
 
 	if (!imb_is_a_jpeg(buffer)) return NULL;
-	
+
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
+
 	cinfo->err = jpeg_std_error(&jerr.pub);
 	jerr.pub.error_exit = jpeg_error;
 

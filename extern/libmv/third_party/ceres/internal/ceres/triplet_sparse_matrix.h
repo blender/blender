@@ -50,7 +50,7 @@ class TripletSparseMatrix : public SparseMatrix {
   TripletSparseMatrix();
   TripletSparseMatrix(int num_rows, int num_cols, int max_num_nonzeros);
   explicit TripletSparseMatrix(const TripletSparseMatrix& orig);
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
   explicit TripletSparseMatrix(const SparseMatrixProto& proto);
 #endif
 
@@ -65,7 +65,7 @@ class TripletSparseMatrix : public SparseMatrix {
   virtual void SquaredColumnNorm(double* x) const;
   virtual void ScaleColumns(const double* scale);
   virtual void ToDenseMatrix(Matrix* dense_matrix) const;
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
   virtual void ToProto(SparseMatrixProto *proto) const;
 #endif
   virtual void ToTextFile(FILE* file) const;

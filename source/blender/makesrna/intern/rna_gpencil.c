@@ -90,7 +90,7 @@ static void rna_GPencil_active_layer_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-void rna_GPencilLayer_info_set(PointerRNA *ptr, const char *value)
+static void rna_GPencilLayer_info_set(PointerRNA *ptr, const char *value)
 {
 	bGPdata *gpd = ptr->id.data;
 	bGPDlayer *gpl = ptr->data;

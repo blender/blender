@@ -386,6 +386,7 @@ static void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_bookmark_toggle);
 	WM_operatortype_append(FILE_OT_bookmark_add);
 	WM_operatortype_append(FILE_OT_delete_bookmark);
+	WM_operatortype_append(FILE_OT_reset_recent);
 	WM_operatortype_append(FILE_OT_hidedot);
 	WM_operatortype_append(FILE_OT_filenum);
 	WM_operatortype_append(FILE_OT_directory_new);
@@ -537,7 +538,7 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* scrolling here is just annoying, disable it */
-	ar->v2d.cur.ymax = BLI_RCT_SIZE_Y(&ar->v2d.cur);
+	ar->v2d.cur.ymax = BLI_rctf_size_y(&ar->v2d.cur);
 	ar->v2d.cur.ymin = 0;
 
 	/* set view2d view matrix for scrolling (without scrollers) */

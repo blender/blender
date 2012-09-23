@@ -409,7 +409,7 @@ static int key_test_depth(PEData *data, const float co[3])
 	if ((v3d->drawtype<=OB_WIRE) || (v3d->flag & V3D_ZBUF_SELECT)==0)
 		return 1;
 
-	project_short(data->vc.ar, co, wco);
+	ED_view3d_project_short(data->vc.ar, co, wco);
 	
 	if (wco[0] == IS_CLIPPED)
 		return 0;
@@ -447,7 +447,7 @@ static int key_inside_circle(PEData *data, float rad, const float co[3], float *
 	float dx, dy, dist;
 	int sco[2];
 
-	project_int(data->vc.ar, co, sco);
+	ED_view3d_project_int(data->vc.ar, co, sco);
 	
 	if (sco[0] == IS_CLIPPED)
 		return 0;
@@ -473,7 +473,7 @@ static int key_inside_rect(PEData *data, const float co[3])
 {
 	int sco[2];
 
-	project_int(data->vc.ar, co, sco);
+	ED_view3d_project_int(data->vc.ar, co, sco);
 
 	if (sco[0] == IS_CLIPPED)
 		return 0;
@@ -1666,7 +1666,7 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 			LOOP_KEYS {
 				copy_v3_v3(co, key->co);
 				mul_m4_v3(mat, co);
-				project_int(ar, co, vertco);
+				ED_view3d_project_int(ar, co, vertco);
 				if (BLI_lasso_is_point_inside(mcords, moves, vertco[0], vertco[1], IS_CLIPPED) &&
 				    key_test_depth(&data, co))
 				{
@@ -1686,7 +1686,7 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
-			project_int(ar, co, vertco);
+			ED_view3d_project_int(ar, co, vertco);
 			if (BLI_lasso_is_point_inside(mcords, moves, vertco[0], vertco[1], IS_CLIPPED) &&
 			    key_test_depth(&data, co))
 			{
@@ -2802,7 +2802,7 @@ static void brush_cut(PEData *data, int pa_index)
 
 	cut=0;
 
-	project_int_noclip(ar, key->co, vertco);
+	ED_view3d_project_int_noclip(ar, key->co, vertco);
 	x0= (float)vertco[0];
 	x1= (float)vertco[1];
 
@@ -2820,7 +2820,7 @@ static void brush_cut(PEData *data, int pa_index)
 	else {
 		/* calculate path time closest to root that was inside the circle */
 		for (k=1, key++; k<=keys; k++, key++) {
-			project_int_noclip(ar, key->co, vertco);
+			ED_view3d_project_int_noclip(ar, key->co, vertco);
 
 			if (key_test_depth(data, key->co) == 0) {
 				x0= (float)vertco[0];

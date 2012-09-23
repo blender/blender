@@ -66,7 +66,7 @@
 
 /* ------- Bevel code starts here -------- */
 
-BME_TransData_Head *BME_init_transdata(int bufsize)
+static BME_TransData_Head *BME_init_transdata(int bufsize)
 {
 	BME_TransData_Head *td;
 
@@ -85,9 +85,9 @@ void BME_free_transdata(BME_TransData_Head *td)
 	MEM_freeN(td);
 }
 
-BME_TransData *BME_assign_transdata(BME_TransData_Head *td, BMesh *bm, BMVert *v,
-                                    float *co, float *org, float *vec, float *loc,
-                                    float factor, float weight, float maxfactor, float *max)
+static BME_TransData *BME_assign_transdata(BME_TransData_Head *td, BMesh *bm, BMVert *v,
+                                           float *co, float *org, float *vec, float *loc,
+                                           float factor, float weight, float maxfactor, float *max)
 {
 	BME_TransData *vtd;
 	int is_new = 0;
@@ -140,7 +140,7 @@ BME_TransData *BME_get_transdata(BME_TransData_Head *td, BMVert *v)
 }
 
 /* a hack (?) to use the transdata memarena to allocate floats for use with the max limits */
-float *BME_new_transdata_float(BME_TransData_Head *td)
+static float *BME_new_transdata_float(BME_TransData_Head *td)
 {
 	return BLI_memarena_alloc(td->ma, sizeof(float));
 }

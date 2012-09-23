@@ -163,7 +163,7 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, Object *obedit, BMEditMes
 			float mval[2], vec[3], no_dummy[3];
 			int dist_dummy;
 			mul_v3_m4v3(vec, obedit->obmat, eve->co);
-			project_float_noclip(ar, vec, mval);
+			ED_view3d_project_float_noclip(ar, vec, mval);
 			if (snapObjectsContext(C, mval, &dist_dummy, vec, no_dummy, SNAP_NOT_OBEDIT)) {
 				mul_v3_m4v3(eve->co, obedit->imat, vec);
 			}
@@ -761,8 +761,8 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 				float co1[3], co2[3];
 				mul_v3_m4v3(co1, vc.obedit->obmat, eed->v1->co);
 				mul_v3_m4v3(co2, vc.obedit->obmat, eed->v2->co);
-				project_float_noclip(vc.ar, co1, co1);
-				project_float_noclip(vc.ar, co2, co2);
+				ED_view3d_project_float_noclip(vc.ar, co1, co1);
+				ED_view3d_project_float_noclip(vc.ar, co2, co2);
 
 				/* 2D rotate by 90d while adding.
 				 *  (x, y) = (y, -x)
@@ -2526,12 +2526,6 @@ void MESH_OT_solidify(wmOperatorType *ot)
 	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
 }
 
-#define TRAIL_POLYLINE 1 /* For future use, They don't do anything yet */
-#define TRAIL_FREEHAND 2
-#define TRAIL_MIXED    3 /* (1|2) */
-#define TRAIL_AUTO     4 
-#define TRAIL_MIDPOINTS 8
-
 typedef struct CutCurve {
 	float x;
 	float y;
@@ -2776,7 +2770,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 		copy_v3_v3(co, bv->co);
 		co[3] = 1.0f;
 		mul_m4_v4(obedit->obmat, co);
-		project_float(ar, co, scr);
+		ED_view3d_project_float(ar, co, scr);
 		BLI_ghash_insert(gh, bv, scr);
 	}
 
@@ -2858,9 +2852,6 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
 {
 	Base *base_new;
-	BMIter iter;
-	BMVert *v;
-	BMEdge *e;
 	Object *obedit = base_old->object;
 	BMesh *bm_new;
 
@@ -2886,15 +2877,10 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 	BMO_op_callf(bm_old, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	             "delete geom=%hvef context=%i", BM_ELEM_TAG, DEL_FACES);
 
-	/* deselect loose data - this used to get deleted */
-	BM_ITER_MESH (e, &iter, bm_old, BM_EDGES_OF_MESH) {
-		BM_edge_select_set(bm_old, e, FALSE);
-	}
-
-	/* clean up any loose verts */
-	BM_ITER_MESH (v, &iter, bm_old, BM_VERTS_OF_MESH) {
-		BM_vert_select_set(bm_old, v, FALSE);
-	}
+	/* deselect loose data - this used to get deleted,
+	 * we could de-select edges and verts only, but this turns out to be less complicated
+	 * since de-selecting all skips selection flushing logic */
+	BM_mesh_elem_hflag_disable_all(bm_old, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
 
 	BM_mesh_normals_update(bm_new, FALSE);
 
@@ -2908,7 +2894,10 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 
 static int mesh_separate_selected(Main *bmain, Scene *scene, Base *base_old, BMesh *bm_old)
 {
-	/* tag -> select */
+	/* we may have tags from previous operators */
+	BM_mesh_elem_hflag_disable_all(bm_old, BM_FACE | BM_EDGE | BM_VERT, BM_ELEM_TAG, FALSE);
+
+	/* sel -> tag */
 	BM_mesh_elem_hflag_enable_test(bm_old, BM_FACE | BM_EDGE | BM_VERT, BM_ELEM_TAG, TRUE, BM_ELEM_SELECT);
 
 	return mesh_separate_tagged(bmain, scene, base_old, bm_old);
@@ -4721,7 +4710,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 				mdiff[0] = opdata->mcenter[0] - event->mval[0];
 				mdiff[1] = opdata->mcenter[1] - event->mval[1];
 
-				factor = -len_v2(mdiff) / opdata->initial_length + 1.0f;
+				factor = opdata->initial_length / -len_v2(mdiff) + 1.0f;
 
 				/* Fake shift-transform... */
 				if (event->shift) {
@@ -5085,9 +5074,9 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 				mdiff[1] = opdata->mcenter[1] - event->mval[1];
 
 				if (opdata->modify_depth)
-					amount = opdata->old_depth + len_v2(mdiff) / opdata->initial_length - 1.0f;
+					amount = opdata->old_depth + opdata->initial_length / len_v2(mdiff) - 1.0f;
 				else
-					amount = opdata->old_thickness - len_v2(mdiff) / opdata->initial_length + 1.0f;
+					amount = opdata->old_thickness - opdata->initial_length / len_v2(mdiff) + 1.0f;
 
 				/* Fake shift-transform... */
 				if (opdata->shift)

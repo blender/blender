@@ -48,6 +48,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
+#include "ED_mask.h"  /* own include */
 
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:

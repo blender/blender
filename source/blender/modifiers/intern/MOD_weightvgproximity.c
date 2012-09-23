@@ -185,7 +185,7 @@ static float get_ob2ob_distance(const Object *ob, const Object *obr)
 /**
  * Maps distances to weights, with an optional "smoothing" mapping.
  */
-void do_map(float *weights, const int nidx, const float min_d, const float max_d, short mode)
+static void do_map(float *weights, const int nidx, const float min_d, const float max_d, short mode)
 {
 	const float range_inv = 1.0f / (max_d - min_d); /* invert since multiplication is faster */
 	unsigned int i = nidx;

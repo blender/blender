@@ -27,8 +27,8 @@ private:
 	float m_threshold;
 	float m_threshold_neighbour;
 
-	int m_filterWidth;
-	int m_filterHeight;
+	// int m_filterWidth;
+	// int m_filterHeight;
 
 protected:
 	SocketReader *m_inputOperation;

@@ -502,7 +502,7 @@ static int rna_PartSettings_is_fluid_get(PointerRNA *ptr)
 	return part->type == PART_FLUID;
 }
 
-void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
+static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = ptr->id.data;
 	ParticleSystem *part = (ParticleSystem *)ptr->data;

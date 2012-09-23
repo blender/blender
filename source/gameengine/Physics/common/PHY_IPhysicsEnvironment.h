@@ -48,7 +48,7 @@ class PHY_IPhysicsController;
  */
 struct PHY_RayCastResult
 {
-	PHY_IPhysicsController* m_controller;	
+	PHY_IPhysicsController* m_controller;
 	PHY__Vector3			m_hitPoint;
 	PHY__Vector3			m_hitNormal;
 	const RAS_MeshObject*	m_meshObject;	// !=NULL for mesh object (only for Bullet controllers) 

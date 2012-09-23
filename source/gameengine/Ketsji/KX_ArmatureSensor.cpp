@@ -86,7 +86,7 @@ void KX_ArmatureSensor::FindConstraint()
 							/* this constraint is not valid, can't use it */
 							break;
 						m_constraint = pcon;
-						break;	
+						break;
 					}
 				}
 				break;
@@ -193,13 +193,13 @@ PyAttributeDef KX_ArmatureSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_ArmatureSensor::pyattr_get_constraint(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_ArmatureSensor::pyattr_get_constraint(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_ArmatureSensor* sensor = static_cast<KX_ArmatureSensor*>(self);
 	if (sensor->m_gameobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE) {
 		BL_ArmatureObject* armobj = (BL_ArmatureObject*)sensor->m_gameobj;
 		BL_ArmatureConstraint* constraint = armobj->GetConstraint(sensor->m_posechannel, sensor->m_constraintname);
-		if (constraint)	
+		if (constraint)
 			return constraint->GetProxy();
 	}
 	Py_RETURN_NONE;

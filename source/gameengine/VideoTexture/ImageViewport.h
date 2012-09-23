@@ -91,12 +91,12 @@ protected:
 	GLint * getViewportSize (void) { return m_viewport + 2; }
 };
 
-PyObject * ImageViewport_getCaptureSize (PyImage * self, void * closure);
-int ImageViewport_setCaptureSize (PyImage * self, PyObject * value, void * closure);
-PyObject * ImageViewport_getWhole (PyImage * self, void * closure);
-int ImageViewport_setWhole (PyImage * self, PyObject * value, void * closure);
-PyObject * ImageViewport_getAlpha (PyImage * self, void * closure);
-int ImageViewport_setAlpha (PyImage * self, PyObject * value, void * closure);
+PyObject *ImageViewport_getCaptureSize (PyImage *self, void *closure);
+int ImageViewport_setCaptureSize (PyImage *self, PyObject *value, void *closure);
+PyObject *ImageViewport_getWhole (PyImage *self, void *closure);
+int ImageViewport_setWhole (PyImage *self, PyObject *value, void *closure);
+PyObject *ImageViewport_getAlpha (PyImage *self, void *closure);
+int ImageViewport_setAlpha (PyImage *self, PyObject *value, void *closure);
 
 #endif
 

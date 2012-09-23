@@ -216,7 +216,7 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 		
 	// SYSTEM                                                                                                  
 		
-#if 0			
+#if 0
 	/* **** XXX **** */
 	m[KEYBD				] = SCA_IInputDevice::KX_KEYBD;                  
 	m[RAWKEYBD			] = SCA_IInputDevice::KX_RAWKEYBD;                  
@@ -229,7 +229,7 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 	m[WINQUIT			] = SCA_IInputDevice::KX_WINQUIT;                  
 	m[Q_FIRSTTIME		] = SCA_IInputDevice::KX_Q_FIRSTTIME;                  
 	/* **** XXX **** */
-#endif	
+#endif
 		
 	// standard keyboard                                                                                       
 		
@@ -447,7 +447,7 @@ static void GetRGB(short type,
 			else { // backup white
 				c0 = KX_rgbaint2uint_new(color);
 				c1 = KX_rgbaint2uint_new(color);
-				c2 = KX_rgbaint2uint_new(color);	
+				c2 = KX_rgbaint2uint_new(color);
 				if (mface->v4)
 					c3 = KX_rgbaint2uint_new( color );
 			}
@@ -469,7 +469,7 @@ static void GetRGB(short type,
 			}
 			c0 = KX_rgbaint2uint_new(color);
 			c1 = KX_rgbaint2uint_new(color);
-			c2 = KX_rgbaint2uint_new(color);	
+			c2 = KX_rgbaint2uint_new(color);
 			if (mface->v4)
 				c3 = KX_rgbaint2uint_new(color);
 		} break;
@@ -478,7 +478,7 @@ static void GetRGB(short type,
 		{
 			c0 = KX_rgbaint2uint_new(color);
 			c1 = KX_rgbaint2uint_new(color);
-			c2 = KX_rgbaint2uint_new(color);	
+			c2 = KX_rgbaint2uint_new(color);
 			if (mface->v4)
 				c3 = KX_rgbaint2uint_new(color);
 		} break;
@@ -491,7 +491,7 @@ typedef struct MTF_localLayer {
 } MTF_localLayer;
 
 // ------------------------------------
-bool ConvertMaterial(
+static bool ConvertMaterial(
 	BL_Material *material,
 	Material *mat, 
 	MTFace* tface,  
@@ -1150,7 +1150,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 
 					rgb0 = KX_rgbaint2uint_new(color);
 					rgb1 = KX_rgbaint2uint_new(color);
-					rgb2 = KX_rgbaint2uint_new(color);	
+					rgb2 = KX_rgbaint2uint_new(color);
 					
 					if (mface->v4)
 						rgb3 = KX_rgbaint2uint_new(color);
@@ -1535,14 +1535,14 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 //////////////////////////////////////////////////////
 
 
-void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
-							   const MT_Point3& localAabbMin,
-							   const MT_Point3& localAabbMax,
-							   KX_Scene* kxscene,
-							   bool isActive,
-							   e_PhysicsEngine physics_engine)
+static void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
+                                      const MT_Point3& localAabbMin,
+                                      const MT_Point3& localAabbMax,
+                                      KX_Scene* kxscene,
+                                      bool isActive,
+                                      e_PhysicsEngine physics_engine)
 {
-	if (gameobj->GetMeshCount() > 0) 
+	if (gameobj->GetMeshCount() > 0)
 	{
 		switch (physics_engine)
 		{
@@ -1574,16 +1574,16 @@ void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
 	}
 }
 
-void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
-						 struct Object* blenderobject,
-						 RAS_MeshObject* meshobj,
-						 KX_Scene* kxscene,
-						 int activeLayerBitInfo,
-						 e_PhysicsEngine	physics_engine,
-						 KX_BlenderSceneConverter *converter,
-						 bool processCompoundChildren
-						 )
-					
+static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
+                                      struct Object* blenderobject,
+                                      RAS_MeshObject* meshobj,
+                                      KX_Scene* kxscene,
+                                      int activeLayerBitInfo,
+                                      e_PhysicsEngine	physics_engine,
+                                      KX_BlenderSceneConverter *converter,
+                                      bool processCompoundChildren
+                                      )
+
 {
 	//SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
 	//int userigidbody = SYS_GetCommandLineInt(syshandle,"norigidbody",0);
@@ -1694,7 +1694,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
 			//objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
 			/* disable welding: it doesn't bring any additional stability and it breaks the relation between soft body collision shape and graphic mesh */
-			objprop.m_soft_welding = 0.f;		
+			objprop.m_soft_welding = 0.f;
 			objprop.m_margin = blenderobject->bsoft->margin;
 			objprop.m_contactProcessingThreshold = 0.f;
 		} else
@@ -2086,7 +2086,7 @@ struct parentChildLink {
 #include "DNA_constraint_types.h"
 //XXX #include "BIF_editconstraint.h"
 
-bPoseChannel *get_active_posechannel2 (Object *ob)
+static bPoseChannel *get_active_posechannel2 (Object *ob)
 {
 	bArmature *arm= (bArmature*)ob->data;
 	bPoseChannel *pchan;
@@ -2100,7 +2100,7 @@ bPoseChannel *get_active_posechannel2 (Object *ob)
 	return NULL;
 }
 
-ListBase *get_active_constraints2(Object *ob)
+static ListBase *get_active_constraints2(Object *ob)
 {
 	if (!ob)
 		return NULL;
@@ -2119,8 +2119,7 @@ ListBase *get_active_constraints2(Object *ob)
 	return NULL;
 }
 
-
-void RBJconstraints(Object *ob)//not used
+static void UNUSED_FUNCTION(RBJconstraints)(Object *ob)//not used
 {
 	ListBase *conlist;
 	bConstraint *curcon;
@@ -2141,7 +2140,8 @@ void RBJconstraints(Object *ob)//not used
 #include "KX_IPhysicsController.h"
 #include "PHY_DynamicTypes.h"
 
-KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
+#if 0  /* UNUSED */
+static KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
 
 	for (int j=0;j<sumolist->GetCount();j++)
 	{
@@ -2151,10 +2151,10 @@ KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
 	}
 
 	return 0;
-
 }
+#endif
 
-KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
+static KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
 {
 
 	for (int j=0;j<sumolist->GetCount();j++)
@@ -2617,7 +2617,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				KX_SlowParentRelation * slow_parent_relation = KX_SlowParentRelation::New(blenderchild->sf);
 				pcit->m_gamechildnode->SetParentRelation(slow_parent_relation);
 				break;
-			}	
+			}
 			case PARBONE:
 			{
 				// parent this to a bone
@@ -2741,7 +2741,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			}
 		
 		
-		}	
+		}
 
 		// create physics joints
 	for (i=0;i<sumolist->GetCount();i++)
@@ -2825,7 +2825,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
 										}
 										dofbit<<=1;
-									}								
+									}
 								}
 								else if (dat->type == PHY_LINEHINGE_CONSTRAINT)
 								{

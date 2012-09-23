@@ -210,7 +210,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 				{
 					//detailed mesh vertex
 					memcpy(dvertices+3*(newIdx-nverts), allVerts+3*vi, 3*sizeof(float));
-				}				
+				}
 			}
 		}
 
@@ -245,7 +245,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 			{
 				memset(vert, 0, 3*sizeof(float)); //vertex isn't in any poly, set dummy zero coordinates
 			}
-			vert+=3;		
+			vert+=3;
 		}
 
 		//create tris
@@ -294,7 +294,7 @@ bool KX_NavMeshObject::BuildNavMesh()
 
 	float *vertices = NULL, *dvertices = NULL;
 	unsigned short *polys = NULL, *dtris = NULL, *dmeshes = NULL;
-	int nverts = 0, npolys = 0, ndvertsuniq = 0, ndtris = 0;	
+	int nverts = 0, npolys = 0, ndvertsuniq = 0, ndtris = 0;
 	int vertsPerPoly = 0;
 	if (!BuildVertIndArrays(vertices, nverts, polys, npolys, 
 							dmeshes, dvertices, ndvertsuniq, dtris, ndtris, vertsPerPoly ) 
@@ -446,11 +446,11 @@ bool KX_NavMeshObject::BuildNavMesh()
 			dtl.nverts = dmeshes[i*4+1];
 			dtl.tbase = dmeshes[i*4+2];
 			dtl.ntris = dmeshes[i*4+3];
-		}		
+		}
 	}
 
 	m_navMesh = new dtStatNavMesh;
-	m_navMesh->init(data, dataSize, true);	
+	m_navMesh->init(data, dataSize, true);
 
 	delete [] vertices;
 
@@ -487,7 +487,7 @@ void KX_NavMeshObject::DrawNavMesh(NavMeshRenderMode renderMode)
 			const dtStatPoly* poly = m_navMesh->getPoly(pi);
 
 			for (int i = 0, j = (int)poly->nv-1; i < (int)poly->nv; j = i++)
-			{	
+			{
 				if (poly->n[j] && renderMode==RM_WALLS) 
 					continue;
 				const float* vif = m_navMesh->getVertex(poly->v[i]);
@@ -564,7 +564,7 @@ int KX_NavMeshObject::FindPath(const MT_Point3& from, const MT_Point3& to, float
 	if (!m_navMesh)
 		return 0;
 	MT_Point3 localfrom = TransformToLocalCoords(from);
-	MT_Point3 localto = TransformToLocalCoords(to);	
+	MT_Point3 localto = TransformToLocalCoords(to);
 	float spos[3], epos[3];
 	localfrom.getValue(spos); flipAxes(spos);
 	localto.getValue(epos); flipAxes(epos);
@@ -598,7 +598,7 @@ float KX_NavMeshObject::Raycast(const MT_Point3& from, const MT_Point3& to)
 	if (!m_navMesh)
 		return 0.f;
 	MT_Point3 localfrom = TransformToLocalCoords(from);
-	MT_Point3 localto = TransformToLocalCoords(to);	
+	MT_Point3 localto = TransformToLocalCoords(to);
 	float spos[3], epos[3];
 	localfrom.getValue(spos); flipAxes(spos);
 	localto.getValue(epos); flipAxes(epos);

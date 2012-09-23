@@ -37,6 +37,7 @@
 
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include <glog/logging.h>
 #include "cholmod.h"
@@ -105,11 +106,34 @@ class SuiteSparse {
     cholmod_sdmult(A, 0, alpha_, beta_, x, y, &cc_);
   }
 
-  // Analyze the sparsity structure of the matrix A compute the
-  // symbolic factorization of A. A is not modified, only the pattern
-  // of non-zeros of A is used, the actual numerical values in A are
-  // of no consequence. Caller owns the result.
+  // Find an ordering of A or AA' (if A is unsymmetric) that minimizes
+  // the fill-in in the Cholesky factorization of the corresponding
+  // matrix. This is done by using the AMD algorithm.
+  //
+  // Using this ordering, the symbolic Cholesky factorization of A (or
+  // AA') is computed and returned.
+  //
+  // A is not modified, only the pattern of non-zeros of A is used,
+  // the actual numerical values in A are of no consequence.
+  //
+  // Caller owns the result.
   cholmod_factor* AnalyzeCholesky(cholmod_sparse* A);
+
+  cholmod_factor* BlockAnalyzeCholesky(cholmod_sparse* A,
+                                       const vector<int>& row_blocks,
+                                       const vector<int>& col_blocks);
+
+  // If A is symmetric, then compute the symbolic Cholesky
+  // factorization of A(ordering, ordering). If A is unsymmetric, then
+  // compute the symbolic factorization of
+  // A(ordering,:) A(ordering,:)'.
+  //
+  // A is not modified, only the pattern of non-zeros of A is used,
+  // the actual numerical values in A are of no consequence.
+  //
+  // Caller owns the result.
+  cholmod_factor* AnalyzeCholeskyWithUserOrdering(cholmod_sparse* A,
+                                                  const vector<int>& ordering);
 
   // Use the symbolic factorization in L, to find the numerical
   // factorization for the matrix A or AA^T. Return true if
@@ -128,6 +152,56 @@ class SuiteSparse {
   cholmod_dense* SolveCholesky(cholmod_sparse* A,
                                cholmod_factor* L,
                                cholmod_dense* b);
+
+  // By virtue of the modeling layer in Ceres being block oriented,
+  // all the matrices used by Ceres are also block oriented. When
+  // doing sparse direct factorization of these matrices the
+  // fill-reducing ordering algorithms (in particular AMD) can either
+  // be run on the block or the scalar form of these matrices. The two
+  // SuiteSparse::AnalyzeCholesky methods allows the the client to
+  // compute the symbolic factorization of a matrix by either using
+  // AMD on the matrix or a user provided ordering of the rows.
+  //
+  // But since the underlying matrices are block oriented, it is worth
+  // running AMD on just the block structre of these matrices and then
+  // lifting these block orderings to a full scalar ordering. This
+  // preserves the block structure of the permuted matrix, and exposes
+  // more of the super-nodal structure of the matrix to the numerical
+  // factorization routines.
+  //
+  // Find the block oriented AMD ordering of a matrix A, whose row and
+  // column blocks are given by row_blocks, and col_blocks
+  // respectively. The matrix may or may not be symmetric. The entries
+  // of col_blocks do not need to sum to the number of columns in
+  // A. If this is the case, only the first sum(col_blocks) are used
+  // to compute the ordering.
+  bool BlockAMDOrdering(const cholmod_sparse* A,
+                        const vector<int>& row_blocks,
+                        const vector<int>& col_blocks,
+                        vector<int>* ordering);
+
+  // Given a set of blocks and a permutation of these blocks, compute
+  // the corresponding "scalar" ordering, where the scalar ordering of
+  // size sum(blocks).
+  static void BlockOrderingToScalarOrdering(const vector<int>& blocks,
+                                            const vector<int>& block_ordering,
+                                            vector<int>* scalar_ordering);
+
+  // Extract the block sparsity pattern of the scalar sparse matrix
+  // A and return it in compressed column form. The compressed column
+  // form is stored in two vectors block_rows, and block_cols, which
+  // correspond to the row and column arrays in a compressed column sparse
+  // matrix.
+  //
+  // If c_ij is the block in the matrix A corresponding to row block i
+  // and column block j, then it is expected that A contains at least
+  // one non-zero entry corresponding to the top left entry of c_ij,
+  // as that entry is used to detect the presence of a non-zero c_ij.
+  static void ScalarMatrixToBlockMatrix(const cholmod_sparse* A,
+                                        const vector<int>& row_blocks,
+                                        const vector<int>& col_blocks,
+                                        vector<int>* block_rows,
+                                        vector<int>* block_cols);
 
   void Free(cholmod_sparse* m) { cholmod_free_sparse(&m, &cc_); }
   void Free(cholmod_dense* m)  { cholmod_free_dense(&m, &cc_);  }

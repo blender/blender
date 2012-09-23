@@ -513,10 +513,14 @@ static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
 					w2 = (1.0f - fx + fac2 * fx * -fac) * (fy);
 					w4 = (fx) * (1.0f - fy + -fac2 * fy * fac);
 
-					fac2 = 1.0f - (w1 + w2 + w4);
-					fac2 = fac2 / (float)(faceLen - 3);
-					for (j = 0; j < faceLen; j++)
-						w[j] = fac2;
+					/* these values aren't used for tri's and cause divide by zero */
+					if (faceLen > 3) {
+						fac2 = 1.0f - (w1 + w2 + w4);
+						fac2 = fac2 / (float)(faceLen - 3);
+						for (j = 0; j < faceLen; j++) {
+							w[j] = fac2;
+						}
+					}
 					
 					w[i] = w1;
 					w[(i - 1 + faceLen) % faceLen] = w2;

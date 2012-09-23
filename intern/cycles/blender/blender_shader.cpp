@@ -403,7 +403,7 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			BL::Image b_image(b_image_node.image());
 			ImageTextureNode *image = new ImageTextureNode();
 			/* todo: handle generated/builtin images */
-			if(b_image)
+			if(b_image && b_image.source() != BL::Image::source_MOVIE)
 				image->filename = image_user_file_path(b_image_node.image_user(), b_image, b_scene.frame_current());
 			image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
 			image->projection = ImageTextureNode::projection_enum[(int)b_image_node.projection()];
@@ -416,7 +416,7 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			BL::ShaderNodeTexEnvironment b_env_node(b_node);
 			BL::Image b_image(b_env_node.image());
 			EnvironmentTextureNode *env = new EnvironmentTextureNode();
-			if(b_image)
+			if(b_image && b_image.source() != BL::Image::source_MOVIE)
 				env->filename = image_user_file_path(b_env_node.image_user(), b_image, b_scene.frame_current());
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
 			env->projection = EnvironmentTextureNode::projection_enum[(int)b_env_node.projection()];

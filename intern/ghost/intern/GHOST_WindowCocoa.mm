@@ -670,7 +670,8 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
 			[m_window setRepresentedFilename:@""];
 		}
 
-	} else {
+	}
+	else {
 		[m_window setTitle:windowTitle];
 		[m_window setRepresentedFilename:@""];
 	}
@@ -1288,7 +1289,8 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 
 	if (cursor == GHOST_kStandardCursorCustom && m_customCursor) {
 		tmpCursor = m_customCursor;
-	} else {
+	}
+	else {
 		switch (cursor) {
 			case GHOST_kStandardCursorDestroy:
 				tmpCursor = [NSCursor disappearingItemCursor];

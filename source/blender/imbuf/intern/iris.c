@@ -42,6 +42,9 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_filetype.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 typedef struct {
 	unsigned short  imagic;      /* stuff saved on disk . . */
 	unsigned short  type;
@@ -80,21 +83,21 @@ typedef struct {
 #define OFFSET_R    0   /* this is byte order dependent */
 #define OFFSET_G    1
 #define OFFSET_B    2
-#define OFFSET_A    3
+// #define OFFSET_A    3
 
 #define CHANOFFSET(z)   (3 - (z)) /* this is byte order dependent */
 
-#define TYPEMASK        0xff00
+// #define TYPEMASK        0xff00
 #define BPPMASK         0x00ff
-#define ITYPE_VERBATIM      0x0000
+// #define ITYPE_VERBATIM      0x0000 // UNUSED
 #define ITYPE_RLE       0x0100
 #define ISRLE(type)     (((type) & 0xff00) == ITYPE_RLE)
-#define ISVERBATIM(type)    (((type) & 0xff00) == ITYPE_VERBATIM)
+// #define ISVERBATIM(type)    (((type) & 0xff00) == ITYPE_VERBATIM)
 #define BPP(type)       ((type) & BPPMASK)
 #define RLE(bpp)        (ITYPE_RLE | (bpp))
-#define VERBATIM(bpp)       (ITYPE_VERBATIM | (bpp))
-#define IBUFSIZE(pixels)    ((pixels + (pixels >> 6)) << 2)
-#define RLE_NOP         0x00
+// #define VERBATIM(bpp)       (ITYPE_VERBATIM | (bpp)) // UNUSED
+// #define IBUFSIZE(pixels)    ((pixels + (pixels >> 6)) << 2) // UNUSED
+// #define RLE_NOP         0x00
 
 /* funcs */
 static void readheader(FILE *inf, IMAGE *image);
@@ -247,7 +250,7 @@ int imb_is_a_iris(unsigned char *mem)
  *
  */
 
-struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
+struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	unsigned int *base, *lptr = NULL;
 	float *fbase, *fptr = NULL;
@@ -264,6 +267,9 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 	(void)size; /* unused */
 	
 	if (!imb_is_a_iris(mem)) return NULL;
+
+	/* OCIO_TODO: only tested with 1 byte per pixel, not sure how to test with other settings */
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
 	/*printf("new iris\n");*/
 	
@@ -523,7 +529,6 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 	}
 
 	ibuf->ftype = IMAGIC;
-	ibuf->profile = IB_PROFILE_SRGB;
 
 	test_endian_zbuf(ibuf);
 

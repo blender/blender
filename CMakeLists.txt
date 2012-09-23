@@ -131,6 +131,7 @@ option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effect
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
+option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ON)
 option(WITH_COMPOSITOR    "Enable the tile based nodal compositor" ON)
 option(WITH_COMPOSITOR_LEGACY "Enable legacy compositor" OFF)
 
@@ -377,6 +378,8 @@ endif()
 
 if(WITH_GHOST_SDL OR WITH_HEADLESS)
 	set(WITH_GHOST_XDND OFF)
+	set(WITH_X11_XF86VMODE OFF)
+	set(WITH_X11_XINPUT OFF)
 endif()
 
 if(MINGW)
@@ -562,7 +565,14 @@ if(UNIX AND NOT APPLE)
 		endif()
 
 		mark_as_advanced(FFMPEG)
-		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include/ffmpeg)
+
+		# lame, but until we have propper find module for ffmpeg
+		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
+		if(EXISTS "${FFMPEG}/include/ffmpeg/")
+			set(FFMPEG_INCLUDE_DIRS "${FFMPEG_INCLUDE_DIRS} ${FFMPEG}/include/ffmpeg")
+		endif()
+		# end lameness
+
 		mark_as_advanced(FFMPEG_LIBRARIES)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
@@ -669,6 +679,24 @@ if(UNIX AND NOT APPLE)
 		if(NOT OPENIMAGEIO_FOUND)
 			set(WITH_OPENIMAGEIO OFF)
 			message(STATUS "OpenImageIO not found, disabling WITH_CYCLES")
+		endif()
+	endif()
+
+	if(WITH_OPENCOLORIO)
+		# use lib dir if available and nothing else specified
+		if(LIBDIR AND NOT OPENCOLORIO_ROOT_DIR)
+			set(OPENCOLORIO_ROOT_DIR ${LIBDIR}/ocio)
+		endif()
+
+		find_package(OpenColorIO)
+
+		set(OPENCOLORIO_LIBRARIES ${OPENCOLORIO_LIBRARIES})
+		set(OPENCOLORIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
+		set(OPENCOLORIO_DEFINITIONS)
+
+		if(NOT OPENCOLORIO_FOUND)
+			set(WITH_OPENCOLORIO OFF)
+			message(STATUS "OpenColorIO not found")
 		endif()
 	endif()
 
@@ -1065,6 +1093,14 @@ elseif(WIN32)
 			set(OPENIMAGEIO_DEFINITIONS)
 		endif()
 
+		if(WITH_OPENCOLORIO)
+			set(OPENCOLORIO ${LIBDIR}/opencolorio)
+			set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
+			set(OPENCOLORIO_LIBRARIES OpenColorIO)
+			set_lib_path(OPENCOLORIO_LIBPATH "opencolorio/lib")
+			set(OPENCOLORIO_DEFINITIONS)
+		endif()
+
 		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib")
 
 		# MSVC only, Mingw doesnt need
@@ -1077,7 +1113,7 @@ elseif(WIN32)
 		set(PLATFORM_LINKFLAGS_DEBUG "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
 		# used in many places so include globally, like OpenGL
-		blender_include_dirs("${PTHREADS_INCLUDE_DIRS}")
+		blender_include_dirs_sys("${PTHREADS_INCLUDE_DIRS}")
 
 	elseif(CMAKE_COMPILER_IS_GNUCC)
 	# keep GCC specific stuff here		
@@ -1216,8 +1252,8 @@ elseif(WIN32)
 				set(BOOST_POSTFIX "mgw47-mt-s-1_49")
 				set(BOOST_DEBUG_POSTFIX "mgw47-mt-sd-1_49")
 			else()
-				set(BOOST_POSTFIX "mgw46-mt-s-1_47")
-				set(BOOST_DEBUG_POSTFIX "mgw46-mt-sd-1_47")
+				set(BOOST_POSTFIX "mgw46-mt-s-1_49")
+				set(BOOST_DEBUG_POSTFIX "mgw46-mt-sd-1_49")
 			endif()		
 			set(BOOST_LIBRARIES
 				optimized boost_date_time-${BOOST_POSTFIX} boost_filesystem-${BOOST_POSTFIX}
@@ -1236,6 +1272,14 @@ elseif(WIN32)
 			set(OPENIMAGEIO_DEFINITIONS)
 		endif()
 		
+		if(WITH_OPENCOLORIO)
+			set(OPENCOLORIO ${LIBDIR}/opencolorio)
+			set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
+			set(OPENCOLORIO_LIBRARIES OpenColorIO)
+			set(OPENCOLORIO_LIBPATH ${OPENCOLORIO}/lib)
+			set(OPENCOLORIO_DEFINITIONS)
+		endif()
+
 		set(PLATFORM_LINKFLAGS "-Xlinker --stack=2097152")
 
 		## DISABLE - causes linking errors 
@@ -1482,6 +1526,14 @@ elseif(APPLE)
 		set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
 	endif()
 
+	if(WITH_OPENCOLORIO)
+		set(OPENCOLORIO ${LIBDIR}/opencolorio)
+		set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
+		set(OPENCOLORIO_LIBRARIES OpenColorIO tinyxml yaml-cpp)
+		set(OPENCOLORIO_LIBPATH ${OPENCOLORIO}/lib)
+		set(OPENCOLORIO_DEFINITIONS "-DOCIO_STATIC_BUILD")
+	endif()
+
 	if(WITH_CYCLES_OSL)
 		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
 	
@@ -1673,14 +1725,22 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_CAST_ALIGN -Wcast-align)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_DECLARATION_AFTER_STATEMENT -Werror=declaration-after-statement)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE -Werror=return-type)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
 	# system headers sometimes do this, disable for now, was: -Werror=strict-prototypes
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_STRICT_PROTOTYPES -Wstrict-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_STRICT_PROTOTYPES  -Wstrict-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_PROTOTYPES -Wmissing-prototypes)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_WRITE_STRINGS -Wwrite-strings)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_LOGICAL_OP -Wlogical-op)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNDEF -Wundef)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNINITIALIZED -Wuninitialized)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_NULL -Wnonnull)  # C only
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
 
 	# # this causes too many warnings, disable
 	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNDEFINED -Wundef)
@@ -1695,9 +1755,14 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
-
-	# # this causes too many warnings, disable
-	# ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEFINED -Wundef)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_DECLARATIONS -Wmissing-declarations)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_LOGICAL_OP -Wlogical-op)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEFINED -Wundef)
 
 	# flags to undo strict flags
 	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
@@ -1709,17 +1774,22 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
+	# strange, clang complains these are not supported, but then yses them.
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_STRICT_PROTOTYPES  -Wstrict-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_PROTOTYPES -Wmissing-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_MACROS      -Wunused-macros)
 
-	ADD_CHECK_C_COMPILER_FLAG(CXX_WARNINGS C_WARN_ALL -Wall)
-	ADD_CHECK_C_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
-	ADD_CHECK_C_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
-	ADD_CHECK_C_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
-	ADD_CHECK_C_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_OVERLOADED_VIRTUAL -Wno-overloaded-virtual)  # we get a lot of these, if its a problem a dev needs to look into it.
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_UNKNOWN_PRAGMAS     -Wno-unknown-pragmas)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_CHAR_SUBSCRIPTS     -Wno-char-subscripts)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_OVERLOADED_VIRTUAL  -Wno-overloaded-virtual)  # we get a lot of these, if its a problem a dev needs to look into it.
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF    -Wno-invalid-offsetof)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNUSED_MACROS          -Wunused-macros)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 
@@ -1881,6 +1951,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_INTERNATIONAL)
 	info_cfg_option(WITH_INPUT_NDOF)
 	info_cfg_option(WITH_CYCLES)
+	info_cfg_option(WITH_OPENCOLORIO)
 
 	info_cfg_text("Compiler Options:")
 	info_cfg_option(WITH_BUILDINFO)

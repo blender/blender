@@ -333,7 +333,8 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
   //   return;
   // }
   // qimg = &newMap;
-  	ImBuf *qimg = IMB_loadiffname(filePath.c_str(), 0);;
+	/* OCIO_TODO: support different input color space */
+  	ImBuf *qimg = IMB_loadiffname(filePath.c_str(), 0, NULL);
   	if( qimg == 0 ){
 		cout << "Could not load image file " << filePath << endl;
     	return;	

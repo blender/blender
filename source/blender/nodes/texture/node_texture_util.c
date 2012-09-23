@@ -49,8 +49,6 @@
 #include <assert.h>
 #include "node_texture_util.h"
 
-#define PREV_RES 128 /* default preview resolution */
-
 static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)
 {
 	if (dg->node->need_exec) {

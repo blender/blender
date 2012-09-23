@@ -91,20 +91,13 @@ class ImplicitSchurComplement : public LinearOperator {
   // num_eliminate_blocks is the number of E blocks in the matrix
   // A.
   //
-  // constant_sparsity indicates if across calls to Init, the sparsity
-  // structure of the matrix A remains constant or not. This makes for
-  // significant savings across multiple matrices A, e.g. when used in
-  // conjunction with an optimization algorithm.
-  //
   // preconditioner indicates whether the inverse of the matrix F'F
   // should be computed or not as a preconditioner for the Schur
   // Complement.
   //
   // TODO(sameeragarwal): Get rid of the two bools below and replace
   // them with enums.
-  ImplicitSchurComplement(int num_eliminate_blocks,
-                          bool constant_sparsity,
-                          bool preconditioner);
+  ImplicitSchurComplement(int num_eliminate_blocks, bool preconditioner);
   virtual ~ImplicitSchurComplement();
 
   // Initialize the Schur complement for a linear least squares
@@ -151,7 +144,6 @@ class ImplicitSchurComplement : public LinearOperator {
   void UpdateRhs();
 
   int num_eliminate_blocks_;
-  bool constant_sparsity_;
   bool preconditioner_;
 
   scoped_ptr<PartitionedMatrixView> A_;

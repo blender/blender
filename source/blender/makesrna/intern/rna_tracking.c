@@ -144,7 +144,7 @@ static void rna_tracking_active_track_set(PointerRNA *ptr, PointerRNA value)
 		clip->tracking.act_track = NULL;
 }
 
-void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
+static void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
 	MovieTracking *tracking = &clip->tracking;
@@ -325,7 +325,7 @@ static void rna_tracking_active_object_set(PointerRNA *ptr, PointerRNA value)
 	else clip->tracking.objectnr = 0;
 }
 
-void rna_trackingObject_name_set(PointerRNA *ptr, const char *value)
+static void rna_trackingObject_name_set(PointerRNA *ptr, const char *value)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
 	MovieTrackingObject *object = (MovieTrackingObject *)ptr->data;
@@ -447,7 +447,7 @@ static MovieTrackingObject *rna_trackingObject_new(MovieTracking *tracking, cons
 	return object;
 }
 
-void rna_trackingObject_remove(MovieTracking *tracking, MovieTrackingObject *object)
+static void rna_trackingObject_remove(MovieTracking *tracking, MovieTrackingObject *object)
 {
 	BKE_tracking_object_delete(tracking, object);
 
@@ -477,7 +477,7 @@ static MovieTrackingMarker *rna_trackingMarkers_insert_frame(MovieTrackingTrack 
 	return new_marker;
 }
 
-void rna_trackingMarkers_delete_frame(MovieTrackingTrack *track, int framenr)
+static void rna_trackingMarkers_delete_frame(MovieTrackingTrack *track, int framenr)
 {
 	if (track->markersnr == 1)
 		return;

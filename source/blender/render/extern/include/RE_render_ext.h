@@ -39,10 +39,11 @@
 /* called by meshtools */
 struct View3D;
 struct Scene;
+struct LinkNode;
 
-void	RE_make_sticky(struct Scene *scene, struct View3D *v3d);
-	
-/* for radiosity module */	
+void RE_make_sticky(struct Scene *scene, struct Object *camera, struct LinkNode *objects);
+
+/* for radiosity module */
 struct RadView;
 struct RNode;
 struct Render;

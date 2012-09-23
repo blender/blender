@@ -215,6 +215,16 @@ BF_OIIO_INC = BF_OIIO + '/include'
 BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIBPATH = BF_OIIO + '/lib'
 
+WITH_BF_OCIO = True
+WITH_BF_STATICOCIO = False
+BF_OCIO = LIBDIR + '/ocio'
+if not os.path.exists(LCGDIR + '/ocio'):
+    WITH_BF_OCIO = False
+    BF_OCIO = '/usr'
+BF_OCIO_INC = BF_OCIO + '/include'
+BF_OCIO_LIB = 'OpenColorIO yaml-cpp tinyxml'
+BF_OCIO_LIBPATH = BF_OCIO + '/lib'
+
 WITH_BF_BOOST = True
 WITH_BF_STATICBOOST = False
 BF_BOOST = LIBDIR + '/boost'
@@ -229,7 +239,7 @@ WITH_BF_CYCLES = WITH_BF_OIIO and WITH_BF_BOOST
 
 WITH_BF_CYCLES_CUDA_BINARIES = False
 BF_CYCLES_CUDA_NVCC = '/usr/local/cuda/bin/nvcc'
-BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21']
+BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21', 'sm_30']
 
 WITH_BF_OPENMP = True
 

@@ -37,7 +37,7 @@
 #define DUPE_INPUT      1 /* input from operator */
 #define DUPE_NEW        2
 #define DUPE_DONE       4
-#define DUPE_MAPPED     8
+// #define DUPE_MAPPED     8 // UNUSED
 
 /**
  * COPY VERTEX

@@ -116,8 +116,8 @@ void wm_subwindow_getsize(wmWindow *win, int swinid, int *x, int *y)
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
-		*x = BLI_RCT_SIZE_X(&swin->winrct) + 1;
-		*y = BLI_RCT_SIZE_Y(&swin->winrct) + 1;
+		*x = BLI_rcti_size_x(&swin->winrct) + 1;
+		*y = BLI_rcti_size_y(&swin->winrct) + 1;
 	}
 }
 
@@ -256,13 +256,13 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	win->curswin = _curswin;
 	_curwindow = win;
 	
-	width  = BLI_RCT_SIZE_X(&_curswin->winrct) + 1;
-	height = BLI_RCT_SIZE_Y(&_curswin->winrct) + 1;
+	width  = BLI_rcti_size_x(&_curswin->winrct) + 1;
+	height = BLI_rcti_size_y(&_curswin->winrct) + 1;
 	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 
 	if (srct) {
-		width  = BLI_RCT_SIZE_X(srct) + 1;
-		height = BLI_RCT_SIZE_Y(srct) + 1;
+		width  = BLI_rcti_size_x(srct) + 1;
+		height = BLI_rcti_size_y(srct) + 1;
 		glScissor(srct->xmin, srct->ymin, width, height);
 	}
 	else

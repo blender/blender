@@ -36,7 +36,7 @@ void ED_sequencer_deselect_all(struct Scene *scene);
 
 int ED_space_sequencer_maskedit_mask_poll(struct bContext *C);
 int ED_space_sequencer_check_show_maskedit(struct SpaceSeq *sseq, struct Scene *scene);
-int ED_space_sequencer_maskedit_poll(bContext *C);
+int ED_space_sequencer_maskedit_poll(struct bContext *C);
 
 void ED_operatormacros_sequencer(void);
 

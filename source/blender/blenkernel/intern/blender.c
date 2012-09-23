@@ -89,8 +89,10 @@
 
 #include "WM_api.h" // XXXXX BAD, very BAD dependency (bad level call) - remove asap, elubie
 
+#include "IMB_colormanagement.h"
+
 #ifdef WITH_PYTHON
-#include "BPY_extern.h"
+#  include "BPY_extern.h"
 #endif
 
 Global G;
@@ -217,8 +219,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	/* no load screens? */
 	if (mode) {
 		/* comes from readfile.c */
-		extern void lib_link_screen_restore(Main *, bScreen *, Scene *);
-		
 		SWAP(ListBase, G.main->wm, bfd->main->wm);
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
 		SWAP(ListBase, G.main->script, bfd->main->script);
@@ -232,7 +232,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		if (curscreen) curscreen->scene = curscene;  /* can run in bgmode */
 
 		/* clear_global will free G.main, here we can still restore pointers */
-		lib_link_screen_restore(bfd->main, curscreen, curscene);
+		blo_lib_link_screen_restore(bfd->main, curscreen, curscene);
 	}
 	
 	/* free G.main Main database */
@@ -322,7 +322,11 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 
 	/* baseflags, groups, make depsgraph, etc */
 	BKE_scene_set_background(G.main, CTX_data_scene(C));
-	
+
+	if (mode != 'u') {
+		IMB_colormanagement_check_file_config(G.main);
+	}
+
 	MEM_freeN(bfd);
 
 	(void)curscene; /* quiet warning */

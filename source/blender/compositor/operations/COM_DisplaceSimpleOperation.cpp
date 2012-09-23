@@ -51,7 +51,7 @@ void DisplaceSimpleOperation::initExecution()
 
 /* minimum distance (in pixels) a pixel has to be displaced
  * in order to take effect */
-#define DISPLACE_EPSILON    0.01f
+// #define DISPLACE_EPSILON    0.01f
 
 void DisplaceSimpleOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {

@@ -305,7 +305,7 @@ static const uint DDPF_SRGB = 0x40000000U;
 	};
 
 
-	const char * getDxgiFormatString(DXGI_FORMAT dxgiFormat)
+	static const char * getDxgiFormatString(DXGI_FORMAT dxgiFormat)
 	{
 #define CASE(format) case DXGI_FORMAT_##format: return #format
 		switch (dxgiFormat)
@@ -429,7 +429,7 @@ static const uint DDPF_SRGB = 0x40000000U;
 #undef CASE
 	}
 	
-	const char * getD3d10ResourceDimensionString(D3D10_RESOURCE_DIMENSION resourceDimension)
+	static const char * getD3d10ResourceDimensionString(D3D10_RESOURCE_DIMENSION resourceDimension)
 	{
 		switch (resourceDimension)
 		{
@@ -534,7 +534,7 @@ namespace
 
 } // namespace
 
-uint findD3D9Format(uint bitcount, uint rmask, uint gmask, uint bmask, uint amask)
+static uint findD3D9Format(uint bitcount, uint rmask, uint gmask, uint bmask, uint amask)
 {
     for (int i = 0; i < s_d3dFormatCount; i++)
         {

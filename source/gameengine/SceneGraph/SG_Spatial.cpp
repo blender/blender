@@ -161,8 +161,8 @@ RelativeTranslate(
 		}
 	}
 	SetModified();
-}	
-	
+}
+
 
 /**
  * Scaling methods.

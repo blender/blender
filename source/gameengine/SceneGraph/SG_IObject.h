@@ -174,7 +174,7 @@ public:
 	 * this object is deleted.
 	 */
 	
-		void				
+		void
 	AddSGController(
 		SG_Controller* cont
 	);
@@ -196,7 +196,7 @@ public:
 	 * leaks.
 	 */
 	
-		void				
+		void
 	RemoveAllControllers(
 	); 
 
@@ -233,7 +233,7 @@ public:
 	 * This may be NULL.
 	 */
 
-	inline const void* GetSGClientObject() const	
+	inline const void* GetSGClientObject() const
 	{
 		return m_SGclientObject;
 	}
@@ -280,7 +280,7 @@ public:
 	void SetControllerTime(double time);
 	
 	virtual 
-		void		
+		void
 	Destruct(
 	) = 0;
 

@@ -307,17 +307,27 @@ void BKE_object_free(Object *ob)
 		ID *id = ob->data;
 		id->us--;
 		if (id->us == 0) {
-			if (ob->type == OB_MESH) BKE_mesh_unlink(ob->data);
-			else if (ob->type == OB_CURVE) BKE_curve_unlink(ob->data);
-			else if (ob->type == OB_MBALL) BKE_mball_unlink(ob->data);
+			switch (ob->type) {
+				case OB_MESH:
+					BKE_mesh_unlink((Mesh *)id);
+					break;
+				case OB_CURVE:
+					BKE_curve_unlink((Curve *)id);
+					break;
+				case OB_MBALL:
+					BKE_mball_unlink((MetaBall *)id);
+					break;
+			}
 		}
 		ob->data = NULL;
 	}
-	
-	for (a = 0; a < ob->totcol; a++) {
-		if (ob->mat[a]) ob->mat[a]->id.us--;
+
+	if (ob->mat) {
+		for (a = 0; a < ob->totcol; a++) {
+			if (ob->mat[a]) ob->mat[a]->id.us--;
+		}
+		MEM_freeN(ob->mat);
 	}
-	if (ob->mat) MEM_freeN(ob->mat);
 	if (ob->matbits) MEM_freeN(ob->matbits);
 	ob->mat = NULL;
 	ob->matbits = NULL;
@@ -332,7 +342,7 @@ void BKE_object_free(Object *ob)
 		BKE_pose_free(ob->pose);
 	if (ob->mpath)
 		animviz_free_motionpath(ob->mpath);
-	free_properties(&ob->prop);
+	BKE_bproperty_free_list(&ob->prop);
 	BKE_object_free_modifiers(ob);
 	
 	free_sensors(&ob->sensors);
@@ -1079,12 +1089,12 @@ static void copy_object_pose(Object *obn, Object *ob)
 	}
 }
 
-static int object_pose_context(Object *ob)
+int BKE_object_pose_context_check(Object *ob)
 {
-	if ( (ob) &&
-	     (ob->type == OB_ARMATURE) &&
-	     (ob->pose) &&
-	     (ob->mode & OB_MODE_POSE))
+	if ((ob) &&
+	    (ob->type == OB_ARMATURE) &&
+	    (ob->pose) &&
+	    (ob->mode & OB_MODE_POSE))
 	{
 		return 1;
 	}
@@ -1098,12 +1108,12 @@ Object *BKE_object_pose_armature_get(Object *ob)
 	if (ob == NULL)
 		return NULL;
 
-	if (object_pose_context(ob))
+	if (BKE_object_pose_context_check(ob))
 		return ob;
 
 	ob = modifiers_isDeformedByArmature(ob);
 
-	if (object_pose_context(ob))
+	if (BKE_object_pose_context_check(ob))
 		return ob;
 
 	return NULL;
@@ -1147,7 +1157,7 @@ Object *BKE_object_copy(Object *ob)
 	}
 
 	obn->prop.first = obn->prop.last = NULL;
-	copy_properties(&obn->prop, &ob->prop);
+	BKE_bproperty_copy_list(&obn->prop, &ob->prop);
 	
 	copy_sensors(&obn->sensors, &ob->sensors);
 	copy_controllers(&obn->controllers, &ob->controllers);
@@ -1766,9 +1776,8 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 static void give_parvert(Object *par, int nr, float vec[3])
 {
 	BMEditMesh *em;
-	int a, count;
-	
-	vec[0] = vec[1] = vec[2] = 0.0f;
+
+	zero_v3(vec);
 	
 	if (par->type == OB_MESH) {
 		Mesh *me = par->data;
@@ -1795,18 +1804,28 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		dm = (em) ? em->derivedFinal : par->derivedFinal;
 			
 		if (dm) {
-			MVert *mvert = dm->getVertArray(dm);
-			int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-			int i, vindex, numVerts = dm->getNumVerts(dm);
+			int count = 0;
+			int numVerts = dm->getNumVerts(dm);
 
-			/* get the average of all verts with (original index == nr) */
-			count = 0;
-			for (i = 0; i < numVerts; i++) {
-				vindex = (index) ? index[i] : i;
+			if (nr < numVerts) {
+				MVert *mvert = dm->getVertArray(dm);
+				int   *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
+				int i;
 
-				if (vindex == nr) {
-					add_v3_v3(vec, mvert[i].co);
-					count++;
+				/* get the average of all verts with (original index == nr) */
+				if (index) {
+					for (i = 0; i < numVerts; i++) {
+						if (index[i] == nr) {
+							add_v3_v3(vec, mvert[i].co);
+							count++;
+						}
+					}
+				}
+				else {
+					if (nr < numVerts) {
+						add_v3_v3(vec, mvert[nr].co);
+						count++;
+					}
 				}
 			}
 
@@ -1828,71 +1847,31 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		}
 	}
 	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
-		Nurb *nu;
-		Curve *cu;
-		BPoint *bp;
-		BezTriple *bezt;
-		int found = 0;
-		ListBase *nurbs;
+		Curve *cu       = par->data;
+		ListBase *nurb  = BKE_curve_nurbs_get(cu);;
 
-		cu = par->data;
-		nurbs = BKE_curve_nurbs_get(cu);
-		nu = nurbs->first;
-
-		count = 0;
-		while (nu && !found) {
-			if (nu->type == CU_BEZIER) {
-				bezt = nu->bezt;
-				a = nu->pntsu;
-				while (a--) {
-					if (count == nr) {
-						found = 1;
-						copy_v3_v3(vec, bezt->vec[1]);
-						break;
-					}
-					count++;
-					bezt++;
-				}
-			}
-			else {
-				bp = nu->bp;
-				a = nu->pntsu * nu->pntsv;
-				while (a--) {
-					if (count == nr) {
-						found = 1;
-						memcpy(vec, bp->vec, sizeof(float) * 3);
-						break;
-					}
-					count++;
-					bp++;
-				}
-			}
-			nu = nu->next;
-		}
-
+		BKE_nurbList_index_get_co(nurb, nr, vec);
 	}
 	else if (par->type == OB_LATTICE) {
-		Lattice *latt = par->data;
-		BPoint *bp;
-		DispList *dl = BKE_displist_find(&par->disp, DL_VERTS);
-		float *co = dl ? dl->verts : NULL;
-		
+		Lattice *latt  = par->data;
+		DispList *dl   = BKE_displist_find(&par->disp, DL_VERTS);
+		float (*co)[3] = dl ? (float (*)[3])dl->verts : NULL;
+		int tot;
+
 		if (latt->editlatt) latt = latt->editlatt->latt;
-		
-		a = latt->pntsu * latt->pntsv * latt->pntsw;
-		count = 0;
-		bp = latt->def;
-		while (a--) {
-			if (count == nr) {
-				if (co)
-					memcpy(vec, co, 3 * sizeof(float));
-				else
-					memcpy(vec, bp->vec, 3 * sizeof(float));
-				break;
+
+		tot = latt->pntsu * latt->pntsv * latt->pntsw;
+
+		/* ensure dl is correct size */
+		BLI_assert(dl == NULL || dl->nr == tot);
+
+		if (nr < tot) {
+			if (co) {
+				copy_v3_v3(vec, co[nr]);
 			}
-			count++;
-			if (co) co += 3;
-			else bp++;
+			else {
+				copy_v3_v3(vec, latt->def[nr].vec);
+			}
 		}
 	}
 }
@@ -2899,22 +2878,22 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, int 
 	int newkey = 0;
 
 	if (key == NULL) {
-		key = me->key = add_key((ID *)me);
+		key = me->key = BKE_key_add((ID *)me);
 		key->type = KEY_RELATIVE;
 		newkey = 1;
 	}
 
 	if (newkey || from_mix == FALSE) {
 		/* create from mesh */
-		kb = add_keyblock_ctime(key, name, FALSE);
-		mesh_to_key(me, kb);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
+		BKE_key_convert_from_mesh(me, kb);
 	}
 	else {
 		/* copy from current values */
 		float *data = do_ob_key(scene, ob);
 
 		/* create new block with prepared data */
-		kb = add_keyblock_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		kb->data = data;
 		kb->totelem = me->totvert;
 	}
@@ -2930,20 +2909,20 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int 
 	int newkey = 0;
 
 	if (key == NULL) {
-		key = lt->key = add_key((ID *)lt);
+		key = lt->key = BKE_key_add((ID *)lt);
 		key->type = KEY_RELATIVE;
 		newkey = 1;
 	}
 
 	if (newkey || from_mix == FALSE) {
-		kb = add_keyblock_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		if (!newkey) {
 			KeyBlock *basekb = (KeyBlock *)key->block.first;
 			kb->data = MEM_dupallocN(basekb->data);
 			kb->totelem = basekb->totelem;
 		}
 		else {
-			latt_to_key(lt, kb);
+			BKE_key_convert_from_lattice(lt, kb);
 		}
 	}
 	else {
@@ -2951,7 +2930,7 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int 
 		float *data = do_ob_key(scene, ob);
 
 		/* create new block with prepared data */
-		kb = add_keyblock_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		kb->totelem = lt->pntsu * lt->pntsv * lt->pntsw;
 		kb->data = data;
 	}
@@ -2968,21 +2947,21 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 	int newkey = 0;
 
 	if (key == NULL) {
-		key = cu->key = add_key((ID *)cu);
+		key = cu->key = BKE_key_add((ID *)cu);
 		key->type = KEY_RELATIVE;
 		newkey = 1;
 	}
 
 	if (newkey || from_mix == FALSE) {
 		/* create from curve */
-		kb = add_keyblock_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		if (!newkey) {
 			KeyBlock *basekb = (KeyBlock *)key->block.first;
 			kb->data = MEM_dupallocN(basekb->data);
 			kb->totelem = basekb->totelem;
 		}
 		else {
-			curve_to_key(cu, kb, lb);
+			BKE_key_convert_from_curve(cu, kb, lb);
 		}
 	}
 	else {
@@ -2990,7 +2969,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 		float *data = do_ob_key(scene, ob);
 
 		/* create new block with prepared data */
-		kb = add_keyblock_ctime(key, name, FALSE);
+		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		kb->totelem = BKE_nurbList_verts_count(lb);
 		kb->data = data;
 	}
@@ -3020,7 +2999,7 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
 {
 	int flag = 0;
 
-	if (ob_get_key(ob)) {
+	if (BKE_key_from_object(ob)) {
 		flag |= eModifierMode_Render;
 	}
 	else {
@@ -3288,7 +3267,7 @@ void BKE_object_groups_clear(Scene *scene, Base *base, Object *object)
 {
 	Group *group = NULL;
 
-	BLI_assert(base->object == object);
+	BLI_assert((base == NULL) || (base->object == object));
 
 	if (scene && base == NULL) {
 		base = BKE_scene_base_find(scene, object);

@@ -229,11 +229,11 @@ static int graphkeys_viewall(bContext *C, const short do_sel_only, const short i
 	                           &cur_new.ymin, &cur_new.ymax,
 	                           do_sel_only, include_handles);
 
-	extra = 0.1f * BLI_RCT_SIZE_X(&cur_new);
+	extra = 0.1f * BLI_rctf_size_x(&cur_new);
 	cur_new.xmin -= extra;
 	cur_new.xmax += extra;
 
-	extra = 0.1f * BLI_RCT_SIZE_Y(&cur_new);
+	extra = 0.1f * BLI_rctf_size_y(&cur_new);
 	cur_new.ymin -= extra;
 	cur_new.ymax += extra;
 

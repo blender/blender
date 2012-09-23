@@ -83,7 +83,6 @@
 
 
 /* ******************* view3d space & buttons ************** */
-#define B_NOP               1
 #define B_REDR              2
 #define B_OBJECTPANELMEDIAN 1008
 

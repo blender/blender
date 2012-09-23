@@ -89,8 +89,7 @@ typedef struct Mesh {
 
 	/* array of colors for the tessellated faces, must be number of tessellated
 	 * faces * 4 in length */
-	struct MCol *mcol;		
-	struct MSticky *msticky;
+	struct MCol *mcol;
 	struct Mesh *texcomesh;
 
 	/* When the object is available, the preferred access method is: BMEdit_FromObject(ob) */

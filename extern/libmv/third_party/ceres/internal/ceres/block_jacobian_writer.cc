@@ -136,9 +136,12 @@ BlockJacobianWriter::BlockJacobianWriter(const Evaluator::Options& options,
 // makes the final Write() a nop.
 BlockEvaluatePreparer* BlockJacobianWriter::CreateEvaluatePreparers(
     int num_threads) {
+  int max_derivatives_per_residual_block =
+      program_->MaxDerivativesPerResidualBlock();
+
   BlockEvaluatePreparer* preparers = new BlockEvaluatePreparer[num_threads];
   for (int i = 0; i < num_threads; i++) {
-    preparers[i].Init(&jacobian_layout_[0]);
+    preparers[i].Init(&jacobian_layout_[0], max_derivatives_per_residual_block);
   }
   return preparers;
 }

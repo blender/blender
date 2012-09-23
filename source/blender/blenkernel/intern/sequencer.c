@@ -71,6 +71,7 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.h"
 
 #include "BKE_context.h"
 #include "BKE_sound.h"
@@ -306,6 +307,81 @@ void BKE_sequencer_editing_free(Scene *scene)
 	MEM_freeN(ed);
 
 	scene->ed = NULL;
+}
+
+/*********************** Sequencer color space functions  *************************/
+
+static void sequencer_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
+{
+	IMB_colormanagement_imbuf_assign_float_space(ibuf, &scene->sequencer_colorspace_settings);
+}
+
+void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, int make_float)
+{
+	const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+	const char *to_colorspace = scene->sequencer_colorspace_settings.name;
+	int predivide = ibuf->flags & IB_cm_predivide;
+
+	if (!ibuf->rect_float) {
+		if (make_float && ibuf->rect) {
+			/* when converting byte buffer to float in sequencer we need to make float
+			 * buffer be in sequencer's working space, which is currently only doable
+			 * from linear space.
+			 *
+			 */
+
+			/*
+			 * OCIO_TODO: would be nice to support direct single transform from byte to sequencer's
+			 */
+
+			IMB_float_from_rect(ibuf);
+		}
+		else {
+			/* if there's only byte buffer in image it's already in compositor's working space,
+			 * nothing to do here
+			 */
+
+			return;
+		}
+	}
+
+	if (from_colorspace && from_colorspace[0] != '\0') {
+		if (ibuf->rect)
+			imb_freerectImBuf(ibuf);
+
+		IMB_colormanagement_transform_threaded(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
+		                                       from_colorspace, to_colorspace, predivide);
+	}
+}
+
+void BKE_sequencer_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf)
+{
+	const char *from_colorspace = scene->sequencer_colorspace_settings.name;
+	const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+
+	if (!ibuf->rect_float)
+		return;
+
+	if (to_colorspace && to_colorspace[0] != '\0') {
+		int predivide = ibuf->flags & IB_cm_predivide;
+
+		IMB_colormanagement_transform_threaded(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
+		                                       from_colorspace, to_colorspace, predivide);
+	}
+}
+
+void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4])
+{
+	const char *from_colorspace = scene->sequencer_colorspace_settings.name;
+	const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+
+	if (to_colorspace && to_colorspace[0] != '\0') {
+		IMB_colormanagement_transform_v4(pixel, from_colorspace, to_colorspace);
+	}
+	else {
+		/* if no color management enables fallback to legacy conversion */
+		srgb_to_linearrgb_v4(pixel, pixel);
+	}
 }
 
 /*********************** sequencer pipeline functions *************************/
@@ -597,7 +673,9 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
 			BLI_path_abs(str, G.main->name);
 
 			if (seq->anim) IMB_free_anim(seq->anim);
-			seq->anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0), seq->streamindex);
+
+			/* OCIO_TODO: support configurable input space for strips */
+			seq->anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0), seq->streamindex, NULL);
 
 			if (!seq->anim) {
 				return;
@@ -1094,7 +1172,8 @@ static void seq_open_anim_file(Sequence *seq)
 	                 seq->strip->dir, seq->strip->stripdata->name);
 	BLI_path_abs(name, G.main->name);
 	
-	seq->anim = openanim(name, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0), seq->streamindex);
+	/* OCIO_TODO: support configurable input space for strips */
+	seq->anim = openanim(name, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0), seq->streamindex, NULL);
 
 	if (seq->anim == NULL) {
 		return;
@@ -1200,8 +1279,9 @@ static ImBuf *seq_proxy_fetch(SeqRenderData context, Sequence *seq, int cfra)
 			if (seq_proxy_get_fname(seq, cfra, render_size, name) == 0) {
 				return NULL;
 			}
- 
-			seq->strip->proxy->anim = openanim(name, IB_rect, 0);
+
+			/* proxies are generated in default color space */
+			seq->strip->proxy->anim = openanim(name, IB_rect, 0, NULL);
 		}
 		if (seq->strip->proxy->anim == NULL) {
 			return NULL;
@@ -1219,7 +1299,13 @@ static ImBuf *seq_proxy_fetch(SeqRenderData context, Sequence *seq, int cfra)
 	}
 
 	if (BLI_exists(name)) {
-		return IMB_loadiffname(name, IB_rect);
+		/* OCIO_TODO: support configurable spaces for strips */
+		ImBuf *ibuf = IMB_loadiffname(name, IB_rect, NULL);
+
+		if (ibuf)
+			sequencer_imbuf_assign_spaces(context.scene, ibuf);
+
+		return ibuf;
 	}
 	else {
 		return NULL;
@@ -1257,7 +1343,8 @@ static void seq_proxy_build_frame(SeqRenderData context, Sequence *seq, int cfra
 		ibuf->planes = 24;
 
 	BLI_make_existing_file(name);
-	
+
+	/* OCIO_TODO: support per-strip color space settings */
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
 	if (ok == 0) {
 		perror(name);
@@ -1706,7 +1793,7 @@ int BKE_sequencer_input_have_to_preprocess(SeqRenderData UNUSED(context), Sequen
 {
 	float mul;
 
-	if (seq->flag & (SEQ_FILTERY | SEQ_USE_CROP | SEQ_USE_TRANSFORM | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_PREMUL)) {
+	if (seq->flag & (SEQ_FILTERY | SEQ_USE_CROP | SEQ_USE_TRANSFORM | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_PREMUL | SEQ_MAKE_FLOAT)) {
 		return TRUE;
 	}
 
@@ -1826,8 +1913,9 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 	}
 
 	if (seq->flag & SEQ_MAKE_FLOAT) {
-		if (!ibuf->rect_float)
-			IMB_float_from_rect_simple(ibuf);
+		if (!ibuf->rect_float) {
+			BKE_sequencer_imbuf_to_sequencer_space(context.scene, ibuf, TRUE);
+		}
 
 		if (ibuf->rect) {
 			imb_freerectImBuf(ibuf);
@@ -1892,6 +1980,8 @@ static void copy_to_ibuf_still(SeqRenderData context, Sequence *seq, float nr, I
 		 * could be preprocessed afterwards (thereby silently
 		 * changing the cached image... */
 		ibuf = IMB_dupImBuf(ibuf);
+
+		sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
 		if (nr == 0) {
 			BKE_sequencer_cache_put(context, seq, seq->start, SEQ_STRIPELEM_IBUF_STARTSTILL, ibuf);
@@ -2307,7 +2397,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		/* opengl offscreen render */
 		BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
 		ibuf = sequencer_view3d_cb(scene, camera, context.rectx, context.recty,
-		                           IB_rect, context.scene->r.seq_prev_type, TRUE, err_out);
+		                           IB_rect, context.scene->r.seq_prev_type, TRUE, FALSE, err_out);
 		if (ibuf == NULL) {
 			fprintf(stderr, "seq_render_scene_strip failed to get opengl buffer: %s\n", err_out);
 		}
@@ -2338,11 +2428,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 			}
 
 			/* float buffers in the sequencer are not linear */
-			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			else
-				ibuf->profile = IB_PROFILE_NONE;
-			IMB_convert_profile(ibuf, IB_PROFILE_SRGB);			
+			BKE_sequencer_imbuf_to_sequencer_space(context.scene, ibuf, FALSE);
 		}
 		else if (rres.rect32) {
 			ibuf = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect);
@@ -2442,14 +2528,14 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 				BLI_path_abs(name, G.main->name);
 			}
 
-			if (s_elem && (ibuf = IMB_loadiffname(name, IB_rect))) {
+			/* OCIO_TODO: support configurable space for image strips */
+			if (s_elem && (ibuf = IMB_loadiffname(name, IB_rect, NULL))) {
 				/* we don't need both (speed reasons)! */
 				if (ibuf->rect_float && ibuf->rect)
 					imb_freerectImBuf(ibuf);
 
 				/* all sequencer color is done in SRGB space, linear gives odd crossfades */
-				if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-					IMB_convert_profile(ibuf, IB_PROFILE_NONE);
+				BKE_sequencer_imbuf_to_sequencer_space(context.scene, ibuf, FALSE);
 
 				copy_to_ibuf_still(context, seq, nr, ibuf);
 
@@ -2497,6 +2583,7 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 		case SEQ_TYPE_MOVIECLIP:
 		{
 			ibuf = seq_render_movieclip_strip(context, seq, nr);
+			sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
 			if (ibuf && use_preprocess) {
 				ImBuf *i = IMB_dupImBuf(ibuf);
@@ -2519,6 +2606,9 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 			break;
 		}
 	}
+
+	if (ibuf)
+		sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
 	return ibuf;
 }
@@ -2561,8 +2651,10 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 		}
 	}
 
-	if (ibuf == NULL)
+	if (ibuf == NULL) {
 		ibuf = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rect);
+		sequencer_imbuf_assign_spaces(context.scene, ibuf);
+	}
 
 	if (ibuf->x != context.rectx || ibuf->y != context.recty)
 		use_preprocess = TRUE;
@@ -2641,11 +2733,11 @@ static ImBuf *seq_render_strip_stack(SeqRenderData context, ListBase *seqbasep, 
 	
 	if (count == 1) {
 		out = seq_render_strip(context, seq_arr[0], cfra);
+
 		BKE_sequencer_cache_put(context, seq_arr[0], cfra, SEQ_STRIPELEM_IBUF_COMP, out);
 
 		return out;
 	}
-
 
 	for (i = count - 1; i >= 0; i--) {
 		int early_out;
@@ -3946,7 +4038,8 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	BLI_strncpy(path, seq_load->path, sizeof(path));
 	BLI_path_abs(path, G.main->name);
 
-	an = openanim(path, IB_rect, 0);
+	/* OCIO_TODO: support configurable input space for strips */
+	an = openanim(path, IB_rect, 0, NULL);
 
 	if (an == NULL)
 		return NULL;

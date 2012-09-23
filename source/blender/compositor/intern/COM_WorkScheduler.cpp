@@ -25,6 +25,7 @@
 
 #include "BKE_global.h"
 
+#include "COM_compositor.h"
 #include "COM_WorkScheduler.h"
 #include "COM_CPUDevice.h"
 #include "COM_OpenCLDevice.h"
@@ -265,7 +266,7 @@ bool WorkScheduler::hasGPUDevices()
 #endif
 }
 
-extern void clContextError(const char *errinfo, const void *private_info, size_t cb, void *user_data)
+static void clContextError(const char *errinfo, const void *private_info, size_t cb, void *user_data)
 {
 	printf("OPENCL error: %s\n", errinfo);
 }

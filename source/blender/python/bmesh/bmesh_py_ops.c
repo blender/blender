@@ -42,6 +42,8 @@
 
 #include "bmesh.h"
 
+#include "bmesh_py_ops.h"  /* own include */
+
 #include "bmesh_py_types.h"
 
 #include "bmesh_py_utils.h" /* own include */
@@ -69,7 +71,7 @@ typedef struct {
 	const char *opname;
 } BPy_BMeshOpFunc;
 
-PyObject *bpy_bmesh_op_CreatePyObject(const char *opname)
+static PyObject *bpy_bmesh_op_CreatePyObject(const char *opname)
 {
 	BPy_BMeshOpFunc *self = PyObject_New(BPy_BMeshOpFunc, &bmesh_op_Type);
 

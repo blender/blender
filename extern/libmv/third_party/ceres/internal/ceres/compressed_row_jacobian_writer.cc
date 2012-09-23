@@ -130,8 +130,24 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
     }
     row_pos += num_residuals;
   }
-
   CHECK_EQ(num_jacobian_nonzeros, rows[total_num_residuals]);
+
+  // Populate the row and column block vectors for use by block
+  // oriented ordering algorithms. This is useful when
+  // Solver::Options::use_block_amd = true.
+  const vector<ParameterBlock*>& parameter_blocks = program_->parameter_blocks();
+  vector<int>& col_blocks = *(jacobian->mutable_col_blocks());
+  col_blocks.resize(parameter_blocks.size());
+  for (int i = 0; i <  parameter_blocks.size(); ++i) {
+    col_blocks[i] = parameter_blocks[i]->LocalSize();
+  }
+
+  vector<int>& row_blocks = *(jacobian->mutable_row_blocks());
+  row_blocks.resize(residual_blocks.size());
+  for (int i = 0; i <  residual_blocks.size(); ++i) {
+    row_blocks[i] = residual_blocks[i]->NumResiduals();
+  }
+
   return jacobian;
 }
 

@@ -388,10 +388,10 @@ static BMEdge *vtx_slide_nrst_in_frame(VertexSlideOp *vso, const float mval[2])
 			edge = vso->edge_frame[i];
 
 			mul_v3_m4v3(v1_proj, vso->obj->obmat, edge->v1->co);
-			project_float_noclip(vso->active_region, v1_proj, v1_proj);
+			ED_view3d_project_float_noclip(vso->active_region, v1_proj, v1_proj);
 
 			mul_v3_m4v3(v2_proj, vso->obj->obmat, edge->v2->co);
-			project_float_noclip(vso->active_region, v2_proj, v2_proj);
+			ED_view3d_project_float_noclip(vso->active_region, v2_proj, v2_proj);
 
 			dist = dist_to_line_segment_v2(mval, v1_proj, v2_proj);
 			if (dist < min_dist) {
@@ -455,10 +455,10 @@ static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 
 		/* Project points onto screen and do interpolation in 2D */
 		mul_v3_m4v3(start_vtx_proj, vso->obj->obmat, vso->start_vtx->co);
-		project_float_noclip(vso->active_region, start_vtx_proj, start_vtx_proj);
+		ED_view3d_project_float_noclip(vso->active_region, start_vtx_proj, start_vtx_proj);
 
 		mul_v3_m4v3(edge_other_proj, vso->obj->obmat, other->co);
-		project_float_noclip(vso->active_region, edge_other_proj, edge_other_proj);
+		ED_view3d_project_float_noclip(vso->active_region, edge_other_proj, edge_other_proj);
 
 		closest_to_line_v2(closest_2d, mval_float, start_vtx_proj, edge_other_proj);
 

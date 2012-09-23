@@ -97,13 +97,10 @@
  * the index */
 
 /* NOTE! the hardcoded table size 256 is used still in code for going quickly over vertices/faces */
-
-#define RE_STICKY_ELEMS		2
 #define RE_STRESS_ELEMS		1
 #define RE_RAD_ELEMS		4
 #define RE_STRAND_ELEMS		1
 #define RE_TANGENT_ELEMS	3
-#define RE_STRESS_ELEMS		1
 #define RE_WINSPEED_ELEMS	4
 #define RE_MTFACE_ELEMS		1
 #define RE_MCOL_ELEMS		4
@@ -113,21 +110,6 @@
 #define RE_SIMPLIFY_ELEMS	2
 #define RE_FACE_ELEMS		1
 #define RE_NMAP_TANGENT_ELEMS	16
-
-float *RE_vertren_get_sticky(ObjectRen *obr, VertRen *ver, int verify)
-{
-	float *sticky;
-	int nr= ver->index>>8;
-	
-	sticky= obr->vertnodes[nr].sticky;
-	if (sticky==NULL) {
-		if (verify) 
-			sticky= obr->vertnodes[nr].sticky= MEM_mallocN(256*RE_STICKY_ELEMS*sizeof(float), "sticky table");
-		else
-			return NULL;
-	}
-	return sticky + (ver->index & 255)*RE_STICKY_ELEMS;
-}
 
 float *RE_vertren_get_stress(ObjectRen *obr, VertRen *ver, int verify)
 {
@@ -218,12 +200,7 @@ VertRen *RE_vertren_copy(ObjectRen *obr, VertRen *ver)
 	
 	*v1= *ver;
 	v1->index= index;
-	
-	fp1= RE_vertren_get_sticky(obr, ver, 0);
-	if (fp1) {
-		fp2= RE_vertren_get_sticky(obr, v1, 1);
-		memcpy(fp2, fp1, RE_STICKY_ELEMS*sizeof(float));
-	}
+
 	fp1= RE_vertren_get_stress(obr, ver, 0);
 	if (fp1) {
 		fp2= RE_vertren_get_stress(obr, v1, 1);
@@ -740,8 +717,6 @@ void free_renderdata_vertnodes(VertTableNode *vertnodes)
 		
 		if (vertnodes[a].rad)
 			MEM_freeN(vertnodes[a].rad);
-		if (vertnodes[a].sticky)
-			MEM_freeN(vertnodes[a].sticky);
 		if (vertnodes[a].strand)
 			MEM_freeN(vertnodes[a].strand);
 		if (vertnodes[a].tangent)

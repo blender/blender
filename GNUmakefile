@@ -173,6 +173,7 @@ help:
 	@echo "  * check_cppcheck    - run blender source through cppcheck (C & C++)"
 	@echo "  * check_splint      - run blenders source through splint (C only)"
 	@echo "  * check_sparse      - run blenders source through sparse (C only)"
+	@echo "  * check_smatch      - run blenders source through smatch (C only)"
 	@echo "  * check_spelling_c  - check for spelling errors (C/C++ only)"
 	@echo "  * check_spelling_py - check for spelling errors (Python only)"
 	@echo ""

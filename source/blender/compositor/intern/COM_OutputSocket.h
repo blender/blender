@@ -64,7 +64,7 @@ public:
 	/**
 	 * @brief determine the actual data type and channel info.
 	 */
-	void relinkConnections(OutputSocket *relinkToSocket) { this->relinkConnections(relinkToSocket, false); };
+	void relinkConnections(OutputSocket *relinkToSocket) { this->relinkConnections(relinkToSocket, false); }
 	void relinkConnections(OutputSocket *relinkToSocket, bool single);
 	const int getNumberOfConnections() { return this->m_connections.size(); }
 	

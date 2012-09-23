@@ -143,7 +143,9 @@ typedef struct  SB_thread_context {
 } SB_thread_context;
 
 #define NLF_BUILD  1
-#define NLF_SOLVE  2
+#if 0
+#  define NLF_SOLVE  2
+#endif
 
 #define MID_PRESERVE 1
 

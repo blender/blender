@@ -125,8 +125,8 @@ static BlendFileData *load_game_data(char *filename)
 	return bfd;
 }
 
-int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win, Scene *scene, ARegion *ar,
-                       KX_BlenderKeyboardDevice* keyboarddevice, KX_BlenderMouseDevice* mousedevice, int draw_letterbox)
+static int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win, Scene *scene, ARegion *ar,
+                              KX_BlenderKeyboardDevice* keyboarddevice, KX_BlenderMouseDevice* mousedevice, int draw_letterbox)
 {
 	int exitrequested;
 
@@ -143,7 +143,7 @@ int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win
 			// itself is unaware of the extra space, so we clear the whole region for it.
 			glClearColor(scene->gm.framing.col[0], scene->gm.framing.col[1], scene->gm.framing.col[2], 1.0f);
 			glViewport(ar->winrct.xmin, ar->winrct.ymin,
-			           BLI_RCT_SIZE_X(&ar->winrct), BLI_RCT_SIZE_Y(&ar->winrct));
+			           BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
@@ -198,7 +198,7 @@ struct BL_KetsjiNextFrameState {
 	int draw_letterbox;
 } ketsjinextframestate;
 
-int BL_KetsjiPyNextFrame(void *state0) 
+static int BL_KetsjiPyNextFrame(void *state0)
 {
 	BL_KetsjiNextFrameState *state = (BL_KetsjiNextFrameState *) state0;
 	return BL_KetsjiNextFrame(
@@ -552,7 +552,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 						ketsjinextframestate.draw_letterbox = draw_letterbox;
 			
 						pynextframestate.state = &ketsjinextframestate;
-						pynextframestate.func = &BL_KetsjiPyNextFrame;			
+						pynextframestate.func = &BL_KetsjiPyNextFrame;
 						printf("Yielding control to Python script '%s'...\n", python_main);
 						PyRun_SimpleString(python_code);
 						printf("Exit Python script '%s'\n", python_main);
@@ -590,7 +590,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				const Py_ssize_t numitems= PyList_GET_SIZE(gameLogic_keys_new);
 				Py_ssize_t listIndex;
 				for (listIndex=0; listIndex < numitems; listIndex++) {
-					PyObject* item = PyList_GET_ITEM(gameLogic_keys_new, listIndex);
+					PyObject *item = PyList_GET_ITEM(gameLogic_keys_new, listIndex);
 					if (!PySequence_Contains(gameLogic_keys, item)) {
 						PyDict_DelItem(	PyModule_GetDict(gameLogic), item);
 					}

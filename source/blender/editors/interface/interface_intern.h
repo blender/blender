@@ -305,17 +305,7 @@ struct uiBlock {
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied to buttons */
 	char auto_open;
-
-	/* this setting is used so newly opened menu's dont popout the first item under the mouse,
-	 * the reasoning behind this is because of muscle memory for opening menus.
-	 *
-	 * Without this, the first time opening a Submenu and activating an item in it will be 2 steps,
-	 * but the second time the same item is accessed the menu memory would auto activate the
-	 * last used menu and the key intended to select that submenu ends up being passed into the submenu.
-	 * - Campbell
-	 */
-	char auto_is_first_event;
-	char _pad[6];
+	char _pad[7];
 	double auto_open_last;
 
 	const char *lockstr;
@@ -342,7 +332,12 @@ struct uiBlock {
 
 	struct UnitSettings *unit;  /* unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time. */
 	float _hsv[3];              /* XXX, only access via ui_block_hsv_get() */
+
 	char color_profile;         /* color profile for correcting linear colors for display */
+
+	char *display_device;       /* display devide name used to display this block,
+	                             * used by color widgets to transform colors from/to scene linear
+	                             */
 };
 
 typedef struct uiSafetyRct {
@@ -391,6 +386,10 @@ extern int  ui_is_but_utf8(uiBut *but);
 extern void ui_bounds_block(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);
 extern void ui_block_do_align(uiBlock *block);
+
+extern struct ColorManagedDisplay *ui_block_display_get(uiBlock *block);
+void ui_block_to_display_space_v3(uiBlock *block, float pixel[3]);
+void ui_block_to_scene_linear_v3(uiBlock *block, float pixel[3]);
 
 /* interface_regions.c */
 
@@ -464,7 +463,7 @@ extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
 extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */
-extern void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int select);
+extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
 void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const float alpha);
 
@@ -500,7 +499,7 @@ void ui_widget_color_init(struct ThemeUI *tui);
 void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 
-extern unsigned char checker_stipple_sml[];
+extern unsigned char checker_stipple_sml[32 * 32 / 8];
 /* used for transp checkers */
 #define UI_TRANSP_DARK 100
 #define UI_TRANSP_LIGHT 160

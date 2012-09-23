@@ -37,8 +37,9 @@ namespace ceres {
 
 const char* LinearSolverTypeToString(LinearSolverType solver_type) {
   switch (solver_type) {
-    CASESTR(SPARSE_NORMAL_CHOLESKY);
+    CASESTR(DENSE_NORMAL_CHOLESKY);
     CASESTR(DENSE_QR);
+    CASESTR(SPARSE_NORMAL_CHOLESKY);
     CASESTR(DENSE_SCHUR);
     CASESTR(SPARSE_SCHUR);
     CASESTR(ITERATIVE_SCHUR);
@@ -56,6 +57,16 @@ const char* PreconditionerTypeToString(
     CASESTR(SCHUR_JACOBI);
     CASESTR(CLUSTER_JACOBI);
     CASESTR(CLUSTER_TRIDIAGONAL);
+    default:
+      return "UNKNOWN";
+  }
+}
+
+const char* SparseLinearAlgebraLibraryTypeToString(
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type) {
+  switch (sparse_linear_algebra_library_type) {
+    CASESTR(SUITE_SPARSE);
+    CASESTR(CX_SPARSE);
     default:
       return "UNKNOWN";
   }
@@ -82,6 +93,28 @@ const char* SolverTerminationTypeToString(
     CASESTR(USER_ABORT);
     CASESTR(USER_SUCCESS);
     CASESTR(DID_NOT_RUN);
+    default:
+      return "UNKNOWN";
+  }
+}
+
+#if 0  /* UNUSED */
+static const char* SparseLinearAlgebraTypeToString(
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type) {
+  switch (sparse_linear_algebra_library_type) {
+    CASESTR(CX_SPARSE);
+    CASESTR(SUITE_SPARSE);
+    default:
+      return "UNKNOWN";
+  }
+}
+#endif
+
+const char* TrustRegionStrategyTypeToString(
+    TrustRegionStrategyType trust_region_strategy_type) {
+  switch (trust_region_strategy_type) {
+    CASESTR(LEVENBERG_MARQUARDT);
+    CASESTR(DOGLEG);
     default:
       return "UNKNOWN";
   }

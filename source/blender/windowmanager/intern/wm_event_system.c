@@ -1202,7 +1202,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 				CTX_wm_region_set(C, region);
 			}
 
-			WM_cursor_grab_disable(CTX_wm_window(C));
+			WM_cursor_grab_disable(CTX_wm_window(C), NULL);
 			WM_operator_free(handler->op);
 		}
 		else if (handler->ui_remove) {
@@ -1432,7 +1432,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 				/* remove modal handler, operator itself should have been canceled and freed */
 				if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
-					WM_cursor_grab_disable(CTX_wm_window(C));
+					WM_cursor_grab_disable(CTX_wm_window(C), NULL);
 
 					BLI_remlink(handlers, handler);
 					wm_event_free_handler(handler);
