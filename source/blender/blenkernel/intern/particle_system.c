@@ -797,8 +797,10 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			}
 			else {
 				ctx->jitoff[i] = fmod(ctx->jitoff[i],(float)ctx->jitlevel);
-				psys_uv_to_w(ctx->jit[2*(int)ctx->jitoff[i]], ctx->jit[2*(int)ctx->jitoff[i]+1], mface->v4, pa->fuv);
-				ctx->jitoff[i]++;
+				if (!isnan(ctx->jitoff[i])) {
+					psys_uv_to_w(ctx->jit[2*(int)ctx->jitoff[i]], ctx->jit[2*(int)ctx->jitoff[i]+1], mface->v4, pa->fuv);
+					ctx->jitoff[i]++;
+				}
 			}
 			break;
 		case PART_DISTR_RAND:
