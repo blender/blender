@@ -7998,6 +7998,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		{
+			Mesh *me;
+			for (me = main->mesh.first; me; me = me->id.next) {
+				CustomData_free_layers(&me->vdata, CD_MSTICKY, me->totvert);
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
