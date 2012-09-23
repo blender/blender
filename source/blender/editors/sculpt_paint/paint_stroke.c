@@ -524,8 +524,10 @@ int paint_poll(bContext *C)
 {
 	Paint *p = paint_get_active_from_context(C);
 	Object *ob = CTX_data_active_object(C);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
 
 	return p && ob && paint_brush(p) &&
-	       CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
-	       CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
+	       (sa && sa->spacetype == SPACE_VIEW3D) &&
+	       (ar && ar->regiontype == RGN_TYPE_WINDOW);
 }

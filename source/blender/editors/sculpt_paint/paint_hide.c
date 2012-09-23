@@ -388,7 +388,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 	ot->modal = WM_border_select_modal;
 	ot->exec = hide_show_exec;
 	/* sculpt-only for now */
-	ot->poll = sculpt_mode_poll;
+	ot->poll = sculpt_mode_poll_view3d;
 
 	ot->flag = OPTYPE_REGISTER;
 

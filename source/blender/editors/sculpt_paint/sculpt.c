@@ -3139,6 +3139,11 @@ int sculpt_mode_poll(bContext *C)
 	return ob && ob->mode & OB_MODE_SCULPT;
 }
 
+int sculpt_mode_poll_view3d(bContext *C)
+{
+	return (sculpt_mode_poll(C) && CTX_wm_region_view3d(C));
+}
+
 int sculpt_poll(bContext *C)
 {
 	return sculpt_mode_poll(C) && paint_poll(C);

@@ -134,7 +134,7 @@ int vertex_paint_poll(bContext *C)
 	    paint_brush(&CTX_data_tool_settings(C)->vpaint->paint))
 	{
 		ScrArea *sa = CTX_wm_area(C);
-		if (sa->spacetype == SPACE_VIEW3D) {
+		if (sa && sa->spacetype == SPACE_VIEW3D) {
 			ARegion *ar = CTX_wm_region(C);
 			if (ar->regiontype == RGN_TYPE_WINDOW)
 				return 1;
