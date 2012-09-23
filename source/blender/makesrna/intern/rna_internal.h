@@ -34,8 +34,14 @@
 
 #define RNA_MAGIC ((int)~0)
 
+struct ColorBand;
 struct ID;
 struct IDProperty;
+struct Main;
+struct Mesh;
+struct Object;
+struct RenderEngine;
+struct ReportList;
 struct SDNA;
 struct Sequence;
 
@@ -397,6 +403,22 @@ void rna_mtex_texture_slots_clear(struct ID *self, struct bContext *C, struct Re
 
 
 int rna_IDMaterials_assign_int(struct PointerRNA *ptr, int key, const struct PointerRNA *assign_ptr);
+
+
+/* Internal functions that cycles uses so we need to declare (tsk tsk) */
+struct Mesh *rna_Object_to_mesh(struct Object *ob, struct ReportList *reports, struct Scene *sce, int apply_modifiers, int settings);
+void rna_Main_meshes_remove(struct Main *bmain, struct ReportList *reports, struct Mesh *mesh);
+void rna_Object_create_duplilist(struct Object *ob, struct ReportList *reports, struct Scene *sce);
+void rna_Object_free_duplilist(struct Object *ob);
+void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values);
+void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
+int  rna_Object_is_modified(struct Object *ob, struct Scene *scene, int settings);
+int  rna_Object_is_deform_modified(struct Object *ob, struct Scene *scene, int settings);
+void rna_ColorRamp_eval(struct ColorBand *coba, float position, float color[4]);
+void rna_Scene_frame_set(struct Scene *scene, int frame, float subframe);
+
+void engine_tag_redraw(struct RenderEngine *engine);
+void engine_tag_update(struct RenderEngine *engine);
 
 #endif /* __RNA_INTERNAL_H__ */
 
