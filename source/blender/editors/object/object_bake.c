@@ -1329,11 +1329,12 @@ static int test_bake_internal(bContext *C, ReportList *reports)
 static void init_bake_internal(BakeRender *bkr, bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
+	bScreen *sc = CTX_wm_screen(C);
 
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
 
-	bkr->sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_IMAGE, 10); /* can be NULL */
+	bkr->sa = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL; /* can be NULL */
 	bkr->main = CTX_data_main(C);
 	bkr->scene = scene;
 	bkr->actob = (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT : NULL;
