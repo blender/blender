@@ -75,6 +75,8 @@ void GPU_end_object_materials(void);
 int GPU_enable_material(int nr, void *attribs);
 void GPU_disable_material(void);
 
+void GPU_material_diffuse_get(int nr, float diff[4]);
+
 void GPU_set_material_alpha_blend(int alphablend);
 int GPU_get_material_alpha_blend(void);
 
