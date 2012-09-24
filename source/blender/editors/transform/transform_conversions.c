@@ -3292,15 +3292,19 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		if (t->mode == TFM_TIME_SLIDE) {
 			t->customData = MEM_callocN((sizeof(float) * 2) + (sizeof(tGPFtransdata) * count), "TimeSlide + tGPFtransdata");
+			t->flag |= T_FREE_CUSTOMDATA;
 			tfd = (tGPFtransdata *)((float *)(t->customData) + 2);
 		}
 		else {
 			t->customData = MEM_callocN(sizeof(tGPFtransdata) * count, "tGPFtransdata");
+			t->flag |= T_FREE_CUSTOMDATA;
 			tfd = (tGPFtransdata *)(t->customData);
 		}
 	}
-	else if (t->mode == TFM_TIME_SLIDE)
+	else if (t->mode == TFM_TIME_SLIDE) {
 		t->customData = MEM_callocN(sizeof(float) * 2, "TimeSlide Min/Max");
+		t->flag |= T_FREE_CUSTOMDATA;
+	}
 	
 	/* loop 2: build transdata array */
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -5762,6 +5766,7 @@ static void transDataTrackingFree(TransInfo *t)
 			MEM_freeN(tdt->smarkers);
 
 		MEM_freeN(tdt);
+		t->customData = NULL;
 	}
 }
 
