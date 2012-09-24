@@ -437,6 +437,27 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
         layout.prop(cdata, "use_subdivision")
         layout.prop(cdata, "dicing_rate")
 
+class Cycles_PT_mesh_normals(CyclesButtonsPanel, Panel):
+    bl_label = "Normals"
+    bl_context = "data"
+
+    @classmethod
+    def poll(cls, context):
+        return CyclesButtonsPanel.poll(context) and context.mesh
+
+    def draw(self, context):
+        layout = self.layout
+
+        mesh = context.mesh
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(mesh, "show_double_sided")
+
+        col = split.column()
+        prop.label()
+
 
 class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
     bl_label = "Ray Visibility"
