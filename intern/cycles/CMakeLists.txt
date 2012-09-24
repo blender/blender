@@ -59,7 +59,8 @@ include_directories(
 	SYSTEM
 	${BOOST_INCLUDE_DIR}
 	${OPENIMAGEIO_INCLUDE_DIRS}
-	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO)
+	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO
+	${OPENEXR}/include)
 
 # Subdirectories
 
