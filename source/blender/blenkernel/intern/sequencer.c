@@ -2585,13 +2585,13 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 			ibuf = seq_render_movieclip_strip(context, seq, nr);
 
 			if (ibuf) {
-				if (use_preprocess) {
-					ImBuf *i = IMB_dupImBuf(ibuf);
+				/* duplicate frame so movie cache wouldn't be confused by sequencer's stuff */
+				ImBuf *i = IMB_dupImBuf(ibuf);
+				IMB_freeImBuf(ibuf);
+				ibuf = i;
 
-					IMB_freeImBuf(ibuf);
-
-					ibuf = i;
-				}
+				if (ibuf->rect_float)
+					BKE_sequencer_imbuf_to_sequencer_space(context.scene, ibuf, FALSE);
 
 				copy_to_ibuf_still(context, seq, nr, ibuf);
 			}
