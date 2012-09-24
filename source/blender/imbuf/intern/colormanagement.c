@@ -59,6 +59,7 @@
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_image.h"
 #include "BKE_utildefines.h"
 #include "BKE_main.h"
 
@@ -630,6 +631,37 @@ static void display_transform_get_from_ctx(const bContext *C, ColorManagedViewSe
 		if ((sima->image->flag & IMA_VIEW_AS_RENDER) == 0)
 			*view_settings_r = NULL;
 	}
+}
+
+static const char *display_transform_get_colorspace_name(const ColorManagedViewSettings *view_settings,
+                                                         const ColorManagedDisplaySettings *display_settings)
+{
+	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+
+	if (config) {
+		const char *display = display_settings->display_device;
+		const char *view = view_settings->view_transform;
+		const char *colorspace_name;
+
+		colorspace_name = OCIO_configGetDisplayColorSpaceName(config, display, view);
+
+		OCIO_configRelease(config);
+
+		return colorspace_name;
+	}
+
+	return NULL;
+}
+
+static ColorSpace *display_transform_get_colorspace(const ColorManagedViewSettings *view_settings,
+                                                    const ColorManagedDisplaySettings *display_settings)
+{
+	const char *colorspace_name = display_transform_get_colorspace_name(view_settings, display_settings);
+
+	if (colorspace_name)
+		return colormanage_colorspace_get_named(colorspace_name);
+
+	return NULL;
 }
 
 static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_transform, const char *display,
@@ -1310,19 +1342,11 @@ static void colormanage_display_buffer_process_ex(ImBuf *ibuf, float *display_bu
 		    view_settings->exposure == 0.0f &&
 		    view_settings->gamma == 1.0f)
 		{
-			ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+			const char *from_colorspace = ibuf->rect_colorspace->name;
+			const char *to_colorspace = display_transform_get_colorspace_name(view_settings, display_settings);
 
-			if (config) {
-				const char *display = display_settings->display_device;
-				const char *view = view_settings->view_transform;
-				const char *from_colorspace = ibuf->rect_colorspace->name;
-				const char *to_colorspace = OCIO_configGetDisplayColorSpaceName(config, display, view);
-
-				if (!strcmp(from_colorspace, to_colorspace))
-					skip_transform = TRUE;
-
-				OCIO_configRelease(config);
-			}
+			if (to_colorspace && !strcmp(from_colorspace, to_colorspace))
+				skip_transform = TRUE;
 		}
 	}
 
@@ -1612,20 +1636,88 @@ void IMB_colormanagement_imbuf_assign_float_space(ImBuf *ibuf, ColorManagedColor
 	ibuf->float_colorspace = colormanage_colorspace_get_named(colorspace_settings->name);
 }
 
-void IMB_colormanagement_imbuf_make_display_space(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
-                                                  const ColorManagedDisplaySettings *display_settings)
+static void colormanagement_imbuf_make_display_space(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
+                                                     const ColorManagedDisplaySettings *display_settings, int make_byte)
 {
-	/* OCIO_TODO: byte buffer management is not supported here yet */
-	if (!ibuf->rect_float)
-		return;
+	if (!ibuf->rect && make_byte)
+		imb_addrectImBuf(ibuf);
 
 	if (global_tot_display == 0 || global_tot_view == 0) {
 		IMB_buffer_float_from_float(ibuf->rect_float, ibuf->rect_float, ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
 		                            ibuf->flags & IB_cm_predivide, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 	}
 	else {
-		colormanage_display_buffer_process_ex(ibuf, ibuf->rect_float, NULL, view_settings, display_settings);
+		colormanage_display_buffer_process_ex(ibuf, ibuf->rect_float, (unsigned char *)ibuf->rect,
+		                                      view_settings, display_settings);
 	}
+}
+
+void IMB_colormanagement_imbuf_make_display_space(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
+                                                  const ColorManagedDisplaySettings *display_settings)
+{
+	colormanagement_imbuf_make_display_space(ibuf, view_settings, display_settings, FALSE);
+}
+
+/* prepare image buffer to be saved on disk, applying color management if needed
+ * color management would be applied if image is saving as render result and if
+ * file format is not expecting float buffer to be in linear space (currently
+ * JPEG2000 and TIFF are such formats -- they're storing image as float but
+ * file itself stores applied color space).
+ *
+ * Both byte and float buffers would contain applied color space, and result's
+ * float_colorspace would be set to display color space. This should be checked
+ * in image format write callback and if float_colorspace is not NULL, no color
+ * space transformation should be applied on this buffer.
+ */
+ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, int save_as_render, int allocate_result, const ColorManagedViewSettings *view_settings,
+                                           const ColorManagedDisplaySettings *display_settings, ImageFormatData *image_format_data)
+{
+	ImBuf *colormanaged_ibuf = ibuf;
+	int do_colormanagement;
+	int is_movie = BKE_imtype_is_movie(image_format_data->imtype);
+	int requires_linear_float = BKE_imtype_requires_linear_float(image_format_data->imtype);
+
+	do_colormanagement = save_as_render && (is_movie || !requires_linear_float);
+
+	if (do_colormanagement) {
+		int make_byte = FALSE;
+		ImFileType *type;
+
+		if (allocate_result)
+			colormanaged_ibuf = IMB_dupImBuf(ibuf);
+
+		/* if file format isn't able to handle float buffer itself,
+		 * we need to allocate byte buffer and store color managed
+		 * image there
+		 */
+		for (type = IMB_FILE_TYPES; type->is_a; type++) {
+			if (type->save && type->ftype(type, ibuf)) {
+				if ((type->flag & IM_FTYPE_FLOAT) == 0)
+					make_byte = TRUE;
+
+				break;
+			}
+		}
+
+		/* perform color space conversions */
+		colormanagement_imbuf_make_display_space(colormanaged_ibuf, view_settings, display_settings, make_byte);
+
+		if (colormanaged_ibuf->rect_float) {
+			if (make_byte && allocate_result) {
+				/* save a bit of memory */
+				imb_freerectfloatImBuf(colormanaged_ibuf);
+			}
+			else {
+				/* float buffer isn't linear anymore,
+				 * image format write callback should check for this flag and assume
+				 * no space conversion should happen if ibuf->float_colorspace != NULL
+				 */
+				colormanaged_ibuf->float_colorspace = display_transform_get_colorspace(view_settings, display_settings);
+			}
+		}
+	}
+
+	return colormanaged_ibuf;
 }
 
 static void imbuf_verify_float(ImBuf *ibuf)
@@ -1735,22 +1827,6 @@ unsigned char *IMB_display_buffer_acquire_ctx(const bContext *C, ImBuf *ibuf, vo
 	display_transform_get_from_ctx(C, &view_settings, &display_settings);
 
 	return IMB_display_buffer_acquire(ibuf, view_settings, display_settings, cache_handle);
-}
-
-/* covert float buffer to display space and store it in image buffer's byte array */
-void IMB_display_buffer_to_imbuf_rect(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
-                                      const ColorManagedDisplaySettings *display_settings)
-{
-	if (global_tot_display == 0 || global_tot_view == 0) {
-		imbuf_verify_float(ibuf);
-	}
-	else {
-		if (!ibuf->rect) {
-			imb_addrectImBuf(ibuf);
-		}
-
-		colormanage_display_buffer_process(ibuf, (unsigned char *) ibuf->rect, view_settings, display_settings);
-	}
 }
 
 void IMB_display_buffer_transform_apply(unsigned char *display_buffer, float *linear_buffer, int width, int height,

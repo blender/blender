@@ -2094,14 +2094,6 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	G.is_rendering = FALSE;
 }
 
-static void colormanage_image_for_write(Scene *scene, ImBuf *ibuf)
-{
-	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->view_settings, &scene->display_settings);
-
-	if (ibuf)
-		imb_freerectfloatImBuf(ibuf);
-}
-
 static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovieHandle *mh, const char *name_override)
 {
 	char name[FILE_MAX];
@@ -2123,7 +2115,9 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 			do_free = TRUE;
 		}
 
-		colormanage_image_for_write(scene, ibuf);
+
+		IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings,
+		                                    &scene->display_settings, &scene->r.im_format);
 
 		ok = mh->append_movie(&re->r, scene->r.sfra, scene->r.cfra, (int *) ibuf->rect,
 		                      ibuf->x, ibuf->y, re->reports);
@@ -2151,12 +2145,9 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		}
 		else {
 			ImBuf *ibuf = render_result_rect_to_ibuf(&rres, &scene->r);
-			int do_colormanagement;
 
-			do_colormanagement = !BKE_imtype_supports_float(scene->r.im_format.imtype);
-
-			if (do_colormanagement)
-				colormanage_image_for_write(scene, ibuf);
+			IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings,
+			                                    &scene->display_settings, &scene->r.im_format);
 
 			ok = BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
 			
@@ -2175,7 +2166,8 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 				BKE_add_image_extension(name, R_IMF_IMTYPE_JPEG90);
 				ibuf->planes = 24;
 
-				colormanage_image_for_write(scene, ibuf);
+				IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings,
+				                                    &scene->display_settings, &imf);
 
 				BKE_imbuf_write_stamp(scene, camera, ibuf, name, &imf);
 				printf("\nSaved: %s", name);
@@ -2521,7 +2513,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 		return 0;
 	}
 
-	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->view_settings, &scene->display_settings);
+	IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings, &scene->display_settings, &imf);
 
 	/* to save, we first get absolute path */
 	BLI_strncpy(filepath, relpath, sizeof(filepath));

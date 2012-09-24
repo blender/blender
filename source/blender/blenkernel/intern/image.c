@@ -1031,13 +1031,12 @@ int BKE_imtype_supports_quality(const char imtype)
 	return 0;
 }
 
-int BKE_imtype_supports_float(const char imtype)
+int BKE_imtype_requires_linear_float(const char imtype)
 {
 	switch (imtype) {
 		case R_IMF_IMTYPE_CINEON:
 		case R_IMF_IMTYPE_DPX:
 		case R_IMF_IMTYPE_RADHDR:
-		case R_IMF_IMTYPE_TIFF:  /* uses the float buffer to write 16bits per channel */
 		case R_IMF_IMTYPE_OPENEXR:
 		case R_IMF_IMTYPE_MULTILAYER:
 			return TRUE;

@@ -45,6 +45,7 @@ struct rcti;
 struct PartialBufferUpdateContext;
 struct wmWindow;
 struct Scene;
+struct ImageFormatData;
 
 struct ColorSpace;
 struct ColorManagedDisplay;
@@ -90,14 +91,16 @@ void IMB_colormanagement_imbuf_assign_float_space(struct ImBuf *ibuf, struct Col
 void IMB_colormanagement_imbuf_make_display_space(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                                   const struct ColorManagedDisplaySettings *display_settings);
 
+struct ImBuf *IMB_colormanagement_imbuf_for_write(struct ImBuf *ibuf, int save_as_render, int allocate_result,
+                                                  const struct ColorManagedViewSettings *view_settings,
+                                                  const struct ColorManagedDisplaySettings *display_settings,
+                                                  struct ImageFormatData *image_format_data);
+
 /* ** Public display buffers interfaces ** */
 
 unsigned char *IMB_display_buffer_acquire(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                           const struct ColorManagedDisplaySettings *display_settings, void **cache_handle);
 unsigned char *IMB_display_buffer_acquire_ctx(const struct bContext *C, struct ImBuf *ibuf, void **cache_handle);
-
-void IMB_display_buffer_to_imbuf_rect(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
-                                      const struct ColorManagedDisplaySettings *display_settings);
 
 void IMB_display_buffer_transform_apply(unsigned char *display_buffer, float *linear_buffer, int width, int height,
                                         int channels, const struct ColorManagedViewSettings *view_settings,

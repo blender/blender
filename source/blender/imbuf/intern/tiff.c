@@ -790,8 +790,14 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 				/* convert from float source */
 				float rgb[4];
 				
-				/* TODO - support color management */
-				linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
+				if (ibuf->float_colorspace) {
+					/* float buffer was managed already, no need in color space conversion */
+					copy_v3_v3(rgb, &fromf[from_i]);
+				}
+				else {
+					/* standard linear-to-srgb conversion if float buffer wasn't managed */
+					linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
+				}
 
 				rgb[3] = fromf[from_i + 3];
 
