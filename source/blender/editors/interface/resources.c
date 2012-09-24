@@ -901,6 +901,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tnode.syntaxb, 108, 105, 111, 255);  /* operator */
 	rgba_char_args_set(btheme->tnode.syntaxv, 104, 106, 117, 255);  /* generator */
 	rgba_char_args_set(btheme->tnode.syntaxc, 105, 117, 110, 255);  /* group */
+	rgba_char_args_set(btheme->tnode.movie, 155, 155, 155, 160);  /* frame */
 	btheme->tnode.noodle_curving = 5;
 
 	/* space logic */
@@ -1931,6 +1932,18 @@ void init_userdef_do_versions(void)
 
 			if (btheme->tnla.anim_active[3] == 0)
 				rgba_char_args_set(btheme->tnla.anim_active, 204, 112, 26, 102);
+		}
+	}
+
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 22)) {
+		bTheme *btheme;
+
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (btheme->tipo.lastsel_point[3] == 0)
+				rgba_char_args_set(btheme->tipo.lastsel_point, 0xff, 0xff, 0xff, 255);
+
+			if (btheme->tv3d.skin_root[3] == 0)
+				rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
 		}
 	}
 
