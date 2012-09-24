@@ -1418,9 +1418,9 @@ static size_t animdata_filter_mask(ListBase *anim_data, void *UNUSED(data), int 
 		size_t tmp_items = 0;
 		
 		/* only show if mask is used by something... */
-		if (mask->id.us < 1)
+		if (ID_REAL_USERS(mask) < 1)
 			continue;
-
+		
 		/* add mask animation channels */
 		BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_MASK(mask))
 		{
