@@ -2583,17 +2583,19 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 		case SEQ_TYPE_MOVIECLIP:
 		{
 			ibuf = seq_render_movieclip_strip(context, seq, nr);
-			sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
-			if (ibuf && use_preprocess) {
-				ImBuf *i = IMB_dupImBuf(ibuf);
+			if (ibuf) {
+				if (use_preprocess) {
+					ImBuf *i = IMB_dupImBuf(ibuf);
 
-				IMB_freeImBuf(ibuf);
+					IMB_freeImBuf(ibuf);
 
-				ibuf = i;
+					ibuf = i;
+				}
+
+				copy_to_ibuf_still(context, seq, nr, ibuf);
 			}
 
-			copy_to_ibuf_still(context, seq, nr, ibuf);
 			break;
 		}
 
