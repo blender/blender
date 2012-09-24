@@ -1686,12 +1686,18 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, int save_as_render, int 
 		if (allocate_result)
 			colormanaged_ibuf = IMB_dupImBuf(ibuf);
 
+		/* for proper check whether byte buffer is required by a format or not
+		 * should be pretty safe since this image buffer is supposed to be used for
+		 * saving only and ftype would be overwritten a bit later by BKE_imbuf_write
+		 */
+		colormanaged_ibuf->ftype = BKE_imtype_to_ftype(image_format_data->imtype);
+
 		/* if file format isn't able to handle float buffer itself,
 		 * we need to allocate byte buffer and store color managed
 		 * image there
 		 */
 		for (type = IMB_FILE_TYPES; type->is_a; type++) {
-			if (type->save && type->ftype(type, ibuf)) {
+			if (type->save && type->ftype(type, colormanaged_ibuf)) {
 				if ((type->flag & IM_FTYPE_FLOAT) == 0)
 					make_byte = TRUE;
 
@@ -1703,17 +1709,11 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, int save_as_render, int 
 		colormanagement_imbuf_make_display_space(colormanaged_ibuf, view_settings, display_settings, make_byte);
 
 		if (colormanaged_ibuf->rect_float) {
-			if (make_byte && allocate_result) {
-				/* save a bit of memory */
-				imb_freerectfloatImBuf(colormanaged_ibuf);
-			}
-			else {
-				/* float buffer isn't linear anymore,
-				 * image format write callback should check for this flag and assume
-				 * no space conversion should happen if ibuf->float_colorspace != NULL
-				 */
-				colormanaged_ibuf->float_colorspace = display_transform_get_colorspace(view_settings, display_settings);
-			}
+			/* float buffer isn't linear anymore,
+			 * image format write callback should check for this flag and assume
+			 * no space conversion should happen if ibuf->float_colorspace != NULL
+			 */
+			colormanaged_ibuf->float_colorspace = display_transform_get_colorspace(view_settings, display_settings);
 		}
 	}
 
