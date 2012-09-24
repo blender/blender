@@ -2144,8 +2144,10 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
 	uiBlockEndAlign(block);
 
-	bt = uiDefIconButO(block, BUT, "UI_OT_eyedropper", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, butwidth + 10, -60, UI_UNIT_X, UI_UNIT_Y, NULL);
-	uiButSetFunc(bt, close_popup_cb, bt, NULL);
+	if (RNA_property_path_from_ID_check(ptr, prop)) {
+		bt = uiDefIconButO(block, BUT, "UI_OT_eyedropper", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, butwidth + 10, -60, UI_UNIT_X, UI_UNIT_Y, NULL);
+		uiButSetFunc(bt, close_popup_cb, bt, NULL);
+	}
 	
 	/* RGB values */
 	uiBlockBeginAlign(block);
