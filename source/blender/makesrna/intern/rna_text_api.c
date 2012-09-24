@@ -30,6 +30,8 @@
 
 #include "RNA_define.h"
 
+#include "rna_internal.h"  /* own include */
+
 #ifdef RNA_RUNTIME
 
 #include "WM_api.h"

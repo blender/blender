@@ -32,6 +32,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -383,7 +385,7 @@ void RNA_api_macro(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 }
 
-void RNA_api_keyconfig(StructRNA *srna)
+void RNA_api_keyconfig(StructRNA *UNUSED(srna))
 {
 	/* FunctionRNA *func; */
 	/* PropertyRNA *parm; */

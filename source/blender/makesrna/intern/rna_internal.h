@@ -265,6 +265,7 @@ void RNA_api_material(StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
 void RNA_api_object(struct StructRNA *srna);
 void RNA_api_object_base(struct StructRNA *srna);
+void RNA_api_pose(struct StructRNA *srna);
 void RNA_api_pose_channel(struct StructRNA *srna);
 void RNA_api_scene(struct StructRNA *srna);
 void RNA_api_scene_render(struct StructRNA *srna);

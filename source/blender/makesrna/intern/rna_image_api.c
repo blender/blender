@@ -41,6 +41,8 @@
 
 #include "BIF_gl.h"
 
+#include "rna_internal.h"  /* own include */
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_image.h"

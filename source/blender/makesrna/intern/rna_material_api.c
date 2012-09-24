@@ -31,15 +31,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 
 #include "DNA_material_types.h"
+
+#include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
 
 #else
 
-void RNA_api_material(StructRNA *srna)
+void RNA_api_material(StructRNA *UNUSED(srna))
 {
 	/* FunctionRNA *func; */
 	/* PropertyRNA *parm; */

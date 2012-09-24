@@ -34,9 +34,13 @@
 #include <string.h>
 #include <time.h>
 
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 
 #include "DNA_action_types.h"
+
+#include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
 
@@ -47,7 +51,7 @@
 
 #else
 
-void RNA_api_action(StructRNA *srna)
+void RNA_api_action(StructRNA *UNUSED(srna))
 {
 	
 }
