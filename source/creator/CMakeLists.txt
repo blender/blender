@@ -736,7 +736,15 @@ elseif(APPLE)
 		)
 
 	endif()
-
+	
+	#OSL shader_headers needed
+	if(WITH_CYCLES_OSL)
+		install(
+			FILES ${LIBDIR}/osl/shaders/oslutil.h ${LIBDIR}/osl/shaders/stdosl.h
+			DESTINATION ${TARGETDIR}/blender.app/Contents/shaders/
+		)
+	endif()
+	
 	# install blenderplayer bundle - copy of blender.app above. re-using macros et al
 	# note we are using OSX Bundle as base and copying Blender dummy bundle on top of it
 	if(WITH_GAMEENGINE AND WITH_PLAYER)
@@ -778,6 +786,7 @@ elseif(APPLE)
 		endif()
 
 	endif()
+		
 endif()
 
 # -----------------------------------------------------------------------------
