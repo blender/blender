@@ -409,6 +409,7 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 				switch (wmn->data) {
 					case ND_DATA:
 						ED_area_tag_refresh(sa);
+						ED_area_tag_redraw(sa);
 						break;
 					default: /* just redrawing the view will do */
 						ED_area_tag_redraw(sa);
