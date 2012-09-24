@@ -760,12 +760,17 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 
 	BLI_assert(CustomData_layertype_is_singleton(type) == TRUE);
 
-	CustomData_free_layers(data, type, tot);
+	if (CustomData_has_layer(data, type)) {
+		CustomData_free_layers(data, type, tot);
 
-	DAG_id_tag_update(&me->id, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+		DAG_id_tag_update(&me->id, 0);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 /* Clear Mask */
@@ -785,13 +790,27 @@ static int mesh_customdata_clear_mask_poll(bContext *C)
 			if (CustomData_has_layer(data, CD_PAINT_MASK)) {
 				return TRUE;
 			}
+			data = GET_CD_DATA(me, ldata);
+			if (CustomData_has_layer(data, CD_GRID_PAINT_MASK)) {
+				return TRUE;
+			}
 		}
 	}
 	return FALSE;
 }
 static int mesh_customdata_clear_mask_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_PAINT_MASK);
+	int ret_a = mesh_customdata_clear_exec__internal(C, BM_VERT, CD_PAINT_MASK);
+	int ret_b = mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_GRID_PAINT_MASK);
+
+	if (ret_a == OPERATOR_FINISHED ||
+		ret_b == OPERATOR_FINISHED)
+	{
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void MESH_OT_customdata_clear_mask(wmOperatorType *ot)
