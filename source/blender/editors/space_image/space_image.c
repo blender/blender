@@ -408,8 +408,6 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 			MTexPoly *tf;
 			
 			if (em && EDBM_mtexpoly_check(em)) {
-				sima->image = NULL;
-				
 				tf = EDBM_mtexpoly_active_get(em, NULL, sloppy, selected);
 
 				if (tf) {
