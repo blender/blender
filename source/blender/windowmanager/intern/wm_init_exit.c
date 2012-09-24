@@ -114,8 +114,6 @@
 #include "BKE_sound.h"
 #include "COM_compositor.h"
 
-#include "IMB_colormanagement.h"
-
 static void wm_init_reports(bContext *C)
 {
 	BKE_reports_init(CTX_wm_reports(C), RPT_STORE);
@@ -144,12 +142,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 	
 	ED_spacetypes_init();   /* editors/space_api/spacetype.c */
 	
-	/* initialize color management stuff
-	 * do this before ED_file_init because that function would load images,
-	 * so at least default byte color space should be already known
-	 */
-	IMB_colormanagement_init();
-
 	ED_file_init();         /* for fsmenu */
 	ED_node_init_butfuncs();
 	
@@ -373,8 +365,6 @@ void WM_exit_ext(bContext *C, const short do_python)
 	wmWindowManager *wm = C ? CTX_wm_manager(C) : NULL;
 
 	sound_exit();
-
-	IMB_colormanagement_exit();
 
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */

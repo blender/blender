@@ -50,11 +50,6 @@ struct ImageFormatData;
 struct ColorSpace;
 struct ColorManagedDisplay;
 
-/* ** Initialization / De-initialization ** */
-
-void IMB_colormanagement_init(void);
-void IMB_colormanagement_exit(void);
-
 /* ** Generic functions ** */
 
 void IMB_colormanagement_check_file_config(struct Main *bmain);

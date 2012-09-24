@@ -548,7 +548,7 @@ static void colormanage_free_config(void)
 	BLI_freelistN(&global_views);
 }
 
-void IMB_colormanagement_init(void)
+void colormanagement_init(void)
 {
 	const char *ocio_env;
 	const char *configdir;
@@ -585,7 +585,7 @@ void IMB_colormanagement_init(void)
 	BLI_init_srgb_conversion();
 }
 
-void IMB_colormanagement_exit(void)
+void colormanagement_exit(void)
 {
 	colormanage_free_config();
 }
