@@ -2186,7 +2186,7 @@ static ImBuf *seq_render_movieclip_strip(SeqRenderData context, Sequence *seq, f
 
 	memset(&user, 0, sizeof(MovieClipUser));
 	
-	BKE_movieclip_user_set_frame(&user, nr + seq->anim_startofs);
+	BKE_movieclip_user_set_frame(&user, nr + seq->anim_startofs + seq->clip->start_frame);
 
 	user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
 

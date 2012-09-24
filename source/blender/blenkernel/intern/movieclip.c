@@ -292,11 +292,11 @@ static void movieclip_calc_length(MovieClip *clip)
 			clip->len = framenr + 1;
 		}
 		else {
-			for (;; ) {
+			for (;;) {
 				get_sequence_fname(clip, framenr, name);
 
 				if (!BLI_exists(name)) {
-					clip->len = framenr + 1;
+					clip->len = framenr;
 					break;
 				}
 
