@@ -1085,16 +1085,15 @@ elseif(WIN32)
 				optimized libboost_date_time-${BOOST_POSTFIX} optimized libboost_filesystem-${BOOST_POSTFIX}
 				optimized libboost_regex-${BOOST_POSTFIX}
 				optimized libboost_system-${BOOST_POSTFIX} optimized libboost_thread-${BOOST_POSTFIX}
-				if(WITH_CYCLES_OSL)
-					optimized libboost_python3-${BOOST_POSTFIX} 
-				endif(WITH_CYCLES_OSL)
 				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
 				debug libboost_regex-${BOOST_DEBUG_POSTFIX}
-				debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX}
+				debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
 				if(WITH_CYCLES_OSL)
-					debug libboost_python3-${BOOST_DEBUG_POSTFIX} 
+					set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+						optimized libboost_python3-${BOOST_POSTFIX}
+						debug libboost_python3-${BOOST_DEBUG_POSTFIX})
 				endif(WITH_CYCLES_OSL)
-				)
+				
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 		endif()
 			
@@ -1272,16 +1271,15 @@ elseif(WIN32)
 				optimized boost_date_time-${BOOST_POSTFIX} boost_filesystem-${BOOST_POSTFIX}
 				boost_regex-${BOOST_POSTFIX}
 				boost_system-${BOOST_POSTFIX} boost_thread-${BOOST_POSTFIX}
-				if(WITH_CYCLES_OSL)
-					boost_python3-${BOOST_POSTFIX} 
-				endf(WITH_CYCLES_OSL)
 				debug boost_date_time-${BOOST_DEBUG_POSTFIX} boost_filesystem-${BOOST_DEBUG_POSTFIX}
 				boost_regex-${BOOST_DEBUG_POSTFIX}
-				boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX}
+				boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX})
 				if(WITH_CYCLES_OSL)
-					boost_python3-${BOOST_POSTFIX} 
+					set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+						optimized libboost_python3-${BOOST_POSTFIX}
+						debug libboost_python3-${BOOST_DEBUG_POSTFIX}) 
 				endif(WITH_CYCLES_OSL)
-				)
+					
 			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
 		endif()
