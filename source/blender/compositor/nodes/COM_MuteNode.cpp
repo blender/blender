@@ -111,10 +111,16 @@ void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	if ((editorNode->flag & NODE_MUTED) && editorNode->typeinfo->internal_connect) {
 		vector<InputSocket *> &inputsockets = this->getInputSockets();
 		vector<OutputSocket *> relinkedsockets;
-		bNodeTree *editorTree = (bNodeTree *) context->getbNodeTree();
+		bNodeTree *editorTree;
 		SocketMap socketMap;
 		ListBase intlinks;
 		bNodeLink *link;
+
+		if (this->getbNodeGroup()) {
+			editorTree = (bNodeTree *) getbNodeGroup()->id;
+		} else {
+			editorTree = (bNodeTree *) context->getbNodeTree();
+		}
 
 		intlinks = editorNode->typeinfo->internal_connect(editorTree, editorNode);
 
