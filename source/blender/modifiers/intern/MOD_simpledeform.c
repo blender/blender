@@ -249,6 +249,7 @@ static void initData(ModifierData *md)
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData *) md;
 
 	smd->mode = MOD_SIMPLEDEFORM_MODE_TWIST;
+	smd->originOpts = MOD_SIMPLEDEFORM_ORIGIN_LOCAL;
 	smd->axis = 0;
 
 	smd->origin   =  NULL;
