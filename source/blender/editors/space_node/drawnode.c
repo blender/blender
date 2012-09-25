@@ -1494,6 +1494,21 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr);
 }
 
+static void node_composit_buts_image_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+	PointerRNA imaptr;
+
+	node_composit_buts_image(layout, C, ptr);
+
+	if (!node->id)
+		return;
+
+	imaptr = RNA_pointer_get(ptr, "image");
+
+	uiTemplateColorspaceSettings(layout, &imaptr, "colorspace_settings");
+}
+
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
@@ -2221,6 +2236,21 @@ static void node_composit_buts_movieclip(uiLayout *layout, bContext *C, PointerR
 	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
 }
 
+static void node_composit_buts_movieclip_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+	PointerRNA clipptr;
+
+	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+
+	if (!node->id)
+		return;
+
+	clipptr = RNA_pointer_get(ptr, "clip");
+
+	uiTemplateColorspaceSettings(layout, &clipptr, "colorspace_settings");
+}
+
 static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
@@ -2619,6 +2649,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 
 		case CMP_NODE_IMAGE:
 			ntype->uifunc = node_composit_buts_image;
+			ntype->uifuncbut = node_composit_buts_image_details;
 			break;
 		case CMP_NODE_R_LAYERS:
 			ntype->uifunc = node_composit_buts_renderlayers;
@@ -2773,6 +2804,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_MOVIECLIP:
 			ntype->uifunc = node_composit_buts_movieclip;
+			ntype->uifuncbut = node_composit_buts_movieclip_details;
 			break;
 		case CMP_NODE_STABILIZE2D:
 			ntype->uifunc = node_composit_buts_stabilize2d;
