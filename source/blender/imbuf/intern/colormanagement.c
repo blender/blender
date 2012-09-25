@@ -1528,10 +1528,8 @@ void IMB_colormanagement_colorspace_to_scene_linear_v3(float pixel[3], ColorSpac
 	ConstProcessorRcPtr *processor;
 
 	if (!colorspace) {
-		/* OCIO_TODO: make sure it never happens */
-
+		/* should never happen */
 		printf("%s: perform conversion from unknown color space\n", __func__);
-
 		return;
 	}
 
@@ -1547,10 +1545,8 @@ void IMB_colormanagement_scene_linear_to_colorspace_v3(float pixel[3], ColorSpac
 	ConstProcessorRcPtr *processor;
 
 	if (!colorspace) {
-		/* OCIO_TODO: make sure it never happens */
-
+		/* should never happen */
 		printf("%s: perform conversion from unknown color space\n", __func__);
-
 		return;
 	}
 
@@ -1565,10 +1561,8 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
 	ConstProcessorRcPtr *processor;
 
 	if (!colorspace) {
-		/* OCIO_TODO: make sure it never happens */
-
+		/* should never happen */
 		printf("%s: perform conversion from unknown color space\n", __func__);
-
 		return;
 	}
 
