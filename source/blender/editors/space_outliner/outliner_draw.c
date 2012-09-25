@@ -256,10 +256,12 @@ void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 			/* not in editmode */
 			if (scene->obedit != gob->ob) {
 				gob->ob->restrictflag |= flag;
-				
-				if (flag == OB_RESTRICT_VIEW)
-					if ((gob->ob->flag & SELECT) == 0)
-						ED_base_object_select(BKE_scene_base_find(scene, gob->ob), BA_SELECT);
+
+				if (ELEM(flag, OB_RESTRICT_SELECT, OB_RESTRICT_VIEW)) {
+					if ((gob->ob->flag & SELECT)) {
+						ED_base_object_select(BKE_scene_base_find(scene, gob->ob), BA_DESELECT);
+					}
+				}
 			}
 		}
 	}
