@@ -2021,7 +2021,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	int multilayer = (RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER);
 	
 	node_composit_buts_file_output(layout, C, ptr);
-	uiTemplateImageSettings(layout, &imfptr, TRUE);
+	uiTemplateImageSettings(layout, &imfptr, FALSE);
 	
 	uiItemS(layout);
 	
@@ -2080,7 +2080,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 			
 			col = uiLayoutColumn(layout, FALSE);
 			uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format") == FALSE);
-			uiTemplateImageSettings(col, &imfptr, TRUE);
+			uiTemplateImageSettings(col, &imfptr, FALSE);
 		}
 	}
 }
