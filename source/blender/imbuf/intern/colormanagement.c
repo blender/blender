@@ -1071,17 +1071,26 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role)
 	return NULL;
 }
 
+void IMB_colormanagement_check_is_data(ImBuf *ibuf, const char *name)
+{
+	ColorSpace *colorspace = colormanage_colorspace_get_named(name);
+
+	if (colorspace->is_data)
+		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
+	else
+		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
+}
+
 void IMB_colormanagement_assign_rect_colorspace(ImBuf *ibuf, const char *name)
 {
 	ColorSpace *colorspace = colormanage_colorspace_get_named(name);
-	if (colorspace) {
-		ibuf->rect_colorspace = colorspace;
 
-		if (colorspace->is_data)
-			ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
-		else
-			ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
-	}
+	ibuf->rect_colorspace = colorspace;
+
+	if (colorspace->is_data)
+		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
+	else
+		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
 }
 
 /*********************** Threaded display buffer transform routines *************************/

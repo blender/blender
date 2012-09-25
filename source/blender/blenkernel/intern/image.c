@@ -619,6 +619,8 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 
 			BLI_strncpy(colorspace_settings->name, colorspace, sizeof(colorspace_settings->name));
 		}
+
+		IMB_colormanagement_check_is_data(ibuf, colorspace_settings->name);
 	}
 	else {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
