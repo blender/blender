@@ -1140,21 +1140,17 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						float *v3;
 						/* float *v4; */ /* UNUSED */
 						float cent[3], quat[4], mat[3][3], mat3[3][3], tmat[4][4], obmat[4][4];
+						float f_no[3];
 						MLoop *loopstart = mloop + mp->loopstart;
 
-						if (mp->totloop < 3) {
-							/* highly unlikely but to be safe */
+						if (UNLIKELY(mp->totloop < 3)) {
 							continue;
 						}
 						else {
+							BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mvert, f_no);
 							v1 = mvert[(mv1 = loopstart[0].v)].co;
 							v2 = mvert[(mv2 = loopstart[1].v)].co;
 							v3 = mvert[(mv3 = loopstart[2].v)].co;
-#if 0
-							if (mp->totloop > 3) {
-								v4 = mvert[(mv4 = loopstart[3].v)].co;
-							}
-#endif
 						}
 
 						/* translation */
@@ -1170,7 +1166,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						copy_v3_v3(obmat[3], cent);
 						
 						/* rotation */
-						tri_to_quat(quat, v1, v2, v3);
+						tri_to_quat_ex(quat, v1, v2, v3, f_no);
 						quat_to_mat3(mat, quat);
 						
 						/* scale */

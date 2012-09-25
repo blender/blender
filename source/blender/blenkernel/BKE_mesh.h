@@ -88,8 +88,8 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
                             struct CustomData *pdata, int totface, int totloop, int totpoly);
 
 /*calculates a face normal.*/
-void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart, 
-                           struct MVert *mvarray, float no[3]);
+void BKE_mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart,
+                               struct MVert *mvarray, float no[3]);
 
 void BKE_mesh_calc_poly_normal_coords(struct MPoly *mpoly, struct MLoop *loopstart,
                                       const float (*vertex_coords)[3], float no[3]);

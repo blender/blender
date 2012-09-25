@@ -1864,7 +1864,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 		/* only calc poly normals */
 		mp = mpolys;
 		for (i = 0; i < numPolys; i++, mp++) {
-			mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
+			BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
 		}
 	}
 
@@ -1914,7 +1914,7 @@ void BKE_mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpo
 
 	mp = mpolys;
 	for (i = 0; i < numPolys; i++, mp++) {
-		mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
+		BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
 		ml = mloop + mp->loopstart;
 
 		BLI_array_empty(vertcos);
@@ -2900,8 +2900,8 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 	}
 }
 
-void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart, 
-                           MVert *mvarray, float no[3])
+void BKE_mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart,
+                               MVert *mvarray, float no[3])
 {
 	if (mpoly->totloop > 4) {
 		mesh_calc_ngon_normal(mpoly, loopstart, mvarray, no);
@@ -3045,7 +3045,7 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 
 		/* need normal for area_poly_v3 as well */
 		if (polynormal == NULL) {
-			mesh_calc_poly_normal(mpoly, loopstart, mvarray, no);
+			BKE_mesh_calc_poly_normal(mpoly, loopstart, mvarray, no);
 		}
 
 		/* finally calculate the area */

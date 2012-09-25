@@ -107,7 +107,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 
 			f_no = face_nors[i];
 			if (calc_face_nors)
-				mesh_calc_poly_normal(mp, mloop + mp->loopstart, mvert, f_no);
+				BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mvert, f_no);
 
 			ml = mloop + mp->loopstart;
 
@@ -483,7 +483,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			/* --- not related to angle calc --- */
 			if (face_nors_calc)
-				mesh_calc_poly_normal(mp, ml, mvert, face_nors[i]);
+				BKE_mesh_calc_poly_normal(mp, ml, mvert, face_nors[i]);
 			/* --- end non-angle-calc section --- */
 
 			sub_v3_v3v3(nor_prev, mvert[ml[i_this - 1].v].co, mvert[ml[i_this].v].co);
