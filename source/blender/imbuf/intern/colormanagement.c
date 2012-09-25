@@ -1692,8 +1692,24 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, int save_as_render, int 
 		int make_byte = FALSE;
 		ImFileType *type;
 
-		if (allocate_result)
+		if (allocate_result) {
 			colormanaged_ibuf = IMB_dupImBuf(ibuf);
+		}
+		else {
+			/* render pipeline is constructing image buffer itself, but it's re-using byte and float buffers from render result
+			 * make copy of this buffers here sine this buffers would be transformed to other color space here
+			 */
+
+			if (ibuf->rect && (ibuf->mall & IB_rect) == 0) {
+				ibuf->rect = MEM_dupallocN(ibuf->rect);
+				ibuf->mall |= IB_rect;
+			}
+
+			if (ibuf->rect_float && (ibuf->mall & IB_rectfloat) == 0) {
+				ibuf->rect_float = MEM_dupallocN(ibuf->rect_float);
+				ibuf->mall |= IB_rectfloat;
+			}
+		}
 
 		/* for proper check whether byte buffer is required by a format or not
 		 * should be pretty safe since this image buffer is supposed to be used for
