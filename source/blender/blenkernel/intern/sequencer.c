@@ -313,7 +313,7 @@ void BKE_sequencer_editing_free(Scene *scene)
 
 static void sequencer_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 {
-	IMB_colormanagement_imbuf_assign_float_space(ibuf, &scene->sequencer_colorspace_settings);
+	IMB_colormanagement_assign_float_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
 }
 
 void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, int make_float)

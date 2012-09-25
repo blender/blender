@@ -1081,6 +1081,18 @@ void IMB_colormanagement_check_is_data(ImBuf *ibuf, const char *name)
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
 }
 
+void IMB_colormanagement_assign_float_colorspace(ImBuf *ibuf, const char *name)
+{
+	ColorSpace *colorspace = colormanage_colorspace_get_named(name);
+
+	ibuf->float_colorspace = colorspace;
+
+	if (colorspace->is_data)
+		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
+	else
+		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
+}
+
 void IMB_colormanagement_assign_rect_colorspace(ImBuf *ibuf, const char *name)
 {
 	ColorSpace *colorspace = colormanage_colorspace_get_named(name);
@@ -1632,11 +1644,6 @@ void IMB_colormanagement_pixel_to_display_space_v3(float result[3], const float 
 	cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
 	IMB_colormanagement_processor_apply_v3(cm_processor, result);
 	IMB_colormanagement_processor_free(cm_processor);
-}
-
-void IMB_colormanagement_imbuf_assign_float_space(ImBuf *ibuf, ColorManagedColorspaceSettings *colorspace_settings)
-{
-	ibuf->float_colorspace = colormanage_colorspace_get_named(colorspace_settings->name);
 }
 
 static void colormanagement_imbuf_make_display_space(ImBuf *ibuf, const ColorManagedViewSettings *view_settings,
