@@ -95,7 +95,7 @@ colorspaces:
         - !<FileTransform> {src: adx_cid_to_rle.spi1d, interpolation: linear}
         - !<LogTransform> {base: 10, direction: inverse}
         - !<FileTransform> {src: adx_exp_to_aces.spimtx}
-        - !<FileTransform> {src: aces_to_rec709.spimtx, interpolation: nearest}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear, direction: inverse}
 
   - !<ColorSpace>
     name: Linear ACES
@@ -107,7 +107,7 @@ colorspaces:
     isdata: false
     allocation: uniform
     allocationvars: [-8.5, 5]
-    to_reference: !<FileTransform> {src: aces_to_rec709.spimtx, interpolation: nearest}
+    to_reference: !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear, direction: inverse}
 
   - !<ColorSpace>
     name: rrt_srgb
