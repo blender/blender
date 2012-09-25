@@ -699,12 +699,6 @@ static int colbalance_seq_cmp_cb(Sequence *seq, void *arg_pt)
 {
 	SequenceSearchData *data = arg_pt;
 
-	if (seq->strip && seq->strip->color_balance == data->data) {
-		data->seq = seq;
-		data->smd = NULL;
-		return -1; /* done so bail out */
-	}
-
 	if (seq->modifiers.first) {
 		SequenceModifierData *smd = seq->modifiers.first;
 
