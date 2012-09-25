@@ -1415,6 +1415,7 @@ elseif(APPLE)
 
 	if(WITH_IMAGE_OPENEXR)
 		set(OPENEXR ${LIBDIR}/openexr)
+		set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 		set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 		set(OPENEXR_LIBRARIES Iex Half IlmImf Imath IlmThread)
 		set(OPENEXR_LIBPATH ${OPENEXR}/lib)
