@@ -51,7 +51,7 @@ displays:
     - !<View> {name: Raw, colorspace: Raw}
     - !<View> {name: Log, colorspace: adx10}
   None:
-    - !<View> {name: Default, colorspace: raw}
+    - !<View> {name: Default, colorspace: Raw}
 
 active_displays: [sRGB, DCIP3, Rec709, XYZ, None]
 active_views: [Default, RRT, Raw, Log]
