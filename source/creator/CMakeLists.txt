@@ -636,7 +636,7 @@ elseif(WIN32)
 
 	if(WITH_OPENIMAGEIO)
 		if(NOT MINGW)
-			set_lib_path(OIIOBIN "openimageio")
+			set(OIIOBIN ${LIBDIR}/openimageio)
 			install(
 				FILES
 					${OIIOBIN}/bin/OpenImageIO.dll
@@ -646,7 +646,7 @@ elseif(WIN32)
 	endif()
 
 	if(WITH_OPENCOLORIO)
-		set_lib_path(OCIOBIN "opencolorio/bin")
+		set(OCIOBIN ${LIBDIR}/opencolorio/bin)
 		if(NOT MINGW)
 			install(
 				FILES
