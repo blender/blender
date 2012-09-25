@@ -1736,25 +1736,32 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	//printf("\tGP - handle modal event...\n");
 	
-	/* exit painting mode (and/or end current stroke) */
-	if (ELEM5(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY, RIGHTMOUSE)) {
+	/* exit painting mode (and/or end current stroke) 
+	 * NOTE: cannot do RIGHTMOUSE (as is standard for cancelling) as that would break polyline [#32647] 
+	 */
+	if (ELEM4(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY)) {
 		/* exit() ends the current stroke before cleaning up */
 		//printf("\t\tGP - end of paint op + end of stroke\n");
 		p->status = GP_STATUS_DONE;
 		estate = OPERATOR_FINISHED;
 	}
 	
-	/* toggle painting mode upon mouse-button movement */
-	if (event->type == LEFTMOUSE) {
+	/* toggle painting mode upon mouse-button movement 
+	 *  - LEFTMOUSE  = standard drawing (all) / straight line drawing (all) / polyline (toolbox only)
+	 *  - RIGHTMOUSE = polyline (hotkey) / eraser (all)
+	 *    (Disabling RIGHTMOUSE case here results in bugs like [#32647])
+	 */
+	if (ELEM(event->type, LEFTMOUSE, RIGHTMOUSE)) {
 		/* if painting, end stroke */
 		if (p->status == GP_STATUS_PAINTING) {
 			int sketch = 0;
+			
 			/* basically, this should be mouse-button up = end stroke 
 			 * BUT what happens next depends on whether we 'painting sessions' is enabled
 			 */
 			sketch |= GPENCIL_SKETCH_SESSIONS_ON(p->scene);
 			/* polyline drawing is also 'sketching' -- all knots should be added during one session */
-			sketch |= p->paintmode == GP_PAINTMODE_DRAW_POLY;
+			sketch |= (p->paintmode == GP_PAINTMODE_DRAW_POLY);
 			
 			if (sketch) {
 				/* end stroke only, and then wait to resume painting soon */
