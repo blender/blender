@@ -98,7 +98,7 @@ void BKE_mesh_calc_poly_center(struct MPoly *mpoly, struct MLoop *loopstart,
                                struct MVert *mvarray, float cent[3]);
 
 float BKE_mesh_calc_poly_area(struct MPoly *mpoly, struct MLoop *loopstart,
-                              struct MVert *mvarray, float polynormal[3]);
+                              struct MVert *mvarray, const float polynormal[3]);
 
 /* Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found */

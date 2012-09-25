@@ -1171,7 +1171,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						
 						/* scale */
 						if (par->transflag & OB_DUPLIFACES_SCALE) {
-							float size = BKE_mesh_calc_poly_area(mp, loopstart, mvert, NULL);
+							float size = BKE_mesh_calc_poly_area(mp, loopstart, mvert, f_no);
 							size = sqrtf(size) * par->dupfacesca;
 							mul_m3_fl(mat, size);
 						}

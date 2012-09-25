@@ -3016,7 +3016,7 @@ void BKE_mesh_calc_poly_center(MPoly *mpoly, MLoop *loopstart,
 
 /* note, passing polynormal is only a speedup so we can skip calculating it */
 float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
-                              MVert *mvarray, float polynormal[3])
+                              MVert *mvarray, const float polynormal[3])
 {
 	if (mpoly->totloop == 3) {
 		return area_tri_v3(mvarray[loopstart[0].v].co,
@@ -3035,7 +3035,7 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 		int i;
 		MLoop *l_iter = loopstart;
 		float area, polynorm_local[3], (*vertexcos)[3];
-		float *no = polynormal ? polynormal : polynorm_local;
+		const float *no = polynormal ? polynormal : polynorm_local;
 		BLI_array_fixedstack_declare(vertexcos, BM_NGON_STACK_SIZE, mpoly->totloop, __func__);
 
 		/* pack vertex cos into an array for area_poly_v3 */
@@ -3045,7 +3045,7 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 
 		/* need normal for area_poly_v3 as well */
 		if (polynormal == NULL) {
-			BKE_mesh_calc_poly_normal(mpoly, loopstart, mvarray, no);
+			BKE_mesh_calc_poly_normal(mpoly, loopstart, mvarray, polynorm_local);
 		}
 
 		/* finally calculate the area */
