@@ -280,7 +280,7 @@ static PyObject *bpy_bmeditselseq_subscript(BPy_BMEditSelSeq *self, PyObject *ke
 				/* only get the length for negative values */
 				Py_ssize_t len = bpy_bmeditselseq_length(self);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {

@@ -2581,7 +2581,7 @@ static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
 				/* only get the length for negative values */
 				Py_ssize_t len = bpy_bmelemseq_length(self);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {
