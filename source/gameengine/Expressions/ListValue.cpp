@@ -316,7 +316,37 @@ static PyObject *listvalue_buffer_item(PyObject *self, Py_ssize_t index)
 		return cval->GetProxy();
 }
 
-static PyObject *listvalue_mapping_subscript(PyObject *self, PyObject *pyindex)
+
+/* just slice it into a python list... */
+static PyObject *listvalue_buffer_slice(CListValue *list, Py_ssize_t start, Py_ssize_t stop)
+{
+	PyObject *newlist;
+	Py_ssize_t i, j;
+
+	/* caller needs to validate negative index */
+#if 0
+	Py_ssize_t len = list->GetCount();
+
+	if (start > len) start = len;
+	if (stop  > len) stop  = len;
+#endif
+
+	newlist = PyList_New(stop - start);
+	if (!newlist)
+		return NULL;
+
+	for (i = start, j = 0; i < stop; i++, j++) {
+		PyObject *pyobj = list->GetValue(i)->ConvertValueToPython();
+		if (!pyobj) {
+			pyobj = list->GetValue(i)->GetProxy();
+		}
+		PyList_SET_ITEM(newlist, j, pyobj);
+	}
+	return newlist;
+}
+
+
+static PyObject *listvalue_mapping_subscript(PyObject *self, PyObject *key)
 {
 	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
 	if (list==NULL) {
@@ -324,9 +354,8 @@ static PyObject *listvalue_mapping_subscript(PyObject *self, PyObject *pyindex)
 		return NULL;
 	}
 	
-	if (PyUnicode_Check(pyindex))
-	{
-		CValue *item = ((CListValue*) list)->FindValue(_PyUnicode_AsString(pyindex));
+	if (PyUnicode_Check(key)) {
+		CValue *item = ((CListValue*) list)->FindValue(_PyUnicode_AsString(key));
 		if (item) {
 			PyObject *pyobj = item->ConvertValueToPython();
 			if (pyobj)
@@ -335,53 +364,32 @@ static PyObject *listvalue_mapping_subscript(PyObject *self, PyObject *pyindex)
 				return item->GetProxy();
 		}
 	}
-	else if (PyLong_Check(pyindex))
-	{
-		int index = PyLong_AsSsize_t(pyindex);
+	else if (PyIndex_Check(key)) {
+		int index = PyLong_AsSsize_t(key);
 		return listvalue_buffer_item(self, index); /* wont add a ref */
+	}
+	else if (PySlice_Check(key)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx(key, list->GetCount(), &start, &stop, &step, &slicelength) < 0)
+			return NULL;
+
+		if (slicelength <= 0) {
+			return PyList_New(0);
+		}
+		else if (step == 1) {
+			return listvalue_buffer_slice(list, start, stop);
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError, "CList[slice]: slice steps not supported");
+			return NULL;
+		}
 	}
 
 	PyErr_Format(PyExc_KeyError,
-	             "CList[key]: '%R' key not in list", pyindex);
+	             "CList[key]: '%R' key not in list", key);
 	return NULL;
 }
-
-
-/* just slice it into a python list... */
-static PyObject *listvalue_buffer_slice(PyObject *self,Py_ssize_t ilow, Py_ssize_t ihigh)
-{
-	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
-	if (list==NULL) {
-		PyErr_SetString(PyExc_SystemError, "val = CList[i:j], "BGE_PROXY_ERROR_MSG);
-		return NULL;
-	}
-	
-	int i, j;
-	PyObject *newlist;
-
-	if (ilow < 0) ilow = 0;
-
-	int n = ((CListValue*) list)->GetCount();
-
-	if (ihigh >= n)
-		ihigh = n;
-	if (ihigh < ilow)
-		ihigh = ilow;
-
-	newlist = PyList_New(ihigh - ilow);
-	if (!newlist)
-		return NULL;
-
-	for (i = ilow, j = 0; i < ihigh; i++, j++)
-	{
-		PyObject *pyobj = list->GetValue(i)->ConvertValueToPython();
-		if (!pyobj)
-			pyobj = list->GetValue(i)->GetProxy();
-		PyList_SET_ITEM(newlist, i, pyobj);
-	}
-	return newlist;
-}
-
 
 /* clist + list, return a list that python owns */
 static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
