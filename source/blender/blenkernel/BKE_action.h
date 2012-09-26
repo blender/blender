@@ -203,7 +203,7 @@ void BKE_pose_ikparam_init(struct bPose *pose);
 void BKE_pose_itasc_init(struct bItasc *itasc);
 
 /* clears BONE_UNKEYED flags for frame changing */
-// XXX to be depreceated for a more general solution in animsys...
+// XXX to be deprecated for a more general solution in animsys...
 void framechange_poses_clear_unkeyed(void);
 
 /* Bone Groups API --------------------- */	

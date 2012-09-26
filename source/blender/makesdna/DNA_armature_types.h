@@ -103,13 +103,13 @@ typedef struct bArmature {
 	unsigned int layer_used;		/* for UI, to show which layers are there */
 	unsigned int layer, layer_protected;		/* for buttons to work, both variables in this order together */
 	
-// XXX depreceated... old animaton system (armature only viz) ---
+// XXX deprecated... old animaton system (armature only viz) ---
 	short		ghostep, ghostsize;		/* number of frames to ghosts to show, and step between them  */
 	short		ghosttype, pathsize;		/* ghost drawing options and number of frames between points of path */
 	int			ghostsf, ghostef;		/* start and end frames of ghost-drawing range */
 	int 		pathsf, pathef;			/* start and end frames of path-calculation range for all bones */
 	int			pathbc, pathac;			/* number of frames before/after current frame of path-calculation for all bones  */
-// XXX end of depreceated code ---------------------------------- 
+// XXX end of deprecated code ----------------------------------
 } bArmature;
 
 /* armature->flag */
@@ -127,7 +127,7 @@ typedef enum eArmature_Flag {
 	ARM_AUTO_IK			= (1<<9),
 	ARM_NO_CUSTOM		= (1<<10), 	/* made option negative, for backwards compat */
 	ARM_COL_CUSTOM		= (1<<11),	/* draw custom colors  */
-	ARM_GHOST_ONLYSEL 	= (1<<12),	/* when ghosting, only show selected bones (this should belong to ghostflag instead) */ /* XXX depreceated */
+	ARM_GHOST_ONLYSEL 	= (1<<12),	/* when ghosting, only show selected bones (this should belong to ghostflag instead) */ /* XXX deprecated */
 	ARM_DS_EXPAND 		= (1<<13),	/* dopesheet channel is expanded */
 	ARM_HAS_VIZ_DEPS	= (1<<14),	/* other objects are used for visualizing various states (hack for efficient updates) */
 } eArmature_Flag;
@@ -157,7 +157,7 @@ typedef enum eArmature_DeformFlag {
 } eArmature_DeformFlag;
 
 /* armature->pathflag */
-// XXX depreceated... old animation system (armature only viz)
+// XXX deprecated... old animation system (armature only viz)
 typedef enum eArmature_PathFlag {
 	ARM_PATH_FNUMS		= (1<<0),
 	ARM_PATH_KFRAS		= (1<<1),
@@ -167,7 +167,7 @@ typedef enum eArmature_PathFlag {
 } eArmature_PathFlag;
 
 /* armature->ghosttype */
-// XXX depreceated... old animation system (armature only viz)
+// XXX deprecated... old animation system (armature only viz)
 typedef enum eArmature_GhostType {
 	ARM_GHOST_CUR = 0,
 	ARM_GHOST_RANGE = 1,

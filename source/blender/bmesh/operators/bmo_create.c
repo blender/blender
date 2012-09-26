@@ -1223,7 +1223,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 			v4 = BM_vert_in_edge(edges2[i - 1], edges2[i]->v1) ? edges2[i]->v2 : edges2[i]->v1;
 		}
 
-		/* if there is ever bowtie quads between two edges the problem is here! [#30367] */
+		/* if there is ever bow-tie quads between two edges the problem is here! [#30367] */
 #if 0
 		normal_tri_v3(dvec1, v1->co, v2->co, v4->co);
 		normal_tri_v3(dvec2, v1->co, v4->co, v3->co);

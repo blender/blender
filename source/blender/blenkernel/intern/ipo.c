@@ -32,7 +32,7 @@
 
 /* NOTE:
  *
- * This file is no longer used to provide tools for the depreceated IPO system. Instead, it
+ * This file is no longer used to provide tools for the deprecated IPO system. Instead, it
  * is only used to house the conversion code to the new system.
  *
  * -- Joshua Leung, Jan 2009

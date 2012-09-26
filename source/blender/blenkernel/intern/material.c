@@ -1490,7 +1490,7 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 }
 
 /**
- * \brief copy/paste buffer, if we had a propper py api that would be better
+ * \brief copy/paste buffer, if we had a proper py api that would be better
  * \note matcopybuf.nodetree does _NOT_ use ID's
  * \todo matcopybuf.nodetree's  node->id's are NOT validated, this will crash!
  */

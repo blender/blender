@@ -565,7 +565,7 @@ static PyObject *Color_div(PyObject *v1, PyObject *v2)
 	return NULL;
 }
 
-/* mulplication in-place: obj *= obj */
+/* multiplication in-place: obj *= obj */
 static PyObject *Color_imul(PyObject *v1, PyObject *v2)
 {
 	ColorObject *color = (ColorObject *)v1;
@@ -591,7 +591,7 @@ static PyObject *Color_imul(PyObject *v1, PyObject *v2)
 	return v1;
 }
 
-/* mulplication in-place: obj *= obj */
+/* multiplication in-place: obj *= obj */
 static PyObject *Color_idiv(PyObject *v1, PyObject *v2)
 {
 	ColorObject *color = (ColorObject *)v1;

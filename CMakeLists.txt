@@ -566,7 +566,7 @@ if(UNIX AND NOT APPLE)
 
 		mark_as_advanced(FFMPEG)
 
-		# lame, but until we have propper find module for ffmpeg
+		# lame, but until we have proper find module for ffmpeg
 		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
 		if(EXISTS "${FFMPEG}/include/ffmpeg/")
 			set(FFMPEG_INCLUDE_DIRS "${FFMPEG_INCLUDE_DIRS} ${FFMPEG}/include/ffmpeg")

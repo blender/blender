@@ -1875,7 +1875,7 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 	return Matrix_CreatePyObject(mat, mat1->num_col, mat1->num_row, Py_NEW, Py_TYPE(mat1));
 }
 /*------------------------obj * obj------------------------------
- * mulplication */
+ * multiplication */
 static PyObject *matrix_mul_float(MatrixObject *mat, const float scalar)
 {
 	float tmat[16];

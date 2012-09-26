@@ -210,7 +210,7 @@ void DocumentImporter::finish()
 	}
 
 
-	mesh_importer.optimize_material_assignements();
+	mesh_importer.optimize_material_assignments();
 
 	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext);

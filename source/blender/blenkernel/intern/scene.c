@@ -383,7 +383,7 @@ Scene *BKE_scene_add(const char *name)
 	sce->r.edgeint = 10;
 	sce->r.ocres = 128;
 
-	/* OCIO_TODO: for forwards compatibiliy only, so if no tonecurve are used,
+	/* OCIO_TODO: for forwards compatibility only, so if no tonecurve are used,
 	 *            images would look in the same way as in current blender
 	 *
 	 *            perhaps at some point should be completely deprecated?

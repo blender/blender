@@ -858,7 +858,7 @@ void single_axis_angle_to_mat3(float mat[3][3], const char axis, const float ang
 }
 
 /****************************** Vector/Rotation ******************************/
-/* TODO: the following calls should probably be depreceated sometime         */
+/* TODO: the following calls should probably be deprecated sometime         */
 
 /* TODO, replace use of this function with axis_angle_to_mat3() */
 void vec_rot_to_mat3(float mat[][3], const float vec[3], const float phi)

@@ -3777,7 +3777,7 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 /* Calculate the speed of the particle relative to the local scale of the
  * simulation. This should be called once per particle during a simulation
  * step, after the velocity has been updated. element_size defines the scale of
- * the simulation, and is typically the distance to neighbourning particles. */
+ * the simulation, and is typically the distance to neighboring particles. */
 static void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
 	float dtime, SPHData *sphdata)
 {

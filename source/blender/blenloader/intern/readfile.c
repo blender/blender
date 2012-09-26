@@ -1719,7 +1719,7 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 
 /* Legacy Data Support (for Version Patching) ----------------------------- */
 
-// XXX depreceated - old animation system
+// XXX deprecated - old animation system
 static void lib_link_ipo(FileData *fd, Main *main)
 {
 	Ipo *ipo;
@@ -1736,7 +1736,7 @@ static void lib_link_ipo(FileData *fd, Main *main)
 	}
 }
 
-// XXX depreceated - old animation system
+// XXX deprecated - old animation system
 static void direct_link_ipo(FileData *fd, Ipo *ipo)
 {
 	IpoCurve *icu;
@@ -1750,7 +1750,7 @@ static void direct_link_ipo(FileData *fd, Ipo *ipo)
 	}
 }
 
-// XXX depreceated - old animation system
+// XXX deprecated - old animation system
 static void lib_link_nlastrips(FileData *fd, ID *id, ListBase *striplist)
 {
 	bActionStrip *strip;
@@ -1765,7 +1765,7 @@ static void lib_link_nlastrips(FileData *fd, ID *id, ListBase *striplist)
 	}
 }
 
-// XXX depreceated - old animation system
+// XXX deprecated - old animation system
 static void direct_link_nlastrips(FileData *fd, ListBase *strips)
 {
 	bActionStrip *strip;
@@ -1776,7 +1776,7 @@ static void direct_link_nlastrips(FileData *fd, ListBase *strips)
 		link_list(fd, &strip->modifiers);
 }
 
-// XXX depreceated - old animation system
+// XXX deprecated - old animation system
 static void lib_link_constraint_channels(FileData *fd, ID *id, ListBase *chanbase)
 {
 	bConstraintChannel *chan;
@@ -1947,12 +1947,12 @@ static void lib_link_action(FileData *fd, Main *main)
 		if (act->id.flag & LIB_NEED_LINK) {
 			act->id.flag -= LIB_NEED_LINK;
 			
-// XXX depreceated - old animation system <<<
+// XXX deprecated - old animation system <<<
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
 				chan->ipo = newlibadr_us(fd, act->id.lib, chan->ipo);
 				lib_link_constraint_channels(fd, &act->id, &chan->constraintChannels);
 			}
-// >>> XXX depreceated - old animation system
+// >>> XXX deprecated - old animation system
 			
 			lib_link_fcurves(fd, &act->id, &act->curves);
 		}
@@ -1961,21 +1961,21 @@ static void lib_link_action(FileData *fd, Main *main)
 
 static void direct_link_action(FileData *fd, bAction *act)
 {
-	bActionChannel *achan; // XXX depreceated - old animation system
+	bActionChannel *achan; // XXX deprecated - old animation system
 	bActionGroup *agrp;
 
 	link_list(fd, &act->curves);
-	link_list(fd, &act->chanbase); // XXX depreceated - old animation system
+	link_list(fd, &act->chanbase); // XXX deprecated - old animation system
 	link_list(fd, &act->groups);
 	link_list(fd, &act->markers);
 
-// XXX depreceated - old animation system <<<
+// XXX deprecated - old animation system <<<
 	for (achan = act->chanbase.first; achan; achan=achan->next) {
 		achan->grp = newdataadr(fd, achan->grp);
 		
 		link_list(fd, &achan->constraintChannels);
 	}
-// >>> XXX depreceated - old animation system
+// >>> XXX deprecated - old animation system
 
 	direct_link_fcurves(fd, &act->curves);
 	
@@ -2488,7 +2488,7 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 			con->type = CONSTRAINT_TYPE_NULL;
 		}
 		/* own ipo, all constraints have it */
-		con->ipo = newlibadr_us(fd, id->lib, con->ipo); // XXX depreceated - old animation system
+		con->ipo = newlibadr_us(fd, id->lib, con->ipo); // XXX deprecated - old animation system
 	}
 	
 	/* relink all ID-blocks used by the constraints */
@@ -2647,7 +2647,7 @@ static void lib_link_camera(FileData *fd, Main *main)
 		if (ca->id.flag & LIB_NEED_LINK) {
 			if (ca->adt) lib_link_animdata(fd, &ca->id, ca->adt);
 			
-			ca->ipo = newlibadr_us(fd, ca->id.lib, ca->ipo); // XXX depreceated - old animation system
+			ca->ipo = newlibadr_us(fd, ca->id.lib, ca->ipo); // XXX deprecated - old animation system
 			
 			ca->dof_ob = newlibadr_us(fd, ca->id.lib, ca->dof_ob);
 			
@@ -2683,7 +2683,7 @@ static void lib_link_lamp(FileData *fd, Main *main)
 				}
 			}
 			
-			la->ipo = newlibadr_us(fd, la->id.lib, la->ipo); // XXX depreceated - old animation system
+			la->ipo = newlibadr_us(fd, la->id.lib, la->ipo); // XXX deprecated - old animation system
 			
 			if (la->nodetree)
 				lib_link_ntree(fd, &la->id, la->nodetree);
@@ -2740,7 +2740,7 @@ static void lib_link_key(FileData *fd, Main *main)
 		if (key->id.flag & LIB_NEED_LINK) {
 			if (key->adt) lib_link_animdata(fd, &key->id, key->adt);
 			
-			key->ipo = newlibadr_us(fd, key->id.lib, key->ipo); // XXX depreceated - old animation system
+			key->ipo = newlibadr_us(fd, key->id.lib, key->ipo); // XXX deprecated - old animation system
 			key->from = newlibadr(fd, key->id.lib, key->from);
 			
 			key->id.flag -= LIB_NEED_LINK;
@@ -2810,7 +2810,7 @@ static void lib_link_mball(FileData *fd, Main *main)
 			for (a = 0; a < mb->totcol; a++) 
 				mb->mat[a]= newlibadr_us(fd, mb->id.lib, mb->mat[a]);
 			
-			mb->ipo = newlibadr_us(fd, mb->id.lib, mb->ipo); // XXX depreceated - old animation system
+			mb->ipo = newlibadr_us(fd, mb->id.lib, mb->ipo); // XXX deprecated - old animation system
 			
 			mb->id.flag -= LIB_NEED_LINK;
 		}
@@ -2846,7 +2846,7 @@ static void lib_link_world(FileData *fd, Main *main)
 		if (wrld->id.flag & LIB_NEED_LINK) {
 			if (wrld->adt) lib_link_animdata(fd, &wrld->id, wrld->adt);
 			
-			wrld->ipo = newlibadr_us(fd, wrld->id.lib, wrld->ipo); // XXX depreceated - old animation system
+			wrld->ipo = newlibadr_us(fd, wrld->id.lib, wrld->ipo); // XXX deprecated - old animation system
 			
 			for (a=0; a < MAX_MTEX; a++) {
 				mtex = wrld->mtex[a];
@@ -3047,7 +3047,7 @@ static void lib_link_curve(FileData *fd, Main *main)
 			cu->vfonti = newlibadr_us(fd, cu->id.lib, cu->vfonti);
 			cu->vfontbi = newlibadr_us(fd, cu->id.lib, cu->vfontbi);
 			
-			cu->ipo = newlibadr_us(fd, cu->id.lib, cu->ipo); // XXX depreceated - old animation system
+			cu->ipo = newlibadr_us(fd, cu->id.lib, cu->ipo); // XXX deprecated - old animation system
 			cu->key = newlibadr_us(fd, cu->id.lib, cu->key);
 			
 			cu->id.flag -= LIB_NEED_LINK;
@@ -3347,7 +3347,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 	for (part = main->particle.first; part; part = part->id.next) {
 		if (part->id.flag & LIB_NEED_LINK) {
 			if (part->adt) lib_link_animdata(fd, &part->id, part->adt);
-			part->ipo = newlibadr_us(fd, part->id.lib, part->ipo); // XXX depreceated - old animation system
+			part->ipo = newlibadr_us(fd, part->id.lib, part->ipo); // XXX deprecated - old animation system
 			
 			part->dup_ob = newlibadr(fd, part->id.lib, part->dup_ob);
 			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
@@ -3937,7 +3937,7 @@ static void lib_link_latt(FileData *fd, Main *main)
 		if (lt->id.flag & LIB_NEED_LINK) {
 			if (lt->adt) lib_link_animdata(fd, &lt->id, lt->adt);
 			
-			lt->ipo = newlibadr_us(fd, lt->id.lib, lt->ipo); // XXX depreceated - old animation system
+			lt->ipo = newlibadr_us(fd, lt->id.lib, lt->ipo); // XXX deprecated - old animation system
 			lt->key = newlibadr_us(fd, lt->id.lib, lt->key);
 			
 			lt->id.flag -= LIB_NEED_LINK;
@@ -3991,10 +3991,10 @@ static void lib_link_object(FileData *fd, Main *main)
 			if (ob->id.properties) IDP_LibLinkProperty(ob->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			if (ob->adt) lib_link_animdata(fd, &ob->id, ob->adt);
 			
-// XXX depreceated - old animation system <<<			
+// XXX deprecated - old animation system <<<
 			ob->ipo = newlibadr_us(fd, ob->id.lib, ob->ipo);
 			ob->action = newlibadr_us(fd, ob->id.lib, ob->action);
-// >>> XXX depreceated - old animation system
+// >>> XXX deprecated - old animation system
 
 			ob->parent = newlibadr(fd, ob->id.lib, ob->parent);
 			ob->track = newlibadr(fd, ob->id.lib, ob->track);
@@ -4073,10 +4073,10 @@ static void lib_link_object(FileData *fd, Main *main)
 			lib_link_pose(fd, ob, ob->pose);
 			lib_link_constraints(fd, &ob->id, &ob->constraints);
 			
-// XXX depreceated - old animation system <<<	
+// XXX deprecated - old animation system <<<
 			lib_link_constraint_channels(fd, &ob->id, &ob->constraintChannels);
 			lib_link_nlastrips(fd, &ob->id, &ob->nlastrips);
-// >>> XXX depreceated - old animation system
+// >>> XXX deprecated - old animation system
 			
 			for (paf = ob->effect.first; paf; paf = paf->next) {
 				if (paf->type == EFF_PARTICLE) {
@@ -4537,10 +4537,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 		direct_link_motionpath(fd, ob->mpath);
 	
 	link_list(fd, &ob->defbase);
-// XXX depreceated - old animation system <<<
+// XXX deprecated - old animation system <<<
 	direct_link_nlastrips(fd, &ob->nlastrips);
 	link_list(fd, &ob->constraintChannels);
-// >>> XXX depreceated - old animation system 
+// >>> XXX deprecated - old animation system
 	
 	ob->mat= newdataadr(fd, ob->mat);
 	test_pointer_array(fd, (void **)&ob->mat);
@@ -6130,7 +6130,7 @@ static void lib_link_sound(FileData *fd, Main *main)
 	for (sound = main->sound.first; sound; sound = sound->id.next) {
 		if (sound->id.flag & LIB_NEED_LINK) {
 			sound->id.flag -= LIB_NEED_LINK;
-			sound->ipo = newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
+			sound->ipo = newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX deprecated - old animation system
 			
 			sound_load(main, sound);
 		}
@@ -8035,7 +8035,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_material(fd, main);
 	lib_link_texture(fd, main);
 	lib_link_image(fd, main);
-	lib_link_ipo(fd, main);		// XXX depreceated... still needs to be maintained for version patches still
+	lib_link_ipo(fd, main);		// XXX deprecated... still needs to be maintained for version patches still
 	lib_link_key(fd, main);
 	lib_link_world(fd, main);
 	lib_link_lamp(fd, main);
@@ -8371,7 +8371,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 
 
 
-// XXX depreceated - old animation system
+// XXX deprecated - old animation system
 static void expand_ipo(FileData *fd, Main *mainvar, Ipo *ipo)
 {
 	IpoCurve *icu;
@@ -8381,7 +8381,7 @@ static void expand_ipo(FileData *fd, Main *mainvar, Ipo *ipo)
 	}
 }
 
-// XXX depreceated - old animation system
+// XXX deprecated - old animation system
 static void expand_constraint_channels(FileData *fd, Main *mainvar, ListBase *chanbase)
 {
 	bConstraintChannel *chan;
@@ -8437,7 +8437,7 @@ static void expand_action(FileData *fd, Main *mainvar, bAction *act)
 {
 	bActionChannel *chan;
 	
-	// XXX depreceated - old animation system --------------
+	// XXX deprecated - old animation system --------------
 	for (chan=act->chanbase.first; chan; chan=chan->next) {
 		expand_doit(fd, mainvar, chan->ipo);
 		expand_constraint_channels(fd, mainvar, &chan->constraintChannels);
@@ -8527,7 +8527,7 @@ static void expand_group(FileData *fd, Main *mainvar, Group *group)
 
 static void expand_key(FileData *fd, Main *mainvar, Key *key)
 {
-	expand_doit(fd, mainvar, key->ipo); // XXX depreceated - old animation system
+	expand_doit(fd, mainvar, key->ipo); // XXX deprecated - old animation system
 	
 	if (key->adt)
 		expand_animdata(fd, mainvar, key->adt);
@@ -8553,7 +8553,7 @@ static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 {
 	expand_doit(fd, mainvar, tex->ima);
-	expand_doit(fd, mainvar, tex->ipo); // XXX depreceated - old animation system
+	expand_doit(fd, mainvar, tex->ipo); // XXX deprecated - old animation system
 	
 	if (tex->adt)
 		expand_animdata(fd, mainvar, tex->adt);
@@ -8579,7 +8579,7 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 		}
 	}
 	
-	expand_doit(fd, mainvar, ma->ipo); // XXX depreceated - old animation system
+	expand_doit(fd, mainvar, ma->ipo); // XXX deprecated - old animation system
 	
 	if (ma->adt)
 		expand_animdata(fd, mainvar, ma->adt);
@@ -8602,7 +8602,7 @@ static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
 		}
 	}
 	
-	expand_doit(fd, mainvar, la->ipo); // XXX depreceated - old animation system
+	expand_doit(fd, mainvar, la->ipo); // XXX deprecated - old animation system
 	
 	if (la->adt)
 		expand_animdata(fd, mainvar, la->adt);
@@ -8613,7 +8613,7 @@ static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
 
 static void expand_lattice(FileData *fd, Main *mainvar, Lattice *lt)
 {
-	expand_doit(fd, mainvar, lt->ipo); // XXX depreceated - old animation system
+	expand_doit(fd, mainvar, lt->ipo); // XXX deprecated - old animation system
 	expand_doit(fd, mainvar, lt->key);
 	
 	if (lt->adt)
@@ -8632,7 +8632,7 @@ static void expand_world(FileData *fd, Main *mainvar, World *wrld)
 		}
 	}
 	
-	expand_doit(fd, mainvar, wrld->ipo); // XXX depreceated - old animation system
+	expand_doit(fd, mainvar, wrld->ipo); // XXX deprecated - old animation system
 	
 	if (wrld->adt)
 		expand_animdata(fd, mainvar, wrld->adt);
@@ -8667,7 +8667,7 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
 	expand_doit(fd, mainvar, cu->vfonti);
 	expand_doit(fd, mainvar, cu->vfontbi);
 	expand_doit(fd, mainvar, cu->key);
-	expand_doit(fd, mainvar, cu->ipo); // XXX depreceated - old animation system
+	expand_doit(fd, mainvar, cu->ipo); // XXX deprecated - old animation system
 	expand_doit(fd, mainvar, cu->bevobj);
 	expand_doit(fd, mainvar, cu->taperobj);
 	expand_doit(fd, mainvar, cu->textoncurve);
@@ -8756,10 +8756,10 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 	
 	id_loop_constraints(lb, expand_constraint_cb, &ced);
 	
-	/* depreceated manual expansion stuff */
+	/* deprecated manual expansion stuff */
 	for (curcon = lb->first; curcon; curcon = curcon->next) {
 		if (curcon->ipo)
-			expand_doit(fd, mainvar, curcon->ipo); // XXX depreceated - old animation system
+			expand_doit(fd, mainvar, curcon->ipo); // XXX deprecated - old animation system
 	}
 }
 
@@ -8841,7 +8841,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	
 	expand_doit(fd, mainvar, ob->gpd);
 	
-// XXX depreceated - old animation system (for version patching only) 
+// XXX deprecated - old animation system (for version patching only)
 	expand_doit(fd, mainvar, ob->ipo);
 	expand_doit(fd, mainvar, ob->action);
 	
@@ -8852,7 +8852,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, strip->act);
 		expand_doit(fd, mainvar, strip->ipo);
 	}
-// XXX depreceated - old animation system (for version patching only)
+// XXX deprecated - old animation system (for version patching only)
 	
 	if (ob->adt)
 		expand_animdata(fd, mainvar, ob->adt);
@@ -9024,7 +9024,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
 {
-	expand_doit(fd, mainvar, ca->ipo); // XXX depreceated - old animation system
+	expand_doit(fd, mainvar, ca->ipo); // XXX deprecated - old animation system
 	
 	if (ca->adt)
 		expand_animdata(fd, mainvar, ca->adt);
@@ -9040,7 +9040,7 @@ static void expand_speaker(FileData *fd, Main *mainvar, Speaker *spk)
 
 static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 {
-	expand_doit(fd, mainvar, snd->ipo); // XXX depreceated - old animation system
+	expand_doit(fd, mainvar, snd->ipo); // XXX deprecated - old animation system
 }
 
 static void expand_movieclip(FileData *fd, Main *mainvar, MovieClip *clip)
@@ -9143,7 +9143,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 						expand_armature(fd, mainvar, (bArmature *)id);
 						break;
 					case ID_AC:
-						expand_action(fd, mainvar, (bAction *)id); // XXX depreceated - old animation system
+						expand_action(fd, mainvar, (bAction *)id); // XXX deprecated - old animation system
 						break;
 					case ID_GR:
 						expand_group(fd, mainvar, (Group *)id);
@@ -9155,7 +9155,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 						expand_brush(fd, mainvar, (Brush *)id);
 						break;
 					case ID_IP:
-						expand_ipo(fd, mainvar, (Ipo *)id); // XXX depreceated - old animation system
+						expand_ipo(fd, mainvar, (Ipo *)id); // XXX deprecated - old animation system
 						break;
 					case ID_PA:
 						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);

@@ -96,7 +96,7 @@ void readBitmapFontVersion0(ImBuf * ibuf, unsigned char * rect, int step)
 	ysize = (bytes + (ibuf->x - 1)) / ibuf->x;
 	
 	if (ysize < ibuf->y) {
-		/* we're first going to copy all data into a liniar buffer.
+		/* we're first going to copy all data into a linear buffer.
 		 * step can be 4 or 1 bytes, and the data is not sequential because
 		 * the bitmap was flipped vertically. */
 		

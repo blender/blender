@@ -251,7 +251,7 @@ PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *mloopuv)
 /* Mesh Loop Color
  * *************** */
 
-/* This simply provices a color wrapper for
+/* This simply provides a color wrapper for
  * color which uses mathutils callbacks for mathutils.Color
  */
 

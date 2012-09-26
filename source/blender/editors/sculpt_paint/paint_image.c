@@ -2320,7 +2320,7 @@ static int IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot)
 	return 1;
 }
 
-/* One of the most important function for projectiopn painting, since it selects the pixels to be added into each bucket.
+/* One of the most important function for projection painting, since it selects the pixels to be added into each bucket.
  * initialize pixels from this face where it intersects with the bucket_index, optionally initialize pixels for removing seams */
 static void project_paint_face_init(const ProjPaintState *ps, const int thread_index, const int bucket_index, const int face_index, const int image_index, rctf *bucket_bounds, const ImBuf *ibuf, const short clamp_u, const short clamp_v)
 {

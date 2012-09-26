@@ -226,7 +226,7 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 			}
 			else if (lnode->type==CMP_NODE_MOVIEDISTORTION) {
 				/* special case for distortion node: distortion context is allocating in exec function
-				 * and to achive much better performance on further calls this context should be
+				 * and to achieve much better performance on further calls this context should be
 				 * copied back to original node */
 				if (lnode->storage) {
 					if (lnode->new_node->storage)

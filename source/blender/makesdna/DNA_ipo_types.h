@@ -28,7 +28,7 @@
 /** \file DNA_ipo_types.h
  *  \ingroup DNA
  *  \deprecated
- *   The contents of this file are now officially depreceated. They were used for the 'old' animation system,
+ *   The contents of this file are now officially deprecated. They were used for the 'old' animation system,
  *   which has (as of 2.50) been replaced with a completely new system by Joshua Leung (aligorith). All defines, 
  *   etc. are only still maintained to provide backwards compatibility for old files.
  */

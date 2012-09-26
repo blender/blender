@@ -1944,7 +1944,7 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 {
 	/* Note: Current method only uses polygon edges to detect neighboring pixels.
 	 *  -> It doesn't always lead to the optimum pixel but is accurate enough
-	 *  and faster/simplier than including possible face tip point links)
+	 *  and faster/simpler than including possible face tip point links)
 	 */
 
 	int x, y;
@@ -2852,15 +2852,15 @@ static void mesh_faces_nearest_point_dp(void *userdata, int index, const float c
 
 /***************************** Brush Painting Calls ******************************/
 
-/*
- *	Mix color values to canvas point.
+/**
+ * Mix color values to canvas point.
  *
- *	surface : canvas surface
- *	index : surface point index
- *	paintFlags : paint object flags
- *   paintColor,Alpha,Wetness : to be mixed paint values
- *	timescale : value used to adjust time dependand
- *			    operations when using substeps
+ * \param surface canvas surface
+ * \param index surface point index
+ * \param paintFlags paint object flags
+ * \param paintColor,Alpha,Wetness to be mixed paint values
+ * \param timescale value used to adjust time dependent
+ * operations when using substeps
  */
 static void dynamicPaint_mixPaintColors(DynamicPaintSurface *surface, int index, int paintFlags,
                                         const float paintColor[3], float *paintAlpha, float *paintWetness, float *timescale)
@@ -4161,7 +4161,7 @@ static int dynamicPaint_prepareEffectStep(DynamicPaintSurface *surface, Scene *s
 		pdEndEffectors(&effectors);
 	}
 
-	/* Get number of required steps using averate point distance
+	/* Get number of required steps using average point distance
 	 *  so that just a few ultra close pixels wont up substeps to max */
 
 	/* adjust number of required substep by fastest active effect */

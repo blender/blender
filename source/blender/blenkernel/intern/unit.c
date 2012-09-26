@@ -350,7 +350,7 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 	/* Add unit prefix and strip zeros */
 
 	/* replace trailing zero's with spaces
-	 * so the number is less complicated but allignment in a button wont
+	 * so the number is less complicated but alignment in a button wont
 	 * jump about while dragging */
 	i = len - 1;
 

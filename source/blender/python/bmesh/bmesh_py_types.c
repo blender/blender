@@ -189,7 +189,7 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
 /* Mesh
  * ^^^^ */
 
-/* doc-strings for all uses of this funcion */
+/* doc-strings for all uses of this function */
 
 PyDoc_STRVAR(bpy_bmvertseq_doc,
 "This meshes vert sequence (read-only).\n\n:type: :class:`BMVertSeq`"

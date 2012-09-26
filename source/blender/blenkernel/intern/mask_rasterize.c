@@ -1208,7 +1208,7 @@ static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], cons
 
 			/* needs work */
 #if 1
-			/* quad check fails for bowtie, so keep using 2 tri checks */
+			/* quad check fails for bow-tie, so keep using 2 tri checks */
 			//if (isect_point_quad_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]))
 			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]]) ||
 			    isect_point_tri_v2(xy, cos[face[0]], cos[face[2]], cos[face[3]]))
@@ -1216,7 +1216,7 @@ static float maskrasterize_layer_isect(unsigned int *face, float (*cos)[3], cons
 				return maskrasterize_layer_z_depth_quad(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]);
 			}
 #elif 1
-			/* don't use isect_point_tri_v2_cw because we could have bowtie quads */
+			/* don't use isect_point_tri_v2_cw because we could have bow-tie quads */
 
 			if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]])) {
 				return maskrasterize_layer_z_depth_tri(xy, cos[face[0]], cos[face[1]], cos[face[2]]);

@@ -42,7 +42,7 @@ struct Text;
 struct Ipo;
 
 /* channels reside in Object or Action (ListBase) constraintChannels */
-// XXX depreceated... old AnimSys
+// XXX deprecated... old AnimSys
 typedef struct bConstraintChannel {
 	struct bConstraintChannel *next, *prev;
 	struct Ipo			*ipo;
@@ -515,7 +515,7 @@ typedef enum eBConstraint_SpaceTypes {
 } eBConstraint_SpaceTypes;
 
 /* bConstraintChannel.flag */
-// XXX depreceated... old AnimSys
+// XXX deprecated... old AnimSys
 typedef enum eConstraintChannel_Flags {
 	CONSTRAINT_CHANNEL_SELECT =		(1<<0),
 	CONSTRAINT_CHANNEL_PROTECTED =	(1<<1)
@@ -539,7 +539,7 @@ typedef enum eCopyLocation_Flags {
 	LOCLIKE_X			= (1<<0),
 	LOCLIKE_Y			= (1<<1),
 	LOCLIKE_Z			= (1<<2),
-		/* LOCLIKE_TIP is a depreceated option... use headtail=1.0f instead */
+		/* LOCLIKE_TIP is a deprecated option... use headtail=1.0f instead */
 	LOCLIKE_TIP			= (1<<3),
 	LOCLIKE_X_INVERT	= (1<<4),
 	LOCLIKE_Y_INVERT	= (1<<5),

@@ -3925,7 +3925,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 
 	sst=PIL_check_seconds_timer();
 	/* Integration back in time is possible in theory, but pretty useless here.
-	 * So we refuse to do so. Since we do not know anything about 'outside' canges
+	 * So we refuse to do so. Since we do not know anything about 'outside' changes
 	 * especially colliders we refuse to go more than 10 frames.
 	 */
 	if (dtime < 0 || dtime > 10.5f) return;
