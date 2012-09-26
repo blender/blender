@@ -162,9 +162,9 @@ def main():
               "    {} specific context{} present:\n            {}\n"
               "".format(glob_stats["nbr"], glob_stats["lvl"] / glob_stats["nbr"],
                         glob_stats["lvl_ttips"] / glob_stats["nbr"],
-                        glob_stats["lvl_trans_ttips"]/glob_stats["nbr"],
-                        glob_stats["lvl_ttips_in_trans"]/glob_stats["nbr"],
-                        glob_stats["lvl_comm"]/glob_stats["nbr"], glob_stats["nbr_signs"],
+                        glob_stats["lvl_trans_ttips"] / glob_stats["nbr"],
+                        glob_stats["lvl_ttips_in_trans"] / glob_stats["nbr"],
+                        glob_stats["lvl_comm"] / glob_stats["nbr"], glob_stats["nbr_signs"],
                         glob_stats["nbr_trans_signs"], nbr_contexts, _ctx_txt,
                         "\n            ".join(glob_stats["contexts"]-{""})))
 

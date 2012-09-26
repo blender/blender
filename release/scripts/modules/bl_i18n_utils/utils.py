@@ -95,7 +95,6 @@ def parse_messages(fname):
         msgctxt_lines = []
         comment_lines = []
 
-
     def finalize_message():
         nonlocal reading_msgid, reading_msgstr, reading_msgctxt, \
                  reading_comment, is_fuzzy, is_translated, is_commented, \
@@ -224,7 +223,6 @@ def parse_messages(fname):
         # If no final empty line, last message is not finalized!
         if reading_msgstr:
             finalize_message()
-
 
     return (messages,
             {"trans_msg": translated_messages,

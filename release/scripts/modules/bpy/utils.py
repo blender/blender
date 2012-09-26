@@ -59,6 +59,7 @@ import addon_utils as _addon_utils
 
 _script_module_dirs = "startup", "modules"
 
+
 def _test_import(module_name, loaded_modules):
     use_time = _bpy.app.debug_python
 
@@ -615,11 +616,14 @@ def _blender_default_map():
 # hooks for doc lookups
 _manual_map = [_blender_default_map]
 
+
 def register_manual_map(manual_hook):
     _manual_map.append(manual_hook)
 
+
 def unregister_manual_map(manual_hook):
     _manual_map.remove(manual_hook)
+
 
 def manual_map():
     # reverse so default is called last
@@ -633,4 +637,3 @@ def manual_map():
             continue
 
         yield prefix, url_manual_mapping
-

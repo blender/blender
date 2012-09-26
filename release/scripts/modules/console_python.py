@@ -304,7 +304,7 @@ def copy_as_script(context):
     for line in sc.scrollback:
         text = line.body
         type = line.type
-        
+
         if type == 'INFO':  # ignore autocomp.
             continue
         if type == 'INPUT':

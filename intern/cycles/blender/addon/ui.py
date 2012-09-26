@@ -437,6 +437,7 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
         layout.prop(cdata, "use_subdivision")
         layout.prop(cdata, "dicing_rate")
 
+
 class Cycles_PT_mesh_normals(CyclesButtonsPanel, Panel):
     bl_label = "Normals"
     bl_context = "data"
@@ -953,7 +954,7 @@ def draw_device(self, context):
             layout.prop(cscene, "device")
         elif device_type == 'OPENCL' and cscene.feature_set == 'EXPERIMENTAL':
             layout.prop(cscene, "device")
-            
+
         if cscene.feature_set == 'EXPERIMENTAL' and cscene.device == 'CPU' and engine.with_osl():
             layout.prop(cscene, "shading_system")
 

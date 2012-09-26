@@ -89,6 +89,7 @@ def run_ops(operators, setup_func=None, reset=True):
             bpy.ops.wm.read_factory_settings()
         setup_func()
 
+
 # contexts
 def ctx_clear_scene():  # copied from batch_import.py
     unique_obs = set()
@@ -231,7 +232,7 @@ def main():
 
     #import random
     #random.shuffle(operators)
-    
+
     # 2 passes, first just run setup_func to make sure they are ok
     for operators_test in ((), operators):
         # Run the operator tests in different contexts
@@ -259,7 +260,7 @@ def main():
         run_ops(operators_test, setup_func=ctx_editmode_mball)
         run_ops(operators_test, setup_func=ctx_editmode_text)
         run_ops(operators_test, setup_func=ctx_editmode_lattice)
-        
+
         if not operators_test:
             print("All setup functions run fine!")
 
