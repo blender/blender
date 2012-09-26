@@ -757,8 +757,8 @@ void draw_gpencil_view3d(Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 {
 	bGPdata *gpd;
 	int dflag = 0;
-	rcti rect;
 	RegionView3D *rv3d = ar->regiondata;
+	int offsx,  offsy,  winx,  winy;
 
 	/* check that we have grease-pencil stuff to draw */
 	gpd = gpencil_data_get_active_v3d(scene); // XXX
@@ -769,19 +769,23 @@ void draw_gpencil_view3d(Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 	if ((rv3d->persp == RV3D_CAMOB) && !(G.f & G_RENDER_OGL)) {
 		rctf rectf;
 		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &rectf, TRUE); /* no shift */
-		BLI_rcti_rctf_copy(&rect, &rectf);
+
+		offsx = floorf(rectf.xmin + 0.5f);
+		offsy = floorf(rectf.ymin + 0.5f);
+		winx  = floorf((rectf.xmax - rectf.xmin) + 0.5f);
+		winy  = floorf((rectf.ymax - rectf.ymin) + 0.5f);
 	}
 	else {
-		rect.xmin = 0;
-		rect.ymin = 0;
-		rect.xmax = ar->winx;
-		rect.ymax = ar->winy;
+		offsx = 0;
+		offsy = 0;
+		winx  = ar->winx;
+		winy  = ar->winy;
 	}
 	
 	/* draw it! */
 	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
 
-	gp_draw_data(gpd, rect.xmin, rect.ymin, rect.xmax, rect.ymax, CFRA, dflag);
+	gp_draw_data(gpd, offsx, offsy, winx, winy, CFRA, dflag);
 }
 
 /* ************************************************** */
