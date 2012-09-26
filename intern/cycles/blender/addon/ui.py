@@ -456,7 +456,7 @@ class Cycles_PT_mesh_normals(CyclesButtonsPanel, Panel):
         col.prop(mesh, "show_double_sided")
 
         col = split.column()
-        prop.label()
+        col.label()
 
 
 class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):

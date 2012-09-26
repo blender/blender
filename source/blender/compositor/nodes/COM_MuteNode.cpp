@@ -118,7 +118,8 @@ void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 
 		if (this->getbNodeGroup()) {
 			editorTree = (bNodeTree *) getbNodeGroup()->id;
-		} else {
+		}
+		else {
 			editorTree = (bNodeTree *) context->getbNodeTree();
 		}
 
