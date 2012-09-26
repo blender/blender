@@ -1893,10 +1893,10 @@ void IMB_display_buffer_release(void *cache_handle)
 
 /*********************** Display functions *************************/
 
-ColorManagedDisplay *colormanage_display_get_default(void)
+const char *colormanage_display_get_default_name(void)
 {
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
-	const char *display;
+	const char *display_name;
 
 	if (!config) {
 		/* no valid OCIO configuration, can't get default display */
@@ -1904,14 +1904,21 @@ ColorManagedDisplay *colormanage_display_get_default(void)
 		return NULL;
 	}
 
-	display = OCIO_configGetDefaultDisplay(config);
+	display_name = OCIO_configGetDefaultDisplay(config);
 
 	OCIO_configRelease(config);
 
-	if (display[0] == '\0')
+	return display_name;
+}
+
+ColorManagedDisplay *colormanage_display_get_default(void)
+{
+	const char *display_name = colormanage_display_get_default_name();
+
+	if (display_name[0] == '\0')
 		return NULL;
 
-	return colormanage_display_get_named(display);
+	return colormanage_display_get_named(display_name);
 }
 
 ColorManagedDisplay *colormanage_display_add(const char *name)
@@ -1991,6 +1998,14 @@ const char *IMB_colormanagement_display_get_default_name(void)
 ColorManagedDisplay *IMB_colormanagement_display_get_named(const char *name)
 {
 	return colormanage_display_get_named(name);
+}
+
+const char *IMB_colormanagement_display_get_none_name(void)
+{
+	if (colormanage_display_get_named("None") != NULL)
+		return "NULL";
+
+	return colormanage_display_get_default_name();
 }
 
 /*********************** View functions *************************/

@@ -1266,9 +1266,11 @@ void BKE_scene_disable_color_management(Scene *scene)
 	ColorManagedDisplaySettings *display_settings = &scene->display_settings;
 	ColorManagedViewSettings *view_settings = &scene->view_settings;
 	const char *view;
+	const char *none_display_name;
 
-	/* NOTE: None display with Default view should always exist in OCIO configuration, otherwise it wouldn't work as expected */
-	BLI_strncpy(display_settings->display_device, "None", sizeof(display_settings->display_device));
+	none_display_name = IMB_colormanagement_display_get_none_name();
+
+	BLI_strncpy(display_settings->display_device, none_display_name, sizeof(display_settings->display_device));
 
 	view = IMB_colormanagement_view_get_default_name(display_settings->display_device);
 
