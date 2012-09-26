@@ -2003,7 +2003,7 @@ ColorManagedDisplay *IMB_colormanagement_display_get_named(const char *name)
 const char *IMB_colormanagement_display_get_none_name(void)
 {
 	if (colormanage_display_get_named("None") != NULL)
-		return "NULL";
+		return "None";
 
 	return colormanage_display_get_default_name();
 }
