@@ -514,8 +514,9 @@ static int recursive_operation(const char *startfrom, const char *startto, Recur
 		}
 
 		if (ret != 0) {
-			while (i < n)
-				free(dirlist[i]);
+			while (i < n) {
+				free(dirlist[i++]);
+			}
 			break;
 		}
 	}
