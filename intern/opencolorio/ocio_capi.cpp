@@ -35,7 +35,7 @@
 #define OCIO_CAPI_IMPLEMENTATION
 #include "ocio_capi.h"
 
-#ifdef NDEBUG
+#if !defined(WITH_ASSERT_ABORT)
 #  define OCIO_abort()
 #else
 #  include <stdlib.h>
@@ -53,7 +53,7 @@ static void OCIO_reportError(const char *err)
 {
 	std::cerr << "OpenColorIO Error: " << err << std::endl;
 
-	// OCIO_abort();
+	OCIO_abort();
 }
 
 static void OCIO_reportException(Exception &exception)
