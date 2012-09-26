@@ -852,7 +852,7 @@ static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
 	RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
 	
 	WM_operator_properties_create(&props_ptr, "LOGIC_OT_controller_add");
-	RNA_string_set(&props_ptr, "object", ob->id.name+2);
+	RNA_string_set(&props_ptr, "object", ob->id.name + 2);
 
 	/* (3) add a new controller */
 	if (WM_operator_name_call(C, "LOGIC_OT_controller_add", WM_OP_EXEC_DEFAULT, &props_ptr) & OPERATOR_FINISHED) {

@@ -566,7 +566,9 @@ static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, i
 		if (testi >= 0 && testi < kcd->totlinehit) {
 			if (knife_find_common_face(&kcd->linehits[testi].kfe->faces,
 			                           &kcd->linehits[i].kfe->faces))
+			{
 				return i;
+			}
 		}
 		else if (f) {
 			if (find_ref(&kcd->linehits[i].kfe->faces, f))

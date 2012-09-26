@@ -196,7 +196,7 @@ static SpaceLink *sequencer_new(const bContext *C)
 /* not spacelink itself */
 static void sequencer_free(SpaceLink *sl)
 {	
-	SpaceSeq *sseq= (SpaceSeq *) sl;
+	SpaceSeq *sseq = (SpaceSeq *) sl;
 	SequencerScopes *scopes = &sseq->scopes;
 
 // XXX	if (sseq->gpd) BKE_gpencil_free(sseq->gpd);

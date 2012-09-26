@@ -914,8 +914,7 @@ void BKE_ffmpeg_filepath_get(char *string, RenderData *rd)
 	}
 
 	while (*fe) {
-		if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), *fe) == 0)
-		{
+		if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), *fe) == 0) {
 			break;
 		}
 		fe++;

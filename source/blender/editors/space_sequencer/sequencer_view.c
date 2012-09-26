@@ -25,7 +25,7 @@
  */
 
 
-/** \file blender/editors/space_sequencer/sequencer_modifier.c
+/** \file blender/editors/space_sequencer/sequencer_view.c
  *  \ingroup spseq
  */
 
