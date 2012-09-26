@@ -1028,8 +1028,7 @@ void IMB_colormanagement_validate_settings(ColorManagedDisplaySettings *display_
 
 	display = colormanage_display_get_named(display_settings->display_device);
 
-	if (display)
-		default_view = colormanage_view_get_default(display);
+	default_view = colormanage_view_get_default(display);
 
 	for (view_link = display->views.first; view_link; view_link = view_link->next) {
 		ColorManagedView *view = view_link->data;
