@@ -265,7 +265,7 @@ static void rna_UserDef_audio_update(Main *bmain, Scene *UNUSED(scene), PointerR
 
 static void rna_Userdef_memcache_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
+	MEM_CacheLimiter_set_maximum(((size_t) U.memcachelimit) * 1024 * 1024);
 }
 
 static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRNA *ptr)
