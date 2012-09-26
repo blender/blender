@@ -1330,7 +1330,7 @@ static void gpu_colors_disable(VBO_State vbo_state)
 
 static float gpu_color_from_mask(float mask)
 {
-	return 1.0f - mask;
+	return 1.0f - mask * 0.75f;
 }
 
 static void gpu_color_from_mask_copy(float mask, const float diffuse_color[4], unsigned char out[3])
