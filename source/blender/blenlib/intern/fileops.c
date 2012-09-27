@@ -42,6 +42,9 @@
 #include "zlib.h"
 
 #ifdef WIN32
+#ifdef __MINGW32__
+#include <ctype.h>
+#endif
 #include <io.h>
 #  include "BLI_winstuff.h"
 #  include "BLI_callbacks.h"
