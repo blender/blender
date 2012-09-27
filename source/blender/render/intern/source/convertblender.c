@@ -3929,6 +3929,9 @@ static void add_lightgroup(Render *re, Group *group, int exclusive)
 	/* note that 'exclusive' will remove it from the global list */
 	for (go= group->gobject.first; go; go= go->next) {
 		go->lampren= NULL;
+
+		if(go->ob->restrictflag & OB_RESTRICT_RENDER)
+			continue;
 		
 		if (go->ob->lay & re->lay) {
 			if (go->ob && go->ob->type==OB_LAMP) {
