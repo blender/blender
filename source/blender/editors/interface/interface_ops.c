@@ -915,20 +915,41 @@ static void UI_OT_editsource(wmOperatorType *ot)
 static void edittranslation_find_po_file(const char *root, const char *uilng, char *path, const size_t maxlen)
 {
 	char tstr[32]; /* Should be more than enough! */
+
 	/* First, full lang code. */
 	BLI_snprintf(tstr, sizeof(tstr), "%s.po", uilng);
 	BLI_join_dirfile(path, maxlen, root, uilng);
 	BLI_join_dirfile(path, maxlen, path, tstr);
 	if (BLI_is_file(path))
 		return;
+
 	/* Now try without the second iso code part (_ES in es_ES). */
-	strncpy(tstr, uilng, 2);
-	BLI_strncpy(tstr + 2, uilng + 5, sizeof(tstr) - 2); /* Because of some codes like sr_SR@latin... */
-	BLI_join_dirfile(path, maxlen, root, tstr);
-	strcat(tstr, ".po");
-	BLI_join_dirfile(path, maxlen, path, tstr);
-	if (BLI_is_file(path))
-		return;
+	{
+		char *tc = NULL;
+		size_t szt = 0;
+		tstr[0] = '\0';
+
+		tc = strchr(uilng, '_');
+		if (tc) {
+			szt = tc - uilng;
+			if (szt < sizeof(tstr)) /* Paranoid, should always be true! */
+				BLI_strncpy(tstr, uilng, szt + 1); /* +1 for '\0' char! */
+		}
+		if (tstr[0]) {
+			/* Because of some codes like sr_SR@latin... */
+			tc = strchr(uilng, '@');
+			if (tc)
+				BLI_strncpy(tstr + szt, tc, sizeof(tstr) - szt);
+
+			BLI_join_dirfile(path, maxlen, root, tstr);
+			strcat(tstr, ".po");
+			BLI_join_dirfile(path, maxlen, path, tstr);
+			if (BLI_is_file(path))
+				return;
+		}
+	}
+
+	/* Else no po file! */
 	path[0] = '\0';
 }
 
@@ -967,7 +988,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 		}
 		/* Try to find a valid po file for current language... */
 		edittranslation_find_po_file(root, uilng, popath, FILE_MAX);
-		printf("po path: %s\n", popath);
+/*		printf("po path: %s\n", popath);*/
 		if (popath[0] == '\0') {
 			BKE_reportf(op->reports, RPT_ERROR, "No valid po found for language '%s' under %s.", uilng, root);
 			return OPERATOR_CANCELLED;
@@ -1021,14 +1042,6 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 	}
 }
 
-#if 0
-static int edittranslation_poll(bContext *UNUSED(C))
-{
-	/* We need the i18n py addon to be enabled! */
-	return WM_operatortype_find(EDTSRC_I18N_OP_NAME, 0) ? TRUE : FALSE;
-}
-#endif
-
 static void UI_OT_edittranslation_init(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1038,7 +1051,6 @@ static void UI_OT_edittranslation_init(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->exec = edittranslation_exec;
-/*	ot->poll = edittranslation_poll;*/
 }
 
 #endif /* WITH_PYTHON */
