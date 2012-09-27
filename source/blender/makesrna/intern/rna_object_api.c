@@ -96,7 +96,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			float (*orco)[3] = NULL;
 
 			/* copies object and modifiers (but not the data) */
-			tmpobj = BKE_object_copy(ob);
+			tmpobj = BKE_object_copy_with_caches(ob);
 			tmpcu = (Curve *)tmpobj->data;
 			tmpcu->id.us--;
 
