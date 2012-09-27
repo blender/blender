@@ -455,7 +455,7 @@ void BKE_tracking_clipboard_paste_tracks(MovieTracking *tracking, MovieTrackingO
 
 /*********************** Tracks  *************************/
 
-static void tracking_marker_insert_disabled(MovieTrackingTrack *track, MovieTrackingMarker *ref_marker,
+static void tracking_marker_insert_disabled(MovieTrackingTrack *track, const MovieTrackingMarker *ref_marker,
                                             int before, int overwrite)
 {
 	MovieTrackingMarker marker_new;
@@ -2400,7 +2400,7 @@ static void tracking_insert_new_marker(MovieTrackingContext *context, MovieTrack
 			 * if so -- create disabled marker before currently tracking "segment"
 			 */
 
-			tracking_marker_insert_disabled(track, &new_marker, !context->backwards, FALSE);
+			tracking_marker_insert_disabled(track, old_marker, !context->backwards, FALSE);
 		}
 
 		/* insert currently tracked marker */
