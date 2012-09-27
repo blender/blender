@@ -517,11 +517,11 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	phi = 0;
 
 	if (cap_ends) {
-		vec[0] = vec[1] = 0.0f;
-		vec[2] = 0.0;
+		zero_v3(vec);
 		mul_m4_v3(mat, vec);
 		
 		cent1 = BM_vert_create(bm, vec, NULL);
+		BMO_elem_flag_enable(bm, cent1, VERT_MARK);
 	}
 
 	for (a = 0; a < segs; a++, phi += phid) {
