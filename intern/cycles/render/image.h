@@ -22,6 +22,7 @@
 #include "device_memory.h"
 
 #include "util_string.h"
+#include "util_thread.h"
 #include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -66,6 +67,7 @@ private:
 	int tex_num_images;
 	int tex_num_float_images;
 	int tex_image_byte_start;
+	thread_mutex device_mutex;
 
 	struct Image {
 		string filename;
