@@ -1054,7 +1054,9 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 
 	if ((ibuf == NULL) || ((ibuf->rect == NULL) && (ibuf->rect_float == NULL))) return retval;
 
-	ima->flag |= IMA_USED_FOR_RENDER;
+	if (ima) {
+		ima->flag |= IMA_USED_FOR_RENDER;
+	}
 
 	/* mipmap test */
 	image_mipmap_test(tex, ibuf);
