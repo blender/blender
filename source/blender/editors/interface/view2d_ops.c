@@ -1478,6 +1478,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	View2DScrollers *scrollers;
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
+	rctf tot_cur_union;
 	float mask_size;
 	
 	/* set custom-data for operator */
@@ -1497,14 +1498,20 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	 */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 
+	/* use a union of 'cur' & 'tot' incase the current view is far outside 'tot'.
+	 * In this cases moving the scroll bars has far too little effect and the view can get stuck [#31476] */
+	tot_cur_union = v2d->tot;
+	BLI_rctf_union(&tot_cur_union, &v2d->cur);
 
 	if (in_scroller == 'h') {
 		/* horizontal scroller - calculate adjustment factor first */
 		mask_size = (float)BLI_rcti_size_x(&v2d->hor);
-		vsm->fac = BLI_rctf_size_x(&v2d->tot) / mask_size;
+		vsm->fac = BLI_rctf_size_x(&tot_cur_union) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
-		vsm->zone = mouse_in_scroller_handle(event->mval[0], v2d->hor.xmin, v2d->hor.xmax, scrollers->hor_min, scrollers->hor_max);
+		vsm->zone = mouse_in_scroller_handle(event->mval[0],
+		                                     v2d->hor.xmin, v2d->hor.xmax,
+		                                     scrollers->hor_min, scrollers->hor_max);
 		
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
 			/* default to scroll, as handles not usable */
@@ -1517,10 +1524,12 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	else {
 		/* vertical scroller - calculate adjustment factor first */
 		mask_size = (float)BLI_rcti_size_y(&v2d->vert);
-		vsm->fac = BLI_rctf_size_y(&v2d->tot) / mask_size;
+		vsm->fac = BLI_rctf_size_y(&tot_cur_union) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
-		vsm->zone = mouse_in_scroller_handle(event->mval[1], v2d->vert.ymin, v2d->vert.ymax, scrollers->vert_min, scrollers->vert_max);
+		vsm->zone = mouse_in_scroller_handle(event->mval[1],
+		                                     v2d->vert.ymin, v2d->vert.ymax,
+		                                     scrollers->vert_min, scrollers->vert_max);
 			
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
 			/* default to scroll, as handles not usable */
