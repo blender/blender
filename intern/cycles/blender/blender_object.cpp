@@ -309,7 +309,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 			hide = hide || !(ob_layer & scene_layer);
 
 			if(!hide) {
-				progress.set_status("Synchronizing object", (*b_ob).name());
+				progress.set_sync_status("Synchronizing object", (*b_ob).name());
 
 				int num_particles = object_count_particles(*b_ob);
 
@@ -355,6 +355,8 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 			cancel = progress.get_cancel();
 		}
 	}
+
+	progress.set_sync_status("");
 
 	if(!cancel && !motion) {
 		sync_background_light();
