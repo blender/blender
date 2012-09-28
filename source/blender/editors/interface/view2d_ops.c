@@ -849,12 +849,12 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 				float mval_faci = 1.0f - mval_fac;
 				float ofs = (mval_fac * dx) - (mval_faci * dx);
 				
-				v2d->cur.xmin += ofs + dx;
-				v2d->cur.xmax += ofs - dx;
+				v2d->cur.xmin += ofs - dx;
+				v2d->cur.xmax += ofs + dx;
 			}
 			else {
-				v2d->cur.xmin += dx;
-				v2d->cur.xmax -= dx;
+				v2d->cur.xmin -= dx;
+				v2d->cur.xmax += dx;
 			}
 		}
 	}
@@ -868,12 +868,12 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 				float mval_faci = 1.0f - mval_fac;
 				float ofs = (mval_fac * dy) - (mval_faci * dy);
 				
-				v2d->cur.ymin += ofs + dy;
-				v2d->cur.ymax += ofs - dy;
+				v2d->cur.ymin += ofs - dy;
+				v2d->cur.ymax += ofs + dy;
 			}
 			else {
-				v2d->cur.ymin += dy;
-				v2d->cur.ymax -= dy;
+				v2d->cur.ymin -= dy;
+				v2d->cur.ymax += dy;
 			}
 		}
 	}
@@ -1044,8 +1044,14 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		
 		/* set transform amount, and add current deltas to stored total delta (for redo) */
-		RNA_float_set(op->ptr, "deltax", dx);
-		RNA_float_set(op->ptr, "deltay", dy);
+		if (U.uiflag & USER_ZOOM_INVERT) {
+			RNA_float_set(op->ptr, "deltax", -dx);
+			RNA_float_set(op->ptr, "deltay", -dy);
+		}
+		else {
+			RNA_float_set(op->ptr, "deltax", dx);
+			RNA_float_set(op->ptr, "deltay", dy);
+		}
 		vzd->dx += dx;
 		vzd->dy += dy;
 		
