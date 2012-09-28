@@ -335,7 +335,7 @@ static void search_pixel_to_marker_unified(int frame_width, int frame_height,
 }
 
 /* Each marker has 5 coordinates associated with it that get warped with
- * tracking: the four corners ("pattern_corners"), and the cernter ("pos").
+ * tracking: the four corners ("pattern_corners"), and the center ("pos").
  * This function puts those 5 points into the appropriate frame for tracking
  * (the "search" coordinate frame).
  */

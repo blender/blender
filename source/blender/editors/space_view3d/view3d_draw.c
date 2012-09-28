@@ -2559,7 +2559,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 		/* NOTE: currently OpenGL is supposed to always work in sRGB space and do not
 		 *       apply any tonemaps since it's really tricky to support for all features (GLSL, textures, etc)
 		 *       but due to compatibility issues background is being affected display transform, so we can
-		 *       emulate behavior of disabled colro management
+		 *       emulate behavior of disabled color management
 		 *       but this function is also used for sequencer's scene strips which shouldn't be affected by
 		 *       tonemaps now and should be purely sRGB, that's why we've got this colormanage_background
 		 *       we can drop this flag in cost of some compatibility loss -- background wouldn't be

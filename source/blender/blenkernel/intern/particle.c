@@ -116,7 +116,7 @@ int count_particles_mod(ParticleSystem *psys, int totgr, int cur)
 	}
 	return tot;
 }
-/* we allocate path cache memory in chunks instead of a big continguous
+/* we allocate path cache memory in chunks instead of a big contiguous
  * chunk, windows' memory allocater fails to find big blocks of memory often */
 
 #define PATH_CACHE_BUF_SIZE 1024

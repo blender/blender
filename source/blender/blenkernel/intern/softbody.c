@@ -151,7 +151,7 @@ typedef struct  SB_thread_context {
 
 #define SOFTGOALSNAP  0.999f
 /* if bp-> goal is above make it a *forced follow original* and skip all ODE stuff for this bp
- * removes *unnecessary* stiffnes from ODE system
+ * removes *unnecessary* stiffness from ODE system
  */
 #define HEUNWARNLIMIT 1 /* 500 would be fine i think for detecting severe *stiff* stuff */
 

@@ -152,7 +152,7 @@ static void menudata_free(MenuData *md)
  * if %xNN is given then NN is the return value if
  * that option is selected otherwise the return value
  * is the index of the option (starting with 1). %l
- * indicates a seperator, sss%l indicates a label and
+ * indicates a separator, sss%l indicates a label and
  * new column.
  *
  * \param str String to be parsed.

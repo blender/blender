@@ -2211,7 +2211,7 @@ static int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *sel
 			return -1;
 		}
 
-		/* lib is either a valid poniter or NULL,
+		/* lib is either a valid pointer or NULL,
 		 * either way can do direct comparison with id.lib */
 
 		RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop)

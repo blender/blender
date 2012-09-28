@@ -148,7 +148,7 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
 		}
 
 		if (action == SEL_INVERT) {
-			/* we don't have generic functons for this, its restricted to this operator
+			/* we don't have generic functions for this, its restricted to this operator
 			 * if one day we need to re-use such functionality, they can be split out */
 
 			MaskSpline *spline;

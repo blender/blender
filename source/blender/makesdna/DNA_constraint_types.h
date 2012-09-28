@@ -182,7 +182,7 @@ typedef struct bSplineIKConstraint {
 typedef struct bTrackToConstraint {
 	struct Object		*tar;
 	int			reserved1; /* I'll be using reserved1 and reserved2 as Track and Up flags,
-	                        * not sure if that's what they were intented for anyway.
+	                        * not sure if that's what they were intended for anyway.
 	                        * Not sure either if it would create backward incompatibility if I were to rename them.
 	                        * - theeth*/
 	int			reserved2;

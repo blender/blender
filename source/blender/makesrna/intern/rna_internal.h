@@ -359,7 +359,7 @@ typedef struct ArrayIterator {
 	void *free_ptr; /* will be freed if set */
 	int itemsize;
 
-	/* array length with no skip functins applied, take care not to compare against index from animsys
+	/* array length with no skip functions applied, take care not to compare against index from animsys
 	 * or python indices */
 	int length;
 
