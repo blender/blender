@@ -1334,10 +1334,9 @@ static TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struc
 	return hdata;
 }
 
-static void createTransCurveVerts(bContext *C, TransInfo *t)
+static void createTransCurveVerts(TransInfo *t)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Curve *cu = obedit->data;
+	Curve *cu = t->obedit->data;
 	TransData *td = NULL;
 	Nurb *nu;
 	BezTriple *bezt;
@@ -1935,9 +1934,9 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 	}
 }
 
-static void createTransEditVerts(bContext *C, TransInfo *t)
+static void createTransEditVerts(TransInfo *t)
 {
-	ToolSettings *ts = CTX_data_tool_settings(C);
+	ToolSettings *ts = t->scene->toolsettings;
 	TransData *tob = NULL;
 	TransDataExtension *tx = NULL;
 	BMEditMesh *em = BMEdit_FromObject(t->obedit);
@@ -6425,10 +6424,10 @@ void createTransData(bContext *C, TransInfo *t)
 	else if (t->obedit) {
 		t->ext = NULL;
 		if (t->obedit->type == OB_MESH) {
-			createTransEditVerts(C, t);
+			createTransEditVerts(t);
 		}
 		else if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
-			createTransCurveVerts(C, t);
+			createTransCurveVerts(t);
 		}
 		else if (t->obedit->type == OB_LATTICE) {
 			createTransLatticeVerts(t);
