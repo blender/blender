@@ -866,7 +866,7 @@ class USERPREF_MT_ndof_settings(Menu):
 
             layout.separator()
             layout.label(text="Orbit options")
-            layout.prop(input_prefs, "ndof_turntable")
+            layout.row().prop(input_prefs, "ndof_view_rotate_method", text="")
             layout.prop(input_prefs, "ndof_roll_invert_axis")
             layout.prop(input_prefs, "ndof_tilt_invert_axis")
             layout.prop(input_prefs, "ndof_rotate_invert_axis")
@@ -953,6 +953,8 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         sub = col.column()
         sub.label(text="NDOF Device:")
         sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
+        sub.prop(inputs, "ndof_orbit_sensitivity", text="NDOF Orbit Sensitivity")
+        sub.row().prop(inputs, "ndof_view_rotate_method", expand=True)
 
         row.separator()
 

@@ -3293,6 +3293,12 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 		{USER_TRACKBALL, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport"},
 		{0, NULL, 0, NULL, NULL}
 	};
+
+	static EnumPropertyItem ndof_view_rotation_items[] = {
+		{NDOF_TURNTABLE, "TURNTABLE", 0, "Turntable", "Use turntable style rotation in the viewport"},
+		{0, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport"},
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	static EnumPropertyItem view_zoom_styles[] = {
 		{USER_ZOOM_CONT, "CONTINUE", 0, "Continue", "Old style zoom, continues while moving mouse up or down"},
@@ -3384,9 +3390,10 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	/* TODO: update description when fly-mode visuals are in place  ("projected position in fly mode")*/
 
 	/* 3D view */
-	prop = RNA_def_property(srna, "ndof_turntable", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_TURNTABLE);
-	RNA_def_property_ui_text(prop, "Turntable", "Turntable for ndof rotation");
+	prop = RNA_def_property(srna, "ndof_view_rotate_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, ndof_view_rotation_items);
+	RNA_def_property_ui_text(prop, "NDOF View Rotation", "Rotation style in the viewport");
 
 	/* 3D view: roll */
 	prop = RNA_def_property(srna, "ndof_roll_invert_axis", PROP_BOOLEAN, PROP_NONE);
