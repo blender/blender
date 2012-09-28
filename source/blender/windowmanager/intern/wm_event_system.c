@@ -2472,6 +2472,11 @@ void WM_event_add_mousemove(bContext *C)
 	window->addmousemove = 1;
 }
 
+void WM_event_add_mousemove_window(wmWindow *window)
+{
+	window->addmousemove = 1;
+}
+
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */
 int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 {
