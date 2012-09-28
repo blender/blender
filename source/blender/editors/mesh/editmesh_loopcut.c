@@ -373,11 +373,12 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 	op->customdata = NULL;
 }
 
+
 /* called when modal loop selection gets set up... */
 static int ringsel_init(bContext *C, wmOperator *op, int do_cut)
 {
 	RingSelOpData *lcd;
-	
+
 	/* alloc new customdata */
 	lcd = op->customdata = MEM_callocN(sizeof(RingSelOpData), "ringsel Modal Op Data");
 	
@@ -392,7 +393,10 @@ static int ringsel_init(bContext *C, wmOperator *op, int do_cut)
 	initNumInput(&lcd->num);
 	lcd->num.idx_max = 0;
 	lcd->num.flag |= NUM_NO_NEGATIVE | NUM_NO_FRACTION;
-	
+
+	/* XXX, temp, workaround for [#	] */
+	EDBM_mesh_ensure_valid_dm_hack(CTX_data_scene(C), lcd->em);
+
 	em_setup_viewcontext(C, &lcd->vc);
 
 	ED_region_tag_redraw(lcd->ar);
