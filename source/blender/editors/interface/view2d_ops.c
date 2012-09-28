@@ -1528,7 +1528,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 		}
 		
 		vsm->scrollbarwidth = scrollers->vert_max - scrollers->vert_min;
-		vsm->scrollbar_orig = ((scrollers->vert_max + scrollers->vert_min) / 2) +  +ar->winrct.ymin;
+		vsm->scrollbar_orig = ((scrollers->vert_max + scrollers->vert_min) / 2) + ar->winrct.ymin;
 	}
 	
 	UI_view2d_scrollers_free(scrollers);
