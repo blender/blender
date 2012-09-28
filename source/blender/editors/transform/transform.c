@@ -3909,7 +3909,7 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		sprintf(str, "Shrink/Fatten: %.4f %s", distance, t->proptext);
 	}
 
-	t->values[0] = distance;
+	t->values[0] = -distance;
 
 	for (i = 0; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
