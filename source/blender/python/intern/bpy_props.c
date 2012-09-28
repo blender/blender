@@ -360,6 +360,7 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 #define BPY_PROPDEF_UPDATE_DOC \
 "   :arg update: function to be called when this value is modified,\n" \
 "      This function must take 2 values (self, context) and return None.\n" \
+"      *Warning* there are no safety checks to avoid infinite recursion.\n" \
 "   :type update: function\n" \
 
 #if 0
