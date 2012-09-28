@@ -1424,6 +1424,24 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 	uiDefAutoButsRNA(layout, &ptr, image_save_as_draw_check_prop, '\0');
 }
 
+static int image_save_as_poll(bContext *C)
+{
+	if (space_image_buffer_exists_poll(C)) {
+		if (G.is_rendering) {
+			/* no need to NULL check here */
+			SpaceImage *sima = CTX_wm_space_image(C);
+			Image *ima = ED_space_image(sima);
+
+			if ((ima->source == IMA_SRC_VIEWER)) {
+				CTX_wm_operator_poll_msg_set(C, "can't save image while rendering");
+				return FALSE;
+			}
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+
 void IMAGE_OT_save_as(wmOperatorType *ot)
 {
 //	PropertyRNA *prop;
@@ -1439,7 +1457,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	ot->invoke = image_save_as_invoke;
 	ot->cancel = image_save_as_cancel;
 	ot->ui = image_save_as_draw;
-	ot->poll = space_image_buffer_exists_poll;
+	ot->poll = image_save_as_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
