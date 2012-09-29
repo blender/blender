@@ -171,7 +171,7 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 }
 
 PyDoc_STRVAR(bpy_resource_path_doc,
-".. function:: resource_path(type, major=2, minor=57)\n"
+".. function:: resource_path(type, major=bpy.app.version[0], minor=bpy.app.version[1])\n"
 "\n"
 "   Return the base path for storing system files.\n"
 "\n"

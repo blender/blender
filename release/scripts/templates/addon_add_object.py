@@ -39,10 +39,9 @@ def add_object(self, context):
 
 
 class OBJECT_OT_add_object(Operator, AddObjectHelper):
-    """Add a Mesh Object"""
+    """Create a new Mesh Object"""
     bl_idname = "mesh.add_object"
     bl_label = "Add Mesh Object"
-    bl_description = "Create a new Mesh Object"
     bl_options = {'REGISTER', 'UNDO'}
 
     scale = FloatVectorProperty(
