@@ -185,7 +185,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
                 split = col.box().split()
 
                 col = split.column()
-                col.prop(group, "layers", text="Dupli")
+                col.prop(group, "layers", text="Dupli Visibility")
 
                 col = split.column()
                 col.prop(group, "dupli_offset", text="")
