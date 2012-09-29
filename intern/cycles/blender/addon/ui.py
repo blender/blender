@@ -59,7 +59,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         col = split.column()
         sub = col.column()
-        sub.enabled = (device_type == 'NONE' or cscene.device == 'CPU')
+        sub.active = (device_type == 'NONE' or cscene.device == 'CPU')
         sub.prop(cscene, "progressive")
 
         sub = col.column(align=True)
