@@ -4781,7 +4781,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				base->object = newlibadr_us(fd, sce->id.lib, base->object);
 				
 				if (base->object == NULL) {
-					BKE_reportf_wrap(fd->reports, RPT_ERROR,
+					BKE_reportf_wrap(fd->reports, RPT_WARNING,
 					                 "LIB ERROR: Object lost from scene:'%s\'",
 					                 sce->id.name + 2);
 					BLI_remlink(&sce->base, base);
@@ -9594,7 +9594,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					else mainptr->curlib->filedata = NULL;
 					
 					if (fd == NULL) {
-						BKE_reportf_wrap(basefd->reports, RPT_ERROR,
+						BKE_reportf_wrap(basefd->reports, RPT_WARNING,
 						                 "Can't find lib '%s'",
 						                 mainptr->curlib->filepath);
 					}
@@ -9613,7 +9613,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
-									BKE_reportf_wrap(fd->reports, RPT_ERROR,
+									BKE_reportf_wrap(fd->reports, RPT_WARNING,
 									                 "LIB ERROR: %s:'%s' missing from '%s'",
 									                 BKE_idcode_to_name(GS(id->name)),
 									                 id->name+2, mainptr->curlib->filepath);
@@ -9645,7 +9645,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				idn = id->next;
 				if (id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
-					BKE_reportf_wrap(basefd->reports, RPT_ERROR,
+					BKE_reportf_wrap(basefd->reports, RPT_WARNING,
 					                 "LIB ERROR: %s:'%s' unread libblock missing from '%s'",
 					                 BKE_idcode_to_name(GS(id->name)), id->name + 2, mainptr->curlib->filepath);
 					change_idid_adr(mainlist, basefd, id, NULL);
