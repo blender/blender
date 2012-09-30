@@ -1750,11 +1750,11 @@ static void curvemap_buttons_redraw(bContext *C, void *UNUSED(arg1), void *UNUSE
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
-static void curvemap_buttons_update(bContext *UNUSED(C), void *UNUSED(arg1), void *cumap_v)
+static void curvemap_buttons_update(bContext *C, void *arg1_v, void *cumap_v)
 {
 	CurveMapping *cumap = cumap_v;
-
 	curvemapping_changed(cumap, TRUE);
+	rna_update_cb(C, arg1_v, NULL);
 }
 
 static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
@@ -1901,9 +1901,9 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 
 	if (cmp) {
 		uiLayoutRow(layout, TRUE);
-		uiBlockSetNFunc(block, curvemap_buttons_update, NULL, cumap);
-		uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y, &cmp->x, 0.0f, 1.0f, 1, 5, "");
-		uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y, &cmp->y, 0.0f, 1.0f, 1, 5, "");
+		uiBlockSetNFunc(block, curvemap_buttons_update, MEM_dupallocN(cb), cumap);
+		bt = uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y, &cmp->x, 0.0f, 1.0f, 1, 5, "");
+		bt = uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y, &cmp->y, 0.0f, 1.0f, 1, 5, "");
 	}
 
 	/* black/white levels */

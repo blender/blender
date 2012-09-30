@@ -22,6 +22,9 @@ class HelloWorldPanel(bpy.types.Panel):
         row = layout.row()
         row.prop(obj, "name")
 
+        row = layout.row()
+        row.operator("mesh.primitive_cube_add")
+
 
 def register():
     bpy.utils.register_class(HelloWorldPanel)

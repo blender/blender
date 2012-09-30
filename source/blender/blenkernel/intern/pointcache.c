@@ -2663,32 +2663,59 @@ void BKE_ptcache_free_list(ListBase *ptcaches)
 	}
 }
 
-static PointCache *ptcache_copy(PointCache *cache)
+static PointCache *ptcache_copy(PointCache *cache, int copy_data)
 {
 	PointCache *ncache;
 
 	ncache= MEM_dupallocN(cache);
 
-	/* hmm, should these be copied over instead? */
 	ncache->mem_cache.first = NULL;
 	ncache->mem_cache.last = NULL;
-	ncache->cached_frames = NULL;
-	ncache->edit = NULL;
 
-	ncache->flag= 0;
-	ncache->simframe= 0;
+	if (copy_data == FALSE) {
+		ncache->mem_cache.first = NULL;
+		ncache->mem_cache.last = NULL;
+		ncache->cached_frames = NULL;
+
+		ncache->flag= 0;
+		ncache->simframe= 0;
+	}
+	else {
+		PTCacheMem *pm;
+
+		for (pm = cache->mem_cache.first; pm; pm = pm->next) {
+			PTCacheMem *pmn = MEM_dupallocN(pm);
+			int i;
+
+			for (i = 0; i < BPHYS_TOT_DATA; i++) {
+				if (pmn->data[i])
+					pmn->data[i] = MEM_dupallocN(pm->data[i]);
+			}
+
+			BKE_ptcache_mem_pointers_init(pm);
+
+			BLI_addtail(&ncache->mem_cache, pmn);
+		}
+
+		if (ncache->cached_frames)
+			ncache->cached_frames = MEM_dupallocN(cache->cached_frames);
+	}
+
+	/* hmm, should these be copied over instead? */
+	ncache->edit = NULL;
 
 	return ncache;
 }
+
 /* returns first point cache */
-PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old)
+PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old, int copy_data)
 {
 	PointCache *cache = ptcaches_old->first;
 
 	ptcaches_new->first = ptcaches_new->last = NULL;
 
 	for (; cache; cache=cache->next)
-		BLI_addtail(ptcaches_new, ptcache_copy(cache));
+		BLI_addtail(ptcaches_new, ptcache_copy(cache, copy_data));
 
 	return ptcaches_new->first;
 }

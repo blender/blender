@@ -685,7 +685,7 @@ static PyObject *bpy_bmlayercollection_subscript(BPy_BMLayerCollection *self, Py
 				/* only get the length for negative values */
 				Py_ssize_t len = bpy_bmlayercollection_length(self);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {

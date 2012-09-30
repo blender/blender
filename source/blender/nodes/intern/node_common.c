@@ -223,13 +223,13 @@ bNodeTemplate node_group_template(bNode *node)
 {
 	bNodeTemplate ntemp;
 	ntemp.type = NODE_GROUP;
-	ntemp.ngroup = (bNodeTree*)node->id;
+	ntemp.ngroup = (bNodeTree *)node->id;
 	return ntemp;
 }
 
 void node_group_init(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
 {
-	node->id = (ID*)ntemp->ngroup;
+	node->id = (ID *)ntemp->ngroup;
 	
 	/* NB: group socket input/output roles are inverted internally!
 	 * Group "inputs" work as outputs in links and vice versa.

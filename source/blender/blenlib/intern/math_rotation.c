@@ -613,13 +613,21 @@ void add_qt_qtqt(float result[4], const float quat1[4], const float quat2[4], co
 	result[3] = quat1[3] + t * quat2[3];
 }
 
-void tri_to_quat(float quat[4], const float v1[3], const float v2[3], const float v3[3])
+/* same as tri_to_quat() but takes pre-computed normal from the triangle
+ * used for ngons when we know their normal */
+void tri_to_quat_ex(float quat[4], const float v1[3], const float v2[3], const float v3[3],
+                    const float no_orig[3])
 {
 	/* imaginary x-axis, y-axis triangle is being rotated */
 	float vec[3], q1[4], q2[4], n[3], si, co, angle, mat[3][3], imat[3][3];
 
 	/* move z-axis to face-normal */
+#if 0
 	normal_tri_v3(vec, v1, v2, v3);
+#else
+	copy_v3_v3(vec, no_orig);
+	(void)v3;
+#endif
 
 	n[0] =  vec[1];
 	n[1] = -vec[0];
@@ -657,6 +665,13 @@ void tri_to_quat(float quat[4], const float v1[3], const float v2[3], const floa
 	q2[3] = si;
 
 	mul_qt_qtqt(quat, q1, q2);
+}
+
+void tri_to_quat(float quat[4], const float v1[3], const float v2[3], const float v3[3])
+{
+	float vec[3];
+	normal_tri_v3(vec, v1, v2, v3);
+	tri_to_quat_ex(quat, v1, v2, v3, vec);
 }
 
 void print_qt(const char *str, const float q[4])
@@ -843,7 +858,7 @@ void single_axis_angle_to_mat3(float mat[3][3], const char axis, const float ang
 }
 
 /****************************** Vector/Rotation ******************************/
-/* TODO: the following calls should probably be depreceated sometime         */
+/* TODO: the following calls should probably be deprecated sometime         */
 
 /* TODO, replace use of this function with axis_angle_to_mat3() */
 void vec_rot_to_mat3(float mat[][3], const float vec[3], const float phi)

@@ -899,23 +899,44 @@ Object *BKE_object_add(struct Scene *scene, int type)
 	return ob;
 }
 
-SoftBody *copy_softbody(SoftBody *sb)
+SoftBody *copy_softbody(SoftBody *sb, int copy_caches)
 {
 	SoftBody *sbn;
 	
 	if (sb == NULL) return(NULL);
 	
 	sbn = MEM_dupallocN(sb);
-	sbn->totspring = sbn->totpoint = 0;
-	sbn->bpoint = NULL;
-	sbn->bspring = NULL;
+
+	if (copy_caches == FALSE) {
+		sbn->totspring = sbn->totpoint = 0;
+		sbn->bpoint = NULL;
+		sbn->bspring = NULL;
+	}
+	else {
+		sbn->totspring = sb->totspring;
+		sbn->totpoint = sb->totpoint;
+
+		if (sbn->bpoint) {
+			int i;
+
+			sbn->bpoint = MEM_dupallocN(sbn->bpoint);
+
+			for (i = 0; i < sbn->totpoint; i++) {
+				if (sbn->bpoint[i].springs)
+					sbn->bpoint[i].springs = MEM_dupallocN(sbn->bpoint[i].springs);
+			}
+		}
+
+		if (sb->bspring)
+			sbn->bspring = MEM_dupallocN(sb->bspring);
+	}
 	
 	sbn->keys = NULL;
 	sbn->totkey = sbn->totpointkey = 0;
 	
 	sbn->scratch = NULL;
 
-	sbn->pointcache = BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches);
+	sbn->pointcache = BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches, copy_caches);
 
 	if (sb->effector_weights)
 		sbn->effector_weights = MEM_dupallocN(sb->effector_weights);
@@ -988,7 +1009,7 @@ static ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
 	psysn->renderdata = NULL;
 	
-	psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches);
+	psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, FALSE);
 
 	/* XXX - from reading existing code this seems correct but intended usage of
 	 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
@@ -1049,7 +1070,7 @@ void BKE_object_copy_particlesystems(Object *obn, Object *ob)
 void BKE_object_copy_softbody(Object *obn, Object *ob)
 {
 	if (ob->soft)
-		obn->soft = copy_softbody(ob->soft);
+		obn->soft = copy_softbody(ob->soft, FALSE);
 }
 
 static void copy_object_pose(Object *obn, Object *ob)
@@ -1130,7 +1151,7 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
 	copy_v3_v3(ob_tar->size, ob_src->size);
 }
 
-Object *BKE_object_copy(Object *ob)
+static Object *object_copy_do(Object *ob, int copy_caches)
 {
 	Object *obn;
 	ModifierData *md;
@@ -1191,7 +1212,7 @@ Object *BKE_object_copy(Object *ob)
 		if (obn->pd->rng)
 			obn->pd->rng = MEM_dupallocN(ob->pd->rng);
 	}
-	obn->soft = copy_softbody(ob->soft);
+	obn->soft = copy_softbody(ob->soft, copy_caches);
 	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
 
 	BKE_object_copy_particlesystems(obn, ob);
@@ -1205,6 +1226,18 @@ Object *BKE_object_copy(Object *ob)
 	obn->mpath = NULL;
 	
 	return obn;
+}
+
+/* copy objects, will re-initialize cached simulation data */
+Object *BKE_object_copy(Object *ob)
+{
+	return object_copy_do(ob, FALSE);
+}
+
+/* copy objects, will duplicate cached simulation data */
+Object *BKE_object_copy_with_caches(Object *ob)
+{
+	return object_copy_do(ob, TRUE);
 }
 
 static void extern_local_object(Object *ob)

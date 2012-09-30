@@ -637,7 +637,7 @@ elseif(WIN32)
 
 	if(WITH_OPENIMAGEIO)
 		if(NOT MINGW)
-			set_lib_path(OIIOBIN "openimageio")
+			set(OIIOBIN ${LIBDIR}/openimageio)
 			install(
 				FILES
 					${OIIOBIN}/bin/OpenImageIO.dll
@@ -647,7 +647,7 @@ elseif(WIN32)
 	endif()
 
 	if(WITH_OPENCOLORIO)
-		set_lib_path(OCIOBIN "opencolorio/bin")
+		set(OCIOBIN ${LIBDIR}/opencolorio/bin)
 		if(NOT MINGW)
 			install(
 				FILES
@@ -737,7 +737,15 @@ elseif(APPLE)
 		)
 
 	endif()
-
+	
+	#OSL shader_headers needed
+	if(WITH_CYCLES_OSL)
+		install(
+			FILES ${LIBDIR}/osl/shaders/oslutil.h ${LIBDIR}/osl/shaders/stdosl.h
+			DESTINATION ${TARGETDIR}/blender.app/Contents/shaders/
+		)
+	endif()
+	
 	# install blenderplayer bundle - copy of blender.app above. re-using macros et al
 	# note we are using OSX Bundle as base and copying Blender dummy bundle on top of it
 	if(WITH_GAMEENGINE AND WITH_PLAYER)
@@ -779,6 +787,7 @@ elseif(APPLE)
 		endif()
 
 	endif()
+		
 endif()
 
 # -----------------------------------------------------------------------------

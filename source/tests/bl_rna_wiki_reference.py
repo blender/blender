@@ -29,9 +29,10 @@
 
 import bpy
 
+
 def test_data():
     import rna_wiki_reference
-    
+
     assert(isinstance(rna_wiki_reference.url_manual_mapping, tuple))
     for i, value in enumerate(rna_wiki_reference.url_manual_mapping):
         try:
@@ -44,12 +45,11 @@ def test_data():
             traceback.print_exc()
             raise
 
-# a stripped down version of api_dump() in rna_info_dump.py
 
+# a stripped down version of api_dump() in rna_info_dump.py
 def test_lookup_coverage():
 
     def rna_ids():
-        
         import rna_info
         struct = rna_info.BuildRNAInfo()[0]
         for struct_id, v in sorted(struct.items()):
@@ -81,10 +81,11 @@ def test_lookup_coverage():
     print("")
     print("---------------------")
     print("Undocumented Sections")
-    
+
     for rna_group in sorted(set_group_all):
         if rna_group not in set_group_doc:
             print("%s.*" % rna_group)
+
 
 def test_urls():
     pass  # TODO

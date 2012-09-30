@@ -216,7 +216,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def DISPLACE(self, layout, ob, md):
         has_texture = (md.texture is not None)
-        
+
         split = layout.split()
 
         col = split.column()

@@ -547,11 +547,11 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	if (ibuf) {
 		int needs_free = FALSE;
 
-		if (is_movie || !BKE_imtype_supports_float(scene->r.im_format.imtype)) {
-			ImBuf *colormanage_ibuf = IMB_dupImBuf(ibuf);
+		if (is_movie || !BKE_imtype_requires_linear_float(scene->r.im_format.imtype)) {
+			ImBuf *colormanage_ibuf;
 
-			IMB_display_buffer_to_imbuf_rect(colormanage_ibuf, &scene->view_settings, &scene->display_settings);
-			imb_freerectfloatImBuf(colormanage_ibuf);
+			colormanage_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, TRUE, TRUE, &scene->view_settings,
+			                                                       &scene->display_settings, &scene->r.im_format);
 
 			// IMB_freeImBuf(ibuf); /* owned by the image */
 			ibuf = colormanage_ibuf;

@@ -133,7 +133,7 @@ Key *BKE_key_add(ID *id)    /* common function */
 
 	key->uidgen = 1;
 	
-	/* XXX the code here uses some defines which will soon be depreceated... */
+	/* XXX the code here uses some defines which will soon be deprecated... */
 	switch (GS(id->name)) {
 		case ID_ME:
 			el = key->elemstr;

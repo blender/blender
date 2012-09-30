@@ -1121,7 +1121,7 @@ void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2)
 
 /*
  *
- * Utility functions qd_* should probably be intergrated better with other functions here.
+ * Utility functions qd_* should probably be integrated better with other functions here.
  *
  */
 // sets fcol to pixelcolor at (x, y)

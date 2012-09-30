@@ -309,7 +309,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	phid /= 2;
 	for (a = 0; a <= tot; a++) {
 		/* Going in this direction, then edge extruding, makes normals face outward */
-		vec[0] = -dia *sinf(phi);
+		vec[0] = -dia * sinf(phi);
 		vec[1] = 0.0;
 		vec[2] = dia * cosf(phi);
 		eve = BM_vert_create(bm, vec, NULL);
@@ -354,7 +354,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	{
 		float len, len2, vec2[3];
 
-		len = 2 *dia *sinf(phid / 2.0f);
+		len = 2 *dia * sinf(phid / 2.0f);
 
 		/* length of one segment in shortest parallen */
 		vec[0] = dia * sinf(phid);
@@ -517,16 +517,16 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	phi = 0;
 
 	if (cap_ends) {
-		vec[0] = vec[1] = 0.0f;
-		vec[2] = 0.0;
+		zero_v3(vec);
 		mul_m4_v3(mat, vec);
 		
 		cent1 = BM_vert_create(bm, vec, NULL);
+		BMO_elem_flag_enable(bm, cent1, VERT_MARK);
 	}
 
 	for (a = 0; a < segs; a++, phi += phid) {
 		/* Going this way ends up with normal(s) upward */
-		vec[0] = -dia *sinf(phi);
+		vec[0] = -dia * sinf(phi);
 		vec[1] = dia * cosf(phi);
 		vec[2] = 0.0f;
 		mul_m4_v3(mat, vec);

@@ -58,11 +58,11 @@ static const char trailingBytesForUTF8[256] = {
 
 int BLI_utf8_invalid_byte(const char *str, int length)
 {
-	const unsigned char *p, *pend = (unsigned char*)str + length;
+	const unsigned char *p, *pend = (unsigned char *)str + length;
 	unsigned char c;
 	int ab;
 
-	for (p = (unsigned char*)str; p < pend; p++) {
+	for (p = (unsigned char *)str; p < pend; p++) {
 		c = *p;
 		if (c < 128)
 			continue;

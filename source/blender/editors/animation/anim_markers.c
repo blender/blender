@@ -504,7 +504,7 @@ static int ed_markers_poll_markers_exist(bContext *C)
  * "custom"/third-tier invoke() callback supplied as the last arg (which would normally
  * be the operator's invoke() callback elsewhere)
  *
- * < invoke_func: (fn(bContext*, wmOperator*, wmEvent*)=int) "standard" invoke function 
+ * < invoke_func: (fn(bContext *, wmOperator *, wmEvent *)=int) "standard" invoke function
  *			that operator would otherwise have used. If NULL, the operator's standard
  *			exec() callback will be called instead in the appropriate places.
  */

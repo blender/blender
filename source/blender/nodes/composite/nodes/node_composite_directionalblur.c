@@ -65,7 +65,7 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 		center_y_pix = center_y * img->y;
 
 		tx =  itsc * D * cosf(a);
-		ty = -itsc *D *sinf(a);
+		ty = -itsc * D * sinf(a);
 		sc =  itsc * zoom;
 		rot = itsc * spin;
 

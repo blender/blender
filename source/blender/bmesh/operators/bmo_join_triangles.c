@@ -163,8 +163,8 @@ static int bm_edge_faces_cmp(BMesh *bm, BMEdge *e, const int do_uv, const int do
 		};
 
 		if (lcol[0]) {
-			if (!compare_rgb_uchar((unsigned char*)&lcol[0]->r, (unsigned char*)&lcol[2]->r, T2QCOL_LIMIT) ||
-			    !compare_rgb_uchar((unsigned char*)&lcol[1]->r, (unsigned char*)&lcol[3]->r, T2QCOL_LIMIT))
+			if (!compare_rgb_uchar((unsigned char *)&lcol[0]->r, (unsigned char *)&lcol[2]->r, T2QCOL_LIMIT) ||
+			    !compare_rgb_uchar((unsigned char *)&lcol[1]->r, (unsigned char *)&lcol[3]->r, T2QCOL_LIMIT))
 			{
 				return FALSE;
 			}

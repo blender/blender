@@ -529,7 +529,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 	unsigned char *dst, crgb[3];
 	const float alpha = BKE_brush_alpha_get(scene, brush);
 	float brush_rgb[3];
-    
+
 	imbflag = (flt) ? IB_rectfloat : IB_rect;
 	xoff = -bufsize / 2.0f + 0.5f;
 	yoff = -bufsize / 2.0f + 0.5f;
@@ -563,7 +563,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				else {
 					BKE_brush_sample_tex(scene, brush, xy, rgba, 0);
 					mul_v3_v3v3(dstf, rgba, brush_rgb);
-					dstf[3] = rgba[3] *alpha *BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
+					dstf[3] = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
 			}
 		}
@@ -594,7 +594,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				else if (texfall == 2) {
 					BKE_brush_sample_tex(scene, brush, xy, rgba, 0);
 					mul_v3_v3(rgba, brush->rgb);
-					alpha_f = rgba[3] *alpha *BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
+					alpha_f = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
 					rgb_float_to_uchar(dst, rgba);
 
@@ -602,7 +602,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				}
 				else {
 					BKE_brush_sample_tex(scene, brush, xy, rgba, 0);
-					alpha_f = rgba[3] *alpha *BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
+					alpha_f = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
 					dst[0] = crgb[0];
 					dst[1] = crgb[1];

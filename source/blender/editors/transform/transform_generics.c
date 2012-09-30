@@ -1293,19 +1293,26 @@ void postTrans(bContext *C, TransInfo *t)
 	if (t->customFree) {
 		/* Can take over freeing t->data and data2d etc... */
 		t->customFree(t);
+		BLI_assert(t->customData == NULL);
 	}
 	else if ((t->customData != NULL) && (t->flag & T_FREE_CUSTOMDATA)) {
 		MEM_freeN(t->customData);
+		t->customData = NULL;
 	}
 
 	/* postTrans can be called when nothing is selected, so data is NULL already */
 	if (t->data) {
-		int a;
 		
 		/* free data malloced per trans-data */
-		for (a = 0, td = t->data; a < t->total; a++, td++) {
-			if (td->flag & TD_BEZTRIPLE) 
-				MEM_freeN(td->hdata);
+		if ((t->obedit && ELEM(t->obedit->type, OB_CURVE, OB_SURF)) ||
+		    (t->spacetype == SPACE_IPO))
+		{
+			int a;
+			for (a = 0, td = t->data; a < t->total; a++, td++) {
+				if (td->flag & TD_BEZTRIPLE) {
+					MEM_freeN(td->hdata);
+				}
+			}
 		}
 		MEM_freeN(t->data);
 	}

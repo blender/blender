@@ -839,7 +839,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
  * inter-frames (H.264 B-frames, for example), it can output the frames 
  * in a different order from the one it was given.
  * For example, when sending frames 1, 2, 3, 4 to the encoder, it may write
- * them in the order 1, 4, 2, 3 - first the two frames used for predition, 
+ * them in the order 1, 4, 2, 3 - first the two frames used for prediction,
  * and then the bidirectionally-predicted frames. What this means in practice 
  * is that the encoder may not immediately produce one output frame for each 
  * input frame. These delayed frames must be flushed before we close the 
@@ -914,8 +914,7 @@ void BKE_ffmpeg_filepath_get(char *string, RenderData *rd)
 	}
 
 	while (*fe) {
-		if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), *fe) == 0)
-		{
+		if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), *fe) == 0) {
 			break;
 		}
 		fe++;

@@ -108,7 +108,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 			/* shape key has been changed before calling undo operator */
 
 			Key *key = BKE_key_from_object(ob);
-			KeyBlock *kb = BKE_keyblock_find_name(key, unode->shapeName);
+			KeyBlock *kb = key ? BKE_keyblock_find_name(key, unode->shapeName) : NULL;
 
 			if (kb) {
 				ob->shapenr = BLI_findindex(&key->block, kb) + 1;
@@ -266,13 +266,15 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	Scene *scene = CTX_data_scene(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	Object *ob = CTX_data_active_object(C);
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, 0);
+	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
 	SculptUndoNode *unode;
 	MultiresModifierData *mmd;
 	int update = FALSE, rebuild = FALSE;
 
 	sculpt_update_mesh_elements(scene, sd, ob, 0);
+	/* call _after_ sculpt_update_mesh_elements() which may update 'ob->derivedFinal' */
+	dm = mesh_get_derived_final(scene, ob, 0);
 
 	for (unode = lb->first; unode; unode = unode->next) {
 		if (!(strcmp(unode->idname, ob->id.name) == 0))

@@ -3825,7 +3825,7 @@ static int drawDispListwire(ListBase *dlbase)
 	return 0;
 }
 
-static void drawDispListsolid(ListBase *lb, Object *ob,
+static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
                               const unsigned char ob_wire_col[4], int use_glsl)
 {
 	DispList *dl;
@@ -3856,7 +3856,9 @@ static void drawDispListsolid(ListBase *lb, Object *ob,
 					int nr;
 
 					glDisable(GL_LIGHTING);
-					glColor3ubv(ob_wire_col);
+
+					if ((dflag & DRAW_CONSTCOLOR) == 0)
+						glColor3ubv(ob_wire_col);
 
 					// glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 					// glDrawArrays(GL_LINE_STRIP, 0, dl->nr);
@@ -3983,7 +3985,7 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
 
 /* returns 1 when nothing was drawn */
 static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                        const short dt, const unsigned char ob_wire_col[4])
+                        const short dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	ListBase *lb = NULL;
@@ -4031,12 +4033,12 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				else {
 					if (draw_glsl_material(scene, ob, v3d, dt)) {
 						GPU_begin_object_materials(v3d, rv3d, scene, ob, 1, NULL);
-						drawDispListsolid(lb, ob, ob_wire_col, TRUE);
+						drawDispListsolid(lb, ob, dflag, ob_wire_col, TRUE);
 						GPU_end_object_materials();
 					}
 					else {
 						GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
-						drawDispListsolid(lb, ob, ob_wire_col, FALSE);
+						drawDispListsolid(lb, ob, dflag, ob_wire_col, FALSE);
 						GPU_end_object_materials();
 					}
 					if (cu->editnurb && cu->bevobj == NULL && cu->taperobj == NULL && cu->ext1 == 0.0f && cu->ext2 == 0.0f) {
@@ -4068,12 +4070,12 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 
 				if (draw_glsl_material(scene, ob, v3d, dt)) {
 					GPU_begin_object_materials(v3d, rv3d, scene, ob, 1, NULL);
-					drawDispListsolid(lb, ob, ob_wire_col, TRUE);
+					drawDispListsolid(lb, ob, dflag, ob_wire_col, TRUE);
 					GPU_end_object_materials();
 				}
 				else {
 					GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
-					drawDispListsolid(lb, ob, ob_wire_col, FALSE);
+					drawDispListsolid(lb, ob, dflag, ob_wire_col, FALSE);
 					GPU_end_object_materials();
 				}
 			}
@@ -4092,12 +4094,12 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 
 					if (draw_glsl_material(scene, ob, v3d, dt)) {
 						GPU_begin_object_materials(v3d, rv3d, scene, ob, 1, NULL);
-						drawDispListsolid(lb, ob, ob_wire_col, TRUE);
+						drawDispListsolid(lb, ob, dflag, ob_wire_col, TRUE);
 						GPU_end_object_materials();
 					}
 					else {
 						GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
-						drawDispListsolid(lb, ob, ob_wire_col, FALSE);
+						drawDispListsolid(lb, ob, dflag, ob_wire_col, FALSE);
 						GPU_end_object_materials();
 					}
 				}
@@ -5610,7 +5612,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 }
 
 static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, Nurb *nurb,
-                     const short dt, const unsigned char ob_wire_col[4])
+                     const short dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	ToolSettings *ts = scene->toolsettings;
 	Object *ob = base->object;
@@ -5625,7 +5627,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	UI_GetThemeColor3ubv(TH_WIRE, wire_col);
 	glColor3ubv(wire_col);
 
-	drawDispList(scene, v3d, rv3d, base, dt, ob_wire_col);
+	drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 
 	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
@@ -5954,13 +5956,13 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 			UI_GetThemeColor3ubv(TH_WIRE, wire_col);
 			glColor3ubv(wire_col);
 
-			drawDispList(scene, v3d, rv3d, base, dt, wire_col);
+			drawDispList(scene, v3d, rv3d, base, dt, dflag, wire_col);
 		}
 		ml = mb->editelems->first;
 	}
 	else {
 		if ((base->flag & OB_FROMDUPLI) == 0) {
-			drawDispList(scene, v3d, rv3d, base, dt, ob_wire_col);
+			drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 		}
 		ml = mb->elems.first;
 	}
@@ -6728,11 +6730,11 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				if (cu->flag & CU_FAST) {
 					cpack(0xFFFFFF);
 					set_inverted_drawing(1);
-					drawDispList(scene, v3d, rv3d, base, OB_WIRE, ob_wire_col);
+					drawDispList(scene, v3d, rv3d, base, OB_WIRE, dflag, ob_wire_col);
 					set_inverted_drawing(0);
 				}
 				else {
-					drawDispList(scene, v3d, rv3d, base, dt, ob_wire_col);
+					drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				}
 
 				if (cu->linewidth != 0.0f) {
@@ -6807,7 +6809,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				}
 			}
 			else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
-				empty_object = drawDispList(scene, v3d, rv3d, base, dt, ob_wire_col);
+				empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 			}
 
 			break;
@@ -6817,7 +6819,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 			if (cu->editnurb) {
 				ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-				drawnurb(scene, v3d, rv3d, base, nurbs->first, dt, ob_wire_col);
+				drawnurb(scene, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
 			}
 			else if (dt == OB_BOUNDBOX) {
 				if (((v3d->flag2 & V3D_RENDER_OVERRIDE) && (v3d->drawtype >= OB_WIRE)) == 0) {
@@ -6825,7 +6827,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				}
 			}
 			else if (ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
-				empty_object = drawDispList(scene, v3d, rv3d, base, dt, ob_wire_col);
+				empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 
 //XXX old animsys				if (cu->path)
 //                                  curve_draw_speed(scene, ob);
@@ -7170,7 +7172,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
-	if (!is_obact || !(ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
+	if (!is_obact || !(ob->mode & OB_MODE_ALL_PAINT)) {
 		int do_draw_center = -1; /* defines below are zero or positive... */
 
 		if (v3d->flag2 & V3D_RENDER_OVERRIDE) {

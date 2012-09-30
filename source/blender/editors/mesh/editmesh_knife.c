@@ -566,7 +566,9 @@ static int find_connected_linehit(KnifeTool_OpData *kcd, int testi, BMFace *f, i
 		if (testi >= 0 && testi < kcd->totlinehit) {
 			if (knife_find_common_face(&kcd->linehits[testi].kfe->faces,
 			                           &kcd->linehits[i].kfe->faces))
+			{
 				return i;
+			}
 		}
 		else if (f) {
 			if (find_ref(&kcd->linehits[i].kfe->faces, f))
@@ -1156,7 +1158,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 
 	/* for comparing distances, error of intersection depends on triangle scale.
 	 * need to scale down before squaring for accurate comparison */
-	const float depsilon = 50 *FLT_EPSILON *len_v3_tri_side_max(v1, v2, v3);
+	const float depsilon = 50 *FLT_EPSILON * len_v3_tri_side_max(v1, v2, v3);
 	const float depsilon_squared = depsilon * depsilon;
 
 	copy_v3_v3(cos + 0, v1);

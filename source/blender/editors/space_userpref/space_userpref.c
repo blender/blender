@@ -80,7 +80,7 @@ static SpaceLink *userpref_new(const bContext *UNUSED(C))
 /* not spacelink itself */
 static void userpref_free(SpaceLink *UNUSED(sl))
 {	
-//	SpaceUserPref *spref= (SpaceUserPref*) sl;
+//	SpaceUserPref *spref = (SpaceUserPref *)sl;
 	
 }
 

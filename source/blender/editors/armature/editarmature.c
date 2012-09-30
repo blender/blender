@@ -4842,7 +4842,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	bone_looper(ob, arm->bonebase.first, &looper_data, bone_skinnable_cb);
 
 	/* create an array of pointers to the deform groups that
-	 * coorespond to the skinnable bones (creating them
+	 * correspond to the skinnable bones (creating them
 	 * as necessary. */
 	dgrouplist = MEM_callocN(numbones * sizeof(bDeformGroup *), "dgrouplist");
 	dgroupflip = MEM_callocN(numbones * sizeof(bDeformGroup *), "dgroupflip");

@@ -814,7 +814,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 
 	/* color management */
 	if (color_management &&
-	    (!BKE_imtype_supports_float(imf->imtype) ||
+	    (!BKE_imtype_requires_linear_float(imf->imtype) ||
 	     (show_preview && imf->flag & R_IMF_FLAG_PREVIEW_JPG)))
 	{
 		prop = RNA_struct_find_property(imfptr, "display_settings");

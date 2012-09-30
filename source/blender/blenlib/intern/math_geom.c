@@ -1387,7 +1387,7 @@ int isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
 }
 
 /* find closest point to p on line through l1,l2 and return lambda,
- * where (0 <= lambda <= 1) when cp is in the line segement l1,l2
+ * where (0 <= lambda <= 1) when cp is in the line segment l1,l2
  */
 float closest_to_line_v3(float cp[3], const float p[3], const float l1[3], const float l2[3])
 {
@@ -1429,7 +1429,7 @@ float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2
 	return (dot_v2v2(u, h) / dot_v2v2(u, u));
 }
 
-/* ensyre the distance between these points is no greater then 'dist'
+/* ensure the distance between these points is no greater then 'dist'
  * if it is, scale then both into the center */
 void limit_dist_v3(float v1[3], float v2[3], const float dist)
 {
@@ -1672,7 +1672,7 @@ static int point_in_slice(const float p[3], const float v1[3], const float l1[3]
 	 * the room inside usually is rather small compared to R3 though still infinite
 	 * useful for restricting (speeding up) searches
 	 * e.g. all points of triangular prism are within the intersection of 3 'slices'
-	 * onother trivial case : cube
+	 * another trivial case : cube
 	 * but see a 'spat' which is a deformed cube with paired parallel planes needs only 3 slices too
 	 */
 	float h, rp[3], cp[3], q[3];
@@ -1992,8 +1992,8 @@ void barycentric_weights_v2_quad(const float v1[2], const float v2[2], const flo
                                  const float co[2], float w[4])
 {
 	/* note: fabsf() here is not needed for convex quads (and not used in interp_weights_poly_v2).
-	 *       but in the case of concave/bowtie quads for the mask rasterizer it gives unreliable results
-	 *       without adding absf(). If this becomes an issue for more general useage we could have
+	 *       but in the case of concave/bow-tie quads for the mask rasterizer it gives unreliable results
+	 *       without adding absf(). If this becomes an issue for more general usage we could have
 	 *       this optional or use a different function - Campbell */
 #define MEAN_VALUE_HALF_TAN_V2(_area, i1, i2) \
 	        ((_area = cross_v2v2(dirs[i1], dirs[i2])) != 0.0f ? \

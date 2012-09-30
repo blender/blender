@@ -849,12 +849,12 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 				float mval_faci = 1.0f - mval_fac;
 				float ofs = (mval_fac * dx) - (mval_faci * dx);
 				
-				v2d->cur.xmin += ofs + dx;
-				v2d->cur.xmax += ofs - dx;
+				v2d->cur.xmin += ofs - dx;
+				v2d->cur.xmax += ofs + dx;
 			}
 			else {
-				v2d->cur.xmin += dx;
-				v2d->cur.xmax -= dx;
+				v2d->cur.xmin -= dx;
+				v2d->cur.xmax += dx;
 			}
 		}
 	}
@@ -868,12 +868,12 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 				float mval_faci = 1.0f - mval_fac;
 				float ofs = (mval_fac * dy) - (mval_faci * dy);
 				
-				v2d->cur.ymin += ofs + dy;
-				v2d->cur.ymax += ofs - dy;
+				v2d->cur.ymin += ofs - dy;
+				v2d->cur.ymax += ofs + dy;
 			}
 			else {
-				v2d->cur.ymin += dy;
-				v2d->cur.ymax -= dy;
+				v2d->cur.ymin -= dy;
+				v2d->cur.ymax += dy;
 			}
 		}
 	}
@@ -1044,8 +1044,14 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		
 		/* set transform amount, and add current deltas to stored total delta (for redo) */
-		RNA_float_set(op->ptr, "deltax", dx);
-		RNA_float_set(op->ptr, "deltay", dy);
+		if (U.uiflag & USER_ZOOM_INVERT) {
+			RNA_float_set(op->ptr, "deltax", -dx);
+			RNA_float_set(op->ptr, "deltay", -dy);
+		}
+		else {
+			RNA_float_set(op->ptr, "deltax", dx);
+			RNA_float_set(op->ptr, "deltay", dy);
+		}
 		vzd->dx += dx;
 		vzd->dy += dy;
 		
@@ -1273,11 +1279,10 @@ void UI_view2d_smooth_view(bContext *C, ARegion *ar,
 	}
 
 	if (C && U.smooth_viewtx && fac > FLT_EPSILON) {
-		int changed = 0; /* zero means no difference */
+		int changed = FALSE;
 
 		if (BLI_rctf_compare(&sms.new_cur, &v2d->cur, FLT_EPSILON) == FALSE)
-			changed = 1;
-		changed=1;
+			changed = TRUE;
 
 		/* The new view is different from the old one
 		 * so animate the view */
@@ -1479,6 +1484,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	View2DScrollers *scrollers;
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
+	rctf tot_cur_union;
 	float mask_size;
 	
 	/* set custom-data for operator */
@@ -1498,14 +1504,20 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	 */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 
+	/* use a union of 'cur' & 'tot' incase the current view is far outside 'tot'.
+	 * In this cases moving the scroll bars has far too little effect and the view can get stuck [#31476] */
+	tot_cur_union = v2d->tot;
+	BLI_rctf_union(&tot_cur_union, &v2d->cur);
 
 	if (in_scroller == 'h') {
 		/* horizontal scroller - calculate adjustment factor first */
 		mask_size = (float)BLI_rcti_size_x(&v2d->hor);
-		vsm->fac = BLI_rctf_size_x(&v2d->tot) / mask_size;
+		vsm->fac = BLI_rctf_size_x(&tot_cur_union) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
-		vsm->zone = mouse_in_scroller_handle(event->mval[0], v2d->hor.xmin, v2d->hor.xmax, scrollers->hor_min, scrollers->hor_max);
+		vsm->zone = mouse_in_scroller_handle(event->mval[0],
+		                                     v2d->hor.xmin, v2d->hor.xmax,
+		                                     scrollers->hor_min, scrollers->hor_max);
 		
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
 			/* default to scroll, as handles not usable */
@@ -1518,10 +1530,12 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	else {
 		/* vertical scroller - calculate adjustment factor first */
 		mask_size = (float)BLI_rcti_size_y(&v2d->vert);
-		vsm->fac = BLI_rctf_size_y(&v2d->tot) / mask_size;
+		vsm->fac = BLI_rctf_size_y(&tot_cur_union) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
-		vsm->zone = mouse_in_scroller_handle(event->mval[1], v2d->vert.ymin, v2d->vert.ymax, scrollers->vert_min, scrollers->vert_max);
+		vsm->zone = mouse_in_scroller_handle(event->mval[1],
+		                                     v2d->vert.ymin, v2d->vert.ymax,
+		                                     scrollers->vert_min, scrollers->vert_max);
 			
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
 			/* default to scroll, as handles not usable */
@@ -1529,7 +1543,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 		}
 		
 		vsm->scrollbarwidth = scrollers->vert_max - scrollers->vert_min;
-		vsm->scrollbar_orig = ((scrollers->vert_max + scrollers->vert_min) / 2) +  +ar->winrct.ymin;
+		vsm->scrollbar_orig = ((scrollers->vert_max + scrollers->vert_min) / 2) + ar->winrct.ymin;
 	}
 	
 	UI_view2d_scrollers_free(scrollers);

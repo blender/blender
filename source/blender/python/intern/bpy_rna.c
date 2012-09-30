@@ -2211,7 +2211,7 @@ static int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *sel
 			return -1;
 		}
 
-		/* lib is either a valid poniter or NULL,
+		/* lib is either a valid pointer or NULL,
 		 * either way can do direct comparison with id.lib */
 
 		RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop)
@@ -2420,7 +2420,7 @@ static PyObject *pyrna_prop_collection_subscript(BPy_PropertyRNA *self, PyObject
 				/* only get the length for negative values */
 				Py_ssize_t len = (Py_ssize_t)RNA_property_collection_length(&self->ptr, self->prop);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {
@@ -2546,7 +2546,7 @@ static int pyrna_prop_collection_ass_subscript(BPy_PropertyRNA *self, PyObject *
 				/* only get the length for negative values */
 				Py_ssize_t len = (Py_ssize_t)RNA_property_collection_length(&self->ptr, self->prop);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {

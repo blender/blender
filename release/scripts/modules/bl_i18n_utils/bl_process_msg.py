@@ -16,7 +16,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# <pep8-80 compliant>
+# <pep8 compliant>
 
 # Write out messages.txt from Blender.
 # XXX: This script is meant to be used from inside Blender!
@@ -42,6 +42,7 @@ CONTEXT_DEFAULT = settings.CONTEXT_DEFAULT
 UNDOC_OPS_STR = settings.UNDOC_OPS_STR
 
 NC_ALLOWED = settings.WARN_MSGID_NOT_CAPITALIZED_ALLOWED
+
 
 def check(check_ctxt, messages, key, msgsrc):
     if check_ctxt is None:
@@ -78,7 +79,8 @@ def dump_messages_rna(messages, check_ctxt):
     import bpy
 
     def classBlackList():
-        blacklist_rna_class = [# core classes
+        blacklist_rna_class = [
+                               # core classes
                                "Context", "Event", "Function", "UILayout",
                                "BlendData",
                                # registerable classes

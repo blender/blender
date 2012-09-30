@@ -2021,23 +2021,26 @@ void wm_event_do_handlers(bContext *C)
 			Scene *scene = win->screen->scene;
 			
 			if (scene) {
-				int playing = sound_scene_playing(win->screen->scene);
+				int is_playing_sound = sound_scene_playing(win->screen->scene);
 				
-				if (playing != -1) {
+				if (is_playing_sound != -1) {
+					int is_playing_screen;
 					CTX_wm_window_set(C, win);
 					CTX_wm_screen_set(C, win->screen);
 					CTX_data_scene_set(C, scene);
 					
-					if (((playing == 1) && (!ED_screen_animation_playing(wm))) ||
-					    ((playing == 0) && (ED_screen_animation_playing(wm))))
+					is_playing_screen = (ED_screen_animation_playing(wm) != NULL);
+
+					if (((is_playing_sound == 1) && (is_playing_screen == 0)) ||
+					    ((is_playing_sound == 0) && (is_playing_screen == 1)))
 					{
 						ED_screen_animation_play(C, -1, 1);
 					}
 					
-					if (playing == 0) {
-						float time = sound_sync_scene(scene);
+					if (is_playing_sound == 0) {
+						const float time = sound_sync_scene(scene);
 						if (finite(time)) {
-							int ncfra = sound_sync_scene(scene) * (float)FPS + 0.5f;
+							int ncfra = time * (float)FPS + 0.5f;
 							if (ncfra != scene->r.cfra) {
 								scene->r.cfra = ncfra;
 								ED_update_for_newframe(CTX_data_main(C), scene, 1);
@@ -2466,6 +2469,11 @@ void WM_event_add_mousemove(bContext *C)
 {
 	wmWindow *window = CTX_wm_window(C);
 	
+	window->addmousemove = 1;
+}
+
+void WM_event_add_mousemove_window(wmWindow *window)
+{
 	window->addmousemove = 1;
 }
 

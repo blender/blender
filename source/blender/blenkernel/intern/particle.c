@@ -116,7 +116,7 @@ int count_particles_mod(ParticleSystem *psys, int totgr, int cur)
 	}
 	return tot;
 }
-/* we allocate path cache memory in chunks instead of a big continguous
+/* we allocate path cache memory in chunks instead of a big contiguous
  * chunk, windows' memory allocater fails to find big blocks of memory often */
 
 #define PATH_CACHE_BUF_SIZE 1024
@@ -3776,7 +3776,7 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 	                                                         ptex->gravity = ptex->field = ptex->time = ptex->clump = ptex->kink =
 	                                                                                                                      ptex->effector = ptex->rough1 = ptex->rough2 = ptex->roughe = 1.f;
 
-	ptex->length = 1.0f - part->randlength *PSYS_FRAND(child_index + 26);
+	ptex->length = 1.0f - part->randlength * PSYS_FRAND(child_index + 26);
 	ptex->length *= part->clength_thres < PSYS_FRAND(child_index + 27) ? part->clength : 1.0f;
 
 	for (m = 0; m < MAX_MTEX; m++, mtexp++) {
@@ -3968,7 +3968,7 @@ float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float UNUSED
 	size *= part->childsize;
 
 	if (part->childrandsize != 0.0f)
-		size *= 1.0f - part->childrandsize *PSYS_FRAND(cpa - psys->child + 26);
+		size *= 1.0f - part->childrandsize * PSYS_FRAND(cpa - psys->child + 26);
 
 	return size;
 }

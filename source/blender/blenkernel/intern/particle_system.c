@@ -797,8 +797,10 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			}
 			else {
 				ctx->jitoff[i] = fmod(ctx->jitoff[i],(float)ctx->jitlevel);
-				psys_uv_to_w(ctx->jit[2*(int)ctx->jitoff[i]], ctx->jit[2*(int)ctx->jitoff[i]+1], mface->v4, pa->fuv);
-				ctx->jitoff[i]++;
+				if (!isnan(ctx->jitoff[i])) {
+					psys_uv_to_w(ctx->jit[2*(int)ctx->jitoff[i]], ctx->jit[2*(int)ctx->jitoff[i]+1], mface->v4, pa->fuv);
+					ctx->jitoff[i]++;
+				}
 			}
 			break;
 		case PART_DISTR_RAND:
@@ -3775,7 +3777,7 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 /* Calculate the speed of the particle relative to the local scale of the
  * simulation. This should be called once per particle during a simulation
  * step, after the velocity has been updated. element_size defines the scale of
- * the simulation, and is typically the distance to neighbourning particles. */
+ * the simulation, and is typically the distance to neighboring particles. */
 static void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
 	float dtime, SPHData *sphdata)
 {

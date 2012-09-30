@@ -42,6 +42,9 @@
 #include "zlib.h"
 
 #ifdef WIN32
+#ifdef __MINGW32__
+#include <ctype.h>
+#endif
 #include <io.h>
 #  include "BLI_winstuff.h"
 #  include "BLI_callbacks.h"
@@ -514,8 +517,9 @@ static int recursive_operation(const char *startfrom, const char *startto, Recur
 		}
 
 		if (ret != 0) {
-			while (i < n)
-				free(dirlist[i]);
+			while (i < n) {
+				free(dirlist[i++]);
+			}
 			break;
 		}
 	}

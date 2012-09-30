@@ -1494,6 +1494,21 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr);
 }
 
+static void node_composit_buts_image_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+	PointerRNA imaptr;
+
+	node_composit_buts_image(layout, C, ptr);
+
+	if (!node->id)
+		return;
+
+	imaptr = RNA_pointer_get(ptr, "image");
+
+	uiTemplateColorspaceSettings(layout, &imaptr, "colorspace_settings");
+}
+
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
@@ -2021,7 +2036,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	int multilayer = (RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER);
 	
 	node_composit_buts_file_output(layout, C, ptr);
-	uiTemplateImageSettings(layout, &imfptr, TRUE);
+	uiTemplateImageSettings(layout, &imfptr, FALSE);
 	
 	uiItemS(layout);
 	
@@ -2080,7 +2095,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 			
 			col = uiLayoutColumn(layout, FALSE);
 			uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format") == FALSE);
-			uiTemplateImageSettings(col, &imfptr, TRUE);
+			uiTemplateImageSettings(col, &imfptr, FALSE);
 		}
 	}
 }
@@ -2219,6 +2234,21 @@ static void node_composit_buts_ycc(uiLayout *layout, bContext *UNUSED(C), Pointe
 static void node_composit_buts_movieclip(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+}
+
+static void node_composit_buts_movieclip_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+	PointerRNA clipptr;
+
+	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+
+	if (!node->id)
+		return;
+
+	clipptr = RNA_pointer_get(ptr, "clip");
+
+	uiTemplateColorspaceSettings(layout, &clipptr, "colorspace_settings");
 }
 
 static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -2619,6 +2649,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 
 		case CMP_NODE_IMAGE:
 			ntype->uifunc = node_composit_buts_image;
+			ntype->uifuncbut = node_composit_buts_image_details;
 			break;
 		case CMP_NODE_R_LAYERS:
 			ntype->uifunc = node_composit_buts_renderlayers;
@@ -2773,6 +2804,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_MOVIECLIP:
 			ntype->uifunc = node_composit_buts_movieclip;
+			ntype->uifuncbut = node_composit_buts_movieclip_details;
 			break;
 		case CMP_NODE_STABILIZE2D:
 			ntype->uifunc = node_composit_buts_stabilize2d;

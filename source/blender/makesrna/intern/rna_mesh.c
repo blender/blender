@@ -224,7 +224,7 @@ static void rna_MeshPolygon_normal_get(PointerRNA *ptr, float *values)
 	MPoly *mp = (MPoly *)ptr->data;
 
 	/* BMESH_TODO: might be faster to look for a CD_NORMALS layer and use that */
-	mesh_calc_poly_normal(mp, me->mloop + mp->loopstart, me->mvert, values);
+	BKE_mesh_calc_poly_normal(mp, me->mloop + mp->loopstart, me->mvert, values);
 }
 
 static float rna_MeshPolygon_area_get(PointerRNA *ptr)

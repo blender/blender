@@ -45,14 +45,10 @@ struct rcti;
 struct PartialBufferUpdateContext;
 struct wmWindow;
 struct Scene;
+struct ImageFormatData;
 
 struct ColorSpace;
 struct ColorManagedDisplay;
-
-/* ** Initialization / De-initialization ** */
-
-void IMB_colormanagement_init(void);
-void IMB_colormanagement_exit(void);
 
 /* ** Generic functions ** */
 
@@ -62,6 +58,8 @@ void IMB_colormanagement_validate_settings(struct ColorManagedDisplaySettings *d
                                            struct ColorManagedViewSettings *view_settings);
 
 const char *IMB_colormanagement_role_colorspace_name_get(int role);
+void IMB_colormanagement_check_is_data(struct ImBuf *ibuf, const char *name);
+void IMB_colormanagement_assign_float_colorspace(struct ImBuf *ibuf, const char *name);
 void IMB_colormanagement_assign_rect_colorspace(struct ImBuf *ibuf, const char *name);
 
 /* ** Color space transformation functions ** */
@@ -85,19 +83,19 @@ void IMB_colormanagement_pixel_to_display_space_v4(float result[4], const float 
 void IMB_colormanagement_pixel_to_display_space_v3(float result[3], const float pixel[3],  const struct ColorManagedViewSettings *view_settings,
                                                    const struct ColorManagedDisplaySettings *display_settings);
 
-void IMB_colormanagement_imbuf_assign_float_space(struct ImBuf *ibuf, struct ColorManagedColorspaceSettings *colorspace_settings);
-
 void IMB_colormanagement_imbuf_make_display_space(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                                   const struct ColorManagedDisplaySettings *display_settings);
+
+struct ImBuf *IMB_colormanagement_imbuf_for_write(struct ImBuf *ibuf, int save_as_render, int allocate_result,
+                                                  const struct ColorManagedViewSettings *view_settings,
+                                                  const struct ColorManagedDisplaySettings *display_settings,
+                                                  struct ImageFormatData *image_format_data);
 
 /* ** Public display buffers interfaces ** */
 
 unsigned char *IMB_display_buffer_acquire(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
                                           const struct ColorManagedDisplaySettings *display_settings, void **cache_handle);
 unsigned char *IMB_display_buffer_acquire_ctx(const struct bContext *C, struct ImBuf *ibuf, void **cache_handle);
-
-void IMB_display_buffer_to_imbuf_rect(struct ImBuf *ibuf, const struct ColorManagedViewSettings *view_settings,
-                                      const struct ColorManagedDisplaySettings *display_settings);
 
 void IMB_display_buffer_transform_apply(unsigned char *display_buffer, float *linear_buffer, int width, int height,
                                         int channels, const struct ColorManagedViewSettings *view_settings,
@@ -110,6 +108,7 @@ int IMB_colormanagement_display_get_named_index(const char *name);
 const char *IMB_colormanagement_display_get_indexed_name(int index);
 const char *IMB_colormanagement_display_get_default_name(void);
 struct ColorManagedDisplay *IMB_colormanagement_display_get_named(const char *name);
+const char *IMB_colormanagement_display_get_none_name(void);
 
 /* ** View funcrions ** */
 int IMB_colormanagement_view_get_named_index(const char *name);

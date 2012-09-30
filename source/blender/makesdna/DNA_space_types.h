@@ -376,7 +376,7 @@ typedef struct SpaceNla {
 
 /* nla->flag */
 typedef enum eSpaceNla_Flag {
-	/* flags (1<<0), (1<<1), and (1<<3) are depreceated flags from old verisons */
+	/* flags (1<<0), (1<<1), and (1<<3) are deprecated flags from old verisons */
 
 	/* draw timing in seconds instead of frames */
 	SNLA_DRAWTIME          = (1 << 2),

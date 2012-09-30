@@ -120,7 +120,7 @@ option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
 option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default (recommend to leave off)" OFF)
 mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they really know what they are doing.
-mark_as_advanced(WITH_PYTHON_SECURITY)  # some distrobutions see this as a security issue, rather than have them patch it, make a build option.
+mark_as_advanced(WITH_PYTHON_SECURITY)  # some distributions see this as a security issue, rather than have them patch it, make a build option.
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
 option(WITH_PYTHON_MODULE "Enable building as a python module which runs without a user interface, like running regular blender in background mode (experimental, only enable for development)" OFF)
@@ -371,7 +371,7 @@ if(WITH_CYCLES OR WITH_MOD_BOOLEAN)
 	set(WITH_BOOST ON)
 endif()
 
-# don't store paths to libs for portable distrobution
+# don't store paths to libs for portable distribution
 if(WITH_INSTALL_PORTABLE)
 	set(CMAKE_SKIP_BUILD_RPATH TRUE)
 endif()
@@ -566,7 +566,7 @@ if(UNIX AND NOT APPLE)
 
 		mark_as_advanced(FFMPEG)
 
-		# lame, but until we have propper find module for ffmpeg
+		# lame, but until we have proper find module for ffmpeg
 		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
 		if(EXISTS "${FFMPEG}/include/ffmpeg/")
 			set(FFMPEG_INCLUDE_DIRS "${FFMPEG_INCLUDE_DIRS} ${FFMPEG}/include/ffmpeg")
@@ -647,7 +647,11 @@ if(UNIX AND NOT APPLE)
 			else()
 				set(Boost_USE_MULTITHREADED ON)
 			endif()
-			find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
+			if(WITH_CYCLES_OSL)
+				find_package(Boost 1.34 COMPONENTS filesystem python3 regex system thread) # osl_nodes uses boost_python
+			else()
+				find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
+			endif()
 			mark_as_advanced(Boost_DIR)  # why doesnt boost do this?
 		endif()
 
@@ -1079,9 +1083,17 @@ elseif(WIN32)
 			endif()
 			set(BOOST_LIBRARIES
 				optimized libboost_date_time-${BOOST_POSTFIX} optimized libboost_filesystem-${BOOST_POSTFIX}
-				optimized libboost_regex-${BOOST_POSTFIX} optimized libboost_system-${BOOST_POSTFIX} optimized libboost_thread-${BOOST_POSTFIX}
+				optimized libboost_regex-${BOOST_POSTFIX}
+				optimized libboost_system-${BOOST_POSTFIX} optimized libboost_thread-${BOOST_POSTFIX}
 				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
-				debug libboost_regex-${BOOST_DEBUG_POSTFIX} debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
+				debug libboost_regex-${BOOST_DEBUG_POSTFIX}
+				debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
+				if(WITH_CYCLES_OSL)
+					set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+						optimized libboost_python3-${BOOST_POSTFIX}
+						debug libboost_python3-${BOOST_DEBUG_POSTFIX})
+				endif(WITH_CYCLES_OSL)
+				
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 		endif()
 			
@@ -1097,7 +1109,7 @@ elseif(WIN32)
 			set(OPENCOLORIO ${LIBDIR}/opencolorio)
 			set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
 			set(OPENCOLORIO_LIBRARIES OpenColorIO)
-			set_lib_path(OPENCOLORIO_LIBPATH "opencolorio/lib")
+			set(OPENCOLORIO_LIBPATH ${LIBDIR}/opencolorio/lib)
 			set(OPENCOLORIO_DEFINITIONS)
 		endif()
 
@@ -1257,9 +1269,17 @@ elseif(WIN32)
 			endif()		
 			set(BOOST_LIBRARIES
 				optimized boost_date_time-${BOOST_POSTFIX} boost_filesystem-${BOOST_POSTFIX}
-				boost_regex-${BOOST_POSTFIX} boost_system-${BOOST_POSTFIX} boost_thread-${BOOST_POSTFIX}
+				boost_regex-${BOOST_POSTFIX}
+				boost_system-${BOOST_POSTFIX} boost_thread-${BOOST_POSTFIX}
 				debug boost_date_time-${BOOST_DEBUG_POSTFIX} boost_filesystem-${BOOST_DEBUG_POSTFIX}
-				boost_regex-${BOOST_DEBUG_POSTFIX} boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX})
+				boost_regex-${BOOST_DEBUG_POSTFIX}
+				boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX})
+				if(WITH_CYCLES_OSL)
+					set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+						optimized libboost_python3-${BOOST_POSTFIX}
+						debug libboost_python3-${BOOST_DEBUG_POSTFIX}) 
+				endif(WITH_CYCLES_OSL)
+					
 			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
 		endif()
@@ -1283,7 +1303,7 @@ elseif(WIN32)
 		set(PLATFORM_LINKFLAGS "-Xlinker --stack=2097152")
 
 		## DISABLE - causes linking errors 
-		## for re-distrobution, so users dont need mingw installed
+		## for re-distribution, so users dont need mingw installed
 		# set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-libgcc -static-libstdc++")
 
 	endif()
@@ -1395,6 +1415,7 @@ elseif(APPLE)
 
 	if(WITH_IMAGE_OPENEXR)
 		set(OPENEXR ${LIBDIR}/openexr)
+		set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 		set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 		set(OPENEXR_LIBRARIES Iex Half IlmImf Imath IlmThread)
 		set(OPENEXR_LIBPATH ${OPENEXR}/lib)
@@ -1513,7 +1534,11 @@ elseif(APPLE)
 	if(WITH_BOOST)
 		set(BOOST ${LIBDIR}/boost)
 		set(BOOST_INCLUDE_DIR ${BOOST}/include)
-		set(BOOST_LIBRARIES boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt)
+		if(WITH_CYCLES_OSL)
+			set(BOOST_LIBRARIES boost_date_time-mt boost_filesystem-mt boost_python3-mt boost_regex-mt boost_system-mt boost_thread-mt)
+		else(WITH_CYCLES_OSL)
+			set(BOOST_LIBRARIES boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt)
+		endif(WITH_CYCLES_OSL)
 		set(BOOST_LIBPATH ${BOOST}/lib)
 		set(BOOST_DEFINITIONS)
 	endif()
@@ -1521,7 +1546,7 @@ elseif(APPLE)
 	if(WITH_OPENIMAGEIO)
 		set(OPENIMAGEIO ${LIBDIR}/openimageio)
 		set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
-		set(OPENIMAGEIO_LIBRARIES OpenImageIO ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
+		set(OPENIMAGEIO_LIBRARIES -force_load ${OPENIMAGEIO}/lib/libOpenImageIO.a ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib ${JPEG_LIBPATH} ${PNG_LIBPATH} ${TIFF_LIBPATH} ${OPENEXR_LIBPATH} ${ZLIB_LIBPATH})
 		set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
 	endif()
@@ -1543,7 +1568,7 @@ elseif(APPLE)
 		find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
 		# WARNING! depends on correct order of OSL libs linking
-		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
+		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} -force_load ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
 		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
 		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
 	
@@ -1557,6 +1582,66 @@ elseif(APPLE)
 		endif()
 	
 		include_directories(${OSL_INCLUDES})
+		
+
+		# LLVM library setup, needed for osl 
+		
+		set(LLVM_DIRECTORY "${LIBDIR}/llvm")
+		set(LLVM_STATIC YES)
+		if (LLVM_DIRECTORY)
+			set (LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
+		else ()
+			set (LLVM_CONFIG llvm-config)
+		endif ()
+		execute_process (COMMAND ${LLVM_CONFIG} --version
+						 OUTPUT_VARIABLE LLVM_VERSION
+					 OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process (COMMAND ${LLVM_CONFIG} --prefix
+						 OUTPUT_VARIABLE LLVM_DIRECTORY
+					 OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process (COMMAND ${LLVM_CONFIG} --libdir
+						 OUTPUT_VARIABLE LLVM_LIB_DIR
+					 OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process (COMMAND ${LLVM_CONFIG} --includedir
+						 OUTPUT_VARIABLE LLVM_INCLUDES
+					 OUTPUT_STRIP_TRAILING_WHITESPACE)
+		find_library ( LLVM_LIBRARY
+					   NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
+					   PATHS ${LLVM_LIB_DIR})
+		message (STATUS "LLVM version  = ${LLVM_VERSION}")
+		message (STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
+		message (STATUS "LLVM includes = ${LLVM_INCLUDES}")
+		message (STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
+
+		if (LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
+		  # ensure include directory is added (in case of non-standard locations
+		  include_directories (BEFORE "${LLVM_INCLUDES}")
+		  string (REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
+		  message (STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
+		  add_definitions ("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
+		  if (LLVM_STATIC)
+			# if static LLVM libraries were requested, use llvm-config to generate
+			# the list of what libraries we need, and substitute that in the right
+			# way for LLVM_LIBRARY.
+			set (LLVM_LIBRARY "")
+			execute_process (COMMAND ${LLVM_CONFIG} --libs
+						 OUTPUT_VARIABLE llvm_library_list
+					 OUTPUT_STRIP_TRAILING_WHITESPACE)
+			string (REPLACE "-l" "" llvm_library_list ${llvm_library_list})
+			string (REPLACE " " ";" llvm_library_list ${llvm_library_list})
+			foreach (f ${llvm_library_list})
+			  list (APPEND LLVM_LIBRARY "${LLVM_LIB_DIR}/lib${f}.a")
+			endforeach ()
+		  endif ()
+		  string (REPLACE ";" " " LLVM_LIBRARY "${LLVM_LIBRARY}")
+		  message (STATUS "LLVM library  = ${LLVM_LIBRARY}")
+		else ()
+		  message (FATAL_ERROR "LLVM not found.")
+		endif ()
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} ${LLVM_LIBRARY}")
+		
+		# end LLVM library setup
+
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)

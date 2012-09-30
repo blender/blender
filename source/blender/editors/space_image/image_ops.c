@@ -1205,39 +1205,6 @@ static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
 	RNA_string_set(op->ptr, "filepath", simopts->filepath);
 }
 
-static ImBuf *save_image_colormanaged_imbuf_acquire(ImBuf *ibuf, SaveImageOptions *simopts, int save_as_render, void **cache_handle)
-{
-	ImageFormatData *imf = &simopts->im_format;
-	ImBuf *colormanaged_ibuf;
-	int do_colormanagement;
-
-	*cache_handle = NULL;
-	do_colormanagement = save_as_render && !BKE_imtype_supports_float(imf->imtype);
-
-	if (do_colormanagement) {
-		unsigned char *display_buffer;
-
-		display_buffer = IMB_display_buffer_acquire(ibuf, &imf->view_settings, &imf->display_settings, cache_handle);
-
-		if (*cache_handle) {
-			colormanaged_ibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, 0);
-			colormanaged_ibuf->rect = (unsigned int *) display_buffer;
-		}
-		else {
-			/* no cache handle means color management didn't run transformation
-			 * or performed transformation to image's byte buffer which doesn't
-			 * require allocating new image buffer
-			 */
-			colormanaged_ibuf = ibuf;
-		}
-	}
-	else {
-		colormanaged_ibuf = ibuf;
-	}
-
-	return colormanaged_ibuf;
-}
-
 /* assumes name is FILE_MAX */
 /* ima->name and ibuf->name should end up the same */
 static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveImageOptions *simopts, int do_newpath)
@@ -1247,12 +1214,12 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
 
 	if (ibuf) {
-		void *cache_handle;
 		ImBuf *colormanaged_ibuf;
 		const char *relbase = ID_BLEND_PATH(CTX_data_main(C), &ima->id);
 		const short relative = (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
 		const short save_copy = (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
 		const short save_as_render = (RNA_struct_find_property(op->ptr, "save_as_render") && RNA_boolean_get(op->ptr, "save_as_render"));
+		ImageFormatData *imf = &simopts->im_format;
 		short ok = FALSE;
 
 		/* old global to ensure a 2nd save goes to same dir */
@@ -1277,7 +1244,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			}
 		}
 
-		colormanaged_ibuf = save_image_colormanaged_imbuf_acquire(ibuf, simopts, save_as_render, &cache_handle);
+		colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, TRUE, &imf->view_settings, &imf->display_settings, imf);
 
 		if (simopts->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
 			Scene *scene = CTX_data_scene(C);
@@ -1345,12 +1312,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 
 		WM_cursor_wait(0);
 
-		if (cache_handle) {
-			colormanaged_ibuf->rect = NULL;
+		if (colormanaged_ibuf != ibuf)
 			IMB_freeImBuf(colormanaged_ibuf);
-
-			IMB_display_buffer_release(cache_handle);
-		}
 	}
 
 	ED_space_image_release_buffer(sima, lock);
@@ -1461,6 +1424,24 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 	uiDefAutoButsRNA(layout, &ptr, image_save_as_draw_check_prop, '\0');
 }
 
+static int image_save_as_poll(bContext *C)
+{
+	if (space_image_buffer_exists_poll(C)) {
+		if (G.is_rendering) {
+			/* no need to NULL check here */
+			SpaceImage *sima = CTX_wm_space_image(C);
+			Image *ima = ED_space_image(sima);
+
+			if (ima->source == IMA_SRC_VIEWER) {
+				CTX_wm_operator_poll_msg_set(C, "can't save image while rendering");
+				return FALSE;
+			}
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+
 void IMAGE_OT_save_as(wmOperatorType *ot)
 {
 //	PropertyRNA *prop;
@@ -1476,7 +1457,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	ot->invoke = image_save_as_invoke;
 	ot->cancel = image_save_as_cancel;
 	ot->ui = image_save_as_draw;
-	ot->poll = space_image_buffer_exists_poll;
+	ot->poll = image_save_as_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

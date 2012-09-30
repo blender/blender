@@ -86,7 +86,7 @@ extern struct EnumPropertyItem prop_clear_parent_types[];
 extern struct EnumPropertyItem prop_make_parent_types[];
 
 int ED_object_parent_set(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob,
-                         struct Object *par, int partype, int xmirror);
+                         struct Object *par, int partype, int xmirror, int keep_transform);
 void ED_object_parent_clear(struct Object *ob, int type);
 struct Base *ED_object_scene_link(struct Scene *scene, struct Object *ob);
 

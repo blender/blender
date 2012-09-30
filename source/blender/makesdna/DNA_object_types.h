@@ -117,7 +117,7 @@ typedef struct Object {
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	/* struct Path *path; */
 	struct BoundBox *bb;
-	struct bAction *action  DNA_DEPRECATED;	 // XXX depreceated... old animation system
+	struct bAction *action  DNA_DEPRECATED;	 // XXX deprecated... old animation system
 	struct bAction *poselib;
 	struct bPose *pose;  /* pose data, armature objects only */
 	void *data;  /* pointer to objects data - an 'ID' or NULL */
@@ -127,8 +127,8 @@ typedef struct Object {
 	bAnimVizSettings avs;	/* settings for visualization of object-transform animation */
 	bMotionPath *mpath;		/* motion path cache for this object */
 	
-	ListBase constraintChannels  DNA_DEPRECATED; // XXX depreceated... old animation system
-	ListBase effect  DNA_DEPRECATED;             // XXX depreceated... keep for readfile
+	ListBase constraintChannels  DNA_DEPRECATED; // XXX deprecated... old animation system
+	ListBase effect  DNA_DEPRECATED;             // XXX deprecated... keep for readfile
 	ListBase disp;      /* list of DispList, used by lattice, metaballs curve & surfaces */
 	ListBase defbase;   /* list of bDeformGroup (vertex groups) names and flag only */
 	ListBase modifiers; /* list of ModifierData structures */
@@ -175,7 +175,7 @@ typedef struct Object {
 	short transflag, protectflag;	/* transformation settings and transform locks  */
 	short trackflag, upflag;
 	short nlaflag;				/* used for DopeSheet filtering settings (expanded/collapsed) */
-	short ipoflag;				// xxx depreceated... old animation system
+	short ipoflag;				// xxx deprecated... old animation system
 	short scaflag;				/* ui state for game logic */
 	char scavisflag;			/* more display settings for game logic */
 	char pad5;
@@ -244,8 +244,8 @@ typedef struct Object {
 	float anisotropicFriction[3];
 
 	ListBase constraints;		/* object constraints */
-	ListBase nlastrips  DNA_DEPRECATED;			// XXX depreceated... old animation system
-	ListBase hooks  DNA_DEPRECATED;				// XXX depreceated... old animation system
+	ListBase nlastrips  DNA_DEPRECATED;			// XXX deprecated... old animation system
+	ListBase hooks  DNA_DEPRECATED;				// XXX deprecated... old animation system
 	ListBase particlesystem;	/* particle systems */
 	
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */

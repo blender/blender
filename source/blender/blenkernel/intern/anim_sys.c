@@ -640,7 +640,7 @@ static void fcurves_path_rename_fix(ID *owner_id, const char *prefix, const char
 			if (fcu->rna_path != old_path) {
 				bActionGroup *agrp = fcu->grp;
 				
-				if ((agrp) && strcmp(oldName, agrp->name)==0) {
+				if ((agrp) && strcmp(oldName, agrp->name) == 0) {
 					BLI_strncpy(agrp->name, newName, sizeof(agrp->name));
 				}
 			}

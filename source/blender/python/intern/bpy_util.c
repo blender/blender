@@ -37,7 +37,7 @@
 
 #include "../generic/py_capi_utils.h"
 
-static bContext*  __py_context = NULL;
+static bContext *__py_context = NULL;
 bContext   *BPy_GetContext(void) { return __py_context; }
 void        BPy_SetContext(bContext *C) { __py_context = C; }
 

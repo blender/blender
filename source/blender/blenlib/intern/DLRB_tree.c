@@ -364,7 +364,7 @@ static void rotate_right(DLRBT_Tree *tree, DLRBT_Node *root)
 			root_slot = &root->parent->right;
 	}
 	else
-		root_slot = ((DLRBT_Node **)&tree->root);  /* &((DLRBT_Node*)tree->root); */
+		root_slot = ((DLRBT_Node **)&tree->root);  /* &((DLRBT_Node *)tree->root); */
 		
 	/* - pivot's right child becomes root's left child
 	 * - root now becomes pivot's right child  

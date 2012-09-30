@@ -152,7 +152,7 @@ static void menudata_free(MenuData *md)
  * if %xNN is given then NN is the return value if
  * that option is selected otherwise the return value
  * is the index of the option (starting with 1). %l
- * indicates a seperator, sss%l indicates a label and
+ * indicates a separator, sss%l indicates a label and
  * new column.
  *
  * \param str String to be parsed.
@@ -2083,7 +2083,7 @@ static void square_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, in
 
 
 /* a HS circle, V slider, rgb/hsv/hex sliders */
-static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, PropertyRNA *prop)
+static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, PropertyRNA *prop, int show_picker)
 {
 	static short colormode = 0;  /* temp? 0=rgb, 1=hsv, 2=hex */
 	uiBut *bt;
@@ -2144,8 +2144,10 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
 	uiBlockEndAlign(block);
 
-	bt = uiDefIconButO(block, BUT, "UI_OT_eyedropper", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, butwidth + 10, -60, UI_UNIT_X, UI_UNIT_Y, NULL);
-	uiButSetFunc(bt, close_popup_cb, bt, NULL);
+	if (show_picker) {
+		bt = uiDefIconButO(block, BUT, "UI_OT_eyedropper", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, butwidth + 10, -60, UI_UNIT_X, UI_UNIT_Y, NULL);
+		uiButSetFunc(bt, close_popup_cb, bt, NULL);
+	}
 	
 	/* RGB values */
 	uiBlockBeginAlign(block);
@@ -2230,6 +2232,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 {
 	uiBut *but = arg_but;
 	uiBlock *block;
+	int show_picker = TRUE;
 	
 	block = uiBeginBlock(C, handle->region, __func__, UI_EMBOSS);
 	
@@ -2238,12 +2241,20 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 			block->color_profile = FALSE;
 		}
 	}
+
+	if (but->block) {
+		/* if color block is invoked from a popup we wouldn't be able to set color properly
+		 * this is because color picker will close popups first and then will try to figure
+		 * out active button RNA, and of course it'll fail
+		 */
+		show_picker = (but->block->flag & UI_BLOCK_POPUP) == 0;
+	}
 	
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	copy_v3_v3(handle->retvec, but->editvec);
 	
-	uiBlockPicker(block, handle->retvec, &but->rnapoin, but->rnaprop);
+	uiBlockPicker(block, handle->retvec, &but->rnapoin, but->rnaprop, show_picker);
 	
 	block->flag = UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_KEEP_OPEN | UI_BLOCK_OUT_1;
 	uiBoundsBlock(block, 10);

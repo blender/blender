@@ -885,7 +885,10 @@ static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scop
 	ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
 	ImBuf *scope;
 
-	IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings, &scene->display_settings);
+	if (display_ibuf->rect_float) {
+		IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
+		                                             &scene->display_settings);
+	}
 
 	scope = make_scope_cb(display_ibuf);
 
@@ -967,7 +970,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 				if (!scopes->zebra_ibuf) {
 					ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
 
-					IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings, &scene->display_settings);
+					if (display_ibuf->rect_float) {
+						IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
+						                                             &scene->display_settings);
+					}
 					scopes->zebra_ibuf = make_zebra_view_from_ibuf(display_ibuf, sseq->zebra);
 					IMB_freeImBuf(display_ibuf);
 				}

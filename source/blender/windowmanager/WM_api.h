@@ -155,6 +155,7 @@ struct wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase
 
 			/* mouse */
 void		WM_event_add_mousemove(struct bContext *C);
+void		WM_event_add_mousemove_window(struct wmWindow *window);
 int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
 
 			/* notifiers */

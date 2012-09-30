@@ -11,7 +11,7 @@ luma: [0.2126, 0.7152, 0.0722]
 description: RRT version ut33
 
 roles:
-  reference: Linear ACES
+  reference: Linear
 
   # Internal scene linear space
   scene_linear: Linear
@@ -51,17 +51,19 @@ displays:
     - !<View> {name: Raw, colorspace: Raw}
     - !<View> {name: Log, colorspace: adx10}
   None:
-    - !<View> {name: Default, colorspace: raw}
+    - !<View> {name: Default, colorspace: Raw}
 
 active_displays: [sRGB, DCIP3, Rec709, XYZ, None]
 active_views: [Default, RRT, Raw, Log]
 
 colorspaces:
   - !<ColorSpace>
-    name: Linear ACES
+    name: Linear
     family: aces
     equalitygroup:
     bitdepth: 32f
+    description: |
+      Rec. 709 (Full Range), Blender native linear space
     isdata: false
     allocation: lg2
     allocationvars: [-8.5, 5]
@@ -93,18 +95,19 @@ colorspaces:
         - !<FileTransform> {src: adx_cid_to_rle.spi1d, interpolation: linear}
         - !<LogTransform> {base: 10, direction: inverse}
         - !<FileTransform> {src: adx_exp_to_aces.spimtx}
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear, direction: inverse}
 
   - !<ColorSpace>
-    name: Linear
+    name: Linear ACES
     family:
     equalitygroup:
     bitdepth: 32f
     description: |
-      Rec. 709 (Full Range), Blender native linear space
+      ACES linear space
     isdata: false
     allocation: uniform
-    allocationvars: [-0.125, 1.125]
-    to_reference: !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
+    allocationvars: [-8.5, 5]
+    to_reference: !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear, direction: inverse}
 
   - !<ColorSpace>
     name: rrt_srgb
@@ -116,6 +119,7 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_sRGB.spi3d, interpolation: tetrahedral}
 
@@ -132,7 +136,6 @@ colorspaces:
     to_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: rec709.spi1d, interpolation: linear}
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
 
   - !<ColorSpace>
     name: rrt_rec709
@@ -144,6 +147,7 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_rec709.spi3d, interpolation: tetrahedral}
 
@@ -157,6 +161,7 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_p3dci.spi3d, interpolation: tetrahedral}
 
@@ -170,6 +175,7 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<FileTransform> {src: aces_to_xyz.spimtx, interpolation: linear}
 
   - !<ColorSpace>
@@ -182,6 +188,7 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_dcdm.spi3d, interpolation: tetrahedral}
 
@@ -197,7 +204,6 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear, direction: inverse}
         - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
         - !<FileTransform> {src: dci_xyz.spi1d, interpolation: linear}
 
@@ -213,7 +219,6 @@ colorspaces:
     to_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: lg10.spi1d, interpolation: nearest}
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
 
   - !<ColorSpace>
     name: srgb8
@@ -226,7 +231,7 @@ colorspaces:
     allocation: uniform
     from_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear ACES, dst: lg10}
+        - !<ColorSpaceTransform> {src: Linear, dst: lg10}
         - !<FileTransform> {src: spi_ocio_srgb_test.spi3d, interpolation: linear}
 
   - !<ColorSpace>
@@ -242,7 +247,6 @@ colorspaces:
     to_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
 
   - !<ColorSpace>
     name: VD16
@@ -256,7 +260,6 @@ colorspaces:
     to_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: vd16.spi1d, interpolation: nearest}
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear}
 
   - !<ColorSpace>
     name: Non-Color
@@ -280,5 +283,5 @@ colorspaces:
     allocation: uniform
     from_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear ACES, dst: lg10}
+        - !<ColorSpaceTransform> {src: Linear, dst: lg10}
         - !<FileTransform> {src: colorworks_filmlg_to_p3.3dl, interpolation: linear}

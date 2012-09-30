@@ -190,7 +190,7 @@ void BKE_paint_free(Paint *paint)
 }
 
 /* called when copying scene settings, so even if 'src' and 'tar' are the same
- * still do a id_us_plus(), rather then if we were copying betweem 2 existing
+ * still do a id_us_plus(), rather then if we were copying between 2 existing
  * scenes where a matching value should decrease the existing user count as
  * with paint_brush_set() */
 void BKE_paint_copy(Paint *src, Paint *tar)

@@ -257,7 +257,10 @@ def xml2rna(root_xml,
                         try:
                             value_xml_coerce = [int(v) for v in value_xml_split]
                         except ValueError:
-                            value_xml_coerce = [float(v) for v in value_xml_split]
+                            try:
+                                value_xml_coerce = [float(v) for v in value_xml_split]
+                            except ValueError:  # bool vector property
+                                value_xml_coerce = [{'TRUE': True, 'FALSE': False}[v] for v in value_xml_split]
                         del value_xml_split
                     tp_name = 'ARRAY'
 

@@ -2768,7 +2768,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 
 	if (skip_align) {
 		/* handles need to be updated during animation and applying stuff like hooks,
-		 * but in such situatios it's quite difficult to distinguish in which order
+		 * but in such situations it's quite difficult to distinguish in which order
 		 * align handles should be aligned so skip them for now */
 		return;
 	}

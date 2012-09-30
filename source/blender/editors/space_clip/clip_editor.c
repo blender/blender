@@ -368,7 +368,7 @@ int ED_clip_view_selection(const bContext *C, ARegion *ar, int fit)
 
 	ED_space_clip_get_size(sc, &frame_width, &frame_height);
 
-	if (frame_width == 0 || frame_height == 0)
+	if ((frame_width == 0) || (frame_height == 0) || (sc->clip == NULL))
 		return FALSE;
 
 	if (!selected_boundbox(sc, min, max))

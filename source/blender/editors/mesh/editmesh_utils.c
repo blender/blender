@@ -48,6 +48,8 @@
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
 
+#include "BKE_object.h"  /* XXX. only for EDBM_mesh_ensure_valid_dm_hack() which will be removed */
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -102,7 +104,17 @@ void EDBM_redo_state_free(BMBackup *backup, BMEditMesh *em, int recalctess)
 		BMEdit_RecalcTessellation(em);
 }
 
-
+/* hack to workaround multiple operators being called within the same event loop without an update
+ * see: [#31811] */
+void EDBM_mesh_ensure_valid_dm_hack(Scene *scene, BMEditMesh *em)
+{
+	if ((((ID *)em->ob->data)->flag & LIB_ID_RECALC) ||
+	    (em->ob->recalc & OB_RECALC_DATA))
+	{
+		em->ob->recalc |= OB_RECALC_DATA;  /* since we may not have done selection flushing */
+		BKE_object_handle_update(scene, em->ob);
+	}
+}
 
 void EDBM_mesh_normals_update(BMEditMesh *em)
 {

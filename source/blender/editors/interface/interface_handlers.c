@@ -852,7 +852,7 @@ static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
 	RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
 	
 	WM_operator_properties_create(&props_ptr, "LOGIC_OT_controller_add");
-	RNA_string_set(&props_ptr, "object", ob->id.name+2);
+	RNA_string_set(&props_ptr, "object", ob->id.name + 2);
 
 	/* (3) add a new controller */
 	if (WM_operator_name_call(C, "LOGIC_OT_controller_add", WM_OP_EXEC_DEFAULT, &props_ptr) & OPERATOR_FINISHED) {
@@ -1368,7 +1368,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 
 		while (TRUE) {
 			/* XXX does not take zoom level into account */
-			cdist = startx + aspect_sqrt *BLF_width(fstyle->uifont_id, origstr + but->ofs);
+			cdist = startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr + but->ofs);
 
 			/* check if position is found */
 			if (cdist < x) {
@@ -4707,8 +4707,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		
 		/* Property Operators */
 		
-		/*Copy Property Value
-		 *Paste Property Value */
+		/* Copy Property Value
+		 * Paste Property Value */
 		
 		if (length) {
 			uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset All to Default Values"),

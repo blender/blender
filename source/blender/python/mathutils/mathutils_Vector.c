@@ -1530,7 +1530,7 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
 }
 
 /*------------------------obj * obj------------------------------
- * mulplication*/
+ * multiplication */
 
 
 /* COLUMN VECTOR Multiplication (Matrix X Vector)
@@ -1687,7 +1687,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 	return NULL;
 }
 
-/* mulplication in-place: obj *= obj */
+/* multiplication in-place: obj *= obj */
 static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 {
 	VectorObject *vec = (VectorObject *)v1;

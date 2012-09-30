@@ -138,8 +138,9 @@ void OutputSingleLayerOperation::deinitExecution()
 		ibuf->mall |= IB_rectfloat; 
 		ibuf->dither = this->m_rd->dither_intensity;
 		
-		IMB_display_buffer_to_imbuf_rect(ibuf, m_viewSettings, m_displaySettings);
-		
+		IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, m_viewSettings, m_displaySettings,
+		                                    this->m_format);
+
 		BKE_makepicstring(filename, this->m_path, bmain->name, this->m_rd->cfra, this->m_format->imtype,
 		                  (this->m_rd->scemode & R_EXTENSION), true);
 		

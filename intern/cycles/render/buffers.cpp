@@ -196,7 +196,18 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 		else if(components == 3) {
 			assert(pass.components == 4);
 
-			if(pass.divide_type != PASS_NONE) {
+			/* RGBA */
+			if(type == PASS_SHADOW) {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels += 3) {
+					float4 f = make_float4(in[0], in[1], in[2], in[3]);
+					float invw = (f.w > 0.0f)? 1.0f/f.w: 1.0f;
+
+					pixels[0] = f.x*invw;
+					pixels[1] = f.y*invw;
+					pixels[2] = f.z*invw;
+				}
+			}
+			else if(pass.divide_type != PASS_NONE) {
 				/* RGB lighting passes that need to divide out color */
 				pass_offset = 0;
 				foreach(Pass& color_pass, params.passes) {

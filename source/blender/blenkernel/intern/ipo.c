@@ -32,7 +32,7 @@
 
 /* NOTE:
  *
- * This file is no longer used to provide tools for the depreceated IPO system. Instead, it
+ * This file is no longer used to provide tools for the deprecated IPO system. Instead, it
  * is only used to house the conversion code to the new system.
  *
  * -- Joshua Leung, Jan 2009
@@ -1765,7 +1765,7 @@ void do_versions_ipos_to_animato(Main *main)
 						/* Any actuators set to ACT_IPO at this point are actually Action Actuators that
 						   need this converted IPO to finish converting the actuator. */
 						if (act->type == ACT_IPO) {
-							aa = (bActionActuator*)act->data;
+							aa = (bActionActuator *)act->data;
 							aa->act = ob->adt->action;
 							act->type = ACT_ACTION;
 						}

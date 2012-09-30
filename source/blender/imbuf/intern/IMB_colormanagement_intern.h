@@ -67,8 +67,14 @@ typedef struct ColorManagedView {
 	char name[64];
 } ColorManagedView;
 
+/* ** Initialization / De-initialization ** */
+
+void colormanagement_init(void);
+void colormanagement_exit(void);
+
 void colormanage_cache_free(struct ImBuf *ibuf);
 
+const char *colormanage_display_get_default_name(void);
 struct ColorManagedDisplay *colormanage_display_get_default(void);
 struct ColorManagedDisplay *colormanage_display_add(const char *name);
 struct ColorManagedDisplay *colormanage_display_get_named(const char *name);

@@ -275,7 +275,8 @@ def enable(module_name, default_set=True, persistent=False):
     try:
         mod.register()
     except:
-        print("Exception in module register(): %r" % getattr(mod, "__file__", module_name))
+        print("Exception in module register(): %r" %
+              getattr(mod, "__file__", module_name))
         handle_error()
         del sys.modules[module_name]
         return None
@@ -317,7 +318,8 @@ def disable(module_name, default_set=True):
         try:
             mod.unregister()
         except:
-            print("Exception in module unregister(): %r" % getattr(mod, "__file__", module_name))
+            print("Exception in module unregister(): %r" %
+                  getattr(mod, "__file__", module_name))
             import traceback
             traceback.print_exc()
     else:

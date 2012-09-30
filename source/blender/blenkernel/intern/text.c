@@ -48,6 +48,7 @@
 
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
+#include "DNA_actuator_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -528,6 +529,7 @@ void BKE_text_unlink(Main *bmain, Text *text)
 	SpaceLink *sl;
 	Object *ob;
 	bController *cont;
+	bActuator *act;
 	bConstraint *con;
 	short update;
 
@@ -539,6 +541,15 @@ void BKE_text_unlink(Main *bmain, Text *text)
 				
 				pc = cont->data;
 				if (pc->text == text) pc->text = NULL;
+			}
+		}
+		/* game actuators */
+		for (act = ob->actuators.first; act; act = act->next) {
+			if (act->type == ACT_2DFILTER) {
+				bTwoDFilterActuator *tfa;
+				
+				tfa = act->data;
+				if (tfa->text == text) tfa->text = NULL;
 			}
 		}
 

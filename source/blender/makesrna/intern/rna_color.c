@@ -896,7 +896,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ColorManagedDisplaySettings", NULL);
 	RNA_def_struct_ui_text(srna, "ColorManagedDisplaySettings", "Color management specific to display device");
 
-	prop= RNA_def_property(srna, "display_device", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "display_device", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, display_device_items);
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedDisplaySettings_display_device_get",
 	                                  "rna_ColorManagedDisplaySettings_display_device_set",
@@ -908,7 +908,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ColorManagedViewSettings", NULL);
 	RNA_def_struct_ui_text(srna, "ColorManagedViewSettings", "Color management settings used for displaying images on the display");
 
-	prop= RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, view_transform_items);
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedViewSettings_view_transform_get",
 	                                  "rna_ColorManagedViewSettings_view_transform_set",
@@ -945,7 +945,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ColorManagedColorspaceSettings", NULL);
 	RNA_def_struct_ui_text(srna, "ColorManagedColorspaceSettings", "Input color space settings");
 
-	prop= RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, color_space_items);
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedColorspaceSettings_colorspace_get",
 	                                  "rna_ColorManagedColorspaceSettings_colorspace_set",

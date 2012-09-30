@@ -1300,7 +1300,7 @@ static void rna_def_pose(BlenderRNA *brna)
 	/* animviz */
 	rna_def_animviz_common(srna);
 	
-	/* RNA_api_pose(srna); */
+	RNA_api_pose(srna);
 }
 
 void RNA_def_pose(BlenderRNA *brna)

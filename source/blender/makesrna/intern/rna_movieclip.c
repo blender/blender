@@ -299,6 +299,12 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	                         "(affects only how footage is loading, does not change data associated with a clip)");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClip_reload_update");
 
+	/* length */
+	prop = RNA_def_property(srna, "frame_duration", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_sdna(prop, NULL, "len");
+	RNA_def_property_ui_text(prop, "Duration", "Detected duration of movie clip in frames");
+
 	/* color management */
 	prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");

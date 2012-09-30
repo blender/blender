@@ -49,7 +49,8 @@ void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_star
 	/* add all nodes of the tree to the node list */
 	bNode *node = (bNode *)tree->nodes.first;
 	while (node != NULL) {
-		addNode(nodes, node, isActiveGroup, system.getContext().isFastCalculation());
+		Node *nnode = addNode(nodes, node, isActiveGroup, system.getContext().isFastCalculation());
+		nnode->setbNodeGroup(groupnode);
 		node = (bNode *)node->next;
 	}
 

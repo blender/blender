@@ -243,7 +243,7 @@ static void drawgrid_draw(ARegion *ar, double wx, double wy, double x, double y,
 	verts[1][1] = (double)ar->winy;
 
 	/* iter over 'X' */
-	verts[0][0] = verts[1][0] = x - dx *floor(x / dx);
+	verts[0][0] = verts[1][0] = x - dx * floor(x / dx);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_DOUBLE, 0, verts);
 
@@ -257,7 +257,7 @@ static void drawgrid_draw(ARegion *ar, double wx, double wy, double x, double y,
 	verts[1][0] = (double)ar->winx;
 
 	/* iter over 'Y' */
-	verts[0][1] = verts[1][1] = y - dx *floor(y / dx);
+	verts[0][1] = verts[1][1] = y - dx * floor(y / dx);
 	while (verts[0][1] < ar->winy) {
 		glDrawArrays(GL_LINES, 0, 2);
 		verts[0][1] = verts[1][1] = verts[0][1] + dx;
@@ -730,7 +730,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 			glColor4fv(color);
 			glBegin(GL_LINE_LOOP);
 			for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step) {
-				float p[3] = {s *cosf(angle), s * sinf(angle), 0.0f};
+				float p[3] = {s * cosf(angle), s * sinf(angle), 0.0f};
 
 				if (!upright) {
 					mul_qt_v3(q, p);
@@ -2559,7 +2559,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 		/* NOTE: currently OpenGL is supposed to always work in sRGB space and do not
 		 *       apply any tonemaps since it's really tricky to support for all features (GLSL, textures, etc)
 		 *       but due to compatibility issues background is being affected display transform, so we can
-		 *       emulate behavior of disabled colro management
+		 *       emulate behavior of disabled color management
 		 *       but this function is also used for sequencer's scene strips which shouldn't be affected by
 		 *       tonemaps now and should be purely sRGB, that's why we've got this colormanage_background
 		 *       we can drop this flag in cost of some compatibility loss -- background wouldn't be
@@ -2860,8 +2860,8 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 
 		engine = RE_engine_create(type);
 
-		engine->tile_x = ceil(ar->winx/(float)scene->r.xparts);
-		engine->tile_y = ceil(ar->winy/(float)scene->r.yparts);
+		engine->tile_x = ceil(ar->winx / (float)scene->r.xparts);
+		engine->tile_y = ceil(ar->winy / (float)scene->r.yparts);
 
 		type->view_update(engine, C);
 

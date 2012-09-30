@@ -954,12 +954,12 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 
 static float polar_to_x(float center, float diam, float ampli, float angle)
 {
-	return center + diam *ampli *cosf(angle);
+	return center + diam *ampli * cosf(angle);
 }
 
 static float polar_to_y(float center, float diam, float ampli, float angle)
 {
-	return center + diam *ampli *sinf(angle);
+	return center + diam *ampli * sinf(angle);
 }
 
 static void vectorscope_draw_target(float centerx, float centery, float diam, const float colf[3])

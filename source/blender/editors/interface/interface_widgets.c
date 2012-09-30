@@ -1014,42 +1014,42 @@ static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	if (fstyle->kerning == 1) /* for BLF_width */
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 
-	if ((but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr)) <= okwidth) {
+	/* define ofs dynamically */
+	if (but->ofs > but->pos)
+		but->ofs = but->pos;
+
+	if (BLF_width(fstyle->uifont_id, but->drawstr) <= okwidth)
 		but->ofs = 0;
-	}
-	else {
-		/* define ofs dynamically */
-		if (but->ofs > but->pos)
-			but->ofs = but->pos;
 
-		while (but->strwidth > okwidth) {
-			float width;
-			char buf[UI_MAX_DRAW_STR];
+	but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
 
-			/* copy draw string */
-			BLI_strncpy_utf8(buf, but->drawstr, sizeof(buf));
-			/* string position of cursor */
-			buf[but->pos] = 0;
-			width = BLF_width(fstyle->uifont_id, buf + but->ofs);
+	while (but->strwidth > okwidth) {
+		float width;
+		char buf[UI_MAX_DRAW_STR];
 
-			/* if cursor is at 20 pixels of right side button we clip left */
-			if (width > okwidth - 20) {
-				ui_text_clip_give_next_off(but);
-			}
-			else {
-				int len, bytes;
-				/* shift string to the left */
-				if (width < 20 && but->ofs > 0)
-					ui_text_clip_give_prev_off(but);
-				len = strlen(but->drawstr);
-				bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->drawstr, but->drawstr + len));
-				but->drawstr[len - bytes] = 0;
-			}
+		/* copy draw string */
+		BLI_strncpy_utf8(buf, but->drawstr, sizeof(buf));
+		/* string position of cursor */
+		buf[but->pos] = 0;
+		width = BLF_width(fstyle->uifont_id, buf + but->ofs);
 
-			but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
-
-			if (but->strwidth < 10) break;
+		/* if cursor is at 20 pixels of right side button we clip left */
+		if (width > okwidth - 20) {
+			ui_text_clip_give_next_off(but);
 		}
+		else {
+			int len, bytes;
+			/* shift string to the left */
+			if (width < 20 && but->ofs > 0)
+				ui_text_clip_give_prev_off(but);
+			len = strlen(but->drawstr);
+			bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->drawstr, but->drawstr + len));
+			but->drawstr[len - bytes] = 0;
+		}
+
+		but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr + but->ofs);
+
+		if (but->strwidth < 10) break;
 	}
 
 	if (fstyle->kerning == 1) {

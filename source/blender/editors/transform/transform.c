@@ -332,6 +332,9 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 
 			UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr + 1);
 		}
+		else {
+			BLI_assert(0);
+		}
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], adr, adr + 1);
@@ -3906,7 +3909,7 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		sprintf(str, "Shrink/Fatten: %.4f %s", distance, t->proptext);
 	}
 
-	t->values[0] = distance;
+	t->values[0] = -distance;
 
 	for (i = 0; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)

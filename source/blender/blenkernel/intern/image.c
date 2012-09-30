@@ -619,6 +619,8 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 
 			BLI_strncpy(colorspace_settings->name, colorspace, sizeof(colorspace_settings->name));
 		}
+
+		IMB_colormanagement_check_is_data(ibuf, colorspace_settings->name);
 	}
 	else {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
@@ -1031,7 +1033,7 @@ int BKE_imtype_supports_quality(const char imtype)
 	return 0;
 }
 
-int BKE_imtype_supports_float(const char imtype)
+int BKE_imtype_requires_linear_float(const char imtype)
 {
 	switch (imtype) {
 		case R_IMF_IMTYPE_CINEON:
@@ -2605,8 +2607,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 
 	/* invalidate color managed buffers if render result changed */
 	BLI_lock_thread(LOCK_COLORMANAGE);
-	if (ibuf->x != rres.rectx || ibuf->y != rres.recty || ibuf->rect_float != rectf)
-	{
+	if (ibuf->x != rres.rectx || ibuf->y != rres.recty || ibuf->rect_float != rectf) {
 		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 	}
 

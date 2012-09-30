@@ -41,6 +41,8 @@
 
 #include "BIF_gl.h"
 
+#include "rna_internal.h"  /* own include */
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_image.h"
@@ -81,9 +83,10 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 			BKE_reportf(reports, RPT_ERROR, "Couldn't acquire buffer from image");
 		}
 		else {
-			ImBuf *write_ibuf = IMB_dupImBuf(ibuf);
+			ImBuf *write_ibuf;
 
-			IMB_display_buffer_to_imbuf_rect(write_ibuf, &scene->view_settings, &scene->display_settings);
+			write_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, TRUE, TRUE, &scene->view_settings,
+			                                                 &scene->display_settings, &scene->r.im_format);
 
 			write_ibuf->planes = scene->r.im_format.planes;
 			write_ibuf->dither = scene->r.dither_intensity;
@@ -91,7 +94,9 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 			if (!BKE_imbuf_write(write_ibuf, path, &scene->r.im_format)) {
 				BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 			}
-			IMB_freeImBuf(write_ibuf);
+
+			if (write_ibuf != ibuf)
+				IMB_freeImBuf(write_ibuf);
 		}
 
 		BKE_image_release_ibuf(image, lock);

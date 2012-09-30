@@ -705,8 +705,8 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 	BVHNode *tmp = branches_array + 0;
 	tmp->parent = NULL;
 
-	/*Most of bvhtree code relies on 1-leaf trees having at least one branch
-	 *We handle that special case here */
+	/* Most of bvhtree code relies on 1-leaf trees having at least one branch
+	 * We handle that special case here */
 	if (num_leafs == 1) {
 		BVHNode *root = branches_array + 0;
 		refit_kdop_hull(tree, root, 0, num_leafs);

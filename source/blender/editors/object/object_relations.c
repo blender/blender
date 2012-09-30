@@ -525,7 +525,7 @@ EnumPropertyItem prop_make_parent_types[] = {
 };
 
 int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par,
-                         int partype, int xmirror)
+                         int partype, int xmirror, int keep_transform)
 {
 	bPoseChannel *pchan = NULL;
 	int pararm = ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
@@ -577,10 +577,14 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 		}
 		else {
 			Object workob;
-			
+
 			/* apply transformation of previous parenting */
-			/* BKE_object_apply_mat4(ob, ob->obmat); */ /* removed because of bug [#23577] */
-			
+			if (keep_transform) {
+				 /* was removed because of bug [#23577],
+				  * but this can be handy in some cases too [#32616], so make optional */
+				BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+			}
+
 			/* set the parent (except for follow-path constraint option) */
 			if (partype != PAR_PATH_CONST) {
 				ob->parent = par;
@@ -682,11 +686,12 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	Object *par = ED_object_active_context(C);
 	int partype = RNA_enum_get(op->ptr, "type");
 	int xmirror = RNA_boolean_get(op->ptr, "xmirror");
+	int keep_transform = RNA_boolean_get(op->ptr, "keep_transform");
 	int ok = 1;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, xmirror)) {
+		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, xmirror, keep_transform)) {
 			ok = 0;
 			break;
 		}
@@ -710,25 +715,36 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 	Object *ob = ED_object_active_context(C);
 	uiPopupMenu *pup = uiPupMenuBegin(C, "Set Parent To", ICON_NONE);
 	uiLayout *layout = uiPupMenuLayout(pup);
-	
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_OBJECT);
-	
+
+	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_parent_set", TRUE);
+	PointerRNA opptr;
+
+#if 0
+	uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_OBJECT);
+#else
+	opptr = uiItemFullO_ptr(layout, ot, "Object", ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&opptr, "type", PAR_OBJECT);
+	RNA_boolean_set(&opptr, "keep_transform", FALSE);
+
+	opptr = uiItemFullO_ptr(layout, ot, "Object (Keep Transform)", ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&opptr, "type", PAR_OBJECT);
+	RNA_boolean_set(&opptr, "keep_transform", TRUE);
+#endif
 	/* ob becomes parent, make the associated menus */
 	if (ob->type == OB_ARMATURE) {
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_NAME);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_AUTO);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_BONE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_NAME);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_AUTO);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_BONE);
 	}
 	else if (ob->type == OB_CURVE) {
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_CURVE);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_FOLLOW);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_PATH_CONST);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_CURVE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_FOLLOW);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_PATH_CONST);
 	}
 	else if (ob->type == OB_LATTICE) {
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_LATTICE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_LATTICE);
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -783,6 +799,9 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 	RNA_def_boolean(ot->srna, "xmirror", FALSE, "X Mirror",
 	                "Apply weights symmetrically along X axis, for Envelope/Automatic vertex groups creation");
+	RNA_def_boolean(ot->srna, "keep_transform", FALSE, "Keep Transform",
+	                "Apply transformation before parenting");
+
 }
 
 /* ************ Make Parent Without Inverse Operator ******************* */
@@ -1274,6 +1293,9 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	DAG_ids_flush_update(bmain, 0);
+
+	/* redraw the 3D view because the object center points are colored differently */
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
 	/* one day multiple scenes will be visible, then we should have some update function for them */
 	return OPERATOR_FINISHED;

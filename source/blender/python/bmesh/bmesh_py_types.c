@@ -189,7 +189,7 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
 /* Mesh
  * ^^^^ */
 
-/* doc-strings for all uses of this funcion */
+/* doc-strings for all uses of this function */
 
 PyDoc_STRVAR(bpy_bmvertseq_doc,
 "This meshes vert sequence (read-only).\n\n:type: :class:`BMVertSeq`"
@@ -2581,7 +2581,7 @@ static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
 				/* only get the length for negative values */
 				Py_ssize_t len = bpy_bmelemseq_length(self);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {

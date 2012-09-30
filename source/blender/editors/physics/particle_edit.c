@@ -328,7 +328,7 @@ void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
 static int pe_x_mirror(Object *ob)
 {
 	if (ob->type == OB_MESH)
-		return (((Mesh*)ob->data)->editflag & ME_EDIT_MIRROR_X);
+		return (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_X);
 	
 	return 0;
 }
@@ -2602,7 +2602,7 @@ void PARTICLE_OT_delete(wmOperatorType *ot)
 
 static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 {
-	Mesh *me= (Mesh*)(ob->data);
+	Mesh *me= (Mesh *)(ob->data);
 	ParticleSystemModifierData *psmd;
 	PTCacheEdit *edit= PE_get_current(scene, ob);
 	ParticleSystem *psys = edit->psys;
@@ -3379,7 +3379,7 @@ static int brush_add(PEData *data, short number)
 				ppa= psys->particles+ptn[0].index;
 
 				for (k=0; k<pset->totaddkey; k++) {
-					thkey= (HairKey*)pa->hair + k;
+					thkey= (HairKey *)pa->hair + k;
 					thkey->time= pa->time + k * framestep;
 
 					key3[0].time= thkey->time/ 100.0f;
@@ -4139,7 +4139,7 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 		return;
 
 	if (!edit) {
-		totpoint = psys ? psys->totpart : (int)((PTCacheMem*)cache->mem_cache.first)->totpoint;
+		totpoint = psys ? psys->totpart : (int)((PTCacheMem *)cache->mem_cache.first)->totpoint;
 
 		edit= MEM_callocN(sizeof(PTCacheEdit), "PE_create_particle_edit");
 		edit->points=MEM_callocN(totpoint*sizeof(PTCacheEditPoint), "PTCacheEditPoints");

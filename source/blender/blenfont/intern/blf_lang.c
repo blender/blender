@@ -63,12 +63,12 @@
 #define SYSTEM_ENCODING_DEFAULT "UTF-8"
 #define FONT_SIZE_DEFAULT 12
 
-/* locale options. */
+/* Locale options. */
 static char global_messagepath[1024];
 static char global_language[32];
 static char global_encoding_name[32];
 
-/* map from the rna_userdef.c:rna_def_userdef_system(BlenderRNA *brna):language_items */
+/* Map from the rna_userdef.c:rna_def_userdef_system(BlenderRNA *brna):language_items */
 static const char *locales[] = {
 	"", "",
 	"english", "en_US",
@@ -107,17 +107,16 @@ static const char *locales[] = {
 	"kyrgyz", "ky_KG",
 	"turkish", "tr_TR",
 	"hungarian", "hu_HU",
-	"brazilian portuguese", "pt_BR",
+	"portuguese-brazilian", "pt_BR",
 	"hebrew", "he_IL",
 };
 
 void BLF_lang_init(void)
 {
 	char *messagepath = BLI_get_folder(BLENDER_DATAFILES, "locale");
-/*	printf("%s\n", messagepath);*/
 
 	BLI_strncpy(global_encoding_name, SYSTEM_ENCODING_DEFAULT, sizeof(global_encoding_name));
-	
+
 	if (messagepath) {
 		BLI_strncpy(global_messagepath, messagepath, sizeof(global_messagepath));
 	}
@@ -125,10 +124,9 @@ void BLF_lang_init(void)
 		printf("%s: 'locale' data path for translations not found, continuing\n", __func__);
 		global_messagepath[0] = '\0';
 	}
-	
 }
 
-/* get LANG/LANGUAGE environment variable */
+/* Get LANG/LANGUAGE environment variable. */
 static void get_language_variable(const char *varname, char *var, const size_t maxlen)
 {
 	char *env = getenv(varname);
@@ -136,18 +134,18 @@ static void get_language_variable(const char *varname, char *var, const size_t m
 	if (env) {
 		char *s;
 
-		/* store defaul locale */
+		/* Store defaul locale. */
 		BLI_strncpy(var, env, maxlen);
 
-		/* use first language as default */
+		/* Use first language as default. */
 		s = strchr(var, ':');
 		if (s)
 			s[0] = 0;
 	}
 }
 
-/* get language to be used based on locale(which might be empty when using default language) and
- * LANG environment variable
+/* Get language to be used based on locale (which might be empty when using default language) and
+ * LANG environment variable.
  */
 static void get_language(const char *locale, const char *lang, char *language, const size_t maxlen)
 {
@@ -165,7 +163,7 @@ static void get_language(const char *locale, const char *lang, char *language, c
 	}
 }
 
-/* XXX WARNING!!! IN osx somehow the previous function call jumps in this one??? (ton, ppc) */
+/* XXX WARNING!!! In osx somehow the previous function call jumps in this one??? (ton, ppc) */
 void BLF_lang_set(const char *str)
 {
 	char *locreturn;
@@ -185,7 +183,7 @@ void BLF_lang_set(const char *str)
 	if (short_locale) {
 		char *envStr;
 
-		if (U.language == 0) /* use system setting */
+		if (U.language == 0) /* Use system setting. */
 			envStr = BLI_sprintfN("LANG=%s", getenv("LANG"));
 		else
 			envStr = BLI_sprintfN("LANG=%s", short_locale);
@@ -252,7 +250,7 @@ void BLF_lang_set(const char *str)
 					printf("Fallback to LANG=%s and LANGUAGE=%s\n", default_lang, language);
 				}
 
-				/* fallback to default settings */
+				/* Fallback to default settings. */
 				BLI_setenv("LANG", default_lang);
 				BLI_setenv("LANGUAGE", language);
 

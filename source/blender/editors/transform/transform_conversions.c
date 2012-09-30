@@ -1334,10 +1334,9 @@ static TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struc
 	return hdata;
 }
 
-static void createTransCurveVerts(bContext *C, TransInfo *t)
+static void createTransCurveVerts(TransInfo *t)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Curve *cu = obedit->data;
+	Curve *cu = t->obedit->data;
 	TransData *td = NULL;
 	Nurb *nu;
 	BezTriple *bezt;
@@ -1935,9 +1934,9 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 	}
 }
 
-static void createTransEditVerts(bContext *C, TransInfo *t)
+static void createTransEditVerts(TransInfo *t)
 {
-	ToolSettings *ts = CTX_data_tool_settings(C);
+	ToolSettings *ts = t->scene->toolsettings;
 	TransData *tob = NULL;
 	TransDataExtension *tx = NULL;
 	BMEditMesh *em = BMEdit_FromObject(t->obedit);
@@ -3292,15 +3291,19 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		if (t->mode == TFM_TIME_SLIDE) {
 			t->customData = MEM_callocN((sizeof(float) * 2) + (sizeof(tGPFtransdata) * count), "TimeSlide + tGPFtransdata");
+			t->flag |= T_FREE_CUSTOMDATA;
 			tfd = (tGPFtransdata *)((float *)(t->customData) + 2);
 		}
 		else {
 			t->customData = MEM_callocN(sizeof(tGPFtransdata) * count, "tGPFtransdata");
+			t->flag |= T_FREE_CUSTOMDATA;
 			tfd = (tGPFtransdata *)(t->customData);
 		}
 	}
-	else if (t->mode == TFM_TIME_SLIDE)
+	else if (t->mode == TFM_TIME_SLIDE) {
 		t->customData = MEM_callocN(sizeof(float) * 2, "TimeSlide Min/Max");
+		t->flag |= T_FREE_CUSTOMDATA;
+	}
 	
 	/* loop 2: build transdata array */
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -5762,6 +5765,7 @@ static void transDataTrackingFree(TransInfo *t)
 			MEM_freeN(tdt->smarkers);
 
 		MEM_freeN(tdt);
+		t->customData = NULL;
 	}
 }
 
@@ -6420,10 +6424,10 @@ void createTransData(bContext *C, TransInfo *t)
 	else if (t->obedit) {
 		t->ext = NULL;
 		if (t->obedit->type == OB_MESH) {
-			createTransEditVerts(C, t);
+			createTransEditVerts(t);
 		}
 		else if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
-			createTransCurveVerts(C, t);
+			createTransCurveVerts(t);
 		}
 		else if (t->obedit->type == OB_LATTICE) {
 			createTransLatticeVerts(t);
