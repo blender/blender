@@ -188,7 +188,7 @@ HRESULT __stdcall VF_OpenFileFunc_Blen(
 	SOCKET s_in;
 	char buf[256];
 	struct sockaddr_in      addr;
-	FILE* fp;
+	FILE *fp;
 
 	p = lpFileName;
 	while (*p && *p != '.') p++;
@@ -229,7 +229,7 @@ HRESULT __stdcall VF_OpenFileFunc_Blen(
 		return VF_ERROR;
 	}
 
-	rval = (conndesc*) malloc(sizeof(conndesc));
+	rval = (conndesc *) malloc(sizeof(conndesc));
 
 	rval->addr = addr;
 
@@ -281,7 +281,7 @@ HRESULT __stdcall VF_OpenFileFunc_Blen(
 HRESULT __stdcall VF_CloseFileFunc_Blen( 
 	VF_FileHandle hFileHandle )
 {
-	free((conndesc*) hFileHandle);
+	free((conndesc *) hFileHandle);
 
 	return VF_OK;
 }
@@ -290,7 +290,7 @@ HRESULT __stdcall VF_GetFileInfoFunc_Blen(
 	VF_FileHandle hFileHandle,
 	LPVF_FileInfo lpFileInfo )
 {
-	conndesc * c = (conndesc*) hFileHandle;
+	conndesc *c = (conndesc *) hFileHandle;
 	if (c == 0) { 
 		return VF_ERROR; 
 	}
@@ -385,10 +385,10 @@ HRESULT __stdcall VF_ReadDataFunc_Blen(
 	framebuf = (unsigned char*) v->lpData;
 
 	for (y = 0; y < height; y++) {
-		unsigned char * p = framebuf + v->lPitch * y;
-		unsigned char * e = p + width * 3;
+		unsigned char *p = framebuf + v->lPitch * y;
+		unsigned char *e = p + width * 3;
 
-		my_recv(s_in, (char*) p, width * 3);
+		my_recv(s_in, (char *)p, width * 3);
 		while (p != e) {
 			unsigned char tmp = p[2];
 			p[2] = p[0];

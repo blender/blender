@@ -5366,7 +5366,7 @@ void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 	for (win = wm->windows.first; win; win = win->next)
 		for (sa = win->screen->areabase.first; sa; sa = sa->next)
 			if (sa->spacetype == SPACE_IMAGE)
-				if (((SpaceImage*)sa->spacedata.first)->mode == SI_MODE_PAINT)
+				if (((SpaceImage *)sa->spacedata.first)->mode == SI_MODE_PAINT)
 					enabled = TRUE;
 
 	if (enabled) {

@@ -275,7 +275,7 @@ void GetSkyXYZRadiance(struct SunSky *sunsky, float theta, float phi, float colo
 	/* Compute xyY values */
 	x = PerezFunction(sunsky, sunsky->perez_x, theta, gamma, sunsky->zenith_x);
 	y = PerezFunction(sunsky, sunsky->perez_y, theta, gamma, sunsky->zenith_y);
-	Y = 6.666666667e-5f *nfade *hfade *PerezFunction(sunsky, sunsky->perez_Y, theta, gamma, sunsky->zenith_Y);
+	Y = 6.666666667e-5f * nfade * hfade * PerezFunction(sunsky, sunsky->perez_Y, theta, gamma, sunsky->zenith_Y);
 
 	if (sunsky->sky_exposure != 0.0f)
 		Y = 1.0 - exp(Y * sunsky->sky_exposure);

@@ -114,7 +114,7 @@ static int imb_tiff_DummyMapProc(thandle_t fd, tdata_t *pbase, toff_t *psize)
  * Reads data from an in-memory TIFF file.
  *
  * \param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
- * \param data:   Buffer to contain data (treat as void*).
+ * \param data:   Buffer to contain data (treat as (void *)).
  * \param n:      Number of bytes to read.
  *
  * \return: Number of bytes actually read.

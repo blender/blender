@@ -3930,7 +3930,7 @@ static void add_lightgroup(Render *re, Group *group, int exclusive)
 	for (go= group->gobject.first; go; go= go->next) {
 		go->lampren= NULL;
 
-		if(go->ob->restrictflag & OB_RESTRICT_RENDER)
+		if (go->ob->restrictflag & OB_RESTRICT_RENDER)
 			continue;
 		
 		if (go->ob->lay & re->lay) {

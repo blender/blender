@@ -1368,7 +1368,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 
 		while (TRUE) {
 			/* XXX does not take zoom level into account */
-			cdist = startx + aspect_sqrt *BLF_width(fstyle->uifont_id, origstr + but->ofs);
+			cdist = startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr + but->ofs);
 
 			/* check if position is found */
 			if (cdist < x) {
@@ -4707,8 +4707,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		
 		/* Property Operators */
 		
-		/*Copy Property Value
-		 *Paste Property Value */
+		/* Copy Property Value
+		 * Paste Property Value */
 		
 		if (length) {
 			uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset All to Default Values"),

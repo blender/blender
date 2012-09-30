@@ -933,7 +933,7 @@ static int wm_window_timer(const bContext *C)
 				wt->delta = time - wt->ltime;
 				wt->duration += wt->delta;
 				wt->ltime = time;
-				wt->ntime = wt->stime + wt->timestep *ceil(wt->duration / wt->timestep);
+				wt->ntime = wt->stime + wt->timestep * ceil(wt->duration / wt->timestep);
 
 				if (wt->event_type == TIMERJOBS)
 					wm_jobs_timer(C, wm, wt);

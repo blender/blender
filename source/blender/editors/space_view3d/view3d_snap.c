@@ -607,9 +607,9 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 			else {
 				ob->recalc |= OB_RECALC_OB;
 				
-				vec[0] = -ob->obmat[3][0] + gridf *floorf(0.5f + ob->obmat[3][0] / gridf);
-				vec[1] = -ob->obmat[3][1] + gridf *floorf(0.5f + ob->obmat[3][1] / gridf);
-				vec[2] = -ob->obmat[3][2] + gridf *floorf(0.5f + ob->obmat[3][2] / gridf);
+				vec[0] = -ob->obmat[3][0] + gridf * floorf(0.5f + ob->obmat[3][0] / gridf);
+				vec[1] = -ob->obmat[3][1] + gridf * floorf(0.5f + ob->obmat[3][1] / gridf);
+				vec[2] = -ob->obmat[3][2] + gridf * floorf(0.5f + ob->obmat[3][2] / gridf);
 				
 				if (ob->parent) {
 					BKE_object_where_is_calc(scene, ob);

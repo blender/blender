@@ -4224,7 +4224,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 				/* Only continue if surrounding point has higher wetness */
 				if (ePoint->wetness < pPoint->wetness || ePoint->wetness < MIN_WETNESS) continue;
 
-				w_factor = 1.0f / numOfNeighs *MIN2(ePoint->wetness, 1.0f) * speed_scale;
+				w_factor = 1.0f / numOfNeighs * MIN2(ePoint->wetness, 1.0f) * speed_scale;
 				CLAMP(w_factor, 0.0f, 1.0f);
 
 				/* mix new wetness and color */

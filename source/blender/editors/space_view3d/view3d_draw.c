@@ -243,7 +243,7 @@ static void drawgrid_draw(ARegion *ar, double wx, double wy, double x, double y,
 	verts[1][1] = (double)ar->winy;
 
 	/* iter over 'X' */
-	verts[0][0] = verts[1][0] = x - dx *floor(x / dx);
+	verts[0][0] = verts[1][0] = x - dx * floor(x / dx);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_DOUBLE, 0, verts);
 
@@ -257,7 +257,7 @@ static void drawgrid_draw(ARegion *ar, double wx, double wy, double x, double y,
 	verts[1][0] = (double)ar->winx;
 
 	/* iter over 'Y' */
-	verts[0][1] = verts[1][1] = y - dx *floor(y / dx);
+	verts[0][1] = verts[1][1] = y - dx * floor(y / dx);
 	while (verts[0][1] < ar->winy) {
 		glDrawArrays(GL_LINES, 0, 2);
 		verts[0][1] = verts[1][1] = verts[0][1] + dx;
@@ -730,7 +730,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 			glColor4fv(color);
 			glBegin(GL_LINE_LOOP);
 			for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step) {
-				float p[3] = {s *cosf(angle), s * sinf(angle), 0.0f};
+				float p[3] = {s * cosf(angle), s * sinf(angle), 0.0f};
 
 				if (!upright) {
 					mul_qt_v3(q, p);
