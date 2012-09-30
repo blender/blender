@@ -54,7 +54,6 @@
 #include "DNA_userdef_types.h"
 
 #include "GPU_buffers.h"
-#include "GPU_draw.h"
 
 typedef enum {
 	GPU_BUFFER_VERTEX_STATE = 1,
@@ -1281,8 +1280,6 @@ typedef struct {
 	char pad[2];
 	
 	unsigned char color[3];
-	float accum_color[3];
-	int tot_color;
 } VertexBufferFormat;
 
 struct GPU_Buffers {
@@ -1330,24 +1327,24 @@ static void gpu_colors_disable(VBO_State vbo_state)
 
 static float gpu_color_from_mask(float mask)
 {
-	return 1.0f - mask * 0.75f;
+	return (1.0f - mask) * 0.5f + 0.25f;
 }
 
-static void gpu_color_from_mask_copy(float mask, const float diffuse_color[4], unsigned char out[3])
+static void gpu_color_from_mask_copy(float mask, unsigned char out[3])
 {
-	float mask_color;
+	unsigned char color;
+	
+	color = gpu_color_from_mask(mask) * 255.0f;
 
-	mask_color = gpu_color_from_mask(mask) * 255.0f;
-
-	out[0] = diffuse_color[0] * mask_color;
-	out[1] = diffuse_color[1] * mask_color;
-	out[2] = diffuse_color[2] * mask_color;
+	out[0] = color;
+	out[1] = color;
+	out[2] = color;
 }
 
-static void gpu_color_from_mask_set(float mask, float diffuse_color[4])
+static void gpu_color_from_mask_set(float mask)
 {
 	float color = gpu_color_from_mask(mask);
-	glColor3f(diffuse_color[0] * color, diffuse_color[1] * color, diffuse_color[2] * color);
+	glColor3f(color, color, color);
 }
 
 static float gpu_color_from_mask_quad(const CCGKey *key,
@@ -1363,32 +1360,29 @@ static float gpu_color_from_mask_quad(const CCGKey *key,
 static void gpu_color_from_mask_quad_copy(const CCGKey *key,
                                           CCGElem *a, CCGElem *b,
                                           CCGElem *c, CCGElem *d,
-                                          const float *diffuse_color,
                                           unsigned char out[3])
 {
-	float mask_color =
+	unsigned char color =
 	    gpu_color_from_mask((*CCG_elem_mask(key, a) +
 	                         *CCG_elem_mask(key, b) +
 	                         *CCG_elem_mask(key, c) +
 	                         *CCG_elem_mask(key, d)) * 0.25f) * 255.0f;
 
-	out[0] = diffuse_color[0] * mask_color;
-	out[1] = diffuse_color[1] * mask_color;
-	out[2] = diffuse_color[2] * mask_color;
+	out[0] = color;
+	out[1] = color;
+	out[2] = color;
 }
 
 static void gpu_color_from_mask_quad_set(const CCGKey *key,
                                          CCGElem *a, CCGElem *b,
-                                         CCGElem *c, CCGElem *d,
-                                         float diffuse_color[4])
+                                         CCGElem *c, CCGElem *d)
 {
 	float color = gpu_color_from_mask_quad(key, a, b, c, d);
-	glColor3f(diffuse_color[0] * color, diffuse_color[1] * color, diffuse_color[2] * color);
+	glColor3f(color, color, color);
 }
 
-void GPU_update_mesh_buffers(GPU_Buffers *buffers, MFace *mface, int *face_indices, int totface,
-                             MVert *mvert, int *vert_indices, int totvert,
-                             int (*face_vert_indices)[4], const float *vmask)
+void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
+                             int *vert_indices, int totvert, const float *vmask)
 {
 	VertexBufferFormat *vert_data;
 	int i;
@@ -1410,40 +1404,8 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MFace *mface, int *face_indic
 
 				copy_v3_v3(out->co, v->co);
 				memcpy(out->no, v->no, sizeof(short) * 3);
-				zero_v3(out->accum_color);
-				out->tot_color = 0;
-			}
-
-#define UPDATE_VERTEX(face, vertex, index, diffuse_color) \
-			{ \
-				VertexBufferFormat *out = vert_data + face_vert_indices[face][index]; \
-				add_v3_v3(out->accum_color, diffuse_color);	\
-				out->tot_color++; \
-			} (void)0
-
-			for (i = 0; i < totface; ++i) {
-				MFace *f = mface + face_indices[i];
-				float diffuse_color[4];
-
-				GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
-
-				UPDATE_VERTEX(i, f->v1, 0, diffuse_color);
-				UPDATE_VERTEX(i, f->v2, 1, diffuse_color);
-				UPDATE_VERTEX(i, f->v3, 2, diffuse_color);
-				if (f->v4)
-					UPDATE_VERTEX(i, f->v4, 3, diffuse_color);
-			}
-#undef UPDATE_VERTEX
-
-			for (i = 0; i < totvert; ++i) {
-				VertexBufferFormat *out = vert_data + i;
-				if (out->tot_color) {
-					float diffuse_color[4];
-
-					mul_v3_v3fl(diffuse_color, out->accum_color, 1.0f / out->tot_color);
-
-					gpu_color_from_mask_copy(vmask[vert_indices[i]], diffuse_color, out->color);
-				}
+				gpu_color_from_mask_copy(vmask[vert_indices[i]],
+				                         out->color);
 			}
 
 			glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
@@ -1555,10 +1517,6 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, CCGElem **grids,
 			for (i = 0; i < totgrid; ++i) {
 				VertexBufferFormat *vd = vert_data;
 				CCGElem *grid = grids[grid_indices[i]];
-				const DMFlagMat *flags = &grid_flag_mats[grid_indices[i]];
-				float diffuse_color[4];
-
-				GPU_material_diffuse_get(flags->mat_nr + 1, diffuse_color);
 
 				for (y = 0; y < key->grid_size; y++) {
 					for (x = 0; x < key->grid_size; x++) {
@@ -1566,9 +1524,11 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, CCGElem **grids,
 						
 						copy_v3_v3(vd->co, CCG_elem_co(key, elem));
 						if (smooth) {
-							normal_float_to_short_v3(vd->no, CCG_elem_no(key, elem));
+							normal_float_to_short_v3(vd->no,
+							                         CCG_elem_no(key, elem));
 
-							gpu_color_from_mask_copy(*CCG_elem_mask(key, elem), diffuse_color, vd->color);
+							gpu_color_from_mask_copy(*CCG_elem_mask(key, elem),
+							                         vd->color);
 						}
 						vd++;
 					}
@@ -1601,7 +1561,6 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, CCGElem **grids,
 							                              elems[1],
 							                              elems[2],
 							                              elems[3],
-							                              diffuse_color,
 							                              vd->color);
 						}
 					}
@@ -1810,9 +1769,6 @@ static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers, int smooth)
 {
 	const MVert *mvert = buffers->mvert;
 	int i, j;
-	float diffuse_color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
-
-	glGetMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_color);
 
 	gpu_colors_enable(VBO_DISABLED);
 
@@ -1828,7 +1784,7 @@ static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers, int smooth)
 
 		if (smooth) {
 			for (j = 0; j < S; j++) {
-				gpu_color_from_mask_set(buffers->vmask[fv[j]], diffuse_color);
+				gpu_color_from_mask_set(buffers->vmask[fv[j]]);
 				glNormal3sv(mvert[fv[j]].no);
 				glVertex3fv(mvert[fv[j]].co);
 			}
@@ -1853,7 +1809,7 @@ static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers, int smooth)
 				fmask = (fmask + buffers->vmask[fv[3]]) * 0.25;
 			else
 				fmask /= 3.0f;
-			gpu_color_from_mask_set(fmask, diffuse_color);
+			gpu_color_from_mask_set(fmask);
 			
 			for (j = 0; j < S; j++)
 				glVertex3fv(mvert[fv[j]].co);
@@ -1869,9 +1825,6 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 {
 	const CCGKey *key = &buffers->gridkey;
 	int i, j, x, y, gridsize = buffers->gridkey.grid_size;
-	float diffuse_color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
-
-	glGetMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_color);
 
 	gpu_colors_enable(VBO_DISABLED);
 
@@ -1900,7 +1853,7 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 
 					if (smooth) {
 						for (j = 0; j < 4; j++) {
-							gpu_color_from_mask_set(*CCG_elem_mask(key, e[j]), diffuse_color);
+							gpu_color_from_mask_set(*CCG_elem_mask(key, e[j]));
 							glNormal3fv(CCG_elem_no(key, e[j]));
 							glVertex3fv(CCG_elem_co(key, e[j]));
 						}
@@ -1913,7 +1866,7 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 						               CCG_elem_co(key, e[2]),
 						               CCG_elem_co(key, e[3]));
 						glNormal3fv(fno);
-						gpu_color_from_mask_quad_set(key, e[0], e[1], e[2], e[3], diffuse_color);
+						gpu_color_from_mask_quad_set(key, e[0], e[1], e[2], e[3]);
 
 						for (j = 0; j < 4; j++)
 							glVertex3fv(CCG_elem_co(key, e[j]));
@@ -1930,10 +1883,10 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 					CCGElem *a = CCG_grid_elem(key, grid, x, y);
 					CCGElem *b = CCG_grid_elem(key, grid, x, y + 1);
 
-					gpu_color_from_mask_set(*CCG_elem_mask(key, a), diffuse_color);
+					gpu_color_from_mask_set(*CCG_elem_mask(key, a));
 					glNormal3fv(CCG_elem_no(key, a));
 					glVertex3fv(CCG_elem_co(key, a));
-					gpu_color_from_mask_set(*CCG_elem_mask(key, b), diffuse_color);
+					gpu_color_from_mask_set(*CCG_elem_mask(key, b));
 					glNormal3fv(CCG_elem_no(key, b));
 					glVertex3fv(CCG_elem_co(key, b));
 				}
@@ -1959,7 +1912,7 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 						               CCG_elem_co(key, c));
 						glNormal3fv(fno);
 
-						gpu_color_from_mask_quad_set(key, a, b, c, d, diffuse_color);
+						gpu_color_from_mask_quad_set(key, a, b, c, d);
 					}
 
 					glVertex3fv(CCG_elem_co(key, a));

@@ -1440,21 +1440,6 @@ void GPU_disable_material(void)
 	GPU_set_material_alpha_blend(GPU_BLEND_SOLID);
 }
 
-void GPU_material_diffuse_get(int nr, float diff[4])
-{
-	/* prevent index to use un-initialized array items */
-	if (nr >= GMS.totmat)
-		nr = 0;
-
-	/* no GPU_begin_object_materials, use default material */
-	if (!GMS.matbuf) {
-		mul_v3_v3fl(diff, &defmaterial.r, defmaterial.ref + defmaterial.emit);
-	}
-	else {
-		copy_v4_v4(diff, GMS.matbuf[nr].diff);
-	}
-}
-
 void GPU_end_object_materials(void)
 {
 	GPU_disable_material();
