@@ -4315,7 +4315,7 @@ static void rna_def_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "label");
 	RNA_def_property_ui_text(prop, "Label", "Optional custom node label");
-	RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 	
 	prop = RNA_def_property(srna, "inputs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "inputs", NULL);
