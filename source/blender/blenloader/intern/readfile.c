@@ -999,7 +999,7 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 	gzfile = BLI_gzopen(filepath, "rb");
 	
 	if (gzfile == (gzFile)Z_NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", filepath, errno ? strerror(errno) : "Unknown error reading file");
+		BKE_reportf(reports, RPT_WARNING, "Unable to open \"%s\": %s.", filepath, errno ? strerror(errno) : "Unknown error reading file");
 		return NULL;
 	}
 	else {
@@ -1017,7 +1017,7 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 FileData *blo_openblendermemory(void *mem, int memsize, ReportList *reports)
 {
 	if (!mem || memsize<SIZEOFBLENDERHEADER) {
-		BKE_report(reports, RPT_ERROR, (mem)? "Unable to read": "Unable to open");
+		BKE_report(reports, RPT_WARNING, (mem)? "Unable to read": "Unable to open");
 		return NULL;
 	}
 	else {
@@ -1034,7 +1034,7 @@ FileData *blo_openblendermemory(void *mem, int memsize, ReportList *reports)
 FileData *blo_openblendermemfile(MemFile *memfile, ReportList *reports)
 {
 	if (!memfile) {
-		BKE_report(reports, RPT_ERROR, "Unable to open blend <memory>");
+		BKE_report(reports, RPT_WARNING, "Unable to open blend <memory>");
 		return NULL;
 	}
 	else {
