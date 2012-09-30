@@ -1432,7 +1432,7 @@ static int image_save_as_poll(bContext *C)
 			SpaceImage *sima = CTX_wm_space_image(C);
 			Image *ima = ED_space_image(sima);
 
-			if ((ima->source == IMA_SRC_VIEWER)) {
+			if (ima->source == IMA_SRC_VIEWER) {
 				CTX_wm_operator_poll_msg_set(C, "can't save image while rendering");
 				return FALSE;
 			}
