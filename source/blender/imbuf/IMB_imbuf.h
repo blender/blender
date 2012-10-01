@@ -410,10 +410,10 @@ void bicubic_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float v
 void neareast_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 void bilinear_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 
-void bicubic_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
-void neareast_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
-void bilinear_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
-void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
+void bicubic_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+void neareast_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+void bilinear_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 
 /**
  *

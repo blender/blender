@@ -125,15 +125,16 @@ static float P(float k)
 }
 #endif
 
-void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
+void bicubic_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
 	int i, j, n, m, x1, y1;
 	unsigned char *dataI;
 	float a, b, w, wx, wy[4], outR, outG, outB, outA, *dataF;
 
 	/* sample area entirely outside image? */
-	if (ceil(u) < 0 || floor(u) > in->x - 1 || ceil(v) < 0 || floor(v) > in->y - 1)
+	if (ceil(u) < 0 || floor(u) > in->x - 1 || ceil(v) < 0 || floor(v) > in->y - 1) {
 		return;
+	}
 
 	/* ImBuf in must have a valid rect or rect_float, assume this is already checked */
 
@@ -226,11 +227,12 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *o
 
 void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
-	
 	unsigned char *outI = NULL;
 	float *outF = NULL;
 	
-	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
+	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
+		return;
+	}
 	
 	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
@@ -239,7 +241,7 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, in
 
 /* function assumes out to be zero'ed, only does RGBA */
 /* BILINEAR INTERPOLATION */
-void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
+void bilinear_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
 	float *row1, *row2, *row3, *row4, a, b;
 	unsigned char *row1I, *row2I, *row3I, *row4I;
@@ -257,7 +259,9 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 	y2 = (int)ceil(v);
 
 	/* sample area entirely outside image? */
-	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) return;
+	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) {
+		return;
+	}
 
 	if (outF) {
 		/* sample including outside of edges of image */
@@ -315,7 +319,7 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 /* Note about wrapping, the u/v still needs to be within the image bounds,
  * just the interpolation is wrapped.
  * This the same as bilinear_interpolation_color except it wraps rather than using empty and emptyI */
-void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
+void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
 	float *row1, *row2, *row3, *row4, a, b;
 	unsigned char *row1I, *row2I, *row3I, *row4I;
@@ -331,7 +335,9 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 	y2 = (int)ceil(v);
 
 	/* sample area entirely outside image? */
-	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) return;
+	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) {
+		return;
+	}
 
 	/* wrap interpolation pixels - main difference from bilinear_interpolation_color  */
 	if (x1 < 0) x1 = in->x + x1;
@@ -378,11 +384,12 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 
 void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
-	
 	unsigned char *outI = NULL;
 	float *outF = NULL;
 	
-	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
+	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
+		return;
+	}
 	
 	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
@@ -391,7 +398,7 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 
 /* function assumes out to be zero'ed, only does RGBA */
 /* NEAREST INTERPOLATION */
-void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
+void neareast_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
 	float *dataF;
 	unsigned char *dataI;
@@ -403,7 +410,9 @@ void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 	y1 = (int)(v);
 
 	/* sample area entirely outside image? */
-	if (x1 < 0 || x1 > in->x - 1 || y1 < 0 || y1 > in->y - 1) return;
+	if (x1 < 0 || x1 > in->x - 1 || y1 < 0 || y1 > in->y - 1) {
+		return;
+	}
 
 	/* sample including outside of edges of image */
 	if (x1 < 0 || y1 < 0) {
@@ -440,11 +449,12 @@ void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 
 void neareast_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, int yout)
 {
-	
 	unsigned char *outI = NULL;
 	float *outF = NULL;
 
-	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
+	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
+		return;
+	}
 	
 	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
