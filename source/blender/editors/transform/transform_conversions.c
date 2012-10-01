@@ -1489,6 +1489,8 @@ static void createTransCurveVerts(TransInfo *t)
 						count++;
 						tail++;
 					}
+
+					(void)hdata;  /* quiet warning */
 				}
 				else if (propmode && head != tail) {
 					calc_distanceCurveVerts(head, tail - 1);
