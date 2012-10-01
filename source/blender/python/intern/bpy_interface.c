@@ -678,6 +678,11 @@ void BPY_modules_load_user(bContext *C)
 				else {
 					Py_DECREF(module);
 				}
+
+				/* check if the script loaded a new file */
+				if (bmain != CTX_data_main(C)) {
+					break;
+				}
 			}
 		}
 	}
