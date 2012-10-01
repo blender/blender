@@ -5529,42 +5529,42 @@ static int doEdgeSlide(TransInfo *t, float perc)
 	int i;
 
 	sld->perc = perc;
-
 	sv = svlist;
-	for (i = 0; i < sld->totsv; i++, sv++) {
-		if (sld->is_proportional == FALSE) {
-			TransDataSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
-			float cur_sel = curr_sv->edge_len;
-			float cur_sv = sv->edge_len;
-			float extd = 0.0f;
-			float recip_cur_sv = 0.0f;
 
-			if (cur_sel == 0.0f) cur_sel = 1.0f;
-			if (cur_sv == 0.0f) cur_sv = 1.0f;
-
-			recip_cur_sv = 1.0f / cur_sv;
-
-			if (!sld->flipped_vtx) {
-				extd = (cur_sv - cur_sel) * recip_cur_sv;
+	if (sld->is_proportional == TRUE) {
+		for (i = 0; i < sld->totsv; i++, sv++) {
+			if (perc > 0.0f) {
+				copy_v3_v3(vec, sv->upvec);
+				mul_v3_fl(vec, perc);
+				add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
 			}
 			else {
-				extd = (cur_sel - cur_sv) * recip_cur_sv;
+				copy_v3_v3(vec, sv->downvec);
+				mul_v3_fl(vec, -perc);
+				add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
 			}
-
-			extd += (sld->perc * cur_sel) * recip_cur_sv;
-			CLAMP(extd, -1.0f, 1.0f);
-			perc = extd;
 		}
+	}
+	else {
+		/**
+		 * Implementation note, non proportional mode ignores the starting positions and uses only the
+		 * up/down verts, this could be changed/improved so the distance is still met but the verts are moved along
+		 * their original path (which may not be straight), however how it works now is OK and matches 2.4x - Campbell
+		 */
+		TransDataSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
+		const float curr_length_perc = len_v3v3(curr_sv->up->co, curr_sv->down->co) *
+		                               (((sld->flipped_vtx ? perc : -perc) + 1.0f) / 2.0f);
 
-		if (perc > 0.0f) {
-			copy_v3_v3(vec, sv->upvec);
-			mul_v3_fl(vec, perc);
-			add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
-		}
-		else {
-			copy_v3_v3(vec, sv->downvec);
-			mul_v3_fl(vec, -perc);
-			add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
+		for (i = 0; i < sld->totsv; i++, sv++) {
+			const float sv_length = len_v3v3(sv->up->co, sv->down->co);
+			const float fac = minf(sv_length, curr_length_perc) / sv_length;
+
+			if (sld->flipped_vtx) {
+				interp_v3_v3v3(sv->v->co, sv->down->co, sv->up->co, fac);
+			}
+			else {
+				interp_v3_v3v3(sv->v->co, sv->up->co, sv->down->co, fac);
+			}
 		}
 	}
 	
