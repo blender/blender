@@ -1986,7 +1986,7 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 	if (buffers->vert_buf && buffers->index_buf) {
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_NORMAL_ARRAY);
-		if (buffers->vmask || buffers->gridkey.has_mask) {
+		if (has_mask) {
 			gpu_colors_enable(VBO_ENABLED);
 		}
 		else {
@@ -2035,6 +2035,9 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 		glDisableClientState(GL_NORMAL_ARRAY);
 		if (has_mask) {
 			gpu_colors_disable(VBO_ENABLED);
+		}
+		else {
+			gpu_colors_disable(VBO_DISABLED);
 		}
 	}
 	/* fallbacks if we are out of memory or VBO is disabled */
