@@ -1525,7 +1525,7 @@ void BKE_mask_parent_init(MaskParent *parent)
 }
 
 
-/* *** own animation/shapekey implimentation ***
+/* *** own animation/shapekey implementation ***
  * BKE_mask_layer_shape_XXX */
 
 int BKE_mask_layer_shape_totvert(MaskLayer *masklay)
