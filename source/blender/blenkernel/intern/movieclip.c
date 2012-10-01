@@ -52,6 +52,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
@@ -71,6 +72,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
+#include "BKE_node.h"
 #include "BKE_image.h"  /* openanim */
 #include "BKE_tracking.h"
 
@@ -1324,6 +1326,11 @@ void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
 					data->clip = NULL;
 			}
 		}
+	}
+
+	{
+		bNodeTreeType *treetype = ntreeGetType(NTREE_COMPOSIT);
+		treetype->foreach_nodetree(bmain, (void *)clip, &BKE_node_tree_unlink_id_cb);
 	}
 
 	clip->id.us = 0;
