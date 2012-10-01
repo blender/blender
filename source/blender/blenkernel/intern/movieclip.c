@@ -626,24 +626,22 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	return undistibuf;
 }
 
-static int need_undistortion_postprocess(MovieClipUser *user, int flag)
+static int need_undistortion_postprocess(MovieClipUser *user)
 {
 	int result = 0;
 
 	/* only full undistorted render can be used as on-fly undistorting image */
-	if (flag & MCLIP_USE_PROXY) {
-		result |= (user->render_size == MCLIP_PROXY_RENDER_SIZE_FULL) &&
-		          (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
-	}
+	result |= (user->render_size == MCLIP_PROXY_RENDER_SIZE_FULL) &&
+	          (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
 
 	return result;
 }
 
-static int need_postprocessed_frame(MovieClipUser *user, int flag, int postprocess_flag)
+static int need_postprocessed_frame(MovieClipUser *user, int postprocess_flag)
 {
 	int result = postprocess_flag;
 
-	result |= need_undistortion_postprocess(user, flag);
+	result |= need_undistortion_postprocess(user);
 
 	return result;
 }
@@ -690,7 +688,7 @@ static ImBuf *get_postprocessed_cached_frame(MovieClip *clip, MovieClipUser *use
 	if (cache->postprocessed.flag != postprocess_flag)
 		return NULL;
 
-	if (need_undistortion_postprocess(user, flag)) {
+	if (need_undistortion_postprocess(user)) {
 		if (!check_undistortion_cache_flags(clip))
 			return NULL;
 	}
@@ -721,7 +719,7 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 		cache->postprocessed.render_flag = 0;
 	}
 
-	if (need_undistortion_postprocess(user, flag)) {
+	if (need_undistortion_postprocess(user)) {
 		copy_v2_v2(cache->postprocessed.principal, camera->principal);
 		copy_v3_v3(&cache->postprocessed.k1, &camera->k1);
 		cache->postprocessed.undistortion_used = TRUE;
@@ -765,7 +763,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
 	/* try to obtain cached postprocessed frame first */
-	if (need_postprocessed_frame(user, flag, postprocess_flag)) {
+	if (need_postprocessed_frame(user, postprocess_flag)) {
 		ibuf = get_postprocessed_cached_frame(clip, user, flag, postprocess_flag);
 
 		if (!ibuf)
