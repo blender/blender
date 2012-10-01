@@ -159,8 +159,10 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 			/* set totlvl from existing MDISPS layer if object already had it */
 			multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
 
-			/* ensure that grid paint mask layer is created */
-			ED_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
+			if (ob->mode & OB_MODE_SCULPT) {
+				/* ensure that grid paint mask layer is created */
+				ED_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
+			}
 		}
 		else if (type == eModifierType_Skin) {
 			/* ensure skin-node customdata exists */
@@ -709,11 +711,6 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
-
-	if (ob->type == OB_MESH) {
-		/* ensure mesh paint mask layer remains after applying */
-		ED_sculpt_mask_layers_ensure(ob, NULL);
-	}
 
 	return 1;
 }

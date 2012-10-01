@@ -233,7 +233,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 				if (vi.grid) { \
 					vi.co = CCG_elem_co(vi.key, vi.grid); \
 					vi.fno = CCG_elem_no(vi.key, vi.grid); \
-					vi.mask = CCG_elem_mask(vi.key, vi.grid); \
+					vi.mask = vi.key->has_mask ? CCG_elem_mask(vi.key, vi.grid) : NULL; \
 					vi.grid = CCG_elem_next(vi.key, vi.grid); \
 					if (vi.gh) { \
 						if (BLI_BITMAP_GET(vi.gh, vi.gy * vi.gridsize + vi.gx)) \

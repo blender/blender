@@ -113,7 +113,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 			if (kb) {
 				ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
-				sculpt_update_mesh_elements(scene, sd, ob, 0);
+				sculpt_update_mesh_elements(scene, sd, ob, 0, FALSE);
 				WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
 			}
 			else {
@@ -271,8 +271,21 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	SculptUndoNode *unode;
 	MultiresModifierData *mmd;
 	int update = FALSE, rebuild = FALSE;
+	int need_mask = FALSE;
 
-	sculpt_update_mesh_elements(scene, sd, ob, 0);
+	for (unode = lb->first; unode; unode = unode->next) {
+		if (strcmp(unode->idname, ob->id.name) == 0) {
+			if (unode->type == SCULPT_UNDO_MASK) {
+				/* is possible that we can't do the mask undo (below)
+				 * because of the vertex count */
+				need_mask = TRUE;
+				break;
+			}
+		}
+	}
+
+	sculpt_update_mesh_elements(scene, sd, ob, 0, need_mask);
+
 	/* call _after_ sculpt_update_mesh_elements() which may update 'ob->derivedFinal' */
 	dm = mesh_get_derived_final(scene, ob, 0);
 
