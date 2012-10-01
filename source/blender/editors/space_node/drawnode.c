@@ -2031,7 +2031,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 {
 	PointerRNA imfptr = RNA_pointer_get(ptr, "format");
 	PointerRNA active_input_ptr, op_ptr;
-	uiLayout *row;
+	uiLayout *row, *col;
 	int active_index;
 	int multilayer = (RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER);
 	
@@ -2042,32 +2042,34 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	
 	uiItemO(layout, IFACE_("Add Input"), ICON_ZOOMIN, "NODE_OT_output_file_add_socket");
 	
+	row = uiLayoutRow(layout, FALSE);
+	col = uiLayoutColumn(row, TRUE);
+	
 	active_index = RNA_int_get(ptr, "active_input_index");
 	/* using different collection properties if multilayer format is enabled */
 	if (multilayer) {
-		uiTemplateList(layout, C, ptr, "layer_slots", ptr, "active_input_index", NULL, 0, 0, 0);
+		uiTemplateList(col, C, ptr, "layer_slots", ptr, "active_input_index", NULL, 0, 0, 0);
 		RNA_property_collection_lookup_int(ptr, RNA_struct_find_property(ptr, "layer_slots"),
 		                                   active_index, &active_input_ptr);
 	}
 	else {
-		uiTemplateList(layout, C, ptr, "file_slots", ptr, "active_input_index", NULL, 0, 0, 0);
+		uiTemplateList(col, C, ptr, "file_slots", ptr, "active_input_index", NULL, 0, 0, 0);
 		RNA_property_collection_lookup_int(ptr, RNA_struct_find_property(ptr, "file_slots"),
 		                                   active_index, &active_input_ptr);
 	}
 	/* XXX collection lookup does not return the ID part of the pointer, setting this manually here */
 	active_input_ptr.id.data = ptr->id.data;
 	
-	row = uiLayoutRow(layout, TRUE);
-	op_ptr = uiItemFullO(row, "NODE_OT_output_file_move_active_socket", "",
+	col = uiLayoutColumn(row, TRUE);
+	op_ptr = uiItemFullO(col, "NODE_OT_output_file_move_active_socket", "",
 	                     ICON_TRIA_UP, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&op_ptr, "direction", 1);
-	op_ptr = uiItemFullO(row, "NODE_OT_output_file_move_active_socket", "",
+	op_ptr = uiItemFullO(col, "NODE_OT_output_file_move_active_socket", "",
 	                     ICON_TRIA_DOWN, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&op_ptr, "direction", 2);
 	
 	if (active_input_ptr.data) {
 		if (multilayer) {
-			uiLayout *row, *col;
 			col = uiLayoutColumn(layout, TRUE);
 			
 			uiItemL(col, IFACE_("Layer:"), ICON_NONE);
@@ -2077,7 +2079,6 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 			            ICON_X, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_R_ICON_ONLY);
 		}
 		else {
-			uiLayout *row, *col;
 			col = uiLayoutColumn(layout, TRUE);
 			
 			uiItemL(col, IFACE_("File Path:"), ICON_NONE);
