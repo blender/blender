@@ -578,6 +578,8 @@ void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask)
 	CustomData_set_only_copy(&dm->vertData, mask);
 	CustomData_set_only_copy(&dm->edgeData, mask);
 	CustomData_set_only_copy(&dm->faceData, mask);
+	CustomData_set_only_copy(&dm->loopData, mask);
+	CustomData_set_only_copy(&dm->polyData, mask);
 }
 
 void DM_add_vert_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
