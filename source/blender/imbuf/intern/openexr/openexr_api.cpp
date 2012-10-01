@@ -372,10 +372,10 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 
 				for (int j = ibuf->x; j > 0; j--) {
 					to->r = from[0];
-					to->g = from[1];
-					to->b = from[2];
+					to->g = (channels >= 2) ? from[1] : from[0];
+					to->b = (channels >= 3) ? from[2] : from[0];
 					to->a = (channels >= 4) ? from[3] : 1.0f;
-					to++; from += 4;
+					to++; from += channels;
 				}
 			}
 		}
@@ -383,7 +383,7 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 			unsigned char *from;
 
 			for (int i = ibuf->y - 1; i >= 0; i--) {
-				from = (unsigned char *)ibuf->rect + channels * i * width;
+				from = (unsigned char *)ibuf->rect + 4 * i * width;
 
 				for (int j = ibuf->x; j > 0; j--) {
 					to->r = srgb_to_linearrgb((float)from[0] / 255.0f);
@@ -448,8 +448,8 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 
 		/* last scanline, stride negative */
 		rect[0] = ibuf->rect_float + channels * (height - 1) * width;
-		rect[1] = rect[0] + 1;
-		rect[2] = rect[0] + 2;
+		rect[1] = (channels >= 2) ? rect[0] + 1 : rect[0];
+		rect[2] = (channels >= 3) ? rect[0] + 2 : rect[0];
 		rect[3] = (channels >= 4) ? rect[0] + 3 : rect[0]; /* red as alpha, is this needed since alpha isn't written? */
 
 		frameBuffer.insert("R", Slice(Imf::FLOAT,  (char *)rect[0], xstride, ystride));
