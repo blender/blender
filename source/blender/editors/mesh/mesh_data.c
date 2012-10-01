@@ -761,7 +761,12 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 	BLI_assert(CustomData_layertype_is_singleton(type) == TRUE);
 
 	if (CustomData_has_layer(data, type)) {
-		CustomData_free_layers(data, type, tot);
+		if (me->edit_btmesh) {
+			BM_data_layer_free(me->edit_btmesh->bm, data, type);
+		}
+		else {
+			CustomData_free_layers(data, type, tot);
+		}
 
 		DAG_id_tag_update(&me->id, 0);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
