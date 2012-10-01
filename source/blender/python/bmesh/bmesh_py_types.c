@@ -1808,7 +1808,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 
 		f_new = BM_face_create(bm, vert_array, edge_array, vert_seq_len, FALSE);
 
-		if (f_new == NULL) {
+		if (UNLIKELY(f_new == NULL)) {
 			PyErr_SetString(PyExc_ValueError,
 			                "faces.new(verts): couldn't create the new face, internal error");
 			goto cleanup;

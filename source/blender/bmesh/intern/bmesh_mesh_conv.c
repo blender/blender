@@ -314,7 +314,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		f = BM_face_create(bm, verts, fedges, mpoly->totloop, FALSE);
 
-		if (!f) {
+		if (UNLIKELY(f == NULL)) {
 			printf("%s: Warning! Bad face in mesh"
 			       " \"%s\" at index %d!, skipping\n",
 			       __func__, me->id.name + 2, i);

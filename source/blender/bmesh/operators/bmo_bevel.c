@@ -475,7 +475,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 		BLI_array_append(edges, e);
 		
 		f = BM_face_create_ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), FALSE);
-		if (!f) {
+		if (UNLIKELY(f == NULL)) {
 			printf("%s: could not make face!\n", __func__);
 			continue;
 		}
@@ -592,7 +592,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 					*d3 = (d1 + d2) * 0.5f;
 				}
 
-				if (!f) {
+				if (UNLIKELY(f == NULL)) {
 					fprintf(stderr, "%s: face index out of range! (bmesh internal error)\n", __func__);
 					continue;
 				}
@@ -771,7 +771,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 				continue;
 			
 			f = BM_face_create_ngon(bm, lastv, vstart, edges, BLI_array_count(edges), FALSE);
-			if (!f) {
+			if (UNLIKELY(f == NULL)) {
 				fprintf(stderr, "%s: in bevel vert fill! (bmesh internal error)\n", __func__);
 			}
 			else {

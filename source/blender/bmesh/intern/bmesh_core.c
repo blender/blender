@@ -1021,7 +1021,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del
 
 	/* create region face */
 	newf = BM_face_create_ngon(bm, v1, v2, edges, tote, FALSE);
-	if (!newf || BMO_error_occurred(bm)) {
+	if (UNLIKELY(!newf || BMO_error_occurred(bm))) {
 		if (!BMO_error_occurred(bm))
 			err = "Invalid boundary region to join faces";
 		goto error;

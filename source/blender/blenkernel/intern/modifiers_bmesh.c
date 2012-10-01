@@ -129,8 +129,9 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 
 		f = BM_face_create_ngon(bm, verts[0], verts[1], edges, mp->totloop, FALSE);
 
-		if (!f)
+		if (UNLIKELY(f == NULL)) {
 			continue;
+		}
 
 		f->head.hflag = BM_face_flag_from_mflag(mp->flag);
 		f->mat_nr = mp->mat_nr;

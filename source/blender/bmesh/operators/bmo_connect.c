@@ -506,7 +506,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				                            vv2[i2next],
 				                            vv1[i1next],
 				                            f_example, TRUE);
-				if (!f || f->len != 4) {
+				if (UNLIKELY((f == NULL) || (f->len != 4))) {
 					fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
 				}
 				else {
