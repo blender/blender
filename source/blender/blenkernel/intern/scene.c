@@ -1278,3 +1278,8 @@ void BKE_scene_disable_color_management(Scene *scene)
 		BLI_strncpy(view_settings->view_transform, view, sizeof(view_settings->view_transform));
 	}
 }
+
+int BKE_scene_check_color_management_enabled(const Scene *scene)
+{
+	return strcmp(scene->display_settings.display_device, "None") != 0;
+}

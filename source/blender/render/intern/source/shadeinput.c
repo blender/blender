@@ -44,6 +44,7 @@
 #include "DNA_material_types.h"
 
 #include "BKE_colortools.h"
+#include "BKE_scene.h"
 
 #include "BKE_node.h"
 
@@ -1321,12 +1322,7 @@ void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, in
 	shi->thread = pa->thread;
 	shi->do_preview = (R.r.scemode & R_MATNODE_PREVIEW) != 0;
 
-	/* OCIO_TODO: for now assume color management is always enabled and vertes colors are in sRGB space
-	 *            probably would be nice to have this things configurable, but for now it should work
-	 *            also probably this flag could be removed (in separated commit) before the release
-	 *            since it's not actually meaningful anymore
-	 */
-	shi->do_manage = TRUE;
+	shi->do_manage = BKE_scene_check_color_management_enabled(R.scene);
 
 	shi->lay = rl->lay;
 	shi->layflag = rl->layflag;

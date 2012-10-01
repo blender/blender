@@ -1209,10 +1209,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUBlendMode alphablend;
 	int a;
 
-	/* OCIO_TODO: assume color management is always enabled. could be nice to support real display transform here,
-	 *            but that's not so important and could be done later
-	 */
-	int gamma = TRUE;
+	int gamma = BKE_scene_check_color_management_enabled(scene);
 
 	int new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	

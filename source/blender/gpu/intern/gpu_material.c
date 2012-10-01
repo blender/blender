@@ -389,10 +389,8 @@ void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
 
 int GPU_material_do_color_management(GPUMaterial *mat)
 {
-	/* OCIO_TODO: for now assume scene always does color management. probably could be
-	 *            improved in the future to support real display transform
-	 *            also probably we'll need to get rid ofgame engine's color management flag
-	 */
+	if (!BKE_scene_check_color_management_enabled(mat->scene))
+		return FALSE;
 
 	return !((mat->scene->gm.flag & GAME_GLSL_NO_COLOR_MANAGEMENT));
 }

@@ -373,13 +373,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	Gtexdraw.ob = ob;
 	Gtexdraw.is_tex = is_tex;
 
-	/* OCIO_TODO: for now assume OpenGL is always doing color management and working in sRGB space
-	 *            supporting for real display conversion could be nice here, but it's a bit challenging
-	 *            since all the shaders should be aware of such a transform
-	 *            perhaps this flag could be completely removed before release in separated commit and
-	 *            be re-implemented if real display transform would be needed
-	 */
-	Gtexdraw.color_profile = TRUE;
+	Gtexdraw.color_profile = BKE_scene_check_color_management_enabled(scene);
 
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, NULL, NULL, Gtexdraw);
