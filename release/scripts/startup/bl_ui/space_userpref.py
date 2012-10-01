@@ -20,7 +20,6 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 import os
-import addon_utils
 
 
 def ui_items_general(col, context):
@@ -1033,6 +1032,8 @@ class USERPREF_PT_addons(Panel):
             box.label(l)
 
     def draw(self, context):
+        import addon_utils
+
         layout = self.layout
 
         userpref = context.user_preferences
