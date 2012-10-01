@@ -1744,7 +1744,7 @@ static int mouse_select(bContext *C, const float co[2], int extend, int loop)
 	 * the selection rather than de-selecting the closest. */
 
 	uvedit_pixel_to_float(sima, limit, 0.05f);
-	uvedit_pixel_to_float(sima, penalty, 5.0f / sima->zoom);
+	uvedit_pixel_to_float(sima, penalty, 5.0f / (sima ? sima->zoom : 1.0f));
 
 	/* retrieve operation mode */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
