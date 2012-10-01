@@ -666,7 +666,9 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 					mdisp->totdisp = totdisp;
 					mdisp->level = lvl;
 
-					multires_grid_paint_mask_downsample(&gpm[g], lvl);
+					if (gpm) {
+						multires_grid_paint_mask_downsample(&gpm[g], lvl);
+					}
 				}
 			}
 		}
