@@ -271,9 +271,19 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		else
 			sce->r.xparts = sce->r.yparts = 4;
 		
-		/* exception: don't color manage texture previews or icons */
-		if ((id && sp->pr_method == PR_ICON_RENDER) || id_type == ID_TE)
-			BKE_scene_disable_color_management(sce);
+		/* exception: don't apply render part of display transform for texture previews or icons */
+		if ((id && sp->pr_method == PR_ICON_RENDER) || id_type == ID_TE) {
+			ColorManagedDisplaySettings *display_settings = &sce->display_settings;
+			ColorManagedViewSettings *view_settings = &sce->view_settings;
+
+			const char *default_view_name = IMB_colormanagement_view_get_default_name(display_settings->display_device);
+
+			view_settings->exposure = 0.0f;
+			view_settings->gamma = 1.0f;
+			view_settings->flag &= ~COLORMANAGE_VIEW_USE_CURVES;
+
+			BLI_strncpy(view_settings->view_transform, default_view_name, sizeof(view_settings->view_transform));
+		}
 		
 		if ((id && sp->pr_method == PR_ICON_RENDER) && id_type != ID_WO)
 			sce->r.alphamode = R_ALPHAPREMUL;
