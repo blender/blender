@@ -2043,7 +2043,7 @@ static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata,
 		int side, corners;
 
 		if (CustomData_external_test(fdata, CD_MDISPS)) {
-			if (id) {
+			if (id && fdata->external) {
 				CustomData_external_add(ldata, id, CD_MDISPS,
 				                        totloop, fdata->external->filename);
 			}
