@@ -4,6 +4,33 @@ Game Types (bge.types)
 
 .. module:: bge.types
 
+************
+Introduction
+************
+
+This module contains the classes that appear as instances in the Game Engine. A
+script must interact with these classes if it is to affect the behaviour of
+objects in a game.
+
+The following example would move an object (i.e. an instance of
+:class:`KX_GameObject`) one unit up.
+
+.. code-block:: python
+
+   # bge.types.SCA_PythonController
+   cont = bge.logic.getCurrentController()
+
+   # bge.types.KX_GameObject
+   obj = cont.owner
+   obj.worldPosition.z += 1
+
+To run the code, it could be placed in a Blender text block and executed with
+a :class:`SCA_PythonController` logic brick.
+
+*****
+Types
+*****
+
 .. class:: PyObjectPlus
 
    PyObjectPlus base class of most other types in the Game Engine.
@@ -853,6 +880,52 @@ Game Types (bge.types)
    .. note::
       
       Calling ANY method or attribute on an object that has been removed from a scene will raise a SystemError, if an object may have been removed since last accessing it use the :data:`invalid` attribute to check.
+
+   KX_GameObject can be subclassed to extend functionality. For example:
+
+   .. code-block:: python
+
+        import bge
+
+        class CustomGameObject(bge.types.KX_GameObject):
+            RATE = 0.05
+
+            def __init__(self, old_owner):
+                # "old_owner" can just be ignored. At this point, "self" is
+                # already the object in the scene, and "old_owner" has been
+                # destroyed.
+
+                # New attributes can be defined - but we could also use a game
+                # property, like "self['rate']".
+                self.rate = CustomGameObject.RATE
+
+            def update(self):
+                self.worldPosition.z += self.rate
+
+                # switch direction
+                if self.worldPosition.z > 1.0:
+                    self.rate = -CustomGameObject.RATE
+                elif self.worldPosition.z < 0.0:
+                    self.rate = CustomGameObject.RATE
+
+        # Called first
+        def mutate(cont):
+            old_object = cont.owner
+            mutated_object = CustomGameObject(cont.owner)
+
+            # After calling the constructor above, references to the old object
+            # should not be used.
+            assert(old_object is not mutated_object)
+            assert(old_object.invalid)
+            assert(mutated_object is cont.owner)
+
+        # Called later - note we are now working with the mutated object.
+        def update(cont):
+            cont.owner.update()
+
+   When subclassing objects other than empties and meshes, the specific type
+   should be used - e.g. inherit from :class:`BL_ArmatureObject` when the object
+   to mutate is an armature.
 
    .. attribute:: name
 
