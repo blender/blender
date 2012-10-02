@@ -79,10 +79,10 @@ void ZCombineAlphaOperation::executePixel(float output[4], float x, float y, Pix
 	}
 	float fac = color1[3];
 	float ifac = 1.0f - fac;
-	output[0] = fac*color1[0] + ifac * color2[0];
-	output[1] = fac*color1[1] + ifac * color2[1];
-	output[2] = fac*color1[2] + ifac * color2[2];
-	output[3] = MAX2(color1[3], color2[3]);
+	output[0] = fac * color1[0] + ifac * color2[0];
+	output[1] = fac * color1[1] + ifac * color2[1];
+	output[2] = fac * color1[2] + ifac * color2[2];
+	output[3] = max(color1[3], color2[3]);
 }
 
 void ZCombineOperation::deinitExecution()

@@ -1047,7 +1047,15 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 /* same as ntreeFreeTree_ex but always manage users */
 void ntreeFreeTree(bNodeTree *ntree)
 {
+	/* XXX, this is correct, however when freeing the entire database
+	 * this ends up accessing freed data which isn't properly unlinking
+	 * its self from scene nodes, SO - for now prefer invalid usercounts
+	 * on free rather then bad memory access - Campbell */
+#if 0
 	ntreeFreeTree_ex(ntree, TRUE);
+#else
+	ntreeFreeTree_ex(ntree, FALSE);
+#endif
 }
 
 void ntreeFreeCache(bNodeTree *ntree)
