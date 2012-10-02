@@ -2162,6 +2162,10 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 		if (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) {
 			view3d_project_short_clip(data->vc.ar, v0co, s[0], TRUE);
 			view3d_project_short_clip(data->vc.ar, v1co, s[1], TRUE);
+
+			if (s[0][0] == IS_CLIPPED || s[1][0] == IS_CLIPPED) {
+				return;
+			}
 		}
 		else {
 			float v1_co[3], v2_co[3];
@@ -2169,6 +2173,8 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 			mul_v3_m4v3(v1_co, data->vc.obedit->obmat, v0co);
 			mul_v3_m4v3(v2_co, data->vc.obedit->obmat, v1co);
 
+			/* XXX, todo, use ED_view3d_project_int_noclip(...), however these functions work differently
+			 * and need to be cleaned up, Campbell */
 			ED_view3d_project_short_noclip(data->vc.ar, v1_co, s[0]);
 			ED_view3d_project_short_noclip(data->vc.ar, v2_co, s[1]);
 
