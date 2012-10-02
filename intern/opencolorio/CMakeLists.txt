@@ -23,25 +23,33 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+set(INC
+	.
+	../guardedalloc
+)
+
+set(INC_SYS
+)
+
+
 if(WITH_OPENCOLORIO)
-	set(INC
-		.
+
+	list(APPEND INC_SYS
 		${OPENCOLORIO_INCLUDE_DIRS}
 	)
+
+	if(WIN32 AND NOT MINGW)
+		list(APPEND INC_SYS
+			${BOOST_INCLUDE_DIR}
+		)
+	endif()
 
 	set(SRC
 		ocio_capi.cpp
 		ocio_capi.h
 	)
-
-	if(WIN32 AND NOT MINGW)
-		list(APPEND INC
-			${BOOST_INCLUDE_DIR}
-		)
-	endif()
 else()
-	set(INC
-		.
+	list(APPEND INC
 		../../source/blender/blenlib
 	)
 
@@ -50,10 +58,6 @@ else()
 		ocio_capi.h
 	)
 endif()
-
-set(INC_SYS
-	../guardedalloc
-)
 
 add_definitions(
 )

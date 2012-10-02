@@ -7,7 +7,6 @@ set(INC
 	../kernel/osl
 	../bvh
 	../util
-	${GLEW_INCLUDE_PATH}
 )
 set(INC_SYS
 	${GLEW_INCLUDE_PATH}

@@ -20,6 +20,7 @@
 
 set(INC
 	../include
+	../uvedit
 	../../blenkernel
 	../../blenlib
 	../../blenloader
@@ -28,7 +29,6 @@ set(INC
 	../../imbuf
 	../../makesdna
 	../../makesrna
-	../uvedit
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc

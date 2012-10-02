@@ -28,11 +28,11 @@ set(INC
 	../../../intern/guardedalloc
 	../../../intern/moto/include
 	../../../intern/string
-	${GLEW_INCLUDE_PATH}
 )
 
 set(INC_SYS
 	${PTHREADS_INCLUDE_DIRS}
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
