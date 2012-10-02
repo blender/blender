@@ -54,6 +54,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 
 #include "paint_intern.h"
 #include "sculpt_intern.h" /* for undo push */
@@ -77,7 +78,9 @@ static void mask_flood_fill_set_elem(float *elem,
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
+	struct Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
+	struct MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
 	PaintMaskFloodMode mode;
 	float value;
 	DerivedMesh *dm;
@@ -88,7 +91,9 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	mode = RNA_enum_get(op->ptr, "mode");
 	value = RNA_float_get(op->ptr, "value");
 
-	dm = mesh_get_derived_final(CTX_data_scene(C), ob, CD_MASK_BAREMESH);
+	ED_sculpt_mask_layers_ensure(ob, mmd);
+
+	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	pbvh = dm->getPBVH(ob, dm);
 	ob->sculpt->pbvh = pbvh;
 
