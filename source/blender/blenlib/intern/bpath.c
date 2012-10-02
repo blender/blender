@@ -544,8 +544,8 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		case ID_ME:
 		{
 			Mesh *me = (Mesh *)id;
-			if (me->fdata.external) {
-				rewrite_path_fixed(me->fdata.external->filename, visit_cb, absbase, bpath_user_data);
+			if (me->ldata.external) {
+				rewrite_path_fixed(me->ldata.external->filename, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;
