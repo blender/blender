@@ -69,7 +69,7 @@ void ZCombineAlphaOperation::executePixel(float output[4], float x, float y, Pix
 
 	this->m_depth1Reader->read(depth1, x, y, sampler);
 	this->m_depth2Reader->read(depth2, x, y, sampler);
-	if (depth1[0] < depth2[0]) {
+	if (depth1[0] <= depth2[0]) {
 		this->m_image1Reader->read(color1, x, y, sampler);
 		this->m_image2Reader->read(color2, x, y, sampler);
 	}
@@ -79,9 +79,9 @@ void ZCombineAlphaOperation::executePixel(float output[4], float x, float y, Pix
 	}
 	float fac = color1[3];
 	float ifac = 1.0f - fac;
-	output[0] = color1[0] + ifac * color2[0];
-	output[1] = color1[1] + ifac * color2[1];
-	output[2] = color1[2] + ifac * color2[2];
+	output[0] = fac*color1[0] + ifac * color2[0];
+	output[1] = fac*color1[1] + ifac * color2[1];
+	output[2] = fac*color1[2] + ifac * color2[2];
 	output[3] = MAX2(color1[3], color2[3]);
 }
 
