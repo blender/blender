@@ -8008,6 +8008,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	/* correction for files saved in blender version when BKE_pose_copy_data
+	 * didn't copy animation visualization, which lead to deadlocks on motion
+	 * path calculation for proxied armatures, see [#32742]
+	 */
+	if (main->versionfile < 264) {
+		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			if (ob->pose) {
+				if (ob->pose->avs.path_step == 0) {
+					animviz_settings_init(&ob->pose->avs);
+				}
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
