@@ -283,7 +283,7 @@
       <ThemeInfo>
         <space>
           <ThemeSpaceGeneric header="#3b3b3b"
-                             header_text="#8b8b8b"
+                             header_text="#000000"
                              header_text_hi="#000000"
                              button="#3b3b3b"
                              button_text="#000000"
