@@ -40,9 +40,13 @@ void MixGlareOperation::executePixel(float output[4], float x, float y, PixelSam
 	value = inputValue[0];
 	float mf = 2.f - 2.f * fabsf(value - 0.5f);
 	
-	output[0] = mf * ((inputColor1[0]) + value * (inputColor2[0] - inputColor1[0]));
-	output[1] = mf * ((inputColor1[1]) + value * (inputColor2[1] - inputColor1[1]));
-	output[2] = mf * ((inputColor1[2]) + value * (inputColor2[2] - inputColor1[2]));
+	if (inputColor1[0] < 0.0f) inputColor1[0] = 0.0f;
+	if (inputColor1[1] < 0.0f) inputColor1[1] = 0.0f;
+	if (inputColor1[2] < 0.0f) inputColor1[2] = 0.0f;
+
+	output[0] = mf * max(inputColor1[0] + value * (inputColor2[0] - inputColor1[0]), 0.0f);
+	output[1] = mf * max(inputColor1[1] + value * (inputColor2[1] - inputColor1[1]), 0.0f);
+	output[2] = mf * max(inputColor1[2] + value * (inputColor2[2] - inputColor1[2]), 0.0f);
 	output[3] = inputColor1[3];
 
 	clampIfNeeded(output);
