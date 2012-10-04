@@ -264,8 +264,8 @@ typedef enum eSpaceOutliner_Mode {
 	SO_SAME_TYPE = 5,
 	SO_GROUPS = 6,
 	SO_LIBRARIES = 7,
-	SO_VERSE_SESSION = 8,
-	SO_VERSE_MS = 9,
+	/* SO_VERSE_SESSION = 8, */  /* deprecated! */
+	/* SO_VERSE_MS = 9, */       /* deprecated!*/
 	SO_SEQUENCE = 10,
 	SO_DATABLOCKS = 11,
 	SO_USERDEF = 12,

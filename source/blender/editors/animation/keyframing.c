@@ -1186,10 +1186,9 @@ static int modify_key_op_poll(bContext *C)
 	
 	/* if Outliner, don't allow in some views */
 	if (so) {
-		if (ELEM4(so->outlinevis, SO_GROUPS, SO_LIBRARIES, SO_VERSE_SESSION, SO_VERSE_SESSION))
+		if (ELEM5(so->outlinevis, SO_GROUPS, SO_LIBRARIES, SO_SEQUENCE, SO_USERDEF, SO_KEYMAP)) {
 			return 0;
-		if (ELEM3(so->outlinevis, SO_SEQUENCE, SO_USERDEF, SO_KEYMAP))
-			return 0;
+		}
 	}
 	
 	/* TODO: checks for other space types can be added here */
@@ -1444,7 +1443,7 @@ void ANIM_OT_keyframe_delete(wmOperatorType *ot)
  * it is more useful for animators working in the 3D view.
  */
  
-static int clear_anim_v3d_exec(bContext *C, wmOperator *op)
+static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	
@@ -1530,7 +1529,7 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
 		ID *id = &ob->id;
-		size_t success = 0;
+		int success = 0;
 		
 		/* just those in active action... */
 		if ((ob->adt) && (ob->adt->action)) {
@@ -1549,7 +1548,7 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 		}
 		
 		/* report success (or failure) */
-		BKE_reportf(op->reports, RPT_INFO, "Object '%s' successfully had %u keyframes removed", id->name + 2, success);
+		BKE_reportf(op->reports, RPT_INFO, "Object '%s' successfully had %d keyframes removed", id->name + 2, success);
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
