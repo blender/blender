@@ -181,14 +181,14 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 	assert(from && to);
 
 	if(to->link) {
-		fprintf(stderr, "ShaderGraph connect: input already connected.\n");
+		fprintf(stderr, "Cycles shader graph connect: input already connected.\n");
 		return;
 	}
 
 	if(from->type != to->type) {
 		/* for closures we can't do automatic conversion */
 		if(from->type == SHADER_SOCKET_CLOSURE || to->type == SHADER_SOCKET_CLOSURE) {
-			fprintf(stderr, "ShaderGraph connect: can only connect closure to closure "
+			fprintf(stderr, "Cycles shader graph connect: can only connect closure to closure "
 			        "(ShaderNode:%s, ShaderOutput:%s , type:%d -> to ShaderNode:%s, ShaderInput:%s, type:%d).\n",
 			        from->parent->name.c_str(), from->name, (int)from->type,
 			        to->parent->name.c_str(),   to->name,   (int)to->type);
@@ -363,7 +363,7 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<b
 			if(on_stack[depnode->id]) {
 				/* break cycle */
 				disconnect(input);
-				fprintf(stderr, "ShaderGraph: detected cycle in graph, connection removed.\n");
+				fprintf(stderr, "Cycles shader graph: detected cycle in graph, connection removed.\n");
 			}
 			else if(!visited[depnode->id]) {
 				/* visit dependencies */
