@@ -36,8 +36,6 @@
 extern "C" {
 #endif
 
-#include "DNA_defs.h" /* USE_BMESH_FORWARD_COMPAT */
-
 /** descriptor and storage for a custom data layer */
 typedef struct CustomDataLayer {
 	int type;       /* type of data in layer */
