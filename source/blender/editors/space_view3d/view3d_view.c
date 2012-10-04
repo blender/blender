@@ -1326,7 +1326,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 						Base tbase;
 						
 						tbase.flag = OB_FROMDUPLI;
-						lb = object_duplilist(scene, base->object);
+						lb = object_duplilist(scene, base->object, FALSE);
 						
 						for (dob = lb->first; dob; dob = dob->next) {
 							tbase.object = dob->ob;

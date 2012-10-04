@@ -235,6 +235,10 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 			}
 		}
 
+		/* dupli object coords */
+		objects[offset+16] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], 0.0f);
+		objects[offset+17] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], 0.0f, 0.0f);
+
 		/* object flag */
 		if(ob->use_holdout)
 			flag |= SD_HOLDOUT_MASK;

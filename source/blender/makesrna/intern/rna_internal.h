@@ -409,7 +409,7 @@ int rna_IDMaterials_assign_int(struct PointerRNA *ptr, int key, const struct Poi
 /* Internal functions that cycles uses so we need to declare (tsk tsk) */
 struct Mesh *rna_Object_to_mesh(struct Object *ob, struct ReportList *reports, struct Scene *sce, int apply_modifiers, int settings);
 void rna_Main_meshes_remove(struct Main *bmain, struct ReportList *reports, struct Mesh *mesh);
-void rna_Object_create_duplilist(struct Object *ob, struct ReportList *reports, struct Scene *sce);
+void rna_Object_create_duplilist(struct Object *ob, struct ReportList *reports, struct Scene *sce, int settings);
 void rna_Object_free_duplilist(struct Object *ob);
 void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values);
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);

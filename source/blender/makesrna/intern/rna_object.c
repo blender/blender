@@ -2572,7 +2572,16 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Particle Index", "Index in the lowest-level particle dupli list");
 
-	/* TODO: DupliObject has more properties that can be wrapped */
+	prop = RNA_def_property(srna, "orco", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "orco");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Generated Coordinates", "Generated coordinates in parent object space");
+
+	prop = RNA_def_property(srna, "uv", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "uv");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "UV Coordinates", "UV coordinates in parent object space");
 }
 
 static void rna_def_object_base(BlenderRNA *brna)

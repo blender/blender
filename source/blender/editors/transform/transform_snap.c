@@ -1708,7 +1708,7 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, c
 			
 			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(scene, ob);
+				ListBase *lb = object_duplilist(scene, ob, FALSE);
 				
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					Object *dob = dupli_ob->ob;
@@ -1914,7 +1914,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 
 			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(scene, ob);
+				ListBase *lb = object_duplilist(scene, ob, FALSE);
 				
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					Object *dob = dupli_ob->ob;

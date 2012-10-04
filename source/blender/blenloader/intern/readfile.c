@@ -7038,6 +7038,15 @@ static void do_version_ntree_keying_despill_balance(void *UNUSED(data), ID *UNUS
 	}
 }
 
+static void do_version_ntree_tex_coord_from_dupli_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next)
+		if (node->type == SH_NODE_TEX_COORD)
+			node->flag |= NODE_OPTIONS;
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7993,6 +8002,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+	}
+
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 1)) {
+		bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
+		bNodeTree *ntree;
+
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_tex_coord_from_dupli_264);
+		
+		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+			if (ntree->type==NTREE_SHADER)
+				do_version_ntree_tex_coord_from_dupli_264(NULL, NULL, ntree);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

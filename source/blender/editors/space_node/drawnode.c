@@ -1389,6 +1389,11 @@ static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), 
 	uiItemR(layout, ptr, "coloring", 0, "", ICON_NONE);
 }
 
+static void node_shader_buts_tex_coord(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "from_dupli", 0, NULL, 0);
+}
+
 static void node_shader_buts_glossy(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "distribution", 0, "", ICON_NONE);
@@ -1469,6 +1474,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_TEX_VORONOI:
 			ntype->uifunc = node_shader_buts_tex_voronoi;
+			break;
+		case SH_NODE_TEX_COORD:
+			ntype->uifunc = node_shader_buts_tex_coord;
 			break;
 		case SH_NODE_BSDF_GLOSSY:
 		case SH_NODE_BSDF_GLASS:

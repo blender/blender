@@ -744,7 +744,7 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 						 * this enters eternal loop because of 
 						 * makeDispListMBall getting called inside of group_duplilist */
 						if ((*base)->object->dup_group == NULL) {
-							duplilist = object_duplilist((*scene), (*base)->object);
+							duplilist = object_duplilist((*scene), (*base)->object, FALSE);
 							
 							dupob = duplilist->first;
 

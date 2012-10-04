@@ -1086,7 +1086,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	if (!(base->object->transflag & OB_DUPLI))
 		return;
 	
-	lb = object_duplilist(scene, base->object);
+	lb = object_duplilist(scene, base->object, FALSE);
 
 	if (use_hierarchy || use_base_parent) {
 		dupli_gh = BLI_ghash_ptr_new("make_object_duplilist_real dupli_gh");

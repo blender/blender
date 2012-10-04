@@ -36,7 +36,7 @@ struct RenderResult;
 
 ID *rna_Object_to_mesh(void *_self, void *reports, void *scene, int apply_modifiers, int settings);
 void rna_Main_meshes_remove(void *bmain, void *reports, void *mesh);
-void rna_Object_create_duplilist(void *ob, void *reports, void *sce);
+void rna_Object_create_duplilist(void *ob, void *reports, void *sce, int settings);
 void rna_Object_free_duplilist(void *ob);
 void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values);
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
@@ -84,7 +84,7 @@ static inline void object_remove_mesh(BL::BlendData data, BL::Mesh mesh)
 
 static inline void object_create_duplilist(BL::Object self, BL::Scene scene)
 {
-	rna_Object_create_duplilist(self.ptr.data, NULL, scene.ptr.data);
+	rna_Object_create_duplilist(self.ptr.data, NULL, scene.ptr.data, 2);
 }
 
 static inline void object_free_duplilist(BL::Object self)

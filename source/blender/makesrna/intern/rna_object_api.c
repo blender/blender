@@ -337,8 +337,10 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 		dupli_render_particle_set(scene, go->ob, level + 1, enable);
 }
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
-void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
+void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce, int settings)
 {
+	int for_render = settings == eModifierMode_Render;
+
 	if (!(ob->transflag & OB_DUPLI)) {
 		BKE_report(reports, RPT_ERROR, "Object does not have duplis");
 		return;
@@ -353,7 +355,7 @@ void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
 	}
 	if (G.is_rendering)
 		dupli_render_particle_set(sce, ob, 0, 1);
-	ob->duplilist = object_duplilist(sce, ob);
+	ob->duplilist = object_duplilist(sce, ob, for_render);
 	if (G.is_rendering)
 		dupli_render_particle_set(sce, ob, 0, 0);
 	/* ob->duplilist should now be freed with Object.free_duplilist */
@@ -608,6 +610,7 @@ void RNA_api_object(StructRNA *srna)
 	                                "objects real matrix and layers");
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate duplis");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Generate texture coordinates for rendering");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	func = RNA_def_function(srna, "dupli_list_clear", "rna_Object_free_duplilist");
