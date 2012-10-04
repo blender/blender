@@ -1913,6 +1913,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	float radius = (float)mini(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 
 	/* gouraud triangle fan */
+	const float *hsv_ptr = ui_block_hsv_get(but->block);
 	float ang = 0.0f;
 	float cursor_radius;
 	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
@@ -1924,7 +1925,11 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	
 	/* color */
 	ui_get_but_vectorf(but, rgb);
-	/* copy_v3_v3(hsv, ui_block_hsv_get(but->block)); */ /* UNUSED */
+
+	/* since we use compat functions on both 'hsv' and 'hsvo', they need to be initialized */
+	hsvo[0] = hsv[0] = hsv_ptr[0];
+	hsvo[1] = hsv[1] = hsv_ptr[1];
+	hsvo[2] = hsv[2] = hsv_ptr[2];
 
 	rgb_to_hsv_compat_v(rgb, hsvo);
 
