@@ -26,16 +26,31 @@
 set(INC
 	.
 	../guardedalloc
+	../../source/blender/blenlib
 )
 
 set(INC_SYS
 )
 
+set(SRC
+	ocio_capi.cc
+	fallback_impl.cc
+
+	ocio_capi.h
+	ocio_impl.h
+)
 
 if(WITH_OPENCOLORIO)
+	add_definitions(
+		-DWITH_OCIO
+	)
 
 	list(APPEND INC_SYS
 		${OPENCOLORIO_INCLUDE_DIRS}
+	)
+
+	list(APPEND SRC
+		ocio_impl.cc
 	)
 
 	if(WIN32 AND NOT MINGW)
@@ -43,24 +58,8 @@ if(WITH_OPENCOLORIO)
 			${BOOST_INCLUDE_DIR}
 		)
 	endif()
-
-	set(SRC
-		ocio_capi.cpp
-		ocio_capi.h
-	)
-else()
-	list(APPEND INC
-		../../source/blender/blenlib
-	)
-
-	set(SRC
-		ocio_capi_stub.cpp
-		ocio_capi.h
-	)
 endif()
 
-add_definitions(
-)
 
 blender_add_lib(bf_intern_opencolorio "${SRC}" "${INC}" "${INC_SYS}")
 

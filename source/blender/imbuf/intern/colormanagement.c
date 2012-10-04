@@ -546,6 +546,8 @@ static void colormanage_free_config(void)
 
 	/* free views */
 	BLI_freelistN(&global_views);
+
+	OCIO_exit();
 }
 
 void colormanagement_init(void)
@@ -554,6 +556,8 @@ void colormanagement_init(void)
 	const char *configdir;
 	char configfile[FILE_MAX];
 	ConstConfigRcPtr *config = NULL;
+
+	OCIO_init();
 
 	ocio_env = getenv("OCIO");
 
@@ -571,7 +575,9 @@ void colormanagement_init(void)
 	}
 
 	if (config == NULL) {
-		config = OCIO_getDefaultConfig();
+		printf("Color management: using fallback mode for management\n");
+
+		config = OCIO_configCreateFallback();
 	}
 
 	if (config) {
@@ -638,19 +644,15 @@ static const char *display_transform_get_colorspace_name(const ColorManagedViewS
 {
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 
-	if (config) {
-		const char *display = display_settings->display_device;
-		const char *view = view_settings->view_transform;
-		const char *colorspace_name;
+	const char *display = display_settings->display_device;
+	const char *view = view_settings->view_transform;
+	const char *colorspace_name;
 
-		colorspace_name = OCIO_configGetDisplayColorSpaceName(config, display, view);
+	colorspace_name = OCIO_configGetDisplayColorSpaceName(config, display, view);
 
-		OCIO_configRelease(config);
+	OCIO_configRelease(config);
 
-		return colorspace_name;
-	}
-
-	return NULL;
+	return colorspace_name;
 }
 
 static ColorSpace *display_transform_get_colorspace(const ColorManagedViewSettings *view_settings,
@@ -670,12 +672,6 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	DisplayTransformRcPtr *dt;
 	ConstProcessorRcPtr *processor;
-
-	if (!config) {
-		/* there's no valid OCIO configuration, can't create processor */
-
-		return NULL;
-	}
 
 	dt = OCIO_createDisplayTransform();
 
@@ -725,12 +721,6 @@ static ConstProcessorRcPtr *create_colorspace_transform_processor(const char *fr
 {
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	ConstProcessorRcPtr *processor;
-
-	if (!config) {
-		/* there's no valid OCIO configuration, can't create processor */
-
-		return NULL;
-	}
 
 	processor = OCIO_configGetProcessorWithNames(config, from_colorspace, to_colorspace);
 
@@ -881,7 +871,7 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 {
 	ColorSpace *colorspace = colormanage_colorspace_get_named(from_colorspace);
 
-	if (colorspace && colorspace->is_data) {
+	if (colorspace->is_data) {
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 		return;
 	}
@@ -1074,7 +1064,7 @@ void IMB_colormanagement_check_is_data(ImBuf *ibuf, const char *name)
 {
 	ColorSpace *colorspace = colormanage_colorspace_get_named(name);
 
-	if (colorspace && colorspace->is_data)
+	if (colorspace->is_data)
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 	else
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
@@ -1086,7 +1076,7 @@ void IMB_colormanagement_assign_float_colorspace(ImBuf *ibuf, const char *name)
 
 	ibuf->float_colorspace = colorspace;
 
-	if (colorspace && colorspace->is_data)
+	if (colorspace->is_data)
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 	else
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
@@ -1098,7 +1088,7 @@ void IMB_colormanagement_assign_rect_colorspace(ImBuf *ibuf, const char *name)
 
 	ibuf->rect_colorspace = colorspace;
 
-	if (colorspace && colorspace->is_data)
+	if (colorspace->is_data)
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 	else
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
@@ -1898,12 +1888,6 @@ const char *colormanage_display_get_default_name(void)
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	const char *display_name;
 
-	if (!config) {
-		/* no valid OCIO configuration, can't get default display */
-
-		return NULL;
-	}
-
 	display_name = OCIO_configGetDefaultDisplay(config);
 
 	OCIO_configRelease(config);
@@ -2014,12 +1998,6 @@ const char *colormanage_view_get_default_name(const ColorManagedDisplay *display
 {
 	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	const char *name;
-
-	if (!config) {
-		/* no valid OCIO configuration, can't get default view */
-
-		return NULL;
-	}
 
 	name = OCIO_configGetDefaultView(config, display->name);
 

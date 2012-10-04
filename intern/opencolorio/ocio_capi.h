@@ -28,15 +28,12 @@
 #ifndef __OCIO_CAPI_H__
 #define __OCIO_CAPI_H__
 
-
-
 #ifdef __cplusplus
 using namespace OCIO_NAMESPACE;
 extern "C" {
 #endif
 
 #define OCIO_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
-
 
 #ifndef OCIO_CAPI_IMPLEMENTATION
 	#define OCIO_ROLE_SCENE_LINEAR       "scene_linear"
@@ -57,13 +54,15 @@ extern "C" {
 	OCIO_DECLARE_HANDLE(MatrixTransformRcPtr);
 #endif
 
+void OCIO_init(void);
+void OCIO_exit(void);
 
 ConstConfigRcPtr *OCIO_getCurrentConfig(void);
-ConstConfigRcPtr *OCIO_getDefaultConfig(void);
 void OCIO_setCurrentConfig(const ConstConfigRcPtr *config);
 
 ConstConfigRcPtr *OCIO_configCreateFromEnv(void);
 ConstConfigRcPtr *OCIO_configCreateFromFile(const char* filename);
+ConstConfigRcPtr *OCIO_configCreateFallback(void);
 
 void OCIO_configRelease(ConstConfigRcPtr *config);
 
@@ -127,4 +126,4 @@ void OCIO_matrixTransformScale(float * m44, float * offset4, const float * scale
 }
 #endif
 
-#endif //OCIO_CAPI_H
+#endif /* OCIO_CAPI_H */
