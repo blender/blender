@@ -398,6 +398,8 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 
 /*************************** selection utilities *******************************/
 
+/* TODO, many of the callers to this function already have a 2d projection that
+ * could be passed as an arg, save calling ED_view3d_project_short_global again. */
 static int key_test_depth(PEData *data, const float co[3])
 {
 	View3D *v3d= data->vc.v3d;
@@ -448,11 +450,11 @@ static int key_inside_circle(PEData *data, float rad, const float co[3], float *
 	float dx, dy, dist;
 	int sco[2];
 
-	ED_view3d_project_int(data->vc.ar, co, sco);
-	
-	if (sco[0] == IS_CLIPPED)
+	/* TODO, should this check V3D_PROJ_TEST_CLIP_BB too? */
+	if (ED_view3d_project_int_global(data->vc.ar, co, sco, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS) {
 		return 0;
-	
+	}
+
 	dx= data->mval[0] - sco[0];
 	dy= data->mval[1] - sco[1];
 	dist= sqrt(dx*dx + dy*dy);
@@ -474,10 +476,9 @@ static int key_inside_rect(PEData *data, const float co[3])
 {
 	int sco[2];
 
-	ED_view3d_project_int(data->vc.ar, co, sco);
-
-	if (sco[0] == IS_CLIPPED)
+	if (ED_view3d_project_int_global(data->vc.ar, co, sco, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS) {
 		return 0;
+	}
 
 	if (sco[0] > data->rect->xmin && sco[0] < data->rect->xmax &&
 	    sco[1] > data->rect->ymin && sco[1] < data->rect->ymax)
@@ -1667,8 +1668,8 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 			LOOP_KEYS {
 				copy_v3_v3(co, key->co);
 				mul_m4_v3(mat, co);
-				ED_view3d_project_int(ar, co, vertco);
-				if (BLI_lasso_is_point_inside(mcords, moves, vertco[0], vertco[1], IS_CLIPPED) &&
+				if ((ED_view3d_project_int_global(ar, co, vertco, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS) &&
+				    BLI_lasso_is_point_inside(mcords, moves, vertco[0], vertco[1], IS_CLIPPED) &&
 				    key_test_depth(&data, co))
 				{
 					if (select && !(key->flag & PEK_SELECT)) {
@@ -1687,8 +1688,8 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
-			ED_view3d_project_int(ar, co, vertco);
-			if (BLI_lasso_is_point_inside(mcords, moves, vertco[0], vertco[1], IS_CLIPPED) &&
+			if ((ED_view3d_project_int_global(ar, co, vertco, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS) &&
+			    BLI_lasso_is_point_inside(mcords, moves, vertco[0], vertco[1], IS_CLIPPED) &&
 			    key_test_depth(&data, co))
 			{
 				if (select && !(key->flag & PEK_SELECT)) {
@@ -2799,11 +2800,13 @@ static void brush_cut(PEData *data, int pa_index)
 	if (edit->points[pa_index].flag & PEP_HIDE)
 		return;
 
+	if (ED_view3d_project_int_global(ar, key->co, vertco, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS)
+		return;
+
 	rad2= data->rad * data->rad;
 
 	cut=0;
 
-	ED_view3d_project_int_noclip(ar, key->co, vertco);
 	x0= (float)vertco[0];
 	x1= (float)vertco[1];
 
@@ -2821,9 +2824,10 @@ static void brush_cut(PEData *data, int pa_index)
 	else {
 		/* calculate path time closest to root that was inside the circle */
 		for (k=1, key++; k<=keys; k++, key++) {
-			ED_view3d_project_int_noclip(ar, key->co, vertco);
 
-			if (key_test_depth(data, key->co) == 0) {
+			if ((ED_view3d_project_int_global(ar, key->co, vertco, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS) ||
+			    key_test_depth(data, key->co) == 0)
+			{
 				x0= (float)vertco[0];
 				x1= (float)vertco[1];
 

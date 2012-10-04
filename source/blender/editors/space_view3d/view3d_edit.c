@@ -3524,12 +3524,14 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 	int mval[2];
 //	short ctrl= 0; // XXX
 	int flip;
+	eV3DProjStatus ret;
 	fp = give_cursor(scene, v3d);
 
 //	if (obedit && ctrl) lr_click= 1;
 	copy_v3_v3(oldcurs, fp);
 
-	ED_view3d_project_int_noclip(ar, fp, mval);
+	mval[0] = IS_CLIPPED;
+	ret = ED_view3d_project_int_global(ar, fp, mval, V3D_PROJ_TEST_NOP);
 	flip = initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	
 	/* reset the depth based on the view offset */
@@ -3537,7 +3539,8 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 		negate_v3_v3(fp, rv3d->ofs);
 
 		/* re initialize */
-		ED_view3d_project_int_noclip(ar, fp, mval);
+		mval[0] = IS_CLIPPED;
+		ED_view3d_project_int_global(ar, fp, mval, V3D_PROJ_TEST_NOP);
 		flip = initgrabz(rv3d, fp[0], fp[1], fp[2]);
 		(void)flip;
 	}

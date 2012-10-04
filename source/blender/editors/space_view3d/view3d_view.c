@@ -971,6 +971,26 @@ eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], con
 	return ret;
 }
 
+eV3DProjStatus ED_view3d_project_int_ex(ARegion *ar, float perspmat[4][4], const int is_local,
+                                        const float co[3], int r_co[2], eV3DProjTest flag)
+{
+	float tvec[2];
+	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
+	if (ret == V3D_PROJ_RET_SUCCESS) {
+		if ((tvec[0] > -2140000000.0 && tvec[0] < 2140000000.0f) &&
+		    (tvec[1] > -2140000000.0 && tvec[1] < 2140000000.0f))
+		{
+			r_co[0] = (int)floor(tvec[0]);
+			r_co[1] = (int)floor(tvec[1]);
+		}
+		else {
+			return V3D_PROJ_RET_OVERFLOW;
+		}
+	}
+	return ret;
+}
+
+/* --- short --- */
 eV3DProjStatus ED_view3d_project_short_global(ARegion *ar, const float co[3], short r_co[2], eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -983,52 +1003,17 @@ eV3DProjStatus ED_view3d_project_short_object(ARegion *ar, const float co[3], sh
 	return ED_view3d_project_short_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
 }
 
-void ED_view3d_project_int(ARegion *ar, const float co[3], int r_co[2])
+/* --- int --- */
+eV3DProjStatus ED_view3d_project_int_global(ARegion *ar, const float co[3], int r_co[2], eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	float fx, fy, vec4[4];
-	
-	copy_v3_v3(vec4, co);
-	vec4[3] = 1.0;
-	r_co[0] = (int)2140000000.0f;
-	
-	mul_m4_v4(rv3d->persmat, vec4);
-	
-	if (vec4[3] > (float)BL_NEAR_CLIP) {
-		fx = (ar->winx / 2) * (1 + vec4[0] / vec4[3]);
-		
-		if (fx > -2140000000.0f && fx < 2140000000.0f) {
-			fy = (ar->winy / 2) * (1 + vec4[1] / vec4[3]);
-			
-			if (fy > -2140000000.0f && fy < 2140000000.0f) {
-				r_co[0] = (int)floor(fx);
-				r_co[1] = (int)floor(fy);
-			}
-		}
-	}
+	return ED_view3d_project_int_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
 }
-
-void ED_view3d_project_int_noclip(ARegion *ar, const float co[3], int r_co[2])
+/* object space, use ED_view3d_init_mats_rv3d before calling */
+eV3DProjStatus ED_view3d_project_int_object(ARegion *ar, const float co[3], int r_co[2], eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	float fx, fy, vec4[4];
-	
-	copy_v3_v3(vec4, co);
-	vec4[3] = 1.0;
-	
-	mul_m4_v4(rv3d->persmat, vec4);
-	
-	if (fabs(vec4[3]) > BL_NEAR_CLIP) {
-		fx = (ar->winx / 2) * (1 + vec4[0] / vec4[3]);
-		fy = (ar->winy / 2) * (1 + vec4[1] / vec4[3]);
-		
-		r_co[0] = (int)floor(fx);
-		r_co[1] = (int)floor(fy);
-	}
-	else {
-		r_co[0] = ar->winx / 2;
-		r_co[1] = ar->winy / 2;
-	}
+	return ED_view3d_project_int_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
 }
 
 void ED_view3d_project_float(ARegion *ar, const float co[3], float r_co[2])

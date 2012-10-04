@@ -601,7 +601,9 @@ int updateSelectedSnapPoint(TransInfo *t)
 			int dx, dy;
 			int dist;
 
-			ED_view3d_project_int(t->ar, p->co, screen_loc);
+			if (ED_view3d_project_int_global(t->ar, p->co, screen_loc, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS) {
+				continue;
+			}
 
 			dx = t->mval[0] - screen_loc[0];
 			dy = t->mval[1] - screen_loc[1];
@@ -1232,8 +1234,12 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 			
 			new_depth = len_v3v3(location, ray_start);					
 			
-			ED_view3d_project_int(ar, location, screen_loc);
-			new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+			if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+				new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+			}
+			else {
+				new_dist = 1000;
+			}
 			
 			/* 10% threshold if edge is closer but a bit further
 			 * this takes care of series of connected edges a bit slanted w.r.t the viewport
@@ -1289,8 +1295,13 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[][4],
 		
 		new_depth = len_v3v3(location, ray_start);
 		
-		ED_view3d_project_int(ar, location, screen_loc);
-		new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+		if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+			new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+		}
+		else {
+			new_dist = 1000;
+		}
+
 		
 		if (new_dist <= *r_dist && new_depth < *r_depth) {
 			*r_depth = new_depth;

@@ -110,15 +110,16 @@ int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const int m
 {
 	float dvec[3];
 	int mval_cpy[2];
+	eV3DProjStatus ret;
 
 	mval_cpy[0] = mval[0];
 	mval_cpy[1] = mval[1];
 
-	ED_view3d_project_int_noclip(vc->ar, fp, mval_cpy);
+	ret = ED_view3d_project_int_global(vc->ar, fp, mval_cpy, V3D_PROJ_TEST_NOP);
 
 	initgrabz(vc->rv3d, fp[0], fp[1], fp[2]);
 
-	if (mval_cpy[0] != IS_CLIPPED) {
+	if (ret == V3D_PROJ_RET_SUCCESS) {
 		const float mval_f[2] = {(float)(mval_cpy[0] - mval[0]),
 		                         (float)(mval_cpy[1] - mval[1])};
 		ED_view3d_win_to_delta(vc->ar, mval_f, dvec);
@@ -333,10 +334,14 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, int mcords[][2], s
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		if (PBONE_VISIBLE(arm, pchan->bone) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
+
+			/* XXX, todo, use ED_view3d_project_int_object */
+			sco1[0] = sco2[0] = IS_CLIPPED;
+
 			mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
-			ED_view3d_project_int(vc->ar, vec, sco1);
+			ED_view3d_project_int_global(vc->ar, vec, sco1, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
 			mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
-			ED_view3d_project_int(vc->ar, vec, sco2);
+			ED_view3d_project_int_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
 			
 			if (BLI_lasso_is_edge_inside(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1], IS_CLIPPED)) {
 				if (select) pchan->bone->flag |= BONE_SELECTED;

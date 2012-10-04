@@ -225,8 +225,12 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 {
 	if (t->spacetype == SPACE_VIEW3D) {
-		if (t->ar->regiontype == RGN_TYPE_WINDOW)
-			ED_view3d_project_int_noclip(t->ar, vec, adr);
+		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
+			if (ED_view3d_project_int_global(t->ar, vec, adr, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS) {
+				adr[0] = (int)2140000000.0f;  /* this is what was done in 2.64, perhaps we can be smarter? */
+				adr[1] = (int)2140000000.0f;
+			}
+		}
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = t->sa->spacedata.first;
