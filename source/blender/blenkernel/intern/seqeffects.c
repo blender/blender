@@ -609,9 +609,9 @@ static void makeGammaTables(float gamma)
 
 	/* The end of the table should match 1.0 carefully. In order to avoid
 	 * rounding errors, we just set this explicitly. The last segment may
-	* have a different length than the other segments, but our
-	* interpolation is insensitive to that
-	*/
+	 * have a different length than the other segments, but our
+	 * interpolation is insensitive to that
+	 */
 	color_domain_table[RE_GAMMA_TABLE_SIZE]    = 1.0;
 	gamma_range_table[RE_GAMMA_TABLE_SIZE]     = 1.0;
 	inv_gamma_range_table[RE_GAMMA_TABLE_SIZE] = 1.0;

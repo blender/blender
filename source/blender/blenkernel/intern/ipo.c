@@ -1757,13 +1757,13 @@ void do_versions_ipos_to_animato(Main *main)
 
 				{
 					/* If we have any empty action actuators, assume they were
-					   converted IPO Actuators using the object IPO */
+					 * converted IPO Actuators using the object IPO */
 					bActuator *act;
 					bActionActuator *aa;
 
 					for (act = ob->actuators.first; act; act = act->next) {
 						/* Any actuators set to ACT_IPO at this point are actually Action Actuators that
-						   need this converted IPO to finish converting the actuator. */
+						 * need this converted IPO to finish converting the actuator. */
 						if (act->type == ACT_IPO) {
 							aa = (bActionActuator *)act->data;
 							aa->act = ob->adt->action;

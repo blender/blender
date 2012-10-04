@@ -1235,8 +1235,8 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
 
 
 /*
-* this is basically just the pan only code + the rotate only code crammed into one function that does both
-*/
+ * this is basically just the pan only code + the rotate only code crammed into one function that does both
+ */
 static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (event->type != NDOF_MOTION)

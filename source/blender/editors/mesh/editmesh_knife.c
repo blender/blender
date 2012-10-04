@@ -446,8 +446,8 @@ static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd, KnifeEdge *kfe, float 
 	}
 	else {
 		/* kfe cuts across an existing face.
-		   If v1 and v2 are in multiple faces together (e.g., if they
-		   are in doubled polys) then this arbitrarily chooses one of them */
+		 * If v1 and v2 are in multiple faces together (e.g., if they
+		 * are in doubled polys) then this arbitrarily chooses one of them */
 		f = knife_find_common_face(&kfe->v1->faces, &kfe->v2->faces);
 		if (f)
 			knife_append_list(kcd, &newkfe->v2->faces, f);

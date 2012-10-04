@@ -3959,10 +3959,10 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	sound = sound_new_file(bmain, seq_load->path); /* handles relative paths */
 
 	if (sound == NULL || sound->playback_handle == NULL) {
-		/*
+#if 0
 		 if (op)
 			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
-		*/
+#endif
 
 		return NULL;
 	}
@@ -3971,10 +3971,10 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(bmain, sound);
-		/*
+#if 0
 		if (op)
 			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
-		*/
+#endif
 		return NULL;
 	}
 

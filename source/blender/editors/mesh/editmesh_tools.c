@@ -2140,7 +2140,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 	}
 
 	/* if those are not found, because vertices where selected by e.g.
-	   border or circle select, find two selected vertices */
+	 * border or circle select, find two selected vertices */
 	if (svert == NULL) {
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
@@ -2150,7 +2150,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 			else if (evert == NULL) evert = eve;
 			else {
 				/* more than two vertices are selected,
-				   show warning message and cancel operator */
+				 * show warning message and cancel operator */
 				svert = evert = NULL;
 				break;
 			}

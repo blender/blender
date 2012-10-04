@@ -2261,7 +2261,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const short u
 			Curve *cu = ob->data;
 
 			/* Use the object bounding box so that modifier output
-			   gets taken into account */
+			 * gets taken into account */
 			if (ob->bb)
 				bb = *(ob->bb);
 			else {

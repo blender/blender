@@ -88,8 +88,8 @@ extern "C" {
 
 
 /*
-   COLLADA Importer limitations:
-   - no multiple scene import, all objects are added to active scene
+ * COLLADA Importer limitations:
+ * - no multiple scene import, all objects are added to active scene
  */
 
 // #define COLLADA_DEBUG
@@ -878,7 +878,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 		}
 		break;
 		/* XXX correct way to do following four is probably to get also render
-		   size and determine proper settings from that somehow */
+		 * size and determine proper settings from that somehow */
 		case COLLADAFW::Camera::ASPECTRATIO_AND_X:
 		case COLLADAFW::Camera::SINGLE_X:
 		case COLLADAFW::Camera::X_AND_Y:

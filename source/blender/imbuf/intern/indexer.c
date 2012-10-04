@@ -955,9 +955,9 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 	}
 
 	/* process pictures still stuck in decoder engine after EOF
-	   according to ffmpeg docs using 0-size packets. 
-
-	   At least, if we haven't already stopped... */
+	 * according to ffmpeg docs using 0-size packets.
+	 *
+	 * At least, if we haven't already stopped... */
 	if (!*stop) {
 		int frame_finished;
 

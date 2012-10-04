@@ -515,9 +515,9 @@ static int setExecutableNodes(bNodeTreeExec *exec, ThreadData *thd)
 static void freeExecutableNode(bNodeTreeExec *exec)
 {
 	/* node outputs can be freed when:
-	- not a render result or image node
-	- when node outputs go to nodes all being set NODE_FINISHED
-	*/
+	 * - not a render result or image node
+	 * - when node outputs go to nodes all being set NODE_FINISHED
+	 */
 	bNodeTree *ntree = exec->nodetree;
 	bNodeExec *nodeexec;
 	bNode *node;

@@ -206,7 +206,7 @@
  * - join all Mains
  * - link all LibBlocks and indirect pointers to libblocks
  * - initialize FileGlobal and copy pointers to Global
-*/
+ */
 
 /* also occurs in library.c */
 /* GS reads the memory pointed at in a specific ordering. There are,
