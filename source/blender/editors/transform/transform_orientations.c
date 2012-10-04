@@ -402,7 +402,7 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 
 const char *BIF_menustringTransformOrientation(const bContext *C, const char *title)
 {
-	const char *menu = IFACE_("%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3");
+	const char *menu = IFACE_("%t|Global %x0|Local %x1|Gimbal %x4|Normal %x2|View %x3");
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
@@ -411,14 +411,14 @@ const char *BIF_menustringTransformOrientation(const bContext *C, const char *ti
 
 	title = IFACE_(title);
 
-	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + elem_size * BIF_countTransformOrientation(C), TIP_("UserTransSpace from matrix"));
+	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + elem_size * BIF_countTransformOrientation(C), "UserTransSpace from matrix");
 	p = str_menu;
 	
 	p += sprintf(str_menu, "%s", title);
 	p += sprintf(p, "%s", menu);
 	
 	for (ts = transform_spaces->first; ts; ts = ts->next) {
-		p += sprintf(p, "|%s%%x%d", ts->name, i++);
+		p += sprintf(p, "|%s %%x%d", ts->name, i++);
 	}
 	
 	return str_menu;

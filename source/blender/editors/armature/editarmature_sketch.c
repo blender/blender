@@ -41,6 +41,8 @@
 #include "BLI_graph.h"
 #include "BLI_ghash.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_sketch.h"
 
@@ -175,7 +177,7 @@ void BIF_makeListTemplates(const bContext *C)
 const char *BIF_listTemplates(const bContext *UNUSED(C))
 {
 	GHashIterator ghi;
-	char menu_header[] = "Template%t|None%x0|";
+	const char *menu_header = IFACE_("Template %t|None %x0|");
 	char *p;
 
 	if (TEMPLATES_MENU != NULL) {
@@ -194,7 +196,7 @@ const char *BIF_listTemplates(const bContext *UNUSED(C))
 		Object *ob = BLI_ghashIterator_getValue(&ghi);
 		int key = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&ghi));
 
-		p += sprintf(p, "|%s%%x%i", ob->id.name + 2, key);
+		p += sprintf(p, "|%s %%x%i", ob->id.name + 2, key);
 
 		BLI_ghashIterator_step(&ghi);
 	}
@@ -1717,8 +1719,8 @@ void sk_applyCommandGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UN
 	SK_Intersection *isect;
 	int command = 1;
 
-//	XXX
-//	command = pupmenu("Action %t|Flatten %x1|Straighten %x2|Polygonize %x3");
+/*	XXX */
+/*	command = pupmenu("Action %t|Flatten %x1|Straighten %x2|Polygonize %x3"); */
 	if (command < 1) return;
 
 	for (isect = gest->intersections.first; isect; isect = isect->next) {
