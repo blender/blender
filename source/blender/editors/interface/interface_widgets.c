@@ -1889,27 +1889,18 @@ static void ui_hsv_cursor(float x, float y)
 	
 }
 
-void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my)
+void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rect,
+                                const float mx, const float my)
 {
 	/* duplication of code... well, simple is better now */
-	float centx = BLI_rcti_cent_x_fl(rect);
-	float centy = BLI_rcti_cent_y_fl(rect);
-	float radius, dist;
-	
-	if (BLI_rcti_size_x(rect) > BLI_rcti_size_y(rect))
-		radius = (float)BLI_rcti_size_y(rect) / 2;
-	else
-		radius = (float)BLI_rcti_size_x(rect) / 2;
+	const float centx = BLI_rcti_cent_x_fl(rect);
+	const float centy = BLI_rcti_cent_y_fl(rect);
+	const float radius = (float)mini(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+	const float m_delta[2] = {mx - centx, my - centy};
+	const float dist_squared = len_squared_v2(m_delta);
 
-	mx -= centx;
-	my -= centy;
-	dist = sqrt(mx * mx + my * my);
-	if (dist < radius)
-		*valdist = dist / radius;
-	else
-		*valdist = 1.0f;
-	
-	*valrad = atan2f(mx, my) / (2.0f * (float)M_PI) + 0.5f;
+	*val_dist = (dist_squared < (radius * radius)) ? sqrtf(dist_squared) / radius : 1.0f;
+	*val_rad = atan2f(m_delta[0], m_delta[1]) / (2.0f * (float)M_PI) + 0.5f;
 }
 
 static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)

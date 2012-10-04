@@ -365,7 +365,8 @@ extern void ui_set_but_hsv(uiBut *but);
 extern void ui_get_but_vectorf(uiBut *but, float vec[3]);
 extern void ui_set_but_vectorf(uiBut *but, const float vec[3]);
 
-extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my);
+extern void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rect,
+                                       const float mx, const float my);
 
 extern void ui_get_but_string(uiBut *but, char *str, size_t maxlen);
 extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen);
