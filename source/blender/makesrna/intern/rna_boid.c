@@ -521,7 +521,6 @@ static void rna_def_boid_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "pitch");
 	RNA_def_property_range(prop, 0.0, 2.0);
 	RNA_def_property_ui_text(prop, "Pitch", "Amount of rotation around side vector");
-	RNA_def_property_translation_context(prop, "Rotation");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
 	prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
