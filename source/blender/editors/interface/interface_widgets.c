@@ -1903,26 +1903,24 @@ void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rec
 	*val_rad = atan2f(m_delta[0], m_delta[1]) / (2.0f * (float)M_PI) + 0.5f;
 }
 
-static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
+static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 {
+	const int tot = 32;
+	const float radstep = 2.0f * (float)M_PI / (float)tot;
+
+	const float centx = BLI_rcti_cent_x_fl(rect);
+	const float centy = BLI_rcti_cent_y_fl(rect);
+	float radius = (float)mini(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+
 	/* gouraud triangle fan */
-	float radstep, ang = 0.0f;
-	float centx, centy, radius, cursor_radius;
+	float ang = 0.0f;
+	float cursor_radius;
 	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
-	int a, tot = 32;
+	int a;
 	int color_profile = but->block->color_profile;
 	
 	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 		color_profile = FALSE;
-	
-	radstep = 2.0f * (float)M_PI / (float)tot;
-	centx = BLI_rcti_cent_x_fl(rect);
-	centy = BLI_rcti_cent_y_fl(rect);
-	
-	if (BLI_rcti_size_x(rect) > BLI_rcti_size_y(rect))
-		radius = (float)BLI_rcti_size_y(rect) / 2;
-	else
-		radius = (float)BLI_rcti_size_x(rect) / 2;
 	
 	/* color */
 	ui_get_but_vectorf(but, rgb);
