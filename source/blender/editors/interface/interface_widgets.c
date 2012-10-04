@@ -2702,16 +2702,16 @@ static void widget_menunodebut(uiWidgetColors *wcol, rcti *rect, int UNUSED(stat
 	*wcol = wcol_backup;
 }
 
-static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
+static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	if (state & UI_ACTIVE) {
 		uiWidgetBase wtb;
-		float rad = 0.5f * BLI_rcti_size_y(rect);  /* 4.0f */
-		
+		float rad = 0.25f * BLI_rcti_size_y(rect);  /* 4.0f */
+
 		widget_init(&wtb);
-		
+
 		/* half rounded */
-		round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
+		round_box_edges(&wtb, roundboxalign, rect, rad);
 		
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -3048,9 +3048,12 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 
 static int widget_roundbox_set(uiBut *but, rcti *rect)
 {
+	int roundbox = UI_CNR_ALL;
+
 	/* alignment */
-	if (but->flag & UI_BUT_ALIGN) {
+	if ((but->flag & UI_BUT_ALIGN) && but->type != PULLDOWN) {
 		
+		/* ui_block_position has this correction too, keep in sync */
 		if (but->flag & UI_BUT_ALIGN_TOP)
 			rect->ymax += 1;
 		if (but->flag & UI_BUT_ALIGN_LEFT)
@@ -3058,27 +3061,50 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 		
 		switch (but->flag & UI_BUT_ALIGN) {
 			case UI_BUT_ALIGN_TOP:
-				return UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT;
+				roundbox = UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT;
+				break;
 			case UI_BUT_ALIGN_DOWN:
-				return UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT;
+				roundbox = UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT;
+				break;
 			case UI_BUT_ALIGN_LEFT:
-				return UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT;
+				roundbox = UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT;
+				break;
 			case UI_BUT_ALIGN_RIGHT:
-				return UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
+				roundbox = UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
+				break;
 			case UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_RIGHT:
-				return UI_CNR_TOP_LEFT;
+				roundbox = UI_CNR_TOP_LEFT;
+				break;
 			case UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_LEFT:
-				return UI_CNR_TOP_RIGHT;
+				roundbox = UI_CNR_TOP_RIGHT;
+				break;
 			case UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT:
-				return UI_CNR_BOTTOM_LEFT;
+				roundbox = UI_CNR_BOTTOM_LEFT;
+				break;
 			case UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT:
-				return UI_CNR_BOTTOM_RIGHT;
+				roundbox = UI_CNR_BOTTOM_RIGHT;
+				break;
 			default:
-				return 0;
+				roundbox = 0;
+				break;
 		}
 	}
 
-	return UI_CNR_ALL;
+	/* align with open menu */
+	if (but->active) {
+		int direction = ui_button_open_menu_direction(but);
+
+		if (direction == UI_TOP)
+			roundbox &= ~(UI_CNR_TOP_RIGHT|UI_CNR_TOP_LEFT);
+		else if (direction == UI_DOWN)
+			roundbox &= ~(UI_CNR_BOTTOM_RIGHT|UI_CNR_BOTTOM_LEFT);
+		else if (direction == UI_LEFT)
+			roundbox &= ~(UI_CNR_TOP_LEFT|UI_CNR_BOTTOM_LEFT);
+		else if (direction == UI_RIGHT)
+			roundbox &= ~(UI_CNR_TOP_RIGHT|UI_CNR_BOTTOM_RIGHT);
+	}
+
+	return roundbox;
 }
 
 /* conversion from old to new buttons, so still messy */

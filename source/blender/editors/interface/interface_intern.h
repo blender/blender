@@ -315,7 +315,6 @@ struct uiBlock {
 	char tooltipdisabled;       /* to avoid tooltip after click */
 	char endblock;              /* uiEndBlock done? */
 
-	float xofs, yofs;           /* offset to parent button */
 	eBlockBoundsCalc bounds_type;  /* for doing delayed */
 	int mx, my;
 	int bounds, minbounds;      /* for doing delayed */
@@ -419,6 +418,9 @@ struct uiPopupBlockHandle {
 	int menuretval;
 	float retvalue;
 	float retvec[4];
+
+	/* menu direction */
+	int direction;
 };
 
 uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
@@ -481,6 +483,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, struct uiWidgetColors *wc
 extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_active_free(const struct bContext *C, uiBut *but);
 extern int ui_button_is_active(struct ARegion *ar);
+extern int ui_button_open_menu_direction(uiBut *but);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);

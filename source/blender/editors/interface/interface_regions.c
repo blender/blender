@@ -1341,6 +1341,14 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	ui_block_to_window_fl(butregion, but->block, &butrct.xmin, &butrct.ymin);
 	ui_block_to_window_fl(butregion, but->block, &butrct.xmax, &butrct.ymax);
 
+	/* widget_roundbox_set has this correction too, keep in sync */
+	if (but->type != PULLDOWN) {
+		if (but->flag & UI_BUT_ALIGN_TOP)
+			butrct.ymax += 1.0f;
+		if (but->flag & UI_BUT_ALIGN_LEFT)
+			butrct.xmin -= 1.0f;
+	}
+
 	/* calc block rect */
 	if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) {
 		if (block->buttons.first) {
@@ -1467,9 +1475,6 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 			}
 		}
 		
-		/* apply requested offset in the block */
-		xof += block->xofs / block->aspect;
-		yof += block->yofs / block->aspect;
 #if 0
 		/* clamp to window bounds, could be made into an option if its ever annoying */
 		if (     (offscreen = (block->rect.ymin + yof)) < 0) yof -= offscreen;   /* bottom */
@@ -1659,12 +1664,10 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	/* if this is being created from a button */
 	if (but) {
-		if (ELEM(but->type, BLOCK, PULLDOWN))
-			block->xofs = -2;   /* for proper alignment */
-
 		block->aspect = but->block->aspect;
 
 		ui_block_position(window, butregion, but, block);
+		handle->direction = block->direction;
 	}
 	else {
 		/* keep a list of these, needed for pulldown menus */

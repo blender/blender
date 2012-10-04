@@ -421,7 +421,6 @@ void    uiBlockSetDirection(uiBlock *block, int direction);
 void    uiBlockFlipOrder(uiBlock *block);
 void    uiBlockSetFlag(uiBlock *block, int flag);
 void    uiBlockClearFlag(uiBlock *block, int flag);
-void    uiBlockSetXOfs(uiBlock *block, int xofs);
 
 int     uiButGetRetVal(uiBut *but);
 
