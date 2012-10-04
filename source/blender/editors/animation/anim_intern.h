@@ -50,7 +50,9 @@ void ANIM_OT_keyframe_delete(struct wmOperatorType *ot);
  *  required for each space.
  */
 void ANIM_OT_keyframe_insert_menu(struct wmOperatorType *ot);
+
 void ANIM_OT_keyframe_delete_v3d(struct wmOperatorType *ot);
+void ANIM_OT_keyframe_clear_v3d(struct wmOperatorType *ot);
 
 /* Keyframe managment operators for UI buttons (RMB menu). */
 void ANIM_OT_keyframe_insert_button(struct wmOperatorType *ot);
