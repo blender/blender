@@ -1646,8 +1646,8 @@ elseif(APPLE)
 
 	set(EXETYPE MACOSX_BUNDLE)
 
-	set(CMAKE_C_FLAGS_DEBUG "-O0 -fno-strict-aliasing -g" CACHE STRING "" FORCE)
-	set(CMAKE_CXX_FLAGS_DEBUG "-O0 -fno-strict-aliasing -g"CACHE STRING "" FORCE)
+	set(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
+	set(CMAKE_CXX_FLAGS_DEBUG "-fno-strict-aliasing -g")
 	if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64" OR CMAKE_OSX_ARCHITECTURES MATCHES "i386")
 		set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic -msse -msse2 -msse3 -mssse3")
 		set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic  -msse -msse2 -msse3 -mssse3")
