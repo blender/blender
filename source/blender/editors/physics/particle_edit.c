@@ -408,11 +408,12 @@ static int key_test_depth(PEData *data, const float co[3])
 	/* nothing to do */
 	if ((v3d->drawtype<=OB_WIRE) || (v3d->flag & V3D_ZBUF_SELECT)==0)
 		return 1;
-
-	ED_view3d_project_short(data->vc.ar, co, wco);
 	
-	if (wco[0] == IS_CLIPPED)
+	if (ED_view3d_project_short_global(data->vc.ar, co, wco,
+	                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS)
+	{
 		return 0;
+	}
 
 	gluProject(co[0], co[1], co[2], data->mats.modelview, data->mats.projection,
 	           (GLint *)data->mats.viewport, &ux, &uy, &uz);

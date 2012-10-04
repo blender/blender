@@ -113,14 +113,40 @@ void  ED_view3d_depth_tag_update(struct RegionView3D *rv3d);
 /* TODO, these functions work quite differently, we should make them behave in a uniform way
  * otherwise we can't be sure bugs are not added when we need to move from short->float types for eg
  * - Campbell */
-void ED_view3d_project_short(struct ARegion *ar, const float co[3], short r_co[2]);
-void ED_view3d_project_short_noclip(struct ARegion *ar, const float vec[3], short r_co[2]);
+
+
+/* return values for ED_view3d_project_...() */
+typedef enum {
+	V3D_PROJ_RET_SUCCESS   = 0,
+	V3D_PROJ_RET_CLIP_NEAR = 1,  /* can't avoid this when in perspective mode, (can't avoid) */
+	V3D_PROJ_RET_CLIP_BB   = 2,  /* bounding box clip - RV3D_CLIPPING */
+	V3D_PROJ_RET_CLIP_WIN  = 3,  /* outside window bounds */
+	V3D_PROJ_RET_OVERFLOW  = 4   /* outside range (mainly for short), (can't avoid) */
+} eV3DProjStatus;
+
+/* some clipping tests are optional */
+typedef enum {
+	V3D_PROJ_TEST_NOP        = 0,
+	V3D_PROJ_TEST_CLIP_BB    = (1 << 0),
+	V3D_PROJ_TEST_CLIP_WIN   = (1 << 1),
+} eV3DProjTest;
+
+
+eV3DProjStatus ED_view3d_project_short_ex(struct ARegion *ar, float perspmat[4][4], const int is_local,
+                                          const float co[3], short r_co[2], eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_short_global(struct ARegion *ar, const float co[3], short r_co[2], eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_short_object(struct ARegion *ar, const float co[3], short r_co[2], eV3DProjTest flag);
+void _ED_view3d_project_short(struct ARegion *ar, const float co[3], short r_co[2]); // V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN
+void _ED_view3d_project_short_noclip(struct ARegion *ar, const float vec[3], short r_co[2]); //
 void ED_view3d_project_int(struct ARegion *ar, const float co[3], int r_co[2]);
 void ED_view3d_project_int_noclip(struct ARegion *ar, const float co[3], int r_co[2]);
 void ED_view3d_project_float(struct ARegion *ar, const float co[3], float r_co[2]);
 void ED_view3d_project_float_noclip(struct ARegion *ar, const float co[3], float r_co[2]);
 void ED_view3d_project_float_v2_m4(const struct ARegion *a, const float co[3], float r_co[2], float mat[4][4]);
 void ED_view3d_project_float_v3_m4(struct ARegion *a, const float co[3], float r_co[3], float mat[4][4]);
+
+/* Base's get their own function since its a common operation */
+eV3DProjStatus ED_view3d_project_base(struct ARegion *ar, struct Base *base);
 
 void ED_view3d_unproject(struct bglMats *mats, float out[3], const float x, const float y, const float z);
 

@@ -239,107 +239,6 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 	return 1;
 }
 
-/* ************* only use while object drawing **************
- * or after running ED_view3d_init_mats_rv3d
- * */
-static void view3d_project_short_clip(ARegion *ar, const float vec[3], short adr[2], int is_local)
-{
-	RegionView3D *rv3d = ar->regiondata;
-	float fx, fy, vec4[4];
-	
-	adr[0] = IS_CLIPPED;
-	
-	/* clipplanes in eye space */
-	if (rv3d->rflag & RV3D_CLIPPING) {
-		if (ED_view3d_clipping_test(rv3d, vec, is_local))
-			return;
-	}
-	
-	copy_v3_v3(vec4, vec);
-	vec4[3] = 1.0;
-	
-	mul_m4_v4(rv3d->persmatob, vec4);
-	
-	/* clipplanes in window space */
-	if (vec4[3] > (float)BL_NEAR_CLIP) {    /* is the NEAR clipping cutoff for picking */
-		fx = (ar->winx / 2) * (1 + vec4[0] / vec4[3]);
-		
-		if (fx > 0 && fx < ar->winx) {
-			
-			fy = (ar->winy / 2) * (1 + vec4[1] / vec4[3]);
-			
-			if (fy > 0.0f && fy < (float)ar->winy) {
-				adr[0] = (short)floorf(fx);
-				adr[1] = (short)floorf(fy);
-			}
-		}
-	}
-}
-
-/* BMESH NOTE: this function is unused in bmesh only */
-
-/* only use while object drawing */
-static void UNUSED_FUNCTION(view3d_project_short_noclip) (ARegion * ar, const float vec[3], short adr[2])
-{
-	RegionView3D *rv3d = ar->regiondata;
-	float fx, fy, vec4[4];
-	
-	adr[0] = IS_CLIPPED;
-	
-	copy_v3_v3(vec4, vec);
-	vec4[3] = 1.0;
-	
-	mul_m4_v4(rv3d->persmatob, vec4);
-	
-	if (vec4[3] > (float)BL_NEAR_CLIP) {    /* is the NEAR clipping cutoff for picking */
-		fx = (ar->winx / 2) * (1 + vec4[0] / vec4[3]);
-		
-		if (fx > -32700 && fx < 32700) {
-			
-			fy = (ar->winy / 2) * (1 + vec4[1] / vec4[3]);
-			
-			if (fy > -32700.0f && fy < 32700.0f) {
-				adr[0] = (short)floorf(fx);
-				adr[1] = (short)floorf(fy);
-			}
-		}
-	}
-}
-
-/* same as view3d_project_short_clip but use persmat instead of persmatob for projection */
-static void view3d_project_short_clip_persmat(ARegion *ar, const float vec[3], short adr[2], int is_local)
-{
-	RegionView3D *rv3d = ar->regiondata;
-	float fx, fy, vec4[4];
-
-	adr[0] = IS_CLIPPED;
-
-	/* clipplanes in eye space */
-	if (rv3d->rflag & RV3D_CLIPPING) {
-		if (ED_view3d_clipping_test(rv3d, vec, is_local))
-			return;
-	}
-
-	copy_v3_v3(vec4, vec);
-	vec4[3] = 1.0;
-
-	mul_m4_v4(rv3d->persmat, vec4);
-
-	/* clipplanes in window space */
-	if (vec4[3] > (float)BL_NEAR_CLIP) {    /* is the NEAR clipping cutoff for picking */
-		fx = (ar->winx / 2) * (1 + vec4[0] / vec4[3]);
-
-		if (fx > 0 && fx < ar->winx) {
-
-			fy = (ar->winy / 2) * (1 + vec4[1] / vec4[3]);
-
-			if (fy > 0.0f && fy < (float)ar->winy) {
-				adr[0] = (short)floorf(fx);
-				adr[1] = (short)floorf(fy);
-			}
-		}
-	}
-}
 /* ************************ */
 
 /* check for glsl drawing */
@@ -883,13 +782,17 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		if (mat && !(vos->flag & V3D_CACHE_TEXT_WORLDSPACE))
 			mul_m4_v3(mat, vos->vec);
 
-		if (vos->flag & V3D_CACHE_TEXT_GLOBALSPACE)
-			view3d_project_short_clip_persmat(ar, vos->vec, vos->sco, (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0);
-		else
-			view3d_project_short_clip(ar, vos->vec, vos->sco, (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0);
-
-		if (vos->sco[0] != IS_CLIPPED)
+		if (ED_view3d_project_short_ex(ar,
+		                           (vos->flag & V3D_CACHE_TEXT_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
+		                           (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0,
+		                           vos->vec, vos->sco,
+		                           V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+		{
 			tot++;
+		}
+		else {
+			vos->sco[0] = IS_CLIPPED;
+		}
 	}
 
 	if (tot) {
@@ -1974,15 +1877,17 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	DispList *dl = BKE_displist_find(&obedit->disp, DL_VERTS);
 	float *co = dl ? dl->verts : NULL;
 	int i, N = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
-	short s[2] = {IS_CLIPPED, 0};
+	short s[2];
 
 	ED_view3d_clipping_local(vc->rv3d, obedit->obmat); /* for local clipping lookups */
 
 	for (i = 0; i < N; i++, bp++, co += 3) {
 		if (bp->hide == 0) {
-			view3d_project_short_clip(vc->ar, dl ? co : bp->vec, s, TRUE);
-			if (s[0] != IS_CLIPPED)
+			if (ED_view3d_project_short_object(vc->ar, dl ? co : bp->vec, s,
+			                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			{
 				func(userData, bp, s[0], s[1]);
+			}
 		}
 	}
 }
@@ -2084,19 +1989,16 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const flo
 	BMVert *eve = EDBM_vert_at_index(data->vc.em, index);
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-		short s[2] = {IS_CLIPPED, 0};
+		const eV3DProjTest flag = (data->clipVerts == V3D_CLIP_TEST_OFF) ?
+		            V3D_PROJ_TEST_NOP :
+		            V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN;
+		short s[2];
 
-		if (data->clipVerts != V3D_CLIP_TEST_OFF) {
-			view3d_project_short_clip(data->vc.ar, co, s, TRUE);
-		}
-		else {
-			float co2[2];
-			mul_v3_m4v3(co2, data->vc.obedit->obmat, co);
-			ED_view3d_project_short_noclip(data->vc.ar, co2, s);
+		if (ED_view3d_project_short_object(data->vc.ar, co, s, flag) != V3D_PROJ_RET_SUCCESS) {
+			return;
 		}
 
-		if (s[0] != IS_CLIPPED)
-			data->func(data->userData, eve, s[0], s[1], index);
+		data->func(data->userData, eve, s[0], s[1], index);
 	}
 }
 
@@ -2159,25 +2061,21 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 		short s[2][2];
 
-		if (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) {
-			view3d_project_short_clip(data->vc.ar, v0co, s[0], TRUE);
-			view3d_project_short_clip(data->vc.ar, v1co, s[1], TRUE);
+		const eV3DProjTest flag = (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) ?
+		            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN :
+		            V3D_PROJ_TEST_NOP;
 
-			if (s[0][0] == IS_CLIPPED || s[1][0] == IS_CLIPPED) {
-				return;
-			}
+		if (ED_view3d_project_short_object(data->vc.ar, v0co, s[0], flag) != V3D_PROJ_RET_SUCCESS) {
+			return;
+		}
+		if (ED_view3d_project_short_object(data->vc.ar, v1co, s[1], flag) != V3D_PROJ_RET_SUCCESS) {
+			return;
+		}
+
+		if (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) {
+			/* pass */
 		}
 		else {
-			float v1_co[3], v2_co[3];
-
-			mul_v3_m4v3(v1_co, data->vc.obedit->obmat, v0co);
-			mul_v3_m4v3(v2_co, data->vc.obedit->obmat, v1co);
-
-			/* XXX, todo, use ED_view3d_project_int_noclip(...), however these functions work differently
-			 * and need to be cleaned up, Campbell */
-			ED_view3d_project_short_noclip(data->vc.ar, v1_co, s[0]);
-			ED_view3d_project_short_noclip(data->vc.ar, v2_co, s[1]);
-
 			if (data->clipVerts == V3D_CLIP_TEST_REGION) {
 				/* make an int copy */
 				int s_int[2][2] = {{s[0][0], s[0][1]},
@@ -2230,10 +2128,12 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const flo
 		float cent2[3];
 		short s[2];
 
-		mul_v3_m4v3(cent2, data->vc.obedit->obmat, cent);
-		ED_view3d_project_short(data->vc.ar, cent2, s);
+		/* TODO, use ED_view3d_project_short_object */
 
-		if (s[0] != IS_CLIPPED) {
+		mul_v3_m4v3(cent2, data->vc.obedit->obmat, cent);
+		if (ED_view3d_project_short_global(data->vc.ar, cent2, s,
+		                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+		{
 			data->func(data->userData, efa, s[0], s[1], index);
 		}
 	}
@@ -2267,7 +2167,7 @@ void nurbs_foreachScreenVert(
         void *userData)
 {
 	Curve *cu = vc->obedit->data;
-	short s[2] = {IS_CLIPPED, 0};
+	short s[2];
 	Nurb *nu;
 	int i;
 	ListBase *nurbs = BKE_curve_editNurbs_get(cu);
@@ -2282,20 +2182,28 @@ void nurbs_foreachScreenVert(
 				if (bezt->hide == 0) {
 					
 					if (cu->drawflag & CU_HIDE_HANDLES) {
-						view3d_project_short_clip(vc->ar, bezt->vec[1], s, TRUE);
-						if (s[0] != IS_CLIPPED)
+						if (ED_view3d_project_short_object(vc->ar, bezt->vec[1], s,
+						                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						{
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
+						}
 					}
 					else {
-						view3d_project_short_clip(vc->ar, bezt->vec[0], s, TRUE);
-						if (s[0] != IS_CLIPPED)
+						if (ED_view3d_project_short_object(vc->ar, bezt->vec[0], s,
+						                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						{
 							func(userData, nu, NULL, bezt, 0, s[0], s[1]);
-						view3d_project_short_clip(vc->ar, bezt->vec[1], s, TRUE);
-						if (s[0] != IS_CLIPPED)
+						}
+						if (ED_view3d_project_short_object(vc->ar, bezt->vec[1], s,
+						                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						{
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
-						view3d_project_short_clip(vc->ar, bezt->vec[2], s, TRUE);
-						if (s[0] != IS_CLIPPED)
+						}
+						if (ED_view3d_project_short_object(vc->ar, bezt->vec[2], s,
+						                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						{
 							func(userData, nu, NULL, bezt, 2, s[0], s[1]);
+						}
 					}
 				}
 			}
@@ -2305,9 +2213,11 @@ void nurbs_foreachScreenVert(
 				BPoint *bp = &nu->bp[i];
 
 				if (bp->hide == 0) {
-					view3d_project_short_clip(vc->ar, bp->vec, s, TRUE);
-					if (s[0] != IS_CLIPPED)
+					if (ED_view3d_project_short_object(vc->ar, bp->vec, s,
+					                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+					{
 						func(userData, nu, bp, NULL, -1, s[0], s[1]);
+					}
 				}
 			}
 		}
@@ -6622,7 +6532,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* which wire color */
 	if ((dflag & DRAW_CONSTCOLOR) == 0) {
 
-		ED_view3d_project_short(ar, ob->obmat[3], &base->sx);
+		ED_view3d_project_base(ar, base);
 
 		draw_object_wire_color(scene, base, _ob_wire_col, warning_recursive);
 		ob_wire_col = _ob_wire_col;

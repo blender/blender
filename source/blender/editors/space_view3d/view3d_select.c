@@ -371,7 +371,7 @@ static void do_lasso_select_objects(ViewContext *vc, int mcords[][2], short move
 
 	for (base = vc->scene->base.first; base; base = base->next) {
 		if (BASE_SELECTABLE(vc->v3d, base)) { /* use this to avoid un-needed lasso lookups */
-			ED_view3d_project_short(vc->ar, base->object->obmat[3], &base->sx);
+			ED_view3d_project_base(vc->ar, base);
 			if (BLI_lasso_is_point_inside(mcords, moves, base->sx, base->sy, IS_CLIPPED)) {
 				
 				if (select) ED_base_object_select(base, BA_SELECT);
@@ -577,10 +577,14 @@ static void do_lasso_select_armature(ViewContext *vc, int mcords[][2], short mov
 	
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+
+			/* XXX, TODO, use ED_view3d_project_short_object here */
+			sco1[0] = sco2[0] = IS_CLIPPED;
+
 			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
-			ED_view3d_project_short(vc->ar, vec, sco1);
+			ED_view3d_project_short_global(vc->ar, vec, sco1, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
 			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
-			ED_view3d_project_short(vc->ar, vec, sco2);
+			ED_view3d_project_short_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
 			
 			didpoint = 0;
 			if (BLI_lasso_is_point_inside(mcords, moves, sco1[0], sco1[1], IS_CLIPPED)) {
@@ -631,12 +635,16 @@ static void do_lasso_select_meta(ViewContext *vc, int mcords[][2], short moves, 
 
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		
-		mul_v3_m4v3(vec, vc->obedit->obmat, &ml->x);
-		ED_view3d_project_short(vc->ar, vec, sco);
+		/* TODO, use ED_view3d_project_short_object */
 
-		if (BLI_lasso_is_point_inside(mcords, moves, sco[0], sco[1], IS_CLIPPED)) {
-			if (select) ml->flag |= SELECT;
-			else ml->flag &= ~SELECT;
+		mul_v3_m4v3(vec, vc->obedit->obmat, &ml->x);
+		if (ED_view3d_project_short_global(vc->ar, vec, sco,
+		                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+		{
+			if (BLI_lasso_is_point_inside(mcords, moves, sco[0], sco[1], INT_MAX)) {
+				if (select) ml->flag |= SELECT;
+				else ml->flag &= ~SELECT;
+			}
 		}
 	}
 }
@@ -1059,8 +1067,7 @@ static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int
 		}
 		else {
 			int temp, dist = 15;
-
-			ED_view3d_project_short(vc->ar, base->object->obmat[3], &base->sx);
+			ED_view3d_project_base(vc->ar, base);
 			
 			temp = abs(base->sx - mval[0]) + abs(base->sy - mval[1]);
 			if (temp < dist)
@@ -1341,8 +1348,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 			base = startbase;
 			while (base) {
 				if (BASE_SELECTABLE(v3d, base)) {
-					ED_view3d_project_short(ar, base->object->obmat[3], &base->sx);
-					
+					ED_view3d_project_base(ar, base);
 					temp = abs(base->sx - mval[0]) + abs(base->sy - mval[1]);
 					if (base == BASACT) temp += 10;
 					if (temp < dist) {
@@ -2375,14 +2381,17 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 		/* skip invisible bones */
 		if (PBONE_VISIBLE(arm, pchan->bone) == 0)
 			continue;
+
+		/* XXX, TODO, center check does not check for clipping! */
+		/* XXX, TODO, use ED_view3d_project_short_object here */
 		
 		/* project head location to screenspace */
 		mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_head);
-		ED_view3d_project_short(vc->ar, vec, sco1);
+		ED_view3d_project_short_global(vc->ar, vec, sco1, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
 		
 		/* project tail location to screenspace */
 		mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_tail);
-		ED_view3d_project_short(vc->ar, vec, sco2);
+		ED_view3d_project_short_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
 		
 		/* check if the head and/or tail is in the circle 
 		 *	- the call to check also does the selection already
@@ -2444,13 +2453,16 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 		short sco1[2], sco2[2], didpoint = 0;
 		float vec[3];
 		
+		/* XXX, TODO, center check does not check for clipping! */
+		/* XXX, TODO, use ED_view3d_project_short_object here */
+
 		/* project head location to screenspace */
 		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
-		ED_view3d_project_short(vc->ar, vec, sco1);
+		ED_view3d_project_short_global(vc->ar, vec, sco1, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
 		
 		/* project tail location to screenspace */
 		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
-		ED_view3d_project_short(vc->ar, vec, sco2);
+		ED_view3d_project_short_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
 		
 		/* check if the head and/or tail is in the circle 
 		 *	- the call to check also does the selection already
@@ -2556,7 +2568,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		select = select ? BA_SELECT : BA_DESELECT;
 		for (base = FIRSTBASE; base; base = base->next) {
 			if (BASE_SELECTABLE(v3d, base)) {
-				ED_view3d_project_short(ar, base->object->obmat[3], &base->sx);
+				ED_view3d_project_base(ar, base);
 				if (base->sx != IS_CLIPPED) {
 					int dx = base->sx - x;
 					int dy = base->sy - y;
