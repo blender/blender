@@ -895,16 +895,20 @@ static void recalcData_view3d(TransInfo *t)
 /* helper for recalcData() - for sequencer transforms */
 static void recalcData_sequencer(TransInfo *t)
 {
-	Editing *ed = BKE_sequencer_editing_get(t->scene, FALSE);
-	Sequence *seq;
+	TransData *td;
+	int a;
+	Sequence *seq_prev = NULL;
 
-	SEQ_BEGIN(ed, seq)
-	{
-		if (seq->flag & SELECT) {
-			BKE_sequence_invalidate_deendent(t->scene, seq);
+	for (a = 0, td = t->data; a < t->total; a++, td++) {
+		TransDataSeq *tdsq = (TransDataSeq *) td->extra;
+		Sequence *seq = tdsq->seq;
+
+		if (seq != seq_prev) {
+			BKE_sequence_invalidate_dependent(t->scene, seq);
 		}
+
+		seq_prev = seq;
 	}
-	SEQ_END
 
 	BKE_sequencer_preprocessed_cache_cleanup();
 

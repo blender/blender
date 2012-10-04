@@ -81,7 +81,7 @@ static Sequence *alloc_generic_sequence(Editing *ed, const char *name, int start
 	seq->type = type;
 
 	BLI_strncpy(seq->name + 2, name, sizeof(seq->name) - 2);
-	BKE_seqence_base_unique_name_recursive(&ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
 
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
 	seq->strip->us = 1;

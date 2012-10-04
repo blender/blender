@@ -1143,13 +1143,13 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 			if (selected) { /* mute unselected */
 				if (seq->flag & SELECT) {
 					seq->flag |= SEQ_MUTE;
-					BKE_sequence_invalidate_deendent(scene, seq);
+					BKE_sequence_invalidate_dependent(scene, seq);
 				}
 			}
 			else {
 				if ((seq->flag & SELECT) == 0) {
 					seq->flag |= SEQ_MUTE;
-					BKE_sequence_invalidate_deendent(scene, seq);
+					BKE_sequence_invalidate_dependent(scene, seq);
 				}
 			}
 		}
@@ -1194,13 +1194,13 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 			if (selected) { /* unmute unselected */
 				if (seq->flag & SELECT) {
 					seq->flag &= ~SEQ_MUTE;
-					BKE_sequence_invalidate_deendent(scene, seq);
+					BKE_sequence_invalidate_dependent(scene, seq);
 				}
 			}
 			else {
 				if ((seq->flag & SELECT) == 0) {
 					seq->flag &= ~SEQ_MUTE;
-					BKE_sequence_invalidate_deendent(scene, seq);
+					BKE_sequence_invalidate_dependent(scene, seq);
 				}
 			}
 		}
@@ -1573,7 +1573,7 @@ static int apply_unique_name_cb(Sequence *seq, void *arg_pt)
 	char name[sizeof(seq->name) - 2];
 
 	strcpy(name, seq->name + 2);
-	BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 	BKE_sequencer_dupe_animdata(scene, name, seq->name + 2);
 	return 1;
 
@@ -1968,7 +1968,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
 	BKE_sequencer_update_muting(ed);
 
-	BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seqm);
+	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seqm);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 

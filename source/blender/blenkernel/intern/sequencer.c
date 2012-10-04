@@ -461,7 +461,7 @@ static void seq_array(Editing *ed, Sequence ***seqarray, int *tot, int use_point
 		seq_build_array(&ed->seqbase, &array, 0);
 }
 
-void BKE_seqence_iterator_begin(Editing *ed, SeqIterator *iter, int use_pointer)
+void BKE_sequence_iterator_begin(Editing *ed, SeqIterator *iter, int use_pointer)
 {
 	memset(iter, 0, sizeof(*iter));
 	seq_array(ed, &iter->array, &iter->tot, use_pointer);
@@ -473,7 +473,7 @@ void BKE_seqence_iterator_begin(Editing *ed, SeqIterator *iter, int use_pointer)
 	}
 }
 
-void BKE_seqence_iterator_next(SeqIterator *iter)
+void BKE_sequence_iterator_next(SeqIterator *iter)
 {
 	if (++iter->cur < iter->tot)
 		iter->seq = iter->array[iter->cur];
@@ -481,7 +481,7 @@ void BKE_seqence_iterator_next(SeqIterator *iter)
 		iter->valid = 0;
 }
 
-void BKE_seqence_iterator_end(SeqIterator *iter)
+void BKE_sequence_iterator_end(SeqIterator *iter)
 {
 	if (iter->array)
 		MEM_freeN(iter->array);
@@ -843,7 +843,7 @@ static int seqbase_unique_name_recursive_cb(Sequence *seq, void *arg_pt)
 	return 1;
 }
 
-void BKE_seqence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
+void BKE_sequence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
 {
 	SeqUniqueInfo sui;
 	char *dot;
@@ -3032,10 +3032,27 @@ int BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
 	return TRUE;
 }
 
+static void sequence_do_invalidate_dependent(Sequence *seq, ListBase *seqbase)
+{
+	Sequence *cur;
+
+	for (cur = seqbase->first; cur; cur = cur->next) {
+		if (cur == seq)
+			continue;
+
+		if (BKE_sequence_check_depend(seq, cur)) {
+			BKE_sequencer_cache_cleanup_sequence(cur);
+			BKE_sequencer_preprocessed_cache_cleanup_sequence(cur);
+		}
+
+		if (cur->seqbase.first)
+			sequence_do_invalidate_dependent(seq, &cur->seqbase);
+	}
+}
+
 static void sequence_invalidate_cache(Scene *scene, Sequence *seq, int invalidate_self, int invalidate_preprocess)
 {
 	Editing *ed = scene->ed;
-	Sequence *cur;
 
 	/* invalidate cache for current sequence */
 	if (invalidate_self)
@@ -3049,17 +3066,11 @@ static void sequence_invalidate_cache(Scene *scene, Sequence *seq, int invalidat
 		BKE_sequencer_preprocessed_cache_cleanup_sequence(seq);
 
 	/* invalidate cache for all dependent sequences */
-	SEQ_BEGIN (ed, cur)
-	{
-		if (cur == seq)
-			continue;
 
-		if (BKE_sequence_check_depend(seq, cur)) {
-			BKE_sequencer_cache_cleanup_sequence(cur);
-			BKE_sequencer_preprocessed_cache_cleanup_sequence(cur);
-		}
-	}
-	SEQ_END
+	/* NOTE: can not use SEQ_BEGIN/SEQ_END here because that macro will change sequence's depth,
+	 *       which makes transformation routines work incorrect
+	 */
+	sequence_do_invalidate_dependent(seq, &ed->seqbase);
 }
 
 void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
@@ -3067,7 +3078,7 @@ void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
 	sequence_invalidate_cache(scene, seq, TRUE, TRUE);
 }
 
-void BKE_sequence_invalidate_deendent(Scene *scene, Sequence *seq)
+void BKE_sequence_invalidate_dependent(Scene *scene, Sequence *seq)
 {
 	sequence_invalidate_cache(scene, seq, FALSE, TRUE);
 }
@@ -3872,7 +3883,7 @@ static void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 {
 	if (seq) {
 		BLI_strncpy(seq->name + 2, seq_load->name, sizeof(seq->name) - 2);
-		BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+		BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 
 		if (seq_load->flag & SEQ_LOAD_FRAME_ADVANCE) {
 			seq_load->start_frame += (seq->enddisp - seq->startdisp);
@@ -3983,7 +3994,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	seq->type = SEQ_TYPE_SOUND_RAM;
 	seq->sound = sound;
 	BLI_strncpy(seq->name + 2, "Sound", SEQ_NAME_MAXSTR - 2);
-	BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
@@ -4043,7 +4054,7 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	seq->anim = an;
 	seq->anim_preseek = IMB_anim_get_preseek(an);
 	BLI_strncpy(seq->name + 2, "Movie", SEQ_NAME_MAXSTR - 2);
-	BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
@@ -4155,7 +4166,7 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 	}
 
 	if (dupe_flag & SEQ_DUPE_UNIQUE_NAME)
-		BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seqn);
+		BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seqn);
 
 	if (dupe_flag & SEQ_DUPE_ANIM)
 		BKE_sequencer_dupe_animdata(scene, seq->name + 2, seqn->name + 2);
@@ -4210,7 +4221,7 @@ void BKE_sequence_base_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *
 
 /* called on draw, needs to be fast,
  * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
-int BKE_seqence_is_valid_check(Sequence *seq)
+int BKE_sequence_is_valid_check(Sequence *seq)
 {
 	switch (seq->type) {
 		case SEQ_TYPE_MASK:
