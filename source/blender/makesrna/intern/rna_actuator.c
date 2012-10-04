@@ -971,6 +971,7 @@ static void rna_def_sound_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 2);
 	RNA_def_property_range(prop, 0.0, 2.0);
 	RNA_def_property_ui_text(prop, "Volume", "Initial volume of the sound");
+	RNA_def_property_translation_context(prop, "Audio");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "pitch", PROP_FLOAT, PROP_NONE);

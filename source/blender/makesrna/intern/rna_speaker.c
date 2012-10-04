@@ -151,6 +151,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "volume");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Volume", "How loud the sound is");
+	RNA_def_property_translation_context(prop, "Audio");
 	/* RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_volume_set", NULL); */
 	/* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 
