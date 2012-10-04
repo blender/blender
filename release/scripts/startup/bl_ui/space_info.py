@@ -289,8 +289,11 @@ class INFO_MT_add(Menu):
         layout.separator()
 
         layout.menu("INFO_MT_armature_add", icon='OUTLINER_OB_ARMATURE')
+        # XXX Quick fix for [#32764].
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
         layout.operator("object.add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.separator()
 
         layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
