@@ -88,6 +88,13 @@ static int global_tot_colorspace = 0;
 static int global_tot_display = 0;
 static int global_tot_view = 0;
 
+/* lock used by pre-cached processors getters, so processor wouldn't
+ * be created several times
+ * LOCK_COLORMANAGE can not be used since this mutex could be needed to
+ * be locked before pre-cached processor are creating
+ */
+static pthread_mutex_t processor_lock = BLI_MUTEX_INITIALIZER;
+
 typedef struct ColormanageProcessor {
 	ConstProcessorRcPtr *processor;
 	CurveMapping *curve_mapping;
@@ -732,7 +739,7 @@ static ConstProcessorRcPtr *create_colorspace_transform_processor(const char *fr
 static ConstProcessorRcPtr *colorspace_to_scene_linear_processor(ColorSpace *colorspace)
 {
 	if (colorspace->to_scene_linear == NULL) {
-		BLI_lock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_lock(&processor_lock);
 
 		if (colorspace->to_scene_linear == NULL) {
 			ConstProcessorRcPtr *to_scene_linear;
@@ -740,7 +747,7 @@ static ConstProcessorRcPtr *colorspace_to_scene_linear_processor(ColorSpace *col
 			colorspace->to_scene_linear = (struct ConstProcessorRcPtr *) to_scene_linear;
 		}
 
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_unlock(&processor_lock);
 	}
 
 	return (ConstProcessorRcPtr *) colorspace->to_scene_linear;
@@ -749,7 +756,7 @@ static ConstProcessorRcPtr *colorspace_to_scene_linear_processor(ColorSpace *col
 static ConstProcessorRcPtr *colorspace_from_scene_linear_processor(ColorSpace *colorspace)
 {
 	if (colorspace->from_scene_linear == NULL) {
-		BLI_lock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_lock(&processor_lock);
 
 		if (colorspace->from_scene_linear == NULL) {
 			ConstProcessorRcPtr *from_scene_linear;
@@ -757,7 +764,7 @@ static ConstProcessorRcPtr *colorspace_from_scene_linear_processor(ColorSpace *c
 			colorspace->from_scene_linear = (struct ConstProcessorRcPtr *) from_scene_linear;
 		}
 
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_unlock(&processor_lock);
 	}
 
 	return (ConstProcessorRcPtr *) colorspace->from_scene_linear;
@@ -766,7 +773,7 @@ static ConstProcessorRcPtr *colorspace_from_scene_linear_processor(ColorSpace *c
 static ConstProcessorRcPtr *display_from_scene_linear_processor(ColorManagedDisplay *display)
 {
 	if (display->from_scene_linear == NULL) {
-		BLI_lock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_lock(&processor_lock);
 
 		if (display->from_scene_linear == NULL) {
 			const char *view_name = colormanage_view_get_default_name(display);
@@ -783,7 +790,7 @@ static ConstProcessorRcPtr *display_from_scene_linear_processor(ColorManagedDisp
 			display->from_scene_linear = (struct ConstProcessorRcPtr *) processor;
 		}
 
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_unlock(&processor_lock);
 	}
 
 	return (ConstProcessorRcPtr *) display->from_scene_linear;
@@ -792,7 +799,7 @@ static ConstProcessorRcPtr *display_from_scene_linear_processor(ColorManagedDisp
 static ConstProcessorRcPtr *display_to_scene_linear_processor(ColorManagedDisplay *display)
 {
 	if (display->to_scene_linear == NULL) {
-		BLI_lock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_lock(&processor_lock);
 
 		if (display->to_scene_linear == NULL) {
 			const char *view_name = colormanage_view_get_default_name(display);
@@ -809,7 +816,7 @@ static ConstProcessorRcPtr *display_to_scene_linear_processor(ColorManagedDispla
 			display->to_scene_linear = (struct ConstProcessorRcPtr *) processor;
 		}
 
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_unlock(&processor_lock);
 	}
 
 	return (ConstProcessorRcPtr *) display->to_scene_linear;
@@ -1263,7 +1270,7 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	if (cm_processor == NULL) {
 		if (display_buffer_byte) {
 			IMB_buffer_byte_from_byte(display_buffer_byte, handle->byte_buffer, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-			                          FALSE, width, height, width, width);
+			                         FALSE, width, height, width, width);
 		}
 
 		if (display_buffer) {
