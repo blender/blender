@@ -572,7 +572,7 @@ static void do_lasso_select_armature(ViewContext *vc, int mcords[][2], short mov
 	bArmature *arm = vc->obedit->data;
 	EditBone *ebone;
 	float vec[3];
-	short sco1[2], sco2[2], didpoint;
+	short sco1[2], sco2[2];
 	int change = FALSE;
 
 	if (extend == 0 && select)
@@ -582,6 +582,7 @@ static void do_lasso_select_armature(ViewContext *vc, int mcords[][2], short mov
 	
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_SELECTABLE(arm, ebone)) {
+			int is_point_done = FALSE;
 
 			/* XXX, TODO, use ED_view3d_project_short_object here */
 			sco1[0] = sco2[0] = IS_CLIPPED;
@@ -591,21 +592,20 @@ static void do_lasso_select_armature(ViewContext *vc, int mcords[][2], short mov
 			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
 			ED_view3d_project_short_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
 			
-			didpoint = 0;
 			if (BLI_lasso_is_point_inside(mcords, moves, sco1[0], sco1[1], IS_CLIPPED)) {
 				if (select) ebone->flag |= BONE_ROOTSEL;
 				else ebone->flag &= ~BONE_ROOTSEL;
-				didpoint = 1;
+				is_point_done = TRUE;
 				change = TRUE;
 			}
 			if (BLI_lasso_is_point_inside(mcords, moves, sco2[0], sco2[1], IS_CLIPPED)) {
 				if (select) ebone->flag |= BONE_TIPSEL;
 				else ebone->flag &= ~BONE_TIPSEL;
-				didpoint = 1;
+				is_point_done = TRUE;
 				change = TRUE;
 			}
 			/* if one of points selected, we skip the bone itself */
-			if (didpoint == 0 &&
+			if ((is_point_done == FALSE) &&
 			    BLI_lasso_is_edge_inside(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1], IS_CLIPPED))
 			{
 				if (select) ebone->flag |= BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED;
@@ -2381,29 +2381,45 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 	/* TODO: could be optimized at some point */
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 		if (PBONE_SELECTABLE(arm, pchan->bone)) {
-			short sco1[2], sco2[2], didpoint = 0;
-			float vec[3];
-
-			/* XXX, TODO, center check does not check for clipping! */
-			/* XXX, TODO, use ED_view3d_project_short_object here */
+			int screen_co_a[2], screen_co_b[2];
+			int is_point_done = FALSE;
+			int points_proj_tot = 0;
 
 			/* project head location to screenspace */
-			mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_head);
-			ED_view3d_project_short_global(vc->ar, vec, sco1, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
+			if (ED_view3d_project_int_object(vc->ar, pchan->pose_head, screen_co_a,
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			{
+				points_proj_tot++;
+				if (pchan_circle_doSelectJoint(&data, pchan, screen_co_a[0], screen_co_a[1])) {
+					is_point_done = TRUE;
+				}
+			}
 
 			/* project tail location to screenspace */
-			mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_tail);
-			ED_view3d_project_short_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
+			if (ED_view3d_project_int_object(vc->ar, pchan->pose_tail, screen_co_b,
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			{
+				points_proj_tot++;
+				if (pchan_circle_doSelectJoint(&data, pchan, screen_co_b[0], screen_co_b[1])) {
+					is_point_done = TRUE;
+				}
+			}
 
-			/* check if the head and/or tail is in the circle
-			 *	- the call to check also does the selection already
-			 */
-			if (pchan_circle_doSelectJoint(&data, pchan, sco1[0], sco1[1]))
-				didpoint = 1;
-			if (pchan_circle_doSelectJoint(&data, pchan, sco2[0], sco2[1]))
-				didpoint = 1;
+			/* only if the endpoints didn't get selected, deal with the middle of the bone too */
+			/* XXX should we just do this always? */
+			if ((is_point_done == FALSE) && (points_proj_tot == 2) &&
+			    edge_inside_circle(mval[0], mval[1], rad,
+			                       screen_co_a[0], screen_co_a[1],
+			                       screen_co_b[0], screen_co_b[1]))
+			{
+				if (select)
+					pchan->bone->flag |= BONE_SELECTED;
+				else
+					pchan->bone->flag &= ~BONE_SELECTED;
+				change = TRUE;
+			}
 
-			change |= didpoint;
+			change |= is_point_done;
 		}
 	}
 
@@ -2451,34 +2467,43 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	
 	/* check each EditBone... */
-	/* TODO: could be optimized at some point */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_SELECTABLE(arm, ebone)) {
-			short sco1[2], sco2[2], didpoint = 0;
-			float vec[3];
-
-			/* XXX, TODO, center check does not check for clipping! */
-			/* XXX, TODO, use ED_view3d_project_short_object here */
+			int screen_co_a[2], screen_co_b[2];
+			int is_point_done = FALSE;
+			int points_proj_tot = 0;
 
 			/* project head location to screenspace */
-			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
-			ED_view3d_project_short_global(vc->ar, vec, sco1, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
+			if (ED_view3d_project_int_object(vc->ar, ebone->head, screen_co_a,
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			{
+				points_proj_tot++;
+				if (armature_circle_doSelectJoint(&data, ebone, screen_co_a[0], screen_co_a[1], TRUE)) {
+					is_point_done = TRUE;
+				}
+			}
 
 			/* project tail location to screenspace */
-			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
-			ED_view3d_project_short_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
+			if (ED_view3d_project_int_object(vc->ar, ebone->tail, screen_co_b,
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			{
+				points_proj_tot++;
+				if (armature_circle_doSelectJoint(&data, ebone, screen_co_b[0], screen_co_b[1], FALSE)) {
+					is_point_done = TRUE;
+				}
+			}
 
 			/* check if the head and/or tail is in the circle
-			 *	- the call to check also does the selection already
+			 * - the call to check also does the selection already
 			 */
-			if (armature_circle_doSelectJoint(&data, ebone, sco1[0], sco1[1], 1))
-				didpoint = 1;
-			if (armature_circle_doSelectJoint(&data, ebone, sco2[0], sco2[1], 0))
-				didpoint = 1;
 
 			/* only if the endpoints didn't get selected, deal with the middle of the bone too */
 			/* XXX should we just do this always? */
-			if ((didpoint == 0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1])) {
+			if ((is_point_done == FALSE) && (points_proj_tot == 2) &&
+			    edge_inside_circle(mval[0], mval[1], rad,
+			                       screen_co_a[0], screen_co_a[1],
+			                       screen_co_b[0], screen_co_b[1]))
+			{
 				if (select)
 					ebone->flag |= BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED;
 				else
@@ -2486,7 +2511,7 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 				change = TRUE;
 			}
 
-			change |= didpoint;
+			change |= is_point_done;
 		}
 	}
 
