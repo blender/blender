@@ -1243,7 +1243,7 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "offset_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "offset_fac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Offset Factor", "Percentage value defining target position along length of bone");
+	RNA_def_property_ui_text(prop, "Offset Factor", "Percentage value defining target position along length of curve");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "forward_axis", PROP_ENUM, PROP_NONE);
