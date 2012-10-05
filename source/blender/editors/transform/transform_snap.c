@@ -80,6 +80,8 @@
 
 #define USE_BVH_FACE_SNAP
 
+#define TRANSFORM_DIST_MAX_PX 1000
+
 /********************* PROTOTYPES ***********************/
 
 static void setSnappingCallback(TransInfo *t);
@@ -296,7 +298,7 @@ void applyProject(TransInfo *t)
 		for (i = 0; i < t->total; i++, td++) {
 			float iloc[3], loc[3], no[3];
 			float mval[2];
-			int dist = 1000;
+			int dist = TRANSFORM_DIST_MAX_PX;
 			
 			if (td->flag & TD_NOACTION)
 				break;
@@ -1238,7 +1240,7 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 				new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
 			}
 			else {
-				new_dist = 1000;
+				new_dist = TRANSFORM_DIST_MAX_PX;
 			}
 			
 			/* 10% threshold if edge is closer but a bit further
@@ -1299,7 +1301,7 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[][4],
 			new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
 		}
 		else {
-			new_dist = 1000;
+			new_dist = TRANSFORM_DIST_MAX_PX;
 		}
 
 		
