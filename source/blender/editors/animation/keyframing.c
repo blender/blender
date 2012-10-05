@@ -1587,7 +1587,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
 	char *path;
-	float cfra = (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
+	float cfra = (float)CFRA;
 	short success = 0;
 	int a, index, length, all = RNA_boolean_get(op->ptr, "all");
 	short flag = 0;
@@ -1758,20 +1758,20 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 
 	if (ptr.id.data && ptr.data && prop) {
 		path = RNA_path_from_ID_to_property(&ptr, prop);
-
+		
 		if (path) {
 			if (all) {
 				length = RNA_property_array_length(&ptr, prop);
-
+				
 				if (length) index = 0;
 				else length = 1;
 			}
 			else
 				length = 1;
-
+			
 			for (a = 0; a < length; a++)
 				success += clear_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index + a, 0);
-
+			
 			MEM_freeN(path);
 		}
 		else if (G.debug & G_DEBUG)
@@ -1785,9 +1785,9 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 	if (success) {
 		/* send updates */
 		uiContextAnimUpdate(C);
-
+		
 		DAG_ids_flush_update(bmain, 0);
-
+		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
