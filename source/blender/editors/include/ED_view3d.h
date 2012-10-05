@@ -144,6 +144,12 @@ eV3DProjStatus ED_view3d_project_int_ex(struct ARegion *ar, float perspmat[4][4]
 eV3DProjStatus ED_view3d_project_int_global(struct ARegion *ar, const float co[3], int r_co[2], eV3DProjTest flag);
 eV3DProjStatus ED_view3d_project_int_object(struct ARegion *ar, const float co[3], int r_co[2], eV3DProjTest flag);
 
+/* *** float *** */
+eV3DProjStatus ED_view3d_project_float_ex(struct ARegion *ar, float perspmat[4][4], const int is_local,
+                                        const float co[3], float r_co[2], eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_float_global(struct ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_float_object(struct ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag);
+
 void ED_view3d_project_float(struct ARegion *ar, const float co[3], float r_co[2]);
 void ED_view3d_project_float_noclip(struct ARegion *ar, const float co[3], float r_co[2]);
 void ED_view3d_project_float_v2_m4(const struct ARegion *a, const float co[3], float r_co[2], float mat[4][4]);

@@ -965,7 +965,7 @@ eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], con
 			r_co[1] = (short)floor(tvec[1]);
 		}
 		else {
-			return V3D_PROJ_RET_OVERFLOW;
+			ret = V3D_PROJ_RET_OVERFLOW;
 		}
 	}
 	return ret;
@@ -984,7 +984,25 @@ eV3DProjStatus ED_view3d_project_int_ex(ARegion *ar, float perspmat[4][4], const
 			r_co[1] = (int)floor(tvec[1]);
 		}
 		else {
-			return V3D_PROJ_RET_OVERFLOW;
+			ret = V3D_PROJ_RET_OVERFLOW;
+		}
+	}
+	return ret;
+}
+
+eV3DProjStatus ED_view3d_project_float_ex(ARegion *ar, float perspmat[4][4], const int is_local,
+                                        const float co[3], float r_co[2], eV3DProjTest flag)
+{
+	float tvec[2];
+	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
+	if (ret == V3D_PROJ_RET_SUCCESS) {
+		if (finite(tvec[0]) &&
+		    finite(tvec[1]))
+		{
+			copy_v2_v2(r_co, tvec);
+		}
+		else {
+			ret = V3D_PROJ_RET_OVERFLOW;
 		}
 	}
 	return ret;
@@ -1015,6 +1033,20 @@ eV3DProjStatus ED_view3d_project_int_object(ARegion *ar, const float co[3], int 
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_int_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
 }
+
+/* --- float --- */
+eV3DProjStatus ED_view3d_project_float_global(ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	return ED_view3d_project_float_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
+}
+/* object space, use ED_view3d_init_mats_rv3d before calling */
+eV3DProjStatus ED_view3d_project_float_object(ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	return ED_view3d_project_float_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
+}
+
 
 void ED_view3d_project_float(ARegion *ar, const float co[3], float r_co[2])
 {
