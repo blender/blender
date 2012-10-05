@@ -113,6 +113,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_delete);
 	WM_operatortype_append(OBJECT_OT_text_add);
 	WM_operatortype_append(OBJECT_OT_armature_add);
+	WM_operatortype_append(OBJECT_OT_empty_add);
 	WM_operatortype_append(OBJECT_OT_lamp_add);
 	WM_operatortype_append(OBJECT_OT_camera_add);
 	WM_operatortype_append(OBJECT_OT_speaker_add);
