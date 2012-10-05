@@ -1633,7 +1633,7 @@ int PE_circle_select(bContext *C, int selecting, const int mval[2], float rad)
 
 /************************ lasso select operator ************************/
 
-int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, short select)
+int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, short extend, short select)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);

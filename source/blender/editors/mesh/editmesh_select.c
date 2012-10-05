@@ -131,7 +131,7 @@ unsigned int bm_solidoffs = 0, bm_wireoffs = 0, bm_vertoffs = 0;    /* set in dr
 static char *selbuf = NULL;
 
 /* opengl doesn't support concave... */
-static void draw_triangulated(int mcords[][2], short tot)
+static void draw_triangulated(const int mcords[][2], const short tot)
 {
 	ListBase lb = {NULL, NULL};
 	DispList *dl;
@@ -227,7 +227,7 @@ void EDBM_backbuf_free(void)
  * - grab again and compare
  * returns 'OK' 
  */
-int EDBM_backbuf_border_mask_init(ViewContext *vc, int mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
+int EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
 {
 	unsigned int *dr, *drm;
 	struct ImBuf *buf, *bufmask;

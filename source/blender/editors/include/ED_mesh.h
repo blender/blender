@@ -138,7 +138,7 @@ int  EDBM_backbuf_border_init(struct ViewContext *vc, short xmin, short ymin, sh
 int  EDBM_backbuf_check(unsigned int index);
 void EDBM_backbuf_free(void);
 
-int  EDBM_backbuf_border_mask_init(struct ViewContext *vc, int mcords[][2], short tot,
+int  EDBM_backbuf_border_mask_init(struct ViewContext *vc, const int mcords[][2], short tot,
                                    short xmin, short ymin, short xmax, short ymax);
 int  EDBM_backbuf_circle_init(struct ViewContext *vc, short xs, short ys, short rads);
 

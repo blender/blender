@@ -1565,7 +1565,7 @@ static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), voi
 }
 
 /* just draw a little warning message in the top-right corner of the viewport to warn that autokeying is enabled */
-static void drawAutoKeyWarning(const struct bContext *C, TransInfo *t, ARegion *ar)
+static void drawAutoKeyWarning(TransInfo *t, ARegion *ar)
 {
 	int show_warning;
 	
@@ -1610,7 +1610,7 @@ static void drawAutoKeyWarning(const struct bContext *C, TransInfo *t, ARegion *
 	}
 }
 
-static void drawTransformPixel(const struct bContext *C, ARegion *ar, void *arg)
+static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, void *arg)
 {	
 	TransInfo *t = arg;
 	Scene *scene = t->scene;
@@ -1618,7 +1618,7 @@ static void drawTransformPixel(const struct bContext *C, ARegion *ar, void *arg)
 	
 	/* draw autokeyframing hint in the corner */
 	if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
-		drawAutoKeyWarning(C, t, ar);
+		drawAutoKeyWarning(t, ar);
 	}	
 }
 

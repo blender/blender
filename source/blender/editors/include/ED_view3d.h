@@ -40,6 +40,7 @@ struct BPoint;
 struct BezTriple;
 struct BezTriple;
 struct BoundBox;
+struct EditBone;
 struct ImBuf;
 struct MVert;
 struct Main;
@@ -170,6 +171,8 @@ void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData,
 void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct BMFace *efa, int x, int y, int index), void *userData);
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
+void armature_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1), void *userData);
+
 
 void ED_view3d_clipping_calc(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, const struct rcti *rect);
 void ED_view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);

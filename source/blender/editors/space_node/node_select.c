@@ -539,7 +539,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 
 /* ****** Lasso Select ****** */
 
-static int do_lasso_select_node(bContext *C, int mcords[][2], short moves, short select)
+static int do_lasso_select_node(bContext *C, const int mcords[][2], short moves, short select)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
@@ -585,7 +585,7 @@ static int do_lasso_select_node(bContext *C, int mcords[][2], short moves, short
 static int node_lasso_select_exec(bContext *C, wmOperator *op)
 {
 	int mcords_tot;
-	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
 		short select;

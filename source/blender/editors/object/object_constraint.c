@@ -982,7 +982,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int followpath_path_animate_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+static int followpath_path_animate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	/* hook up invoke properties for figuring out which constraint we're dealing with */
 	if (edit_constraint_invoke_properties(C, op)) {

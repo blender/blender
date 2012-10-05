@@ -485,7 +485,7 @@ void MASK_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
-static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short select)
+static int do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, short select)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -549,7 +549,7 @@ static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short
 static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 {
 	int mcords_tot;
-	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
 		short select;
