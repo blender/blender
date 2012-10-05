@@ -1644,6 +1644,8 @@ TextureCoordinateNode::TextureCoordinateNode()
 	add_output("Camera", SHADER_SOCKET_POINT);
 	add_output("Window", SHADER_SOCKET_POINT);
 	add_output("Reflection", SHADER_SOCKET_NORMAL);
+
+	from_dupli = false;
 }
 
 void TextureCoordinateNode::attributes(AttributeRequestSet *attributes)
