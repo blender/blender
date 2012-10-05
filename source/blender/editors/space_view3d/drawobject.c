@@ -101,6 +101,7 @@
 #include "ED_sculpt.h"
 #include "ED_types.h"
 #include "ED_curve.h" /* for curve_editnurbs */
+#include "ED_armature.h"
 
 #include "UI_resources.h"
 
@@ -2214,6 +2215,51 @@ void nurbs_foreachScreenVert(
 						func(userData, nu, bp, NULL, -1, screen_co[0], screen_co[1]);
 					}
 				}
+			}
+		}
+	}
+}
+
+/* ED_view3d_init_mats_rv3d must be called first */
+void armature_foreachScreenBone(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1),
+        void *userData)
+{
+	bArmature *arm = vc->obedit->data;
+	EditBone *ebone;
+
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone)) {
+			int screen_co_a[2], screen_co_b[2];
+			int points_proj_tot = 0;
+
+			/* project head location to screenspace */
+			if (ED_view3d_project_int_object(vc->ar, ebone->head, screen_co_a,
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			{
+				points_proj_tot++;
+			}
+			else {
+				screen_co_a[0] = IS_CLIPPED;  /* weak */
+				/* screen_co_a[1]: intentionally dont set this so we get errors on misuse */
+			}
+
+			/* project tail location to screenspace */
+			if (ED_view3d_project_int_object(vc->ar, ebone->tail, screen_co_b,
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			{
+				points_proj_tot++;
+			}
+			else {
+				screen_co_b[0] = IS_CLIPPED;  /* weak */
+				/* screen_co_b[1]: intentionally dont set this so we get errors on misuse */
+			}
+
+			if (points_proj_tot) {  /* at least one point's projection worked */
+				func(userData, ebone,
+				     screen_co_a[0], screen_co_a[1],
+				     screen_co_b[0], screen_co_b[1]);
 			}
 		}
 	}

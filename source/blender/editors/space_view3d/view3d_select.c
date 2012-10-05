@@ -600,65 +600,70 @@ static void do_lasso_select_lattice(ViewContext *vc, const int mcords[][2], shor
 	lattice_foreachScreenVert(vc, do_lasso_select_lattice__doSelect, &data);
 }
 
+static void do_lasso_select_armature__doSelectBone(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1)
+{
+	LassoSelectUserData *data = userData;
+	bArmature *arm = data->vc->obedit->data;
+
+	if (EBONE_SELECTABLE(arm, ebone)) {
+		int is_point_done = FALSE;
+		int points_proj_tot = 0;
+
+		/* project head location to screenspace */
+		if (x0 != IS_CLIPPED) {
+			points_proj_tot++;
+			if (BLI_rcti_isect_pt(data->rect, x0, y0) &&
+			    BLI_lasso_is_point_inside(data->mcords, data->moves, x0, y0, INT_MAX))
+			{
+				is_point_done = TRUE;
+				if (data->select) ebone->flag |=  BONE_ROOTSEL;
+				else              ebone->flag &= ~BONE_ROOTSEL;
+			}
+		}
+
+		/* project tail location to screenspace */
+		if (x1 != IS_CLIPPED) {
+			points_proj_tot++;
+			if (BLI_rcti_isect_pt(data->rect, x1, y1) &&
+			    BLI_lasso_is_point_inside(data->mcords, data->moves, x1, y1, INT_MAX))
+			{
+				is_point_done = TRUE;
+				if (data->select) ebone->flag |=  BONE_TIPSEL;
+				else              ebone->flag &= ~BONE_TIPSEL;
+			}
+		}
+
+		/* if one of points selected, we skip the bone itself */
+		if ((is_point_done == FALSE) && (points_proj_tot == 2) &&
+		    BLI_lasso_is_edge_inside(data->mcords, data->moves, x0, y0, x1, y1, INT_MAX))
+		{
+			if (data->select) ebone->flag |=  (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			else              ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			data->is_change = TRUE;
+		}
+
+		data->is_change |= is_point_done;
+	}
+}
+
 static void do_lasso_select_armature(ViewContext *vc, const int mcords[][2], short moves, short extend, short select)
 {
-	bArmature *arm = vc->obedit->data;
-	EditBone *ebone;
-	int change = FALSE;
+	LassoSelectUserData data;
+	rcti rect;
+
+	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
+
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
+
+	BLI_lasso_boundbox(&rect, mcords, moves);
 
 	if (extend == 0 && select)
 		ED_armature_deselect_all_visible(vc->obedit);
 
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
+	armature_foreachScreenBone(vc, do_lasso_select_armature__doSelectBone, &data);
 
-	/* set editdata in vc */
-	
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_SELECTABLE(arm, ebone)) {
-			int screen_co_a[2], screen_co_b[2];
-			int is_point_done = FALSE;
-			int points_proj_tot = 0;
-
-			/* project head location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, ebone->head, screen_co_a,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-				if (BLI_lasso_is_point_inside(mcords, moves, screen_co_a[0], screen_co_a[1], INT_MAX)) {
-					is_point_done = TRUE;
-					if (select) ebone->flag |=  BONE_ROOTSEL;
-					else        ebone->flag &= ~BONE_ROOTSEL;
-				}
-			}
-
-			/* project tail location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, ebone->tail, screen_co_b,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-				if (BLI_lasso_is_point_inside(mcords, moves, screen_co_b[0], screen_co_b[1], INT_MAX)) {
-					is_point_done = TRUE;
-					if (select) ebone->flag |=  BONE_TIPSEL;
-					else        ebone->flag &= ~BONE_TIPSEL;
-				}
-			}
-
-			/* if one of points selected, we skip the bone itself */
-			if ((is_point_done == FALSE) && (points_proj_tot == 2) &&
-			    BLI_lasso_is_edge_inside(mcords, moves,
-			                             screen_co_a[0], screen_co_a[1],
-			                             screen_co_b[0], screen_co_b[1], INT_MAX))
-			{
-				if (select) ebone->flag |=  (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				else        ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				change = TRUE;
-			}
-
-			change |= is_point_done;
-		}
-	}
-	
-	if (change) {
+	if (data.is_change) {
+		bArmature *arm = vc->obedit->data;
 		ED_armature_sync_selection(arm->edbo);
 		ED_armature_validate_active(arm);
 		WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, vc->obedit);
@@ -2508,65 +2513,59 @@ static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, int 
 	}
 	return 0;
 }
+static void do_circle_select_armature__doSelectBone(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1)
+{
+	CircleSelectUserData *data = userData;
+	bArmature *arm = data->vc->obedit->data;
+
+	if (EBONE_SELECTABLE(arm, ebone)) {
+		int is_point_done = FALSE;
+		int points_proj_tot = 0;
+
+		/* project head location to screenspace */
+		if (x0 != IS_CLIPPED) {
+			points_proj_tot++;
+			if (armature_circle_doSelectJoint(data, ebone, x0, y0, TRUE)) {
+				is_point_done = TRUE;
+			}
+		}
+
+		/* project tail location to screenspace */
+		if (x1 != IS_CLIPPED) {
+			points_proj_tot++;
+			if (armature_circle_doSelectJoint(data, ebone, x1, y1, FALSE)) {
+				is_point_done = TRUE;
+			}
+		}
+
+		/* check if the head and/or tail is in the circle
+		 * - the call to check also does the selection already
+		 */
+
+		/* only if the endpoints didn't get selected, deal with the middle of the bone too
+		 * It works nicer to only do this if the head or tail are not in the circle,
+		 * otherwise there is no way to circle select joints alone */
+		if ((is_point_done == FALSE) && (points_proj_tot == 2) &&
+		    edge_inside_circle(data->mval[0], data->mval[1], data->radius, x0, y0, x1, y1))
+		{
+			if (data->select) ebone->flag |=  (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			else              ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			data->is_change = TRUE;
+		}
+
+		data->is_change |= is_point_done;
+	}
+}
 static void armature_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
 {
 	CircleSelectUserData data;
 	bArmature *arm = vc->obedit->data;
-	EditBone *ebone;
 
 	view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-	
-	/* check each EditBone... */
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_SELECTABLE(arm, ebone)) {
-			int screen_co_a[2], screen_co_b[2];
-			int is_point_done = FALSE;
-			int points_proj_tot = 0;
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-			/* project head location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, ebone->head, screen_co_a,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-				if (armature_circle_doSelectJoint(&data, ebone, screen_co_a[0], screen_co_a[1], TRUE)) {
-					is_point_done = TRUE;
-				}
-			}
-
-			/* project tail location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, ebone->tail, screen_co_b,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-				if (armature_circle_doSelectJoint(&data, ebone, screen_co_b[0], screen_co_b[1], FALSE)) {
-					is_point_done = TRUE;
-				}
-			}
-
-			/* check if the head and/or tail is in the circle
-			 * - the call to check also does the selection already
-			 */
-
-			/* only if the endpoints didn't get selected, deal with the middle of the bone too
-			 * It works nicer to only do this if the head or tail are not in the circle,
-			 * otherwise there is no way to circle select joints alone */
-			if ((is_point_done == FALSE) && (points_proj_tot == 2) &&
-			    edge_inside_circle(mval[0], mval[1], rad,
-			                       screen_co_a[0], screen_co_a[1],
-			                       screen_co_b[0], screen_co_b[1]))
-			{
-				if (select)
-					ebone->flag |= BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED;
-				else
-					ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				data.is_change = TRUE;
-			}
-
-			data.is_change |= is_point_done;
-		}
-	}
+	armature_foreachScreenBone(vc, do_circle_select_armature__doSelectBone, &data);
 
 	if (data.is_change) {
 		ED_armature_sync_selection(arm->edbo);
