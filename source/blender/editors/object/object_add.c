@@ -139,19 +139,6 @@ static EnumPropertyItem field_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* Copy from rna_object.c */
-static EnumPropertyItem empty_drawtype_items[] = {
-	{OB_PLAINAXES, "PLAIN_AXES", 0, "Plain Axes", ""},
-	{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
-	{OB_SINGLE_ARROW, "SINGLE_ARROW", 0, "Single Arrow", ""},
-	{OB_CIRCLE, "CIRCLE", 0, "Circle", ""},
-	{OB_CUBE, "CUBE", 0, "Cube", ""},
-	{OB_EMPTY_SPHERE, "SPHERE", 0, "Sphere", ""},
-	{OB_EMPTY_CONE, "CONE", 0, "Cone", ""},
-	{OB_EMPTY_IMAGE, "IMAGE", 0, "Image", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 /************************** Exported *****************************/
 
 void ED_object_location_from_view(bContext *C, float loc[3])
@@ -731,7 +718,7 @@ void OBJECT_OT_empty_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", empty_drawtype_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", object_empty_drawtype_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, FALSE);
 }
