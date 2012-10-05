@@ -3583,7 +3583,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	
-	if ((dflag & DRAW_PICKING) == 0 && (base->flag & OB_FROMDUPLI) == 0) {
+	if ((dflag & DRAW_PICKING) == 0 && (base->flag & OB_FROMDUPLI) == 0 && (v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
 		/* GPU_begin_object_materials checked if this is needed */
 		if (do_alpha_after) {
 			if (ob->dtx & OB_DRAWXRAY) {
@@ -6492,7 +6492,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		return;
 
 	/* xray delay? */
-	if ((dflag & DRAW_PICKING) == 0 && (base->flag & OB_FROMDUPLI) == 0) {
+	if ((dflag & DRAW_PICKING) == 0 && (base->flag & OB_FROMDUPLI) == 0 && (v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
 		/* don't do xray in particle mode, need the z-buffer */
 		if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 			/* xray and transp are set when it is drawing the 2nd/3rd pass */
