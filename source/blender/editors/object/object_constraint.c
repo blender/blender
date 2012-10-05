@@ -658,12 +658,15 @@ void CONSTRAINT_OT_stretchto_reset(wmOperatorType *ot)
 	ot->idname = "CONSTRAINT_OT_stretchto_reset";
 	ot->description = "Reset original length of bone for Stretch To Constraint";
 	
-	ot->exec = stretchto_reset_exec;
+	/* callbacks */
 	ot->invoke = stretchto_reset_invoke;
+	ot->exec = stretchto_reset_exec;
 	ot->poll = edit_constraint_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -701,12 +704,15 @@ void CONSTRAINT_OT_limitdistance_reset(wmOperatorType *ot)
 	ot->idname = "CONSTRAINT_OT_limitdistance_reset";
 	ot->description = "Reset limiting distance for Limit Distance Constraint";
 	
-	ot->exec = limitdistance_reset_exec;
+	/* callbacks */
 	ot->invoke = limitdistance_reset_invoke;
+	ot->exec = limitdistance_reset_exec;
 	ot->poll = edit_constraint_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -827,12 +833,15 @@ void CONSTRAINT_OT_childof_set_inverse(wmOperatorType *ot)
 	ot->idname = "CONSTRAINT_OT_childof_set_inverse";
 	ot->description = "Set inverse correction for ChildOf constraint";
 	
-	ot->exec = childof_set_inverse_exec;
+	/* callbacks */
 	ot->invoke = childof_set_inverse_invoke;
+	ot->exec = childof_set_inverse_exec;
 	ot->poll = edit_constraint_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -871,12 +880,15 @@ void CONSTRAINT_OT_childof_clear_inverse(wmOperatorType *ot)
 	ot->idname = "CONSTRAINT_OT_childof_clear_inverse";
 	ot->description = "Clear inverse correction for ChildOf constraint";
 	
-	ot->exec = childof_clear_inverse_exec;
+	/* callbacks */
 	ot->invoke = childof_clear_inverse_invoke;
+	ot->exec = childof_clear_inverse_exec;
 	ot->poll = edit_constraint_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -1041,13 +1053,16 @@ void CONSTRAINT_OT_objectsolver_set_inverse(wmOperatorType *ot)
 	ot->name = "Set Inverse";
 	ot->idname = "CONSTRAINT_OT_objectsolver_set_inverse";
 	ot->description = "Set inverse correction for ObjectSolver constraint";
-
-	ot->exec = objectsolver_set_inverse_exec;
+	
+	/* callbacks */
 	ot->invoke = objectsolver_set_inverse_invoke;
+	ot->exec = objectsolver_set_inverse_exec;
 	ot->poll = edit_constraint_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -1084,13 +1099,16 @@ void CONSTRAINT_OT_objectsolver_clear_inverse(wmOperatorType *ot)
 	ot->name = "Clear Inverse";
 	ot->idname = "CONSTRAINT_OT_objectsolver_clear_inverse";
 	ot->description = "Clear inverse correction for ObjectSolver constraint";
-
-	ot->exec = objectsolver_clear_inverse_exec;
+	
+	/* callbacks */
 	ot->invoke = objectsolver_clear_inverse_invoke;
+	ot->exec = objectsolver_clear_inverse_exec;
 	ot->poll = edit_constraint_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -1110,13 +1128,14 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 
 void ED_object_constraint_update(Object *ob)
 {
-
 	if (ob->pose) BKE_pose_update_constraint_flags(ob->pose);
 
 	object_test_constraints(ob);
 
-	if (ob->type == OB_ARMATURE) DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
-	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+	if (ob->type == OB_ARMATURE) 
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+	else 
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
 void ED_object_constraint_dependency_update(Main *bmain, Scene *scene, Object *ob)
@@ -1133,6 +1152,7 @@ static int constraint_poll(bContext *C)
 	return (ptr.id.data && ptr.data);
 }
 
+
 static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
@@ -1147,12 +1167,12 @@ static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		constraints_set_active(lb, NULL);
 		
 		ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
-
+		
 		/* ITASC needs to be rebuilt once a constraint is removed [#26920] */
 		if (is_ik) {
 			BIK_clear_data(ob->pose);
 		}
-
+		
 		/* notifiers */
 		WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
 		
@@ -1178,6 +1198,7 @@ void CONSTRAINT_OT_delete(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
 
 static int constraint_move_down_exec(bContext *C, wmOperator *op)
 {
@@ -1208,7 +1229,6 @@ static int constraint_move_down_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 		return OPERATOR_CANCELLED;
 }
 
-
 void CONSTRAINT_OT_move_down(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1217,12 +1237,14 @@ void CONSTRAINT_OT_move_down(wmOperatorType *ot)
 	ot->description = "Move constraint down in constraint stack";
 	
 	/* callbacks */
-	ot->exec = constraint_move_down_exec;
 	ot->invoke = constraint_move_down_invoke;
+	ot->exec = constraint_move_down_exec;
 	ot->poll = edit_constraint_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
