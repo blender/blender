@@ -1047,25 +1047,6 @@ eV3DProjStatus ED_view3d_project_float_object(ARegion *ar, const float co[3], fl
 	return ED_view3d_project_float_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
 }
 
-
-void ED_view3d_project_float(ARegion *ar, const float co[3], float r_co[2])
-{
-	RegionView3D *rv3d = ar->regiondata;
-
-	float vec4[4];
-
-	copy_v3_v3(vec4, co);
-	vec4[3] = 1.0;
-	r_co[0] = IS_CLIPPED;
-
-	mul_m4_v4(rv3d->persmat, vec4);
-
-	if (vec4[3] > (float)BL_NEAR_CLIP) {
-		r_co[0] = (float)(ar->winx / 2.0f) + (ar->winx / 2.0f) * vec4[0] / vec4[3];
-		r_co[1] = (float)(ar->winy / 2.0f) + (ar->winy / 2.0f) * vec4[1] / vec4[3];
-	}
-}
-
 void ED_view3d_project_float_noclip(ARegion *ar, const float co[3], float r_co[2])
 {
 	RegionView3D *rv3d = ar->regiondata;

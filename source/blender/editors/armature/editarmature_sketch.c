@@ -910,9 +910,9 @@ static void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end,
 	for (i = start; i <= end; i++) {
 		float ray_start[3], ray_normal[3];
 		float delta = len_v3v3(stk->points[i].p, stk->points[i + 1].p);
-		float pval[2];
+		float pval[2] = {0, 0};
 
-		ED_view3d_project_float(ar, stk->points[i].p, pval);
+		ED_view3d_project_float_global(ar, stk->points[i].p, pval, V3D_PROJ_TEST_NOP);
 		ED_view3d_win_to_ray(ar, v3d, pval, ray_start, ray_normal);
 
 		mul_v3_fl(ray_normal, distance * progress / length);
@@ -1462,8 +1462,8 @@ static int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gestu
 		float s_p2[3] = {0, 0, 0};
 		int g_i;
 
-		ED_view3d_project_float(ar, gesture->points[s_i].p, s_p1);
-		ED_view3d_project_float(ar, gesture->points[s_i + 1].p, s_p2);
+		ED_view3d_project_float_global(ar, gesture->points[s_i].p, s_p1, V3D_PROJ_TEST_NOP);
+		ED_view3d_project_float_global(ar, gesture->points[s_i + 1].p, s_p2, V3D_PROJ_TEST_NOP);
 
 		/* start checking from second next, because two consecutive cannot intersect */
 		for (g_i = s_i + 2; g_i < gesture->nb_points - 1; g_i++) {
@@ -1472,8 +1472,8 @@ static int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gestu
 			float vi[3];
 			float lambda;
 
-			ED_view3d_project_float(ar, gesture->points[g_i].p, g_p1);
-			ED_view3d_project_float(ar, gesture->points[g_i + 1].p, g_p2);
+			ED_view3d_project_float_global(ar, gesture->points[g_i].p, g_p1, V3D_PROJ_TEST_NOP);
+			ED_view3d_project_float_global(ar, gesture->points[g_i + 1].p, g_p2, V3D_PROJ_TEST_NOP);
 
 			if (isect_line_line_strict_v3(s_p1, s_p2, g_p1, g_p2, vi, &lambda)) {
 				SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
@@ -1540,8 +1540,8 @@ static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, S
 			float s_p2[3] = {0, 0, 0};
 			int g_i;
 
-			ED_view3d_project_float(ar, stk->points[s_i].p, s_p1);
-			ED_view3d_project_float(ar, stk->points[s_i + 1].p, s_p2);
+			ED_view3d_project_float_global(ar, stk->points[s_i].p, s_p1, V3D_PROJ_TEST_NOP);
+			ED_view3d_project_float_global(ar, stk->points[s_i + 1].p, s_p2, V3D_PROJ_TEST_NOP);
 
 			for (g_i = 0; g_i < gesture->nb_points - 1; g_i++) {
 				float g_p1[3] = {0, 0, 0};
@@ -1549,8 +1549,8 @@ static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, S
 				float vi[3];
 				float lambda;
 
-				ED_view3d_project_float(ar, gesture->points[g_i].p, g_p1);
-				ED_view3d_project_float(ar, gesture->points[g_i + 1].p, g_p2);
+				ED_view3d_project_float_global(ar, gesture->points[g_i].p, g_p1, V3D_PROJ_TEST_NOP);
+				ED_view3d_project_float_global(ar, gesture->points[g_i + 1].p, g_p2, V3D_PROJ_TEST_NOP);
 
 				if (isect_line_line_strict_v3(s_p1, s_p2, g_p1, g_p2, vi, &lambda)) {
 					SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");

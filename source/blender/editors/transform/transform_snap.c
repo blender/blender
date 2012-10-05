@@ -317,18 +317,18 @@ void applyProject(TransInfo *t)
 				copy_v3_v3(iloc, td->ob->obmat[3]);
 			}
 			
-			ED_view3d_project_float(t->ar, iloc, mval);
-			
-			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect)) {
-//				if (t->flag & (T_EDIT|T_POSE)) {
-//					mul_m4_v3(imat, loc);
-//				}
-//				
-				sub_v3_v3v3(tvec, loc, iloc);
-				
-				mul_m3_v3(td->smtx, tvec);
-				
-				add_v3_v3(td->loc, tvec);
+			if (ED_view3d_project_float_global(t->ar, iloc, mval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+				if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect)) {
+//					if (t->flag & (T_EDIT|T_POSE)) {
+//						mul_m4_v3(imat, loc);
+//					}
+
+					sub_v3_v3v3(tvec, loc, iloc);
+
+					mul_m3_v3(td->smtx, tvec);
+
+					add_v3_v3(td->loc, tvec);
+				}
 			}
 			
 			//XXX constraintTransLim(t, td);
