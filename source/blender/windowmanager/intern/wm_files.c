@@ -56,6 +56,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
+#include "BLI_threads.h"
 #include "BLI_callbacks.h"
 
 #include "BLF_translation.h"
@@ -794,7 +795,7 @@ int WM_file_write(bContext *C, const char *target, int fileflags, ReportList *re
 
 	/* blend file thumbnail */
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
-	if (U.flag & USER_SAVE_PREVIEWS) {
+	if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
 		ibuf_thumb = blend_file_thumb(CTX_data_scene(C), CTX_wm_screen(C), &thumb);
 	}
 
