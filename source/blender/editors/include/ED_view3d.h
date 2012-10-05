@@ -172,6 +172,7 @@ void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData,
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 void armature_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1), void *userData);
+void pose_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct bPoseChannel *pchan, int x0, int y0, int x1, int y1), void *userData);
 
 
 void ED_view3d_clipping_calc(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, const struct rcti *rect);

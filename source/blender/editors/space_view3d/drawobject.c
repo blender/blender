@@ -2265,6 +2265,53 @@ void armature_foreachScreenBone(
 	}
 }
 
+/* ED_view3d_init_mats_rv3d must be called first */
+/* almost _exact_ copy of #armature_foreachScreenBone */
+void pose_foreachScreenBone(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct bPoseChannel *pchan, int x0, int y0, int x1, int y1),
+        void *userData)
+{
+	bArmature *arm = vc->obact->data;
+	bPose *pose = vc->obact->pose;
+	bPoseChannel *pchan;
+
+	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+		if (PBONE_VISIBLE(arm, pchan->bone)) {
+			int screen_co_a[2], screen_co_b[2];
+			int points_proj_tot = 0;
+
+			/* project head location to screenspace */
+			if (ED_view3d_project_int_object(vc->ar, pchan->pose_head, screen_co_a,
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			{
+				points_proj_tot++;
+			}
+			else {
+				screen_co_a[0] = IS_CLIPPED;  /* weak */
+				/* screen_co_a[1]: intentionally dont set this so we get errors on misuse */
+			}
+
+			/* project tail location to screenspace */
+			if (ED_view3d_project_int_object(vc->ar, pchan->pose_tail, screen_co_b,
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			{
+				points_proj_tot++;
+			}
+			else {
+				screen_co_b[0] = IS_CLIPPED;  /* weak */
+				/* screen_co_b[1]: intentionally dont set this so we get errors on misuse */
+			}
+
+			if (points_proj_tot) {  /* at least one point's projection worked */
+				func(userData, pchan,
+				     screen_co_a[0], screen_co_a[1],
+				     screen_co_b[0], screen_co_b[1]);
+			}
+		}
+	}
+}
+
 /* ************** DRAW MESH ****************** */
 
 /* First section is all the "simple" draw routines, 

@@ -343,62 +343,70 @@ static int edge_inside_rect(const rcti *rect, int x1, int y1, int x2, int y2)
 	return 1;
 }
 
-/* warning; lasso select with backbuffer-check draws in backbuf with persp(PERSP_WIN) 
- * and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
- */
+static void do_lasso_select_pose__doSelectBone(void *userData, struct bPoseChannel *pchan, int x0, int y0, int x1, int y1)
+{
+	LassoSelectUserData *data = userData;
+	bArmature *arm = data->vc->obact->data;
+
+	if (PBONE_SELECTABLE(arm, pchan->bone)) {
+		int is_point_done = FALSE;
+		int points_proj_tot = 0;
+
+		/* project head location to screenspace */
+		if (x0 != IS_CLIPPED) {
+			points_proj_tot++;
+			if (BLI_rcti_isect_pt(data->rect, x0, y0) &&
+			    BLI_lasso_is_point_inside(data->mcords, data->moves, x0, y0, INT_MAX))
+			{
+				is_point_done = TRUE;
+			}
+		}
+
+		/* project tail location to screenspace */
+		if (x1 != IS_CLIPPED) {
+			points_proj_tot++;
+			if (BLI_rcti_isect_pt(data->rect, x1, y1) &&
+			    BLI_lasso_is_point_inside(data->mcords, data->moves, x1, y1, INT_MAX))
+			{
+				is_point_done = TRUE;
+			}
+		}
+
+		/* if one of points selected, we skip the bone itself */
+		if ((is_point_done == TRUE) ||
+		    ((is_point_done == FALSE) && (points_proj_tot == 2) &&
+		     BLI_lasso_is_edge_inside(data->mcords, data->moves, x0, y0, x1, y1, INT_MAX)))
+		{
+			if (data->select) pchan->bone->flag |=  BONE_SELECTED;
+			else              pchan->bone->flag &= ~BONE_SELECTED;
+			data->is_change = TRUE;
+		}
+		data->is_change |= is_point_done;
+	}
+}
 static void do_lasso_select_pose(ViewContext *vc, Object *ob, const int mcords[][2], short moves, short select)
 {
-	bPoseChannel *pchan;
-	bArmature *arm = ob->data;
+	LassoSelectUserData data;
+	rcti rect;
 	
 	if ((ob->type != OB_ARMATURE) || (ob->pose == NULL)) {
 		return;
 	}
 
+	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
+
 	ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d);
 
-	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-		if (PBONE_SELECTABLE(arm, pchan->bone)) {
-			int screen_co_a[2], screen_co_b[2];
-			int is_point_done = FALSE;
-			int points_proj_tot = 0;
+	BLI_lasso_boundbox(&rect, mcords, moves);
 
-			/* project head location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, pchan->pose_head, screen_co_a,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-				if (BLI_lasso_is_point_inside(mcords, moves, screen_co_a[0], screen_co_a[1], INT_MAX)) {
-					is_point_done = TRUE;
-				}
-			}
+	pose_foreachScreenBone(vc, do_lasso_select_pose__doSelectBone, &data);
 
-			/* project tail location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, pchan->pose_tail, screen_co_b,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-				if (BLI_lasso_is_point_inside(mcords, moves, screen_co_b[0], screen_co_b[1], INT_MAX)) {
-					is_point_done = TRUE;
-				}
-			}
-
-			/* if one of points selected, we skip the bone itself */
-			if ((is_point_done == TRUE) ||
-			    ((is_point_done == FALSE) && (points_proj_tot == 2) &&
-			     BLI_lasso_is_edge_inside(mcords, moves,
-			                              screen_co_a[0], screen_co_a[1],
-			                              screen_co_b[0], screen_co_b[1], INT_MAX)))
-			{
-				if (select) pchan->bone->flag |=  BONE_SELECTED;
-				else        pchan->bone->flag &= ~BONE_SELECTED;
-			}
+	if (data.is_change) {
+		bArmature *arm = ob->data;
+		if (arm->flag & ARM_HAS_VIZ_DEPS) {
+			/* mask modifier ('armature' mode), etc. */
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
-	}
-	
-	if (arm->flag & ARM_HAS_VIZ_DEPS) {
-		/* mask modifier ('armature' mode), etc. */
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 }
 
@@ -2427,66 +2435,68 @@ static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, int
 	}
 	return 0;
 }
+static void do_circle_select_pose__doSelectBone(void *userData, struct bPoseChannel *pchan, int x0, int y0, int x1, int y1)
+{
+	CircleSelectUserData *data = userData;
+	bArmature *arm = data->vc->obact->data;
+
+	if (PBONE_SELECTABLE(arm, pchan->bone)) {
+		int is_point_done = FALSE;
+		int points_proj_tot = 0;
+
+		/* project head location to screenspace */
+		if (x0 != IS_CLIPPED) {
+			points_proj_tot++;
+			if (pchan_circle_doSelectJoint(data, pchan, x0, y0)) {
+				is_point_done = TRUE;
+			}
+		}
+
+		/* project tail location to screenspace */
+		if (x1 != IS_CLIPPED) {
+			points_proj_tot++;
+			if (pchan_circle_doSelectJoint(data, pchan, x1, y1)) {
+				is_point_done = TRUE;
+			}
+		}
+
+		/* check if the head and/or tail is in the circle
+		 * - the call to check also does the selection already
+		 */
+
+		/* only if the endpoints didn't get selected, deal with the middle of the bone too
+		 * It works nicer to only do this if the head or tail are not in the circle,
+		 * otherwise there is no way to circle select joints alone */
+		if ((is_point_done == FALSE) && (points_proj_tot == 2) &&
+		    edge_inside_circle(data->mval[0], data->mval[1], data->radius, x0, y0, x1, y1))
+		{
+			if (data->select) pchan->bone->flag |= BONE_SELECTED;
+			else              pchan->bone->flag &= ~BONE_SELECTED;
+			data->is_change = TRUE;
+		}
+
+		data->is_change |= is_point_done;
+	}
+}
 static void pose_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
 {
 	CircleSelectUserData data;
-	bArmature *arm = vc->obact->data;
-	bPose *pose = vc->obact->pose;
-	bPoseChannel *pchan;
 	
 	view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
 	ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d); /* for foreach's screen/vert projection */
 	
-	/* check each PoseChannel... */
-	/* TODO: could be optimized at some point */
-	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-		if (PBONE_SELECTABLE(arm, pchan->bone)) {
-			int screen_co_a[2], screen_co_b[2];
-			int is_point_done = FALSE;
-			int points_proj_tot = 0;
-
-			/* project head location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, pchan->pose_head, screen_co_a,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-				if (pchan_circle_doSelectJoint(&data, pchan, screen_co_a[0], screen_co_a[1])) {
-					is_point_done = TRUE;
-				}
-			}
-
-			/* project tail location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, pchan->pose_tail, screen_co_b,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-				if (pchan_circle_doSelectJoint(&data, pchan, screen_co_b[0], screen_co_b[1])) {
-					is_point_done = TRUE;
-				}
-			}
-
-			/* only if the endpoints didn't get selected, deal with the middle of the bone too
-			 * It works nicer to only do this if the head or tail are not in the circle,
-			 * otherwise there is no way to circle select joints alone */
-			if ((is_point_done == FALSE) && (points_proj_tot == 2) &&
-			    edge_inside_circle(mval[0], mval[1], rad,
-			                       screen_co_a[0], screen_co_a[1],
-			                       screen_co_b[0], screen_co_b[1]))
-			{
-				if (select)
-					pchan->bone->flag |= BONE_SELECTED;
-				else
-					pchan->bone->flag &= ~BONE_SELECTED;
-				data.is_change = TRUE;
-			}
-
-			data.is_change |= is_point_done;
-		}
-	}
+	pose_foreachScreenBone(vc, do_circle_select_pose__doSelectBone, &data);
 
 	if (data.is_change) {
+		bArmature *arm = vc->obact->data;
+
 		WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, vc->obact);
+
+		if (arm->flag & ARM_HAS_VIZ_DEPS) {
+			/* mask modifier ('armature' mode), etc. */
+			DAG_id_tag_update(&vc->obact->id, OB_RECALC_DATA);
+		}
 	}
 }
 
