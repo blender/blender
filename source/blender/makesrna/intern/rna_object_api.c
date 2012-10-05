@@ -177,6 +177,8 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 				return NULL;  /* only do basis metaball */
 			
 			tmpmesh = BKE_mesh_add("Mesh");
+			/* BKE_mesh_add gives us a user count we don't need */
+			tmpmesh->id.us--;
 
 			if (render) {
 				ListBase disp = {NULL, NULL};
@@ -186,6 +188,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			}
 			else
 				BKE_mesh_from_metaball(&ob->disp, tmpmesh);
+
 			break;
 
 		}
@@ -213,6 +216,9 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 				DM_to_mesh(dm, tmpmesh, ob);
 				dm->release(dm);
 			}
+
+			/* BKE_mesh_add/copy gives us a user count we don't need */
+			tmpmesh->id.us--;
 
 			break;
 		default:
@@ -283,9 +289,6 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 	/* cycles and exporters rely on this still */
 	BKE_mesh_tessface_ensure(tmpmesh);
 
-	/* we don't assign it to anything */
-	tmpmesh->id.us--;
-	
 	/* make sure materials get updated in objects */
 	test_object_materials(&tmpmesh->id);
 
