@@ -212,6 +212,7 @@ class ConstraintButtonsPanel():
 
     def FOLLOW_PATH(self, context, layout, con):
         self.target_template(layout, con)
+        layout.operator("constraint.followpath_path_animate", text="Animate Path", icon='ANIM_DATA')
 
         split = layout.split()
 

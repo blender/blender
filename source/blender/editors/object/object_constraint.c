@@ -40,6 +40,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
@@ -51,6 +52,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -71,6 +73,7 @@
 
 #include "ED_object.h"
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"
@@ -875,6 +878,130 @@ void CONSTRAINT_OT_childof_clear_inverse(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	edit_constraint_properties(ot);
+}
+
+/* --------------- Follow Path Constraint ------------------ */
+
+static int followpath_path_animate_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_active_context(C);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_FOLLOWPATH);
+	bFollowPathConstraint *data = (con) ? (bFollowPathConstraint *)con->data : NULL;
+	
+	bAction *act = NULL;
+	FCurve *fcu = NULL;
+	int sfra = RNA_int_get(op->ptr, "frame_start");
+	int len  = RNA_int_get(op->ptr, "length");
+	float standardRange = 1.0;
+	
+	/* nearly impossible sanity check */
+	if (data == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Follow Path constraint not found");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* add F-Curve as appropriate */
+	if (data->tar) {
+		Curve *cu = (Curve *)data->tar->data;
+		
+		if ( ELEM(NULL, cu->adt, cu->adt->action) ||
+			(list_find_fcurve(&cu->adt->action->curves, "eval_time", 0) == NULL))
+		{
+			/* create F-Curve for path animation */
+			act = verify_adt_action(&cu->id, 1);
+			fcu = verify_fcurve(act, NULL, NULL, "eval_time", 0, 1);
+			
+			/* standard vertical range - 1:1 = 100 frames */
+			standardRange = 100.0f;
+		}
+		else {
+			/* path anim exists already - abort for now as this may well be what was intended */
+			BKE_report(op->reports, RPT_WARNING, "Path is already animated");
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		/* animate constraint's "fixed offset" */
+		PointerRNA ptr;
+		PropertyRNA *prop;
+		char *path;
+		
+		/* get RNA pointer to constraint's "offset_factor" property - to build RNA path */
+		RNA_pointer_create(&ob->id, &RNA_FollowPathConstraint, con, &ptr);
+		prop = RNA_struct_find_property(&ptr, "offset_factor");
+		
+		path = RNA_path_from_ID_to_property(&ptr, prop);
+		
+		/* create F-Curve for constraint */
+		act = verify_adt_action(&ob->id, 1);
+		fcu = verify_fcurve(act, NULL, NULL, path, 0, 1);
+		
+		/* standard vertical range - 0.0 to 1.0 */
+		standardRange = 1.0f;
+		
+		/* enable "Use Fixed Position" so that animating this has effect */
+		data->followflag |= FOLLOWPATH_STATIC;
+		
+		/* path needs to be freed */
+		if (path) 
+			MEM_freeN(path);
+	}
+	
+	/* setup dummy 'generator' modifier here to get 1-1 correspondence still working
+	 * and define basic slope of this curve based on the properties
+	 */
+	if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first) {
+		FModifier *fcm = add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR);
+		FMod_Generator *gen = fcm->data;
+		
+		/* Assume that we have the following equation:
+		 *     y = Ax + B
+		 *         1    0       <-- coefficients array indices
+		 */
+		float A = standardRange / (float)(len);
+		float B = (float)(-sfra) * A;
+		
+		gen->coefficients[1] = A;
+		gen->coefficients[0] = B;
+	}
+	
+	/* updates... */
+	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
+	return OPERATOR_FINISHED;
+}
+
+static int followpath_path_animate_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+{
+	/* hook up invoke properties for figuring out which constraint we're dealing with */
+	if (edit_constraint_invoke_properties(C, op)) {
+		return followpath_path_animate_exec(C, op);
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void CONSTRAINT_OT_followpath_path_animate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Auto Animate Path";
+	ot->idname = "CONSTRAINT_OT_followpath_path_animate";
+	ot->description = "Add default animation for path used by constraint if it isn't animated already";
+	
+	/* callbacks */
+	ot->invoke = followpath_path_animate_invoke;
+	ot->exec = followpath_path_animate_exec;
+	ot->poll = edit_constraint_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* props */
+	edit_constraint_properties(ot);
+	RNA_def_int(ot->srna, "frame_start", 1, MINAFRAME, MAXFRAME, "Start Frame", 
+	            "First frame of path animation", MINAFRAME, MAXFRAME);
+	RNA_def_int(ot->srna, "length", 100, 0, MAXFRAME, "Length", 
+	            "Number of frames that path animation should take", 0, MAXFRAME);
 }
 
 /* ------------- Object Solver Constraint ------------------ */
