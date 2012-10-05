@@ -150,7 +150,6 @@ eV3DProjStatus ED_view3d_project_float_ex(struct ARegion *ar, float perspmat[4][
 eV3DProjStatus ED_view3d_project_float_global(struct ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag);
 eV3DProjStatus ED_view3d_project_float_object(struct ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag);
 
-void ED_view3d_project_float_noclip(struct ARegion *ar, const float co[3], float r_co[2]);
 void ED_view3d_project_float_v2_m4(const struct ARegion *a, const float co[3], float r_co[2], float mat[4][4]);
 void ED_view3d_project_float_v3_m4(struct ARegion *a, const float co[3], float r_co[3], float mat[4][4]);
 

@@ -1050,21 +1050,27 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 		/* sets as active, useful for other tools */
 		if (select) {
 			if (em->selectmode & SCE_SELECT_VERTEX) {
-				/* Find nearest vert from mouse. */
+				/* Find nearest vert from mouse
+				 * (initialize to large values incase only one vertex can be projected) */
 				float v1_co[2], v2_co[2];
+				float length_1 = FLT_MAX;
+				float length_2 = FLT_MAX;
 
 				/* We can't be sure this has already been set... */
 				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
-				ED_view3d_project_float_noclip(vc.ar, eed->v1->co, v1_co);
-				ED_view3d_project_float_noclip(vc.ar, eed->v2->co, v2_co);
+
+				if (ED_view3d_project_float_object(vc.ar, eed->v1->co, v1_co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+					length_1 = len_squared_v2v2(mvalf, v1_co);
+				}
+
+				if (ED_view3d_project_float_object(vc.ar, eed->v2->co, v2_co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+					length_2 = len_squared_v2v2(mvalf, v2_co);
+				}
 #if 0
 				printf("mouse to v1: %f\nmouse to v2: %f\n", len_squared_v2v2(mvalf, v1_co),
 				       len_squared_v2v2(mvalf, v2_co));
 #endif
-				if (len_squared_v2v2(mvalf, v1_co) < len_squared_v2v2(mvalf, v2_co))
-					BM_select_history_store(em->bm, eed->v1);
-				else
-					BM_select_history_store(em->bm, eed->v2);
+				BM_select_history_store(em->bm, (length_1 < length_2) ? eed->v1 : eed->v2);
 			}
 			else if (em->selectmode & SCE_SELECT_EDGE) {
 				BM_select_history_store(em->bm, eed);
@@ -1084,12 +1090,13 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 						float co[2], tdist;
 
 						BM_face_calc_center_mean(f, cent);
-						ED_view3d_project_float_noclip(vc.ar, cent, co);
-						tdist = len_squared_v2v2(mvalf, co);
-						if (tdist < best_dist) {
-/*							printf("Best face: %p (%f)\n", f, tdist);*/
-							best_dist = tdist;
-							efa = f;
+						if (ED_view3d_project_float_object(vc.ar, cent, co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+							tdist = len_squared_v2v2(mvalf, co);
+							if (tdist < best_dist) {
+/*								printf("Best face: %p (%f)\n", f, tdist);*/
+								best_dist = tdist;
+								efa = f;
+							}
 						}
 					}
 				}
