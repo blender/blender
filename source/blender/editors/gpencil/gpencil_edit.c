@@ -224,7 +224,7 @@ static int gp_data_add_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX need a nicer one that will work
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -272,7 +272,7 @@ static int gp_data_unlink_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX need a nicer one that will work
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL); 
 	
 	return OPERATOR_FINISHED;
 }
@@ -306,10 +306,10 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
 		*gpd_ptr = gpencil_data_addnew("GPencil");
 		
 	/* add new layer now */
-	gpencil_layer_addnew(*gpd_ptr);
+	gpencil_layer_addnew(*gpd_ptr, "GP_Layer", 1);
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX please work!
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -360,7 +360,7 @@ static int gp_actframe_delete_exec(bContext *C, wmOperator *op)
 	gpencil_layer_delframe(gpl, gpf);
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX please work!
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }

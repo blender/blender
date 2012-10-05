@@ -1143,7 +1143,7 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 	/* get active layer (or add a new one if non-existent) */
 	p->gpl = gpencil_layer_getactive(p->gpd);
 	if (p->gpl == NULL) {
-		p->gpl = gpencil_layer_addnew(p->gpd);
+		p->gpl = gpencil_layer_addnew(p->gpd, "GP_Layer", 1);
 		
 		if (p->custom_color[3])
 			copy_v3_v3(p->gpl->color, p->custom_color);
@@ -1616,7 +1616,7 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
 	gpencil_draw_exit(C, op);
 	
 	/* refreshes */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX need a nicer one that will work
+	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1677,7 +1677,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		//printf("\tGP - hotkey invoked... waiting for click-drag\n");
 	}
 	
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL, NULL);
+	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 	/* add a modal handler for this operator, so that we can then draw continuous strokes */
 	WM_event_add_modal_handler(C, op);
 	return OPERATOR_RUNNING_MODAL;
@@ -1790,7 +1790,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 				estate = OPERATOR_RUNNING_MODAL;
 				
 				/* stroke could be smoothed, send notifier to refresh screen */
-				WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL);
+				WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 			}
 			else {
 				//printf("\t\tGP - end of stroke + op\n");
@@ -1880,7 +1880,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case OPERATOR_FINISHED:
 			/* one last flush before we're done */
 			gpencil_draw_exit(C, op);
-			WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX need a nicer one that will work
+			WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 			break;
 			
 		case OPERATOR_CANCELLED:

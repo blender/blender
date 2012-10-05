@@ -163,7 +163,7 @@ bGPDframe *gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 }
 
 /* add a new gp-layer and make it the active layer */
-bGPDlayer *gpencil_layer_addnew(bGPdata *gpd)
+bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, int setactive)
 {
 	bGPDlayer *gpl;
 	
@@ -182,11 +182,12 @@ bGPDlayer *gpencil_layer_addnew(bGPdata *gpd)
 	gpl->thickness = 3;
 	
 	/* auto-name */
-	strcpy(gpl->info, "GP_Layer");
+	strcpy(gpl->info, name);
 	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 	
 	/* make this one the active one */
-	gpencil_layer_setactive(gpd, gpl);
+	if (setactive)
+	    gpencil_layer_setactive(gpd, gpl);
 	
 	/* return layer */
 	return gpl;
@@ -509,10 +510,8 @@ void gpencil_layer_setactive(bGPdata *gpd, bGPDlayer *active)
 }
 
 /* delete the active gp-layer */
-void gpencil_layer_delactive(bGPdata *gpd)
+void gpencil_layer_delete(bGPdata *gpd, bGPDlayer *gpl)
 {
-	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
-	
 	/* error checking */
 	if (ELEM(NULL, gpd, gpl)) 
 		return;

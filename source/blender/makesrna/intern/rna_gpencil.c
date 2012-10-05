@@ -40,6 +40,15 @@
 
 #ifdef RNA_RUNTIME
 
+#include "WM_api.h"
+
+#include "BKE_gpencil.h"
+
+static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+}
+
 static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr)
 {
 	bGPDlayer *gpl = (bGPDlayer *)ptr->data;
@@ -53,6 +62,7 @@ static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr)
 
 static PointerRNA rna_GPencil_active_layer_get(PointerRNA *ptr)
 {
+
 	bGPdata *gpd = ptr->id.data;
 
 	if (GS(gpd->id.name) == ID_GD) { /* why would this ever be not GD */
@@ -101,6 +111,34 @@ static void rna_GPencilLayer_info_set(PointerRNA *ptr, const char *value)
 	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 }
 
+static bGPDlayer *rna_GPencil_layer_new(bGPdata *gpd, const char *name, int setactive)
+{
+	bGPDlayer *gl = gpencil_layer_addnew(gpd, name, setactive);
+
+	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+
+	return gl;
+}
+
+static void rna_GPencil_layer_remove(bGPdata *gpd, ReportList *reports, bGPDlayer *layer)
+{
+	bGPDlayer *gl;
+
+	for (gl = gpd->layers.first; gl; gl = gl->next) {
+		if (gl == layer)
+			break;
+	}
+
+	if (gl == NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Layer not found in grease pencil data");
+		return;
+	}
+	
+	gpencil_layer_delete(gpd, layer);
+
+	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+}
+
 #else
 
 static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
@@ -116,13 +154,13 @@ static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Coordinates", "");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 	
 	prop = RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "pressure");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Pressure", "Pressure of tablet at point when drawing it");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 }
 
 static void rna_def_gpencil_stroke(BlenderRNA *brna)
@@ -189,7 +227,8 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Info", "Layer name");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_GPencilLayer_info_set");
 	RNA_def_struct_name_property(srna, prop);
-	
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+
 	/* Frames */
 	prop = RNA_def_property(srna, "frames", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "frames", NULL);
@@ -201,32 +240,33 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "actframe");
 	RNA_def_property_ui_text(prop, "Active Frame", "Frame currently being displayed for this layer");
 	RNA_def_property_editable_func(prop, "rna_GPencilLayer_active_frame_editable");
-	
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+
 	/* Drawing Color */
 	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Color", "Color for all strokes in this layer");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
 	prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "color[3]");
 	RNA_def_property_range(prop, 0.3, 1.0f);
 	RNA_def_property_ui_text(prop, "Opacity", "Layer Opacity");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
 	/* Line Thickness */
 	prop = RNA_def_property(srna, "line_width", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "thickness");
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of strokes (in pixels)");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
 	/* Onion-Skinning */
 	prop = RNA_def_property(srna, "use_onion_skinning", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_ONIONSKIN);
 	RNA_def_property_ui_text(prop, "Onion Skinning", "Ghost frames on either side of frame");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
 	prop = RNA_def_property(srna, "ghost_range_max", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gstep");
@@ -234,23 +274,23 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Max Ghost Range",
 	                         "Maximum number of frames on either side of the active frame to show "
 	                         "(0 = show the 'first' available sketch on either side)");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
 	/* Flags */
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_HIDE);
 	RNA_def_property_ui_text(prop, "Hide", "Set layer Visibility");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
 	prop = RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_LOCKED);
 	RNA_def_property_ui_text(prop, "Locked", "Protect layer from further editing and/or frame changes");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 	
 	prop = RNA_def_property(srna, "lock_frame", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_FRAMELOCK);
 	RNA_def_property_ui_text(prop, "Frame Locked", "Lock current frame displayed by layer");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* expose as layers.active */
 #if 0
@@ -258,25 +298,25 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_ACTIVE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_GPencilLayer_active_set");
 	RNA_def_property_ui_text(prop, "Active", "Set active layer for editing");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 #endif
 
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_SELECT);
 	RNA_def_property_ui_text(prop, "Select", "Layer is selected for editing in the DopeSheet");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 	
 	/* XXX keep this option? */
 	prop = RNA_def_property(srna, "show_points", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_DRAWDEBUG);
 	RNA_def_property_ui_text(prop, "Show Points", "Draw the points which make up the strokes (for debugging purposes)");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update_runtime(prop, "rna_GPencil_update");
 
 	/* X-Ray */
 	prop = RNA_def_property(srna, "show_x_ray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_LAYER_NO_XRAY);
 	RNA_def_property_ui_text(prop, "X Ray", "Make the layer draw in front of objects");
-	RNA_def_property_update(prop, NC_SCREEN | ND_GPENCIL, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 }
 
 static void rna_def_gpencil_layers(BlenderRNA *brna, PropertyRNA *cprop)
@@ -284,28 +324,27 @@ static void rna_def_gpencil_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-/*	FunctionRNA *func; */
-/*	PropertyRNA *parm; */
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "GreasePencilLayers");
 	srna = RNA_def_struct(brna, "GreasePencilLayers", NULL);
 	RNA_def_struct_sdna(srna, "bGPdata");
 	RNA_def_struct_ui_text(srna, "Grease Pencil Layers", "Collection of grease pencil layers");
 
-#if 0
 	func = RNA_def_function(srna, "new", "rna_GPencil_layer_new");
-	RNA_def_function_ui_description(func, "Add a new spline to the curve");
-	parm = RNA_def_enum(func, "type", curve_type_items, CU_POLY, "", "type for the new spline");
+	RNA_def_function_ui_description(func, "Add a new grease pencil layer");
+	parm = 	RNA_def_string(func, "name", "GPencilLayer", MAX_NAME, "Name", "Name of the layer");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_pointer(func, "spline", "Spline", "", "The newly created spline");
+	RNA_def_boolean(func, "set_active", 0, "Set Active", "Set the newly created layer to the active layer");
+	parm = RNA_def_pointer(func, "layer", "GPencilLayer", "", "The newly created layer");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_GPencil_layer_remove");
-	RNA_def_function_ui_description(func, "Remove a spline from a curve");
+	RNA_def_function_ui_description(func, "Remove a grease pencil layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove");
+	parm = RNA_def_pointer(func, "layer", "GPencilLayer", "", "The layer to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
-#endif
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
@@ -344,11 +383,12 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, draw_mode_items);
 	RNA_def_property_ui_text(prop, "Draw Mode", "");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	prop = RNA_def_property(srna, "use_stroke_endpoints", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_DEPTH_STROKE_ENDPOINTS);
 	RNA_def_property_ui_text(prop, "Only Endpoints", "Only use the first and last parts of the stroke for snapping");
-
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 }
 
