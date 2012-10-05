@@ -846,20 +846,22 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float vert_nor[3],
                                  const float mval[2], const float brush_size_pressure)
 {
-	Brush *brush = paint_brush(&vp->paint);
-	float dist_squared;
-	float vertco[2], delta[2];
+	float vertco[2];
 
-	ED_view3d_project_float_noclip(vc->ar, vert_nor, vertco);
-	sub_v2_v2v2(delta, mval, vertco);
-	dist_squared = dot_v2v2(delta, delta); /* len squared */
-	if (dist_squared > brush_size_pressure * brush_size_pressure) {
-		return 0.0f;
+	if (ED_view3d_project_float_global(vc->ar, vert_nor, vertco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+		float delta[2];
+		float dist_squared;
+
+		sub_v2_v2v2(delta, mval, vertco);
+		dist_squared = dot_v2v2(delta, delta); /* len squared */
+		if (dist_squared <= brush_size_pressure * brush_size_pressure) {
+			Brush *brush = paint_brush(&vp->paint);
+			const float dist = sqrtf(dist_squared);
+			return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
+		}
 	}
-	else {
-		const float dist = sqrtf(dist_squared);
-		return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
-	}
+
+	return 0.0f;
 }
 
 static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,

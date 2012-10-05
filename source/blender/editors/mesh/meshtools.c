@@ -1237,11 +1237,12 @@ int ED_mesh_pick_face_vert(bContext *C, Mesh *me, Object *ob, const int mval[2],
 				const int v_idx = me->mloop[mp->loopstart + fidx].v;
 				dm->getVertCo(dm, v_idx, co);
 				mul_m4_v3(ob->obmat, co);
-				ED_view3d_project_float_noclip(ar, co, sco);
-				len = len_squared_v2v2(mval_f, sco);
-				if (len < len_best) {
-					len_best = len;
-					v_idx_best = v_idx;
+				if (ED_view3d_project_float_global(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+					len = len_squared_v2v2(mval_f, sco);
+					if (len < len_best) {
+						len_best = len;
+						v_idx_best = v_idx;
+					}
 				}
 			} while (fidx--);
 		}

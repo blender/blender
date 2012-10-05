@@ -153,19 +153,22 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 }
 
 
-void EMBM_project_snap_verts(bContext *C, ARegion *ar, Object *obedit, BMEditMesh *em)
+void EMBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
 {
+	Object *obedit = em->ob;
 	BMIter iter;
 	BMVert *eve;
 
+	ED_view3d_init_mats_rv3d(obedit, ar->regiondata);
+
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-			float mval[2], vec[3], no_dummy[3];
+			float mval[2], co_proj[3], no_dummy[3];
 			int dist_dummy;
-			mul_v3_m4v3(vec, obedit->obmat, eve->co);
-			ED_view3d_project_float_noclip(ar, vec, mval);
-			if (snapObjectsContext(C, mval, &dist_dummy, vec, no_dummy, SNAP_NOT_OBEDIT)) {
-				mul_v3_m4v3(eve->co, obedit->imat, vec);
+			if (ED_view3d_project_float_object(ar, eve->co, mval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+				if (snapObjectsContext(C, mval, &dist_dummy, co_proj, no_dummy, SNAP_NOT_OBEDIT)) {
+					mul_v3_m4v3(eve->co, obedit->imat, co_proj);
+				}
 			}
 		}
 	}
@@ -731,7 +734,10 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	short use_proj;
 	
 	em_setup_viewcontext(C, &vc);
-	
+
+	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
+
+
 	use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
 	            (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE));
 
@@ -760,26 +766,26 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		BM_ITER_MESH (eed, &iter, vc.em->bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				float co1[3], co2[3];
-				mul_v3_m4v3(co1, vc.obedit->obmat, eed->v1->co);
-				mul_v3_m4v3(co2, vc.obedit->obmat, eed->v2->co);
-				ED_view3d_project_float_noclip(vc.ar, co1, co1);
-				ED_view3d_project_float_noclip(vc.ar, co2, co2);
 
-				/* 2D rotate by 90d while adding.
-				 *  (x, y) = (y, -x)
-				 *
-				 * accumulate the screenspace normal in 2D,
-				 * with screenspace edge length weighting the result. */
-				if (line_point_side_v2(co1, co2, mval_f) >= 0.0f) {
-					nor[0] +=  (co1[1] - co2[1]);
-					nor[1] += -(co1[0] - co2[0]);
-				}
-				else {
-					nor[0] +=  (co2[1] - co1[1]);
-					nor[1] += -(co2[0] - co1[0]);
+				if ((ED_view3d_project_float_object(vc.ar, eed->v1->co, co1, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) &&
+				    (ED_view3d_project_float_object(vc.ar, eed->v2->co, co2, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS))
+				{
+					/* 2D rotate by 90d while adding.
+					 *  (x, y) = (y, -x)
+					 *
+					 * accumulate the screenspace normal in 2D,
+					 * with screenspace edge length weighting the result. */
+					if (line_point_side_v2(co1, co2, mval_f) >= 0.0f) {
+						nor[0] +=  (co1[1] - co2[1]);
+						nor[1] += -(co1[0] - co2[0]);
+					}
+					else {
+						nor[0] +=  (co2[1] - co1[1]);
+						nor[1] += -(co2[0] - co1[0]);
+					}
+					done = TRUE;
 				}
 			}
-			done = TRUE;
 		}
 
 		if (done) {
@@ -836,7 +842,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 
 			/* also project the source, for retopo workflow */
 			if (use_proj)
-				EMBM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
+				EMBM_project_snap_verts(C, vc.ar, vc.em);
 		}
 
 		edbm_extrude_edge(vc.obedit, vc.em, BM_ELEM_SELECT, nor);
@@ -869,7 +875,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	}
 
 	if (use_proj)
-		EMBM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
+		EMBM_project_snap_verts(C, vc.ar, vc.em);
 
 	/* This normally happens when pushing undo but modal operators
 	 * like this one don't push undo data until after modal mode is

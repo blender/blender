@@ -351,7 +351,11 @@ void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
 		case SPACE_VIEW3D:
 		{
 			if (t->ar->regiontype == RGN_TYPE_WINDOW) {
-				ED_view3d_project_float_noclip(t->ar, vec, adr);
+				if (ED_view3d_project_float_global(t->ar, vec, adr, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS) {
+					/* XXX, 2.64 and prior did this, weak! */
+					adr[0] = t->ar->winx / 2.0f;
+					adr[1] = t->ar->winy / 2.0f;
+				}
 				return;
 			}
 			break;
@@ -4793,12 +4797,12 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, SlideData *sld, const flo
 			sv->edge_len = len_v3v3(dw_p, up_p);
 
 			mul_v3_m4v3(v_proj, t->obedit->obmat, sv->v->co);
-			ED_view3d_project_float_noclip(t->ar, v_proj, v_proj);
-
-			dist = len_squared_v2v2(mval, v_proj);
-			if (dist < min_dist) {
-				min_dist = dist;
-				sld->curr_sv_index = i;
+			if (ED_view3d_project_float_global(t->ar, v_proj, v_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+				dist = len_squared_v2v2(mval, v_proj);
+				if (dist < min_dist) {
+					min_dist = dist;
+					sld->curr_sv_index = i;
+				}
 			}
 		}
 	}
