@@ -333,7 +333,7 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, int mcords[][2], s
 	if ((ob->type != OB_ARMATURE) || (ob->pose == NULL)) return;
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-		if (PBONE_VISIBLE(arm, pchan->bone) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
+		if (PBONE_SELECTABLE(arm, pchan->bone)) {
 
 			/* XXX, todo, use ED_view3d_project_int_object */
 			sco1[0] = sco2[0] = IS_CLIPPED;
@@ -581,7 +581,7 @@ static void do_lasso_select_armature(ViewContext *vc, int mcords[][2], short mov
 	/* set editdata in vc */
 	
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+		if (EBONE_SELECTABLE(arm, ebone)) {
 
 			/* XXX, TODO, use ED_view3d_project_short_object here */
 			sco1[0] = sco2[0] = IS_CLIPPED;
@@ -2380,33 +2380,31 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 	/* check each PoseChannel... */
 	/* TODO: could be optimized at some point */
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-		short sco1[2], sco2[2], didpoint = 0;
-		float vec[3];
-		
-		/* skip invisible bones */
-		if (PBONE_VISIBLE(arm, pchan->bone) == 0)
-			continue;
+		if (PBONE_SELECTABLE(arm, pchan->bone)) {
+			short sco1[2], sco2[2], didpoint = 0;
+			float vec[3];
 
-		/* XXX, TODO, center check does not check for clipping! */
-		/* XXX, TODO, use ED_view3d_project_short_object here */
-		
-		/* project head location to screenspace */
-		mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_head);
-		ED_view3d_project_short_global(vc->ar, vec, sco1, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
-		
-		/* project tail location to screenspace */
-		mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_tail);
-		ED_view3d_project_short_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
-		
-		/* check if the head and/or tail is in the circle 
-		 *	- the call to check also does the selection already
-		 */
-		if (pchan_circle_doSelectJoint(&data, pchan, sco1[0], sco1[1]))
-			didpoint = 1;
-		if (pchan_circle_doSelectJoint(&data, pchan, sco2[0], sco2[1]))
-			didpoint = 1;
-		
-		change |= didpoint;
+			/* XXX, TODO, center check does not check for clipping! */
+			/* XXX, TODO, use ED_view3d_project_short_object here */
+
+			/* project head location to screenspace */
+			mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_head);
+			ED_view3d_project_short_global(vc->ar, vec, sco1, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
+
+			/* project tail location to screenspace */
+			mul_v3_m4v3(vec, vc->obact->obmat, pchan->pose_tail);
+			ED_view3d_project_short_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
+
+			/* check if the head and/or tail is in the circle
+			 *	- the call to check also does the selection already
+			 */
+			if (pchan_circle_doSelectJoint(&data, pchan, sco1[0], sco1[1]))
+				didpoint = 1;
+			if (pchan_circle_doSelectJoint(&data, pchan, sco2[0], sco2[1]))
+				didpoint = 1;
+
+			change |= didpoint;
+		}
 	}
 
 	if (change) {
@@ -2455,39 +2453,41 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 	/* check each EditBone... */
 	/* TODO: could be optimized at some point */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		short sco1[2], sco2[2], didpoint = 0;
-		float vec[3];
-		
-		/* XXX, TODO, center check does not check for clipping! */
-		/* XXX, TODO, use ED_view3d_project_short_object here */
+		if (EBONE_SELECTABLE(arm, ebone)) {
+			short sco1[2], sco2[2], didpoint = 0;
+			float vec[3];
 
-		/* project head location to screenspace */
-		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
-		ED_view3d_project_short_global(vc->ar, vec, sco1, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
-		
-		/* project tail location to screenspace */
-		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
-		ED_view3d_project_short_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
-		
-		/* check if the head and/or tail is in the circle 
-		 *	- the call to check also does the selection already
-		 */
-		if (armature_circle_doSelectJoint(&data, ebone, sco1[0], sco1[1], 1))
-			didpoint = 1;
-		if (armature_circle_doSelectJoint(&data, ebone, sco2[0], sco2[1], 0))
-			didpoint = 1;
-			
-		/* only if the endpoints didn't get selected, deal with the middle of the bone too */
-		/* XXX should we just do this always? */
-		if ((didpoint == 0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1])) {
-			if (select) 
-				ebone->flag |= BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED;
-			else 
-				ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			change = TRUE;
+			/* XXX, TODO, center check does not check for clipping! */
+			/* XXX, TODO, use ED_view3d_project_short_object here */
+
+			/* project head location to screenspace */
+			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
+			ED_view3d_project_short_global(vc->ar, vec, sco1, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
+
+			/* project tail location to screenspace */
+			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
+			ED_view3d_project_short_global(vc->ar, vec, sco2, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
+
+			/* check if the head and/or tail is in the circle
+			 *	- the call to check also does the selection already
+			 */
+			if (armature_circle_doSelectJoint(&data, ebone, sco1[0], sco1[1], 1))
+				didpoint = 1;
+			if (armature_circle_doSelectJoint(&data, ebone, sco2[0], sco2[1], 0))
+				didpoint = 1;
+
+			/* only if the endpoints didn't get selected, deal with the middle of the bone too */
+			/* XXX should we just do this always? */
+			if ((didpoint == 0) && edge_inside_circle(mval[0], mval[1], rad, sco1[0], sco1[1], sco2[0], sco2[1])) {
+				if (select)
+					ebone->flag |= BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED;
+				else
+					ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				change = TRUE;
+			}
+
+			change |= didpoint;
 		}
-		
-		change |= didpoint;
 	}
 
 	if (change) {

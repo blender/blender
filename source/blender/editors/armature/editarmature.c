@@ -1831,7 +1831,7 @@ void ED_armature_deselect_all_visible(Object *obedit)
 
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		/* first and foremost, bone must be visible and selected */
-		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+		if (EBONE_SELECTABLE(arm, ebone)) {
 			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 		}
 	}
@@ -4106,7 +4106,7 @@ static void select_similar_length(bArmature *arm, EditBone *ebone_act, const flo
 	const float len_max = ebone_act->length * (1.0f + thresh);
 
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+		if (EBONE_SELECTABLE(arm, ebone)) {
 			if ((ebone->length >= len_min) &&
 			    (ebone->length <= len_max))
 			{
@@ -4123,7 +4123,7 @@ static void select_similar_direction(bArmature *arm, EditBone *ebone_act, const 
 	sub_v3_v3v3(dir_act, ebone_act->head, ebone_act->tail);
 
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+		if (EBONE_SELECTABLE(arm, ebone)) {
 			float dir[3];
 			sub_v3_v3v3(dir, ebone->head, ebone->tail);
 
@@ -4139,7 +4139,7 @@ static void select_similar_layer(bArmature *arm, EditBone *ebone_act)
 	EditBone *ebone;
 
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+		if (EBONE_SELECTABLE(arm, ebone)) {
 			if (ebone->layer & ebone_act->layer) {
 				ED_armature_edit_bone_select(ebone);
 			}
@@ -4161,7 +4161,7 @@ static void select_similar_prefix(bArmature *arm, EditBone *ebone_act)
 
 	/* Find matches */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+		if (EBONE_SELECTABLE(arm, ebone)) {
 			char prefix_other[MAX_VGROUP_NAME];
 			BKE_deform_split_prefix(ebone->name, prefix_other, body_tmp);
 			if (!strcmp(prefix_act, prefix_other)) {
@@ -4185,7 +4185,7 @@ static void select_similar_suffix(bArmature *arm, EditBone *ebone_act)
 
 	/* Find matches */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+		if (EBONE_SELECTABLE(arm, ebone)) {
 			char suffix_other[MAX_VGROUP_NAME];
 			BKE_deform_split_suffix(ebone->name, body_tmp, suffix_other);
 			if (!strcmp(suffix_act, suffix_other)) {
@@ -4270,7 +4270,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 	
 	for (curbone = arm->edbo->first; curbone; curbone = curbone->next) {
 		/* only work on bone if it is visible and its selection can change */
-		if (EBONE_VISIBLE(arm, curbone) && (curbone->flag & BONE_UNSELECTABLE) == 0) {
+		if (EBONE_SELECTABLE(arm, curbone)) {
 			if (curbone == arm->act_edbone) {
 				if (direction == BONE_SELECT_PARENT) {
 					if (curbone->parent == NULL) continue;
@@ -4290,7 +4290,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 					chbone = editbone_get_child(arm, curbone, 1);
 					if (chbone == NULL) continue;
 					
-					if (EBONE_VISIBLE(arm, chbone) && (chbone->flag & BONE_UNSELECTABLE) == 0) {
+					if (EBONE_SELECTABLE(arm, chbone)) {
 						chbone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 						arm->act_edbone = chbone;
 						

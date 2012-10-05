@@ -94,6 +94,7 @@ typedef struct EditBone {
 
 /* useful macros */
 #define EBONE_VISIBLE(arm, ebone) (((arm)->layer & (ebone)->layer) && !((ebone)->flag & BONE_HIDDEN_A))
+#define EBONE_SELECTABLE(arm, ebone) (EBONE_VISIBLE(arm, ebone) && !(ebone->flag & BONE_UNSELECTABLE))
 #define EBONE_EDITABLE(ebone) (((ebone)->flag & BONE_SELECTED) && !((ebone)->flag & BONE_EDITMODE_LOCKED)) 
 
 /* used in bone_select_hierachy() */

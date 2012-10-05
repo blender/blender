@@ -492,7 +492,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if (pchan->parent == NULL) continue;
 					else pabone = pchan->parent->bone;
 					
-					if (PBONE_VISIBLE(arm, pabone)) {
+					if (PBONE_SELECTABLE(arm, pabone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						pabone->flag |= BONE_SELECTED;
 						arm->act_bone = pabone;
@@ -514,7 +514,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 
 						for (pchan_child = ob->pose->chanbase.first; pchan_child; pchan_child = pchan_child->next) {
 							/* possible we have multiple children, some invisible */
-							if (PBONE_VISIBLE(arm, pchan_child->bone)) {
+							if (PBONE_SELECTABLE(arm, pchan_child->bone)) {
 								if (pchan_child->parent == pchan) {
 									chbone = pchan_child->bone;
 									break;
@@ -526,7 +526,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if (chbone == NULL) continue;
 #endif
 					
-					if (PBONE_VISIBLE(arm, chbone)) {
+					if (PBONE_SELECTABLE(arm, chbone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						chbone->flag |= BONE_SELECTED;
 						arm->act_bone = chbone;
@@ -719,9 +719,7 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
 					
 					if (pchan) {
 						/* select if bone is visible and can be affected */
-						if ((PBONE_VISIBLE(arm, pchan->bone)) && 
-						    (pchan->bone->flag & BONE_UNSELECTABLE) == 0)
-						{
+						if (PBONE_SELECTABLE(arm, pchan->bone)) {
 							pchan->bone->flag |= BONE_SELECTED;
 							changed = 1;
 						}
