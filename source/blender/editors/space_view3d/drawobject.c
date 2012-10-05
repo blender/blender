@@ -1877,16 +1877,16 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	DispList *dl = BKE_displist_find(&obedit->disp, DL_VERTS);
 	float *co = dl ? dl->verts : NULL;
 	int i, N = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
-	short s[2];
 
 	ED_view3d_clipping_local(vc->rv3d, obedit->obmat); /* for local clipping lookups */
 
 	for (i = 0; i < N; i++, bp++, co += 3) {
 		if (bp->hide == 0) {
-			if (ED_view3d_project_short_object(vc->ar, dl ? co : bp->vec, s,
-			                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			int screen_co[2];
+			if (ED_view3d_project_int_object(vc->ar, dl ? co : bp->vec, screen_co,
+			                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
 			{
-				func(userData, bp, s[0], s[1]);
+				func(userData, bp, screen_co[0], screen_co[1]);
 			}
 		}
 	}
@@ -1992,13 +1992,13 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const flo
 		const eV3DProjTest flag = (data->clipVerts == V3D_CLIP_TEST_OFF) ?
 		            V3D_PROJ_TEST_NOP :
 		            V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN;
-		short s[2];
+		int screen_co[2];
 
-		if (ED_view3d_project_short_object(data->vc.ar, co, s, flag) != V3D_PROJ_RET_SUCCESS) {
+		if (ED_view3d_project_int_object(data->vc.ar, co, screen_co, flag) != V3D_PROJ_RET_SUCCESS) {
 			return;
 		}
 
-		data->func(data->userData, eve, s[0], s[1], index);
+		data->func(data->userData, eve, screen_co[0], screen_co[1], index);
 	}
 }
 
@@ -2059,16 +2059,17 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 	BMEdge *eed = EDBM_edge_at_index(data->vc.em, index);
 
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-		short s[2][2];
+		int screen_co_a[2];
+		int screen_co_b[2];
 
 		const eV3DProjTest flag = (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) ?
 		            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN :
 		            V3D_PROJ_TEST_NOP;
 
-		if (ED_view3d_project_short_object(data->vc.ar, v0co, s[0], flag) != V3D_PROJ_RET_SUCCESS) {
+		if (ED_view3d_project_int_object(data->vc.ar, v0co, screen_co_a, flag) != V3D_PROJ_RET_SUCCESS) {
 			return;
 		}
-		if (ED_view3d_project_short_object(data->vc.ar, v1co, s[1], flag) != V3D_PROJ_RET_SUCCESS) {
+		if (ED_view3d_project_int_object(data->vc.ar, v1co, screen_co_b, flag) != V3D_PROJ_RET_SUCCESS) {
 			return;
 		}
 
@@ -2077,16 +2078,15 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 		}
 		else {
 			if (data->clipVerts == V3D_CLIP_TEST_REGION) {
-				/* make an int copy */
-				int s_int[2][2] = {{s[0][0], s[0][1]},
-				                   {s[1][0], s[1][1]}};
-				if (!BLI_rcti_isect_segment(&data->win_rect, s_int[0], s_int[1])) {
+				if (!BLI_rcti_isect_segment(&data->win_rect, screen_co_a, screen_co_b)) {
 					return;
 				}
 			}
 		}
 
-		data->func(data->userData, eed, s[0][0], s[0][1], s[1][0], s[1][1], index);
+		data->func(data->userData, eed,
+		           screen_co_a[0], screen_co_a[1],
+		           screen_co_b[0], screen_co_b[1], index);
 	}
 }
 
@@ -2125,16 +2125,11 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const flo
 	BMFace *efa = EDBM_face_at_index(data->vc.em, index);
 
 	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-		float cent2[3];
-		short s[2];
-
-		/* TODO, use ED_view3d_project_short_object */
-
-		mul_v3_m4v3(cent2, data->vc.obedit->obmat, cent);
-		if (ED_view3d_project_short_global(data->vc.ar, cent2, s,
+		int screen_co[2];
+		if (ED_view3d_project_int_object(data->vc.ar, cent, screen_co,
 		                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
 		{
-			data->func(data->userData, efa, s[0], s[1], index);
+			data->func(data->userData, efa, screen_co[0], screen_co[1], index);
 		}
 	}
 }
@@ -2151,8 +2146,7 @@ void mesh_foreachScreenFace(
 	data.func = func;
 	data.userData = userData;
 
-	//if (clipVerts)
-	ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 	EDBM_index_arrays_init(vc->em, 0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
@@ -2167,7 +2161,6 @@ void nurbs_foreachScreenVert(
         void *userData)
 {
 	Curve *cu = vc->obedit->data;
-	short s[2];
 	Nurb *nu;
 	int i;
 	ListBase *nurbs = BKE_curve_editNurbs_get(cu);
@@ -2180,29 +2173,30 @@ void nurbs_foreachScreenVert(
 				BezTriple *bezt = &nu->bezt[i];
 
 				if (bezt->hide == 0) {
+					int screen_co[2];
 					
 					if (cu->drawflag & CU_HIDE_HANDLES) {
-						if (ED_view3d_project_short_object(vc->ar, bezt->vec[1], s,
-						                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						if (ED_view3d_project_int_object(vc->ar, bezt->vec[1], screen_co,
+						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
 						{
-							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
+							func(userData, nu, NULL, bezt, 1, screen_co[0], screen_co[1]);
 						}
 					}
 					else {
-						if (ED_view3d_project_short_object(vc->ar, bezt->vec[0], s,
-						                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						if (ED_view3d_project_int_object(vc->ar, bezt->vec[0], screen_co,
+						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
 						{
-							func(userData, nu, NULL, bezt, 0, s[0], s[1]);
+							func(userData, nu, NULL, bezt, 0, screen_co[0], screen_co[1]);
 						}
-						if (ED_view3d_project_short_object(vc->ar, bezt->vec[1], s,
-						                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						if (ED_view3d_project_int_object(vc->ar, bezt->vec[1], screen_co,
+						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
 						{
-							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
+							func(userData, nu, NULL, bezt, 1, screen_co[0], screen_co[1]);
 						}
-						if (ED_view3d_project_short_object(vc->ar, bezt->vec[2], s,
-						                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						if (ED_view3d_project_int_object(vc->ar, bezt->vec[2], screen_co,
+						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
 						{
-							func(userData, nu, NULL, bezt, 2, s[0], s[1]);
+							func(userData, nu, NULL, bezt, 2, screen_co[0], screen_co[1]);
 						}
 					}
 				}
@@ -2213,10 +2207,11 @@ void nurbs_foreachScreenVert(
 				BPoint *bp = &nu->bp[i];
 
 				if (bp->hide == 0) {
-					if (ED_view3d_project_short_object(vc->ar, bp->vec, s,
-					                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+					int screen_co[2];
+					if (ED_view3d_project_int_object(vc->ar, bp->vec, screen_co,
+					                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
 					{
-						func(userData, nu, bp, NULL, -1, s[0], s[1]);
+						func(userData, nu, bp, NULL, -1, screen_co[0], screen_co[1]);
 					}
 				}
 			}
