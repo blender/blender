@@ -30,9 +30,10 @@
 
 #include <OpenColorIO/OpenColorIO.h>
 
+using namespace OCIO_NAMESPACE;
+
 #include "MEM_guardedalloc.h"
 
-#define OCIO_CAPI_IMPLEMENTATION
 #include "ocio_impl.h"
 
 #if !defined(WITH_ASSERT_ABORT)
@@ -47,7 +48,7 @@
 #endif
 
 #define MEM_NEW(type) new(MEM_mallocN(sizeof(type), __func__)) type()
-#define MEM_DELETE(what, type) if(what) { what->~type(); MEM_freeN(what); } (void)0
+#define MEM_DELETE(what, type) if(what) { (what)->~type(); MEM_freeN(what); } (void)0
 
 static void OCIO_reportError(const char *err)
 {
@@ -61,15 +62,15 @@ static void OCIO_reportException(Exception &exception)
 	OCIO_reportError(exception.what());
 }
 
-ConstConfigRcPtr *OCIOImpl::getCurrentConfig(void)
+OCIO_ConstConfigRcPtr *OCIOImpl::getCurrentConfig(void)
 {
 	ConstConfigRcPtr *config = MEM_NEW(ConstConfigRcPtr);
 
 	try {
 		*config = GetCurrentConfig();
 
-		if(*config)
-			return config;
+		if (*config)
+			return (OCIO_ConstConfigRcPtr *) config;
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -80,17 +81,17 @@ ConstConfigRcPtr *OCIOImpl::getCurrentConfig(void)
 	return NULL;
 }
 
-void OCIOImpl::setCurrentConfig(const ConstConfigRcPtr *config)
+void OCIOImpl::setCurrentConfig(const OCIO_ConstConfigRcPtr *config)
 {
 	try {
-		SetCurrentConfig(*config);
+		SetCurrentConfig(*(ConstConfigRcPtr *) config);
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
 	}
 }
 
-ConstConfigRcPtr *OCIOImpl::configCreateFromEnv(void)
+OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromEnv(void)
 {
 	ConstConfigRcPtr *config = MEM_NEW(ConstConfigRcPtr);
 
@@ -98,7 +99,7 @@ ConstConfigRcPtr *OCIOImpl::configCreateFromEnv(void)
 		*config = Config::CreateFromEnv();
 
 		if (*config)
-			return config;
+			return (OCIO_ConstConfigRcPtr *) config;
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -110,7 +111,7 @@ ConstConfigRcPtr *OCIOImpl::configCreateFromEnv(void)
 }
 
 
-ConstConfigRcPtr *OCIOImpl::configCreateFromFile(const char *filename)
+OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromFile(const char *filename)
 {
 	ConstConfigRcPtr *config = MEM_NEW(ConstConfigRcPtr);
 
@@ -118,7 +119,7 @@ ConstConfigRcPtr *OCIOImpl::configCreateFromFile(const char *filename)
 		*config = Config::CreateFromFile(filename);
 
 		if (*config)
-			return config;
+			return (OCIO_ConstConfigRcPtr *) config;
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -129,15 +130,15 @@ ConstConfigRcPtr *OCIOImpl::configCreateFromFile(const char *filename)
 	return NULL;
 }
 
-void OCIOImpl::configRelease(ConstConfigRcPtr *config)
+void OCIOImpl::configRelease(OCIO_ConstConfigRcPtr *config)
 {
-	MEM_DELETE(config, ConstConfigRcPtr);
+	MEM_DELETE((ConstConfigRcPtr *) config, ConstConfigRcPtr);
 }
 
-int OCIOImpl::configGetNumColorSpaces(ConstConfigRcPtr *config)
+int OCIOImpl::configGetNumColorSpaces(OCIO_ConstConfigRcPtr *config)
 {
 	try {
-		return (*config)->getNumColorSpaces();
+		return (*(ConstConfigRcPtr *) config)->getNumColorSpaces();
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -146,10 +147,10 @@ int OCIOImpl::configGetNumColorSpaces(ConstConfigRcPtr *config)
 	return 0;
 }
 
-const char *OCIOImpl::configGetColorSpaceNameByIndex(ConstConfigRcPtr *config, int index)
+const char *OCIOImpl::configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *config, int index)
 {
 	try {
-		return (*config)->getColorSpaceNameByIndex(index);
+		return (*(ConstConfigRcPtr *) config)->getColorSpaceNameByIndex(index);
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -158,15 +159,15 @@ const char *OCIOImpl::configGetColorSpaceNameByIndex(ConstConfigRcPtr *config, i
 	return NULL;
 }
 
-ConstColorSpaceRcPtr *OCIOImpl::configGetColorSpace(ConstConfigRcPtr *config, const char *name)
+OCIO_ConstColorSpaceRcPtr *OCIOImpl::configGetColorSpace(OCIO_ConstConfigRcPtr *config, const char *name)
 {
 	ConstColorSpaceRcPtr *cs = MEM_NEW(ConstColorSpaceRcPtr);
 
 	try {
-		*cs = (*config)->getColorSpace(name);
+		*cs = (*(ConstConfigRcPtr *) config)->getColorSpace(name);
 
 		if (*cs)
-			return cs;
+			return (OCIO_ConstColorSpaceRcPtr *) cs;
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -177,10 +178,10 @@ ConstColorSpaceRcPtr *OCIOImpl::configGetColorSpace(ConstConfigRcPtr *config, co
 	return NULL;
 }
 
-int OCIOImpl::configGetIndexForColorSpace(ConstConfigRcPtr *config, const char *name)
+int OCIOImpl::configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name)
 {
 	try {
-		return (*config)->getIndexForColorSpace(name);
+		return (*(ConstConfigRcPtr *) config)->getIndexForColorSpace(name);
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -189,10 +190,10 @@ int OCIOImpl::configGetIndexForColorSpace(ConstConfigRcPtr *config, const char *
 	return -1;
 }
 
-const char *OCIOImpl::configGetDefaultDisplay(ConstConfigRcPtr *config)
+const char *OCIOImpl::configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config)
 {
 	try {
-		return (*config)->getDefaultDisplay();
+		return (*(ConstConfigRcPtr *) config)->getDefaultDisplay();
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -201,10 +202,10 @@ const char *OCIOImpl::configGetDefaultDisplay(ConstConfigRcPtr *config)
 	return NULL;
 }
 
-int OCIOImpl::configGetNumDisplays(ConstConfigRcPtr* config)
+int OCIOImpl::configGetNumDisplays(OCIO_ConstConfigRcPtr* config)
 {
 	try {
-		return (*config)->getNumDisplays();
+		return (*(ConstConfigRcPtr *) config)->getNumDisplays();
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -213,10 +214,10 @@ int OCIOImpl::configGetNumDisplays(ConstConfigRcPtr* config)
 	return 0;
 }
 
-const char *OCIOImpl::configGetDisplay(ConstConfigRcPtr *config, int index)
+const char *OCIOImpl::configGetDisplay(OCIO_ConstConfigRcPtr *config, int index)
 {
 	try {
-		return (*config)->getDisplay(index);
+		return (*(ConstConfigRcPtr *) config)->getDisplay(index);
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -225,10 +226,10 @@ const char *OCIOImpl::configGetDisplay(ConstConfigRcPtr *config, int index)
 	return NULL;
 }
 
-const char *OCIOImpl::configGetDefaultView(ConstConfigRcPtr *config, const char *display)
+const char *OCIOImpl::configGetDefaultView(OCIO_ConstConfigRcPtr *config, const char *display)
 {
 	try {
-		return (*config)->getDefaultView(display);
+		return (*(ConstConfigRcPtr *) config)->getDefaultView(display);
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -237,10 +238,10 @@ const char *OCIOImpl::configGetDefaultView(ConstConfigRcPtr *config, const char 
 	return NULL;
 }
 
-int OCIOImpl::configGetNumViews(ConstConfigRcPtr *config, const char *display)
+int OCIOImpl::configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *display)
 {
 	try {
-		return (*config)->getNumViews(display);
+		return (*(ConstConfigRcPtr *) config)->getNumViews(display);
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -249,10 +250,10 @@ int OCIOImpl::configGetNumViews(ConstConfigRcPtr *config, const char *display)
 	return 0;
 }
 
-const char *OCIOImpl::configGetView(ConstConfigRcPtr *config, const char *display, int index)
+const char *OCIOImpl::configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index)
 {
 	try {
-		return (*config)->getView(display, index);
+		return (*(ConstConfigRcPtr *) config)->getView(display, index);
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -261,10 +262,10 @@ const char *OCIOImpl::configGetView(ConstConfigRcPtr *config, const char *displa
 	return NULL;
 }
 
-const char *OCIOImpl::configGetDisplayColorSpaceName(ConstConfigRcPtr *config, const char *display, const char *view)
+const char *OCIOImpl::configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, const char *display, const char *view)
 {
 	try {
-		return (*config)->getDisplayColorSpaceName(display, view);
+		return (*(ConstConfigRcPtr *) config)->getDisplayColorSpaceName(display, view);
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -273,8 +274,9 @@ const char *OCIOImpl::configGetDisplayColorSpaceName(ConstConfigRcPtr *config, c
 	return NULL;
 }
 
-int OCIOImpl::colorSpaceIsInvertible(ConstColorSpaceRcPtr *cs)
+int OCIOImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs_)
 {
+	ConstColorSpaceRcPtr *cs = (ConstColorSpaceRcPtr *) cs_;
 	const char *family = (*cs)->getFamily();
 
 	if (!strcmp(family, "rrt") || !strcmp(family, "display")) {
@@ -297,25 +299,25 @@ int OCIOImpl::colorSpaceIsInvertible(ConstColorSpaceRcPtr *cs)
 	return true;
 }
 
-int OCIOImpl::colorSpaceIsData(ConstColorSpaceRcPtr *cs)
+int OCIOImpl::colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs)
 {
-	return ((*cs)->isData());
+	return (*(ConstColorSpaceRcPtr *) cs)->isData();
 }
 
-void OCIOImpl::colorSpaceRelease(ConstColorSpaceRcPtr *cs)
+void OCIOImpl::colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs)
 {
-	MEM_DELETE(cs, ConstColorSpaceRcPtr);
+	MEM_DELETE((ConstColorSpaceRcPtr *) cs, ConstColorSpaceRcPtr);
 }
 
-ConstProcessorRcPtr *OCIOImpl::configGetProcessorWithNames(ConstConfigRcPtr *config, const char *srcName, const char *dstName)
+OCIO_ConstProcessorRcPtr *OCIOImpl::configGetProcessorWithNames(OCIO_ConstConfigRcPtr *config, const char *srcName, const char *dstName)
 {
 	ConstProcessorRcPtr *p = MEM_NEW(ConstProcessorRcPtr);
 
 	try {
-		*p = (*config)->getProcessor(srcName, dstName);
+		*p = (*(ConstConfigRcPtr *) config)->getProcessor(srcName, dstName);
 
 		if (*p)
-			return p;
+			return (OCIO_ConstProcessorRcPtr *) p;
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -326,15 +328,15 @@ ConstProcessorRcPtr *OCIOImpl::configGetProcessorWithNames(ConstConfigRcPtr *con
 	return 0;
 }
 
-ConstProcessorRcPtr *OCIOImpl::configGetProcessor(ConstConfigRcPtr *config, ConstTransformRcPtr *transform)
+OCIO_ConstProcessorRcPtr *OCIOImpl::configGetProcessor(OCIO_ConstConfigRcPtr *config, OCIO_ConstTransformRcPtr *transform)
 {
 	ConstProcessorRcPtr *p = MEM_NEW(ConstProcessorRcPtr);
 
 	try {
-		*p = (*config)->getProcessor(*transform);
+		*p = (*(ConstConfigRcPtr *) config)->getProcessor(*(ConstTransformRcPtr *) transform);
 
 		if (*p)
-			return p;
+			return (OCIO_ConstProcessorRcPtr *) p;
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -345,19 +347,20 @@ ConstProcessorRcPtr *OCIOImpl::configGetProcessor(ConstConfigRcPtr *config, Cons
 	return NULL;
 }
 
-void OCIOImpl::processorApply(ConstProcessorRcPtr *processor, PackedImageDesc *img)
+void OCIOImpl::processorApply(OCIO_ConstProcessorRcPtr *processor, OCIO_PackedImageDesc *img)
 {
 	try {
-		(*processor)->apply(*img);
+		(*(ConstProcessorRcPtr *) processor)->apply(*(PackedImageDesc *) img);
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
 	}
 }
 
-void OCIOImpl::processorApply_predivide(ConstProcessorRcPtr *processor, PackedImageDesc *img)
+void OCIOImpl::processorApply_predivide(OCIO_ConstProcessorRcPtr *processor, OCIO_PackedImageDesc *img_)
 {
 	try {
+		PackedImageDesc *img = (PackedImageDesc *) img_;
 		int channels = img->getNumChannels();
 
 		if (channels == 4) {
@@ -375,7 +378,7 @@ void OCIOImpl::processorApply_predivide(ConstProcessorRcPtr *processor, PackedIm
 			}
 		}
 		else {
-			(*processor)->apply(*img);
+			(*(ConstProcessorRcPtr *) processor)->apply(*img);
 		}
 	}
 	catch (Exception &exception) {
@@ -383,20 +386,20 @@ void OCIOImpl::processorApply_predivide(ConstProcessorRcPtr *processor, PackedIm
 	}
 }
 
-void OCIOImpl::processorApplyRGB(ConstProcessorRcPtr *processor, float *pixel)
+void OCIOImpl::processorApplyRGB(OCIO_ConstProcessorRcPtr *processor, float *pixel)
 {
-	(*processor)->applyRGB(pixel);
+	(*(ConstProcessorRcPtr *) processor)->applyRGB(pixel);
 }
 
-void OCIOImpl::processorApplyRGBA(ConstProcessorRcPtr *processor, float *pixel)
+void OCIOImpl::processorApplyRGBA(OCIO_ConstProcessorRcPtr *processor, float *pixel)
 {
-	(*processor)->applyRGBA(pixel);
+	(*(ConstProcessorRcPtr *) processor)->applyRGBA(pixel);
 }
 
-void OCIOImpl::processorApplyRGBA_predivide(ConstProcessorRcPtr *processor, float *pixel)
+void OCIOImpl::processorApplyRGBA_predivide(OCIO_ConstProcessorRcPtr *processor, float *pixel)
 {
 	if (pixel[3] == 1.0f || pixel[3] == 0.0f) {
-		(*processor)->applyRGBA(pixel);
+		(*(ConstProcessorRcPtr *) processor)->applyRGBA(pixel);
 	}
 	else {
 		float alpha, inv_alpha;
@@ -408,7 +411,7 @@ void OCIOImpl::processorApplyRGBA_predivide(ConstProcessorRcPtr *processor, floa
 		pixel[1] *= inv_alpha;
 		pixel[2] *= inv_alpha;
 
-		(*processor)->applyRGBA(pixel);
+		(*(ConstProcessorRcPtr *) processor)->applyRGBA(pixel);
 
 		pixel[0] *= alpha;
 		pixel[1] *= alpha;
@@ -416,74 +419,74 @@ void OCIOImpl::processorApplyRGBA_predivide(ConstProcessorRcPtr *processor, floa
 	}
 }
 
-void OCIOImpl::processorRelease(ConstProcessorRcPtr *p)
+void OCIOImpl::processorRelease(OCIO_ConstProcessorRcPtr *p)
 {
-	p->~ConstProcessorRcPtr();
+	p->~OCIO_ConstProcessorRcPtr();
 	MEM_freeN(p);
 }
 
-const char *OCIOImpl::colorSpaceGetName(ConstColorSpaceRcPtr *cs)
+const char *OCIOImpl::colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs)
 {
-	return (*cs)->getName();
+	return (*(ConstColorSpaceRcPtr *) cs)->getName();
 }
 
-const char *OCIOImpl::colorSpaceGetDescription(ConstColorSpaceRcPtr *cs)
+const char *OCIOImpl::colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr *cs)
 {
-	return (*cs)->getDescription();
+	return (*(ConstColorSpaceRcPtr *) cs)->getDescription();
 }
 
-const char *OCIOImpl::colorSpaceGetFamily(ConstColorSpaceRcPtr *cs)
+const char *OCIOImpl::colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs)
 {
-	return (*cs)->getFamily();
+	return (*(ConstColorSpaceRcPtr *)cs)->getFamily();
 }
 
-DisplayTransformRcPtr *OCIOImpl::createDisplayTransform(void)
+OCIO_DisplayTransformRcPtr *OCIOImpl::createDisplayTransform(void)
 {
 	DisplayTransformRcPtr *dt = MEM_NEW(DisplayTransformRcPtr);
 
 	*dt = DisplayTransform::Create();
 
-	return dt;
+	return (OCIO_DisplayTransformRcPtr *) dt;
 }
 
-void OCIOImpl::displayTransformSetInputColorSpaceName(DisplayTransformRcPtr *dt, const char *name)
+void OCIOImpl::displayTransformSetInputColorSpaceName(OCIO_DisplayTransformRcPtr *dt, const char *name)
 {
-	(*dt)->setInputColorSpaceName(name);
+	(*(DisplayTransformRcPtr *) dt)->setInputColorSpaceName(name);
 }
 
-void OCIOImpl::displayTransformSetDisplay(DisplayTransformRcPtr *dt, const char *name)
+void OCIOImpl::displayTransformSetDisplay(OCIO_DisplayTransformRcPtr *dt, const char *name)
 {
-	(*dt)->setDisplay(name);
+	(*(DisplayTransformRcPtr *) dt)->setDisplay(name);
 }
 
-void OCIOImpl::displayTransformSetView(DisplayTransformRcPtr *dt, const char *name)
+void OCIOImpl::displayTransformSetView(OCIO_DisplayTransformRcPtr *dt, const char *name)
 {
-	(*dt)->setView(name);
+	(*(DisplayTransformRcPtr *) dt)->setView(name);
 }
 
-void OCIOImpl::displayTransformSetDisplayCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *t)
+void OCIOImpl::displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *t)
 {
-	(*dt)->setDisplayCC(*t);
+	(*(DisplayTransformRcPtr *) dt)->setDisplayCC(* (ConstTransformRcPtr *) t);
 }
 
-void OCIOImpl::displayTransformSetLinearCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *t)
+void OCIOImpl::displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *t)
 {
-	(*dt)->setLinearCC(*t);
+	(*(DisplayTransformRcPtr *) dt)->setLinearCC(*(ConstTransformRcPtr *) t);
 }
 
-void OCIOImpl::displayTransformRelease(DisplayTransformRcPtr *dt)
+void OCIOImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr *dt)
 {
-	MEM_DELETE(dt, DisplayTransformRcPtr);
+	MEM_DELETE((DisplayTransformRcPtr *) dt, DisplayTransformRcPtr);
 }
 
-PackedImageDesc *OCIOImpl::createPackedImageDesc(float *data, long width, long height, long numChannels,
+OCIO_PackedImageDesc *OCIOImpl::createOCIO_PackedImageDesc(float *data, long width, long height, long numChannels,
                                                  long chanStrideBytes, long xStrideBytes, long yStrideBytes)
 {
 	try {
 		void *mem = MEM_mallocN(sizeof(PackedImageDesc), __func__);
 		PackedImageDesc *id = new(mem) PackedImageDesc(data, width, height, numChannels, chanStrideBytes, xStrideBytes, yStrideBytes);
 
-		return id;
+		return (OCIO_PackedImageDesc *) id;
 	}
 	catch (Exception &exception) {
 		OCIO_reportException(exception);
@@ -492,47 +495,47 @@ PackedImageDesc *OCIOImpl::createPackedImageDesc(float *data, long width, long h
 	return NULL;
 }
 
-void OCIOImpl::packedImageDescRelease(PackedImageDesc* id)
+void OCIOImpl::OCIO_PackedImageDescRelease(OCIO_PackedImageDesc* id)
 {
-	MEM_DELETE(id, PackedImageDesc);
+	MEM_DELETE((PackedImageDesc *) id, PackedImageDesc);
 }
 
-ExponentTransformRcPtr *OCIOImpl::createExponentTransform(void)
+OCIO_ExponentTransformRcPtr *OCIOImpl::createExponentTransform(void)
 {
 	ExponentTransformRcPtr *et = MEM_NEW(ExponentTransformRcPtr);
 
 	*et = ExponentTransform::Create();
 
-	return et;
+	return (OCIO_ExponentTransformRcPtr *) et;
 }
 
-void OCIOImpl::exponentTransformSetValue(ExponentTransformRcPtr *et, const float *exponent)
+void OCIOImpl::exponentTransformSetValue(OCIO_ExponentTransformRcPtr *et, const float *exponent)
 {
-	(*et)->setValue(exponent);
+	(*(ExponentTransformRcPtr *) et)->setValue(exponent);
 }
 
-void OCIOImpl::exponentTransformRelease(ExponentTransformRcPtr *et)
+void OCIOImpl::exponentTransformRelease(OCIO_ExponentTransformRcPtr *et)
 {
-	MEM_DELETE(et, ExponentTransformRcPtr);
+	MEM_DELETE((ExponentTransformRcPtr *) et, ExponentTransformRcPtr);
 }
 
-MatrixTransformRcPtr *OCIOImpl::createMatrixTransform(void)
+OCIO_MatrixTransformRcPtr *OCIOImpl::createMatrixTransform(void)
 {
 	MatrixTransformRcPtr *mt = MEM_NEW(MatrixTransformRcPtr);
 
 	*mt = MatrixTransform::Create();
 
-	return mt;
+	return (OCIO_MatrixTransformRcPtr *) mt;
 }
 
-void OCIOImpl::matrixTransformSetValue(MatrixTransformRcPtr *mt, const float *m44, const float *offset4)
+void OCIOImpl::matrixTransformSetValue(OCIO_MatrixTransformRcPtr *mt, const float *m44, const float *offset4)
 {
-	(*mt)->setValue(m44, offset4);
+	(*(MatrixTransformRcPtr *) mt)->setValue(m44, offset4);
 }
 
-void OCIOImpl::matrixTransformRelease(MatrixTransformRcPtr *mt)
+void OCIOImpl::matrixTransformRelease(OCIO_MatrixTransformRcPtr *mt)
 {
-	MEM_DELETE(mt, MatrixTransformRcPtr);
+	MEM_DELETE((MatrixTransformRcPtr *) mt, MatrixTransformRcPtr);
 }
 
 void OCIOImpl::matrixTransformScale(float * m44, float * offset4, const float *scale4f)

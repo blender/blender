@@ -62,4 +62,3 @@ endif()
 
 
 blender_add_lib(bf_intern_opencolorio "${SRC}" "${INC}" "${INC_SYS}")
-

@@ -32,67 +32,67 @@ class IOCIOImpl {
 public:
 	virtual ~IOCIOImpl() {};
 
-	virtual ConstConfigRcPtr *getCurrentConfig(void) = 0;
-	virtual void setCurrentConfig(const ConstConfigRcPtr *config) = 0;
+	virtual OCIO_ConstConfigRcPtr *getCurrentConfig(void) = 0;
+	virtual void setCurrentConfig(const OCIO_ConstConfigRcPtr *config) = 0;
 
-	virtual ConstConfigRcPtr *configCreateFromEnv(void) = 0;
-	virtual ConstConfigRcPtr *configCreateFromFile(const char* filename) = 0;
+	virtual OCIO_ConstConfigRcPtr *configCreateFromEnv(void) = 0;
+	virtual OCIO_ConstConfigRcPtr *configCreateFromFile(const char* filename) = 0;
 
-	virtual void configRelease(ConstConfigRcPtr *config) = 0;
+	virtual void configRelease(OCIO_ConstConfigRcPtr *config) = 0;
 
-	virtual int configGetNumColorSpaces(ConstConfigRcPtr *config) = 0;
-	virtual const char *configGetColorSpaceNameByIndex(ConstConfigRcPtr *config, int index) = 0;
-	virtual ConstColorSpaceRcPtr *configGetColorSpace(ConstConfigRcPtr *config, const char *name) = 0;
-	virtual int configGetIndexForColorSpace(ConstConfigRcPtr *config, const char *name) = 0;
+	virtual int configGetNumColorSpaces(OCIO_ConstConfigRcPtr *config) = 0;
+	virtual const char *configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *config, int index) = 0;
+	virtual OCIO_ConstColorSpaceRcPtr *configGetColorSpace(OCIO_ConstConfigRcPtr *config, const char *name) = 0;
+	virtual int configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name) = 0;
 
-	virtual int colorSpaceIsInvertible(ConstColorSpaceRcPtr *cs) = 0;
-	virtual int colorSpaceIsData(ConstColorSpaceRcPtr *cs) = 0;
+	virtual int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs) = 0;
+	virtual int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs) = 0;
 
-	virtual void colorSpaceRelease(ConstColorSpaceRcPtr *cs) = 0;
+	virtual void colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs) = 0;
 
-	virtual const char *configGetDefaultDisplay(ConstConfigRcPtr *config) = 0;
-	virtual int         configGetNumDisplays(ConstConfigRcPtr *config) = 0;
-	virtual const char *configGetDisplay(ConstConfigRcPtr *config, int index) = 0;
-	virtual const char *configGetDefaultView(ConstConfigRcPtr *config, const char *display) = 0;
-	virtual int         configGetNumViews(ConstConfigRcPtr *config, const char *display) = 0;
-	virtual const char *configGetView(ConstConfigRcPtr *config, const char *display, int index) = 0;
-	virtual const char *configGetDisplayColorSpaceName(ConstConfigRcPtr *config, const char *display, const char *view) = 0;
+	virtual const char *configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config) = 0;
+	virtual int         configGetNumDisplays(OCIO_ConstConfigRcPtr *config) = 0;
+	virtual const char *configGetDisplay(OCIO_ConstConfigRcPtr *config, int index) = 0;
+	virtual const char *configGetDefaultView(OCIO_ConstConfigRcPtr *config, const char *display) = 0;
+	virtual int         configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *display) = 0;
+	virtual const char *configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index) = 0;
+	virtual const char *configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, const char *display, const char *view) = 0;
 
-	virtual ConstProcessorRcPtr *configGetProcessorWithNames(ConstConfigRcPtr *config, const char *srcName, const char *dstName) = 0;
-	virtual ConstProcessorRcPtr *configGetProcessor(ConstConfigRcPtr *config, ConstTransformRcPtr *transform) = 0;
+	virtual OCIO_ConstProcessorRcPtr *configGetProcessorWithNames(OCIO_ConstConfigRcPtr *config, const char *srcName, const char *dstName) = 0;
+	virtual OCIO_ConstProcessorRcPtr *configGetProcessor(OCIO_ConstConfigRcPtr *config, OCIO_ConstTransformRcPtr *transform) = 0;
 
-	virtual void processorApply(ConstProcessorRcPtr *processor, PackedImageDesc *img) = 0;
-	virtual void processorApply_predivide(ConstProcessorRcPtr *processor, PackedImageDesc *img) = 0;
-	virtual void processorApplyRGB(ConstProcessorRcPtr *processor, float *pixel) = 0;
-	virtual void processorApplyRGBA(ConstProcessorRcPtr *processor, float *pixel) = 0;
-	virtual void processorApplyRGBA_predivide(ConstProcessorRcPtr *processor, float *pixel) = 0;
+	virtual void processorApply(OCIO_ConstProcessorRcPtr *processor, OCIO_PackedImageDesc *img) = 0;
+	virtual void processorApply_predivide(OCIO_ConstProcessorRcPtr *processor, OCIO_PackedImageDesc *img) = 0;
+	virtual void processorApplyRGB(OCIO_ConstProcessorRcPtr *processor, float *pixel) = 0;
+	virtual void processorApplyRGBA(OCIO_ConstProcessorRcPtr *processor, float *pixel) = 0;
+	virtual void processorApplyRGBA_predivide(OCIO_ConstProcessorRcPtr *processor, float *pixel) = 0;
 
-	virtual void processorRelease(ConstProcessorRcPtr *p) = 0;
+	virtual void processorRelease(OCIO_ConstProcessorRcPtr *p) = 0;
 
-	virtual const char *colorSpaceGetName(ConstColorSpaceRcPtr *cs) = 0;
-	virtual const char *colorSpaceGetDescription(ConstColorSpaceRcPtr *cs) = 0;
-	virtual const char *colorSpaceGetFamily(ConstColorSpaceRcPtr *cs) = 0;
+	virtual const char *colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs) = 0;
+	virtual const char *colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr *cs) = 0;
+	virtual const char *colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs) = 0;
 
-	virtual DisplayTransformRcPtr *createDisplayTransform(void) = 0;
-	virtual void displayTransformSetInputColorSpaceName(DisplayTransformRcPtr *dt, const char *name) = 0;
-	virtual void displayTransformSetDisplay(DisplayTransformRcPtr *dt, const char *name) = 0;
-	virtual void displayTransformSetView(DisplayTransformRcPtr *dt, const char *name) = 0;
-	virtual void displayTransformSetDisplayCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *et) = 0;
-	virtual void displayTransformSetLinearCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *et) = 0;
-	virtual void displayTransformRelease(DisplayTransformRcPtr *dt) = 0;
+	virtual OCIO_DisplayTransformRcPtr *createDisplayTransform(void) = 0;
+	virtual void displayTransformSetInputColorSpaceName(OCIO_DisplayTransformRcPtr *dt, const char *name) = 0;
+	virtual void displayTransformSetDisplay(OCIO_DisplayTransformRcPtr *dt, const char *name) = 0;
+	virtual void displayTransformSetView(OCIO_DisplayTransformRcPtr *dt, const char *name) = 0;
+	virtual void displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *et) = 0;
+	virtual void displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *et) = 0;
+	virtual void displayTransformRelease(OCIO_DisplayTransformRcPtr *dt) = 0;
 
-	virtual PackedImageDesc *createPackedImageDesc(float *data, long width, long height, long numChannels,
+	virtual OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data, long width, long height, long numChannels,
 	                                               long chanStrideBytes, long xStrideBytes, long yStrideBytes) = 0;
 
-	virtual void packedImageDescRelease(PackedImageDesc *p) = 0;
+	virtual void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *p) = 0;
 
-	virtual ExponentTransformRcPtr *createExponentTransform(void) = 0;
-	virtual void exponentTransformSetValue(ExponentTransformRcPtr *et, const float *exponent) = 0;
-	virtual void exponentTransformRelease(ExponentTransformRcPtr *et) = 0;
+	virtual OCIO_ExponentTransformRcPtr *createExponentTransform(void) = 0;
+	virtual void exponentTransformSetValue(OCIO_ExponentTransformRcPtr *et, const float *exponent) = 0;
+	virtual void exponentTransformRelease(OCIO_ExponentTransformRcPtr *et) = 0;
 
-	virtual MatrixTransformRcPtr *createMatrixTransform(void) = 0;
-	virtual void matrixTransformSetValue(MatrixTransformRcPtr *et, const float *m44, const float *offset4) = 0;
-	virtual void matrixTransformRelease(MatrixTransformRcPtr *mt) = 0;
+	virtual OCIO_MatrixTransformRcPtr *createMatrixTransform(void) = 0;
+	virtual void matrixTransformSetValue(OCIO_MatrixTransformRcPtr *et, const float *m44, const float *offset4) = 0;
+	virtual void matrixTransformRelease(OCIO_MatrixTransformRcPtr *mt) = 0;
 
 	virtual void matrixTransformScale(float * m44, float * offset4, const float * scale4) = 0;
 };
@@ -101,67 +101,67 @@ class FallbackImpl : public IOCIOImpl {
 public:
 	FallbackImpl() {};
 
-	ConstConfigRcPtr *getCurrentConfig(void);
-	void setCurrentConfig(const ConstConfigRcPtr *config);
+	OCIO_ConstConfigRcPtr *getCurrentConfig(void);
+	void setCurrentConfig(const OCIO_ConstConfigRcPtr *config);
 
-	ConstConfigRcPtr *configCreateFromEnv(void);
-	ConstConfigRcPtr *configCreateFromFile(const char* filename);
+	OCIO_ConstConfigRcPtr *configCreateFromEnv(void);
+	OCIO_ConstConfigRcPtr *configCreateFromFile(const char* filename);
 
-	void configRelease(ConstConfigRcPtr *config);
+	void configRelease(OCIO_ConstConfigRcPtr *config);
 
-	int configGetNumColorSpaces(ConstConfigRcPtr *config);
-	const char *configGetColorSpaceNameByIndex(ConstConfigRcPtr *config, int index);
-	ConstColorSpaceRcPtr *configGetColorSpace(ConstConfigRcPtr *config, const char *name);
-	int configGetIndexForColorSpace(ConstConfigRcPtr *config, const char *name);
+	int configGetNumColorSpaces(OCIO_ConstConfigRcPtr *config);
+	const char *configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
+	OCIO_ConstColorSpaceRcPtr *configGetColorSpace(OCIO_ConstConfigRcPtr *config, const char *name);
+	int configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name);
 
-	int colorSpaceIsInvertible(ConstColorSpaceRcPtr *cs);
-	int colorSpaceIsData(ConstColorSpaceRcPtr *cs);
+	int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs);
+	int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs);
 
-	void colorSpaceRelease(ConstColorSpaceRcPtr *cs);
+	void colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs);
 
-	const char *configGetDefaultDisplay(ConstConfigRcPtr *config);
-	int         configGetNumDisplays(ConstConfigRcPtr *config);
-	const char *configGetDisplay(ConstConfigRcPtr *config, int index);
-	const char *configGetDefaultView(ConstConfigRcPtr *config, const char *display);
-	int         configGetNumViews(ConstConfigRcPtr *config, const char *display);
-	const char *configGetView(ConstConfigRcPtr *config, const char *display, int index);
-	const char *configGetDisplayColorSpaceName(ConstConfigRcPtr *config, const char *display, const char *view);
+	const char *configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config);
+	int         configGetNumDisplays(OCIO_ConstConfigRcPtr *config);
+	const char *configGetDisplay(OCIO_ConstConfigRcPtr *config, int index);
+	const char *configGetDefaultView(OCIO_ConstConfigRcPtr *config, const char *display);
+	int         configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *display);
+	const char *configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index);
+	const char *configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, const char *display, const char *view);
 
-	ConstProcessorRcPtr *configGetProcessorWithNames(ConstConfigRcPtr *config, const char *srcName, const char *dstName);
-	ConstProcessorRcPtr *configGetProcessor(ConstConfigRcPtr *config, ConstTransformRcPtr *transform);
+	OCIO_ConstProcessorRcPtr *configGetProcessorWithNames(OCIO_ConstConfigRcPtr *config, const char *srcName, const char *dstName);
+	OCIO_ConstProcessorRcPtr *configGetProcessor(OCIO_ConstConfigRcPtr *config, OCIO_ConstTransformRcPtr *transform);
 
-	void processorApply(ConstProcessorRcPtr *processor, PackedImageDesc *img);
-	void processorApply_predivide(ConstProcessorRcPtr *processor, PackedImageDesc *img);
-	void processorApplyRGB(ConstProcessorRcPtr *processor, float *pixel);
-	void processorApplyRGBA(ConstProcessorRcPtr *processor, float *pixel);
-	void processorApplyRGBA_predivide(ConstProcessorRcPtr *processor, float *pixel);
+	void processorApply(OCIO_ConstProcessorRcPtr *processor, OCIO_PackedImageDesc *img);
+	void processorApply_predivide(OCIO_ConstProcessorRcPtr *processor, OCIO_PackedImageDesc *img);
+	void processorApplyRGB(OCIO_ConstProcessorRcPtr *processor, float *pixel);
+	void processorApplyRGBA(OCIO_ConstProcessorRcPtr *processor, float *pixel);
+	void processorApplyRGBA_predivide(OCIO_ConstProcessorRcPtr *processor, float *pixel);
 
-	void processorRelease(ConstProcessorRcPtr *p);
+	void processorRelease(OCIO_ConstProcessorRcPtr *p);
 
-	const char *colorSpaceGetName(ConstColorSpaceRcPtr *cs);
-	const char *colorSpaceGetDescription(ConstColorSpaceRcPtr *cs);
-	const char *colorSpaceGetFamily(ConstColorSpaceRcPtr *cs);
+	const char *colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs);
+	const char *colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr *cs);
+	const char *colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs);
 
-	DisplayTransformRcPtr *createDisplayTransform(void);
-	void displayTransformSetInputColorSpaceName(DisplayTransformRcPtr *dt, const char *name);
-	void displayTransformSetDisplay(DisplayTransformRcPtr *dt, const char *name);
-	void displayTransformSetView(DisplayTransformRcPtr *dt, const char *name);
-	void displayTransformSetDisplayCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *et);
-	void displayTransformSetLinearCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *et);
-	void displayTransformRelease(DisplayTransformRcPtr *dt);
+	OCIO_DisplayTransformRcPtr *createDisplayTransform(void);
+	void displayTransformSetInputColorSpaceName(OCIO_DisplayTransformRcPtr *dt, const char *name);
+	void displayTransformSetDisplay(OCIO_DisplayTransformRcPtr *dt, const char *name);
+	void displayTransformSetView(OCIO_DisplayTransformRcPtr *dt, const char *name);
+	void displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *et);
+	void displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *et);
+	void displayTransformRelease(OCIO_DisplayTransformRcPtr *dt);
 
-	PackedImageDesc *createPackedImageDesc(float *data, long width, long height, long numChannels,
+	OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data, long width, long height, long numChannels,
 	                                       long chanStrideBytes, long xStrideBytes, long yStrideBytes);
 
-	void packedImageDescRelease(PackedImageDesc *p);
+	void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *p);
 
-	ExponentTransformRcPtr *createExponentTransform(void);
-	void exponentTransformSetValue(ExponentTransformRcPtr *et, const float *exponent);
-	void exponentTransformRelease(ExponentTransformRcPtr *et);
+	OCIO_ExponentTransformRcPtr *createExponentTransform(void);
+	void exponentTransformSetValue(OCIO_ExponentTransformRcPtr *et, const float *exponent);
+	void exponentTransformRelease(OCIO_ExponentTransformRcPtr *et);
 
-	MatrixTransformRcPtr *createMatrixTransform(void);
-	void matrixTransformSetValue(MatrixTransformRcPtr *et, const float *m44, const float *offset4);
-	void matrixTransformRelease(MatrixTransformRcPtr *mt);
+	OCIO_MatrixTransformRcPtr *createMatrixTransform(void);
+	void matrixTransformSetValue(OCIO_MatrixTransformRcPtr *et, const float *m44, const float *offset4);
+	void matrixTransformRelease(OCIO_MatrixTransformRcPtr *mt);
 
 	void matrixTransformScale(float * m44, float * offset4, const float * scale4);
 };
@@ -171,67 +171,67 @@ class OCIOImpl : public IOCIOImpl {
 public:
 	OCIOImpl() {};
 
-	ConstConfigRcPtr *getCurrentConfig(void);
-	void setCurrentConfig(const ConstConfigRcPtr *config);
+	OCIO_ConstConfigRcPtr *getCurrentConfig(void);
+	void setCurrentConfig(const OCIO_ConstConfigRcPtr *config);
 
-	ConstConfigRcPtr *configCreateFromEnv(void);
-	ConstConfigRcPtr *configCreateFromFile(const char* filename);
+	OCIO_ConstConfigRcPtr *configCreateFromEnv(void);
+	OCIO_ConstConfigRcPtr *configCreateFromFile(const char* filename);
 
-	void configRelease(ConstConfigRcPtr *config);
+	void configRelease(OCIO_ConstConfigRcPtr *config);
 
-	int configGetNumColorSpaces(ConstConfigRcPtr *config);
-	const char *configGetColorSpaceNameByIndex(ConstConfigRcPtr *config, int index);
-	ConstColorSpaceRcPtr *configGetColorSpace(ConstConfigRcPtr *config, const char *name);
-	int configGetIndexForColorSpace(ConstConfigRcPtr *config, const char *name);
+	int configGetNumColorSpaces(OCIO_ConstConfigRcPtr *config);
+	const char *configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
+	OCIO_ConstColorSpaceRcPtr *configGetColorSpace(OCIO_ConstConfigRcPtr *config, const char *name);
+	int configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name);
 
-	int colorSpaceIsInvertible(ConstColorSpaceRcPtr *cs);
-	int colorSpaceIsData(ConstColorSpaceRcPtr *cs);
+	int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs);
+	int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs);
 
-	void colorSpaceRelease(ConstColorSpaceRcPtr *cs);
+	void colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs);
 
-	const char *configGetDefaultDisplay(ConstConfigRcPtr *config);
-	int         configGetNumDisplays(ConstConfigRcPtr *config);
-	const char *configGetDisplay(ConstConfigRcPtr *config, int index);
-	const char *configGetDefaultView(ConstConfigRcPtr *config, const char *display);
-	int         configGetNumViews(ConstConfigRcPtr *config, const char *display);
-	const char *configGetView(ConstConfigRcPtr *config, const char *display, int index);
-	const char *configGetDisplayColorSpaceName(ConstConfigRcPtr *config, const char *display, const char *view);
+	const char *configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config);
+	int         configGetNumDisplays(OCIO_ConstConfigRcPtr *config);
+	const char *configGetDisplay(OCIO_ConstConfigRcPtr *config, int index);
+	const char *configGetDefaultView(OCIO_ConstConfigRcPtr *config, const char *display);
+	int         configGetNumViews(OCIO_ConstConfigRcPtr *config, const char *display);
+	const char *configGetView(OCIO_ConstConfigRcPtr *config, const char *display, int index);
+	const char *configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, const char *display, const char *view);
 
-	ConstProcessorRcPtr *configGetProcessorWithNames(ConstConfigRcPtr *config, const char *srcName, const char *dstName);
-	ConstProcessorRcPtr *configGetProcessor(ConstConfigRcPtr *config, ConstTransformRcPtr *transform);
+	OCIO_ConstProcessorRcPtr *configGetProcessorWithNames(OCIO_ConstConfigRcPtr *config, const char *srcName, const char *dstName);
+	OCIO_ConstProcessorRcPtr *configGetProcessor(OCIO_ConstConfigRcPtr *config, OCIO_ConstTransformRcPtr *transform);
 
-	void processorApply(ConstProcessorRcPtr *processor, PackedImageDesc *img);
-	void processorApply_predivide(ConstProcessorRcPtr *processor, PackedImageDesc *img);
-	void processorApplyRGB(ConstProcessorRcPtr *processor, float *pixel);
-	void processorApplyRGBA(ConstProcessorRcPtr *processor, float *pixel);
-	void processorApplyRGBA_predivide(ConstProcessorRcPtr *processor, float *pixel);
+	void processorApply(OCIO_ConstProcessorRcPtr *processor, OCIO_PackedImageDesc *img);
+	void processorApply_predivide(OCIO_ConstProcessorRcPtr *processor, OCIO_PackedImageDesc *img);
+	void processorApplyRGB(OCIO_ConstProcessorRcPtr *processor, float *pixel);
+	void processorApplyRGBA(OCIO_ConstProcessorRcPtr *processor, float *pixel);
+	void processorApplyRGBA_predivide(OCIO_ConstProcessorRcPtr *processor, float *pixel);
 
-	void processorRelease(ConstProcessorRcPtr *p);
+	void processorRelease(OCIO_ConstProcessorRcPtr *p);
 
-	const char *colorSpaceGetName(ConstColorSpaceRcPtr *cs);
-	const char *colorSpaceGetDescription(ConstColorSpaceRcPtr *cs);
-	const char *colorSpaceGetFamily(ConstColorSpaceRcPtr *cs);
+	const char *colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs);
+	const char *colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr *cs);
+	const char *colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs);
 
-	DisplayTransformRcPtr *createDisplayTransform(void);
-	void displayTransformSetInputColorSpaceName(DisplayTransformRcPtr *dt, const char *name);
-	void displayTransformSetDisplay(DisplayTransformRcPtr *dt, const char *name);
-	void displayTransformSetView(DisplayTransformRcPtr *dt, const char *name);
-	void displayTransformSetDisplayCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *et);
-	void displayTransformSetLinearCC(DisplayTransformRcPtr *dt, ConstTransformRcPtr *et);
-	void displayTransformRelease(DisplayTransformRcPtr *dt);
+	OCIO_DisplayTransformRcPtr *createDisplayTransform(void);
+	void displayTransformSetInputColorSpaceName(OCIO_DisplayTransformRcPtr *dt, const char *name);
+	void displayTransformSetDisplay(OCIO_DisplayTransformRcPtr *dt, const char *name);
+	void displayTransformSetView(OCIO_DisplayTransformRcPtr *dt, const char *name);
+	void displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *et);
+	void displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr *dt, OCIO_ConstTransformRcPtr *et);
+	void displayTransformRelease(OCIO_DisplayTransformRcPtr *dt);
 
-	PackedImageDesc *createPackedImageDesc(float *data, long width, long height, long numChannels,
+	OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data, long width, long height, long numChannels,
 	                                       long chanStrideBytes, long xStrideBytes, long yStrideBytes);
 
-	void packedImageDescRelease(PackedImageDesc *p);
+	void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *p);
 
-	ExponentTransformRcPtr *createExponentTransform(void);
-	void exponentTransformSetValue(ExponentTransformRcPtr *et, const float *exponent);
-	void exponentTransformRelease(ExponentTransformRcPtr *et);
+	OCIO_ExponentTransformRcPtr *createExponentTransform(void);
+	void exponentTransformSetValue(OCIO_ExponentTransformRcPtr *et, const float *exponent);
+	void exponentTransformRelease(OCIO_ExponentTransformRcPtr *et);
 
-	MatrixTransformRcPtr *createMatrixTransform(void);
-	void matrixTransformSetValue(MatrixTransformRcPtr *et, const float *m44, const float *offset4);
-	void matrixTransformRelease(MatrixTransformRcPtr *mt);
+	OCIO_MatrixTransformRcPtr *createMatrixTransform(void);
+	void matrixTransformSetValue(OCIO_MatrixTransformRcPtr *et, const float *m44, const float *offset4);
+	void matrixTransformRelease(OCIO_MatrixTransformRcPtr *mt);
 
 	void matrixTransformScale(float * m44, float * offset4, const float * scale4);
 };

@@ -35,7 +35,7 @@
 
 #define BCM_CONFIG_FILE "config.ocio"
 
-struct ConstProcessorRcPtr;
+struct OCIO_ConstProcessorRcPtr;
 struct ImBuf;
 
 typedef struct ColorSpace {
@@ -44,8 +44,8 @@ typedef struct ColorSpace {
 	char name[64];
 	char description[64];
 
-	struct ConstProcessorRcPtr *to_scene_linear;
-	struct ConstProcessorRcPtr *from_scene_linear;
+	struct OCIO_ConstProcessorRcPtr *to_scene_linear;
+	struct OCIO_ConstProcessorRcPtr *from_scene_linear;
 
 	int is_invertible;
 	int is_data;
@@ -57,8 +57,8 @@ typedef struct ColorManagedDisplay {
 	char name[64];
 	ListBase views;
 
-	struct ConstProcessorRcPtr *to_scene_linear;
-	struct ConstProcessorRcPtr *from_scene_linear;
+	struct OCIO_ConstProcessorRcPtr *to_scene_linear;
+	struct OCIO_ConstProcessorRcPtr *from_scene_linear;
 } ColorManagedDisplay;
 
 typedef struct ColorManagedView {
