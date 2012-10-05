@@ -362,6 +362,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		type = idptr.type;
 
 	if (flag & UI_ID_PREVIEWS) {
+		template->preview = TRUE;
 
 		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6,
 		                     TIP_(template_id_browse_tip(type)));
@@ -374,7 +375,6 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetFlag(but, UI_BUT_DISABLED);
 		
 		uiLayoutRow(layout, TRUE);
-		template->preview = 1;
 	}
 	else if (flag & UI_ID_BROWSE) {
 		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,
