@@ -376,7 +376,7 @@ endif()
 
 # auto enable llvm for cycles_osl
 if(WITH_CYCLES_OSL)
-	set(WITH_LLVM ON)
+	set(WITH_LLVM ON CACHE BOOL "ON" FORCE)
 endif()
 
 # don't store paths to libs for portable distribution
