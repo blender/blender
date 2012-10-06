@@ -1733,6 +1733,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "turbulence_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "noise_fac");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Turbulence Strength", "Strength of the added turbulent noise");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop = RNA_def_property(srna, "turbulence_depth", PROP_INT, PROP_NONE);

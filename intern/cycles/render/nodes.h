@@ -284,6 +284,8 @@ class TextureCoordinateNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(TextureCoordinateNode)
 	void attributes(AttributeRequestSet *attributes);
+	
+	bool from_dupli;
 };
 
 class LightPathNode : public ShaderNode {

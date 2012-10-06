@@ -129,7 +129,7 @@ void OutputSingleLayerOperation::deinitExecution()
 	if (this->getWidth() * this->getHeight() != 0) {
 		
 		int size = get_datatype_size(this->m_datatype);
-		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), size * 8, 0);
+		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), this->m_format->planes, 0);
 		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
 		

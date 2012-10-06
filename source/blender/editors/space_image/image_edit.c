@@ -120,6 +120,8 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
 		if (ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
 	}
+	else
+		*lock_r = NULL;
 
 	return NULL;
 }

@@ -539,6 +539,7 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, int copycon)
 	outPose->iksolver = src->iksolver;
 	outPose->ikdata = NULL;
 	outPose->ikparam = MEM_dupallocN(src->ikparam);
+	outPose->avs = src->avs;
 	
 	for (pchan = outPose->chanbase.first; pchan; pchan = pchan->next) {
 		/* TODO: rename this argument... */

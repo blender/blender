@@ -440,9 +440,6 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCREEN:
 			switch (wmn->data) {
-				case ND_GPENCIL:
-					ED_region_tag_redraw(ar);
-					break;
 				case ND_SCREENCAST:
 				case ND_ANIMPLAY:
 					ED_region_tag_redraw(ar);
@@ -461,6 +458,10 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_ID:
 			if (wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_GPENCIL:
+			if (wmn->action == NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 	}

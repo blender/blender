@@ -49,6 +49,9 @@ public:
 	bool use_motion;
 	bool use_holdout;
 
+	float3 dupli_generated;
+	float2 dupli_uv;
+
 	int particle_id;
 
 	Object();

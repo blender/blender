@@ -251,6 +251,10 @@ void BPY_python_start(int argc, const char **argv)
 	 * an error, this is highly annoying, another stumbling block for devs,
 	 * so use a more relaxed error handler and enforce utf-8 since the rest of
 	 * blender is utf-8 too - campbell */
+
+	/* XXX, update: this is unreliable! 'PYTHONIOENCODING' is ignored in MS-Windows
+	 * when dynamically linked, see: [#31555] for details.
+	 * Python doesn't expose a good way to set this. */
 	BLI_setenv("PYTHONIOENCODING", "utf-8:surrogateescape");
 
 	/* Python 3.2 now looks for '2.xx/python/include/python3.2d/pyconfig.h' to
@@ -263,15 +267,6 @@ void BPY_python_start(int argc, const char **argv)
 	Py_FrozenFlag = 1;
 
 	Py_Initialize();
-
-#ifdef WIN32
-	/* this is disappointing, its likely a bug in python?
-	 * for some reason 'PYTHONIOENCODING' is ignored in windows
-	 * see: [#31555] for details. */
-	PyRun_SimpleString("import sys, io\n"
-	                   "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='surrogateescape', line_buffering=True)\n"
-	                   "sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='surrogateescape', line_buffering=True)\n");
-#endif  /* WIN32 */
 
 	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
 	/* sigh, why do python guys not have a (char **) version anymore? */
@@ -677,6 +672,11 @@ void BPY_modules_load_user(bContext *C)
 				}
 				else {
 					Py_DECREF(module);
+				}
+
+				/* check if the script loaded a new file */
+				if (bmain != CTX_data_main(C)) {
+					break;
 				}
 			}
 		}

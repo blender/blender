@@ -1073,19 +1073,21 @@ void set_current_material_texture(Material *ma, Tex *newtex)
 {
 	Tex *tex = NULL;
 	bNode *node;
-	
-	if (ma && ma->use_nodes && ma->nodetree) {
-		node = nodeGetActiveID(ma->nodetree, ID_TE);
 
-		if (node) {
-			tex = (Tex *)node->id;
-			id_us_min(&tex->id);
+	if ((ma->use_nodes && ma->nodetree) &&
+	    (node = nodeGetActiveID(ma->nodetree, ID_TE)))
+	{
+		tex = (Tex *)node->id;
+		id_us_min(&tex->id);
+		if (newtex) {
 			node->id = &newtex->id;
 			id_us_plus(&newtex->id);
-			ma = NULL;
+		}
+		else {
+			node->id = NULL;
 		}
 	}
-	if (ma) {
+	else {
 		int act = (int)ma->texact;
 
 		tex = (ma->mtex[act]) ? ma->mtex[act]->tex : NULL;

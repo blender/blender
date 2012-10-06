@@ -1017,9 +1017,9 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main * bmain, Scene * scene, View3D
 	
 	if (!(ob = OBACT)) return;
 	
-	if (scene->obedit) { // XXX get from context
-//		if (ob->type == OB_MESH)
-// XXX			mesh_copy_menu();
+	if (scene->obedit) { /* XXX get from context */
+/*		if (ob->type == OB_MESH) */
+/* XXX			mesh_copy_menu(); */
 		return;
 	}
 	
@@ -1030,34 +1030,34 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main * bmain, Scene * scene, View3D
 	 */
 	
 	strcpy(str,
-	       "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|"
-	       "Time Offset%x5|Dupli%x6|Object Color%x31|%l|Mass%x7|Damping%x8|All Physical Attributes%x11|Properties%x9|"
-	       "Logic Bricks%x10|Protected Transform%x29|%l");
+	       "Copy Attributes %t|Location %x1|Rotation %x2|Size %x3|Draw Options %x4|"
+	       "Time Offset %x5|Dupli %x6|Object Color %x31|%l|Mass %x7|Damping %x8|All Physical Attributes %x11|Properties %x9|"
+	       "Logic Bricks %x10|Protected Transform %x29|%l");
 	
-	strcat(str, "|Object Constraints%x22");
-	strcat(str, "|NLA Strips%x26");
+	strcat(str, "|Object Constraints %x22");
+	strcat(str, "|NLA Strips %x26");
 	
-// XXX	if (OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
-//		strcat(str, "|Texture Space%x17");
-//	}	
+/* XXX	if (OB_TYPE_SUPPORT_MATERIAL(ob->type)) { */
+/*		strcat(str, "|Texture Space %x17"); */
+/*	} */
 	
-	if (ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
-	if (ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19|UV Orco%x28");
+	if (ob->type == OB_FONT) strcat(str, "|Font Settings %x18|Bevel Settings %x19");
+	if (ob->type == OB_CURVE) strcat(str, "|Bevel Settings %x19|UV Orco %x28");
 	
 	if ((ob->type == OB_FONT) || (ob->type == OB_CURVE)) {
-		strcat(str, "|Curve Resolution%x25");
+		strcat(str, "|Curve Resolution %x25");
 	}
 
 	if (ob->type == OB_MESH) {
-		strcat(str, "|Subsurf Settings%x21|AutoSmooth%x27");
+		strcat(str, "|Subsurf Settings %x21|AutoSmooth %x27");
 	}
 
-	if (ob->soft) strcat(str, "|Soft Body Settings%x23");
+	if (ob->soft) strcat(str, "|Soft Body Settings %x23");
 	
-	strcat(str, "|Pass Index%x30");
+	strcat(str, "|Pass Index %x30");
 	
 	if (ob->type == OB_MESH || ob->type == OB_CURVE || ob->type == OB_LATTICE || ob->type == OB_SURF) {
-		strcat(str, "|Modifiers ...%x24");
+		strcat(str, "|Modifiers ... %x24");
 	}
 
 	event = pupmenu(str);

@@ -69,6 +69,19 @@ EnumPropertyItem object_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem object_empty_drawtype_items[] = {
+	{OB_PLAINAXES, "PLAIN_AXES", 0, "Plain Axes", ""},
+	{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
+	{OB_SINGLE_ARROW, "SINGLE_ARROW", 0, "Single Arrow", ""},
+	{OB_CIRCLE, "CIRCLE", 0, "Circle", ""},
+	{OB_CUBE, "CUBE", 0, "Cube", ""},
+	{OB_EMPTY_SPHERE, "SPHERE", 0, "Sphere", ""},
+	{OB_EMPTY_CONE, "CONE", 0, "Cone", ""},
+	{OB_EMPTY_IMAGE, "IMAGE", 0, "Image", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+
 static EnumPropertyItem parent_type_items[] = {
 	{PAROBJECT, "OBJECT", 0, "Object", "The object is parented to an object"},
 	{PARCURVE, "CURVE", 0, "Curve", "The object is parented to a curve"},
@@ -80,7 +93,7 @@ static EnumPropertyItem parent_type_items[] = {
 	{PARBONE, "BONE", 0, "Bone", "The object is parented to a bone"},
 	{0, NULL, 0, NULL, NULL}
 };
-	
+
 static EnumPropertyItem collision_bounds_items[] = {
 	{OB_BOUND_BOX, "BOX", 0, "Box", ""},
 	{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
@@ -1874,18 +1887,6 @@ static void rna_def_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem empty_drawtype_items[] = {
-		{OB_PLAINAXES, "PLAIN_AXES", 0, "Plain Axes", ""},
-		{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
-		{OB_SINGLE_ARROW, "SINGLE_ARROW", 0, "Single Arrow", ""},
-		{OB_CIRCLE, "CIRCLE", 0, "Circle", ""},
-		{OB_CUBE, "CUBE", 0, "Cube", ""},
-		{OB_EMPTY_SPHERE, "SPHERE", 0, "Sphere", ""},
-		{OB_EMPTY_CONE, "CONE", 0, "Cone", ""},
-		{OB_EMPTY_IMAGE, "IMAGE", 0, "Image", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
 	
 	static EnumPropertyItem track_items[] = {
 		{OB_POSX, "POS_X", 0, "+X", ""},
@@ -2267,7 +2268,7 @@ static void rna_def_object(BlenderRNA *brna)
 	/* empty */
 	prop = RNA_def_property(srna, "empty_draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "empty_drawtype");
-	RNA_def_property_enum_items(prop, empty_drawtype_items);
+	RNA_def_property_enum_items(prop, object_empty_drawtype_items);
 	RNA_def_property_ui_text(prop, "Empty Display Type", "Viewport display style for empties");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
@@ -2572,7 +2573,16 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Particle Index", "Index in the lowest-level particle dupli list");
 
-	/* TODO: DupliObject has more properties that can be wrapped */
+	prop = RNA_def_property(srna, "orco", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "orco");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Generated Coordinates", "Generated coordinates in parent object space");
+
+	prop = RNA_def_property(srna, "uv", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "uv");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "UV Coordinates", "UV coordinates in parent object space");
 }
 
 static void rna_def_object_base(BlenderRNA *brna)

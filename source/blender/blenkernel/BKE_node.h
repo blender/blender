@@ -475,6 +475,8 @@ struct bNodeSocket *node_group_add_extern_socket(struct bNodeTree *ntree, ListBa
 void register_node_type_frame(struct bNodeTreeType *ttype);
 void register_node_type_reroute(struct bNodeTreeType *ttype);
 
+void BKE_node_tree_unlink_id_cb(void *calldata, struct ID *owner_id, struct bNodeTree *ntree);
+
 /* ************** SHADER NODES *************** */
 
 struct ShadeInput;

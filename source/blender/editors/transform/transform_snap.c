@@ -80,6 +80,8 @@
 
 #define USE_BVH_FACE_SNAP
 
+#define TRANSFORM_DIST_MAX_PX 1000
+
 /********************* PROTOTYPES ***********************/
 
 static void setSnappingCallback(TransInfo *t);
@@ -296,7 +298,7 @@ void applyProject(TransInfo *t)
 		for (i = 0; i < t->total; i++, td++) {
 			float iloc[3], loc[3], no[3];
 			float mval[2];
-			int dist = 1000;
+			int dist = TRANSFORM_DIST_MAX_PX;
 			
 			if (td->flag & TD_NOACTION)
 				break;
@@ -315,18 +317,18 @@ void applyProject(TransInfo *t)
 				copy_v3_v3(iloc, td->ob->obmat[3]);
 			}
 			
-			ED_view3d_project_float(t->ar, iloc, mval);
-			
-			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect)) {
-//				if (t->flag & (T_EDIT|T_POSE)) {
-//					mul_m4_v3(imat, loc);
-//				}
-//				
-				sub_v3_v3v3(tvec, loc, iloc);
-				
-				mul_m3_v3(td->smtx, tvec);
-				
-				add_v3_v3(td->loc, tvec);
+			if (ED_view3d_project_float_global(t->ar, iloc, mval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+				if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect)) {
+//					if (t->flag & (T_EDIT|T_POSE)) {
+//						mul_m4_v3(imat, loc);
+//					}
+
+					sub_v3_v3v3(tvec, loc, iloc);
+
+					mul_m3_v3(td->smtx, tvec);
+
+					add_v3_v3(td->loc, tvec);
+				}
 			}
 			
 			//XXX constraintTransLim(t, td);
@@ -601,7 +603,9 @@ int updateSelectedSnapPoint(TransInfo *t)
 			int dx, dy;
 			int dist;
 
-			ED_view3d_project_int(t->ar, p->co, screen_loc);
+			if (ED_view3d_project_int_global(t->ar, p->co, screen_loc, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS) {
+				continue;
+			}
 
 			dx = t->mval[0] - screen_loc[0];
 			dy = t->mval[1] - screen_loc[1];
@@ -1232,8 +1236,12 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 			
 			new_depth = len_v3v3(location, ray_start);					
 			
-			ED_view3d_project_int(ar, location, screen_loc);
-			new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+			if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+				new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+			}
+			else {
+				new_dist = TRANSFORM_DIST_MAX_PX;
+			}
 			
 			/* 10% threshold if edge is closer but a bit further
 			 * this takes care of series of connected edges a bit slanted w.r.t the viewport
@@ -1289,8 +1297,13 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[][4],
 		
 		new_depth = len_v3v3(location, ray_start);
 		
-		ED_view3d_project_int(ar, location, screen_loc);
-		new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+		if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+			new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+		}
+		else {
+			new_dist = TRANSFORM_DIST_MAX_PX;
+		}
+
 		
 		if (new_dist <= *r_dist && new_depth < *r_depth) {
 			*r_depth = new_depth;
@@ -1697,7 +1710,7 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, c
 			
 			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(scene, ob);
+				ListBase *lb = object_duplilist(scene, ob, FALSE);
 				
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					Object *dob = dupli_ob->ob;
@@ -1903,7 +1916,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 
 			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(scene, ob);
+				ListBase *lb = object_duplilist(scene, ob, FALSE);
 				
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					Object *dob = dupli_ob->ob;

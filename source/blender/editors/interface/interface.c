@@ -996,24 +996,20 @@ void ui_fontscale(short *points, float aspect)
 /* project button or block (but==NULL) to pixels in regionspace */
 static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, uiBut *but)
 {
-	float gx, gy;
-	float getsizex, getsizey;
+	rctf rectf = (but)? but->rect: block->rect;
 	
-	getsizex = ar->winx;
-	getsizey = ar->winy;
+	ui_block_to_window_fl(ar, block, &rectf.xmin, &rectf.ymin);
+	ui_block_to_window_fl(ar, block, &rectf.xmax, &rectf.ymax);
 
-	gx = (but ? but->rect.xmin : block->rect.xmin) + (block->panel ? block->panel->ofsx : 0.0f);
-	gy = (but ? but->rect.ymin : block->rect.ymin) + (block->panel ? block->panel->ofsy : 0.0f);
-	
-	rect->xmin = floorf(getsizex * (0.5f + 0.5f * (gx * block->winmat[0][0] + gy * block->winmat[1][0] + block->winmat[3][0])));
-	rect->ymin = floorf(getsizey * (0.5f + 0.5f * (gx * block->winmat[0][1] + gy * block->winmat[1][1] + block->winmat[3][1])));
-	
-	gx = (but ? but->rect.xmax : block->rect.xmax) + (block->panel ? block->panel->ofsx : 0.0f);
-	gy = (but ? but->rect.ymax : block->rect.ymax) + (block->panel ? block->panel->ofsy : 0.0f);
-	
-	rect->xmax = floorf(getsizex * (0.5f + 0.5f * (gx * block->winmat[0][0] + gy * block->winmat[1][0] + block->winmat[3][0])));
-	rect->ymax = floorf(getsizey * (0.5f + 0.5f * (gx * block->winmat[0][1] + gy * block->winmat[1][1] + block->winmat[3][1])));
+	rectf.xmin -= ar->winrct.xmin;
+	rectf.ymin -= ar->winrct.ymin;
+	rectf.xmax -= ar->winrct.xmin;
+	rectf.ymax -= ar->winrct.ymin;
 
+	rect->xmin = floorf(rectf.xmin);
+	rect->ymin = floorf(rectf.ymin);
+	rect->xmax = floorf(rectf.xmax);
+	rect->ymax = floorf(rectf.ymax);
 }
 
 /* uses local copy of style, to scale things down, and allow widgets to change stuff */
@@ -2160,8 +2156,6 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 		wm_subwindow_getmatrix(window, region->swinid, block->winmat);
 		wm_subwindow_getsize(window, region->swinid, &getsizex, &getsizey);
 
-		/* TODO - investigate why block->winmat[0][0] is negative
-		 * in the image view when viewRedrawForce is called */
 		block->aspect = 2.0f / fabsf(getsizex * block->winmat[0][0]);
 	}
 	else {
@@ -3421,11 +3415,6 @@ void uiBlockSetFlag(uiBlock *block, int flag)
 void uiBlockClearFlag(uiBlock *block, int flag)
 {
 	block->flag &= ~flag;
-}
-
-void uiBlockSetXOfs(uiBlock *block, int xofs)
-{
-	block->xofs = xofs;
 }
 
 void uiButSetFlag(uiBut *but, int flag)

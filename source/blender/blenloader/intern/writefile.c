@@ -30,46 +30,46 @@
 
 
 /*
-FILEFORMAT: IFF-style structure  (but not IFF compatible!)
-
-start file:
-	BLENDER_V100	12 bytes  (versie 1.00)
-					V = big endian, v = little endian
-					_ = 4 byte pointer, - = 8 byte pointer
-
-datablocks:		also see struct BHead
-	<bh.code>			4 chars
-	<bh.len>			int,  len data after BHead
-	<bh.old>			void,  old pointer
-	<bh.SDNAnr>			int
-	<bh.nr>				int, in case of array: amount of structs
-	data
-	...
-	...
-
-Almost all data in Blender are structures. Each struct saved
-gets a BHead header.  With BHead the struct can be linked again
-and compared with StructDNA .
-
-WRITE
-
-Preferred writing order: (not really a must, but why would you do it random?)
-Any case: direct data is ALWAYS after the lib block
-
-(Local file data)
-- for each LibBlock
-	- write LibBlock
-	- write associated direct data
-(External file data)
-- per library
-	- write library block
-	- per LibBlock
-		- write the ID of LibBlock
-- write TEST (128x128, blend file preview, optional)
-- write FileGlobal (some global vars)
-- write SDNA
-- write USER if filename is ~/X.XX/config/startup.blend
-*/
+ * FILEFORMAT: IFF-style structure  (but not IFF compatible!)
+ *
+ * start file:
+ *     BLENDER_V100    12 bytes  (versie 1.00)
+ *                     V = big endian, v = little endian
+ *                     _ = 4 byte pointer, - = 8 byte pointer
+ *
+ * datablocks:     also see struct BHead
+ *     <bh.code>           4 chars
+ *     <bh.len>            int,  len data after BHead
+ *     <bh.old>            void,  old pointer
+ *     <bh.SDNAnr>         int
+ *     <bh.nr>             int, in case of array: amount of structs
+ *     data
+ *     ...
+ *     ...
+ *
+ * Almost all data in Blender are structures. Each struct saved
+ * gets a BHead header.  With BHead the struct can be linked again
+ * and compared with StructDNA .
+ *
+ * WRITE
+ *
+ * Preferred writing order: (not really a must, but why would you do it random?)
+ * Any case: direct data is ALWAYS after the lib block
+ *
+ * (Local file data)
+ * - for each LibBlock
+ *     - write LibBlock
+ *     - write associated direct data
+ * (External file data)
+ * - per library
+ *     - write library block
+ *     - per LibBlock
+ *         - write the ID of LibBlock
+ * - write TEST (128x128, blend file preview, optional)
+ * - write FileGlobal (some global vars)
+ * - write SDNA
+ * - write USER if filename is ~/X.XX/config/startup.blend
+ */
 
 
 #include <math.h>

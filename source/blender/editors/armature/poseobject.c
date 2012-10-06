@@ -492,7 +492,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if (pchan->parent == NULL) continue;
 					else pabone = pchan->parent->bone;
 					
-					if (PBONE_VISIBLE(arm, pabone)) {
+					if (PBONE_SELECTABLE(arm, pabone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						pabone->flag |= BONE_SELECTED;
 						arm->act_bone = pabone;
@@ -514,7 +514,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 
 						for (pchan_child = ob->pose->chanbase.first; pchan_child; pchan_child = pchan_child->next) {
 							/* possible we have multiple children, some invisible */
-							if (PBONE_VISIBLE(arm, pchan_child->bone)) {
+							if (PBONE_SELECTABLE(arm, pchan_child->bone)) {
 								if (pchan_child->parent == pchan) {
 									chbone = pchan_child->bone;
 									break;
@@ -526,7 +526,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if (chbone == NULL) continue;
 #endif
 					
-					if (PBONE_VISIBLE(arm, chbone)) {
+					if (PBONE_SELECTABLE(arm, chbone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						chbone->flag |= BONE_SELECTED;
 						arm->act_bone = chbone;
@@ -719,9 +719,7 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
 					
 					if (pchan) {
 						/* select if bone is visible and can be affected */
-						if ((PBONE_VISIBLE(arm, pchan->bone)) && 
-						    (pchan->bone->flag & BONE_UNSELECTABLE) == 0)
-						{
+						if (PBONE_SELECTABLE(arm, pchan->bone)) {
 							pchan->bone->flag |= BONE_SELECTED;
 							changed = 1;
 						}
@@ -888,16 +886,16 @@ static void pose_copy_menu(Scene *scene)
 	if (pose_has_protected_selected(ob, 0)) {
 		i = BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
 		if (i < 25)
-			nr = pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|Constraints...%x5");
+			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4|Constraints... %x5");
 		else
-			nr = pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4");
+			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4");
 	}
 	else {
 		i = BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
 		if (i < 25)
-			nr = pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|Constraints...%x5|%l|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
+			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4|Constraints... %x5|%l|Transform Locks %x6|IK Limits %x7|Bone Shape %x8");
 		else
-			nr = pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|%l|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
+			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4|%l|Transform Locks %x6|IK Limits %x7|Bone Shape %x8");
 	}
 	
 	if (nr <= 0) 

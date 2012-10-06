@@ -1999,7 +1999,7 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 		}
 
 		/* if there are no more dest layers, we're done */
-		if (dest_i >= dest->totlayer) return;
+		if (dest_i >= dest->totlayer) break;
 
 		/* if we found a matching layer, copy the data */
 		if (dest->layers[dest_i].type == source->layers[src_i].type) {

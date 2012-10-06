@@ -426,7 +426,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 	if (me == 0 ||  me->totpoly == 0) return;
 
 	if (mode == 0)
-		mode = pupmenu("Seams%t|Mark Border Seam %x1|Clear Seam %x2");
+		mode = pupmenu("Seams %t|Mark Border Seam %x1|Clear Seam %x2");
 
 	if (mode != 1 && mode != 2)
 		return;

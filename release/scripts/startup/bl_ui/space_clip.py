@@ -790,42 +790,45 @@ class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
         sc = context.space_data
         clip = sc.clip
 
-        layout.active = clip.use_proxy
+        col = layout.column()
+        col.active = clip.use_proxy
 
-        layout.label(text="Build Original:")
+        col.label(text="Build Original:")
 
-        row = layout.row(align=True)
+        row = col.row(align=True)
         row.prop(clip.proxy, "build_25", toggle=True)
         row.prop(clip.proxy, "build_50", toggle=True)
         row.prop(clip.proxy, "build_75", toggle=True)
         row.prop(clip.proxy, "build_100", toggle=True)
 
-        layout.label(text="Build Undistorted:")
+        col.label(text="Build Undistorted:")
 
-        row = layout.row(align=True)
+        row = col.row(align=True)
         row.prop(clip.proxy, "build_undistorted_25", toggle=True)
         row.prop(clip.proxy, "build_undistorted_50", toggle=True)
         row.prop(clip.proxy, "build_undistorted_75", toggle=True)
         row.prop(clip.proxy, "build_undistorted_100", toggle=True)
 
-        layout.prop(clip.proxy, "quality")
+        col.prop(clip.proxy, "quality")
 
-        layout.prop(clip, "use_proxy_custom_directory")
+        col.prop(clip, "use_proxy_custom_directory")
         if clip.use_proxy_custom_directory:
-            layout.prop(clip.proxy, "directory")
+            col.prop(clip.proxy, "directory")
 
-        layout.operator("clip.rebuild_proxy", text="Build Proxy")
+        col.operator("clip.rebuild_proxy", text="Build Proxy")
 
         if clip.source == 'MOVIE':
-            col = layout.column()
+            col2 = col.column()
 
-            col.label(text="Use timecode index:")
-            col.prop(clip.proxy, "timecode", text="")
+            col2.label(text="Use timecode index:")
+            col2.prop(clip.proxy, "timecode", text="")
 
-        col = layout.column()
-        col.label(text="Proxy render size:")
+        col2 = col.column()
+        col2.label(text="Proxy render size:")
 
         col.prop(sc.clip_user, "proxy_render_size", text="")
+
+        col = layout.column()
         col.prop(sc.clip_user, "use_render_undistorted")
 
 

@@ -278,11 +278,15 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			gp_get_3d_reference(p, rvec);
 			
 			/* method taken from editview.c - mouse_cursor() */
-			ED_view3d_project_int_noclip(p->ar, rvec, mval_prj);
-			
-			VECSUB2D(mval_f, mval_prj, mval);
-			ED_view3d_win_to_delta(p->ar, mval_f, dvec);
-			sub_v3_v3v3(out, rvec, dvec);
+			/* TODO, use ED_view3d_project_float_global */
+			if (ED_view3d_project_int_global(p->ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+				VECSUB2D(mval_f, mval_prj, mval);
+				ED_view3d_win_to_delta(p->ar, mval_f, dvec);
+				sub_v3_v3v3(out, rvec, dvec);
+			}
+			else {
+				zero_v3(out);
+			}
 		}
 	}
 	
@@ -808,9 +812,14 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 	else if (gps->totpoints == 1) {
 		/* get coordinates */
 		if (gps->flag & GP_STROKE_3DSPACE) {
-			ED_view3d_project_int(p->ar, &gps->points->x, xyval);
-			x0 = xyval[0];
-			y0 = xyval[1];
+			if (ED_view3d_project_int_global(p->ar, &gps->points->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+				x0 = xyval[0];
+				y0 = xyval[1];
+			}
+			else {
+				x0 = V2D_IS_CLIPPED;
+				y0 = V2D_IS_CLIPPED;
+			}
 		}
 		else if (gps->flag & GP_STROKE_2DSPACE) {			
 			UI_view2d_view_to_region(p->v2d, gps->points->x, gps->points->y, &x0, &y0);
@@ -847,13 +856,22 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			
 			/* get coordinates */
 			if (gps->flag & GP_STROKE_3DSPACE) {
-				ED_view3d_project_int(p->ar, &pt1->x, xyval);
-				x0 = xyval[0];
-				y0 = xyval[1];
-				
-				ED_view3d_project_int(p->ar, &pt2->x, xyval);
-				x1 = xyval[0];
-				y1 = xyval[1];
+				if (ED_view3d_project_int_global(p->ar, &pt1->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+					x0 = xyval[0];
+					y0 = xyval[1];
+				}
+				else {
+					x0 = V2D_IS_CLIPPED;
+					y0 = V2D_IS_CLIPPED;
+				}
+				if (ED_view3d_project_int_global(p->ar, &pt2->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+					x1 = xyval[0];
+					y1 = xyval[1];
+				}
+				else {
+					x1 = V2D_IS_CLIPPED;
+					y1 = V2D_IS_CLIPPED;
+				}
 			}
 			else if (gps->flag & GP_STROKE_2DSPACE) {
 				UI_view2d_view_to_region(p->v2d, pt1->x, pt1->y, &x0, &y0);
@@ -1125,7 +1143,7 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 	/* get active layer (or add a new one if non-existent) */
 	p->gpl = gpencil_layer_getactive(p->gpd);
 	if (p->gpl == NULL) {
-		p->gpl = gpencil_layer_addnew(p->gpd);
+		p->gpl = gpencil_layer_addnew(p->gpd, "GP_Layer", 1);
 		
 		if (p->custom_color[3])
 			copy_v3_v3(p->gpl->color, p->custom_color);
@@ -1598,7 +1616,7 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
 	gpencil_draw_exit(C, op);
 	
 	/* refreshes */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX need a nicer one that will work
+	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1659,7 +1677,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		//printf("\tGP - hotkey invoked... waiting for click-drag\n");
 	}
 	
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL, NULL);
+	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 	/* add a modal handler for this operator, so that we can then draw continuous strokes */
 	WM_event_add_modal_handler(C, op);
 	return OPERATOR_RUNNING_MODAL;
@@ -1772,7 +1790,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 				estate = OPERATOR_RUNNING_MODAL;
 				
 				/* stroke could be smoothed, send notifier to refresh screen */
-				WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL);
+				WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 			}
 			else {
 				//printf("\t\tGP - end of stroke + op\n");
@@ -1862,7 +1880,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case OPERATOR_FINISHED:
 			/* one last flush before we're done */
 			gpencil_draw_exit(C, op);
-			WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX need a nicer one that will work
+			WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 			break;
 			
 		case OPERATOR_CANCELLED:

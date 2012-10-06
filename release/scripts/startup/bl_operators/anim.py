@@ -189,7 +189,7 @@ class BakeAction(Operator):
             name="Only Selected",
             default=True,
             )
-    clear_consraints = BoolProperty(
+    clear_constraints = BoolProperty(
             name="Clear Constraints",
             default=False,
             )
@@ -212,7 +212,7 @@ class BakeAction(Operator):
                                         self.only_selected,
                                         'POSE' in self.bake_types,
                                         'OBJECT' in self.bake_types,
-                                        self.clear_consraints,
+                                        self.clear_constraints,
                                         True,
                                  )
 

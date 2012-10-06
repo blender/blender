@@ -171,6 +171,7 @@ help:
 	@echo ""
 	@echo "Static Source Code Checking (not associated with building blender)"
 	@echo "  * check_cppcheck    - run blender source through cppcheck (C & C++)"
+	@echo "  * check_clang_array - run blender source through clang array checking script (C & C++)"
 	@echo "  * check_splint      - run blenders source through splint (C only)"
 	@echo "  * check_sparse      - run blenders source through sparse (C only)"
 	@echo "  * check_smatch      - run blenders source through smatch (C only)"
@@ -243,6 +244,10 @@ project_eclipse:
 check_cppcheck:
 	$(CMAKE_CONFIG)
 	cd $(BUILD_DIR) ; python3.2 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py
+
+check_clang_array:
+	$(CMAKE_CONFIG)
+	cd $(BUILD_DIR) ; python3.2 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_clang_array.py
 
 check_splint:
 	$(CMAKE_CONFIG)

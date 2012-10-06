@@ -776,7 +776,6 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCREEN:
 			switch (wmn->data) {
-				case ND_GPENCIL:
 				case ND_ANIMPLAY:
 				case ND_SKETCH:
 					ED_region_tag_redraw(ar);
@@ -792,6 +791,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 
+			break;
+		case NC_GPENCIL:
+			if (wmn->action == NA_EDITED)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -941,8 +944,8 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
-		case NC_SCREEN: 
-			if (wmn->data == ND_GPENCIL)
+		case NC_GPENCIL:
+			if (wmn->data == ND_DATA)
 				ED_region_tag_redraw(ar);
 			break;
 	}

@@ -173,12 +173,16 @@ public:
 
 
 
-ClosureParam bsdf_ashikhmin_velvet_params[] = {
-	CLOSURE_VECTOR_PARAM(AshikhminVelvetClosure, m_N),
-	CLOSURE_FLOAT_PARAM(AshikhminVelvetClosure, m_sigma),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(AshikhminVelvetClosure)
-};
+ClosureParam *bsdf_ashikhmin_velvet_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(AshikhminVelvetClosure, m_N),
+	    CLOSURE_FLOAT_PARAM(AshikhminVelvetClosure, m_sigma),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(AshikhminVelvetClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(bsdf_ashikhmin_velvet_prepare, AshikhminVelvetClosure)
 

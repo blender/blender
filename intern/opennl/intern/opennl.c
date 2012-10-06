@@ -137,14 +137,14 @@ static void __nl_should_not_have_reached(char* file, int line) {
 /************************************************************************************/
 /* memory management */
 
-#define __NL_NEW(T)				(T*)(calloc(1, sizeof(T))) 
-#define __NL_NEW_ARRAY(T,NB)	   (T*)(calloc((NB),sizeof(T))) 
+#define __NL_NEW(T)                (T*)(calloc(1, sizeof(T))) 
+#define __NL_NEW_ARRAY(T,NB)       (T*)(calloc(MAX(NB, 1),sizeof(T))) 
 #define __NL_RENEW_ARRAY(T,x,NB)   (T*)(realloc(x,(NB)*sizeof(T))) 
-#define __NL_DELETE(x)			 free(x); x = NULL 
-#define __NL_DELETE_ARRAY(x)	   free(x); x = NULL
+#define __NL_DELETE(x)             if(x) free(x); x = NULL 
+#define __NL_DELETE_ARRAY(x)       if(x) free(x); x = NULL
 
-#define __NL_CLEAR(T, x)		   memset(x, 0, sizeof(T)) 
-#define __NL_CLEAR_ARRAY(T,x,NB)   memset(x, 0, (NB)*sizeof(T)) 
+#define __NL_CLEAR(T, x)           memset(x, 0, sizeof(T)) 
+#define __NL_CLEAR_ARRAY(T,x,NB)   if(NB) memset(x, 0, (NB)*sizeof(T)) 
 
 /************************************************************************************/
 /* Dynamic arrays for sparse row/columns */
@@ -1041,6 +1041,9 @@ static NLboolean __nlFactorize_SUPERLU(__NLContext *context, NLint *permutation)
 	__NLSparseMatrix* M = (context->least_squares)? &context->MtM: &context->M;
 	NLuint n = context->n;
 	NLuint nnz = __nlSparseMatrixNNZ(M); /* number of non-zero coeffs */
+
+	/*if(n > 10)
+		n = 10;*/
 
 	/* Compressed Row Storage matrix representation */
 	NLint	*xa		= __NL_NEW_ARRAY(NLint, n+1);

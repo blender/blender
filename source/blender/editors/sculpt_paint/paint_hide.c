@@ -197,7 +197,7 @@ static void partialvis_update_grids(Object *ob,
 			for (x = 0; x < key.grid_size; x++) {
 				CCGElem *elem = CCG_grid_elem(&key, grids[g], x, y);
 				const float *co = CCG_elem_co(&key, elem);
-				float mask = *CCG_elem_mask(&key, elem);
+				float mask = key.has_mask ? *CCG_elem_mask(&key, elem) : 0.0f;
 
 				/* skip grid element if not in the effected area */
 				if (is_effected(area, planes, co, mask)) {

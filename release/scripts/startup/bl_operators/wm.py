@@ -1028,7 +1028,7 @@ class WM_OT_properties_edit(Operator):
     min = rna_min
     max = rna_max
     description = StringProperty(
-            name="Tip",
+            name="Tooltip",
             )
 
     def execute(self, context):

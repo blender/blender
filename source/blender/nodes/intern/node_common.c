@@ -650,3 +650,15 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
 		if (node->type == NODE_REROUTE && !node->done)
 			node_reroute_inherit_type_recursive(ntree, node);
 }
+
+void BKE_node_tree_unlink_id_cb(void *calldata, struct ID *UNUSED(owner_id), struct bNodeTree *ntree)
+{
+	ID *id = (ID *)calldata;
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->id == id) {
+			node->id = NULL;
+		}
+	}
+}

@@ -578,6 +578,13 @@ void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask)
 	CustomData_set_only_copy(&dm->vertData, mask);
 	CustomData_set_only_copy(&dm->edgeData, mask);
 	CustomData_set_only_copy(&dm->faceData, mask);
+	/* this wasn't in 2.63 and is disabled for 2.64 because it gives problems with
+	 * weight paint mode when there are modifiers applied, needs further investigation,
+	 * see replies to r50969, Campbell */
+#if 0
+	CustomData_set_only_copy(&dm->loopData, mask);
+	CustomData_set_only_copy(&dm->polyData, mask);
+#endif
 }
 
 void DM_add_vert_layer(DerivedMesh *dm, int type, int alloctype, void *layer)

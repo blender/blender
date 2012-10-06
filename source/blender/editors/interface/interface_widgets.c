@@ -1889,53 +1889,47 @@ static void ui_hsv_cursor(float x, float y)
 	
 }
 
-void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my)
+void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rect,
+                                const float mx, const float my)
 {
 	/* duplication of code... well, simple is better now */
-	float centx = BLI_rcti_cent_x_fl(rect);
-	float centy = BLI_rcti_cent_y_fl(rect);
-	float radius, dist;
-	
-	if (BLI_rcti_size_x(rect) > BLI_rcti_size_y(rect))
-		radius = (float)BLI_rcti_size_y(rect) / 2;
-	else
-		radius = (float)BLI_rcti_size_x(rect) / 2;
+	const float centx = BLI_rcti_cent_x_fl(rect);
+	const float centy = BLI_rcti_cent_y_fl(rect);
+	const float radius = (float)mini(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+	const float m_delta[2] = {mx - centx, my - centy};
+	const float dist_squared = len_squared_v2(m_delta);
 
-	mx -= centx;
-	my -= centy;
-	dist = sqrt(mx * mx + my * my);
-	if (dist < radius)
-		*valdist = dist / radius;
-	else
-		*valdist = 1.0f;
-	
-	*valrad = atan2f(mx, my) / (2.0f * (float)M_PI) + 0.5f;
+	*val_dist = (dist_squared < (radius * radius)) ? sqrtf(dist_squared) / radius : 1.0f;
+	*val_rad = atan2f(m_delta[0], m_delta[1]) / (2.0f * (float)M_PI) + 0.5f;
 }
 
-static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
+static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 {
+	const int tot = 32;
+	const float radstep = 2.0f * (float)M_PI / (float)tot;
+
+	const float centx = BLI_rcti_cent_x_fl(rect);
+	const float centy = BLI_rcti_cent_y_fl(rect);
+	float radius = (float)mini(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+
 	/* gouraud triangle fan */
-	float radstep, ang = 0.0f;
-	float centx, centy, radius, cursor_radius;
+	const float *hsv_ptr = ui_block_hsv_get(but->block);
+	float ang = 0.0f;
+	float cursor_radius;
 	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
-	int a, tot = 32;
+	int a;
 	int color_profile = but->block->color_profile;
 	
 	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 		color_profile = FALSE;
 	
-	radstep = 2.0f * (float)M_PI / (float)tot;
-	centx = BLI_rcti_cent_x_fl(rect);
-	centy = BLI_rcti_cent_y_fl(rect);
-	
-	if (BLI_rcti_size_x(rect) > BLI_rcti_size_y(rect))
-		radius = (float)BLI_rcti_size_y(rect) / 2;
-	else
-		radius = (float)BLI_rcti_size_x(rect) / 2;
-	
 	/* color */
 	ui_get_but_vectorf(but, rgb);
-	/* copy_v3_v3(hsv, ui_block_hsv_get(but->block)); */ /* UNUSED */
+
+	/* since we use compat functions on both 'hsv' and 'hsvo', they need to be initialized */
+	hsvo[0] = hsv[0] = hsv_ptr[0];
+	hsvo[1] = hsv[1] = hsv_ptr[1];
+	hsvo[2] = hsv[2] = hsv_ptr[2];
 
 	rgb_to_hsv_compat_v(rgb, hsvo);
 
@@ -2708,16 +2702,16 @@ static void widget_menunodebut(uiWidgetColors *wcol, rcti *rect, int UNUSED(stat
 	*wcol = wcol_backup;
 }
 
-static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
+static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	if (state & UI_ACTIVE) {
 		uiWidgetBase wtb;
-		float rad = 0.5f * BLI_rcti_size_y(rect);  /* 4.0f */
-		
+		float rad = 0.25f * BLI_rcti_size_y(rect);  /* 4.0f */
+
 		widget_init(&wtb);
-		
+
 		/* half rounded */
-		round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
+		round_box_edges(&wtb, roundboxalign, rect, rad);
 		
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -3054,9 +3048,12 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 
 static int widget_roundbox_set(uiBut *but, rcti *rect)
 {
+	int roundbox = UI_CNR_ALL;
+
 	/* alignment */
-	if (but->flag & UI_BUT_ALIGN) {
+	if ((but->flag & UI_BUT_ALIGN) && but->type != PULLDOWN) {
 		
+		/* ui_block_position has this correction too, keep in sync */
 		if (but->flag & UI_BUT_ALIGN_TOP)
 			rect->ymax += 1;
 		if (but->flag & UI_BUT_ALIGN_LEFT)
@@ -3064,27 +3061,50 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 		
 		switch (but->flag & UI_BUT_ALIGN) {
 			case UI_BUT_ALIGN_TOP:
-				return UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT;
+				roundbox = UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT;
+				break;
 			case UI_BUT_ALIGN_DOWN:
-				return UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT;
+				roundbox = UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT;
+				break;
 			case UI_BUT_ALIGN_LEFT:
-				return UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT;
+				roundbox = UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT;
+				break;
 			case UI_BUT_ALIGN_RIGHT:
-				return UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
+				roundbox = UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
+				break;
 			case UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_RIGHT:
-				return UI_CNR_TOP_LEFT;
+				roundbox = UI_CNR_TOP_LEFT;
+				break;
 			case UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_LEFT:
-				return UI_CNR_TOP_RIGHT;
+				roundbox = UI_CNR_TOP_RIGHT;
+				break;
 			case UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT:
-				return UI_CNR_BOTTOM_LEFT;
+				roundbox = UI_CNR_BOTTOM_LEFT;
+				break;
 			case UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT:
-				return UI_CNR_BOTTOM_RIGHT;
+				roundbox = UI_CNR_BOTTOM_RIGHT;
+				break;
 			default:
-				return 0;
+				roundbox = 0;
+				break;
 		}
 	}
 
-	return UI_CNR_ALL;
+	/* align with open menu */
+	if (but->active) {
+		int direction = ui_button_open_menu_direction(but);
+
+		if (direction == UI_TOP)
+			roundbox &= ~(UI_CNR_TOP_RIGHT|UI_CNR_TOP_LEFT);
+		else if (direction == UI_DOWN)
+			roundbox &= ~(UI_CNR_BOTTOM_RIGHT|UI_CNR_BOTTOM_LEFT);
+		else if (direction == UI_LEFT)
+			roundbox &= ~(UI_CNR_TOP_LEFT|UI_CNR_BOTTOM_LEFT);
+		else if (direction == UI_RIGHT)
+			roundbox &= ~(UI_CNR_TOP_RIGHT|UI_CNR_BOTTOM_RIGHT);
+	}
+
+	return roundbox;
 }
 
 /* conversion from old to new buttons, so still messy */

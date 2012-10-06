@@ -109,8 +109,10 @@ void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *d
 void GaussianYBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
-	MEM_freeN(this->m_gausstab);
-	this->m_gausstab = NULL;
+	if (this->m_gausstab) {
+		MEM_freeN(this->m_gausstab);
+		this->m_gausstab = NULL;
+	}
 
 	deinitMutex();
 }

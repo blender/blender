@@ -238,7 +238,8 @@ typedef struct wmNotifier {
 #define NC_LOGIC			(19<<24)
 #define NC_MOVIECLIP			(20<<24)
 #define NC_MASK				(21<<24)
-#define NC_LINESTYLE			(22<<24)
+#define NC_GPENCIL			(22<<24)
+#define NC_LINESTYLE			(23<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -509,7 +510,11 @@ typedef struct wmOperatorType {
 	 * parameters may be provided through operator properties. cannot use
 	 * any interface code or input device state.
 	 * - see defines below for return values */
-	int (*exec)(struct bContext *, struct wmOperator *);
+	int (*exec)(struct bContext *, struct wmOperator *)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+#endif
+	;
 	
 	/* this callback executes on a running operator whenever as property
 	 * is changed. It can correct its own properties or report errors for
@@ -521,9 +526,17 @@ typedef struct wmOperatorType {
 	 * any further events are handled in modal. if the operation is
 	 * canceled due to some external reason, cancel is called
 	 * - see defines below for return values */
-	int (*invoke)(struct bContext *, struct wmOperator *, struct wmEvent *);
+	int (*invoke)(struct bContext *, struct wmOperator *, struct wmEvent *)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+#endif
+	;
 	int (*cancel)(struct bContext *, struct wmOperator *);
-	int (*modal)(struct bContext *, struct wmOperator *, struct wmEvent *);
+	int (*modal)(struct bContext *, struct wmOperator *, struct wmEvent *)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+#endif
+	;
 
 	/* verify if the operator can be executed in the current context, note
 	 * that the operator might still fail to execute even if this return true */

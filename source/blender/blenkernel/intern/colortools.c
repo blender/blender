@@ -1289,9 +1289,9 @@ void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_se
 void BKE_color_managed_view_settings_init(ColorManagedViewSettings *settings)
 {
 	/* OCIO_TODO: use default view transform here when OCIO is completely integrated
-	*             and proper versioning stuff is added.
-	*             for now use NONE to be compatible with all current files
-	*/
+	 *            and proper versioning stuff is added.
+	 *            for now use NONE to be compatible with all current files
+	 */
 	BLI_strncpy(settings->view_transform, "Default", sizeof(settings->view_transform));
 
 	settings->gamma = 1.0f;

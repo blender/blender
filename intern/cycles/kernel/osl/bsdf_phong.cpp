@@ -258,18 +258,28 @@ public:
 
 
 
-ClosureParam bsdf_phong_params[] = {
-    CLOSURE_VECTOR_PARAM(PhongClosure, m_N),
-    CLOSURE_FLOAT_PARAM (PhongClosure, m_exponent),
-    CLOSURE_STRING_KEYPARAM("label"),
-    CLOSURE_FINISH_PARAM(PhongClosure) };
+ClosureParam *bsdf_phong_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(PhongClosure, m_N),
+	    CLOSURE_FLOAT_PARAM (PhongClosure, m_exponent),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(PhongClosure)
+	};
+	return params;
+}
 
-ClosureParam bsdf_phong_ramp_params[] = {
-    CLOSURE_VECTOR_PARAM     (PhongRampClosure, m_N),
-    CLOSURE_FLOAT_PARAM      (PhongRampClosure, m_exponent),
-    CLOSURE_COLOR_ARRAY_PARAM(PhongRampClosure, m_colors, PhongRampClosure::MAXCOLORS),
-    CLOSURE_STRING_KEYPARAM("label"),
-    CLOSURE_FINISH_PARAM     (PhongRampClosure) };
+ClosureParam *bsdf_phong_ramp_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM     (PhongRampClosure, m_N),
+	    CLOSURE_FLOAT_PARAM      (PhongRampClosure, m_exponent),
+	    CLOSURE_COLOR_ARRAY_PARAM(PhongRampClosure, m_colors, PhongRampClosure::MAXCOLORS),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM     (PhongRampClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(bsdf_phong_prepare, PhongClosure)
 CLOSURE_PREPARE(bsdf_phong_ramp_prepare, PhongRampClosure)

@@ -556,8 +556,8 @@ static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
-		case NC_SCREEN:
-			if (wmn->data == ND_GPENCIL) {
+		case NC_GPENCIL:
+			if (wmn->action == NA_EDITED) {
 				ED_region_tag_redraw(ar);
 			}
 			break;
@@ -610,8 +610,8 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
-		case NC_SCREEN:
-			if (wmn->data == ND_GPENCIL) {
+		case NC_GPENCIL:
+			if (wmn->data == ND_DATA) {
 				ED_region_tag_redraw(ar);
 			}
 			break;

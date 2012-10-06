@@ -162,9 +162,8 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
                                     struct MFace *mface, struct MVert *mvert,
                                     int *face_indices, int totface);
 
-void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MFace *mface, int *face_indices, int totface,
-                             struct MVert *mvert, int *vert_indices, int totvert,
-                             int (*face_vert_indices)[4], const float *vmask);
+void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MVert *mvert,
+                             int *vert_indices, int totvert, const float *vmask);
 
 GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
                                     unsigned int **grid_hidden, int gridsize);

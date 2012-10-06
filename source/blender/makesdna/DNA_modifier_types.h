@@ -28,9 +28,6 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-
-#define MODSTACK_DEBUG 1
-
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END) */
 

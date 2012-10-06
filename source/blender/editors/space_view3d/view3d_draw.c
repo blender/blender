@@ -553,32 +553,23 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 {
-	int mx, my, co[2];
-	int flag;
-	
+	int co[2];
+
 	/* we don't want the clipping for cursor */
-	flag = v3d->flag;
-	v3d->flag = 0;
-	ED_view3d_project_int(ar, give_cursor(scene, v3d), co);
-	v3d->flag = flag;
-	
-	mx = co[0];
-	my = co[1];
-	
-	if (mx != IS_CLIPPED) {
+	if (ED_view3d_project_int_global(ar, give_cursor(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
 		setlinestyle(0); 
 		cpack(0xFF);
-		circ((float)mx, (float)my, 10.0);
+		circ((float)co[0], (float)co[1], 10.0);
 		setlinestyle(4); 
 		cpack(0xFFFFFF);
-		circ((float)mx, (float)my, 10.0);
+		circ((float)co[0], (float)co[1], 10.0);
 		setlinestyle(0);
 		cpack(0x0);
 		
-		sdrawline(mx - 20, my, mx - 5, my);
-		sdrawline(mx + 5, my, mx + 20, my);
-		sdrawline(mx, my - 20, mx, my - 5);
-		sdrawline(mx, my + 5, mx, my + 20);
+		sdrawline(co[0] - 20, co[1], co[0] - 5, co[1]);
+		sdrawline(co[0] + 5, co[1], co[0] + 20, co[1]);
+		sdrawline(co[0], co[1] - 20, co[0], co[1] - 5);
+		sdrawline(co[0], co[1] + 5, co[0], co[1] + 20);
 	}
 }
 
@@ -1927,7 +1918,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
 	
 	tbase.flag = OB_FROMDUPLI | base->flag;
-	lb = object_duplilist(scene, base->object);
+	lb = object_duplilist(scene, base->object, FALSE);
 	// BLI_sortlist(lb, dupli_ob_sort); /* might be nice to have if we have a dupli list with mixed objects. */
 
 	dob = dupli_step(lb->first);
@@ -2340,7 +2331,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		
 		if (ob->transflag & OB_DUPLI) {
 			DupliObject *dob;
-			ListBase *lb = object_duplilist(scene, ob);
+			ListBase *lb = object_duplilist(scene, ob, FALSE);
 			
 			for (dob = lb->first; dob; dob = dob->next)
 				if (dob->ob->type == OB_LAMP)

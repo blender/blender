@@ -1209,10 +1209,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUBlendMode alphablend;
 	int a;
 
-	/* OCIO_TODO: assume color management is always enabled. could be nice to support real display transform here,
-	 *            but that's not so important and could be done later
-	 */
-	int gamma = TRUE;
+	int gamma = BKE_scene_check_color_management_enabled(scene);
 
 	int new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	
@@ -1438,21 +1435,6 @@ void GPU_disable_material(void)
 	}
 
 	GPU_set_material_alpha_blend(GPU_BLEND_SOLID);
-}
-
-void GPU_material_diffuse_get(int nr, float diff[4])
-{
-	/* prevent index to use un-initialized array items */
-	if (nr >= GMS.totmat)
-		nr = 0;
-
-	/* no GPU_begin_object_materials, use default material */
-	if (!GMS.matbuf) {
-		mul_v3_v3fl(diff, &defmaterial.r, defmaterial.ref + defmaterial.emit);
-	}
-	else {
-		copy_v4_v4(diff, GMS.matbuf[nr].diff);
-	}
 }
 
 void GPU_end_object_materials(void)

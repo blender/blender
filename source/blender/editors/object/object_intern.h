@@ -112,6 +112,7 @@ void OBJECT_OT_add_named(struct wmOperatorType *ot);
 void OBJECT_OT_metaball_add(struct wmOperatorType *ot);
 void OBJECT_OT_text_add(struct wmOperatorType *ot);
 void OBJECT_OT_armature_add(struct wmOperatorType *ot);
+void OBJECT_OT_empty_add(struct wmOperatorType *ot);
 void OBJECT_OT_lamp_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);
@@ -193,6 +194,7 @@ void CONSTRAINT_OT_childof_set_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_childof_clear_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_objectsolver_set_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_objectsolver_clear_inverse(struct wmOperatorType *ot);
+void CONSTRAINT_OT_followpath_path_animate(struct wmOperatorType *ot);
 
 /* object_vgroup.c */
 void OBJECT_OT_vertex_group_add(struct wmOperatorType *ot);

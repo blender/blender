@@ -254,6 +254,9 @@ set(CYCLES_CUDA_BINARIES_ARCH sm_13 sm_20 sm_21 sm_30 CACHE STRING "CUDA archite
 mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
 unset(PLATFORM_DEFAULT)
 
+# LLVM
+option(WITH_LLVM					"Use LLVM" OFF)
+
 # disable for now, but plan to support on all platforms eventually
 option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
 mark_as_advanced(WITH_MEM_JEMALLOC)
@@ -316,6 +319,9 @@ if(APPLE)
 	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
+	if(CMAKE_OSX_ARCHITECTURES MATCHES x86_64)
+		set(USE_QTKIT ON CACHE BOOL "ON" FORCE) # no Quicktime in 64bit
+	endif()
 endif()
 
 
@@ -369,6 +375,11 @@ endif()
 # auto enable boost for cycles and booleans
 if(WITH_CYCLES OR WITH_MOD_BOOLEAN)
 	set(WITH_BOOST ON)
+endif()
+
+# auto enable llvm for cycles_osl
+if(WITH_CYCLES_OSL)
+	set(WITH_LLVM ON CACHE BOOL "ON" FORCE)
 endif()
 
 # don't store paths to libs for portable distribution
@@ -569,7 +580,7 @@ if(UNIX AND NOT APPLE)
 		# lame, but until we have proper find module for ffmpeg
 		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
 		if(EXISTS "${FFMPEG}/include/ffmpeg/")
-			set(FFMPEG_INCLUDE_DIRS "${FFMPEG_INCLUDE_DIRS} ${FFMPEG}/include/ffmpeg")
+			list(APPEND FFMPEG_INCLUDE_DIRS "${FFMPEG}/include/ffmpeg")
 		endif()
 		# end lameness
 
@@ -704,6 +715,56 @@ if(UNIX AND NOT APPLE)
 		endif()
 	endif()
 
+	if(WITH_LLVM)
+		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+		set(LLVM_VERSION "3.0" CACHE STRING	"Version of LLVM to use" "")
+		set(LLVM_STATIC YES)
+		if(LLVM_DIRECTORY)
+			set(LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
+		else()
+			set(LLVM_CONFIG llvm-config)
+		endif()
+		execute_process(COMMAND ${LLVM_CONFIG} --version
+		                OUTPUT_VARIABLE LLVM_VERSION
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --prefix
+		                OUTPUT_VARIABLE LLVM_DIRECTORY
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --libdir
+		                OUTPUT_VARIABLE LLVM_LIB_DIR
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --includedir
+		                OUTPUT_VARIABLE LLVM_INCLUDES
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		find_library(LLVM_LIBRARY
+		             NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
+		             PATHS ${LLVM_LIB_DIR})
+		message(STATUS "LLVM version  = ${LLVM_VERSION}")
+		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
+		message(STATUS "LLVM includes = ${LLVM_INCLUDES}")
+		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
+
+		if(LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
+			# ensure include directory is added (in case of non-standard locations
+			include_directories(BEFORE "${LLVM_INCLUDES}")
+			string(REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
+			message(STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
+			add_definitions("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
+			if(LLVM_STATIC)
+				# if static LLVM libraries were requested, use llvm-config to generate
+				# the list of what libraries we need, and substitute that in the right
+				# way for LLVM_LIBRARY.
+				execute_process(COMMAND ${LLVM_CONFIG} --libfiles
+				                OUTPUT_VARIABLE LLVM_LIBRARY
+				                OUTPUT_STRIP_TRAILING_WHITESPACE)
+				string(REPLACE " " ";" LLVM_LIBRARY ${LLVM_LIBRARY})
+			endif()
+			message(STATUS "LLVM library  = ${LLVM_LIBRARY}")
+		else()
+			message(FATAL_ERROR "LLVM not found.")
+		endif()
+	endif()
+
 	if(WITH_CYCLES_OSL)
 		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
 	
@@ -712,8 +773,9 @@ if(UNIX AND NOT APPLE)
 		find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
-		# WARNING! depends on correct order of OSL libs linking
-		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
+		# Note: --whole-archive is needed to force loading of all symbols in liboslexec,
+		# otherwise LLVM is missing the osl_allocate_closure_component function
+		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} -Wl,--whole-archive ${OSL_LIB_EXEC} -Wl,--no-whole-archive ${OSL_LIB_QUERY})
 		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
 		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
 	
@@ -1559,6 +1621,56 @@ elseif(APPLE)
 		set(OPENCOLORIO_DEFINITIONS "-DOCIO_STATIC_BUILD")
 	endif()
 
+	if(WITH_LLVM)
+		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+		set(LLVM_VERSION "3.1" CACHE STRING	"Version of LLVM to use" "")
+		set(LLVM_STATIC YES)
+		if(LLVM_DIRECTORY)
+			set(LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
+		else()
+			set(LLVM_CONFIG llvm-config)
+		endif()
+		execute_process(COMMAND ${LLVM_CONFIG} --version
+		                OUTPUT_VARIABLE LLVM_VERSION
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --prefix
+		                OUTPUT_VARIABLE LLVM_DIRECTORY
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --libdir
+		                OUTPUT_VARIABLE LLVM_LIB_DIR
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --includedir
+		                OUTPUT_VARIABLE LLVM_INCLUDES
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		find_library(LLVM_LIBRARY
+		             NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
+		             PATHS ${LLVM_LIB_DIR})
+		message(STATUS "LLVM version  = ${LLVM_VERSION}")
+		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
+		message(STATUS "LLVM includes = ${LLVM_INCLUDES}")
+		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
+
+		if(LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
+			# ensure include directory is added (in case of non-standard locations
+			include_directories(BEFORE "${LLVM_INCLUDES}")
+			string(REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
+			message(STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
+			add_definitions("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
+			if(LLVM_STATIC)
+				# if static LLVM libraries were requested, use llvm-config to generate
+				# the list of what libraries we need, and substitute that in the right
+				# way for LLVM_LIBRARY.
+				execute_process(COMMAND ${LLVM_CONFIG} --libfiles
+				                OUTPUT_VARIABLE LLVM_LIBRARY
+				                OUTPUT_STRIP_TRAILING_WHITESPACE)
+				string(REPLACE " " ";" LLVM_LIBRARY ${LLVM_LIBRARY})
+			endif()
+			message(STATUS "LLVM library  = ${LLVM_LIBRARY}")
+		else()
+			message(FATAL_ERROR "LLVM not found.")
+		endif()
+	endif()
+
 	if(WITH_CYCLES_OSL)
 		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
 	
@@ -1582,78 +1694,19 @@ elseif(APPLE)
 		endif()
 	
 		include_directories(${OSL_INCLUDES})
-		
-
-		# LLVM library setup, needed for osl 
-		
-		set(LLVM_DIRECTORY "${LIBDIR}/llvm")
-		set(LLVM_STATIC YES)
-		if (LLVM_DIRECTORY)
-			set (LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
-		else ()
-			set (LLVM_CONFIG llvm-config)
-		endif ()
-		execute_process (COMMAND ${LLVM_CONFIG} --version
-						 OUTPUT_VARIABLE LLVM_VERSION
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process (COMMAND ${LLVM_CONFIG} --prefix
-						 OUTPUT_VARIABLE LLVM_DIRECTORY
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process (COMMAND ${LLVM_CONFIG} --libdir
-						 OUTPUT_VARIABLE LLVM_LIB_DIR
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process (COMMAND ${LLVM_CONFIG} --includedir
-						 OUTPUT_VARIABLE LLVM_INCLUDES
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-		find_library ( LLVM_LIBRARY
-					   NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
-					   PATHS ${LLVM_LIB_DIR})
-		message (STATUS "LLVM version  = ${LLVM_VERSION}")
-		message (STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
-		message (STATUS "LLVM includes = ${LLVM_INCLUDES}")
-		message (STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
-
-		if (LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
-		  # ensure include directory is added (in case of non-standard locations
-		  include_directories (BEFORE "${LLVM_INCLUDES}")
-		  string (REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
-		  message (STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
-		  add_definitions ("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
-		  if (LLVM_STATIC)
-			# if static LLVM libraries were requested, use llvm-config to generate
-			# the list of what libraries we need, and substitute that in the right
-			# way for LLVM_LIBRARY.
-			set (LLVM_LIBRARY "")
-			execute_process (COMMAND ${LLVM_CONFIG} --libs
-						 OUTPUT_VARIABLE llvm_library_list
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-			string (REPLACE "-l" "" llvm_library_list ${llvm_library_list})
-			string (REPLACE " " ";" llvm_library_list ${llvm_library_list})
-			foreach (f ${llvm_library_list})
-			  list (APPEND LLVM_LIBRARY "${LLVM_LIB_DIR}/lib${f}.a")
-			endforeach ()
-		  endif ()
-		  string (REPLACE ";" " " LLVM_LIBRARY "${LLVM_LIBRARY}")
-		  message (STATUS "LLVM library  = ${LLVM_LIBRARY}")
-		else ()
-		  message (FATAL_ERROR "LLVM not found.")
-		endif ()
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} ${LLVM_LIBRARY}")
-		
-		# end LLVM library setup
-
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)
 
 	set(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
 	set(CMAKE_CXX_FLAGS_DEBUG "-fno-strict-aliasing -g")
-	if(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
-		set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
-		set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -fvariable-expansion-in-unroller")
-	elseif(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
-		set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
-		set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic -ftree-vectorize -msse -msse2 -msse3 -mssse3 -fvariable-expansion-in-unroller")
+	if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64" OR CMAKE_OSX_ARCHITECTURES MATCHES "i386")
+		set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic -msse -msse2 -msse3 -mssse3")
+		set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic  -msse -msse2 -msse3 -mssse3")
+		if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+			set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -ftree-vectorize  -fvariable-expansion-in-unroller")
+			set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ftree-vectorize  -fvariable-expansion-in-unroller")
+		endif()
 	else()
 		set(CMAKE_C_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
 		set(CMAKE_CXX_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
@@ -1675,6 +1728,12 @@ if(WITH_CYCLES)
 	endif()
 	if(NOT WITH_BOOST)
 		message(FATAL_ERROR "Cycles reqires WITH_BOOST, the library may not have been found. Configure BOOST or disable WITH_CYCLES")
+	endif()
+
+	if(WITH_CYCLES_OSL)
+		if(NOT WITH_LLVM)
+			message(FATAL_ERROR "Cycles OSL reqires WITH_LLVM, the library may not have been found. Configure LLVM or disable WITH_CYCLES_OSL")
+		endif()
 	endif()
 endif()
 
@@ -1827,9 +1886,6 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
 
-	# # this causes too many warnings, disable
-	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNDEFINED -Wundef)
-
 	# disable because it gives warnings for printf() & friends.
 	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
 
@@ -1840,14 +1896,17 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_DECLARATIONS -Wmissing-declarations)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_LOGICAL_OP -Wlogical-op)
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEFINED -Wundef)
+
+	# causes too many warnings
+	if(NOT APPLE)
+		ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
+		ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_DECLARATIONS -Wmissing-declarations)
+	endif()
 
 	# flags to undo strict flags
 	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)

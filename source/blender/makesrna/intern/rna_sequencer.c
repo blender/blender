@@ -50,6 +50,8 @@
 #include "WM_types.h"
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 typedef struct EffectInfo {
 	const char *struct_name;
 	const char *ui_name;
@@ -405,7 +407,7 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy_utf8(seq->name + 2, value, sizeof(seq->name) - 2);
 	
 	/* make sure the name is unique */
-	BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 	
 	/* fix all the animation data which may link to this */
 
@@ -1673,14 +1675,14 @@ static void rna_def_effect_inputs(StructRNA *srna, int count)
 		RNA_def_property_ui_text(prop, "Input 2", "Second input for the effect strip");
 	}
 
-	/*
+#if 0
 	if (count == 3) { // not used by any effects (perhaps one day plugins?)
 		prop = RNA_def_property(srna, "input_3",  PROP_POINTER, PROP_NONE);
 		RNA_def_property_pointer_sdna(prop, NULL, "seq3");
 		RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
 		RNA_def_property_ui_text(prop, "Input 3", "Third input for the effect strip");
 	}
-	*/
+#endif
 }
 
 static void rna_def_image(BlenderRNA *brna)
@@ -1858,6 +1860,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "volume");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_AUDIO);
 	RNA_def_property_float_funcs(prop, NULL, "rna_Sequence_volume_set", NULL);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
@@ -1865,6 +1868,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "pitch");
 	RNA_def_property_range(prop, 0.1f, 10.0f);
 	RNA_def_property_ui_text(prop, "Pitch", "Playback pitch of the sound");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_AUDIO);
 	RNA_def_property_float_funcs(prop, NULL, "rna_Sequence_pitch_set", NULL);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 

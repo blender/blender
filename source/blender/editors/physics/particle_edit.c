@@ -398,41 +398,41 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 
 /*************************** selection utilities *******************************/
 
-static int key_test_depth(PEData *data, const float co[3])
+static int key_test_depth(PEData *data, const float co[3], const int screen_co[2])
 {
 	View3D *v3d= data->vc.v3d;
 	double ux, uy, uz;
 	float depth;
-	short wco[3], x, y;
 
 	/* nothing to do */
 	if ((v3d->drawtype<=OB_WIRE) || (v3d->flag & V3D_ZBUF_SELECT)==0)
 		return 1;
 
-	ED_view3d_project_short(data->vc.ar, co, wco);
-	
-	if (wco[0] == IS_CLIPPED)
+	/* used to calculate here but all callers have  the screen_co already, so pass as arg */
+#if 0
+	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co,
+	                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS)
+	{
 		return 0;
+	}
+#endif
 
 	gluProject(co[0], co[1], co[2], data->mats.modelview, data->mats.projection,
 	           (GLint *)data->mats.viewport, &ux, &uy, &uz);
 
-	x=wco[0];
-	y=wco[1];
-
 #if 0 /* works well but too slow on some systems [#23118] */
-	x+= (short)data->vc.ar->winrct.xmin;
-	y+= (short)data->vc.ar->winrct.ymin;
+	screen_co[0] += (short)data->vc.ar->winrct.xmin;
+	screen_co[1] += (short)data->vc.ar->winrct.ymin;
 
 	/* PE_set_view3d_data calls this. no need to call here */
 	/* view3d_validate_backbuf(&data->vc); */
-	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+	glReadPixels(screen_co[0], screen_co[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 #else /* faster to use depths, these are calculated in PE_set_view3d_data */
 	{
 		ViewDepths *vd = data->vc.rv3d->depths;
 		assert(vd && vd->depths);
 		/* we know its not clipped */
-		depth= vd->depths[y * vd->w + x];
+		depth = vd->depths[screen_co[1] * vd->w + screen_co[0]];
 	}
 #endif
 
@@ -445,21 +445,21 @@ static int key_test_depth(PEData *data, const float co[3])
 static int key_inside_circle(PEData *data, float rad, const float co[3], float *distance)
 {
 	float dx, dy, dist;
-	int sco[2];
+	int screen_co[2];
 
-	ED_view3d_project_int(data->vc.ar, co, sco);
-	
-	if (sco[0] == IS_CLIPPED)
+	/* TODO, should this check V3D_PROJ_TEST_CLIP_BB too? */
+	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS) {
 		return 0;
-	
-	dx= data->mval[0] - sco[0];
-	dy= data->mval[1] - sco[1];
+	}
+
+	dx= data->mval[0] - screen_co[0];
+	dy= data->mval[1] - screen_co[1];
 	dist= sqrt(dx*dx + dy*dy);
 
 	if (dist > rad)
 		return 0;
 
-	if (key_test_depth(data, co)) {
+	if (key_test_depth(data, co, screen_co)) {
 		if (distance)
 			*distance=dist;
 
@@ -471,17 +471,16 @@ static int key_inside_circle(PEData *data, float rad, const float co[3], float *
 
 static int key_inside_rect(PEData *data, const float co[3])
 {
-	int sco[2];
+	int screen_co[2];
 
-	ED_view3d_project_int(data->vc.ar, co, sco);
-
-	if (sco[0] == IS_CLIPPED)
+	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS) {
 		return 0;
+	}
 
-	if (sco[0] > data->rect->xmin && sco[0] < data->rect->xmax &&
-	    sco[1] > data->rect->ymin && sco[1] < data->rect->ymax)
+	if (screen_co[0] > data->rect->xmin && screen_co[0] < data->rect->xmax &&
+	    screen_co[1] > data->rect->ymin && screen_co[1] < data->rect->ymax)
 	{
-		return key_test_depth(data, co);
+		return key_test_depth(data, co, screen_co);
 	}
 
 	return 0;
@@ -1634,7 +1633,7 @@ int PE_circle_select(bContext *C, int selecting, const int mval[2], float rad)
 
 /************************ lasso select operator ************************/
 
-int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, short select)
+int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, short extend, short select)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -1645,7 +1644,7 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	POINT_P; KEY_K;
 	float co[3], mat[4][4]= MAT4_UNITY;
-	int vertco[2];
+	int screen_co[2];
 
 	PEData data;
 
@@ -1666,9 +1665,9 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 			LOOP_KEYS {
 				copy_v3_v3(co, key->co);
 				mul_m4_v3(mat, co);
-				ED_view3d_project_int(ar, co, vertco);
-				if (BLI_lasso_is_point_inside(mcords, moves, vertco[0], vertco[1], IS_CLIPPED) &&
-				    key_test_depth(&data, co))
+				if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS) &&
+				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
+				    key_test_depth(&data, co, screen_co))
 				{
 					if (select && !(key->flag & PEK_SELECT)) {
 						key->flag |= PEK_SELECT;
@@ -1686,9 +1685,9 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
-			ED_view3d_project_int(ar, co, vertco);
-			if (BLI_lasso_is_point_inside(mcords, moves, vertco[0], vertco[1], IS_CLIPPED) &&
-			    key_test_depth(&data, co))
+			if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS) &&
+			    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
+			    key_test_depth(&data, co, screen_co))
 			{
 				if (select && !(key->flag & PEK_SELECT)) {
 					key->flag |= PEK_SELECT;
@@ -2789,7 +2788,7 @@ static void brush_cut(PEData *data, int pa_index)
 	float rad2, cut_time= 1.0;
 	float x0, x1, v0, v1, o0, o1, xo0, xo1, d, dv;
 	int k, cut, keys= (int)pow(2.0, (double)pset->draw_step);
-	int vertco[2];
+	int screen_co[2];
 
 	/* blunt scissors */
 	if (BLI_frand() > data->cutfac) return;
@@ -2798,13 +2797,15 @@ static void brush_cut(PEData *data, int pa_index)
 	if (edit->points[pa_index].flag & PEP_HIDE)
 		return;
 
+	if (ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS)
+		return;
+
 	rad2= data->rad * data->rad;
 
 	cut=0;
 
-	ED_view3d_project_int_noclip(ar, key->co, vertco);
-	x0= (float)vertco[0];
-	x1= (float)vertco[1];
+	x0 = (float)screen_co[0];
+	x1 = (float)screen_co[1];
 
 	o0= (float)data->mval[0];
 	o1= (float)data->mval[1];
@@ -2813,26 +2814,27 @@ static void brush_cut(PEData *data, int pa_index)
 	xo1= x1 - o1;
 
 	/* check if root is inside circle */
-	if (xo0*xo0 + xo1*xo1 < rad2 && key_test_depth(data, key->co)) {
+	if (xo0*xo0 + xo1*xo1 < rad2 && key_test_depth(data, key->co, screen_co)) {
 		cut_time= -1.0f;
 		cut= 1;
 	}
 	else {
 		/* calculate path time closest to root that was inside the circle */
 		for (k=1, key++; k<=keys; k++, key++) {
-			ED_view3d_project_int_noclip(ar, key->co, vertco);
 
-			if (key_test_depth(data, key->co) == 0) {
-				x0= (float)vertco[0];
-				x1= (float)vertco[1];
+			if ((ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS) ||
+			    key_test_depth(data, key->co, screen_co) == 0)
+			{
+				x0 = (float)screen_co[0];
+				x1 = (float)screen_co[1];
 
 				xo0= x0 - o0;
 				xo1= x1 - o1;
 				continue;
 			}
 
-			v0= (float)vertco[0] - x0;
-			v1= (float)vertco[1] - x1;
+			v0 = (float)screen_co[0] - x0;
+			v1 = (float)screen_co[1] - x1;
 
 			dv= v0*v0 + v1*v1;
 
@@ -2857,8 +2859,8 @@ static void brush_cut(PEData *data, int pa_index)
 				}
 			}
 
-			x0= (float)vertco[0];
-			x1= (float)vertco[1];
+			x0 = (float)screen_co[0];
+			x1 = (float)screen_co[1];
 
 			xo0= x0 - o0;
 			xo1= x1 - o1;

@@ -1079,7 +1079,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 				ret = -1;
 			}
 			else {
-				BLI_strncpy(mstring->s, tmp_val, sizeof(mstring->s));
+				BLI_strncpy(mstring->s, tmp_val, MIN2(PyBytes_Size(py_value), sizeof(mstring->s)));
 			}
 			break;
 		}

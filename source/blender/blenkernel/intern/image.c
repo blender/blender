@@ -2563,7 +2563,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		*lock_r = re;
 	}
 
-	/* this gives active layer, composite or seqence result */
+	/* this gives active layer, composite or sequence result */
 	rect = (unsigned int *)rres.rect32;
 	rectf = rres.rectf;
 	rectz = rres.rectz;

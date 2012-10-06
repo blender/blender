@@ -1644,14 +1644,18 @@ TextureCoordinateNode::TextureCoordinateNode()
 	add_output("Camera", SHADER_SOCKET_POINT);
 	add_output("Window", SHADER_SOCKET_POINT);
 	add_output("Reflection", SHADER_SOCKET_NORMAL);
+
+	from_dupli = false;
 }
 
 void TextureCoordinateNode::attributes(AttributeRequestSet *attributes)
 {
-	if(!output("Generated")->links.empty())
-		attributes->add(ATTR_STD_GENERATED);
-	if(!output("UV")->links.empty())
-		attributes->add(ATTR_STD_UV);
+	if(!from_dupli) {
+		if(!output("Generated")->links.empty())
+			attributes->add(ATTR_STD_GENERATED);
+		if(!output("UV")->links.empty())
+			attributes->add(ATTR_STD_UV);
+	}
 
 	ShaderNode::attributes(attributes);
 }
@@ -1681,9 +1685,15 @@ void TextureCoordinateNode::compile(SVMCompiler& compiler)
 			compiler.add_node(geom_node, NODE_GEOM_P, out->stack_offset);
 		}
 		else {
-			int attr = compiler.attribute(ATTR_STD_GENERATED);
-			compiler.stack_assign(out);
-			compiler.add_node(attr_node, attr, out->stack_offset, NODE_ATTR_FLOAT3);
+			if(from_dupli) {
+				compiler.stack_assign(out);
+				compiler.add_node(texco_node, NODE_TEXCO_DUPLI_GENERATED, out->stack_offset);
+			}
+			else {
+				int attr = compiler.attribute(ATTR_STD_GENERATED);
+				compiler.stack_assign(out);
+				compiler.add_node(attr_node, attr, out->stack_offset, NODE_ATTR_FLOAT3);
+			}
 		}
 	}
 
@@ -1695,9 +1705,15 @@ void TextureCoordinateNode::compile(SVMCompiler& compiler)
 
 	out = output("UV");
 	if(!out->links.empty()) {
-		int attr = compiler.attribute(ATTR_STD_UV);
-		compiler.stack_assign(out);
-		compiler.add_node(attr_node, attr, out->stack_offset, NODE_ATTR_FLOAT3);
+		if(from_dupli) {
+			compiler.stack_assign(out);
+			compiler.add_node(texco_node, NODE_TEXCO_DUPLI_UV, out->stack_offset);
+		}
+		else {
+			int attr = compiler.attribute(ATTR_STD_UV);
+			compiler.stack_assign(out);
+			compiler.add_node(attr_node, attr, out->stack_offset, NODE_ATTR_FLOAT3);
+		}
 	}
 
 	out = output("Object");

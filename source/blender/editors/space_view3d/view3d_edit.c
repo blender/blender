@@ -1235,8 +1235,8 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
 
 
 /*
-* this is basically just the pan only code + the rotate only code crammed into one function that does both
-*/
+ * this is basically just the pan only code + the rotate only code crammed into one function that does both
+ */
 static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (event->type != NDOF_MOTION)
@@ -3514,57 +3514,49 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 /* ***************** 3d cursor cursor op ******************* */
 
 /* mx my in region coords */
-static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
-	int mval[2];
-//	short ctrl= 0; // XXX
+	float *fp = NULL;
+	float mval_fl[2];
 	int flip;
 	fp = give_cursor(scene, v3d);
 
-//	if (obedit && ctrl) lr_click= 1;
-	copy_v3_v3(oldcurs, fp);
-
-	ED_view3d_project_int_noclip(ar, fp, mval);
 	flip = initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	
-	/* reset the depth based on the view offset */
+	/* reset the depth based on the view offset (we _know_ the offset is infront of us) */
 	if (flip) {
 		negate_v3_v3(fp, rv3d->ofs);
-
-		/* re initialize */
-		ED_view3d_project_int_noclip(ar, fp, mval);
-		flip = initgrabz(rv3d, fp[0], fp[1], fp[2]);
-		(void)flip;
+		/* re initialize, no need to check flip again */
+		/* flip = */ initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	}
 
-	if (mval[0] != IS_CLIPPED) {
-		short depth_used = 0;
+	if (ED_view3d_project_float_global(ar, fp, mval_fl, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+		short depth_used = FALSE;
 
 		if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */
 			view3d_operator_needs_opengl(C);
 			if (ED_view3d_autodist(scene, ar, v3d, event->mval, fp))
-				depth_used = 1;
+				depth_used = TRUE;
 		}
 
-		if (depth_used == 0) {
-			float mval_f[2];
-			VECSUB2D(mval_f, mval, event->mval);
-			ED_view3d_win_to_delta(ar, mval_f, dvec);
+		if (depth_used == FALSE) {
+			float dvec[3];
+			VECSUB2D(mval_fl, mval_fl, event->mval);
+			ED_view3d_win_to_delta(ar, mval_fl, dvec);
 			sub_v3_v3(fp, dvec);
 		}
 	}
 	else {
-
-		dx = ((float)(event->mval[0] - (ar->winx / 2))) * rv3d->zfac / (ar->winx / 2);
-		dy = ((float)(event->mval[1] - (ar->winy / 2))) * rv3d->zfac / (ar->winy / 2);
-
-		fz = rv3d->persmat[0][3] * fp[0] + rv3d->persmat[1][3] * fp[1] + rv3d->persmat[2][3] * fp[2] + rv3d->persmat[3][3];
-		fz = fz / rv3d->zfac;
+		const float dx = ((float)(event->mval[0] - (ar->winx / 2))) * rv3d->zfac / (ar->winx / 2);
+		const float dy = ((float)(event->mval[1] - (ar->winy / 2))) * rv3d->zfac / (ar->winy / 2);
+		const float fz = (rv3d->persmat[0][3] * fp[0] +
+		                  rv3d->persmat[1][3] * fp[1] +
+		                  rv3d->persmat[2][3] * fp[2] +
+		                  rv3d->persmat[3][3]) / rv3d->zfac;
 
 		fp[0] = (rv3d->persinv[0][0] * dx + rv3d->persinv[1][0] * dy + rv3d->persinv[2][0] * fz) - rv3d->ofs[0];
 		fp[1] = (rv3d->persinv[0][1] * dx + rv3d->persinv[1][1] * dy + rv3d->persinv[2][1] * fz) - rv3d->ofs[1];
@@ -3588,7 +3580,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_cursor3d";
 
 	/* api callbacks */
-	ot->invoke = set_3dcursor_invoke;
+	ot->invoke = view3d_cursor3d_invoke;
 
 	ot->poll = ED_operator_view3d_active;
 

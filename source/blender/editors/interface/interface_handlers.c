@@ -2167,6 +2167,16 @@ static void ui_blockopen_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 	}
 }
 
+int ui_button_open_menu_direction(uiBut *but)
+{
+	uiHandleButtonData *data = but->active;
+
+	if (data && data->menu)
+		return data->menu->direction;
+	
+	return 0;
+}
+
 /* ***************** events for different button types *************** */
 
 static int ui_do_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)

@@ -37,8 +37,6 @@
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 
-#include "DNA_defs.h" /* USE_BMESH_FORWARD_COMPAT */
-
 struct AnimData;
 struct DerivedMesh;
 struct Ipo;

@@ -652,7 +652,7 @@ static void do_versions_seq_unique_name_all_strips(Scene * sce, ListBase *seqbas
 	Sequence * seq = seqbasep->first;
 
 	while (seq) {
-		BKE_seqence_base_unique_name_recursive(&sce->ed->seqbase, seq);
+		BKE_sequence_base_unique_name_recursive(&sce->ed->seqbase, seq);
 		if (seq->seqbase.first) {
 			do_versions_seq_unique_name_all_strips(sce, &seq->seqbase);
 		}

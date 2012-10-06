@@ -41,6 +41,8 @@
 #include "BLI_graph.h"
 #include "BLI_ghash.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_sketch.h"
 
@@ -175,7 +177,7 @@ void BIF_makeListTemplates(const bContext *C)
 const char *BIF_listTemplates(const bContext *UNUSED(C))
 {
 	GHashIterator ghi;
-	char menu_header[] = "Template%t|None%x0|";
+	const char *menu_header = IFACE_("Template %t|None %x0|");
 	char *p;
 
 	if (TEMPLATES_MENU != NULL) {
@@ -194,7 +196,7 @@ const char *BIF_listTemplates(const bContext *UNUSED(C))
 		Object *ob = BLI_ghashIterator_getValue(&ghi);
 		int key = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&ghi));
 
-		p += sprintf(p, "|%s%%x%i", ob->id.name + 2, key);
+		p += sprintf(p, "|%s %%x%i", ob->id.name + 2, key);
 
 		BLI_ghashIterator_step(&ghi);
 	}
@@ -644,16 +646,17 @@ static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, int mval[2], in
 			short pval[2];
 			int pdist;
 
-			ED_view3d_project_short_noclip(ar, stk->points[i].p, pval);
+			if (ED_view3d_project_short_global(ar, stk->points[i].p, pval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
 
-			pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
+				pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 
-			if (pdist < *dist) {
-				*dist = pdist;
-				pt = stk->points + i;
+				if (pdist < *dist) {
+					*dist = pdist;
+					pt = stk->points + i;
 
-				if (index != NULL) {
-					*index = i;
+					if (index != NULL) {
+						*index = i;
+					}
 				}
 			}
 		}
@@ -679,7 +682,24 @@ static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones,
 		{
 			copy_v3_v3(vec, bone->head);
 			mul_m4_v3(ob->obmat, vec);
-			ED_view3d_project_short_noclip(ar, vec, pval);
+			if (ED_view3d_project_short_noclip(ar, vec, pval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+
+				pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
+
+				if (pdist < *dist)
+				{
+					*dist = pdist;
+					pt = &boneSnap;
+					copy_v3_v3(pt->p, vec);
+					pt->type = PT_EXACT;
+				}
+			}
+		}
+
+
+		copy_v3_v3(vec, bone->tail);
+		mul_m4_v3(ob->obmat, vec);
+		if (ED_view3d_project_short_noclip(ar, vec, pval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
 
 			pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 
@@ -690,21 +710,6 @@ static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones,
 				copy_v3_v3(pt->p, vec);
 				pt->type = PT_EXACT;
 			}
-		}
-
-
-		copy_v3_v3(vec, bone->tail);
-		mul_m4_v3(ob->obmat, vec);
-		ED_view3d_project_short_noclip(ar, vec, pval);
-
-		pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
-
-		if (pdist < *dist)
-		{
-			*dist = pdist;
-			pt = &boneSnap;
-			copy_v3_v3(pt->p, vec);
-			pt->type = PT_EXACT;
 		}
 	}
 
@@ -905,9 +910,9 @@ static void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end,
 	for (i = start; i <= end; i++) {
 		float ray_start[3], ray_normal[3];
 		float delta = len_v3v3(stk->points[i].p, stk->points[i + 1].p);
-		float pval[2];
+		float pval[2] = {0, 0};
 
-		ED_view3d_project_float(ar, stk->points[i].p, pval);
+		ED_view3d_project_float_global(ar, stk->points[i].p, pval, V3D_PROJ_TEST_NOP);
 		ED_view3d_win_to_ray(ar, v3d, pval, ray_start, ray_normal);
 
 		mul_v3_fl(ray_normal, distance * progress / length);
@@ -934,10 +939,14 @@ static void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_Dr
 	initgrabz(ar->regiondata, fp[0], fp[1], fp[2]);
 
 	/* method taken from editview.c - mouse_cursor() */
-	ED_view3d_project_short_noclip(ar, fp, cval);
-	VECSUB2D(mval_f, cval, dd->mval);
-	ED_view3d_win_to_delta(ar, mval_f, dvec);
-	sub_v3_v3v3(vec, fp, dvec);
+	if (ED_view3d_project_short_global(ar, fp, cval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+		VECSUB2D(mval_f, cval, dd->mval);
+		ED_view3d_win_to_delta(ar, mval_f, dvec);
+		sub_v3_v3v3(vec, fp, dvec);
+	}
+	else {
+		zero_v3(vec);
+	}
 }
 
 static int sk_getStrokeDrawPoint(bContext *C, SK_Point *pt, SK_Sketch *UNUSED(sketch), SK_Stroke *stk, SK_DrawData *dd)
@@ -1453,8 +1462,8 @@ static int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gestu
 		float s_p2[3] = {0, 0, 0};
 		int g_i;
 
-		ED_view3d_project_float(ar, gesture->points[s_i].p, s_p1);
-		ED_view3d_project_float(ar, gesture->points[s_i + 1].p, s_p2);
+		ED_view3d_project_float_global(ar, gesture->points[s_i].p, s_p1, V3D_PROJ_TEST_NOP);
+		ED_view3d_project_float_global(ar, gesture->points[s_i + 1].p, s_p2, V3D_PROJ_TEST_NOP);
 
 		/* start checking from second next, because two consecutive cannot intersect */
 		for (g_i = s_i + 2; g_i < gesture->nb_points - 1; g_i++) {
@@ -1463,8 +1472,8 @@ static int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gestu
 			float vi[3];
 			float lambda;
 
-			ED_view3d_project_float(ar, gesture->points[g_i].p, g_p1);
-			ED_view3d_project_float(ar, gesture->points[g_i + 1].p, g_p2);
+			ED_view3d_project_float_global(ar, gesture->points[g_i].p, g_p1, V3D_PROJ_TEST_NOP);
+			ED_view3d_project_float_global(ar, gesture->points[g_i + 1].p, g_p2, V3D_PROJ_TEST_NOP);
 
 			if (isect_line_line_strict_v3(s_p1, s_p2, g_p1, g_p2, vi, &lambda)) {
 				SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
@@ -1531,8 +1540,8 @@ static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, S
 			float s_p2[3] = {0, 0, 0};
 			int g_i;
 
-			ED_view3d_project_float(ar, stk->points[s_i].p, s_p1);
-			ED_view3d_project_float(ar, stk->points[s_i + 1].p, s_p2);
+			ED_view3d_project_float_global(ar, stk->points[s_i].p, s_p1, V3D_PROJ_TEST_NOP);
+			ED_view3d_project_float_global(ar, stk->points[s_i + 1].p, s_p2, V3D_PROJ_TEST_NOP);
 
 			for (g_i = 0; g_i < gesture->nb_points - 1; g_i++) {
 				float g_p1[3] = {0, 0, 0};
@@ -1540,8 +1549,8 @@ static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, S
 				float vi[3];
 				float lambda;
 
-				ED_view3d_project_float(ar, gesture->points[g_i].p, g_p1);
-				ED_view3d_project_float(ar, gesture->points[g_i + 1].p, g_p2);
+				ED_view3d_project_float_global(ar, gesture->points[g_i].p, g_p1, V3D_PROJ_TEST_NOP);
+				ED_view3d_project_float_global(ar, gesture->points[g_i + 1].p, g_p2, V3D_PROJ_TEST_NOP);
 
 				if (isect_line_line_strict_v3(s_p1, s_p2, g_p1, g_p2, vi, &lambda)) {
 					SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
@@ -1717,8 +1726,8 @@ void sk_applyCommandGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UN
 	SK_Intersection *isect;
 	int command = 1;
 
-//	XXX
-//	command = pupmenu("Action %t|Flatten %x1|Straighten %x2|Polygonize %x3");
+/*	XXX */
+/*	command = pupmenu("Action %t|Flatten %x1|Straighten %x2|Polygonize %x3"); */
 	if (command < 1) return;
 
 	for (isect = gest->intersections.first; isect; isect = isect->next) {
@@ -1784,33 +1793,35 @@ int sk_detectMergeGesture(bContext *C, SK_Gesture *gest, SK_Sketch *UNUSED(sketc
 		short start_val[2], end_val[2];
 		short dist;
 
-		ED_view3d_project_short_noclip(ar, gest->stk->points[0].p, start_val);
-		ED_view3d_project_short_noclip(ar, sk_lastStrokePoint(gest->stk)->p, end_val);
+		if ((ED_view3d_project_short_global(ar, gest->stk->points[0].p,           start_val, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) &&
+		    (ED_view3d_project_short_global(ar, sk_lastStrokePoint(gest->stk)->p, end_val,   V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS))
+		{
 
-		dist = MAX2(ABS(start_val[0] - end_val[0]), ABS(start_val[1] - end_val[1]));
+			dist = MAX2(ABS(start_val[0] - end_val[0]), ABS(start_val[1] - end_val[1]));
 
-		/* if gesture is a circle */
-		if (dist <= 20) {
-			SK_Intersection *isect;
+			/* if gesture is a circle */
+			if (dist <= 20) {
+				SK_Intersection *isect;
 
-			/* check if it circled around an exact point */
-			for (isect = gest->intersections.first; isect; isect = isect->next) {
-				/* only delete strokes that are crossed twice */
-				if (isect->next && isect->next->stroke == isect->stroke) {
-					int start_index, end_index;
-					int i;
+				/* check if it circled around an exact point */
+				for (isect = gest->intersections.first; isect; isect = isect->next) {
+					/* only delete strokes that are crossed twice */
+					if (isect->next && isect->next->stroke == isect->stroke) {
+						int start_index, end_index;
+						int i;
 
-					start_index = MIN2(isect->after, isect->next->after);
-					end_index = MAX2(isect->before, isect->next->before);
+						start_index = MIN2(isect->after, isect->next->after);
+						end_index = MAX2(isect->before, isect->next->before);
 
-					for (i = start_index; i <= end_index; i++) {
-						if (isect->stroke->points[i].type == PT_EXACT) {
-							return 1; /* at least one exact point found, stop detect here */
+						for (i = start_index; i <= end_index; i++) {
+							if (isect->stroke->points[i].type == PT_EXACT) {
+								return 1; /* at least one exact point found, stop detect here */
+							}
 						}
-					}
 
-					/* skip next */
-					isect = isect->next;
+						/* skip next */
+						isect = isect->next;
+					}
 				}
 			}
 		}

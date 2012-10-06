@@ -916,19 +916,6 @@ void BKE_mask_free_nolib(Mask *mask)
 	BKE_mask_layer_free_list(&mask->masklayers);
 }
 
-
-static void ntree_unlink_mask_cb(void *calldata, struct ID *UNUSED(owner_id), struct bNodeTree *ntree)
-{
-	ID *id = (ID *)calldata;
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->id == id) {
-			node->id = NULL;
-		}
-	}
-}
-
 void BKE_mask_free(Main *bmain, Mask *mask)
 {
 	bScreen *scr;
@@ -975,21 +962,11 @@ void BKE_mask_free(Main *bmain, Mask *mask)
 			}
 			SEQ_END
 		}
-
-
-		if (scene->nodetree) {
-			bNode *node;
-			for (node = scene->nodetree->nodes.first; node; node = node->next) {
-				if (node->id == &mask->id) {
-					node->id = NULL;
-				}
-			}
-		}
 	}
 
 	{
 		bNodeTreeType *treetype = ntreeGetType(NTREE_COMPOSIT);
-		treetype->foreach_nodetree(bmain, (void *)mask, &ntree_unlink_mask_cb);
+		treetype->foreach_nodetree(bmain, (void *)mask, &BKE_node_tree_unlink_id_cb);
 	}
 
 	/* free mask data */
@@ -1548,7 +1525,7 @@ void BKE_mask_parent_init(MaskParent *parent)
 }
 
 
-/* *** own animation/shapekey implimentation ***
+/* *** own animation/shapekey implementation ***
  * BKE_mask_layer_shape_XXX */
 
 int BKE_mask_layer_shape_totvert(MaskLayer *masklay)

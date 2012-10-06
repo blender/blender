@@ -44,7 +44,7 @@ void free_gpencil_layers(struct ListBase *list);
 void BKE_gpencil_free(struct bGPdata *gpd);
 
 struct bGPDframe *gpencil_frame_addnew(struct bGPDlayer *gpl, int cframe);
-struct bGPDlayer *gpencil_layer_addnew(struct bGPdata *gpd);
+struct bGPDlayer *gpencil_layer_addnew(struct bGPdata *gpd, const char *name, int setactive);
 struct bGPdata *gpencil_data_addnew(const char name[]);
 
 struct bGPDframe *gpencil_frame_duplicate(struct bGPDframe *src);
@@ -62,6 +62,6 @@ struct bGPDframe *gpencil_layer_getframe(struct bGPDlayer *gpl, int cframe, shor
 void gpencil_layer_delframe(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 struct bGPDlayer *gpencil_layer_getactive(struct bGPdata *gpd);
 void gpencil_layer_setactive(struct bGPdata *gpd, struct bGPDlayer *active);
-void gpencil_layer_delactive(struct bGPdata *gpd);
+void gpencil_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);
 
 #endif /*  __BKE_GPENCIL_H__ */

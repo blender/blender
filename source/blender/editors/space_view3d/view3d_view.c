@@ -858,6 +858,19 @@ void ED_view3d_project_float_v3_m4(ARegion *ar, const float vec[3], float r_co[3
 	}
 }
 
+eV3DProjStatus ED_view3d_project_base(struct ARegion *ar, struct Base *base)
+{
+	eV3DProjStatus ret = ED_view3d_project_short_global(ar, base->object->obmat[3], &base->sx,
+	                                                    V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
+
+	if (ret != V3D_PROJ_RET_SUCCESS) {
+		base->sx = IS_CLIPPED;
+		base->sy = 0;
+	}
+
+	return ret;
+}
+
 int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
 {
 	/* return 1: draw */
@@ -893,148 +906,145 @@ int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
 	return 0;
 }
 
-void ED_view3d_project_short(ARegion *ar, const float co[3], short r_co[2])   /* clips */
+/* perspmat is typically...
+ * - 'rv3d->perspmat',   is_local == FALSE
+ * - 'rv3d->perspmatob', is_local == TRUE
+ */
+static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
+                                                  float perspmat[4][4], const int is_local,  /* normally hidden */
+                                                  const float co[3], float r_co[2], eV3DProjTest flag)
 {
-	RegionView3D *rv3d = ar->regiondata;
 	float fx, fy, vec4[4];
-	
-	r_co[0] = IS_CLIPPED;
-	
-	if (rv3d->rflag & RV3D_CLIPPING) {
-		if (ED_view3d_clipping_test(rv3d, co, FALSE)) {
-			return;
+
+	if (flag & V3D_PROJ_TEST_CLIP_BB) {
+		RegionView3D *rv3d = ar->regiondata;
+		if (rv3d->rflag & RV3D_CLIPPING) {
+			if (ED_view3d_clipping_test(rv3d, co, is_local)) {
+				return V3D_PROJ_RET_CLIP_BB;
+			}
 		}
 	}
-	
+
 	copy_v3_v3(vec4, co);
 	vec4[3] = 1.0;
-	mul_m4_v4(rv3d->persmat, vec4);
-	
+	mul_m4_v4(perspmat, vec4);
+
 	if (vec4[3] > (float)BL_NEAR_CLIP) {
-		fx = (ar->winx / 2) * (1 + vec4[0] / vec4[3]);
-		
-		if (fx > 0 && fx < ar->winx) {
-			
-			fy = (ar->winy / 2) * (1 + vec4[1] / vec4[3]);
-			
-			if (fy > 0.0f && fy < (float)ar->winy) {
+		fx = ((float)ar->winx / 2.0f) * (1.0f + vec4[0] / vec4[3]);
+		if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0 && fx < ar->winx)) {
+			fy = ((float)ar->winy / 2.0f) * (1.0f + vec4[1] / vec4[3]);
+			if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fy > 0.0f && fy < (float)ar->winy)) {
 				r_co[0] = (short)floor(fx);
 				r_co[1] = (short)floor(fy);
 			}
-		}
-	}
-}
-
-void ED_view3d_project_int(ARegion *ar, const float co[3], int r_co[2])
-{
-	RegionView3D *rv3d = ar->regiondata;
-	float fx, fy, vec4[4];
-	
-	copy_v3_v3(vec4, co);
-	vec4[3] = 1.0;
-	r_co[0] = (int)2140000000.0f;
-	
-	mul_m4_v4(rv3d->persmat, vec4);
-	
-	if (vec4[3] > (float)BL_NEAR_CLIP) {
-		fx = (ar->winx / 2) * (1 + vec4[0] / vec4[3]);
-		
-		if (fx > -2140000000.0f && fx < 2140000000.0f) {
-			fy = (ar->winy / 2) * (1 + vec4[1] / vec4[3]);
-			
-			if (fy > -2140000000.0f && fy < 2140000000.0f) {
-				r_co[0] = (int)floor(fx);
-				r_co[1] = (int)floor(fy);
+			else {
+				return V3D_PROJ_RET_CLIP_WIN;
 			}
 		}
-	}
-}
-
-void ED_view3d_project_int_noclip(ARegion *ar, const float co[3], int r_co[2])
-{
-	RegionView3D *rv3d = ar->regiondata;
-	float fx, fy, vec4[4];
-	
-	copy_v3_v3(vec4, co);
-	vec4[3] = 1.0;
-	
-	mul_m4_v4(rv3d->persmat, vec4);
-	
-	if (fabs(vec4[3]) > BL_NEAR_CLIP) {
-		fx = (ar->winx / 2) * (1 + vec4[0] / vec4[3]);
-		fy = (ar->winy / 2) * (1 + vec4[1] / vec4[3]);
-		
-		r_co[0] = (int)floor(fx);
-		r_co[1] = (int)floor(fy);
-	}
-	else {
-		r_co[0] = ar->winx / 2;
-		r_co[1] = ar->winy / 2;
-	}
-}
-
-void ED_view3d_project_short_noclip(ARegion *ar, const float co[3], short r_co[2])
-{
-	RegionView3D *rv3d = ar->regiondata;
-	float fx, fy, vec4[4];
-	
-	copy_v3_v3(vec4, co);
-	vec4[3] = 1.0;
-	r_co[0] = IS_CLIPPED;
-	
-	mul_m4_v4(rv3d->persmat, vec4);
-	
-	if (vec4[3] > (float)BL_NEAR_CLIP) {
-		fx = (ar->winx / 2) * (1 + vec4[0] / vec4[3]);
-		
-		if (fx > -32700 && fx < 32700) {
-			
-			fy = (ar->winy / 2) * (1 + vec4[1] / vec4[3]);
-			
-			if (fy > -32700.0f && fy < 32700.0f) {
-				r_co[0] = (short)floor(fx);
-				r_co[1] = (short)floor(fy);
-			}
+		else {
+			return V3D_PROJ_RET_CLIP_WIN;
 		}
 	}
-}
-
-void ED_view3d_project_float(ARegion *ar, const float co[3], float r_co[2])
-{
-	RegionView3D *rv3d = ar->regiondata;
-
-	float vec4[4];
-
-	copy_v3_v3(vec4, co);
-	vec4[3] = 1.0;
-	r_co[0] = IS_CLIPPED;
-
-	mul_m4_v4(rv3d->persmat, vec4);
-
-	if (vec4[3] > (float)BL_NEAR_CLIP) {
-		r_co[0] = (float)(ar->winx / 2.0f) + (ar->winx / 2.0f) * vec4[0] / vec4[3];
-		r_co[1] = (float)(ar->winy / 2.0f) + (ar->winy / 2.0f) * vec4[1] / vec4[3];
-	}
-}
-
-void ED_view3d_project_float_noclip(ARegion *ar, const float co[3], float r_co[2])
-{
-	RegionView3D *rv3d = ar->regiondata;
-	float vec4[4];
-	
-	copy_v3_v3(vec4, co);
-	vec4[3] = 1.0;
-	
-	mul_m4_v4(rv3d->persmat, vec4);
-	
-	if (fabs(vec4[3]) > BL_NEAR_CLIP) {
-		r_co[0] = (float)(ar->winx / 2.0f) + (ar->winx / 2.0f) * vec4[0] / vec4[3];
-		r_co[1] = (float)(ar->winy / 2.0f) + (ar->winy / 2.0f) * vec4[1] / vec4[3];
-	}
 	else {
-		r_co[0] = ar->winx / 2.0f;
-		r_co[1] = ar->winy / 2.0f;
+		return V3D_PROJ_RET_CLIP_NEAR;
 	}
+
+	return V3D_PROJ_RET_SUCCESS;
+}
+
+eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], const int is_local,
+                                          const float co[3], short r_co[2], eV3DProjTest flag)
+{
+	float tvec[2];
+	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
+	if (ret == V3D_PROJ_RET_SUCCESS) {
+		if ((tvec[0] > -32700.0 && tvec[0] < 32700.0f) &&
+		    (tvec[1] > -32700.0 && tvec[1] < 32700.0f))
+		{
+			r_co[0] = (short)floor(tvec[0]);
+			r_co[1] = (short)floor(tvec[1]);
+		}
+		else {
+			ret = V3D_PROJ_RET_OVERFLOW;
+		}
+	}
+	return ret;
+}
+
+eV3DProjStatus ED_view3d_project_int_ex(ARegion *ar, float perspmat[4][4], const int is_local,
+                                        const float co[3], int r_co[2], eV3DProjTest flag)
+{
+	float tvec[2];
+	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
+	if (ret == V3D_PROJ_RET_SUCCESS) {
+		if ((tvec[0] > -2140000000.0 && tvec[0] < 2140000000.0f) &&
+		    (tvec[1] > -2140000000.0 && tvec[1] < 2140000000.0f))
+		{
+			r_co[0] = (int)floor(tvec[0]);
+			r_co[1] = (int)floor(tvec[1]);
+		}
+		else {
+			ret = V3D_PROJ_RET_OVERFLOW;
+		}
+	}
+	return ret;
+}
+
+eV3DProjStatus ED_view3d_project_float_ex(ARegion *ar, float perspmat[4][4], const int is_local,
+                                        const float co[3], float r_co[2], eV3DProjTest flag)
+{
+	float tvec[2];
+	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
+	if (ret == V3D_PROJ_RET_SUCCESS) {
+		if (finite(tvec[0]) &&
+		    finite(tvec[1]))
+		{
+			copy_v2_v2(r_co, tvec);
+		}
+		else {
+			ret = V3D_PROJ_RET_OVERFLOW;
+		}
+	}
+	return ret;
+}
+
+/* --- short --- */
+eV3DProjStatus ED_view3d_project_short_global(ARegion *ar, const float co[3], short r_co[2], eV3DProjTest flag)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	return ED_view3d_project_short_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
+}
+/* object space, use ED_view3d_init_mats_rv3d before calling */
+eV3DProjStatus ED_view3d_project_short_object(ARegion *ar, const float co[3], short r_co[2], eV3DProjTest flag)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	return ED_view3d_project_short_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
+}
+
+/* --- int --- */
+eV3DProjStatus ED_view3d_project_int_global(ARegion *ar, const float co[3], int r_co[2], eV3DProjTest flag)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	return ED_view3d_project_int_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
+}
+/* object space, use ED_view3d_init_mats_rv3d before calling */
+eV3DProjStatus ED_view3d_project_int_object(ARegion *ar, const float co[3], int r_co[2], eV3DProjTest flag)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	return ED_view3d_project_int_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
+}
+
+/* --- float --- */
+eV3DProjStatus ED_view3d_project_float_global(ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	return ED_view3d_project_float_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
+}
+/* object space, use ED_view3d_init_mats_rv3d before calling */
+eV3DProjStatus ED_view3d_project_float_object(ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	return ED_view3d_project_float_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
 }
 
 /* copies logic of get_view3d_viewplane(), keep in sync */
@@ -1309,7 +1319,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 						Base tbase;
 						
 						tbase.flag = OB_FROMDUPLI;
-						lb = object_duplilist(scene, base->object);
+						lb = object_duplilist(scene, base->object, FALSE);
 						
 						for (dob = lb->first; dob; dob = dob->next) {
 							tbase.object = dob->ob;

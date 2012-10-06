@@ -23,7 +23,8 @@ enum ObjectTransform {
 	OBJECT_INVERSE_TRANSFORM = 3,
 	OBJECT_PROPERTIES = 6,
 	OBJECT_TRANSFORM_MOTION_PRE = 8,
-	OBJECT_TRANSFORM_MOTION_POST = 12
+	OBJECT_TRANSFORM_MOTION_POST = 12,
+	OBJECT_DUPLI = 16
 };
 
 __device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, float time, enum ObjectTransform type)
@@ -163,6 +164,27 @@ __device_inline uint object_particle_id(KernelGlobals *kg, int object)
 	float4 f = kernel_tex_fetch(__objects, offset);
 	return __float_as_int(f.w);
 }
+
+__device_inline float3 object_dupli_generated(KernelGlobals *kg, int object)
+{
+	if(object == ~0)
+		return make_float3(0.0f, 0.0f, 0.0f);
+
+	int offset = object*OBJECT_SIZE + OBJECT_DUPLI;
+	float4 f = kernel_tex_fetch(__objects, offset);
+	return make_float3(f.x, f.y, f.z);
+}
+
+__device_inline float3 object_dupli_uv(KernelGlobals *kg, int object)
+{
+	if(object == ~0)
+		return make_float3(0.0f, 0.0f, 0.0f);
+
+	int offset = object*OBJECT_SIZE + OBJECT_DUPLI;
+	float4 f = kernel_tex_fetch(__objects, offset + 1);
+	return make_float3(f.x, f.y, 0.0f);
+}
+
 
 __device int shader_pass_id(KernelGlobals *kg, ShaderData *sd)
 {

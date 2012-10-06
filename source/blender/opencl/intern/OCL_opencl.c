@@ -22,14 +22,14 @@
 
 #include "OCL_opencl.h"
 
-void OCL_init()
+void OCL_init(void)
 {
 #ifdef _WIN32
-    const char *path = "OpenCL.dll";
+	const char *path = "OpenCL.dll";
 #elif defined(__APPLE__)
-    const char *path = "/Library/Frameworks/OpenCL.framework/OpenCL";
+	const char *path = "/Library/Frameworks/OpenCL.framework/OpenCL";
 #else
-    const char *path = "libOpenCL.so";
+	const char *path = "libOpenCL.so";
 #endif
 
 	clewInit(path);

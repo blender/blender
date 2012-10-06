@@ -2388,7 +2388,7 @@ int BKE_mball_center_bounds(MetaBall *mb, float r_cent[3])
 	return 0;
 }
 
-void BKE_mball_translate(MetaBall *mb, float offset[3])
+void BKE_mball_translate(MetaBall *mb, const float offset[3])
 {
 	MetaElem *ml;
 
@@ -2396,3 +2396,32 @@ void BKE_mball_translate(MetaBall *mb, float offset[3])
 		add_v3_v3(&ml->x, offset);
 	}
 }
+
+/* *** select funcs *** */
+void BKE_mball_select_all(struct MetaBall *mb)
+{
+	MetaElem *ml;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		ml->flag |= SELECT;
+	}
+}
+
+void BKE_mball_deselect_all(MetaBall *mb)
+{
+	MetaElem *ml;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		ml->flag &= ~SELECT;
+	}
+}
+
+void BKE_mball_select_swap(struct MetaBall *mb)
+{
+	MetaElem *ml;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		ml->flag ^= SELECT;
+	}
+}
+

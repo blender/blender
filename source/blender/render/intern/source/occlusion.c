@@ -232,9 +232,9 @@ static void occ_build_shade(Render *re, OcclusionTree *tree)
 /* ------------------------- Spherical Harmonics --------------------------- */
 
 /* Use 2nd order SH => 9 coefficients, stored in this order:
-* 0 = (0,0),
-* 1 = (1,-1), 2 = (1,0), 3 = (1,1),
-* 4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
+ * 0 = (0,0),
+ * 1 = (1,-1), 2 = (1,0), 3 = (1,1),
+ * 4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
 
 static void sh_copy(float *shresult, float *sh)
 {
@@ -1056,8 +1056,8 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 static __m128 sse_approx_acos(__m128 x)
 {
 	/* needs a better approximation than taylor expansion of acos, since that
-	* gives big erros for near 1.0 values, sqrt(2*x)*acos(1-x) should work
-	* better, see http://www.tom.womack.net/projects/sse-fast-arctrig.html */
+	 * gives big erros for near 1.0 values, sqrt(2*x)*acos(1-x) should work
+	 * better, see http://www.tom.womack.net/projects/sse-fast-arctrig.html */
 
 	return _mm_set_ps1(1.0f);
 }

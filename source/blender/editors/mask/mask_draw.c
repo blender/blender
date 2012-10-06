@@ -202,16 +202,16 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 				glLineWidth(3);
 				glColor4ubv(rgb_gray);
 				glBegin(GL_LINES);
-				glVertex3fv(vert);
-				glVertex3fv(handle);
+				glVertex2fv(vert);
+				glVertex2fv(handle);
 				glEnd();
 				glLineWidth(1);
 			}
 
 			glColor3ubv(rgb_spline);
 			glBegin(GL_LINES);
-			glVertex3fv(vert);
-			glVertex3fv(handle);
+			glVertex2fv(vert);
+			glVertex2fv(handle);
 			glEnd();
 		}
 
@@ -226,7 +226,7 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 			glColor3f(0.5f, 0.5f, 0.0f);
 
 		glBegin(GL_POINTS);
-		glVertex3fv(vert);
+		glVertex2fv(vert);
 		glEnd();
 
 		/* draw handle points */
@@ -242,7 +242,7 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 			}
 
 			glBegin(GL_POINTS);
-			glVertex3fv(handle);
+			glVertex2fv(handle);
 			glEnd();
 		}
 	}

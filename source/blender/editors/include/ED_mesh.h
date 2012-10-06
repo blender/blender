@@ -138,7 +138,7 @@ int  EDBM_backbuf_border_init(struct ViewContext *vc, short xmin, short ymin, sh
 int  EDBM_backbuf_check(unsigned int index);
 void EDBM_backbuf_free(void);
 
-int  EDBM_backbuf_border_mask_init(struct ViewContext *vc, int mcords[][2], short tot,
+int  EDBM_backbuf_border_mask_init(struct ViewContext *vc, const int mcords[][2], short tot,
                                    short xmin, short ymin, short xmax, short ymax);
 int  EDBM_backbuf_circle_init(struct ViewContext *vc, short xs, short ys, short rads);
 
@@ -149,7 +149,7 @@ struct BMFace *EDBM_face_find_nearest(struct ViewContext *vc, int *dist);
 int  EDBM_select_pick(struct bContext *C, const int mval[2], short extend, short deselect, short toggle);
 
 void EDBM_selectmode_set(struct BMEditMesh *em);
-void EDBM_selectmode_convert(struct BMEditMesh *em, short selectmode_old, const short selectmode_new);
+void EDBM_selectmode_convert(struct BMEditMesh *em, const short selectmode_old, const short selectmode_new);
 
 void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select);
 
@@ -174,7 +174,7 @@ void        ED_spacetypes_init(void);
 
 
 /* editmesh_tools.c (could be moved) */
-void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct Object *obedit, struct BMEditMesh *em);
+void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct BMEditMesh *em);
 
 
 /* editface.c */

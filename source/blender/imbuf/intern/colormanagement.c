@@ -51,6 +51,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_math.h"
 #include "BLI_math_color.h"
 #include "BLI_path_util.h"
@@ -88,8 +89,15 @@ static int global_tot_colorspace = 0;
 static int global_tot_display = 0;
 static int global_tot_view = 0;
 
+/* lock used by pre-cached processors getters, so processor wouldn't
+ * be created several times
+ * LOCK_COLORMANAGE can not be used since this mutex could be needed to
+ * be locked before pre-cached processor are creating
+ */
+static pthread_mutex_t processor_lock = BLI_MUTEX_INITIALIZER;
+
 typedef struct ColormanageProcessor {
-	ConstProcessorRcPtr *processor;
+	OCIO_ConstProcessorRcPtr *processor;
 	CurveMapping *curve_mapping;
 } ColormanageProcessor;
 
@@ -412,9 +420,9 @@ static void colormanage_cache_handle_release(void *cache_handle)
 
 /*********************** Initialization / De-initialization *************************/
 
-static void colormanage_role_color_space_name_get(ConstConfigRcPtr *config, char *colorspace_name, const char *role, const char *backup_role)
+static void colormanage_role_color_space_name_get(OCIO_ConstConfigRcPtr *config, char *colorspace_name, const char *role, const char *backup_role)
 {
-	ConstColorSpaceRcPtr *ociocs;
+	OCIO_ConstColorSpaceRcPtr *ociocs;
 
 	ociocs = OCIO_configGetColorSpace(config, role);
 
@@ -433,7 +441,7 @@ static void colormanage_role_color_space_name_get(ConstConfigRcPtr *config, char
 	}
 }
 
-static void colormanage_load_config(ConstConfigRcPtr *config)
+static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 {
 	int tot_colorspace, tot_display, tot_display_view, index, viewindex, viewindex2;
 	const char *name;
@@ -449,7 +457,7 @@ static void colormanage_load_config(ConstConfigRcPtr *config)
 	/* load colorspaces */
 	tot_colorspace = OCIO_configGetNumColorSpaces(config);
 	for (index = 0 ; index < tot_colorspace; index++) {
-		ConstColorSpaceRcPtr *ocio_colorspace;
+		OCIO_ConstColorSpaceRcPtr *ocio_colorspace;
 		const char *description;
 		int is_invertible, is_data;
 
@@ -514,10 +522,10 @@ static void colormanage_free_config(void)
 
 		/* free precomputer processors */
 		if (colorspace->to_scene_linear)
-			OCIO_processorRelease((ConstProcessorRcPtr *) colorspace->to_scene_linear);
+			OCIO_processorRelease((OCIO_ConstProcessorRcPtr *) colorspace->to_scene_linear);
 
 		if (colorspace->from_scene_linear)
-			OCIO_processorRelease((ConstProcessorRcPtr *) colorspace->from_scene_linear);
+			OCIO_processorRelease((OCIO_ConstProcessorRcPtr *) colorspace->from_scene_linear);
 
 		/* free color space itself */
 		MEM_freeN(colorspace);
@@ -532,10 +540,10 @@ static void colormanage_free_config(void)
 
 		/* free precomputer processors */
 		if (display->to_scene_linear)
-			OCIO_processorRelease((ConstProcessorRcPtr *) display->to_scene_linear);
+			OCIO_processorRelease((OCIO_ConstProcessorRcPtr *) display->to_scene_linear);
 
 		if (display->from_scene_linear)
-			OCIO_processorRelease((ConstProcessorRcPtr *) display->from_scene_linear);
+			OCIO_processorRelease((OCIO_ConstProcessorRcPtr *) display->from_scene_linear);
 
 		/* free list of views */
 		BLI_freelistN(&display->views);
@@ -546,6 +554,8 @@ static void colormanage_free_config(void)
 
 	/* free views */
 	BLI_freelistN(&global_views);
+
+	OCIO_exit();
 }
 
 void colormanagement_init(void)
@@ -553,7 +563,9 @@ void colormanagement_init(void)
 	const char *ocio_env;
 	const char *configdir;
 	char configfile[FILE_MAX];
-	ConstConfigRcPtr *config = NULL;
+	OCIO_ConstConfigRcPtr *config = NULL;
+
+	OCIO_init();
 
 	ocio_env = getenv("OCIO");
 
@@ -563,15 +575,27 @@ void colormanagement_init(void)
 	if (config == NULL) {
 		configdir = BLI_get_folder(BLENDER_DATAFILES, "colormanagement");
 
-		if (configdir) 	{
+		if (configdir) {
 			BLI_join_dirfile(configfile, sizeof(configfile), configdir, BCM_CONFIG_FILE);
 
+#ifdef WIN32
+			{
+				/* quite a hack to support loading configuration from path with non-acii symbols */
+
+				char short_name[256];
+				BLI_get_short_name(short_name, configfile);
+				config = OCIO_configCreateFromFile(short_name);
+			}
+#else
 			config = OCIO_configCreateFromFile(configfile);
+#endif
 		}
 	}
 
 	if (config == NULL) {
-		config = OCIO_getDefaultConfig();
+		printf("Color management: using fallback mode for management\n");
+
+		config = OCIO_configCreateFallback();
 	}
 
 	if (config) {
@@ -636,21 +660,17 @@ static void display_transform_get_from_ctx(const bContext *C, ColorManagedViewSe
 static const char *display_transform_get_colorspace_name(const ColorManagedViewSettings *view_settings,
                                                          const ColorManagedDisplaySettings *display_settings)
 {
-	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+	OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 
-	if (config) {
-		const char *display = display_settings->display_device;
-		const char *view = view_settings->view_transform;
-		const char *colorspace_name;
+	const char *display = display_settings->display_device;
+	const char *view = view_settings->view_transform;
+	const char *colorspace_name;
 
-		colorspace_name = OCIO_configGetDisplayColorSpaceName(config, display, view);
+	colorspace_name = OCIO_configGetDisplayColorSpaceName(config, display, view);
 
-		OCIO_configRelease(config);
+	OCIO_configRelease(config);
 
-		return colorspace_name;
-	}
-
-	return NULL;
+	return colorspace_name;
 }
 
 static ColorSpace *display_transform_get_colorspace(const ColorManagedViewSettings *view_settings,
@@ -664,18 +684,12 @@ static ColorSpace *display_transform_get_colorspace(const ColorManagedViewSettin
 	return NULL;
 }
 
-static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_transform, const char *display,
+static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *view_transform, const char *display,
                                                             float exposure, float gamma)
 {
-	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
-	DisplayTransformRcPtr *dt;
-	ConstProcessorRcPtr *processor;
-
-	if (!config) {
-		/* there's no valid OCIO configuration, can't create processor */
-
-		return NULL;
-	}
+	OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+	OCIO_DisplayTransformRcPtr *dt;
+	OCIO_ConstProcessorRcPtr *processor;
 
 	dt = OCIO_createDisplayTransform();
 
@@ -686,7 +700,7 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 
 	/* fstop exposure control */
 	if (exposure != 0.0f) {
-		MatrixTransformRcPtr *mt;
+		OCIO_MatrixTransformRcPtr *mt;
 		float gain = powf(2.0f, exposure);
 		const float scale4f[] = {gain, gain, gain, gain};
 		float m44[16], offset4[4];
@@ -694,25 +708,25 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 		OCIO_matrixTransformScale(m44, offset4, scale4f);
 		mt = OCIO_createMatrixTransform();
 		OCIO_matrixTransformSetValue(mt, m44, offset4);
-		OCIO_displayTransformSetLinearCC(dt, (ConstTransformRcPtr *) mt);
+		OCIO_displayTransformSetLinearCC(dt, (OCIO_ConstTransformRcPtr *) mt);
 
 		OCIO_matrixTransformRelease(mt);
 	}
 
 	/* post-display gamma transform */
 	if (gamma != 1.0f) {
-		ExponentTransformRcPtr *et;
+		OCIO_ExponentTransformRcPtr *et;
 		float exponent = 1.0f / MAX2(FLT_EPSILON, gamma);
 		const float exponent4f[] = {exponent, exponent, exponent, exponent};
 
 		et = OCIO_createExponentTransform();
 		OCIO_exponentTransformSetValue(et, exponent4f);
-		OCIO_displayTransformSetDisplayCC(dt, (ConstTransformRcPtr *) et);
+		OCIO_displayTransformSetDisplayCC(dt, (OCIO_ConstTransformRcPtr *) et);
 
 		OCIO_exponentTransformRelease(et);
 	}
 
-	processor = OCIO_configGetProcessor(config, (ConstTransformRcPtr *) dt);
+	processor = OCIO_configGetProcessor(config, (OCIO_ConstTransformRcPtr *) dt);
 
 	OCIO_displayTransformRelease(dt);
 	OCIO_configRelease(config);
@@ -720,17 +734,11 @@ static ConstProcessorRcPtr *create_display_buffer_processor(const char *view_tra
 	return processor;
 }
 
-static ConstProcessorRcPtr *create_colorspace_transform_processor(const char *from_colorspace,
+static OCIO_ConstProcessorRcPtr *create_colorspace_transform_processor(const char *from_colorspace,
                                                                   const char *to_colorspace)
 {
-	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
-	ConstProcessorRcPtr *processor;
-
-	if (!config) {
-		/* there's no valid OCIO configuration, can't create processor */
-
-		return NULL;
-	}
+	OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+	OCIO_ConstProcessorRcPtr *processor;
 
 	processor = OCIO_configGetProcessorWithNames(config, from_colorspace, to_colorspace);
 
@@ -739,49 +747,49 @@ static ConstProcessorRcPtr *create_colorspace_transform_processor(const char *fr
 	return processor;
 }
 
-static ConstProcessorRcPtr *colorspace_to_scene_linear_processor(ColorSpace *colorspace)
+static OCIO_ConstProcessorRcPtr *colorspace_to_scene_linear_processor(ColorSpace *colorspace)
 {
 	if (colorspace->to_scene_linear == NULL) {
-		BLI_lock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_lock(&processor_lock);
 
 		if (colorspace->to_scene_linear == NULL) {
-			ConstProcessorRcPtr *to_scene_linear;
+			OCIO_ConstProcessorRcPtr *to_scene_linear;
 			to_scene_linear = create_colorspace_transform_processor(colorspace->name, global_role_scene_linear);
-			colorspace->to_scene_linear = (struct ConstProcessorRcPtr *) to_scene_linear;
+			colorspace->to_scene_linear = (struct OCIO_ConstProcessorRcPtr *) to_scene_linear;
 		}
 
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_unlock(&processor_lock);
 	}
 
-	return (ConstProcessorRcPtr *) colorspace->to_scene_linear;
+	return (OCIO_ConstProcessorRcPtr *) colorspace->to_scene_linear;
 }
 
-static ConstProcessorRcPtr *colorspace_from_scene_linear_processor(ColorSpace *colorspace)
+static OCIO_ConstProcessorRcPtr *colorspace_from_scene_linear_processor(ColorSpace *colorspace)
 {
 	if (colorspace->from_scene_linear == NULL) {
-		BLI_lock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_lock(&processor_lock);
 
 		if (colorspace->from_scene_linear == NULL) {
-			ConstProcessorRcPtr *from_scene_linear;
+			OCIO_ConstProcessorRcPtr *from_scene_linear;
 			from_scene_linear = create_colorspace_transform_processor(global_role_scene_linear, colorspace->name);
-			colorspace->from_scene_linear = (struct ConstProcessorRcPtr *) from_scene_linear;
+			colorspace->from_scene_linear = (struct OCIO_ConstProcessorRcPtr *) from_scene_linear;
 		}
 
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_unlock(&processor_lock);
 	}
 
-	return (ConstProcessorRcPtr *) colorspace->from_scene_linear;
+	return (OCIO_ConstProcessorRcPtr *) colorspace->from_scene_linear;
 }
 
-static ConstProcessorRcPtr *display_from_scene_linear_processor(ColorManagedDisplay *display)
+static OCIO_ConstProcessorRcPtr *display_from_scene_linear_processor(ColorManagedDisplay *display)
 {
 	if (display->from_scene_linear == NULL) {
-		BLI_lock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_lock(&processor_lock);
 
 		if (display->from_scene_linear == NULL) {
 			const char *view_name = colormanage_view_get_default_name(display);
-			ConstConfigRcPtr *config = OCIO_getCurrentConfig();
-			ConstProcessorRcPtr *processor = NULL;
+			OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+			OCIO_ConstProcessorRcPtr *processor = NULL;
 
 			if (view_name && config) {
 				const char *view_colorspace = OCIO_configGetDisplayColorSpaceName(config, display->name, view_name);
@@ -790,24 +798,24 @@ static ConstProcessorRcPtr *display_from_scene_linear_processor(ColorManagedDisp
 				OCIO_configRelease(config);
 			}
 
-			display->from_scene_linear = (struct ConstProcessorRcPtr *) processor;
+			display->from_scene_linear = (struct OCIO_ConstProcessorRcPtr *) processor;
 		}
 
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_unlock(&processor_lock);
 	}
 
-	return (ConstProcessorRcPtr *) display->from_scene_linear;
+	return (OCIO_ConstProcessorRcPtr *) display->from_scene_linear;
 }
 
-static ConstProcessorRcPtr *display_to_scene_linear_processor(ColorManagedDisplay *display)
+static OCIO_ConstProcessorRcPtr *display_to_scene_linear_processor(ColorManagedDisplay *display)
 {
 	if (display->to_scene_linear == NULL) {
-		BLI_lock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_lock(&processor_lock);
 
 		if (display->to_scene_linear == NULL) {
 			const char *view_name = colormanage_view_get_default_name(display);
-			ConstConfigRcPtr *config = OCIO_getCurrentConfig();
-			ConstProcessorRcPtr *processor = NULL;
+			OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+			OCIO_ConstProcessorRcPtr *processor = NULL;
 
 			if (view_name && config) {
 				const char *view_colorspace = OCIO_configGetDisplayColorSpaceName(config, display->name, view_name);
@@ -816,13 +824,13 @@ static ConstProcessorRcPtr *display_to_scene_linear_processor(ColorManagedDispla
 				OCIO_configRelease(config);
 			}
 
-			display->to_scene_linear = (struct ConstProcessorRcPtr *) processor;
+			display->to_scene_linear = (struct OCIO_ConstProcessorRcPtr *) processor;
 		}
 
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_mutex_unlock(&processor_lock);
 	}
 
-	return (ConstProcessorRcPtr *) display->to_scene_linear;
+	return (OCIO_ConstProcessorRcPtr *) display->to_scene_linear;
 }
 
 static void init_default_view_settings(const ColorManagedDisplaySettings *display_settings,
@@ -1273,7 +1281,7 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	if (cm_processor == NULL) {
 		if (display_buffer_byte) {
 			IMB_buffer_byte_from_byte(display_buffer_byte, handle->byte_buffer, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-			                          FALSE, width, height, width, width);
+			                         FALSE, width, height, width, width);
 		}
 
 		if (display_buffer) {
@@ -1536,7 +1544,7 @@ void IMB_colormanagement_transform_v4(float pixel[4], const char *from_colorspac
  */
 void IMB_colormanagement_colorspace_to_scene_linear_v3(float pixel[3], ColorSpace *colorspace)
 {
-	ConstProcessorRcPtr *processor;
+	OCIO_ConstProcessorRcPtr *processor;
 
 	if (!colorspace) {
 		/* should never happen */
@@ -1553,7 +1561,7 @@ void IMB_colormanagement_colorspace_to_scene_linear_v3(float pixel[3], ColorSpac
 /* same as above, but converts colors in opposite direction */
 void IMB_colormanagement_scene_linear_to_colorspace_v3(float pixel[3], ColorSpace *colorspace)
 {
-	ConstProcessorRcPtr *processor;
+	OCIO_ConstProcessorRcPtr *processor;
 
 	if (!colorspace) {
 		/* should never happen */
@@ -1569,7 +1577,7 @@ void IMB_colormanagement_scene_linear_to_colorspace_v3(float pixel[3], ColorSpac
 
 void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, int height, int channels, struct ColorSpace *colorspace, int predivide)
 {
-	ConstProcessorRcPtr *processor;
+	OCIO_ConstProcessorRcPtr *processor;
 
 	if (!colorspace) {
 		/* should never happen */
@@ -1580,9 +1588,9 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
 	processor = colorspace_to_scene_linear_processor(colorspace);
 
 	if (processor) {
-		PackedImageDesc *img;
+		OCIO_PackedImageDesc *img;
 
-		img = OCIO_createPackedImageDesc(buffer, width, height, channels, sizeof(float),
+		img = OCIO_createOCIO_PackedImageDesc(buffer, width, height, channels, sizeof(float),
 		                                 channels * sizeof(float), channels * sizeof(float) * width);
 
 		if (predivide)
@@ -1590,7 +1598,7 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
 		else
 			OCIO_processorApply(processor, img);
 
-		OCIO_packedImageDescRelease(img);
+		OCIO_OCIO_PackedImageDescRelease(img);
 	}
 }
 
@@ -1600,7 +1608,7 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
  */
 void IMB_colormanagement_scene_linear_to_display_v3(float pixel[3], ColorManagedDisplay *display)
 {
-	ConstProcessorRcPtr *processor;
+	OCIO_ConstProcessorRcPtr *processor;
 
 	processor = display_from_scene_linear_processor(display);
 
@@ -1611,7 +1619,7 @@ void IMB_colormanagement_scene_linear_to_display_v3(float pixel[3], ColorManaged
 /* same as above, but converts color in opposite direction */
 void IMB_colormanagement_display_to_scene_linear_v3(float pixel[3], ColorManagedDisplay *display)
 {
-	ConstProcessorRcPtr *processor;
+	OCIO_ConstProcessorRcPtr *processor;
 
 	processor = display_to_scene_linear_processor(display);
 
@@ -1895,14 +1903,8 @@ void IMB_display_buffer_release(void *cache_handle)
 
 const char *colormanage_display_get_default_name(void)
 {
-	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+	OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	const char *display_name;
-
-	if (!config) {
-		/* no valid OCIO configuration, can't get default display */
-
-		return NULL;
-	}
 
 	display_name = OCIO_configGetDefaultDisplay(config);
 
@@ -2012,14 +2014,8 @@ const char *IMB_colormanagement_display_get_none_name(void)
 
 const char *colormanage_view_get_default_name(const ColorManagedDisplay *display)
 {
-	ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+	OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	const char *name;
-
-	if (!config) {
-		/* no valid OCIO configuration, can't get default view */
-
-		return NULL;
-	}
 
 	name = OCIO_configGetDefaultView(config, display->name);
 
@@ -2526,10 +2522,10 @@ void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, flo
 	}
 
 	if (cm_processor->processor && channels >= 3) {
-		PackedImageDesc *img;
+		OCIO_PackedImageDesc *img;
 
 		/* apply OCIO processor */
-		img = OCIO_createPackedImageDesc(buffer, width, height, channels, sizeof(float),
+		img = OCIO_createOCIO_PackedImageDesc(buffer, width, height, channels, sizeof(float),
 		                                 channels * sizeof(float), channels * sizeof(float) * width);
 
 		if (predivide)
@@ -2537,7 +2533,7 @@ void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, flo
 		else
 			OCIO_processorApply(cm_processor->processor, img);
 
-		OCIO_packedImageDescRelease(img);
+		OCIO_OCIO_PackedImageDescRelease(img);
 	}
 }
 

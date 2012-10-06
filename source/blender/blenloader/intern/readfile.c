@@ -207,7 +207,7 @@
  * - join all Mains
  * - link all LibBlocks and indirect pointers to libblocks
  * - initialize FileGlobal and copy pointers to Global
-*/
+ */
 
 /* also occurs in library.c */
 /* GS reads the memory pointed at in a specific ordering. There are,
@@ -3666,7 +3666,14 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			if (me->mr && me->mr->levels.first)
 				lib_link_customdata_mtface(fd, me, &me->mr->fdata,
 							   ((MultiresLevel*)me->mr->levels.first)->totface);
-			
+		}
+	}
+
+	/* convert texface options to material */
+	convert_tface_mt(fd, main);
+
+	for (me = main->mesh.first; me; me = me->id.next) {
+		if (me->id.flag & LIB_NEED_LINK) {
 			/*check if we need to convert mfaces to mpolys*/
 			if (me->totface && !me->totpoly) {
 				/* temporarily switch main so that reading from
@@ -3678,14 +3685,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 				
 				G.main = gmain;
 			}
-		}
-	}
 
-	/* convert texface options to material */
-	convert_tface_mt(fd, main);
-
-	for (me = main->mesh.first; me; me = me->id.next) {
-		if (me->id.flag & LIB_NEED_LINK) {
 			/*
 			 * Re-tessellate, even if the polys were just created from tessfaces, this
 			 * is important because it:
@@ -3841,35 +3841,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	direct_link_customdata(fd, &mesh->fdata, mesh->totface);
 	direct_link_customdata(fd, &mesh->ldata, mesh->totloop);
 	direct_link_customdata(fd, &mesh->pdata, mesh->totpoly);
-	
-	
-#ifdef USE_BMESH_FORWARD_COMPAT
-	/* NEVER ENABLE THIS CODE INTO BMESH!
-	 * THIS IS FOR LOADING BMESH INTO OLDER FILES ONLY */
-	mesh->mpoly = newdataadr(fd, mesh->mpoly);
-	mesh->mloop = newdataadr(fd, mesh->mloop);
-
-	direct_link_customdata(fd, &mesh->pdata, mesh->totpoly);
-	direct_link_customdata(fd, &mesh->ldata, mesh->totloop);
-
-	if (mesh->mpoly) {
-		/* be clever and load polygons as mfaces */
-		mesh->totface= BKE_mesh_mpoly_to_mface(&mesh->fdata, &mesh->ldata, &mesh->pdata,
-		                                   mesh->totface, mesh->totloop, mesh->totpoly);
-		
-		CustomData_free(&mesh->pdata, mesh->totpoly);
-		memset(&mesh->pdata, 0, sizeof(CustomData));
-		mesh->totpoly = 0;
-		
-		CustomData_free(&mesh->ldata, mesh->totloop);
-		memset(&mesh->ldata, 0, sizeof(CustomData));
-		mesh->totloop = 0;
-		
-		mesh_update_customdata_pointers(mesh);
-	}
-
-#endif
-	
 	
 	mesh->bb = NULL;
 	mesh->edit_btmesh = NULL;
@@ -4369,13 +4340,14 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->flow = NULL;
 				smd->domain = NULL;
 				smd->coll = newdataadr(fd, smd->coll);
-				smd->coll->smd = smd;
 				if (smd->coll) {
+					smd->coll->smd = smd;
 					smd->coll->points = NULL;
 					smd->coll->numpoints = 0;
 				}
-				else
+				else {
 					smd->type = 0;
+				}
 			}
 		}
 		else if (md->type == eModifierType_DynamicPaint) {
@@ -7255,6 +7227,15 @@ static void do_version_ntree_keying_despill_balance(void *UNUSED(data), ID *UNUS
 	}
 }
 
+static void do_version_ntree_tex_coord_from_dupli_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next)
+		if (node->type == SH_NODE_TEX_COORD)
+			node->flag |= NODE_OPTIONS;
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -8194,6 +8175,34 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				CustomData_free_layers(&me->vdata, CD_MSTICKY, me->totvert);
 			}
 		}
+	}
+
+	/* correction for files saved in blender version when BKE_pose_copy_data
+	 * didn't copy animation visualization, which lead to deadlocks on motion
+	 * path calculation for proxied armatures, see [#32742]
+	 */
+	if (main->versionfile < 264) {
+		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			if (ob->pose) {
+				if (ob->pose->avs.path_step == 0) {
+					animviz_settings_init(&ob->pose->avs);
+				}
+			}
+		}
+	}
+
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 1)) {
+		bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
+		bNodeTree *ntree;
+
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_tex_coord_from_dupli_264);
+		
+		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+			if (ntree->type==NTREE_SHADER)
+				do_version_ntree_tex_coord_from_dupli_264(NULL, NULL, ntree);
 	}
 
 	/* default values in Freestyle settings */

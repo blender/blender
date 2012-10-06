@@ -139,15 +139,27 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					float sample_weight = fabsf(average(weight)) * albedo;
 
 					sc.sample_weight = sample_weight;
-					sc.type = CLOSURE_BSDF_ID;
 
 					/* scattering flags */
-					if (scattering == OSL::Labels::DIFFUSE)
+					if (scattering == OSL::Labels::DIFFUSE) {
 						sd->flag |= SD_BSDF | SD_BSDF_HAS_EVAL;
-					else if (scattering == OSL::Labels::GLOSSY)
+						sc.type = CLOSURE_BSDF_DIFFUSE_ID;
+					}
+					else if (scattering == OSL::Labels::GLOSSY) {
 						sd->flag |= SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_GLOSSY;
-					else
+						sc.type = CLOSURE_BSDF_GLOSSY_ID;
+					}
+					else if (scattering == OSL::Labels::STRAIGHT) {
 						sd->flag |= SD_BSDF;
+						sc.type = CLOSURE_BSDF_TRANSPARENT_ID;
+					}
+					else {
+						/* todo: we don't actually have a way to determine if
+						 * this closure will reflect/transmit. could add our own
+						 * own scattering flag that do give this info */
+						sd->flag |= SD_BSDF;
+						sc.type = CLOSURE_BSDF_GLOSSY_ID;
+					}
 
 					/* add */
 					sd->closure[sd->num_closure++] = sc;

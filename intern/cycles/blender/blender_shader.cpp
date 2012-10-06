@@ -490,7 +490,10 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			break;
 		}
 		case BL::ShaderNode::type_TEX_COORD: {
-			node = new TextureCoordinateNode();
+			BL::ShaderNodeTexCoord b_tex_coord_node(b_node);
+			TextureCoordinateNode *tex_coord = new TextureCoordinateNode();
+			tex_coord->from_dupli = b_tex_coord_node.from_dupli();
+			node = tex_coord;
 			break;
 		}
 		case BL::ShaderNode::type_TEX_SKY: {

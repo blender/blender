@@ -1172,10 +1172,8 @@ static IK_Scene *convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		switch (ikchan->jointType & ~IK_TRANSY) {
 			case 0:
 				// fixed bone
-				if (!(ikchan->jointType & IK_TRANSY)) {
-					joint += ":F";
-					ret = arm->addSegment(joint, parent, KDL::Joint::None, 0.0, tip);
-				}
+				joint += ":F";
+				ret = arm->addSegment(joint, parent, KDL::Joint::None, 0.0, tip);
 				break;
 			case IK_XDOF:
 				// RX only, get the X rotation

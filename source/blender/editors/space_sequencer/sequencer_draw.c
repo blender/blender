@@ -747,7 +747,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 		glDisable(GL_BLEND);
 	}
 
-	if (!BKE_seqence_is_valid_check(seq)) {
+	if (!BKE_sequence_is_valid_check(seq)) {
 		glEnable(GL_POLYGON_STIPPLE);
 
 		/* panic! */

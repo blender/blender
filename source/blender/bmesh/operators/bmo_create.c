@@ -275,8 +275,9 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 				continue;
 			
 			f = BM_face_create_ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), TRUE);
-			if (!f)
+			if (UNLIKELY(f == NULL)) {
 				continue;
+			}
 		}
 	}
 	

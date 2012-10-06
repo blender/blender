@@ -24,7 +24,7 @@
 
 MapUVOperation::MapUVOperation() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR);
+	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addInputSocket(COM_DT_VECTOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->m_alpha = 0.0f;

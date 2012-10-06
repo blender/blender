@@ -1720,6 +1720,16 @@ static void def_sh_tex_wave(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
+static void def_sh_tex_coord(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "from_dupli", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
+	RNA_def_property_ui_text(prop, "From Dupli", "Use the parent of the dupli object if possible");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_glossy(StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -2195,14 +2205,14 @@ static void def_cmp_inpaint(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-/*
+#if 0
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of inpaint algorithm");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-*/
+#endif
 	
 	prop = RNA_def_property(srna, "distance", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom2");
@@ -4315,7 +4325,7 @@ static void rna_def_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "label");
 	RNA_def_property_ui_text(prop, "Label", "Optional custom node label");
-	RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 	
 	prop = RNA_def_property(srna, "inputs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "inputs", NULL);

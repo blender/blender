@@ -40,9 +40,11 @@ struct BPoint;
 struct BezTriple;
 struct BezTriple;
 struct BoundBox;
+struct EditBone;
 struct ImBuf;
 struct MVert;
 struct Main;
+struct MetaElem;
 struct Nurb;
 struct Nurb;
 struct Object;
@@ -113,14 +115,48 @@ void  ED_view3d_depth_tag_update(struct RegionView3D *rv3d);
 /* TODO, these functions work quite differently, we should make them behave in a uniform way
  * otherwise we can't be sure bugs are not added when we need to move from short->float types for eg
  * - Campbell */
-void ED_view3d_project_short(struct ARegion *ar, const float co[3], short r_co[2]);
-void ED_view3d_project_short_noclip(struct ARegion *ar, const float vec[3], short r_co[2]);
-void ED_view3d_project_int(struct ARegion *ar, const float co[3], int r_co[2]);
-void ED_view3d_project_int_noclip(struct ARegion *ar, const float co[3], int r_co[2]);
-void ED_view3d_project_float(struct ARegion *ar, const float co[3], float r_co[2]);
-void ED_view3d_project_float_noclip(struct ARegion *ar, const float co[3], float r_co[2]);
+
+
+/* return values for ED_view3d_project_...() */
+typedef enum {
+	V3D_PROJ_RET_SUCCESS   = 0,
+	V3D_PROJ_RET_CLIP_NEAR = 1,  /* can't avoid this when in perspective mode, (can't avoid) */
+	V3D_PROJ_RET_CLIP_BB   = 2,  /* bounding box clip - RV3D_CLIPPING */
+	V3D_PROJ_RET_CLIP_WIN  = 3,  /* outside window bounds */
+	V3D_PROJ_RET_OVERFLOW  = 4   /* outside range (mainly for short), (can't avoid) */
+} eV3DProjStatus;
+
+/* some clipping tests are optional */
+typedef enum {
+	V3D_PROJ_TEST_NOP        = 0,
+	V3D_PROJ_TEST_CLIP_BB    = (1 << 0),
+	V3D_PROJ_TEST_CLIP_WIN   = (1 << 1),
+} eV3DProjTest;
+
+
+/* *** short *** */
+eV3DProjStatus ED_view3d_project_short_ex(struct ARegion *ar, float perspmat[4][4], const int is_local,
+                                          const float co[3], short r_co[2], eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_short_global(struct ARegion *ar, const float co[3], short r_co[2], eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_short_object(struct ARegion *ar, const float co[3], short r_co[2], eV3DProjTest flag);
+
+/* *** int *** */
+eV3DProjStatus ED_view3d_project_int_ex(struct ARegion *ar, float perspmat[4][4], const int is_local,
+                                        const float co[3], int r_co[2], eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_int_global(struct ARegion *ar, const float co[3], int r_co[2], eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_int_object(struct ARegion *ar, const float co[3], int r_co[2], eV3DProjTest flag);
+
+/* *** float *** */
+eV3DProjStatus ED_view3d_project_float_ex(struct ARegion *ar, float perspmat[4][4], const int is_local,
+                                        const float co[3], float r_co[2], eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_float_global(struct ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag);
+eV3DProjStatus ED_view3d_project_float_object(struct ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag);
+
 void ED_view3d_project_float_v2_m4(const struct ARegion *a, const float co[3], float r_co[2], float mat[4][4]);
 void ED_view3d_project_float_v3_m4(struct ARegion *a, const float co[3], float r_co[3], float mat[4][4]);
+
+/* Base's get their own function since its a common operation */
+eV3DProjStatus ED_view3d_project_base(struct ARegion *ar, struct Base *base);
 
 void ED_view3d_unproject(struct bglMats *mats, float out[3], const float x, const float y, const float z);
 
@@ -135,7 +171,11 @@ void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData,
 void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct BMEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts);
 void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct BMFace *efa, int x, int y, int index), void *userData);
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
+void mball_foreachScreenElem(struct ViewContext *vc, void (*func)(void *userData, struct MetaElem *ml, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
+void armature_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1), void *userData);
+void pose_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct bPoseChannel *pchan, int x0, int y0, int x1, int y1), void *userData);
+
 
 void ED_view3d_clipping_calc(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, const struct rcti *rect);
 void ED_view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);
