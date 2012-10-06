@@ -254,6 +254,9 @@ set(CYCLES_CUDA_BINARIES_ARCH sm_13 sm_20 sm_21 sm_30 CACHE STRING "CUDA archite
 mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
 unset(PLATFORM_DEFAULT)
 
+# LLVM
+option(WITH_LLVM					"Use LLVM" OFF)
+
 # disable for now, but plan to support on all platforms eventually
 option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
 mark_as_advanced(WITH_MEM_JEMALLOC)
@@ -369,6 +372,11 @@ endif()
 # auto enable boost for cycles and booleans
 if(WITH_CYCLES OR WITH_MOD_BOOLEAN)
 	set(WITH_BOOST ON)
+endif()
+
+# auto enable llvm for cycles_osl
+if(WITH_CYCLES_OSL)
+	set(WITH_LLVM ON)
 endif()
 
 # don't store paths to libs for portable distribution
@@ -701,6 +709,56 @@ if(UNIX AND NOT APPLE)
 		if(NOT OPENCOLORIO_FOUND)
 			set(WITH_OPENCOLORIO OFF)
 			message(STATUS "OpenColorIO not found")
+		endif()
+	endif()
+
+	if(WITH_LLVM)
+		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+		set(LLVM_VERSION "3.0" CACHE STRING	"Version of LLVM to use" "")
+		set(LLVM_STATIC YES)
+		if(LLVM_DIRECTORY)
+			set(LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
+		else()
+			set(LLVM_CONFIG llvm-config)
+		endif()
+		execute_process(COMMAND ${LLVM_CONFIG} --version
+		                OUTPUT_VARIABLE LLVM_VERSION
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --prefix
+		                OUTPUT_VARIABLE LLVM_DIRECTORY
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --libdir
+		                OUTPUT_VARIABLE LLVM_LIB_DIR
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --includedir
+		                OUTPUT_VARIABLE LLVM_INCLUDES
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		find_library(LLVM_LIBRARY
+		             NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
+		             PATHS ${LLVM_LIB_DIR})
+		message(STATUS "LLVM version  = ${LLVM_VERSION}")
+		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
+		message(STATUS "LLVM includes = ${LLVM_INCLUDES}")
+		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
+
+		if(LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
+			# ensure include directory is added (in case of non-standard locations
+			include_directories(BEFORE "${LLVM_INCLUDES}")
+			string(REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
+			message(STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
+			add_definitions("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
+			if(LLVM_STATIC)
+				# if static LLVM libraries were requested, use llvm-config to generate
+				# the list of what libraries we need, and substitute that in the right
+				# way for LLVM_LIBRARY.
+				execute_process(COMMAND ${LLVM_CONFIG} --libfiles
+				                OUTPUT_VARIABLE LLVM_LIBRARY
+				                OUTPUT_STRIP_TRAILING_WHITESPACE)
+				string(REPLACE " " ";" LLVM_LIBRARY ${LLVM_LIBRARY})
+			endif()
+			message(STATUS "LLVM library  = ${LLVM_LIBRARY}")
+		else()
+			message(FATAL_ERROR "LLVM not found.")
 		endif()
 	endif()
 
@@ -1559,6 +1617,56 @@ elseif(APPLE)
 		set(OPENCOLORIO_DEFINITIONS "-DOCIO_STATIC_BUILD")
 	endif()
 
+	if(WITH_LLVM)
+		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+		set(LLVM_VERSION "3.1" CACHE STRING	"Version of LLVM to use" "")
+		set(LLVM_STATIC YES)
+		if(LLVM_DIRECTORY)
+			set(LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
+		else()
+			set(LLVM_CONFIG llvm-config)
+		endif()
+		execute_process(COMMAND ${LLVM_CONFIG} --version
+		                OUTPUT_VARIABLE LLVM_VERSION
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --prefix
+		                OUTPUT_VARIABLE LLVM_DIRECTORY
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --libdir
+		                OUTPUT_VARIABLE LLVM_LIB_DIR
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		execute_process(COMMAND ${LLVM_CONFIG} --includedir
+		                OUTPUT_VARIABLE LLVM_INCLUDES
+		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		find_library(LLVM_LIBRARY
+		             NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
+		             PATHS ${LLVM_LIB_DIR})
+		message(STATUS "LLVM version  = ${LLVM_VERSION}")
+		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
+		message(STATUS "LLVM includes = ${LLVM_INCLUDES}")
+		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
+
+		if(LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
+			# ensure include directory is added (in case of non-standard locations
+			include_directories(BEFORE "${LLVM_INCLUDES}")
+			string(REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
+			message(STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
+			add_definitions("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
+			if(LLVM_STATIC)
+				# if static LLVM libraries were requested, use llvm-config to generate
+				# the list of what libraries we need, and substitute that in the right
+				# way for LLVM_LIBRARY.
+				execute_process(COMMAND ${LLVM_CONFIG} --libfiles
+				                OUTPUT_VARIABLE LLVM_LIBRARY
+				                OUTPUT_STRIP_TRAILING_WHITESPACE)
+				string(REPLACE " " ";" LLVM_LIBRARY ${LLVM_LIBRARY})
+			endif()
+			message(STATUS "LLVM library  = ${LLVM_LIBRARY}")
+		else()
+			message(FATAL_ERROR "LLVM not found.")
+		endif()
+	endif()
+
 	if(WITH_CYCLES_OSL)
 		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
 	
@@ -1582,66 +1690,6 @@ elseif(APPLE)
 		endif()
 	
 		include_directories(${OSL_INCLUDES})
-		
-
-		# LLVM library setup, needed for osl 
-		
-		set(LLVM_DIRECTORY "${LIBDIR}/llvm")
-		set(LLVM_STATIC YES)
-		if (LLVM_DIRECTORY)
-			set (LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
-		else ()
-			set (LLVM_CONFIG llvm-config)
-		endif ()
-		execute_process (COMMAND ${LLVM_CONFIG} --version
-						 OUTPUT_VARIABLE LLVM_VERSION
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process (COMMAND ${LLVM_CONFIG} --prefix
-						 OUTPUT_VARIABLE LLVM_DIRECTORY
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process (COMMAND ${LLVM_CONFIG} --libdir
-						 OUTPUT_VARIABLE LLVM_LIB_DIR
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process (COMMAND ${LLVM_CONFIG} --includedir
-						 OUTPUT_VARIABLE LLVM_INCLUDES
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-		find_library ( LLVM_LIBRARY
-					   NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
-					   PATHS ${LLVM_LIB_DIR})
-		message (STATUS "LLVM version  = ${LLVM_VERSION}")
-		message (STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
-		message (STATUS "LLVM includes = ${LLVM_INCLUDES}")
-		message (STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
-
-		if (LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
-		  # ensure include directory is added (in case of non-standard locations
-		  include_directories (BEFORE "${LLVM_INCLUDES}")
-		  string (REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
-		  message (STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
-		  add_definitions ("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
-		  if (LLVM_STATIC)
-			# if static LLVM libraries were requested, use llvm-config to generate
-			# the list of what libraries we need, and substitute that in the right
-			# way for LLVM_LIBRARY.
-			set (LLVM_LIBRARY "")
-			execute_process (COMMAND ${LLVM_CONFIG} --libs
-						 OUTPUT_VARIABLE llvm_library_list
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-			string (REPLACE "-l" "" llvm_library_list ${llvm_library_list})
-			string (REPLACE " " ";" llvm_library_list ${llvm_library_list})
-			foreach (f ${llvm_library_list})
-			  list (APPEND LLVM_LIBRARY "${LLVM_LIB_DIR}/lib${f}.a")
-			endforeach ()
-		  endif ()
-		  string (REPLACE ";" " " LLVM_LIBRARY "${LLVM_LIBRARY}")
-		  message (STATUS "LLVM library  = ${LLVM_LIBRARY}")
-		else ()
-		  message (FATAL_ERROR "LLVM not found.")
-		endif ()
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} ${LLVM_LIBRARY}")
-		
-		# end LLVM library setup
-
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)
@@ -1676,6 +1724,12 @@ if(WITH_CYCLES)
 	endif()
 	if(NOT WITH_BOOST)
 		message(FATAL_ERROR "Cycles reqires WITH_BOOST, the library may not have been found. Configure BOOST or disable WITH_CYCLES")
+	endif()
+
+	if(WITH_CYCLES_OSL)
+		if(NOT WITH_LLVM)
+			message(FATAL_ERROR "Cycles OSL reqires WITH_LLVM, the library may not have been found. Configure LLVM or disable WITH_CYCLES_OSL")
+		endif()
 	endif()
 endif()
 
