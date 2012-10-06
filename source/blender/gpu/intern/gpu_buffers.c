@@ -1269,6 +1269,14 @@ void GPU_buffer_draw_elements(GPUBuffer *elements, unsigned int mode, int start,
 /* XXX: the rest of the code in this file is used for optimized PBVH
  * drawing and doesn't interact at all with the buffer code above */
 
+/* Return false if VBO is either unavailable or disabled by the user,
+   true otherwise */
+static int gpu_vbo_enabled(void)
+{
+	return (GLEW_ARB_vertex_buffer_object &&
+			!(U.gameflags & USER_DISABLE_VBO));
+}
+
 /* Convenience struct for building the VBO. */
 typedef struct {
 	float co[3];
@@ -1304,6 +1312,10 @@ struct GPU_Buffers {
 	int has_hidden;
 
 	unsigned int tot_tri, tot_quad;
+
+	/* The PBVH ensures that either all faces in the node are
+	   smooth-shaded or all faces are flat-shaded */
+	int smooth;
 };
 typedef enum {
 	VBO_ENABLED,
@@ -1434,6 +1446,7 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 
 	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
 	buffers->index_type = GL_UNSIGNED_SHORT;
+	buffers->smooth = mface[face_indices[0]].flag & ME_SMOOTH;
 
 	/* Count the number of visible triangles */
 	for (i = 0, tottri = 0; i < totface; ++i) {
@@ -1442,7 +1455,7 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 			tottri += f->v4 ? 2 : 1;
 	}
 	
-	if (GLEW_ARB_vertex_buffer_object && !(U.gameflags & USER_DISABLE_VBO))
+	if (gpu_vbo_enabled())
 		glGenBuffersARB(1, &buffers->index_buf);
 
 	if (buffers->index_buf) {
@@ -1591,6 +1604,8 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, CCGElem **grids,
 	buffers->grid_flag_mats = grid_flag_mats;
 	buffers->gridkey = *key;
 
+	buffers->smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
+
 	//printf("node updated %p\n", buffers);
 }
 
@@ -1685,7 +1700,7 @@ static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *to
 
 	/* VBO is disabled; delete the previous buffer (if it exists) and
 	 * return an invalid handle */
-	if (!GLEW_ARB_vertex_buffer_object || (U.gameflags & USER_DISABLE_VBO)) {
+	if (gpu_vbo_enabled()) {
 		if (buffer)
 			glDeleteBuffersARB(1, &buffer);
 		return 0;
@@ -1773,7 +1788,7 @@ GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
 
 #undef FILL_QUAD_BUFFER
 
-static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers, int smooth)
+static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers)
 {
 	const MVert *mvert = buffers->mvert;
 	int i, j;
@@ -1793,7 +1808,7 @@ static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers, int smooth)
 
 		glBegin((f->v4) ? GL_QUADS : GL_TRIANGLES);
 
-		if (smooth) {
+		if (buffers->smooth) {
 			for (j = 0; j < S; j++) {
 				if (has_mask) {
 					gpu_color_from_mask_set(buffers->vmask[fv[j]]);
@@ -1840,7 +1855,7 @@ static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers, int smooth)
 	}
 }
 
-static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
+static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers)
 {
 	const CCGKey *key = &buffers->gridkey;
 	int i, j, x, y, gridsize = buffers->gridkey.grid_size;
@@ -1873,7 +1888,7 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 					if (paint_is_grid_face_hidden(gh, gridsize, x, y))
 						continue;
 
-					if (smooth) {
+					if (buffers->smooth) {
 						for (j = 0; j < 4; j++) {
 							if (has_mask) {
 								gpu_color_from_mask_set(*CCG_elem_mask(key, e[j]));
@@ -1903,7 +1918,7 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 
 			glEnd();
 		}
-		else if (smooth) {
+		else if (buffers->smooth) {
 			for (y = 0; y < gridsize - 1; y++) {
 				glBegin(GL_QUAD_STRIP);
 				for (x = 0; x < gridsize; x++) {
@@ -1970,18 +1985,14 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 		const MFace *f = &buffers->mface[buffers->face_indices[0]];
 		if (!setMaterial(f->mat_nr + 1, NULL))
 			return;
-
-		smooth = f->flag & ME_SMOOTH;
-		glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
 	}
 	else if (buffers->totgrid) {
 		const DMFlagMat *f = &buffers->grid_flag_mats[buffers->grid_indices[0]];
 		if (!setMaterial(f->mat_nr + 1, NULL))
 			return;
-
-		smooth = f->flag & ME_SMOOTH;
-		glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
 	}
+
+	glShadeModel(buffers->smooth ? GL_SMOOTH : GL_FLAT);
 
 	if (buffers->vert_buf && buffers->index_buf) {
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -2042,10 +2053,10 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 	}
 	/* fallbacks if we are out of memory or VBO is disabled */
 	else if (buffers->totface) {
-		gpu_draw_buffers_legacy_mesh(buffers, smooth);
+		gpu_draw_buffers_legacy_mesh(buffers);
 	}
 	else if (buffers->totgrid) {
-		gpu_draw_buffers_legacy_grids(buffers, smooth);
+		gpu_draw_buffers_legacy_grids(buffers);
 	}
 }
 
