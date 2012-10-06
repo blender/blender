@@ -770,8 +770,9 @@ if(UNIX AND NOT APPLE)
 		find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
-		# WARNING! depends on correct order of OSL libs linking
-		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} ${OSL_LIB_EXEC} ${OSL_LIB_QUERY})
+		# Note: --whole-archive is needed to force loading of all symbols in liboslexec,
+		# otherwise LLVM is missing the osl_allocate_closure_component function
+		list(APPEND OSL_LIBRARIES ${OSL_LIB_COMP} -Wl,--whole-archive ${OSL_LIB_EXEC} -Wl,--no-whole-archive ${OSL_LIB_QUERY})
 		find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
 		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
 	
