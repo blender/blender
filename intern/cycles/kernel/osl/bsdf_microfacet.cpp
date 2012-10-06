@@ -503,35 +503,51 @@ public:
 
 
 
-ClosureParam bsdf_microfacet_ggx_params[] = {
-	CLOSURE_VECTOR_PARAM(MicrofacetGGXClosure<0>, m_N),
-	CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure<0>, m_ag),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(MicrofacetGGXClosure<0>)
-};
+ClosureParam *bsdf_microfacet_ggx_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(MicrofacetGGXClosure<0>, m_N),
+	    CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure<0>, m_ag),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(MicrofacetGGXClosure<0>)
+	};
+	return params;
+}
 
-ClosureParam bsdf_microfacet_ggx_refraction_params[] = {
-	CLOSURE_VECTOR_PARAM(MicrofacetGGXClosure<1>, m_N),
-	CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure<1>, m_ag),
-	CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure<1>, m_eta),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(MicrofacetGGXClosure<1>)
-};
+ClosureParam *bsdf_microfacet_ggx_refraction_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(MicrofacetGGXClosure<1>, m_N),
+	    CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure<1>, m_ag),
+	    CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure<1>, m_eta),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(MicrofacetGGXClosure<1>)
+	};
+	return params;
+}
 
-ClosureParam bsdf_microfacet_beckmann_params[] = {
-	CLOSURE_VECTOR_PARAM(MicrofacetBeckmannClosure<0>, m_N),
-	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure<0>, m_ab),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(MicrofacetBeckmannClosure<0>)
-};
+ClosureParam *bsdf_microfacet_beckmann_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(MicrofacetBeckmannClosure<0>, m_N),
+	    CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure<0>, m_ab),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(MicrofacetBeckmannClosure<0>)
+	};
+	return params;
+}
 
-ClosureParam bsdf_microfacet_beckmann_refraction_params[] = {
-	CLOSURE_VECTOR_PARAM(MicrofacetBeckmannClosure<1>, m_N),
-	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure<1>, m_ab),
-	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure<1>, m_eta),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(MicrofacetBeckmannClosure<1>)
-};
+ClosureParam *bsdf_microfacet_beckmann_refraction_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(MicrofacetBeckmannClosure<1>, m_N),
+	    CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure<1>, m_ab),
+	    CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure<1>, m_eta),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(MicrofacetBeckmannClosure<1>)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(bsdf_microfacet_ggx_prepare,                 MicrofacetGGXClosure<0>)
 CLOSURE_PREPARE(bsdf_microfacet_ggx_refraction_prepare,      MicrofacetGGXClosure<1>)

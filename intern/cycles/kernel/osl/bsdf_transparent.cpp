@@ -87,10 +87,14 @@ public:
 
 
 
-ClosureParam bsdf_transparent_params[] = {
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(TransparentClosure)
-};
+ClosureParam *bsdf_transparent_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(TransparentClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(bsdf_transparent_prepare, TransparentClosure)
 

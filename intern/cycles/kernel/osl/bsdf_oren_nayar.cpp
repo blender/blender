@@ -125,12 +125,16 @@ private:
 	}
 };
 
-ClosureParam bsdf_oren_nayar_params[] = {
-	CLOSURE_VECTOR_PARAM(OrenNayarClosure, m_N),
-	CLOSURE_FLOAT_PARAM(OrenNayarClosure, m_sigma),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(OrenNayarClosure)
-};
+ClosureParam *bsdf_oren_nayar_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(OrenNayarClosure, m_N),
+	    CLOSURE_FLOAT_PARAM(OrenNayarClosure, m_sigma),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(OrenNayarClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(bsdf_oren_nayar_prepare, OrenNayarClosure)
 

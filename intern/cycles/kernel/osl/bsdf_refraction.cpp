@@ -108,12 +108,16 @@ public:
 	}
 };
 
-ClosureParam bsdf_refraction_params[] = {
-	CLOSURE_VECTOR_PARAM(RefractionClosure, m_N),
-	CLOSURE_FLOAT_PARAM(RefractionClosure, m_eta),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(RefractionClosure)
-};
+ClosureParam *bsdf_refraction_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(RefractionClosure, m_N),
+	    CLOSURE_FLOAT_PARAM(RefractionClosure, m_eta),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(RefractionClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(bsdf_refraction_prepare, RefractionClosure)
 
