@@ -2221,6 +2221,25 @@ void nurbs_foreachScreenVert(
 }
 
 /* ED_view3d_init_mats_rv3d must be called first */
+void mball_foreachScreenElem(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct MetaElem *ml, int x, int y),
+        void *userData)
+{
+	MetaBall *mb = (MetaBall *)vc->obedit->data;
+	MetaElem *ml;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		int screen_co[2];
+		if (ED_view3d_project_int_object(vc->ar, &ml->x, screen_co,
+		                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+		{
+			func(userData, ml, screen_co[0], screen_co[1]);
+		}
+	}
+}
+
+/* ED_view3d_init_mats_rv3d must be called first */
 void armature_foreachScreenBone(
         struct ViewContext *vc,
         void (*func)(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1),

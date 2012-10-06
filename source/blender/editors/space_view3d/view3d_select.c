@@ -61,13 +61,14 @@
 #include "IMB_imbuf.h"
 #include "BKE_global.h"
 
-#include "BKE_context.h"
-#include "BKE_paint.h"
 #include "BKE_armature.h"
+#include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_tessmesh.h"
+#include "BKE_mball.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
+#include "BKE_tessmesh.h"
 #include "BKE_tracking.h"
 
 
@@ -678,32 +679,34 @@ static void do_lasso_select_armature(ViewContext *vc, const int mcords[][2], sho
 	}
 }
 
+static void do_lasso_select_mball__doSelectElem(void *userData, struct MetaElem *ml, int x, int y)
+{
+	LassoSelectUserData *data = userData;
 
+	if (BLI_rcti_isect_pt(data->rect, x, y) &&
+	    BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, INT_MAX)) {
+		if (data->select) ml->flag |=  SELECT;
+		else              ml->flag &= ~SELECT;
+		data->is_change = TRUE;
+	}
+}
 static void do_lasso_select_meta(ViewContext *vc, const int mcords[][2], short moves, short extend, short select)
 {
-	MetaBall *mb = (MetaBall *)vc->obedit->data;
-	MetaElem *ml;
+	LassoSelectUserData data;
+	rcti rect;
 
-	if (extend == 0 && select) {
-		/* XXX, make an editor function as is done elsewhere */
-		for (ml = mb->editelems->first; ml; ml = ml->next) {
-			ml->flag &= ~SELECT;
-		}
-	}
+	MetaBall *mb = (MetaBall *)vc->obedit->data;
+
+	if (extend == 0 && select)
+		 BKE_mball_deselect_all(mb);
+
+	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-	for (ml = mb->editelems->first; ml; ml = ml->next) {
-		int screen_co[2];
-		if (ED_view3d_project_int_object(vc->ar, &ml->x, screen_co,
-		                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-		{
-			if (BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], INT_MAX)) {
-				if (select) ml->flag |=  SELECT;
-				else        ml->flag &= ~SELECT;
-			}
-		}
-	}
+	BLI_lasso_boundbox(&rect, mcords, moves);
+
+	mball_foreachScreenElem(vc, do_lasso_select_mball__doSelectElem, &data);
 }
 
 static int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
@@ -1792,11 +1795,8 @@ static int do_meta_box_select(ViewContext *vc, rcti *rect, int select, int exten
 
 	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, rect);
 
-	if (extend == 0 && select) {
-		for (ml = mb->editelems->first; ml; ml = ml->next) {
-			ml->flag &= ~SELECT;
-		}
-	}
+	if (extend == 0 && select)
+		BKE_mball_deselect_all(mb);
 	
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		for (a = 0; a < hits; a++) {
@@ -2577,27 +2577,27 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 	}
 }
 
+static void do_circle_select_mball__doSelectElem(void *userData, struct MetaElem *ml, int x, int y)
+{
+	CircleSelectUserData *data = userData;
+	const float delta[2] = {(float)(x - data->mval[0]),
+	                        (float)(y - data->mval[1])};
+
+	if (len_squared_v2(delta) <= data->radius_squared) {
+		if (data->select) ml->flag |=  SELECT;
+		else              ml->flag &= ~SELECT;
+		data->is_change = TRUE;
+	}
+}
 static void mball_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
 {
-	const float radius_squared = rad * rad;
-	const float mval_fl[2] = {mval[0], mval[1]};
+	CircleSelectUserData data;
 
-	MetaBall *mb = (MetaBall *)vc->obedit->data;
-	MetaElem *ml;
+	view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-	for (ml = mb->editelems->first; ml; ml = ml->next) {
-		float screen_co[2];
-		if (ED_view3d_project_float_object(vc->ar, &ml->x, screen_co,
-		                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-		{
-			if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
-				if (select) ml->flag |=  SELECT;
-				else        ml->flag &= ~SELECT;
-			}
-		}
-	}
+	mball_foreachScreenElem(vc, do_circle_select_mball__doSelectElem, &data);
 }
 
 /** Callbacks for circle selection in Editmode */

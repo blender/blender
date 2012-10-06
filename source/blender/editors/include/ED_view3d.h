@@ -44,6 +44,7 @@ struct EditBone;
 struct ImBuf;
 struct MVert;
 struct Main;
+struct MetaElem;
 struct Nurb;
 struct Nurb;
 struct Object;
@@ -170,6 +171,7 @@ void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData,
 void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct BMEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts);
 void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct BMFace *efa, int x, int y, int index), void *userData);
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
+void mball_foreachScreenElem(struct ViewContext *vc, void (*func)(void *userData, struct MetaElem *ml, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 void armature_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1), void *userData);
 void pose_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct bPoseChannel *pchan, int x0, int y0, int x1, int y1), void *userData);

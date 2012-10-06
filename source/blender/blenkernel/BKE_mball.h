@@ -63,4 +63,8 @@ void BKE_mball_translate(struct MetaBall *mb, float offset[3]);
 
 struct MetaElem *BKE_mball_element_add(struct MetaBall *mb, const int type);
 
+void BKE_mball_select_all(struct MetaBall *mb);
+void BKE_mball_deselect_all(struct MetaBall *mb);
+void BKE_mball_select_swap(struct MetaBall *mb);
+
 #endif

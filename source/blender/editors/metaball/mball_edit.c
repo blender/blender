@@ -129,36 +129,32 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 	MetaElem *ml;
 	int action = RNA_enum_get(op->ptr, "action");
 
-	ml = mb->editelems->first;
-	if (ml) {
-		if (action == SEL_TOGGLE) {
-			action = SEL_SELECT;
-			while (ml) {
-				if (ml->flag & SELECT) {
-					action = SEL_DESELECT;
-					break;
-				}
-				ml = ml->next;
-			}
-		}
+	if (mb->editelems->first == NULL)
+		return OPERATOR_CANCELLED;
 
-		ml = mb->editelems->first;
-		while (ml) {
-			switch (action) {
-				case SEL_SELECT:
-					ml->flag |= SELECT;
-					break;
-				case SEL_DESELECT:
-					ml->flag &= ~SELECT;
-					break;
-				case SEL_INVERT:
-					ml->flag ^= SELECT;
-					break;
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		for (ml = mb->editelems->first; ml; ml = ml->next) {
+			if (ml->flag & SELECT) {
+				action = SEL_DESELECT;
+				break;
 			}
-			ml = ml->next;
 		}
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 	}
+
+	switch (action) {
+		case SEL_SELECT:
+			BKE_mball_select_all(mb);
+			break;
+		case SEL_DESELECT:
+			BKE_mball_deselect_all(mb);
+			break;
+		case SEL_INVERT:
+			BKE_mball_select_swap(mb);
+			break;
+	}
+
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 
 	return OPERATOR_FINISHED;
 }
@@ -421,7 +417,7 @@ int mouse_mball(bContext *C, const int mval[2], int extend, int deselect, int to
 	Object *obedit = CTX_data_edit_object(C);
 	ViewContext vc;
 	MetaBall *mb = (MetaBall *)obedit->data;
-	MetaElem *ml, *act = NULL;
+	MetaElem *ml, *ml_act = NULL;
 	int a, hits;
 	unsigned int buffer[4 * MAXPICKBUF];
 	rcti rect;
@@ -451,14 +447,14 @@ int mouse_mball(bContext *C, const int mval[2], int extend, int deselect, int to
 				/* index converted for gl stuff */
 				if (ml->selcol1 == buffer[4 * a + 3]) {
 					ml->flag |= MB_SCALE_RAD;
-					act = ml;
+					ml_act = ml;
 				}
 				if (ml->selcol2 == buffer[4 * a + 3]) {
 					ml->flag &= ~MB_SCALE_RAD;
-					act = ml;
+					ml_act = ml;
 				}
 			}
-			if (act) break;
+			if (ml_act) break;
 			ml = ml->next;
 			if (ml == NULL) ml = mb->editelems->first;
 			if (ml == startelem) break;
@@ -466,31 +462,28 @@ int mouse_mball(bContext *C, const int mval[2], int extend, int deselect, int to
 		
 		/* When some metaelem was found, then it is necessary to select or
 		 * deselect it. */
-		if (act) {
+		if (ml_act) {
 			if (extend) {
-				act->flag |= SELECT;
+				ml_act->flag |= SELECT;
 			}
 			else if (deselect) {
-				act->flag &= ~SELECT;
+				ml_act->flag &= ~SELECT;
 			}
 			else if (toggle) {
-				if (act->flag & SELECT)
-					act->flag &= ~SELECT;
+				if (ml_act->flag & SELECT)
+					ml_act->flag &= ~SELECT;
 				else
-					act->flag |= SELECT;
+					ml_act->flag |= SELECT;
 			}
 			else {
 				/* Deselect all existing metaelems */
-				ml = mb->editelems->first;
-				while (ml) {
-					ml->flag &= ~SELECT;
-					ml = ml->next;
-				}
+				BKE_mball_deselect_all(mb);
+
 				/* Select only metaelem clicked on */
-				act->flag |= SELECT;
+				ml_act->flag |= SELECT;
 			}
 			
-			mb->lastelem = act;
+			mb->lastelem = ml_act;
 			
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 
