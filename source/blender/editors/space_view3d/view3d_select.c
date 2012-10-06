@@ -550,7 +550,7 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *UNUSED(nu), BP
 	if (BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED)) {
 		if (bp) {
 			bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
-			if (bp == cu->lastsel && !(bp->f1 & 1)) cu->lastsel = NULL;
+			if (bp == cu->lastsel && !(bp->f1 & SELECT)) cu->lastsel = NULL;
 		}
 		else {
 			if (cu->drawflag & CU_HIDE_HANDLES) {
@@ -569,7 +569,7 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *UNUSED(nu), BP
 				}
 			}
 
-			if (bezt == cu->lastsel && !(bezt->f2 & 1)) cu->lastsel = NULL;
+			if (bezt == cu->lastsel && !(bezt->f2 & SELECT)) cu->lastsel = NULL;
 		}
 	}
 }
@@ -1633,7 +1633,7 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *UNUSED(nu), BPoi
 	if (BLI_rcti_isect_pt(data->rect, x, y)) {
 		if (bp) {
 			bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
-			if (bp == cu->lastsel && !(bp->f1 & 1)) cu->lastsel = NULL;
+			if (bp == cu->lastsel && !(bp->f1 & SELECT)) cu->lastsel = NULL;
 		}
 		else {
 			if (cu->drawflag & CU_HIDE_HANDLES) {
@@ -1652,7 +1652,7 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *UNUSED(nu), BPoi
 				}
 			}
 
-			if (bezt == cu->lastsel && !(bezt->f2 & 1)) cu->lastsel = NULL;
+			if (bezt == cu->lastsel && !(bezt->f2 & SELECT)) cu->lastsel = NULL;
 		}
 	}
 }
@@ -2357,7 +2357,7 @@ static void nurbscurve_circle_doSelect(void *userData, Nurb *UNUSED(nu), BPoint 
 		if (bp) {
 			bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 
-			if (bp == cu->lastsel && !(bp->f1 & 1)) cu->lastsel = NULL;
+			if (bp == cu->lastsel && !(bp->f1 & SELECT)) cu->lastsel = NULL;
 		}
 		else {
 			if (cu->drawflag & CU_HIDE_HANDLES) {
@@ -2376,7 +2376,7 @@ static void nurbscurve_circle_doSelect(void *userData, Nurb *UNUSED(nu), BPoint 
 				}
 			}
 
-			if (bezt == cu->lastsel && !(bezt->f2 & 1)) cu->lastsel = NULL;
+			if (bezt == cu->lastsel && !(bezt->f2 & SELECT)) cu->lastsel = NULL;
 		}
 	}
 }
@@ -2384,14 +2384,7 @@ static void nurbscurve_circle_select(ViewContext *vc, int select, const int mval
 {
 	CircleSelectUserData data;
 
-	/* set vc-> edit data */
-	
-	data.select = select;
-	data.mval[0] = mval[0];
-	data.mval[1] = mval[1];
-	data.radius = rad;
-	data.vc = vc;
-	data.is_change = FALSE;
+	view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, nurbscurve_circle_doSelect, &data);
@@ -2584,6 +2577,29 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 	}
 }
 
+static void mball_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
+{
+	const float radius_squared = rad * rad;
+	const float mval_fl[2] = {mval[0], mval[1]};
+
+	MetaBall *mb = (MetaBall *)vc->obedit->data;
+	MetaElem *ml;
+
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		float screen_co[2];
+		if (ED_view3d_project_float_object(vc->ar, &ml->x, screen_co,
+		                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+		{
+			if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
+				if (select) ml->flag |=  SELECT;
+				else        ml->flag &= ~SELECT;
+			}
+		}
+	}
+}
+
 /** Callbacks for circle selection in Editmode */
 
 static void obedit_circle_select(ViewContext *vc, short select, const int mval[2], float rad)
@@ -2602,24 +2618,50 @@ static void obedit_circle_select(ViewContext *vc, short select, const int mval[2
 		case OB_ARMATURE:
 			armature_circle_select(vc, select, mval, rad);
 			break;
+		case OB_MBALL:
+			mball_circle_select(vc, select, mval, rad);
+			break;
 		default:
 			return;
 	}
 }
 
+static int object_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
+{
+	Scene *scene = vc->scene;
+	const float radius_squared = rad * rad;
+	const float mval_fl[2] = {mval[0], mval[1]};
+	int is_change = FALSE;
+
+	Base *base;
+	select = select ? BA_SELECT : BA_DESELECT;
+	for (base = FIRSTBASE; base; base = base->next) {
+		if (((base->flag & SELECT) == 0) && BASE_SELECTABLE(vc->v3d, base)) {
+			float screen_co[2];
+			if (ED_view3d_project_float_global(vc->ar, base->object->obmat[3], screen_co,
+			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			{
+				if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
+					ED_base_object_select(base, select);
+					is_change = TRUE;
+				}
+			}
+		}
+	}
+
+	return is_change;
+}
+
 /* not a real operator, only for circle test */
 static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
-	View3D *v3d = sa->spacedata.first;
-	int x = RNA_int_get(op->ptr, "x");
-	int y = RNA_int_get(op->ptr, "y");
 	int radius = RNA_int_get(op->ptr, "radius");
 	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 	int select;
+	const int mval[2] = {RNA_int_get(op->ptr, "x"),
+	                     RNA_int_get(op->ptr, "y")};
 	
 	select = (gesture_mode == GESTURE_MODAL_SELECT);
 
@@ -2627,13 +2669,10 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	    (obact && (obact->mode & (OB_MODE_PARTICLE_EDIT | OB_MODE_POSE))) )
 	{
 		ViewContext vc;
-		int mval[2];
 		
 		view3d_operator_needs_opengl(C);
 		
 		view3d_set_viewcontext(C, &vc);
-		mval[0] = x;
-		mval[1] = y;
 
 		if (CTX_data_edit_object(C)) {
 			obedit_circle_select(&vc, select, mval, (float)radius);
@@ -2656,21 +2695,12 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		Base *base;
-		select = select ? BA_SELECT : BA_DESELECT;
-		for (base = FIRSTBASE; base; base = base->next) {
-			if (BASE_SELECTABLE(v3d, base)) {
-				ED_view3d_project_base(ar, base);
-				if (base->sx != IS_CLIPPED) {
-					int dx = base->sx - x;
-					int dy = base->sy - y;
-					if (dx * dx + dy * dy < radius * radius)
-						ED_base_object_select(base, select);
-				}
-			}
+		ViewContext vc;
+		view3d_set_viewcontext(C, &vc);
+
+		if (object_circle_select(&vc, select, mval, (float)radius)) {
+			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
-		
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
 	}
 	
 	return OPERATOR_FINISHED;
