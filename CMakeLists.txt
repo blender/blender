@@ -319,6 +319,9 @@ if(APPLE)
 	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
+	if(CMAKE_OSX_ARCHITECTURES MATCHES x86_64)
+		set(USE_QTKIT ON CACHE BOOL "ON" FORCE) # no Quicktime in 64bit
+	endif()
 endif()
 
 
