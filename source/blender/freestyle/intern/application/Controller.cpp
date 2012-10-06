@@ -773,8 +773,11 @@ Render* Controller::RenderStrokes(Render *re) {
 	_Chrono.start();
 	BlenderStrokeRenderer* blenderRenderer = new BlenderStrokeRenderer(re, ++_render_count);
   	_Canvas->Render( blenderRenderer );
-	Render* freestyle_render = blenderRenderer->RenderScene(re);
 	real d = _Chrono.stop();
+    cout << "Temporary scene generation: " << d << endl;
+	_Chrono.start();
+	Render* freestyle_render = blenderRenderer->RenderScene(re);
+	d = _Chrono.stop();
     cout << "Stroke rendering  : " << d << endl;
 	delete blenderRenderer;
 	
