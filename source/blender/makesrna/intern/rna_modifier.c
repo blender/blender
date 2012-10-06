@@ -3007,7 +3007,7 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "octree_depth", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "depth");
-	RNA_def_property_range(prop, 1, 10);
+	RNA_def_property_range(prop, 1, 12);
 	RNA_def_property_ui_text(prop, "Octree Depth", "Resolution of the octree; higher values give finer details");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
