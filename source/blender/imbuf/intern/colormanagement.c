@@ -51,6 +51,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_math.h"
 #include "BLI_math_color.h"
 #include "BLI_path_util.h"
@@ -574,10 +575,20 @@ void colormanagement_init(void)
 	if (config == NULL) {
 		configdir = BLI_get_folder(BLENDER_DATAFILES, "colormanagement");
 
-		if (configdir) 	{
+		if (configdir) {
 			BLI_join_dirfile(configfile, sizeof(configfile), configdir, BCM_CONFIG_FILE);
 
+#ifdef WIN32
+			{
+				/* quite a hack to support loading configuration from path with non-acii symbols */
+
+				char short_name[256];
+				BLI_get_short_name(short_name, configfile);
+				config = OCIO_configCreateFromFile(short_name);
+			}
+#else
 			config = OCIO_configCreateFromFile(configfile);
+#endif
 		}
 	}
 
