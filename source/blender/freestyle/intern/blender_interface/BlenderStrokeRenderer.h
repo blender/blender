@@ -29,6 +29,8 @@ public:
   virtual void RenderStrokeRep(StrokeRep *iStrokeRep) const;
   virtual void RenderStrokeRepBasic(StrokeRep *iStrokeRep) const;
 
+  Object* NewMesh() const;
+
 	Render* RenderScene(Render *re);
 
 protected:

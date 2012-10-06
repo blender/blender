@@ -224,7 +224,11 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 			continue;
 
 		// me = Mesh.New()
+#if 0
 		Object* object_mesh = BKE_object_add(freestyle_scene, OB_MESH);
+#else
+		Object* object_mesh = NewMesh();
+#endif
 		Mesh* mesh = (Mesh *) object_mesh->data;
 		// MEM_freeN(mesh->bb);
 		// mesh->bb= NULL;
@@ -406,6 +410,29 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 
 	} // loop over strips	
 
+}
+
+// A replacement of BKE_object_add() for better performance.
+Object* BlenderStrokeRenderer::NewMesh() const {
+	Object *ob;
+	Base *base;
+	char name[MAX_ID_NAME];
+	static unsigned int mesh_id = 0xffffffff;
+
+	BLI_snprintf(name, MAX_ID_NAME, "0%08xOB", mesh_id);
+	ob = BKE_object_add_only_object(OB_MESH, name);
+	BLI_snprintf(name, MAX_ID_NAME, "0%08xME", mesh_id);
+	ob->data = BKE_mesh_add(name);
+	ob->lay = 1;
+
+	base = BKE_scene_base_add(freestyle_scene, ob);
+	//BKE_scene_base_deselect_all(scene);
+	//BKE_scene_base_select(scene, base);
+	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+
+	--mesh_id;
+
+	return ob;
 }
 
 Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
