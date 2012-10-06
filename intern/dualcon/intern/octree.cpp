@@ -2128,8 +2128,32 @@ static void solve_least_squares(const float halfA[], const float b[],
 		rvalue[i] = result(i);
 }
 
+static void mass_point(float mp[3], const float pts[12][3], const int parity[12])
+{
+	int ec = 0;
+
+	for (int i = 0; i < 12; i++) {
+		if (parity[i]) {
+			const float *p = pts[i];
+
+			mp[0] += p[0];
+			mp[1] += p[1];
+			mp[2] += p[2];
+
+			ec++;
+		}
+	}
+
+	if (ec == 0) {
+		return;
+	}
+	mp[0] /= ec;
+	mp[1] /= ec;
+	mp[2] /= ec;
+}
+
 static void minimize(float rvalue[3], float mp[3], const float pts[12][3],
-                     const float norms[12][3], const int parity[12])
+					 const float norms[12][3], const int parity[12])
 {
 	float ata[6] = {0, 0, 0, 0, 0, 0};
 	float atb[3] = {0, 0, 0};
@@ -2183,27 +2207,43 @@ void Octree::computeMinimizer(const LeafNode *leaf, int st[3], int len,
 	int parity[12];
 	fillEdgeIntersections(leaf, st, len, pts, norms, parity);
 
-	// Next, construct QEF and minimizer
-	float mp[3] = {0, 0, 0};
-	minimize(rvalue, mp, pts, norms, parity);
-
-	/* Restraining the location of the minimizer */
-	float nh1 = hermite_num * len;
-	float nh2 = (1 + hermite_num) * len;
-	if ((mode == DUALCON_MASS_POINT || mode == DUALCON_CENTROID) ||
-	    (rvalue[0] < st[0] - nh1 || rvalue[1] < st[1] - nh1 || rvalue[2] < st[2] - nh1 ||
-	     rvalue[0] > st[0] + nh2 || rvalue[1] > st[1] + nh2 || rvalue[2] > st[2] + nh2)) {
-		if (mode == DUALCON_CENTROID) {
-			// Use centroids
+	switch (mode) {
+		case DUALCON_CENTROID:
 			rvalue[0] = (float) st[0] + len / 2;
 			rvalue[1] = (float) st[1] + len / 2;
 			rvalue[2] = (float) st[2] + len / 2;
-		}
-		else {
-			// Use mass point instead
-			rvalue[0] = mp[0];
-			rvalue[1] = mp[1];
-			rvalue[2] = mp[2];
+			break;
+
+		case DUALCON_MASS_POINT:
+			rvalue[0] = rvalue[1] = rvalue[2] = 0;
+			mass_point(rvalue, pts, parity);
+			break;
+
+		default: {
+			// Sharp features */
+			
+			// construct QEF and minimizer
+			float mp[3] = {0, 0, 0};
+			minimize(rvalue, mp, pts, norms, parity);
+
+			/* Restraining the location of the minimizer */
+			float nh1 = hermite_num * len;
+			float nh2 = (1 + hermite_num) * len;
+
+			if (rvalue[0] < st[0] - nh1 ||
+				rvalue[1] < st[1] - nh1 ||
+				rvalue[2] < st[2] - nh1 ||
+
+				rvalue[0] > st[0] + nh2 ||
+				rvalue[1] > st[1] + nh2 ||
+				rvalue[2] > st[2] + nh2)
+			{
+				// Use mass point instead
+				rvalue[0] = mp[0];
+				rvalue[1] = mp[1];
+				rvalue[2] = mp[2];
+			}
+			break;
 		}
 	}
 }
