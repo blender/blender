@@ -1186,6 +1186,9 @@ int main(int argc, char **argv)
 	return(return_status);
 }
 
+/* handy but fails on struct bounds which makesdna doesnt care about
+ * unless structs are nested */
+#if 0
 /* include files for automatic dependencies */
 
 /* extra safety check that we are aligned,
@@ -1193,6 +1196,8 @@ int main(int argc, char **argv)
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wpadded"
 #endif
+
+#endif /* if 0 */
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"

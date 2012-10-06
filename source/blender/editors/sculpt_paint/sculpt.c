@@ -3998,6 +3998,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 {
 	struct PaintStroke *stroke;
 	int ignore_background_click;
+	int retval;
 
 	if (!sculpt_brush_stroke_init(C, op))
 		return OPERATOR_CANCELLED;
@@ -4021,7 +4022,9 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 
-	op->type->modal(C, op, event);
+	retval = op->type->modal(C, op, event);
+	OPERATOR_RETVAL_CHECK(retval);
+	BLI_assert(retval == OPERATOR_RUNNING_MODAL);
 	
 	return OPERATOR_RUNNING_MODAL;
 }

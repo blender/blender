@@ -2372,7 +2372,8 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 
 static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	
+	int retval;
+
 	op->customdata = paint_stroke_new(C, NULL, wpaint_stroke_test_start,
 	                                  wpaint_stroke_update_step,
 	                                  wpaint_stroke_done, event->type);
@@ -2380,7 +2381,9 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 
-	op->type->modal(C, op, event);
+	retval = op->type->modal(C, op, event);
+	OPERATOR_RETVAL_CHECK(retval);
+	BLI_assert(retval == OPERATOR_RUNNING_MODAL);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -2816,7 +2819,8 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 
 static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	
+	int retval;
+
 	op->customdata = paint_stroke_new(C, NULL, vpaint_stroke_test_start,
 	                                  vpaint_stroke_update_step,
 	                                  vpaint_stroke_done, event->type);
@@ -2824,7 +2828,9 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 
-	op->type->modal(C, op, event);
+	retval = op->type->modal(C, op, event);
+	OPERATOR_RETVAL_CHECK(retval);
+	BLI_assert(retval == OPERATOR_RUNNING_MODAL);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
