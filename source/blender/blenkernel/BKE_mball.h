@@ -59,7 +59,7 @@ void BKE_mball_properties_copy(struct Scene *scene, struct Object *active_object
 int BKE_mball_minmax(struct MetaBall *mb, float min[3], float max[3]);
 int BKE_mball_center_median(struct MetaBall *mb, float r_cent[3]);
 int BKE_mball_center_bounds(struct MetaBall *mb, float r_cent[3]);
-void BKE_mball_translate(struct MetaBall *mb, float offset[3]);
+void BKE_mball_translate(struct MetaBall *mb, const float offset[3]);
 
 struct MetaElem *BKE_mball_element_add(struct MetaBall *mb, const int type);
 

@@ -770,8 +770,6 @@ int PyC_FlagSet_ToBitfield(PyC_FlagSet *items, PyObject *value, int *r_value, co
 	Py_ssize_t hash = 0;
 	PyObject *key;
 
-	PyC_ObSpit("", value);
-
 	if (!PySet_Check(value)) {
 		PyErr_Format(PyExc_TypeError,
 		             "%.200s expected a set, not %.200s",
