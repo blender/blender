@@ -759,14 +759,13 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 	BMLoop *l;
 	MLoopUV *luv;
 	BMIter iter;
-	float m[3], v1[3], v2[3], c1, c2, *uv1 = NULL, /* *uv2, */ /* UNUSED */ *uv3 = NULL;
+	float m[2], v1[2], v2[2], c1, c2, *uv1 = NULL, /* *uv2, */ /* UNUSED */ *uv3 = NULL;
 	int id1, id2, i;
 
 	id1 = (id + efa->len - 1) % efa->len;
 	id2 = (id + efa->len + 1) % efa->len;
 
-	m[0] = co[0] - uv[0];
-	m[1] = co[1] - uv[1];
+	sub_v2_v2v2(m, co, uv);
 
 	i = 0;
 	BM_ITER_ELEM (l, &iter, efa, BM_LOOPS_OF_FACE) {
@@ -782,8 +781,8 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 		i++;
 	}
 
-	sub_v3_v3v3(v1, uv1, uv);
-	sub_v3_v3v3(v2, uv3, uv);
+	sub_v2_v2v2(v1, uv1, uv);
+	sub_v2_v2v2(v2, uv3, uv);
 
 	/* m and v2 on same side of v-v1? */
 	c1 = v1[0] * m[1] - v1[1] * m[0];
