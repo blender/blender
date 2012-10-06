@@ -201,7 +201,7 @@ static void imapaint_project(Object *ob, float model[][4], float proj[][4], cons
 
 static void imapaint_tri_weights(Object *ob,
                                  const float v1[3], const float v2[3], const float v3[3],
-                                 const float co[3], float w[3])
+                                 const float co[2], float w[3])
 {
 	float pv1[4], pv2[4], pv3[4], h[3], divw;
 	float model[4][4], proj[4][4], wmat[3][3], invwmat[3][3];
