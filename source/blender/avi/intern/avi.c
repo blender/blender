@@ -32,7 +32,6 @@
  * This is external code.
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -49,7 +48,7 @@
 #include "AVI_avi.h"
 #include "avi_intern.h"
 
-#include "endian.h"
+#include "avi_endian.h"
 
 static int AVI_DEBUG = 0;
 static char DEBUG_FCC[4];

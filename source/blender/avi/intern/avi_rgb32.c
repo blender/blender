@@ -26,18 +26,19 @@
  *
  */
 
-/** \file blender/avi/intern/rgb32.c
+/** \file blender/avi/intern/avi_rgb32.c
  *  \ingroup avi
  *
  * This is external code. Converts between rgb32 and avi.
  */
 
-
-#include "AVI_avi.h"
 #include <stdlib.h>
 #include <string.h>
+
 #include "MEM_guardedalloc.h"
-#include "rgb32.h"
+
+#include "AVI_avi.h"
+#include "avi_rgb32.h"
 
 void *avi_converter_from_rgb32(AviMovie *movie, int stream, unsigned char *buffer, int *size)
 {

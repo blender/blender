@@ -26,7 +26,7 @@
  *
  */
 
-/** \file blender/avi/intern/endian.c
+/** \file blender/avi/intern/avi_endian.c
  *  \ingroup avi
  *
  * This is external code. Streams bytes to output depending on the
@@ -36,9 +36,10 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h> 
+#include <stdio.h>
+
 #include "AVI_avi.h"
-#include "endian.h"
+#include "avi_endian.h"
 #include "avi_intern.h"
 
 #ifdef __BIG_ENDIAN__

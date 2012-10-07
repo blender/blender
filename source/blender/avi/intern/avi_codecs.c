@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/avi/intern/codecs.c
+/** \file blender/avi/intern/avi_codecs.c
  *  \ingroup avi
  *
  * This is external code. Identify and convert different avi-files.
@@ -35,9 +35,9 @@
 #include "AVI_avi.h"
 #include "avi_intern.h"
 
-#include "avirgb.h"
-#include "mjpeg.h"
-#include "rgb32.h"
+#include "avi_rgb.h"
+#include "avi_mjpeg.h"
+#include "avi_rgb32.h"
 
 void *avi_format_convert(AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, int *size)
 {

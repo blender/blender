@@ -25,17 +25,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/avi/intern/endian.h
+/** \file blender/avi/intern/avi_endian.h
  *  \ingroup avi
  *
  * This is external code.
  */
 
-#ifndef __ENDIAN_H__
-#define __ENDIAN_H__
-
-#include <stdio.h>
-#include "AVI_avi.h"
+#ifndef __AVI_ENDIAN_H__
+#define __AVI_ENDIAN_H__
 
 #define AVI_RAW      0
 #define AVI_CHUNK    1
@@ -48,5 +45,4 @@
 
 void awrite(AviMovie *movie, void *datain, int block, int size, FILE *fp, int type);
 
-#endif
-
+#endif  /* __AVI_ENDIAN_H__ */

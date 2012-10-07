@@ -26,7 +26,7 @@
  *
  */
 
-/** \file blender/avi/intern/options.c
+/** \file blender/avi/intern/avi_options.c
  *  \ingroup avi
  *
  * This is external code. Sets some compression related options
@@ -35,7 +35,7 @@
 
 #include "AVI_avi.h"
 #include "avi_intern.h"
-#include "endian.h"
+#include "avi_endian.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"

@@ -26,21 +26,23 @@
  *
  */
 
-/** \file blender/avi/intern/mjpeg.c
+/** \file blender/avi/intern/avi_mjpeg.c
  *  \ingroup avi
  *
  * This is external code. Converts between avi and mpeg/jpeg.
  */
 
-
-#include "AVI_avi.h"
 #include <stdlib.h>
 #include <string.h>
-#include "jpeglib.h"
-#include "jerror.h"
+
+#include "AVI_avi.h"
+
 #include "MEM_guardedalloc.h"
 
-#include "mjpeg.h"
+#include "jpeglib.h"
+#include "jerror.h"
+
+#include "avi_mjpeg.h"
 
 #define PADUP(num, amt) ((num + (amt - 1)) & ~(amt - 1))
 

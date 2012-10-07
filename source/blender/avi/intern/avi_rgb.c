@@ -26,19 +26,19 @@
  *
  */
 
-/** \file blender/avi/intern/avirgb.c
+/** \file blender/avi/intern/avi_rgb.c
  *  \ingroup avi
  *
  * This is external code. Converts rgb-type avi-s.
  */
 
-
-#include "AVI_avi.h"
 #include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
-#include "avirgb.h"
+
+#include "AVI_avi.h"
+#include "avi_rgb.h"
 
 /* implementation */
 

@@ -25,11 +25,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/avi/intern/avirgb.h
+/** \file blender/avi/intern/avi_rgb32.h
  *  \ingroup avi
  */
 
+#ifndef __AVI_RGB32_H__
+#define __AVI_RGB32_H__
 
-void *avi_converter_from_avi_rgb (AviMovie *movie, int stream, unsigned char *buffer, int *size);
-void *avi_converter_to_avi_rgb (AviMovie *movie, int stream, unsigned char *buffer, int *size);
+void *avi_converter_from_rgb32(AviMovie *movie, int stream, unsigned char *buffer, int *size);
+void *avi_converter_to_rgb32(AviMovie *movie, int stream, unsigned char *buffer, int *size);
 
+#endif /* __AVI_RGB32_H__ */
