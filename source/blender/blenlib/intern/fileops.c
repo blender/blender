@@ -140,6 +140,8 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 		}
 		else break;
 	}
+	
+	gzclose(gzfile);
 
 	if (size == 0) {
 		MEM_freeN(mem);
