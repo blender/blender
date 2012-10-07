@@ -986,6 +986,18 @@ Types
       The object's parent object. (read-only).
 
       :type: :class:`KX_GameObject` or None
+	  
+   .. attribute:: members
+
+      Returns the list of group members if the object is a group object, otherwise None is returned.
+
+      :type: :class:`CListValue` of :class:`KX_GameObject` or None
+
+   .. attribute:: group
+
+      Returns the group object that the object belongs to or None if the object is not part of a group.
+
+      :type: :class:`KX_GameObject` or None
 
    .. attribute:: visible
 

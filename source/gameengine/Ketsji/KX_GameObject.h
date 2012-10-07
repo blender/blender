@@ -116,6 +116,8 @@ protected:
 
 	KX_ObstacleSimulation*				m_pObstacleSimulation;
 
+	CListValue*						m_pInstanceObjects;
+	KX_GameObject*						m_pDupliGroupObject;
 
 	// The action manager is used to play/stop/update actions
 	BL_ActionManager*				m_actionManager;
@@ -207,6 +209,33 @@ public:
 	 */
 	void RemoveParent(KX_Scene *scene);
 
+	/*********************************
+	 * group reference API
+	 *********************************/
+
+		KX_GameObject*
+	GetDupliGroupObject(
+	);
+
+		CListValue*
+	GetInstanceObjects(
+	);
+
+		void	
+	SetDupliGroupObject(KX_GameObject*
+	);
+
+		void				
+	AddInstanceObjects(KX_GameObject*
+	);
+		
+		void 
+	RemoveDupliGroupObject(
+	);
+
+		void
+	RemoveInstanceObject(KX_GameObject*
+	);
 	/*********************************
 	 * Animation API
 	 *********************************/
@@ -948,6 +977,9 @@ public:
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+
+	static PyObject*	pyattr_get_dupli_group_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_instance_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
 	static PyObject*	pyattr_get_life(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

@@ -110,7 +110,9 @@ KX_GameObject::KX_GameObject(
       m_pHitObject(NULL),
       m_pObstacleSimulation(NULL),
       m_actionManager(NULL),
-      m_isDeformable(false)
+      m_isDeformable(false),
+      m_pDupliGroupObject(NULL),
+      m_pInstanceObjects(NULL)
 #ifdef WITH_PYTHON
     , m_attr_dict(NULL)
 #endif
@@ -167,6 +169,16 @@ KX_GameObject::~KX_GameObject()
 	{
 		KX_GetActiveScene()->RemoveAnimatedObject(this);
 		delete m_actionManager;
+	}
+
+	if (m_pDupliGroupObject)
+	{
+		m_pDupliGroupObject->Release();
+	}
+
+	if (m_pInstanceObjects)
+	{
+		m_pInstanceObjects->Release();
 	}
 #ifdef WITH_PYTHON
 	if (m_attr_dict) {
@@ -227,6 +239,46 @@ void KX_GameObject::SetName(const char *name)
 KX_IPhysicsController* KX_GameObject::GetPhysicsController()
 {
 	return m_pPhysicsController1;
+}
+
+KX_GameObject* KX_GameObject::GetDupliGroupObject()
+{ 
+	return m_pDupliGroupObject;	
+}
+
+CListValue* KX_GameObject::GetInstanceObjects()
+{ 
+	return m_pInstanceObjects;
+}
+
+void KX_GameObject::AddInstanceObjects(KX_GameObject* obj)
+{
+	if(!m_pInstanceObjects)
+		m_pInstanceObjects = new CListValue();
+
+	obj->AddRef();
+  	m_pInstanceObjects->Add(obj);
+}
+
+void KX_GameObject::RemoveInstanceObject(KX_GameObject* obj)
+{
+	assert(m_pInstanceObjects);
+	m_pInstanceObjects->RemoveValue(obj);
+	obj->Release();
+}
+
+void KX_GameObject::RemoveDupliGroupObject()
+{
+	if(m_pDupliGroupObject) {
+		m_pDupliGroupObject->Release();
+		m_pDupliGroupObject = NULL;
+	}
+}
+
+void KX_GameObject::SetDupliGroupObject(KX_GameObject* obj)
+{
+	obj->AddRef();
+	m_pDupliGroupObject = obj;
 }
 
 KX_GameObject* KX_GameObject::GetParent()
@@ -1629,6 +1681,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",		KX_GameObject, pyattr_get_name),
 	KX_PYATTRIBUTE_RO_FUNCTION("parent",	KX_GameObject, pyattr_get_parent),
+	KX_PYATTRIBUTE_RO_FUNCTION("members",	KX_GameObject, pyattr_get_instance_objects),
+	KX_PYATTRIBUTE_RO_FUNCTION("group",	KX_GameObject, pyattr_get_dupli_group_object),
 	KX_PYATTRIBUTE_RO_FUNCTION("life",		KX_GameObject, pyattr_get_life),
 	KX_PYATTRIBUTE_RW_FUNCTION("mass",		KX_GameObject, pyattr_get_mass,		pyattr_set_mass),
 	KX_PYATTRIBUTE_RW_FUNCTION("linVelocityMin",		KX_GameObject, pyattr_get_lin_vel_min, pyattr_set_lin_vel_min),
@@ -1920,6 +1974,26 @@ PyObject *KX_GameObject::pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DE
 	if (parent) {
 		parent->Release(); /* self->GetParent() AddRef's */
 		return parent->GetProxy();
+	}
+	Py_RETURN_NONE;
+}
+
+PyObject *KX_GameObject::pyattr_get_instance_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	CListValue* instances = self->GetInstanceObjects();
+	if (instances) {
+		return instances->GetProxy();
+	}
+	Py_RETURN_NONE;
+}
+
+PyObject *KX_GameObject::pyattr_get_dupli_group_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_GameObject* pivot = self->GetDupliGroupObject();
+	if (pivot) {
+		return pivot->GetProxy();
 	}
 	Py_RETURN_NONE;
 }
