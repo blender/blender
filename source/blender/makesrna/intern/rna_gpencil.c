@@ -111,6 +111,108 @@ static void rna_GPencilLayer_info_set(PointerRNA *ptr, const char *value)
 	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 }
 
+static void rna_GPencil_stroke_point_add(bGPDstroke *stroke, int count)
+{
+	if (stroke->points == NULL)
+		stroke->points = MEM_callocN(sizeof(bGPDspoint) * count, "gp_stroke_points");
+	else
+		stroke->points = MEM_reallocN(stroke->points, sizeof(bGPDspoint) * (stroke->totpoints + count));
+
+	stroke->totpoints += count;
+}
+
+static void rna_GPencil_stroke_point_pop(bGPDstroke *stroke, ReportList *reports, int index)
+{
+	bGPDspoint *pt_tmp = stroke->points;
+
+	/* python style negative indexing */
+	if (index < 0) {
+		index += stroke->totpoints;
+	}
+
+	if (stroke->totpoints <= index || index < 0) {
+		BKE_report(reports, RPT_ERROR, "GPencilStrokePoints.pop: index out of range");
+		return;
+	}
+
+	stroke->totpoints--;
+
+	stroke->points = MEM_callocN(sizeof(bGPDspoint) * stroke->totpoints, "gp_stroke_points");
+
+	if (index > 0)
+		memcpy(stroke->points, pt_tmp, sizeof(bGPDspoint) * index);
+
+	if (index < stroke->totpoints)
+		memcpy(&stroke->points[index], &pt_tmp[index + 1], sizeof(bGPDspoint) * (stroke->totpoints - index));
+
+	/* free temp buffer */
+	MEM_freeN(pt_tmp);
+
+	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+}
+
+static bGPDstroke *rna_GPencil_stroke_new(bGPDframe *frame)
+{
+	bGPDstroke *stroke = MEM_callocN(sizeof(bGPDstroke), "gp_stroke");
+
+	BLI_addtail(&frame->strokes, stroke);
+
+	return stroke;
+}
+
+static void rna_GPencil_stroke_remove(bGPDframe *frame, ReportList *reports, bGPDstroke *stroke)
+{
+	if (BLI_findindex(&frame->strokes, stroke) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "Stroke not found in grease pencil frame");
+		return;
+	}
+	
+	BLI_freelinkN(&frame->strokes, stroke);
+
+	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+}
+
+static bGPDframe *rna_GPencil_frame_new(bGPDlayer *layer, ReportList *reports, int frame_number)
+{
+	if (BKE_gpencil_layer_find_frame(layer, frame_number)) {
+		BKE_reportf(reports, RPT_ERROR, "Frame already exists on this frame number");
+		return NULL;
+	}
+
+	bGPDframe *frame = gpencil_frame_addnew(layer, frame_number);
+
+	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+
+	return frame;
+}
+
+static void rna_GPencil_frame_remove(bGPDlayer *layer, ReportList *reports, bGPDframe *frame)
+{
+	if (BLI_findindex(&layer->frames, frame) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "Frame not found in grease pencil layer");
+		return;
+	}
+	
+	gpencil_layer_delframe(layer, frame);
+
+	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+}
+
+static bGPDframe *rna_GPencil_frame_copy(bGPDlayer *layer, bGPDframe *src)
+{
+	bGPDframe *frame = gpencil_frame_duplicate(src);
+
+	while (BKE_gpencil_layer_find_frame(layer, frame->framenum)) {
+		frame->framenum++;
+	}
+
+	BLI_addtail(&layer->frames, frame);
+
+	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+
+	return frame;
+}
+
 static bGPDlayer *rna_GPencil_layer_new(bGPdata *gpd, const char *name, int setactive)
 {
 	bGPDlayer *gl = gpencil_layer_addnew(gpd, name, setactive);
@@ -122,19 +224,33 @@ static bGPDlayer *rna_GPencil_layer_new(bGPdata *gpd, const char *name, int seta
 
 static void rna_GPencil_layer_remove(bGPdata *gpd, ReportList *reports, bGPDlayer *layer)
 {
-	bGPDlayer *gl;
-
-	for (gl = gpd->layers.first; gl; gl = gl->next) {
-		if (gl == layer)
-			break;
-	}
-
-	if (gl == NULL) {
+	if (BLI_findindex(&gpd->layers, layer) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Layer not found in grease pencil data");
 		return;
 	}
 	
 	gpencil_layer_delete(gpd, layer);
+
+	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+}
+
+static void rna_GPencil_frame_clear(bGPDframe *frame)
+{
+	free_gpencil_strokes(frame);
+
+	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+}
+
+static void rna_GPencil_layer_clear(bGPDlayer *layer)
+{
+	free_gpencil_frames(layer);
+
+	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+}
+
+static void rna_GPencil_clear(bGPdata *gpd)
+{
+	free_gpencil_layers(&gpd->layers);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
@@ -154,19 +270,49 @@ static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Coordinates", "");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
 	prop = RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "pressure");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Pressure", "Pressure of tablet at point when drawing it");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+}
+
+static void rna_def_gpencil_stroke_points_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	/* PropertyRNA *parm; */
+
+	RNA_def_property_srna(cprop, "GPencilStrokePoints");
+	srna = RNA_def_struct(brna, "GPencilStrokePoints", NULL);
+	RNA_def_struct_sdna(srna, "bGPDstroke");
+	RNA_def_struct_ui_text(srna, "Grease Pencil Stroke Points", "Collection of grease pencil stroke points");
+
+	func = RNA_def_function(srna, "add", "rna_GPencil_stroke_point_add");
+	RNA_def_function_ui_description(func, "Add a new grease pencil stroke point");
+	RNA_def_int(func, "count", 1, 1, INT_MAX, "Number", "Number of points to add to the stroke", 1, INT_MAX);
+
+	func = RNA_def_function(srna, "pop", "rna_GPencil_stroke_point_pop");
+	RNA_def_function_ui_description(func, "Remove a grease pencil stroke point");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_int(func, "index", -1, INT_MIN, INT_MAX, "Index", "point index", INT_MIN, INT_MAX);
 }
 
 static void rna_def_gpencil_stroke(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	static EnumPropertyItem stroke_draw_mode_items[] = {
+		{0, "SCREEN", 0, "Screen", "Stroke is in screen-space"},
+		{GP_STROKE_3DSPACE, "3DSPACE", 0, "3d Space", "Stroke is in 3d-space"},
+		{GP_STROKE_2DSPACE, "2DSPACE", 0, "2d Space", "stroke is in 2d-space"},
+		{GP_STROKE_2DIMAGE, "2DIMAGE", 0, "2d Image", "Stroke is in 2d-space (but with special 'image' scaling)"},
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	srna = RNA_def_struct(brna, "GPencilStroke", NULL);
 	RNA_def_struct_sdna(srna, "bGPDstroke");
@@ -177,15 +323,45 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "points", "totpoints");
 	RNA_def_property_struct_type(prop, "GPencilStrokePoint");
 	RNA_def_property_ui_text(prop, "Stroke Points", "Stroke data points");
-	
-	/* Flags - Readonly type-info really... */
-	/* TODO... */
+	rna_def_gpencil_stroke_points_api(brna, prop);	
+
+	prop = RNA_def_property(srna, "draw_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, stroke_draw_mode_items);
+	RNA_def_property_ui_text(prop, "Draw Mode", "");
+	RNA_def_property_update(prop, 0, "rna_GPencil_update");
+}
+
+static void rna_def_gpencil_strokes_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "GPencilStrokes");
+	srna = RNA_def_struct(brna, "GPencilStrokes", NULL);
+	RNA_def_struct_sdna(srna, "bGPDframe");
+	RNA_def_struct_ui_text(srna, "Grease Pencil Frames", "Collection of grease pencil frames");
+
+	func = RNA_def_function(srna, "new", "rna_GPencil_stroke_new");
+	RNA_def_function_ui_description(func, "Add a new grease pencil frame");
+	parm = RNA_def_pointer(func, "stroke", "GPencilStroke", "", "The newly created stroke");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_GPencil_stroke_remove");
+	RNA_def_function_ui_description(func, "Remove a grease pencil frame");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "stroke", "GPencilStroke", "Stroke", "The stroke to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 }
 
 static void rna_def_gpencil_frame(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	FunctionRNA *func;
 	
 	srna = RNA_def_struct(brna, "GPencilFrame", NULL);
 	RNA_def_struct_sdna(srna, "bGPDframe");
@@ -196,7 +372,8 @@ static void rna_def_gpencil_frame(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "strokes", NULL);
 	RNA_def_property_struct_type(prop, "GPencilStroke");
 	RNA_def_property_ui_text(prop, "Strokes", "Freehand curves defining the sketch on this frame");
-	
+	rna_def_gpencil_strokes_api(brna, prop);	
+
 	/* Frame Number */
 	prop = RNA_def_property(srna, "frame_number", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "framenum");
@@ -211,12 +388,51 @@ static void rna_def_gpencil_frame(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_FRAME_SELECT);
 	RNA_def_property_ui_text(prop, "Select", "Frame is selected for editing in the DopeSheet");
+
+	func = RNA_def_function(srna, "clear", "rna_GPencil_frame_clear");
+	RNA_def_function_ui_description(func, "Remove all the grease pencil frame data");
+}
+
+static void rna_def_gpencil_frames_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "GPencilFrames");
+	srna = RNA_def_struct(brna, "GPencilFrames", NULL);
+	RNA_def_struct_sdna(srna, "bGPDlayer");
+	RNA_def_struct_ui_text(srna, "Grease Pencil Frames", "Collection of grease pencil frames");
+
+	func = RNA_def_function(srna, "new", "rna_GPencil_frame_new");
+	RNA_def_function_ui_description(func, "Add a new grease pencil frame");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_int(func, "frame_number", 1, MINFRAME, MAXFRAME, "Frame Number", "The frame on which this sketch appears", MINFRAME, MAXFRAME);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "frame", "GPencilFrame", "", "The newly created frame");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_GPencil_frame_remove");
+	RNA_def_function_ui_description(func, "Remove a grease pencil frame");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "frame", "GPencilFrame", "Frame", "The frame to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+
+	func = RNA_def_function(srna, "copy", "rna_GPencil_frame_copy");
+	RNA_def_function_ui_description(func, "Copy a grease pencil frame");
+	parm = RNA_def_pointer(func, "source", "GPencilFrame", "Source", "The source frame");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	parm = RNA_def_pointer(func, "copy", "GPencilFrame", "", "The newly copied frame");
+	RNA_def_function_return(func, parm);
 }
 
 static void rna_def_gpencil_layer(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	FunctionRNA *func;
 	
 	srna = RNA_def_struct(brna, "GPencilLayer", NULL);
 	RNA_def_struct_sdna(srna, "bGPDlayer");
@@ -234,7 +450,8 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "frames", NULL);
 	RNA_def_property_struct_type(prop, "GPencilFrame");
 	RNA_def_property_ui_text(prop, "Frames", "Sketches for this layer on different frames");
-	
+	rna_def_gpencil_frames_api(brna, prop);
+
 	/* Active Frame */
 	prop = RNA_def_property(srna, "active_frame", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "actframe");
@@ -317,9 +534,12 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_LAYER_NO_XRAY);
 	RNA_def_property_ui_text(prop, "X Ray", "Make the layer draw in front of objects");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+	func = RNA_def_function(srna, "clear", "rna_GPencil_layer_clear");
+	RNA_def_function_ui_description(func, "Remove all the grease pencil layer data");
 }
 
-static void rna_def_gpencil_layers(BlenderRNA *brna, PropertyRNA *cprop)
+static void rna_def_gpencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -357,7 +577,8 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+	FunctionRNA *func;
+
 	static EnumPropertyItem draw_mode_items[] = {
 		{GP_DATA_VIEWALIGN, "CURSOR", 0, "Cursor", "Draw stroke at the 3D cursor"},
 		{0, "VIEW", 0, "View", "Stick stroke to the view "}, /* weird, GP_DATA_VIEWALIGN is inverted */
@@ -376,7 +597,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "layers", NULL);
 	RNA_def_property_struct_type(prop, "GPencilLayer");
 	RNA_def_property_ui_text(prop, "Layers", "");
-	rna_def_gpencil_layers(brna, prop);
+	rna_def_gpencil_layers_api(brna, prop);
 	
 	/* Flags */
 	prop = RNA_def_property(srna, "draw_mode", PROP_ENUM, PROP_NONE);
@@ -390,6 +611,8 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Only Endpoints", "Only use the first and last parts of the stroke for snapping");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
+	func = RNA_def_function(srna, "clear", "rna_GPencil_clear");
+	RNA_def_function_ui_description(func, "Remove all the grease pencil data");
 }
 
 /* --- */

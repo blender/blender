@@ -71,6 +71,7 @@
 #include "BKE_speaker.h"
 #include "BKE_movieclip.h"
 #include "BKE_mask.h"
+#include "BKE_gpencil.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -92,6 +93,7 @@
 #include "DNA_node_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "ED_screen.h"
 
@@ -558,6 +560,19 @@ static void rna_Main_masks_remove(Main *bmain, Mask *mask)
 {
 	BKE_mask_free(bmain, mask);
 	BKE_libblock_free(&bmain->mask, mask);
+	/* XXX python now has invalid pointer? */
+}
+
+static void rna_Main_grease_pencil_remove(Main *bmain, ReportList *reports, bGPdata *gpd)
+{
+	if (ID_REAL_USERS(gpd) <= 0) {
+		BKE_gpencil_free(gpd);
+		BKE_libblock_free(&bmain->gpencil, gpd);
+	}
+	else
+		BKE_reportf(reports, RPT_ERROR, "Grease Pencil \"%s\" must have zero users to be removed, found %d",
+		            gpd->id.name + 2, ID_REAL_USERS(gpd));
+
 	/* XXX python now has invalid pointer? */
 }
 
@@ -1508,6 +1523,20 @@ void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "tag", "rna_Main_gpencil_tag");
 	parm = RNA_def_boolean(func, "value", 0, "Value", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func = RNA_def_function(srna, "new", "gpencil_data_addnew");
+	RNA_def_function_flag(func, FUNC_NO_SELF);
+	parm = RNA_def_string(func, "name", "GreasePencil", 0, "", "New name for the datablock");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm = RNA_def_pointer(func, "grease_pencil", "GreasePencil", "", "New grease pencil datablock");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_Main_grease_pencil_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a grease pencil instance from the current blendfile");
+	parm = RNA_def_pointer(func, "grease_pencil", "GreasePencil", "", "Grease Pencil to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
