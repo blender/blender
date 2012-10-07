@@ -50,7 +50,7 @@ Contents
 - It works with only OpenGL calls, for the full 100%. This means that it has some quirks
   built-in to work with all OS's and OpenGL versions. Especially frontbuffer drawing is 
   a continuous point of attention. Buttons can be drawn with any window matrix. However,
-  errors can still occor when buttons are created in windows with non-standard glViewports.
+  errors can still occur when buttons are created in windows with non-standard glViewports.
   
 - The code was written to replace the old 1.8 button system, but under high pressure. Quite
   some button methods from the old system were copied for that reason.
@@ -95,7 +95,7 @@ blender/source/blender/src/toolbox.c (extra GUI elements built on top of this AP
 All GUI elements are collected in uiBlocks, which in turn are linked together in a list that's 
 part of a Blender Area-window.
 
-	uiBlock *block= uiNewBlock(&curarea->uiblocks, "stuff", UI_EMBOSSX, UI_HELV, curarea->win);
+	uiBlock *block = uiNewBlock(&curarea->uiblocks, "stuff", UI_EMBOSSX, UI_HELV, curarea->win);
 
 The next code example makes a new block, and puts it in the list of blocks of the current active 
 Area:
@@ -221,7 +221,7 @@ void uiBlockSetButmFunc(uiBlock *block, void (*menufunc)(void *arg, int event), 
 void uiAutoBlock(uiBlock *block, float minx, float miny, float sizex, float sizey, UI_BLOCK_ROWS)
 
 	Sets the buttons in this block to automatically align, and fit within boundaries. 
-	Internally it allows multiple collums or rows as well. Only 'row order' has been implemented.
+	Internally it allows multiple colums or rows as well. Only 'row order' has been implemented.
 	The uiDefBut definitions don't need coordinates as input here, but instead:
 	- first value (x1) to indicate row number
 	- width and height values (if filled in) will be used to define a relative width/height.
@@ -346,7 +346,7 @@ type:
 			without returnvalues, the first item gets value 0 (incl. title!)
 	Example: "Do something %t| turn left %2| turn right %1| nothing %0"
 	
-11.	COL
+11.	COLOR
 	A special button that only visualizes a RGB value
 	In 'retval' you can put a code, which is used to identify for sliders if it needs
 	redraws while using the sliders. Check button '5'.
@@ -363,7 +363,7 @@ uiBut *uiDefIconBut(uiBlock *block, int type, int retval, int icon,
 			float min, float max, float a1, float a2,  char *tip)
 
 	Same syntax and types available as previous uiDefBut, but now with an icon code 
-	instead of a name. THe icons are numbered in resources.c
+	instead of a name. The icons are numbered in resources.c
 
 uiBut *uiDefIconTextButF(uiBlock *block, int type, int retval, int icon, char *str, 
 			short x1, short y1, short x2, short y2, float *poin, 
@@ -397,9 +397,9 @@ void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str,
 	static uiBlock *info_file_importmenu(void *arg_unused)
 	{
 		uiBlock *block;
-		short yco= 0, xco = 20;
+		short yco = 0, xco = 20;
 	
-		block= uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSW, UI_HELV, G.curscreen->mainwin);
+		block = uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSW, UI_HELV, G.curscreen->mainwin);
 		uiBlockSetXOfs(block, -40);  // offset to parent button
 	
 		/* flags are defines */
@@ -409,7 +409,7 @@ void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str,
 		uiDefButS(block, TOG|BIT|2, 0, "Two Sided", xco, yco-=20, 75, 19, &U.vrmlflag, 0.0, 0.0, 0, 0, "");
 	
 		uiBlockSetDirection(block, UI_RIGHT);
-		uiTextBoundsBlock(block, 50);	// checks for fontsize
+		uiTextBoundsBlock(block, 50);  /* checks for fontsize */
 
 		return block;
 	}
