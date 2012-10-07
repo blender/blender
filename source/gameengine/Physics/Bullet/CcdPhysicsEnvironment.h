@@ -115,6 +115,11 @@ protected:
 		virtual void		setLinearAirDamping(float damping);
 		virtual void		setUseEpa(bool epa);
 
+		int					getNumTimeSubSteps()
+		{
+			return m_numTimeSubSteps;
+		}
+
 		virtual	void		beginFrame();
 		virtual void		endFrame() {}
 		/// Perform an integration step of duration 'timeStep'.

@@ -895,18 +895,22 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 			return;
 		}
 
-		// btRigidBody* body = GetRigidBody(); // not used anymore
-
 		btVector3 dloc(dlocX,dlocY,dlocZ);
 		btTransform xform = m_object->getWorldTransform();
 	
 		if (local)
-		{
 			dloc = xform.getBasis()*dloc;
-		}
 
-		xform.setOrigin(xform.getOrigin() + dloc);
-		SetCenterOfMassTransform(xform);
+		if (m_characterController)
+		{
+			m_characterController->setWalkDirection(dloc/GetPhysicsEnvironment()->getNumTimeSubSteps());
+		}
+		else
+		{
+
+			xform.setOrigin(xform.getOrigin() + dloc);
+			SetCenterOfMassTransform(xform);
+		}
 	}
 
 }
