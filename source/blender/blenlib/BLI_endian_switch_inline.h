@@ -32,85 +32,63 @@
  *  \ingroup bli
  */
 
+/* note: using a temp char to switch endian is a lot slower,
+ * use bit shifting instead. */
 
+/* *** 16 *** */
 BLI_INLINE void BLI_endian_switch_int16(short *val)
 {
-	char *p_i = (char *)val;
-	char s_i;
+	short tval = *val;
+	*val = (tval >> 8) |
+           (tval << 8);
 
-	s_i    = p_i[0];
-	p_i[0] = p_i[1];
-	p_i[1] = s_i;
 }
-
 BLI_INLINE void BLI_endian_switch_uint16(unsigned short *val)
 {
-	char *p_i = (char *)val;
-	char s_i;
-
-	s_i    = p_i[0];
-	p_i[0] = p_i[1];
-	p_i[1] = s_i;
+	BLI_endian_switch_int16((short *)val);
 }
 
+
+/* *** 32 *** */
 BLI_INLINE void BLI_endian_switch_int32(int *val)
 {
-	char *p_i = (char *)val;
-	char s_i;
+	int tval = *val;
+	*val = ((tval >> 24))             |
+	       ((tval << 8) & 0x00ff0000) |
+	       ((tval >> 8) & 0x0000ff00) |
+	       ((tval << 24));
 
-	s_i = p_i[0]; p_i[0] = p_i[3]; p_i[3] = s_i;
-	s_i = p_i[1]; p_i[1] = p_i[2]; p_i[2] = s_i;
 }
-
 BLI_INLINE void BLI_endian_switch_uint32(unsigned int *val)
 {
-	char *p_i = (char *)val;
-	char s_i;
-
-	s_i = p_i[0]; p_i[0] = p_i[3]; p_i[3] = s_i;
-	s_i = p_i[1]; p_i[1] = p_i[2]; p_i[2] = s_i;
+	BLI_endian_switch_int32((int *)val);
 }
-
 BLI_INLINE void BLI_endian_switch_float(float *val)
 {
-	char *p_i = (char *)val;
-	char s_i;
-
-	s_i = p_i[0]; p_i[0] = p_i[3]; p_i[3] = s_i;
-	s_i = p_i[1]; p_i[1] = p_i[2]; p_i[2] = s_i;
+	BLI_endian_switch_int32((int *)val);
 }
 
+
+/* *** 64 *** */
 BLI_INLINE void BLI_endian_switch_int64(int64_t *val)
 {
-	char *p_i = (char *)val;
-	char s_i;
-
-	s_i = p_i[0]; p_i[0] = p_i[7]; p_i[7] = s_i;
-	s_i = p_i[1]; p_i[1] = p_i[6]; p_i[6] = s_i;
-	s_i = p_i[2]; p_i[2] = p_i[5]; p_i[5] = s_i;
-	s_i = p_i[3]; p_i[3] = p_i[4]; p_i[4] = s_i;
+	int64_t tval = *val;
+	*val = ((tval >> 56)) |
+	       ((tval << 40) & 0x00ff000000000000) |
+	       ((tval << 24) & 0x0000ff0000000000) |
+	       ((tval <<  8) & 0x000000ff00000000) |
+	       ((tval >>  8) & 0x00000000ff000000) |
+	       ((tval >> 24) & 0x0000000000ff0000) |
+	       ((tval >> 40) & 0x000000000000ff00) |
+	       ((tval << 56));
 }
-
 BLI_INLINE void BLI_endian_switch_uint64(uint64_t *val)
 {
-	char *p_i = (char *)val;
-	char s_i;
-
-	s_i = p_i[0]; p_i[0] = p_i[7]; p_i[7] = s_i;
-	s_i = p_i[1]; p_i[1] = p_i[6]; p_i[6] = s_i;
-	s_i = p_i[2]; p_i[2] = p_i[5]; p_i[5] = s_i;
-	s_i = p_i[3]; p_i[3] = p_i[4]; p_i[4] = s_i;
+	BLI_endian_switch_int64((int64_t *)val);
 }
-
 BLI_INLINE void BLI_endian_switch_double(double *val)
 {
-	char *p_i = (char *)val;
-	char s_i;
-
-	s_i = p_i[0]; p_i[0] = p_i[7]; p_i[7] = s_i;
-	s_i = p_i[1]; p_i[1] = p_i[6]; p_i[6] = s_i;
-	s_i = p_i[2]; p_i[2] = p_i[5]; p_i[5] = s_i;
-	s_i = p_i[3]; p_i[3] = p_i[4]; p_i[4] = s_i;
+	BLI_endian_switch_int64((int64_t *)val);
 }
 
 #endif  /* __BLI_ENDIAN_SWITCH_INLINE_H__ */
