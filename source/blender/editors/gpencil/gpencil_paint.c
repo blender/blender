@@ -792,6 +792,37 @@ static short gp_stroke_eraser_strokeinside(const int mval[], const int UNUSED(mv
 	return 0;
 } 
 
+static void gp_point_to_xy(ARegion *ar, View2D *v2d, rctf *subrect, bGPDstroke *gps, bGPDspoint *pt,
+                           int *r_x, int *r_y)
+{
+	int xyval[2];
+
+	if (gps->flag & GP_STROKE_3DSPACE) {
+		if (ED_view3d_project_int_global(ar, &pt->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+			*r_x = xyval[0];
+			*r_y = xyval[1];
+		}
+		else {
+			*r_x = V2D_IS_CLIPPED;
+			*r_y = V2D_IS_CLIPPED;
+		}
+	}
+	else if (gps->flag & GP_STROKE_2DSPACE) {
+		UI_view2d_view_to_region(v2d, pt->x, pt->y, r_x, r_y);
+	}
+	else {
+		if (subrect == NULL) { /* normal 3D view */
+			*r_x = (int)(pt->x / 100 * ar->winx);
+			*r_y = (int)(pt->y / 100 * ar->winy);
+		}
+		else { /* camera view, use subrect */
+			*r_x = (int)((pt->x / 100) * BLI_rctf_size_x(subrect)) + subrect->xmin;
+			*r_y = (int)((pt->y / 100) * BLI_rctf_size_y(subrect)) + subrect->ymin;
+		}
+	}
+}
+
+
 /* eraser tool - evaluation per stroke */
 // TODO: this could really do with some optimization (KD-Tree/BVH?)
 static void gp_stroke_eraser_dostroke(tGPsdata *p,
@@ -800,7 +831,6 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 {
 	bGPDspoint *pt1, *pt2;
 	int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
-	int xyval[2];
 	int i;
 	
 	if (gps->totpoints == 0) {
@@ -810,33 +840,11 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		BLI_freelinkN(&gpf->strokes, gps);
 	}
 	else if (gps->totpoints == 1) {
-		/* get coordinates */
-		if (gps->flag & GP_STROKE_3DSPACE) {
-			if (ED_view3d_project_int_global(p->ar, &gps->points->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
-				x0 = xyval[0];
-				y0 = xyval[1];
-			}
-			else {
-				x0 = V2D_IS_CLIPPED;
-				y0 = V2D_IS_CLIPPED;
-			}
-		}
-		else if (gps->flag & GP_STROKE_2DSPACE) {			
-			UI_view2d_view_to_region(p->v2d, gps->points->x, gps->points->y, &x0, &y0);
-		}
-		else {
-			if (p->subrect == NULL) { /* normal 3D view */
-				x0 = (int)(gps->points->x / 100 * p->ar->winx);
-				y0 = (int)(gps->points->y / 100 * p->ar->winy);
-			}
-			else { /* camera view, use subrect */
-				x0 = (int)((gps->points->x / 100) * BLI_rctf_size_x(p->subrect)) + p->subrect->xmin;
-				y0 = (int)((gps->points->y / 100) * BLI_rctf_size_y(p->subrect)) + p->subrect->ymin;
-			}
-		}
+		gp_point_to_xy(p->ar, p->v2d, p->subrect, gps, gps->points, &x0, &y0);
 		
 		/* do boundbox check first */
-		if (BLI_rcti_isect_pt(rect, x0, y0)) {
+
+		if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
 			/* only check if point is inside */
 			if (((x0 - mval[0]) * (x0 - mval[0]) + (y0 - mval[1]) * (y0 - mval[1])) <= rad * rad) {
 				/* free stroke */
@@ -853,48 +861,13 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			/* get points to work with */
 			pt1 = gps->points + i;
 			pt2 = gps->points + i + 1;
-			
-			/* get coordinates */
-			if (gps->flag & GP_STROKE_3DSPACE) {
-				if (ED_view3d_project_int_global(p->ar, &pt1->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
-					x0 = xyval[0];
-					y0 = xyval[1];
-				}
-				else {
-					x0 = V2D_IS_CLIPPED;
-					y0 = V2D_IS_CLIPPED;
-				}
-				if (ED_view3d_project_int_global(p->ar, &pt2->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
-					x1 = xyval[0];
-					y1 = xyval[1];
-				}
-				else {
-					x1 = V2D_IS_CLIPPED;
-					y1 = V2D_IS_CLIPPED;
-				}
-			}
-			else if (gps->flag & GP_STROKE_2DSPACE) {
-				UI_view2d_view_to_region(p->v2d, pt1->x, pt1->y, &x0, &y0);
-				
-				UI_view2d_view_to_region(p->v2d, pt2->x, pt2->y, &x1, &y1);
-			}
-			else {
-				if (p->subrect == NULL) { /* normal 3D view */
-					x0 = (int)(pt1->x / 100 * p->ar->winx);
-					y0 = (int)(pt1->y / 100 * p->ar->winy);
-					x1 = (int)(pt2->x / 100 * p->ar->winx);
-					y1 = (int)(pt2->y / 100 * p->ar->winy);
-				}
-				else { /* camera view, use subrect */ 
-					x0 = (int)((pt1->x / 100) * BLI_rctf_size_x(p->subrect)) + p->subrect->xmin;
-					y0 = (int)((pt1->y / 100) * BLI_rctf_size_y(p->subrect)) + p->subrect->ymin;
-					x1 = (int)((pt2->x / 100) * BLI_rctf_size_x(p->subrect)) + p->subrect->xmin;
-					y1 = (int)((pt2->y / 100) * BLI_rctf_size_y(p->subrect)) + p->subrect->ymin;
-				}
-			}
-			
+
+			gp_point_to_xy(p->ar, p->v2d, p->subrect, gps, pt1, &x0, &y0);
+			gp_point_to_xy(p->ar, p->v2d, p->subrect, gps, pt2, &x1, &y1);
+
 			/* check that point segment of the boundbox of the eraser stroke */
-			if (BLI_rcti_isect_pt(rect, x0, y0) || BLI_rcti_isect_pt(rect, x1, y1)) {
+			if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
+			    ((!ELEM(V2D_IS_CLIPPED, x1, y1)) && BLI_rcti_isect_pt(rect, x1, y1))) {
 				/* check if point segment of stroke had anything to do with
 				 * eraser region  (either within stroke painted, or on its lines)
 				 *  - this assumes that linewidth is irrelevant
