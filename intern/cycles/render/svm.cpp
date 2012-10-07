@@ -274,17 +274,6 @@ void SVMCompiler::stack_clear_users(ShaderNode *node, set<ShaderNode*>& done)
 
 				foreach(ShaderInput *in, output->links)
 					in->stack_offset = SVM_STACK_INVALID;
-
-				/* unmark any nodes that have no more valid outputs, see [#31806] */
-				if(done.find(output->parent) != done.end()) {
-					all_done = true;
-					foreach(ShaderOutput *pout, output->parent->outputs)
-						if(pout->stack_offset != SVM_STACK_INVALID)
-							all_done = false;
-
-					if(all_done)
-						done.erase(output->parent);
-				}
 			}
 		}
 	}
