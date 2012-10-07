@@ -73,15 +73,17 @@ void BKE_sequence_iterator_end(SeqIterator *iter);
 		SeqIterator iter;                                                     \
 		for (BKE_sequence_iterator_begin(ed, &iter, 1);                       \
 		     iter.valid;                                                      \
-		     BKE_sequence_iterator_next(&iter)) {                             \
+		     BKE_sequence_iterator_next(&iter))                               \
+		{                                                                     \
 			_seq = iter.seq;
-			
+
 #define SEQ_BEGIN(ed, _seq)                                                   \
 	{                                                                         \
 		SeqIterator iter;                                                     \
 		for (BKE_sequence_iterator_begin(ed, &iter, 0);                       \
 		     iter.valid;                                                      \
-		     BKE_sequence_iterator_next(&iter)) {                             \
+		     BKE_sequence_iterator_next(&iter))                               \
+		{                                                                     \
 			_seq = iter.seq;
 
 #define SEQ_END                                                               \

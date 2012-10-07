@@ -93,9 +93,18 @@ typedef struct EditBone {
 #define BONESEL_NOSEL   (1 << 31) /* Indicates a negative number */
 
 /* useful macros */
-#define EBONE_VISIBLE(arm, ebone) (((arm)->layer & (ebone)->layer) && !((ebone)->flag & BONE_HIDDEN_A))
+#define EBONE_VISIBLE(arm, ebone) ( \
+	CHECK_TYPE_INLINE(arm, bArmature), \
+	CHECK_TYPE_INLINE(ebone, EditBone), \
+	(((arm)->layer & (ebone)->layer) && !((ebone)->flag & BONE_HIDDEN_A)) \
+	)
+
 #define EBONE_SELECTABLE(arm, ebone) (EBONE_VISIBLE(arm, ebone) && !(ebone->flag & BONE_UNSELECTABLE))
-#define EBONE_EDITABLE(ebone) (((ebone)->flag & BONE_SELECTED) && !((ebone)->flag & BONE_EDITMODE_LOCKED)) 
+
+#define EBONE_EDITABLE(ebone) ( \
+	CHECK_TYPE_INLINE(ebone, EditBone), \
+	(((ebone)->flag & BONE_SELECTED) && !((ebone)->flag & BONE_EDITMODE_LOCKED)) \
+	)
 
 /* used in bone_select_hierachy() */
 #define BONE_SELECT_PARENT  0

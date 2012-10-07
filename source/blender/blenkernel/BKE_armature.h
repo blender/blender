@@ -131,8 +131,14 @@ typedef struct Mat4 {
 Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan, int rest);
 
 /* like EBONE_VISIBLE */
-#define PBONE_VISIBLE(arm, bone) (((bone)->layer & (arm)->layer) && !((bone)->flag & BONE_HIDDEN_P))
-#define PBONE_SELECTABLE(arm, bone) (PBONE_VISIBLE(arm, bone) && !((bone)->flag & BONE_UNSELECTABLE))
+#define PBONE_VISIBLE(arm, bone) ( \
+	CHECK_TYPE_INLINE(arm, bArmature), \
+	CHECK_TYPE_INLINE(bone, Bone), \
+	(((bone)->layer & (arm)->layer) && !((bone)->flag & BONE_HIDDEN_P)) \
+	)
+
+#define PBONE_SELECTABLE(arm, bone) \
+	(PBONE_VISIBLE(arm, bone) && !((bone)->flag & BONE_UNSELECTABLE))
 
 #ifdef __cplusplus
 }
