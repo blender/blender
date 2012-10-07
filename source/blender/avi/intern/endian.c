@@ -46,31 +46,22 @@
 #endif
 
 #ifdef __BIG_ENDIAN__
+
+/* copied from BLI_endian_switch_inline.h */
 static void invert(int *num)
 {
-	int new = 0, i, j;
-
-	for (j = 0; j < 4; j++) {
-		for (i = 0; i < 8; i++) {
-			new |= ((*num >> (j * 8 + i)) & 1) << ((3 - j) * 8 + i);
-		}
-	}
-	
-	*num = new;
+	int tval = *val;
+	*val = ((tval >> 24))             |
+	       ((tval << 8) & 0x00ff0000) |
+	       ((tval >> 8) & 0x0000ff00) |
+	       ((tval << 24));
 }
 
-static void sinvert(short int *num)
+static void sinvert(short int *val)
 {
-	short int new = 0;
-	int i, j;
-
-	for (j = 0; j < 2; j++) {
-		for (i = 0; i < 8; i++) {
-			new |= ((*num >> (j * 8 + i)) & 1) << ((1 - j) * 8 + i);
-		}
-	}
-
-	*num = new;
+	short tval = *val;
+	*val = (tval >> 8) |
+	       (tval << 8);
 }
 
 static void Ichunk(AviChunk *chunk)

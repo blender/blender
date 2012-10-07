@@ -40,7 +40,7 @@ BLI_INLINE void BLI_endian_switch_int16(short *val)
 {
 	short tval = *val;
 	*val = (tval >> 8) |
-           (tval << 8);
+	       (tval << 8);
 
 }
 BLI_INLINE void BLI_endian_switch_uint16(unsigned short *val)
